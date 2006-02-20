@@ -22,7 +22,7 @@ static logical c_true = TRUE_;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* RCS version control information: */
-/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_ErrPack.c,v 1.2 2006/02/14 15:41:17 olemke Exp $ */
+/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_ErrPack.c,v 1.3 2006/02/20 09:15:58 olemke Exp $ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* Subroutine */ int errmsg_(char *messag, logical *fatal, ftnlen messag_len)
 {

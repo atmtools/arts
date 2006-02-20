@@ -21,7 +21,7 @@ static integer c__1 = 1;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* RCS version control information: */
-/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_LINPAK.c,v 1.2 2006/02/14 15:41:17 olemke Exp $ */
+/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_LINPAK.c,v 1.3 2006/02/20 09:15:58 olemke Exp $ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* Call tree: */
 
@@ -182,9 +182,6 @@ static integer c__1 = 1;
     /* Parameter adjustments */
     abd_dim1 = *lda;
     abd_offset = 1 + abd_dim1;
-    abd -= abd_offset;
-    --ipvt;
-    --z__;
 
     /* Function Body */
     anorm = 0.;
@@ -193,7 +190,8 @@ static integer c__1 = 1;
     i__1 = *n;
     for (j = 1; j <= i__1; ++j) {
 /* Computing MAX */
-	d__1 = anorm, d__2 = sasum_(&l, &abd[is + j * abd_dim1], &c__1);
+	d__1 = anorm, d__2 = sasum_(&l, &abd[is + j * abd_dim1 - abd_offset], 
+		&c__1);
 	anorm = max(d__1,d__2);
 	if (is > *ml + 1) {
 	    --is;
@@ -207,7 +205,7 @@ static integer c__1 = 1;
 /* L10: */
     }
 /*                                               ** factor */
-    sgbfa_(&abd[abd_offset], lda, n, ml, mu, &ipvt[1], &info);
+    sgbfa_(abd, lda, n, ml, mu, ipvt, &info);
 /*     RCOND = 1/(norm(A)*(estimate of norm(inverse(A)))) . */
 /*     estimate = norm(Z)/norm(Y) where  A*Z = Y  and  trans(A)*Y = E. */
 /*     trans(A) is the transpose of A.  The components of E  are */
@@ -218,31 +216,31 @@ static integer c__1 = 1;
     ek = 1.;
     i__1 = *n;
     for (j = 1; j <= i__1; ++j) {
-	z__[j] = 0.;
+	z__[j - 1] = 0.;
 /* L20: */
     }
     m = *ml + *mu + 1;
     ju = 0;
     i__1 = *n;
     for (k = 1; k <= i__1; ++k) {
-	if (z__[k] != 0.) {
-	    d__1 = -z__[k];
+	if (z__[k - 1] != 0.) {
+	    d__1 = -z__[k - 1];
 	    ek = d_sign(&ek, &d__1);
 	}
-	if ((d__1 = ek - z__[k], abs(d__1)) > (d__2 = abd[m + k * abd_dim1], 
-		abs(d__2))) {
-	    s = (d__1 = abd[m + k * abd_dim1], abs(d__1)) / (d__2 = ek - z__[
-		    k], abs(d__2));
-	    sscal_(n, &s, &z__[1], &c__1);
+	if ((d__1 = ek - z__[k - 1], abs(d__1)) > (d__2 = abd[m + k * 
+		abd_dim1 - abd_offset], abs(d__2))) {
+	    s = (d__1 = abd[m + k * abd_dim1 - abd_offset], abs(d__1)) / (
+		    d__2 = ek - z__[k - 1], abs(d__2));
+	    sscal_(n, &s, z__, &c__1);
 	    ek = s * ek;
 	}
-	wk = ek - z__[k];
-	wkm = -ek - z__[k];
+	wk = ek - z__[k - 1];
+	wkm = -ek - z__[k - 1];
 	s = abs(wk);
 	sm = abs(wkm);
-	if (abd[m + k * abd_dim1] != 0.) {
-	    wk /= abd[m + k * abd_dim1];
-	    wkm /= abd[m + k * abd_dim1];
+	if (abd[m + k * abd_dim1 - abd_offset] != 0.) {
+	    wk /= abd[m + k * abd_dim1 - abd_offset];
+	    wkm /= abd[m + k * abd_dim1 - abd_offset];
 	} else {
 	    wk = 1.;
 	    wkm = 1.;
@@ -250,7 +248,7 @@ static integer c__1 = 1;
 	kp1 = k + 1;
 /* Computing MIN */
 /* Computing MAX */
-	i__3 = ju, i__4 = *mu + ipvt[k];
+	i__3 = ju, i__4 = *mu + ipvt[k - 1];
 	i__2 = max(i__3,i__4);
 	ju = min(i__2,*n);
 	mm = m;
@@ -258,10 +256,10 @@ static integer c__1 = 1;
 	    i__2 = ju;
 	    for (j = kp1; j <= i__2; ++j) {
 		--mm;
-		sm += (d__1 = z__[j] + wkm * abd[mm + j * abd_dim1], abs(d__1)
-			);
-		z__[j] += wk * abd[mm + j * abd_dim1];
-		s += (d__1 = z__[j], abs(d__1));
+		sm += (d__1 = z__[j - 1] + wkm * abd[mm + j * abd_dim1 - 
+			abd_offset], abs(d__1));
+		z__[j - 1] += wk * abd[mm + j * abd_dim1 - abd_offset];
+		s += (d__1 = z__[j - 1], abs(d__1));
 /* L30: */
 	    }
 	    if (s < sm) {
@@ -271,16 +269,16 @@ static integer c__1 = 1;
 		i__2 = ju;
 		for (j = kp1; j <= i__2; ++j) {
 		    --mm;
-		    z__[j] += t * abd[mm + j * abd_dim1];
+		    z__[j - 1] += t * abd[mm + j * abd_dim1 - abd_offset];
 /* L40: */
 		}
 	    }
 	}
-	z__[k] = wk;
+	z__[k - 1] = wk;
 /* L50: */
     }
-    s = 1. / sasum_(n, &z__[1], &c__1);
-    sscal_(n, &s, &z__[1], &c__1);
+    s = 1. / sasum_(n, z__, &c__1);
+    sscal_(n, &s, z__, &c__1);
 /*                         ** solve trans(L)*Y = W */
     i__1 = *n;
     for (kb = 1; kb <= i__1; ++kb) {
@@ -289,73 +287,74 @@ static integer c__1 = 1;
 	i__2 = *ml, i__3 = *n - k;
 	lm = min(i__2,i__3);
 	if (k < *n) {
-	    z__[k] += sdot_(&lm, &abd[m + 1 + k * abd_dim1], &c__1, &z__[k + 
-		    1], &c__1);
+	    z__[k - 1] += sdot_(&lm, &abd[m + 1 + k * abd_dim1 - abd_offset], 
+		    &c__1, &z__[k], &c__1);
 	}
-	if ((d__1 = z__[k], abs(d__1)) > 1.) {
-	    s = 1. / (d__1 = z__[k], abs(d__1));
-	    sscal_(n, &s, &z__[1], &c__1);
+	if ((d__1 = z__[k - 1], abs(d__1)) > 1.) {
+	    s = 1. / (d__1 = z__[k - 1], abs(d__1));
+	    sscal_(n, &s, z__, &c__1);
 	}
-	l = ipvt[k];
-	t = z__[l];
-	z__[l] = z__[k];
-	z__[k] = t;
+	l = ipvt[k - 1];
+	t = z__[l - 1];
+	z__[l - 1] = z__[k - 1];
+	z__[k - 1] = t;
 /* L60: */
     }
-    s = 1. / sasum_(n, &z__[1], &c__1);
-    sscal_(n, &s, &z__[1], &c__1);
+    s = 1. / sasum_(n, z__, &c__1);
+    sscal_(n, &s, z__, &c__1);
     ynorm = 1.;
 /*                         ** solve L*V = Y */
     i__1 = *n;
     for (k = 1; k <= i__1; ++k) {
-	l = ipvt[k];
-	t = z__[l];
-	z__[l] = z__[k];
-	z__[k] = t;
+	l = ipvt[k - 1];
+	t = z__[l - 1];
+	z__[l - 1] = z__[k - 1];
+	z__[k - 1] = t;
 /* Computing MIN */
 	i__2 = *ml, i__3 = *n - k;
 	lm = min(i__2,i__3);
 	if (k < *n) {
-	    saxpy_(&lm, &t, &abd[m + 1 + k * abd_dim1], &c__1, &z__[k + 1], &
-		    c__1);
+	    saxpy_(&lm, &t, &abd[m + 1 + k * abd_dim1 - abd_offset], &c__1, &
+		    z__[k], &c__1);
 	}
-	if ((d__1 = z__[k], abs(d__1)) > 1.) {
-	    s = 1. / (d__1 = z__[k], abs(d__1));
-	    sscal_(n, &s, &z__[1], &c__1);
+	if ((d__1 = z__[k - 1], abs(d__1)) > 1.) {
+	    s = 1. / (d__1 = z__[k - 1], abs(d__1));
+	    sscal_(n, &s, z__, &c__1);
 	    ynorm = s * ynorm;
 	}
 /* L70: */
     }
-    s = 1. / sasum_(n, &z__[1], &c__1);
-    sscal_(n, &s, &z__[1], &c__1);
+    s = 1. / sasum_(n, z__, &c__1);
+    sscal_(n, &s, z__, &c__1);
     ynorm = s * ynorm;
 /*                           ** solve  U*Z = W */
     i__1 = *n;
     for (kb = 1; kb <= i__1; ++kb) {
 	k = *n + 1 - kb;
-	if ((d__1 = z__[k], abs(d__1)) > (d__2 = abd[m + k * abd_dim1], abs(
-		d__2))) {
-	    s = (d__1 = abd[m + k * abd_dim1], abs(d__1)) / (d__2 = z__[k], 
-		    abs(d__2));
-	    sscal_(n, &s, &z__[1], &c__1);
+	if ((d__1 = z__[k - 1], abs(d__1)) > (d__2 = abd[m + k * abd_dim1 - 
+		abd_offset], abs(d__2))) {
+	    s = (d__1 = abd[m + k * abd_dim1 - abd_offset], abs(d__1)) / (
+		    d__2 = z__[k - 1], abs(d__2));
+	    sscal_(n, &s, z__, &c__1);
 	    ynorm = s * ynorm;
 	}
-	if (abd[m + k * abd_dim1] != 0.) {
-	    z__[k] /= abd[m + k * abd_dim1];
+	if (abd[m + k * abd_dim1 - abd_offset] != 0.) {
+	    z__[k - 1] /= abd[m + k * abd_dim1 - abd_offset];
 	}
-	if (abd[m + k * abd_dim1] == 0.) {
-	    z__[k] = 1.;
+	if (abd[m + k * abd_dim1 - abd_offset] == 0.) {
+	    z__[k - 1] = 1.;
 	}
 	lm = min(k,m) - 1;
 	la = m - lm;
 	lz = k - lm;
-	t = -z__[k];
-	saxpy_(&lm, &t, &abd[la + k * abd_dim1], &c__1, &z__[lz], &c__1);
+	t = -z__[k - 1];
+	saxpy_(&lm, &t, &abd[la + k * abd_dim1 - abd_offset], &c__1, &z__[lz 
+		- 1], &c__1);
 /* L80: */
     }
 /*                              ** make znorm = 1.0 */
-    s = 1. / sasum_(n, &z__[1], &c__1);
-    sscal_(n, &s, &z__[1], &c__1);
+    s = 1. / sasum_(n, z__, &c__1);
+    sscal_(n, &s, z__, &c__1);
     ynorm = s * ynorm;
     if (anorm != 0.) {
 	*rcond = ynorm / anorm;
@@ -413,8 +412,6 @@ static integer c__1 = 1;
     /* Parameter adjustments */
     abd_dim1 = *lda;
     abd_offset = 1 + abd_dim1;
-    abd -= abd_offset;
-    --ipvt;
 
     /* Function Body */
     m = *ml + *mu + 1;
@@ -427,7 +424,7 @@ static integer c__1 = 1;
 	i0 = m + 1 - jz;
 	i__2 = *ml;
 	for (i__ = i0; i__ <= i__2; ++i__) {
-	    abd[i__ + jz * abd_dim1] = 0.;
+	    abd[i__ + jz * abd_dim1 - abd_offset] = 0.;
 /* L10: */
 	}
 /* L20: */
@@ -444,7 +441,7 @@ static integer c__1 = 1;
 	if (jz <= *n) {
 	    i__2 = *ml;
 	    for (i__ = 1; i__ <= i__2; ++i__) {
-		abd[i__ + jz * abd_dim1] = 0.;
+		abd[i__ + jz * abd_dim1 - abd_offset] = 0.;
 /* L30: */
 	    }
 	}
@@ -453,26 +450,28 @@ static integer c__1 = 1;
 	i__2 = *ml, i__3 = *n - k;
 	lm = min(i__2,i__3);
 	i__2 = lm + 1;
-	l = isamax_(&i__2, &abd[m + k * abd_dim1], &c__1) + m - 1;
-	ipvt[k] = l + k - m;
-	if (abd[l + k * abd_dim1] == 0.) {
+	l = isamax_(&i__2, &abd[m + k * abd_dim1 - abd_offset], &c__1) + m - 
+		1;
+	ipvt[k - 1] = l + k - m;
+	if (abd[l + k * abd_dim1 - abd_offset] == 0.) {
 /*                                      ** zero pivot implies this column */
 /*                                      ** already triangularized */
 	    *info = k;
 	} else {
 /*                                ** interchange if necessary */
 	    if (l != m) {
-		t = abd[l + k * abd_dim1];
-		abd[l + k * abd_dim1] = abd[m + k * abd_dim1];
-		abd[m + k * abd_dim1] = t;
+		t = abd[l + k * abd_dim1 - abd_offset];
+		abd[l + k * abd_dim1 - abd_offset] = abd[m + k * abd_dim1 - 
+			abd_offset];
+		abd[m + k * abd_dim1 - abd_offset] = t;
 	    }
 /*                                      ** compute multipliers */
-	    t = -1. / abd[m + k * abd_dim1];
-	    sscal_(&lm, &t, &abd[m + 1 + k * abd_dim1], &c__1);
+	    t = -1. / abd[m + k * abd_dim1 - abd_offset];
+	    sscal_(&lm, &t, &abd[m + 1 + k * abd_dim1 - abd_offset], &c__1);
 /*                               ** row elimination with column indexing */
 /* Computing MIN */
 /* Computing MAX */
-	    i__3 = ju, i__4 = *mu + ipvt[k];
+	    i__3 = ju, i__4 = *mu + ipvt[k - 1];
 	    i__2 = max(i__3,i__4);
 	    ju = min(i__2,*n);
 	    mm = m;
@@ -480,20 +479,22 @@ static integer c__1 = 1;
 	    for (j = kp1; j <= i__2; ++j) {
 		--l;
 		--mm;
-		t = abd[l + j * abd_dim1];
+		t = abd[l + j * abd_dim1 - abd_offset];
 		if (l != mm) {
-		    abd[l + j * abd_dim1] = abd[mm + j * abd_dim1];
-		    abd[mm + j * abd_dim1] = t;
+		    abd[l + j * abd_dim1 - abd_offset] = abd[mm + j * 
+			    abd_dim1 - abd_offset];
+		    abd[mm + j * abd_dim1 - abd_offset] = t;
 		}
-		saxpy_(&lm, &t, &abd[m + 1 + k * abd_dim1], &c__1, &abd[mm + 
-			1 + j * abd_dim1], &c__1);
+		saxpy_(&lm, &t, &abd[m + 1 + k * abd_dim1 - abd_offset], &
+			c__1, &abd[mm + 1 + j * abd_dim1 - abd_offset], &c__1)
+			;
 /* L40: */
 	    }
 	}
 /* L50: */
     }
-    ipvt[*n] = *n;
-    if (abd[m + *n * abd_dim1] == 0.) {
+    ipvt[*n - 1] = *n;
+    if (abd[m + *n * abd_dim1 - abd_offset] == 0.) {
 	*info = *n;
     }
     return 0;
@@ -569,9 +570,6 @@ static integer c__1 = 1;
     /* Parameter adjustments */
     abd_dim1 = *lda;
     abd_offset = 1 + abd_dim1;
-    abd -= abd_offset;
-    --ipvt;
-    --b;
 
     /* Function Body */
     m = *mu + *ml + 1;
@@ -585,14 +583,14 @@ static integer c__1 = 1;
 /* Computing MIN */
 		i__2 = *ml, i__3 = *n - k;
 		lm = min(i__2,i__3);
-		l = ipvt[k];
-		t = b[l];
+		l = ipvt[k - 1];
+		t = b[l - 1];
 		if (l != k) {
-		    b[l] = b[k];
-		    b[k] = t;
+		    b[l - 1] = b[k - 1];
+		    b[k - 1] = t;
 		}
-		saxpy_(&lm, &t, &abd[m + 1 + k * abd_dim1], &c__1, &b[k + 1], 
-			&c__1);
+		saxpy_(&lm, &t, &abd[m + 1 + k * abd_dim1 - abd_offset], &
+			c__1, &b[k], &c__1);
 /* L10: */
 	    }
 	}
@@ -600,12 +598,13 @@ static integer c__1 = 1;
 	i__1 = *n;
 	for (kb = 1; kb <= i__1; ++kb) {
 	    k = *n + 1 - kb;
-	    b[k] /= abd[m + k * abd_dim1];
+	    b[k - 1] /= abd[m + k * abd_dim1 - abd_offset];
 	    lm = min(k,m) - 1;
 	    la = m - lm;
 	    lb = k - lm;
-	    t = -b[k];
-	    saxpy_(&lm, &t, &abd[la + k * abd_dim1], &c__1, &b[lb], &c__1);
+	    t = -b[k - 1];
+	    saxpy_(&lm, &t, &abd[la + k * abd_dim1 - abd_offset], &c__1, &b[
+		    lb - 1], &c__1);
 /* L20: */
 	}
     } else {
@@ -616,8 +615,9 @@ static integer c__1 = 1;
 	    lm = min(k,m) - 1;
 	    la = m - lm;
 	    lb = k - lm;
-	    t = sdot_(&lm, &abd[la + k * abd_dim1], &c__1, &b[lb], &c__1);
-	    b[k] = (b[k] - t) / abd[m + k * abd_dim1];
+	    t = sdot_(&lm, &abd[la + k * abd_dim1 - abd_offset], &c__1, &b[lb 
+		    - 1], &c__1);
+	    b[k - 1] = (b[k - 1] - t) / abd[m + k * abd_dim1 - abd_offset];
 /* L30: */
 	}
 /*                                  ** now solve trans(L)*X = Y */
@@ -628,13 +628,13 @@ static integer c__1 = 1;
 /* Computing MIN */
 		i__2 = *ml, i__3 = *n - k;
 		lm = min(i__2,i__3);
-		b[k] += sdot_(&lm, &abd[m + 1 + k * abd_dim1], &c__1, &b[k + 
-			1], &c__1);
-		l = ipvt[k];
+		b[k - 1] += sdot_(&lm, &abd[m + 1 + k * abd_dim1 - abd_offset]
+			, &c__1, &b[k], &c__1);
+		l = ipvt[k - 1];
 		if (l != k) {
-		    t = b[l];
-		    b[l] = b[k];
-		    b[k] = t;
+		    t = b[l - 1];
+		    b[l - 1] = b[k - 1];
+		    b[k - 1] = t;
 		}
 /* L40: */
 	    }
@@ -726,21 +726,18 @@ static integer c__1 = 1;
     /* Parameter adjustments */
     a_dim1 = *lda;
     a_offset = 1 + a_dim1;
-    a -= a_offset;
-    --ipvt;
-    --z__;
 
     /* Function Body */
     anorm = 0.;
     i__1 = *n;
     for (j = 1; j <= i__1; ++j) {
 /* Computing MAX */
-	d__1 = anorm, d__2 = sasum_(n, &a[j * a_dim1 + 1], &c__1);
+	d__1 = anorm, d__2 = sasum_(n, &a[j * a_dim1 + 1 - a_offset], &c__1);
 	anorm = max(d__1,d__2);
 /* L10: */
     }
 /*                                      ** factor */
-    sgefa_(&a[a_offset], lda, n, &ipvt[1], &info);
+    sgefa_(a, lda, n, ipvt, &info);
 /*     RCOND = 1/(norm(A)*(estimate of norm(inverse(A)))) . */
 /*     estimate = norm(Z)/norm(Y) where  A*Z = Y  and  trans(A)*Y = E . */
 /*     trans(A) is the transpose of A.  The components of E  are */
@@ -751,29 +748,29 @@ static integer c__1 = 1;
     ek = 1.;
     i__1 = *n;
     for (j = 1; j <= i__1; ++j) {
-	z__[j] = 0.;
+	z__[j - 1] = 0.;
 /* L20: */
     }
     i__1 = *n;
     for (k = 1; k <= i__1; ++k) {
-	if (z__[k] != 0.) {
-	    d__1 = -z__[k];
+	if (z__[k - 1] != 0.) {
+	    d__1 = -z__[k - 1];
 	    ek = d_sign(&ek, &d__1);
 	}
-	if ((d__1 = ek - z__[k], abs(d__1)) > (d__2 = a[k + k * a_dim1], abs(
-		d__2))) {
-	    s = (d__1 = a[k + k * a_dim1], abs(d__1)) / (d__2 = ek - z__[k], 
-		    abs(d__2));
-	    sscal_(n, &s, &z__[1], &c__1);
+	if ((d__1 = ek - z__[k - 1], abs(d__1)) > (d__2 = a[k + k * a_dim1 - 
+		a_offset], abs(d__2))) {
+	    s = (d__1 = a[k + k * a_dim1 - a_offset], abs(d__1)) / (d__2 = ek 
+		    - z__[k - 1], abs(d__2));
+	    sscal_(n, &s, z__, &c__1);
 	    ek = s * ek;
 	}
-	wk = ek - z__[k];
-	wkm = -ek - z__[k];
+	wk = ek - z__[k - 1];
+	wkm = -ek - z__[k - 1];
 	s = abs(wk);
 	sm = abs(wkm);
-	if (a[k + k * a_dim1] != 0.) {
-	    wk /= a[k + k * a_dim1];
-	    wkm /= a[k + k * a_dim1];
+	if (a[k + k * a_dim1 - a_offset] != 0.) {
+	    wk /= a[k + k * a_dim1 - a_offset];
+	    wkm /= a[k + k * a_dim1 - a_offset];
 	} else {
 	    wk = 1.;
 	    wkm = 1.;
@@ -782,9 +779,10 @@ static integer c__1 = 1;
 	if (kp1 <= *n) {
 	    i__2 = *n;
 	    for (j = kp1; j <= i__2; ++j) {
-		sm += (d__1 = z__[j] + wkm * a[k + j * a_dim1], abs(d__1));
-		z__[j] += wk * a[k + j * a_dim1];
-		s += (d__1 = z__[j], abs(d__1));
+		sm += (d__1 = z__[j - 1] + wkm * a[k + j * a_dim1 - a_offset],
+			 abs(d__1));
+		z__[j - 1] += wk * a[k + j * a_dim1 - a_offset];
+		s += (d__1 = z__[j - 1], abs(d__1));
 /* L30: */
 	    }
 	    if (s < sm) {
@@ -792,85 +790,85 @@ static integer c__1 = 1;
 		wk = wkm;
 		i__2 = *n;
 		for (j = kp1; j <= i__2; ++j) {
-		    z__[j] += t * a[k + j * a_dim1];
+		    z__[j - 1] += t * a[k + j * a_dim1 - a_offset];
 /* L40: */
 		}
 	    }
 	}
-	z__[k] = wk;
+	z__[k - 1] = wk;
 /* L50: */
     }
-    s = 1. / sasum_(n, &z__[1], &c__1);
-    sscal_(n, &s, &z__[1], &c__1);
+    s = 1. / sasum_(n, z__, &c__1);
+    sscal_(n, &s, z__, &c__1);
 /*                                ** solve trans(L)*Y = W */
     i__1 = *n;
     for (kb = 1; kb <= i__1; ++kb) {
 	k = *n + 1 - kb;
 	if (k < *n) {
 	    i__2 = *n - k;
-	    z__[k] += sdot_(&i__2, &a[k + 1 + k * a_dim1], &c__1, &z__[k + 1],
-		     &c__1);
+	    z__[k - 1] += sdot_(&i__2, &a[k + 1 + k * a_dim1 - a_offset], &
+		    c__1, &z__[k], &c__1);
 	}
-	if ((d__1 = z__[k], abs(d__1)) > 1.) {
-	    s = 1. / (d__1 = z__[k], abs(d__1));
-	    sscal_(n, &s, &z__[1], &c__1);
+	if ((d__1 = z__[k - 1], abs(d__1)) > 1.) {
+	    s = 1. / (d__1 = z__[k - 1], abs(d__1));
+	    sscal_(n, &s, z__, &c__1);
 	}
-	l = ipvt[k];
-	t = z__[l];
-	z__[l] = z__[k];
-	z__[k] = t;
+	l = ipvt[k - 1];
+	t = z__[l - 1];
+	z__[l - 1] = z__[k - 1];
+	z__[k - 1] = t;
 /* L60: */
     }
-    s = 1. / sasum_(n, &z__[1], &c__1);
-    sscal_(n, &s, &z__[1], &c__1);
+    s = 1. / sasum_(n, z__, &c__1);
+    sscal_(n, &s, z__, &c__1);
 /*                                 ** solve L*V = Y */
     ynorm = 1.;
     i__1 = *n;
     for (k = 1; k <= i__1; ++k) {
-	l = ipvt[k];
-	t = z__[l];
-	z__[l] = z__[k];
-	z__[k] = t;
+	l = ipvt[k - 1];
+	t = z__[l - 1];
+	z__[l - 1] = z__[k - 1];
+	z__[k - 1] = t;
 	if (k < *n) {
 	    i__2 = *n - k;
-	    saxpy_(&i__2, &t, &a[k + 1 + k * a_dim1], &c__1, &z__[k + 1], &
-		    c__1);
+	    saxpy_(&i__2, &t, &a[k + 1 + k * a_dim1 - a_offset], &c__1, &z__[
+		    k], &c__1);
 	}
-	if ((d__1 = z__[k], abs(d__1)) > 1.) {
-	    s = 1. / (d__1 = z__[k], abs(d__1));
-	    sscal_(n, &s, &z__[1], &c__1);
+	if ((d__1 = z__[k - 1], abs(d__1)) > 1.) {
+	    s = 1. / (d__1 = z__[k - 1], abs(d__1));
+	    sscal_(n, &s, z__, &c__1);
 	    ynorm = s * ynorm;
 	}
 /* L70: */
     }
-    s = 1. / sasum_(n, &z__[1], &c__1);
-    sscal_(n, &s, &z__[1], &c__1);
+    s = 1. / sasum_(n, z__, &c__1);
+    sscal_(n, &s, z__, &c__1);
 /*                                  ** solve  U*Z = V */
     ynorm = s * ynorm;
     i__1 = *n;
     for (kb = 1; kb <= i__1; ++kb) {
 	k = *n + 1 - kb;
-	if ((d__1 = z__[k], abs(d__1)) > (d__2 = a[k + k * a_dim1], abs(d__2))
-		) {
-	    s = (d__1 = a[k + k * a_dim1], abs(d__1)) / (d__2 = z__[k], abs(
-		    d__2));
-	    sscal_(n, &s, &z__[1], &c__1);
+	if ((d__1 = z__[k - 1], abs(d__1)) > (d__2 = a[k + k * a_dim1 - 
+		a_offset], abs(d__2))) {
+	    s = (d__1 = a[k + k * a_dim1 - a_offset], abs(d__1)) / (d__2 = 
+		    z__[k - 1], abs(d__2));
+	    sscal_(n, &s, z__, &c__1);
 	    ynorm = s * ynorm;
 	}
-	if (a[k + k * a_dim1] != 0.) {
-	    z__[k] /= a[k + k * a_dim1];
+	if (a[k + k * a_dim1 - a_offset] != 0.) {
+	    z__[k - 1] /= a[k + k * a_dim1 - a_offset];
 	}
-	if (a[k + k * a_dim1] == 0.) {
-	    z__[k] = 1.;
+	if (a[k + k * a_dim1 - a_offset] == 0.) {
+	    z__[k - 1] = 1.;
 	}
-	t = -z__[k];
+	t = -z__[k - 1];
 	i__2 = k - 1;
-	saxpy_(&i__2, &t, &a[k * a_dim1 + 1], &c__1, &z__[1], &c__1);
+	saxpy_(&i__2, &t, &a[k * a_dim1 + 1 - a_offset], &c__1, z__, &c__1);
 /* L80: */
     }
 /*                                   ** make znorm = 1.0 */
-    s = 1. / sasum_(n, &z__[1], &c__1);
-    sscal_(n, &s, &z__[1], &c__1);
+    s = 1. / sasum_(n, z__, &c__1);
+    sscal_(n, &s, z__, &c__1);
     ynorm = s * ynorm;
     if (anorm != 0.) {
 	*rcond = ynorm / anorm;
@@ -927,8 +925,6 @@ static integer c__1 = 1;
     /* Parameter adjustments */
     a_dim1 = *lda;
     a_offset = 1 + a_dim1;
-    a -= a_offset;
-    --ipvt;
 
     /* Function Body */
     *info = 0;
@@ -938,41 +934,42 @@ static integer c__1 = 1;
 	kp1 = k + 1;
 /*                                            ** find L = pivot index */
 	i__2 = *n - k + 1;
-	l = isamax_(&i__2, &a[k + k * a_dim1], &c__1) + k - 1;
-	ipvt[k] = l;
-	if (a[l + k * a_dim1] == 0.) {
+	l = isamax_(&i__2, &a[k + k * a_dim1 - a_offset], &c__1) + k - 1;
+	ipvt[k - 1] = l;
+	if (a[l + k * a_dim1 - a_offset] == 0.) {
 /*                                     ** zero pivot implies this column */
 /*                                     ** already triangularized */
 	    *info = k;
 	} else {
 /*                                     ** interchange if necessary */
 	    if (l != k) {
-		t = a[l + k * a_dim1];
-		a[l + k * a_dim1] = a[k + k * a_dim1];
-		a[k + k * a_dim1] = t;
+		t = a[l + k * a_dim1 - a_offset];
+		a[l + k * a_dim1 - a_offset] = a[k + k * a_dim1 - a_offset];
+		a[k + k * a_dim1 - a_offset] = t;
 	    }
 /*                                     ** compute multipliers */
-	    t = -1. / a[k + k * a_dim1];
+	    t = -1. / a[k + k * a_dim1 - a_offset];
 	    i__2 = *n - k;
-	    sscal_(&i__2, &t, &a[k + 1 + k * a_dim1], &c__1);
+	    sscal_(&i__2, &t, &a[k + 1 + k * a_dim1 - a_offset], &c__1);
 /*                              ** row elimination with column indexing */
 	    i__2 = *n;
 	    for (j = kp1; j <= i__2; ++j) {
-		t = a[l + j * a_dim1];
+		t = a[l + j * a_dim1 - a_offset];
 		if (l != k) {
-		    a[l + j * a_dim1] = a[k + j * a_dim1];
-		    a[k + j * a_dim1] = t;
+		    a[l + j * a_dim1 - a_offset] = a[k + j * a_dim1 - 
+			    a_offset];
+		    a[k + j * a_dim1 - a_offset] = t;
 		}
 		i__3 = *n - k;
-		saxpy_(&i__3, &t, &a[k + 1 + k * a_dim1], &c__1, &a[k + 1 + j 
-			* a_dim1], &c__1);
+		saxpy_(&i__3, &t, &a[k + 1 + k * a_dim1 - a_offset], &c__1, &
+			a[k + 1 + j * a_dim1 - a_offset], &c__1);
 /* L10: */
 	    }
 	}
 /* L20: */
     }
-    ipvt[*n] = *n;
-    if (a[*n + *n * a_dim1] == 0.) {
+    ipvt[*n - 1] = *n;
+    if (a[*n + *n * a_dim1 - a_offset] == 0.) {
 	*info = *n;
     }
     return 0;
@@ -1042,9 +1039,6 @@ static integer c__1 = 1;
     /* Parameter adjustments */
     a_dim1 = *lda;
     a_offset = 1 + a_dim1;
-    a -= a_offset;
-    --ipvt;
-    --b;
 
     /* Function Body */
     nm1 = *n - 1;
@@ -1053,25 +1047,25 @@ static integer c__1 = 1;
 /*                                     ** first solve  L*Y = B */
 	i__1 = nm1;
 	for (k = 1; k <= i__1; ++k) {
-	    l = ipvt[k];
-	    t = b[l];
+	    l = ipvt[k - 1];
+	    t = b[l - 1];
 	    if (l != k) {
-		b[l] = b[k];
-		b[k] = t;
+		b[l - 1] = b[k - 1];
+		b[k - 1] = t;
 	    }
 	    i__2 = *n - k;
-	    saxpy_(&i__2, &t, &a[k + 1 + k * a_dim1], &c__1, &b[k + 1], &c__1)
-		    ;
+	    saxpy_(&i__2, &t, &a[k + 1 + k * a_dim1 - a_offset], &c__1, &b[k],
+		     &c__1);
 /* L10: */
 	}
 /*                                    ** now solve  U*X = Y */
 	i__1 = *n;
 	for (kb = 1; kb <= i__1; ++kb) {
 	    k = *n + 1 - kb;
-	    b[k] /= a[k + k * a_dim1];
-	    t = -b[k];
+	    b[k - 1] /= a[k + k * a_dim1 - a_offset];
+	    t = -b[k - 1];
 	    i__2 = k - 1;
-	    saxpy_(&i__2, &t, &a[k * a_dim1 + 1], &c__1, &b[1], &c__1);
+	    saxpy_(&i__2, &t, &a[k * a_dim1 + 1 - a_offset], &c__1, b, &c__1);
 /* L20: */
 	}
     } else {
@@ -1080,8 +1074,8 @@ static integer c__1 = 1;
 	i__1 = *n;
 	for (k = 1; k <= i__1; ++k) {
 	    i__2 = k - 1;
-	    t = sdot_(&i__2, &a[k * a_dim1 + 1], &c__1, &b[1], &c__1);
-	    b[k] = (b[k] - t) / a[k + k * a_dim1];
+	    t = sdot_(&i__2, &a[k * a_dim1 + 1 - a_offset], &c__1, b, &c__1);
+	    b[k - 1] = (b[k - 1] - t) / a[k + k * a_dim1 - a_offset];
 /* L30: */
 	}
 /*                                    ** now solve  trans(l)*x = y */
@@ -1089,13 +1083,13 @@ static integer c__1 = 1;
 	for (kb = 1; kb <= i__1; ++kb) {
 	    k = *n - kb;
 	    i__2 = *n - k;
-	    b[k] += sdot_(&i__2, &a[k + 1 + k * a_dim1], &c__1, &b[k + 1], &
-		    c__1);
-	    l = ipvt[k];
+	    b[k - 1] += sdot_(&i__2, &a[k + 1 + k * a_dim1 - a_offset], &c__1,
+		     &b[k], &c__1);
+	    l = ipvt[k - 1];
 	    if (l != k) {
-		t = b[l];
-		b[l] = b[k];
-		b[k] = t;
+		t = b[l - 1];
+		b[l - 1] = b[k - 1];
+		b[k - 1] = t;
 	    }
 /* L40: */
 	}
@@ -1125,10 +1119,6 @@ doublereal sasum_(integer *n, doublereal *sx, integer *incx)
 /*     .. */
 /*     .. Intrinsic Functions .. */
 /*     .. */
-    /* Parameter adjustments */
-    --sx;
-
-    /* Function Body */
     ret_val = 0.;
     if (*n <= 0) {
 	return ret_val;
@@ -1138,7 +1128,7 @@ doublereal sasum_(integer *n, doublereal *sx, integer *incx)
 	i__1 = (*n - 1) * *incx + 1;
 	i__2 = *incx;
 	for (i__ = 1; i__2 < 0 ? i__ >= i__1 : i__ <= i__1; i__ += i__2) {
-	    ret_val += (d__1 = sx[i__], abs(d__1));
+	    ret_val += (d__1 = sx[i__ - 1], abs(d__1));
 /* L10: */
 	}
     } else {
@@ -1149,17 +1139,17 @@ doublereal sasum_(integer *n, doublereal *sx, integer *incx)
 /*                             ** length is a multiple of 6. */
 	    i__2 = m;
 	    for (i__ = 1; i__ <= i__2; ++i__) {
-		ret_val += (d__1 = sx[i__], abs(d__1));
+		ret_val += (d__1 = sx[i__ - 1], abs(d__1));
 /* L20: */
 	    }
 	}
 /*                              ** unroll loop for speed */
 	i__2 = *n;
 	for (i__ = m + 1; i__ <= i__2; i__ += 6) {
-	    ret_val = ret_val + (d__1 = sx[i__], abs(d__1)) + (d__2 = sx[i__ 
-		    + 1], abs(d__2)) + (d__3 = sx[i__ + 2], abs(d__3)) + (
-		    d__4 = sx[i__ + 3], abs(d__4)) + (d__5 = sx[i__ + 4], abs(
-		    d__5)) + (d__6 = sx[i__ + 5], abs(d__6));
+	    ret_val = ret_val + (d__1 = sx[i__ - 1], abs(d__1)) + (d__2 = sx[
+		    i__], abs(d__2)) + (d__3 = sx[i__ + 1], abs(d__3)) + (
+		    d__4 = sx[i__ + 2], abs(d__4)) + (d__5 = sx[i__ + 3], abs(
+		    d__5)) + (d__6 = sx[i__ + 4], abs(d__6));
 /* L30: */
 	}
     }
@@ -1198,11 +1188,6 @@ doublereal sasum_(integer *n, doublereal *sx, integer *incx)
 /*     .. */
 /*     .. Intrinsic Functions .. */
 /*     .. */
-    /* Parameter adjustments */
-    --sy;
-    --sx;
-
-    /* Function Body */
     if (*n <= 0 || *sa == 0.) {
 	return 0;
     }
@@ -1210,7 +1195,7 @@ doublereal sasum_(integer *n, doublereal *sx, integer *incx)
 	i__1 = (*n - 1) * *incx + 1;
 	i__2 = *incx;
 	for (i__ = 1; i__2 < 0 ? i__ >= i__1 : i__ <= i__1; i__ += i__2) {
-	    sy[i__] += *sa * sx[i__];
+	    sy[i__ - 1] += *sa * sx[i__ - 1];
 /* L10: */
 	}
     } else if (*incx == *incy && *incx == 1) {
@@ -1221,17 +1206,17 @@ doublereal sasum_(integer *n, doublereal *sx, integer *incx)
 /*                            ** is a multiple of 4. */
 	    i__2 = m;
 	    for (i__ = 1; i__ <= i__2; ++i__) {
-		sy[i__] += *sa * sx[i__];
+		sy[i__ - 1] += *sa * sx[i__ - 1];
 /* L20: */
 	    }
 	}
 /*                              ** unroll loop for speed */
 	i__2 = *n;
 	for (i__ = m + 1; i__ <= i__2; i__ += 4) {
+	    sy[i__ - 1] += *sa * sx[i__ - 1];
 	    sy[i__] += *sa * sx[i__];
 	    sy[i__ + 1] += *sa * sx[i__ + 1];
 	    sy[i__ + 2] += *sa * sx[i__ + 2];
-	    sy[i__ + 3] += *sa * sx[i__ + 3];
 /* L30: */
 	}
     } else {
@@ -1246,7 +1231,7 @@ doublereal sasum_(integer *n, doublereal *sx, integer *incx)
 	}
 	i__2 = *n;
 	for (i__ = 1; i__ <= i__2; ++i__) {
-	    sy[iy] += *sa * sx[ix];
+	    sy[iy - 1] += *sa * sx[ix - 1];
 	    ix += *incx;
 	    iy += *incy;
 /* L40: */
@@ -1286,11 +1271,6 @@ doublereal sdot_(integer *n, doublereal *sx, integer *incx, doublereal *sy,
 /*     .. */
 /*     .. Intrinsic Functions .. */
 /*     .. */
-    /* Parameter adjustments */
-    --sy;
-    --sx;
-
-    /* Function Body */
     ret_val = 0.;
     if (*n <= 0) {
 	return ret_val;
@@ -1299,7 +1279,7 @@ doublereal sdot_(integer *n, doublereal *sx, integer *incx, doublereal *sy,
 	i__1 = (*n - 1) * *incx + 1;
 	i__2 = *incx;
 	for (i__ = 1; i__2 < 0 ? i__ >= i__1 : i__ <= i__1; i__ += i__2) {
-	    ret_val += sx[i__] * sy[i__];
+	    ret_val += sx[i__ - 1] * sy[i__ - 1];
 /* L10: */
 	}
     } else if (*incx == *incy && *incx == 1) {
@@ -1310,16 +1290,16 @@ doublereal sdot_(integer *n, doublereal *sx, integer *incx, doublereal *sy,
 /*                            ** is a multiple of 4. */
 	    i__2 = m;
 	    for (i__ = 1; i__ <= i__2; ++i__) {
-		ret_val += sx[i__] * sy[i__];
+		ret_val += sx[i__ - 1] * sy[i__ - 1];
 /* L20: */
 	    }
 	}
 /*                              ** unroll loop for speed */
 	i__2 = *n;
 	for (i__ = m + 1; i__ <= i__2; i__ += 5) {
-	    ret_val = ret_val + sx[i__] * sy[i__] + sx[i__ + 1] * sy[i__ + 1] 
-		    + sx[i__ + 2] * sy[i__ + 2] + sx[i__ + 3] * sy[i__ + 3] + 
-		    sx[i__ + 4] * sy[i__ + 4];
+	    ret_val = ret_val + sx[i__ - 1] * sy[i__ - 1] + sx[i__] * sy[i__] 
+		    + sx[i__ + 1] * sy[i__ + 1] + sx[i__ + 2] * sy[i__ + 2] + 
+		    sx[i__ + 3] * sy[i__ + 3];
 /* L30: */
 	}
     } else {
@@ -1334,7 +1314,7 @@ doublereal sdot_(integer *n, doublereal *sx, integer *incx, doublereal *sy,
 	}
 	i__2 = *n;
 	for (i__ = 1; i__ <= i__2; ++i__) {
-	    ret_val += sx[ix] * sy[iy];
+	    ret_val += sx[ix - 1] * sy[iy - 1];
 	    ix += *incx;
 	    iy += *incy;
 /* L40: */
@@ -1368,10 +1348,6 @@ doublereal sdot_(integer *n, doublereal *sx, integer *incx, doublereal *sy,
 /*     .. */
 /*     .. Intrinsic Functions .. */
 /*     .. */
-    /* Parameter adjustments */
-    --sx;
-
-    /* Function Body */
     if (*n <= 0) {
 	return 0;
     }
@@ -1379,7 +1355,7 @@ doublereal sdot_(integer *n, doublereal *sx, integer *incx, doublereal *sy,
 	i__1 = (*n - 1) * *incx + 1;
 	i__2 = *incx;
 	for (i__ = 1; i__2 < 0 ? i__ >= i__1 : i__ <= i__1; i__ += i__2) {
-	    sx[i__] = *sa * sx[i__];
+	    sx[i__ - 1] = *sa * sx[i__ - 1];
 /* L10: */
 	}
     } else {
@@ -1389,18 +1365,18 @@ doublereal sdot_(integer *n, doublereal *sx, integer *incx, doublereal *sy,
 /*                           ** is a multiple of 5. */
 	    i__2 = m;
 	    for (i__ = 1; i__ <= i__2; ++i__) {
-		sx[i__] = *sa * sx[i__];
+		sx[i__ - 1] = *sa * sx[i__ - 1];
 /* L20: */
 	    }
 	}
 /*                             ** unroll loop for speed */
 	i__2 = *n;
 	for (i__ = m + 1; i__ <= i__2; i__ += 5) {
+	    sx[i__ - 1] = *sa * sx[i__ - 1];
 	    sx[i__] = *sa * sx[i__];
 	    sx[i__ + 1] = *sa * sx[i__ + 1];
 	    sx[i__ + 2] = *sa * sx[i__ + 2];
 	    sx[i__ + 3] = *sa * sx[i__ + 3];
-	    sx[i__ + 4] = *sa * sx[i__ + 4];
 /* L30: */
 	}
     }
@@ -1440,11 +1416,6 @@ doublereal sdot_(integer *n, doublereal *sx, integer *incx, doublereal *sy,
 /*     .. */
 /*     .. Intrinsic Functions .. */
 /*     .. */
-    /* Parameter adjustments */
-    --sy;
-    --sx;
-
-    /* Function Body */
     if (*n <= 0) {
 	return 0;
     }
@@ -1452,9 +1423,9 @@ doublereal sdot_(integer *n, doublereal *sx, integer *incx, doublereal *sy,
 	i__1 = (*n - 1) * *incx + 1;
 	i__2 = *incx;
 	for (i__ = 1; i__2 < 0 ? i__ >= i__1 : i__ <= i__1; i__ += i__2) {
-	    stemp1 = sx[i__];
-	    sx[i__] = sy[i__];
-	    sy[i__] = stemp1;
+	    stemp1 = sx[i__ - 1];
+	    sx[i__ - 1] = sy[i__ - 1];
+	    sy[i__ - 1] = stemp1;
 /* L10: */
 	}
     } else if (*incx == *incy && *incx == 1) {
@@ -1465,24 +1436,24 @@ doublereal sdot_(integer *n, doublereal *sx, integer *incx, doublereal *sy,
 /*                            ** is a multiple of 3. */
 	    i__2 = m;
 	    for (i__ = 1; i__ <= i__2; ++i__) {
-		stemp1 = sx[i__];
-		sx[i__] = sy[i__];
-		sy[i__] = stemp1;
+		stemp1 = sx[i__ - 1];
+		sx[i__ - 1] = sy[i__ - 1];
+		sy[i__ - 1] = stemp1;
 /* L20: */
 	    }
 	}
 /*                              ** unroll loop for speed */
 	i__2 = *n;
 	for (i__ = m + 1; i__ <= i__2; i__ += 3) {
-	    stemp1 = sx[i__];
-	    stemp2 = sx[i__ + 1];
-	    stemp3 = sx[i__ + 2];
+	    stemp1 = sx[i__ - 1];
+	    stemp2 = sx[i__];
+	    stemp3 = sx[i__ + 1];
+	    sx[i__ - 1] = sy[i__ - 1];
 	    sx[i__] = sy[i__];
 	    sx[i__ + 1] = sy[i__ + 1];
-	    sx[i__ + 2] = sy[i__ + 2];
-	    sy[i__] = stemp1;
-	    sy[i__ + 1] = stemp2;
-	    sy[i__ + 2] = stemp3;
+	    sy[i__ - 1] = stemp1;
+	    sy[i__] = stemp2;
+	    sy[i__ + 1] = stemp3;
 /* L30: */
 	}
     } else {
@@ -1497,9 +1468,9 @@ doublereal sdot_(integer *n, doublereal *sx, integer *incx, doublereal *sy,
 	}
 	i__2 = *n;
 	for (i__ = 1; i__ <= i__2; ++i__) {
-	    stemp1 = sx[ix];
-	    sx[ix] = sy[iy];
-	    sy[iy] = stemp1;
+	    stemp1 = sx[ix - 1];
+	    sx[ix - 1] = sy[iy - 1];
+	    sy[iy - 1] = stemp1;
 	    ix += *incx;
 	    iy += *incy;
 /* L40: */
@@ -1532,10 +1503,6 @@ integer isamax_(integer *n, doublereal *sx, integer *incx)
 /*     .. */
 /*     .. Intrinsic Functions .. */
 /*     .. */
-    /* Parameter adjustments */
-    --sx;
-
-    /* Function Body */
     if (*n <= 0) {
 	ret_val = 0;
     } else if (*n == 1) {
@@ -1546,7 +1513,7 @@ integer isamax_(integer *n, doublereal *sx, integer *incx)
 	i__1 = (*n - 1) * *incx + 1;
 	i__2 = *incx;
 	for (i__ = 1; i__2 < 0 ? i__ >= i__1 : i__ <= i__1; i__ += i__2) {
-	    xmag = (d__1 = sx[i__], abs(d__1));
+	    xmag = (d__1 = sx[i__ - 1], abs(d__1));
 	    if (smax < xmag) {
 		smax = xmag;
 		ret_val = ii;

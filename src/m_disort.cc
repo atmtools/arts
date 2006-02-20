@@ -192,8 +192,9 @@ void ScatteringDisort(// WS Output:
   prnt[3]=1;
   prnt[4]=1;
   
-  char *header= "";
-  Index header_len = 0;
+  char header[127];
+  memset (header, 0, 127);
+  Index header_len = 127;
    
   Index maxcly = nlyr; // Maximum number of layers
   Index maxulv = nlyr; // Maximum number of user defined tau

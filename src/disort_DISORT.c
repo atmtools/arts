@@ -68,13 +68,18 @@ static integer c__100 = 100;
 
     /* System generated locals */
     address a__1[2];
-    integer pmom_dim1, pmom_offset, u0u_dim1, u0u_offset, uu_dim1, uu_dim2, 
-	    uu_offset, i__1[2], i__2, i__3, i__4, i__5;
+    integer dtauc_dim1, flup_dim1, phi_dim1, pmom_dim1, pmom_dim2, 
+	    pmom_offset, rfldir_dim1, rfldn_dim1, ssalb_dim1, temper_dim1, 
+	    u0u_dim1, u0u_dim2, u0u_offset, umu_dim1, utau_dim1, uu_dim1, 
+	    uu_dim2, uu_dim3, uu_offset, i__1, i__2, i__3, i__4, i__5, i__6, 
+	    i__7, i__8[2], i__9, i__10, i__11, i__12;
     doublereal d__1, d__2, d__3, d__4, d__5;
     char ch__1[136];
 
     /* Builtin functions */
-    double asin(doublereal), sqrt(doublereal);
+    double asin(doublereal);
+    integer s_rnge(char *, integer, char *, integer);
+    double sqrt(doublereal);
     integer i_len(char *, ftnlen), s_wsfe(cilist *);
     /* Subroutine */ int s_cat(char *, char **, integer *, integer *, ftnlen);
     integer do_fio(integer *, char *, ftnlen), e_wsfe();
@@ -555,29 +560,25 @@ static integer c__100 = 100;
 /*     .. Intrinsic Functions .. */
 /*     .. */
     /* Parameter adjustments */
-    --prnt;
-    --ssalb;
-    --dtauc;
-    --uavg;
-    --dfdt;
-    --flup;
-    --rfldn;
-    --rfldir;
-    --utau;
-    --trnmed;
-    --albmed;
+    temper_dim1 = *maxcly - 0 + 1;
+    ssalb_dim1 = *maxcly;
+    dtauc_dim1 = *maxcly;
+    flup_dim1 = *maxulv;
+    rfldn_dim1 = *maxulv;
+    rfldir_dim1 = *maxulv;
+    utau_dim1 = *maxulv;
     u0u_dim1 = *maxumu;
+    u0u_dim2 = *maxulv;
     u0u_offset = 1 + u0u_dim1;
-    u0u -= u0u_offset;
-    --umu;
+    umu_dim1 = *maxumu;
     pmom_dim1 = *maxcmu - 0 + 1;
+    pmom_dim2 = *maxcly;
     pmom_offset = 0 + pmom_dim1;
-    pmom -= pmom_offset;
     uu_dim1 = *maxumu;
     uu_dim2 = *maxulv;
+    uu_dim3 = *maxphi;
     uu_offset = 1 + uu_dim1 * (1 + uu_dim2);
-    uu -= uu_offset;
-    --phi;
+    phi_dim1 = *maxphi;
 
     /* Function Body */
     if (pass1) {
@@ -589,25 +590,36 @@ static integer c__100 = 100;
 	}
 	rpd = pi / 180.;
 	for (ns = 1; ns <= 1000; ++ns) {
-	    sqt[ns - 1] = sqrt((doublereal) ns);
+	    sqt[(i__1 = ns - 1) < 1000 && 0 <= i__1 ? i__1 : s_rnge("sqt", 
+		    i__1, "disort_", (ftnlen)388)] = sqrt((doublereal) ns);
 /* L5: */
 	}
 /*                            ** Set input values for self-test. */
 /*                            ** Be sure SLFTST sets all print flags off. */
 	compar = FALSE_;
-	slftst_(accur, albedo, btemp, deltam, &dtauc[1], fbeam, fisot, ibcnd, 
-		lamber, nlyr, plank, nphi, numu, nstr, ntau, onlyfl, &phi[1], 
-		phi0, &pmom[pmom_dim1], &prnt[1], &ssalb[1], temis, temper, 
-		ttemp, &umu[1], usrang, usrtau, &utau[1], umu0, wvnmhi, 
+	slftst_(accur, albedo, btemp, deltam, &dtauc[(i__1 = 0) < 1 * 
+		dtauc_dim1 ? i__1 : s_rnge("dtauc", i__1, "disort_", (ftnlen)
+		394)], fbeam, fisot, ibcnd, lamber, nlyr, plank, nphi, numu, 
+		nstr, ntau, onlyfl, &phi[(i__2 = 0) < 1 * phi_dim1 ? i__2 : 
+		s_rnge("phi", i__2, "disort_", (ftnlen)394)], phi0, &pmom[(
+		i__3 = pmom_dim1 - pmom_offset) < 1 * pmom_dim1 * pmom_dim2 &&
+		 0 <= i__3 ? i__3 : s_rnge("pmom", i__3, "disort_", (ftnlen)
+		394)], prnt, &ssalb[(i__4 = 0) < 1 * ssalb_dim1 ? i__4 : 
+		s_rnge("ssalb", i__4, "disort_", (ftnlen)394)], temis, &
+		temper[(i__5 = 0) < 1 * temper_dim1 ? i__5 : s_rnge("temper", 
+		i__5, "disort_", (ftnlen)394)], ttemp, &umu[(i__6 = 0) < 1 * 
+		umu_dim1 ? i__6 : s_rnge("umu", i__6, "disort_", (ftnlen)394)]
+		, usrang, usrtau, &utau[(i__7 = 0) < 1 * utau_dim1 ? i__7 : 
+		s_rnge("utau", i__7, "disort_", (ftnlen)394)], umu0, wvnmhi, 
 		wvnmlo, &compar, &dum, &dum, &dum, &dum);
     }
 L10:
     if (! pass1 && i_len(header, (ftnlen)127) != 0) {
 	s_wsfe(&io___9);
 /* Writing concatenation */
-	i__1[0] = 9, a__1[0] = " DISORT: ";
-	i__1[1] = 127, a__1[1] = header;
-	s_cat(ch__1, a__1, i__1, &c__2, (ftnlen)136);
+	i__8[0] = 9, a__1[0] = " DISORT: ";
+	i__8[1] = 127, a__1[1] = header;
+	s_cat(ch__1, a__1, i__8, &c__2, (ftnlen)136);
 	do_fio(&c__1, ch__1, (ftnlen)136);
 	e_wsfe();
     }
@@ -616,45 +628,49 @@ L10:
 /*                                  ** to improve numerical behavior of */
 /*                                  ** eigenvalue/vector computation */
     zeroit_(tauc, &c__7);
-    i__2 = *nlyr;
-    for (lc = 1; lc <= i__2; ++lc) {
-	if (ssalb[lc] == 1.) {
-	    ssalb[lc] = 1. - dither;
+    i__1 = *nlyr;
+    for (lc = 1; lc <= i__1; ++lc) {
+	if (ssalb[(i__2 = lc - 1) < 1 * ssalb_dim1 && 0 <= i__2 ? i__2 : 
+		s_rnge("ssalb", i__2, "disort_", (ftnlen)417)] == 1.) {
+	    ssalb[(i__3 = lc - 1) < 1 * ssalb_dim1 && 0 <= i__3 ? i__3 : 
+		    s_rnge("ssalb", i__3, "disort_", (ftnlen)417)] = 1. - 
+		    dither;
 	}
-	tauc[lc] = tauc[lc - 1] + dtauc[lc];
+	tauc[(i__2 = lc) < 7 && 0 <= i__2 ? i__2 : s_rnge("tauc", i__2, "dis\
+ort_", (ftnlen)418)] = tauc[(i__3 = lc - 1) < 7 && 0 <= i__3 ? i__3 : s_rnge(
+		"tauc", i__3, "disort_", (ftnlen)418)] + dtauc[(i__4 = lc - 1)
+		 < 1 * dtauc_dim1 && 0 <= i__4 ? i__4 : s_rnge("dtauc", i__4, 
+		"disort_", (ftnlen)418)];
 /* L20: */
     }
 /*                                ** Check input dimensions and variables */
-    chekin_(nlyr, &dtauc[1], &ssalb[1], &pmom[pmom_offset], temper, wvnmlo, 
-	    wvnmhi, usrtau, ntau, &utau[1], nstr, usrang, numu, &umu[1], nphi,
-	     &phi[1], ibcnd, fbeam, umu0, phi0, fisot, lamber, albedo, hl, 
-	    btemp, ttemp, temis, plank, onlyfl, accur, tauc, maxcly, maxulv, 
-	    maxumu, maxcmu, maxphi, &c__6, &c__5, &c__10, &c__48, &c__3, &
-	    c__1000);
+    chekin_(nlyr, dtauc, ssalb, pmom, temper, wvnmlo, wvnmhi, usrtau, ntau, 
+	    utau, nstr, usrang, numu, umu, nphi, phi, ibcnd, fbeam, umu0, 
+	    phi0, fisot, lamber, albedo, hl, btemp, ttemp, temis, plank, 
+	    onlyfl, accur, tauc, maxcly, maxulv, maxumu, maxcmu, maxphi, &
+	    c__6, &c__5, &c__10, &c__48, &c__3, &c__1000);
 /*                                 ** Zero internal and output arrays */
-    i__2 = *maxumu * *maxulv;
-    i__3 = *maxumu * *maxulv * *maxphi;
+    i__1 = *maxumu * *maxulv;
+    i__2 = *maxumu * *maxulv * *maxphi;
     zeroal_(&c__6, &expbea[1], flyr, oprim, &taucpr[1], xr0, xr1, &c__48, cmu,
 	     cwt, psi, wk, z0, z1, zj, &c__49, hlpr, ylm0, &c__2304, array, 
 	    cc, evecc, &c__294, gl, &c__2352, ylmc, &c__490, ylmu, &c__288, 
 	    kk, ll, zz, zplk0, zplk1, &c__13824, gc, &c__5, layru, utaupr, &
 	    c__2880, gu, &c__60, z0u, z1u, zbeam, &c__24, eval, &c__576, amb, 
-	    apb, &c__288, ipvt, z__, maxulv, &rfldir[1], &rfldn[1], &flup[1], 
-	    &uavg[1], &dfdt[1], maxumu, &albmed[1], &trnmed[1], &i__2, &u0u[
-	    u0u_offset], &i__3, &uu[uu_offset]);
+	    apb, &c__288, ipvt, z__, maxulv, rfldir, rfldn, flup, uavg, dfdt, 
+	    maxumu, albmed, trnmed, &i__1, u0u, &i__2, uu);
 /*                                 ** Perform various setup operations */
-    setdis_(cmu, cwt, deltam, &dtauc[1], dtaucp, expbea, fbeam, flyr, gl, hl, 
+    setdis_(cmu, cwt, deltam, dtauc, dtaucp, expbea, fbeam, flyr, gl, hl, 
 	    hlpr, ibcnd, lamber, layru, &lyrcut, maxumu, maxcmu, &c__48, &
-	    ncut, nlyr, ntau, &nn, nstr, plank, numu, onlyfl, oprim, &pmom[
-	    pmom_offset], &ssalb[1], tauc, taucpr, &utau[1], utaupr, &umu[1], 
-	    umu0, usrtau, usrang);
+	    ncut, nlyr, ntau, &nn, nstr, plank, numu, onlyfl, oprim, pmom, 
+	    ssalb, tauc, taucpr, utau, utaupr, umu, umu0, usrtau, usrang);
 /*                                 ** Print input information */
-    if (prnt[1]) {
-	prtinp_(nlyr, &dtauc[1], dtaucp, &ssalb[1], &pmom[pmom_offset], 
-		temper, wvnmlo, wvnmhi, ntau, &utau[1], nstr, numu, &umu[1], 
-		nphi, &phi[1], ibcnd, fbeam, umu0, phi0, fisot, lamber, 
-		albedo, hl, btemp, ttemp, temis, deltam, plank, onlyfl, accur,
-		 flyr, &lyrcut, oprim, tauc, taucpr, maxcmu, &prnt[7]);
+    if (prnt[0]) {
+	prtinp_(nlyr, dtauc, dtaucp, ssalb, pmom, temper, wvnmlo, wvnmhi, 
+		ntau, utau, nstr, numu, umu, nphi, phi, ibcnd, fbeam, umu0, 
+		phi0, fisot, lamber, albedo, hl, btemp, ttemp, temis, deltam, 
+		plank, onlyfl, accur, flyr, &lyrcut, oprim, tauc, taucpr, 
+		maxcmu, &prnt[6]);
     }
 /*                              ** Handle special case for getting albedo */
 /*                              ** and transmissivity of medium for many */
@@ -662,9 +678,9 @@ L10:
     if (*ibcnd == 1) {
 	albtrn_(albedo, amb, apb, array, b, bdr, cband, cc, cmu, cwt, dtaucp, 
 		eval, evecc, gl, gc, gu, ipvt, kk, ll, nlyr, &nn, nstr, numu, 
-		&prnt[1], taucpr, &umu[1], &u0u[u0u_offset], wk, ylmc, ylmu, 
-		z__, aad, evald, eveccd, wkd, &c__24, &c__214, maxulv, maxumu,
-		 &c__48, &c__10, &c__288, sqt, &albmed[1], &trnmed[1]);
+		prnt, taucpr, umu, u0u, wk, ylmc, ylmu, z__, aad, evald, 
+		eveccd, wkd, &c__24, &c__214, maxulv, maxumu, &c__48, &c__10, 
+		&c__288, sqt, albmed, trnmed);
 	return 0;
     }
 /*                                   ** Calculate Planck functions */
@@ -675,9 +691,12 @@ L10:
     } else {
 	tplank = *temis * plkavg_(wvnmlo, wvnmhi, ttemp);
 	bplank = plkavg_(wvnmlo, wvnmhi, btemp);
-	i__2 = *nlyr;
-	for (lev = 0; lev <= i__2; ++lev) {
-	    pkag[lev] = plkavg_(wvnmlo, wvnmhi, &temper[lev]);
+	i__1 = *nlyr;
+	for (lev = 0; lev <= i__1; ++lev) {
+	    pkag[(i__2 = lev) < 7 && 0 <= i__2 ? i__2 : s_rnge("pkag", i__2, 
+		    "disort_", (ftnlen)496)] = plkavg_(wvnmlo, wvnmhi, &
+		    temper[(i__3 = lev) < 1 * temper_dim1 && 0 <= i__3 ? i__3 
+		    : s_rnge("temper", i__3, "disort_", (ftnlen)496)]);
 /* L30: */
 	}
     }
@@ -687,14 +706,19 @@ L10:
     naz = *nstr - 1;
 /*                                    ** Azimuth-independent case */
     if (*fbeam == 0. || (d__1 = 1. - *umu0, abs(d__1)) < 1e-5 || *onlyfl || *
-	    numu == 1 && (d__2 = 1. - umu[1], abs(d__2)) < 1e-5 || *numu == 1 
-	    && (d__3 = umu[1] + 1., abs(d__3)) < 1e-5 || *numu == 2 && (d__4 =
-	     umu[1] + 1., abs(d__4)) < 1e-5 && (d__5 = 1. - umu[2], abs(d__5))
-	     < 1e-5) {
+	    numu == 1 && (d__2 = 1. - umu[(i__1 = 0) < 1 * umu_dim1 ? i__1 : 
+	    s_rnge("umu", i__1, "disort_", (ftnlen)509)], abs(d__2)) < 1e-5 ||
+	     *numu == 1 && (d__3 = umu[(i__2 = 0) < 1 * umu_dim1 ? i__2 : 
+	    s_rnge("umu", i__2, "disort_", (ftnlen)509)] + 1., abs(d__3)) < 
+	    1e-5 || *numu == 2 && (d__4 = umu[(i__3 = 0) < 1 * umu_dim1 ? 
+	    i__3 : s_rnge("umu", i__3, "disort_", (ftnlen)509)] + 1., abs(
+	    d__4)) < 1e-5 && (d__5 = 1. - umu[(i__4 = 1) < 1 * umu_dim1 ? 
+	    i__4 : s_rnge("umu", i__4, "disort_", (ftnlen)509)], abs(d__5)) < 
+	    1e-5) {
 	naz = 0;
     }
-    i__2 = naz;
-    for (mazim = 0; mazim <= i__2; ++mazim) {
+    i__1 = naz;
+    for (mazim = 0; mazim <= i__1; ++mazim) {
 	if (mazim == 0) {
 	    delm0 = 1.;
 	}
@@ -709,25 +733,29 @@ L10:
 	if (*fbeam > 0.) {
 	    ncos = 1;
 	    angcos = -(*umu0);
-	    i__3 = *nstr - 1;
-	    lepoly_(&ncos, &mazim, &c__48, &i__3, &angcos, sqt, ylm0);
+	    i__2 = *nstr - 1;
+	    lepoly_(&ncos, &mazim, &c__48, &i__2, &angcos, sqt, ylm0);
 	}
 	if (! (*onlyfl) && *usrang) {
-	    i__3 = *nstr - 1;
-	    lepoly_(numu, &mazim, &c__48, &i__3, &umu[1], sqt, ylmu);
+	    i__2 = *nstr - 1;
+	    lepoly_(numu, &mazim, &c__48, &i__2, umu, sqt, ylmu);
 	}
-	i__3 = *nstr - 1;
-	lepoly_(&nn, &mazim, &c__48, &i__3, cmu, sqt, ylmc);
+	i__2 = *nstr - 1;
+	lepoly_(&nn, &mazim, &c__48, &i__2, cmu, sqt, ylmc);
 /*                       ** Get normalized associated Legendre polys. */
 /*                       ** with negative arguments from those with */
 /*                       ** positive arguments; Dave/Armstrong Eq. (15) */
 	sgn = -1.;
-	i__3 = *nstr - 1;
-	for (l = mazim; l <= i__3; ++l) {
+	i__2 = *nstr - 1;
+	for (l = mazim; l <= i__2; ++l) {
 	    sgn = -sgn;
-	    i__4 = *nstr;
-	    for (iq = nn + 1; iq <= i__4; ++iq) {
-		ylmc[l + iq * 49 - 49] = sgn * ylmc[l + (iq - nn) * 49 - 49];
+	    i__3 = *nstr;
+	    for (iq = nn + 1; iq <= i__3; ++iq) {
+		ylmc[(i__4 = l + iq * 49 - 49) < 2352 && 0 <= i__4 ? i__4 : 
+			s_rnge("ylmc", i__4, "disort_", (ftnlen)552)] = sgn * 
+			ylmc[(i__5 = l + (iq - nn) * 49 - 49) < 2352 && 0 <= 
+			i__5 ? i__5 : s_rnge("ylmc", i__5, "disort_", (ftnlen)
+			552)];
 /* L40: */
 	    }
 /* L50: */
@@ -736,50 +764,93 @@ L10:
 /*                                 ** and emissivity properties */
 	if (! lyrcut) {
 	    surfac_(albedo, &delm0, fbeam, hlpr, lamber, &c__24, &mazim, &
-		    c__48, &c__10, &nn, numu, nstr, onlyfl, &umu[1], usrang, 
-		    ylm0, ylmc, ylmu, bdr, emu, bem, rmu, sqt);
+		    c__48, &c__10, &nn, numu, nstr, onlyfl, umu, usrang, ylm0,
+		     ylmc, ylmu, bdr, emu, bem, rmu, sqt);
 	}
 /* ===================  BEGIN LOOP ON COMPUTATIONAL LAYERS  ============= */
-	i__3 = ncut;
-	for (lc = 1; lc <= i__3; ++lc) {
+	i__2 = ncut;
+	for (lc = 1; lc <= i__2; ++lc) {
 /*                        ** Solve eigenfunction problem in Eq. STWJ(8B); */
 /*                        ** return eigenvalues and eigenvectors */
-	    soleig_(amb, apb, array, cmu, cwt, &gl[lc * 49 - 49], &c__24, &
-		    mazim, &c__48, &nn, nstr, ylmc, cc, evecc, eval, &kk[lc * 
-		    48 - 48], &gc[(lc * 48 + 1) * 48 - 2352], aad, eveccd, 
-		    evald, wkd);
+	    soleig_(amb, apb, array, cmu, cwt, &gl[(i__3 = lc * 49 - 49) < 
+		    294 && 0 <= i__3 ? i__3 : s_rnge("gl", i__3, "disort_", (
+		    ftnlen)572)], &c__24, &mazim, &c__48, &nn, nstr, ylmc, cc,
+		     evecc, eval, &kk[(i__4 = lc * 48 - 48) < 288 && 0 <= 
+		    i__4 ? i__4 : s_rnge("kk", i__4, "disort_", (ftnlen)572)],
+		     &gc[(i__5 = (lc * 48 + 1) * 48 - 2352) < 13824 && 0 <= 
+		    i__5 ? i__5 : s_rnge("gc", i__5, "disort_", (ftnlen)572)],
+		     aad, eveccd, evald, wkd);
 /*                                  ** Calculate particular solutions of */
 /*                                  ** Eq.SS(18) for incident beam source */
 	    if (*fbeam > 0.) {
-		upbeam_(array, cc, cmu, &delm0, fbeam, &gl[lc * 49 - 49], 
-			ipvt, &mazim, &c__48, &nn, nstr, &pi, umu0, wk, ylm0, 
-			ylmc, zj, &zz[lc * 48 - 48]);
+		upbeam_(array, cc, cmu, &delm0, fbeam, &gl[(i__3 = lc * 49 - 
+			49) < 294 && 0 <= i__3 ? i__3 : s_rnge("gl", i__3, 
+			"disort_", (ftnlen)579)], ipvt, &mazim, &c__48, &nn, 
+			nstr, &pi, umu0, wk, ylm0, ylmc, zj, &zz[(i__4 = lc * 
+			48 - 48) < 288 && 0 <= i__4 ? i__4 : s_rnge("zz", 
+			i__4, "disort_", (ftnlen)579)]);
 	    }
 /*                              ** Calculate particular solutions of */
 /*                              ** Eq. SS(15) for thermal emission source */
 	    if (*plank && mazim == 0) {
-		xr1[lc - 1] = 0.;
-		if (dtaucp[lc - 1] > 0.) {
-		    xr1[lc - 1] = (pkag[lc] - pkag[lc - 1]) / dtaucp[lc - 1];
+		xr1[(i__3 = lc - 1) < 6 && 0 <= i__3 ? i__3 : s_rnge("xr1", 
+			i__3, "disort_", (ftnlen)589)] = 0.;
+		if (dtaucp[(i__3 = lc - 1) < 6 && 0 <= i__3 ? i__3 : s_rnge(
+			"dtaucp", i__3, "disort_", (ftnlen)591)] > 0.) {
+		    xr1[(i__4 = lc - 1) < 6 && 0 <= i__4 ? i__4 : s_rnge(
+			    "xr1", i__4, "disort_", (ftnlen)591)] = (pkag[(
+			    i__5 = lc) < 7 && 0 <= i__5 ? i__5 : s_rnge("pkag"
+			    , i__5, "disort_", (ftnlen)591)] - pkag[(i__6 = 
+			    lc - 1) < 7 && 0 <= i__6 ? i__6 : s_rnge("pkag", 
+			    i__6, "disort_", (ftnlen)591)]) / dtaucp[(i__7 = 
+			    lc - 1) < 6 && 0 <= i__7 ? i__7 : s_rnge("dtaucp",
+			     i__7, "disort_", (ftnlen)591)];
 		}
-		xr0[lc - 1] = pkag[lc - 1] - xr1[lc - 1] * taucpr[lc - 1];
-		upisot_(array, cc, cmu, ipvt, &c__48, &nn, nstr, &oprim[lc - 
-			1], wk, &xr0[lc - 1], &xr1[lc - 1], z0, z1, &zplk0[lc 
-			* 48 - 48], &zplk1[lc * 48 - 48]);
+		xr0[(i__3 = lc - 1) < 6 && 0 <= i__3 ? i__3 : s_rnge("xr0", 
+			i__3, "disort_", (ftnlen)594)] = pkag[(i__4 = lc - 1) 
+			< 7 && 0 <= i__4 ? i__4 : s_rnge("pkag", i__4, "diso\
+rt_", (ftnlen)594)] - xr1[(i__5 = lc - 1) < 6 && 0 <= i__5 ? i__5 : s_rnge(
+			"xr1", i__5, "disort_", (ftnlen)594)] * taucpr[(i__6 =
+			 lc - 1) < 7 && 0 <= i__6 ? i__6 : s_rnge("taucpr", 
+			i__6, "disort_", (ftnlen)594)];
+		upisot_(array, cc, cmu, ipvt, &c__48, &nn, nstr, &oprim[(i__3 
+			= lc - 1) < 6 && 0 <= i__3 ? i__3 : s_rnge("oprim", 
+			i__3, "disort_", (ftnlen)596)], wk, &xr0[(i__4 = lc - 
+			1) < 6 && 0 <= i__4 ? i__4 : s_rnge("xr0", i__4, 
+			"disort_", (ftnlen)596)], &xr1[(i__5 = lc - 1) < 6 && 
+			0 <= i__5 ? i__5 : s_rnge("xr1", i__5, "disort_", (
+			ftnlen)596)], z0, z1, &zplk0[(i__6 = lc * 48 - 48) < 
+			288 && 0 <= i__6 ? i__6 : s_rnge("zplk0", i__6, "dis\
+ort_", (ftnlen)596)], &zplk1[(i__7 = lc * 48 - 48) < 288 && 0 <= i__7 ? i__7 :
+			 s_rnge("zplk1", i__7, "disort_", (ftnlen)596)]);
 	    }
 	    if (! (*onlyfl) && *usrang) {
 /*                                            ** Interpolate eigenvectors */
 /*                                            ** to user angles */
-		terpev_(cwt, evecc, &gl[lc * 49 - 49], &gu[(lc * 48 + 1) * 10 
-			- 490], &mazim, &c__48, &c__10, &nn, nstr, numu, wk, 
-			ylmc, ylmu);
+		terpev_(cwt, evecc, &gl[(i__3 = lc * 49 - 49) < 294 && 0 <= 
+			i__3 ? i__3 : s_rnge("gl", i__3, "disort_", (ftnlen)
+			607)], &gu[(i__4 = (lc * 48 + 1) * 10 - 490) < 2880 &&
+			 0 <= i__4 ? i__4 : s_rnge("gu", i__4, "disort_", (
+			ftnlen)607)], &mazim, &c__48, &c__10, &nn, nstr, numu,
+			 wk, ylmc, ylmu);
 /*                                            ** Interpolate source terms */
 /*                                            ** to user angles */
-		terpso_(cwt, &delm0, fbeam, &gl[lc * 49 - 49], &mazim, &c__48,
-			 plank, numu, nstr, &oprim[lc - 1], &pi, ylm0, ylmc, 
-			ylmu, psi, &xr0[lc - 1], &xr1[lc - 1], z0, zj, &zbeam[
-			lc * 10 - 10], &z0u[lc * 10 - 10], &z1u[lc * 10 - 10])
-			;
+		terpso_(cwt, &delm0, fbeam, &gl[(i__3 = lc * 49 - 49) < 294 &&
+			 0 <= i__3 ? i__3 : s_rnge("gl", i__3, "disort_", (
+			ftnlen)613)], &mazim, &c__48, plank, numu, nstr, &
+			oprim[(i__4 = lc - 1) < 6 && 0 <= i__4 ? i__4 : 
+			s_rnge("oprim", i__4, "disort_", (ftnlen)613)], &pi, 
+			ylm0, ylmc, ylmu, psi, &xr0[(i__5 = lc - 1) < 6 && 0 
+			<= i__5 ? i__5 : s_rnge("xr0", i__5, "disort_", (
+			ftnlen)613)], &xr1[(i__6 = lc - 1) < 6 && 0 <= i__6 ? 
+			i__6 : s_rnge("xr1", i__6, "disort_", (ftnlen)613)], 
+			z0, zj, &zbeam[(i__7 = lc * 10 - 10) < 60 && 0 <= 
+			i__7 ? i__7 : s_rnge("zbeam", i__7, "disort_", (
+			ftnlen)613)], &z0u[(i__9 = lc * 10 - 10) < 60 && 0 <= 
+			i__9 ? i__9 : s_rnge("z0u", i__9, "disort_", (ftnlen)
+			613)], &z1u[(i__10 = lc * 10 - 10) < 60 && 0 <= i__10 
+			? i__10 : s_rnge("z1u", i__10, "disort_", (ftnlen)613)
+			]);
 	    }
 /* L60: */
 	}
@@ -798,20 +869,24 @@ L10:
 /*                                  ** Compute upward and downward fluxes */
 	if (mazim == 0) {
 	    fluxes_(cmu, cwt, fbeam, gc, kk, layru, ll, &lyrcut, maxulv, &
-		    c__48, &c__5, &ncut, &nn, nstr, ntau, &pi, &prnt[1], &
-		    ssalb[1], taucpr, umu0, &utau[1], utaupr, xr0, xr1, zz, 
-		    zplk0, zplk1, &dfdt[1], &flup[1], fldn, fldir, &rfldir[1],
-		     &rfldn[1], &uavg[1], u0c);
+		    c__48, &c__5, &ncut, &nn, nstr, ntau, &pi, prnt, ssalb, 
+		    taucpr, umu0, utau, utaupr, xr0, xr1, zz, zplk0, zplk1, 
+		    dfdt, flup, fldn, fldir, rfldir, rfldn, uavg, u0c);
 	}
 	if (*onlyfl) {
 	    if (*maxumu >= *nstr) {
 /*                                     ** Save azimuthal-avg intensities */
 /*                                     ** at quadrature angles */
-		i__3 = *ntau;
-		for (lu = 1; lu <= i__3; ++lu) {
-		    i__4 = *nstr;
-		    for (iq = 1; iq <= i__4; ++iq) {
-			u0u[iq + lu * u0u_dim1] = u0c[iq + lu * 48 - 49];
+		i__2 = *ntau;
+		for (lu = 1; lu <= i__2; ++lu) {
+		    i__3 = *nstr;
+		    for (iq = 1; iq <= i__3; ++iq) {
+			u0u[(i__4 = iq + lu * u0u_dim1 - u0u_offset) < 1 * 
+				u0u_dim1 * u0u_dim2 && 0 <= i__4 ? i__4 : 
+				s_rnge("u0u", i__4, "disort_", (ftnlen)657)] =
+				 u0c[(i__5 = iq + lu * 48 - 49) < 240 && 0 <= 
+				i__5 ? i__5 : s_rnge("u0c", i__5, "disort_", (
+				ftnlen)657)];
 /* L70: */
 		    }
 /* L80: */
@@ -826,8 +901,8 @@ L10:
 	    usrint_(&bplank, cmu, cwt, &delm0, dtaucp, emu, expbea, fbeam, 
 		    fisot, gc, gu, kk, lamber, layru, ll, &lyrcut, &mazim, &
 		    c__48, &c__5, &c__10, &ncut, nlyr, &nn, nstr, plank, numu,
-		     ntau, &pi, rmu, taucpr, &tplank, &umu[1], umu0, utaupr, 
-		    wk, zbeam, z0u, z1u, zz, zplk0, zplk1, uum);
+		     ntau, &pi, rmu, taucpr, &tplank, umu, umu0, utaupr, wk, 
+		    zbeam, z0u, z1u, zz, zplk0, zplk1, uum);
 	} else {
 /*                                     ** Compute azimuthal intensity */
 /*                                     ** components at quadrature angles */
@@ -837,15 +912,23 @@ L10:
 	}
 	if (mazim == 0) {
 /*                               ** Save azimuthally averaged intensities */
-	    i__3 = *ntau;
-	    for (lu = 1; lu <= i__3; ++lu) {
-		i__4 = *numu;
-		for (iu = 1; iu <= i__4; ++iu) {
-		    u0u[iu + lu * u0u_dim1] = uum[iu + lu * 10 - 11];
-		    i__5 = *nphi;
-		    for (j = 1; j <= i__5; ++j) {
-			uu[iu + (lu + j * uu_dim2) * uu_dim1] = uum[iu + lu * 
-				10 - 11];
+	    i__2 = *ntau;
+	    for (lu = 1; lu <= i__2; ++lu) {
+		i__3 = *numu;
+		for (iu = 1; iu <= i__3; ++iu) {
+		    u0u[(i__4 = iu + lu * u0u_dim1 - u0u_offset) < 1 * 
+			    u0u_dim1 * u0u_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+			    "u0u", i__4, "disort_", (ftnlen)698)] = uum[(i__5 
+			    = iu + lu * 10 - 11) < 50 && 0 <= i__5 ? i__5 : 
+			    s_rnge("uum", i__5, "disort_", (ftnlen)698)];
+		    i__4 = *nphi;
+		    for (j = 1; j <= i__4; ++j) {
+			uu[(i__5 = iu + (lu + j * uu_dim2) * uu_dim1 - 
+				uu_offset) < 1 * uu_dim1 * uu_dim2 * uu_dim3 
+				&& 0 <= i__5 ? i__5 : s_rnge("uu", i__5, 
+				"disort_", (ftnlen)701)] = uum[(i__6 = iu + 
+				lu * 10 - 11) < 50 && 0 <= i__6 ? i__6 : 
+				s_rnge("uum", i__6, "disort_", (ftnlen)701)];
 /* L90: */
 		    }
 /* L100: */
@@ -854,15 +937,18 @@ L10:
 	    }
 /*                              ** Print azimuthally averaged intensities */
 /*                              ** at user angles */
-	    if (prnt[4]) {
-		pravin_(&umu[1], numu, maxumu, &utau[1], ntau, &u0u[
-			u0u_offset]);
+	    if (prnt[3]) {
+		pravin_(umu, numu, maxumu, utau, ntau, u0u);
 	    }
 	    if (naz > 0) {
 		zeroit_(phirad, &c__3);
-		i__3 = *nphi;
-		for (j = 1; j <= i__3; ++j) {
-		    phirad[j - 1] = rpd * (phi[j] - *phi0);
+		i__2 = *nphi;
+		for (j = 1; j <= i__2; ++j) {
+		    phirad[(i__3 = j - 1) < 3 && 0 <= i__3 ? i__3 : s_rnge(
+			    "phirad", i__3, "disort_", (ftnlen)716)] = rpd * (
+			    phi[(i__4 = j - 1) < 1 * phi_dim1 && 0 <= i__4 ? 
+			    i__4 : s_rnge("phi", i__4, "disort_", (ftnlen)716)
+			    ] - *phi0);
 /* L120: */
 		}
 	    }
@@ -871,19 +957,32 @@ L10:
 /*                                ** azimuthal component (Fourier */
 /*                                ** cosine series);  Eq SD(2) */
 	    azerr = 0.;
-	    i__3 = *nphi;
-	    for (j = 1; j <= i__3; ++j) {
-		cosphi = cos(mazim * phirad[j - 1]);
-		i__4 = *ntau;
-		for (lu = 1; lu <= i__4; ++lu) {
-		    i__5 = *numu;
-		    for (iu = 1; iu <= i__5; ++iu) {
-			azterm = uum[iu + lu * 10 - 11] * cosphi;
-			uu[iu + (lu + j * uu_dim2) * uu_dim1] += azterm;
+	    i__2 = *nphi;
+	    for (j = 1; j <= i__2; ++j) {
+		cosphi = cos(mazim * phirad[(i__3 = j - 1) < 3 && 0 <= i__3 ? 
+			i__3 : s_rnge("phirad", i__3, "disort_", (ftnlen)730)]
+			);
+		i__3 = *ntau;
+		for (lu = 1; lu <= i__3; ++lu) {
+		    i__4 = *numu;
+		    for (iu = 1; iu <= i__4; ++iu) {
+			azterm = uum[(i__5 = iu + lu * 10 - 11) < 50 && 0 <= 
+				i__5 ? i__5 : s_rnge("uum", i__5, "disort_", (
+				ftnlen)735)] * cosphi;
+			uu[(i__5 = iu + (lu + j * uu_dim2) * uu_dim1 - 
+				uu_offset) < 1 * uu_dim1 * uu_dim2 * uu_dim3 
+				&& 0 <= i__5 ? i__5 : s_rnge("uu", i__5, 
+				"disort_", (ftnlen)736)] = uu[(i__6 = iu + (
+				lu + j * uu_dim2) * uu_dim1 - uu_offset) < 1 *
+				 uu_dim1 * uu_dim2 * uu_dim3 && 0 <= i__6 ? 
+				i__6 : s_rnge("uu", i__6, "disort_", (ftnlen)
+				736)] + azterm;
 /* Computing MAX */
 			d__4 = abs(azterm);
-			d__5 = (d__1 = uu[iu + (lu + j * uu_dim2) * uu_dim1], 
-				abs(d__1));
+			d__5 = (d__1 = uu[(i__5 = iu + (lu + j * uu_dim2) * 
+				uu_dim1 - uu_offset) < 1 * uu_dim1 * uu_dim2 *
+				 uu_dim3 && 0 <= i__5 ? i__5 : s_rnge("uu", 
+				i__5, "disort_", (ftnlen)737)], abs(d__1));
 			d__2 = azerr, d__3 = ratio_(&d__4, &d__5);
 			azerr = max(d__2,d__3);
 /* L130: */
@@ -904,20 +1003,35 @@ L10:
 /* ===================  END LOOP ON AZIMUTHAL COMPONENTS  =============== */
 /*                                          ** Print intensities */
 L170:
-    if (prnt[5] && ! (*onlyfl)) {
-	prtint_(&uu[uu_offset], &utau[1], ntau, &umu[1], numu, &phi[1], nphi, 
-		maxulv, maxumu);
+    if (prnt[4] && ! (*onlyfl)) {
+	prtint_(uu, utau, ntau, umu, numu, phi, nphi, maxulv, maxumu);
     }
     if (pass1) {
 /*                                    ** Compare test case results with */
 /*                                    ** correct answers and abort if bad */
 	compar = TRUE_;
-	slftst_(accur, albedo, btemp, deltam, &dtauc[1], fbeam, fisot, ibcnd, 
-		lamber, nlyr, plank, nphi, numu, nstr, ntau, onlyfl, &phi[1], 
-		phi0, &pmom[pmom_dim1], &prnt[1], &ssalb[1], temis, temper, 
-		ttemp, &umu[1], usrang, usrtau, &utau[1], umu0, wvnmhi, 
-		wvnmlo, &compar, &flup[1], &rfldir[1], &rfldn[1], &uu[(
-		uu_dim2 + 1) * uu_dim1 + 1]);
+	slftst_(accur, albedo, btemp, deltam, &dtauc[(i__1 = 0) < 1 * 
+		dtauc_dim1 ? i__1 : s_rnge("dtauc", i__1, "disort_", (ftnlen)
+		767)], fbeam, fisot, ibcnd, lamber, nlyr, plank, nphi, numu, 
+		nstr, ntau, onlyfl, &phi[(i__2 = 0) < 1 * phi_dim1 ? i__2 : 
+		s_rnge("phi", i__2, "disort_", (ftnlen)767)], phi0, &pmom[(
+		i__3 = pmom_dim1 - pmom_offset) < 1 * pmom_dim1 * pmom_dim2 &&
+		 0 <= i__3 ? i__3 : s_rnge("pmom", i__3, "disort_", (ftnlen)
+		767)], prnt, &ssalb[(i__4 = 0) < 1 * ssalb_dim1 ? i__4 : 
+		s_rnge("ssalb", i__4, "disort_", (ftnlen)767)], temis, &
+		temper[(i__5 = 0) < 1 * temper_dim1 ? i__5 : s_rnge("temper", 
+		i__5, "disort_", (ftnlen)767)], ttemp, &umu[(i__6 = 0) < 1 * 
+		umu_dim1 ? i__6 : s_rnge("umu", i__6, "disort_", (ftnlen)767)]
+		, usrang, usrtau, &utau[(i__7 = 0) < 1 * utau_dim1 ? i__7 : 
+		s_rnge("utau", i__7, "disort_", (ftnlen)767)], umu0, wvnmhi, 
+		wvnmlo, &compar, &flup[(i__9 = 0) < 1 * flup_dim1 ? i__9 : 
+		s_rnge("flup", i__9, "disort_", (ftnlen)767)], &rfldir[(i__10 
+		= 0) < 1 * rfldir_dim1 ? i__10 : s_rnge("rfldir", i__10, 
+		"disort_", (ftnlen)767)], &rfldn[(i__11 = 0) < 1 * rfldn_dim1 
+		? i__11 : s_rnge("rfldn", i__11, "disort_", (ftnlen)767)], &
+		uu[(i__12 = (uu_dim2 + 1) * uu_dim1 + 1 - uu_offset) < 1 * 
+		uu_dim1 * uu_dim2 * uu_dim3 && 0 <= i__12 ? i__12 : s_rnge(
+		"uu", i__12, "disort_", (ftnlen)767)]);
 	pass1 = FALSE_;
 	goto L10;
     }
@@ -941,11 +1055,14 @@ L170:
     static doublereal one = 1.;
 
     /* System generated locals */
-    integer aa_dim1, aa_offset, evec_dim1, evec_offset, aad_dim1, aad_offset, 
-	    evecd_dim1, evecd_offset, i__1, i__2, i__3, i__4;
+    integer aa_dim1, aa_dim2, aa_offset, eval_dim1, evec_dim1, evec_dim2, 
+	    evec_offset, aad_dim1, aad_dim2, aad_offset, evald_dim1, 
+	    evecd_dim1, evecd_dim2, evecd_offset, i__1, i__2, i__3, i__4, 
+	    i__5;
     doublereal d__1, d__2, d__3, d__4;
 
     /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
     double sqrt(doublereal), d_sign(doublereal *, doublereal *);
 
     /* Local variables */
@@ -1029,21 +1146,20 @@ L170:
 /*     .. Intrinsic Functions .. */
 /*     .. */
     /* Parameter adjustments */
-    --evald;
-    --eval;
+    evald_dim1 = *m;
+    eval_dim1 = *m;
     evecd_dim1 = *ia;
+    evecd_dim2 = *m;
     evecd_offset = 1 + evecd_dim1;
-    evecd -= evecd_offset;
     aad_dim1 = *ia;
+    aad_dim2 = *m;
     aad_offset = 1 + aad_dim1;
-    aad -= aad_offset;
     aa_dim1 = *ia;
+    aa_dim2 = *m;
     aa_offset = 1 + aa_dim1;
-    aa -= aa_offset;
     evec_dim1 = *ievec;
+    evec_dim2 = *m;
     evec_offset = 1 + evec_dim1;
-    evec -= evec_offset;
-    --wkd;
 
     /* Function Body */
     *ier = 0;
@@ -1053,39 +1169,104 @@ L170:
     }
 /*                           ** Handle 1x1 and 2x2 special cases */
     if (*m == 1) {
-	eval[1] = aa[aa_dim1 + 1];
-	evec[evec_dim1 + 1] = 1.;
+	eval[(i__1 = 0) < 1 * eval_dim1 ? i__1 : s_rnge("eval", i__1, "asymt\
+x_", (ftnlen)893)] = aa[(i__2 = aa_dim1 + 1 - aa_offset) < 1 * aa_dim1 * 
+		aa_dim2 && 0 <= i__2 ? i__2 : s_rnge("aa", i__2, "asymtx_", (
+		ftnlen)893)];
+	evec[(i__1 = evec_dim1 + 1 - evec_offset) < 1 * evec_dim1 * evec_dim2 
+		&& 0 <= i__1 ? i__1 : s_rnge("evec", i__1, "asymtx_", (ftnlen)
+		894)] = 1.;
 	return 0;
     } else if (*m == 2) {
 /* Computing 2nd power */
-	d__1 = aa[aa_dim1 + 1] - aa[(aa_dim1 << 1) + 2];
-	discri = d__1 * d__1 + aa[(aa_dim1 << 1) + 1] * 4. * aa[aa_dim1 + 2];
+	d__1 = aa[(i__1 = aa_dim1 + 1 - aa_offset) < 1 * aa_dim1 * aa_dim2 && 
+		0 <= i__1 ? i__1 : s_rnge("aa", i__1, "asymtx_", (ftnlen)899)]
+		 - aa[(i__2 = (aa_dim1 << 1) + 2 - aa_offset) < 1 * aa_dim1 * 
+		aa_dim2 && 0 <= i__2 ? i__2 : s_rnge("aa", i__2, "asymtx_", (
+		ftnlen)899)];
+	discri = d__1 * d__1 + aa[(i__3 = (aa_dim1 << 1) + 1 - aa_offset) < 1 
+		* aa_dim1 * aa_dim2 && 0 <= i__3 ? i__3 : s_rnge("aa", i__3, 
+		"asymtx_", (ftnlen)899)] * 4. * aa[(i__4 = aa_dim1 + 2 - 
+		aa_offset) < 1 * aa_dim1 * aa_dim2 && 0 <= i__4 ? i__4 : 
+		s_rnge("aa", i__4, "asymtx_", (ftnlen)899)];
 	if (discri < 0.) {
 	    errmsg_("ASYMTX--complex evals in 2x2 case", &c_true, (ftnlen)33);
 	}
 	sgn = one;
-	if (aa[aa_dim1 + 1] < aa[(aa_dim1 << 1) + 2]) {
+	if (aa[(i__1 = aa_dim1 + 1 - aa_offset) < 1 * aa_dim1 * aa_dim2 && 0 
+		<= i__1 ? i__1 : s_rnge("aa", i__1, "asymtx_", (ftnlen)906)] <
+		 aa[(i__2 = (aa_dim1 << 1) + 2 - aa_offset) < 1 * aa_dim1 * 
+		aa_dim2 && 0 <= i__2 ? i__2 : s_rnge("aa", i__2, "asymtx_", (
+		ftnlen)906)]) {
 	    sgn = -one;
 	}
-	eval[1] = (aa[aa_dim1 + 1] + aa[(aa_dim1 << 1) + 2] + sgn * sqrt(
-		discri)) * .5;
-	eval[2] = (aa[aa_dim1 + 1] + aa[(aa_dim1 << 1) + 2] - sgn * sqrt(
-		discri)) * .5;
-	evec[evec_dim1 + 1] = 1.;
-	evec[(evec_dim1 << 1) + 2] = 1.;
-	if (aa[aa_dim1 + 1] == aa[(aa_dim1 << 1) + 2] && (aa[aa_dim1 + 2] == 
-		0. || aa[(aa_dim1 << 1) + 1] == 0.)) {
-	    rnorm = (d__1 = aa[aa_dim1 + 1], abs(d__1)) + (d__2 = aa[(aa_dim1 
-		    << 1) + 1], abs(d__2)) + (d__3 = aa[aa_dim1 + 2], abs(
-		    d__3)) + (d__4 = aa[(aa_dim1 << 1) + 2], abs(d__4));
+	eval[(i__1 = 0) < 1 * eval_dim1 ? i__1 : s_rnge("eval", i__1, "asymt\
+x_", (ftnlen)908)] = (aa[(i__2 = aa_dim1 + 1 - aa_offset) < 1 * aa_dim1 * 
+		aa_dim2 && 0 <= i__2 ? i__2 : s_rnge("aa", i__2, "asymtx_", (
+		ftnlen)908)] + aa[(i__3 = (aa_dim1 << 1) + 2 - aa_offset) < 1 
+		* aa_dim1 * aa_dim2 && 0 <= i__3 ? i__3 : s_rnge("aa", i__3, 
+		"asymtx_", (ftnlen)908)] + sgn * sqrt(discri)) * .5;
+	eval[(i__1 = 1) < 1 * eval_dim1 ? i__1 : s_rnge("eval", i__1, "asymt\
+x_", (ftnlen)909)] = (aa[(i__2 = aa_dim1 + 1 - aa_offset) < 1 * aa_dim1 * 
+		aa_dim2 && 0 <= i__2 ? i__2 : s_rnge("aa", i__2, "asymtx_", (
+		ftnlen)909)] + aa[(i__3 = (aa_dim1 << 1) + 2 - aa_offset) < 1 
+		* aa_dim1 * aa_dim2 && 0 <= i__3 ? i__3 : s_rnge("aa", i__3, 
+		"asymtx_", (ftnlen)909)] - sgn * sqrt(discri)) * .5;
+	evec[(i__1 = evec_dim1 + 1 - evec_offset) < 1 * evec_dim1 * evec_dim2 
+		&& 0 <= i__1 ? i__1 : s_rnge("evec", i__1, "asymtx_", (ftnlen)
+		910)] = 1.;
+	evec[(i__1 = (evec_dim1 << 1) + 2 - evec_offset) < 1 * evec_dim1 * 
+		evec_dim2 && 0 <= i__1 ? i__1 : s_rnge("evec", i__1, "asymtx_"
+		, (ftnlen)911)] = 1.;
+	if (aa[(i__1 = aa_dim1 + 1 - aa_offset) < 1 * aa_dim1 * aa_dim2 && 0 
+		<= i__1 ? i__1 : s_rnge("aa", i__1, "asymtx_", (ftnlen)913)] 
+		== aa[(i__2 = (aa_dim1 << 1) + 2 - aa_offset) < 1 * aa_dim1 * 
+		aa_dim2 && 0 <= i__2 ? i__2 : s_rnge("aa", i__2, "asymtx_", (
+		ftnlen)913)] && (aa[(i__3 = aa_dim1 + 2 - aa_offset) < 1 * 
+		aa_dim1 * aa_dim2 && 0 <= i__3 ? i__3 : s_rnge("aa", i__3, 
+		"asymtx_", (ftnlen)913)] == 0. || aa[(i__4 = (aa_dim1 << 1) + 
+		1 - aa_offset) < 1 * aa_dim1 * aa_dim2 && 0 <= i__4 ? i__4 : 
+		s_rnge("aa", i__4, "asymtx_", (ftnlen)913)] == 0.)) {
+	    rnorm = (d__1 = aa[(i__1 = aa_dim1 + 1 - aa_offset) < 1 * aa_dim1 
+		    * aa_dim2 && 0 <= i__1 ? i__1 : s_rnge("aa", i__1, "asym\
+tx_", (ftnlen)916)], abs(d__1)) + (d__2 = aa[(i__2 = (aa_dim1 << 1) + 1 - 
+		    aa_offset) < 1 * aa_dim1 * aa_dim2 && 0 <= i__2 ? i__2 : 
+		    s_rnge("aa", i__2, "asymtx_", (ftnlen)916)], abs(d__2)) + 
+		    (d__3 = aa[(i__3 = aa_dim1 + 2 - aa_offset) < 1 * aa_dim1 
+		    * aa_dim2 && 0 <= i__3 ? i__3 : s_rnge("aa", i__3, "asym\
+tx_", (ftnlen)916)], abs(d__3)) + (d__4 = aa[(i__4 = (aa_dim1 << 1) + 2 - 
+		    aa_offset) < 1 * aa_dim1 * aa_dim2 && 0 <= i__4 ? i__4 : 
+		    s_rnge("aa", i__4, "asymtx_", (ftnlen)916)], abs(d__4));
 	    w = tol * rnorm;
-	    evec[evec_dim1 + 2] = aa[aa_dim1 + 2] / w;
-	    evec[(evec_dim1 << 1) + 1] = -aa[(aa_dim1 << 1) + 1] / w;
+	    evec[(i__1 = evec_dim1 + 2 - evec_offset) < 1 * evec_dim1 * 
+		    evec_dim2 && 0 <= i__1 ? i__1 : s_rnge("evec", i__1, 
+		    "asymtx_", (ftnlen)919)] = aa[(i__2 = aa_dim1 + 2 - 
+		    aa_offset) < 1 * aa_dim1 * aa_dim2 && 0 <= i__2 ? i__2 : 
+		    s_rnge("aa", i__2, "asymtx_", (ftnlen)919)] / w;
+	    evec[(i__1 = (evec_dim1 << 1) + 1 - evec_offset) < 1 * evec_dim1 *
+		     evec_dim2 && 0 <= i__1 ? i__1 : s_rnge("evec", i__1, 
+		    "asymtx_", (ftnlen)920)] = -aa[(i__2 = (aa_dim1 << 1) + 1 
+		    - aa_offset) < 1 * aa_dim1 * aa_dim2 && 0 <= i__2 ? i__2 :
+		     s_rnge("aa", i__2, "asymtx_", (ftnlen)920)] / w;
 	} else {
-	    evec[evec_dim1 + 2] = aa[aa_dim1 + 2] / (eval[1] - aa[(aa_dim1 << 
-		    1) + 2]);
-	    evec[(evec_dim1 << 1) + 1] = aa[(aa_dim1 << 1) + 1] / (eval[2] - 
-		    aa[aa_dim1 + 1]);
+	    evec[(i__1 = evec_dim1 + 2 - evec_offset) < 1 * evec_dim1 * 
+		    evec_dim2 && 0 <= i__1 ? i__1 : s_rnge("evec", i__1, 
+		    "asymtx_", (ftnlen)924)] = aa[(i__2 = aa_dim1 + 2 - 
+		    aa_offset) < 1 * aa_dim1 * aa_dim2 && 0 <= i__2 ? i__2 : 
+		    s_rnge("aa", i__2, "asymtx_", (ftnlen)924)] / (eval[(i__3 
+		    = 0) < 1 * eval_dim1 ? i__3 : s_rnge("eval", i__3, "asym\
+tx_", (ftnlen)924)] - aa[(i__4 = (aa_dim1 << 1) + 2 - aa_offset) < 1 * 
+		    aa_dim1 * aa_dim2 && 0 <= i__4 ? i__4 : s_rnge("aa", i__4,
+		     "asymtx_", (ftnlen)924)]);
+	    evec[(i__1 = (evec_dim1 << 1) + 1 - evec_offset) < 1 * evec_dim1 *
+		     evec_dim2 && 0 <= i__1 ? i__1 : s_rnge("evec", i__1, 
+		    "asymtx_", (ftnlen)925)] = aa[(i__2 = (aa_dim1 << 1) + 1 
+		    - aa_offset) < 1 * aa_dim1 * aa_dim2 && 0 <= i__2 ? i__2 :
+		     s_rnge("aa", i__2, "asymtx_", (ftnlen)925)] / (eval[(
+		    i__3 = 1) < 1 * eval_dim1 ? i__3 : s_rnge("eval", i__3, 
+		    "asymtx_", (ftnlen)925)] - aa[(i__4 = aa_dim1 + 1 - 
+		    aa_offset) < 1 * aa_dim1 * aa_dim2 && 0 <= i__4 ? i__4 : 
+		    s_rnge("aa", i__4, "asymtx_", (ftnlen)925)]);
 	}
 	return 0;
     }
@@ -1094,7 +1275,11 @@ L170:
     for (j = 1; j <= i__1; ++j) {
 	i__2 = *m;
 	for (k = 1; k <= i__2; ++k) {
-	    aad[j + k * aad_dim1] = aa[j + k * aa_dim1];
+	    aad[(i__3 = j + k * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		    aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", i__3, "asym\
+tx_", (ftnlen)937)] = aa[(i__4 = j + k * aa_dim1 - aa_offset) < 1 * aa_dim1 * 
+		    aa_dim2 && 0 <= i__4 ? i__4 : s_rnge("aa", i__4, "asymtx_"
+		    , (ftnlen)937)];
 /* L10: */
 	}
 /* L20: */
@@ -1103,13 +1288,18 @@ L170:
     *ier = 0;
     i__1 = *m;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	evald[i__] = zero;
+	evald[(i__2 = i__ - 1) < 1 * evald_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"evald", i__2, "asymtx_", (ftnlen)946)] = zero;
 	i__2 = *m;
 	for (j = 1; j <= i__2; ++j) {
-	    evecd[i__ + j * evecd_dim1] = zero;
+	    evecd[(i__3 = i__ + j * evecd_dim1 - evecd_offset) < 1 * 
+		    evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "evecd", i__3, "asymtx_", (ftnlen)949)] = zero;
 /* L30: */
 	}
-	evecd[i__ + i__ * evecd_dim1] = one;
+	evecd[(i__2 = i__ + i__ * evecd_dim1 - evecd_offset) < 1 * evecd_dim1 
+		* evecd_dim2 && 0 <= i__2 ? i__2 : s_rnge("evecd", i__2, 
+		"asymtx_", (ftnlen)952)] = one;
 /* L40: */
     }
 /*                  ** Balance the input matrix and reduce its norm by */
@@ -1126,25 +1316,45 @@ L50:
 	i__1 = k;
 	for (i__ = 1; i__ <= i__1; ++i__) {
 	    if (i__ != j) {
-		row += (d__1 = aad[j + i__ * aad_dim1], abs(d__1));
+		row += (d__1 = aad[(i__2 = j + i__ * aad_dim1 - aad_offset) < 
+			1 * aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+			"aad", i__2, "asymtx_", (ftnlen)972)], abs(d__1));
 	    }
 /* L60: */
 	}
 	if (row == zero) {
-	    wkd[k] = (doublereal) j;
+	    wkd[k - 1] = (doublereal) j;
 	    if (j != k) {
 		i__1 = k;
 		for (i__ = 1; i__ <= i__1; ++i__) {
-		    repl = aad[i__ + j * aad_dim1];
-		    aad[i__ + j * aad_dim1] = aad[i__ + k * aad_dim1];
-		    aad[i__ + k * aad_dim1] = repl;
+		    repl = aad[(i__2 = i__ + j * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+			    "aad", i__2, "asymtx_", (ftnlen)983)];
+		    aad[(i__2 = i__ + j * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+			    "aad", i__2, "asymtx_", (ftnlen)984)] = aad[(i__3 
+			    = i__ + k * aad_dim1 - aad_offset) < 1 * aad_dim1 
+			    * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", 
+			    i__3, "asymtx_", (ftnlen)984)];
+		    aad[(i__2 = i__ + k * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+			    "aad", i__2, "asymtx_", (ftnlen)985)] = repl;
 /* L70: */
 		}
 		i__1 = *m;
 		for (i__ = l; i__ <= i__1; ++i__) {
-		    repl = aad[j + i__ * aad_dim1];
-		    aad[j + i__ * aad_dim1] = aad[k + i__ * aad_dim1];
-		    aad[k + i__ * aad_dim1] = repl;
+		    repl = aad[(i__2 = j + i__ * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+			    "aad", i__2, "asymtx_", (ftnlen)989)];
+		    aad[(i__2 = j + i__ * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+			    "aad", i__2, "asymtx_", (ftnlen)990)] = aad[(i__3 
+			    = k + i__ * aad_dim1 - aad_offset) < 1 * aad_dim1 
+			    * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", 
+			    i__3, "asymtx_", (ftnlen)990)];
+		    aad[(i__2 = k + i__ * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+			    "aad", i__2, "asymtx_", (ftnlen)991)] = repl;
 /* L80: */
 		}
 	    }
@@ -1163,25 +1373,45 @@ L100:
 	i__2 = k;
 	for (i__ = l; i__ <= i__2; ++i__) {
 	    if (i__ != j) {
-		col += (d__1 = aad[i__ + j * aad_dim1], abs(d__1));
+		col += (d__1 = aad[(i__3 = i__ + j * aad_dim1 - aad_offset) < 
+			1 * aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"aad", i__3, "asymtx_", (ftnlen)1013)], abs(d__1));
 	    }
 /* L110: */
 	}
 	if (col == zero) {
-	    wkd[l] = (doublereal) j;
+	    wkd[l - 1] = (doublereal) j;
 	    if (j != l) {
 		i__2 = k;
 		for (i__ = 1; i__ <= i__2; ++i__) {
-		    repl = aad[i__ + j * aad_dim1];
-		    aad[i__ + j * aad_dim1] = aad[i__ + l * aad_dim1];
-		    aad[i__ + l * aad_dim1] = repl;
+		    repl = aad[(i__3 = i__ + j * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			    "aad", i__3, "asymtx_", (ftnlen)1024)];
+		    aad[(i__3 = i__ + j * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			    "aad", i__3, "asymtx_", (ftnlen)1025)] = aad[(
+			    i__4 = i__ + l * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+			    "aad", i__4, "asymtx_", (ftnlen)1025)];
+		    aad[(i__3 = i__ + l * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			    "aad", i__3, "asymtx_", (ftnlen)1026)] = repl;
 /* L120: */
 		}
 		i__2 = *m;
 		for (i__ = l; i__ <= i__2; ++i__) {
-		    repl = aad[j + i__ * aad_dim1];
-		    aad[j + i__ * aad_dim1] = aad[l + i__ * aad_dim1];
-		    aad[l + i__ * aad_dim1] = repl;
+		    repl = aad[(i__3 = j + i__ * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			    "aad", i__3, "asymtx_", (ftnlen)1030)];
+		    aad[(i__3 = j + i__ * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			    "aad", i__3, "asymtx_", (ftnlen)1031)] = aad[(
+			    i__4 = l + i__ * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+			    "aad", i__4, "asymtx_", (ftnlen)1031)];
+		    aad[(i__3 = l + i__ * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			    "aad", i__3, "asymtx_", (ftnlen)1032)] = repl;
 /* L130: */
 		}
 	    }
@@ -1193,7 +1423,7 @@ L100:
 /*                           ** Balance the submatrix in rows L through K */
     i__1 = k;
     for (i__ = l; i__ <= i__1; ++i__) {
-	wkd[i__] = one;
+	wkd[i__ - 1] = one;
 /* L150: */
     }
 L160:
@@ -1205,8 +1435,12 @@ L160:
 	i__2 = k;
 	for (j = l; j <= i__2; ++j) {
 	    if (j != i__) {
-		col += (d__1 = aad[j + i__ * aad_dim1], abs(d__1));
-		row += (d__1 = aad[i__ + j * aad_dim1], abs(d__1));
+		col += (d__1 = aad[(i__3 = j + i__ * aad_dim1 - aad_offset) < 
+			1 * aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"aad", i__3, "asymtx_", (ftnlen)1061)], abs(d__1));
+		row += (d__1 = aad[(i__3 = i__ + j * aad_dim1 - aad_offset) < 
+			1 * aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"aad", i__3, "asymtx_", (ftnlen)1062)], abs(d__1));
 	    }
 /* L170: */
 	}
@@ -1228,16 +1462,26 @@ L190:
 	}
 /*                                                ** Now balance */
 	if ((col + row) / f < c4 * h__) {
-	    wkd[i__] *= f;
+	    wkd[i__ - 1] *= f;
 	    noconv = TRUE_;
 	    i__2 = *m;
 	    for (j = l; j <= i__2; ++j) {
-		aad[i__ + j * aad_dim1] /= f;
+		aad[(i__3 = i__ + j * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+			aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", i__3, 
+			"asymtx_", (ftnlen)1098)] = aad[(i__4 = i__ + j * 
+			aad_dim1 - aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 
+			<= i__4 ? i__4 : s_rnge("aad", i__4, "asymtx_", (
+			ftnlen)1098)] / f;
 /* L200: */
 	    }
 	    i__2 = k;
 	    for (j = 1; j <= i__2; ++j) {
-		aad[j + i__ * aad_dim1] *= f;
+		aad[(i__3 = j + i__ * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+			aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", i__3, 
+			"asymtx_", (ftnlen)1102)] = aad[(i__4 = j + i__ * 
+			aad_dim1 - aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 
+			<= i__4 ? i__4 : s_rnge("aad", i__4, "asymtx_", (
+			ftnlen)1102)] * f;
 /* L210: */
 	    }
 	}
@@ -1254,39 +1498,54 @@ L190:
     i__1 = k - 1;
     for (n = l + 1; n <= i__1; ++n) {
 	h__ = zero;
-	wkd[n + *m] = zero;
+	wkd[n + *m - 1] = zero;
 	scale = zero;
 /*                                                 ** Scale column */
 	i__2 = k;
 	for (i__ = n; i__ <= i__2; ++i__) {
-	    scale += (d__1 = aad[i__ + (n - 1) * aad_dim1], abs(d__1));
+	    scale += (d__1 = aad[(i__3 = i__ + (n - 1) * aad_dim1 - 
+		    aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 
+		    : s_rnge("aad", i__3, "asymtx_", (ftnlen)1122)], abs(d__1)
+		    );
 /* L230: */
 	}
 	if (scale != zero) {
 	    i__2 = n;
 	    for (i__ = k; i__ >= i__2; --i__) {
-		wkd[i__ + *m] = aad[i__ + (n - 1) * aad_dim1] / scale;
+		wkd[i__ + *m - 1] = aad[(i__3 = i__ + (n - 1) * aad_dim1 - 
+			aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 <= i__3 ? 
+			i__3 : s_rnge("aad", i__3, "asymtx_", (ftnlen)1128)] /
+			 scale;
 /* Computing 2nd power */
-		d__1 = wkd[i__ + *m];
+		d__1 = wkd[i__ + *m - 1];
 		h__ += d__1 * d__1;
 /* L240: */
 	    }
 	    d__1 = sqrt(h__);
-	    g = -d_sign(&d__1, &wkd[n + *m]);
-	    h__ -= wkd[n + *m] * g;
-	    wkd[n + *m] -= g;
+	    g = -d_sign(&d__1, &wkd[n + *m - 1]);
+	    h__ -= wkd[n + *m - 1] * g;
+	    wkd[n + *m - 1] -= g;
 /*                                            ** Form (I-(U*UT)/H)*A */
 	    i__2 = *m;
 	    for (j = n; j <= i__2; ++j) {
 		f = zero;
 		i__3 = n;
 		for (i__ = k; i__ >= i__3; --i__) {
-		    f += wkd[i__ + *m] * aad[i__ + j * aad_dim1];
+		    f += wkd[i__ + *m - 1] * aad[(i__4 = i__ + j * aad_dim1 - 
+			    aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 <= 
+			    i__4 ? i__4 : s_rnge("aad", i__4, "asymtx_", (
+			    ftnlen)1141)];
 /* L250: */
 		}
 		i__3 = k;
 		for (i__ = n; i__ <= i__3; ++i__) {
-		    aad[i__ + j * aad_dim1] -= wkd[i__ + *m] * f / h__;
+		    aad[(i__4 = i__ + j * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+			    "aad", i__4, "asymtx_", (ftnlen)1145)] = aad[(
+			    i__5 = i__ + j * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__5 ? i__5 : s_rnge(
+			    "aad", i__5, "asymtx_", (ftnlen)1145)] - wkd[i__ 
+			    + *m - 1] * f / h__;
 /* L260: */
 		}
 /* L270: */
@@ -1297,18 +1556,29 @@ L190:
 		f = zero;
 		i__3 = n;
 		for (j = k; j >= i__3; --j) {
-		    f += wkd[j + *m] * aad[i__ + j * aad_dim1];
+		    f += wkd[j + *m - 1] * aad[(i__4 = i__ + j * aad_dim1 - 
+			    aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 <= 
+			    i__4 ? i__4 : s_rnge("aad", i__4, "asymtx_", (
+			    ftnlen)1155)];
 /* L280: */
 		}
 		i__3 = k;
 		for (j = n; j <= i__3; ++j) {
-		    aad[i__ + j * aad_dim1] -= wkd[j + *m] * f / h__;
+		    aad[(i__4 = i__ + j * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+			    "aad", i__4, "asymtx_", (ftnlen)1159)] = aad[(
+			    i__5 = i__ + j * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__5 ? i__5 : s_rnge(
+			    "aad", i__5, "asymtx_", (ftnlen)1159)] - wkd[j + *
+			    m - 1] * f / h__;
 /* L290: */
 		}
 /* L300: */
 	    }
-	    wkd[n + *m] = scale * wkd[n + *m];
-	    aad[n + (n - 1) * aad_dim1] = scale * g;
+	    wkd[n + *m - 1] = scale * wkd[n + *m - 1];
+	    aad[(i__2 = n + (n - 1) * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		    aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, "asym\
+tx_", (ftnlen)1165)] = scale * g;
 	}
 /* L310: */
     }
@@ -1316,12 +1586,16 @@ L190:
     for (n = k - 2; n >= i__1; --n) {
 	n1 = n + 1;
 	n2 = n + 2;
-	f = aad[n + 1 + n * aad_dim1];
+	f = aad[(i__2 = n + 1 + n * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, "asymtx_", 
+		(ftnlen)1176)];
 	if (f != zero) {
-	    f *= wkd[n + 1 + *m];
+	    f *= wkd[n + 1 + *m - 1];
 	    i__2 = k;
 	    for (i__ = n + 2; i__ <= i__2; ++i__) {
-		wkd[i__ + *m] = aad[i__ + n * aad_dim1];
+		wkd[i__ + *m - 1] = aad[(i__3 = i__ + n * aad_dim1 - 
+			aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 <= i__3 ? 
+			i__3 : s_rnge("aad", i__3, "asymtx_", (ftnlen)1183)];
 /* L320: */
 	    }
 	    if (n + 1 <= k) {
@@ -1330,13 +1604,22 @@ L190:
 		    g = zero;
 		    i__3 = k;
 		    for (i__ = n + 1; i__ <= i__3; ++i__) {
-			g += wkd[i__ + *m] * evecd[i__ + j * evecd_dim1];
+			g += wkd[i__ + *m - 1] * evecd[(i__4 = i__ + j * 
+				evecd_dim1 - evecd_offset) < 1 * evecd_dim1 * 
+				evecd_dim2 && 0 <= i__4 ? i__4 : s_rnge("eve\
+cd", i__4, "asymtx_", (ftnlen)1193)];
 /* L330: */
 		    }
 		    g /= f;
 		    i__3 = k;
 		    for (i__ = n + 1; i__ <= i__3; ++i__) {
-			evecd[i__ + j * evecd_dim1] += g * wkd[i__ + *m];
+			evecd[(i__4 = i__ + j * evecd_dim1 - evecd_offset) < 
+				1 * evecd_dim1 * evecd_dim2 && 0 <= i__4 ? 
+				i__4 : s_rnge("evecd", i__4, "asymtx_", (
+				ftnlen)1199)] = evecd[(i__5 = i__ + j * 
+				evecd_dim1 - evecd_offset) < 1 * evecd_dim1 * 
+				evecd_dim2 && 0 <= i__5 ? i__5 : s_rnge("eve\
+cd", i__5, "asymtx_", (ftnlen)1199)] + g * wkd[i__ + *m - 1];
 /* L340: */
 		    }
 /* L350: */
@@ -1351,12 +1634,18 @@ L370:
     for (i__ = 1; i__ <= i__1; ++i__) {
 	i__2 = *m;
 	for (j = n; j <= i__2; ++j) {
-	    rnorm += (d__1 = aad[i__ + j * aad_dim1], abs(d__1));
+	    rnorm += (d__1 = aad[(i__3 = i__ + j * aad_dim1 - aad_offset) < 1 
+		    * aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", 
+		    i__3, "asymtx_", (ftnlen)1218)], abs(d__1));
 /* L380: */
 	}
 	n = i__;
 	if (i__ < l || i__ > k) {
-	    evald[i__] = aad[i__ + i__ * aad_dim1];
+	    evald[(i__2 = i__ - 1) < 1 * evald_dim1 && 0 <= i__2 ? i__2 : 
+		    s_rnge("evald", i__2, "asymtx_", (ftnlen)1223)] = aad[(
+		    i__3 = i__ + i__ * aad_dim1 - aad_offset) < 1 * aad_dim1 *
+		     aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", i__3, "asy\
+mtx_", (ftnlen)1223)];
 	}
 /* L390: */
     }
@@ -1378,27 +1667,46 @@ L410:
 	if (lb == l) {
 	    goto L430;
 	}
-	s = (d__1 = aad[lb - 1 + (lb - 1) * aad_dim1], abs(d__1)) + (d__2 = 
-		aad[lb + lb * aad_dim1], abs(d__2));
+	s = (d__1 = aad[(i__2 = lb - 1 + (lb - 1) * aad_dim1 - aad_offset) < 
+		1 * aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", 
+		i__2, "asymtx_", (ftnlen)1245)], abs(d__1)) + (d__2 = aad[(
+		i__3 = lb + lb * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", i__3, "asymtx_", 
+		(ftnlen)1245)], abs(d__2));
 	if (s == zero) {
 	    s = rnorm;
 	}
-	if ((d__1 = aad[lb + (lb - 1) * aad_dim1], abs(d__1)) <= tol * s) {
+	if ((d__1 = aad[(i__2 = lb + (lb - 1) * aad_dim1 - aad_offset) < 1 * 
+		aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, 
+		"asymtx_", (ftnlen)1249)], abs(d__1)) <= tol * s) {
 	    goto L430;
 	}
 /* L420: */
     }
 L430:
-    x = aad[n + n * aad_dim1];
+    x = aad[(i__1 = n + n * aad_dim1 - aad_offset) < 1 * aad_dim1 * aad_dim2 
+	    && 0 <= i__1 ? i__1 : s_rnge("aad", i__1, "asymtx_", (ftnlen)1255)
+	    ];
     if (lb == n) {
 /*                                        ** One eigenvalue found */
-	aad[n + n * aad_dim1] = x + t;
-	evald[n] = aad[n + n * aad_dim1];
+	aad[(i__1 = n + n * aad_dim1 - aad_offset) < 1 * aad_dim1 * aad_dim2 
+		&& 0 <= i__1 ? i__1 : s_rnge("aad", i__1, "asymtx_", (ftnlen)
+		1259)] = x + t;
+	evald[(i__1 = n - 1) < 1 * evald_dim1 && 0 <= i__1 ? i__1 : s_rnge(
+		"evald", i__1, "asymtx_", (ftnlen)1260)] = aad[(i__2 = n + n *
+		 aad_dim1 - aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 <= 
+		i__2 ? i__2 : s_rnge("aad", i__2, "asymtx_", (ftnlen)1260)];
 	n = n1;
 	goto L400;
     }
-    y = aad[n1 + n1 * aad_dim1];
-    w = aad[n + n1 * aad_dim1] * aad[n1 + n * aad_dim1];
+    y = aad[(i__1 = n1 + n1 * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+	    aad_dim2 && 0 <= i__1 ? i__1 : s_rnge("aad", i__1, "asymtx_", (
+	    ftnlen)1266)];
+    w = aad[(i__1 = n + n1 * aad_dim1 - aad_offset) < 1 * aad_dim1 * aad_dim2 
+	    && 0 <= i__1 ? i__1 : s_rnge("aad", i__1, "asymtx_", (ftnlen)1267)
+	    ] * aad[(i__2 = n1 + n * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+	    aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, "asymtx_", (
+	    ftnlen)1267)];
     if (lb == n1) {
 /*                                        ** Two eigenvalues found */
 	p = (y - x) * c2;
@@ -1406,17 +1714,31 @@ L430:
 	d__1 = p;
 	q = d__1 * d__1 + w;
 	z__ = sqrt((abs(q)));
-	aad[n + n * aad_dim1] = x + t;
-	x = aad[n + n * aad_dim1];
-	aad[n1 + n1 * aad_dim1] = y + t;
+	aad[(i__1 = n + n * aad_dim1 - aad_offset) < 1 * aad_dim1 * aad_dim2 
+		&& 0 <= i__1 ? i__1 : s_rnge("aad", i__1, "asymtx_", (ftnlen)
+		1274)] = x + t;
+	x = aad[(i__1 = n + n * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		aad_dim2 && 0 <= i__1 ? i__1 : s_rnge("aad", i__1, "asymtx_", 
+		(ftnlen)1275)];
+	aad[(i__1 = n1 + n1 * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		aad_dim2 && 0 <= i__1 ? i__1 : s_rnge("aad", i__1, "asymtx_", 
+		(ftnlen)1276)] = y + t;
 /*                                        ** Real pair */
 	z__ = p + d_sign(&z__, &p);
-	evald[n1] = x + z__;
-	evald[n] = evald[n1];
+	evald[(i__1 = n1 - 1) < 1 * evald_dim1 && 0 <= i__1 ? i__1 : s_rnge(
+		"evald", i__1, "asymtx_", (ftnlen)1279)] = x + z__;
+	evald[(i__1 = n - 1) < 1 * evald_dim1 && 0 <= i__1 ? i__1 : s_rnge(
+		"evald", i__1, "asymtx_", (ftnlen)1280)] = evald[(i__2 = n1 - 
+		1) < 1 * evald_dim1 && 0 <= i__2 ? i__2 : s_rnge("evald", 
+		i__2, "asymtx_", (ftnlen)1280)];
 	if (z__ != zero) {
-	    evald[n] = x - w / z__;
+	    evald[(i__1 = n - 1) < 1 * evald_dim1 && 0 <= i__1 ? i__1 : 
+		    s_rnge("evald", i__1, "asymtx_", (ftnlen)1282)] = x - w / 
+		    z__;
 	}
-	x = aad[n + n1 * aad_dim1];
+	x = aad[(i__1 = n + n1 * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		aad_dim2 && 0 <= i__1 ? i__1 : s_rnge("aad", i__1, "asymtx_", 
+		(ftnlen)1284)];
 /*                                  ** Employ scale factor in case */
 /*                                  ** X and Z are very small */
 	r__ = sqrt(x * x + z__ * z__);
@@ -1425,27 +1747,57 @@ L430:
 /*                                             ** Row modification */
 	i__1 = *m;
 	for (j = n1; j <= i__1; ++j) {
-	    z__ = aad[n1 + j * aad_dim1];
-	    aad[n1 + j * aad_dim1] = q * z__ + p * aad[n + j * aad_dim1];
-	    aad[n + j * aad_dim1] = q * aad[n + j * aad_dim1] - p * z__;
+	    z__ = aad[(i__2 = n1 + j * aad_dim1 - aad_offset) < 1 * aad_dim1 *
+		     aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, "asy\
+mtx_", (ftnlen)1292)];
+	    aad[(i__2 = n1 + j * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		    aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, "asym\
+tx_", (ftnlen)1293)] = q * z__ + p * aad[(i__3 = n + j * aad_dim1 - 
+		    aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 
+		    : s_rnge("aad", i__3, "asymtx_", (ftnlen)1293)];
+	    aad[(i__2 = n + j * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		    aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, "asym\
+tx_", (ftnlen)1294)] = q * aad[(i__3 = n + j * aad_dim1 - aad_offset) < 1 * 
+		    aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", 
+		    i__3, "asymtx_", (ftnlen)1294)] - p * z__;
 /* L440: */
 	}
 /*                                             ** Column modification */
 	i__1 = n;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    z__ = aad[i__ + n1 * aad_dim1];
-	    aad[i__ + n1 * aad_dim1] = q * z__ + p * aad[i__ + n * aad_dim1];
-	    aad[i__ + n * aad_dim1] = q * aad[i__ + n * aad_dim1] - p * z__;
+	    z__ = aad[(i__2 = i__ + n1 * aad_dim1 - aad_offset) < 1 * 
+		    aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", 
+		    i__2, "asymtx_", (ftnlen)1298)];
+	    aad[(i__2 = i__ + n1 * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		    aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, "asym\
+tx_", (ftnlen)1299)] = q * z__ + p * aad[(i__3 = i__ + n * aad_dim1 - 
+		    aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 
+		    : s_rnge("aad", i__3, "asymtx_", (ftnlen)1299)];
+	    aad[(i__2 = i__ + n * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		    aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, "asym\
+tx_", (ftnlen)1300)] = q * aad[(i__3 = i__ + n * aad_dim1 - aad_offset) < 1 * 
+		    aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", 
+		    i__3, "asymtx_", (ftnlen)1300)] - p * z__;
 /* L450: */
 	}
 /*                                          ** Accumulate transformations */
 	i__1 = k;
 	for (i__ = l; i__ <= i__1; ++i__) {
-	    z__ = evecd[i__ + n1 * evecd_dim1];
-	    evecd[i__ + n1 * evecd_dim1] = q * z__ + p * evecd[i__ + n * 
-		    evecd_dim1];
-	    evecd[i__ + n * evecd_dim1] = q * evecd[i__ + n * evecd_dim1] - p 
-		    * z__;
+	    z__ = evecd[(i__2 = i__ + n1 * evecd_dim1 - evecd_offset) < 1 * 
+		    evecd_dim1 * evecd_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+		    "evecd", i__2, "asymtx_", (ftnlen)1304)];
+	    evecd[(i__2 = i__ + n1 * evecd_dim1 - evecd_offset) < 1 * 
+		    evecd_dim1 * evecd_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+		    "evecd", i__2, "asymtx_", (ftnlen)1305)] = q * z__ + p * 
+		    evecd[(i__3 = i__ + n * evecd_dim1 - evecd_offset) < 1 * 
+		    evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "evecd", i__3, "asymtx_", (ftnlen)1305)];
+	    evecd[(i__2 = i__ + n * evecd_dim1 - evecd_offset) < 1 * 
+		    evecd_dim1 * evecd_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+		    "evecd", i__2, "asymtx_", (ftnlen)1306)] = q * evecd[(
+		    i__3 = i__ + n * evecd_dim1 - evecd_offset) < 1 * 
+		    evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "evecd", i__3, "asymtx_", (ftnlen)1306)] - p * z__;
 /* L460: */
 	}
 	n = n2;
@@ -1462,11 +1814,19 @@ L430:
 	t += x;
 	i__1 = n;
 	for (i__ = l; i__ <= i__1; ++i__) {
-	    aad[i__ + i__ * aad_dim1] -= x;
+	    aad[(i__2 = i__ + i__ * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		    aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, "asym\
+tx_", (ftnlen)1329)] = aad[(i__3 = i__ + i__ * aad_dim1 - aad_offset) < 1 * 
+		    aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", 
+		    i__3, "asymtx_", (ftnlen)1329)] - x;
 /* L470: */
 	}
-	s = (d__1 = aad[n + n1 * aad_dim1], abs(d__1)) + (d__2 = aad[n1 + n2 *
-		 aad_dim1], abs(d__2));
+	s = (d__1 = aad[(i__1 = n + n1 * aad_dim1 - aad_offset) < 1 * 
+		aad_dim1 * aad_dim2 && 0 <= i__1 ? i__1 : s_rnge("aad", i__1, 
+		"asymtx_", (ftnlen)1332)], abs(d__1)) + (d__2 = aad[(i__2 = 
+		n1 + n2 * aad_dim1 - aad_offset) < 1 * aad_dim1 * aad_dim2 && 
+		0 <= i__2 ? i__2 : s_rnge("aad", i__2, "asymtx_", (ftnlen)
+		1332)], abs(d__2));
 	x = c3 * s;
 	y = x;
 /* Computing 2nd power */
@@ -1478,13 +1838,22 @@ L430:
     i__1 = n2;
     for (j = lb; j <= i__1; ++j) {
 	i__ = n2 + lb - j;
-	z__ = aad[i__ + i__ * aad_dim1];
+	z__ = aad[(i__2 = i__ + i__ * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, "asymtx_", 
+		(ftnlen)1346)];
 	r__ = x - z__;
 	s = y - z__;
-	p = (r__ * s - w) / aad[i__ + 1 + i__ * aad_dim1] + aad[i__ + (i__ + 
-		1) * aad_dim1];
-	q = aad[i__ + 1 + (i__ + 1) * aad_dim1] - z__ - r__ - s;
-	r__ = aad[i__ + 2 + (i__ + 1) * aad_dim1];
+	p = (r__ * s - w) / aad[(i__2 = i__ + 1 + i__ * aad_dim1 - aad_offset)
+		 < 1 * aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad",
+		 i__2, "asymtx_", (ftnlen)1349)] + aad[(i__3 = i__ + (i__ + 1)
+		 * aad_dim1 - aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 <= 
+		i__3 ? i__3 : s_rnge("aad", i__3, "asymtx_", (ftnlen)1349)];
+	q = aad[(i__2 = i__ + 1 + (i__ + 1) * aad_dim1 - aad_offset) < 1 * 
+		aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, 
+		"asymtx_", (ftnlen)1350)] - z__ - r__ - s;
+	r__ = aad[(i__2 = i__ + 2 + (i__ + 1) * aad_dim1 - aad_offset) < 1 * 
+		aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, 
+		"asymtx_", (ftnlen)1351)];
 	s = abs(p) + abs(q) + abs(r__);
 	p /= s;
 	q /= s;
@@ -1492,22 +1861,33 @@ L430:
 	if (i__ == lb) {
 	    goto L490;
 	}
-	uu = (d__1 = aad[i__ + (i__ - 1) * aad_dim1], abs(d__1)) * (abs(q) + 
-		abs(r__));
-	vv = abs(p) * ((d__1 = aad[i__ - 1 + (i__ - 1) * aad_dim1], abs(d__1))
-		 + abs(z__) + (d__2 = aad[i__ + 1 + (i__ + 1) * aad_dim1], 
-		abs(d__2)));
+	uu = (d__1 = aad[(i__2 = i__ + (i__ - 1) * aad_dim1 - aad_offset) < 1 
+		* aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", 
+		i__2, "asymtx_", (ftnlen)1359)], abs(d__1)) * (abs(q) + abs(
+		r__));
+	vv = abs(p) * ((d__1 = aad[(i__2 = i__ - 1 + (i__ - 1) * aad_dim1 - 
+		aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : 
+		s_rnge("aad", i__2, "asymtx_", (ftnlen)1360)], abs(d__1)) + 
+		abs(z__) + (d__2 = aad[(i__3 = i__ + 1 + (i__ + 1) * aad_dim1 
+		- aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : 
+		s_rnge("aad", i__3, "asymtx_", (ftnlen)1360)], abs(d__2)));
 	if (uu <= tol * vv) {
 	    goto L490;
 	}
 /* L480: */
     }
 L490:
-    aad[i__ + 2 + i__ * aad_dim1] = zero;
+    aad[(i__1 = i__ + 2 + i__ * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+	    aad_dim2 && 0 <= i__1 ? i__1 : s_rnge("aad", i__1, "asymtx_", (
+	    ftnlen)1368)] = zero;
     i__1 = n;
     for (j = i__ + 3; j <= i__1; ++j) {
-	aad[j + (j - 2) * aad_dim1] = zero;
-	aad[j + (j - 3) * aad_dim1] = zero;
+	aad[(i__2 = j + (j - 2) * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, "asymtx_", 
+		(ftnlen)1371)] = zero;
+	aad[(i__2 = j + (j - 3) * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, "asymtx_", 
+		(ftnlen)1372)] = zero;
 /* L500: */
     }
 /*             ** Double QR step involving rows K to N and columns M to N */
@@ -1518,15 +1898,25 @@ L490:
 	    d__1 = sqrt(p * p + q * q + r__ * r__);
 	    s = d_sign(&d__1, &p);
 	    if (lb != i__) {
-		aad[ka + (ka - 1) * aad_dim1] = -aad[ka + (ka - 1) * aad_dim1]
-			;
+		aad[(i__2 = ka + (ka - 1) * aad_dim1 - aad_offset) < 1 * 
+			aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+			"aad", i__2, "asymtx_", (ftnlen)1385)] = -aad[(i__3 = 
+			ka + (ka - 1) * aad_dim1 - aad_offset) < 1 * aad_dim1 
+			* aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", i__3, 
+			"asymtx_", (ftnlen)1385)];
 	    }
 	} else {
-	    p = aad[ka + (ka - 1) * aad_dim1];
-	    q = aad[ka + 1 + (ka - 1) * aad_dim1];
+	    p = aad[(i__2 = ka + (ka - 1) * aad_dim1 - aad_offset) < 1 * 
+		    aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", 
+		    i__2, "asymtx_", (ftnlen)1389)];
+	    q = aad[(i__2 = ka + 1 + (ka - 1) * aad_dim1 - aad_offset) < 1 * 
+		    aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", 
+		    i__2, "asymtx_", (ftnlen)1390)];
 	    r__ = zero;
 	    if (notlas) {
-		r__ = aad[ka + 2 + (ka - 1) * aad_dim1];
+		r__ = aad[(i__2 = ka + 2 + (ka - 1) * aad_dim1 - aad_offset) <
+			 1 * aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+			"aad", i__2, "asymtx_", (ftnlen)1393)];
 	    }
 	    x = abs(p) + abs(q) + abs(r__);
 	    if (x == zero) {
@@ -1537,7 +1927,9 @@ L490:
 	    r__ /= x;
 	    d__1 = sqrt(p * p + q * q + r__ * r__);
 	    s = d_sign(&d__1, &p);
-	    aad[ka + (ka - 1) * aad_dim1] = -s * x;
+	    aad[(i__2 = ka + (ka - 1) * aad_dim1 - aad_offset) < 1 * aad_dim1 
+		    * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge("aad", i__2, 
+		    "asymtx_", (ftnlen)1403)] = -s * x;
 	}
 	p += s;
 	x = p / s;
@@ -1548,13 +1940,32 @@ L490:
 /*                                              ** Row modification */
 	i__2 = *m;
 	for (j = ka; j <= i__2; ++j) {
-	    p = aad[ka + j * aad_dim1] + q * aad[ka + 1 + j * aad_dim1];
+	    p = aad[(i__3 = ka + j * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		    aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", i__3, "asym\
+tx_", (ftnlen)1416)] + q * aad[(i__4 = ka + 1 + j * aad_dim1 - aad_offset) < 
+		    1 * aad_dim1 * aad_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+		    "aad", i__4, "asymtx_", (ftnlen)1416)];
 	    if (notlas) {
-		p += r__ * aad[ka + 2 + j * aad_dim1];
-		aad[ka + 2 + j * aad_dim1] -= p * z__;
+		p += r__ * aad[(i__3 = ka + 2 + j * aad_dim1 - aad_offset) < 
+			1 * aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"aad", i__3, "asymtx_", (ftnlen)1420)];
+		aad[(i__3 = ka + 2 + j * aad_dim1 - aad_offset) < 1 * 
+			aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"aad", i__3, "asymtx_", (ftnlen)1421)] = aad[(i__4 = 
+			ka + 2 + j * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+			aad_dim2 && 0 <= i__4 ? i__4 : s_rnge("aad", i__4, 
+			"asymtx_", (ftnlen)1421)] - p * z__;
 	    }
-	    aad[ka + 1 + j * aad_dim1] -= p * y;
-	    aad[ka + j * aad_dim1] -= p * x;
+	    aad[(i__3 = ka + 1 + j * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		    aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", i__3, "asym\
+tx_", (ftnlen)1425)] = aad[(i__4 = ka + 1 + j * aad_dim1 - aad_offset) < 1 * 
+		    aad_dim1 * aad_dim2 && 0 <= i__4 ? i__4 : s_rnge("aad", 
+		    i__4, "asymtx_", (ftnlen)1425)] - p * y;
+	    aad[(i__3 = ka + j * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		    aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", i__3, "asym\
+tx_", (ftnlen)1426)] = aad[(i__4 = ka + j * aad_dim1 - aad_offset) < 1 * 
+		    aad_dim1 * aad_dim2 && 0 <= i__4 ? i__4 : s_rnge("aad", 
+		    i__4, "asymtx_", (ftnlen)1426)] - p * x;
 /* L510: */
 	}
 /*                                                 ** Column modification */
@@ -1562,27 +1973,70 @@ L490:
 	i__3 = n, i__4 = ka + 3;
 	i__2 = min(i__3,i__4);
 	for (ii = 1; ii <= i__2; ++ii) {
-	    p = x * aad[ii + ka * aad_dim1] + y * aad[ii + (ka + 1) * 
-		    aad_dim1];
+	    p = x * aad[(i__3 = ii + ka * aad_dim1 - aad_offset) < 1 * 
+		    aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", 
+		    i__3, "asymtx_", (ftnlen)1431)] + y * aad[(i__4 = ii + (
+		    ka + 1) * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		    aad_dim2 && 0 <= i__4 ? i__4 : s_rnge("aad", i__4, "asym\
+tx_", (ftnlen)1431)];
 	    if (notlas) {
-		p += z__ * aad[ii + (ka + 2) * aad_dim1];
-		aad[ii + (ka + 2) * aad_dim1] -= p * r__;
+		p += z__ * aad[(i__3 = ii + (ka + 2) * aad_dim1 - aad_offset) 
+			< 1 * aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : 
+			s_rnge("aad", i__3, "asymtx_", (ftnlen)1435)];
+		aad[(i__3 = ii + (ka + 2) * aad_dim1 - aad_offset) < 1 * 
+			aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"aad", i__3, "asymtx_", (ftnlen)1436)] = aad[(i__4 = 
+			ii + (ka + 2) * aad_dim1 - aad_offset) < 1 * aad_dim1 
+			* aad_dim2 && 0 <= i__4 ? i__4 : s_rnge("aad", i__4, 
+			"asymtx_", (ftnlen)1436)] - p * r__;
 	    }
-	    aad[ii + (ka + 1) * aad_dim1] -= p * q;
-	    aad[ii + ka * aad_dim1] -= p;
+	    aad[(i__3 = ii + (ka + 1) * aad_dim1 - aad_offset) < 1 * aad_dim1 
+		    * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", i__3, 
+		    "asymtx_", (ftnlen)1440)] = aad[(i__4 = ii + (ka + 1) * 
+		    aad_dim1 - aad_offset) < 1 * aad_dim1 * aad_dim2 && 0 <= 
+		    i__4 ? i__4 : s_rnge("aad", i__4, "asymtx_", (ftnlen)1440)
+		    ] - p * q;
+	    aad[(i__3 = ii + ka * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		    aad_dim2 && 0 <= i__3 ? i__3 : s_rnge("aad", i__3, "asym\
+tx_", (ftnlen)1441)] = aad[(i__4 = ii + ka * aad_dim1 - aad_offset) < 1 * 
+		    aad_dim1 * aad_dim2 && 0 <= i__4 ? i__4 : s_rnge("aad", 
+		    i__4, "asymtx_", (ftnlen)1441)] - p;
 /* L520: */
 	}
 /*                                          ** Accumulate transformations */
 	i__2 = k;
 	for (ii = l; ii <= i__2; ++ii) {
-	    p = x * evecd[ii + ka * evecd_dim1] + y * evecd[ii + (ka + 1) * 
-		    evecd_dim1];
+	    p = x * evecd[(i__3 = ii + ka * evecd_dim1 - evecd_offset) < 1 * 
+		    evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "evecd", i__3, "asymtx_", (ftnlen)1446)] + y * evecd[(
+		    i__4 = ii + (ka + 1) * evecd_dim1 - evecd_offset) < 1 * 
+		    evecd_dim1 * evecd_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+		    "evecd", i__4, "asymtx_", (ftnlen)1446)];
 	    if (notlas) {
-		p += z__ * evecd[ii + (ka + 2) * evecd_dim1];
-		evecd[ii + (ka + 2) * evecd_dim1] -= p * r__;
+		p += z__ * evecd[(i__3 = ii + (ka + 2) * evecd_dim1 - 
+			evecd_offset) < 1 * evecd_dim1 * evecd_dim2 && 0 <= 
+			i__3 ? i__3 : s_rnge("evecd", i__3, "asymtx_", (
+			ftnlen)1450)];
+		evecd[(i__3 = ii + (ka + 2) * evecd_dim1 - evecd_offset) < 1 *
+			 evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"evecd", i__3, "asymtx_", (ftnlen)1451)] = evecd[(
+			i__4 = ii + (ka + 2) * evecd_dim1 - evecd_offset) < 1 
+			* evecd_dim1 * evecd_dim2 && 0 <= i__4 ? i__4 : 
+			s_rnge("evecd", i__4, "asymtx_", (ftnlen)1451)] - p * 
+			r__;
 	    }
-	    evecd[ii + (ka + 1) * evecd_dim1] -= p * q;
-	    evecd[ii + ka * evecd_dim1] -= p;
+	    evecd[(i__3 = ii + (ka + 1) * evecd_dim1 - evecd_offset) < 1 * 
+		    evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "evecd", i__3, "asymtx_", (ftnlen)1455)] = evecd[(i__4 = 
+		    ii + (ka + 1) * evecd_dim1 - evecd_offset) < 1 * 
+		    evecd_dim1 * evecd_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+		    "evecd", i__4, "asymtx_", (ftnlen)1455)] - p * q;
+	    evecd[(i__3 = ii + ka * evecd_dim1 - evecd_offset) < 1 * 
+		    evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "evecd", i__3, "asymtx_", (ftnlen)1456)] = evecd[(i__4 = 
+		    ii + ka * evecd_dim1 - evecd_offset) < 1 * evecd_dim1 * 
+		    evecd_dim2 && 0 <= i__4 ? i__4 : s_rnge("evecd", i__4, 
+		    "asymtx_", (ftnlen)1456)] - p;
 /* L530: */
 	}
 L540:
@@ -1594,19 +2048,34 @@ L550:
     if (rnorm != zero) {
 	for (n = *m; n >= 1; --n) {
 	    n2 = n;
-	    aad[n + n * aad_dim1] = one;
+	    aad[(i__1 = n + n * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+		    aad_dim2 && 0 <= i__1 ? i__1 : s_rnge("aad", i__1, "asym\
+tx_", (ftnlen)1469)] = one;
 	    for (i__ = n - 1; i__ >= 1; --i__) {
-		w = aad[i__ + i__ * aad_dim1] - evald[n];
+		w = aad[(i__1 = i__ + i__ * aad_dim1 - aad_offset) < 1 * 
+			aad_dim1 * aad_dim2 && 0 <= i__1 ? i__1 : s_rnge(
+			"aad", i__1, "asymtx_", (ftnlen)1472)] - evald[(i__2 =
+			 n - 1) < 1 * evald_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+			"evald", i__2, "asymtx_", (ftnlen)1472)];
 		if (w == zero) {
 		    w = tol * rnorm;
 		}
-		r__ = aad[i__ + n * aad_dim1];
+		r__ = aad[(i__1 = i__ + n * aad_dim1 - aad_offset) < 1 * 
+			aad_dim1 * aad_dim2 && 0 <= i__1 ? i__1 : s_rnge(
+			"aad", i__1, "asymtx_", (ftnlen)1476)];
 		i__1 = n - 1;
 		for (j = n2; j <= i__1; ++j) {
-		    r__ += aad[i__ + j * aad_dim1] * aad[j + n * aad_dim1];
+		    r__ += aad[(i__2 = i__ + j * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+			    "aad", i__2, "asymtx_", (ftnlen)1479)] * aad[(
+			    i__3 = j + n * aad_dim1 - aad_offset) < 1 * 
+			    aad_dim1 * aad_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			    "aad", i__3, "asymtx_", (ftnlen)1479)];
 /* L560: */
 		}
-		aad[i__ + n * aad_dim1] = -r__ / w;
+		aad[(i__1 = i__ + n * aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+			aad_dim2 && 0 <= i__1 ? i__1 : s_rnge("aad", i__1, 
+			"asymtx_", (ftnlen)1482)] = -r__ / w;
 		n2 = i__;
 /* L570: */
 	    }
@@ -1618,7 +2087,12 @@ L550:
 	    if (i__ < l || i__ > k) {
 		i__2 = *m;
 		for (j = i__; j <= i__2; ++j) {
-		    evecd[i__ + j * evecd_dim1] = aad[i__ + j * aad_dim1];
+		    evecd[(i__3 = i__ + j * evecd_dim1 - evecd_offset) < 1 * 
+			    evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : 
+			    s_rnge("evecd", i__3, "asymtx_", (ftnlen)1493)] = 
+			    aad[(i__4 = i__ + j * aad_dim1 - aad_offset) < 1 *
+			     aad_dim1 * aad_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+			    "aad", i__4, "asymtx_", (ftnlen)1493)];
 /* L590: */
 		}
 	    }
@@ -1633,11 +2107,19 @@ L550:
 		    z__ = zero;
 		    i__3 = min(j,k);
 		    for (n = l; n <= i__3; ++n) {
-			z__ += evecd[i__ + n * evecd_dim1] * aad[n + j * 
-				aad_dim1];
+			z__ += evecd[(i__4 = i__ + n * evecd_dim1 - 
+				evecd_offset) < 1 * evecd_dim1 * evecd_dim2 &&
+				 0 <= i__4 ? i__4 : s_rnge("evecd", i__4, 
+				"asymtx_", (ftnlen)1508)] * aad[(i__5 = n + j 
+				* aad_dim1 - aad_offset) < 1 * aad_dim1 * 
+				aad_dim2 && 0 <= i__5 ? i__5 : s_rnge("aad", 
+				i__5, "asymtx_", (ftnlen)1508)];
 /* L610: */
 		    }
-		    evecd[i__ + j * evecd_dim1] = z__;
+		    evecd[(i__3 = i__ + j * evecd_dim1 - evecd_offset) < 1 * 
+			    evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : 
+			    s_rnge("evecd", i__3, "asymtx_", (ftnlen)1511)] = 
+			    z__;
 /* L620: */
 		}
 /* L630: */
@@ -1648,20 +2130,34 @@ L550:
     for (i__ = l; i__ <= i__1; ++i__) {
 	i__2 = *m;
 	for (j = 1; j <= i__2; ++j) {
-	    evecd[i__ + j * evecd_dim1] *= wkd[i__];
+	    evecd[(i__3 = i__ + j * evecd_dim1 - evecd_offset) < 1 * 
+		    evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "evecd", i__3, "asymtx_", (ftnlen)1524)] = evecd[(i__4 = 
+		    i__ + j * evecd_dim1 - evecd_offset) < 1 * evecd_dim1 * 
+		    evecd_dim2 && 0 <= i__4 ? i__4 : s_rnge("evecd", i__4, 
+		    "asymtx_", (ftnlen)1524)] * wkd[i__ - 1];
 /* L640: */
 	}
 /* L650: */
     }
 /*                           ** Interchange rows if permutations occurred */
     for (i__ = l - 1; i__ >= 1; --i__) {
-	j = (integer) wkd[i__];
+	j = (integer) wkd[i__ - 1];
 	if (i__ != j) {
 	    i__1 = *m;
 	    for (n = 1; n <= i__1; ++n) {
-		repl = evecd[i__ + n * evecd_dim1];
-		evecd[i__ + n * evecd_dim1] = evecd[j + n * evecd_dim1];
-		evecd[j + n * evecd_dim1] = repl;
+		repl = evecd[(i__2 = i__ + n * evecd_dim1 - evecd_offset) < 1 
+			* evecd_dim1 * evecd_dim2 && 0 <= i__2 ? i__2 : 
+			s_rnge("evecd", i__2, "asymtx_", (ftnlen)1536)];
+		evecd[(i__2 = i__ + n * evecd_dim1 - evecd_offset) < 1 * 
+			evecd_dim1 * evecd_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+			"evecd", i__2, "asymtx_", (ftnlen)1537)] = evecd[(
+			i__3 = j + n * evecd_dim1 - evecd_offset) < 1 * 
+			evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"evecd", i__3, "asymtx_", (ftnlen)1537)];
+		evecd[(i__2 = j + n * evecd_dim1 - evecd_offset) < 1 * 
+			evecd_dim1 * evecd_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+			"evecd", i__2, "asymtx_", (ftnlen)1538)] = repl;
 /* L660: */
 	    }
 	}
@@ -1669,13 +2165,22 @@ L550:
     }
     i__1 = *m;
     for (i__ = k + 1; i__ <= i__1; ++i__) {
-	j = (integer) wkd[i__];
+	j = (integer) wkd[i__ - 1];
 	if (i__ != j) {
 	    i__2 = *m;
 	    for (n = 1; n <= i__2; ++n) {
-		repl = evecd[i__ + n * evecd_dim1];
-		evecd[i__ + n * evecd_dim1] = evecd[j + n * evecd_dim1];
-		evecd[j + n * evecd_dim1] = repl;
+		repl = evecd[(i__3 = i__ + n * evecd_dim1 - evecd_offset) < 1 
+			* evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : 
+			s_rnge("evecd", i__3, "asymtx_", (ftnlen)1553)];
+		evecd[(i__3 = i__ + n * evecd_dim1 - evecd_offset) < 1 * 
+			evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"evecd", i__3, "asymtx_", (ftnlen)1554)] = evecd[(
+			i__4 = j + n * evecd_dim1 - evecd_offset) < 1 * 
+			evecd_dim1 * evecd_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+			"evecd", i__4, "asymtx_", (ftnlen)1554)];
+		evecd[(i__3 = j + n * evecd_dim1 - evecd_offset) < 1 * 
+			evecd_dim1 * evecd_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"evecd", i__3, "asymtx_", (ftnlen)1555)] = repl;
 /* L680: */
 	    }
 	}
@@ -1685,10 +2190,18 @@ L550:
 L700:
     i__1 = *m;
     for (j = 1; j <= i__1; ++j) {
-	eval[j] = evald[j];
+	eval[(i__2 = j - 1) < 1 * eval_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"eval", i__2, "asymtx_", (ftnlen)1567)] = evald[(i__3 = j - 1)
+		 < 1 * evald_dim1 && 0 <= i__3 ? i__3 : s_rnge("evald", i__3, 
+		"asymtx_", (ftnlen)1567)];
 	i__2 = *m;
 	for (k = 1; k <= i__2; ++k) {
-	    evec[j + k * evec_dim1] = evecd[j + k * evecd_dim1];
+	    evec[(i__3 = j + k * evec_dim1 - evec_offset) < 1 * evec_dim1 * 
+		    evec_dim2 && 0 <= i__3 ? i__3 : s_rnge("evec", i__3, 
+		    "asymtx_", (ftnlen)1570)] = evecd[(i__4 = j + k * 
+		    evecd_dim1 - evecd_offset) < 1 * evecd_dim1 * evecd_dim2 
+		    && 0 <= i__4 ? i__4 : s_rnge("evecd", i__4, "asymtx_", (
+		    ftnlen)1570)];
 /* L710: */
 	}
 /* L720: */
@@ -1705,10 +2218,12 @@ L700:
 {
     /* System generated locals */
     integer gc_dim1, gc_dim2, gc_offset, kk_dim1, kk_offset, ll_dim1, 
-	    ll_offset, uum_dim1, uum_offset, zplk0_dim1, zplk0_offset, 
-	    zplk1_dim1, zplk1_offset, zz_dim1, zz_offset, i__1, i__2, i__3;
+	    ll_offset, utaupr_dim1, uum_dim1, uum_dim2, uum_offset, 
+	    zplk0_dim1, zplk0_offset, zplk1_dim1, zplk1_offset, zz_dim1, 
+	    zz_offset, i__1, i__2, i__3, i__4, i__5;
 
     /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
     double exp(doublereal);
 
     /* Local variables */
@@ -1775,35 +2290,28 @@ L700:
 /*     .. */
 /*                                       ** Loop over user levels */
     /* Parameter adjustments */
-    --layru;
     zplk1_dim1 = *mxcmu;
     zplk1_offset = 1 + zplk1_dim1;
-    zplk1 -= zplk1_offset;
     zplk0_dim1 = *mxcmu;
     zplk0_offset = 1 + zplk0_dim1;
-    zplk0 -= zplk0_offset;
     zz_dim1 = *mxcmu;
     zz_offset = 1 + zz_dim1;
-    zz -= zz_offset;
     ll_dim1 = *mxcmu;
     ll_offset = 1 + ll_dim1;
-    ll -= ll_offset;
     kk_dim1 = *mxcmu;
     kk_offset = 1 + kk_dim1;
-    kk -= kk_offset;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
     gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
-    gc -= gc_offset;
-    --utaupr;
+    utaupr_dim1 = *mxulv;
     uum_dim1 = *mxumu;
+    uum_dim2 = *mxulv;
     uum_offset = 1 + uum_dim1;
-    uum -= uum_offset;
 
     /* Function Body */
     i__1 = *ntau;
     for (lu = 1; lu <= i__1; ++lu) {
-	lyu = layru[lu];
+	lyu = layru[lu - 1];
 	if (*lyrcut && lyu > *ncut) {
 	    goto L40;
 	}
@@ -1812,27 +2320,44 @@ L700:
 	    zint = 0.;
 	    i__3 = *nn;
 	    for (jq = 1; jq <= i__3; ++jq) {
-		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1] * ll[jq + lyu 
-			* ll_dim1] * exp(-kk[jq + lyu * kk_dim1] * (utaupr[lu]
-			 - taucpr[lyu]));
+		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1 - gc_offset] * 
+			ll[jq + lyu * ll_dim1 - ll_offset] * exp(-kk[jq + lyu 
+			* kk_dim1 - kk_offset] * (utaupr[(i__4 = lu - 1) < 1 *
+			 utaupr_dim1 && 0 <= i__4 ? i__4 : s_rnge("utaupr", 
+			i__4, "cmpint_", (ftnlen)1668)] - taucpr[lyu]));
 /* L10: */
 	    }
 	    i__3 = *nstr;
 	    for (jq = *nn + 1; jq <= i__3; ++jq) {
-		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1] * ll[jq + lyu 
-			* ll_dim1] * exp(-kk[jq + lyu * kk_dim1] * (utaupr[lu]
-			 - taucpr[lyu - 1]));
+		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1 - gc_offset] * 
+			ll[jq + lyu * ll_dim1 - ll_offset] * exp(-kk[jq + lyu 
+			* kk_dim1 - kk_offset] * (utaupr[(i__4 = lu - 1) < 1 *
+			 utaupr_dim1 && 0 <= i__4 ? i__4 : s_rnge("utaupr", 
+			i__4, "cmpint_", (ftnlen)1674)] - taucpr[lyu - 1]));
 /* L20: */
 	    }
-	    uum[iq + lu * uum_dim1] = zint;
+	    uum[(i__3 = iq + lu * uum_dim1 - uum_offset) < 1 * uum_dim1 * 
+		    uum_dim2 && 0 <= i__3 ? i__3 : s_rnge("uum", i__3, "cmpi\
+nt_", (ftnlen)1679)] = zint;
 	    if (*fbeam > 0.) {
-		uum[iq + lu * uum_dim1] = zint + zz[iq + lyu * zz_dim1] * exp(
-			-utaupr[lu] / *umu0);
+		uum[(i__4 = iq + lu * uum_dim1 - uum_offset) < 1 * uum_dim1 * 
+			uum_dim2 && 0 <= i__4 ? i__4 : s_rnge("uum", i__4, 
+			"cmpint_", (ftnlen)1681)] = zint + zz[iq + lyu * 
+			zz_dim1 - zz_offset] * exp(-utaupr[(i__3 = lu - 1) < 
+			1 * utaupr_dim1 && 0 <= i__3 ? i__3 : s_rnge("utaupr",
+			 i__3, "cmpint_", (ftnlen)1681)] / *umu0);
 	    }
 	    if (*plank && *mazim == 0) {
-		uum[iq + lu * uum_dim1] = uum[iq + lu * uum_dim1] + zplk0[iq 
-			+ lyu * zplk0_dim1] + zplk1[iq + lyu * zplk1_dim1] * 
-			utaupr[lu];
+		uum[(i__3 = iq + lu * uum_dim1 - uum_offset) < 1 * uum_dim1 * 
+			uum_dim2 && 0 <= i__3 ? i__3 : s_rnge("uum", i__3, 
+			"cmpint_", (ftnlen)1684)] = uum[(i__4 = iq + lu * 
+			uum_dim1 - uum_offset) < 1 * uum_dim1 * uum_dim2 && 0 
+			<= i__4 ? i__4 : s_rnge("uum", i__4, "cmpint_", (
+			ftnlen)1684)] + zplk0[iq + lyu * zplk0_dim1 - 
+			zplk0_offset] + zplk1[iq + lyu * zplk1_dim1 - 
+			zplk1_offset] * utaupr[(i__5 = lu - 1) < 1 * 
+			utaupr_dim1 && 0 <= i__5 ? i__5 : s_rnge("utaupr", 
+			i__5, "cmpint_", (ftnlen)1684)];
 	    }
 /* L30: */
 	}
@@ -1854,12 +2379,16 @@ L40:
 	doublereal *u0c)
 {
     /* System generated locals */
-    integer gc_dim1, gc_dim2, gc_offset, kk_dim1, kk_offset, ll_dim1, 
-	    ll_offset, u0c_dim1, u0c_offset, zplk0_dim1, zplk0_offset, 
-	    zplk1_dim1, zplk1_offset, zz_dim1, zz_offset, i__1, i__2, i__3;
+    integer layru_dim1, cmu_dim1, cwt_dim1, dfdt_dim1, fldir_dim1, fldn_dim1, 
+	    flup_dim1, gc_dim1, gc_dim2, gc_offset, kk_dim1, kk_offset, 
+	    ll_dim1, ll_offset, rfldir_dim1, rfldn_dim1, u0c_dim1, u0c_dim2, 
+	    u0c_offset, uavg_dim1, utau_dim1, utaupr_dim1, zplk0_dim1, 
+	    zplk0_offset, zplk1_dim1, zplk1_offset, zz_dim1, zz_offset, i__1, 
+	    i__2, i__3, i__4, i__5, i__6, i__7;
 
     /* Builtin functions */
-    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
+    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe(), 
+	    s_rnge(char *, integer, char *, integer);
     double exp(doublereal), acos(doublereal);
 
     /* Local variables */
@@ -1954,47 +2483,37 @@ L40:
 /*     .. Intrinsic Functions .. */
 /*     .. */
     /* Parameter adjustments */
-    --uavg;
-    --rfldn;
-    --rfldir;
-    --flup;
-    --dfdt;
-    --utau;
+    uavg_dim1 = *maxulv;
+    rfldn_dim1 = *maxulv;
+    rfldir_dim1 = *maxulv;
+    flup_dim1 = *maxulv;
+    dfdt_dim1 = *maxulv;
+    utau_dim1 = *maxulv;
     zplk1_dim1 = *mxcmu;
     zplk1_offset = 1 + zplk1_dim1;
-    zplk1 -= zplk1_offset;
     zplk0_dim1 = *mxcmu;
     zplk0_offset = 1 + zplk0_dim1;
-    zplk0 -= zplk0_offset;
     zz_dim1 = *mxcmu;
     zz_offset = 1 + zz_dim1;
-    zz -= zz_offset;
     ll_dim1 = *mxcmu;
     ll_offset = 1 + ll_dim1;
-    ll -= ll_offset;
     kk_dim1 = *mxcmu;
     kk_offset = 1 + kk_dim1;
-    kk -= kk_offset;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
     gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
-    gc -= gc_offset;
-    --cwt;
-    --cmu;
+    cwt_dim1 = *mxcmu;
+    cmu_dim1 = *mxcmu;
     u0c_dim1 = *mxcmu;
+    u0c_dim2 = *mxulv;
     u0c_offset = 1 + u0c_dim1;
-    u0c -= u0c_offset;
-    --fldir;
-    --fldn;
-    --utaupr;
-    --layru;
-    --prnt;
-    --ssalb;
-    --xr0;
-    --xr1;
+    fldir_dim1 = *mxulv;
+    fldn_dim1 = *mxulv;
+    utaupr_dim1 = *mxulv;
+    layru_dim1 = *mxulv;
 
     /* Function Body */
-    if (prnt[2]) {
+    if (prnt[1]) {
 	s_wsfe(&io___139);
 	do_fio(&c__1, "<----------------------- FLUXES ---------------------\
 -->", (ftnlen)56);
@@ -2010,13 +2529,14 @@ Dep)", (ftnlen)57);
     }
 /*                                        ** Zero DISORT output arrays */
     i__1 = *mxulv * *mxcmu;
-    zeroit_(&u0c[u0c_offset], &i__1);
-    zeroit_(&fldir[1], mxulv);
-    zeroit_(&fldn[1], mxulv);
+    zeroit_(u0c, &i__1);
+    zeroit_(fldir, mxulv);
+    zeroit_(fldn, mxulv);
 /*                                        ** Loop over user levels */
     i__1 = *ntau;
     for (lu = 1; lu <= i__1; ++lu) {
-	lyu = layru[lu];
+	lyu = layru[(i__2 = lu - 1) < 1 * layru_dim1 && 0 <= i__2 ? i__2 : 
+		s_rnge("layru", i__2, "fluxes_", (ftnlen)1818)];
 	if (*lyrcut && lyu > *ncut) {
 /*                                                ** No radiation reaches */
 /*                                                ** this level */
@@ -2026,43 +2546,84 @@ Dep)", (ftnlen)57);
 	    goto L70;
 	}
 	if (*fbeam > 0.) {
-	    fact = exp(-utaupr[lu] / *umu0);
+	    fact = exp(-utaupr[(i__2 = lu - 1) < 1 * utaupr_dim1 && 0 <= i__2 
+		    ? i__2 : s_rnge("utaupr", i__2, "fluxes_", (ftnlen)1833)] 
+		    / *umu0);
 	    dirint = *fbeam * fact;
-	    fldir[lu] = *umu0 * (*fbeam * fact);
-	    rfldir[lu] = *umu0 * *fbeam * exp(-utau[lu] / *umu0);
+	    fldir[(i__2 = lu - 1) < 1 * fldir_dim1 && 0 <= i__2 ? i__2 : 
+		    s_rnge("fldir", i__2, "fluxes_", (ftnlen)1835)] = *umu0 * 
+		    (*fbeam * fact);
+	    rfldir[(i__3 = lu - 1) < 1 * rfldir_dim1 && 0 <= i__3 ? i__3 : 
+		    s_rnge("rfldir", i__3, "fluxes_", (ftnlen)1836)] = *umu0 *
+		     *fbeam * exp(-utau[(i__2 = lu - 1) < 1 * utau_dim1 && 0 
+		    <= i__2 ? i__2 : s_rnge("utau", i__2, "fluxes_", (ftnlen)
+		    1836)] / *umu0);
 	} else {
 	    dirint = 0.;
-	    fldir[lu] = 0.;
-	    rfldir[lu] = 0.;
+	    fldir[(i__2 = lu - 1) < 1 * fldir_dim1 && 0 <= i__2 ? i__2 : 
+		    s_rnge("fldir", i__2, "fluxes_", (ftnlen)1841)] = 0.;
+	    rfldir[(i__2 = lu - 1) < 1 * rfldir_dim1 && 0 <= i__2 ? i__2 : 
+		    s_rnge("rfldir", i__2, "fluxes_", (ftnlen)1842)] = 0.;
 	}
 	i__2 = *nn;
 	for (iq = 1; iq <= i__2; ++iq) {
 	    zint = 0.;
 	    i__3 = *nn;
 	    for (jq = 1; jq <= i__3; ++jq) {
-		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1] * ll[jq + lyu 
-			* ll_dim1] * exp(-kk[jq + lyu * kk_dim1] * (utaupr[lu]
-			 - taucpr[lyu]));
+		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1 - gc_offset] * 
+			ll[jq + lyu * ll_dim1 - ll_offset] * exp(-kk[jq + lyu 
+			* kk_dim1 - kk_offset] * (utaupr[(i__4 = lu - 1) < 1 *
+			 utaupr_dim1 && 0 <= i__4 ? i__4 : s_rnge("utaupr", 
+			i__4, "fluxes_", (ftnlen)1852)] - taucpr[lyu]));
 /* L10: */
 	    }
 	    i__3 = *nstr;
 	    for (jq = *nn + 1; jq <= i__3; ++jq) {
-		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1] * ll[jq + lyu 
-			* ll_dim1] * exp(-kk[jq + lyu * kk_dim1] * (utaupr[lu]
-			 - taucpr[lyu - 1]));
+		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1 - gc_offset] * 
+			ll[jq + lyu * ll_dim1 - ll_offset] * exp(-kk[jq + lyu 
+			* kk_dim1 - kk_offset] * (utaupr[(i__4 = lu - 1) < 1 *
+			 utaupr_dim1 && 0 <= i__4 ? i__4 : s_rnge("utaupr", 
+			i__4, "fluxes_", (ftnlen)1858)] - taucpr[lyu - 1]));
 /* L20: */
 	    }
-	    u0c[iq + lu * u0c_dim1] = zint;
+	    u0c[(i__3 = iq + lu * u0c_dim1 - u0c_offset) < 1 * u0c_dim1 * 
+		    u0c_dim2 && 0 <= i__3 ? i__3 : s_rnge("u0c", i__3, "flux\
+es_", (ftnlen)1863)] = zint;
 	    if (*fbeam > 0.) {
-		u0c[iq + lu * u0c_dim1] = zint + zz[iq + lyu * zz_dim1] * 
-			fact;
+		u0c[(i__3 = iq + lu * u0c_dim1 - u0c_offset) < 1 * u0c_dim1 * 
+			u0c_dim2 && 0 <= i__3 ? i__3 : s_rnge("u0c", i__3, 
+			"fluxes_", (ftnlen)1865)] = zint + zz[iq + lyu * 
+			zz_dim1 - zz_offset] * fact;
 	    }
-	    u0c[iq + lu * u0c_dim1] = u0c[iq + lu * u0c_dim1] + zplk0[iq + 
-		    lyu * zplk0_dim1] + zplk1[iq + lyu * zplk1_dim1] * utaupr[
-		    lu];
-	    uavg[lu] += cwt[*nn + 1 - iq] * u0c[iq + lu * u0c_dim1];
-	    fldn[lu] += cwt[*nn + 1 - iq] * cmu[*nn + 1 - iq] * u0c[iq + lu * 
-		    u0c_dim1];
+	    u0c[(i__3 = iq + lu * u0c_dim1 - u0c_offset) < 1 * u0c_dim1 * 
+		    u0c_dim2 && 0 <= i__3 ? i__3 : s_rnge("u0c", i__3, "flux\
+es_", (ftnlen)1867)] = u0c[(i__4 = iq + lu * u0c_dim1 - u0c_offset) < 1 * 
+		    u0c_dim1 * u0c_dim2 && 0 <= i__4 ? i__4 : s_rnge("u0c", 
+		    i__4, "fluxes_", (ftnlen)1867)] + zplk0[iq + lyu * 
+		    zplk0_dim1 - zplk0_offset] + zplk1[iq + lyu * zplk1_dim1 
+		    - zplk1_offset] * utaupr[(i__5 = lu - 1) < 1 * 
+		    utaupr_dim1 && 0 <= i__5 ? i__5 : s_rnge("utaupr", i__5, 
+		    "fluxes_", (ftnlen)1867)];
+	    uavg[(i__3 = lu - 1) < 1 * uavg_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		    "uavg", i__3, "fluxes_", (ftnlen)1869)] = uavg[(i__4 = lu 
+		    - 1) < 1 * uavg_dim1 && 0 <= i__4 ? i__4 : s_rnge("uavg", 
+		    i__4, "fluxes_", (ftnlen)1869)] + cwt[(i__5 = *nn + 1 - 
+		    iq - 1) < 1 * cwt_dim1 && 0 <= i__5 ? i__5 : s_rnge("cwt",
+		     i__5, "fluxes_", (ftnlen)1869)] * u0c[(i__6 = iq + lu * 
+		    u0c_dim1 - u0c_offset) < 1 * u0c_dim1 * u0c_dim2 && 0 <= 
+		    i__6 ? i__6 : s_rnge("u0c", i__6, "fluxes_", (ftnlen)1869)
+		    ];
+	    fldn[(i__3 = lu - 1) < 1 * fldn_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		    "fldn", i__3, "fluxes_", (ftnlen)1870)] = fldn[(i__4 = lu 
+		    - 1) < 1 * fldn_dim1 && 0 <= i__4 ? i__4 : s_rnge("fldn", 
+		    i__4, "fluxes_", (ftnlen)1870)] + cwt[(i__5 = *nn + 1 - 
+		    iq - 1) < 1 * cwt_dim1 && 0 <= i__5 ? i__5 : s_rnge("cwt",
+		     i__5, "fluxes_", (ftnlen)1870)] * cmu[(i__6 = *nn + 1 - 
+		    iq - 1) < 1 * cmu_dim1 && 0 <= i__6 ? i__6 : s_rnge("cmu",
+		     i__6, "fluxes_", (ftnlen)1870)] * u0c[(i__7 = iq + lu * 
+		    u0c_dim1 - u0c_offset) < 1 * u0c_dim1 * u0c_dim2 && 0 <= 
+		    i__7 ? i__7 : s_rnge("u0c", i__7, "fluxes_", (ftnlen)1870)
+		    ];
 /* L30: */
 	}
 	i__2 = *nstr;
@@ -2070,57 +2631,123 @@ Dep)", (ftnlen)57);
 	    zint = 0.;
 	    i__3 = *nn;
 	    for (jq = 1; jq <= i__3; ++jq) {
-		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1] * ll[jq + lyu 
-			* ll_dim1] * exp(-kk[jq + lyu * kk_dim1] * (utaupr[lu]
-			 - taucpr[lyu]));
+		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1 - gc_offset] * 
+			ll[jq + lyu * ll_dim1 - ll_offset] * exp(-kk[jq + lyu 
+			* kk_dim1 - kk_offset] * (utaupr[(i__4 = lu - 1) < 1 *
+			 utaupr_dim1 && 0 <= i__4 ? i__4 : s_rnge("utaupr", 
+			i__4, "fluxes_", (ftnlen)1880)] - taucpr[lyu]));
 /* L40: */
 	    }
 	    i__3 = *nstr;
 	    for (jq = *nn + 1; jq <= i__3; ++jq) {
-		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1] * ll[jq + lyu 
-			* ll_dim1] * exp(-kk[jq + lyu * kk_dim1] * (utaupr[lu]
-			 - taucpr[lyu - 1]));
+		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1 - gc_offset] * 
+			ll[jq + lyu * ll_dim1 - ll_offset] * exp(-kk[jq + lyu 
+			* kk_dim1 - kk_offset] * (utaupr[(i__4 = lu - 1) < 1 *
+			 utaupr_dim1 && 0 <= i__4 ? i__4 : s_rnge("utaupr", 
+			i__4, "fluxes_", (ftnlen)1886)] - taucpr[lyu - 1]));
 /* L50: */
 	    }
-	    u0c[iq + lu * u0c_dim1] = zint;
+	    u0c[(i__3 = iq + lu * u0c_dim1 - u0c_offset) < 1 * u0c_dim1 * 
+		    u0c_dim2 && 0 <= i__3 ? i__3 : s_rnge("u0c", i__3, "flux\
+es_", (ftnlen)1891)] = zint;
 	    if (*fbeam > 0.) {
-		u0c[iq + lu * u0c_dim1] = zint + zz[iq + lyu * zz_dim1] * 
-			fact;
+		u0c[(i__3 = iq + lu * u0c_dim1 - u0c_offset) < 1 * u0c_dim1 * 
+			u0c_dim2 && 0 <= i__3 ? i__3 : s_rnge("u0c", i__3, 
+			"fluxes_", (ftnlen)1893)] = zint + zz[iq + lyu * 
+			zz_dim1 - zz_offset] * fact;
 	    }
-	    u0c[iq + lu * u0c_dim1] = u0c[iq + lu * u0c_dim1] + zplk0[iq + 
-		    lyu * zplk0_dim1] + zplk1[iq + lyu * zplk1_dim1] * utaupr[
-		    lu];
-	    uavg[lu] += cwt[iq - *nn] * u0c[iq + lu * u0c_dim1];
-	    flup[lu] += cwt[iq - *nn] * cmu[iq - *nn] * u0c[iq + lu * 
-		    u0c_dim1];
+	    u0c[(i__3 = iq + lu * u0c_dim1 - u0c_offset) < 1 * u0c_dim1 * 
+		    u0c_dim2 && 0 <= i__3 ? i__3 : s_rnge("u0c", i__3, "flux\
+es_", (ftnlen)1895)] = u0c[(i__4 = iq + lu * u0c_dim1 - u0c_offset) < 1 * 
+		    u0c_dim1 * u0c_dim2 && 0 <= i__4 ? i__4 : s_rnge("u0c", 
+		    i__4, "fluxes_", (ftnlen)1895)] + zplk0[iq + lyu * 
+		    zplk0_dim1 - zplk0_offset] + zplk1[iq + lyu * zplk1_dim1 
+		    - zplk1_offset] * utaupr[(i__5 = lu - 1) < 1 * 
+		    utaupr_dim1 && 0 <= i__5 ? i__5 : s_rnge("utaupr", i__5, 
+		    "fluxes_", (ftnlen)1895)];
+	    uavg[(i__3 = lu - 1) < 1 * uavg_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		    "uavg", i__3, "fluxes_", (ftnlen)1897)] = uavg[(i__4 = lu 
+		    - 1) < 1 * uavg_dim1 && 0 <= i__4 ? i__4 : s_rnge("uavg", 
+		    i__4, "fluxes_", (ftnlen)1897)] + cwt[(i__5 = iq - *nn - 
+		    1) < 1 * cwt_dim1 && 0 <= i__5 ? i__5 : s_rnge("cwt", 
+		    i__5, "fluxes_", (ftnlen)1897)] * u0c[(i__6 = iq + lu * 
+		    u0c_dim1 - u0c_offset) < 1 * u0c_dim1 * u0c_dim2 && 0 <= 
+		    i__6 ? i__6 : s_rnge("u0c", i__6, "fluxes_", (ftnlen)1897)
+		    ];
+	    flup[(i__3 = lu - 1) < 1 * flup_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		    "flup", i__3, "fluxes_", (ftnlen)1898)] = flup[(i__4 = lu 
+		    - 1) < 1 * flup_dim1 && 0 <= i__4 ? i__4 : s_rnge("flup", 
+		    i__4, "fluxes_", (ftnlen)1898)] + cwt[(i__5 = iq - *nn - 
+		    1) < 1 * cwt_dim1 && 0 <= i__5 ? i__5 : s_rnge("cwt", 
+		    i__5, "fluxes_", (ftnlen)1898)] * cmu[(i__6 = iq - *nn - 
+		    1) < 1 * cmu_dim1 && 0 <= i__6 ? i__6 : s_rnge("cmu", 
+		    i__6, "fluxes_", (ftnlen)1898)] * u0c[(i__7 = iq + lu * 
+		    u0c_dim1 - u0c_offset) < 1 * u0c_dim1 * u0c_dim2 && 0 <= 
+		    i__7 ? i__7 : s_rnge("u0c", i__7, "fluxes_", (ftnlen)1898)
+		    ];
 /* L60: */
 	}
-	flup[lu] = *pi * 2. * flup[lu];
-	fldn[lu] = *pi * 2. * fldn[lu];
-	fdntot = fldn[lu] + fldir[lu];
-	fnet = fdntot - flup[lu];
-	rfldn[lu] = fdntot - rfldir[lu];
-	uavg[lu] = (*pi * 2. * uavg[lu] + dirint) / (*pi * 4.);
-	plsorc = xr0[lyu] + xr1[lyu] * utaupr[lu];
-	dfdt[lu] = (1. - ssalb[lyu]) * 4. * *pi * (uavg[lu] - plsorc);
+	flup[(i__2 = lu - 1) < 1 * flup_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"flup", i__2, "fluxes_", (ftnlen)1903)] = *pi * 2. * flup[(
+		i__3 = lu - 1) < 1 * flup_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		"flup", i__3, "fluxes_", (ftnlen)1903)];
+	fldn[(i__2 = lu - 1) < 1 * fldn_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"fldn", i__2, "fluxes_", (ftnlen)1904)] = *pi * 2. * fldn[(
+		i__3 = lu - 1) < 1 * fldn_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		"fldn", i__3, "fluxes_", (ftnlen)1904)];
+	fdntot = fldn[(i__2 = lu - 1) < 1 * fldn_dim1 && 0 <= i__2 ? i__2 : 
+		s_rnge("fldn", i__2, "fluxes_", (ftnlen)1905)] + fldir[(i__3 =
+		 lu - 1) < 1 * fldir_dim1 && 0 <= i__3 ? i__3 : s_rnge("fldir"
+		, i__3, "fluxes_", (ftnlen)1905)];
+	fnet = fdntot - flup[(i__2 = lu - 1) < 1 * flup_dim1 && 0 <= i__2 ? 
+		i__2 : s_rnge("flup", i__2, "fluxes_", (ftnlen)1906)];
+	rfldn[(i__2 = lu - 1) < 1 * rfldn_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"rfldn", i__2, "fluxes_", (ftnlen)1907)] = fdntot - rfldir[(
+		i__3 = lu - 1) < 1 * rfldir_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		"rfldir", i__3, "fluxes_", (ftnlen)1907)];
+	uavg[(i__2 = lu - 1) < 1 * uavg_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"uavg", i__2, "fluxes_", (ftnlen)1908)] = (*pi * 2. * uavg[(
+		i__3 = lu - 1) < 1 * uavg_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		"uavg", i__3, "fluxes_", (ftnlen)1908)] + dirint) / (*pi * 4.)
+		;
+	plsorc = xr0[lyu - 1] + xr1[lyu - 1] * utaupr[(i__2 = lu - 1) < 1 * 
+		utaupr_dim1 && 0 <= i__2 ? i__2 : s_rnge("utaupr", i__2, 
+		"fluxes_", (ftnlen)1909)];
+	dfdt[(i__2 = lu - 1) < 1 * dfdt_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"dfdt", i__2, "fluxes_", (ftnlen)1910)] = (1. - ssalb[lyu - 1]
+		) * 4. * *pi * (uavg[(i__3 = lu - 1) < 1 * uavg_dim1 && 0 <= 
+		i__3 ? i__3 : s_rnge("uavg", i__3, "fluxes_", (ftnlen)1910)] 
+		- plsorc);
 L70:
-	if (prnt[2]) {
+	if (prnt[1]) {
 	    s_wsfe(&io___150);
-	    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&utau[(i__2 = lu - 1) < 1 * utau_dim1 && 0 
+		    <= i__2 ? i__2 : s_rnge("utau", i__2, "fluxes_", (ftnlen)
+		    1914)], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&lyu, (ftnlen)sizeof(integer));
-	    do_fio(&c__1, (char *)&rfldir[lu], (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&rfldn[lu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&rfldir[(i__3 = lu - 1) < 1 * rfldir_dim1 &&
+		     0 <= i__3 ? i__3 : s_rnge("rfldir", i__3, "fluxes_", (
+		    ftnlen)1914)], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&rfldn[(i__4 = lu - 1) < 1 * rfldn_dim1 && 
+		    0 <= i__4 ? i__4 : s_rnge("rfldn", i__4, "fluxes_", (
+		    ftnlen)1914)], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&fdntot, (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&flup[lu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&flup[(i__5 = lu - 1) < 1 * flup_dim1 && 0 
+		    <= i__5 ? i__5 : s_rnge("flup", i__5, "fluxes_", (ftnlen)
+		    1914)], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&fnet, (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&uavg[lu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&uavg[(i__6 = lu - 1) < 1 * uavg_dim1 && 0 
+		    <= i__6 ? i__6 : s_rnge("uavg", i__6, "fluxes_", (ftnlen)
+		    1914)], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&plsorc, (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&dfdt[lu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&dfdt[(i__7 = lu - 1) < 1 * dfdt_dim1 && 0 
+		    <= i__7 ? i__7 : s_rnge("dfdt", i__7, "fluxes_", (ftnlen)
+		    1914)], (ftnlen)sizeof(doublereal));
 	    e_wsfe();
 	}
 /* L80: */
     }
-    if (prnt[3]) {
+    if (prnt[2]) {
 	s_wsfe(&io___151);
 	do_fio(&c__1, " ******** AZIMUTHALLY AVERAGED ", (ftnlen)31);
 	do_fio(&c__1, "INTENSITIES ( at polar quadrature angles ) *******", (
@@ -2130,7 +2757,9 @@ L70:
 	for (lu = 1; lu <= i__1; ++lu) {
 	    s_wsfe(&io___152);
 	    do_fio(&c__1, " Optical depth =", (ftnlen)16);
-	    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&utau[(i__2 = lu - 1) < 1 * utau_dim1 && 0 
+		    <= i__2 ? i__2 : s_rnge("utau", i__2, "fluxes_", (ftnlen)
+		    1928)], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, "     Angle (deg)   cos(Angle)     Intensity", (
 		    ftnlen)43);
 	    do_fio(&c__1, "     Angle (deg)   cos(Angle)     Intensity", (
@@ -2138,18 +2767,30 @@ L70:
 	    e_wsfe();
 	    i__2 = *nn;
 	    for (iq = 1; iq <= i__2; ++iq) {
-		ang1 = 180. / *pi * acos(cmu[(*nn << 1) - iq + 1]);
-		ang2 = 180. / *pi * acos(cmu[iq]);
+		ang1 = 180. / *pi * acos(cmu[(i__3 = (*nn << 1) - iq) < 1 * 
+			cmu_dim1 && 0 <= i__3 ? i__3 : s_rnge("cmu", i__3, 
+			"fluxes_", (ftnlen)1934)]);
+		ang2 = 180. / *pi * acos(cmu[(i__3 = iq - 1) < 1 * cmu_dim1 &&
+			 0 <= i__3 ? i__3 : s_rnge("cmu", i__3, "fluxes_", (
+			ftnlen)1935)]);
 		s_wsfe(&io___155);
 		do_fio(&c__1, (char *)&ang1, (ftnlen)sizeof(doublereal));
-		do_fio(&c__1, (char *)&cmu[(*nn << 1) - iq + 1], (ftnlen)
-			sizeof(doublereal));
-		do_fio(&c__1, (char *)&u0c[iq + lu * u0c_dim1], (ftnlen)
-			sizeof(doublereal));
+		do_fio(&c__1, (char *)&cmu[(i__3 = (*nn << 1) - iq) < 1 * 
+			cmu_dim1 && 0 <= i__3 ? i__3 : s_rnge("cmu", i__3, 
+			"fluxes_", (ftnlen)1936)], (ftnlen)sizeof(doublereal))
+			;
+		do_fio(&c__1, (char *)&u0c[(i__4 = iq + lu * u0c_dim1 - 
+			u0c_offset) < 1 * u0c_dim1 * u0c_dim2 && 0 <= i__4 ? 
+			i__4 : s_rnge("u0c", i__4, "fluxes_", (ftnlen)1936)], 
+			(ftnlen)sizeof(doublereal));
 		do_fio(&c__1, (char *)&ang2, (ftnlen)sizeof(doublereal));
-		do_fio(&c__1, (char *)&cmu[iq], (ftnlen)sizeof(doublereal));
-		do_fio(&c__1, (char *)&u0c[iq + *nn + lu * u0c_dim1], (ftnlen)
-			sizeof(doublereal));
+		do_fio(&c__1, (char *)&cmu[(i__5 = iq - 1) < 1 * cmu_dim1 && 
+			0 <= i__5 ? i__5 : s_rnge("cmu", i__5, "fluxes_", (
+			ftnlen)1936)], (ftnlen)sizeof(doublereal));
+		do_fio(&c__1, (char *)&u0c[(i__6 = iq + *nn + lu * u0c_dim1 - 
+			u0c_offset) < 1 * u0c_dim1 * u0c_dim2 && 0 <= i__6 ? 
+			i__6 : s_rnge("u0c", i__6, "fluxes_", (ftnlen)1936)], 
+			(ftnlen)sizeof(doublereal));
 		e_wsfe();
 /* L90: */
 	    }
@@ -2175,11 +2816,13 @@ L70:
     static doublereal abscut = 10.;
 
     /* System generated locals */
-    integer gl_dim1, gl_offset, pmom_dim1, pmom_offset, i__1, i__2;
+    integer cmu_dim1, cwt_dim1, gl_dim1, gl_offset, hl_dim1, hlpr_dim1, 
+	    pmom_dim1, pmom_offset, umu_dim1, i__1, i__2, i__3;
     doublereal d__1;
 
     /* Builtin functions */
     double exp(doublereal);
+    integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static doublereal f;
@@ -2241,23 +2884,15 @@ L70:
 /*     .. Intrinsic Functions .. */
 /*     .. */
     /* Parameter adjustments */
-    --dtauc;
-    --dtaucp;
-    --flyr;
-    --layru;
-    --umu;
+    umu_dim1 = *maxumu;
     pmom_dim1 = *maxcmu - 0 + 1;
     pmom_offset = 0 + pmom_dim1;
-    pmom -= pmom_offset;
+    hl_dim1 = *maxcmu - 0 + 1;
+    hlpr_dim1 = *mxcmu - 0 + 1;
     gl_dim1 = *mxcmu - 0 + 1;
     gl_offset = 0 + gl_dim1;
-    gl -= gl_offset;
-    --cwt;
-    --cmu;
-    --oprim;
-    --ssalb;
-    --utau;
-    --utaupr;
+    cwt_dim1 = *mxcmu;
+    cmu_dim1 = *mxcmu;
 
     /* Function Body */
     if (! (*usrtau)) {
@@ -2266,7 +2901,7 @@ L70:
 	*ntau = *nlyr + 1;
 	i__1 = *ntau - 1;
 	for (lc = 0; lc <= i__1; ++lc) {
-	    utau[lc + 1] = tauc[lc];
+	    utau[lc] = tauc[lc];
 /* L10: */
 	}
     }
@@ -2277,36 +2912,38 @@ L70:
     abstau = 0.;
     i__1 = *nlyr;
     for (lc = 1; lc <= i__1; ++lc) {
-	pmom[lc * pmom_dim1] = 1.;
+	pmom[lc * pmom_dim1 - pmom_offset] = 1.;
 	if (abstau < abscut) {
 	    *ncut = lc;
 	}
-	abstau += (1. - ssalb[lc]) * dtauc[lc];
+	abstau += (1. - ssalb[lc - 1]) * dtauc[lc - 1];
 	if (! (*deltam)) {
-	    oprim[lc] = ssalb[lc];
-	    dtaucp[lc] = dtauc[lc];
+	    oprim[lc - 1] = ssalb[lc - 1];
+	    dtaucp[lc - 1] = dtauc[lc - 1];
 	    taucpr[lc] = tauc[lc];
 	    i__2 = *nstr - 1;
 	    for (k = 0; k <= i__2; ++k) {
-		gl[k + lc * gl_dim1] = ((k << 1) + 1) * oprim[lc] * pmom[k + 
-			lc * pmom_dim1];
+		gl[k + lc * gl_dim1 - gl_offset] = ((k << 1) + 1) * oprim[lc 
+			- 1] * pmom[k + lc * pmom_dim1 - pmom_offset];
 /* L20: */
 	    }
 	    f = 0.;
 	} else {
 /*                                    ** Do delta-M transformation */
-	    f = pmom[*nstr + lc * pmom_dim1];
-	    oprim[lc] = ssalb[lc] * (1. - f) / (1. - f * ssalb[lc]);
-	    dtaucp[lc] = (1. - f * ssalb[lc]) * dtauc[lc];
-	    taucpr[lc] = taucpr[lc - 1] + dtaucp[lc];
+	    f = pmom[*nstr + lc * pmom_dim1 - pmom_offset];
+	    oprim[lc - 1] = ssalb[lc - 1] * (1. - f) / (1. - f * ssalb[lc - 1]
+		    );
+	    dtaucp[lc - 1] = (1. - f * ssalb[lc - 1]) * dtauc[lc - 1];
+	    taucpr[lc] = taucpr[lc - 1] + dtaucp[lc - 1];
 	    i__2 = *nstr - 1;
 	    for (k = 0; k <= i__2; ++k) {
-		gl[k + lc * gl_dim1] = ((k << 1) + 1) * oprim[lc] * (pmom[k + 
-			lc * pmom_dim1] - f) / (1. - f);
+		gl[k + lc * gl_dim1 - gl_offset] = ((k << 1) + 1) * oprim[lc 
+			- 1] * (pmom[k + lc * pmom_dim1 - pmom_offset] - f) / 
+			(1. - f);
 /* L30: */
 	    }
 	}
-	flyr[lc] = f;
+	flyr[lc - 1] = f;
 	expbea[lc] = 0.;
 	if (*fbeam > 0.) {
 	    expbea[lc] = exp(-taucpr[lc] / *umu0);
@@ -2332,38 +2969,46 @@ L70:
     for (lu = 1; lu <= i__1; ++lu) {
 	i__2 = *nlyr;
 	for (lc = 1; lc <= i__2; ++lc) {
-	    if (utau[lu] >= tauc[lc - 1] && utau[lu] <= tauc[lc]) {
+	    if (utau[lu - 1] >= tauc[lc - 1] && utau[lu - 1] <= tauc[lc]) {
 		goto L60;
 	    }
 /* L50: */
 	}
 	lc = *nlyr;
 L60:
-	utaupr[lu] = utau[lu];
+	utaupr[lu - 1] = utau[lu - 1];
 	if (*deltam) {
-	    utaupr[lu] = taucpr[lc - 1] + (1. - ssalb[lc] * flyr[lc]) * (utau[
-		    lu] - tauc[lc - 1]);
+	    utaupr[lu - 1] = taucpr[lc - 1] + (1. - ssalb[lc - 1] * flyr[lc - 
+		    1]) * (utau[lu - 1] - tauc[lc - 1]);
 	}
-	layru[lu] = lc;
+	layru[lu - 1] = lc;
 /* L70: */
     }
 /*                      ** Calculate computational polar angle cosines */
 /*                      ** and associated quadrature weights for Gaussian */
 /*                      ** quadrature on the interval (0,1) (upward) */
     *nn = *nstr / 2;
-    qgausn_(nn, &cmu[1], &cwt[1]);
+    qgausn_(nn, cmu, cwt);
 /*                                  ** Downward (neg) angles and weights */
     i__1 = *nn;
     for (iq = 1; iq <= i__1; ++iq) {
-	cmu[iq + *nn] = -cmu[iq];
-	cwt[iq + *nn] = cwt[iq];
+	cmu[(i__2 = iq + *nn - 1) < 1 * cmu_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"cmu", i__2, "setdis_", (ftnlen)2129)] = -cmu[(i__3 = iq - 1) 
+		< 1 * cmu_dim1 && 0 <= i__3 ? i__3 : s_rnge("cmu", i__3, 
+		"setdis_", (ftnlen)2129)];
+	cwt[(i__2 = iq + *nn - 1) < 1 * cwt_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"cwt", i__2, "setdis_", (ftnlen)2130)] = cwt[(i__3 = iq - 1) <
+		 1 * cwt_dim1 && 0 <= i__3 ? i__3 : s_rnge("cwt", i__3, "set\
+dis_", (ftnlen)2130)];
 /* L80: */
     }
     if (*fbeam > 0.) {
 /*                               ** Compare beam angle to comput. angles */
 	i__1 = *nn;
 	for (iq = 1; iq <= i__1; ++iq) {
-	    if ((d__1 = *umu0 - cmu[iq], abs(d__1)) / *umu0 < 1e-4) {
+	    if ((d__1 = *umu0 - cmu[(i__2 = iq - 1) < 1 * cmu_dim1 && 0 <= 
+		    i__2 ? i__2 : s_rnge("cmu", i__2, "setdis_", (ftnlen)2138)
+		    ], abs(d__1)) / *umu0 < 1e-4) {
 		errmsg_("SETDIS--beam angle=computational angle; change NSTR",
 			 &c_true, (ftnlen)51);
 	    }
@@ -2376,12 +3021,18 @@ L60:
 	*numu = *nstr;
 	i__1 = *nn;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    umu[iu] = -cmu[*nn + 1 - iu];
+	    umu[(i__2 = iu - 1) < 1 * umu_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		    "umu", i__2, "setdis_", (ftnlen)2154)] = -cmu[(i__3 = *nn 
+		    + 1 - iu - 1) < 1 * cmu_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		    "cmu", i__3, "setdis_", (ftnlen)2154)];
 /* L100: */
 	}
 	i__1 = *nstr;
 	for (iu = *nn + 1; iu <= i__1; ++iu) {
-	    umu[iu] = cmu[iu - *nn];
+	    umu[(i__2 = iu - 1) < 1 * umu_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		    "umu", i__2, "setdis_", (ftnlen)2158)] = cmu[(i__3 = iu - 
+		    *nn - 1) < 1 * cmu_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		    "cmu", i__3, "setdis_", (ftnlen)2158)];
 /* L110: */
 	}
     }
@@ -2391,12 +3042,18 @@ L60:
 /*                               ** in lower locations */
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    umu[iu + *numu] = umu[iu];
+	    umu[(i__2 = iu + *numu - 1) < 1 * umu_dim1 && 0 <= i__2 ? i__2 : 
+		    s_rnge("umu", i__2, "setdis_", (ftnlen)2170)] = umu[(i__3 
+		    = iu - 1) < 1 * umu_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		    "umu", i__3, "setdis_", (ftnlen)2170)];
 /* L120: */
 	}
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    umu[iu] = -umu[(*numu << 1) + 1 - iu];
+	    umu[(i__2 = iu - 1) < 1 * umu_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		    "umu", i__2, "setdis_", (ftnlen)2174)] = -umu[(i__3 = (*
+		    numu << 1) + 1 - iu - 1) < 1 * umu_dim1 && 0 <= i__3 ? 
+		    i__3 : s_rnge("umu", i__3, "setdis_", (ftnlen)2174)];
 /* L130: */
 	}
 	*numu <<= 1;
@@ -2404,7 +3061,10 @@ L60:
     if (! (*lyrcut) && ! (*lamber)) {
 	i__1 = *nstr;
 	for (k = 0; k <= i__1; ++k) {
-	    hlpr[k] = ((k << 1) + 1) * hl[k];
+	    hlpr[(i__2 = k) < 1 * hlpr_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		    "hlpr", i__2, "setdis_", (ftnlen)2185)] = ((k << 1) + 1) *
+		     hl[(i__3 = k) < 1 * hl_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		    "hl", i__3, "setdis_", (ftnlen)2185)];
 /* L140: */
 	}
     }
@@ -2419,10 +3079,12 @@ L60:
 	 doublereal *wk)
 {
     /* System generated locals */
-    integer bdr_dim1, bdr_offset, cband_dim1, cband_offset, gc_dim1, gc_dim2, 
-	    gc_offset, kk_dim1, kk_offset, i__1, i__2, i__3;
+    integer bdr_dim1, bdr_dim2, bdr_offset, cband_dim1, cband_dim2, 
+	    cband_offset, cmu_dim1, cwt_dim1, gc_dim1, gc_dim2, gc_offset, 
+	    kk_dim1, kk_offset, wk_dim1, i__1, i__2, i__3, i__4, i__5, i__6;
 
     /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
     double exp(doublereal);
 
     /* Local variables */
@@ -2543,27 +3205,24 @@ L60:
 /*     .. Intrinsic Functions .. */
 /*     .. */
     /* Parameter adjustments */
-    --dtaucp;
     bdr_dim1 = *mi;
+    bdr_dim2 = *mi - 0 + 1;
     bdr_offset = 1 + bdr_dim1 * 0;
-    bdr -= bdr_offset;
-    --wk;
+    wk_dim1 = *mxcmu;
     kk_dim1 = *mxcmu;
     kk_offset = 1 + kk_dim1;
-    kk -= kk_offset;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
     gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
-    gc -= gc_offset;
-    --cwt;
-    --cmu;
+    cwt_dim1 = *mxcmu;
+    cmu_dim1 = *mxcmu;
     cband_dim1 = *mi9m2;
+    cband_dim2 = *nnlyri;
     cband_offset = 1 + cband_dim1;
-    cband -= cband_offset;
 
     /* Function Body */
     i__1 = *mi9m2 * *nnlyri;
-    zeroit_(&cband[cband_offset], &i__1);
+    zeroit_(cband, &i__1);
     ncd = *nn * 3 - 1;
     lda = ncd * 3 + 1;
     nshift = lda - (*nstr << 1) + 1;
@@ -2575,7 +3234,9 @@ L60:
     for (lc = 1; lc <= i__1; ++lc) {
 	i__2 = *nn;
 	for (iq = 1; iq <= i__2; ++iq) {
-	    wk[iq] = exp(kk[iq + lc * kk_dim1] * dtaucp[lc]);
+	    wk[(i__3 = iq - 1) < 1 * wk_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		    "wk", i__3, "setmtx_", (ftnlen)2337)] = exp(kk[iq + lc * 
+		    kk_dim1 - kk_offset] * dtaucp[lc - 1]);
 /* L10: */
 	}
 	jcol = 0;
@@ -2585,10 +3246,17 @@ L60:
 	    irow = nshift - jcol;
 	    i__3 = *nstr;
 	    for (jq = 1; jq <= i__3; ++jq) {
-		cband[irow + *nstr + *ncol * cband_dim1] = gc[jq + (iq + lc * 
-			gc_dim2) * gc_dim1];
-		cband[irow + *ncol * cband_dim1] = -gc[jq + (iq + lc * 
-			gc_dim2) * gc_dim1] * wk[iq];
+		cband[(i__4 = irow + *nstr + *ncol * cband_dim1 - 
+			cband_offset) < 1 * cband_dim1 * cband_dim2 && 0 <= 
+			i__4 ? i__4 : s_rnge("cband", i__4, "setmtx_", (
+			ftnlen)2348)] = gc[jq + (iq + lc * gc_dim2) * gc_dim1 
+			- gc_offset];
+		cband[(i__4 = irow + *ncol * cband_dim1 - cband_offset) < 1 * 
+			cband_dim1 * cband_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+			"cband", i__4, "setmtx_", (ftnlen)2349)] = -gc[jq + (
+			iq + lc * gc_dim2) * gc_dim1 - gc_offset] * wk[(i__5 =
+			 iq - 1) < 1 * wk_dim1 && 0 <= i__5 ? i__5 : s_rnge(
+			"wk", i__5, "setmtx_", (ftnlen)2349)];
 		++irow;
 /* L20: */
 	    }
@@ -2601,10 +3269,17 @@ L60:
 	    irow = nshift - jcol;
 	    i__3 = *nstr;
 	    for (jq = 1; jq <= i__3; ++jq) {
-		cband[irow + *nstr + *ncol * cband_dim1] = gc[jq + (iq + lc * 
-			gc_dim2) * gc_dim1] * wk[*nstr + 1 - iq];
-		cband[irow + *ncol * cband_dim1] = -gc[jq + (iq + lc * 
-			gc_dim2) * gc_dim1];
+		cband[(i__4 = irow + *nstr + *ncol * cband_dim1 - 
+			cband_offset) < 1 * cband_dim1 * cband_dim2 && 0 <= 
+			i__4 ? i__4 : s_rnge("cband", i__4, "setmtx_", (
+			ftnlen)2364)] = gc[jq + (iq + lc * gc_dim2) * gc_dim1 
+			- gc_offset] * wk[(i__5 = *nstr + 1 - iq - 1) < 1 * 
+			wk_dim1 && 0 <= i__5 ? i__5 : s_rnge("wk", i__5, 
+			"setmtx_", (ftnlen)2364)];
+		cband[(i__4 = irow + *ncol * cband_dim1 - cband_offset) < 1 * 
+			cband_dim1 * cband_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+			"cband", i__4, "setmtx_", (ftnlen)2366)] = -gc[jq + (
+			iq + lc * gc_dim2) * gc_dim1 - gc_offset];
 		++irow;
 /* L40: */
 	    }
@@ -2618,11 +3293,13 @@ L60:
     jcol = 0;
     i__1 = *nn;
     for (iq = 1; iq <= i__1; ++iq) {
-	expa = exp(kk[iq + kk_dim1] * taucpr[1]);
+	expa = exp(kk[iq + kk_dim1 - kk_offset] * taucpr[1]);
 	irow = nshift - jcol + *nn;
 	for (jq = *nn; jq >= 1; --jq) {
-	    cband[irow + (jcol + 1) * cband_dim1] = gc[jq + (iq + gc_dim2) * 
-		    gc_dim1] * expa;
+	    cband[(i__2 = irow + (jcol + 1) * cband_dim1 - cband_offset) < 1 *
+		     cband_dim1 * cband_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+		    "cband", i__2, "setmtx_", (ftnlen)2385)] = gc[jq + (iq + 
+		    gc_dim2) * gc_dim1 - gc_offset] * expa;
 	    ++irow;
 /* L70: */
 	}
@@ -2633,8 +3310,10 @@ L60:
     for (iq = *nn + 1; iq <= i__1; ++iq) {
 	irow = nshift - jcol + *nn;
 	for (jq = *nn; jq >= 1; --jq) {
-	    cband[irow + (jcol + 1) * cband_dim1] = gc[jq + (iq + gc_dim2) * 
-		    gc_dim1];
+	    cband[(i__2 = irow + (jcol + 1) * cband_dim1 - cband_offset) < 1 *
+		     cband_dim1 * cband_dim2 && 0 <= i__2 ? i__2 : s_rnge(
+		    "cband", i__2, "setmtx_", (ftnlen)2399)] = gc[jq + (iq + 
+		    gc_dim2) * gc_dim1 - gc_offset];
 	    ++irow;
 /* L90: */
 	}
@@ -2655,19 +3334,30 @@ L60:
 /*                          ** No azimuthal-dependent intensity if Lam- */
 /*                          ** bert surface; no intensity component if */
 /*                          ** truncated bottom layer */
-		cband[irow + nncol * cband_dim1] = gc[jq + (iq + *ncut * 
-			gc_dim2) * gc_dim1];
+		cband[(i__3 = irow + nncol * cband_dim1 - cband_offset) < 1 * 
+			cband_dim1 * cband_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"cband", i__3, "setmtx_", (ftnlen)2424)] = gc[jq + (
+			iq + *ncut * gc_dim2) * gc_dim1 - gc_offset];
 	    } else {
 		sum = 0.;
 		i__3 = *nn;
 		for (k = 1; k <= i__3; ++k) {
-		    sum += cwt[k] * cmu[k] * bdr[jq - *nn + k * bdr_dim1] * 
-			    gc[*nn + 1 - k + (iq + *ncut * gc_dim2) * gc_dim1]
-			    ;
+		    sum += cwt[(i__4 = k - 1) < 1 * cwt_dim1 && 0 <= i__4 ? 
+			    i__4 : s_rnge("cwt", i__4, "setmtx_", (ftnlen)
+			    2431)] * cmu[(i__5 = k - 1) < 1 * cmu_dim1 && 0 <=
+			     i__5 ? i__5 : s_rnge("cmu", i__5, "setmtx_", (
+			    ftnlen)2431)] * bdr[(i__6 = jq - *nn + k * 
+			    bdr_dim1 - bdr_offset) < 1 * bdr_dim1 * bdr_dim2 
+			    && 0 <= i__6 ? i__6 : s_rnge("bdr", i__6, "setmt\
+x_", (ftnlen)2431)] * gc[*nn + 1 - k + (iq + *ncut * gc_dim2) * gc_dim1 - 
+			    gc_offset];
 /* L110: */
 		}
-		cband[irow + nncol * cband_dim1] = gc[jq + (iq + *ncut * 
-			gc_dim2) * gc_dim1] - (*delm0 + 1.) * sum;
+		cband[(i__3 = irow + nncol * cband_dim1 - cband_offset) < 1 * 
+			cband_dim1 * cband_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"cband", i__3, "setmtx_", (ftnlen)2435)] = gc[jq + (
+			iq + *ncut * gc_dim2) * gc_dim1 - gc_offset] - (*
+			delm0 + 1.) * sum;
 	    }
 	    ++irow;
 /* L120: */
@@ -2679,23 +3369,35 @@ L60:
     for (iq = *nn + 1; iq <= i__1; ++iq) {
 	++nncol;
 	irow = nshift - jcol + *nstr;
-	expa = wk[*nstr + 1 - iq];
+	expa = wk[(i__2 = *nstr + 1 - iq - 1) < 1 * wk_dim1 && 0 <= i__2 ? 
+		i__2 : s_rnge("wk", i__2, "setmtx_", (ftnlen)2452)];
 	i__2 = *nstr;
 	for (jq = *nn + 1; jq <= i__2; ++jq) {
 	    if (*lyrcut || *lamber && *delm0 == 0.) {
-		cband[irow + nncol * cband_dim1] = gc[jq + (iq + *ncut * 
-			gc_dim2) * gc_dim1] * expa;
+		cband[(i__3 = irow + nncol * cband_dim1 - cband_offset) < 1 * 
+			cband_dim1 * cband_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"cband", i__3, "setmtx_", (ftnlen)2458)] = gc[jq + (
+			iq + *ncut * gc_dim2) * gc_dim1 - gc_offset] * expa;
 	    } else {
 		sum = 0.;
 		i__3 = *nn;
 		for (k = 1; k <= i__3; ++k) {
-		    sum += cwt[k] * cmu[k] * bdr[jq - *nn + k * bdr_dim1] * 
-			    gc[*nn + 1 - k + (iq + *ncut * gc_dim2) * gc_dim1]
-			    ;
+		    sum += cwt[(i__4 = k - 1) < 1 * cwt_dim1 && 0 <= i__4 ? 
+			    i__4 : s_rnge("cwt", i__4, "setmtx_", (ftnlen)
+			    2465)] * cmu[(i__5 = k - 1) < 1 * cmu_dim1 && 0 <=
+			     i__5 ? i__5 : s_rnge("cmu", i__5, "setmtx_", (
+			    ftnlen)2465)] * bdr[(i__6 = jq - *nn + k * 
+			    bdr_dim1 - bdr_offset) < 1 * bdr_dim1 * bdr_dim2 
+			    && 0 <= i__6 ? i__6 : s_rnge("bdr", i__6, "setmt\
+x_", (ftnlen)2465)] * gc[*nn + 1 - k + (iq + *ncut * gc_dim2) * gc_dim1 - 
+			    gc_offset];
 /* L140: */
 		}
-		cband[irow + nncol * cband_dim1] = (gc[jq + (iq + *ncut * 
-			gc_dim2) * gc_dim1] - (*delm0 + 1.) * sum) * expa;
+		cband[(i__3 = irow + nncol * cband_dim1 - cband_offset) < 1 * 
+			cband_dim1 * cband_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			"cband", i__3, "setmtx_", (ftnlen)2469)] = (gc[jq + (
+			iq + *ncut * gc_dim2) * gc_dim1 - gc_offset] - (*
+			delm0 + 1.) * sum) * expa;
 	    }
 	    ++irow;
 /* L150: */
@@ -2714,14 +3416,17 @@ L60:
 	doublereal *evald, doublereal *wkd)
 {
     /* System generated locals */
-    integer amb_dim1, amb_offset, apb_dim1, apb_offset, array_dim1, 
-	    array_offset, cc_dim1, cc_offset, evecc_dim1, evecc_offset, 
-	    gc_dim1, gc_offset, ylmc_dim1, ylmc_offset, aad_dim1, aad_offset, 
-	    eveccd_dim1, eveccd_offset, i__1, i__2, i__3;
+    integer amb_dim1, amb_dim2, amb_offset, apb_dim1, apb_dim2, apb_offset, 
+	    array_dim1, array_offset, cc_dim1, cc_dim2, cc_offset, cmu_dim1, 
+	    cwt_dim1, eval_dim1, evecc_dim1, evecc_dim2, evecc_offset, 
+	    gc_dim1, gc_dim2, gc_offset, gl_dim1, kk_dim1, ylmc_dim1, 
+	    ylmc_dim2, ylmc_offset, aad_dim1, aad_offset, eveccd_dim1, 
+	    eveccd_offset, i__1, i__2, i__3, i__4, i__5, i__6;
     doublereal d__1;
 
     /* Builtin functions */
-    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
+    integer s_rnge(char *, integer, char *, integer), s_wsfe(cilist *), 
+	    do_fio(integer *, char *, ftnlen), e_wsfe();
     double sqrt(doublereal);
 
     /* Local variables */
@@ -2809,39 +3514,35 @@ L60:
 /*     .. */
 /*                             ** Calculate quantities in Eqs. SS(5-6) */
     /* Parameter adjustments */
-    --evald;
     eveccd_dim1 = *mi;
     eveccd_offset = 1 + eveccd_dim1;
-    eveccd -= eveccd_offset;
     aad_dim1 = *mi;
     aad_offset = 1 + aad_dim1;
-    aad -= aad_offset;
-    --eval;
+    eval_dim1 = *mi;
     array_dim1 = *mi;
     array_offset = 1 + array_dim1;
-    array -= array_offset;
     apb_dim1 = *mi;
+    apb_dim2 = *mi;
     apb_offset = 1 + apb_dim1;
-    apb -= apb_offset;
     amb_dim1 = *mi;
+    amb_dim2 = *mi;
     amb_offset = 1 + amb_dim1;
-    amb -= amb_offset;
-    --wkd;
     gc_dim1 = *mxcmu;
+    gc_dim2 = *mxcmu;
     gc_offset = 1 + gc_dim1;
-    gc -= gc_offset;
-    --kk;
+    kk_dim1 = *mxcmu;
     evecc_dim1 = *mxcmu;
+    evecc_dim2 = *mxcmu;
     evecc_offset = 1 + evecc_dim1;
-    evecc -= evecc_offset;
     cc_dim1 = *mxcmu;
+    cc_dim2 = *mxcmu;
     cc_offset = 1 + cc_dim1;
-    cc -= cc_offset;
     ylmc_dim1 = *mxcmu - 0 + 1;
+    ylmc_dim2 = *mxcmu;
     ylmc_offset = 0 + ylmc_dim1;
-    ylmc -= ylmc_offset;
-    --cwt;
-    --cmu;
+    gl_dim1 = *mxcmu - 0 + 1;
+    cwt_dim1 = *mxcmu;
+    cmu_dim1 = *mxcmu;
 
     /* Function Body */
     i__1 = *nn;
@@ -2851,11 +3552,21 @@ L60:
 	    sum = 0.;
 	    i__3 = *nstr - 1;
 	    for (l = *mazim; l <= i__3; ++l) {
-		sum += gl[l] * ylmc[l + iq * ylmc_dim1] * ylmc[l + jq * 
-			ylmc_dim1];
+		sum += gl[(i__4 = l) < 1 * gl_dim1 && 0 <= i__4 ? i__4 : 
+			s_rnge("gl", i__4, "soleig_", (ftnlen)2585)] * ylmc[(
+			i__5 = l + iq * ylmc_dim1 - ylmc_offset) < 1 * 
+			ylmc_dim1 * ylmc_dim2 && 0 <= i__5 ? i__5 : s_rnge(
+			"ylmc", i__5, "soleig_", (ftnlen)2585)] * ylmc[(i__6 =
+			 l + jq * ylmc_dim1 - ylmc_offset) < 1 * ylmc_dim1 * 
+			ylmc_dim2 && 0 <= i__6 ? i__6 : s_rnge("ylmc", i__6, 
+			"soleig_", (ftnlen)2585)];
 /* L10: */
 	    }
-	    cc[iq + jq * cc_dim1] = sum * .5 * cwt[jq];
+	    cc[(i__3 = iq + jq * cc_dim1 - cc_offset) < 1 * cc_dim1 * cc_dim2 
+		    && 0 <= i__3 ? i__3 : s_rnge("cc", i__3, "soleig_", (
+		    ftnlen)2588)] = sum * .5 * cwt[(i__4 = jq - 1) < 1 * 
+		    cwt_dim1 && 0 <= i__4 ? i__4 : s_rnge("cwt", i__4, "sole\
+ig_", (ftnlen)2588)];
 /* L20: */
 	}
 	i__2 = *nn;
@@ -2863,18 +3574,50 @@ L60:
 /*                             ** Fill remainder of array using symmetry */
 /*                             ** relations  C(-mui,muj) = C(mui,-muj) */
 /*                             ** and        C(-mui,-muj) = C(mui,muj) */
-	    cc[iq + *nn + jq * cc_dim1] = cc[iq + (jq + *nn) * cc_dim1];
-	    cc[iq + *nn + (jq + *nn) * cc_dim1] = cc[iq + jq * cc_dim1];
+	    cc[(i__3 = iq + *nn + jq * cc_dim1 - cc_offset) < 1 * cc_dim1 * 
+		    cc_dim2 && 0 <= i__3 ? i__3 : s_rnge("cc", i__3, "soleig_"
+		    , (ftnlen)2597)] = cc[(i__4 = iq + (jq + *nn) * cc_dim1 - 
+		    cc_offset) < 1 * cc_dim1 * cc_dim2 && 0 <= i__4 ? i__4 : 
+		    s_rnge("cc", i__4, "soleig_", (ftnlen)2597)];
+	    cc[(i__3 = iq + *nn + (jq + *nn) * cc_dim1 - cc_offset) < 1 * 
+		    cc_dim1 * cc_dim2 && 0 <= i__3 ? i__3 : s_rnge("cc", i__3,
+		     "soleig_", (ftnlen)2598)] = cc[(i__4 = iq + jq * cc_dim1 
+		    - cc_offset) < 1 * cc_dim1 * cc_dim2 && 0 <= i__4 ? i__4 :
+		     s_rnge("cc", i__4, "soleig_", (ftnlen)2598)];
 /*                                       ** Get factors of coeff. matrix */
 /*                                       ** of reduced eigenvalue problem */
-	    alpha = cc[iq + jq * cc_dim1] / cmu[iq];
-	    beta = cc[iq + (jq + *nn) * cc_dim1] / cmu[iq];
-	    amb[iq + jq * amb_dim1] = alpha - beta;
-	    apb[iq + jq * apb_dim1] = alpha + beta;
+	    alpha = cc[(i__3 = iq + jq * cc_dim1 - cc_offset) < 1 * cc_dim1 * 
+		    cc_dim2 && 0 <= i__3 ? i__3 : s_rnge("cc", i__3, "soleig_"
+		    , (ftnlen)2603)] / cmu[(i__4 = iq - 1) < 1 * cmu_dim1 && 
+		    0 <= i__4 ? i__4 : s_rnge("cmu", i__4, "soleig_", (ftnlen)
+		    2603)];
+	    beta = cc[(i__3 = iq + (jq + *nn) * cc_dim1 - cc_offset) < 1 * 
+		    cc_dim1 * cc_dim2 && 0 <= i__3 ? i__3 : s_rnge("cc", i__3,
+		     "soleig_", (ftnlen)2604)] / cmu[(i__4 = iq - 1) < 1 * 
+		    cmu_dim1 && 0 <= i__4 ? i__4 : s_rnge("cmu", i__4, "sole\
+ig_", (ftnlen)2604)];
+	    amb[(i__3 = iq + jq * amb_dim1 - amb_offset) < 1 * amb_dim1 * 
+		    amb_dim2 && 0 <= i__3 ? i__3 : s_rnge("amb", i__3, "sole\
+ig_", (ftnlen)2605)] = alpha - beta;
+	    apb[(i__3 = iq + jq * apb_dim1 - apb_offset) < 1 * apb_dim1 * 
+		    apb_dim2 && 0 <= i__3 ? i__3 : s_rnge("apb", i__3, "sole\
+ig_", (ftnlen)2606)] = alpha + beta;
 /* L30: */
 	}
-	amb[iq + iq * amb_dim1] -= 1. / cmu[iq];
-	apb[iq + iq * apb_dim1] -= 1. / cmu[iq];
+	amb[(i__2 = iq + iq * amb_dim1 - amb_offset) < 1 * amb_dim1 * 
+		amb_dim2 && 0 <= i__2 ? i__2 : s_rnge("amb", i__2, "soleig_", 
+		(ftnlen)2610)] = amb[(i__3 = iq + iq * amb_dim1 - amb_offset) 
+		< 1 * amb_dim1 * amb_dim2 && 0 <= i__3 ? i__3 : s_rnge("amb", 
+		i__3, "soleig_", (ftnlen)2610)] - 1. / cmu[(i__4 = iq - 1) < 
+		1 * cmu_dim1 && 0 <= i__4 ? i__4 : s_rnge("cmu", i__4, "sole\
+ig_", (ftnlen)2610)];
+	apb[(i__2 = iq + iq * apb_dim1 - apb_offset) < 1 * apb_dim1 * 
+		apb_dim2 && 0 <= i__2 ? i__2 : s_rnge("apb", i__2, "soleig_", 
+		(ftnlen)2611)] = apb[(i__3 = iq + iq * apb_dim1 - apb_offset) 
+		< 1 * apb_dim1 * apb_dim2 && 0 <= i__3 ? i__3 : s_rnge("apb", 
+		i__3, "soleig_", (ftnlen)2611)] - 1. / cmu[(i__4 = iq - 1) < 
+		1 * cmu_dim1 && 0 <= i__4 ? i__4 : s_rnge("cmu", i__4, "sole\
+ig_", (ftnlen)2611)];
 /* L40: */
     }
 /*                      ** Finish calculation of coefficient matrix of */
@@ -2887,18 +3630,21 @@ L60:
 	    sum = 0.;
 	    i__3 = *nn;
 	    for (kq = 1; kq <= i__3; ++kq) {
-		sum += apb[iq + kq * apb_dim1] * amb[kq + jq * amb_dim1];
+		sum += apb[(i__4 = iq + kq * apb_dim1 - apb_offset) < 1 * 
+			apb_dim1 * apb_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+			"apb", i__4, "soleig_", (ftnlen)2623)] * amb[(i__5 = 
+			kq + jq * amb_dim1 - amb_offset) < 1 * amb_dim1 * 
+			amb_dim2 && 0 <= i__5 ? i__5 : s_rnge("amb", i__5, 
+			"soleig_", (ftnlen)2623)];
 /* L50: */
 	    }
-	    array[iq + jq * array_dim1] = sum;
+	    array[iq + jq * array_dim1 - array_offset] = sum;
 /* L60: */
 	}
 /* L70: */
     }
 /*                      ** Find (real) eigenvalues and eigenvectors */
-    asymtx_(&array[array_offset], &evecc[evecc_offset], &eval[1], nn, mi, 
-	    mxcmu, &ier, &wkd[1], &aad[aad_offset], &eveccd[eveccd_offset], &
-	    evald[1]);
+    asymtx_(array, evecc, eval, nn, mi, mxcmu, &ier, wkd, aad, eveccd, evald);
     if (ier > 0) {
 	s_wsfe(&io___184);
 	do_fio(&c__1, " ASYMTX--eigenvalue no. ", (ftnlen)24);
@@ -2910,10 +3656,19 @@ L60:
     }
     i__1 = *nn;
     for (iq = 1; iq <= i__1; ++iq) {
-	eval[iq] = sqrt((d__1 = eval[iq], abs(d__1)));
-	kk[iq + *nn] = eval[iq];
+	eval[(i__2 = iq - 1) < 1 * eval_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"eval", i__2, "soleig_", (ftnlen)2646)] = sqrt((d__1 = eval[(
+		i__3 = iq - 1) < 1 * eval_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		"eval", i__3, "soleig_", (ftnlen)2646)], abs(d__1)));
+	kk[(i__2 = iq + *nn - 1) < 1 * kk_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"kk", i__2, "soleig_", (ftnlen)2647)] = eval[(i__3 = iq - 1) <
+		 1 * eval_dim1 && 0 <= i__3 ? i__3 : s_rnge("eval", i__3, 
+		"soleig_", (ftnlen)2647)];
 /*                                      ** Add negative eigenvalue */
-	kk[*nn + 1 - iq] = -eval[iq];
+	kk[(i__2 = *nn + 1 - iq - 1) < 1 * kk_dim1 && 0 <= i__2 ? i__2 : 
+		s_rnge("kk", i__2, "soleig_", (ftnlen)2649)] = -eval[(i__3 = 
+		iq - 1) < 1 * eval_dim1 && 0 <= i__3 ? i__3 : s_rnge("eval", 
+		i__3, "soleig_", (ftnlen)2649)];
 /* L80: */
     }
 /*                          ** Find eigenvectors (G+) + (G-) from SS(10) */
@@ -2925,10 +3680,19 @@ L60:
 	    sum = 0.;
 	    i__3 = *nn;
 	    for (kq = 1; kq <= i__3; ++kq) {
-		sum += amb[iq + kq * amb_dim1] * evecc[kq + jq * evecc_dim1];
+		sum += amb[(i__4 = iq + kq * amb_dim1 - amb_offset) < 1 * 
+			amb_dim1 * amb_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+			"amb", i__4, "soleig_", (ftnlen)2660)] * evecc[(i__5 =
+			 kq + jq * evecc_dim1 - evecc_offset) < 1 * 
+			evecc_dim1 * evecc_dim2 && 0 <= i__5 ? i__5 : s_rnge(
+			"evecc", i__5, "soleig_", (ftnlen)2660)];
 /* L90: */
 	    }
-	    apb[iq + jq * apb_dim1] = sum / eval[jq];
+	    apb[(i__3 = iq + jq * apb_dim1 - apb_offset) < 1 * apb_dim1 * 
+		    apb_dim2 && 0 <= i__3 ? i__3 : s_rnge("apb", i__3, "sole\
+ig_", (ftnlen)2663)] = sum / eval[(i__4 = jq - 1) < 1 * eval_dim1 && 0 <= 
+		    i__4 ? i__4 : s_rnge("eval", i__4, "soleig_", (ftnlen)
+		    2663)];
 /* L100: */
 	}
 /* L110: */
@@ -2937,28 +3701,60 @@ L60:
     for (jq = 1; jq <= i__1; ++jq) {
 	i__2 = *nn;
 	for (iq = 1; iq <= i__2; ++iq) {
-	    gpplgm = apb[iq + jq * apb_dim1];
-	    gpmigm = evecc[iq + jq * evecc_dim1];
+	    gpplgm = apb[(i__3 = iq + jq * apb_dim1 - apb_offset) < 1 * 
+		    apb_dim1 * apb_dim2 && 0 <= i__3 ? i__3 : s_rnge("apb", 
+		    i__3, "soleig_", (ftnlen)2674)];
+	    gpmigm = evecc[(i__3 = iq + jq * evecc_dim1 - evecc_offset) < 1 * 
+		    evecc_dim1 * evecc_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "evecc", i__3, "soleig_", (ftnlen)2675)];
 /*                                ** Recover eigenvectors G+,G- from */
 /*                                ** their sum and difference; stack them */
 /*                                ** to get eigenvectors of full system */
 /*                                ** SS(7) (JQ = eigenvector number) */
-	    evecc[iq + jq * evecc_dim1] = (gpplgm + gpmigm) * .5;
-	    evecc[iq + *nn + jq * evecc_dim1] = (gpplgm - gpmigm) * .5;
+	    evecc[(i__3 = iq + jq * evecc_dim1 - evecc_offset) < 1 * 
+		    evecc_dim1 * evecc_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "evecc", i__3, "soleig_", (ftnlen)2681)] = (gpplgm + 
+		    gpmigm) * .5;
+	    evecc[(i__3 = iq + *nn + jq * evecc_dim1 - evecc_offset) < 1 * 
+		    evecc_dim1 * evecc_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "evecc", i__3, "soleig_", (ftnlen)2682)] = (gpplgm - 
+		    gpmigm) * .5;
 /*                                ** Eigenvectors corresponding to */
 /*                                ** negative eigenvalues (corresp. to */
 /*                                ** reversing sign of 'k' in SS(10) ) */
 	    gpplgm = -gpplgm;
-	    evecc[iq + (jq + *nn) * evecc_dim1] = (gpplgm + gpmigm) * .5;
-	    evecc[iq + *nn + (jq + *nn) * evecc_dim1] = (gpplgm - gpmigm) * 
-		    .5;
-	    gc[iq + *nn + (jq + *nn) * gc_dim1] = evecc[iq + jq * evecc_dim1];
-	    gc[*nn + 1 - iq + (jq + *nn) * gc_dim1] = evecc[iq + *nn + jq * 
-		    evecc_dim1];
-	    gc[iq + *nn + (*nn + 1 - jq) * gc_dim1] = evecc[iq + (jq + *nn) * 
-		    evecc_dim1];
-	    gc[*nn + 1 - iq + (*nn + 1 - jq) * gc_dim1] = evecc[iq + *nn + (
-		    jq + *nn) * evecc_dim1];
+	    evecc[(i__3 = iq + (jq + *nn) * evecc_dim1 - evecc_offset) < 1 * 
+		    evecc_dim1 * evecc_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "evecc", i__3, "soleig_", (ftnlen)2688)] = (gpplgm + 
+		    gpmigm) * .5;
+	    evecc[(i__3 = iq + *nn + (jq + *nn) * evecc_dim1 - evecc_offset) <
+		     1 * evecc_dim1 * evecc_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "evecc", i__3, "soleig_", (ftnlen)2689)] = (gpplgm - 
+		    gpmigm) * .5;
+	    gc[(i__3 = iq + *nn + (jq + *nn) * gc_dim1 - gc_offset) < 1 * 
+		    gc_dim1 * gc_dim2 && 0 <= i__3 ? i__3 : s_rnge("gc", i__3,
+		     "soleig_", (ftnlen)2690)] = evecc[(i__4 = iq + jq * 
+		    evecc_dim1 - evecc_offset) < 1 * evecc_dim1 * evecc_dim2 
+		    && 0 <= i__4 ? i__4 : s_rnge("evecc", i__4, "soleig_", (
+		    ftnlen)2690)];
+	    gc[(i__3 = *nn + 1 - iq + (jq + *nn) * gc_dim1 - gc_offset) < 1 * 
+		    gc_dim1 * gc_dim2 && 0 <= i__3 ? i__3 : s_rnge("gc", i__3,
+		     "soleig_", (ftnlen)2691)] = evecc[(i__4 = iq + *nn + jq *
+		     evecc_dim1 - evecc_offset) < 1 * evecc_dim1 * evecc_dim2 
+		    && 0 <= i__4 ? i__4 : s_rnge("evecc", i__4, "soleig_", (
+		    ftnlen)2691)];
+	    gc[(i__3 = iq + *nn + (*nn + 1 - jq) * gc_dim1 - gc_offset) < 1 * 
+		    gc_dim1 * gc_dim2 && 0 <= i__3 ? i__3 : s_rnge("gc", i__3,
+		     "soleig_", (ftnlen)2692)] = evecc[(i__4 = iq + (jq + *nn)
+		     * evecc_dim1 - evecc_offset) < 1 * evecc_dim1 * 
+		    evecc_dim2 && 0 <= i__4 ? i__4 : s_rnge("evecc", i__4, 
+		    "soleig_", (ftnlen)2692)];
+	    gc[(i__3 = *nn + 1 - iq + (*nn + 1 - jq) * gc_dim1 - gc_offset) < 
+		    1 * gc_dim1 * gc_dim2 && 0 <= i__3 ? i__3 : s_rnge("gc", 
+		    i__3, "soleig_", (ftnlen)2693)] = evecc[(i__4 = iq + *nn 
+		    + (jq + *nn) * evecc_dim1 - evecc_offset) < 1 * 
+		    evecc_dim1 * evecc_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+		    "evecc", i__4, "soleig_", (ftnlen)2693)];
 /* L120: */
 	}
 /* L130: */
@@ -2977,9 +3773,13 @@ L60:
 	zplk1)
 {
     /* System generated locals */
-    integer bdr_dim1, bdr_offset, cband_dim1, cband_offset, ll_dim1, 
-	    ll_offset, zplk0_dim1, zplk0_offset, zplk1_dim1, zplk1_offset, 
-	    zz_dim1, zz_offset, i__1, i__2;
+    integer b_dim1, bdr_dim1, bdr_dim2, bdr_offset, bem_dim1, cband_dim1, 
+	    cband_offset, cmu_dim1, cwt_dim1, ll_dim1, ll_offset, zplk0_dim1, 
+	    zplk0_offset, zplk1_dim1, zplk1_offset, zz_dim1, zz_offset, i__1, 
+	    i__2, i__3, i__4, i__5;
+
+    /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static integer lc, iq, jq, it, ncd;
@@ -3069,33 +3869,26 @@ L60:
 /*     .. External Subroutines .. */
 /*     .. */
     /* Parameter adjustments */
-    --ipvt;
-    --bem;
+    bem_dim1 = *mi;
     bdr_dim1 = *mi;
+    bdr_dim2 = *mi - 0 + 1;
     bdr_offset = 1 + bdr_dim1 * 0;
-    bdr -= bdr_offset;
     zplk1_dim1 = *mxcmu;
     zplk1_offset = 1 + zplk1_dim1;
-    zplk1 -= zplk1_offset;
     zplk0_dim1 = *mxcmu;
     zplk0_offset = 1 + zplk0_dim1;
-    zplk0 -= zplk0_offset;
     zz_dim1 = *mxcmu;
     zz_offset = 1 + zz_dim1;
-    zz -= zz_offset;
     ll_dim1 = *mxcmu;
     ll_offset = 1 + ll_dim1;
-    ll -= ll_offset;
-    --cwt;
-    --cmu;
-    --z__;
+    cwt_dim1 = *mxcmu;
+    cmu_dim1 = *mxcmu;
     cband_dim1 = *mi9m2;
     cband_offset = 1 + cband_dim1;
-    cband -= cband_offset;
-    --b;
+    b_dim1 = *nnlyri;
 
     /* Function Body */
-    zeroit_(&b[1], nnlyri);
+    zeroit_(b, nnlyri);
 /*                              ** Construct B,  STWJ(20a,c) for */
 /*                              ** parallel beam + bottom reflection + */
 /*                              ** thermal emission at top and/or bottom */
@@ -3108,28 +3901,47 @@ L60:
 	    i__1 = *nn;
 	    for (iq = 1; iq <= i__1; ++iq) {
 /*                                                  ** Top boundary */
-		b[iq] = -zz[*nn + 1 - iq + zz_dim1];
+		b[(i__2 = iq - 1) < 1 * b_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+			"b", i__2, "solve0_", (ftnlen)2818)] = -zz[*nn + 1 - 
+			iq + zz_dim1 - zz_offset];
 /*                                                  ** Bottom boundary */
-		b[*ncol - *nn + iq] = -zz[iq + *nn + *ncut * zz_dim1] * 
-			expbea[*ncut];
+		b[(i__2 = *ncol - *nn + iq - 1) < 1 * b_dim1 && 0 <= i__2 ? 
+			i__2 : s_rnge("b", i__2, "solve0_", (ftnlen)2821)] = 
+			-zz[iq + *nn + *ncut * zz_dim1 - zz_offset] * expbea[*
+			ncut];
 /* L10: */
 	    }
 	} else {
 	    i__1 = *nn;
 	    for (iq = 1; iq <= i__1; ++iq) {
-		b[iq] = -zz[*nn + 1 - iq + zz_dim1];
+		b[(i__2 = iq - 1) < 1 * b_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+			"b", i__2, "solve0_", (ftnlen)2830)] = -zz[*nn + 1 - 
+			iq + zz_dim1 - zz_offset];
 		sum = 0.;
 		i__2 = *nn;
 		for (jq = 1; jq <= i__2; ++jq) {
-		    sum += cwt[jq] * cmu[jq] * bdr[iq + jq * bdr_dim1] * zz[*
-			    nn + 1 - jq + *ncut * zz_dim1] * expbea[*ncut];
+		    sum += cwt[(i__3 = jq - 1) < 1 * cwt_dim1 && 0 <= i__3 ? 
+			    i__3 : s_rnge("cwt", i__3, "solve0_", (ftnlen)
+			    2834)] * cmu[(i__4 = jq - 1) < 1 * cmu_dim1 && 0 
+			    <= i__4 ? i__4 : s_rnge("cmu", i__4, "solve0_", (
+			    ftnlen)2834)] * bdr[(i__5 = iq + jq * bdr_dim1 - 
+			    bdr_offset) < 1 * bdr_dim1 * bdr_dim2 && 0 <= 
+			    i__5 ? i__5 : s_rnge("bdr", i__5, "solve0_", (
+			    ftnlen)2834)] * zz[*nn + 1 - jq + *ncut * zz_dim1 
+			    - zz_offset] * expbea[*ncut];
 /* L20: */
 		}
-		b[*ncol - *nn + iq] = sum;
+		b[(i__2 = *ncol - *nn + iq - 1) < 1 * b_dim1 && 0 <= i__2 ? 
+			i__2 : s_rnge("b", i__2, "solve0_", (ftnlen)2838)] = 
+			sum;
 		if (*fbeam > 0.) {
-		    b[*ncol - *nn + iq] = sum + (bdr[iq] * *umu0 * *fbeam / *
-			    pi - zz[iq + *nn + *ncut * zz_dim1]) * expbea[*
-			    ncut];
+		    b[(i__2 = *ncol - *nn + iq - 1) < 1 * b_dim1 && 0 <= i__2 
+			    ? i__2 : s_rnge("b", i__2, "solve0_", (ftnlen)
+			    2839)] = sum + (bdr[(i__3 = iq - bdr_offset) < 1 *
+			     bdr_dim1 * bdr_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+			    "bdr", i__3, "solve0_", (ftnlen)2839)] * *umu0 * *
+			    fbeam / *pi - zz[iq + *nn + *ncut * zz_dim1 - 
+			    zz_offset]) * expbea[*ncut];
 		}
 /* L30: */
 	    }
@@ -3142,8 +3954,10 @@ L60:
 	    i__2 = *nstr;
 	    for (iq = 1; iq <= i__2; ++iq) {
 		++it;
-		b[it] = (zz[iq + (lc + 1) * zz_dim1] - zz[iq + lc * zz_dim1]) 
-			* expbea[lc];
+		b[(i__3 = it - 1) < 1 * b_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+			"b", i__3, "solve0_", (ftnlen)2854)] = (zz[iq + (lc + 
+			1) * zz_dim1 - zz_offset] - zz[iq + lc * zz_dim1 - 
+			zz_offset]) * expbea[lc];
 /* L40: */
 	    }
 /* L50: */
@@ -3154,7 +3968,9 @@ L60:
 	    i__1 = *nn;
 	    for (iq = 1; iq <= i__1; ++iq) {
 /*                                      ** Top boundary */
-		b[iq] = -zplk0[*nn + 1 - iq + zplk0_dim1] + *fisot + *tplank;
+		b[(i__2 = iq - 1) < 1 * b_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+			"b", i__2, "solve0_", (ftnlen)2868)] = -zplk0[*nn + 1 
+			- iq + zplk0_dim1 - zplk0_offset] + *fisot + *tplank;
 /* L60: */
 	    }
 	    if (*lyrcut) {
@@ -3163,9 +3979,11 @@ L60:
 		i__1 = *nn;
 		for (iq = 1; iq <= i__1; ++iq) {
 /*                                      ** Bottom boundary */
-		    b[*ncol - *nn + iq] = -zplk0[iq + *nn + *ncut * 
-			    zplk0_dim1] - zplk1[iq + *nn + *ncut * zplk1_dim1]
-			     * taucpr[*ncut];
+		    b[(i__2 = *ncol - *nn + iq - 1) < 1 * b_dim1 && 0 <= i__2 
+			    ? i__2 : s_rnge("b", i__2, "solve0_", (ftnlen)
+			    2879)] = -zplk0[iq + *nn + *ncut * zplk0_dim1 - 
+			    zplk0_offset] - zplk1[iq + *nn + *ncut * 
+			    zplk1_dim1 - zplk1_offset] * taucpr[*ncut];
 /* L70: */
 		}
 	    } else {
@@ -3174,15 +3992,27 @@ L60:
 		    sum = 0.;
 		    i__2 = *nn;
 		    for (jq = 1; jq <= i__2; ++jq) {
-			sum += cwt[jq] * cmu[jq] * bdr[iq + jq * bdr_dim1] * (
-				zplk0[*nn + 1 - jq + *ncut * zplk0_dim1] + 
-				zplk1[*nn + 1 - jq + *ncut * zplk1_dim1] * 
-				taucpr[*ncut]);
+			sum += cwt[(i__3 = jq - 1) < 1 * cwt_dim1 && 0 <= 
+				i__3 ? i__3 : s_rnge("cwt", i__3, "solve0_", (
+				ftnlen)2891)] * cmu[(i__4 = jq - 1) < 1 * 
+				cmu_dim1 && 0 <= i__4 ? i__4 : s_rnge("cmu", 
+				i__4, "solve0_", (ftnlen)2891)] * bdr[(i__5 = 
+				iq + jq * bdr_dim1 - bdr_offset) < 1 * 
+				bdr_dim1 * bdr_dim2 && 0 <= i__5 ? i__5 : 
+				s_rnge("bdr", i__5, "solve0_", (ftnlen)2891)] 
+				* (zplk0[*nn + 1 - jq + *ncut * zplk0_dim1 - 
+				zplk0_offset] + zplk1[*nn + 1 - jq + *ncut * 
+				zplk1_dim1 - zplk1_offset] * taucpr[*ncut]);
 /* L80: */
 		    }
-		    b[*ncol - *nn + iq] = sum * 2. + bem[iq] * *bplank - 
-			    zplk0[iq + *nn + *ncut * zplk0_dim1] - zplk1[iq + 
-			    *nn + *ncut * zplk1_dim1] * taucpr[*ncut];
+		    b[(i__2 = *ncol - *nn + iq - 1) < 1 * b_dim1 && 0 <= i__2 
+			    ? i__2 : s_rnge("b", i__2, "solve0_", (ftnlen)
+			    2896)] = sum * 2. + bem[(i__3 = iq - 1) < 1 * 
+			    bem_dim1 && 0 <= i__3 ? i__3 : s_rnge("bem", i__3,
+			     "solve0_", (ftnlen)2896)] * *bplank - zplk0[iq + 
+			    *nn + *ncut * zplk0_dim1 - zplk0_offset] - zplk1[
+			    iq + *nn + *ncut * zplk1_dim1 - zplk1_offset] * 
+			    taucpr[*ncut];
 /* L90: */
 		}
 	    }
@@ -3194,9 +4024,13 @@ L60:
 		i__2 = *nstr;
 		for (iq = 1; iq <= i__2; ++iq) {
 		    ++it;
-		    b[it] = zplk0[iq + (lc + 1) * zplk0_dim1] - zplk0[iq + lc 
-			    * zplk0_dim1] + (zplk1[iq + (lc + 1) * zplk1_dim1]
-			     - zplk1[iq + lc * zplk1_dim1]) * taucpr[lc];
+		    b[(i__3 = it - 1) < 1 * b_dim1 && 0 <= i__3 ? i__3 : 
+			    s_rnge("b", i__3, "solve0_", (ftnlen)2910)] = 
+			    zplk0[iq + (lc + 1) * zplk0_dim1 - zplk0_offset] 
+			    - zplk0[iq + lc * zplk0_dim1 - zplk0_offset] + (
+			    zplk1[iq + (lc + 1) * zplk1_dim1 - zplk1_offset] 
+			    - zplk1[iq + lc * zplk1_dim1 - zplk1_offset]) * 
+			    taucpr[lc];
 /* L100: */
 		}
 /* L110: */
@@ -3204,17 +4038,22 @@ L60:
 	} else {
 	    i__1 = *nn;
 	    for (iq = 1; iq <= i__1; ++iq) {
-		b[iq] = -zz[*nn + 1 - iq + zz_dim1] - zplk0[*nn + 1 - iq + 
-			zplk0_dim1] + *fisot + *tplank;
+		b[(i__2 = iq - 1) < 1 * b_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+			"b", i__2, "solve0_", (ftnlen)2921)] = -zz[*nn + 1 - 
+			iq + zz_dim1 - zz_offset] - zplk0[*nn + 1 - iq + 
+			zplk0_dim1 - zplk0_offset] + *fisot + *tplank;
 /* L120: */
 	    }
 	    if (*lyrcut) {
 		i__1 = *nn;
 		for (iq = 1; iq <= i__1; ++iq) {
-		    b[*ncol - *nn + iq] = -zz[iq + *nn + *ncut * zz_dim1] * 
-			    expbea[*ncut] - zplk0[iq + *nn + *ncut * 
-			    zplk0_dim1] - zplk1[iq + *nn + *ncut * zplk1_dim1]
-			     * taucpr[*ncut];
+		    b[(i__2 = *ncol - *nn + iq - 1) < 1 * b_dim1 && 0 <= i__2 
+			    ? i__2 : s_rnge("b", i__2, "solve0_", (ftnlen)
+			    2928)] = -zz[iq + *nn + *ncut * zz_dim1 - 
+			    zz_offset] * expbea[*ncut] - zplk0[iq + *nn + *
+			    ncut * zplk0_dim1 - zplk0_offset] - zplk1[iq + *
+			    nn + *ncut * zplk1_dim1 - zplk1_offset] * taucpr[*
+			    ncut];
 /* L130: */
 		}
 	    } else {
@@ -3223,18 +4062,33 @@ L60:
 		    sum = 0.;
 		    i__2 = *nn;
 		    for (jq = 1; jq <= i__2; ++jq) {
-			sum += cwt[jq] * cmu[jq] * bdr[iq + jq * bdr_dim1] * (
-				zz[*nn + 1 - jq + *ncut * zz_dim1] * expbea[*
-				ncut] + zplk0[*nn + 1 - jq + *ncut * 
-				zplk0_dim1] + zplk1[*nn + 1 - jq + *ncut * 
-				zplk1_dim1] * taucpr[*ncut]);
+			sum += cwt[(i__3 = jq - 1) < 1 * cwt_dim1 && 0 <= 
+				i__3 ? i__3 : s_rnge("cwt", i__3, "solve0_", (
+				ftnlen)2940)] * cmu[(i__4 = jq - 1) < 1 * 
+				cmu_dim1 && 0 <= i__4 ? i__4 : s_rnge("cmu", 
+				i__4, "solve0_", (ftnlen)2940)] * bdr[(i__5 = 
+				iq + jq * bdr_dim1 - bdr_offset) < 1 * 
+				bdr_dim1 * bdr_dim2 && 0 <= i__5 ? i__5 : 
+				s_rnge("bdr", i__5, "solve0_", (ftnlen)2940)] 
+				* (zz[*nn + 1 - jq + *ncut * zz_dim1 - 
+				zz_offset] * expbea[*ncut] + zplk0[*nn + 1 - 
+				jq + *ncut * zplk0_dim1 - zplk0_offset] + 
+				zplk1[*nn + 1 - jq + *ncut * zplk1_dim1 - 
+				zplk1_offset] * taucpr[*ncut]);
 /* L140: */
 		    }
-		    b[*ncol - *nn + iq] = sum * 2. + (bdr[iq] * *umu0 * *
-			    fbeam / *pi - zz[iq + *nn + *ncut * zz_dim1]) * 
-			    expbea[*ncut] + bem[iq] * *bplank - zplk0[iq + *
-			    nn + *ncut * zplk0_dim1] - zplk1[iq + *nn + *ncut 
-			    * zplk1_dim1] * taucpr[*ncut];
+		    b[(i__2 = *ncol - *nn + iq - 1) < 1 * b_dim1 && 0 <= i__2 
+			    ? i__2 : s_rnge("b", i__2, "solve0_", (ftnlen)
+			    2946)] = sum * 2. + (bdr[(i__3 = iq - bdr_offset) 
+			    < 1 * bdr_dim1 * bdr_dim2 && 0 <= i__3 ? i__3 : 
+			    s_rnge("bdr", i__3, "solve0_", (ftnlen)2946)] * *
+			    umu0 * *fbeam / *pi - zz[iq + *nn + *ncut * 
+			    zz_dim1 - zz_offset]) * expbea[*ncut] + bem[(i__4 
+			    = iq - 1) < 1 * bem_dim1 && 0 <= i__4 ? i__4 : 
+			    s_rnge("bem", i__4, "solve0_", (ftnlen)2946)] * *
+			    bplank - zplk0[iq + *nn + *ncut * zplk0_dim1 - 
+			    zplk0_offset] - zplk1[iq + *nn + *ncut * 
+			    zplk1_dim1 - zplk1_offset] * taucpr[*ncut];
 /* L150: */
 		}
 	    }
@@ -3244,11 +4098,14 @@ L60:
 		i__2 = *nstr;
 		for (iq = 1; iq <= i__2; ++iq) {
 		    ++it;
-		    b[it] = (zz[iq + (lc + 1) * zz_dim1] - zz[iq + lc * 
-			    zz_dim1]) * expbea[lc] + zplk0[iq + (lc + 1) * 
-			    zplk0_dim1] - zplk0[iq + lc * zplk0_dim1] + (
-			    zplk1[iq + (lc + 1) * zplk1_dim1] - zplk1[iq + lc 
-			    * zplk1_dim1]) * taucpr[lc];
+		    b[(i__3 = it - 1) < 1 * b_dim1 && 0 <= i__3 ? i__3 : 
+			    s_rnge("b", i__3, "solve0_", (ftnlen)2963)] = (zz[
+			    iq + (lc + 1) * zz_dim1 - zz_offset] - zz[iq + lc 
+			    * zz_dim1 - zz_offset]) * expbea[lc] + zplk0[iq + 
+			    (lc + 1) * zplk0_dim1 - zplk0_offset] - zplk0[iq 
+			    + lc * zplk0_dim1 - zplk0_offset] + (zplk1[iq + (
+			    lc + 1) * zplk1_dim1 - zplk1_offset] - zplk1[iq + 
+			    lc * zplk1_dim1 - zplk1_offset]) * taucpr[lc];
 /* L160: */
 		}
 /* L170: */
@@ -3261,8 +4118,7 @@ L60:
 /*                     ** (CBAND is in LINPACK packed format) */
     rcond = 0.;
     ncd = *nn * 3 - 1;
-    sgbco_(&cband[cband_offset], mi9m2, ncol, &ncd, &ncd, &ipvt[1], &rcond, &
-	    z__[1]);
+    sgbco_(cband, mi9m2, ncol, &ncd, &ncd, ipvt, &rcond, z__);
     if (rcond + 1. == 1.) {
 	errmsg_("SOLVE0--SGBCO says matrix near singular", &c_false, (ftnlen)
 		39);
@@ -3270,20 +4126,23 @@ L60:
 /*                   ** Solve linear system with coeff matrix CBAND */
 /*                   ** and R.H. side(s) B after CBAND has been L-U */
 /*                   ** decomposed.  Solution is returned in B. */
-    sgbsl_(&cband[cband_offset], mi9m2, ncol, &ncd, &ncd, &ipvt[1], &b[1], &
-	    c__0);
+    sgbsl_(cband, mi9m2, ncol, &ncd, &ncd, ipvt, b, &c__0);
 /*                   ** Zero CBAND (it may contain 'foreign' */
 /*                   ** elements upon returning from LINPACK); */
 /*                   ** necessary to prevent errors */
     i__1 = *mi9m2 * *nnlyri;
-    zeroit_(&cband[cband_offset], &i__1);
+    zeroit_(cband, &i__1);
     i__1 = *ncut;
     for (lc = 1; lc <= i__1; ++lc) {
 	ipnt = lc * *nstr - *nn;
 	i__2 = *nn;
 	for (iq = 1; iq <= i__2; ++iq) {
-	    ll[*nn + 1 - iq + lc * ll_dim1] = b[ipnt + 1 - iq];
-	    ll[iq + *nn + lc * ll_dim1] = b[iq + ipnt];
+	    ll[*nn + 1 - iq + lc * ll_dim1 - ll_offset] = b[(i__3 = ipnt + 1 
+		    - iq - 1) < 1 * b_dim1 && 0 <= i__3 ? i__3 : s_rnge("b", 
+		    i__3, "solve0_", (ftnlen)3002)];
+	    ll[iq + *nn + lc * ll_dim1 - ll_offset] = b[(i__3 = iq + ipnt - 1)
+		     < 1 * b_dim1 && 0 <= i__3 ? i__3 : s_rnge("b", i__3, 
+		    "solve0_", (ftnlen)3003)];
 /* L180: */
 	}
 /* L190: */
@@ -3304,8 +4163,13 @@ L60:
     static logical pass1 = TRUE_;
 
     /* System generated locals */
-    integer bdr_dim1, bdr_offset, rmu_dim1, rmu_offset, ylmc_dim1, 
-	    ylmc_offset, ylmu_dim1, ylmu_offset, i__1, i__2, i__3;
+    integer bdr_dim1, bdr_dim2, bdr_offset, bem_dim1, emu_dim1, hlpr_dim1, 
+	    rmu_dim1, rmu_dim2, rmu_offset, ylm0_dim1, ylmc_dim1, ylmc_dim2, 
+	    ylmc_offset, ylmu_dim1, ylmu_dim2, ylmu_offset, i__1, i__2, i__3, 
+	    i__4, i__5, i__6;
+
+    /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static integer k, jg, iq, jq, iu;
@@ -3393,49 +4257,56 @@ L60:
 /*     .. External Subroutines .. */
 /*     .. */
     /* Parameter adjustments */
-    --bem;
+    bem_dim1 = *mi;
     bdr_dim1 = *mi;
+    bdr_dim2 = *mi - 0 + 1;
     bdr_offset = 1 + bdr_dim1 * 0;
-    bdr -= bdr_offset;
     ylmc_dim1 = *mxcmu - 0 + 1;
+    ylmc_dim2 = *mxcmu;
     ylmc_offset = 0 + ylmc_dim1;
-    ylmc -= ylmc_offset;
+    ylm0_dim1 = *mxcmu - 0 + 1;
+    hlpr_dim1 = *mxcmu - 0 + 1;
     rmu_dim1 = *mxumu;
+    rmu_dim2 = *mi - 0 + 1;
     rmu_offset = 1 + rmu_dim1 * 0;
-    rmu -= rmu_offset;
-    --emu;
+    emu_dim1 = *mxumu;
     ylmu_dim1 = *mxcmu - 0 + 1;
+    ylmu_dim2 = *mxumu;
     ylmu_offset = 0 + ylmu_dim1;
-    ylmu -= ylmu_offset;
-    --umu;
-    --sqt;
 
     /* Function Body */
     if (pass1) {
 	pass1 = FALSE_;
 	qgausn_(&c__10, gmu, gwt);
-	lepoly_(&c__10, &c__0, &c__100, &c__100, gmu, &sqt[1], ylmg);
+	lepoly_(&c__10, &c__0, &c__100, &c__100, gmu, sqt, ylmg);
 /*                       ** Convert Legendre polys. to negative GMU */
 	sgn = -1.;
 	for (k = 0; k <= 100; ++k) {
 	    sgn = -sgn;
 	    for (jg = 1; jg <= 10; ++jg) {
-		ylmg[k + jg * 101 - 101] = sgn * ylmg[k + jg * 101 - 101];
+		ylmg[(i__1 = k + jg * 101 - 101) < 1010 && 0 <= i__1 ? i__1 : 
+			s_rnge("ylmg", i__1, "surfac_", (ftnlen)3133)] = sgn *
+			 ylmg[(i__2 = k + jg * 101 - 101) < 1010 && 0 <= i__2 
+			? i__2 : s_rnge("ylmg", i__2, "surfac_", (ftnlen)3133)
+			];
 /* L10: */
 	    }
 /* L20: */
 	}
     }
     i__1 = *mi * (*mi + 1);
-    zeroit_(&bdr[bdr_offset], &i__1);
-    zeroit_(&bem[1], mi);
+    zeroit_(bdr, &i__1);
+    zeroit_(bem, mi);
     if (*lamber && *mazim == 0) {
 	i__1 = *nn;
 	for (iq = 1; iq <= i__1; ++iq) {
-	    bem[iq] = 1. - *albedo;
+	    bem[(i__2 = iq - 1) < 1 * bem_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		    "bem", i__2, "surfac_", (ftnlen)3148)] = 1. - *albedo;
 	    i__2 = *nn;
 	    for (jq = 0; jq <= i__2; ++jq) {
-		bdr[iq + jq * bdr_dim1] = *albedo;
+		bdr[(i__3 = iq + jq * bdr_dim1 - bdr_offset) < 1 * bdr_dim1 * 
+			bdr_dim2 && 0 <= i__3 ? i__3 : s_rnge("bdr", i__3, 
+			"surfac_", (ftnlen)3151)] = *albedo;
 /* L30: */
 	    }
 /* L40: */
@@ -3450,21 +4321,39 @@ L60:
 		sum = 0.;
 		i__3 = *nstr - 1;
 		for (k = *mazim; k <= i__3; ++k) {
-		    sum += hlpr[k] * ylmc[k + iq * ylmc_dim1] * ylmc[k + (jq 
-			    + *nn) * ylmc_dim1];
+		    sum += hlpr[(i__4 = k) < 1 * hlpr_dim1 && 0 <= i__4 ? 
+			    i__4 : s_rnge("hlpr", i__4, "surfac_", (ftnlen)
+			    3166)] * ylmc[(i__5 = k + iq * ylmc_dim1 - 
+			    ylmc_offset) < 1 * ylmc_dim1 * ylmc_dim2 && 0 <= 
+			    i__5 ? i__5 : s_rnge("ylmc", i__5, "surfac_", (
+			    ftnlen)3166)] * ylmc[(i__6 = k + (jq + *nn) * 
+			    ylmc_dim1 - ylmc_offset) < 1 * ylmc_dim1 * 
+			    ylmc_dim2 && 0 <= i__6 ? i__6 : s_rnge("ylmc", 
+			    i__6, "surfac_", (ftnlen)3166)];
 /* L50: */
 		}
-		bdr[iq + jq * bdr_dim1] = (2. - *delm0) * sum;
+		bdr[(i__3 = iq + jq * bdr_dim1 - bdr_offset) < 1 * bdr_dim1 * 
+			bdr_dim2 && 0 <= i__3 ? i__3 : s_rnge("bdr", i__3, 
+			"surfac_", (ftnlen)3170)] = (2. - *delm0) * sum;
 /* L60: */
 	    }
 	    if (*fbeam > 0.) {
 		sum = 0.;
 		i__2 = *nstr - 1;
 		for (k = *mazim; k <= i__2; ++k) {
-		    sum += hlpr[k] * ylmc[k + iq * ylmc_dim1] * ylm0[k];
+		    sum += hlpr[(i__3 = k) < 1 * hlpr_dim1 && 0 <= i__3 ? 
+			    i__3 : s_rnge("hlpr", i__3, "surfac_", (ftnlen)
+			    3179)] * ylmc[(i__4 = k + iq * ylmc_dim1 - 
+			    ylmc_offset) < 1 * ylmc_dim1 * ylmc_dim2 && 0 <= 
+			    i__4 ? i__4 : s_rnge("ylmc", i__4, "surfac_", (
+			    ftnlen)3179)] * ylm0[(i__5 = k) < 1 * ylm0_dim1 &&
+			     0 <= i__5 ? i__5 : s_rnge("ylm0", i__5, "surfac_"
+			    , (ftnlen)3179)];
 /* L70: */
 		}
-		bdr[iq] = (2. - *delm0) * sum;
+		bdr[(i__2 = iq - bdr_offset) < 1 * bdr_dim1 * bdr_dim2 && 0 <=
+			 i__2 ? i__2 : s_rnge("bdr", i__2, "surfac_", (ftnlen)
+			3182)] = (2. - *delm0) * sum;
 	    }
 /* L80: */
 	}
@@ -3485,14 +4374,27 @@ L60:
 		    sum = 0.;
 		    i__2 = *nstr - 1;
 		    for (k = 0; k <= i__2; ++k) {
-			sum += hlpr[k] * ylmc[k + iq * ylmc_dim1] * ylmg[k + 
-				jg * 101 - 101];
+			sum += hlpr[(i__3 = k) < 1 * hlpr_dim1 && 0 <= i__3 ? 
+				i__3 : s_rnge("hlpr", i__3, "surfac_", (
+				ftnlen)3207)] * ylmc[(i__4 = k + iq * 
+				ylmc_dim1 - ylmc_offset) < 1 * ylmc_dim1 * 
+				ylmc_dim2 && 0 <= i__4 ? i__4 : s_rnge("ylmc",
+				 i__4, "surfac_", (ftnlen)3207)] * ylmg[(i__5 
+				= k + jg * 101 - 101) < 1010 && 0 <= i__5 ? 
+				i__5 : s_rnge("ylmg", i__5, "surfac_", (
+				ftnlen)3207)];
 /* L90: */
 		    }
-		    dref += gwt[jg - 1] * 2. * gmu[jg - 1] * sum;
+		    dref += gwt[(i__2 = jg - 1) < 10 && 0 <= i__2 ? i__2 : 
+			    s_rnge("gwt", i__2, "surfac_", (ftnlen)3211)] * 
+			    2. * gmu[(i__3 = jg - 1) < 10 && 0 <= i__3 ? i__3 
+			    : s_rnge("gmu", i__3, "surfac_", (ftnlen)3211)] * 
+			    sum;
 /* L100: */
 		}
-		bem[iq] = 1. - dref;
+		bem[(i__2 = iq - 1) < 1 * bem_dim1 && 0 <= i__2 ? i__2 : 
+			s_rnge("bem", i__2, "surfac_", (ftnlen)3215)] = 1. - 
+			dref;
 /* L110: */
 	    }
 	}
@@ -3500,41 +4402,65 @@ L60:
 /*                                       ** Compute surface bidirectional */
 /*                                       ** properties at user angles */
     if (! (*onlyfl) && *usrang) {
-	zeroit_(&emu[1], mxumu);
+	zeroit_(emu, mxumu);
 	i__1 = *mxumu * (*mi + 1);
-	zeroit_(&rmu[rmu_offset], &i__1);
+	zeroit_(rmu, &i__1);
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    if (umu[iu] > 0.) {
+	    if (umu[iu - 1] > 0.) {
 		if (*lamber && *mazim == 0) {
 		    i__2 = *nn;
 		    for (iq = 0; iq <= i__2; ++iq) {
-			rmu[iu + iq * rmu_dim1] = *albedo;
+			rmu[(i__3 = iu + iq * rmu_dim1 - rmu_offset) < 1 * 
+				rmu_dim1 * rmu_dim2 && 0 <= i__3 ? i__3 : 
+				s_rnge("rmu", i__3, "surfac_", (ftnlen)3237)] 
+				= *albedo;
 /* L120: */
 		    }
-		    emu[iu] = 1. - *albedo;
+		    emu[(i__2 = iu - 1) < 1 * emu_dim1 && 0 <= i__2 ? i__2 : 
+			    s_rnge("emu", i__2, "surfac_", (ftnlen)3240)] = 
+			    1. - *albedo;
 		} else if (! (*lamber)) {
 		    i__2 = *nn;
 		    for (iq = 1; iq <= i__2; ++iq) {
 			sum = 0.;
 			i__3 = *nstr - 1;
 			for (k = *mazim; k <= i__3; ++k) {
-			    sum += hlpr[k] * ylmu[k + iu * ylmu_dim1] * ylmc[
-				    k + (iq + *nn) * ylmc_dim1];
+			    sum += hlpr[(i__4 = k) < 1 * hlpr_dim1 && 0 <= 
+				    i__4 ? i__4 : s_rnge("hlpr", i__4, "surf\
+ac_", (ftnlen)3249)] * ylmu[(i__5 = k + iu * ylmu_dim1 - ylmu_offset) < 1 * 
+				    ylmu_dim1 * ylmu_dim2 && 0 <= i__5 ? i__5 
+				    : s_rnge("ylmu", i__5, "surfac_", (ftnlen)
+				    3249)] * ylmc[(i__6 = k + (iq + *nn) * 
+				    ylmc_dim1 - ylmc_offset) < 1 * ylmc_dim1 *
+				     ylmc_dim2 && 0 <= i__6 ? i__6 : s_rnge(
+				    "ylmc", i__6, "surfac_", (ftnlen)3249)];
 /* L130: */
 			}
-			rmu[iu + iq * rmu_dim1] = (2. - *delm0) * sum;
+			rmu[(i__3 = iu + iq * rmu_dim1 - rmu_offset) < 1 * 
+				rmu_dim1 * rmu_dim2 && 0 <= i__3 ? i__3 : 
+				s_rnge("rmu", i__3, "surfac_", (ftnlen)3253)] 
+				= (2. - *delm0) * sum;
 /* L140: */
 		    }
 		    if (*fbeam > 0.) {
 			sum = 0.;
 			i__2 = *nstr - 1;
 			for (k = *mazim; k <= i__2; ++k) {
-			    sum += hlpr[k] * ylmu[k + iu * ylmu_dim1] * ylm0[
-				    k];
+			    sum += hlpr[(i__3 = k) < 1 * hlpr_dim1 && 0 <= 
+				    i__3 ? i__3 : s_rnge("hlpr", i__3, "surf\
+ac_", (ftnlen)3262)] * ylmu[(i__4 = k + iu * ylmu_dim1 - ylmu_offset) < 1 * 
+				    ylmu_dim1 * ylmu_dim2 && 0 <= i__4 ? i__4 
+				    : s_rnge("ylmu", i__4, "surfac_", (ftnlen)
+				    3262)] * ylm0[(i__5 = k) < 1 * ylm0_dim1 
+				    && 0 <= i__5 ? i__5 : s_rnge("ylm0", i__5,
+				     "surfac_", (ftnlen)3262)];
 /* L150: */
 			}
-			rmu[iu] = (2. - *delm0) * sum;
+			rmu[(i__2 = iu - rmu_offset) < 1 * rmu_dim1 * 
+				rmu_dim2 && 0 <= i__2 ? i__2 : s_rnge("rmu", 
+				i__2, "surfac_", (ftnlen)3265)] = (2. - *
+				delm0) * sum;
 		    }
 		    if (*mazim == 0) {
 /*                               ** Integrate bidirectional reflectivity */
@@ -3547,14 +4473,29 @@ L60:
 			    sum = 0.;
 			    i__2 = *nstr - 1;
 			    for (k = 0; k <= i__2; ++k) {
-				sum += hlpr[k] * ylmu[k + iu * ylmu_dim1] * 
-					ylmg[k + jg * 101 - 101];
+				sum += hlpr[(i__3 = k) < 1 * hlpr_dim1 && 0 <=
+					 i__3 ? i__3 : s_rnge("hlpr", i__3, 
+					"surfac_", (ftnlen)3283)] * ylmu[(
+					i__4 = k + iu * ylmu_dim1 - 
+					ylmu_offset) < 1 * ylmu_dim1 * 
+					ylmu_dim2 && 0 <= i__4 ? i__4 : 
+					s_rnge("ylmu", i__4, "surfac_", (
+					ftnlen)3283)] * ylmg[(i__5 = k + jg * 
+					101 - 101) < 1010 && 0 <= i__5 ? i__5 
+					: s_rnge("ylmg", i__5, "surfac_", (
+					ftnlen)3283)];
 /* L160: */
 			    }
-			    dref += gwt[jg - 1] * 2. * gmu[jg - 1] * sum;
+			    dref += gwt[(i__2 = jg - 1) < 10 && 0 <= i__2 ? 
+				    i__2 : s_rnge("gwt", i__2, "surfac_", (
+				    ftnlen)3287)] * 2. * gmu[(i__3 = jg - 1) <
+				     10 && 0 <= i__3 ? i__3 : s_rnge("gmu", 
+				    i__3, "surfac_", (ftnlen)3287)] * sum;
 /* L170: */
 			}
-			emu[iu] = 1. - dref;
+			emu[(i__2 = iu - 1) < 1 * emu_dim1 && 0 <= i__2 ? 
+				i__2 : s_rnge("emu", i__2, "surfac_", (ftnlen)
+				3291)] = 1. - dref;
 		    }
 		}
 	    }
@@ -3570,8 +4511,13 @@ L60:
 	*ylmc, doublereal *ylmu)
 {
     /* System generated locals */
-    integer evecc_dim1, evecc_offset, gu_dim1, gu_offset, ylmc_dim1, 
-	    ylmc_offset, ylmu_dim1, ylmu_offset, i__1, i__2, i__3;
+    integer cwt_dim1, evecc_dim1, evecc_dim2, evecc_offset, gl_dim1, gu_dim1, 
+	    gu_dim2, gu_offset, wk_dim1, ylmc_dim1, ylmc_dim2, ylmc_offset, 
+	    ylmu_dim1, ylmu_dim2, ylmu_offset, i__1, i__2, i__3, i__4, i__5, 
+	    i__6;
+
+    /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static integer l, iq, jq, iu;
@@ -3588,19 +4534,20 @@ L60:
 /*     .. */
     /* Parameter adjustments */
     ylmc_dim1 = *mxcmu - 0 + 1;
+    ylmc_dim2 = *mxcmu;
     ylmc_offset = 0 + ylmc_dim1;
-    ylmc -= ylmc_offset;
-    --wk;
+    wk_dim1 = *mxcmu;
+    gl_dim1 = *mxcmu - 0 + 1;
     evecc_dim1 = *mxcmu;
+    evecc_dim2 = *mxcmu;
     evecc_offset = 1 + evecc_dim1;
-    evecc -= evecc_offset;
-    --cwt;
+    cwt_dim1 = *mxcmu;
     ylmu_dim1 = *mxcmu - 0 + 1;
+    ylmu_dim2 = *mxumu;
     ylmu_offset = 0 + ylmu_dim1;
-    ylmu -= ylmu_offset;
     gu_dim1 = *mxumu;
+    gu_dim2 = *mxcmu;
     gu_offset = 1 + gu_dim1;
-    gu -= gu_offset;
 
     /* Function Body */
     i__1 = *nstr;
@@ -3612,11 +4559,20 @@ L60:
 	    sum = 0.;
 	    i__3 = *nstr;
 	    for (jq = 1; jq <= i__3; ++jq) {
-		sum += cwt[jq] * ylmc[l + jq * ylmc_dim1] * evecc[jq + iq * 
-			evecc_dim1];
+		sum += cwt[(i__4 = jq - 1) < 1 * cwt_dim1 && 0 <= i__4 ? i__4 
+			: s_rnge("cwt", i__4, "terpev_", (ftnlen)3339)] * 
+			ylmc[(i__5 = l + jq * ylmc_dim1 - ylmc_offset) < 1 * 
+			ylmc_dim1 * ylmc_dim2 && 0 <= i__5 ? i__5 : s_rnge(
+			"ylmc", i__5, "terpev_", (ftnlen)3339)] * evecc[(i__6 
+			= jq + iq * evecc_dim1 - evecc_offset) < 1 * 
+			evecc_dim1 * evecc_dim2 && 0 <= i__6 ? i__6 : s_rnge(
+			"evecc", i__6, "terpev_", (ftnlen)3339)];
 /* L10: */
 	    }
-	    wk[l + 1] = gl[l] * .5 * sum;
+	    wk[(i__3 = l) < 1 * wk_dim1 && 0 <= i__3 ? i__3 : s_rnge("wk", 
+		    i__3, "terpev_", (ftnlen)3342)] = gl[(i__4 = l) < 1 * 
+		    gl_dim1 && 0 <= i__4 ? i__4 : s_rnge("gl", i__4, "terpev_"
+		    , (ftnlen)3342)] * .5 * sum;
 /* L20: */
 	}
 /*                                    ** Finish outer sum in SD(8) */
@@ -3626,14 +4582,22 @@ L60:
 	    sum = 0.;
 	    i__3 = *nstr - 1;
 	    for (l = *mazim; l <= i__3; ++l) {
-		sum += wk[l + 1] * ylmu[l + iu * ylmu_dim1];
+		sum += wk[(i__4 = l) < 1 * wk_dim1 && 0 <= i__4 ? i__4 : 
+			s_rnge("wk", i__4, "terpev_", (ftnlen)3351)] * ylmu[(
+			i__5 = l + iu * ylmu_dim1 - ylmu_offset) < 1 * 
+			ylmu_dim1 * ylmu_dim2 && 0 <= i__5 ? i__5 : s_rnge(
+			"ylmu", i__5, "terpev_", (ftnlen)3351)];
 /* L30: */
 	    }
 	    if (iq <= *nn) {
-		gu[iu + (iq + *nn) * gu_dim1] = sum;
+		gu[(i__3 = iu + (iq + *nn) * gu_dim1 - gu_offset) < 1 * 
+			gu_dim1 * gu_dim2 && 0 <= i__3 ? i__3 : s_rnge("gu", 
+			i__3, "terpev_", (ftnlen)3354)] = sum;
 	    }
 	    if (iq > *nn) {
-		gu[iu + (*nstr + 1 - iq) * gu_dim1] = sum;
+		gu[(i__3 = iu + (*nstr + 1 - iq) * gu_dim1 - gu_offset) < 1 * 
+			gu_dim1 * gu_dim2 && 0 <= i__3 ? i__3 : s_rnge("gu", 
+			i__3, "terpev_", (ftnlen)3355)] = sum;
 	    }
 /* L40: */
 	}
@@ -3650,7 +4614,12 @@ L60:
 	doublereal *zbeam, doublereal *z0u, doublereal *z1u)
 {
     /* System generated locals */
-    integer ylmc_dim1, ylmc_offset, ylmu_dim1, ylmu_offset, i__1, i__2;
+    integer cwt_dim1, gl_dim1, psi_dim1, ylm0_dim1, ylmc_dim1, ylmc_dim2, 
+	    ylmc_offset, ylmu_dim1, ylmu_offset, z0_dim1, zj_dim1, i__1, i__2,
+	     i__3, i__4, i__5;
+
+    /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static integer iq, jq, iu;
@@ -3713,19 +4682,17 @@ L60:
 /*     .. Local Scalars .. */
 /*     .. */
     /* Parameter adjustments */
-    --zj;
-    --z0;
-    --psi;
+    zj_dim1 = *mxcmu;
+    z0_dim1 = *mxcmu;
+    psi_dim1 = *mxcmu;
     ylmu_dim1 = *mxcmu - 0 + 1;
     ylmu_offset = 0 + ylmu_dim1;
-    ylmu -= ylmu_offset;
     ylmc_dim1 = *mxcmu - 0 + 1;
+    ylmc_dim2 = *mxcmu;
     ylmc_offset = 0 + ylmc_dim1;
-    ylmc -= ylmc_offset;
-    --cwt;
-    --zbeam;
-    --z0u;
-    --z1u;
+    ylm0_dim1 = *mxcmu - 0 + 1;
+    gl_dim1 = *mxcmu - 0 + 1;
+    cwt_dim1 = *mxcmu;
 
     /* Function Body */
     if (*fbeam > 0.) {
@@ -3735,10 +4702,19 @@ L60:
 	    psum = 0.;
 	    i__2 = *nstr;
 	    for (jq = 1; jq <= i__2; ++jq) {
-		psum += cwt[jq] * ylmc[iq + jq * ylmc_dim1] * zj[jq];
+		psum += cwt[(i__3 = jq - 1) < 1 * cwt_dim1 && 0 <= i__3 ? 
+			i__3 : s_rnge("cwt", i__3, "terpso_", (ftnlen)3447)] *
+			 ylmc[(i__4 = iq + jq * ylmc_dim1 - ylmc_offset) < 1 *
+			 ylmc_dim1 * ylmc_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+			"ylmc", i__4, "terpso_", (ftnlen)3447)] * zj[(i__5 = 
+			jq - 1) < 1 * zj_dim1 && 0 <= i__5 ? i__5 : s_rnge(
+			"zj", i__5, "terpso_", (ftnlen)3447)];
 /* L10: */
 	    }
-	    psi[iq + 1] = gl[iq] * .5 * psum;
+	    psi[(i__2 = iq) < 1 * psi_dim1 && 0 <= i__2 ? i__2 : s_rnge("psi",
+		     i__2, "terpso_", (ftnlen)3450)] = gl[(i__3 = iq) < 1 * 
+		    gl_dim1 && 0 <= i__3 ? i__3 : s_rnge("gl", i__3, "terpso_"
+		    , (ftnlen)3450)] * .5 * psum;
 /* L20: */
 	}
 	fact = (2. - *delm0) * *fbeam / (*pi * 4.);
@@ -3747,11 +4723,16 @@ L60:
 	    sum = 0.;
 	    i__2 = *nstr - 1;
 	    for (iq = *mazim; iq <= i__2; ++iq) {
-		sum += ylmu[iq + iu * ylmu_dim1] * (psi[iq + 1] + fact * gl[
-			iq] * ylm0[iq]);
+		sum += ylmu[iq + iu * ylmu_dim1 - ylmu_offset] * (psi[(i__3 = 
+			iq) < 1 * psi_dim1 && 0 <= i__3 ? i__3 : s_rnge("psi",
+			 i__3, "terpso_", (ftnlen)3460)] + fact * gl[(i__4 = 
+			iq) < 1 * gl_dim1 && 0 <= i__4 ? i__4 : s_rnge("gl", 
+			i__4, "terpso_", (ftnlen)3460)] * ylm0[(i__5 = iq) < 
+			1 * ylm0_dim1 && 0 <= i__5 ? i__5 : s_rnge("ylm0", 
+			i__5, "terpso_", (ftnlen)3460)]);
 /* L30: */
 	    }
-	    zbeam[iu] = sum;
+	    zbeam[iu - 1] = sum;
 /* L40: */
 	}
     }
@@ -3762,10 +4743,19 @@ L60:
 	    psum = 0.;
 	    i__2 = *nstr;
 	    for (jq = 1; jq <= i__2; ++jq) {
-		psum += cwt[jq] * ylmc[iq + jq * ylmc_dim1] * z0[jq];
+		psum += cwt[(i__3 = jq - 1) < 1 * cwt_dim1 && 0 <= i__3 ? 
+			i__3 : s_rnge("cwt", i__3, "terpso_", (ftnlen)3478)] *
+			 ylmc[(i__4 = iq + jq * ylmc_dim1 - ylmc_offset) < 1 *
+			 ylmc_dim1 * ylmc_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+			"ylmc", i__4, "terpso_", (ftnlen)3478)] * z0[(i__5 = 
+			jq - 1) < 1 * z0_dim1 && 0 <= i__5 ? i__5 : s_rnge(
+			"z0", i__5, "terpso_", (ftnlen)3478)];
 /* L50: */
 	    }
-	    psi[iq + 1] = gl[iq] * .5 * psum;
+	    psi[(i__2 = iq) < 1 * psi_dim1 && 0 <= i__2 ? i__2 : s_rnge("psi",
+		     i__2, "terpso_", (ftnlen)3481)] = gl[(i__3 = iq) < 1 * 
+		    gl_dim1 && 0 <= i__3 ? i__3 : s_rnge("gl", i__3, "terpso_"
+		    , (ftnlen)3481)] * .5 * psum;
 /* L60: */
 	}
 	i__1 = *numu;
@@ -3773,11 +4763,13 @@ L60:
 	    sum = 0.;
 	    i__2 = *nstr - 1;
 	    for (iq = *mazim; iq <= i__2; ++iq) {
-		sum += ylmu[iq + iu * ylmu_dim1] * psi[iq + 1];
+		sum += ylmu[iq + iu * ylmu_dim1 - ylmu_offset] * psi[(i__3 = 
+			iq) < 1 * psi_dim1 && 0 <= i__3 ? i__3 : s_rnge("psi",
+			 i__3, "terpso_", (ftnlen)3489)];
 /* L70: */
 	    }
-	    z0u[iu] = sum + (1. - *oprim) * *xr0;
-	    z1u[iu] = *xr1;
+	    z0u[iu - 1] = sum + (1. - *oprim) * *xr0;
+	    z1u[iu - 1] = *xr1;
 /* L80: */
 	}
     }
@@ -3791,8 +4783,12 @@ L60:
 	doublereal *ylmc, doublereal *zj, doublereal *zz)
 {
     /* System generated locals */
-    integer array_dim1, array_offset, cc_dim1, cc_offset, ylmc_dim1, 
-	    ylmc_offset, i__1, i__2;
+    integer array_dim1, array_dim2, array_offset, cc_dim1, cc_dim2, cc_offset,
+	     cmu_dim1, gl_dim1, ylm0_dim1, ylmc_dim1, ylmc_offset, zj_dim1, 
+	    zz_dim1, i__1, i__2, i__3, i__4;
+
+    /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static integer k, iq, jq, job;
@@ -3855,45 +4851,60 @@ L60:
 /*     .. External Subroutines .. */
 /*     .. */
     /* Parameter adjustments */
-    --ipvt;
-    --zz;
-    --zj;
+    zz_dim1 = *mxcmu;
+    zj_dim1 = *mxcmu;
     ylmc_dim1 = *mxcmu - 0 + 1;
     ylmc_offset = 0 + ylmc_dim1;
-    ylmc -= ylmc_offset;
-    --wk;
-    --cmu;
+    ylm0_dim1 = *mxcmu - 0 + 1;
+    gl_dim1 = *mxcmu - 0 + 1;
+    cmu_dim1 = *mxcmu;
     cc_dim1 = *mxcmu;
+    cc_dim2 = *mxcmu;
     cc_offset = 1 + cc_dim1;
-    cc -= cc_offset;
     array_dim1 = *mxcmu;
+    array_dim2 = *mxcmu;
     array_offset = 1 + array_dim1;
-    array -= array_offset;
 
     /* Function Body */
     i__1 = *nstr;
     for (iq = 1; iq <= i__1; ++iq) {
 	i__2 = *nstr;
 	for (jq = 1; jq <= i__2; ++jq) {
-	    array[iq + jq * array_dim1] = -cc[iq + jq * cc_dim1];
+	    array[(i__3 = iq + jq * array_dim1 - array_offset) < 1 * 
+		    array_dim1 * array_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "array", i__3, "upbeam_", (ftnlen)3576)] = -cc[(i__4 = iq 
+		    + jq * cc_dim1 - cc_offset) < 1 * cc_dim1 * cc_dim2 && 0 
+		    <= i__4 ? i__4 : s_rnge("cc", i__4, "upbeam_", (ftnlen)
+		    3576)];
 /* L10: */
 	}
-	array[iq + iq * array_dim1] = cmu[iq] / *umu0 + 1. + array[iq + iq * 
-		array_dim1];
+	array[(i__2 = iq + iq * array_dim1 - array_offset) < 1 * array_dim1 * 
+		array_dim2 && 0 <= i__2 ? i__2 : s_rnge("array", i__2, "upbe\
+am_", (ftnlen)3579)] = cmu[(i__3 = iq - 1) < 1 * cmu_dim1 && 0 <= i__3 ? i__3 
+		: s_rnge("cmu", i__3, "upbeam_", (ftnlen)3579)] / *umu0 + 1. 
+		+ array[(i__4 = iq + iq * array_dim1 - array_offset) < 1 * 
+		array_dim1 * array_dim2 && 0 <= i__4 ? i__4 : s_rnge("array", 
+		i__4, "upbeam_", (ftnlen)3579)];
 	sum = 0.;
 	i__2 = *nstr - 1;
 	for (k = *mazim; k <= i__2; ++k) {
-	    sum += gl[k] * ylmc[k + iq * ylmc_dim1] * ylm0[k];
+	    sum += gl[(i__3 = k) < 1 * gl_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		    "gl", i__3, "upbeam_", (ftnlen)3583)] * ylmc[k + iq * 
+		    ylmc_dim1 - ylmc_offset] * ylm0[(i__4 = k) < 1 * 
+		    ylm0_dim1 && 0 <= i__4 ? i__4 : s_rnge("ylm0", i__4, 
+		    "upbeam_", (ftnlen)3583)];
 /* L20: */
 	}
-	zj[iq] = (2. - *delm0) * *fbeam * sum / (*pi * 4.);
+	zj[(i__2 = iq - 1) < 1 * zj_dim1 && 0 <= i__2 ? i__2 : s_rnge("zj", 
+		i__2, "upbeam_", (ftnlen)3586)] = (2. - *delm0) * *fbeam * 
+		sum / (*pi * 4.);
 /* L30: */
     }
 /*                  ** Find L-U (lower/upper triangular) decomposition */
 /*                  ** of ARRAY and see if it is nearly singular */
 /*                  ** (NOTE:  ARRAY is altered) */
     rcond = 0.;
-    sgeco_(&array[array_offset], mxcmu, nstr, &ipvt[1], &rcond, &wk[1]);
+    sgeco_(array, mxcmu, nstr, ipvt, &rcond, wk);
     if (rcond + 1. == 1.) {
 	errmsg_("UPBEAM--SGECO says matrix near singular", &c_false, (ftnlen)
 		39);
@@ -3902,11 +4913,17 @@ L60:
 /*                ** (assumed already L-U decomposed) and R.H. side(s) */
 /*                ** ZJ;  return solution(s) in ZJ */
     job = 0;
-    sgesl_(&array[array_offset], mxcmu, nstr, &ipvt[1], &zj[1], &job);
+    sgesl_(array, mxcmu, nstr, ipvt, zj, &job);
     i__1 = *nn;
     for (iq = 1; iq <= i__1; ++iq) {
-	zz[iq + *nn] = zj[iq];
-	zz[*nn + 1 - iq] = zj[iq + *nn];
+	zz[(i__2 = iq + *nn - 1) < 1 * zz_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"zz", i__2, "upbeam_", (ftnlen)3607)] = zj[(i__3 = iq - 1) < 
+		1 * zj_dim1 && 0 <= i__3 ? i__3 : s_rnge("zj", i__3, "upbeam_"
+		, (ftnlen)3607)];
+	zz[(i__2 = *nn + 1 - iq - 1) < 1 * zz_dim1 && 0 <= i__2 ? i__2 : 
+		s_rnge("zz", i__2, "upbeam_", (ftnlen)3608)] = zj[(i__3 = iq 
+		+ *nn - 1) < 1 * zj_dim1 && 0 <= i__3 ? i__3 : s_rnge("zj", 
+		i__3, "upbeam_", (ftnlen)3608)];
 /* L40: */
     }
     return 0;
@@ -3918,7 +4935,12 @@ L60:
 	doublereal *z0, doublereal *z1, doublereal *zplk0, doublereal *zplk1)
 {
     /* System generated locals */
-    integer array_dim1, array_offset, cc_dim1, cc_offset, i__1, i__2;
+    integer array_dim1, array_dim2, array_offset, cc_dim1, cc_dim2, cc_offset,
+	     cmu_dim1, z0_dim1, z1_dim1, zplk0_dim1, zplk1_dim1, i__1, i__2, 
+	    i__3, i__4;
+
+    /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static integer iq, jq;
@@ -3975,48 +4997,73 @@ L60:
 /*     .. External Subroutines .. */
 /*     .. */
     /* Parameter adjustments */
-    --ipvt;
-    --zplk1;
-    --zplk0;
-    --z1;
-    --z0;
-    --wk;
-    --cmu;
+    zplk1_dim1 = *mxcmu;
+    zplk0_dim1 = *mxcmu;
+    z1_dim1 = *mxcmu;
+    z0_dim1 = *mxcmu;
+    cmu_dim1 = *mxcmu;
     cc_dim1 = *mxcmu;
+    cc_dim2 = *mxcmu;
     cc_offset = 1 + cc_dim1;
-    cc -= cc_offset;
     array_dim1 = *mxcmu;
+    array_dim2 = *mxcmu;
     array_offset = 1 + array_dim1;
-    array -= array_offset;
 
     /* Function Body */
     i__1 = *nstr;
     for (iq = 1; iq <= i__1; ++iq) {
 	i__2 = *nstr;
 	for (jq = 1; jq <= i__2; ++jq) {
-	    array[iq + jq * array_dim1] = -cc[iq + jq * cc_dim1];
+	    array[(i__3 = iq + jq * array_dim1 - array_offset) < 1 * 
+		    array_dim1 * array_dim2 && 0 <= i__3 ? i__3 : s_rnge(
+		    "array", i__3, "upisot_", (ftnlen)3682)] = -cc[(i__4 = iq 
+		    + jq * cc_dim1 - cc_offset) < 1 * cc_dim1 * cc_dim2 && 0 
+		    <= i__4 ? i__4 : s_rnge("cc", i__4, "upisot_", (ftnlen)
+		    3682)];
 /* L10: */
 	}
-	array[iq + iq * array_dim1] += 1.;
-	z1[iq] = *xr1;
-	z0[iq] = (1. - *oprim) * *xr0 + cmu[iq] * z1[iq];
+	array[(i__2 = iq + iq * array_dim1 - array_offset) < 1 * array_dim1 * 
+		array_dim2 && 0 <= i__2 ? i__2 : s_rnge("array", i__2, "upis\
+ot_", (ftnlen)3685)] = array[(i__3 = iq + iq * array_dim1 - array_offset) < 1 
+		* array_dim1 * array_dim2 && 0 <= i__3 ? i__3 : s_rnge("array"
+		, i__3, "upisot_", (ftnlen)3685)] + 1.;
+	z1[(i__2 = iq - 1) < 1 * z1_dim1 && 0 <= i__2 ? i__2 : s_rnge("z1", 
+		i__2, "upisot_", (ftnlen)3687)] = *xr1;
+	z0[(i__2 = iq - 1) < 1 * z0_dim1 && 0 <= i__2 ? i__2 : s_rnge("z0", 
+		i__2, "upisot_", (ftnlen)3688)] = (1. - *oprim) * *xr0 + cmu[(
+		i__3 = iq - 1) < 1 * cmu_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		"cmu", i__3, "upisot_", (ftnlen)3688)] * z1[(i__4 = iq - 1) < 
+		1 * z1_dim1 && 0 <= i__4 ? i__4 : s_rnge("z1", i__4, "upisot_"
+		, (ftnlen)3688)];
 /* L20: */
     }
 /*                       ** Solve linear equations: same as in UPBEAM, */
 /*                       ** except ZJ replaced by Z0 */
     rcond = 0.;
-    sgeco_(&array[array_offset], mxcmu, nstr, &ipvt[1], &rcond, &wk[1]);
+    sgeco_(array, mxcmu, nstr, ipvt, &rcond, wk);
     if (rcond + 1. == 1.) {
 	errmsg_("UPISOT--SGECO says matrix near singular", &c_false, (ftnlen)
 		39);
     }
-    sgesl_(&array[array_offset], mxcmu, nstr, &ipvt[1], &z0[1], &c__0);
+    sgesl_(array, mxcmu, nstr, ipvt, z0, &c__0);
     i__1 = *nn;
     for (iq = 1; iq <= i__1; ++iq) {
-	zplk0[iq + *nn] = z0[iq];
-	zplk1[iq + *nn] = z1[iq];
-	zplk0[*nn + 1 - iq] = z0[iq + *nn];
-	zplk1[*nn + 1 - iq] = z1[iq + *nn];
+	zplk0[(i__2 = iq + *nn - 1) < 1 * zplk0_dim1 && 0 <= i__2 ? i__2 : 
+		s_rnge("zplk0", i__2, "upisot_", (ftnlen)3703)] = z0[(i__3 = 
+		iq - 1) < 1 * z0_dim1 && 0 <= i__3 ? i__3 : s_rnge("z0", i__3,
+		 "upisot_", (ftnlen)3703)];
+	zplk1[(i__2 = iq + *nn - 1) < 1 * zplk1_dim1 && 0 <= i__2 ? i__2 : 
+		s_rnge("zplk1", i__2, "upisot_", (ftnlen)3704)] = z1[(i__3 = 
+		iq - 1) < 1 * z1_dim1 && 0 <= i__3 ? i__3 : s_rnge("z1", i__3,
+		 "upisot_", (ftnlen)3704)];
+	zplk0[(i__2 = *nn + 1 - iq - 1) < 1 * zplk0_dim1 && 0 <= i__2 ? i__2 :
+		 s_rnge("zplk0", i__2, "upisot_", (ftnlen)3705)] = z0[(i__3 = 
+		iq + *nn - 1) < 1 * z0_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		"z0", i__3, "upisot_", (ftnlen)3705)];
+	zplk1[(i__2 = *nn + 1 - iq - 1) < 1 * zplk1_dim1 && 0 <= i__2 ? i__2 :
+		 s_rnge("zplk1", i__2, "upisot_", (ftnlen)3706)] = z1[(i__3 = 
+		iq + *nn - 1) < 1 * z1_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		"z1", i__3, "upisot_", (ftnlen)3706)];
 /* L30: */
     }
     return 0;
@@ -4035,13 +5082,15 @@ L60:
 	doublereal *zz, doublereal *zplk0, doublereal *zplk1, doublereal *uum)
 {
     /* System generated locals */
-    integer gc_dim1, gc_dim2, gc_offset, gu_dim1, gu_dim2, gu_offset, kk_dim1,
-	     kk_offset, ll_dim1, ll_offset, rmu_dim1, rmu_offset, uum_dim1, 
-	    uum_offset, z0u_dim1, z0u_offset, z1u_dim1, z1u_offset, 
+    integer cmu_dim1, cwt_dim1, emu_dim1, gc_dim1, gc_dim2, gc_offset, 
+	    gu_dim1, gu_dim2, gu_offset, kk_dim1, kk_offset, ll_dim1, 
+	    ll_offset, rmu_dim1, rmu_offset, utaupr_dim1, uum_dim1, uum_dim2, 
+	    uum_offset, wk_dim1, z0u_dim1, z0u_offset, z1u_dim1, z1u_offset, 
 	    zbeam_dim1, zbeam_offset, zplk0_dim1, zplk0_offset, zplk1_dim1, 
-	    zplk1_offset, zz_dim1, zz_offset, i__1, i__2, i__3, i__4;
+	    zplk1_offset, zz_dim1, zz_offset, i__1, i__2, i__3, i__4, i__5;
 
     /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
     double exp(doublereal);
 
     /* Local variables */
@@ -4157,52 +5206,38 @@ L60:
 /*                          ** Incorporate constants of integration into */
 /*                          ** interpolated eigenvectors */
     /* Parameter adjustments */
-    --dtaucp;
-    --layru;
     zplk1_dim1 = *mxcmu;
     zplk1_offset = 1 + zplk1_dim1;
-    zplk1 -= zplk1_offset;
     zplk0_dim1 = *mxcmu;
     zplk0_offset = 1 + zplk0_dim1;
-    zplk0 -= zplk0_offset;
     zz_dim1 = *mxcmu;
     zz_offset = 1 + zz_dim1;
-    zz -= zz_offset;
-    --wk;
+    wk_dim1 = *mxcmu;
     ll_dim1 = *mxcmu;
     ll_offset = 1 + ll_dim1;
-    ll -= ll_offset;
     kk_dim1 = *mxcmu;
     kk_offset = 1 + kk_dim1;
-    kk -= kk_offset;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
     gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
-    gc -= gc_offset;
-    --cwt;
-    --cmu;
-    --utaupr;
+    cwt_dim1 = *mxcmu;
+    cmu_dim1 = *mxcmu;
+    utaupr_dim1 = *mxulv;
     uum_dim1 = *mxumu;
+    uum_dim2 = *mxulv;
     uum_offset = 1 + uum_dim1;
-    uum -= uum_offset;
     z1u_dim1 = *mxumu;
     z1u_offset = 1 + z1u_dim1;
-    z1u -= z1u_offset;
     z0u_dim1 = *mxumu;
     z0u_offset = 1 + z0u_dim1;
-    z0u -= z0u_offset;
     zbeam_dim1 = *mxumu;
     zbeam_offset = 1 + zbeam_dim1;
-    zbeam -= zbeam_offset;
     rmu_dim1 = *mxumu;
     rmu_offset = 1 + rmu_dim1 * 0;
-    rmu -= rmu_offset;
     gu_dim1 = *mxumu;
     gu_dim2 = *mxcmu;
     gu_offset = 1 + gu_dim1 * (1 + gu_dim2);
-    gu -= gu_offset;
-    --emu;
-    --umu;
+    emu_dim1 = *mxumu;
 
     /* Function Body */
     i__1 = *ncut;
@@ -4211,8 +5246,8 @@ L60:
 	for (iq = 1; iq <= i__2; ++iq) {
 	    i__3 = *numu;
 	    for (iu = 1; iu <= i__3; ++iu) {
-		gu[iu + (iq + lc * gu_dim2) * gu_dim1] *= ll[iq + lc * 
-			ll_dim1];
+		gu[iu + (iq + lc * gu_dim2) * gu_dim1 - gu_offset] *= ll[iq + 
+			lc * ll_dim1 - ll_offset];
 /* L10: */
 	    }
 /* L20: */
@@ -4224,9 +5259,11 @@ L60:
     i__1 = *ntau;
     for (lu = 1; lu <= i__1; ++lu) {
 	if (*fbeam > 0.) {
-	    exp0 = exp(-utaupr[lu] / *umu0);
+	    exp0 = exp(-utaupr[(i__2 = lu - 1) < 1 * utaupr_dim1 && 0 <= i__2 
+		    ? i__2 : s_rnge("utaupr", i__2, "usrint_", (ftnlen)3859)] 
+		    / *umu0);
 	}
-	lyu = layru[lu];
+	lyu = layru[lu - 1];
 /*                              ** Loop over polar angles at which */
 /*                              ** intensities are desired */
 	i__2 = *numu;
@@ -4234,7 +5271,7 @@ L60:
 	    if (*lyrcut && lyu > *ncut) {
 		goto L150;
 	    }
-	    negumu = umu[iu] < 0.;
+	    negumu = umu[iu - 1] < 0.;
 	    if (negumu) {
 		lyrstr = 1;
 		lyrend = lyu - 1;
@@ -4251,16 +5288,21 @@ L60:
 	    plkint = 0.;
 	    i__3 = lyrend;
 	    for (lc = lyrstr; lc <= i__3; ++lc) {
-		dtau = dtaucp[lc];
-		exp1 = exp((utaupr[lu] - taucpr[lc - 1]) / umu[iu]);
-		exp2 = exp((utaupr[lu] - taucpr[lc]) / umu[iu]);
+		dtau = dtaucp[lc - 1];
+		exp1 = exp((utaupr[(i__4 = lu - 1) < 1 * utaupr_dim1 && 0 <= 
+			i__4 ? i__4 : s_rnge("utaupr", i__4, "usrint_", (
+			ftnlen)3891)] - taucpr[lc - 1]) / umu[iu - 1]);
+		exp2 = exp((utaupr[(i__4 = lu - 1) < 1 * utaupr_dim1 && 0 <= 
+			i__4 ? i__4 : s_rnge("utaupr", i__4, "usrint_", (
+			ftnlen)3892)] - taucpr[lc]) / umu[iu - 1]);
 		if (*plank && *mazim == 0) {
-		    plkint += sgn * (z0u[iu + lc * z0u_dim1] * (exp1 - exp2) 
-			    + z1u[iu + lc * z1u_dim1] * ((taucpr[lc - 1] + 
-			    umu[iu]) * exp1 - (taucpr[lc] + umu[iu]) * exp2));
+		    plkint += sgn * (z0u[iu + lc * z0u_dim1 - z0u_offset] * (
+			    exp1 - exp2) + z1u[iu + lc * z1u_dim1 - 
+			    z1u_offset] * ((taucpr[lc - 1] + umu[iu - 1]) * 
+			    exp1 - (taucpr[lc] + umu[iu - 1]) * exp2));
 		}
 		if (*fbeam > 0.) {
-		    denom = umu[iu] / *umu0 + 1.;
+		    denom = umu[iu - 1] / *umu0 + 1.;
 		    if (abs(denom) < 1e-4) {
 /*                                                   ** L'Hospital limit */
 			expn = dtau / *umu0 * exp0;
@@ -4268,42 +5310,57 @@ L60:
 			expn = (exp1 * expbea[lc - 1] - exp2 * expbea[lc]) * 
 				sgn / denom;
 		    }
-		    palint += zbeam[iu + lc * zbeam_dim1] * expn;
+		    palint += zbeam[iu + lc * zbeam_dim1 - zbeam_offset] * 
+			    expn;
 		}
 /*                                                   ** KK is negative */
 		i__4 = *nn;
 		for (iq = 1; iq <= i__4; ++iq) {
-		    wk[iq] = exp(kk[iq + lc * kk_dim1] * dtau);
-		    denom = umu[iu] * kk[iq + lc * kk_dim1] + 1.;
+		    wk[(i__5 = iq - 1) < 1 * wk_dim1 && 0 <= i__5 ? i__5 : 
+			    s_rnge("wk", i__5, "usrint_", (ftnlen)3920)] = 
+			    exp(kk[iq + lc * kk_dim1 - kk_offset] * dtau);
+		    denom = umu[iu - 1] * kk[iq + lc * kk_dim1 - kk_offset] + 
+			    1.;
 		    if (abs(denom) < 1e-4) {
 /*                                                   ** L'Hospital limit */
-			expn = dtau / umu[iu] * exp2;
+			expn = dtau / umu[iu - 1] * exp2;
 		    } else {
-			expn = sgn * (exp1 * wk[iq] - exp2) / denom;
+			expn = sgn * (exp1 * wk[(i__5 = iq - 1) < 1 * wk_dim1 
+				&& 0 <= i__5 ? i__5 : s_rnge("wk", i__5, 
+				"usrint_", (ftnlen)3929)] - exp2) / denom;
 		    }
-		    palint += gu[iu + (iq + lc * gu_dim2) * gu_dim1] * expn;
+		    palint += gu[iu + (iq + lc * gu_dim2) * gu_dim1 - 
+			    gu_offset] * expn;
 /* L40: */
 		}
 /*                                                   ** KK is positive */
 		i__4 = *nstr;
 		for (iq = *nn + 1; iq <= i__4; ++iq) {
-		    denom = umu[iu] * kk[iq + lc * kk_dim1] + 1.;
+		    denom = umu[iu - 1] * kk[iq + lc * kk_dim1 - kk_offset] + 
+			    1.;
 		    if (abs(denom) < 1e-4) {
 /*                                                   ** L'Hospital limit */
-			expn = -dtau / umu[iu] * exp1;
+			expn = -dtau / umu[iu - 1] * exp1;
 		    } else {
-			expn = sgn * (exp1 - exp2 * wk[*nstr + 1 - iq]) / 
-				denom;
+			expn = sgn * (exp1 - exp2 * wk[(i__5 = *nstr + 1 - iq 
+				- 1) < 1 * wk_dim1 && 0 <= i__5 ? i__5 : 
+				s_rnge("wk", i__5, "usrint_", (ftnlen)3948)]) 
+				/ denom;
 		    }
-		    palint += gu[iu + (iq + lc * gu_dim2) * gu_dim1] * expn;
+		    palint += gu[iu + (iq + lc * gu_dim2) * gu_dim1 - 
+			    gu_offset] * expn;
 /* L50: */
 		}
 /* L60: */
 	    }
 /*                           ** Calculate contribution from user */
 /*                           ** output level to next computational level */
-	    dtau1 = utaupr[lu] - taucpr[lyu - 1];
-	    dtau2 = utaupr[lu] - taucpr[lyu];
+	    dtau1 = utaupr[(i__3 = lu - 1) < 1 * utaupr_dim1 && 0 <= i__3 ? 
+		    i__3 : s_rnge("utaupr", i__3, "usrint_", (ftnlen)3961)] - 
+		    taucpr[lyu - 1];
+	    dtau2 = utaupr[(i__3 = lu - 1) < 1 * utaupr_dim1 && 0 <= i__3 ? 
+		    i__3 : s_rnge("utaupr", i__3, "usrint_", (ftnlen)3962)] - 
+		    taucpr[lyu];
 	    if (abs(dtau1) < 1e-6 && negumu) {
 		goto L90;
 	    }
@@ -4311,13 +5368,13 @@ L60:
 		goto L90;
 	    }
 	    if (negumu) {
-		exp1 = exp(dtau1 / umu[iu]);
+		exp1 = exp(dtau1 / umu[iu - 1]);
 	    }
 	    if (! negumu) {
-		exp2 = exp(dtau2 / umu[iu]);
+		exp2 = exp(dtau2 / umu[iu - 1]);
 	    }
 	    if (*fbeam > 0.) {
-		denom = umu[iu] / *umu0 + 1.;
+		denom = umu[iu - 1] / *umu0 + 1.;
 		if (abs(denom) < 1e-4) {
 		    expn = dtau1 / *umu0 * exp0;
 		} else if (negumu) {
@@ -4325,52 +5382,58 @@ L60:
 		} else {
 		    expn = (exp0 - expbea[lyu] * exp2) / denom;
 		}
-		palint += zbeam[iu + lyu * zbeam_dim1] * expn;
+		palint += zbeam[iu + lyu * zbeam_dim1 - zbeam_offset] * expn;
 	    }
 /*                                                   ** KK is negative */
-	    dtau = dtaucp[lyu];
+	    dtau = dtaucp[lyu - 1];
 	    i__3 = *nn;
 	    for (iq = 1; iq <= i__3; ++iq) {
-		denom = umu[iu] * kk[iq + lyu * kk_dim1] + 1.;
+		denom = umu[iu - 1] * kk[iq + lyu * kk_dim1 - kk_offset] + 1.;
 		if (abs(denom) < 1e-4) {
-		    expn = -dtau2 / umu[iu] * exp2;
+		    expn = -dtau2 / umu[iu - 1] * exp2;
 		} else if (negumu) {
-		    expn = (exp(-kk[iq + lyu * kk_dim1] * dtau2) - exp(kk[iq 
-			    + lyu * kk_dim1] * dtau) * exp1) / denom;
+		    expn = (exp(-kk[iq + lyu * kk_dim1 - kk_offset] * dtau2) 
+			    - exp(kk[iq + lyu * kk_dim1 - kk_offset] * dtau) *
+			     exp1) / denom;
 		} else {
-		    expn = (exp(-kk[iq + lyu * kk_dim1] * dtau2) - exp2) / 
-			    denom;
+		    expn = (exp(-kk[iq + lyu * kk_dim1 - kk_offset] * dtau2) 
+			    - exp2) / denom;
 		}
-		palint += gu[iu + (iq + lyu * gu_dim2) * gu_dim1] * expn;
+		palint += gu[iu + (iq + lyu * gu_dim2) * gu_dim1 - gu_offset] 
+			* expn;
 /* L70: */
 	    }
 /*                                                   ** KK is positive */
 	    i__3 = *nstr;
 	    for (iq = *nn + 1; iq <= i__3; ++iq) {
-		denom = umu[iu] * kk[iq + lyu * kk_dim1] + 1.;
+		denom = umu[iu - 1] * kk[iq + lyu * kk_dim1 - kk_offset] + 1.;
 		if (abs(denom) < 1e-4) {
-		    expn = -dtau1 / umu[iu] * exp1;
+		    expn = -dtau1 / umu[iu - 1] * exp1;
 		} else if (negumu) {
-		    expn = (exp(-kk[iq + lyu * kk_dim1] * dtau1) - exp1) / 
-			    denom;
+		    expn = (exp(-kk[iq + lyu * kk_dim1 - kk_offset] * dtau1) 
+			    - exp1) / denom;
 		} else {
-		    expn = (exp(-kk[iq + lyu * kk_dim1] * dtau1) - exp(-kk[iq 
-			    + lyu * kk_dim1] * dtau) * exp2) / denom;
+		    expn = (exp(-kk[iq + lyu * kk_dim1 - kk_offset] * dtau1) 
+			    - exp(-kk[iq + lyu * kk_dim1 - kk_offset] * dtau) 
+			    * exp2) / denom;
 		}
-		palint += gu[iu + (iq + lyu * gu_dim2) * gu_dim1] * expn;
+		palint += gu[iu + (iq + lyu * gu_dim2) * gu_dim1 - gu_offset] 
+			* expn;
 /* L80: */
 	    }
 	    if (*plank && *mazim == 0) {
 		if (negumu) {
 		    expn = exp1;
-		    fact = taucpr[lyu - 1] + umu[iu];
+		    fact = taucpr[lyu - 1] + umu[iu - 1];
 		} else {
 		    expn = exp2;
-		    fact = taucpr[lyu] + umu[iu];
+		    fact = taucpr[lyu] + umu[iu - 1];
 		}
-		plkint = plkint + z0u[iu + lyu * z0u_dim1] * (1. - expn) + 
-			z1u[iu + lyu * z1u_dim1] * (utaupr[lu] + umu[iu] - 
-			fact * expn);
+		plkint = plkint + z0u[iu + lyu * z0u_dim1 - z0u_offset] * (1. 
+			- expn) + z1u[iu + lyu * z1u_dim1 - z1u_offset] * (
+			utaupr[(i__3 = lu - 1) < 1 * utaupr_dim1 && 0 <= i__3 
+			? i__3 : s_rnge("utaupr", i__3, "usrint_", (ftnlen)
+			4056)] + umu[iu - 1] - fact * expn);
 	    }
 /*                            ** Calculate intensity components */
 /*                            ** attenuated at both boundaries. */
@@ -4379,14 +5442,19 @@ L60:
 L90:
 	    bndint = 0.;
 	    if (negumu && *mazim == 0) {
-		bndint = (*fisot + *tplank) * exp(utaupr[lu] / umu[iu]);
+		bndint = (*fisot + *tplank) * exp(utaupr[(i__3 = lu - 1) < 1 *
+			 utaupr_dim1 && 0 <= i__3 ? i__3 : s_rnge("utaupr", 
+			i__3, "usrint_", (ftnlen)4070)] / umu[iu - 1]);
 	    } else if (! negumu) {
 		if (*lyrcut || *lamber && *mazim > 0) {
 		    goto L140;
 		}
 		i__3 = *nstr;
 		for (jq = *nn + 1; jq <= i__3; ++jq) {
-		    wk[jq] = exp(-kk[jq + *nlyr * kk_dim1] * dtaucp[*nlyr]);
+		    wk[(i__4 = jq - 1) < 1 * wk_dim1 && 0 <= i__4 ? i__4 : 
+			    s_rnge("wk", i__4, "usrint_", (ftnlen)4079)] = 
+			    exp(-kk[jq + *nlyr * kk_dim1 - kk_offset] * 
+			    dtaucp[*nlyr - 1]);
 /* L100: */
 		}
 		bnddfu = 0.;
@@ -4394,35 +5462,52 @@ L90:
 		    dfuint = 0.;
 		    i__3 = *nn;
 		    for (jq = 1; jq <= i__3; ++jq) {
-			dfuint += gc[iq + (jq + *nlyr * gc_dim2) * gc_dim1] * 
-				ll[jq + *nlyr * ll_dim1];
+			dfuint += gc[iq + (jq + *nlyr * gc_dim2) * gc_dim1 - 
+				gc_offset] * ll[jq + *nlyr * ll_dim1 - 
+				ll_offset];
 /* L110: */
 		    }
 		    i__3 = *nstr;
 		    for (jq = *nn + 1; jq <= i__3; ++jq) {
-			dfuint += gc[iq + (jq + *nlyr * gc_dim2) * gc_dim1] * 
-				ll[jq + *nlyr * ll_dim1] * wk[jq];
+			dfuint += gc[iq + (jq + *nlyr * gc_dim2) * gc_dim1 - 
+				gc_offset] * ll[jq + *nlyr * ll_dim1 - 
+				ll_offset] * wk[(i__4 = jq - 1) < 1 * wk_dim1 
+				&& 0 <= i__4 ? i__4 : s_rnge("wk", i__4, 
+				"usrint_", (ftnlen)4092)];
 /* L120: */
 		    }
 		    if (*fbeam > 0.) {
-			dfuint += zz[iq + *nlyr * zz_dim1] * expbea[*nlyr];
+			dfuint += zz[iq + *nlyr * zz_dim1 - zz_offset] * 
+				expbea[*nlyr];
 		    }
-		    dfuint += *delm0 * (zplk0[iq + *nlyr * zplk0_dim1] + 
-			    zplk1[iq + *nlyr * zplk1_dim1] * taucpr[*nlyr]);
+		    dfuint += *delm0 * (zplk0[iq + *nlyr * zplk0_dim1 - 
+			    zplk0_offset] + zplk1[iq + *nlyr * zplk1_dim1 - 
+			    zplk1_offset] * taucpr[*nlyr]);
 		    bnddfu += (*delm0 + 1.) * rmu[iu + (*nn + 1 - iq) * 
-			    rmu_dim1] * cmu[*nn + 1 - iq] * cwt[*nn + 1 - iq] 
-			    * dfuint;
+			    rmu_dim1 - rmu_offset] * cmu[(i__3 = *nn + 1 - iq 
+			    - 1) < 1 * cmu_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+			    "cmu", i__3, "usrint_", (ftnlen)4101)] * cwt[(
+			    i__4 = *nn + 1 - iq - 1) < 1 * cwt_dim1 && 0 <= 
+			    i__4 ? i__4 : s_rnge("cwt", i__4, "usrint_", (
+			    ftnlen)4101)] * dfuint;
 /* L130: */
 		}
 		bnddir = 0.;
 		if (*fbeam > 0.) {
-		    bnddir = *umu0 * *fbeam / *pi * rmu[iu] * expbea[*nlyr];
+		    bnddir = *umu0 * *fbeam / *pi * rmu[iu - rmu_offset] * 
+			    expbea[*nlyr];
 		}
-		bndint = (bnddfu + bnddir + *delm0 * emu[iu] * *bplank) * exp(
-			(utaupr[lu] - taucpr[*nlyr]) / umu[iu]);
+		bndint = (bnddfu + bnddir + *delm0 * emu[(i__4 = iu - 1) < 1 *
+			 emu_dim1 && 0 <= i__4 ? i__4 : s_rnge("emu", i__4, 
+			"usrint_", (ftnlen)4109)] * *bplank) * exp((utaupr[(
+			i__3 = lu - 1) < 1 * utaupr_dim1 && 0 <= i__3 ? i__3 :
+			 s_rnge("utaupr", i__3, "usrint_", (ftnlen)4109)] - 
+			taucpr[*nlyr]) / umu[iu - 1]);
 	    }
 L140:
-	    uum[iu + lu * uum_dim1] = palint + plkint + bndint;
+	    uum[(i__3 = iu + lu * uum_dim1 - uum_offset) < 1 * uum_dim1 * 
+		    uum_dim2 && 0 <= i__3 ? i__3 : s_rnge("uum", i__3, "usri\
+nt_", (ftnlen)4115)] = palint + plkint + bndint;
 L150:
 	    ;
 	}
@@ -4448,8 +5533,13 @@ L150:
 	 integer *mxsqt)
 {
     /* System generated locals */
-    integer pmom_dim1, pmom_offset, i__1, i__2;
+    integer dtauc_dim1, phi_dim1, pmom_dim1, pmom_dim2, pmom_offset, 
+	    ssalb_dim1, tauc_dim1, temper_dim1, umu_dim1, utau_dim1, i__1, 
+	    i__2, i__3, i__4, i__5;
     doublereal d__1;
+
+    /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static integer j, k, lc, iu, lu;
@@ -4480,14 +5570,16 @@ L150:
 /*     .. Intrinsic Functions .. */
 /*     .. */
     /* Parameter adjustments */
-    --ssalb;
-    --dtauc;
-    --utau;
-    --umu;
+    temper_dim1 = *maxcly - 0 + 1;
+    ssalb_dim1 = *maxcly;
+    dtauc_dim1 = *maxcly;
+    utau_dim1 = *maxulv;
+    umu_dim1 = *maxumu;
     pmom_dim1 = *maxcmu - 0 + 1;
+    pmom_dim2 = *maxcly;
     pmom_offset = 0 + pmom_dim1;
-    pmom -= pmom_offset;
-    --phi;
+    phi_dim1 = *maxphi;
+    tauc_dim1 = *mxcly - 0 + 1;
 
     /* Function Body */
     inperr = FALSE_;
@@ -4499,24 +5591,34 @@ L150:
     }
     i__1 = *nlyr;
     for (lc = 1; lc <= i__1; ++lc) {
-	if (dtauc[lc] < 0.) {
+	if (dtauc[(i__2 = lc - 1) < 1 * dtauc_dim1 && 0 <= i__2 ? i__2 : 
+		s_rnge("dtauc", i__2, "chekin_", (ftnlen)4190)] < 0.) {
 	    inperr = wrtbad_("DTAUC", (ftnlen)5);
 	}
-	if (ssalb[lc] < 0. || ssalb[lc] > 1.) {
+	if (ssalb[(i__2 = lc - 1) < 1 * ssalb_dim1 && 0 <= i__2 ? i__2 : 
+		s_rnge("ssalb", i__2, "chekin_", (ftnlen)4192)] < 0. || ssalb[
+		(i__3 = lc - 1) < 1 * ssalb_dim1 && 0 <= i__3 ? i__3 : s_rnge(
+		"ssalb", i__3, "chekin_", (ftnlen)4192)] > 1.) {
 	    inperr = wrtbad_("SSALB", (ftnlen)5);
 	}
 	if (*plank && *ibcnd != 1) {
-	    if (lc == 1 && temper[0] < 0.) {
+	    if (lc == 1 && temper[(i__2 = 0) < 1 * temper_dim1 ? i__2 : 
+		    s_rnge("temper", i__2, "chekin_", (ftnlen)4197)] < 0.) {
 		inperr = wrtbad_("TEMPER", (ftnlen)6);
 	    }
-	    if (temper[lc] < 0.) {
+	    if (temper[(i__2 = lc) < 1 * temper_dim1 && 0 <= i__2 ? i__2 : 
+		    s_rnge("temper", i__2, "chekin_", (ftnlen)4200)] < 0.) {
 		inperr = wrtbad_("TEMPER", (ftnlen)6);
 	    }
 	}
 	i__2 = *nstr;
 	for (k = 0; k <= i__2; ++k) {
-	    if (pmom[k + lc * pmom_dim1] < -1. || pmom[k + lc * pmom_dim1] > 
-		    1.) {
+	    if (pmom[(i__3 = k + lc * pmom_dim1 - pmom_offset) < 1 * 
+		    pmom_dim1 * pmom_dim2 && 0 <= i__3 ? i__3 : s_rnge("pmom",
+		     i__3, "chekin_", (ftnlen)4206)] < -1. || pmom[(i__4 = k 
+		    + lc * pmom_dim1 - pmom_offset) < 1 * pmom_dim1 * 
+		    pmom_dim2 && 0 <= i__4 ? i__4 : s_rnge("pmom", i__4, 
+		    "chekin_", (ftnlen)4206)] > 1.) {
 		inperr = wrtbad_("PMOM", (ftnlen)4);
 	    }
 /* L10: */
@@ -4536,10 +5638,22 @@ L150:
 	}
 	i__1 = *ntau;
 	for (lu = 1; lu <= i__1; ++lu) {
-	    if ((d__1 = utau[lu] - tauc[*nlyr], abs(d__1)) <= 1e-4) {
-		utau[lu] = tauc[*nlyr];
+	    if ((d__1 = utau[(i__2 = lu - 1) < 1 * utau_dim1 && 0 <= i__2 ? 
+		    i__2 : s_rnge("utau", i__2, "chekin_", (ftnlen)4226)] - 
+		    tauc[(i__3 = *nlyr) < 1 * tauc_dim1 && 0 <= i__3 ? i__3 : 
+		    s_rnge("tauc", i__3, "chekin_", (ftnlen)4226)], abs(d__1))
+		     <= 1e-4) {
+		utau[(i__4 = lu - 1) < 1 * utau_dim1 && 0 <= i__4 ? i__4 : 
+			s_rnge("utau", i__4, "chekin_", (ftnlen)4226)] = tauc[
+			(i__5 = *nlyr) < 1 * tauc_dim1 && 0 <= i__5 ? i__5 : 
+			s_rnge("tauc", i__5, "chekin_", (ftnlen)4226)];
 	    }
-	    if (utau[lu] < 0. || utau[lu] > tauc[*nlyr]) {
+	    if (utau[(i__2 = lu - 1) < 1 * utau_dim1 && 0 <= i__2 ? i__2 : 
+		    s_rnge("utau", i__2, "chekin_", (ftnlen)4229)] < 0. || 
+		    utau[(i__3 = lu - 1) < 1 * utau_dim1 && 0 <= i__3 ? i__3 :
+		     s_rnge("utau", i__3, "chekin_", (ftnlen)4229)] > tauc[(
+		    i__4 = *nlyr) < 1 * tauc_dim1 && 0 <= i__4 ? i__4 : 
+		    s_rnge("tauc", i__4, "chekin_", (ftnlen)4229)]) {
 		inperr = wrtbad_("UTAU", (ftnlen)4);
 	    }
 /* L30: */
@@ -4574,14 +5688,24 @@ L150:
 	}
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    if (umu[iu] < -1. || umu[iu] > 1. || umu[iu] == 0.) {
+	    if (umu[(i__2 = iu - 1) < 1 * umu_dim1 && 0 <= i__2 ? i__2 : 
+		    s_rnge("umu", i__2, "chekin_", (ftnlen)4262)] < -1. || 
+		    umu[(i__3 = iu - 1) < 1 * umu_dim1 && 0 <= i__3 ? i__3 : 
+		    s_rnge("umu", i__3, "chekin_", (ftnlen)4262)] > 1. || umu[
+		    (i__4 = iu - 1) < 1 * umu_dim1 && 0 <= i__4 ? i__4 : 
+		    s_rnge("umu", i__4, "chekin_", (ftnlen)4262)] == 0.) {
 		inperr = wrtbad_("UMU", (ftnlen)3);
 	    }
-	    if (*ibcnd == 1 && umu[iu] < 0.) {
+	    if (*ibcnd == 1 && umu[(i__2 = iu - 1) < 1 * umu_dim1 && 0 <= 
+		    i__2 ? i__2 : s_rnge("umu", i__2, "chekin_", (ftnlen)4265)
+		    ] < 0.) {
 		inperr = wrtbad_("UMU", (ftnlen)3);
 	    }
 	    if (iu > 1) {
-		if (umu[iu] < umu[iu - 1]) {
+		if (umu[(i__2 = iu - 1) < 1 * umu_dim1 && 0 <= i__2 ? i__2 : 
+			s_rnge("umu", i__2, "chekin_", (ftnlen)4270)] < umu[(
+			i__3 = iu - 2) < 1 * umu_dim1 && 0 <= i__3 ? i__3 : 
+			s_rnge("umu", i__3, "chekin_", (ftnlen)4270)]) {
 		    inperr = wrtbad_("UMU", (ftnlen)3);
 		}
 	    }
@@ -4601,7 +5725,10 @@ L150:
 	}
 	i__1 = *nphi;
 	for (j = 1; j <= i__1; ++j) {
-	    if (phi[j] < 0. || phi[j] > 360.) {
+	    if (phi[(i__2 = j - 1) < 1 * phi_dim1 && 0 <= i__2 ? i__2 : 
+		    s_rnge("phi", i__2, "chekin_", (ftnlen)4291)] < 0. || phi[
+		    (i__3 = j - 1) < 1 * phi_dim1 && 0 <= i__3 ? i__3 : 
+		    s_rnge("phi", i__3, "chekin_", (ftnlen)4291)] > 360.) {
 		inperr = wrtbad_("PHI", (ftnlen)3);
 	    }
 /* L50: */
@@ -4703,7 +5830,11 @@ L150:
     if (*plank) {
 	i__1 = *nlyr;
 	for (lc = 1; lc <= i__1; ++lc) {
-	    if ((d__1 = temper[lc] - temper[lc - 1], abs(d__1)) > 20.) {
+	    if ((d__1 = temper[(i__2 = lc) < 1 * temper_dim1 && 0 <= i__2 ? 
+		    i__2 : s_rnge("temper", i__2, "chekin_", (ftnlen)4397)] - 
+		    temper[(i__3 = lc - 1) < 1 * temper_dim1 && 0 <= i__3 ? 
+		    i__3 : s_rnge("temper", i__3, "chekin_", (ftnlen)4397)], 
+		    abs(d__1)) > 20.) {
 		errmsg_("CHEKIN--vertical temperature step may be too large \
 for good accuracy", &c_false, (ftnlen)68);
 	    }
@@ -4720,8 +5851,11 @@ doublereal dref_(doublereal *mu, doublereal *hl, integer *nstr)
     static logical pass1 = TRUE_;
 
     /* System generated locals */
-    integer i__1;
+    integer hl_dim1, i__1, i__2, i__3;
     doublereal ret_val;
+
+    /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static doublereal c__[100];
@@ -4769,6 +5903,10 @@ doublereal dref_(doublereal *mu, doublereal *hl, integer *nstr)
 /*     .. */
 /*     .. Intrinsic Functions .. */
 /*     .. */
+    /* Parameter adjustments */
+    hl_dim1 = *nstr - 0 + 1;
+
+    /* Function Body */
 /*     .. */
     if (pass1) {
 	pass1 = FALSE_;
@@ -4776,7 +5914,8 @@ doublereal dref_(doublereal *mu, doublereal *hl, integer *nstr)
 	c__[1] = cl * 10.;
 	for (l = 4; l <= 100; l += 2) {
 	    cl = -cl * (l - 3) / (l + 2);
-	    c__[l - 1] = ((l << 1) + 1) * 2. * cl;
+	    c__[(i__1 = l - 1) < 100 && 0 <= i__1 ? i__1 : s_rnge("c", i__1, 
+		    "dref_", (ftnlen)4483)] = ((l << 1) + 1) * 2. * cl;
 /* L10: */
 	}
     }
@@ -4786,7 +5925,9 @@ doublereal dref_(doublereal *mu, doublereal *hl, integer *nstr)
     if (*nstr > 100) {
 	errmsg_("DREF--parameter MAXTRM too small", &c_true, (ftnlen)32);
     }
-    ret_val = hl[0] - hl[1] * 2. * *mu;
+    ret_val = hl[(i__1 = 0) < 1 * hl_dim1 ? i__1 : s_rnge("hl", i__1, "dref_",
+	     (ftnlen)4496)] - hl[(i__2 = 1) < 1 * hl_dim1 ? i__2 : s_rnge(
+	    "hl", i__2, "dref_", (ftnlen)4496)] * 2. * *mu;
     plm2 = 1.;
     plm1 = -(*mu);
     i__1 = *nstr - 1;
@@ -4794,7 +5935,10 @@ doublereal dref_(doublereal *mu, doublereal *hl, integer *nstr)
 /*                                ** Legendre polynomial recurrence */
 	pl = (((l << 1) - 1) * (-(*mu)) * plm1 - (l - 1) * plm2) / l;
 	if (l % 2 == 0) {
-	    ret_val += c__[l - 1] * hl[l] * pl;
+	    ret_val += c__[(i__2 = l - 1) < 100 && 0 <= i__2 ? i__2 : s_rnge(
+		    "c", i__2, "dref_", (ftnlen)4505)] * hl[(i__3 = l) < 1 * 
+		    hl_dim1 && 0 <= i__3 ? i__3 : s_rnge("hl", i__3, "dref_", 
+		    (ftnlen)4505)] * pl;
 	}
 	plm2 = plm1;
 	plm1 = pl;
@@ -4879,9 +6023,6 @@ doublereal dref_(doublereal *mu, doublereal *hl, integer *nstr)
     /* Parameter adjustments */
     ylm_dim1 = *maxmu - 0 + 1;
     ylm_offset = 0 + ylm_dim1;
-    ylm -= ylm_offset;
-    --mu;
-    --sqt;
 
     /* Function Body */
     if (*m == 0) {
@@ -4889,17 +6030,18 @@ doublereal dref_(doublereal *mu, doublereal *hl, integer *nstr)
 /*                             ** Legendre polynomials */
 	i__1 = *nmu;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    ylm[i__ * ylm_dim1] = 1.;
-	    ylm[i__ * ylm_dim1 + 1] = mu[i__];
+	    ylm[i__ * ylm_dim1 - ylm_offset] = 1.;
+	    ylm[i__ * ylm_dim1 + 1 - ylm_offset] = mu[i__ - 1];
 /* L20: */
 	}
 	i__1 = *twonm1;
 	for (l = 2; l <= i__1; ++l) {
 	    i__2 = *nmu;
 	    for (i__ = 1; i__ <= i__2; ++i__) {
-		ylm[l + i__ * ylm_dim1] = (((l << 1) - 1) * mu[i__] * ylm[l - 
-			1 + i__ * ylm_dim1] - (l - 1) * ylm[l - 2 + i__ * 
-			ylm_dim1]) / l;
+		ylm[l + i__ * ylm_dim1 - ylm_offset] = (((l << 1) - 1) * mu[
+			i__ - 1] * ylm[l - 1 + i__ * ylm_dim1 - ylm_offset] - 
+			(l - 1) * ylm[l - 2 + i__ * ylm_dim1 - ylm_offset]) / 
+			l;
 /* L30: */
 	    }
 /* L40: */
@@ -4910,25 +6052,27 @@ doublereal dref_(doublereal *mu, doublereal *hl, integer *nstr)
 /*                               ** Y-sub-m-super-m; derived from */
 /*                               ** D/A Eqs. (11,12) */
 /* Computing 2nd power */
-	    d__1 = mu[i__];
-	    ylm[*m + i__ * ylm_dim1] = -sqt[(*m << 1) - 1] / sqt[*m * 2] * 
-		    sqrt(1. - d__1 * d__1) * ylm[*m - 1 + i__ * ylm_dim1];
+	    d__1 = mu[i__ - 1];
+	    ylm[*m + i__ * ylm_dim1 - ylm_offset] = -sqt[(*m << 1) - 2] / sqt[
+		    (*m << 1) - 1] * sqrt(1. - d__1 * d__1) * ylm[*m - 1 + 
+		    i__ * ylm_dim1 - ylm_offset];
 /*                              ** Y-sub-(m+1)-super-m; derived from */
 /*                              ** D/A Eqs.(13,14) using Eqs.(11,12) */
-	    ylm[*m + 1 + i__ * ylm_dim1] = sqt[(*m << 1) + 1] * mu[i__] * ylm[
-		    *m + i__ * ylm_dim1];
+	    ylm[*m + 1 + i__ * ylm_dim1 - ylm_offset] = sqt[*m * 2] * mu[i__ 
+		    - 1] * ylm[*m + i__ * ylm_dim1 - ylm_offset];
 /* L50: */
 	}
 /*                                   ** Upward recurrence; D/A EQ.(10) */
 	i__1 = *twonm1;
 	for (l = *m + 2; l <= i__1; ++l) {
-	    tmp1 = sqt[l - *m] * sqt[l + *m];
-	    tmp2 = sqt[l - *m - 1] * sqt[l + *m - 1];
+	    tmp1 = sqt[l - *m - 1] * sqt[l + *m - 1];
+	    tmp2 = sqt[l - *m - 2] * sqt[l + *m - 2];
 	    i__2 = *nmu;
 	    for (i__ = 1; i__ <= i__2; ++i__) {
-		ylm[l + i__ * ylm_dim1] = (((l << 1) - 1) * mu[i__] * ylm[l - 
-			1 + i__ * ylm_dim1] - tmp2 * ylm[l - 2 + i__ * 
-			ylm_dim1]) / tmp1;
+		ylm[l + i__ * ylm_dim1 - ylm_offset] = (((l << 1) - 1) * mu[
+			i__ - 1] * ylm[l - 1 + i__ * ylm_dim1 - ylm_offset] - 
+			tmp2 * ylm[l - 2 + i__ * ylm_dim1 - ylm_offset]) / 
+			tmp1;
 /* L60: */
 	    }
 /* L70: */
@@ -4948,11 +6092,12 @@ doublereal plkavg_(doublereal *wnumlo, doublereal *wnumhi, doublereal *t)
     static doublereal pi = 0.;
 
     /* System generated locals */
-    integer i__1, i__2;
+    integer i__1, i__2, i__3, i__4;
     doublereal ret_val, d__1, d__2;
 
     /* Builtin functions */
     double asin(doublereal), log(doublereal), exp(doublereal);
+    integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static doublereal d__[2];
@@ -5117,39 +6262,59 @@ L30:
 /*                          *** General case *** */
     smallv = 0;
     for (i__ = 1; i__ <= 2; ++i__) {
-	if (v[i__ - 1] < vcut) {
+	if (v[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge("v", i__1, 
+		"plkavg_", (ftnlen)4835)] < vcut) {
 /*                                   ** Use power series */
 	    ++smallv;
 /* Computing 2nd power */
-	    d__1 = v[i__ - 1];
+	    d__1 = v[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge("v", 
+		    i__1, "plkavg_", (ftnlen)4838)];
 	    vsq = d__1 * d__1;
-	    p[i__ - 1] = conc * vsq * v[i__ - 1] * (v[i__ - 1] * (v[i__ - 1] *
-		     (vsq * (vsq * (vsq * -7.5156325156325161e-8 + 
-		    3.6743092298647855e-6) - 1.9841269841269841e-4) + 
-		    .016666666666666666) - .125) + .33333333333333331);
+	    p[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge("p", i__1, 
+		    "plkavg_", (ftnlen)4839)] = conc * vsq * v[(i__2 = i__ - 
+		    1) < 2 && 0 <= i__2 ? i__2 : s_rnge("v", i__2, "plkavg_", 
+		    (ftnlen)4839)] * (v[(i__3 = i__ - 1) < 2 && 0 <= i__3 ? 
+		    i__3 : s_rnge("v", i__3, "plkavg_", (ftnlen)4839)] * (v[(
+		    i__4 = i__ - 1) < 2 && 0 <= i__4 ? i__4 : s_rnge("v", 
+		    i__4, "plkavg_", (ftnlen)4839)] * (vsq * (vsq * (vsq * 
+		    -7.5156325156325161e-8 + 3.6743092298647855e-6) - 
+		    1.9841269841269841e-4) + .016666666666666666) - .125) + 
+		    .33333333333333331);
 	} else {
 /*                      ** Use exponential series */
 	    mmax = 0;
 /*                                ** Find upper limit of series */
 L40:
 	    ++mmax;
-	    if (v[i__ - 1] < vcp[mmax - 1]) {
+	    if (v[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge("v", i__1,
+		     "plkavg_", (ftnlen)4850)] < vcp[(i__2 = mmax - 1) < 7 && 
+		    0 <= i__2 ? i__2 : s_rnge("vcp", i__2, "plkavg_", (ftnlen)
+		    4850)]) {
 		goto L40;
 	    }
-	    ex = exp(-v[i__ - 1]);
+	    ex = exp(-v[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge(
+		    "v", i__1, "plkavg_", (ftnlen)4852)]);
 	    exm = 1.;
-	    d__[i__ - 1] = 0.;
+	    d__[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge("d", i__1, 
+		    "plkavg_", (ftnlen)4854)] = 0.;
 	    i__1 = mmax;
 	    for (m = 1; m <= i__1; ++m) {
-		mv = m * v[i__ - 1];
+		mv = m * v[(i__2 = i__ - 1) < 2 && 0 <= i__2 ? i__2 : s_rnge(
+			"v", i__2, "plkavg_", (ftnlen)4857)];
 		exm = ex * exm;
 /* Computing 4th power */
-		i__2 = m, i__2 *= i__2;
-		d__[i__ - 1] += exm * (mv * (mv * (mv + 3.) + 6.) + 6.) / (
-			i__2 * i__2);
+		i__4 = m, i__4 *= i__4;
+		d__[(i__2 = i__ - 1) < 2 && 0 <= i__2 ? i__2 : s_rnge("d", 
+			i__2, "plkavg_", (ftnlen)4859)] = d__[(i__3 = i__ - 1)
+			 < 2 && 0 <= i__3 ? i__3 : s_rnge("d", i__3, "plkavg_"
+			, (ftnlen)4859)] + exm * (mv * (mv * (mv + 3.) + 6.) 
+			+ 6.) / (i__4 * i__4);
 /* L50: */
 	    }
-	    d__[i__ - 1] = conc * d__[i__ - 1];
+	    d__[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge("d", i__1, 
+		    "plkavg_", (ftnlen)4863)] = conc * d__[(i__2 = i__ - 1) < 
+		    2 && 0 <= i__2 ? i__2 : s_rnge("d", i__2, "plkavg_", (
+		    ftnlen)4863)];
 	}
 /* L60: */
     }
@@ -5178,10 +6343,12 @@ L40:
 	doublereal *utau, integer *ntau, doublereal *u0u)
 {
     /* System generated locals */
-    integer u0u_dim1, u0u_offset, i__1, i__2, i__3;
+    integer u0u_dim1, u0u_dim2, u0u_offset, umu_dim1, utau_dim1, i__1, i__2, 
+	    i__3, i__4, i__5;
 
     /* Builtin functions */
-    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
+    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe(), 
+	    s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static integer iu, np, lu, iumin, iumax, npass, lenfmt;
@@ -5207,11 +6374,11 @@ L40:
 /*     .. Intrinsic Functions .. */
 /*     .. */
     /* Parameter adjustments */
-    --umu;
+    umu_dim1 = *numu;
     u0u_dim1 = *maxumu;
+    u0u_dim2 = *ntau;
     u0u_offset = 1 + u0u_dim1;
-    u0u -= u0u_offset;
-    --utau;
+    utau_dim1 = *ntau;
 
     /* Function Body */
     if (*numu < 1) {
@@ -5236,17 +6403,23 @@ L40:
 	s_wsfe(&io___307);
 	i__2 = iumax;
 	for (iu = iumin; iu <= i__2; ++iu) {
-	    do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&umu[(i__3 = iu - 1) < 1 * umu_dim1 && 0 <= 
+		    i__3 ? i__3 : s_rnge("umu", i__3, "pravin_", (ftnlen)4937)
+		    ], (ftnlen)sizeof(doublereal));
 	}
 	e_wsfe();
-	i__2 = *ntau;
-	for (lu = 1; lu <= i__2; ++lu) {
+	i__3 = *ntau;
+	for (lu = 1; lu <= i__3; ++lu) {
 	    s_wsfe(&io___310);
-	    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(doublereal));
-	    i__3 = iumax;
-	    for (iu = iumin; iu <= i__3; ++iu) {
-		do_fio(&c__1, (char *)&u0u[iu + lu * u0u_dim1], (ftnlen)
-			sizeof(doublereal));
+	    do_fio(&c__1, (char *)&utau[(i__2 = lu - 1) < 1 * utau_dim1 && 0 
+		    <= i__2 ? i__2 : s_rnge("utau", i__2, "pravin_", (ftnlen)
+		    4940)], (ftnlen)sizeof(doublereal));
+	    i__4 = iumax;
+	    for (iu = iumin; iu <= i__4; ++iu) {
+		do_fio(&c__1, (char *)&u0u[(i__5 = iu + lu * u0u_dim1 - 
+			u0u_offset) < 1 * u0u_dim1 * u0u_dim2 && 0 <= i__5 ? 
+			i__5 : s_rnge("u0u", i__5, "pravin_", (ftnlen)4940)], 
+			(ftnlen)sizeof(doublereal));
 	    }
 	    e_wsfe();
 /* L10: */
@@ -5269,10 +6442,11 @@ L40:
 	*prtmom)
 {
     /* System generated locals */
-    integer pmom_dim1, pmom_offset, i__1, i__2;
+    integer hl_dim1, pmom_dim1, pmom_offset, i__1, i__2;
 
     /* Builtin functions */
-    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
+    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe(), 
+	    s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static integer j, k, lc, iu, lu;
@@ -5321,17 +6495,9 @@ L40:
 /*     .. Local Scalars .. */
 /*     .. */
     /* Parameter adjustments */
-    --dtauc;
-    --dtaucp;
-    --ssalb;
-    --utau;
-    --umu;
-    --phi;
-    --flyr;
-    --oprim;
+    hl_dim1 = *maxcmu - 0 + 1;
     pmom_dim1 = *maxcmu - 0 + 1;
     pmom_offset = 0 + pmom_dim1;
-    pmom -= pmom_offset;
 
     /* Function Body */
     s_wsfe(&io___311);
@@ -5346,7 +6512,7 @@ L40:
 	do_fio(&c__1, " User optical depths :", (ftnlen)22);
 	i__1 = *ntau;
 	for (lu = 1; lu <= i__1; ++lu) {
-	    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&utau[lu - 1], (ftnlen)sizeof(doublereal));
 	}
 	e_wsfe();
     }
@@ -5356,7 +6522,7 @@ L40:
 	do_fio(&c__1, " User polar angle cosines :", (ftnlen)27);
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&umu[iu - 1], (ftnlen)sizeof(doublereal));
 	}
 	e_wsfe();
     }
@@ -5366,7 +6532,7 @@ L40:
 	do_fio(&c__1, " User azimuthal angles :", (ftnlen)24);
 	i__1 = *nphi;
 	for (j = 1; j <= i__1; ++j) {
-	    do_fio(&c__1, (char *)&phi[j], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&phi[j - 1], (ftnlen)sizeof(doublereal));
 	}
 	e_wsfe();
     }
@@ -5402,7 +6568,9 @@ L40:
 ctivity :", (ftnlen)58);
 	    i__1 = *nstr;
 	    for (k = 0; k <= i__1; ++k) {
-		do_fio(&c__1, (char *)&hl[k], (ftnlen)sizeof(doublereal));
+		do_fio(&c__1, (char *)&hl[(i__2 = k) < 1 * hl_dim1 && 0 <= 
+			i__2 ? i__2 : s_rnge("hl", i__2, "prtinp_", (ftnlen)
+			5013)], (ftnlen)sizeof(doublereal));
 	    }
 	    e_wsfe();
 	}
@@ -5498,24 +6666,25 @@ cident beam angle", (ftnlen)70);
 	e_wsfe();
     }
     yessct = 0.;
-    i__1 = *nlyr;
-    for (lc = 1; lc <= i__1; ++lc) {
-	yessct += ssalb[lc];
+    i__2 = *nlyr;
+    for (lc = 1; lc <= i__2; ++lc) {
+	yessct += ssalb[lc - 1];
 /*                                       ** f90 nonadvancing I/O would */
 /*                                       ** simplify this a lot (also the */
 /*                                       ** two WRITEs above) */
 	if (*plank) {
 	    s_wsfe(&io___338);
 	    do_fio(&c__1, (char *)&lc, (ftnlen)sizeof(integer));
-	    do_fio(&c__1, (char *)&dtauc[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&dtauc[lc - 1], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&tauc[lc], (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&ssalb[lc], (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&flyr[lc], (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&dtaucp[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&ssalb[lc - 1], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&flyr[lc - 1], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&dtaucp[lc - 1], (ftnlen)sizeof(doublereal))
+		    ;
 	    do_fio(&c__1, (char *)&taucpr[lc], (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&oprim[lc], (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&pmom[lc * pmom_dim1 + 1], (ftnlen)sizeof(
-		    doublereal));
+	    do_fio(&c__1, (char *)&oprim[lc - 1], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&pmom[lc * pmom_dim1 + 1 - pmom_offset], (
+		    ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&temper[lc - 1], (ftnlen)sizeof(doublereal))
 		    ;
 	    e_wsfe();
@@ -5523,15 +6692,16 @@ cident beam angle", (ftnlen)70);
 	if (! (*plank)) {
 	    s_wsfe(&io___339);
 	    do_fio(&c__1, (char *)&lc, (ftnlen)sizeof(integer));
-	    do_fio(&c__1, (char *)&dtauc[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&dtauc[lc - 1], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&tauc[lc], (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&ssalb[lc], (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&flyr[lc], (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&dtaucp[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&ssalb[lc - 1], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&flyr[lc - 1], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&dtaucp[lc - 1], (ftnlen)sizeof(doublereal))
+		    ;
 	    do_fio(&c__1, (char *)&taucpr[lc], (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&oprim[lc], (ftnlen)sizeof(doublereal));
-	    do_fio(&c__1, (char *)&pmom[lc * pmom_dim1 + 1], (ftnlen)sizeof(
-		    doublereal));
+	    do_fio(&c__1, (char *)&oprim[lc - 1], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&pmom[lc * pmom_dim1 + 1 - pmom_offset], (
+		    ftnlen)sizeof(doublereal));
 	    e_wsfe();
 	}
 /* L10: */
@@ -5545,15 +6715,15 @@ cident beam angle", (ftnlen)70);
 	s_wsfe(&io___341);
 	do_fio(&c__1, " Layer   Phase Function Moments", (ftnlen)31);
 	e_wsfe();
-	i__1 = *nlyr;
-	for (lc = 1; lc <= i__1; ++lc) {
-	    if (ssalb[lc] > 0.) {
+	i__2 = *nlyr;
+	for (lc = 1; lc <= i__2; ++lc) {
+	    if (ssalb[lc - 1] > 0.) {
 		s_wsfe(&io___342);
 		do_fio(&c__1, (char *)&lc, (ftnlen)sizeof(integer));
-		i__2 = *nstr;
-		for (k = 0; k <= i__2; ++k) {
-		    do_fio(&c__1, (char *)&pmom[k + lc * pmom_dim1], (ftnlen)
-			    sizeof(doublereal));
+		i__1 = *nstr;
+		for (k = 0; k <= i__1; ++k) {
+		    do_fio(&c__1, (char *)&pmom[k + lc * pmom_dim1 - 
+			    pmom_offset], (ftnlen)sizeof(doublereal));
 		}
 		e_wsfe();
 	    }
@@ -5600,13 +6770,9 @@ cident beam angle", (ftnlen)70);
 /*     .. Intrinsic Functions .. */
 /*     .. */
     /* Parameter adjustments */
-    --utau;
-    --umu;
-    --phi;
     uu_dim1 = *maxumu;
     uu_dim2 = *maxulv;
     uu_offset = 1 + uu_dim1 * (1 + uu_dim2);
-    uu -= uu_offset;
 
     /* Function Body */
     if (*nphi < 1) {
@@ -5634,38 +6800,41 @@ cident beam angle", (ftnlen)70);
 	    s_wsfe(&io___351);
 	    i__3 = jmax;
 	    for (j = jmin; j <= i__3; ++j) {
-		do_fio(&c__1, (char *)&phi[j], (ftnlen)sizeof(doublereal));
+		do_fio(&c__1, (char *)&phi[j - 1], (ftnlen)sizeof(doublereal))
+			;
 	    }
 	    e_wsfe();
 	    if (np == 1) {
 		s_wsfe(&io___353);
-		do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(doublereal));
-		do_fio(&c__1, (char *)&umu[1], (ftnlen)sizeof(doublereal));
+		do_fio(&c__1, (char *)&utau[lu - 1], (ftnlen)sizeof(
+			doublereal));
+		do_fio(&c__1, (char *)&umu[0], (ftnlen)sizeof(doublereal));
 		i__3 = jmax;
 		for (j = jmin; j <= i__3; ++j) {
 		    do_fio(&c__1, (char *)&uu[(lu + j * uu_dim2) * uu_dim1 + 
-			    1], (ftnlen)sizeof(doublereal));
+			    1 - uu_offset], (ftnlen)sizeof(doublereal));
 		}
 		e_wsfe();
 	    }
 	    if (np > 1) {
 		s_wsfe(&io___354);
-		do_fio(&c__1, (char *)&umu[1], (ftnlen)sizeof(doublereal));
+		do_fio(&c__1, (char *)&umu[0], (ftnlen)sizeof(doublereal));
 		i__3 = jmax;
 		for (j = jmin; j <= i__3; ++j) {
 		    do_fio(&c__1, (char *)&uu[(lu + j * uu_dim2) * uu_dim1 + 
-			    1], (ftnlen)sizeof(doublereal));
+			    1 - uu_offset], (ftnlen)sizeof(doublereal));
 		}
 		e_wsfe();
 	    }
 	    i__3 = *numu;
 	    for (iu = 2; iu <= i__3; ++iu) {
 		s_wsfe(&io___356);
-		do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(doublereal));
+		do_fio(&c__1, (char *)&umu[iu - 1], (ftnlen)sizeof(doublereal)
+			);
 		i__4 = jmax;
 		for (j = jmin; j <= i__4; ++j) {
 		    do_fio(&c__1, (char *)&uu[iu + (lu + j * uu_dim2) * 
-			    uu_dim1], (ftnlen)sizeof(doublereal));
+			    uu_dim1 - uu_offset], (ftnlen)sizeof(doublereal));
 		}
 		e_wsfe();
 /* L10: */
@@ -5687,11 +6856,13 @@ cident beam angle", (ftnlen)70);
     static doublereal two = 2.;
 
     /* System generated locals */
-    integer i__1, i__2;
+    integer gmu_dim1, gwt_dim1, i__1, i__2, i__3;
     doublereal d__1;
 
     /* Builtin functions */
-    double asin(doublereal), tan(doublereal), cos(doublereal);
+    double asin(doublereal);
+    integer s_rnge(char *, integer, char *, integer);
+    double tan(doublereal), cos(doublereal);
 
     /* Local variables */
     static integer k;
@@ -5752,8 +6923,8 @@ cident beam angle", (ftnlen)70);
 /*     .. Intrinsic Functions .. */
 /*     .. */
     /* Parameter adjustments */
-    --gwt;
-    --gmu;
+    gwt_dim1 = *m;
+    gmu_dim1 = *m;
 
     /* Function Body */
     if (pi == 0.) {
@@ -5764,8 +6935,10 @@ cident beam angle", (ftnlen)70);
 	errmsg_("QGAUSN--Bad value of M", &c_true, (ftnlen)22);
     }
     if (*m == 1) {
-	gmu[1] = .5;
-	gwt[1] = 1.;
+	gmu[(i__1 = 0) < 1 * gmu_dim1 ? i__1 : s_rnge("gmu", i__1, "qgausn_", 
+		(ftnlen)5285)] = .5;
+	gwt[(i__1 = 0) < 1 * gwt_dim1 ? i__1 : s_rnge("gwt", i__1, "qgausn_", 
+		(ftnlen)5286)] = 1.;
 	return 0;
     }
     en = (doublereal) (*m);
@@ -5813,18 +6986,27 @@ L10:
 	}
 /*                             ** Iteration finished--calculate weights, */
 /*                             ** abscissae for (-1,1) */
-	gmu[k] = -x;
+	gmu[(i__2 = k - 1) < 1 * gmu_dim1 && 0 <= i__2 ? i__2 : s_rnge("gmu", 
+		i__2, "qgausn_", (ftnlen)5336)] = -x;
 /* Computing 2nd power */
 	d__1 = en * pm2;
-	gwt[k] = two / (tmp * (d__1 * d__1));
-	gmu[np1 - k] = -gmu[k];
-	gwt[np1 - k] = gwt[k];
+	gwt[(i__2 = k - 1) < 1 * gwt_dim1 && 0 <= i__2 ? i__2 : s_rnge("gwt", 
+		i__2, "qgausn_", (ftnlen)5337)] = two / (tmp * (d__1 * d__1));
+	gmu[(i__2 = np1 - k - 1) < 1 * gmu_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"gmu", i__2, "qgausn_", (ftnlen)5338)] = -gmu[(i__3 = k - 1) <
+		 1 * gmu_dim1 && 0 <= i__3 ? i__3 : s_rnge("gmu", i__3, "qga\
+usn_", (ftnlen)5338)];
+	gwt[(i__2 = np1 - k - 1) < 1 * gwt_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"gwt", i__2, "qgausn_", (ftnlen)5339)] = gwt[(i__3 = k - 1) < 
+		1 * gwt_dim1 && 0 <= i__3 ? i__3 : s_rnge("gwt", i__3, "qgau\
+sn_", (ftnlen)5339)];
 /* L30: */
     }
 /*                                    ** Set middle abscissa and weight */
 /*                                    ** for rules of odd order */
     if (*m % 2 != 0) {
-	gmu[lim + 1] = 0.;
+	gmu[(i__1 = lim) < 1 * gmu_dim1 && 0 <= i__1 ? i__1 : s_rnge("gmu", 
+		i__1, "qgausn_", (ftnlen)5345)] = 0.;
 	prod = one;
 	i__1 = *m;
 	for (k = 3; k <= i__1; k += 2) {
@@ -5833,13 +7015,20 @@ L10:
 	}
 /* Computing 2nd power */
 	d__1 = prod;
-	gwt[lim + 1] = two / (d__1 * d__1);
+	gwt[(i__1 = lim) < 1 * gwt_dim1 && 0 <= i__1 ? i__1 : s_rnge("gwt", 
+		i__1, "qgausn_", (ftnlen)5352)] = two / (d__1 * d__1);
     }
 /*                                        ** Convert from (-1,1) to (0,1) */
     i__1 = *m;
     for (k = 1; k <= i__1; ++k) {
-	gmu[k] = gmu[k] * .5 + .5;
-	gwt[k] *= .5;
+	gmu[(i__2 = k - 1) < 1 * gmu_dim1 && 0 <= i__2 ? i__2 : s_rnge("gmu", 
+		i__2, "qgausn_", (ftnlen)5357)] = gmu[(i__3 = k - 1) < 1 * 
+		gmu_dim1 && 0 <= i__3 ? i__3 : s_rnge("gmu", i__3, "qgausn_", 
+		(ftnlen)5357)] * .5 + .5;
+	gwt[(i__2 = k - 1) < 1 * gwt_dim1 && 0 <= i__2 ? i__2 : s_rnge("gwt", 
+		i__2, "qgausn_", (ftnlen)5358)] = gwt[(i__3 = k - 1) < 1 * 
+		gwt_dim1 && 0 <= i__3 ? i__3 : s_rnge("gwt", i__3, "qgausn_", 
+		(ftnlen)5358)] * .5;
 /* L50: */
     }
     return 0;
@@ -5933,6 +7122,13 @@ doublereal ratio_(doublereal *a, doublereal *b)
 
     static doublereal acc = 1e-4;
 
+    /* System generated locals */
+    integer i__1;
+
+    /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
+
+    /* Local variables */
     static integer i__, n;
     static logical ok;
     static doublereal phis, umus, phi0s, umu0s;
@@ -5991,17 +7187,14 @@ doublereal ratio_(doublereal *a, doublereal *b)
 /*     .. */
 /*     .. Intrinsic Functions .. */
 /*     .. */
-    /* Parameter adjustments */
-    --prnt;
-
-    /* Function Body */
     if (! (*compar)) {
 /*                                     ** Save user input values */
 	nlyrs = *nlyr;
 	dtaucs = *dtauc;
 	ssalbs = *ssalb;
 	for (n = 0; n <= 4; ++n) {
-	    pmoms[n] = pmom[n];
+	    pmoms[(i__1 = n) < 5 && 0 <= i__1 ? i__1 : s_rnge("pmoms", i__1, 
+		    "slftst_", (ftnlen)5543)] = pmom[n];
 /* L10: */
 	}
 	nstrs = *nstr;
@@ -6032,7 +7225,8 @@ doublereal ratio_(doublereal *a, doublereal *b)
 	tempes[0] = temper[0];
 	tempes[1] = temper[1];
 	for (i__ = 1; i__ <= 7; ++i__) {
-	    prnts[i__ - 1] = prnt[i__];
+	    prnts[(i__1 = i__ - 1) < 7 && 0 <= i__1 ? i__1 : s_rnge("prnts", 
+		    i__1, "slftst_", (ftnlen)5575)] = prnt[i__ - 1];
 /* L20: */
 	}
 /*                                     ** Set input values for self-test */
@@ -6073,7 +7267,7 @@ doublereal ratio_(doublereal *a, doublereal *b)
 	temper[0] = 210.;
 	temper[1] = 200.;
 	for (i__ = 1; i__ <= 7; ++i__) {
-	    prnt[i__] = FALSE_;
+	    prnt[i__ - 1] = FALSE_;
 /* L30: */
 	}
     } else {
@@ -6104,7 +7298,8 @@ doublereal ratio_(doublereal *a, doublereal *b)
 	*dtauc = dtaucs;
 	*ssalb = ssalbs;
 	for (n = 0; n <= 4; ++n) {
-	    pmom[n] = pmoms[n];
+	    pmom[n] = pmoms[(i__1 = n) < 5 && 0 <= i__1 ? i__1 : s_rnge("pmo\
+ms", i__1, "slftst_", (ftnlen)5646)];
 /* L40: */
 	}
 	*nstr = nstrs;
@@ -6135,7 +7330,8 @@ doublereal ratio_(doublereal *a, doublereal *b)
 	temper[0] = tempes[0];
 	temper[1] = tempes[1];
 	for (i__ = 1; i__ <= 7; ++i__) {
-	    prnt[i__] = prnts[i__ - 1];
+	    prnt[i__ - 1] = prnts[(i__1 = i__ - 1) < 7 && 0 <= i__1 ? i__1 : 
+		    s_rnge("prnts", i__1, "slftst_", (ftnlen)5678)];
 /* L50: */
 	}
     }
@@ -6176,177 +7372,127 @@ doublereal ratio_(doublereal *a, doublereal *b)
 /*     .. */
 /*     .. Local Scalars .. */
 /*     .. */
-    /* Parameter adjustments */
-    --uu;
-    --u0u;
-    --trnmed;
-    --albmed;
-    --dfdt;
-    --uavg;
-    --flup;
-    --rfldn;
-    --rfldir;
-    --z__;
-    --ipvt;
-    --apb;
-    --amb;
-    --eval;
-    --zbeam;
-    --z1u;
-    --z0u;
-    --gu;
-    --utaupr;
-    --layru;
-    --gc;
-    --zplk1;
-    --zplk0;
-    --zz;
-    --ll;
-    --kk;
-    --ylmu;
-    --ylmc;
-    --gl;
-    --evecc;
-    --cc;
-    --array;
-    --ylm0;
-    --hlpr;
-    --zj;
-    --z1;
-    --z0;
-    --wk;
-    --psi;
-    --cwt;
-    --cmu;
-    --xr1;
-    --xr0;
-    --taucpr;
-    --oprim;
-    --flyr;
-    --expbea;
-
-    /* Function Body */
     i__1 = *nd1;
     for (n = 1; n <= i__1; ++n) {
-	expbea[n] = 0.;
-	flyr[n] = 0.;
-	oprim[n] = 0.;
-	taucpr[n] = 0.;
-	xr0[n] = 0.;
-	xr1[n] = 0.;
+	expbea[n - 1] = 0.;
+	flyr[n - 1] = 0.;
+	oprim[n - 1] = 0.;
+	taucpr[n - 1] = 0.;
+	xr0[n - 1] = 0.;
+	xr1[n - 1] = 0.;
 /* L10: */
     }
     i__1 = *nd2;
     for (n = 1; n <= i__1; ++n) {
-	cmu[n] = 0.;
-	cwt[n] = 0.;
-	psi[n] = 0.;
-	wk[n] = 0.;
-	z0[n] = 0.;
-	z1[n] = 0.;
-	zj[n] = 0.;
+	cmu[n - 1] = 0.;
+	cwt[n - 1] = 0.;
+	psi[n - 1] = 0.;
+	wk[n - 1] = 0.;
+	z0[n - 1] = 0.;
+	z1[n - 1] = 0.;
+	zj[n - 1] = 0.;
 /* L20: */
     }
     i__1 = *nd3;
     for (n = 1; n <= i__1; ++n) {
-	hlpr[n] = 0.;
-	ylm0[n] = 0.;
+	hlpr[n - 1] = 0.;
+	ylm0[n - 1] = 0.;
 /* L30: */
     }
     i__1 = *nd4;
     for (n = 1; n <= i__1; ++n) {
-	array[n] = 0.;
-	cc[n] = 0.;
-	evecc[n] = 0.;
+	array[n - 1] = 0.;
+	cc[n - 1] = 0.;
+	evecc[n - 1] = 0.;
 /* L40: */
     }
     i__1 = *nd5;
     for (n = 1; n <= i__1; ++n) {
-	gl[n] = 0.;
+	gl[n - 1] = 0.;
 /* L50: */
     }
     i__1 = *nd6;
     for (n = 1; n <= i__1; ++n) {
-	ylmc[n] = 0.;
+	ylmc[n - 1] = 0.;
 /* L60: */
     }
     i__1 = *nd7;
     for (n = 1; n <= i__1; ++n) {
-	ylmu[n] = 0.;
+	ylmu[n - 1] = 0.;
 /* L70: */
     }
     i__1 = *nd8;
     for (n = 1; n <= i__1; ++n) {
-	kk[n] = 0.;
-	ll[n] = 0.;
-	zz[n] = 0.;
-	zplk0[n] = 0.;
-	zplk1[n] = 0.;
+	kk[n - 1] = 0.;
+	ll[n - 1] = 0.;
+	zz[n - 1] = 0.;
+	zplk0[n - 1] = 0.;
+	zplk1[n - 1] = 0.;
 /* L80: */
     }
     i__1 = *nd9;
     for (n = 1; n <= i__1; ++n) {
-	gc[n] = 0.;
+	gc[n - 1] = 0.;
 /* L90: */
     }
     i__1 = *nd10;
     for (n = 1; n <= i__1; ++n) {
-	layru[n] = 0;
-	utaupr[n] = 0.;
+	layru[n - 1] = 0;
+	utaupr[n - 1] = 0.;
 /* L100: */
     }
     i__1 = *nd11;
     for (n = 1; n <= i__1; ++n) {
-	gu[n] = 0.;
+	gu[n - 1] = 0.;
 /* L110: */
     }
     i__1 = *nd12;
     for (n = 1; n <= i__1; ++n) {
-	z0u[n] = 0.;
-	z1u[n] = 0.;
-	zbeam[n] = 0.;
+	z0u[n - 1] = 0.;
+	z1u[n - 1] = 0.;
+	zbeam[n - 1] = 0.;
 /* L120: */
     }
     i__1 = *nd13;
     for (n = 1; n <= i__1; ++n) {
-	eval[n] = 0.;
+	eval[n - 1] = 0.;
 /* L130: */
     }
     i__1 = *nd14;
     for (n = 1; n <= i__1; ++n) {
-	amb[n] = 0.;
-	apb[n] = 0.;
+	amb[n - 1] = 0.;
+	apb[n - 1] = 0.;
 /* L140: */
     }
     i__1 = *nd15;
     for (n = 1; n <= i__1; ++n) {
-	ipvt[n] = 0;
-	z__[n] = 0.;
+	ipvt[n - 1] = 0;
+	z__[n - 1] = 0.;
 /* L150: */
     }
     i__1 = *nd16;
     for (n = 1; n <= i__1; ++n) {
-	rfldir[n] = 0.;
-	rfldn[n] = 0.;
-	flup[n] = 0.;
-	uavg[n] = 0.;
-	dfdt[n] = 0.;
+	rfldir[n - 1] = 0.;
+	rfldn[n - 1] = 0.;
+	flup[n - 1] = 0.;
+	uavg[n - 1] = 0.;
+	dfdt[n - 1] = 0.;
 /* L160: */
     }
     i__1 = *nd17;
     for (n = 1; n <= i__1; ++n) {
-	albmed[n] = 0.;
-	trnmed[n] = 0.;
+	albmed[n - 1] = 0.;
+	trnmed[n - 1] = 0.;
 /* L170: */
     }
     i__1 = *nd18;
     for (n = 1; n <= i__1; ++n) {
-	u0u[n] = 0.;
+	u0u[n - 1] = 0.;
 /* L180: */
     }
     i__1 = *nd19;
     for (n = 1; n <= i__1; ++n) {
-	uu[n] = 0.;
+	uu[n - 1] = 0.;
 /* L190: */
     }
     return 0;
@@ -6355,7 +7501,10 @@ doublereal ratio_(doublereal *a, doublereal *b)
 /* Subroutine */ int zeroit_(doublereal *a, integer *length)
 {
     /* System generated locals */
-    integer i__1;
+    integer a_dim1, i__1, i__2;
+
+    /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static integer l;
@@ -6369,12 +7518,13 @@ doublereal ratio_(doublereal *a, doublereal *b)
 /*     .. Local Scalars .. */
 /*     .. */
     /* Parameter adjustments */
-    --a;
+    a_dim1 = *length;
 
     /* Function Body */
     i__1 = *length;
     for (l = 1; l <= i__1; ++l) {
-	a[l] = 0.;
+	a[(i__2 = l - 1) < 1 * a_dim1 && 0 <= i__2 ? i__2 : s_rnge("a", i__2, 
+		"zeroit_", (ftnlen)5864)] = 0.;
 /* L10: */
     }
     return 0;
@@ -6400,15 +7550,17 @@ doublereal ratio_(doublereal *a, doublereal *b)
 	doublereal *sqt, doublereal *albmed, doublereal *trnmed)
 {
     /* System generated locals */
-    integer amb_dim1, amb_offset, apb_dim1, apb_offset, array_dim1, 
-	    array_offset, bdr_dim1, bdr_offset, cband_dim1, cband_offset, 
-	    cc_dim1, cc_offset, evecc_dim1, evecc_offset, gc_dim1, gc_dim2, 
-	    gc_offset, gl_dim1, gl_offset, gu_dim1, gu_dim2, gu_offset, 
-	    kk_dim1, kk_offset, ll_dim1, ll_offset, u0u_dim1, u0u_offset, 
-	    ylmc_dim1, ylmc_offset, ylmu_dim1, ylmu_offset, aad_dim1, 
-	    aad_offset, eveccd_dim1, eveccd_offset, i__1, i__2;
+    integer albmed_dim1, amb_dim1, amb_offset, apb_dim1, apb_offset, 
+	    array_dim1, array_offset, bdr_dim1, bdr_offset, cband_dim1, 
+	    cband_offset, cc_dim1, cc_offset, evecc_dim1, evecc_offset, 
+	    gc_dim1, gc_dim2, gc_offset, gl_dim1, gl_offset, gu_dim1, gu_dim2,
+	     gu_offset, kk_dim1, kk_offset, ll_dim1, ll_offset, trnmed_dim1, 
+	    u0u_dim1, u0u_dim2, u0u_offset, umu_dim1, ylmc_dim1, ylmc_dim2, 
+	    ylmc_offset, ylmu_dim1, ylmu_offset, aad_dim1, aad_offset, 
+	    eveccd_dim1, eveccd_offset, i__1, i__2, i__3, i__4;
 
     /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
     double exp(doublereal);
 
     /* Local variables */
@@ -6512,74 +7664,47 @@ doublereal ratio_(doublereal *a, doublereal *b)
 /*     .. Intrinsic Functions .. */
 /*     .. */
     /* Parameter adjustments */
-    --dtaucp;
-    --ipvt;
-    --prnt;
     eveccd_dim1 = *mi;
     eveccd_offset = 1 + eveccd_dim1;
-    eveccd -= eveccd_offset;
-    --evald;
     aad_dim1 = *mi;
     aad_offset = 1 + aad_dim1;
-    aad -= aad_offset;
-    --eval;
     bdr_dim1 = *mi;
     bdr_offset = 1 + bdr_dim1 * 0;
-    bdr -= bdr_offset;
     apb_dim1 = *mi;
     apb_offset = 1 + apb_dim1;
-    apb -= apb_offset;
     amb_dim1 = *mi;
     amb_offset = 1 + amb_dim1;
-    amb -= amb_offset;
-    --trnmed;
-    --albmed;
+    trnmed_dim1 = *maxumu;
+    albmed_dim1 = *maxumu;
     u0u_dim1 = *maxumu;
+    u0u_dim2 = *maxulv;
     u0u_offset = 1 + u0u_dim1;
-    u0u -= u0u_offset;
-    --umu;
-    --wkd;
+    umu_dim1 = *maxumu;
     ylmu_dim1 = *mxcmu - 0 + 1;
     ylmu_offset = 0 + ylmu_dim1;
-    ylmu -= ylmu_offset;
     ylmc_dim1 = *mxcmu - 0 + 1;
+    ylmc_dim2 = *mxcmu;
     ylmc_offset = 0 + ylmc_dim1;
-    ylmc -= ylmc_offset;
-    --wk;
     ll_dim1 = *mxcmu;
     ll_offset = 1 + ll_dim1;
-    ll -= ll_offset;
     kk_dim1 = *mxcmu;
     kk_offset = 1 + kk_dim1;
-    kk -= kk_offset;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
     gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
-    gc -= gc_offset;
     gl_dim1 = *mxcmu - 0 + 1;
     gl_offset = 0 + gl_dim1;
-    gl -= gl_offset;
     evecc_dim1 = *mxcmu;
     evecc_offset = 1 + evecc_dim1;
-    evecc -= evecc_offset;
-    --cwt;
-    --cmu;
     cc_dim1 = *mxcmu;
     cc_offset = 1 + cc_dim1;
-    cc -= cc_offset;
     array_dim1 = *mxcmu;
     array_offset = 1 + array_dim1;
-    array -= array_offset;
     gu_dim1 = *mxumu;
     gu_dim2 = *mxcmu;
     gu_offset = 1 + gu_dim1 * (1 + gu_dim2);
-    gu -= gu_offset;
-    --z__;
     cband_dim1 = *mi9m2;
     cband_offset = 1 + cband_dim1;
-    cband -= cband_offset;
-    --b;
-    --sqt;
 
     /* Function Body */
     mazim = 0;
@@ -6594,9 +7719,9 @@ doublereal ratio_(doublereal *a, doublereal *b)
 /*                          ** Get Legendre polynomials for computational */
 /*                          ** and user polar angle cosines */
     i__1 = *nstr - 1;
-    lepoly_(numu, &mazim, mxcmu, &i__1, &umu[1], &sqt[1], &ylmu[ylmu_offset]);
+    lepoly_(numu, &mazim, mxcmu, &i__1, umu, sqt, ylmu);
     i__1 = *nstr - 1;
-    lepoly_(nn, &mazim, mxcmu, &i__1, &cmu[1], &sqt[1], &ylmc[ylmc_offset]);
+    lepoly_(nn, &mazim, mxcmu, &i__1, cmu, sqt, ylmc);
 /*                       ** Evaluate Legendre polynomials with negative */
 /*                       ** arguments from those with positive arguments; */
 /*                       ** Dave/Armstrong Eq. (15) */
@@ -6606,7 +7731,12 @@ doublereal ratio_(doublereal *a, doublereal *b)
 	sgn = -sgn;
 	i__2 = *nstr;
 	for (iq = *nn + 1; iq <= i__2; ++iq) {
-	    ylmc[l + iq * ylmc_dim1] = sgn * ylmc[l + (iq - *nn) * ylmc_dim1];
+	    ylmc[(i__3 = l + iq * ylmc_dim1 - ylmc_offset) < 1 * ylmc_dim1 * 
+		    ylmc_dim2 && 0 <= i__3 ? i__3 : s_rnge("ylmc", i__3, 
+		    "albtrn_", (ftnlen)6014)] = sgn * ylmc[(i__4 = l + (iq - *
+		    nn) * ylmc_dim1 - ylmc_offset) < 1 * ylmc_dim1 * 
+		    ylmc_dim2 && 0 <= i__4 ? i__4 : s_rnge("ylmc", i__4, 
+		    "albtrn_", (ftnlen)6014)];
 /* L10: */
 	}
 /* L20: */
@@ -6616,21 +7746,19 @@ doublereal ratio_(doublereal *a, doublereal *b)
 /*                                  ** formulae involving ALBEDO = 0 */
 /*                                  ** solutions; Eqs 16-17 of Ref S2) */
     i__1 = *mi * (*mi + 1);
-    zeroit_(&bdr[bdr_offset], &i__1);
+    zeroit_(bdr, &i__1);
 /* ===================  BEGIN LOOP ON COMPUTATIONAL LAYERS  ============= */
     i__1 = *nlyr;
     for (lc = 1; lc <= i__1; ++lc) {
 /*                        ** Solve eigenfunction problem in Eq. STWJ(8b) */
-	soleig_(&amb[amb_offset], &apb[apb_offset], &array[array_offset], &
-		cmu[1], &cwt[1], &gl[lc * gl_dim1], mi, &mazim, mxcmu, nn, 
-		nstr, &ylmc[ylmc_offset], &cc[cc_offset], &evecc[evecc_offset]
-		, &eval[1], &kk[lc * kk_dim1 + 1], &gc[(lc * gc_dim2 + 1) * 
-		gc_dim1 + 1], &aad[aad_offset], &eveccd[eveccd_offset], &
-		evald[1], &wkd[1]);
+	soleig_(amb, apb, array, cmu, cwt, &gl[lc * gl_dim1 - gl_offset], mi, 
+		&mazim, mxcmu, nn, nstr, ylmc, cc, evecc, eval, &kk[lc * 
+		kk_dim1 + 1 - kk_offset], &gc[(lc * gc_dim2 + 1) * gc_dim1 + 
+		1 - gc_offset], aad, eveccd, evald, wkd);
 /*                          ** Interpolate eigenvectors to user angles */
-	terpev_(&cwt[1], &evecc[evecc_offset], &gl[lc * gl_dim1], &gu[(lc * 
-		gu_dim2 + 1) * gu_dim1 + 1], &mazim, mxcmu, mxumu, nn, nstr, 
-		numu, &wk[1], &ylmc[ylmc_offset], &ylmu[ylmu_offset]);
+	terpev_(cwt, evecc, &gl[lc * gl_dim1 - gl_offset], &gu[(lc * gu_dim2 
+		+ 1) * gu_dim1 + 1 - gu_offset], &mazim, mxcmu, mxumu, nn, 
+		nstr, numu, wk, ylmc, ylmu);
 /* L30: */
     }
 /* ===================  END LOOP ON COMPUTATIONAL LAYERS  =============== */
@@ -6638,13 +7766,11 @@ doublereal ratio_(doublereal *a, doublereal *b)
 /*                      ** combining boundary and layer interface */
 /*                      ** conditions (in band-storage mode required by */
 /*                      ** LINPACK routines) */
-    setmtx_(&bdr[bdr_offset], &cband[cband_offset], &cmu[1], &cwt[1], &delm0, 
-	    &dtaucp[1], &gc[gc_offset], &kk[kk_offset], &lamber, &lyrcut, mi, 
-	    mi9m2, mxcmu, &ncol, &ncut, nnlyri, nn, nstr, taucpr, &wk[1]);
+    setmtx_(bdr, cband, cmu, cwt, &delm0, dtaucp, gc, kk, &lamber, &lyrcut, 
+	    mi, mi9m2, mxcmu, &ncol, &ncut, nnlyri, nn, nstr, taucpr, wk);
 /*                      ** LU-decompose the coeff. matrix (LINPACK) */
     ncd = *nn * 3 - 1;
-    sgbco_(&cband[cband_offset], mi9m2, &ncol, &ncd, &ncd, &ipvt[1], &rcond, &
-	    z__[1]);
+    sgbco_(cband, mi9m2, &ncol, &ncd, &ncd, ipvt, &rcond, z__);
     if (rcond + 1. == 1.) {
 	errmsg_("ALBTRN--SGBCO says matrix near singular", &c_false, (ftnlen)
 		39);
@@ -6653,21 +7779,24 @@ doublereal ratio_(doublereal *a, doublereal *b)
 /*                             ** one layer, this will give us everything */
 /*                             ** Solve for constants of integration in */
 /*                             ** homogeneous solution */
-    solve1_(&b[1], &cband[cband_offset], &fisot, &c__1, &ipvt[1], &ll[
-	    ll_offset], mi9m2, mxcmu, &ncol, nlyr, nn, nnlyri, nstr);
+    solve1_(b, cband, &fisot, &c__1, ipvt, ll, mi9m2, mxcmu, &ncol, nlyr, nn, 
+	    nnlyri, nstr);
 /*                             ** Compute azimuthally-averaged intensity */
 /*                             ** at user angles; gives albedo if multi- */
 /*                             ** layer (Eq. 9 of Ref S2); gives both */
 /*                             ** albedo and transmissivity if single */
 /*                             ** layer (Eqs. 3-4 of Ref S2) */
-    altrin_(&gu[gu_offset], &kk[kk_offset], &ll[ll_offset], mxcmu, mxumu, 
-	    maxumu, nlyr, nn, nstr, numu, taucpr, &umu[1], &u0u[u0u_offset], &
-	    wk[1]);
+    altrin_(gu, kk, ll, mxcmu, mxumu, maxumu, nlyr, nn, nstr, numu, taucpr, 
+	    umu, u0u, wk);
 /*                               ** Get beam-incidence albedos from */
 /*                               ** reciprocity principle */
     i__1 = *numu / 2;
     for (iu = 1; iu <= i__1; ++iu) {
-	albmed[iu] = u0u[iu + *numu / 2 + u0u_dim1];
+	albmed[(i__2 = iu - 1) < 1 * albmed_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		"albmed", i__2, "albtrn_", (ftnlen)6084)] = u0u[(i__3 = iu + *
+		numu / 2 + u0u_dim1 - u0u_offset) < 1 * u0u_dim1 * u0u_dim2 &&
+		 0 <= i__3 ? i__3 : s_rnge("u0u", i__3, "albtrn_", (ftnlen)
+		6084)];
 /* L40: */
     }
     if (*nlyr == 1) {
@@ -6677,47 +7806,66 @@ doublereal ratio_(doublereal *a, doublereal *b)
 /*                               ** from reciprocity principle (1 layer); */
 /*                               ** flip them end over end to correspond */
 /*                               ** to positive UMU instead of negative */
-	    trnmed[iu] = u0u[*numu / 2 + 1 - iu + (u0u_dim1 << 1)] + exp(
-		    -taucpr[*nlyr] / umu[iu + *numu / 2]);
+	    trnmed[(i__3 = iu - 1) < 1 * trnmed_dim1 && 0 <= i__3 ? i__3 : 
+		    s_rnge("trnmed", i__3, "albtrn_", (ftnlen)6096)] = u0u[(
+		    i__4 = *numu / 2 + 1 - iu + (u0u_dim1 << 1) - u0u_offset) 
+		    < 1 * u0u_dim1 * u0u_dim2 && 0 <= i__4 ? i__4 : s_rnge(
+		    "u0u", i__4, "albtrn_", (ftnlen)6096)] + exp(-taucpr[*
+		    nlyr] / umu[(i__2 = iu + *numu / 2 - 1) < 1 * umu_dim1 && 
+		    0 <= i__2 ? i__2 : s_rnge("umu", i__2, "albtrn_", (ftnlen)
+		    6096)]);
 /* L50: */
 	}
     } else {
 /*                             ** Second, illuminate from bottom */
 /*                             ** (if multiple layers) */
-	solve1_(&b[1], &cband[cband_offset], &fisot, &c__2, &ipvt[1], &ll[
-		ll_offset], mi9m2, mxcmu, &ncol, nlyr, nn, nnlyri, nstr);
-	altrin_(&gu[gu_offset], &kk[kk_offset], &ll[ll_offset], mxcmu, mxumu, 
-		maxumu, nlyr, nn, nstr, numu, taucpr, &umu[1], &u0u[
-		u0u_offset], &wk[1]);
+	solve1_(b, cband, &fisot, &c__2, ipvt, ll, mi9m2, mxcmu, &ncol, nlyr, 
+		nn, nnlyri, nstr);
+	altrin_(gu, kk, ll, mxcmu, mxumu, maxumu, nlyr, nn, nstr, numu, 
+		taucpr, umu, u0u, wk);
 /*                               ** Get beam-incidence transmissivities */
 /*                               ** from reciprocity principle */
 	i__1 = *numu / 2;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    trnmed[iu] = u0u[iu + *numu / 2 + u0u_dim1] + exp(-taucpr[*nlyr] /
-		     umu[iu + *numu / 2]);
+	    trnmed[(i__3 = iu - 1) < 1 * trnmed_dim1 && 0 <= i__3 ? i__3 : 
+		    s_rnge("trnmed", i__3, "albtrn_", (ftnlen)6114)] = u0u[(
+		    i__4 = iu + *numu / 2 + u0u_dim1 - u0u_offset) < 1 * 
+		    u0u_dim1 * u0u_dim2 && 0 <= i__4 ? i__4 : s_rnge("u0u", 
+		    i__4, "albtrn_", (ftnlen)6114)] + exp(-taucpr[*nlyr] / 
+		    umu[(i__2 = iu + *numu / 2 - 1) < 1 * umu_dim1 && 0 <= 
+		    i__2 ? i__2 : s_rnge("umu", i__2, "albtrn_", (ftnlen)6114)
+		    ]);
 /* L60: */
 	}
     }
     if (*albedo > 0.) {
 /*                             ** Get spherical albedo and transmissivity */
 	if (*nlyr == 1) {
-	    spaltr_(&cmu[1], &cwt[1], &gc[gc_offset], &kk[kk_offset], &ll[
-		    ll_offset], mxcmu, nlyr, nn, nstr, taucpr, &sphalb, &
-		    sphtrn);
+	    spaltr_(cmu, cwt, gc, kk, ll, mxcmu, nlyr, nn, nstr, taucpr, &
+		    sphalb, &sphtrn);
 	} else {
-	    spaltr_(&cmu[1], &cwt[1], &gc[gc_offset], &kk[kk_offset], &ll[
-		    ll_offset], mxcmu, nlyr, nn, nstr, taucpr, &sphtrn, &
-		    sphalb);
+	    spaltr_(cmu, cwt, gc, kk, ll, mxcmu, nlyr, nn, nstr, taucpr, &
+		    sphtrn, &sphalb);
 	}
 /*                                ** Ref. S2, Eqs. 16-17 (these eqs. have */
 /*                                ** a simple physical interpretation */
 /*                                ** like that of adding-doubling eqs.) */
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    albmed[iu] += *albedo / (1. - *albedo * sphalb) * sphtrn * trnmed[
-		    iu];
-	    trnmed[iu] += *albedo / (1. - *albedo * sphalb) * sphalb * trnmed[
-		    iu];
+	    albmed[(i__2 = iu - 1) < 1 * albmed_dim1 && 0 <= i__2 ? i__2 : 
+		    s_rnge("albmed", i__2, "albtrn_", (ftnlen)6139)] = albmed[
+		    (i__3 = iu - 1) < 1 * albmed_dim1 && 0 <= i__3 ? i__3 : 
+		    s_rnge("albmed", i__3, "albtrn_", (ftnlen)6139)] + *
+		    albedo / (1. - *albedo * sphalb) * sphtrn * trnmed[(i__4 =
+		     iu - 1) < 1 * trnmed_dim1 && 0 <= i__4 ? i__4 : s_rnge(
+		    "trnmed", i__4, "albtrn_", (ftnlen)6139)];
+	    trnmed[(i__2 = iu - 1) < 1 * trnmed_dim1 && 0 <= i__2 ? i__2 : 
+		    s_rnge("trnmed", i__2, "albtrn_", (ftnlen)6142)] = trnmed[
+		    (i__3 = iu - 1) < 1 * trnmed_dim1 && 0 <= i__3 ? i__3 : 
+		    s_rnge("trnmed", i__3, "albtrn_", (ftnlen)6142)] + *
+		    albedo / (1. - *albedo * sphalb) * sphalb * trnmed[(i__4 =
+		     iu - 1) < 1 * trnmed_dim1 && 0 <= i__4 ? i__4 : s_rnge(
+		    "trnmed", i__4, "albtrn_", (ftnlen)6142)];
 /* L70: */
 	}
     }
@@ -6726,11 +7874,14 @@ doublereal ratio_(doublereal *a, doublereal *b)
     *numu /= 2;
     i__1 = *numu;
     for (iu = 1; iu <= i__1; ++iu) {
-	umu[iu] = umu[iu + *numu];
+	umu[(i__2 = iu - 1) < 1 * umu_dim1 && 0 <= i__2 ? i__2 : s_rnge("umu",
+		 i__2, "albtrn_", (ftnlen)6151)] = umu[(i__3 = iu + *numu - 1)
+		 < 1 * umu_dim1 && 0 <= i__3 ? i__3 : s_rnge("umu", i__3, 
+		"albtrn_", (ftnlen)6151)];
 /* L80: */
     }
-    if (prnt[6]) {
-	praltr_(&umu[1], numu, &albmed[1], &trnmed[1]);
+    if (prnt[5]) {
+	praltr_(umu, numu, albmed, trnmed);
     }
     return 0;
 } /* albtrn_ */
@@ -6742,9 +7893,11 @@ doublereal ratio_(doublereal *a, doublereal *b)
 {
     /* System generated locals */
     integer gu_dim1, gu_dim2, gu_offset, kk_dim1, kk_offset, ll_dim1, 
-	    ll_offset, u0u_dim1, u0u_offset, i__1, i__2, i__3;
+	    ll_offset, u0u_dim1, u0u_offset, umu_dim1, wk_dim1, i__1, i__2, 
+	    i__3, i__4;
 
     /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
     double exp(doublereal);
 
     /* Local variables */
@@ -6816,21 +7969,17 @@ doublereal ratio_(doublereal *a, doublereal *b)
 /*     .. Intrinsic Functions .. */
 /*     .. */
     /* Parameter adjustments */
-    --wk;
+    wk_dim1 = *mxcmu;
     ll_dim1 = *mxcmu;
     ll_offset = 1 + ll_dim1;
-    ll -= ll_offset;
     kk_dim1 = *mxcmu;
     kk_offset = 1 + kk_dim1;
-    kk -= kk_offset;
     gu_dim1 = *mxumu;
     gu_dim2 = *mxcmu;
     gu_offset = 1 + gu_dim1 * (1 + gu_dim2);
-    gu -= gu_offset;
     u0u_dim1 = *maxumu;
     u0u_offset = 1 + u0u_dim1;
-    u0u -= u0u_offset;
-    --umu;
+    umu_dim1 = *maxumu;
 
     /* Function Body */
     utaupr[0] = 0.;
@@ -6851,47 +8000,60 @@ doublereal ratio_(doublereal *a, doublereal *b)
 /*                                   ** downward angles at bottom ) */
 	i__1 = iumax;
 	for (iu = iumin; iu <= i__1; ++iu) {
-	    mu = umu[iu];
+	    mu = umu[(i__2 = iu - 1) < 1 * umu_dim1 && 0 <= i__2 ? i__2 : 
+		    s_rnge("umu", i__2, "altrin_", (ftnlen)6264)];
 /*                                     ** Integrate from top to bottom */
 /*                                     ** computational layer */
 	    palint = 0.;
 	    i__2 = *nlyr;
 	    for (lc = 1; lc <= i__2; ++lc) {
 		dtau = taucpr[lc] - taucpr[lc - 1];
-		exp1 = exp((utaupr[lu - 1] - taucpr[lc - 1]) / mu);
-		exp2 = exp((utaupr[lu - 1] - taucpr[lc]) / mu);
+		exp1 = exp((utaupr[(i__3 = lu - 1) < 2 && 0 <= i__3 ? i__3 : 
+			s_rnge("utaupr", i__3, "altrin_", (ftnlen)6272)] - 
+			taucpr[lc - 1]) / mu);
+		exp2 = exp((utaupr[(i__3 = lu - 1) < 2 && 0 <= i__3 ? i__3 : 
+			s_rnge("utaupr", i__3, "altrin_", (ftnlen)6273)] - 
+			taucpr[lc]) / mu);
 /*                                      ** KK is negative */
 		i__3 = *nn;
 		for (iq = 1; iq <= i__3; ++iq) {
-		    wk[iq] = exp(kk[iq + lc * kk_dim1] * dtau);
-		    denom = mu * kk[iq + lc * kk_dim1] + 1.;
+		    wk[(i__4 = iq - 1) < 1 * wk_dim1 && 0 <= i__4 ? i__4 : 
+			    s_rnge("wk", i__4, "altrin_", (ftnlen)6278)] = 
+			    exp(kk[iq + lc * kk_dim1 - kk_offset] * dtau);
+		    denom = mu * kk[iq + lc * kk_dim1 - kk_offset] + 1.;
 		    if (abs(denom) < 1e-4) {
 /*                                                   ** L'Hospital limit */
 			expn = dtau / mu * exp2;
 		    } else {
-			expn = (exp1 * wk[iq] - exp2) * sgn / denom;
+			expn = (exp1 * wk[(i__4 = iq - 1) < 1 * wk_dim1 && 0 
+				<= i__4 ? i__4 : s_rnge("wk", i__4, "altrin_",
+				 (ftnlen)6287)] - exp2) * sgn / denom;
 		    }
-		    palint += gu[iu + (iq + lc * gu_dim2) * gu_dim1] * ll[iq 
-			    + lc * ll_dim1] * expn;
+		    palint += gu[iu + (iq + lc * gu_dim2) * gu_dim1 - 
+			    gu_offset] * ll[iq + lc * ll_dim1 - ll_offset] * 
+			    expn;
 /* L10: */
 		}
 /*                                        ** KK is positive */
 		i__3 = *nstr;
 		for (iq = *nn + 1; iq <= i__3; ++iq) {
-		    denom = mu * kk[iq + lc * kk_dim1] + 1.;
+		    denom = mu * kk[iq + lc * kk_dim1 - kk_offset] + 1.;
 		    if (abs(denom) < 1e-4) {
 			expn = -dtau / mu * exp1;
 		    } else {
-			expn = (exp1 - exp2 * wk[*nstr + 1 - iq]) * sgn / 
-				denom;
+			expn = (exp1 - exp2 * wk[(i__4 = *nstr + 1 - iq - 1) <
+				 1 * wk_dim1 && 0 <= i__4 ? i__4 : s_rnge(
+				"wk", i__4, "altrin_", (ftnlen)6306)]) * sgn /
+				 denom;
 		    }
-		    palint += gu[iu + (iq + lc * gu_dim2) * gu_dim1] * ll[iq 
-			    + lc * ll_dim1] * expn;
+		    palint += gu[iu + (iq + lc * gu_dim2) * gu_dim1 - 
+			    gu_offset] * ll[iq + lc * ll_dim1 - ll_offset] * 
+			    expn;
 /* L20: */
 		}
 /* L30: */
 	    }
-	    u0u[iu + lu * u0u_dim1] = palint;
+	    u0u[iu + lu * u0u_dim1 - u0u_offset] = palint;
 /* L40: */
 	}
 /* L50: */
@@ -6903,11 +8065,12 @@ doublereal ratio_(doublereal *a, doublereal *b)
 	albmed, doublereal *trnmed)
 {
     /* System generated locals */
-    integer i__1;
+    integer albmed_dim1, trnmed_dim1, umu_dim1, i__1, i__2, i__3, i__4, i__5;
     doublereal d__1;
 
     /* Builtin functions */
-    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
+    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe(), 
+	    s_rnge(char *, integer, char *, integer);
     double acos(doublereal);
 
     /* Local variables */
@@ -6934,9 +8097,9 @@ doublereal ratio_(doublereal *a, doublereal *b)
 /*     .. Intrinsic Functions .. */
 /*     .. */
     /* Parameter adjustments */
-    --trnmed;
-    --albmed;
-    --umu;
+    trnmed_dim1 = *numu;
+    albmed_dim1 = *numu;
+    umu_dim1 = *numu;
 
     /* Function Body */
     s_wsfe(&io___461);
@@ -6948,11 +8111,19 @@ ivity", (ftnlen)62);
     i__1 = *numu;
     for (iu = 1; iu <= i__1; ++iu) {
 	s_wsfe(&io___463);
-	d__1 = acos(umu[iu]) * 57.295779578552292;
+	d__1 = acos(umu[(i__2 = iu - 1) < 1 * umu_dim1 && 0 <= i__2 ? i__2 : 
+		s_rnge("umu", i__2, "praltr_", (ftnlen)6361)]) * 
+		57.295779578552292;
 	do_fio(&c__1, (char *)&d__1, (ftnlen)sizeof(doublereal));
-	do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(doublereal));
-	do_fio(&c__1, (char *)&albmed[iu], (ftnlen)sizeof(doublereal));
-	do_fio(&c__1, (char *)&trnmed[iu], (ftnlen)sizeof(doublereal));
+	do_fio(&c__1, (char *)&umu[(i__3 = iu - 1) < 1 * umu_dim1 && 0 <= 
+		i__3 ? i__3 : s_rnge("umu", i__3, "praltr_", (ftnlen)6361)], (
+		ftnlen)sizeof(doublereal));
+	do_fio(&c__1, (char *)&albmed[(i__4 = iu - 1) < 1 * albmed_dim1 && 0 
+		<= i__4 ? i__4 : s_rnge("albmed", i__4, "praltr_", (ftnlen)
+		6361)], (ftnlen)sizeof(doublereal));
+	do_fio(&c__1, (char *)&trnmed[(i__5 = iu - 1) < 1 * trnmed_dim1 && 0 
+		<= i__5 ? i__5 : s_rnge("trnmed", i__5, "praltr_", (ftnlen)
+		6361)], (ftnlen)sizeof(doublereal));
 	e_wsfe();
 /* L10: */
     }
@@ -6965,7 +8136,11 @@ ivity", (ftnlen)62);
 	nnlyri, integer *nstr)
 {
     /* System generated locals */
-    integer cband_dim1, cband_offset, ll_dim1, ll_offset, i__1, i__2;
+    integer b_dim1, cband_dim1, cband_offset, ll_dim1, ll_offset, i__1, i__2, 
+	    i__3;
+
+    /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static integer i__, lc, iq, ncd, ipnt;
@@ -7022,42 +8197,46 @@ ivity", (ftnlen)62);
     /* Parameter adjustments */
     ll_dim1 = *mxcmu;
     ll_offset = 1 + ll_dim1;
-    ll -= ll_offset;
-    --ipvt;
     cband_dim1 = *mi9m2;
     cband_offset = 1 + cband_dim1;
-    cband -= cband_offset;
-    --b;
+    b_dim1 = *nnlyri;
 
     /* Function Body */
-    zeroit_(&b[1], nnlyri);
+    zeroit_(b, nnlyri);
     if (*ihom == 1) {
 /*                             ** Because there are no beam or emission */
 /*                             ** sources, remainder of B array is zero */
 	i__1 = *nn;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    b[i__] = *fisot;
-	    b[*ncol - *nn + i__] = 0.;
+	    b[(i__2 = i__ - 1) < 1 * b_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		    "b", i__2, "solve1_", (ftnlen)6436)] = *fisot;
+	    b[(i__2 = *ncol - *nn + i__ - 1) < 1 * b_dim1 && 0 <= i__2 ? i__2 
+		    : s_rnge("b", i__2, "solve1_", (ftnlen)6437)] = 0.;
 /* L10: */
 	}
     } else if (*ihom == 2) {
 	i__1 = *nn;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    b[i__] = 0.;
-	    b[*ncol - *nn + i__] = *fisot;
+	    b[(i__2 = i__ - 1) < 1 * b_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		    "b", i__2, "solve1_", (ftnlen)6443)] = 0.;
+	    b[(i__2 = *ncol - *nn + i__ - 1) < 1 * b_dim1 && 0 <= i__2 ? i__2 
+		    : s_rnge("b", i__2, "solve1_", (ftnlen)6444)] = *fisot;
 /* L20: */
 	}
     }
     ncd = *nn * 3 - 1;
-    sgbsl_(&cband[cband_offset], mi9m2, ncol, &ncd, &ncd, &ipvt[1], &b[1], &
-	    c__0);
+    sgbsl_(cband, mi9m2, ncol, &ncd, &ncd, ipvt, b, &c__0);
     i__1 = *ncut;
     for (lc = 1; lc <= i__1; ++lc) {
 	ipnt = lc * *nstr - *nn;
 	i__2 = *nn;
 	for (iq = 1; iq <= i__2; ++iq) {
-	    ll[*nn + 1 - iq + lc * ll_dim1] = b[ipnt + 1 - iq];
-	    ll[iq + *nn + lc * ll_dim1] = b[iq + ipnt];
+	    ll[*nn + 1 - iq + lc * ll_dim1 - ll_offset] = b[(i__3 = ipnt + 1 
+		    - iq - 1) < 1 * b_dim1 && 0 <= i__3 ? i__3 : s_rnge("b", 
+		    i__3, "solve1_", (ftnlen)6458)];
+	    ll[iq + *nn + lc * ll_dim1 - ll_offset] = b[(i__3 = iq + ipnt - 1)
+		     < 1 * b_dim1 && 0 <= i__3 ? i__3 : s_rnge("b", i__3, 
+		    "solve1_", (ftnlen)6459)];
 /* L30: */
 	}
 /* L40: */
@@ -7071,11 +8250,12 @@ ivity", (ftnlen)62);
 	doublereal *sfldn)
 {
     /* System generated locals */
-    integer gc_dim1, gc_dim2, gc_offset, kk_dim1, kk_offset, ll_dim1, 
-	    ll_offset, i__1, i__2;
+    integer cmu_dim1, cwt_dim1, gc_dim1, gc_dim2, gc_offset, kk_dim1, 
+	    kk_offset, ll_dim1, ll_offset, i__1, i__2, i__3;
 
     /* Builtin functions */
     double exp(doublereal);
+    integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static integer iq, jq;
@@ -7131,16 +8311,13 @@ ivity", (ftnlen)62);
     /* Parameter adjustments */
     ll_dim1 = *mxcmu;
     ll_offset = 1 + ll_dim1;
-    ll -= ll_offset;
     kk_dim1 = *mxcmu;
     kk_offset = 1 + kk_dim1;
-    kk -= kk_offset;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
     gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
-    gc -= gc_offset;
-    --cwt;
-    --cmu;
+    cwt_dim1 = *mxcmu;
+    cmu_dim1 = *mxcmu;
 
     /* Function Body */
     *sflup = 0.;
@@ -7149,16 +8326,21 @@ ivity", (ftnlen)62);
 	zint = 0.;
 	i__2 = *nn;
 	for (jq = 1; jq <= i__2; ++jq) {
-	    zint += gc[iq + (jq + gc_dim2) * gc_dim1] * ll[jq + ll_dim1] * 
-		    exp(kk[jq + kk_dim1] * taucpr[1]);
+	    zint += gc[iq + (jq + gc_dim2) * gc_dim1 - gc_offset] * ll[jq + 
+		    ll_dim1 - ll_offset] * exp(kk[jq + kk_dim1 - kk_offset] * 
+		    taucpr[1]);
 /* L10: */
 	}
 	i__2 = *nstr;
 	for (jq = *nn + 1; jq <= i__2; ++jq) {
-	    zint += gc[iq + (jq + gc_dim2) * gc_dim1] * ll[jq + ll_dim1];
+	    zint += gc[iq + (jq + gc_dim2) * gc_dim1 - gc_offset] * ll[jq + 
+		    ll_dim1 - ll_offset];
 /* L20: */
 	}
-	*sflup += cwt[iq - *nn] * cmu[iq - *nn] * zint;
+	*sflup += cwt[(i__2 = iq - *nn - 1) < 1 * cwt_dim1 && 0 <= i__2 ? 
+		i__2 : s_rnge("cwt", i__2, "spaltr_", (ftnlen)6545)] * cmu[(
+		i__3 = iq - *nn - 1) < 1 * cmu_dim1 && 0 <= i__3 ? i__3 : 
+		s_rnge("cmu", i__3, "spaltr_", (ftnlen)6545)] * zint;
 /* L30: */
     }
     *sfldn = 0.;
@@ -7167,18 +8349,22 @@ ivity", (ftnlen)62);
 	zint = 0.;
 	i__2 = *nn;
 	for (jq = 1; jq <= i__2; ++jq) {
-	    zint += gc[iq + (jq + *nlyr * gc_dim2) * gc_dim1] * ll[jq + *nlyr 
-		    * ll_dim1];
+	    zint += gc[iq + (jq + *nlyr * gc_dim2) * gc_dim1 - gc_offset] * 
+		    ll[jq + *nlyr * ll_dim1 - ll_offset];
 /* L40: */
 	}
 	i__2 = *nstr;
 	for (jq = *nn + 1; jq <= i__2; ++jq) {
-	    zint += gc[iq + (jq + *nlyr * gc_dim2) * gc_dim1] * ll[jq + *nlyr 
-		    * ll_dim1] * exp(-kk[jq + *nlyr * kk_dim1] * (taucpr[*
-		    nlyr] - taucpr[*nlyr - 1]));
+	    zint += gc[iq + (jq + *nlyr * gc_dim2) * gc_dim1 - gc_offset] * 
+		    ll[jq + *nlyr * ll_dim1 - ll_offset] * exp(-kk[jq + *nlyr 
+		    * kk_dim1 - kk_offset] * (taucpr[*nlyr] - taucpr[*nlyr - 
+		    1]));
 /* L50: */
 	}
-	*sfldn += cwt[*nn + 1 - iq] * cmu[*nn + 1 - iq] * zint;
+	*sfldn += cwt[(i__2 = *nn + 1 - iq - 1) < 1 * cwt_dim1 && 0 <= i__2 ? 
+		i__2 : s_rnge("cwt", i__2, "spaltr_", (ftnlen)6565)] * cmu[(
+		i__3 = *nn + 1 - iq - 1) < 1 * cmu_dim1 && 0 <= i__3 ? i__3 : 
+		s_rnge("cmu", i__3, "spaltr_", (ftnlen)6565)] * zint;
 /* L60: */
     }
     *sflup *= 2.;

@@ -906,11 +906,11 @@ static integer c__48 = 48;
 static integer c__3 = 3;
 static logical c_false = FALSE_;
 static integer c__2 = 2;
-static doublereal c_b55 = .75;
+static doublereal c_b79 = .75;
 static integer c__4 = 4;
-static doublereal c_b145 = .7;
-static doublereal c_b169 = .8;
-static doublereal c_b277 = .9;
+static doublereal c_b209 = .7;
+static doublereal c_b243 = .8;
+static doublereal c_b457 = .9;
 static logical c_true = TRUE_;
 
 /* Main program */ int MAIN__()
@@ -927,13 +927,14 @@ static logical c_true = TRUE_;
 
     /* System generated locals */
     address a__1[2];
-    integer i__1[2], i__2, i__3, i__4;
+    integer i__1, i__2, i__3, i__4, i__5, i__6[2];
     doublereal d__1;
 
     /* Builtin functions */
     double asin(doublereal);
-    integer s_wsfi(icilist *), do_fio(integer *, char *, ftnlen), e_wsfi(), 
-	    i_indx(char *, char *, ftnlen, ftnlen);
+    integer s_wsfi(icilist *), do_fio(integer *, char *, ftnlen), s_rnge(char 
+	    *, integer, char *, integer), e_wsfi(), i_indx(char *, char *, 
+	    ftnlen, ftnlen);
     /* Subroutine */ int s_cat(char *, char **, integer *, integer *, ftnlen);
     double pow_di(doublereal *, integer *);
     /* Subroutine */ int s_copy(char *, char *, ftnlen, ftnlen), s_stop(char *
@@ -1115,7 +1116,8 @@ static logical c_true = TRUE_;
 	    dtauc[0] = utau[1];
 	    s_wsfi(&io___32);
 	    do_fio(&c__1, "Test Case No. 1", (ftnlen)15);
-	    do_fio(&c__1, abc + (icas - 1), (ftnlen)1);
+	    do_fio(&c__1, abc + ((i__1 = icas - 1) < 18 && 0 <= i__1 ? i__1 : 
+		    s_rnge("abc", i__1, "testdo_", (ftnlen)191)), (ftnlen)1);
 	    do_fio(&c__1, ":  Isotropic Scattering, Ref. VH1, Table 12:  b =",
 		     (ftnlen)49);
 	    do_fio(&c__1, (char *)&utau[1], (ftnlen)sizeof(doublereal));
@@ -1137,12 +1139,18 @@ static logical c_true = TRUE_;
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
 		    onlyfl, &azmavg, rfldir, rfldn, flup, dfdt, u0u, uu, &
-		    dochek_1.tstfir[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfdn[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfup[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstdfd[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstuu[(((icas + (nprob << 3)) * 3 + 1) * 10 + 1) 
-		    * 5 - 1405], &c__5, &c__10, &c__3);
+		    dochek_1.tstfir[(i__1 = (icas + (nprob << 3)) * 5 - 45) < 
+		    360 && 0 <= i__1 ? i__1 : s_rnge("tstfir", i__1, "testdo_"
+		    , (ftnlen)209)], &dochek_1.tstfdn[(i__2 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__2 ? i__2 : s_rnge("tst\
+fdn", i__2, "testdo_", (ftnlen)209)], &dochek_1.tstfup[(i__3 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__3 ? i__3 : s_rnge("tst\
+fup", i__3, "testdo_", (ftnlen)209)], &dochek_1.tstdfd[(i__4 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__4 ? i__4 : s_rnge("tst\
+dfd", i__4, "testdo_", (ftnlen)209)], &dochek_1.tstuu[(i__5 = (((icas + (
+		    nprob << 3)) * 3 + 1) * 10 + 1) * 5 - 1405) < 10800 && 0 
+		    <= i__5 ? i__5 : s_rnge("tstuu", i__5, "testdo_", (ftnlen)
+		    209)], &c__5, &c__10, &c__3);
 /* L10: */
 	}
     }
@@ -1196,7 +1204,9 @@ static logical c_true = TRUE_;
 		++icas;
 		s_wsfi(&io___53);
 		do_fio(&c__1, "Test Case No. 2", (ftnlen)15);
-		do_fio(&c__1, abc + (icas - 1), (ftnlen)1);
+		do_fio(&c__1, abc + ((i__1 = icas - 1) < 18 && 0 <= i__1 ? 
+			i__1 : s_rnge("abc", i__1, "testdo_", (ftnlen)268)), (
+			ftnlen)1);
 		do_fio(&c__1, ", Rayleigh Scattering, Ref. SW, Table 1:  tau\
  =", (ftnlen)47);
 		do_fio(&c__1, (char *)&utau[1], (ftnlen)sizeof(doublereal));
@@ -1220,12 +1230,20 @@ static logical c_true = TRUE_;
 		}
 		prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
 			onlyfl, &azmavg, rfldir, rfldn, flup, dfdt, u0u, uu, &
-			dochek_1.tstfir[(icas + (nprob << 3)) * 5 - 45], &
-			dochek_1.tstfdn[(icas + (nprob << 3)) * 5 - 45], &
-			dochek_1.tstfup[(icas + (nprob << 3)) * 5 - 45], &
-			dochek_1.tstdfd[(icas + (nprob << 3)) * 5 - 45], &
-			dochek_1.tstuu[(((icas + (nprob << 3)) * 3 + 1) * 10 
-			+ 1) * 5 - 1405], &c__5, &c__10, &c__3);
+			dochek_1.tstfir[(i__1 = (icas + (nprob << 3)) * 5 - 
+			45) < 360 && 0 <= i__1 ? i__1 : s_rnge("tstfir", i__1,
+			 "testdo_", (ftnlen)287)], &dochek_1.tstfdn[(i__2 = (
+			icas + (nprob << 3)) * 5 - 45) < 360 && 0 <= i__2 ? 
+			i__2 : s_rnge("tstfdn", i__2, "testdo_", (ftnlen)287)]
+			, &dochek_1.tstfup[(i__3 = (icas + (nprob << 3)) * 5 
+			- 45) < 360 && 0 <= i__3 ? i__3 : s_rnge("tstfup", 
+			i__3, "testdo_", (ftnlen)287)], &dochek_1.tstdfd[(
+			i__4 = (icas + (nprob << 3)) * 5 - 45) < 360 && 0 <= 
+			i__4 ? i__4 : s_rnge("tstdfd", i__4, "testdo_", (
+			ftnlen)287)], &dochek_1.tstuu[(i__5 = (((icas + (
+			nprob << 3)) * 3 + 1) * 10 + 1) * 5 - 1405) < 10800 &&
+			 0 <= i__5 ? i__5 : s_rnge("tstuu", i__5, "testdo_", (
+			ftnlen)287)], &c__5, &c__10, &c__3);
 /* L20: */
 	    }
 	}
@@ -1237,7 +1255,7 @@ static logical c_true = TRUE_;
 /* ********************************************************************** */
 	nstr = 16;
 	nlyr = 1;
-	getmom_(&c__3, &c_b55, &nstr, pmom);
+	getmom_(&c__3, &c_b79, &nstr, pmom);
 	usrtau = TRUE_;
 	ntau = 2;
 	utau[0] = 0.;
@@ -1294,7 +1312,8 @@ static logical c_true = TRUE_;
 	    dtauc[0] = utau[1];
 	    s_wsfi(&io___54);
 	    do_fio(&c__1, "Test Case No. 3", (ftnlen)15);
-	    do_fio(&c__1, abc + (icas - 1), (ftnlen)1);
+	    do_fio(&c__1, abc + ((i__1 = icas - 1) < 18 && 0 <= i__1 ? i__1 : 
+		    s_rnge("abc", i__1, "testdo_", (ftnlen)378)), (ftnlen)1);
 	    do_fio(&c__1, ", Henyey-Greenstein Scattering, Ref. VH2, Table 3\
 5, g = 0.75, b =", (ftnlen)65);
 	    do_fio(&c__1, (char *)&utau[1], (ftnlen)sizeof(doublereal));
@@ -1316,12 +1335,18 @@ static logical c_true = TRUE_;
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
 		    onlyfl, &azmavg, rfldir, rfldn, flup, dfdt, u0u, uu, &
-		    dochek_1.tstfir[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfdn[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfup[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstdfd[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstuu[(((icas + (nprob << 3)) * 3 + 1) * 10 + 1) 
-		    * 5 - 1405], &c__5, &c__10, &c__3);
+		    dochek_1.tstfir[(i__1 = (icas + (nprob << 3)) * 5 - 45) < 
+		    360 && 0 <= i__1 ? i__1 : s_rnge("tstfir", i__1, "testdo_"
+		    , (ftnlen)396)], &dochek_1.tstfdn[(i__2 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__2 ? i__2 : s_rnge("tst\
+fdn", i__2, "testdo_", (ftnlen)396)], &dochek_1.tstfup[(i__3 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__3 ? i__3 : s_rnge("tst\
+fup", i__3, "testdo_", (ftnlen)396)], &dochek_1.tstdfd[(i__4 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__4 ? i__4 : s_rnge("tst\
+dfd", i__4, "testdo_", (ftnlen)396)], &dochek_1.tstuu[(i__5 = (((icas + (
+		    nprob << 3)) * 3 + 1) * 10 + 1) * 5 - 1405) < 10800 && 0 
+		    <= i__5 ? i__5 : s_rnge("tstuu", i__5, "testdo_", (ftnlen)
+		    396)], &c__5, &c__10, &c__3);
 /* L30: */
 	}
     }
@@ -1359,7 +1384,8 @@ static logical c_true = TRUE_;
 	for (icas = 1; icas <= 3; ++icas) {
 	    s_wsfi(&io___56);
 	    do_fio(&c__1, "Test Case No. 4", (ftnlen)15);
-	    do_fio(&c__1, abc + (icas - 1), (ftnlen)1);
+	    do_fio(&c__1, abc + ((i__1 = icas - 1) < 18 && 0 <= i__1 ? i__1 : 
+		    s_rnge("abc", i__1, "testdo_", (ftnlen)443)), (ftnlen)1);
 	    do_fio(&c__1, ", Haze-L Scattering, Ref. GS, Table ", (ftnlen)36);
 	    e_wsfi();
 	    lentit = i_indx(title, blanks, (ftnlen)100, (ftnlen)3);
@@ -1369,18 +1395,18 @@ static logical c_true = TRUE_;
 		phi[0] = 0.;
 		umu0 = 1.;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 3, a__1[1] = " 12";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 3, a__1[1] = " 12";
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    } else if (icas == 2) {
 		ssalb[0] = .9;
 		nphi = 1;
 		phi[0] = 0.;
 		umu0 = 1.;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 3, a__1[1] = " 13";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 3, a__1[1] = " 13";
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    } else if (icas == 3) {
 		ssalb[0] = .9;
 		nphi = 3;
@@ -1389,9 +1415,9 @@ static logical c_true = TRUE_;
 		phi[2] = 180.;
 		umu0 = .5;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 6, a__1[1] = " 14-16";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 6, a__1[1] = " 14-16";
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    }
 	    disort_(&nlyr, dtauc, ssalb, pmom, temper, &wvnmlo, &wvnmhi, &
 		    usrtau, &ntau, utau, &nstr, &usrang, &numu, umu, &nphi, 
@@ -1408,12 +1434,18 @@ static logical c_true = TRUE_;
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
 		    onlyfl, &azmavg, rfldir, rfldn, flup, dfdt, u0u, uu, &
-		    dochek_1.tstfir[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfdn[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfup[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstdfd[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstuu[(((icas + (nprob << 3)) * 3 + 1) * 10 + 1) 
-		    * 5 - 1405], &c__5, &c__10, &c__3);
+		    dochek_1.tstfir[(i__1 = (icas + (nprob << 3)) * 5 - 45) < 
+		    360 && 0 <= i__1 ? i__1 : s_rnge("tstfir", i__1, "testdo_"
+		    , (ftnlen)489)], &dochek_1.tstfdn[(i__2 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__2 ? i__2 : s_rnge("tst\
+fdn", i__2, "testdo_", (ftnlen)489)], &dochek_1.tstfup[(i__3 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__3 ? i__3 : s_rnge("tst\
+fup", i__3, "testdo_", (ftnlen)489)], &dochek_1.tstdfd[(i__4 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__4 ? i__4 : s_rnge("tst\
+dfd", i__4, "testdo_", (ftnlen)489)], &dochek_1.tstuu[(i__5 = (((icas + (
+		    nprob << 3)) * 3 + 1) * 10 + 1) * 5 - 1405) < 10800 && 0 
+		    <= i__5 ? i__5 : s_rnge("tstuu", i__5, "testdo_", (ftnlen)
+		    489)], &c__5, &c__10, &c__3);
 /* L40: */
 	}
     }
@@ -1451,7 +1483,8 @@ static logical c_true = TRUE_;
 	for (icas = 1; icas <= 2; ++icas) {
 	    s_wsfi(&io___58);
 	    do_fio(&c__1, "Test Case No. 5", (ftnlen)15);
-	    do_fio(&c__1, abc + (icas - 1), (ftnlen)1);
+	    do_fio(&c__1, abc + ((i__1 = icas - 1) < 18 && 0 <= i__1 ? i__1 : 
+		    s_rnge("abc", i__1, "testdo_", (ftnlen)536)), (ftnlen)1);
 	    do_fio(&c__1, ", Cloud C.1 Scattering, Ref. GS, Table ", (ftnlen)
 		    39);
 	    e_wsfi();
@@ -1462,9 +1495,9 @@ static logical c_true = TRUE_;
 		utau[2] = 64.;
 		ssalb[0] = 1.;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 3, a__1[1] = " 19";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 3, a__1[1] = " 19";
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    }
 	    if (icas == 2) {
 		utau[0] = 3.2;
@@ -1472,9 +1505,9 @@ static logical c_true = TRUE_;
 		utau[2] = 48.;
 		ssalb[0] = .9;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 3, a__1[1] = " 20";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 3, a__1[1] = " 20";
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    }
 	    disort_(&nlyr, dtauc, ssalb, pmom, temper, &wvnmlo, &wvnmhi, &
 		    usrtau, &ntau, utau, &nstr, &usrang, &numu, umu, &nphi, 
@@ -1491,12 +1524,18 @@ static logical c_true = TRUE_;
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
 		    onlyfl, &azmavg, rfldir, rfldn, flup, dfdt, u0u, uu, &
-		    dochek_1.tstfir[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfdn[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfup[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstdfd[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstuu[(((icas + (nprob << 3)) * 3 + 1) * 10 + 1) 
-		    * 5 - 1405], &c__5, &c__10, &c__3);
+		    dochek_1.tstfir[(i__1 = (icas + (nprob << 3)) * 5 - 45) < 
+		    360 && 0 <= i__1 ? i__1 : s_rnge("tstfir", i__1, "testdo_"
+		    , (ftnlen)574)], &dochek_1.tstfdn[(i__2 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__2 ? i__2 : s_rnge("tst\
+fdn", i__2, "testdo_", (ftnlen)574)], &dochek_1.tstfup[(i__3 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__3 ? i__3 : s_rnge("tst\
+fup", i__3, "testdo_", (ftnlen)574)], &dochek_1.tstdfd[(i__4 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__4 ? i__4 : s_rnge("tst\
+dfd", i__4, "testdo_", (ftnlen)574)], &dochek_1.tstuu[(i__5 = (((icas + (
+		    nprob << 3)) * 3 + 1) * 10 + 1) * 5 - 1405) < 10800 && 0 
+		    <= i__5 ? i__5 : s_rnge("tstuu", i__5, "testdo_", (ftnlen)
+		    574)], &c__5, &c__10, &c__3);
 /* L50: */
 	}
     }
@@ -1529,7 +1568,8 @@ static logical c_true = TRUE_;
 	for (icas = 1; icas <= 8; ++icas) {
 	    s_wsfi(&io___59);
 	    do_fio(&c__1, "Test Case No. 6", (ftnlen)15);
-	    do_fio(&c__1, abc + (icas - 1), (ftnlen)1);
+	    do_fio(&c__1, abc + ((i__1 = icas - 1) < 18 && 0 <= i__1 ? i__1 : 
+		    s_rnge("abc", i__1, "testdo_", (ftnlen)616)), (ftnlen)1);
 	    do_fio(&c__1, ": No Scattering; Source = Beam", (ftnlen)30);
 	    e_wsfi();
 	    lentit = i_indx(title, blanks, (ftnlen)100, (ftnlen)3);
@@ -1550,39 +1590,41 @@ static logical c_true = TRUE_;
 		albedo = 0.;
 		plank = FALSE_;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 19, a__1[1] = "; Bottom Albedo = 0";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 19, a__1[1] = "; Bottom Albedo = 0";
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    } else if (icas == 2) {
 /*                                    ** Add some optical depth */
 		dtauc[0] = 1.;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 19, a__1[1] = "; Bottom Albedo = 0";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 19, a__1[1] = "; Bottom Albedo = 0";
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    } else if (icas == 3) {
 /*                                   ** Add some isotropic reflection */
 		lamber = TRUE_;
 		albedo = .5;
 		plank = FALSE_;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 27, a__1[1] = "; Bottom Albedo=0.5 Lambert";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 27, a__1[1] = "; Bottom Albedo=0.5 Lambert";
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    } else if (icas == 4) {
 /*                                   ** Use non-isotropic reflection */
 		dtauc[0] = 1.;
 		lamber = FALSE_;
-		i__2 = nstr;
-		for (k = 0; k <= i__2; ++k) {
-		    hl[k] = pow_di(&c_b145, &k);
+		i__1 = nstr;
+		for (k = 0; k <= i__1; ++k) {
+		    hl[(i__2 = k) < 49 && 0 <= i__2 ? i__2 : s_rnge("hl", 
+			    i__2, "testdo_", (ftnlen)660)] = pow_di(&c_b209, &
+			    k);
 /* L59: */
 		}
 		plank = FALSE_;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 29, a__1[1] = "; Bottom Albedo = Non-Lambert";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 29, a__1[1] = "; Bottom Albedo = Non-Lambert";
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    } else if (icas == 5) {
 /*                                   ** Add some bottom-boundary emission */
 		dtauc[0] = 1.;
@@ -1593,10 +1635,10 @@ static logical c_true = TRUE_;
 		ttemp = 0.;
 		plank = TRUE_;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 41, a__1[1] = ", Bottom Emission; Bott Alb = Non-L\
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 41, a__1[1] = ", Bottom Emission; Bott Alb = Non-L\
 ambert";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    } else if (icas == 6) {
 /*                                   ** Add some top-boundary diffuse */
 /*                                      incidence (prescribed + emitted) */
@@ -1609,10 +1651,10 @@ ambert";
 		ttemp = 250.;
 		plank = TRUE_;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 45, a__1[1] = ", Bottom+Top Emission; Bott Alb = N\
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 45, a__1[1] = ", Bottom+Top Emission; Bott Alb = N\
 on-Lambert";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    } else if (icas == 7) {
 /*                                   ** Add some internal emission */
 		dtauc[0] = 1.;
@@ -1623,10 +1665,10 @@ on-Lambert";
 		ttemp = 250.;
 		plank = TRUE_;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 54, a__1[1] = ", Bottom+Top+Internal Emission; Bot\
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 54, a__1[1] = ", Bottom+Top+Internal Emission; Bot\
 t Alb = Non-Lambert";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    } else if (icas == 8) {
 /*                                   ** Increase the optical depth */
 		dtauc[0] = 10.;
@@ -1640,10 +1682,10 @@ t Alb = Non-Lambert";
 		ttemp = 250.;
 		plank = TRUE_;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 54, a__1[1] = ", Bottom+Top+Internal Emission; Bot\
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 54, a__1[1] = ", Bottom+Top+Internal Emission; Bot\
 t Alb = Non-Lambert";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    }
 	    disort_(&nlyr, dtauc, ssalb, pmom, temper, &wvnmlo, &wvnmhi, &
 		    usrtau, &ntau, utau, &nstr, &usrang, &numu, umu, &nphi, 
@@ -1660,12 +1702,18 @@ t Alb = Non-Lambert";
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
 		    onlyfl, &azmavg, rfldir, rfldn, flup, dfdt, u0u, uu, &
-		    dochek_1.tstfir[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfdn[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfup[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstdfd[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstuu[(((icas + (nprob << 3)) * 3 + 1) * 10 + 1) 
-		    * 5 - 1405], &c__5, &c__10, &c__3);
+		    dochek_1.tstfir[(i__1 = (icas + (nprob << 3)) * 5 - 45) < 
+		    360 && 0 <= i__1 ? i__1 : s_rnge("tstfir", i__1, "testdo_"
+		    , (ftnlen)734)], &dochek_1.tstfdn[(i__2 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__2 ? i__2 : s_rnge("tst\
+fdn", i__2, "testdo_", (ftnlen)734)], &dochek_1.tstfup[(i__3 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__3 ? i__3 : s_rnge("tst\
+fup", i__3, "testdo_", (ftnlen)734)], &dochek_1.tstdfd[(i__4 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__4 ? i__4 : s_rnge("tst\
+dfd", i__4, "testdo_", (ftnlen)734)], &dochek_1.tstuu[(i__5 = (((icas + (
+		    nprob << 3)) * 3 + 1) * 10 + 1) * 5 - 1405) < 10800 && 0 
+		    <= i__5 ? i__5 : s_rnge("tstuu", i__5, "testdo_", (ftnlen)
+		    734)], &c__5, &c__10, &c__3);
 /* L60: */
 	}
     }
@@ -1676,7 +1724,7 @@ t Alb = Non-Lambert";
 /* ********************************************************************** */
 	nstr = 12;
 	nlyr = 1;
-	getmom_(&c__3, &c_b169, &nstr, pmom);
+	getmom_(&c__3, &c_b243, &nstr, pmom);
 	dtauc[0] = 1.;
 	ssalb[0] = .5;
 	temper[0] = 300.;
@@ -1711,7 +1759,8 @@ t Alb = Non-Lambert";
 	for (icas = 1; icas <= 3; ++icas) {
 	    s_wsfi(&io___61);
 	    do_fio(&c__1, "Test Case No. 7", (ftnlen)15);
-	    do_fio(&c__1, abc + (icas - 1), (ftnlen)1);
+	    do_fio(&c__1, abc + ((i__1 = icas - 1) < 18 && 0 <= i__1 ? i__1 : 
+		    s_rnge("abc", i__1, "testdo_", (ftnlen)789)), (ftnlen)1);
 	    do_fio(&c__1, ": Absorption + Henyey-Greenstein Scattering, All \
 Sources", (ftnlen)56);
 	    e_wsfi();
@@ -1720,27 +1769,29 @@ Sources", (ftnlen)56);
 		lamber = TRUE_;
 		albedo = 0.;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 19, a__1[1] = ", Bottom Albedo = 0";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 19, a__1[1] = ", Bottom Albedo = 0";
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    } else if (icas == 2) {
 		lamber = TRUE_;
 		albedo = 1.;
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 19, a__1[1] = ", Bottom Albedo = 1";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 19, a__1[1] = ", Bottom Albedo = 1";
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    } else if (icas == 3) {
 		lamber = FALSE_;
-		i__2 = nstr;
-		for (k = 0; k <= i__2; ++k) {
-		    hl[k] = pow_di(&c_b145, &k);
+		i__1 = nstr;
+		for (k = 0; k <= i__1; ++k) {
+		    hl[(i__2 = k) < 49 && 0 <= i__2 ? i__2 : s_rnge("hl", 
+			    i__2, "testdo_", (ftnlen)810)] = pow_di(&c_b209, &
+			    k);
 /* L69: */
 		}
 /* Writing concatenation */
-		i__1[0] = lentit, a__1[0] = title;
-		i__1[1] = 30, a__1[1] = ", Bottom Albedo = BDR Function";
-		s_cat(header, a__1, i__1, &c__2, (ftnlen)127);
+		i__6[0] = lentit, a__1[0] = title;
+		i__6[1] = 30, a__1[1] = ", Bottom Albedo = BDR Function";
+		s_cat(header, a__1, i__6, &c__2, (ftnlen)127);
 	    }
 	    disort_(&nlyr, dtauc, ssalb, pmom, temper, &wvnmlo, &wvnmhi, &
 		    usrtau, &ntau, utau, &nstr, &usrang, &numu, umu, &nphi, 
@@ -1757,12 +1808,18 @@ Sources", (ftnlen)56);
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
 		    onlyfl, &azmavg, rfldir, rfldn, flup, dfdt, u0u, uu, &
-		    dochek_1.tstfir[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfdn[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfup[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstdfd[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstuu[(((icas + (nprob << 3)) * 3 + 1) * 10 + 1) 
-		    * 5 - 1405], &c__5, &c__10, &c__3);
+		    dochek_1.tstfir[(i__1 = (icas + (nprob << 3)) * 5 - 45) < 
+		    360 && 0 <= i__1 ? i__1 : s_rnge("tstfir", i__1, "testdo_"
+		    , (ftnlen)830)], &dochek_1.tstfdn[(i__2 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__2 ? i__2 : s_rnge("tst\
+fdn", i__2, "testdo_", (ftnlen)830)], &dochek_1.tstfup[(i__3 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__3 ? i__3 : s_rnge("tst\
+fup", i__3, "testdo_", (ftnlen)830)], &dochek_1.tstdfd[(i__4 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__4 ? i__4 : s_rnge("tst\
+dfd", i__4, "testdo_", (ftnlen)830)], &dochek_1.tstuu[(i__5 = (((icas + (
+		    nprob << 3)) * 3 + 1) * 10 + 1) * 5 - 1405) < 10800 && 0 
+		    <= i__5 ? i__5 : s_rnge("tstuu", i__5, "testdo_", (ftnlen)
+		    830)], &c__5, &c__10, &c__3);
 /* L70: */
 	}
     }
@@ -1843,12 +1900,18 @@ Sources", (ftnlen)56);
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
 		    onlyfl, &azmavg, rfldir, rfldn, flup, dfdt, u0u, uu, &
-		    dochek_1.tstfir[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfdn[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfup[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstdfd[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstuu[(((icas + (nprob << 3)) * 3 + 1) * 10 + 1) 
-		    * 5 - 1405], &c__5, &c__10, &c__3);
+		    dochek_1.tstfir[(i__1 = (icas + (nprob << 3)) * 5 - 45) < 
+		    360 && 0 <= i__1 ? i__1 : s_rnge("tstfir", i__1, "testdo_"
+		    , (ftnlen)927)], &dochek_1.tstfdn[(i__2 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__2 ? i__2 : s_rnge("tst\
+fdn", i__2, "testdo_", (ftnlen)927)], &dochek_1.tstfup[(i__3 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__3 ? i__3 : s_rnge("tst\
+fup", i__3, "testdo_", (ftnlen)927)], &dochek_1.tstdfd[(i__4 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__4 ? i__4 : s_rnge("tst\
+dfd", i__4, "testdo_", (ftnlen)927)], &dochek_1.tstuu[(i__5 = (((icas + (
+		    nprob << 3)) * 3 + 1) * 10 + 1) * 5 - 1405) < 10800 && 0 
+		    <= i__5 ? i__5 : s_rnge("tstuu", i__5, "testdo_", (ftnlen)
+		    927)], &c__5, &c__10, &c__3);
 /* L80: */
 	}
     }
@@ -1860,10 +1923,12 @@ Sources", (ftnlen)56);
 /* ********************************************************************** */
 	nstr = 8;
 	nlyr = 6;
-	i__2 = nlyr;
-	for (lc = 1; lc <= i__2; ++lc) {
-	    dtauc[lc - 1] = (doublereal) lc;
-	    ssalb[lc - 1] = lc * .05 + .6;
+	i__1 = nlyr;
+	for (lc = 1; lc <= i__1; ++lc) {
+	    dtauc[(i__2 = lc - 1) < 6 && 0 <= i__2 ? i__2 : s_rnge("dtauc", 
+		    i__2, "testdo_", (ftnlen)949)] = (doublereal) lc;
+	    ssalb[(i__2 = lc - 1) < 6 && 0 <= i__2 ? i__2 : s_rnge("ssalb", 
+		    i__2, "testdo_", (ftnlen)950)] = lc * .05 + .6;
 /* L86: */
 	}
 	usrtau = TRUE_;
@@ -1889,9 +1954,11 @@ Sources", (ftnlen)56);
 	onlyfl = FALSE_;
 	for (icas = 1; icas <= 3; ++icas) {
 	    if (icas == 1) {
-		i__2 = nlyr;
-		for (lc = 1; lc <= i__2; ++lc) {
-		    getmom_(&c__1, &c_b2, &nstr, &pmom[lc * 49 - 49]);
+		i__1 = nlyr;
+		for (lc = 1; lc <= i__1; ++lc) {
+		    getmom_(&c__1, &c_b2, &nstr, &pmom[(i__2 = lc * 49 - 49) <
+			     294 && 0 <= i__2 ? i__2 : s_rnge("pmom", i__2, 
+			    "testdo_", (ftnlen)979)]);
 /* L87: */
 		}
 		albedo = 0.;
@@ -1908,10 +1975,14 @@ Sources", (ftnlen)56);
 		pmom[6] = 5.1615384615384609e-4;
 		pmom[7] = 4.5333333333333335e-5;
 		pmom[8] = 2.9411764705882355e-6;
-		i__2 = nlyr;
-		for (lc = 2; lc <= i__2; ++lc) {
+		i__1 = nlyr;
+		for (lc = 2; lc <= i__1; ++lc) {
 		    for (k = 0; k <= 8; ++k) {
-			pmom[k + lc * 49 - 49] = pmom[k];
+			pmom[(i__2 = k + lc * 49 - 49) < 294 && 0 <= i__2 ? 
+				i__2 : s_rnge("pmom", i__2, "testdo_", (
+				ftnlen)999)] = pmom[(i__3 = k) < 294 && 0 <= 
+				i__3 ? i__3 : s_rnge("pmom", i__3, "testdo_", 
+				(ftnlen)999)];
 /* L88: */
 		    }
 		}
@@ -1919,11 +1990,14 @@ Sources", (ftnlen)56);
  beta=0,l=8 (multiple inhomogeneous layers)", (ftnlen)127, (ftnlen)87);
 	    } else if (icas == 3) {
 		temper[0] = 600.;
-		i__2 = nlyr;
-		for (lc = 1; lc <= i__2; ++lc) {
+		i__1 = nlyr;
+		for (lc = 1; lc <= i__1; ++lc) {
 		    d__1 = (doublereal) lc / 7.;
-		    getmom_(&c__3, &d__1, &nstr, &pmom[lc * 49 - 49]);
-		    temper[lc] = lc * 10. + 600.;
+		    getmom_(&c__3, &d__1, &nstr, &pmom[(i__2 = lc * 49 - 49) <
+			     294 && 0 <= i__2 ? i__2 : s_rnge("pmom", i__2, 
+			    "testdo_", (ftnlen)1008)]);
+		    temper[(i__2 = lc) < 7 && 0 <= i__2 ? i__2 : s_rnge("tem\
+per", i__2, "testdo_", (ftnlen)1009)] = lc * 10. + 600.;
 /* L89: */
 		}
 		nphi = 3;
@@ -1959,12 +2033,19 @@ nclude all possible complexity", (ftnlen)127, (ftnlen)74);
 	    }
 	    prtfin_(utau, &ntau, umu, &numu, phi, &nphi, &c__5, &c__10, &
 		    onlyfl, &azmavg, rfldir, rfldn, flup, dfdt, u0u, uu, &
-		    dochek_1.tstfir[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfdn[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstfup[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstdfd[(icas + (nprob << 3)) * 5 - 45], &
-		    dochek_1.tstuu[(((icas + (nprob << 3)) * 3 + 1) * 10 + 1) 
-		    * 5 - 1405], &c__5, &c__10, &c__3);
+		    dochek_1.tstfir[(i__1 = (icas + (nprob << 3)) * 5 - 45) < 
+		    360 && 0 <= i__1 ? i__1 : s_rnge("tstfir", i__1, "testdo_"
+		    , (ftnlen)1044)], &dochek_1.tstfdn[(i__2 = (icas + (nprob 
+		    << 3)) * 5 - 45) < 360 && 0 <= i__2 ? i__2 : s_rnge("tst\
+fdn", i__2, "testdo_", (ftnlen)1044)], &dochek_1.tstfup[(i__3 = (icas + (
+		    nprob << 3)) * 5 - 45) < 360 && 0 <= i__3 ? i__3 : s_rnge(
+		    "tstfup", i__3, "testdo_", (ftnlen)1044)], &
+		    dochek_1.tstdfd[(i__4 = (icas + (nprob << 3)) * 5 - 45) < 
+		    360 && 0 <= i__4 ? i__4 : s_rnge("tstdfd", i__4, "testdo_"
+		    , (ftnlen)1044)], &dochek_1.tstuu[(i__5 = (((icas + (
+		    nprob << 3)) * 3 + 1) * 10 + 1) * 5 - 1405) < 10800 && 0 
+		    <= i__5 ? i__5 : s_rnge("tstuu", i__5, "testdo_", (ftnlen)
+		    1044)], &c__5, &c__10, &c__3);
 /* L90: */
 	}
     }
@@ -1976,13 +2057,18 @@ nclude all possible complexity", (ftnlen)127, (ftnlen)74);
 	nstr = 4;
 	nlyr = 6;
 	temper[0] = 600.;
-	i__2 = nlyr;
-	for (lc = 1; lc <= i__2; ++lc) {
-	    dtauc[lc - 1] = (doublereal) lc;
-	    ssalb[lc - 1] = lc * .05 + .6;
+	i__1 = nlyr;
+	for (lc = 1; lc <= i__1; ++lc) {
+	    dtauc[(i__2 = lc - 1) < 6 && 0 <= i__2 ? i__2 : s_rnge("dtauc", 
+		    i__2, "testdo_", (ftnlen)1066)] = (doublereal) lc;
+	    ssalb[(i__2 = lc - 1) < 6 && 0 <= i__2 ? i__2 : s_rnge("ssalb", 
+		    i__2, "testdo_", (ftnlen)1067)] = lc * .05 + .6;
 	    d__1 = (doublereal) lc / (nlyr + 1);
-	    getmom_(&c__3, &d__1, &nstr, &pmom[lc * 49 - 49]);
-	    temper[lc] = lc * 10. + 600.;
+	    getmom_(&c__3, &d__1, &nstr, &pmom[(i__2 = lc * 49 - 49) < 294 && 
+		    0 <= i__2 ? i__2 : s_rnge("pmom", i__2, "testdo_", (
+		    ftnlen)1068)]);
+	    temper[(i__2 = lc) < 7 && 0 <= i__2 ? i__2 : s_rnge("temper", 
+		    i__2, "testdo_", (ftnlen)1069)] = lc * 10. + 600.;
 /* L97: */
 	}
 	usrtau = TRUE_;
@@ -2037,18 +2123,34 @@ nclude all possible complexity", (ftnlen)127, (ftnlen)74);
 		    albmed, trnmed, (ftnlen)127);
 	    if (icas == 1) {
 /*                               ** Save results to compare to case 2 */
-		i__2 = ntau;
-		for (lu = 1; lu <= i__2; ++lu) {
-		    cmpfir[lu - 1] = rfldir[lu - 1];
-		    cmpfdn[lu - 1] = rfldn[lu - 1];
-		    cmpfup[lu - 1] = flup[lu - 1];
-		    cmpdfd[lu - 1] = dfdt[lu - 1];
-		    i__3 = numu;
-		    for (iu = 1; iu <= i__3; ++iu) {
-			i__4 = nphi;
-			for (j = 1; j <= i__4; ++j) {
-			    cmpuu[lu + (iu + j * 10) * 5 - 56] = uu[iu + (lu 
-				    + j * 5) * 10 - 61];
+		i__1 = ntau;
+		for (lu = 1; lu <= i__1; ++lu) {
+		    cmpfir[(i__2 = lu - 1) < 5 && 0 <= i__2 ? i__2 : s_rnge(
+			    "cmpfir", i__2, "testdo_", (ftnlen)1131)] = 
+			    rfldir[(i__3 = lu - 1) < 5 && 0 <= i__3 ? i__3 : 
+			    s_rnge("rfldir", i__3, "testdo_", (ftnlen)1131)];
+		    cmpfdn[(i__2 = lu - 1) < 5 && 0 <= i__2 ? i__2 : s_rnge(
+			    "cmpfdn", i__2, "testdo_", (ftnlen)1132)] = rfldn[
+			    (i__3 = lu - 1) < 5 && 0 <= i__3 ? i__3 : s_rnge(
+			    "rfldn", i__3, "testdo_", (ftnlen)1132)];
+		    cmpfup[(i__2 = lu - 1) < 5 && 0 <= i__2 ? i__2 : s_rnge(
+			    "cmpfup", i__2, "testdo_", (ftnlen)1133)] = flup[(
+			    i__3 = lu - 1) < 5 && 0 <= i__3 ? i__3 : s_rnge(
+			    "flup", i__3, "testdo_", (ftnlen)1133)];
+		    cmpdfd[(i__2 = lu - 1) < 5 && 0 <= i__2 ? i__2 : s_rnge(
+			    "cmpdfd", i__2, "testdo_", (ftnlen)1134)] = dfdt[(
+			    i__3 = lu - 1) < 5 && 0 <= i__3 ? i__3 : s_rnge(
+			    "dfdt", i__3, "testdo_", (ftnlen)1134)];
+		    i__2 = numu;
+		    for (iu = 1; iu <= i__2; ++iu) {
+			i__3 = nphi;
+			for (j = 1; j <= i__3; ++j) {
+			    cmpuu[(i__4 = lu + (iu + j * 10) * 5 - 56) < 150 
+				    && 0 <= i__4 ? i__4 : s_rnge("cmpuu", 
+				    i__4, "testdo_", (ftnlen)1137)] = uu[(
+				    i__5 = iu + (lu + j * 5) * 10 - 61) < 150 
+				    && 0 <= i__5 ? i__5 : s_rnge("uu", i__5, 
+				    "testdo_", (ftnlen)1137)];
 /* L98: */
 			}
 		    }
@@ -2108,11 +2210,19 @@ nclude all possible complexity", (ftnlen)127, (ftnlen)74);
 Layer", (ftnlen)127, (ftnlen)49);
 	    } else if (icas == 2) {
 		nlyr = ntau - 1;
-		i__4 = nlyr;
-		for (lc = 1; lc <= i__4; ++lc) {
-		    dtauc[lc - 1] = utau[lc] - utau[lc - 1];
-		    ssalb[lc - 1] = .9;
-		    getmom_(&c__1, &c_b2, &nstr, &pmom[lc * 49 - 49]);
+		i__3 = nlyr;
+		for (lc = 1; lc <= i__3; ++lc) {
+		    dtauc[(i__2 = lc - 1) < 6 && 0 <= i__2 ? i__2 : s_rnge(
+			    "dtauc", i__2, "testdo_", (ftnlen)1206)] = utau[(
+			    i__1 = lc) < 5 && 0 <= i__1 ? i__1 : s_rnge("utau"
+			    , i__1, "testdo_", (ftnlen)1206)] - utau[(i__4 = 
+			    lc - 1) < 5 && 0 <= i__4 ? i__4 : s_rnge("utau", 
+			    i__4, "testdo_", (ftnlen)1206)];
+		    ssalb[(i__2 = lc - 1) < 6 && 0 <= i__2 ? i__2 : s_rnge(
+			    "ssalb", i__2, "testdo_", (ftnlen)1207)] = .9;
+		    getmom_(&c__1, &c_b2, &nstr, &pmom[(i__2 = lc * 49 - 49) <
+			     294 && 0 <= i__2 ? i__2 : s_rnge("pmom", i__2, 
+			    "testdo_", (ftnlen)1208)]);
 /* L107: */
 		}
 		usrtau = FALSE_;
@@ -2130,18 +2240,34 @@ s multiple layers", (ftnlen)127, (ftnlen)61);
 		    albmed, trnmed, (ftnlen)127);
 	    if (icas == 1) {
 /*                               ** Save results to compare to case 2 */
-		i__4 = ntau;
-		for (lu = 1; lu <= i__4; ++lu) {
-		    cmpfir[lu - 1] = rfldir[lu - 1];
-		    cmpfdn[lu - 1] = rfldn[lu - 1];
-		    cmpfup[lu - 1] = flup[lu - 1];
-		    cmpdfd[lu - 1] = dfdt[lu - 1];
-		    i__3 = numu;
-		    for (iu = 1; iu <= i__3; ++iu) {
-			i__2 = nphi;
-			for (j = 1; j <= i__2; ++j) {
-			    cmpuu[lu + (iu + j * 10) * 5 - 56] = uu[iu + (lu 
-				    + j * 5) * 10 - 61];
+		i__3 = ntau;
+		for (lu = 1; lu <= i__3; ++lu) {
+		    cmpfir[(i__2 = lu - 1) < 5 && 0 <= i__2 ? i__2 : s_rnge(
+			    "cmpfir", i__2, "testdo_", (ftnlen)1229)] = 
+			    rfldir[(i__1 = lu - 1) < 5 && 0 <= i__1 ? i__1 : 
+			    s_rnge("rfldir", i__1, "testdo_", (ftnlen)1229)];
+		    cmpfdn[(i__2 = lu - 1) < 5 && 0 <= i__2 ? i__2 : s_rnge(
+			    "cmpfdn", i__2, "testdo_", (ftnlen)1230)] = rfldn[
+			    (i__1 = lu - 1) < 5 && 0 <= i__1 ? i__1 : s_rnge(
+			    "rfldn", i__1, "testdo_", (ftnlen)1230)];
+		    cmpfup[(i__2 = lu - 1) < 5 && 0 <= i__2 ? i__2 : s_rnge(
+			    "cmpfup", i__2, "testdo_", (ftnlen)1231)] = flup[(
+			    i__1 = lu - 1) < 5 && 0 <= i__1 ? i__1 : s_rnge(
+			    "flup", i__1, "testdo_", (ftnlen)1231)];
+		    cmpdfd[(i__2 = lu - 1) < 5 && 0 <= i__2 ? i__2 : s_rnge(
+			    "cmpdfd", i__2, "testdo_", (ftnlen)1232)] = dfdt[(
+			    i__1 = lu - 1) < 5 && 0 <= i__1 ? i__1 : s_rnge(
+			    "dfdt", i__1, "testdo_", (ftnlen)1232)];
+		    i__2 = numu;
+		    for (iu = 1; iu <= i__2; ++iu) {
+			i__1 = nphi;
+			for (j = 1; j <= i__1; ++j) {
+			    cmpuu[(i__4 = lu + (iu + j * 10) * 5 - 56) < 150 
+				    && 0 <= i__4 ? i__4 : s_rnge("cmpuu", 
+				    i__4, "testdo_", (ftnlen)1235)] = uu[(
+				    i__5 = iu + (lu + j * 5) * 10 - 61) < 150 
+				    && 0 <= i__5 ? i__5 : s_rnge("uu", i__5, 
+				    "testdo_", (ftnlen)1235)];
 /* L108: */
 			}
 		    }
@@ -2187,7 +2313,7 @@ s multiple layers", (ftnlen)127, (ftnlen)61);
 		nlyr = 1;
 		dtauc[0] = 20.1;
 		ssalb[0] = .5;
-		getmom_(&c__3, &c_b277, &nstr, pmom);
+		getmom_(&c__3, &c_b457, &nstr, pmom);
 		usrtau = TRUE_;
 		ntau = 4;
 		utau[0] = 0.;
@@ -2200,11 +2326,19 @@ s multiple layers", (ftnlen)127, (ftnlen)61);
 bsorbing/Scattering Medium", (ftnlen)127, (ftnlen)70);
 	    } else if (icas == 2) {
 		nlyr = ntau - 1;
-		i__2 = nlyr;
-		for (lc = 1; lc <= i__2; ++lc) {
-		    dtauc[lc - 1] = utau[lc] - utau[lc - 1];
-		    ssalb[lc - 1] = .5;
-		    getmom_(&c__3, &c_b277, &nstr, &pmom[lc * 49 - 49]);
+		i__1 = nlyr;
+		for (lc = 1; lc <= i__1; ++lc) {
+		    dtauc[(i__2 = lc - 1) < 6 && 0 <= i__2 ? i__2 : s_rnge(
+			    "dtauc", i__2, "testdo_", (ftnlen)1304)] = utau[(
+			    i__3 = lc) < 5 && 0 <= i__3 ? i__3 : s_rnge("utau"
+			    , i__3, "testdo_", (ftnlen)1304)] - utau[(i__4 = 
+			    lc - 1) < 5 && 0 <= i__4 ? i__4 : s_rnge("utau", 
+			    i__4, "testdo_", (ftnlen)1304)];
+		    ssalb[(i__2 = lc - 1) < 6 && 0 <= i__2 ? i__2 : s_rnge(
+			    "ssalb", i__2, "testdo_", (ftnlen)1305)] = .5;
+		    getmom_(&c__3, &c_b457, &nstr, &pmom[(i__2 = lc * 49 - 49)
+			     < 294 && 0 <= i__2 ? i__2 : s_rnge("pmom", i__2, 
+			    "testdo_", (ftnlen)1306)]);
 /* L117: */
 		}
 		usrtau = FALSE_;
@@ -2222,18 +2356,34 @@ tcut for absorption optical depth .GT. 10", (ftnlen)127, (ftnlen)85);
 		    albmed, trnmed, (ftnlen)127);
 	    if (icas == 1) {
 /*                               ** Save results to compare to case 2 */
-		i__2 = ntau;
-		for (lu = 1; lu <= i__2; ++lu) {
-		    cmpfir[lu - 1] = rfldir[lu - 1];
-		    cmpfdn[lu - 1] = rfldn[lu - 1];
-		    cmpfup[lu - 1] = flup[lu - 1];
-		    cmpdfd[lu - 1] = dfdt[lu - 1];
-		    i__3 = numu;
-		    for (iu = 1; iu <= i__3; ++iu) {
-			i__4 = nphi;
-			for (j = 1; j <= i__4; ++j) {
-			    cmpuu[lu + (iu + j * 10) * 5 - 56] = uu[iu + (lu 
-				    + j * 5) * 10 - 61];
+		i__1 = ntau;
+		for (lu = 1; lu <= i__1; ++lu) {
+		    cmpfir[(i__2 = lu - 1) < 5 && 0 <= i__2 ? i__2 : s_rnge(
+			    "cmpfir", i__2, "testdo_", (ftnlen)1327)] = 
+			    rfldir[(i__3 = lu - 1) < 5 && 0 <= i__3 ? i__3 : 
+			    s_rnge("rfldir", i__3, "testdo_", (ftnlen)1327)];
+		    cmpfdn[(i__2 = lu - 1) < 5 && 0 <= i__2 ? i__2 : s_rnge(
+			    "cmpfdn", i__2, "testdo_", (ftnlen)1328)] = rfldn[
+			    (i__3 = lu - 1) < 5 && 0 <= i__3 ? i__3 : s_rnge(
+			    "rfldn", i__3, "testdo_", (ftnlen)1328)];
+		    cmpfup[(i__2 = lu - 1) < 5 && 0 <= i__2 ? i__2 : s_rnge(
+			    "cmpfup", i__2, "testdo_", (ftnlen)1329)] = flup[(
+			    i__3 = lu - 1) < 5 && 0 <= i__3 ? i__3 : s_rnge(
+			    "flup", i__3, "testdo_", (ftnlen)1329)];
+		    cmpdfd[(i__2 = lu - 1) < 5 && 0 <= i__2 ? i__2 : s_rnge(
+			    "cmpdfd", i__2, "testdo_", (ftnlen)1330)] = dfdt[(
+			    i__3 = lu - 1) < 5 && 0 <= i__3 ? i__3 : s_rnge(
+			    "dfdt", i__3, "testdo_", (ftnlen)1330)];
+		    i__2 = numu;
+		    for (iu = 1; iu <= i__2; ++iu) {
+			i__3 = nphi;
+			for (j = 1; j <= i__3; ++j) {
+			    cmpuu[(i__4 = lu + (iu + j * 10) * 5 - 56) < 150 
+				    && 0 <= i__4 ? i__4 : s_rnge("cmpuu", 
+				    i__4, "testdo_", (ftnlen)1333)] = uu[(
+				    i__5 = iu + (lu + j * 5) * 10 - 61) < 150 
+				    && 0 <= i__5 ? i__5 : s_rnge("uu", i__5, 
+				    "testdo_", (ftnlen)1333)];
 /* L118: */
 			}
 		    }
@@ -2266,7 +2416,7 @@ tcut for absorption optical depth .GT. 10", (ftnlen)127, (ftnlen)85);
 		nlyr = 1;
 		dtauc[0] = 1.;
 		ssalb[0] = .99;
-		getmom_(&c__3, &c_b169, &nstr, pmom);
+		getmom_(&c__3, &c_b243, &nstr, pmom);
 		prnt[5] = TRUE_;
 		prnt[1] = FALSE_;
 		usrang = TRUE_;
@@ -2295,10 +2445,14 @@ y by Regular Method, Single Layer", (ftnlen)127, (ftnlen)77);
 		prnt[5] = TRUE_;
 		prnt[1] = FALSE_;
 		nlyr = 2;
-		i__4 = nlyr;
-		for (lc = 1; lc <= i__4; ++lc) {
-		    dtauc[lc - 1] = 1. / nlyr;
-		    getmom_(&c__3, &c_b169, &nstr, &pmom[lc * 49 - 49]);
+		i__3 = nlyr;
+		for (lc = 1; lc <= i__3; ++lc) {
+		    dtauc[(i__2 = lc - 1) < 6 && 0 <= i__2 ? i__2 : s_rnge(
+			    "dtauc", i__2, "testdo_", (ftnlen)1407)] = 1. / 
+			    nlyr;
+		    getmom_(&c__3, &c_b243, &nstr, &pmom[(i__2 = lc * 49 - 49)
+			     < 294 && 0 <= i__2 ? i__2 : s_rnge("pmom", i__2, 
+			    "testdo_", (ftnlen)1408)]);
 /* L125: */
 		}
 		ssalb[0] = .99;
@@ -2371,9 +2525,10 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
 	    .001,.001,.001,.001 };
 
     /* System generated locals */
-    integer i__1;
+    integer pmom_dim1, i__1, i__2, i__3;
 
     /* Builtin functions */
+    integer s_rnge(char *, integer, char *, integer);
     double pow_di(doublereal *, integer *);
 
     /* Local variables */
@@ -2411,6 +2566,10 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
 /*     .. */
 /*     .. Intrinsic Functions .. */
 /*     .. */
+    /* Parameter adjustments */
+    pmom_dim1 = *nmom - 0 + 1;
+
+    /* Function Body */
     if (*iphas < 1 || *iphas > 5) {
 	errmsg_("GETMOM--bad input variable IPHAS", &c_true, (ftnlen)32);
     }
@@ -2420,34 +2579,44 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
     if (*nmom < 2) {
 	errmsg_("GETMOM--bad input variable NMOM", &c_true, (ftnlen)31);
     }
-    pmom[0] = 1.;
+    pmom[(i__1 = 0) < 1 * pmom_dim1 ? i__1 : s_rnge("pmom", i__1, "getmom_", (
+	    ftnlen)1554)] = 1.;
     i__1 = *nmom;
     for (k = 1; k <= i__1; ++k) {
-	pmom[k] = 0.;
+	pmom[(i__2 = k) < 1 * pmom_dim1 && 0 <= i__2 ? i__2 : s_rnge("pmom", 
+		i__2, "getmom_", (ftnlen)1556)] = 0.;
 /* L10: */
     }
     if (*iphas == 2) {
 /*                                       ** Rayleigh phase function */
-	pmom[2] = .1;
+	pmom[(i__1 = 2) < 1 * pmom_dim1 ? i__1 : s_rnge("pmom", i__1, "getmo\
+m_", (ftnlen)1562)] = .1;
     } else if (*iphas == 3) {
 /*                                       ** Henyey-Greenstein phase fcn */
 	i__1 = *nmom;
 	for (k = 1; k <= i__1; ++k) {
-	    pmom[k] = pow_di(gg, &k);
+	    pmom[(i__2 = k) < 1 * pmom_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		    "pmom", i__2, "getmom_", (ftnlen)1567)] = pow_di(gg, &k);
 /* L20: */
 	}
     } else if (*iphas == 4) {
 /*                                        ** Haze-L phase function */
 	i__1 = min(82,*nmom);
 	for (k = 1; k <= i__1; ++k) {
-	    pmom[k] = hazelm[k - 1] / ((k << 1) + 1);
+	    pmom[(i__2 = k) < 1 * pmom_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		    "pmom", i__2, "getmom_", (ftnlen)1573)] = hazelm[(i__3 = 
+		    k - 1) < 82 && 0 <= i__3 ? i__3 : s_rnge("hazelm", i__3, 
+		    "getmom_", (ftnlen)1573)] / ((k << 1) + 1);
 /* L30: */
 	}
     } else if (*iphas == 5) {
 /*                                        ** Cloud C.1 phase function */
 	i__1 = min(298,*nmom);
 	for (k = 1; k <= i__1; ++k) {
-	    pmom[k] = cldmom[k - 1] / ((k << 1) + 1);
+	    pmom[(i__2 = k) < 1 * pmom_dim1 && 0 <= i__2 ? i__2 : s_rnge(
+		    "pmom", i__2, "getmom_", (ftnlen)1579)] = cldmom[(i__3 = 
+		    k - 1) < 299 && 0 <= i__3 ? i__3 : s_rnge("cldmom", i__3, 
+		    "getmom_", (ftnlen)1579)] / ((k << 1) + 1);
 /* L40: */
 	}
     }
@@ -2467,12 +2636,14 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
 ))";
 
     /* System generated locals */
-    integer tstuu_dim1, tstuu_dim2, tstuu_offset, u0u_dim1, u0u_offset, 
-	    uu_dim1, uu_dim2, uu_offset, i__1, i__2, i__3;
+    integer tstuu_dim1, tstuu_dim2, tstuu_dim3, tstuu_offset, u0u_dim1, 
+	    u0u_offset, uu_dim1, uu_dim2, uu_offset, i__1, i__2, i__3, i__4, 
+	    i__5;
     doublereal d__1, d__2;
 
     /* Builtin functions */
-    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
+    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe(), 
+	    s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
     static integer j, iu, lu;
@@ -2533,28 +2704,15 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
 /*     .. Statement Function definitions .. */
 /*     .. */
     /* Parameter adjustments */
-    --utau;
-    --umu;
-    --phi;
     uu_dim1 = *maxumu;
     uu_dim2 = *maxulv;
     uu_offset = 1 + uu_dim1 * (1 + uu_dim2);
-    uu -= uu_offset;
     u0u_dim1 = *maxumu;
     u0u_offset = 1 + u0u_dim1;
-    u0u -= u0u_offset;
-    --rfldir;
-    --rfldn;
-    --flup;
-    --dfdt;
-    --tstfir;
-    --tstfdn;
-    --tstfup;
-    --tstdfd;
     tstuu_dim1 = *maxtau;
     tstuu_dim2 = *maxmu;
+    tstuu_dim3 = *maxaz;
     tstuu_offset = 1 + tstuu_dim1 * (1 + tstuu_dim2);
-    tstuu -= tstuu_offset;
 
     /* Function Body */
     if (*ntau > *maxtau || *numu > *maxmu || *nphi > *maxaz) {
@@ -2565,8 +2723,8 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
     i__1 = *ntau;
     for (lu = 1; lu <= i__1; ++lu) {
 /* Computing MAX */
-	d__1 = flxmax, d__2 = tstfir[lu], d__1 = max(d__1,d__2), d__2 = 
-		tstfdn[lu], d__1 = max(d__1,d__2), d__2 = tstfup[lu];
+	d__1 = flxmax, d__2 = tstfir[lu - 1], d__1 = max(d__1,d__2), d__2 = 
+		tstfdn[lu - 1], d__1 = max(d__1,d__2), d__2 = tstfup[lu - 1];
 	flxmax = max(d__1,d__2);
 /* L5: */
     }
@@ -2589,35 +2747,35 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
     i__1 = *ntau;
     for (lu = 1; lu <= i__1; ++lu) {
 	s_wsfe(&io___79);
-	do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(doublereal));
-	do_fio(&c__1, (char *)&rfldir[lu], (ftnlen)sizeof(doublereal));
-	do_fio(&c__1, (char *)&rfldn[lu], (ftnlen)sizeof(doublereal));
-	do_fio(&c__1, (char *)&flup[lu], (ftnlen)sizeof(doublereal));
-	do_fio(&c__1, (char *)&dfdt[lu], (ftnlen)sizeof(doublereal));
+	do_fio(&c__1, (char *)&utau[lu - 1], (ftnlen)sizeof(doublereal));
+	do_fio(&c__1, (char *)&rfldir[lu - 1], (ftnlen)sizeof(doublereal));
+	do_fio(&c__1, (char *)&rfldn[lu - 1], (ftnlen)sizeof(doublereal));
+	do_fio(&c__1, (char *)&flup[lu - 1], (ftnlen)sizeof(doublereal));
+	do_fio(&c__1, (char *)&dfdt[lu - 1], (ftnlen)sizeof(doublereal));
 	e_wsfe();
-	rat1 = ratio_(&rfldir[lu], &tstfir[lu]);
-	rat2 = ratio_(&rfldn[lu], &tstfdn[lu]);
-	rat3 = ratio_(&flup[lu], &tstfup[lu]);
-	rat4 = ratio_(&dfdt[lu], &tstdfd[lu]);
+	rat1 = ratio_(&rfldir[lu - 1], &tstfir[lu - 1]);
+	rat2 = ratio_(&rfldn[lu - 1], &tstfdn[lu - 1]);
+	rat3 = ratio_(&flup[lu - 1], &tstfup[lu - 1]);
+	rat4 = ratio_(&dfdt[lu - 1], &tstdfd[lu - 1]);
 	s_wsfe(&io___84);
 	do_fio(&c__1, (char *)&rat1, (ftnlen)sizeof(doublereal));
 	do_fio(&c__1, (char *)&rat2, (ftnlen)sizeof(doublereal));
 	do_fio(&c__1, (char *)&rat3, (ftnlen)sizeof(doublereal));
 	do_fio(&c__1, (char *)&rat4, (ftnlen)sizeof(doublereal));
 	e_wsfe();
-	if ((rat1 < .99 || rat1 > 1.01) && (d__1 = rfldir[lu], abs(d__1)) > 
+	if ((rat1 < .99 || rat1 > 1.01) && (d__1 = rfldir[lu - 1], abs(d__1)) 
+		> fnoise) {
+	    ++numbad;
+	}
+	if ((rat2 < .99 || rat2 > 1.01) && (d__1 = rfldn[lu - 1], abs(d__1)) 
+		> fnoise) {
+	    ++numbad;
+	}
+	if ((rat3 < .99 || rat3 > 1.01) && (d__1 = flup[lu - 1], abs(d__1)) > 
 		fnoise) {
 	    ++numbad;
 	}
-	if ((rat2 < .99 || rat2 > 1.01) && (d__1 = rfldn[lu], abs(d__1)) > 
-		fnoise) {
-	    ++numbad;
-	}
-	if ((rat3 < .99 || rat3 > 1.01) && (d__1 = flup[lu], abs(d__1)) > 
-		fnoise) {
-	    ++numbad;
-	}
-	if ((rat4 < .99 || rat4 > 1.01) && (d__1 = dfdt[lu], abs(d__1)) > 
+	if ((rat4 < .99 || rat4 > 1.01) && (d__1 = dfdt[lu - 1], abs(d__1)) > 
 		fnoise) {
 	    ++numbad;
 	}
@@ -2641,8 +2799,10 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
 	    i__2 = *numu;
 	    for (iu = 1; iu <= i__2; ++iu) {
 /* Computing MAX */
-		d__1 = umax, d__2 = tstuu[lu + (iu + tstuu_dim2) * tstuu_dim1]
-			;
+		d__1 = umax, d__2 = tstuu[(i__3 = lu + (iu + tstuu_dim2) * 
+			tstuu_dim1 - tstuu_offset) < 1 * tstuu_dim1 * 
+			tstuu_dim2 * tstuu_dim3 && 0 <= i__3 ? i__3 : s_rnge(
+			"tstuu", i__3, "prtfin_", (ftnlen)1716)];
 		umax = max(d__1,d__2);
 /* L15: */
 	    }
@@ -2664,25 +2824,34 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
 	do_fio(&c__1, "     Depth", (ftnlen)10);
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&umu[iu - 1], (ftnlen)sizeof(doublereal));
 	}
 	e_wsfe();
 	i__1 = *ntau;
 	for (lu = 1; lu <= i__1; ++lu) {
 	    s_wsfe(&io___89);
-	    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&utau[lu - 1], (ftnlen)sizeof(doublereal));
 	    i__2 = *numu;
 	    for (iu = 1; iu <= i__2; ++iu) {
-		do_fio(&c__1, (char *)&u0u[iu + lu * u0u_dim1], (ftnlen)
-			sizeof(doublereal));
+		do_fio(&c__1, (char *)&u0u[iu + lu * u0u_dim1 - u0u_offset], (
+			ftnlen)sizeof(doublereal));
 	    }
 	    e_wsfe();
 	    i__2 = *numu;
 	    for (iu = 1; iu <= i__2; ++iu) {
-		ratv[iu - 1] = ratio_(&u0u[iu + lu * u0u_dim1], &tstuu[lu + (
-			iu + tstuu_dim2) * tstuu_dim1]);
-		if ((ratv[iu - 1] < .99 || ratv[iu - 1] > 1.01) && (d__1 = 
-			u0u[iu + lu * u0u_dim1], abs(d__1)) > unoise) {
+		ratv[(i__3 = iu - 1) < 100 && 0 <= i__3 ? i__3 : s_rnge("ratv"
+			, i__3, "prtfin_", (ftnlen)1736)] = ratio_(&u0u[iu + 
+			lu * u0u_dim1 - u0u_offset], &tstuu[(i__4 = lu + (iu 
+			+ tstuu_dim2) * tstuu_dim1 - tstuu_offset) < 1 * 
+			tstuu_dim1 * tstuu_dim2 * tstuu_dim3 && 0 <= i__4 ? 
+			i__4 : s_rnge("tstuu", i__4, "prtfin_", (ftnlen)1736)]
+			);
+		if ((ratv[(i__3 = iu - 1) < 100 && 0 <= i__3 ? i__3 : s_rnge(
+			"ratv", i__3, "prtfin_", (ftnlen)1737)] < .99 || ratv[
+			(i__3 = iu - 1) < 100 && 0 <= i__3 ? i__3 : s_rnge(
+			"ratv", i__3, "prtfin_", (ftnlen)1737)] > 1.01) && (
+			d__1 = u0u[iu + lu * u0u_dim1 - u0u_offset], abs(d__1)
+			) > unoise) {
 		    ++numbad;
 		}
 /* L20: */
@@ -2690,8 +2859,9 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
 	    s_wsfe(&io___91);
 	    i__2 = *numu;
 	    for (iu = 1; iu <= i__2; ++iu) {
-		do_fio(&c__1, (char *)&ratv[iu - 1], (ftnlen)sizeof(
-			doublereal));
+		do_fio(&c__1, (char *)&ratv[(i__3 = iu - 1) < 100 && 0 <= 
+			i__3 ? i__3 : s_rnge("ratv", i__3, "prtfin_", (ftnlen)
+			1741)], (ftnlen)sizeof(doublereal));
 	    }
 	    e_wsfe();
 /* L30: */
@@ -2705,13 +2875,16 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
 	umax = 0.;
 	i__1 = *ntau;
 	for (lu = 1; lu <= i__1; ++lu) {
-	    i__2 = *numu;
-	    for (iu = 1; iu <= i__2; ++iu) {
-		i__3 = *nphi;
-		for (j = 1; j <= i__3; ++j) {
+	    i__3 = *numu;
+	    for (iu = 1; iu <= i__3; ++iu) {
+		i__2 = *nphi;
+		for (j = 1; j <= i__2; ++j) {
 /* Computing MAX */
-		    d__1 = umax, d__2 = tstuu[lu + (iu + j * tstuu_dim2) * 
-			    tstuu_dim1];
+		    d__1 = umax, d__2 = tstuu[(i__4 = lu + (iu + j * 
+			    tstuu_dim2) * tstuu_dim1 - tstuu_offset) < 1 * 
+			    tstuu_dim1 * tstuu_dim2 * tstuu_dim3 && 0 <= i__4 
+			    ? i__4 : s_rnge("tstuu", i__4, "prtfin_", (ftnlen)
+			    1757)];
 		    umax = max(d__1,d__2);
 /* L34: */
 		}
@@ -2737,54 +2910,65 @@ y by Regular Method, Multiple Layer", (ftnlen)127, (ftnlen)79);
 	do_fio(&c__1, "     Depth  Cosine", (ftnlen)18);
 	i__1 = *nphi;
 	for (j = 1; j <= i__1; ++j) {
-	    do_fio(&c__1, (char *)&phi[j], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&phi[j - 1], (ftnlen)sizeof(doublereal));
 	}
 	e_wsfe();
 	i__1 = *ntau;
 	for (lu = 1; lu <= i__1; ++lu) {
-	    i__2 = *numu;
-	    for (iu = 1; iu <= i__2; ++iu) {
+	    i__3 = *numu;
+	    for (iu = 1; iu <= i__3; ++iu) {
 		if (iu == 1) {
 		    s_wsfe(&io___94);
-		    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(
+		    do_fio(&c__1, (char *)&utau[lu - 1], (ftnlen)sizeof(
 			    doublereal));
-		    do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(doublereal)
-			    );
-		    i__3 = *nphi;
-		    for (j = 1; j <= i__3; ++j) {
+		    do_fio(&c__1, (char *)&umu[iu - 1], (ftnlen)sizeof(
+			    doublereal));
+		    i__2 = *nphi;
+		    for (j = 1; j <= i__2; ++j) {
 			do_fio(&c__1, (char *)&uu[iu + (lu + j * uu_dim2) * 
-				uu_dim1], (ftnlen)sizeof(doublereal));
+				uu_dim1 - uu_offset], (ftnlen)sizeof(
+				doublereal));
 		    }
 		    e_wsfe();
 		}
 		if (iu > 1) {
 		    s_wsfe(&io___95);
-		    do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(doublereal)
-			    );
-		    i__3 = *nphi;
-		    for (j = 1; j <= i__3; ++j) {
+		    do_fio(&c__1, (char *)&umu[iu - 1], (ftnlen)sizeof(
+			    doublereal));
+		    i__2 = *nphi;
+		    for (j = 1; j <= i__2; ++j) {
 			do_fio(&c__1, (char *)&uu[iu + (lu + j * uu_dim2) * 
-				uu_dim1], (ftnlen)sizeof(doublereal));
+				uu_dim1 - uu_offset], (ftnlen)sizeof(
+				doublereal));
 		    }
 		    e_wsfe();
 		}
-		i__3 = *nphi;
-		for (j = 1; j <= i__3; ++j) {
-		    ratv[j - 1] = ratio_(&uu[iu + (lu + j * uu_dim2) * 
-			    uu_dim1], &tstuu[lu + (iu + j * tstuu_dim2) * 
-			    tstuu_dim1]);
-		    if ((ratv[j - 1] < .99 || ratv[j - 1] > 1.01) && (d__1 = 
-			    uu[iu + (lu + j * uu_dim2) * uu_dim1], abs(d__1)) 
-			    > unoise) {
+		i__2 = *nphi;
+		for (j = 1; j <= i__2; ++j) {
+		    ratv[(i__4 = j - 1) < 100 && 0 <= i__4 ? i__4 : s_rnge(
+			    "ratv", i__4, "prtfin_", (ftnlen)1784)] = ratio_(&
+			    uu[iu + (lu + j * uu_dim2) * uu_dim1 - uu_offset],
+			     &tstuu[(i__5 = lu + (iu + j * tstuu_dim2) * 
+			    tstuu_dim1 - tstuu_offset) < 1 * tstuu_dim1 * 
+			    tstuu_dim2 * tstuu_dim3 && 0 <= i__5 ? i__5 : 
+			    s_rnge("tstuu", i__5, "prtfin_", (ftnlen)1784)]);
+		    if ((ratv[(i__4 = j - 1) < 100 && 0 <= i__4 ? i__4 : 
+			    s_rnge("ratv", i__4, "prtfin_", (ftnlen)1785)] < 
+			    .99 || ratv[(i__4 = j - 1) < 100 && 0 <= i__4 ? 
+			    i__4 : s_rnge("ratv", i__4, "prtfin_", (ftnlen)
+			    1785)] > 1.01) && (d__1 = uu[iu + (lu + j * 
+			    uu_dim2) * uu_dim1 - uu_offset], abs(d__1)) > 
+			    unoise) {
 			++numbad;
 		    }
 /* L40: */
 		}
 		s_wsfe(&io___96);
-		i__3 = *nphi;
-		for (j = 1; j <= i__3; ++j) {
-		    do_fio(&c__1, (char *)&ratv[j - 1], (ftnlen)sizeof(
-			    doublereal));
+		i__2 = *nphi;
+		for (j = 1; j <= i__2; ++j) {
+		    do_fio(&c__1, (char *)&ratv[(i__4 = j - 1) < 100 && 0 <= 
+			    i__4 ? i__4 : s_rnge("ratv", i__4, "prtfin_", (
+			    ftnlen)1789)], (ftnlen)sizeof(doublereal));
 		}
 		e_wsfe();
 /* L50: */
