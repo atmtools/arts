@@ -1,5 +1,17 @@
 2006-02-20  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1072
+
+	* src/DISORT_*.c:
+
+	Regenerate with large enough array sizes:
+
+	MXCLY = 6 -> 100
+	MXULV = 5 -> 2*MXCLY
+	MXUMU = 10 -> 48
+
+2006-02-20  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1071
 
 	* src/m_disort.cc: Fill header variable with 0s. Length must be 127.

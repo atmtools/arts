@@ -21,7 +21,7 @@ static integer c__1 = 1;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* RCS version control information: */
-/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_LINPAK.c,v 1.3 2006/02/20 09:15:58 olemke Exp $ */
+/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_LINPAK.c,v 1.4 2006/02/20 10:18:34 olemke Exp $ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* Call tree: */
 
