@@ -295,7 +295,10 @@ c     .. Parameters ..
 
       INTEGER   MXCLY, MXULV, MXCMU, MXUMU, MXPHI, MI, MI9M2, NNLYRI,
      &          MXSQT
-      PARAMETER ( MXCLY = 6, MXULV = 5, MXCMU = 48, MXUMU = 10,
+c      PARAMETER ( MXCLY = 6, MXULV = 5, MXCMU = 48, MXUMU = 10,
+c    &          MXPHI = 3, MI = MXCMU / 2, MI9M2 = 9*MI - 2,
+c    &          NNLYRI = MXCMU*MXCLY, MXSQT = 1000 )
+      PARAMETER ( MXCLY = 100, MXULV = 2*MXCLY, MXCMU = 48, MXUMU = 48,
      &          MXPHI = 3, MI = MXCMU / 2, MI9M2 = 9*MI - 2,
      &          NNLYRI = MXCMU*MXCLY, MXSQT = 1000 )
 c     ..
@@ -4341,7 +4344,7 @@ c                    ** angles does not assume unphysical values
 
       IF( PLANK .AND. IBCND.NE.1 ) THEN
 
-         IF( WVNMLO.LT.0.0 .OR. WVNMHI.LE.WVNMLO )
+         IF( WVNMLO.LT.0.0 .OR. WVNMHI.LT.WVNMLO )
      &       INPERR = WRTBAD( 'WVNMLO,HI' )
 
          IF( TEMIS.LT.0.0 .OR. TEMIS.GT.1.0 ) INPERR = WRTBAD( 'TEMIS' )
@@ -4775,8 +4778,8 @@ c     ..
 
       END IF
 
-
-      IF( T.LT.0.0 .OR. WNUMHI.LE.WNUMLO .OR. WNUMLO.LT.0. )
+      write(*,*) WNUMHI, WNUMLO
+      IF( T.LT.0.0 .OR. WNUMHI.LT.WNUMLO .OR. WNUMLO.LT.0. )
      &    CALL ERRMSG('PLKAVG--temperature or wavenums. wrong',.TRUE.)
 
 
@@ -4790,6 +4793,21 @@ c     ..
 
       V( 1 ) = C2*WNUMLO / T
       V( 2 ) = C2*WNUMHI / T
+
+
+c     (Added by CE) Included the monochromatic Planck function needed for 
+c     monochromatic arts calculations
+      if ( WNUMHI .eq. WNUMLO) then
+         wnumlo2 = wnumlo*100
+         plkconst = 6.6262e-34
+         speedlight = 299792458
+         boltz=1.380662e-23
+         a = 2*plkconst*speedlight
+         b =  plkconst*speedlight/boltz
+         plkavg = a*wnumlo2*wnumlo2*wnumlo2/(exp(b*wnumlo2/T)-1)
+         return
+      end if
+
 
       IF( V( 1 ).GT.EPSIL .AND. V( 2 ).LT.VMAX .AND.
      &    ( WNUMHI - WNUMLO ) / WNUMHI .LT. 1.E-2 ) THEN

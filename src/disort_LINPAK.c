@@ -1,13 +1,6 @@
-/* LINPAK.f -- translated by f2c (version 20050501).
-   You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
-
-		http://www.netlib.org/f2c/libf2c.zip
+/* LINPAK.f -- translated by f2c (version 20000121).
+   You must link the resulting object file with the libraries:
+	-lf2c -lm   (in that order)
 */
 
 #ifdef __cplusplus
@@ -21,7 +14,7 @@ static integer c__1 = 1;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* RCS version control information: */
-/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_LINPAK.c,v 1.4 2006/02/20 10:18:34 olemke Exp $ */
+/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_LINPAK.c,v 1.5 2006/02/21 17:18:46 claudia Exp $ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* Call tree: */
 
@@ -63,25 +56,26 @@ static integer c__1 = 1;
     double d_sign(doublereal *, doublereal *);
 
     /* Local variables */
+    static integer info;
+    extern doublereal sdot_(integer *, doublereal *, integer *, doublereal *, 
+	    integer *);
     static integer j, k, l, m;
+    extern /* Subroutine */ int sgbfa_(doublereal *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *);
     static doublereal s, t;
+    extern /* Subroutine */ int sscal_(integer *, doublereal *, doublereal *, 
+	    integer *);
+    static doublereal anorm;
+    extern doublereal sasum_(integer *, doublereal *, integer *);
+    static doublereal ynorm;
+    extern /* Subroutine */ int saxpy_(integer *, doublereal *, doublereal *, 
+	    integer *, doublereal *, integer *);
     static integer kb, la;
     static doublereal ek;
     static integer lm, mm, is, ju;
     static doublereal sm, wk;
     static integer lz, kp1;
     static doublereal wkm;
-    static integer info;
-    extern doublereal sdot_(integer *, doublereal *, integer *, doublereal *, 
-	    integer *);
-    extern /* Subroutine */ int sgbfa_(doublereal *, integer *, integer *, 
-	    integer *, integer *, integer *, integer *), sscal_(integer *, 
-	    doublereal *, doublereal *, integer *);
-    static doublereal anorm;
-    extern doublereal sasum_(integer *, doublereal *, integer *);
-    static doublereal ynorm;
-    extern /* Subroutine */ int saxpy_(integer *, doublereal *, doublereal *, 
-	    integer *, doublereal *, integer *);
 
 /*         Factors a real band matrix by Gaussian elimination */
 /*         and estimates the condition of the matrix. */
@@ -181,7 +175,7 @@ static integer c__1 = 1;
 /*                       ** compute 1-norm of A */
     /* Parameter adjustments */
     abd_dim1 = *lda;
-    abd_offset = 1 + abd_dim1;
+    abd_offset = 1 + abd_dim1 * 1;
 
     /* Function Body */
     anorm = 0.;
@@ -374,11 +368,14 @@ static integer c__1 = 1;
     /* Local variables */
     static integer i__, j, k, l, m;
     static doublereal t;
-    static integer i0, j0, j1, lm, mm, ju, jz, kp1, nm1;
     extern /* Subroutine */ int sscal_(integer *, doublereal *, doublereal *, 
-	    integer *), saxpy_(integer *, doublereal *, doublereal *, integer 
-	    *, doublereal *, integer *);
+	    integer *);
+    static integer i0, j0, j1;
+    extern /* Subroutine */ int saxpy_(integer *, doublereal *, doublereal *, 
+	    integer *, doublereal *, integer *);
+    static integer lm, mm, ju, jz;
     extern integer isamax_(integer *, doublereal *, integer *);
+    static integer kp1, nm1;
 
 /*         Factors a real band matrix by elimination. */
 /*         Revision date:  8/1/82 */
@@ -411,7 +408,7 @@ static integer c__1 = 1;
 /*     .. */
     /* Parameter adjustments */
     abd_dim1 = *lda;
-    abd_offset = 1 + abd_dim1;
+    abd_offset = 1 + abd_dim1 * 1;
 
     /* Function Body */
     m = *ml + *mu + 1;
@@ -507,13 +504,13 @@ static integer c__1 = 1;
     integer abd_dim1, abd_offset, i__1, i__2, i__3;
 
     /* Local variables */
-    static integer k, l, m;
-    static doublereal t;
-    static integer kb, la, lb, lm, nm1;
     extern doublereal sdot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
+    static integer k, l, m;
+    static doublereal t;
     extern /* Subroutine */ int saxpy_(integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *);
+    static integer kb, la, lb, lm, nm1;
 
 /*         Solves the real band system */
 /*            A * X = B  or  transpose(A) * X = B */
@@ -569,7 +566,7 @@ static integer c__1 = 1;
 /*     .. */
     /* Parameter adjustments */
     abd_dim1 = *lda;
-    abd_offset = 1 + abd_dim1;
+    abd_offset = 1 + abd_dim1 * 1;
 
     /* Function Body */
     m = *mu + *ml + 1;
@@ -654,15 +651,11 @@ static integer c__1 = 1;
     double d_sign(doublereal *, doublereal *);
 
     /* Local variables */
-    static integer j, k, l;
-    static doublereal s, t;
-    static integer kb;
-    static doublereal ek, sm, wk;
-    static integer kp1;
-    static doublereal wkm;
     static integer info;
     extern doublereal sdot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
+    static integer j, k, l;
+    static doublereal s, t;
     extern /* Subroutine */ int sgefa_(doublereal *, integer *, integer *, 
 	    integer *, integer *), sscal_(integer *, doublereal *, doublereal 
 	    *, integer *);
@@ -671,6 +664,10 @@ static integer c__1 = 1;
     static doublereal ynorm;
     extern /* Subroutine */ int saxpy_(integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *);
+    static integer kb;
+    static doublereal ek, sm, wk;
+    static integer kp1;
+    static doublereal wkm;
 
 /*         Factors a real matrix by Gaussian elimination */
 /*         and estimates the condition of the matrix. */
@@ -725,7 +722,7 @@ static integer c__1 = 1;
 /*                        ** compute 1-norm of A */
     /* Parameter adjustments */
     a_dim1 = *lda;
-    a_offset = 1 + a_dim1;
+    a_offset = 1 + a_dim1 * 1;
 
     /* Function Body */
     anorm = 0.;
@@ -888,11 +885,11 @@ static integer c__1 = 1;
     /* Local variables */
     static integer j, k, l;
     static doublereal t;
-    static integer kp1, nm1;
     extern /* Subroutine */ int sscal_(integer *, doublereal *, doublereal *, 
 	    integer *), saxpy_(integer *, doublereal *, doublereal *, integer 
 	    *, doublereal *, integer *);
     extern integer isamax_(integer *, doublereal *, integer *);
+    static integer kp1, nm1;
 
 /*         Factors a real matrix by Gaussian elimination. */
 /*         Revision date:  8/1/82 */
@@ -924,7 +921,7 @@ static integer c__1 = 1;
 /*                      ** Gaussian elimination with partial pivoting */
     /* Parameter adjustments */
     a_dim1 = *lda;
-    a_offset = 1 + a_dim1;
+    a_offset = 1 + a_dim1 * 1;
 
     /* Function Body */
     *info = 0;
@@ -982,13 +979,13 @@ static integer c__1 = 1;
     integer a_dim1, a_offset, i__1, i__2;
 
     /* Local variables */
-    static integer k, l;
-    static doublereal t;
-    static integer kb, nm1;
     extern doublereal sdot_(integer *, doublereal *, integer *, doublereal *, 
 	    integer *);
+    static integer k, l;
+    static doublereal t;
     extern /* Subroutine */ int saxpy_(integer *, doublereal *, doublereal *, 
 	    integer *, doublereal *, integer *);
+    static integer kb, nm1;
 
 /*         Solves the real system */
 /*            A * X = B  or  transpose(A) * X = B */
@@ -1038,7 +1035,7 @@ static integer c__1 = 1;
 /*     .. */
     /* Parameter adjustments */
     a_dim1 = *lda;
-    a_offset = 1 + a_dim1;
+    a_offset = 1 + a_dim1 * 1;
 
     /* Function Body */
     nm1 = *n - 1;
@@ -1390,8 +1387,9 @@ doublereal sdot_(integer *n, doublereal *sx, integer *incx, doublereal *sy,
     integer i__1, i__2;
 
     /* Local variables */
-    static integer i__, m, ix, iy;
+    static integer i__, m;
     static doublereal stemp1, stemp2, stemp3;
+    static integer ix, iy;
 
 /*          Interchange s.p vectors  X  and  Y, as follows: */
 /*     For I = 0 to N-1, interchange  SX(LX+I*INCX) and SY(LY+I*INCY), */
@@ -1486,8 +1484,8 @@ integer isamax_(integer *n, doublereal *sx, integer *incx)
     doublereal d__1;
 
     /* Local variables */
-    static integer i__, ii;
     static doublereal xmag, smax;
+    static integer i__, ii;
 
 /* INPUT--  N     Number of elements in vector of interest */
 /*          SX    Sing-prec array, length 1+(N-1)*INCX, containing vector */

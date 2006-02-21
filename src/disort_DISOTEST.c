@@ -1,13 +1,6 @@
-/* DISOTEST.f -- translated by f2c (version 20050501).
-   You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
-
-		http://www.netlib.org/f2c/libf2c.zip
+/* DISOTEST.f -- translated by f2c (version 20000121).
+   You must link the resulting object file with the libraries:
+	-lf2c -lm   (in that order)
 */
 
 #ifdef __cplusplus
@@ -913,7 +906,7 @@ static doublereal c_b243 = .8;
 static doublereal c_b457 = .9;
 static logical c_true = TRUE_;
 
-/* Main program */ int MAIN__()
+/* Main program */ MAIN__()
 {
     /* Initialized data */
 
@@ -941,15 +934,6 @@ static logical c_true = TRUE_;
 	    , ftnlen);
 
     /* Local variables */
-    static integer j, k, lc;
-    static doublereal hl[49], pi;
-    static integer iu, lu;
-    static doublereal uu[150]	/* was [10][5][3] */, u0u[50]	/* was [10][5]
-	     */;
-    static integer iod;
-    static doublereal phi[3];
-    static integer iss;
-    static doublereal umu[10], phi0, umu0;
     static integer icas;
     static doublereal dfdt[5];
     static integer nphi;
@@ -958,18 +942,21 @@ static logical c_true = TRUE_;
     static doublereal pmom[294]	/* was [49][6] */, utau[5];
     static integer nlyr, numu, nstr;
     static doublereal fbeam;
-    static integer ibcnd;
+    static integer j, k, ibcnd;
     static doublereal dtauc[6], ssalb[6];
     static logical plank;
     static doublereal rfldn[5], btemp, temis;
     static char title[100];
     static integer nprob;
-    static doublereal fisot, ttemp, cmpuu[150]	/* was [5][10][3] */, albmed[
-	    10], albedo;
+    static doublereal fisot, ttemp, cmpuu[150]	/* was [5][10][3] */;
+    static integer lc;
+    static doublereal hl[49], albmed[10], albedo;
     static char header[127];
-    static doublereal cmpdfd[5];
+    static doublereal pi, cmpdfd[5];
+    static integer iu, lu;
     static logical lamber, deltam;
-    static doublereal cmpfdn[5], cmpfir[5], rfldir[5];
+    static doublereal cmpfdn[5], uu[150]	/* was [10][5][3] */, cmpfir[
+	    5], rfldir[5];
     static logical azmavg;
     static doublereal trnmed[10], cmpfup[5], temper[7];
     extern /* Subroutine */ int getmom_(integer *, doublereal *, integer *, 
@@ -997,6 +984,11 @@ static logical c_true = TRUE_;
 	     integer *, integer *);
     static doublereal wvnmlo;
     static logical usrtau;
+    static doublereal u0u[50]	/* was [10][5] */;
+    static integer iod;
+    static doublereal phi[3];
+    static integer iss;
+    static doublereal umu[10], phi0, umu0;
 
     /* Fortran I/O blocks */
     static icilist io___32 = { 0, header, 0, "(3A,F9.5,A,F5.2)", 127, 1 };
@@ -2646,13 +2638,13 @@ m_", (ftnlen)1562)] = .1;
 	    s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
-    static integer j, iu, lu;
-    static doublereal rat1, rat2, rat3, rat4, umax, ratv[100];
+    static doublereal umax, ratv[100];
+    static integer j;
     extern doublereal ratio_(doublereal *, doublereal *);
-    static integer numbad;
+    static integer iu, lu, numbad;
     static doublereal fnoise, flxmax;
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
-    static doublereal unoise;
+    static doublereal unoise, rat1, rat2, rat3, rat4;
 
     /* Fortran I/O blocks */
     static cilist io___78 = { 0, 6, 0, "(//,A,/,A,/,A)", 0 };
@@ -2706,13 +2698,13 @@ m_", (ftnlen)1562)] = .1;
     /* Parameter adjustments */
     uu_dim1 = *maxumu;
     uu_dim2 = *maxulv;
-    uu_offset = 1 + uu_dim1 * (1 + uu_dim2);
+    uu_offset = 1 + uu_dim1 * (1 + uu_dim2 * 1);
     u0u_dim1 = *maxumu;
-    u0u_offset = 1 + u0u_dim1;
+    u0u_offset = 1 + u0u_dim1 * 1;
     tstuu_dim1 = *maxtau;
     tstuu_dim2 = *maxmu;
     tstuu_dim3 = *maxaz;
-    tstuu_offset = 1 + tstuu_dim1 * (1 + tstuu_dim2);
+    tstuu_offset = 1 + tstuu_dim1 * (1 + tstuu_dim2 * 1);
 
     /* Function Body */
     if (*ntau > *maxtau || *numu > *maxmu || *nphi > *maxaz) {

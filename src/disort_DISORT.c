@@ -33,6 +33,7 @@ static logical c_true = TRUE_;
 static logical c_false = FALSE_;
 static integer c__0 = 0;
 static integer c__10 = 10;
+static integer c__5 = 5;
 
 /* ~~~~~~~~~~~~ */
 /* VERSION 1.2 */
@@ -6112,7 +6113,10 @@ doublereal plkavg_(doublereal *wnumlo, doublereal *wnumhi, doublereal *t)
     doublereal ret_val, d__1, d__2;
 
     /* Builtin functions */
-    double asin(doublereal), log(doublereal), exp(doublereal);
+    double asin(doublereal), log(doublereal);
+    integer s_wsle(cilist *), do_lio(integer *, integer *, char *, ftnlen), 
+	    e_wsle();
+    double exp(doublereal);
     integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
@@ -6125,7 +6129,11 @@ doublereal plkavg_(doublereal *wnumlo, doublereal *wnumhi, doublereal *t)
     static doublereal hh, ex, mv, sigdpi, oldval;
     static integer smallv;
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
-    static doublereal speedlight, del, val, exm, vsq, val0;
+    static doublereal speedlight, del, val, wnumlo2, exm, vsq, val0;
+
+    /* Fortran I/O blocks */
+    static cilist io___282 = { 0, 6, 0, 0, 0 };
+
 
 /*        Computes Planck function integrated between two wavenumbers */
 
@@ -6229,6 +6237,10 @@ doublereal plkavg_(doublereal *wnumlo, doublereal *wnumhi, doublereal *t)
 	d__1 = pi, d__1 *= d__1;
 	conc = 15. / (d__1 * d__1);
     }
+    s_wsle(&io___282);
+    do_lio(&c__5, &c__1, (char *)&(*wnumhi), (ftnlen)sizeof(doublereal));
+    do_lio(&c__5, &c__1, (char *)&(*wnumlo), (ftnlen)sizeof(doublereal));
+    e_wsle();
     if (*t < 0. || *wnumhi < *wnumlo || *wnumlo < 0.) {
 	errmsg_("PLKAVG--temperature or wavenums. wrong", &c_true, (ftnlen)38)
 		;
@@ -6240,15 +6252,15 @@ doublereal plkavg_(doublereal *wnumlo, doublereal *wnumhi, doublereal *t)
     v[0] = c2 * *wnumlo / *t;
     v[1] = c2 * *wnumhi / *t;
 /*     (Added by CE) Included the monochromatic Planck function needed for */
-/*     monochromatic arts calculations, this is especially included fo use in */
-/*     arts, so give wave number in si units */
+/*     monochromatic arts calculations */
     if (*wnumhi == *wnumlo) {
+	wnumlo2 = *wnumlo * 100;
 	plkconst = 6.6262e-34;
 	speedlight = 299792458.;
 	boltz = 1.380662e-23;
 	a = plkconst * 2 * speedlight;
 	b = plkconst * speedlight / boltz;
-	ret_val = a * *wnumlo * *wnumlo * *wnumlo / (exp(b * *wnumlo / *t) - 
+	ret_val = a * wnumlo2 * wnumlo2 * wnumlo2 / (exp(b * wnumlo2 / *t) - 
 		1);
 	return ret_val;
     }
@@ -6384,10 +6396,10 @@ L40:
     static integer iumin, iumax, npass, iu, np, lu, lenfmt;
 
     /* Fortran I/O blocks */
-    static cilist io___305 = { 0, 6, 0, "(//,A)", 0 };
-    static cilist io___308 = { 0, 6, 0, "(/,A,/,A)", 0 };
-    static cilist io___312 = { 0, 6, 0, "(/,10X,8F14.5)", 0 };
-    static cilist io___315 = { 0, 6, 0, "(0P,F10.4,1P,8E14.4)", 0 };
+    static cilist io___307 = { 0, 6, 0, "(//,A)", 0 };
+    static cilist io___310 = { 0, 6, 0, "(/,A,/,A)", 0 };
+    static cilist io___314 = { 0, 6, 0, "(/,10X,8F14.5)", 0 };
+    static cilist io___317 = { 0, 6, 0, "(0P,F10.4,1P,8E14.4)", 0 };
 
 
 /*        Print azimuthally averaged intensities at user angles */
@@ -6414,13 +6426,13 @@ L40:
     if (*numu < 1) {
 	return 0;
     }
-    s_wsfe(&io___305);
+    s_wsfe(&io___307);
     do_fio(&c__1, " *******  AZIMUTHALLY AVERAGED INTENSITIES (at user polar\
  angles)  ********", (ftnlen)75);
     e_wsfe();
     lenfmt = 8;
     npass = (*numu - 1) / lenfmt + 1;
-    s_wsfe(&io___308);
+    s_wsfe(&io___310);
     do_fio(&c__1, "   Optical   Polar Angle Cosines", (ftnlen)32);
     do_fio(&c__1, "     Depth", (ftnlen)10);
     e_wsfe();
@@ -6430,7 +6442,7 @@ L40:
 /* Computing MIN */
 	i__2 = lenfmt * np;
 	iumax = min(i__2,*numu);
-	s_wsfe(&io___312);
+	s_wsfe(&io___314);
 	i__2 = iumax;
 	for (iu = iumin; iu <= i__2; ++iu) {
 	    do_fio(&c__1, (char *)&umu[(i__3 = iu - 1) < 1 * umu_dim1 && 0 <= 
@@ -6440,7 +6452,7 @@ L40:
 	e_wsfe();
 	i__3 = *ntau;
 	for (lu = 1; lu <= i__3; ++lu) {
-	    s_wsfe(&io___315);
+	    s_wsfe(&io___317);
 	    do_fio(&c__1, (char *)&utau[(i__2 = lu - 1) < 1 * utau_dim1 && 0 
 		    <= i__2 ? i__2 : s_rnge("utau", i__2, "pravin_", (ftnlen)
 		    4958)], (ftnlen)sizeof(doublereal));
@@ -6483,36 +6495,36 @@ L40:
     static doublereal yessct;
 
     /* Fortran I/O blocks */
-    static cilist io___316 = { 0, 6, 0, "(/,A,I4,A,I4)", 0 };
-    static cilist io___317 = { 0, 6, 0, "(I4,A,10F10.4,/,(26X,10F10.4))", 0 };
-    static cilist io___319 = { 0, 6, 0, "(I4,A,10F9.5,/,(31X,10F9.5))", 0 };
-    static cilist io___321 = { 0, 6, 0, "(I4,A,10F9.2,/,(28X,10F9.2))", 0 };
-    static cilist io___323 = { 0, 6, 0, "(A)", 0 };
-    static cilist io___324 = { 0, 6, 0, "(A,I2)", 0 };
-    static cilist io___325 = { 0, 6, 0, "(A,1P,E11.3,A,0P,F8.5,A,F7.2,/,A,1P\
+    static cilist io___318 = { 0, 6, 0, "(/,A,I4,A,I4)", 0 };
+    static cilist io___319 = { 0, 6, 0, "(I4,A,10F10.4,/,(26X,10F10.4))", 0 };
+    static cilist io___321 = { 0, 6, 0, "(I4,A,10F9.5,/,(31X,10F9.5))", 0 };
+    static cilist io___323 = { 0, 6, 0, "(I4,A,10F9.2,/,(28X,10F9.2))", 0 };
+    static cilist io___325 = { 0, 6, 0, "(A)", 0 };
+    static cilist io___326 = { 0, 6, 0, "(A,I2)", 0 };
+    static cilist io___327 = { 0, 6, 0, "(A,1P,E11.3,A,0P,F8.5,A,F7.2,/,A,1P\
 ,E11.3)", 0 };
-    static cilist io___326 = { 0, 6, 0, "(A,0P,F8.4)", 0 };
-    static cilist io___327 = { 0, 6, 0, "(A,/,(10X,10F9.5))", 0 };
-    static cilist io___329 = { 0, 6, 0, "(A,2F14.4,/,A,F10.2,A,F10.2,A,F8.4)",
+    static cilist io___328 = { 0, 6, 0, "(A,0P,F8.4)", 0 };
+    static cilist io___329 = { 0, 6, 0, "(A,/,(10X,10F9.5))", 0 };
+    static cilist io___331 = { 0, 6, 0, "(A,2F14.4,/,A,F10.2,A,F10.2,A,F8.4)",
 	     0 };
-    static cilist io___330 = { 0, 6, 0, "(A)", 0 };
-    static cilist io___331 = { 0, 6, 0, "(A,0P,F8.4)", 0 };
     static cilist io___332 = { 0, 6, 0, "(A)", 0 };
-    static cilist io___333 = { 0, 6, 0, "(A)", 0 };
+    static cilist io___333 = { 0, 6, 0, "(A,0P,F8.4)", 0 };
     static cilist io___334 = { 0, 6, 0, "(A)", 0 };
     static cilist io___335 = { 0, 6, 0, "(A)", 0 };
     static cilist io___336 = { 0, 6, 0, "(A)", 0 };
-    static cilist io___337 = { 0, 6, 0, "(A,1P,E11.2)", 0 };
+    static cilist io___337 = { 0, 6, 0, "(A)", 0 };
     static cilist io___338 = { 0, 6, 0, "(A)", 0 };
-    static cilist io___339 = { 0, 6, 0, "(/,37X,A,3(/,2A))", 0 };
-    static cilist io___340 = { 0, 6, 0, "(/,37X,A,3(/,2A))", 0 };
-    static cilist io___343 = { 0, 6, 0, "(I4,2F10.4,F10.5,F12.5,2F10.4,F10.5\
+    static cilist io___339 = { 0, 6, 0, "(A,1P,E11.2)", 0 };
+    static cilist io___340 = { 0, 6, 0, "(A)", 0 };
+    static cilist io___341 = { 0, 6, 0, "(/,37X,A,3(/,2A))", 0 };
+    static cilist io___342 = { 0, 6, 0, "(/,37X,A,3(/,2A))", 0 };
+    static cilist io___345 = { 0, 6, 0, "(I4,2F10.4,F10.5,F12.5,2F10.4,F10.5\
 ,F9.4,F14.3)", 0 };
-    static cilist io___344 = { 0, 6, 0, "(I4,2F10.4,F10.5,F12.5,2F10.4,F10.5\
+    static cilist io___346 = { 0, 6, 0, "(I4,2F10.4,F10.5,F12.5,2F10.4,F10.5\
 ,F9.4)", 0 };
-    static cilist io___345 = { 0, 6, 0, "(85X,F14.3)", 0 };
-    static cilist io___346 = { 0, 6, 0, "(/,A)", 0 };
-    static cilist io___347 = { 0, 6, 0, "(I6,10F11.6,/,(6X,10F11.6))", 0 };
+    static cilist io___347 = { 0, 6, 0, "(85X,F14.3)", 0 };
+    static cilist io___348 = { 0, 6, 0, "(/,A)", 0 };
+    static cilist io___349 = { 0, 6, 0, "(I6,10F11.6,/,(6X,10F11.6))", 0 };
 
 
 /*        Print values of input variables */
@@ -6530,14 +6542,14 @@ L40:
     pmom_offset = 0 + pmom_dim1 * 1;
 
     /* Function Body */
-    s_wsfe(&io___316);
+    s_wsfe(&io___318);
     do_fio(&c__1, " No. streams =", (ftnlen)14);
     do_fio(&c__1, (char *)&(*nstr), (ftnlen)sizeof(integer));
     do_fio(&c__1, "     No. computational layers =", (ftnlen)31);
     do_fio(&c__1, (char *)&(*nlyr), (ftnlen)sizeof(integer));
     e_wsfe();
     if (*ibcnd != 1) {
-	s_wsfe(&io___317);
+	s_wsfe(&io___319);
 	do_fio(&c__1, (char *)&(*ntau), (ftnlen)sizeof(integer));
 	do_fio(&c__1, " User optical depths :", (ftnlen)22);
 	i__1 = *ntau;
@@ -6547,7 +6559,7 @@ L40:
 	e_wsfe();
     }
     if (! (*onlyfl)) {
-	s_wsfe(&io___319);
+	s_wsfe(&io___321);
 	do_fio(&c__1, (char *)&(*numu), (ftnlen)sizeof(integer));
 	do_fio(&c__1, " User polar angle cosines :", (ftnlen)27);
 	i__1 = *numu;
@@ -6557,7 +6569,7 @@ L40:
 	e_wsfe();
     }
     if (! (*onlyfl) && *ibcnd != 1) {
-	s_wsfe(&io___321);
+	s_wsfe(&io___323);
 	do_fio(&c__1, (char *)&(*nphi), (ftnlen)sizeof(integer));
 	do_fio(&c__1, " User azimuthal angles :", (ftnlen)24);
 	i__1 = *nphi;
@@ -6567,16 +6579,16 @@ L40:
 	e_wsfe();
     }
     if (! (*plank) || *ibcnd == 1) {
-	s_wsfe(&io___323);
+	s_wsfe(&io___325);
 	do_fio(&c__1, " No thermal emission", (ftnlen)20);
 	e_wsfe();
     }
-    s_wsfe(&io___324);
+    s_wsfe(&io___326);
     do_fio(&c__1, " Boundary condition flag: IBCND =", (ftnlen)33);
     do_fio(&c__1, (char *)&(*ibcnd), (ftnlen)sizeof(integer));
     e_wsfe();
     if (*ibcnd == 0) {
-	s_wsfe(&io___325);
+	s_wsfe(&io___327);
 	do_fio(&c__1, "    Incident beam with intensity =", (ftnlen)34);
 	do_fio(&c__1, (char *)&(*fbeam), (ftnlen)sizeof(doublereal));
 	do_fio(&c__1, " and polar angle cosine = ", (ftnlen)26);
@@ -6587,13 +6599,13 @@ L40:
 	do_fio(&c__1, (char *)&(*fisot), (ftnlen)sizeof(doublereal));
 	e_wsfe();
 	if (*lamber) {
-	    s_wsfe(&io___326);
+	    s_wsfe(&io___328);
 	    do_fio(&c__1, "    Bottom albedo (Lambertian) =", (ftnlen)32);
 	    do_fio(&c__1, (char *)&(*albedo), (ftnlen)sizeof(doublereal));
 	    e_wsfe();
 	}
 	if (! (*lamber)) {
-	    s_wsfe(&io___327);
+	    s_wsfe(&io___329);
 	    do_fio(&c__1, "    Legendre coeffs of bottom bidirectional refle\
 ctivity :", (ftnlen)58);
 	    i__1 = *nstr;
@@ -6605,7 +6617,7 @@ ctivity :", (ftnlen)58);
 	    e_wsfe();
 	}
 	if (*plank) {
-	    s_wsfe(&io___329);
+	    s_wsfe(&io___331);
 	    do_fio(&c__1, "    Thermal emission in wavenumber interval :", (
 		    ftnlen)45);
 	    do_fio(&c__1, (char *)&(*wvnmlo), (ftnlen)sizeof(doublereal));
@@ -6619,47 +6631,47 @@ ctivity :", (ftnlen)58);
 	    e_wsfe();
 	}
     } else if (*ibcnd == 1) {
-	s_wsfe(&io___330);
+	s_wsfe(&io___332);
 	do_fio(&c__1, "    Isotropic illumination from top and bottom", (
 		ftnlen)46);
 	e_wsfe();
-	s_wsfe(&io___331);
+	s_wsfe(&io___333);
 	do_fio(&c__1, "    Bottom albedo (Lambertian) =", (ftnlen)32);
 	do_fio(&c__1, (char *)&(*albedo), (ftnlen)sizeof(doublereal));
 	e_wsfe();
     }
     if (*deltam) {
-	s_wsfe(&io___332);
+	s_wsfe(&io___334);
 	do_fio(&c__1, " Uses delta-M method", (ftnlen)20);
 	e_wsfe();
     }
     if (! (*deltam)) {
-	s_wsfe(&io___333);
+	s_wsfe(&io___335);
 	do_fio(&c__1, " Does not use delta-M method", (ftnlen)28);
 	e_wsfe();
     }
     if (*ibcnd == 1) {
-	s_wsfe(&io___334);
+	s_wsfe(&io___336);
 	do_fio(&c__1, " Calculate albedo and transmissivity of medium vs. in\
 cident beam angle", (ftnlen)70);
 	e_wsfe();
     } else if (*onlyfl) {
-	s_wsfe(&io___335);
+	s_wsfe(&io___337);
 	do_fio(&c__1, " Calculate fluxes and azim-averaged intensities only", 
 		(ftnlen)52);
 	e_wsfe();
     } else {
-	s_wsfe(&io___336);
+	s_wsfe(&io___338);
 	do_fio(&c__1, " Calculate fluxes and intensities", (ftnlen)33);
 	e_wsfe();
     }
-    s_wsfe(&io___337);
+    s_wsfe(&io___339);
     do_fio(&c__1, " Relative convergence criterion for azimuth series =", (
 	    ftnlen)52);
     do_fio(&c__1, (char *)&(*accur), (ftnlen)sizeof(doublereal));
     e_wsfe();
     if (*lyrcut) {
-	s_wsfe(&io___338);
+	s_wsfe(&io___340);
 	do_fio(&c__1, " Sets radiation = 0 below absorption optical depth 10",
 		 (ftnlen)53);
 	e_wsfe();
@@ -6667,7 +6679,7 @@ cident beam angle", (ftnlen)70);
 /*                                    ** Print layer variables */
 /*                                    ** (to read, skip every other line) */
     if (*plank) {
-	s_wsfe(&io___339);
+	s_wsfe(&io___341);
 	do_fio(&c__1, "<------------- Delta-M --------------->", (ftnlen)39);
 	do_fio(&c__1, "                   Total    Single                   \
         ", (ftnlen)61);
@@ -6682,7 +6694,7 @@ cident beam angle", (ftnlen)70);
 	e_wsfe();
     }
     if (! (*plank)) {
-	s_wsfe(&io___340);
+	s_wsfe(&io___342);
 	do_fio(&c__1, "<------------- Delta-M --------------->", (ftnlen)39);
 	do_fio(&c__1, "                   Total    Single                   \
         ", (ftnlen)61);
@@ -6703,7 +6715,7 @@ cident beam angle", (ftnlen)70);
 /*                                       ** simplify this a lot (also the */
 /*                                       ** two WRITEs above) */
 	if (*plank) {
-	    s_wsfe(&io___343);
+	    s_wsfe(&io___345);
 	    do_fio(&c__1, (char *)&lc, (ftnlen)sizeof(integer));
 	    do_fio(&c__1, (char *)&dtauc[lc - 1], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&tauc[lc], (ftnlen)sizeof(doublereal));
@@ -6720,7 +6732,7 @@ cident beam angle", (ftnlen)70);
 	    e_wsfe();
 	}
 	if (! (*plank)) {
-	    s_wsfe(&io___344);
+	    s_wsfe(&io___346);
 	    do_fio(&c__1, (char *)&lc, (ftnlen)sizeof(integer));
 	    do_fio(&c__1, (char *)&dtauc[lc - 1], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&tauc[lc], (ftnlen)sizeof(doublereal));
@@ -6737,18 +6749,18 @@ cident beam angle", (ftnlen)70);
 /* L10: */
     }
     if (*plank) {
-	s_wsfe(&io___345);
+	s_wsfe(&io___347);
 	do_fio(&c__1, (char *)&temper[*nlyr], (ftnlen)sizeof(doublereal));
 	e_wsfe();
     }
     if (*prtmom && yessct > 0.) {
-	s_wsfe(&io___346);
+	s_wsfe(&io___348);
 	do_fio(&c__1, " Layer   Phase Function Moments", (ftnlen)31);
 	e_wsfe();
 	i__2 = *nlyr;
 	for (lc = 1; lc <= i__2; ++lc) {
 	    if (ssalb[lc - 1] > 0.) {
-		s_wsfe(&io___347);
+		s_wsfe(&io___349);
 		do_fio(&c__1, (char *)&lc, (ftnlen)sizeof(integer));
 		i__1 = *nstr;
 		for (k = 0; k <= i__1; ++k) {
@@ -6777,12 +6789,12 @@ cident beam angle", (ftnlen)70);
     static integer jmin, jmax, j, npass, iu, np, lu, lenfmt;
 
     /* Fortran I/O blocks */
-    static cilist io___348 = { 0, 6, 0, "(//,A)", 0 };
-    static cilist io___351 = { 0, 6, 0, "(/,A,/,A,/,A)", 0 };
-    static cilist io___356 = { 0, 6, 0, "(/,18X,10F11.2)", 0 };
-    static cilist io___358 = { 0, 6, 0, "(F10.4,F8.4,1P,10E11.3)", 0 };
-    static cilist io___359 = { 0, 6, 0, "(10X,F8.4,1P,10E11.3)", 0 };
+    static cilist io___350 = { 0, 6, 0, "(//,A)", 0 };
+    static cilist io___353 = { 0, 6, 0, "(/,A,/,A,/,A)", 0 };
+    static cilist io___358 = { 0, 6, 0, "(/,18X,10F11.2)", 0 };
+    static cilist io___360 = { 0, 6, 0, "(F10.4,F8.4,1P,10E11.3)", 0 };
     static cilist io___361 = { 0, 6, 0, "(10X,F8.4,1P,10E11.3)", 0 };
+    static cilist io___363 = { 0, 6, 0, "(10X,F8.4,1P,10E11.3)", 0 };
 
 
 /*         Prints the intensity at user polar and azimuthal angles */
@@ -6808,12 +6820,12 @@ cident beam angle", (ftnlen)70);
     if (*nphi < 1) {
 	return 0;
     }
-    s_wsfe(&io___348);
+    s_wsfe(&io___350);
     do_fio(&c__1, " *********  I N T E N S I T I E S  *********", (ftnlen)44);
     e_wsfe();
     lenfmt = 10;
     npass = (*nphi - 1) / lenfmt + 1;
-    s_wsfe(&io___351);
+    s_wsfe(&io___353);
     do_fio(&c__1, "             Polar   Azimuth angles (degrees)", (ftnlen)45)
 	    ;
     do_fio(&c__1, "   Optical   Angle", (ftnlen)18);
@@ -6827,7 +6839,7 @@ cident beam angle", (ftnlen)70);
 /* Computing MIN */
 	    i__3 = lenfmt * np;
 	    jmax = min(i__3,*nphi);
-	    s_wsfe(&io___356);
+	    s_wsfe(&io___358);
 	    i__3 = jmax;
 	    for (j = jmin; j <= i__3; ++j) {
 		do_fio(&c__1, (char *)&phi[j - 1], (ftnlen)sizeof(doublereal))
@@ -6835,7 +6847,7 @@ cident beam angle", (ftnlen)70);
 	    }
 	    e_wsfe();
 	    if (np == 1) {
-		s_wsfe(&io___358);
+		s_wsfe(&io___360);
 		do_fio(&c__1, (char *)&utau[lu - 1], (ftnlen)sizeof(
 			doublereal));
 		do_fio(&c__1, (char *)&umu[0], (ftnlen)sizeof(doublereal));
@@ -6847,7 +6859,7 @@ cident beam angle", (ftnlen)70);
 		e_wsfe();
 	    }
 	    if (np > 1) {
-		s_wsfe(&io___359);
+		s_wsfe(&io___361);
 		do_fio(&c__1, (char *)&umu[0], (ftnlen)sizeof(doublereal));
 		i__3 = jmax;
 		for (j = jmin; j <= i__3; ++j) {
@@ -6858,7 +6870,7 @@ cident beam angle", (ftnlen)70);
 	    }
 	    i__3 = *numu;
 	    for (iu = 2; iu <= i__3; ++iu) {
-		s_wsfe(&io___361);
+		s_wsfe(&io___363);
 		do_fio(&c__1, (char *)&umu[iu - 1], (ftnlen)sizeof(doublereal)
 			);
 		i__4 = jmax;
@@ -8113,8 +8125,8 @@ ms", i__1, "slftst_", (ftnlen)5664)];
     static integer iu;
 
     /* Fortran I/O blocks */
-    static cilist io___466 = { 0, 6, 0, "(///,A,//,A)", 0 };
-    static cilist io___468 = { 0, 6, 0, "(0P,F13.4,F20.6,F12.5,1P,E17.4)", 0 }
+    static cilist io___468 = { 0, 6, 0, "(///,A,//,A)", 0 };
+    static cilist io___470 = { 0, 6, 0, "(0P,F13.4,F20.6,F12.5,1P,E17.4)", 0 }
 	    ;
 
 
@@ -8138,7 +8150,7 @@ ms", i__1, "slftst_", (ftnlen)5664)];
     umu_dim1 = *numu;
 
     /* Function Body */
-    s_wsfe(&io___466);
+    s_wsfe(&io___468);
     do_fio(&c__1, " *******  Flux Albedo and/or Transmissivity of entire med\
 ium  ********", (ftnlen)70);
     do_fio(&c__1, " Beam Zen Ang   cos(Beam Zen Ang)      Albedo   Transmiss\
@@ -8146,7 +8158,7 @@ ivity", (ftnlen)62);
     e_wsfe();
     i__1 = *numu;
     for (iu = 1; iu <= i__1; ++iu) {
-	s_wsfe(&io___468);
+	s_wsfe(&io___470);
 	d__1 = acos(umu[(i__2 = iu - 1) < 1 * umu_dim1 && 0 <= i__2 ? i__2 : 
 		s_rnge("umu", i__2, "praltr_", (ftnlen)6379)]) * 
 		57.295779578552292;

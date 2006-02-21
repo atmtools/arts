@@ -125,10 +125,10 @@ void ScatteringDisort(// WS Output:
 
   // Definition of other input variables for disort calculation
 
-  Numeric wvnmlo = f_grid[f_index]/(SPEED_OF_LIGHT);
+  Numeric wvnmlo = f_grid[f_index]/(100*SPEED_OF_LIGHT);
   Numeric wvnmhi = wvnmlo;
   
-  // cout << " wvnmlo " <<  wvnmlo << endl
+  cout << " wvnmlo " <<  wvnmlo << endl<< " wvnmhi " <<  wvnmhi << endl ;
   //    <<"f_lo " <<  f_grid[f_index] << " f_hi " << wvnmhi*(SPEED_OF_LIGHT);
   // calculate radiant quantities at boundary of computational layers. 
   Index usrtau = false; 
