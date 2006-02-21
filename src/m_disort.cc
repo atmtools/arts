@@ -131,16 +131,13 @@ void ScatteringDisort(// WS Output:
   cout << " wvnmlo " <<  wvnmlo << endl<< " wvnmhi " <<  wvnmhi << endl ;
   //    <<"f_lo " <<  f_grid[f_index] << " f_hi " << wvnmhi*(SPEED_OF_LIGHT);
   // calculate radiant quantities at boundary of computational layers. 
-  Index usrtau = false; 
-  //dummies
-  Index ntau = 0; 
-  Vector utau(1,0.);
+  Index usrtau = FALSE_; 
  
   // Number of streams, I think in microwave 8 is more that sufficient
   Index nstr=n_legendre-1;
   
   // Intensities to be computed for user defined polar (zenith angles)
-  Index usrang = true;
+  Index usrang = TRUE_;
   Index numu = scat_za_grid.nelem();
   Vector umu(numu); 
   // Transform to mu, starting with negative values
@@ -163,7 +160,7 @@ void ScatteringDisort(// WS Output:
   //cout <<"fisot  " << fisot << endl;
 
   // surface, Lambertian if set to 0
-  Index lamber = true;
+  Index lamber = TRUE_;
   Numeric albedo = surface_emissivity_field(0,0);
   // only needed for bidirectional reflecting surface
   Vector hl(1,0.); 
@@ -177,13 +174,13 @@ void ScatteringDisort(// WS Output:
   Numeric temis = 0.;
   
   // we don't need delta-scaling in microwave region
-  Index deltam = false; 
+  Index deltam = FALSE_; 
   
   // include thermal emission (very important)
-  Index plank = true; 
+  Index plank = TRUE_; 
   
   // calculate also intensities, not only fluxes
-  Index onlyfl = false; 
+  Index onlyfl = FALSE_; 
   
   // Convergence criterium
   Numeric accur = 0.005;
@@ -209,13 +206,13 @@ void ScatteringDisort(// WS Output:
   Index maxphi = 1;  //no azimuthal dependance
 
   // Declaration of Output variables
-  Vector rfldir(nlyr); 
-  Vector rfldn(nlyr);
-  Vector flup(nlyr);
-  Vector dfdt(nlyr);
-  Vector uavg(nlyr);
-  Tensor3 uu(scat_za_grid.nelem(), nlyr,1); // Intensity 
-  Matrix u0u(scat_za_grid.nelem(), nlyr); // Azimuthally averaged intensity 
+  Vector rfldir(maxulv); 
+  Vector rfldn(maxulv);
+  Vector flup(maxulv);
+  Vector dfdt(maxulv);
+  Vector uavg(maxulv);
+  Tensor3 uu(scat_za_grid.nelem(), maxulv, maxphi); // Intensity 
+  Matrix u0u(scat_za_grid.nelem(), maxulv); // Azimuthally averaged intensity 
   Vector albmed(scat_za_grid.nelem()); // Albedo of cloudbox
   Vector trnmed(scat_za_grid.nelem()); // Transmissivity 
   
@@ -224,6 +221,10 @@ void ScatteringDisort(// WS Output:
     {
       t[i] = t_field(cloudbox_limits[1]-i,0,0);
     }
+
+  //dummies
+  Index ntau = 0; 
+  Vector utau(maxulv,0.);
 
   //  cout << "Output from ARTS: " << endl << endl;
   //cout << "nlyr " << nlyr << endl << "maxcly" << maxcly << endl ;
@@ -234,9 +235,9 @@ void ScatteringDisort(// WS Output:
   disort_(&nlyr, dtauc.get_c_array(),
           ssalb.get_c_array(), pmom.get_c_array(), 
           t.get_c_array(), &wvnmlo, &wvnmhi,
-          &usrtau, (integer *)&ntau, utau.get_c_array(), 
-          &nstr, (logical *)&usrang, (integer *)&numu, 
-          umu.get_c_array(), (integer *)&nphi,
+          &usrtau, &ntau, utau.get_c_array(), 
+          &nstr, &usrang, &numu, 
+          umu.get_c_array(), &nphi,
           phi.get_c_array(), 
           &ibcnd, &fbeam,
           &umu0, &phi0, &fisot, 
@@ -257,9 +258,10 @@ void ScatteringDisort(// WS Output:
           trnmed.get_c_array(), 
           header_len);
 
-
   cout << "intensity " << rfldir << endl; 
   
+  delete [] prnt;
+
 #else
   throw runtime_error ("This version of ARTS was compiled without DISORT support.");
 #endif

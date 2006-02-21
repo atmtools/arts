@@ -1,3 +1,24 @@
+2006-02-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1076
+	
+	* src/m_disort.cc (ScatteringDisort):
+
+	Removed remaining explicit type conversions in disort_ call.
+
+	Use the f2c constants TRUE_ and FALSE_, not the C++ keywords.
+
+	Corrected size of output variables rfldir, rfldn, flup, dfdt, uavg, 
+	uu and u0u from nlyr to maxulv (nlyr+1).
+
+	Use maxphi for first dimension of uu instead of 1 for clarity.
+
+	Changed dimension of utau from 1 to maxulv.
+
+	Fixes all memory corruptions. http://valgrind.org/
+
+	Free prnt.
+
 2006-02-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1075
