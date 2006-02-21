@@ -127,14 +127,21 @@ void dtauc_ssalbCalc(
    }
 
  
+ 
  // Calculate layer averaged single scattering albedo and optical depth
  for (Index i = 0; i < Np_cloud-1; i++)
    {
-     Numeric ext=.5*(ext_vector[i]+ext_vector[i+1]);
-     Numeric abs=.5*(abs_vector[i]+abs_vector[i+1]);
+     Numeric ext = 0.;
+     Numeric abs = 0.;
  
+     if ((ext_vector[i] && ext_vector[i+1])!=0 )
+       {
+         ext=.5*(ext_vector[i]+ext_vector[i+1]);
+         abs=.5*(abs_vector[i]+abs_vector[i+1]);
+       }
+
      if (ext!=0)
-       ssalb[i]=(ext-abs)/ext;
+       ssalb[Np_cloud-2-i]=(ext-abs)/ext;
      
      rte_pressure_local = 0.5 * (p_grid[i] + p_grid[i+1]);
      rte_temperature_local = 0.5 * (t_field(i,0,0) + t_field(i+1,0,0));
@@ -143,7 +150,8 @@ void dtauc_ssalbCalc(
      for (Index j = 0; j < vmr_field.nbooks(); j++)
        rte_vmr_list_local[j] = 0.5 * (vmr_field(j, i, 0, 0) +
                                       vmr_field(j, i+1, 0, 0));
-     
+   
+  
      scalar_gas_absorption_agendaExecute(abs_scalar_gas_local, 
                                          0,  // monochromatic calculation
                                          rte_pressure_local, 
@@ -152,9 +160,11 @@ void dtauc_ssalbCalc(
                                          scalar_gas_absorption_agenda,
                                          true);
      
-     dtauc[i]=(ext+abs_scalar_gas_local(0,0))*
+     Numeric abs_total = abs_scalar_gas_local(0,joker).sum();
+
+     dtauc[Np_cloud-2-i]=(ext+abs+abs_total)*
        (z_field(i+1, 0, 0)-z_field(i, 0, 0));
-   }
+   }  
 }
 
 //! phase_functionCalc
@@ -222,7 +232,7 @@ void phase_functionCalc(//Output
                phase_function_level(i_l+1, i_t));
         }
     }
- 
+  
 }
 
 //! pmomCalc
@@ -266,7 +276,6 @@ void pmomCalc(//Output
   for  (Index i_l=0; i_l < phase_function.nrows(); i_l++)
     interp(phase_int(i_l, joker), itw, phase_function(i_l, joker), gp);
       
-  cout << "phase_int " <<  phase_int(15, joker) << endl;
   for (Index i = 0; i<za_grid.nelem(); i++)
     u[i] = cos(za_grid[i] *PI/180.);
   
@@ -288,12 +297,12 @@ void pmomCalc(//Output
             p0_1=1.;
             p0_2=1.;
             
-            pmom(0,i_l)=1.; 
+            pmom(phase_function.nrows()-1-i_l,0)=1.; 
             
             p1_1=u[i];
             p1_2=u[i+1];
             
-            pmom(1,i_l)+=0.5*0.5*(p1_1*phase_int(i_l, i)+
+            pmom(phase_function.nrows()-1-i_l,1)+=0.5*0.5*(p1_1*phase_int(i_l, i)+
                                   p1_2*phase_int(i_l, i+1))
               *abs(u[i+1]-u[i]);
             
@@ -304,7 +313,7 @@ void pmomCalc(//Output
               p2_2=(2*(double)l-1)/(double)l*u[i+1]*p1_2-((double)l-1)/
                 (double)l*p0_2;
               
-              pmom(l, i_l)+=0.5*0.5*(p2_1*phase_int(i_l, i)+
+              pmom(phase_function.nrows()-1-i_l, l)+=0.5*0.5*(p2_1*phase_int(i_l, i)+
                                      p2_2*phase_int(i_l, i+1))
                 *abs(u[i+1]-u[i]);
               

@@ -1,3 +1,16 @@
+2006-02-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1073
+	
+	* src/disort.cc: Some modifications, because in DISORT, the 
+	grids start from the top and go down to the bottom of the 
+	atmosphere. This is opposite to ARTS and was wrong before.
+
+	* src/m_disort.cc: Corrected. 
+
+	* src/disort_DISORT.c: Included the planck function for 
+	monochromatic calculation at thermal wavelengths. 
+	
 2006-02-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1072

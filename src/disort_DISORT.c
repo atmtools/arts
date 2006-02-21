@@ -1,13 +1,6 @@
-/* DISORT.f -- translated by f2c (version 20050501).
-   You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
-
-		http://www.netlib.org/f2c/libf2c.zip
+/* DISORT.f -- translated by f2c (version 20000121).
+   You must link the resulting object file with the libraries:
+	-lf2c -lm   (in that order)
 */
 
 #ifdef __cplusplus
@@ -82,28 +75,7 @@ static integer c__10 = 10;
     double cos(doublereal);
 
     /* Local variables */
-    static doublereal b[4800];
-    static integer j, l;
-    static doublereal z__[4800], z0[48], z1[48], cc[2304]	/* was [48][
-	    48] */, gc[230400]	/* was [48][48][100] */;
-    static integer lc;
-    static doublereal gl[4900]	/* was [49][100] */, kk[4800]	/* was [48][
-	    100] */, ll[4800]	/* was [48][100] */, pi;
-    static integer iq, nn;
-    static doublereal gu[230400]	/* was [48][48][100] */;
-    static integer iu, lu, ns;
-    static doublereal wk[48], zj[48], zz[4800]	/* was [48][100] */, u0c[9600]
-	    	/* was [48][200] */, xr0[100], xr1[100], z0u[4800]	/* 
-	    was [48][100] */, z1u[4800]	/* was [48][100] */, aad[576]	/* 
-	    was [24][24] */, amb[576]	/* was [24][24] */, apb[576]	/* 
-	    was [24][24] */, bem[24], bdr[600]	/* was [24][25] */, cmu[48], 
-	    dum;
-    static integer lev;
-    static doublereal rpd;
-    static integer naz;
-    static doublereal sgn, emu[48], psi[48], wkd[48], cwt[48], rmu[1200]	
-	    /* was [48][25] */, uum[9600]	/* was [48][200] */, sqt[1000]
-	    , ylm0[49], pkag[101], fldn[200], eval[24];
+    static doublereal pkag[101], fldn[200], eval[24];
     static integer ncol;
     static doublereal tauc[101];
     static integer ncos;
@@ -113,16 +85,19 @@ static integer c__10 = 10;
     static integer ipvt[4800];
     static doublereal ylmu[2352]	/* was [49][48] */, delm0, zplk0[4800]
 	    	/* was [48][100] */, zplk1[4800]	/* was [48][100] */, 
-	    cband[1027200]	/* was [214][4800] */, evecc[2304]	/* 
-	    was [48][48] */, evald[24], zbeam[4800]	/* was [48][100] */, 
-	    fldir[200];
+	    b[4800], cband[1027200]	/* was [214][4800] */;
+    static integer j, l;
+    static doublereal evecc[2304]	/* was [48][48] */, z__[4800], evald[
+	    24], zbeam[4800]	/* was [48][100] */, fldir[200];
     static integer mazim;
     static doublereal array[2304]	/* was [48][48] */;
     extern doublereal ratio_(doublereal *, doublereal *);
     static integer kconv;
     static doublereal azerr, oprim[100];
     static integer layru[200];
+    static doublereal z0[48], z1[48];
     extern doublereal r1mach_(integer *);
+    static doublereal cc[2304]	/* was [48][48] */;
     extern /* Subroutine */ int solve0_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
@@ -130,7 +105,18 @@ static integer c__10 = 10;
 	    integer *, integer *, integer *, integer *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *, doublereal *, doublereal *,
 	     doublereal *, doublereal *, doublereal *, doublereal *);
-    static doublereal eveccd[576]	/* was [24][24] */;
+    static doublereal gc[230400]	/* was [48][48][100] */;
+    static integer lc;
+    static doublereal gl[4900]	/* was [49][100] */, pi;
+    static integer iq;
+    static doublereal kk[4800]	/* was [48][100] */;
+    static integer nn;
+    static doublereal gu[230400]	/* was [48][48][100] */;
+    static integer iu;
+    static doublereal ll[4800]	/* was [48][100] */, eveccd[576]	/* 
+	    was [24][24] */;
+    static integer lu, ns;
+    static doublereal expbea[101], wk[48], bplank, phirad[3], zj[48], angcos;
     extern /* Subroutine */ int chekin_(integer *, doublereal *, doublereal *,
 	     doublereal *, doublereal *, doublereal *, doublereal *, logical *
 	    , integer *, doublereal *, integer *, logical *, integer *, 
@@ -139,14 +125,12 @@ static integer c__10 = 10;
 	     doublereal *, doublereal *, doublereal *, doublereal *, logical *
 	    , logical *, doublereal *, doublereal *, integer *, integer *, 
 	    integer *, integer *, integer *, integer *, integer *, integer *, 
-	    integer *, integer *, integer *);
-    static doublereal expbea[101], bplank, phirad[3];
-    extern /* Subroutine */ int upbeam_(doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
-	     integer *, integer *, integer *, integer *, doublereal *, 
+	    integer *, integer *, integer *), upbeam_(doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *);
-    static doublereal angcos, dither, dtaucp[100];
+	    doublereal *, integer *, integer *, integer *, integer *, integer 
+	    *, doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *);
+    static doublereal dither, dtaucp[100];
     static logical compar;
     extern /* Subroutine */ int albtrn_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
@@ -159,18 +143,14 @@ static integer c__10 = 10;
 	    doublereal *, doublereal *, doublereal *, integer *, integer *, 
 	    integer *, integer *, integer *, integer *, integer *, doublereal 
 	    *, doublereal *, doublereal *);
+    static doublereal zz[4800]	/* was [48][100] */, cosphi;
     extern doublereal plkavg_(doublereal *, doublereal *, doublereal *);
-    static doublereal cosphi;
     extern /* Subroutine */ int soleig_(doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
 	     integer *, integer *, integer *, integer *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *), surfac_(doublereal *, doublereal *, doublereal *, 
-	    doublereal *, logical *, integer *, integer *, integer *, integer 
-	    *, integer *, integer *, integer *, logical *, doublereal *, 
-	    logical *, doublereal *, doublereal *, doublereal *, doublereal *,
-	     doublereal *, doublereal *, doublereal *, doublereal *);
+	    doublereal *);
     static doublereal tplank, taucpr[101];
     extern /* Subroutine */ int cmpint_(doublereal *, doublereal *, 
 	    doublereal *, integer *, doublereal *, logical *, integer *, 
@@ -197,38 +177,29 @@ static integer c__10 = 10;
 	    *, integer *, logical *, integer *, logical *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, logical *,
-	     logical *), terpev_(doublereal *, doublereal *, doublereal *, 
-	    doublereal *, integer *, integer *, integer *, integer *, integer 
-	    *, integer *, doublereal *, doublereal *, doublereal *), zeroal_(
-	    integer *, doublereal *, doublereal *, doublereal *, doublereal *,
-	     doublereal *, doublereal *, integer *, doublereal *, doublereal *
-	    , doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, doublereal *, doublereal *, integer *, doublereal *,
-	     integer *, doublereal *, integer *, doublereal *, integer *, 
+	     logical *);
+    static doublereal u0c[9600]	/* was [48][200] */;
+    extern /* Subroutine */ int surfac_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, logical *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *, logical *, 
+	    doublereal *, logical *, doublereal *, doublereal *, doublereal *,
+	     doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *), prtinp_(integer *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, integer *, doublereal *, integer *, integer *, 
 	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
-	    integer *, doublereal *, doublereal *, doublereal *, doublereal *,
-	     doublereal *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *, doublereal *), prtinp_(integer *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, integer *, doublereal *,
-	     integer *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *, doublereal *, doublereal *, doublereal *, doublereal *,
-	     logical *, doublereal *, doublereal *, doublereal *, doublereal *
-	    , doublereal *, logical *, logical *, logical *, doublereal *, 
-	    doublereal *, logical *, doublereal *, doublereal *, doublereal *,
-	     integer *, logical *), slftst_(doublereal *, doublereal *, 
-	    doublereal *, logical *, doublereal *, doublereal *, doublereal *,
-	     integer *, logical *, integer *, logical *, integer *, integer *,
-	     integer *, integer *, logical *, doublereal *, doublereal *, 
-	    doublereal *, logical *, doublereal *, doublereal *, doublereal *,
-	     doublereal *, doublereal *, logical *, logical *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, logical *, doublereal *,
-	     doublereal *, doublereal *, doublereal *);
+	     doublereal *, doublereal *, doublereal *, doublereal *, logical *
+	    , logical *, logical *, doublereal *, doublereal *, logical *, 
+	    doublereal *, doublereal *, doublereal *, integer *, logical *), 
+	    slftst_(doublereal *, doublereal *, doublereal *, logical *, 
+	    doublereal *, doublereal *, doublereal *, integer *, logical *, 
+	    integer *, logical *, integer *, integer *, integer *, integer *, 
+	    logical *, doublereal *, doublereal *, doublereal *, logical *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, logical *, logical *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, logical *, doublereal *, doublereal *,
+	     doublereal *, doublereal *);
     static doublereal utaupr[200];
     extern /* Subroutine */ int prtint_(doublereal *, doublereal *, integer *,
 	     doublereal *, integer *, doublereal *, integer *, integer *, 
@@ -238,15 +209,18 @@ static integer c__10 = 10;
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, logical *, logical *, integer *, 
 	    integer *, integer *, integer *, integer *, integer *, integer *, 
-	    integer *, doublereal *, doublereal *), terpso_(doublereal *, 
+	    integer *, doublereal *, doublereal *), terpev_(doublereal *, 
 	    doublereal *, doublereal *, doublereal *, integer *, integer *, 
-	    logical *, integer *, integer *, doublereal *, doublereal *, 
+	    integer *, integer *, integer *, integer *, doublereal *, 
+	    doublereal *, doublereal *), terpso_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, integer *, integer *, logical *, 
+	    integer *, integer *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *), upisot_(doublereal *, 
-	    doublereal *, doublereal *, integer *, integer *, integer *, 
-	    integer *, doublereal *, doublereal *, doublereal *, doublereal *,
-	     doublereal *, doublereal *, doublereal *, doublereal *), usrint_(
+	    doublereal *, doublereal *), upisot_(doublereal *, doublereal *, 
+	    doublereal *, integer *, integer *, integer *, integer *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *), usrint_(
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, logical *,
@@ -256,7 +230,33 @@ static integer c__10 = 10;
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *), zeroit_(doublereal *, integer *);
+	    doublereal *);
+    static doublereal xr0[100], xr1[100];
+    extern /* Subroutine */ int zeroal_(integer *, doublereal *, doublereal *,
+	     doublereal *, doublereal *, doublereal *, doublereal *, integer *
+	    , doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, integer *, doublereal *,
+	     doublereal *, integer *, doublereal *, doublereal *, doublereal *
+	    , integer *, doublereal *, integer *, doublereal *, integer *, 
+	    doublereal *, integer *, doublereal *, doublereal *, doublereal *,
+	     doublereal *, doublereal *, integer *, doublereal *, integer *, 
+	    integer *, doublereal *, integer *, doublereal *, integer *, 
+	    doublereal *, doublereal *, doublereal *, integer *, doublereal *,
+	     integer *, doublereal *, doublereal *, integer *, integer *, 
+	    doublereal *, integer *, doublereal *, doublereal *, doublereal *,
+	     doublereal *, doublereal *, integer *, doublereal *, doublereal *
+	    , integer *, doublereal *, integer *, doublereal *), zeroit_(
+	    doublereal *, integer *);
+    static doublereal z0u[4800]	/* was [48][100] */, z1u[4800]	/* was [48][
+	    100] */, aad[576]	/* was [24][24] */, amb[576]	/* was [24][
+	    24] */, apb[576]	/* was [24][24] */, bem[24], bdr[600]	/* 
+	    was [24][25] */, cmu[48], dum;
+    static integer lev;
+    static doublereal rpd;
+    static integer naz;
+    static doublereal sgn, emu[48], psi[48], wkd[48], cwt[48], rmu[1200]	
+	    /* was [48][25] */, uum[9600]	/* was [48][200] */, sqt[1000]
+	    , ylm0[49];
 
     /* Fortran I/O blocks */
     static cilist io___9 = { 0, 6, 0, "(//,1X,100('*'),/,A,/,1X,100('*'))", 0 
@@ -570,15 +570,15 @@ static integer c__10 = 10;
     utau_dim1 = *maxulv;
     u0u_dim1 = *maxumu;
     u0u_dim2 = *maxulv;
-    u0u_offset = 1 + u0u_dim1;
+    u0u_offset = 1 + u0u_dim1 * 1;
     umu_dim1 = *maxumu;
     pmom_dim1 = *maxcmu - 0 + 1;
     pmom_dim2 = *maxcly;
-    pmom_offset = 0 + pmom_dim1;
+    pmom_offset = 0 + pmom_dim1 * 1;
     uu_dim1 = *maxumu;
     uu_dim2 = *maxulv;
     uu_dim3 = *maxphi;
-    uu_offset = 1 + uu_dim1 * (1 + uu_dim2);
+    uu_offset = 1 + uu_dim1 * (1 + uu_dim2 * 1);
     phi_dim1 = *maxphi;
 
     /* Function Body */
@@ -1069,17 +1069,17 @@ L170:
     double sqrt(doublereal), d_sign(doublereal *, doublereal *);
 
     /* Local variables */
-    static doublereal f, g, h__;
+    static doublereal repl, f, g, h__;
     static integer i__, j, k, l, n;
-    static doublereal p, q, r__, s, t, w, x, y, z__;
-    static integer n1, n2, ka, lb, ii, in;
-    static doublereal uu, vv, col;
-    static integer kkk, lll;
-    static doublereal sgn, tol, row, repl, scale, rnorm;
+    static doublereal p, q, r__, s, t, scale, w, x, y, z__, rnorm;
     extern doublereal d1mach_(integer *);
-    static doublereal discri;
+    static integer n1, n2, ka, lb, ii, in;
+    static doublereal uu, vv, discri;
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
     static logical notlas, noconv;
+    static doublereal col;
+    static integer kkk, lll;
+    static doublereal sgn, tol, row;
 
 /*    =======  D O U B L E    P R E C I S I O N    V E R S I O N  ====== */
 /*       Solves eigenfunction problem for real asymmetric matrix */
@@ -1153,16 +1153,16 @@ L170:
     eval_dim1 = *m;
     evecd_dim1 = *ia;
     evecd_dim2 = *m;
-    evecd_offset = 1 + evecd_dim1;
+    evecd_offset = 1 + evecd_dim1 * 1;
     aad_dim1 = *ia;
     aad_dim2 = *m;
-    aad_offset = 1 + aad_dim1;
+    aad_offset = 1 + aad_dim1 * 1;
     aa_dim1 = *ia;
     aa_dim2 = *m;
-    aa_offset = 1 + aa_dim1;
+    aa_offset = 1 + aa_dim1 * 1;
     evec_dim1 = *ievec;
     evec_dim2 = *m;
-    evec_offset = 1 + evec_dim1;
+    evec_offset = 1 + evec_dim1 * 1;
 
     /* Function Body */
     *ier = 0;
@@ -2230,8 +2230,8 @@ L700:
     double exp(doublereal);
 
     /* Local variables */
-    static integer iq, jq, lu, lyu;
     static doublereal zint;
+    static integer iq, jq, lu, lyu;
 
 /*          Calculates the Fourier intensity components at the quadrature */
 /*          angles for azimuthal expansion terms (MAZIM) in Eq. SD(2) */
@@ -2294,22 +2294,22 @@ L700:
 /*                                       ** Loop over user levels */
     /* Parameter adjustments */
     zplk1_dim1 = *mxcmu;
-    zplk1_offset = 1 + zplk1_dim1;
+    zplk1_offset = 1 + zplk1_dim1 * 1;
     zplk0_dim1 = *mxcmu;
-    zplk0_offset = 1 + zplk0_dim1;
+    zplk0_offset = 1 + zplk0_dim1 * 1;
     zz_dim1 = *mxcmu;
-    zz_offset = 1 + zz_dim1;
+    zz_offset = 1 + zz_dim1 * 1;
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1;
+    ll_offset = 1 + ll_dim1 * 1;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1;
+    kk_offset = 1 + kk_dim1 * 1;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
-    gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
+    gc_offset = 1 + gc_dim1 * (1 + gc_dim2 * 1);
     utaupr_dim1 = *mxulv;
     uum_dim1 = *mxumu;
     uum_dim2 = *mxulv;
-    uum_offset = 1 + uum_dim1;
+    uum_offset = 1 + uum_dim1 * 1;
 
     /* Function Body */
     i__1 = *ntau;
@@ -2395,9 +2395,12 @@ L40:
     double exp(doublereal), acos(doublereal);
 
     /* Local variables */
-    static integer iq, jq, lu, lyu;
-    static doublereal ang1, ang2, fact, fnet, zint, dirint, fdntot, plsorc;
+    static doublereal fact, fnet, zint;
+    static integer iq, jq, lu;
+    static doublereal dirint, fdntot, plsorc;
     extern /* Subroutine */ int zeroit_(doublereal *, integer *);
+    static integer lyu;
+    static doublereal ang1, ang2;
 
     /* Fortran I/O blocks */
     static cilist io___139 = { 0, 6, 0, "(//,21X,A,/,2A,/,2A,/)", 0 };
@@ -2493,23 +2496,23 @@ L40:
     dfdt_dim1 = *maxulv;
     utau_dim1 = *maxulv;
     zplk1_dim1 = *mxcmu;
-    zplk1_offset = 1 + zplk1_dim1;
+    zplk1_offset = 1 + zplk1_dim1 * 1;
     zplk0_dim1 = *mxcmu;
-    zplk0_offset = 1 + zplk0_dim1;
+    zplk0_offset = 1 + zplk0_dim1 * 1;
     zz_dim1 = *mxcmu;
-    zz_offset = 1 + zz_dim1;
+    zz_offset = 1 + zz_dim1 * 1;
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1;
+    ll_offset = 1 + ll_dim1 * 1;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1;
+    kk_offset = 1 + kk_dim1 * 1;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
-    gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
+    gc_offset = 1 + gc_dim1 * (1 + gc_dim2 * 1);
     cwt_dim1 = *mxcmu;
     cmu_dim1 = *mxcmu;
     u0c_dim1 = *mxcmu;
     u0c_dim2 = *mxulv;
-    u0c_offset = 1 + u0c_dim1;
+    u0c_offset = 1 + u0c_dim1 * 1;
     fldir_dim1 = *mxulv;
     fldn_dim1 = *mxulv;
     utaupr_dim1 = *mxulv;
@@ -2889,11 +2892,11 @@ L70:
     /* Parameter adjustments */
     umu_dim1 = *maxumu;
     pmom_dim1 = *maxcmu - 0 + 1;
-    pmom_offset = 0 + pmom_dim1;
+    pmom_offset = 0 + pmom_dim1 * 1;
     hl_dim1 = *maxcmu - 0 + 1;
     hlpr_dim1 = *mxcmu - 0 + 1;
     gl_dim1 = *mxcmu - 0 + 1;
-    gl_offset = 0 + gl_dim1;
+    gl_offset = 0 + gl_dim1 * 1;
     cwt_dim1 = *mxcmu;
     cmu_dim1 = *mxcmu;
 
@@ -3091,12 +3094,12 @@ dis_", (ftnlen)2133)];
     double exp(doublereal);
 
     /* Local variables */
-    static integer k, lc, iq, jq, lda, ncd;
-    static doublereal sum;
     static integer jcol;
     static doublereal expa;
-    static integer irow, nncol, nshift;
+    static integer irow, k, nncol, lc, iq, jq, nshift;
     extern /* Subroutine */ int zeroit_(doublereal *, integer *);
+    static integer lda, ncd;
+    static doublereal sum;
 
 /*        Calculate coefficient matrix for the set of equations */
 /*        obtained from the boundary conditions and the continuity- */
@@ -3213,15 +3216,15 @@ dis_", (ftnlen)2133)];
     bdr_offset = 1 + bdr_dim1 * 0;
     wk_dim1 = *mxcmu;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1;
+    kk_offset = 1 + kk_dim1 * 1;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
-    gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
+    gc_offset = 1 + gc_dim1 * (1 + gc_dim2 * 1);
     cwt_dim1 = *mxcmu;
     cmu_dim1 = *mxcmu;
     cband_dim1 = *mi9m2;
     cband_dim2 = *nnlyri;
-    cband_offset = 1 + cband_dim1;
+    cband_offset = 1 + cband_dim1 * 1;
 
     /* Function Body */
     i__1 = *mi9m2 * *nnlyri;
@@ -3433,12 +3436,17 @@ x_", (ftnlen)2468)] * gc[*nn + 1 - k + (iq + *ncut * gc_dim2) * gc_dim1 -
     double sqrt(doublereal);
 
     /* Local variables */
-    static integer l, iq, jq, kq, ier;
-    static doublereal sum, beta, alpha, gpmigm, gpplgm;
+    static doublereal beta;
+    static integer l;
+    static doublereal alpha;
+    static integer iq, jq, kq;
+    static doublereal gpmigm, gpplgm;
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen), asymtx_(
 	    doublereal *, doublereal *, doublereal *, integer *, integer *, 
 	    integer *, integer *, doublereal *, doublereal *, doublereal *, 
 	    doublereal *);
+    static integer ier;
+    static doublereal sum;
 
     /* Fortran I/O blocks */
     static cilist io___184 = { 0, 6, 0, "(//,A,I4,A)", 0 };
@@ -3518,31 +3526,31 @@ x_", (ftnlen)2468)] * gc[*nn + 1 - k + (iq + *ncut * gc_dim2) * gc_dim1 -
 /*                             ** Calculate quantities in Eqs. SS(5-6) */
     /* Parameter adjustments */
     eveccd_dim1 = *mi;
-    eveccd_offset = 1 + eveccd_dim1;
+    eveccd_offset = 1 + eveccd_dim1 * 1;
     aad_dim1 = *mi;
-    aad_offset = 1 + aad_dim1;
+    aad_offset = 1 + aad_dim1 * 1;
     eval_dim1 = *mi;
     array_dim1 = *mi;
-    array_offset = 1 + array_dim1;
+    array_offset = 1 + array_dim1 * 1;
     apb_dim1 = *mi;
     apb_dim2 = *mi;
-    apb_offset = 1 + apb_dim1;
+    apb_offset = 1 + apb_dim1 * 1;
     amb_dim1 = *mi;
     amb_dim2 = *mi;
-    amb_offset = 1 + amb_dim1;
+    amb_offset = 1 + amb_dim1 * 1;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
-    gc_offset = 1 + gc_dim1;
+    gc_offset = 1 + gc_dim1 * 1;
     kk_dim1 = *mxcmu;
     evecc_dim1 = *mxcmu;
     evecc_dim2 = *mxcmu;
-    evecc_offset = 1 + evecc_dim1;
+    evecc_offset = 1 + evecc_dim1 * 1;
     cc_dim1 = *mxcmu;
     cc_dim2 = *mxcmu;
-    cc_offset = 1 + cc_dim1;
+    cc_offset = 1 + cc_dim1 * 1;
     ylmc_dim1 = *mxcmu - 0 + 1;
     ylmc_dim2 = *mxcmu;
-    ylmc_offset = 0 + ylmc_dim1;
+    ylmc_offset = 0 + ylmc_dim1 * 1;
     gl_dim1 = *mxcmu - 0 + 1;
     cwt_dim1 = *mxcmu;
     cmu_dim1 = *mxcmu;
@@ -3785,16 +3793,17 @@ ig_", (ftnlen)2666)] = sum / eval[(i__4 = jq - 1) < 1 * eval_dim1 && 0 <=
     integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
-    static integer lc, iq, jq, it, ncd;
-    static doublereal sum;
     static integer ipnt;
     extern /* Subroutine */ int sgbco_(doublereal *, integer *, integer *, 
 	    integer *, integer *, integer *, doublereal *, doublereal *);
     static doublereal rcond;
     extern /* Subroutine */ int sgbsl_(doublereal *, integer *, integer *, 
-	    integer *, integer *, integer *, doublereal *, integer *), 
-	    errmsg_(char *, logical *, ftnlen), zeroit_(doublereal *, integer 
-	    *);
+	    integer *, integer *, integer *, doublereal *, integer *);
+    static integer lc, iq, jq, it;
+    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen), zeroit_(
+	    doublereal *, integer *);
+    static integer ncd;
+    static doublereal sum;
 
 /*        Construct right-hand side vector B for general boundary */
 /*        conditions STWJ(17) and solve system of equations obtained */
@@ -3877,17 +3886,17 @@ ig_", (ftnlen)2666)] = sum / eval[(i__4 = jq - 1) < 1 * eval_dim1 && 0 <=
     bdr_dim2 = *mi - 0 + 1;
     bdr_offset = 1 + bdr_dim1 * 0;
     zplk1_dim1 = *mxcmu;
-    zplk1_offset = 1 + zplk1_dim1;
+    zplk1_offset = 1 + zplk1_dim1 * 1;
     zplk0_dim1 = *mxcmu;
-    zplk0_offset = 1 + zplk0_dim1;
+    zplk0_offset = 1 + zplk0_dim1 * 1;
     zz_dim1 = *mxcmu;
-    zz_offset = 1 + zz_dim1;
+    zz_offset = 1 + zz_dim1 * 1;
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1;
+    ll_offset = 1 + ll_dim1 * 1;
     cwt_dim1 = *mxcmu;
     cmu_dim1 = *mxcmu;
     cband_dim1 = *mi9m2;
-    cband_offset = 1 + cband_dim1;
+    cband_offset = 1 + cband_dim1 * 1;
     b_dim1 = *nnlyri;
 
     /* Function Body */
@@ -4175,13 +4184,13 @@ ig_", (ftnlen)2666)] = sum / eval[(i__4 = jq - 1) < 1 * eval_dim1 && 0 <=
     integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
+    static doublereal dref, ylmg[1010]	/* was [101][10] */;
     static integer k, jg, iq, jq, iu;
-    static doublereal sgn, gmu[10], gwt[10], sum, dref, ylmg[1010]	/* 
-	    was [101][10] */;
     extern /* Subroutine */ int qgausn_(integer *, doublereal *, doublereal *)
 	    , errmsg_(char *, logical *, ftnlen), lepoly_(integer *, integer *
 	    , integer *, integer *, doublereal *, doublereal *, doublereal *),
 	     zeroit_(doublereal *, integer *);
+    static doublereal sgn, gmu[10], gwt[10], sum;
 
 /*       Specifies user's surface bidirectional properties, STWJ(21) */
 
@@ -4266,7 +4275,7 @@ ig_", (ftnlen)2666)] = sum / eval[(i__4 = jq - 1) < 1 * eval_dim1 && 0 <=
     bdr_offset = 1 + bdr_dim1 * 0;
     ylmc_dim1 = *mxcmu - 0 + 1;
     ylmc_dim2 = *mxcmu;
-    ylmc_offset = 0 + ylmc_dim1;
+    ylmc_offset = 0 + ylmc_dim1 * 1;
     ylm0_dim1 = *mxcmu - 0 + 1;
     hlpr_dim1 = *mxcmu - 0 + 1;
     rmu_dim1 = *mxumu;
@@ -4275,7 +4284,7 @@ ig_", (ftnlen)2666)] = sum / eval[(i__4 = jq - 1) < 1 * eval_dim1 && 0 <=
     emu_dim1 = *mxumu;
     ylmu_dim1 = *mxcmu - 0 + 1;
     ylmu_dim2 = *mxumu;
-    ylmu_offset = 0 + ylmu_dim1;
+    ylmu_offset = 0 + ylmu_dim1 * 1;
 
     /* Function Body */
     if (pass1) {
@@ -4538,19 +4547,19 @@ ac_", (ftnlen)3265)] * ylmu[(i__4 = k + iu * ylmu_dim1 - ylmu_offset) < 1 *
     /* Parameter adjustments */
     ylmc_dim1 = *mxcmu - 0 + 1;
     ylmc_dim2 = *mxcmu;
-    ylmc_offset = 0 + ylmc_dim1;
+    ylmc_offset = 0 + ylmc_dim1 * 1;
     wk_dim1 = *mxcmu;
     gl_dim1 = *mxcmu - 0 + 1;
     evecc_dim1 = *mxcmu;
     evecc_dim2 = *mxcmu;
-    evecc_offset = 1 + evecc_dim1;
+    evecc_offset = 1 + evecc_dim1 * 1;
     cwt_dim1 = *mxcmu;
     ylmu_dim1 = *mxcmu - 0 + 1;
     ylmu_dim2 = *mxumu;
-    ylmu_offset = 0 + ylmu_dim1;
+    ylmu_offset = 0 + ylmu_dim1 * 1;
     gu_dim1 = *mxumu;
     gu_dim2 = *mxcmu;
-    gu_offset = 1 + gu_dim1;
+    gu_offset = 1 + gu_dim1 * 1;
 
     /* Function Body */
     i__1 = *nstr;
@@ -4625,8 +4634,9 @@ ac_", (ftnlen)3265)] * ylmu[(i__4 = k + iu * ylmu_dim1 - ylmu_offset) < 1 *
     integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
+    static doublereal fact, psum;
     static integer iq, jq, iu;
-    static doublereal sum, fact, psum;
+    static doublereal sum;
 
 /*         Interpolates source functions to user angles */
 
@@ -4689,10 +4699,10 @@ ac_", (ftnlen)3265)] * ylmu[(i__4 = k + iu * ylmu_dim1 - ylmu_offset) < 1 *
     z0_dim1 = *mxcmu;
     psi_dim1 = *mxcmu;
     ylmu_dim1 = *mxcmu - 0 + 1;
-    ylmu_offset = 0 + ylmu_dim1;
+    ylmu_offset = 0 + ylmu_dim1 * 1;
     ylmc_dim1 = *mxcmu - 0 + 1;
     ylmc_dim2 = *mxcmu;
-    ylmc_offset = 0 + ylmc_dim1;
+    ylmc_offset = 0 + ylmc_dim1 * 1;
     ylm0_dim1 = *mxcmu - 0 + 1;
     gl_dim1 = *mxcmu - 0 + 1;
     cwt_dim1 = *mxcmu;
@@ -4794,14 +4804,16 @@ ac_", (ftnlen)3265)] * ylmu[(i__4 = k + iu * ylmu_dim1 - ylmu_offset) < 1 *
     integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
-    static integer k, iq, jq, job;
-    static doublereal sum;
+    static integer k;
     extern /* Subroutine */ int sgeco_(doublereal *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *);
     static doublereal rcond;
     extern /* Subroutine */ int sgesl_(doublereal *, integer *, integer *, 
-	    integer *, doublereal *, integer *), errmsg_(char *, logical *, 
-	    ftnlen);
+	    integer *, doublereal *, integer *);
+    static integer iq, jq;
+    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
+    static integer job;
+    static doublereal sum;
 
 /*         Finds the incident-beam particular solution of SS(18) */
 
@@ -4857,16 +4869,16 @@ ac_", (ftnlen)3265)] * ylmu[(i__4 = k + iu * ylmu_dim1 - ylmu_offset) < 1 *
     zz_dim1 = *mxcmu;
     zj_dim1 = *mxcmu;
     ylmc_dim1 = *mxcmu - 0 + 1;
-    ylmc_offset = 0 + ylmc_dim1;
+    ylmc_offset = 0 + ylmc_dim1 * 1;
     ylm0_dim1 = *mxcmu - 0 + 1;
     gl_dim1 = *mxcmu - 0 + 1;
     cmu_dim1 = *mxcmu;
     cc_dim1 = *mxcmu;
     cc_dim2 = *mxcmu;
-    cc_offset = 1 + cc_dim1;
+    cc_offset = 1 + cc_dim1 * 1;
     array_dim1 = *mxcmu;
     array_dim2 = *mxcmu;
-    array_offset = 1 + array_dim1;
+    array_offset = 1 + array_dim1 * 1;
 
     /* Function Body */
     i__1 = *nstr;
@@ -4946,13 +4958,13 @@ am_", (ftnlen)3582)] = cmu[(i__3 = iq - 1) < 1 * cmu_dim1 && 0 <= i__3 ? i__3
     integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
-    static integer iq, jq;
     extern /* Subroutine */ int sgeco_(doublereal *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *);
     static doublereal rcond;
     extern /* Subroutine */ int sgesl_(doublereal *, integer *, integer *, 
-	    integer *, doublereal *, integer *), errmsg_(char *, logical *, 
-	    ftnlen);
+	    integer *, doublereal *, integer *);
+    static integer iq, jq;
+    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
 
 /*       Finds the particular solution of thermal radiation of SS(15) */
 
@@ -5007,10 +5019,10 @@ am_", (ftnlen)3582)] = cmu[(i__3 = iq - 1) < 1 * cmu_dim1 && 0 <= i__3 ? i__3
     cmu_dim1 = *mxcmu;
     cc_dim1 = *mxcmu;
     cc_dim2 = *mxcmu;
-    cc_offset = 1 + cc_dim1;
+    cc_offset = 1 + cc_dim1 * 1;
     array_dim1 = *mxcmu;
     array_dim2 = *mxcmu;
-    array_offset = 1 + array_dim1;
+    array_offset = 1 + array_dim1 * 1;
 
     /* Function Body */
     i__1 = *nstr;
@@ -5097,15 +5109,16 @@ ot_", (ftnlen)3688)] = array[(i__3 = iq + iq * array_dim1 - array_offset) < 1
     double exp(doublereal);
 
     /* Local variables */
+    static doublereal fact, dtau, expn, dtau1, dtau2, denom;
     static integer lc, iq, jq, iu, lu;
-    static doublereal sgn;
-    static integer lyu;
-    static doublereal exp0, exp1, exp2, fact, dtau, expn, dtau1, dtau2, denom,
-	     bnddfu, bnddir, bndint, palint, dfuint;
+    static doublereal bnddfu, bnddir, bndint, palint, dfuint;
     static integer lyrend;
     static logical negumu;
     static doublereal plkint;
     static integer lyrstr;
+    static doublereal sgn;
+    static integer lyu;
+    static doublereal exp0, exp1, exp2;
 
 /*       Computes intensity components at user output angles */
 /*       for azimuthal expansion terms in Eq. SD(2) */
@@ -5210,36 +5223,36 @@ ot_", (ftnlen)3688)] = array[(i__3 = iq + iq * array_dim1 - array_offset) < 1
 /*                          ** interpolated eigenvectors */
     /* Parameter adjustments */
     zplk1_dim1 = *mxcmu;
-    zplk1_offset = 1 + zplk1_dim1;
+    zplk1_offset = 1 + zplk1_dim1 * 1;
     zplk0_dim1 = *mxcmu;
-    zplk0_offset = 1 + zplk0_dim1;
+    zplk0_offset = 1 + zplk0_dim1 * 1;
     zz_dim1 = *mxcmu;
-    zz_offset = 1 + zz_dim1;
+    zz_offset = 1 + zz_dim1 * 1;
     wk_dim1 = *mxcmu;
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1;
+    ll_offset = 1 + ll_dim1 * 1;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1;
+    kk_offset = 1 + kk_dim1 * 1;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
-    gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
+    gc_offset = 1 + gc_dim1 * (1 + gc_dim2 * 1);
     cwt_dim1 = *mxcmu;
     cmu_dim1 = *mxcmu;
     utaupr_dim1 = *mxulv;
     uum_dim1 = *mxumu;
     uum_dim2 = *mxulv;
-    uum_offset = 1 + uum_dim1;
+    uum_offset = 1 + uum_dim1 * 1;
     z1u_dim1 = *mxumu;
-    z1u_offset = 1 + z1u_dim1;
+    z1u_offset = 1 + z1u_dim1 * 1;
     z0u_dim1 = *mxumu;
-    z0u_offset = 1 + z0u_dim1;
+    z0u_offset = 1 + z0u_dim1 * 1;
     zbeam_dim1 = *mxumu;
-    zbeam_offset = 1 + zbeam_dim1;
+    zbeam_offset = 1 + zbeam_dim1 * 1;
     rmu_dim1 = *mxumu;
     rmu_offset = 1 + rmu_dim1 * 0;
     gu_dim1 = *mxumu;
     gu_dim2 = *mxcmu;
-    gu_offset = 1 + gu_dim1 * (1 + gu_dim2);
+    gu_offset = 1 + gu_dim1 * (1 + gu_dim2 * 1);
     emu_dim1 = *mxumu;
 
     /* Function Body */
@@ -5545,16 +5558,15 @@ L150:
     integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
-    static integer j, k, lc, iu, lu;
-    static doublereal rmu;
     extern doublereal dref_(doublereal *, doublereal *, integer *);
-    static integer irmu;
+    static integer irmu, j, k, lc, iu, lu;
     static doublereal flxalb;
     extern logical wrtbad_(char *, ftnlen);
     static logical inperr;
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
     extern logical wrtdim_(char *, integer *, ftnlen);
     static integer numsqt;
+    static doublereal rmu;
 
 /*           Checks the input dimensions and variables */
 /*   Calls- WRTBAD, WRTDIM, DREF, ERRMSG */
@@ -5580,7 +5592,7 @@ L150:
     umu_dim1 = *maxumu;
     pmom_dim1 = *maxcmu - 0 + 1;
     pmom_dim2 = *maxcly;
-    pmom_offset = 0 + pmom_dim1;
+    pmom_offset = 0 + pmom_dim1 * 1;
     phi_dim1 = *maxphi;
     tauc_dim1 = *mxcly - 0 + 1;
 
@@ -5775,7 +5787,7 @@ L150:
 	}
     }
     if (*plank && *ibcnd != 1) {
-	if (*wvnmlo < 0. || *wvnmhi <= *wvnmlo) {
+	if (*wvnmlo < 0. || *wvnmhi < *wvnmlo) {
 	    inperr = wrtbad_("WVNMLO,HI", (ftnlen)9);
 	}
 	if (*temis < 0. || *temis > 1.) {
@@ -5863,8 +5875,9 @@ doublereal dref_(doublereal *mu, doublereal *hl, integer *nstr)
     /* Local variables */
     static doublereal c__[100];
     static integer l;
-    static doublereal cl, pl, plm1, plm2;
+    static doublereal cl, pl;
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
+    static doublereal plm1, plm2;
 
 /*        Exact flux albedo for given angle of incidence, given */
 /*        a bidirectional reflectivity characterized by its */
@@ -6025,7 +6038,7 @@ doublereal dref_(doublereal *mu, doublereal *hl, integer *nstr)
 /*     .. */
     /* Parameter adjustments */
     ylm_dim1 = *maxmu - 0 + 1;
-    ylm_offset = 0 + ylm_dim1;
+    ylm_offset = 0 + ylm_dim1 * 1;
 
     /* Function Body */
     if (*m == 0) {
@@ -6103,15 +6116,16 @@ doublereal plkavg_(doublereal *wnumlo, doublereal *wnumhi, doublereal *t)
     integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
-    static doublereal d__[2];
-    static integer i__, k, m, n;
-    static doublereal p[2], v[2], hh, ex, mv, del, val, exm, vsq, val0, conc;
+    static doublereal conc;
     static integer mmax;
-    static doublereal vmax, epsil;
+    static doublereal vmax, plkconst, a, b, d__[2];
+    static integer i__, k, m, n;
+    static doublereal p[2], v[2], epsil, boltz;
     extern doublereal r1mach_(integer *);
-    static doublereal sigdpi, oldval;
+    static doublereal hh, ex, mv, sigdpi, oldval;
     static integer smallv;
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
+    static doublereal speedlight, del, val, exm, vsq, val0;
 
 /*        Computes Planck function integrated between two wavenumbers */
 
@@ -6215,7 +6229,7 @@ doublereal plkavg_(doublereal *wnumlo, doublereal *wnumhi, doublereal *t)
 	d__1 = pi, d__1 *= d__1;
 	conc = 15. / (d__1 * d__1);
     }
-    if (*t < 0. || *wnumhi <= *wnumlo || *wnumlo < 0.) {
+    if (*t < 0. || *wnumhi < *wnumlo || *wnumlo < 0.) {
 	errmsg_("PLKAVG--temperature or wavenums. wrong", &c_true, (ftnlen)38)
 		;
     }
@@ -6225,6 +6239,19 @@ doublereal plkavg_(doublereal *wnumlo, doublereal *wnumhi, doublereal *t)
     }
     v[0] = c2 * *wnumlo / *t;
     v[1] = c2 * *wnumhi / *t;
+/*     (Added by CE) Included the monochromatic Planck function needed for */
+/*     monochromatic arts calculations, this is especially included fo use in */
+/*     arts, so give wave number in si units */
+    if (*wnumhi == *wnumlo) {
+	plkconst = 6.6262e-34;
+	speedlight = 299792458.;
+	boltz = 1.380662e-23;
+	a = plkconst * 2 * speedlight;
+	b = plkconst * speedlight / boltz;
+	ret_val = a * *wnumlo * *wnumlo * *wnumlo / (exp(b * *wnumlo / *t) - 
+		1);
+	return ret_val;
+    }
     if (v[0] > epsil && v[1] < vmax && (*wnumhi - *wnumlo) / *wnumhi < .01) {
 /*                          ** Wavenumbers are very close.  Get integral */
 /*                          ** by iterating Simpson rule to convergence. */
@@ -6266,20 +6293,20 @@ L30:
     smallv = 0;
     for (i__ = 1; i__ <= 2; ++i__) {
 	if (v[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge("v", i__1, 
-		"plkavg_", (ftnlen)4838)] < vcut) {
+		"plkavg_", (ftnlen)4853)] < vcut) {
 /*                                   ** Use power series */
 	    ++smallv;
 /* Computing 2nd power */
 	    d__1 = v[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge("v", 
-		    i__1, "plkavg_", (ftnlen)4841)];
+		    i__1, "plkavg_", (ftnlen)4856)];
 	    vsq = d__1 * d__1;
 	    p[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge("p", i__1, 
-		    "plkavg_", (ftnlen)4842)] = conc * vsq * v[(i__2 = i__ - 
+		    "plkavg_", (ftnlen)4857)] = conc * vsq * v[(i__2 = i__ - 
 		    1) < 2 && 0 <= i__2 ? i__2 : s_rnge("v", i__2, "plkavg_", 
-		    (ftnlen)4842)] * (v[(i__3 = i__ - 1) < 2 && 0 <= i__3 ? 
-		    i__3 : s_rnge("v", i__3, "plkavg_", (ftnlen)4842)] * (v[(
+		    (ftnlen)4857)] * (v[(i__3 = i__ - 1) < 2 && 0 <= i__3 ? 
+		    i__3 : s_rnge("v", i__3, "plkavg_", (ftnlen)4857)] * (v[(
 		    i__4 = i__ - 1) < 2 && 0 <= i__4 ? i__4 : s_rnge("v", 
-		    i__4, "plkavg_", (ftnlen)4842)] * (vsq * (vsq * (vsq * 
+		    i__4, "plkavg_", (ftnlen)4857)] * (vsq * (vsq * (vsq * 
 		    -7.5156325156325161e-8 + 3.6743092298647855e-6) - 
 		    1.9841269841269841e-4) + .016666666666666666) - .125) + 
 		    .33333333333333331);
@@ -6290,34 +6317,34 @@ L30:
 L40:
 	    ++mmax;
 	    if (v[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge("v", i__1,
-		     "plkavg_", (ftnlen)4853)] < vcp[(i__2 = mmax - 1) < 7 && 
+		     "plkavg_", (ftnlen)4868)] < vcp[(i__2 = mmax - 1) < 7 && 
 		    0 <= i__2 ? i__2 : s_rnge("vcp", i__2, "plkavg_", (ftnlen)
-		    4853)]) {
+		    4868)]) {
 		goto L40;
 	    }
 	    ex = exp(-v[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge(
-		    "v", i__1, "plkavg_", (ftnlen)4855)]);
+		    "v", i__1, "plkavg_", (ftnlen)4870)]);
 	    exm = 1.;
 	    d__[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge("d", i__1, 
-		    "plkavg_", (ftnlen)4857)] = 0.;
+		    "plkavg_", (ftnlen)4872)] = 0.;
 	    i__1 = mmax;
 	    for (m = 1; m <= i__1; ++m) {
 		mv = m * v[(i__2 = i__ - 1) < 2 && 0 <= i__2 ? i__2 : s_rnge(
-			"v", i__2, "plkavg_", (ftnlen)4860)];
+			"v", i__2, "plkavg_", (ftnlen)4875)];
 		exm = ex * exm;
 /* Computing 4th power */
 		i__4 = m, i__4 *= i__4;
 		d__[(i__2 = i__ - 1) < 2 && 0 <= i__2 ? i__2 : s_rnge("d", 
-			i__2, "plkavg_", (ftnlen)4862)] = d__[(i__3 = i__ - 1)
+			i__2, "plkavg_", (ftnlen)4877)] = d__[(i__3 = i__ - 1)
 			 < 2 && 0 <= i__3 ? i__3 : s_rnge("d", i__3, "plkavg_"
-			, (ftnlen)4862)] + exm * (mv * (mv * (mv + 3.) + 6.) 
+			, (ftnlen)4877)] + exm * (mv * (mv * (mv + 3.) + 6.) 
 			+ 6.) / (i__4 * i__4);
 /* L50: */
 	    }
 	    d__[(i__1 = i__ - 1) < 2 && 0 <= i__1 ? i__1 : s_rnge("d", i__1, 
-		    "plkavg_", (ftnlen)4866)] = conc * d__[(i__2 = i__ - 1) < 
+		    "plkavg_", (ftnlen)4881)] = conc * d__[(i__2 = i__ - 1) < 
 		    2 && 0 <= i__2 ? i__2 : s_rnge("d", i__2, "plkavg_", (
-		    ftnlen)4866)];
+		    ftnlen)4881)];
 	}
 /* L60: */
     }
@@ -6354,13 +6381,13 @@ L40:
 	    s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
-    static integer iu, np, lu, iumin, iumax, npass, lenfmt;
+    static integer iumin, iumax, npass, iu, np, lu, lenfmt;
 
     /* Fortran I/O blocks */
-    static cilist io___300 = { 0, 6, 0, "(//,A)", 0 };
-    static cilist io___303 = { 0, 6, 0, "(/,A,/,A)", 0 };
-    static cilist io___307 = { 0, 6, 0, "(/,10X,8F14.5)", 0 };
-    static cilist io___310 = { 0, 6, 0, "(0P,F10.4,1P,8E14.4)", 0 };
+    static cilist io___305 = { 0, 6, 0, "(//,A)", 0 };
+    static cilist io___308 = { 0, 6, 0, "(/,A,/,A)", 0 };
+    static cilist io___312 = { 0, 6, 0, "(/,10X,8F14.5)", 0 };
+    static cilist io___315 = { 0, 6, 0, "(0P,F10.4,1P,8E14.4)", 0 };
 
 
 /*        Print azimuthally averaged intensities at user angles */
@@ -6380,20 +6407,20 @@ L40:
     umu_dim1 = *numu;
     u0u_dim1 = *maxumu;
     u0u_dim2 = *ntau;
-    u0u_offset = 1 + u0u_dim1;
+    u0u_offset = 1 + u0u_dim1 * 1;
     utau_dim1 = *ntau;
 
     /* Function Body */
     if (*numu < 1) {
 	return 0;
     }
-    s_wsfe(&io___300);
+    s_wsfe(&io___305);
     do_fio(&c__1, " *******  AZIMUTHALLY AVERAGED INTENSITIES (at user polar\
  angles)  ********", (ftnlen)75);
     e_wsfe();
     lenfmt = 8;
     npass = (*numu - 1) / lenfmt + 1;
-    s_wsfe(&io___303);
+    s_wsfe(&io___308);
     do_fio(&c__1, "   Optical   Polar Angle Cosines", (ftnlen)32);
     do_fio(&c__1, "     Depth", (ftnlen)10);
     e_wsfe();
@@ -6403,25 +6430,25 @@ L40:
 /* Computing MIN */
 	i__2 = lenfmt * np;
 	iumax = min(i__2,*numu);
-	s_wsfe(&io___307);
+	s_wsfe(&io___312);
 	i__2 = iumax;
 	for (iu = iumin; iu <= i__2; ++iu) {
 	    do_fio(&c__1, (char *)&umu[(i__3 = iu - 1) < 1 * umu_dim1 && 0 <= 
-		    i__3 ? i__3 : s_rnge("umu", i__3, "pravin_", (ftnlen)4940)
+		    i__3 ? i__3 : s_rnge("umu", i__3, "pravin_", (ftnlen)4955)
 		    ], (ftnlen)sizeof(doublereal));
 	}
 	e_wsfe();
 	i__3 = *ntau;
 	for (lu = 1; lu <= i__3; ++lu) {
-	    s_wsfe(&io___310);
+	    s_wsfe(&io___315);
 	    do_fio(&c__1, (char *)&utau[(i__2 = lu - 1) < 1 * utau_dim1 && 0 
 		    <= i__2 ? i__2 : s_rnge("utau", i__2, "pravin_", (ftnlen)
-		    4943)], (ftnlen)sizeof(doublereal));
+		    4958)], (ftnlen)sizeof(doublereal));
 	    i__4 = iumax;
 	    for (iu = iumin; iu <= i__4; ++iu) {
 		do_fio(&c__1, (char *)&u0u[(i__5 = iu + lu * u0u_dim1 - 
 			u0u_offset) < 1 * u0u_dim1 * u0u_dim2 && 0 <= i__5 ? 
-			i__5 : s_rnge("u0u", i__5, "pravin_", (ftnlen)4943)], 
+			i__5 : s_rnge("u0u", i__5, "pravin_", (ftnlen)4958)], 
 			(ftnlen)sizeof(doublereal));
 	    }
 	    e_wsfe();
@@ -6456,36 +6483,36 @@ L40:
     static doublereal yessct;
 
     /* Fortran I/O blocks */
-    static cilist io___311 = { 0, 6, 0, "(/,A,I4,A,I4)", 0 };
-    static cilist io___312 = { 0, 6, 0, "(I4,A,10F10.4,/,(26X,10F10.4))", 0 };
-    static cilist io___314 = { 0, 6, 0, "(I4,A,10F9.5,/,(31X,10F9.5))", 0 };
-    static cilist io___316 = { 0, 6, 0, "(I4,A,10F9.2,/,(28X,10F9.2))", 0 };
-    static cilist io___318 = { 0, 6, 0, "(A)", 0 };
-    static cilist io___319 = { 0, 6, 0, "(A,I2)", 0 };
-    static cilist io___320 = { 0, 6, 0, "(A,1P,E11.3,A,0P,F8.5,A,F7.2,/,A,1P\
+    static cilist io___316 = { 0, 6, 0, "(/,A,I4,A,I4)", 0 };
+    static cilist io___317 = { 0, 6, 0, "(I4,A,10F10.4,/,(26X,10F10.4))", 0 };
+    static cilist io___319 = { 0, 6, 0, "(I4,A,10F9.5,/,(31X,10F9.5))", 0 };
+    static cilist io___321 = { 0, 6, 0, "(I4,A,10F9.2,/,(28X,10F9.2))", 0 };
+    static cilist io___323 = { 0, 6, 0, "(A)", 0 };
+    static cilist io___324 = { 0, 6, 0, "(A,I2)", 0 };
+    static cilist io___325 = { 0, 6, 0, "(A,1P,E11.3,A,0P,F8.5,A,F7.2,/,A,1P\
 ,E11.3)", 0 };
-    static cilist io___321 = { 0, 6, 0, "(A,0P,F8.4)", 0 };
-    static cilist io___322 = { 0, 6, 0, "(A,/,(10X,10F9.5))", 0 };
-    static cilist io___324 = { 0, 6, 0, "(A,2F14.4,/,A,F10.2,A,F10.2,A,F8.4)",
-	     0 };
-    static cilist io___325 = { 0, 6, 0, "(A)", 0 };
     static cilist io___326 = { 0, 6, 0, "(A,0P,F8.4)", 0 };
-    static cilist io___327 = { 0, 6, 0, "(A)", 0 };
-    static cilist io___328 = { 0, 6, 0, "(A)", 0 };
-    static cilist io___329 = { 0, 6, 0, "(A)", 0 };
+    static cilist io___327 = { 0, 6, 0, "(A,/,(10X,10F9.5))", 0 };
+    static cilist io___329 = { 0, 6, 0, "(A,2F14.4,/,A,F10.2,A,F10.2,A,F8.4)",
+	     0 };
     static cilist io___330 = { 0, 6, 0, "(A)", 0 };
-    static cilist io___331 = { 0, 6, 0, "(A)", 0 };
-    static cilist io___332 = { 0, 6, 0, "(A,1P,E11.2)", 0 };
+    static cilist io___331 = { 0, 6, 0, "(A,0P,F8.4)", 0 };
+    static cilist io___332 = { 0, 6, 0, "(A)", 0 };
     static cilist io___333 = { 0, 6, 0, "(A)", 0 };
-    static cilist io___334 = { 0, 6, 0, "(/,37X,A,3(/,2A))", 0 };
-    static cilist io___335 = { 0, 6, 0, "(/,37X,A,3(/,2A))", 0 };
-    static cilist io___338 = { 0, 6, 0, "(I4,2F10.4,F10.5,F12.5,2F10.4,F10.5\
+    static cilist io___334 = { 0, 6, 0, "(A)", 0 };
+    static cilist io___335 = { 0, 6, 0, "(A)", 0 };
+    static cilist io___336 = { 0, 6, 0, "(A)", 0 };
+    static cilist io___337 = { 0, 6, 0, "(A,1P,E11.2)", 0 };
+    static cilist io___338 = { 0, 6, 0, "(A)", 0 };
+    static cilist io___339 = { 0, 6, 0, "(/,37X,A,3(/,2A))", 0 };
+    static cilist io___340 = { 0, 6, 0, "(/,37X,A,3(/,2A))", 0 };
+    static cilist io___343 = { 0, 6, 0, "(I4,2F10.4,F10.5,F12.5,2F10.4,F10.5\
 ,F9.4,F14.3)", 0 };
-    static cilist io___339 = { 0, 6, 0, "(I4,2F10.4,F10.5,F12.5,2F10.4,F10.5\
+    static cilist io___344 = { 0, 6, 0, "(I4,2F10.4,F10.5,F12.5,2F10.4,F10.5\
 ,F9.4)", 0 };
-    static cilist io___340 = { 0, 6, 0, "(85X,F14.3)", 0 };
-    static cilist io___341 = { 0, 6, 0, "(/,A)", 0 };
-    static cilist io___342 = { 0, 6, 0, "(I6,10F11.6,/,(6X,10F11.6))", 0 };
+    static cilist io___345 = { 0, 6, 0, "(85X,F14.3)", 0 };
+    static cilist io___346 = { 0, 6, 0, "(/,A)", 0 };
+    static cilist io___347 = { 0, 6, 0, "(I6,10F11.6,/,(6X,10F11.6))", 0 };
 
 
 /*        Print values of input variables */
@@ -6500,17 +6527,17 @@ L40:
     /* Parameter adjustments */
     hl_dim1 = *maxcmu - 0 + 1;
     pmom_dim1 = *maxcmu - 0 + 1;
-    pmom_offset = 0 + pmom_dim1;
+    pmom_offset = 0 + pmom_dim1 * 1;
 
     /* Function Body */
-    s_wsfe(&io___311);
+    s_wsfe(&io___316);
     do_fio(&c__1, " No. streams =", (ftnlen)14);
     do_fio(&c__1, (char *)&(*nstr), (ftnlen)sizeof(integer));
     do_fio(&c__1, "     No. computational layers =", (ftnlen)31);
     do_fio(&c__1, (char *)&(*nlyr), (ftnlen)sizeof(integer));
     e_wsfe();
     if (*ibcnd != 1) {
-	s_wsfe(&io___312);
+	s_wsfe(&io___317);
 	do_fio(&c__1, (char *)&(*ntau), (ftnlen)sizeof(integer));
 	do_fio(&c__1, " User optical depths :", (ftnlen)22);
 	i__1 = *ntau;
@@ -6520,7 +6547,7 @@ L40:
 	e_wsfe();
     }
     if (! (*onlyfl)) {
-	s_wsfe(&io___314);
+	s_wsfe(&io___319);
 	do_fio(&c__1, (char *)&(*numu), (ftnlen)sizeof(integer));
 	do_fio(&c__1, " User polar angle cosines :", (ftnlen)27);
 	i__1 = *numu;
@@ -6530,7 +6557,7 @@ L40:
 	e_wsfe();
     }
     if (! (*onlyfl) && *ibcnd != 1) {
-	s_wsfe(&io___316);
+	s_wsfe(&io___321);
 	do_fio(&c__1, (char *)&(*nphi), (ftnlen)sizeof(integer));
 	do_fio(&c__1, " User azimuthal angles :", (ftnlen)24);
 	i__1 = *nphi;
@@ -6540,16 +6567,16 @@ L40:
 	e_wsfe();
     }
     if (! (*plank) || *ibcnd == 1) {
-	s_wsfe(&io___318);
+	s_wsfe(&io___323);
 	do_fio(&c__1, " No thermal emission", (ftnlen)20);
 	e_wsfe();
     }
-    s_wsfe(&io___319);
+    s_wsfe(&io___324);
     do_fio(&c__1, " Boundary condition flag: IBCND =", (ftnlen)33);
     do_fio(&c__1, (char *)&(*ibcnd), (ftnlen)sizeof(integer));
     e_wsfe();
     if (*ibcnd == 0) {
-	s_wsfe(&io___320);
+	s_wsfe(&io___325);
 	do_fio(&c__1, "    Incident beam with intensity =", (ftnlen)34);
 	do_fio(&c__1, (char *)&(*fbeam), (ftnlen)sizeof(doublereal));
 	do_fio(&c__1, " and polar angle cosine = ", (ftnlen)26);
@@ -6560,25 +6587,25 @@ L40:
 	do_fio(&c__1, (char *)&(*fisot), (ftnlen)sizeof(doublereal));
 	e_wsfe();
 	if (*lamber) {
-	    s_wsfe(&io___321);
+	    s_wsfe(&io___326);
 	    do_fio(&c__1, "    Bottom albedo (Lambertian) =", (ftnlen)32);
 	    do_fio(&c__1, (char *)&(*albedo), (ftnlen)sizeof(doublereal));
 	    e_wsfe();
 	}
 	if (! (*lamber)) {
-	    s_wsfe(&io___322);
+	    s_wsfe(&io___327);
 	    do_fio(&c__1, "    Legendre coeffs of bottom bidirectional refle\
 ctivity :", (ftnlen)58);
 	    i__1 = *nstr;
 	    for (k = 0; k <= i__1; ++k) {
 		do_fio(&c__1, (char *)&hl[(i__2 = k) < 1 * hl_dim1 && 0 <= 
 			i__2 ? i__2 : s_rnge("hl", i__2, "prtinp_", (ftnlen)
-			5016)], (ftnlen)sizeof(doublereal));
+			5031)], (ftnlen)sizeof(doublereal));
 	    }
 	    e_wsfe();
 	}
 	if (*plank) {
-	    s_wsfe(&io___324);
+	    s_wsfe(&io___329);
 	    do_fio(&c__1, "    Thermal emission in wavenumber interval :", (
 		    ftnlen)45);
 	    do_fio(&c__1, (char *)&(*wvnmlo), (ftnlen)sizeof(doublereal));
@@ -6592,47 +6619,47 @@ ctivity :", (ftnlen)58);
 	    e_wsfe();
 	}
     } else if (*ibcnd == 1) {
-	s_wsfe(&io___325);
+	s_wsfe(&io___330);
 	do_fio(&c__1, "    Isotropic illumination from top and bottom", (
 		ftnlen)46);
 	e_wsfe();
-	s_wsfe(&io___326);
+	s_wsfe(&io___331);
 	do_fio(&c__1, "    Bottom albedo (Lambertian) =", (ftnlen)32);
 	do_fio(&c__1, (char *)&(*albedo), (ftnlen)sizeof(doublereal));
 	e_wsfe();
     }
     if (*deltam) {
-	s_wsfe(&io___327);
+	s_wsfe(&io___332);
 	do_fio(&c__1, " Uses delta-M method", (ftnlen)20);
 	e_wsfe();
     }
     if (! (*deltam)) {
-	s_wsfe(&io___328);
+	s_wsfe(&io___333);
 	do_fio(&c__1, " Does not use delta-M method", (ftnlen)28);
 	e_wsfe();
     }
     if (*ibcnd == 1) {
-	s_wsfe(&io___329);
+	s_wsfe(&io___334);
 	do_fio(&c__1, " Calculate albedo and transmissivity of medium vs. in\
 cident beam angle", (ftnlen)70);
 	e_wsfe();
     } else if (*onlyfl) {
-	s_wsfe(&io___330);
+	s_wsfe(&io___335);
 	do_fio(&c__1, " Calculate fluxes and azim-averaged intensities only", 
 		(ftnlen)52);
 	e_wsfe();
     } else {
-	s_wsfe(&io___331);
+	s_wsfe(&io___336);
 	do_fio(&c__1, " Calculate fluxes and intensities", (ftnlen)33);
 	e_wsfe();
     }
-    s_wsfe(&io___332);
+    s_wsfe(&io___337);
     do_fio(&c__1, " Relative convergence criterion for azimuth series =", (
 	    ftnlen)52);
     do_fio(&c__1, (char *)&(*accur), (ftnlen)sizeof(doublereal));
     e_wsfe();
     if (*lyrcut) {
-	s_wsfe(&io___333);
+	s_wsfe(&io___338);
 	do_fio(&c__1, " Sets radiation = 0 below absorption optical depth 10",
 		 (ftnlen)53);
 	e_wsfe();
@@ -6640,7 +6667,7 @@ cident beam angle", (ftnlen)70);
 /*                                    ** Print layer variables */
 /*                                    ** (to read, skip every other line) */
     if (*plank) {
-	s_wsfe(&io___334);
+	s_wsfe(&io___339);
 	do_fio(&c__1, "<------------- Delta-M --------------->", (ftnlen)39);
 	do_fio(&c__1, "                   Total    Single                   \
         ", (ftnlen)61);
@@ -6655,7 +6682,7 @@ cident beam angle", (ftnlen)70);
 	e_wsfe();
     }
     if (! (*plank)) {
-	s_wsfe(&io___335);
+	s_wsfe(&io___340);
 	do_fio(&c__1, "<------------- Delta-M --------------->", (ftnlen)39);
 	do_fio(&c__1, "                   Total    Single                   \
         ", (ftnlen)61);
@@ -6676,7 +6703,7 @@ cident beam angle", (ftnlen)70);
 /*                                       ** simplify this a lot (also the */
 /*                                       ** two WRITEs above) */
 	if (*plank) {
-	    s_wsfe(&io___338);
+	    s_wsfe(&io___343);
 	    do_fio(&c__1, (char *)&lc, (ftnlen)sizeof(integer));
 	    do_fio(&c__1, (char *)&dtauc[lc - 1], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&tauc[lc], (ftnlen)sizeof(doublereal));
@@ -6693,7 +6720,7 @@ cident beam angle", (ftnlen)70);
 	    e_wsfe();
 	}
 	if (! (*plank)) {
-	    s_wsfe(&io___339);
+	    s_wsfe(&io___344);
 	    do_fio(&c__1, (char *)&lc, (ftnlen)sizeof(integer));
 	    do_fio(&c__1, (char *)&dtauc[lc - 1], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&tauc[lc], (ftnlen)sizeof(doublereal));
@@ -6710,18 +6737,18 @@ cident beam angle", (ftnlen)70);
 /* L10: */
     }
     if (*plank) {
-	s_wsfe(&io___340);
+	s_wsfe(&io___345);
 	do_fio(&c__1, (char *)&temper[*nlyr], (ftnlen)sizeof(doublereal));
 	e_wsfe();
     }
     if (*prtmom && yessct > 0.) {
-	s_wsfe(&io___341);
+	s_wsfe(&io___346);
 	do_fio(&c__1, " Layer   Phase Function Moments", (ftnlen)31);
 	e_wsfe();
 	i__2 = *nlyr;
 	for (lc = 1; lc <= i__2; ++lc) {
 	    if (ssalb[lc - 1] > 0.) {
-		s_wsfe(&io___342);
+		s_wsfe(&io___347);
 		do_fio(&c__1, (char *)&lc, (ftnlen)sizeof(integer));
 		i__1 = *nstr;
 		for (k = 0; k <= i__1; ++k) {
@@ -6747,15 +6774,15 @@ cident beam angle", (ftnlen)70);
     integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
 
     /* Local variables */
-    static integer j, iu, np, lu, jmin, jmax, npass, lenfmt;
+    static integer jmin, jmax, j, npass, iu, np, lu, lenfmt;
 
     /* Fortran I/O blocks */
-    static cilist io___343 = { 0, 6, 0, "(//,A)", 0 };
-    static cilist io___346 = { 0, 6, 0, "(/,A,/,A,/,A)", 0 };
-    static cilist io___351 = { 0, 6, 0, "(/,18X,10F11.2)", 0 };
-    static cilist io___353 = { 0, 6, 0, "(F10.4,F8.4,1P,10E11.3)", 0 };
-    static cilist io___354 = { 0, 6, 0, "(10X,F8.4,1P,10E11.3)", 0 };
-    static cilist io___356 = { 0, 6, 0, "(10X,F8.4,1P,10E11.3)", 0 };
+    static cilist io___348 = { 0, 6, 0, "(//,A)", 0 };
+    static cilist io___351 = { 0, 6, 0, "(/,A,/,A,/,A)", 0 };
+    static cilist io___356 = { 0, 6, 0, "(/,18X,10F11.2)", 0 };
+    static cilist io___358 = { 0, 6, 0, "(F10.4,F8.4,1P,10E11.3)", 0 };
+    static cilist io___359 = { 0, 6, 0, "(10X,F8.4,1P,10E11.3)", 0 };
+    static cilist io___361 = { 0, 6, 0, "(10X,F8.4,1P,10E11.3)", 0 };
 
 
 /*         Prints the intensity at user polar and azimuthal angles */
@@ -6775,18 +6802,18 @@ cident beam angle", (ftnlen)70);
     /* Parameter adjustments */
     uu_dim1 = *maxumu;
     uu_dim2 = *maxulv;
-    uu_offset = 1 + uu_dim1 * (1 + uu_dim2);
+    uu_offset = 1 + uu_dim1 * (1 + uu_dim2 * 1);
 
     /* Function Body */
     if (*nphi < 1) {
 	return 0;
     }
-    s_wsfe(&io___343);
+    s_wsfe(&io___348);
     do_fio(&c__1, " *********  I N T E N S I T I E S  *********", (ftnlen)44);
     e_wsfe();
     lenfmt = 10;
     npass = (*nphi - 1) / lenfmt + 1;
-    s_wsfe(&io___346);
+    s_wsfe(&io___351);
     do_fio(&c__1, "             Polar   Azimuth angles (degrees)", (ftnlen)45)
 	    ;
     do_fio(&c__1, "   Optical   Angle", (ftnlen)18);
@@ -6800,7 +6827,7 @@ cident beam angle", (ftnlen)70);
 /* Computing MIN */
 	    i__3 = lenfmt * np;
 	    jmax = min(i__3,*nphi);
-	    s_wsfe(&io___351);
+	    s_wsfe(&io___356);
 	    i__3 = jmax;
 	    for (j = jmin; j <= i__3; ++j) {
 		do_fio(&c__1, (char *)&phi[j - 1], (ftnlen)sizeof(doublereal))
@@ -6808,7 +6835,7 @@ cident beam angle", (ftnlen)70);
 	    }
 	    e_wsfe();
 	    if (np == 1) {
-		s_wsfe(&io___353);
+		s_wsfe(&io___358);
 		do_fio(&c__1, (char *)&utau[lu - 1], (ftnlen)sizeof(
 			doublereal));
 		do_fio(&c__1, (char *)&umu[0], (ftnlen)sizeof(doublereal));
@@ -6820,7 +6847,7 @@ cident beam angle", (ftnlen)70);
 		e_wsfe();
 	    }
 	    if (np > 1) {
-		s_wsfe(&io___354);
+		s_wsfe(&io___359);
 		do_fio(&c__1, (char *)&umu[0], (ftnlen)sizeof(doublereal));
 		i__3 = jmax;
 		for (j = jmin; j <= i__3; ++j) {
@@ -6831,7 +6858,7 @@ cident beam angle", (ftnlen)70);
 	    }
 	    i__3 = *numu;
 	    for (iu = 2; iu <= i__3; ++iu) {
-		s_wsfe(&io___356);
+		s_wsfe(&io___361);
 		do_fio(&c__1, (char *)&umu[iu - 1], (ftnlen)sizeof(doublereal)
 			);
 		i__4 = jmax;
@@ -6868,18 +6895,21 @@ cident beam angle", (ftnlen)70);
     double tan(doublereal), cos(doublereal);
 
     /* Local variables */
+    static doublereal cona;
+    static integer iter;
+    static doublereal prod, p2pri;
     static integer k;
-    static doublereal p, t, x, en;
+    static doublereal p, t, x;
+    extern doublereal d1mach_(integer *);
+    static doublereal en;
     static integer nn;
-    static doublereal xi, pm1;
+    static doublereal xi;
+    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
+    static doublereal pm1;
     static integer np1;
     static doublereal pm2;
     static integer lim;
-    static doublereal tol, tmp, ppr, nnp1, cona;
-    static integer iter;
-    static doublereal prod, p2pri;
-    extern doublereal d1mach_(integer *);
-    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
+    static doublereal tol, tmp, ppr, nnp1;
 
 /*       Compute weights and abscissae for ordinary Gaussian quadrature */
 /*       on the interval (0,1);  that is, such that */
@@ -6939,9 +6969,9 @@ cident beam angle", (ftnlen)70);
     }
     if (*m == 1) {
 	gmu[(i__1 = 0) < 1 * gmu_dim1 ? i__1 : s_rnge("gmu", i__1, "qgausn_", 
-		(ftnlen)5288)] = .5;
+		(ftnlen)5303)] = .5;
 	gwt[(i__1 = 0) < 1 * gwt_dim1 ? i__1 : s_rnge("gwt", i__1, "qgausn_", 
-		(ftnlen)5289)] = 1.;
+		(ftnlen)5304)] = 1.;
 	return 0;
     }
     en = (doublereal) (*m);
@@ -6990,26 +7020,26 @@ L10:
 /*                             ** Iteration finished--calculate weights, */
 /*                             ** abscissae for (-1,1) */
 	gmu[(i__2 = k - 1) < 1 * gmu_dim1 && 0 <= i__2 ? i__2 : s_rnge("gmu", 
-		i__2, "qgausn_", (ftnlen)5339)] = -x;
+		i__2, "qgausn_", (ftnlen)5354)] = -x;
 /* Computing 2nd power */
 	d__1 = en * pm2;
 	gwt[(i__2 = k - 1) < 1 * gwt_dim1 && 0 <= i__2 ? i__2 : s_rnge("gwt", 
-		i__2, "qgausn_", (ftnlen)5340)] = two / (tmp * (d__1 * d__1));
+		i__2, "qgausn_", (ftnlen)5355)] = two / (tmp * (d__1 * d__1));
 	gmu[(i__2 = np1 - k - 1) < 1 * gmu_dim1 && 0 <= i__2 ? i__2 : s_rnge(
-		"gmu", i__2, "qgausn_", (ftnlen)5341)] = -gmu[(i__3 = k - 1) <
+		"gmu", i__2, "qgausn_", (ftnlen)5356)] = -gmu[(i__3 = k - 1) <
 		 1 * gmu_dim1 && 0 <= i__3 ? i__3 : s_rnge("gmu", i__3, "qga\
-usn_", (ftnlen)5341)];
+usn_", (ftnlen)5356)];
 	gwt[(i__2 = np1 - k - 1) < 1 * gwt_dim1 && 0 <= i__2 ? i__2 : s_rnge(
-		"gwt", i__2, "qgausn_", (ftnlen)5342)] = gwt[(i__3 = k - 1) < 
+		"gwt", i__2, "qgausn_", (ftnlen)5357)] = gwt[(i__3 = k - 1) < 
 		1 * gwt_dim1 && 0 <= i__3 ? i__3 : s_rnge("gwt", i__3, "qgau\
-sn_", (ftnlen)5342)];
+sn_", (ftnlen)5357)];
 /* L30: */
     }
 /*                                    ** Set middle abscissa and weight */
 /*                                    ** for rules of odd order */
     if (*m % 2 != 0) {
 	gmu[(i__1 = lim) < 1 * gmu_dim1 && 0 <= i__1 ? i__1 : s_rnge("gmu", 
-		i__1, "qgausn_", (ftnlen)5348)] = 0.;
+		i__1, "qgausn_", (ftnlen)5363)] = 0.;
 	prod = one;
 	i__1 = *m;
 	for (k = 3; k <= i__1; k += 2) {
@@ -7019,19 +7049,19 @@ sn_", (ftnlen)5342)];
 /* Computing 2nd power */
 	d__1 = prod;
 	gwt[(i__1 = lim) < 1 * gwt_dim1 && 0 <= i__1 ? i__1 : s_rnge("gwt", 
-		i__1, "qgausn_", (ftnlen)5355)] = two / (d__1 * d__1);
+		i__1, "qgausn_", (ftnlen)5370)] = two / (d__1 * d__1);
     }
 /*                                        ** Convert from (-1,1) to (0,1) */
     i__1 = *m;
     for (k = 1; k <= i__1; ++k) {
 	gmu[(i__2 = k - 1) < 1 * gmu_dim1 && 0 <= i__2 ? i__2 : s_rnge("gmu", 
-		i__2, "qgausn_", (ftnlen)5360)] = gmu[(i__3 = k - 1) < 1 * 
+		i__2, "qgausn_", (ftnlen)5375)] = gmu[(i__3 = k - 1) < 1 * 
 		gmu_dim1 && 0 <= i__3 ? i__3 : s_rnge("gmu", i__3, "qgausn_", 
-		(ftnlen)5360)] * .5 + .5;
+		(ftnlen)5375)] * .5 + .5;
 	gwt[(i__2 = k - 1) < 1 * gwt_dim1 && 0 <= i__2 ? i__2 : s_rnge("gwt", 
-		i__2, "qgausn_", (ftnlen)5361)] = gwt[(i__3 = k - 1) < 1 * 
+		i__2, "qgausn_", (ftnlen)5376)] = gwt[(i__3 = k - 1) < 1 * 
 		gwt_dim1 && 0 <= i__3 ? i__3 : s_rnge("gwt", i__3, "qgausn_", 
-		(ftnlen)5361)] * .5;
+		(ftnlen)5376)] * .5;
 /* L50: */
     }
     return 0;
@@ -7132,14 +7162,16 @@ doublereal ratio_(doublereal *a, doublereal *b)
     integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
-    static integer i__, n;
-    static logical ok;
-    static doublereal phis, umus, phi0s, umu0s;
-    static integer nphis, ntaus;
+    static doublereal phis, umus, phi0s;
+    static integer i__;
+    static doublereal umu0s;
+    static integer n, nphis, ntaus;
     static doublereal pmoms[5], utaus;
     static logical prnts[7];
     static integer nlyrs, numus, nstrs;
-    static doublereal error1, error2, error3, error4, albeds, fbeams;
+    static doublereal error1, error2, error3, error4;
+    static logical ok;
+    static doublereal albeds, fbeams;
     static logical lambes;
     static integer ibcnds;
     static logical deltas;
@@ -7197,7 +7229,7 @@ doublereal ratio_(doublereal *a, doublereal *b)
 	ssalbs = *ssalb;
 	for (n = 0; n <= 4; ++n) {
 	    pmoms[(i__1 = n) < 5 && 0 <= i__1 ? i__1 : s_rnge("pmoms", i__1, 
-		    "slftst_", (ftnlen)5546)] = pmom[n];
+		    "slftst_", (ftnlen)5561)] = pmom[n];
 /* L10: */
 	}
 	nstrs = *nstr;
@@ -7229,7 +7261,7 @@ doublereal ratio_(doublereal *a, doublereal *b)
 	tempes[1] = temper[1];
 	for (i__ = 1; i__ <= 7; ++i__) {
 	    prnts[(i__1 = i__ - 1) < 7 && 0 <= i__1 ? i__1 : s_rnge("prnts", 
-		    i__1, "slftst_", (ftnlen)5578)] = prnt[i__ - 1];
+		    i__1, "slftst_", (ftnlen)5593)] = prnt[i__ - 1];
 /* L20: */
 	}
 /*                                     ** Set input values for self-test */
@@ -7302,7 +7334,7 @@ doublereal ratio_(doublereal *a, doublereal *b)
 	*ssalb = ssalbs;
 	for (n = 0; n <= 4; ++n) {
 	    pmom[n] = pmoms[(i__1 = n) < 5 && 0 <= i__1 ? i__1 : s_rnge("pmo\
-ms", i__1, "slftst_", (ftnlen)5649)];
+ms", i__1, "slftst_", (ftnlen)5664)];
 /* L40: */
 	}
 	*nstr = nstrs;
@@ -7334,7 +7366,7 @@ ms", i__1, "slftst_", (ftnlen)5649)];
 	temper[1] = tempes[1];
 	for (i__ = 1; i__ <= 7; ++i__) {
 	    prnt[i__ - 1] = prnts[(i__1 = i__ - 1) < 7 && 0 <= i__1 ? i__1 : 
-		    s_rnge("prnts", i__1, "slftst_", (ftnlen)5681)];
+		    s_rnge("prnts", i__1, "slftst_", (ftnlen)5696)];
 /* L50: */
 	}
     }
@@ -7527,7 +7559,7 @@ ms", i__1, "slftst_", (ftnlen)5649)];
     i__1 = *length;
     for (l = 1; l <= i__1; ++l) {
 	a[(i__2 = l - 1) < 1 * a_dim1 && 0 <= i__2 ? i__2 : s_rnge("a", i__2, 
-		"zeroit_", (ftnlen)5867)] = 0.;
+		"zeroit_", (ftnlen)5882)] = 0.;
 /* L10: */
     }
     return 0;
@@ -7567,10 +7599,9 @@ ms", i__1, "slftst_", (ftnlen)5649)];
     double exp(doublereal);
 
     /* Local variables */
-    static integer l, lc, iq, iu, ncd;
-    static doublereal sgn;
     static integer ncol, ncut;
     static doublereal delm0;
+    static integer l;
     extern /* Subroutine */ int sgbco_(doublereal *, integer *, integer *, 
 	    integer *, integer *, integer *, doublereal *, doublereal *);
     static doublereal rcond;
@@ -7579,6 +7610,7 @@ ms", i__1, "slftst_", (ftnlen)5649)];
     extern /* Subroutine */ int solve1_(doublereal *, doublereal *, 
 	    doublereal *, integer *, integer *, doublereal *, integer *, 
 	    integer *, integer *, integer *, integer *, integer *, integer *);
+    static integer lc, iq, iu;
     static logical lamber;
     static doublereal sphalb;
     extern /* Subroutine */ int soleig_(doublereal *, doublereal *, 
@@ -7606,6 +7638,8 @@ ms", i__1, "slftst_", (ftnlen)5649)];
 	    doublereal *, doublereal *, logical *, logical *, integer *, 
 	    integer *, integer *, integer *, integer *, integer *, integer *, 
 	    integer *, doublereal *, doublereal *);
+    static integer ncd;
+    static doublereal sgn;
 
 /*    DISORT special case to get only albedo and transmissivity */
 /*    of entire medium as a function of incident beam angle */
@@ -7668,46 +7702,46 @@ ms", i__1, "slftst_", (ftnlen)5649)];
 /*     .. */
     /* Parameter adjustments */
     eveccd_dim1 = *mi;
-    eveccd_offset = 1 + eveccd_dim1;
+    eveccd_offset = 1 + eveccd_dim1 * 1;
     aad_dim1 = *mi;
-    aad_offset = 1 + aad_dim1;
+    aad_offset = 1 + aad_dim1 * 1;
     bdr_dim1 = *mi;
     bdr_offset = 1 + bdr_dim1 * 0;
     apb_dim1 = *mi;
-    apb_offset = 1 + apb_dim1;
+    apb_offset = 1 + apb_dim1 * 1;
     amb_dim1 = *mi;
-    amb_offset = 1 + amb_dim1;
+    amb_offset = 1 + amb_dim1 * 1;
     trnmed_dim1 = *maxumu;
     albmed_dim1 = *maxumu;
     u0u_dim1 = *maxumu;
     u0u_dim2 = *maxulv;
-    u0u_offset = 1 + u0u_dim1;
+    u0u_offset = 1 + u0u_dim1 * 1;
     umu_dim1 = *maxumu;
     ylmu_dim1 = *mxcmu - 0 + 1;
-    ylmu_offset = 0 + ylmu_dim1;
+    ylmu_offset = 0 + ylmu_dim1 * 1;
     ylmc_dim1 = *mxcmu - 0 + 1;
     ylmc_dim2 = *mxcmu;
-    ylmc_offset = 0 + ylmc_dim1;
+    ylmc_offset = 0 + ylmc_dim1 * 1;
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1;
+    ll_offset = 1 + ll_dim1 * 1;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1;
+    kk_offset = 1 + kk_dim1 * 1;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
-    gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
+    gc_offset = 1 + gc_dim1 * (1 + gc_dim2 * 1);
     gl_dim1 = *mxcmu - 0 + 1;
-    gl_offset = 0 + gl_dim1;
+    gl_offset = 0 + gl_dim1 * 1;
     evecc_dim1 = *mxcmu;
-    evecc_offset = 1 + evecc_dim1;
+    evecc_offset = 1 + evecc_dim1 * 1;
     cc_dim1 = *mxcmu;
-    cc_offset = 1 + cc_dim1;
+    cc_offset = 1 + cc_dim1 * 1;
     array_dim1 = *mxcmu;
-    array_offset = 1 + array_dim1;
+    array_offset = 1 + array_dim1 * 1;
     gu_dim1 = *mxumu;
     gu_dim2 = *mxcmu;
-    gu_offset = 1 + gu_dim1 * (1 + gu_dim2);
+    gu_offset = 1 + gu_dim1 * (1 + gu_dim2 * 1);
     cband_dim1 = *mi9m2;
-    cband_offset = 1 + cband_dim1;
+    cband_offset = 1 + cband_dim1 * 1;
 
     /* Function Body */
     mazim = 0;
@@ -7736,10 +7770,10 @@ ms", i__1, "slftst_", (ftnlen)5649)];
 	for (iq = *nn + 1; iq <= i__2; ++iq) {
 	    ylmc[(i__3 = l + iq * ylmc_dim1 - ylmc_offset) < 1 * ylmc_dim1 * 
 		    ylmc_dim2 && 0 <= i__3 ? i__3 : s_rnge("ylmc", i__3, 
-		    "albtrn_", (ftnlen)6017)] = sgn * ylmc[(i__4 = l + (iq - *
+		    "albtrn_", (ftnlen)6032)] = sgn * ylmc[(i__4 = l + (iq - *
 		    nn) * ylmc_dim1 - ylmc_offset) < 1 * ylmc_dim1 * 
 		    ylmc_dim2 && 0 <= i__4 ? i__4 : s_rnge("ylmc", i__4, 
-		    "albtrn_", (ftnlen)6017)];
+		    "albtrn_", (ftnlen)6032)];
 /* L10: */
 	}
 /* L20: */
@@ -7796,10 +7830,10 @@ ms", i__1, "slftst_", (ftnlen)5649)];
     i__1 = *numu / 2;
     for (iu = 1; iu <= i__1; ++iu) {
 	albmed[(i__2 = iu - 1) < 1 * albmed_dim1 && 0 <= i__2 ? i__2 : s_rnge(
-		"albmed", i__2, "albtrn_", (ftnlen)6087)] = u0u[(i__3 = iu + *
+		"albmed", i__2, "albtrn_", (ftnlen)6102)] = u0u[(i__3 = iu + *
 		numu / 2 + u0u_dim1 - u0u_offset) < 1 * u0u_dim1 * u0u_dim2 &&
 		 0 <= i__3 ? i__3 : s_rnge("u0u", i__3, "albtrn_", (ftnlen)
-		6087)];
+		6102)];
 /* L40: */
     }
     if (*nlyr == 1) {
@@ -7810,13 +7844,13 @@ ms", i__1, "slftst_", (ftnlen)5649)];
 /*                               ** flip them end over end to correspond */
 /*                               ** to positive UMU instead of negative */
 	    trnmed[(i__3 = iu - 1) < 1 * trnmed_dim1 && 0 <= i__3 ? i__3 : 
-		    s_rnge("trnmed", i__3, "albtrn_", (ftnlen)6099)] = u0u[(
+		    s_rnge("trnmed", i__3, "albtrn_", (ftnlen)6114)] = u0u[(
 		    i__4 = *numu / 2 + 1 - iu + (u0u_dim1 << 1) - u0u_offset) 
 		    < 1 * u0u_dim1 * u0u_dim2 && 0 <= i__4 ? i__4 : s_rnge(
-		    "u0u", i__4, "albtrn_", (ftnlen)6099)] + exp(-taucpr[*
+		    "u0u", i__4, "albtrn_", (ftnlen)6114)] + exp(-taucpr[*
 		    nlyr] / umu[(i__2 = iu + *numu / 2 - 1) < 1 * umu_dim1 && 
 		    0 <= i__2 ? i__2 : s_rnge("umu", i__2, "albtrn_", (ftnlen)
-		    6099)]);
+		    6114)]);
 /* L50: */
 	}
     } else {
@@ -7831,12 +7865,12 @@ ms", i__1, "slftst_", (ftnlen)5649)];
 	i__1 = *numu / 2;
 	for (iu = 1; iu <= i__1; ++iu) {
 	    trnmed[(i__3 = iu - 1) < 1 * trnmed_dim1 && 0 <= i__3 ? i__3 : 
-		    s_rnge("trnmed", i__3, "albtrn_", (ftnlen)6117)] = u0u[(
+		    s_rnge("trnmed", i__3, "albtrn_", (ftnlen)6132)] = u0u[(
 		    i__4 = iu + *numu / 2 + u0u_dim1 - u0u_offset) < 1 * 
 		    u0u_dim1 * u0u_dim2 && 0 <= i__4 ? i__4 : s_rnge("u0u", 
-		    i__4, "albtrn_", (ftnlen)6117)] + exp(-taucpr[*nlyr] / 
+		    i__4, "albtrn_", (ftnlen)6132)] + exp(-taucpr[*nlyr] / 
 		    umu[(i__2 = iu + *numu / 2 - 1) < 1 * umu_dim1 && 0 <= 
-		    i__2 ? i__2 : s_rnge("umu", i__2, "albtrn_", (ftnlen)6117)
+		    i__2 ? i__2 : s_rnge("umu", i__2, "albtrn_", (ftnlen)6132)
 		    ]);
 /* L60: */
 	}
@@ -7856,19 +7890,19 @@ ms", i__1, "slftst_", (ftnlen)5649)];
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
 	    albmed[(i__2 = iu - 1) < 1 * albmed_dim1 && 0 <= i__2 ? i__2 : 
-		    s_rnge("albmed", i__2, "albtrn_", (ftnlen)6142)] = albmed[
+		    s_rnge("albmed", i__2, "albtrn_", (ftnlen)6157)] = albmed[
 		    (i__3 = iu - 1) < 1 * albmed_dim1 && 0 <= i__3 ? i__3 : 
-		    s_rnge("albmed", i__3, "albtrn_", (ftnlen)6142)] + *
+		    s_rnge("albmed", i__3, "albtrn_", (ftnlen)6157)] + *
 		    albedo / (1. - *albedo * sphalb) * sphtrn * trnmed[(i__4 =
 		     iu - 1) < 1 * trnmed_dim1 && 0 <= i__4 ? i__4 : s_rnge(
-		    "trnmed", i__4, "albtrn_", (ftnlen)6142)];
+		    "trnmed", i__4, "albtrn_", (ftnlen)6157)];
 	    trnmed[(i__2 = iu - 1) < 1 * trnmed_dim1 && 0 <= i__2 ? i__2 : 
-		    s_rnge("trnmed", i__2, "albtrn_", (ftnlen)6145)] = trnmed[
+		    s_rnge("trnmed", i__2, "albtrn_", (ftnlen)6160)] = trnmed[
 		    (i__3 = iu - 1) < 1 * trnmed_dim1 && 0 <= i__3 ? i__3 : 
-		    s_rnge("trnmed", i__3, "albtrn_", (ftnlen)6145)] + *
+		    s_rnge("trnmed", i__3, "albtrn_", (ftnlen)6160)] + *
 		    albedo / (1. - *albedo * sphalb) * sphalb * trnmed[(i__4 =
 		     iu - 1) < 1 * trnmed_dim1 && 0 <= i__4 ? i__4 : s_rnge(
-		    "trnmed", i__4, "albtrn_", (ftnlen)6145)];
+		    "trnmed", i__4, "albtrn_", (ftnlen)6160)];
 /* L70: */
 	}
     }
@@ -7878,9 +7912,9 @@ ms", i__1, "slftst_", (ftnlen)5649)];
     i__1 = *numu;
     for (iu = 1; iu <= i__1; ++iu) {
 	umu[(i__2 = iu - 1) < 1 * umu_dim1 && 0 <= i__2 ? i__2 : s_rnge("umu",
-		 i__2, "albtrn_", (ftnlen)6154)] = umu[(i__3 = iu + *numu - 1)
+		 i__2, "albtrn_", (ftnlen)6169)] = umu[(i__3 = iu + *numu - 1)
 		 < 1 * umu_dim1 && 0 <= i__3 ? i__3 : s_rnge("umu", i__3, 
-		"albtrn_", (ftnlen)6154)];
+		"albtrn_", (ftnlen)6169)];
 /* L80: */
     }
     if (prnt[5]) {
@@ -7904,10 +7938,9 @@ ms", i__1, "slftst_", (ftnlen)5649)];
     double exp(doublereal);
 
     /* Local variables */
-    static integer lc, iq, iu, lu;
-    static doublereal mu, sgn, exp1, exp2, dtau, expn, denom;
-    static integer iumin, iumax;
-    static doublereal palint, utaupr[2];
+    static doublereal dtau, expn, denom;
+    static integer iumin, iumax, lc, iq, iu, lu;
+    static doublereal mu, palint, utaupr[2], sgn, exp1, exp2;
 
 /*       Computes azimuthally-averaged intensity at top and bottom */
 /*       of medium (related to albedo and transmission of medium by */
@@ -7974,14 +8007,14 @@ ms", i__1, "slftst_", (ftnlen)5649)];
     /* Parameter adjustments */
     wk_dim1 = *mxcmu;
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1;
+    ll_offset = 1 + ll_dim1 * 1;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1;
+    kk_offset = 1 + kk_dim1 * 1;
     gu_dim1 = *mxumu;
     gu_dim2 = *mxcmu;
-    gu_offset = 1 + gu_dim1 * (1 + gu_dim2);
+    gu_offset = 1 + gu_dim1 * (1 + gu_dim2 * 1);
     u0u_dim1 = *maxumu;
-    u0u_offset = 1 + u0u_dim1;
+    u0u_offset = 1 + u0u_dim1 * 1;
     umu_dim1 = *maxumu;
 
     /* Function Body */
@@ -8004,7 +8037,7 @@ ms", i__1, "slftst_", (ftnlen)5649)];
 	i__1 = iumax;
 	for (iu = iumin; iu <= i__1; ++iu) {
 	    mu = umu[(i__2 = iu - 1) < 1 * umu_dim1 && 0 <= i__2 ? i__2 : 
-		    s_rnge("umu", i__2, "altrin_", (ftnlen)6267)];
+		    s_rnge("umu", i__2, "altrin_", (ftnlen)6282)];
 /*                                     ** Integrate from top to bottom */
 /*                                     ** computational layer */
 	    palint = 0.;
@@ -8012,16 +8045,16 @@ ms", i__1, "slftst_", (ftnlen)5649)];
 	    for (lc = 1; lc <= i__2; ++lc) {
 		dtau = taucpr[lc] - taucpr[lc - 1];
 		exp1 = exp((utaupr[(i__3 = lu - 1) < 2 && 0 <= i__3 ? i__3 : 
-			s_rnge("utaupr", i__3, "altrin_", (ftnlen)6275)] - 
+			s_rnge("utaupr", i__3, "altrin_", (ftnlen)6290)] - 
 			taucpr[lc - 1]) / mu);
 		exp2 = exp((utaupr[(i__3 = lu - 1) < 2 && 0 <= i__3 ? i__3 : 
-			s_rnge("utaupr", i__3, "altrin_", (ftnlen)6276)] - 
+			s_rnge("utaupr", i__3, "altrin_", (ftnlen)6291)] - 
 			taucpr[lc]) / mu);
 /*                                      ** KK is negative */
 		i__3 = *nn;
 		for (iq = 1; iq <= i__3; ++iq) {
 		    wk[(i__4 = iq - 1) < 1 * wk_dim1 && 0 <= i__4 ? i__4 : 
-			    s_rnge("wk", i__4, "altrin_", (ftnlen)6281)] = 
+			    s_rnge("wk", i__4, "altrin_", (ftnlen)6296)] = 
 			    exp(kk[iq + lc * kk_dim1 - kk_offset] * dtau);
 		    denom = mu * kk[iq + lc * kk_dim1 - kk_offset] + 1.;
 		    if (abs(denom) < 1e-4) {
@@ -8030,7 +8063,7 @@ ms", i__1, "slftst_", (ftnlen)5649)];
 		    } else {
 			expn = (exp1 * wk[(i__4 = iq - 1) < 1 * wk_dim1 && 0 
 				<= i__4 ? i__4 : s_rnge("wk", i__4, "altrin_",
-				 (ftnlen)6290)] - exp2) * sgn / denom;
+				 (ftnlen)6305)] - exp2) * sgn / denom;
 		    }
 		    palint += gu[iu + (iq + lc * gu_dim2) * gu_dim1 - 
 			    gu_offset] * ll[iq + lc * ll_dim1 - ll_offset] * 
@@ -8046,7 +8079,7 @@ ms", i__1, "slftst_", (ftnlen)5649)];
 		    } else {
 			expn = (exp1 - exp2 * wk[(i__4 = *nstr + 1 - iq - 1) <
 				 1 * wk_dim1 && 0 <= i__4 ? i__4 : s_rnge(
-				"wk", i__4, "altrin_", (ftnlen)6309)]) * sgn /
+				"wk", i__4, "altrin_", (ftnlen)6324)]) * sgn /
 				 denom;
 		    }
 		    palint += gu[iu + (iq + lc * gu_dim2) * gu_dim1 - 
@@ -8080,8 +8113,8 @@ ms", i__1, "slftst_", (ftnlen)5649)];
     static integer iu;
 
     /* Fortran I/O blocks */
-    static cilist io___461 = { 0, 6, 0, "(///,A,//,A)", 0 };
-    static cilist io___463 = { 0, 6, 0, "(0P,F13.4,F20.6,F12.5,1P,E17.4)", 0 }
+    static cilist io___466 = { 0, 6, 0, "(///,A,//,A)", 0 };
+    static cilist io___468 = { 0, 6, 0, "(0P,F13.4,F20.6,F12.5,1P,E17.4)", 0 }
 	    ;
 
 
@@ -8105,7 +8138,7 @@ ms", i__1, "slftst_", (ftnlen)5649)];
     umu_dim1 = *numu;
 
     /* Function Body */
-    s_wsfe(&io___461);
+    s_wsfe(&io___466);
     do_fio(&c__1, " *******  Flux Albedo and/or Transmissivity of entire med\
 ium  ********", (ftnlen)70);
     do_fio(&c__1, " Beam Zen Ang   cos(Beam Zen Ang)      Albedo   Transmiss\
@@ -8113,20 +8146,20 @@ ivity", (ftnlen)62);
     e_wsfe();
     i__1 = *numu;
     for (iu = 1; iu <= i__1; ++iu) {
-	s_wsfe(&io___463);
+	s_wsfe(&io___468);
 	d__1 = acos(umu[(i__2 = iu - 1) < 1 * umu_dim1 && 0 <= i__2 ? i__2 : 
-		s_rnge("umu", i__2, "praltr_", (ftnlen)6364)]) * 
+		s_rnge("umu", i__2, "praltr_", (ftnlen)6379)]) * 
 		57.295779578552292;
 	do_fio(&c__1, (char *)&d__1, (ftnlen)sizeof(doublereal));
 	do_fio(&c__1, (char *)&umu[(i__3 = iu - 1) < 1 * umu_dim1 && 0 <= 
-		i__3 ? i__3 : s_rnge("umu", i__3, "praltr_", (ftnlen)6364)], (
+		i__3 ? i__3 : s_rnge("umu", i__3, "praltr_", (ftnlen)6379)], (
 		ftnlen)sizeof(doublereal));
 	do_fio(&c__1, (char *)&albmed[(i__4 = iu - 1) < 1 * albmed_dim1 && 0 
 		<= i__4 ? i__4 : s_rnge("albmed", i__4, "praltr_", (ftnlen)
-		6364)], (ftnlen)sizeof(doublereal));
+		6379)], (ftnlen)sizeof(doublereal));
 	do_fio(&c__1, (char *)&trnmed[(i__5 = iu - 1) < 1 * trnmed_dim1 && 0 
 		<= i__5 ? i__5 : s_rnge("trnmed", i__5, "praltr_", (ftnlen)
-		6364)], (ftnlen)sizeof(doublereal));
+		6379)], (ftnlen)sizeof(doublereal));
 	e_wsfe();
 /* L10: */
     }
@@ -8146,10 +8179,12 @@ ivity", (ftnlen)62);
     integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
-    static integer i__, lc, iq, ncd, ipnt;
+    static integer ipnt, i__;
     extern /* Subroutine */ int sgbsl_(doublereal *, integer *, integer *, 
-	    integer *, integer *, integer *, doublereal *, integer *), 
-	    zeroit_(doublereal *, integer *);
+	    integer *, integer *, integer *, doublereal *, integer *);
+    static integer lc, iq;
+    extern /* Subroutine */ int zeroit_(doublereal *, integer *);
+    static integer ncd;
 
 /*        Construct right-hand side vector B for isotropic incidence */
 /*        (only) on either top or bottom boundary and solve system */
@@ -8199,9 +8234,9 @@ ivity", (ftnlen)62);
 /*     .. */
     /* Parameter adjustments */
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1;
+    ll_offset = 1 + ll_dim1 * 1;
     cband_dim1 = *mi9m2;
-    cband_offset = 1 + cband_dim1;
+    cband_offset = 1 + cband_dim1 * 1;
     b_dim1 = *nnlyri;
 
     /* Function Body */
@@ -8212,18 +8247,18 @@ ivity", (ftnlen)62);
 	i__1 = *nn;
 	for (i__ = 1; i__ <= i__1; ++i__) {
 	    b[(i__2 = i__ - 1) < 1 * b_dim1 && 0 <= i__2 ? i__2 : s_rnge(
-		    "b", i__2, "solve1_", (ftnlen)6439)] = *fisot;
+		    "b", i__2, "solve1_", (ftnlen)6454)] = *fisot;
 	    b[(i__2 = *ncol - *nn + i__ - 1) < 1 * b_dim1 && 0 <= i__2 ? i__2 
-		    : s_rnge("b", i__2, "solve1_", (ftnlen)6440)] = 0.;
+		    : s_rnge("b", i__2, "solve1_", (ftnlen)6455)] = 0.;
 /* L10: */
 	}
     } else if (*ihom == 2) {
 	i__1 = *nn;
 	for (i__ = 1; i__ <= i__1; ++i__) {
 	    b[(i__2 = i__ - 1) < 1 * b_dim1 && 0 <= i__2 ? i__2 : s_rnge(
-		    "b", i__2, "solve1_", (ftnlen)6446)] = 0.;
+		    "b", i__2, "solve1_", (ftnlen)6461)] = 0.;
 	    b[(i__2 = *ncol - *nn + i__ - 1) < 1 * b_dim1 && 0 <= i__2 ? i__2 
-		    : s_rnge("b", i__2, "solve1_", (ftnlen)6447)] = *fisot;
+		    : s_rnge("b", i__2, "solve1_", (ftnlen)6462)] = *fisot;
 /* L20: */
 	}
     }
@@ -8236,10 +8271,10 @@ ivity", (ftnlen)62);
 	for (iq = 1; iq <= i__2; ++iq) {
 	    ll[*nn + 1 - iq + lc * ll_dim1 - ll_offset] = b[(i__3 = ipnt + 1 
 		    - iq - 1) < 1 * b_dim1 && 0 <= i__3 ? i__3 : s_rnge("b", 
-		    i__3, "solve1_", (ftnlen)6461)];
+		    i__3, "solve1_", (ftnlen)6476)];
 	    ll[iq + *nn + lc * ll_dim1 - ll_offset] = b[(i__3 = iq + ipnt - 1)
 		     < 1 * b_dim1 && 0 <= i__3 ? i__3 : s_rnge("b", i__3, 
-		    "solve1_", (ftnlen)6462)];
+		    "solve1_", (ftnlen)6477)];
 /* L30: */
 	}
 /* L40: */
@@ -8261,8 +8296,8 @@ ivity", (ftnlen)62);
     integer s_rnge(char *, integer, char *, integer);
 
     /* Local variables */
-    static integer iq, jq;
     static doublereal zint;
+    static integer iq, jq;
 
 /*       Calculates spherical albedo and transmissivity for the entire */
 /*       medium from the m=0 intensity components */
@@ -8313,12 +8348,12 @@ ivity", (ftnlen)62);
 /*     .. */
     /* Parameter adjustments */
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1;
+    ll_offset = 1 + ll_dim1 * 1;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1;
+    kk_offset = 1 + kk_dim1 * 1;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
-    gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
+    gc_offset = 1 + gc_dim1 * (1 + gc_dim2 * 1);
     cwt_dim1 = *mxcmu;
     cmu_dim1 = *mxcmu;
 
@@ -8341,9 +8376,9 @@ ivity", (ftnlen)62);
 /* L20: */
 	}
 	*sflup += cwt[(i__2 = iq - *nn - 1) < 1 * cwt_dim1 && 0 <= i__2 ? 
-		i__2 : s_rnge("cwt", i__2, "spaltr_", (ftnlen)6548)] * cmu[(
+		i__2 : s_rnge("cwt", i__2, "spaltr_", (ftnlen)6563)] * cmu[(
 		i__3 = iq - *nn - 1) < 1 * cmu_dim1 && 0 <= i__3 ? i__3 : 
-		s_rnge("cmu", i__3, "spaltr_", (ftnlen)6548)] * zint;
+		s_rnge("cmu", i__3, "spaltr_", (ftnlen)6563)] * zint;
 /* L30: */
     }
     *sfldn = 0.;
@@ -8365,9 +8400,9 @@ ivity", (ftnlen)62);
 /* L50: */
 	}
 	*sfldn += cwt[(i__2 = *nn + 1 - iq - 1) < 1 * cwt_dim1 && 0 <= i__2 ? 
-		i__2 : s_rnge("cwt", i__2, "spaltr_", (ftnlen)6568)] * cmu[(
+		i__2 : s_rnge("cwt", i__2, "spaltr_", (ftnlen)6583)] * cmu[(
 		i__3 = *nn + 1 - iq - 1) < 1 * cmu_dim1 && 0 <= i__3 ? i__3 : 
-		s_rnge("cmu", i__3, "spaltr_", (ftnlen)6568)] * zint;
+		s_rnge("cmu", i__3, "spaltr_", (ftnlen)6583)] * zint;
 /* L60: */
     }
     *sflup *= 2.;
