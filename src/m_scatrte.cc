@@ -560,12 +560,6 @@ void doit_i_fieldIterate(
 void
 doit_i_fieldUpdate1D(// WS Input and Output:
                    Tensor6& doit_i_field,
-                   // Communication with agendas
-                   // ppath_step_agenda:
-                   Ppath& ppath_step, 
-                   Vector& rte_los,
-                   Vector& rte_pos,
-                   GridPos& rte_gp_p,
 		   Matrix& iy,
 		   Matrix& surface_emission,
  		   Matrix& surface_los,
@@ -717,9 +711,8 @@ doit_i_fieldUpdate1D(// WS Input and Output:
             <= cloudbox_limits[1]; p_index ++)
         {
           cloud_ppath_update1D_noseq(doit_i_field, 
-                                     rte_los, rte_pos, rte_gp_p, 
                                      iy, surface_emission, surface_los,
-                                     surface_rmatrix, ppath_step, 
+                                     surface_rmatrix,
                                      p_index, scat_za_index_local, 
                                      scat_za_grid,
                                      cloudbox_limits, doit_i_field_old, 
@@ -745,12 +738,6 @@ doit_i_fieldUpdate1D(// WS Input and Output:
 void
 doit_i_fieldUpdateSeq1D(// WS Input and Output:
                    Tensor6& doit_i_field,
-                   // Communication with agendas
-                   // ppath_step_agenda:
-                   Ppath& ppath_step, 
-                   Vector& rte_los,
-                   Vector& rte_pos,
-                   GridPos& rte_gp_p,
 		   // WS output
 		   Matrix& iy,
 		   Matrix& surface_emission,
@@ -919,9 +906,8 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                 >= cloudbox_limits[0]; p_index --)
             {
               cloud_ppath_update1D(doit_i_field, 
-                                   rte_los, rte_pos, rte_gp_p, 
                                    iy, surface_emission, surface_los,
-                                   surface_rmatrix, ppath_step, 
+                                   surface_rmatrix,
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
@@ -941,9 +927,8 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                 <= cloudbox_limits[1]; p_index ++)
             {
               cloud_ppath_update1D(doit_i_field,  
-                                   rte_los, rte_pos, rte_gp_p, 
                                    iy, surface_emission,surface_los,
-                                   surface_rmatrix, ppath_step, 
+                                   surface_rmatrix,
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
@@ -975,9 +960,8 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
               if (!(p_index == 0 && scat_za_grid[scat_za_index_local] > 90.))
                 {
                   cloud_ppath_update1D(doit_i_field,  
-                                       rte_los, rte_pos, rte_gp_p, 
                                        iy, surface_emission, surface_los,
-                                       surface_rmatrix, ppath_step, 
+                                       surface_rmatrix,
                                        p_index, scat_za_index_local,
                                        scat_za_grid,
                                        cloudbox_limits, doit_scat_field,
@@ -1004,8 +988,6 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
 void
 doit_i_fieldUpdateSeq3D(// WS Output and Input:
                         Tensor6& doit_i_field,
-                        // ppath_step_agenda:
-                        Ppath& ppath_step, 
                         // WS Input:
                         const Tensor6& doit_scat_field,
                         const ArrayOfIndex& cloudbox_limits,
@@ -1190,7 +1172,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                           lon_index ++)
                         {
                           cloud_ppath_update3D(doit_i_field, 
-                                               ppath_step, p_index, lat_index, 
+                                               p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
                                                scat_aa_grid, cloudbox_limits, 
@@ -1222,7 +1204,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                           lon_index ++)
                         {
                           cloud_ppath_update3D(doit_i_field, 
-                                               ppath_step, p_index, lat_index, 
+                                               p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
                                                scat_aa_grid, cloudbox_limits, 
@@ -1266,7 +1248,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                               lon_index ++)
                             {
                               cloud_ppath_update3D(doit_i_field, 
-                                                   ppath_step, p_index, 
+                                                   p_index, 
                                                    lat_index, 
                                                    lon_index, scat_za_index, 
                                                    scat_aa_index,
@@ -1368,11 +1350,6 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                 Tensor3& ext_mat,
                 Matrix& abs_vec,  
                 Index&,// scat_p_index,
-                // ppath_step_agenda:
-                Ppath& ppath_step, 
-                Vector& rte_los,
-                Vector& rte_pos,
-                GridPos& rte_gp_p,
                 // WS Input:
                 const Tensor6& doit_scat_field,
                 const ArrayOfIndex& cloudbox_limits,
@@ -1492,15 +1469,21 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                 >= cloudbox_limits[0]; p_index --)
             {
               cloud_ppath_update1D_planeparallel(doit_i_field, 
-                                                 rte_pressure, rte_temperature, rte_vmr_list,
+                                                 rte_pressure, rte_temperature,
+                                                 rte_vmr_list,
                                                  ext_mat, abs_vec, 
-                                                 rte_los, rte_pos, rte_gp_p, ppath_step, 
-                                                 p_index, scat_za_index, scat_za_grid,
-                                                 cloudbox_limits, doit_scat_field,
-                                                 scalar_gas_absorption_agenda, vmr_field,
-                                                 opt_prop_gas_agenda, ppath_step_agenda,
-                                                 p_grid,  z_field, r_geoid, t_field, 
-                                                 f_grid, f_index, ext_mat_field,
+                                                 p_index, scat_za_index,
+                                                 scat_za_grid,
+                                                 cloudbox_limits,
+                                                 doit_scat_field,
+                                                 scalar_gas_absorption_agenda,
+                                                 vmr_field,
+                                                 opt_prop_gas_agenda,
+                                                 ppath_step_agenda,
+                                                 p_grid, z_field, r_geoid,
+                                                 t_field, 
+                                                 f_grid, f_index,
+                                                 ext_mat_field,
                                                  abs_vec_field); 
             }   
         }
@@ -1513,15 +1496,21 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                 <= cloudbox_limits[1]; p_index ++)
             {
               cloud_ppath_update1D_planeparallel(doit_i_field,  
-                                                 rte_pressure, rte_temperature, rte_vmr_list,
+                                                 rte_pressure, rte_temperature,
+                                                 rte_vmr_list,
                                                  ext_mat, abs_vec, 
-                                                 rte_los, rte_pos, rte_gp_p, ppath_step, 
-                                                 p_index, scat_za_index, scat_za_grid,
-                                                 cloudbox_limits, doit_scat_field,
-                                                 scalar_gas_absorption_agenda, vmr_field,
-                                                 opt_prop_gas_agenda, ppath_step_agenda,
-                                                 p_grid,  z_field, r_geoid, t_field, 
-                                                 f_grid, f_index, ext_mat_field, 
+                                                 p_index, scat_za_index,
+                                                 scat_za_grid,
+                                                 cloudbox_limits,
+                                                 doit_scat_field,
+                                                 scalar_gas_absorption_agenda,
+                                                 vmr_field,
+                                                 opt_prop_gas_agenda,
+                                                 ppath_step_agenda,
+                                                 p_grid, z_field, r_geoid,
+                                                 t_field, 
+                                                 f_grid, f_index,
+                                                 ext_mat_field, 
                                                  abs_vec_field);  
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.

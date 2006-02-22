@@ -51,16 +51,12 @@ void cloud_fieldsCalc(// Output:
 
 void cloud_ppath_update1D(
                   Tensor6View i_field,
-                  Vector& rte_los,
-                  VectorView rte_pos,
-                  GridPos& rte_gp_p,
 		  //Output
 		  Matrix& iy,
 		  Matrix& surface_emission,
 		  Matrix& surface_los,
 		  Tensor4& surface_rmatrix,
                   // ppath_step_agenda:
-                  Ppath& ppath_step, 
                   const Index& p_index,
                   const Index& scat_za_index,
                   ConstVectorView scat_za_grid,
@@ -92,17 +88,12 @@ void cloud_ppath_update1D(
 void cloud_ppath_update1D_noseq(
                           // Input and output
                           Tensor6View doit_i_field,
-                          // iy_surface_agenda
-                          VectorView, //rte_los,
-                          VectorView, //rte_pos,
-                          GridPos&, //rte_gp_p,
 			    //Output
 			  Matrix& iy,
 			  Matrix& surface_emission,
 			  Matrix& surface_los,
 			  Tensor4& surface_rmatrix,
                           // ppath_step_agenda:
-                          Ppath& ppath_step, 
                           const Index& p_index,
                           const Index& scat_za_index,
                           ConstVectorView scat_za_grid,
@@ -142,11 +133,7 @@ void cloud_ppath_update1D_planeparallel(
                   // opt_prop_xxx_agenda:
                   Tensor3& ext_mat,
                   Matrix& abs_vec, 
-                  Vector& rte_los,
-                  Vector& rte_pos,
-                  GridPos& rte_gp_p,
                   // ppath_step_agenda:
-                  Ppath& ppath_step, 
                   const Index& p_index,
                   const Index& scat_za_index,
                   ConstVectorView scat_za_grid,
@@ -175,7 +162,6 @@ void cloud_ppath_update1D_planeparallel(
 void cloud_ppath_update3D(
                           Tensor6View doit_i_field,
                           // ppath_step_agenda:
-                          Ppath& ppath_step, 
                           const Index& p_index,
                           const Index& lat_index,
                           const Index& lon_index,

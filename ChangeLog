@@ -1,3 +1,26 @@
+2006-02-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1078
+
+	* src/methods.cc:
+
+	doit_i_fieldUpdate1D, doit_i_fieldUpdateSeq1D,
+	doit_i_fieldUpdateSeq3D, doit_i_fieldUpdateSeq1DPP:
+	Removed ppath_step, rte_los, rte_pos and rte_gp_p from interface.
+
+	* src/scatrte.{cc,h} (cloud_ppath_update1D,
+	cloud_ppath_update1D_noseq, cloud_ppath_update3D):
+
+	Make ppath_step local and remove it from the function interface.
+
+	rte_los, rte_pos and rte_gp_p where unused in most cases. We have to
+	deal with the iy_surface_agenda later when it is used somewhere.
+
+	* src/m_scatrte.cc (doit_i_fieldUpdate1D, doit_i_fieldUpdateSeq1D,
+	doit_i_fieldUpdateSeq3D, doit_i_fieldUpdateSeq1DPP):
+
+	Removed ppath_step, rte_los, rte_pos and rte_gp_p from interface.
+
 2006-02-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1077

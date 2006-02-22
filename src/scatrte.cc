@@ -210,12 +210,6 @@ void cloud_fieldsCalc(// Output and Input:
 
   WS Output:
   \param doit_i_field Updated radiation field inside the cloudbox. 
-  // Communication with iy_surface_agenda:
-  \param rte_los
-  \param rte_pos
-  \param rte_gp_p
-  Variables used in ppath_step_agenda:
-  \param ppath_step
   WS Input:
   \param p_index // Pressure index
   \param scat_za_index // Index for proagation direction
@@ -248,17 +242,12 @@ void cloud_fieldsCalc(// Output and Input:
 void cloud_ppath_update1D(
                           // Input and output
                           Tensor6View doit_i_field,
-                          // iy_surface_agenda
-                          Vector& rte_los, //rte_los,
-                          VectorView, //rte_pos,
-                          GridPos&, //rte_gp_p,
                           //Output
                           Matrix& iy,
                           Matrix& surface_emission,
                           Matrix& surface_los,
                           Tensor4& surface_rmatrix,
                           // ppath_step_agenda:
-                          Ppath& ppath_step,
                           const Index& p_index,
                           const Index& scat_za_index,
                           ConstVectorView scat_za_grid,
@@ -286,6 +275,7 @@ void cloud_ppath_update1D(
                           //const Agenda& iy_surface_agenda, 
                           const Index& scat_za_interp)
 {
+  Ppath ppath_step;
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from 
   // where this function is called.
   
@@ -387,8 +377,9 @@ void cloud_ppath_update1D(
 	  
 	   Index np = ppath_step.np;
 
-	   rte_los.resize( ppath_step.los.ncols() );
-	   rte_los = ppath_step.los(np-1,joker);
+// FIXME OLE: Removed rte_los from interface, it is set but never used.
+//	   rte_los.resize( ppath_step.los.ncols() );
+//	   rte_los = ppath_step.los(np-1,joker);
    
 	   GridPos dummy_ppath_step_gp_lat;
 	   GridPos dummy_ppath_step_gp_lon;
@@ -441,17 +432,12 @@ void cloud_ppath_update1D(
 void cloud_ppath_update1D_noseq(
                           // Output
                           Tensor6View doit_i_field,
-                          // iy_surface_agenda
-                          VectorView, //rte_los,
-                          VectorView, //rte_pos,
-                          GridPos&, //rte_gp_p,
                           //Output
                           Matrix& iy,
                           Matrix& surface_emission,
                           Matrix& surface_los,
                           Tensor4& surface_rmatrix,
                           // ppath_step_agenda:
-                          Ppath& ppath_step, 
                           const Index& p_index,
                           const Index& scat_za_index,
                           ConstVectorView scat_za_grid,
@@ -482,6 +468,7 @@ void cloud_ppath_update1D_noseq(
                           const Index& scat_za_interp
                          )
 {
+  Ppath ppath_step;
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from 
   // where this function is called.
   
@@ -670,7 +657,6 @@ void cloud_ppath_update1D_noseq(
 void cloud_ppath_update3D(
                           Tensor6View doit_i_field,
                           // ppath_step_agenda:
-                          Ppath& ppath_step, 
                           const Index& p_index,
                           const Index& lat_index,
                           const Index& lon_index,
@@ -703,6 +689,7 @@ void cloud_ppath_update3D(
                           const Index& //scat_za_interp
                           )
 {
+  Ppath ppath_step;
   const Index stokes_dim = doit_i_field.ncols();
   
   Vector sca_vec_av(stokes_dim,0);
@@ -1647,11 +1634,6 @@ void cloud_ppath_update1D_planeparallel(
                                         // opt_prop_xxx_agenda:
                                         Tensor3& ext_mat,
                                         Matrix& abs_vec,  
-                                        Vector& rte_los,
-                                        Vector& rte_pos,
-                                        GridPos& rte_gp_p,
-                                        // ppath_step_agenda:
-                                        Ppath& /* ppath_step */,
                                         const Index& p_index,
                                         const Index& scat_za_index,
                                         ConstVectorView scat_za_grid,
@@ -1930,13 +1912,14 @@ void cloud_ppath_update1D_planeparallel(
           //Set rte_pos, rte_gp_p and rte_los to match the last point
           //in ppath.
           //pos
-          rte_pos.resize( atmosphere_dim );
+          Vector rte_pos( atmosphere_dim );
           Numeric z_field_0 = z_field(0, 0, 0);
           rte_pos = z_field_0 + r_geoid(0,0);//ppath_step.pos(np-1,Range(0,atmosphere_dim));
           //los
-          rte_los.resize(1);
+          Vector rte_los(1);
           rte_los = scat_za_grid[scat_za_index];//ppath_step.los(np-1,joker);
           //gp_p
+          GridPos rte_gp_p;
           rte_gp_p.idx   = p_index;
           rte_gp_p.fd[0] = 0;
           rte_gp_p.fd[1] = 1;
