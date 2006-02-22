@@ -116,7 +116,7 @@ AgendaSet(iy_surface_agenda){
 # This file holds the viewing angles of the sensor:
 IndexSet(nelem){ 1 }
 VectorSet(vector_1){
-        value = 99.7841941981
+        value =99.7841941981
 }
 
 #VectorNLinSpace(vector_1){
@@ -323,13 +323,11 @@ CloudboxGetIncoming{}
 DoitInit{}
 # Executes doit_mono_agenda for all frequencies
 ScatteringDoit{}
-Print(doit_i_field)
-    {level=1}
 
 # Calculate RT from cloudbox boundary to the sensor
 RteCalc{}
     
-#VectorToTbByRJ( y, y ) {}
+VectorToTbByRJ( y, y ) {}
 
 Print(y){
 level=1

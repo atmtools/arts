@@ -122,21 +122,21 @@ AgendaSet(iy_surface_agenda){
 # Definition of sensor position and LOS
 #--------------------------------------
 # This file holds the viewing angles of the sensor:
-IndexSet(nelem){ 1 }
-VectorSet(vector_1){
-        value = 99.7841941981
-}
-
-#VectorNLinSpace(vector_1){
-#	start = 0
-#	stop = 180
-#	n = 19
+#IndexSet(nelem){ 1 }
+#VectorSet(vector_1){
+#        value = 150
 #}
+
+VectorNLinSpace(vector_1){
+	start = 100
+	stop = 180
+	n = 20
+}
 
 # Sensor altitude from earth surface
 nelemGet(vector_1){}
 VectorSet( vector_2 ) {
-   value =  95000.1
+   value =  96000.1
 }
 
 # Add Earth Radius
@@ -179,20 +179,10 @@ AgendaSet( rte_agenda ){
    RteStd{}
 }
 
-# Set the cloudbox limits (pressure units)
-# Alternative: cloudboxSetManuallyAltitude (specification in [km])
-# ----------------------------------------------------------------
-cloudboxSetManuallyAltitude{
-z1=0
-z2=15e3
-lat1=0
-lat2=0
-lon1=0
-lon2=0
-}
-
 # Specification of cloud
 # -----------------------
+cloudboxSetDisort{}
+
 ParticleTypeInit{}
 
 # Only one particle type is added in this example 
@@ -256,22 +246,30 @@ AgendaSet( opt_prop_part_agenda ){
    abs_vecAddPart{}
 }
 	
-    
 AgendaSet(iy_cloudbox_agenda){
+    DoNothing (ppath, ppath) {}
+    DoNothing (rte_pos, rte_pos) {}
+    DoNothing (rte_los, rte_los) {}
     iyInterpCloudboxField{}
     }
+
 
 #==================start==========================
 
 # Perform scattering calculation 
 # CloudboxGetIncoming{}
-IndexSet(f_index){0}
-scat_data_monoCalc{}
+#IndexSet(f_index){0}
+#scat_data_monoCalc{}
 ScatteringDisort{}
-Exit{}
+    
+WriteXML(doit_i_field1D_spectrum){""}
+
+
 # Calculate RT from cloudbox boundary to the sensor
 RteCalc{}
 VectorToTbByRJ( y, y ) {}
+
+
 
 Print(y){
 level=1

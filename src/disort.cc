@@ -71,7 +71,6 @@ void dtauc_ssalbCalc(
                     const Agenda& scalar_gas_absorption_agenda,
                     const Agenda& spt_calc_agenda,
                     ConstTensor4View pnd_field,
-                    const ArrayOfIndex& cloudbox_limits,
                     ConstTensor3View t_field,
                     ConstTensor3View z_field, 
                     ConstVectorView p_grid,
@@ -80,7 +79,8 @@ void dtauc_ssalbCalc(
 {
   
   const Index N_pt = pnd_field.nbooks();
-  const Index Np_cloud = cloudbox_limits[1]-cloudbox_limits[0]+1;
+  // In DISORT the "cloudbox" must cover the whole atmosphere
+  const Index Np_cloud = pnd_field.npages();
   const Index stokes_dim = 1; 
 
   assert( dtauc.nelem() == Np_cloud-1);
@@ -103,7 +103,7 @@ void dtauc_ssalbCalc(
       scat_p_index_local ++)
    {
      rte_temperature_local = 
-       t_field(scat_p_index_local + cloudbox_limits[0], 0, 0);
+       t_field(scat_p_index_local, 0, 0);
      
      //Calculate optical properties for single particle types:
      //( Execute agendas silently. )

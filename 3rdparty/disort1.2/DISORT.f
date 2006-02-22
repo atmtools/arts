@@ -298,8 +298,9 @@ c     .. Parameters ..
 c      PARAMETER ( MXCLY = 6, MXULV = 5, MXCMU = 48, MXUMU = 10,
 c    &          MXPHI = 3, MI = MXCMU / 2, MI9M2 = 9*MI - 2,
 c    &          NNLYRI = MXCMU*MXCLY, MXSQT = 1000 )
-      PARAMETER ( MXCLY = 100, MXULV = 2*MXCLY, MXCMU = 48, MXUMU = 48,
-     &          MXPHI = 3, MI = MXCMU / 2, MI9M2 = 9*MI - 2,
+      PARAMETER ( MXCLY = 200, MXULV = 2*MXCLY, MXCMU = 100, 
+     &          MXUMU = 100,
+     &          MXPHI = 1, MI = MXCMU / 2, MI9M2 = 9*MI - 2,
      &          NNLYRI = MXCMU*MXCLY, MXSQT = 1000 )
 c     ..
 c     .. Scalar Arguments ..
@@ -702,6 +703,7 @@ c                               ** Save azimuthally averaged intensities
 
                   DO 90 J = 1, NPHI
                      UU( IU, LU, J ) = UUM( IU, LU )
+                     write(*,*) UU( IU, LU, J )
    90             CONTINUE
 
   100          CONTINUE
@@ -4778,7 +4780,6 @@ c     ..
 
       END IF
 
-      write(*,*) WNUMHI, WNUMLO
       IF( T.LT.0.0 .OR. WNUMHI.LT.WNUMLO .OR. WNUMLO.LT.0. )
      &    CALL ERRMSG('PLKAVG--temperature or wavenums. wrong',.TRUE.)
 

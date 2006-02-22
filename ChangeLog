@@ -1,3 +1,28 @@
+2006-02-22  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1079
+	
+	* src/m_disort.cc (ScatteringDisort): Included frequency loop 
+	for spectrally resolved calculations. 
+	(cloudboxSetDisort): Included this functions, because for DISORT the
+	cloudbox has to be extended over the whole atmosphere since it is 
+	only possible to include cosmic background as input at the upper 
+	layer. The surface is also treated in DISORT (Lambertian). 
+
+	* src/methods.cc: Included (cloudboxSetDisort) and modified 	
+	(ScatteringDisort).
+	
+	* 3rdparty/disort1.2/DISORT.f: Increased values of some parameters.
+		
+	* src/disort.{cc,h}(dtauc_ssalbCalc): Removed cloudbox_limits from 
+	interface, because the values are now calculated for the full 
+	atmosphere. 
+
+	* test/simpleDOIT.arts: Corrected deficient change. The test is 
+	now working again.
+
+	* test/simpleDISORT.arts: Updated. 
+
 2006-02-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1078

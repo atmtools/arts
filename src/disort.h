@@ -35,7 +35,6 @@ void dtauc_ssalbCalc(
                     const Agenda& scalar_gas_absorption_agenda,
                     const Agenda& spt_calc_agenda,
                     ConstTensor4View pnd_field,
-                    const ArrayOfIndex& cloudbox_limits,
                     ConstTensor3View t_field,
                     ConstTensor3View z_field, 
                     ConstVectorView p_grid,

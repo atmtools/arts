@@ -908,6 +908,23 @@ void define_md_data_raw()
         GINPUT(),
         KEYWORDS(),
         TYPES()));
+  
+   md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "cloudboxSetDisort" ),
+        DESCRIPTION
+        (
+         "For Disort calculation the cloudbox must be extended to \n"
+         "cover the full atmosphere.\n"
+         "This method sets *cloudbox_limits* accordingly. \n"
+         ), 
+        OUTPUT(cloudbox_on_, cloudbox_limits_),
+        INPUT(p_grid_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
 
   md_data_raw.push_back
     ( MdRecord
@@ -1096,12 +1113,13 @@ void define_md_data_raw()
          "Detailed documentation to be added\n."
          "\n"
          ),
-         OUTPUT( ),
+         OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, 
+                f_index_, scat_data_mono_, doit_i_field1D_spectrum_),
          INPUT(cloudbox_limits_, stokes_dim_, opt_prop_part_agenda_, 
                scalar_gas_absorption_agenda_, spt_calc_agenda_, 
                pnd_field_, t_field_, 
-               z_field_, p_grid_, vmr_field_, scat_data_mono_, f_grid_, 
-               f_index_, scat_za_grid_, surface_emissivity_field_ ),
+               z_field_, p_grid_, vmr_field_, scat_data_raw_, f_grid_, 
+               scat_za_grid_, surface_emissivity_field_ ),
          GOUTPUT(),
          GINPUT(),
          KEYWORDS(),

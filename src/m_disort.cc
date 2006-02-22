@@ -55,6 +55,28 @@ extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric COSMIC_BG_TEMP;
 
 
+
+//! cloudboxSetDisort
+/*!
+  See the the online help (arts -d FUNCTION_NAME)
+
+  \author Claudia Emde
+  \date 2006-02-22
+*/
+void cloudboxSetDisort(//WS Output
+                       Index & cloudbox_on,
+                       ArrayOfIndex& cloudbox_limits,
+                       // WS Input
+                       const Vector& p_grid
+                       )
+{
+  cloudbox_on = 1;
+  cloudbox_limits.resize(2); 
+  cloudbox_limits[0] = 0;
+  cloudbox_limits[1] = p_grid.nelem()-1;
+}
+  
+
 //! ScatteringDisort
 /*!
   See the the online help (arts -d FUNCTION_NAME)
@@ -63,8 +85,14 @@ extern const Numeric COSMIC_BG_TEMP;
   \date 2006-02-10
 */
 void ScatteringDisort(// WS Output:
+                      Tensor7& scat_i_p,
+                      Tensor7& scat_i_lat,
+                      Tensor7& scat_i_lon,
+                      Index& f_index, 
+                      ArrayOfSingleScatteringData& scat_data_mono,
+                      Tensor4& doit_i_field1D_spectrum,
                       // WS Input
-                      const ArrayOfIndex& cloudbox_limits,
+                      const ArrayOfIndex& cloudbox_limits, 
                       const Index& stokes_dim,
                       const Agenda& opt_prop_part_agenda,
                       const Agenda& scalar_gas_absorption_agenda, 
@@ -74,68 +102,76 @@ void ScatteringDisort(// WS Output:
                       const Tensor3& z_field, 
                       const Vector& p_grid, 
                       const Tensor4& vmr_field,
-                      const ArrayOfSingleScatteringData& scat_data_mono,
+                      const ArrayOfSingleScatteringData& scat_data_raw,
                       const Vector& f_grid,
-                      const Index& f_index, 
                       const Vector& scat_za_grid,
                       const Matrix& surface_emissivity_field)
 {
-  if(cloudbox_limits.nelem() != 2) 
+
+#ifdef DISORT
+  
+  out1<< "Start DISORT calculation...\n";
+  
+  if(pnd_field.ncols() != 1) 
     throw runtime_error(
-                        "The cloudbox dimension is not 1D! \n" 
+                        "*pnd_field* is not 1D! \n" 
                         "DISORT can only be used for 1D! \n" );
   
   if (stokes_dim != 1) 
     throw runtime_error( "DISORT can only be used for unpolarized \n"
                          "calculations (i.e., stokes_dim=1),\n" );
   
-  //NOTE: It is at the moment not possible to combine particle types with 
-  // beinng stored on different scattering angle grids.
+  // NOTE: It is at the moment not possible to combine particle types  
+  // being stored on different scattering angle grids.
   // Ask whether this is required. Temperature dependance also not yet 
   // implemented. 
 
-  Index nlyr=cloudbox_limits[1]-cloudbox_limits[0];
+  // DISORT calculations are done over the whole atmosphere because it is
+  // only possible to give a constant value, i.e. cosmic background, 
+  // as input, not a radiation field at the to of the domain
+  Index nlyr=pnd_field.npages()-1;
 
+  // Check whether cloudbox expands over the whole atmosphere
+  
+  if(cloudbox_limits.nelem()!=2 ||  cloudbox_limits[0] != 0 ||
+     cloudbox_limits[1] != pnd_field.npages()-1)
+    throw runtime_error("The cloudbox is not set correctly for DISORT.\n"
+                        "Please use *cloudboxSetDisort*. \n");
+
+  scat_i_p.resize(f_grid.nelem(), pnd_field.npages(), 1, 1, 
+                  scat_za_grid.nelem(), 1, 1);
+  scat_i_p = 0.;
+
+  doit_i_field1D_spectrum.resize(f_grid.nelem(), pnd_field.npages(), 
+                                 scat_za_grid.nelem(), 1); 
+  
+  doit_i_field1D_spectrum= 0; 
+  // Scat_i_lat, lon ---> only dummies, not used further 
+  scat_i_lat.resize(1,1,1,1,1,1,1);
+  scat_i_lat = 0.;
+  scat_i_lon.resize(1,1,1,1,1,1,1);
+  scat_i_lon = 0.; 
+
+  // Input variables for DISORT
+  // Optical depth of layers
   Vector dtauc(nlyr, 0.); 
+  // Single scattering albedo of layers
   Vector ssalb(nlyr, 0.);
-
-  dtauc_ssalbCalc(dtauc, ssalb, opt_prop_part_agenda,
-                 scalar_gas_absorption_agenda, spt_calc_agenda, pnd_field, 
-                 cloudbox_limits, t_field, z_field, p_grid, vmr_field);
-
-  //cout << "dtauc " << dtauc << endl
-  //     << "ssalb " << ssalb << endl;
   
+  // Phase function
+  Matrix phase_function(nlyr,scat_data_raw[0].za_grid.nelem(), 0.);
+  // Scattering angle grid, assumed here that it is the same for
+  // all particle types
+  Vector scat_angle_grid(scat_data_raw[0].za_grid.nelem(), 0.);
+  scat_angle_grid = scat_data_raw[0].za_grid;
   
-
-  Matrix phase_function(nlyr,scat_data_mono[0].za_grid.nelem(), 0.);
-  Vector scat_angle_grid(scat_data_mono[0].za_grid.nelem(), 0.);
-  scat_angle_grid = scat_data_mono[0].za_grid;
-  
-  phase_functionCalc(phase_function, scat_data_mono, pnd_field);
-  
-  //cout << "phase function" << phase_function(15,joker) << "\n";  
-  
-  Index n_legendre=scat_za_grid.nelem(); //8;
-  Matrix pmom(nlyr, n_legendre, 0.); 
-  pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre);
-
-  //for (Index i=0; i<nlyr; i++)
-  //    cout << "pmom " << pmom(i,joker) << "\n";
-
-  // Definition of other input variables for disort calculation
-
-  Numeric wvnmlo = f_grid[f_index]/(100*SPEED_OF_LIGHT);
-  Numeric wvnmhi = wvnmlo;
-  
-  cout << " wvnmlo " <<  wvnmlo << endl<< " wvnmhi " <<  wvnmhi << endl ;
-  //    <<"f_lo " <<  f_grid[f_index] << " f_hi " << wvnmhi*(SPEED_OF_LIGHT);
-  // calculate radiant quantities at boundary of computational layers. 
-  Index usrtau = FALSE_; 
- 
   // Number of streams, I think in microwave 8 is more that sufficient
-  Index nstr=n_legendre-1;
+  Index nstr=8; 
+  Index n_legendre=nstr+1;
   
+  // Legendre polynomials of phase function
+  Matrix pmom(nlyr, n_legendre, 0.); 
+
   // Intensities to be computed for user defined polar (zenith angles)
   Index usrang = TRUE_;
   Index numu = scat_za_grid.nelem();
@@ -143,8 +179,8 @@ void ScatteringDisort(// WS Output:
   // Transform to mu, starting with negative values
   for (Index i = 0; i<numu; i++)
     umu[i]=cos(scat_za_grid[numu-i-1]*PI/180);
-
-    // Since we have no solar source there is no angular dependance
+  
+  // Since we have no solar source there is no angular dependance
   Index nphi = 1; 
   Vector phi(nphi, 0.);
   
@@ -154,12 +190,8 @@ void ScatteringDisort(// WS Output:
   Numeric fbeam =0.;
   Numeric umu0=0.;
   Numeric phi0=0.; 
-  
-  // Cosmic background
-  Numeric fisot = planck2( f_grid[f_index], COSMIC_BG_TEMP );
-  //cout <<"fisot  " << fisot << endl;
 
-  // surface, Lambertian if set to 0
+  // surface, Lambertian if set to TRUE_ 
   Index lamber = TRUE_;
   Numeric albedo = surface_emissivity_field(0,0);
   // only needed for bidirectional reflecting surface
@@ -168,43 +200,44 @@ void ScatteringDisort(// WS Output:
   //temperature of surface and cloudbox top
   Numeric btemp = t_field(0,0,0);
   Numeric ttemp = t_field(cloudbox_limits[1], 0, 0); 
-  
-  // emissivity of top boundary, set to zero as a start, I think 
-  // I have to put the gas absorption coefficient here
+      
+  // Top of the atmosphere, emissivity = 0
   Numeric temis = 0.;
   
   // we don't need delta-scaling in microwave region
   Index deltam = FALSE_; 
-  
+      
   // include thermal emission (very important)
   Index plank = TRUE_; 
-  
+      
   // calculate also intensities, not only fluxes
   Index onlyfl = FALSE_; 
-  
+      
   // Convergence criterium
   Numeric accur = 0.005;
-  
-  // Specify what to be printed
+      
+  // Specify what to be printed --> normally nothing
   Index *prnt = new Index[7]; 
-  prnt[0]=1; // Input variables
-  prnt[1]=0; // fluxes
-  prnt[2]=0; // azimuthally averaged intensities at user and comp. angles
-  prnt[3]=0; // azimuthally averaged intensities at user levels and angles
-  prnt[4]=1; // intensities at user levels and angles
-  prnt[5]=0; // planar transmissivity and albedo 
-  prnt[6]=0; // phase function moments
+  prnt[0]=FALSE_; // Input variables
+  prnt[1]=FALSE_; // fluxes
+  prnt[2]=FALSE_; // azimuthally averaged intensities at user 
+  //and comp. angles
+  prnt[3]=FALSE_; // azimuthally averaged intensities at user levels
+  //and angles
+  prnt[4]=TRUE_; // intensities at user levels and angles
+  prnt[5]=FALSE_; // planar transmissivity and albedo 
+  prnt[6]=FALSE_; // phase function moments
   
   char header[127];
   memset (header, 0, 127);
   Index header_len = 127;
-   
+  
   Index maxcly = nlyr; // Maximum number of layers
   Index maxulv = nlyr+1; // Maximum number of user defined tau
   Index maxumu = scat_za_grid.nelem(); // maximum number of zenith angles
   Index maxcmu = n_legendre-1; // maximum number of Legendre polynomials 
   Index maxphi = 1;  //no azimuthal dependance
-
+  
   // Declaration of Output variables
   Vector rfldir(maxulv); 
   Vector rfldn(maxulv);
@@ -215,58 +248,97 @@ void ScatteringDisort(// WS Output:
   Matrix u0u(scat_za_grid.nelem(), maxulv); // Azimuthally averaged intensity 
   Vector albmed(scat_za_grid.nelem()); // Albedo of cloudbox
   Vector trnmed(scat_za_grid.nelem()); // Transmissivity 
-  
+      
   Vector t(nlyr+1);
+  cout << "cloudbox_limits"<< cloudbox_limits << t.nelem()<< t_field.npages() << endl;
   for (Index i = 0; i < t.nelem(); i++)
     {
       t[i] = t_field(cloudbox_limits[1]-i,0,0);
     }
-
+      
   //dummies
   Index ntau = 0; 
   Vector utau(maxulv,0.);
-
-  //  cout << "Output from ARTS: " << endl << endl;
-  //cout << "nlyr " << nlyr << endl << "maxcly" << maxcly << endl ;
-  //cout << "scat_za_grid.nelem() " <<scat_za_grid.nelem()<< endl
-  //    << endl << "Output from DISORT subroutine: " << endl; 
-
-#ifdef DISORT
-  disort_(&nlyr, dtauc.get_c_array(),
-          ssalb.get_c_array(), pmom.get_c_array(), 
-          t.get_c_array(), &wvnmlo, &wvnmhi,
-          &usrtau, &ntau, utau.get_c_array(), 
-          &nstr, &usrang, &numu, 
-          umu.get_c_array(), &nphi,
-          phi.get_c_array(), 
-          &ibcnd, &fbeam,
-          &umu0, &phi0, &fisot, 
-          &lamber, 
-          &albedo, hl.get_c_array(),
-          &btemp, &ttemp, &temis, 
-          &deltam, 
-          &plank, &onlyfl, &accur,
-          prnt, header, 
-          &maxcly, &maxulv,
-          &maxumu, &maxcmu, 
-          &maxphi, rfldir.get_c_array(), 
-          rfldn.get_c_array(),
-          flup.get_c_array(), dfdt.get_c_array(), 
-          uavg.get_c_array(),
-          uu.get_c_array(), u0u.get_c_array(), 
-          albmed.get_c_array(),
-          trnmed.get_c_array(), 
-          header_len);
-
-  cout << "intensity " << rfldir << endl; 
   
-  delete [] prnt;
+  // Loop over frequencies
+  for (f_index = 0; f_index < f_grid.nelem(); f_index ++) 
+    {
+      scat_data_monoCalc(scat_data_mono, scat_data_raw, f_grid, f_index);
+      
+      dtauc_ssalbCalc(dtauc, ssalb, opt_prop_part_agenda,
+                      scalar_gas_absorption_agenda, spt_calc_agenda, 
+                      pnd_field, 
+                      t_field, z_field, p_grid, vmr_field);
+      //cout << "dtauc " << dtauc << endl
+      //     << "ssalb " << ssalb << endl;
+      
+      phase_functionCalc(phase_function, scat_data_mono, pnd_field);
+      //cout << "phase function" << phase_function(15,joker) << "\n";  
+      
+      pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre);
+      //for (Index i=0; i<nlyr; i++)
+      //    cout << "pmom " << pmom(i,joker) << "\n";
+      
+      // Wavenumber in [1/cm^2]
+      Numeric wvnmlo = f_grid[f_index]/(100*SPEED_OF_LIGHT);
+      Numeric wvnmhi = wvnmlo;
+      
+      // calculate radiant quantities at boundary of computational layers. 
+      Index usrtau = FALSE_; 
+      
+      // Cosmic background
+      Numeric fisot = planck2( f_grid[f_index], COSMIC_BG_TEMP );
+      
+      // Call disort
+      disort_(&nlyr, dtauc.get_c_array(),
+              ssalb.get_c_array(), pmom.get_c_array(), 
+              t.get_c_array(), &wvnmlo, &wvnmhi,
+              &usrtau, &ntau, utau.get_c_array(), 
+              &nstr, &usrang, &numu, 
+              umu.get_c_array(), &nphi,
+              phi.get_c_array(), 
+              &ibcnd, &fbeam,
+              &umu0, &phi0, &fisot, 
+              &lamber, 
+              &albedo, hl.get_c_array(),
+              &btemp, &ttemp, &temis, 
+              &deltam, 
+              &plank, &onlyfl, &accur,
+              prnt, header, 
+              &maxcly, &maxulv,
+              &maxumu, &maxcmu, 
+              &maxphi, rfldir.get_c_array(), 
+              rfldn.get_c_array(),
+              flup.get_c_array(), dfdt.get_c_array(), 
+              uavg.get_c_array(),
+              uu.get_c_array(), u0u.get_c_array(), 
+              albmed.get_c_array(),
+              trnmed.get_c_array(), 
+              header_len);
 
+      //      cout << "intensity " << uu << endl; 
+      
+      delete [] prnt;
+      
+
+      for(Index j = 0; j<numu; j++)
+        {
+          //          scat_i_p(f_index, 1, 0, 0, j, 0, 0) = 
+          //  uu(numu-j-1, 0, 0);
+          
+          for(Index k = 0; k< nlyr; k++)
+            doit_i_field1D_spectrum(f_index, k+1, j, 0) = 
+              uu(numu-j-1, nlyr-k-1, 0);
+        }
+      cout << uu( joker,0, 0)<< endl;
+      cout << u0u(joker,0);
+      scat_i_p(f_index, 1, 0, 0, joker, 0, 0) = 
+        uu(joker, 0, 0);
+    }
 #else
-  throw runtime_error ("This version of ARTS was compiled without DISORT support.");
+      throw runtime_error ("This version of ARTS was compiled without DISORT support.");
 #endif
-
- 
+      
   
 }
 

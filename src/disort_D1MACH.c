@@ -14,7 +14,7 @@ static logical c_true = TRUE_;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* RCS version control information: */
-/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_D1MACH.c,v 1.5 2006/02/21 17:18:46 claudia Exp $ */
+/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_D1MACH.c,v 1.6 2006/02/22 15:44:42 claudia Exp $ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 doublereal d1mach_(integer *i__)
 {

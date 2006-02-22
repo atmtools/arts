@@ -14,7 +14,7 @@ static integer c__1 = 1;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* RCS version control information: */
-/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_LINPAK.c,v 1.5 2006/02/21 17:18:46 claudia Exp $ */
+/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_LINPAK.c,v 1.6 2006/02/22 15:44:42 claudia Exp $ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* Call tree: */
 
