@@ -6206,7 +6206,9 @@ void ppath_calc(
       //
       istep++;
       //
-      ppath_step_agenda.execute(true);
+      ppath_step_agendaExecute(ppath_step, atmosphere_dim, p_grid,
+                               lat_grid, lon_grid, z_field, r_geoid, z_surface,
+                               ppath_step_agenda, true);
 
       //Print( ppath_step, "ppath", 1 );
 

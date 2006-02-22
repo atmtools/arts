@@ -171,5 +171,4 @@ void define_md_raw_map();
 
 ostream& operator<<(ostream& os, const MdRecord& mdr);
 
-
 #endif  // methods_h

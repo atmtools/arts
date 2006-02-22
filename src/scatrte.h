@@ -76,6 +76,7 @@ void cloud_ppath_update1D(
                   ConstVectorView p_grid,
                   ConstTensor3View z_field,
                   ConstMatrixView r_geoid,
+                  ConstMatrixView z_surface,
                   // Calculate thermal emission:
                   ConstTensor3View t_field,
                   ConstVectorView f_grid,
@@ -118,6 +119,7 @@ void cloud_ppath_update1D_noseq(
                           ConstVectorView  p_grid,
                           ConstTensor3View z_field,
                           ConstMatrixView r_geoid,
+                          ConstMatrixView z_surface,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
                           ConstVectorView f_grid,
@@ -195,6 +197,7 @@ void cloud_ppath_update3D(
                           ConstVectorView lon_grid,
                           ConstTensor3View z_field,
                           ConstMatrixView r_geoid,
+                          ConstMatrixView z_surface,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
                           ConstVectorView f_grid,
@@ -247,10 +250,12 @@ void ppath_step_in_cloudbox(Ppath& ppath_step,
                             const Index& lon,
                             ConstTensor3View z_field,
                             ConstMatrixView r_geoid,
+                            ConstMatrixView z_surface,
                             ConstVectorView scat_za_grid,
                             ConstVectorView aa_grid,
                             const Index& scat_za_index,
                             const Index& scat_aa_index,
+                            ConstVectorView p_grid,
                             ConstVectorView lat_grid,
                             ConstVectorView lon_grid);
 

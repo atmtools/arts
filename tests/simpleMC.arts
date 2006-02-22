@@ -152,12 +152,28 @@ level=1
 }
 
 AgendaSet( iy_cloudbox_agenda ){
+  Ignore( rte_gp_p ){}
+  Ignore( rte_gp_lat ){}
+  Ignore( rte_gp_lon ){}
   ScatteringMonteCarlo{
     std_err=0.5
     max_time=20
     max_iter=-1
     incoming_lookup=0
     z_field_is_1D=1
+  }
+
+  #### Print calculated std. err., number of photons, #####
+
+  VectorToTbByRJ(mc_error,mc_error){
+  }
+
+  Print(mc_error){
+    level=1
+  }
+
+  Print(mc_iteration_count){
+    level=1
   }
 }
 
@@ -207,24 +223,12 @@ jacobianOff{
 RteCalc{
 }
 
-#### Print calculated Stokes vector, std. err., number of photons, #####
+#### Print calculated Stokes vector #####
 
 VectorToTbByRJ(y,y){
 }
 
 Print(y){
-level=1
-}
-
-VectorToTbByRJ(mc_error,mc_error){
-}
-
-Print(mc_error){
-level=1
-}
-
-
-Print(mc_iteration_count){
 level=1
 }
 

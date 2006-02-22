@@ -259,8 +259,8 @@ void define_agenda_data()
         "\n"
         "Usage:   Called from *RteCalc*."
         ),
-       OUTPUT( iy_ ),
-       INPUT()));
+       OUTPUT( iy_, ppath_, rte_pos_, rte_los_ ),
+       INPUT( ppath_, rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_ )));
 
   agenda_data.push_back
     (AgRecord
@@ -300,8 +300,9 @@ void define_agenda_data()
         "\n"
         "Usage:   Called from *RteCalc*."
         ),
-       OUTPUT( iy_ ),
-       INPUT()));
+       OUTPUT( iy_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_ ),
+       INPUT( rte_gp_p_, rte_gp_lat_, rte_gp_lon_, ppath_array_do_,
+              rte_do_vmr_jacs_, rte_do_t_jacs_ )));
 
   agenda_data.push_back
     (AgRecord
@@ -535,14 +536,8 @@ void define_agenda_data()
         "       calculations."
         ),
        OUTPUT(ppath_step_),
-       INPUT(ppath_step_,
-             atmosphere_dim_,
-             p_grid_,
-             lat_grid_,
-             lon_grid_,
-             z_field_,
-             r_geoid_,
-             z_surface_ )));
+       INPUT(ppath_step_, atmosphere_dim_, p_grid_, lat_grid_,
+             lon_grid_, z_field_, r_geoid_, z_surface_)));
   
   agenda_data.push_back
     (AgRecord
@@ -573,7 +568,8 @@ void define_agenda_data()
         "along the propagation path and returns the result in *iy*."
         ),
        OUTPUT( iy_, diy_dvmr_, diy_dt_ ),
-       INPUT( diy_dvmr_, diy_dt_, ppath_, stokes_dim_, f_grid_ )));
+       INPUT( diy_dvmr_, diy_dt_, ppath_, ppath_array_, ppath_array_index_,
+              rte_do_vmr_jacs_, rte_do_t_jacs_, stokes_dim_, f_grid_ )));
 
   agenda_data.push_back
     (AgRecord

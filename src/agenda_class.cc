@@ -379,10 +379,20 @@ bool Agenda::is_input(Index var) const
 {
   // Make global method data visible:
   extern const Array<MdRecord>  md_data;
+  extern Workspace workspace;
+  extern const ArrayOfString wsv_group_names;
 
   // Make sure that var is the index of a valid method:
   assert( 0<=var );
   assert( var<md_data.nelem() );
+
+  // Determine the index of WsvGroup Agenda
+  Index WsvAgendaGroupIndex = 0;
+  for (Index i = 0; !WsvAgendaGroupIndex && i < wsv_group_names.nelem (); i++)
+    {
+      if (wsv_group_names[i] == "Agenda")
+        WsvAgendaGroupIndex = i;
+    }
 
   // Loop all methods in this agenda:
   for ( Index i=0; i<nelem(); ++i )
@@ -411,6 +421,22 @@ bool Agenda::is_input(Index var) const
             if ( var == input[j] ) return true;
           }
       }
+
+      // If a General Input variable of this method (e.g. AgendaExecute)
+      // is of type Agenda, check its input recursively for matches
+      for ( Index j = 0; j < md_data[this_method.Id ()].GInput().nelem(); j++)
+        {
+          if (md_data[this_method.Id ()].GInput()[j] == WsvAgendaGroupIndex)
+            {
+              Agenda *AgendaFromGeneralInput =
+                (Agenda *)workspace[this_method.Input ()[j]];
+
+              if ((*AgendaFromGeneralInput).is_input(var))
+                {
+                  return true;
+                }
+            }
+        }
     }
 
   // Ok, that means var is no input at all.

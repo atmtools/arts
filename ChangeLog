@@ -1,3 +1,177 @@
+2006-02-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1077
+
+	* Intermediate commit of agenda work.
+
+	* If you encounter control files which deliver wrong results and
+	worked before, please let me know.
+
+	* It might be necessary in some cases to adapt the control files a
+	bit. See the comments on the tests/*.arts files below.
+
+	* The DOIT tests fail at the moment. But this is due to another bug,
+	not the agenda changes. Will be fixed soon.
+
+	* tests/simpleDOIT.arts:
+
+	Added DoNothing for ppath in iy_cloudbox_agenda.
+
+	Removed Ignore for rte_gp_p, rte_gp_lat, rte_gp_lon in
+	surface_prop_agenda.
+
+	Removed Ignore for rte_pos, rte_los in iy_space_agenda.
+
+	* test/simpleMC.arts, tests/simpleMCWithIncomingLookup.arts:
+
+	Moved the output of mc_error and mc_iteration_count inside the
+	iy_cloudbox_agenda.
+
+	* src/methods.cc:
+
+	jacobianInit, jacobianOff: Removed ppath_array_do, ppath_array,
+	ppath_array_index, rte_do_vmr_jacs and rte_do_t_jacs from WSM
+	inputs/outputs.
+
+	surfaceCalc: Moved ppath_array_do from output to input.
+	
+	RteCalc: Removed rte_do_vmr_jacs, rte_do_t_jacs from output.
+
+	ScatteringMonteCarlo: Added ppath, rte_pos, rte_los also to input
+	because they are first used as such.
+
+	Make f_index input only.
+
+	RteStd, RteStdWithTransmissions: Removed f_index.
+
+	doit_i_fieldUpdate1D, doit_i_fieldUpdateSeq1D, doit_i_fieldUpdateSeq3D:
+	Added z_surface to inputs.
+
+	* src/m_atmosphere.cc (surfaceCalc):
+
+	Moved ppath_array_do_ from output to input.
+
+	* src/m_jacobian (jacobianInit, jacobianOff):
+
+	Removed ppath_array_do, ppath_array, rte_do_vmr_jacs and
+	rte_do_t_jacs from WSM inputs/outputs.
+
+	* src/rte.{cc,h}:
+
+	(iy_calc): Moved ppath_array_do from output to input.
+
+	(rte_std): Removed f_index from interface. Make it local.
+
+	* src/rte.cc:
+
+	(iy_calc_no_jacobians): Moved ppath_array_do from output to input
+	in call of iy_calc.
+
+	(get_radiative_background): Use new agenda scheme for
+	iy_cloudbox_agenda, iy_space_agenda and iy_surface_agenda.
+
+	No need to rescue the old ppath anymore, just pass a local ppath
+	variable to the agenda.
+
+	Added rte_pos and rte_los to iy_cloudbox_agenda input.
+
+	(iy_calc): Added ppath_array, ppath_array_index, rte_do_vmr_jacs_,
+	rte_do_t_jacs_ to rte_agendaExecute.
+
+	Added ppath_array_do, rte_do_vmr_jacs, rte_do_t_jacs to
+	get_radiative_background call.
+
+	* src/agendas.cc:
+
+	iy_surface_agenda: Make rte_gp_p, rte_gp_lat, rte_gp_lon input and
+	output.
+
+	iy_cloudbox_agenda: Added ppath, rte_pos, rte_los to inputs and outputs.
+
+	Added ppath_array_do, rte_do_vmr_jacs, rte_do_t_jacs to inputs.
+
+	rte_agenda: Added ppath_array, ppath_array_index, rte_do_vmr_jacs_,
+	rte_do_t_jacs_ to inputs.
+
+	* src/m_scatrte.cc:
+
+	(doit_i_fieldUpdateSeq1D): Added z_surface to interface.
+
+	Pass z_surface to cloud_ppath_update1D.
+
+	(doit_i_fieldUpdate1D): Added z_surface to interface.
+
+	Pass z_surface to cloud_ppath_update1D_noseq.
+
+	(doit_i_fieldUpdateSeq3D): Added z_surface to interface.
+
+	Pass z_surface to cloud_ppath_update3D.
+
+	* src/scatrte.h (cloud_ppath_update1D, cloud_ppath_update1D_noseq,
+	cloud_ppath_update3D):
+
+	Added z_surface to interface.
+
+	(ppath_step_in_cloudbox): Added p_grid to interface.
+
+	* src/scatrte.cc:
+
+	(cloud_RT_surface): Commented out iy_surface_agendaExecute for now.
+
+	(cloud_ppath_update1D, cloud_ppath_update1D_noseq):
+	Use new agenda scheme for ppath_step_agenda.
+
+	Create empty lat_grid and lon_grid.
+
+	Added z_surface to interface.
+
+	(ppath_step_in_cloudbox): Use new agenda scheme for ppath_step_agenda.
+
+	Added p_grid and z_surface to interface.
+
+	(cloud_ppath_update3D): Use new agenda scheme for ppath_step_agenda.
+
+	Added z_surface to interface.
+
+	(cloud_RT_no_background, cloud_ppath_update1D_planeparallel,
+	cloud_RT_surface, ):
+
+	Use new agenda scheme for opt_prop_gas_agenda.
+
+	* src/m_rte.cc:
+
+	(RteCalc): Removed rte_do_vmr_jacs, rte_do_t_jacs from output and
+	define them as local variables.
+
+	(RteCalcNoJacobian): Adapt call of RteCalc.
+
+	(get_radiative_background): Added ppath_array_do, rte_do_vmr_jacs,
+	rte_do_t_jacs to inputs.
+
+	(RteStd, RteStdWithTransmissions): Removed f_index.
+
+	* src/montecarlo.{cc,h}:
+
+	(Cloudbox_ppath_rteCalc): Removed f_index.
+
+	(opt_depth_calc): Added abs_vec as output and f_grid as input.
+
+	(Cloudbox_ppathCalc): Use new agenda scheme for ppath_step_agenda.
+
+	* src/montecarlo.cc:
+
+	(opt_depth_calc): Use new agenda scheme for
+	scalar_gas_absorption_agenda and opt_prop_gas_agenda.
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo):
+
+	Make f_index input. It is no longer necessary to set f_index back
+	to 0.
+
+	* src/ppath.cc (ppath_calc):
+
+	Use new agenda scheme for ppath_step_agenda.
+
 2006-02-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1076

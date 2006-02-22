@@ -101,9 +101,6 @@ MatrixSet( z_surface){
 # Properties of surface
 
 AgendaSet(surface_prop_agenda){
-           Ignore (rte_gp_p) {}
-           Ignore (rte_gp_lat) {}
-           Ignore (rte_gp_lon) {}
            InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
            surfaceBlackbody{}
         }
@@ -165,8 +162,6 @@ AgendaSet( ppath_step_agenda ) {
 # Agendas for clearsky radiative transfer calculation
 # ----------------------------------------------------
 AgendaSet( iy_space_agenda ){
-   Ignore( rte_pos ){}
-   Ignore( rte_los ){}
    MatrixCBR( iy, f_grid ){}
 }
 
@@ -314,6 +309,9 @@ AgendaSet( doit_conv_test_agenda) {
 }
 
 AgendaSet(iy_cloudbox_agenda){
+    DoNothing (ppath, ppath) {}
+    DoNothing (rte_pos, rte_pos) {}
+    DoNothing (rte_los, rte_los) {}
     iyInterpCloudboxField{}
     }
 

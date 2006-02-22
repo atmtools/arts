@@ -136,7 +136,6 @@ void Cloudbox_ppath_rteCalc(
                              //Matrix&               ground_emission,
                              //Matrix&               ground_los, 
                              //Tensor4&              ground_refl_coeffs,
-                             Index&                f_index,
                              Matrix&               pnd_ppath,
                              const Agenda&         ppath_step_agenda,
                              const Index&          atmosphere_dim,
@@ -284,12 +283,14 @@ void montecarloGetIncoming(
 
 Numeric opt_depth_calc(
                        Tensor3& ext_mat,
+                       Matrix&  abs_vec,
                        Numeric&   rte_pressure,
                        Numeric&   rte_temperature,
                        Vector&    rte_vmr_list,
                        const Ppath&     ppath,
                        const Agenda& opt_prop_gas_agenda,
                        const Agenda& scalar_gas_absorption_agenda,
+                       const Index&     f_index,
                        const Vector&    p_grid,
                        const Vector&    lat_grid,
                        const Vector&    lon_grid,

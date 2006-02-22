@@ -476,7 +476,9 @@ void Cloudbox_ppathCalc(
       //
       istep++;
       //
-      ppath_step_agenda.execute( true );
+      ppath_step_agendaExecute(ppath_step, atmosphere_dim, p_grid,
+                               lat_grid, lon_grid, z_field, r_geoid, z_surface,
+                               ppath_step_agenda, true);
 
       // Before everything is tested carefully, we consider more than 1000
       // path points to be an indication on that the calcululations have
@@ -677,7 +679,6 @@ void Cloudbox_ppath_rteCalc(
                              //Matrix&               ground_emission,
                              //Matrix&               ground_los, 
                              //Tensor4&              ground_refl_coeffs,
-                             Index&                f_index,
                              Matrix&               pnd_ppath,
                              const Agenda&         ppath_step_agenda,
                              const Index&          atmosphere_dim,
@@ -789,8 +790,6 @@ void Cloudbox_ppath_rteCalc(
       xml_write_to_file(longfilename, ppath, FILE_TYPE_ASCII);
     }
   
-  
-  f_index=0;//For some strange reason f_index is set to -1 in RteStandard
 }
 
 
@@ -1562,13 +1561,15 @@ void montecarloGetIncoming(
 
 
 Numeric opt_depth_calc(
-                       Tensor3& ext_mat,
+                       Tensor3&   ext_mat,
+                       Matrix&    abs_vec,
                        Numeric&   rte_pressure,
                        Numeric&   rte_temperature,
                        Vector&    rte_vmr_list,
                        const Ppath&     ppath,
                        const Agenda& opt_prop_gas_agenda,
                        const Agenda& scalar_gas_absorption_agenda,
+                       const Index&     f_index,
                        const Vector&    p_grid,
                        const Vector&    lat_grid,
                        const Vector&    lon_grid,
@@ -1611,11 +1612,16 @@ Numeric opt_depth_calc(
   //Create array of extinction cefficients corresponding to each point in ppath
   for (Index i=0; i<ppath.np; i++)
     { 
+      Matrix abs_scalar_gas;
       rte_pressure    = p_ppath[i];
       rte_temperature = t_ppath[i];
       rte_vmr_list    = vmr_ppath(joker,i);
-      scalar_gas_absorption_agenda.execute( true );
-      opt_prop_gas_agenda.execute( true );
+      scalar_gas_absorption_agendaExecute (abs_scalar_gas, f_index,
+                                           rte_pressure, rte_temperature,
+                                           rte_vmr_list,
+                                           scalar_gas_absorption_agenda, true);
+      opt_prop_gas_agendaExecute (ext_mat, abs_vec, abs_scalar_gas,
+                                  opt_prop_gas_agenda, true);
       kvector[i]=ext_mat(0,0,0);
     }
   for (Index i=1; i<ppath.np;i++)

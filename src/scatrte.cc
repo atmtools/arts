@@ -252,13 +252,13 @@ void cloud_ppath_update1D(
                           Vector& rte_los, //rte_los,
                           VectorView, //rte_pos,
                           GridPos&, //rte_gp_p,
-			  //Output
-			  Matrix& iy,
-			  Matrix& surface_emission,
-			  Matrix& surface_los,
-			  Tensor4& surface_rmatrix,
+                          //Output
+                          Matrix& iy,
+                          Matrix& surface_emission,
+                          Matrix& surface_los,
+                          Tensor4& surface_rmatrix,
                           // ppath_step_agenda:
-                          Ppath& ppath_step, 
+                          Ppath& ppath_step,
                           const Index& p_index,
                           const Index& scat_za_index,
                           ConstVectorView scat_za_grid,
@@ -274,6 +274,7 @@ void cloud_ppath_update1D(
                           ConstVectorView  p_grid,
                           ConstTensor3View z_field,
                           ConstMatrixView r_geoid,
+                          ConstMatrixView z_surface,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
                           ConstVectorView f_grid,
@@ -281,10 +282,9 @@ void cloud_ppath_update1D(
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-			  const Agenda& surface_prop_agenda,
+                          const Agenda& surface_prop_agenda,
                           //const Agenda& iy_surface_agenda, 
-                          const Index& scat_za_interp
-                         )
+                          const Index& scat_za_interp)
 {
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from 
   // where this function is called.
@@ -308,7 +308,12 @@ void cloud_ppath_update1D(
   ppath_step.gp_p[0].fd[1] = 1;
   
   // Call ppath_step_agenda: 
-  ppath_step_agenda.execute(true);
+  Vector unused_lat_grid(0);
+  Vector unused_lon_grid(0);
+  ppath_step_agendaExecute(ppath_step, 1, p_grid,
+                           unused_lat_grid, unused_lon_grid,
+                           z_field, r_geoid, z_surface,
+                           ppath_step_agenda, true);
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -402,22 +407,24 @@ void cloud_ppath_update1D(
 	   
 	   Index nlos = surface_los.nrows();
 
-	   if( nlos > 0 )
-	     {
-	       for( Index ilos=0; ilos<nlos; ilos++ )
-		 {
-		   Vector rtmp(stokes_dim);  // Reflected Stokes vector for 1 frequency
-		   
-		   mult( rtmp, 
-			 surface_rmatrix(ilos,f_index,joker,joker), 
-			 doit_i_field(cloudbox_limits[0], 0, 0, (scat_za_grid.nelem() -1 - scat_za_index), 0, joker) );
-		   iy(f_index,joker) += rtmp;
-		   
-		   doit_i_field(cloudbox_limits[0], 0, 0,
-				scat_za_index, 0,
-				joker) = iy(0, joker);
-		 }
-	     }
+     if( nlos > 0 )
+       {
+         for( Index ilos=0; ilos<nlos; ilos++ )
+           {
+             Vector rtmp(stokes_dim); // Reflected Stokes vector for 1 frequency
+
+             mult( rtmp, 
+                   surface_rmatrix(ilos,f_index,joker,joker), 
+                   doit_i_field(cloudbox_limits[0], 0, 0,
+                                (scat_za_grid.nelem() -1 - scat_za_index), 0,
+                                joker) );
+             iy(f_index,joker) += rtmp;
+
+             doit_i_field(cloudbox_limits[0], 0, 0,
+                          scat_za_index, 0,
+                          joker) = iy(0, joker);
+           }
+       }
 	   	   
         }//end else loop over surface
     }//end if inside cloudbox
@@ -438,11 +445,11 @@ void cloud_ppath_update1D_noseq(
                           VectorView, //rte_los,
                           VectorView, //rte_pos,
                           GridPos&, //rte_gp_p,
-			  //Output
-			  Matrix& iy,
-			  Matrix& surface_emission,
-			  Matrix& surface_los,
-			  Tensor4& surface_rmatrix,
+                          //Output
+                          Matrix& iy,
+                          Matrix& surface_emission,
+                          Matrix& surface_los,
+                          Tensor4& surface_rmatrix,
                           // ppath_step_agenda:
                           Ppath& ppath_step, 
                           const Index& p_index,
@@ -461,6 +468,7 @@ void cloud_ppath_update1D_noseq(
                           ConstVectorView  p_grid,
                           ConstTensor3View z_field,
                           ConstMatrixView r_geoid,
+                          ConstMatrixView z_surface,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
                           ConstVectorView f_grid,
@@ -469,7 +477,7 @@ void cloud_ppath_update1D_noseq(
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-			  const Agenda& surface_prop_agenda,
+                          const Agenda& surface_prop_agenda,
                           //const Agenda& iy_surface_agenda, 
                           const Index& scat_za_interp
                          )
@@ -496,7 +504,12 @@ void cloud_ppath_update1D_noseq(
   ppath_step.gp_p[0].fd[1] = 1;
   
   // Call ppath_step_agenda: 
-  ppath_step_agenda.execute(true);
+  Vector unused_lat_grid(0);
+  Vector unused_lon_grid(0);
+  ppath_step_agendaExecute(ppath_step, 1, p_grid,
+                           unused_lat_grid, unused_lon_grid,
+                           z_field, r_geoid, z_surface,
+                           ppath_step_agenda, true);
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -679,6 +692,7 @@ void cloud_ppath_update3D(
                           ConstVectorView lon_grid,
                           ConstTensor3View z_field,
                           ConstMatrixView r_geoid,
+                          ConstMatrixView z_surface,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
                           ConstVectorView f_grid,
@@ -734,7 +748,9 @@ void cloud_ppath_update3D(
   ppath_step.gp_lon[0].fd[1] = 1.;
 
   // Call ppath_step_agenda: 
-  ppath_step_agenda.execute(true);
+  ppath_step_agendaExecute(ppath_step, 3, p_grid,
+                           lat_grid, lon_grid, z_field, r_geoid, z_surface,
+                           ppath_step_agenda, true);
 
     // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -998,8 +1014,7 @@ void cloud_RT_no_background(//Output
                                           scalar_gas_absorption_agenda,
                                           true);
               
-      opt_prop_gas_agendaExecute(ext_mat_local, 
-                                  abs_vec_local, 
+      opt_prop_gas_agendaExecute(ext_mat_local, abs_vec_local, 
                                   abs_scalar_gas_local,
                                   opt_prop_gas_agenda,
                                   true);
@@ -1085,13 +1100,13 @@ void cloud_RT_no_background(//Output
 */
 void cloud_RT_surface(
 		      //Output
-		      Matrix& iy,
+		      Matrix& /*iy*/,
 		      Matrix& surface_emission,
 		      Matrix& surface_los,
 		      Tensor4& surface_rmatrix,
 		      //Input
 		      const Agenda& surface_prop_agenda,
-                      const Agenda& iy_surface_agenda,
+          const Agenda& iy_surface_agenda,
 		      const Vector& f_grid,
 		      const Index& stokes_dim,
 		      const Ppath& ppath_step
@@ -1119,7 +1134,8 @@ void cloud_RT_surface(
   chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
   chk_not_empty( "surface_prop_agenda", surface_prop_agenda );
 
-  iy_surface_agendaExecute(iy, iy_surface_agenda, true);
+  // OLE: FIXME commented out for now, needs additional input
+//  iy_surface_agendaExecute(iy, iy_surface_agenda, true);
   
     /*
 
@@ -1207,7 +1223,8 @@ void cloud_RT_surface(
               
   scalar_gas_absorption_agenda.execute(true);
               
-  opt_prop_gas_agenda.execute(true);
+  opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
+                              opt_prop_gas_agenda, true);
               
   //
   // Add average particle extinction to ext_mat. 
@@ -1296,10 +1313,12 @@ void ppath_step_in_cloudbox(//Output:
                             const Index& lon,
                             ConstTensor3View z_field,
                             ConstMatrixView r_geoid,
+                            ConstMatrixView z_surface,
                             ConstVectorView scat_za_grid,
                             ConstVectorView aa_grid,
                             const Index& scat_za_index,
                             const Index& scat_aa_index,
+                            ConstVectorView p_grid,
                             ConstVectorView lat_grid,
                             ConstVectorView lon_grid)
 {
@@ -1339,7 +1358,9 @@ void ppath_step_in_cloudbox(//Output:
   ppath_step.gp_lon[0].fd[1] = 1.;
               
   // Call ppath_step_agenda: 
-  ppath_step_agenda.execute(true);
+  ppath_step_agendaExecute(ppath_step, 3, p_grid,
+                           lat_grid, lon_grid, z_field, r_geoid, z_surface,
+                           ppath_step_agenda, true);
 }
 
 //! interp_cloud_coeff1D 
@@ -1719,6 +1740,8 @@ void cloud_ppath_update1D_planeparallel(
               
               scalar_gas_absorption_agenda.execute(p_index);
               
+              //opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
+              //                           opt_prop_gas_agenda, (p_index != 0));
               opt_prop_gas_agenda.execute(p_index);
               
               //
@@ -1825,6 +1848,8 @@ void cloud_ppath_update1D_planeparallel(
               
               scalar_gas_absorption_agenda.execute(p_index);
               
+              //opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
+              //                           opt_prop_gas_agenda, (p_index != 0));
               opt_prop_gas_agenda.execute(p_index);
               
               //
@@ -2021,7 +2046,8 @@ void cloud_ppath_update1D_planeparallel(
           
           scalar_gas_absorption_agenda.execute(p_index);
           
-          opt_prop_gas_agenda.execute(p_index);
+          opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
+                                     opt_prop_gas_agenda, (p_index != 0));
           
           //
           // Add average particle extinction to ext_mat. 

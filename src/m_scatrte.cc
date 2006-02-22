@@ -589,6 +589,7 @@ doit_i_fieldUpdate1D(// WS Input and Output:
                    const Vector& p_grid,
                    const Tensor3& z_field,
                    const Matrix& r_geoid,
+                   const Matrix& z_surface,
                    // Calculate thermal emission:
                    const Tensor3& t_field,
                    const Vector& f_grid,
@@ -717,19 +718,18 @@ doit_i_fieldUpdate1D(// WS Input and Output:
         {
           cloud_ppath_update1D_noseq(doit_i_field, 
                                      rte_los, rte_pos, rte_gp_p, 
-				     iy, surface_emission, surface_los, surface_rmatrix, 
-				     ppath_step, 
+                                     iy, surface_emission, surface_los,
+                                     surface_rmatrix, ppath_step, 
                                      p_index, scat_za_index_local, 
                                      scat_za_grid,
                                      cloudbox_limits, doit_i_field_old, 
                                      doit_scat_field,
                                      scalar_gas_absorption_agenda, vmr_field,
                                      opt_prop_gas_agenda, ppath_step_agenda,
-                                     p_grid,  z_field, r_geoid, t_field, 
-                                     f_grid, f_index, ext_mat_field, 
+                                     p_grid,  z_field, r_geoid, z_surface,
+                                     t_field, f_grid, f_index, ext_mat_field, 
                                      abs_vec_field,
-				     surface_prop_agenda,
-                                     doit_za_interp);
+                                     surface_prop_agenda, doit_za_interp);
         }
     }// Closes loop over scat_za_grid.
 } // End of the function.
@@ -774,6 +774,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                    const Vector& p_grid,
                    const Tensor3& z_field,
                    const Matrix& r_geoid,
+                   const Matrix& z_surface,
                    // Calculate thermal emission:
                    const Tensor3& t_field,
                    const Vector& f_grid,
@@ -919,17 +920,16 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
             {
               cloud_ppath_update1D(doit_i_field, 
                                    rte_los, rte_pos, rte_gp_p, 
-				   iy, surface_emission, surface_los, surface_rmatrix, 
-				   ppath_step, 
+                                   iy, surface_emission, surface_los,
+                                   surface_rmatrix, ppath_step, 
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
-                                   p_grid,  z_field, r_geoid, t_field, 
-                                   f_grid, f_index, ext_mat_field,
+                                   p_grid,  z_field, r_geoid, z_surface,
+                                   t_field, f_grid, f_index, ext_mat_field,
                                    abs_vec_field, 
-				   surface_prop_agenda,
-                                   doit_za_interp); 
+                                   surface_prop_agenda, doit_za_interp); 
             }
         }
       else if ( scat_za_grid[scat_za_index_local] >= theta_lim) 
@@ -942,17 +942,16 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
             {
               cloud_ppath_update1D(doit_i_field,  
                                    rte_los, rte_pos, rte_gp_p, 
-				   iy, surface_emission,surface_los, surface_rmatrix,
-				   ppath_step, 
+                                   iy, surface_emission,surface_los,
+                                   surface_rmatrix, ppath_step, 
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
-                                   p_grid,  z_field, r_geoid, t_field, 
-                                   f_grid, f_index, ext_mat_field, 
+                                   p_grid,  z_field, r_geoid, z_surface,
+                                   t_field, f_grid, f_index, ext_mat_field, 
                                    abs_vec_field, 
-				   surface_prop_agenda,
-                                   doit_za_interp); 
+                                   surface_prop_agenda, doit_za_interp); 
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
       
@@ -977,18 +976,17 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                 {
                   cloud_ppath_update1D(doit_i_field,  
                                        rte_los, rte_pos, rte_gp_p, 
-				       iy, surface_emission, surface_los, surface_rmatrix,
-				       ppath_step, 
+                                       iy, surface_emission, surface_los,
+                                       surface_rmatrix, ppath_step, 
                                        p_index, scat_za_index_local,
                                        scat_za_grid,
                                        cloudbox_limits, doit_scat_field,
                                        scalar_gas_absorption_agenda, vmr_field,
                                        opt_prop_gas_agenda, ppath_step_agenda,
-                                       p_grid,  z_field, r_geoid, t_field, 
-                                       f_grid, f_index, ext_mat_field, 
+                                       p_grid,  z_field, r_geoid, z_surface,
+                                       t_field, f_grid, f_index, ext_mat_field, 
                                        abs_vec_field,
-				       surface_prop_agenda,
-                                       doit_za_interp);
+                                       surface_prop_agenda, doit_za_interp);
                 }
             }
         } 
@@ -1029,6 +1027,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                         const Vector& lon_grid,
                         const Tensor3& z_field,
                         const Matrix& r_geoid,
+                        const Matrix& z_surface,
                         // Calculate thermal emission:
                         const Tensor3& t_field,
                         const Vector& f_grid,
@@ -1201,8 +1200,8 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                                                opt_prop_gas_agenda,
                                                ppath_step_agenda, p_grid, 
                                                lat_grid, lon_grid, z_field, 
-                                               r_geoid, t_field, f_grid,
-                                               f_index,
+                                               r_geoid, z_surface, t_field,
+                                               f_grid, f_index,
                                                ext_mat_field, abs_vec_field,
                                                doit_za_interp);
                         }
@@ -1233,8 +1232,8 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                                                opt_prop_gas_agenda,
                                                ppath_step_agenda, p_grid, 
                                                lat_grid, lon_grid, z_field, 
-                                               r_geoid, t_field, f_grid,
-                                               f_index,
+                                               r_geoid, z_surface, t_field,
+                                               f_grid, f_index,
                                                ext_mat_field, abs_vec_field,
                                                doit_za_interp);
                         }
@@ -1281,7 +1280,8 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                                                    ppath_step_agenda, p_grid, 
                                                    lat_grid, lon_grid,
                                                    z_field, 
-                                                   r_geoid, t_field, f_grid,
+                                                   r_geoid, z_surface,
+                                                   t_field, f_grid,
                                                    f_index,
                                                    ext_mat_field,
                                                    abs_vec_field,

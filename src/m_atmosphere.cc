@@ -759,9 +759,8 @@ void surfaceCalc(
               GridPos&                 rte_gp_lat,
               GridPos&                 rte_gp_lon,
               Vector&                  rte_los,
-              Index&                   ppath_array_do,
-              ArrayOfPpath&            ppath_array,
               Index&                   ppath_array_index,
+              ArrayOfPpath&            ppath_array,
               ArrayOfTensor4&          diy_dvmr,
               ArrayOfTensor4&          diy_dt,
         const Agenda&                  ppath_step_agenda,
@@ -782,6 +781,7 @@ void surfaceCalc(
         const ArrayOfIndex&            cloudbox_limits,
         const Vector&                  f_grid,
         const Index&                   stokes_dim,
+        const Index&                   ppath_array_do,
         const ArrayOfIndex&            rte_do_vmr_jacs,
         const Index&                   rte_do_t_jacs,
         const Matrix&                  surface_los,
@@ -836,8 +836,7 @@ void surfaceCalc(
           // Calculate downwelling radiation for LOS ilos 
           const Index   agenda_verb = 0;
           iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
-                   rte_gp_lon, rte_los, 
-                   ppath_array_do, ppath_array, ppath_array_index,
+                   rte_gp_lon, rte_los,  ppath_array_index, ppath_array,
                    diy_dvmr, diy_dt,
                    ppath_step_agenda, rte_agenda, 
                    iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
@@ -846,6 +845,7 @@ void surfaceCalc(
                    r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
                    rte_pos, surface_los(ilos,joker),
                    f_grid, stokes_dim, 
+                   ppath_array_do,
                    rte_do_vmr_jacs, rte_do_t_jacs, agenda_verb );
 
           I(ilos,joker,joker) = iy;

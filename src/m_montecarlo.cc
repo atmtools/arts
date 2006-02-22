@@ -444,7 +444,6 @@ void ScatteringMonteCarlo (
                            //Other Stuff
                            Tensor3&              ext_mat,
                            Matrix&               abs_vec,
-                           Index&                f_index,
                            SLIData2& mc_incoming,
                            // WS Input:
                            const Agenda&         ppath_step_agenda,
@@ -471,6 +470,7 @@ void ScatteringMonteCarlo (
                            const ArrayOfSingleScatteringData& scat_data_mono,
                            const Tensor4& pnd_field,
                            const Index& mc_seed,
+                           const Index& f_index,
                            // Control Parameters:
                            const Numeric& std_err,
                            const Index& max_time,
@@ -553,11 +553,12 @@ void ScatteringMonteCarlo (
   //////////////////////////////////////////////////////////////////////////////
   //Calculate the clea-sky transmittance between cloud box and sensor using the
   //existing ppath.
-  Numeric transmittance=exp(-opt_depth_calc(ext_mat, rte_pressure, rte_temperature, 
-                                       rte_vmr_list, ppath, opt_prop_gas_agenda,
-                                       scalar_gas_absorption_agenda, p_grid,
-                                       lat_grid, lon_grid, t_field, vmr_field,
-                                       atmosphere_dim));
+  Numeric transmittance=
+    exp(-opt_depth_calc(ext_mat, abs_vec, rte_pressure, rte_temperature, 
+                        rte_vmr_list, ppath, opt_prop_gas_agenda,
+                        scalar_gas_absorption_agenda, f_index, p_grid,
+                        lat_grid, lon_grid, t_field, vmr_field,
+                        atmosphere_dim));
   Numeric std_err_i=f_grid[0]*f_grid[0]*2*BOLTZMAN_CONST/SPEED_OF_LIGHT/SPEED_OF_LIGHT*
     std_err/transmittance;
                             
@@ -583,7 +584,7 @@ void ScatteringMonteCarlo (
                          cum_l_stepLOS, TArrayLOS, ext_matArrayLOS, 
                          abs_vecArrayLOS,t_ppathLOS, ext_mat, abs_vec, rte_pressure, 
                          rte_temperature, rte_vmr_list, iy, rte_gp_p, 
-                         rte_gp_lat, rte_gp_lon, f_index, pnd_ppathLOS, 
+                         rte_gp_lat, rte_gp_lon, pnd_ppathLOS, 
                          ppath_step_agenda, atmosphere_dim, 
                          p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                          cloudbox_limits, record_ppathcloud, record_ppath, 
@@ -669,7 +670,6 @@ void ScatteringMonteCarlo (
                                         z_surface,cloudbox_limits, atmosphere_dim,
                                         f_grid,stokes_dim);
                   
-                  f_index=0;//For some strange reason f_index is set to -1 in RteStandard
                   Iboundary=iy(0,joker);
                 }
               ////////////////////
