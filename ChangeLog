@@ -134,9 +134,9 @@
 	Added z_surface to interface.
 
 	(cloud_RT_no_background, cloud_ppath_update1D_planeparallel,
-	cloud_RT_surface, ):
+	cloud_RT_surface):
 
-	Use new agenda scheme for opt_prop_gas_agenda.
+	Use new agenda scheme for opt_prop_gas_agenda. Commented out for now.
 
 	* src/m_rte.cc:
 
