@@ -1,3 +1,38 @@
+2006-02-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1080
+	
+	* The "DOIT-on-diet" release
+
+	* methods.cc:
+
+	doit_i_fieldUpdateSeq1DPP: Removed rte_pressure, rte_temperature,
+	rte_vmr_list, ext_mat, abs_vec and scat_p_index from interface.
+
+	doit_i_fieldUpdateSeq1D, doit_i_fieldUpdate1D: Removed iy,
+	surface_emission, surface_los and surface_rmatrix from interface.
+
+	* src/scatrte.{cc,h}:
+	
+	(cloud_ppath_update1D_planeparallel): Use new agenda scheme for
+	scalar_gas_absorption_agenda and opt_prop_gas_agenda.
+
+	Made rte_pressure, rte_temperature and rte_vmr_list local variables
+	and removed from interface.
+
+	(cloud_ppath_update1D, cloud_ppath_update1D_noseq):
+
+	Made iy, surface_emission, surface_los and surface_rmatrix local
+	variables and removed from interface.
+
+	* src/m_scatrte.cc:
+	
+	(doit_i_fieldUpdateSeq1DPP): Removed rte_pressure, rte_temperature,
+	rte_vmr_list, ext_mat, abs_vec and scat_p_index from interface.
+
+	(cloud_ppath_update1D, cloud_ppath_update1D_noseq): Removed iy,
+	surface_emission, surface_los and surface_rmatrix from interface.
+
 2006-02-22  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1079

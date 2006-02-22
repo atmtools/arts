@@ -242,11 +242,6 @@ void cloud_fieldsCalc(// Output and Input:
 void cloud_ppath_update1D(
                           // Input and output
                           Tensor6View doit_i_field,
-                          //Output
-                          Matrix& iy,
-                          Matrix& surface_emission,
-                          Matrix& surface_los,
-                          Tensor4& surface_rmatrix,
                           // ppath_step_agenda:
                           const Index& p_index,
                           const Index& scat_za_index,
@@ -275,6 +270,10 @@ void cloud_ppath_update1D(
                           //const Agenda& iy_surface_agenda, 
                           const Index& scat_za_interp)
 {
+  Matrix iy;
+  Matrix surface_emission;
+  Matrix surface_los;
+  Tensor4 surface_rmatrix;
   Ppath ppath_step;
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from 
   // where this function is called.
@@ -432,11 +431,6 @@ void cloud_ppath_update1D(
 void cloud_ppath_update1D_noseq(
                           // Output
                           Tensor6View doit_i_field,
-                          //Output
-                          Matrix& iy,
-                          Matrix& surface_emission,
-                          Matrix& surface_los,
-                          Tensor4& surface_rmatrix,
                           // ppath_step_agenda:
                           const Index& p_index,
                           const Index& scat_za_index,
@@ -468,6 +462,10 @@ void cloud_ppath_update1D_noseq(
                           const Index& scat_za_interp
                          )
 {
+  Matrix iy;
+  Matrix surface_emission;
+  Matrix surface_los;
+  Tensor4 surface_rmatrix;
   Ppath ppath_step;
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from 
   // where this function is called.
@@ -613,15 +611,6 @@ void cloud_ppath_update1D_noseq(
 
  WS Output:
   \param doit_i_field Updated radiation field inside the cloudbox. 
-  Variables used in scalar_gas_abs_agenda:
-  \param rte_pressure
-  \param rte_temperature
-  \param rte_vmr_list
-  Variables used in opt_prop_xxx_agenda:
-  \param ext_mat
-  \param abs_vec  
-  Variables used in ppath_step_agenda:
-  \param ppath_step
   WS Input:
   \param p_index // Pressure index
   \param lat_index
@@ -1590,10 +1579,6 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
 
  WS Output:
   \param doit_i_field Updated radiation field inside the cloudbox. 
-  Variables used in scalar_gas_abs_agenda:
-  \param rte_pressure
-  \param rte_temperature
-  \param rte_vmr_list
   Variables used in opt_prop_xxx_agenda:
   \param ext_mat
   \param abs_vec  
@@ -1627,13 +1612,6 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
 */
 void cloud_ppath_update1D_planeparallel(
                                         Tensor6View doit_i_field,
-                                        // scalar_gas_abs_agenda:
-                                        Numeric& rte_pressure,
-                                        Numeric& rte_temperature,
-                                        Vector& rte_vmr_list,
-                                        // opt_prop_xxx_agenda:
-                                        Tensor3& ext_mat,
-                                        Matrix& abs_vec,  
                                         const Index& p_index,
                                         const Index& scat_za_index,
                                         ConstVectorView scat_za_grid,
@@ -1659,9 +1637,13 @@ void cloud_ppath_update1D_planeparallel(
                                         //const Agenda& iy_surface_agenda
                                         )
 {
+  const Index N_species = vmr_field.nbooks();
   const Index stokes_dim = doit_i_field.ncols();
   const Index atmosphere_dim = 1;   
- 
+  Matrix abs_scalar_gas(1, N_species, 0.);
+  Tensor3 ext_mat;
+  Matrix abs_vec;
+  Vector rte_vmr_list(N_species,0.); 
   Vector sca_vec_av(stokes_dim,0);
  
   // Radiative transfer from one layer to the next, starting
@@ -1704,13 +1686,13 @@ void cloud_ppath_update1D_planeparallel(
               l_step =  abs(dz/cos_theta) ;
               
               // Average temperature
-              rte_temperature =   0.5 * (t_field(p_index,0,0) + t_field(p_index + 1,0,0));
+              Numeric rte_temperature =   0.5 * (t_field(p_index,0,0)
+                                                 + t_field(p_index + 1,0,0));
               //
               // Average pressure
-              rte_pressure = 0.5 * (p_grid[p_index] + p_grid[p_index + 1]);
+              Numeric rte_pressure = 0.5 * (p_grid[p_index]
+                                            + p_grid[p_index + 1]);
               
-              //
-              const Index N_species = vmr_field.nbooks();
               // Average vmrs
               for (Index j = 0; j < N_species; j++)
                 rte_vmr_list[j] = 0.5 * (vmr_field(j,p_index,0,0) + 
@@ -1720,11 +1702,16 @@ void cloud_ppath_update1D_planeparallel(
               // and ext_mat.
               //
               
-              scalar_gas_absorption_agenda.execute(p_index);
+              scalar_gas_absorption_agendaExecute(abs_scalar_gas, 
+                                                  f_index, 
+                                                  rte_pressure, 
+                                                  rte_temperature, 
+                                                  rte_vmr_list,
+                                                  scalar_gas_absorption_agenda,
+                                                  (p_index != 0));
               
-              //opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
-              //                           opt_prop_gas_agenda, (p_index != 0));
-              opt_prop_gas_agenda.execute(p_index);
+              opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
+                                         opt_prop_gas_agenda, (p_index != 0));
               
               //
               // Add average particle extinction to ext_mat. 
@@ -1812,13 +1799,14 @@ void cloud_ppath_update1D_planeparallel(
               l_step =  abs(dz/cos_theta) ;
               
               // Average temperature
-              rte_temperature =   0.5 * (t_field(p_index,0,0) + t_field(p_index - 1,0,0));
+              Numeric rte_temperature =   0.5 * (t_field(p_index,0,0)
+                                                 + t_field(p_index - 1,0,0));
               //
               // Average pressure
-              rte_pressure = 0.5 * (p_grid[p_index] + p_grid[p_index - 1]);
+              Numeric rte_pressure = 0.5 * (p_grid[p_index]
+                                            + p_grid[p_index - 1]);
               
               //
-              const Index N_species = vmr_field.nbooks();
               // Average vmrs
               for (Index k = 0; k < N_species; k++)
                 rte_vmr_list[k] = 0.5 * (vmr_field(k,p_index,0,0) + 
@@ -1827,13 +1815,18 @@ void cloud_ppath_update1D_planeparallel(
               // Calculate scalar gas absorption and add it to abs_vec 
               // and ext_mat.
               //
-              
-              scalar_gas_absorption_agenda.execute(p_index);
-              
-              //opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
-              //                           opt_prop_gas_agenda, (p_index != 0));
-              opt_prop_gas_agenda.execute(p_index);
-              
+
+              scalar_gas_absorption_agendaExecute(abs_scalar_gas, 
+                                                  f_index, 
+                                                  rte_pressure, 
+                                                  rte_temperature, 
+                                                  rte_vmr_list,
+                                                  scalar_gas_absorption_agenda,
+                                                  (p_index != 0));
+
+              opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
+                                         opt_prop_gas_agenda, (p_index != 0));
+
               //
               // Add average particle extinction to ext_mat. 
               //
@@ -2008,11 +2001,13 @@ void cloud_ppath_update1D_planeparallel(
           Numeric l_step =  abs(dz/cos_theta) ;
           
           // Average temperature
-          rte_temperature =   0.5 * (t_field(p_index,0,0) + t_field(p_index + 1,0,0));
+          Numeric rte_temperature =   0.5 * (t_field(p_index,0,0)
+                                             + t_field(p_index + 1,0,0));
           
           //
           // Average pressure
-          rte_pressure = 0.5 * (p_grid[p_index] + p_grid[p_index + 1]);
+          Numeric rte_pressure = 0.5 * (p_grid[p_index]
+                                        + p_grid[p_index + 1]);
           
           //
           const Index N_species = vmr_field.nbooks();

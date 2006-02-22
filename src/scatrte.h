@@ -51,11 +51,6 @@ void cloud_fieldsCalc(// Output:
 
 void cloud_ppath_update1D(
                   Tensor6View i_field,
-		  //Output
-		  Matrix& iy,
-		  Matrix& surface_emission,
-		  Matrix& surface_los,
-		  Tensor4& surface_rmatrix,
                   // ppath_step_agenda:
                   const Index& p_index,
                   const Index& scat_za_index,
@@ -88,11 +83,6 @@ void cloud_ppath_update1D(
 void cloud_ppath_update1D_noseq(
                           // Input and output
                           Tensor6View doit_i_field,
-			    //Output
-			  Matrix& iy,
-			  Matrix& surface_emission,
-			  Matrix& surface_los,
-			  Tensor4& surface_rmatrix,
                           // ppath_step_agenda:
                           const Index& p_index,
                           const Index& scat_za_index,
@@ -126,13 +116,6 @@ void cloud_ppath_update1D_noseq(
 
 void cloud_ppath_update1D_planeparallel(
                   Tensor6View i_field,
-                  // scalar_gas_abs_agenda:
-                  Numeric& rte_pressure,
-                  Numeric& rte_temperature,
-                  Vector& rte_vmr_list,
-                  // opt_prop_xxx_agenda:
-                  Tensor3& ext_mat,
-                  Matrix& abs_vec, 
                   // ppath_step_agenda:
                   const Index& p_index,
                   const Index& scat_za_index,

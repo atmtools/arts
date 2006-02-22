@@ -1406,8 +1406,7 @@ md_data_raw.push_back
          "It is recommended to use *doit_i_fieldUpdateSeq1D*.\n"
          "\n" 
         ),
-        OUTPUT(doit_i_field_,
-	       iy_, surface_emission_, surface_los_, surface_rmatrix_),
+        OUTPUT(doit_i_field_),
         INPUT(doit_i_field_old_, doit_scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, pnd_field_, 
@@ -1438,8 +1437,7 @@ md_data_raw.push_back
          "because it is the most efficient and accurate method.\n"
          "\n"
          ),
-        OUTPUT(doit_i_field_,
-	       iy_, surface_emission_, surface_los_, surface_rmatrix_),
+        OUTPUT(doit_i_field_),
         INPUT(doit_i_field_, doit_scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, pnd_field_,
@@ -1469,9 +1467,7 @@ md_data_raw.push_back
          "be used for limb simulations. \n"
          "\n"
          ),
-        OUTPUT(doit_i_field_, rte_pressure_, rte_temperature_,
-               rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
-               scat_p_index_),
+        OUTPUT(doit_i_field_, scat_za_index_),
         INPUT(doit_scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, pnd_field_, 

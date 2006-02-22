@@ -560,10 +560,6 @@ void doit_i_fieldIterate(
 void
 doit_i_fieldUpdate1D(// WS Input and Output:
                    Tensor6& doit_i_field,
-		   Matrix& iy,
-		   Matrix& surface_emission,
- 		   Matrix& surface_los,
- 		   Tensor4& surface_rmatrix,
                    // WS Input:
                    const Tensor6& doit_i_field_old,
                    const Tensor6& doit_scat_field,
@@ -588,7 +584,7 @@ doit_i_fieldUpdate1D(// WS Input and Output:
                    const Tensor3& t_field,
                    const Vector& f_grid,
                    const Index& f_index,
-		   const Agenda& surface_prop_agenda,
+                   const Agenda& surface_prop_agenda,
                    //const Agenda& iy_surface_agenda, //STR
                    const Index& doit_za_interp
                    )
@@ -711,8 +707,6 @@ doit_i_fieldUpdate1D(// WS Input and Output:
             <= cloudbox_limits[1]; p_index ++)
         {
           cloud_ppath_update1D_noseq(doit_i_field, 
-                                     iy, surface_emission, surface_los,
-                                     surface_rmatrix,
                                      p_index, scat_za_index_local, 
                                      scat_za_grid,
                                      cloudbox_limits, doit_i_field_old, 
@@ -738,11 +732,6 @@ doit_i_fieldUpdate1D(// WS Input and Output:
 void
 doit_i_fieldUpdateSeq1D(// WS Input and Output:
                    Tensor6& doit_i_field,
-		   // WS output
-		   Matrix& iy,
-		   Matrix& surface_emission,
-		   Matrix& surface_los,
-		   Tensor4& surface_rmatrix,
                    // WS Input:
                    const Tensor6& doit_scat_field,
                    const ArrayOfIndex& cloudbox_limits,
@@ -906,8 +895,6 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                 >= cloudbox_limits[0]; p_index --)
             {
               cloud_ppath_update1D(doit_i_field, 
-                                   iy, surface_emission, surface_los,
-                                   surface_rmatrix,
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
@@ -927,8 +914,6 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                 <= cloudbox_limits[1]; p_index ++)
             {
               cloud_ppath_update1D(doit_i_field,  
-                                   iy, surface_emission,surface_los,
-                                   surface_rmatrix,
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
@@ -960,8 +945,6 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
               if (!(p_index == 0 && scat_za_grid[scat_za_index_local] > 90.))
                 {
                   cloud_ppath_update1D(doit_i_field,  
-                                       iy, surface_emission, surface_los,
-                                       surface_rmatrix,
                                        p_index, scat_za_index_local,
                                        scat_za_grid,
                                        cloudbox_limits, doit_scat_field,
@@ -1297,10 +1280,6 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
 
   WS Output:
   \param doit_i_field       Updated intensity field. 
-  Variables used in scalar_gas_abs_agenda:
-  \param rte_pressure    FIXME: Add documentation.
-  \param rte_temperature FIXME: Add documentation.
-  \param rte_vmr_list    FIXME: Add documentation.
   Variables used in spt_calc_agenda:
   \param scat_za_index
    Variables used in opt_prop_xxx_agenda:
@@ -1340,16 +1319,8 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
 void
 doit_i_fieldUpdateSeq1DPP(// WS Output:
                 Tensor6& doit_i_field,
-                // scalar_gas_abs_agenda:
-                Numeric& rte_pressure,
-                Numeric& rte_temperature,
-                Vector& rte_vmr_list,
                 // spt_calc_agenda:
                 Index& scat_za_index ,
-                // opt_prop_xxx_agenda:
-                Tensor3& ext_mat,
-                Matrix& abs_vec,  
-                Index&,// scat_p_index,
                 // WS Input:
                 const Tensor6& doit_scat_field,
                 const ArrayOfIndex& cloudbox_limits,
@@ -1469,9 +1440,6 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                 >= cloudbox_limits[0]; p_index --)
             {
               cloud_ppath_update1D_planeparallel(doit_i_field, 
-                                                 rte_pressure, rte_temperature,
-                                                 rte_vmr_list,
-                                                 ext_mat, abs_vec, 
                                                  p_index, scat_za_index,
                                                  scat_za_grid,
                                                  cloudbox_limits,
@@ -1496,9 +1464,6 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                 <= cloudbox_limits[1]; p_index ++)
             {
               cloud_ppath_update1D_planeparallel(doit_i_field,  
-                                                 rte_pressure, rte_temperature,
-                                                 rte_vmr_list,
-                                                 ext_mat, abs_vec, 
                                                  p_index, scat_za_index,
                                                  scat_za_grid,
                                                  cloudbox_limits,
