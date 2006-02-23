@@ -703,8 +703,7 @@ c                               ** Save azimuthally averaged intensities
 
                   DO 90 J = 1, NPHI
                      UU( IU, LU, J ) = UUM( IU, LU )
-                     write(*,*) UU( IU, LU, J )
-   90             CONTINUE
+ 90               CONTINUE
 
   100          CONTINUE
 

@@ -138,7 +138,7 @@ void ScatteringDisort(// WS Output:
     throw runtime_error("The cloudbox is not set correctly for DISORT.\n"
                         "Please use *cloudboxSetDisort*. \n");
 
-  scat_i_p.resize(f_grid.nelem(), pnd_field.npages(), 1, 1, 
+  scat_i_p.resize(f_grid.nelem(), 2, 1, 1, 
                   scat_za_grid.nelem(), 1, 1);
   scat_i_p = 0.;
 
@@ -224,7 +224,7 @@ void ScatteringDisort(// WS Output:
   //and comp. angles
   prnt[3]=FALSE_; // azimuthally averaged intensities at user levels
   //and angles
-  prnt[4]=TRUE_; // intensities at user levels and angles
+  prnt[4]=FALSE_; // intensities at user levels and angles
   prnt[5]=FALSE_; // planar transmissivity and albedo 
   prnt[6]=FALSE_; // phase function moments
   
@@ -244,13 +244,13 @@ void ScatteringDisort(// WS Output:
   Vector flup(maxulv);
   Vector dfdt(maxulv);
   Vector uavg(maxulv);
-  Tensor3 uu(scat_za_grid.nelem(), maxulv, maxphi); // Intensity 
-  Matrix u0u(scat_za_grid.nelem(), maxulv); // Azimuthally averaged intensity 
+  Tensor3 uu(maxphi, maxulv, scat_za_grid.nelem()); // Intensity 
+  Matrix u0u(maxulv, scat_za_grid.nelem()); // Azimuthally averaged intensity 
   Vector albmed(scat_za_grid.nelem()); // Albedo of cloudbox
   Vector trnmed(scat_za_grid.nelem()); // Transmissivity 
       
   Vector t(nlyr+1);
-  cout << "cloudbox_limits"<< cloudbox_limits << t.nelem()<< t_field.npages() << endl;
+ 
   for (Index i = 0; i < t.nelem(); i++)
     {
       t[i] = t_field(cloudbox_limits[1]-i,0,0);
@@ -323,17 +323,16 @@ void ScatteringDisort(// WS Output:
 
       for(Index j = 0; j<numu; j++)
         {
-          //          scat_i_p(f_index, 1, 0, 0, j, 0, 0) = 
-          //  uu(numu-j-1, 0, 0);
-          
           for(Index k = 0; k< nlyr; k++)
             doit_i_field1D_spectrum(f_index, k+1, j, 0) = 
-              uu(numu-j-1, nlyr-k-1, 0);
+              uu(0,nlyr-k-1,j);
+          
+          scat_i_p(f_index, 0, 0, 0, j, 0, 0) = 
+            uu(0, nlyr-1, j );
+          scat_i_p(f_index, 1, 0, 0, j, 0, 0) = 
+            uu(0, 0, j);
+           
         }
-      cout << uu( joker,0, 0)<< endl;
-      cout << u0u(joker,0);
-      scat_i_p(f_index, 1, 0, 0, joker, 0, 0) = 
-        uu(joker, 0, 0);
     }
 #else
       throw runtime_error ("This version of ARTS was compiled without DISORT support.");

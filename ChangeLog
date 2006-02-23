@@ -1,3 +1,37 @@
+2006-02-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1081
+
+	It is now possible to run DISORT within arts. You can look at 
+	simpleDISORT.arts to see how to run it. The results look reasonable,
+	but testing needs to be done.  
+
+	Notes:
+	- DISORT can only be used for randomly oriented particles (p20)
+	without polarization (stokes_dim=1)
+	- The cloud is defined different from DOIT, because in DISORT cloud 
+	properties must be provided for each layer. Therfore there is no 
+	linear interpolation at the cloud boundaries as in DOIT, which 
+	makes the cloud shape different. Generally the DOIT clouds are 
+	thicker for this reason. 
+	- DISORT it a plane-parallel model, therefore you can not expect 
+	good results for shallow viewing angles. 
+
+	To be done: 
+	- I did not include a temperature interpolation of the 
+	scattering data (always the first temperature is taken) 
+	- When one uses several scattering data files, the scattering angle 
+	grid must be the same at the moment, because I did not include 
+	an angle interpolation. 
+	- Many checks are still missing, so be very careful!!!
+	- Testing !!!
+	
+	* src/m_disort.cc: Some disort array dimensions were wrong. Fixed. 
+		
+	* tests/simpleDISORT.arts: Cleaned up. 
+
+	* 3rdparty/disort1.2/DISORT.f: Removed debugging output. 
+	
 2006-02-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1080

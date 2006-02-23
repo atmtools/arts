@@ -1,16 +1,14 @@
 
 #DEFINITIONS:  -*-sh-*-
 #
-# filename: simpleDOIT.arts
+# filename: simpleDISORT.arts
 #
-# Demonstration of a DOIT scattering calculation
+# Demonstration of a DISORT scattering calculation
 #
 # Author: Claudia Emde
 # 
-# A big part of the control file consists of definitions for the 
-# radiative transfer calculations. Parts, where a calculation is 
-# performed are marked with ===start=== and ===stop===.
-#
+# The DISORT calculation is set up in a very similar way to the 
+# DOIT calculation. 
 
 Main {
 
@@ -130,7 +128,7 @@ AgendaSet(iy_surface_agenda){
 VectorNLinSpace(vector_1){
 	start = 100
 	stop = 180
-	n = 20
+	n = 9
 }
 
 # Sensor altitude from earth surface
@@ -181,56 +179,36 @@ AgendaSet( rte_agenda ){
 
 # Specification of cloud
 # -----------------------
+    
+# Special DISORT function, because cloudbox needs to be extended over the 
+# ehole atmosphere
 cloudboxSetDisort{}
 
 ParticleTypeInit{}
 
-# Only one particle type is added in this example 
+# Only one particle type is added in this example
+# Note that you must use p20 data, because disort only works with this
+# format. 
 ParticleTypeAdd{
 filename_scat_data="data/scat_data_disort.xml"
 filename_pnd_field="data/pnd_field_1D.xml"
 }
 
 pnd_fieldCalc{}
-
 scat_data_rawCheck{}
 
 # Select interpolation method ('linear' or 'polynomial'):
 # ----------------------------------------------------
 
 # For limb calculations is is very important to have a fine resolution     
-# about 90°.
-# If "polynomial" is selected one has to use an optimized grid. Please     
-# use *doit_za_grid_optCalc* to optimize the grid.
-doit_za_interpSet{interp_method = "linear" }
-
+# about 90°. 
+# For DISORT we use the same angular grids as output.
 DoitAngularGridsSet{
 	N_za_grid = 19
 	N_aa_grid = 10
 	za_grid_opt_file = ""
 	}
 
-# Definitions for methods used in *i_fieldIterate*:
-#----------------------------------------------------
-
-# 1. Scattering integral
-# --------------------------
-
-# Calculation of the phase matrix
-AgendaSet(pha_mat_spt_agenda){
- # Optimized option:
-   pha_mat_sptFromDataDOITOpt{}
- # Alternative option:
- #  pha_mat_sptFromMonoData{}
-}
-
-AgendaSet(doit_scat_field_agenda){
- doit_scat_fieldCalcLimb{}
- # Alternative: use the same za grids in RT part and scattering integral part
- # doit_scat_fieldCalc{} 
-}
-
-    
 # Calculate opticle properties of particles and add particle absorption
 # and extiction to the gaseous properties to get total extinction and
 # absorption:
@@ -257,19 +235,11 @@ AgendaSet(iy_cloudbox_agenda){
 #==================start==========================
 
 # Perform scattering calculation 
-# CloudboxGetIncoming{}
-#IndexSet(f_index){0}
-#scat_data_monoCalc{}
 ScatteringDisort{}
     
-WriteXML(doit_i_field1D_spectrum){""}
-
-
 # Calculate RT from cloudbox boundary to the sensor
 RteCalc{}
 VectorToTbByRJ( y, y ) {}
-
-
 
 Print(y){
 level=1
