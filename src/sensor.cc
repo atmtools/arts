@@ -35,17 +35,7 @@
 #include "arts.h"
 #include "matpackI.h"
 #include "matpackII.h"
-//#include <stdexcept>
-//#include "array.h"
-//#include "auto_md.h"
-//#include "check_input.h"
-//#include "math_funcs.h"
-//#include "interpolation.h"
 #include "sensor.h"
-//#include "messages.h"
-//#include "mystring.h"
-//#include "poly_roots.h"
-//#include "special_interp.h"
 
   extern const Numeric DEG2RAD;
   extern const Numeric PI;

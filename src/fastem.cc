@@ -33,25 +33,9 @@
   ===========================================================================*/
 
 #include <stdexcept>
-#include <iostream>
-#include <cstdlib>
 #include <cmath>
-#include "array.h"
-#include "auto_md.h"
-#include "matpackVII.h"
-#include "ppath.h"
-#include "agenda_class.h"
-#include "physics_funcs.h"
-#include "lin_alg.h"
-#include "math_funcs.h"
-#include "messages.h"
-#include "xml_io.h"
-#include "rte.h"
-#include "special_interp.h"
-#include "scatrte.h"
-#include "logic.h"
-#include "check_input.h"
-#include "sorting.h"
+#include "matpackI.h"
+#include "exceptions.h"
 #include "complex.h"
 
 extern const Numeric PI;

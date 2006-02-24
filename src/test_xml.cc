@@ -1,4 +1,5 @@
 #include <iostream>
+#include "arts.h"
 #include "matpackII.h"
 #include "xml_io.h"
 #include "exceptions.h"

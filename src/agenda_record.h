@@ -28,6 +28,7 @@
 #define agenda_record_h
 
 #include <iostream>
+#include "arts.h"
 #include "make_array.h"
 #include "mystring.h"
 

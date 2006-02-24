@@ -35,6 +35,7 @@
   === External declarations
   ===========================================================================*/
 
+#include "auto_md.h"
 #include "montecarlo.h"
 
 #ifdef HAVE_SSTREAM

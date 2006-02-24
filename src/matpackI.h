@@ -94,7 +94,7 @@
 #ifndef matpackI_h
 #define matpackI_h
 
-#include "arts.h"
+#include "matpack.h"
 #include "array.h"
 
 // Declare existance of some classes

@@ -37,7 +37,6 @@
 #include "messages.h"
 #include "exceptions.h"
 #include "file.h"
-#include "auto_wsv.h"
 #include "methods.h"
 #include "parser.h"
 #include "auto_md.h"

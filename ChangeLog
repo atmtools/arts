@@ -1,5 +1,59 @@
 2006-02-24  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1083
+
+	* src/Makefile.am: Really solve the linker problems. There is a
+	circular dependency between libdisort.a and libf2c. And the only
+	way to get the faked main function linked in properly is to specify
+	-lf2c twice in the *_LDADD variables.
+
+	Added matpack.h to *_SOURCES.
+
+	* configure.in: Rename DISORT to ENABLE_DISORT.
+
+	* src/m_disort.cc: Rename DISORT to ENABLE_DISORT.
+
+	* src/fastem.cc, src/main.cc, src/cloudbox.cc, src/m_cloudbox.cc,
+	src/m_basic_types.cc, src/montecarlo.h, src/montecarlo.cc,
+	src/absorption.cc, src/m_refraction.cc, src/sensor.cc:
+	
+	Cleanup includes to get rid of unnecessary inclusions of auto_md.h
+	and auto_wsv.h.
+
+	* src/matpack.h: New file.
+
+	* src/matpackI.h: Include matpack.h instead of arts.h.
+
+	* src/arts.h:
+
+	Moved typedefs of Index and Numeric to matpack.h.
+
+	Include matpack.h.
+
+	* src/array.h: Include matpack.h instead of arts.h.
+
+	* src/matpackII.h:
+
+	Removed friend declaration of xml_write_to_stream.
+
+	Don't include mystring.h.
+
+	Removed forward declaration of bifstream and bofstream.
+
+	Three new functions for read-only access to the private members.
+
+	* src/xml_io_basic_types.cc (xml_write_to_stream):
+
+	Use the new access functions to get the Sparse data.
+
+	* src/exceptions.h, src/mystring.h:
+
+	Include matpack.h instead of arts.h.
+
+	* src/agenda_record.h, src/test_xml.cc: Include arts.h.
+
+2006-02-24  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1082
 
 	* src/Makefile.am: Fix library link order.

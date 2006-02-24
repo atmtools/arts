@@ -29,7 +29,7 @@
 
 #include <vector>
 #include <iomanip>
-#include "arts.h"
+#include "matpack.h"
 
 
 // Declare the existance of class Array:

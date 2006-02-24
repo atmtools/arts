@@ -33,7 +33,7 @@
 #include <cmath>
 
 #include "arts.h"
-#include "auto_md.h"
+#include "messages.h"
 #include "make_vector.h"
 #include "logic.h"
 #include "ppath.h"

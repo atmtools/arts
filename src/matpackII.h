@@ -41,12 +41,6 @@
 #define matpackII_h
 
 #include "matpackI.h"
-#include "mystring.h"
-
-// Declare existance of some classes:
-class bifstream;
-class bofstream;
-
 
 //! The Sparse class. 
 /*! 
@@ -82,6 +76,10 @@ public:
   Index ncols() const;
   Index nnz()   const;
 
+  const vector<Numeric> * const data () const {return mdata;};
+  const vector<Index> * const rowind () const {return mrowind;};
+  const vector<Index> * const colptr () const {return mcolptr;};
+
   // Index Operators:
   Numeric& rw(Index r, Index c);
   Numeric  ro(Index r, Index c) const;
@@ -97,9 +95,6 @@ public:
   friend void mult (MatrixView A, const Sparse& B, ConstMatrixView C );
   friend void mult (Sparse& A, const Sparse& B, const Sparse& C );
   friend void transpose (Sparse& A, const Sparse& B );
-  // IO functions must be friends:
-  friend void xml_write_to_stream (ostream& os_xml, const Sparse& sparse,
-                                   bofstream *pbofs, const String& name);
 
 private:
   //! The actual data values.

@@ -32,7 +32,7 @@
 #define exceptions_h
 
 #include <stdexcept>
-#include "arts.h"
+#include "matpack.h"
 #include "mystring.h"
 
 // Special stuff for the parser:

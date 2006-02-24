@@ -10,6 +10,14 @@
 
 bin_PROGRAMS = arts
 
+arts_LDADD = $(disort_ldflags)
+test_binaryio_LDADD = $(disort_ldflags)
+test_disort_LDADD = $(disort_ldflags)
+test_interpolation_LDADD = $(disort_ldflags)
+test_sensor_LDADD = $(disort_ldflags)
+test_sparse_LDADD = $(disort_ldflags)
+test_xml_LDADD = $(disort_ldflags)
+
 arts_SOURCES = \
 	main.cc \
 	absorption.h \
@@ -43,7 +51,6 @@ arts_SOURCES = \
 	constants.cc \
 	disort.cc \
 	disort.h \
-	disort_DISORT.h \
 	exceptions.h \
 	fastem.cc \
 	fastem.h \
@@ -93,6 +100,7 @@ arts_SOURCES = \
 	make_vector.h \
 	math_funcs.cc \
 	math_funcs.h \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.cc \
@@ -175,16 +183,10 @@ arts_SOURCES = \
 	lin_alg.cc \
 	supergeneric.h
 
-if DISORT
+if ENABLE_DISORT
 noinst_LIBRARIES = libdisort.a
 
-arts_LDADD = libdisort.a -lf2c
-test_binaryio_LDADD = libdisort.a -lf2c
-test_disort_LDADD = libdisort.a -lf2c
-test_interpolation_LDADD = libdisort.a -lf2c
-test_sensor_LDADD = libdisort.a -lf2c
-test_sparse_LDADD = libdisort.a -lf2c
-test_xml_LDADD = libdisort.a -lf2c
+disort_ldflags = -lf2c libdisort.a -lf2c
 
 libdisort_a_SOURCES = \
 	disort_D1MACH.c \
@@ -198,6 +200,8 @@ test_disort_SOURCES = \
 	disort_DISOTEST.c
 
 else
+
+disort_ldflags = 
 
 test_disort$(EXEEXT):
 
@@ -326,6 +330,7 @@ test_binaryio_SOURCES = \
 	make_vector.h \
 	math_funcs.cc \
 	math_funcs.h \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.cc \
@@ -479,6 +484,7 @@ test_binaryio_SOURCES = \
 #	make_vector.h \
 #	math_funcs.cc \
 #	math_funcs.h \
+#	matpack.h \
 #	matpackI.cc \
 #	matpackI.h \
 #	matpackII.cc \
@@ -645,6 +651,7 @@ test_interpolation_SOURCES = \
 	make_vector.h \
 	math_funcs.cc \
 	math_funcs.h \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.cc \
@@ -740,6 +747,7 @@ test_legendre_SOURCES = \
 	make_array.h \
 	math_funcs.cc \
 	math_funcs.h \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.cc \
@@ -764,6 +772,7 @@ test_linalg_SOURCES = \
 	arts_mpi.cc \
 	arts_mpi.h \
 	constants.cc \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.cc \
@@ -793,6 +802,7 @@ test_poly_SOURCES = \
 	arts_mpi.cc \
 	arts_mpi.h \
 	make_array.h \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	poly_roots.h \
@@ -808,6 +818,7 @@ test_tensor_SOURCES = \
 	make_array.h \
 	make_vector.cc \
 	make_vector.h \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.cc \
@@ -834,6 +845,7 @@ test_matpack_SOURCES = \
 	make_array.h \
 	make_vector.cc \
 	make_vector.h \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.cc \
@@ -935,6 +947,7 @@ test_sparse_SOURCES = \
 	make_vector.h \
 	math_funcs.cc \
 	math_funcs.h \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.cc \
@@ -1100,6 +1113,7 @@ test_xml_SOURCES = \
 	make_vector.h \
 	math_funcs.cc \
 	math_funcs.h \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.cc \
@@ -1197,12 +1211,14 @@ test_mpi_SOURCES = \
 	arts.h \
 	arts_mpi.cc \
 	arts_mpi.h \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	test_mpi.cc
 
 test_sorting_SOURCES = \
 	arts.h \
+	matpack.h \
 	matpackI.h \
 	matpackI.cc \
 	array.h \
@@ -1291,6 +1307,7 @@ test_sensor_SOURCES = \
 	make_vector.h \
 	math_funcs.cc \
 	math_funcs.h \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.cc \
@@ -1375,6 +1392,7 @@ test_sensor_SOURCES = \
 	test_sensor.cc
 
 test_integration_SOURCES = \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackIII.cc \
@@ -1399,6 +1417,7 @@ test_readpp_SOURCES = \
 	bifstream.h \
 	binio.cc \
 	binio.h \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	test_readpp.cc
@@ -1411,6 +1430,7 @@ make_auto_wsv_groups_h_SOURCES = \
 	groups.cc \
 	m_general.h \
 	make_auto_wsv_groups_h.cc \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	messages.cc \
@@ -1429,6 +1449,7 @@ make_auto_wsv_h_SOURCES = \
 	groups.cc \
 	m_general.h \
 	make_auto_wsv_h.cc \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	messages.cc \
@@ -1454,6 +1475,7 @@ make_auto_md_h_SOURCES = \
 	groups.cc \
 	make_array.h \
 	make_auto_md_h.cc \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.cc \
@@ -1500,6 +1522,7 @@ make_auto_md_cc_SOURCES = \
 	make_array.h \
 	make_auto_md_cc.cc \
 	make_array.h \
+	matpack.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.cc \

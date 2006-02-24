@@ -14,7 +14,6 @@
 #include <cmath>
 #include "rte.h"
 #include "lin_alg.h"
-#include "auto_md.h"
 #include "logic.h"
 #include "physics_funcs.h"
 #include "xml_io.h"

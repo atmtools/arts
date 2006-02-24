@@ -40,12 +40,12 @@
 
 #include "absorption.h"
 #include "arts.h"
-#include "auto_md.h"
 #include "check_input.h"
 #include "matpackI.h"
 #include "messages.h"
 #include "refraction.h"
 #include "special_interp.h"
+#include "abs_species_tags.h"
 
 
 

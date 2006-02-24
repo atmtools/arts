@@ -47,10 +47,16 @@
 
 #include "arts.h"
 #include "array.h"
-#include "auto_md.h"
+#include "matpackI.h"
+#include "matpackIII.h"
+#include "matpackIV.h"
+#include "matpackV.h"
+#include "matpackVI.h"
+#include "matpackVII.h"
+#include "mystring.h"
+#include "exceptions.h"
 #include "make_array.h"
 #include "math_funcs.h"
-#include "matpackI.h"
 #include "messages.h"
 
 

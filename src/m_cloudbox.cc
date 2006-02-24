@@ -46,7 +46,6 @@
 
 #include "arts.h"
 #include "array.h"
-#include "auto_md.h"
 #include "check_input.h"
 #include "xml_io.h"
 #include "messages.h"

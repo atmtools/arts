@@ -108,7 +108,7 @@ void ScatteringDisort(// WS Output:
                       const Matrix& surface_emissivity_field)
 {
 
-#ifdef DISORT
+#ifdef ENABLE_DISORT
   
   out1<< "Start DISORT calculation...\n";
   
@@ -336,7 +336,7 @@ void ScatteringDisort(// WS Output:
     }
 #else
       throw runtime_error ("This version of ARTS was compiled without DISORT support.");
-#endif
+#endif /* ENABLE_DISORT */
       
   
 }

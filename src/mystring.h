@@ -29,7 +29,7 @@
 
 #include <climits>
 #include <string>
-#include "arts.h"
+#include "matpack.h"
 
 // String stream library. This is included with the ARTS source code
 // for now, because it is missing in gcc <= 2.95.2

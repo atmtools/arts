@@ -37,8 +37,8 @@
 #include <cmath>
 #include "absorption.h"
 #include "math_funcs.h"
-#include "auto_md.h"
 #include "messages.h"
+#include "logic.h"
 
 
 /** The map associated with species_data. */
