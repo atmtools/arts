@@ -178,13 +178,13 @@ arts_SOURCES = \
 if DISORT
 noinst_LIBRARIES = libdisort.a
 
-arts_LDADD = -lf2c libdisort.a
-test_binaryio_LDADD = -lf2c libdisort.a
-test_disort_LDADD = -lf2c libdisort.a
-test_interpolation_LDADD = -lf2c libdisort.a
-test_sensor_LDADD = -lf2c libdisort.a
-test_sparse_LDADD = -lf2c libdisort.a
-test_xml_LDADD = -lf2c libdisort.a
+arts_LDADD = libdisort.a -lf2c
+test_binaryio_LDADD = libdisort.a -lf2c
+test_disort_LDADD = libdisort.a -lf2c
+test_interpolation_LDADD = libdisort.a -lf2c
+test_sensor_LDADD = libdisort.a -lf2c
+test_sparse_LDADD = libdisort.a -lf2c
+test_xml_LDADD = libdisort.a -lf2c
 
 libdisort_a_SOURCES = \
 	disort_D1MACH.c \
