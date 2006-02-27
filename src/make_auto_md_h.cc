@@ -378,7 +378,6 @@ int main()
       ofs << "#define auto_md_h\n\n";
 
       ofs << "#include \"matpackI.h\"\n"
-          << "#include \"absorption.h\"\n"
           << "#include \"auto_wsv.h\"\n"
           << "#include \"parser.h\"\n"
           << "#include \"workspace_ng.h\"\n"

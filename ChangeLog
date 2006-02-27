@@ -1,5 +1,33 @@
 2006-02-27  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1085
+
+	* src/Makefile.am:
+
+	Create a matpack library.
+
+	Removed matpack sources/headers from all other *_SOURCES.
+
+	Removed arts*.cc from test_{complex,legendre,matpack,poly,sorting,
+	tensor}_SOURCES.
+
+	Removed absorption.h from make_auto_{wsv_h,md_h,md_cc}_SOURCES.
+
+	* src/math_funcs.cc: Don't include messages.h.
+
+	* src/math_func.cc: Don't include arts.h.
+
+	* src/complex.h, src/sorting.h: Include matpack.h instead of arts.h.
+
+	* src/make_auto_wsv_h.cc: Don't include absorption.h.
+
+	* src/make_auto_md_h.cc, src/make_auto_wsv_groups_h.cc,
+	src/make_auto_wsv_h.cc:
+
+	Don't include absorption.h in generated sources.
+
+2006-02-27  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1084
 
 	* src/matpack.h: Forgot cvs add in last commit.

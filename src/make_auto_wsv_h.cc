@@ -32,7 +32,6 @@
 #include "matpackI.h"
 #include "array.h"
 #include "file.h"
-#include "absorption.h"
 #include "auto_wsv_groups.h"
 #include "wsv_aux.h"
 #include "mystring.h"
@@ -73,8 +72,7 @@ int main()
       ofs << "#ifndef auto_wsv_h\n";
       ofs << "#define auto_wsv_h\n\n";
 
-      ofs << "#include \"absorption.h\"\n"
-          << "#include \"agenda_class.h\"\n"
+      ofs << "#include \"agenda_class.h\"\n"
           << "#include \"ppath.h\"\n"
           << "#include \"matpackII.h\"\n"
           << "#include \"matpackIII.h\"\n"

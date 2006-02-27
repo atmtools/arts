@@ -43,7 +43,6 @@
 #include "math_funcs.h"
 #include "logic.h"
 #include "mystring.h"
-#include "messages.h"
 extern const Numeric DEG2RAD;
 extern const Numeric PI;
 

@@ -60,7 +60,6 @@ int main()
           << "#include \"m_general.h\"\n"
           << "#include \"supergeneric.h\"\n"
           << "#include \"ppath.h\"\n"
-          << "#include \"absorption.h\"\n\n"
           << "#include \"gas_abs_lookup.h\"\n\n"
           << "#include \"optproperties.h\"\n\n"
           << "#include \"gridded_fields.h\"\n\n"

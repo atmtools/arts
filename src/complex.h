@@ -27,7 +27,7 @@
 #define complex_h
 
 #include <complex>
-#include "arts.h"
+#include "matpack.h"
 
 typedef complex<Numeric> Complex;
 

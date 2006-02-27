@@ -36,7 +36,7 @@
 #include <algorithm>
 #include <functional>
 
-#include "arts.h"
+#include "matpack.h"
 #include "array.h"
 
 /** IndexComp

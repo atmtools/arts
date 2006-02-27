@@ -10,14 +10,7 @@
 
 bin_PROGRAMS = arts
 
-arts_LDADD = $(disort_ldflags)
-test_binaryio_LDADD = $(disort_ldflags)
-test_disort_LDADD = $(disort_ldflags)
-test_interpolation_LDADD = $(disort_ldflags)
-test_sensor_LDADD = $(disort_ldflags)
-test_sparse_LDADD = $(disort_ldflags)
-test_xml_LDADD = $(disort_ldflags)
-
+arts_LDADD = libmatpack.a $(disort_ldflags)
 arts_SOURCES = \
 	main.cc \
 	absorption.h \
@@ -27,7 +20,6 @@ arts_SOURCES = \
 	gas_abs_lookup.h \
 	gas_abs_lookup.cc \
 	lineshapes.cc \
-	array.h \
 	arts.cc \
 	arts.h \
 	arts_mpi.cc \
@@ -46,12 +38,9 @@ arts_SOURCES = \
 	check_input.h \
 	cloudbox.h \
 	cloudbox.cc \
-	complex.h \
-	complex.cc \
 	constants.cc \
 	disort.cc \
 	disort.h \
-	exceptions.h \
 	fastem.cc \
 	fastem.h \
 	file.cc \
@@ -95,26 +84,6 @@ arts_SOURCES = \
 	m_xml.cc \
 	m_xml.h \
 	m_batch.cc \
-	make_array.h \
-	make_vector.cc \
-	make_vector.h \
-	math_funcs.cc \
-	math_funcs.h \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
 	mc_antenna.cc \
 	mc_antenna.h \
 	mc_interp.cc \
@@ -177,14 +146,43 @@ arts_SOURCES = \
 	agenda_record.h \
 	agenda_record.cc \
 	agendas.cc \
-	logic.h \
-	logic.cc \
 	lin_alg.h \
 	lin_alg.cc \
 	supergeneric.h
 
+noinst_LIBRARIES = libmatpack.a
+
+libmatpack_a_SOURCES = \
+	array.h \
+	complex.h \
+	complex.cc \
+	exceptions.h \
+	logic.h \
+	logic.cc \
+	make_array.h \
+	make_vector.h \
+	make_vector.cc \
+	math_funcs.h \
+	math_funcs.cc \
+	matpack.h \
+	matpackI.h \
+	matpackI.cc \
+	matpackII.h \
+	matpackII.cc \
+	matpackIII.h \
+	matpackIII.cc \
+	matpackIV.h \
+	matpackIV.cc \
+	matpackV.h \
+	matpackV.cc \
+	matpackVI.h \
+	matpackVI.cc \
+	matpackVII.h \
+	matpackVII.cc \
+	mystring.h
+
 if ENABLE_DISORT
-noinst_LIBRARIES = libdisort.a
+noinst_LIBRARIES += libdisort.a
 
 disort_ldflags = -lf2c libdisort.a -lf2c
 
@@ -196,6 +194,7 @@ libdisort_a_SOURCES = \
 	disort_LINPAK.c \
 	disort_R1MACH.c
 
+test_disort_LDADD = $(disort_ldflags)
 test_disort_SOURCES = \
 	disort_DISOTEST.c
 
@@ -248,6 +247,7 @@ noinst_PROGRAMS = \
 	test_sorting \
 	test_integration
 
+test_binaryio_LDADD = libmatpack.a $(disort_ldflags)
 test_binaryio_SOURCES = \
 	absorption.h \
 	absorption.cc \
@@ -256,7 +256,6 @@ test_binaryio_SOURCES = \
 	gas_abs_lookup.h \
 	gas_abs_lookup.cc \
 	lineshapes.cc \
-	array.h \
 	arts.h \
 	arts.cc \
 	arts_mpi.cc \
@@ -275,13 +274,10 @@ test_binaryio_SOURCES = \
 	check_input.h \
 	cloudbox.h \
 	cloudbox.cc \
-	complex.h \
-	complex.cc \
 	constants.cc \
 	disort.cc \
 	disort.h \
 	disort_DISORT.h \
-	exceptions.h \
 	fastem.cc \
 	fastem.h \
 	file.cc \
@@ -325,26 +321,6 @@ test_binaryio_SOURCES = \
 	m_xml.cc \
 	m_xml.h \
 	m_batch.cc \
-	make_array.h \
-	make_vector.cc \
-	make_vector.h \
-	math_funcs.cc \
-	math_funcs.h \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
 	mc_antenna.cc \
 	mc_antenna.h \
 	mc_interp.cc \
@@ -407,8 +383,6 @@ test_binaryio_SOURCES = \
 	agenda_record.h \
 	agenda_record.cc \
 	agendas.cc \
-	logic.h \
-	logic.cc \
 	lin_alg.h\
 	lin_alg.cc\
 	supergeneric.h \
@@ -417,7 +391,6 @@ test_binaryio_SOURCES = \
 #test_geomag_calc_SOURCES = \
 #	absorption.cc \
 #	absorption.h \
-#	array.h \
 #	arts.cc \
 #	arts.h \
 #	arts_mpi.cc \
@@ -436,10 +409,7 @@ test_binaryio_SOURCES = \
 #	check_input.h \
 #	cloudbox.h \
 #	cloudbox.cc \
-#	complex.h \
-#	complex.cc \
 #	constants.cc \
-#	exceptions.h \
 #	fastem.cc \
 #	fastem.h \
 #	file.cc \
@@ -479,26 +449,6 @@ test_binaryio_SOURCES = \
 #	m_ignore.h \
 #	m_xml.cc \
 #	m_xml.h \
-#	make_array.h \
-#	make_vector.cc \
-#	make_vector.h \
-#	math_funcs.cc \
-#	math_funcs.h \
-#	matpack.h \
-#	matpackI.cc \
-#	matpackI.h \
-#	matpackII.cc \
-#	matpackII.h \
-#	matpackIII.cc \
-#	matpackIII.h \
-#	matpackIV.cc \
-#	matpackIV.h \
-#	matpackV.cc \
-#	matpackV.h \
-#	matpackVI.cc \
-#	matpackVI.h \
-#	matpackVII.cc \
-#	matpackVII.h \
 #	mc_interp.cc \
 #	mc_interp.h \
 #	messages.cc \
@@ -558,8 +508,6 @@ test_binaryio_SOURCES = \
 #	agenda_record.h \
 #	agenda_record.cc \
 #	agendas.cc \
-#	logic.h \
-#	logic.cc \
 #	lin_alg.h\
 #	lin_alg.cc\
 #	supergeneric.h \
@@ -569,6 +517,7 @@ test_binaryio_SOURCES = \
 #	gas_abs_lookup.cc \
 #	test_geomag_calc.cc
 
+test_interpolation_LDADD = libmatpack.a $(disort_ldflags)
 test_interpolation_SOURCES = \
 	absorption.h \
 	absorption.cc \
@@ -577,7 +526,6 @@ test_interpolation_SOURCES = \
 	gas_abs_lookup.h \
 	gas_abs_lookup.cc \
 	lineshapes.cc \
-	array.h \
 	arts.h \
 	arts.cc \
 	arts_mpi.cc \
@@ -596,13 +544,10 @@ test_interpolation_SOURCES = \
 	check_input.h \
 	cloudbox.h \
 	cloudbox.cc \
-	complex.h \
-	complex.cc \
 	constants.cc \
 	disort.cc \
 	disort.h \
 	disort_DISORT.h \
-	exceptions.h \
 	fastem.cc \
 	fastem.h \
 	file.cc \
@@ -646,26 +591,6 @@ test_interpolation_SOURCES = \
 	m_xml.cc \
 	m_xml.h \
 	m_batch.cc \
-	make_array.h \
-	make_vector.cc \
-	make_vector.h \
-	math_funcs.cc \
-	math_funcs.h \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
 	mc_antenna.cc \
 	mc_antenna.h \
 	mc_interp.cc \
@@ -728,143 +653,44 @@ test_interpolation_SOURCES = \
 	agenda_record.h \
 	agenda_record.cc \
 	agendas.cc \
-	logic.h \
-	logic.cc \
 	lin_alg.h\
 	lin_alg.cc\
 	supergeneric.h \
 	test_interpolation.cc
 
+test_legendre_LDADD = libmatpack.a
 test_legendre_SOURCES = \
-	array.h \
-	arts.cc \
-	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
 	constants.cc \
-	logic.cc \
-	logic.h \
-	make_array.h \
-	math_funcs.cc \
-	math_funcs.h \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
 	legendre.h \
 	legendre.cc \
 	test_legendre.cc
 
+test_linalg_LDADD = libmatpack.a
 test_linalg_SOURCES = \
-	arts.cc \
-	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
 	constants.cc \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
 	make_vector.h\
 	make_vector.cc\
 	lin_alg.cc \
 	lin_alg.h \
-	test_linalg.cc\
-	logic.h\
-	logic.cc
+	test_linalg.cc
 
+test_poly_LDADD = libmatpack.a
 test_poly_SOURCES = \
-	array.h \
-	arts.cc \
-	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
-	make_array.h \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
 	poly_roots.h \
 	poly_roots.cc \
 	test_poly.cc
 
+test_tensor_LDADD = libmatpack.a
 test_tensor_SOURCES = \
-	array.h \
-	arts.cc \
-	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
-	make_array.h \
-	make_vector.cc \
-	make_vector.h \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
-	mystring.h \
 	test_tensor.cc
 
+test_matpack_LDADD = libmatpack.a
 test_matpack_SOURCES = \
-	array.h \
-	arts.cc \
-	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
-	make_array.h \
-	make_vector.cc \
-	make_vector.h \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
-	mystring.h \
 	describe.h \
 	describe.cc \
 	test_matpack.cc
 
+test_sparse_LDADD = libmatpack.a $(disort_ldflags)
 test_sparse_SOURCES = \
 	absorption.h \
 	absorption.cc \
@@ -873,7 +699,6 @@ test_sparse_SOURCES = \
 	gas_abs_lookup.h \
 	gas_abs_lookup.cc \
 	lineshapes.cc \
-	array.h \
 	arts.cc \
 	arts.h \
 	arts_mpi.cc \
@@ -892,13 +717,10 @@ test_sparse_SOURCES = \
 	check_input.h \
 	cloudbox.h \
 	cloudbox.cc \
-	complex.h \
-	complex.cc \
 	constants.cc \
 	disort.cc \
 	disort.h \
 	disort_DISORT.h \
-	exceptions.h \
 	fastem.cc \
 	fastem.h \
 	file.cc \
@@ -942,26 +764,6 @@ test_sparse_SOURCES = \
 	m_xml.cc \
 	m_xml.h \
 	m_batch.cc \
-	make_array.h \
-	make_vector.cc \
-	make_vector.h \
-	math_funcs.cc \
-	math_funcs.h \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
 	mc_interp.cc \
 	mc_interp.h \
 	mc_antenna.cc \
@@ -1024,13 +826,12 @@ test_sparse_SOURCES = \
 	agenda_record.h \
 	agenda_record.cc \
 	agendas.cc \
-	logic.h \
-	logic.cc \
 	lin_alg.h\
 	lin_alg.cc\
 	supergeneric.h \
 	test_sparse.cc
 
+test_xml_LDADD = libmatpack.a $(disort_ldflags)
 test_xml_SOURCES = \
 	absorption.h \
 	absorption.cc \
@@ -1039,7 +840,6 @@ test_xml_SOURCES = \
 	gas_abs_lookup.h \
 	gas_abs_lookup.cc \
 	lineshapes.cc \
-	array.h \
 	arts.cc \
 	arts.h \
 	arts_mpi.cc \
@@ -1058,13 +858,10 @@ test_xml_SOURCES = \
 	check_input.h \
 	cloudbox.h \
 	cloudbox.cc \
-	complex.h \
-	complex.cc \
 	constants.cc \
 	disort.cc \
 	disort.h \
 	disort_DISORT.h \
-	exceptions.h \
 	fastem.cc \
 	fastem.h \
 	file.cc \
@@ -1108,26 +905,6 @@ test_xml_SOURCES = \
 	m_xml.cc \
 	m_xml.h \
 	m_batch.cc \
-	make_array.h \
-	make_vector.cc \
-	make_vector.h \
-	math_funcs.cc \
-	math_funcs.h \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
 	mc_antenna.cc \
 	mc_antenna.h \
 	mc_interp.cc \
@@ -1190,41 +967,29 @@ test_xml_SOURCES = \
 	agenda_record.h \
 	agenda_record.cc \
 	agendas.cc \
-	logic.h \
-	logic.cc \
 	lin_alg.h \
 	lin_alg.cc \
 	supergeneric.h \
 	test_xml.cc
 
+test_complex_LDADD = libmatpack.a
 test_complex_SOURCES = \
-	arts.cc \
-	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
-	complex.h \
-	complex.cc \
 	test_complex.cc
 
+test_mpi_LDADD = libmatpack.a
 test_mpi_SOURCES = \
 	arts.cc \
 	arts.h \
 	arts_mpi.cc \
 	arts_mpi.h \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
 	test_mpi.cc
 
+test_sorting_LDADD = libmatpack.a
 test_sorting_SOURCES = \
-	arts.h \
-	matpack.h \
-	matpackI.h \
-	matpackI.cc \
-	array.h \
 	sorting.h \
 	test_sorting.cc
 
+test_sensor_LDADD = libmatpack.a $(disort_ldflags)
 test_sensor_SOURCES = \
 	absorption.h \
 	absorption.cc \
@@ -1233,7 +998,6 @@ test_sensor_SOURCES = \
 	gas_abs_lookup.h \
 	gas_abs_lookup.cc \
 	lineshapes.cc \
-	array.h \
 	arts.cc \
 	arts.h \
 	arts_mpi.cc \
@@ -1252,13 +1016,10 @@ test_sensor_SOURCES = \
 	check_input.h \
 	cloudbox.h \
 	cloudbox.cc \
-	complex.h \
-	complex.cc \
 	constants.cc \
 	disort.cc \
 	disort.h \
 	disort_DISORT.h \
-	exceptions.h \
 	fastem.cc \
 	fastem.h \
 	file.cc \
@@ -1302,26 +1063,6 @@ test_sensor_SOURCES = \
 	m_xml.cc \
 	m_xml.h \
 	m_batch.cc \
-	make_array.h \
-	make_vector.cc \
-	make_vector.h \
-	math_funcs.cc \
-	math_funcs.h \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
 	mc_antenna.cc \
 	mc_antenna.h \
 	mc_interp.cc \
@@ -1384,44 +1125,25 @@ test_sensor_SOURCES = \
 	agenda_record.h \
 	agenda_record.cc \
 	agendas.cc \
-	logic.h \
-	logic.cc \
 	lin_alg.h \
 	lin_alg.cc \
 	supergeneric.h \
 	test_sensor.cc
 
+test_integration_LDADD = libmatpack.a
 test_integration_SOURCES = \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
-	math_funcs.cc \
-	math_funcs.h \
-	logic.cc \
-	logic.h \
 	constants.cc \
 	test_integration.cc 
 
+test_readpp_LDADD = libmatpack.a
 test_readpp_SOURCES = \
 	bifstream.cc \
 	bifstream.h \
 	binio.cc \
 	binio.h \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
 	test_readpp.cc
 
+make_auto_wsv_groups_h_LDADD = libmatpack.a
 make_auto_wsv_groups_h_SOURCES = \
 	arts.cc \
 	arts.h \
@@ -1430,14 +1152,11 @@ make_auto_wsv_groups_h_SOURCES = \
 	groups.cc \
 	m_general.h \
 	make_auto_wsv_groups_h.cc \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
 	messages.cc \
 	version.cc
 
+make_auto_wsv_h_LDADD = libmatpack.a
 make_auto_wsv_h_SOURCES = \
-	absorption.h \
 	agenda_class.h \
 	arts.cc \
 	arts.h \
@@ -1449,17 +1168,14 @@ make_auto_wsv_h_SOURCES = \
 	groups.cc \
 	m_general.h \
 	make_auto_wsv_h.cc \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
 	messages.cc \
 	version.cc \
 	workspace.cc \
 	workspace_aux.cc \
 	wsv_aux.h
 
+make_auto_md_h_LDADD = libmatpack.a
 make_auto_md_h_SOURCES = \
-	absorption.h \
 	agenda_record.cc \
 	agenda_record.h \
 	agendas.cc \
@@ -1473,23 +1189,7 @@ make_auto_md_h_SOURCES = \
 	file.h \
 	globals_2.cc \
 	groups.cc \
-	make_array.h \
 	make_auto_md_h.cc \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
 	messages.cc \
 	messages.h \
 	methods.cc \
@@ -1504,8 +1204,8 @@ make_auto_md_h_SOURCES = \
 	workspace_ng.h \
 	wsv_aux.h
 
+make_auto_md_cc_LDADD = libmatpack.a
 make_auto_md_cc_SOURCES = \
-	absorption.h \
 	agenda_record.cc \
 	agenda_record.h \
 	agendas.cc \
@@ -1519,24 +1219,7 @@ make_auto_md_cc_SOURCES = \
 	file.h \
 	globals_2.cc \
 	groups.cc \
-	make_array.h \
 	make_auto_md_cc.cc \
-	make_array.h \
-	matpack.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
 	messages.cc \
 	messages.h \
 	methods.cc \

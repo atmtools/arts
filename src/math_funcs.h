@@ -35,7 +35,6 @@
 #ifndef math_funcs_h
 #define math_funcs_h
 
-#include "arts.h"
 #include "matpackI.h"
 
 
