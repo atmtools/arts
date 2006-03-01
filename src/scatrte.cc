@@ -1197,7 +1197,8 @@ void cloud_RT_surface(
   // and ext_mat.
   //
               
-  scalar_gas_absorption_agenda.execute(true);
+  // FIXME: Convert to new agenda scheme before using
+  //scalar_gas_absorption_agenda.execute(true);
               
   opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
                               opt_prop_gas_agenda, true);
@@ -1919,6 +1920,7 @@ void cloud_ppath_update1D_planeparallel(
           //gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
           // Executes the surface agenda
           //chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
+          // FIXME: Convert to new agenda scheme before using
           //iy_surface_agenda.execute();
 
       throw runtime_error( 
@@ -2022,7 +2024,8 @@ void cloud_ppath_update1D_planeparallel(
           // and ext_mat.
           //
           
-          scalar_gas_absorption_agenda.execute(p_index);
+          // FIXME: Convert to new agenda scheme before using
+          //scalar_gas_absorption_agenda.execute(p_index);
           
           opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
                                      opt_prop_gas_agenda, (p_index != 0));

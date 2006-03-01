@@ -1748,9 +1748,11 @@ void ZeemanO2Settings( // Output
    \date   2003-12-10
 
 */
+/*
 void test_zeeman(
                  const Agenda& opt_prop_gas_agenda
                 )
 {
   opt_prop_gas_agenda.execute();
 }
+*/

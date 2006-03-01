@@ -232,13 +232,9 @@ void define_md_data_raw()
          "for the frequency indicated by f_index (f_index>=0).\n"
          "\n"
          "The calculation itself is performed by the\n"
-         "*scalar_gas_absorption_agenda*, which needs the input variables\n"
-         "*rte_pressure*, *rte_temperature*, and *rte_vmr_list*, and returns the\n"
-         "output variable *abs_scalar_gas*."
+         "*scalar_gas_absorption_agenda*."
         ),
-        OUTPUT( abs_scalar_gas_field_,
-                abs_scalar_gas_,
-                rte_pressure_, rte_temperature_, rte_vmr_list_),
+        OUTPUT( abs_scalar_gas_field_ ),
         INPUT(  scalar_gas_absorption_agenda_,
                 f_index_,
                 f_grid_,

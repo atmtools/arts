@@ -8,6 +8,7 @@
 
 #include <algorithm> 
 #include <map>
+#include "auto_md.h"
 #include "arts.h"
 #include "messages.h"
 #include "gas_abs_lookup.h"
@@ -169,10 +170,6 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
 */
 void abs_scalar_gas_fieldCalc(// WS Output:
                               Tensor5& asg_field,
-                              Matrix&  asg,
-                              Numeric& a_pressure,
-                              Numeric& a_temperature,
-                              Vector&  a_vmr_list,
                               // WS Input:
                               const Agenda&  sga_agenda,
                               const Index&   f_index,
@@ -184,6 +181,10 @@ void abs_scalar_gas_fieldCalc(// WS Output:
                               const Tensor3& t_field,
                               const Tensor4& vmr_field )
 {
+  Matrix  asg;
+  Numeric a_pressure;
+  Numeric a_temperature;
+  Vector a_vmr_list;
   // Get the number of species from the leading dimension of vmr_field:
   const Index n_species = vmr_field.nbooks();
 
@@ -286,7 +287,9 @@ void abs_scalar_gas_fieldCalc(// WS Output:
             // Execute agenda to calculate local absorption.
             // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
             // Agenda output: asg
-            sga_agenda.execute(count);
+            scalar_gas_absorption_agendaExecute (asg, f_index, a_pressure,
+                                                 a_temperature, a_vmr_list,
+                                                 sga_agenda, (count != 0));
 
             // Verify, that the number of species in asg is
             // constistent with vmr_field:

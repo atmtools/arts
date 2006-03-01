@@ -589,8 +589,9 @@ void ScatteringMonteCarlo (
                          p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                          cloudbox_limits, record_ppathcloud, record_ppath, 
                          opt_prop_gas_agenda, 
-                         scalar_gas_absorption_agenda, stokes_dim, t_field, 
-                         vmr_field, rte_agenda, iy_space_agenda, 
+                         scalar_gas_absorption_agenda, f_index,
+                         stokes_dim, t_field, vmr_field, rte_agenda,
+                         iy_space_agenda, 
                          iy_surface_agenda, iy_cloudbox_agenda,f_grid, 0, 0,
                          pnd_field,scat_data_mono, z_field_is_1D );
  

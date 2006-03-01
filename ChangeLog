@@ -1,5 +1,43 @@
 2006-02-27  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1086
+
+	* Complete the transition to the new agenda scheme. Some work on the
+	conversion of agenda communication variables to local variables is
+	still to be done.
+
+	* src/montecarlo.{cc,h}:
+
+	(TArrayCalc): Added f_index to inputs.
+
+	Use new agenda scheme for scalar_gas_absorption_agenda and
+	opt_prop_gas_agenda.
+
+	(Cloudbox_ppath_rteCalc): Added f_index to inputs.
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo):
+
+	Added f_index to call to Cloudbox_ppath_rteCalc.
+
+	* src/m_abs_o2_models.cc (test_zeeman): Commented out.
+
+	* src/m_abs_lookup.cc (abs_scalar_gas_fieldCalc):
+
+	Include auto_md.h.
+
+	Use new agenda scheme for scalar_gas_absorption_agenda.
+
+	Make asg, a_pressure, a_temperature, a_vmr_list local variables.
+
+	* src/methods.cc:
+
+	abs_scalar_gas_fieldCalc: Removed abs_scalar_gas, rte_pressure,
+	rte_temperature and rte_vmr_list from outputs.
+
+	* src/scatrte.cc: Added some FIXMEs in commented out sections.
+
+2006-02-27  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1085
 
 	* src/Makefile.am:

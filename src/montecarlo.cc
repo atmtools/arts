@@ -694,6 +694,7 @@ void Cloudbox_ppath_rteCalc(
                              const Index&          record_ppath,
                              const Agenda&         opt_prop_gas_agenda,
                              const Agenda&         scalar_gas_absorption_agenda,
+                             const Index&          f_index,
                              const Index&          stokes_dim,
                              const Tensor3&        t_field,
                              const Tensor4&        vmr_field,
@@ -759,7 +760,7 @@ void Cloudbox_ppath_rteCalc(
   TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, ext_mat, abs_vec, 
              rte_pressure, rte_temperature, 
              rte_vmr_list, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
-             scalar_gas_absorption_agenda, stokes_dim, 
+             scalar_gas_absorption_agenda, f_index, stokes_dim, 
              p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
              t_field(p_range,lat_range,lon_range), 
              vmr_field(joker,p_range,lat_range,lon_range),
@@ -2265,6 +2266,7 @@ void TArrayCalc(
                 const Ppath& ppath,
                 const Agenda& opt_prop_gas_agenda,
                 const Agenda& scalar_gas_absorption_agenda,
+                const Index& f_index,
                 const Index& stokes_dim,
                 const ConstVectorView&    p_grid_cloud,
                 const ConstVectorView&    lat_grid_cloud,
@@ -2317,12 +2319,17 @@ void TArrayCalc(
   //Create array of extinction matrices corresponding to each point in ppath
   for (Index scat_za_index=0; scat_za_index<ppath.np; scat_za_index++)
     { 
+      Matrix abs_scalar_gas;
       Index scat_aa_index=scat_za_index;
       rte_pressure    = p_ppath[scat_za_index];
       rte_temperature = t_ppath[scat_za_index];
       rte_vmr_list    = vmr_ppath(joker,scat_za_index);
-      scalar_gas_absorption_agenda.execute( true );
-      opt_prop_gas_agenda.execute( true );
+      scalar_gas_absorption_agendaExecute (abs_scalar_gas, f_index,
+                                           rte_pressure, rte_temperature,
+                                           rte_vmr_list,
+                                           scalar_gas_absorption_agenda, true);
+      opt_prop_gas_agendaExecute( ext_mat, abs_vec, abs_scalar_gas,
+                                  opt_prop_gas_agenda, true );
       ext_mat_part=0.0;
       abs_vec_part=0.0;
       //Make sure scat_aa is between -180 and 180
@@ -2372,3 +2379,4 @@ void TArrayCalc(
     }
 
 }
+
