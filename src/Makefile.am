@@ -150,7 +150,6 @@ arts_SOURCES = \
 	lin_alg.cc \
 	supergeneric.h
 
-noinst_LIBRARIES = libmatpack.a
 
 libmatpack_a_SOURCES = \
 	array.h \
@@ -182,7 +181,8 @@ libmatpack_a_SOURCES = \
 	mystring.h
 
 if ENABLE_DISORT
-noinst_LIBRARIES += libdisort.a
+
+noinst_LIBRARIES = libmatpack.a libdisort.a
 
 disort_ldflags = -lf2c libdisort.a -lf2c
 
@@ -199,6 +199,8 @@ test_disort_SOURCES = \
 	disort_DISOTEST.c
 
 else
+
+noinst_LIBRARIES = libmatpack.a
 
 disort_ldflags = 
 
