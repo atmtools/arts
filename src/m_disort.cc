@@ -140,11 +140,12 @@ void ScatteringDisort(// WS Output:
 
   scat_i_p.resize(f_grid.nelem(), 2, 1, 1, 
                   scat_za_grid.nelem(), 1, 1);
+
   scat_i_p = 0.;
 
   doit_i_field1D_spectrum.resize(f_grid.nelem(), pnd_field.npages(), 
                                  scat_za_grid.nelem(), 1); 
-  
+ 
   doit_i_field1D_spectrum= 0; 
   // Scat_i_lat, lon ---> only dummies, not used further 
   scat_i_lat.resize(1,1,1,1,1,1,1);
@@ -166,7 +167,7 @@ void ScatteringDisort(// WS Output:
   scat_angle_grid = scat_data_raw[0].za_grid;
   
   // Number of streams, I think in microwave 8 is more that sufficient
-  Index nstr=8; 
+  Index nstr=4; 
   Index n_legendre=nstr+1;
   
   // Legendre polynomials of phase function
@@ -259,10 +260,17 @@ void ScatteringDisort(// WS Output:
   //dummies
   Index ntau = 0; 
   Vector utau(maxulv,0.);
-  
-  // Loop over frequencies
-  for (f_index = 0; f_index < f_grid.nelem(); f_index ++) 
-    {
+
+
+  // Loop over frequencies   
+  for (f_index = 0; f_index < f_grid.nelem(); f_index ++)    
+    { 
+      dtauc=0.;
+      ssalb=0.;
+      phase_function=0.;
+      pmom=0.;
+      uu=0.;
+      
       scat_data_monoCalc(scat_data_mono, scat_data_raw, f_grid, f_index);
       
       dtauc_ssalbCalc(dtauc, ssalb, opt_prop_part_agenda,
@@ -318,9 +326,7 @@ void ScatteringDisort(// WS Output:
 
       //      cout << "intensity " << uu << endl; 
       
-      delete [] prnt;
       
-
       for(Index j = 0; j<numu; j++)
         {
           for(Index k = 0; k< nlyr; k++)
@@ -331,9 +337,11 @@ void ScatteringDisort(// WS Output:
             uu(0, nlyr-1, j );
           scat_i_p(f_index, 1, 0, 0, j, 0, 0) = 
             uu(0, 0, j);
-           
+          cout << "scat_i_p: " <<  scat_i_p(f_index, 1, 0, 0, j, 0, 0) << endl;  
         }
     }
+  delete [] prnt;
+    
 #else
       throw runtime_error ("This version of ARTS was compiled without DISORT support.");
 #endif /* ENABLE_DISORT */

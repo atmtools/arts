@@ -288,16 +288,22 @@ void pmomCalc(//Output
           abs(u[i+1] - u[i]);
       
       if (pint != 0){
-        if (abs(2.-pint) > 1e-2)
+        if (abs(2.-pint) > 1e-4)
           out1 << "Warning: The phase function is not normalized to 2\n"
                << "The value is:" << pint << "\n";
        
+        pmom(i_l, joker)= 0.; 
+
         for (Index i = 0; i<za_grid.nelem()-1; i++) 
           {
             p0_1=1.;
             p0_2=1.;
             
-            pmom(phase_function.nrows()-1-i_l,0)=1.; 
+            pmom(phase_function.nrows()-1-i_l,0)=1.;
+
+            //pmom(phase_function.nrows()-1-i_l,0)+=0.5*0.5*(phase_int(i_l, i)+ 
+            //                                               phase_int(i_l, i+1))
+            //*abs(u[i+1]-u[i]); 
             
             p1_1=u[i];
             p1_2=u[i+1];
@@ -322,7 +328,8 @@ void pmomCalc(//Output
               p1_1=p2_1;
               p1_2=p2_2;
               }
-          } 
+          }
+        // cout << "pmom : " << pmom(phase_function.nrows()-1-i_l, joker) << endl;
         
       }
     }
