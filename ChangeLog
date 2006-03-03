@@ -1,3 +1,12 @@
+2006-03-03  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1089
+	
+	* src/m_disort.cc (ScatteringDisort): Corrected surface albedo. 
+
+	* src/disort.{cc,h}: Corrected bug in calculation of optical
+	depth. 
+
 2006-03-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1088

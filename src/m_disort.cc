@@ -167,7 +167,7 @@ void ScatteringDisort(// WS Output:
   scat_angle_grid = scat_data_raw[0].za_grid;
   
   // Number of streams, I think in microwave 8 is more that sufficient
-  Index nstr=4; 
+  Index nstr=8 ; 
   Index n_legendre=nstr+1;
   
   // Legendre polynomials of phase function
@@ -194,7 +194,7 @@ void ScatteringDisort(// WS Output:
 
   // surface, Lambertian if set to TRUE_ 
   Index lamber = TRUE_;
-  Numeric albedo = surface_emissivity_field(0,0);
+  Numeric albedo = 1-surface_emissivity_field(0,0);
   // only needed for bidirectional reflecting surface
   Vector hl(1,0.); 
   
@@ -261,7 +261,6 @@ void ScatteringDisort(// WS Output:
   Index ntau = 0; 
   Vector utau(maxulv,0.);
 
-
   // Loop over frequencies   
   for (f_index = 0; f_index < f_grid.nelem(); f_index ++)    
     { 
@@ -276,7 +275,7 @@ void ScatteringDisort(// WS Output:
       dtauc_ssalbCalc(dtauc, ssalb, opt_prop_part_agenda,
                       scalar_gas_absorption_agenda, spt_calc_agenda, 
                       pnd_field, 
-                      t_field, z_field, p_grid, vmr_field);
+                      t_field, z_field, p_grid, vmr_field, f_index);
       //cout << "dtauc " << dtauc << endl
       //     << "ssalb " << ssalb << endl;
       
@@ -337,7 +336,6 @@ void ScatteringDisort(// WS Output:
             uu(0, nlyr-1, j );
           scat_i_p(f_index, 1, 0, 0, j, 0, 0) = 
             uu(0, 0, j);
-          cout << "scat_i_p: " <<  scat_i_p(f_index, 1, 0, 0, j, 0, 0) << endl;  
         }
     }
   delete [] prnt;

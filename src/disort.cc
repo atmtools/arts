@@ -74,7 +74,8 @@ void dtauc_ssalbCalc(
                     ConstTensor3View t_field,
                     ConstTensor3View z_field, 
                     ConstVectorView p_grid,
-                    ConstTensor4View vmr_field
+                    ConstTensor4View vmr_field,
+                    const Index& f_index
                     )
 {
   
@@ -98,6 +99,9 @@ void dtauc_ssalbCalc(
   Vector abs_vector(Np_cloud); 
   Vector rte_vmr_list_local(vmr_field.nbooks());
   // Calculate ext_mat, abs_vec and sca_vec for all pressure points. 
+
+  abs_scalar_gas_local = 0.;   
+  
 
  for(Index scat_p_index_local = 0; scat_p_index_local < Np_cloud; 
       scat_p_index_local ++)
@@ -153,7 +157,7 @@ void dtauc_ssalbCalc(
    
   
      scalar_gas_absorption_agendaExecute(abs_scalar_gas_local, 
-                                         0,  // monochromatic calculation
+                                         f_index,  // monochromatic calculation
                                          rte_pressure_local, 
                                          rte_temperature_local, 
                                          rte_vmr_list_local,
@@ -200,7 +204,6 @@ void phase_functionCalc(//Output
           // Calculate ensemble averaged extinction coefficient
           Numeric sca_coeff=0.;
           
-          //for (Index j = 0; j < 1; j++)
           for (Index j = 0; j < scat_data_mono.nelem(); j++)
             sca_coeff +=  pnd_field(j, i_p, 0, 0) *
               (scat_data_mono[j].ext_mat_data(0, 0, 0, 0, 0)-
@@ -212,7 +215,7 @@ void phase_functionCalc(//Output
                 if (sca_coeff != 0)
                   phase_function_level(i_p, i_t) += 
                     pnd_field(j, i_p, 0, 0) *
-                    scat_data_mono[j].pha_mat_data(0, 0, i_t, 0, 0, 0, 0)
+                     scat_data_mono[j].pha_mat_data(0, 0, i_t, 0, 0, 0, 0)
                     *4*PI/sca_coeff;// Normalization
               }
 
