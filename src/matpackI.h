@@ -95,6 +95,7 @@
 #define matpackI_h
 
 #include "matpack.h"
+#include <cassert>
 #include "array.h"
 
 // Declare existance of some classes
