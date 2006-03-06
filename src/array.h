@@ -29,6 +29,7 @@
 
 #include <vector>
 #include <iomanip>
+#include <cassert>
 #include "matpack.h"
 
 
