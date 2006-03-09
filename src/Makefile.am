@@ -8,6 +8,8 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+EXTRA_DIST = check-code-cheaders.pl  check-code-tab-indent.sh
+
 bin_PROGRAMS = arts
 
 arts_LDADD = libmatpack.a $(disort_ldflags)

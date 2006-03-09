@@ -1,5 +1,14 @@
 2006-03-09  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1093
+	
+	* src/Makefile.am:
+
+	Added check-code-cheaders.pl and check-code-tab-indent.sh to
+	EXTRA_DIST.
+
+2006-03-09  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1092
 	
 	* Makefile.am: Added 3rdparty to SUBDIRS.
