@@ -1,4 +1,5 @@
 *.swp
+*.tar.gz
 INSTALL
 Makefile
 Makefile.in

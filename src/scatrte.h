@@ -75,7 +75,7 @@ void cloud_ppath_update1D(
                   //particle opticla properties
                   ConstTensor5View ext_mat_field,
                   ConstTensor4View abs_vec_field,
-		  const Agenda& surface_prop_agenda,
+                  const Agenda& surface_prop_agenda,
                   //const Agenda& iy_surface_agenda, 
                   const Index& scat_za_interp
                   );
@@ -109,7 +109,7 @@ void cloud_ppath_update1D_noseq(
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-			  const Agenda& surface_prop_agenda,
+                          const Agenda& surface_prop_agenda,
                           //const Agenda& iy_surface_agenda, 
                           const Index& scat_za_interp
                           );
@@ -139,7 +139,7 @@ void cloud_ppath_update1D_planeparallel(
                   //particle opticla properties
                   ConstTensor5View ext_mat_field,
                   ConstTensor4View abs_vec_field
-		  //                  const Agenda& surface_agenda 
+                  // const Agenda& surface_agenda 
                   );
 
 void cloud_ppath_update3D(
@@ -200,16 +200,16 @@ void cloud_RT_no_background(//Output
                             const Index& scat_aa_index);
 
 void cloud_RT_surface(//Output
-		      Matrix& iy,
-		      Matrix& surface_emission,
- 		      Matrix& surface_los,
- 		      Tensor4& surface_rmatrix,
-		      //Input
-		      const Agenda& surface_prop_agenda,
+                      Matrix& iy,
+                      Matrix& surface_emission,
+                      Matrix& surface_los,
+                      Tensor4& surface_rmatrix,
+                      //Input
+                      const Agenda& surface_prop_agenda,
                       const Agenda& iy_surface_agenda,
-		      const Vector& f_grid,
-		      const Index& stokes_dim,
-		      const Ppath& ppath_step);
+                      const Vector& f_grid,
+                      const Index& stokes_dim,
+                      const Ppath& ppath_step);
 
 
 void ppath_step_in_cloudbox(Ppath& ppath_step,

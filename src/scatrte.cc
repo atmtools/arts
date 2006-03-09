@@ -352,7 +352,7 @@ void cloud_ppath_update1D(
       // if 0, there is no background
       if (bkgr == 0)
         {
-	  // Radiative transfer from one layer to the next, starting
+          // Radiative transfer from one layer to the next, starting
           // at the intersection with the next layer and propagating
           // to the considered point.
           cloud_RT_no_background(doit_i_field, 
@@ -369,53 +369,54 @@ void cloud_ppath_update1D(
       // bkgr=2 indicates that the background is surface
       else if (bkgr == 2)
         {
-	   chk_not_empty( "surface_prop_agenda", surface_prop_agenda );
-	  // The rest here added by TRS.
-	  //Set rte_pos, rte_gp_p and rte_los to match the last point
+          chk_not_empty( "surface_prop_agenda", surface_prop_agenda );
+          // The rest here added by TRS.
+          //Set rte_pos, rte_gp_p and rte_los to match the last point
           //in ppath.
-	  
-	   Index np = ppath_step.np;
 
-// FIXME OLE: Removed rte_los from interface, it is set but never used.
-//	   rte_los.resize( ppath_step.los.ncols() );
-//	   rte_los = ppath_step.los(np-1,joker);
-   
-	   GridPos dummy_ppath_step_gp_lat;
-	   GridPos dummy_ppath_step_gp_lon;
-	   
-	   //Execute the surface_prop_agenda which gives the surface 
-	   // parameters-
+          Index np = ppath_step.np;
 
-	   surface_prop_agendaExecute(surface_emission, surface_los, 
-				      surface_rmatrix, ppath_step.gp_p[np-1],
-				      dummy_ppath_step_gp_lat, dummy_ppath_step_gp_lon,
-				      surface_prop_agenda, true);
+          // FIXME OLE: Removed rte_los from interface,
+          //            it is set but never used.
+          //	   rte_los.resize( ppath_step.los.ncols() );
+          //	   rte_los = ppath_step.los(np-1,joker);
+
+          GridPos dummy_ppath_step_gp_lat;
+          GridPos dummy_ppath_step_gp_lon;
+
+          //Execute the surface_prop_agenda which gives the surface 
+          // parameters-
+
+          surface_prop_agendaExecute(surface_emission, surface_los, 
+                                     surface_rmatrix, ppath_step.gp_p[np-1],
+                                     dummy_ppath_step_gp_lat, dummy_ppath_step_gp_lon,
+                                     surface_prop_agenda, true);
 
 
-	   
-	   iy = surface_emission;
-	   
-	   Index nlos = surface_los.nrows();
 
-     if( nlos > 0 )
-       {
-         for( Index ilos=0; ilos<nlos; ilos++ )
-           {
-             Vector rtmp(stokes_dim); // Reflected Stokes vector for 1 frequency
+          iy = surface_emission;
 
-             mult( rtmp, 
-                   surface_rmatrix(ilos,f_index,joker,joker), 
-                   doit_i_field(cloudbox_limits[0], 0, 0,
-                                (scat_za_grid.nelem() -1 - scat_za_index), 0,
-                                joker) );
-             iy(f_index,joker) += rtmp;
+          Index nlos = surface_los.nrows();
 
-             doit_i_field(cloudbox_limits[0], 0, 0,
-                          scat_za_index, 0,
-                          joker) = iy(0, joker);
-           }
-       }
-	   	   
+          if( nlos > 0 )
+            {
+              for( Index ilos=0; ilos<nlos; ilos++ )
+                {
+                  Vector rtmp(stokes_dim); // Reflected Stokes vector for 1 frequency
+
+                  mult( rtmp, 
+                        surface_rmatrix(ilos,f_index,joker,joker), 
+                        doit_i_field(cloudbox_limits[0], 0, 0,
+                                     (scat_za_grid.nelem() -1 - scat_za_index), 0,
+                                     joker) );
+                  iy(f_index,joker) += rtmp;
+
+                  doit_i_field(cloudbox_limits[0], 0, 0,
+                               scat_za_index, 0,
+                               joker) = iy(0, joker);
+                }
+            }
+
         }//end else loop over surface
     }//end if inside cloudbox
 }
@@ -559,37 +560,37 @@ void cloud_ppath_update1D_noseq(
       // bkgr=2 indicates that the background is surface
       else if (bkgr == 2)
         {
-	  // chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
-// 	  // The rest here added by TRS.
-// 	  //Set rte_pos, rte_gp_p and rte_los to match the last point
-//           //in ppath.
-	  
- 	  Index np = ppath_step.np;
-          
-// 	  const Index   nlos = surface_los.nrows();
-	  
- 	  surface_prop_agendaExecute(surface_emission, surface_los, 
- 				     surface_rmatrix, ppath_step.gp_p[np-1],
-                                      ppath_step.gp_lat[np-1], ppath_step.gp_lon[np-1],
- 				     surface_prop_agenda, true);
-	  
-	   iy = surface_emission;
-// 	  // Variables to hold downvelling radiation
-// 	  Tensor3   I( nlos, f_grid.nelem(), stokes_dim );
+          // chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
+          // 	  // The rest here added by TRS.
+          // 	  //Set rte_pos, rte_gp_p and rte_los to match the last point
+          //           //in ppath.
 
-// 	  I(joker, 0, joker) = doit_i_field(cloudbox_limits[0], 0, 0,
-//                             joker, 0,
-//                             joker);
- 
+          Index np = ppath_step.np;
 
-// 	  surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
+          // 	  const Index   nlos = surface_los.nrows();
 
-// 	  doit_i_field(cloudbox_limits[0] + 1, 0, 0,
-// 		       0, 0,
-// 		       joker) = iy(0, joker);
-	  cout<<"Reached here?????????ßß" <<endl;
-	  //cloud_RT_surface(iy, surface_emission, surface_los, surface_rmatrix, 
-	  //surface_prop_agenda,   iy_surface_agenda, f_grid, stokes_dim, ppath_step);  
+          surface_prop_agendaExecute(surface_emission, surface_los, 
+                                     surface_rmatrix, ppath_step.gp_p[np-1],
+                                     ppath_step.gp_lat[np-1], ppath_step.gp_lon[np-1],
+                                     surface_prop_agenda, true);
+
+          iy = surface_emission;
+          // 	  // Variables to hold downvelling radiation
+          // 	  Tensor3   I( nlos, f_grid.nelem(), stokes_dim );
+
+          // 	  I(joker, 0, joker) = doit_i_field(cloudbox_limits[0], 0, 0,
+          //                             joker, 0,
+          //                             joker);
+
+
+          // 	  surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
+
+          // 	  doit_i_field(cloudbox_limits[0] + 1, 0, 0,
+          // 		       0, 0,
+          // 		       joker) = iy(0, joker);
+          cout<<"Reached here?????????ßß" <<endl;
+          //cloud_RT_surface(iy, surface_emission, surface_los, surface_rmatrix, 
+          //surface_prop_agenda,   iy_surface_agenda, f_grid, stokes_dim, ppath_step);  
         }//end else loop over surface
     }//end if inside cloudbox
 }
@@ -1075,18 +1076,18 @@ void cloud_RT_no_background(//Output
   \date 2005-05-13
 */
 void cloud_RT_surface(
-		      //Output
-		      Matrix& /*iy*/,
-		      Matrix& surface_emission,
-		      Matrix& surface_los,
-		      Tensor4& surface_rmatrix,
-		      //Input
-		      const Agenda& surface_prop_agenda,
-          const Agenda& iy_surface_agenda,
-		      const Vector& f_grid,
-		      const Index& stokes_dim,
-		      const Ppath& ppath_step
-		      )
+                      //Output
+                      Matrix& /*iy*/,
+                      Matrix& surface_emission,
+                      Matrix& surface_los,
+                      Tensor4& surface_rmatrix,
+                      //Input
+                      const Agenda& surface_prop_agenda,
+                      const Agenda& iy_surface_agenda,
+                      const Vector& f_grid,
+                      const Index& stokes_dim,
+                      const Ppath& ppath_step
+                     )
 {
   //Set rte_pos, rte_gp_p and rte_los to match the last point
   //in ppath.

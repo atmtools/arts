@@ -235,7 +235,7 @@ AgendaSet(doit_mono_agenda){
  # Put solution into interface for clearsky calculation   
    DoitCloudboxFieldPut{}
  # Write the radiation field inside the cloudbox:
-   WriteXML(doit_i_field){""}
+   WriteXML(doit_i_field){"data/doit_i_field.xml.generated"}
  }		
 
 # Definitions for methods used in *i_fieldIterate*:

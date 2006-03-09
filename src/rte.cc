@@ -1086,7 +1086,7 @@ void surface_specular_los(
                                    for vertical polarisation.
     \param   Rh                In: Complex amplitude relection coefficient
                                    for horisontal polarisation.
-    \paran   f                 In: Frequency (a scalar).
+    \param   f                 In: Frequency (a scalar).
     \param   stokes_dim        In: As the WSV with the same name.
     \param   surface_skin_t    In: As the WSV with the same name.
 
