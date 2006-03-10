@@ -40,7 +40,7 @@ IF KEYWORD_SET( binary ) THEN BEGIN
     nlon  =  N_ELEMENTS( lons )
 
     IF( nlon LT 2 ) THEN $
-      MESSAGE, 'The file may be emply'
+      MESSAGE, 'The file may be empty'
     
     ;; If there are only two elements in lons the data is a scalar
     ;; vector or matrix. 
