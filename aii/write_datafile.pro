@@ -103,7 +103,7 @@ IF KEYWORD_SET( binary ) THEN BEGIN
     
     type_check  =  STRCMP( atype, ['NUMERIC', 'VECTOR', 'MATRIX', 'AOVECTOR', 'AOMATRIX'] )
     IF( TOTAL( type_check ) NE 1.0 ) THEN MESSAGE, 'ARTS data type given is ' + atype + $
-      ', but should be one of ['NUMERIC', 'VECTOR', 'MATRIX', 'AOVECTOR', 'AOMATRIX']'
+      ', but should be one of [NUMERIC, VECTOR, MATRIX, AOVECTOR, AOMATRIX]'
 
     IF( STRCMP( atype, 'NUMERIC' ) ) THEN BEGIN
         ;; The input data can be given as a pointer
