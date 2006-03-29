@@ -1,6 +1,8 @@
 #ifndef disort_DISORT_h
 #define disort_DISORT_h
 
+#ifdef ENABLE_DISORT
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -28,6 +30,8 @@ int disort_(integer *nlyr, doublereal *dtauc, doublereal *
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* ENABLE_DISORT */
 
 #endif /* disort_DISORT_h */
 
