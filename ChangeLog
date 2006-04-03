@@ -1,3 +1,9 @@
+2006-04-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1095
+
+	* src/mystring.h: Include cassert to fix compilation with gcc 4.1.0.
+
 2006-03-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1094

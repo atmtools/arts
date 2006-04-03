@@ -27,6 +27,7 @@
 #ifndef string_h
 #define string_h
 
+#include <cassert>
 #include <climits>
 #include <string>
 #include "matpack.h"
