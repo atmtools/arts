@@ -68,11 +68,9 @@
     *iy* to the correct size before calling the function.
 
     \param   iy                 Output: As the WSV with the same name.
-    \param   rte_pos            Output: As the WSV with the same name.
     \param   rte_gp_p           Output: As the WSV with the same name.
     \param   rte_gp_lat         Output: As the WSV with the same name.
     \param   rte_gp_lon         Output: As the WSV with the same name.
-    \param   rte_los            Output: As the WSV with the same name.
     \param   ppath              Input: As the WSV with the same name.
     \param   iy_space_agenda    Input: As the WSV with the same name.
     \param   iy_surface_agenda  Input: As the WSV with the same name.
@@ -153,13 +151,14 @@ void get_radiative_background(
       {
         // Make a copy of *ppath* as the WSV will be changed below, but the
         // original data is needed when going back to *rte_calc*.
-        Ppath   pp_copy;
-        ppath_init_structure( pp_copy, atmosphere_dim, ppath.np );
-        ppath_copy( pp_copy, ppath );
+        Ppath   ppath_local;
+        ppath_init_structure( ppath_local, atmosphere_dim, ppath.np );
+        ppath_copy( ppath_local, ppath );
 
         chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
-        iy_surface_agendaExecute( iy, rte_gp_p, rte_gp_lat, rte_gp_lon,
-                                  ppath_array_do,
+        iy_surface_agendaExecute( iy, ppath_local, rte_pos, rte_los, rte_gp_p,
+                                  rte_gp_lat,
+                                  rte_gp_lon, ppath_array_do,
                                   rte_do_vmr_jacs, rte_do_t_jacs,
                                   iy_surface_agenda, agenda_verb );
 
@@ -170,10 +169,6 @@ void get_radiative_background(
             throw runtime_error( "The size of *iy* returned from "
                                         "*iy_surface_agenda* is not correct.");
           }
-
-        // Copy data back to *ppath*.
-        ppath_init_structure( ppath, atmosphere_dim, pp_copy.np );
-        ppath_copy( ppath, pp_copy );
       }
       break;
 
@@ -200,10 +195,6 @@ void get_radiative_background(
             throw runtime_error( "The size of *iy* returned from "
                                       "*iy_cloudbox_agenda* is not correct." );
           }
-
-        // Copy data back to *ppath*.
-        //ppath_init_structure( ppath, atmosphere_dim, pp_copy.np );
-        //ppath_copy( ppath, pp_copy );
       }
       break;
 
@@ -487,10 +478,11 @@ void iy_calc(
   //
   iy.resize(f_grid.nelem(),stokes_dim);
   //
-  get_radiative_background( iy, rte_gp_p, rte_gp_lat, rte_gp_lon,
-       ppath, iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-       atmosphere_dim, f_grid, stokes_dim, ppath_array_do, rte_do_vmr_jacs,
-       rte_do_t_jacs, agenda_verb );
+  get_radiative_background( iy, rte_gp_p, rte_gp_lat,
+                            rte_gp_lon, ppath, iy_space_agenda,
+                            iy_surface_agenda, iy_cloudbox_agenda,
+                            atmosphere_dim, f_grid, stokes_dim, ppath_array_do,
+                            rte_do_vmr_jacs, rte_do_t_jacs, agenda_verb );
 
 
   // If the number of propagation path points is 0 or 1, we are already ready,

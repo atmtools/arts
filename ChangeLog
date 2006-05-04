@@ -1,3 +1,28 @@
+2006-05-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1096
+
+	* src/rte.cc (get_radiative_background):
+
+	Removed dummy rte_pos, rte_los from interface.
+
+	Pass local ppath, rte_pos, rte_los to iy_surface_agenda.
+
+	Consistent naming of local ppath variable.
+
+	No need to copy the old ppath back.
+
+	* src/methods.cc:
+
+	surfaceCalc: ppath, rte_los and rte_pos must be input as well.
+	Otherwise they are used uninitialized.
+
+	* src/agendas.cc:
+
+	iy_surface_agenda: Added ppath, rte_los and rte_pos as input/output.
+
+	* tests/simpleDOIT.arts: Use surfaceFlat.
+
 2006-04-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1095

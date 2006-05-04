@@ -300,9 +300,9 @@ void define_agenda_data()
         "\n"
         "Usage:   Called from *RteCalc*."
         ),
-       OUTPUT( iy_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_ ),
-       INPUT( rte_gp_p_, rte_gp_lat_, rte_gp_lon_, ppath_array_do_,
-              rte_do_vmr_jacs_, rte_do_t_jacs_ )));
+       OUTPUT( iy_, ppath_, rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_ ),
+       INPUT( ppath_, rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_,
+              ppath_array_do_, rte_do_vmr_jacs_, rte_do_t_jacs_ )));
 
   agenda_data.push_back
     (AgRecord
