@@ -1,3 +1,79 @@
+2006-05-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1097
+
+	* src/rte.cc (get_radiative_background):
+	
+	Removed rte_gp_* from interface and turn them into local variables.
+
+	Removed dummy parameters rte_los and rte_pos from interface as they
+	were already implemented as local variables.
+
+	* src/rte.{cc,h} (iy_calc, iy_calc_no_jacobian):
+
+	Removed rte_gp_*, rte_los and rte_pos from interface.
+
+	* src/m_atmosphere.cc (surfaceCalc):
+
+	Adapt calls to iy_calc for changed interface.
+
+	Removed rte_gp_* from interface.
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming, CloudboxGetIncoming1DAtm):
+
+	Adapt calls to iy_calc_no_jacobian for changed interface.
+
+	Removed rte_gp_*, rte_los and rte_pos from interface.
+
+	* src/m_rte.cc:
+
+	(RteCalc): Adapt call to iy_calc for changed interface.
+
+	Removed rte_gp_*, rte_los and rte_pos from interface.
+
+	(RteCalcNoJacobian): Adapt call to RteCalc for changed interface.
+
+	Removed rte_gp_*, rte_los and rte_pos from interface.
+
+	* src/m_rte.cc (RteCalc):
+
+	* src/montecarlo.{cc,h}:
+
+	(Cloudbox_ppath_rteCalc, montecarloGetIncoming): Adapt calls to
+	iy_calc_no_jacobian for changed interface.
+
+	(montecarloGetIncoming): Removed rte_gp_* from interface.
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo):
+
+	Adapt call to montecarloGetIncoming for changed interface.
+
+	* src/m_jacobian (jacobianCalcTemperature, jacobianCalcPointing,
+	jacobianCalcParticle, jacobianCalcGas):
+
+	Adapt calls to RteCalcNoJacobian for changed interface.
+
+	Removed rte_gp_*, rte_los and rte_pos from interface.
+
+	* src/agendas.cc:
+
+	iy_surface_agenda: Removed rte_gp_* from outputs as they are now only
+	used for input.
+
+	* src/methods.cc:
+
+	surfaceCalc: Removed rte_gp_* from interface.
+
+	CloudboxGetIncoming, CloudboxGetIncoming1DAtm, RteCalc,
+	RteCalcNoJacobian, jacobianCalcTemperature, jacobianCalcPointing,
+	jacobianCalcParticle, jacobianCalcGas:
+	Removed rte_gp_*, rte_los and rte_pos from interface.
+
+	* src/m_agenda.cc (AgendaSet):
+
+	Added missing .Name() to only print the name of the missing output
+	WSV, not the complete help string.
+
 2006-05-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1096

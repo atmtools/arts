@@ -1546,11 +1546,6 @@ void CloudboxGetIncoming(
               Matrix&         iy,
               Ppath&          ppath,
               Ppath&          ppath_step,
-              Vector&         rte_pos,
-              GridPos&        rte_gp_p,
-              GridPos&        rte_gp_lat,
-              GridPos&        rte_gp_lon,
-              Vector&         rte_los,
               Index&          cloudbox_on,
         const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
@@ -1618,8 +1613,7 @@ void CloudboxGetIncoming(
             {
               los[0] =  scat_za_grid[scat_za_index];
 
-              iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
-                                   rte_gp_lat, rte_gp_lon, rte_los,
+              iy_calc_no_jacobian( iy, ppath, ppath_step,
                                    ppath_step_agenda, rte_agenda, 
                                    iy_space_agenda, iy_surface_agenda,
                                    iy_cloudbox_agenda, atmosphere_dim,
@@ -1695,9 +1689,7 @@ void CloudboxGetIncoming(
                                  scat_aa_index == 0 ) )
                             {
                               iy_calc_no_jacobian( iy, ppath, ppath_step,
-                                                   rte_pos, rte_gp_p, 
-                                                   rte_gp_lat, rte_gp_lon,
-                                                   rte_los, ppath_step_agenda, 
+                                                   ppath_step_agenda, 
                                                    rte_agenda, iy_space_agenda,
                                                    iy_surface_agenda, 
                                                    iy_cloudbox_agenda,
@@ -1750,9 +1742,7 @@ void CloudboxGetIncoming(
                                  scat_aa_index == 0 ) )
                             {
                               iy_calc_no_jacobian( iy, ppath, ppath_step,
-                                                   rte_pos, rte_gp_p, 
-                                                   rte_gp_lat, rte_gp_lon,
-                                                   rte_los, ppath_step_agenda, 
+                                                   ppath_step_agenda, 
                                                    rte_agenda, iy_space_agenda,
                                                    iy_surface_agenda, 
                                                    iy_cloudbox_agenda,
@@ -1805,9 +1795,7 @@ void CloudboxGetIncoming(
                                  scat_aa_index == 0 ) )
                             {
                               iy_calc_no_jacobian( iy, ppath, ppath_step,
-                                                   rte_pos, rte_gp_p, 
-                                                   rte_gp_lat, rte_gp_lon,
-                                                   rte_los, ppath_step_agenda, 
+                                                   ppath_step_agenda, 
                                                    rte_agenda, iy_space_agenda,
                                                    iy_surface_agenda, 
                                                    iy_cloudbox_agenda,
@@ -1848,11 +1836,6 @@ void CloudboxGetIncoming1DAtm(
               Matrix&         iy,
               Ppath&          ppath,
               Ppath&          ppath_step,
-              Vector&         rte_pos,
-              GridPos&        rte_gp_p,
-              GridPos&        rte_gp_lat,
-              GridPos&        rte_gp_lon,
-              Vector&         rte_los,
               Index& cloudbox_on,
         const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
@@ -1939,13 +1922,13 @@ void CloudboxGetIncoming1DAtm(
         {
           los[0] = scat_za_grid[scat_za_index];
           
-          iy_calc_no_jacobian(iy, ppath, ppath_step, rte_pos, rte_gp_p, 
-                          rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda,
-                          rte_agenda, iy_space_agenda, iy_surface_agenda, 
-                          iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid,
-                          lon_grid, z_field, t_field, vmr_field, r_geoid, 
-                          z_surface, cloudbox_on, cloudbox_limits, pos, 
-                          los, f_grid, stokes_dim, agenda_verb );
+          iy_calc_no_jacobian(iy, ppath, ppath_step, ppath_step_agenda,
+                              rte_agenda, iy_space_agenda, iy_surface_agenda, 
+                              iy_cloudbox_agenda, atmosphere_dim, p_grid,
+                              lat_grid, lon_grid, z_field, t_field, vmr_field,
+                              r_geoid, z_surface,
+                              cloudbox_on, cloudbox_limits, pos, 
+                              los, f_grid, stokes_dim, agenda_verb );
           
           for (Index aa = 0; aa < Naa; aa ++)
             {

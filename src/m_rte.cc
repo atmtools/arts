@@ -72,11 +72,6 @@ void RteCalc(
          Ppath&                      ppath,
          Ppath&                      ppath_step,
          Matrix&                     iy,
-         Vector&                     rte_pos,
-         GridPos&                    rte_gp_p,
-         GridPos&                    rte_gp_lat,
-         GridPos&                    rte_gp_lon,
-         Vector&                     rte_los,
          Sparse&                     jacobian,
          Index&                      ppath_array_do,
          ArrayOfPpath&               ppath_array,
@@ -345,8 +340,8 @@ void RteCalc(
               diy_dt.resize(0);
 
               //--- Calculate *iy*
-              iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
-                       rte_gp_lat, rte_gp_lon, rte_los, ppath_array_index,
+              iy_calc( iy, ppath, ppath_step,
+                       ppath_array_index,
                        ppath_array, diy_dvmr, diy_dt,
                        ppath_step_agenda, rte_agenda, iy_space_agenda, 
                        iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, 
@@ -480,11 +475,6 @@ void RteCalcNoJacobian(
          Ppath&                      ppath,
          Ppath&                      ppath_step,
          Matrix&                     iy,
-         Vector&                     rte_pos,
-         GridPos&                    rte_gp_p,
-         GridPos&                    rte_gp_lat,
-         GridPos&                    rte_gp_lon,
-         Vector&                     rte_los,
    const Agenda&                     ppath_step_agenda,
    const Agenda&                     rte_agenda,
    const Agenda&                     iy_space_agenda,
@@ -521,8 +511,7 @@ void RteCalcNoJacobian(
 
   jacobianOff( jacobian, jacobian_quantities, jacobian_indices );
 
-  RteCalc( y, ppath, ppath_step, iy, rte_pos, 
-           rte_gp_p, rte_gp_lat, rte_gp_lon, rte_los, jacobian, 
+  RteCalc( y, ppath, ppath_step, iy, jacobian, 
            ppath_array_do, ppath_array, ppath_array_index,
            ppath_step_agenda, rte_agenda, iy_space_agenda, iy_surface_agenda,
            iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, lon_grid, 

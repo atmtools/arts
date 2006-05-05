@@ -755,9 +755,6 @@ void surfaceCalc(
               Ppath&                   ppath,
               Ppath&                   ppath_step,
               Vector&                  rte_pos,
-              GridPos&                 rte_gp_p,
-              GridPos&                 rte_gp_lat,
-              GridPos&                 rte_gp_lon,
               Vector&                  rte_los,
               Index&                   ppath_array_index,
               ArrayOfPpath&            ppath_array,
@@ -835,8 +832,8 @@ void surfaceCalc(
         {
           // Calculate downwelling radiation for LOS ilos 
           const Index   agenda_verb = 0;
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
-                   rte_gp_lon, rte_los,  ppath_array_index, ppath_array,
+          iy_calc( iy, ppath, ppath_step,
+                   ppath_array_index, ppath_array,
                    diy_dvmr, diy_dt,
                    ppath_step_agenda, rte_agenda, 
                    iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
@@ -1135,8 +1132,8 @@ void surfaceSingleEmissivity(
 //   pos = rte_pos;
 //   los = rte_los;
 //   //  
-//   iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon, 
-//            rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda, 
+//   iy_calc( iy, ppath, ppath_step,
+//            ppath_step_agenda, rte_agenda, iy_space_agenda, 
 //            iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid, 
 //            lat_grid, lon_grid, z_field, r_geoid, z_surface, cloudbox_on, 
 //            cloudbox_limits, pos, los, f_grid, stokes_dim, agenda_verb );

@@ -85,9 +85,6 @@
 */
 void get_radiative_background(
               Matrix&         iy,
-              GridPos&        rte_gp_p,
-              GridPos&        rte_gp_lat,
-              GridPos&        rte_gp_lon,
               Ppath&          ppath,
         const Agenda&         iy_space_agenda,
         const Agenda&         iy_surface_agenda,
@@ -113,6 +110,9 @@ void get_radiative_background(
   //
   Vector rte_pos;
   Vector rte_los;
+  GridPos rte_gp_p;
+  GridPos rte_gp_lat;
+  GridPos rte_gp_lon;
   rte_pos.resize( atmosphere_dim );
   rte_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
   rte_los.resize( ppath.los.ncols() );
@@ -368,11 +368,6 @@ void iy_calc(
               Matrix&                  iy,
               Ppath&                   ppath,
               Ppath&                   ppath_step,
-              Vector&                  /*rte_pos*/,
-              GridPos&                 rte_gp_p,
-              GridPos&                 rte_gp_lat,
-              GridPos&                 rte_gp_lon,
-              Vector&                  /*rte_los*/,
               Index&                   ppath_array_index,
               ArrayOfPpath&            ppath_array,
               ArrayOfTensor4&          diy_dvmr,
@@ -478,8 +473,7 @@ void iy_calc(
   //
   iy.resize(f_grid.nelem(),stokes_dim);
   //
-  get_radiative_background( iy, rte_gp_p, rte_gp_lat,
-                            rte_gp_lon, ppath, iy_space_agenda,
+  get_radiative_background( iy, ppath, iy_space_agenda,
                             iy_surface_agenda, iy_cloudbox_agenda,
                             atmosphere_dim, f_grid, stokes_dim, ppath_array_do,
                             rte_do_vmr_jacs, rte_do_t_jacs, agenda_verb );
@@ -506,11 +500,6 @@ void iy_calc_no_jacobian(
               Matrix&         iy,
               Ppath&          ppath,
               Ppath&          ppath_step,
-              Vector&         rte_pos,
-              GridPos&        rte_gp_p,
-              GridPos&        rte_gp_lat,
-              GridPos&        rte_gp_lon,
-              Vector&         rte_los,
         const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
         const Agenda&         iy_space_agenda,
@@ -541,8 +530,8 @@ void iy_calc_no_jacobian(
   ArrayOfPpath               ppath_array(0);
   Index                      ppath_array_index=-1;
 
-  iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon, 
-           rte_los, ppath_array_index, ppath_array, diy_dvmr, diy_dt, 
+  iy_calc( iy, ppath, ppath_step,
+           ppath_array_index, ppath_array, diy_dvmr, diy_dt, 
            ppath_step_agenda, rte_agenda, iy_space_agenda, iy_surface_agenda, 
            iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, lon_grid, 
            z_field, t_field, vmr_field, r_geoid, z_surface, cloudbox_on, 

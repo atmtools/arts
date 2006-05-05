@@ -80,7 +80,7 @@ void AgendaSet(// WS Generic Output:
           ostringstream os;
           os << "The agenda " << output_agenda.name()
              << " must generate the output WSV "
-             << wsv_data[this_wsv] << ",\n"
+             << wsv_data[this_wsv].Name() << ",\n"
              << "but it does not. It only generates:\n";
           for ( Index j=0; j<wsv_data.nelem(); ++j )
             if ( output_agenda.is_output(j) )

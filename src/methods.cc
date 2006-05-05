@@ -849,7 +849,7 @@ void define_md_data_raw()
          "DOIT method."
          ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
-                rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_, cloudbox_on_),
+                cloudbox_on_),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                iy_surface_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
@@ -876,7 +876,7 @@ void define_md_data_raw()
          "This method can only be used for 3D cases."
          ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
-                rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_, cloudbox_on_),
+                cloudbox_on_),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                iy_surface_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
@@ -2281,8 +2281,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddGas\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, vmr_field_, y_, ppath_, ppath_step_, 
-                iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        OUTPUT( jacobian_, vmr_field_, y_, ppath_, ppath_step_, iy_ ),
         INPUT( jacobian_quantities_, jacobian_indices_, gas_species_, 
                ppath_step_agenda_, 
                rte_agenda_, iy_space_agenda_, iy_surface_agenda_, 
@@ -2308,8 +2307,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, pnd_field_, y_, ppath_, ppath_step_,
-                iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        OUTPUT( jacobian_, pnd_field_, y_, ppath_, ppath_step_, iy_ ),
         INPUT( jacobian_quantities_, jacobian_indices_, pnd_field_perturb_, 
                jacobian_particle_update_agenda_,
                ppath_step_agenda_, rte_agenda_, iy_space_agenda_, 
@@ -2333,8 +2331,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, y_, ppath_, ppath_step_, iy_, rte_pos_, rte_gp_p_,
-                rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        OUTPUT( jacobian_, y_, ppath_, ppath_step_, iy_ ),
         INPUT( jacobian_quantities_, jacobian_indices_, 
                sensor_time_, ppath_step_agenda_, 
                rte_agenda_, iy_space_agenda_, iy_surface_agenda_, 
@@ -2359,8 +2356,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, t_field_, y_, ppath_, ppath_step_, iy_, 
-                rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        OUTPUT( jacobian_, t_field_, y_, ppath_, ppath_step_, iy_ ),
         INPUT( jacobian_quantities_, jacobian_indices_, ppath_step_agenda_, 
                rte_agenda_, 
                iy_space_agenda_, iy_surface_agenda_, iy_cloudbox_agenda_, 
@@ -3617,8 +3613,7 @@ md_data_raw.push_back
          "\n"
          "See further the user guide."
         ),
-        OUTPUT( y_, ppath_, ppath_step_, 
-                iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_,
+        OUTPUT( y_, ppath_, ppath_step_, iy_,
                 jacobian_, ppath_array_do_, ppath_array_, ppath_array_index_  ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                iy_surface_agenda_, iy_cloudbox_agenda_,
@@ -3640,8 +3635,7 @@ md_data_raw.push_back
         (
          "As *RteCalc* but thorughout ignores jacobians."
         ),
-        OUTPUT( y_, ppath_, ppath_step_, 
-                iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        OUTPUT( y_, ppath_, ppath_step_, iy_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                iy_surface_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
@@ -4350,7 +4344,7 @@ md_data_raw.push_back
          "See further the user guide."
         ),
         OUTPUT( iy_, ppath_, ppath_step_, 
-                rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_,
+                rte_pos_, rte_los_,
                 ppath_array_index_, ppath_array_, diy_dvmr_, diy_dt_ ),
         INPUT( ppath_, rte_pos_, rte_los_, ppath_step_agenda_, rte_agenda_,
                iy_space_agenda_,

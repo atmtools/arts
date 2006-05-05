@@ -660,8 +660,8 @@ void ScatteringMonteCarlo (
                 }
               else
                 {
-                  montecarloGetIncoming(iy,rte_pos,rte_los,rte_gp_p,
-                                        rte_gp_lat,rte_gp_lon,ppath,ppath_step,
+                  montecarloGetIncoming(iy,rte_pos,rte_los,
+                                        ppath,ppath_step,
                                         //ppath_p, ppath_t, ppath_vmr,
                                         ppath_step_agenda,
                                         rte_agenda,iy_space_agenda,iy_surface_agenda,

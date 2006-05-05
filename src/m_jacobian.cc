@@ -645,11 +645,6 @@ void jacobianCalcGas(
            Ppath&                    ppath,
            Ppath&                    ppath_step,
            Matrix&                   iy, 
-           Vector&                   rte_pos,
-           GridPos&                  rte_gp_p,
-           GridPos&                  rte_gp_lat,
-           GridPos&                  rte_gp_lon,
-           Vector&                   rte_los,
      // WS Input:
      const ArrayOfRetrievalQuantity& jq,
      const ArrayOfArrayOfIndex&      jacobian_indices,
@@ -826,8 +821,7 @@ void jacobianCalcGas(
         out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
              << ji[1]+1 << "\n";
         RteCalcNoJacobian( y, ppath, ppath_step,
-                 iy, rte_pos, rte_gp_p, rte_gp_lat,
-                 rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
+                 iy, ppath_step_agenda, rte_agenda,
                  iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                  atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
                  t_field, vmr_field,
@@ -870,11 +864,6 @@ void jacobianCalcParticle(
            Ppath&                      ppath,
            Ppath&                      ppath_step,
            Matrix&                     iy, 
-           Vector&                     rte_pos,
-           GridPos&                    rte_gp_p,
-           GridPos&                    rte_gp_lat,
-           GridPos&                    rte_gp_lon,
-           Vector&                     rte_los,
      // WS Input:
      const ArrayOfRetrievalQuantity&   jq,
      const ArrayOfArrayOfIndex&        jacobian_indices,
@@ -1072,8 +1061,7 @@ void jacobianCalcParticle(
                       jacobian_particle_update_agendaExecute (jacobian_particle_update_agenda, false);
             
                       // Calculate the perturbed spectrum  
-                      RteCalcNoJacobian( y, ppath, ppath_step, iy, rte_pos, 
-                         rte_gp_p, rte_gp_lat, rte_gp_lon, rte_los, 
+                      RteCalcNoJacobian( y, ppath, ppath_step, iy,
                          ppath_step_agenda, rte_agenda, iy_space_agenda, 
                          iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim,
                          p_grid, lat_grid, lon_grid, z_field, t_field, 
@@ -1119,11 +1107,6 @@ void jacobianCalcPointing(
            Ppath&                    ppath,
            Ppath&                    ppath_step,
            Matrix&                   iy,
-           Vector&                   rte_pos,
-           GridPos&                  rte_gp_p,
-           GridPos&                  rte_gp_lat,
-           GridPos&                  rte_gp_lon,
-           Vector&                   rte_los,
      // WS Input:
      const ArrayOfRetrievalQuantity& jq,
      const ArrayOfArrayOfIndex&      jacobian_indices,
@@ -1213,8 +1196,7 @@ void jacobianCalcPointing(
      
   // Calculate the perturbed spectrum for the zeroth order polynomial
   RteCalcNoJacobian( y, ppath, ppath_step, 
-           iy, rte_pos, rte_gp_p, rte_gp_lat,
-           rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
+           iy, ppath_step_agenda, rte_agenda,
            iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
            atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
            vmr_field, r_geoid, 
@@ -1284,11 +1266,6 @@ void jacobianCalcTemperature(
            Ppath&                    ppath,
            Ppath&                    ppath_step,
            Matrix&                   iy, 
-           Vector&                   rte_pos,
-           GridPos&                  rte_gp_p,
-           GridPos&                  rte_gp_lat,
-           GridPos&                  rte_gp_lon,
-           Vector&                   rte_los,
      // WS Input:
      const ArrayOfRetrievalQuantity& jq,
      const ArrayOfArrayOfIndex&      jacobian_indices,
@@ -1435,8 +1412,7 @@ void jacobianCalcTemperature(
              << ji[1]+1 << "\n";
 
         RteCalcNoJacobian( y, ppath, ppath_step,
-                 iy, rte_pos, rte_gp_p, rte_gp_lat,
-                 rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
+                 iy, ppath_step_agenda, rte_agenda,
                  iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                  atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
                  t_field, vmr_field, 
