@@ -158,6 +158,8 @@ private:
   Numeric mcutoff;
 };
 
+ostream& operator<< (ostream &os, const LineshapeSpec &lsspec);
+
 /** Holds a list of lineshape specifications: function, normalization, cutoff.
     \author Axel von Engeln */
 typedef Array<LineshapeSpec> ArrayOfLineshapeSpec;

@@ -2632,3 +2632,9 @@ void convMytranIER(
   mdh=mdh/100;              
 }
 
+ostream& operator<< (ostream &os, const LineshapeSpec &/*lsspec*/)
+{
+    os << "LineshapeSpec: Output operator not implemented";
+      return os;
+}
+

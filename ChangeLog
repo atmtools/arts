@@ -1,3 +1,63 @@
+2006-05-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1099
+
+	* WARNING: Don't use any of the methods added in this commit and the
+	following in your control files. Most of this stuff will be renamed
+	anyway after the absorption part is completely ported. The old names
+	of WSMs and WSVs will only be kept for my own convenience until then.
+
+	* src/Makefile.am: Added m_abs.cc, continua.{cc,h} to *_SOURCES.
+
+	* src/methods.cc:
+
+	Added linesReadFromHitran, linesReadFromHitran2004,
+	abs_linesReadFromMytran2, linesReadFromJpl, abs_linesReadFromArts,
+	lines_per_tgSetEmpty, lines_per_tgReadFromCatalogues,
+	lines_per_tgCreateFromLines, lines_per_tgAddMirrorLines,
+	lines_per_tgCompact, lineshapeDefine, tgsDefineAllInScenario,
+	lineshape_per_tgDefine, h2o_absSet, n2_absSet, cont_descriptionAppend,
+	cont_descriptionInit, xsec_per_tgAddConts, xsec_per_tgAddLines,
+	xsec_per_tgInit, absCalcFromXsec, absCalc, absCalcSaveMemory.
+
+	* src/workspace.cc:
+
+	Added WSV lines, lines_per_tg, lineshape, h20_abs, n2_abs, vmrs,
+	cont_description_{names,models,parameters}, xsec_per_tg, abs_per_tg.
+
+	* src/groups.cc:
+
+	Added group ArrayOfLineRecord, ArrayOfArrayOfLineRecord,
+	ArrayOfLineshapeSpec.
+
+	* src/xml_io_instantiation.h:
+
+	Added xml_{read_from,write_to}_file for ArrayOfLineRecord,
+	ArrayOfArrayOfLineRecord, ArrayOfLineshapeSpec.
+
+	* src/xml_io_array_types.{cc,h}:
+
+	Added xml_{read_from,write_to}_stream for ArrayOfLineRecord,
+	ArrayOfLineshapeSpec.
+
+	* src/m_abs.cc:
+
+	Include physics_funcs.h instead of atm_funcs.h.
+
+	Use SpeciesTag instead of OneTag.
+
+	#if 0...#endif around functions that are not yet in methods.cc.
+
+	* src/absorption.{cc,h}:
+
+	Provide dummy output operator for LineshapeSpec.
+
+	* src/continua.{cc,h}:
+
+	Synced from arts-1-0 branch. Fixes several compile warnings.
+
+	* ChangeLog: Added missing line for m_rte.cc in my last commit.
+
 2006-05-11  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-1098
@@ -54,6 +114,8 @@
 	Removed rte_gp_*, rte_los and rte_pos from interface.
 
 	* src/m_rte.cc (RteCalc):
+
+	Removed rte_gp_*, rte_los and rte_pos from interface.
 
 	* src/montecarlo.{cc,h}:
 

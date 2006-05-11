@@ -1597,6 +1597,117 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
+//=== ArrayOfLineRecord ===========================================
+
+//! Reads ArrayOfLineRecord from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param agfdata  ArrayOfLineRecord return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfLineRecord& agfdata,
+                      bifstream *pbifs)
+{
+  // FIXME OLE: Implement this.
+  throw runtime_error ("Boo. Not yet implemented.");
+}
+
+
+//! Writes ArrayOfLineRecord to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param agfdata  ArrayOfLineRecord
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const ArrayOfLineRecord& agfdata,
+                     bofstream *pbofs,
+                     const String &name)
+
+{
+  // FIXME OLE: Implement this.
+  throw runtime_error ("Boo. Not yet implemented.");
+} 
+
+
+//=== ArrayOfArrayOfLineRecord ===========================================
+
+//! Reads ArrayOfArrayOfLineRecord from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param agfdata  ArrayOfArrayOfLineRecord return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfArrayOfLineRecord& agfdata,
+                      bifstream *pbifs)
+{
+  // FIXME OLE: Implement this.
+  throw runtime_error ("Boo. Not yet implemented.");
+}
+
+
+//! Writes ArrayOfArrayOfLineRecord to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param agfdata  ArrayOfArrayOfLineRecord
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const ArrayOfArrayOfLineRecord& agfdata,
+                     bofstream *pbofs,
+                     const String &name)
+
+{
+  // FIXME OLE: Implement this.
+  throw runtime_error ("Boo. Not yet implemented.");
+} 
+
+
+//=== ArrayOfLineshapeSpec ===========================================
+
+//! Reads ArrayOfLineshapeSpec from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param agfdata  ArrayOfLineshapeSpec return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfLineshapeSpec& agfdata,
+                      bifstream *pbifs)
+{
+  // FIXME OLE: Implement this.
+  throw runtime_error ("Boo. Not yet implemented.");
+}
+
+
+//! Writes ArrayOfLineshapeSpec to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param agfdata  ArrayOfLineshapeSpec
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const ArrayOfLineshapeSpec& agfdata,
+                     bofstream *pbofs,
+                     const String &name)
+
+{
+  // FIXME OLE: Implement this.
+  throw runtime_error ("Boo. Not yet implemented.");
+} 
+
+
 //=== ArrayOfTensor3=========================================================
 
 //! Reads ArrayOfTensor3 from XML input stream

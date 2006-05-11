@@ -41,6 +41,8 @@ arts_SOURCES = \
 	cloudbox.h \
 	cloudbox.cc \
 	constants.cc \
+	continua.cc \
+	continua.h \
 	disort.cc \
 	disort.h \
 	fastem.cc \
@@ -63,6 +65,7 @@ arts_SOURCES = \
 	jacobian.h \
 	legendre.cc \
 	legendre.h \
+	m_abs.cc \
 	m_agenda.cc \
         m_atmosphere.cc \
 	m_basic_types.cc \
@@ -279,6 +282,8 @@ test_binaryio_SOURCES = \
 	cloudbox.h \
 	cloudbox.cc \
 	constants.cc \
+	continua.cc \
+	continua.h \
 	disort.cc \
 	disort.h \
 	disort_DISORT.h \
@@ -302,6 +307,7 @@ test_binaryio_SOURCES = \
 	jacobian.h \
 	legendre.cc \
 	legendre.h \
+	m_abs.cc \
 	m_agenda.cc \
         m_atmosphere.cc \
 	m_basic_types.cc \
@@ -549,6 +555,8 @@ test_interpolation_SOURCES = \
 	cloudbox.h \
 	cloudbox.cc \
 	constants.cc \
+	continua.cc \
+	continua.h \
 	disort.cc \
 	disort.h \
 	disort_DISORT.h \
@@ -572,6 +580,7 @@ test_interpolation_SOURCES = \
 	jacobian.h \
 	legendre.cc \
 	legendre.h \
+	m_abs.cc \
 	m_agenda.cc \
         m_atmosphere.cc \
 	m_basic_types.cc \
@@ -722,6 +731,8 @@ test_sparse_SOURCES = \
 	cloudbox.h \
 	cloudbox.cc \
 	constants.cc \
+	continua.cc \
+	continua.h \
 	disort.cc \
 	disort.h \
 	disort_DISORT.h \
@@ -745,6 +756,7 @@ test_sparse_SOURCES = \
 	jacobian.h \
 	legendre.cc \
 	legendre.h \
+	m_abs.cc \
 	m_agenda.cc \
         m_atmosphere.cc \
 	m_basic_types.cc \
@@ -863,6 +875,8 @@ test_xml_SOURCES = \
 	cloudbox.h \
 	cloudbox.cc \
 	constants.cc \
+	continua.cc \
+	continua.h \
 	disort.cc \
 	disort.h \
 	disort_DISORT.h \
@@ -886,6 +900,7 @@ test_xml_SOURCES = \
 	jacobian.h \
 	legendre.cc \
 	legendre.h \
+	m_abs.cc \
 	m_agenda.cc \
         m_atmosphere.cc \
 	m_basic_types.cc \
@@ -1021,6 +1036,8 @@ test_sensor_SOURCES = \
 	cloudbox.h \
 	cloudbox.cc \
 	constants.cc \
+	continua.cc \
+	continua.h \
 	disort.cc \
 	disort.h \
 	disort_DISORT.h \
@@ -1044,6 +1061,7 @@ test_sensor_SOURCES = \
 	jacobian.h \
 	legendre.cc \
 	legendre.h \
+	m_abs.cc \
 	m_agenda.cc \
         m_atmosphere.cc \
 	m_basic_types.cc \

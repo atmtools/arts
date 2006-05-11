@@ -226,6 +226,18 @@ xml_read_from_file<ArrayOfGriddedField3> (const String&,
                                           ArrayOfGriddedField3&);
 
 template void
+xml_read_from_file<ArrayOfLineRecord> (const String&,
+                                       ArrayOfLineRecord&);
+
+template void
+xml_read_from_file<ArrayOfArrayOfLineRecord> (const String&,
+                                              ArrayOfArrayOfLineRecord&);
+
+template void
+xml_read_from_file<ArrayOfLineshapeSpec> (const String&,
+                                          ArrayOfLineshapeSpec&);
+
+template void
 xml_read_from_file<ArrayOfPpath> (const String&, ArrayOfPpath&);
 
 template void
@@ -301,13 +313,28 @@ xml_write_to_file<Array<SpeciesRecord> > (const String&,
 
 template void
 xml_write_to_file<ArrayOfSingleScatteringData> (const String&,
-                                            const ArrayOfSingleScatteringData&,
+                                                const ArrayOfSingleScatteringData&,
                                                 FileType);
 
 template void
 xml_write_to_file<ArrayOfGriddedField3> (const String&,
-                                            const ArrayOfGriddedField3&,
-                                                FileType);
+                                         const ArrayOfGriddedField3&,
+                                         FileType);
+
+template void
+xml_write_to_file<ArrayOfLineRecord> (const String&,
+                                      const ArrayOfLineRecord&,
+                                      FileType);
+
+template void
+xml_write_to_file<ArrayOfArrayOfLineRecord> (const String&,
+                                             const ArrayOfArrayOfLineRecord&,
+                                             FileType);
+
+template void
+xml_write_to_file<ArrayOfLineshapeSpec> (const String&,
+                                         const ArrayOfLineshapeSpec&,
+                                         FileType);
 
 template void
 xml_write_to_file<ArrayOfIndex> (const String&, const ArrayOfIndex&, FileType);

@@ -44,7 +44,7 @@
 #include "auto_md.h"
 #include "math_funcs.h"
 #include "make_array.h"
-#include "atm_funcs.h"
+#include "physics_funcs.h"
 #include "continua.h"
 #include "make_vector.h"
 
@@ -127,11 +127,11 @@ void linesReadFromHitran(// WS Output:
    \date 2005-03-29
  */
 void linesReadFromHitran2004(// WS Output:
-                         ArrayOfLineRecord& lines,
-                          // Control Parameters:
-                         const String& filename,
-                         const Numeric& fmin,
-                         const Numeric& fmax)
+                             ArrayOfLineRecord& lines,
+                             // Control Parameters:
+                             const String& filename,
+                             const Numeric& fmin,
+                             const Numeric& fmax)
 {
   ifstream is;
 
@@ -324,12 +324,15 @@ void linesReadFromArts(// WS Output:
   out2 << "  Read " << lines.nelem() << " lines.\n";
 }
 
+
+/* FIXME OLE: Do we need this function? */
 void linesElowToJoule(// WS Output:
                       ArrayOfLineRecord& lines )
 {
   for ( Index i=0; i<lines.nelem(); ++i )
     lines[i].melow = wavenumber_to_joule(lines[i].melow); 
 }
+
 
 /**
   This method can read lines from different line catalogues. For each
@@ -636,7 +639,7 @@ void lines_per_tgCreateFromLines(// WS Output:
             {
               // Get a reference to the current tag (not really
               // necessary, but makes for nicer notation below):
-              const OneTag& this_tag = tgs[j][k];
+              const SpeciesTag& this_tag = tgs[j][k];
 
               // Now we will test different attributes of the line
               // against matching attributes of the tag. If any
@@ -719,6 +722,7 @@ void lines_per_tgCreateFromLines(// WS Output:
     }
 
 }
+
 
 /** Adds mirror lines at negative frequencies to the lines_per_tg.
     For each line at frequency +f in lines_per_tg a corresponding entry at
@@ -852,6 +856,7 @@ void lines_per_tgCompact(// WS Output:
     }
 }
 
+#if 0
 
 void linesWriteAscii(// WS Input:
                       const ArrayOfLineRecord& lines,
@@ -904,6 +909,8 @@ void lines_per_tgWriteAscii(// WS Input:
     }
 }
 
+#endif
+
 void tgsDefineAllInScenario(// WS Output:
                             ArrayOfArrayOfSpeciesTag& tgs,
                             // Control Parameters:
@@ -933,10 +940,11 @@ void tgsDefineAllInScenario(// WS Output:
           // Add to included list:
           included.push_back(specname);
 
-          // Convert name of species to a OneTag object:
-          OneTag this_tag(specname);
+          // Convert name of species to a SpeciesTag object:
+          SpeciesTag this_tag(specname);
 
-          // Create Array of OneTags with length 1 (our tag group has only one tag):
+          // Create Array of SpeciesTags with length 1
+          // (our tag group has only one tag):
           ArrayOfSpeciesTag this_group(1);
           this_group[0] = this_tag;
 
@@ -1106,7 +1114,7 @@ void lineshape_per_tgDefine(// WS Output:
     }
 }
 
-
+#if 0
 
 void raw_vmrsReadFromScenario(// WS Output:
                               ArrayOfMatrix&   raw_vmrs,
@@ -1719,6 +1727,42 @@ void hseCalc(
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
+   \author Carlos Jimenez 
+   \date   2001-08-14
+*/
+void vmrsScale(
+               Matrix&                vmrs,
+               const ArrayOfArrayOfSpeciesTag&       tgs,
+               const ArrayOfString&   scaltgs,
+               const Vector&          scalfac)
+{
+  Index                            itag;
+  ArrayOfIndex                     tagindex;      
+
+  if ( scalfac.nelem() != scaltgs.nelem()  )
+    throw runtime_error("vmrScale: Number of tgs and fac are different!");
+  
+  get_tagindex_for_Strings( tagindex, tgs, scaltgs );
+
+  const Index   n = tagindex.nelem();
+
+  for ( itag=0; itag<n; itag++ )
+    {
+      //out2 << scalfac[itag] << ".\n";
+      vmrs(tagindex[itag],Range(joker)) *= scalfac[itag]; 
+      // Matpack can multiply all elements of a vector with a constant
+      // factor like this. In this case the vector is the selected row
+      // of Matrix vmrs.
+  
+      //out2 << vmrs(tagindex[itag],Range(joker)) << ".\n";
+    }
+}
+
+#endif
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
    \author Patrick Eriksson
    \date   2001-01-18
 */
@@ -1762,49 +1806,7 @@ void h2o_absSet(
       out2 << "  WARNING in h2o_absSet: could not find any H2O tag. So H2O vmr is set to zero!\n";
       for( Index i=0; i<h2o_abs.nelem(); i++ ) h2o_abs[i] = 0.0000000000e0;
     }
- 
-
-
-
 }
-
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Carlos Jimenez 
-   \date   2001-08-14
-*/
-void vmrsScale(
-               Matrix&                vmrs,
-               const ArrayOfArrayOfSpeciesTag&       tgs,
-               const ArrayOfString&   scaltgs,
-               const Vector&          scalfac)
-{
-  Index                            itag;
-  ArrayOfIndex                     tagindex;      
-
-  if ( scalfac.nelem() != scaltgs.nelem()  )
-    throw runtime_error("vmrScale: Number of tgs and fac are different!");
-  
-  get_tagindex_for_Strings( tagindex, tgs, scaltgs );
-
-  const Index   n = tagindex.nelem();
-
-  for ( itag=0; itag<n; itag++ )
-    {
-      //out2 << scalfac[itag] << ".\n";
-      vmrs(tagindex[itag],Range(joker)) *= scalfac[itag]; 
-      // Matpack can multiply all elements of a vector with a constant
-      // factor like this. In this case the vector is the selected row
-      // of Matrix vmrs.
-  
-      //out2 << vmrs(tagindex[itag],Range(joker)) << ".\n";
-    }
-}
-
 
 
 /**
@@ -2590,6 +2592,8 @@ void xsec_per_tgAddConts(// WS Output:
 
 }
 
+#if 0
+
 /** Reduces the size of abs_per_tg.  Only absorption coefficients for
     which weighting functions are calculated are kept in memory.
     
@@ -2733,8 +2737,7 @@ void refrCalc (
   }
 }
 
-
-
+#endif
 
 //======================================================================
 //             Methods related to continua
@@ -2801,3 +2804,4 @@ void cont_descriptionAppend(// WS Output:
   cont_description_models.push_back(model);
   cont_description_parameters.push_back(userparameters);
 }
+

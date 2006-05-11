@@ -90,6 +90,27 @@ xml_write_to_stream (ostream&, const ArrayOfGriddedField3&,
                      bofstream * = NULL, const String & = "");
 
 void
+xml_read_from_stream (istream&, ArrayOfLineRecord&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfLineRecord&,
+                     bofstream * = NULL, const String & = "");
+
+void
+xml_read_from_stream (istream&, ArrayOfArrayOfLineRecord&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfArrayOfLineRecord&,
+                     bofstream * = NULL, const String & = "");
+
+void
+xml_read_from_stream (istream&, ArrayOfLineshapeSpec&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfLineshapeSpec&,
+                     bofstream * = NULL, const String & = "");
+
+void
 xml_read_from_stream (istream&, ArrayOfPpath&, bifstream * = NULL);
 
 void
