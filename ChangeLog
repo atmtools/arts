@@ -1,3 +1,21 @@
+2006-05-11  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-1098
+
+	* src/docu.txt: Removed. The text here was outdated.
+
+	* src/groups.cc: Line catalogues (still commented out).
+
+	* src/notes.txt: Removed. The text here was outdated.
+
+	* src/workspace.cc: Line catalogues (still commented out).
+
+	* src/xml_io_array_types.cc: Line catalogues (still commented out).
+
+	* tests/testall.py: Modified to run absorption test.
+
+	* tests/simpleAbs.arts: Added. Test absorption part.
+
 2006-05-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1097

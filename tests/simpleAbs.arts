@@ -1,0 +1,26 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# filename: simpleAbs.arts
+#
+# An ARTS controlfile that calculates absorption coefficients. 
+#
+# Author: Stefan Buehler
+# Date:   1.6.2005
+# 
+
+Main {
+
+# Output file format
+# ------------------  
+output_file_formatSetAscii{}
+
+# Read the spectroscopic line data from the HITRAN catalogue and
+# create the workspace variable `lines':
+#linesReadFromHitran {
+#   filename = "/usr/share/arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"
+#   fmin     = 1e9
+#   fmax     = 200e9
+#}
+
+
+} # End of Main

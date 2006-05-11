@@ -117,6 +117,22 @@ class DoitTest(unittest.TestCase):
         Q=self.DOITrun.get_val('y')[1]
         assert abs(Q-7.2) < 1., 'Q (='+str(Q)+'K) is too far away from 7.2 K'
         
+class AbsTest(unittest.TestCase):
+    """Testing the ARTS Absorption module"""
+    Absrun=ArtsRun('simpleAbs.arts')
+    def test1(self):
+        """Simple Absorption test should run with no errors"""
+        self.Absrun.run()
+        assert self.Absrun.error=='','Error running simpleAbs.arts: '+self.Absrun.error
+#     def test2(self):
+#         """Total radiance should be close to 204.5 K"""
+#         I=self.Absrun.get_val('y')[0]
+#         assert abs(I-204.5) < 1., 'I (='+str(I)+'K) is too far away from 204.5 K'
+#     def test3(self):
+#         """Polarization difference should be close to 7.2 K"""
+#         Q=self.Absrun.get_val('y')[1]
+#         assert abs(Q-7.2) < 1., 'Q (='+str(Q)+'K) is too far away from 7.2 K'
+
 if __name__=='__main__':
     unittest.main()
 

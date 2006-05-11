@@ -105,30 +105,48 @@ void define_wsv_data()
   ----------------------------------------------------------------------*/
 
   // New name: abs_coef
+  // Old name: abs
   wsv_data.push_back
     (WsvRecord
-    ( NAME( "abs" ),
-      DESCRIPTION
-      (
-       "Scalar gas absorption coefficients for one species.\n"
-       "\n"
-       "This is used as output variable of methods calculating absorption,\n"
-       "such as continua and full absorption models.\n"
-       "\n"
-       "The Variable can hold absorption for many atmospheric conditions,\n"
-       "given by the second dimension.\n"
-       "\n"
-       "The second dimension, N, corresponds to the length of the input\n"
-       "pressure and temperature vectors given to the method used to calculate\n"
-       "abs."
-       "\n"
-       "Dimensions: [f_grid, N]\n"
-       "\n"
-       "Unit: 1/m\n"
-      ),
+     ( NAME( "abs" ),
+       DESCRIPTION
+       (
+        "The matrix of total absorption coefficients.\n"
+        "\n"
+        "FIXME: Is this used much?\n"
+        "\n"
+        "Dimensions: [f_grid, abs_p]\n"
+        "\n"
+        "Unit: 1/m"
+        ),
       GROUP( Matrix_ )));
 
-  // New name: abs_lookup.
+  // New name: abs_lines
+  // Old name: lines
+  // FIXME: Oliver, I have commented this out for now.
+//   wsv_data.push_back
+//     (WsvRecord
+//      ( NAME( "lines" ),
+//       DESCRIPTION
+//        (
+//         "A list of spectral line data."
+//         ), 
+//        GROUP( ArrayOfLineRecord_ )));
+
+  // New name: abs_lines_per_species
+  // Old name: lines_per_tg
+  // FIXME: Oliver, I have commented this out for now.  
+//   wsv_data.push_back
+//     (WsvRecord
+//      ( NAME( "lines_per_tg" ),
+//        DESCRIPTION
+//        (
+//         "A list of spectral line data for each tag.\n"
+//         "Dimensions: (tag_groups.nelem()) (# of lines for this tag)"
+//         ), 
+//        GROUP( ArrayOfArrayOfLineRecord_ )));
+
+  // New name: abs_lookup
   wsv_data.push_back
     (WsvRecord
      ( NAME( "gas_abs_lookup" ),
