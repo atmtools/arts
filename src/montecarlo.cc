@@ -673,9 +673,6 @@ void Cloudbox_ppath_rteCalc(
                              Numeric&              rte_temperature,
                              Vector&               rte_vmr_list,
                              Matrix&               iy,
-                             GridPos&              rte_gp_p,
-                             GridPos&              rte_gp_lat,
-                             GridPos&              rte_gp_lon,
                              //Matrix&               i_space,
                              //Matrix&               ground_emission,
                              //Matrix&               ground_los, 
@@ -765,19 +762,13 @@ void Cloudbox_ppath_rteCalc(
              t_field(p_range,lat_range,lon_range), 
              vmr_field(joker,p_range,lat_range,lon_range),
              pnd_field,scat_data_mono,cloudbox_limits);
-  //Calculate contribution from the boundary of the cloud box
-  //changed to dummy_rte_pos to see if rte_pos was causing assertion failure at ppath.cc:1880
-  //it appears that this was not the case
-  Vector pos = rte_pos;
-  Vector los = rte_los;
-  rte_posShift(pos,los,rte_gp_p, rte_gp_lat,
-            rte_gp_lon,ppathcloud, atmosphere_dim);
+
   iy_calc_no_jacobian(iy, ppath, ppath_step, ppath_step_agenda, 
                       rte_agenda, iy_space_agenda, iy_surface_agenda,
                       iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid,
                       lon_grid, z_field, t_field, vmr_field, r_geoid, z_surface,
                       cloudbox_on_dummy, cloudbox_limits,
-                      pos, los, f_grid,stokes_dim, 1);
+                      rte_pos, rte_los, f_grid,stokes_dim, 1);
 
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(iy(0,i)));}
   

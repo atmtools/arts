@@ -1,3 +1,26 @@
+2006-05-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1100
+
+	* Cory: The following changes seem sane to me and the tests are still
+	working fine. If I missed something, please let me know.
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo):
+
+	Removed rte_gp_* from interface.
+
+	Adapt call to Cloudbox_ppath_rteCalc for changed interface.
+
+	* src/montecarlo.{cc,h} (Cloudbox_ppath_rteCalc):
+
+	Removed rte_gp_* from interface. Removed local pos/los and
+	initialization with rte_posShift. This is done in
+	get_radiative_background.
+
+	* src/methods.cc:
+
+	ScatteringMonteCarlo: Removed rte_gp_* from interface.
+
 2006-05-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1099

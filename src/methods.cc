@@ -4540,8 +4540,7 @@ md_data_raw.push_back
          "a precalculated grid (mc_incoming) or calculated on the fly"
           ),
         OUTPUT(ppath_, ppath_step_, 
-               mc_error_, mc_iteration_count_, 
-               rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, iy_, 
+               mc_error_, mc_iteration_count_, rte_pos_, rte_los_, iy_, 
                rte_pressure_, rte_temperature_, 
                rte_vmr_list_, ext_mat_, abs_vec_, mc_incoming_),
         INPUT(ppath_, rte_pos_, rte_los_, ppath_step_agenda_, atmosphere_dim_, p_grid_,
