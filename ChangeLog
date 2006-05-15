@@ -1,3 +1,11 @@
+2006-05-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-0-196
+
+	* src/m_abs.cc (linesReadFromArts):
+
+	Removed redundant if statement.
+
 2006-03-14  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-1-0-195

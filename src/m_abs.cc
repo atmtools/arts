@@ -306,15 +306,10 @@ void linesReadFromArts(// WS Output:
         }
       else
         {
-          if ( fmin <= lr.F() )
+          // lines are not necessarily frequency sorted 
+          if ( fmin <= lr.F() && lr.F() <= fmax )
             {
-              // lines are not necessarily frequency sorted 
-              if ( fmin <= lr.F() )
-                if ( lr.F() <= fmax )
-                  {
-                    lines.push_back(lr);
-                    //              out3 << lr << "\n";
-                  }
+              lines.push_back(lr);
             }
         }
     }
