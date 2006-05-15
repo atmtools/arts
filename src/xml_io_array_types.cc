@@ -1607,11 +1607,65 @@ xml_write_to_stream (ostream& os_xml,
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      ArrayOfLineRecord& agfdata,
-                      bifstream *pbifs)
+                      ArrayOfLineRecord& alrecord,
+                      bifstream * /*pbifs*/)
 {
-  // FIXME OLE: Implement this.
-  throw runtime_error ("Boo. Not yet implemented.");
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("ArrayOfLineRecord");
+
+  tag.get_attribute_value ("nelem", nelem);
+
+  LineRecord dummy_line_record;
+  String version;
+  tag.get_attribute_value ("version", version);
+
+  if (version != dummy_line_record.Version())
+    {
+      ostringstream os;
+
+      if (9 <= version.nelem())
+        {
+          if ("ARTSCAT" == version.substr (0,7))
+            {
+              os << "The ARTS line file you are trying contains a version tag\n"
+                << "different from the current version.\n"
+                << "Tag in file:     " << version << "\n"
+                << "Current version: " << dummy_line_record.Version();
+              throw runtime_error (os.str());
+            }
+        }
+
+      os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
+        << "Probably it was created with an older version of ARTS that used different units.";
+      throw runtime_error (os.str());
+    }
+
+  alrecord.resize (0);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          LineRecord lr;
+          if (lr.ReadFromArtsStream (is_xml))
+            throw runtime_error ("Cannot read line from file");
+
+          alrecord.push_back (lr);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfLineRecord: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/ArrayOfLineRecord");
 }
 
 
@@ -1624,13 +1678,34 @@ xml_read_from_stream (istream& is_xml,
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const ArrayOfLineRecord& agfdata,
-                     bofstream *pbofs,
+                     const ArrayOfLineRecord& alrecord,
+                     bofstream * /*pbofs*/,
                      const String &name)
 
 {
-  // FIXME OLE: Implement this.
-  throw runtime_error ("Boo. Not yet implemented.");
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+  LineRecord dummy_line_record;
+
+  open_tag.set_name ("ArrayOfLineRecord");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.add_attribute ("version", dummy_line_record.Version ());
+  open_tag.add_attribute ("nelem", alrecord.nelem ());
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for ( Index n = 0; n < alrecord.nelem(); n++ )
+    {
+      os_xml << alrecord[n] << "\n";
+    }
+
+  close_tag.set_name ("/ArrayOfLineRecord");
+  close_tag.write_to_stream (os_xml);
+
+  os_xml << '\n';
 } 
 
 
@@ -1644,11 +1719,37 @@ xml_write_to_stream (ostream& os_xml,
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      ArrayOfArrayOfLineRecord& agfdata,
+                      ArrayOfArrayOfLineRecord& aalrecord,
                       bifstream *pbifs)
 {
-  // FIXME OLE: Implement this.
-  throw runtime_error ("Boo. Not yet implemented.");
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "ArrayOfLineRecord");
+
+  tag.get_attribute_value ("nelem", nelem);
+  aalrecord.resize (nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is_xml, aalrecord[n], pbifs);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfArrayOfLineRecord: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Array");
 }
 
 
@@ -1661,13 +1762,33 @@ xml_read_from_stream (istream& is_xml,
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const ArrayOfArrayOfLineRecord& agfdata,
+                     const ArrayOfArrayOfLineRecord& aalrecord,
                      bofstream *pbofs,
                      const String &name)
 
 {
-  // FIXME OLE: Implement this.
-  throw runtime_error ("Boo. Not yet implemented.");
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.add_attribute ("type", "ArrayOfLineRecord");
+  open_tag.add_attribute ("nelem", aalrecord.nelem ());
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < aalrecord.nelem (); n++)
+    {
+      xml_write_to_stream (os_xml, aalrecord[n], pbofs);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os_xml);
+
+  os_xml << '\n';
 } 
 
 
@@ -1681,7 +1802,7 @@ xml_write_to_stream (ostream& os_xml,
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      ArrayOfLineshapeSpec& agfdata,
+                      ArrayOfLineshapeSpec& alspec,
                       bifstream *pbifs)
 {
   // FIXME OLE: Implement this.
@@ -1698,7 +1819,7 @@ xml_read_from_stream (istream& is_xml,
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const ArrayOfLineshapeSpec& agfdata,
+                     const ArrayOfLineshapeSpec& alspec,
                      bofstream *pbofs,
                      const String &name)
 

@@ -1891,32 +1891,6 @@ bool LineRecord::ReadFromArtsStream(istream& is)
   return false;
 }
 
-/** A helper function that writes lines in a line list to a stream. 
-
-    \retval os      The stream to write to.
-    \param  lines   The line list to write.
-
-    \date 2000-06-12 
-    \author Stefan Buehler 
-*/
-void write_lines_to_stream(ostream& os,
-                           const ArrayOfLineRecord& lines)
-{
-  // We need this dummy line record, so that we can get the catalogue
-  // version tag from dummy.Version, even if the line list is empty.
-  LineRecord dummy;
-
-  // Output version String first, followed by number of lines:
-  os << dummy.Version() << " " << lines.nelem() << "\n";
-
-  // Now output the line data:
-  for ( Index i=0; i<lines.nelem(); ++i )
-    {
-      //      out3 << lines[i] << "\n";
-      os << lines[i] << "\n";
-    }
-}
-
 /** Calculate line absorption cross sections for one tag group. All
     lines in the line list must belong to the same species. This must
     be ensured by lines_per_tgCreateFromLines, so it is only verified

@@ -309,15 +309,10 @@ void linesReadFromArts(// WS Output:
         }
       else
         {
-          if ( fmin <= lr.F() )
+          // lines are not necessarily frequency sorted 
+          if ( fmin <= lr.F() && lr.F() <= fmax )
             {
-              // lines are not necessarily frequency sorted 
-              if ( fmin <= lr.F() )
-                if ( lr.F() <= fmax )
-                  {
-                    lines.push_back(lr);
-                    //              out3 << lr << "\n";
-                  }
+              lines.push_back(lr);
             }
         }
     }
@@ -856,60 +851,6 @@ void lines_per_tgCompact(// WS Output:
     }
 }
 
-#if 0
-
-void linesWriteAscii(// WS Input:
-                      const ArrayOfLineRecord& lines,
-                      // Control Parameters:
-                      const String& f)
-{
-  String filename = f;
-  
-  // If filename is empty then set the default filename:
-  if ( "" == filename )
-    {
-      extern const String out_basename;                       
-      filename = out_basename+".lines.aa";
-    }
-
-  ofstream os;
-
-  out2 << "  Writing file: " << filename << '\n';
-  open_output_file(os, filename);
-
-  write_lines_to_stream(os,lines);
-}
-
-
-void lines_per_tgWriteAscii(// WS Input:
-                              const ArrayOfArrayOfLineRecord& lines_per_tg,
-                              // Control Parameters:
-                              const String& f)
-{
-  String filename = f;
-  
-  // If filename is empty then set the default filename:
-  if ( "" == filename )
-    {
-      extern const String out_basename;                       
-      filename = out_basename+".lines_per_tg.aa";
-    }
-
-  ofstream os;
-
-  out2 << "  Writing file: " << filename << '\n';
-  open_output_file(os, filename);
-
-  os << lines_per_tg.nelem() << '\n';
-
-  for ( Index i=0; i<lines_per_tg.nelem(); ++i )
-    {
-      const ArrayOfLineRecord& lines = lines_per_tg[i];
-      write_lines_to_stream( os, lines );
-    }
-}
-
-#endif
 
 void tgsDefineAllInScenario(// WS Output:
                             ArrayOfArrayOfSpeciesTag& tgs,
