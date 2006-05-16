@@ -868,7 +868,7 @@ void tgsDefineAllInScenario(// WS Output:
   for ( Index i=0; i<species_data.nelem(); ++i )
     {
       const String specname = species_data[i].Name();
-      const String filename = basename + "." + specname + ".aa";
+      const String filename = basename + "." + specname + ".xml";
 
       // Try to open VMR file:
       try
@@ -1832,7 +1832,7 @@ void absCalc(// WS Output:
              Matrix&                         abs,
              ArrayOfMatrix&                  abs_per_tg,
              // WS Input:                 
-             const ArrayOfArrayOfSpeciesTag&                tgs,
+             const ArrayOfArrayOfSpeciesTag& tgs,
              const Vector&                   f_mono,
              const Vector&                   p_abs,
              const Vector&                   t_abs,
@@ -2744,5 +2744,20 @@ void cont_descriptionAppend(// WS Output:
   cont_description_names.push_back(tagname);
   cont_description_models.push_back(model);
   cont_description_parameters.push_back(userparameters);
+}
+
+void AbsInputFromAtmFields (// WS Output:
+                            Vector& abs_p,
+                            Vector& abs_t,
+                            Matrix& vmrs,
+                            // WS Input:
+                            const Vector&  p_grid,
+                            const Tensor3& t_field,
+                            const Tensor4& vmr_field
+             )
+{
+  abs_p = p_grid;
+  abs_t = t_field (joker, 0, 0);
+  vmrs = vmr_field (joker, joker, 0, 0);
 }
 

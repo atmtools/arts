@@ -704,6 +704,10 @@ int main (int argc, char **argv)
   // And also the species map:
   define_species_map();
 
+  // And the lineshape lookup data:
+  define_lineshape_data();
+  define_lineshape_norm_data();
+
   // Make all these data visible:
   //  extern const Array<MdRecord>  md_data;
   //  extern const Array<WsvRecord> wsv_data;

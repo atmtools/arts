@@ -143,6 +143,20 @@ void define_md_data_raw()
   // Patrick Eriksson 2002-05-08
   /////////////////////////////////////////////////////////////////////////////
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AbsInputFromAtmFields" ),
+        DESCRIPTION(
+                    "Initialize the WSMs *abs_p*, *abs_t* and *vmrs* from\n"
+                    "*p_grid, *t_field* and *vmr_field*\n"
+                   ) ,
+        OUTPUT( abs_p_, abs_t_, vmrs_ ),
+        INPUT( p_grid_, t_field_, vmr_field_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
   // New name: abs_coefCalc
   md_data_raw.push_back
     ( MdRecord

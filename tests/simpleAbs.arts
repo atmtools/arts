@@ -1,26 +1,114 @@
-#DEFINITIONS:  -*-sh-*-
-#
-# filename: simpleAbs.arts
-#
-# An ARTS controlfile that calculates absorption coefficients. 
-#
-# Author: Stefan Buehler
-# Date:   1.6.2005
-# 
+# An example ARTS controlfile that calculates absorption
+# coefficients. 
+# SAB 16.06.2000
 
 Main {
 
-# Output file format
-# ------------------  
-output_file_formatSetAscii{}
+output_file_formatSetAscii {}
 
-# Read the spectroscopic line data from the HITRAN catalogue and
-# create the workspace variable `lines':
+# --------------------< A specific method >--------------------
+#                      -------------------
+# Read the spectroscopic line data from the ARTS catalogue and
+# create the workspace variable `lines'.
+linesReadFromArts {
+   filename = "data/lines.ac"
+   fmin     = 1e9
+   fmax     = 200e9
+}
+# This test catalogue was generated from the HITRAN catalogue in the
+# following way:
 #linesReadFromHitran {
-#   filename = "/usr/share/arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"
-#   fmin     = 1e9
-#   fmax     = 200e9
+#        filename = "PATH_TO_ARTS-DATA/spectroscopy/hitran96/hitran96_lowfreq.par"
+#        fmin     = 1e9
+#        fmax     = 200e9
+#}
+#linesWriteAscii{"lines.ac"}
+
+AtmosphereSet1D{}
+
+VectorNLogSpace(p_grid){
+        start = 100000
+        stop  = 10
+        n     = 10
+}
+ 
+# This defines the list of tag groups (`tag_groups'). Absorption
+# coefficients will be calculated separately for each tag group. This
+# is necessary in order to calculate weighting functions later on.
+# The lines are assigned to the tag groups in the order as the groups
+# are specified here. That means if you do ["H2O-181","H2O"], the last
+# group H2O gets assigned all the H2O lines that do not fit in the
+# first group.
+#
+# The continuum tags are special, since continua are not added by
+# default. Thus, just selecting "H2O" will give you no continuum. 
+gas_speciesSet{
+      [ "H2O",
+        "O3",
+        "N2" ] 
+}
+
+# Alternatively select all species that we can find in the scenario:
+#tgsDefineAllInScenario{"data/tropical"}
+
+# Atmospheric profiles
+AtmRawRead {
+  basename = "data/tropical"
+}
+
+# This separates the lines into the different tag groups and creates
+# the workspace variable `lines_per_tg':
+lines_per_tgCreateFromLines {}
+
+# Now interpolate all the raw atmospheric input onto the pressure 
+# grid and create the atmospheric variables `t_field', `z_field', `vmr_field'
+AtmFieldsCalc {}
+
+# Initialize the input variables of absCalc from the Atm fields:
+AbsInputFromAtmFields {}
+
+# Set the physical H2O profile from the H2O profile in vmrs:
+h2o_absSet {}
+
+# N2 likewise:
+n2_absSet {}
+
+# Create the frequency grid `f_grid':
+VectorNLinSpace (f_grid) {
+        start = 50e9
+        stop  = 150e9
+        n     = 100    
+}
+
+# set the lineshape function for all calculated tags
+lineshapeDefine{
+        shape = "Voigt_Kuntz6" 
+        normalizationfactor = "linear"
+        cutoff = -1
+}
+
+# or set it separately for each tag
+#lineshape_per_tgDefine{
+#        shape = [ "Voigt_Kuntz6", "no_shape", "Voigt_Kuntz6", "Voigt_Kuntz6" ]
+#        normalizationfactor = [ "quadratic", "no_norm", "linear", "linear" ]
+#        cutoff = [ -1, -1, -1, -1 ]
 #}
 
+# Formally, we also have to set ContDescription, even though we don't
+# have a continuum:
+cont_descriptionInit {}
 
-} # End of Main
+# Calculate absorption coefficients, both total (`abs') and 
+# separately for each tag group (`abs_per_tg'):
+absCalc {}
+
+# Optionally write these to files:
+#WriteXML (abs_t) {"data/simpleAbs.abs_t.xml.generated"}
+#WriteXML (vmrs) {"data/simpleAbs.vmrs.xml.generated"}
+
+# This we definitely want to write to file!
+WriteXML (abs) {"data/simpleAbs.abs.xml.generated"}
+WriteXML (abs_per_tg) {"data/simpleAbs.abs_per_tg.xml.generated"}
+
+}
+

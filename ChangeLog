@@ -1,5 +1,32 @@
 2006-05-15  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1102
+
+	* tests/simpleAbs.arts:
+
+	Updated. First absorption calculation in arts-1-1!!!
+
+	* src/main.cc (main): Initialize lineshapes.
+
+	* src/m_abs (tgsDefineAllInScenario):
+
+	Look for .xml files instead of .aa files.
+
+	(AbsInputFromAtmFields): Added.
+
+	* src/methods.cc: Added AbsInputFromAtmFields.
+
+	* src/xml_io_array_types.cc:
+
+	Removed commented out/duplicate reading/writing functions for
+	ArrayOfSpeciesRecord.
+
+	* tests/data/lines.ac: Added. Generated from Hitran.
+
+	* tests/data/tropical.O3.xml: Added.
+
+2006-05-15  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1101
 
 	* src/xml_io_array_types.cc:
