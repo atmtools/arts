@@ -634,7 +634,7 @@ void define_agenda_data()
         //"the position of intersection with the surface."
         ),
        OUTPUT( surface_emission_, surface_los_, surface_rmatrix_ ),
-       INPUT(rte_gp_p_, rte_gp_lat_, rte_gp_lon_  )));
+       INPUT(rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ )));
 
 
 //  agenda_data.push_back

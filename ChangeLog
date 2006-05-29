@@ -1,3 +1,33 @@
+2006-05-29  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1103
+
+	Fixed surface for DOIT calculations. 
+	
+	* src/scatrte.{cc,h}
+	(cloud_RT_surface): Redone. Included a modified version of 
+	the surface code that was previously part of cloud_ppath_update1D.
+	(cloud_ppath_update1D): Removed surface stuff
+	from here and included function call to cloud_RT_surface.
+
+	* src/m_scatrte.cc (doit_i_fieldUpdate1D): Removed
+	surface_prop_agenda. Surface is now only included in
+	(doit_i_fieldUpdateSeq1D), which is the standard function to be
+	used. 
+	
+	* src/agendas.cc: Included *rte_los* as input to
+	surface_prop_agenda. It is needed for *surfaceFlat*. If you use
+	surfaceBlackbody you have to include "Ignore(rte_los){}" into
+	surface_prop_agenda. 
+
+	* src/m_montecarlo.cc (MCGeneral): Included *local_rte_los* as
+	input argument for *surface_prop_agendaExecute*.
+
+	Included "Ignore(rte_los){}" in surface_prop_agenda:       
+	* tests/MCDataPrepare.arts
+	* tests/simpleMCGeneral.arts
+	* tests/simpleMCGeneralGaussian.arts
+	
 2006-05-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1102

@@ -311,8 +311,9 @@ void pmomCalc(//Output
             p1_1=u[i];
             p1_2=u[i+1];
             
-            pmom(phase_function.nrows()-1-i_l,1)+=0.5*0.5*(p1_1*phase_int(i_l, i)+
-                                  p1_2*phase_int(i_l, i+1))
+            pmom(phase_function.nrows()-1-i_l,1)+=0.5*0.5*
+              (p1_1*phase_int(i_l, i)+
+               p1_2*phase_int(i_l, i+1))
               *abs(u[i+1]-u[i]);
             
             for (Index l=2; l<n_legendre; l++)
@@ -322,8 +323,9 @@ void pmomCalc(//Output
               p2_2=(2*(double)l-1)/(double)l*u[i+1]*p1_2-((double)l-1)/
                 (double)l*p0_2;
               
-              pmom(phase_function.nrows()-1-i_l, l)+=0.5*0.5*(p2_1*phase_int(i_l, i)+
-                                     p2_2*phase_int(i_l, i+1))
+              pmom(phase_function.nrows()-1-i_l, l)+=0.5*0.5*
+                (p2_1*phase_int(i_l, i)+
+                 p2_2*phase_int(i_l, i+1))
                 *abs(u[i+1]-u[i]);
               
               p0_1=p1_1;

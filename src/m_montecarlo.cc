@@ -269,7 +269,7 @@ void MCGeneral(
               //decide whether we have reflection or emission
               surface_prop_agendaExecute(local_surface_emission, local_surface_los, 
                                          local_surface_rmatrix, ppath_step.gp_p[np-1],
-                                         ppath_step.gp_lat[np-1],ppath_step.gp_lon[np-1],
+                                         ppath_step.gp_lat[np-1],ppath_step.gp_lon[np-1],local_rte_los,
                                          surface_prop_agenda, true);
               //deal with blackbody case
               if (local_surface_los.nrows()==0)

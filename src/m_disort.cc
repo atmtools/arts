@@ -245,7 +245,7 @@ void ScatteringDisort(// WS Output:
   Vector flup(maxulv);
   Vector dfdt(maxulv);
   Vector uavg(maxulv);
-  Tensor3 uu(maxphi, maxulv, scat_za_grid.nelem()); // Intensity 
+  Tensor3 uu(maxphi, maxulv, scat_za_grid.nelem(), 0.); // Intensity 
   Matrix u0u(maxulv, scat_za_grid.nelem()); // Azimuthally averaged intensity 
   Vector albmed(scat_za_grid.nelem()); // Albedo of cloudbox
   Vector trnmed(scat_za_grid.nelem()); // Transmissivity 
@@ -260,15 +260,14 @@ void ScatteringDisort(// WS Output:
   //dummies
   Index ntau = 0; 
   Vector utau(maxulv,0.);
-
-  // Loop over frequencies   
-  for (f_index = 0; f_index < f_grid.nelem(); f_index ++)    
-    { 
+  
+  // Loop over frequencies
+  for (f_index = 0; f_index < f_grid.nelem(); f_index ++) 
+    {
       dtauc=0.;
       ssalb=0.;
       phase_function=0.;
       pmom=0.;
-      uu=0.;
       
       scat_data_monoCalc(scat_data_mono, scat_data_raw, f_grid, f_index);
       

@@ -369,55 +369,14 @@ void cloud_ppath_update1D(
       // bkgr=2 indicates that the background is surface
       else if (bkgr == 2)
         {
-          chk_not_empty( "surface_prop_agenda", surface_prop_agenda );
-          // The rest here added by TRS.
-          //Set rte_pos, rte_gp_p and rte_los to match the last point
-          //in ppath.
+          // cout << "hit surface "<< ppath_step.gp_p << endl;
+          cloud_RT_surface(
+                           doit_i_field, surface_prop_agenda, 
+                           f_index, stokes_dim, ppath_step, cloudbox_limits, 
+                           scat_za_grid, scat_za_index); 
 
-          Index np = ppath_step.np;
-
-          // FIXME OLE: Removed rte_los from interface,
-          //            it is set but never used.
-          //	   rte_los.resize( ppath_step.los.ncols() );
-          //	   rte_los = ppath_step.los(np-1,joker);
-
-          GridPos dummy_ppath_step_gp_lat;
-          GridPos dummy_ppath_step_gp_lon;
-
-          //Execute the surface_prop_agenda which gives the surface 
-          // parameters-
-
-          surface_prop_agendaExecute(surface_emission, surface_los, 
-                                     surface_rmatrix, ppath_step.gp_p[np-1],
-                                     dummy_ppath_step_gp_lat, dummy_ppath_step_gp_lon,
-                                     surface_prop_agenda, true);
-
-
-
-          iy = surface_emission;
-
-          Index nlos = surface_los.nrows();
-
-          if( nlos > 0 )
-            {
-              for( Index ilos=0; ilos<nlos; ilos++ )
-                {
-                  Vector rtmp(stokes_dim); // Reflected Stokes vector for 1 frequency
-
-                  mult( rtmp, 
-                        surface_rmatrix(ilos,f_index,joker,joker), 
-                        doit_i_field(cloudbox_limits[0], 0, 0,
-                                     (scat_za_grid.nelem() -1 - scat_za_index), 0,
-                                     joker) );
-                  iy(f_index,joker) += rtmp;
-
-                  doit_i_field(cloudbox_limits[0], 0, 0,
-                               scat_za_index, 0,
-                               joker) = iy(0, joker);
-                }
-            }
-
-        }//end else loop over surface
+        }
+      
     }//end if inside cloudbox
 }
 
@@ -458,7 +417,7 @@ void cloud_ppath_update1D_noseq(
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-                          const Agenda& surface_prop_agenda,
+                          //const Agenda& surface_prop_agenda,
                           //const Agenda& iy_surface_agenda, 
                           const Index& scat_za_interp
                          )
@@ -560,37 +519,7 @@ void cloud_ppath_update1D_noseq(
       // bkgr=2 indicates that the background is surface
       else if (bkgr == 2)
         {
-          // chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
-          // 	  // The rest here added by TRS.
-          // 	  //Set rte_pos, rte_gp_p and rte_los to match the last point
-          //           //in ppath.
-
-          Index np = ppath_step.np;
-
-          // 	  const Index   nlos = surface_los.nrows();
-
-          surface_prop_agendaExecute(surface_emission, surface_los, 
-                                     surface_rmatrix, ppath_step.gp_p[np-1],
-                                     ppath_step.gp_lat[np-1], ppath_step.gp_lon[np-1],
-                                     surface_prop_agenda, true);
-
-          iy = surface_emission;
-          // 	  // Variables to hold downvelling radiation
-          // 	  Tensor3   I( nlos, f_grid.nelem(), stokes_dim );
-
-          // 	  I(joker, 0, joker) = doit_i_field(cloudbox_limits[0], 0, 0,
-          //                             joker, 0,
-          //                             joker);
-
-
-          // 	  surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
-
-          // 	  doit_i_field(cloudbox_limits[0] + 1, 0, 0,
-          // 		       0, 0,
-          // 		       joker) = iy(0, joker);
-          cout<<"Reached here?????????ßß" <<endl;
-          //cloud_RT_surface(iy, surface_emission, surface_los, surface_rmatrix, 
-          //surface_prop_agenda,   iy_surface_agenda, f_grid, stokes_dim, ppath_step);  
+          throw runtime_error("Surface reflections only implemented for sequential update.\n" );
         }//end else loop over surface
     }//end if inside cloudbox
 }
@@ -1070,187 +999,77 @@ void cloud_RT_no_background(//Output
   This function calculates RT in the cloudbox if the intersection 
   point with the next layer is the surface. 
 
-  FIXME: Surface models to be added by Sreerekha. 
+  CE (2006-05-29) Included surface_prop_agenda here.  
 
   \author Claudia Emde
   \date 2005-05-13
 */
 void cloud_RT_surface(
                       //Output
-                      Matrix& /*iy*/,
-                      Matrix& surface_emission,
-                      Matrix& surface_los,
-                      Tensor4& surface_rmatrix,
+                      Tensor6View doit_i_field,
                       //Input
                       const Agenda& surface_prop_agenda,
-                      const Agenda& iy_surface_agenda,
-                      const Vector& f_grid,
+                      const Index& f_index,
                       const Index& stokes_dim,
-                      const Ppath& ppath_step
+                      const Ppath& ppath_step,
+                      const ArrayOfIndex& cloudbox_limits, 
+                      ConstVectorView scat_za_grid, 
+                      const Index& scat_za_index
                      )
 {
-  //Set rte_pos, rte_gp_p and rte_los to match the last point
-  //in ppath.
-  Index np = ppath_step.np;
-  //pos
-  //rte_pos.resize( atmosphere_dim );
-  //rte_pos = ppath_step.pos(np-1,Range(0,atmosphere_dim));
-  //los
-  Vector rte_los;
-  rte_los.resize( ppath_step.los.ncols() );
-  rte_los = ppath_step.los(np-1,joker);
-  //gp_p
-  //gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
-  const Index   nf = f_grid.nelem();
-  
-  surface_los.resize( 1, rte_los.nelem() );
-  
-  surface_emission.resize( nf, stokes_dim );
-  surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
-
-  chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
   chk_not_empty( "surface_prop_agenda", surface_prop_agenda );
 
-  // OLE: FIXME commented out for now, needs additional input
-//  iy_surface_agendaExecute(iy, iy_surface_agenda, true);
+  Matrix iy; 
   
-    /*
+  // Local output of surface_prop_agenda.
+  Matrix surface_emission;
+  Matrix surface_los; 
+  Tensor4 surface_rmatrix;
 
-  Modify code below !!!
-  You need to include *iy* as function output argument.
-  Ask me (Patrick) for what has to be done
 
-  // Check returned variables
-  if( surface_emission.nrows() != f_grid.nelem()  ||  
-  surface_emission.ncols() != stokes_dim )
-  throw runtime_error(
-  "The size of the created *surface_emission* is not correct.");
+  //Set rte_pos, rte_gp_p and rte_los to match the last point
+  //in ppath.
+  
+  Index np = ppath_step.np;
+  
+  Vector rte_los; 
+  rte_los.resize( ppath_step.los.ncols() );
+  rte_los = ppath_step.los(np-1,joker);
+  
+  GridPos dummy_ppath_step_gp_lat;
+  GridPos dummy_ppath_step_gp_lon;
+  
+  //Execute the surface_prop_agenda which gives the surface 
+  //parameters.
+  
+  surface_prop_agendaExecute(surface_emission, surface_los, 
+                             surface_rmatrix, ppath_step.gp_p[np-1],
+                             dummy_ppath_step_gp_lat, 
+                             dummy_ppath_step_gp_lon, rte_los,
+                             surface_prop_agenda, true);
+  
+  iy = surface_emission;
 
+  Vector rtmp(stokes_dim); // Reflected Stokes vector for 1 frequency
   Index nlos = surface_los.nrows();
-
-  // Define a local vector doit_i_field_sum which adds the 
-  // products of groudnd_refl_coeffs with the downwelling 
-  // radiation for each elements of surface_los
-  Vector doit_i_field_sum(stokes_dim,0);
-  // Loop over the surface_los elements
-  for( Index ilos=0; ilos < nlos; ilos++ )
-  {
-  if( stokes_dim == 1 )
-  {
-  doit_i_field_sum[0] += surface_refl_coeffs(ilos,f_index,0,0) *
-  doit_i_field(cloudbox_limits[0],
-  0, 0,
-  (scat_za_grid.nelem() -1 - scat_za_index), 0,
-  0);
-  }
-  else 
-  {
-  Vector stokes_vec2(stokes_dim);
-  mult( stokes_vec2, 
-  surface_refl_coeffs(ilos,0,joker,joker), 
-  doit_i_field(cloudbox_limits[0],
-  0, 0,
-  (scat_za_grid.nelem() -1 - scat_za_index), 0,
-  joker));
-  for( Index is=0; is < stokes_dim; is++ )
-  { 
-  doit_i_field_sum[is] += stokes_vec2[is];
-  }
-                  
-  }
-  }
-  // Copy from *doit_i_field_sum* to *doit_i_field*, and add the surface emission
-  for( Index is=0; is < stokes_dim; is++ )
-  {
-  doit_i_field (cloudbox_limits[0],
-  0, 0,
-  scat_za_index, 0,
-  is) = doit_i_field_sum[is] + surface_emission(f_index,is);
-  }
-  // now the RT is done to the next point in the path.
-  // 
-  Vector stokes_vec_local;
-  stokes_vec_local = doit_i_field (cloudbox_limits[0],
-  0, 0,
-  scat_za_index, 0,
-  joker);
+  
+  if( nlos > 0 )
+    {
+      for( Index ilos=0; ilos<nlos; ilos++ )
+        {
           
-  for( Index k= ppath_step.np-1; k > 0; k--)
-  {
-  // Length of the path between the two layers.
-  Numeric l_step = ppath_step.l_step[k-1];
-  // Average temperature
-  rte_temperature =   0.5 * (t_int[k] + t_int[k-1]);
+          mult( rtmp, 
+                surface_rmatrix(ilos,f_index,joker,joker), 
+                doit_i_field(cloudbox_limits[0], 0, 0,
+                             (scat_za_grid.nelem() -1 - scat_za_index), 0,
+                             joker) );
+          iy(f_index,joker) += rtmp;
           
-  //
-  // Average pressure
-  rte_pressure = 0.5 * (p_int[k] + p_int[k-1]);
-           
-  //
-  // Average vmrs
-  for (Index i = 0; i < N_species; i++)
-  {
-  rte_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
-  vmr_list_int(i,k-1));
-  }
-  //
-  // Calculate scalar gas absorption and add it to abs_vec 
-  // and ext_mat.
-  //
-              
-  // FIXME: Convert to new agenda scheme before using
-  //scalar_gas_absorption_agenda.execute(true);
-              
-  opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
-                              opt_prop_gas_agenda, true);
-              
-  //
-  // Add average particle extinction to ext_mat. 
-  //
-  for (Index i = 0; i < stokes_dim; i++)
-  {
-  for (Index j = 0; j < stokes_dim; j++)
-  {
-  ext_mat(0,i,j) += 0.5 *
-  (ext_mat_int(i,j,k) + ext_mat_int(i,j,k-1));
-  }
-                  
-          
-  //
-  //
-  // Add average particle absorption to abs_vec.
-  //
-  abs_vec(0,i) += 0.5 * 
-  (abs_vec_int(i,k) + abs_vec_int(i,k-1));
-                  
-  //
-  // Averaging of sca_vec:
-  //
-  sca_vec_av[i] =  0.5 *
-  (sca_vec_int(i, k) + sca_vec_int(i, k-1));
-                  
-  }
-  // Frequency
-  Numeric f = f_grid[f_index];
-  //
-  // Calculate Planck function
-  //
-  Numeric rte_planck_value = planck(f, rte_temperature);
-              
-  assert (!is_singular( ext_mat(0,joker,joker)));
-              
-  // Radiative transfer step calculation. The Stokes vector
-  // is updated until the considered point is reached.
-  rte_step_std(stokes_vec_local, ext_mat(0,joker,joker), 
-  abs_vec(0,joker), 
-  sca_vec_av, l_step, rte_planck_value);
-  }// End of loop over ppath_step.
-  // Assign calculated Stokes Vector to doit_i_field. 
-  doit_i_field(p_index - cloudbox_limits[0],
-  0, 0,
-  scat_za_index, 0,
-  joker) = stokes_vec_local;
-  */  
+          doit_i_field(cloudbox_limits[0], 0, 0,
+                       scat_za_index, 0,
+                       joker) = iy(0, joker);
+        }
+    }  
 }
 
 

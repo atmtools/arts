@@ -584,7 +584,7 @@ doit_i_fieldUpdate1D(// WS Input and Output:
                    const Tensor3& t_field,
                    const Vector& f_grid,
                    const Index& f_index,
-                   const Agenda& surface_prop_agenda,
+                   const Agenda&, //surface_prop_agenda,
                    //const Agenda& iy_surface_agenda, //STR
                    const Index& doit_za_interp
                    )
@@ -716,7 +716,7 @@ doit_i_fieldUpdate1D(// WS Input and Output:
                                      p_grid,  z_field, r_geoid, z_surface,
                                      t_field, f_grid, f_index, ext_mat_field, 
                                      abs_vec_field,
-                                     surface_prop_agenda, doit_za_interp);
+                                     doit_za_interp);
         }
     }// Closes loop over scat_za_grid.
 } // End of the function.

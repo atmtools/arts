@@ -84,6 +84,7 @@ AgendaSet(iy_space_agenda){
 AgendaSet(surface_prop_agenda){
   InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
   surfaceBlackbody{}
+  Ignore(rte_los){}  
 }
 
 AgendaSet(scalar_gas_absorption_agenda){

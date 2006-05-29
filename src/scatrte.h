@@ -109,7 +109,7 @@ void cloud_ppath_update1D_noseq(
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-                          const Agenda& surface_prop_agenda,
+                          //const Agenda& surface_prop_agenda,
                           //const Agenda& iy_surface_agenda, 
                           const Index& scat_za_interp
                           );
@@ -200,16 +200,16 @@ void cloud_RT_no_background(//Output
                             const Index& scat_aa_index);
 
 void cloud_RT_surface(//Output
-                      Matrix& iy,
-                      Matrix& surface_emission,
-                      Matrix& surface_los,
-                      Tensor4& surface_rmatrix,
+                      Tensor6View doit_i_field,
                       //Input
                       const Agenda& surface_prop_agenda,
-                      const Agenda& iy_surface_agenda,
-                      const Vector& f_grid,
+                      const Index& f_index,
                       const Index& stokes_dim,
-                      const Ppath& ppath_step);
+                      const Ppath& ppath_step,
+                      const ArrayOfIndex& cloudbox_limits, 
+                      ConstVectorView scat_za_grid, 
+                      const Index& scat_za_index
+                      );
 
 
 void ppath_step_in_cloudbox(Ppath& ppath_step,

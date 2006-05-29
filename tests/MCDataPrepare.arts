@@ -87,6 +87,7 @@ filename="data/z_surface.xml.generated"
 AgendaSet(surface_prop_agenda){
   InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
   surfaceBlackbody{}
+  Ignore(rte_los){}  
 }
 
 gas_abs_lookupInit{
