@@ -1,3 +1,15 @@
+2006-05-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1104
+
+	* tests/simpleClearSky.arts: Started on this. Not yet an active
+	test.
+
+	* src/m_rte.cc (RteCalc): Some cosmetic changes.
+
+	* src/m_abs_o2_models.cc: Changed some & to \& in function headers
+	to avoid latex problems.
+
 2006-05-29  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1103

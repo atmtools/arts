@@ -105,9 +105,6 @@ void RteCalc(
    const ArrayOfArrayOfIndex&        jacobian_indices )
 
 {
-  ArrayOfTensor4 diy_dvmr;
-  ArrayOfTensor4 diy_dt;
-
   // Some sizes
   const Index nf      = f_grid.nelem();
   const Index nmblock = sensor_pos.nrows();
@@ -262,17 +259,19 @@ void RteCalc(
 
   //--- Init Jacobian part ----------------------------------------------------
 
-  ArrayOfIndex rte_do_vmr_jacs (0);
-  Index rte_do_t_jacs = 0;
+  ArrayOfIndex     rte_do_vmr_jacs (0);
+  Index            rte_do_t_jacs = 0;
+  ArrayOfTensor4   diy_dvmr;
+  ArrayOfTensor4   diy_dt;
 
-  ArrayOfIndex    jqi_vmr(0);         // Index in jacobian_quantities of VMRs
-  ArrayOfIndex    ji0_vmr(0);         // Start index in jacobian for anal. VMRs
-  ArrayOfIndex    jin_vmr(0);         // Length of x for anal. VMRs
-  Index           jqi_t = 0;          // As above, but for temperature
-  Index           ji0_t = 0;        
-  Index           jin_t = 0;
-  ArrayOfMatrix   ib_vmr_jacs(0);     // Correspondance to *ib* for VMR jac.
-  Matrix          ib_t_jacs(0,0);     // Correspondance to *ib* for t jac.
+  ArrayOfIndex     jqi_vmr(0);        // Index in jacobian_quantities of VMRs
+  ArrayOfIndex     ji0_vmr(0);        // Start index in jacobian for anal. VMRs
+  ArrayOfIndex     jin_vmr(0);        // Length of x for anal. VMRs
+  Index            jqi_t = 0;         // As above, but for temperature
+  Index            ji0_t = 0;        
+  Index            jin_t = 0;
+  ArrayOfMatrix    ib_vmr_jacs(0);    // Correspondance to *ib* for VMR jac.
+  Matrix           ib_t_jacs(0,0);    // Correspondance to *ib* for t jac.
 
   for( Index i=0; i<jacobian_quantities.nelem(); i++ )
     {

@@ -1044,7 +1044,7 @@ static const Numeric V[] ={	  0, 0.0079, -0.0978,  0.0844, -0.1273,
            P. W. Rosenkranz, Chapter 2: <i>Absorption of Microwaves by 
            Atmospheric Gases</i>, in M. A. Janssen (editor), 
            <i>Atmospheric Remote Sensing by Microwave Radiometry</i>,
-           John Wiley & Sons, Inc., 1993.
+           John Wiley \& Sons, Inc., 1993.
            </li>
            <li>
            P. W. Rosenkranz, <i>Interference coefficients for the 
@@ -1510,7 +1510,7 @@ Index absPWRO2Model(// WS Output:
               P. W. Rosenkranz, Chapter 2: <i>Absorption of Microwaves by 
                Atmospheric Gases</i>, in M. A. Janssen (editor), 
                <i>Atmospheric Remote Sensing by Microwave Radiometry</i>,
-               John Wiley & Sons, Inc., 1993.
+               John Wiley \& Sons, Inc., 1993.
                </li>
                <li>
                P. W. Rosenkranz, <i>Interference coefficients for the 
@@ -1593,7 +1593,7 @@ Index absPWRO2Model(// WS Output:
               P. W. Rosenkranz, Chapter 2: <i>Absorption of Microwaves by 
                Atmospheric Gases</i>, in M. A. Janssen (editor), 
                <i>Atmospheric Remote Sensing by Microwave Radiometry</i>,
-               John Wiley & Sons, Inc., 1993.
+               John Wiley \& Sons, Inc., 1993.
               </li>
               <li>
               P. W. Rosenkranz, <i>Interference coefficients for the 
