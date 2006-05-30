@@ -3498,6 +3498,23 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME("MCIPA"),
+        DESCRIPTION
+        ("A specialised 3D reversed Monte Carlo radiative algorithm, that \n"
+         "mimics independent pixel appoximation simulations .  Probably temporary."),
+        OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_, mc_antenna_ ),
+        INPUT( f_grid_, sensor_pos_, sensor_los_, stokes_dim_, iy_space_agenda_,
+               surface_prop_agenda_, opt_prop_gas_agenda_, 
+               scalar_gas_absorption_agenda_, ppath_step_agenda_, p_grid_, lat_grid_, lon_grid_, 
+               z_field_, r_geoid_, z_surface_, t_field_, vmr_field_, 
+               cloudbox_limits_, pnd_field_, scat_data_mono_, mc_seed_, mc_unit_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "std_err", "max_time", "max_iter", "z_field_is_1D"),
+        TYPES( Numeric_t, Index_t, Index_t, Index_t)));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME("MCSetSeedFromTime"),
         DESCRIPTION
         ("Sets the value of mc_seed from system time"),

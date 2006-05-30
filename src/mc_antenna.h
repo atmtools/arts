@@ -50,6 +50,9 @@ typedef enum{
     ATYPE_LOOKUP = 3
     } AType;
 
+//! An Antenna object used by MCGeneral
+/*! This class provides the means of sampling various types of 2D antenna
+functions.. */ 
 class MCAntenna {
       AType atype;
       Numeric sigma_aa,sigma_za;

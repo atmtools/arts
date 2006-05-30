@@ -1,3 +1,22 @@
+2006-05-30  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1105
+
+	* src/methods.cc (define_md_data_raw): Added MCIPA.
+
+	* src/montecarlo.cc (clear_atm_vars_at_ppath_end_IPA): Added. Used
+	by MCIPA to get optical properties along the original photon path.
+	(cloudy_atm_vars_at_ppath_end_IPA): ditto.
+	(mcPathTraceIPA): modified IPA path tracing.
+
+	* src/m_montecarlo.cc (MCIPA): Added.  This is a very temporary
+	WSM designed to answer a specific question - to what extent is the
+	difference between 1D and 3D caused by actual 3D RT effects
+	(i.e. transverse photon propagation). This WSM is a modified
+	version of MCGeneral that actually performs an independent pixel
+	approximation, by keeping the photons in the initial line of sight
+	(but still integrating over the antenna pattern).
+
 2006-05-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-1104

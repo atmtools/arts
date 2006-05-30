@@ -37,6 +37,22 @@ void clear_atm_vars_at_ppath_end(
                            const ConstVectorView         lon_grid,
                            const ConstTensor3View   t_field,
                            const ConstTensor4View   vmr_field);
+
+void clear_atm_vars_at_ppath_end_IPA(
+                           MatrixView&              ext_mat_mono,
+                           VectorView&              abs_vec_mono,
+                           Numeric&                 temperature,
+                           const Agenda&            opt_prop_gas_agenda,
+                           const Agenda&            scalar_gas_absorption_agenda,
+                           //                           const Index& stokes_dim,
+                           const Ppath& ppath,
+                           const ConstVectorView    p_grid,
+                           const ConstVectorView    lat_grid,
+                           const ConstVectorView    lon_grid,
+                           const ConstTensor3View   t_field,
+                           const ConstTensor4View   vmr_field,
+                           const Ppath&             ppath_ipa);
+
 void clear_atm_vars_by_gp(
                           VectorView pressure,
                           VectorView temperature,
@@ -69,6 +85,26 @@ void cloudy_atm_vars_at_ppath_end(
                            const ArrayOfSingleScatteringData& scat_data_mono,
                            const ArrayOfIndex& cloudbox_limits //added by (CE)
                            );
+
+void cloudy_atm_vars_at_ppath_end_IPA(
+              MatrixView&                        ext_mat_mono,
+              VectorView&                        abs_vec_mono,
+              VectorView&                        pnd_vec,
+              Numeric&                           temperature,
+              const Agenda&                      opt_prop_gas_agenda,
+              const Agenda&                      scalar_gas_absorption_agenda,
+              const Index&                       stokes_dim,
+              const Ppath&                       ppath,
+              const ConstVectorView              p_grid_cloud,
+              const ConstVectorView              lat_grid_cloud,
+              const ConstVectorView              lon_grid_cloud,
+              const ConstTensor3View             t_field_cloud,
+              const ConstTensor4View             vmr_field_cloud,
+              const Tensor4&                     pnd_field,
+              const ArrayOfSingleScatteringData& scat_data_mono,
+              const ArrayOfIndex&                cloudbox_limits, //added by (CE)
+              const Ppath&                       ppath_ipa
+              );
 
 void cloud_atm_vars_by_gp(
                           VectorView pressure,
@@ -246,6 +282,37 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
                         const Tensor4&        pnd_field,
                         const ArrayOfSingleScatteringData& scat_data_mono,
                         const Index&          z_field_is_1D);
+
+void mcPathTraceIPA(MatrixView&           evol_op,
+                    Vector&               abs_vec_mono,
+                    Numeric&              temperature,
+                    MatrixView&           ext_mat_mono,
+                    Rng&                  rng,
+                    Vector&               rte_pos,
+                    Vector&               rte_los,
+                    Vector&               pnd_vec,
+                    Numeric&              g,
+                    Ppath&                ppath_step,
+                    Index&                termination_flag,
+                    bool&                 inside_cloud,
+                    //Numeric&              rte_pressure,
+                    //Vector&               rte_vmr_list,
+                    const Agenda&         opt_prop_gas_agenda,
+                    const Agenda&         scalar_gas_absorption_agenda,
+                    const Index&          stokes_dim,
+                    const Vector&         p_grid,
+                    const Vector&         lat_grid,
+                    const Vector&         lon_grid,
+                    const Tensor3&        z_field,
+                    const Matrix&         r_geoid,
+                    const Matrix&         z_surface,
+                    const Tensor3&        t_field,
+                    const Tensor4&        vmr_field,
+                    const ArrayOfIndex&   cloudbox_limits,
+                    const Tensor4&        pnd_field,
+                    const ArrayOfSingleScatteringData& scat_data_mono,
+                    const Index&          z_field_is_1D,
+                    const Ppath&          ppath);
 
 void montecarloGetIncoming(
                            Matrix&               iy,
