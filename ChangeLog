@@ -1,3 +1,19 @@
+2006-05-31  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1106
+	
+	The surface is fixed now for DOIT-1D calculations.
+	A few checks are still missing. The current implemetation 
+	works only if a pressure level (cloudbox_limits[0])
+	corresponds to z_surface. I would like to leave it like this,
+	because in 1D one can always insert a pressure level
+	at the gound altitude. 
+	
+	* src/scatrte.cc (cloud_ppath_update1D): Small correction in
+	surface part. 
+
+	* src/rte.cc (surfaceCalc): Initialized ppath_array_index.
+	
 2006-05-30  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1105

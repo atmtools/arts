@@ -814,6 +814,8 @@ void surfaceCalc(
                        "Mismatch in size of *surface_emission* and f_grid*." );
   //---------------------------------------------------------------------------
 
+  ppath_array_index=0;
+
 
   // Variables to hold downvelling radiation
   Tensor3   I( nlos, nf, stokes_dim );

@@ -348,33 +348,28 @@ void cloud_ppath_update1D(
       // if there is no background we proceed the RT
       Index bkgr = ppath_what_background(ppath_step);
 
-      
-      // if 0, there is no background
-      if (bkgr == 0)
-        {
-          // Radiative transfer from one layer to the next, starting
-          // at the intersection with the next layer and propagating
-          // to the considered point.
-          cloud_RT_no_background(doit_i_field, 
-                                 scalar_gas_absorption_agenda,
+      // Radiative transfer from one layer to the next, starting
+      // at the intersection with the next layer and propagating
+      // to the considered point.
+      cloud_RT_no_background(doit_i_field, 
+                             scalar_gas_absorption_agenda,
                                  opt_prop_gas_agenda, ppath_step, 
-                                 t_int, vmr_list_int,
-                                 ext_mat_int, abs_vec_int, sca_vec_int,
+                             t_int, vmr_list_int,
+                             ext_mat_int, abs_vec_int, sca_vec_int,
                                  doit_i_field_int,
-                                 p_int, cloudbox_limits, 
+                             p_int, cloudbox_limits, 
                                  f_grid, f_index, p_index, 0, 0,
-                                 scat_za_index, 0);
-        }// if loop end - for non_ground background
+                             scat_za_index, 0);
       
       // bkgr=2 indicates that the background is surface
-      else if (bkgr == 2)
+      if (bkgr == 2)
         {
           // cout << "hit surface "<< ppath_step.gp_p << endl;
           cloud_RT_surface(
                            doit_i_field, surface_prop_agenda, 
                            f_index, stokes_dim, ppath_step, cloudbox_limits, 
                            scat_za_grid, scat_za_index); 
-
+          
         }
       
     }//end if inside cloudbox
