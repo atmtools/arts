@@ -65,7 +65,7 @@ SUN_TEMP       = 6000.0;
 NAT_LOG_2      = 0.69314718055994;
 ATM2HPA        = 1.01325e3;                                   
 
-
+version_fixes( pwd )
 
 %=== Try to add the arts-data top folder to the search path
 %
@@ -80,3 +80,50 @@ else
     fprintf('WARNING, could not determine path of arts-data.\n');
   end
 end 
+
+%----------------------------------------------------------------------------
+
+function version_fixes( toppath )
+
+infolder  = 'obsolete';
+outfolder = 'AUTO_fixes';
+
+
+%= Get functions residing in *infolder*
+%
+D = dir( fullfile( toppath, infolder, '*.m' ) );
+
+
+%= Loop and see if function already exists
+%
+to_include = [];
+%
+for i = 1 : length(D)
+
+  [pathstr,name] = fileparts( D(i).name );
+
+  if ~strcmp(name,'Contents')  &  exist( name ) < 2
+    to_include = [ to_include i ]; 
+  end
+
+end
+
+
+if ~isempty( to_include )
+
+  %= Create or empty target folder
+  if ~exist( fullfile( toppath, outfolder ) )
+    mkdir( toppath, outfolder );
+  else
+    delete( fullfile( toppath, outfolder, '*' ) );
+  end
+
+  for i = 1 : length(to_include)
+    copyfile( fullfile( toppath, infolder,  D(to_include(i)).name) , ...
+              fullfile( toppath, outfolder, D(to_include(i)).name) )
+  end
+
+  addpath( fullfile( toppath, outfolder ) ); 
+
+end
+

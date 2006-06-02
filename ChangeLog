@@ -1,3 +1,32 @@
+2006-06-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-0-197
+
+	* Backported fix for obsolete functions from atmlab. Fixes the broken
+	plotting window in matlab version R2006a.
+
+	* Original fix by Patrick Eriksson
+
+	* ami/init.m: Included a function that copies functions
+	in /obsolete to /AUTO_fixes, if these functions not already exist.
+	The folder /AUTO_fixes is created, or cleaned, before the copying.
+
+	This fixes the problem with isscalar and isvector.
+	
+	This functionality can also be used if you want to use a function
+	that only exists in newer Matlab versions, but otherwise would work
+	with older Matlab versions. Then copy this function
+	to the /obsolete folder and everything will be fixed. However, make
+	sure that te function really works with versions that can be expected
+	to be used.
+
+	* ami/obsolete/: Created this folder and moved isscalar and isvector
+	to this folder.
+	
+	* ami/.cvsignore: Created (to ignore /AUTO_fixes).
+
+	* ami/math/is{integer,scalar).m: Moved to ../obsolete.
+
 2006-05-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-0-196
