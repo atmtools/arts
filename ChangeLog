@@ -1,5 +1,17 @@
 2006-06-02  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-0-198
+
+	* ami/math/isodd.m: isinteger->iswhole.
+
+	* ami/math/iswhole.m: Added.
+
+	* ami/obsolete/isinteger.m: Removed.
+
+	* ami/obsolete: Really add this. :-)
+
+2006-06-02  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-0-197
 
 	* Backported fix for obsolete functions from atmlab. Fixes the broken

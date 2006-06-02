@@ -14,7 +14,7 @@
 
 function bool = isodd(n)
 
-if ~isinteger(n)
+if ~iswhole(n)
   error('The given value is not an integer.');
 end
 
