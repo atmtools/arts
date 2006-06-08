@@ -541,8 +541,8 @@ void MCIPA(
               GridPos longp;
               if (ppath.background=="surface")
                 {
-                  latgp=ppath_step.gp_lat[ppath.np-1];
-                  longp=ppath_step.gp_lon[ppath.np-1];
+                  latgp=ppath.gp_lat[ppath.np-1];
+                  longp=ppath.gp_lon[ppath.np-1];
                 }
               else
                 {
