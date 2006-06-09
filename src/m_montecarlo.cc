@@ -672,6 +672,27 @@ void MCIPA(
     }
 }
 
+//!MCSetIncomingEmpty
+/*!
+
+    Sets mc_incoming to be empty.  This is needed when using ScatteringMonteCarlo
+    incoming_lookup=0
+
+   \author Cory Davis
+   \date   2006-06-9
+*/
+
+void MCSetIncomingEmpty(
+                        SLIData2& mc_incoming
+                        )
+
+{
+  mc_incoming.x1a.resize(0);
+  mc_incoming.x2a.resize(0);
+  mc_incoming.ya.resize(0);
+}
+
+
 //! MCSetSeedFromTime
 /*!
 
@@ -724,7 +745,6 @@ void ScatteringMonteCarlo (
                            //Other Stuff
                            Tensor3&              ext_mat,
                            Matrix&               abs_vec,
-                           SLIData2& mc_incoming,
                            // WS Input:
                            const Agenda&         ppath_step_agenda,
                            const Index&          atmosphere_dim,
@@ -751,6 +771,7 @@ void ScatteringMonteCarlo (
                            const Tensor4& pnd_field,
                            const Index& mc_seed,
                            const Index& f_index,
+                           const SLIData2& mc_incoming,
                            // Control Parameters:
                            const Numeric& std_err,
                            const Index& max_time,
@@ -774,6 +795,11 @@ void ScatteringMonteCarlo (
     throw runtime_error( "At least one of std_err, max_time, and max_iter must be positive" );
   }
               
+
+  //check mc_incoming
+  //if (incoming_lookup)
+  //  {mc_incoming.check();}
+
   //INTERNAL DECLARATIONS/////////////////////////////////////////////////
   Matrix identity(stokes_dim,stokes_dim,0.0); //The identity matrix
   for (Index i=0; i<stokes_dim; i++){identity(i,i)=1.0;}
@@ -833,8 +859,7 @@ void ScatteringMonteCarlo (
   //////////////////////////////////////////////////////////////////////////////
   //Calculate the clea-sky transmittance between cloud box and sensor using the
   //existing ppath.
-  Numeric transmittance=
-    exp(-opt_depth_calc(ext_mat, abs_vec, rte_pressure, rte_temperature, 
+  Numeric transmittance= exp(-opt_depth_calc(ext_mat, abs_vec, rte_pressure, rte_temperature, 
                         rte_vmr_list, ppath, opt_prop_gas_agenda,
                         scalar_gas_absorption_agenda, f_index, p_grid,
                         lat_grid, lon_grid, t_field, vmr_field,

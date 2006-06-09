@@ -64,7 +64,10 @@ public:
   //y values for every x1a, x2a
   ArrayOfVector ya;
   //performs SLI.
-  Numeric interpolate(Numeric x1, Numeric x2);
+  Numeric interpolate(Numeric x1, Numeric x2) const;
+  //checks that it is not empty
+  //void check() const;
+  
 };
 
 ostream& operator<< (ostream &os, const SLIData2 &sli);

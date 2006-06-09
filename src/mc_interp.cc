@@ -49,7 +49,7 @@
   \date 2005-02-28
 */
 
-Numeric SLIData2::interpolate(Numeric x1, Numeric x2)
+Numeric SLIData2::interpolate(Numeric x1, Numeric x2) const
 {
   GridPos gp1,gpl,gpr;
   Vector itw1(2),itwl(2),itwr(2);
@@ -68,11 +68,24 @@ Numeric SLIData2::interpolate(Numeric x1, Numeric x2)
   return itw1[0]*yl+itw1[1]*yr;
 }
 
+//void SLIData2::check() const
+//{
+//  Index nx1=this->x1a.nelem();
+//  assert(nx1>0);  
+//}
+
+
 ostream& operator<< (ostream &os, const SLIData2& /* sli */)
 {
   os << "SLIData2    : Output operator not implemented";
   return os;
 }
+
+
+
+
+
+
 
 
 

@@ -1,3 +1,21 @@
+2006-06-09  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1108
+
+	* tests/simpleMCWithIncomingLookup.arts: changed keyword argument
+	incoming_lookup to 1. 
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo): changed argument
+	pos. of mc_incoming.
+	(MCSetIncomingEmpty): Added.
+
+	* src/mc_interp.h (class SLIData2): Added "const" to interpolate desc.
+
+	* src/methods.cc: Added MCSetIncomingEmpty and moved mc_incoming
+	to INPUT for ScatteringMonteCarlo
+
+	* tests/simpleMC.arts: Added MCSetIncomingEmpty{} command.
+
 2006-06-08  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1107

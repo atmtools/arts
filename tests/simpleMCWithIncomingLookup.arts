@@ -159,7 +159,7 @@ AgendaSet( iy_cloudbox_agenda ){
     std_err=0.5
     max_time=20
     max_iter=-1
-    incoming_lookup=0
+    incoming_lookup=1
     z_field_is_1D=1
   }
 

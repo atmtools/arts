@@ -145,6 +145,7 @@ IndexSet(stokes_dim){
 value=4
 }
 
+MCSetIncomingEmpty{}
 MCSetSeedFromTime{}
 
 Print(mc_seed){

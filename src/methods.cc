@@ -3515,6 +3515,20 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME("MCSetIncomingEmpty"),
+        DESCRIPTION
+        ("Sets mc_incoming to be empty.  \n"
+         "This is needed when using ScatteringMonteCarlo with incoming_lookup=0"),
+        OUTPUT( mc_incoming_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME("MCSetSeedFromTime"),
         DESCRIPTION
         ("Sets the value of mc_seed from system time"),
@@ -4573,13 +4587,13 @@ md_data_raw.push_back
         OUTPUT(ppath_, ppath_step_, 
                mc_error_, mc_iteration_count_, rte_pos_, rte_los_, iy_, 
                rte_pressure_, rte_temperature_, 
-               rte_vmr_list_, ext_mat_, abs_vec_, mc_incoming_),
+               rte_vmr_list_, ext_mat_, abs_vec_),
         INPUT(ppath_, rte_pos_, rte_los_, ppath_step_agenda_, atmosphere_dim_, p_grid_,
               lat_grid_, lon_grid_, z_field_, r_geoid_, z_surface_,
               cloudbox_limits_, stokes_dim_, rte_agenda_, iy_space_agenda_,
               iy_surface_agenda_, t_field_, f_grid_, opt_prop_gas_agenda_,
               scalar_gas_absorption_agenda_, vmr_field_,
-              scat_data_mono_, pnd_field_, mc_seed_, f_index_ ),
+              scat_data_mono_, pnd_field_, mc_seed_, f_index_ , mc_incoming_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("std_err","max_time","max_iter","incoming_lookup","z_field_is_1D"),
