@@ -154,9 +154,9 @@ void clear_atm_vars_at_ppath_end_IPA(
   Numeric gp_diff=abs(ppath_ipa.gp_p[0].idx+ppath_ipa.gp_p[0].fd[0]-gpnum);
   for (Index i=1;i<np_ipa;i++)
     {
-      if (abs(ppath_ipa.gp_p[i].idx+ppath_ipa.gp_p[i].fd[i]-gpnum)<=gp_diff)
+      if (abs(ppath_ipa.gp_p[i].idx+ppath_ipa.gp_p[i].fd[0]-gpnum)<=gp_diff)
         {
-          gp_diff=abs(ppath_ipa.gp_p[i].idx+ppath_ipa.gp_p[i].fd[i]-gpnum);
+          gp_diff=abs(ppath_ipa.gp_p[i].idx+ppath_ipa.gp_p[i].fd[0]-gpnum);
           i_closest=i;
         }
       else
@@ -419,9 +419,9 @@ void cloudy_atm_vars_at_ppath_end_IPA(
   Numeric gp_diff=abs(ppath_ipa.gp_p[0].idx+ppath_ipa.gp_p[0].fd[0]-gpnum);
   for (Index i=1;i<np_ipa;i++)
     {
-      if (abs(ppath_ipa.gp_p[i].idx+ppath_ipa.gp_p[i].fd[i]-gpnum)<=gp_diff)
+      if (abs(ppath_ipa.gp_p[i].idx+ppath_ipa.gp_p[i].fd[0]-gpnum)<=gp_diff)
         {
-          gp_diff=abs(ppath_ipa.gp_p[i].idx+ppath_ipa.gp_p[i].fd[i]-gpnum);
+          gp_diff=abs(ppath_ipa.gp_p[i].idx+ppath_ipa.gp_p[i].fd[0]-gpnum);
           i_closest=i;
         }
       else

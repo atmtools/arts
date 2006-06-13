@@ -1,3 +1,11 @@
+2006-06-13  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1109
+	
+	* src/montecarlo.cc (cloudy_atm_vars_at_ppath_end_IPA): fixed bug
+	in finding the corresponding point on original line of sight.
+	(clear_atm_vars_at_ppath_end_IPA): Same bug here too.
+
 2006-06-09  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1108
