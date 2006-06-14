@@ -370,6 +370,15 @@ void define_wsv_data()
         ), 
        GROUP( GasAbsLookup_ )));
 
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "abs_lookup_t_pert" ),
+       DESCRIPTION
+       (
+        "Vector containing the temperature perturbations for the abs lookup table.\n"
+        ), 
+       GROUP( Vector_ )));
+
   // New name: abs_lookup_is_adapted
   wsv_data.push_back
     (WsvRecord

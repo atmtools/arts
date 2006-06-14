@@ -1801,6 +1801,28 @@ void n2_absSet(
 }
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   /author Oliver Lemke
+   /date 2006-05-16
+*/
+void AbsInputFromAtmFields (// WS Output:
+                            Vector& abs_p,
+                            Vector& abs_t,
+                            Matrix& vmrs,
+                            // WS Input:
+                            const Vector&  p_grid,
+                            const Tensor3& t_field,
+                            const Tensor4& vmr_field
+                           )
+{
+  abs_p = p_grid;
+  abs_t = t_field (joker, 0, 0);
+  vmrs = vmr_field (joker, joker, 0, 0);
+}
+
+
 /** Calculates the absorption coefficients by first calculating the
    cross sections per tag group and then the absorption from the cross
    sections.
@@ -2744,20 +2766,5 @@ void cont_descriptionAppend(// WS Output:
   cont_description_names.push_back(tagname);
   cont_description_models.push_back(model);
   cont_description_parameters.push_back(userparameters);
-}
-
-void AbsInputFromAtmFields (// WS Output:
-                            Vector& abs_p,
-                            Vector& abs_t,
-                            Matrix& vmrs,
-                            // WS Input:
-                            const Vector&  p_grid,
-                            const Tensor3& t_field,
-                            const Tensor4& vmr_field
-             )
-{
-  abs_p = p_grid;
-  abs_t = t_field (joker, 0, 0);
-  vmrs = vmr_field (joker, joker, 0, 0);
 }
 

@@ -708,6 +708,21 @@ void define_md_data_raw()
         KEYWORDS( ),
         TYPES( )));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("abs_lookupCreate"),
+        DESCRIPTION
+        (
+         "Creates a gas absorption lookup table."
+        ),
+        OUTPUT( gas_abs_lookup_ ),
+        INPUT( gas_species_, f_grid_, p_grid_, vmrs_, abs_t_,
+               abs_lookup_t_pert_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
   // New name: abs_lookupInit
   md_data_raw.push_back     
     ( MdRecord

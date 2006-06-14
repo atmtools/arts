@@ -1,3 +1,39 @@
+2006-05-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1110
+
+	* doc/uguide/agendas.tex:
+
+	Temporarely added description of agendas.
+	This file will be merged with development.tex.
+
+	* doc/uguide/development.tex:
+
+	Revised paragraphs about numeric and container types.
+
+	Removed colons from the end of section titles.
+
+	* doc/uguide/uguide.tex:
+
+	Replaced all the disturbing link colors (red, bright green, purple)
+	with a dark red which is more pleasant on the eyes but still easy to
+	recognize.
+
+	Fill pdf author field.
+
+	* configure.in: Commented out MPI.
+
+	* src/m_abs.cc (AbsInputFromAtmFields):
+
+	Match doxygen comment with other WSMs. And move the function to a
+	better place.
+
+	* workspace.cc: Added abs_lookup_t_pert.
+
+	* methods.cc: Added abs_lookupCreate.
+
+	* src/m_abs_lookup.cc (abs_lookupCreate): Added skeleton.
+
 2006-06-13  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1109
@@ -106,7 +142,7 @@
 	* tests/MCDataPrepare.arts
 	* tests/simpleMCGeneral.arts
 	* tests/simpleMCGeneralGaussian.arts
-	
+
 2006-05-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1102

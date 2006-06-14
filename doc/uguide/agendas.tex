@@ -1,7 +1,7 @@
 
-\chapter{Agendas}
+\chapter{The workspace}
 %-------------------------------
-\label{sec:agendas}
+\label{sec:workspace}
 
 \starthistory
   020605 & Created by Stefan Buehler.\\
@@ -59,7 +59,7 @@ generated:
   Generated from \artsstyle{auto\_wsv\_groups.h} and \artsstyle{workspace.cc}. 
 \item \fileindex{auto\_md.h}, \fileindex{auto\_md.cc}:\\
   Generated from \artsstyle{auto\_wsv\_groups.h},
-  \artsstyle{auto\_wsv.h}, and \artsstyle{methods.cc}.
+  \artsstyle{auto\_wsv.h}, \artsstyle{agendas.cc}, and \artsstyle{methods.cc}.
 \end{itemize}
 This is achieved by a set of simple C++ programs:
 \begin{itemize}
@@ -323,15 +323,47 @@ get more information on this method. (See section
 \subsection{Agenda WSMs}
 %---------------------------------
 
-
 \section{Agendas}
 %--------------------------
 \label{sec:agendas:agendas}
 
+\subsection{Introduction}
+Agendas are a special incarnation of a WSM. At runtime an arbitrary
+number of WSMs can be added to an agenda. On invocation, the agenda
+will execute its methods one after the other. The inputs and outputs
+defined for the agenda must be satisfied by the invoked WSMs. E.g., if
+an agenda has \artsstyle{f\_grid} in its list of output WSVs, a WSM
+which generates \artsstyle{f\_grid} must be added to the agenda in the
+control file.
 
-\section{ARTS online documentation}
-%---------------------------------
-\label{sec:online-docu}
+Agendas run their methods in a separate scope. Although WSMs invoked by
+an agenda have full access to all workspace variables, only the WSVs
+defined as output of the agenda will keep their values after the agenda
+execution. All other WSVs retain the values from before the agenda
+run.
+
+Even though it is possible to execute agenda directly from the control
+file with the \artsstyle{AgendaExecute} method, the more common and
+intended use case is the internal invocation by other WSMs. This adds a
+grave amount of flexibility to arts. The \artsstyle{RteStd} method for
+example calculates (besides other components) the emission term. Without
+the means of an agenda, it would only be possible to use always the same
+method for the emission calculation. By the use of an agenda the user
+can choose between different methods to calculate the emission and plug
+them into the emission agenda in the control file:
+
+{\small
+\begin{verbatim}
+AgendaSet(emission_agenda){
+  emissionPlanck{}
+}
+\end{verbatim}
+}
+
+
+%\section{ARTS online documentation}
+%%---------------------------------
+%\label{sec:online-docu}
 
 
 %%% Local Variables: 

@@ -31,6 +31,21 @@ void gas_abs_lookupInit(GasAbsLookup& /* x */)
 }
 
 
+//! Creates a gas absorption lookup table.
+void abs_lookupCreate(// WS Output:
+                      GasAbsLookup& gal,
+                      // WS Input:
+                      const ArrayOfArrayOfSpeciesTag& gas_species,
+                      const Vector& f_grid,
+                      const Vector& p_grid,
+                      const Matrix& vmrs,
+                      const Vector& abs_t,
+                      const Vector& abs_lookup_t_pert
+                     )
+{
+}
+
+
 void gas_speciesAdd(// WS Output:
                     ArrayOfArrayOfSpeciesTag& gas_species,
                     // Control Parameters:
