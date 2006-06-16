@@ -68,9 +68,10 @@ class MCAntenna {
       void set_lookup (ConstVectorView& za_grid,
                        ConstVectorView& aa_grid,
                        ConstMatrixView& G_lookup);
+      AType get_type(void) const;      
       void draw_los(VectorView& sampled_rte_los,
                     Rng& rng,
-                    ConstVectorView bore_sight_los);
+                    ConstVectorView bore_sight_los) const;
 };
 
 ostream& operator<< (ostream &os, const MCAntenna &mca);

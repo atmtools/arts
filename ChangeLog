@@ -1,3 +1,27 @@
+2006-06-16  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1111
+
+	* src/ppath.cc (ppath_start_stepping): modified the call to assert
+	which didn't let you call ppathcalc looking into the cloud from
+	the cloudbox boundary.
+
+	* src/workspace.cc (define_wsv_data): Added WSV particle_masses,
+	which is a vector holding the mass of each particle type.
+
+	* src/montecarlo.cc (iwp_cloud_opt_pathCalc): Added calculates the
+	cloud optical path and the ice water path for a given line of sight.
+
+	* src/methods.cc (define_md_data_raw): Added mc_IWP_cloud_opt_pathCalc.
+
+	* src/m_montecarlo.cc (mc_IWP_cloud_opt_pathCalc):
+	Added. calculates the FOV averaged cloud optical path and the FOV
+	averaged ice water path.
+
+	* src/mc_antenna.{cc,h} (get_type): Added. Simply returns the antenna
+	type (ATYPE_PENCIL_BEAM, ATYPE_GAUSSIAN, ATYPE_LOOKUP)
+	(draw_los): Added const to the function desc.
+
 2006-05-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1110

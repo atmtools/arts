@@ -1657,6 +1657,32 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "mc_cloud_opt_path" ),
+       DESCRIPTION
+       (
+        "The cloud optical path integrated over the field of view"
+        
+        "\n"
+        "\n"
+        "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
+        ), 
+       GROUP( Numeric_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_cloud_opt_path_error" ),
+       DESCRIPTION
+       (
+        "standrad error in the cloud optical path integrated over the field of view"
+        
+        "\n"
+        "\n"
+        "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
+        ), 
+       GROUP( Numeric_ )));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "mc_error" ),
        DESCRIPTION
        (
@@ -1699,6 +1725,32 @@ void define_wsv_data()
         "Usage: Set by ScatteringMonteCarlo.\n"
         ),
        GROUP( Index_)));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_IWP" ),
+       DESCRIPTION
+       (
+        "The ice water path integrated over the field of view"
+        
+        "\n"
+        "\n"
+        "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
+        ), 
+       GROUP( Numeric_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_IWP_error" ),
+       DESCRIPTION
+       (
+        "The standard error of ice water path integrated over the field of view"
+        
+        "\n"
+        "\n"
+        "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
+        ), 
+       GROUP( Numeric_ )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1920,6 +1972,17 @@ void define_wsv_data()
        "\n"
        ),
       GROUP( String_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "particle_masses" ),
+      DESCRIPTION
+      (
+       "Output file format.The mass of each particle type stored in a vector \n"
+       "\n"
+       "Usage: Set by the user"
+       ),
+      GROUP( Vector_ )));
 
     wsv_data.push_back
    (WsvRecord

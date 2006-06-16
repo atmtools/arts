@@ -69,6 +69,82 @@ extern const Numeric SPEED_OF_LIGHT;
   ===========================================================================*/
 
 
+void mc_IWP_cloud_opt_pathCalc(
+                         //output
+                         Numeric& mc_IWP,
+                         Numeric& mc_cloud_opt_path,
+                         Numeric& mc_IWP_error,
+                         Numeric& mc_cloud_opt_path_error,
+                         Index&                mc_iteration_count,
+                         //input
+                         const MCAntenna&      mc_antenna,
+                         const Matrix&         sensor_pos,
+                         const Matrix&         sensor_los,
+                         const Agenda&         ppath_step_agenda,
+                         const Vector&         p_grid,
+                         const Vector&         lat_grid, 
+                         const Vector&         lon_grid, 
+                         const Matrix&         r_geoid, 
+                         const Matrix&         z_surface,
+                         const Tensor3&        z_field, 
+                         const Tensor3&        t_field, 
+                         const Tensor4&        vmr_field, 
+                         const ArrayOfIndex&   cloudbox_limits, 
+                         const Tensor4&        pnd_field,
+                         const ArrayOfSingleScatteringData& scat_data_mono,
+                         const Vector& particle_masses,
+                         const Index&          mc_seed,
+                         //Keyword params
+                         const Index&          max_iter
+                         )
+{
+  //if antenna is pencil beam jsut need a single path integral, otherwise
+  //for now do monte carlo integration
+  if (mc_antenna.get_type()==ATYPE_PENCIL_BEAM)
+    {
+      iwp_cloud_opt_pathCalc(mc_IWP,mc_cloud_opt_path,sensor_pos(0,joker),
+                             sensor_los(0,joker),
+                             ppath_step_agenda,p_grid,lat_grid,lon_grid,
+                             r_geoid,z_surface,z_field,t_field,vmr_field,cloudbox_limits,
+                             pnd_field,scat_data_mono,particle_masses);
+    }
+  else
+    {
+      Numeric iwp,cloud_opt_path;
+      Numeric iwp_squared=0;
+      Numeric tau_squared=0;
+      mc_iteration_count=0;
+      mc_IWP=0;
+      mc_cloud_opt_path=0;
+      Vector local_rte_los(2);
+      Rng rng;
+      rng.seed(mc_seed);
+      //Begin Main Loop
+      while (mc_iteration_count<max_iter)
+        {
+          mc_antenna.draw_los(local_rte_los,rng,sensor_los(0,joker));
+          mc_iteration_count+=1;
+          iwp_cloud_opt_pathCalc(iwp,cloud_opt_path,sensor_pos(0,joker),local_rte_los,
+                                 ppath_step_agenda,p_grid,lat_grid,lon_grid,
+                                 r_geoid,z_surface,z_field,t_field,vmr_field,
+                                 cloudbox_limits,
+                                 pnd_field,scat_data_mono,particle_masses);
+          mc_IWP+=iwp;
+          iwp_squared+=iwp*iwp;
+          mc_cloud_opt_path+=cloud_opt_path;
+          tau_squared+=cloud_opt_path*cloud_opt_path;
+        }
+      mc_IWP/=mc_iteration_count;
+      mc_cloud_opt_path/=mc_iteration_count;
+      mc_IWP_error=sqrt((iwp_squared/mc_iteration_count-mc_IWP*mc_IWP)
+                        /mc_iteration_count);
+      mc_cloud_opt_path_error=sqrt((tau_squared/mc_iteration_count-
+                                    mc_cloud_opt_path*mc_cloud_opt_path)
+                                   /mc_iteration_count);
+      
+    }
+
+}
 
 //! mc_errorApplySensor
 /*!
@@ -146,7 +222,7 @@ void MCGeneral(
                Index&                mc_iteration_count,
                Vector&               mc_error,
                Tensor3&              mc_points,
-               MCAntenna&            mc_antenna,
+               const MCAntenna&      mc_antenna,
                const Vector&         f_grid,
                const Matrix&         sensor_pos,
                const Matrix&         sensor_los,
@@ -180,7 +256,7 @@ void MCGeneral(
     throw runtime_error( "At least one of std_err, max_time, and max_iter must be positive" );
   }
   Ppath ppath_step;
-  Rng rng;                      //Random Nuimber generator
+  Rng rng;                      //Random Number generator
   time_t start_time=time(NULL);
   Index N_pt=pnd_field.nbooks();//Number of particle types
   Vector pnd_vec(N_pt); //Vector of particle number densities used at each point
@@ -194,6 +270,7 @@ void MCGeneral(
   bool keepgoing,inside_cloud; // flag indicating whether to stop tracing a photons path
   Numeric g,temperature,albedo,g_los_csc_theta;
   Matrix A(stokes_dim,stokes_dim),Q(stokes_dim,stokes_dim),evol_op(stokes_dim,stokes_dim),
+
     ext_mat_mono(stokes_dim,stokes_dim),q(stokes_dim,stokes_dim),newQ(stokes_dim,stokes_dim),
     Z(stokes_dim,stokes_dim);
   q=0.0;newQ=0.0;
@@ -405,7 +482,7 @@ void MCIPA(
            Index&                mc_iteration_count,
            Vector&               mc_error,
            Tensor3&              mc_points,
-           MCAntenna&            mc_antenna,
+           const MCAntenna&      mc_antenna,
            const Vector&         f_grid,
            const Matrix&         sensor_pos,
            const Matrix&         sensor_los,

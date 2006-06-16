@@ -1,5 +1,5 @@
 
-/* Copyright (C) 2003 Cory Davis <cory@met.ed.ac.uk>
+/* copyright (C) 2003 Cory Davis <cory@met.ed.ac.uk>
                             
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -1193,6 +1193,105 @@ bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono)
       i+=1;
     }
   return anyptype30;
+}
+
+//! iwp_cloud_opt_pathCalc
+/*!
+
+Calculated the ice water path(iwp) and cloud optical path (cloud_opt_path) for 
+a given sensor_pos_ and sensor_los
+
+
+\author Cory Davis
+\date 2006-6-15
+
+*/
+
+
+void iwp_cloud_opt_pathCalc(
+                            Numeric& iwp,
+                            Numeric& cloud_opt_path,
+                            //input
+                            const Vector&         rte_pos,
+                            const Vector&         rte_los,
+                            const Agenda&         ppath_step_agenda,
+                            const Vector&         p_grid,
+                            const Vector&         lat_grid, 
+                            const Vector&         lon_grid, 
+                            const Matrix&         r_geoid, 
+                            const Matrix&         z_surface,
+                            const Tensor3&        z_field, 
+                            const Tensor3&        t_field, 
+                            const Tensor4&        vmr_field, 
+                            const ArrayOfIndex&   cloudbox_limits, 
+                            const Tensor4&        pnd_field,
+                            const ArrayOfSingleScatteringData& scat_data_mono,
+                            const Vector&          particle_masses
+                            )
+{
+  //internal declarations
+  Ppath ppath,ppath_step;
+  Vector local_rte_pos=rte_pos;
+  Vector local_rte_los=rte_los;
+  iwp=0;
+  cloud_opt_path=0;
+  //calculate ppath to cloudbox boundary
+  ppath_calc( ppath, ppath_step, ppath_step_agenda, 3, 
+              p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+              1, cloudbox_limits, local_rte_pos, local_rte_los, 1 );
+  //if this ppath hit a cloud, now take ppath inside cloud
+  if (ppath_what_background(ppath)>2)
+    {
+      //move to the intersection of the cloudbox boundary and the 
+      //propagation path
+      local_rte_pos=ppath.pos(ppath.np-1,joker);
+      local_rte_los=ppath.los(ppath.np-1,joker);
+
+      Range p_range(cloudbox_limits[0], 
+                    cloudbox_limits[1]-cloudbox_limits[0]+1);
+      Range lat_range(cloudbox_limits[2], 
+                      cloudbox_limits[3]-cloudbox_limits[2]+1);
+      Range lon_range(cloudbox_limits[4], 
+                      cloudbox_limits[5]-cloudbox_limits[4]+1);
+
+      ppath_calc( ppath, ppath_step, ppath_step_agenda, 3, 
+                  p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+                  1, cloudbox_limits, local_rte_pos, local_rte_los, 0 );
+
+      Matrix  pnd_ppath(particle_masses.nelem(),ppath.np);
+      Vector t_ppath(ppath.np);
+      Vector   p_ppath(ppath.np);
+      Matrix   vmr_ppath(vmr_field.nbooks(),ppath.np);
+      Matrix ext_mat_part(1, 1, 0.0);
+      Vector abs_vec_part(1, 0.0);
+
+      cloud_atm_vars_by_gp(p_ppath,t_ppath,vmr_ppath,pnd_ppath,ppath.gp_p,
+                           ppath.gp_lat,ppath.gp_lon,cloudbox_limits,p_grid[p_range],
+                           lat_grid[lat_range],lon_grid[lon_range],
+                           t_field(p_range,lat_range,lon_range),
+                           vmr_field(joker,p_range,lat_range,lon_range),
+                           pnd_field);
+
+      Vector k_vec(ppath.np);
+      Vector iwc_vec(ppath.np);
+      //calculate integrands
+      for (Index i = 0; i < ppath.np ; ++i)
+        {
+          opt_propCalc(ext_mat_part,abs_vec_part,ppath.los(i,0),ppath.los(i,1),scat_data_mono,
+                       1, pnd_ppath(joker, i), t_ppath[i]);
+          k_vec[i]=ext_mat_part(0,0);
+          Vector pnd_vec=pnd_ppath(joker, i);
+          assert(pnd_vec.nelem()==particle_masses.nelem());
+          iwc_vec[i]=pnd_vec*particle_masses;//hopefully this is the dot product
+        }
+      //integrate IWP and optical properties
+      for (Index i = 0; i < ppath.np-1 ; ++i)
+        {
+          //Add to path integrals
+          iwp+=0.5*(iwc_vec[i+1]+iwc_vec[i])*ppath.l_step[i];
+          cloud_opt_path+=0.5*(k_vec[i+1]+k_vec[i])*ppath.l_step[i];
+        }
+    }
 }
 
 

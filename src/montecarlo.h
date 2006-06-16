@@ -224,6 +224,28 @@ void findZ11max(Vector& Z11maxvector,
 
 bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono);
 
+void iwp_cloud_opt_pathCalc(
+                            Numeric& iwp,
+                            Numeric& cloud_opt_path,
+                            //input
+                            const Vector&         rte_pos,
+                            const Vector&         rte_los,
+                            const Agenda&         ppath_step_agenda,
+                            const Vector&         p_grid,
+                            const Vector&         lat_grid, 
+                            const Vector&         lon_grid, 
+                            const Matrix&         r_geoid, 
+                            const Matrix&         z_surface,
+                            const Tensor3&        z_field, 
+                            const Tensor3&        t_field, 
+                            const Tensor4&        vmr_field, 
+                            const ArrayOfIndex&   cloudbox_limits, 
+                            const Tensor4&        pnd_field,
+                            const ArrayOfSingleScatteringData& scat_data_mono,
+                            const Vector&          particle_masses
+                            );
+
+
 void matrix_exp_p30(MatrixView& M,
                     ConstMatrixView& A);
 

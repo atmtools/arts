@@ -5807,7 +5807,7 @@ void ppath_start_stepping(
                       if( outside_cloudbox )
                         { ppath_set_background( ppath, 4 ); }       
                     }
-                  else
+                  else if( ppath.pos(0,0) <= rv_low-RTOL  &&  ppath.pos(0,0) >= rv_upp+RTOL )
                     { assert( outside_cloudbox ); }
                 }
               else

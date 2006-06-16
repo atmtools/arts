@@ -141,6 +141,20 @@ void MCAntenna::set_lookup (ConstVectorView& za_grid_,
   G_lookup=G_lookup_;
 }
 
+//! returns the antenna type
+/*!
+
+\author Cory Davis
+\date 2006-6-16
+ */
+AType MCAntenna::get_type(void) const
+{
+  return atype;
+}
+
+
+
+
 //! draws a line of sight by sampling the antenna response function
 /*!
 
@@ -152,7 +166,7 @@ void MCAntenna::set_lookup (ConstVectorView& za_grid_,
  */
 void MCAntenna::draw_los(VectorView& sampled_rte_los,
                          Rng& rng,
-                         ConstVectorView bore_sight_los)
+                         ConstVectorView bore_sight_los) const
 {
 
   switch ( atype )
