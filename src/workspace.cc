@@ -1279,15 +1279,6 @@ void define_wsv_data()
         ),
        GROUP(  Agenda_ )));
 
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "iy_surface_agenda" ),
-       DESCRIPTION
-       (
-        "See agendas.cc."
-        ),
-       GROUP(  Agenda_ )));  
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "i_space" ),
@@ -3165,6 +3156,18 @@ void define_wsv_data()
 
    wsv_data.push_back
      (WsvRecord
+      ( NAME( "surface_emissivity" ),
+        DESCRIPTION
+        ( "The surface emissivity at position of interest.\n"
+          "\n"
+          "Usage: Input to surfaceSingleEmissivity.\n"
+          "\n"
+          "Unit: a value between 0 and 1"
+         ), 
+        GROUP( Numeric_ )));
+
+   wsv_data.push_back
+     (WsvRecord
       ( NAME( "surface_emissivity_field" ),
         DESCRIPTION
         ( "The surface emissivity specified on lat_grid and lon_grid.\n"
@@ -3181,9 +3184,7 @@ void define_wsv_data()
         "Directions for which to calculate downwelling radiation when \n"
         "considering a surface reflection.\n"
         "\n"
-        "See further *surfaceCalc* and the user guide.\n"
-        "\n"
-        "Usage: Input to methods for *iy_surface_agenda*."
+        "See further the user guide.\n"
         "\n"
         "Units: degrees\n"
         "\n"

@@ -897,7 +897,7 @@ void Cloudbox_ppath_rteCalc(
                              const Tensor4&        vmr_field,
                              const Agenda&         rte_agenda,
                              const Agenda&         iy_space_agenda,
-                             const Agenda&         iy_surface_agenda,
+                             const Agenda&         surface_prop_agenda,
                              const Agenda&         iy_cloudbox_agenda,
                              const Vector&         f_grid,
                              const Index&          photon_number,
@@ -964,7 +964,7 @@ void Cloudbox_ppath_rteCalc(
              pnd_field,scat_data_mono,cloudbox_limits);
 
   iy_calc_no_jacobian(iy, ppath, ppath_step, ppath_step_agenda, 
-                      rte_agenda, iy_space_agenda, iy_surface_agenda,
+                      rte_agenda, iy_space_agenda, surface_prop_agenda,
                       iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid,
                       lon_grid, z_field, t_field, vmr_field, r_geoid, z_surface,
                       cloudbox_on_dummy, cloudbox_limits,
@@ -2057,7 +2057,7 @@ void montecarloGetIncoming(
                            const Agenda&         ppath_step_agenda,
                            const Agenda&         rte_agenda,
                            const Agenda&         iy_space_agenda,
-                           const Agenda&         iy_surface_agenda,
+                           const Agenda&         surface_prop_agenda,
                            const Agenda&         iy_cloudbox_agenda,
                            const Vector&         p_grid,
                            const Vector&         lat_grid,
@@ -2094,7 +2094,7 @@ void montecarloGetIncoming(
   Vector los = rte_los;
   iy_calc_no_jacobian( iy, ppath, ppath_step,
                        ppath_step_agenda, rte_agenda, iy_space_agenda,
-                       iy_surface_agenda, iy_cloudbox_agenda,
+                       surface_prop_agenda, iy_cloudbox_agenda,
                        atmosphere_dim, p_grid, lat_grid, lon_grid, z_field,
                        t_field, vmr_field, r_geoid, z_surface,
                        cloudbox_on_dummy, cloudbox_limits,

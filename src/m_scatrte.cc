@@ -585,7 +585,6 @@ doit_i_fieldUpdate1D(// WS Input and Output:
                    const Vector& f_grid,
                    const Index& f_index,
                    const Agenda&, //surface_prop_agenda,
-                   //const Agenda& iy_surface_agenda, //STR
                    const Index& doit_za_interp
                    )
 {
@@ -600,7 +599,6 @@ doit_i_fieldUpdate1D(// WS Input and Output:
   chk_not_empty( "opt_prop_part_agenda", opt_prop_part_agenda);
   chk_not_empty( "opt_prop_gas_agenda", opt_prop_gas_agenda);
   chk_not_empty( "ppath_step_agenda", ppath_step_agenda);
-  //chk_not_empty( "iy_surface_agenda", iy_surface_agenda);
   
   if (cloudbox_limits.nelem() != 2)
     throw runtime_error(
@@ -756,7 +754,6 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                    const Vector& f_grid,
                    const Index& f_index,
                    const Agenda& surface_prop_agenda, //STR
-                   //const Agenda& iy_surface_agenda, //STR
                    const Index& doit_za_interp
                    )
 {
@@ -772,7 +769,6 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
   chk_not_empty( "opt_prop_part_agenda", opt_prop_part_agenda);
   chk_not_empty( "opt_prop_gas_agenda", opt_prop_gas_agenda);
   chk_not_empty( "ppath_step_agenda", ppath_step_agenda);
-  //chk_not_empty( "iy_surface_agenda", iy_surface_agenda);
   
   if (cloudbox_limits.nelem() != 2)
     throw runtime_error(
@@ -1343,7 +1339,6 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                 const Tensor3& t_field,
                 const Vector& f_grid,
                 const Index& f_index
-                //const Agenda& iy_surface_agenda 
                 )
 {
 

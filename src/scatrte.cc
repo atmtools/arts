@@ -233,7 +233,7 @@ void cloud_fieldsCalc(// Output and Input:
   Optical properties of particles
   \param ext_mat_field
   \param abs_vec_field
-  \param iy_surface_agenda
+  \param surface_prop_agenda
   \param scat_za_interp
 
   \author Claudia Emde
@@ -267,7 +267,7 @@ void cloud_ppath_update1D(
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
                           const Agenda& surface_prop_agenda,
-                          //const Agenda& iy_surface_agenda, 
+                          //const Agenda& surface_prop_agenda, 
                           const Index& scat_za_interp)
 {
   Matrix iy;
@@ -413,7 +413,6 @@ void cloud_ppath_update1D_noseq(
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
                           //const Agenda& surface_prop_agenda,
-                          //const Agenda& iy_surface_agenda, 
                           const Index& scat_za_interp
                          )
 {
@@ -1450,7 +1449,6 @@ void cloud_ppath_update1D_planeparallel(
                                         //particle opticla properties
                                         ConstTensor5View ext_mat_field,
                                         ConstTensor4View abs_vec_field
-                                        //const Agenda& iy_surface_agenda
                                         )
 {
   const Index N_species = vmr_field.nbooks();
@@ -1734,9 +1732,8 @@ void cloud_ppath_update1D_planeparallel(
           rte_gp_p.fd[1] = 1;
           //gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
           // Executes the surface agenda
-          //chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
           // FIXME: Convert to new agenda scheme before using
-          //iy_surface_agenda.execute();
+          // surface_prop_agenda.execute();
 
       throw runtime_error( 
                      "Surface reflections inside cloud box not yet handled." );

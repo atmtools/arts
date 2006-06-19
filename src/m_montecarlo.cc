@@ -338,7 +338,8 @@ void MCGeneral(
                     ppath_step.gp_lon[np-1].idx)+=1;
           if (termination_flag==1)
             {
-              iy_space_agendaExecute(local_iy,iy_space_agenda,true);
+              iy_space_agendaExecute(local_iy,local_rte_pos,local_rte_los,
+                                                         iy_space_agenda,true);
               mult(vector1,evol_op,local_iy(0,joker));
               mult(I_i,Q,vector1);
               I_i/=g;
@@ -604,7 +605,8 @@ void MCIPA(
                     ppath_step.gp_lon[np-1].idx)+=1;
           if (termination_flag==1)
             {
-              iy_space_agendaExecute(local_iy,iy_space_agenda,true);
+              iy_space_agendaExecute(local_iy,local_rte_pos,local_rte_los,
+                                                         iy_space_agenda,true);
               mult(vector1,evol_op,local_iy(0,joker));
               mult(I_i,Q,vector1);
               I_i/=g;
@@ -836,7 +838,7 @@ void ScatteringMonteCarlo (
                            //Stuff needed by RteCalc
                            const Agenda&         rte_agenda,
                            const Agenda&         iy_space_agenda,
-                           const Agenda&         iy_surface_agenda,
+                           const Agenda&         surface_prop_agenda,
                            const Tensor3&        t_field,
                            const Vector&         f_grid,
                            //Stuff needed by TArrayCalc
@@ -973,7 +975,7 @@ void ScatteringMonteCarlo (
                          scalar_gas_absorption_agenda, f_index,
                          stokes_dim, t_field, vmr_field, rte_agenda,
                          iy_space_agenda, 
-                         iy_surface_agenda, iy_cloudbox_agenda,f_grid, 0, 0,
+                         surface_prop_agenda, iy_cloudbox_agenda,f_grid, 0, 0,
                          pnd_field,scat_data_mono, z_field_is_1D );
  
   mult(IboundaryLOScontri,TArrayLOS[TArrayLOS.nelem()-1],iy(0,joker));
@@ -1045,7 +1047,7 @@ void ScatteringMonteCarlo (
                                         ppath,ppath_step,
                                         //ppath_p, ppath_t, ppath_vmr,
                                         ppath_step_agenda,
-                                        rte_agenda,iy_space_agenda,iy_surface_agenda,
+                                        rte_agenda,iy_space_agenda,surface_prop_agenda,
                                         iy_cloudbox_agenda,
                                         p_grid,lat_grid,lon_grid,z_field,
                                         t_field, vmr_field, r_geoid,

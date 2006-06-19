@@ -279,30 +279,7 @@ void define_agenda_data()
         "Usage:   Called from *RteCalc*."
         ),
        OUTPUT( iy_ ),
-       INPUT()));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "iy_surface_agenda" ),
-       DESCRIPTION
-       (
-        "Sets *iy* to the radiation leaving the surface for given position\n"
-        "and LOS. \n"
-        "\n"
-        "The upwelling radiation is the sum of surface emission and\n"
-        "reflected downwelling radiation. Surface properties provided by\n"
-        "*surface_prop_agenda*. See the user guide for different\n"
-        "options to determine the upwelling radiation.\n"
-        "\n"
-        "A function calling this agenda shall set *rte_gp_p/lat/lon* to\n"
-        "the position and line-of-sight for which the entering radiation \n"
-        "shall be determined. \n"
-        "\n"
-        "Usage:   Called from *RteCalc*."
-        ),
-       OUTPUT( iy_, ppath_, rte_pos_, rte_los_ ),
-       INPUT( ppath_, rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_,
-              ppath_array_do_, rte_do_vmr_jacs_, rte_do_t_jacs_ )));
+       INPUT( rte_pos_, rte_los_ )));
 
   agenda_data.push_back
     (AgRecord
@@ -634,7 +611,7 @@ void define_agenda_data()
         //"the position of intersection with the surface."
         ),
        OUTPUT( surface_emission_, surface_los_, surface_rmatrix_ ),
-       INPUT(rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ )));
+       INPUT( rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ )));
 
 
 //  agenda_data.push_back

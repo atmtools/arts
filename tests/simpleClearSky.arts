@@ -97,10 +97,10 @@ MatrixSet( z_surface){
     value = 500
 }
 # Surface emissivity
-AgendaSet(iy_surface_agenda){
+AgendaSet(surface_prop_agenda){
    InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
-   surfaceFlat{"water-liebe93"}
-   surfaceCalc{}
+   NumericSet(surface_emissivity){0.9}
+   surfaceSimple{}
 } 
 
 
@@ -116,7 +116,7 @@ sensor_posAddRgeoid{
 }
 #
 MatrixSet(sensor_los){
-  value = 114
+  value = 130
 }
 
 
@@ -143,7 +143,7 @@ AgendaSet( refr_index_agenda ) {
 }
 AgendaSet( ppath_step_agenda ) {
   ppath_stepGeometric{
-    lmax = 10e3
+    lmax = 5e3
   }
 }
 
@@ -151,6 +151,8 @@ AgendaSet( ppath_step_agenda ) {
 # Agendas for clearsky radiative transfer calculation
 # ---
 AgendaSet( iy_space_agenda ){
+  Ignore(rte_pos){}
+  Ignore(rte_los){}
   MatrixCBR( iy, f_grid ){}
 }
 #

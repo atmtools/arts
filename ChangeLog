@@ -1,3 +1,63 @@
+2006-06-09  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1112
+
+	Summary:
+	
+	* rte_pos/los are now mandatory variables for iy_space_agenda
+  	  AgendaSet( iy_space_agenda ){
+	    Ignore(rte_pos){}
+	    Ignore(rte_los){}
+	    MatrixCBR( iy, f_grid ){}
+          }
+
+	* Surface part revised. Functionality of surfaceCalc is now
+	hard-wired and iy_surface_agenda is removed. 
+	surfaceEmissivityInterpolate is also removed. See furter below.
+	Example on usage:
+
+	AgendaSet(surface_prop_agenda){
+          InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
+          NumericSet(surface_emissivity){0.9}
+          surfaceSimple{}
+        } 
+
+	The new WSV can also be set as:
+    InterpSurfaceFieldToRteGps(surface_emissivity,surface_emissivity_field){}
+
+	Details:
+
+	* tests/: simpleClearSky test added. All cfiles modified according
+	to changes below.
+	
+	* src/m_atmosphere.cc: surfaceSingleEmissivity is now surfaceSimple and
+	using *surface_emissivity*. More flexible solution. Should help to 
+	include FASTEM etc.
+
+	InterpSurfaceFieldToRteGps: Created.
+
+	surfaceEmissivityInterpolate: Obsolete (due to WSM above).
+
+	* iy_surface_agenda replaced by surface_prop_agenda at numerous places,
+	in several files.
+	
+	* src/m_montecarlo.cc: Adapted to changes in iy_space_agenda (added
+	local versions of rte_pos/los as agenda input).
+
+	* src/methods.cc:
+
+	surfaceCalc: Removed, as *iy_surface_agenda* is removed.
+
+	* src/agendas.cc: 
+	
+	iy_surface_agenda: Removed. Reasons: The potential extra
+	flexibility provided by this agenda would likely never be used. To
+	avoid the confusion with surface_prop_aganda. Cfile for this part
+	is now always the same between DOIT and clear sky.
+        
+	iy_space_agenda: rte_los and rte_pos are now mandatory input.
+	This to ensure that these variables really are set in all cases.
+
 2006-06-16  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1111
@@ -90,6 +150,7 @@
 
 	* src/m_montecarlo.cc (MCIPA): fixed bug in surface part.
 
+>>>>>>> 1.1510
 2006-05-31  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1106

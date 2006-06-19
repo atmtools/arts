@@ -104,17 +104,10 @@ MatrixSet( surface_emissivity_field){
 # Properties of surface
 
 AgendaSet(surface_prop_agenda){
-           Ignore (rte_gp_p) {}
-           Ignore (rte_gp_lat) {}
-           Ignore (rte_gp_lon) {}
+           Ignore (rte_los) {}
            InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
            surfaceBlackbody{}
         }
-
-AgendaSet(iy_surface_agenda){
-           AgendaExecute(surface_prop_agenda){}
-           surfaceCalc{}
-        } 
 
 
 # Definition of sensor position and LOS

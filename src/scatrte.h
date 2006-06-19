@@ -76,7 +76,6 @@ void cloud_ppath_update1D(
                   ConstTensor5View ext_mat_field,
                   ConstTensor4View abs_vec_field,
                   const Agenda& surface_prop_agenda,
-                  //const Agenda& iy_surface_agenda, 
                   const Index& scat_za_interp
                   );
 
@@ -110,7 +109,6 @@ void cloud_ppath_update1D_noseq(
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
                           //const Agenda& surface_prop_agenda,
-                          //const Agenda& iy_surface_agenda, 
                           const Index& scat_za_interp
                           );
 

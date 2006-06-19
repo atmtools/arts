@@ -562,6 +562,35 @@ void InterpAtmFieldToRteGps(
 
 
 
+//! InterpSurfaceFieldToRteGps
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2006-06-09
+*/
+void InterpSurfaceFieldToRteGps(
+                 Numeric&   outvalue,
+           const String&    outname,
+           const Index&     atmosphere_dim,
+           const Vector&    lat_grid,
+           const Vector&    lon_grid,
+           const GridPos&   rte_gp_lat,
+           const GridPos&   rte_gp_lon,
+           const Matrix&   field,
+           const String&    fieldname )
+{
+  out2 << "  Interpolates " << fieldname << " to obtain " << outname << ".\n";
+
+  // Interpolate
+  outvalue = interp_atmsurface_by_gp( atmosphere_dim, lat_grid, 
+                lon_grid, field, fieldname, rte_gp_lat, rte_gp_lon );
+
+  out3 << "    " << outname << " = " << outvalue << "\n";
+}
+
+
+
 //! r_geoidSpherical
 /*!
    See the the online help (arts -d FUNCTION_NAME)
@@ -743,192 +772,6 @@ void surfaceBlackbody(
 
 
 
-//! surfaceCalc
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2004-05-21
-*/
-void surfaceCalc(
-              Matrix&                  iy,
-              Ppath&                   ppath,
-              Ppath&                   ppath_step,
-              Vector&                  rte_pos,
-              Vector&                  rte_los,
-              Index&                   ppath_array_index,
-              ArrayOfPpath&            ppath_array,
-              ArrayOfTensor4&          diy_dvmr,
-              ArrayOfTensor4&          diy_dt,
-        const Agenda&                  ppath_step_agenda,
-        const Agenda&                  rte_agenda,
-        const Agenda&                  iy_space_agenda,
-        const Agenda&                  iy_surface_agenda,
-        const Agenda&                  iy_cloudbox_agenda,
-        const Index&                   atmosphere_dim,
-        const Vector&                  p_grid,
-        const Vector&                  lat_grid,
-        const Vector&                  lon_grid,
-        const Tensor3&                 z_field,
-        const Tensor3&                 t_field,
-        const Tensor4&                 vmr_field,
-        const Matrix&                  r_geoid,
-        const Matrix&                  z_surface,
-        const Index&                   cloudbox_on, 
-        const ArrayOfIndex&            cloudbox_limits,
-        const Vector&                  f_grid,
-        const Index&                   stokes_dim,
-        const Index&                   ppath_array_do,
-        const ArrayOfIndex&            rte_do_vmr_jacs,
-        const Index&                   rte_do_t_jacs,
-        const Matrix&                  surface_los,
-        const Tensor4&                 surface_rmatrix,
-        const Matrix&                  surface_emission )
-{
-  // Some sizes
-  const Index   nf   = f_grid.nelem();
-  const Index   nlos = surface_los.nrows();
-
-
-  //--- Check input -----------------------------------------------------------
-  if( nlos )   // nlos = 0 if blackbody ground and some checks are not needed
-    {
-      if( surface_los.ncols() != rte_los.nelem() )
-        throw runtime_error( 
-                        "Number of columns in *surface_los* is not correct." );
-      if( nlos != surface_rmatrix.nbooks() )
-        throw runtime_error( 
-                  "Mismatch in size of *surface_los* and *surface_rmatrix*." );
-      if( surface_rmatrix.npages() != nf )
-        throw runtime_error( 
-                       "Mismatch in size of *surface_rmatrix* and *f_grid*." );
-      if( surface_rmatrix.ncols() != stokes_dim  ||  
-          surface_rmatrix.ncols() != stokes_dim ) throw runtime_error( 
-              "Mismatch between size of *surface_rmatrix* and *stokes_dim*." );
-    }
-  if( surface_emission.ncols() != stokes_dim )
-    throw runtime_error( 
-             "Mismatch between size of *surface_emission* and *stokes_dim*." );
-  if( surface_emission.nrows() != nf )
-    throw runtime_error( 
-                       "Mismatch in size of *surface_emission* and f_grid*." );
-  //---------------------------------------------------------------------------
-
-  ppath_array_index=0;
-
-
-  // Variables to hold downvelling radiation
-  Tensor3   I( nlos, nf, stokes_dim );
- 
-  // Loop *surface_los*-es. If no such LOS, we are ready.
-  if( nlos > 0 )
-    {
-      // Make local version of *ppath* that later must be restored 
-      Ppath   pp_copy;
-      ppath_init_structure( pp_copy, atmosphere_dim, ppath.np );
-      ppath_copy( pp_copy, ppath );
-      //
-      const Index  pai = ppath_array_index;
-
-      for( Index ilos=0; ilos<nlos; ilos++ )
-        {
-          // Calculate downwelling radiation for LOS ilos 
-          const Index   agenda_verb = 0;
-          iy_calc( iy, ppath, ppath_step,
-                   ppath_array_index, ppath_array,
-                   diy_dvmr, diy_dt,
-                   ppath_step_agenda, rte_agenda, 
-                   iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-                   atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
-                   t_field, vmr_field,
-                   r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
-                   rte_pos, surface_los(ilos,joker),
-                   f_grid, stokes_dim, 
-                   ppath_array_do,
-                   rte_do_vmr_jacs, rte_do_t_jacs, agenda_verb );
-
-          I(ilos,joker,joker) = iy;
-
-          // Include reflection matrix in jacobian quantities
-          //
-          // Assume polarisation effects in surface_rmatrix
-          // (not of any impoartnce if stokes_dim=1)
-          const bool pol_r = true;
-          //
-          if( rte_do_vmr_jacs.nelem() )
-            {
-              for( Index iv=0; iv<nf; iv++ )
-                {
-                  include_trans_in_diy_dq( diy_dvmr, iv, pol_r,
-                                          surface_rmatrix(ilos,iv,joker,joker),
-                                          ppath_array, ppath_array_index );
-                }
-            }
-          if( rte_do_t_jacs )
-            {
-              for( Index iv=0; iv<nf; iv++ )
-                {
-                  include_trans_in_diy_dq( diy_dt, iv, pol_r,
-                                          surface_rmatrix(ilos,iv,joker,joker),
-                                          ppath_array, ppath_array_index );
-                }
-            }
-
-          // Reset *ppath_array_index*
-          ppath_array_index = pai;
-        }
-
-      // Copy data back to *ppath*.
-      ppath_init_structure( ppath, atmosphere_dim, pp_copy.np );
-      ppath_copy( ppath, pp_copy );
-    }
-
-  surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
-}
-
-//! surfaceEmissivityInterpolate
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Cory Davis
-   \date   2005-09-07
-*/
-void surfaceEmissivityInterpolate(
-                                  Matrix&    surface_los,
-                                  Tensor4&   surface_rmatrix,
-                                  Matrix&    surface_emission,
-                                  const Vector&    f_grid,
-                                  const GridPos&   rte_gp_lat,
-                                  const GridPos&   rte_gp_lon,
-                                  const Index&     stokes_dim,
-                                  const Index&     atmosphere_dim,
-                                  const Vector&    rte_los,
-                                  const Numeric&   surface_skin_t,
-                                  const Matrix&  surface_emissivity_field)
-{
-  const Index   nf = f_grid.nelem();
-  Numeric e;
-  Vector itw(4);
-  surface_los.resize( 1, rte_los.nelem() );
-  surface_los(0,joker) = rte_los;
-  surface_specular_los( surface_los(0, joker) , atmosphere_dim );
-
-  surface_emission.resize( nf, stokes_dim );
-  surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
-  surface_rmatrix = 0.0;
-  surface_emission = 0.0;
-
-  interpweights(itw,rte_gp_lat,rte_gp_lon);
-  e=interp(itw,surface_emissivity_field,rte_gp_lat,rte_gp_lon);
-  for( Index iv=0; iv<nf; iv++ )
-    { 
-      surface_emission(iv,0) = e * planck( f_grid[iv], surface_skin_t );
-      for( Index is=0; is<stokes_dim; is++ )
-        { surface_rmatrix(0,iv,is,is) = 1 - e; }
-    }
-}
-
-
 //! surfaceFlat
 /*!
    See the the online help (arts -d FUNCTION_NAME)
@@ -1005,14 +848,14 @@ void surfaceFlat(
 
 
 
-//! surfaceSingleEmissivity
+//! surfaceSimple
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2004-05-21
 */
-void surfaceSingleEmissivity(
+void surfaceSimple(
               Matrix&    surface_los,
               Tensor4&   surface_rmatrix,
               Matrix&    surface_emission,
@@ -1020,18 +863,17 @@ void surfaceSingleEmissivity(
         const Index&     stokes_dim,
         const Index&     atmosphere_dim,
         const Vector&    rte_los,
-        const Numeric&   surface_skin_t,
-        const Numeric&   e,
-        const String&    ename )
+        const Numeric&   surface_emissivity, 
+        const Numeric&   surface_skin_t )
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_if_in_range( "surface_emissivity", surface_emissivity, 0, 1 );
   chk_if_over_0( "surface_skin_t", surface_skin_t );
-  chk_if_in_range( ename, e, 0, 1 );
 
   out2 << "  Sets variables to model a flat surface with:\n"
        << "     temperature : " << surface_skin_t << " K.\n"
-       << "     emissivity  : " << e << "\n";
+       << "     emissivity  : " << surface_emissivity << "\n";
 
   const Index   nf = f_grid.nelem();
 
@@ -1046,9 +888,10 @@ void surfaceSingleEmissivity(
 
   for( Index iv=0; iv<nf; iv++ )
     { 
-      surface_emission(iv,0) = e * planck( f_grid[iv], surface_skin_t );
+      surface_emission(iv,0) = surface_emissivity * 
+                                          planck( f_grid[iv], surface_skin_t );
       for( Index is=0; is<stokes_dim; is++ )
-        { surface_rmatrix(0,iv,is,is) = 1 - e; }
+        { surface_rmatrix(0,iv,is,is) = 1 - surface_emissivity; }
     }
 }
 
@@ -1066,6 +909,195 @@ void surfaceSingleEmissivity(
 
 
 
+
+
+
+// //! surfaceEmissivityInterpolate
+// /*!
+//    See the the online help (arts -d FUNCTION_NAME)
+
+//    \author Cory Davis
+//    \date   2005-09-07
+// */
+// void surfaceEmissivityInterpolate(
+//                                   Matrix&    surface_los,
+//                                   Tensor4&   surface_rmatrix,
+//                                   Matrix&    surface_emission,
+//                                   const Vector&    f_grid,
+//                                   const GridPos&   rte_gp_lat,
+//                                   const GridPos&   rte_gp_lon,
+//                                   const Index&     stokes_dim,
+//                                   const Index&     atmosphere_dim,
+//                                   const Vector&    rte_los,
+//                                   const Numeric&   surface_skin_t,
+//                                   const Matrix&  surface_emissivity_field)
+// {
+//   const Index   nf = f_grid.nelem();
+//   Numeric e;
+//   Vector itw(4);
+//   surface_los.resize( 1, rte_los.nelem() );
+//   surface_los(0,joker) = rte_los;
+//   surface_specular_los( surface_los(0, joker) , atmosphere_dim );
+
+//   surface_emission.resize( nf, stokes_dim );
+//   surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
+//   surface_rmatrix = 0.0;
+//   surface_emission = 0.0;
+
+//   interpweights(itw,rte_gp_lat,rte_gp_lon);
+//   e=interp(itw,surface_emissivity_field,rte_gp_lat,rte_gp_lon);
+//   for( Index iv=0; iv<nf; iv++ )
+//     { 
+//       surface_emission(iv,0) = e * planck( f_grid[iv], surface_skin_t );
+//       for( Index is=0; is<stokes_dim; is++ )
+//         { surface_rmatrix(0,iv,is,is) = 1 - e; }
+//     }
+// }
+
+
+
+// //! surfaceCalc
+// /*!
+//    See the the online help (arts -d FUNCTION_NAME)
+
+//    \author Patrick Eriksson
+//    \date   2004-05-21
+// */
+// void surfaceCalc(
+//               Matrix&                  iy,
+//               ArrayOfTensor4&          diy_dvmr,
+//               ArrayOfTensor4&          diy_dt,
+//               Ppath&                   ppath,
+//               Ppath&                   ppath_step,
+//               ArrayOfPpath&            ppath_array,
+//               Index&                   ppath_array_index,
+//         const Vector&                  rte_pos,
+//         const Vector&                  rte_los,
+//         const Agenda&                  ppath_step_agenda,
+//         const Agenda&                  rte_agenda,
+//         const Agenda&                  iy_space_agenda,
+//         const Agenda&                  iy_surface_agenda,
+//         const Agenda&                  iy_cloudbox_agenda,
+//         const Index&                   atmosphere_dim,
+//         const Vector&                  p_grid,
+//         const Vector&                  lat_grid,
+//         const Vector&                  lon_grid,
+//         const Tensor3&                 z_field,
+//         const Tensor3&                 t_field,
+//         const Tensor4&                 vmr_field,
+//         const Matrix&                  r_geoid,
+//         const Matrix&                  z_surface,
+//         const Index&                   cloudbox_on, 
+//         const ArrayOfIndex&            cloudbox_limits,
+//         const Vector&                  f_grid,
+//         const Index&                   stokes_dim,
+//         const Index&                   ppath_array_do,
+//         const ArrayOfIndex&            rte_do_vmr_jacs,
+//         const Index&                   rte_do_t_jacs,
+//         const Matrix&                  surface_los,
+//         const Tensor4&                 surface_rmatrix,
+//         const Matrix&                  surface_emission )
+// {
+//   // Some sizes
+//   const Index   nf   = f_grid.nelem();
+//   const Index   nlos = surface_los.nrows();
+
+
+//   //--- Check input -----------------------------------------------------------
+//   if( nlos )   // nlos = 0 if blackbody ground and some checks are not needed
+//     {
+//       if( surface_los.ncols() != rte_los.nelem() )
+//         throw runtime_error( 
+//                         "Number of columns in *surface_los* is not correct." );
+//       if( nlos != surface_rmatrix.nbooks() )
+//         throw runtime_error( 
+//                   "Mismatch in size of *surface_los* and *surface_rmatrix*." );
+//       if( surface_rmatrix.npages() != nf )
+//         throw runtime_error( 
+//                        "Mismatch in size of *surface_rmatrix* and *f_grid*." );
+//       if( surface_rmatrix.ncols() != stokes_dim  ||  
+//           surface_rmatrix.ncols() != stokes_dim ) throw runtime_error( 
+//               "Mismatch between size of *surface_rmatrix* and *stokes_dim*." );
+//     }
+//   if( surface_emission.ncols() != stokes_dim )
+//     throw runtime_error( 
+//              "Mismatch between size of *surface_emission* and *stokes_dim*." );
+//   if( surface_emission.nrows() != nf )
+//     throw runtime_error( 
+//                        "Mismatch in size of *surface_emission* and f_grid*." );
+//   //---------------------------------------------------------------------------
+
+//   ppath_array_index=0;
+
+
+//   // Variables to hold downvelling radiation
+//   Tensor3   I( nlos, nf, stokes_dim );
+ 
+//   // Loop *surface_los*-es. If no such LOS, we are ready.
+//   if( nlos > 0 )
+//     {
+//       // Make local version of *ppath* that later must be restored 
+//       Ppath   pp_copy;
+//       ppath_init_structure( pp_copy, atmosphere_dim, ppath.np );
+//       ppath_copy( pp_copy, ppath );
+//       //
+//       const Index  pai = ppath_array_index;
+
+//       for( Index ilos=0; ilos<nlos; ilos++ )
+//         {
+//           // Calculate downwelling radiation for LOS ilos 
+//           const Index   agenda_verb = 0;
+//           iy_calc( iy, ppath, ppath_step,
+//                    ppath_array_index, ppath_array,
+//                    diy_dvmr, diy_dt,
+//                    ppath_step_agenda, rte_agenda, 
+//                    iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
+//                    atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+//                    t_field, vmr_field,
+//                    r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
+//                    rte_pos, surface_los(ilos,joker),
+//                    f_grid, stokes_dim, 
+//                    ppath_array_do,
+//                    rte_do_vmr_jacs, rte_do_t_jacs, agenda_verb );
+
+//           I(ilos,joker,joker) = iy;
+
+//           // Include reflection matrix in jacobian quantities
+//           //
+//           // Assume polarisation effects in surface_rmatrix
+//           // (not of any impoartnce if stokes_dim=1)
+//           const bool pol_r = true;
+//           //
+//           if( rte_do_vmr_jacs.nelem() )
+//             {
+//               for( Index iv=0; iv<nf; iv++ )
+//                 {
+//                   include_trans_in_diy_dq( diy_dvmr, iv, pol_r,
+//                                           surface_rmatrix(ilos,iv,joker,joker),
+//                                           ppath_array, ppath_array_index );
+//                 }
+//             }
+//           if( rte_do_t_jacs )
+//             {
+//               for( Index iv=0; iv<nf; iv++ )
+//                 {
+//                   include_trans_in_diy_dq( diy_dt, iv, pol_r,
+//                                           surface_rmatrix(ilos,iv,joker,joker),
+//                                           ppath_array, ppath_array_index );
+//                 }
+//             }
+
+//           // Reset *ppath_array_index*
+//           ppath_array_index = pai;
+//         }
+
+//       // Copy data back to *ppath*.
+//       ppath_init_structure( ppath, atmosphere_dim, pp_copy.np );
+//       ppath_copy( ppath, pp_copy );
+//     }
+
+//   surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
+// }
 
 
 

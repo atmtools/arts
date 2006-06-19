@@ -77,6 +77,8 @@ filename="data/scat_data_mono.xml.generated"
 #### Define Agendas #################################################
 
 AgendaSet(iy_space_agenda){
+  Ignore(rte_pos){}
+  Ignore(rte_los){}
   MatrixCBR(iy,f_grid){
   }
 }

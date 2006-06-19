@@ -1499,7 +1499,7 @@ void define_md_data_raw()
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
                 cloudbox_on_),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
-               iy_surface_agenda_, iy_cloudbox_agenda_,
+               surface_prop_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
                t_field_, vmr_field_, r_geoid_, z_surface_, 
                cloudbox_limits_, f_grid_, stokes_dim_, 
@@ -1526,7 +1526,7 @@ void define_md_data_raw()
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
                 cloudbox_on_),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
-               iy_surface_agenda_, iy_cloudbox_agenda_,
+               surface_prop_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
                t_field_, vmr_field_, r_geoid_, z_surface_, 
                cloudbox_limits_, f_grid_, stokes_dim_, 
@@ -2420,7 +2420,7 @@ md_data_raw.push_back
          "\n"
          "This method can be placed in agendas that must be specified , but\n"
          "are expected not to be used for the particular case. An inclusion\n"
-         "in *iy_surface_agenda* could look like:\n   "
+         "in *surface_prop_agenda* could look like:\n   "
          "Error{\"Surface interceptions of propagation path not expected.\"}\n"
          "(ignore and other dummy metho calls must still be included)\n"
          "\n"
@@ -2689,6 +2689,30 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
   
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("InterpSurfaceFieldToRteGps"),
+        DESCRIPTION
+        (
+         "Scalar interpolation of surface fields.\n" 
+         "\n"
+         "The position is specified by the combination of *rte_gp_lat* and \n"
+         "*rte_gp_lon*.\n"
+         "\n"
+         "Generic output: \n"
+         "   Numeric : Value obtained by interpolation. \n"
+         "\n"
+         "Generic input:\n"
+         "   Matrix : Field to interpolate." 
+        ),
+        OUTPUT( ),
+        INPUT( atmosphere_dim_, lat_grid_, lon_grid_, 
+               rte_gp_lat_, rte_gp_lon_ ),
+        GOUTPUT( Numeric_ ),
+        GINPUT( Matrix_ ),
+        KEYWORDS(),
+        TYPES()));
+  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyInterpCloudboxField" ),
@@ -2932,7 +2956,7 @@ md_data_raw.push_back
         OUTPUT( jacobian_, vmr_field_, y_, ppath_, ppath_step_, iy_ ),
         INPUT( jacobian_quantities_, jacobian_indices_, gas_species_, 
                ppath_step_agenda_, 
-               rte_agenda_, iy_space_agenda_, iy_surface_agenda_, 
+               rte_agenda_, iy_space_agenda_, surface_prop_agenda_, 
                iy_cloudbox_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_, z_field_, t_field_, 
                r_geoid_, z_surface_, cloudbox_on_, 
@@ -2959,7 +2983,7 @@ md_data_raw.push_back
         INPUT( jacobian_quantities_, jacobian_indices_, pnd_field_perturb_, 
                jacobian_particle_update_agenda_,
                ppath_step_agenda_, rte_agenda_, iy_space_agenda_, 
-               iy_surface_agenda_, iy_cloudbox_agenda_, atmosphere_dim_, 
+               surface_prop_agenda_, iy_cloudbox_agenda_, atmosphere_dim_, 
                p_grid_, lat_grid_, lon_grid_, z_field_, t_field_, vmr_field_,
                r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
                sensor_response_, sensor_pos_, sensor_los_, f_grid_, 
@@ -2982,7 +3006,7 @@ md_data_raw.push_back
         OUTPUT( jacobian_, y_, ppath_, ppath_step_, iy_ ),
         INPUT( jacobian_quantities_, jacobian_indices_, 
                sensor_time_, ppath_step_agenda_, 
-               rte_agenda_, iy_space_agenda_, iy_surface_agenda_, 
+               rte_agenda_, iy_space_agenda_, surface_prop_agenda_, 
                iy_cloudbox_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_, z_field_, t_field_, vmr_field_,
                r_geoid_, z_surface_, cloudbox_on_, 
@@ -3007,7 +3031,7 @@ md_data_raw.push_back
         OUTPUT( jacobian_, t_field_, y_, ppath_, ppath_step_, iy_ ),
         INPUT( jacobian_quantities_, jacobian_indices_, ppath_step_agenda_, 
                rte_agenda_, 
-               iy_space_agenda_, iy_surface_agenda_, iy_cloudbox_agenda_, 
+               iy_space_agenda_, surface_prop_agenda_, iy_cloudbox_agenda_, 
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
                vmr_field_, r_geoid_, z_surface_, 
                cloudbox_on_, cloudbox_limits_, 
@@ -4313,7 +4337,7 @@ md_data_raw.push_back
         OUTPUT( y_, ppath_, ppath_step_, iy_,
                 jacobian_, ppath_array_do_, ppath_array_, ppath_array_index_  ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
-               iy_surface_agenda_, iy_cloudbox_agenda_,
+               surface_prop_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
                t_field_, vmr_field_, gas_species_, r_geoid_, z_surface_, 
                cloudbox_on_, cloudbox_limits_, sensor_response_, sensor_pos_, 
@@ -4334,7 +4358,7 @@ md_data_raw.push_back
         ),
         OUTPUT( y_, ppath_, ppath_step_, iy_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
-               iy_surface_agenda_, iy_cloudbox_agenda_,
+               surface_prop_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
                t_field_, vmr_field_, r_geoid_, z_surface_, 
                cloudbox_on_, cloudbox_limits_, sensor_response_, sensor_pos_, 
@@ -4624,7 +4648,7 @@ md_data_raw.push_back
         INPUT(ppath_, rte_pos_, rte_los_, ppath_step_agenda_, atmosphere_dim_, p_grid_,
               lat_grid_, lon_grid_, z_field_, r_geoid_, z_surface_,
               cloudbox_limits_, stokes_dim_, rte_agenda_, iy_space_agenda_,
-              iy_surface_agenda_, t_field_, f_grid_, opt_prop_gas_agenda_,
+              surface_prop_agenda_, t_field_, f_grid_, opt_prop_gas_agenda_,
               scalar_gas_absorption_agenda_, vmr_field_,
               scat_data_mono_, pnd_field_, mc_seed_, f_index_ , mc_incoming_),
         GOUTPUT(),
@@ -5024,57 +5048,26 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "surfaceCalc" ),
-        DESCRIPTION
-        (
-         "General method for inclusion in *iy_surface_agenda*.\n"
-         "\n"
-         "The upwelling radiation, put into *iy*, is calculated as:\n"
-         "   iy = *surface_emission* + sum_i[ i_down(i) *r(i) ]\n"
-         "where i is LOS index, i_down(i) is downwelling radiation for \n"
-         "direction i in *surface_los*, and r(i) is reflection matrix i in\n"
-         "*surface_rmatrix*.\n"
-         "\n"
-         "See further the user guide."
-        ),
-        OUTPUT( iy_, ppath_, ppath_step_, 
-                rte_pos_, rte_los_,
-                ppath_array_index_, ppath_array_, diy_dvmr_, diy_dt_ ),
-        INPUT( ppath_, rte_pos_, rte_los_, ppath_step_agenda_, rte_agenda_,
-               iy_space_agenda_,
-               iy_surface_agenda_, iy_cloudbox_agenda_,
-               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_,
-               t_field_, vmr_field_, r_geoid_, z_surface_, 
-               cloudbox_on_, cloudbox_limits_, f_grid_, stokes_dim_, 
-               ppath_array_do_, rte_do_vmr_jacs_, rte_do_t_jacs_,
-               surface_los_, surface_rmatrix_, surface_emission_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "surfaceEmissivityInterpolate" ),
-        DESCRIPTION
-        (
-         "Creates variables to mimic specular reflection by a surface with\n"
-         "emissivity interpolated from WSV surface_emissivity_field by lat..\n"
-         "and lon.\n"
-         "A constant emissivity is assumed as a function of frequency and\n"
-         "polarisation (vertical and horisontal reflection coefficients are\n"
-         "equal. The number of directions in *surface_los* is one.\n"
-         "\n"
-         ),
-        OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
-        INPUT( f_grid_, rte_gp_lat_,rte_gp_lon_,stokes_dim_, atmosphere_dim_, rte_los_, 
-               surface_skin_t_, surface_emissivity_field_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
+//   md_data_raw.push_back
+//     ( MdRecord
+//       ( NAME( "surfaceEmissivityInterpolate" ),
+//         DESCRIPTION
+//         (
+//          "Creates variables to mimic specular reflection by a surface with\n"
+//          "emissivity interpolated from WSV surface_emissivity_field by lat..\n"
+//          "and lon.\n"
+//          "A constant emissivity is assumed as a function of frequency and\n"
+//          "polarisation (vertical and horisontal reflection coefficients are\n"
+//          "equal. The number of directions in *surface_los* is one.\n"
+//          "\n"
+//          ),
+//         OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
+//         INPUT( f_grid_, rte_gp_lat_,rte_gp_lon_,stokes_dim_, atmosphere_dim_, rte_los_, 
+//                surface_skin_t_, surface_emissivity_field_ ),
+//         GOUTPUT(),
+//         GINPUT(),
+//         KEYWORDS(),
+//         TYPES()));
 
 
   md_data_raw.push_back
@@ -5113,7 +5106,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "surfaceSingleEmissivity" ),
+      ( NAME( "surfaceSimple" ),
         DESCRIPTION
         (
          "Creates variables to mimic specular reflection by a surface with\n"
@@ -5123,14 +5116,14 @@ md_data_raw.push_back
          "polarisation (vertical and horisontal reflection coefficients are\n"
          "equal. The number of directions in *surface_los* is one.\n"
          "\n"
-         "Generic Input: \n"
-         "   Numeric : Surface emissivity (a value between 0 and 1)."
+         "Surface properties are specified by *surface_emissivity* and \n"
+         "*surface_skin_t*."
         ),
         OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
         INPUT( f_grid_, stokes_dim_, atmosphere_dim_, rte_los_, 
-               surface_skin_t_ ),
+               surface_emissivity_, surface_skin_t_ ),
         GOUTPUT(),
-        GINPUT( Numeric_t ),
+        GINPUT(),
         KEYWORDS(),
         TYPES()));
 

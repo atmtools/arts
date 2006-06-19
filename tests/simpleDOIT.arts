@@ -106,11 +106,6 @@ AgendaSet(surface_prop_agenda){
 #           surfaceBlackbody{}
         }
 
-AgendaSet(iy_surface_agenda){
-           AgendaExecute(surface_prop_agenda){}
-           surfaceCalc{}
-        } 
-
 
 # Definition of sensor position and LOS
 #--------------------------------------
@@ -163,7 +158,9 @@ AgendaSet( ppath_step_agenda ) {
 # Agendas for clearsky radiative transfer calculation
 # ----------------------------------------------------
 AgendaSet( iy_space_agenda ){
-   MatrixCBR( iy, f_grid ){}
+  Ignore(rte_pos){}
+  Ignore(rte_los){}
+  MatrixCBR( iy, f_grid ){}
 }
 
 AgendaSet( rte_agenda ){

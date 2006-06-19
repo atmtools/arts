@@ -117,6 +117,20 @@ class DoitTest(unittest.TestCase):
         Q=self.DOITrun.get_val('y')[1]
         assert abs(Q-7.2) < 1., 'Q (='+str(Q)+'K) is too far away from 7.2 K'
         
+
+class ClearSkyTest(unittest.TestCase):
+    """Testing clear sky calculations"""
+    CSrun=ArtsRun('simpleClearSky.arts')
+    def test1(self):
+        """Simple clear sky test should run with no errors"""
+        self.CSrun.run()
+        assert self.CSrun.error=='','Error running simpleClearSky.arts: '+self.CSrun.error
+    def test2(self):
+        """Total radiance should be close to 276.50 K"""
+        I=self.CSrun.get_val('y')[0]
+        assert abs(I-276.50) < 0.01, 'I (='+str(I)+'K) is too far away from 276.50 K'
+
+        
 class AbsTest(unittest.TestCase):
     """Testing the ARTS Absorption module"""
     Absrun=ArtsRun('simpleAbs.arts')

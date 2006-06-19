@@ -67,16 +67,8 @@
     The main purpose of the function is set *iy*. It is NOT needed to set 
     *iy* to the correct size before calling the function.
 
-    \param   iy                 Output: As the WSV with the same name.
-    \param   rte_gp_p           Output: As the WSV with the same name.
-    \param   rte_gp_lat         Output: As the WSV with the same name.
-    \param   rte_gp_lon         Output: As the WSV with the same name.
-    \param   ppath              Input: As the WSV with the same name.
-    \param   iy_space_agenda    Input: As the WSV with the same name.
-    \param   iy_surface_agenda  Input: As the WSV with the same name.
-    \param   iy_cloudbox_agenda Input: As the WSV with the same name.
-    \param   f_grid             Input: As the WSV with the same name.
-    \param   stokes_dim         Input: As the WSV with the same name.
+    All input/output is as corresponding WSVs with same name, except:
+
     \param   agenda_verb        Input: Argument handed to agendas to control
                                 verbosity.
 
@@ -84,18 +76,35 @@
     \date   2002-09-17
 */
 void get_radiative_background(
-              Matrix&         iy,
-              Ppath&          ppath,
-        const Agenda&         iy_space_agenda,
-        const Agenda&         iy_surface_agenda,
-        const Agenda&         iy_cloudbox_agenda,
-        const Index&          atmosphere_dim,
-        ConstVectorView       f_grid,
-        const Index&          stokes_dim,
-        const Index&          ppath_array_do,
-        const ArrayOfIndex&   rte_do_vmr_jacs,
-        const Index&          rte_do_t_jacs,
-        const Index&          agenda_verb )
+              Matrix&                  iy,
+              Ppath&                   ppath,
+              Ppath&                   ppath_step,
+              Index&                   ppath_array_index,
+              ArrayOfPpath&            ppath_array,
+              ArrayOfTensor4&          diy_dvmr,
+              ArrayOfTensor4&          diy_dt,
+        const Agenda&                  ppath_step_agenda,
+        const Agenda&                  rte_agenda,
+        const Agenda&                  surface_prop_agenda,
+        const Agenda&                  iy_space_agenda,
+        const Agenda&                  iy_cloudbox_agenda,
+        const Index&                   atmosphere_dim,
+        const Vector&                  p_grid,
+        const Vector&                  lat_grid,
+        const Vector&                  lon_grid,
+        const Tensor3&                 z_field,
+        const Tensor3&                 t_field,
+        const Tensor4&                 vmr_field,
+        const Matrix&                  r_geoid,
+        const Matrix&                  z_surface,
+        const Index&                   cloudbox_on, 
+        const ArrayOfIndex&            cloudbox_limits,
+        const Vector&                  f_grid,
+        const Index&                   stokes_dim,
+        const Index&                   ppath_array_do,
+        const ArrayOfIndex&            rte_do_vmr_jacs,
+        const Index&                   rte_do_t_jacs,
+        const bool&                    agenda_verb )
 {
   // Some sizes
   const Index nf      = f_grid.nelem();
@@ -133,9 +142,10 @@ void get_radiative_background(
     case 1:   //--- Space ---------------------------------------------------- 
       {
         chk_not_empty( "iy_space_agenda", iy_space_agenda );
-        iy_space_agendaExecute( iy, iy_space_agenda, agenda_verb );
-     
 
+        iy_space_agendaExecute( iy, rte_pos, rte_los, 
+                                                iy_space_agenda, agenda_verb );
+     
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {
             out1 << "expected size = [" << nf << "," << stokes_dim << "]\n";
@@ -149,26 +159,108 @@ void get_radiative_background(
 
     case 2:   //--- The surface -----------------------------------------------
       {
-        // Make a copy of *ppath* as the WSV will be changed below, but the
-        // original data is needed when going back to *rte_calc*.
-        Ppath   ppath_local;
-        ppath_init_structure( ppath_local, atmosphere_dim, ppath.np );
-        ppath_copy( ppath_local, ppath );
+        // Call *surface_prop_agenda*
+        //
+        chk_not_empty( "surface_prop_agenda", surface_prop_agenda );
+        //
+        Matrix    surface_los;
+        Tensor4   surface_rmatrix;
+        Matrix    surface_emission;
+        //
+        surface_prop_agendaExecute( surface_emission, surface_los, 
+                    surface_rmatrix, rte_gp_p, rte_gp_lat, rte_gp_lon, rte_los,
+                                            surface_prop_agenda, agenda_verb );
 
-        chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
-        iy_surface_agendaExecute( iy, ppath_local, rte_pos, rte_los, rte_gp_p,
-                                  rte_gp_lat,
-                                  rte_gp_lon, ppath_array_do,
-                                  rte_do_vmr_jacs, rte_do_t_jacs,
-                                  iy_surface_agenda, agenda_verb );
-
-        if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
+        // Check output of *surface_prop_agenda*
+        //
+        const Index   nlos = surface_los.nrows();
+        if( nlos )   // if 0, blackbody ground and some checks are not needed
           {
-            out1 << "expected size = [" << nf << "," << stokes_dim << "]\n";
-            out1 << "iy size = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
-            throw runtime_error( "The size of *iy* returned from "
-                                        "*iy_surface_agenda* is not correct.");
+            if( surface_los.ncols() != rte_los.nelem() )
+              throw runtime_error( 
+                        "Number of columns in *surface_los* is not correct." );
+            if( nlos != surface_rmatrix.nbooks() )
+              throw runtime_error( 
+                  "Mismatch in size of *surface_los* and *surface_rmatrix*." );
+            if( surface_rmatrix.npages() != nf )
+              throw runtime_error( 
+                       "Mismatch in size of *surface_rmatrix* and *f_grid*." );
+            if( surface_rmatrix.ncols() != stokes_dim  ||  
+                surface_rmatrix.ncols() != stokes_dim ) throw runtime_error( 
+              "Mismatch between size of *surface_rmatrix* and *stokes_dim*." );
           }
+        if( surface_emission.ncols() != stokes_dim )
+          throw runtime_error( 
+             "Mismatch between size of *surface_emission* and *stokes_dim*." );
+        if( surface_emission.nrows() != nf )
+          throw runtime_error( 
+                       "Mismatch in size of *surface_emission* and f_grid*." );
+        //---------------------------------------------------------------------
+
+        // Variable to hold downvelling radiation
+        Tensor3   I( nlos, nf, stokes_dim );
+ 
+        // Loop *surface_los*-es. If no such LOS, we are ready.
+        if( nlos > 0 )
+          {
+            // Make local version of *ppath* that later must be restored 
+            Ppath   pp_copy;
+            ppath_init_structure( pp_copy, atmosphere_dim, ppath.np );
+            ppath_copy( pp_copy, ppath );
+            //
+            const Index  pai = ppath_array_index;
+
+            for( Index ilos=0; ilos<nlos; ilos++ )
+              {
+                // Calculate downwelling radiation for LOS ilos 
+                const Index   agenda_verb2 = 0;
+                iy_calc( iy, ppath, ppath_step, ppath_array_index, ppath_array,
+                   diy_dvmr, diy_dt, ppath_step_agenda, rte_agenda, 
+                   iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
+                   atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                   t_field, vmr_field, r_geoid, z_surface, cloudbox_on, 
+                   cloudbox_limits, rte_pos, surface_los(ilos,joker), f_grid, 
+                   stokes_dim, ppath_array_do,
+                   rte_do_vmr_jacs, rte_do_t_jacs, agenda_verb2 );
+
+                I(ilos,joker,joker) = iy;
+
+                // Include reflection matrix in jacobian quantities
+                //
+                // Assume polarisation effects in surface_rmatrix
+                // (not of any impoartnce if stokes_dim=1)
+                const bool pol_r = true;
+                //
+                if( rte_do_vmr_jacs.nelem() )
+                  {
+                    for( Index iv=0; iv<nf; iv++ )
+                      {
+                        include_trans_in_diy_dq( diy_dvmr, iv, pol_r,
+                                          surface_rmatrix(ilos,iv,joker,joker),
+                                          ppath_array, ppath_array_index );
+                      }
+                  }
+                if( rte_do_t_jacs )
+                  {
+                    for( Index iv=0; iv<nf; iv++ )
+                      {
+                        include_trans_in_diy_dq( diy_dt, iv, pol_r,
+                                          surface_rmatrix(ilos,iv,joker,joker),
+                                          ppath_array, ppath_array_index );
+                      }
+                  }
+
+                // Reset *ppath_array_index*
+                ppath_array_index = pai;
+              }
+
+            // Copy data back to *ppath*.
+            ppath_init_structure( ppath, atmosphere_dim, pp_copy.np );
+            ppath_copy( ppath, pp_copy );
+          }
+
+        // Add up
+        surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
       }
       break;
 
@@ -181,7 +273,6 @@ void get_radiative_background(
         ppath_init_structure( ppath_local, atmosphere_dim, ppath.np );
         ppath_copy( ppath_local, ppath );
 
-        chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
         chk_not_empty( "iy_cloudbox_agenda", iy_cloudbox_agenda );
 
         iy_cloudbox_agendaExecute( iy, ppath_local, rte_pos, rte_los, rte_gp_p,
@@ -198,11 +289,12 @@ void get_radiative_background(
       }
       break;
 
+
     case 4: // inside the cloudbox
       {
         chk_not_empty( "iy_cloudbox_agenda", iy_cloudbox_agenda );
-        iy_cloudbox_agendaExecute( iy, ppath, rte_pos, rte_los, rte_gp_p, rte_gp_lat,
-                                   rte_gp_lon, iy_cloudbox_agenda, agenda_verb );
+        iy_cloudbox_agendaExecute( iy, ppath, rte_pos, rte_los, rte_gp_p, 
+                     rte_gp_lat, rte_gp_lon, iy_cloudbox_agenda, agenda_verb );
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {
@@ -213,6 +305,7 @@ void get_radiative_background(
           }
       } 
       break;
+
       
     default:  //--- ????? ----------------------------------------------------
       // Are we here, the coding is wrong somewhere
@@ -375,7 +468,7 @@ void iy_calc(
         const Agenda&                  ppath_step_agenda,
         const Agenda&                  rte_agenda,
         const Agenda&                  iy_space_agenda,
-        const Agenda&                  iy_surface_agenda,
+        const Agenda&                  surface_prop_agenda,
         const Agenda&                  iy_cloudbox_agenda,
         const Index&                   atmosphere_dim,
         const Vector&                  p_grid,
@@ -473,10 +566,13 @@ void iy_calc(
   //
   iy.resize(f_grid.nelem(),stokes_dim);
   //
-  get_radiative_background( iy, ppath, iy_space_agenda,
-                            iy_surface_agenda, iy_cloudbox_agenda,
-                            atmosphere_dim, f_grid, stokes_dim, ppath_array_do,
-                            rte_do_vmr_jacs, rte_do_t_jacs, agenda_verb );
+  get_radiative_background( iy, ppath, ppath_step, ppath_array_index,
+              ppath_array, diy_dvmr, diy_dt, ppath_step_agenda, rte_agenda, 
+              surface_prop_agenda, iy_space_agenda, iy_cloudbox_agenda, 
+              atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+              vmr_field, r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
+              f_grid, stokes_dim, ppath_array_do, rte_do_vmr_jacs, 
+              rte_do_t_jacs, agenda_verb );
 
 
   // If the number of propagation path points is 0 or 1, we are already ready,
@@ -503,7 +599,7 @@ void iy_calc_no_jacobian(
         const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
         const Agenda&         iy_space_agenda,
-        const Agenda&         iy_surface_agenda,
+        const Agenda&         surface_prop_agenda,
         const Agenda&         iy_cloudbox_agenda,
         const Index&          atmosphere_dim,
         const Vector&         p_grid,
@@ -532,7 +628,7 @@ void iy_calc_no_jacobian(
 
   iy_calc( iy, ppath, ppath_step,
            ppath_array_index, ppath_array, diy_dvmr, diy_dt, 
-           ppath_step_agenda, rte_agenda, iy_space_agenda, iy_surface_agenda, 
+           ppath_step_agenda, rte_agenda, iy_space_agenda, surface_prop_agenda,
            iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, lon_grid, 
            z_field, t_field, vmr_field, r_geoid, z_surface, cloudbox_on, 
            cloudbox_limits, pos, los, f_grid, stokes_dim, 

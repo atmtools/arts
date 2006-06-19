@@ -82,11 +82,10 @@ filename="data/scat_data_mono.xml.generated"
 
 #### Define Agendas #################################################
 
-AgendaSet(iy_surface_agenda){
+AgendaSet(surface_prop_agenda){
+  Ignore(rte_los){}
   InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
   surfaceBlackbody{
-  }
-  surfaceCalc{
   }
 }
 
@@ -118,6 +117,8 @@ AgendaSet(spt_calc_agenda){
 }
 
 AgendaSet(iy_space_agenda){
+  Ignore(rte_pos){}
+  Ignore(rte_los){}
   MatrixCBR(iy,f_grid){
   }
 }
