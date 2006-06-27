@@ -7,7 +7,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-EXTRA_DIST = *.xml *.xml.bin
+EXTRA_DIST = *.xml *.xml.bin lines.ac
 
 CLEANFILES = *xml.generated*
 

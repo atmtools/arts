@@ -70,6 +70,7 @@ EOF
              else
                  echo "\\noindent $j " \
                   | sed "s/_/\\\_/g" \
+                  | sed 's/&/\\&/g' \
                   | sed "s/\#/\\\#/g" \
                   | sed "s/\^/\\\^/g"
                  echo
