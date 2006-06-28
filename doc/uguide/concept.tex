@@ -87,7 +87,7 @@ will set all elements of \artsstyle{z\_surface} to 0.0 (as long as
   \end{center}
 \end{figure}
 
-Some methods are evn more flexible, the are super generic. This means
+Some methods are even more flexible, the are super generic. This means
 that they can take any workspace variable as input. The most commonly
 used such methods are the XML file methods. A workspace variable is
 read from a file in this way
@@ -98,6 +98,44 @@ Generic methods are particularly useful for IO operations like in the
 example above. No new IO methods are necessary for new workspace
 variables, as long as they are of standard types already known to the
 program (for example vectors or matrices). 
+
+
+
+\section{Agendas}
+%=================================
+\label{sec:concept:agendas}
+
+Agendas are a special incarnation of a workspace method. In the
+controlfile an arbitrary number of workspace methods can be added to
+an agenda. On invocation, the agenda executes its methods one
+after the other. The inputs and outputs defined for the agenda must
+be satisfied by the invoked workspace methods. E.g., if an agenda
+has \artsstyle{f\_grid} in its list of output workspace variables, a
+workspace method which generates \artsstyle{f\_grid} must be added to
+the agenda in the controlfile.
+
+Even though it is possible to execute agendas directly from the
+controlfile with the \artsstyle{AgendaExecute} method, the more common
+and intended use case is the internal invocation by other workspace
+methods. This adds a grave amount of flexibility to arts. The
+\artsstyle{RteStd} method for example calculates (besides other
+components) the emission term. Without the means of an agenda, it
+would only be possible to use always the same method for the emission
+calculation. By the use of an agenda the user can choose between
+different methods to calculate the emission and plug them into the
+emission agenda in the control file:
+
+{\small
+\begin{verbatim}
+AgendaSet(emission_agenda){
+  emissionPlanck{}
+}
+\end{verbatim}
+}
+
+\noindent
+\artsstyle{RteStd} internally calls the \artsstyle{emission\_agenda} and
+uses the user selected method for calculating the emission term.
 
 
 
