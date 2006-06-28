@@ -1,3 +1,12 @@
+2006-06-28  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1115
+
+	* doc/uguide: Fixed incorrect section references. Now no such
+	warning.
+	
+	* doc/uguide/surface.tex: Updated control file examples.
+
 2006-06-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1114

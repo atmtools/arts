@@ -202,7 +202,7 @@ calculated by the internal function
 \artsstyle{surface\_rmatrix} and \artsstyle{surface\_emission}. A
 general method for the specular case (with internal models of the
 dielectric properties of different media) is \wsmindex{surfaceFlat},
-while \wsmindex{surfaceSingleEmissivity} and
+while \wsmindex{surfaceSimple} and
 \wsmindex{surfaceBlackbody} treat some special cases.
 
 
@@ -211,24 +211,29 @@ while \wsmindex{surfaceSingleEmissivity} and
 %===================
 \label{sec:surface:cfile}
 
-The agenda \wsaindex{surface\_prop\_agenda} must not always be set, but
-it could anyhow be good practice to use it. An example:
-
+The agenda \wsaindex{surface\_prop\_agenda} sets the surface properties.
+A simple example where specular reflection is assumed and the surface 
+emissivity is 0.9:
 \begin{verbatim}
-
 AgendaSet(surface_prop_agenda){
-   InterpAtmFieldToRteGps(surface_skin_t,t_field){}
-   NumericSet(numeric_1){0.9}
-   surfaceSingleEmissivity(numeric_1){}
-}
-
-AgendaSet(iy_surface_agenda){
-   AgendaExecute(surface_prop_agenda){}
-   surfaceCalc{}
+   InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
+   NumericSet(surface_emissivity){0.9}
+   surfaceSimple{}
 }
 
 \end{verbatim}
-
+To read surface properties from files:
+\begin{verbatim}
+AgendaSet(surface_prop_agenda){
+   Ignore(rte_gp_p){}
+   Ignore(rte_gp_lat){}
+   Ignore(rte_gp_lon){}
+   Ignore(rte_los){}
+   ReadXML(surface_los){"surface_los.xml"}
+   ReadXML(surface_rmatrix){"surface_rmatrix.xml"}
+   ReadXML(surface_emission){"surface_emission.xml"}
+}
+\end{verbatim}
 
 
 
