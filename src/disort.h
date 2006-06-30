@@ -32,7 +32,7 @@ void dtauc_ssalbCalc(
                     VectorView dtauc,
                     VectorView ssalb,
                     const Agenda& opt_prop_part_agenda,
-                    const Agenda& scalar_gas_absorption_agenda,
+                    const Agenda& abs_scalar_gas_agenda,
                     const Agenda& spt_calc_agenda,
                     ConstTensor4View pnd_field,
                     ConstTensor3View t_field,

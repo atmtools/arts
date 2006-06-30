@@ -22,7 +22,7 @@
   the empty table to an XML file, to see the file format.
 */
   /* param x  Absorption lookup table.*/
-void gas_abs_lookupInit(GasAbsLookup& /* x */)
+void abs_lookupInit(GasAbsLookup& /* x */)
 {
   // Nothing to do here.
   // That means, we rely on the default constructor.
@@ -35,10 +35,10 @@ void gas_abs_lookupInit(GasAbsLookup& /* x */)
 void abs_lookupCreate(// WS Output:
                       GasAbsLookup& gal,
                       // WS Input:
-                      const ArrayOfArrayOfSpeciesTag& gas_species,
+                      const ArrayOfArrayOfSpeciesTag& abs_species,
                       const Vector& f_grid,
                       const Vector& p_grid,
-                      const Matrix& vmrs,
+                      const Matrix& abs_vmrs,
                       const Vector& abs_t,
                       const Vector& abs_lookup_t_pert
                      )
@@ -46,13 +46,13 @@ void abs_lookupCreate(// WS Output:
 }
 
 
-void gas_speciesAdd(// WS Output:
-                    ArrayOfArrayOfSpeciesTag& gas_species,
+void abs_speciesAdd(// WS Output:
+                    ArrayOfArrayOfSpeciesTag& abs_species,
                     // Control Parameters:
                     const ArrayOfString& names)
 {
   // Size of initial array
-  Index n_gs = gas_species.nelem();
+  Index n_gs = abs_species.nelem();
   
   // Temporary ArrayOfSpeciesTag
   ArrayOfSpeciesTag temp;
@@ -62,17 +62,17 @@ void gas_speciesAdd(// WS Output:
   for ( Index i=0; i<names.nelem(); ++i )
     {
       array_species_tag_from_string( temp, names[i] );  
-      gas_species.push_back(temp);
+      abs_species.push_back(temp);
     }
 
   // Print list of tag groups to the most verbose output stream:
   out3 << "  Added tag groups:";
-  for ( Index i=n_gs; i<gas_species.nelem(); ++i )
+  for ( Index i=n_gs; i<abs_species.nelem(); ++i )
     {
       out3 << "\n  " << i << ":";
-      for ( Index s=0; s<gas_species[i].nelem(); ++s )
+      for ( Index s=0; s<abs_species[i].nelem(); ++s )
         {
-          out3 << " " << gas_species[i][s].Name();
+          out3 << " " << abs_species[i][s].Name();
         }
     }
   out3 << '\n';
@@ -80,19 +80,19 @@ void gas_speciesAdd(// WS Output:
 
 
 
-void gas_speciesInit( ArrayOfArrayOfSpeciesTag& gas_species )
+void abs_speciesInit( ArrayOfArrayOfSpeciesTag& abs_species )
 {
-  gas_species.resize(0);
+  abs_species.resize(0);
 }
 
 
 
-void gas_speciesSet(// WS Output:
-                    ArrayOfArrayOfSpeciesTag& gas_species,
+void abs_speciesSet(// WS Output:
+                    ArrayOfArrayOfSpeciesTag& abs_species,
                     // Control Parameters:
                     const ArrayOfString& names)
 {
-  gas_species.resize(names.nelem());
+  abs_species.resize(names.nelem());
 
   //cout << "Names: " << names << "\n";
 
@@ -102,48 +102,48 @@ void gas_speciesSet(// WS Output:
     {
       // This part has now been moved to array_species_tag_from_string.
       // Call this function.
-      array_species_tag_from_string( gas_species[i], names[i] );  
+      array_species_tag_from_string( abs_species[i], names[i] );  
     }
 
   // Print list of tag groups to the most verbose output stream:
   out3 << "  Defined tag groups:";
-  for ( Index i=0; i<gas_species.nelem(); ++i )
+  for ( Index i=0; i<abs_species.nelem(); ++i )
     {
       out3 << "\n  " << i << ":";
-      for ( Index s=0; s<gas_species[i].nelem(); ++s )
+      for ( Index s=0; s<abs_species[i].nelem(); ++s )
         {
-          out3 << " " << gas_species[i][s].Name();
+          out3 << " " << abs_species[i][s].Name();
         }
     }
   out3 << '\n';
 }
 
-void gas_abs_lookupAdapt( GasAbsLookup&                   gas_abs_lookup,
-                          Index&                          gas_abs_lookup_is_adapted,
-                          const ArrayOfArrayOfSpeciesTag& gas_species,
+void abs_lookupAdapt( GasAbsLookup&                   abs_lookup,
+                          Index&                          abs_lookup_is_adapted,
+                          const ArrayOfArrayOfSpeciesTag& abs_species,
                           const Vector&                   f_grid)
 {
-  gas_abs_lookup.Adapt( gas_species, f_grid );
-  gas_abs_lookup_is_adapted = 1;
+  abs_lookup.Adapt( abs_species, f_grid );
+  abs_lookup_is_adapted = 1;
 }
 
 void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
-                                      const GasAbsLookup& gas_abs_lookup,
-                                      const Index&        gas_abs_lookup_is_adapted, 
+                                      const GasAbsLookup& abs_lookup,
+                                      const Index&        abs_lookup_is_adapted, 
                                       const Index&        f_index,
                                       const Numeric&      a_pressure,
                                       const Numeric&      a_temperature,
                                       const Vector&       a_vmr_list)
 {
   // Check if the table has been adapted:
-  if ( 1!=gas_abs_lookup_is_adapted )
+  if ( 1!=abs_lookup_is_adapted )
     throw runtime_error("Gas absorption lookup table must be adapted,\n"
-                        "use method gas_abs_lookupAdapt.");
+                        "use method abs_lookupAdapt.");
 
   // The function we are going to call here is one of the few helper
   // functions that adjust the size of their output argument
   // automatically. 
-  gas_abs_lookup.Extract( abs_scalar_gas,
+  abs_lookup.Extract( abs_scalar_gas,
                           f_index,
                           a_pressure,
                           a_temperature,
@@ -159,7 +159,7 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
   example.
 
   The calculation itself is performed by the
-  *scalar_gas_absorption_agenda*, which needs the input variables
+  *abs_scalar_gas_agenda*, which needs the input variables
   *a_pressure*, *a_temperature*, and *a_vmr_list*, and returns the
   output variable *abs_scalar_gas*.
 
@@ -183,18 +183,18 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
   \author Stefan Buehler
   \date   2002-12-20
 */
-void abs_scalar_gas_fieldCalc(// WS Output:
-                              Tensor5& asg_field,
-                              // WS Input:
-                              const Agenda&  sga_agenda,
-                              const Index&   f_index,
-                              const Vector&  f_grid,
-                              const Index&   atmosphere_dim,
-                              const Vector&  p_grid,
-                              const Vector&  lat_grid,
-                              const Vector&  lon_grid,
-                              const Tensor3& t_field,
-                              const Tensor4& vmr_field )
+void abs_fieldCalc(// WS Output:
+                   Tensor5& asg_field,
+                   // WS Input:
+                   const Agenda&  sga_agenda,
+                   const Index&   f_index,
+                   const Vector&  f_grid,
+                   const Index&   atmosphere_dim,
+                   const Vector&  p_grid,
+                   const Vector&  lat_grid,
+                   const Vector&  lon_grid,
+                   const Tensor3& t_field,
+                   const Tensor4& vmr_field )
 {
   Matrix  asg;
   Numeric a_pressure;
@@ -302,7 +302,7 @@ void abs_scalar_gas_fieldCalc(// WS Output:
             // Execute agenda to calculate local absorption.
             // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
             // Agenda output: asg
-            scalar_gas_absorption_agendaExecute (asg, f_index, a_pressure,
+            abs_scalar_gas_agendaExecute (asg, f_index, a_pressure,
                                                  a_temperature, a_vmr_list,
                                                  sga_agenda, (count != 0));
 
@@ -333,8 +333,8 @@ void abs_scalar_gas_fieldCalc(// WS Output:
             // Store the result in output field.
             // We have to transpose asg, because the dimensions of the
             // two variables are:
-            // asg_field: [ gas_species, f_grid, p_grid, lat_grid, lon_grid]
-            // asg:       [ f_grid, gas_species ]
+            // asg_field: [ abs_species, f_grid, p_grid, lat_grid, lon_grid]
+            // asg:       [ f_grid, abs_species ]
             asg_field( Range(joker),
                        Range(joker),
                        ipr, ila, ilo ) = transpose( asg );
@@ -354,9 +354,9 @@ void abs_scalar_gas_fieldCalc(// WS Output:
 */
 void f_gridFromGasAbsLookup(
              Vector&         f_grid,
-       const GasAbsLookup&   gas_abs_lookup )
+       const GasAbsLookup&   abs_lookup )
 {
-  gas_abs_lookup.GetFgrid( f_grid );
+  abs_lookup.GetFgrid( f_grid );
 }
 
 
@@ -370,7 +370,7 @@ void f_gridFromGasAbsLookup(
 */
 void p_gridFromGasAbsLookup(
              Vector&         p_grid,
-       const GasAbsLookup&   gas_abs_lookup )
+       const GasAbsLookup&   abs_lookup )
 {
-  gas_abs_lookup.GetPgrid( p_grid );
+  abs_lookup.GetPgrid( p_grid );
 }

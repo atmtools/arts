@@ -52,15 +52,15 @@ ReadXML(z_surface){
 filename="data/z_surface.xml.generated"
 }
 
-ReadXML(gas_abs_lookup){
+ReadXML(abs_lookup){
 filename="data/gas_abs_lookup_adapted.xml.generated"
 }
 
-gas_speciesSet{
+abs_speciesSet{
 species=["O2","N2","H2O"]
 }
 
-IndexSet (gas_abs_lookup_is_adapted ){
+IndexSet (abs_lookup_is_adapted ){
 value=1
 }
 
@@ -90,7 +90,7 @@ AgendaSet(surface_prop_agenda){
 }
 
 
-AgendaSet(scalar_gas_absorption_agenda){
+AgendaSet(abs_scalar_gas_agenda){
   abs_scalar_gasExtractFromLookup{
 }
 

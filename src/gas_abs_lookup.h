@@ -49,7 +49,7 @@ public:
                             const Index&    f_index,
                             const Numeric&  p,
                             const Numeric&  T,
-                ConstVectorView vmrs ) const;
+                ConstVectorView abs_vmrs ) const;
 
   void GetFgrid( Vector& f ) const;
 
@@ -60,7 +60,7 @@ public:
     //                 const Index&     f_index,
     //                 ConstVectorView  p,
     //                 ConstTensor3View T,
-    //                 ConstTensor4View vmrs ) const;
+    //                 ConstTensor4View abs_vmrs ) const;
 
   // IO functions must be friends:
   friend void xml_read_from_stream( istream& is_xml,
@@ -134,7 +134,7 @@ private:
 
     Fractional units are used! Example: [0,.5,1,10,100],
     meaning from VMR 0 to 100 times the profile given in
-    vmrs. The reference value should normally be included, hence
+    abs_vmrs. The reference value should normally be included, hence
     nls_pert should always include the value 1.
 
     If nonlinear_species is an empty vector, it means that there are

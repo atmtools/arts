@@ -59,7 +59,7 @@ void clear_atm_vars_at_ppath_end(
                            VectorView& abs_vec_mono,
                            Numeric& temperature,
                            const Agenda& opt_prop_gas_agenda,
-                           const Agenda& scalar_gas_absorption_agenda,
+                           const Agenda& abs_scalar_gas_agenda,
                            //                           const Index& stokes_dim,
                            const Ppath& ppath,
                            const ConstVectorView         p_grid,
@@ -94,8 +94,8 @@ void clear_atm_vars_at_ppath_end(
   //local_rte_pressure    = p_ppath[0];
   temperature = t_ppath[0];
   //rte_vmr_list    = vmr_ppath(joker,0);
-  scalar_gas_absorption_agendaExecute( local_abs_scalar_gas,0,p_ppath[0],temperature,
-                                       vmr_ppath(joker,0),scalar_gas_absorption_agenda,
+  abs_scalar_gas_agendaExecute( local_abs_scalar_gas,0,p_ppath[0],temperature,
+                                       vmr_ppath(joker,0),abs_scalar_gas_agenda,
                                        true );
   opt_prop_gas_agendaExecute( local_ext_mat, local_abs_vec, local_abs_scalar_gas,
                               opt_prop_gas_agenda, true );
@@ -118,7 +118,7 @@ void clear_atm_vars_at_ppath_end_IPA(
                            VectorView&              abs_vec_mono,
                            Numeric&                 temperature,
                            const Agenda&            opt_prop_gas_agenda,
-                           const Agenda&            scalar_gas_absorption_agenda,
+                           const Agenda&            abs_scalar_gas_agenda,
                            //                           const Index& stokes_dim,
                            const Ppath& ppath,
                            const ConstVectorView    p_grid,
@@ -180,8 +180,8 @@ void clear_atm_vars_at_ppath_end_IPA(
   //local_rte_pressure    = p_ppath[0];
   temperature = t_ppath[0];
   //rte_vmr_list    = vmr_ppath(joker,0);
-  scalar_gas_absorption_agendaExecute( local_abs_scalar_gas,0,p_ppath[0],temperature,
-                                       vmr_ppath(joker,0),scalar_gas_absorption_agenda,
+  abs_scalar_gas_agendaExecute( local_abs_scalar_gas,0,p_ppath[0],temperature,
+                                       vmr_ppath(joker,0),abs_scalar_gas_agenda,
                                        true );
   opt_prop_gas_agendaExecute( local_ext_mat, local_abs_vec, local_abs_scalar_gas,
                               opt_prop_gas_agenda, true );
@@ -287,7 +287,7 @@ void cloudy_atm_vars_at_ppath_end(
                            VectorView& pnd_vec,
                            Numeric& temperature,
                            const Agenda& opt_prop_gas_agenda,
-                           const Agenda& scalar_gas_absorption_agenda,
+                           const Agenda& abs_scalar_gas_agenda,
                            const Index& stokes_dim,
                            const Ppath& ppath,
                            const ConstVectorView         p_grid_cloud,
@@ -332,8 +332,8 @@ void cloudy_atm_vars_at_ppath_end(
   //local_rte_pressure    = p_ppath[0];
   temperature = t_ppath[0];
   //rte_vmr_list    = vmr_ppath(joker,0);
-  scalar_gas_absorption_agendaExecute( local_abs_scalar_gas,0,p_ppath[0],temperature,
-                                       vmr_ppath(joker,0),scalar_gas_absorption_agenda,
+  abs_scalar_gas_agendaExecute( local_abs_scalar_gas,0,p_ppath[0],temperature,
+                                       vmr_ppath(joker,0),abs_scalar_gas_agenda,
                                        true );
   opt_prop_gas_agendaExecute( local_ext_mat, local_abs_vec, local_abs_scalar_gas,
                               opt_prop_gas_agenda, true );
@@ -373,7 +373,7 @@ void cloudy_atm_vars_at_ppath_end_IPA(
               VectorView&                        pnd_vec,
               Numeric&                           temperature,
               const Agenda&                      opt_prop_gas_agenda,
-              const Agenda&                      scalar_gas_absorption_agenda,
+              const Agenda&                      abs_scalar_gas_agenda,
               const Index&                       stokes_dim,
               const Ppath&                       ppath,
               const ConstVectorView              p_grid_cloud,
@@ -444,8 +444,8 @@ void cloudy_atm_vars_at_ppath_end_IPA(
   //local_rte_pressure    = p_ppath[0];
   temperature = t_ppath[0];
   //rte_vmr_list    = vmr_ppath(joker,0);
-  scalar_gas_absorption_agendaExecute( local_abs_scalar_gas,0,p_ppath[0],temperature,
-                                       vmr_ppath(joker,0),scalar_gas_absorption_agenda,
+  abs_scalar_gas_agendaExecute( local_abs_scalar_gas,0,p_ppath[0],temperature,
+                                       vmr_ppath(joker,0),abs_scalar_gas_agenda,
                                        true );
   opt_prop_gas_agendaExecute( local_ext_mat, local_abs_vec, local_abs_scalar_gas,
                               opt_prop_gas_agenda, true );
@@ -890,7 +890,7 @@ void Cloudbox_ppath_rteCalc(
                              const Index&          record_ppathcloud,
                              const Index&          record_ppath,
                              const Agenda&         opt_prop_gas_agenda,
-                             const Agenda&         scalar_gas_absorption_agenda,
+                             const Agenda&         abs_scalar_gas_agenda,
                              const Index&          f_index,
                              const Index&          stokes_dim,
                              const Tensor3&        t_field,
@@ -957,7 +957,7 @@ void Cloudbox_ppath_rteCalc(
   TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, ext_mat, abs_vec, 
              rte_pressure, rte_temperature, 
              rte_vmr_list, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
-             scalar_gas_absorption_agenda, f_index, stokes_dim, 
+             abs_scalar_gas_agenda, f_index, stokes_dim, 
              p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
              t_field(p_range,lat_range,lon_range), 
              vmr_field(joker,p_range,lat_range,lon_range),
@@ -1361,7 +1361,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
                         //Numeric&              rte_pressure,
                         //Vector&               rte_vmr_list,
                         const Agenda&         opt_prop_gas_agenda,
-                        const Agenda&         scalar_gas_absorption_agenda,
+                        const Agenda&         abs_scalar_gas_agenda,
                         const Index&          stokes_dim,
                         const Vector&         p_grid,
                         const Vector&         lat_grid,
@@ -1417,7 +1417,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
     {
       cloudy_atm_vars_at_ppath_end(ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
                                    opt_prop_gas_agenda,
-                                   scalar_gas_absorption_agenda, stokes_dim, ppath_step,
+                                   abs_scalar_gas_agenda, stokes_dim, ppath_step,
                                    p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
                                    t_field(p_range,lat_range,lon_range), 
                                    vmr_field(joker,p_range,lat_range,lon_range),
@@ -1426,7 +1426,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
   else
     {
       clear_atm_vars_at_ppath_end(ext_mat_mono,abs_vec_mono,temperature, opt_prop_gas_agenda,
-                                   scalar_gas_absorption_agenda, ppath_step,
+                                   abs_scalar_gas_agenda, ppath_step,
                                    p_grid, lat_grid, lon_grid, t_field, vmr_field);
       pnd_vec=0.0;
     }
@@ -1465,7 +1465,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
         {
           cloudy_atm_vars_at_ppath_end(ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
                                        opt_prop_gas_agenda,
-                                       scalar_gas_absorption_agenda, stokes_dim, ppath_step,
+                                       abs_scalar_gas_agenda, stokes_dim, ppath_step,
                                        p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
                                        t_field(p_range,lat_range,lon_range), 
                                        vmr_field(joker,p_range,lat_range,lon_range),
@@ -1474,7 +1474,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
       else
         {
           clear_atm_vars_at_ppath_end(ext_mat_mono,abs_vec_mono,temperature, opt_prop_gas_agenda,
-                                      scalar_gas_absorption_agenda,  ppath_step,
+                                      abs_scalar_gas_agenda,  ppath_step,
                                       p_grid, lat_grid, lon_grid, t_field, vmr_field);
           pnd_vec=0.0;
         }
@@ -1612,7 +1612,7 @@ void mcPathTraceIPA(MatrixView&           evol_op,
                     //Numeric&              rte_pressure,
                     //Vector&               rte_vmr_list,
                     const Agenda&         opt_prop_gas_agenda,
-                    const Agenda&         scalar_gas_absorption_agenda,
+                    const Agenda&         abs_scalar_gas_agenda,
                     const Index&          stokes_dim,
                     const Vector&         p_grid,
                     const Vector&         lat_grid,
@@ -1669,7 +1669,7 @@ void mcPathTraceIPA(MatrixView&           evol_op,
     {
       cloudy_atm_vars_at_ppath_end_IPA(ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
                                        opt_prop_gas_agenda,
-                                       scalar_gas_absorption_agenda, stokes_dim, ppath_step,
+                                       abs_scalar_gas_agenda, stokes_dim, ppath_step,
                                        p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
                                        t_field(p_range,lat_range,lon_range), 
                                        vmr_field(joker,p_range,lat_range,lon_range),
@@ -1678,7 +1678,7 @@ void mcPathTraceIPA(MatrixView&           evol_op,
   else
     {
       clear_atm_vars_at_ppath_end_IPA(ext_mat_mono,abs_vec_mono,temperature, opt_prop_gas_agenda,
-                                      scalar_gas_absorption_agenda, ppath_step,
+                                      abs_scalar_gas_agenda, ppath_step,
                                       p_grid, lat_grid, lon_grid, t_field, vmr_field, ppath);
       pnd_vec=0.0;
     }
@@ -1717,7 +1717,7 @@ void mcPathTraceIPA(MatrixView&           evol_op,
         {
           cloudy_atm_vars_at_ppath_end_IPA(ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
                                            opt_prop_gas_agenda,
-                                           scalar_gas_absorption_agenda, stokes_dim, ppath_step,
+                                           abs_scalar_gas_agenda, stokes_dim, ppath_step,
                                            p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
                                            t_field(p_range,lat_range,lon_range), 
                                            vmr_field(joker,p_range,lat_range,lon_range),
@@ -1726,7 +1726,7 @@ void mcPathTraceIPA(MatrixView&           evol_op,
       else
         {
           clear_atm_vars_at_ppath_end_IPA(ext_mat_mono,abs_vec_mono,temperature, opt_prop_gas_agenda,
-                                          scalar_gas_absorption_agenda,  ppath_step,
+                                          abs_scalar_gas_agenda,  ppath_step,
                                           p_grid, lat_grid, lon_grid, t_field, vmr_field, ppath);
           pnd_vec=0.0;
         }
@@ -1861,7 +1861,7 @@ void mcPathTrace(MatrixView&           evol_op,
                  Numeric&              g,
                  bool&                 left_cloudbox,
                  const Agenda&         opt_prop_gas_agenda,
-                 const Agenda&         scalar_gas_absorption_agenda,
+                 const Agenda&         abs_scalar_gas_agenda,
                  const Index&          stokes_dim,
                  const Vector&         p_grid,
                  const Vector&         lat_grid,
@@ -1910,7 +1910,7 @@ void mcPathTrace(MatrixView&           evol_op,
                 cloudbox_limits[5]-cloudbox_limits[4]+1);
   cloudy_atm_vars_at_ppath_end(ext_mat_mono,abs_vec_mono,pnd_vec,rte_temperature,
                                opt_prop_gas_agenda,
-                               scalar_gas_absorption_agenda, stokes_dim, ppath_step,
+                               abs_scalar_gas_agenda, stokes_dim, ppath_step,
                                p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
                                t_field(p_range,lat_range,lon_range), 
                                vmr_field(joker,p_range,lat_range,lon_range),
@@ -1937,7 +1937,7 @@ void mcPathTrace(MatrixView&           evol_op,
       //calculate evol_op
       cloudy_atm_vars_at_ppath_end(ext_mat_mono,abs_vec_mono,pnd_vec,rte_temperature,
                                    opt_prop_gas_agenda,
-                                   scalar_gas_absorption_agenda, stokes_dim, ppath_step,
+                                   abs_scalar_gas_agenda, stokes_dim, ppath_step,
                                    p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
                                    t_field(p_range,lat_range,lon_range), 
                                    vmr_field(joker,p_range,lat_range,lon_range),
@@ -2122,7 +2122,7 @@ Numeric opt_depth_calc(
                        Vector&    rte_vmr_list,
                        const Ppath&     ppath,
                        const Agenda& opt_prop_gas_agenda,
-                       const Agenda& scalar_gas_absorption_agenda,
+                       const Agenda& abs_scalar_gas_agenda,
                        const Index&     f_index,
                        const Vector&    p_grid,
                        const Vector&    lat_grid,
@@ -2170,10 +2170,10 @@ Numeric opt_depth_calc(
       rte_pressure    = p_ppath[i];
       rte_temperature = t_ppath[i];
       rte_vmr_list    = vmr_ppath(joker,i);
-      scalar_gas_absorption_agendaExecute (abs_scalar_gas, f_index,
+      abs_scalar_gas_agendaExecute (abs_scalar_gas, f_index,
                                            rte_pressure, rte_temperature,
                                            rte_vmr_list,
-                                           scalar_gas_absorption_agenda, true);
+                                           abs_scalar_gas_agenda, true);
       opt_prop_gas_agendaExecute (ext_mat, abs_vec, abs_scalar_gas,
                                   opt_prop_gas_agenda, true);
       kvector[i]=ext_mat(0,0,0);
@@ -2817,7 +2817,7 @@ void TArrayCalc(
                 //input
                 const Ppath& ppath,
                 const Agenda& opt_prop_gas_agenda,
-                const Agenda& scalar_gas_absorption_agenda,
+                const Agenda& abs_scalar_gas_agenda,
                 const Index& f_index,
                 const Index& stokes_dim,
                 const ConstVectorView&    p_grid_cloud,
@@ -2876,10 +2876,10 @@ void TArrayCalc(
       rte_pressure    = p_ppath[scat_za_index];
       rte_temperature = t_ppath[scat_za_index];
       rte_vmr_list    = vmr_ppath(joker,scat_za_index);
-      scalar_gas_absorption_agendaExecute (abs_scalar_gas, f_index,
+      abs_scalar_gas_agendaExecute (abs_scalar_gas, f_index,
                                            rte_pressure, rte_temperature,
                                            rte_vmr_list,
-                                           scalar_gas_absorption_agenda, true);
+                                           abs_scalar_gas_agenda, true);
       opt_prop_gas_agendaExecute( ext_mat, abs_vec, abs_scalar_gas,
                                   opt_prop_gas_agenda, true );
       ext_mat_part=0.0;

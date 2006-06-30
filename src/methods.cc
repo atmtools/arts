@@ -88,7 +88,7 @@
          "   z_tan_lim : Vector with start and stop tangent altitudes."
         ),
         OUTPUT(),
-        INPUT( z_plat_, p_abs_, z_abs_, l_step_, refr_, refr_lfac_,
+        INPUT( z_plat_, abs_p_, z_abs_, l_step_, refr_, refr_lfac_,
                refr_index_, r_geoid_, z_surface_ ),
         GOUTPUT( Vector_ ),
         GINPUT(),
@@ -147,99 +147,95 @@ void define_md_data_raw()
     ( MdRecord
       ( NAME( "AbsInputFromAtmFields" ),
         DESCRIPTION(
-                    "Initialize the WSMs *abs_p*, *abs_t* and *vmrs* from\n"
+                    "Initialize the WSMs *abs_p*, *abs_t* and *abs_vmrs* from\n"
                     "*p_grid, *t_field* and *vmr_field*\n"
                    ) ,
-        OUTPUT( abs_p_, abs_t_, vmrs_ ),
+        OUTPUT( abs_p_, abs_t_, abs_vmrs_ ),
         INPUT( p_grid_, t_field_, vmr_field_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
 
-  // New name: abs_coefCalc
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "absCalc" ),
+      ( NAME( "abs_coefCalc" ),
         DESCRIPTION(
                     "Calculate absorption coefficients. \n"
                     "\n"
-                    "This function calculates both, the total absorption (*abs*)\n"
-                    "and the absorption per tag group (*abs_per_tg*).\n"
+                    "This function calculates both, the total absorption (*abs_coef*)\n"
+                    "and the absorption per tag group (*abs_coef_per_species*).\n"
                    ) ,
-        OUTPUT( abs_  , abs_per_tg_ ),
-        INPUT( gas_species_, f_grid_, abs_p_, abs_t_, n2_abs_, h2o_abs_, vmrs_, 
-               lines_per_tg_, lineshape_,
-               cont_description_names_, cont_description_models_, 
-               cont_description_parameters_ ),
+        OUTPUT( abs_coef_  , abs_coef_per_species_ ),
+        INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_n2_, abs_h2o_, abs_vmrs_, 
+               abs_lines_per_species_, abs_lineshape_,
+               abs_cont_names_, abs_cont_models_, 
+               abs_cont_parameters_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
 
-  // New name: abs_coefCalcFromXsec
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("absCalcFromXsec"),
+      ( NAME("abs_coefCalcFromXsec"),
         DESCRIPTION(
                     "Calculate absorption coefficients from cross sections.\n"
                     "\n"
                     "This calculates both the total absorption and the\n"
                     "absorption per tag group. \n"
                     "This method calls three other  methods:\n"
-                    "1. *xsec_per_tgInit* - initialize *xsec_per_tg* \n"
-                    "2. *xsec_per_tgAddLine* - calculate cross sections per \n"
+                    "1. *abs_xsec_per_speciesInit* - initialize *abs_xsec_per_species* \n"
+                    "2. *abs_xsec_per_speciesAddLine* - calculate cross sections per \n"
                     "                   tag group for line spectra.\n"
-                    "3. *xsec_per_tgAddConts* - calculate cross sections per \n"
+                    "3. *abs_xsec_per_speciesAddConts* - calculate cross sections per \n"
                     "                   tag group for continua.\n"
                     "Then it calculates the absorption coefficient by multiplying\n"
                     "the cross section by VMR.\n"
-                    "This is done once for each tag group (output: *abs_per_tg*)\n"
+                    "This is done once for each tag group (output: *abs_coef_per_species*)\n"
                     "and for the sum of all tag group to get the total absorption\n"
-                    "coefficient (output: *abs*)\n"
+                    "coefficient (output: *abs_coef*)\n"
                    ),
-        OUTPUT(	abs_, abs_per_tg_ ),
-        INPUT( xsec_per_tg_, vmrs_ ),
+        OUTPUT(	abs_coef_, abs_coef_per_species_ ),
+        INPUT( abs_xsec_per_species_, abs_vmrs_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
 
-  // New name: abs_coefCalcSaveMemory
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "absCalcSaveMemory" ),
+      ( NAME( "abs_coefCalcSaveMemory" ),
         DESCRIPTION(
                     "Calculate absorption coefficients, trying to conserve memory. \n"
                     "\n"
-                    "This function calculates only the total absorption (*abs*),\n"
-                    "NOT the absorption per tag group (*abs_per_tg*).\n"
+                    "This function calculates only the total absorption (*abs_coef*),\n"
+                    "NOT the absorption per tag group (*abs_coef_per_species*).\n"
                     "\n"
                     "This means you cannot use it if you want to calculate Jacobians\n"
                     "later.\n"
                     "\n"
-                    "The implementation follows absCalc."
+                    "The implementation follows abs_coefCalc."
                    ) ,
-        OUTPUT( abs_ ),
-        INPUT( gas_species_, f_grid_, abs_p_, abs_t_, n2_abs_, h2o_abs_, vmrs_, 
-               lines_per_tg_, lineshape_,
-               cont_description_names_, cont_description_models_, 
-               cont_description_parameters_ ),
+        OUTPUT( abs_coef_ ),
+        INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_n2_, abs_h2o_, abs_vmrs_, 
+               abs_lines_per_species_, abs_lineshape_,
+               abs_cont_names_, abs_cont_models_, 
+               abs_cont_parameters_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
 
-  // New name: abs_cont_descriptionAppend
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("cont_descriptionAppend"),
+      ( NAME("abs_cont_descriptionAppend"),
         DESCRIPTION
         (
          "Appends the description of a continuum model or a complete absorption\n"
-         "model to *cont_description_names* and *cont_description_parameters*.\n"
+         "model to *abs_cont_names* and *abs_cont_parameters*.\n"
          "\n"
-         "See online documentation for *cont_description_names* for a list of\n"
+         "See online documentation for *abs_cont_names* for a list of\n"
          "allowed models and for information what parameters they require. See\n"
          "file cont.arts in the doc/examples directory for usage examples and\n"
          "default parameters for the various models. \n"
@@ -252,69 +248,66 @@ void define_md_data_raw()
          "                for the model given. The meaning of the parameters and\n"
          "                how many parameters are required depends on the model.\n"
         ),
-        OUTPUT( cont_description_names_, 
-                cont_description_models_,
-                cont_description_parameters_ ),
-        INPUT(  cont_description_names_, 
-                cont_description_models_,
-                cont_description_parameters_),
+        OUTPUT( abs_cont_names_, 
+                abs_cont_models_,
+                abs_cont_parameters_ ),
+        INPUT(  abs_cont_names_, 
+                abs_cont_models_,
+                abs_cont_parameters_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "tagname", "model", "userparameters" ),
         TYPES( String_t, String_t, Vector_t )));
 
-  // New name: abs_cont_descriptionInit
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("cont_descriptionInit"),
+      ( NAME("abs_cont_descriptionInit"),
         DESCRIPTION
         (
          "Initializes the two workspace variables for the continuum description,\n"
-         "*cont_description_names* and *cont_description_parameters*.\n"
+         "*abs_cont_names* and *abs_cont_parameters*.\n"
          " \n"
          "This method does not really do anything, except setting the two\n"
          "variables to empty Arrays. It is just necessary because the method\n"
-         "*cont_descriptionAppend* wants to append to the variables.\n"
+         "*abs_cont_descriptionAppend* wants to append to the variables.\n"
          "   Formally, the continuum description workspace variables are required\n"
-         "by the absorption calculation methods (e.g., *absCalc*). Therefore you\n"
-         "always have to call at least *cont_descriptionInit*, even if you do\n"
+         "by the absorption calculation methods (e.g., *abs_coefCalc*). Therefore you\n"
+         "always have to call at least *abs_cont_descriptionInit*, even if you do\n"
          "not want to use any continua."
         ),
-        OUTPUT( cont_description_names_, 
-                cont_description_models_,
-                cont_description_parameters_ ),
+        OUTPUT( abs_cont_names_, 
+                abs_cont_models_,
+                abs_cont_parameters_ ),
         INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
 
-  // New name: abs_h2oSet
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("h2o_absSet"),
+      ( NAME("abs_h2oSet"),
         DESCRIPTION(
-                    "Sets h2o_abs to the profile of the first tag group containing\n"
+                    "Sets abs_h2o to the profile of the first tag group containing\n"
                     "water.\n" 
                     "\n"
-                    "This is necessary, because for example *absCalc* requires h2o_abs\n"
+                    "This is necessary, because for example *abs_coefCalc* requires abs_h2o\n"
                     "to contain the water vapour profile(the reason for this is the\n"
                     "calculation of oxygen line brodening requires water vapour profile).\n"
                     "Then this function can be used to copy the profile of the first tag\n"
                     "group of water.\n"
                     "\n"
                    ),
-        OUTPUT(	h2o_abs_ ),
-        INPUT( gas_species_, vmrs_ ),
+        OUTPUT(	abs_h2o_ ),
+        INPUT( abs_species_, abs_vmrs_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS(),
         TYPES( )));
 
-  // New name: abs_lineshapeDefine
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("lineshapeDefine"),
+      ( NAME("abs_lineshapeDefine"),
         DESCRIPTION(
                     "Sets the lineshape for all calculated lines.\n"
                     "\n"
@@ -365,17 +358,16 @@ void define_md_data_raw()
                     "   shape               : The general profile according to an approximation.\n"
                     "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
                     "   cutoff              : The frequency at which a cutoff can be made.\n"),
-        OUTPUT( lineshape_ ),
-        INPUT( gas_species_ ),
+        OUTPUT( abs_lineshape_ ),
+        INPUT( abs_species_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "shape", "normalizationfactor", "cutoff" ),
         TYPES( String_t, String_t, Numeric_t )));
 
-  // New name: abs_lineshape_per_tgDefine
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("lineshape_per_tgDefine"),
+      ( NAME("abs_lineshape_per_tgDefine"),
         DESCRIPTION(
                     "Sets the lineshape per tag group for all calculated lines.\n\n"
                     "\n" 
@@ -421,17 +413,16 @@ void define_md_data_raw()
                     "   shape               : The general profile according to an approximation.\n"
                     "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
                     "   cutoff              : The frequency at which a cutoff can be made.\n"),
-        OUTPUT( lineshape_ ),
-        INPUT( gas_species_ ),
+        OUTPUT( abs_lineshape_ ),
+        INPUT( abs_species_ ),
         GOUTPUT( ),
         GINPUT(),
         KEYWORDS( "shape", "normalizationfactor", "cutoff" ),
         TYPES( Array_String_t, Array_String_t, Vector_t )));
 
-  // New name: abs_linesReadFromArts
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("linesReadFromArts"),
+      ( NAME("abs_linesReadFromArts"),
         DESCRIPTION(
                     "Read all the lines from an Arts catalogue file in the \n"
                     "given frequency range. Otherwise a runtime error will be\n"
@@ -444,23 +435,22 @@ void define_md_data_raw()
                     "   filename = Name (and path) of the catalogue file.\n"
                     "   fmin     = Minimum frequency for lines to read in Hz.\n"
                     "   fmax     = Maximum frequency for lines to read in Hz."),
-        OUTPUT( lines_ ),
+        OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "filename", "fmin", "fmax" ),
         TYPES( String_t, Numeric_t, Numeric_t )));
 
-  // New name: abs_linesReadFromHitran
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("linesReadFromHitran"),
+      ( NAME("abs_linesReadFromHitran"),
         DESCRIPTION
         (
 		    "Read all the lines from a HITRAN 1986-2001 catalogue file in\n"
 		    "the given frequency range. Otherwise a runtime error will be\n"
 		    "thrown. For HITRAN 2004 line data use the workspace method \n"
-		    "linesReadFromHitran. \n"
+		    "abs_linesReadFromHitran. \n"
 		    "\n"
 		    "Please note that all lines must correspond to the legal\n"
  		    "species / isotope combinations and that the line data \n"
@@ -470,17 +460,16 @@ void define_md_data_raw()
 		    "   filename = Name (and path) of the catalogue file.\n"
 		    "   fmin     = Minimum frequency for lines to read in Hz.\n"
 		    "   fmax     = Maximum frequency for lines to read in Hz."),
-        OUTPUT( lines_ ),
+        OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "filename",  "fmin",    "fmax" ),
         TYPES( String_t, Numeric_t, Numeric_t)));
 
-  // New name: abs_linesReadFromHitran2004
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("linesReadFromHitran2004"),
+      ( NAME("abs_linesReadFromHitran2004"),
         DESCRIPTION(
                     "Read all the lines from a HITRAN 2004 catalogue file in the \n"
                     "given frequency range. Otherwise a runtime error is thrown. \n"
@@ -493,23 +482,22 @@ void define_md_data_raw()
                     "The database must be sorted by increasing frequency!\n"
                     "\n"
                     "For data in the Hitran 1986-2001 format use the workspace \n"
-                    "method: linesReadFromHitran\n"
+                    "method: abs_linesReadFromHitran\n"
                     "\n"
                     "Keywords: \n"
                     "   filename = Name (and path) of the catalogue file.\n"
                     "   fmin     = Minimum frequency for lines to read in Hz.\n"
                     "   fmax     = Maximum frequency for lines to read in Hz."),
-        OUTPUT( lines_ ),
+        OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "filename",  "fmin",    "fmax" ),
         TYPES( String_t, Numeric_t, Numeric_t )));
 
-  // New name: abs_linesReadFromJpl
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("linesReadFromJpl"),
+      ( NAME("abs_linesReadFromJpl"),
         DESCRIPTION(
                     "Read all the lines from a JPL catalogue file in the \n"
                     "given frequency range. Otherwise a runtime error will be\n"
@@ -522,17 +510,16 @@ void define_md_data_raw()
                     "   filename = Name (and path) of the catalogue file.\n"
                     "   fmin     = Minimum frequency for lines to read in Hz.\n"
                     "   fmax     = Maximum frequency for lines to read in Hz."),
-        OUTPUT( lines_ ),
+        OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "filename",  "fmin", "fmax" ),
         TYPES( String_t, Numeric_t, Numeric_t )));
 
-  // New name: abs_linesReadFromMytran2
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("linesReadFromMytran2"),
+      ( NAME("abs_linesReadFromMytran2"),
         DESCRIPTION(
                     "Read all the lines from a MYTRAN2 catalogue file in the \n"
                     "given frequency range. Otherwise a runtime error will be\n"
@@ -545,50 +532,47 @@ void define_md_data_raw()
                     "   filename = Name (and path) of the catalogue file.\n"
                     "   fmin     = Minimum frequency for lines to read in Hz.\n"
                     "   fmax     = Maximum frequency for lines to read in Hz."),
-        OUTPUT( lines_ ),
+        OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "filename", "fmin", "fmax"),
         TYPES( String_t, Numeric_t, Numeric_t )));
 
-  // New name: abs_lines_per_tgAddMirrorLines
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("lines_per_tgAddMirrorLines"),
+      ( NAME("abs_lines_per_speciesAddMirrorLines"),
         DESCRIPTION(
-                    "Adds mirror lines at negative frequencies to the *lines_per_tg*.\n"
+                    "Adds mirror lines at negative frequencies to the *abs_lines_per_species*.\n"
                     "\n"
-                    "For each line at frequency +f in *lines_per_tg* a corresponding\n"
-                    "entry at frequency -f is added to *lines_per_tg*.The mirror \n"
+                    "For each line at frequency +f in *abs_lines_per_species* a corresponding\n"
+                    "entry at frequency -f is added to *abs_lines_per_species*.The mirror \n"
                     "lines are appended to the line lists after the original lines."),
-        OUTPUT( lines_per_tg_ ),
-        INPUT( lines_per_tg_ ),
+        OUTPUT( abs_lines_per_species_ ),
+        INPUT( abs_lines_per_species_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
 
-  // New name: abs_lines_per_tgCompact
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("lines_per_tgCompact"),
+      ( NAME("abs_lines_per_speciesCompact"),
         DESCRIPTION(
                     "Removes all lines outside the defined lineshape cutoff frequency\n"
-                    "from the *lines_per_tg*. This can save computation time.\n"
+                    "from the *abs_lines_per_species*. This can save computation time.\n"
                     "It should be particularly useful to call this method after\n"
-                    "*lines_per_tgAddMirrorLines*."),
-        OUTPUT( lines_per_tg_ ),
-        INPUT( lines_per_tg_, lineshape_, f_grid_ ),
+                    "*abs_lines_per_speciesAddMirrorLines*."),
+        OUTPUT( abs_lines_per_species_ ),
+        INPUT( abs_lines_per_species_, abs_lineshape_, f_grid_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
 
-  // New name: abs_lines_per_tgCreateFromLines
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("lines_per_tgCreateFromLines"),
+      ( NAME("abs_lines_per_speciesCreateFromLines"),
         DESCRIPTION(
                     "Split lines up into the different tag groups.\n"
                     "\n"
@@ -597,26 +581,25 @@ void define_md_data_raw()
                     "the tag groups in the order as the groups  are specified.\n"
                     "That means if you do [\"O3-666\",\"O3\"],the last group O3 \n"
                     "gets assigned all the O3 lines that do not fit in the first group."),
-        OUTPUT( lines_per_tg_ ),
-        INPUT( lines_, gas_species_ ),
+        OUTPUT( abs_lines_per_species_ ),
+        INPUT( abs_lines_, abs_species_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
 
-  // New name: abs_lines_per_tgReadFromCatalogues
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("lines_per_tgReadFromCatalogues"),
+      ( NAME("abs_lines_per_speciesReadFromCatalogues"),
         DESCRIPTION(
                     "This method can read lines from different line \n"
                     "catalogues.\n"
                     "\n"
                     "For each tag group, you can specify which catalogue\n"
-                    "to use. Because the method creates lines_per_tg directly,\n"
+                    "to use. Because the method creates abs_lines_per_species directly,\n"
                     "it replaces for example thefollowing two method calls:\n"
-                    "  - linesReadFromHitran\n"
-                    "  - lines_per_tgCreateFromLines\n"
+                    "  - abs_linesReadFromHitran\n"
+                    "  - abs_lines_per_speciesCreateFromLines\n"
                     "   This method needs as input WSVs the list of tag \n"
                     "groups. Keyword parameters must specify the names of\n"
                     "the catalogue files to use and the matching formats.\n"
@@ -631,7 +614,7 @@ void define_md_data_raw()
                     "\n"
                     "Example usage:\n"
                     "\n"
-                    "lines_per_tgReadFromCatalogues{\n"
+                    "abs_lines_per_speciesReadFromCatalogues{\n"
                     "  filenames = [ \"../data/cat1.dat\", \"../data/cat2.dat\" ]\n"
                     "  formats   = [ \"MYTRAN2\",          \"HITRAN96\"         ]\n"
                     "  fmin      = [ 0,                  0                  ]\n"
@@ -650,35 +633,34 @@ void define_md_data_raw()
                     "to do fine-tuning of the frequency ranges, you can do \n"
                     "this inside the tag definitions, e.g., \"H2O-*-0-2000e9\".)\n"
                     "   This function uses the various reading routines\n"
-                    "(linesReadFromHitran, etc.), as well as\n"
-                    "lines_per_tgCreateFromLines.\n"
+                    "(abs_linesReadFromHitran, etc.), as well as\n"
+                    "abs_lines_per_speciesCreateFromLines.\n"
                     "\n"
                     "Keywords: \n"
                     "   filenames = Name (and path) of the catalogue files.\n"
                     "   formats   = allowed formats are HITRAN96,MYTRAN2,JPL,ARTS \n"
                     "   fmin      = Minimum frequency for lines to read in Hz.\n"
                     "   fmax      = Maximum frequency for lines to read in Hz.\n"),
-        OUTPUT( lines_per_tg_ ),
-        INPUT( gas_species_ ),
+        OUTPUT( abs_lines_per_species_ ),
+        INPUT( abs_species_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "filenames", "formats", "fmin", "fmax" ),
         TYPES( Array_String_t, Array_String_t, Vector_t, Vector_t )));
 
-  // New name: abs_lines_per_tgSetEmpty
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("lines_per_tgSetEmpty"),
+      ( NAME("abs_lines_per_speciesSetEmpty"),
         DESCRIPTION
         (
-         "Sets lines_per_tg to empty line lists.\n"
+         "Sets abs_lines_per_species to empty line lists.\n"
          "\n"
          "You can use this method to set lines per tag if you do not reall want\n"
-         "to compute line spectra. Formally, absCalc will still require\n"
-         "lines_per_tg to be set.\n"
+         "to compute line spectra. Formally, abs_coefCalc will still require\n"
+         "abs_lines_per_species to be set.\n"
         ),
-        OUTPUT( lines_per_tg_ ),
-        INPUT( gas_species_ ),
+        OUTPUT( abs_lines_per_species_ ),
+        INPUT( abs_species_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -687,7 +669,7 @@ void define_md_data_raw()
   // New name: abs_lookupAdapt
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("gas_abs_lookupAdapt"),
+      ( NAME("abs_lookupAdapt"),
         DESCRIPTION
         (
          "Adapts a gas absorption lookup table to the current calculation.\n"
@@ -701,8 +683,8 @@ void define_md_data_raw()
          "Of course, the method also performs quite a lot of checks on the\n"
          "table. If something is not ok, a runtime error is thrown."
         ),
-        OUTPUT( gas_abs_lookup_, gas_abs_lookup_is_adapted_ ),
-        INPUT(  gas_abs_lookup_, gas_species_, f_grid_ ),
+        OUTPUT( abs_lookup_, abs_lookup_is_adapted_ ),
+        INPUT(  abs_lookup_, abs_species_, f_grid_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -715,8 +697,8 @@ void define_md_data_raw()
         (
          "Creates a gas absorption lookup table."
         ),
-        OUTPUT( gas_abs_lookup_ ),
-        INPUT( gas_species_, f_grid_, p_grid_, vmrs_, abs_t_,
+        OUTPUT( abs_lookup_ ),
+        INPUT( abs_species_, f_grid_, p_grid_, abs_vmrs_, abs_t_,
                abs_lookup_t_pert_ ),
         GOUTPUT( ),
         GINPUT( ),
@@ -726,7 +708,7 @@ void define_md_data_raw()
   // New name: abs_lookupInit
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("gas_abs_lookupInit"),
+      ( NAME("abs_lookupInit"),
         DESCRIPTION
         (
          "Creates an empty gas absorption lookup table.\n"
@@ -734,24 +716,23 @@ void define_md_data_raw()
          "This is mainly there to help developers. For example, you can write\n"
          "the empty table to an XML file, to see the file format."
         ),
-        OUTPUT( gas_abs_lookup_ ),
+        OUTPUT( abs_lookup_ ),
         INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
 
-  // New name: abs_n2Set
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("n2_absSet"),
+      ( NAME("abs_n2Set"),
         DESCRIPTION(
-                    "Sets n2_abs to the profile of the first tag group containing\n"
-                    "molecular nitrogen. See *h2o_absSet* for more details.\n"
+                    "Sets abs_n2 to the profile of the first tag group containing\n"
+                    "molecular nitrogen. See *abs_h2oSet* for more details.\n"
                     "\n"
                    ),
-        OUTPUT(	n2_abs_ ),
-        INPUT( gas_species_, vmrs_ ),
+        OUTPUT(	abs_n2_ ),
+        INPUT( abs_species_, abs_vmrs_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -774,7 +755,7 @@ void define_md_data_raw()
          "abs_scalar_gas is adjusted accordingly."
         ),
         OUTPUT( abs_scalar_gas_ ),
-        INPUT(  gas_abs_lookup_, gas_abs_lookup_is_adapted_,
+        INPUT(  abs_lookup_, abs_lookup_is_adapted_,
                 f_index_, 
                 rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         GOUTPUT( ),
@@ -784,7 +765,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_scalar_gas_fieldCalc"),
+      ( NAME("abs_fieldCalc"),
         DESCRIPTION
         (
          "Calculate scalar gas absorption for all points in the atmosphere.\n"
@@ -804,10 +785,10 @@ void define_md_data_raw()
          "for the frequency indicated by f_index (f_index>=0).\n"
          "\n"
          "The calculation itself is performed by the\n"
-         "*scalar_gas_absorption_agenda*."
+         "*abs_scalar_gas_agenda*."
         ),
-        OUTPUT( abs_scalar_gas_field_ ),
-        INPUT(  scalar_gas_absorption_agenda_,
+        OUTPUT( abs_field_ ),
+        INPUT(  abs_scalar_gas_agenda_,
                 f_index_,
                 f_grid_,
                 atmosphere_dim_,
@@ -818,19 +799,18 @@ void define_md_data_raw()
         KEYWORDS( ),
         TYPES( )));
 
-  // New name: abs_speciesAdd
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("gas_speciesAdd"),
+      ( NAME("abs_speciesAdd"),
         DESCRIPTION
         (
          "Adds species tag groups to the list of gas species.\n"
          "\n"
-         "This WSM is similar to *gas_speciesSet*, the only difference is that\n"
+         "This WSM is similar to *abs_speciesSet*, the only difference is that\n"
          "this method appends species to an existing list of gas species instead\n"
          "of creating the whole list.\n"
          "\n"
-         "See *gas_speciesSet* for details on how tags are defined and examples of\n"
+         "See *abs_speciesSet* for details on how tags are defined and examples of\n"
          "how to input them in the control file.\n"
          "\n"
          "Keywords:\n"
@@ -838,17 +818,16 @@ void define_md_data_raw()
          "             add. Inside the String, separate the tags by commas\n"
          "             (plus optional blanks).\n"
          ),
-        OUTPUT( gas_species_ ),
-        INPUT(  gas_species_ ),
+        OUTPUT( abs_species_ ),
+        INPUT(  abs_species_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS( "species" ),
         TYPES(    Array_String_t   )));
  
-  // New name: abs_speciesDefineAllInScenario
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("tgsDefineAllInScenario"),
+      ( NAME("abs_speciesDefineAllInScenario"),
         DESCRIPTION
         (
          "Define one tag group for each species known to ARTS and included in an\n"
@@ -863,41 +842,39 @@ void define_md_data_raw()
          "   basename : The name and path of a particular atmospheric scenario.\n"
          "              For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical"
         ),
-        OUTPUT( gas_species_ ),
+        OUTPUT( abs_species_ ),
         INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "basename" ),
         TYPES( String_t )));
 
-  // New name: abs_speciesInit
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("gas_speciesInit"),
+      ( NAME("abs_speciesInit"),
         DESCRIPTION
         (
-         "Sets  *gas_speciesSet* to be empty."
+         "Sets  *abs_speciesSet* to be empty."
          ),
-        OUTPUT( gas_species_ ),
+        OUTPUT( abs_species_ ),
         INPUT(),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
         TYPES()));
 
-  // New name: abs_speciesSet
   // This is duplicate with the 1-0 method tgsDefine. Merge!
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("gas_speciesSet"),
+      ( NAME("abs_speciesSet"),
         DESCRIPTION
         (
          "Set up the list of gas species tag groups.\n"
          "\n"
-         "The workspace variable *gas_species* contains several tag groups. Each\n"
+         "The workspace variable *abs_species* contains several tag groups. Each\n"
          "tag group contain one or more tags. This method converts descriptions\n"
          "of tag groups given in the keyword to the internal representation of\n"
-         "*gas_species*. A tag group selects spectral features which belong to\n"
+         "*abs_species*. A tag group selects spectral features which belong to\n"
          "the same species.\n"
          "\n"
          "A tag is defined in terms of the name of the species, isotope, and a\n"
@@ -936,7 +913,7 @@ void define_md_data_raw()
          "   line list for this species. Presumably, we are using a complete\n"
          "   absorption model like MPM89 for H2O in this case."
          ),
-        OUTPUT( gas_species_ ),
+        OUTPUT( abs_species_ ),
         INPUT(),
         GOUTPUT(),
         GINPUT(),
@@ -944,7 +921,7 @@ void define_md_data_raw()
         TYPES(    Array_String_t   )));
  
   // New name: abs_speciesSet
-  // This is duplicate with the 1-1 method gas_species set. Merge!
+  // This is duplicate with the 1-1 method abs_species set. Merge!
 //   md_data.push_back
 //     ( MdRecord
 //       ( NAME("tgsDefine"),
@@ -1053,51 +1030,48 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES()));
 
-  // New name: abs_xsec_per_tgAddConts
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("xsec_per_tgAddConts"),
+      ( NAME("abs_xsec_per_speciesAddConts"),
         DESCRIPTION(
                     "Calculate cross sections per tag group for continua.\n"
                    ),
-        OUTPUT(	xsec_per_tg_ ),
-        INPUT( gas_species_, f_grid_, abs_p_, abs_t_, n2_abs_, h2o_abs_, vmrs_,
-               cont_description_names_, cont_description_parameters_,
-               cont_description_models_ ),
+        OUTPUT(	abs_xsec_per_species_ ),
+        INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_n2_, abs_h2o_, abs_vmrs_,
+               abs_cont_names_, abs_cont_parameters_,
+               abs_cont_models_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
 
-  // New name: abs_xsec_per_tgAddLines
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("xsec_per_tgAddLines"),
+      ( NAME("abs_xsec_per_speciesAddLines"),
         DESCRIPTION(
                     "Calculate cross sections per tag group for line spectra.\n"
                    ),
-        OUTPUT(	xsec_per_tg_ ),
-        INPUT( gas_species_, f_grid_, abs_p_, abs_t_, h2o_abs_, vmrs_, 
-               lines_per_tg_, lineshape_ ),
+        OUTPUT(	abs_xsec_per_species_ ),
+        INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_h2o_, abs_vmrs_, 
+               abs_lines_per_species_, abs_lineshape_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
 
-  // New name: abs_xsec_per_tgInit
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "xsec_per_tgInit" ),
+      ( NAME( "abs_xsec_per_speciesInit" ),
         DESCRIPTION(
-                    "Initialize *xsec_per_tg*.\n"
+                    "Initialize *abs_xsec_per_species*.\n"
                     "\n"
                     "The initialization is\n"
-                    "necessary, because methods *xsec_per_tgAddLines*\n"
-                    "and *xsec_per_tgAddConts* just add to *xsec_per_tg*.\n"
+                    "necessary, because methods *abs_xsec_per_speciesAddLines*\n"
+                    "and *abs_xsec_per_speciesAddConts* just add to *abs_xsec_per_species*.\n"
                     "The size is determined from *tgs*.\n"
                    ),
-        OUTPUT( xsec_per_tg_ ),
-        INPUT( gas_species_, f_grid_, abs_p_ ),
+        OUTPUT( abs_xsec_per_species_ ),
+        INPUT( abs_species_, f_grid_, abs_p_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -1390,7 +1364,7 @@ void define_md_data_raw()
          "\n"
         ),
         OUTPUT(t_field_raw_, z_field_raw_, vmr_field_raw_),
-        INPUT(gas_species_),
+        INPUT(abs_species_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("basename"),
@@ -1760,7 +1734,7 @@ void define_md_data_raw()
          OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, 
                 f_index_, scat_data_mono_, doit_i_field1D_spectrum_),
          INPUT(cloudbox_limits_, stokes_dim_, opt_prop_part_agenda_, 
-               scalar_gas_absorption_agenda_, spt_calc_agenda_, 
+               abs_scalar_gas_agenda_, spt_calc_agenda_, 
                pnd_field_, t_field_, 
                z_field_, p_grid_, vmr_field_, scat_data_raw_, f_grid_, 
                scat_za_grid_, surface_emissivity_field_ ),
@@ -2052,7 +2026,7 @@ md_data_raw.push_back
         ),
         OUTPUT(doit_i_field_),
         INPUT(doit_i_field_old_, doit_scat_field_, cloudbox_limits_, 
-              scalar_gas_absorption_agenda_,
+              abs_scalar_gas_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, pnd_field_, 
               opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, z_field_, r_geoid_, z_surface_,
@@ -2083,7 +2057,7 @@ md_data_raw.push_back
          ),
         OUTPUT(doit_i_field_),
         INPUT(doit_i_field_, doit_scat_field_, cloudbox_limits_, 
-              scalar_gas_absorption_agenda_,
+              abs_scalar_gas_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, pnd_field_,
               opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, z_field_, r_geoid_, z_surface_,
@@ -2113,7 +2087,7 @@ md_data_raw.push_back
          ),
         OUTPUT(doit_i_field_, scat_za_index_),
         INPUT(doit_scat_field_, cloudbox_limits_, 
-              scalar_gas_absorption_agenda_,
+              abs_scalar_gas_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, pnd_field_, 
               opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
@@ -2147,7 +2121,7 @@ md_data_raw.push_back
 //                abs_vec_,
 //                scat_p_index_, scat_lat_index_, scat_lon_index_),
 //         INPUT(doit_i_field_old_, doit_scat_field_, cloudbox_limits_, 
-//               scalar_gas_absorption_agenda_,
+//               abs_scalar_gas_agenda_,
 //               vmr_field_, spt_calc_agenda_, scat_za_grid_, scat_aa_grid_,
 //               opt_prop_part_agenda_, opt_prop_gas_agenda_,
 //               ppath_step_agenda_, p_grid_, lat_grid_, lon_grid_, z_field_,
@@ -2180,7 +2154,7 @@ md_data_raw.push_back
          ),
         OUTPUT(doit_i_field_),
         INPUT(doit_i_field_, doit_scat_field_, cloudbox_limits_, 
-              scalar_gas_absorption_agenda_,
+              abs_scalar_gas_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, scat_aa_grid_,
               pnd_field_,
               opt_prop_part_agenda_, opt_prop_gas_agenda_,
@@ -2551,13 +2525,13 @@ md_data_raw.push_back
       ( NAME("f_gridFromGasAbsLookup"),
         DESCRIPTION
         (
-         "Sets *f_grid* to the frequency grid of *gas_abs_lookup*.\n"
+         "Sets *f_grid* to the frequency grid of *abs_lookup*.\n"
          "\n"
          "Must be called between importing/creating raw absorption table and\n"
-         "call of *gas_abs_lookupAdapt*."
+         "call of *abs_lookupAdapt*."
         ),
         OUTPUT( f_grid_  ),
-        INPUT(  gas_abs_lookup_ ),
+        INPUT(  abs_lookup_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -2774,7 +2748,7 @@ md_data_raw.push_back
          "Adds a gas species as a retrieval quantity to the Jacobian.\n"
          "\n"
          "This functions also adds the SpeciesTag of the given species to\n"
-         "*gas_species*. This way the treated gas species only need to be\n"
+         "*abs_species*. This way the treated gas species only need to be\n"
          "given at one place in the control file. It also appends\n"
          "*jacobianCalcGas* with the given gas species to *jacobian_agenda*.\n"
          "\n"
@@ -2805,9 +2779,9 @@ md_data_raw.push_back
          "  unit    : Retrieval unit. See above.\n"
          "  dx      : Size of perturbation."
         ),
-        OUTPUT( jacobian_quantities_, jacobian_agenda_, gas_species_ ),
+        OUTPUT( jacobian_quantities_, jacobian_agenda_, abs_species_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_,
-               gas_species_ ),
+               abs_species_ ),
         GOUTPUT(),
         GINPUT( Vector_, Vector_, Vector_ ),
         KEYWORDS( "species", "method", "unit", "dx" ),
@@ -2820,9 +2794,9 @@ md_data_raw.push_back
         (
          "As *jacobianAddGas* but assumes analytical calculations."
         ),
-        OUTPUT( jacobian_quantities_, jacobian_agenda_, gas_species_ ),
+        OUTPUT( jacobian_quantities_, jacobian_agenda_, abs_species_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_,
-               gas_species_ ),
+               abs_species_ ),
         GOUTPUT(),
         GINPUT( Vector_, Vector_, Vector_ ),
         KEYWORDS( "species", "method" ),
@@ -2954,7 +2928,7 @@ md_data_raw.push_back
         "and should normally not be called by the user.\n"
         ),
         OUTPUT( jacobian_, vmr_field_, y_, ppath_, ppath_step_, iy_ ),
-        INPUT( jacobian_quantities_, jacobian_indices_, gas_species_, 
+        INPUT( jacobian_quantities_, jacobian_indices_, abs_species_, 
                ppath_step_agenda_, 
                rte_agenda_, iy_space_agenda_, surface_prop_agenda_, 
                iy_cloudbox_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
@@ -3545,7 +3519,7 @@ md_data_raw.push_back
         OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_ ),
         INPUT( mc_antenna_, f_grid_, sensor_pos_, sensor_los_, stokes_dim_, iy_space_agenda_,
                surface_prop_agenda_, opt_prop_gas_agenda_, 
-               scalar_gas_absorption_agenda_, p_grid_, lat_grid_, lon_grid_, 
+               abs_scalar_gas_agenda_, p_grid_, lat_grid_, lon_grid_, 
                z_field_, r_geoid_, z_surface_, t_field_, vmr_field_, 
                cloudbox_limits_, pnd_field_, scat_data_mono_, mc_seed_, mc_unit_),
         GOUTPUT( ),
@@ -3562,7 +3536,7 @@ md_data_raw.push_back
         OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_),
         INPUT( mc_antenna_, f_grid_, sensor_pos_, sensor_los_, stokes_dim_, iy_space_agenda_,
                surface_prop_agenda_, opt_prop_gas_agenda_, 
-               scalar_gas_absorption_agenda_, ppath_step_agenda_, p_grid_, lat_grid_, lon_grid_, 
+               abs_scalar_gas_agenda_, ppath_step_agenda_, p_grid_, lat_grid_, lon_grid_, 
                z_field_, r_geoid_, z_surface_, t_field_, vmr_field_, 
                cloudbox_limits_, pnd_field_, scat_data_mono_, mc_seed_, mc_unit_),
         GOUTPUT( ),
@@ -4166,10 +4140,10 @@ md_data_raw.push_back
       ( NAME("p_gridFromGasAbsLookup"),
         DESCRIPTION
         (
-         "Sets *p_grid* to the frequency grid of *gas_abs_lookup*."
+         "Sets *p_grid* to the frequency grid of *abs_lookup*."
         ),
         OUTPUT( p_grid_  ),
-        INPUT(  gas_abs_lookup_ ),
+        INPUT(  abs_lookup_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -4279,7 +4253,7 @@ md_data_raw.push_back
          "pp. 9664). "
         ),
         OUTPUT( refr_index_ ),
-        INPUT( rte_pressure_, rte_temperature_, rte_vmr_list_, gas_species_ ),
+        INPUT( rte_pressure_, rte_temperature_, rte_vmr_list_, abs_species_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -4339,7 +4313,7 @@ md_data_raw.push_back
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                surface_prop_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               t_field_, vmr_field_, gas_species_, r_geoid_, z_surface_, 
+               t_field_, vmr_field_, abs_species_, r_geoid_, z_surface_, 
                cloudbox_on_, cloudbox_limits_, sensor_response_, sensor_pos_, 
                sensor_los_, f_grid_, stokes_dim_, 
                antenna_dim_, mblock_za_grid_, mblock_aa_grid_, 
@@ -4389,7 +4363,7 @@ md_data_raw.push_back
         OUTPUT( iy_, emission_, abs_scalar_gas_, diy_dvmr_, diy_dt_ ),
         INPUT( iy_, diy_dvmr_, diy_dt_, ppath_, ppath_array_,
                ppath_array_index_, f_grid_, stokes_dim_, emission_agenda_,
-               scalar_gas_absorption_agenda_, rte_do_vmr_jacs_,
+               abs_scalar_gas_agenda_, rte_do_vmr_jacs_,
                rte_do_t_jacs_ ),
         GOUTPUT(),
         GINPUT(),
@@ -4410,7 +4384,7 @@ md_data_raw.push_back
                 ppath_transmissions_, diy_dvmr_, diy_dt_ ),
         INPUT( iy_, diy_dvmr_, diy_dt_, ppath_, ppath_array_,
                ppath_array_index_, f_grid_, stokes_dim_,
-               emission_agenda_, scalar_gas_absorption_agenda_,
+               emission_agenda_, abs_scalar_gas_agenda_,
                rte_do_vmr_jacs_, rte_do_t_jacs_ ),
         GOUTPUT(),
         GINPUT(),
@@ -4649,7 +4623,7 @@ md_data_raw.push_back
               lat_grid_, lon_grid_, z_field_, r_geoid_, z_surface_,
               cloudbox_limits_, stokes_dim_, rte_agenda_, iy_space_agenda_,
               surface_prop_agenda_, t_field_, f_grid_, opt_prop_gas_agenda_,
-              scalar_gas_absorption_agenda_, vmr_field_,
+              abs_scalar_gas_agenda_, vmr_field_,
               scat_data_mono_, pnd_field_, mc_seed_, f_index_ , mc_incoming_),
         GOUTPUT(),
         GINPUT(),
@@ -5911,7 +5885,7 @@ md_data_raw.push_back
          "from the profiles inside the function\n"
          ),
         OUTPUT( ybatch_ ),
-        INPUT(gas_species_, met_profile_calc_agenda_, f_grid_, met_amsu_data_,
+        INPUT(abs_species_, met_profile_calc_agenda_, f_grid_, met_amsu_data_,
               sensor_pos_, r_geoid_, lat_grid_, lon_grid_, atmosphere_dim_,
               scat_data_raw_),
         GOUTPUT(),
@@ -5948,7 +5922,7 @@ md_data_raw.push_back
          "from the profiles inside the function\n"
          ),
         OUTPUT( ybatch_ ),
-        INPUT(gas_species_, met_profile_calc_agenda_, 
+        INPUT(abs_species_, met_profile_calc_agenda_, 
               f_grid_, met_amsu_data_, sensor_pos_, r_geoid_),
         GOUTPUT(),
         GINPUT(),
@@ -5992,7 +5966,7 @@ md_data_raw.push_back
 //          "Calculate oxygen absorption in the 1-1000GHz range from  the absorption"
 //          " model based on P.W.Rosenkranz and H. J. Liebe (MPM).\n"
 //          "Output:\n"
-//          "   abs    : absorption coefficients [1/m], \n"
+//          "   abs_coef    : absorption coefficients [1/m], \n"
 //          "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
 //          "\n"
 //          "Input:\n"

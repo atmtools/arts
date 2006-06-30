@@ -43,7 +43,7 @@ ReadXML(lon_grid){
 filename="data/lon_grid.xml"
 }
 
-gas_speciesSet{
+abs_speciesSet{
 species=["O2","N2","H2O"]
 }
 
@@ -90,17 +90,17 @@ filename="data/z_surface.xml.generated"
 #  Ignore(rte_los){}  
 #}
 
-gas_abs_lookupInit{
+abs_lookupInit{
 }
 
-ReadXML(gas_abs_lookup){
+ReadXML(abs_lookup){
 filename="data/gas_abs_lookup.xml"
 }
 
-gas_abs_lookupAdapt{
+abs_lookupAdapt{
 }
 
-WriteXML(gas_abs_lookup){
+WriteXML(abs_lookup){
 filename="data/gas_abs_lookup_adapted.xml.generated"
 }
 

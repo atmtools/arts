@@ -65,7 +65,7 @@
 void jacobianAddGas(// WS Output:
                     ArrayOfRetrievalQuantity& jq,
                     Agenda&                   jacobian_agenda,
-                    ArrayOfArrayOfSpeciesTag& gas_species,
+                    ArrayOfArrayOfSpeciesTag& abs_species,
                     // WS Input:
                     const Sparse&             jac,
                     const Index&              atmosphere_dim,
@@ -168,14 +168,14 @@ void jacobianAddGas(// WS Output:
       agenda_append(jacobian_agenda, methodname, kwv);
     }
   
-  // Add retrieval quantity to *gas_species*
+  // Add retrieval quantity to *abs_species*
   ArrayOfSpeciesTag tags;
   array_species_tag_from_string( tags, species );
-  gas_species.push_back( tags );
+  abs_species.push_back( tags );
   
   // Print list of added tag group to the most verbose output stream:
   out3 << "  Appended tag group:";
-  out3 << "\n  " << gas_species.nelem()-1 << ":";
+  out3 << "\n  " << abs_species.nelem()-1 << ":";
   for ( Index s=0; s<tags.nelem(); ++s )
   {
     out3 << " " << tags[s].Name();
@@ -197,7 +197,7 @@ void jacobianAddGasAnalytical(
                     // WS Output:
                     ArrayOfRetrievalQuantity& jq,
                     Agenda&                   jacobian_agenda,
-                    ArrayOfArrayOfSpeciesTag& gas_species,
+                    ArrayOfArrayOfSpeciesTag& abs_species,
                     // WS Input:
                     const Sparse&             jac,
                     const Index&              atmosphere_dim,
@@ -216,7 +216,7 @@ void jacobianAddGasAnalytical(
                     const String&             species,
                     const String&             mode )
 {
-  jacobianAddGas( jq, jacobian_agenda, gas_species, jac, atmosphere_dim,
+  jacobianAddGas( jq, jacobian_agenda, abs_species, jac, atmosphere_dim,
                   p_grid, lat_grid, lon_grid,
                   rq_p_grid, rq_lat_grid, rq_lon_grid, rq_p_grid_name,
                   rq_lat_grid_name, rq_lon_grid_name, species, "analytical",
@@ -648,7 +648,7 @@ void jacobianCalcGas(
      // WS Input:
      const ArrayOfRetrievalQuantity& jq,
      const ArrayOfArrayOfIndex&      jacobian_indices,
-     const ArrayOfArrayOfSpeciesTag& gas_species,
+     const ArrayOfArrayOfSpeciesTag& abs_species,
      const Agenda&                   ppath_step_agenda,
      const Agenda&                   rte_agenda,
      const Agenda&                   iy_space_agenda,
@@ -742,7 +742,7 @@ void jacobianCalcGas(
   // Find VMR field for these species. 
   ArrayOfSpeciesTag tags;
   array_species_tag_from_string( tags, species );
-  Index si = chk_contains( "species", gas_species, tags );
+  Index si = chk_contains( "species", abs_species, tags );
 
   // Store the reference spectrum and vmr-field
   Vector y_ref = y;

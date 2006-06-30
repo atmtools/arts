@@ -445,7 +445,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
 
   \param T The temperature [K].
 
-  \param vmrs The VMRs [absolute number]. Dimension: [species].  
+  \param abs_vmrs The VMRs [absolute number]. Dimension: [species].  
 
   \date 2002-09-20, 2003-02-22
 */
@@ -453,7 +453,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
                             const Index&    f_index,
                             const Numeric&  p,
                             const Numeric&  T,
-                            ConstVectorView vmrs ) const
+                            ConstVectorView abs_vmrs ) const
 {
   // Obtain some properties of the lookup table:
   
@@ -491,8 +491,8 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
   // Following are some checks on the input variables:
 
-  // Assert that vmrs has the right dimension:
-  assert( is_size( vmrs, n_species ) );
+  // Assert that abs_vmrs has the right dimension:
+  assert( is_size( abs_vmrs, n_species ) );
 
   // We need the log10 of the pressure:
   //  const Numeric log_p = log10( p );
@@ -598,7 +598,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
                   // Watch out, this is not yet the final result, we
                   // need to multiply with the number density n:
-                  this_sga *= ( n * vmrs[i] );
+                  this_sga *= ( n * abs_vmrs[i] );
                 }
             }
         }
@@ -712,7 +712,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
                   // Watch out, this is not yet the final result, we
                   // need to multiply with the number density n:
-                  this_sga *= ( n * vmrs[i] );
+                  this_sga *= ( n * abs_vmrs[i] );
                 }
             }
         }
@@ -759,7 +759,7 @@ void GasAbsLookup::GetPgrid( Vector& p ) const
 
 //   This can extract for a whole bunch of atmospheric conditions
 //   simultaneously, which is much more efficient than doing it one by
-//   one. Input variables p, T, and vmrs must have consistent dimensions.
+//   one. Input variables p, T, and abs_vmrs must have consistent dimensions.
 
 //   \retval sga A Tensor5 with scalar gas absorption coefficients
 //   [1/m]. Dimension must be either [1, n_species, p_grid, lat_grid,
@@ -775,7 +775,7 @@ void GasAbsLookup::GetPgrid( Vector& p ) const
 
 //   \param T The temperaturea [K]. Dimension: [p_grid, lat_grid, lon_grid].
 
-//   \param vmrs The VMRs [absolute number]. Dimension: [species, p_grid,
+//   \param abs_vmrs The VMRs [absolute number]. Dimension: [species, p_grid,
 //   lat_grid, lon_grid].  
 
 //   \date 2002-09-20, 2003-02-22
@@ -784,7 +784,7 @@ void GasAbsLookup::GetPgrid( Vector& p ) const
 //                             const Index&     f_index,
 //                             ConstVectorView  p,
 //                             ConstTensor3View T,
-//                             ConstTensor4iew  vmrs ) const
+//                             ConstTensor4iew  abs_vmrs ) const
 // {
 
 //   // Obtain some properties of the lookup table:
@@ -834,8 +834,8 @@ void GasAbsLookup::GetPgrid( Vector& p ) const
 //   // Assert, that first dimension of T is consistent with p:
 //   assert( n_p == T.npages() );
 
-//   // Assert that vmrs has the right dimension:
-//   assert( is_size( vmrs, n_species, n_p, n_lat, n_lon ) );
+//   // Assert that abs_vmrs has the right dimension:
+//   assert( is_size( abs_vmrs, n_species, n_p, n_lat, n_lon ) );
 
 //   // We need the log10 of the pressure:
 //   Vector log_p(n_p);
@@ -894,8 +894,8 @@ void GasAbsLookup::GetPgrid( Vector& p ) const
 //       // already know that there are no non-linear species.
 //       if ( 0 == n_t_pert )
 //         {
-//           // Verify, that abs has the right dimensions for this case:
-//           assert( is_size( abs,
+//           // Verify, that abs_coef has the right dimensions for this case:
+//           assert( is_size( abs_coef,
 //                            1,          // temperature perturbations
 //                            n_species,  // species  
 //                            n_f_grid,   // frequency grid points
@@ -918,10 +918,10 @@ void GasAbsLookup::GetPgrid( Vector& p ) const
 //               // Loop over species:
 //               for ( Index i=0; i<n_species; ++i )
 //                 {
-//                   // Get the right view on abs. (Only a vector of
+//                   // Get the right view on abs_coef. (Only a vector of
 //                   // pressure for this particular species and
 //                   // frequency):
-//                   ConstVectorView this_abs = abs( 0,      // T
+//                   ConstVectorView this_abs = abs_coef( 0,      // T
 //                                                   i,      // species
 //                                                   s,      // frequency
 //                                                   joker   // p
@@ -954,12 +954,12 @@ void GasAbsLookup::GetPgrid( Vector& p ) const
 //                         // VMR values.
 
 //                         // Determine VMR scaling factors:
-//                         vmr_scaling = vmrs( i,            // species
+//                         vmr_scaling = abs_vmrs( i,            // species
 //                                             joker,        // p
 //                                             j,            // lat
 //                                             k             // lon
 //                                             );
-//                         vmr_scaling /= vmrs_ref( i,       // species
+//                         vmr_scaling /= abs_vmrs_ref( i,       // species
 //                                                  joker    // p
 //                                                  );
 
@@ -976,8 +976,8 @@ void GasAbsLookup::GetPgrid( Vector& p ) const
           
 //           // This means we have to do a simultaneous interpolation in pressure and temperature. 
 
-//           // Verify, that abs has the right dimensions for this case:
-//           assert( is_size( abs,
+//           // Verify, that abs_coef has the right dimensions for this case:
+//           assert( is_size( abs_coef,
 //                            n_t_pert,   // temperature perturbations
 //                            n_species,  // species  
 //                            n_f_grid,   // frequency grid points
@@ -1027,8 +1027,8 @@ void GasAbsLookup::GetPgrid( Vector& p ) const
 //                           // Loop over species:
 //                           for ( Index i=0; i<n_species; ++i )
 //                             {
-//                               // Get view on abs:
-//                               ConstMatrixView this_abs = abs( joker,  // T
+//                               // Get view on abs_coef:
+//                               ConstMatrixView this_abs = abs_coef( joker,  // T
 //                                                               i,      // species
 //                                                               s,      // frequency
 //                                                               joker   // p
@@ -1049,7 +1049,7 @@ void GasAbsLookup::GetPgrid( Vector& p ) const
 //                                       pgp );
 
 //                               // Scale with VMR:
-//                               this_sga *= vmrs( i,            // species
+//                               this_sga *= abs_vmrs( i,            // species
 //                                                 m,            // p
 //                                                 j,            // lat
 //                                                 k             // lon

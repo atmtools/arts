@@ -335,7 +335,7 @@ void define_agenda_data()
         "This agenda can be, for example, set up like this:\n"
         "\n"
         "*AtmFieldsCalc*\n"
-        "*gas_abs_lookupAdapt*\n"
+        "*abs_lookupAdapt*\n"
         "*ScatteringInit	*\n"
         "*CloudboxGetIncoming*\n"
         "*ScatteringMain*\n"
@@ -550,7 +550,7 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "scalar_gas_absorption_agenda" ),
+     ( NAME( "abs_scalar_gas_agenda" ),
        DESCRIPTION
        (
         "Calculate scalar gas absorption.\n"

@@ -217,7 +217,7 @@ void cloud_fieldsCalc(// Output and Input:
   \param cloudbox_limits 
   \param doit_scat_field Scattered field.
   Calculate scalar gas absorption:
-  \param scalar_gas_absorption_agenda
+  \param abs_scalar_gas_agenda
   \param vmr_field
   Scalar gas absorption:
   \param opt_prop_gas_agenda
@@ -249,7 +249,7 @@ void cloud_ppath_update1D(
                           const ArrayOfIndex& cloudbox_limits,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
-                          const Agenda& scalar_gas_absorption_agenda,
+                          const Agenda& abs_scalar_gas_agenda,
                           ConstTensor4View vmr_field,
                           // Gas absorption: 
                           const Agenda& opt_prop_gas_agenda,
@@ -352,7 +352,7 @@ void cloud_ppath_update1D(
       // at the intersection with the next layer and propagating
       // to the considered point.
       cloud_RT_no_background(doit_i_field, 
-                             scalar_gas_absorption_agenda,
+                             abs_scalar_gas_agenda,
                                  opt_prop_gas_agenda, ppath_step, 
                              t_int, vmr_list_int,
                              ext_mat_int, abs_vec_int, sca_vec_int,
@@ -394,7 +394,7 @@ void cloud_ppath_update1D_noseq(
                           ConstTensor6View doit_i_field_old,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
-                          const Agenda& scalar_gas_absorption_agenda,
+                          const Agenda& abs_scalar_gas_agenda,
                           ConstTensor4View vmr_field,
                           // Gas absorption: 
                           const Agenda& opt_prop_gas_agenda,
@@ -500,7 +500,7 @@ void cloud_ppath_update1D_noseq(
           // at the intersection with the next layer and propagating
           // to the considered point.
           cloud_RT_no_background(doit_i_field,
-                                 scalar_gas_absorption_agenda,
+                                 abs_scalar_gas_agenda,
                                  opt_prop_gas_agenda, ppath_step, 
                                  t_int, vmr_list_int,
                                  ext_mat_int, abs_vec_int, sca_vec_int,
@@ -546,7 +546,7 @@ void cloud_ppath_update1D_noseq(
   \param cloudbox_limits 
   \param doit_scat_field Scattered field.
   Calculate scalar gas absorption:
-  \param scalar_gas_absorption_agenda
+  \param abs_scalar_gas_agenda
   \param vmr_field
   Scalar gas absorption:
   \param opt_prop_gas_agenda
@@ -580,7 +580,7 @@ void cloud_ppath_update3D(
                           const ArrayOfIndex& cloudbox_limits,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
-                          const Agenda& scalar_gas_absorption_agenda,
+                          const Agenda& abs_scalar_gas_agenda,
                           ConstTensor4View vmr_field,
                           // Gas absorption:
                           const Agenda& opt_prop_gas_agenda,
@@ -807,7 +807,7 @@ void cloud_ppath_update3D(
       
       out3 << "Calculate radiative transfer inside cloudbox.\n";
       cloud_RT_no_background(doit_i_field, 
-                             scalar_gas_absorption_agenda,
+                             abs_scalar_gas_agenda,
                              opt_prop_gas_agenda, ppath_step, 
                              t_int, vmr_list_int,
                              ext_mat_int, abs_vec_int, sca_vec_int,
@@ -829,7 +829,7 @@ void cloud_ppath_update3D(
   with the updated values for a given zenith angle (scat_za_index) and 
   pressure (p_index).
   Input:
-  \param scalar_gas_absorption_agenda Calculate scalar gas absorption. 
+  \param abs_scalar_gas_agenda Calculate scalar gas absorption. 
   \param opt_prop_gas_agenda Calculate absorption vector and extiction matrix
   due to gas. 
   \param ppath_step Propagation path step from one pressure level to the next 
@@ -853,7 +853,7 @@ void cloud_ppath_update3D(
 void cloud_RT_no_background(//Output
                             Tensor6View doit_i_field,
                             // Input
-                            const Agenda& scalar_gas_absorption_agenda,
+                            const Agenda& abs_scalar_gas_agenda,
                             const Agenda& opt_prop_gas_agenda,
                             const Ppath& ppath_step, 
                             ConstVectorView t_int,
@@ -906,12 +906,12 @@ void cloud_RT_no_background(//Output
       // and ext_mat.
       //
               
-      scalar_gas_absorption_agendaExecute(abs_scalar_gas_local, 
+      abs_scalar_gas_agendaExecute(abs_scalar_gas_local, 
                                           f_index, 
                                           rte_pressure_local, 
                                           rte_temperature_local, 
                                           rte_vmr_list_local,
-                                          scalar_gas_absorption_agenda,
+                                          abs_scalar_gas_agenda,
                                           true);
               
       opt_prop_gas_agendaExecute(ext_mat_local, abs_vec_local, 
@@ -1406,7 +1406,7 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
   \param cloudbox_limits 
   \param doit_scat_field Scattered field.
   Calculate scalar gas absorption:
-  \param scalar_gas_absorption_agenda
+  \param abs_scalar_gas_agenda
   \param vmr_field
   Scalar gas absorption:
   \param opt_prop_gas_agenda
@@ -1433,7 +1433,7 @@ void cloud_ppath_update1D_planeparallel(
                                         const ArrayOfIndex& cloudbox_limits,
                                         ConstTensor6View doit_scat_field,
                                         // Calculate scalar gas absorption:
-                                        const Agenda& scalar_gas_absorption_agenda,
+                                        const Agenda& abs_scalar_gas_agenda,
                                         ConstTensor4View vmr_field,
                                         // Gas absorption:
                                         const Agenda& opt_prop_gas_agenda,
@@ -1516,12 +1516,12 @@ void cloud_ppath_update1D_planeparallel(
               // and ext_mat.
               //
               
-              scalar_gas_absorption_agendaExecute(abs_scalar_gas, 
+              abs_scalar_gas_agendaExecute(abs_scalar_gas, 
                                                   f_index, 
                                                   rte_pressure, 
                                                   rte_temperature, 
                                                   rte_vmr_list,
-                                                  scalar_gas_absorption_agenda,
+                                                  abs_scalar_gas_agenda,
                                                   (p_index != 0));
               
               opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
@@ -1630,12 +1630,12 @@ void cloud_ppath_update1D_planeparallel(
               // and ext_mat.
               //
 
-              scalar_gas_absorption_agendaExecute(abs_scalar_gas, 
+              abs_scalar_gas_agendaExecute(abs_scalar_gas, 
                                                   f_index, 
                                                   rte_pressure, 
                                                   rte_temperature, 
                                                   rte_vmr_list,
-                                                  scalar_gas_absorption_agenda,
+                                                  abs_scalar_gas_agenda,
                                                   (p_index != 0));
 
               opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
@@ -1837,7 +1837,7 @@ void cloud_ppath_update1D_planeparallel(
           //
           
           // FIXME: Convert to new agenda scheme before using
-          //scalar_gas_absorption_agenda.execute(p_index);
+          //abs_scalar_gas_agenda.execute(p_index);
           
           opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
                                      opt_prop_gas_agenda, (p_index != 0));

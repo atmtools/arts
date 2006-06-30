@@ -565,7 +565,7 @@ doit_i_fieldUpdate1D(// WS Input and Output:
                    const Tensor6& doit_scat_field,
                    const ArrayOfIndex& cloudbox_limits,
                    // Calculate scalar gas absorption:
-                   const Agenda& scalar_gas_absorption_agenda,
+                   const Agenda& abs_scalar_gas_agenda,
                    const Tensor4& vmr_field,
                    // Optical properties for single particle type:
                    const Agenda& spt_calc_agenda,
@@ -709,7 +709,7 @@ doit_i_fieldUpdate1D(// WS Input and Output:
                                      scat_za_grid,
                                      cloudbox_limits, doit_i_field_old, 
                                      doit_scat_field,
-                                     scalar_gas_absorption_agenda, vmr_field,
+                                     abs_scalar_gas_agenda, vmr_field,
                                      opt_prop_gas_agenda, ppath_step_agenda,
                                      p_grid,  z_field, r_geoid, z_surface,
                                      t_field, f_grid, f_index, ext_mat_field, 
@@ -734,7 +734,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                    const Tensor6& doit_scat_field,
                    const ArrayOfIndex& cloudbox_limits,
                    // Calculate scalar gas absorption:
-                   const Agenda& scalar_gas_absorption_agenda,
+                   const Agenda& abs_scalar_gas_agenda,
                    const Tensor4& vmr_field,
                    // Optical properties for single particle type:
                    const Agenda& spt_calc_agenda,
@@ -764,7 +764,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
  // ---------- Check the input ----------------------------------------
   
   // Agendas
-  chk_not_empty( "scalar_gas_absorption_agenda", scalar_gas_absorption_agenda);
+  chk_not_empty( "abs_scalar_gas_agenda", abs_scalar_gas_agenda);
   chk_not_empty( "spt_calc_agenda", spt_calc_agenda);
   chk_not_empty( "opt_prop_part_agenda", opt_prop_part_agenda);
   chk_not_empty( "opt_prop_gas_agenda", opt_prop_gas_agenda);
@@ -893,7 +893,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
               cloud_ppath_update1D(doit_i_field, 
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
-                                   scalar_gas_absorption_agenda, vmr_field,
+                                   abs_scalar_gas_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
                                    p_grid,  z_field, r_geoid, z_surface,
                                    t_field, f_grid, f_index, ext_mat_field,
@@ -912,7 +912,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
               cloud_ppath_update1D(doit_i_field,  
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
-                                   scalar_gas_absorption_agenda, vmr_field,
+                                   abs_scalar_gas_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
                                    p_grid,  z_field, r_geoid, z_surface,
                                    t_field, f_grid, f_index, ext_mat_field, 
@@ -944,7 +944,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                                        p_index, scat_za_index_local,
                                        scat_za_grid,
                                        cloudbox_limits, doit_scat_field,
-                                       scalar_gas_absorption_agenda, vmr_field,
+                                       abs_scalar_gas_agenda, vmr_field,
                                        opt_prop_gas_agenda, ppath_step_agenda,
                                        p_grid,  z_field, r_geoid, z_surface,
                                        t_field, f_grid, f_index, ext_mat_field, 
@@ -971,7 +971,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                         const Tensor6& doit_scat_field,
                         const ArrayOfIndex& cloudbox_limits,
                         // Calculate scalar gas absorption:
-                        const Agenda& scalar_gas_absorption_agenda,
+                        const Agenda& abs_scalar_gas_agenda,
                         const Tensor4& vmr_field,
                         // Optical properties for single particle type:
                         const Agenda& spt_calc_agenda,
@@ -1002,7 +1002,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
   // ---------- Check the input ----------------------------------------
 
    // Agendas
-  chk_not_empty( "scalar_gas_absorption_agenda", scalar_gas_absorption_agenda);
+  chk_not_empty( "abs_scalar_gas_agenda", abs_scalar_gas_agenda);
   chk_not_empty( "spt_calc_agenda", spt_calc_agenda);
   chk_not_empty( "opt_prop_part_agenda", opt_prop_part_agenda);
   chk_not_empty( "opt_prop_gas_agenda", opt_prop_gas_agenda);
@@ -1156,7 +1156,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                                                scat_aa_index, scat_za_grid, 
                                                scat_aa_grid, cloudbox_limits, 
                                                doit_scat_field, 
-                                               scalar_gas_absorption_agenda,
+                                               abs_scalar_gas_agenda,
                                                vmr_field, 
                                                opt_prop_gas_agenda,
                                                ppath_step_agenda, p_grid, 
@@ -1188,7 +1188,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                                                scat_aa_index, scat_za_grid, 
                                                scat_aa_grid, cloudbox_limits, 
                                                doit_scat_field, 
-                                               scalar_gas_absorption_agenda,
+                                               abs_scalar_gas_agenda,
                                                vmr_field, 
                                                opt_prop_gas_agenda,
                                                ppath_step_agenda, p_grid, 
@@ -1235,7 +1235,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                                                    scat_aa_grid,
                                                    cloudbox_limits, 
                                                    doit_scat_field, 
-                                                   scalar_gas_absorption_agenda,
+                                                   abs_scalar_gas_agenda,
                                                    vmr_field, 
                                                    opt_prop_gas_agenda,
                                                    ppath_step_agenda, p_grid, 
@@ -1290,7 +1290,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
   \param doit_scat_field Scattered field.
   \param cloudbox_limits 
   Calculate scalar gas absorption:
-  \param scalar_gas_absorption_agenda
+  \param abs_scalar_gas_agenda
   \param vmr_field
   Optical properties for single particle type:
   \param spt_calc_agenda
@@ -1321,7 +1321,7 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                 const Tensor6& doit_scat_field,
                 const ArrayOfIndex& cloudbox_limits,
                 // Calculate scalar gas absorption:
-                const Agenda& scalar_gas_absorption_agenda,
+                const Agenda& abs_scalar_gas_agenda,
                 const Tensor4& vmr_field,
                 // Optical properties for single particle type:
                 const Agenda& spt_calc_agenda,
@@ -1439,7 +1439,7 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                                                  scat_za_grid,
                                                  cloudbox_limits,
                                                  doit_scat_field,
-                                                 scalar_gas_absorption_agenda,
+                                                 abs_scalar_gas_agenda,
                                                  vmr_field,
                                                  opt_prop_gas_agenda,
                                                  ppath_step_agenda,
@@ -1463,7 +1463,7 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                                                  scat_za_grid,
                                                  cloudbox_limits,
                                                  doit_scat_field,
-                                                 scalar_gas_absorption_agenda,
+                                                 abs_scalar_gas_agenda,
                                                  vmr_field,
                                                  opt_prop_gas_agenda,
                                                  ppath_step_agenda,

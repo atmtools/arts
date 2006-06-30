@@ -404,9 +404,9 @@ const Numeric VMRCalcLimit = 1.000e-25;
    \param    model          allows user defined input parameter set 
                             (CCin, CLin, and CWin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid       [Hz]
-   \param    p_abs          predefined pressure grid       [Pa]
-   \param    t_abs          predefined temperature grid     [K] 
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid     [K] 
    \param    vmr            H2O volume mixing ratio        [1]
 
    \note     Except for model 'user' the input parameters CCin, CLin, and CWin
@@ -434,9 +434,9 @@ void MPM87H2OAbsModel( MatrixView        xsec,
 		       const Numeric	 CLin,       // line strength scale factor
 		       const Numeric	 CWin,       // line broadening scale factor
                        const String&     model,
-		       ConstVectorView   f_mono,
-		       ConstVectorView   p_abs,
-		       ConstVectorView   t_abs,
+		       ConstVectorView   f_grid,
+		       ConstVectorView   abs_p,
+		       ConstVectorView   abs_t,
 		       ConstVectorView   vmr )
 {
   //
@@ -527,11 +527,11 @@ void MPM87H2OAbsModel( MatrixView        xsec,
   const Index i_first = 0;
   const Index i_last  = 29;
   
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -544,13 +544,13 @@ void MPM87H2OAbsModel( MatrixView        xsec,
     {
       // here the total pressure is not multiplied by the H2O vmr for the 
       // P_H2O calculation because we calculate xsec and not abs: abs = vmr * xsec
-      Numeric pwv_dummy = Pa_to_kPa * p_abs[i];
+      Numeric pwv_dummy = Pa_to_kPa * abs_p[i];
       // relative inverse temperature [1]
-      Numeric theta = (300.0 / t_abs[i]);
+      Numeric theta = (300.0 / abs_t[i]);
       // H2O partial pressure [kPa]
-      Numeric pwv   = Pa_to_kPa * p_abs[i] * vmr[i];
+      Numeric pwv   = Pa_to_kPa * abs_p[i] * vmr[i];
       // dry air partial pressure [kPa]
-      Numeric pda   = (Pa_to_kPa * p_abs[i]) - pwv;
+      Numeric pda   = (Pa_to_kPa * abs_p[i]) - pwv;
       // H2O continuum absorption [dB/km/GHz2] like in the original MPM87
       Numeric Nppc  = CC * pwv_dummy * pow(theta, (Numeric)3.0) * 1.000e-5
         * ( (0.113 * pda) + (3.57 * pwv * pow(theta, (Numeric)7.8)) );
@@ -559,7 +559,7 @@ void MPM87H2OAbsModel( MatrixView        xsec,
       for ( Index s=0; s<n_f; ++s )
 	{
 	  // input frequency in [GHz]
-	  Numeric ff   = f_mono[s] * Hz_to_GHz; 
+	  Numeric ff   = f_grid[s] * Hz_to_GHz; 
 	  // H2O line contribution at position f
 	  Numeric Nppl = 0.000;
 	  
@@ -597,9 +597,9 @@ void MPM87H2OAbsModel( MatrixView        xsec,
    \param    model          allows user defined input parameter set 
                             (CCin, CLin, and CWin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid       [Hz]
-   \param    p_abs          predefined pressure grid       [Pa]
-   \param    t_abs          predefined temperature grid     [K] 
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid     [K] 
    \param    vmr            H2O volume mixing ratio        [1]
 
    \note     Except for  model 'user' the input parameters CCin, CLin, and CWin
@@ -618,9 +618,9 @@ void MPM89H2OAbsModel( MatrixView        xsec,
 		       const Numeric	 CLin,       // line strength scale factor
 		       const Numeric	 CWin,       // line broadening scale factor
 		       const String&     model,     // model
-		       ConstVectorView   f_mono,
-		       ConstVectorView   p_abs,
-		       ConstVectorView   t_abs,
+		       ConstVectorView   f_grid,
+		       ConstVectorView   abs_p,
+		       ConstVectorView   abs_t,
 		       ConstVectorView   vmr )
 {
   //
@@ -712,11 +712,11 @@ void MPM89H2OAbsModel( MatrixView        xsec,
   const Index i_first = 0;
   const Index i_last  = 29;
   
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -729,13 +729,13 @@ void MPM89H2OAbsModel( MatrixView        xsec,
     {
       // here the total pressure is not multiplied by the H2O vmr for the 
       // P_H2O calculation because we calculate xsec and not abs: abs = vmr * xsec
-      Numeric pwv_dummy = Pa_to_kPa * p_abs[i];
+      Numeric pwv_dummy = Pa_to_kPa * abs_p[i];
       // relative inverse temperature [1]
-      Numeric theta     = (300.0 / t_abs[i]);
+      Numeric theta     = (300.0 / abs_t[i]);
       // H2O partial pressure [kPa]
-      Numeric pwv       = Pa_to_kPa * p_abs[i] * vmr[i];
+      Numeric pwv       = Pa_to_kPa * abs_p[i] * vmr[i];
       // dry air partial pressure [kPa]
-      Numeric pda       = (Pa_to_kPa * p_abs[i]) - pwv;
+      Numeric pda       = (Pa_to_kPa * abs_p[i]) - pwv;
       // H2O continuum absorption [dB/km/GHz^2] like in the original MPM89
       Numeric Nppc      = CC * pwv_dummy * pow(theta, (Numeric)3.0) * 1.000e-5
         * ( (0.113 * pda) + (3.57 * pwv * pow(theta, (Numeric)7.5)) );
@@ -744,7 +744,7 @@ void MPM89H2OAbsModel( MatrixView        xsec,
       for ( Index s=0; s<n_f; ++s )
 	{
 	  // input frequency in [GHz]
-	  Numeric ff    = f_mono[s] * Hz_to_GHz; 
+	  Numeric ff    = f_grid[s] * Hz_to_GHz; 
 	  // H2O line contribution at position f 
 	  Numeric Nppl  = 0.000;
 	  
@@ -784,9 +784,9 @@ void MPM89H2OAbsModel( MatrixView        xsec,
    \param    model          allows user defined input parameter set 
                             (CCin, CLin, and CWin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid       [Hz]
-   \param    p_abs          predefined pressure grid       [Pa]
-   \param    t_abs          predefined temperature grid     [K] 
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid     [K] 
    \param    vmr            H2O volume mixing ratio        [1]
 
    \note     Except for  model 'user' the input parameters CCin, CLin, and CWin
@@ -820,9 +820,9 @@ void MPM02H2OAbsModel( MatrixView        xsec,
 		       const Numeric	 CLin,       // line strength scale factor
 		       const Numeric	 CWin,       // line broadening scale factor
 		       const String&     model,
-		       ConstVectorView   f_mono,
-		       ConstVectorView   p_abs,
-		       ConstVectorView   t_abs,
+		       ConstVectorView   f_grid,
+		       ConstVectorView   abs_p,
+		       ConstVectorView   abs_t,
 		       ConstVectorView   vmr )
 {
   //
@@ -953,11 +953,11 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
 	<< " CW = " << CW << "\n";
   
   
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -970,20 +970,20 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
     {
       // here the total pressure is not multiplied by the H2O vmr for the 
       // P_H2O calculation because we calculate xsec and not abs: abs = vmr * xsec
-      Numeric pwv_dummy = Pa_to_hPa * p_abs[i];
+      Numeric pwv_dummy = Pa_to_hPa * abs_p[i];
       // relative inverse temperature [1]
-      Numeric theta    = (300.0 / t_abs[i]);
+      Numeric theta    = (300.0 / abs_t[i]);
       // H2O partial pressure [hPa]
-      Numeric pwv      = Pa_to_hPa * p_abs[i] * vmr[i];
+      Numeric pwv      = Pa_to_hPa * abs_p[i] * vmr[i];
       // dry air partial pressure [hPa]
-      Numeric pda      = (Pa_to_hPa * p_abs[i]) - pwv;
+      Numeric pda      = (Pa_to_hPa * abs_p[i]) - pwv;
       // Loop over MPM02 spectral lines:
       
       // Loop over input frequency
       for ( Index s=0; s<n_f; ++s )
 	{
 	  // input frequency in [GHz]
-	  Numeric ff = f_mono[s] * Hz_to_GHz; 
+	  Numeric ff = f_grid[s] * Hz_to_GHz; 
 	  
 	  for ( Index l = i_first; l <= i_last; ++l )
 	    {
@@ -1043,9 +1043,9 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
    \param    model          allows user defined input parameter set 
                             (CCin, CLin, and CWin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid       [Hz]
-   \param    p_abs          predefined pressure grid       [Pa]
-   \param    t_abs          predefined temperature grid     [K] 
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid     [K] 
    \param    vmr            H2O volume mixing ratio        [1]
 
    \note     Except for  model 'user' the input parameters CCin, CLin, and CWin
@@ -1078,9 +1078,9 @@ void MPM93H2OAbsModel( MatrixView        xsec,
 		       const Numeric	 CLin,       // line strength scale factor
 		       const Numeric	 CWin,       // line broadening scale factor
 		       const String&     model,
-		       ConstVectorView   f_mono,
-		       ConstVectorView   p_abs,
-		       ConstVectorView   t_abs,
+		       ConstVectorView   f_grid,
+		       ConstVectorView   abs_p,
+		       ConstVectorView   abs_t,
 		       ConstVectorView   vmr )
 {
   //
@@ -1191,11 +1191,11 @@ void MPM93H2OAbsModel( MatrixView        xsec,
 	<< " CW = " << CW << "\n";
   
   
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -1208,20 +1208,20 @@ void MPM93H2OAbsModel( MatrixView        xsec,
     {
       // here the total pressure is not multiplied by the H2O vmr for the 
       // P_H2O calculation because we calculate xsec and not abs: abs = vmr * xsec
-      Numeric pwv_dummy = Pa_to_hPa * p_abs[i];
+      Numeric pwv_dummy = Pa_to_hPa * abs_p[i];
       // relative inverse temperature [1]
-      Numeric theta    = (300.0 / t_abs[i]);
+      Numeric theta    = (300.0 / abs_t[i]);
       // H2O partial pressure [hPa]
-      Numeric pwv      = Pa_to_hPa * p_abs[i] * vmr[i];
+      Numeric pwv      = Pa_to_hPa * abs_p[i] * vmr[i];
       // dry air partial pressure [hPa]
-      Numeric pda      = (Pa_to_hPa * p_abs[i]) - pwv;
+      Numeric pda      = (Pa_to_hPa * abs_p[i]) - pwv;
       // Loop over MPM93 spectral lines:
       
       // Loop over input frequency
       for ( Index s=0; s<n_f; ++s )
 	{
 	  // input frequency in [GHz]
-	  Numeric ff = f_mono[s] * Hz_to_GHz; 
+	  Numeric ff = f_grid[s] * Hz_to_GHz; 
 	  
 	  for ( Index l = i_first; l <= i_last; ++l )
 	    {
@@ -1280,9 +1280,9 @@ void MPM93H2OAbsModel( MatrixView        xsec,
    \param    model          allows user defined input parameter set 
                             (CCin, CLin, and CWin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid       [Hz]
-   \param    p_abs          predefined pressure grid       [Pa]
-   \param    t_abs          predefined temperature grid     [K] 
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid     [K] 
    \param    vmr            H2O volume mixing ratio        [1]
 
    \note     Except for  model 'user' the input parameters CCin, CLin, and CWin 
@@ -1302,9 +1302,9 @@ void PWR98H2OAbsModel( MatrixView        xsec,
 		       const Numeric	 CLin,       // line strength scale factor
 		       const Numeric	 CWin,       // line broadening scale factor
 		       const String&     model,
-		       ConstVectorView   f_mono,
-		       ConstVectorView   p_abs,
-		       ConstVectorView   t_abs,
+		       ConstVectorView   f_grid,
+		       ConstVectorView   abs_p,
+		       ConstVectorView   abs_t,
 		       ConstVectorView   vmr )
 {
   //   REFERENCES:
@@ -1400,11 +1400,11 @@ void PWR98H2OAbsModel( MatrixView        xsec,
 	<< " CW = " << CW << "\n";
   
   
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -1417,20 +1417,20 @@ void PWR98H2OAbsModel( MatrixView        xsec,
     {
       // here the total pressure is not multiplied by the H2O vmr for the 
       // P_H2O calculation because we calculate xsec and not abs: abs = vmr * xsec
-      Numeric pvap_dummy = Pa_to_hPa * p_abs[i];
+      Numeric pvap_dummy = Pa_to_hPa * abs_p[i];
       // water vapor partial pressure [hPa]
-      Numeric pvap       = Pa_to_hPa * p_abs[i] * vmr[i];
+      Numeric pvap       = Pa_to_hPa * abs_p[i] * vmr[i];
       // dry air partial pressure [hPa]
-      Numeric pda        = (Pa_to_hPa * p_abs[i]) - pvap;
+      Numeric pda        = (Pa_to_hPa * abs_p[i]) - pvap;
       // Rosenkranz number density  (Rosenkranz H2O mass density in [g/m³])
       // [g/m³]    =  [g*K / Pa*m³]  *  [Pa/K]
       // rho       =   (M_H2O / R)   *  (P_H2O / T)
-      // rho       =      2.1667     *  p_abs * vmr / t_abs
+      // rho       =      2.1667     *  abs_p * vmr / abs_t
       // den       = 3.335e16 * rho
-      // FIXME Numeric den        = 3.335e16 * (2.1667 * p_abs[i] * vmr[i] / t_abs[i]);
-      Numeric den_dummy  = 3.335e16 * (2.1667 * p_abs[i] / t_abs[i]);
+      // FIXME Numeric den        = 3.335e16 * (2.1667 * abs_p[i] * vmr[i] / abs_t[i]);
+      Numeric den_dummy  = 3.335e16 * (2.1667 * abs_p[i] / abs_t[i]);
       // inverse relative temperature [1]
-      Numeric ti         = (300.0 / t_abs[i]);
+      Numeric ti         = (300.0 / abs_t[i]);
       Numeric ti2        = pow(ti, (Numeric)2.5);
       
       // continuum term [Np/km/GHz2]
@@ -1441,7 +1441,7 @@ void PWR98H2OAbsModel( MatrixView        xsec,
       for ( Index s=0; s<n_f; ++s )
 	{
 	  // input frequency in [GHz]
-	  Numeric ff  = f_mono[s] * Hz_to_GHz;
+	  Numeric ff  = f_grid[s] * Hz_to_GHz;
 	  // line contribution at position f
 	  Numeric sum = 0.000;
 	  
@@ -1488,9 +1488,9 @@ void PWR98H2OAbsModel( MatrixView        xsec,
    \param    model          allows user defined input parameter set 
                             (CCin, CLin, and CWin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid       [Hz]
-   \param    p_abs          predefined pressure grid       [Pa]
-   \param    t_abs          predefined temperature grid     [K] 
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid     [K] 
    \param    vmr            H2O volume mixing ratio        [1]
 
    \note     Except for  model 'user' the input parameters CCin, CLin, and CWin
@@ -1509,9 +1509,9 @@ void CP98H2OAbsModel( MatrixView        xsec,
 		      const Numeric     CLin,       // line strength scale factor
 		      const Numeric	CWin,       // line broadening scale factor
 		      const String&     model,
-		      ConstVectorView   f_mono,
-		      ConstVectorView   p_abs,
-		      ConstVectorView   t_abs,
+		      ConstVectorView   f_grid,
+		      ConstVectorView   abs_p,
+		      ConstVectorView   abs_t,
 		      ConstVectorView   vmr )
 {
 
@@ -1560,11 +1560,11 @@ void CP98H2OAbsModel( MatrixView        xsec,
 	<< " CL = " << CL << "\n"
 	<< " CW = " << CW << "\n";
   
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -1579,11 +1579,11 @@ void CP98H2OAbsModel( MatrixView        xsec,
       if (vmr[i] > VMRCalcLimit)
 	{
 	  // relative inverse temperature [1]
-	  Numeric theta = (300.0 / t_abs[i]);
+	  Numeric theta = (300.0 / abs_t[i]);
 	  // H2O partial pressure [hPa]
-	  Numeric pwv   = Pa_to_hPa * p_abs[i] * vmr[i];
+	  Numeric pwv   = Pa_to_hPa * abs_p[i] * vmr[i];
 	  // dry air partial pressure [hPa]
-	  Numeric pda   = (Pa_to_hPa * p_abs[i]) - pwv;
+	  Numeric pda   = (Pa_to_hPa * abs_p[i]) - pwv;
 	  // line strength
 	  Numeric TL    = CL * 0.0109 * pwv * pow(theta,(Numeric)3.5)
             * exp(2.143*(1.0-theta));
@@ -1599,7 +1599,7 @@ void CP98H2OAbsModel( MatrixView        xsec,
 	  for ( Index s=0; s<n_f; ++s )
 	    {
 	      // input frequency in [GHz]
-	      Numeric ff  = f_mono[s] * Hz_to_GHz; 
+	      Numeric ff  = f_grid[s] * Hz_to_GHz; 
 	      Numeric TSf = MPMLineShapeFunction(gam, 22.235080, ff); 
 	      // xsec = abs/vmr [1/m] (Cruz-Pol model in [Np/km])
 	      xsec(s,i) += 4.1907e-5 * ff * ( (TL * TSf) + (ff * TC) ) / vmr[i];
@@ -1619,9 +1619,9 @@ void CP98H2OAbsModel( MatrixView        xsec,
    \param    model          allows user defined input parameter set 
                             (C and x)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid        [Hz]
-   \param    p_abs          predefined pressure grid         [Pa]
-   \param    t_abs          predefined temperature grid      [K] 
+   \param    f_grid         predefined frequency grid        [Hz]
+   \param    abs_p          predefined pressure grid         [Pa]
+   \param    abs_t          predefined temperature grid      [K] 
    \param    vmr            H2O volume mixing ratio          [1]
 
    \note     Except for  model 'user' the input parameters C and x 
@@ -1638,9 +1638,9 @@ void Standard_H2O_self_continuum( MatrixView        xsec,
 				  const Numeric     Cin,
 				  const Numeric     xin,
 				  const String&     model,
-				  ConstVectorView   f_mono,
-				  ConstVectorView   p_abs,
-				  ConstVectorView   t_abs,
+				  ConstVectorView   f_grid,
+				  ConstVectorView   abs_p,
+				  ConstVectorView   abs_t,
 				  ConstVectorView   vmr	 )
 {
 
@@ -1699,11 +1699,11 @@ void Standard_H2O_self_continuum( MatrixView        xsec,
 
 
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -1718,13 +1718,13 @@ void Standard_H2O_self_continuum( MatrixView        xsec,
       // The second vmr of H2O will be multiplied at the stage of absorption 
       // calculation: abs = vmr * xsec.
       Numeric dummy =
-	C * pow( (Numeric)300./t_abs[i], x+(Numeric)3. )
-        * pow( p_abs[i], (Numeric)2. ) * vmr[i];
+	C * pow( (Numeric)300./abs_t[i], x+(Numeric)3. )
+        * pow( abs_p[i], (Numeric)2. ) * vmr[i];
 
       // Loop over frequency grid:
       for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec(s,i) += dummy * pow( f_mono[s], (Numeric)2. );
+	  xsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. );
 	  //	  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	}
     }
@@ -1740,9 +1740,9 @@ void Standard_H2O_self_continuum( MatrixView        xsec,
    \param    model          allows user defined input parameter set 
                             (C and x)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid    [Hz]
-   \param    t_abs          predefined temperature grid  [K] 
-   \param    p_abs          predefined pressure          [Pa]
+   \param    f_grid         predefined frequency grid    [Hz]
+   \param    abs_t          predefined temperature grid  [K] 
+   \param    abs_p          predefined pressure          [Pa]
    \param    vmr            H2O volume mixing ratio     [1] 
 
    \note     Except for  model 'user' the input parameters C and x 
@@ -1760,9 +1760,9 @@ void Standard_H2O_foreign_continuum( MatrixView        xsec,
 				     const Numeric     Cin,
 				     const Numeric     xin,
 				     const String&     model,
-				     ConstVectorView   f_mono,
-				     ConstVectorView   p_abs,
-				     ConstVectorView   t_abs,
+				     ConstVectorView   f_grid,
+				     ConstVectorView   abs_p,
+				     ConstVectorView   abs_t,
 				     ConstVectorView   vmr	 )
 {
 
@@ -1820,11 +1820,11 @@ void Standard_H2O_foreign_continuum( MatrixView        xsec,
          << " C_s = " << C << "\n"
          << " x_s = " << x << "\n";
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -1836,17 +1836,17 @@ void Standard_H2O_foreign_continuum( MatrixView        xsec,
   for ( Index i=0; i<n_p; ++i )
     {
       // Dry air partial pressure: p_dry := p_tot - p_h2o.
-      Numeric pdry  = p_abs[i] * (1.000e0-vmr[i]);
+      Numeric pdry  = abs_p[i] * (1.000e0-vmr[i]);
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The vmr of H2O will be multiplied at the stage of absorption 
       // calculation: abs = vmr * xsec.
-      Numeric dummy = C * pow( (Numeric)300./t_abs[i], x+(Numeric)3. )
-        * p_abs[i] * pdry;
+      Numeric dummy = C * pow( (Numeric)300./abs_t[i], x+(Numeric)3. )
+        * abs_p[i] * pdry;
 
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec(s,i) += dummy * pow( f_mono[s], (Numeric)2. );
+	  xsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. );
 	  //	  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	}
     }
@@ -1863,9 +1863,9 @@ void Standard_H2O_foreign_continuum( MatrixView        xsec,
    \param    model          allows user defined input parameter set 
                             (C and x)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid    [Hz]
-   \param    p_abs          predefined pressure          [Pa]
-   \param    t_abs          predefined temperature grid  [K] 
+   \param    f_grid         predefined frequency grid    [Hz]
+   \param    abs_p          predefined pressure          [Pa]
+   \param    abs_t          predefined temperature grid  [K] 
    \param    vmr            H2O volume mixing ratio     [1] 
 
    \note     Except for  model 'user' the input parameters C and x 
@@ -1882,9 +1882,9 @@ void MaTipping_H2O_foreign_continuum( MatrixView        xsec,
 				      const Numeric	 Cin,
 				      const Numeric	 xin,
 				      const String&     model,
-				      ConstVectorView   f_mono,
-				      ConstVectorView   p_abs,
-				      ConstVectorView   t_abs,
+				      ConstVectorView   f_grid,
+				      ConstVectorView   abs_p,
+				      ConstVectorView   abs_t,
 				      ConstVectorView   vmr	 )
 {
 
@@ -1921,11 +1921,11 @@ void MaTipping_H2O_foreign_continuum( MatrixView        xsec,
          << " C_s = " << C << "\n"
          << " x_s = " << x << "\n";
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -1937,17 +1937,17 @@ void MaTipping_H2O_foreign_continuum( MatrixView        xsec,
   for ( Index i=0; i<n_p; ++i )
     {
       // Dry air partial pressure: p_dry := p_tot - p_h2o.
-      Numeric pdry  = p_abs[i] * (1.000e0-vmr[i]);
+      Numeric pdry  = abs_p[i] * (1.000e0-vmr[i]);
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The vmr of H2O will be multiplied at the stage of absorption 
       // calculation: abs = vmr * xsec.
-      Numeric dummy = C * pow( (Numeric)300./t_abs[i], x )
-        * p_abs[i] * pdry;
+      Numeric dummy = C * pow( (Numeric)300./abs_t[i], x )
+        * abs_p[i] * pdry;
 
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec(s,i) += dummy * pow( f_mono[s], (Numeric)2.0389 );
+	  xsec(s,i) += dummy * pow( f_grid[s], (Numeric)2.0389 );
 	  //	  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	}
     }
@@ -2074,11 +2074,11 @@ Numeric RADFN_FUN (const Numeric VI,
                             (Cin)<br> 
                             or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    n2_abs         N2 volume mixing ratio profile       [1]
+   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of 
              CKD version 2.2.2 written by<br>  
@@ -2094,11 +2094,11 @@ Numeric RADFN_FUN (const Numeric VI,
 void CKD_222_self_h2o( MatrixView          xsec,
 		       const Numeric       Cin,
 		       const String&       model,
-		       ConstVectorView     f_mono,
-		       ConstVectorView     p_abs,
-		       ConstVectorView     t_abs,
+		       ConstVectorView     f_grid,
+		       ConstVectorView     abs_p,
+		       ConstVectorView     abs_t,
 		       ConstVectorView     vmr,
-		       ConstVectorView     /* n2_abs */ )
+		       ConstVectorView     /* abs_n2 */ )
 {
 
 
@@ -2122,12 +2122,12 @@ void CKD_222_self_h2o( MatrixView          xsec,
     }
 
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -2167,11 +2167,11 @@ void CKD_222_self_h2o( MatrixView          xsec,
   const Numeric VABS_max = SL260_ckd_0_v2; // [cm^-1]
 
 
-  // It is assumed here that f_mono is monotonically increasing with index!
+  // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
-  // the frequency f_mono. n_f_new < n_f
-  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  // the frequency f_grid. n_f_new < n_f
+  Numeric V1ABS = f_grid[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_grid[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
@@ -2274,12 +2274,12 @@ void CKD_222_self_h2o( MatrixView          xsec,
     {
 
       // atmospheric state parameters
-      Numeric Tave   = t_abs[i];                                     // [K]
-      Numeric Pave   = (p_abs[i]*1.000e-2);                          // [hPa]
+      Numeric Tave   = abs_t[i];                                     // [K]
+      Numeric Pave   = (abs_p[i]*1.000e-2);                          // [hPa]
       Numeric Patm   = Pave/PO;                                      // [1]
       Numeric vmrh2o = vmr[i];                                       // [1]
       // FIXME Numeric Ph2o   = Patm * vmrh2o;                                // [1]
-      // second vmr in absCalc multiplied
+      // second vmr in abs_coefCalc multiplied
       Numeric Rh2o   = Patm * (TO/Tave);                             // [1]
       Numeric Tfac   = (Tave-TO)/(260.0-TO);                         // [1]
       Numeric WTOT   = xLosmt * (Pave/1.013000e3) * (2.7300e2/Tave); // [molecules/cm^2]
@@ -2322,7 +2322,7 @@ void CKD_222_self_h2o( MatrixView          xsec,
 	    }
 
 	  // CKD cross section with radiative field [1/cm]
-	  // the VMRH2O will be multiplied in absCalc, hence Rh2o does not contain 
+	  // the VMRH2O will be multiplied in abs_coefCalc, hence Rh2o does not contain 
 	  // VMRH2O as multiplicative term
 	  k[J] = W1 * Rh2o * (SH2O*1.000e-20) * RADFN_FUN(VJ,XKT); // [1]
 
@@ -2334,11 +2334,11 @@ void CKD_222_self_h2o( MatrixView          xsec,
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
 	  if ( (V >= 0.000e0) && (V < SL296_ckd_0_v2) )
 	    {
 	      // arts cross section [1/m]
-	      // interpolate the k vector on the f_mono grid
+	      // interpolate the k vector on the f_grid grid
 	      // The factor 100 comes from the conversion from 1/cm to 1/m for
 	      // the absorption coefficient
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
@@ -2362,11 +2362,11 @@ void CKD_222_self_h2o( MatrixView          xsec,
                             (Cin)<br> 
                             or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    n2_abs         N2 volume mixing ratio profile       [1]
+   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of 
              CKD version 2.2.2 written by<br>  
@@ -2382,11 +2382,11 @@ void CKD_222_self_h2o( MatrixView          xsec,
 void CKD_222_foreign_h2o( MatrixView          xsec,
 			  const Numeric       Cin,
 			  const String&       model,
-			  ConstVectorView     f_mono,
-			  ConstVectorView     p_abs,
-			  ConstVectorView     t_abs,
+			  ConstVectorView     f_grid,
+			  ConstVectorView     abs_p,
+			  ConstVectorView     abs_t,
 			  ConstVectorView     vmr,
-			  ConstVectorView     /* n2_abs */ )
+			  ConstVectorView     /* abs_n2 */ )
 {
 
   // check the model name about consistency
@@ -2409,12 +2409,12 @@ void CKD_222_foreign_h2o( MatrixView          xsec,
     }
 
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -2445,11 +2445,11 @@ void CKD_222_foreign_h2o( MatrixView          xsec,
   const Numeric VABS_max = FH2O_ckd_0_v2; // [cm^-1]
 
 
-  // It is assumed here that f_mono is monotonically increasing with index!
+  // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
-  // the frequency f_mono. n_f_new < n_f
-  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  // the frequency f_grid. n_f_new < n_f
+  Numeric V1ABS = f_grid[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_grid[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
@@ -2517,8 +2517,8 @@ void CKD_222_foreign_h2o( MatrixView          xsec,
     {
 
       // atmospheric state parameters
-      Numeric Tave   = t_abs[i];                               // [K]
-      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Tave   = abs_t[i];                               // [K]
+      Numeric Pave   = (abs_p[i]*1.000e-2);                    // [hPa]
       Numeric vmrh2o = vmr[i];                                 // [1]
       // FIXME Numeric ph2o   = vmrh2o * Pave;                          // [hPa]
       Numeric PFRGN  = (Pave/PO) * (1.00000e0 - vmrh2o);       // dry air pressure [hPa]
@@ -2548,7 +2548,7 @@ void CKD_222_foreign_h2o( MatrixView          xsec,
 	  FH2O  = FH2OT0[J] * FSCAL;
 
 	  // CKD cross section with radiative field [1/cm]
-	  // The VMRH2O will be multiplied in absCalc, hence WTOT and not W1
+	  // The VMRH2O will be multiplied in abs_coefCalc, hence WTOT and not W1
 	  // as multiplicative term
 	  k[J] = WTOT * RFRGN * (FH2O*1.000e-20) * RADFN_FUN(VJ,XKT);
 
@@ -2560,11 +2560,11 @@ void CKD_222_foreign_h2o( MatrixView          xsec,
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
 	  if ( (V > 0.000e0) && (V < VABS_max) )
 	    {
 	      // arts CKD2.2.2 foreign H2O continuum cross section [1/m]
-	      // interpolate the k vector on the f_mono grid
+	      // interpolate the k vector on the f_grid grid
 	      // The factor 100 comes from the conversion from (1/cm) to (1/m) 
 	      // of the abs. coeff.
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
@@ -2587,11 +2587,11 @@ void CKD_222_foreign_h2o( MatrixView          xsec,
                             (Cin)<br> 
                             or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    n2_abs         N2 volume mixing ratio profile       [1]
+   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of 
              CKD version 2.4.2 written by<br>  
@@ -2607,11 +2607,11 @@ void CKD_222_foreign_h2o( MatrixView          xsec,
 void CKD_242_self_h2o( MatrixView          xsec,
 		       const Numeric       Cin,
 		       const String&       model,
-		       ConstVectorView     f_mono,
-		       ConstVectorView     p_abs,
-		       ConstVectorView     t_abs,
+		       ConstVectorView     f_grid,
+		       ConstVectorView     abs_p,
+		       ConstVectorView     abs_t,
 		       ConstVectorView     vmr,
-		       ConstVectorView     /* n2_abs */ )
+		       ConstVectorView     /* abs_n2 */ )
 {
 
 
@@ -2635,12 +2635,12 @@ void CKD_242_self_h2o( MatrixView          xsec,
     }
 
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -2687,11 +2687,11 @@ void CKD_242_self_h2o( MatrixView          xsec,
   const Numeric VABS_max = SL260_ckd_0_v2; // [cm^-1]
 
 
-  // It is assumed here that f_mono is monotonically increasing with index!
+  // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
-  // the frequency f_mono. n_f_new < n_f
-  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  // the frequency f_grid. n_f_new < n_f
+  Numeric V1ABS = f_grid[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_grid[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
@@ -2794,12 +2794,12 @@ void CKD_242_self_h2o( MatrixView          xsec,
     {
 
       // atmospheric state parameters
-      Numeric Tave   = t_abs[i];                                     // [K]
-      Numeric Pave   = (p_abs[i]*1.000e-2);                          // [hPa]
+      Numeric Tave   = abs_t[i];                                     // [K]
+      Numeric Pave   = (abs_p[i]*1.000e-2);                          // [hPa]
       Numeric Patm   = Pave/PO;                                      // [1]
       Numeric vmrh2o = vmr[i];                                       // [1]
       // FIXME Numeric Ph2o   = Patm * vmrh2o;                                // [1]
-      // second vmr in absCalc multiplied
+      // second vmr in abs_coefCalc multiplied
       Numeric Rh2o   = Patm * (TO/Tave);                             // [1]
       Numeric Tfac   = (Tave-TO)/(260.0-TO);                         // [1]
       Numeric WTOT   = xLosmt * (Pave/1.013000e3) * (2.7300e2/Tave); // [molecules/cm^2]
@@ -2849,7 +2849,7 @@ void CKD_242_self_h2o( MatrixView          xsec,
 	    }
 
 	  // CKD cross section with radiative field [1/cm]
-	  // The VMRH2O will be multiplied in absCalc, hence Rh2o does not contain 
+	  // The VMRH2O will be multiplied in abs_coefCalc, hence Rh2o does not contain 
 	  // VMRH2O as multiplicative term
 	  k[J] = W1 * Rh2o * (SH2O*1.000e-20) * RADFN_FUN(VJ,XKT);
 
@@ -2861,11 +2861,11 @@ void CKD_242_self_h2o( MatrixView          xsec,
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
 	  if ( (V >= 0.000e0) && (V < SL296_ckd_0_v2) )
 	    {
 	      // arts cross section [1/m]
-	      // interpolate the k vector on the f_mono grid
+	      // interpolate the k vector on the f_grid grid
 	      // The factor 100 comes from the conversion from 1/cm to 1/m for
 	      // the absorption coefficient
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
@@ -2888,11 +2888,11 @@ void CKD_242_self_h2o( MatrixView          xsec,
                             (Cin)<br> 
                             or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    n2_abs         N2 volume mixing ratio profile       [1]
+   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of 
              CKD version 2.4.2 written by<br>  
@@ -2908,11 +2908,11 @@ void CKD_242_self_h2o( MatrixView          xsec,
 void CKD_242_foreign_h2o( MatrixView          xsec,
 			  const Numeric       Cin,
 			  const String&       model,
-			  ConstVectorView     f_mono,
-			  ConstVectorView     p_abs,
-			  ConstVectorView     t_abs,
+			  ConstVectorView     f_grid,
+			  ConstVectorView     abs_p,
+			  ConstVectorView     abs_t,
 			  ConstVectorView     vmr,
-			  ConstVectorView     /* n2_abs */ )
+			  ConstVectorView     /* abs_n2 */ )
 {
 
 
@@ -2936,11 +2936,11 @@ void CKD_242_foreign_h2o( MatrixView          xsec,
     }
 
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -2982,11 +2982,11 @@ void CKD_242_foreign_h2o( MatrixView          xsec,
   const Numeric VABS_max = FH2O_ckd_0_v2; // [cm^-1]
 
 
-  // It is assumed here that f_mono is monotonically increasing with index!
+  // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
-  // the frequency f_mono. n_f_new < n_f
-  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  // the frequency f_grid. n_f_new < n_f
+  Numeric V1ABS = f_grid[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_grid[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
@@ -3054,8 +3054,8 @@ void CKD_242_foreign_h2o( MatrixView          xsec,
     {
 
       // atmospheric state parameters
-      Numeric Tave   = t_abs[i];                               // [K]
-      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Tave   = abs_t[i];                               // [K]
+      Numeric Pave   = (abs_p[i]*1.000e-2);                    // [hPa]
       Numeric vmrh2o = vmr[i];                                 // [1]
       // FIXME Numeric ph2o   = vmrh2o * Pave;                          // [hPa]
       Numeric PFRGN  = (Pave/PO) * (1.00000e0 - vmrh2o);       // dry air pressure [hPa]
@@ -3096,7 +3096,7 @@ void CKD_242_foreign_h2o( MatrixView          xsec,
 	  FH2O  = FH2OT0[J] * FSCAL;
 
 	  // CKD cross section without radiative field
-	  // The VMRH2O will be multiplied in absCalc, hence WTOT and not W1
+	  // The VMRH2O will be multiplied in abs_coefCalc, hence WTOT and not W1
 	  // as multiplicative term
 	  k[J] = WTOT * RFRGN * (FH2O*1.000e-20) * RADFN_FUN(VJ,XKT);
 
@@ -3108,11 +3108,11 @@ void CKD_242_foreign_h2o( MatrixView          xsec,
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
 	  if ( (V >= 0.000e0) && (V < VABS_max) )
 	    {
 	      // arts CKD2.4.2 foreign H2O continuum cross section [1/m]
-	      // interpolate the k vector on the f_mono grid
+	      // interpolate the k vector on the f_grid grid
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
@@ -3133,11 +3133,11 @@ void CKD_242_foreign_h2o( MatrixView          xsec,
                             (Cin)<br> 
                             or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    n2_abs         N2 volume mixing ratio profile       [1]
+   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of 
              CKD_MT version 1.00 written by<br>  
@@ -3153,11 +3153,11 @@ void CKD_242_foreign_h2o( MatrixView          xsec,
 void CKD_mt_100_self_h2o( MatrixView          xsec,
 			  const Numeric       Cin,
 			  const String&       model,
-			  ConstVectorView     f_mono,
-			  ConstVectorView     p_abs,
-			  ConstVectorView     t_abs,
+			  ConstVectorView     f_grid,
+			  ConstVectorView     abs_p,
+			  ConstVectorView     abs_t,
 			  ConstVectorView     vmr,
-			  ConstVectorView     /* n2_abs */ )
+			  ConstVectorView     /* abs_n2 */ )
 {
 
   // check the model name about consistency
@@ -3180,12 +3180,12 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
     }
 
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -3211,11 +3211,11 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
   const Numeric VABS_max =  2.000e4; // [cm^-1]
 
 
-  // It is assumed here that f_mono is monotonically increasing with index!
+  // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
-  // the frequency f_mono. n_f_new < n_f
-  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  // the frequency f_grid. n_f_new < n_f
+  Numeric V1ABS = f_grid[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_grid[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
@@ -3316,12 +3316,12 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
     {
 
       // atmospheric state parameters
-      Numeric Tave   = t_abs[i];                                     // [K]
-      Numeric Pave   = (p_abs[i]*1.000e-2);                          // [hPa]
+      Numeric Tave   = abs_t[i];                                     // [K]
+      Numeric Pave   = (abs_p[i]*1.000e-2);                          // [hPa]
       Numeric Patm   = Pave/PO;                                      // [1]
       Numeric vmrh2o = vmr[i];                                       // [1]
       // FIXME Numeric Ph2o   = Patm * vmrh2o;                                // [1]
-      // second vmr in absCalc multiplied
+      // second vmr in abs_coefCalc multiplied
       Numeric Rh2o   = Patm * (TO/Tave);                             // [1]
       Numeric Tfac   = (Tave-TO)/(260.0-TO);                         // [1]
       Numeric WTOT   = xLosmt * (Pave/1.013000e3) * (2.7300e2/Tave); // [molecules/cm^2]
@@ -3353,7 +3353,7 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
 	    }
 
 	  // CKD cross section with radiative field [1/cm]
-	  // The VMRH2O will be multiplied in absCalc, hence Rh2o does not contain 
+	  // The VMRH2O will be multiplied in abs_coefCalc, hence Rh2o does not contain 
 	  // VMRH2O as multiplicative term
 	  k[J] = W1 * Rh2o * (SH2O*1.000e-20) * RADFN_FUN(VJ,XKT);
 
@@ -3365,11 +3365,11 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
 	  if ( (V > 0.000e0) && (V < SL296_ckd_mt_100_v2) )
 	    {
 	      // arts cross section [1/m]
-	      // interpolate the k vector on the f_mono grid
+	      // interpolate the k vector on the f_grid grid
 	      // The factor 100 comes from the conversion from 1/cm to 1/m for
 	      // the absorption coefficient
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
@@ -3391,11 +3391,11 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
                             (Cin)<br> 
                             or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    n2_abs         N2 volume mixing ratio profile       [1]
+   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of 
              CKD_MT version 1.00 written by<br>  
@@ -3411,11 +3411,11 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
 void CKD_mt_100_foreign_h2o( MatrixView          xsec,
 			     const Numeric       Cin,
 			     const String&       model,
-			     ConstVectorView     f_mono,
-			     ConstVectorView     p_abs,
-			     ConstVectorView     t_abs,
+			     ConstVectorView     f_grid,
+			     ConstVectorView     abs_p,
+			     ConstVectorView     abs_t,
 			     ConstVectorView     vmr,
-			     ConstVectorView     /* n2_abs */ )
+			     ConstVectorView     /* abs_n2 */ )
 {
 
 
@@ -3439,12 +3439,12 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
     }
 
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -3465,11 +3465,11 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
   const Numeric VABS_max =  2.000e4; // [cm^-1]
 
 
-  // It is assumed here that f_mono is monotonically increasing with index!
+  // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
-  // the frequency f_mono. n_f_new < n_f
-  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  // the frequency f_grid. n_f_new < n_f
+  Numeric V1ABS = f_grid[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_grid[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
@@ -3533,8 +3533,8 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
   for ( Index i = 0 ; i < n_p ; ++i )
     {
       // atmospheric state parameters
-      Numeric Tave   = t_abs[i];                               // [K]
-      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Tave   = abs_t[i];                               // [K]
+      Numeric Pave   = (abs_p[i]*1.000e-2);                    // [hPa]
       Numeric vmrh2o = vmr[i];                                 // [1]
       // FIXME Numeric ph2o   = vmrh2o * Pave;                          // [hPa]
       Numeric PFRGN  = (Pave/PO) * (1.00000e0 - vmrh2o);       // dry air pressure [hPa]
@@ -3554,7 +3554,7 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
 	  Numeric FH2O = FH2OT0[J];
 
 	  // CKD cross section with radiative field [1/cm]
-	  // The VMRH2O will be multiplied in absCalc, hence WTOT and not W1
+	  // The VMRH2O will be multiplied in abs_coefCalc, hence WTOT and not W1
 	  // as multiplicative term
 	  k[J] = WTOT * RFRGN * (FH2O*1.000e-20) * RADFN_FUN(VJ,XKT);
 
@@ -3565,11 +3565,11 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
 	  if ( (V >= 0.000e0) && (V < VABS_max) )
 	    {
 	      // arts CKD_MT.100 cross section [1/m]
-	      // interpolate the k vector on the f_mono grid
+	      // interpolate the k vector on the f_grid grid
 	      // The factor 100 comes from the conversion from (1/cm) to (1/m) 
 	      // of the abs. coeff.
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
@@ -3593,9 +3593,9 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
                             (Cin)<br> 
                             or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            CO2 volume mixing ratio profile      [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of 
@@ -3612,9 +3612,9 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
 void CKD_241_co2( MatrixView         xsec,
 		 const Numeric       Cin,
 		 const String&       model,
-		 ConstVectorView     f_mono,
-		 ConstVectorView     p_abs,
-		 ConstVectorView     t_abs,
+		 ConstVectorView     f_grid,
+		 ConstVectorView     abs_p,
+		 ConstVectorView     abs_t,
 		 ConstVectorView     vmr )
 {
 
@@ -3641,12 +3641,12 @@ void CKD_241_co2( MatrixView         xsec,
       ScalingFac = 1.0000e0;
     }
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -3667,11 +3667,11 @@ void CKD_241_co2( MatrixView         xsec,
   const Numeric VABS_max =  1.000e4; // [cm^-1]
 
 
-  // It is assumed here that f_mono is monotonically increasing with index!
+  // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
-  // the frequency f_mono. n_f_new < n_f
-  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  // the frequency f_grid. n_f_new < n_f
+  Numeric V1ABS = f_grid[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_grid[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
@@ -3734,8 +3734,8 @@ void CKD_241_co2( MatrixView         xsec,
   // Loop pressure/temperature:
   for ( Index i = 0 ; i < n_p ; ++i )
     {
-      Numeric Tave   = t_abs[i];                               // [K]
-      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Tave   = abs_t[i];                               // [K]
+      Numeric Pave   = (abs_p[i]*1.000e-2);                    // [hPa]
       // FIXME Numeric vmrco2 = vmr[i];                                 // [1]
       Numeric Rhoave = (Pave/PO) * (TO/Tave);                  // [hPa]
       Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
@@ -3753,7 +3753,7 @@ void CKD_241_co2( MatrixView         xsec,
 	  Numeric FCO2 = FCO2T0[J];
 
 	  // CKD cross section times number density with radiative field [1]
-	  // the VMRCO2 will be multiplied in absCalc
+	  // the VMRCO2 will be multiplied in abs_coefCalc
 	  k[J] = ((WTOT * Rhoave) * (FCO2*1.000e-20) * RADFN_FUN(VJ,XKT));
 
 	}
@@ -3764,11 +3764,11 @@ void CKD_241_co2( MatrixView         xsec,
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
 	  if ( (V > 0.000e0) && (V < FCO2_ckd_mt_100_v2) )
 	    {
 	      // arts cross section [1/m]
-	      // interpolate the k vector on the f_mono grid
+	      // interpolate the k vector on the f_grid grid
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
@@ -3790,9 +3790,9 @@ void CKD_241_co2( MatrixView         xsec,
                             (Cin)<br> 
                             or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            CO2 volume mixing ratio profile      [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of 
@@ -3809,9 +3809,9 @@ void CKD_241_co2( MatrixView         xsec,
 void CKD_mt_co2( MatrixView          xsec,
 		 const Numeric       Cin,
 		 const String&       model,
-		 ConstVectorView     f_mono,
-		 ConstVectorView     p_abs,
-		 ConstVectorView     t_abs,
+		 ConstVectorView     f_grid,
+		 ConstVectorView     abs_p,
+		 ConstVectorView     abs_t,
 		 ConstVectorView     vmr)
 {
 
@@ -3839,12 +3839,12 @@ void CKD_mt_co2( MatrixView          xsec,
       ScalingFac = 1.0000e0;
     }
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -3865,11 +3865,11 @@ void CKD_mt_co2( MatrixView          xsec,
   const Numeric VABS_max = FCO2_ckd_mt_100_v2; // [cm^-1]
 
 
-  // It is assumed here that f_mono is monotonically increasing with index!
+  // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
-  // the frequency f_mono. n_f_new < n_f
-  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  // the frequency f_grid. n_f_new < n_f
+  Numeric V1ABS = f_grid[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_grid[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
@@ -3932,8 +3932,8 @@ void CKD_mt_co2( MatrixView          xsec,
   // Loop pressure/temperature:
   for ( Index i = 0 ; i < n_p ; ++i )
     {
-      Numeric Tave   = t_abs[i];                               // [K]
-      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Tave   = abs_t[i];                               // [K]
+      Numeric Pave   = (abs_p[i]*1.000e-2);                    // [hPa]
       // FIXME Numeric vmrco2 = vmr[i];                                 // [1]
       Numeric Rhoave = (Pave/PO) * (TO/Tave);                  // [hPa]
       Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
@@ -3957,7 +3957,7 @@ void CKD_mt_co2( MatrixView          xsec,
 	    }
 
 	  // CKD cross section times number density with radiative field [1]
-	  // the VMRCO2 will be multiplied in absCalc
+	  // the VMRCO2 will be multiplied in abs_coefCalc
 	  k[J] = ((WTOT * Rhoave) * (FCO2*1.000e-20) * RADFN_FUN(VJ,XKT));
 
 	}
@@ -3968,11 +3968,11 @@ void CKD_mt_co2( MatrixView          xsec,
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
 	  if ( (V > 0.000e0) && (V < FCO2_ckd_mt_100_v2) )
 	    {
 	      // arts cross section [1/m]
-	      // interpolate the k vector on the f_mono grid
+	      // interpolate the k vector on the f_grid grid
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
@@ -3997,9 +3997,9 @@ void CKD_mt_co2( MatrixView          xsec,
                             (Cin)<br> 
                             or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            N2 volume mixing ratio profile       [1]
 
    \remark   Borysow, A, and L. Frommhold,<br> 
@@ -4021,9 +4021,9 @@ void CKD_mt_co2( MatrixView          xsec,
 void CKD_mt_CIArot_n2( MatrixView         xsec,
 		      const Numeric       Cin,
 		      const String&       model,
-		      ConstVectorView     f_mono,
-		      ConstVectorView     p_abs,
-		      ConstVectorView     t_abs,
+		      ConstVectorView     f_grid,
+		      ConstVectorView     abs_p,
+		      ConstVectorView     abs_t,
 		      ConstVectorView     vmr )
 {
 
@@ -4050,12 +4050,12 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
       ScalingFac = 1.0000e0;
     }
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -4077,11 +4077,11 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
   const Numeric VABS_max =  3.500e2; // [cm^-1]
 
 
-  // It is assumed here that f_mono is monotonically increasing with index!
+  // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
-  // the frequency f_mono. n_f_new < n_f
-  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  // the frequency f_grid. n_f_new < n_f
+  Numeric V1ABS = f_grid[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_grid[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
@@ -4180,8 +4180,8 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
   // Loop pressure/temperature:
   for ( Index i = 0 ; i < n_p ; ++i )
     {
-      Numeric Tave   = t_abs[i];                               // [K]
-      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Tave   = abs_t[i];                               // [K]
+      Numeric Pave   = (abs_p[i]*1.000e-2);                    // [hPa]
       Numeric vmrn2  = vmr[i];                                 // [1]
       Numeric facfac = vmrn2 * (Pave/PO) * (Pave/PO) * 
                                (T1/Tave) * (T1/Tave);
@@ -4214,11 +4214,11 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
 	  if ( (V > 0.000e0) && (V < N2N2_CT220_ckd_mt_100_v2) )
 	    {
 	      // arts cross section [1/m]
-	      // interpolate the k vector on the f_mono grid
+	      // interpolate the k vector on the f_grid grid
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
@@ -4245,9 +4245,9 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
                             (Cin)<br> 
                             or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            N2 volume mixing ratio profile       [1]
 
    \remark   Lafferty, W.J., A.M. Solodov,A. Weber, W.B. Olson and 
@@ -4272,9 +4272,9 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
 void CKD_mt_CIAfun_n2( MatrixView         xsec,
 		      const Numeric       Cin,
 		      const String&       model,
-		      ConstVectorView     f_mono,
-		      ConstVectorView     p_abs,
-		      ConstVectorView     t_abs,
+		      ConstVectorView     f_grid,
+		      ConstVectorView     abs_p,
+		      ConstVectorView     abs_t,
 		      ConstVectorView     vmr )
 {
 
@@ -4298,12 +4298,12 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
     }
 
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -4322,11 +4322,11 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
   const Numeric a2     = 0.0754e0;
 
 
-  // It is assumed here that f_mono is monotonically increasing with index!
+  // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
-  // the frequency f_mono. n_f_new < n_f
-  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  // the frequency f_grid. n_f_new < n_f
+  Numeric V1ABS = f_grid[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_grid[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   if ( (V1ABS < N2N2_N2F_ckd_mt_100_v1) || (V1ABS > N2N2_N2F_ckd_mt_100_v2) ||
        (V2ABS < N2N2_N2F_ckd_mt_100_v1) || (V2ABS > N2N2_N2F_ckd_mt_100_v2) )
     {
@@ -4388,8 +4388,8 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
   // Loop pressure/temperature:
   for ( Index i = 0 ; i < n_p ; ++i )
     {
-      Numeric Tave   = t_abs[i];                               // [K]
-      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Tave   = abs_t[i];                               // [K]
+      Numeric Pave   = (abs_p[i]*1.000e-2);                    // [hPa]
       Numeric vmrn2  = vmr[i];                                 // [1]
       Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
       Numeric tau_fac= WTOT   * (Pave/PO) * (T1/Tave); 
@@ -4430,11 +4430,11 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
 	  if ( (V > N2N2_N2F_ckd_mt_100_v1) && (V < N2N2_N2F_ckd_mt_100_v2) )
 	    {
 	      // arts cross section [1/m]
-	      // interpolate the k vector on the f_mono grid
+	      // interpolate the k vector on the f_grid grid
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
@@ -4460,9 +4460,9 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
                             (Cin)<br> 
                             or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            O2 volume mixing ratio profile       [1]
 
    \remark   F. Thibault, V. Menoux, R. Le Doucen, L. Rosenman, 
@@ -4485,9 +4485,9 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
 void CKD_mt_CIAfun_o2( MatrixView         xsec,
 		      const Numeric       Cin,
 		      const String&       model,
-		      ConstVectorView     f_mono,
-		      ConstVectorView     p_abs,
-		      ConstVectorView     t_abs,
+		      ConstVectorView     f_grid,
+		      ConstVectorView     abs_p,
+		      ConstVectorView     abs_t,
 		      ConstVectorView     vmr )
 {
 
@@ -4511,12 +4511,12 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
     }
 
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -4533,11 +4533,11 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
   const Numeric PO     = 1013.0e0;
 
 
-  // It is assumed here that f_mono is monotonically increasing with index!
+  // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
-  // the frequency f_mono. n_f_new < n_f
-  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  // the frequency f_grid. n_f_new < n_f
+  Numeric V1ABS = f_grid[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_grid[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   if ( (V1ABS < O2O2_O2F_ckd_mt_100_v1) || (V1ABS > O2O2_O2F_ckd_mt_100_v2) ||
        (V2ABS < O2O2_O2F_ckd_mt_100_v1) || (V2ABS > O2O2_O2F_ckd_mt_100_v2) )
     {
@@ -4599,8 +4599,8 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
   // Loop pressure/temperature:
   for ( Index i = 0 ; i < n_p ; ++i )
     {
-      Numeric Tave   = t_abs[i];                               // [K]
-      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Tave   = abs_t[i];                               // [K]
+      Numeric Pave   = (abs_p[i]*1.000e-2);                    // [hPa]
       // FIXME Numeric vmro2  = vmr[i];                                 // [1]
       Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
       Numeric tau_fac= WTOT * (Pave/PO) * (T1/Tave);
@@ -4635,11 +4635,11 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
 	  if ( (V > O2O2_O2F_ckd_mt_100_v1) && (V < O2O2_O2F_ckd_mt_100_v2) )
 	    {
 	      // arts cross section [1/m]
-	      // interpolate the k vector on the f_mono grid
+	      // interpolate the k vector on the f_grid grid
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
@@ -4674,11 +4674,11 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
                             (Cin)<br> 
                             or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            O2 volume mixing ratio profile       [1]
-   \param    n2_abs         N2 volume mixing ratio profile       [1]
+   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \remark   B. Mate, C. Lugez, G.T. Fraser, W.J. Lafferty,<br> 
              Absolute Intensities for the O2 1.27 micron continuum absorption,<br>   
@@ -4706,11 +4706,11 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
 void CKD_mt_v0v0_o2( MatrixView          xsec,
 		     const Numeric       Cin,
 		     const String&       model,
-		     ConstVectorView     f_mono,
-		     ConstVectorView     p_abs,
-		     ConstVectorView     t_abs,
+		     ConstVectorView     f_grid,
+		     ConstVectorView     abs_p,
+		     ConstVectorView     abs_t,
 		     ConstVectorView     vmr,
-		     ConstVectorView     n2_abs)
+		     ConstVectorView     abs_n2)
 {
 
 
@@ -4733,12 +4733,12 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
       ScalingFac = Cin; // input scaling factor of calculated absorption
     };
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -4754,11 +4754,11 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
   // FIXME const Numeric TO        =  296.0e0;
   const Numeric PO        = 1013.0e0;
 
-  // It is assumed here that f_mono is monotonically increasing with index!
+  // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
-  // the frequency f_mono. n_f_new < n_f
-  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  // the frequency f_grid. n_f_new < n_f
+  Numeric V1ABS = f_grid[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_grid[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   if ( (V1ABS < O2_00_ckd_mt_100_v1) || (V1ABS > O2_00_ckd_mt_100_v2) ||
        (V2ABS < O2_00_ckd_mt_100_v1) || (V2ABS > O2_00_ckd_mt_100_v2) )
     {
@@ -4818,10 +4818,10 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
   // Loop pressure/temperature:
   for ( Index i = 0 ; i < n_p ; ++i )
     {
-      Numeric Tave   = t_abs[i];                               // [K]
-      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Tave   = abs_t[i];                               // [K]
+      Numeric Pave   = (abs_p[i]*1.000e-2);                    // [hPa]
       Numeric vmro2  = vmr[i];                                 // [1]
-      Numeric vmrn2  = n2_abs[i];                              // [1]
+      Numeric vmrn2  = abs_n2[i];                              // [1]
       Numeric ADJWO2 = (vmro2 + 0.300e0*vmrn2) / 0.446e0 * 
                        (Pave/PO) * (Pave/PO) * (T1/Tave) * (T1/Tave);
       Numeric XKT    = Tave / 1.4387752e0;                     // = (T*k_B) / (h*c)    
@@ -4851,11 +4851,11 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
 	  if ( (V > O2_00_ckd_mt_100_v1) && (V < O2_00_ckd_mt_100_v2) )
 	    {
 	      // arts cross section [1/m]
-	      // interpolate the k vector on the f_mono grid
+	      // interpolate the k vector on the f_grid grid
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
@@ -4880,9 +4880,9 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
                             (Cin)<br> 
                             or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            O2 volume mixing ratio profile       [1]
 
    \remark   Mlawer, Clough, Brown, Stephen, Landry, Goldman, Murcray,<br>
@@ -4911,9 +4911,9 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
 void CKD_mt_v1v0_o2( MatrixView          xsec,
 		     const Numeric       Cin,
 		     const String&       model,
-		     ConstVectorView     f_mono,
-		     ConstVectorView     p_abs,
-		     ConstVectorView     t_abs,
+		     ConstVectorView     f_grid,
+		     ConstVectorView     abs_p,
+		     ConstVectorView     abs_t,
 		     ConstVectorView     vmr )
 {
 
@@ -4936,12 +4936,12 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
       ScalingFac = Cin; // input scaling factor of calculated absorption
     };
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -4974,11 +4974,11 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
   const Numeric S2     =     3.086e-5;
 
 
-  // It is assumed here that f_mono is monotonically increasing with index!
+  // It is assumed here that f_grid is monotonically increasing with index!
   // In future change this return into a change of the loop over
-  // the frequency f_mono. n_f_new < n_f
-  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  // the frequency f_grid. n_f_new < n_f
+  Numeric V1ABS = f_grid[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_grid[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   if ( (V1ABS < O2_10_ckd_mt_100_v1) || (V1ABS > O2_10_ckd_mt_100_v2) ||
        (V2ABS < O2_10_ckd_mt_100_v1) || (V2ABS > O2_10_ckd_mt_100_v2) )
     {
@@ -5050,8 +5050,8 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
   // Loop pressure/temperature:
   for ( Index i = 0 ; i < n_p ; ++i )
     {
-      Numeric Tave   = t_abs[i];                               // [K]
-      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Tave   = abs_t[i];                               // [K]
+      Numeric Pave   = (abs_p[i]*1.000e-2);                    // [hPa]
       Numeric vmro2  = vmr[i];                                 // [1]
       Numeric WTOT   = 1.000e-20 * xLosmt * (Pave/PO) * (T1/Tave); // [molecules/cm^2]
       Numeric ADJWO2 = (vmro2 / 0.209e0) * WTOT * (Pave/PO) * (TO/Tave);
@@ -5081,11 +5081,11 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
 	  if ( (V > V1S) && (V < V2S) )
 	    {
 	      // arts cross section [1/m]
-	      // interpolate the k vector on the f_mono grid
+	      // interpolate the k vector on the f_grid grid
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
@@ -5105,11 +5105,11 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (Cin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            H2O volume mixing ratio profile      [1]
-   \param    n2_abs         N2 volume mixing ratio profile       [1]
+   \param    abs_n2         N2 volume mixing ratio profile       [1]
 
    \note     this "crude" version of the CKD2.4 model is a f2c 
              conversion of the F77 code taken out of MonoRTM RT-model written by<br> 
@@ -5134,11 +5134,11 @@ void CKD24_H20( MatrixView          xsec,
 		int                 isf,
 		const Numeric       Cin,
 		const String&       model,
-		ConstVectorView     f_mono,
-		ConstVectorView     p_abs,
-		ConstVectorView     t_abs,
+		ConstVectorView     f_grid,
+		ConstVectorView     abs_p,
+		ConstVectorView     abs_t,
 		ConstVectorView     vmr,
-                ConstVectorView     n2_abs )
+                ConstVectorView     abs_n2 )
 {
   //
   //
@@ -5206,12 +5206,12 @@ void CKD24_H20( MatrixView          xsec,
   }
 
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -5246,10 +5246,10 @@ void CKD24_H20( MatrixView          xsec,
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
     {
-      double T      = (double) t_abs[i];            // [K]
-      double p      = (double) (p_abs[i]*1.000e-2); // [hPa]
+      double T      = (double) abs_t[i];            // [K]
+      double p      = (double) (abs_p[i]*1.000e-2); // [hPa]
       double vmrh2o = (double) vmr[i];              // [1]
-      double vmrn2  = (double) n2_abs[i];           // [1]
+      double vmrn2  = (double) abs_n2[i];           // [1]
       double vmro2  = 0.0e0;                        // [1]
 
       //cout << "------------------------------------------------\n";
@@ -5264,9 +5264,9 @@ void CKD24_H20( MatrixView          xsec,
 	{
 	  // the second vmr of N2 will be multiplied at the stage of
 	  // absorption calculation: abs =  vmr * xsec.
-	  double f = (double) f_mono[s];            // [Hz]
+	  double f = (double) f_grid[s];            // [Hz]
 	  if (ivc == 1) { // ---------- N2 -----------------
-	    if (n2_abs[i] > 0.0e0) {
+	    if (abs_n2[i] > 0.0e0) {
 	      //cout << "CKD2.4 N2: f   =" << f << " Hz\n";
 	      double cont = artsckd_(p, T, vmrh2o, vmrn2, vmro2, f, ivc);
 	      xsec(s,i) +=  (Numeric) (cont / vmr[i]);
@@ -5294,9 +5294,9 @@ void CKD24_H20( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (Cin and xTin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid      [Hz]
-   \param    p_abs          predefined pressure grid       [Pa]
-   \param    t_abs          predefined temperature grid    [K] 
+   \param    f_grid         predefined frequency grid      [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid    [K] 
    \param    vmr            H2O volume mixing ratio        [1]
 
    \note     Except for  model 'user' the input parameters Cin and xTin 
@@ -5314,9 +5314,9 @@ void CKD24_H20( MatrixView          xsec,
 void Pardo_ATM_H2O_ForeignContinuum( MatrixView          xsec,
 				     const Numeric       Cin,
 				     const String&       model,
-				     ConstVectorView     f_mono,
-				     ConstVectorView     p_abs,
-				     ConstVectorView     t_abs,
+				     ConstVectorView     f_grid,
+				     ConstVectorView     abs_p,
+				     ConstVectorView     abs_t,
 				     ConstVectorView     vmr)
 {
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
@@ -5345,11 +5345,11 @@ void Pardo_ATM_H2O_ForeignContinuum( MatrixView          xsec,
    out3  << "H2O-ForeignContATM01: (model=" << model << ") parameter values in use:\n" 
          << " C_f = " << C << "\n";
 
-   const Index n_p = p_abs.nelem();	// Number of pressure levels
-   const Index n_f = f_mono.nelem();	// Number of frequencies
+   const Index n_p = abs_p.nelem();	// Number of pressure levels
+   const Index n_f = f_grid.nelem();	// Number of frequencies
 
-   // Check that dimensions of p_abs, t_abs, and vmr agree:
-   assert ( n_p==t_abs.nelem() );
+   // Check that dimensions of abs_p, abs_t, and vmr agree:
+   assert ( n_p==abs_t.nelem() );
    assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -5364,19 +5364,19 @@ void Pardo_ATM_H2O_ForeignContinuum( MatrixView          xsec,
       // it is not specifically attributed to N2, so we need the total 
       // dry air part in total which is equal to the total minus the 
       // water vapor pressure:
-      Numeric  pd = p_abs[i] * ( 1.00000e0 - vmr[i] ); // [Pa]
-      // since the H2O VMR will be multiplied in absCalc, we omit it here
-      Numeric  pwdummy = p_abs[i]                    ; // [Pa]
+      Numeric  pd = abs_p[i] * ( 1.00000e0 - vmr[i] ); // [Pa]
+      // since the H2O VMR will be multiplied in abs_coefCalc, we omit it here
+      Numeric  pwdummy = abs_p[i]                    ; // [Pa]
       // Loop over frequency grid:
       for ( Index s=0; s<n_f; ++s )
 	{
 	  // Becaue this is an effective "dry air" continuum, it is not really
 	  // specific N2 but mainly caused by N2. Therefore the N2 vmr must be 
-	  // canceled out here which is later in absCalc multiplied 
+	  // canceled out here which is later in abs_coefCalc multiplied 
 	  // (calculation: abs = vmr * xsec):
 	  xsec(s,i) += C *                  // strength [1/(m*Hz²Pa²)] 
-	    pow( (f_mono[s]/(Numeric)2.25e11), (Numeric)2. ) * // quadratic f dependence [1]
-	    pow( ((Numeric)300.0/t_abs[i]), (Numeric)3. ) * // free T dependence      [1]
+	    pow( (f_grid[s]/(Numeric)2.25e11), (Numeric)2. ) * // quadratic f dependence [1]
+	    pow( ((Numeric)300.0/abs_t[i]), (Numeric)3. ) * // free T dependence      [1]
 	    (pd/1.01300e5)                * // p_dry dependence       [1]
 	    (pwdummy/1.01300e5);            // p_H2O dependence       [1]
 	}
@@ -5404,9 +5404,9 @@ void Pardo_ATM_H2O_ForeignContinuum( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (fcenter and b1 to b6)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid       [Hz]
-   \param    p_abs          predefined pressure grid       [Pa]
-   \param    t_abs          predefined temperature grid     [K] 
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid     [K] 
    \param    vmr            H2O volume mixing ratio        [1]
 
    \note     Except for  model 'user' the input parameters fcenter and b1 to b6
@@ -5433,9 +5433,9 @@ void MPM93_H2O_continuum( MatrixView          xsec,
 			  const Numeric       b5,
 			  const Numeric       b6,
 			  const String&       model,
-			  ConstVectorView     f_mono,
-			  ConstVectorView     p_abs,
-			  ConstVectorView     t_abs,
+			  ConstVectorView     f_grid,
+			  ConstVectorView     abs_p,
+			  ConstVectorView     abs_t,
 			  ConstVectorView     vmr	 )
 {
 
@@ -5493,11 +5493,11 @@ void MPM93_H2O_continuum( MatrixView          xsec,
          << " b5 = " << MPM93b5pcl << "\n"
          << " b6 = " << MPM93b6pcl << "\n";
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -5509,21 +5509,21 @@ void MPM93_H2O_continuum( MatrixView          xsec,
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
     {
-      Numeric th = 300.0 / t_abs[i];
+      Numeric th = 300.0 / abs_t[i];
       // the vmr of H2O will be multiplied at the stage of absorption calculation:
       // abs / vmr * xsec.
-      Numeric strength =  MPM93b1pcl * p_abs[i] * pow( th, (Numeric)3.5 )
+      Numeric strength =  MPM93b1pcl * abs_p[i] * pow( th, (Numeric)3.5 )
         * exp(MPM93b2pcl * (1 - th));
       Numeric gam      =  MPM93b3pcl * 0.001 * 
-	                  ( MPM93b4pcl * p_abs[i] * vmr[i]       * pow( th, MPM93b6pcl ) +  
-	                                 p_abs[i]*(1.000-vmr[i]) * pow( th, MPM93b5pcl ) );
+	                  ( MPM93b4pcl * abs_p[i] * vmr[i]       * pow( th, MPM93b6pcl ) +  
+	                                 abs_p[i]*(1.000-vmr[i]) * pow( th, MPM93b5pcl ) );
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
 	{
 	  // xsec = abs/vmr [1/m] but MPM89 is in [dB/km] --> conversion necessary
 	  xsec(s,i) += dB_km_to_1_m * 0.1820 *
-	               f_mono[s] * strength * 
-	               MPMLineShapeFunction(gam, MPM93fopcl, f_mono[s]); 
+	               f_grid[s] * strength * 
+	               MPMLineShapeFunction(gam, MPM93fopcl, f_grid[s]); 
 	}
     }
   return;
@@ -5543,10 +5543,10 @@ void MPM93_H2O_continuum( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (CCin, CLin, CWin, and COin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid           [Hz]
-   \param    p_abs          predefined pressure                 [Pa]
-   \param    t_abs          predefined temperature grid         [K] 
-   \param    h2o_abs        H2O volume mixing ratio profile    [1]
+   \param    f_grid         predefined frequency grid           [Hz]
+   \param    abs_p          predefined pressure                 [Pa]
+   \param    abs_t          predefined temperature grid         [K] 
+   \param    abs_h2o        H2O volume mixing ratio profile    [1]
    \param    vmr            O2 volume mixing ratio profile     [1]
 
    \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
@@ -5567,10 +5567,10 @@ void MPM85O2AbsModel( MatrixView          xsec,
 		      const Numeric	  CWin,       // line broadening scale factor
 		      const Numeric	  COin,       // line coupling scale factor
 		      const String&       model,
-		      ConstVectorView     f_mono,
-		      ConstVectorView     p_abs,
-		      ConstVectorView     t_abs,
-		      ConstVectorView     h2o_abs,
+		      ConstVectorView     f_grid,
+		      ConstVectorView     abs_p,
+		      ConstVectorView     abs_t,
+		      ConstVectorView     abs_h2o,
 		      ConstVectorView     vmr )
 {
   //
@@ -5710,17 +5710,17 @@ void MPM85O2AbsModel( MatrixView          xsec,
   const Numeric G0 =  5.600e-3;  // line width                           [GHz/kPa]
   const Numeric	X0 =  0.800;    // temperature dependence of line width [1]
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
   // have top devide the line strength by this value since arts multiplies xsec
-  // by these variables later in absCalc.
+  // by these variables later in abs_coefCalc.
   const Numeric	VMRISO = 0.2085;
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -5743,11 +5743,11 @@ void MPM85O2AbsModel( MatrixView          xsec,
 	}
 
       // relative inverse temperature [1]
-      Numeric theta     = (300.0 / t_abs[i]);
+      Numeric theta     = (300.0 / abs_t[i]);
       // H2O partial pressure [kPa]
-      Numeric pwv       = Pa_to_kPa * p_abs[i] * h2o_abs[i];
+      Numeric pwv       = Pa_to_kPa * abs_p[i] * abs_h2o[i];
       // dry air partial pressure [kPa]
-      Numeric pda       = (Pa_to_kPa * p_abs[i]) - pwv;
+      Numeric pda       = (Pa_to_kPa * abs_p[i]) - pwv;
       // here the total pressure is devided by the O2 vmr for the 
       // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
       Numeric pda_dummy = pda;
@@ -5760,7 +5760,7 @@ void MPM85O2AbsModel( MatrixView          xsec,
       for ( Index s=0; s<n_f; ++s )
 	{
 	  // input frequency in [GHz]
-	  Numeric ff = f_mono[s] * Hz_to_GHz; 
+	  Numeric ff = f_grid[s] * Hz_to_GHz; 
 	  // O2 continuum absorption [1/m]
 	  // cross section: xsec = absorption / var
 	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
@@ -5822,10 +5822,10 @@ void MPM85O2AbsModel( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (CCin, CLin, CWin, and COin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid           [Hz]
-   \param    p_abs          predefined pressure                 [Pa]
-   \param    t_abs          predefined temperature grid         [K] 
-   \param    h2o_abs        H2O volume mixing ratio profile    [1]
+   \param    f_grid         predefined frequency grid           [Hz]
+   \param    abs_p          predefined pressure                 [Pa]
+   \param    abs_t          predefined temperature grid         [K] 
+   \param    abs_h2o        H2O volume mixing ratio profile    [1]
    \param    vmr            O2 volume mixing ratio profile     [1]
 
    \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
@@ -5850,10 +5850,10 @@ void MPM87O2AbsModel( MatrixView          xsec,
 		      const Numeric	  CWin,       // line broadening scale factor
 		      const Numeric	  COin,       // line coupling scale factor
 		      const String&       model,
-		      ConstVectorView     f_mono,
-		      ConstVectorView     p_abs,
-		      ConstVectorView     t_abs,
-		      ConstVectorView     h2o_abs,
+		      ConstVectorView     f_grid,
+		      ConstVectorView     abs_p,
+		      ConstVectorView     abs_t,
+		      ConstVectorView     abs_h2o,
 		      ConstVectorView     vmr )
 {
   //
@@ -5996,17 +5996,17 @@ void MPM87O2AbsModel( MatrixView          xsec,
   const Numeric G0 =  4.800e-3;  // line width [GHz/kPa] !! 14% lower than in all the other versions !!
   const Numeric	X0 =  0.800;    // temperature dependence of line width [1]
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
   // have top devide the line strength by this value since arts multiplies xsec
-  // by these variables later in absCalc.
+  // by these variables later in abs_coefCalc.
   const Numeric	VMRISO = 0.2085;
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -6029,11 +6029,11 @@ void MPM87O2AbsModel( MatrixView          xsec,
 	}
 
       // relative inverse temperature [1]
-      Numeric theta     = (300.0 / t_abs[i]);
+      Numeric theta     = (300.0 / abs_t[i]);
       // H2O partial pressure [kPa]
-      Numeric pwv       = Pa_to_kPa * p_abs[i] * h2o_abs[i];
+      Numeric pwv       = Pa_to_kPa * abs_p[i] * abs_h2o[i];
       // dry air partial pressure [kPa]
-      Numeric pda       = (Pa_to_kPa * p_abs[i]) - pwv;
+      Numeric pda       = (Pa_to_kPa * abs_p[i]) - pwv;
       // here the total pressure is devided by the O2 vmr for the 
       // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
       Numeric pda_dummy = pda;
@@ -6046,7 +6046,7 @@ void MPM87O2AbsModel( MatrixView          xsec,
       for ( Index s=0; s<n_f; ++s )
 	{
 	  // input frequency in [GHz]
-	  Numeric ff = f_mono[s] * Hz_to_GHz; 
+	  Numeric ff = f_grid[s] * Hz_to_GHz; 
 	  // O2 continuum absorption [1/m]
 	  // cross section: xsec = absorption / var
 	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
@@ -6100,10 +6100,10 @@ void MPM87O2AbsModel( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (CCin, CLin, CWin, and COin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid           [Hz]
-   \param    p_abs          predefined pressure                 [Pa]
-   \param    t_abs          predefined temperature grid         [K] 
-   \param    h2o_abs        H2O volume mixing ratio profile    [1]
+   \param    f_grid         predefined frequency grid           [Hz]
+   \param    abs_p          predefined pressure                 [Pa]
+   \param    abs_t          predefined temperature grid         [K] 
+   \param    abs_h2o        H2O volume mixing ratio profile    [1]
    \param    vmr            O2 volume mixing ratio profile     [1]
 
    \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
@@ -6125,10 +6125,10 @@ void MPM89O2AbsModel( MatrixView          xsec,
 		      const Numeric	  CWin,       // line broadening scale factor
 		      const Numeric	  COin,       // line coupling scale factor
 		      const String&       model,
-		      ConstVectorView     f_mono,
-		      ConstVectorView     p_abs,
-		      ConstVectorView     t_abs,
-		      ConstVectorView     h2o_abs,
+		      ConstVectorView     f_grid,
+		      ConstVectorView     abs_p,
+		      ConstVectorView     abs_t,
+		      ConstVectorView     abs_h2o,
 		      ConstVectorView     vmr )
 {
   //
@@ -6264,17 +6264,17 @@ void MPM89O2AbsModel( MatrixView          xsec,
   const Numeric G0 =  5.60e-3;  // line width                           [GHz/kPa]
   const Numeric	X0 =  0.800;    // temperature dependence of line width [1]
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
   // have top devide the line strength by this value since arts multiplies xsec
-  // by these variables later in absCalc.
+  // by these variables later in abs_coefCalc.
   const Numeric	VMRISO = 0.2085;
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -6297,11 +6297,11 @@ void MPM89O2AbsModel( MatrixView          xsec,
 	}
 
       // relative inverse temperature [1]
-      Numeric theta     = (300.0 / t_abs[i]);
+      Numeric theta     = (300.0 / abs_t[i]);
       // H2O partial pressure [kPa]
-      Numeric pwv       = Pa_to_kPa * p_abs[i] * h2o_abs[i];
+      Numeric pwv       = Pa_to_kPa * abs_p[i] * abs_h2o[i];
       // dry air partial pressure [kPa]
-      Numeric pda       = (Pa_to_kPa * p_abs[i]) - pwv;
+      Numeric pda       = (Pa_to_kPa * abs_p[i]) - pwv;
       // here the total pressure is devided by the O2 vmr for the 
       // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
       Numeric pda_dummy = pda;
@@ -6314,7 +6314,7 @@ void MPM89O2AbsModel( MatrixView          xsec,
       for ( Index s=0; s<n_f; ++s )
 	{
 	  // input frequency in [GHz]
-	  Numeric ff = f_mono[s] * Hz_to_GHz; 
+	  Numeric ff = f_grid[s] * Hz_to_GHz; 
 	  // O2 continuum absorption [1/m]
 	  // cross section: xsec = absorption / var
 	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
@@ -6369,10 +6369,10 @@ void MPM89O2AbsModel( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (CCin, CLin, CWin, and COin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid           [Hz]
-   \param    p_abs          predefined pressure                 [Pa]
-   \param    t_abs          predefined temperature grid         [K] 
-   \param    h2o_abs        H2O volume mixing ratio profile    [1]
+   \param    f_grid         predefined frequency grid           [Hz]
+   \param    abs_p          predefined pressure                 [Pa]
+   \param    abs_t          predefined temperature grid         [K] 
+   \param    abs_h2o        H2O volume mixing ratio profile    [1]
    \param    vmr            O2 volume mixing ratio profile     [1]
 
    \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
@@ -6395,10 +6395,10 @@ void MPM92O2AbsModel( MatrixView          xsec,
 		      const Numeric	  CWin,       // line broadening scale factor
 		      const Numeric	  COin,       // line coupling scale factor
 		      const String&       model,
-		      ConstVectorView     f_mono,
-		      ConstVectorView     p_abs,
-		      ConstVectorView     t_abs,
-		      ConstVectorView     h2o_abs,
+		      ConstVectorView     f_grid,
+		      ConstVectorView     abs_p,
+		      ConstVectorView     abs_t,
+		      ConstVectorView     abs_h2o,
 		      ConstVectorView     vmr )
 {
   //
@@ -6531,7 +6531,7 @@ void MPM92O2AbsModel( MatrixView          xsec,
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
   // have top devide the line strength by this value since arts multiplies xsec
-  // by these variables later in absCalc.
+  // by these variables later in abs_coefCalc.
   const Numeric	VMRISO = 0.2085;
 
   // O2 continuum parameters of MPM92:
@@ -6539,11 +6539,11 @@ void MPM92O2AbsModel( MatrixView          xsec,
   const Numeric G0 =  0.560e-3; // line width                           [GHz/hPa]
   const Numeric	X0 =  0.800;    // temperature dependence of line width [1]
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -6566,11 +6566,11 @@ void MPM92O2AbsModel( MatrixView          xsec,
 	}
 
       // relative inverse temperature [1]
-      Numeric theta     = (300.0 / t_abs[i]);
+      Numeric theta     = (300.0 / abs_t[i]);
       // H2O partial pressure [hPa]
-      Numeric pwv       = Pa_to_hPa * p_abs[i] * h2o_abs[i];
+      Numeric pwv       = Pa_to_hPa * abs_p[i] * abs_h2o[i];
       // dry air partial pressure [hPa]
-      Numeric pda       = (Pa_to_hPa * p_abs[i]) - pwv;
+      Numeric pda       = (Pa_to_hPa * abs_p[i]) - pwv;
       // here the total pressure is devided by the O2 vmr for the 
       // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
       Numeric pda_dummy = pda;
@@ -6583,7 +6583,7 @@ void MPM92O2AbsModel( MatrixView          xsec,
       for ( Index s=0; s<n_f; ++s )
 	{
 	  // input frequency in [GHz]
-	  Numeric ff = f_mono[s] * Hz_to_GHz; 
+	  Numeric ff = f_grid[s] * Hz_to_GHz; 
 	  // O2 continuum absorption [1/m]
 	  // cross section: xsec = absorption / var
 	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
@@ -6637,10 +6637,10 @@ void MPM92O2AbsModel( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (CCin, CLin, CWin, and COin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid           [Hz]
-   \param    p_abs          predefined pressure                 [Pa]
-   \param    t_abs          predefined temperature grid         [K] 
-   \param    h2o_abs        H2O volume mixing ratio profile    [1]
+   \param    f_grid         predefined frequency grid           [Hz]
+   \param    abs_p          predefined pressure                 [Pa]
+   \param    abs_t          predefined temperature grid         [K] 
+   \param    abs_h2o        H2O volume mixing ratio profile    [1]
    \param    vmr            O2 volume mixing ratio profile     [1]
 
    \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
@@ -6664,10 +6664,10 @@ void MPM93O2AbsModel( MatrixView          xsec,
 		      const Numeric	  CWin,       // line broadening scale factor
 		      const Numeric	  COin,       // line coupling scale factor
 		      const String&       model,
-		      ConstVectorView     f_mono,
-		      ConstVectorView     p_abs,
-		      ConstVectorView     t_abs,
-		      ConstVectorView     h2o_abs,    // VMR 0f H2O
+		      ConstVectorView     f_grid,
+		      ConstVectorView     abs_p,
+		      ConstVectorView     abs_t,
+		      ConstVectorView     abs_h2o,    // VMR 0f H2O
 		      ConstVectorView     vmr )       // VMR of O2
 {
   //
@@ -6802,7 +6802,7 @@ void MPM93O2AbsModel( MatrixView          xsec,
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
   // have top devide the line strength by this value since arts multiplies xsec
-  // by these variables later in absCalc.
+  // by these variables later in abs_coefCalc.
   const Numeric	VMRISO = 0.2085;
 
   // O2 continuum parameters of MPM93:
@@ -6810,11 +6810,11 @@ void MPM93O2AbsModel( MatrixView          xsec,
   const Numeric G0 =  0.560e-3; // line width                           [GHz/hPa]
   const Numeric	X0 =  0.800;    // temperature dependence of line width [1]
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -6837,11 +6837,11 @@ void MPM93O2AbsModel( MatrixView          xsec,
 	}
 
       // relative inverse temperature [1]
-      Numeric theta     = (300.0 / t_abs[i]);
+      Numeric theta     = (300.0 / abs_t[i]);
       // H2O partial pressure [hPa]
-      Numeric pwv       = Pa_to_hPa * p_abs[i] * h2o_abs[i];
+      Numeric pwv       = Pa_to_hPa * abs_p[i] * abs_h2o[i];
       // dry air partial pressure [hPa]
-      Numeric pda       = (Pa_to_hPa * p_abs[i]) - pwv;
+      Numeric pda       = (Pa_to_hPa * abs_p[i]) - pwv;
       // here the total pressure is devided by the O2 vmr for the 
       // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
       // old version without VMRISO: Numeric pda_dummy = pda / vmr[i];
@@ -6855,7 +6855,7 @@ void MPM93O2AbsModel( MatrixView          xsec,
       for ( Index s=0; s<n_f; ++s )
 	{
 	  // input frequency in [GHz]
-	  Numeric ff = f_mono[s] * Hz_to_GHz; 
+	  Numeric ff = f_grid[s] * Hz_to_GHz; 
 	  // O2 continuum absorption [1/m]
 	  // cross section: xsec = absorption / var
 	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
@@ -6932,9 +6932,9 @@ void MPM93O2AbsModel( MatrixView          xsec,
                             (CCin, CLin, CWin, and COin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
    \param    version        determines model version: 1988, 1993, 1998    			    
-   \param    f_mono         predefined frequency grid        [Hz]
-   \param    p_abs          predefined pressure              [Pa]
-   \param    t_abs          predefined temperature grid      [K] 
+   \param    f_grid         predefined frequency grid        [Hz]
+   \param    abs_p          predefined pressure              [Pa]
+   \param    abs_t          predefined temperature grid      [K] 
    \param    vmrh2o         H2O volume mixing ratio profile  [1]
    \param    vmr            O2 volume mixing ratio profile   [1]
 
@@ -6962,9 +6962,9 @@ void PWR93O2AbsModel( MatrixView        xsec,
 		      const Numeric     COin,      // model parameter
 		      const String&     model,     // model selection string
 		      const String&     version,   // PWR98, PWR93 or PWR88
-		      ConstVectorView   f_mono,
-		      ConstVectorView   p_abs,
-		      ConstVectorView   t_abs,
+		      ConstVectorView   f_grid,
+		      ConstVectorView   abs_p,
+		      ConstVectorView   abs_t,
 		      ConstVectorView   vmrh2o,
                       ConstVectorView   vmr )
 {
@@ -7197,11 +7197,11 @@ void PWR93O2AbsModel( MatrixView        xsec,
       };
   }
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -7223,18 +7223,18 @@ void PWR93O2AbsModel( MatrixView        xsec,
 	  return;
 	}
       // relative inverse temperature [1]
-      Numeric TH     = 3.0000e2 / t_abs[i];
+      Numeric TH     = 3.0000e2 / abs_t[i];
       Numeric TH1    = (TH-1.000e0);
       Numeric B      = pow(TH, X);
       // partial pressure of H2O and dry air [hPa]
-      Numeric PRESWV = Pa_to_hPa * (p_abs[i] * vmrh2o[i]);
-      Numeric PRESDA = Pa_to_hPa * (p_abs[i] * (1.000e0 - vmrh2o[i]));
+      Numeric PRESWV = Pa_to_hPa * (abs_p[i] * vmrh2o[i]);
+      Numeric PRESDA = Pa_to_hPa * (abs_p[i] * (1.000e0 - vmrh2o[i]));
       Numeric DEN    = 0.001*(PRESDA*B + 1.1*PRESWV*TH); // [hPa]
       Numeric DENS   = 0.001*(PRESDA   + 1.1*PRESWV)*TH; // [hPa]
       Numeric DFNR   = WB300*DEN; // [GHz]
       
       // continuum absorption [1/m/GHz]
-      Numeric CCONT  = CC * 1.23e-10 * pow( TH, (Numeric)2. ) * p_abs[i];
+      Numeric CCONT  = CC * 1.23e-10 * pow( TH, (Numeric)2. ) * abs_p[i];
 
       // Loop over input frequency
       for ( Index s=0; s<n_f; ++s )
@@ -7243,7 +7243,7 @@ void PWR93O2AbsModel( MatrixView        xsec,
 	  // Numeric O2ABS  = 0.000e0;cd safff
 
 	  // input frequency in [GHz]
-	  Numeric ff   = Hz_to_GHz * f_mono[s]; 
+	  Numeric ff   = Hz_to_GHz * f_grid[s]; 
 
 	  // continuum absorption [Neper/km]
 	  Numeric CONT = CCONT * (ff * ff * DFNR / (ff*ff + DFNR*DFNR));
@@ -7258,7 +7258,7 @@ void PWR93O2AbsModel( MatrixView        xsec,
 		{
 		  DF = CW * W300[l] * DENS; // [hPa]
 		}
-	      Numeric Y    = CO * 0.001 * 0.01 * p_abs[i] * B * ( Y300[l] + V[l]*TH1 );
+	      Numeric Y    = CO * 0.001 * 0.01 * abs_p[i] * B * ( Y300[l] + V[l]*TH1 );
 	      Numeric STR  = CL * S300[l] * exp(-BE[l] * TH1);
 	      Numeric SF1  = ( DF + (ff-F[l])*Y ) / ( (ff-F[l])*(ff-F[l]) + DF*DF );
 	      Numeric SF2  = ( DF - (ff+F[l])*Y ) / ( (ff+F[l])*(ff+F[l]) + DF*DF );
@@ -7272,11 +7272,11 @@ void PWR93O2AbsModel( MatrixView        xsec,
 	  //             |---- 0.2085 ----|   |---- 2.414322e12(hPa*cm^2*km)^-1 ---|
 	  //             |---- 0.2085 ----|   |---- 2.414322e10( Pa*cm^2*km)^-1 ---|
 	  // O2ABS = 2.4143e12 * SUM * PRESDA * pow(TH, 3.0) / PI;
-	  // O2ABS = CONT + (2.414322e10 * SUM * p_abs[i] * pow(TH, 3.0) / PI);
+	  // O2ABS = CONT + (2.414322e10 * SUM * abs_p[i] * pow(TH, 3.0) / PI);
 	  // unit conversion x Nepers/km = y 1/m  --->  y = x * 1.000e-3 
 	  // therefore 2.414322e10 --> 2.414322e7
 	  // xsec [1/m] 
-	  xsec(s,i) += CONT + (2.414322e7 * SUM * p_abs[i] * pow(TH, (Numeric)3.) / PI);
+	  xsec(s,i) += CONT + (2.414322e7 * SUM * abs_p[i] * pow(TH, (Numeric)3.) / PI);
 	}
     }
   return;
@@ -7300,10 +7300,10 @@ void PWR93O2AbsModel( MatrixView        xsec,
    \param    model          allows user defined input parameter set 
                             (S0in, G0in, xS0in, and xG0in)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid       [Hz]
-   \param    p_abs          predefined pressure grid        [Pa]
-   \param    t_abs          predefined temperature grid     [K] 
-   \param    h2o_abs        H2O volume mixing ratio profile [1]
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid        [Pa]
+   \param    abs_t          predefined temperature grid     [K] 
+   \param    abs_h2o        H2O volume mixing ratio profile [1]
    \param    vmr            O2 volume mixing ratio profile  [1]
 
    \note     Except for  model 'user' the input parameters S0in, G0in, xS0in, and xG0in
@@ -7327,10 +7327,10 @@ void MPM93_O2_continuum( MatrixView          xsec,
 			 const Numeric       XS0in,        // model parameter
 			 const Numeric       XG0in,        // model parameter
 			 const String&       model,
-			 ConstVectorView     f_mono,
-			 ConstVectorView     p_abs,
-			 ConstVectorView     t_abs,
-			 ConstVectorView     h2o_abs,
+			 ConstVectorView     f_grid,
+			 ConstVectorView     abs_p,
+			 ConstVectorView     abs_t,
+			 ConstVectorView     abs_h2o,
 			 ConstVectorView     vmr	 )
 {
 
@@ -7378,11 +7378,11 @@ void MPM93_O2_continuum( MatrixView          xsec,
 	<< " XG0 = " << XG0 << "\n";
   
   
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -7393,7 +7393,7 @@ void MPM93_O2_continuum( MatrixView          xsec,
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
   // have top devide the line strength by this value since arts multiplies xsec
-  // by these variables later in absCalc.
+  // by these variables later in abs_coefCalc.
   const Numeric	VMRISO = 0.2085;
   
 
@@ -7409,11 +7409,11 @@ void MPM93_O2_continuum( MatrixView          xsec,
 	  throw runtime_error(os.str());
 	  return;
 	}
-      Numeric th       = 300.0 / t_abs[i]; // Theta
+      Numeric th       = 300.0 / abs_t[i]; // Theta
       // continuum strength
-      Numeric strength =  S0 * p_abs[i] * (1.0000 - h2o_abs[i]) * pow( th, XS0 );
+      Numeric strength =  S0 * abs_p[i] * (1.0000 - abs_h2o[i]) * pow( th, XS0 );
       // G0 from the input has to be converted to unit GHz/hPa --> * 1.0e-7
-      Numeric gamma    =  G0 * p_abs[i] * pow( th, XG0 ); // Hz
+      Numeric gamma    =  G0 * abs_p[i] * pow( th, XG0 ); // Hz
 	  
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
@@ -7422,8 +7422,8 @@ void MPM93_O2_continuum( MatrixView          xsec,
 	  // abs / vmr * xsec.
 	  xsec(s,i) +=  (4.0 * PI / SPEED_OF_LIGHT)  *              // unit factor [1/(m*Hz)] 
 	                (strength / VMRISO)          *              // strength    [1]
-	                ( pow( f_mono[s], (Numeric)2.) * gamma /              // line shape  [Hz]
-	                  ( pow( f_mono[s], (Numeric)2.) + pow( gamma, (Numeric)2.) ) );
+	                ( pow( f_grid[s], (Numeric)2.) * gamma /              // line shape  [Hz]
+	                  ( pow( f_grid[s], (Numeric)2.) + pow( gamma, (Numeric)2.) ) );
 	}
     }
   return;
@@ -7447,10 +7447,10 @@ void MPM93_O2_continuum( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (S0in, G0in, XS0in, and XG0in)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid        [Hz]
-   \param    p_abs          predefined pressure grid         [Pa]
-   \param    t_abs          predefined temperature grid      [K] 
-   \param    h2o_abs        H2O volume mixing ratio profile  [1]
+   \param    f_grid         predefined frequency grid        [Hz]
+   \param    abs_p          predefined pressure grid         [Pa]
+   \param    abs_t          predefined temperature grid      [K] 
+   \param    abs_h2o        H2O volume mixing ratio profile  [1]
    \param    vmr            O2 volume mixing ratio profile   [1]
 
    \note     Except for  model 'user' the input parameters S0in, G0in, XS0in, and XG0in
@@ -7472,10 +7472,10 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,
 			      const Numeric     XS0in,        // model parameter
 			      const Numeric     XG0in,        // model parameter
 			      const String&     model,
-			      ConstVectorView  	f_mono,
-			      ConstVectorView  	p_abs,        // total pressure [Pa]
-			      ConstVectorView  	t_abs,
-			      ConstVectorView   h2o_abs,      // H2O VMR
+			      ConstVectorView  	f_grid,
+			      ConstVectorView  	abs_p,        // total pressure [Pa]
+			      ConstVectorView  	abs_t,
+			      ConstVectorView   abs_h2o,      // H2O VMR
 			      ConstVectorView   vmr	 )    // O2 VMR
 {
 
@@ -7519,11 +7519,11 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,
 	<< " XG0 = " << XG0 << "\n";
   
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -7534,10 +7534,10 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,
   // loop over all pressure levels:
   for ( Index i=0; i<n_p; ++i )
     {
-      Numeric TH = 300.00 / t_abs[i];         // relative temperature  [1]
+      Numeric TH = 300.00 / abs_t[i];         // relative temperature  [1]
       
-      Numeric ph2o  = p_abs[i] * h2o_abs[i];  // water vapor partial pressure [Pa]
-      Numeric pdry  = p_abs[i] - ph2o;        // dry air partial pressure     [Pa]
+      Numeric ph2o  = abs_p[i] * abs_h2o[i];  // water vapor partial pressure [Pa]
+      Numeric pdry  = abs_p[i] - ph2o;        // dry air partial pressure     [Pa]
 
 
       // pseudo broadening term [Hz]
@@ -7548,9 +7548,9 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,
 	{
 	  // division by vmr of O2 is necessary because of the absorption calculation
           // abs = vmr * xsec.
-	  xsec(s,i) += S0 * p_abs[i] / pow( t_abs[i], XS0 ) * 
-                        ( pow( f_mono[s], (Numeric)2. )
-                          * gamma / ( pow( f_mono[s], 2 )
+	  xsec(s,i) += S0 * abs_p[i] / pow( abs_t[i], XS0 ) * 
+                        ( pow( f_grid[s], (Numeric)2. )
+                          * gamma / ( pow( f_grid[s], 2 )
                                       + pow( gamma, (Numeric)2. ) ) ) ;
 	}
     }
@@ -7571,10 +7571,10 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,
    \param    model          allows user defined input parameter set 
                             (S0in, G0in, XS0in, and XG0in)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid                 [Hz]
-   \param    p_abs          predefined pressure grid                  [Pa]
-   \param    t_abs          predefined temperature grid               [K] 
-   \param    h2o_abs        H2O volume mixing ratio profile           [1]
+   \param    f_grid         predefined frequency grid                 [Hz]
+   \param    abs_p          predefined pressure grid                  [Pa]
+   \param    abs_t          predefined temperature grid               [K] 
+   \param    abs_h2o        H2O volume mixing ratio profile           [1]
    \param    vmr            O2 volume mixing ratio profile            [1]
 
    \note     Except for  model 'user' the input parameters S0in, G0in, XS0in, and XG0in
@@ -7604,10 +7604,10 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
 			    const Numeric     XG0din,       // model parameter
 			    const Numeric     XG0win,       // model parameter
 			    const String&     model,        // model parameter
-			    ConstVectorView   f_mono,       // frequency grid
-			    ConstVectorView   p_abs,        // P_tot grid
-			    ConstVectorView   t_abs,        // T grid
-			    ConstVectorView   h2o_abs,      // VMR H2O profile
+			    ConstVectorView   f_grid,       // frequency grid
+			    ConstVectorView   abs_p,        // P_tot grid
+			    ConstVectorView   abs_t,        // T grid
+			    ConstVectorView   abs_h2o,      // VMR H2O profile
 			    ConstVectorView   vmr	)   // VMR O2  profile
 {
 
@@ -7682,11 +7682,11 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
 	<< " XG0w = " << XG0w << "\n";
   
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -7697,16 +7697,16 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
   // have top devide the line strength by this value since arts multiplies xsec
-  // by these variables later in absCalc.
+  // by these variables later in abs_coefCalc.
   // FIXME const Numeric	VMRISO = 0.2085;
 
   // loop over all pressure levels:
   for ( Index i=0; i<n_p; ++i )
     {
-      Numeric TH = 3.0e2 / t_abs[i];         // relative temperature  [1]
+      Numeric TH = 3.0e2 / abs_t[i];         // relative temperature  [1]
       
-      Numeric ph2o = p_abs[i] * h2o_abs[i];  // water vapor partial pressure [Pa]
-      Numeric pdry = p_abs[i] - ph2o;        // dry air partial pressure     [Pa]
+      Numeric ph2o = abs_p[i] * abs_h2o[i];  // water vapor partial pressure [Pa]
+      Numeric pdry = abs_p[i] - ph2o;        // dry air partial pressure     [Pa]
 
 
       // pseudo broadening term [Hz]
@@ -7717,9 +7717,9 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
 	{
 	  // division by vmr of O2 is necessary because of the absorption calculation
           // abs = vmr * xsec.
-	  xsec(s,i) += C * p_abs[i] * pow( TH, (Numeric)2. ) * 
-                       ( gamma * pow( f_mono[s], (Numeric)2. ) / 
-                         ( pow( f_mono[s], 2 ) + pow( gamma, (Numeric)2. ) ) );
+	  xsec(s,i) += C * abs_p[i] * pow( TH, (Numeric)2. ) * 
+                       ( gamma * pow( f_grid[s], (Numeric)2. ) / 
+                         ( pow( f_grid[s], 2 ) + pow( gamma, (Numeric)2. ) ) );
 	}
     }
 }
@@ -7741,9 +7741,9 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
    \param    model          allows user defined input parameter set 
                             (Cin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
    \param    vmr            N2 volume mixing ratio profile       [1]
 
    \note     this "crude" version of the N2-N2 model is a f2c 
@@ -7763,9 +7763,9 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
 void BF86_CIA_N2( MatrixView          xsec,
 		  const Numeric       Cin,
 		  const String&       model,
-		  ConstVectorView     f_mono,
-		  ConstVectorView     p_abs,
-		  ConstVectorView     t_abs,
+		  ConstVectorView     f_grid,
+		  ConstVectorView     abs_p,
+		  ConstVectorView     abs_t,
 		  ConstVectorView     vmr   )
 {
   //
@@ -7800,15 +7800,15 @@ void BF86_CIA_N2( MatrixView          xsec,
   out3  << "N2-SelfContBorysow: (model=" << model << ") parameter values in use:\n" 
 	<< " XFAC = " << XFAC << "\n";
   
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
 
   const Numeric AMAG2DEN = 44.53807; // inverse of N2 mol volume at std p/T
   const Numeric RIDGAS =  8.314510;  // ideal gas constant
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -7820,11 +7820,11 @@ void BF86_CIA_N2( MatrixView          xsec,
   for ( Index i=0; i<n_p; ++i )
     {
       //cout << "------------------------------------------------\n";
-      double T = (double) t_abs[i];
+      double T = (double) abs_t[i];
       //cout << "N2-N2 BF86: T     =" << T << " K\n";
-      //cout << "N2-N2 BF86: p     =" << p_abs[i] << " Pa\n";
+      //cout << "N2-N2 BF86: p     =" << abs_p[i] << " Pa\n";
       //cout << "N2-N2 BF86: VMR   =" << vmr[i] << "\n";
-      Numeric XAMA  = (p_abs[i]) / ( AMAG2DEN * RIDGAS * t_abs[i] );
+      Numeric XAMA  = (abs_p[i]) / ( AMAG2DEN * RIDGAS * abs_t[i] );
       Numeric XAMA2 = pow(XAMA,(Numeric)2.);
       //cout << "N2-N2 BF86: XAMA  =" << XAMA << "\n";
 
@@ -7833,7 +7833,7 @@ void BF86_CIA_N2( MatrixView          xsec,
 	{
 	  // the second vmr of N2 will be multiplied at the stage of
 	  // absorption calculation: abs =  vmr * xsec.
-	  double f = (double) f_mono[s];
+	  double f = (double) f_grid[s];
 	  //cout << "N2-N2 BF86: f     =" << f << " Hz\n";
 	  double cont = n2n2tks_(T, f);
 	  xsec(s,i) += (Numeric) (cont * 1.000e2 * vmr[i] * XAMA2);
@@ -7862,10 +7862,10 @@ void BF86_CIA_N2( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (Cin, Gin, xTin, and xfin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid            [Hz]
-   \param    p_abs          predefined pressure grid             [Pa]
-   \param    t_abs          predefined temperature grid          [K] 
-   \param    h2o_abs        H2O volume mixing ratio profile      [1]
+   \param    f_grid         predefined frequency grid            [Hz]
+   \param    abs_p          predefined pressure grid             [Pa]
+   \param    abs_t          predefined temperature grid          [K] 
+   \param    abs_h2o        H2O volume mixing ratio profile      [1]
    \param    vmr            N2 volume mixing ratio profile       [1]
 
    \note     Except for  model 'user' the input parameters Cin, Gin, xTin, and xfin 
@@ -7889,10 +7889,10 @@ void MPM93_N2_continuum( MatrixView          xsec,
 			 const Numeric       xTin,
 			 const Numeric       xfin,
 			 const String&       model,
-			 ConstVectorView     f_mono,
-			 ConstVectorView     p_abs,
-			 ConstVectorView     t_abs,
-			 ConstVectorView     h2o_abs,
+			 ConstVectorView     f_grid,
+			 ConstVectorView     abs_p,
+			 ConstVectorView     abs_t,
+			 ConstVectorView     abs_h2o,
 			 ConstVectorView     vmr	 )
 {
 
@@ -7951,11 +7951,11 @@ void MPM93_N2_continuum( MatrixView          xsec,
   //const Numeric S0unitconv = 1.000e+13;  // x [1/(hPa²*GHz)] => y [1/(pa²*Hz)]
   //const Numeric G0unitconv = pow(10.000, gxf);
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -7967,21 +7967,21 @@ void MPM93_N2_continuum( MatrixView          xsec,
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
     {
-      Numeric th = 300.0 / t_abs[i];
+      Numeric th = 300.0 / abs_t[i];
       Numeric strength =  S0 * 
-                          pow( (p_abs[i] * ((Numeric)1.0000 - h2o_abs[i])),
+                          pow( (abs_p[i] * ((Numeric)1.0000 - abs_h2o[i])),
                                (Numeric)2. )
                           * pow( th, xT );
 
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
 	{
-	  // FIXME Numeric f = f_mono[s] * Hz_to_GHz; // frequency in GHz
+	  // FIXME Numeric f = f_grid[s] * Hz_to_GHz; // frequency in GHz
 	  // the vmr of N2 will be multiplied at the stage of absorption calculation:
 	  // abs / vmr * xsec.
 	  xsec(s,i) += fac * strength *                              // strength
-                       pow(f_mono[s], (Numeric)2.) /                      // frequency dependence
-	               ( 1.000 + G0 * pow( f_mono[s], xf) ) *  
+                       pow(f_grid[s], (Numeric)2.) /                      // frequency dependence
+	               ( 1.000 + G0 * pow( f_grid[s], xf) ) *  
 	                vmr[i];                                // N2 vmr
 	}
     }
@@ -7997,9 +7997,9 @@ void MPM93_N2_continuum( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (Cin and xTin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid      [Hz]
-   \param    p_abs          predefined pressure grid       [Pa]
-   \param    t_abs          predefined temperature grid    [K] 
+   \param    f_grid         predefined frequency grid      [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid    [K] 
    \param    vmr            N2  volume mixing ratio        [1]
    \param    h2ovmr         H2O volume mixing ratio        [1]
 
@@ -8018,9 +8018,9 @@ void MPM93_N2_continuum( MatrixView          xsec,
 void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
 				 const Numeric       Cin,
 				 const String&       model,
-				 ConstVectorView     f_mono,
-				 ConstVectorView     p_abs,
-				 ConstVectorView     t_abs,
+				 ConstVectorView     f_grid,
+				 ConstVectorView     abs_p,
+				 ConstVectorView     abs_t,
 				 ConstVectorView     vmr,
 				 ConstVectorView     h2ovmr	 )
 {
@@ -8050,11 +8050,11 @@ void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
    out3  << "N2-DryContATM01: (model=" << model << ") parameter values in use:\n" 
          << " C_s = " << C << "\n";
 
-   const Index n_p = p_abs.nelem();	// Number of pressure levels
-   const Index n_f = f_mono.nelem();	// Number of frequencies
+   const Index n_p = abs_p.nelem();	// Number of pressure levels
+   const Index n_f = f_grid.nelem();	// Number of frequencies
 
-   // Check that dimensions of p_abs, t_abs, and vmr agree:
-   assert ( n_p==t_abs.nelem() );
+   // Check that dimensions of abs_p, abs_t, and vmr agree:
+   assert ( n_p==abs_t.nelem() );
    assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -8069,7 +8069,7 @@ void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
       // it is not specifically attributed to N2, so we need the total 
       // dry air part in total which is equal to the total minus the 
       // water vapor pressure:
-      Numeric  pd = p_abs[i] * ( 1.00000e0 - h2ovmr[i] ); // [Pa]
+      Numeric  pd = abs_p[i] * ( 1.00000e0 - h2ovmr[i] ); // [Pa]
       // Loop over frequency grid:
       if (vmr[i] > VMRCalcLimit )
 	{
@@ -8077,11 +8077,11 @@ void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
 	    {
 	      // Becaue this is an effective "dry air" continuum, it is not really
 	      // specific N2 but mainly caused by N2. Therefore the N2 vmr must be 
-	      // canceled out here which is later in absCalc multiplied 
+	      // canceled out here which is later in abs_coefCalc multiplied 
 	      // (calculation: abs = vmr * xsec):
 	      xsec(s,i) += C *                    // strength [1/(m*Hz²Pa²)] 
-		pow( (f_mono[s]/(Numeric)2.25e11), (Numeric)2. ) * // quadratic f dependence [Hz²]
-		pow( ((Numeric)300.0/t_abs[i]), (Numeric)3.5 )   * // free T dependence      [1]
+		pow( (f_grid[s]/(Numeric)2.25e11), (Numeric)2. ) * // quadratic f dependence [Hz²]
+		pow( ((Numeric)300.0/abs_t[i]), (Numeric)3.5 )   * // free T dependence      [1]
 		pow( (pd/(Numeric)1.01300e5), (Numeric)2. )      / // quadratic p dependence [Pa²]
 		vmr[i];                                            // cancel the vmr dependency
 	    }
@@ -8099,9 +8099,9 @@ void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (Cin and xTin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid      [Hz]
-   \param    p_abs          predefined pressure grid       [Pa]
-   \param    t_abs          predefined temperature grid    [K] 
+   \param    f_grid         predefined frequency grid      [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid    [K] 
    \param    vmr            H2O volume mixing ratio        [1]
 
    \note     Except for  model 'user' the input parameters Cin and xTin 
@@ -8121,9 +8121,9 @@ void Rosenkranz_N2_self_continuum( MatrixView          xsec,
 				   const Numeric       Cin,
 				   const Numeric       xin,
 				   const String&       model,
-				   ConstVectorView     f_mono,
-				   ConstVectorView     p_abs,
-				   ConstVectorView     t_abs,
+				   ConstVectorView     f_grid,
+				   ConstVectorView     abs_p,
+				   ConstVectorView     abs_t,
 				   ConstVectorView     vmr	 )
 {
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
@@ -8156,11 +8156,11 @@ void Rosenkranz_N2_self_continuum( MatrixView          xsec,
          << " C_s = " << C << "\n"
          << " x_s = " << x << "\n";
 
-   const Index n_p = p_abs.nelem();	// Number of pressure levels
-   const Index n_f = f_mono.nelem();	// Number of frequencies
+   const Index n_p = abs_p.nelem();	// Number of pressure levels
+   const Index n_f = f_grid.nelem();	// Number of frequencies
 
-   // Check that dimensions of p_abs, t_abs, and vmr agree:
-   assert ( n_p==t_abs.nelem() );
+   // Check that dimensions of abs_p, abs_t, and vmr agree:
+   assert ( n_p==abs_t.nelem() );
    assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -8177,9 +8177,9 @@ void Rosenkranz_N2_self_continuum( MatrixView          xsec,
 	  // The second vmr of N2 will be multiplied at the stage of absorption 
 	  // calculation: abs = vmr * xsec.
 	  xsec(s,i) += C *                        // strength [1/(m*Hz²Pa²)] 
-	               pow( f_mono[s], (Numeric)2. ) *      // quadratic f dependence [Hz²]
-	               pow( (Numeric)300.0/t_abs[i], x ) * // free T dependence      [1]
-                       pow( p_abs[i], (Numeric)2. ) *       // quadratic p dependence [Pa²]
+	               pow( f_grid[s], (Numeric)2. ) *      // quadratic f dependence [Hz²]
+	               pow( (Numeric)300.0/abs_t[i], x ) * // free T dependence      [1]
+                       pow( abs_p[i], (Numeric)2. ) *       // quadratic p dependence [Pa²]
                        vmr[i];                    // second N2-VMR at the stage 
 	                                          // of absorption calculation
 	}
@@ -8202,9 +8202,9 @@ void Rosenkranz_N2_self_continuum( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (Cin, xfin, xtin, and xpin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid      [Hz]
-   \param    p_abs          predefined pressure grid       [Pa]
-   \param    t_abs          predefined temperature grid    [K] 
+   \param    f_grid         predefined frequency grid      [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid    [K] 
    \param    vmr            H2O volume mixing ratio        [1]
 
    \note     Except for  model 'user' the input parameters Cin, xfin, xtin, and xpin
@@ -8226,9 +8226,9 @@ void Standard_N2_self_continuum( MatrixView          xsec,
 				 const Numeric       xtin,
 				 const Numeric       xpin,
 				 const String&       model,
-				 ConstVectorView     f_mono,
-				 ConstVectorView     p_abs,
-				 ConstVectorView     t_abs,
+				 ConstVectorView     f_grid,
+				 ConstVectorView     abs_p,
+				 ConstVectorView     abs_t,
 				 ConstVectorView     vmr	 )
 {
 
@@ -8271,11 +8271,11 @@ void Standard_N2_self_continuum( MatrixView          xsec,
          << " xp = " << xp << "\n";
 
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -8293,9 +8293,9 @@ void Standard_N2_self_continuum( MatrixView          xsec,
 	  // The second N2-VMR will be multiplied at the stage of absorption 
 	  // calculation: abs = vmr * xsec.
 	  xsec(s,i) += C                            * // strength [1/(m*Hz²Pa²)]  
-                       pow( ((Numeric)300.00/t_abs[i]), xt ) * // T dependence        [1] 
-                       pow( f_mono[s], xf )         * // f dependence    [Hz^xt]  
-                       pow( p_abs[i], xp )          * // p dependence    [Pa^xp]
+                       pow( ((Numeric)300.00/abs_t[i]), xt ) * // T dependence        [1] 
+                       pow( f_grid[s], xf )         * // f dependence    [Hz^xt]  
+                       pow( abs_p[i], xp )          * // p dependence    [Pa^xp]
                        pow( vmr[i], (xp-(Numeric)1.) );         // last N2-VMR at the stage 
 	                                              // of absorption calculation
 	}
@@ -8314,9 +8314,9 @@ void Standard_N2_self_continuum( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (Cin and xin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid      [Hz]
-   \param    p_abs          predefined pressure grid       [Pa]
-   \param    t_abs          predefined temperature grid    [K] 
+   \param    f_grid         predefined frequency grid      [Hz]
+   \param    abs_p          predefined pressure grid       [Pa]
+   \param    abs_t          predefined temperature grid    [K] 
    \param    vmr            CO2 volume mixing ratio        [1]
 
    \note     Except for  model 'user' the input parameters Cin and xin 
@@ -8336,9 +8336,9 @@ void Rosenkranz_CO2_self_continuum( MatrixView          xsec,
 				    const Numeric       Cin,
 				    const Numeric       xin,
 				    const String&       model,
-				    ConstVectorView     f_mono,
-				    ConstVectorView     p_abs,
-				    ConstVectorView     t_abs,
+				    ConstVectorView     f_grid,
+				    ConstVectorView     abs_p,
+				    ConstVectorView     abs_t,
 				    ConstVectorView     vmr	 )
 {
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
@@ -8372,11 +8372,11 @@ void Rosenkranz_CO2_self_continuum( MatrixView          xsec,
 	<< " C = " << C << "\n"
 	<< " x = " << x << "\n";
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -8391,12 +8391,12 @@ void Rosenkranz_CO2_self_continuum( MatrixView          xsec,
       // The second vmr of CO2 will be multiplied at the stage of absorption 
       // calculation: abs = vmr * xsec.
       Numeric dummy =
-	C * pow( (Numeric)300./t_abs[i], x ) * pow( p_abs[i], (Numeric)2. ) * vmr[i];
+	C * pow( (Numeric)300./abs_t[i], x ) * pow( abs_p[i], (Numeric)2. ) * vmr[i];
 
       // Loop over frequency grid:
       for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec(s,i) += dummy * pow( f_mono[s], (Numeric)2. );
+	  xsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. );
 	}
     }
 }
@@ -8412,10 +8412,10 @@ void Rosenkranz_CO2_self_continuum( MatrixView          xsec,
    \param    model          allows user defined input parameter set 
                             (Cin and xin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid       [Hz]
-   \param    p_abs          predefined pressure grid        [Pa]
-   \param    t_abs          predefined temperature grid     [K] 
-   \param    n2_abs         N2 volume mixing ratio profile  [1]
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid        [Pa]
+   \param    abs_t          predefined temperature grid     [K] 
+   \param    abs_n2         N2 volume mixing ratio profile  [1]
    \param    vmr            CO2 volume mixing ratio profile [1]
 
    \note     Except for  model 'user' the input parameters Cin and xin 
@@ -8435,10 +8435,10 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          xsec,
 				       const Numeric       Cin,
 				       const Numeric       xin,
 				       const String&       model,
-				       ConstVectorView     f_mono,
-				       ConstVectorView     p_abs,
-				       ConstVectorView     t_abs,
-				       ConstVectorView     n2_abs,
+				       ConstVectorView     f_grid,
+				       ConstVectorView     abs_p,
+				       ConstVectorView     abs_t,
+				       ConstVectorView     abs_n2,
 				       ConstVectorView     vmr	 )
 {
 
@@ -8472,11 +8472,11 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          xsec,
 	<< " C = " << C << "\n"
 	<< " x = " << x << "\n";
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -8490,12 +8490,12 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          xsec,
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The vmr of CO2 will be multiplied at the stage of absorption 
       // calculation: abs = vmr * xsec.
-      Numeric dummy = C * pow( (Numeric)300./t_abs[i], x ) * p_abs[i] * p_abs[i] * n2_abs[i];
+      Numeric dummy = C * pow( (Numeric)300./abs_t[i], x ) * abs_p[i] * abs_p[i] * abs_n2[i];
 
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec(s,i) += dummy * pow( f_mono[s], (Numeric)2. );
+	  xsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. );
 	}
     }
 }
@@ -8516,9 +8516,9 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          xsec,
    \param    model          allows user defined input parameter 
                             (CCin, CGin, CEin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid       [Hz]
-   \param    p_abs          predefined pressure grid        [Pa]
-   \param    t_abs          predefined temperature grid     [K] 
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid        [Pa]
+   \param    abs_t          predefined temperature grid     [K] 
    \param    vmr            suspended water droplet density profile (valid range: 0-0.001) [kg/m³]
 
    \note     Except for  model 'user' the input parameters CCin, CGin, and CEin 
@@ -8541,9 +8541,9 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
 			   const Numeric      CGin,   // input parameter
 			   const Numeric      CEin,   // input parameter
 			   const String&      model, // model
-			   ConstVectorView    f_mono, // frequency vector
-			   ConstVectorView    p_abs,  // pressure vector
-			   ConstVectorView    t_abs,  // temperature vector
+			   ConstVectorView    f_grid, // frequency vector
+			   ConstVectorView    abs_p,  // pressure vector
+			   ConstVectorView    abs_t,  // temperature vector
 			   ConstVectorView    vmr)    // suspended water droplet density vector
 {
 
@@ -8590,11 +8590,11 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
   const Numeric low_lim_den  =  0.000;   // lower limit of suspended droplet particle density vector [kg/m³]
   const Numeric high_lim_den = 10.00e-3; // lower limit of suspended droplet particle density vector [kg/m³]
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -8606,9 +8606,9 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
   for ( Index i=0; i<n_p; ++i )
     {
       // water vapor saturation pressure over liquid water [Pa]
-      // Numeric es       = WVSatPressureLiquidWater(t_abs[i]);
+      // Numeric es       = WVSatPressureLiquidWater(abs_t[i]);
       // water vapor partial pressure [Pa]
-      // Numeric e        = p_abs[i] * vmr[i];      
+      // Numeric e        = abs_p[i] * vmr[i];      
       // relative humidity [1]
       // Numeric RH       = e / es;
   
@@ -8616,7 +8616,7 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
       if ( (vmr[i] > low_lim_den) && (vmr[i] < high_lim_den) ) 
 	{
 	  // relative inverse temperature [1]
-	  Numeric theta    = 300.000 / t_abs[i];
+	  Numeric theta    = 300.000 / abs_t[i];
 	  // relaxation frequencies [GHz]
 	  Numeric gamma1   = CG * 20.20 - 146.40*(theta-1.000) + 316.00*(theta-1.000)*(theta-1.000);
 	  // Numeric gamma1  = 20.1 * exp( 7.88 * theta ); // see Liebe et al. IJIMW, 1992, p667, Eq. (2b)
@@ -8631,20 +8631,20 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
 	    {
 	      // real part of the complex permittivity of water (double-debye model)
 	      Numeric Reepsilon  = epsilon0 - 
-		pow((f_mono[s]*Hz_to_GHz),(Numeric)2.) *
+		pow((f_grid[s]*Hz_to_GHz),(Numeric)2.) *
 		( ((epsilon0-epsilon1)/
-		   (pow((f_mono[s]*Hz_to_GHz),(Numeric)2.)
+		   (pow((f_grid[s]*Hz_to_GHz),(Numeric)2.)
                     + pow(gamma1,(Numeric)2.))) + 
 		  ((epsilon1-epsilon2)/
-		   (pow((f_mono[s]*Hz_to_GHz),(Numeric)2.)
+		   (pow((f_grid[s]*Hz_to_GHz),(Numeric)2.)
                     + pow(gamma2,(Numeric)2.))) );
 	      // imaginary part of the complex permittivity of water (double-debye model)
-	      Numeric Imepsilon  = (f_mono[s]*Hz_to_GHz) *
+	      Numeric Imepsilon  = (f_grid[s]*Hz_to_GHz) *
 		( (gamma1*(epsilon0-epsilon1)/
-		   (pow((f_mono[s]*Hz_to_GHz),(Numeric)2.)
+		   (pow((f_grid[s]*Hz_to_GHz),(Numeric)2.)
                     + pow(gamma1,(Numeric)2.))) + 
 		  (gamma2*(epsilon1-epsilon2)/
-		   (pow((f_mono[s]*Hz_to_GHz),(Numeric)2.)
+		   (pow((f_grid[s]*Hz_to_GHz),(Numeric)2.)
                     + pow(gamma2,(Numeric)2.))) );
 	      // the imaginary part of the complex refractivity of suspended liquid water particle [ppm]
 	      // In MPM93 w is in g/m³ and m is in g/cm³. Because of the units used in arts,
@@ -8661,7 +8661,7 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
 	      // The vmr of H2O will be multiplied at the stage of absorption 
 	      // calculation: abs = vmr * xsec.
 	      // xsec = abs/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
-	      xsec(s,i) += CC * 1.000e6 * dB_km_to_1_m * 0.1820 * (f_mono[s]*Hz_to_GHz) * ImNw;
+	      xsec(s,i) += CC * 1.000e6 * dB_km_to_1_m * 0.1820 * (f_grid[s]*Hz_to_GHz) * ImNw;
 	    }
 	} else
 	  {
@@ -8692,9 +8692,9 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
    \param    model          allows user defined input parameter 
                             (CCin, CAin, CBin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid       [Hz]
-   \param    p_abs          predefined pressure grid        [Pa]
-   \param    t_abs          predefined temperature grid     [K] 
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid        [Pa]
+   \param    abs_t          predefined temperature grid     [K] 
    \param    vmr            suspended water droplet density profile (valid range: 0-0.001) [kg/m³]
 
    \note     Except for  model 'user' the input parameters CCin, CAin, and CBin 
@@ -8717,9 +8717,9 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
 			 const Numeric     CAin,   // input parameter
 			 const Numeric     CBin,   // input parameter
 			 const String&     model, // model
-			 ConstVectorView   f_mono, // frequency vector
-			 ConstVectorView   p_abs,  // pressure vector
-			 ConstVectorView   t_abs,  // temperature vector
+			 ConstVectorView   f_grid, // frequency vector
+			 ConstVectorView   abs_p,  // pressure vector
+			 ConstVectorView   abs_t,  // temperature vector
 			 ConstVectorView   vmr	 ) // suspended ice particle density vector, 
                                                    // valid range: 0-10.0e-3 kg/m³
 {
@@ -8767,11 +8767,11 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
   const Numeric low_lim_den  =  0.000;   // lower limit of suspended ice particle density vector [kg/m³]
   const Numeric high_lim_den = 10.00e-3; // lower limit of suspended ice particle density vector [kg/m³]
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -8785,9 +8785,9 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
   for ( Index i=0; i<n_p; ++i )
     {
       // water vapor saturation pressure over ice [Pa]
-      // Numeric es = WVSatPressureIce(t_abs[i]);
+      // Numeric es = WVSatPressureIce(abs_t[i]);
       // water vapor partial pressure [Pa]
-      // Numeric e  = p_abs[i] * vmr[i];
+      // Numeric e  = abs_p[i] * vmr[i];
       // relative humidity [1]
       // Numeric RH = e / es;
   
@@ -8795,7 +8795,7 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
       if ( (vmr[i] > low_lim_den) && (vmr[i] < high_lim_den) ) 
 	{ 
 	  // relative inverse temperature [1]
-	  Numeric theta = 300.000 / t_abs[i];	
+	  Numeric theta = 300.000 / abs_t[i];	
 	  // inverse frequency T-dependency function [Hz]
 	  Numeric ai = CA * (62.000 * theta - 11.600) * exp(-22.100 * (theta-1.000)) * 1.000e-4;
 	  // linear frequency T-dependency function [1/Hz]
@@ -8809,8 +8809,8 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
 	      // real part of the complex permittivity of ice
 	      Numeric Reepsilon  = 3.15;
 	      // imaginary part of the complex permittivity of water
-	      Numeric Imepsilon  = ( ( ai/(f_mono[s]*Hz_to_GHz) ) +
-				     ( bi*(f_mono[s]*Hz_to_GHz) ) );
+	      Numeric Imepsilon  = ( ( ai/(f_grid[s]*Hz_to_GHz) ) +
+				     ( bi*(f_grid[s]*Hz_to_GHz) ) );
 	      // the imaginary part of the complex refractivity of suspended ice particles.
 	      // In MPM93 w is in g/m³ and m is in g/cm³. Because of the units used in arts,
 	      // a factor of 1.000e6 must be multiplied with the ratio (w/m):
@@ -8826,7 +8826,7 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
 	      // The vmr of H2O will be multiplied at the stage of absorption 
 	      // calculation: abs = vmr * xsec.
 	      // xsec = abs/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
-	      xsec(s,i) += CC * 1.000e6 * dB_km_to_1_m * 0.1820 * (f_mono[s]*Hz_to_GHz) * ImNw;
+	      xsec(s,i) += CC * 1.000e6 * dB_km_to_1_m * 0.1820 * (f_grid[s]*Hz_to_GHz) * ImNw;
 	    }
 	} else
 	  {
@@ -8855,9 +8855,9 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
    \param    model          allows user defined input parameter 
                             (CEin, CAin, CBin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid       [Hz]
-   \param    p_abs          predefined pressure grid        [Pa]
-   \param    t_abs          predefined temperature grid     [K] 
+   \param    f_grid         predefined frequency grid       [Hz]
+   \param    abs_p          predefined pressure grid        [Pa]
+   \param    abs_t          predefined temperature grid     [K] 
    \param    vmr            rain rate vector (i.e. vertical profile),
                             (valid range: 0-150) [mm/h]
 
@@ -8879,9 +8879,9 @@ void MPM93RainExt( MatrixView         xsec,
 		   const Numeric      CAin,   // input parameter
 		   const Numeric      CBin,   // input parameter
 		   const String&      model, // model
-		   ConstVectorView    f_mono, // frequency vector
-		   ConstVectorView    p_abs,  // pressure vector
-		   ConstVectorView    t_abs,  // temperature vector
+		   ConstVectorView    f_grid, // frequency vector
+		   ConstVectorView    abs_p,  // pressure vector
+		   ConstVectorView    abs_t,  // temperature vector
 		   ConstVectorView    vmr)    // rain rate profile [mm/h]
 {
 
@@ -8926,11 +8926,11 @@ void MPM93RainExt( MatrixView         xsec,
   const Numeric low_lim_rr  =  0.000;   // lower limit of allowed rain rate  [mm/h]
   const Numeric high_lim_rr = 150.000;  // upper limit of allowed rain rate  [mm/h]
 
-  const Index n_p = p_abs.nelem();	// Number of pressure levels
-  const Index n_f = f_mono.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	// Number of pressure levels
+  const Index n_f = f_grid.nelem();	// Number of frequencies
 
-  // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.nelem() );
+  // Check that dimensions of abs_p, abs_t, and vmr agree:
+  assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
@@ -8967,22 +8967,22 @@ void MPM93RainExt( MatrixView         xsec,
 	      if ( vmr[i] <= 25 ) 
 		{	      
 		  // power law coeff. Ga and exponent Ea for a, piecewise:
-		  if ( f_mono[s] <= 2.9e9 ) 
+		  if ( f_grid[s] <= 2.9e9 ) 
 		    {
 		      Ga = 6.39e-5;
 		      Ea = 2.03;
 		    }
-		  else if ( f_mono[s] <= 54.0e9 )
+		  else if ( f_grid[s] <= 54.0e9 )
 		    {
 		      Ga = 4.21e-5;
 		      Ea = 2.42;
 		    }
-		  else if ( f_mono[s] <= 180e9 )
+		  else if ( f_grid[s] <= 180e9 )
 		    {
 		      Ga = 4.09e-2;
 		      Ea = 0.699;
 		    }
-		  else if ( f_mono[s] <= 1000e9 )
+		  else if ( f_grid[s] <= 1000e9 )
 		    {
 		      Ga = 3.38;
 		      Ea = -0.151;
@@ -8991,27 +8991,27 @@ void MPM93RainExt( MatrixView         xsec,
 		    {
 		      ostringstream os;
 		      os << "ERROR in MPM93RainExt:\n"
-			 << " frequency (valid range 0-1000 GHz):" << f_mono[s]*Hz_to_GHz << "\n"
+			 << " frequency (valid range 0-1000 GHz):" << f_grid[s]*Hz_to_GHz << "\n"
 			 << " ==> no calculation performed!\n";
 		      throw runtime_error(os.str());
 		    }
 		  // power law coeff. Gb and exponent Eb for b, piecewise:
-		  if ( f_mono[s] <= 8.5e9 ) 
+		  if ( f_grid[s] <= 8.5e9 ) 
 		    {
 		      Gb = 0.851;
 		      Eb = 0.158;
 		    }
-		  else if ( f_mono[s] <= 25.0e9 )
+		  else if ( f_grid[s] <= 25.0e9 )
 		    {
 		      Gb = 1.41;	   
 		      Eb = -0.0779;
 		    }
-		  else if ( f_mono[s] <= 164.0e9 )
+		  else if ( f_grid[s] <= 164.0e9 )
 		    {
 		      Gb = 2.63;	  
 		      Eb = -0.272;
 		    }
-		  else if ( f_mono[s] <= 1000e9 )
+		  else if ( f_grid[s] <= 1000e9 )
 		    {
 		      Gb = 0.616;
 		      Eb = 0.0126;
@@ -9020,7 +9020,7 @@ void MPM93RainExt( MatrixView         xsec,
 		    {
 		      ostringstream os;
 		      os << "ERROR in MPM93RainExt:\n"
-			 << " frequency (valid range 0-1000 GHz):" << f_mono[s]*Hz_to_GHz << "\n"
+			 << " frequency (valid range 0-1000 GHz):" << f_grid[s]*Hz_to_GHz << "\n"
 			 << " ==> no calculation performed!\n";
 		      throw runtime_error(os.str());
 		    }
@@ -9029,27 +9029,27 @@ void MPM93RainExt( MatrixView         xsec,
 	      else if (vmr[i] > 25)
 		{
 		  // power law coeff. Ga and exponent Ea for a, piecewise:
-		  if ( f_mono[s] <= 4.9e9 ) 
+		  if ( f_grid[s] <= 4.9e9 ) 
 		    {
 		      Ga = 5.30e-5;
 		      Ea = 1.87;
 		    }
-		  else if ( f_mono[s] <= 10.7e9 )
+		  else if ( f_grid[s] <= 10.7e9 )
 		    {
 		      Ga = 5.03e-6;
 		      Ea = 3.35;
 		    }
-		  else if ( f_mono[s] <= 40.1e9 )
+		  else if ( f_grid[s] <= 40.1e9 )
 		    {
 		      Ga = 2.53e-5;
 		      Ea = 2.67;
 		    }
-		  else if ( f_mono[s] <= 59.1e9 )
+		  else if ( f_grid[s] <= 59.1e9 )
 		    {
 		      Ga = 3.58e-3;
 		      Ea = 1.33;
 		    }
-		  else if ( f_mono[s] <= 100e9 )
+		  else if ( f_grid[s] <= 100e9 )
 		    {
 		      Ga = 0.143;
 		      Ea = 0.422;
@@ -9058,32 +9058,32 @@ void MPM93RainExt( MatrixView         xsec,
 		    {
 		      ostringstream os;
 		      os << "ERROR in MPM93RainExt:\n"
-			 << " frequency (valid range for rain rate > 25mm/h: 0-100 GHz):" << f_mono[s]*Hz_to_GHz << "\n"
+			 << " frequency (valid range for rain rate > 25mm/h: 0-100 GHz):" << f_grid[s]*Hz_to_GHz << "\n"
 			 << " ==> no calculation performed!\n";
 		      throw runtime_error(os.str());
 		    }
 		  // power law coeff. Gb and exponent Eb for b, piecewise:
-		  if ( f_mono[s] <= 6.2e9 ) 
+		  if ( f_grid[s] <= 6.2e9 ) 
 		    {
 		      Gb = 0.911;
 		      Eb = 0.190;
 		    }
-		  else if ( f_mono[s] <= 23.8e9 )
+		  else if ( f_grid[s] <= 23.8e9 )
 		    {
 		      Gb = 1.71;	   
 		      Eb = -0.156;
 		    }
-		  else if ( f_mono[s] <= 48.4e9 )
+		  else if ( f_grid[s] <= 48.4e9 )
 		    {
 		      Gb = 3.08;	  
 		      Eb = -0.342;
 		    }
-		  else if ( f_mono[s] <= 68.2e9 )
+		  else if ( f_grid[s] <= 68.2e9 )
 		    {
 		      Gb = 1.28;
 		      Eb = -0.116;
 		    }
-		  else if ( f_mono[s] <= 100e9 )
+		  else if ( f_grid[s] <= 100e9 )
 		    {
 		      Gb =  0.932;
 		      Eb =  -0.0408;
@@ -9092,15 +9092,15 @@ void MPM93RainExt( MatrixView         xsec,
 		    {
 		      ostringstream os;
 		      os << "ERROR in MPM93RainExt:\n"
-			 << " frequency (valid range for rain rate > 25mm/h: 0-100 GHz):" << f_mono[s]*Hz_to_GHz << "\n"
+			 << " frequency (valid range for rain rate > 25mm/h: 0-100 GHz):" << f_grid[s]*Hz_to_GHz << "\n"
 			 << " ==> no calculation performed!\n";
 		      throw runtime_error(os.str());
 		    }
 		}
 	      //Factor a_rain
-	      Numeric a_rain = Ga * pow((f_mono[s]*Hz_to_GHz),Ea);
+	      Numeric a_rain = Ga * pow((f_grid[s]*Hz_to_GHz),Ea);
 	      //Factor b_rain
-	      Numeric b_rain = Gb * pow((f_mono[s]*Hz_to_GHz),Eb);
+	      Numeric b_rain = Gb * pow((f_grid[s]*Hz_to_GHz),Eb);
 	      // Extinction coefficient [dB/km], with scaling
 	      // parameters CA and CB
 	      Numeric ext_rain = CA * a_rain * pow(vmr[i],(CB*b_rain));
@@ -9373,15 +9373,15 @@ Numeric WVSatPressureIce(const Numeric t)
 
     \param  name       The name of the model to calculate (derived from the tag name)
     \param  parameters model parameters, as defined in method
-                       cont_description_parameters.
+                       abs_cont_parameters.
     \param  model      model, related to model parameters
-    \param  f_mono     Frequency grid [Hz]
-    \param  p_abs      Pressure grid [Pa]
-    \param  t_abs      Temperatures associated with the pressure grid, p_abs [K]
-    \param  n2_abs     Total volume mixing ratio profile of molecular nitrogen.<br> 
+    \param  f_grid     Frequency grid [Hz]
+    \param  abs_p      Pressure grid [Pa]
+    \param  abs_t      Temperatures associated with the pressure grid, abs_p [K]
+    \param  abs_n2     Total volume mixing ratio profile of molecular nitrogen.<br> 
                        This will be needed only for the CO2 foreign continuum [1]<br> 
                        however one is forced to give this input [1]
-    \param  h2o_abs    Total volume mixing ratio profile of water vapor.<br> 
+    \param  abs_h2o    Total volume mixing ratio profile of water vapor.<br> 
                        This will be needed only for the oxygen continuum <br> 
                        however one is forced to give this input [1]
     \param  vmr        Volume mixing ratio profile of the actual species [1]
@@ -9394,11 +9394,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			 const String&              name,
 			 ConstVectorView            parameters,
                          const String&              model,
-			 ConstVectorView  	    f_mono,
-			 ConstVectorView  	    p_abs,
-			 ConstVectorView  	    t_abs,
-			 ConstVectorView  	    n2_abs,
-			 ConstVectorView  	    h2o_abs,
+			 ConstVectorView  	    f_grid,
+			 ConstVectorView  	    abs_p,
+			 ConstVectorView  	    abs_t,
+			 ConstVectorView  	    abs_n2,
+			 ConstVectorView  	    abs_h2o,
 			 ConstVectorView            vmr )
 {
   //
@@ -9454,9 +9454,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //  INPUT
       //     parameters[0] : continuum coefficient (C_s)  [1/m / (Hz²*Pa²)]
       //     parameters[1] : temperature exponent  (x_s)  [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       const int Nparam = 2;
@@ -9468,9 +9468,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 				       parameters[0],
 				       parameters[1],
 				       model,
-				       f_mono,
-				       p_abs,
-				       t_abs,
+				       f_grid,
+				       abs_p,
+				       abs_t,
 				       vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -9490,9 +9490,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 				       0.00,
 				       0.00,
 				       model,
-				       f_mono,
-				       p_abs,
-				       t_abs,
+				       f_grid,
+				       abs_p,
+				       abs_t,
 				       vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -9517,9 +9517,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //  b) input
       //     parameters[0] : [1/m / (Hz²*Pa²)]
       //     parameters[1] : [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       const int Nparam = 2;
@@ -9531,9 +9531,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 					  parameters[0],
 					  parameters[1],
 					  model,
-					  f_mono,
-					  p_abs,
-					  t_abs,
+					  f_grid,
+					  abs_p,
+					  abs_t,
 					  vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -9553,9 +9553,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 					  0.00,
 					  0.00,
 					  model,
-					  f_mono,
-					  p_abs,
-					  t_abs,
+					  f_grid,
+					  abs_p,
+					  abs_t,
 					  vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -9578,9 +9578,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //  b) input
       //     parameters[0] : [1/m / (Hz²*Pa²)]
       //     parameters[1] : [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       const int Nparam = 2;
@@ -9592,9 +9592,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 					   parameters[0],
 					   parameters[1],
 					   model,
-					   f_mono,
-					   p_abs,
-					   t_abs,
+					   f_grid,
+					   abs_p,
+					   abs_t,
 					  vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -9614,9 +9614,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 					   0.00,
 					   0.00,
 					   model,
-					   f_mono,
-					   p_abs,
-					   t_abs,
+					   f_grid,
+					   abs_p,
+					   abs_t,
 					   vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -9647,9 +9647,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[4] : pseudo continuum line broadening parameter           [1]
       //     parameters[5] : pseudo continuum line broadening parameter           [1]
       //     parameters[6] : pseudo continuum line broadening parameter           [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       const int Nparam = 7;
@@ -9666,9 +9666,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			       parameters[5],
 			       parameters[6],
 			       model,
-			       f_mono,
-			       p_abs,
-			       t_abs,
+			       f_grid,
+			       abs_p,
+			       abs_t,
 			       vmr	 );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -9693,9 +9693,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			       0.00,
 			       0.00,
 			       model,
-			       f_mono,
-			       p_abs,
-			       t_abs,
+			       f_grid,
+			       abs_p,
+			       abs_t,
 			       vmr	 );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -9723,9 +9723,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     xsec          : [1/m],
       //  INPUT
       //     parameters[0] : pseudo continuum line frequency                      [Hz]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       const int Nparam = 1;
@@ -9736,9 +9736,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  Pardo_ATM_H2O_ForeignContinuum( xsec,
 					  parameters[0],
 					  model,
-					  f_mono,
-					  p_abs,
-					  t_abs,
+					  f_grid,
+					  abs_p,
+					  abs_t,
 					  vmr	 );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -9757,9 +9757,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  Pardo_ATM_H2O_ForeignContinuum( xsec,
 					  0.000,
 					  model,
-					  f_mono,
-					  p_abs,
-					  t_abs,
+					  f_grid,
+					  abs_p,
+					  abs_t,
 					  vmr	 );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -9785,11 +9785,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //   model          allows user defined input parameter set 
       //                  (Cin) or choice of 
       //                  pre-defined parameters of specific models (see note below).
-      //   f_mono         predefined frequency grid            [Hz]
-      //   p_abs          predefined pressure grid             [Pa]
-      //   t_abs          predefined temperature grid          [K] 
+      //   f_grid         predefined frequency grid            [Hz]
+      //   abs_p          predefined pressure grid             [Pa]
+      //   abs_t          predefined temperature grid          [K] 
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   n2_abs         N2 volume mixing ratio profile       [1]
+      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -9800,11 +9800,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_222_self_h2o( xsec,
 			    parameters[0],
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr,
-			    n2_abs );
+			    abs_n2 );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -9822,11 +9822,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_222_self_h2o( xsec,
 			    0.000,
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr,
-			    n2_abs );
+			    abs_n2 );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
        {
@@ -9850,11 +9850,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //   model          allows user defined input parameter set 
       //                  (Cin) or choice of 
       //                  pre-defined parameters of specific models (see note below).
-      //   f_mono         predefined frequency grid            [Hz]
-      //   p_abs          predefined pressure grid             [Pa]
-      //   t_abs          predefined temperature grid          [K] 
+      //   f_grid         predefined frequency grid            [Hz]
+      //   abs_p          predefined pressure grid             [Pa]
+      //   abs_t          predefined temperature grid          [K] 
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   n2_abs         N2 volume mixing ratio profile       [1]
+      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -9865,11 +9865,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_222_foreign_h2o( xsec,
 			       parameters[0],
 			       model,
-			       f_mono,
-			       p_abs,
-			       t_abs,
+			       f_grid,
+			       abs_p,
+			       abs_t,
 			       vmr,
-			       n2_abs );
+			       abs_n2 );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -9887,11 +9887,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_222_foreign_h2o( xsec,
 			       0.000,
 			       model,
-			       f_mono,
-			       p_abs,
-			       t_abs,
+			       f_grid,
+			       abs_p,
+			       abs_t,
 			       vmr,
-			       n2_abs );
+			       abs_n2 );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
        {
@@ -9915,11 +9915,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //   model          allows user defined input parameter set 
       //                  (Cin) or choice of 
       //                  pre-defined parameters of specific models (see note below).
-      //   f_mono         predefined frequency grid            [Hz]
-      //   p_abs          predefined pressure grid             [Pa]
-      //   t_abs          predefined temperature grid          [K] 
+      //   f_grid         predefined frequency grid            [Hz]
+      //   abs_p          predefined pressure grid             [Pa]
+      //   abs_t          predefined temperature grid          [K] 
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   n2_abs         N2 volume mixing ratio profile       [1]
+      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -9930,11 +9930,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_242_self_h2o( xsec,
 			    parameters[0],
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr,
-			    n2_abs );
+			    abs_n2 );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -9952,11 +9952,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_242_self_h2o( xsec,
 			    0.000,
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr,
-			    n2_abs );
+			    abs_n2 );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
        {
@@ -9980,11 +9980,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //   model          allows user defined input parameter set 
       //                  (Cin) or choice of 
       //                  pre-defined parameters of specific models (see note below).
-      //   f_mono         predefined frequency grid            [Hz]
-      //   p_abs          predefined pressure grid             [Pa]
-      //   t_abs          predefined temperature grid          [K] 
+      //   f_grid         predefined frequency grid            [Hz]
+      //   abs_p          predefined pressure grid             [Pa]
+      //   abs_t          predefined temperature grid          [K] 
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   n2_abs         N2 volume mixing ratio profile       [1]
+      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -9995,11 +9995,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_242_foreign_h2o( xsec,
 			       parameters[0],
 			       model,
-			       f_mono,
-			       p_abs,
-			       t_abs,
+			       f_grid,
+			       abs_p,
+			       abs_t,
 			       vmr,
-			       n2_abs );
+			       abs_n2 );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -10017,11 +10017,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_242_foreign_h2o( xsec,
 			       0.000,
 			       model,
-			       f_mono,
-			       p_abs,
-			       t_abs,
+			       f_grid,
+			       abs_p,
+			       abs_t,
 			       vmr,
-			       n2_abs );
+			       abs_n2 );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -10045,11 +10045,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //   model          allows user defined input parameter set 
       //                  (Cin) or choice of 
       //                  pre-defined parameters of specific models (see note below).
-      //   f_mono         predefined frequency grid            [Hz]
-      //   p_abs          predefined pressure grid             [Pa]
-      //   t_abs          predefined temperature grid          [K] 
+      //   f_grid         predefined frequency grid            [Hz]
+      //   abs_p          predefined pressure grid             [Pa]
+      //   abs_t          predefined temperature grid          [K] 
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   n2_abs         N2 volume mixing ratio profile       [1]
+      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -10060,11 +10060,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_100_self_h2o( xsec,
 			       parameters[0],
 			       model,
-			       f_mono,
-			       p_abs,
-			       t_abs,
+			       f_grid,
+			       abs_p,
+			       abs_t,
 			       vmr,
-			       n2_abs );
+			       abs_n2 );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -10082,11 +10082,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_100_self_h2o( xsec,
 			       0.000,
 			       model,
-			       f_mono,
-			       p_abs,
-			       t_abs,
+			       f_grid,
+			       abs_p,
+			       abs_t,
 			       vmr,
-			       n2_abs );
+			       abs_n2 );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
        {
@@ -10110,11 +10110,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //   model          allows user defined input parameter set 
       //                  (Cin) or choice of 
       //                  pre-defined parameters of specific models (see note below).
-      //   f_mono         predefined frequency grid            [Hz]
-      //   p_abs          predefined pressure grid             [Pa]
-      //   t_abs          predefined temperature grid          [K] 
+      //   f_grid         predefined frequency grid            [Hz]
+      //   abs_p          predefined pressure grid             [Pa]
+      //   abs_t          predefined temperature grid          [K] 
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   n2_abs         N2 volume mixing ratio profile       [1]
+      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -10125,11 +10125,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_100_foreign_h2o( xsec,
 				  parameters[0],
 				  model,
-				  f_mono,
-				  p_abs,
-				  t_abs,
+				  f_grid,
+				  abs_p,
+				  abs_t,
 				  vmr,
-				  n2_abs );
+				  abs_n2 );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -10147,11 +10147,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_100_foreign_h2o( xsec,
 				  0.000,
 				  model,
-				  f_mono,
-				  p_abs,
-				  t_abs,
+				  f_grid,
+				  abs_p,
+				  abs_t,
 				  vmr,
-				  n2_abs );
+				  abs_n2 );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -10175,11 +10175,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //   model          allows user defined input parameter set 
       //                  (Cin) or choice of 
       //                  pre-defined parameters of specific models (see note below).
-      //   f_mono         predefined frequency grid            [Hz]
-      //   p_abs          predefined pressure grid             [Pa]
-      //   t_abs          predefined temperature grid          [K] 
+      //   f_grid         predefined frequency grid            [Hz]
+      //   abs_p          predefined pressure grid             [Pa]
+      //   abs_t          predefined temperature grid          [K] 
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   n2_abs         N2 volume mixing ratio profile       [1]
+      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -10191,11 +10191,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 		     0,
 		     parameters[0],
 		     model,
-		     f_mono,
-		     p_abs,
-		     t_abs,
+		     f_grid,
+		     abs_p,
+		     abs_t,
 		     vmr,
-		     n2_abs );
+		     abs_n2 );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -10214,11 +10214,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 		     0,
 		     0.000,
 		     model,
-		     f_mono,
-		     p_abs,
-		     t_abs,
+		     f_grid,
+		     abs_p,
+		     abs_t,
 		     vmr,
-		     n2_abs );
+		     abs_n2 );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
        {
@@ -10242,11 +10242,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //   model          allows user defined input parameter set 
       //                  (Cin) or choice of 
       //                  pre-defined parameters of specific models (see note below).
-      //   f_mono         predefined frequency grid            [Hz]
-      //   p_abs          predefined pressure grid             [Pa]
-      //   t_abs          predefined temperature grid          [K] 
+      //   f_grid         predefined frequency grid            [Hz]
+      //   abs_p          predefined pressure grid             [Pa]
+      //   abs_t          predefined temperature grid          [K] 
       //   vmr            H2O volume mixing ratio profile      [1]
-      //   n2_abs         N2 volume mixing ratio profile       [1]
+      //   abs_n2         N2 volume mixing ratio profile       [1]
       //
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
@@ -10258,11 +10258,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 		     1,
 		     parameters[0],
 		     model,
-		     f_mono,
-		     p_abs,
-		     t_abs,
+		     f_grid,
+		     abs_p,
+		     abs_t,
 		     vmr,
-		     n2_abs );
+		     abs_n2 );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -10281,11 +10281,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 		     1,
 		     0,
 		     model,
-		     f_mono,
-		     p_abs,
-		     t_abs,
+		     f_grid,
+		     abs_p,
+		     abs_t,
 		     vmr,
-		     n2_abs );
+		     abs_n2 );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -10309,9 +10309,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[0] : continuum scale factor       (CC) [1]
       //     parameters[1] : line strength scale factor   (CL) [1]
       //     parameters[2] : line broadening scale factor (CW) [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       const int Nparam = 3;
@@ -10324,9 +10324,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   parameters[1],
 			   parameters[2],
 			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
 			   vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -10347,9 +10347,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   0.00,
 			   0.00,
 			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
 			   vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -10374,9 +10374,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[0] : continuum scale factor (CC)       [1]
       //     parameters[1] : line strength scale factor   (CL) [1]
       //     parameters[2] : line broadening scale factor (CW) [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       const int Nparam = 3;
@@ -10389,9 +10389,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			    parameters[1],
 			    parameters[2],
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -10412,9 +10412,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			    0.00,
 			    0.00,
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -10440,9 +10440,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[0] : continuum scale factor       (CC) [1]
       //     parameters[1] : line strength scale factor   (CL) [1]
       //     parameters[2] : line broadening scale factor (CW  [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       const int Nparam = 3;
@@ -10455,9 +10455,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			parameters[1],
 			parameters[2],
 			model,
-			f_mono,
-			p_abs,
-			t_abs,
+			f_grid,
+			abs_p,
+			abs_t,
 			vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -10478,9 +10478,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			    0.00,
 			    0.00,
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -10506,9 +10506,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[0] : continuum scale factor       (CC) [1]
       //     parameters[1] : line strength scale factor   (CL) [1]
       //     parameters[2] : line broadening scale factor (CW) [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       const int Nparam = 3;
@@ -10521,9 +10521,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			    parameters[1],
 			    parameters[2],
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -10544,9 +10544,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			    0.00,
 			    0.00,
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -10571,9 +10571,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[0] : continuum scale factor       (CC) [1]
       //     parameters[1] : line strength scale factor   (CL) [1]
       //     parameters[2] : line broadening scale factor (CW) [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       const int Nparam = 3;
@@ -10586,9 +10586,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			    parameters[1],
 			    parameters[2],
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -10609,9 +10609,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			    0.00,
 			    0.00,
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -10642,10 +10642,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //  INPUT
       //     parameters[0] : continuum scaling
       //     model         : model option ("CKD" or "user")
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
-      //     h2o_abs       : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_h2o       : [1]
       //     vmr           : [1]
       //
       const int Nparam = 1;
@@ -10656,9 +10656,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_CIAfun_o2( xsec,
 			    parameters[0],
 			    model, 
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr );
 	}  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -10677,9 +10677,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_CIAfun_o2( xsec,
 			    0.00e0,
 			    model, 
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -10709,12 +10709,12 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //  INPUT
       //     parameters[0] : continuum scaling
       //     model         : model option ("CKD" or "user")
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
-      //     n2_abs        : [1]
-      //     h2o_abs       : [1]
+      //     abs_n2        : [1]
+      //     abs_h2o       : [1]
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -10724,11 +10724,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_v0v0_o2( xsec,
 			  parameters[0],
 			  model, 
-			  f_mono,
-			  p_abs,
-			  t_abs,
+			  f_grid,
+			  abs_p,
+			  abs_t,
 			  vmr,
-			  n2_abs );
+			  abs_n2 );
 	}  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -10746,11 +10746,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_v0v0_o2( xsec,
 			  0.0e0,
 			  model, 
-			  f_mono,
-			  p_abs,
-			  t_abs,
+			  f_grid,
+			  abs_p,
+			  abs_t,
 			  vmr,
-			  n2_abs );
+			  abs_n2 );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -10778,12 +10778,12 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //  INPUT
       //     parameters[0] : continuum scaling
       //     model         : model option ("CKD" or "user")
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
-      //     n2_abs        : [1]
-      //     h2o_abs       : [1]
+      //     abs_n2        : [1]
+      //     abs_h2o       : [1]
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -10793,9 +10793,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_v1v0_o2( xsec,
 			  parameters[0],
 			  model, 
-			  f_mono,
-			  p_abs,
-			  t_abs,
+			  f_grid,
+			  abs_p,
+			  abs_t,
 			  vmr );
 	}  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -10814,9 +10814,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_v1v0_o2( xsec,
 			  0.0e0,
 			  model, 
-			  f_mono,
-			  p_abs,
-			  t_abs,
+			  f_grid,
+			  abs_p,
+			  abs_t,
 			  vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -10857,10 +10857,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[2] : temperature exponent  (x_s)  [1]
       //     parameters[5] : continuum coefficient (XG0w) [1]
       //     model   : model option ("MPM93", "Rosenkranz", or "user")
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
-      //     h2o_abs       : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_h2o       : [1]
       //     vmr           : [1]
       //
       const int Nparam = 6;
@@ -10876,10 +10876,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 				 parameters[4], 
 				 parameters[5], 
 				 model, 
-				 f_mono,
-				 p_abs,
-				 t_abs,
-				 h2o_abs,
+				 f_grid,
+				 abs_p,
+				 abs_t,
+				 abs_h2o,
 				 vmr );
 	}  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -10903,10 +10903,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 				 0.00,
 				 0.00,
 				 model, 
-				 f_mono,
-				 p_abs,
-				 t_abs,
-				 h2o_abs,
+				 f_grid,
+				 abs_p,
+				 abs_t,
+				 abs_h2o,
 				 vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -10937,10 +10937,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //  INPUT
       //     parameters[0] : continuum coefficient (C)    [1/m / (Hz²*Pa²)]
       //     parameters[1] : temperature exponent  (x_s)  [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
-      //     h2o_abs       : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_h2o       : [1]
       //     vmr           : [1]
       //
       const int Nparam = 4;
@@ -10954,10 +10954,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			      parameters[2], 
 			      parameters[3], 
 			      model, 
-			      f_mono,
-			      p_abs,
-			      t_abs,
-			      h2o_abs,
+			      f_grid,
+			      abs_p,
+			      abs_t,
+			      abs_h2o,
 			      vmr );
 	}  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -10979,10 +10979,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			      0.00,
 			      0.00,
 			      model, 
-			      f_mono,
-			      p_abs,
-			      t_abs,
-			      h2o_abs,
+			      f_grid,
+			      abs_p,
+			      abs_t,
+			      abs_h2o,
 			      vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -11012,9 +11012,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //  INPUT
       //     parameters[0] : continuum coefficient (C) [K²/(Hz*Pa*m)]
       //     parameters[1] : temperature exponent  (x) [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       const int Nparam = 4;
@@ -11028,10 +11028,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 				   parameters[2],
 				   parameters[3],
 				   model,
-				   f_mono,
-				   p_abs,
-				   t_abs,
-				   h2o_abs,
+				   f_grid,
+				   abs_p,
+				   abs_t,
+				   abs_h2o,
 				   vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -11053,10 +11053,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 				   0.00,
 				   0.00,
 				   model,
-				   f_mono,
-				   p_abs,
-				   t_abs,
-				   h2o_abs,
+				   f_grid,
+				   abs_p,
+				   abs_t,
+				   abs_h2o,
 				   vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -11095,10 +11095,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
       //     parameters[1] : line broadening scale factor,  default CW = 1.000 [1]
       //     parameters[1] : line coupling scale factor,    default CO = 1.000 [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
-      //     h2o_abs,      : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
       const int Nparam = 4;
@@ -11114,10 +11114,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   parameters[3], // line coupling scale factor
 			   model,
 			   version, 
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -11140,10 +11140,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   0.00,
 			   model,
 			   version,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -11175,10 +11175,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
       //     parameters[1] : line broadening scale factor,  default CW = 1.000 [1]
       //     parameters[1] : line coupling scale factor,    default CO = 1.000 [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
-      //     h2o_abs,      : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
       const int Nparam = 4;
@@ -11194,10 +11194,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   parameters[3], // line coupling scale factor
 			   model,
 			   version,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -11220,10 +11220,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   0.00,
 			   model,
 			   version,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -11261,10 +11261,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
       //     parameters[1] : line broadening scale factor,  default CW = 1.000 [1]
       //     parameters[1] : line coupling scale factor,    default CO = 1.000 [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
-      //     h2o_abs,      : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
       const int Nparam = 4;
@@ -11280,10 +11280,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   parameters[3], // line coupling scale factor
 			   model,
 			   version, 
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -11306,10 +11306,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   0.00,
 			   model,
 			   version,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -11341,10 +11341,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
       //     parameters[2] : line broadening scale factor,  default CW = 1.000 [1]
       //     parameters[3] : line coupling scale factor,    default CO = 1.000 [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
-      //     h2o_abs,      : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
       const int Nparam = 4;
@@ -11358,10 +11358,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   parameters[2], // line broadening scale factor
 			   parameters[3], // line coupling scale factor
 			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -11383,10 +11383,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   0.00,
 			   0.00,
 			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -11417,10 +11417,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
       //     parameters[2] : line broadening scale factor,  default CW = 1.000 [1]
       //     parameters[3] : line coupling scale factor,    default CO = 1.000 [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
-      //     h2o_abs,      : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
       const int Nparam = 4;
@@ -11434,10 +11434,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   parameters[2], // line broadening scale factor
 			   parameters[3], // line coupling scale factor
 			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -11459,10 +11459,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   0.00,
 			   0.00,
 			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -11492,10 +11492,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
       //     parameters[2] : line broadening scale factor,  default CW = 1.000 [1]
       //     parameters[3] : line coupling scale factor,    default CO = 1.000 [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
-      //     h2o_abs,      : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
       const int Nparam = 4;
@@ -11509,10 +11509,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   parameters[2], // line broadening scale factor
 			   parameters[3], // line coupling scale factor
 			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -11534,10 +11534,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   0.00,
 			   0.00,
 			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -11571,10 +11571,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
       //     parameters[2] : line broadening scale factor,  default CW = 1.000 [1]
       //     parameters[3] : line coupling scale factor,    default CO = 1.000 [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
-      //     h2o_abs,      : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
       const int Nparam = 4;
@@ -11588,10 +11588,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   parameters[2], // line broadening scale factor
 			   parameters[3], // line coupling scale factor
 			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -11613,10 +11613,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   0.00,
 			   0.00,
 			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -11646,10 +11646,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
       //     parameters[2] : line broadening scale factor,  default CW = 1.000 [1]
       //     parameters[3] : line coupling scale factor,    default CO = 1.000 [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
-      //     h2o_abs,      : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_h2o,      : [1]
       //     vmr           : [1]
       //
       const int Nparam = 4;
@@ -11663,10 +11663,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   parameters[2], // line broadening scale factor
 			   parameters[3], // line coupling scale factor
 			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -11688,10 +11688,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   0.00,
 			   0.00,
 			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   h2o_abs,
+			   f_grid,
+			   abs_p,
+			   abs_t,
+			   abs_h2o,
 			   vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -11723,10 +11723,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[1] : broadening parameter [1]
       //     parameters[2] : temperature exponent [1]
       //     parameters[3] : frequency exponent   [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
-      //     h2o_abs       : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_h2o       : [1]
       //     vmr           : [1]
       //
       const int Nparam = 4;
@@ -11740,10 +11740,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			      parameters[2],			  
 			      parameters[3],			  
 			      model,
-			      f_mono,
-			      p_abs,
-			      t_abs,
-			      h2o_abs,
+			      f_grid,
+			      abs_p,
+			      abs_t,
+			      abs_h2o,
 			      vmr );
 	}  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -11765,10 +11765,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			      0.00,
 			      0.00,
 			      model,
-			      f_mono,
-			      p_abs,
-			      t_abs,
-			      h2o_abs,
+			      f_grid,
+			      abs_p,
+			      abs_t,
+			      abs_h2o,
 			      vmr );
 	}
       else if ( (model == "MPM93Scale") && (parameters.nelem() != 1) ) // --------------------
@@ -11790,10 +11790,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			      0.00,
 			      0.00,
 			      model,
-			      f_mono,
-			      p_abs,
-			      t_abs,
-			      h2o_abs,
+			      f_grid,
+			      abs_p,
+			      abs_t,
+			      abs_h2o,
 			      vmr );
 	}
       /* --------------------------------------------------------------------------
@@ -11822,9 +11822,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     xsec          : [1/m],
       //  b) input
       //     parameters[0] : continuum strength coefficient  [1/m * 1/(Hz*Pa)²]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]   for  N2
       //     h2ovmr        : [1]   for  H2O
       //
@@ -11836,11 +11836,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  Pardo_ATM_N2_dry_continuum( xsec,
 				      parameters[0], // coefficient
 				      model,
-				      f_mono,
-				      p_abs,
-				      t_abs,
+				      f_grid,
+				      abs_p,
+				      abs_t,
 				      vmr,
-				      h2o_abs );
+				      abs_h2o );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -11858,11 +11858,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  Pardo_ATM_N2_dry_continuum( xsec,
 				      0.000, // coefficient
 				      model,
-				      f_mono,
-				      p_abs,
-				      t_abs,
+				      f_grid,
+				      abs_p,
+				      abs_t,
 				      vmr,
-				      h2o_abs );
+				      abs_h2o );
 	} 
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -11890,9 +11890,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //  b) input
       //     parameters[0] : continuum strength coefficient  [1/m * 1/(Hz*Pa)²]
       //     parameters[1] : continuum temperature exponent  [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       const int Nparam = 2;
@@ -11904,9 +11904,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 					parameters[0], // coefficient
 					parameters[1], // temp. exponent
 					model,
-					f_mono,
-					p_abs,
-					t_abs,
+					f_grid,
+					abs_p,
+					abs_t,
 					vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -11926,9 +11926,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 					0.00,
 					0.00,
 					model,
-					f_mono,
-					p_abs,
-					t_abs,
+					f_grid,
+					abs_p,
+					abs_t,
 					vmr );	  
 	} 
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -11957,9 +11957,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[1] : frequency exponent    (xf) [1]
       //     parameters[2] : temperature exponent  (xt) [1]
       //     parameters[3] : pressure exponent     (xp) [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -11972,9 +11972,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 				      parameters[2],
 				      parameters[3],
 				      model,
-				      f_mono,
-				      p_abs,
-				      t_abs,
+				      f_grid,
+				      abs_p,
+				      abs_t,
 				      vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -11996,9 +11996,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 				      0.000,
 				      0.000,
 				      model,
-				      f_mono,
-				      p_abs,
-				      t_abs,
+				      f_grid,
+				      abs_p,
+				      abs_t,
 				      vmr );
 	} 
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -12027,9 +12027,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  BF86_CIA_N2( xsec,
 		       parameters[0], // scaling factor
 		       model,
-		       f_mono,
-		       p_abs,
-		       t_abs,
+		       f_grid,
+		       abs_p,
+		       abs_t,
 		       vmr   );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -12048,9 +12048,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  BF86_CIA_N2( xsec,
 		       0.0,
 		       model,
-		       f_mono,
-		       p_abs,
-		       t_abs,
+		       f_grid,
+		       abs_p,
+		       abs_t,
 		       vmr   );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -12079,9 +12079,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_CIArot_n2( xsec,
 			    parameters[0], // scaling factor
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -12100,9 +12100,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_CIArot_n2( xsec,
 			    0.0,
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -12135,9 +12135,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_CIAfun_n2( xsec,
 			    parameters[0], // scaling factor
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -12156,9 +12156,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_CIAfun_n2( xsec,
 			    0.0,
 			    model,
-			    f_mono,
-			    p_abs,
-			    t_abs,
+			    f_grid,
+			    abs_p,
+			    abs_t,
 			    vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -12187,11 +12187,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //  INPUT	
       //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
       //     parameters[1] : continuum temperature exponent  [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
-      //     h2o_abs       : [1]
+      //     abs_h2o       : [1]
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -12201,9 +12201,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_241_co2( xsec,
 		      parameters[0], // abs. scaling
 		      model,
-		      f_mono,
-		      p_abs,
-		      t_abs,
+		      f_grid,
+		      abs_p,
+		      abs_t,
 		      vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -12222,9 +12222,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_241_co2( xsec,
 		      0.00,
 		      model,
-		      f_mono,
-		      p_abs,
-		      t_abs,
+		      f_grid,
+		      abs_p,
+		      abs_t,
 		      vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -12253,11 +12253,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //  INPUT	
       //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
       //     parameters[1] : continuum temperature exponent  [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
-      //     h2o_abs       : [1]
+      //     abs_h2o       : [1]
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
@@ -12267,9 +12267,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_co2( xsec,
 		      parameters[0], // abs. scaling
 		      model,
-		      f_mono,
-		      p_abs,
-		      t_abs,
+		      f_grid,
+		      abs_p,
+		      abs_t,
 		      vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -12288,9 +12288,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  CKD_mt_co2( xsec,
 		      0.00,
 		      model,
-		      f_mono,
-		      p_abs,
-		      t_abs,
+		      f_grid,
+		      abs_p,
+		      abs_t,
 		      vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -12319,9 +12319,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //  INPUT	
       //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
       //     parameters[1] : continuum temperature exponent  [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       const int Nparam = 2;
@@ -12333,9 +12333,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 					 parameters[0], // coefficient
 					 parameters[1], // temp. exponent
 					 model,
-					 f_mono,
-					 p_abs,
-					 t_abs,
+					 f_grid,
+					 abs_p,
+					 abs_t,
 					 vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -12355,9 +12355,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 					 0.00,
 					 0.00,
 					 model,
-					 f_mono,
-					 p_abs,
-					 t_abs,
+					 f_grid,
+					 abs_p,
+					 abs_t,
 					 vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -12386,10 +12386,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //  INPUT
       //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
       //     parameters[1] : continuum temperature exponent  [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
-      //     n2_abs        : [1]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
+      //     abs_n2        : [1]
       //     vmr           : [1]
       //
       const int Nparam = 2;
@@ -12401,10 +12401,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 					    parameters[0],
 					    parameters[1],
 					    model,
-					    f_mono,
-					    p_abs,
-					    t_abs,
-					    n2_abs,
+					    f_grid,
+					    abs_p,
+					    abs_t,
+					    abs_n2,
 					    vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -12424,10 +12424,10 @@ void xsec_continuum_tag( MatrixView                 xsec,
 					    0.00,
 					    0.00,
 					    model,
-					    f_mono,
-					    p_abs,
-					    t_abs,
-					    n2_abs,
+					    f_grid,
+					    abs_p,
+					    abs_t,
+					    abs_n2,
 					    vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -12460,9 +12460,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[1] : [1]
       //     parameters[2] : [1]
       //     model        : [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       // liquid water droplet parameters:
@@ -12483,9 +12483,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 		   	       parameters[1],     // scaling factror
 		   	       parameters[2],     // scaling factror
 			       model,       // model option
-			       f_mono,
-			       p_abs,
-			       t_abs,
+			       f_grid,
+			       abs_p,
+			       abs_t,
 			       vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -12506,9 +12506,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 		   	       0.000,        // scaling factror
 		   	       0.000,        // scaling factror
 			       model,  // model option
-			       f_mono,
-			       p_abs,
-			       t_abs,
+			       f_grid,
+			       abs_p,
+			       abs_t,
 			       vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -12541,9 +12541,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[1] : [1]
       //     parameters[2] : [1]
       //     model        : [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [1]
       //
       // ice crystal parameters:
@@ -12564,9 +12564,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			     parameters[1],     // scaling factror
 			     parameters[2],     // scaling factror
 			     model,       // model option
-			     f_mono,
-			     p_abs,
-			     t_abs,
+			     f_grid,
+			     abs_p,
+			     abs_t,
 			     vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -12587,9 +12587,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			     0.000,       // scaling factror
 			     0.000,       // scaling factror
 			     model, // model option
-			     f_mono,
-			     p_abs,
-			     t_abs,
+			     f_grid,
+			     abs_p,
+			     abs_t,
 			     vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -12625,9 +12625,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     parameters[1] : [1]
       //     parameters[2] : [1]
       //     model         : [1]
-      //     f_mono        : [Hz]
-      //     p_abs         : [Pa]
-      //     t_abs         : [K]
+      //     f_grid        : [Hz]
+      //     abs_p         : [Pa]
+      //     abs_t         : [K]
       //     vmr           : [mm/h]
       //
       // rain parameters:
@@ -12646,9 +12646,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 		       parameters[1],     // scaling factror
 		       parameters[2],     // scaling factror
 		       model,             // model option
-		       f_mono,
-		       p_abs,
-		       t_abs,
+		       f_grid,
+		       abs_p,
+		       abs_t,
 		       vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
@@ -12669,9 +12669,9 @@ void xsec_continuum_tag( MatrixView                 xsec,
 		      0.000,       // scaling factror
 		      0.000,       // scaling factror
 		      model,       // model option
-		      f_mono,
-		      p_abs,
-		      t_abs,
+		      f_grid,
+		      abs_p,
+		      abs_t,
 		      vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
@@ -16277,8 +16277,8 @@ static int cs__0 = 0;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.38 $ */
-/*     created:	        $Date: 2006/05/11 16:24:43 $ */
+/*     revision:	        $Revision: 1.39 $ */
+/*     created:	        $Date: 2006/06/30 08:35:33 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */

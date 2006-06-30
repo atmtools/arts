@@ -476,7 +476,7 @@ void AtmFieldsCalcExpand1D(
  \param t_field_raw temperature field data
  \param z_field_raw altitude field data
  \param vmr_field_raw vmr field data
- \param gas_species gas species for calculation
+ \param abs_species gas species for calculation
  \param basename name of scenario
 
  \author Claudia Emde
@@ -487,7 +487,7 @@ void AtmRawRead(//WS Output:
                 GriddedField3& z_field_raw,
                 ArrayOfGriddedField3& vmr_field_raw,
                 //WS Input:
-                const ArrayOfArrayOfSpeciesTag& gas_species,
+                const ArrayOfArrayOfSpeciesTag& abs_species,
                 //Keyword:
                 const String& basename)
 {
@@ -509,12 +509,12 @@ void AtmRawRead(//WS Output:
   extern const Array<SpeciesRecord> species_data;
   
   // We need to read one profile for each tag group.
-  for ( Index i=0; i<gas_species.nelem(); i ++)
+  for ( Index i=0; i<abs_species.nelem(); i ++)
     {
       // Determine the name.
       file_name =
         basename + "." +
-        species_data[gas_species[i][0].Species()].Name() + ".xml";
+        species_data[abs_species[i][0].Species()].Name() + ".xml";
       
       // Add an element for this tag group to the vmr profiles:
       GriddedField3 vmr_field_data;
@@ -524,7 +524,7 @@ void AtmRawRead(//WS Output:
       xml_read_from_file( file_name, vmr_field_raw[vmr_field_raw.nelem()-1]);
       
       // state the source of profile.
-      out3 << "  " << species_data[gas_species[i][0].Species()].Name()
+      out3 << "  " << species_data[abs_species[i][0].Species()].Name()
            << " profile read from file: " << file_name << "\n";
     }
 }

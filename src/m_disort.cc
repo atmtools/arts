@@ -95,7 +95,7 @@ void ScatteringDisort(// WS Output:
                       const ArrayOfIndex& cloudbox_limits, 
                       const Index& stokes_dim,
                       const Agenda& opt_prop_part_agenda,
-                      const Agenda& scalar_gas_absorption_agenda, 
+                      const Agenda& abs_scalar_gas_agenda, 
                       const Agenda& spt_calc_agenda,
                       const Tensor4& pnd_field,
                       const Tensor3& t_field, 
@@ -272,7 +272,7 @@ void ScatteringDisort(// WS Output:
       scat_data_monoCalc(scat_data_mono, scat_data_raw, f_grid, f_index);
       
       dtauc_ssalbCalc(dtauc, ssalb, opt_prop_part_agenda,
-                      scalar_gas_absorption_agenda, spt_calc_agenda, 
+                      abs_scalar_gas_agenda, spt_calc_agenda, 
                       pnd_field, 
                       t_field, z_field, p_grid, vmr_field, f_index);
       //cout << "dtauc " << dtauc << endl

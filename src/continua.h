@@ -42,11 +42,11 @@ void xsec_continuum_tag( MatrixView         xsec,       // calculated x-section
 			 const String&      name,       // model name
 			 ConstVectorView    parameters, // model 
 			 const String&      model,      // model option
-			 ConstVectorView    f_mono,     // frequency vector
-			 ConstVectorView    p_abs,      // pressure vector
-			 ConstVectorView    t_abs,      // temperature vector 
-			 ConstVectorView    n2_abs,     // N2 vmr profile
-			 ConstVectorView    h2o_abs,    // H2O vmr profile
+			 ConstVectorView    f_grid,     // frequency vector
+			 ConstVectorView    abs_p,      // pressure vector
+			 ConstVectorView    abs_t,      // temperature vector 
+			 ConstVectorView    abs_n2,     // N2 vmr profile
+			 ConstVectorView    abs_h2o,    // H2O vmr profile
 			 ConstVectorView    vmr );      // species vmr profile
 
 //////////////////////////////////////////////////////////////////////////// 
@@ -65,9 +65,9 @@ void MPM87H2OAbsModel( MatrixView        xsec,       // calculated x-section
 		       const Numeric	 CL,         // line strength scale factor
 		       const Numeric	 CW,         // line broadening scale factor
                        const String&     model,      // model option
-		       ConstVectorView   f_mono,     // frequency vector
-		       ConstVectorView   p_abs,      // pressure vector
-		       ConstVectorView   t_abs,      // temperature vector
+		       ConstVectorView   f_grid,     // frequency vector
+		       ConstVectorView   abs_p,      // pressure vector
+		       ConstVectorView   abs_t,      // temperature vector
 		       ConstVectorView   vmr );      // H2O vmr profile
 
 void MPM89H2OAbsModel( MatrixView        xsec,       // calculated x-section
@@ -75,9 +75,9 @@ void MPM89H2OAbsModel( MatrixView        xsec,       // calculated x-section
 		       const Numeric	 CLin,       // line strength scale factor
 		       const Numeric	 CWin,       // line broadening scale factor
 		       const String&     model,      // model option
-		       ConstVectorView   f_mono,     // frequency vector
-		       ConstVectorView   p_abs,      // pressure vector
-		       ConstVectorView   t_abs,      // temperature vector
+		       ConstVectorView   f_grid,     // frequency vector
+		       ConstVectorView   abs_p,      // pressure vector
+		       ConstVectorView   abs_t,      // temperature vector
 		       ConstVectorView   vmr );      // H2O vmr profile
 
 void MPM93H2OAbsModel( MatrixView        xsec,
@@ -85,9 +85,9 @@ void MPM93H2OAbsModel( MatrixView        xsec,
 		       const Numeric	 CLin,       // line strength scale factor
 		       const Numeric	 CWin,       // line broadening scale factor
 		       const String&     model,      // model option
-		       ConstVectorView   f_mono,     // frequency vector
-		       ConstVectorView   p_abs,      // pressure vector
-		       ConstVectorView   t_abs,      // temperature vector
+		       ConstVectorView   f_grid,     // frequency vector
+		       ConstVectorView   abs_p,      // pressure vector
+		       ConstVectorView   abs_t,      // temperature vector
 		       ConstVectorView   vmr );      // H2O vmr profile
 
 void PWR98H2OAbsModel( MatrixView        xsec,       // calculated x-section
@@ -95,9 +95,9 @@ void PWR98H2OAbsModel( MatrixView        xsec,       // calculated x-section
 		       const Numeric     CLin,       // line strength scale factor
 		       const Numeric	 CWin,       // line broadening scale factor
 		       const String&     model,      // model option
-		       ConstVectorView   f_mono,     // frequency vector
-		       ConstVectorView   p_abs,      // pressure vector
-		       ConstVectorView   t_abs,      // temperature vector
+		       ConstVectorView   f_grid,     // frequency vector
+		       ConstVectorView   abs_p,      // pressure vector
+		       ConstVectorView   abs_t,      // temperature vector
 		       ConstVectorView   vmr );      // H2O vmr profile
 
 void CP98H2OAbsModel( MatrixView        xsec,        // calculated x-section
@@ -105,9 +105,9 @@ void CP98H2OAbsModel( MatrixView        xsec,        // calculated x-section
 		      const Numeric     CLin,        // line strength scale factor
 		      const Numeric     CWin,        // line broadening scale factor
 		      const String&     model,       // model option
-		      ConstVectorView   f_mono,      // frequency vector
-		      ConstVectorView   p_abs,       // pressure vector
-		      ConstVectorView   t_abs,       // temperature vector
+		      ConstVectorView   f_grid,      // frequency vector
+		      ConstVectorView   abs_p,       // pressure vector
+		      ConstVectorView   abs_t,       // temperature vector
 		      ConstVectorView   vmr );       // H2O vmr profile
 
 //////////////////////////////////////////////////////////////////////////// 
@@ -117,36 +117,36 @@ void CP98H2OAbsModel( MatrixView        xsec,        // calculated x-section
 void Pardo_ATM_H2O_ForeignContinuum( MatrixView          xsec,   // calculated x-section
 				     const Numeric       Cin,    // model parameter
 				     const String&       model,  // model option
-				     ConstVectorView     f_mono, // frequency vector
-				     ConstVectorView     p_abs,  // pressure vector
-				     ConstVectorView     t_abs,  // temperature vector 
+				     ConstVectorView     f_grid, // frequency vector
+				     ConstVectorView     abs_p,  // pressure vector
+				     ConstVectorView     abs_t,  // temperature vector 
 				     ConstVectorView     vmr);   // H2O vmr profile
 
 void Standard_H2O_self_continuum( MatrixView        xsec,        // calculated x-section
 				  const Numeric     C,           // model parameter
 				  const Numeric     x,           // model parameter
 				  const String&     model,       // model option
-				  ConstVectorView   f_mono,      // frequency vector
-				  ConstVectorView   p_abs,       // pressure vector
-				  ConstVectorView   t_abs,       // temperature vector 
+				  ConstVectorView   f_grid,      // frequency vector
+				  ConstVectorView   abs_p,       // pressure vector
+				  ConstVectorView   abs_t,       // temperature vector 
 				  ConstVectorView   vmr);        // H2O vmr profile
 
 void Standard_H2O_foreign_continuum( MatrixView        xsec,     // calculated x-section
 				     const Numeric	 C,      // model parameter
 				     const Numeric	 x,      // model parameter
 				     const String&     model,    // model option
-				     ConstVectorView   f_mono,   // frequency vector
-				     ConstVectorView   p_abs,    // pressure vector
-				     ConstVectorView   t_abs,    // temperature vector 
+				     ConstVectorView   f_grid,   // frequency vector
+				     ConstVectorView   abs_p,    // pressure vector
+				     ConstVectorView   abs_t,    // temperature vector 
 				     ConstVectorView   vmr);     // H2O vmr profile
 
 void MaTipping_H2O_foreign_continuum( MatrixView        xsec,     // calculated x-section
 				     const Numeric	 C,      // model parameter
 				     const Numeric	 x,      // model parameter
 				     const String&     model,    // model option
-				     ConstVectorView   f_mono,   // frequency vector
-				     ConstVectorView   p_abs,    // pressure vector
-				     ConstVectorView   t_abs,    // temperature vector 
+				     ConstVectorView   f_grid,   // frequency vector
+				     ConstVectorView   abs_p,    // pressure vector
+				     ConstVectorView   abs_t,    // temperature vector 
 				     ConstVectorView   vmr);     // H2O vmr profile
 
 void MPM93_H2O_continuum( MatrixView        xsec,                // calculated x-section
@@ -158,75 +158,75 @@ void MPM93_H2O_continuum( MatrixView        xsec,                // calculated x
 			  const Numeric	    b5,                  // model parameter
 			  const Numeric	    b6,                  // model parameter
 			  const String&     model,               // model option
-			  ConstVectorView   f_mono,              // frequency vector
-			  ConstVectorView   p_abs,               // pressure vector
-			  ConstVectorView   t_abs,               // temperature vector
+			  ConstVectorView   f_grid,              // frequency vector
+			  ConstVectorView   abs_p,               // pressure vector
+			  ConstVectorView   abs_t,               // temperature vector
 			  ConstVectorView   vmr	 );              // H2O vmr profile
 
 
 void CKD_222_self_h2o( MatrixView          xsec,
 		       const Numeric       Cin,
 		       const String&       model,
-		       ConstVectorView     f_mono,
-		       ConstVectorView     p_abs,
-		       ConstVectorView     t_abs,
+		       ConstVectorView     f_grid,
+		       ConstVectorView     abs_p,
+		       ConstVectorView     abs_t,
 		       ConstVectorView     vmr,
-		       ConstVectorView     n2_abs );
+		       ConstVectorView     abs_n2 );
 
 void CKD_222_foreign_h2o( MatrixView          xsec,
 			  const Numeric       Cin,
 			  const String&       model,
-			  ConstVectorView     f_mono,
-			  ConstVectorView     p_abs,
-			  ConstVectorView     t_abs,
+			  ConstVectorView     f_grid,
+			  ConstVectorView     abs_p,
+			  ConstVectorView     abs_t,
 			  ConstVectorView     vmr,
-			  ConstVectorView     n2_abs );
+			  ConstVectorView     abs_n2 );
 
 void CKD_242_self_h2o( MatrixView          xsec,
 		       const Numeric       Cin,
 		       const String&       model,
-		       ConstVectorView     f_mono,
-		       ConstVectorView     p_abs,
-		       ConstVectorView     t_abs,
+		       ConstVectorView     f_grid,
+		       ConstVectorView     abs_p,
+		       ConstVectorView     abs_t,
 		       ConstVectorView     vmr,
-		       ConstVectorView     n2_abs );
+		       ConstVectorView     abs_n2 );
 
 void CKD24_H20( MatrixView          xsec,      // calculated x-section
 		int                 isf,       // flag if self or foreign cont.
 		const Numeric       Cin,       // model scaling factor
 		const String&       model,     // model option
-		ConstVectorView     f_mono,    // frequency vector
-		ConstVectorView     p_abs,     // pressure vector
-		ConstVectorView     t_abs,     // temperature vector
+		ConstVectorView     f_grid,    // frequency vector
+		ConstVectorView     abs_p,     // pressure vector
+		ConstVectorView     abs_t,     // temperature vector
 		ConstVectorView     vmr,       // H2O vmr profile
-                ConstVectorView     n2_abs );  // N2 vmr profile
+                ConstVectorView     abs_n2 );  // N2 vmr profile
 
 void CKD_242_foreign_h2o( MatrixView          xsec,
 			  const Numeric       Cin,
 			  const String&       model,
-			  ConstVectorView     f_mono,
-			  ConstVectorView     p_abs,
-			  ConstVectorView     t_abs,
+			  ConstVectorView     f_grid,
+			  ConstVectorView     abs_p,
+			  ConstVectorView     abs_t,
 			  ConstVectorView     vmr,
-			  ConstVectorView     n2_abs );
+			  ConstVectorView     abs_n2 );
 
 void CKD_mt_100_self_h2o( MatrixView          xsec,
 			  const Numeric       Cin,
 			  const String&       model,
-			  ConstVectorView     f_mono,
-			  ConstVectorView     p_abs,
-			  ConstVectorView     t_abs,
+			  ConstVectorView     f_grid,
+			  ConstVectorView     abs_p,
+			  ConstVectorView     abs_t,
 			  ConstVectorView     vmr,
-			  ConstVectorView     n2_abs );
+			  ConstVectorView     abs_n2 );
 
 void CKD_mt_100_foreign_h2o( MatrixView          xsec,
 			     const Numeric       Cin,
 			     const String&       model,
-			     ConstVectorView     f_mono,
-			     ConstVectorView     p_abs,
-			     ConstVectorView     t_abs,
+			     ConstVectorView     f_grid,
+			     ConstVectorView     abs_p,
+			     ConstVectorView     abs_t,
 			     ConstVectorView     vmr,
-			     ConstVectorView     n2_abs );
+			     ConstVectorView     abs_n2 );
 
 //////////////////////////////////////////////////////////////////////////// 
 // oxygen line+continuum absorption models
@@ -238,10 +238,10 @@ void MPM85O2AbsModel( MatrixView        xsec,        // calculated x-section
 		      const Numeric     CW,          // model parameter
 		      const Numeric     CO,          // model parameter
 		      const String&     model,       // model option
-		      ConstVectorView   f_mono,      // frequency vector
-		      ConstVectorView   p_abs,       // pressure vector
-		      ConstVectorView   t_abs,       // temperature vector
-		      ConstVectorView   h2o_abs,     // H2O vmr profile
+		      ConstVectorView   f_grid,      // frequency vector
+		      ConstVectorView   abs_p,       // pressure vector
+		      ConstVectorView   abs_t,       // temperature vector
+		      ConstVectorView   abs_h2o,     // H2O vmr profile
 		      ConstVectorView   vmr );       // O2 vmr profile
 
 
@@ -251,10 +251,10 @@ void MPM87O2AbsModel( MatrixView        xsec,        // calculated x-section
 		      const Numeric     CW,          // model parameter
 		      const Numeric     CO,          // model parameter
 		      const String&     model,       // model option
-		      ConstVectorView   f_mono,      // frequency vector
-		      ConstVectorView   p_abs,       // pressure vector
-		      ConstVectorView   t_abs,       // temperature vector
-		      ConstVectorView   h2o_abs,     // H2O vmr profile
+		      ConstVectorView   f_grid,      // frequency vector
+		      ConstVectorView   abs_p,       // pressure vector
+		      ConstVectorView   abs_t,       // temperature vector
+		      ConstVectorView   abs_h2o,     // H2O vmr profile
 		      ConstVectorView   vmr );       // O2 vmr profile
 
 
@@ -264,10 +264,10 @@ void MPM89O2AbsModel( MatrixView        xsec,        // calculated x-section
 		      const Numeric     CW,          // model parameter
 		      const Numeric     CO,          // model parameter
 		      const String&     model,       // model option
-		      ConstVectorView   f_mono,      // frequency vector
-		      ConstVectorView   p_abs,       // pressure vector
-		      ConstVectorView   t_abs,       // temperature vector
-		      ConstVectorView   h2o_abs,     // H2O vmr profile
+		      ConstVectorView   f_grid,      // frequency vector
+		      ConstVectorView   abs_p,       // pressure vector
+		      ConstVectorView   abs_t,       // temperature vector
+		      ConstVectorView   abs_h2o,     // H2O vmr profile
 		      ConstVectorView   vmr );       // O2 vmr profile
 
 
@@ -277,10 +277,10 @@ void MPM92O2AbsModel( MatrixView        xsec,        // calculated x-section
 		      const Numeric     CW,          // model parameter
 		      const Numeric     CO,          // model parameter
 		      const String&     model,       // model option
-		      ConstVectorView   f_mono,      // frequency vector
-		      ConstVectorView   p_abs,       // pressure vector
-		      ConstVectorView   t_abs,       // temperature vector
-		      ConstVectorView   h2o_abs,     // H2O vmr profile
+		      ConstVectorView   f_grid,      // frequency vector
+		      ConstVectorView   abs_p,       // pressure vector
+		      ConstVectorView   abs_t,       // temperature vector
+		      ConstVectorView   abs_h2o,     // H2O vmr profile
 		      ConstVectorView   vmr );       // O2 vmr profile
 
 
@@ -290,10 +290,10 @@ void MPM93O2AbsModel( MatrixView        xsec,        // calculated x-section
 		      const Numeric     CW,          // model parameter
 		      const Numeric     CO,          // model parameter
 		      const String&     model,       // model option
-		      ConstVectorView   f_mono,      // frequency vector
-		      ConstVectorView   p_abs,       // pressure vector
-		      ConstVectorView   t_abs,       // temperature vector
-		      ConstVectorView   h2o_abs,     // H2O vmr profile
+		      ConstVectorView   f_grid,      // frequency vector
+		      ConstVectorView   abs_p,       // pressure vector
+		      ConstVectorView   abs_t,       // temperature vector
+		      ConstVectorView   abs_h2o,     // H2O vmr profile
 		      ConstVectorView   vmr );       // O2 vmr profile
 
 void PWR93O2AbsModel( MatrixView        xsec,        // calculated x-section
@@ -303,10 +303,10 @@ void PWR93O2AbsModel( MatrixView        xsec,        // calculated x-section
 		      const Numeric     CO,          // model parameter
 		      const String&     model,       // model option
 		      const String&     version,     // model version 1993 or 1988
-		      ConstVectorView   f_mono,      // frequency vector
-		      ConstVectorView   p_abs,       // pressure vector
-		      ConstVectorView   t_abs,       // temperature vector
-		      ConstVectorView   h2o_abs,     // H2O vmr profile
+		      ConstVectorView   f_grid,      // frequency vector
+		      ConstVectorView   abs_p,       // pressure vector
+		      ConstVectorView   abs_t,       // temperature vector
+		      ConstVectorView   abs_h2o,     // H2O vmr profile
 		      ConstVectorView   vmr );       // O2 vmr profile
 
 //////////////////////////////////////////////////////////////////////////// 
@@ -319,10 +319,10 @@ void MPM93_O2_continuum( MatrixView        xsec,             // calculated x-sec
 			 const Numeric     XSOin,            // model parameter
 			 const Numeric     XG0in,            // model parameter
 			 const String&     model,            // model option
-			 ConstVectorView   f_mono,           // frequency vector
-			 ConstVectorView   p_abs,            // pressure vector
-			 ConstVectorView   t_abs,            // temperature vector
-			 ConstVectorView   h2o_abs,          // H2O vmr profile
+			 ConstVectorView   f_grid,           // frequency vector
+			 ConstVectorView   abs_p,            // pressure vector
+			 ConstVectorView   abs_t,            // temperature vector
+			 ConstVectorView   abs_h2o,          // H2O vmr profile
 			 ConstVectorView   vmr	 );          // O2 vmr profile
 
 void Rosenkranz_O2_continuum( MatrixView        xsec,        // calculated x-section
@@ -331,35 +331,35 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,        // calculated x-sec
 			      const Numeric     XSOin,       // model parameter
 			      const Numeric     XG0in,       // model parameter
 			      const String&     model,       // model option
-			      ConstVectorView  	f_mono,      // frequency vector
-			      ConstVectorView  	p_abs,       // pressure vector
-			      ConstVectorView  	t_abs,       // temperature vector
-			      ConstVectorView   h2o_abs,     // H2O vmr profile
+			      ConstVectorView  	f_grid,      // frequency vector
+			      ConstVectorView  	abs_p,       // pressure vector
+			      ConstVectorView  	abs_t,       // temperature vector
+			      ConstVectorView   abs_h2o,     // H2O vmr profile
 			      ConstVectorView   vmr);        // O2 vmr profile
 
 void CKD_mt_CIAfun_o2( MatrixView         xsec,        // calculated x-section
 		      const Numeric       Cin,         // scaling factor
 		      const String&       model,       // model option
-		      ConstVectorView     f_mono,      // frequency vector
-		      ConstVectorView     p_abs,       // pressure vector
-		      ConstVectorView     t_abs,       // temperature vector
+		      ConstVectorView     f_grid,      // frequency vector
+		      ConstVectorView     abs_p,       // pressure vector
+		      ConstVectorView     abs_t,       // temperature vector
 		      ConstVectorView     vmr );       // O2 vmr profile
 
 void CKD_mt_v0v0_o2( MatrixView          xsec,        // calculated x-section
 		     const Numeric       Cin,         // scaling factor
 		     const String&       model,       // model option
-		     ConstVectorView     f_mono,      // frequency vector
-		     ConstVectorView     p_abs,       // pressure vector
-		     ConstVectorView     t_abs,       // temperature vector
+		     ConstVectorView     f_grid,      // frequency vector
+		     ConstVectorView     abs_p,       // pressure vector
+		     ConstVectorView     abs_t,       // temperature vector
 		     ConstVectorView     vmr,         // O2 vmr profile
-		     ConstVectorView     n2_abs );    // N2 vmr profile
+		     ConstVectorView     abs_n2 );    // N2 vmr profile
 
 void CKD_mt_v1v0_o2( MatrixView          xsec,        // calculated x-section
 		     const Numeric       Cin,         // scaling factor
 		     const String&       model,       // model option
-		     ConstVectorView     f_mono,      // frequency vector
-		     ConstVectorView     p_abs,       // pressure vector
-		     ConstVectorView     t_abs,       // temperature vector
+		     ConstVectorView     f_grid,      // frequency vector
+		     ConstVectorView     abs_p,       // pressure vector
+		     ConstVectorView     abs_t,       // temperature vector
 		     ConstVectorView     vmr );       // O2 vmr profile
 
 //////////////////////////////////////////////////////////////////////////// 
@@ -369,25 +369,25 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,        // calculated x-section
 void CKD_mt_CIArot_n2( MatrixView         xsec,        // calculated x-section
 		       const Numeric      Cin,         // scaling factor
 		       const String&      model,       // model option
-		       ConstVectorView    f_mono,      // frequency vector
-		       ConstVectorView    p_abs,       // pressure vector
-		       ConstVectorView    t_abs,       // temperature vector
+		       ConstVectorView    f_grid,      // frequency vector
+		       ConstVectorView    abs_p,       // pressure vector
+		       ConstVectorView    abs_t,       // temperature vector
 		       ConstVectorView    vmr );       // N2 vmr profile
 
 void CKD_mt_CIAfun_n2( MatrixView         xsec,        // calculated x-section
 		      const Numeric       Cin,         // scaling factor
 		      const String&       model,       // model option
-		      ConstVectorView     f_mono,      // frequency vector
-		      ConstVectorView     p_abs,       // pressure vector
-		      ConstVectorView     t_abs,       // temperature vector
+		      ConstVectorView     f_grid,      // frequency vector
+		      ConstVectorView     abs_p,       // pressure vector
+		      ConstVectorView     abs_t,       // temperature vector
 		      ConstVectorView     vmr );       // N2 vmr profile
 
 void BF86_CIA_N2( MatrixView              xsec,        // calculated x-section
 		  const Numeric           Cin,         // model parameter
 		  const String&           model,       // model option 
-		  ConstVectorView         f_mono,      // frequency vector
-		  ConstVectorView         p_abs,       // pressure vector
-		  ConstVectorView         t_abs,       // temperature vector
+		  ConstVectorView         f_grid,      // frequency vector
+		  ConstVectorView         abs_p,       // pressure vector
+		  ConstVectorView         abs_t,       // temperature vector
 		  ConstVectorView         vmr   );     // N2 vmr profile 
 
 void MPM93_N2_continuum( MatrixView       xsec,        // calculated x-section
@@ -396,19 +396,19 @@ void MPM93_N2_continuum( MatrixView       xsec,        // calculated x-section
 			 const Numeric    xTin,        // model parameter
 			 const Numeric    xfin,        // model parameter
 			 const String&    model,       // model option
-			 ConstVectorView  f_mono,      // frequency vector
-			 ConstVectorView  p_abs,       // pressure vector
-			 ConstVectorView  t_abs,       // temperature vector
-			 ConstVectorView  h2o_abs,     // H2O vmr profile
+			 ConstVectorView  f_grid,      // frequency vector
+			 ConstVectorView  abs_p,       // pressure vector
+			 ConstVectorView  abs_t,       // temperature vector
+			 ConstVectorView  abs_h2o,     // H2O vmr profile
 			 ConstVectorView  vmr	 );    // N2 vmr profile
 
 void Rosenkranz_N2_self_continuum( MatrixView        xsec,        // calculated x-section
 				   const Numeric     Cin,         // model parameter
 				   const Numeric     xin,         // model parameter
 				   const String&     model,       // model option
-				   ConstVectorView   f_mono,      // frequency vector
-				   ConstVectorView   p_abs,       // pressure vector
-				   ConstVectorView   t_abs,       // temperature vector
+				   ConstVectorView   f_grid,      // frequency vector
+				   ConstVectorView   abs_p,       // pressure vector
+				   ConstVectorView   abs_t,       // temperature vector
 				   ConstVectorView   vmr );       // N2 vmr profile
 
 void Standard_N2_self_continuum(   MatrixView        xsec,        // calculated x-section
@@ -417,19 +417,19 @@ void Standard_N2_self_continuum(   MatrixView        xsec,        // calculated 
                                    const Numeric     xtin,        // model parameter
                                    const Numeric     xpin,        // model parameter
 				   const String&     model,       // model option
-				   ConstVectorView   f_mono,      // frequency vector
-				   ConstVectorView   p_abs,       // pressure vector
-				   ConstVectorView   t_abs,       // temperature vector
+				   ConstVectorView   f_grid,      // frequency vector
+				   ConstVectorView   abs_p,       // pressure vector
+				   ConstVectorView   abs_t,       // temperature vector
 				   ConstVectorView   vmr );       // N2 vmr profile
 
 void Pardo_ATM_N2_dry_continuum( MatrixView         xsec,         // calculated x-section
 				  const Numeric     Cin,          // model parameter
 				  const String&     model,        // model option
-				  ConstVectorView   f_mono,       // frequency vector
-				  ConstVectorView   p_abs,        // pressure vector
-				  ConstVectorView   t_abs,        // temperature vector
+				  ConstVectorView   f_grid,       // frequency vector
+				  ConstVectorView   abs_p,        // pressure vector
+				  ConstVectorView   abs_t,        // temperature vector
 				  ConstVectorView   vmr,	  // N2 vmr profile
-				  ConstVectorView   h2o_abs);     // H2O vmr profile
+				  ConstVectorView   abs_h2o);     // H2O vmr profile
 
 //////////////////////////////////////////////////////////////////////////// 
 // carbon dioxide continuum absorption models
@@ -438,36 +438,36 @@ void Pardo_ATM_N2_dry_continuum( MatrixView         xsec,         // calculated 
 void CKD_241_co2( MatrixView          xsec,        // calculated x-section
 		  const Numeric       Cin,         // scaling factor
 		  const String&       model,       // model option
-		  ConstVectorView     f_mono,      // frequency vector
-		  ConstVectorView     p_abs,       // pressure vector
-		  ConstVectorView     t_abs,       // temperature vector
+		  ConstVectorView     f_grid,      // frequency vector
+		  ConstVectorView     abs_p,       // pressure vector
+		  ConstVectorView     abs_t,       // temperature vector
 		  ConstVectorView     vmr );	   // CO2 vmr profile
 
 void CKD_mt_co2( MatrixView          xsec,         // calculated x-section
 		 const Numeric       Cin,          // scaling factor
 		 const String&       model,        // model option
-		 ConstVectorView     f_mono,       // frequency vector
-		 ConstVectorView     p_abs,        // pressure vector
-		 ConstVectorView     t_abs,        // temperature vector
+		 ConstVectorView     f_grid,       // frequency vector
+		 ConstVectorView     abs_p,        // pressure vector
+		 ConstVectorView     abs_t,        // temperature vector
 		 ConstVectorView     vmr );        // CO2 vmr profile
 
 void Rosenkranz_CO2_self_continuum( MatrixView        xsec,       // calculated x-section
 				    const Numeric     C,          // model parameter
 				    const Numeric     x,          // model parameter
 				    const String&     model,      // model option
-				    ConstVectorView   f_mono,     // frequency vector
-				    ConstVectorView   p_abs,      // pressure vector
-				    ConstVectorView   t_abs,      // temperature vector
+				    ConstVectorView   f_grid,     // frequency vector
+				    ConstVectorView   abs_p,      // pressure vector
+				    ConstVectorView   abs_t,      // temperature vector
 				    ConstVectorView   vmr );      // CO2 vmr profile
 
 void Rosenkranz_CO2_foreign_continuum( MatrixView        xsec,    // calculated x-section
 				       const Numeric     C,       // model parameter
 				       const Numeric     x,       // model parameter
 				       const String&     model,   // model option
-				       ConstVectorView   f_mono,  // frequency vector
-				       ConstVectorView   p_abs,   // pressure vector
-				       ConstVectorView   t_abs,   // temperature vector
-				       ConstVectorView   n2_abs,  // N2 vmr profile
+				       ConstVectorView   f_grid,  // frequency vector
+				       ConstVectorView   abs_p,   // pressure vector
+				       ConstVectorView   abs_t,   // temperature vector
+				       ConstVectorView   abs_n2,  // N2 vmr profile
 				       ConstVectorView   vmr );   // CO2 vmr profile
 
 //////////////////////////////////////////////////////////////////////////// 
@@ -479,9 +479,9 @@ void MPM93WaterDropletAbs( MatrixView        xsec,     // calculated x-section
 			   const Numeric     CG,       // model parameter
 			   const Numeric     CE,       // model parameter
 			   const String&     model,    // model option
-			   ConstVectorView   f_mono,   // frequency vector
-			   ConstVectorView   p_abs,    // pressure vector
-			   ConstVectorView   t_abs,    // temperature vector
+			   ConstVectorView   f_grid,   // frequency vector
+			   ConstVectorView   abs_p,    // pressure vector
+			   ConstVectorView   abs_t,    // temperature vector
 			   ConstVectorView   vmr);     // suspended water droplet density vector
 
 void MPM93IceCrystalAbs( MatrixView        xsec,       // calculated x-section
@@ -489,9 +489,9 @@ void MPM93IceCrystalAbs( MatrixView        xsec,       // calculated x-section
 			 const Numeric     CA,         // model parameter
 			 const Numeric     CB,         // model parameter
 			 const String&     model,      // model option
-			 ConstVectorView   f_mono,     // frequency vector
-			 ConstVectorView   p_abs,      // pressure vector
-			 ConstVectorView   t_abs,      // temperature vector
+			 ConstVectorView   f_grid,     // frequency vector
+			 ConstVectorView   abs_p,      // pressure vector
+			 ConstVectorView   abs_t,      // temperature vector
 			 ConstVectorView   vmr	 );    // suspended ice particle density vector, 
 
 void MPM93RainExt( MatrixView        xsec,       // calculated x-section
@@ -499,9 +499,9 @@ void MPM93RainExt( MatrixView        xsec,       // calculated x-section
 		   const Numeric     CA,         // model parameter
 		   const Numeric     CB,         // model parameter
 		   const String&     model,      // model option
-		   ConstVectorView   f_mono,     // frequency vector
-		   ConstVectorView   p_abs,      // pressure vector
-		   ConstVectorView   t_abs,      // temperature vector
+		   ConstVectorView   f_grid,     // frequency vector
+		   ConstVectorView   abs_p,      // pressure vector
+		   ConstVectorView   abs_t,      // temperature vector
 		   ConstVectorView   vmr   );    // rain rate vector, 
 
 //////////////////////////////////////////////////////////////////////////// 

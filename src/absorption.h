@@ -445,7 +445,7 @@ public:
   /** Make the helper function linesElowToJoule a friend, so that it
       can change the lower state energy. FIXME: Remove this when we
       don't need the helper function anymore. */
-  friend void linesElowToJoule(Array<LineRecord>& lines);
+  friend void linesElowToJoule(Array<LineRecord>& abs_lines);
 
   /** Default constructor. Initialize to default values. The indices
       are initialized to large numbers, so that we at least get range
@@ -1058,16 +1058,16 @@ void define_species_map();
 
 // Doc header in absorption.cc
 void write_lines_to_stream(ostream& os,
-                           const ArrayOfLineRecord& lines);
+                           const ArrayOfLineRecord& abs_lines);
 
 
 void xsec_species( MatrixView              xsec,
                    ConstVectorView         f_mono,
-                   ConstVectorView         p_abs,
-                   ConstVectorView         t_abs,           
+                   ConstVectorView         abs_p,
+                   ConstVectorView         abs_t,           
                    ConstVectorView         h2o_abs,           
                    ConstVectorView            vmr,
-                   const ArrayOfLineRecord& lines,
+                   const ArrayOfLineRecord& abs_lines,
                    const Index             ind_ls,
                    const Index             ind_lsn,
                    const Numeric            cutoff);
@@ -1083,13 +1083,13 @@ Numeric wavenumber_to_joule(Numeric e);
 
 void refr_index_BoudourisDryAir (
                     Vector&     refr_index,
-              ConstVectorView   p_abs,
-              ConstVectorView   t_abs );
+              ConstVectorView   abs_p,
+              ConstVectorView   abs_t );
 
 void refr_index_Boudouris (
                     Vector&     refr_index,
-              ConstVectorView   p_abs,
-              ConstVectorView   t_abs,
+              ConstVectorView   abs_p,
+              ConstVectorView   abs_t,
               ConstVectorView   h2o_abs );
 
 //======================================================================

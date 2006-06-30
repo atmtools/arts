@@ -360,7 +360,7 @@ void mixer_matrix(
      ncols = number of monochromatic frequencies times polarisation and angles.
 
    \param  H         The multiple mixer transfer matrix
-   \param  f_mono    The monochromatic frequency vector
+   \param  f_grid    The monochromatic frequency vector
    \param  f_ch      The channel centre frequency vector
    \param  lo        The local oscillator frequency vector
    \param  sb_filter The sideband filter matrix
@@ -375,7 +375,7 @@ void mixer_matrix(
 */
 void multi_mixer_matrix(
      Sparse&                H,
-     ConstVectorView        f_mono,
+     ConstVectorView        f_grid,
      ConstVectorView        f_ch,
      ConstVectorView        lo,
      ConstMatrixView        sb_filter,
@@ -387,11 +387,11 @@ void multi_mixer_matrix(
 {
   // Check that the transfer matrix has the right size
   assert (H.nrows()==f_ch.nelem()*n_za*n_aa*n_pol);
-  assert (H.ncols()==f_mono.nelem()*n_za*n_aa*n_pol);
+  assert (H.ncols()==f_grid.nelem()*n_za*n_aa*n_pol);
 
-  // Check that the sideband filter is interpolateable over f_mono
-  assert (sb_filter(0,0)<=f_mono[0] &&
-          sb_filter(sb_filter.nrows()-1,0)>=f_mono[f_mono.nelem()-1]);
+  // Check that the sideband filter is interpolateable over f_grid
+  assert (sb_filter(0,0)<=f_grid[0] &&
+          sb_filter(sb_filter.nrows()-1,0)>=f_grid[f_grid.nelem()-1]);
 
   // Assert that the number of *lo* elements equal the number of
   // polarisations
@@ -413,15 +413,15 @@ void multi_mixer_matrix(
   // expanded result from sensor_integration_vector before inserting them in
   // the transfer matrix. The second vector, temp, is used for the output
   // from sensor_integration_vector.
-  Vector temp_long(f_mono.nelem()*n_za*n_aa*n_pol, 0.0);
-  Vector temp(f_mono.nelem(), 0.0);
+  Vector temp_long(f_grid.nelem()*n_za*n_aa*n_pol, 0.0);
+  Vector temp(f_grid.nelem(), 0.0);
 
   // Calculate a array of gridpos to use for interpolation of the sideband
   // filter before applying it to the calculated weights.
-  ArrayOfGridPos gp(f_mono.nelem());
-  gridpos( gp, sb_filter(joker,0), f_mono);
+  ArrayOfGridPos gp(f_grid.nelem());
+  gridpos( gp, sb_filter(joker,0), f_grid);
   Matrix itw(gp.nelem(),2);
-  Vector sb_itrp(f_mono.nelem());
+  Vector sb_itrp(f_grid.nelem());
 
   // Loop over *lo* frequencies (and polarisations) and calculate responses.
   // FIXME: is this correct: Here we definitely have different responses for
@@ -469,7 +469,7 @@ void multi_mixer_matrix(
 
       // Call sensor_integration matrix
       sensor_integration_vector( temp, tmp_resp(joker,f*freq_full),
-                                 tmp_f, f_mono);
+                                 tmp_f, f_grid);
 
       // Apply sideband filter
       interp( sb_itrp, itw, sb_filter(joker,l*sb_full), gp);
@@ -490,7 +490,7 @@ void multi_mixer_matrix(
           // store data at appropriate positions according to azimuth and
           // zenith angles.
           temp_long = 0.0;
-          temp_long[Range(n_pol*n_aa*f_mono.nelem()*z+n_pol*f_mono.nelem()*a+l,
+          temp_long[Range(n_pol*n_aa*f_grid.nelem()*z+n_pol*f_grid.nelem()*a+l,
             temp.nelem(),n_pol)] = temp;
           H.insert_row(n_pol*n_aa*f_ch.nelem()*z+f_ch.nelem()*n_pol*a+l,
             temp_long);

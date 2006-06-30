@@ -88,7 +88,7 @@ void RteCalc(
    const Tensor3&                    z_field,
    const Tensor3&                    t_field,
    const Tensor4&                    vmr_field,
-   const ArrayOfArrayOfSpeciesTag&   gas_species,
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
    const Matrix&                     r_geoid,
    const Matrix&                     z_surface,
    const Index&                      cloudbox_on, 
@@ -280,11 +280,11 @@ void RteCalc(
         { 
           ppath_array_do = 1;
           jqi_vmr.push_back( i );
-          // Find index in *gas_species* of jacobian species
+          // Find index in *abs_species* of jacobian species
           ArrayOfSpeciesTag   tags;
           array_species_tag_from_string( tags, 
                                              jacobian_quantities[i].Subtag() );
-          Index si = chk_contains( "gas_species", gas_species, tags );
+          Index si = chk_contains( "abs_species", abs_species, tags );
           rte_do_vmr_jacs.push_back( si ); 
           // Set size of MPB matrix
           ArrayOfIndex ji = jacobian_indices[i];
@@ -502,7 +502,7 @@ void RteCalcNoJacobian(
   Sparse                     jacobian;
   ArrayOfRetrievalQuantity   jacobian_quantities;
   ArrayOfArrayOfIndex        jacobian_indices;
-  ArrayOfArrayOfSpeciesTag   gas_species(0);
+  ArrayOfArrayOfSpeciesTag   abs_species(0);
   Index                      ppath_array_do;
   ArrayOfPpath               ppath_array;
   Index                      ppath_array_index;
@@ -514,7 +514,7 @@ void RteCalcNoJacobian(
            ppath_array_do, ppath_array, ppath_array_index,
            ppath_step_agenda, rte_agenda, iy_space_agenda, surface_prop_agenda,
            iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, lon_grid, 
-           z_field, t_field, vmr_field, gas_species, r_geoid, z_surface, 
+           z_field, t_field, vmr_field, abs_species, r_geoid, z_surface, 
            cloudbox_on,  cloudbox_limits, sensor_response, sensor_pos, 
            sensor_los, f_grid, stokes_dim, antenna_dim, mblock_za_grid, 
            mblock_aa_grid, jacobian_quantities, jacobian_indices );
@@ -544,7 +544,7 @@ void RteStd(
        const Vector&                  f_grid,
        const Index&                   stokes_dim,
        const Agenda&                  emission_agenda,
-       const Agenda&                  scalar_gas_absorption_agenda,
+       const Agenda&                  abs_scalar_gas_agenda,
        const ArrayOfIndex&            rte_do_gas_jacs,
        const Index&                   rte_do_t_jacs )
 {
@@ -553,7 +553,7 @@ void RteStd(
   rte_std( iy, emission, abs_scalar_gas,
            dummy, diy_dvmr, diy_dt,
            ppath, ppath_array, ppath_array_index, f_grid, stokes_dim, 
-           emission_agenda, scalar_gas_absorption_agenda,
+           emission_agenda, abs_scalar_gas_agenda,
            rte_do_gas_jacs, rte_do_t_jacs, false );
 }
 
@@ -581,14 +581,14 @@ void RteStdWithTransmissions(
        const Vector&                  f_grid,
        const Index&                   stokes_dim,
        const Agenda&                  emission_agenda,
-       const Agenda&                  scalar_gas_absorption_agenda,
+       const Agenda&                  abs_scalar_gas_agenda,
        const ArrayOfIndex&            rte_do_gas_jacs,
        const Index&                   rte_do_t_jacs )
 {
   rte_std( iy, emission, abs_scalar_gas,
            ppath_transmissions, diy_dvmr, diy_dt,
            ppath, ppath_array, ppath_array_index, f_grid, stokes_dim, 
-           emission_agenda, scalar_gas_absorption_agenda,
+           emission_agenda, abs_scalar_gas_agenda,
            rte_do_gas_jacs, rte_do_t_jacs, true );
 }
 

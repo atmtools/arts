@@ -1893,8 +1893,8 @@ bool LineRecord::ReadFromArtsStream(istream& is)
 
 /** Calculate line absorption cross sections for one tag group. All
     lines in the line list must belong to the same species. This must
-    be ensured by lines_per_tgCreateFromLines, so it is only verified
-    with assert. Also, the input vectors p_abs, and t_abs must all
+    be ensured by abs_lines_per_speciesCreateFromLines, so it is only verified
+    with assert. Also, the input vectors abs_p, and abs_t must all
     have the same dimension.
 
     This is mainly a copy of abs_species which is removed now, with
@@ -1906,23 +1906,23 @@ bool LineRecord::ReadFromArtsStream(istream& is)
     xsec_continuum_tag for those.
 
     \retval xsec   Cross section of one tag group.
-    \param f_mono  Frequency grid.
-    \param p_abs   Pressure grid.
-    \param t_abs   Temperatures associated with p_abs.
-    \param h2o_abs Total volume mixing ratio of water vapor.
+    \param f_grid  Frequency grid.
+    \param abs_p   Pressure grid.
+    \param abs_t   Temperatures associated with abs_p.
+    \param abs_h2o Total volume mixing ratio of water vapor.
     \param vmr     Volume mixing ratio of the calculated species.
-    \param lines   The spectroscopic line list.
+    \param abs_lines   The spectroscopic line list.
     \param ind_ls  Lineshape specifications.
 
     \author Stefan Buehler and Axel von Engeln
     \date   2001-01-11 */
 void xsec_species( MatrixView               xsec,
-                   ConstVectorView          f_mono,
-                   ConstVectorView          p_abs,
-                   ConstVectorView          t_abs,
-                   ConstVectorView          h2o_abs,
+                   ConstVectorView          f_grid,
+                   ConstVectorView          abs_p,
+                   ConstVectorView          abs_t,
+                   ConstVectorView          abs_h2o,
                    ConstVectorView          vmr,
-                   const ArrayOfLineRecord& lines,
+                   const ArrayOfLineRecord& abs_lines,
                    const Index              ind_ls,
                    const Index              ind_lsn,
                    const Numeric            cutoff)
@@ -1950,9 +1950,9 @@ void xsec_species( MatrixView               xsec,
   static const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST *
                                              AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
 
-  // dimension of f_mono, lines
-  Index nf = f_mono.nelem();
-  Index nl = lines.nelem();
+  // dimension of f_grid, abs_lines
+  Index nf = f_grid.nelem();
+  Index nl = abs_lines.nelem();
 
   // Define the vector for the line shape function and the
   // normalization factor of the lineshape here, so that we don't need
@@ -1967,11 +1967,11 @@ void xsec_species( MatrixView               xsec,
   // with cutoff. Duplicate frequency values are allowed.
   if (cut)
     {
-      if ( ! is_sorted( f_mono ) )
+      if ( ! is_sorted( f_grid ) )
         {
           ostringstream os;
           os << "If you use a lineshape function with cutoff, your\n"
-             << "frequency grid *f_mono* must be sorted.\n"
+             << "frequency grid *f_grid* must be sorted.\n"
              << "(Duplicate values are allowed.)";
           throw runtime_error(os.str());
         }
@@ -1980,21 +1980,21 @@ void xsec_species( MatrixView               xsec,
   // Check that all temperatures are non-negative
   bool negative = false;
   
-  for (Index i = 0; !negative && i < t_abs.nelem (); i++)
+  for (Index i = 0; !negative && i < abs_t.nelem (); i++)
     {
-      if (t_abs[i] < 0.)
+      if (abs_t[i] < 0.)
         negative = true;
     }
   
   if (negative)
     {
       ostringstream os;
-      os << "t_abs contains at least one negative temperature value.\n"
+      os << "abs_t contains at least one negative temperature value.\n"
          << "This is not allowed.";
       throw runtime_error(os.str());
     }
   
-  // We need a local copy of f_mono which is 1 element longer, because
+  // We need a local copy of f_grid which is 1 element longer, because
   // we append a possible cutoff to it.
   // The initialization of this has to be inside the line loop!
   Vector f_local( nf + 1 );
@@ -2011,61 +2011,61 @@ void xsec_species( MatrixView               xsec,
   Index ii = (nf+1 < 10) ? 10 : nf+1;
   Vector aux(ii);
 
-  // Check that p_abs, t_abs, and h2o_abs all have the same
+  // Check that abs_p, abs_t, and abs_h2o all have the same
   // dimension. This could be a user error, so we throw a
   // runtime_error.  FIXME: why do we do this for each tag? wouldn't a
   // check in abscalc be sufficient?
 
-  if ( t_abs.nelem() != p_abs.nelem() )
+  if ( abs_t.nelem() != abs_p.nelem() )
     {
       ostringstream os;
-      os << "Variable t_abs must have the same dimension as p_abs.\n"
-         << "t_abs.nelem() = " << t_abs.nelem() << '\n'
-         << "p_abs.nelem() = " << p_abs.nelem();
+      os << "Variable abs_t must have the same dimension as abs_p.\n"
+         << "abs_t.nelem() = " << abs_t.nelem() << '\n'
+         << "abs_p.nelem() = " << abs_p.nelem();
       throw runtime_error(os.str());
     }
 
-  if ( vmr.nelem() != p_abs.nelem() )
+  if ( vmr.nelem() != abs_p.nelem() )
     {
       ostringstream os;
-      os << "Variable vmr must have the same dimension as p_abs.\n"
+      os << "Variable vmr must have the same dimension as abs_p.\n"
          << "vmr.nelem() = " << vmr.nelem() << '\n'
-         << "p_abs.nelem() = " << p_abs.nelem();
+         << "abs_p.nelem() = " << abs_p.nelem();
       throw runtime_error(os.str());
     }
 
-  if ( h2o_abs.nelem() != p_abs.nelem() )
+  if ( abs_h2o.nelem() != abs_p.nelem() )
     {
       ostringstream os;
-      os << "Variable h2o_abs must have the same dimension as p_abs.\n"
-         << "h2o_abs.nelem() = " << h2o_abs.nelem() << '\n'
-         << "p_abs.nelem() = " << p_abs.nelem();
+      os << "Variable abs_h2o must have the same dimension as abs_p.\n"
+         << "abs_h2o.nelem() = " << abs_h2o.nelem() << '\n'
+         << "abs_p.nelem() = " << abs_p.nelem();
       throw runtime_error(os.str());
     }
 
 
-  // Check that the dimension of xsec is indeed [f_mono.nelem(),
-  // p_abs.nelem()]:
-  if ( xsec.nrows() != nf || xsec.ncols() != p_abs.nelem() )
+  // Check that the dimension of xsec is indeed [f_grid.nelem(),
+  // abs_p.nelem()]:
+  if ( xsec.nrows() != nf || xsec.ncols() != abs_p.nelem() )
     {
       ostringstream os;
-      os << "Variable xsec must have dimensions [f_mono.nelem(),p_abs.nelem()].\n"
+      os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
          << "[xsec.nrows(),xsec.ncols()] = [" << xsec.nrows()
          << ", " << xsec.ncols() << "]\n"
-         << "f_mono.nelem() = " << nf << '\n'
-         << "p_abs.nelem() = " << p_abs.nelem();
+         << "f_grid.nelem() = " << nf << '\n'
+         << "abs_p.nelem() = " << abs_p.nelem();
       throw runtime_error(os.str());
     }
 
 
   // Loop all pressures:
-  for ( Index i=0; i<p_abs.nelem(); ++i )
+  for ( Index i=0; i<abs_p.nelem(); ++i )
     {
 
-      // store variables p_abs[i] and t_abs[i],
+      // store variables abs_p[i] and abs_t[i],
       // this is slightly faster
-      Numeric p_i = p_abs[i];
-      Numeric t_i = t_abs[i];
+      Numeric p_i = abs_p[i];
+      Numeric t_i = abs_t[i];
 
     
       //out3 << "  p = " << p_i << " Pa\n";
@@ -2081,11 +2081,11 @@ void xsec_species( MatrixView               xsec,
       // Loop all lines:
       for ( Index l=0; l< nl; ++l )
         {
-          // Copy f_mono to the beginning of f_local. There is one
+          // Copy f_grid to the beginning of f_local. There is one
           // element left at the end of f_local.  
           // THIS HAS TO BE INSIDE THE LINE LOOP, BECAUSE THE CUTOFF
           // FREQUENCY IS ALWAYS PUT IN A DIFFERENT PLACE!
-          f_local[Range(0,nf)] = f_mono;
+          f_local[Range(0,nf)] = f_grid;
 
           // This will hold the actual number of frequencies to add to
           // xsec later on:
@@ -2098,9 +2098,9 @@ void xsec_species( MatrixView               xsec,
           // The baseline to substract for cutoff frequency
           Numeric base=0.0;
 
-          // lines[l] is used several times, this construct should be
+          // abs_lines[l] is used several times, this construct should be
           // faster (Oliver Lemke)
-          LineRecord l_l = lines[l];  // which line are we dealing with
+          LineRecord l_l = abs_lines[l];  // which line are we dealing with
           // Center frequency in vacuum:
           Numeric F0 = l_l.F();
 
@@ -2154,7 +2154,7 @@ void xsec_species( MatrixView               xsec,
 
 
           // 2. Get pressure broadened line width:
-          // (Agam is in Hz/Pa, p_abs is in Pa, gamma is in Hz)
+          // (Agam is in Hz/Pa, abs_p is in Pa, gamma is in Hz)
           const Numeric theta = l_l.Tgam() / t_i;
           const Numeric theta_Nair = pow(theta, l_l.Nair());
 
@@ -2189,7 +2189,7 @@ void xsec_species( MatrixView               xsec,
           aux[1] = theta_Nair;
           aux[2] = p_i;
           aux[3] = vmr[i];
-          aux[4] = h2o_abs[i];
+          aux[4] = abs_h2o[i];
           aux[5] = l_l.Agam();
           aux[6] = l_l.Nair();
           // is overlap available, otherwise pass zero
@@ -2206,7 +2206,7 @@ void xsec_species( MatrixView               xsec,
             }
 
 
-          // Indices pointing at begin/end frequencies of f_mono or at
+          // Indices pointing at begin/end frequencies of f_grid or at
           // the elements that have to be calculated in case of cutoff
           Index i_f_min = 0;            
           Index i_f_max = nf-1;         
@@ -2215,11 +2215,11 @@ void xsec_species( MatrixView               xsec,
           if ( cut )
             {
               // Check whether we have elements in ls that can be
-              // ignored at lower frequencies of f_mono.
+              // ignored at lower frequencies of f_grid.
               //
               // Loop through all frequencies, finding min value and
               // set all values to zero on that way.
-              while ( i_f_min < nf && (F0 - cutoff) > f_mono[i_f_min] )
+              while ( i_f_min < nf && (F0 - cutoff) > f_grid[i_f_min] )
                 {
                   //              ls[i_f_min] = 0;
                   ++i_f_min;
@@ -2227,11 +2227,11 @@ void xsec_species( MatrixView               xsec,
               
 
               // Check whether we have elements in ls that can be
-              // ignored at higher frequencies of f_mono.
+              // ignored at higher frequencies of f_grid.
               //
               // Loop through all frequencies, finding max value and
               // set all values to zero on that way.
-              while ( i_f_max >= 0 && (F0 + cutoff) < f_mono[i_f_max] )
+              while ( i_f_max >= 0 && (F0 + cutoff) < f_grid[i_f_max] )
                 {
                   //              ls[i_f_max] = 0;
                   --i_f_max;
@@ -2342,25 +2342,25 @@ void xsec_species( MatrixView               xsec,
    The atmosphere is assumed to have no water vapour.
 
    \retval   refr_index  refractive index
-   \param    p_abs       absorption pressure grid
-   \param    t_abs       temperatures at p_abs
+   \param    abs_p       absorption pressure grid
+   \param    abs_t       temperatures at abs_p
 
    \author Patrick Eriksson
    \date   2001-02-16
 */
 void refr_index_BoudourisDryAir (
                                 Vector&   refr_index,
-                                ConstVectorView   p_abs,
-                                ConstVectorView   t_abs )
+                                ConstVectorView   abs_p,
+                                ConstVectorView   abs_t )
 {
-  const Index   n = p_abs.nelem();
+  const Index   n = abs_p.nelem();
   refr_index.resize( n );
 
-  assert ( n == t_abs.nelem() );
+  assert ( n == abs_t.nelem() );
 
   // N = 77.593e-2 * p / t ppm
   for ( Index i=0; i<n; i++ )
-    refr_index[i] = 1.0 + 77.593e-8 * p_abs[i] / t_abs[i];
+    refr_index[i] = 1.0 + 77.593e-8 * abs_p[i] / abs_t[i];
 }
 
 
@@ -2373,36 +2373,36 @@ void refr_index_BoudourisDryAir (
    The expression is also found in Chapter 5 of the Janssen book.
 
    \retval   refr_index  refractive index
-   \param    p_abs       absorption pressure grid
-   \param    t_abs       temperatures at p_abs
-   \param    h2o_abs     H2O vmr at p_abs
+   \param    abs_p       absorption pressure grid
+   \param    abs_t       temperatures at abs_p
+   \param    abs_h2o     H2O vmr at abs_p
 
    \author Patrick Eriksson
    \date   2001-02-16
 */
 void refr_index_Boudouris (
                           Vector&   refr_index,
-                          ConstVectorView   p_abs,
-                          ConstVectorView   t_abs,
-                          ConstVectorView   h2o_abs )
+                          ConstVectorView   abs_p,
+                          ConstVectorView   abs_t,
+                          ConstVectorView   abs_h2o )
 {
-  const Index   n = p_abs.nelem();
+  const Index   n = abs_p.nelem();
   refr_index.resize( n );
 
-  assert ( n == t_abs.nelem() );
-  assert ( n == h2o_abs.nelem() );
+  assert ( n == abs_t.nelem() );
+  assert ( n == abs_h2o.nelem() );
 
   Numeric   e;     // Partial pressure of water in Pa
   Numeric   p;     // Partial pressure of the dry air: p = p_tot - e 
 
   for ( Index i=0; i<n; i++ )
   {
-    e = p_abs[i] * h2o_abs[i];
-    p = p_abs[i] - e;
+    e = abs_p[i] * abs_h2o[i];
+    p = abs_p[i] - e;
 
-    refr_index[i] = 1.0 + 77.593e-8 * p / t_abs[i] + 
-                          72e-8 * e / t_abs[i] +
-                          3.754e-3 * e / (t_abs[i]*t_abs[i]);
+    refr_index[i] = 1.0 + 77.593e-8 * p / abs_t[i] + 
+                          72e-8 * e / abs_t[i] +
+                          3.754e-3 * e / (abs_t[i]*abs_t[i]);
   }
 }
 

@@ -107,7 +107,7 @@ void define_wsv_data()
   // New name: abs_coef
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "abs" ),
+     ( NAME( "abs_coef" ),
        DESCRIPTION
        (
         "The matrix of total absorption coefficients.\n"
@@ -120,44 +120,41 @@ void define_wsv_data()
         ),
       GROUP( Matrix_ )));
 
-  // New name: abs_coef_per_tg
   wsv_data.push_back
     (WsvRecord
-     (NAME( "abs_per_tg" ),
+     (NAME( "abs_coef_per_species" ),
       DESCRIPTION
       (
        "These are the absorption coefficients individually for each\n"
        "tag group. The Array contains one matrix for each tag group,\n"
-       "the matrix format is the same as that of abs"
+       "the matrix format is the same as that of abs_coef"
       ),
       GROUP( ArrayOfMatrix_ )));
 
-  // New name: abs_cont_models
   wsv_data.push_back
     (WsvRecord
-     (NAME( "cont_description_models" ),
+     (NAME( "abs_cont_models" ),
       DESCRIPTION
       (
        "Continuum / full model absorption model description parameter.\n"
-       "See the WSV `cont_description_names' for a detailed description\n"
+       "See the WSV `abs_cont_names' for a detailed description\n"
        "of the allowed continuum models. There should be one string here\n"
-       "for each entry in `cont_description_names'.See also the online" 
+       "for each entry in `abs_cont_names'.See also the online" 
        "documentation in arts/doc/doxygen/html/continua_cc.html.\n"
       ),
       GROUP( ArrayOfString_ )));
 
-  // New name: abs_cont_names
   wsv_data.push_back
     (WsvRecord
-     (NAME( "cont_description_names" ),
+     (NAME( "abs_cont_names" ),
       DESCRIPTION
       (
        "Continuum / full model absorption tag names. This variable should\n"
        "contain a list of tag names of continuum and full models, respectively.\n"
        "Associated with this WSV is the WSV\n"
-       "`cont_description_models' which contains the specific model version of\n"
+       "`abs_cont_models' which contains the specific model version of\n"
        "each continuum / full model absorption tag and the WSV\n"
-       "`cont_description_parameters' which should contain the continuum / full model\n"
+       "`abs_cont_parameters' which should contain the continuum / full model\n"
        "user defined parameters. The user defined parameters are only used when\n"
        "the specified model is 'user'. See also the online documentation in\n"
        "arts/doc/doxygen/html/continua_cc.html.\n"
@@ -294,44 +291,40 @@ void define_wsv_data()
       ),
       GROUP( ArrayOfString_ )));
 
-  // New name: abs_cont_parameters
   wsv_data.push_back
     (WsvRecord
-     (NAME( "cont_description_parameters" ),
+     (NAME( "abs_cont_parameters" ),
       DESCRIPTION
       (
-       "Continuum model parameters. See the WSV `cont_description_names'\n"
+       "Continuum model parameters. See the WSV `abs_cont_names'\n"
        "for a detailed description of the allowed continuum models. There\n"
        "should be one parameter vector here for each entry in\n"
-       "`cont_description_names'. See also the online documentation in\n"
+       "`abs_cont_names'. See also the online documentation in\n"
        "arts/doc/doxygen/html/continua_cc.html.\n"
       ),
       GROUP( ArrayOfVector_ )));
 
-  // New name: abs_h2o
   wsv_data.push_back
     (WsvRecord
-     (NAME( "h2o_abs" ),
+     (NAME( "abs_h2o" ),
       DESCRIPTION
       (
-       "The total water profile associated with the pressures in p_abs [-]"
+       "The total water profile associated with the pressures in abs_p [-]"
       ),
       GROUP( Vector_ )));
 
-  // New name: abs_lines
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "lines" ),
+     ( NAME( "abs_lines" ),
        DESCRIPTION
        (
         "A list of spectral line data."
        ), 
        GROUP( ArrayOfLineRecord_ )));
 
-  // New name: abs_lineshape
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "lineshape" ),
+     ( NAME( "abs_lineshape" ),
        DESCRIPTION
        (
         "Lineshape specification: function, norm, cutoff. There is one entry for\n"
@@ -341,10 +334,9 @@ void define_wsv_data()
        ),
        GROUP( ArrayOfLineshapeSpec_ )));
 
-  // New name: abs_lines_per_species
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "lines_per_tg" ),
+     ( NAME( "abs_lines_per_species" ),
        DESCRIPTION
        (
         "A list of spectral line data for each tag.\n"
@@ -352,10 +344,9 @@ void define_wsv_data()
        ), 
        GROUP( ArrayOfArrayOfLineRecord_ )));
 
-  // New name: abs_lookup
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "gas_abs_lookup" ),
+     ( NAME( "abs_lookup" ),
        DESCRIPTION
        (
         "An absorption lookup table.\n"
@@ -379,26 +370,24 @@ void define_wsv_data()
         ), 
        GROUP( Vector_ )));
 
-  // New name: abs_lookup_is_adapted
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "gas_abs_lookup_is_adapted" ),
+     ( NAME( "abs_lookup_is_adapted" ),
        DESCRIPTION
        (
-        "Flag to indicate whether *gas_abs_lookupAdapt* has already been\n"
+        "Flag to indicate whether *abs_lookupAdapt* has already been\n"
         "called.\n"
         "\n"
         "Values: 0=false, 1=true."
         ), 
        GROUP( Index_ )));
 
-  // New name: abs_n2
   wsv_data.push_back
     (WsvRecord
-     (NAME( "n2_abs" ),
+     (NAME( "abs_n2" ),
       DESCRIPTION
       (
-       "The total nitrogen profile associated with the pressures in p_abs [-]"
+       "The total nitrogen profile associated with the pressures in abs_p [-]"
       ),
       GROUP( Vector_ )));
 
@@ -434,19 +423,18 @@ void define_wsv_data()
        "are two distinct cases:\n"
        "\n"
        "Case a:    For all frequencies and all species:\n"
-       "Dimension: [ f_grid, gas_species ]\n"
+       "Dimension: [ f_grid, abs_species ]\n"
        "\n"
        "Case b:    For a single frequency for all species:\n"
-       "Dimension: [ 1,      gas_species ]\n"
+       "Dimension: [ 1,      abs_species ]\n"
        "\n"
        "Unit: 1/m"
        ),
       GROUP( Matrix_ )));
 
-  // New name: abs_scalar_gas_agenda
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "scalar_gas_absorption_agenda" ),
+    ( NAME( "abs_scalar_gas_agenda" ),
       DESCRIPTION
       (
         "See agendas.cc."
@@ -455,7 +443,7 @@ void define_wsv_data()
   
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "abs_scalar_gas_field" ),
+    ( NAME( "abs_field" ),
       DESCRIPTION
       (
        "Scalar gas absorption field.\n"
@@ -474,17 +462,16 @@ void define_wsv_data()
         ),
       GROUP( Tensor5_ ))); 
 
-  // New name: abs_species
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "gas_species" ),
+     ( NAME( "abs_species" ),
        DESCRIPTION
        (
         "Tag groups for scalar gas absorption.\n"
         "\n"
         "This is an array of arrays of SpeciesTag tag definitions. It defines the\n"
         "available tag groups for the calculation of scalar gas absorption\n"
-        "coefficients.  See online documentation of method *gas_speciesSet* for\n"
+        "coefficients.  See online documentation of method *abs_speciesSet* for\n"
         "more detailed information how tag groups work and some examples."
         ), 
        GROUP( ArrayOfArrayOfSpeciesTag_ )));
@@ -577,24 +564,22 @@ void define_wsv_data()
        ),
       GROUP( Vector_ ))); 
 
-  // New name: abs_vmrs
   wsv_data.push_back
     (WsvRecord
-     (NAME( "vmrs" ),
+     (NAME( "abs_vmrs" ),
       DESCRIPTION
       (
-       "The VMRs (unit: absolute number) on the p_abs grid.\n"
-       "Dimensions: [tag_groups.nelem(), p_abs.nelem()]"
+       "The VMRs (unit: absolute number) on the abs_p grid.\n"
+       "Dimensions: [tag_groups.nelem(), abs_p.nelem()]"
       ),
       GROUP( Matrix_ )));
 
-  // New name: abs_xsec_per_tg
   wsv_data.push_back
     (WsvRecord
-     ("xsec_per_tg",
+     ("abs_xsec_per_species",
       "These are the cross sections individually for each tag\n"
       "group. The Array contains one matrix for each tag group,\n"
-      "the matrix format is the same as that of abs",
+      "the matrix format is the same as that of abs_coef",
       ArrayOfMatrix_));
 
   wsv_data.push_back
@@ -2317,7 +2302,7 @@ void define_wsv_data()
        "Index of gas species for which *rte_agenda* shall calculate "
        "VMR jacobians (with respect to changes along the propagation path).\n"
        "\n"
-       "These indexes refer to the position in *gas_species*.\n"
+       "These indexes refer to the position in *abs_species*.\n"
        "\n"
        "Usage:   Set internally, by *RteCalc*."
       ),
@@ -2489,7 +2474,7 @@ void define_wsv_data()
        "A list of VMR values for radiative transfer calculations.\n"
        "\n"
        "This vector variable holds the local VMR value for all used species\n"
-       "(as given by *gas_species*). It is intended mainly for communication\n"
+       "(as given by *abs_species*). It is intended mainly for communication\n"
        "with various methods and agendas, such as methods and agendas \n"
        "calculating absorption coefficients.\n"
        "\n"
@@ -2497,7 +2482,7 @@ void define_wsv_data()
        "\n"
        "Units: [ Absolute value ]\n"
        "\n"
-       "Size:  Should match gas_species.nelem()"
+       "Size:  Should match abs_species.nelem()"
        ),
       GROUP( Vector_ )));
 

@@ -747,7 +747,7 @@ void ext_matInit( Tensor3&      ext_mat,
                  Dimension: [#frequencies, stokes_dim, stokes_dim]
   
   \param abs_scalar_gas Scalar gas absorption coefficients.
-                        Dimension: [#frequencies, #gas_species]
+                        Dimension: [#frequencies, #abs_species]
 
   \author Stefan Buehler
           (rewritten version of function by Sreerekha Ravi)
@@ -842,7 +842,7 @@ void abs_vecInit( Matrix&       abs_vec,
                  Dimension: [#frequencies, stokes_dim]
   
   \param abs_scalar_gas Scalar gas absorption coefficients.
-                        Dimension: [#frequencies, #gas_species]
+                        Dimension: [#frequencies, #abs_species]
 
   \author Stefan Buehler
           (rewritten version of function by Sreerekha Ravi)
@@ -921,7 +921,7 @@ void ext_matAddGasZeeman( Tensor3&      ext_mat,
                  Dimension: [#frequencies, stokes_dim]
   
   \param abs_vec_zee Input : Zeeman absorption vector.
-                        Dimension: [#frequencies, #gas_species]
+                        Dimension: [#frequencies, #abs_species]
 
   \author Sreerekha Ravi
           (based on abs_vecAddGas written by Stefan Buehler)

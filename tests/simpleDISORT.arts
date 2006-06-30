@@ -43,7 +43,7 @@ ReadXML( p_grid ){
 }
 
 # Definition of species
-gas_speciesSet{
+abs_speciesSet{
   species = [ "H2O", "N2", "O2"]
 }
 
@@ -54,16 +54,16 @@ AtmRawRead{
 
 # Gas absorption from lookup table 
 # ---------------------------------
-gas_abs_lookupInit{}
+abs_lookupInit{}
 
 # Lookup tables can be computed using the MATLAB (please contact Stefan)
-ReadXML( gas_abs_lookup ){
+ReadXML( abs_lookup ){
    "data/gas_abs_lookup.xml"
 }
    	
-gas_abs_lookupAdapt{}
+abs_lookupAdapt{}
 
-AgendaSet( scalar_gas_absorption_agenda ){
+AgendaSet( abs_scalar_gas_agenda ){
    abs_scalar_gasExtractFromLookup{}
 }
 

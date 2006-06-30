@@ -48,8 +48,8 @@
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter. (Not used.)
-    \param  f_mono        The frequency grid.
-    \param  nf            Dimension of f_mono.
+    \param  f_grid        The frequency grid.
+    \param  nf            Dimension of f_grid.
 
     \throw  runtime_error This exception is always thrown when the
                           function is called.  
@@ -62,7 +62,7 @@ void lineshape_no_shape(  Vector&       /* ls */,
                           Numeric       /* f0 */,
                           Numeric       /* gamma */,
                           Numeric       /* sigma */,
-                          VectorView    /* f_mono */,
+                          VectorView    /* f_grid */,
                           const Index   /* nf */)
 {
   // This function should never be called so throw an error here: 
@@ -78,8 +78,8 @@ void lineshape_no_shape(  Vector&       /* ls */,
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter. (Not used.)
-    \param  f_mono        The frequency grid.
-    \param  nf            Dimension of f_mono.
+    \param  f_grid        The frequency grid.
+    \param  nf            Dimension of f_grid.
 
     \author Stefan Buehler 
     \date 2000-06-16 */
@@ -88,13 +88,13 @@ void lineshape_lorentz(Vector&       ls,
                        Numeric       f0,
                        Numeric       gamma,
                        Numeric       /* sigma */,
-                       VectorView f_mono,
+                       VectorView f_grid,
                        const Index  nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
   // future. For now, let's do an assertion that at least it is
   // correct: 
-  assert( nf==f_mono.nelem() );
+  assert( nf==f_grid.nelem() );
 
   // PI:
   extern const Numeric PI;
@@ -106,7 +106,7 @@ void lineshape_lorentz(Vector&       ls,
 
   for ( Index i=0; i<nf; ++i )
     {
-      ls[i] =  fac / ( (f_mono[i]-f0) * (f_mono[i]-f0) + gamma2 );
+      ls[i] =  fac / ( (f_grid[i]-f0) * (f_grid[i]-f0) + gamma2 );
     }
 }
 
@@ -117,8 +117,8 @@ void lineshape_lorentz(Vector&       ls,
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter. (Not used.)
     \param  sigma         The Doppler broadening parameter.
-    \param  f_mono        The frequency grid.
-    \param  nf            Dimension of f_mono.
+    \param  f_grid        The frequency grid.
+    \param  nf            Dimension of f_grid.
 
     \author Axel von Engeln
     \date 2000-12-06 */
@@ -127,13 +127,13 @@ void lineshape_doppler(Vector&       ls,
                        Numeric       f0,
                        Numeric       /* gamma */,
                        Numeric       sigma,
-                       VectorView f_mono,
+                       VectorView f_grid,
                        const Index  nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
   // future. For now, let's do an assertion that at least it is
   // correct: 
-  assert( nf==f_mono.nelem() );
+  assert( nf==f_grid.nelem() );
 
   // SQRT(PI):
   extern const Numeric PI;
@@ -146,7 +146,7 @@ void lineshape_doppler(Vector&       ls,
   
   for ( Index i=0; i<nf ; ++i )
     {
-      ls[i] = fac * exp( - pow( f_mono[i]-f0, 2) / sigma2 );
+      ls[i] = fac * exp( - pow( f_grid[i]-f0, 2) / sigma2 );
     }
 }
 
@@ -187,8 +187,8 @@ long bfun6_(Numeric y, Numeric x)
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter.
-    \param  f_mono        The frequency grid.
-    \param  nf            Dimension of f_mono.
+    \param  f_grid        The frequency grid.
+    \param  nf            Dimension of f_grid.
 
     Original c function call and documention:
 
@@ -244,14 +244,14 @@ void lineshape_voigt_kuntz6(Vector&       ls,
                             Numeric       f0,
                             Numeric       gamma,
                             Numeric       sigma,
-                            VectorView f_mono,
+                            VectorView f_grid,
                             const Index  nf)
 
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
   // future. For now, let's do an assertion that at least it is
   // correct: 
-  assert( nf==f_mono.nelem() );
+  assert( nf==f_grid.nelem() );
   
 
   // seems not necessary for Doppler correction
@@ -299,7 +299,7 @@ void lineshape_voigt_kuntz6(Vector&       ls,
   // frequency in units of Doppler 
   for (i1=0; i1< (int) nf; i1++)
     {
-      x[i1] = (f_mono[i1] - f0) / sigma;
+      x[i1] = (f_grid[i1] - f0) / sigma;
     }
 
   /* Parameter adjustments */
@@ -603,8 +603,8 @@ long int bfun3_(Numeric y, Numeric x)
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter.
-    \param  f_mono        The frequency grid.
-    \param  nf            Dimension of f_mono.
+    \param  f_grid        The frequency grid.
+    \param  nf            Dimension of f_grid.
 
 
     Original c function call and documention:
@@ -660,14 +660,14 @@ void lineshape_voigt_kuntz3(Vector&       ls,
                             Numeric       f0,
                             Numeric       gamma,
                             Numeric       sigma,
-                            VectorView f_mono,
+                            VectorView f_grid,
                             const Index  nf)
 
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
   // future. For now, let's do an assertion that at least it is
   // correct: 
-  assert( nf==f_mono.nelem() );
+  assert( nf==f_grid.nelem() );
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
@@ -713,7 +713,7 @@ void lineshape_voigt_kuntz3(Vector&       ls,
   // frequency in units of Doppler 
   for (i1=0; i1< (int) nf; i1++)
     {
-      x[i1] = (f_mono[i1] - f0) / sigma;
+      x[i1] = (f_grid[i1] - f0) / sigma;
     }
 
 
@@ -978,8 +978,8 @@ long bfun4_(Numeric y, Numeric x)
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter. (Not used.)
-    \param  f_mono        The frequency grid.
-    \param  nf            Dimension of f_mono.
+    \param  f_grid        The frequency grid.
+    \param  nf            Dimension of f_grid.
 
     Original c function call and documention:
 
@@ -1034,13 +1034,13 @@ void lineshape_voigt_kuntz4(Vector&       ls,
                             Numeric       f0,
                             Numeric       gamma,
                             Numeric       sigma,
-                            VectorView f_mono,
+                            VectorView f_grid,
                             const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
   // future. For now, let's do an assertion that at least it is
   // correct: 
-  assert( nf==f_mono.nelem() );
+  assert( nf==f_grid.nelem() );
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
@@ -1087,7 +1087,7 @@ void lineshape_voigt_kuntz4(Vector&       ls,
   // frequency in units of Doppler 
   for (i1=0; i1< (int) nf; i1++)
     {
-      x[i1] = (f_mono[i1] - f0) / sigma;
+      x[i1] = (f_grid[i1] - f0) / sigma;
     }
 
 
@@ -1376,8 +1376,8 @@ void lineshape_voigt_kuntz4(Vector&       ls,
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter.
-    \param  f_mono        The frequency grid.
-    \param  nf            Dimension of f_mono.
+    \param  f_grid        The frequency grid.
+    \param  nf            Dimension of f_grid.
 
 
     Original ife function call and documention:
@@ -1419,14 +1419,14 @@ void lineshape_voigt_drayson(Vector&       ls,
                              Numeric         f0,
                              Numeric       gamma,
                              Numeric       sigma,
-                             VectorView f_mono,
+                             VectorView f_grid,
                              const Index   nf)
 
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
   // future. For now, let's do an assertion that at least it is
   // correct: 
-  assert( nf==f_mono.nelem() );
+  assert( nf==f_grid.nelem() );
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
@@ -1471,7 +1471,7 @@ void lineshape_voigt_drayson(Vector&       ls,
       // positive values
       for (i1=0; i1< (int) nf; i1++)
         {
-          x[i1] = fabs( (f_mono[i1] - f0) )/ sigma;
+          x[i1] = fabs( (f_grid[i1] - f0) )/ sigma;
         }
 
 
@@ -1566,8 +1566,8 @@ L104: for (K=0; K<(int) nf; K++)
   \param  f0            Line center frequency.
   \param  gamma         The pressure broadening parameter.
   \param  sigma         The Doppler broadening parameter.
-  \param  f_mono        The frequency grid.
-  \param  nf            Dimension of f_mono.
+  \param  f_grid        The frequency grid.
+  \param  nf            Dimension of f_grid.
 
   REFERENCE FOR EQUATIONS AND COEFFICIENTS:
   P.W. ROSENKRANZ, CHAP. 2 AND APPENDIX, IN ATMOSPHERIC REMOTE SENSING
@@ -1585,13 +1585,13 @@ void lineshape_rosenkranz_voigt_kuntz6(Vector&       ls,
                                        Numeric       f0,
                                        Numeric       gamma,
                                        Numeric       sigma,
-                                       VectorView f_mono,
+                                       VectorView f_grid,
                                        const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
   // future. For now, let's do an assertion that at least it is
   // correct: 
-  assert( nf==f_mono.nelem() );
+  assert( nf==f_grid.nelem() );
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
@@ -1646,7 +1646,7 @@ void lineshape_rosenkranz_voigt_kuntz6(Vector&       ls,
                              f0,
                              gamma_o2,
                              sigma,
-                             f_mono,
+                             f_grid,
                              nf);
     }
   else
@@ -1654,8 +1654,8 @@ void lineshape_rosenkranz_voigt_kuntz6(Vector&       ls,
       Numeric FD, FS, SF1, SF2;
       for (Index J=0; J<(Index) nf; J++)
         {
-          FD = f_mono[J] - f0;
-          FS = f_mono[J] + f0;
+          FD = f_grid[J] - f0;
+          FS = f_grid[J] + f0;
           SF1 = (gamma_o2 + FD*overlap) / (FD*FD + gamma_o2_2);
           SF2 = (gamma_o2 - FS*overlap) / (FS*FS + gamma_o2_2);
           ls[J] = (SF1 + SF2) / PI;
@@ -1674,8 +1674,8 @@ void lineshape_rosenkranz_voigt_kuntz6(Vector&       ls,
   \param  f0            Line center frequency.
   \param  gamma         The pressure broadening parameter.
   \param  sigma         The Doppler broadening parameter.
-  \param  f_mono        The frequency grid.
-  \param  nf            Dimension of f_mono.
+  \param  f_grid        The frequency grid.
+  \param  nf            Dimension of f_grid.
 
   REFERENCE FOR EQUATIONS AND COEFFICIENTS:
   P.W. ROSENKRANZ, CHAP. 2 AND APPENDIX, IN ATMOSPHERIC REMOTE SENSING
@@ -1693,13 +1693,13 @@ void lineshape_rosenkranz_voigt_drayson(Vector&       ls,
                                         Numeric      f0,
                                         Numeric       gamma,
                                         Numeric       sigma,
-                                        VectorView f_mono,
+                                        VectorView f_grid,
                                         const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
   // future. For now, let's do an assertion that at least it is
   // correct: 
-  assert( nf==f_mono.nelem() );
+  assert( nf==f_grid.nelem() );
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
@@ -1753,7 +1753,7 @@ void lineshape_rosenkranz_voigt_drayson(Vector&       ls,
                               f0,
                               gamma_o2,
                               sigma,
-                              f_mono,
+                              f_grid,
                               nf);
 
       // the controlfile uses generally a (f/f0)^2 factor for the
@@ -1766,7 +1766,7 @@ void lineshape_rosenkranz_voigt_drayson(Vector&       ls,
       Numeric f0_2 = f0 * f0;
       for (Index J=0; J<(Index) nf; J++)
         {
-          ls[J] *= f0_2 / (f_mono[J] * f_mono[J]);
+          ls[J] *= f0_2 / (f_grid[J] * f_grid[J]);
         }
     }
   else
@@ -1774,8 +1774,8 @@ void lineshape_rosenkranz_voigt_drayson(Vector&       ls,
       Numeric FD, FS, SF1, SF2;
       for (Index J=0; J<(Index) nf; J++)
         {
-          FD = f_mono[J] - f0;
-          FS = f_mono[J] + f0;
+          FD = f_grid[J] - f0;
+          FS = f_grid[J] + f0;
           SF1 = (gamma_o2 + FD*overlap) / (FD*FD + gamma_o2_2);
           SF2 = (gamma_o2 - FS*overlap) / (FS*FS + gamma_o2_2);
           ls[J] = (SF1 + SF2) / PI;
@@ -1841,8 +1841,8 @@ void chi_cousin(
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter. (Not used.)
-    \param  f_mono        The frequency grid.
-    \param  nf            Dimension of f_mono.
+    \param  f_grid        The frequency grid.
+    \param  nf            Dimension of f_grid.
 
     \author Patrick Eriksson 
     \date 2000-09-04 */
@@ -1852,10 +1852,10 @@ void lineshape_CO2_lorentz(
             Numeric   f0,
             Numeric   gamma,
             Numeric   /* sigma */,
-      VectorView      f_mono,
+      VectorView      f_grid,
       const Index     nf )
 {
-  assert( f_mono.nelem() == nf );
+  assert( f_grid.nelem() == nf );
 
   // PI:
   extern const Numeric PI;
@@ -1867,7 +1867,7 @@ void lineshape_CO2_lorentz(
   for ( Index i=0; i<nf; ++i )
     {
       // f-f0
-      const Numeric df = f_mono[i] - f0;
+      const Numeric df = f_grid[i] - f0;
 
       // The chi factor
       Numeric chi;
@@ -1887,8 +1887,8 @@ void lineshape_CO2_lorentz(
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter. (Not used.)
-    \param  f_mono        The frequency grid.
-    \param  nf            Dimension of f_mono.
+    \param  f_grid        The frequency grid.
+    \param  nf            Dimension of f_grid.
 
     \author Patrick Eriksson 
     \date 2000-09-04 */
@@ -1898,15 +1898,15 @@ void lineshape_CO2_drayson(
             Numeric   f0,
             Numeric   gamma,
             Numeric   sigma,
-      VectorView      f_mono,
+      VectorView      f_grid,
       const Index     nf )
 {
-  lineshape_voigt_drayson(  ls, X, f0, gamma, sigma, f_mono, nf );
+  lineshape_voigt_drayson(  ls, X, f0, gamma, sigma, f_grid, nf );
 
   for ( Index i=0; i<nf; ++i )
     {
       // f-f0
-      const Numeric df = f_mono[i] - f0;
+      const Numeric df = f_grid[i] - f0;
 
       // The chi factor
       Numeric chi;
@@ -1931,23 +1931,23 @@ void lineshape_CO2_drayson(
 
     \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
-    \param  f_mono The frequency grid.
+    \param  f_grid The frequency grid.
     \param  T      Temperature (unused here)
-    \param  nf     Dimension of f_mono.
+    \param  nf     Dimension of f_grid.
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_no_norm(Vector&       fac,
                             Numeric       /* f0 */,
-                            VectorView    f_mono,
+                            VectorView    f_grid,
                             const Numeric /* T */,
                             const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
   // future. For now, let's do an assertion that at least it is
   // correct:
-  if (f_mono.nelem()>-1)
+  if (f_grid.nelem()>-1)
     {
-      assert( nf==f_mono.nelem() );
+      assert( nf==f_grid.nelem() );
     }
 
   for ( Index i=0; i<nf; ++i )
@@ -1962,25 +1962,25 @@ void lineshape_norm_no_norm(Vector&       fac,
 
     \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
-    \param  f_mono The frequency grid.
+    \param  f_grid The frequency grid.
     \param  T      Temperature (unused here)
-    \param  nf     Dimension of f_mono.
+    \param  nf     Dimension of f_grid.
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_linear(Vector&       fac,
                            Numeric       f0,
-                           VectorView    f_mono,
+                           VectorView    f_grid,
                            const Numeric /* T */,
                            const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
   // future. For now, let's do an assertion that at least it is
   // correct: 
-  assert( nf==f_mono.nelem() );
+  assert( nf==f_grid.nelem() );
 
   for ( Index i=0; i<nf; ++i )
     {
-      fac[i] = f_mono[i] / f0;
+      fac[i] = f_grid[i] / f0;
     }
 }
 
@@ -1988,29 +1988,29 @@ void lineshape_norm_linear(Vector&       fac,
 
     \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
-    \param  f_mono The frequency grid.
+    \param  f_grid The frequency grid.
     \param  T      Temperature (unused here)
-    \param  nf     Dimension of f_mono.
+    \param  nf     Dimension of f_grid.
 
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_quadratic(Vector&       fac,
                               Numeric       f0,
-                              VectorView    f_mono,
+                              VectorView    f_grid,
                               const Numeric /* T */,
                               const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
   // future. For now, let's do an assertion that at least it is
   // correct: 
-  assert( nf==f_mono.nelem() );
+  assert( nf==f_grid.nelem() );
 
   // don't do this for the whole loop
   Numeric f0_2 = f0 * f0;
 
   for ( Index i=0; i<nf; ++i )
     {
-      fac[i] = (f_mono[i] * f_mono[i]) / f0_2;
+      fac[i] = (f_grid[i] * f_grid[i]) / f0_2;
     }
 }
 
@@ -2024,15 +2024,15 @@ void lineshape_norm_quadratic(Vector&       fac,
 
     \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
-    \param  f_mono The frequency grid.
+    \param  f_grid The frequency grid.
     \param  T      Temperature
-    \param  nf     Dimension of f_mono.
+    \param  nf     Dimension of f_grid.
 
 
     \author Axel von Engeln 2003-07-28 */
 void lineshape_norm_VVH(Vector&       fac,
                         Numeric       f0,
-                        VectorView    f_mono,
+                        VectorView    f_grid,
                         const Numeric T,
                         const Index   nf)
 {
@@ -2042,7 +2042,7 @@ void lineshape_norm_VVH(Vector&       fac,
   // FIXME: nf is actually redundant. Could be thrown out in the
   // future. For now, let's do an assertion that at least it is
   // correct: 
-  assert( nf==f_mono.nelem() );
+  assert( nf==f_grid.nelem() );
 
   // 2kT is constant for the loop
   Numeric kT = 2.0 * BOLTZMAN_CONST * T;
@@ -2052,7 +2052,7 @@ void lineshape_norm_VVH(Vector&       fac,
 
   for ( Index i=0; i<nf; ++i )
     {
-      fac[i] = f_mono[i] * tanh( PLANCK_CONST * f_mono[i] / kT ) /
+      fac[i] = f_grid[i] * tanh( PLANCK_CONST * f_grid[i] / kT ) /
         denom;
     }
 }

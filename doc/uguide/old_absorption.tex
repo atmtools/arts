@@ -1341,13 +1341,13 @@ arbitrarily chosen and given only for a better illustration.
 There are two alternative ways to calculate the absorption
 coefficients in ARTS.The first one is through the workspace method 
 \begin{verbatim}
-absCalc{}
+abs_coefCalc{}
 \end{verbatim}
 This method actually works through calling internally in ARTS two other workspace
 methods:
 \begin{verbatim}
 xsec_per_tgCalc{}
-absCalcFromXsec{}
+abs_coefCalcFromXsec{}
 \end{verbatim}
 The first one calculates the cross section {\it x} per tag group, the
 second one - the absorption coefficients $\alpha$ from the cross
@@ -1358,36 +1358,36 @@ the afore mentioned methods explicitly in the control file in
 combination with one another
 \begin{verbatim}
 xsec_per_tgCalc{}
-absCalcFromXsec{}
+abs_coefCalcFromXsec{}
 \end{verbatim}
 Therefore we will pay special attention to the functioning, the input
-and output workspace variables of \artsstyle{ absCalc }. This method
+and output workspace variables of \artsstyle{ abs\_coefCalc }. This method
 calculates the total absorption coefficient as well as the ones per
 defined tag group. Thus the two output workspace variables are 
-\artsstyle{ abs } and \artsstyle{ abs\_per\_tag }. The input workspace variables are~: 
+\artsstyle{ abs\_coef } and \artsstyle{ abs\_per\_tag }. The input workspace variables are~: 
 
 \begin{description}
 \item{\artsstyle{ tgs }~:} defining the available tag groups for the 
   calculation of the absorption coefficients;
-\item{\artsstyle{ f\_mono }~:} the monochromatic frequency grid [Hz];
-\item{\artsstyle{ p\_abs }~:} the pressure grid for the absorption coefficients [Pa]; 
-\item{\artsstyle{ t\_abs }~:} temperature associated with the pressures
-  in \artsstyle{ p\_abs } [K]; 
+\item{\artsstyle{ f\_grid }~:} the monochromatic frequency grid [Hz];
+\item{\artsstyle{ abs\_p }~:} the pressure grid for the absorption coefficients [Pa]; 
+\item{\artsstyle{ abs\_t }~:} temperature associated with the pressures
+  in \artsstyle{ abs\_p } [K]; 
 \item{\artsstyle{ n2\_abs }~:} the total nitrogen profile associated with
-  the pressures in \artsstyle{ p\_abs } [-];
+  the pressures in \artsstyle{ abs\_p } [-];
 \item{\artsstyle{ h2o\_abs }~:} the total water profile associated with the
-  pressures in \artsstyle{ p\_abs } [-];
+  pressures in \artsstyle{ abs\_p } [-];
 \item{\artsstyle{ vmrs }~:} the VMRs (unit: absolute number) on the 
-\artsstyle{ p\_abs } grid; 
-\item{\artsstyle{ lines\_per\_tg }~:} a list of spectral line data for each tag;
-\item{\artsstyle{ lineshape  }~:} lineshape specification: function, norm, cutoff;
-\item{\artsstyle{ cont\_description\_names }~:} a list of
+\artsstyle{ abs\_p } grid; 
+\item{\artsstyle{ abs\_lines\_per\_species }~:} a list of spectral line data for each tag;
+\item{\artsstyle{ abs\_lineshape  }~:} lineshape specification: function, norm, cutoff;
+\item{\artsstyle{ abs\_cont\_names }~:} a list of
 names of continuum models;  
-\item{\artsstyle{ cont\_description\_parameters }~:} continuum model parameters. 
+\item{\artsstyle{ abs\_cont\_parameters }~:} continuum model parameters. 
 \end{description}
 All these input workspace variables have to be defined and set by the
 respective workspace methods for the proper functioning of 
-\artsstyle{ absCalc }. Any exception of this will lead to an error message.\\
+\artsstyle{ abs\_coefCalc }. Any exception of this will lead to an error message.\\
 First, the species of interest should be determined. This is done by the
 workspace method:
 \begin{verbatim}
@@ -1402,26 +1402,26 @@ which produces as output \artsstyle{ tgs }. In our case case this will
 create  a list of four tag groups. For each of them the absorption
 coefficients will be calculated later on. The monochromatic grid is created through the method
 \begin{verbatim}
-VectorNLinSpace(f_mono){
+VectorNLinSpace(f_grid){
         start = 1e9
         stop  = 200e9
         n     = 200    
 }
 \end{verbatim}
-thus producing \artsstyle{ f\_mono } . The grid can be optionally saved into
-a file through \artsstyle{ VectorWriteAscii } \artsstyle{ (f\_mono) }
+thus producing \artsstyle{ f\_grid } . The grid can be optionally saved into
+a file through \artsstyle{ VectorWriteAscii } \artsstyle{ (f\_grid) }
  \artsstyle{ {""} } . The  pressure grid  is created through the method 
 \begin{verbatim}
-VectorNLogSpace(p_abs){
+VectorNLogSpace(abs_p){
         start = 100000
         stop  = 10
         n     = 140
 }
 \end{verbatim}
-with output \artsstyle{ p\_abs }. Again, it can be optionally written into
+with output \artsstyle{ abs\_p }. Again, it can be optionally written into
 a file with
 \begin{verbatim}
-VectorWriteAscii(p_abs){""} 
+VectorWriteAscii(abs_p){""} 
 \end{verbatim}
 The corresponding temperatures to the pressure as well as the VMRs is
 realized through loading the respective input profiles, defined by the
@@ -1441,8 +1441,8 @@ scenarios, in this case the one \artsstyle { midlatitude-summer }.
 Both physical profiles of ${\it H_2O}$  and ${\it N_2}$ are
 loaded through similar workspace methods
 \begin{verbatim}
-h2o_absSet{}
-n2_absSet{}
+abs_h2oSet{}
+abs_n2Set{}
 \end{verbatim}
 needed for the input variables \artsstyle{ h2o\_abs } and \artsstyle{ n2\_abs }.
 Though they are at the bottom of the above given list of input
@@ -1451,12 +1451,12 @@ this place. In our case of line by line calculations we are not
 interested in the continuum description, that's why we should just
 call a workspace method to assign empty arrays to the variables:
 \begin{verbatim}
-cont_descriptionInit{}
+abs_cont_descriptionInit{}
 \end{verbatim}
-The next variable to be set is \artsstyle{ lines\_per\_tg } , done by the
+The next variable to be set is \artsstyle{ abs\_lines\_per\_species } , done by the
 method
 \begin{verbatim}
-lines_per_tgReadFromCatalogues{
+abs_lines_per_speciesReadFromCatalogues{
   filenames = ["/arts-data/spectroscopy/jpl00/jpl00.cat",
     "/arts-dat/spectroscopy/hitran96/hitran96_lowfreq.par"]
    formats = [ "JPL", "HITRAN96" ]
@@ -1469,24 +1469,24 @@ assigned to the different defined tag groups. Another possibility of
 doing this is to call two other methods one after another:
 {\small
 \begin{verbatim}
-linesReadFromHitran {
+abs_linesReadFromHitran {
 filename = "/arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"
 fmin     = 1e9
 fmax     = 200e9
 }
 \end{verbatim}
 }
-and thus creating the variable \artsstyle{ lines } , used afterward as
+and thus creating the variable \artsstyle{ abs_lines } , used afterward as
 input in 
 \begin{verbatim}
-lines_per_tgCreateFromLines{}
+abs_lines_per_speciesCreateFromLines{}
 \end{verbatim}
-in order to get finally \artsstyle{ lines\_per\_tg } defined. Here is the
+in order to get finally \artsstyle{ abs\_lines\_per\_species } defined. Here is the
 proper place to give the individual methods for reading the available
 spectroscopic catalogs in ARTS, i.e. creating the variable
-\artsstyle{ lines } from them. The ARTS own catalog format is read by
+\artsstyle{ abs_lines } from them. The ARTS own catalog format is read by
 \begin{verbatim}
-linesReadfromArts {
+abs_linesReadFromArts {
    filename = "ozone.al"
    fmin     = 0
    fmax     = 1e12
@@ -1494,7 +1494,7 @@ linesReadfromArts {
 \end{verbatim}     
 A similar procedure is done for the other catalogs:
 \begin{verbatim}
-linesReadfromHitran {
+abs_linesReadFromHitran {
    filename = "hitran96_lowfreq.par"
    fmin     = 0
    fmax     = 1e12
@@ -1502,7 +1502,7 @@ linesReadfromHitran {
  \end{verbatim}
 for HITRAN96,
 \begin{verbatim}
-linesReadfromJpl {
+abs_linesReadFromJpl {
    filename = "jpl100.cat"
    fmin     = 0
    fmax     = 1e12
@@ -1510,18 +1510,18 @@ linesReadfromJpl {
 \end{verbatim}     
 for JPL, and 
 \begin{verbatim}
-linesReadfromMytran {
+abs_linesReadFromMytran {
    filename = "mytran98.my"
    fmin     = 0
    fmax     = 1e12
 }
 \end{verbatim} 
 for MYTRAN.\\
-The last input variable for \artsstyle{ absCalc } to be discussed is 
-\artsstyle{ lineshape } . It is created either generally for all tag groups
+The last input variable for \artsstyle{ abs\_coefCalc } to be discussed is 
+\artsstyle{ abs\_lineshape } . It is created either generally for all tag groups
 through 
 \begin{verbatim}
-lineshapeDefine{
+abs_lineshapeDefine{
   shape = "Voigt_Kuntz6" 
   normalizationfactor = "linear"
   cutoff = -1
@@ -1529,7 +1529,7 @@ lineshapeDefine{
 \end{verbatim}
 or to set it individually for each tag group
 \begin{verbatim}
-lineshape_per_tgDefine{
+abs_lineshape_per_tgDefine{
   shape = ["Voigt_Kuntz6","no_shape","Voigt_Kuntz6",]
   normalizationfactor = ["quadratic","no_norm","linear",]
   cutoff = [-1,-1,-1]
@@ -1572,21 +1572,21 @@ The \artsstyle{ cutoff } can  be set to -1 for no cutoff or to a positive
 number for a cutoff at a given frequency in~ [Hz], e.g. 650e9.
 
 Thus we have generated all input workspace variables for 
-\artsstyle{ absCalc }. Therefore this part of the subsection is a little bit short
+\artsstyle{ abs\_coefCalc }. Therefore this part of the subsection is a little bit short
 of being able to serve as a control file in ARTS for absorption,
 provided that just one method is used where more alternatives are
 available and superfluous methods are skipped. The only addition to make
 it complete is to use after all input variable generating methods the 
 \begin{verbatim}
-absCalc{}
+abs_coefCalc{}
 \end{verbatim}
 method, the result of which can be saved into files through
 \begin{verbatim}
-MatrixWriteAscii (abs) {""}
+MatrixWriteAscii (abs_coef) {""}
 \end{verbatim}
 or
 \begin{verbatim}
-ArrayOfMatrixWriteAscii (abs_per_tg) {""}
+ArrayOfMatrixWriteAscii (abs_coef_per_species) {""}
 \end{verbatim}
 
 
@@ -1995,22 +1995,22 @@ for which the arts user is providing the necessary parameter values.
 
 After selecting the continuum tag with the {\tt tagDefine} method, 
 the arts user has to setup the arts internal structure (i. e. the workspace 
-variables {\it cont\_description\_names, cont\_description\_models, 
-and cont\_description\_parameters}) for the selected continuum tags, 
+variables {\it abs\_cont\_names, abs\_cont\_models, 
+and abs\_cont\_parameters}) for the selected continuum tags, 
 which can simply be done by putting the following line into the 
 arts control file:
 \begin{verbatim}
-cont_descriptionInit{}
+abs_cont_descriptionInit{}
 \end{verbatim}
 
 After this initialization is done, the continuum tag specific
 information has to be transfered to arts. This is possible with the 
-arts method {\it cont\_descriptionAppend}, which has itself 
+arts method {\it abs\_cont\_descriptionAppend}, which has itself 
 three input variables: {\it tagname}, {\it model}, and 
 {\it userparameters}. The user has to specify these input 
 variables in the arts control file for each selected continuum tag. 
 Below is a list of all the implemented continuum tags and the associated
-valid range of the input variables for {\it cont\_descriptionAppend}. 
+valid range of the input variables for {\it abs\_cont\_descriptionAppend}. 
 For a condensed overview of the possible continuum tags and their 
 referenced models see Table \ref{tab:artscontlist} and the 
 online documentation can be found under {\it arts/doc/doxygen/html/continua\_cc.html}.
@@ -2023,7 +2023,7 @@ rule that only the user model ({\it model ="user"}) needs input parameters
 via the input variable {\it userparameters}. All the referenced models 
 need no input via {\it userparameters}. If you try to run the arts control 
 file with a referenced model and input parameters you will get an error message.
-Below in the detailed description of {\it cont\_descriptionAppend} you 
+Below in the detailed description of {\it abs\_cont\_descriptionAppend} you 
 can find correct examples for all the continuum tags.
  
 \begin{itemize}
@@ -2037,7 +2037,7 @@ CP98 \citep{cruzpol:98}, PWR98 \citep{pwr:98} or with
 an arbitrary user defined model parameter set ($\cso$, $\xs$).
 The information if a referenced or a user model is selected 
 is given to arts via the input parameter {\it model} of the 
-method {\it cont\_descriptionAppend}. The valid models are
+method {\it abs\_cont\_descriptionAppend}. The valid models are
 "MPM87" (for the MPM87 model), "MPM89" (for the MPM89 model), 
 "CruzPol" (for the CP98 model), "Rosenkranz" (for the PWR98 model), 
 and "user"  (for the user defined model). Only in the case 
@@ -2052,7 +2052,7 @@ in these cases. However, if you give some valuers via
 {\it userparameters} to arts and select simultaneously a 
 referenced model via the input parameter {\it model} you will get 
 a warning message. It is a general rule that in the method 
-{\it cont\_descriptionAppend} the value of the input 
+{\it abs\_cont\_descriptionAppend} the value of the input 
 parameter {\it model} dominates over the values specified with 
 input parameter {\it userparameters}, so the calculation will be
 performed according to the selected model.
@@ -2061,27 +2061,27 @@ The following list describes all the valid combinations of parameters for the
 tag {\tt "H2O-SelfContStandardType"} are listed (the values for the 
 model user are just example values): 
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "H2O-SelfContStandardType"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "H2O-SelfContStandardType"
     model          = "CruzPol"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "H2O-SelfContStandardType"
     model          = "MPM87"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "H2O-SelfContStandardType"
     model          = "MPM89"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "H2O-SelfContStandardType"
     model          = "user"
     userparameters = [ 2.046e-33, 5.289 ]
@@ -2101,7 +2101,7 @@ CP98 \citep{cruzpol:98}, PWR98 \citep{pwr:98} or with
 an arbitrary user defined model parameter set ($\cso$, $\xs$).
 The information if a referenced or a user model is selected 
 is given to arts via the input parameter {\it model} of the 
-method {\it cont\_descriptionAppend}. The valid models are
+method {\it abs\_cont\_descriptionAppend}. The valid models are
 \"MPM87\" (for the MPM87 model), \"MPM89\" (for the MPM89 model), 
 \"CruzPol\" (for the CP98 model), \"Rosenkranz\" (for the PWR98 model), 
 and \"user\"  (for the user defined model). Only in the case 
@@ -2116,7 +2116,7 @@ in these cases. However, if you give some valuers via
 {\it userparameters} to arts and select simultaneously a 
 referenced model via the input parameter {\it model} you will get 
 a warning message. It is a general rule that in the method 
-{\it cont\_descriptionAppend} the value of the input 
+{\it abs\_cont\_descriptionAppend} the value of the input 
 parameter {\it model} dominates over the values specified with 
 input parameter {\it userparameters}, so the calculation will be
 performed according to the selected model.
@@ -2125,27 +2125,27 @@ The following list describes all the valid combinations of parameters for the
 tag {\tt "H2O-ForeignContStandardType"} are listed (the values for the 
 model user are just example values): 
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "H2O-ForeignContStandardType"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "H2O-ForeignContStandardType"
     model          = "CruzPol"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "H2O-ForeignContStandardType"
     model          = "MPM87"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "H2O-SelfContStandardType"
     model          = "MPM89"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "H2O-ForeignContStandardType"
     model          = "user"
     userparameters = [ 5.793e-35, 1.551 ]
@@ -2162,7 +2162,7 @@ needed, one central frequency and six line parameters. The original
 parameter set is given in \cite{liebeetal:93}. The MPM93 water vapor 
 continuum has the arts tag name {\tt "H2O-ContMPM93"}. Since this 
 parameterization is very special, the valid models 
-in the arts method {\it cont\_descriptionAppend} are only 
+in the arts method {\it abs\_cont\_descriptionAppend} are only 
 "MPM93" and "user". For the referenced model "MPM93" the 
 input parameter {\it userparameters} must be empty while 
 for the user model one has to specify all seven continuum 
@@ -2174,12 +2174,12 @@ In the following all the valid possibilities for the
 tag {\tt "H2O-ContMPM93"} are listed (the values for the 
 model user are just example values):
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "H2O-ContMPM93"
     model          = "MPM93"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "H2O-ContMPM93"
     model          = "user"
     userparameters = [ 1780.0e9, 22300.0, 0.952, 
@@ -2207,17 +2207,17 @@ cont_descriptionAppend{
   parameters for the tag {\tt "O2-SelfContStandardType"} are listed
   (the values for the model user are just example values):
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "O2-SelfContStandardType"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "O2-SelfContStandardType"
     model          = "MPM93"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "O2-SelfContStandardType"
     model          = "user"
     userparameters = [ 1.23e-19, 5600.0, 
@@ -2234,12 +2234,12 @@ $n_{\nu}$, $n_T$ , and $n_p$ in units of
 $[$1/(m$\cdot$Pa$^2$$\cdot$Hz$^2$$]$, $[$1$]$, $[$1$]$, and $[$1$]$,
 respectively. Below are the two possibilities illustrated:
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "N2-SelfContStandardType"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "N2-SelfContStandardType"
     model          = "user"
     userparameters = [ 1.05e-38, 2.00, 3.55, 2.00 ]
@@ -2256,12 +2256,12 @@ parameters $C$, $a$, and $n_{\nu}$ in units of
 $[$1/(m$\cdot$Pa$^2$$\cdot$Hz$^2$$]$, $[$GHz$^{-n_{\nu}}$$]$, and $[$1$]$, 
 respectively.
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "N2-SelfContMPM93"
     model          = "MPM93"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "N2-SelfContMPM93"
     model          = "user"
     userparameters = [ 5.87e-39, 6.10e-19 1.5 ]
@@ -2279,12 +2279,12 @@ cont_descriptionAppend{
   $[$1/(m$\cdot$Pa$^2$$\cdot$Hz$^2$$]$ and $[$1$]$, respectively.
   Below are the two possibilities illustrated:
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "CO2-SelfContPWR93"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "CO2-SelfContPWR93"
     model          = "user"
     userparameters = [ 7.43e-37, 5.08 ]
@@ -2302,12 +2302,12 @@ cont_descriptionAppend{
   and $n_f$ in units of $[$1/(m$\cdot$Pa$^2$$\cdot$Hz$^2$$]$ and
   $[$1$]$, respectively.  Below are the two possibilities illustrated:
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "CO2-ForeignContPWR93"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "CO2-ForeignContPWR93"
     model          = "user"
     userparameters = [ 2.71e-37, 4.7]
@@ -2319,11 +2319,11 @@ All the continuum tags have their individual fixed line shape.
 Therefore the arts methods which controls this input information
 should be defined as follows:  {\it shape}\,=\,"no\_shape" , 
 {\it normalizationfactor}\,=\,"no\_norm", and {\it cutoff}\,=\,-1. An 
-example for the arts method {\it lineshape\_per\_tgDefine} is presented 
+example for the arts method {\it abs\_lineshape\_per\_tgDefine} is presented 
 below for the case of two selected continuum tags in the method 
 {\it tagDefine}:
 \begin{verbatim}
-lineshape_per_tgDefine{
+abs_lineshape_per_tgDefine{
         shape               = [ "no_shape", 
                                 "no_shape"]
         normalizationfactor = [ "no_norm", 
@@ -2340,14 +2340,14 @@ lineshape_per_tgDefine{
 %
 % --------------------- only begin of table ------------------------------
  \hline
- continuum & \multicolumn{3}{c}{{\it cont\_descriptionAppend} input} & 
+ continuum & \multicolumn{3}{c}{{\it abs\_cont\_descriptionAppend} input} & 
  reference/ & arts source code function\\
  & \multicolumn{3}{c}{input parameter} & arts uguide & \\
  \hline
  \endfirsthead
 % --------------------- every page begin of table ------------------------
  \hline
- continuum & \multicolumn{3}{c}{{\it cont\_descriptionAppend}} & 
+ continuum & \multicolumn{3}{c}{{\it abs\_cont\_descriptionAppend}} & 
  reference/ & arts source code function\\
  & \multicolumn{3}{c}{input parameter} & arts uguide & \\
  \hline
@@ -2362,7 +2362,7 @@ lineshape_per_tgDefine{
  \hline
  \caption{This table gives an overview of the implemented referenced 
    continua models and how they are specified in the arts method 
-   {\it cont\_descriptionAppend}. Additionally the reference and the arts 
+   {\it abs\_cont\_descriptionAppend}. Additionally the reference and the arts 
    source code function name (see file {\it arts/src/continua.cc} are provided. 
    The detailed online documentation can be found under 
    {\it arts/doc/doxygen/html/continua\_cc.html}).}
@@ -2486,13 +2486,13 @@ properly. You can find this example in the arts directory
 
 
 \begin{flushleft}
- \includegraphics[scale=0.65, angle=0]{cont_description_page1}
+ \includegraphics[scale=0.65, angle=0]{abs_cont_page1}
 \end{flushleft}
 \begin{flushleft}
- \includegraphics[scale=0.65, angle=0]{cont_description_page2}
+ \includegraphics[scale=0.65, angle=0]{abs_cont_page2}
 \end{flushleft}
 \begin{flushleft}
- \includegraphics[scale=0.65, angle=0]{cont_description_page3}
+ \includegraphics[scale=0.65, angle=0]{abs_cont_page3}
 \end{flushleft}
 
 
@@ -3697,21 +3697,21 @@ for which the arts user is providing the necessary parameter values.
 
 After selecting the continuum tag with the {\tt tagDefine} method, 
 the arts user has to setup the arts internal structure (i. e. the workspace 
-variables {\it cont\_description\_names, cont\_description\_models, 
-and cont\_description\_parameters}) for the selected continuum tags, 
+variables {\it abs\_cont\_names, abs\_cont\_models, 
+and abs\_cont\_parameters}) for the selected continuum tags, 
 which can simply be done by putting the following line into the arts control file:
 \begin{verbatim}
-cont_descriptionInit{}
+abs_cont_descriptionInit{}
 \end{verbatim}
 
 After this initialization, the continuum tag specific
 information has to be transfered to arts. This is possible with the 
-arts method {\it cont\_descriptionAppend}, which has itself 
+arts method {\it abs\_cont\_descriptionAppend}, which has itself 
 three input variables: {\it tagname}, {\it model}, and 
 {\it userparameters}. The user has to specify these input 
 variables in the arts control file for each selected continuum tag. 
 Below is a list of all the implemented continuum tags and the associated
-valid range of the input variables for {\it cont\_descriptionAppend}. 
+valid range of the input variables for {\it abs\_cont\_descriptionAppend}. 
 For a condensed overview of the possible continuum tags and their 
 referenced models see Table \ref{tab:artsfullmodlist} and the 
 online documentation can be found under 
@@ -3725,7 +3725,7 @@ rule that only the user model ({\it model ="user"}) needs input parameters
 via the input variable {\it userparameters}. All the referenced models 
 need no input via {\it userparameters}. If you try to run the arts control 
 file with a referenced model and input parameters you will get an error message.
-Below in the detailed description of {\it cont\_descriptionAppend} you 
+Below in the detailed description of {\it abs\_cont\_descriptionAppend} you 
 can find correct examples for all the continuum tags.
 
 \begin{itemize}
@@ -3753,22 +3753,22 @@ can find correct examples for all the continuum tags.
      tag {\tt "H2O-MPM87"} are listed (the values for the 
      model user are just example values): 
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-MPM87"
     model          = "MPM87"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-MPM87"
     model          = "MPM87Lines"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-MPM87"
     model          = "MPM87Continuum"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-MPM87"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
@@ -3800,22 +3800,22 @@ cont_descriptionAppend{
      tag {\tt "H2O-MPM89"} are listed (the values for the 
      model user are just example values): 
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-MPM89"
     model          = "MPM89"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-MPM89"
     model          = "MPM89Lines"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-MPM89"
     model          = "MPM89Continuum"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-MPM89"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
@@ -3845,22 +3845,22 @@ cont_descriptionAppend{
      tag {\tt "H2O-MPM93"} are listed (the values for the 
      model user are just example values): 
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-MPM93"
     model          = "MPM93"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-MPM93"
     model          = "MPM93Lines"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-MPM93"
     model          = "MPM93Continuum"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-MPM93"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
@@ -3891,22 +3891,22 @@ cont_descriptionAppend{
      tag {\tt "H2O-CP98"} are listed (the values for the 
      model user are just example values): 
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-CP98"
     model          = "CruzPol"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-CP98"
     model          = "CruzPolLines"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-CP98"
     model          = "CruzPolContinuum"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-CP98"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
@@ -3937,22 +3937,22 @@ cont_descriptionAppend{
      tag {\tt "H2O-PWR98"} are listed (the values for the 
      model user are just example values):
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-PWR98"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-PWR98"
     model          = "RosenkranzLines"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-PWR98"
     model          = "RosenkranzContinuum"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "H2O-PWR98"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
@@ -3984,22 +3984,22 @@ cont_descriptionAppend{
      tag {\tt "O2-MPM93"} are listed (the values for the 
      model user are just example values):
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "O2-MPM93"
     model          = "MPM93"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "O2-MPM93"
     model          = "MPM93Lines"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "O2-MPM93"
     model          = "MPM93Continuum"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "O2-MPM93"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0, 1.0 ]
@@ -4031,22 +4031,22 @@ cont_descriptionAppend{
      tag {\tt "O2-PWR93"} are listed (the values for the 
      model user are just example values):
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "O2-PWR93"
     model          = "Rosenkranz"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "O2-PWR93"
     model          = "RosenkranzLines"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "O2-PWR93"
     model          = "RosenkranzContinuum"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     name           = "O2-PWR93"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0, 1.0]
@@ -4061,14 +4061,14 @@ cont_descriptionAppend{
 %
 % --------------------- only begin of table ------------------------------
  \hline
- continuum & \multicolumn{3}{c}{{\it cont\_descriptionAppend} input} & 
+ continuum & \multicolumn{3}{c}{{\it abs\_cont\_descriptionAppend} input} & 
  reference/ & arts source code function\\
  & \multicolumn{3}{c}{input parameter} & arts uguide & \\
  \hline
  \endfirsthead
 % --------------------- every page begin of table ------------------------
  \hline
- continuum & \multicolumn{3}{c}{{\it cont\_descriptionAppend}} & 
+ continuum & \multicolumn{3}{c}{{\it abs\_cont\_descriptionAppend}} & 
  reference/ & arts source code function\\
  & \multicolumn{3}{c}{input parameter} & arts uguide & \\
  \hline
@@ -4083,7 +4083,7 @@ cont_descriptionAppend{
  \hline
  \caption{This table gives an overview of the implemented referenced 
    full (continua+line) absorption models and how they are specified 
-   in the arts method {\it cont\_descriptionAppend}. Additionally the 
+   in the arts method {\it abs\_cont\_descriptionAppend}. Additionally the 
    reference and the arts source code function names (see file 
    {\it arts/src/continua.cc} are provided. The detailed online 
    documentation can be found under {\it arts/doc/doxygen/html/continua\_cc.html}).}
@@ -4526,22 +4526,22 @@ Formally the cloud tags are like the
 continuum or full model tags implemented. Therefore after selecting 
 the cloud tag with the {\tt tagDefine} method, the arts user has to 
 setup the arts internal structure (i. e. the workspace variables 
-{\it cont\_description\_names, cont\_description\_models, 
-and cont\_description\_parameters}) for the selected continuum tags, 
+{\it abs\_cont\_names, abs\_cont\_models, 
+and abs\_cont\_parameters}) for the selected continuum tags, 
 which can simply be done by putting the following line into the 
 arts control file:
 \begin{verbatim}
-cont_descriptionInit{}
+abs_cont_descriptionInit{}
 \end{verbatim}
 
 After this initialization, the cloud tag specific
 information has to be transfered to arts. This is possible with the 
-arts method {\it cont\_descriptionAppend}, which has itself 
+arts method {\it abs\_cont\_descriptionAppend}, which has itself 
 three input variables: {\it tagname}, {\it model}, and 
 {\it userparameters}. The user has to specify these input 
 variables in the arts control file for each selected cloud tag. 
 Below is a list of all the implemented continuum tags and the associated
-valid range of the input variables for {\it cont\_descriptionAppend}. 
+valid range of the input variables for {\it abs\_cont\_descriptionAppend}. 
 For an overview of the possible continuum tags and their 
 referenced models see Table \ref{tab:artscloudlist} and the 
 online documentation can be found under 
@@ -4555,7 +4555,7 @@ rule that only the user model ({\it model ="user"}) needs input parameters
 via the input variable {\it userparameters}. The referenced models 
 need no input via {\it userparameters}. If you try to run the arts control 
 file with a referenced model and input parameters you will get an error message.
-Below in the detailed description of {\it cont\_descriptionAppend} you 
+Below in the detailed description of {\it abs\_cont\_descriptionAppend} you 
 can find correct examples for all the cloud tags.
 
 \begin{itemize}
@@ -4577,12 +4577,12 @@ can find correct examples for all the cloud tags.
      (\ref{eq:comp_perm_lwc_gamma_1})) and  $CE$ scales $\epsilon_o$ 
      (see Eq. \ref{eq:comp_perm_lwc_epsilon_0})
 \begin{verbatim}
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "liquidcloud-MPM93"
     model          = "MPM93"
     userparameters = [ ]
 }
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "liquidcloud-MPM93"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
@@ -4606,13 +4606,13 @@ cont_descriptionAppend{
      (see Eq. \ref{eq:comp_perm_iwc_b})
 \begin{verbatim}
 # MPM93 model for ice water particle absorption:
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "icecloud-MPM93"
     model          = "MPM93"
     userparameters = [ ]
 }
 # MPM93 model for ice water particle absorption:
-cont_descriptionAppend{
+abs_cont_descriptionAppend{
     tagname        = "icecloud-MPM93"
     model          = "user"
     userparameters = [ 1.0, 1.0, 1.0 ]
@@ -4665,14 +4665,14 @@ saturation over ice is taken.
 %
 % --------------------- only begin of table ------------------------------
  \hline
- continuum & \multicolumn{3}{c}{{\it cont\_descriptionAppend} input} & 
+ continuum & \multicolumn{3}{c}{{\it abs\_cont\_descriptionAppend} input} & 
  reference/ & arts source code function\\
  & \multicolumn{3}{c}{input parameter} & arts uguide & \\
  \hline
  \endfirsthead
 % --------------------- every page begin of table ------------------------
  \hline
- continuum & \multicolumn{3}{c}{{\it cont\_descriptionAppend}} & 
+ continuum & \multicolumn{3}{c}{{\it abs\_cont\_descriptionAppend}} & 
  reference/ & arts source code function\\
  & \multicolumn{3}{c}{input parameter} & arts uguide & \\
  \hline
@@ -4687,7 +4687,7 @@ saturation over ice is taken.
  \hline
  \caption{This table gives an overview of the implemented referenced 
    cloud absorption models and how they are specified 
-   in the arts method {\it cont\_descriptionAppend}. Additionally the 
+   in the arts method {\it abs\_cont\_descriptionAppend}. Additionally the 
    reference and the arts source code function names (see file 
    {\it arts/src/continua.cc} are provided. The detailed online 
    documentation can be found under 

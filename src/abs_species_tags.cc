@@ -419,9 +419,9 @@ Index species_index_from_species_name( String name )
 //! Converts a String to ArrayOfSpeciesTag
 /*!
    This function is used when preparing strings read from e.g. control
-   files to be stored as SpeciesTag in gas_species.
+   files to be stored as SpeciesTag in abs_species.
    
-   Note: This is originally a part of gas_speciesSet.
+   Note: This is originally a part of abs_speciesSet.
    
    \param tags  Array of SpeciesTag.
    \param names String with species.
@@ -513,7 +513,7 @@ void get_tagindex_for_Strings(
 
   tags1_index.resize(n2);
   //  cout << "tags2_Strings: " << tags2_Strings << "\n";
-  gas_speciesSet( tags2, tags2_Strings );
+  abs_speciesSet( tags2, tags2_Strings );
 
   for ( i2=0; i2<n2; i2++ )
   {

@@ -1,3 +1,73 @@
+2006-06-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1116
+
+	* Renaming of workspace variables/methods as proposed in
+	http://www.sat.uni-bremen.de/pipermail/arts-dev/2005-May/000937.html
+
+	* Renames:
+
+	Old name                       New name
+	--------                       --------
+
+	WSMs:
+
+	absCalc                        abs_coefCalc
+	absCalcSaveMemory              abs_coefCalcSaveMemory
+	absCalcFromXsec                abs_coefCalcFromXsec
+	abs_scalar_gas_field_Calc      abs_fieldCalc
+	gas_abs_lookupAdapt            abs_lookupAdapt
+	gas_abs_lookupInit             abs_lookupInit
+	gas_speciesSet                 abs_speciesSet
+	gas_speciesAdd                 abs_speciesAdd
+	gas_speciesInit                abs_speciesInit
+	lineshapeDefine                abs_lineshapeDefine
+	lineshape_per_tgDefine         abs_lineshape_per_tgDefine
+	lines_per_tgAddMirrorLines     abs_lines_per_speciesAddMirrorLines
+	lines_per_tgCompact            abs_lines_per_speciesCompact
+	lines_per_tgCreateFromLines    abs_lines_per_speciesCreateFromLines
+	lines_per_tgSetEmpty           abs_lines_per_speciesSetEmpty
+	lines_per_tgReadFromCatalogues abs_lines_per_speciesReadFromCatalogues
+	linesReadFromHitran            abs_linesReadFromHitran
+	linesReadFromHitran2004        abs_linesReadFromHitran2004
+	linesReadFromMytran2           abs_linesReadFromMytran2
+	linesReadFromJpl               abs_linesReadFromJpl
+	linesReadFromArts              abs_linesReadFromArts
+	cont_descriptionAppend         abs_cont_descriptionAppend
+	cont_descriptionInit           abs_cont_descriptionInit
+	h2o_absSet                     abs_h2oSet
+	n2_absSet                      abs_n2Set
+	tgsDefineAllInScenario         abs_speciesDefineAllInScenario
+	xsec_per_tgAddConts            abs_xsec_per_speciesAddConts
+	xsec_per_tgAddLines            abs_xsec_per_speciesAddLines
+	xsec_per_tgInit                abs_xsec_per_speciesInit
+
+	WSVs:
+
+	abs                            abs_coef
+	abs_per_tg                     abs_coef_per_species
+	abs_scalar_gas_field           abs_field
+	cont_description_names         abs_cont_names
+	cont_description_models        abs_cont_models
+	cont_description_parameters    abs_cont_parameters
+	f_mono                         f_grid
+	gas_abs_lookup                 abs_lookup
+	gas_abs_lookup_is_adapted      abs_lookup_is_adapted
+	gas_species                    abs_species
+	lines                          abs_lines
+	lines_per_tg                   abs_lines_per_species
+	lineshape                      abs_lineshape
+	h2o_abs                        abs_h2o
+	n2_abs                         abs_n2
+	p_abs                          abs_p
+	t_abs                          abs_t
+	vmrs                           abs_vmrs
+	xsec_per_tg                    abs_xsec_per_species
+
+	Agendas:
+
+	scalar_gas_absorption_agenda   abs_scalar_gas_agenda
+
 2006-06-28  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-1115
@@ -173,7 +243,6 @@
 
 	* src/m_montecarlo.cc (MCIPA): fixed bug in surface part.
 
->>>>>>> 1.1510
 2006-05-31  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1106

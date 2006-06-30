@@ -10,14 +10,14 @@ output_file_formatSetAscii {}
 #                      -------------------
 # Read the spectroscopic line data from the ARTS catalogue and
 # create the workspace variable `lines'.
-linesReadFromArts {
+abs_linesReadFromArts {
    filename = "data/lines.ac"
    fmin     = 1e9
    fmax     = 200e9
 }
 # This test catalogue was generated from the HITRAN catalogue in the
 # following way:
-#linesReadFromHitran {
+#abs_linesReadFromHitran {
 #        filename = "PATH_TO_ARTS-DATA/spectroscopy/hitran96/hitran96_lowfreq.par"
 #        fmin     = 1e9
 #        fmax     = 200e9
@@ -42,14 +42,14 @@ VectorNLogSpace(p_grid){
 #
 # The continuum tags are special, since continua are not added by
 # default. Thus, just selecting "H2O" will give you no continuum. 
-gas_speciesSet{
+abs_speciesSet{
       [ "H2O",
         "O3",
         "N2" ] 
 }
 
 # Alternatively select all species that we can find in the scenario:
-#tgsDefineAllInScenario{"data/tropical"}
+#abs_speciesDefineAllInScenario{"data/tropical"}
 
 # Atmospheric profiles
 AtmRawRead {
@@ -57,21 +57,21 @@ AtmRawRead {
 }
 
 # This separates the lines into the different tag groups and creates
-# the workspace variable `lines_per_tg':
-lines_per_tgCreateFromLines {}
+# the workspace variable `abs_lines_per_species':
+abs_lines_per_speciesCreateFromLines {}
 
 # Now interpolate all the raw atmospheric input onto the pressure 
 # grid and create the atmospheric variables `t_field', `z_field', `vmr_field'
 AtmFieldsCalc {}
 
-# Initialize the input variables of absCalc from the Atm fields:
+# Initialize the input variables of abs_coefCalc from the Atm fields:
 AbsInputFromAtmFields {}
 
 # Set the physical H2O profile from the H2O profile in vmrs:
-h2o_absSet {}
+abs_h2oSet {}
 
 # N2 likewise:
-n2_absSet {}
+abs_n2Set {}
 
 # Create the frequency grid `f_grid':
 VectorNLinSpace (f_grid) {
@@ -81,14 +81,14 @@ VectorNLinSpace (f_grid) {
 }
 
 # set the lineshape function for all calculated tags
-lineshapeDefine{
+abs_lineshapeDefine{
         shape = "Voigt_Kuntz6" 
         normalizationfactor = "linear"
         cutoff = -1
 }
 
 # or set it separately for each tag
-#lineshape_per_tgDefine{
+#abs_lineshape_per_tgDefine{
 #        shape = [ "Voigt_Kuntz6", "no_shape", "Voigt_Kuntz6", "Voigt_Kuntz6" ]
 #        normalizationfactor = [ "quadratic", "no_norm", "linear", "linear" ]
 #        cutoff = [ -1, -1, -1, -1 ]
@@ -96,19 +96,19 @@ lineshapeDefine{
 
 # Formally, we also have to set ContDescription, even though we don't
 # have a continuum:
-cont_descriptionInit {}
+abs_cont_descriptionInit {}
 
-# Calculate absorption coefficients, both total (`abs') and 
-# separately for each tag group (`abs_per_tg'):
-absCalc {}
+# Calculate absorption coefficients, both total (`abs_coef') and 
+# separately for each tag group (`abs_coef_per_species'):
+abs_coefCalc {}
 
 # Optionally write these to files:
 #WriteXML (abs_t) {"data/simpleAbs.abs_t.xml.generated"}
 #WriteXML (vmrs) {"data/simpleAbs.vmrs.xml.generated"}
 
 # This we definitely want to write to file!
-WriteXML (abs) {"data/simpleAbs.abs.xml.generated"}
-WriteXML (abs_per_tg) {"data/simpleAbs.abs_per_tg.xml.generated"}
+WriteXML (abs_coef) {"data/simpleAbs.abs_coef.xml.generated"}
+WriteXML (abs_coef_per_species) {"data/simpleAbs.abs_coef_per_species.xml.generated"}
 
 }
 

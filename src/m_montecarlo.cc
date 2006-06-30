@@ -230,7 +230,7 @@ void MCGeneral(
                const Agenda&         iy_space_agenda,
                const Agenda&         surface_prop_agenda,
                const Agenda&         opt_prop_gas_agenda,
-               const Agenda&         scalar_gas_absorption_agenda, 
+               const Agenda&         abs_scalar_gas_agenda, 
                const Vector&         p_grid,
                const Vector&         lat_grid, 
                const Vector&         lon_grid, 
@@ -327,7 +327,7 @@ void MCGeneral(
         {
           mcPathTraceGeneral(evol_op, abs_vec_mono, temperature, ext_mat_mono, rng, local_rte_pos, 
                                  local_rte_los, pnd_vec, g,ppath_step,termination_flag, inside_cloud, 
-                                 opt_prop_gas_agenda,scalar_gas_absorption_agenda, 
+                                 opt_prop_gas_agenda,abs_scalar_gas_agenda, 
                                  stokes_dim, p_grid, 
                                  lat_grid, lon_grid, z_field, r_geoid, z_surface,
                                  t_field, vmr_field, cloudbox_limits, pnd_field,
@@ -491,7 +491,7 @@ void MCIPA(
            const Agenda&         iy_space_agenda,
            const Agenda&         surface_prop_agenda,
            const Agenda&         opt_prop_gas_agenda,
-           const Agenda&         scalar_gas_absorption_agenda, 
+           const Agenda&         abs_scalar_gas_agenda, 
            const Agenda&         ppath_step_agenda,
            const Vector&         p_grid,
            const Vector&         lat_grid, 
@@ -594,7 +594,7 @@ void MCIPA(
           //modified path tracing routine for independent pixel approximation
           mcPathTraceIPA(evol_op, abs_vec_mono, temperature, ext_mat_mono, rng, local_rte_pos, 
                          local_rte_los, pnd_vec, g,ppath_step,termination_flag, inside_cloud, 
-                         opt_prop_gas_agenda,scalar_gas_absorption_agenda, 
+                         opt_prop_gas_agenda,abs_scalar_gas_agenda, 
                          stokes_dim, p_grid, 
                          lat_grid, lon_grid, z_field, r_geoid, z_surface,
                          t_field, vmr_field, cloudbox_limits, pnd_field,
@@ -843,7 +843,7 @@ void ScatteringMonteCarlo (
                            const Vector&         f_grid,
                            //Stuff needed by TArrayCalc
                            const Agenda& opt_prop_gas_agenda,
-                           const Agenda& scalar_gas_absorption_agenda,
+                           const Agenda& abs_scalar_gas_agenda,
                            const Tensor4&   vmr_field,
                            //Other Stuff
                            const ArrayOfSingleScatteringData& scat_data_mono,
@@ -940,7 +940,7 @@ void ScatteringMonteCarlo (
   //existing ppath.
   Numeric transmittance= exp(-opt_depth_calc(ext_mat, abs_vec, rte_pressure, rte_temperature, 
                         rte_vmr_list, ppath, opt_prop_gas_agenda,
-                        scalar_gas_absorption_agenda, f_index, p_grid,
+                        abs_scalar_gas_agenda, f_index, p_grid,
                         lat_grid, lon_grid, t_field, vmr_field,
                         atmosphere_dim));
   Numeric std_err_i=f_grid[0]*f_grid[0]*2*BOLTZMAN_CONST/SPEED_OF_LIGHT/SPEED_OF_LIGHT*
@@ -972,7 +972,7 @@ void ScatteringMonteCarlo (
                          p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                          cloudbox_limits, record_ppathcloud, record_ppath, 
                          opt_prop_gas_agenda, 
-                         scalar_gas_absorption_agenda, f_index,
+                         abs_scalar_gas_agenda, f_index,
                          stokes_dim, t_field, vmr_field, rte_agenda,
                          iy_space_agenda, 
                          surface_prop_agenda, iy_cloudbox_agenda,f_grid, 0, 0,
@@ -1015,7 +1015,7 @@ void ScatteringMonteCarlo (
             {
               mcPathTrace(evol_op, K_abs, rte_temperature, K, rng, rte_pos, 
                           rte_los, pnd_vec, g,left_cloudbox, opt_prop_gas_agenda,
-                          scalar_gas_absorption_agenda, stokes_dim, p_grid, 
+                          abs_scalar_gas_agenda, stokes_dim, p_grid, 
                           lat_grid, lon_grid, z_field, r_geoid, z_surface,
                           t_field, vmr_field, cloudbox_limits, pnd_field,
                           scat_data_mono,z_field_is_1D);

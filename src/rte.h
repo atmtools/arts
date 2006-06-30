@@ -143,7 +143,7 @@ void rte_std(
        const Vector&                  f_grid,
        const Index&                   stokes_dim,
        const Agenda&                  emission_agenda,
-       const Agenda&                  scalar_gas_absorption_agenda,
+       const Agenda&                  abs_scalar_gas_agenda,
        const ArrayOfIndex&            rte_do_gas_jacs,
        const Index&                   rte_do_t_jacs,
        const bool&                    do_transmissions );

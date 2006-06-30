@@ -299,7 +299,7 @@ void ybatchCalc(
   \param cloudbox_on Agenda input: Flag to activate cloudbox
   \param cloudbox_limits Agenda input: Limits of the cloudbox
   \param z_surface Agenda input: Surface height
-  \param gas_species Tag group absorption
+  \param abs_species Tag group absorption
   \param met_profile_path Path of metoffice data
   \param met_profile_calc_agenda Agenda for absorption calculation and RT methods
   \param f_grid Frequency grid
@@ -319,7 +319,7 @@ void ybatchCalc(
 void ybatchMetProfiles(//Output
                Matrix& ybatch,
                //Input
-               const ArrayOfArrayOfSpeciesTag& gas_species,
+               const ArrayOfArrayOfSpeciesTag& abs_species,
                const Agenda& met_profile_calc_agenda,
                const Vector& f_grid,
                const Matrix& met_amsu_data,
@@ -350,7 +350,7 @@ void ybatchMetProfiles(//Output
   //holds the gaseous species. 
   //Resize *vmr_field_raw* according to the number of gaseous species
   //elements
-  vmr_field_raw.resize(gas_species.nelem());
+  vmr_field_raw.resize(abs_species.nelem());
   
   //pnd_field_raw is an ArrayOfArrayOfTensor3 where the first array
   //holds particle species.
@@ -571,7 +571,7 @@ void ybatchMetProfiles(//Output
   \param p_grid pressure grid
   \param sensor_los sensor line of sight
   \param z_surface surface height
-  \param gas_species species under consideration
+  \param abs_species species under consideration
   \param met_profile_path Path to the MO profiles
   \param met_profile_calc_agenda agenda for absorption calculation and RT methods
   \param f_grid frequency grid
@@ -586,7 +586,7 @@ void ybatchMetProfiles(//Output
 void ybatchMetProfilesClear(//Output
                 Matrix& ybatch,
                 //Input
-                const ArrayOfArrayOfSpeciesTag& gas_species,
+                const ArrayOfArrayOfSpeciesTag& abs_species,
                 const Agenda& met_profile_calc_agenda,
                 const Vector& f_grid,
                 const Matrix& met_amsu_data,
@@ -612,7 +612,7 @@ void ybatchMetProfilesClear(//Output
   // vmr_field_raw is an ArrayOfArrayOfTensor3
   GriddedField3 vmr_field_raw_h2o;
   
-  vmr_field_raw.resize(gas_species.nelem());
+  vmr_field_raw.resize(abs_species.nelem());
   
   y.resize(f_grid.nelem());
   ybatch.resize(no_profiles, f_grid.nelem());

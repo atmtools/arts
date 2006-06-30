@@ -58,7 +58,7 @@ void cloud_ppath_update1D(
                   const ArrayOfIndex& cloudbox_limits,
                   ConstTensor6View scat_field,
                   // Calculate scalar gas absorption:
-                  const Agenda& scalar_gas_absorption_agenda,
+                  const Agenda& abs_scalar_gas_agenda,
                   ConstTensor4View vmr_field,
                   // Gas absorption:
                   const Agenda& opt_prop_gas_agenda,
@@ -90,7 +90,7 @@ void cloud_ppath_update1D_noseq(
                           ConstTensor6View doit_i_field_old,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
-                          const Agenda& scalar_gas_absorption_agenda,
+                          const Agenda& abs_scalar_gas_agenda,
                           ConstTensor4View vmr_field,
                           // Gas absorption: 
                           const Agenda& opt_prop_gas_agenda,
@@ -121,7 +121,7 @@ void cloud_ppath_update1D_planeparallel(
                   const ArrayOfIndex& cloudbox_limits,
                   ConstTensor6View scat_field,
                   // Calculate scalar gas absorption:
-                  const Agenda& scalar_gas_absorption_agenda,
+                  const Agenda& abs_scalar_gas_agenda,
                   ConstTensor4View vmr_field,
                   // Gas absorption:
                   const Agenda& opt_prop_gas_agenda,
@@ -153,7 +153,7 @@ void cloud_ppath_update3D(
                           const ArrayOfIndex& cloudbox_limits,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
-                          const Agenda& scalar_gas_absorption_agenda,
+                          const Agenda& abs_scalar_gas_agenda,
                           ConstTensor4View vmr_field,
                           // Gas absorption:
                           const Agenda& opt_prop_gas_agenda,
@@ -178,7 +178,7 @@ void cloud_ppath_update3D(
 void cloud_RT_no_background(//Output
                             Tensor6View doit_i_field,
                             // Input
-                            const Agenda& scalar_gas_absorption_agenda,
+                            const Agenda& abs_scalar_gas_agenda,
                             const Agenda& opt_prop_gas_agenda,
                             const Ppath& ppath_step, 
                             ConstVectorView t_int,

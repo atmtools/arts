@@ -45,7 +45,7 @@ ReadXML( p_grid ){
 
 # Definition of species
 # ---
-gas_speciesSet{
+abs_speciesSet{
   species = [ "H2O", "N2", "O2"]
 }
 
@@ -63,18 +63,18 @@ AtmFieldsCalc{}
 # ---
 # Here taken from a lookup table
 # ---
-gas_abs_lookupInit{}
+abs_lookupInit{}
 #
-ReadXML( gas_abs_lookup ){
+ReadXML( abs_lookup ){
    "data/gas_abs_lookup.xml"
 }
 #  	
-gas_abs_lookupAdapt{}
+abs_lookupAdapt{}
 
 
 # Agendas associated with absorption
 # ---
-AgendaSet( scalar_gas_absorption_agenda ){
+AgendaSet( abs_scalar_gas_agenda ){
    abs_scalar_gasExtractFromLookup{}
 }
 #

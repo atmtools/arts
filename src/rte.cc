@@ -912,7 +912,7 @@ void rte_std(
        const Vector&                  f_grid,
        const Index&                   stokes_dim,
        const Agenda&                  emission_agenda,
-       const Agenda&                  scalar_gas_absorption_agenda,
+       const Agenda&                  abs_scalar_gas_agenda,
        const ArrayOfIndex&            rte_do_vmr_jacs,
        const Index&                   rte_do_t_jacs,
        const bool&                    do_transmissions )
@@ -961,10 +961,10 @@ void rte_std(
       // Call agendas for RT properties
       emission_agendaExecute (emission, rte_temperature, emission_agenda,
                               (ip != 0));
-      scalar_gas_absorption_agendaExecute (abs_scalar_gas, f_index,
+      abs_scalar_gas_agendaExecute (abs_scalar_gas, f_index,
                                            rte_pressure, rte_temperature,
                                            rte_vmr_list,
-                                           scalar_gas_absorption_agenda,
+                                           abs_scalar_gas_agenda,
                                            (ip != 0));
 
       // Polarised absorption?

@@ -1469,7 +1469,7 @@ Index absPWRO2Model(// WS Output:
 /*!
   See arts -d absO2Model for detailed documentation.
   
-  \retval   abs            absorption/extinction of oxygen  [1/m]
+  \retval   abs_coef            absorption/extinction of oxygen  [1/m]
 
   \param    f_grid         predefined frequency grid        [Hz]
   \param    abs_p          predefined pressure              [Pa]

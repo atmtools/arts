@@ -222,7 +222,7 @@ those that produce \artsstyle{f\_grid} as output. Finally,
   arts -w surfaceFlat
 \end{verbatim}
 \end{quote}
-will give you all variables required by the method \artsstyle{absCalc}
+will give you all variables required by the method \artsstyle{abs\_coefCalc}
 (the variable \artsstyle{f\_grid} happens to be one of them).
 
 Using these command line parameters, it is easy to build up a
@@ -231,11 +231,11 @@ compute absorption coefficients. First of all, you have to find out
 in which workspace variable these are stored. Look at the list
 produced by \artsstyle{arts -w all}. You can use \artsstyle{arts -d} to look at
 some candidates a bit more closely. This way, you will find out that
-\artsstyle{abs} is the variable you are looking for.
+\artsstyle{abs\_coef} is the variable you are looking for.
 
-In the next step, you can use \artsstyle{arts -m abs} to find all methods
-that can calculate \artsstyle{abs}. So, you will find the method
-\artsstyle{absCalc}. Now you can use \artsstyle{arts -w absCalc} to find out the
+In the next step, you can use \artsstyle{arts -m abs\_coef} to find all methods
+that can calculate \artsstyle{abs\_coef}. So, you will find the method
+\artsstyle{abs\_coefCalc}. Now you can use \artsstyle{arts -w abs\_coefCalc} to find out the
 required input variables of that method. Then you can use the
 \artsstyle{-m} flag again, to find the methods producing these variables,
 and so on.

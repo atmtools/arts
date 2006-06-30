@@ -52,7 +52,7 @@ extern const Numeric BOLTZMAN_CONST;
   \param dtauc optical depths for all layers
   \param ssalb single scattering albedos for all layers
   \param opt_prop_part_agenda use arts -d for docu
-  \param scalar_gas_absorption_agenda use arts -d 
+  \param abs_scalar_gas_agenda use arts -d 
   \param spt_calc_agenda use arts -d 
   \param pnd_field use arts -d 
   \param cloudbox_limits use arts -d 
@@ -68,7 +68,7 @@ void dtauc_ssalbCalc(
                     VectorView dtauc,
                     VectorView ssalb,
                     const Agenda& opt_prop_part_agenda,
-                    const Agenda& scalar_gas_absorption_agenda,
+                    const Agenda& abs_scalar_gas_agenda,
                     const Agenda& spt_calc_agenda,
                     ConstTensor4View pnd_field,
                     ConstTensor3View t_field,
@@ -156,12 +156,12 @@ void dtauc_ssalbCalc(
                                       vmr_field(j, i+1, 0, 0));
    
   
-     scalar_gas_absorption_agendaExecute(abs_scalar_gas_local, 
+     abs_scalar_gas_agendaExecute(abs_scalar_gas_local, 
                                          f_index,  // monochromatic calculation
                                          rte_pressure_local, 
                                          rte_temperature_local, 
                                          rte_vmr_list_local,
-                                         scalar_gas_absorption_agenda,
+                                         abs_scalar_gas_agenda,
                                          true);
      
      Numeric abs_total = abs_scalar_gas_local(0,joker).sum();

@@ -5,7 +5,7 @@
 \starthistory
   2002-06-04 & Restarted for ARTS-1-1 by Stefan Buehler.\\
   2003-03-10 & Lookup tables added by Stefan Buehler.\\
-  2003-03-28 & Documentation for WSM abs\_scalar\_gas\_fieldCalc
+  2003-03-28 & Documentation for WSM abs\_fieldCalc
                extended by Stefan Buehler after comment from Sreerekha
                T.\ R..
 \stophistory
@@ -147,14 +147,14 @@ public:
                             const Index&    f_index,
                             const Numeric&  p,
                             const Numeric&  T,
-                ConstVectorView vmrs ) const;
+                ConstVectorView abs\_vmrs ) const;
 
     // Obsolete try for a function to extract for the entire field:
     //   void Extract( Tensor5View      sga,
     //                 const Index&     f_index,
     //                 ConstVectorView  p,
     //                 ConstTensor3View T,
-    //                 ConstTensor4View vmrs ) const;
+    //                 ConstTensor4View abs\_vmrs ) const;
 
   // IO functions must be friends:
   friend void xml_read_from_stream( istream& is_xml,
@@ -221,7 +221,7 @@ private:
 
     Fractional units are used! Example: [0,.5,1,10,100],
     meaning from VMR 0 to 100 times the profile given in
-    vmrs. The reference value should normally be included, hence
+    abs\_vmrs. The reference value should normally be included, hence
     nls_pert should always include the value 1.
 
     If nonlinear_species is an empty vector, it means that there are
@@ -273,9 +273,9 @@ private:
 \subsubsection{Workspace variables and methods}
 
 The lookup table itself is stored in the WSV
-\wsvindex{gas\_abs\_lookup}. After loading (with \artsstyle{ReadXML}),
+\wsvindex{abs\_lookup}. After loading (with \artsstyle{ReadXML}),
 it is important that one calls the WSM
-\wsmindex{gas\_abs\_lookupAdapt}. This will make sure that the lookup
+\wsmindex{abs\_lookupAdapt}. This will make sure that the lookup
 table agrees exactly with your calculation. For example, it has to
 check that the frequencies that you want to use are included in the
 set of frequencies for which the table has been calculated.
@@ -284,7 +284,7 @@ because the gas absorption spectrum is the quantity that changes most
 rapidly as a function of frequency. Frequency interpolation here would
 be stupid and dangerous. The method also sorts the species in exactly
 the same way that they occur in your calculation. It sets the WSV
-\wsvindex{gas\_abs\_lookup\_is\_adapted} to flag that the table is now
+\wsvindex{abs\_lookup\_is\_adapted} to flag that the table is now
 ok.
 
 When the table has been successfully adapted, one can extract
@@ -296,13 +296,13 @@ but are also multiplied with the partial number density of the present
 absorbers. 
 
 The \artsstyle{abs\_scalar\_gasExtractFromLookup} method is meant to
-be used inside the agenda \wsaindex{scalar\_gas\_absorption\_agenda},
+be used inside the agenda \wsaindex{abs\_scalar\_gas\_agenda},
 which is used in several places where absorption coefficients are
 needed, both inside the scattering box and outside. 
 
 It is also possible to calculate absorption for the entire atmospheric
 field.  This is done by the method
-\wsmindex{abs\_scalar\_gas\_fieldCalc}, which is useful in two
+\wsmindex{abs\_fieldCalc}, which is useful in two
 different contexts:
 
 \begin{enumerate}
@@ -318,26 +318,26 @@ different contexts:
 \end{enumerate}
 
 Because of the different usage contexts, the method
-\artsstyle{abs\_scalar\_gas\_fieldCalc} can calculate absorption
+\artsstyle{abs\_fieldCalc} can calculate absorption
 either for all frequencies in the frequency grid (input variable
 \wsvindex{f\_index}$<$0), or just for the frequency indicated by the
 input variable \artsstyle{f\_index} (\artsstyle{f\_index}$>=$0).
 
 The following controlfile section illustrates the use of the lookup
-table together with \artsstyle{abs\_scalar\_gas\_fieldCalc}. This is
+table together with \artsstyle{abs\_fieldCalc}. This is
 not a complete controlfile. \FIXME{Eventually there should be a good
   complete example in doc/examples. For the moment you can look at the
 examples in ~sbuehler/arts\_calc/abs\_lookup\_2/.}
 
 \begin{verbatim}
 # Read lookup table:
-ReadXML(gas_abs_lookup){"some_table.xml"}
+ReadXML(abs_lookup){"some_table.xml"}
 
 # Adapt lookup table:
-gas_abs_lookupAdapt{}
+abs_lookupAdapt{}
 
 # Set agenda for extracting absorption
-AgendaSet(scalar_gas_absorption_agenda){
+AgendaSet(abs_scalar_gas_agenda){
   abs_scalar_gasExtractFromLookup{}
 }
 
@@ -348,10 +348,10 @@ IndexSet(f_index){-1}
 # Calculate scalar gas absorption field. (This assumes that 
 # also the WSVs f_grid, atmosphere_dim, p_grid, lat_grid, 
 # lon_grid, t_field, and vmr_field have been defined.)
-abs_scalar_gas_fieldCalc{}
+abs_fieldCalc{}
 
 # Write out the field:
-WriteXML(abs_scalar_gas_field){""}
+WriteXML(abs_field){""}
 \end{verbatim}
 
 Use the online documentation for the methods and variables mentioned

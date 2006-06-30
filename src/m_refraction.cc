@@ -255,18 +255,18 @@ void refr_indexThayer(
        const Numeric&                    a_pressure,
        const Numeric&                    a_temperature,
        const Vector&                     a_vmr_list,
-       const ArrayOfArrayOfSpeciesTag&   gas_species )
+       const ArrayOfArrayOfSpeciesTag&   abs_species )
 {
-  if( gas_species.nelem() != a_vmr_list.nelem() )
+  if( abs_species.nelem() != a_vmr_list.nelem() )
     throw runtime_error( "The number of tag groups differ between "
-                                           "*a_vmr_list* and *gas_species*." );
+                                           "*a_vmr_list* and *abs_species*." );
 
-  Index   firstH2O = find_first_species_tg( gas_species,
+  Index   firstH2O = find_first_species_tg( abs_species,
                                       species_index_from_species_name("H2O") );
 
   if( firstH2O < 0 )
     throw runtime_error(
-       "Water vapour is a requiered (must be a tag group in *gas_species*)." );
+       "Water vapour is a requiered (must be a tag group in *abs_species*)." );
 
   refr_index_thayer_1974( refr_index, a_pressure, a_temperature,
                                                         a_vmr_list[firstH2O] );
