@@ -56,6 +56,7 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 #include <ctime>
 #include <fstream>
 #include "mc_interp.h"
+#include "math_funcs.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
