@@ -1,3 +1,15 @@
+2006-07-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1118
+
+	* README:
+
+	Updated. Removed obsolete configure switches and added paragraph with
+	a plea to cite ARTS if it is used in calculations for scientifc
+	publications.
+
+	* doc/uguide/main.tex: Added same paragraph to title page.
+
 2006-07-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1117
