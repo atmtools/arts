@@ -88,6 +88,19 @@ typedef Array<Ppath> ArrayOfPpath;
   === Functions from ppath.cc
   ===========================================================================*/
 
+void cart2poslos(
+             double&   r,
+             double&   lat,
+             double&   lon,
+             double&   za,
+             double&   aa,
+       const double&   x,
+       const double&   y,
+       const double&   z,
+       const double&   dx,
+       const double&   dy,
+             const double&   dz );
+
 double geometrical_ppc( const double& r, const double& za );
 
 double geompath_za_at_r(
@@ -127,6 +140,19 @@ double plevel_slope_3d(
 double plevel_angletilt(
         const double&   r,
         const double&   c );
+
+void poslos2cart(
+             double&   x,
+             double&   y,
+             double&   z,
+             double&   dx,
+             double&   dy,
+             double&   dz,
+       const double&   r,
+       const double&   lat,
+       const double&   lon,
+       const double&   za,
+             const double&   aa );
 
 void ppath_init_structure( 
               Ppath&      ppath,

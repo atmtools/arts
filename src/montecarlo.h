@@ -24,87 +24,20 @@ extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric PI;
 
-void clear_atm_vars_at_ppath_end(
-                           MatrixView& ext_mat_mono,
-                           VectorView& abs_vec_mono,
-                           Numeric& temperature,
-                           const Agenda& opt_prop_gas_agenda,
-                           const Agenda& abs_scalar_gas_agenda,
-                           //const Index& stokes_dim,
-                           const Ppath& ppath,
-                           const ConstVectorView         p_grid,
-                           const ConstVectorView         lat_grid,
-                           const ConstVectorView         lon_grid,
-                           const ConstTensor3View   t_field,
-                           const ConstTensor4View   vmr_field);
-
-void clear_atm_vars_at_ppath_end_IPA(
-                           MatrixView&              ext_mat_mono,
-                           VectorView&              abs_vec_mono,
-                           Numeric&                 temperature,
-                           const Agenda&            opt_prop_gas_agenda,
-                           const Agenda&            abs_scalar_gas_agenda,
-                           //                           const Index& stokes_dim,
-                           const Ppath& ppath,
-                           const ConstVectorView    p_grid,
-                           const ConstVectorView    lat_grid,
-                           const ConstVectorView    lon_grid,
-                           const ConstTensor3View   t_field,
-                           const ConstTensor4View   vmr_field,
-                           const Ppath&             ppath_ipa);
-
-void clear_atm_vars_by_gp(
-                          VectorView pressure,
-                          VectorView temperature,
-                          MatrixView vmr,
-                          const ArrayOfGridPos& gp_p,
-                          const ArrayOfGridPos& gp_lat,
-                          const ArrayOfGridPos& gp_lon,
-                          const ConstVectorView p_grid,
-                          const ConstVectorView lat_grid,
-                          const ConstVectorView lon_grid,
-                          const ConstTensor3View   t_field,
-                          const ConstTensor4View   vmr_field_cloud
-                          );
-
-void cloudy_atm_vars_at_ppath_end(
-                           MatrixView& ext_mat_mono,
-                           VectorView& abs_vec_mono,
-                           VectorView& pnd_vec,
-                           Numeric& temperature,
-                           const Agenda& opt_prop_gas_agenda,
-                           const Agenda& abs_scalar_gas_agenda,
-                           const Index& stokes_dim,
-                           const Ppath& ppath,
-                           const ConstVectorView         p_grid_cloud,
-                           const ConstVectorView         lat_grid_cloud,
-                           const ConstVectorView         lon_grid_cloud,
-                           const ConstTensor3View   t_field_cloud,
-                           const ConstTensor4View   vmr_field_cloud,
-                           const Tensor4&   pnd_field,
-                           const ArrayOfSingleScatteringData& scat_data_mono,
-                           const ArrayOfIndex& cloudbox_limits //added by (CE)
-                           );
-
-void cloudy_atm_vars_at_ppath_end_IPA(
-              MatrixView&                        ext_mat_mono,
-              VectorView&                        abs_vec_mono,
-              VectorView&                        pnd_vec,
-              Numeric&                           temperature,
-              const Agenda&                      opt_prop_gas_agenda,
-              const Agenda&                      abs_scalar_gas_agenda,
-              const Index&                       stokes_dim,
-              const Ppath&                       ppath,
-              const ConstVectorView              p_grid_cloud,
-              const ConstVectorView              lat_grid_cloud,
-              const ConstVectorView              lon_grid_cloud,
-              const ConstTensor3View             t_field_cloud,
-              const ConstTensor4View             vmr_field_cloud,
-              const Tensor4&                     pnd_field,
-              const ArrayOfSingleScatteringData& scat_data_mono,
-              const ArrayOfIndex&                cloudbox_limits, //added by (CE)
-              const Ppath&                       ppath_ipa
-              );
+void clear_rt_vars_at_gp(
+                         MatrixView&             ext_mat_mono,
+                         VectorView&             abs_vec_mono,
+                         Numeric&                temperature,
+                         const Agenda&           opt_prop_gas_agenda,
+                         const Agenda&           abs_scalar_gas_agenda,
+                         const GridPos&          gp_p,
+                         const GridPos&          gp_lat,
+                         const GridPos&          gp_lon,
+                         const ConstVectorView   p_grid,
+                         const ConstVectorView   lat_grid,
+                         const ConstVectorView   lon_grid,
+                         const ConstTensor3View  t_field,
+                         const ConstTensor4View  vmr_field);
 
 void cloud_atm_vars_by_gp(
                           VectorView pressure,
@@ -213,6 +146,27 @@ void cloudbox_ppath_start_stepping(
                                    const Index& z_field_is_1D );
           
 
+void cloudy_rt_vars_at_gp(
+                       MatrixView&           ext_mat_mono,
+                       VectorView&           abs_vec_mono,
+                       VectorView&           pnd_vec,
+                       Numeric&              temperature,
+                       const Agenda&         opt_prop_gas_agenda,
+                       const Agenda&         abs_scalar_gas_agenda,
+                       const Index&          stokes_dim,
+                       const GridPos         gp_p,
+                       const GridPos         gp_lat,
+                       const GridPos         gp_lon,
+                       const ConstVectorView    p_grid_cloud,
+                       const ConstVectorView    lat_grid_cloud,
+                       const ConstVectorView    lon_grid_cloud,
+                       const ConstTensor3View   t_field_cloud,
+                       const ConstTensor4View   vmr_field_cloud,
+                       const Tensor4&           pnd_field,
+                       const ArrayOfSingleScatteringData& scat_data_mono,
+                       const ArrayOfIndex&                cloudbox_limits,
+                       const Vector&            rte_los
+                       );
 
 void cum_l_stepCalc(
                       Vector& cum_l_step,

@@ -247,6 +247,12 @@ void interp_cloud_coeff1D(//Output
                           ConstVectorView scat_za_grid,
                           const Index& scat_za_interp);
 
+bool is_gp_inside_cloudbox(const GridPos& gp_p,
+                           const GridPos& gp_lat,
+                           const GridPos& gp_lon,
+                           const ArrayOfIndex& cloudbox_limits,
+                           const bool include_boundaries);
+
 bool is_inside_cloudbox(const Ppath& ppath_step,
                         const ArrayOfIndex& cloudbox_limits,
                         const bool include_boundaries);
