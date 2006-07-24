@@ -1259,7 +1259,8 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
           termination_flag=2;
           
         }
-      else if ( is_gridpos_at_index_i( ppath_step.gp_p[np-1], p_grid.nelem() - 1 ) )
+      //else if ( is_gridpos_at_index_i( ppath_step.gp_p[np-1], p_grid.nelem() - 1 ) )
+      else if (fractional_gp(ppath_step.gp_p[np-1])>=(p_grid.nelem() - 1)-1e-3)
         {
           //we have left the top of the atmosphere
           termination_flag=1;
@@ -1475,24 +1476,39 @@ void mcPathTraceIPA(MatrixView&           evol_op,
       
       //Choose sensible path step length.  This is done by considering the dimensions of the
       //current grid cell and the LOS direction. The aim is to move only one grid cell.
-      dy=cos(DEG2RAD*rte_los[1])*sin(DEG2RAD*rte_los[0])*
-        (lat_grid[gp_lat.idx+1]-lat_grid[gp_lat.idx])*DEG2RAD*r_geoid(gp_lat.idx,gp_lon.idx);
-      dx=sin(DEG2RAD*rte_los[1])*sin(DEG2RAD*rte_los[0])*
-        (lon_grid[gp_lon.idx+1]-lon_grid[gp_lon.idx])*DEG2RAD*r_geoid(gp_lat.idx,gp_lon.idx)*
-        cos(DEG2RAD*rte_pos[1]);
-      dz=cos(DEG2RAD*rte_los[0])*(z_field(gp_p.idx+1,gp_lat.idx,gp_lon.idx)-
-                                  z_field(gp_p.idx,gp_lat.idx,gp_lon.idx));
-      lstep=sqrt(dx*dx+dy*dy+dz*dz);
-
+      //dy=cos(DEG2RAD*rte_los[1])*sin(DEG2RAD*rte_los[0])*
+      //  (lat_grid[gp_lat.idx+1]-lat_grid[gp_lat.idx])*DEG2RAD*r_geoid(gp_lat.idx,gp_lon.idx);
+      //dx=sin(DEG2RAD*rte_los[1])*sin(DEG2RAD*rte_los[0])*
+      //  (lon_grid[gp_lon.idx+1]-lon_grid[gp_lon.idx])*DEG2RAD*r_geoid(gp_lat.idx,gp_lon.idx)*
+      //  cos(DEG2RAD*rte_pos[1]);
+      //dz=cos(DEG2RAD*rte_los[0])*(z_field(gp_p.idx+1,gp_lat.idx,gp_lon.idx)-
+      //                            z_field(gp_p.idx,gp_lat.idx,gp_lon.idx));
+      //lstep=sqrt(dx*dx+dy*dy+dz*dz);
+      //take the minimum grid dimension as the path step length
+      Numeric Dy=(lat_grid[gp_lat.idx+1]-lat_grid[gp_lat.idx])*DEG2RAD*
+        r_geoid(gp_lat.idx,gp_lon.idx);
+      Numeric Dx=(lon_grid[gp_lon.idx+1]-lon_grid[gp_lon.idx])*
+        DEG2RAD*r_geoid(gp_lat.idx,gp_lon.idx)*cos(DEG2RAD*rte_pos[1]);
+      Numeric Dz=z_field(gp_p.idx+1,gp_lat.idx,gp_lon.idx)-
+        z_field(gp_p.idx,gp_lat.idx,gp_lon.idx);
+      Numeric Dxy=sqrt(Dx*Dx+Dy*Dy);
+      if (Dxy/abs(tan(rte_los[0]*DEG2RAD))>Dz){dz=Dz;}
+      else {dz=Dxy/abs(tan(rte_los[0]*DEG2RAD));}
+      Numeric dxy;
+      if(dz*abs(tan(rte_los[0]*DEG2RAD))>Dxy){dxy=Dxy;}
+      else{dxy=dz*abs(tan(rte_los[0]*DEG2RAD));}
+      lstep=sqrt(dxy*dxy+dz*dz);
       //calculate new position
       //current position and direction vector
-      poslos2cart( x, y, z, dx, dy, dz, rte_pos[0], rte_pos[1], rte_pos[2], rte_los[0], rte_los[1] );
+      poslos2cart( x, y, z, dx, dy, dz, rte_pos[0], rte_pos[1], rte_pos[2], 
+                   rte_los[0], rte_los[1] );
       //new_position
       x+=lstep*dx;
       y+=lstep*dy;
       z+=lstep*dz;
       //back to spherical coords
-      cart2poslos(rte_pos[0],rte_pos[1],rte_pos[2],rte_los[0],rte_los[1],x,y,z,dx,dy,dz);
+      cart2poslos(rte_pos[0],rte_pos[1],rte_pos[2],rte_los[0],rte_los[1],
+                  x,y,z,dx,dy,dz);
       //get new grid_positions
       gridpos( gp_lat, lat_grid, rte_pos[1] );
       gridpos( gp_lon, lon_grid, rte_pos[2] );
@@ -1546,11 +1562,20 @@ void mcPathTraceIPA(MatrixView&           evol_op,
       gp_lon=ppath.gp_lon[i_closest];
       interpweights(lon_iw,gp_lon);
       interpweights(lat_iw,gp_lat);
+      //      
+      if (!z_field_is_1D)
+       {
+          interpweights( itw, gp_lat, gp_lon );
+          rv_geoid  = interp( itw, r_geoid, gp_lat, gp_lon );          
+        }
+      rte_pos[0]=rv_geoid+interp_atmfield_by_gp(3,p_grid,lat_grid,lon_grid,z_field,
+                                                "z_field",gp_p,gp_lat,gp_lon);
       rte_pos[1]=interp(lat_iw, lat_grid,gp_lat);
       rte_pos[2]=interp(lon_iw, lon_grid,gp_lon);
 
       //calculate evolution operator
-      inside_cloud=is_gp_inside_cloudbox( gp_p,gp_lat,gp_lon,cloudbox_limits, false );
+      inside_cloud=is_gp_inside_cloudbox(gp_p,gp_lat,gp_lon,
+                                         cloudbox_limits, false );
       //calculate RT variables at new point
       if (inside_cloud)
         {
@@ -1566,7 +1591,7 @@ void mcPathTraceIPA(MatrixView&           evol_op,
         {
           clear_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,temperature, 
                                opt_prop_gas_agenda,abs_scalar_gas_agenda,
-                               gp_p,gp_lat,gp_lon,p_grid, lat_grid, lon_grid, t_field, 
+                               gp_p,gp_lat,gp_lon,p_grid,lat_grid,lon_grid,t_field, 
                                vmr_field);
           pnd_vec=0.0;
         }
