@@ -1,3 +1,10 @@
+2006-08-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-199
+
+	* ami/plot/ax_set.m: Removed usage of isfield not longer handled
+	by Matlab.
+
 2006-06-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-0-198
