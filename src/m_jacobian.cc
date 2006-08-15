@@ -67,7 +67,7 @@ void jacobianAddGas(// WS Output:
                     Agenda&                   jacobian_agenda,
                     ArrayOfArrayOfSpeciesTag& abs_species,
                     // WS Input:
-                    const Sparse&             jac,
+                    const Matrix&             jac,
                     const Index&              atmosphere_dim,
                     const Vector&             p_grid,
                     const Vector&             lat_grid,
@@ -199,7 +199,7 @@ void jacobianAddGasAnalytical(
                     Agenda&                   jacobian_agenda,
                     ArrayOfArrayOfSpeciesTag& abs_species,
                     // WS Input:
-                    const Sparse&             jac,
+                    const Matrix&             jac,
                     const Index&              atmosphere_dim,
                     const Vector&             p_grid,
                     const Vector&             lat_grid,
@@ -236,7 +236,7 @@ void jacobianAddParticle(// WS Output:
                          ArrayOfRetrievalQuantity& jq,
                          Agenda&                   jacobian_agenda,
                          // WS Input:
-                         const Sparse&             jac,
+                         const Matrix&             jac,
                          const Index&              atmosphere_dim,
                          const Vector&             p_grid,
                          const Vector&             lat_grid,
@@ -370,7 +370,7 @@ void jacobianAddPointing(// WS Output:
                          ArrayOfRetrievalQuantity&  jq,
                          Agenda&                    jacobian_agenda,
                          // WS Input:
-                         const Sparse&              jac,
+                         const Matrix&              jac,
                          const Matrix&              sensor_pos,
                          const Vector&              sensor_time,
                          // Control Parameters:
@@ -461,7 +461,7 @@ void jacobianAddTemperature(// WS Output:
                     ArrayOfRetrievalQuantity& jq,
                     Agenda&                   jacobian_agenda,
                     // WS Input:
-                    const Sparse&             jac,
+                    const Matrix&             jac,
                     const Index&              atmosphere_dim,
                     const Vector&             p_grid,
                     const Vector&             lat_grid,
@@ -595,7 +595,7 @@ void jacobianAddTemperature(// WS Output:
    \date   2004-09-28
 */
 void jacobianCalc(// WS Output:
-                        Sparse&                    jacobian,
+                        Matrix&                    jacobian,
                   // WS Input:
                   const Agenda&                    jacobian_agenda,
                   const ArrayOfArrayOfIndex&       jacobian_indices )
@@ -639,7 +639,7 @@ void jacobianCalc(// WS Output:
 */
 void jacobianCalcGas(
      // WS Output:
-           Sparse&                   jacobian,
+           Matrix&                   jacobian,
            Tensor4&                  vmr_field,
            Vector&                   y,
            Ppath&                    ppath,
@@ -833,11 +833,11 @@ void jacobianCalcGas(
         vmr_field = vmr_ref;               
          
         // Add dy/dx as column in jacobian
-        // FIXME: Save cpu time by implementing a sparse::insert_column()
         for (Index y_it=0; y_it<y.nelem(); y_it++)
         {
-          jacobian.rw(y_it,it) = (y[y_it]-y_ref[y_it])/rq.Perturbation();
+          jacobian(y_it,it) = (y[y_it]-y_ref[y_it])/rq.Perturbation();
         }
+
         it++;
       }
     }
@@ -858,7 +858,7 @@ void jacobianCalcGas(
 */
 void jacobianCalcParticle(
      // WS Output:
-           Sparse&                     jacobian,
+           Matrix&                     jacobian,
            Tensor4&                    pnd_field,
            Vector&                     y,
            Ppath&                      ppath,
@@ -1074,7 +1074,7 @@ void jacobianCalcParticle(
                       // the difference between the two spectra.
                       for( Index y_it=0; y_it<y_ref.nelem(); y_it++ )
                         {
-                          jacobian.rw(y_it,icol) = y[y_it]-y_ref[y_it];
+                          jacobian(y_it,icol) = y[y_it]-y_ref[y_it];
                         }
 
                       // Step *icol*
@@ -1102,7 +1102,7 @@ void jacobianCalcParticle(
 */
 void jacobianCalcPointing(
      // WS Output:
-           Sparse&                   jacobian,
+           Matrix&                   jacobian,
            Vector&                   y,
            Ppath&                    ppath,
            Ppath&                    ppath_step,
@@ -1234,7 +1234,7 @@ void jacobianCalcPointing(
     {
       for (Index dummy=0; dummy<ny; dummy++)
       {
-        jacobian.rw(y_it,it) = dydx[y_it]*pow(weight[ns], exponent);
+        jacobian(y_it,it) = dydx[y_it]*pow(weight[ns], exponent);
         y_it++;
       }
       // If gitter then change column for each row in sensor_pos
@@ -1260,7 +1260,7 @@ void jacobianCalcPointing(
 */
 void jacobianCalcTemperature(
      // WS Output:
-           Sparse&                   jacobian,
+           Matrix&                   jacobian,
            Tensor3&                  t_field,
            Vector&                   y,
            Ppath&                    ppath,
@@ -1427,7 +1427,7 @@ void jacobianCalcTemperature(
         // FIXME: Save cpu time by implementing a sparse::insert_column()
         for (Index y_it=0; y_it<y.nelem(); y_it++)
         {
-          jacobian.rw(y_it,it) = (y[y_it]-y_ref[y_it])/rq.Perturbation();
+          jacobian(y_it,it) = (y[y_it]-y_ref[y_it])/rq.Perturbation();
         }
         it++;
       }
@@ -1444,11 +1444,11 @@ void jacobianCalcTemperature(
 /*!
    See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström�
+   \author Mattias Ekström
    \date   2004-09-19
 */
 void jacobianClose(// WS Output:
-                   Sparse&                          jacobian,
+                   Matrix&                          jacobian,
                    ArrayOfArrayOfIndex&             jacobian_indices,
                    // WS Input:
                    const ArrayOfRetrievalQuantity&  jacobian_quantities,
@@ -1516,7 +1516,7 @@ void jacobianClose(// WS Output:
    \date   2004-09-14
 */
 void jacobianInit(
-      Sparse&                    jacobian,
+      Matrix&                    jacobian,
       ArrayOfRetrievalQuantity&  jacobian_quantities,
       ArrayOfArrayOfIndex&       jacobian_indices )
 {
@@ -1535,7 +1535,7 @@ void jacobianInit(
    \date   2005-05-30
 */
 void jacobianOff(
-      Sparse&                    jacobian,
+      Matrix&                    jacobian,
       ArrayOfRetrievalQuantity&  jacobian_quantities,
       ArrayOfArrayOfIndex&       jacobian_indices)
 {

@@ -72,7 +72,7 @@ void RteCalc(
          Ppath&                      ppath,
          Ppath&                      ppath_step,
          Matrix&                     iy,
-         Sparse&                     jacobian,
+         Matrix&                     jacobian,
          Index&                      ppath_array_do,
          ArrayOfPpath&               ppath_array,
          Index&                      ppath_array_index,
@@ -357,7 +357,7 @@ void RteCalc(
 
               //--- Jacobian part: --------------------------------------------
 
-              //--- Gas species ---
+              //--- Absorption species ---
               for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
                 {
                   //- Scale to other species retrieval modes
@@ -426,9 +426,12 @@ void RteCalc(
       mult( y[Range(nydone,nblock)], sensor_response, ib );
 
 
-      //--- Apply sensor response matrix on jacobians
+      //--- Apply sensor response matrix on jacobians, and store
       for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
         {
+          mult( jacobian(Range(nydone,nblock),Range(ji0_vmr[ig],jin_vmr[ig])),
+                                            sensor_response, ib_vmr_jacs[ig] );
+          /*
           Matrix  K(nblock,jin_vmr[ig]);
           mult( K, sensor_response, ib_vmr_jacs[ig] );
           for( Index col=0; col<jin_vmr[ig]; col++ )
@@ -439,9 +442,13 @@ void RteCalc(
                     { jacobian.rw(nydone+row,ji0_vmr[ig]+col) = K(row,col); }
                 }
             }
+          */
         }
       if( rte_do_t_jacs )
         {
+          mult( jacobian(Range(nydone,nblock),Range(ji0_t,jin_t)), 
+                                                  sensor_response, ib_t_jacs );
+          /*
           Matrix  K(nblock,jin_t);
           mult( K, sensor_response, ib_t_jacs );
           for( Index col=0; col<jin_t; col++ )
@@ -452,6 +459,7 @@ void RteCalc(
                     { jacobian.rw(nydone+row,ji0_t+col) = K(row,col); }
                 }
             }
+          */
         }
 
 
@@ -499,7 +507,7 @@ void RteCalcNoJacobian(
    const Vector&                     mblock_za_grid,
    const Vector&                     mblock_aa_grid )
 {
-  Sparse                     jacobian;
+  Matrix                     jacobian;
   ArrayOfRetrievalQuantity   jacobian_quantities;
   ArrayOfArrayOfIndex        jacobian_indices;
   ArrayOfArrayOfSpeciesTag   abs_species(0);

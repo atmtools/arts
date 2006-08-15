@@ -1,3 +1,11 @@
+2006-08-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1121
+
+	* src/m_jacobian.cc,workspace.cc,m_rte.cc: The WSV jacobian is now a
+	matrix, instead of a sparse. Some initial tests look good. 
+	Calculations now much quicker.
+
 2006-07-24  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1120

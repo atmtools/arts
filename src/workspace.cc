@@ -1303,7 +1303,7 @@ void define_wsv_data()
         "\n"
         "Dimension:   [ y, number of retrieval quantities and grids ]\n"
       ),
-      GROUP( Sparse_ )));
+      GROUP( Matrix_ )));
 
  wsv_data.push_back
    (WsvRecord
