@@ -4947,50 +4947,6 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "SparseToTbByPlanck" ),
-        DESCRIPTION
-        (
-         "As *MatrixToTbByPlanck* but operates on a sparse matrix.\n"
-         "\n"
-         "Generic output: \n"
-         "   Sparse : A matrix with brightness temperature values. \n"
-         "\n"
-         "Generic input: \n"
-         "   Sparse : A matrix with radiance values."
-        ),
-        OUTPUT(),
-        INPUT( sensor_pos_, sensor_los_, sensor_response_f_,
-               sensor_response_za_, sensor_response_aa_,
-               sensor_response_pol_ ),
-        GOUTPUT( Sparse_ ),
-        GINPUT( Sparse_ ),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "SparseToTbByRJ" ),
-        DESCRIPTION
-        (
-         "As *MatrixToTbByRJ* but operates on a sparse matrix.\n"
-         "\n"
-         "Generic output: \n"
-         "   Spasr : A sparse matrix with brightness temperature values. \n"
-         "\n"
-         "Generic input: \n"
-         "   Sparse : A sparse matrix with radiance values."
-        ),
-        OUTPUT(),
-        INPUT( sensor_pos_, sensor_los_, sensor_response_f_,
-               sensor_response_za_, sensor_response_aa_,
-               sensor_response_pol_ ),
-        GOUTPUT( Sparse_ ),
-        GINPUT( Sparse_ ),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("StringSet"),
         DESCRIPTION
         (

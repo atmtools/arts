@@ -1,3 +1,11 @@
+2006-08-16  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1122
+
+	* src/m_physics.cc:  SparseToTbByRJ and SparseToTbByPlanck removed.
+	These functions are now not needed when the jacobian is a matrix.
+	There was also some bug in the RJ version.
+
 2006-08-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-1121
