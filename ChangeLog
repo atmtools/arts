@@ -1,3 +1,17 @@
+2006-08-29  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1123
+
+	* src/m_abs_lookup.cc (abs_speciesAdd2): Craeted.
+
+	* src/m_jacobian.cc (jacobianAddAbsSpecies): jacobianAddGas is
+	renamed, following other changes. The method does now not touch
+	*abs_species*. This is functionality is replaced by *abs_speciesAdd2*.
+
+	(jacobianCalcAbsSpecies): New name of jacobianCalcGas.
+
+        (jacobianAddGasAnalytical): Removed.	
+
 2006-08-16  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-1122

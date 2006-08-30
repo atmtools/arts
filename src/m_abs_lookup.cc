@@ -80,6 +80,60 @@ void abs_speciesAdd(// WS Output:
 
 
 
+//! jacobianAddGas
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+   
+   \author Patrick Eriksson
+   \date   2006-08-29
+*/
+void abs_speciesAdd2(// WS Output:
+                    ArrayOfArrayOfSpeciesTag& abs_species,
+                    ArrayOfRetrievalQuantity& jq,
+                    Agenda&                   jacobian_agenda,
+                    // WS Input:
+                    const Matrix&             jac,
+                    const Index&              atmosphere_dim,
+                    const Vector&             p_grid,
+                    const Vector&             lat_grid,
+                    const Vector&             lon_grid,
+                    // WS Generic Input:
+                    const Vector&             rq_p_grid,
+                    const Vector&             rq_lat_grid,
+                    const Vector&             rq_lon_grid,
+                    // WS Generic Input Names:
+                    const String&             rq_p_grid_name,
+                    const String&             rq_lat_grid_name,
+                    const String&             rq_lon_grid_name,
+                    // Control Parameters:
+                    const String&             species,
+                    const String&             method,
+                    const String&             mode,
+                    const Numeric&            dx)
+{
+  // Add species to *abs_species*
+  ArrayOfSpeciesTag tags;
+  array_species_tag_from_string( tags, species );
+  abs_species.push_back( tags );
+
+  // Print list of added tag group to the most verbose output stream:
+  out3 << "  Appended tag group:";
+  out3 << "\n  " << abs_species.nelem()-1 << ":";
+  for ( Index s=0; s<tags.nelem(); ++s )
+  {
+    out3 << " " << tags[s].Name();
+  }
+  out3 << '\n';
+
+  // Do retrieval part
+  jacobianAddAbsSpecies( jq, jacobian_agenda, jac, atmosphere_dim, 
+                         p_grid, lat_grid, lon_grid, rq_p_grid, rq_lat_grid, 
+                         rq_lon_grid, rq_p_grid_name, rq_lat_grid_name, 
+                         rq_lon_grid_name, species, method, mode, dx);
+}
+
+
+
 void abs_speciesInit( ArrayOfArrayOfSpeciesTag& abs_species )
 {
   abs_species.resize(0);

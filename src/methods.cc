@@ -804,10 +804,10 @@ void define_md_data_raw()
       ( NAME("abs_speciesAdd"),
         DESCRIPTION
         (
-         "Adds species tag groups to the list of gas species.\n"
+         "Adds species tag groups to the list of absorption species.\n"
          "\n"
          "This WSM is similar to *abs_speciesSet*, the only difference is that\n"
-         "this method appends species to an existing list of gas species instead\n"
+         "this method appends species to an existing list of absorption species instead\n"
          "of creating the whole list.\n"
          "\n"
          "See *abs_speciesSet* for details on how tags are defined and examples of\n"
@@ -824,6 +824,30 @@ void define_md_data_raw()
         GINPUT(),
         KEYWORDS( "species" ),
         TYPES(    Array_String_t   )));
+ 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("abs_speciesAdd2"),
+        DESCRIPTION
+        (
+         "Adds a species tag group to the list of absorption species and \n"
+         "jacobian quantities.\n"
+         "\n"
+         "The method is basically a combined call of *abs_speciesAdd* and\n"
+         "*jacobianAddAbsSpecies*. In this way it is not needed to specify a\n"
+         "tag group in two different places. \n"
+         "\n"
+         "Arguments exactly as for *jacobianAddAbsSpecies*. Note that this\n"
+         "method only handles a single tag group, in contrast to \n"
+         "*abs_speciesAdd*"
+         ),
+        OUTPUT( abs_species_, jacobian_quantities_, jacobian_agenda_ ),
+        INPUT( abs_species_, jacobian_, atmosphere_dim_, p_grid_, lat_grid_, 
+               lon_grid_ ),
+        GOUTPUT(),
+        GINPUT( Vector_, Vector_, Vector_ ),
+        KEYWORDS( "species", "method", "unit", "dx" ),
+        TYPES( String_t, String_t, String_t, Numeric_t )));
  
   md_data_raw.push_back
     ( MdRecord
@@ -869,7 +893,7 @@ void define_md_data_raw()
       ( NAME("abs_speciesSet"),
         DESCRIPTION
         (
-         "Set up the list of gas species tag groups.\n"
+         "Set up the list of absorption species tag groups.\n"
          "\n"
          "The workspace variable *abs_species* contains several tag groups. Each\n"
          "tag group contain one or more tags. This method converts descriptions\n"
@@ -2739,18 +2763,12 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
-  
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianAddGas" ),
+      ( NAME( "jacobianAddAbsSpecies" ),
         DESCRIPTION
         (
-         "Adds a gas species as a retrieval quantity to the Jacobian.\n"
-         "\n"
-         "This functions also adds the SpeciesTag of the given species to\n"
-         "*abs_species*. This way the treated gas species only need to be\n"
-         "given at one place in the control file. It also appends\n"
-         "*jacobianCalcGas* with the given gas species to *jacobian_agenda*.\n"
+         "Adds a absorption species as a retrieval quantity to the Jacobian.\n"
          "\n"
          "For 1D or 2D calculations the latitude and/or longitude grid of\n"
          "the retrieval field should be set to zero length.\n"
@@ -2779,28 +2797,12 @@ md_data_raw.push_back
          "  unit    : Retrieval unit. See above.\n"
          "  dx      : Size of perturbation."
         ),
-        OUTPUT( jacobian_quantities_, jacobian_agenda_, abs_species_ ),
-        INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_,
-               abs_species_ ),
+        OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
+        INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT(),
         GINPUT( Vector_, Vector_, Vector_ ),
         KEYWORDS( "species", "method", "unit", "dx" ),
         TYPES( String_t, String_t, String_t, Numeric_t )));
-         
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "jacobianAddGasAnalytical" ),
-        DESCRIPTION
-        (
-         "As *jacobianAddGas* but assumes analytical calculations."
-        ),
-        OUTPUT( jacobian_quantities_, jacobian_agenda_, abs_species_ ),
-        INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_,
-               abs_species_ ),
-        GOUTPUT(),
-        GINPUT( Vector_, Vector_, Vector_ ),
-        KEYWORDS( "species", "method" ),
-        TYPES( String_t, String_t )));
          
   md_data_raw.push_back
     ( MdRecord
@@ -2919,12 +2921,12 @@ md_data_raw.push_back
         
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("jacobianCalcGas"),
+      ( NAME("jacobianCalcAbsSpecies"),
         DESCRIPTION
         (
-        "Calculates the contribution of a gas species to the Jacobian.\n"
+        "Calculates the contribution of an absorption species to the Jacobian.\n"
         "\n"
-        "This function is added to *jacobian_agenda* by jacobianAddGas\n"
+        "This function is added to *jacobian_agenda* by jacobianAddAbsSpecies\n"
         "and should normally not be called by the user.\n"
         ),
         OUTPUT( jacobian_, vmr_field_, y_, ppath_, ppath_step_, iy_ ),

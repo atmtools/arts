@@ -55,17 +55,16 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! jacobianAddGas
+//! jacobianAddAbsSpecies
 /*!
    See the online help (arts -d FUNCTION_NAME)
    
    \author Mattias Ekstrom
    \date   2004-09-30
 */
-void jacobianAddGas(// WS Output:
+void jacobianAddAbsSpecies(// WS Output:
                     ArrayOfRetrievalQuantity& jq,
                     Agenda&                   jacobian_agenda,
-                    ArrayOfArrayOfSpeciesTag& abs_species,
                     // WS Input:
                     const Matrix&             jac,
                     const Index&              atmosphere_dim,
@@ -116,8 +115,8 @@ void jacobianAddGas(// WS Output:
   else
     {
       ostringstream os;
-      os << "The method for gas species retrieval can only be \"analytical\"\n"
-         << "or \"perturbation\".";
+      os << "The method for absorption species retrieval can only be "
+         << "\"analytical\"\n or \"perturbation\".";
       throw runtime_error(os.str());
     }
   
@@ -131,7 +130,7 @@ void jacobianAddGas(// WS Output:
   // Check that this species is not already included in the jacobian.
   for (Index it=0; it<jq.nelem(); it++)
   {
-    if (jq[it].MainTag()=="Gas species" && jq[it].Subtag()==species)
+    if (jq[it].MainTag()=="Abs. species" && jq[it].Subtag()==species)
     {
       ostringstream os;
       os << "The gas species:\n" << species << "\nis already included in "
@@ -142,7 +141,7 @@ void jacobianAddGas(// WS Output:
 
   // Create the new retrieval quantity
   RetrievalQuantity rq = RetrievalQuantity();
-  rq.MainTag("Gas species");
+  rq.MainTag("Abs. species");
   rq.Subtag(species);
   rq.Mode(mode);
   rq.Analytical(analytical);
@@ -159,69 +158,15 @@ void jacobianAddGas(// WS Output:
     }
   else
     {
-      out2 << "  Adding gas species: " << species 
+      out2 << "  Adding absorption species: " << species 
            << " to *jacobian_quantities*\n" << "  and *jacobian_agenda*\n";
       out3 << "  Calculations done by perturbation, size " << dx 
            << " " << mode << ".\n"; 
-      String methodname = "jacobianCalcGas";
+      String methodname = "jacobianCalcAbsSpecies";
       String kwv = species;
       agenda_append(jacobian_agenda, methodname, kwv);
     }
-  
-  // Add retrieval quantity to *abs_species*
-  ArrayOfSpeciesTag tags;
-  array_species_tag_from_string( tags, species );
-  abs_species.push_back( tags );
-  
-  // Print list of added tag group to the most verbose output stream:
-  out3 << "  Appended tag group:";
-  out3 << "\n  " << abs_species.nelem()-1 << ":";
-  for ( Index s=0; s<tags.nelem(); ++s )
-  {
-    out3 << " " << tags[s].Name();
-  }
-  out3 << '\n';
-  
 }                    
-
-
-
-//! jacobianAddGasAnalytical
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-   
-   \author Patrick Eriksson
-   \date   2005-05-11
-*/
-void jacobianAddGasAnalytical(
-                    // WS Output:
-                    ArrayOfRetrievalQuantity& jq,
-                    Agenda&                   jacobian_agenda,
-                    ArrayOfArrayOfSpeciesTag& abs_species,
-                    // WS Input:
-                    const Matrix&             jac,
-                    const Index&              atmosphere_dim,
-                    const Vector&             p_grid,
-                    const Vector&             lat_grid,
-                    const Vector&             lon_grid,
-                    // WS Generic Input:
-                    const Vector&             rq_p_grid,
-                    const Vector&             rq_lat_grid,
-                    const Vector&             rq_lon_grid,
-                    // WS Generic Input Names:
-                    const String&             rq_p_grid_name,
-                    const String&             rq_lat_grid_name,
-                    const String&             rq_lon_grid_name,
-                    // Control Parameters:
-                    const String&             species,
-                    const String&             mode )
-{
-  jacobianAddGas( jq, jacobian_agenda, abs_species, jac, atmosphere_dim,
-                  p_grid, lat_grid, lon_grid,
-                  rq_p_grid, rq_lat_grid, rq_lon_grid, rq_p_grid_name,
-                  rq_lat_grid_name, rq_lon_grid_name, species, "analytical",
-                  mode, 0 );
-}
 
 
 
@@ -630,14 +575,14 @@ void jacobianCalc(// WS Output:
 
 
 
-//! jacobianCalcGas
+//! jacobianCalcAbsSpecies
 /*!
    See the online help (arts -d FUNCTION_NAME)
 
    \author Mattias Ekstrom
    \date   2004-10-01
 */
-void jacobianCalcGas(
+void jacobianCalcAbsSpecies(
      // WS Output:
            Matrix&                   jacobian,
            Tensor4&                  vmr_field,
@@ -681,12 +626,12 @@ void jacobianCalcGas(
   ArrayOfIndex ji;
   Index it, method;
   
-  // Find the retrieval quantity related to this method, i.e. Gas species -
+  // Find the retrieval quantity related to this method, i.e. Abs. species -
   // species. This works since the combined MainTag and Subtag is individual.
   bool check_rq = false;
   for( Index n=0; n<n_jq && !check_rq; n++ )
     {
-      if (jq[n].MainTag()=="Gas species" && jq[n].Subtag()==species)
+      if (jq[n].MainTag()=="Abs. species" && jq[n].Subtag()==species)
         {
           check_rq = true;
           rq = jq[n];
