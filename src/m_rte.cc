@@ -275,7 +275,7 @@ void RteCalc(
 
   for( Index i=0; i<jacobian_quantities.nelem(); i++ )
     {
-      if ( jacobian_quantities[i].MainTag() == "Gas species"  &&  
+      if ( jacobian_quantities[i].MainTag() == "Abs. species"  &&  
                                           jacobian_quantities[i].Analytical() )
         { 
           ppath_array_do = 1;
