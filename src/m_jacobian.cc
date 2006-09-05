@@ -51,6 +51,49 @@
 #include "physics_funcs.h"
 
 
+// Temporary solution
+
+void yCalc(
+         Vector&                     y,
+   const Agenda&                     ppath_step_agenda,
+   const Agenda&                     rte_agenda,
+   const Agenda&                     iy_space_agenda,
+   const Agenda&                     surface_prop_agenda,
+   const Agenda&                     iy_cloudbox_agenda,
+   const Index&                      atmosphere_dim,
+   const Vector&                     p_grid,
+   const Vector&                     lat_grid,
+   const Vector&                     lon_grid,
+   const Tensor3&                    z_field,
+   const Tensor3&                    t_field,
+   const Tensor4&                    vmr_field,
+   const Matrix&                     r_geoid,
+   const Matrix&                     z_surface,
+   const Index&                      cloudbox_on, 
+   const ArrayOfIndex&               cloudbox_limits,
+   const Sparse&                     sensor_response,
+   const Matrix&                     sensor_pos,
+   const Matrix&                     sensor_los,
+   const Vector&                     f_grid,
+   const Index&                      stokes_dim,
+   const Index&                      antenna_dim,
+   const Vector&                     mblock_za_grid,
+   const Vector&                     mblock_aa_grid )
+{
+  Ppath        ppath;
+  Ppath        ppath_step;
+  Matrix       iy;
+
+        RteCalcNoJacobian( y, ppath, ppath_step,
+                 iy, ppath_step_agenda, rte_agenda,
+                 iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
+                 atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                 t_field, vmr_field, 
+                 r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
+                 sensor_response, sensor_pos, sensor_los, f_grid, 
+                 stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
+}
+
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
@@ -198,6 +241,8 @@ void jacobianAddParticle(// WS Output:
                          const String&             rq_lat_grid_name,
                          const String&             rq_lon_grid_name)
 {
+  throw runtime_error("Particle jacobians not yet handled correctly.");
+
   // Check that the jacobian matrix is empty. Otherwise it is either
   // not initialised or it is closed.
   if( jac.nrows()!=0 && jac.ncols()!=0 )
@@ -304,6 +349,7 @@ void jacobianAddParticle(// WS Output:
 }                    
 
 
+
 //! jacobianAddPointing
 /*!
    See the online help (arts -d FUNCTION_NAME)
@@ -363,6 +409,11 @@ void jacobianAddPointing(// WS Output:
     throw runtime_error(os.str());
   }
 
+  // Do not allow that *poly_order* is not too large compared to *sensor_time*
+  if( poly_order > sensor_time.nelem()-1 )
+    { throw runtime_error( 
+             "The polynomial order can not be >= length of *sensor_time*." ); }
+
   // Create the new retrieval quantity
   RetrievalQuantity rq = RetrievalQuantity();
   rq.MainTag("Pointing");
@@ -395,6 +446,7 @@ void jacobianAddPointing(// WS Output:
 }
 
 
+
 //! jacobianAddTemperature
 /*!
    See the online help (arts -d FUNCTION_NAME)
@@ -424,6 +476,9 @@ void jacobianAddTemperature(// WS Output:
                     const String&             method,
                     const Numeric&            dx)
 {
+  throw runtime_error("Temperature jacobians not yet handled correctly.");
+
+
   // Check that the jacobian matrix is empty. Otherwise it is either
   // not initialised or it is closed.
   if (jac.nrows()!=0 && jac.ncols()!=0)
@@ -570,7 +625,7 @@ void jacobianCalc(// WS Output:
   out2 << "  Calculating *jacobian*.\n";
   
   // Run jacobian_agenda
-  jacobian_agendaExecute (jacobian, jacobian_agenda, false);
+  jacobian_agendaExecute( jacobian, jacobian_agenda, false );
 }
 
 
@@ -579,18 +634,14 @@ void jacobianCalc(// WS Output:
 /*!
    See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekstrom
+   \author Mattias Ekstrom and Patrick Eriksson
    \date   2004-10-01
 */
 void jacobianCalcAbsSpecies(
      // WS Output:
            Matrix&                   jacobian,
-           Tensor4&                  vmr_field,
-           Vector&                   y,
-           Ppath&                    ppath,
-           Ppath&                    ppath_step,
-           Matrix&                   iy, 
      // WS Input:
+     const Vector&                   y,
      const ArrayOfRetrievalQuantity& jq,
      const ArrayOfArrayOfIndex&      jacobian_indices,
      const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -605,6 +656,7 @@ void jacobianCalcAbsSpecies(
      const Vector&                   lon_grid,
      const Tensor3&                  z_field,
      const Tensor3&                  t_field,
+     const Tensor4&                  vmr_field,
      const Matrix&                   r_geoid,
      const Matrix&                   z_surface,
      const Index&                    cloudbox_on,
@@ -689,16 +741,14 @@ void jacobianCalcAbsSpecies(
   array_species_tag_from_string( tags, species );
   Index si = chk_contains( "species", abs_species, tags );
 
-  // Store the reference spectrum and vmr-field
-  Vector y_ref = y;
-  Tensor4 vmr_ref = vmr_field;
-  
   // Variables for vmr field perturbation unit conversion
   Tensor3 nd_field(t_field.npages(),t_field.nrows(),t_field.ncols(), 1.0);
   if (rq.Mode()=="nd")
     calc_nd_field(nd_field, p_grid, t_field);
   
-  
+  // Vector for perturbed measurement vector
+  Vector yp;;
+    
   // Loop through the retrieval grid and calculate perturbation effect
   for (Index lon_it=0; lon_it<j_lon; lon_it++)
   {
@@ -721,11 +771,14 @@ void jacobianCalcAbsSpecies(
             get_perturbation_range( lon_range, lon_it, j_lon);
           }
         }
+
+        // Create VMR field to perturb
+        Tensor4 vmr_p = vmr_field;
                               
         // If perturbation given in ND convert the vmr-field to ND before
         // the perturbation is added          
         if (rq.Mode()=="nd")
-          vmr_field(si,joker,joker,joker) *= nd_field;
+          vmr_p(si,joker,joker,joker) *= nd_field;
         
         // Calculate the perturbed field according to atmosphere_dim, 
         // the number of perturbations is the length of the retrieval 
@@ -735,14 +788,14 @@ void jacobianCalcAbsSpecies(
           case 1:
           {
             // Here we perturb a vector
-            perturbation_field_1d( vmr_field(si,joker,lat_it,lon_it), 
+            perturbation_field_1d( vmr_p(si,joker,lat_it,lon_it), 
               p_gp, jg[0].nelem()+2, p_range, rq.Perturbation(), method);
             break;
           }
           case 2:
           {
             // Here we perturb a matrix
-            perturbation_field_2d( vmr_field(si,joker,joker,lon_it),
+            perturbation_field_2d( vmr_p(si,joker,joker,lon_it),
               p_gp, lat_gp, jg[0].nelem()+2, jg[1].nelem()+2, p_range, 
               lat_range, rq.Perturbation(), method);
             break;
@@ -750,7 +803,7 @@ void jacobianCalcAbsSpecies(
           case 3:
           {  
             // Here we need to perturb a tensor3
-            perturbation_field_3d( vmr_field(si,joker,joker,joker), 
+            perturbation_field_3d( vmr_p(si,joker,joker,joker), 
               p_gp, lat_gp, lon_gp, jg[0].nelem()+2, jg[1].nelem()+2, 
               jg[2].nelem()+2, p_range, lat_range, lon_range, 
               rq.Perturbation(), method);
@@ -760,38 +813,31 @@ void jacobianCalcAbsSpecies(
 
         // If perturbation given in ND convert back to VMR          
         if (rq.Mode()=="nd")
-          vmr_field(si,joker,joker,joker) /= nd_field;
+          vmr_p(si,joker,joker,joker) /= nd_field;
         
         // Calculate the perturbed spectrum  
         out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
              << ji[1]+1 << "\n";
-        RteCalcNoJacobian( y, ppath, ppath_step,
-                 iy, ppath_step_agenda, rte_agenda,
+        yCalc( yp, ppath_step_agenda, rte_agenda,
                  iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
                  atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
-                 t_field, vmr_field,
+                 t_field, vmr_p,
                  r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
                  sensor_response, sensor_pos, sensor_los, f_grid, 
                  stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
     
-        // Restore the vmr_field
-        vmr_field = vmr_ref;               
-         
         // Add dy/dx as column in jacobian
         for (Index y_it=0; y_it<y.nelem(); y_it++)
-        {
-          jacobian(y_it,it) = (y[y_it]-y_ref[y_it])/rq.Perturbation();
-        }
+          {
+            jacobian(y_it,it) = (yp[y_it]-y[y_it])/rq.Perturbation();
+          }
 
         it++;
       }
     }
   }
-  
-  // Restore y before returning
-  y = y_ref;
-
 }
+
 
                      
 //! jacobianCalcParticle
@@ -804,12 +850,8 @@ void jacobianCalcAbsSpecies(
 void jacobianCalcParticle(
      // WS Output:
            Matrix&                     jacobian,
-           Tensor4&                    pnd_field,
-           Vector&                     y,
-           Ppath&                      ppath,
-           Ppath&                      ppath_step,
-           Matrix&                     iy, 
      // WS Input:
+     const Vector&                     y,
      const ArrayOfRetrievalQuantity&   jq,
      const ArrayOfArrayOfIndex&        jacobian_indices,
      const Tensor5&                    pnd_field_perturb,
@@ -830,6 +872,7 @@ void jacobianCalcParticle(
      const Matrix&                     z_surface,
      const Index&                      cloudbox_on,
      const ArrayOfIndex&               cloudbox_limits,
+     const Tensor4&                    pnd_field,
      const Sparse&                     sensor_response,
      const Matrix&                     sensor_pos,
      const Matrix&                     sensor_los,
@@ -868,9 +911,9 @@ void jacobianCalcParticle(
     }
 
 
-  // Store the reference spectrum and particle field
-  Vector y_ref = y;
-  Tensor4  pnd_pert, base_pert = pnd_field, pnd_ref = pnd_field;
+  // Variables to handle and store perturbations
+  Vector yp;
+  Tensor4  pnd_p, base_pert = pnd_field;
 
 
   // Loop particle variables (indexed by *ipt*, where *ipt* is zero based)
@@ -947,7 +990,7 @@ void jacobianCalcParticle(
                   for (Index p_it=0; p_it<j_p; p_it++)
                     {
                       // Update the perturbation field
-                      pnd_pert = 
+                      pnd_p = 
                            pnd_field_perturb( ipt, joker, joker, joker, joker);
 
                       it++;
@@ -1001,43 +1044,39 @@ void jacobianCalcParticle(
           
                       // Now add the weighted perturbation field to the 
                       // reference field and recalculate the scattered field
-                      pnd_pert  *= base_pert;
-                      pnd_field += pnd_pert;
-                      jacobian_particle_update_agendaExecute (jacobian_particle_update_agenda, false);
+                      pnd_p *= base_pert;
+                      pnd_p += pnd_field;
+                      jacobian_particle_update_agendaExecute( pnd_p, 
+                                      jacobian_particle_update_agenda, false );
             
                       // Calculate the perturbed spectrum  
-                      RteCalcNoJacobian( y, ppath, ppath_step, iy,
-                         ppath_step_agenda, rte_agenda, iy_space_agenda, 
-                         surface_prop_agenda, iy_cloudbox_agenda, atmosphere_dim,
-                         p_grid, lat_grid, lon_grid, z_field, t_field, 
-                         vmr_field, r_geoid, z_surface, cloudbox_on, 
-                         cloudbox_limits, sensor_response, sensor_pos, 
-                         sensor_los, f_grid, stokes_dim, antenna_dim, 
-                         mblock_za_grid, mblock_aa_grid);
+                      yCalc( yp, ppath_step_agenda, rte_agenda, 
+                             iy_space_agenda, surface_prop_agenda, 
+                             iy_cloudbox_agenda, atmosphere_dim,
+                             p_grid, lat_grid, lon_grid, z_field, t_field, 
+                             vmr_field, r_geoid, z_surface, cloudbox_on, 
+                             cloudbox_limits, sensor_response, sensor_pos, 
+                             sensor_los, f_grid, stokes_dim, antenna_dim, 
+                             mblock_za_grid, mblock_aa_grid);
     
                       // Add dy as column in jacobian. Note that we just return
                       // the difference between the two spectra.
-                      for( Index y_it=0; y_it<y_ref.nelem(); y_it++ )
+                      for( Index y_it=0; y_it<yp.nelem(); y_it++ )
                         {
-                          jacobian(y_it,icol) = y[y_it]-y_ref[y_it];
+                          jacobian(y_it,icol) = yp[y_it]-y[y_it];
                         }
 
                       // Step *icol*
                       icol++;
-            
-                      // Restore the reference pnd_field
-                      pnd_field = pnd_ref;
                     }
                 }
             }
         }
     }
-  
-  // Restore spectrum before returning
-  y = y_ref;
 }
 
                      
+
 //! jacobianCalcPointing
 /*!
    See the online help (arts -d FUNCTION_NAME)
@@ -1048,11 +1087,8 @@ void jacobianCalcParticle(
 void jacobianCalcPointing(
      // WS Output:
            Matrix&                   jacobian,
-           Vector&                   y,
-           Ppath&                    ppath,
-           Ppath&                    ppath_step,
-           Matrix&                   iy,
      // WS Input:
+     const Vector&                   y,
      const ArrayOfRetrievalQuantity& jq,
      const ArrayOfArrayOfIndex&      jacobian_indices,
      const Vector&                   sensor_time,
@@ -1132,36 +1168,33 @@ void jacobianCalcPointing(
   // Give verbose output
   out2 << "  Calculating retrieval quantity " << rq << "\n";
 
-  // Declare variables for reference and difference spectrum
-  Vector y_ref = y;
+  // Declare variables for perturbed and difference spectra
+  Vector yp;
   Vector dydx(y.nelem());
   
   // Add the pointing offset. 
   sensor_los_pert(joker,0) += rq.Perturbation();
      
   // Calculate the perturbed spectrum for the zeroth order polynomial
-  RteCalcNoJacobian( y, ppath, ppath_step, 
-           iy, ppath_step_agenda, rte_agenda,
-           iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
-           atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
-           vmr_field, r_geoid, 
-           z_surface, cloudbox_on, cloudbox_limits, sensor_response, 
-           sensor_pos, sensor_los_pert, f_grid, stokes_dim, antenna_dim, 
-           mblock_za_grid, mblock_aa_grid);
+  yCalc( yp, ppath_step_agenda, rte_agenda,
+         iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
+         atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+         vmr_field, r_geoid, 
+         z_surface, cloudbox_on, cloudbox_limits, sensor_response, 
+         sensor_pos, sensor_los_pert, f_grid, stokes_dim, antenna_dim, 
+         mblock_za_grid, mblock_aa_grid);
     
   // Calculate difference in spectrum and divide by perturbation,
   // here we want the whole dy/dx vector so that we can use it later
-  dydx = y;
-  dydx -= y_ref;
+  dydx = yp;
+  dydx -= y;
   dydx /= rq.Perturbation();
     
   // Add the weighted dy/dx as column in jacobian
-  // FIXME: Save cpu time by implementing a sparse::insert_column()
   Index ny = y.nelem()/sensor_pos.nrows();
   Index it = ji[0];
   Numeric exponent;
   while (it<=ji[1])
-//  for (it=ji[0]; it<=ji[1]; it++)
   {
     // For gitter the exponent is zero for all columns
     if (!gitter)
@@ -1190,10 +1223,8 @@ void jacobianCalcPointing(
     if (!gitter)
       it++;
   }
-     
-  // Restore y before returning
-  y = y_ref;
 }
+
 
 
 //! jacobianCalcTemperature
@@ -1206,12 +1237,8 @@ void jacobianCalcPointing(
 void jacobianCalcTemperature(
      // WS Output:
            Matrix&                   jacobian,
-           Tensor3&                  t_field,
-           Vector&                   y,
-           Ppath&                    ppath,
-           Ppath&                    ppath_step,
-           Matrix&                   iy, 
      // WS Input:
+     const Vector&                   y,
      const ArrayOfRetrievalQuantity& jq,
      const ArrayOfArrayOfIndex&      jacobian_indices,
      const Agenda&                   ppath_step_agenda,
@@ -1224,6 +1251,7 @@ void jacobianCalcTemperature(
      const Vector&                   lat_grid,
      const Vector&                   lon_grid,
      const Tensor3&                  z_field,
+     const Tensor3&                  t_field,
      const Tensor4&                  vmr_field,
      const Matrix&                   r_geoid,
      const Matrix&                   z_surface,
@@ -1294,10 +1322,6 @@ void jacobianCalcTemperature(
   // Give verbose output
   out2 << "  Calculating retrieval quantity " << rq << "\n";
 
-  // Store the reference spectrum and temperature field
-  Vector y_ref = y;
-  Tensor3 t_ref = t_field;
-  
   // Loop through the retrieval grid and calculate perturbation effect
   for (Index lon_it=0; lon_it<j_lon; lon_it++)
   {
@@ -1305,6 +1329,10 @@ void jacobianCalcTemperature(
     {
       for (Index p_it=0; p_it<j_p; p_it++)
       {
+        // Perturbed spectrum and temperature field
+        Vector yp;
+        Tensor3 t_p = t_field;
+  
         // Here we calculate the ranges of the perturbation. We want the
         // perturbation to continue outside the atmospheric grids for the
         // edge values.
@@ -1329,14 +1357,14 @@ void jacobianCalcTemperature(
           case 1:
           {
             // Here we perturb a vector
-            perturbation_field_1d( t_field(joker,lat_it,lon_it), 
+            perturbation_field_1d( t_p(joker,lat_it,lon_it), 
               p_gp, jg[0].nelem()+2, p_range, rq.Perturbation(), method);
             break;
           }
           case 2:
           {
             // Here we perturb a matrix
-            perturbation_field_2d( t_field(joker,joker,lon_it), 
+            perturbation_field_2d( t_p(joker,joker,lon_it), 
               p_gp, lat_gp, jg[0].nelem()+2, jg[1].nelem()+2, p_range, lat_range, 
               rq.Perturbation(), method);
             break;
@@ -1344,7 +1372,7 @@ void jacobianCalcTemperature(
           case 3:
           {  
             // Here we need to perturb a tensor3
-            perturbation_field_3d( t_field(joker,joker,joker), 
+            perturbation_field_3d( t_p(joker,joker,joker), 
               p_gp, lat_gp, lon_gp, jg[0].nelem()+2, jg[1].nelem()+2, 
               jg[2].nelem()+2, p_range, lat_range, lon_range, 
               rq.Perturbation(), method);
@@ -1356,33 +1384,25 @@ void jacobianCalcTemperature(
         out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
              << ji[1]+1 << "\n";
 
-        RteCalcNoJacobian( y, ppath, ppath_step,
-                 iy, ppath_step_agenda, rte_agenda,
-                 iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
-                 atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
-                 t_field, vmr_field, 
-                 r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
-                 sensor_response, sensor_pos, sensor_los, f_grid, 
-                 stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
+        yCalc( yp, ppath_step_agenda, rte_agenda, iy_space_agenda, 
+               surface_prop_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid,
+               lat_grid, lon_grid, z_field, t_p, vmr_field, 
+               r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
+               sensor_response, sensor_pos, sensor_los, f_grid, 
+               stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
     
-        // Restore the temperature field
-        t_field = t_ref;               
-         
         // Add dy/dx as column in jacobian
-        // FIXME: Save cpu time by implementing a sparse::insert_column()
         for (Index y_it=0; y_it<y.nelem(); y_it++)
-        {
-          jacobian(y_it,it) = (y[y_it]-y_ref[y_it])/rq.Perturbation();
-        }
+          {
+            jacobian(y_it,it) = (yp[y_it]-y[y_it])/rq.Perturbation();
+          }
+
         it++;
       }
     }
   }
-  
-  // Restore y before returning
-  y = y_ref;
-
 }
+
 
                      
 //! jacobianClose

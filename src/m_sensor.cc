@@ -496,7 +496,7 @@ void sensor_responseAntenna1D(
 
   // Tell the user what is happening
   out2 << "  Calculating the antenna response using *antenna_diagram* and "
-       << "  zenith angles from *antenna_los*.";
+       << "  zenith angles from *antenna_los*.\n";
 
   // Create the response matrix for the antenna, this matrix will later be
   // multiplied with the original sensor_response matrix.

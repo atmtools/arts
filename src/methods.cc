@@ -2910,7 +2910,11 @@ md_data_raw.push_back
       ( NAME( "jacobianCalc" ),
         DESCRIPTION
         (
-         "Executes *jacobian_agenda* to calculate (parts of) *jacobian*.\n"
+         "Executes *jacobian_agenda* to calculate (parts of) *jacobian*."
+         "\n"
+         "It is important that *y* holds the original output of *RteCalc*\n"
+         "as the methods called performs perturbations to obtain cahnges in\n"
+         "*y*."
         ),
         OUTPUT( jacobian_ ),
         INPUT( jacobian_agenda_, jacobian_indices_ ),
@@ -2924,17 +2928,17 @@ md_data_raw.push_back
       ( NAME("jacobianCalcAbsSpecies"),
         DESCRIPTION
         (
-        "Calculates the contribution of an absorption species to the Jacobian.\n"
+        "Calculates absorption species jacobians by perturbations.\n"
         "\n"
         "This function is added to *jacobian_agenda* by jacobianAddAbsSpecies\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, vmr_field_, y_, ppath_, ppath_step_, iy_ ),
-        INPUT( jacobian_quantities_, jacobian_indices_, abs_species_, 
+        OUTPUT( jacobian_ ),
+        INPUT( y_, jacobian_quantities_, jacobian_indices_, abs_species_, 
                ppath_step_agenda_, 
                rte_agenda_, iy_space_agenda_, surface_prop_agenda_, 
                iy_cloudbox_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
-               lon_grid_, z_field_, t_field_, 
+               lon_grid_, z_field_, t_field_, vmr_field_, 
                r_geoid_, z_surface_, cloudbox_on_, 
                cloudbox_limits_, sensor_response_, sensor_pos_, sensor_los_, 
                f_grid_, stokes_dim_, antenna_dim_, mblock_za_grid_, 
@@ -2949,19 +2953,19 @@ md_data_raw.push_back
       ( NAME("jacobianCalcParticle"),
         DESCRIPTION
         (
-        "Calculates the contribution of particle number densities to the\n"
-        "Jacobian.\n"
+        "Calculates particle number densities jacobians by perturbations\n"
         "\n"
         "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, pnd_field_, y_, ppath_, ppath_step_, iy_ ),
-        INPUT( jacobian_quantities_, jacobian_indices_, pnd_field_perturb_, 
+        OUTPUT( jacobian_ ),
+        INPUT( y_, jacobian_quantities_, jacobian_indices_, pnd_field_perturb_,
                jacobian_particle_update_agenda_,
                ppath_step_agenda_, rte_agenda_, iy_space_agenda_, 
                surface_prop_agenda_, iy_cloudbox_agenda_, atmosphere_dim_, 
                p_grid_, lat_grid_, lon_grid_, z_field_, t_field_, vmr_field_,
-               r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
+               r_geoid_, z_surface_, 
+               cloudbox_on_, cloudbox_limits_, pnd_field_,
                sensor_response_, sensor_pos_, sensor_los_, f_grid_, 
                stokes_dim_, antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
         GOUTPUT(),
@@ -2974,13 +2978,13 @@ md_data_raw.push_back
       ( NAME("jacobianCalcPointing"),
         DESCRIPTION
         (
-        "Calculates the contribution of a pointing deviation to the Jacobian.\n"
+        "Calculates pointing deviation jacobians by perturnbations.\n"
         "\n"
         "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, y_, ppath_, ppath_step_, iy_ ),
-        INPUT( jacobian_quantities_, jacobian_indices_, 
+        OUTPUT( jacobian_ ),
+        INPUT( y_, jacobian_quantities_, jacobian_indices_, 
                sensor_time_, ppath_step_agenda_, 
                rte_agenda_, iy_space_agenda_, surface_prop_agenda_, 
                iy_cloudbox_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
@@ -2999,17 +3003,17 @@ md_data_raw.push_back
       ( NAME("jacobianCalcTemperature"),
         DESCRIPTION
         (
-        "Calculates the contribution the temperature to the Jacobian.\n"
+        "Calculates temperature jacobians by perturbations..\n"
         "\n"
         "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, t_field_, y_, ppath_, ppath_step_, iy_ ),
-        INPUT( jacobian_quantities_, jacobian_indices_, ppath_step_agenda_, 
+        OUTPUT( jacobian_ ),
+        INPUT( y_, jacobian_quantities_, jacobian_indices_, ppath_step_agenda_,
                rte_agenda_, 
                iy_space_agenda_, surface_prop_agenda_, iy_cloudbox_agenda_, 
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               vmr_field_, r_geoid_, z_surface_, 
+               t_field_, vmr_field_, r_geoid_, z_surface_, 
                cloudbox_on_, cloudbox_limits_, 
                sensor_response_, sensor_pos_, sensor_los_, f_grid_, 
                stokes_dim_, antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),

@@ -1,3 +1,30 @@
+2006-09-04  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1125
+
+	* This was an attempt to clean up the Jacobian part. Partly
+	succesful but I also realised that particle jacobians and batch
+	calculations do not longer work, after introduction of new agenda
+	scheme. The "open scope" was used for these parts. 
+	There will be an error if you try to use any of the bad parts.
+	
+	* src/m_jacobian.cc (jacobianAddPointing): Included check that 
+	poly_order is not too large compared to length of *sensor_time*.
+
+	Removed all other output from jacobianCalcXxx methods than jacobian.
+	This is more logical, helps to avoid side effects and reduces copying
+	of data.
+
+	(jacobianAddTemperature): Results in an error as temperature not
+	yet handled correctly.
+
+	(jacobianAddParticle): Error also here as present implementation does
+	not work.
+	
+	* src/agendas.cc: Added pnd_field as input to 
+	jacobian_particle_update_agenda, which made be realise that 
+	jacobianCalcParticle is not working now.
+
 2006-08-31  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-1124
