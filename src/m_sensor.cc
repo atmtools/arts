@@ -318,11 +318,9 @@ void sensorOff(
               Vector&   sensor_response_za,
               Vector&   sensor_response_aa,
               Index&    sensor_response_pol,
-              Vector&   sensor_rot,
               Index&    antenna_dim,
               Vector&   mblock_za_grid,
               Vector&   mblock_aa_grid,
-              Index&    sensor_norm,
         const Index&    atmosphere_dim,
         const Index&    stokes_dim,
         const Matrix&   sensor_pos,
@@ -340,18 +338,6 @@ void sensorOff(
       throw runtime_error( os.str() );
     }
 
-  /*
-  out2 << "  Sets *sensor_pol* to be the identity matrix.\n";
-  sensor_pol.resize( stokes_dim, stokes_dim );
-  sensor_pol = 0;
-  for( Index i=0; i<stokes_dim; i++ )
-    { sensor_pol(i,i) = 1; }
-  */
-
-  out2 << "  Sets *sensor_rot* to a vector of zeros.\n";
-  sensor_rot.resize( sensor_pos.nrows() );
-  sensor_rot = 0;
-
   out2 << "  Sets the antenna dimensionality to 1.\n";
   antenna_dim = 1;
 
@@ -362,13 +348,12 @@ void sensorOff(
   out2 << "  Sets *mblock_aa_grid* to be an empty vector.\n";
   mblock_aa_grid.resize(0);
 
-  out2 << "  Sets *sensor_norm* to zero.\n";
-  sensor_norm = 0;
+  // Dummy value
+  Index sensor_norm = 1;
 
   sensor_responseInit( sensor_response, sensor_response_f, sensor_response_za,
     sensor_response_aa, sensor_response_pol, f_grid, mblock_za_grid,
-    mblock_aa_grid, antenna_dim, atmosphere_dim, stokes_dim,
-    sensor_norm );
+    mblock_aa_grid, antenna_dim, atmosphere_dim, stokes_dim, sensor_norm );
 }
 
 
@@ -638,6 +623,8 @@ void sensor_responseBackend(// WS Output:
   out3 << "  *sensor_response_f* set to *f_backend*\n";
 }
 
+
+
 //! sensor_responseInit
 /*!
    See the the online help (arts -d FUNCTION_NAME)
@@ -682,22 +669,18 @@ void sensor_responseInit(// WS Output:
                       "The measurement block azimuthal angle grid is empty." );
       chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
     }
-  /* FIXME: sensor_pol should not be used here
-  if( sensor_pol.ncols() != stokes_dim )
-    throw runtime_error(
-         "The number of columns in *sensor_pol* must be equal *stokes_dim*." );
-  */
+
   if (sensor_norm!=1 && sensor_norm!=0)
     throw runtime_error(
       "The normalisation flag, *sensor_norm*, has to be either 0 or 1." );
 
   // Set description variables
-  sensor_response_f = f_grid;
-  sensor_response_za = mblock_za_grid;
-  sensor_response_aa = mblock_aa_grid;
+  sensor_response_f   = f_grid;
+  sensor_response_za  = mblock_za_grid;
+  sensor_response_aa  = mblock_aa_grid;
   sensor_response_pol = stokes_dim;
   Index n = sensor_response_f.nelem()*sensor_response_za.nelem()
-            *sensor_response_pol;
+                                                          *sensor_response_pol;
   if ( antenna_dim == 2)
     n *= sensor_response_aa.nelem();
 
@@ -706,8 +689,8 @@ void sensor_responseInit(// WS Output:
 
   //Set matrix to identity matrix
   sensor_response.make_I(n,n);
-
 }
+
 
 
 //! sensor_responseMixer

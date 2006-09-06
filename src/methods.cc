@@ -4686,18 +4686,18 @@ md_data_raw.push_back
          "Sets sensor WSVs to obtain monochromatic pencil beam values.\n"
          "\n"
          "The variables are set as follows:\n"
-         "   sensor_response : As returned by *sensor_responseInit*.\n"
-         "   sensor_pol      : Identity matrix, with size following\n"
-         "                     *stokes_dim*.\n"
-         "   sensor_rot      : Length matching *sensor_pos/los*. All values\n"
-         "                     are set 0.\n"
-         "   antenna_dim     : 1.\n"
-         "   mblock_za_grid  : Length 1, value 0."
-         "   mblock_aa_grid  : Empty."
+         "   antenna_dim        : 1.\n"
+         "   mblock_za_grid     : Length 1, value 0.\n"
+         "   mblock_aa_grid     : Empty.\n"
+         "   sensor_response    : As returned by *sensorInit*.\n"
+         "   sensor_response_f  : As returned by *sensorInit*.\n"
+         "   sensor_response_za : As returned by *sensorInit*.\n"
+         "   sensor_response_aa : As returned by *sensorInit*.\n"
+         "   sensor_response_pol: As returned by *sensorInit*."
         ),
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
-                sensor_response_aa_, sensor_response_pol_, sensor_rot_,
-                antenna_dim_, mblock_za_grid_, mblock_aa_grid_, sensor_norm_ ),
+                sensor_response_aa_, sensor_response_pol_,
+                antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
         INPUT( atmosphere_dim_, stokes_dim_, sensor_pos_, sensor_los_,
                f_grid_ ),
         GOUTPUT(),
@@ -4829,11 +4829,21 @@ md_data_raw.push_back
       ( NAME("sensor_responseInit"),
         DESCRIPTION
         (
-         "Initialises the response block matrix to an identity matrix.\n"
+         "Initialises some sensor response variables.\n"
          "\n"
-         "The initialised matrix is a quadratic matrix with sidelength equal\n"
-         "to the product of the length of *f_grid*, *mblock_za_grid*,\n"
-         "*mblock_aa_grid* and the columns of *sensor_pol*."
+         "This method sets some variables to match monochromatic pencil beam\n"
+         "calculations, to be further modified by inclusion of sensor\n"
+         "characteristics. If pure monochromatic pencil beam calculations\n"
+         "shall be performed use *sensorOff*.\n"
+         "\n"
+         "The variables are set as follows:\n"
+         "   sensor_response : Identity matrix, with size matching *f_grid*,\n"
+         "                     *mblock_za_grid*, *mblock_aa_grid* and \n"
+         "                     *sensor_pol*.\n"
+         "   sensor_response_f  : Equal to *f_grid*.\n"
+         "   sensor_response_za : Equal to *mblock_za_grid*.\n"
+         "   sensor_response_aa : Equal to *mblock_aa_grid*.\n"
+         "   sensor_response_pol: Equal to *stokes_dim*."
         ),
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
                 sensor_response_aa_, sensor_response_pol_  ),

@@ -1,3 +1,13 @@
+2006-09-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1126
+
+	* src/m_sensor.cc (sensorOff): Removed sensor_norm and sensor_rot
+	from argument list.
+
+	* src/methods.cc: Corrected and improved text for sensorOff and
+	sensor_responseInit.
+
 2006-09-04  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-1125
