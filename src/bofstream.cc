@@ -29,6 +29,7 @@
 */
 
 #include <fstream>
+#include <stdexcept>
 #include "bofstream.h"
 
 void bofstream::seek(long spos, Offset offs)
@@ -50,11 +51,18 @@ long bofstream::pos()
 
 void bofstream::putByte (bofstream::Byte b)
 {
-  if(!this->good ()) { err |= NotOpen; return; }
+  if(!this->good ()) {
+    err |= NotOpen;
+    throw runtime_error ("Cannot open binary file for writing");
+    return;
+  }
 
   this->put (b);
   if (this->bad ())
-    err |= Fatal;
+    {
+      err |= Fatal;
+      throw runtime_error ("Writing to binary file failed");
+    }
 }
 
 
@@ -66,8 +74,8 @@ bofstream &operator<< (bofstream &bof, float n)
 { bof.writeFloat (n, binio::Double); return (bof); }
 
 bofstream &operator<< (bofstream &bof, long n)
-{ bof.writeInt (n, 8); return (bof); }
+{ bof.writeInt (n, 4); return (bof); }
 
 bofstream &operator<< (bofstream &bof, int n)
-{ bof.writeInt (n, 8); return (bof); }
+{ bof.writeInt (n, 4); return (bof); }
 

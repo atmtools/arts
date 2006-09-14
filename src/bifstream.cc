@@ -29,6 +29,7 @@
 */
 
 #include <fstream>
+#include <stdexcept>
 #include "bifstream.h"
 
 void bifstream::seek(long spos, Offset offs)
@@ -58,6 +59,7 @@ bifstream::Byte bifstream::getByte()
         return (Byte)iread;
   } else {
         err |= NotOpen;
+        throw runtime_error ("Reading from binary file failed");
         return 0;
   }
 }
@@ -71,8 +73,8 @@ bifstream &operator>> (bifstream &bif, float &n)
 { n = (float)bif.readFloat (binio::Double); return (bif); }
 
 bifstream &operator>> (bifstream &bif, long &n)
-{ n = (long)bif.readInt (8); return (bif); }
+{ n = (long)bif.readInt (4); return (bif); }
 
 bifstream &operator>> (bifstream &bif, int &n)
-{ n = (int)bif.readInt (8); return (bif); }
+{ n = (int)bif.readInt (4); return (bif); }
 

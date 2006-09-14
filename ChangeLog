@@ -1,3 +1,28 @@
+2006-09-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1127
+
+	* src/bofstream.cc:
+
+	(operator<<): Fixed bug for writing integer types.
+
+	The bug prevented variables of type Index to be stored in xml binary
+	files. The nasty part is that you didn't get any error when reading
+	such a broken file. The Index value was just set to zero.
+
+	(putByte): Throw exceptions on errors.
+
+	* src/bifstream.cc:
+
+	(operator>>): Fixed bug for reading integer types.
+
+	(getByte): Throw exception on error.
+
+	* src/binio.cc (binostream::writeInt, binistream::readInt):
+
+	Throw exceptions when the integer type for the binary file format is
+	not supported by the current system.
+
 2006-09-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-1126
