@@ -35,6 +35,7 @@
 #include "arts.h"
 #include "matpackI.h"
 #include "matpackII.h"
+#include "messages.h"
 #include "sensor.h"
 
   extern const Numeric DEG2RAD;
@@ -75,7 +76,7 @@
    \author Mattias Ekström
    \date   2003-04-09
 */
-void antenna_matrix( Sparse&   H,
+void antenna_matrix(          Sparse&   H,
                       ConstVectorView   m_za,
           const ArrayOfArrayOfMatrix&   diag,
                       ConstVectorView   x_f,
@@ -106,56 +107,92 @@ void antenna_matrix( Sparse&   H,
   // start with values out of the range of the different grids, therefore
   // we initialise them to their respective grid number of elements plus
   // one.
-  Index a_old = n_ant;
-  Index p_old = n_pol;
+  Index a_old = n_ant+1;
+  Index p_old = n_pol+1;
   Index f_old = x_f.nelem()+1;
+
+  // We need also to keep track of changes in za's
+  Index newza = 1;
 
   // Initialise temporary vectors for storing integration vector values
   // before storing them in the final sparse matrix and start looping
   // through the viewing angles.
-  Vector temp(H.ncols(), 0.0);
-  Vector temp_za(m_za.nelem(), 0.0);
+  //
+  Vector temp( H.ncols(), 0.0 );
+  Vector temp_za( m_za.nelem(), 0.0 );
+  Vector za_rel(0);
+  //
   for (Index a=0; a<n_ant; a++) {
+
     Index a_this = a*a_step;
 
     // Check the size of this element of diag and set a flag if only one
     // polarisation is given or if there is a complete set for each
     // polarisation.
-    assert(diag[a_this].nelem()==1 || diag[a_this].nelem()==n_pol);
+    assert( diag[a_this].nelem()==1 || diag[a_this].nelem()==n_pol );
+    //
     if (diag[a_this].nelem()>1)
       p_step = 1;
+    else
+      p_step = 0;
 
     // Loop through the polarisation antenna diagrams.
     for (Index p=0; p<n_pol; p++) {
+
       Index p_this = p*p_step;
 
       // Check the number of columns in this matrix and set flag if one
       // column is given or if there is a complete set for each frequency.
-      assert((diag[a_this])[p_this].ncols()==2 ||
-             (diag[a_this])[p_this].ncols()==x_f.nelem()+1);
+      assert( (diag[a_this])[p_this].ncols()==2 || 
+              (diag[a_this])[p_this].ncols()==x_f.nelem()+1 );
+      //
       if ((diag[a_this])[p_this].ncols()!=2)
         f_step = 1;
+      else
+        f_step = 0;
+
+      // Add the angle offset of this antenna/beam.
+      // This must be done for every new beam.
+      //
+      if( a!=a_old  ||  p_this!=p_old )
+        {
+          za_rel  = (diag[a_this])[p_this](joker, 0);
+          za_rel += ant_za[a];
+          newza   = 1;
+        }
+
 
       // Loop through x_f and calculate the sensor integration vector
       // for each frequency and put values in the temp vector. For this
       // we use vectorviews where the elements are separated by number
       // of frequencies in x_f.
       for (Index f=0; f<x_f.nelem(); f++) {
+
         Index f_this = f*f_step;
 
         // Check if the antenna pointer still points to the same antenna
         // diagram, if so don't recalculate the integration vector.
-        // Add the angle offset of this antenna/beam.
-        Vector za_rel = (diag[a_this])[p_this](joker, 0);
-        za_rel += ant_za[a];
-        if (a_this!=a_old || p_this!=p_old || f_this!=f_old) {
-          sensor_integration_vector(temp_za,
-            (diag[a_this])[p_this](joker, 1+f_this),
-            za_rel, m_za);
-          // Normalise if flag is set
-          if (do_norm)
-            temp_za /= temp_za.sum();
-        }
+        //
+        if( newza || a_this!=a_old || p_this!=p_old || f_this!=f_old ) 
+          {
+            out2 << "--- TEMPORARY OUTPUT ---\n";
+            out2 << "New antenna pattern for:\n" << 
+                    "   a : " << a << "\n"
+                    "   p : " << p << "\n"
+                    "   f : " << f << "\n";
+            sensor_integration_vector( temp_za,
+                                     (diag[a_this])[p_this](joker, 1+f_this),
+                                     za_rel, m_za );
+
+            // Normalise if flag is set
+            if (do_norm)
+              temp_za /= temp_za.sum();
+
+            a_old = a_this;
+            p_old = p_this;
+            f_old = f_this;
+            newza = 0;
+          }
 
         // Now distribute the temp_za elements into temp, where they will
         // be spread with the number of frequencies. Then insert the
@@ -163,27 +200,21 @@ void antenna_matrix( Sparse&   H,
         // to this frequency, polarisation and viewing direction. To do
         // we first check if the same antenna diagram applies for all
         // polarisations, i.e. p_step = 0, if so insert it n_pol times.
+        //
         Index p_step_tmp = p_this;
-        //Index p_tmp = p_this;
         if (p_step==0)
           p_step_tmp = n_pol-1;
-        //for (p_tmp; p_tmp<=p_step_tmp; p_tmp++) {
-          temp[Range(f*n_pol+p,m_za.nelem(),x_f.nelem()*n_pol)]
-          //temp[Range(f*n_pol+p_tmp,m_za.nelem(),x_f.nelem()*n_pol)]
-            = temp_za;
-          H.insert_row(a*n_pol*x_f.nelem()+f*n_pol+p, temp);
-          temp = 0.0;
-        //}
-
-        // Store antenna diagram index for this loop so that we can
-        // compare it with next step.
-        a_old = a;
-        p_old = p;
-        f_old = f;
+        //
+        temp[ Range( f*n_pol+p, m_za.nelem(), x_f.nelem()*n_pol ) ] = temp_za;
+        H.insert_row( a*n_pol*x_f.nelem()+f*n_pol+p, temp );
+        //
+        temp = 0.0;
       }
     }
   }
 }
+
+
 
 //! merge_grids
 /*!

@@ -414,10 +414,9 @@ void sensor_responseAntenna1D(
        << "angle matrix *antenna_los* must contain at least one element.\n";
     error_found = true;
   } else if (diag.nelem()==1 && antenna_los.nrows()>1) {
-    //FIXME: Give output about the same antenna diagram is used for all
-    // viewing directions
+    // The same antenna diagram is used for all viewing directions
   } else if (diag.nelem()==antenna_los.nrows()) {
-    //FIXME: Give output that each viewing direction uses individual values
+    // Each viewing direction uses individual values
   } else {
     ostringstream os2;
     os2 << "The antenna response array *antenna_diagram* does not have the"
@@ -457,7 +456,6 @@ void sensor_responseAntenna1D(
       za_dhigh = min(za_dhigh,
         last(mblock_za_grid)-(diag[i])[j]((diag[i])[j].nrows()-1,0)
         -antenna_los(antenna_los.nrows()-1,0));
-
     }
   }
 
@@ -480,15 +478,15 @@ void sensor_responseAntenna1D(
     throw runtime_error(os.str());
 
   // Tell the user what is happening
-  out2 << "  Calculating the antenna response using *antenna_diagram* and "
-       << "  zenith angles from *antenna_los*.\n";
+  out2 << "  Calculating the antenna response.\n";
 
   // Create the response matrix for the antenna, this matrix will later be
   // multiplied with the original sensor_response matrix.
   Index nout = sensor_response_f.nelem()*sensor_response_pol*antenna_los.nrows();
-  Sparse antenna_response( nout, n);
-  antenna_matrix(antenna_response, sensor_response_za, diag,
-    sensor_response_f, antenna_los(joker,0), sensor_response_pol, sensor_norm);
+  Sparse antenna_response( nout, n );
+  antenna_matrix( antenna_response, sensor_response_za, diag,
+                  sensor_response_f, antenna_los(joker,0), 
+                  sensor_response_pol, sensor_norm );
 
   // It's forbidden to have same matrix as input twice to mult and we
   // want to multiply antenna_response with sensor_response and store the

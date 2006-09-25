@@ -1,3 +1,12 @@
+2006-09-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1128
+
+	* src/sensor.cc (antenna_matrix): Improved checks to avoid that
+	the same calculations are repeated. Basically replaced e.g. p with
+	p_this for checks. Some temporary output is left for debugging 
+	purposes.
+
 2006-09-14  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1127
