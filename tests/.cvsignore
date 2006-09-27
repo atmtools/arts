@@ -1,4 +1,5 @@
 *.rep
 *.swp
+*.test.log
 Makefile
 Makefile.in
