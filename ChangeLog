@@ -1,3 +1,14 @@
+2006-11-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-1-1130
+
+	* src/ppath.cc (interpolate_raytracing_points): Included bug fix by
+	Mattias Ekström. It is now ensured that n >= 2. Numerical problems
+	apprearently gave negative distances, resulting in n=1.
+
+	This happened in very few cases, but the bug fic could hopefully
+	remove some of the problems found when e.g. running MC.
+	
 2006-09-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1129
