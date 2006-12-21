@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.199)
+AM_INIT_AUTOMAKE(arts,1.0.200)
 
 AM_MAINTAINER_MODE
 
@@ -276,19 +276,13 @@ fi
 
 WARNING_FLAGS=
 if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
-  GCC_MAJOR=`$CC -v 2>&1 | grep '^gcc version' | sed 's/^gcc version \([[0-9]]\)\..*$/\1/'`
-
   WARNING_FLAGS="-W -Wall -Wconversion"
 
   if test x$ac_more_warnings = xyes; then
     WARNING_FLAGS="$WARNING_FLAGS -Werror"
-
-    # gcc2 produces warnings in standard headers, therefore only
-    # enable it with gcc3
-    #if test x$GCC_MAJOR = x3; then
-    #  WARNING_FLAGS="$WARNING_FLAGS -Wshadow"
-    #fi
   fi
+
+  CXXFLAGS="$CXXFLAGS -fno-strict-aliasing"
 
 fi
 
