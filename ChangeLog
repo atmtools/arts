@@ -1,3 +1,11 @@
+2007-01-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-0-201
+
+	* src/absorption.h: Improved error message when negative value of
+	partition function is found. It was said that isotope is unknown,
+	while the actual reason was low or negative temperature.
+
 2006-12-21  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-0-200

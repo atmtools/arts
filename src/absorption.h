@@ -252,12 +252,11 @@ public:
     Numeric qtemp =
       CalculatePartitionFctAtTemp( actual_temperature    );
 
-    if ( qtemp < 0. ) 
+    if ( qtemp <= 0. ) 
       {
         ostringstream os;
-        os << "Partition function of "
-           << "Isotope = " << mname
-           << "is unknown.";
+        os << "Negative value of partition function was obtained for "
+           << mname << ".\nProbably caused by low or negative temperature.";
         throw runtime_error(os.str());
       }
     return qcoeff_at_t_ref / qtemp;
