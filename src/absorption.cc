@@ -294,6 +294,12 @@ bool LineRecord::ReadFromHitranStream(istream& is)
       // Read line from file into linebuffer:
       getline(is,line);
 
+      // It is possible that we were exactly at the end of the file before
+      // calling getline. In that case the previous eof() was still false
+      // because eof() evaluates only to true if one tries to read after the
+      // end of the file. The following check catches this.
+      if (line.nelem() == 0 && is.eof()) return true;
+
       // If the catalogue is in dos encoding, throw away the
       // additional carriage return
       if (line[line.nelem () - 1] == 13)
@@ -737,6 +743,12 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is)
 
       // Read line from file into linebuffer:
       getline(is,line);
+
+      // It is possible that we were exactly at the end of the file before
+      // calling getline. In that case the previous eof() was still false
+      // because eof() evaluates only to true if one tries to read after the
+      // end of the file. The following check catches this.
+      if (line.nelem() == 0 && is.eof()) return true;
 
       // If the catalogue is in dos encoding, throw away the
       // additional carriage return
@@ -1189,17 +1201,19 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
   while (comment)
     {
       // Return true if eof is reached:
-      if (is.eof()) {
-        //      cout << "Eof" << endl;
-        return true;
-      }
+      if (is.eof()) return true;
 
       // Throw runtime_error if stream is bad:
       if (!is) throw runtime_error ("Stream bad.");
 
       // Read line from file into linebuffer:
       getline(is,line);
-      //      cout << line << endl;
+
+      // It is possible that we were exactly at the end of the file before
+      // calling getline. In that case the previous eof() was still false
+      // because eof() evaluates only to true if one tries to read after the
+      // end of the file. The following check catches this.
+      if (line.nelem() == 0 && is.eof()) return true;
 
       // Because of the fixed FORTRAN format, we need to break up the line
       // explicitly in apropriate pieces. Not elegant, but works!
@@ -1524,16 +1538,19 @@ bool LineRecord::ReadFromJplStream(istream& is)
   while (comment)
     {
       // Return true if eof is reached:
-      if (is.eof()) {
-        //      cout << "Eof" << endl;
-        return true;
-      }
+      if (is.eof()) return true;
 
       // Throw runtime_error if stream is bad:
       if (!is) throw runtime_error ("Stream bad.");
 
       // Read line from file into linebuffer:
       getline(is,line);
+
+      // It is possible that we were exactly at the end of the file before
+      // calling getline. In that case the previous eof() was still false
+      // because eof() evaluates only to true if one tries to read after the
+      // end of the file. The following check catches this.
+      if (line.nelem() == 0 && is.eof()) return true;
 
       // Because of the fixed FORTRAN format, we need to break up the line
       // explicitly in apropriate pieces. Not elegant, but works!
@@ -1760,16 +1777,19 @@ bool LineRecord::ReadFromArtsStream(istream& is)
   while (comment)
     {
       // Return true if eof is reached:
-      if (is.eof()) {
-        //      cout << "Eof" << endl;
-        return true;
-      }
+      if (is.eof()) return true;
 
       // Throw runtime_error if stream is bad:
       if (!is) throw runtime_error ("Stream bad.");
 
       // Read line from file into linebuffer:
       getline(is,line);
+
+      // It is possible that we were exactly at the end of the file before
+      // calling getline. In that case the previous eof() was still false
+      // because eof() evaluates only to true if one tries to read after the
+      // end of the file. The following check catches this.
+      if (line.nelem() == 0 && is.eof()) return true;
 
       // @ as first character marks catalogue entry
       char c;

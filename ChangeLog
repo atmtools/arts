@@ -1,3 +1,14 @@
+2007-01-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-0-203
+
+	* src/absorption.cc: Add additional eof checks after calling getline
+	in several places.
+
+	Note: Remember that the eof() function only evaluates to true if one
+	tried to read beyond the file end. It is still false if the file
+	pointer is pointing directly at the end of the file.
+
 2007-01-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-0-202
