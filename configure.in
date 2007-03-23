@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.203)
+AM_INIT_AUTOMAKE(arts,1.0.204)
 
 AM_MAINTAINER_MODE
 
@@ -279,7 +279,7 @@ if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
   WARNING_FLAGS="-W -Wall -Wconversion"
 
   if test x$ac_more_warnings = xyes; then
-    WARNING_FLAGS="$WARNING_FLAGS -Werror"
+    WARNING_FLAGS="$WARNING_FLAGS "#-Werror"
   fi
 
   CXXFLAGS="$CXXFLAGS -fno-strict-aliasing"
