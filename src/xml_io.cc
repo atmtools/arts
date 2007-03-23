@@ -510,7 +510,9 @@ xml_data_parse_error (ArtsXMLTag &tag, String str_error)
   ostringstream os;
   os << "XML data parse error: Error reading ";
   tag.write_to_stream (os);
-  os << str_error << "\nCheck syntax of XML file\n";
+  os << str_error << "\n"
+    << "Check syntax of XML file. A possible cause is that the file "
+    << "contains NaN or Inf values.\n";
   throw runtime_error (os.str ());
 }
 

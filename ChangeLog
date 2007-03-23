@@ -1,3 +1,14 @@
+2007-03-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1132
+
+	* src/xml_io.cc (xml_data_parse_error):
+
+	Remind the user that parsing errors can result from NaN or Inf values
+	in the xml file.
+
+	For now enough to fix ticket #1.
+
 2007-01-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1131
