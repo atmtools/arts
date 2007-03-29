@@ -6132,22 +6132,22 @@ void ppath_calc(
   if( atmosphere_dim == 1 )
     {
       chk_vector_length( "rte_los", rte_los, 1 );
-      chk_if_in_range( "sensor zenith angle", rte_los[0], 0, 180 );
+      chk_if_in_range( "sensor zenith angle", rte_los[0], 0., 180. );
     }
   else if( atmosphere_dim == 2 )
     {
       chk_vector_length( "rte_los", rte_los, 1 );
-      chk_if_in_range( "sensor zenith angle", rte_los[0], -180, 180 );
+      chk_if_in_range( "sensor zenith angle", rte_los[0], -180., 180. );
       if( cloudbox_on )
         { throw runtime_error( "The cloud box is not defined for 2D." ); }
     }
   else
     {
-      chk_if_in_range( "sensor latitude", rte_pos[1], -90, 90 );
-      chk_if_in_range( "sensor longitude", rte_pos[2], -360, 360 );
+      chk_if_in_range( "sensor latitude", rte_pos[1], -90., 90. );
+      chk_if_in_range( "sensor longitude", rte_pos[2], -360., 360. );
       chk_vector_length( "rte_los", rte_los, 2 );
-      chk_if_in_range( "sensor zenith angle", rte_los[0], 0, 180 );
-      chk_if_in_range( "sensor azimuth angle", rte_los[1], -180, 180 );
+      chk_if_in_range( "sensor zenith angle", rte_los[0], 0., 180. );
+      chk_if_in_range( "sensor azimuth angle", rte_los[1], -180., 180. );
     }
   assert( outside_cloudbox  ||  cloudbox_on );
   

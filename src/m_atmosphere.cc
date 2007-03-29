@@ -666,8 +666,8 @@ void r_geoidWGS84(
   // given by latitude_1d and azimuth_angle_1d.
   if( atmosphere_dim == 1 )
     {
-      chk_if_in_range( "latitude_1d", latitude_1d, -90, 90 );
-      chk_if_in_range( "azimuth_angle_1d", azimuth_angle_1d, -180, 180 );
+      chk_if_in_range( "latitude_1d", latitude_1d, -90., 90. );
+      chk_if_in_range( "azimuth_angle_1d", azimuth_angle_1d, -180., 180. );
 
       out2 << "  Sets r_geoid to the curvature radius of the WGS-84 "
            << "reference ellipsiod.\n";
@@ -868,7 +868,7 @@ void surfaceSimple(
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-  chk_if_in_range( "surface_emissivity", surface_emissivity, 0, 1 );
+  chk_if_in_range( "surface_emissivity", surface_emissivity, 0., 1. );
   chk_if_over_0( "surface_skin_t", surface_skin_t );
 
   out2 << "  Sets variables to model a flat surface with:\n"
