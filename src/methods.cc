@@ -147,11 +147,13 @@ void define_md_data_raw()
     ( MdRecord
       ( NAME( "AbsInputFromAtmFields" ),
         DESCRIPTION(
-                    "Initialize the WSMs *abs_p*, *abs_t* and *abs_vmrs* from\n"
+                    "Initialize the WSVs *abs_p*, *abs_t* and *abs_vmrs* from\n"
                     "*p_grid, *t_field* and *vmr_field*\n"
+                    "\n"
+                    "This only works for a 1D atmosphere!"
                    ) ,
         OUTPUT( abs_p_, abs_t_, abs_vmrs_ ),
-        INPUT( p_grid_, t_field_, vmr_field_ ),
+        INPUT( atmosphere_dim_, p_grid_, t_field_, vmr_field_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),

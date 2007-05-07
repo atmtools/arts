@@ -1806,17 +1806,32 @@ void abs_n2Set(
 
    /author Oliver Lemke
    /date 2006-05-16
+
+   Added safety check that we really have a 1D atmosphere.
+   /author Stefan Buehler
+   /date 2007-05-07
+
 */
 void AbsInputFromAtmFields (// WS Output:
                             Vector& abs_p,
                             Vector& abs_t,
                             Matrix& abs_vmrs,
                             // WS Input:
+                            const Index& atmosphere_dim,
                             const Vector&  p_grid,
                             const Tensor3& t_field,
                             const Tensor4& vmr_field
                            )
 {
+  // First, make sure that we really have a 1D atmosphere:
+  if ( 1 != atmosphere_dim )
+    {
+      ostringstream os;
+      os << "Atmospheric dimension must be 1D, but atmosphere_dim is "
+         << atmosphere_dim << ".";
+      throw runtime_error(os.str());
+    }
+
   abs_p = p_grid;
   abs_t = t_field (joker, 0, 0);
   abs_vmrs = vmr_field (joker, joker, 0, 0);

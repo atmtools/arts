@@ -1,3 +1,10 @@
+2007-05-07  Stefan Bühler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-1134
+
+	* src/m_abs.cc (AbsInputFromAtmFields): Added safety check that we
+	really have a 1D atmosphere (atmosphere_dim==1).
+
 2007-03-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1133
