@@ -1,3 +1,16 @@
+2007-05-08  Stefan Bühler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-1135
+
+	* Playing with the absorption lookup table, small changes in
+	various files.
+	
+	* src/m_abs_lookup.cc (abs_lookupCreate): Playing with this
+	method. Still very far from complete.
+
+	* src/agendas.cc (define_agenda_data): Put abs_scalar_gas_agenda
+	in its right alphabetical place.
+
 2007-05-07  Stefan Bühler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-1134

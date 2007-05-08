@@ -132,6 +132,15 @@ void define_wsv_data()
       GROUP( ArrayOfMatrix_ )));
 
   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "abs_coef_per_species_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_)));
+  
+  wsv_data.push_back
     (WsvRecord
      (NAME( "abs_cont_models" ),
       DESCRIPTION
@@ -363,10 +372,21 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "abs_lookup_nls_pert" ),
+       DESCRIPTION
+       (
+        "Vector containing the fractional perturbations\n"
+        "for the nonlinear species in the abs lookup table."
+        ), 
+       GROUP( Vector_ )));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "abs_lookup_t_pert" ),
        DESCRIPTION
        (
-        "Vector containing the temperature perturbations for the abs lookup table.\n"
+        "Vector containing the temperature perturbations\n"
+        "for the abs lookup table."
         ), 
        GROUP( Vector_ )));
 

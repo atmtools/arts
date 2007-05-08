@@ -49,6 +49,44 @@ void define_agenda_data()
     The sign "_" comes after all letters.
     ----------------------------------------------------------------------*/
 
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "abs_coef_per_species_agenda" ),
+       DESCRIPTION
+       (
+        "FIXME: This is just a placeholder for now."
+        ),
+       OUTPUT( abs_coef_per_species_ ),
+       INPUT(  abs_vmrs_,
+               abs_t_ )));
+  
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "abs_scalar_gas_agenda" ),
+       DESCRIPTION
+       (
+        "Calculate scalar gas absorption.\n"
+        "\n"
+        "This agenda should calculate absorption coefficients for all gas\n"
+        "species as a function of the given atmospheric state for one point\n"
+        "in the atmosphere. The result is returned in *abs_scalar_gas*, the\n"
+        "atmospheric state has to be specified by *rte_pressure*,\n"
+        "*rte_temperature*, and *rte_vmr_list*\n"
+        "\n"
+        "A mandatory input parameter is f_index, which is used as follows:\n"
+        "\n"
+        "1. f_index < 0 : Return absorption for all frequencies (in f_grid).\n"
+        "\n"
+        "2. f_index >= 0 : Return absorption for the frequency indicated by\n"
+        "   f_index. \n"
+        "\n"
+        "The methods inside this agenda may require a lot of additional\n"
+        "input variables, such as *f_grid*, *species*, etc.."
+        ),
+       OUTPUT( abs_scalar_gas_ ),
+       INPUT(  f_index_,
+               rte_pressure_, rte_temperature_, rte_vmr_list_ )));
+  
  agenda_data.push_back
     (AgRecord
      ( NAME( "batch_calc_agenda" ),
@@ -548,33 +586,6 @@ void define_agenda_data()
        INPUT( diy_dvmr_, diy_dt_, ppath_, ppath_array_, ppath_array_index_,
               rte_do_vmr_jacs_, rte_do_t_jacs_, stokes_dim_, f_grid_ )));
 
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "abs_scalar_gas_agenda" ),
-       DESCRIPTION
-       (
-        "Calculate scalar gas absorption.\n"
-        "\n"
-        "This agenda should calculate absorption coefficients for all gas\n"
-        "species as a function of the given atmospheric state for one point\n"
-        "in the atmosphere. The result is returned in *abs_scalar_gas*, the\n"
-        "atmospheric state has to be specified by *rte_pressure*,\n"
-        "*rte_temperature*, and *rte_vmr_list*\n"
-        "\n"
-        "A mandatory input parameter is f_index, which is used as follows:\n"
-        "\n"
-        "1. f_index < 0 : Return absorption for all frequencies (in f_grid).\n"
-        "\n"
-        "2. f_index >= 0 : Return absorption for the frequency indicated by\n"
-        "   f_index. \n"
-        "\n"
-        "The methods inside this agenda may require a lot of additional\n"
-        "input variables, such as *f_grid*, *species*, etc.."
-        ),
-       OUTPUT( abs_scalar_gas_ ),
-       INPUT(  f_index_,
-               rte_pressure_, rte_temperature_, rte_vmr_list_ )));
-  
  agenda_data.push_back
     (AgRecord
      ( NAME( "spt_calc_agenda" ),

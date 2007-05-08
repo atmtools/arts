@@ -32,17 +32,47 @@ void abs_lookupInit(GasAbsLookup& /* x */)
 
 
 //! Creates a gas absorption lookup table.
+// FIXME Doc header!
 void abs_lookupCreate(// WS Output:
                       GasAbsLookup& gal,
                       // WS Input:
+                      const Agenda& abs_coef_per_species_agenda,
                       const ArrayOfArrayOfSpeciesTag& abs_species,
                       const Vector& f_grid,
                       const Vector& p_grid,
-                      const Matrix& abs_vmrs,
-                      const Vector& abs_t,
+                      const Vector& abs_lookup_nls_pert,
                       const Vector& abs_lookup_t_pert
                      )
 {
+  // Absorption coefficients per species (output of absorption agenda):
+  ArrayOfMatrix acps;
+  // Absorption vmrs and temperature (input to absorption agenda):
+  Matrix abs_vmrs;
+  Vector abs_t;
+
+  // FIXME: Which input parameters do we need?
+  
+  // FIXME: Checks of input parameter correctnes
+
+  // FIXME: Check for simple case of no temperature variation?
+
+  // Loop temperature perturbations:
+  for ( Index i=0; i<abs_lookup_t_pert.nelem(); ++i )
+    {
+      // FIXME
+
+
+      // Call the agenda to calculate absorption coefficients:
+      abs_coef_per_species_agendaExecute(
+        // Output
+        acps,
+        // Input
+        abs_vmrs,
+        abs_t,
+        // Wrapper Input
+        abs_coef_per_species_agenda,
+        false);
+    }
 }
 
 

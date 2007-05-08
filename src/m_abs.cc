@@ -1804,13 +1804,12 @@ void abs_n2Set(
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
-   /author Oliver Lemke
-   /date 2006-05-16
+   \author Oliver Lemke
+   \date 2006-05-16
 
    Added safety check that we really have a 1D atmosphere.
-   /author Stefan Buehler
-   /date 2007-05-07
-
+   \author Stefan Buehler
+   \date 2007-05-07 
 */
 void AbsInputFromAtmFields (// WS Output:
                             Vector& abs_p,

@@ -700,8 +700,9 @@ void define_md_data_raw()
          "Creates a gas absorption lookup table."
         ),
         OUTPUT( abs_lookup_ ),
-        INPUT( abs_species_, f_grid_, p_grid_, abs_vmrs_, abs_t_,
-               abs_lookup_t_pert_ ),
+        INPUT( abs_coef_per_species_agenda_,
+               abs_species_, f_grid_, p_grid_,
+               abs_lookup_nls_pert_, abs_lookup_t_pert_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
