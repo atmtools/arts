@@ -1,4 +1,11 @@
-2007-05-08  Stefan Bühler  <sbuehler@uni-bremen.de>
+2007-05-16  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-1136
+
+	* Still working on absorption part. Purpose of this commit is to
+	get my working copy of the laptop.
+
+2007-05-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-1135
 
@@ -11,7 +18,7 @@
 	* src/agendas.cc (define_agenda_data): Put abs_scalar_gas_agenda
 	in its right alphabetical place.
 
-2007-05-07  Stefan Bühler  <sbuehler@uni-bremen.de>
+2007-05-07  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-1134
 

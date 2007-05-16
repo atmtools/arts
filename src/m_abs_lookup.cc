@@ -37,12 +37,15 @@ void abs_lookupCreate(// WS Output:
                       GasAbsLookup& gal,
                       // WS Input:
                       const Agenda& abs_coef_per_species_agenda,
+                      const Index& atmosphere_dim,
                       const ArrayOfArrayOfSpeciesTag& abs_species,
                       const Vector& f_grid,
                       const Vector& p_grid,
-                      const Vector& abs_lookup_nls_pert,
-                      const Vector& abs_lookup_t_pert
-                     )
+                      const Tensor4& vmr_fields,
+                      const Tensor3& t_field,
+                      const Vector& t_pert,
+                      const ArrayOfIndex& nls,
+                      const Vector& nls_pert )
 {
   // Absorption coefficients per species (output of absorption agenda):
   ArrayOfMatrix acps;
@@ -56,22 +59,35 @@ void abs_lookupCreate(// WS Output:
 
   // FIXME: Check for simple case of no temperature variation?
 
-  // Loop temperature perturbations:
-  for ( Index i=0; i<abs_lookup_t_pert.nelem(); ++i )
+  // FIXME: Perhaps go back to having t_pert, nls, nls_pert as WSVs,
+  // so that we can pre-generate them by a specialized "to-match"
+  // method? 
+
+  // Set general lookup table properties:
+  gal.species = abs_species;    // Species list
+
+  // Treat the case that we want to create the table from reference t
+  // and VMR profiles and explicit t_pert / nls_pert:
+  if ( 1 == atmosphere_dim )
     {
-      // FIXME
 
+      // Loop temperature perturbations:
+      for ( Index i=0; i<t_pert.nelem(); ++i )
+        {
+          // FIXME
+ 
 
-      // Call the agenda to calculate absorption coefficients:
-      abs_coef_per_species_agendaExecute(
-        // Output
-        acps,
-        // Input
-        abs_vmrs,
-        abs_t,
-        // Wrapper Input
-        abs_coef_per_species_agenda,
-        false);
+          // Call the agenda to calculate absorption coefficients:
+          abs_coef_per_species_agendaExecute(
+                                             // Output
+                                             acps,
+                                             // Input
+                                             abs_vmrs,
+                                             abs_t,
+                                             // Wrapper Input
+                                             abs_coef_per_species_agenda,
+                                             false);
+        }
     }
 }
 

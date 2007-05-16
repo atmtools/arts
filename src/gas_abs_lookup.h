@@ -33,6 +33,7 @@
 // Declare existance of some classes:
 class bifstream;
 class bofstream;
+class Agenda;
 
 //! An absorption lookup table.
 /*! This class holds an absorption lookup table, as well as all
@@ -71,6 +72,19 @@ public:
                                     bofstream *pbofs,
                                     const String &name);
 
+  friend void abs_lookupCreate(// WS Output:
+                      GasAbsLookup& gal,
+                      // WS Input:
+                      const Agenda& abs_coef_per_species_agenda,
+                      const Index& atmosphere_dim,
+                      const ArrayOfArrayOfSpeciesTag& abs_species,
+                      const Vector& f_grid,
+                      const Vector& p_grid,
+                      const Tensor4& vmr_fields,
+                      const Tensor3& t_field,
+                      const Vector& t_pert,
+                      const ArrayOfIndex& nls,
+                      const Vector& nls_pert );
 
 private:
 
