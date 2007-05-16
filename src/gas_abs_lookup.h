@@ -76,7 +76,7 @@ public:
                       GasAbsLookup& gal,
                       // WS Input:
                       const Agenda& abs_coef_per_species_agenda,
-                      const Index& atmosphere_dim,
+//                      const Index& atmosphere_dim,
                       const ArrayOfArrayOfSpeciesTag& abs_species,
                       const Vector& f_grid,
                       const Vector& p_grid,

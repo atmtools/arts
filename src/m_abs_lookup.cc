@@ -33,15 +33,16 @@ void abs_lookupInit(GasAbsLookup& /* x */)
 
 //! Creates a gas absorption lookup table.
 // FIXME Doc header!
+// - works only with 1D atmospheric fields.
 void abs_lookupCreate(// WS Output:
                       GasAbsLookup& gal,
                       // WS Input:
                       const Agenda& abs_coef_per_species_agenda,
-                      const Index& atmosphere_dim,
+//                      const Index& atmosphere_dim,
                       const ArrayOfArrayOfSpeciesTag& abs_species,
                       const Vector& f_grid,
                       const Vector& p_grid,
-                      const Tensor4& vmr_fields,
+                      const Tensor4& vmr_field,
                       const Tensor3& t_field,
                       const Vector& t_pert,
                       const ArrayOfIndex& nls,
@@ -49,45 +50,75 @@ void abs_lookupCreate(// WS Output:
 {
   // Absorption coefficients per species (output of absorption agenda):
   ArrayOfMatrix acps;
+
   // Absorption vmrs and temperature (input to absorption agenda):
   Matrix abs_vmrs;
   Vector abs_t;
 
+  // Calling parameter for functions requireing lat/lon grids:
+  const Vector empty_grid;      
+
   // FIXME: Which input parameters do we need?
   
   // FIXME: Checks of input parameter correctnes
+  // Check Atmospheric fields:
+  chk_atm_field("vmr_field",vmr_field,
+                1,abs_species.nelem(),p_grid,
+                empty_grid, empty_grid);
+
+  chk_atm_field("t_field",t_field,
+                1,p_grid,
+                empty_grid, empty_grid);
+
 
   // FIXME: Check for simple case of no temperature variation?
 
   // FIXME: Perhaps go back to having t_pert, nls, nls_pert as WSVs,
   // so that we can pre-generate them by a specialized "to-match"
   // method? 
+  // This would also allow more freedom to set up complicated
+  // temperature perturbation vectors. (Explicit list could 
+  // be a bit long and impractical.)
 
   // Set general lookup table properties:
   gal.species = abs_species;    // Species list
+  gal.nonlinear_species = nls;  // Nonlinear species (H2O)
+  gal.f_grid = f_grid;           // Frequency grid
+  gal.p_grid = p_grid;          // Pressure grid
+  gal.vmrs_ref = vmr_field(joker,joker,0,0);
+  gal.t_ref = t_field(joker,0,0);
+  gal.t_pert = t_pert;
+  gal.nls_pert = nls_pert;
 
-  // Treat the case that we want to create the table from reference t
-  // and VMR profiles and explicit t_pert / nls_pert:
-  if ( 1 == atmosphere_dim )
+  // Now we have to fill gal.xsec with the right values!
+
+  // Loop temperature perturbations:
+  for ( Index i=0; i<gal.t_pert.nelem(); ++i )
     {
-
-      // Loop temperature perturbations:
-      for ( Index i=0; i<t_pert.nelem(); ++i )
-        {
-          // FIXME
- 
-
-          // Call the agenda to calculate absorption coefficients:
-          abs_coef_per_species_agendaExecute(
-                                             // Output
-                                             acps,
-                                             // Input
-                                             abs_vmrs,
-                                             abs_t,
-                                             // Wrapper Input
-                                             abs_coef_per_species_agenda,
-                                             false);
-        }
+      // Create perturbed temperature profile:
+      abs_t = gal.t_ref;
+      abs_t += gal.t_pert[i];
+      
+      // FIXME: To do all species at once like this does not work for
+      // nonlinear species. Three solutions:
+      // a) Set up a longer species list with explicit nonlinear
+      // species beforehand (plus perturbed VMR profiles). Not
+      // difficult, but could blow memory?
+      // b) Always loop over species, allowing consistent treatment of
+      // nonlinear ones.
+      // c) Do all regular species at once, then separate treatment of
+      // nonlinear species. (Possibly also all nonlinear ones in one go.)
+      
+      // Call the agenda to calculate absorption coefficients:
+      abs_coef_per_species_agendaExecute(
+                                         // Output
+                                         acps,
+                                         // Input
+                                         abs_vmrs,
+                                         abs_t,
+                                         // Wrapper Input
+                                         abs_coef_per_species_agenda,
+                                         false);
     }
 }
 

@@ -701,7 +701,7 @@ void define_md_data_raw()
         ),
         OUTPUT( abs_lookup_ ),
         INPUT( abs_coef_per_species_agenda_,
-               atmosphere_dim_,
+               //               atmosphere_dim_,
                abs_species_, 
                f_grid_, p_grid_,
                vmr_field_, t_field_ 
