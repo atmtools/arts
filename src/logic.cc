@@ -267,6 +267,31 @@ bool is_increasing( ConstVectorView   x )
   return true;
 }
 
+//! Checks if an ArrayOfIndex is sorted and strictly increasing. 
+/*! 
+    Duplicated values are not allowed. Clone of the similar funciton
+    for vectors.  
+
+    \return      True if strictly increasing, otherwise false.
+    \param   x   An ArrayOfIndex.
+
+    \author Stefan Buehler
+    \date   2007-05-18
+
+*/
+bool is_increasing( const ArrayOfIndex&   x )
+{
+  if( x.nelem() > 1 )
+    {
+      for( Index i=1; i<x.nelem(); i++ )
+        {
+          if( x[i] <= x[i-1] )
+            return false;
+        }
+    }
+  return true;
+}
+
 //! Checks if a vector is sorted in reversed order and is strictly decreasing.
 /*! 
     Duplicated values are not allowed.

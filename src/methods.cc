@@ -700,16 +700,26 @@ void define_md_data_raw()
          "Creates a gas absorption lookup table. FIXME: Description"
         ),
         OUTPUT( abs_lookup_ ),
-        INPUT( abs_coef_per_species_agenda_,
-               //               atmosphere_dim_,
-               abs_species_, 
-               f_grid_, p_grid_,
-               vmr_field_, t_field_ 
+        INPUT( abs_species_, 
+               abs_lines_per_species_,
+               abs_lineshape_,
+               abs_nls_,
+               f_grid_,
+               abs_p_,
+               abs_vmrs_,
+               abs_t_, 
+               abs_t_pert_, 
+               abs_nls_pert_,
+               abs_n2_,
+               abs_h2o_,
+               abs_cont_names_,
+               abs_cont_models_, 
+               abs_cont_parameters_
                ),
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( "t_pert", "nls", "nls_pert" ),
-        TYPES(    Vector_t, Array_Index_t, Vector_t )));
+        KEYWORDS(  ),
+        TYPES( )));
 
   // New name: abs_lookupInit
   md_data_raw.push_back     

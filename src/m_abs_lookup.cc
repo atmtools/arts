@@ -37,38 +37,120 @@ void abs_lookupInit(GasAbsLookup& /* x */)
 void abs_lookupCreate(// WS Output:
                       GasAbsLookup& gal,
                       // WS Input:
-                      const Agenda& abs_coef_per_species_agenda,
-//                      const Index& atmosphere_dim,
                       const ArrayOfArrayOfSpeciesTag& abs_species,
-                      const Vector& f_grid,
-                      const Vector& p_grid,
-                      const Tensor4& vmr_field,
-                      const Tensor3& t_field,
-                      const Vector& t_pert,
-                      const ArrayOfIndex& nls,
-                      const Vector& nls_pert )
+                      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                      const ArrayOfLineshapeSpec&     abs_lineshape,
+                      const ArrayOfIndex&             abs_nls,
+                      const Vector&                   f_grid,
+                      const Vector&                   abs_p,
+                      const Matrix&                   abs_vmrs,
+                      const Vector&                   abs_t,
+                      const Vector&                   abs_t_pert,
+                      const Vector&                   abs_nls_pert, 
+                      const Vector&                   abs_n2,            
+                      const Vector&                   abs_h2o,           
+                      const ArrayOfString&            abs_cont_names,    
+                      const ArrayOfString&            abs_cont_models,   
+                      const ArrayOfVector&            abs_cont_parameters )
 {
-  // Absorption coefficients per species (output of absorption agenda):
-  ArrayOfMatrix acps;
-
-  // Absorption vmrs and temperature (input to absorption agenda):
-  Matrix abs_vmrs;
-  Vector abs_t;
-
-  // Calling parameter for functions requireing lat/lon grids:
-  const Vector empty_grid;      
-
-  // FIXME: Which input parameters do we need?
+  // We will be calling an absorption agenda one species at a
+  // time. This is better than doing all simultaneously, because is
+  // saves memory and allows for consistent treatment of nonlinear
+  // species. But it means we need local copies of species, line list,
+  // and line shapes for agenda communication.
   
-  // FIXME: Checks of input parameter correctnes
-  // Check Atmospheric fields:
-  chk_atm_field("vmr_field",vmr_field,
-                1,abs_species.nelem(),p_grid,
-                empty_grid, empty_grid);
+  // 1. Output of absorption calculations:
 
-  chk_atm_field("t_field",t_field,
-                1,p_grid,
-                empty_grid, empty_grid);
+  // Absorption coefficients:
+  Matrix these_abs_coef;
+
+  // "Cross sections" per tag group. These are not real
+  // cross-sections, but the old definition, abs/VMR!
+  ArrayOfMatrix abs_xsec_per_species;
+
+  // 2. Input to absorption calculations:
+
+  // Species list, lines, and line shapes, all with only 1 element:
+  ArrayOfArrayOfSpeciesTag this_species(1);
+  ArrayOfArrayOfLineRecord these_lines(1);
+  ArrayOfLineshapeSpec this_lineshape(1);
+
+  // Absorption vmrs and temperature:
+  Matrix this_vmr;
+  Vector this_t;
+
+  // Local copy of nls_pert:
+  Vector these_nls_pert;
+
+  // 3. Determine various important sizes:
+  const Index n_species = abs_species.nelem();   // Number of abs species
+  const Index n_nls = abs_nls.nelem();           // Number of nonlinear species
+  const Index n_f_grid = f_grid.nelem();         // Number of frequency grid points
+  const Index n_p_grid = abs_p.nelem();         // Number of presure grid points
+  const Index n_t_pert = abs_t_pert.nelem();     // Number of temp. perturbations
+  const Index n_nls_pert = abs_nls_pert.nelem(); // Number of VMR pert. for NLS
+
+  // 3.a Set up a logical array for the nonlinear species
+  ArrayOfIndex non_linear(n_species,0);
+  for ( Index s=0; s<n_nls; ++s )
+    {
+      non_linear[abs_nls[s]] = 1;
+    }
+
+  // 4. Checks of input parameter correctness:
+
+  // abs_species, f_grid, and p_grid should not be empty:
+  if ( 0==n_species ||
+       0==n_f_grid ||
+       0==n_p_grid )
+    {
+      ostringstream os;
+      os << "One of the required input variables is empty:\n"
+         << "abs_species.nelem() = " << n_species << ",\n"
+         << "f_grid.nelem() = " << n_f_grid << ",\n"
+         << "abs_p.nelem() = " << n_p_grid << ".";
+      throw runtime_error( os.str() );
+    }
+
+  // abs_nls must not be longer than abs_species, strictly increasing,
+  // and point inside abs_species: 
+  chk_if_in_range( "abs_nls.nelem()",
+                   n_nls, 
+                   0, 
+                   n_species );
+
+  chk_if_increasing( "abs_nls",
+                     abs_nls ); 
+
+  chk_if_in_range( "min(abs_nls)",
+                   min(abs_nls), 
+                   0, 
+                   n_species-1 );
+
+  chk_if_in_range( "max(abs_nls)",
+                   max(abs_nls), 
+                   0, 
+                   n_species-1 );
+
+  // VMR matrix must match species list and pressure levels:
+  chk_size( "abs_vmrs",
+            abs_vmrs,
+            n_species,
+            n_p_grid );
+
+  // Temperature vector must match number of pressure levels:
+  chk_size( "abs_t",
+            abs_t,
+            n_p_grid ); 
+
+  // abs_nls_pert should only be not-empty if we have nonlinear species:
+  if ( ( 0==n_nls && 0 != n_nls_pert ) ||
+       ( 0!=n_nls && 0 == n_nls_pert ))
+    {
+      ostringstream os;
+      os << "You have to set both abs_nls and abs_nls_pert, or none.";
+      throw runtime_error( os.str() );
+    }
 
 
   // FIXME: Check for simple case of no temperature variation?
@@ -80,48 +162,135 @@ void abs_lookupCreate(// WS Output:
   // temperature perturbation vectors. (Explicit list could 
   // be a bit long and impractical.)
 
-  // Set general lookup table properties:
+  // 5. Set general lookup table properties:
   gal.species = abs_species;    // Species list
-  gal.nonlinear_species = nls;  // Nonlinear species (H2O)
+  gal.nonlinear_species = abs_nls;  // Nonlinear species (H2O)
   gal.f_grid = f_grid;           // Frequency grid
-  gal.p_grid = p_grid;          // Pressure grid
-  gal.vmrs_ref = vmr_field(joker,joker,0,0);
-  gal.t_ref = t_field(joker,0,0);
-  gal.t_pert = t_pert;
-  gal.nls_pert = nls_pert;
+  gal.p_grid = abs_p;          // Pressure grid
+  gal.vmrs_ref = abs_vmrs;
+  gal.t_ref = abs_t;
+  gal.t_pert = abs_t_pert;
+  gal.nls_pert = abs_nls_pert;
 
-  // Now we have to fill gal.xsec with the right values!
+  // 6. Create gal.xsec with the right dimensions:
+  {
+    Index a,b,c,d;
 
-  // Loop temperature perturbations:
-  for ( Index i=0; i<gal.t_pert.nelem(); ++i )
+    if ( 0 == n_t_pert ) a = 1;
+    else a = n_t_pert;
+
+    b = n_species + n_nls * ( n_nls_pert - 1 );
+
+    c = n_f_grid;
+
+    d = n_p_grid;
+
+    gal.xsec.resize( a, b, c, d );
+  }
+  
+  // 7. Now we have to fill gal.xsec with the right values!
+
+  // Loop species:
+  for ( Index i=0,spec=0; i<n_species; ++i )
     {
-      // Create perturbed temperature profile:
-      abs_t = gal.t_ref;
-      abs_t += gal.t_pert[i];
+      // spec is the index for the second dimension of gal.xsec.
       
-      // FIXME: To do all species at once like this does not work for
-      // nonlinear species. Three solutions:
-      // a) Set up a longer species list with explicit nonlinear
-      // species beforehand (plus perturbed VMR profiles). Not
-      // difficult, but could blow memory?
-      // b) Always loop over species, allowing consistent treatment of
-      // nonlinear ones.
-      // c) Do all regular species at once, then separate treatment of
-      // nonlinear species. (Possibly also all nonlinear ones in one go.)
+      // Prepare absorption agenda input for this species:
+      out2 << "  Doing species " << i << " of " << n_species << ":"
+           << abs_species[i] << ".\n";
+
+      // Get a dummy list of tag groups with only the current element:
+      this_species[0].resize(abs_species[i].nelem());
+      this_species[0] = abs_species[i];
+
+      // List of lines:
+      these_lines[0].resize(abs_lines_per_species[i].nelem());
+      these_lines[0] = abs_lines_per_species[i];
       
-      // Call the agenda to calculate absorption coefficients:
-      abs_coef_per_species_agendaExecute(
-                                         // Output
-                                         acps,
-                                         // Input
-                                         abs_vmrs,
-                                         abs_t,
-                                         // Wrapper Input
-                                         abs_coef_per_species_agenda,
-                                         false);
+      // List of lineshapes:
+      this_lineshape[0] = abs_lineshape[i];
+
+      // Set up these_nls_pert. This is done so that we can use the
+      // same loop over temperature perturbations, independent of
+      // whether we have nonlinear species or not.
+      if ( non_linear[i] )
+        {
+          out2 << "  This is a species with non-linear treatment.\n";
+          these_nls_pert.resize(n_nls_pert);
+          these_nls_pert = abs_nls_pert;
+        }
+      else
+        {
+          these_nls_pert.resize(1);
+          these_nls_pert = 1;
+        }
+      
+      // Loop these_nls_pert:
+      for ( Index s=0; s<these_nls_pert.nelem(); ++s,++spec )
+        {
+          // Remeber, spec is the index for the second dimension of gal.xsec
+          
+          if ( non_linear[i] )
+            {
+              out3 << "  Doing VMR variant " << s << " of " << n_nls_pert << ":"
+                   << abs_nls_pert[s] << ".\n";
+            }
+
+          // VMR for this species:
+          this_vmr(0,joker) = abs_vmrs(i,joker) * these_nls_pert[s];
+
+          // Loop temperature perturbations:
+          for ( Index j=0; j<n_t_pert; ++j )
+            {
+              out3 << "  Doing temperature variant " << j << " of " << n_t_pert << ":"
+                   << abs_t_pert[j] << ".\n";
+
+              // Create perturbed temperature profile:
+              this_t = gal.t_ref;
+              this_t += gal.t_pert[j];
+      
+              // The sequence of function calls here is inspired from
+              // abs_coefCalcSaveMemory. 
+
+              abs_xsec_per_speciesInit( abs_xsec_per_species, this_species,
+                                        f_grid, abs_p );
+
+              abs_xsec_per_speciesAddLines( abs_xsec_per_species,
+                                            this_species,
+                                            f_grid,
+                                            abs_p,
+                                            this_t,
+                                            abs_h2o,
+                                            this_vmr,
+                                            these_lines,
+                                            this_lineshape );
+
+              abs_xsec_per_speciesAddConts( abs_xsec_per_species,
+                                            this_species,
+                                            f_grid,
+                                            abs_p,
+                                            this_t,
+                                            abs_n2,
+                                            abs_h2o,
+                                            this_vmr,
+                                            abs_cont_names,
+                                            abs_cont_parameters,
+                                            abs_cont_models);
+
+              // Store in the right place:
+              // Loop through all altitudes
+              for ( Index p=0; p<n_p_grid; ++p )
+                {
+                  // Loop through all frequencies
+                  for ( Index f=0; f<n_f_grid; ++f)
+                    {
+                      gal.xsec( j, spec, f, p ) = abs_xsec_per_species[0](f,p) * this_vmr(0,p);
+                    }
+                }
+            }
+        }
     }
 }
-
 
 void abs_speciesAdd(// WS Output:
                     ArrayOfArrayOfSpeciesTag& abs_species,

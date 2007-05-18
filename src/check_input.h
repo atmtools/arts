@@ -68,6 +68,10 @@ void chk_if_in_range(
         const Index&    x_low, 
         const Index&    x_high );
 
+void chk_if_increasing( 
+        const String&       x_name,
+        const ArrayOfIndex& x ); 
+
 void chk_if_over_0( 
         const String&    x_name,
         const Numeric&   x );

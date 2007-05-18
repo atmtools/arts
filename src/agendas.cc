@@ -49,16 +49,19 @@ void define_agenda_data()
     The sign "_" comes after all letters.
     ----------------------------------------------------------------------*/
 
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "abs_coef_per_species_agenda" ),
-       DESCRIPTION
-       (
-        "FIXME: This is just a placeholder for now."
-        ),
-       OUTPUT( abs_coef_per_species_ ),
-       INPUT(  abs_vmrs_,
-               abs_t_ )));
+//   agenda_data.push_back
+//     (AgRecord
+//      ( NAME( "abs_coef_agenda" ),
+//        DESCRIPTION
+//        (
+//         "FIXME: This is just a placeholder for now."
+//         ),
+//        OUTPUT( abs_coef_ ),
+//        INPUT(  abs_species_,
+//                abs_lines_per_species_,
+//                abs_lineshape_,
+//                abs_vmrs_,
+//                abs_t_ )));
   
   agenda_data.push_back
     (AgRecord

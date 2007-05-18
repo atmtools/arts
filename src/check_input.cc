@@ -72,8 +72,6 @@ void chk_if_bool(
     }
 }
 
-
-
 //! chk_if_in_range
 /*! 
     Checks that a variable of type Index has a value inside the specified
@@ -101,6 +99,35 @@ void chk_if_in_range(
       os << "The variable *" << x_name <<  "* must fulfill:\n"
          << "   " << x_low << " <= " << x_name << " <= " << x_high << "\n" 
          << "The present value of *"<< x_name <<  "* is " << x << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+//! chk_if_increasing
+/*! 
+    Checks if an ArrayOfIndex is strictly increasing. Cloned from
+    Patricks similar function for Vector.
+
+    Duplicated values are not allowed.
+
+    The function gives an error message if this is not the case.
+
+    \param    x_name   The name of the variable.
+    \param    x        A variable of type ArrayOfIndex.
+
+    \author Stefan Buehler
+    \date   2007-05-18
+*/
+void chk_if_increasing( 
+        const String&       x_name,
+        const ArrayOfIndex& x ) 
+{
+  if ( !is_increasing(x) )
+    {
+      ostringstream os;
+      os << "The ArrayOfIndex *" << x_name <<  "* must have strictly\n"
+         << "increasing values, but this is not the case.\n";
+      os << "x = " << x << "\n";
       throw runtime_error( os.str() );
     }
 }

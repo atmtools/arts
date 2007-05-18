@@ -131,14 +131,14 @@ void define_wsv_data()
       ),
       GROUP( ArrayOfMatrix_ )));
 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "abs_coef_per_species_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc."
-       ),
-      GROUP( Agenda_)));
+//   wsv_data.push_back
+//    (WsvRecord
+//     ( NAME( "abs_coef_agenda" ),
+//       DESCRIPTION
+//       (
+//         "See agendas.cc."
+//        ),
+//       GROUP( Agenda_)));
   
   wsv_data.push_back
     (WsvRecord
@@ -370,35 +370,35 @@ void define_wsv_data()
         ), 
        GROUP( GasAbsLookup_ )));
 
-  // The variables belwo are now keyword parameters. Remove!
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "abs_lookup_nls" ),
-//         DESCRIPTION
-//         (
-//          "Vector containing indices to those species in the species list\n"
-//          "*abs_species* that should be treated non-linearly (usually only H2O)."         ), 
-//         GROUP( ArrayOfIndex_ )));
+    wsv_data.push_back
+      (WsvRecord
+       ( NAME( "abs_nls" ),
+         DESCRIPTION
+         (
+          "Vector containing indices to those species in the species list\n"
+          "*abs_species* that should be treated non-linearly (usually only H2O). FIXME: More..."
+         ), 
+         GROUP( ArrayOfIndex_ )));
 
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "abs_lookup_nls_pert" ),
-//         DESCRIPTION
-//         (
-//          "Vector containing the fractional perturbations\n"
-//          "for the nonlinear species in the abs lookup table."
-//          ), 
-//         GROUP( Vector_ )));
+    wsv_data.push_back
+      (WsvRecord
+       ( NAME( "abs_nls_pert" ),
+         DESCRIPTION
+         (
+          "Vector containing the fractional perturbations\n"
+          "for the nonlinear species in the abs lookup table. FIXME: More..."
+          ), 
+         GROUP( Vector_ )));
 
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "abs_lookup_t_pert" ),
-//         DESCRIPTION
-//         (
-//          "Vector containing the temperature perturbations\n"
-//          "for the abs lookup table."
-//          ), 
-//         GROUP( Vector_ )));
+    wsv_data.push_back
+      (WsvRecord
+       ( NAME( "abs_t_pert" ),
+         DESCRIPTION
+         (
+          "Vector containing the temperature perturbations\n"
+          "for the abs lookup table. FIXME: More..."
+          ), 
+         GROUP( Vector_ )));
 
   wsv_data.push_back
     (WsvRecord

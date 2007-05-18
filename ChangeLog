@@ -1,3 +1,19 @@
+2007-05-18  Stefan Buehler  <sbuehler@irv.se>
+
+	* arts-1-1-1138
+
+	* src/m_abs_lookup.cc (abs_lookupCreate): Created first draft of
+	this method. There are still some things to fix, please do not use
+	yet. Will continue this on Monday. 
+
+	* src/check_input.cc (chk_if_increasing): Added this function for
+	ArrayOfIndex. 
+
+	* src/logic.cc (is_increasing): Added this function for ArrayOfIndex.
+
+	* Small changes in various other files for abs_lookup
+	implementation. 
+	
 2007-05-16  Stefan Buehler  <sbuehler@irv.se>
 
 	* arts-1-1-1137

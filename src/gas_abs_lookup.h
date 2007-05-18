@@ -75,16 +75,22 @@ public:
   friend void abs_lookupCreate(// WS Output:
                       GasAbsLookup& gal,
                       // WS Input:
-                      const Agenda& abs_coef_per_species_agenda,
-//                      const Index& atmosphere_dim,
                       const ArrayOfArrayOfSpeciesTag& abs_species,
-                      const Vector& f_grid,
-                      const Vector& p_grid,
-                      const Tensor4& vmr_fields,
-                      const Tensor3& t_field,
-                      const Vector& t_pert,
-                      const ArrayOfIndex& nls,
-                      const Vector& nls_pert );
+                      const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                      const ArrayOfLineshapeSpec&     abs_lineshape,
+                      const ArrayOfIndex&             abs_nls,
+                      const Vector&                   f_grid,
+                      const Vector&                   abs_p,
+                      const Matrix&                   abs_vmrs,
+                      const Vector&                   abs_t,
+                      const Vector&                   abs_t_pert,
+                      const Vector&                   abs_nls_pert, 
+                      const Vector&                   abs_n2,            
+                      const Vector&                   abs_h2o,           
+                      const ArrayOfString&            abs_cont_names,    
+                      const ArrayOfString&            abs_cont_models,   
+                      const ArrayOfVector&            abs_cont_parameters );
+
 
 private:
 

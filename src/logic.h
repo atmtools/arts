@@ -80,6 +80,8 @@ bool is_sorted( ConstVectorView   x );
 
 bool is_increasing( ConstVectorView   x );
 
+bool is_increasing( const ArrayOfIndex&   x );
+
 bool is_decreasing( ConstVectorView   x );
 
 bool is_singular( ConstMatrixView A );
