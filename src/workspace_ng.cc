@@ -76,7 +76,16 @@ void Workspace::duplicate (Index i)
 {
   WsvStruct *wsvs = new WsvStruct;
   wsvs->auto_allocated = true;
-  wsvs->wsv = wsmh.duplicate (i, operator[](i));
+  if (ws[i].size())
+    {
+      wsvs->wsv = wsmh.duplicate (i, ws[i].top()->wsv);
+      wsvs->initialized = true;
+    }
+  else
+    {
+      wsvs->wsv = NULL;
+      wsvs->initialized = false;
+    }
   ws[i].push (wsvs);
 }
 
@@ -121,7 +130,7 @@ void Workspace::pop_free (Index i)
 
 //! Push a new wsv onto its stack.
 /*!
-  Adds the pointer to the variable to the stack of WSV with index i.
+  Adds the pointer to the variable to the stack of the WSV with index i.
 
   \param i WSV index.
   \param wsv Void pointer to variable that should be put on the stack.
@@ -130,6 +139,25 @@ void Workspace::push (Index i, void *wsv)
 {
   WsvStruct *wsvs = new WsvStruct;
   wsvs->auto_allocated = false;
+  wsvs->initialized = true;
+  wsvs->wsv = wsv;
+  ws[i].push (wsvs);
+}
+
+//! Push a new wsv onto its stack but mark it as uninitialized.
+/*!
+  Adds the pointer to the variable to the stack of the WSV with index i.
+  The variable is flagged as uninitialized. This is used for agenda
+  output-only variables.
+
+  \param i WSV index.
+  \param wsv Void pointer to variable that should be put on the stack.
+  */
+void Workspace::push_uninitialized (Index i, void *wsv)
+{
+  WsvStruct *wsvs = new WsvStruct;
+  wsvs->auto_allocated = false;
+  wsvs->initialized = false;
   wsvs->wsv = wsv;
   ws[i].push (wsvs);
 }
@@ -152,7 +180,8 @@ void *Workspace::operator[](Index i)
       ws[i].top ()->wsv = wsmh.allocate (i);
     }
 
+  ws[i].top ()->initialized = true;
+
   return (ws[i].top()->wsv);
 }
-
 

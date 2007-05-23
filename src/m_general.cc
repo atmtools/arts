@@ -56,6 +56,7 @@
 #include "make_vector.h"
 #include "sensor.h"
 
+#include "workspace_ng.h"
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -173,6 +174,25 @@ void Print(
   SWITCH_OUTPUT (level, os.str ()) */
 }
 
+void PrintWorkspace(
+        // Keywords:
+        const Index    level)
+{
+  extern Workspace workspace;
+  ostringstream os;
+
+  os << "  Allocated workspace variables:\n";
+  for (Index i = 0; i < workspace.nelem(); i++)
+    {
+      if (workspace.is_initialized(i))
+        {
+          os << "  ";
+          PrintWsvName (os, i);
+          os << "\n";
+        }
+    }
+  SWITCH_OUTPUT (level, os.str ());
+}
 
 void
 timerStart (// WS Output

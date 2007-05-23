@@ -47,6 +47,7 @@ class Workspace {
 private:
   typedef struct {
     void *wsv;
+    bool initialized;
     bool auto_allocated;
   } WsvStruct;
 
@@ -61,8 +62,9 @@ public:
   virtual ~Workspace ();
 
   //! Checks existence of the given WSV.
-  bool is_occupied(Index i) { return ((ws[i].size () != 0)
-                                      && (ws[i].top()->wsv != NULL)); }
+  bool is_initialized (Index i) {
+    return ((ws[i].size () != 0)
+            && (ws[i].top()->initialized == true)); }
 
   void duplicate (Index i);
 
@@ -71,6 +73,10 @@ public:
   void pop_free (Index i);
 
   void push (Index i, void *wsv);
+
+  void push_uninitialized (Index i, void *wsv);
+
+  Index nelem () {return ws.nelem ();}
 
   void *operator[](Index i);
 };

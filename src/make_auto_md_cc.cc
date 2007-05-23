@@ -362,8 +362,19 @@ int main()
             {
               for (Index j = 0; j < ago.nelem (); j++)
                 {
-                  aout_push_os << "  workspace.push (aout[" << j << "], "
-                    << "(void *)&" << wsv_data[ago[j]].Name () << ");\n";
+                  // Mark agenda output-only variables as uninitialized
+                  ArrayOfIndex::const_iterator it = agi.begin ();
+                  while (it != agi.end () && *it != ago[j]) it++;
+                  if (it == agi.end ())
+                    {
+                      aout_push_os << "  workspace.push_uninitialized (aout[" << j << "], "
+                        << "(void *)&" << wsv_data[ago[j]].Name () << ");\n";
+                    }
+                  else
+                    {
+                      aout_push_os << "  workspace.push (aout[" << j << "], "
+                        << "(void *)&" << wsv_data[ago[j]].Name () << ");\n";
+                    }
                   aout_pop_os << "  workspace.pop (aout[" << j << "]);\n";
                 }
             }

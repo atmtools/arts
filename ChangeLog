@@ -1,3 +1,52 @@
+2007-05-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1139
+
+	* src/methods.cc, src/m_general.{cc,h}:
+
+	Added new method PrintWorkspace. Lists all initialized WSVs.
+
+	* src/workspace_ng.{cc,h}:
+
+	Add a new flag "initialized" to the WsvStruct. Just using the NULL
+	pointer to determine whether a WSV is initialized is not possible for
+	agenda outputs.
+
+	Added new function push_uninitialized. This puts a variable onto the
+	WSV's stack but flags it as uninitialized. Used for agenda output-only
+	variables.
+
+	Rename function is_occupied to is_initialized.
+
+	Fix serious bug in the WSV duplication code. All WSVs that had to be
+	duplicated in an agenda call were treated as initialized. Even if they
+	didn't exist on the top level.
+
+	Now a duplicate is only created if the WSV already exists, otherwise a
+	NULL pointer is put on the next stack level.
+
+	Added function nelem to retrieve the number of WSVs in the workspace.
+
+	* src/make_auto_md_cc.cc:
+
+	Use Workspace::push_uninitialized for all agenda output-only
+	variables.
+
+	* src/agendas.cc: Added iy to rte_agenda inputs.
+
+	* src/agenda_class.cc:
+
+	Fix another bug. Some cases were missed in which WSVs needed to be
+	duplicated.
+
+	* src/wsv_aux.h (PrintWsvName):
+
+	Also print the WSV index. Helpful for debugging.
+
+	* src/make_auto_md_cc.cc:
+
+	Use workspace.push_uninitialized for agenda output-only variables.
+
 2007-05-18  Stefan Buehler  <sbuehler@irv.se>
 
 	* arts-1-1-1138
@@ -13,7 +62,7 @@
 
 	* Small changes in various other files for abs_lookup
 	implementation. 
-	
+
 2007-05-16  Stefan Buehler  <sbuehler@irv.se>
 
 	* arts-1-1-1137

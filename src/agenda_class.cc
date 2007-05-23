@@ -115,45 +115,25 @@ void Agenda::execute(bool silent) const
         {
           out1 << "- " << mdd.Name() << '\n';
         
-          { // Check if all specific input variables are occupied:
+          { // Check if all specific input variables are initialized:
             const ArrayOfIndex& v(mdd.Input());
             for (Index s=0; s<v.nelem(); ++s)
-              if (!workspace.is_occupied(v[s]))
+              if (!workspace.is_initialized(v[s]))
                 give_up("Method "+mdd.Name()+" needs input variable: "+
                         wsv_data[v[s]].Name());
           }
 
-          { // Check if all generic input variables are occupied:
+          { // Check if all generic input variables are initialized:
             const ArrayOfIndex& v(mrr.Input());
             //      cout << "v.nelem(): " << v.nelem() << endl;
             for (Index s=0; s<v.nelem(); ++s)
-              if (!workspace.is_occupied(v[s]))
+              if (!workspace.is_initialized(v[s]))
                 give_up("Generic Method "+mdd.Name()+" needs input variable: "+
                         wsv_data[v[s]].Name());
           }
 
-          // The output is flagged as occupied before the actual
-          // function call, so that output of a method can already be used by
-          // an agenda executed by the method. This is important for
-          // example in the case of absorption, where an agenda is
-          // used to compute the lineshape, which needs some input
-          // data pased by the calling method, such as line-width, etc.. 
-
-          { // Flag the specific output variables as occupied:
-            //OLE: FIXME
-          //  const ArrayOfIndex& v(mdd.Output());
-          //  for (Index s=0; s<v.nelem(); ++s) workspace.set(v[s]);
-          }
-
-          { // Flag the generic output variables as occupied:
-            //OLE: FIXME
-           // const ArrayOfIndex& v(mrr.Output());
-           // for (Index s=0; s<v.nelem(); ++s) workspace.set(v[s]);
-          }
-
           // Call the getaway function:
-          getaways[mrr.Id()]
-            ( workspace, mrr );
+          getaways[mrr.Id()]( workspace, mrr );
 
         }
       catch (runtime_error x)
@@ -210,6 +190,14 @@ void Agenda::set_outputs_to_push_and_dup ()
       // Add all outputs of this WSM to global list of outputs
       outputs.insert (souts.begin (), souts.end ());
 
+      // Collect generic input WSVs
+      const ArrayOfIndex &gins = method->Input ();
+      inputs.insert (gins.begin (), gins.end ());
+
+      // Collect input WSVs
+      const ArrayOfIndex &ins = md_data[method->Id()].Input();
+      inputs.insert (ins.begin (), ins.end ());
+
       // Find out all output WSVs of current WSM which were
       // already used as input. We have to place a copy of them on
       // the WSV stack.
@@ -218,13 +206,6 @@ void Agenda::set_outputs_to_push_and_dup ()
                         insert_iterator< set<Index> >(outs2dup,
                                                       outs2dup.begin ()));
 
-      // Collect input WSVs
-      const ArrayOfIndex &ins = md_data[method->Id()].Input();
-      inputs.insert (ins.begin (), ins.end ());
-
-      // Collect generic input WSVs
-      const ArrayOfIndex &gins = method->Input ();
-      inputs.insert (gins.begin (), gins.end ());
     }
 
   // Find all outputs which are not in the list of WSVs to duplicate
@@ -350,18 +331,6 @@ void Agenda::set_outputs_to_push_and_dup ()
         << "This is not allowed.\n"
         << "Variable(s): ";
       PrintWsvNames (err, agenda_only_in_wsm_out);
-      throw runtime_error (err.str ());
-    }
-  if (agenda_only_out_wsm_in.nelem ())
-    {
-      ostringstream err;
-      err << "At least one variable is only defined as output\n"
-        << "in agenda " << name () << ", but\n"
-        << "first used as input in a WSM called by the agenda!!!\n"
-        << "This is not handled properly at the moment. The variable(s)\n"
-        << "might be used uninitialized.\n"
-        << "Variable(s): ";
-      PrintWsvNames (err, agenda_only_out_wsm_in);
       throw runtime_error (err.str ());
     }
 }

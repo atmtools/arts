@@ -4156,6 +4156,25 @@ md_data_raw.push_back
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("PrintWorkspace"),
+        DESCRIPTION
+        (
+         "Prints a list of initialized workspace variables."
+         "\n"
+         "Keywords:\n"
+         "   level : Output level to use. \n"
+        ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "level" ),
+        TYPES( Index_t ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
   // New name: p_gridFromAbsLookup
   md_data_raw.push_back     
     ( MdRecord

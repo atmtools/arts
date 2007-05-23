@@ -99,12 +99,12 @@ Print(
 
 void
 Print(
-      // WS Generic Input:
-      const Ppath&    ppath,
-      // WS Generic Input Names:
-      const String&   x_name,
-      // Keywords:
-      const Index     level );
+        // WS Generic Input:
+        const Ppath&    ppath,
+        // WS Generic Input Names:
+        const String&   x_name,
+        // Keywords:
+        const Index     level );
 
 void Print(
         // WS Generic Input:
@@ -113,14 +113,18 @@ void Print(
         const String&           x_name,
         // Keywords:
         const Index             level );
-void
-Print(
-      // WS Generic Input:
-      const Timer&   x,
-      // WS Generic Input Names:
-      const String&  x_name,
-      // Keywords:
-      const Index    level);
+
+void Print(
+        // WS Generic Input:
+        const Timer&   x,
+        // WS Generic Input Names:
+        const String&  x_name,
+        // Keywords:
+        const Index    level);
+
+void PrintWorkspace(
+        // Keywords:
+        const Index    level);
 
 #endif /* m_general_h */
 

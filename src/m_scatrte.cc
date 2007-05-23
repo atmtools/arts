@@ -2483,9 +2483,9 @@ void ScatteringDoit(
   map<String, Index>::const_iterator mi =
     WsvMap.find( "scat_p_index" );
 
-  if (!workspace.is_occupied(mi->second))
+  if (!workspace.is_initialized(mi->second))
     throw runtime_error(
-                        "Initialization method *DoitInit* is has to be"
+                        "Initialization method *DoitInit* has to be "
                         "put before\n"
                         "start of *ScatteringDoit*");
 

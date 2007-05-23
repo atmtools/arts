@@ -586,7 +586,7 @@ void define_agenda_data()
         "along the propagation path and returns the result in *iy*."
         ),
        OUTPUT( iy_, diy_dvmr_, diy_dt_ ),
-       INPUT( diy_dvmr_, diy_dt_, ppath_, ppath_array_, ppath_array_index_,
+       INPUT( iy_, diy_dvmr_, diy_dt_, ppath_, ppath_array_, ppath_array_index_,
               rte_do_vmr_jacs_, rte_do_t_jacs_, stokes_dim_, f_grid_ )));
 
  agenda_data.push_back

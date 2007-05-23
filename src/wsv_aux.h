@@ -102,7 +102,7 @@ PrintWsvName (OutputStream &outstream, Index i)
 {
   extern const Array<WsvRecord> wsv_data;
 
-  outstream << wsv_data[i].Name () << " ";
+  outstream << wsv_data[i].Name () << "(" << i << ") ";
 }
 
 //! Print list of WSV names to output stream.
