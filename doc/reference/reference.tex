@@ -1,7 +1,5 @@
 \documentclass[11pt,twoside,a4paper,fleqn]{book} 
-%\documentclass[11pt,twoside,a4paper,fleqn,draft]{book} 
 
-%\includeonly{development,agendas,app_groups}
 
 
 %--- Packages to use
@@ -24,6 +22,37 @@
 \else
   \pdfoutput=1
   \pdftrue
+\fi
+
+
+
+%--- BEGIN PDF/LaTeX specific options
+\ifpdf
+  \usepackage[pdftex]{graphicx}    % includegraphics
+  \DeclareGraphicsExtensions{.pdf}
+  \usepackage{color}
+  \definecolor{DarkRed}{rgb}{0.5,0,0}
+  \usepackage
+    [pdftex,                         % or dvips
+     colorlinks=true,
+     linkcolor=DarkRed,
+     citecolor=DarkRed,
+     urlcolor=DarkRed,
+     pdftitle={ARTS User Guide},
+     pdfauthor={The ARTS development team},
+     pdfsubject={},
+     pdfkeywords={},
+     bookmarks=true,
+     bookmarksopen=false,
+     pdfpagemode=None,
+     plainpages=false,
+     pdfpagelabels]
+  {hyperref}
+  \setcounter{tocdepth}{3}
+\else
+  \usepackage[dvips]{graphicx}    % includegraphics
+  \DeclareGraphicsExtensions{.eps}
+  \setcounter{tocdepth}{1}
 \fi
 
 
@@ -73,47 +102,6 @@
 
 %- To avoid hyperref error:
 \newcommand{\theHalgorithm}{\theHchapter.\arabic{algorithm}}
-
-%- Width of the caption in longtable:
-%\setlength{\LTcapwidth}{0.9\textwidth} 
-
-%- Change brace type for comments in algorithmic
-%\renewcommand{\algorithmiccomment}[1]{(#1)}
-
-
-
-%--- Symbol definitions
-%
-%\input{symbol_defs.tex}
-
-
-
-%--- BEGIN PDF/LaTeX specific options
-\ifpdf
-  \usepackage[pdftex]{graphicx}    % includegraphics
-  \DeclareGraphicsExtensions{.pdf}
-  \usepackage{color}
-  \usepackage
-    [pdftex,                         % or dvips
-     colorlinks=true,
-     pdftitle={ARTS User Guide},
-     pdfauthor={xyz},
-     pdfsubject={},
-     pdfkeywords={},
-     bookmarks=true,
-     bookmarksopen=false,
-     pdfpagemode=None,
-     plainpages=false,
-     pdfpagelabels]
-  {hyperref}
-  \setcounter{tocdepth}{3}
-\else
-  \usepackage[dvips]{graphicx}    % includegraphics
-  \DeclareGraphicsExtensions{.eps}
-  \setcounter{tocdepth}{1}
-\fi
-
-
 
 %--- Command definitions -----------------------------------------------------
 
