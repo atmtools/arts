@@ -148,12 +148,36 @@ void define_md_data_raw()
       ( NAME( "AbsInputFromAtmFields" ),
         DESCRIPTION(
                     "Initialize the WSVs *abs_p*, *abs_t* and *abs_vmrs* from\n"
-                    "*p_grid, *t_field* and *vmr_field*\n"
+                    "*p_grid, *t_field* and *vmr_field*.\n"
                     "\n"
                     "This only works for a 1D atmosphere!"
                    ) ,
         OUTPUT( abs_p_, abs_t_, abs_vmrs_ ),
         INPUT( atmosphere_dim_, p_grid_, t_field_, vmr_field_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AbsInputFromRteScalars" ),
+        DESCRIPTION(
+                    "Initialize absorption input WSVs from local atmospheric conditions.\n"
+                    "\n"
+                    "The purpose of this method is to allow an explicit line-by-line\n"
+                    "calculation, e.g., by *abs_coefCalc*, to be put inside the\n"
+                    "*abs_scalar_gas_agenda*. What the method does is to prepare absorption\n"
+                    "input parameters (pressure, temperature, VMRs, frequency grid), from\n"
+                    "the input parameters to *abs_scalar_gas_agenda*.\n"
+                    "There is a matching method to turn the output of *abs_coefCalc*\n"
+                    "into what the agenda expects (*abs_scalar_gasFromAbsCoef*).\n"
+                    "\n"
+                    "Note that the original *f_grid* is distroyed. (This is not a problem\n"
+                    "if the method is used inside an agenda.)\n"
+                   ) ,
+        OUTPUT( f_grid_, abs_p_, abs_t_, abs_vmrs_ ),
+        INPUT( f_index_, f_grid_, rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -434,9 +458,9 @@ void define_md_data_raw()
                     "to the legal species / isotope combinations\n"
                     "\n"
                     "Keywords: \n"
-                    "   filename = Name (and path) of the catalogue file.\n"
-                    "   fmin     = Minimum frequency for lines to read in Hz.\n"
-                    "   fmax     = Maximum frequency for lines to read in Hz."),
+                    "   filename : Name (and path) of the catalogue file.\n"
+                    "   fmin     : Minimum frequency for lines to read in Hz.\n"
+                    "   fmax     : Maximum frequency for lines to read in Hz."),
         OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -459,9 +483,9 @@ void define_md_data_raw()
 		    "file must be sorted by increasing frequency\n"
 		    "\n"
 		    "Keywords: \n"
-		    "   filename = Name (and path) of the catalogue file.\n"
-		    "   fmin     = Minimum frequency for lines to read in Hz.\n"
-		    "   fmax     = Maximum frequency for lines to read in Hz."),
+		    "   filename : Name (and path) of the catalogue file.\n"
+		    "   fmin     : Minimum frequency for lines to read in Hz.\n"
+		    "   fmax     : Maximum frequency for lines to read in Hz."),
         OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -487,9 +511,9 @@ void define_md_data_raw()
                     "method: abs_linesReadFromHitran\n"
                     "\n"
                     "Keywords: \n"
-                    "   filename = Name (and path) of the catalogue file.\n"
-                    "   fmin     = Minimum frequency for lines to read in Hz.\n"
-                    "   fmax     = Maximum frequency for lines to read in Hz."),
+                    "   filename : Name (and path) of the catalogue file.\n"
+                    "   fmin     : Minimum frequency for lines to read in Hz.\n"
+                    "   fmax     : Maximum frequency for lines to read in Hz."),
         OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -509,9 +533,9 @@ void define_md_data_raw()
                     "to the legal species / isotope combinations.\n"
                     "\n"
                     "Keywords: \n"
-                    "   filename = Name (and path) of the catalogue file.\n"
-                    "   fmin     = Minimum frequency for lines to read in Hz.\n"
-                    "   fmax     = Maximum frequency for lines to read in Hz."),
+                    "   filename : Name (and path) of the catalogue file.\n"
+                    "   fmin     : Minimum frequency for lines to read in Hz.\n"
+                    "   fmax     : Maximum frequency for lines to read in Hz."),
         OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -531,9 +555,9 @@ void define_md_data_raw()
                     "to the legal species / isotope combinations\n"
                     "\n"
                     "Keywords: \n"
-                    "   filename = Name (and path) of the catalogue file.\n"
-                    "   fmin     = Minimum frequency for lines to read in Hz.\n"
-                    "   fmax     = Maximum frequency for lines to read in Hz."),
+                    "   filename : Name (and path) of the catalogue file.\n"
+                    "   fmin     : Minimum frequency for lines to read in Hz.\n"
+                    "   fmax     : Maximum frequency for lines to read in Hz."),
         OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -639,10 +663,10 @@ void define_md_data_raw()
                     "abs_lines_per_speciesCreateFromLines.\n"
                     "\n"
                     "Keywords: \n"
-                    "   filenames = Name (and path) of the catalogue files.\n"
-                    "   formats   = allowed formats are HITRAN96,MYTRAN2,JPL,ARTS \n"
-                    "   fmin      = Minimum frequency for lines to read in Hz.\n"
-                    "   fmax      = Maximum frequency for lines to read in Hz.\n"),
+                    "   filenames : Name (and path) of the catalogue files.\n"
+                    "   formats   : allowed formats are HITRAN96,MYTRAN2,JPL,ARTS \n"
+                    "   fmin      : Minimum frequency for lines to read in Hz.\n"
+                    "   fmax      : Maximum frequency for lines to read in Hz.\n"),
         OUTPUT( abs_lines_per_species_ ),
         INPUT( abs_species_ ),
         GOUTPUT( ),
@@ -699,7 +723,7 @@ void define_md_data_raw()
         (
          "Creates a gas absorption lookup table. FIXME: Description"
         ),
-        OUTPUT( abs_lookup_ ),
+        OUTPUT( abs_lookup_, abs_lookup_is_adapted_ ),
         INPUT( abs_species_, 
                abs_lines_per_species_,
                abs_lineshape_,
@@ -741,11 +765,40 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("abs_nlsSet"),
+        DESCRIPTION
+        (
+         "Defines the list of species with non-linear treatment in absorption\n"
+         "lookup table. \n"
+         "\n"
+         "Usually, nonlinear treatment only is necessary for H2O, because its\n"
+         "concentration in the lower troposphere can be so high. The output of\n"
+         "this method, *abs_nls*, contains indices to elements of *abs_species*,\n"
+         "so *abs_species* is needed as input here. The requested species for\n"
+         "non-linear treatment must be contained in *abs_species*, otherwise an\n"
+         "error is thrown.\n"
+         "\n"
+         "Keywords:\n"
+         "   species : Specify one String for each species for which you want\n"
+         "             non-linear treatment. Inside the String, separate the\n"
+         "             tags by commas (plus optional blanks).\n"
+         "\n"
+         "Usage Example:\n"
+         "   abs_nlsSet{[\"H2O-PWR98\"]}"                    
+         ),
+        OUTPUT(	abs_nls_ ),
+        INPUT( abs_species_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "names" ),
+        TYPES(    Array_String_t   )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("abs_n2Set"),
         DESCRIPTION(
                     "Sets abs_n2 to the profile of the first tag group containing\n"
-                    "molecular nitrogen. See *abs_h2oSet* for more details.\n"
-                    "\n"
+                    "molecular nitrogen. See *abs_h2oSet* for more details."
                    ),
         OUTPUT(	abs_n2_ ),
         INPUT( abs_species_, abs_vmrs_ ),
@@ -774,6 +827,22 @@ void define_md_data_raw()
         INPUT(  abs_lookup_, abs_lookup_is_adapted_,
                 f_index_, 
                 rte_pressure_, rte_temperature_, rte_vmr_list_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("abs_scalar_gasFromAbsCoef"),
+        DESCRIPTION
+        (
+         "Copy *abs_scalar_gas* from *abs_coef*. This is handy for putting an\n"
+         "explicit line-by-line calculation into the\n"
+         "*abs_scalar_gas_agenda*. See also method *AbsInputFromRteScalars*."
+        ),
+        OUTPUT( abs_scalar_gas_ ),
+        INPUT(  abs_coef_per_species_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -5489,6 +5558,38 @@ md_data_raw.push_back
         GINPUT( Vector_ ),
         KEYWORDS( "value" ),
         TYPES( Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("VectorInsertGridPoints"),
+        DESCRIPTION
+        (
+         "Insert some additional points into a grid.\n"
+         "\n"
+         "This method can for example be used to add line center frequencies to\n"
+         "a regular frequency grid. If the original grid is [1,2,3], and the\n"
+         "additional points are [2.2,2.4], the result will be [1,2,2.2,2.4,3].\n"
+         "\n"
+         "It is assumed that the original grid is sorted, otherwise a runtime\n"
+         "error is thrown. The vector with the points to insert does not have to\n"
+         "be sorted. If some of the input points are already in the grid, these\n"
+         "points are not inserted again. New points outside the original grid are\n"
+         "appended at the appropriate end. Input vector and output vector can be\n"
+         "the same.\n"
+         "\n"
+         "Generic output:\n"
+         "  Vector : The new grid vector.\n"
+         "\n"
+         "Generic input:\n"
+         "  Vector : The original grid vector.\n"
+         "  Vector : The points to insert."
+         ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Vector_ ),
+        GINPUT(  Vector_, Vector_ ),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord

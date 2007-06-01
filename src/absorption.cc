@@ -2033,8 +2033,7 @@ void xsec_species( MatrixView               xsec,
 
   // Check that abs_p, abs_t, and abs_h2o all have the same
   // dimension. This could be a user error, so we throw a
-  // runtime_error.  FIXME: why do we do this for each tag? wouldn't a
-  // check in abscalc be sufficient?
+  // runtime_error. 
 
   if ( abs_t.nelem() != abs_p.nelem() )
     {

@@ -74,6 +74,7 @@ public:
 
   friend void abs_lookupCreate(// WS Output:
                       GasAbsLookup& gal,
+                      Index& abs_lookup_is_adapted,
                       // WS Input:
                       const ArrayOfArrayOfSpeciesTag& abs_species,
                       const ArrayOfArrayOfLineRecord& abs_lines_per_species,
@@ -110,13 +111,6 @@ private:
   //! The pressure grid for the table [Pa].
   /*! Must be sorted in decreasing order. */
   Vector    p_grid;  
-
-  // Obsolete!
-  //   //! The base 10 logarithm of the pressure grid.
-  //   /*! This is not stored along with the table, but calculated when the
-  //     table is initialized with Adapt. The reason to have this is that
-  //     vertical interpolation should be linear in log(p). */
-  //   Vector   log_p_grid;  
 
   //! The reference VMR profiles.
   /*! The VMRs for all species, associated with p_grid. Dimension:

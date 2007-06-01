@@ -58,7 +58,8 @@
 #include "make_array.h"
 #include "math_funcs.h"
 #include "messages.h"
-
+#include "logic.h"
+#include "sorting.h"
 
 
 /*===========================================================================
@@ -869,6 +870,147 @@ void VectorCopy(      Vector&   y2,
   y2 = y1;
 }
 
+
+//! VectorInsertGridPoints
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Stefan Buehler
+   \date   2007-05-31
+*/
+void VectorInsertGridPoints(// WS Generic Output:
+                            Vector& og,                  // Output grid
+                            // WS Generic Output Names:
+                            const String& og_name,
+                            // WS Generic Input:
+                            const Vector& ingrid,        // Input grid 
+                            const Vector& points,        // Points to insert
+                            // WS Generic Input Names:
+                            const String& ingrid_name,
+                            const String& points_name)
+{
+
+  out2 << "  Inserting points from *" << points_name
+       << "* into grid in *" << ingrid_name
+       << "*,\n"
+       << "  and returning the result in *" << og_name << "*.\n";
+    
+
+  // First make duplikates of the input vectors, in case one of them
+  // happens to be identical to the output vector. Also, we can fool
+  // around with these, if we want.
+  Vector ig(ingrid);
+  Vector p(points);
+
+  // Check how the input grid is sorted. If the grid is sorted in
+  // descending order, we simply turn it around. (But don't
+  // forget to turn it back at the end!) 
+  Index ascending;              // 1=ascending, 0=descending
+  if (is_increasing(ig))
+    {
+      ascending = 1;
+    }
+  else if (is_decreasing(ig))
+    {
+      ascending = 0;
+
+      // Turn grid round.
+
+      // Copy ig to dummy vector in reverse order:
+      const Vector dummy = ig[Range(ig.nelem()-1,ig.nelem(),-1)];
+
+      // Copy dummy back to ig vector:
+      ig = dummy;
+    }
+  else
+    {
+      ostringstream os;
+      os << "The Vector *" << ingrid_name <<  "* must be either\n"
+         << "strictly increasing or strictly decreasing,\n"
+         << "but this is not the case.\n";
+      os << "The vector contains:\n"
+         << ig;
+      throw runtime_error( os.str() );
+    }
+
+  // Sort also the vector of points to insert in increasing order:
+  {
+    ArrayOfIndex si;                   // Sorted indices
+    get_sorted_indexes (si, p);        // Get sorted p indices
+    const Vector dummy = p;            // Copy p to dummy
+    // Copy back dummy to p in right order:
+    for (Index j = 0; j < p.nelem(); j++)
+      p[j] = dummy[si[j]];
+  }
+
+  // The idea is to step through both ig and p, and build up the
+  // output in a temporary array.
+  Array<Numeric> x;
+  Index iig=0, ip=0;            // indices to ig and p
+  Index sk=0;                   // skip count
+  while ( iig<ig.nelem() && ip<p.nelem() )
+    {
+      if ( p[ip]<ig[iig] )
+        {
+          x.push_back(p[ip]);
+          ++ip;
+        }
+      else if ( p[ip]>ig[iig] )
+        {
+          x.push_back(ig[iig]);
+          ++iig;
+        }
+      else
+        {
+          out3 << "  Skipping point " << p[ip] << ", which is already "
+               << "in the original grid.\n";
+          ++ip;
+          ++sk;
+        }
+    }
+  
+  out2 << "  " << sk << " points skipped.\n";
+
+  // Add remaining points of either p or ig, depending on which is
+  // longer:
+  if ( ip==p.nelem() )
+    {
+      // p has reached its end.
+      while ( iig<ig.nelem() )
+        {
+          x.push_back(ig[iig]);
+          ++iig;
+        }
+    }
+  else if ( iig==ig.nelem() )
+    {
+      // ig has reached its end
+      while ( ip<p.nelem() )
+        {
+          x.push_back(p[ip]);
+          ++ip;
+        }
+    }
+  else
+    {
+      // We should never be here.
+      assert(false);
+      arts_exit(1);
+    }
+
+  // Ok, x should now contain the new grid.
+
+  og.resize(x.nelem());
+
+  // Copy to result vector, turn around if necessary.
+  if (ascending)
+    for ( Index i=0; i<x.nelem(); ++i )
+      og[i] = x[i];               // Just copy.
+  else
+    for ( Index i=0; i<x.nelem(); ++i )
+      og[i] = x[x.nelem()-1-i];   // Copy in reverse order.
+
+}
 
 
 //! VectorLinSpace

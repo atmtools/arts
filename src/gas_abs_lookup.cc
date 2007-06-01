@@ -422,14 +422,23 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   actual VMR and reference VMR. In the case of nonlinear species the
   interpolation goes also over VMR.
 
-  All input parameters (f_index, p, T) must be in the range coverd by
-  the table.
+  All input parameters (f_index, p, T, VMRs for non-linear species)
+  must be in the range coverd by the table. Violation will result in a
+  runtime error. Those checks are here, because they are a bit
+  difficult to make outside, due to the irregularity of the
+  grids. Otherwise there are no runtime checks in this function, only
+  assertions. This is, because the function is called many times
+  inside the RT calculation.
 
   In this case pressure is not an altitude coordinate, so we are free
   to choose the type of interpolation that gives lowest interpolation
   errors or is easiest. I tested both linear and log p interpolation
   with the result that it makes no difference. Therefore, linear
-  interpolation is used.
+  interpolation is used. I also tested taking the log of xsec, before
+  interpolating, but this gave somewhat worse results than
+  interpolating it directly. Interpolation with higher order than
+  linear was not tried. It is problematic, because the pressure
+  dependence of xsec varies quite a lot.
 
   \retval sga A Matrix with scalar gas absorption coefficients
   [1/m]. Dimension is adjusted automatically to either
@@ -447,7 +456,9 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
 
   \param abs_vmrs The VMRs [absolute number]. Dimension: [species].  
 
-  \date 2002-09-20, 2003-02-22
+  \date 2002-09-20, 2003-02-22, 2007-05-22
+
+  \author Stefan Buehler
 */
 void GasAbsLookup::Extract( Matrix&         sga,
                             const Index&    f_index,
@@ -455,32 +466,28 @@ void GasAbsLookup::Extract( Matrix&         sga,
                             const Numeric&  T,
                             ConstVectorView abs_vmrs ) const
 {
-  // Obtain some properties of the lookup table:
+  // 1. Obtain some properties of the lookup table:
   
   // Number of gas species in the table:
   const Index n_species = species.nelem();
 
   // Number of nonlinear species:
-  const Index n_nonlinear_species = nonlinear_species.nelem();
+  const Index n_nls = nonlinear_species.nelem();
 
   // Number of frequencies in the table:
   const Index n_f_grid = f_grid.nelem();
 
   // Number of pressure grid points in the table:
-  DEBUG_ONLY (const Index n_p_grid = p_grid.nelem());
+  const Index n_p_grid = p_grid.nelem();
 
   // Number of temperature perturbations:
   const Index n_t_pert = t_pert.nelem();
 
   // Number of nonlinear species perturbations:
-  //  const Index n_nls_pert = nls_pert.nelem();
+  const Index n_nls_pert = nls_pert.nelem();
 
 
-  // First some checks on the lookup table itself:
-
-  // Obsolete! FIXME: Do I stick with this?
-  // Assert that log_p_grid has been initialized:
-  //  assert( is_size( log_p_grid, n_p_grid) );
+  // 2. First some checks on the lookup table itself:
 
   // Check that the dimension of vmrs_ref is consistent with species and p_grid:
   assert( is_size( vmrs_ref, n_species, n_p_grid) );
@@ -488,18 +495,28 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // Check dimension of t_ref:
   assert( is_size( t_ref, n_p_grid) );
 
+  // Check dimension of xsec:
+  DEBUG_ONLY({
+      Index a,b,c,d;
+      if ( 0 == n_t_pert ) a = 1;
+      else a = n_t_pert;
+      b = n_species + n_nls * ( n_nls_pert - 1 );
+      c = n_f_grid;
+      d = n_p_grid;
+      assert( is_size( xsec, a, b, c, d ) );
+    })
 
-  // Following are some checks on the input variables:
+
+  // 3. Checks on the input variables:
 
   // Assert that abs_vmrs has the right dimension:
   assert( is_size( abs_vmrs, n_species ) );
 
-  // We need the log10 of the pressure:
-  //  const Numeric log_p = log10( p );
 
-  // We also set the start and extent for the frequency loop.
+  // 4. Set up some things we will need later on: 
+
+  // Set the start and extent for the frequency loop:
   Index f_start, f_extent;
-
   if ( f_index < 0 )
     {
       // This means we should extract for all frequencies.
@@ -512,216 +529,364 @@ void GasAbsLookup::Extract( Matrix&         sga,
       // This means we should extract only for one frequency.
 
       // Check that f_index is inside f_grid:
-      assert( f_index < n_f_grid );
-
+      if ( f_index >= n_f_grid )
+      {
+        ostringstream os;
+        os << "Problem with gas absorption lookup table.\n"
+           << "Frequency index f_index is too high, you have " << f_index
+           << ", the largest allowed value is " << n_f_grid-1 << ".";
+        throw runtime_error( os.str() );
+      }
+      
       f_start  = f_index;
       f_extent = 1;
     }
-
-  // Adjust size of sga accordingly:
-  sga.resize(f_extent, n_species);
+  const Range f_range(f_start,f_extent);
 
 
-  // Now we will start to do some business.
+  // Set up a logical array for the nonlinear species
+  ArrayOfIndex non_linear(n_species,0);
+  for ( Index s=0; s<n_nls; ++s )
+    {
+      non_linear[nonlinear_species[s]] = 1;
+    }
+
 
   // Calculate the number density for the given pressure and
   // temperature: 
   // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
   const Numeric n = number_density( p, T );
 
+  
+  // 5. Determine pressure grid position and interpolation weights:
+
+  // Check that p is inside the grid. (p_grid is sorted in decreasing order.)
+  {
+    const Numeric p_max = p_grid[0] + 0.5*(p_grid[0]-p_grid[1]); 
+    const Numeric p_min = p_grid[n_p_grid-1] - 0.5*(p_grid[n_p_grid-2]-p_grid[n_p_grid-1]);
+    if ( ( p > p_max ) ||
+         ( p < p_min ) )
+    {
+      ostringstream os;
+      os << "Problem with gas absorption lookup table.\n"
+         << "Pressure p is outside the range covered by the lookup table.\n" 
+         << "Your p value is " << p << " Pa.\n"
+         << "The allowed range is " << p_min << " to " << p_max << ".\n"
+         << "The pressure grid range in the table is " << p_grid[n_p_grid-1]
+         << " to " << p_grid[0] << ".\n"
+         << "We allow a bit of extrapolation, but NOT SO MUCH!";
+      throw runtime_error( os.str() );
+    }
+  }
+  
   // For sure, we need to store the pressure grid position. 
   GridPos pgp;
   gridpos( pgp,
            p_grid,
            p );
 
-  // This bit is obsolete, we do linear interpolation in p!
-  //   Vector log_p_grid( n_p_grid );
-  //   transform( log_p_grid,
-  //              log10,
-  //              p_grid );
-  //   gridpos( pgp,
-  //            log_p_grid,
-  //            log10( p ) );
-
   // Pressure interpolation weights:
   Vector pitw(2);
   interpweights(pitw,pgp);
 
 
-  // Let's first treat the case with no nonlinear species.
-  // This case is marked by n_nonlinear_species == 0.
-  if ( 0 == n_nonlinear_species )
+  // 6. We do the T and VMR interpolation for the pressure levels
+  // below and above the grid position.
+  // The two lookup table pressure levels in question are
+  // pgp.idx and pgp.idx+1
+
+  // To store the interpolated result for the 2
+  // pressure levels:
+  Tensor3 xsec_pre_interpolated( 2, f_extent, n_species );
+
+  assert(pgp.idx+1 < n_p_grid); // To be completely on the safe side
+  for ( Index pi=0; pi<2; ++pi )
     {
-      // In this case, n_nls_pert must also be zero:
-      assert( is_size( nls_pert, 0 ) );
-      
-      // The simplest case is that the table contains neither temperature
-      // nor VMR perturbations. This means it is not really a
-      // lookup table, just an absorption profile. In this case we ignore
-      // the temperature, and interpolate in pressure only.
-      // This case is marked by t_pert being an empty vector, since we
-      // already know that there are no non-linear species.
-      if ( 0 == n_t_pert )
+      const Index this_p_grid_index = pi+pgp.idx; // Index into p_grid
+
+      // Flag for temperature interpolation, if this is not 0 we want
+      // to do T interpolation: 
+      const Index do_T = n_t_pert;
+
+      // Determine temperature grid position. This is only done if we
+      // want temperature interpolation, but the variable tgp has to
+      // be visible also outside for later use:
+      GridPos tgp;       // only a scalar
+      if (do_T)
         {
-          // Verify, that abs has the right dimensions for this case:
-          assert( is_size( xsec,
-                           1,          // temperature perturbations
-                           n_species,  // species
-                           n_f_grid,   // frequency grid points
-                           n_p_grid    // pressure levels
-                           ) );
-
-          // Loop over frequency:
-          for ( Index s=0; s<f_extent; ++s )
-            {
-              // Loop over species:
-              for ( Index i=0; i<n_species; ++i )
-                {
-                  // Get the right view on xsec. (Only a vector of
-                  // pressure for this particular species and
-                  // frequency):
-                  ConstVectorView this_xsec = xsec( 0,         // T
-                                                    i,         // species
-                                                    f_start+s, // frequency
-                                                    joker      // p
-                                                    );
-
-                  // Get the right view on our result variable,
-                  // sga. (Only a scalar):
-                  Numeric& this_sga = sga(s,i);
-
-                  // Do the interpolation:
-                  this_sga = interp( pitw,
-                                     this_xsec,
-                                     pgp );
-
-                  // Watch out, this is not yet the final result, we
-                  // need to multiply with the number density n:
-                  this_sga *= ( n * abs_vmrs[i] );
-                }
-            }
-        }
-      else
-        {
-          // This is the case with temperature variations, but without
-          // nonlinear species.
+            
+          // Temperature in the atmosphere is altitude
+          // dependent. When we do the interpolation for the pressure level
+          // below and above our point, we should correct the target value of
+          // the interpolation to the altitude (pressure) difference. This
+          // ensures that there is for example no T interpolation if the
+          // desired T is right on the reference profile curve.
           //
-          // This means we have to do a simultaneous interpolation in
-          // pressure and temperature.
-          
-          // Verify, that xsec has the right dimensions for this case:
-          assert( is_size( xsec,
-                           n_t_pert,   // temperature perturbations
-                           n_species,  // species  
-                           n_f_grid,   // frequency grid points
-                           n_p_grid    // pressure levels      
-                           ) );
+          // I explicitly compared this with the old option to calculate
+          // the temperature offset relative to the temperature at
+          // this level. The performance in both cases is very
+          // similar. The reason, why I decided to keep this new
+          // version, is that it avoids the problem of needing
+          // oversized temperature perturbations if the pressure
+          // grid is coarse.
+          const Numeric effective_T_ref = interp(pitw,t_ref,pgp);
 
-          // The tricky bit is that we do not have a uniform grid in
-          // temperature, but a different temperature grid for each
-          // pressure in the table. Therefore, we have to do the
-          // bi-linear interpolation in two steps:
-          // 1. Interpolate to the correct temperature for the two
-          //    neighboring pressure levels.
-          // 2. Interpolate in pressure.
+          // Convert temperature to offset from t_ref:
+          const Numeric T_offset = T - effective_T_ref;
 
-          // We need to create the temperature grid for each pressure
-          // level, it is not stored directly in the table:
-          Vector t_grid(n_t_pert);
+          //          cout << "T_offset = " << T_offset << endl;
 
-          // To store interpolation weights:
-          Vector titw(2);
-
-          // To store the temperature interpolated result for the 2
-          // pressure levels:
-          Tensor3 xsec_T_interpolated( 2, f_extent, n_species );
-
-          // The two lookup table pressure levels in question are
-          // pgp.idx and pgp.idx+1
-          for ( Index pi=0; pi<2; ++pi )
+          // Check that temperature offset is inside the allowed range.
+          {
+            const Numeric t_min = t_pert[0] - 0.5*(t_pert[1]-t_pert[0]); 
+            const Numeric t_max = t_pert[n_t_pert-1] + 0.5*(t_pert[n_t_pert-1]-t_pert[n_t_pert-2]);
+            if ( ( T_offset > t_max ) ||
+                 ( T_offset < t_min ) )
             {
-              t_grid = t_pert;
-              // Now t_grid contains just the perturbations. We
-              // need to add the reference value for the given
-              // pressure:
-              t_grid += t_ref[pi+pgp.idx];
-
-              // Temperature grid position:
-              GridPos tgp;       // only a scalar
-              gridpos( tgp, t_grid, T );
-
-              // Temperature interpolation weights:
-              interpweights(titw,tgp);
-
-              // Loop over frequency:
-              for ( Index s=0; s<f_extent; ++s )
-                {
-                  // Loop over species:
-                  for ( Index i=0; i<n_species; ++i )
-                    {
-                      // Get the right view on xsec. (Only a vector of
-                      // temperature for this particular pressure
-                      // level, species and frequency):
-                      ConstVectorView this_xsec = xsec( joker,      // T
-                                                        i,          // species
-                                                        f_start+s,  // frequency
-                                                        pi+pgp.idx  // p
-                                                        );
-
-                      // Get the right view on our result variable,
-                      // xsec_T_interpolated. (Only a scalar):
-                      Numeric& this_xsec_T_interpolated =
-                        xsec_T_interpolated( pi, s, i );
-
-                      // Do the interpolation:
-                      this_xsec_T_interpolated = interp( titw,
-                                                         this_xsec,
-                                                         tgp );
-                    }
-                }
+              ostringstream os;
+              os << "Problem with gas absorption lookup table.\n"
+                 << "Temperature T is outside the range covered by the lookup table.\n" 
+                 << "Your temperature was " << T
+                 << " K at a pressure of " << p << " Pa.\n"
+                 << "The temperature offset value is " << T_offset << ".\n"
+                 << "The allowed range is " << t_min << " to " << t_max << ".\n"
+                 << "The temperature perturbation grid range in the table is "
+                 << t_pert[0] << " to " << t_pert[n_t_pert-1] << ".\n"
+                 << "We allow a bit of extrapolation, but NOT SO MUCH!";
+                throw runtime_error( os.str() );
             }
+          }
 
-          // Now we have to interpolate between the two pressure levels
-
-          // We can reuse the pressure grid position, but we have to
-          // adjust the base index, since we have only two pressure
-          // levels now.
-          pgp.idx = 0;
-
-          // Loop over frequency:
-          for ( Index s=0; s<f_extent; ++s )
-            {
-              // Loop over species:
-              for ( Index i=0; i<n_species; ++i )
-                {
-                  // Get the right view on
-                  // xsec_T_interpolated (a vector for the
-                  // two pressures):
-                  VectorView this_xsec =
-                    xsec_T_interpolated( joker, s, i );
-
-                  // Get the right view on our result variable,
-                  // sga. (Only a scalar):
-                  Numeric& this_sga = sga(s,i);
-
-                  // Do the interpolation:
-                  this_sga = interp( pitw,
-                                     this_xsec,
-                                     pgp );
-
-                  // Watch out, this is not yet the final result, we
-                  // need to multiply with the number density n:
-                  this_sga *= ( n * abs_vmrs[i] );
-                }
-            }
+          gridpos( tgp, t_pert, T_offset );
         }
-    }
-  else
-    {
-      // So, we *do* have nonlinear species.
-      throw(runtime_error("This case is not yet implemented"));
-    }
+
+      // 7. Loop species:
+      Index fpi=0;
+      for ( Index si=0; si<n_species; ++si )
+        {
+          // Flag for VMR interpolation, if this is not 0 we want to
+          // do VMR interpolation:
+          const Index do_VMR = non_linear[si];
+
+          // Determine VMR grid position. This is only done if we want
+          // VMR interpolation for this species, but the variable has to
+          // be visible later.
+          GridPos vgp;       // only a scalar
+          if (do_VMR)
+            {
+              // Similar to the T case, we first interpolate the reference
+              // VMR to the pressure of extraction, then compare with
+              // the extraction VMR to determine the offset/fractional
+              // difference for the VMR interpolation.
+
+              const Numeric effective_vmr_ref = interp(pitw,
+                                                       vmrs_ref(si,Range(joker)),
+                                                       pgp);
+              
+              // Fractional VMR:
+              const Numeric VMR_frac = abs_vmrs[si] / effective_vmr_ref;
+
+              // Check that VMR_frac is inside the allowed range.
+              {
+                // FIXME: This check depends on how I interpolate VMR.
+                const Numeric x_min = nls_pert[0] - 0.5*(nls_pert[1]-nls_pert[0]); 
+                const Numeric x_max = nls_pert[n_nls_pert-1]
+                  + 0.5*(nls_pert[n_nls_pert-1]-nls_pert[n_nls_pert-2]);
+
+                if ( ( VMR_frac > x_max ) ||
+                     ( VMR_frac < x_min ) )
+                {
+                  ostringstream os;
+                  os << "Problem with gas absorption lookup table.\n"
+                     << "VMR for species " << si
+                     << " is outside the range covered by the lookup table.\n" 
+                     << "Your VMR was " << abs_vmrs[si]
+                     << " at a pressure of " << p << " Pa.\n"
+                     << "The fractional VMR relative to the reference value is "
+                     << VMR_frac << ".\n"
+                     << "The allowed range is " << x_min << " to " << x_max << ".\n"
+                     << "The fractional VMR perturbation grid range in the table is "
+                     << nls_pert[0] << " to " << nls_pert[n_nls_pert-1] << ".\n"
+                     << "We allow a bit of extrapolation, but NOT SO MUCH!";
+                  throw runtime_error( os.str() );
+                }
+              }
+
+              // For now, do linear interpolation in the fractional VMR.
+              gridpos( vgp, nls_pert, VMR_frac );
+            }
+
+          // We now have everything that we need to handle all
+          // different interpolation cases.
+
+          // 8. Do the interpolation in T and/or VMR. Here are
+          // handlers for 4 different cases (all possible
+          // combinations). 
+
+          // For interpolation result.
+          // Fixed pressure level and species.
+          // Free dimension is frequency.
+          VectorView res(xsec_pre_interpolated(pi,Range(joker),si));
+
+          if (do_T)
+            if (do_VMR)
+              {
+                // With T and VMR
+
+                // This is a "red" 2D interpolation case.
+
+                Vector itw(4);
+                
+                interpweights(itw,tgp,vgp);
+
+                // Get the right view on xsec:
+                ConstTensor3View this_xsec
+                  = xsec( Range(joker),          // Temperature range
+                          Range(fpi,n_nls_pert), // VMR profile range
+                          f_range,               // Frequency range
+                          this_p_grid_index );   // Pressure index 
+
+                // We must do the same interpolation for all
+                // frequencies. Instead of playing with interp and
+                // Views and looping the whole thing over frequency, I
+                // choose to do this explicitly here, but directly for
+                // all frequencies. This should be much more efficient.
+
+                // Initialize result to zero:
+                res = 0;
+                Vector res_dummy(f_extent);
+                Index iti = 0;
+                for ( Index r=0; r<2; ++r )
+                  for ( Index c=0; c<2; ++c )
+                    {
+                      res_dummy  = this_xsec( tgp.idx+r, vgp.idx+c, Range(joker) );
+                      res_dummy *= itw[iti];
+
+                      res += res_dummy;
+                      ++iti;
+                    }
+              }
+            else
+              {
+                // With T no VMR
+
+                // This is a "red" 1D interpolation case.
+
+                Vector itw(2);
+                
+                interpweights(itw,tgp);
+
+                // Get the right view on xsec:
+                ConstMatrixView this_xsec
+                  = xsec( Range(joker),          // Temperature range
+                          fpi,                   // the matching species
+                          f_range,               // Frequency range
+                          this_p_grid_index );   // Pressure index 
+
+                // We must do the same interpolation for all
+                // frequencies. Instead of playing with interp and
+                // Views and looping the whole thing over frequency, I
+                // choose to do this explicitly here, but directly for
+                // all frequencies. This should be much more efficient.
+
+                // Mathematically, this is:
+                // res = this[0]*itw[0] + this[1]*itw[1]
+                // It looks more complicated, because we have no
+                // "return" versions of vector/matrix operations.
+                res              = this_xsec( tgp.idx, Range(joker) );
+                res             *= itw[0];
+                Vector res_dummy = this_xsec( tgp.idx+1, Range(joker) );
+                res_dummy       *= itw[1];
+                res             += res_dummy;
+
+                //                cout << "res[0] = " << res[0] << endl;
+                //                cout << "tgp = " << tgp << endl;
+
+              }
+          else
+            if (do_VMR)
+              {
+                // No T with VMR
+
+                // This is a "red" 1D interpolation case.
+
+                Vector itw(2);
+                
+                interpweights(itw,vgp);
+
+                // Get the right view on xsec:
+                ConstMatrixView this_xsec
+                  = xsec( 0,                     // no T variations
+                          Range(fpi,n_nls_pert), // VMR profile range
+                          f_range,               // Frequency range
+                          this_p_grid_index );   // Pressure index 
+
+                // We must do the same interpolation for all
+                // frequencies. Instead of playing with interp and
+                // Views and looping the whole thing over frequency, I
+                // choose to do this explicitly here, but directly for
+                // all frequencies. This should be much more efficient.
+
+                // Mathematically, this is:
+                // res = this[0]*itw[0] + this[1]*itw[1]
+                // It looks more complicated, because we have no
+                // "return" versions of vector/matrix operations.
+                res              = this_xsec( vgp.idx, Range(joker) );
+                res             *= itw[0];
+                Vector res_dummy = this_xsec( vgp.idx+1, Range(joker) );
+                res_dummy       *= itw[1];
+                res             += res_dummy;
+              }
+            else
+              {
+                // No T no VMR
+
+                // No need to interpolate anything here, actually.
+                // We can copy all frequencies simultaneously, using
+                // the range variable f_range.
+                res = xsec(0,fpi,f_range,this_p_grid_index);
+              }
+
+          // Increase fpi. fpi marks the position of the first profile
+          // of the current species in xsec. This is needed to find
+          // the right subsection of xsec in the presence of nonlinear species.
+          if (do_VMR)
+            fpi += n_nls_pert;
+          else
+            fpi++;
+
+        } // End of species loop 
+
+      // fpi should have reached the end of that dimension of xsec. Check
+      // this with an assertion:
+      assert( fpi==xsec.npages() );
+
+    } // End of pressure index loop (below and above gp)
+
+  // Now we have to interpolate between the two pressure levels
+
+  // It is a "red" 1D interpolation case we are talking about here.
+  // (But for a matrix in frequency and species.) 
+  // We do it by hand, rather than using interp, for better
+  // efficiency, and because this case is almost trivial.
+
+  // Multiply pre interpolated quantities with pressure interpolation weights:
+  xsec_pre_interpolated(0,Range(joker),Range(joker)) *= pitw[0];
+  xsec_pre_interpolated(1,Range(joker),Range(joker)) *= pitw[1];
+
+  // Add up in sga:
+  sga.resize(f_extent, n_species);
+  sga = xsec_pre_interpolated(0,Range(joker),Range(joker));
+  sga += xsec_pre_interpolated(1,Range(joker),Range(joker));
+
+  // Watch out, this is not yet the final result, we
+  // need to multiply with the number density of the species, i.e.,
+  // with the total number density n, times the VMR of the
+  // species: 
+  for ( Index si=0; si<n_species; ++si )
+    sga(Range(joker),si) *= ( n * abs_vmrs[si] );
+
+  // That's it, we're done!
 }
 
 

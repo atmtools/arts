@@ -1,3 +1,45 @@
+2007-06-01  Stefan Buehler  <sbuehler@irv.se>
+
+	* arts-1-1-1141
+
+	* Absorption handling is implemented and should be working, but
+	was so far not tested very carefully. Please use, and test, if you
+	want. But do not trust the results blindly.
+	
+	* New methods added:
+	abs_lookupCreate: Create absorption lookup table.
+
+	AbsInputFromRteScalars,
+	abs_scalar_gasFromAbsCoef: These two can be used to put an
+	explicit line-by-line calculation, using absCalc, in the place of
+	a lookup table extraction. Handy for lookup table verification.
+
+	abs_nlsSet: Set list of species for nonlinear treatment.
+
+	VectorInsertGridPoints: General funtion to insert some additional
+	points into a grid.
+
+	* Methods modified:
+	abs_scalar_gasExtractFromLookup: Now handles nonlinear species. 
+
+	* New workspace variables:
+	These are all input to abs_lookupCreate:
+	abs_nls:      List of nonlinear species.
+	abs_nls_pert: VMR perturbation vector for nls.
+	abs_t_pert:   Temperature perturbation vector.
+
+	* Recommended settings: Use T grid spacing of 10 K and abs_nls_pert
+	spacing of 1, with 200 pressure grid points for the entire
+	atmosphere up to 80 km. Select nonlinear treatment for all species
+	with large VMR, that is H2O, O2, N2O. According to first tests,
+	these setting should give absorption relative errors below 1%. The
+	pressure grid is the most critical one and should not be too
+	coarse. The T and VMR interpolations are very well-behaved.
+
+	* Still to do: Further testing. Complete online documentation. Write
+	up testing results for small paper. Update absorption section in
+	ARTS User Guide.
+
 2007-05-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1140

@@ -473,12 +473,6 @@ void array_species_tag_from_string( ArrayOfSpeciesTag& tags,
   }
 }
    
-
-
-//--------------------------------------------------------------------------------
-// Functions from ARTS-1-0. Are they still needed?
-//--------------------------------------------------------------------------------
-
 /** 
    Returns the index among some tag groups for an array of tag Strings. 
    
@@ -508,8 +502,8 @@ void get_tagindex_for_Strings(
 {
   const Index   n1 = tags1.nelem();
   const Index   n2 = tags2_Strings.nelem();
-     ArrayOfArrayOfSpeciesTag   tags2;                // Internal tag names for tag_Strings
-        Index   i1, i2, nj, j, found, ok;
+  ArrayOfArrayOfSpeciesTag   tags2;                // Internal tag names for tag_Strings
+  Index   i1, i2, nj, j, found, ok;
 
   tags1_index.resize(n2);
   //  cout << "tags2_Strings: " << tags2_Strings << "\n";

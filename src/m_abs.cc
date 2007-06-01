@@ -48,6 +48,57 @@
 #include "continua.h"
 #include "make_vector.h"
 
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Stefan Buehler
+   \date   2007-05-28
+*/
+void AbsInputFromRteScalars(// WS Output:
+                            Vector&        f_grid,
+                            Vector&        abs_p,
+                            Vector&        abs_t,
+                            Matrix&        abs_vmrs,
+                            // WS Input:
+                            const Index&   f_index,
+                            const Numeric& rte_pressure,
+                            const Numeric& rte_temperature,
+                            const Vector&  rte_vmr_list)
+{
+  // Prepare f_grid. f_index < 0 means retain all frequencies, but
+  // f_index >= 0 means to retain only that frequency. 
+  if ( f_index >= 0 )
+    {
+      // Check that f_index is inside f_grid:
+      if ( f_index >= f_grid.nelem() )
+      {
+        ostringstream os;
+        os << "The frequency index you want is outside f_grid.\n"
+           << "You have " << f_index
+           << ", the largest allowed value is " << f_grid.nelem()-1 << ".";
+        throw runtime_error( os.str() );
+      }
+
+      Vector dummy = f_grid;
+      f_grid.resize(1);
+      f_grid = dummy[f_index];
+    }
+
+  // Prepare abs_p:
+  abs_p.resize(1);
+  abs_p = rte_pressure;
+
+  // Prepare abs_t:
+  abs_t.resize(1);
+  abs_t = rte_temperature;
+
+  // Prepare abs_vmrs:
+  abs_vmrs.resize(rte_vmr_list.nelem(),1);
+  abs_vmrs = rte_vmr_list;
+}
+
+
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
@@ -2160,7 +2211,7 @@ void abs_xsec_per_speciesInit(// WS Output:
       abs_xsec_per_species[i] = 0;       // Matpack can set all elements like this.
     }
 
-  out2 << "  Initialized abs_xsec_per_species.\n"
+  out3 << "  Initialized abs_xsec_per_species.\n"
        << "  Number of frequencies        : " << f_grid.nelem() << "\n"
        << "  Number of pressure levels    : " << abs_p.nelem() << "\n";
 }
@@ -2221,7 +2272,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
 
   // Print information:
   //
-  out2 << "  Calculating line spectra.\n";
+  out3 << "  Calculating line spectra.\n";
   //
   // Uncomment the part below if you temporarily want detailed info about 
   // transitions to be done
@@ -2258,7 +2309,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
   // Call xsec_species for each tag group.
   for ( Index i=0; i<tgs.nelem(); ++i )
     {
-      out2 << "  Tag group " << i
+      out3 << "  Tag group " << i
            << " (" << get_tag_group_name(tgs[i]) << "): ";
       
       // Get a pointer to the line list for the current species. This
@@ -2354,7 +2405,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                 }
             }
 
-          out2 << ll.nelem() << " transitions\n";
+          out3 << ll.nelem() << " transitions\n";
           xsec_species( abs_xsec_per_species[i],
                         f_grid,
                         abs_p,
@@ -2371,7 +2422,7 @@ void abs_xsec_per_speciesAddLines(// WS Output:
         }
       else
         {
-          out2 << ll.nelem() << " transitions, skipping\n";
+          out3 << ll.nelem() << " transitions, skipping\n";
         }
     }
 }
@@ -2461,7 +2512,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
       check_continuum_model(abs_cont_names[i]);
     }
 
-  out2 << "  Calculating continuum spectra.\n";
+  out3 << "  Calculating continuum spectra.\n";
 
   // Loop tag groups:
   for ( Index i=0; i<tgs.nelem(); ++i )
@@ -2538,7 +2589,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                   // Ok, the tag specifies a valid continuum model and
                   // we have continuum parameters.
                   
-                  out2 << "  Adding " << name
+                  out3 << "  Adding " << name
                        << " to tag group " << i << ".\n";
 
                   // find the options for this continuum tag from the input array
@@ -2780,5 +2831,48 @@ void abs_cont_descriptionAppend(// WS Output:
   abs_cont_names.push_back(tagname);
   abs_cont_models.push_back(model);
   abs_cont_parameters.push_back(userparameters);
+}
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Stefan Buehler
+   \date   2007-05-28
+*/
+void abs_scalar_gasFromAbsCoef(// WS Output:
+                               Matrix&       abs_scalar_gas,
+                               // WS Input:
+                               const ArrayOfMatrix& abs_coef_per_species)
+{
+  // abs_scalar_gas has format [f_grid, abs_species].
+  // abs_coef_per_species has format ArrayOfMatrix (over species),
+  // where for each species the matrix has format [f_grid, abs_p].
+
+  Index n_species = abs_coef_per_species.nelem(); // # species
+
+  if (0==n_species)
+    {
+      ostringstream os;
+      os << "Must have at least one species.";
+      throw runtime_error(os.str());
+    }
+
+  Index n_f       = abs_coef_per_species[0].nrows(); // # frequencies
+
+  // # pressures must be 1:
+  if (1!=abs_coef_per_species[0].ncols())
+    {
+      ostringstream os;
+      os << "Must have exactly one pressure.";
+      throw runtime_error(os.str());
+    }
+  
+  abs_scalar_gas.resize(n_f,n_species);
+
+  // Loop species:
+  for ( Index si=0; si<n_species; ++si )
+    abs_scalar_gas(Range(joker),si) = abs_coef_per_species[si](Range(joker),0);
+
 }
 

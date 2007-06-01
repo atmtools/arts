@@ -32,10 +32,8 @@ VectorNLogSpace(p_grid){
         n     = 10
 }
  
-# This defines the list of tag groups (`tag_groups'). Absorption
-# coefficients will be calculated separately for each tag group. This
-# is necessary in order to calculate weighting functions later on.
-# The lines are assigned to the tag groups in the order as the groups
+# This defines the list of absorption species. 
+# Spectral lines will be assigned to the species in the order as the species
 # are specified here. That means if you do ["H2O-181","H2O"], the last
 # group H2O gets assigned all the H2O lines that do not fit in the
 # first group.
@@ -43,9 +41,9 @@ VectorNLogSpace(p_grid){
 # The continuum tags are special, since continua are not added by
 # default. Thus, just selecting "H2O" will give you no continuum. 
 abs_speciesSet{
-      [ "H2O",
-        "O3",
-        "N2" ] 
+      [ "H2O-PWR98",
+	 "O2-PWR93",
+	 "N2-SelfContStandardType" ] 
 }
 
 # Alternatively select all species that we can find in the scenario:
@@ -98,9 +96,45 @@ abs_lineshapeDefine{
 # have a continuum:
 abs_cont_descriptionInit {}
 
+abs_cont_descriptionAppend{
+    tagname        = "H2O-PWR98"
+    model          = "Rosenkranz"
+    userparameters = [ ]
+}
+abs_cont_descriptionAppend{
+    tagname        = "O2-PWR93"
+    model          = "Rosenkranz"
+    userparameters = [ ]
+}
+abs_cont_descriptionAppend{
+    tagname        = "N2-SelfContStandardType" 
+    model          = "Rosenkranz"
+    userparameters = [ ]
+}
+
 # Calculate absorption coefficients, both total (`abs_coef') and 
 # separately for each tag group (`abs_coef_per_species'):
 #abs_coefCalc {}
+
+# Select species for non-linear treatment in lookup table:
+abs_nlsSet{[]}
+#abs_nlsSet{["H2O-PWR98"]}
+
+# Set tempertature perturbation vector for lookup table:
+VectorSetExplicitly(abs_t_pert){[]}
+#VectorLinSpace(abs_t_pert){
+#	start = -10
+#	stop = 10
+#	step = 1
+#}
+
+# Set non-linear species VMR perturbation vector for lookup table:
+VectorSetExplicitly(abs_nls_pert){[]}
+#VectorNLogSpace(abs_nls_pert){
+#	start = 0.01
+#	stop = 100
+#	n = 5
+#}
 
 abs_lookupCreate{}
 

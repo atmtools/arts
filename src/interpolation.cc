@@ -132,7 +132,7 @@ ostream& operator<<(ostream& os, const GridPos& gp)
 
  The new grid has basically to be inside the range covered by old
  grid, but some margins are given for practical reasons. For higher
- flexibility, an selectable extrapolation is allowed. The allowed
+ flexibility, a selectable extrapolation is allowed. The allowed
  extrapolation is given in fractions of the distance between the
  outermost two points. For example, if *extpolfac* is set to 0.5 an
  extrapolation of half the distance between end points is allowed.
@@ -2898,6 +2898,7 @@ Numeric interp_poly(ConstVectorView x,
       else
         {
           assert(false);
+          arts_exit(1);
         }
       
       polint(y_int, dy_int, xa, ya, 3, x_i); 

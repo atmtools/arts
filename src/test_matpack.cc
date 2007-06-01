@@ -750,6 +750,19 @@ void test38 ()
   c[6] = 5.;
 
   cout << t3 << endl;
+}
+
+void test39 ()
+{
+  Vector v1(1,5,1),v2(5);
+  
+  v2 = v1 * 2;
+  // Unfortunately, this thing compiles, but at least it gives an
+  // assertion failure at runtime. I think what happens is that it
+  // implicitly creates a one element vector out of the "2", then
+  // tries to do a scalar product with v1.
+
+  cout << v2 << endl;
 
 }
 
@@ -793,7 +806,8 @@ int main()
 //   test36();
 //  Index i = 10000000;
 //  test37(i);
-  test38();
+//  test38();
+  test39();
 
   return 0;
 }
