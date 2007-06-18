@@ -99,10 +99,25 @@ private:
   ArrayOfArrayOfSpeciesTag species; 
 
   //! The species tags with non-linear treatment.
-  /*! This must be inside the range of species. If nonlinear_species
-    is an empty vector, it means that all species should be treated
-    linearly. (No absorption for perturbed species profiles is stored.) */
+  /*! This is the list of species for which VMR should be varied when
+    calculating the lookup table. This must be inside the range of
+    species. If nonlinear_species is an empty vector, it means that
+    all species should be treated linearly. (No absorption for
+    perturbed species profiles is stored.) */
   ArrayOfIndex nonlinear_species; 
+
+  //! The species tags affected by the nonlinear_species treatment.
+  /*! For each element of nonlinear_species, this is the list of
+    species for which absorption should be recalculated for each
+    different VMR value of that species. This must be inside the range
+    of species. Normally, at least the species in question should be    
+    present. A typical example is that nonlinear_species contains H2O,
+    and affected species for H2O contains H2O and O2. This takes care of O2
+    dependence on H2O, for example in the Rosenkranz O2 model. 
+
+    Dimensions:
+    The first dimension must correspond to the number of nonlinear_species. */
+  ArrayOfArrayOfIndex affected_species; 
 
   //! The frequency grid [Hz].
   /*! Must be sorted in ascending order. */
@@ -188,6 +203,8 @@ private:
     Note that the last three dimensions are identical to the
     dimensions of abs_per_tg in ARTS-1-0. This should simplify
     computation of the lookup table with this old ARTS version.
+
+    FIXME: Update, to account for introduction of affected_species!!!!!!!!!!!!!!!!!
   */
   Tensor4 xsec;
 
