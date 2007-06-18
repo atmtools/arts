@@ -126,9 +126,9 @@ class ClearSkyTest(unittest.TestCase):
         self.CSrun.run()
         assert self.CSrun.error=='','Error running simpleClearSky.arts: '+self.CSrun.error
     def test2(self):
-        """Total radiance should be close to 276.50 K"""
+        """Total radiance should be close to 276.523 K"""
         I=self.CSrun.get_val('y')[0]
-        assert abs(I-276.50) < 0.01, 'I (='+str(I)+'K) is too far away from 276.50 K'
+        assert abs(I-276.523) < 0.01, 'I (='+str(I)+'K) is too far away from 276.523 K'
 
         
 class AbsTest(unittest.TestCase):

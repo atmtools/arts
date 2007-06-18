@@ -1,3 +1,11 @@
+2007-06-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1145
+
+	* tests/testall.py: Change target value of ClearSkyTest from 276.50 K
+	to 276.532 K. The extrapolation with the new abs lookup table is more
+	exact than the old one.
+
 2007-06-18  Stefan Buehler  <sbuehler@irv.se>
 
 	* arts-1-1-1144
