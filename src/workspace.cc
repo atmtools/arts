@@ -739,25 +739,7 @@ void define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
-    ( NAME( "batch_calc_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc."
-       ),
-      GROUP( Agenda_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "batch_post_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc."
-       ),
-      GROUP( Agenda_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "batch_update_agenda" ),
+    ( NAME( "ybatch_calc_agenda" ),
       DESCRIPTION
       (
         "See agendas.cc."

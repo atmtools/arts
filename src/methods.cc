@@ -1481,86 +1481,86 @@ void define_md_data_raw()
 
  md_data_raw.push_back
     ( MdRecord
-      ( NAME("BatchUpdateMatrix"),
+      ( NAME("MatrixExtractFromTensor3"),
         DESCRIPTION
         (
-         "Updates a WSV of type Matrix for batch calculations.\n"
+         "Extract a Matrix from a Tensor3.\n"
          "\n"
-         "Copies page *ybatch_index* from input Tensor3 variable to create \n"
+         "Copies page with given Index from input Tensor3 variable to create \n"
          "output Matrix."
         ),
         OUTPUT( ),
-        INPUT( ybatch_index_ ),
+        INPUT( ),
         GOUTPUT( Matrix_ ),
-        GINPUT(  Tensor3_ ),
+        GINPUT(  Tensor3_, Index_ ),
         KEYWORDS(),
         TYPES()));
 
  md_data_raw.push_back
     ( MdRecord
-      ( NAME("BatchUpdateNumeric"),
+      ( NAME("NumericExtractFromVector"),
         DESCRIPTION
         (
-         "Updates a WSV of type Numeric for batch calculations.\n"
+         "Extract a Numeric from a Vector.\n"
          "\n"
-         "Copies column *ybatch_index* from input Vector variable to create \n"
-         "output Numeric."
+         "Copies element with given Index from input Vector variable to \n"
+         "create output Numeric."
         ),
         OUTPUT( ),
-        INPUT( ybatch_index_ ),
+        INPUT( ),
         GOUTPUT( Numeric_ ),
-        GINPUT(  Vector_ ),
+        GINPUT(  Vector_, Index_ ),
         KEYWORDS(),
         TYPES()));
 
  md_data_raw.push_back
     ( MdRecord
-      ( NAME("BatchUpdateTensor3"),
+      ( NAME("Tensor3ExtractFromTensor4"),
         DESCRIPTION
         (
-         "Updates a WSV of type Tensor3 for batch calculations.\n"
+         "Extract a Tensor3 from a Tensor4.\n"
          "\n"
-         "Copies book *ybatch_index* from input Tensor4 variable to create \n"
+         "Copies book with given Imdex from input Tensor4 variable to create \n"
          "output Tensor3."
         ),
         OUTPUT( ),
-        INPUT( ybatch_index_ ),
+        INPUT( ),
         GOUTPUT( Tensor3_ ),
-        GINPUT(  Tensor4_ ),
+        GINPUT(  Tensor4_, Index_ ),
         KEYWORDS(),
         TYPES()));
 
  md_data_raw.push_back
     ( MdRecord
-      ( NAME("BatchUpdateTensor4"),
+      ( NAME("Tensor4ExtractFromTensor5"),
         DESCRIPTION
         (
-         "Updates a WSV of type Tensor4 for batch calculations.\n"
+         "Extract a Tensor4 from a Tensor5.\n"
          "\n"
-         "Copies shelf *ybatch_index* from input Tensor5 variable to create \n"
-         "output Tensor4."
+         "Copies shelf with given Index from input Tensor5 variable to \n"
+         "create output Tensor4."
         ),
         OUTPUT( ),
-        INPUT( ybatch_index_ ),
+        INPUT( ),
         GOUTPUT( Tensor4_ ),
-        GINPUT(  Tensor5_ ),
+        GINPUT(  Tensor5_, Index_ ),
         KEYWORDS(),
         TYPES()));
 
  md_data_raw.push_back
     ( MdRecord
-      ( NAME("BatchUpdateVector"),
+      ( NAME("VectorExtractFromMatrix"),
         DESCRIPTION
         (
-         "Updates a WSV of type Vector for batch calculations.\n"
+         "Extract a Vector from a Matrix.\n"
          "\n"
-         "Copies row *ybatch_index* from input Matrix variable to create \n"
+         "Copies row with given Index from input Matrix variable to create \n"
          "output Vector."
         ),
         OUTPUT( ),
-        INPUT( ybatch_index_ ),
+        INPUT( ),
         GOUTPUT( Vector_ ),
-        GINPUT(  Matrix_ ),
+        GINPUT(  Matrix_, Index_ ),
         KEYWORDS(),
         TYPES()));
 
@@ -5940,26 +5940,17 @@ md_data_raw.push_back
          "\n"
          "The method performs the following:"
          "   1. Performs a-d with *ybatch_index* = 0 : (*ybatch_n*-1).\n"
-         "    a. Executes *batch_update_agenda*.\n"
-         "    b. Executes *batch_calc_agenda*.\n"
-         "    c. If *ybatch_index* = 0, allocates memory for *ybatch* based\n"
+         "    a. Executes *batch_calc_agenda*.\n"
+         "    b. If *ybatch_index* = 0, allocates memory for *ybatch* based\n"
          "       on *ybatch_n* and length of *y*.\n"
-         "    d. Makes copy of *y* in column *ybatch_index* of *ybatch*.\n"
-         "   2. Executes *batch_post_agenda*.\n"
+         "    c. Makes copy of *y* in column *ybatch_index* of *ybatch*.\n"
          "This means that, beside involved agendas, the WSV *ybatch_n* must\n"
          "be set before calling this method.\n"
          "\n"
          "See the user guide for practical examples.\n"
-         "\n"
-         "Note that variables modified by the involved agendas\n"
-         "(e.g. *vmr_field*) are not restored by the method. If original\n"
-         "values must be preserved, a copy must be made before calling this"
-         "method, and a reversed copy must be made in *batch_post_agenda*\n"
-         "or after executing *ybatchCalc*."
          ),
         OUTPUT( ybatch_ ),
-        INPUT( ybatch_n_,
-               batch_update_agenda_, batch_calc_agenda_, batch_post_agenda_ ), 
+        INPUT( ybatch_n_, ybatch_calc_agenda_ ), 
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

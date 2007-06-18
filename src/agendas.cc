@@ -92,7 +92,7 @@ void define_agenda_data()
   
  agenda_data.push_back
     (AgRecord
-     ( NAME( "batch_calc_agenda" ),
+     ( NAME( "ybatch_calc_agenda" ),
        DESCRIPTION
        (
         "Calculations to perform for each batch case.\n"
@@ -100,31 +100,6 @@ void define_agenda_data()
         "Must produce a new spectrum vector (y). See further *ybatchCalc*."
         ),
        OUTPUT( y_ ),
-       INPUT()));
-
- agenda_data.push_back
-    (AgRecord
-     ( NAME( "batch_post_agenda" ),
-       DESCRIPTION
-       (
-        "Post-processing for batch calculations.\n"
-        "\n"
-        "Modifies *ybatch* in some way. See further *ybatchCalc*."
-        ),
-       OUTPUT( ybatch_ ),
-       INPUT( ybatch_ )));
-
- agenda_data.push_back
-    (AgRecord
-     ( NAME( "batch_update_agenda" ),
-       DESCRIPTION
-       (
-        "Updates variables to next batch case.\n"
-        "\n"
-        "WSMs shall be set corresponding to value of *ybtach_index*.\n"
-        "See further *ybatchCalc*."
-        ),
-       OUTPUT(),
        INPUT( ybatch_index_ )));
 
  agenda_data.push_back

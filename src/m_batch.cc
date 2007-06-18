@@ -56,181 +56,186 @@ extern const Numeric RAD2DEG;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! BatchUpdateMatrix
+//! MatrixExtractFromTensor3
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2004-09-15
 */
-void BatchUpdateMatrix(
+void MatrixExtractFromTensor3(
       // WS Generic Output:
       Matrix&          m,
       // WS Generic Output Names:
       const String&    m_name,
       // WS Input:
-      const Index&     ybatch_index,
       // WS Generic Input:
       const Tensor3&   t3,
+      const Index&     index,
       // WS Generic Input Names:
-      const String&    t3_name )
+      const String&    t3_name,
+      const String&    index_name )
 {
-  if( ybatch_index >= t3.npages() )
+  if( index >= t3.npages() )
     {
       ostringstream os;
-      os << "The value of *ybatch_index* (" << ybatch_index 
+      os << "The value of *" << index_name << "* (" << index 
          << "is outside the page range of *" << t3_name << "*.";
       throw runtime_error( os.str() );
 
     }
-  out3 << "Copies page " << ybatch_index << " of *" << t3_name
+  out3 << "Copies page " << index << " of *" << t3_name
        << "* to create *" << m_name << "*.\n";
 
   m.resize( t3.nrows(), t3.ncols() );
-  m = t3( ybatch_index, joker, joker );
+  m = t3( index, joker, joker );
 }
 
 
 
-//! BatchUpdateNumeric
+//! NumericExtractFromVector
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2004-09-15
 */
-void BatchUpdateNumeric(
+void NumericExtractFromVector(
       // WS Generic Output:
       Numeric&         n,
       // WS Generic Output Names:
       const String&    n_name,
       // WS Input:
-      const Index&     ybatch_index,
       // WS Generic Input:
       const Vector&    v,
+      const Index&     index,
       // WS Generic Input Names:
-      const String&    v_name )
+      const String&    v_name,
+      const String&    index_name )
 {
-  if( ybatch_index >= v.nelem() )
+  if( index >= v.nelem() )
     {
       ostringstream os;
-      os << "The value of *ybatch_index* (" << ybatch_index 
+      os << "The value of *" << index_name << "* (" << index 
          << "is outside the range of the vector *" << v_name << "*.";
       throw runtime_error( os.str() );
 
     }
-  out3 << "Copies column " << ybatch_index << " of *" << v_name
+  out3 << "Copies column " << index << " of *" << v_name
        << "* to create *" << n_name << "*.\n";
 
-  n = v[ ybatch_index ];
+  n = v[ index ];
 }
 
 
 
-//! BatchUpdateTensor3
+//! Tensor3ExtractFromTensor4
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2004-09-15
 */
-void BatchUpdateTensor3(
+void Tensor3ExtractFromTensor4(
       // WS Generic Output:
       Tensor3&         t3,
       // WS Generic Output Names:
       const String&    t3_name,
       // WS Input:
-      const Index&     ybatch_index,
       // WS Generic Input:
       const Tensor4&   t4,
+      const Index&     index,
       // WS Generic Input Names:
-      const String&    t4_name )
+      const String&    t4_name,
+      const String&    index_name )
 {
-  if( ybatch_index >= t4.nbooks() )
+  if( index >= t4.nbooks() )
     {
       ostringstream os;
-      os << "The value of *ybatch_index* (" << ybatch_index 
+      os << "The value of *" << index_name << "* (" << index 
          << "is outside the book range of *" << t4_name << "*.";
       throw runtime_error( os.str() );
 
     }
-  out3 << "Copies book " << ybatch_index << " of *" << t4_name
+  out3 << "Copies book " << index << " of *" << t4_name
        << "* to create *" << t3_name << "*.\n";
 
   t3.resize( t4.npages(), t4.nrows(), t4.ncols() );
-  t3 = t4( ybatch_index, joker, joker, joker );
+  t3 = t4( index, joker, joker, joker );
 }
 
 
 
-//! BatchUpdateTensor4
+//! Tensor4ExtractFromTensor5
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2004-09-15
 */
-void BatchUpdateTensor4(
+void Tensor4ExtractFromTensor5(
       // WS Generic Output:
       Tensor4&         t4,
       // WS Generic Output Names:
       const String&    t4_name,
       // WS Input:
-      const Index&     ybatch_index,
       // WS Generic Input:
       const Tensor5&   t5,
+      const Index&     index,
       // WS Generic Input Names:
-      const String&    t5_name )
+      const String&    t5_name,
+      const String&    index_name )
 {
-  if( ybatch_index >= t5.nshelves() )
+  if( index >= t5.nshelves() )
     {
       ostringstream os;
-      os << "The value of *ybatch_index* (" << ybatch_index 
+      os << "The value of *" << index_name << "* (" << index 
          << "is outside the shelf range of *" << t5_name << "*.";
       throw runtime_error( os.str() );
 
     }
-  out3 << "Copies shelf " << ybatch_index << " of *" << t5_name
+  out3 << "Copies shelf " << index << " of *" << t5_name
        << "* to create *" << t4_name << "*.\n";
 
   t4.resize( t5.nbooks(), t5.npages(), t5.nrows(), t5.ncols() );
-  t4 = t5( ybatch_index, joker, joker, joker, joker );
+  t4 = t5( index, joker, joker, joker, joker );
 }
 
 
 
-//! BatchUpdateVector
+//! VectorExtractFromMatrix
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2004-09-15
 */
-void BatchUpdateVector(
+void VectorExtractFromMatrix(
       // WS Generic Output:
       Vector&          v,
       // WS Generic Output Names:
       const String&    v_name,
       // WS Input:
-      const Index&     ybatch_index,
       // WS Generic Input:
       const Matrix&    m,
+      const Index&     index,
       // WS Generic Input Names:
-      const String&    m_name )
+      const String&    m_name,
+      const String&    index_name )
 {
-  if( ybatch_index >= m.nrows() )
+  if( index >= m.nrows() )
     {
       ostringstream os;
-      os << "The value of *ybatch_index* (" << ybatch_index 
+      os << "The value of *" << index_name << "* (" << index 
          << "is outside the row range of *" << m_name << "*.";
       throw runtime_error( os.str() );
 
     }
-  out3 << "Copies row " << ybatch_index << " of *" << m_name
+  out3 << "Copies row " << index << " of *" << m_name
        << "* to create *" << v_name << "*.\n";
 
   v.resize( m.ncols() );
-  v = m( ybatch_index, joker );
+  v = m( index, joker );
 }
 
 
@@ -247,26 +252,21 @@ void ybatchCalc(
               Matrix&         ybatch,
         // WS Input:
         const Index&          ybatch_n,
-        const Agenda&         batch_update_agenda,
-        const Agenda&         batch_calc_agenda,
-        const Agenda&         batch_post_agenda )
+        const Agenda&         ybatch_calc_agenda)
 {
-  throw runtime_error("Batch calculations are presently not working.");
+  //throw runtime_error("Batch calculations are presently not working.");
 
   Vector y;
 
   for( Index ybatch_index=0; ybatch_index<ybatch_n; ybatch_index++ )
     {
-      batch_update_agendaExecute( ybatch_index, batch_update_agenda, false );
-      batch_calc_agendaExecute( y, batch_calc_agenda, false );
+      ybatch_calc_agendaExecute( y, ybatch_index, ybatch_calc_agenda, false );
       
       if( ybatch_index == 0 )
         { ybatch.resize( y.nelem(), ybatch_n); }
 
       ybatch( joker, ybatch_index ) = y;
     }
-
-  batch_post_agendaExecute( ybatch, batch_post_agenda, false );
 }
 
 

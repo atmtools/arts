@@ -1,3 +1,21 @@
+2007-06-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1142
+
+	* src/methods.cc, src/m_batch.cc, src/agendas.cc, src/workspace.cc:
+
+	Rename BatchUpdate... to TypeExtractFromType and add the index to be
+	extracted as a GInput.
+
+	Merge batch_update_agenda and batch_calc_agenda and rename it to
+	ybatch_calc_agenda. batch_u and batch_c were anyway called directly
+	after one another, so everything done in batch_u can also be put in
+	batch_c.
+
+	Remove batch_post_agenda. No need to have the post-processing in an
+	agenda. Post-process methods can be called directly in the control
+	file after running ybatchCalc.
+
 2007-06-01  Stefan Buehler  <sbuehler@irv.se>
 
 	* arts-1-1-1141
