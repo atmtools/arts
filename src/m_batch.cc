@@ -254,8 +254,6 @@ void ybatchCalc(
         const Index&          ybatch_n,
         const Agenda&         ybatch_calc_agenda)
 {
-  //throw runtime_error("Batch calculations are presently not working.");
-
   Vector y;
 
   for( Index ybatch_index=0; ybatch_index<ybatch_n; ybatch_index++ )

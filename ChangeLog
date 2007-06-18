@@ -1,5 +1,15 @@
 2007-06-18  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1143
+
+	* doc/uguide/batch.tex: Update for changes in the batch code.
+
+	* src/methods.cc: Update docs for ybatchCalc.
+
+	* src/m_batch.cc: Remove one line of old unused code.
+
+2007-06-18  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1142
 
 	* src/methods.cc, src/m_batch.cc, src/agendas.cc, src/workspace.cc:

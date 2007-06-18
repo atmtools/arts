@@ -11,6 +11,7 @@
 %  \stophistory
 %
 \starthistory
+  070618 & Updated by Oliver Lemke.\\
   040916 & Created by Patrick Eriksson.\\
 \stophistory
 
@@ -36,98 +37,84 @@ agendas.
 
 \section{Workspace variables and methods}
 %
-The calculation flow is controled be setting three agendas:\\
-\indent \wsaindex{batch\_update\_agenda} \\
-\indent \wsaindex{batch\_calc\_agenda} \\
-\indent \wsaindex{batch\_post\_agenda} \\
-Beside these agendas, the user must set the variable
+The calculation flow is controlled be setting the
+\wsaindex{ybatch\_calc\_agenda}.
+Beside this agenda, the user must set the variable
 \wsvindex{ybatch\_n}. This variable is the number of defined batch
 cases. Or in fact, how many batch cases that shall be considered. If
-the agendas can provide more than \artsstyle{ybatch\_n} cases, the
+the agenda can provide more than \artsstyle{ybatch\_n} cases, the
 remaining cases are just ignored. There are few formal requirements on
-the involved agendas. Execution of \artsstyle{batch\_calc\_agenda}
+the involved agenda. Execution of \artsstyle{ybatch\_calc\_agenda}
 must result in new spectrum vector, \artsstyle{y}, most likely by a
-call of \artsstyle{RteCalc}, and the agenda
-\artsstyle{batch\_post\_agenda} is intended to modify the output
-variable \wsvindex{ybatch}.
+call of \artsstyle{RteCalc}.
 
 The actual calculations are made by calling \wsmindex{ybatchCalc}. The
 basic idea is simple, each loop inside this method shall
 produce a new spectrum vector, where each realisation is stored in
 \artsstyle{ybatch}. Variables are updated to a new batch case by
-\artsstyle{batch\_update\_agenda}, where \wsvindex{ybatch\_index}, set by
+\artsstyle{ybatch\_calc\_agenda}, where \wsvindex{ybatch\_index}, set by
 \artsstyle{ybatchCalc}, tells the agenda which case to select.
 More in detail, \artsstyle{ybatchCalc} makes the following operations:\\
-\indent 1. Performs a-d with \artsstyle{ybatch\_index} looped from 0 to (\artsstyle{ybatch\_n}-1)\\
-\indent a. Executes \artsstyle{batch\_update\_agenda}. \\
-\indent b. Executes \artsstyle{batch\_calc\_agenda}.\\
-\indent c. If \artsstyle{ybatch\_index} = 0, allocates memory for
-\artsstyle{ybatch} based on \artsstyle{ybatch\_n} and length of \artsstyle{y} \\
-\indent d. Makes copy of \artsstyle{y} in column \artsstyle{ybatch\_index} of \artsstyle{ybatch}.\\
-\indent 2. Executes \artsstyle{batch\_post\_agenda}.\\
-You see it is simple! The question is only what to put inside the agendas?
+\indent 1. Performs a-c with \artsstyle{ybatch\_index} looped from 0 to (\artsstyle{ybatch\_n}-1)\\
+\indent a. Executes \artsstyle{ybatch\_calc\_agenda}.\\
+\indent b. If \artsstyle{ybatch\_index} = 0, resizes \artsstyle{ybatch} based
+on \artsstyle{ybatch\_n} and length of \artsstyle{y} \\
+\indent c. Makes copy of \artsstyle{y} in column \artsstyle{ybatch\_index} of \artsstyle{ybatch}.\\
+You see it is simple! The question is only what to put inside the agenda?
 
 
 \section{Control file examples}
 %
-There exist some special workspace methods for
-\artsstyle{batch\_update\_agenda}, named as
-\wsmindex{BatchUpdateXxxxx}.  The common idea of these functions is to
+There exist some special workspace methods for the
+\artsstyle{ybatch\_calc\_agenda}, named as
+\wsmindex{XxxxxExtractFromXxxxx}.  The common idea of these functions is to
 store the batch cases in tensors with one dimension extra compared to
 corresponding workspace variables. For example, a set of
-\artsstyle{t\_field} (which is of type \artsstyle{Tensor4}) is stored
-as \artsstyle{Tensor3}.
+\artsstyle{t\_field} (which is of type \artsstyle{Tensor3}) is stored
+as \artsstyle{Tensor4}.
 
 In the following 1D example, five atmospheric scenarios
 have been put into the three first loaded files, and a random vector
 of zenith angles is found in the last file. The batch calculations
 are then performed as:
+
 \begin{verbatim}
+ReadXML  (tensor4_1) {"batch_t_field.xml"}
+ReadXML  (tensor4_2) {"batch_z_field.xml"}
+ReadXML  (tensor5_1) {"batch_vmr_field.xml"}
+ReadXML  (tensor3_1) {"batch_za.xml" }
+IndexSet (ybatch_n)  {5}
 
-ReadXML( tensor4_1 ){ "batch_t_field.xml" }
-ReadXML( tensor4_2 ){ "batch_z_field.xml" }
-ReadXML( tensor5_1 ){ "batch_vmr_field.xml" }
-ReadXML( tensor3_1 ){ "batch_za.xml" }
-IndexSet( ybatch_n ) { 5 }
+AgendaSet (ybatch_calc_agenda) {
+  Print (ybatch_index) {0}
+  Tensor3ExtractFromTensor4 (t_field,    tensor4_1, ybatch_index) {}
+  Tensor3ExtractFromTensor4 (z_field,    tensor4_2, ybatch_index) {}
+  Tensor4ExtractFromTensor5 (vmr_field,  tensor5_1, ybatch_index) {}
+  MatrixExtractFromTensor3  (sensor_los, tensor3_1, ybatch_index) {}
 
-AgendaSet(batch_update_agenda){
-  Print( ybatch_index ) { 0 }
-  BatchUpdateTensor3( t_field, tensor4_1 ) {}
-  BatchUpdateTensor3( z_field, tensor4_2 ) {}
-  BatchUpdateTensor4( vmr_field, tensor5_1 ) {}
-  BatchUpdateMatrix( sensor_los, tensor3_1 ) {}
+  RteCalc {}
 }
 
-AgendaSet(batch_calc_agenda){
-  RteCalc{}
-}
+ybatchCalc {}
+MatrixToTbByRJ (ybatch, ybatch) {}
 
-AgendaSet(batch_post_agenda){
-  MatrixToTbByRJ( ybatch, ybatch ) {}
-}
-
-ybatchCalc{}
-WriteXML( ybatch ) { "ybatch_run1.xml" }
-
+WriteXML (ybatch) {"ybatch_run1.xml"}
 \end{verbatim}
+
 If you then want to repeat the calculations, for example with another
 propagation path step length (e.g. 25\,km), it is sufficient to add
 the lines:
-\begin{verbatim}
 
-AgendaSet(ppath_step_agenda){
-   ppath_stepGeometric{25e3}
+\begin{verbatim}
+AgendaSet (ppath_step_agenda) {
+   ppath_stepGeometric {25e3}
 }
 
-ybatchCalc{}
-WriteXML( ybatch ) { "ybatch_run2.xml" }
+ybatchCalc {}
+MatrixToTbByRJ (ybatch, ybatch) {}
 
+WriteXML (ybatch) {"ybatch_run2.xml"}
 \end{verbatim}
-This last example should explain why it is favourable to distinguish
-the tasks between \artsstyle{batch\_update\_agenda} and
-\artsstyle{batch\_calc\_agenda}, despite they are just executed
-subsequently.
-
 
 %%% Local Variables: 
 %%% mode: latex 
