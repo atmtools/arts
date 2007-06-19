@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.1146)
+AM_INIT_AUTOMAKE(arts,1.1.1147)
 
 dnl Put the ACLOCAL flags in the Makefile
 ACLOCAL="$ACLOCAL -I m4 $ACLOCAL_FLAGS"
@@ -225,7 +225,7 @@ if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
   WARNING_FLAGS="-W -Wall -Wconversion"
 
   if test x$ac_more_warnings = xyes; then
-    WARNING_FLAGS="$WARNING_FLAGS" #-Werror"
+    WARNING_FLAGS="$WARNING_FLAGS -Werror"
 
     # gcc2 produces warnings in standard headers, therefore only
     # enable it with gcc3 and gcc4
@@ -270,12 +270,15 @@ CFLAGS="$CFLAGS $DEBUG_FLAGS $WARNING_FLAGS"
 if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
   CXXFLAGS_FIXED="$DEBUG_FLAGS -ftemplate-depth-60 $WARNING_FLAGS"
   CXXFLAGS="$CXXFLAGS $CXXFLAGS_FIXED"
+  CXXNOSTRICTALIASING="-fno-strict-aliasing"
 else
   CXXFLAGS_FIXED="$CXXFLAGS $DEBUG_FLAGS"
   CXXFLAGS="$CXXFLAGS_FIXED"
+  CXXNOSTRICTALIASING=""
 fi
 
 AC_SUBST(CXXFLAGS_FIXED)
+AC_SUBST(CXXNOSTRICTALIASING)
 
 AM_CONDITIONAL(COMPILE_FLAGS, test "$CXXFLAGS")
 AC_DEFINE_UNQUOTED(COMPILE_FLAGS, "$CXXFLAGS", Compile Flags)

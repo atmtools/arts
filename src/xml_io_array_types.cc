@@ -1716,9 +1716,9 @@ xml_write_to_stream (ostream& os_xml,
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
-xml_read_from_stream (istream& is_xml,
-                      ArrayOfLineshapeSpec& alspec,
-                      bifstream *pbifs)
+xml_read_from_stream (istream& /*is_xml*/,
+                      ArrayOfLineshapeSpec& /*alspec*/,
+                      bifstream * /*pbifs*/)
 {
   // FIXME OLE: Implement this.
   throw runtime_error ("Boo. Not yet implemented.");
@@ -1733,10 +1733,10 @@ xml_read_from_stream (istream& is_xml,
   \param name     Optional name attribute
 */
 void
-xml_write_to_stream (ostream& os_xml,
-                     const ArrayOfLineshapeSpec& alspec,
-                     bofstream *pbofs,
-                     const String &name)
+xml_write_to_stream (ostream& /*os_xml*/,
+                     const ArrayOfLineshapeSpec& /*alspec*/,
+                     bofstream * /*pbofs*/,
+                     const String & /*name*/)
 
 {
   // FIXME OLE: Implement this.

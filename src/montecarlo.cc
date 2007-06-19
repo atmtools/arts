@@ -1386,12 +1386,12 @@ void mcPathTraceIPA(MatrixView&           evol_op,
   Matrix T(stokes_dim,stokes_dim);
   Numeric k;
   Numeric x,y,z;
-  Numeric ds,lstep,dx,dy,dz;
+  Numeric ds,lstep=0.,dx,dy,dz;
   Index   istep = 0;            // Counter for number of steps
   Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim,0.0);
   Matrix old_evol_op(stokes_dim,stokes_dim);
-  Numeric rv_geoid;
-  Numeric rv_surface;
+  Numeric rv_geoid=0.;
+  Numeric rv_surface=0.;
   Numeric alt;
   Numeric gpnum;
   const Index np_ipa=ppath.np;

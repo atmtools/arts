@@ -3472,7 +3472,7 @@ void interpolate_raytracing_points(
         double   ltotsum = l_rt.sum();
   // Ensure that there are at least two points
   if( lmax > 0 )
-    { n = Index( ceil( ltotsum / lmax ) ) + 1 >? 2; }
+    { n = max (Index( ceil( ltotsum / lmax ) ) + 1, Index(2)); }
   //
   r_v.resize(n);
   lat_v.resize(n);

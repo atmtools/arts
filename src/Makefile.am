@@ -213,6 +213,10 @@ test_disort$(EXEEXT):
 
 endif
 
+continua.o: arts.h matpackI.h array.h absorption.h messages.h continua.h
+	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
+	       $(AM_CXXFLAGS) $(CXXFLAGS) $(CXXNOSTRICTALIASING) -c continua.cc
+
 methods.o: arts.h arts_mpi.h make_array.h auto_wsv.h methods.h auto_wsv_groups.h methods.cc
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c methods.cc

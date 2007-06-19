@@ -1,5 +1,42 @@
 2007-06-19  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1147
+
+	* Fixes to be able to compile with -Werror again.
+	
+	* Tested compilation with gcc 4.1 and 3.3. If it doesn't compile for
+	you please let me know your compiler version and the compiler output.
+
+	* src/m_xml.cc: Fix runaway comment introduced in last commit.
+
+	* src/configure.in: Reenable -Werror.
+
+	* src/m_disort.cc:
+
+	Avoid warnings when arts is compiled without disort support.
+
+	* configure.in:
+
+	Add variable with CXX flags to deactivate strict aliasing.
+
+	* src/Makefile.am:
+
+	Add specific target for continua.cc and use the no-strict-aliasing
+	flag to avoid compile warnings. Not nice, but the f2c code is
+	"unfixable".
+
+	* src/montecarlo.cc:
+
+	Initialize lstep, rv_geoid, rv_surface. The compiler misdetects
+	uninitialized use of these variables and throws a warning.
+
+	* src/ppath.cc: Replace the deprecated >? operator with the max
+	function from the C++ library.
+
+	* src/xml_io_array_types.cc: Comment out unused function parameters.
+
+2007-06-19  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1146
 
 	* Copyright spring cleaning.

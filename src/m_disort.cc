@@ -83,6 +83,7 @@ void cloudboxSetDisort(//WS Output
   \author Claudia Emde
   \date 2006-02-10
 */
+#ifdef ENABLE_DISORT
 void ScatteringDisort(// WS Output:
                       Tensor7& scat_i_p,
                       Tensor7& scat_i_lat,
@@ -107,8 +108,6 @@ void ScatteringDisort(// WS Output:
                       const Matrix& surface_emissivity_field)
 {
 
-#ifdef ENABLE_DISORT
-  
   out1<< "Start DISORT calculation...\n";
   
   if(pnd_field.ncols() != 1) 
@@ -339,9 +338,31 @@ void ScatteringDisort(// WS Output:
   delete [] prnt;
     
 #else
-      throw runtime_error ("This version of ARTS was compiled without DISORT support.");
+void ScatteringDisort(// WS Output:
+                      Tensor7&,
+                      Tensor7&,
+                      Tensor7&,
+                      Index&,
+                      ArrayOfSingleScatteringData&,
+                      Tensor4&,
+                      // WS Input
+                      const ArrayOfIndex&,
+                      const Index&,
+                      const Agenda&,
+                      const Agenda&,
+                      const Agenda&,
+                      const Tensor4&,
+                      const Tensor3&,
+                      const Tensor3&,
+                      const Vector&,
+                      const Tensor4&,
+                      const ArrayOfSingleScatteringData&,
+                      const Vector&,
+                      const Vector&,
+                      const Matrix&)
+{
+  throw runtime_error ("This version of ARTS was compiled without DISORT support.");
 #endif /* ENABLE_DISORT */
-      
   
 }
 
