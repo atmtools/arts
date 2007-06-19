@@ -1,5 +1,6 @@
-/* Copyright (C) 2002,2003 Claudia Emde <claudia@sat.physik.uni-bremen.de>
-                           Sreerekha T.R. <rekha@uni-bremen.de>
+/* Copyright (C) 2002-2007
+   Claudia Emde <claudia.emde@dlr.de>
+   Sreerekha T.R. <rekha@uni-bremen.de>
                            
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -19,7 +20,7 @@
   
 /*!
   \file   m_scatrte.cc
-  \author Claudia Emde <claudia@sat.physik.uni-bremen.de>
+  \author Claudia Emde <claudia.emde@dlr.de>
   \author Sreerekha T.R. <rekha@uni-bremen.de>
   \date   Wed Jun 19 11:03:57 2002
   

@@ -1,5 +1,6 @@
-/* Copyright (C) 2001 Thomas Kuhn    <tkuhn@uni-bremen.de>
-                      Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2001-2007
+   Thomas Kuhn    <tkuhn@uni-bremen.de>
+   Stefan Buehler <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the

@@ -1,4 +1,4 @@
-/* Copyright (C) 2002 Oliver Lemke <olemke@uni-bremen.de>
+/* Copyright (C) 2002-2007 Oliver Lemke <olemke@core-dump.info>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -21,7 +21,7 @@
 ////////////////////////////////////////////////////////////////////////////
 /*!
   \file   xml_io.h
-  \author Oliver Lemke <olemke@uni-bremen.de>
+  \author Oliver Lemke <olemke@core-dump.info>
   \date   2002-05-10
 
   \brief This file contains basic functions to handle XML data files.

@@ -1,4 +1,4 @@
-/* Copyright (C) 2002 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2002-2007 Stefan Buehler <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -17,7 +17,7 @@
 
 /*!
   \file   gas_abs_lookup.h
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Thu Sep 19 16:49:00 2002
 
   \brief  Declarations for the gas absorption lookup table.

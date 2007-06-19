@@ -1,4 +1,4 @@
-/* Copyright (C) 2000, 2001 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2000-2007 Stefan Buehler <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -17,7 +17,7 @@
 
 /*!
   \file   agenda_class.h
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Thu Mar 14 08:49:33 2002
   
   \brief  Declarations for agendas.

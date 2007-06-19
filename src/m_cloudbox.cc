@@ -1,7 +1,7 @@
-/* Copyright (C) 2002,2003
+/* Copyright (C) 2002-2007
    Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
-   Stefan Buehler   <sbuehler@uni-bremen.de>
-   Claudia Emde     <claudia@sat.physik.uni-bremen.de>
+   Stefan Buehler   <sbuehler@ltu.se>
+   Claudia Emde     <claudia.emde@dlr.de>
                             
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the

@@ -1,4 +1,4 @@
-/* Copyright (C) 2002 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2002-2007 Stefan Buehler <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -17,7 +17,7 @@
 
 /*!
   \file   test_complex.cc
-  \author  <sbuehler@uni-bremen.de>
+  \author  <sbuehler@ltu.se>
   \date   Sat Dec 14 19:42:25 2002
   
   \brief  Test the complex numbers.

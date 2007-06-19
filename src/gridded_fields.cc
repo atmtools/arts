@@ -1,5 +1,6 @@
-/* Copyright (C) 2002 Claudia Emde <claudia@sat.physik.uni-bremen.de>
-                 2002 Oliver Lemke <olemke@sat.physik.uni-bremen.de>
+/* Copyright (C) 2002-2007
+   Claudia Emde <claudia.emde@dlr.de>
+   Oliver Lemke <olemke@core-dump.info>
      
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -19,8 +20,8 @@
 
 /*!
   \file   gridded_fields.cc
-  \author Oliver Lemke  <olemke@sat.physik.uni-bremen.de>
-  \author Claudia Emde <claudia@sat.physik.uni-bremen.de>
+  \author Oliver Lemke  <olemke@core-dump.info>
+  \author Claudia Emde <claudia.emde@dlr.de>
   \date   Wed Jun 26 17:48:29 2002
   
   \brief  Reading routines for gridded fields.

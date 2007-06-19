@@ -1,3 +1,20 @@
+2007-06-19  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1146
+
+	* Copyright spring cleaning.
+
+	* configure.in, AUTHORS, NEWS, src/*.{cc,h,pl}, src/Makefile.am,
+	doc/uguide/main.tex, doc/reference/main.tex:
+	
+	Update all copyright headers for 2007.
+
+	Change my email address.
+
+	Change Claudia's email address.
+
+	Change Stefan's email address.
+
 2007-06-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1145

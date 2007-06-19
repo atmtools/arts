@@ -1,5 +1,5 @@
-/* Copyright (C) 2002
-   Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2002-2007
+   Stefan Buehler <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -18,7 +18,7 @@
 
 /*!
   \file   supergeneric.h
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Thu Jun 13 14:44:02 2002
   
   \brief  Declarations for supergeneric methods.

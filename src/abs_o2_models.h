@@ -1,4 +1,4 @@
-/* Copyright (C) 2000, 2001 Oliver Lemke <olemke@uni-bremen.de>
+/* Copyright (C) 2000-2007 Oliver Lemke <olemke@core-dump.info>
                                                                                 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -18,7 +18,6 @@
 #ifndef ABS_O2_MODELS_H_INCLUDED
 #define ABS_O2_MODELS_H_INCLUDED
 
-// Hallo ich bins, der Zeeman!
 
 #endif // ABS_O2_MODELS_H_INCLUDED
 

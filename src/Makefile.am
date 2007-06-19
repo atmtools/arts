@@ -1,4 +1,4 @@
-# Copyright (C) 2000 Stefan Buehler <sbuehler@uni-bremen.de>
+# Copyright (C) 2000-2007 Stefan Buehler <sbuehler@ltu.se>
 #
 # This file is free software; as a special exception the author gives
 # unlimited permission to copy and/or distribute it, with or without

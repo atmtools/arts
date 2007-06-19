@@ -1,4 +1,4 @@
-/* Copyright (C) 2003 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2003-2007 Stefan Buehler <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -17,7 +17,7 @@
 
 /*!
   \file   describe.h
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Feb 25 15:35:56 2003
   
   \brief  Header file for describe.cc

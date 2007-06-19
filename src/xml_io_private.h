@@ -1,4 +1,4 @@
-/* Copyright (C) 2002 Oliver Lemke <olemke@uni-bremen.de>
+/* Copyright (C) 2002-2007 Oliver Lemke <olemke@core-dump.info>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -21,7 +21,7 @@
 ////////////////////////////////////////////////////////////////////////////
 /*!
   \file   xml_io_private.h
-  \author Oliver Lemke <olemke@uni-bremen.de>
+  \author Oliver Lemke <olemke@core-dump.info>
   \date   2002-11-06
 
   \brief This file contains private function declarations and

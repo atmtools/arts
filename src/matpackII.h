@@ -1,5 +1,5 @@
-/* Copyright (C) 2001, 2002, 2003
-   Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2001-2007
+   Stefan Buehler <sbuehler@ltu.se>
    Mattias Ekstroem <ekstrom@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
@@ -19,7 +19,7 @@
 
 /*!
   \file   matpackII.h
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
   
   \brief  Header file for sparse matrices.
@@ -48,7 +48,7 @@
     is the same format used by Matlab. See Matlab User Guide for
     a description.
   
-    \author Stefan Buehler <sbuehler@uni-bremen.de>
+    \author Stefan Buehler <sbuehler@ltu.se>
     \date   Tue Jul 15 15:05:40 2003
 */
 

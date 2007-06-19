@@ -1,5 +1,4 @@
-/* Copyright (C) 2002, 2003, 2004, 2005
-   Stefan Buehler  <sbuehler@uni-bremen.de>
+/* Copyright (C) 2002-2007 Stefan Buehler  <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -18,7 +17,7 @@
 
 /*!
   \file   abs_species_tags.cc
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue May 31 17:18:22 2005
   
   \brief  Stuff related to absorption species tags.

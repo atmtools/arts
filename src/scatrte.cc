@@ -1,4 +1,4 @@
-/* Copyright (C) 2002,2003 Claudia Emde <claudia@sat.physik.uni-bremen.de>
+/* Copyright (C) 2002-2007 Claudia Emde <claudia.emde@dlr.de>
                       
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -18,7 +18,7 @@
   
 /*!
   \file   scatrte.cc
-  \author Claudia Emde <claudia@sat.physik.uni-bremen.de>
+  \author Claudia Emde <claudia.emde@dlr.de>
   \date   Wed Jun 04 11:03:57 2003
   
   \brief  This file contains functions to calculate the radiative transfer

@@ -1,4 +1,4 @@
-/* Copyright (C)  Claudia Emde <claudia@sat.physik.uni-bremen.de>
+/* Copyright (C) 2003-2007 Claudia Emde <claudia.emde@dlr.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -23,7 +23,7 @@
 
 /*!
   \file   optproperties.cc
-  \author Claudia Emde <claudia@sat.physik.uni-bremen.de>
+  \author Claudia Emde <claudia.emde@dlr.de>
   \date   Thu Mar  6 11:29:59 2003
   
   \brief  This file contains definitions and functions related to the

@@ -1,4 +1,4 @@
-/* Copyright (C) 2003 Oliver Lemke <olemke@uni-bremen.de>
+/* Copyright (C) 2003-2007 Oliver Lemke <olemke@core-dump.info>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -17,7 +17,7 @@
 
 /*!
   \file   test_mpi.cc
-  \author <olemke@uni-bremen.de>
+  \author <olemke@core-dump.info>
   \date   2003-07-02
 
   \brief  Test the mpi interface.

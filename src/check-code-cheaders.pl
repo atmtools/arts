@@ -4,7 +4,7 @@
 # C header files. These includes should be replaced by the corresponding
 # C++ header.
 #
-# Author: Oliver Lemke <olemke@uni-bremen.de>
+# Author: Oliver Lemke <olemke@core-dump.info>
 # Date:   2003-12-09
 
 my @cheaders = (

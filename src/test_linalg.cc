@@ -1,4 +1,4 @@
-/* Copyright (C) 2002 Claudia Emde <claudia@sat.physik.uni-bremen.de>
+/* Copyright (C) 2002-2007 Claudia Emde <claudia.emde@dlr.de>
                       
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -19,7 +19,7 @@
 
 /*!
   \file   test_linalg.cc
-  \author Claudia Emde <claudia@sat.physik.uni-bremen.de>
+  \author Claudia Emde <claudia.emde@dlr.de>
   \date   Thu May  2 14:37:57 2002
   
   \brief  Test for the linear algebra functions.

@@ -1,5 +1,5 @@
-/* Copyright (C) 2001, 2002, 2003
-   Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2001-2007
+   Stefan Buehler <sbuehler@ltu.se>
    Mattias Ekstroem <ekstrom@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
@@ -19,7 +19,7 @@
 
 /*!
   \file   matpackII.cc
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
   
   \brief  Implementation of sparse matrices.
@@ -83,7 +83,7 @@ Index Sparse::nnz() const
 
   \return The data element with these indices.
   
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003 
 */
 Numeric& Sparse::rw(Index r, Index c)
@@ -142,7 +142,7 @@ Numeric& Sparse::rw(Index r, Index c)
 
   \return The data element with these indices.
   
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
 */
 Numeric Sparse::operator() (Index r, Index c) const
@@ -161,7 +161,7 @@ Numeric Sparse::operator() (Index r, Index c) const
 
   \return The data element with these indices, or zero.
   
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003 */
 Numeric Sparse::ro (Index r, Index c) const
 {
@@ -199,7 +199,7 @@ Numeric Sparse::ro (Index r, Index c) const
 
 //! Default constructor.
 /*!
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003 
 */
 Sparse::Sparse() :
@@ -228,7 +228,7 @@ Sparse::Sparse() :
   \param r Row dimension of new sparse matrix.
   \param c Column dimension of new sparse matrix.
 
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003 
 */
 Sparse::Sparse(Index r, Index c) :
@@ -248,7 +248,7 @@ Sparse::Sparse(Index r, Index c) :
   
   \param m The other Sparse to copy from.
 
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003 
 */
 Sparse::Sparse(const Sparse& m) :
@@ -268,7 +268,7 @@ Sparse::Sparse(const Sparse& m) :
 /*! 
   This is important, since Sparse uses new to allocate storage.
 
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003 
 */
 Sparse::~Sparse()
@@ -503,7 +503,7 @@ void Sparse::make_I( Index r, Index c)
   \param r New row dimension.
   \param c New column dimension.
 
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
 */
 void Sparse::resize(Index r, Index c)
@@ -570,7 +570,7 @@ Sparse& Sparse::operator=(const Sparse& m)
 
   \return Output stream.
 
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
 */
 ostream& operator<<(ostream& os, const Sparse& v)
@@ -654,7 +654,7 @@ void abs(       Sparse& A,
   \param M Matrix for multiplication (sparse).
   \param x Vector for multiplication.
 
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
 */
 void mult( VectorView y,
@@ -707,7 +707,7 @@ void mult( VectorView y,
   \param B First matrix to multiply (sparse).
   \param C Second matrix to multiply (full).
 
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003 
 */
 void mult( MatrixView A,

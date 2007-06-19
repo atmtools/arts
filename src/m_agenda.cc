@@ -1,4 +1,4 @@
-/* Copyright (C) 2002 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2002-2007 Stefan Buehler <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -17,7 +17,7 @@
 
 /*!
   \file   m_agenda.cc
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Mar 15 09:12:46 2002
   
   \brief  Workspace methods for Agenda.

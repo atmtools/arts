@@ -1,5 +1,5 @@
-/* Copyright (C) 2003
-   Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2003-2007
+   Stefan Buehler <sbuehler@ltu.se>
    Mattias Ekstroem <ekstrom@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
@@ -19,7 +19,7 @@
 
 /*!
   \file   test_sparse.cc
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:10:44 2003
   
   \brief  Tests for sparse matrices.

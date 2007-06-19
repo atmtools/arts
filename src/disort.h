@@ -1,4 +1,4 @@
-/* Copyright (C) 2006 Claudia Emde <claudia@sat.physik.uni-bremen.de>
+/* Copyright (C) 2006-2007 Claudia Emde <claudia.emde@dlr.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -17,7 +17,7 @@
 
 /**
  \file   disort.h
- \author Claudia Emde <claudia@sat.physik.uni-bremen.de>
+ \author Claudia Emde <claudia.emde@dlr.de>
  \date   Tue Feb  7 11:48:17 2006
   
  \brief  Functions for disort interface

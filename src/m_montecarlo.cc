@@ -1,5 +1,4 @@
-
-/* Copyright (C) 2003 Cory Davis <cory@met.ed.ac.uk>
+/* Copyright (C) 2003-2007 Cory Davis <cory@met.ed.ac.uk>
                             
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the

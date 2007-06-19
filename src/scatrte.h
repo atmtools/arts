@@ -1,4 +1,4 @@
-/* Copyright (C) 2003 Claudia Emde <claudia@sat.physik.uni-bremen.de>
+/* Copyright (C) 2003-2007 Claudia Emde <claudia.emde@dlr.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -23,7 +23,7 @@
 
 /*!
   \file   scatrte.h
-  \author Claudia Emde <claudia@sat.physik.uni-bremen.de>
+  \author Claudia Emde <claudia.emde@dlr.de>
   \date   2003-06-03
   
   \brief  Radiative transfer in cloudbox.

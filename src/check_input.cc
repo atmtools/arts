@@ -1,5 +1,6 @@
-/* Copyright (C) 2002 Patrick Eriksson <patrick@rss.chalmers.se>
-                      Stefan Buehler   <sbuehler@uni-bremen.de>
+/* Copyright (C) 2002-2007
+   Patrick Eriksson <patrick@rss.chalmers.se>
+   Stefan Buehler   <sbuehler@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
