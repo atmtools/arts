@@ -1,3 +1,12 @@
+2007-07-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1148
+
+	* src/methods.cc:
+
+	Sort the methods I added some time ago alphabetically.
+	Minor indentation fixes.
+
 2007-06-19  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1147
