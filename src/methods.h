@@ -39,8 +39,9 @@ public:
 
   //! Default constructor.
   MdRecord():
-    mname(      ""              ),
+    mname(        ""              ),
     mdescription( ""              ),
+    mauthors(     0               ),
     moutput(      0               ),  
     minput(       0               ),   
     mgoutput(     0               ),  
@@ -55,6 +56,7 @@ public:
   // Initializing constructor. Implementation in methods_aux.cc.
   MdRecord(const char                   name[],
            const char                   description[],
+           const MakeArray<String>&     authors,
            const MakeArray<Index>&      output,
            const MakeArray<Index>&      input,   
            const MakeArray<Index>&      goutput,
@@ -66,18 +68,19 @@ public:
            );
 
   // Methods returning the lookup information:
-  const String&            Name()           const { return mname;                }   
-  const String&            Description()    const { return mdescription;         }
-  const ArrayOfIndex&      Output()         const { return moutput;              }
-  const ArrayOfIndex&      Input()          const { return minput;               }
-  const ArrayOfIndex&      GOutput()        const { return mgoutput;             }
-  const ArrayOfIndex&      GInput()         const { return mginput;              }
-  const Array<String>&     Keywords()       const { return mkeywords;            }
-  const Array<TokValType>& Types()          const { return mtypes;               }
-  bool                     AgendaMethod()   const { return magenda_method;       }
-  bool                     Supergeneric()   const { return msupergeneric;        }
-  bool                     SuppressHeader() const { return msuppress_header;     }
-  Index                    ActualGroup()    const { return mactual_group;        }
+  const String&            Name()           const { return mname; }   
+  const String&            Description()    const { return mdescription; }
+  const ArrayOfString&     Authors()        const { return mauthors; }   
+  const ArrayOfIndex&      Output()         const { return moutput; }
+  const ArrayOfIndex&      Input()          const { return minput; }
+  const ArrayOfIndex&      GOutput()        const { return mgoutput; }
+  const ArrayOfIndex&      GInput()         const { return mginput; }
+  const Array<String>&     Keywords()       const { return mkeywords; }
+  const Array<TokValType>& Types()          const { return mtypes; }
+  bool                     AgendaMethod()   const { return magenda_method; }
+  bool                     Supergeneric()   const { return msupergeneric; }
+  bool                     SuppressHeader() const { return msuppress_header; }
+  Index                    ActualGroup()    const { return mactual_group; }
 
   // Expand supergeneric method record to an actual group
   // (documentation with implementation in method_aux.cc):
@@ -114,6 +117,9 @@ private:
 
   //! A text string describing this method.
   String mdescription;
+
+  //! Author(s) of this method.
+  ArrayOfString mauthors;
 
   //! Workspace Output.
   ArrayOfIndex moutput;

@@ -1,3 +1,18 @@
+2007-07-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1149
+
+	* src/make_auto_md_h.cc (write_method_header_documentation):
+
+	Added function to generate doxygen documentation automatically for
+	workspace methods.
+
+	* src/methods.h, src/methods_aux.cc:
+
+	Added a list of authors to MdRecord.
+
+	* src/methods.cc: Added AUTHORS() macro to all workspace methods.
+
 2007-07-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1148

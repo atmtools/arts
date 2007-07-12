@@ -44,6 +44,7 @@
 */
 MdRecord::MdRecord(const char                   name[],
                    const char                   description[],
+                   const MakeArray<String>&     authors,
                    const MakeArray<Index>&      output,
                    const MakeArray<Index>&      input,   
                    const MakeArray<Index>&      goutput,
@@ -54,6 +55,7 @@ MdRecord::MdRecord(const char                   name[],
                    bool                         suppress_header ) :
     mname(          name                  ),
     mdescription(   description           ),    
+    mauthors(       authors               ),
     moutput(        output                ),  
     minput(         input                 ),   
     mgoutput(       goutput               ),  
@@ -342,8 +344,31 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   os << "\n*-------------------------------------------------------------------*\n"
      << "Workspace method = " << mdr.Name() << 
         "\n---------------------------------------------------------------------\n"
-     << "\n" << mdr.Description() << "\n" << 
-        "\n---------------------------------------------------------------------\n";
+     << "\n" << mdr.Description() << "\n";
+
+  if (mdr.Description()[mdr.Description().nelem() - 1] != '\n')
+    {
+      os << "\n";
+    }
+
+  {
+    bool is_first_author = true;
+    for (Index i = 0; i < mdr.Authors().nelem(); i++)
+      {
+        if (is_first_author)
+          {
+            os << "Authors: ";
+            is_first_author = false;
+          }
+        else
+          os << "         ";
+
+        os << mdr.Authors()[i];
+      }
+    os << "\n";
+  }
+
+  os << "\n---------------------------------------------------------------------\n";
 
   //  os << "\n-----\nName = " << mdr.Name() << '\n\n'
   //     << "Description =\n" << mdr.Description() << "\n\n";

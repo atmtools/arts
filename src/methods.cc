@@ -38,6 +38,7 @@
 // Some #defines and typedefs to make the records better readable:
 #define NAME(x) x
 #define DESCRIPTION(x) x
+#define AUTHORS  MakeArray<String>
 #define OUTPUT   MakeArray<Index>
 #define INPUT    MakeArray<Index>
 #define GOUTPUT  MakeArray<Index>
@@ -85,8 +86,9 @@
          "\n"
          "Keywords:\n"
          "   delta_t   : Time increment between observations.\n"
-         "   z_tan_lim : Vector with start and stop tangent altitudes."
+         "   z_tan_lim : Vector with start and stop tangent altitudes.\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( z_plat_, abs_p_, z_abs_, l_step_, refr_, refr_lfac_,
                refr_index_, r_geoid_, z_surface_ ),
@@ -114,6 +116,7 @@
          "Keywords:\n"
          "   "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT(),
@@ -152,6 +155,7 @@ void define_md_data_raw()
                     "\n"
                     "This only works for a 1D atmosphere!"
                    ) ,
+        AUTHORS( "unknown" ),
         OUTPUT( abs_p_, abs_t_, abs_vmrs_ ),
         INPUT( atmosphere_dim_, p_grid_, t_field_, vmr_field_ ),
         GOUTPUT( ),
@@ -176,6 +180,7 @@ void define_md_data_raw()
                     "Note that the original *f_grid* is distroyed. (This is not a problem\n"
                     "if the method is used inside an agenda.)\n"
                    ) ,
+        AUTHORS( "unknown" ),
         OUTPUT( f_grid_, abs_p_, abs_t_, abs_vmrs_ ),
         INPUT( f_index_, f_grid_, rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         GOUTPUT( ),
@@ -192,6 +197,7 @@ void define_md_data_raw()
                     "This function calculates both, the total absorption (*abs_coef*)\n"
                     "and the absorption per tag group (*abs_coef_per_species*).\n"
                    ) ,
+        AUTHORS( "unknown" ),
         OUTPUT( abs_coef_  , abs_coef_per_species_ ),
         INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_n2_, abs_h2o_, abs_vmrs_, 
                abs_lines_per_species_, abs_lineshape_,
@@ -222,6 +228,7 @@ void define_md_data_raw()
                     "and for the sum of all tag group to get the total absorption\n"
                     "coefficient (output: *abs_coef*)\n"
                    ),
+        AUTHORS( "unknown" ),
         OUTPUT(	abs_coef_, abs_coef_per_species_ ),
         INPUT( abs_xsec_per_species_, abs_vmrs_ ),
         GOUTPUT( ),
@@ -243,6 +250,7 @@ void define_md_data_raw()
                     "\n"
                     "The implementation follows abs_coefCalc."
                    ) ,
+        AUTHORS( "unknown" ),
         OUTPUT( abs_coef_ ),
         INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_n2_, abs_h2o_, abs_vmrs_, 
                abs_lines_per_species_, abs_lineshape_,
@@ -274,6 +282,7 @@ void define_md_data_raw()
          "                for the model given. The meaning of the parameters and\n"
          "                how many parameters are required depends on the model.\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_cont_names_, 
                 abs_cont_models_,
                 abs_cont_parameters_ ),
@@ -299,8 +308,9 @@ void define_md_data_raw()
          "   Formally, the continuum description workspace variables are required\n"
          "by the absorption calculation methods (e.g., *abs_coefCalc*). Therefore you\n"
          "always have to call at least *abs_cont_descriptionInit*, even if you do\n"
-         "not want to use any continua."
+         "not want to use any continua.\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_cont_names_, 
                 abs_cont_models_,
                 abs_cont_parameters_ ),
@@ -322,8 +332,8 @@ void define_md_data_raw()
                     "calculation of oxygen line brodening requires water vapour profile).\n"
                     "Then this function can be used to copy the profile of the first tag\n"
                     "group of water.\n"
-                    "\n"
                    ),
+        AUTHORS( "unknown" ),
         OUTPUT(	abs_h2o_ ),
         INPUT( abs_species_, abs_vmrs_ ),
         GOUTPUT( ),
@@ -384,6 +394,7 @@ void define_md_data_raw()
                     "   shape               : The general profile according to an approximation.\n"
                     "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
                     "   cutoff              : The frequency at which a cutoff can be made.\n"),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lineshape_ ),
         INPUT( abs_species_ ),
         GOUTPUT( ),
@@ -439,6 +450,7 @@ void define_md_data_raw()
                     "   shape               : The general profile according to an approximation.\n"
                     "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
                     "   cutoff              : The frequency at which a cutoff can be made.\n"),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lineshape_ ),
         INPUT( abs_species_ ),
         GOUTPUT( ),
@@ -460,7 +472,8 @@ void define_md_data_raw()
                     "Keywords: \n"
                     "   filename : Name (and path) of the catalogue file.\n"
                     "   fmin     : Minimum frequency for lines to read in Hz.\n"
-                    "   fmax     : Maximum frequency for lines to read in Hz."),
+                    "   fmax     : Maximum frequency for lines to read in Hz.\n"),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -482,10 +495,13 @@ void define_md_data_raw()
  		    "species / isotope combinations and that the line data \n"
 		    "file must be sorted by increasing frequency\n"
 		    "\n"
+        "WWW access of the HITRAN catalog: http://www.hitran.com/\n"
+		    "\n"
 		    "Keywords: \n"
 		    "   filename : Name (and path) of the catalogue file.\n"
 		    "   fmin     : Minimum frequency for lines to read in Hz.\n"
-		    "   fmax     : Maximum frequency for lines to read in Hz."),
+		    "   fmax     : Maximum frequency for lines to read in Hz.\n"),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -507,13 +523,16 @@ void define_md_data_raw()
                     "\n"
                     "The database must be sorted by increasing frequency!\n"
                     "\n"
+                    "WWW access of the HITRAN catalog: http://www.hitran.com/\n"
+                    "\n"
                     "For data in the Hitran 1986-2001 format use the workspace \n"
                     "method: abs_linesReadFromHitran\n"
                     "\n"
                     "Keywords: \n"
                     "   filename : Name (and path) of the catalogue file.\n"
                     "   fmin     : Minimum frequency for lines to read in Hz.\n"
-                    "   fmax     : Maximum frequency for lines to read in Hz."),
+                    "   fmax     : Maximum frequency for lines to read in Hz.\n"),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -532,10 +551,13 @@ void define_md_data_raw()
                     "Please note that all lines must correspond\n"
                     "to the legal species / isotope combinations.\n"
                     "\n"
+                    "WWW access of the JPL catalog: http://spec.jpl.nasa.gov/\n"
+                    "\n"
                     "Keywords: \n"
                     "   filename : Name (and path) of the catalogue file.\n"
                     "   fmin     : Minimum frequency for lines to read in Hz.\n"
-                    "   fmax     : Maximum frequency for lines to read in Hz."),
+                    "   fmax     : Maximum frequency for lines to read in Hz.\n"),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -557,7 +579,8 @@ void define_md_data_raw()
                     "Keywords: \n"
                     "   filename : Name (and path) of the catalogue file.\n"
                     "   fmin     : Minimum frequency for lines to read in Hz.\n"
-                    "   fmax     : Maximum frequency for lines to read in Hz."),
+                    "   fmax     : Maximum frequency for lines to read in Hz.\n"),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -573,7 +596,8 @@ void define_md_data_raw()
                     "\n"
                     "For each line at frequency +f in *abs_lines_per_species* a corresponding\n"
                     "entry at frequency -f is added to *abs_lines_per_species*.The mirror \n"
-                    "lines are appended to the line lists after the original lines."),
+                    "lines are appended to the line lists after the original lines.\n"),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lines_per_species_ ),
         INPUT( abs_lines_per_species_ ),
         GOUTPUT( ),
@@ -589,6 +613,7 @@ void define_md_data_raw()
                     "from the *abs_lines_per_species*. This can save computation time.\n"
                     "It should be particularly useful to call this method after\n"
                     "*abs_lines_per_speciesAddMirrorLines*."),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lines_per_species_ ),
         INPUT( abs_lines_per_species_, abs_lineshape_, f_grid_ ),
         GOUTPUT( ),
@@ -606,7 +631,8 @@ void define_md_data_raw()
                     "specified in the controlfile. The lines are assigned to \n"
                     "the tag groups in the order as the groups  are specified.\n"
                     "That means if you do [\"O3-666\",\"O3\"],the last group O3 \n"
-                    "gets assigned all the O3 lines that do not fit in the first group."),
+                    "gets assigned all the O3 lines that do not fit in the first group.\n"),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lines_per_species_ ),
         INPUT( abs_lines_, abs_species_ ),
         GOUTPUT( ),
@@ -667,6 +693,7 @@ void define_md_data_raw()
                     "   formats   : allowed formats are HITRAN96,MYTRAN2,JPL,ARTS \n"
                     "   fmin      : Minimum frequency for lines to read in Hz.\n"
                     "   fmax      : Maximum frequency for lines to read in Hz.\n"),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lines_per_species_ ),
         INPUT( abs_species_ ),
         GOUTPUT( ),
@@ -685,6 +712,7 @@ void define_md_data_raw()
          "to compute line spectra. Formally, abs_coefCalc will still require\n"
          "abs_lines_per_species to be set.\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lines_per_species_ ),
         INPUT( abs_species_ ),
         GOUTPUT( ),
@@ -709,6 +737,7 @@ void define_md_data_raw()
          "Of course, the method also performs quite a lot of checks on the\n"
          "table. If something is not ok, a runtime error is thrown."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lookup_, abs_lookup_is_adapted_ ),
         INPUT(  abs_lookup_, abs_species_, f_grid_ ),
         GOUTPUT( ),
@@ -723,6 +752,7 @@ void define_md_data_raw()
         (
          "Creates a gas absorption lookup table. FIXME: Description"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lookup_, abs_lookup_is_adapted_ ),
         INPUT( abs_species_, 
                abs_lines_per_species_,
@@ -756,6 +786,7 @@ void define_md_data_raw()
          "This is mainly there to help developers. For example, you can write\n"
          "the empty table to an XML file, to see the file format."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_lookup_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -786,6 +817,7 @@ void define_md_data_raw()
          "Usage Example:\n"
          "   abs_nlsSet{[\"H2O-PWR98\"]}"                    
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(	abs_nls_ ),
         INPUT( abs_species_ ),
         GOUTPUT( ),
@@ -800,6 +832,7 @@ void define_md_data_raw()
                     "Sets abs_n2 to the profile of the first tag group containing\n"
                     "molecular nitrogen. See *abs_h2oSet* for more details."
                    ),
+        AUTHORS( "unknown" ),
         OUTPUT(	abs_n2_ ),
         INPUT( abs_species_, abs_vmrs_ ),
         GOUTPUT( ),
@@ -823,6 +856,7 @@ void define_md_data_raw()
          "all frequencies (f_index<0). The dimension of the output\n"
          "abs_scalar_gas is adjusted accordingly."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_scalar_gas_ ),
         INPUT(  abs_lookup_, abs_lookup_is_adapted_,
                 f_index_, 
@@ -841,6 +875,7 @@ void define_md_data_raw()
          "explicit line-by-line calculation into the\n"
          "*abs_scalar_gas_agenda*. See also method *AbsInputFromRteScalars*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_scalar_gas_ ),
         INPUT(  abs_coef_per_species_ ),
         GOUTPUT( ),
@@ -872,6 +907,7 @@ void define_md_data_raw()
          "The calculation itself is performed by the\n"
          "*abs_scalar_gas_agenda*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_field_ ),
         INPUT(  abs_scalar_gas_agenda_,
                 f_index_,
@@ -903,6 +939,7 @@ void define_md_data_raw()
          "             add. Inside the String, separate the tags by commas\n"
          "             (plus optional blanks).\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_species_ ),
         INPUT(  abs_species_ ),
         GOUTPUT(),
@@ -926,6 +963,7 @@ void define_md_data_raw()
          "method only handles a single tag group, in contrast to \n"
          "*abs_speciesAdd*"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_species_, jacobian_quantities_, jacobian_agenda_ ),
         INPUT( abs_species_, jacobian_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_ ),
@@ -951,6 +989,7 @@ void define_md_data_raw()
          "   basename : The name and path of a particular atmospheric scenario.\n"
          "              For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_species_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -965,6 +1004,7 @@ void define_md_data_raw()
         (
          "Sets  *abs_speciesSet* to be empty."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_species_ ),
         INPUT(),
         GOUTPUT(),
@@ -1022,6 +1062,7 @@ void define_md_data_raw()
          "   line list for this species. Presumably, we are using a complete\n"
          "   absorption model like MPM89 for H2O in this case."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_species_ ),
         INPUT(),
         GOUTPUT(),
@@ -1083,6 +1124,7 @@ void define_md_data_raw()
          "different gas species and add the result to the first element of the\n"
          "absorption vector."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(abs_vec_),
         INPUT(abs_vec_, abs_scalar_gas_),
         GOUTPUT(),
@@ -1109,6 +1151,7 @@ void define_md_data_raw()
          "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
          "are specified in the control file.  \n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(abs_vec_),
         INPUT(abs_vec_, abs_vec_spt_, pnd_field_, atmosphere_dim_,
               scat_p_index_,  scat_lat_index_, scat_lon_index_),
@@ -1132,6 +1175,7 @@ void define_md_data_raw()
          "Note, that the vector is not really a vector, because it has a\n"
          "leading frequency dimension."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(abs_vec_),
         INPUT(f_grid_, stokes_dim_, f_index_),
         GOUTPUT(),
@@ -1145,6 +1189,7 @@ void define_md_data_raw()
         DESCRIPTION(
                     "Calculate cross sections per tag group for continua.\n"
                    ),
+        AUTHORS( "unknown" ),
         OUTPUT(	abs_xsec_per_species_ ),
         INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_n2_, abs_h2o_, abs_vmrs_,
                abs_cont_names_, abs_cont_parameters_,
@@ -1160,6 +1205,7 @@ void define_md_data_raw()
         DESCRIPTION(
                     "Calculate cross sections per tag group for line spectra.\n"
                    ),
+        AUTHORS( "unknown" ),
         OUTPUT(	abs_xsec_per_species_ ),
         INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_h2o_, abs_vmrs_, 
                abs_lines_per_species_, abs_lineshape_ ),
@@ -1179,6 +1225,7 @@ void define_md_data_raw()
                     "and *abs_xsec_per_speciesAddConts* just add to *abs_xsec_per_species*.\n"
                     "The size is determined from *tgs*.\n"
                    ),
+        AUTHORS( "unknown" ),
         OUTPUT( abs_xsec_per_species_ ),
         INPUT( abs_species_, f_grid_, abs_p_ ),
         GOUTPUT( ),
@@ -1196,6 +1243,7 @@ void define_md_data_raw()
          "Generic input:\n"
          "   Agenda : The agenda.\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT(),
@@ -1228,6 +1276,7 @@ void define_md_data_raw()
          "Keywords:\n"
          "   No keywords, but other methods can appear in the method body."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(  ),
         INPUT(  ),
         GOUTPUT( Agenda_ ),
@@ -1245,6 +1294,7 @@ void define_md_data_raw()
          "\n"
          "Sets *antenna_dim* to 1 and sets *mblock_aa_grid* to be empty."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( antenna_dim_, mblock_aa_grid_ ),
         INPUT(),
         GOUTPUT(),
@@ -1264,6 +1314,7 @@ void define_md_data_raw()
          "It is only allowed to set *antenna_dim* to 2 when *atmosphere_dim*\n"
          "equals 3."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( antenna_dim_ ),
         INPUT( atmosphere_dim_ ),
         GOUTPUT(),
@@ -1284,6 +1335,7 @@ void define_md_data_raw()
          "is appended must have at least one element but not more than\n"
          "the number of polarisation given by *sensor_pol*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( antenna_diagram_ ),
         INPUT( sensor_pol_ ),
         GOUTPUT(),
@@ -1310,6 +1362,7 @@ void define_md_data_raw()
          "Keywords:\n"
          "        element : The index to be set."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( ArrayOfMatrix_ ),
@@ -1325,6 +1378,7 @@ void define_md_data_raw()
          "Sets a String array according the given text.\n"
          "The format is text = [\"String1\",\"String2\",...]"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( ArrayOfString_ ),
@@ -1349,6 +1403,7 @@ void define_md_data_raw()
          "arbitrary grids on the grids for the calculation\n"
          "(*p_grid*, *lat_grid*, *lon_grid*). "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(t_field_, z_field_, vmr_field_),
         INPUT(p_grid_, lat_grid_, lon_grid_, t_field_raw_, z_field_raw_, 
               vmr_field_raw_, atmosphere_dim_),
@@ -1374,6 +1429,7 @@ void define_md_data_raw()
          "to create a 2D or 3D version of a 1D case, a demand is also that\n"
          "the geoid radius is set to be constant for all latitudes/longitudes."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( t_field_, z_field_, vmr_field_ ),
         INPUT( p_grid_, lat_grid_, lon_grid_, t_field_raw_, z_field_raw_, 
                vmr_field_raw_, atmosphere_dim_),
@@ -1393,6 +1449,7 @@ void define_md_data_raw()
          "\n"
          "The latitude and longitude grids are set to be empty."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( atmosphere_dim_, lat_grid_, lon_grid_ ),
         INPUT(),
         GOUTPUT(),
@@ -1413,6 +1470,7 @@ void define_md_data_raw()
          "and *meridian_angle_1d* are given values that cause an error\n"
          "message if used."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( atmosphere_dim_, lon_grid_, lat_1d_, meridian_angle_1d_),
         INPUT(),
         GOUTPUT(),
@@ -1432,6 +1490,7 @@ void define_md_data_raw()
          "The variables *lat_1d* and *meridian_angle_1d* are given\n"
          "values that cause an error message if used."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
         INPUT(),
         GOUTPUT(),
@@ -1472,6 +1531,7 @@ void define_md_data_raw()
          "/smiles_local/arts-data/atmosphere/fascod/tropical \n"
          "\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(t_field_raw_, z_field_raw_, vmr_field_raw_),
         INPUT(abs_species_),
         GOUTPUT(),
@@ -1494,6 +1554,7 @@ void define_md_data_raw()
          "conditions when scattering inside the cloud box is solved by the\n"
          "DOIT method."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
                 cloudbox_on_),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
@@ -1521,6 +1582,7 @@ void define_md_data_raw()
          "\n"
          "This method can only be used for 3D cases."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
                 cloudbox_on_),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
@@ -1544,6 +1606,7 @@ void define_md_data_raw()
          "The function sets *cloudbox_on* to 0, *cloudbox_limits* to be an\n"
          "empty vector and *iy_cloudbox_agenda* to an empty agenda."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( cloudbox_on_, cloudbox_limits_, iy_cloudbox_agenda_ ),
         INPUT(),
         GOUTPUT(),
@@ -1560,6 +1623,7 @@ void define_md_data_raw()
          "cover the full atmosphere.\n"
          "This method sets *cloudbox_limits* accordingly. \n"
          ), 
+        AUTHORS( "unknown" ),
         OUTPUT(cloudbox_on_, cloudbox_limits_),
         INPUT(p_grid_),
         GOUTPUT(),
@@ -1586,6 +1650,7 @@ void define_md_data_raw()
          "replaced by this method. \n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( pnd_field_, scat_data_raw_),
         INPUT( p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT( ),
@@ -1628,6 +1693,7 @@ void define_md_data_raw()
          "   lon1 : Lower longitude point.\n"
          "   lon2 : Upper longitude point."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( cloudbox_on_, cloudbox_limits_),
         INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT( ),
@@ -1670,6 +1736,7 @@ void define_md_data_raw()
          "   lon1 : Lower longitude point.\n"
          "   lon2 : Upper longitude point."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( cloudbox_on_, cloudbox_limits_),
         INPUT( atmosphere_dim_, z_field_, lat_grid_, lon_grid_ ),
         GOUTPUT( ),
@@ -1702,6 +1769,7 @@ void define_md_data_raw()
          "   output : Which sideband(s) to output, \"lower\", \"upper\" or\n"
          "            \"double\""
          ),
+        AUTHORS( "unknown" ),
          OUTPUT( sensor_response_f_, y_ ),
          INPUT( sensor_pol_, sensor_response_za_, sensor_response_aa_, lo_,
                 atmosphere_dim_, sensor_pos_ ),
@@ -1737,6 +1805,7 @@ void define_md_data_raw()
          "Supergeneric input:\n"
          "   Any_ : The input variable."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Any_ ),
@@ -1755,6 +1824,7 @@ void define_md_data_raw()
          "Detailed documentation to be added\n."
          "\n"
          ),
+        AUTHORS( "unknown" ),
          OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, 
                 f_index_, scat_data_mono_, doit_i_field1D_spectrum_),
          INPUT(cloudbox_limits_, stokes_dim_, opt_prop_part_agenda_, 
@@ -1804,6 +1874,7 @@ void define_md_data_raw()
          "cases to speed up the calculation. \n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( doit_za_grid_size_, scat_aa_grid_, scat_za_grid_),
         INPUT(),
         GOUTPUT(),
@@ -1826,6 +1897,7 @@ void define_md_data_raw()
          "can be included.\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, doit_i_field1D_spectrum_),
         INPUT( doit_i_field_, f_grid_, f_index_,   p_grid_, lat_grid_, 
                lon_grid_, scat_za_grid_, scat_aa_grid_, stokes_dim_,
@@ -1861,6 +1933,7 @@ md_data_raw.push_back
          "This method can be used in *doit_convergence_test_agenda*.\n"
          "\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(doit_conv_flag_, doit_iteration_counter_),
         INPUT(doit_conv_flag_, doit_iteration_counter_,
               doit_i_field_, doit_i_field_old_),
@@ -1888,6 +1961,7 @@ md_data_raw.push_back
          "DOIT result might be wrong. \n" 
          "\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(doit_conv_flag_, doit_iteration_counter_),
         INPUT(doit_conv_flag_, doit_iteration_counter_, 
               doit_i_field_, doit_i_field_old_, f_grid_, f_index_),
@@ -1923,6 +1997,7 @@ md_data_raw.push_back
          "This method can be used in *doit_convergence_test_agenda*.\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(doit_conv_flag_, doit_iteration_counter_),
         INPUT(doit_conv_flag_, doit_iteration_counter_,
               doit_i_field_, doit_i_field_old_, f_grid_, f_index_),
@@ -1942,6 +2017,7 @@ md_data_raw.push_back
          "to initialize the required WSVs. \n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(scat_p_index_, scat_lat_index_, scat_lon_index_, 
                scat_za_index_, scat_aa_index_, doit_scat_field_,
                doit_i_field_, doit_za_interp_),
@@ -1974,6 +2050,7 @@ md_data_raw.push_back
          "      supported.\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_),
         INPUT( doit_i_field_, doit_scat_field_agenda_, doit_rte_agenda_, 
                doit_conv_test_agenda_),
@@ -2001,6 +2078,7 @@ md_data_raw.push_back
          "workspace variable *doit_i_field*.\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_),
         INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, f_grid_, 
                f_index_, p_grid_, lat_grid_, lon_grid_, 
@@ -2023,6 +2101,7 @@ md_data_raw.push_back
          "workspace variable *doit_i_field*.\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_),
         INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, p_grid_, lat_grid_, 
                lon_grid_, 
@@ -2048,6 +2127,7 @@ md_data_raw.push_back
          "It is recommended to use *doit_i_fieldUpdateSeq1D*.\n"
          "\n" 
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_),
         INPUT(doit_i_field_old_, doit_scat_field_, cloudbox_limits_, 
               abs_scalar_gas_agenda_,
@@ -2079,6 +2159,7 @@ md_data_raw.push_back
          "because it is the most efficient and accurate method.\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_),
         INPUT(doit_i_field_, doit_scat_field_, cloudbox_limits_, 
               abs_scalar_gas_agenda_,
@@ -2109,6 +2190,7 @@ md_data_raw.push_back
          "be used for limb simulations. \n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_, scat_za_index_),
         INPUT(doit_scat_field_, cloudbox_limits_, 
               abs_scalar_gas_agenda_,
@@ -2140,6 +2222,7 @@ md_data_raw.push_back
 //          "calculations.\n"
 //          "\n " 
 //         ),
+//         AUTHORS( "unknown" ),
 //         OUTPUT(doit_i_field_, rte_pressure_, rte_temperature_,
 //                rte_vmr_list_, scat_za_index_, scat_aa_index_, ext_mat_,
 //                abs_vec_,
@@ -2176,6 +2259,7 @@ md_data_raw.push_back
          "module or an independent pixel approach applying DOIT-1D. \n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_),
         INPUT(doit_i_field_, doit_scat_field_, cloudbox_limits_, 
               abs_scalar_gas_agenda_,
@@ -2205,6 +2289,7 @@ md_data_raw.push_back
          "which is used in the radiative transfer part (*doit_i_fieldUpdateXXX*).\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( doit_scat_field_ ),
         INPUT( doit_scat_field_, pha_mat_spt_agenda_,
                doit_i_field_, pnd_field_, t_field_, atmosphere_dim_, 
@@ -2242,6 +2327,7 @@ md_data_raw.push_back
          "For more information please refer to AUG.\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( doit_scat_field_),
         INPUT( doit_scat_field_, pha_mat_spt_agenda_,
                doit_i_field_, pnd_field_, t_field_, atmosphere_dim_, 
@@ -2274,6 +2360,7 @@ md_data_raw.push_back
          "*pha_mat_sptFromDataDOITOpt*. \n"
          "\n" 
           ),
+        AUTHORS( "unknown" ),
         OUTPUT( pha_mat_sptDOITOpt_, scat_data_mono_),
         INPUT( doit_za_grid_size_, scat_aa_grid_, scat_data_raw_, f_grid_, 
                f_index_, atmosphere_dim_, stokes_dim_),
@@ -2307,6 +2394,7 @@ md_data_raw.push_back
          "   'iterations = [0]'.\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT(doit_iteration_counter_, doit_i_field_),
         GOUTPUT( ),
@@ -2335,6 +2423,7 @@ md_data_raw.push_back
          "Note: The method works only for a 1D atmosphere and for one \n"
          "frequency.\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(doit_za_grid_opt_),
         INPUT(doit_i_field_, scat_za_grid_, doit_za_interp_),
         GOUTPUT(),
@@ -2357,6 +2446,7 @@ md_data_raw.push_back
          "  interp_method - 'linear' or 'polynomial' \n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( doit_za_interp_ ),
         INPUT(atmosphere_dim_),
         GOUTPUT(),
@@ -2383,6 +2473,7 @@ md_data_raw.push_back
          "Supergeneric output:\n"
          "   Any_ : The input variable."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Any_ ),
@@ -2402,6 +2493,7 @@ md_data_raw.push_back
          "Sets *emission* for cases when emission is considered and local\n"
          "thermodynamic equilibrium is valid."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( emission_ ),
         INPUT( f_grid_, rte_temperature_ ),
         GOUTPUT(),
@@ -2425,6 +2517,7 @@ md_data_raw.push_back
          "Keywords: \n"
          "   msg : String describing the error."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
@@ -2443,6 +2536,7 @@ md_data_raw.push_back
          "files. You can insert it anywhere in the control file. When\n"
          "it is reached, it will terminate the program."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
@@ -2460,6 +2554,7 @@ md_data_raw.push_back
          "The task of this method is to sum up the gas absorption of the\n"
          "different gas species and add the result to the extinction matrix."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(ext_mat_),
         INPUT(ext_mat_, abs_scalar_gas_),
         GOUTPUT( ),
@@ -2485,6 +2580,7 @@ md_data_raw.push_back
          "*pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given \n"
          "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"         "are specified in the control file.  \n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( ext_mat_  ),
         INPUT( ext_mat_, ext_mat_spt_, pnd_field_, atmosphere_dim_, 
                scat_p_index_, scat_lat_index_, scat_lon_index_),
@@ -2508,6 +2604,7 @@ md_data_raw.push_back
          "Note, that the matrix is not really a matrix, because it has a\n"
          "leading frequency dimension."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(ext_mat_ ),
         INPUT(f_grid_, stokes_dim_, f_index_),
         GOUTPUT( ),
@@ -2522,6 +2619,7 @@ md_data_raw.push_back
         (
          "Sets an index variable that acts as an on/off flag to 0."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Index_ ),
@@ -2536,6 +2634,7 @@ md_data_raw.push_back
         (
          "Sets an index variable that acts as an on/off flag to 1."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Index_ ),
@@ -2554,6 +2653,7 @@ md_data_raw.push_back
          "Must be called between importing/creating raw absorption table and\n"
          "call of *abs_lookupAdapt*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( f_grid_  ),
         INPUT(  abs_lookup_ ),
         GOUTPUT( ),
@@ -2583,6 +2683,7 @@ md_data_raw.push_back
          "   tot_width   : The total width of the relative grid.\n"
          "   max_spacing : The maximum step between grid points."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -2618,6 +2719,7 @@ md_data_raw.push_back
          "Supergeneric input:\n"
          "   Any_ : The input variable."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT(),
@@ -2640,6 +2742,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value : A positive integer." 
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Index_ ),
@@ -2656,6 +2759,7 @@ md_data_raw.push_back
          "\n"
          "Input and output can be same variable."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Index_ ),
@@ -2679,6 +2783,7 @@ md_data_raw.push_back
          "Generic input:\n"
          "   Tensor3 : Field to interpolate." 
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
                rte_gp_p_, rte_gp_lat_, rte_gp_lon_ ),
@@ -2703,6 +2808,7 @@ md_data_raw.push_back
          "Generic input:\n"
          "   Matrix : Field to interpolate." 
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( atmosphere_dim_, lat_grid_, lon_grid_, 
                rte_gp_lat_, rte_gp_lon_ ),
@@ -2731,6 +2837,7 @@ md_data_raw.push_back
          "\n"
          "Interpolation of the internal field is not yet possible."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( iy_ ),
         INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, doit_i_field1D_spectrum_,
                rte_gp_p_, rte_gp_lat_,
@@ -2752,6 +2859,7 @@ md_data_raw.push_back
          "Works so far only for 1D cases, and accordingly a cubic\n"
          "interpolation along *scat_za_grid* is performed."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( iy_ ),
         INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, doit_i_field1D_spectrum_,
                rte_gp_p_, rte_gp_lat_,
@@ -2797,6 +2905,7 @@ md_data_raw.push_back
          "  unit    : Retrieval unit. See above.\n"
          "  dx      : Size of perturbation."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT(),
@@ -2826,6 +2935,7 @@ md_data_raw.push_back
          "  Vector : The latitude grid of the retrieval field.\n"
          "  Vector : The longitude grid of the retrieval field.\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
                pnd_field_, pnd_field_perturb_, cloudbox_limits_ ),
@@ -2860,6 +2970,7 @@ md_data_raw.push_back
          "  dza                 : The size of the perturbation.\n"
          "  poly_order          : Order of the polynomial."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, sensor_pos_, sensor_time_ ),
         GOUTPUT(),
@@ -2898,6 +3009,7 @@ md_data_raw.push_back
          "  method  : \"analytic\" or \"perturbation\".\n"
          "  dx      : Size of perturbation."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT(),
@@ -2916,6 +3028,7 @@ md_data_raw.push_back
          "as the methods called performs perturbations to obtain cahnges in\n"
          "*y*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( jacobian_ ),
         INPUT( jacobian_agenda_, jacobian_indices_ ),
         GOUTPUT(),
@@ -2933,6 +3046,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddAbsSpecies\n"
         "and should normally not be called by the user.\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( jacobian_ ),
         INPUT( y_, jacobian_quantities_, jacobian_indices_, abs_species_, 
                ppath_step_agenda_, 
@@ -2958,6 +3072,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
         "and should normally not be called by the user.\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( jacobian_ ),
         INPUT( y_, jacobian_quantities_, jacobian_indices_, pnd_field_perturb_,
                jacobian_particle_update_agenda_,
@@ -2983,6 +3098,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
         "and should normally not be called by the user.\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( jacobian_ ),
         INPUT( y_, jacobian_quantities_, jacobian_indices_, 
                sensor_time_, ppath_step_agenda_, 
@@ -3008,6 +3124,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
         "and should normally not be called by the user.\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( jacobian_ ),
         INPUT( y_, jacobian_quantities_, jacobian_indices_, ppath_step_agenda_,
                rte_agenda_, 
@@ -3038,6 +3155,7 @@ md_data_raw.push_back
          "Therefor the number of measurement blocks, taken from *sensor_pos*\n"
          "and the size of *sensor_response* has to be defined.\n"
         ),
+        AUTHORS( "unknown" ),
          OUTPUT( jacobian_, jacobian_indices_ ),
          INPUT( jacobian_quantities_, sensor_pos_, sensor_response_ ),
          GOUTPUT(),
@@ -3059,6 +3177,7 @@ md_data_raw.push_back
          "\n"
          "The Jacobian quantities are initialised to be empty."
         ),
+        AUTHORS( "unknown" ),
          OUTPUT( jacobian_, jacobian_quantities_, jacobian_indices_ ),
          INPUT(),
          GOUTPUT(),
@@ -3077,6 +3196,7 @@ md_data_raw.push_back
          "will be performed and this is handled with this method. That is,\n"
          "this method must be called when no jacobians will be calculated"
         ),
+        AUTHORS( "unknown" ),
          OUTPUT( jacobian_, jacobian_quantities_, jacobian_indices_ ),
          INPUT(),
          GOUTPUT(),
@@ -3093,6 +3213,7 @@ md_data_raw.push_back
          "controlfiles must define this method. It is executed automatically\n"
          "when ARTS is run on the controlfile." 
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT(),
         GOUTPUT(),
@@ -3126,6 +3247,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : A set of frequencies. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( stokes_dim_ ),
         GOUTPUT( Matrix_ ),
@@ -3146,6 +3268,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : The vector to be copied."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3170,6 +3293,7 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the first column. \n"
          "   Vector : The vector to be copied into the second column."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3195,6 +3319,7 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the second column. \n"
          "   Vector : The vector to be copied into the third column."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3215,6 +3340,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : The vector to be copied."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3239,6 +3365,7 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the first row. \n"
          "   Vector : The vector to be copied into the second row."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3264,6 +3391,7 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the second row. \n"
          "   Vector : The vector to be copied into the third row."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3281,6 +3409,7 @@ md_data_raw.push_back
          "Copies page with given Index from input Tensor3 variable to create \n"
          "output Matrix."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Matrix_ ),
@@ -3302,6 +3431,7 @@ md_data_raw.push_back
          "   Vector  : A set of frequencies. \n"
          "   Numeric : Blackbody temperature. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( stokes_dim_ ),
         GOUTPUT( Matrix_ ),
@@ -3327,6 +3457,7 @@ md_data_raw.push_back
          "Keywords: \n"
          "   value : The value to be multiplicated with the matrix."  
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3349,6 +3480,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value : The value of the matrix elements. " 
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( nrows_, ncols_ ),
         GOUTPUT( Matrix_ ),
@@ -3374,6 +3506,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Matrix : A matrix with radiance values."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( sensor_pos_, sensor_los_, sensor_response_f_,
                sensor_response_za_, sensor_response_aa_,
@@ -3401,6 +3534,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Matrix : A matrix with radiance values."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( sensor_pos_, sensor_los_, sensor_response_f_,
                sensor_response_za_, sensor_response_aa_,
@@ -3423,6 +3557,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector  : A set of frequencies. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( stokes_dim_ ),
         GOUTPUT( Matrix_ ),
@@ -3441,6 +3576,7 @@ md_data_raw.push_back
          "za_sigma, and aa_sigma, which represent the standard deviations in the\n"
          "uncorrelated bivariate normal distribution\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( mc_antenna_ ),
         INPUT(),
         GOUTPUT(),
@@ -3459,6 +3595,7 @@ md_data_raw.push_back
          "za_fwhm, and aa_fwhm, which represent the full width half maximum (FWHM)\n"
          "of the antenna response, in the zenith and azimuthal planes.\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( mc_antenna_ ),
         INPUT(),
         GOUTPUT(),
@@ -3476,6 +3613,7 @@ md_data_raw.push_back
          "This WSM makes the subsequent MCGeneral WSM perform pencil beam\n"
          "RT calculations.\n" 
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( mc_antenna_ ),
         INPUT(),
         GOUTPUT(),
@@ -3496,6 +3634,7 @@ md_data_raw.push_back
          "response, the following calculation is performed (Matlab syntax):\n"
          "   e = sqrt( abs(H)*(e.*e) ) " 
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( mc_error_ ),
         INPUT( mc_error_, sensor_response_ ),
         GOUTPUT(),
@@ -3511,6 +3650,7 @@ md_data_raw.push_back
          "Calculates the FOV averaged ice water path and cloud optical path\n"
          "for a given viewing direction"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( mc_IWP_, mc_cloud_opt_path_, mc_IWP_error_, mc_cloud_opt_path_error_, 
                 mc_iteration_count_),
         INPUT( mc_antenna_, sensor_pos_, sensor_los_, ppath_step_agenda_, p_grid_, 
@@ -3539,6 +3679,7 @@ md_data_raw.push_back
          "met.  If negative values are given for these parameters then it is ignored.\n"
          " Negative values of rng_seed seed the random number generator \n "
          "according to system time, positive rng_seed values are taken literally."),
+        AUTHORS( "unknown" ),
         OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_ ),
         INPUT( mc_antenna_, f_grid_, sensor_pos_, sensor_los_, stokes_dim_, iy_space_agenda_,
                surface_prop_agenda_, opt_prop_gas_agenda_, 
@@ -3556,6 +3697,7 @@ md_data_raw.push_back
         DESCRIPTION
         ("A specialised 3D reversed Monte Carlo radiative algorithm, that \n"
          "mimics independent pixel appoximation simulations .  Probably temporary."),
+        AUTHORS( "unknown" ),
         OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_),
         INPUT( mc_antenna_, f_grid_, sensor_pos_, sensor_los_, stokes_dim_, iy_space_agenda_,
                surface_prop_agenda_, opt_prop_gas_agenda_, 
@@ -3573,6 +3715,7 @@ md_data_raw.push_back
         DESCRIPTION
         ("Sets mc_incoming to be empty.  \n"
          "This is needed when using ScatteringMonteCarlo with incoming_lookup=0"),
+        AUTHORS( "unknown" ),
         OUTPUT( mc_incoming_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -3586,6 +3729,7 @@ md_data_raw.push_back
       ( NAME("MCSetSeedFromTime"),
         DESCRIPTION
         ("Sets the value of mc_seed from system time"),
+        AUTHORS( "unknown" ),
         OUTPUT( mc_seed_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -3606,6 +3750,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value : The value." 
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Numeric_ ),
@@ -3621,6 +3766,7 @@ md_data_raw.push_back
          "Retrieve nelem from given variable and store the value in the \n"
          "workspace variable *nelem*"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( nelem_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -3638,6 +3784,7 @@ md_data_raw.push_back
          "Retrieve ncols from given variable and store the value in the \n"
          "workspace variable *ncols*"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ncols_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -3655,6 +3802,7 @@ md_data_raw.push_back
          "Retrieve nrows from given variable and store the value in the \n"
          "workspace variable *nrows*"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( nrows_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -3672,6 +3820,7 @@ md_data_raw.push_back
          "Retrieve npages from given variable and store the value in the \n"
          "workspace variable *npages*"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( npages_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -3689,6 +3838,7 @@ md_data_raw.push_back
          "Retrieve nbooks from given variable and store the value in the \n"
          "workspace variable *nbooks*"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( nbooks_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -3706,6 +3856,7 @@ md_data_raw.push_back
          "Retrieve nshelves from given variable and store the value in the \n"
          "workspace variable *nshelves*"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( nshelves_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -3723,6 +3874,7 @@ md_data_raw.push_back
          "Retrieve nvitrines from given variable and store the value in the \n"
          "workspace variable *nvitrines*"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( nvitrines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -3740,6 +3892,7 @@ md_data_raw.push_back
          "Retrieve nlibraries from given variable and store the value in the \n"
          "workspace variable *nlibraries*"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( nlibraries_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -3759,6 +3912,7 @@ md_data_raw.push_back
          "Copies element with given Index from input Vector variable to \n"
          "create output Numeric."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Numeric_ ),
@@ -3789,6 +3943,7 @@ md_data_raw.push_back
          "for each particle type. \n"
          "\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ext_mat_spt_, abs_vec_spt_ ),
         INPUT(  ext_mat_spt_, abs_vec_spt_, scat_data_raw_,
                 scat_za_grid_, 
@@ -3818,6 +3973,7 @@ md_data_raw.push_back
          "for each particle type. \n"
          "\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ext_mat_spt_, abs_vec_spt_ ),
         INPUT(  ext_mat_spt_, abs_vec_spt_, scat_data_mono_,
                 scat_za_grid_, 
@@ -3835,6 +3991,7 @@ md_data_raw.push_back
         (
          "Sets the output file format to ASCII."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( output_file_format_),
         INPUT( ),
         GOUTPUT( ),
@@ -3849,6 +4006,7 @@ md_data_raw.push_back
         (
          "Sets the output file format to binary."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( output_file_format_),
         INPUT( ),
         GOUTPUT( ),
@@ -3882,6 +4040,7 @@ md_data_raw.push_back
          "   filename_pnd_field : File including  the WSV *pnd_field_raw*.\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(scat_data_raw_, pnd_field_raw_),
         INPUT(atmosphere_dim_, f_grid_, p_grid_, lat_grid_, lon_grid_, 
               cloudbox_limits_),
@@ -3906,6 +4065,7 @@ md_data_raw.push_back
          "   filename_pnd_field : Filename of the corresponding pnd_field \n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(scat_data_raw_, pnd_field_raw_),
         INPUT(atmosphere_dim_, f_grid_, p_grid_, lat_grid_, lon_grid_, 
               cloudbox_limits_),
@@ -3926,6 +4086,7 @@ md_data_raw.push_back
          "*ParticleTypeInit* has to be executed before executing \n"
          "*ParticleTypeAdd(All)*.\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(scat_data_raw_, pnd_field_raw_),
         INPUT(),
         GOUTPUT(),
@@ -3949,6 +4110,7 @@ md_data_raw.push_back
          "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
          "are specified in the control file.\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(pha_mat_),
         INPUT(pha_mat_spt_, pnd_field_, atmosphere_dim_, scat_p_index_,
               scat_lat_index_, scat_lon_index_ ),
@@ -3975,6 +4137,7 @@ md_data_raw.push_back
          "laboratory coordinate system is done.\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(pha_mat_spt_),
         INPUT(pha_mat_spt_, scat_data_raw_, scat_za_grid_, scat_aa_grid_, 
               scat_za_index_, scat_aa_index_, f_index_, f_grid_, rte_temperature_,
@@ -3994,6 +4157,7 @@ md_data_raw.push_back
          "This function is the monchromatic version of *pha_mat_sptFromData*.\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(pha_mat_spt_),
         INPUT(pha_mat_spt_, scat_data_mono_, doit_za_grid_size_, scat_aa_grid_, 
               scat_za_index_, scat_aa_index_, rte_temperature_,
@@ -4016,6 +4180,7 @@ md_data_raw.push_back
          "conbination with *ScatteringDataPrepareDOITOpt*. \n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(pha_mat_spt_),
         INPUT(pha_mat_spt_, pha_mat_sptDOITOpt_, scat_data_mono_, 
               doit_za_grid_size_,
@@ -4043,6 +4208,7 @@ md_data_raw.push_back
          "particle type. \n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(pnd_field_),
         INPUT(p_grid_, lat_grid_, lon_grid_, pnd_field_raw_, atmosphere_dim_,
               cloudbox_limits_),
@@ -4069,6 +4235,7 @@ md_data_raw.push_back
          "ARTS user guide and read the  on-line information for\n"
          "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\")."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ppath_, ppath_step_ ),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_, z_field_, r_geoid_, z_surface_, 
@@ -4106,6 +4273,7 @@ md_data_raw.push_back
          "Keywords: \n"
          "   lmax      : Maximum allowed length between path points."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ppath_step_ ),
         INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
                z_field_, r_geoid_, z_surface_ ),
@@ -4145,6 +4313,7 @@ md_data_raw.push_back
          "   lraytrace : Maximum length of ray tracing steps.\n"
          "   lmax      : Maximum allowed length between path points."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ppath_step_, rte_pressure_, rte_temperature_, rte_vmr_list_, 
                 refr_index_ ),
         INPUT( refr_index_agenda_, ppath_step_, atmosphere_dim_, p_grid_, 
@@ -4165,6 +4334,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   level : Output level to use. \n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
@@ -4184,6 +4354,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   level : Output level to use. \n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
@@ -4201,6 +4372,7 @@ md_data_raw.push_back
         (
          "Sets *p_grid* to the frequency grid of *abs_lookup*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( p_grid_  ),
         INPUT(  abs_lookup_ ),
         GOUTPUT( ),
@@ -4231,6 +4403,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   filename : Name of the input file."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Any_ ),
@@ -4267,6 +4440,7 @@ md_data_raw.push_back
          "To calculate these quantities for the atmsopheric mesh, execute:\n"
          "   RefrIndexFieldAndGradients(tensor4_1,p_grid,lat_grid,lon_grid)"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( refr_index_, rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         INPUT( refr_index_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_, r_geoid_, z_field_, t_field_, vmr_field_ ),
@@ -4289,6 +4463,7 @@ md_data_raw.push_back
          "The formula used is contributed by Michael H�fner,\n"
                  "Forschungszentrum Karlsruhe."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( refr_index_ ),
         INPUT( rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         GOUTPUT( ),
@@ -4311,6 +4486,7 @@ md_data_raw.push_back
          "is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104, \n"
          "pp. 9664). "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( refr_index_ ),
         INPUT( rte_pressure_, rte_temperature_, rte_vmr_list_, abs_species_ ),
         GOUTPUT( ),
@@ -4332,6 +4508,7 @@ md_data_raw.push_back
          "of *Ignore* for all variables expected to be used by\n"
          "*refr_index_agenda*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( refr_index_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -4367,6 +4544,7 @@ md_data_raw.push_back
          "\n"
          "See further the user guide."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( y_, ppath_, ppath_step_, iy_,
                 jacobian_, ppath_array_do_, ppath_array_, ppath_array_index_  ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
@@ -4389,6 +4567,7 @@ md_data_raw.push_back
         (
          "As *RteCalc* but thorughout ignores jacobians."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( y_, ppath_, ppath_step_, iy_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                surface_prop_agenda_, iy_cloudbox_agenda_,
@@ -4419,6 +4598,7 @@ md_data_raw.push_back
          "\n"
          "See further the user guide."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( iy_, emission_, abs_scalar_gas_, diy_dvmr_, diy_dt_ ),
         INPUT( iy_, diy_dvmr_, diy_dt_, ppath_, ppath_array_,
                ppath_array_index_, f_grid_, stokes_dim_, emission_agenda_,
@@ -4439,6 +4619,7 @@ md_data_raw.push_back
          "The transmission to each point of the propagation path is returned\n"
          "in *ppath_transmissions*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( iy_, emission_, abs_scalar_gas_,
                 ppath_transmissions_, diy_dvmr_, diy_dt_ ),
         INPUT( iy_, diy_dvmr_, diy_dt_, ppath_, ppath_array_,
@@ -4466,6 +4647,7 @@ md_data_raw.push_back
          "   za : Zenith angle of sensor line-of-sight.\n"
          "   aa : Azimuth angle of sensor line-of-sight."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( rte_los_ ),
         INPUT( atmosphere_dim_ ),
         GOUTPUT(),
@@ -4493,6 +4675,7 @@ md_data_raw.push_back
          "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
          "ellipsiod for the latitude value in *rte_pos*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( rte_pos_ ),
         INPUT( rte_pos_, atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
         GOUTPUT(),
@@ -4515,6 +4698,7 @@ md_data_raw.push_back
          "obtained by interpolation of *r_geoid*. There is an error if the\n"
          "given position is outside the latitude and longitude grids."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( rte_pos_ ),
         INPUT( rte_pos_, atmosphere_dim_, lat_grid_, lon_grid_, r_geoid_ ),
         GOUTPUT(),
@@ -4544,6 +4728,7 @@ md_data_raw.push_back
          "   lat : Latitude of sensor position.\n"
          "   lon : Longitude of sensor position."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( rte_pos_ ),
         INPUT( atmosphere_dim_ ),
         GOUTPUT(),
@@ -4558,6 +4743,7 @@ md_data_raw.push_back
         (
          "shifts rte_pos and rte_los, and rte_gp_XXX to the end of ppath."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_ ),
         INPUT( ppath_, atmosphere_dim_ ),
         GOUTPUT(),
@@ -4577,6 +4763,7 @@ md_data_raw.push_back
          "atmosphere\n\n"
          "This function is a work in progress. Only 1D is currently supported"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( rte_pos_, rte_los_, ppath_, ppath_step_ ),
         INPUT( atmosphere_dim_, p_grid_, z_field_, lat_grid_, lon_grid_,
                ppath_step_agenda_, r_geoid_, z_surface_ ),
@@ -4599,6 +4786,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   r : Radius of geoid sphere. See further above."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( r_geoid_ ),
         INPUT( atmosphere_dim_, lat_grid_, lon_grid_ ),
         GOUTPUT(),
@@ -4624,6 +4812,7 @@ md_data_raw.push_back
          "if the function shall give correct result, and not just arbitrary\n"
          "orbit angles which is allowed for 2D cases."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( r_geoid_ ),
         INPUT( atmosphere_dim_, lat_grid_, lon_grid_, lat_1d_,
                meridian_angle_1d_ ),
@@ -4643,6 +4832,7 @@ md_data_raw.push_back
          "*scat_i_lat* and *scat_i_lon* (3D)).\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_, scat_i_p_, scat_i_lat_, scat_i_lon_,
                doit_i_field1D_spectrum_),
         INPUT(f_grid_, scat_i_p_, scat_i_lat_, scat_i_lon_, doit_mono_agenda_),
@@ -4674,6 +4864,7 @@ md_data_raw.push_back
          "The incoming_lookup keyword determines if incoming radiance is obtained from"
          "a precalculated grid (mc_incoming) or calculated on the fly"
           ),
+        AUTHORS( "unknown" ),
         OUTPUT(ppath_, ppath_step_, 
                mc_error_, mc_iteration_count_, rte_pos_, rte_los_, iy_, 
                rte_pressure_, rte_temperature_, 
@@ -4697,6 +4888,7 @@ md_data_raw.push_back
          "Interpolates scat_data_raw by frequency to give scat_data_mono\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( scat_data_mono_ ),
         INPUT( scat_data_raw_ ,f_grid_, f_index_),
         GOUTPUT(),
@@ -4724,6 +4916,7 @@ md_data_raw.push_back
          "The result is printed on the screen.\n"
          "\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( scat_data_raw_ ),
         GOUTPUT(),
@@ -4748,6 +4941,7 @@ md_data_raw.push_back
          "   sensor_response_aa : As returned by *sensorInit*.\n"
          "   sensor_response_pol: As returned by *sensorInit*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
                 sensor_response_aa_, sensor_response_pol_,
                 antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
@@ -4778,6 +4972,7 @@ md_data_raw.push_back
          "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
          "ellipsiod for the latitude values in *sensor_pos*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( sensor_pos_ ),
         INPUT( sensor_pos_, atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
         GOUTPUT(),
@@ -4800,6 +4995,7 @@ md_data_raw.push_back
          "obtained by interpolation of *r_geoid*. There is an error if the\n"
          "given position is outside the latitude and longitude grids."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( sensor_pos_ ),
         INPUT( sensor_pos_, atmosphere_dim_, lat_grid_, lon_grid_, r_geoid_ ),
         GOUTPUT(),
@@ -4835,6 +5031,7 @@ md_data_raw.push_back
          "polarisations/frequencies. Or else each direction/polarisation/-\n"
          "frequency is given its individual element/column.\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( sensor_response_, sensor_response_za_ ),
         INPUT( sensor_response_f_, sensor_response_pol_, mblock_za_grid_,
                antenna_dim_, antenna_diagram_, sensor_norm_, antenna_los_ ),
@@ -4869,6 +5066,7 @@ md_data_raw.push_back
          "Generic Input: \n"
          "  ArrayOfMatrix : The backend channel response."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( sensor_response_, sensor_response_f_ ),
         INPUT( f_backend_, sensor_response_pol_, sensor_response_za_,
                sensor_norm_ ),
@@ -4898,6 +5096,7 @@ md_data_raw.push_back
          "   sensor_response_aa : Equal to *mblock_aa_grid*.\n"
          "   sensor_response_pol: Equal to *stokes_dim*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
                 sensor_response_aa_, sensor_response_pol_  ),
         INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_,
@@ -4925,6 +5124,7 @@ md_data_raw.push_back
          "Generic Input: \n"
          "       Matrix : The sideband filter response matrix."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( sensor_response_, sensor_response_f_, f_mixer_ ),
         INPUT( sensor_response_pol_, sensor_response_za_, lo_, sensor_norm_ ),
         GOUTPUT( ),
@@ -4967,6 +5167,7 @@ md_data_raw.push_back
          "         Matrix : The sideband filter response matrix."
          "  ArrayOfMatrix : The backend channel response."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( sensor_response_, sensor_response_f_, f_mixer_ ),
         INPUT( sensor_response_pol_, sensor_response_za_, sensor_response_aa_,
                lo_, sensor_norm_, f_backend_, sensor_pol_ ),
@@ -4984,6 +5185,7 @@ md_data_raw.push_back
          "\n"
          "The output polarisations are given by matrix *sensor_pol*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( sensor_response_, sensor_response_pol_ ),
         INPUT( sensor_pol_, sensor_response_za_, sensor_response_aa_,
                sensor_response_f_, stokes_dim_),
@@ -5006,6 +5208,7 @@ md_data_raw.push_back
          "If used this method has to be run after the antenna response\n"
          "function and prior to sensor_responsePolarisation."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( sensor_response_ ),
         INPUT( sensor_rot_, antenna_los_, antenna_dim_, stokes_dim_,
                sensor_response_f_, sensor_response_za_),
@@ -5021,6 +5224,7 @@ md_data_raw.push_back
         (
          "Sets a String to the given text String."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( String_ ),
@@ -5040,6 +5244,7 @@ md_data_raw.push_back
          "and *surface_rmatrix* are set to be empty, and *surface_emission*\n"
          "to hold blackbody radiation for a temperature of *surface_skin_t*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
         INPUT( f_grid_, stokes_dim_, surface_skin_t_ ),
         GOUTPUT(),
@@ -5060,6 +5265,7 @@ md_data_raw.push_back
 //          "equal. The number of directions in *surface_los* is one.\n"
 //          "\n"
 //          ),
+//         AUTHORS( "unknown" ),
 //         OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
 //         INPUT( f_grid_, rte_gp_lat_,rte_gp_lon_,stokes_dim_, atmosphere_dim_, rte_los_, 
 //                surface_skin_t_, surface_emissivity_field_ ),
@@ -5095,6 +5301,7 @@ md_data_raw.push_back
          "Keyword: \n"
          "   epsmodel : Name of model for dielectric constant."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
         INPUT( f_grid_, stokes_dim_, atmosphere_dim_, rte_los_, 
                surface_skin_t_ ),
@@ -5118,6 +5325,7 @@ md_data_raw.push_back
          "Surface properties are specified by *surface_emissivity* and \n"
          "*surface_skin_t*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
         INPUT( f_grid_, stokes_dim_, atmosphere_dim_, rte_los_, 
                surface_emissivity_, surface_skin_t_ ),
@@ -5136,6 +5344,7 @@ md_data_raw.push_back
          "Copies book with given Imdex from input Tensor4 variable to create \n"
          "output Tensor3."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Tensor3_ ),
@@ -5168,6 +5377,7 @@ md_data_raw.push_back
          "   nrows  : Number of rows in the tensor.\n"
          "   ncols  : Number of columns in the tensor. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor3_ ),
@@ -5194,6 +5404,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor3_ ),
@@ -5216,6 +5427,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The value of the tensor3 elements. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( npages_, nrows_, ncols_ ),
         GOUTPUT( Tensor3_ ),
@@ -5233,6 +5445,7 @@ md_data_raw.push_back
          "Copies shelf with given Index from input Tensor5 variable to \n"
          "create output Tensor4."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Tensor4_ ),
@@ -5259,6 +5472,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor4_ ),
@@ -5281,6 +5495,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The value of the tensor4 elements. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( nbooks_, npages_, nrows_, ncols_ ),
         GOUTPUT( Tensor4_ ),
@@ -5307,6 +5522,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor5_ ),
@@ -5329,6 +5545,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value   : The value of the tensor5 elements. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( nshelves_, nbooks_, npages_, nrows_, ncols_ ),
         GOUTPUT( Tensor5_ ),
@@ -5355,6 +5572,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor6_ ),
@@ -5378,6 +5596,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value     : The value of the tensor6 elements. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( nvitrines_, nshelves_, nbooks_, npages_, nrows_, ncols_ ),
         GOUTPUT( Tensor6_ ),
@@ -5399,6 +5618,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Tenosr6 : A Tensor6 with radiance values. \n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(f_index_, f_grid_),
         GOUTPUT( Tensor6_ ),
@@ -5425,6 +5645,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor7_ ),
@@ -5448,6 +5669,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value      : The value of the tensor7 elements. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( nlibraries_, nvitrines_, nshelves_, nbooks_, npages_, nrows_,
                ncols_ ),
@@ -5468,6 +5690,7 @@ md_data_raw.push_back
          "trouble of adding a dummy method everytime you want to try \n"
          "something out quickly."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
@@ -5492,6 +5715,7 @@ md_data_raw.push_back
          "timerStop()\n"
          "Prints the CPU time spent for reading the XML file"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(timer_),
         INPUT(),
         GOUTPUT(),
@@ -5510,6 +5734,7 @@ md_data_raw.push_back
          "Use *timerStop* to output the consumed cpu time\n"
          "since *timerStart*. See *timerStart* for example"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(timer_),
         GOUTPUT(),
@@ -5535,6 +5760,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value : The value to be added to the vector."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Vector_ ),
@@ -5552,6 +5778,7 @@ md_data_raw.push_back
          "Copies row with given Index from input Matrix variable to create \n"
          "output Vector."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Vector_ ),
@@ -5584,6 +5811,7 @@ md_data_raw.push_back
          "  Vector : The original grid vector.\n"
          "  Vector : The points to insert."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Vector_ ),
@@ -5612,6 +5840,7 @@ md_data_raw.push_back
          "    stop : The maximum value of the end value. \n"
          "    step : The spacing of the vector. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Vector_ ),
@@ -5637,6 +5866,7 @@ md_data_raw.push_back
          "    stop : The end value. \n"  
          "       n : Number of elements of the vector. " 
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT(Vector_),
@@ -5662,6 +5892,7 @@ md_data_raw.push_back
          "    stop : The end value. \n"  
          "       n : Number of elements of the vector. " 
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT(Vector_),
@@ -5687,6 +5918,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value : The value to be multiplicated with the vector."  
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Vector_ ),
@@ -5709,6 +5941,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The value of the vector elements. " 
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( nelem_ ),
         GOUTPUT( Vector_ ),
@@ -5733,6 +5966,7 @@ md_data_raw.push_back
          "   VectorSetExplicitly(p_grid){[1000 100 10]}\n"
          "   Will create a p_grid vector with these three elements."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Vector_ ),
@@ -5758,6 +5992,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : A vector with radiance values. "
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( sensor_pos_, sensor_los_, sensor_response_f_,
                sensor_response_za_, sensor_response_aa_,
@@ -5799,6 +6034,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : A vector with radiance values."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( sensor_pos_, sensor_los_, sensor_response_f_,
                sensor_response_za_, sensor_response_aa_,
@@ -5828,6 +6064,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : A vector with true tangent altitudes\n"
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( refr_index_, rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         INPUT( refr_index_agenda_, sensor_pos_, p_grid_, t_field_, z_field_,
                            vmr_field_, r_geoid_, atmosphere_dim_ ),
@@ -5859,6 +6096,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   r_geoid : The geoid radius for the given tangent altitudes."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( sensor_pos_ ),
         GOUTPUT( Vector_ ),
@@ -5889,6 +6127,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   filename : Name of the output file."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( output_file_format_ ),
         GOUTPUT( ),
@@ -5922,6 +6161,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   filename : Name of the output file."
          ),
+        AUTHORS( "unknown" ),
         OUTPUT(),
         INPUT( output_file_format_, file_index_ ),
         GOUTPUT( ),
@@ -5949,6 +6189,7 @@ md_data_raw.push_back
          "\n"
          "See the user guide for practical examples.\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( ybatch_ ),
         INPUT( ybatch_n_, ybatch_calc_agenda_ ), 
         GOUTPUT(),
@@ -5983,6 +6224,7 @@ md_data_raw.push_back
          "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
          "from the profiles inside the function\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( ybatch_ ),
         INPUT(abs_species_, met_profile_calc_agenda_, f_grid_, met_amsu_data_,
               sensor_pos_, r_geoid_, lat_grid_, lon_grid_, atmosphere_dim_,
@@ -6020,6 +6262,7 @@ md_data_raw.push_back
          "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
          "from the profiles inside the function\n"
          ),
+        AUTHORS( "unknown" ),
         OUTPUT( ybatch_ ),
         INPUT(abs_species_, met_profile_calc_agenda_, 
               f_grid_, met_amsu_data_, sensor_pos_, r_geoid_),
@@ -6041,6 +6284,7 @@ md_data_raw.push_back
          "The zenith angles are restricted by the two tangent altitudes\n"
          "*z_scan_low* and *z_scan_high*."
         ),
+        AUTHORS( "unknown" ),
         OUTPUT( ppath_step_),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
                lon_grid_, z_field_, r_geoid_, z_surface_ ),
@@ -6092,6 +6336,7 @@ md_data_raw.push_back
 //          "                         abs_user_parameters must be empty if one of the\n"
 //          "                         pre-defined models is used."
 //         ),
+//         AUTHORS( "unknown" ),
 //         OUTPUT( ext_mat_zee_, abs_vec_zee_),
 //         INPUT(  geomag_los_, f_grid_, 
 //                 zeeman_o2_onoff_, zeeman_o2_pressure_limit_, zeeman_o2_line_,
@@ -6111,6 +6356,7 @@ md_data_raw.push_back
 //          "Add zeeman absorption to the elements of absorption vector.\n"
 //          "\n"
 //          ),
+//         AUTHORS( "unknown" ),
 //         OUTPUT(abs_vec_),
 //         INPUT(abs_vec_, abs_vec_zee_),
 //         GOUTPUT(),
@@ -6126,6 +6372,7 @@ md_data_raw.push_back
 //          "Add Zeeman extinction  to the elements of extinction matrix.\n"
 //          " \n"
 //          ),
+//         AUTHORS( "unknown" ),
 //         OUTPUT(ext_mat_),
 //         INPUT(ext_mat_, ext_mat_zee_),
 //         GOUTPUT( ),
@@ -6146,6 +6393,7 @@ md_data_raw.push_back
 //          "   ZeemanO2PressureLimit : The end value.   \n"  
 //          "   ZeemanO2Line          : Line to do with Zeeman. \n"
 //         ),
+//         AUTHORS( "unknown" ),
 //         OUTPUT( zeeman_o2_onoff_, zeeman_o2_pressure_limit_, zeeman_o2_line_),
 //         INPUT(),
 //         GOUTPUT(),
@@ -6160,6 +6408,7 @@ md_data_raw.push_back
 //         DESCRIPTION(
 //                     "\n"
 //                     ),
+//         AUTHORS( "unknown" ),
 //         OUTPUT(),
 //         INPUT(opt_prop_gas_agenda_),
 //         GOUTPUT( ),
