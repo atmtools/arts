@@ -88,6 +88,122 @@ void align(ofstream& ofs, bool& is_first_parameter, const String& indent)
     }
 }
 
+//! Write method header documentation.
+/*!
+  \param ofs The stream to write to.
+  \param mdd Method lookup data.
+*/
+void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
+{
+  extern const Array<WsvRecord> wsv_data;
+
+  String fullname = mdd.Name();
+
+  // This is needed to flag the first function parameter, which 
+  // needs no line break before being written:
+  bool is_first_parameter = true;
+
+  // The String indent is needed to achieve the correct
+  // indentation of the functin parameters:
+  String indent("  ");
+
+  // There are four lists of parameters that we have to
+  // write. 
+  ArrayOfIndex  vo=mdd.Output();   // Output 
+  ArrayOfIndex  vi=mdd.Input();    // Input
+  ArrayOfIndex  vgo=mdd.GOutput();   // Generic Output 
+  ArrayOfIndex  vgi=mdd.GInput();    // Generic Input
+  // vo and vi contain handles of workspace variables, 
+  // vgo and vgi handles of workspace variable groups.
+
+  // Check, if some workspace variables are in both the
+  // input and the output list, and erase those from the input 
+  // list:
+  for (ArrayOfIndex::const_iterator j=vo.begin(); j<vo.end(); ++j)
+    for (ArrayOfIndex::iterator k=vi.begin(); k<vi.end(); ++k)
+      {
+        if ( *j == *k )
+          {
+            //            erase_vector_element(vi,k);
+            k = vi.erase(k) - 1;
+            // We need the -1 here, otherwise due to the
+            // following increment we would miss the element
+            // behind the erased one, which is now at the
+            // position of the erased one.
+          }
+      }
+
+  // Start with the name of the one line description
+  ofs << "//! WORKSPACE METHOD: " << fullname << ".\n";
+
+  ofs << "/*!\n";
+
+  ofs << mdd.Description () << "\n";
+
+  // Write the Output workspace variables:
+  for (Index j=0; j<vo.nelem(); ++j)
+    {
+      ofs << indent << "\\param "
+        << wsv_data[vo[j]].Name() << " WS Output\n";
+    }
+
+  // Write the Generic output workspace variables:
+  for (Index j=0; j<vgo.nelem(); ++j)
+    {
+      ofs << indent << "\\param genericoutput" << j+1
+        << " Generic output\n";
+    }
+
+  // Write the Generic output workspace variable names:
+  for (Index j=0; j<vgo.nelem(); ++j)
+    {
+      ofs << indent << "\\param genericoutputname" << j+1
+        << " Generic output name\n";
+    }
+
+  // Write the Input workspace variables:
+  for (Index j=0; j<vi.nelem(); ++j)
+    {
+      ofs << indent << "\\param "
+        << wsv_data[vi[j]].Name() << " WS Input\n";
+    }
+
+  // Write the Generic input workspace variables:
+  for (Index j=0; j<vgi.nelem(); ++j)
+    {
+      ofs << indent << "\\param genericinput" << j+1
+        << " WS Generic Input\n";
+    }
+
+  // Write the Generic input workspace variable names:
+  for (Index j=0; j<vgi.nelem(); ++j)
+    {
+      ofs << indent << "\\param " << "genericinputname" << j+1
+        << " Generic input names\n";
+    }
+
+  // Write the control parameters:
+  {
+    // Number of keyword parameters.
+    Index n_mr = mdd.Keywords().nelem();
+
+    for (Index j=0; j!=n_mr; ++j)
+      {
+        ofs << indent << "\\param "
+          << mdd.Keywords()[j] << " Control parameter\n";
+      }
+  }
+
+  // Write agenda, if there is one:
+  if ( mdd.AgendaMethod() )
+    {
+      align(ofs,is_first_parameter,indent);
+      ofs << indent << "\\param " << "input_agenda Agenda from controlfile\n";
+    }
+
+  ofs << "*/\n";
+}
+
 //! Write a method header.
 /*!
   \param ofs The stream to write to.
@@ -405,6 +521,7 @@ int main()
           const MdRecord& mdd = md_data[i];
           if ( !mdd.SuppressHeader() )
             {
+              write_method_header_documentation( ofs, mdd );
               write_method_header( ofs, mdd );
             }
         }
