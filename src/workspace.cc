@@ -578,24 +578,6 @@ void define_wsv_data()
        GROUP( Matrix_ ) ));
 
   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "abs_vmr" ),
-      DESCRIPTION
-      (
-       "List of vmr values to be used for the calculation of absorption\n"
-       "coefficients.\n"
-       " \n"
-       "In contrast to the global vmr_field, this is just a vector. Any\n"
-       "absorption method should check that the length of this vector is the\n"
-       "same as that of abs_p\n"
-       " \n"
-       "Dimension: [number of pressures]\n"
-       " \n"
-       "Unit: absolute number, dimensionless"
-       ),
-      GROUP( Vector_ ))); 
-
-  wsv_data.push_back
     (WsvRecord
      (NAME( "abs_vmrs" ),
       DESCRIPTION

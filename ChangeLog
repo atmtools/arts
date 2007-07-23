@@ -1,3 +1,11 @@
+2007-07-23  Stefan Buehler  <sbuehler@irv.se>
+
+	* arts-1-1-1150
+
+	* src/workspace.cc (define_wsv_data): Removed WSV abs_vmr, which
+	was not really used. (The correct variable is abs_vmrs, note the s
+	at the end.)
+
 2007-07-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1149
