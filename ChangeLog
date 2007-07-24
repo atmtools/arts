@@ -1,3 +1,28 @@
+2007-07-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1151
+
+	* src/methods.cc, src/m_abs.cc, src/m_ppath.cc:
+
+	Started cleaning up the doxygen documentation for workspace methods.
+
+	This includes:
+	 1) Merging the current doxygen documentation into the WSM
+	 documentation in methods.cc.
+	 2) Add the author information to methods.cc.
+	 3) Replacing the doxygen header with a comment in the cc file.
+
+	If there is any additional documentation (implementation details) for
+	the WSM in the current doxygen documentation it will be left in the
+	cc-file as a non-doxygen comment.
+
+	* doc/doxygen/Doxyfile.in:
+
+	Updated. Removed MAX_DOT_GRAPH_WIDTH and MAX_DOT_GRAPH_HEIGHT. Those
+	are not supported anymore with newer doxygen version and prevent the
+	graphics from being built. Hope it doesn't break with older versions
+	now.
+
 2007-07-23  Stefan Buehler  <sbuehler@irv.se>
 
 	* arts-1-1-1150

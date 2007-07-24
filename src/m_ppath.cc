@@ -61,13 +61,7 @@ extern const Numeric EARTH_GRAV_CONST;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! rte_losSet
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-30
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_losSet(
         // WS Output:
               Vector&    rte_los,
@@ -91,14 +85,7 @@ void rte_losSet(
 }
 
 
-
-//! rte_posAddGeoidWGS84
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-20
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_posAddGeoidWGS84(
         // WS Output:
               Vector&    rte_pos,
@@ -119,14 +106,7 @@ void rte_posAddGeoidWGS84(
 }
 
 
-
-//! rte_posAddRgeoid
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-20
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_posAddRgeoid(
         // WS Output:
               Vector&    rte_pos,
@@ -148,14 +128,7 @@ void rte_posAddRgeoid(
 }
 
 
-
-//! rte_posSet
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-30
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_posSet(
         // WS Output:
               Vector&    rte_pos,
@@ -178,14 +151,7 @@ void rte_posSet(
 }
 
 
-
-//! ppathCalc
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-16
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppathCalc(
         // WS Output:
               Ppath&          ppath,
@@ -210,15 +176,7 @@ void ppathCalc(
 }
 
 
-
-
-//! ppath_stepGeometric
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-28
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppath_stepGeometric(
         // WS Output:
               Ppath&     ppath_step,
@@ -255,14 +213,7 @@ void ppath_stepGeometric(
 }
 
 
-
-//! ppath_stepRefractionEuler
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-28
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ppath_stepRefractionEuler(
         // WS Output:
               Ppath&      ppath_step,
@@ -318,13 +269,7 @@ void ppath_stepRefractionEuler(
 }
 
 
-//! sensor_posAddGeoidWGS84
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-16
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_posAddGeoidWGS84(
         // WS Output:
               Matrix&    sensor_pos,
@@ -392,14 +337,7 @@ void sensor_posAddGeoidWGS84(
 }
 
 
-
-//! sensor_posAddRgeoid
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-06-03
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_posAddRgeoid(
         // WS Output:
               Matrix&    sensor_pos,
@@ -464,6 +402,8 @@ void sensor_posAddRgeoid(
     }
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorZtanToZaRefr(// WS Output:
                         Numeric&            refr_index,
                         Numeric&            rte_pressure,
@@ -521,18 +461,11 @@ void VectorZtanToZaRefr(// WS Output:
 }
 
 
-
-//! VectorZtanToZa
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson and Mattias Ekström
-   \date   2003-01-27
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorZtanToZa(
         // WS Output:
               Vector&    za_vector,
-    const String&    za_v_name,
+        const String&    za_v_name,
         // WS Input:
         const Matrix&    sensor_pos,
         const Vector&    ztan_vector,
@@ -560,13 +493,8 @@ void VectorZtanToZa(
 
 }
 
-//! ZaSatOccultation
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström
-   \date   2003-02-10
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ZaSatOccultation(
         // WS Output:
         Ppath&                  ppath_step,
@@ -694,13 +622,8 @@ void ZaSatOccultation(
 
 }
 
-//! rte_pos_and_losFromTangentPressure
-/*!
-  See the the online help (arts -d FUNCTION_NAME)
 
-  \author Cory Davis
-  \date   2003-09-18
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_pos_and_losFromTangentPressure(
                     // WS Output:
                     Vector&          rte_pos,

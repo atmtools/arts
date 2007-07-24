@@ -155,7 +155,7 @@ void define_md_data_raw()
                     "\n"
                     "This only works for a 1D atmosphere!"
                    ) ,
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_p_, abs_t_, abs_vmrs_ ),
         INPUT( atmosphere_dim_, p_grid_, t_field_, vmr_field_ ),
         GOUTPUT( ),
@@ -180,7 +180,7 @@ void define_md_data_raw()
                     "Note that the original *f_grid* is distroyed. (This is not a problem\n"
                     "if the method is used inside an agenda.)\n"
                    ) ,
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( f_grid_, abs_p_, abs_t_, abs_vmrs_ ),
         INPUT( f_index_, f_grid_, rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         GOUTPUT( ),
@@ -197,7 +197,7 @@ void define_md_data_raw()
                     "This function calculates both, the total absorption (*abs_coef*)\n"
                     "and the absorption per tag group (*abs_coef_per_species*).\n"
                    ) ,
-        AUTHORS( "unknown" ),
+        AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUTPUT( abs_coef_  , abs_coef_per_species_ ),
         INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_n2_, abs_h2o_, abs_vmrs_, 
                abs_lines_per_species_, abs_lineshape_,
@@ -228,7 +228,7 @@ void define_md_data_raw()
                     "and for the sum of all tag group to get the total absorption\n"
                     "coefficient (output: *abs_coef*)\n"
                    ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler", "Axel von Engeln" ),
         OUTPUT(	abs_coef_, abs_coef_per_species_ ),
         INPUT( abs_xsec_per_species_, abs_vmrs_ ),
         GOUTPUT( ),
@@ -250,7 +250,7 @@ void define_md_data_raw()
                     "\n"
                     "The implementation follows abs_coefCalc."
                    ) ,
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_coef_ ),
         INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_n2_, abs_h2o_, abs_vmrs_, 
                abs_lines_per_species_, abs_lineshape_,
@@ -282,7 +282,7 @@ void define_md_data_raw()
          "                for the model given. The meaning of the parameters and\n"
          "                how many parameters are required depends on the model.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_cont_names_, 
                 abs_cont_models_,
                 abs_cont_parameters_ ),
@@ -310,7 +310,7 @@ void define_md_data_raw()
          "always have to call at least *abs_cont_descriptionInit*, even if you do\n"
          "not want to use any continua.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_cont_names_, 
                 abs_cont_models_,
                 abs_cont_parameters_ ),
@@ -333,7 +333,7 @@ void define_md_data_raw()
                     "Then this function can be used to copy the profile of the first tag\n"
                     "group of water.\n"
                    ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT(	abs_h2o_ ),
         INPUT( abs_species_, abs_vmrs_ ),
         GOUTPUT( ),
@@ -501,7 +501,7 @@ void define_md_data_raw()
 		    "   filename : Name (and path) of the catalogue file.\n"
 		    "   fmin     : Minimum frequency for lines to read in Hz.\n"
 		    "   fmax     : Maximum frequency for lines to read in Hz.\n"),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Thomas Kuhn" ),
         OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -532,7 +532,7 @@ void define_md_data_raw()
                     "   filename : Name (and path) of the catalogue file.\n"
                     "   fmin     : Minimum frequency for lines to read in Hz.\n"
                     "   fmax     : Maximum frequency for lines to read in Hz.\n"),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Hermann Berg", "Thomas Kuhn" ),
         OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -557,7 +557,7 @@ void define_md_data_raw()
                     "   filename : Name (and path) of the catalogue file.\n"
                     "   fmin     : Minimum frequency for lines to read in Hz.\n"
                     "   fmax     : Maximum frequency for lines to read in Hz.\n"),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Thomas Kuhn" ),
         OUTPUT( abs_lines_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -597,7 +597,7 @@ void define_md_data_raw()
                     "For each line at frequency +f in *abs_lines_per_species* a corresponding\n"
                     "entry at frequency -f is added to *abs_lines_per_species*.The mirror \n"
                     "lines are appended to the line lists after the original lines.\n"),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUTPUT( abs_lines_per_species_ ),
         INPUT( abs_lines_per_species_ ),
         GOUTPUT( ),
@@ -613,7 +613,7 @@ void define_md_data_raw()
                     "from the *abs_lines_per_species*. This can save computation time.\n"
                     "It should be particularly useful to call this method after\n"
                     "*abs_lines_per_speciesAddMirrorLines*."),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUTPUT( abs_lines_per_species_ ),
         INPUT( abs_lines_per_species_, abs_lineshape_, f_grid_ ),
         GOUTPUT( ),
@@ -632,7 +632,7 @@ void define_md_data_raw()
                     "the tag groups in the order as the groups  are specified.\n"
                     "That means if you do [\"O3-666\",\"O3\"],the last group O3 \n"
                     "gets assigned all the O3 lines that do not fit in the first group.\n"),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_lines_per_species_ ),
         INPUT( abs_lines_, abs_species_ ),
         GOUTPUT( ),
@@ -693,7 +693,7 @@ void define_md_data_raw()
                     "   formats   : allowed formats are HITRAN96,MYTRAN2,JPL,ARTS \n"
                     "   fmin      : Minimum frequency for lines to read in Hz.\n"
                     "   fmax      : Maximum frequency for lines to read in Hz.\n"),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_lines_per_species_ ),
         INPUT( abs_species_ ),
         GOUTPUT( ),
@@ -712,7 +712,7 @@ void define_md_data_raw()
          "to compute line spectra. Formally, abs_coefCalc will still require\n"
          "abs_lines_per_species to be set.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_lines_per_species_ ),
         INPUT( abs_species_ ),
         GOUTPUT( ),
@@ -832,7 +832,7 @@ void define_md_data_raw()
                     "Sets abs_n2 to the profile of the first tag group containing\n"
                     "molecular nitrogen. See *abs_h2oSet* for more details."
                    ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT(	abs_n2_ ),
         INPUT( abs_species_, abs_vmrs_ ),
         GOUTPUT( ),
@@ -875,7 +875,7 @@ void define_md_data_raw()
          "explicit line-by-line calculation into the\n"
          "*abs_scalar_gas_agenda*. See also method *AbsInputFromRteScalars*."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_scalar_gas_ ),
         INPUT(  abs_coef_per_species_ ),
         GOUTPUT( ),
@@ -1189,7 +1189,7 @@ void define_md_data_raw()
         DESCRIPTION(
                     "Calculate cross sections per tag group for continua.\n"
                    ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT(	abs_xsec_per_species_ ),
         INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_n2_, abs_h2o_, abs_vmrs_,
                abs_cont_names_, abs_cont_parameters_,
@@ -1203,9 +1203,10 @@ void define_md_data_raw()
     ( MdRecord
       ( NAME("abs_xsec_per_speciesAddLines"),
         DESCRIPTION(
-                    "Calculate cross sections per tag group for line spectra.\n"
+                    "Calculates the line spectrum for each tag group and adds\n"
+                    "it to abs_xsec_per_species.\n"
                    ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler", "Axel von Engeln" ),
         OUTPUT(	abs_xsec_per_species_ ),
         INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_h2o_, abs_vmrs_, 
                abs_lines_per_species_, abs_lineshape_ ),
@@ -1225,7 +1226,7 @@ void define_md_data_raw()
                     "and *abs_xsec_per_speciesAddConts* just add to *abs_xsec_per_species*.\n"
                     "The size is determined from *tgs*.\n"
                    ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_xsec_per_species_ ),
         INPUT( abs_species_, f_grid_, abs_p_ ),
         GOUTPUT( ),
@@ -4235,7 +4236,7 @@ md_data_raw.push_back
          "ARTS user guide and read the  on-line information for\n"
          "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\")."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ppath_, ppath_step_ ),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_, z_field_, r_geoid_, z_surface_, 
@@ -4273,7 +4274,7 @@ md_data_raw.push_back
          "Keywords: \n"
          "   lmax      : Maximum allowed length between path points."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ppath_step_ ),
         INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
                z_field_, r_geoid_, z_surface_ ),
@@ -4313,7 +4314,7 @@ md_data_raw.push_back
          "   lraytrace : Maximum length of ray tracing steps.\n"
          "   lmax      : Maximum allowed length between path points."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ppath_step_, rte_pressure_, rte_temperature_, rte_vmr_list_, 
                 refr_index_ ),
         INPUT( refr_index_agenda_, ppath_step_, atmosphere_dim_, p_grid_, 
@@ -4647,7 +4648,7 @@ md_data_raw.push_back
          "   za : Zenith angle of sensor line-of-sight.\n"
          "   aa : Azimuth angle of sensor line-of-sight."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( rte_los_ ),
         INPUT( atmosphere_dim_ ),
         GOUTPUT(),
@@ -4675,7 +4676,7 @@ md_data_raw.push_back
          "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
          "ellipsiod for the latitude value in *rte_pos*."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( rte_pos_ ),
         INPUT( rte_pos_, atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
         GOUTPUT(),
@@ -4698,7 +4699,7 @@ md_data_raw.push_back
          "obtained by interpolation of *r_geoid*. There is an error if the\n"
          "given position is outside the latitude and longitude grids."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( rte_pos_ ),
         INPUT( rte_pos_, atmosphere_dim_, lat_grid_, lon_grid_, r_geoid_ ),
         GOUTPUT(),
@@ -4728,7 +4729,7 @@ md_data_raw.push_back
          "   lat : Latitude of sensor position.\n"
          "   lon : Longitude of sensor position."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( rte_pos_ ),
         INPUT( atmosphere_dim_ ),
         GOUTPUT(),
@@ -4763,7 +4764,7 @@ md_data_raw.push_back
          "atmosphere\n\n"
          "This function is a work in progress. Only 1D is currently supported"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Cory Davis" ),
         OUTPUT( rte_pos_, rte_los_, ppath_, ppath_step_ ),
         INPUT( atmosphere_dim_, p_grid_, z_field_, lat_grid_, lon_grid_,
                ppath_step_agenda_, r_geoid_, z_surface_ ),
@@ -4972,7 +4973,7 @@ md_data_raw.push_back
          "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
          "ellipsiod for the latitude values in *sensor_pos*."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( sensor_pos_ ),
         INPUT( sensor_pos_, atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
         GOUTPUT(),
@@ -4995,7 +4996,7 @@ md_data_raw.push_back
          "obtained by interpolation of *r_geoid*. There is an error if the\n"
          "given position is outside the latitude and longitude grids."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( sensor_pos_ ),
         INPUT( sensor_pos_, atmosphere_dim_, lat_grid_, lon_grid_, r_geoid_ ),
         GOUTPUT(),
@@ -6064,7 +6065,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : A vector with true tangent altitudes\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson", "Mattias Ekström" ),
         OUTPUT( refr_index_, rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         INPUT( refr_index_agenda_, sensor_pos_, p_grid_, t_field_, z_field_,
                            vmr_field_, r_geoid_, atmosphere_dim_ ),
@@ -6284,7 +6285,7 @@ md_data_raw.push_back
          "The zenith angles are restricted by the two tangent altitudes\n"
          "*z_scan_low* and *z_scan_high*."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT( ppath_step_),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
                lon_grid_, z_field_, r_geoid_, z_surface_ ),
