@@ -34,12 +34,7 @@
 #include "matpackV.h"
 #include "physics_funcs.h"
 
-//! Creates an empty gas absorption lookup table.
-/*! 
-  This is mainly there to help developers. For example, you can write
-  the empty table to an XML file, to see the file format.
-*/
-  /* param x  Absorption lookup table.*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupInit(GasAbsLookup& /* x */)
 {
   // Nothing to do here.
@@ -49,9 +44,7 @@ void abs_lookupInit(GasAbsLookup& /* x */)
 }
 
 
-//! Creates a gas absorption lookup table.
-// FIXME Doc header!
-// - works only with 1D atmospheric fields.
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupCreate(// WS Output:
                       GasAbsLookup& gal,
                       Index& abs_lookup_is_adapted,
@@ -354,12 +347,8 @@ void abs_lookupCreate(// WS Output:
   abs_lookup_is_adapted = 1;
 }
 
-/**
-   See the the online help (arts -d FUNCTION_NAME)
 
-   \author Stefan Buehler
-   \date   2007-05-21
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_nlsSet(// WS Output:
                 ArrayOfIndex& abs_nls,
                 // WS Input:
@@ -399,6 +388,8 @@ void abs_nlsSet(// WS Output:
 
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesAdd(// WS Output:
                     ArrayOfArrayOfSpeciesTag& abs_species,
                     // Control Parameters:
@@ -432,14 +423,7 @@ void abs_speciesAdd(// WS Output:
 }
 
 
-
-//! jacobianAddGas
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-   
-   \author Patrick Eriksson
-   \date   2006-08-29
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesAdd2(// WS Output:
                     ArrayOfArrayOfSpeciesTag& abs_species,
                     ArrayOfRetrievalQuantity& jq,
@@ -486,14 +470,14 @@ void abs_speciesAdd2(// WS Output:
 }
 
 
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesInit( ArrayOfArrayOfSpeciesTag& abs_species )
 {
   abs_species.resize(0);
 }
 
 
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesSet(// WS Output:
                     ArrayOfArrayOfSpeciesTag& abs_species,
                     // Control Parameters:
@@ -525,6 +509,8 @@ void abs_speciesSet(// WS Output:
   out3 << '\n';
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupAdapt( GasAbsLookup&                   abs_lookup,
                           Index&                          abs_lookup_is_adapted,
                           const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -534,6 +520,8 @@ void abs_lookupAdapt( GasAbsLookup&                   abs_lookup,
   abs_lookup_is_adapted = 1;
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
                                       const GasAbsLookup& abs_lookup,
                                       const Index&        abs_lookup_is_adapted, 
@@ -557,39 +545,8 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
                           a_vmr_list );
 }
 
-//! Calculate scalar gas absorption for all points in the atmosphere.
-/*! 
-  This is mainly for testing and plotting gas absorption. For RT
-  calculations, gas absorption is calculated or extracted locally,
-  therefore there is no need to calculate a global field. But this
-  method is handy for easy plotting of absorption vs. pressure, for
-  example.
 
-  The calculation itself is performed by the
-  *abs_scalar_gas_agenda*, which needs the input variables
-  *a_pressure*, *a_temperature*, and *a_vmr_list*, and returns the
-  output variable *abs_scalar_gas*.
-
-  \param asg_field      Output: Scalar gas absorption field.
-
-  \param asg            Agenda output: Local scalar gas absorption.
-  \param a_pressure     Agenda input: Local pressure.
-  \param a_temperature  Agenda input: Local temperature.
-  \param a_vmr_list     Agenda input: Local list of VMR values.
-
-  \param sga_agenda     Agenda to use to calculate local absorption.
-  \param f_index        FIXME: Add documentation.
-  \param f_grid         Frequency grid.
-  \param atmosphere_dim Atmospheric dimensionality.
-  \param p_grid         Global pressure grid.
-  \param lat_grid       Global latitude grid.
-  \param lon_grid       Global longitude grid.
-  \param t_field        Global temperature field.
-  \param vmr_field      Global VMR fields.
-
-  \author Stefan Buehler
-  \date   2002-12-20
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_fieldCalc(// WS Output:
                    Tensor5& asg_field,
                    // WS Input:
@@ -752,13 +709,7 @@ void abs_fieldCalc(// WS Output:
 }
 
 
-//! f_gridFromGasAbsLookup
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2004-09-15
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromGasAbsLookup(
              Vector&         f_grid,
        const GasAbsLookup&   abs_lookup )
@@ -767,17 +718,11 @@ void f_gridFromGasAbsLookup(
 }
 
 
-
-//! p_gridFromGasAbsLookup
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2004-09-15
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void p_gridFromGasAbsLookup(
              Vector&         p_grid,
        const GasAbsLookup&   abs_lookup )
 {
   abs_lookup.GetPgrid( p_grid );
 }
+

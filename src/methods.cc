@@ -737,7 +737,7 @@ void define_md_data_raw()
          "Of course, the method also performs quite a lot of checks on the\n"
          "table. If something is not ok, a runtime error is thrown."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_lookup_, abs_lookup_is_adapted_ ),
         INPUT(  abs_lookup_, abs_species_, f_grid_ ),
         GOUTPUT( ),
@@ -752,7 +752,7 @@ void define_md_data_raw()
         (
          "Creates a gas absorption lookup table. FIXME: Description"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_lookup_, abs_lookup_is_adapted_ ),
         INPUT( abs_species_, 
                abs_lines_per_species_,
@@ -786,7 +786,7 @@ void define_md_data_raw()
          "This is mainly there to help developers. For example, you can write\n"
          "the empty table to an XML file, to see the file format."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_lookup_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -817,7 +817,7 @@ void define_md_data_raw()
          "Usage Example:\n"
          "   abs_nlsSet{[\"H2O-PWR98\"]}"                    
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT(	abs_nls_ ),
         INPUT( abs_species_ ),
         GOUTPUT( ),
@@ -856,7 +856,7 @@ void define_md_data_raw()
          "all frequencies (f_index<0). The dimension of the output\n"
          "abs_scalar_gas is adjusted accordingly."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_scalar_gas_ ),
         INPUT(  abs_lookup_, abs_lookup_is_adapted_,
                 f_index_, 
@@ -907,7 +907,7 @@ void define_md_data_raw()
          "The calculation itself is performed by the\n"
          "*abs_scalar_gas_agenda*."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_field_ ),
         INPUT(  abs_scalar_gas_agenda_,
                 f_index_,
@@ -939,7 +939,7 @@ void define_md_data_raw()
          "             add. Inside the String, separate the tags by commas\n"
          "             (plus optional blanks).\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_species_ ),
         INPUT(  abs_species_ ),
         GOUTPUT(),
@@ -963,7 +963,7 @@ void define_md_data_raw()
          "method only handles a single tag group, in contrast to \n"
          "*abs_speciesAdd*"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( abs_species_, jacobian_quantities_, jacobian_agenda_ ),
         INPUT( abs_species_, jacobian_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_ ),
@@ -1004,7 +1004,7 @@ void define_md_data_raw()
         (
          "Sets  *abs_speciesSet* to be empty."
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_species_ ),
         INPUT(),
         GOUTPUT(),
@@ -1062,7 +1062,7 @@ void define_md_data_raw()
          "   line list for this species. Presumably, we are using a complete\n"
          "   absorption model like MPM89 for H2O in this case."
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_species_ ),
         INPUT(),
         GOUTPUT(),
@@ -1244,7 +1244,7 @@ void define_md_data_raw()
          "Generic input:\n"
          "   Agenda : The agenda.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT(),
@@ -1277,7 +1277,7 @@ void define_md_data_raw()
          "Keywords:\n"
          "   No keywords, but other methods can appear in the method body."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Oliver Lemke" ),
         OUTPUT(  ),
         INPUT(  ),
         GOUTPUT( Agenda_ ),
@@ -1363,7 +1363,7 @@ void define_md_data_raw()
          "Keywords:\n"
          "        element : The index to be set."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( ArrayOfMatrix_ ),
@@ -1379,7 +1379,7 @@ void define_md_data_raw()
          "Sets a String array according the given text.\n"
          "The format is text = [\"String1\",\"String2\",...]"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( ArrayOfString_ ),
@@ -1404,7 +1404,7 @@ void define_md_data_raw()
          "arbitrary grids on the grids for the calculation\n"
          "(*p_grid*, *lat_grid*, *lon_grid*). "
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT(t_field_, z_field_, vmr_field_),
         INPUT(p_grid_, lat_grid_, lon_grid_, t_field_raw_, z_field_raw_, 
               vmr_field_raw_, atmosphere_dim_),
@@ -1430,7 +1430,7 @@ void define_md_data_raw()
          "to create a 2D or 3D version of a 1D case, a demand is also that\n"
          "the geoid radius is set to be constant for all latitudes/longitudes."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson", "Claudia Emde" ),
         OUTPUT( t_field_, z_field_, vmr_field_ ),
         INPUT( p_grid_, lat_grid_, lon_grid_, t_field_raw_, z_field_raw_, 
                vmr_field_raw_, atmosphere_dim_),
@@ -1450,7 +1450,7 @@ void define_md_data_raw()
          "\n"
          "The latitude and longitude grids are set to be empty."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( atmosphere_dim_, lat_grid_, lon_grid_ ),
         INPUT(),
         GOUTPUT(),
@@ -1471,7 +1471,7 @@ void define_md_data_raw()
          "and *meridian_angle_1d* are given values that cause an error\n"
          "message if used."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( atmosphere_dim_, lon_grid_, lat_1d_, meridian_angle_1d_),
         INPUT(),
         GOUTPUT(),
@@ -1491,7 +1491,7 @@ void define_md_data_raw()
          "The variables *lat_1d* and *meridian_angle_1d* are given\n"
          "values that cause an error message if used."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
         INPUT(),
         GOUTPUT(),
@@ -1532,7 +1532,7 @@ void define_md_data_raw()
          "/smiles_local/arts-data/atmosphere/fascod/tropical \n"
          "\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT(t_field_raw_, z_field_raw_, vmr_field_raw_),
         INPUT(abs_species_),
         GOUTPUT(),
@@ -2620,7 +2620,7 @@ md_data_raw.push_back
         (
          "Sets an index variable that acts as an on/off flag to 0."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Index_ ),
@@ -2635,7 +2635,7 @@ md_data_raw.push_back
         (
          "Sets an index variable that acts as an on/off flag to 1."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Index_ ),
@@ -2654,7 +2654,7 @@ md_data_raw.push_back
          "Must be called between importing/creating raw absorption table and\n"
          "call of *abs_lookupAdapt*."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( f_grid_  ),
         INPUT(  abs_lookup_ ),
         GOUTPUT( ),
@@ -2743,7 +2743,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value : A positive integer." 
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Index_ ),
@@ -2760,7 +2760,7 @@ md_data_raw.push_back
          "\n"
          "Input and output can be same variable."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Index_ ),
@@ -2784,7 +2784,7 @@ md_data_raw.push_back
          "Generic input:\n"
          "   Tensor3 : Field to interpolate." 
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
                rte_gp_p_, rte_gp_lat_, rte_gp_lon_ ),
@@ -2809,7 +2809,7 @@ md_data_raw.push_back
          "Generic input:\n"
          "   Matrix : Field to interpolate." 
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( atmosphere_dim_, lat_grid_, lon_grid_, 
                rte_gp_lat_, rte_gp_lon_ ),
@@ -3214,7 +3214,7 @@ md_data_raw.push_back
          "controlfiles must define this method. It is executed automatically\n"
          "when ARTS is run on the controlfile." 
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT(),
         GOUTPUT(),
@@ -3269,7 +3269,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : The vector to be copied."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3294,7 +3294,7 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the first column. \n"
          "   Vector : The vector to be copied into the second column."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3320,7 +3320,7 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the second column. \n"
          "   Vector : The vector to be copied into the third column."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3341,7 +3341,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : The vector to be copied."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3366,7 +3366,7 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the first row. \n"
          "   Vector : The vector to be copied into the second row."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3392,7 +3392,7 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the second row. \n"
          "   Vector : The vector to be copied into the third row."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3458,7 +3458,7 @@ md_data_raw.push_back
          "Keywords: \n"
          "   value : The value to be multiplicated with the matrix."  
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3481,7 +3481,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value : The value of the matrix elements. " 
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
         INPUT( nrows_, ncols_ ),
         GOUTPUT( Matrix_ ),
@@ -3751,7 +3751,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value : The value." 
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Numeric_ ),
@@ -4373,7 +4373,7 @@ md_data_raw.push_back
         (
          "Sets *p_grid* to the frequency grid of *abs_lookup*."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( p_grid_  ),
         INPUT(  abs_lookup_ ),
         GOUTPUT( ),
@@ -4787,7 +4787,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   r : Radius of geoid sphere. See further above."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( r_geoid_ ),
         INPUT( atmosphere_dim_, lat_grid_, lon_grid_ ),
         GOUTPUT(),
@@ -4813,7 +4813,7 @@ md_data_raw.push_back
          "if the function shall give correct result, and not just arbitrary\n"
          "orbit angles which is allowed for 2D cases."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( r_geoid_ ),
         INPUT( atmosphere_dim_, lat_grid_, lon_grid_, lat_1d_,
                meridian_angle_1d_ ),
@@ -5225,7 +5225,7 @@ md_data_raw.push_back
         (
          "Sets a String to the given text String."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( String_ ),
@@ -5245,7 +5245,7 @@ md_data_raw.push_back
          "and *surface_rmatrix* are set to be empty, and *surface_emission*\n"
          "to hold blackbody radiation for a temperature of *surface_skin_t*."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
         INPUT( f_grid_, stokes_dim_, surface_skin_t_ ),
         GOUTPUT(),
@@ -5302,7 +5302,7 @@ md_data_raw.push_back
          "Keyword: \n"
          "   epsmodel : Name of model for dielectric constant."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
         INPUT( f_grid_, stokes_dim_, atmosphere_dim_, rte_los_, 
                surface_skin_t_ ),
@@ -5326,7 +5326,7 @@ md_data_raw.push_back
          "Surface properties are specified by *surface_emissivity* and \n"
          "*surface_skin_t*."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
         INPUT( f_grid_, stokes_dim_, atmosphere_dim_, rte_los_, 
                surface_emissivity_, surface_skin_t_ ),
@@ -5378,7 +5378,7 @@ md_data_raw.push_back
          "   nrows  : Number of rows in the tensor.\n"
          "   ncols  : Number of columns in the tensor. "
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor3_ ),
@@ -5405,7 +5405,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor. "
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor3_ ),
@@ -5428,7 +5428,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The value of the tensor3 elements. "
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT(),
         INPUT( npages_, nrows_, ncols_ ),
         GOUTPUT( Tensor3_ ),
@@ -5473,7 +5473,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor. "
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor4_ ),
@@ -5496,7 +5496,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The value of the tensor4 elements. "
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT(),
         INPUT( nbooks_, npages_, nrows_, ncols_ ),
         GOUTPUT( Tensor4_ ),
@@ -5523,7 +5523,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor. "
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor5_ ),
@@ -5546,7 +5546,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value   : The value of the tensor5 elements. "
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT(),
         INPUT( nshelves_, nbooks_, npages_, nrows_, ncols_ ),
         GOUTPUT( Tensor5_ ),
@@ -5573,7 +5573,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor. "
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor6_ ),
@@ -5597,7 +5597,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value     : The value of the tensor6 elements. "
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT(),
         INPUT( nvitrines_, nshelves_, nbooks_, npages_, nrows_, ncols_ ),
         GOUTPUT( Tensor6_ ),
@@ -5646,7 +5646,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor. "
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor7_ ),
@@ -5670,7 +5670,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value      : The value of the tensor7 elements. "
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT(),
         INPUT( nlibraries_, nvitrines_, nshelves_, nbooks_, npages_, nrows_,
                ncols_ ),
@@ -5761,7 +5761,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value : The value to be added to the vector."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Vector_ ),
@@ -5812,7 +5812,7 @@ md_data_raw.push_back
          "  Vector : The original grid vector.\n"
          "  Vector : The points to insert."
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Vector_ ),
@@ -5841,7 +5841,7 @@ md_data_raw.push_back
          "    stop : The maximum value of the end value. \n"
          "    step : The spacing of the vector. "
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Vector_ ),
@@ -5867,7 +5867,7 @@ md_data_raw.push_back
          "    stop : The end value. \n"  
          "       n : Number of elements of the vector. " 
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT(Vector_),
@@ -5893,7 +5893,7 @@ md_data_raw.push_back
          "    stop : The end value. \n"  
          "       n : Number of elements of the vector. " 
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT(Vector_),
@@ -5919,7 +5919,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value : The value to be multiplicated with the vector."  
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Vector_ ),
@@ -5942,7 +5942,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The value of the vector elements. " 
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
         INPUT( nelem_ ),
         GOUTPUT( Vector_ ),
@@ -5967,7 +5967,7 @@ md_data_raw.push_back
          "   VectorSetExplicitly(p_grid){[1000 100 10]}\n"
          "   Will create a p_grid vector with these three elements."
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Vector_ ),

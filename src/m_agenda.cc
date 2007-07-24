@@ -29,6 +29,7 @@
 #include "agenda_record.h"
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AgendaExecute(// WS Generic Input:
                    const Agenda& this_agenda,
                    // WS Generic Input Names:
@@ -38,6 +39,8 @@ void AgendaExecute(// WS Generic Input:
   this_agenda.execute();
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AgendaSet(// WS Generic Output:
                Agenda& output_agenda,
                // WS Generic Output Names:
@@ -113,8 +116,11 @@ void AgendaSet(// WS Generic Output:
   output_agenda.set_outputs_to_push_and_dup ();
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Main(// Agenda from controlfile:
           const Agenda& input_agenda)
 {
   input_agenda.execute();
 }
+

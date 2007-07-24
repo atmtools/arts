@@ -68,13 +68,7 @@
   ===========================================================================*/
 
 
-//! ArrayOfMatrixSet
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2003-08-27
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfMatrixSet(// WS Generic Output:
                       ArrayOfMatrix&  aom,
                       // WS Generic Output Names:
@@ -105,13 +99,7 @@ void ArrayOfMatrixSet(// WS Generic Output:
 }
 
 
-//! ArrayOfStringSet
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfStringSet(
               ArrayOfString&  sa,
         const String&         sa_name,
@@ -123,14 +111,7 @@ void ArrayOfStringSet(
 }
 
 
-
-//! FlagOff
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-28
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void FlagOff(    
             Index&    x,
       const String&   x_name )
@@ -140,14 +121,7 @@ void FlagOff(
 }
 
 
-
-//! FlagOn
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-28
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void FlagOn(      
              Index&    x,
        const String&   x_name )
@@ -157,14 +131,7 @@ void FlagOn(
 }
 
 
-
-//! IndexSet
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void IndexSet(    Index&    x,
             const String&   x_name,
             const Index&    value )
@@ -174,14 +141,7 @@ void IndexSet(    Index&    x,
 }
 
 
-
-//! IndexStep
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2005-05-19
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void IndexStep(    
             Index&     xout,       
       const String&    outname,
@@ -193,15 +153,7 @@ void IndexStep(
 }
 
 
-
-
-//! Matrix1ColFromVector
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2003-01-27
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Matrix1ColFromVector(
         // WS Generic Output:
               Matrix&   m,
@@ -220,13 +172,8 @@ void Matrix1ColFromVector(
   m( joker,0 ) = v;
 }
 
-//! Matrix2ColFromVectors
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström
-   \date   2003-01-27
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Matrix2ColFromVectors(
         // WS Generic Output:
               Matrix&   m,
@@ -234,8 +181,8 @@ void Matrix2ColFromVectors(
         const String&   m_name,
         // WS Generic Input:
         const Vector&   v1,
-    const Vector&   v2,
-    // WS Generic Input Names:
+        const Vector&   v2,
+        // WS Generic Input Names:
         const String&   v1_name,
         const String&   v2_name )
 {
@@ -253,13 +200,8 @@ void Matrix2ColFromVectors(
 
 }
 
-//! Matrix3ColFromVectors
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström
-   \date   2003-01-27
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Matrix3ColFromVectors(
         // WS Generic Output:
               Matrix&   m,
@@ -290,13 +232,8 @@ void Matrix3ColFromVectors(
 
 }
 
-//! Matrix1RowFromVector
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström
-   \date   2003-01-27
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Matrix1RowFromVector(
         // WS Generic Output:
               Matrix&   m,
@@ -315,13 +252,8 @@ void Matrix1RowFromVector(
   m( 0, joker ) = v;
 }
 
-//! Matrix2RowFromVectors
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström
-   \date   2003-01-27
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Matrix2RowFromVectors(
         // WS Generic Output:
               Matrix&   m,
@@ -329,7 +261,7 @@ void Matrix2RowFromVectors(
         const String&   m_name,
         // WS Generic Input:
         const Vector&   v1,
-    const Vector&   v2,
+        const Vector&   v2,
     // WS Generic Input Names:
         const String&   v1_name,
         const String&   v2_name )
@@ -348,13 +280,8 @@ void Matrix2RowFromVectors(
 
 }
 
-//! Matrix3RowFromVectors
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström
-   \date   2003-01-27
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Matrix3RowFromVectors(
         // WS Generic Output:
               Matrix&   m,
@@ -386,14 +313,7 @@ void Matrix3RowFromVectors(
 }
 
 
-
-//! MatrixScale
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2001-01-17
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixScale(
                     Matrix&   out,
               const String&   out_name,
@@ -420,14 +340,7 @@ void MatrixScale(
 }
 
 
-
-//! MatrixSet
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2001-02-21
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixSet(           Matrix&    x, 
                     const String&    x_name,
                     const Index&     nrows,
@@ -441,13 +354,8 @@ void MatrixSet(           Matrix&    x,
   out3 << "             ncols : " << ncols << "\n";
 }
 
-//! NumericSet
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void NumericSet(      Numeric&   x,
                 const String&    x_name,
                 const Numeric&   value )
@@ -456,13 +364,8 @@ void NumericSet(      Numeric&   x,
   out3 << "  " << x_name << " = " << value << "\n";
 }
 
-//! StringSet
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void StringSet(           String&  s, 
                     const String&  s_name,
                     const String&  s2 )
@@ -472,14 +375,7 @@ void StringSet(           String&  s,
 }
 
 
-
-//! Tensor3FillWithVector
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-11
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor3FillWithVector(
         // WS Generic Output:
               Tensor3&   t,
@@ -546,13 +442,8 @@ void Tensor3FillWithVector(
              "The size argument for either pages, rows or columns must be 0.");
 }
 
-//! Tensor3Scale
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström
-   \date   2003-02-25
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor3Scale(        Tensor3&  out,
                     const String&   out_name,
                     const Tensor3&  in,
@@ -574,13 +465,8 @@ void Tensor3Scale(        Tensor3&  out,
   }
 }
 
-//! Tensor3Set
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Claudia Emde
-   \date   2002-05-31
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor3Set(          Tensor3&   x, 
                     const String&    x_name,
                     const Index&     npages,
@@ -596,13 +482,8 @@ void Tensor3Set(          Tensor3&   x,
   out3 << "             ncols : " << ncols  << "\n";
 }
 
-//! Tensor4Scale
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström
-   \date   2003-02-24
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor4Scale(        Tensor4&  out,
                     const String&   out_name,
                     const Tensor4&  in,
@@ -624,13 +505,8 @@ void Tensor4Scale(        Tensor4&  out,
   }
 }
 
-//! Tensor4Set
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Claudia Emde
-   \date   2002-05-31
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor4Set(          Tensor4&   x, 
                     const String&    x_name,
                     const Index&     nbooks,      
@@ -648,13 +524,8 @@ void Tensor4Set(          Tensor4&   x,
   out3 << "             ncols : " << ncols  << "\n";
 }
 
-//! Tensor5Scale
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström
-   \date   2003-02-25
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor5Scale(        Tensor5&  out,
                     const String&   out_name,
                     const Tensor5&  in,
@@ -677,13 +548,8 @@ void Tensor5Scale(        Tensor5&  out,
   }
 }
 
-//! Tensor5Set
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Claudia Emde
-   \date   2002-05-31
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor5Set(          Tensor5&   x, 
                     const String&    x_name,
                     const Index&     nshelves,     
@@ -703,13 +569,8 @@ void Tensor5Set(          Tensor5&   x,
   out3 << "             ncols : " << ncols    << "\n";
 }
 
-//! Tensor6Scale
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström
-   \date   2003-02-25
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor6Scale(        Tensor6&  out,
                     const String&   out_name,
                     const Tensor6&  in,
@@ -732,13 +593,8 @@ void Tensor6Scale(        Tensor6&  out,
   }
 }
 
-//! Tensor6Set
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Claudia Emde
-   \date   2002-05-31
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor6Set(          Tensor6&   x, 
                     const String&    x_name,
                     const Index&     nvitrines,   
@@ -760,13 +616,8 @@ void Tensor6Set(          Tensor6&   x,
   out3 << "             ncols : " << ncols     << "\n";
 }
 
-//! Tensor7Scale
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström
-   \date   2003-02-25
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor7Scale(        Tensor7&  out,
                     const String&   out_name,
                     const Tensor7&  in,
@@ -789,13 +640,8 @@ void Tensor7Scale(        Tensor7&  out,
   }
 }
 
-//! Tensor7Set
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Claudia Emde
-   \date   2002-05-31
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor7Set(          Tensor7&   x, 
                     const String&    x_name,
                     const Index&     nlibraries,          
@@ -820,13 +666,7 @@ void Tensor7Set(          Tensor7&   x,
 }
 
 
-//! VectorAddScalar
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2001-01-17
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorAddScalar(
                     Vector&   out,
               const String&   out_name,
@@ -853,32 +693,7 @@ void VectorAddScalar(
 }
 
 
-
-//! VectorCopy
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author ???
-   \date   ????-?-?
-*/
-void VectorCopy(      Vector&   y2,
-                const String&   name_y2,
-                const Vector&   y1,
-                const String&   name_y1 )
-{
-  out2 << "  " << name_y2 << " = " << name_y1 << "\n";
-  y2.resize( y1.nelem() );
-  y2 = y1;
-}
-
-
-//! VectorInsertGridPoints
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Stefan Buehler
-   \date   2007-05-31
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorInsertGridPoints(// WS Generic Output:
                             Vector& og,                  // Output grid
                             // WS Generic Output Names:
@@ -1014,13 +829,7 @@ void VectorInsertGridPoints(// WS Generic Output:
 }
 
 
-//! VectorLinSpace
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorLinSpace(      Vector&    x, 
                     const String&    x_name,
                     const Numeric&   start,
@@ -1039,14 +848,7 @@ void VectorLinSpace(      Vector&    x,
 }
 
 
-
-//! VectorNLinSpace
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorNLinSpace(     Vector&    x, 
                     const String&    x_name,
                     const Numeric&   start,
@@ -1067,14 +869,7 @@ void VectorNLinSpace(     Vector&    x,
 }
 
 
-
-//! VectorNLogSpace
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorNLogSpace(       Vector&    x, 
                       const String&    x_name,
                       const Numeric&   start,
@@ -1095,14 +890,7 @@ void VectorNLogSpace(       Vector&    x,
 }
 
 
-
-//! VectorScale
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2001-01-17
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorScale(
                     Vector&   out,
               const String&   out_name,
@@ -1129,14 +917,7 @@ void VectorScale(
 }
 
 
-
-//! VectorSet
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorSet(           Vector&    x, 
                     const String&    x_name,
                     const Index&     n,
@@ -1150,18 +931,7 @@ void VectorSet(           Vector&    x,
 }
 
 
-//! VectorSetExplicitly
-/*!
-  Create a vector from the given list of numbers.
-
-  \retval x     The vector to be created.
-  
-  \param x_name Name of the vector we are creating.
-  \param values The vector elements.
-
-  \author Stefan Buehler
-  \date   2003-11-16
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorSetExplicitly( Vector&       x, 
                           const String& x_name,
                           const Vector& values )

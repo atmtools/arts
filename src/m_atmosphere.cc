@@ -69,13 +69,7 @@ extern const Numeric EARTH_RADIUS;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! AtmosphereSet1D
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-11
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AtmosphereSet1D(
         // WS Output:
               Index&    atmosphere_dim,
@@ -93,14 +87,7 @@ void AtmosphereSet1D(
 }
 
 
-
-//! AtmosphereSet2D
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-11
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AtmosphereSet2D(
         // WS Output:
               Index&    atmosphere_dim,
@@ -120,14 +107,7 @@ void AtmosphereSet2D(
 }
 
 
-
-//! AtmosphereSet3D
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-11
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AtmosphereSet3D(
         // WS Output:
               Index&    atmosphere_dim,
@@ -145,17 +125,7 @@ void AtmosphereSet3D(
 
 
 
-//! Calculate atmospheric fields.
-/*!
-  This method interpolates the data for atmospheric fields on the atmospheric
-  grids used for the calculation.
-
-   See also the the online help (arts -d FUNCTION_NAME)
-
-   \author Claudia Emde
-   \date   2002-11-29
-   \date   2004-02-23 Modified. Used GriddedField3 instead of ArrayOfTensor3.
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldsCalc(//WS Output:
                    Tensor3& t_field,
                    Tensor3& z_field,
@@ -400,18 +370,7 @@ void AtmFieldsCalc(//WS Output:
 }
 
 
-
-//! AtmFieldsCalcExpand1D
-/*!
-
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2003-01-09
-
-   \date   2004-02-23 Modified by Claudia Emde:
-           Used GriddedField3 instead of ArrayOfTensor3.
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldsCalcExpand1D(
             Tensor3&                 t_field,
             Tensor3&                 z_field,
@@ -468,21 +427,7 @@ void AtmFieldsCalcExpand1D(
 }
 
 
-  
-//! Read atmospheric scenario.
-/* 
-
-   See the the online help (arts -d FUNCTION_NAME)
-
- \param t_field_raw temperature field data
- \param z_field_raw altitude field data
- \param vmr_field_raw vmr field data
- \param abs_species gas species for calculation
- \param basename name of scenario
-
- \author Claudia Emde
- \date   2002-11-29
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AtmRawRead(//WS Output:
                 GriddedField3& t_field_raw,
                 GriddedField3& z_field_raw,
@@ -531,14 +476,7 @@ void AtmRawRead(//WS Output:
 }
   
 
-
-//! InterpAtmFieldToRteGps
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2004-09-20
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void InterpAtmFieldToRteGps(
                  Numeric&   outvalue,
            const String&    outname,
@@ -562,14 +500,7 @@ void InterpAtmFieldToRteGps(
 }
 
 
-
-//! InterpSurfaceFieldToRteGps
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2006-06-09
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void InterpSurfaceFieldToRteGps(
                  Numeric&   outvalue,
            const String&    outname,
@@ -591,14 +522,7 @@ void InterpSurfaceFieldToRteGps(
 }
 
 
-
-//! r_geoidSpherical
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-12_02
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void r_geoidSpherical(
         // WS Output:
               Matrix&    r_geoid,
@@ -636,14 +560,7 @@ void r_geoidSpherical(
 }
 
 
-
-//! r_geoidWGS84
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-16
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void r_geoidWGS84(
         // WS Output:
               Matrix&    r_geoid,
@@ -738,14 +655,7 @@ void r_geoidWGS84(
 }
 
 
-
-//! surfaceBlackbody
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2004-05-21
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceBlackbody(
               Matrix&    surface_los,
               Tensor4&   surface_rmatrix,
@@ -772,14 +682,7 @@ void surfaceBlackbody(
 }
 
 
-
-//! surfaceFlat
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2004-05-21
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlat(
               Matrix&    surface_los,
               Tensor4&   surface_rmatrix,
@@ -848,14 +751,7 @@ void surfaceFlat(
 }
 
 
-
-//! surfaceSimple
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2004-05-21
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceSimple(
               Matrix&    surface_los,
               Tensor4&   surface_rmatrix,
@@ -895,21 +791,6 @@ void surfaceSimple(
         { surface_rmatrix(0,iv,is,is) = 1 - surface_emissivity; }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
