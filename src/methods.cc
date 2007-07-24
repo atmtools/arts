@@ -114,7 +114,7 @@
          "   \n"
          "\n"
          "Keywords:\n"
-         "   "
+         "   \n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT(),
@@ -153,7 +153,7 @@ void define_md_data_raw()
                     "Initialize the WSVs *abs_p*, *abs_t* and *abs_vmrs* from\n"
                     "*p_grid, *t_field* and *vmr_field*.\n"
                     "\n"
-                    "This only works for a 1D atmosphere!"
+                    "This only works for a 1D atmosphere!\n"
                    ) ,
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_p_, abs_t_, abs_vmrs_ ),
@@ -248,7 +248,7 @@ void define_md_data_raw()
                     "This means you cannot use it if you want to calculate Jacobians\n"
                     "later.\n"
                     "\n"
-                    "The implementation follows abs_coefCalc."
+                    "The implementation follows abs_coefCalc.\n"
                    ) ,
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_coef_ ),
@@ -612,7 +612,7 @@ void define_md_data_raw()
                     "Removes all lines outside the defined lineshape cutoff frequency\n"
                     "from the *abs_lines_per_species*. This can save computation time.\n"
                     "It should be particularly useful to call this method after\n"
-                    "*abs_lines_per_speciesAddMirrorLines*."),
+                    "*abs_lines_per_speciesAddMirrorLines*.\n"),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUTPUT( abs_lines_per_species_ ),
         INPUT( abs_lines_per_species_, abs_lineshape_, f_grid_ ),
@@ -735,7 +735,7 @@ void define_md_data_raw()
          "the current calculation.\n"
          "\n"
          "Of course, the method also performs quite a lot of checks on the\n"
-         "table. If something is not ok, a runtime error is thrown."
+         "table. If something is not ok, a runtime error is thrown.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_lookup_, abs_lookup_is_adapted_ ),
@@ -750,7 +750,7 @@ void define_md_data_raw()
       ( NAME("abs_lookupCreate"),
         DESCRIPTION
         (
-         "Creates a gas absorption lookup table. FIXME: Description"
+         "Creates a gas absorption lookup table. FIXME: Description\n"
         ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_lookup_, abs_lookup_is_adapted_ ),
@@ -784,7 +784,7 @@ void define_md_data_raw()
          "Creates an empty gas absorption lookup table.\n"
          "\n"
          "This is mainly there to help developers. For example, you can write\n"
-         "the empty table to an XML file, to see the file format."
+         "the empty table to an XML file, to see the file format.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_lookup_ ),
@@ -815,7 +815,7 @@ void define_md_data_raw()
          "             tags by commas (plus optional blanks).\n"
          "\n"
          "Usage Example:\n"
-         "   abs_nlsSet{[\"H2O-PWR98\"]}"                    
+         "   abs_nlsSet{[\"H2O-PWR98\"]}\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT(	abs_nls_ ),
@@ -830,7 +830,7 @@ void define_md_data_raw()
       ( NAME("abs_n2Set"),
         DESCRIPTION(
                     "Sets abs_n2 to the profile of the first tag group containing\n"
-                    "molecular nitrogen. See *abs_h2oSet* for more details."
+                    "molecular nitrogen. See *abs_h2oSet* for more details.\n"
                    ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT(	abs_n2_ ),
@@ -854,7 +854,7 @@ void define_md_data_raw()
          "\n"
          "Extraction can be either for a single frequency (f_index>=0), or for\n"
          "all frequencies (f_index<0). The dimension of the output\n"
-         "abs_scalar_gas is adjusted accordingly."
+         "abs_scalar_gas is adjusted accordingly.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_scalar_gas_ ),
@@ -873,7 +873,7 @@ void define_md_data_raw()
         (
          "Copy *abs_scalar_gas* from *abs_coef*. This is handy for putting an\n"
          "explicit line-by-line calculation into the\n"
-         "*abs_scalar_gas_agenda*. See also method *AbsInputFromRteScalars*."
+         "*abs_scalar_gas_agenda*. See also method *AbsInputFromRteScalars*.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_scalar_gas_ ),
@@ -905,7 +905,7 @@ void define_md_data_raw()
          "for the frequency indicated by f_index (f_index>=0).\n"
          "\n"
          "The calculation itself is performed by the\n"
-         "*abs_scalar_gas_agenda*."
+         "*abs_scalar_gas_agenda*.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_field_ ),
@@ -961,7 +961,7 @@ void define_md_data_raw()
          "\n"
          "Arguments exactly as for *jacobianAddAbsSpecies*. Note that this\n"
          "method only handles a single tag group, in contrast to \n"
-         "*abs_speciesAdd*"
+         "*abs_speciesAdd*\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( abs_species_, jacobian_quantities_, jacobian_agenda_ ),
@@ -987,7 +987,7 @@ void define_md_data_raw()
          "\n"
          "Keywords:\n"
          "   basename : The name and path of a particular atmospheric scenario.\n"
-         "              For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical"
+         "              For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( abs_species_ ),
@@ -1002,7 +1002,7 @@ void define_md_data_raw()
       ( NAME("abs_speciesInit"),
         DESCRIPTION
         (
-         "Sets  *abs_speciesSet* to be empty."
+         "Sets  *abs_speciesSet* to be empty.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_species_ ),
@@ -1060,7 +1060,7 @@ void define_md_data_raw()
          "\n"
          "   The third tag group selects H2O, but will not put any lines in the\n"
          "   line list for this species. Presumably, we are using a complete\n"
-         "   absorption model like MPM89 for H2O in this case."
+         "   absorption model like MPM89 for H2O in this case.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_species_ ),
@@ -1105,7 +1105,7 @@ void define_md_data_raw()
 // 		    "   tags : Specify one String for each tag group that you want to create.\n"
 // 		    "   Inside the String, separate the tags by comma (plus optional blanks).\n"
 // 		    "   Example:\n"
-// 		    "   tag = [\"O3-686\",\"H2O\"]"),
+// 		    "   tag = [\"O3-686\",\"H2O\"]\n"),
 // 	OUTPUT( tgs_ ),
 // 	INPUT(),
 // 	GOUTPUT(),
@@ -1122,7 +1122,7 @@ void define_md_data_raw()
          "\n"
          "The task of this method is to sum up the gas absorption of the\n"
          "different gas species and add the result to the first element of the\n"
-         "absorption vector."
+         "absorption vector.\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(abs_vec_),
@@ -1149,7 +1149,7 @@ void define_md_data_raw()
          " number densities for all particle types namely the \n"
          "*pnd_field* (part_types, p_grid, lat_grid, lon_grid, ) for given \n"
          "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
-         "are specified in the control file.  \n"
+         "are specified in the control file.\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(abs_vec_),
@@ -1173,7 +1173,7 @@ void define_md_data_raw()
          "So, here we have to make it the right size and fill it with 0.\n"
          "\n"
          "Note, that the vector is not really a vector, because it has a\n"
-         "leading frequency dimension."
+         "leading frequency dimension.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT(abs_vec_),
@@ -1275,7 +1275,7 @@ void define_md_data_raw()
          "   Agenda : The new agenda.\n"
          "\n"
          "Keywords:\n"
-         "   No keywords, but other methods can appear in the method body."
+         "   No keywords, but other methods can appear in the method body.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(  ),
@@ -1293,7 +1293,7 @@ void define_md_data_raw()
         (
          "To set the antenna dimension to be 1D.\n"
          "\n"
-         "Sets *antenna_dim* to 1 and sets *mblock_aa_grid* to be empty."
+         "Sets *antenna_dim* to 1 and sets *mblock_aa_grid* to be empty.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( antenna_dim_, mblock_aa_grid_ ),
@@ -1313,7 +1313,7 @@ void define_md_data_raw()
          "Sets *antenna_dim* to 2.\n"
          "\n"
          "It is only allowed to set *antenna_dim* to 2 when *atmosphere_dim*\n"
-         "equals 3."
+         "equals 3.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( antenna_dim_ ),
@@ -1334,7 +1334,7 @@ void define_md_data_raw()
          "the viewing angles of *antenna_diagram*. At least one viewing\n"
          "angle must be given in *antenna_diagram*, and the array that\n"
          "is appended must have at least one element but not more than\n"
-         "the number of polarisation given by *sensor_pol*."
+         "the number of polarisation given by *sensor_pol*.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( antenna_diagram_ ),
@@ -1361,7 +1361,7 @@ void define_md_data_raw()
          "Generic input:\n"
          "         Matrix : The matrix to append.\n"
          "Keywords:\n"
-         "        element : The index to be set."
+         "        element : The index to be set.\n"
         ),
         AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
@@ -1377,7 +1377,7 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Sets a String array according the given text.\n"
-         "The format is text = [\"String1\",\"String2\",...]"
+         "The format is text = [\"String1\",\"String2\",...]\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
@@ -1402,7 +1402,7 @@ void define_md_data_raw()
          "This method interpolates the fields from the raw data\n"
          "(*t_field_raw*, *z_field_raw*) which can be stored on \n"
          "arbitrary grids on the grids for the calculation\n"
-         "(*p_grid*, *lat_grid*, *lon_grid*). "
+         "(*p_grid*, *lat_grid*, *lon_grid*).\n"
         ),
         AUTHORS( "Claudia Emde" ),
         OUTPUT(t_field_, z_field_, vmr_field_),
@@ -1428,7 +1428,7 @@ void define_md_data_raw()
          "\n"
          "Note that the method only deals with the atmospheric fields, and\n"
          "to create a 2D or 3D version of a 1D case, a demand is also that\n"
-         "the geoid radius is set to be constant for all latitudes/longitudes."
+         "the geoid radius is set to be constant for all latitudes/longitudes.\n"
         ),
         AUTHORS( "Patrick Eriksson", "Claudia Emde" ),
         OUTPUT( t_field_, z_field_, vmr_field_ ),
@@ -1448,7 +1448,7 @@ void define_md_data_raw()
          "\n"
          "Sets *atmosphere_dim* to 1 and gives some variables dummy values.\n"
          "\n"
-         "The latitude and longitude grids are set to be empty."
+         "The latitude and longitude grids are set to be empty.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( atmosphere_dim_, lat_grid_, lon_grid_ ),
@@ -1469,7 +1469,7 @@ void define_md_data_raw()
          "\n"
          "The longitude grid is set to be empty. The variables *lat_1d*\n"
          "and *meridian_angle_1d* are given values that cause an error\n"
-         "message if used."
+         "message if used.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( atmosphere_dim_, lon_grid_, lat_1d_, meridian_angle_1d_),
@@ -1489,7 +1489,7 @@ void define_md_data_raw()
          "Sets *atmosphere_dim* to 3 and gives some variables dummy values.\n"
          "\n"
          "The variables *lat_1d* and *meridian_angle_1d* are given\n"
-         "values that cause an error message if used."
+         "values that cause an error message if used.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
@@ -1530,7 +1530,6 @@ void define_md_data_raw()
          "basename :The name and path of a particular atmospheric scenario.\n"
          "For example:\n"
          "/smiles_local/arts-data/atmosphere/fascod/tropical \n"
-         "\n"
         ),
         AUTHORS( "Claudia Emde" ),
         OUTPUT(t_field_raw_, z_field_raw_, vmr_field_raw_),
@@ -1553,9 +1552,9 @@ void define_md_data_raw()
          "given by scattering angle grids (*scat_za/aa_grid*). Found radiances\n"
          "are stored in *scat_i_p/lat/lon* which can be used as boundary\n"
          "conditions when scattering inside the cloud box is solved by the\n"
-         "DOIT method."
+         "DOIT method.\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
                 cloudbox_on_),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
@@ -1581,9 +1580,9 @@ void define_md_data_raw()
          "for all other postions and azimuth angles. This works if a 3D\n"
          "cloud box is put into an 1D background atmosphere.\n"
          "\n"
-         "This method can only be used for 3D cases."
+         "This method can only be used for 3D cases.\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
                 cloudbox_on_),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
@@ -1605,9 +1604,9 @@ void define_md_data_raw()
          "Deactivates the cloud box. \n"
          "\n"
          "The function sets *cloudbox_on* to 0, *cloudbox_limits* to be an\n"
-         "empty vector and *iy_cloudbox_agenda* to an empty agenda."
+         "empty vector and *iy_cloudbox_agenda* to an empty agenda.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( cloudbox_on_, cloudbox_limits_, iy_cloudbox_agenda_ ),
         INPUT(),
         GOUTPUT(),
@@ -1624,7 +1623,7 @@ void define_md_data_raw()
          "cover the full atmosphere.\n"
          "This method sets *cloudbox_limits* accordingly. \n"
          ), 
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT(cloudbox_on_, cloudbox_limits_),
         INPUT(p_grid_),
         GOUTPUT(),
@@ -1649,9 +1648,8 @@ void define_md_data_raw()
          "dummy *scat_data_raw* structure. For a cleasky calculation, \n"
          "the methods *ParticleTypeAdd(All)* and *pnd_fieldCalc* can be \n"
          "replaced by this method. \n"
-         "\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT( pnd_field_, scat_data_raw_),
         INPUT( p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT( ),
@@ -1692,9 +1690,9 @@ void define_md_data_raw()
          "   lat1 : Lower latitude point.\n"
          "   lat2 : Upper latitude point.\n"
          "   lon1 : Lower longitude point.\n"
-         "   lon2 : Upper longitude point."
+         "   lon2 : Upper longitude point.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( cloudbox_on_, cloudbox_limits_),
         INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT( ),
@@ -1735,9 +1733,9 @@ void define_md_data_raw()
          "   lat1 : Lower latitude point.\n"
          "   lat2 : Upper latitude point.\n"
          "   lon1 : Lower longitude point.\n"
-         "   lon2 : Upper longitude point."
+         "   lon2 : Upper longitude point.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT( cloudbox_on_, cloudbox_limits_),
         INPUT( atmosphere_dim_, z_field_, lat_grid_, lon_grid_ ),
         GOUTPUT( ),
@@ -1768,7 +1766,7 @@ void define_md_data_raw()
          "\n"
          "Keyword: \n"
          "   output : Which sideband(s) to output, \"lower\", \"upper\" or\n"
-         "            \"double\""
+         "            \"double\"\n"
          ),
         AUTHORS( "unknown" ),
          OUTPUT( sensor_response_f_, y_ ),
@@ -1804,9 +1802,9 @@ void define_md_data_raw()
          "   Any_ : The output variable.\n"
          "\n"
          "Supergeneric input:\n"
-         "   Any_ : The input variable."
+         "   Any_ : The input variable.\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Any_ ),
@@ -1823,9 +1821,8 @@ void define_md_data_raw()
         (
          "Calls DISORT RT solver from ARTS. \n"
          "Detailed documentation to be added\n."
-         "\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
          OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, 
                 f_index_, scat_data_mono_, doit_i_field1D_spectrum_),
          INPUT(cloudbox_limits_, stokes_dim_, opt_prop_part_agenda_, 
@@ -1873,7 +1870,6 @@ void define_md_data_raw()
          "taken for the calculation of the scattering integrals and for \n"
          "the RT calculations. This option makes sense for down-looking \n"
          "cases to speed up the calculation. \n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT( doit_za_grid_size_, scat_aa_grid_, scat_za_grid_),
@@ -1892,13 +1888,13 @@ void define_md_data_raw()
          "\n"
          "This method puts the scattered radiation field into the interface\n"
          "variables between the cloudbox and the clearsky, which are \n"
-         "*scat_i_p*, *scat_i_lat* and *scat_i_lon*."
+         "*scat_i_p*, *scat_i_lat* and *scat_i_lon*.\n"
+         "\n"
          "The best way to calculate spectra including the influence of\n" 
          "scattering is to set up the *scat_mono_agenda* where this method \n"
          "can be included.\n"
-         "\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, doit_i_field1D_spectrum_),
         INPUT( doit_i_field_, f_grid_, f_index_,   p_grid_, lat_grid_, 
                lon_grid_, scat_za_grid_, scat_aa_grid_, stokes_dim_,
@@ -1932,7 +1928,6 @@ md_data_raw.push_back
          "The unit of *epsilon* is radiance [W / (m^2 Hz sr)].\n"
          "\n"
          "This method can be used in *doit_convergence_test_agenda*.\n"
-         "\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT(doit_conv_flag_, doit_iteration_counter_),
@@ -1960,7 +1955,6 @@ md_data_raw.push_back
          "Warning: This method is not recommended because this kind of \n"
          "convergence test is not sufficiently strict, so that the \n"
          "DOIT result might be wrong. \n" 
-         "\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT(doit_conv_flag_, doit_iteration_counter_),
@@ -1996,7 +1990,6 @@ md_data_raw.push_back
          "The unit of *epsilon* is Rayleigh Jeans BT [K].\n"
          "\n"
          "This method can be used in *doit_convergence_test_agenda*.\n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(doit_conv_flag_, doit_iteration_counter_),
@@ -2016,7 +2009,6 @@ md_data_raw.push_back
          "\n"
          "Before using the WSM *ScatteringDOIT*, please use this method \n"
          "to initialize the required WSVs. \n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(scat_p_index_, scat_lat_index_, scat_lon_index_, 
@@ -2049,7 +2041,6 @@ md_data_raw.push_back
          "      either 1 or 3. To these dimensions the method adapts \n"
          "      automatically. 2D scattering calculations are not \n"
          "      supported.\n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_),
@@ -2077,9 +2068,8 @@ md_data_raw.push_back
          "monochromatic radiation field out of these variables.  The \n"
          "output of the method is the first guess field stored in the \n"
          "workspace variable *doit_i_field*.\n"
-         "\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Sreerekha T.R." ),
         OUTPUT(doit_i_field_),
         INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, f_grid_, 
                f_index_, p_grid_, lat_grid_, lon_grid_, 
@@ -2094,15 +2084,19 @@ md_data_raw.push_back
       ( NAME( "doit_i_fieldSetConst" ),
         DESCRIPTION
         (
-         "Set the initial field inside the cloudbox to a constant value.\n"
+         "This method sets the initial field inside the cloudbox to a\n"
+         "constant value. The method works only for monochromatic\n"
+         "calculations (number of elements in f_grid=1).\n"
          "\n"
-         "The keyword *value* is specified by the user.\n"
+         "The user can specify a value for each Stokes dimension in the\n"
+         "control file by the variable doit_i_field_value, which is a\n"
+         "vector containing 4 elements, the value of the initial field\n"
+         "for each Stokes dimension.\n"
          "\n"
          "Output of the method is the first guess field stored in the \n"
          "workspace variable *doit_i_field*.\n"
-         "\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT(doit_i_field_),
         INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, p_grid_, lat_grid_, 
                lon_grid_, 
@@ -2126,7 +2120,6 @@ md_data_raw.push_back
          "Note: This method is very inefficient, because the number of \n"
          "iterations scales with the number of cloudbox pressure levels.\n"
          "It is recommended to use *doit_i_fieldUpdateSeq1D*.\n"
-         "\n" 
         ),
         AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_),
@@ -2158,7 +2151,6 @@ md_data_raw.push_back
          "Note: This is the commonly used WSM for the radiation field \n"
          "update (can be used in *doit_rte_agenda*). It is recommended \n"
          "because it is the most efficient and accurate method.\n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_),
@@ -2189,7 +2181,6 @@ md_data_raw.push_back
          "This method is only slightly faster than \n"
          "*doit_i_fieldUpdateSeq1D* and it is less accurate. It can not \n"
          "be used for limb simulations. \n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_, scat_za_index_),
@@ -2221,7 +2212,6 @@ md_data_raw.push_back
 //          "\n"
 //          "Surface reflection is not yet implemented in 3D scattering \n"
 //          "calculations.\n"
-//          "\n " 
 //         ),
 //         AUTHORS( "unknown" ),
 //         OUTPUT(doit_i_field_, rte_pressure_, rte_temperature_,
@@ -2258,7 +2248,6 @@ md_data_raw.push_back
          "Note: DOIT calculations in 3D are computationally expensive. \n"
          "For large 3D cloud fields it is recommended to use the Monte Carlo \n"
          "module or an independent pixel approach applying DOIT-1D. \n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_),
@@ -2288,7 +2277,6 @@ md_data_raw.push_back
          "\n"
          "The output of this method is *doit_scat_field*\n"
          "which is used in the radiative transfer part (*doit_i_fieldUpdateXXX*).\n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT( doit_scat_field_ ),
@@ -2326,7 +2314,6 @@ md_data_raw.push_back
          "simulations.\n"
          "\n"
          "For more information please refer to AUG.\n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT( doit_scat_field_),
@@ -2359,7 +2346,6 @@ md_data_raw.push_back
          "stored in *pha_mat_sptDOITOpt*, "
          "which is used in the method\n"
          "*pha_mat_sptFromDataDOITOpt*. \n"
-         "\n" 
           ),
         AUTHORS( "unknown" ),
         OUTPUT( pha_mat_sptDOITOpt_, scat_data_mono_),
@@ -2393,7 +2379,6 @@ md_data_raw.push_back
          "\n"
          "If all iterations should be stored please set the keyword \n"
          "   'iterations = [0]'.\n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT( ),
@@ -2445,7 +2430,6 @@ md_data_raw.push_back
          "\n"
          "Keyword:\n"
          "  interp_method - 'linear' or 'polynomial' \n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT( doit_za_interp_ ),
@@ -2472,9 +2456,9 @@ md_data_raw.push_back
          "Input and output MUST be identical.\n"
          "\n"
          "Supergeneric output:\n"
-         "   Any_ : The input variable."
+         "   Any_ : The input variable.\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Any_ ),
@@ -2492,7 +2476,7 @@ md_data_raw.push_back
          "Emission source term for LTE.\n"
          "\n"
          "Sets *emission* for cases when emission is considered and local\n"
-         "thermodynamic equilibrium is valid."
+         "thermodynamic equilibrium is valid.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( emission_ ),
@@ -2516,9 +2500,9 @@ md_data_raw.push_back
          "(ignore and other dummy metho calls must still be included)\n"
          "\n"
          "Keywords: \n"
-         "   msg : String describing the error."
+         "   msg : String describing the error.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
@@ -2535,9 +2519,9 @@ md_data_raw.push_back
          "\n"
          "This method is handy if you want to debug one of your control\n"
          "files. You can insert it anywhere in the control file. When\n"
-         "it is reached, it will terminate the program."
+         "it is reached, it will terminate the program.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
@@ -2553,7 +2537,7 @@ md_data_raw.push_back
          "Add gas absorption to all diagonal elements of extinction matrix.\n"
          " \n"
          "The task of this method is to sum up the gas absorption of the\n"
-         "different gas species and add the result to the extinction matrix."
+         "different gas species and add the result to the extinction matrix.\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(ext_mat_),
@@ -2579,7 +2563,8 @@ md_data_raw.push_back
          "*ext_mat_spt* (part_types, stokes_dim, stokes_dim) and the local \n"
          "particle number densities for all particle types namely the \n"
          "*pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given \n"
-         "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"         "are specified in the control file.  \n"
+         "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
+         "are specified in the control file.\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT( ext_mat_  ),
@@ -2603,7 +2588,7 @@ md_data_raw.push_back
          "So, here we have to make it the right size and fill it with 0.\n"
          "\n"
          "Note, that the matrix is not really a matrix, because it has a\n"
-         "leading frequency dimension."
+         "leading frequency dimension.\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(ext_mat_ ),
@@ -2618,7 +2603,7 @@ md_data_raw.push_back
       ( NAME("FlagOff"),
         DESCRIPTION
         (
-         "Sets an index variable that acts as an on/off flag to 0."
+         "Sets an index variable that acts as an on/off flag to 0.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
@@ -2633,7 +2618,7 @@ md_data_raw.push_back
       ( NAME("FlagOn"),
         DESCRIPTION
         (
-         "Sets an index variable that acts as an on/off flag to 1."
+         "Sets an index variable that acts as an on/off flag to 1.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
@@ -2652,7 +2637,7 @@ md_data_raw.push_back
          "Sets *f_grid* to the frequency grid of *abs_lookup*.\n"
          "\n"
          "Must be called between importing/creating raw absorption table and\n"
-         "call of *abs_lookupAdapt*."
+         "call of *abs_lookupAdapt*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( f_grid_  ),
@@ -2682,7 +2667,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   fwhm       : The Full Width at Half Mean value for the response.\n"
          "   tot_width   : The total width of the relative grid.\n"
-         "   max_spacing : The maximum step between grid points."
+         "   max_spacing : The maximum step between grid points.\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(),
@@ -2718,9 +2703,9 @@ md_data_raw.push_back
          "*elsLorentz* does not need it.\n"
          "\n"
          "Supergeneric input:\n"
-         "   Any_ : The input variable."
+         "   Any_ : The input variable.\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT(),
@@ -2741,7 +2726,7 @@ md_data_raw.push_back
          "   Index : The index variable to be set. \n"
          "\n"
          "Keywords:\n"
-         "   value : A positive integer." 
+         "   value : A positive integer.\n" 
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
@@ -2758,7 +2743,7 @@ md_data_raw.push_back
         (
          "Performs GOUTPUT = GINPUT + 1\n"
          "\n"
-         "Input and output can be same variable."
+         "Input and output can be same variable.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
@@ -2782,7 +2767,7 @@ md_data_raw.push_back
          "   Numeric : Value obtained by interpolation. \n"
          "\n"
          "Generic input:\n"
-         "   Tensor3 : Field to interpolate." 
+         "   Tensor3 : Field to interpolate.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
@@ -2807,7 +2792,7 @@ md_data_raw.push_back
          "   Numeric : Value obtained by interpolation. \n"
          "\n"
          "Generic input:\n"
-         "   Matrix : Field to interpolate." 
+         "   Matrix : Field to interpolate.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
@@ -2836,9 +2821,9 @@ md_data_raw.push_back
          "*scat_i_p/lat/lon* and these variables are interpolated if the.\n"
          "given position is at any boundary.\n"
          "\n"
-         "Interpolation of the internal field is not yet possible."
+         "Interpolation of the internal field is not yet possible.\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( iy_ ),
         INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, doit_i_field1D_spectrum_,
                rte_gp_p_, rte_gp_lat_,
@@ -2858,7 +2843,7 @@ md_data_raw.push_back
          "As *iyInterpCloudboxField* but performs cubic interpolation.\n"
          "\n"
          "Works so far only for 1D cases, and accordingly a cubic\n"
-         "interpolation along *scat_za_grid* is performed."
+         "interpolation along *scat_za_grid* is performed.\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT( iy_ ),
@@ -2904,9 +2889,9 @@ md_data_raw.push_back
          "  species : The SpeciesTag of the retrieval quantity.\n"
          "  method  : Calculation method. See above.\n"
          "  unit    : Retrieval unit. See above.\n"
-         "  dx      : Size of perturbation."
+         "  dx      : Size of perturbation.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT(),
@@ -2936,7 +2921,7 @@ md_data_raw.push_back
          "  Vector : The latitude grid of the retrieval field.\n"
          "  Vector : The longitude grid of the retrieval field.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström", "Patrick Eriksson" ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
                pnd_field_, pnd_field_perturb_, cloudbox_limits_ ),
@@ -2969,9 +2954,9 @@ md_data_raw.push_back
          "\n"
          "Keywords:\n"
          "  dza                 : The size of the perturbation.\n"
-         "  poly_order          : Order of the polynomial."
+         "  poly_order          : Order of the polynomial.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, sensor_pos_, sensor_time_ ),
         GOUTPUT(),
@@ -3008,9 +2993,9 @@ md_data_raw.push_back
          "Keywords:\n"
          "  hse     : \"on\" or \"off\".\n"
          "  method  : \"analytic\" or \"perturbation\".\n"
-         "  dx      : Size of perturbation."
+         "  dx      : Size of perturbation.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT(),
@@ -3027,9 +3012,9 @@ md_data_raw.push_back
          "\n"
          "It is important that *y* holds the original output of *RteCalc*\n"
          "as the methods called performs perturbations to obtain cahnges in\n"
-         "*y*."
+         "*y*.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT( jacobian_ ),
         INPUT( jacobian_agenda_, jacobian_indices_ ),
         GOUTPUT(),
@@ -3047,7 +3032,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddAbsSpecies\n"
         "and should normally not be called by the user.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström", "Patrick Eriksson" ),
         OUTPUT( jacobian_ ),
         INPUT( y_, jacobian_quantities_, jacobian_indices_, abs_species_, 
                ppath_step_agenda_, 
@@ -3073,7 +3058,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
         "and should normally not be called by the user.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström", "Patrick Eriksson" ),
         OUTPUT( jacobian_ ),
         INPUT( y_, jacobian_quantities_, jacobian_indices_, pnd_field_perturb_,
                jacobian_particle_update_agenda_,
@@ -3099,7 +3084,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
         "and should normally not be called by the user.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT( jacobian_ ),
         INPUT( y_, jacobian_quantities_, jacobian_indices_, 
                sensor_time_, ppath_step_agenda_, 
@@ -3125,7 +3110,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
         "and should normally not be called by the user.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
         OUTPUT( jacobian_ ),
         INPUT( y_, jacobian_quantities_, jacobian_indices_, ppath_step_agenda_,
                rte_agenda_, 
@@ -3156,7 +3141,7 @@ md_data_raw.push_back
          "Therefor the number of measurement blocks, taken from *sensor_pos*\n"
          "and the size of *sensor_response* has to be defined.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
          OUTPUT( jacobian_, jacobian_indices_ ),
          INPUT( jacobian_quantities_, sensor_pos_, sensor_response_ ),
          GOUTPUT(),
@@ -3176,9 +3161,9 @@ md_data_raw.push_back
          "to be called before any subsequent calls to jacobianAddGas\n"
          "jacobianAddTemperature or jacobianAddPointing.\n"
          "\n"
-         "The Jacobian quantities are initialised to be empty."
+         "The Jacobian quantities are initialised to be empty.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Mattias Ekström" ),
          OUTPUT( jacobian_, jacobian_quantities_, jacobian_indices_ ),
          INPUT(),
          GOUTPUT(),
@@ -3195,9 +3180,9 @@ md_data_raw.push_back
          "\n"
          "Some jacobian WSVs must be initilised even if no such calculations\n"
          "will be performed and this is handled with this method. That is,\n"
-         "this method must be called when no jacobians will be calculated"
+         "this method must be called when no jacobians will be calculated.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
          OUTPUT( jacobian_, jacobian_quantities_, jacobian_indices_ ),
          INPUT(),
          GOUTPUT(),
@@ -3212,7 +3197,7 @@ md_data_raw.push_back
         ( 
          "Run the agenda that is specified inside the curly braces. ARTS\n"
          "controlfiles must define this method. It is executed automatically\n"
-         "when ARTS is run on the controlfile." 
+         "when ARTS is run on the controlfile.\n" 
         ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
@@ -3246,7 +3231,7 @@ md_data_raw.push_back
          "   Matrix : Matrix with cosmic background radiation. \n"
          "\n"
          "Generic input: \n"
-         "   Vector : A set of frequencies. "
+         "   Vector : A set of frequencies.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT(),
@@ -3267,7 +3252,7 @@ md_data_raw.push_back
          "   Matrix : The matrix to be created. \n"
          "\n"
          "Generic input: \n"
-         "   Vector : The vector to be copied."
+         "   Vector : The vector to be copied.\n"
         ),
         AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
@@ -3292,7 +3277,7 @@ md_data_raw.push_back
          "\n"
          "Generic input: \n"
          "   Vector : The vector to be copied into the first column. \n"
-         "   Vector : The vector to be copied into the second column."
+         "   Vector : The vector to be copied into the second column.\n"
         ),
         AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
@@ -3318,7 +3303,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : The vector to be copied into the first column. \n"
          "   Vector : The vector to be copied into the second column. \n"
-         "   Vector : The vector to be copied into the third column."
+         "   Vector : The vector to be copied into the third column.\n"
         ),
         AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
@@ -3339,7 +3324,7 @@ md_data_raw.push_back
          "   Matrix : The matrix to be created. \n"
          "\n"
          "Generic input: \n"
-         "   Vector : The vector to be copied."
+         "   Vector : The vector to be copied.\n"
         ),
         AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
@@ -3364,7 +3349,7 @@ md_data_raw.push_back
          "\n"
          "Generic input: \n"
          "   Vector : The vector to be copied into the first row. \n"
-         "   Vector : The vector to be copied into the second row."
+         "   Vector : The vector to be copied into the second row.\n"
         ),
         AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
@@ -3390,7 +3375,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : The vector to be copied into the first row. \n"
          "   Vector : The vector to be copied into the second row. \n"
-         "   Vector : The vector to be copied into the third row."
+         "   Vector : The vector to be copied into the third row.\n"
         ),
         AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
@@ -3408,7 +3393,7 @@ md_data_raw.push_back
          "Extract a Matrix from a Tensor3.\n"
          "\n"
          "Copies page with given Index from input Tensor3 variable to create \n"
-         "output Matrix."
+         "output Matrix.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( ),
@@ -3430,7 +3415,7 @@ md_data_raw.push_back
          "\n"
          "Generic input: \n"
          "   Vector  : A set of frequencies. \n"
-         "   Numeric : Blackbody temperature. "
+         "   Numeric : Blackbody temperature. \n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT(),
@@ -3456,7 +3441,7 @@ md_data_raw.push_back
          "   Matrix : Original matrix. \n"
          "\n"
          "Keywords: \n"
-         "   value : The value to be multiplicated with the matrix."  
+         "   value : The value to be multiplicated with the matrix.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
@@ -3479,7 +3464,7 @@ md_data_raw.push_back
          "   Matrix : The matrix to be created. \n"
          "\n"
          "Keywords:\n"
-         "   value : The value of the matrix elements. " 
+         "   value : The value of the matrix elements.\n" 
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
@@ -3505,7 +3490,7 @@ md_data_raw.push_back
          "   Matrix : A matrix with brightness temperature values. \n"
          "\n"
          "Generic input: \n"
-         "   Matrix : A matrix with radiance values."
+         "   Matrix : A matrix with radiance values.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT(),
@@ -3533,7 +3518,7 @@ md_data_raw.push_back
          "   Matrix : A matrix with brightness temperature values. \n"
          "\n"
          "Generic input: \n"
-         "   Matrix : A matrix with radiance values."
+         "   Matrix : A matrix with radiance values.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT(),
@@ -3556,7 +3541,7 @@ md_data_raw.push_back
          "   Matrix : Matrix with unit radiation. \n"
          "\n"
          "Generic input: \n"
-         "   Vector  : A set of frequencies. "
+         "   Vector  : A set of frequencies.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT(),
@@ -3577,7 +3562,7 @@ md_data_raw.push_back
          "za_sigma, and aa_sigma, which represent the standard deviations in the\n"
          "uncorrelated bivariate normal distribution\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Cory Davis" ),
         OUTPUT( mc_antenna_ ),
         INPUT(),
         GOUTPUT(),
@@ -3596,7 +3581,7 @@ md_data_raw.push_back
          "za_fwhm, and aa_fwhm, which represent the full width half maximum (FWHM)\n"
          "of the antenna response, in the zenith and azimuthal planes.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Cory Davis" ),
         OUTPUT( mc_antenna_ ),
         INPUT(),
         GOUTPUT(),
@@ -3614,7 +3599,7 @@ md_data_raw.push_back
          "This WSM makes the subsequent MCGeneral WSM perform pencil beam\n"
          "RT calculations.\n" 
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Cory Davis" ),
         OUTPUT( mc_antenna_ ),
         INPUT(),
         GOUTPUT(),
@@ -3633,9 +3618,9 @@ md_data_raw.push_back
          "calculation error is independent between Stokes components, and \n"
          "is normal distributed. That is, if e=mc_error and H is the sensor\n"
          "response, the following calculation is performed (Matlab syntax):\n"
-         "   e = sqrt( abs(H)*(e.*e) ) " 
+         "   e = sqrt( abs(H)*(e.*e) )\n" 
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Cory Davis" ),
         OUTPUT( mc_error_ ),
         INPUT( mc_error_, sensor_response_ ),
         GOUTPUT(),
@@ -3649,9 +3634,9 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Calculates the FOV averaged ice water path and cloud optical path\n"
-         "for a given viewing direction"
+         "for a given viewing direction\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Cory Davis" ),
         OUTPUT( mc_IWP_, mc_cloud_opt_path_, mc_IWP_error_, mc_cloud_opt_path_error_, 
                 mc_iteration_count_),
         INPUT( mc_antenna_, sensor_pos_, sensor_los_, ppath_step_agenda_, p_grid_, 
@@ -3679,8 +3664,8 @@ md_data_raw.push_back
          "will terminate once any of the max_iter, std_err, max_time criteria are\n"
          "met.  If negative values are given for these parameters then it is ignored.\n"
          " Negative values of rng_seed seed the random number generator \n "
-         "according to system time, positive rng_seed values are taken literally."),
-        AUTHORS( "unknown" ),
+         "according to system time, positive rng_seed values are taken literally.\n"),
+        AUTHORS( "Cory Davis" ),
         OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_ ),
         INPUT( mc_antenna_, f_grid_, sensor_pos_, sensor_los_, stokes_dim_, iy_space_agenda_,
                surface_prop_agenda_, opt_prop_gas_agenda_, 
@@ -3697,8 +3682,8 @@ md_data_raw.push_back
       ( NAME("MCIPA"),
         DESCRIPTION
         ("A specialised 3D reversed Monte Carlo radiative algorithm, that \n"
-         "mimics independent pixel appoximation simulations .  Probably temporary."),
-        AUTHORS( "unknown" ),
+         "mimics independent pixel appoximation simulations .  Probably temporary.\n"),
+        AUTHORS( "Cory Davis" ),
         OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_),
         INPUT( mc_antenna_, f_grid_, sensor_pos_, sensor_los_, stokes_dim_, iy_space_agenda_,
                surface_prop_agenda_, opt_prop_gas_agenda_, 
@@ -3715,8 +3700,9 @@ md_data_raw.push_back
       ( NAME("MCSetIncomingEmpty"),
         DESCRIPTION
         ("Sets mc_incoming to be empty.  \n"
-         "This is needed when using ScatteringMonteCarlo with incoming_lookup=0"),
-        AUTHORS( "unknown" ),
+         "This is needed when using ScatteringMonteCarlo with incoming_lookup=0\n"
+        ),
+        AUTHORS( "Cory Davis" ),
         OUTPUT( mc_incoming_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -3729,8 +3715,8 @@ md_data_raw.push_back
     ( MdRecord
       ( NAME("MCSetSeedFromTime"),
         DESCRIPTION
-        ("Sets the value of mc_seed from system time"),
-        AUTHORS( "unknown" ),
+        ("Sets the value of mc_seed from system time\n"),
+        AUTHORS( "Cory Davis" ),
         OUTPUT( mc_seed_ ),
         INPUT( ),
         GOUTPUT( ),
@@ -3749,7 +3735,7 @@ md_data_raw.push_back
          "   Numeric : The numeric variable to be set. \n"
          "\n"
          "Keywords:\n"
-         "   value : The value." 
+         "   value : The value.\n" 
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
@@ -3765,7 +3751,7 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Retrieve nelem from given variable and store the value in the \n"
-         "workspace variable *nelem*"
+         "workspace variable *nelem*\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( nelem_ ),
@@ -3783,7 +3769,7 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Retrieve ncols from given variable and store the value in the \n"
-         "workspace variable *ncols*"
+         "workspace variable *ncols*\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( ncols_ ),
@@ -3801,7 +3787,7 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Retrieve nrows from given variable and store the value in the \n"
-         "workspace variable *nrows*"
+         "workspace variable *nrows*\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( nrows_ ),
@@ -3819,7 +3805,7 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Retrieve npages from given variable and store the value in the \n"
-         "workspace variable *npages*"
+         "workspace variable *npages*\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( npages_ ),
@@ -3837,7 +3823,7 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Retrieve nbooks from given variable and store the value in the \n"
-         "workspace variable *nbooks*"
+         "workspace variable *nbooks*\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( nbooks_ ),
@@ -3855,7 +3841,7 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Retrieve nshelves from given variable and store the value in the \n"
-         "workspace variable *nshelves*"
+         "workspace variable *nshelves*\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( nshelves_ ),
@@ -3873,7 +3859,7 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Retrieve nvitrines from given variable and store the value in the \n"
-         "workspace variable *nvitrines*"
+         "workspace variable *nvitrines*\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( nvitrines_ ),
@@ -3891,7 +3877,7 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Retrieve nlibraries from given variable and store the value in the \n"
-         "workspace variable *nlibraries*"
+         "workspace variable *nlibraries*\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( nlibraries_ ),
@@ -3911,7 +3897,7 @@ md_data_raw.push_back
          "Extract a Numeric from a Vector.\n"
          "\n"
          "Copies element with given Index from input Vector variable to \n"
-         "create output Numeric."
+         "create output Numeric.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( ),
@@ -3942,7 +3928,6 @@ md_data_raw.push_back
          "Output of the function are *ext_mat_spt*, and *abs_vec_spt* which\n"
          "hold the optical properties for a specified propagation direction\n"
          "for each particle type. \n"
-         "\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( ext_mat_spt_, abs_vec_spt_ ),
@@ -3972,7 +3957,6 @@ md_data_raw.push_back
          "Output of the function are *ext_mat_spt*, and *abs_vec_spt* which\n"
          "hold the optical properties for a specified propagation direction\n"
          "for each particle type. \n"
-         "\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( ext_mat_spt_, abs_vec_spt_ ),
@@ -3990,7 +3974,7 @@ md_data_raw.push_back
       ( NAME("output_file_formatSetAscii"),
         DESCRIPTION
         (
-         "Sets the output file format to ASCII."
+         "Sets the output file format to ASCII.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( output_file_format_),
@@ -4005,7 +3989,7 @@ md_data_raw.push_back
       ( NAME("output_file_formatSetBinary"),
         DESCRIPTION
         (
-         "Sets the output file format to binary."
+         "Sets the output file format to binary.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( output_file_format_),
@@ -4039,9 +4023,8 @@ md_data_raw.push_back
          "                        corresponding the the particle number densities in \n"
          "                        *pnd_field_raw*.\n"
          "   filename_pnd_field : File including  the WSV *pnd_field_raw*.\n"
-         "\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT(scat_data_raw_, pnd_field_raw_),
         INPUT(atmosphere_dim_, f_grid_, p_grid_, lat_grid_, lon_grid_, 
               cloudbox_limits_),
@@ -4064,9 +4047,8 @@ md_data_raw.push_back
          "Keywords:\n"
          "   filename_scat_data : Filename of single scattering data \n"
          "   filename_pnd_field : Filename of the corresponding pnd_field \n"
-         "\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT(scat_data_raw_, pnd_field_raw_),
         INPUT(atmosphere_dim_, f_grid_, p_grid_, lat_grid_, lon_grid_, 
               cloudbox_limits_),
@@ -4087,7 +4069,7 @@ md_data_raw.push_back
          "*ParticleTypeInit* has to be executed before executing \n"
          "*ParticleTypeAdd(All)*.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT(scat_data_raw_, pnd_field_raw_),
         INPUT(),
         GOUTPUT(),
@@ -4136,7 +4118,6 @@ md_data_raw.push_back
          "\n"
          "Then the transformation from the database coordinate system to to \n"
          "laboratory coordinate system is done.\n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(pha_mat_spt_),
@@ -4156,7 +4137,6 @@ md_data_raw.push_back
          "Calculation of the phase matrix for the single particle types.\n"
          "\n"
          "This function is the monchromatic version of *pha_mat_sptFromData*.\n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(pha_mat_spt_),
@@ -4179,7 +4159,6 @@ md_data_raw.push_back
          "*pha_mat_sptDOITOpt*. It can be used in the agenda\n"
          "*pha_mat_spt_agenda*. This method must be used in \n "
          "conbination with *ScatteringDataPrepareDOITOpt*. \n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(pha_mat_spt_),
@@ -4207,9 +4186,8 @@ md_data_raw.push_back
          "The method takes as input the *pnd_field_raw* \n"
          "which contains the particle number density for each\n"
          "particle type. \n"
-         "\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
         OUTPUT(pnd_field_),
         INPUT(p_grid_, lat_grid_, lon_grid_, pnd_field_raw_, atmosphere_dim_,
               cloudbox_limits_),
@@ -4234,7 +4212,7 @@ md_data_raw.push_back
          "The definition of a propgation path cannot be accomodated here.\n"
          "For more information read the chapter on propagation paths in the\n"
          "ARTS user guide and read the  on-line information for\n"
-         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\")."
+         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\").\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ppath_, ppath_step_ ),
@@ -4272,7 +4250,7 @@ md_data_raw.push_back
          "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\").\n"
          "\n"
          "Keywords: \n"
-         "   lmax      : Maximum allowed length between path points."
+         "   lmax      : Maximum allowed length between path points.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ppath_step_ ),
@@ -4312,7 +4290,7 @@ md_data_raw.push_back
          "\n"
          "Keywords: \n"
          "   lraytrace : Maximum length of ray tracing steps.\n"
-         "   lmax      : Maximum allowed length between path points."
+         "   lmax      : Maximum allowed length between path points.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ppath_step_, rte_pressure_, rte_temperature_, rte_vmr_list_, 
@@ -4330,12 +4308,12 @@ md_data_raw.push_back
       ( NAME("Print"),
         DESCRIPTION
         (
-         "Prints a variable on the screen."
+         "Prints a variable on the screen.\n"
          "\n"
          "Keywords:\n"
          "   level : Output level to use. \n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Oliver Lemke" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
@@ -4350,12 +4328,12 @@ md_data_raw.push_back
       ( NAME("PrintWorkspace"),
         DESCRIPTION
         (
-         "Prints a list of initialized workspace variables."
+         "Prints a list of initialized workspace variables.\n"
          "\n"
          "Keywords:\n"
          "   level : Output level to use. \n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Oliver Lemke" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
@@ -4371,7 +4349,7 @@ md_data_raw.push_back
       ( NAME("p_gridFromGasAbsLookup"),
         DESCRIPTION
         (
-         "Sets *p_grid* to the frequency grid of *abs_lookup*."
+         "Sets *p_grid* to the frequency grid of *abs_lookup*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( p_grid_  ),
@@ -4402,7 +4380,7 @@ md_data_raw.push_back
          "   Any_     : The variable to read.\n"
          "\n"
          "Keywords:\n"
-         "   filename : Name of the input file."
+         "   filename : Name of the input file.\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(),
@@ -4439,7 +4417,7 @@ md_data_raw.push_back
          "   3: longitude gradient of the refractive index \n"
          "\n"
          "To calculate these quantities for the atmsopheric mesh, execute:\n"
-         "   RefrIndexFieldAndGradients(tensor4_1,p_grid,lat_grid,lon_grid)"
+         "   RefrIndexFieldAndGradients(tensor4_1,p_grid,lat_grid,lon_grid)\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( refr_index_, rte_pressure_, rte_temperature_, rte_vmr_list_ ),
@@ -4461,8 +4439,8 @@ md_data_raw.push_back
          "Only refractivity of dry air is considered. All other gases has\n"
                  "a negligible contribution.  \n"
          "\n"
-         "The formula used is contributed by Michael Hï¿½fner,\n"
-                 "Forschungszentrum Karlsruhe."
+         "The formula used is contributed by Michael Höfner,\n"
+                 "Forschungszentrum Karlsruhe.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( refr_index_ ),
@@ -4485,7 +4463,7 @@ md_data_raw.push_back
          "\n"
          "The parameterisation of Thayer (Radio Science, 9, 803-807, 1974)\n"
          "is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104, \n"
-         "pp. 9664). "
+         "pp. 9664). \n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( refr_index_ ),
@@ -4507,7 +4485,7 @@ md_data_raw.push_back
          "\n"
          "As this function does not need any input, you have to include call\n"
          "of *Ignore* for all variables expected to be used by\n"
-         "*refr_index_agenda*."
+         "*refr_index_agenda*.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( refr_index_ ),
@@ -4543,7 +4521,7 @@ md_data_raw.push_back
          "Analytical jacobians for gas species and temperature can be \n"
          "calcultaed along with the spectrum.\n"
          "\n"
-         "See further the user guide."
+         "See further the user guide.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( y_, ppath_, ppath_step_, iy_,
@@ -4566,7 +4544,7 @@ md_data_raw.push_back
       ( NAME( "RteCalcNoJacobian" ),
         DESCRIPTION
         (
-         "As *RteCalc* but thorughout ignores jacobians."
+         "As *RteCalc* but throughout ignores jacobians.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( y_, ppath_, ppath_step_, iy_ ),
@@ -4597,7 +4575,7 @@ md_data_raw.push_back
          "the propagation path, and to calculate source term and absorption\n"
          "for these averaged values.\n" 
          "\n"
-         "See further the user guide."
+         "See further the user guide.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( iy_, emission_, abs_scalar_gas_, diy_dvmr_, diy_dt_ ),
@@ -4618,7 +4596,7 @@ md_data_raw.push_back
          "As *RteStd*, but also returns path transmissions.\n"
          "\n"
          "The transmission to each point of the propagation path is returned\n"
-         "in *ppath_transmissions*."
+         "in *ppath_transmissions*.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( iy_, emission_, abs_scalar_gas_,
@@ -4646,7 +4624,7 @@ md_data_raw.push_back
          "\n"
          "Keywords: \n"
          "   za : Zenith angle of sensor line-of-sight.\n"
-         "   aa : Azimuth angle of sensor line-of-sight."
+         "   aa : Azimuth angle of sensor line-of-sight.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( rte_los_ ),
@@ -4674,7 +4652,7 @@ md_data_raw.push_back
          "WGS-84 ellipsiod for the position and observation direction \n"
          "described with *lat_1d* and *meridian_angle_1d*.\n"
          "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
-         "ellipsiod for the latitude value in *rte_pos*."
+         "ellipsiod for the latitude value in *rte_pos*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( rte_pos_ ),
@@ -4697,7 +4675,7 @@ md_data_raw.push_back
          "altitude and that can be achieved by this function. The function\n"
          "adds a geoid radius to the given altitude. The geoid radius is\n"
          "obtained by interpolation of *r_geoid*. There is an error if the\n"
-         "given position is outside the latitude and longitude grids."
+         "given position is outside the latitude and longitude grids.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( rte_pos_ ),
@@ -4727,7 +4705,7 @@ md_data_raw.push_back
          "Keywords: \n"
          "   r_or_z : Radius or geometrical altitude of sensor position.\n"
          "   lat : Latitude of sensor position.\n"
-         "   lon : Longitude of sensor position."
+         "   lon : Longitude of sensor position.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( rte_pos_ ),
@@ -4742,9 +4720,9 @@ md_data_raw.push_back
       ( NAME( "rte_posShift" ),
         DESCRIPTION
         (
-         "shifts rte_pos and rte_los, and rte_gp_XXX to the end of ppath."
+         "shifts rte_pos and rte_los, and rte_gp_XXX to the end of ppath.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Cory Davis" ),
         OUTPUT( rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_ ),
         INPUT( ppath_, atmosphere_dim_ ),
         GOUTPUT(),
@@ -4762,7 +4740,7 @@ md_data_raw.push_back
          "This function takes tan_p as a keyword argument and sets rte_los\n"
          "and rte_pos to the apropriate position on the edge of the modelled\n"
          "atmosphere\n\n"
-         "This function is a work in progress. Only 1D is currently supported"
+         "This function is a work in progress. Only 1D is currently supported\n"
         ),
         AUTHORS( "Cory Davis" ),
         OUTPUT( rte_pos_, rte_los_, ppath_, ppath_step_ ),
@@ -4785,7 +4763,7 @@ md_data_raw.push_back
          "global internal variable *EARTH_RADIUS*, defined in constants.cc.\n"
          "\n"
          "Keywords:\n"
-         "   r : Radius of geoid sphere. See further above."
+         "   r : Radius of geoid sphere. See further above.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( r_geoid_ ),
@@ -4811,7 +4789,7 @@ md_data_raw.push_back
          "\n"
          "Please note that the latitude grid must contain true latitudes\n"
          "if the function shall give correct result, and not just arbitrary\n"
-         "orbit angles which is allowed for 2D cases."
+         "orbit angles which is allowed for 2D cases.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( r_geoid_ ),
@@ -4831,7 +4809,6 @@ md_data_raw.push_back
          "in *f_grid*. The output is the radiation field inside the cloudbox\n"
          "(*doit_i_field*) and on the cloudbox boundary (*scat_i_p* (1D), \n"
          "*scat_i_lat* and *scat_i_lon* (3D)).\n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(doit_i_field_, scat_i_p_, scat_i_lat_, scat_i_lon_,
@@ -4862,10 +4839,10 @@ md_data_raw.push_back
          "met.  If negative values are given for these parameters then it is ignored.\n"
          " Negative values of rng_seed seed the random number generator \n "
          "according to system time, positive rng_seed values are taken literally.\n"
-         "The incoming_lookup keyword determines if incoming radiance is obtained from"
-         "a precalculated grid (mc_incoming) or calculated on the fly"
+         "The incoming_lookup keyword determines if incoming radiance is obtained from\n"
+         "a precalculated grid (mc_incoming) or calculated on the fly\n"
           ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Cory Davis" ),
         OUTPUT(ppath_, ppath_step_, 
                mc_error_, mc_iteration_count_, rte_pos_, rte_los_, iy_, 
                rte_pressure_, rte_temperature_, 
@@ -4887,7 +4864,6 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Interpolates scat_data_raw by frequency to give scat_data_mono\n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT( scat_data_mono_ ),
@@ -4915,7 +4891,6 @@ md_data_raw.push_back
          "<C_ext> - <C_sca> = <C_abs>\n"
          "\n"
          "The result is printed on the screen.\n"
-         "\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT( ),
@@ -4940,7 +4915,7 @@ md_data_raw.push_back
          "   sensor_response_f  : As returned by *sensorInit*.\n"
          "   sensor_response_za : As returned by *sensorInit*.\n"
          "   sensor_response_aa : As returned by *sensorInit*.\n"
-         "   sensor_response_pol: As returned by *sensorInit*."
+         "   sensor_response_pol: As returned by *sensorInit*.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
@@ -4971,7 +4946,7 @@ md_data_raw.push_back
          "WGS-84 ellipsiod for the position and observation direction \n"
          "described with *lat_1d* and *meridian_angle_1d*.\n"
          "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
-         "ellipsiod for the latitude values in *sensor_pos*."
+         "ellipsiod for the latitude values in *sensor_pos*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( sensor_pos_ ),
@@ -4994,7 +4969,7 @@ md_data_raw.push_back
          "altitude and that can be achieved by this function. The function\n"
          "adds a geoid radius to the given altitude. The geoid radius is\n"
          "obtained by interpolation of *r_geoid*. There is an error if the\n"
-         "given position is outside the latitude and longitude grids."
+         "given position is outside the latitude and longitude grids.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( sensor_pos_ ),
@@ -5065,7 +5040,7 @@ md_data_raw.push_back
          "matrices, the first, of a relative frequency grid.\n"
          "\n"
          "Generic Input: \n"
-         "  ArrayOfMatrix : The backend channel response."
+         "  ArrayOfMatrix : The backend channel response.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( sensor_response_, sensor_response_f_ ),
@@ -5095,7 +5070,7 @@ md_data_raw.push_back
          "   sensor_response_f  : Equal to *f_grid*.\n"
          "   sensor_response_za : Equal to *mblock_za_grid*.\n"
          "   sensor_response_aa : Equal to *mblock_aa_grid*.\n"
-         "   sensor_response_pol: Equal to *stokes_dim*."
+         "   sensor_response_pol: Equal to *stokes_dim*.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
@@ -5123,7 +5098,7 @@ md_data_raw.push_back
          "The local oscillator frequency is set by the keyword *lo*.\n"
          "\n"
          "Generic Input: \n"
-         "       Matrix : The sideband filter response matrix."
+         "       Matrix : The sideband filter response matrix.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( sensor_response_, sensor_response_f_, f_mixer_ ),
@@ -5165,8 +5140,8 @@ md_data_raw.push_back
          "matrices, the first, of a relative frequency grid.\n"
          "\n"
          "Generic Input: \n"
-         "         Matrix : The sideband filter response matrix."
-         "  ArrayOfMatrix : The backend channel response."
+         "         Matrix : The sideband filter response matrix.\n"
+         "  ArrayOfMatrix : The backend channel response.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( sensor_response_, sensor_response_f_, f_mixer_ ),
@@ -5184,7 +5159,7 @@ md_data_raw.push_back
         (
          "Adds polarisation to the response matrix.\n"
          "\n"
-         "The output polarisations are given by matrix *sensor_pol*."
+         "The output polarisations are given by matrix *sensor_pol*.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( sensor_response_, sensor_response_pol_ ),
@@ -5207,7 +5182,7 @@ md_data_raw.push_back
          "individual antennae.\n"
          "\n"
          "If used this method has to be run after the antenna response\n"
-         "function and prior to sensor_responsePolarisation."
+         "function and prior to sensor_responsePolarisation.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( sensor_response_ ),
@@ -5223,7 +5198,7 @@ md_data_raw.push_back
       ( NAME("StringSet"),
         DESCRIPTION
         (
-         "Sets a String to the given text String."
+         "Sets a String to the given text String.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
@@ -5243,7 +5218,7 @@ md_data_raw.push_back
          "This method sets up *surface_los*, *surface_rmatrix* and\n"
          "*surface_emission* for *surfaceCalc*. In this case, *surface_los*\n"
          "and *surface_rmatrix* are set to be empty, and *surface_emission*\n"
-         "to hold blackbody radiation for a temperature of *surface_skin_t*."
+         "to hold blackbody radiation for a temperature of *surface_skin_t*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
@@ -5264,7 +5239,6 @@ md_data_raw.push_back
 //          "A constant emissivity is assumed as a function of frequency and\n"
 //          "polarisation (vertical and horisontal reflection coefficients are\n"
 //          "equal. The number of directions in *surface_los* is one.\n"
-//          "\n"
 //          ),
 //         AUTHORS( "unknown" ),
 //         OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
@@ -5300,7 +5274,7 @@ md_data_raw.push_back
          "   Liebe 93 without closer specifications.\n"
          "\n"
          "Keyword: \n"
-         "   epsmodel : Name of model for dielectric constant."
+         "   epsmodel : Name of model for dielectric constant.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
@@ -5324,7 +5298,7 @@ md_data_raw.push_back
          "equal. The number of directions in *surface_los* is one.\n"
          "\n"
          "Surface properties are specified by *surface_emissivity* and \n"
-         "*surface_skin_t*."
+         "*surface_skin_t*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
@@ -5343,7 +5317,7 @@ md_data_raw.push_back
          "Extract a Tensor3 from a Tensor4.\n"
          "\n"
          "Copies book with given Imdex from input Tensor4 variable to create \n"
-         "output Tensor3."
+         "output Tensor3.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( ),
@@ -5376,7 +5350,7 @@ md_data_raw.push_back
          "Keyword: \n"
          "   npages : Number of pages in the tensor.\n"
          "   nrows  : Number of rows in the tensor.\n"
-         "   ncols  : Number of columns in the tensor. "
+         "   ncols  : Number of columns in the tensor.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
@@ -5403,7 +5377,7 @@ md_data_raw.push_back
          "   Tensor3 : The tensor3 to be scaled.\n"
          "\n"
          "Keywords:\n"
-         "   value  : The scale factor. "
+         "   value  : The scale factor.\n"
         ),
         AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
@@ -5426,7 +5400,7 @@ md_data_raw.push_back
          "   Tensor3 : The tensor3 to be created. \n"
          "\n"
          "Keywords:\n"
-         "   value  : The value of the tensor3 elements. "
+         "   value  : The value of the tensor3 elements.\n"
         ),
         AUTHORS( "Claudia Emde" ),
         OUTPUT(),
@@ -5444,7 +5418,7 @@ md_data_raw.push_back
          "Extract a Tensor4 from a Tensor5.\n"
          "\n"
          "Copies shelf with given Index from input Tensor5 variable to \n"
-         "create output Tensor4."
+         "create output Tensor4.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( ),
@@ -5471,7 +5445,7 @@ md_data_raw.push_back
          "   Tensor4 : The tensor4 to be scaled.\n"
          "\n"
          "Keywords:\n"
-         "   value  : The scale factor. "
+         "   value  : The scale factor.\n"
         ),
         AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
@@ -5494,7 +5468,7 @@ md_data_raw.push_back
          "   Tensor4 : The tensor4 to be created. \n"
          "\n"
          "Keywords:\n"
-         "   value  : The value of the tensor4 elements. "
+         "   value  : The value of the tensor4 elements.\n"
         ),
         AUTHORS( "Claudia Emde" ),
         OUTPUT(),
@@ -5521,7 +5495,7 @@ md_data_raw.push_back
          "   Tensor5 : The tensor5 to be scaled.\n"
          "\n"
          "Keywords:\n"
-         "   value  : The scale factor. "
+         "   value  : The scale factor.\n"
         ),
         AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
@@ -5544,7 +5518,7 @@ md_data_raw.push_back
          "   Tensor5 : The tensor5 to be created. \n"
          "\n"
          "Keywords:\n"
-         "   value   : The value of the tensor5 elements. "
+         "   value   : The value of the tensor5 elements.\n"
         ),
         AUTHORS( "Claudia Emde" ),
         OUTPUT(),
@@ -5571,7 +5545,7 @@ md_data_raw.push_back
          "   Tensor6 : The tensor6 to be scaled.\n"
          "\n"
          "Keywords:\n"
-         "   value  : The scale factor. "
+         "   value  : The scale factor.\n"
         ),
         AUTHORS( "Mattias Ekström" ),
         OUTPUT(),
@@ -5595,7 +5569,7 @@ md_data_raw.push_back
          "   Tensor6 : The tensor6 to be created. \n"
          "\n"
          "Keywords:\n"
-         "   value     : The value of the tensor6 elements. "
+         "   value     : The value of the tensor6 elements.\n"
         ),
         AUTHORS( "Claudia Emde" ),
         OUTPUT(),
@@ -5644,7 +5618,7 @@ md_data_raw.push_back
          "   Tensor7 : The tensor7 to be scaled.\n"
          "\n"
          "Keywords:\n"
-         "   value  : The scale factor. "
+         "   value  : The scale factor.\n"
         ),
         AUTHORS( "Claudia Emde" ),
         OUTPUT(),
@@ -5668,7 +5642,7 @@ md_data_raw.push_back
          "   Tensor7 : The tensor7 to be created. \n"
          "\n"
          "Keywords:\n"
-         "   value      : The value of the tensor7 elements. "
+         "   value      : The value of the tensor7 elements.\n"
         ),
         AUTHORS( "Claudia Emde" ),
         OUTPUT(),
@@ -5689,9 +5663,9 @@ md_data_raw.push_back
          "This method can be used by ARTS developers to quickly test stuff.\n"
          "The implementation is in file m_io.cc. This just saves you the \n"
          "trouble of adding a dummy method everytime you want to try \n"
-         "something out quickly."
+         "something out quickly.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
@@ -5714,9 +5688,9 @@ md_data_raw.push_back
          "timerStart()"
          "ReadXML(f_grid){\"frequencies.xml\"}\n"
          "timerStop()\n"
-         "Prints the CPU time spent for reading the XML file"
+         "Prints the CPU time spent for reading the XML file\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Oliver Lemke" ),
         OUTPUT(timer_),
         INPUT(),
         GOUTPUT(),
@@ -5733,9 +5707,9 @@ md_data_raw.push_back
          "Stops the CPU timer."
          "\n"
          "Use *timerStop* to output the consumed cpu time\n"
-         "since *timerStart*. See *timerStart* for example"
+         "since *timerStart*. See *timerStart* for example\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(timer_),
         GOUTPUT(),
@@ -5759,7 +5733,7 @@ md_data_raw.push_back
          "   Vector : Original vector. \n"
          "\n"
          "Keywords:\n"
-         "   value : The value to be added to the vector."
+         "   value : The value to be added to the vector.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
@@ -5777,7 +5751,7 @@ md_data_raw.push_back
          "Extract a Vector from a Matrix.\n"
          "\n"
          "Copies row with given Index from input Matrix variable to create \n"
-         "output Vector."
+         "output Vector.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT( ),
@@ -5810,7 +5784,7 @@ md_data_raw.push_back
          "\n"
          "Generic input:\n"
          "  Vector : The original grid vector.\n"
-         "  Vector : The points to insert."
+         "  Vector : The points to insert.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT(),
@@ -5839,7 +5813,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   start : The start value. \n"
          "    stop : The maximum value of the end value. \n"
-         "    step : The spacing of the vector. "
+         "    step : The spacing of the vector.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
@@ -5865,7 +5839,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   start : The start value. \n"
          "    stop : The end value. \n"  
-         "       n : Number of elements of the vector. " 
+         "       n : Number of elements of the vector.\n" 
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
@@ -5891,7 +5865,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   start : The start value. \n"
          "    stop : The end value. \n"  
-         "       n : Number of elements of the vector. " 
+         "       n : Number of elements of the vector.\n" 
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
@@ -5917,7 +5891,7 @@ md_data_raw.push_back
          "   Vector : Original vector. \n"
          "\n"
          "Keywords:\n"
-         "   value : The value to be multiplicated with the vector."  
+         "   value : The value to be multiplicated with the vector.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
@@ -5940,7 +5914,7 @@ md_data_raw.push_back
          "   Vector : The vector to be created. \n"
          "\n"
          "Keywords:\n"
-         "   value  : The value of the vector elements. " 
+         "   value  : The value of the vector elements.\n" 
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
@@ -5965,7 +5939,7 @@ md_data_raw.push_back
          "\n"
          "Usage:\n"
          "   VectorSetExplicitly(p_grid){[1000 100 10]}\n"
-         "   Will create a p_grid vector with these three elements."
+         "   Will create a p_grid vector with these three elements.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT(),
@@ -5991,7 +5965,7 @@ md_data_raw.push_back
          "   Vector : A vector with brightness temperature values. \n"
          "\n"
          "Generic input: \n"
-         "   Vector : A vector with radiance values. "
+         "   Vector : A vector with radiance values.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT(),
@@ -6033,7 +6007,7 @@ md_data_raw.push_back
          "   Vector : A vector with brightness temperature values. \n"
          "\n"
          "Generic input: \n"
-         "   Vector : A vector with radiance values."
+         "   Vector : A vector with radiance values.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT(),
@@ -6095,7 +6069,7 @@ md_data_raw.push_back
          "   Vector : A vector with geometric tangent altitudes\n"
          "\n"
          "Keywords:\n"
-         "   r_geoid : The geoid radius for the given tangent altitudes."
+         "   r_geoid : The geoid radius for the given tangent altitudes.\n"
         ),
         AUTHORS( "unknown" ),
         OUTPUT(),
@@ -6126,7 +6100,7 @@ md_data_raw.push_back
          "   Any_     : The variable to write.\n"
          "\n"
          "Keywords:\n"
-         "   filename : Name of the output file."
+         "   filename : Name of the output file.\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(),
@@ -6160,7 +6134,7 @@ md_data_raw.push_back
          "   Any_     : The variable to write.\n"
          "\n"
          "Keywords:\n"
-         "   filename : Name of the output file."
+         "   filename : Name of the output file.\n"
          ),
         AUTHORS( "unknown" ),
         OUTPUT(),
@@ -6283,7 +6257,7 @@ md_data_raw.push_back
          "with the recieving satellite at height *z_recieve* above the geoid\n"
          "and the transmitting satellite at height *z_send*.\n"
          "The zenith angles are restricted by the two tangent altitudes\n"
-         "*z_scan_low* and *z_scan_high*."
+         "*z_scan_low* and *z_scan_high*.\n"
         ),
         AUTHORS( "Mattias Ekström" ),
         OUTPUT( ppath_step_),
@@ -6335,7 +6309,7 @@ md_data_raw.push_back
 //          "                         1. O2 absorption overall scaling factor\n"
 //          "                         Note:\n"
 //          "                         abs_user_parameters must be empty if one of the\n"
-//          "                         pre-defined models is used."
+//          "                         pre-defined models is used.\n"
 //         ),
 //         AUTHORS( "unknown" ),
 //         OUTPUT( ext_mat_zee_, abs_vec_zee_),

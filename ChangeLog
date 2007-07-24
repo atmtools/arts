@@ -1,5 +1,20 @@
 2007-07-24  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1153
+
+	* src/methods.cc, src/m_cloudbox.cc, src/m_copy.h, src/m_general.cc,
+	src/m_montecarlo.cc, src/m_disort.cc, src/m_general.h,
+	src/m_jacobian.cc, src/m_ignore.h:
+
+	Continued doxygen WSM cleanup. See arts-1-1-1151 for details.
+
+	* src/methods.cc, src/workspace.cc:
+
+	Make sure that (hopefully) every description has a newline at the end
+	but no extra empty line.
+
+2007-07-24  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1152
 
 	* src/methods.cc, src/m_atmosphere.cc, src/m_agenda.cc,

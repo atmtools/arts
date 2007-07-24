@@ -55,13 +55,7 @@ extern const Numeric COSMIC_BG_TEMP;
 
 
 
-//! cloudboxSetDisort
-/*!
-  See the the online help (arts -d FUNCTION_NAME)
-
-  \author Claudia Emde
-  \date 2006-02-22
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxSetDisort(//WS Output
                        Index & cloudbox_on,
                        ArrayOfIndex& cloudbox_limits,
@@ -76,13 +70,7 @@ void cloudboxSetDisort(//WS Output
 }
   
 
-//! ScatteringDisort
-/*!
-  See the the online help (arts -d FUNCTION_NAME)
-
-  \author Claudia Emde
-  \date 2006-02-10
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 #ifdef ENABLE_DISORT
 void ScatteringDisort(// WS Output:
                       Tensor7& scat_i_p,

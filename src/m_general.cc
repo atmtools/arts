@@ -63,6 +63,7 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Print(
         // WS Generic Input:
         const ArrayOfGridPos&   x,
@@ -80,6 +81,7 @@ void Print(
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Print(
         // WS Generic Input:
         const ArrayOfIndex&   x,
@@ -96,6 +98,7 @@ void Print(
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Print(
         // WS Generic Input:
         const ArrayOfString&   x,
@@ -112,6 +115,7 @@ void Print(
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 Print(
       // WS Generic Input:
@@ -143,6 +147,8 @@ Print(
     Print( x.geom_tan_pos, "geom_tan_pos", level );
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Print(
         // WS Generic Input:
         const ArrayOfPpath&   x,
@@ -159,6 +165,7 @@ void Print(
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Print(
         // WS Generic Input:
         const Timer&   /* x */,
@@ -175,6 +182,8 @@ void Print(
   SWITCH_OUTPUT (level, os.str ()) */
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void PrintWorkspace(
         // Keywords:
         const Index    level)
@@ -195,6 +204,8 @@ void PrintWorkspace(
   SWITCH_OUTPUT (level, os.str ());
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 timerStart (// WS Output
             Timer& starttime)
@@ -204,6 +215,7 @@ timerStart (// WS Output
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 timerStop (// WS Input
            const Timer& starttime)
@@ -245,13 +257,7 @@ timerStop (// WS Input
 }
 
 
-//! Error
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Error(
            const String& msg )
 {
@@ -260,13 +266,7 @@ void Error(
 }
 
 
-//! Exit
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Exit()
 {
   out1 << "  Forced exit.\n";
@@ -274,13 +274,7 @@ void Exit()
 }
 
 
-//! Test
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2001-05-15
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Test( )
 {
   // This function can be used to test stuff.

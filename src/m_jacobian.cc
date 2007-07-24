@@ -98,13 +98,7 @@ void yCalc(
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! jacobianAddAbsSpecies
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-   
-   \author Mattias Ekstrom
-   \date   2004-09-30
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddAbsSpecies(// WS Output:
                     ArrayOfRetrievalQuantity& jq,
                     Agenda&                   jacobian_agenda,
@@ -212,14 +206,7 @@ void jacobianAddAbsSpecies(// WS Output:
 }                    
 
 
-
-//! jacobianAddParticle
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-   
-   \author Mattias Ekstrom and Patrick Eriksson
-   \date   2005-07-01
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddParticle(// WS Output:
                          ArrayOfRetrievalQuantity& jq,
                          Agenda&                   jacobian_agenda,
@@ -349,14 +336,7 @@ void jacobianAddParticle(// WS Output:
 }                    
 
 
-
-//! jacobianAddPointing
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekstrom
-   \date   2004-09-14
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddPointing(// WS Output:
                          ArrayOfRetrievalQuantity&  jq,
                          Agenda&                    jacobian_agenda,
@@ -446,14 +426,7 @@ void jacobianAddPointing(// WS Output:
 }
 
 
-
-//! jacobianAddTemperature
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-   
-   \author Mattias Ekstrom
-   \date   2004-10-14
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddTemperature(// WS Output:
                     ArrayOfRetrievalQuantity& jq,
                     Agenda&                   jacobian_agenda,
@@ -586,14 +559,7 @@ void jacobianAddTemperature(// WS Output:
 }                    
 
 
-
-//! jacobianCalc
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-   
-   \author Mattias Ekstrom
-   \date   2004-09-28
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalc(// WS Output:
                         Matrix&                    jacobian,
                   // WS Input:
@@ -629,14 +595,7 @@ void jacobianCalc(// WS Output:
 }
 
 
-
-//! jacobianCalcAbsSpecies
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekstrom and Patrick Eriksson
-   \date   2004-10-01
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcAbsSpecies(
      // WS Output:
            Matrix&                   jacobian,
@@ -839,14 +798,7 @@ void jacobianCalcAbsSpecies(
 }
 
 
-                     
-//! jacobianCalcParticle
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekstrom and Patrick Eriksson
-   \date   2004-07-01
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcParticle(
      // WS Output:
            Matrix&                     jacobian,
@@ -1076,14 +1028,7 @@ void jacobianCalcParticle(
 }
 
                      
-
-//! jacobianCalcPointing
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2004-09-27
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcPointing(
      // WS Output:
            Matrix&                   jacobian,
@@ -1226,14 +1171,7 @@ void jacobianCalcPointing(
 }
 
 
-
-//! jacobianCalcTemperature
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2004-10-15
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcTemperature(
      // WS Output:
            Matrix&                   jacobian,
@@ -1404,14 +1342,7 @@ void jacobianCalcTemperature(
 }
 
 
-                     
-//! jacobianClose
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2004-09-19
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianClose(// WS Output:
                    Matrix&                          jacobian,
                    ArrayOfArrayOfIndex&             jacobian_indices,
@@ -1472,14 +1403,7 @@ void jacobianClose(// WS Output:
 }
 
 
-
-//! jacobianInit
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2004-09-14
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianInit(
       Matrix&                    jacobian,
       ArrayOfRetrievalQuantity&  jacobian_quantities,
@@ -1491,14 +1415,7 @@ void jacobianInit(
 }
 
 
-
-//! jacobianOff
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2005-05-30
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianOff(
       Matrix&                    jacobian,
       ArrayOfRetrievalQuantity&  jacobian_quantities,

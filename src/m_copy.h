@@ -31,16 +31,7 @@
 
 #include "messages.h"
 
-//! Supergeneric Copy.
-/*! 
-  This is the implementation of the supergeneric Copy method. See
-  arts -d Copy for a description what the method does.
-
-  \param out Target WSV.
-  \param outname Name of target WSV.
-  \param in Source WSV.
-  \param inname Name of source WSV.
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 template< class T >
 void Copy(// WS Generic Output:
           T& out,

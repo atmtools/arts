@@ -69,6 +69,7 @@ extern const Numeric SPEED_OF_LIGHT;
   ===========================================================================*/
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void mc_IWP_cloud_opt_pathCalc(
                          //output
                          Numeric& mc_IWP,
@@ -146,13 +147,8 @@ void mc_IWP_cloud_opt_pathCalc(
 
 }
 
-//! mc_errorApplySensor
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
 
-   \author Patrick Eriksson
-   \date   2005-03-15
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void mc_errorApplySensor(
            Vector&   mc_error,
      const Sparse&   sensor_response )
@@ -178,6 +174,8 @@ void mc_errorApplySensor(
   transform( mc_error, sqrt, mc_error );
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void mc_antennaSetGaussian(
                            MCAntenna& mc_antenna,
                            //keyword arguments
@@ -188,6 +186,8 @@ void mc_antennaSetGaussian(
   mc_antenna.set_gaussian(za_sigma,aa_sigma);
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void mc_antennaSetGaussianByFWHM(
                            MCAntenna& mc_antenna,
                            //keyword arguments
@@ -199,7 +199,7 @@ void mc_antennaSetGaussianByFWHM(
 }
 
 
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void mc_antennaSetPencilBeam(
                             MCAntenna& mc_antenna
                             )
@@ -208,15 +208,7 @@ void mc_antennaSetPencilBeam(
 }
 
 
-
-//! MCGeneral
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Cory Davis
-   \date   2005-06-29
-*/
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MCGeneral(
                Vector&               y,
                Index&                mc_iteration_count,
@@ -470,14 +462,8 @@ void MCGeneral(
     }
 }
 
-//! MCIPA
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
 
-   \author Cory Davis
-   \date   2006-05-16
-*/
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MCIPA(
            Vector&               y,
            Index&                mc_iteration_count,
@@ -751,16 +737,8 @@ void MCIPA(
     }
 }
 
-//!MCSetIncomingEmpty
-/*!
 
-    Sets mc_incoming to be empty.  This is needed when using ScatteringMonteCarlo
-    incoming_lookup=0
-
-   \author Cory Davis
-   \date   2006-06-9
-*/
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MCSetIncomingEmpty(
                         SLIData2& mc_incoming
                         )
@@ -772,15 +750,7 @@ void MCSetIncomingEmpty(
 }
 
 
-//! MCSetSeedFromTime
-/*!
-
-    Sets the value of mc_seed from system time
-
-   \author Cory Davis
-   \date   2003-06-19
-*/
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MCSetSeedFromTime(
                        Index&    mc_seed
                        )
@@ -789,22 +759,7 @@ void MCSetSeedFromTime(
 }
 
 
-//! ScatteringMonteCarlo
-/*! 
- 
-   This workspace method uses a Monte Carlo method to calculate the monochromatic
-   radiance leaving the cloudbox in one direction.  
-   The theoretical basis for this algorithm can be found at 
-   http://www.met.ed.ac.uk/~cory/davis_MRad04.pdf
-   
-   See the online help 
-   (arts -d FUNCTION_NAME) for a description of parameters.
- 
-
-   \author Cory Davis
-   \date   2003-06-19
-*/
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ScatteringMonteCarlo (
                            // WS Output:
                            Ppath&                ppath,
@@ -1129,17 +1084,7 @@ void ScatteringMonteCarlo (
 }               
 
 
-
-
-//! rte_posShift
-/*! 
-   shifts rte_pos and rte_los, and rte_gp_XXX to the end of ppath.
-
-   \author Cory Davis
-   \date   2003-07-19
-*/
-
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void rte_posShift(
                   Vector&         rte_pos,
                   Vector&         rte_los,
@@ -1161,6 +1106,4 @@ void rte_posShift(
   if( atmosphere_dim > 2 )
     { gridpos_copy( rte_gp_lon, ppath.gp_lon[np-1] ); }
 }  
-
-
 

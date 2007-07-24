@@ -63,13 +63,7 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! cloudboxOff
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-11
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxOff(
         // WS Output:
         Index&           cloudbox_on,
@@ -82,13 +76,7 @@ void cloudboxOff(
 }
 
 
-//! cloudboxSetEmpty
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Claudia Emde
-   \date   2002-05-11
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxSetEmpty(//WS Output:
                       Tensor4& pnd_field,
                       ArrayOfSingleScatteringData& scat_data_raw,
@@ -131,14 +119,7 @@ void cloudboxSetEmpty(//WS Output:
 }
 
 
-
-//! cloudboxSetManually
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-19
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxSetManually(
         // WS Output:
         Index&          cloudbox_on,
@@ -244,19 +225,7 @@ void cloudboxSetManually(
 }
 
 
-
-//! cloudboxSetManuallyAltitude
-/*!
-  This is basically the same function as *cloudboxSetManually* but one 
-  can specify the cloudbox altitude instead of pressure.
-  It takes pressure indices corresponding to the requested cloud altitude 
-  at the first latitude/longitude limit.
-
-  See the the online help (arts -d FUNCTION_NAME)
-
-  \author Claudia Emde
-  \date   2004-02-20
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxSetManuallyAltitude(
         // WS Output:
         Index&          cloudbox_on,
@@ -360,33 +329,7 @@ void cloudboxSetManuallyAltitude(
 }
 
 
-
-//! This method interpolates clear sky field on the cloudbox boundary 
-//on all grid points inside the cloud box. 
-
-/*! 
-  This method uses a linear 3D interpolation scheme to obtain the 
-  radiation field on all grid points inside the cloud box form the 
-  clear sky field on the cloud bod boundary.
-  
-  \param doit_i_field Output : Intensity field
-  \param scat_i_p Input : Intensity field on cloudbox boundary 
-  (equal pressure surfaces)
-  \param scat_i_lat Input : Intensity field on cloudbox boundary 
-  (equal latitude surfaces)
-  \param scat_i_lon Input : Intensity field on cloudbox boundary
-  (equal longitude surfaces)
-  \param f_grid Input : frequency grid
-  \param f_index Input : the frequency index for scattering calculation
-  \param p_grid Input : the pressure grid
-  \param lat_grid Input : the latitude grid
-  \param lon_grid Input : the longitude grid
-  \param cloudbox_limits Input : Limits of the cloud box
-  \param atmosphere_dim Input : dimension of atmosphere
-  
-  \author Sreerekha T.R.
-   \date   2002-07-24
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
                 const Tensor7& scat_i_p,
                 const Tensor7& scat_i_lat,
@@ -733,37 +676,7 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
 }
 
 
-      
-//! Set constant initial field
-
-/*! 
-  This method sets the initial field inside the cloudbox to a constant value.
-  The method works only for monochromatic calculations (number of elements 
-  in f_grid =1).
-
-  The user can specify a value for each Stokes dimension in the control file
-  by the variable doit_i_field_value, which is a vector containing 4 elements, the
-  value of the initial field for each Stokes dimension.
-  
-  \param doit_i_field Output : Intensity field
-  \param scat_i_p Input : Intensity field on cloudbox boundary 
-  (equal pressure surfaces)
-  \param scat_i_lat Input : Intensity field on cloudbox boundary 
-  (equal latitude surfaces)
-  \param scat_i_lon Input : Intensity field on cloudbox boundary
-  (equal longitude surfaces)
-  \param p_grid Input : the pressure grid
-  \param lat_grid Input : the latitude grid
-  \param lon_grid Input : the longitude grid
-  \param cloudbox_limits Input : Limits of the cloud box
-  \param atmosphere_dim Input : dimension of atmosphere
-  \param stokes_dim     FIXME: Add documentation.
-  \param doit_i_field_values Keyword : value of the constant initial field 
-
-  \author Claudia Emde
-  \date 2002-08-26
-  
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void doit_i_fieldSetConst(//WS Output:
                         Tensor6& doit_i_field,
                         //WS Input:
@@ -979,14 +892,7 @@ void doit_i_fieldSetConst(//WS Output:
 }
 
 
-//! Initialize variables containing information about the particles.
-/*! 
- 
-  WS Output:
-  \param scat_data_raw  Single scattering data.
-  \param pnd_field_raw  Particle number density field data.
-
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleTypeInit( //WS Output:
                       ArrayOfSingleScatteringData& scat_data_raw,
                       ArrayOfGriddedField3& pnd_field_raw
@@ -997,13 +903,7 @@ void ParticleTypeInit( //WS Output:
 }
 
 
-//! ParticleTypeAddAll
-/*!
-  See the the online help (arts -d FUNCTION_NAME)
-  
-  \author Claudia Emde
-  \date 2004-03-08
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleTypeAddAll( //WS Output:
                  ArrayOfSingleScatteringData& scat_data_raw,
                  ArrayOfGriddedField3&  pnd_field_raw,
@@ -1063,15 +963,7 @@ void ParticleTypeAddAll( //WS Output:
 }
 
 
-//! ParticleTypeAdd
-/*! 
-  See the the online help (arts -d FUNCTION_NAME)
-  
-  \author Claudia Emde
-  \date 2003-02-24
-
-  \date 2004-02-23 Included structure ArrayOfGriddedField3.
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleTypeAdd( //WS Output:
                  ArrayOfSingleScatteringData& scat_data_raw,
                  ArrayOfGriddedField3&  pnd_field_raw,
@@ -1136,21 +1028,7 @@ void ParticleTypeAdd( //WS Output:
 }
 
 
-//! pnd_fieldCalc
-/*
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Sreerekha T.R. and Claudia Emde
-   \date   2003-04-17
-
-   \date   2004-02-23 (CE:) Used ArrayOfGriddedField3 instead of 
-   ArrayOfArrayOfTensor3. 
-   
-   \date   2005-05-26 (CE) Modified the size of pnd_field, now only defined
-   in the cloudbox. 
-
-*/
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void pnd_fieldCalc(//WS Output:
                    Tensor4& pnd_field,
                    //WS Input
@@ -1301,38 +1179,7 @@ void pnd_fieldCalc(//WS Output:
 }
 
 
-//! Method for the communication between cloudbox and clearsky.
-/*
-  This method puts the scattered radiation field into the interface variables 
-  between the cloudbox and the clearsky, which are *scat_i_p*, *scat_i_lat*,
-  *scat_i_lon*. As doit_i_field is only stored for one frequency given by
-  *f_index* this method has to be executed after each scattering 
-  calculation to store the scattered field on the boundary of the cloudbox.
-  
-  The best way to calculate spectra including the influence of 
-  scattering is to set up the *scat_mono_agenda* where this method 
-  can be included.
- 
-  
- \param scat_i_p doit_i_field on pressure boundaries
- \param scat_i_lat doit_i_field on latitude boundaries
- \param scat_i_lon doit_i_field on longitude boundaries
- \param doit_i_field radiation field inside cloudbox
- \param f_grid frequency grid
- \param f_index index for scattering calculation
- \param p_grid pressure grid
- \param lat_grid latitude grid
- \param lon_grid longitude grid
- \param scat_za_grid zenith angle grid
- \param scat_aa_grid azimuth angle grid
- \param stokes_dim stokes dimension
- \param atmosphere_dim atmospheric dimension
- \param cloudbox_limits limits of the cloudbox
-
- \author Claudia Emde
- \date 2002-09-09
- 
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void DoitCloudboxFieldPut(//WS Output:
                Tensor7&  scat_i_p,
                Tensor7& scat_i_lat,
@@ -1530,15 +1377,7 @@ void DoitCloudboxFieldPut(//WS Output:
 }
 
 
-
-//! CloudboxGetIncoming
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-  \author Sreerekha T.R., Claudia Emde
-  \date 2002-10-07
-  \date 2004-09-27   Modified and adapted to iy_calc by Patrick Eriksson.
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void CloudboxGetIncoming(
               Tensor7&        scat_i_p,
               Tensor7&        scat_i_lat,
@@ -1820,15 +1659,7 @@ void CloudboxGetIncoming(
 }
 
 
-
-//! CloudboxGetIncoming1DAtm
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-  \author Sreerekha T.R., Claudia Emde
-  \date 2002-10-07
-  \date 2004-10-01   Modified and adapted to iy_calc by Patrick Eriksson.
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void CloudboxGetIncoming1DAtm(
               Tensor7&        scat_i_p,
               Tensor7&        scat_i_lat,
@@ -1985,14 +1816,7 @@ void CloudboxGetIncoming1DAtm(
 }
 
 
-
-//! iyInterpCloudboxField
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-  \author Patrick Eriksson
-  \date 2004-09-29
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyInterpCloudboxField(
             Matrix&         iy,
       const Tensor7&        scat_i_p,
@@ -2019,14 +1843,8 @@ void iyInterpCloudboxField(
 }
 
 
-
-//! iyInterpCubicCloudboxField
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-  \author Patrick Eriksson
-  \date 2004-09-29
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
+/* FIXME OLE: Dead function? */
 void iyInterpPolyCloudboxField(
             Matrix&         iy,
       const Tensor7&        scat_i_p,
@@ -2051,3 +1869,4 @@ void iyInterpPolyCloudboxField(
                             cloudbox_limits, atmosphere_dim, stokes_dim, 
                             scat_za_grid, scat_aa_grid, f_grid, "polynomial" );
 }
+

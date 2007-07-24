@@ -50,13 +50,7 @@ typedef struct {
   clock_t realtime;
 } Timer;
 
-//! Print
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Oliver Lemke
-   \date   2003-07-24
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
 Print(
       // WS Generic Input:
@@ -69,6 +63,8 @@ Print(
   SWITCH_OUTPUT (level, "  *" << x_name << "*:\n" << x << '\n')
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 Print(
       // WS Generic Input:
@@ -78,6 +74,8 @@ Print(
       // Keywords:
       const Index              level );
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 Print(
         // WS Generic Input:
@@ -87,6 +85,8 @@ Print(
         // Keywords:
         const Index           level );
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 Print(
         // WS Generic Input:
@@ -96,6 +96,8 @@ Print(
         // Keywords:
         const Index            level );
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 Print(
         // WS Generic Input:
@@ -105,6 +107,8 @@ Print(
         // Keywords:
         const Index     level );
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Print(
         // WS Generic Input:
         const ArrayOfPpath&   x,
@@ -113,6 +117,8 @@ void Print(
         // Keywords:
         const Index             level );
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Print(
         // WS Generic Input:
         const Timer&   x,
@@ -121,6 +127,8 @@ void Print(
         // Keywords:
         const Index    level);
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void PrintWorkspace(
         // Keywords:
         const Index    level);

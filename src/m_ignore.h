@@ -30,14 +30,7 @@
 #define m_ignore_h
 
 
-//! Supergeneric Copy.
-/*! 
-  This is the implementation of the supergeneric Ignore method. See
-  arts -d Ignore for a description what the method does.
-
-  \param inname Name of source WSV.
-*/
-/* param in Source WSV. */
+/* Workspace method: Doxygen documentation will be auto-generated */
 template< class T >
 void Ignore(// WS Generic Input:
             const T&,
@@ -49,13 +42,7 @@ void Ignore(// WS Generic Input:
 }
 
 
-
-/*! 
-  This is the implementation of the supergeneric DoNothing method. See
-  arts -d DoNothing for a description what the method does.
-
-  \param inname Name of source WSV.
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 template< class T >
 void DoNothing(
             // WS Generic Output:

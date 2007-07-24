@@ -117,7 +117,7 @@ void define_wsv_data()
         "\n"
         "Dimensions: [f_grid, abs_p]\n"
         "\n"
-        "Unit: 1/m"
+        "Unit: 1/m\n"
         ),
       GROUP( Matrix_ )));
 
@@ -128,7 +128,7 @@ void define_wsv_data()
       (
        "These are the absorption coefficients individually for each\n"
        "tag group. The Array contains one matrix for each tag group,\n"
-       "the matrix format is the same as that of abs_coef"
+       "the matrix format is the same as that of abs_coef\n"
       ),
       GROUP( ArrayOfMatrix_ )));
 
@@ -137,7 +137,7 @@ void define_wsv_data()
 //     ( NAME( "abs_coef_agenda" ),
 //       DESCRIPTION
 //       (
-//         "See agendas.cc."
+//         "See agendas.cc.\n"
 //        ),
 //       GROUP( Agenda_)));
   
@@ -297,7 +297,6 @@ void define_wsv_data()
        "    not just the absorption. Therefore it is not suitable for \n"
        "    calculating thermal emission by rain!\n"
        "    Please use rain-MPM93 only for calculation of attenuation.\n"
-       "\n"
       ),
       GROUP( ArrayOfString_ )));
 
@@ -319,7 +318,7 @@ void define_wsv_data()
      (NAME( "abs_h2o" ),
       DESCRIPTION
       (
-       "The total water profile associated with the pressures in abs_p [-]"
+       "The total water profile associated with the pressures in abs_p [-]\n"
       ),
       GROUP( Vector_ )));
 
@@ -328,7 +327,7 @@ void define_wsv_data()
      ( NAME( "abs_lines" ),
        DESCRIPTION
        (
-        "A list of spectral line data."
+        "A list of spectral line data.\n"
        ), 
        GROUP( ArrayOfLineRecord_ )));
 
@@ -340,7 +339,7 @@ void define_wsv_data()
         "Lineshape specification: function, norm, cutoff. There is one entry for\n"
         "each abs_tag, not for each species. This means if you have several\n"
         "abs_tags for different isotopes or transitions of a species, you\n"
-        "may use different lineshapes."
+        "may use different lineshapes.\n"
        ),
        GROUP( ArrayOfLineshapeSpec_ )));
 
@@ -350,7 +349,7 @@ void define_wsv_data()
        DESCRIPTION
        (
         "A list of spectral line data for each tag.\n"
-        "Dimensions: (tag_groups.nelem()) (# of lines for this tag)"
+        "Dimensions: (tag_groups.nelem()) (# of lines for this tag)\n"
        ), 
        GROUP( ArrayOfArrayOfLineRecord_ )));
 
@@ -367,7 +366,7 @@ void define_wsv_data()
         "\n"
         "This has quite a complicated structure. See Doxygen documentation for\n"
         "class GasAbsLookup for details. FIXME: Add here a reference to AUG,\n"
-        "once the chapter on the lookup table has been written."
+        "once the chapter on the lookup table has been written.\n"
         ), 
        GROUP( GasAbsLookup_ )));
 
@@ -377,7 +376,7 @@ void define_wsv_data()
          DESCRIPTION
          (
           "Vector containing indices to those species in the species list\n"
-          "*abs_species* that should be treated non-linearly (usually only H2O). FIXME: More..."
+          "*abs_species* that should be treated non-linearly (usually only H2O). FIXME: More...\n"
          ), 
          GROUP( ArrayOfIndex_ )));
 
@@ -387,7 +386,7 @@ void define_wsv_data()
          DESCRIPTION
          (
           "Vector containing the fractional perturbations\n"
-          "for the nonlinear species in the abs lookup table. FIXME: More..."
+          "for the nonlinear species in the abs lookup table. FIXME: More...\n"
           ), 
          GROUP( Vector_ )));
 
@@ -397,7 +396,7 @@ void define_wsv_data()
          DESCRIPTION
          (
           "Vector containing the temperature perturbations\n"
-          "for the abs lookup table. FIXME: More..."
+          "for the abs lookup table. FIXME: More...\n"
           ), 
          GROUP( Vector_ )));
 
@@ -409,7 +408,7 @@ void define_wsv_data()
         "Flag to indicate whether *abs_lookupAdapt* has already been\n"
         "called.\n"
         "\n"
-        "Values: 0=false, 1=true."
+        "Values: 0=false, 1=true.\n"
         ), 
        GROUP( Index_ )));
 
@@ -418,7 +417,7 @@ void define_wsv_data()
      (NAME( "abs_n2" ),
       DESCRIPTION
       (
-       "The total nitrogen profile associated with the pressures in abs_p [-]"
+       "The total nitrogen profile associated with the pressures in abs_p [-]\n"
       ),
       GROUP( Vector_ )));
 
@@ -438,7 +437,7 @@ void define_wsv_data()
        "\n"
        "Dimension: [number of pressures]\n"
        "\n"
-       "Unit: Pa"
+       "Unit: Pa\n"
        ),
       GROUP( Vector_ )));
 
@@ -459,7 +458,7 @@ void define_wsv_data()
        "Case b:    For a single frequency for all species:\n"
        "Dimension: [ 1,      abs_species ]\n"
        "\n"
-       "Unit: 1/m"
+       "Unit: 1/m\n"
        ),
       GROUP( Matrix_ )));
 
@@ -468,7 +467,7 @@ void define_wsv_data()
     ( NAME( "abs_scalar_gas_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_)));
   
@@ -489,7 +488,7 @@ void define_wsv_data()
        "\n"
        "Unit:       1/m\n"
        "\n"
-       "Dimensions: [species, f_grid, p_grid, lat_grid, lon_grid]"
+       "Dimensions: [species, f_grid, p_grid, lat_grid, lon_grid]\n"
         ),
       GROUP( Tensor5_ ))); 
 
@@ -503,7 +502,7 @@ void define_wsv_data()
         "This is an array of arrays of SpeciesTag tag definitions. It defines the\n"
         "available tag groups for the calculation of scalar gas absorption\n"
         "coefficients.  See online documentation of method *abs_speciesSet* for\n"
-        "more detailed information how tag groups work and some examples."
+        "more detailed information how tag groups work and some examples.\n"
         ), 
        GROUP( ArrayOfArrayOfSpeciesTag_ )));
 
@@ -521,7 +520,7 @@ void define_wsv_data()
        "\n"
        "Dimension: [number of pressures]\n"
        "\n"
-       "Unit: K"
+       "Unit: K\n"
        ),
       GROUP( Vector_ )));
 
@@ -551,7 +550,7 @@ void define_wsv_data()
        "\n"
        "Unit:        [Hz, m^2]\n"
        "\n"
-       "Dimensions: [f_grid, stokes_dim]"
+       "Dimensions: [f_grid, stokes_dim]\n"
         ),
        GROUP( Matrix_ )));
 
@@ -573,7 +572,7 @@ void define_wsv_data()
         "\n"
         "Unit:        m^2\n"
         "\n"
-        "Dimensions: [part_types,stokes_dim]"
+        "Dimensions: [part_types,stokes_dim]\n"
         ),
        GROUP( Matrix_ ) ));
 
@@ -583,7 +582,7 @@ void define_wsv_data()
       DESCRIPTION
       (
        "The VMRs (unit: absolute number) on the abs_p grid.\n"
-       "Dimensions: [tag_groups.nelem(), abs_p.nelem()]"
+       "Dimensions: [tag_groups.nelem(), abs_p.nelem()]\n"
       ),
       GROUP( Matrix_ )));
 
@@ -592,7 +591,7 @@ void define_wsv_data()
      ("abs_xsec_per_species",
       "These are the cross sections individually for each tag\n"
       "group. The Array contains one matrix for each tag group,\n"
-      "the matrix format is the same as that of abs_coef",
+      "the matrix format is the same as that of abs_coef\n",
       ArrayOfMatrix_));
 
   wsv_data.push_back
@@ -615,7 +614,7 @@ void define_wsv_data()
        "existing viewing angles/polarisations/frequencies, or to provide a\n"
        "full description for each viewing angle/polarisation/frequency.\n"
        "\n"
-       "Usage:      Set by the user."
+       "Usage:      Set by the user.\n"
        ),
       GROUP( ArrayOfArrayOfMatrix_ )));
 
@@ -632,7 +631,6 @@ void define_wsv_data()
        "zenith and azimuth variation.\n"
        "\n"
        "Usage:      Set by the user.\n"
-       "\n"
        ),
       GROUP( Index_ )));
 
@@ -662,7 +660,7 @@ void define_wsv_data()
        "\n"
        "Unit:  [ degrees, degrees ]\n"
        "\n"
-       "Size:  [ number of antennae, 1 or 2 ]"
+       "Size:  [ number of antennae, 1 or 2 ]\n"
        ),
       GROUP( Matrix_ )));
 
@@ -677,7 +675,7 @@ void define_wsv_data()
        "ArrayOfMatrix. It can be used, for example, when some intermediate\n"
        "data must be generated or to copy some data.\n"
        "\n"
-       "Usage: Set by user."
+       "Usage: Set by user.\n"
        ),
       GROUP( ArrayOfMatrix_ )));
 
@@ -692,7 +690,7 @@ void define_wsv_data()
         "This variable shall be treated as a general variable of type\n"
         "ArrayOfString. \n"
         "\n"
-        "Usage: Set by user."
+        "Usage: Set by user.\n"
         ),
        GROUP( ArrayOfString_ )));
 
@@ -716,7 +714,7 @@ void define_wsv_data()
        "The atmospheric dimensionalities (1D, 2D and 3D) are defined in the\n"
        "user guide (look for \"atmospheric dimensionality\" in the index).\n"
        "\n"
-       "Usage:      Set by the user."
+       "Usage:      Set by the user.\n"
        ),
       GROUP( Index_ )));
 
@@ -725,7 +723,7 @@ void define_wsv_data()
     ( NAME( "ybatch_calc_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_ )));
 
@@ -745,7 +743,7 @@ void define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Set by the user."
+       "Usage:      Set by the user.\n"
        ),
       GROUP( Index_ )));
 
@@ -787,7 +785,7 @@ void define_wsv_data()
        "\n"
        "Unit:  Index values.\n"
        "\n"
-       "Size:  [ 2 * atmosphere_dim ]"
+       "Size:  [ 2 * atmosphere_dim ]\n"
        ),
       GROUP( ArrayOfIndex_ )));
 
@@ -807,7 +805,7 @@ void define_wsv_data()
        "\n"
        "Usage:      Set by *iy_calc* and *rte_agenda*.\n"
        "\n"
-       "Dimensions: [ppath_array][ 1 ppath.np, f_grid, stokes_dim ]"
+       "Dimensions: [ppath_array][ 1 ppath.np, f_grid, stokes_dim ]\n"
        ),
       GROUP( ArrayOfTensor4_ )));
 
@@ -825,7 +823,7 @@ void define_wsv_data()
        "Usage:      Set by *iy_calc* and *rte_agenda*.\n"
        "\n"
        "Dimensions: \n"
-       "     [ppath_array][ rte_do_vmr_species, ppath.np, f_grid, stokes_dim ]"
+       "     [ppath_array][ rte_do_vmr_species, ppath.np, f_grid, stokes_dim ]\n"
        ),
       GROUP( ArrayOfTensor4_ )));
 
@@ -842,7 +840,6 @@ void define_wsv_data()
        "assigned which means that the iteration is completed. \n"
        "\n"
        "Usage: Method output. \n"
-       "\n"
       ), 
       GROUP( Index_ ))); 
 
@@ -851,7 +848,7 @@ void define_wsv_data()
     ( NAME( "doit_conv_test_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_ )));
 
@@ -873,8 +870,7 @@ void define_wsv_data()
        "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
        "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-       "        N_za, N_aa, N_i ]"
-       "\n"
+       "        N_za, N_aa, N_i ]\n"
        ),
        GROUP( Tensor6_ )));
 
@@ -888,7 +884,7 @@ void define_wsv_data()
        "This variable holds the radiation field. In contrast to \n"
        "*doit_i_field* this variable has an additional freqeuncy \n"
        "dimension. This variable is only used for 1D DOIT \n"
-       "calculations. \n"
+       "calculations.\n"
        "\n"
        "Usage: Output of *CloudboxFieldPut*\n"
        "\n"
@@ -896,8 +892,7 @@ void define_wsv_data()
        "\n"
         "Size: [N_f \n"
        "       (cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-       "        N_za, N_aa, N_i ]"
-       "\n"
+       "        N_za, N_aa, N_i ]\n"
        ),
       GROUP( Tensor4_ )));
  
@@ -921,7 +916,7 @@ void define_wsv_data()
        "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
        "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-       "        N_za, N_aa, N_i ]"
+       "        N_za, N_aa, N_i ]\n"
        ),
       GROUP( Tensor6_ )));
  
@@ -934,7 +929,6 @@ void define_wsv_data()
        "\n"
        "This variable holds the number of iterations \n"
        "while solving the VRTE using the DOIT method. \n"
-       "\n"
        ),
       GROUP( Index_ )));
 
@@ -943,7 +937,7 @@ void define_wsv_data()
     ( NAME( "doit_mono_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_ )));
  
@@ -952,7 +946,7 @@ void define_wsv_data()
     ( NAME( "doit_rte_agenda" ),
       DESCRIPTION
       (
-       "See agendas.cc."
+       "See agendas.cc.\n"
        ),
       GROUP( Agenda_ ))); 
 
@@ -961,7 +955,7 @@ void define_wsv_data()
     ( NAME( "doit_scat_field_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_ ))); 
 
@@ -983,7 +977,7 @@ void define_wsv_data()
        "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
        "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-       "        N_za, N_aa, N_i ]"
+       "        N_za, N_aa, N_i ]\n"
        ),
       GROUP( Tensor6_ )));   
 
@@ -1001,8 +995,7 @@ void define_wsv_data()
         "\n"
         "Usage:   Output of *DoitGridOptimization*   \n"
         "\n"
-        "Unit:    degrees "
-        "\n"
+        "Unit:    degrees \n"
         ),
       GROUP( Vector_ )));
 
@@ -1018,7 +1011,6 @@ void define_wsv_data()
        "*doit_za_grid_size* is the number of points of the zenith angle grid.\n"
        "\n"
        "Usage: Output of *DoitAngularGridsSet*.\n"
-       "\n"
        ),
       GROUP( Index_ )));
  
@@ -1034,7 +1026,6 @@ void define_wsv_data()
        "Default is linear interpolation. \n"
        "\n"
        "Usage: Set by user in *doit_za_interpSet*. \n"
-       " \n"
        ),
       GROUP( Index_ )));
 
@@ -1054,7 +1045,7 @@ void define_wsv_data()
        "\n"
        "Unit:       W / (m^2 Hz sr) or optical thickness \n"
        "\n"
-       "Dimensions: [ f_grid ]"
+       "Dimensions: [ f_grid ]\n"
        ),
       GROUP( Vector_ )));
 
@@ -1063,7 +1054,7 @@ void define_wsv_data()
      ( NAME( "emission_agenda" ),
        DESCRIPTION
        (
-        "See agendas.cc."
+        "See agendas.cc.\n"
         ),
        GROUP(  Agenda_ )));
 
@@ -1093,7 +1084,7 @@ void define_wsv_data()
        "\n"
        "Unit:       [Hz, m^2, m^2] "
        "\n"
-       "Dimensions: [f_grid, stokes_dim, stokes_dim]"
+       "Dimensions: [f_grid, stokes_dim, stokes_dim]\n"
        ),
        GROUP( Tensor3_ )));
 
@@ -1112,7 +1103,7 @@ void define_wsv_data()
        "\n"
        "Unit:        m^2 \n"
        "\n"
-       "Dimensions: [part_types, stokes_dim, stokes_dim]"
+       "Dimensions: [part_types, stokes_dim, stokes_dim]\n"
        ),
       GROUP( Tensor3_ )));
 
@@ -1125,7 +1116,7 @@ void define_wsv_data()
         "\n"
         "See *WriteXMLIndexed* for further information.\n"
         "\n"
-        "Usage:   Input to *WriteXMLIndexed* and *ReadXMLIndexed*. "
+        "Usage:   Input to *WriteXMLIndexed* and *ReadXMLIndexed*. \n"
         ),
         GROUP( Index_ )));
 
@@ -1138,7 +1129,7 @@ void define_wsv_data()
         "\n"
         "Usage:      Input to *sensor_responseBackend*.\n "
         "\n"
-        "Unit:       Hz"
+        "Unit:       Hz\n"
         ),
         GROUP( Vector_ )));
 
@@ -1151,7 +1142,7 @@ void define_wsv_data()
         "\n"
         "Usage:      Set by the user.\n "
         "\n"
-        "Unit:       Hz"
+        "Unit:       Hz\n"
         ),
         GROUP( Vector_ )));
 
@@ -1175,7 +1166,6 @@ void define_wsv_data()
        "Usage:      Input and output to *scat_mono_agenda*,\n"
        "                     *opt_prop_gas_agenda\n"
        "                     *opt_prop_part_agenda*.\n"
-       "\n"
        ),
       GROUP( Index_ )));
 
@@ -1188,7 +1178,7 @@ void define_wsv_data()
         "\n"
         "Usage:      Input and output in *sensor_responseMixer*.\n "
         "\n"
-        "Unit:       Hz"
+        "Unit:       Hz\n"
         ),
         GROUP( Vector_ )));
   
@@ -1197,7 +1187,7 @@ void define_wsv_data()
     ( NAME( "geomag_los_calc_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_ )));
 
@@ -1214,7 +1204,6 @@ void define_wsv_data()
        "Unit: ..."
        "\n"
        "Dimensions: [Magnetic field B, angle between B and los] \n"
-       "\n"
        ),
       GROUP( Matrix_ )));
 
@@ -1237,7 +1226,7 @@ void define_wsv_data()
        "\n"
        "Unit:       W / (m^2 Hz sr) or transmission.\n"
        "\n"
-       "Dimensions: [ f_grid, stokes_dim ]"
+       "Dimensions: [ f_grid, stokes_dim ]\n"
        ),
       GROUP( Matrix_ )));
 
@@ -1246,7 +1235,7 @@ void define_wsv_data()
      ( NAME( "iy_cloudbox_agenda" ),
        DESCRIPTION
        (
-        "See agendas.cc."
+        "See agendas.cc.\n"
         ),
        GROUP(  Agenda_ )));
 
@@ -1255,7 +1244,7 @@ void define_wsv_data()
      ( NAME( "iy_space_agenda" ),
        DESCRIPTION
        (
-        "See agendas.cc."
+        "See agendas.cc.\n"
         ),
        GROUP(  Agenda_ )));
 
@@ -1275,7 +1264,7 @@ void define_wsv_data()
        "\n"
        "Unit:       W / (m^2 Hz sr) \n"
        "\n"
-       "Dimensions: [ f_grid, stokes_dim ]"
+       "Dimensions: [ f_grid, stokes_dim ]\n"
        ),
       GROUP( Matrix_ )));
 
@@ -1305,7 +1294,7 @@ void define_wsv_data()
     ( NAME( "jacobian_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_ )));
 
@@ -1328,7 +1317,7 @@ void define_wsv_data()
     ( NAME( "jacobian_particle_update_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_ )));
 
@@ -1337,7 +1326,7 @@ void define_wsv_data()
     ( NAME( "jacobian_lat_grid" ),
       DESCRIPTION
       (
-       "The latitude grid for the Jacobian matrix."
+       "The latitude grid for the Jacobian matrix.\n"
        "\n"
        "The latitudes for which the Jacobian is determined. The jacobian\n"
        "is undefined outside the range covered by the grid. The grid must\n"
@@ -1360,7 +1349,7 @@ void define_wsv_data()
        "\n"
        "Usage:      Set by the user.\n"
        "\n"
-       "Unit:       degrees"
+       "Unit:       degrees\n"
       ),
       GROUP( Vector_ )));
 
@@ -1369,7 +1358,7 @@ void define_wsv_data()
     ( NAME( "jacobian_lon_grid" ),
       DESCRIPTION
       (
-       "The longitude grid for the Jacobian matrix."
+       "The longitude grid for the Jacobian matrix.\n"
        "\n"
        "The longitudes for which the Jacobian is determined. The jacobian\n"
        "is undefined outside the range covered by the grid. The grid must\n"
@@ -1389,7 +1378,7 @@ void define_wsv_data()
        "\n"
        "Usage:      Set by the user.\n"
        "\n"
-       "Unit:       degrees"
+       "Unit:       degrees\n"
       ),
       GROUP( Vector_ )));
 
@@ -1406,7 +1395,7 @@ void define_wsv_data()
        "\n"
        "Usage:       Set by the user.\n"
        "\n"
-       "Unit:        Pa"
+       "Unit:        Pa\n"
       ),
       GROUP( Vector_ )));
 
@@ -1423,7 +1412,7 @@ void define_wsv_data()
        "Usage: Quantities are added by specific WSM;\n"
        "         jacobianAddGas,\n"
        "         jacobianAddTemp,\n"
-       "         ..."
+       "         ...\n"
       ),
       GROUP( ArrayOfRetrievalQuantity_ )));
 
@@ -1456,7 +1445,7 @@ void define_wsv_data()
        "\n"
        "Usage:      Set by the user.\n"
        "\n"
-       "Unit:       degrees"
+       "Unit:       degrees\n"
        ),
       GROUP( Vector_ )));
 
@@ -1480,7 +1469,7 @@ void define_wsv_data()
        "\n"
        "Usage: Set by the user.\n"
        "\n"
-       "Unit:  degrees"
+       "Unit:  degrees\n"
        ),
       GROUP( Numeric_ )));
 
@@ -1497,7 +1486,7 @@ void define_wsv_data()
        "\n"
        "Unit: Hz\n"
        "\n"
-       "Usage: Set by the user."
+       "Usage: Set by the user.\n"
        ),
       GROUP( Vector_ )));
 
@@ -1524,7 +1513,7 @@ void define_wsv_data()
        "\n"
        "Usage: Set by the user.\n"
        "\n"
-       "Unit:  degrees"
+       "Unit:  degrees\n"
        ),
       GROUP( Vector_ )));
 
@@ -1539,7 +1528,7 @@ void define_wsv_data()
        "which are *sto_vecGeneral* and *sto_vecScalar*.\n"
        "It can be calculated using the *ppath_step_agenda*.\n"
        "\n"
-       "Usage:      Used in *doit_i_fieldUpdateXXX."
+       "Usage:      Used in *doit_i_fieldUpdateXXX.\n"
        "\n"
        "Unit:       m \n"
        ),
@@ -1556,7 +1545,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage: Set by user."
+       "Usage: Set by user.\n"
        ),
       GROUP( Matrix_ )));
 
@@ -1565,7 +1554,7 @@ void define_wsv_data()
     ( NAME( "main_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_)));
 
@@ -1586,7 +1575,7 @@ void define_wsv_data()
        "\n"
        "Usage: Set by the user.\n"
        "\n"
-       "Unit:  degrees "
+       "Unit:  degrees\n"
        ),
       GROUP( Vector_ )));
 
@@ -1607,7 +1596,7 @@ void define_wsv_data()
        "\n"
        "Usage: Set by the user.\n"
        "\n"
-       "Unit:  degrees "
+       "Unit:  degrees\n"
        ),
       GROUP( Vector_ )));
 
@@ -1618,9 +1607,7 @@ void define_wsv_data()
        (
         "MCAntenna object used by MCGeneral to sample the field of view."
         "Possible antenna types include Pencil Beam, Gaussian (2D), and"
-        "Antenna pattern lookup (yet to be implemented)."
-
-        "\n"
+        "Antenna pattern lookup (yet to be implemented).\n"
         "\n"
         "Usage: Input to MCGeneral \n"
         ), 
@@ -1631,9 +1618,7 @@ void define_wsv_data()
      ( NAME( "mc_cloud_opt_path" ),
        DESCRIPTION
        (
-        "The cloud optical path integrated over the field of view"
-        
-        "\n"
+        "The cloud optical path integrated over the field of view\n"
         "\n"
         "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
         ), 
@@ -1644,9 +1629,8 @@ void define_wsv_data()
      ( NAME( "mc_cloud_opt_path_error" ),
        DESCRIPTION
        (
-        "standrad error in the cloud optical path integrated over the field of view"
+        "standrad error in the cloud optical path integrated over the field of view\n"
         
-        "\n"
         "\n"
         "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
         ), 
@@ -1659,12 +1643,11 @@ void define_wsv_data()
        (
         "Error in simulated *y* from cloudy-sky arts simulations using ScatteringMonteCarlo.\n"
         "\n"
-        "\n"
         "Usage: Output from ScatteringMonteCarlo.. \n"
         "\n"
         "Units: W / (m^2 Hz sr)\n"
         "\n"
-        "Size:  [ stokes_dim ]"
+        "Size:  [ stokes_dim ]\n"
         ), 
        GROUP( Vector_ )));
 
@@ -1680,7 +1663,6 @@ void define_wsv_data()
         "Usage: Input for ScatteringMonteCarlo.. \n"
         "\n"
         "Units: [m,degrees,W / (m^2 Hz sr)]\n"
-        "\n"
         ), 
        GROUP( SLIData2_ )));
 
@@ -1702,9 +1684,7 @@ void define_wsv_data()
      ( NAME( "mc_IWP" ),
        DESCRIPTION
        (
-        "The ice water path integrated over the field of view"
-        
-        "\n"
+        "The ice water path integrated over the field of view\n"
         "\n"
         "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
         ), 
@@ -1715,9 +1695,7 @@ void define_wsv_data()
      ( NAME( "mc_IWP_error" ),
        DESCRIPTION
        (
-        "The standard error of ice water path integrated over the field of view"
-        
-        "\n"
+        "The standard error of ice water path integrated over the field of view\n"
         "\n"
         "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
         ), 
@@ -1776,7 +1754,7 @@ void define_wsv_data()
        "\n"
        "Usage: Set by the user.\n"
        "\n"
-       "Unit: degrees"
+       "Unit: degrees\n"
        ),
       GROUP( Numeric_ )));
 
@@ -1794,7 +1772,7 @@ void define_wsv_data()
        "read in the method ybatchMetProfiles and the profiles corresponding to \n"
        "each latitude and longitude will be read in.\n"
        "\n"
-       "See documentation of WSM *ybatchMetProfiles* for more information."
+       "See documentation of WSM *ybatchMetProfiles* for more information.\n"
        ),
       GROUP( Matrix_ )));
  
@@ -1803,7 +1781,7 @@ void define_wsv_data()
     ( NAME( "nelem" ),
       DESCRIPTION
       (
-        "This variable is used by the VectorSet workspace method."
+        "This variable is used by the VectorSet workspace method.\n"
        ),
       GROUP( Index_ )));
 
@@ -1813,7 +1791,7 @@ void define_wsv_data()
       DESCRIPTION
       (
         "This variable is used by the MatrixSet, Tensor3Set, etc. \n"
-        "workspace methods."
+        "workspace methods.\n"
        ),
       GROUP( Index_ )));
 
@@ -1822,7 +1800,7 @@ void define_wsv_data()
     ( NAME( "nrows" ),
       DESCRIPTION
       (
-        "See *ncols*."
+        "See *ncols*.\n"
        ),
       GROUP( Index_ )));
 
@@ -1831,7 +1809,7 @@ void define_wsv_data()
     ( NAME( "npages" ),
       DESCRIPTION
       (
-        "See *ncols*."
+        "See *ncols*.\n"
        ),
       GROUP( Index_ )));
 
@@ -1840,7 +1818,7 @@ void define_wsv_data()
     ( NAME( "nbooks" ),
       DESCRIPTION
       (
-        "See *ncols*."
+        "See *ncols*.\n"
        ),
       GROUP( Index_ )));
 
@@ -1849,7 +1827,7 @@ void define_wsv_data()
     ( NAME( "nshelves" ),
       DESCRIPTION
       (
-        "See *ncols*."
+        "See *ncols*.\n"
        ),
       GROUP( Index_ )));
 
@@ -1858,7 +1836,7 @@ void define_wsv_data()
     ( NAME( "nvitrines" ),
       DESCRIPTION
       (
-        "See *ncols*."
+        "See *ncols*.\n"
        ),
       GROUP( Index_ )));
 
@@ -1867,7 +1845,7 @@ void define_wsv_data()
     ( NAME( "nlibraries" ),
       DESCRIPTION
       (
-        "See *ncols*."
+        "See *ncols*.\n"
        ),
       GROUP( Index_ )));
 
@@ -1882,7 +1860,7 @@ void define_wsv_data()
       "It can be used, for example, when some intermediate data must be\n"
       "generated or to copy some data.\n"
       "\n"
-      "Usage: Set by user."
+      "Usage: Set by user.\n"
        ),
       GROUP( Numeric_ )));
 
@@ -1897,7 +1875,7 @@ void define_wsv_data()
       "It can be used, for example, when some intermediate data must be\n"
       "generated or to copy some data.\n"
       "\n"
-      "Usage: Set by user."
+      "Usage: Set by user.\n"
        ),
       GROUP( Numeric_ )));
 
@@ -1906,7 +1884,7 @@ void define_wsv_data()
     ( NAME( "met_profile_calc_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_)));
 
@@ -1915,7 +1893,7 @@ void define_wsv_data()
     ( NAME( "opt_prop_gas_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_)));
 
@@ -1924,7 +1902,7 @@ void define_wsv_data()
     ( NAME( "opt_prop_part_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_)));
 
@@ -1940,7 +1918,6 @@ void define_wsv_data()
        "\n"
        "To change the value of this variable use the workspace methods\n"
        "*output_file_formatSetAscii* and *output_file_formatSetBinary*\n"
-       "\n"
        ),
       GROUP( String_ )));
 
@@ -1951,7 +1928,7 @@ void define_wsv_data()
       (
        "Output file format.The mass of each particle type stored in a vector \n"
        "\n"
-       "Usage: Set by the user"
+       "Usage: Set by the user\n"
        ),
       GROUP( Vector_ )));
 
@@ -1997,7 +1974,7 @@ void define_wsv_data()
        "\n"
        "Unit:        m^2\n"
        "\n"
-       "Dimensions: [part_types, scat_za_grid, scat_aa_grid, stokes_dim, stokes_dim]"
+       "Dimensions: [part_types, scat_za_grid, scat_aa_grid, stokes_dim, stokes_dim]\n"
        ),
       GROUP( Tensor5_ )));
 
@@ -2006,7 +1983,7 @@ void define_wsv_data()
     ( NAME( "pha_mat_spt_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_ ))); 
 
@@ -2030,7 +2007,7 @@ void define_wsv_data()
        "Dimensions: \n"
        "[particle types]\n"
        "[T, scat_za_grid,scat_aa_grid, scat_za_grid, scat_aa_grid,\n"
-       "stokes_dim, stokes_dim]"
+       "stokes_dim, stokes_dim]\n"
        ),
       GROUP( ArrayOfTensor7_ )));
 
@@ -2108,7 +2085,6 @@ void define_wsv_data()
        "       [N_lat] \n"
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
-       "\n"
        ),
       GROUP( ArrayOfGriddedField3_ )));
 
@@ -2130,7 +2106,7 @@ void define_wsv_data()
        "find where the data structure, Ppath, for propagation paths is \n"
        "discussed. It is listed as a subentry to \"data structures\".\n"
        "\n"
-       "Usage: Output from the method *ppathCalc*."
+       "Usage: Output from the method *ppathCalc*.\n"
        ),
       GROUP( Ppath_ )));
 
@@ -2154,7 +2130,7 @@ void define_wsv_data()
        "\n"
        "See the user guide for further details.\n"
        "\n"
-       "Usage: See above."
+       "Usage: See above.\n"
        ),
       GROUP( ArrayOfPpath_ )));
 
@@ -2170,7 +2146,7 @@ void define_wsv_data()
        "\n"
        "Note that this variable is set to 0 by *jacobianOff/Init*.\n"
        "\n"
-       "Usage: Set by *RteCalc*."
+       "Usage: Set by *RteCalc*.\n"
        ),
       GROUP( Index_ )));
 
@@ -2186,7 +2162,7 @@ void define_wsv_data()
        "previous path part. The variable is then modified by *iy_calc* as\n"
        "soon as a new propagation path is calculated.\n"
        "\n"
-       "Usage: Communication with *iy_calc*."
+       "Usage: Communication with *iy_calc*.\n"
        ),
       GROUP( Index_ )));
 
@@ -2207,7 +2183,7 @@ void define_wsv_data()
        "\n"
        "Usage:   In/output to/from *ppath_step_agenda*.\n"
        "\n"
-       "Members: See AUG."
+       "Members: See AUG.\n"
        ),
       GROUP( Ppath_ )));
 
@@ -2216,7 +2192,7 @@ void define_wsv_data()
     ( NAME( "ppath_step_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_ )));
 
@@ -2225,7 +2201,7 @@ void define_wsv_data()
     ( NAME( "ppath_transmissions" ),
       DESCRIPTION
       (
-        "?"
+        "?\n"
        ),
       GROUP( Tensor4_ )));
 
@@ -2250,7 +2226,7 @@ void define_wsv_data()
        "\n"
        "Usage: Set by the user.\n"
        "\n"
-       "Unit:  Pa"
+       "Unit:  Pa\n"
        ),
       GROUP( Vector_ )));
 
@@ -2267,7 +2243,7 @@ void define_wsv_data()
        "same path. That is, dispersion is neglected and this variable has\n"
        "frequency dimension.\n"
        "\n"
-       "Unit: 1"
+       "Unit: 1\n"
        ),
       GROUP( Numeric_ )));
 
@@ -2276,7 +2252,7 @@ void define_wsv_data()
     ( NAME( "refr_index_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_ )));
 
@@ -2285,7 +2261,7 @@ void define_wsv_data()
     ( NAME( "rte_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_ )));
 
@@ -2299,7 +2275,7 @@ void define_wsv_data()
        "\n"
        "These indexes refer to the position in *abs_species*.\n"
        "\n"
-       "Usage:   Set internally, by *RteCalc*."
+       "Usage:   Set internally, by *RteCalc*.\n"
       ),
       GROUP( ArrayOfIndex_ )));
 
@@ -2310,7 +2286,7 @@ void define_wsv_data()
       (
        "Flag to *rte_agenda* to calculate jacobians for temperature.\n"
        "\n"
-       "Usage:   Set internally, by *RteCalc*."
+       "Usage:   Set internally, by *RteCalc*.\n"
       ),
       GROUP( Index_ )));
 
@@ -2325,7 +2301,7 @@ void define_wsv_data()
        "of the propagation path to some workspace method part of the\n"
        "radiative transfer calculations.\n"
        "\n"
-       "Usage:   Set internally."
+       "Usage:   Set internally.\n"
        ),
       GROUP( GridPos_ )));
 
@@ -2340,7 +2316,7 @@ void define_wsv_data()
        "of the propagation path to some workspace method part of the\n"
        "radiative transfer calculations.\n"
        "\n"
-       "Usage:   Set internally."
+       "Usage:   Set internally.\n"
        ),
       GROUP( GridPos_ )));
 
@@ -2355,7 +2331,7 @@ void define_wsv_data()
        "of the propagation path to some workspace method part of the\n"
        "radiative transfer calculations.\n"
        "\n"
-       "Usage:   Set internally."
+       "Usage:   Set internally.\n"
        ),
       GROUP( GridPos_ )));
 
@@ -2381,7 +2357,7 @@ void define_wsv_data()
        "\n"
        "Units: [ degree, degree ]\n"
        "\n"
-       "Size:  [ 1 or 2 ]"
+       "Size:  [ 1 or 2 ]\n"
        ),
       GROUP( Vector_ )));
 
@@ -2423,7 +2399,7 @@ void define_wsv_data()
        "\n"
        "Units: [ m, degree, degree ]\n"
        "\n"
-       "Size:  [ atmosphere_dim ]"
+       "Size:  [ atmosphere_dim ]\n"
        ),
       GROUP( Vector_ )));
 
@@ -2440,7 +2416,7 @@ void define_wsv_data()
        "\n"
        "Usage: Communication variable.\n"
        "\n"
-       "Units: [ Pa ]"
+       "Units: [ Pa ]\n"
        ),
       GROUP( Numeric_ )));
 
@@ -2457,7 +2433,7 @@ void define_wsv_data()
        "\n"
        "Usage: Communication variable.\n"
        "\n"
-       "Units: [ K ]"
+       "Units: [ K ]\n"
        ),
       GROUP( Numeric_ )));
 
@@ -2477,7 +2453,7 @@ void define_wsv_data()
        "\n"
        "Units: [ Absolute value ]\n"
        "\n"
-       "Size:  Should match abs_species.nelem()"
+       "Size:  Should match abs_species.nelem()\n"
        ),
       GROUP( Vector_ )));
 
@@ -2510,7 +2486,7 @@ void define_wsv_data()
        "\n"
        "Unit:       m\n"
        "\n"
-       "Dimensions: [ lat_grid, lon_grid ]"
+       "Dimensions: [ lat_grid, lon_grid ]\n"
        ),
       GROUP( Matrix_ )));
 
@@ -2529,7 +2505,7 @@ void define_wsv_data()
         "\n"
         "Usage:      Set by the user.\n"
         "\n"
-        "Unit:       degrees "
+        "Unit:       degrees \n"
        ),
       GROUP( Vector_ )));
 
@@ -2548,7 +2524,6 @@ void define_wsv_data()
        "for radiative transfer calculation. \n"
        "\n"
        "Usage:    Method output.\n"
-       "\n"
        ),
      GROUP( Index_ ))); 
 
@@ -2563,7 +2538,6 @@ void define_wsv_data()
          "hydrometeor species. It is calculated from scat_data_raw by \n"
          "*scat_data_monoCalc*, which interpolates scat_data_raw for the \n"
          "required frequency.\n"
-         "\n"
          ),
         GROUP( ArrayOfSingleScatteringData_ ))); 
 
@@ -2596,7 +2570,6 @@ void define_wsv_data()
          "      [f_grid, za_grid, aa_grid, matrix_element]\n"
          "  Tensor4[abs_vec_data]\n"
          "      [f_grid, za_grid, aa_grid, matrix_element]\n"
-         "\n"
          ),
         GROUP( ArrayOfSingleScatteringData_ ))); 
    
@@ -2625,7 +2598,7 @@ void define_wsv_data()
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
        "Dimensions: [ f_grid, p_grid, latitude surface, lon_grid, \n"
-       "              scat_za_grid \n  scat_aa_grid, stokes_dim ]"
+       "              scat_za_grid \n  scat_aa_grid, stokes_dim ]\n"
        ),
       GROUP( Tensor7_ )));
 
@@ -2654,7 +2627,7 @@ void define_wsv_data()
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
        "Dimensions: [ f_grid, p_grid, lat_grid, latitude surface, \n"
-       "              scat_za_grid, scat_aa_grid, stokes_dim]"
+       "              scat_za_grid, scat_aa_grid, stokes_dim]\n"
        ),
       GROUP( Tensor7_ )));
 
@@ -2682,7 +2655,7 @@ void define_wsv_data()
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
        "Dimensions: [ f_grid, pressure surfaces, lat_grid, lon_grid, \n" 
-       "              scat_za_grid, scat_aa_grid, stokes_dim]"
+       "              scat_za_grid, scat_aa_grid, stokes_dim]\n"
        ),
       GROUP( Tensor7_ )));
 
@@ -2700,7 +2673,6 @@ void define_wsv_data()
        "\n"
        "Usage:    Input to the methods *spt_calc_agenda*,\n"
        "                               *pha_mat_spt_agenda*\n"
-       "\n"
        ),
      GROUP( Index_ ))); 
 
@@ -2718,7 +2690,6 @@ void define_wsv_data()
        "\n"
        "Usage:    Input to the methods *spt_calc_agenda*,\n"
        "                               *pha_mat_spt_agenda*\n"
-       "\n"
        ),
      GROUP( Index_ ))); 
 
@@ -2736,7 +2707,6 @@ void define_wsv_data()
        "\n"
        "Usage:    Input to the methods *spt_calc_agenda*,\n"
        "                               *pha_mat_spt_agenda*\n"
-       "\n"
        ),
      GROUP( Index_ ))); 
   
@@ -2755,8 +2725,7 @@ void define_wsv_data()
         "\n"
         "Usage:      Set by the user.\n"
         "\n"
-        "Unit:       degrees "
-        "\n"
+        "Unit:       degrees \n"
         ),
       GROUP( Vector_ )));
 
@@ -2772,7 +2741,6 @@ void define_wsv_data()
        "\n"
        "Usage:    Input to the agendas *spt_calc_agenda*, \n "
        "                               *pha_mat_spt_agenda*.\n"
-       " \n"
        ),
       GROUP( Index_ )));
 
@@ -2793,7 +2761,7 @@ void define_wsv_data()
        "\n"
        "Unit:  [ degrees, degrees ]\n"
        "\n"
-       "Size:  [ number of measurement blocks, 1 or 2 ]"
+       "Size:  [ number of measurement blocks, 1 or 2 ]\n"
        ),
       GROUP( Matrix_ )));
 
@@ -2843,7 +2811,7 @@ void define_wsv_data()
        "\n"
        "Unit:  [ - (0-1) ]\n"
        "\n"
-       "Size:  [ number of polarisation values, stokes_dim ]"
+       "Size:  [ number of polarisation values, stokes_dim ]\n"
        ),
       GROUP( Matrix_ )));
 
@@ -2862,7 +2830,7 @@ void define_wsv_data()
        "\n"
        "Unit:  [ m, degrees, degrees ]\n"
        "\n"
-       "Size:  [ number of measurement blocks, atmosphere_dim ]"
+       "Size:  [ number of measurement blocks, atmosphere_dim ]\n"
        ),
       GROUP( Matrix_ )));
 
@@ -2884,7 +2852,7 @@ void define_wsv_data()
         "Units:   -\n"
         "\n"
         "Dimension:     See the individual *sensor_response...* method \n"
-        "documentation."
+        "               documentation.\n"
        ),
       GROUP( Sparse_ )));
 
@@ -2903,7 +2871,7 @@ void define_wsv_data()
        "\n"
        "Usage: Set by sensor response methods.\n"
        "\n"
-       "Unit:  [ Hz ]"
+       "Unit:  [ Hz ]\n"
        ),
       GROUP( Vector_ )));
 
@@ -2924,7 +2892,7 @@ void define_wsv_data()
        "\n"
        "Usage: Set by sensor response methods.\n"
        "\n"
-       "Unit:  [ degrees ]"
+       "Unit:  [ degrees ]\n"
        ),
       GROUP( Vector_ )));
 
@@ -2948,7 +2916,7 @@ void define_wsv_data()
        "\n"
        "Usage: Set by sensor response methods.\n"
        "\n"
-       "Unit:  [ degrees ]"
+       "Unit:  [ degrees ]\n"
        ),
       GROUP( Vector_ )));
 
@@ -2998,7 +2966,7 @@ void define_wsv_data()
        "\n"
        "Unit:  [ degrees ]\n"
        "\n"
-       "Size:  [ number of antennae or one ]"
+       "Size:  [ number of antennae or one ]\n"
        ),
       GROUP( Vector_ )));
 
@@ -3018,7 +2986,7 @@ void define_wsv_data()
        "\n"
        "Unit:  [ arbitrary ]\n"
        "\n"
-       "Size:  [ number of measurement blocks ]"
+       "Size:  [ number of measurement blocks ]\n"
        ),
       GROUP( Vector_ )));
 
@@ -3048,7 +3016,6 @@ void define_wsv_data()
        "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
        "  Tensor5[abs_vec_data]\n"
        "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
-       "\n"
        ),
       GROUP( SingleScatteringData_ )));
 
@@ -3063,7 +3030,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage: Set by user."
+       "Usage: Set by user.\n"
        ),
       GROUP( Sparse_ )));
 
@@ -3076,7 +3043,7 @@ void define_wsv_data()
        "N2 (=0), O2 (=1), H2O (=2), O3 (=3), CO2 (=4).\n"
        "For example species_index[2] gives the first H2Otag position in the\n"
        "controle file specified list of tags for which calculations should\n"
-       "be performed."
+       "be performed.\n"
        ),
       GROUP( ArrayOfIndex_ )));
 
@@ -3087,7 +3054,7 @@ void define_wsv_data()
       (
        "The dimensionality of the Stokes vector (1-4).\n"
        "\n"
-       "Usage:      Set by the user."
+       "Usage:      Set by the user.\n"
        ),
       GROUP( Index_ )));
 
@@ -3096,7 +3063,7 @@ void define_wsv_data()
     ( NAME( "spt_calc_agenda" ),
       DESCRIPTION
       (
-        "See agendas.cc."
+        "See agendas.cc.\n"
        ),
       GROUP( Agenda_ )));
 
@@ -3111,7 +3078,7 @@ void define_wsv_data()
        "Stokes components during the RT calculation, for example in the \n"
        "methods *sto_vecGeneral* and *sto_vecScalar*. \n"
        "\n"
-       "Usage:      Calculated internally."
+       "Usage:      Calculated internally.\n"
        ),
       GROUP( Vector_ )));
  
@@ -3130,7 +3097,7 @@ void define_wsv_data()
           "\n"
           "Unit:       W / (m^2 Hz sr)\n"
           "\n"
-          "Dimensions: [ f_grid, stokes_dim ]"
+          "Dimensions: [ f_grid, stokes_dim ]\n"
          ), 
         GROUP( Matrix_ )));
 
@@ -3142,7 +3109,7 @@ void define_wsv_data()
           "\n"
           "Usage: Input to surfaceSingleEmissivity.\n"
           "\n"
-          "Unit: a value between 0 and 1"
+          "Unit: a value between 0 and 1\n"
          ), 
         GROUP( Numeric_ )));
 
@@ -3152,7 +3119,7 @@ void define_wsv_data()
         DESCRIPTION
         ( "The surface emissivity specified on lat_grid and lon_grid.\n"
           "\n"
-          "Dimensions: [ lat_grid, lon_grid ]"
+          "Dimensions: [ lat_grid, lon_grid ]\n"
          ), 
         GROUP( Matrix_ )));
 
@@ -3168,7 +3135,7 @@ void define_wsv_data()
         "\n"
         "Units: degrees\n"
         "\n"
-        "Size:  [ any number, 1 or 2 ]"
+        "Size:  [ any number, 1 or 2 ]\n"
         ), 
        GROUP( Matrix_ )));
 
@@ -3177,7 +3144,7 @@ void define_wsv_data()
      ( NAME( "surface_prop_agenda" ),
        DESCRIPTION
        (
-        "See agendas.cc."
+        "See agendas.cc.\n"
         ),
        GROUP(  Agenda_ )));
   
@@ -3204,7 +3171,7 @@ void define_wsv_data()
         "\n"
         "Units:      -\n"
         "\n"
-        "Dimensions: [ surface_los, f_grid, stokes_dim, stokes_dim ]"
+        "Dimensions: [ surface_los, f_grid, stokes_dim, stokes_dim ]\n"
         ), 
        GROUP( Tensor4_ )));
 
@@ -3215,7 +3182,7 @@ void define_wsv_data()
       (
        "Surface skin temperature.\n"
        "\n"
-       "Usage:   Input to methods for *iy_surface_agenda*."
+       "Usage:   Input to methods for *iy_surface_agenda*.\n"
        ),
       GROUP( Numeric_ )));
 
@@ -3230,7 +3197,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage: Set by user."
+       "Usage: Set by user.\n"
        ),
       GROUP( Tensor3_ )));
 
@@ -3245,7 +3212,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage: Set by user."
+       "Usage: Set by user.\n"
        ),
       GROUP( Tensor3_ )));
 
@@ -3260,7 +3227,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage: Set by user."
+       "Usage: Set by user.\n"
        ),
       GROUP( Tensor4_ )));
 
@@ -3275,7 +3242,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage: Set by user."
+       "Usage: Set by user.\n"
        ),
       GROUP( Tensor4_ )));
 
@@ -3290,7 +3257,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage: Set by user."
+       "Usage: Set by user.\n"
        ),
       GROUP( Tensor5_ )));
 
@@ -3305,7 +3272,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage: Set by user."
+       "Usage: Set by user.\n"
        ),
       GROUP( Tensor5_ )));
 
@@ -3320,7 +3287,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage: Set by user."
+       "Usage: Set by user.\n"
        ),
        GROUP( Tensor6_ )));
 
@@ -3330,7 +3297,6 @@ void define_wsv_data()
       DESCRIPTION
       (
        "Stores the starting time for time measurements.\n"
-       "\n"
        ),
       GROUP( Timer_ )));
 
@@ -3355,7 +3321,7 @@ void define_wsv_data()
        "\n"
        "Unit:       K\n"
        "\n"
-       "Dimensions: [ p_grid, lat_grid, lon_grid ]"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
        ),
       GROUP( Tensor3_ )));
 
@@ -3382,7 +3348,6 @@ void define_wsv_data()
        "       [N_lat] \n"
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
-       "\n"
        ),
       GROUP( GriddedField3_ )));
 
@@ -3397,7 +3362,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage: Set by user."
+       "Usage: Set by user.\n"
        ),
       GROUP( Vector_ )));
 
@@ -3412,7 +3377,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage: Set by user."
+       "Usage: Set by user.\n"
        ),
       GROUP( Vector_ )));
 
@@ -3427,7 +3392,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage: Set by user."
+       "Usage: Set by user.\n"
        ),
       GROUP( Vector_ )));
 
@@ -3481,7 +3446,6 @@ void define_wsv_data()
        "       [N_lat] \n"
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
-       "\n"
        ),
       GROUP( ArrayOfGriddedField3_ )));
 
@@ -3497,7 +3461,7 @@ void define_wsv_data()
        "or SetXMLOutputAscii. One of these methods MUST be called before\n"
        "writing the first output file."
        "\n"
-       "Usage:      Set by user."
+       "Usage:      Set by user.\n"
        ),
       GROUP( Index_ )));
 
@@ -3515,7 +3479,7 @@ void define_wsv_data()
        "       sensor response.\n"
        "\n"
        "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
-       "       optical thickness."
+       "       optical thickness.\n"
        ),
       GROUP( Vector_ )));
 
@@ -3532,7 +3496,7 @@ void define_wsv_data()
        "Usage: Most commonly produced by *ybatch*.\n"
        "\n"
        "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
-       "       optical thickness."
+       "       optical thickness.\n"
        ),
       GROUP( Matrix_ )));
 
@@ -3545,8 +3509,8 @@ void define_wsv_data()
        "\n"
        "See further *ybatchCalc*.\n"
        "\n"
-       "Usage: Set by *ybatchCalc*, for communication with "
-       "*bach_update_agenda*."
+       "Usage: Set by *ybatchCalc*, for communication with\n"
+       "       *bach_update_agenda*.\n"
        ),
       GROUP( Index_ )));
 
@@ -3559,7 +3523,7 @@ void define_wsv_data()
        "\n"
        "See further *ybatchCalc*.\n"
        "\n"
-       "Usage: Output from *batch_pre_agenda*."
+       "Usage: Output from *batch_pre_agenda*.\n"
        ),
       GROUP( Index_ )));
 
@@ -3593,7 +3557,7 @@ void define_wsv_data()
        "\n"
        "Unit:       m\n"
        "\n"
-       "Dimensions: [ p_grid, lat_grid, lon_grid ]"
+       "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
        ),
       GROUP( Tensor3_ )));
 
@@ -3620,7 +3584,6 @@ void define_wsv_data()
        "       [N_lat] \n"
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
-       "\n"
        ),
       GROUP( GriddedField3_ )));
 
@@ -3651,7 +3614,7 @@ void define_wsv_data()
        "\n"
        "Unit:       m\n"
        "\n"
-       "Dimensions: [ lat_grid, lon_grid ]"
+       "Dimensions: [ lat_grid, lon_grid ]\n"
        ),
       GROUP( Matrix_ )));
  
@@ -3683,7 +3646,7 @@ void define_wsv_data()
 //        "\n"
 //        "Unit:        [Hz, m^2]\n"
 //        "\n"
-//        "Dimensions: [f_grid, stokes_dim]"
+//        "Dimensions: [f_grid, stokes_dim]\n"
 //         ),
 //        GROUP( Matrix_ )));
 
@@ -3703,7 +3666,7 @@ void define_wsv_data()
 //        "\n"
 //        "Unit:       [Hz, m^2, m^2] "
 //        "\n"
-//        "Dimensions: [f_grid, stokes_dim, stokes_dim]"
+//        "Dimensions: [f_grid, stokes_dim, stokes_dim]\n"
 //        ),
 //        GROUP( Tensor3_ )));
 
@@ -3712,7 +3675,7 @@ void define_wsv_data()
 //     ( NAME( "zeeman_prop_agenda" ),
 //       DESCRIPTION
 //       (
-//         "See agendas.cc."
+//         "See agendas.cc.\n"
 //        ),
 //       GROUP( Agenda_ )));
 
@@ -3724,7 +3687,7 @@ void define_wsv_data()
 //        "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
 //        "splitting for the microwave range (1-1000 GHz).\n"
 //        "If zeeman_o2_onoff=1 the Zeeman effect is considered,\n"
-//        "and if zeeman_o2_onoff=0 the Zeeman effect is omitted."
+//        "and if zeeman_o2_onoff=0 the Zeeman effect is omitted.\n"
 //        ),
 //       GROUP( Index_ )));
  
@@ -3748,7 +3711,7 @@ void define_wsv_data()
 //        "Calculate this line with Zeeman splitting, lines are\n"
 //        "identified by their upper rotational angular momentum quantum\n"
 //        "number N, postive values of zeeman_o2_line are N+ transitions,\n"
-//        "negative are N-."
+//        "negative are N-.\n"
 //        ),
 //       GROUP( Index_ )));
 
