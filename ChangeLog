@@ -1,5 +1,16 @@
 2007-07-25  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1160
+
+	* src/make_auto_md_h.cc:
+
+	Add workspace variable names to function header to match the doxygen
+	\param tags. Use generic names for generic input/output.
+
+	* src/methods.cc: Cosmetics.
+
+2007-07-25  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1159
 
 	* src/make_auto_md_h.cc:

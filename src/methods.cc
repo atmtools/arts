@@ -5650,7 +5650,7 @@ md_data_raw.push_back
          "\n"
          "Usage example:\n"
          "\n"
-         "timerStart()"
+         "timerStart()\n"
          "ReadXML(f_grid){\"frequencies.xml\"}\n"
          "timerStop()\n"
          "Prints the CPU time spent for reading the XML file\n"

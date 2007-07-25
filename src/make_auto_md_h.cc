@@ -296,7 +296,8 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
 
-        ofs << wsv_group_names[wsv_data[vo[j]].Group()] << "&";
+        ofs << wsv_group_names[wsv_data[vo[j]].Group()] << " &"
+          << wsv_data[vo[j]].Name();
       }
   }
 
@@ -318,7 +319,7 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
 
-        ofs << wsv_group_names[mdd.GOutput()[j]]   << "&";
+        ofs << wsv_group_names[mdd.GOutput()[j]] << " &genericoutput" << j+1;
       }
   }
 
@@ -340,7 +341,7 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
 
-        ofs << "const String&";
+        ofs << "const String &genericoutputname" << j+1;
       }
   }
 
@@ -363,7 +364,8 @@ void write_method_header( ofstream& ofs,
           }
                 
         ofs << "const "
-            << wsv_group_names[wsv_data[vi[j]].Group()] << "&";
+          << wsv_group_names[wsv_data[vi[j]].Group()] << " &"
+          << wsv_data[vi[j]].Name();
       }
   }
 
@@ -386,7 +388,8 @@ void write_method_header( ofstream& ofs,
           }
                 
         ofs << "const "
-            << wsv_group_names[mdd.GInput()[j]]   << "&";
+            << wsv_group_names[mdd.GInput()[j]]
+            << " &genericinput" << j+1;
       }
   }
 
@@ -408,7 +411,7 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
 
-        ofs << "const String&";
+        ofs << "const String &genericinputname" << j+1;
       }
   }
 
