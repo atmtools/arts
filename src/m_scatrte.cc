@@ -66,13 +66,8 @@ extern const Numeric RAD2DEG;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! DoitAngularGridsSet
-/*!
-  See the the online help (arts -d FUNCTION_NAME)
 
-  \author Claudia Emde
-  \date 2003-11-17
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void DoitAngularGridsSet(// WS Output:
                   Index& doit_za_grid_size,
                   Vector& scat_aa_grid,
@@ -114,13 +109,8 @@ void DoitAngularGridsSet(// WS Output:
 
 }
 
-//! doit_conv_flagAbs
-/*
-  See the the online help (arts -d FUNCTION_NAME)
-  
-  \author Claudia Emde
-  \date 2002-06-17
-*/
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void doit_conv_flagAbs(//WS Input and Output:
                       Index& doit_conv_flag,
                       Index& doit_iteration_counter,
@@ -227,13 +217,8 @@ void doit_conv_flagAbs(//WS Input and Output:
   out2 << "Number of DOIT-iterations: " << doit_iteration_counter << "\n";
 }
       
-//! doit_conv_flagAbsBT
-/*! 
-  See the the online help (arts -d FUNCTION_NAME)
 
-  \author Sreerekha T.R. and Claudia Emde
-  \date 2003-04-01
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void doit_conv_flagAbsBT(//WS Input and Output:
                          Index& doit_conv_flag,
                          Index& doit_iteration_counter,
@@ -351,14 +336,7 @@ void doit_conv_flagAbsBT(//WS Input and Output:
 }
 
 
-//! Convergence test (Least Square). 
-/*! 
-  See the the online help (arts -d FUNCTION_NAME)
-  
-  \author Claudia Emde
-  \date 2004-03-17
-
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void doit_conv_flagLsq(//WS Output:
                       Index& doit_conv_flag,
                       Index& doit_iteration_counter,
@@ -480,13 +458,8 @@ void doit_conv_flagLsq(//WS Output:
     }
 }
 
-//! doit_i_fieldIterate
-/*! 
-  See the the online help (arts -d FUNCTION_NAME)
-  
-  \author Claudia Emde
-  \date 2002-05-29
-*/
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void doit_i_fieldIterate(
                // WS Input and Output:
                Tensor6& doit_i_field,
@@ -551,13 +524,7 @@ void doit_i_fieldIterate(
 }
 
 
-//! doit_i_fieldUpdate1D
-/*
-  See the the online help (arts -d FUNCTION_NAME)
-  
-  \author Claudia Emde
-  \date 2002-05-30
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 doit_i_fieldUpdate1D(// WS Input and Output:
                    Tensor6& doit_i_field,
@@ -718,16 +685,10 @@ doit_i_fieldUpdate1D(// WS Input and Output:
                                      doit_za_interp);
         }
     }// Closes loop over scat_za_grid.
-} // End of the function.
+}
 
 
-//! doit_i_fieldUpdateSeq1D
-/*
-  See the the online help (arts -d FUNCTION_NAME)
-  
-  \author Claudia Emde
-  \date 2002-05-30
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 doit_i_fieldUpdateSeq1D(// WS Input and Output:
                    Tensor6& doit_i_field,
@@ -958,13 +919,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
 } // End of the function.
 
                          
-//! doit_i_fieldUpdateSeq3D
-/*! 
-  See the the online help (arts -d FUNCTION_NAME)
-
-  \author Claudia Emde
-  \date 2003-01-07
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 doit_i_fieldUpdateSeq3D(// WS Output and Input:
                         Tensor6& doit_i_field,
@@ -1259,60 +1214,10 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
   doit_i_field(joker, joker, joker, joker, 0, joker) = 
     doit_i_field(joker, joker, joker, joker, N_scat_aa-1, joker);
   
-}// end of function.          
-      
+}
 
 
-
-//! 1D RT calculation inside the cloud box in a plane parallel geometry.
-/*! 
-  This function is baseically same as doit_i_fieldUpdateSeq1D 
-  in that it updates the
-  doit_i_field.  The difference is that it assumes that inside the
-  cloudbox the 
-  atmosphere is planeparallel.  This is included with the intention 
-  that it can be faster compared to the spherical.
-  Also it will be good for comparisons.
-  
-
-  WS Output:
-  \param doit_i_field       Updated intensity field. 
-  Variables used in spt_calc_agenda:
-  \param scat_za_index
-   Variables used in opt_prop_xxx_agenda:
-  \param ext_mat
-  \param abs_vec  
-  \param scat_p_index
-  Variables used in ppath_step_agenda:
-  \param ppath_step
-  \param ppath_step
-  WS Input:
-  \param doit_i_field_old Old radiation field.
-  \param doit_scat_field Scattered field.
-  \param cloudbox_limits 
-  Calculate scalar gas absorption:
-  \param abs_scalar_gas_agenda
-  \param vmr_field
-  Optical properties for single particle type:
-  \param spt_calc_agenda
-  \param scat_za_grid
-  Optical properties for gases and particles:
-  \param opt_prop_part_agenda
-  \param pnd_field
-  \param opt_prop_gas_agenda
-   Propagation path calculation:
-  \param ppath_step_agenda
-  \param p_grid
-  \param z_field
-  \param r_geoid
-  Calculate thermal emission:
-  \param t_field
-  \param f_grid
-  \param f_index
-
-  \author Sreerekha Ravi
-  \date 2002-11-28
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 doit_i_fieldUpdateSeq1DPP(// WS Output:
                 Tensor6& doit_i_field,
@@ -1477,16 +1382,10 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
         } // end if downlooking.
       
     }// Closes loop over scat_za_grid.
-}// End of the function.
+}
 
 
-//! DoitInit
-/*
-  See the the online help (arts -d FUNCTION_NAME)
-  
-  \author Claudia Emde
-  \date 2003-06-07
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void DoitInit(
               //WS Output
               Index& scat_p_index,
@@ -1615,14 +1514,8 @@ void DoitInit(
   
 }
 
-//! DoitWriteIterationFields
-/*
-  See the the online help (arts -d FUNCTION_NAME)
-  
-  \author Claudia Emde
-  \date 2002-08-26
-     
-*/ 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void DoitWriteIterationFields(//WS input 
                            const Index& doit_iteration_counter,
                            const Tensor6& doit_i_field,
@@ -1657,16 +1550,8 @@ void DoitWriteIterationFields(//WS input
     }
 }
 
-//! doit_scat_fieldCalc
-/*
-  See the the online help (arts -d FUNCTION_NAME)
-  
-  \author Sreerekha Ravi, Claudia Emde
-  \date 2002-06-20
-  
-  \date 2003-10-24 Modifications to gain efficiency (CE).  
-*/
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 doit_scat_fieldCalc(// WS Output and Input
                     Tensor6& doit_scat_field,
@@ -1963,14 +1848,7 @@ doit_scat_fieldCalc(// WS Output and Input
 }
 
 
-//! doit_scat_fieldCalcLimb
-/*
-  See the the online help (arts -d FUNCTION_NAME)
-  
-  \author Claudia Emde
-  \date 2003-11-28
-  
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 doit_scat_fieldCalcLimb(// WS Output and Input
                         Tensor6& doit_scat_field,
@@ -2360,13 +2238,8 @@ doit_scat_fieldCalcLimb(// WS Output and Input
   out2 << "Finished scattered field.\n"; 
 }
 
-//! doit_za_grid_optCalc
-/*
-   See the the online help (arts -d FUNCTION_NAME)
-  
-   \author Claudia Emde
-   \date 2003-04-15
- */
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void doit_za_grid_optCalc(//WS Output
                           Vector& doit_za_grid_opt,
                           // WS Input:
@@ -2414,14 +2287,7 @@ void doit_za_grid_optCalc(//WS Output
 }
 
 
-//! doit_za_interpSet
-/*
-  See the the online help (arts -d FUNCTION_NAME)
-  
-  \author Claudia Emde
-  \date 2004-03-18
-     
-*/ 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void doit_za_interpSet(
                        Index& doit_za_interp,
                        const Index& atmosphere_dim,
@@ -2450,12 +2316,7 @@ void doit_za_interpSet(
 }
 
 
-//! ScatteringDoit
-/*
-  See the the online help (arts -d FUNCTION_NAME)
-  
-  \author Claudia Emde
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ScatteringDoit(
                     Tensor6& doit_i_field,
                     Tensor7& scat_i_p, 
@@ -2501,6 +2362,4 @@ void ScatteringDoit(
                               false); 
     }
 }
-
- 
 

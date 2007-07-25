@@ -60,13 +60,8 @@ extern const Numeric PI;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! antenna_diagramAppendArray
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström
-   \date   2003-08-25
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void antenna_diagramAppendArray(// WS Output:
                                 ArrayOfArrayOfMatrix&   antenna_diagram,
                                 // WS Input:
@@ -97,13 +92,7 @@ void antenna_diagramAppendArray(// WS Output:
 }
 
 
-//! AntennaSet1D
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-28
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AntennaSet1D(
         // WS Output:
               Index&    antenna_dim,
@@ -117,14 +106,7 @@ void AntennaSet1D(
 }
 
 
-
-//! AntennaSet2D
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-28
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AntennaSet2D(
         // WS Output:
               Index&   antenna_dim,
@@ -140,14 +122,7 @@ void AntennaSet2D(
 }
 
 
-
-//! ConvertIFToRF
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2003-12-03
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ConvertIFToRF(
                    // WS Output:
                    Vector&          sensor_response_f,
@@ -263,14 +238,7 @@ void ConvertIFToRF(
 }
 
 
-
-//! GaussianResponse
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2003-05-20
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void GaussianResponse(// WS Generic Output:
                       Matrix&           r_matrix,
                       // WS Generic Output Names:
@@ -304,14 +272,7 @@ void GaussianResponse(// WS Generic Output:
 }
 
 
-
-//! sensorOff
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2003-07-12
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensorOff(
         // WS Output:
               Sparse&   sensor_response,
@@ -358,13 +319,7 @@ void sensorOff(
 }
 
 
-//! sensor_responseAntenna1D
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2003-08-14
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseAntenna1D(
        // WS Output:
        Sparse&                      sensor_response,
@@ -508,14 +463,7 @@ void sensor_responseAntenna1D(
 }
 
 
-
-//! sensor_responseBackend
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2003-08-15
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseBackend(// WS Output:
                             Sparse&               sensor_response,
                             Vector&               sensor_response_f,
@@ -623,14 +571,7 @@ void sensor_responseBackend(// WS Output:
 }
 
 
-
-//! sensor_responseInit
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2003-12-05
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseInit(// WS Output:
                                Sparse&      sensor_response,
                                Vector&      sensor_response_f,
@@ -691,14 +632,7 @@ void sensor_responseInit(// WS Output:
 }
 
 
-
-//! sensor_responseMixer
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2003-12-05
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseMixer(// WS Output:
                           Sparse&           sensor_response,
                           Vector&           sensor_response_f,
@@ -810,13 +744,8 @@ void sensor_responseMixer(// WS Output:
   out3 << "  *sensor_response_f* set to *f_mixer*\n";
 }
 
-//! sensor_responseMultiMixerBackend
-/*!
-   See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström
-   \date   2004-07-06
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseMultiMixerBackend(
      // WS Output:
      Sparse&                sensor_response,
@@ -928,13 +857,7 @@ void sensor_responseMultiMixerBackend(
 }
 
 
-//! sensor_responsePolarisation
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2004-05-28
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responsePolarisation(// WS Output:
                                  Sparse&          sensor_response,
                                  Index&           sensor_response_pol,
@@ -1031,6 +954,8 @@ void sensor_responsePolarisation(// WS Output:
   sensor_response_pol = sensor_pol.nrows();
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseRotation(// WS Output:
                              Sparse&        sensor_response,
                              // WS Input:

@@ -68,15 +68,7 @@ extern const Numeric RAD2DEG;
                         // no transformations will be performed
 
 
-//! Calculates phase matrix for the single particle types.
-/*! 
-  
-  See the the online help (arts -d FUNCTION_NAME)
-
-  \author Claudia Emde
-  \date   2003-05-14
-*/
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 void pha_mat_sptFromData( // Output:
                          Tensor5& pha_mat_spt,
                          // Input:
@@ -189,14 +181,7 @@ void pha_mat_sptFromData( // Output:
 }
   
 
-//! Calculates phase matrix for the single particle types.
-/*! 
-
-  See the the online help (arts -d FUNCTION_NAME)
-
-  \author Claudia Emde
-  \date   2003-08-25
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void pha_mat_sptFromDataDOITOpt( // Output:
                          Tensor5& pha_mat_spt,
                          // Input:
@@ -324,38 +309,7 @@ void pha_mat_sptFromDataDOITOpt( // Output:
 }
 
 
-    
-//! Calculates opticle properties for the single particle types.
-/*! 
-  In this function extinction matrix and absorption vector are calculated
-  in the laboratory frame. These properties are required for the RT
-  calculation, inside the the i_fieldUpdateXXX functions. 
-  
-  The interpolation of the data on the actual frequency is the first 
-  step in this function. 
-  
-  Then the transformation from the database coordinate system to to 
-  laboratory coordinate system is done.
-
-  Output of the function are *ext_mat_spt*, and *abs_vec_spt* which hold 
-  the optical properties for a specified propagation direction for 
-  each particle type. 
-
-  WS Output:
-  \param ext_mat_spt Extinction matrix for a single particle type.
-  \param abs_vec_spt Absorption vector for a single particle type.
-  WS Input:
-  \param scat_data_raw Raw data containing optical properties.
-  \param scat_za_grid Zenith angle grid for scattering calculation.
-  \param scat_aa_grid Azimuth angle grid for scattering calculation.
-  \param scat_za_index Index specifying the propagation direction.
-  \param scat_aa_index  Index specifying the azimuth angle
-  \param f_index Index specifying the frequency.
-  \param f_grid Frequency grid.
-
-  \author Claudia Emde
-  \date   2003-05-14
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void opt_prop_sptFromData( // Output and Input:
                          Tensor3& ext_mat_spt,
                          Matrix& abs_vec_spt,
@@ -549,22 +503,7 @@ void opt_prop_sptFromData( // Output and Input:
 }
                           
 
-//! Extinction Coefficient Matrix for the particle 
-/*! 
-  This function sums up the extinction matrices for all particle 
-  types weighted with particle number density
-  \param ext_mat Output and input : physical extinction coefficient 
-  for the particles for given angles. 
-  \param ext_mat_spt Input : extinction matrix for the single particle type
-  \param pnd_field Input : particle number density givs the local 
-  concentration for all particles.
-  \param atmosphere_dim Input : he atmospheric dimensionality (now 1 or 3)
-  \param scat_p_index Input : Pressure index for scattering calculations.
-  \param scat_lat_index Input : Latitude index for scattering calculations.
-  \param scat_lon_index Input : Longitude index for scattering calculations.
-
-  \author Sreerekha Ravi
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ext_matAddPart(
                     Tensor3& ext_mat,
                     const Tensor3& ext_mat_spt,
@@ -641,22 +580,8 @@ void ext_matAddPart(
 
 } 
 
-//! Absorption Vector for the particle 
-/*! 
-  This function sums up the absorption vectors for all particle 
-  types weighted with particle number density
-  \param abs_vec Output : physical absorption vector 
-  for the particles for given angles. 
-  \param abs_vec_spt Input : absorption for the single particle type
-  \param pnd_field Input : particle number density givs the local 
-  concentration for all particles.
-  \param atmosphere_dim Input : the atmospheric dimensionality (now 1 or 3)
-  \param scat_p_index Input : Pressure index for scattering calculations.
-  \param scat_lat_index Input : Latitude index for scattering calculations.
-  \param scat_lon_index Input : Longitude index for scattering calculations.
 
-  \author Sreerekha Ravi
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_vecAddPart(
                       Matrix& abs_vec,
                       const Matrix& abs_vec_spt,
@@ -716,25 +641,8 @@ void abs_vecAddPart(
     }
 } 
 
-//! Initialize extinction matrix.
-/*!
-  This method is necessary, because all other extinction methods just
-  add to the existing extinction matrix. 
 
-  So, here we have to make it the right size and fill it with 0.
-  
-  Note, that the matrix is not really a matrix, because it has a
-  leading frequency dimension.
-
-  \param ext_mat Extinction matrix.
-  \param f_grid Frequency grid.
-  \param stokes_dim Stokes dimension.
-  \param f_index Frequency index.
-
-  \author Stefan Buehler
-
-  \date   2002-12-12
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ext_matInit( Tensor3&      ext_mat,
                   const Vector& f_grid,
                   const Index&  stokes_dim,
@@ -758,22 +666,8 @@ void ext_matInit( Tensor3&      ext_mat,
        << stokes_dim << "] and initialized to 0.\n";
 }
 
-//! Add gas absorption to all diagonal elements of extinction matrix.
-/*! 
-  The task of this method is to sum up the gas absorption of the
-  different gas species and add the result to the extinction matrix. 
 
-  \param ext_mat Input and Output: Extinction matrix.
-                 Dimension: [#frequencies, stokes_dim, stokes_dim]
-  
-  \param abs_scalar_gas Scalar gas absorption coefficients.
-                        Dimension: [#frequencies, #abs_species]
-
-  \author Stefan Buehler
-          (rewritten version of function by Sreerekha Ravi)
-
-  \date   2002-12-12
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ext_matAddGas( Tensor3&      ext_mat,
                     const Matrix& abs_scalar_gas )
 {
@@ -812,25 +706,8 @@ void ext_matAddGas( Tensor3&      ext_mat,
     }
 }
 
-//! Initialize absorption vector.
-/*!
-  This method is necessary, because all other absorption methods just
-  add to the existing absorption vector.
 
-  So, here we have to make it the right size and fill it with 0.
-
-  Note, that the vector is not really a vector, because it has a
-  leading frequency dimension.
-  
-  \param abs_vec Extinction matrix.
-  \param f_grid Frequency grid.
-  \param stokes_dim Stokes dimension.
-  \param f_index Frequency index.
-
-  \author Stefan Buehler
-
-  \date   2002-12-12
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_vecInit( Matrix&       abs_vec,
                   const Vector& f_grid,
                   const Index&  stokes_dim,
@@ -852,23 +729,8 @@ void abs_vecInit( Matrix&       abs_vec,
        << stokes_dim << "] and initialized to 0.\n";
 }
 
-//! Add gas absorption to first element of absorption vector.
-/*! 
-  The task of this method is to sum up the gas absorption of the
-  different gas species and add the result to the first element of the
-  absorption vector.
 
-  \param abs_vec Input and Output: Absorption vector
-                 Dimension: [#frequencies, stokes_dim]
-  
-  \param abs_scalar_gas Scalar gas absorption coefficients.
-                        Dimension: [#frequencies, #abs_species]
-
-  \author Stefan Buehler
-          (rewritten version of function by Sreerekha Ravi)
-
-  \date   2002-12-12
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void abs_vecAddGas( Matrix&       abs_vec,
                     const Matrix& abs_scalar_gas )
 {
@@ -894,20 +756,9 @@ void abs_vecAddGas( Matrix&       abs_vec,
   // since scalar gas absorption only influences the first element.
 }
 
-//! Add Zeeman extinction  to the elements of extinction matrix.
-/*! 
-  
-   \param ext_mat Input and Output: Extinction matrix.
-   Dimension: [#frequencies, stokes_dim, stokes_dim]
-   
-   \param ext_mat_zee Input : Zeeman extinction coefficient matrix.
-   Dimension: [#frequencies, stokes_dim, stokes_dim]
-   
-   \author Sreerekha Ravi
-   (based on ext_matAddGas by Stefan Buehler)
-   
-   \date   2003-12-01
-*/
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+/*
 void ext_matAddGasZeeman( Tensor3&      ext_mat,
                           const Tensor3&  ext_mat_zee )
 {
@@ -930,24 +781,11 @@ void ext_matAddGasZeeman( Tensor3&      ext_mat,
       
     }
 }
-
-//! Add zeeman absorption to the elements of absorption vector.
-/*! 
-  The task of this method is to sum up the gas absorption of the
-  different gas species and add the result to the first element of the
-  absorption vector.
-
-  \param abs_vec Input and Output: Absorption vector
-                 Dimension: [#frequencies, stokes_dim]
-  
-  \param abs_vec_zee Input : Zeeman absorption vector.
-                        Dimension: [#frequencies, #abs_species]
-
-  \author Sreerekha Ravi
-          (based on abs_vecAddGas written by Stefan Buehler)
-
-  \date   2003-12-01
 */
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+/*
 void abs_vecAddGasZeeman( Matrix&      abs_vec,
                           const Matrix& abs_vec_zee )
 {
@@ -959,25 +797,10 @@ void abs_vecAddGasZeeman( Matrix&      abs_vec,
       abs_vec(joker,j) += abs_vec_zee(joker,j);
     }
 }
-
-
-//! Phase Matrix for the particle 
-/*! 
-  
-  This function sums up the phase matrices for all particle 
-  types weighted with particle number density
-  \param pha_mat Output : physical phase matrix 
-  for the particles for given angles. 
-  \param pha_mat_spt Input : phase matrix for the single particle type
-  \param pnd_field Input : particle number density givs the local 
-  concentration for all particles.
-  \param atmosphere_dim Input : he atmospheric dimensionality (now 1 or 3)
-  \param scat_p_index Input : Pressure index wrt. cloudbox.
-  \param scat_lat_index Input : Latitude index wrt. cloudbox.
-  \param scat_lon_index Input : Longitude index wrt. cloudbox.
-
-  \author Sreerekha Ravi
 */
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void pha_matCalc(
                  Tensor4& pha_mat,
                  const Tensor5& pha_mat_spt,
@@ -1064,23 +887,7 @@ void pha_matCalc(
 }
 
 
-//! Check the scattering data in the database.
-/*! 
-  This function can be used to check datafiles containing data for 
-  randomly oriented scattering media.
-  It is checked whether the data is consistent. The integral over the phase 
-  matrix should result the scattering cross section \<C_sca\>.
-  
-  The check is if:
-  \<C_ext\> - \<C_sca\> = \<C_abs\>
-  
-  The result is printed on the screen.
-  
-  \param scat_data_raw (Input) Single scattering data.
-  
-  \author Claudia Emde
-  \date   2003-05-20
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void scat_data_rawCheck(//Input:
                          const ArrayOfSingleScatteringData& scat_data_raw
                          )
@@ -1114,14 +921,7 @@ void scat_data_rawCheck(//Input:
 }
 
 
-//! Prepare single scattering data for a DOIT scattering calculation.
-/*! 
-  
- See the the online help (arts -d FUNCTION_NAME)
-
-  \author Claudia Emde
-  \date   2003-08-25
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void DoitScatteringDataPrepare( //Output:
                                ArrayOfTensor7& pha_mat_sptDOITOpt,
                                ArrayOfSingleScatteringData& scat_data_mono,
@@ -1227,21 +1027,7 @@ void DoitScatteringDataPrepare( //Output:
  } 
 
 
- 
-
-//! scat_data_monoCalc
-/*! 
-  calculates monochromatic single scattering data for all particle types by
-  interpolating scat_data_raw over frequency.
-
-  \param scat_data_mono     Output: monochomatic scattering data
-  \param scat_data_raw      raw scattering data WSV
-  \param f_grid
-  \param f_index
-
-  \author Cory Davis
-  \date 2003-12-16
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void scat_data_monoCalc(
                         ArrayOfSingleScatteringData& scat_data_mono,
                         const ArrayOfSingleScatteringData& scat_data_raw,
@@ -1387,27 +1173,7 @@ void scat_data_monoCalc(
 }
 
 
-
-//! Calculates opticle properties for the single particle types.
-/*! 
-  This is essentially a monochromatic version of opt_prop_sptFromData. 
-ext_mat_spt and abs_vec_spt are calculated from scat_data_mono instead of 
-scat_data_raw
-
-\param ext_mat_spt  Output: extinction matrix for each particle at the given
-                         propagation direction
-\param abs_vec_spt  Output: absorption coefficient vector at the given
-                         propagation direction
-\param scat_data_mono monochromatic single scattering data
-\param scat_za_grid Workspace variable
-\param scat_aa_grid Workspace variable
-\param scat_za_index Workspace variable
-\param scat_aa_index Workspace variable
-
-\author Cory Davis
-\date 2003-12-17
-
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void opt_prop_sptFromMonoData( // Output and Input:
                          Tensor3& ext_mat_spt,
                          Matrix& abs_vec_spt,
@@ -1545,14 +1311,7 @@ void opt_prop_sptFromMonoData( // Output and Input:
 }
  
 
-//! Calculates phase matrix for the single particle types.
-/*! 
-  
-See the the online help (arts -d FUNCTION_NAME)
-  
-\author Claudia Emde
-\date   2004-02-11
-*/                        
+/* Workspace method: Doxygen documentation will be auto-generated */
 void pha_mat_sptFromMonoData( // Output:
                              Tensor5& pha_mat_spt,
                              // Input:
@@ -1665,4 +1424,3 @@ void pha_mat_sptFromMonoData( // Output:
     }
 }
 
-  

@@ -29,6 +29,7 @@
 
 #include "xml_io.h"
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
 ReadXML (// WS Generic Output:
          T&            v,
@@ -46,6 +47,7 @@ ReadXML (// WS Generic Output:
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
 WriteXML (//WS Input:
           const String &file_format,
@@ -66,7 +68,7 @@ WriteXML (//WS Input:
 }
 
 
-
+/* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
 WriteXMLIndexed (//WS Input:
           const String& file_format,
@@ -87,10 +89,13 @@ WriteXMLIndexed (//WS Input:
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 output_file_formatSetAscii (// WS Output:
                             String &file_format);
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 output_file_formatSetBinary (// WS Output:
                              String &file_format);

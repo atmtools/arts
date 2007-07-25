@@ -53,13 +53,8 @@
   === WSMs
   ===========================================================================*/
 
-//! refr_indexFieldAndGradients
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
 
-   \author Patrick Eriksson
-   \date   2003-01-19
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void refr_indexFieldAndGradients(
       // WS Output:
             Numeric&                    refr_index,
@@ -221,13 +216,8 @@ void refr_indexFieldAndGradients(
     }
 }
 
-//! refr_indexIR
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-   
-   \author Mattias Ekström
-   \date   2003-05-15
-*/
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void refr_indexIR(
         // WS Output
               Numeric&                  refr_index,
@@ -243,13 +233,7 @@ void refr_indexIR(
 }
 
 
-//! refr_indexThayer
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2003-01-09
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void refr_indexThayer(
          Numeric&                    refr_index,
        const Numeric&                    a_pressure,
@@ -273,16 +257,10 @@ void refr_indexThayer(
 }
 
 
-
-//! refr_indexUnit
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2003-01-18
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void refr_indexUnit(
          Numeric&                    refr_index )
 {
   refr_index = 1;
 }
+

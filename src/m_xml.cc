@@ -27,6 +27,8 @@
 
 #include "m_xml.h"
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 output_file_formatSetAscii(// WS Output:
                            String &file_format)
@@ -34,6 +36,8 @@ output_file_formatSetAscii(// WS Output:
   file_format = "ascii";
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void
 output_file_formatSetBinary(// WS Output:
                             String &file_format)

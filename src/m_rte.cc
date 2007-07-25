@@ -61,13 +61,7 @@
   ===========================================================================*/
 
 
-//! RteCalc
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-09-17
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void RteCalc(
          Vector&                     y,
          Ppath&                      ppath,
@@ -470,14 +464,7 @@ void RteCalc(
 }
 
 
-
-//! RteCalcNoJacobian
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2005-05-30
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void RteCalcNoJacobian(
          Vector&                     y,
          Ppath&                      ppath,
@@ -530,15 +517,7 @@ void RteCalcNoJacobian(
 }
 
 
-
-
-//! RteStd
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Claudia Emde and Patrick Eriksson
-   \date   2003-01-07
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void RteStd(
       // WS Output:
              Matrix&                  iy,
@@ -567,14 +546,7 @@ void RteStd(
 }
 
 
-
-//! RteStdWithTransmissions
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2005-05-19
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void RteStdWithTransmissions(
       // WS Output:
              Matrix&                  iy,
@@ -600,5 +572,4 @@ void RteStdWithTransmissions(
            emission_agenda, abs_scalar_gas_agenda,
            rte_do_gas_jacs, rte_do_t_jacs, true );
 }
-
 

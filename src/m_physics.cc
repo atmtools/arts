@@ -62,14 +62,7 @@ extern const Numeric COSMIC_BG_TEMP;
   ===========================================================================*/
 
 
-
-//! emissionPlanck
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2005-05-14
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void emissionPlanck(
               Vector&   emission,
         const Vector&   f,
@@ -84,14 +77,7 @@ void emissionPlanck(
 }
 
 
-
-//! MatrixCBR
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-28
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixCBR(
         // WS Output:
               Matrix&   m,
@@ -123,14 +109,7 @@ void MatrixCBR(
 }
 
 
-
-//! MatrixPlanck
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-28
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixPlanck(
         // WS Output:
               Matrix&   m,
@@ -165,14 +144,7 @@ void MatrixPlanck(
 }
 
 
-
-//! MatrixToTbByPlanck
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-08-11
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixToTbByPlanck(
               Matrix&   y_out,
         const String&   y_out_name,
@@ -218,14 +190,7 @@ void MatrixToTbByPlanck(
 }
 
 
-
-//! MatrixToTbByRJ
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2003_07-13
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixToTbByRJ(
               Matrix&   y_out,
         const String&   y_out_name,
@@ -276,14 +241,7 @@ void MatrixToTbByRJ(
 }
 
 
-
-//! MatrixUnitIntensity
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2005-05-18
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixUnitIntensity(
         // WS Output:
               Matrix&   m,
@@ -315,11 +273,7 @@ void MatrixUnitIntensity(
 }
 
 
-
-//! Tensor6ToTbByPlanck
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor6ToTbByPlanck( // WS Generic Output:
                          Tensor6&   y_out,
                          // WS Generic Output Names:
@@ -374,15 +328,7 @@ void Tensor6ToTbByPlanck( // WS Generic Output:
 }
 
 
-
-
-//! VectorToTbByPlanck
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2003-07-13
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorToTbByPlanck(
               Vector&   y_out,
         const String&   y_out_name,
@@ -421,14 +367,7 @@ void VectorToTbByPlanck(
 }
 
 
-
-//! VectorToTbByRJ
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2003-07-13
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorToTbByRJ(
               Vector&   y_out,
         const String&   y_out_name,
@@ -483,6 +422,4 @@ void VectorToTbByRJ(
         }
     }
 }
-
-
 

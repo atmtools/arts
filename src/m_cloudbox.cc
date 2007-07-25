@@ -1844,7 +1844,6 @@ void iyInterpCloudboxField(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-/* FIXME OLE: Dead function? */
 void iyInterpPolyCloudboxField(
             Matrix&         iy,
       const Tensor7&        scat_i_p,

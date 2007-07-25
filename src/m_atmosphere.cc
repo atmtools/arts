@@ -794,13 +794,7 @@ void surfaceSimple(
 
 
 
-// //! surfaceEmissivityInterpolate
-// /*!
-//    See the the online help (arts -d FUNCTION_NAME)
-
-//    \author Cory Davis
-//    \date   2005-09-07
-// */
+/* Workspace method: Doxygen documentation will be auto-generated */
 // void surfaceEmissivityInterpolate(
 //                                   Matrix&    surface_los,
 //                                   Tensor4&   surface_rmatrix,

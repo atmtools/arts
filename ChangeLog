@@ -1,3 +1,28 @@
+2007-07-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1154
+
+	* src/methods.cc, src/m_atmosphere, src/m_optproperties.cc,
+	src/m_physics.cc, src/m_refraction.cc, src/m_rte.cc,
+	src/m_scatrte.cc, src/m_sensor.cc, src/m_xml.cc, src/m_xml.h:
+
+	Continued doxygen WSM cleanup. See arts-1-1-1151 for details.
+
+	* src/m_optproperties.cc:
+
+	Commented out WSMs ext_matAddGasZeeman and abs_vecAddGasZeeman.
+	They were already commented out in methods.cc, so there's no need
+	to compile them.
+
+	* src/m_cloudbox.cc: Removed FIXME.
+
+	* src/methods.cc:
+
+	Removed commented out description of doit_i_fieldUpdate3D. It doesn't
+	exist anywhere else in the code.
+
+	Fill in unknown WSM authors by using 'svn blame'.
+
 2007-07-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1153
