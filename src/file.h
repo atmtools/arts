@@ -65,4 +65,6 @@ void read_text_from_file(ArrayOfString& text, const String& name);
 
 void replace_all(String& s, const String& what, const String& with);
 
+int check_newline(const String& s);
+
 #endif

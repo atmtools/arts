@@ -444,6 +444,54 @@ void write_method_header( ofstream& ofs,
 }
 
 
+bool md_sanity_checks (const Array<MdRecord> &md_data)
+{
+  ostringstream os;
+
+  bool is_sane = true;
+  for (Array<MdRecord>::const_iterator i = md_data.begin ();
+       i < md_data.end (); ++i)
+    {
+      bool invalid_author = false;
+      for (ArrayOfString::const_iterator j = i->Authors ().begin ();
+           !invalid_author && j < i->Authors ().end (); ++j)
+        {
+          if (*j == "" || *j == "unknown")
+            invalid_author = true;
+        }
+
+      if (invalid_author)
+        {
+          os << i->Name () << ": Missing or invalid author.\n";
+          is_sane = false;
+        }
+
+      switch (check_newline (i->Description ())) {
+        case 1:
+          os << i->Name () << ": Empty description.\n";
+          is_sane = false;
+          break;
+        case 2:
+          os << i->Name () << ": Missing newline at the end of description.\n";
+          is_sane = false;
+          break;
+        case 3:
+          os << i->Name () << ": Extra newline at the end of description.\n";
+          is_sane = false;
+          break;
+      }
+    }
+
+  if (!is_sane)
+    {
+      cerr << "Error(s) found in workspace method documentation (check methods.cc):\n"
+        << os.str ();
+    }
+
+  return is_sane;
+}
+
+
 int main()
 {
   try
@@ -464,7 +512,9 @@ int main()
 
         // Initialize wsv data.
       define_wsv_data();
-  
+
+      if (!md_sanity_checks (md_data))
+        return 1;
 
       const Index n_md  = md_data.nelem();
       const Index n_wsv = wsv_data.nelem();

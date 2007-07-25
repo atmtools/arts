@@ -248,3 +248,40 @@ void replace_all(String& s, const String& what, const String& with)
     }
 }
 
+//// check newline //////////////////////////////////////////////////////////
+/**
+  Checks if there is exactly one newline character
+  at the end of the string.
+
+  @param s The String to check.
+
+  @return Error code (0=ok, 1=empty, 2=missing, 3=extra newline
+
+  @author Oliver Lemke
+*/
+int check_newline(const String& s)
+{
+  String d = s;
+  int result = 0;
+
+  // Remove all whitespaces except \n
+  replace_all (d, " ", "");
+  replace_all (d, "\t", "");
+  replace_all (d, "\r", "");
+
+  const char *cp = d.c_str ();
+  while ((*cp == '\n') && *cp) cp++;
+
+  if (!(*cp))
+    result = 1;
+
+  if (!result && d[d.length () - 1] != '\n')
+    result = 2;
+  else if (!result && d.length () > 2
+           && d[d.length () - 1] == '\n' && d[d.length () - 2] == '\n')
+      result = 3;
+
+  return result;
+}
+
+

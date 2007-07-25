@@ -36,6 +36,40 @@
 #include "wsv_aux.h"
 #include "mystring.h"
 
+bool wsv_sanity_checks (const Array<WsvRecord> &wsv_data)
+{
+  ostringstream os;
+
+  bool is_sane = true;
+  for (Array<WsvRecord>::const_iterator i = wsv_data.begin ();
+       i < wsv_data.end (); ++i)
+    {
+      switch (check_newline (i->Description ())) {
+        case 1:
+          os << i->Name () << ": Empty description.\n";
+          is_sane = false;
+          break;
+        case 2:
+          os << i->Name () << ": Missing newline at the end of description.\n";
+          is_sane = false;
+          break;
+        case 3:
+          os << i->Name () << ": Extra newline at the end of description.\n";
+          is_sane = false;
+          break;
+      }
+    }
+
+  if (!is_sane)
+    {
+      cerr << "Error(s) found in workspace variable documentation (check methods.cc):\n"
+        << os.str ();
+    }
+
+  return is_sane;
+}
+
+
 int main()
 {
   try
@@ -47,6 +81,9 @@ int main()
       // Make the data visible.
       extern const Array<WsvRecord> wsv_data;
       extern const ArrayOfString wsv_group_names;
+
+      if (!wsv_sanity_checks (wsv_data))
+        return 1;
 
       const Index n_wsv = wsv_data.nelem();
 

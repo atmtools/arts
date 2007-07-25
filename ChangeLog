@@ -1,5 +1,24 @@
 2007-07-25  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1156
+
+	* src/make_auto_md_h.cc (md_sanity_checks),
+	src/make_auto_wsv_h.cc (wsv_sanity_checks):
+
+	For WSMs check if a valid author is given in the documentation.
+
+	For WSMs and WSVs make sure there is exactly one newline character at
+	the end of the description and it is not empty.
+
+	* src/file.{cc,h} (check_newline):
+
+	Added function that checks whether a string has exactly one newline
+	character at the end and does not only consist of whitespaces.
+
+	* src/methods.cc: Fixed one misplaced \n.
+
+2007-07-25  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1155
 
 	* src/methods.cc, src/m_batch.cc:

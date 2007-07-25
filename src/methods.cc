@@ -1819,8 +1819,8 @@ void define_md_data_raw()
       ( NAME("ScatteringDisort"),
         DESCRIPTION
         (
-         "Calls DISORT RT solver from ARTS. \n"
-         "Detailed documentation to be added\n."
+         "Calls DISORT RT solver from ARTS.\n"
+         "Detailed documentation to be added.\n"
          ),
         AUTHORS( "Claudia Emde" ),
          OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, 
