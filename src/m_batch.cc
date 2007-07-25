@@ -57,13 +57,7 @@ extern const Numeric RAD2DEG;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! MatrixExtractFromTensor3
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2004-09-15
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixExtractFromTensor3(
       // WS Generic Output:
       Matrix&          m,
@@ -93,14 +87,7 @@ void MatrixExtractFromTensor3(
 }
 
 
-
-//! NumericExtractFromVector
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2004-09-15
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void NumericExtractFromVector(
       // WS Generic Output:
       Numeric&         n,
@@ -129,14 +116,7 @@ void NumericExtractFromVector(
 }
 
 
-
-//! Tensor3ExtractFromTensor4
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2004-09-15
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor3ExtractFromTensor4(
       // WS Generic Output:
       Tensor3&         t3,
@@ -166,14 +146,7 @@ void Tensor3ExtractFromTensor4(
 }
 
 
-
-//! Tensor4ExtractFromTensor5
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2004-09-15
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor4ExtractFromTensor5(
       // WS Generic Output:
       Tensor4&         t4,
@@ -203,14 +176,7 @@ void Tensor4ExtractFromTensor5(
 }
 
 
-
-//! VectorExtractFromMatrix
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2004-09-15
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void VectorExtractFromMatrix(
       // WS Generic Output:
       Vector&          v,
@@ -240,14 +206,7 @@ void VectorExtractFromMatrix(
 }
 
 
-
-//! ybatchCalc
-/*! 
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2004-09-15
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ybatchCalc(
         // WS Output:
               Matrix&         ybatch,
@@ -269,54 +228,7 @@ void ybatchCalc(
 }
 
 
-
-//! The function does a batch calculation for metoffice fields.
-/*!
-  This method is used for simulating ARTS for metoffice model field
-  The method reads the amsu data file stored in the variable 
-  *met_amsu_data*.  This variable holds the latitude, longitude, 
-  satellite zenith angle, and amsu-b corrected and uncorrected BTs.  
-  The metoffice profiles are extracted for each of these lat and lon.
-  The profiles are for pressure, temperature, altitude, humidity  and
-  ice water content. In ARTS, the temperature data is stored in t_field_raw,
-  which is an AraayOfTensor3, vmrs in vmr_field_raw which is an 
-  ArrayOfArrayOfTensor3 and IWC is converted to corresponding particle 
-  number density and stored in pnd_field_raw which is an ArrayOfArrayOfTensor3.
-  Corresponding to each lat-lon pixel in the AMSU data, you have files
-  storing t_field_raw, vmr_field_raw, pnd_field_raw.  The batch method loops
-  over the number of lat-lon points, reads the data, sets the cloudbox and 
-  perform the radiative transfer calculation.  The output *ybatch* holds the 
-  spectra corresponding to all lat-lon points.
-  
-  \param ybatch Spectra for a batch of metoffice profiles
-  \param y Agenda output: Spectra
-  \param t_field_raw Agenda input: Temperature field
-  \param z_field_raw Agenda input: Altitude field
-  \param vmr_field_raw Agenda input: VMR field
-  \param pnd_field_raw Agenda input: Raw particle number density field
-  \param pnd_field Agenda input: Particle number density field
-  \param p_grid Agenda input: Pressure grid
-  \param sensor_los Agenda input: Sensor line of sight
-  \param cloudbox_on Agenda input: Flag to activate cloudbox
-  \param cloudbox_limits Agenda input: Limits of the cloudbox
-  \param z_surface Agenda input: Surface height
-  \param abs_species Tag group absorption
-  \param met_profile_path Path of metoffice data
-  \param met_profile_calc_agenda Agenda for absorption calculation and RT methods
-  \param f_grid Frequency grid
-  \param met_amsu_data Amsu data set
-  \param sensor_pos Sensor position 
-  \param r_geoid Geoid radius
-  \param lat_grid Latitude grid
-  \param lon_grid Longitude grid
-  \param atmosphere_dim Atmospheric dimensionality
-  \param scat_data_raw Single scattering data
-  \param nelem_p_grid Keyword: Number of elements in pressure grid
-  \param met_profile_path Keyword: Path of temperature, altitude, humidity fields
-  \param met_profile_pnd_path Keyword: Path of pnd_field
-  \author Sreerekha T.R.
-  \date 2003-04-17
-*/
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ybatchMetProfiles(//Output
                Matrix& ybatch,
                //Input
@@ -547,43 +459,8 @@ void ybatchMetProfiles(//Output
     }// closing the loop over profile basenames
 }
 
-//! The function does a batch calculation for metoffice fields.
-/*!
-  This method is used for simulating ARTS for metoffice model field
-  This method loops over *met_profile_basenames* which contains the
-  basenames of the metoffice profile files as an ArrayOfString.
-  Corresponding to each basename we have temperature field, altitude
-  field, humidity field and particle number density field.  The
-  temperature field and altitude field are stored in the same dimensions
-  as *t_field_raw* and *z_field_raw*.  The oxygen and nitrogen VMRs are
-  set to constant values of 0.209 and 0.782, respectively and are used
-  along with humidity field to generate *vmr_field_raw*.  
-  
-  The three fields *t_field_raw*, *z_field_raw*, and *vmr_field_raw* are
-  given as input to *met_profile_calc_agenda* which is called in this
-  method.  See documentation of WSM *met_profile_calc_agenda* for more
-  information on this agenda
-  
-  \param ybatch spectra for a batch of metoffice profiles
-  \param t_field_raw temperature field
-  \param z_field_raw altitude field
-  \param vmr_field_raw VMR field
-  \param y spectra
-  \param p_grid pressure grid
-  \param sensor_los sensor line of sight
-  \param z_surface surface height
-  \param abs_species species under consideration
-  \param met_profile_path Path to the MO profiles
-  \param met_profile_calc_agenda agenda for absorption calculation and RT methods
-  \param f_grid frequency grid
-  \param met_amsu_data the latlon information in amsu obs
-  \param sensor_pos sensor position
-  \param r_geoid geoid radius
-  \param nelem_p_grid number of levels in the pressure grid.
-  
-  \author Sreerekha T.R.
-  \date 2003-04-17
-*/
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ybatchMetProfilesClear(//Output
                 Matrix& ybatch,
                 //Input
@@ -749,6 +626,4 @@ void ybatchMetProfilesClear(//Output
       
     }// closing the loop over profile basenames
 }
-
-
 

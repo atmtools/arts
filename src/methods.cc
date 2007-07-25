@@ -1336,7 +1336,7 @@ void define_md_data_raw()
          "is appended must have at least one element but not more than\n"
          "the number of polarisation given by *sensor_pol*.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( antenna_diagram_ ),
         INPUT( sensor_pol_ ),
         GOUTPUT(),
@@ -1363,7 +1363,7 @@ void define_md_data_raw()
          "Keywords:\n"
          "        element : The index to be set.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( ArrayOfMatrix_ ),
@@ -1768,7 +1768,7 @@ void define_md_data_raw()
          "   output : Which sideband(s) to output, \"lower\", \"upper\" or\n"
          "            \"double\"\n"
          ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
          OUTPUT( sensor_response_f_, y_ ),
          INPUT( sensor_pol_, sensor_response_za_, sensor_response_aa_, lo_,
                 atmosphere_dim_, sensor_pos_ ),
@@ -1858,7 +1858,7 @@ void define_md_data_raw()
          "\n"
          "For limb simulations it is important to use an optimized zenith "
          "angle \n"
-         "grid with a very fine resolution about 90° for the "
+         "grid with a very fine resolution about 90Â° for the "
          "RT calculations.\n"
          "Such a grid can be generated using *doit_za_grid_optCalc*. \n"
          "The filename of the optimized zenith angle grid can be given \n"
@@ -2272,7 +2272,7 @@ md_data_raw.push_back
          "makes sense to use different \n"
          "zenith angle grids for the scattering integral part and the RT part, \n"
          "because the latter part requires a much finer resolution about \n"
-         "90°. Taking an optimized grid for the RT part and an equidistant \n"
+         "90Â°. Taking an optimized grid for the RT part and an equidistant \n"
          "grid for the scattering integral part saves very much CPU time.\n"
          "This method uses the equidistant za_grid defined in \n"
          "*doit_angular_gridsSet* and it should always be used for limb \n"
@@ -2634,7 +2634,7 @@ md_data_raw.push_back
          "   tot_width   : The total width of the relative grid.\n"
          "   max_spacing : The maximum step between grid points.\n"
          ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -2856,7 +2856,7 @@ md_data_raw.push_back
          "  unit    : Retrieval unit. See above.\n"
          "  dx      : Size of perturbation.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT(),
@@ -2886,7 +2886,7 @@ md_data_raw.push_back
          "  Vector : The latitude grid of the retrieval field.\n"
          "  Vector : The longitude grid of the retrieval field.\n"
         ),
-        AUTHORS( "Mattias Ekström", "Patrick Eriksson" ),
+        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
                pnd_field_, pnd_field_perturb_, cloudbox_limits_ ),
@@ -2921,7 +2921,7 @@ md_data_raw.push_back
          "  dza                 : The size of the perturbation.\n"
          "  poly_order          : Order of the polynomial.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, sensor_pos_, sensor_time_ ),
         GOUTPUT(),
@@ -2960,7 +2960,7 @@ md_data_raw.push_back
          "  method  : \"analytic\" or \"perturbation\".\n"
          "  dx      : Size of perturbation.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT(),
@@ -2979,7 +2979,7 @@ md_data_raw.push_back
          "as the methods called performs perturbations to obtain cahnges in\n"
          "*y*.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( jacobian_ ),
         INPUT( jacobian_agenda_, jacobian_indices_ ),
         GOUTPUT(),
@@ -2997,7 +2997,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddAbsSpecies\n"
         "and should normally not be called by the user.\n"
         ),
-        AUTHORS( "Mattias Ekström", "Patrick Eriksson" ),
+        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUTPUT( jacobian_ ),
         INPUT( y_, jacobian_quantities_, jacobian_indices_, abs_species_, 
                ppath_step_agenda_, 
@@ -3023,7 +3023,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
         "and should normally not be called by the user.\n"
         ),
-        AUTHORS( "Mattias Ekström", "Patrick Eriksson" ),
+        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUTPUT( jacobian_ ),
         INPUT( y_, jacobian_quantities_, jacobian_indices_, pnd_field_perturb_,
                jacobian_particle_update_agenda_,
@@ -3049,7 +3049,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
         "and should normally not be called by the user.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( jacobian_ ),
         INPUT( y_, jacobian_quantities_, jacobian_indices_, 
                sensor_time_, ppath_step_agenda_, 
@@ -3075,7 +3075,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
         "and should normally not be called by the user.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( jacobian_ ),
         INPUT( y_, jacobian_quantities_, jacobian_indices_, ppath_step_agenda_,
                rte_agenda_, 
@@ -3106,7 +3106,7 @@ md_data_raw.push_back
          "Therefor the number of measurement blocks, taken from *sensor_pos*\n"
          "and the size of *sensor_response* has to be defined.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
          OUTPUT( jacobian_, jacobian_indices_ ),
          INPUT( jacobian_quantities_, sensor_pos_, sensor_response_ ),
          GOUTPUT(),
@@ -3128,7 +3128,7 @@ md_data_raw.push_back
          "\n"
          "The Jacobian quantities are initialised to be empty.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
          OUTPUT( jacobian_, jacobian_quantities_, jacobian_indices_ ),
          INPUT(),
          GOUTPUT(),
@@ -3219,7 +3219,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : The vector to be copied.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3244,7 +3244,7 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the first column. \n"
          "   Vector : The vector to be copied into the second column.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3270,7 +3270,7 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the second column. \n"
          "   Vector : The vector to be copied into the third column.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3291,7 +3291,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : The vector to be copied.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3316,7 +3316,7 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the first row. \n"
          "   Vector : The vector to be copied into the second row.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3342,7 +3342,7 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the second row. \n"
          "   Vector : The vector to be copied into the third row.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
@@ -3360,7 +3360,7 @@ md_data_raw.push_back
          "Copies page with given Index from input Tensor3 variable to create \n"
          "output Matrix.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Matrix_ ),
@@ -3864,7 +3864,7 @@ md_data_raw.push_back
          "Copies element with given Index from input Vector variable to \n"
          "create output Numeric.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Numeric_ ),
@@ -4404,10 +4404,10 @@ md_data_raw.push_back
          "Only refractivity of dry air is considered. All other gases has\n"
                  "a negligible contribution.  \n"
          "\n"
-         "The formula used is contributed by Michael Höfner,\n"
+         "The formula used is contributed by Michael Hoefner,\n"
                  "Forschungszentrum Karlsruhe.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( refr_index_ ),
         INPUT( rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         GOUTPUT( ),
@@ -4972,7 +4972,7 @@ md_data_raw.push_back
          "polarisations/frequencies. Or else each direction/polarisation/-\n"
          "frequency is given its individual element/column.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( sensor_response_, sensor_response_za_ ),
         INPUT( sensor_response_f_, sensor_response_pol_, mblock_za_grid_,
                antenna_dim_, antenna_diagram_, sensor_norm_, antenna_los_ ),
@@ -5007,7 +5007,7 @@ md_data_raw.push_back
          "Generic Input: \n"
          "  ArrayOfMatrix : The backend channel response.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( sensor_response_, sensor_response_f_ ),
         INPUT( f_backend_, sensor_response_pol_, sensor_response_za_,
                sensor_norm_ ),
@@ -5037,7 +5037,7 @@ md_data_raw.push_back
          "   sensor_response_aa : Equal to *mblock_aa_grid*.\n"
          "   sensor_response_pol: Equal to *stokes_dim*.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
                 sensor_response_aa_, sensor_response_pol_  ),
         INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_,
@@ -5065,7 +5065,7 @@ md_data_raw.push_back
          "Generic Input: \n"
          "       Matrix : The sideband filter response matrix.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( sensor_response_, sensor_response_f_, f_mixer_ ),
         INPUT( sensor_response_pol_, sensor_response_za_, lo_, sensor_norm_ ),
         GOUTPUT( ),
@@ -5108,7 +5108,7 @@ md_data_raw.push_back
          "         Matrix : The sideband filter response matrix.\n"
          "  ArrayOfMatrix : The backend channel response.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( sensor_response_, sensor_response_f_, f_mixer_ ),
         INPUT( sensor_response_pol_, sensor_response_za_, sensor_response_aa_,
                lo_, sensor_norm_, f_backend_, sensor_pol_ ),
@@ -5126,7 +5126,7 @@ md_data_raw.push_back
          "\n"
          "The output polarisations are given by matrix *sensor_pol*.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( sensor_response_, sensor_response_pol_ ),
         INPUT( sensor_pol_, sensor_response_za_, sensor_response_aa_,
                sensor_response_f_, stokes_dim_),
@@ -5149,7 +5149,7 @@ md_data_raw.push_back
          "If used this method has to be run after the antenna response\n"
          "function and prior to sensor_responsePolarisation.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( sensor_response_ ),
         INPUT( sensor_rot_, antenna_los_, antenna_dim_, stokes_dim_,
                sensor_response_f_, sensor_response_za_),
@@ -5284,7 +5284,7 @@ md_data_raw.push_back
          "Copies book with given Imdex from input Tensor4 variable to create \n"
          "output Tensor3.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Tensor3_ ),
@@ -5344,7 +5344,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor3_ ),
@@ -5385,7 +5385,7 @@ md_data_raw.push_back
          "Copies shelf with given Index from input Tensor5 variable to \n"
          "create output Tensor4.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Tensor4_ ),
@@ -5412,7 +5412,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor4_ ),
@@ -5462,7 +5462,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor5_ ),
@@ -5512,7 +5512,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   value  : The scale factor.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor6_ ),
@@ -5718,7 +5718,7 @@ md_data_raw.push_back
          "Copies row with given Index from input Matrix variable to create \n"
          "output Vector.\n"
         ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Vector_ ),
@@ -6004,7 +6004,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : A vector with true tangent altitudes\n"
         ),
-        AUTHORS( "Patrick Eriksson", "Mattias Ekström" ),
+        AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUTPUT( refr_index_, rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         INPUT( refr_index_agenda_, sensor_pos_, p_grid_, t_field_, z_field_,
                            vmr_field_, r_geoid_, atmosphere_dim_ ),
@@ -6036,7 +6036,7 @@ md_data_raw.push_back
          "Keywords:\n"
          "   r_geoid : The geoid radius for the given tangent altitudes.\n"
         ),
-        AUTHORS( "Patrick Eriksson", "Mattias Ekström" ),
+        AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUTPUT(),
         INPUT( sensor_pos_ ),
         GOUTPUT( Vector_ ),
@@ -6129,7 +6129,7 @@ md_data_raw.push_back
          "\n"
          "See the user guide for practical examples.\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ybatch_ ),
         INPUT( ybatch_n_, ybatch_calc_agenda_ ), 
         GOUTPUT(),
@@ -6164,7 +6164,7 @@ md_data_raw.push_back
          "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
          "from the profiles inside the function\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Sreerekha T.R." ),
         OUTPUT( ybatch_ ),
         INPUT(abs_species_, met_profile_calc_agenda_, f_grid_, met_amsu_data_,
               sensor_pos_, r_geoid_, lat_grid_, lon_grid_, atmosphere_dim_,
@@ -6202,7 +6202,7 @@ md_data_raw.push_back
          "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
          "from the profiles inside the function\n"
          ),
-        AUTHORS( "unknown" ),
+        AUTHORS( "Seerekha T.R." ),
         OUTPUT( ybatch_ ),
         INPUT(abs_species_, met_profile_calc_agenda_, 
               f_grid_, met_amsu_data_, sensor_pos_, r_geoid_),
@@ -6224,7 +6224,7 @@ md_data_raw.push_back
          "The zenith angles are restricted by the two tangent altitudes\n"
          "*z_scan_low* and *z_scan_high*.\n"
         ),
-        AUTHORS( "Mattias Ekström" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( ppath_step_),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
                lon_grid_, z_field_, r_geoid_, z_surface_ ),

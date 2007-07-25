@@ -1,5 +1,17 @@
 2007-07-25  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1155
+
+	* src/methods.cc, src/m_batch.cc:
+
+	Completed doxygen WSM cleanup. See arts-1-1-1151 for details.
+
+	* src/methods.cc:
+
+	s/Ekström/Ekstrom/ and s/Höfner/Hoefner/ to avoid encoding problems.
+
+2007-07-25  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1154
 
 	* src/methods.cc, src/m_atmosphere, src/m_optproperties.cc,
