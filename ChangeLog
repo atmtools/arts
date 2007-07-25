@@ -1,5 +1,13 @@
 2007-07-25  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1158
+
+	* src/main.cc, src/arts.cc, src/test_mpi.cc, src/arts_mpi.{cc,h}:
+
+	Remove MPI cruft.
+
+2007-07-25  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1157
 
 	* doc/doxygen/Doxyfile.in:

@@ -26,7 +26,6 @@
 
 #include <cstdlib>
 #include "arts.h"
-#include "arts_mpi.h"
 
 
 /** This is the exit function of ARTS. Whenever arts has to be terminated

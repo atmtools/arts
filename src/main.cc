@@ -29,7 +29,6 @@
 */
 
 #include "arts.h"
-#include "arts_mpi.h"
 #include <algorithm>
 #include <map>
 #include "parameters.h"
@@ -622,8 +621,6 @@ int main (int argc, char **argv)
   extern const Parameters parameters; // Global variable that holds
                                       // all command line parameters. 
 
-  MPI_ONLY( mpi_manager.startup (argc, argv); )
-
   //---------------< 1. Get command line parameters >---------------
   if ( get_parameters(argc, argv) )
     {
@@ -651,12 +648,7 @@ int main (int argc, char **argv)
         << "Features enabled/disabled in this build: " << endl
         << "  "
         << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float")
-        << " precision" << endl
-        << "  "
-#ifndef HAVE_MPI
-        << "no "
-#endif
-        << "MPI support" << endl;
+        << " precision" << endl;
       arts_exit (0);
     }
 
@@ -831,12 +823,6 @@ int main (int argc, char **argv)
       extern const String out_basename;     // Basis for file name
       extern ofstream report_file;      // Report file pointer
       ostringstream report_file_ext;
-
-#ifdef HAVE_MPI
-      int rank = mpi_manager.get_rank ();
-      if (rank)
-        report_file_ext << "." << rank;
-#endif // HAVE_MPI
 
       report_file_ext << ".rep";
       open_output_file(report_file, out_basename + report_file_ext.str ());

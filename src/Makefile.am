@@ -24,8 +24,6 @@ arts_SOURCES = \
 	lineshapes.cc \
 	arts.cc \
 	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
 	auto_md.cc \
 	auto_md.h \
 	auto_wsv.h \
@@ -217,11 +215,11 @@ continua.o: arts.h matpackI.h array.h absorption.h messages.h continua.h
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS) $(CXXNOSTRICTALIASING) -c continua.cc
 
-methods.o: arts.h arts_mpi.h make_array.h auto_wsv.h methods.h auto_wsv_groups.h methods.cc
+methods.o: arts.h make_array.h auto_wsv.h methods.h auto_wsv_groups.h methods.cc
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c methods.cc
 
-species_data.o: arts.h arts_mpi.h make_array.h absorption.h species_data.cc
+species_data.o: arts.h make_array.h absorption.h species_data.cc
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c species_data.cc
 
@@ -232,7 +230,7 @@ partition_function_data.o: arts.h make_array.h absorption.h partition_function_d
 
 
 # OLE: Temporarely added to work around a bug in gcc 3.0
-xml_io.o: arts.h arts_mpi.h xml_io.h xml_io.cc xml_io_instantiation.h xml_io_private.h xml_io_basic_types.h xml_io_compound_types.h xml_io_array_types.h bofstream.h bifstream.h
+xml_io.o: arts.h xml_io.h xml_io.cc xml_io_instantiation.h xml_io_private.h xml_io_basic_types.h xml_io_compound_types.h xml_io_array_types.h bofstream.h bifstream.h
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c xml_io.cc
 
@@ -254,7 +252,6 @@ noinst_PROGRAMS = \
 	test_sensor \
 	test_xml \
 	test_complex \
-	test_mpi \
 	test_sorting \
 	test_integration
 
@@ -269,8 +266,6 @@ test_binaryio_SOURCES = \
 	lineshapes.cc \
 	arts.h \
 	arts.cc \
-	arts_mpi.cc \
-	arts_mpi.h \
 	auto_md.cc \
 	auto_md.h \
 	auto_wsv.h \
@@ -407,8 +402,6 @@ test_binaryio_SOURCES = \
 #	absorption.h \
 #	arts.cc \
 #	arts.h \
-#	arts_mpi.cc \
-#	arts_mpi.h \
 #	auto_md.cc \
 #	auto_md.h \
 #	auto_wsv.h \
@@ -542,8 +535,6 @@ test_interpolation_SOURCES = \
 	lineshapes.cc \
 	arts.h \
 	arts.cc \
-	arts_mpi.cc \
-	arts_mpi.h \
 	auto_md.cc \
 	auto_md.h \
 	auto_wsv.h \
@@ -718,8 +709,6 @@ test_sparse_SOURCES = \
 	lineshapes.cc \
 	arts.cc \
 	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
 	auto_md.cc \
 	auto_md.h \
 	auto_wsv.h \
@@ -862,8 +851,6 @@ test_xml_SOURCES = \
 	lineshapes.cc \
 	arts.cc \
 	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
 	auto_md.cc \
 	auto_md.h \
 	auto_wsv.h \
@@ -999,14 +986,6 @@ test_complex_LDADD = libmatpack.a
 test_complex_SOURCES = \
 	test_complex.cc
 
-test_mpi_LDADD = libmatpack.a
-test_mpi_SOURCES = \
-	arts.cc \
-	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
-	test_mpi.cc
-
 test_sorting_LDADD = libmatpack.a
 test_sorting_SOURCES = \
 	sorting.h \
@@ -1023,8 +1002,6 @@ test_sensor_SOURCES = \
 	lineshapes.cc \
 	arts.cc \
 	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
 	auto_md.cc \
 	auto_md.h \
 	auto_wsv.h \
