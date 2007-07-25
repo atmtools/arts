@@ -1,5 +1,14 @@
 2007-07-25  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1157
+
+	* doc/doxygen/Doxyfile.in:
+
+	Don't use a custom stylesheet. The default one looks _much_ better
+	than our own.
+
+2007-07-25  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1156
 
 	* src/make_auto_md_h.cc (md_sanity_checks),
