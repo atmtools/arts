@@ -140,6 +140,14 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
 
   ofs << mdd.Description () << "\n";
 
+  // Write the authors:
+  for (Index j=0; j<mdd.Authors().nelem(); ++j)
+    {
+      ofs << indent << "\\author " << mdd.Authors ()[j] << "\n";
+    }
+
+  ofs << "\n";
+
   // Write the Output workspace variables:
   for (Index j=0; j<vo.nelem(); ++j)
     {
