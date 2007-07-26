@@ -1,3 +1,44 @@
+2007-07-26  Stefan Buehler  <sbuehler@irv.se>
+
+	* arts-1-1-1161
+
+	* Working on AMSU batch calculations.
+
+	* src/workspace.cc: Added new variables	atm_fields_compact.
+
+	* src/methods.cc: Added new methods:
+	atm_fields_compactFromMatrix,
+	AtmFieldsFromCompact,
+	IndexSetFromArrayOfMatrixLength,
+	MatrixExtractFromArrayOfMatrix,
+	vmr_fieldAddConstantSpecies.
+	
+	Modified VectorExtractFromMatrix to allow selection between row
+	and column extraction.
+
+	* src/m_batch.cc (MatrixExtractFromArrayOfMatrix): Added this method.
+	(VectorExtractFromMatrix): Added keyword to control if row or
+	column is extracted. 
+
+	* src/m_basic_types.cc (IndexSetFromArrayOfMatrixLength): Added this method.
+
+	* src/m_atmosphere.cc (atm_fields_compactFromMatrix): Added this method.
+	(AtmFieldsFromCompact): Added this method.
+	(vmr_fieldAddConstantSpecies): Added this method.
+
+	* src/gridded_fields.cc: Added GriddedField4, which can be used to
+	store several atmospheric fields on the same grid.
+
+	* src/xml_io*: Added GriddedField4.
+
+	* src/gridded_fields.cc: Added GriddedField4.
+
+	* src/groups.cc: Added GriddedField4.
+
+	* src/gas_abs_lookup.cc (Adapt): Fixed bug for non-linear species.
+
+	* doc/uguide/batch.tex: Fixed some minor copy-editing issues.
+
 2007-07-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1160

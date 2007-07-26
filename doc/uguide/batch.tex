@@ -11,6 +11,7 @@
 %  \stophistory
 %
 \starthistory
+  070726 & Copy-edited by Stefan Buehler.\\
   070618 & Updated by Oliver Lemke.\\
   040916 & Created by Patrick Eriksson.\\
 \stophistory
@@ -31,8 +32,7 @@ inside a simple framework and the task of organising, or creating, the
 input data is left to more flexible programming environments, such as
 Matlab (where you of course use Atmlab) and Python. Instead, a general
 core functionality has been created that is useful for a large range
-of tasks. This functionality consists mainly of the three batch
-agendas.
+of tasks. 
 
 
 \section{Workspace variables and methods}
@@ -45,22 +45,34 @@ cases. Or in fact, how many batch cases that shall be considered. If
 the agenda can provide more than \artsstyle{ybatch\_n} cases, the
 remaining cases are just ignored. There are few formal requirements on
 the involved agenda. Execution of \artsstyle{ybatch\_calc\_agenda}
-must result in new spectrum vector, \artsstyle{y}, most likely by a
+must result in a new spectrum vector, \artsstyle{y}, most likely by a
 call of \artsstyle{RteCalc}.
 
 The actual calculations are made by calling \wsmindex{ybatchCalc}. The
-basic idea is simple, each loop inside this method shall
-produce a new spectrum vector, where each realisation is stored in
+basic idea is simple, each loop inside this method shall produce a new
+spectrum vector, where each realisation is stored in
 \artsstyle{ybatch}. Variables are updated to a new batch case by
-\artsstyle{ybatch\_calc\_agenda}, where \wsvindex{ybatch\_index}, set by
-\artsstyle{ybatchCalc}, tells the agenda which case to select.
-More in detail, \artsstyle{ybatchCalc} makes the following operations:\\
-\indent 1. Performs a-c with \artsstyle{ybatch\_index} looped from 0 to (\artsstyle{ybatch\_n}-1)\\
-\indent a. Executes \artsstyle{ybatch\_calc\_agenda}.\\
-\indent b. If \artsstyle{ybatch\_index} = 0, resizes \artsstyle{ybatch} based
-on \artsstyle{ybatch\_n} and length of \artsstyle{y} \\
-\indent c. Makes copy of \artsstyle{y} in column \artsstyle{ybatch\_index} of \artsstyle{ybatch}.\\
-You see it is simple! The question is only what to put inside the agenda?
+\artsstyle{ybatch\_calc\_agenda}, where \wsvindex{ybatch\_index}, set
+by \artsstyle{ybatchCalc}, tells the agenda which case to select.
+More in detail, \artsstyle{ybatchCalc} makes the following operations:
+
+\begin{itemize}
+
+\item[1.] Performs a-c with \artsstyle{ybatch\_index} looped from 0
+to (\artsstyle{ybatch\_n}-1)
+
+\begin{itemize}
+\item[a.] If \artsstyle{ybatch\_index} = 0, resizes
+\artsstyle{ybatch} based
+on \artsstyle{ybatch\_n} and length of \artsstyle{y} 
+\item[b.] Executes \artsstyle{ybatch\_calc\_agenda}.
+\item[c.] Makes copy of \artsstyle{y} in column \artsstyle{ybatch\_index} of \artsstyle{ybatch}.
+\end{itemize}
+
+\end{itemize}
+
+You see it is simple! The question is only what to put inside the
+agenda?
 
 
 \section{Control file examples}

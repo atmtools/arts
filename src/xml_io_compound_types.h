@@ -71,6 +71,13 @@ xml_write_to_stream (ostream&, const GriddedField3&, bofstream * = NULL,
                      const String& = "");
 
 void
+xml_read_from_stream (istream&, GriddedField4&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const GriddedField4&, bofstream * = NULL,
+                     const String& = "");
+
+void
 xml_read_from_stream (istream&, GridPos&, bifstream * = NULL);
 
 void

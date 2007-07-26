@@ -117,12 +117,14 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
                           ConstVectorView current_f_grid )
 {
   // Some constants we will need:
-  Index n_current_species = current_species.nelem();
-  Index n_current_f_grid  = current_f_grid.nelem();
+  const Index n_current_species = current_species.nelem();
+  const Index n_current_f_grid  = current_f_grid.nelem();
 
-  Index n_species         = species.nelem();
-  Index n_f_grid          = f_grid.nelem();
-  Index n_p_grid          = p_grid.nelem();
+  const Index n_species         = species.nelem();
+  const Index n_nls             = nonlinear_species.nelem();
+  const Index n_nls_pert        = nls_pert.nelem();
+  const Index n_f_grid          = f_grid.nelem();
+  const Index n_p_grid          = p_grid.nelem();
   
   out2 << "  Original table: " << n_species << " species, "
        << n_f_grid << " frequencies.\n"
@@ -132,6 +134,13 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   if ( 0 == nonlinear_species.nelem() )
     {
       out2 << "  Table contains no nonlinear species.\n";
+    }
+
+  // Set up a logical array for the nonlinear species
+  ArrayOfIndex non_linear(n_species,0);
+  for ( Index s=0; s<n_nls; ++s )
+    {
+      non_linear[nonlinear_species[s]] = 1;
     }
 
   if ( 0 == t_pert.nelem() )
@@ -205,7 +214,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
     }
   else
     {
-      if ( 0 == nls_pert.nelem() )
+      if ( 0 == n_nls_pert )
         {
           ostringstream os;
           os << "The vector nls_pert should contain the perturbations\n"
@@ -263,7 +272,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
       Index a = t_pert.nelem();
       Index b = n_species
         + nonlinear_species.nelem()
-        * ( nls_pert.nelem() - 1 );
+        * ( n_nls_pert - 1 );
       Index c = n_f_grid;
       Index d = n_p_grid;
 
@@ -301,6 +310,28 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
       out3 << "found.\n";
     }
 
+  // 1a. Find out which of the current species are nonlinear species:
+  Index n_current_nonlinear_species = 0;        // Number of current nonlinear species
+  ArrayOfIndex current_non_linear(n_species,0); // A logical array to
+                                                // flag which of the
+                                                // current species are
+                                                // nonlinear.
+
+//   ArrayOfIndex current_nonlinear_species; // The actual list of
+//                                           // current nonlinear
+//                                           // species. These are indices into current_species.  
+  
+  out3 << "  Finding out which of the current species are nonlinear:\n";
+  for ( Index i=0; i<n_current_species; ++i )
+    {
+      // Check if this is a nonlinear species:
+      if (non_linear[i_current_species[i]])
+        {
+          current_non_linear[i] = 1;
+          ++n_current_nonlinear_species;
+        }
+    }
+  
 
   // 2. Find and remember the frequencies of the current calculation in
   //    the lookup table. At the same time verify that all frequencies are
@@ -371,13 +402,13 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   // (Should stay empty if we have no nonlinear species)
   if ( 0 != new_table.nonlinear_species.nelem() )
     {
-      new_table.nls_pert.resize( nls_pert.nelem() );
+      new_table.nls_pert.resize( n_nls_pert );
       new_table.nls_pert = nls_pert;
     }
 
   // Absorption coefficients:
   new_table.xsec.resize( xsec.nbooks(),
-                         n_current_species,
+                         n_current_species+n_current_nonlinear_species*(n_nls_pert-1),
                          n_current_f_grid,
                          xsec.ncols()        );
 
@@ -388,18 +419,31 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   // Do species:
   for ( Index i_s=0; i_s<n_current_species; ++i_s )
     {
-      // Do frequencies:
-      for ( Index i_f=0; i_f<n_current_f_grid; ++i_f )
+      // i_v and n_v are used to loop over the VMR perturbations, if
+      // there are any.
+      Index n_v;
+      if (current_non_linear[i_s])
+        n_v = n_nls_pert;
+      else
+        n_v = 1;
+
+      // Do VMR perturbations
+      for ( Index i_v=0; i_v<n_v; ++i_v )
         {
-          new_table.xsec( Range(joker),
-                         i_s,
-                         i_f,
-                         Range(joker) )
-            =
-            xsec( Range(joker),
-                 i_current_species[i_s],
-                 i_current_f_grid[i_f],
-                 Range(joker) );
+      
+          // Do frequencies:
+          for ( Index i_f=0; i_f<n_current_f_grid; ++i_f )
+            {
+              new_table.xsec( Range(joker),
+                              i_s+i_v,
+                              i_f,
+                              Range(joker) )
+                =
+                xsec( Range(joker),
+                      i_current_species[i_s]+i_v,
+                      i_current_f_grid[i_f],
+                      Range(joker) );
+            }
         }
     }
 
@@ -503,6 +547,16 @@ void GasAbsLookup::Extract( Matrix&         sga,
       b = n_species + n_nls * ( n_nls_pert - 1 );
       c = n_f_grid;
       d = n_p_grid;
+//       cout << "xsec: "
+//            << xsec.nbooks() << ", "
+//            << xsec.npages() << ", "
+//            << xsec.nrows() << ", "
+//            << xsec.ncols() << "\n";
+//       cout << "a b c d: "
+//            << a << ", "
+//            << b << ", "
+//            << c << ", "
+//            << d << "\n";
       assert( is_size( xsec, a, b, c, d ) );
     })
 

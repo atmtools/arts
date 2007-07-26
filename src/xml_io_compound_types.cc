@@ -216,6 +216,116 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
+//=== GriddedField4 ===========================================================
+
+//! Reads GriddedField4 from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param gfield  GriddedField4 return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      GriddedField4& gfield,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("GriddedField4");
+
+  xml_read_from_stream (is_xml, gfield.field_names, pbifs);
+  xml_read_from_stream (is_xml, gfield.p_grid, pbifs);
+  xml_read_from_stream (is_xml, gfield.lat_grid, pbifs);
+  xml_read_from_stream (is_xml, gfield.lon_grid, pbifs);
+  xml_read_from_stream (is_xml, gfield.data, pbifs);
+
+  if (gfield.field_names.nelem () != gfield.data.nbooks ())
+    {
+      throw runtime_error("Number of books in data not matching number "
+                          "of elements in field_names");
+    }
+
+  if (gfield.p_grid.nelem () != gfield.data.npages ())
+    {
+      throw runtime_error("Number of pages in data not matching number "
+                          "of elements in p_grid");
+    }
+
+  if (gfield.lat_grid.nelem () != gfield.data.nrows ())
+    {
+      throw runtime_error("Number of rows in data not matching number "
+                          "of elements in lat_grid");
+    }
+
+  if (gfield.lon_grid.nelem () != gfield.data.ncols ())
+    {
+      throw runtime_error("Number of cols in data not matching number "
+                          "of elements in lon_grid");
+    }
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/GriddedField4");
+}
+
+
+//! Writes GriddedField4 to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param gfield  GriddedField4
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const GriddedField4& gfield,
+                     bofstream *pbofs,
+                     const String &name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  if (gfield.field_names.nelem () != gfield.data.nbooks ())
+    {
+      throw runtime_error("Number of books in data not matching number "
+                          "of elements in field_names");
+    }
+
+  if (gfield.p_grid.nelem () != gfield.data.npages ())
+    {
+      throw runtime_error("Number of pages in data not matching number "
+                          "of elements in p_grid");
+    }
+
+  if (gfield.lat_grid.nelem () != gfield.data.nrows ())
+    {
+      throw runtime_error("Number of rows in data not matching number "
+                          "of elements in lat_grid");
+    }
+
+  if (gfield.lon_grid.nelem () != gfield.data.ncols ())
+    {
+      throw runtime_error("Number of cols in data not matching number "
+                          "of elements in lon_grid");
+    }
+
+  open_tag.set_name ("GriddedField4");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+  open_tag.write_to_stream (os_xml);
+
+  xml_write_to_stream (os_xml, gfield.field_names, pbofs, "FieldNames");
+  xml_write_to_stream (os_xml, gfield.p_grid, pbofs, "PressureGrid");
+  xml_write_to_stream (os_xml, gfield.lat_grid, pbofs, "LatitudeGrid");
+  xml_write_to_stream (os_xml, gfield.lon_grid, pbofs, "LongitudeGrid");
+  xml_write_to_stream (os_xml, gfield.data, pbofs, "Data");
+
+  close_tag.set_name ("/GriddedField4");
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+}
+
+
 //=== GridPos =====================================================
 
 //! Reads GridPos from XML input stream

@@ -47,6 +47,7 @@ using namespace std;
 #include "auto_md.h"
 #include "math_funcs.h"
 #include "xml_io.h"
+#include "check_input.h"
 
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
@@ -56,6 +57,41 @@ extern const Numeric RAD2DEG;
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
+
+
+/* Workspace method: Doxygen documentation will be auto-generated 
+
+   Implementation largely copied from Patrick's MatrixExtractFromTensor3 method. 
+
+   2007-07-24 Stefan Buehler */
+void MatrixExtractFromArrayOfMatrix(
+      // WS Generic Output:
+      Matrix&          m,
+      // WS Generic Output Names:
+      const String&    m_name,
+      // WS Input:
+      // WS Generic Input:
+      const ArrayOfMatrix&   t3,
+      const Index&     index,
+      // WS Generic Input Names:
+      const String&    t3_name,
+      const String&    index_name )
+{
+  if( index >= t3.nelem() )
+    {
+      ostringstream os;
+      os << "The value of *" << index_name << "* (" << index 
+         << "is outside the range of *" << t3_name << "*.";
+      throw runtime_error( os.str() );
+
+    }
+  out3 << "Copying matrix " << index << " of *" << t3_name
+       << "* to create *" << m_name << "*.\n";
+
+  m.resize( t3[index].nrows(), t3[index].ncols() );
+  m = t3[index];
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixExtractFromTensor3(
@@ -176,7 +212,13 @@ void Tensor4ExtractFromTensor5(
 }
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+/* Workspace method: Doxygen documentation will be auto-generated 
+
+   2004-09-15 Patrick Eriksson
+
+   Added keyword to control if row or column is extracted.
+
+   2007-07-24 Stefan Buehler */
 void VectorExtractFromMatrix(
       // WS Generic Output:
       Vector&          v,
@@ -188,21 +230,49 @@ void VectorExtractFromMatrix(
       const Index&     index,
       // WS Generic Input Names:
       const String&    m_name,
-      const String&    index_name )
+      const String&    index_name,
+      // Control Parameters:
+      const String& direction )
 {
-  if( index >= m.nrows() )
+  if (direction=="row")
+    {
+      if( index >= m.nrows() )
+        {
+          ostringstream os;
+          os << "The value of *" << index_name << "* (" << index 
+             << "is outside the row range of *" << m_name << "*.";
+          throw runtime_error( os.str() );
+
+        }
+      out3 << "Copying row " << index << " of *" << m_name
+           << "* to create *" << v_name << "*.\n";
+
+      v.resize( m.ncols() );
+      v = m( index, joker );
+    }
+  else if (direction=="column")
+    {
+      if( index >= m.ncols() )
+        {
+          ostringstream os;
+          os << "The value of *" << index_name << "* (" << index 
+             << "is outside the column range of *" << m_name << "*.";
+          throw runtime_error( os.str() );
+
+        }
+      out3 << "Copying column " << index << " of *" << m_name
+           << "* to create *" << v_name << "*.\n";
+
+      v.resize( m.nrows() );
+      v = m( joker, index );
+    }
+  else
     {
       ostringstream os;
-      os << "The value of *" << index_name << "* (" << index 
-         << "is outside the row range of *" << m_name << "*.";
+      os << "Keyword *direction* must be either *row* or *column*,"
+         << "but you gave: " << direction << ".";
       throw runtime_error( os.str() );
-
     }
-  out3 << "Copies row " << index << " of *" << m_name
-       << "* to create *" << v_name << "*.\n";
-
-  v.resize( m.ncols() );
-  v = m( index, joker );
 }
 
 

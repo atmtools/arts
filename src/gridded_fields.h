@@ -37,7 +37,7 @@
 
 //! Contains a GriddedField3.
 /*!
- A gridded field consists of a pressure grid vector, a latitude vector, a
+ A GriddedField3 consists of a pressure grid vector, a latitude vector, a
  longitude vector and a Tensor3 for the data itself.
 
  \author Oliver Lemke
@@ -54,26 +54,41 @@ typedef struct {
       Tensor3 data;
 } GriddedField3;
 
+//! Contains a GriddedField4.
+/*!
+  A GriddedField4 can be used to store fields of several scalar
+  variables on the same p-lat-lon grid. A typical example is to store
+  several atmospheric variables from a circulation model, or a
+  radiosonde profile.
+
+  A GriddedField4 consists of a field name array, a pressure grid
+  vector, a latitude vector, a longitude vector and a Tensor4 for the
+  data itself. The dimensions in the data tensor are also sorted in
+  the above order.
+  
+  \author Stefan Buehler
+  \date   2007-07-25
+ */
+typedef struct {
+      //! Field names
+      ArrayOfString field_names;
+      //! Pressure grid.
+      Vector p_grid;
+      //! Latitude grid.
+      Vector lat_grid;
+      //! Longitude grid.
+      Vector lon_grid;
+      //! Data.
+      Tensor4 data;
+} GriddedField4;
+
 typedef Array<GriddedField3> ArrayOfGriddedField3;
+typedef Array<GriddedField4> ArrayOfGriddedField4;
 
 ostream& operator<< (ostream &os, const GriddedField3 &gfield3);
 ostream& operator<< (ostream &os, const ArrayOfGriddedField3 &agfield3);
 
-void
-check_gridded_tensor3 (ArrayOfTensor3 &gridded_tensor);
-
-void
-check_gridded_tensor6 (ArrayOfTensor6 &gridded_tensor);
-
-void
-read_gridded_tensor3 (const String& filename,
-                      ArrayOfTensor3& gridded_tensor3
-                     );
-
-void
-read_gridded_tensor6(
-                     const String& filename,
-                     ArrayOfTensor6& gridded_tensor6
-                     );
+ostream& operator<< (ostream &os, const GriddedField4 &gfield4);
+ostream& operator<< (ostream &os, const ArrayOfGriddedField4 &agfield4);
 
 #endif

@@ -1441,6 +1441,69 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("atm_fields_compactFromMatrix"),
+        DESCRIPTION
+        (
+         "Set atm_fields_compact from 1D profiles in a matrix.\n"
+         "\n"
+         "For clear-sky batch calculations it is handy to store atmospheric\n"
+         "profiles in an array of matrix. We take such a matrix, and create\n"
+         "*atm_fields_compact* from it. \n"
+         "\n"
+         "The matrix must contain one row for each pressure level. Recommended\n"
+         "row format:\n"
+         "\n"
+         "p[Pa] T[K] z[m] VMR_1[1] ... VMR[2]\n"
+         "\n"
+         "Works only for *atmosphere_dim==1.*\n"         
+         "\n"
+         "Keywords:\n"
+         "   field_names : Field names to store in atm_fields_compact.\n"
+         "                 This should be, e.g.:\n"
+         "                 [\"T[K]\", \"z[m]\", \"vmr_h2o[1]\"]\n"
+         "                 There must be one name less than matrix columns,\n"
+         "                 because the first column must contain pressure.\n"
+        ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT( atm_fields_compact_ ),
+        INPUT(  atmosphere_dim_ ),
+        GOUTPUT(),
+        GINPUT( Matrix_ ),
+        KEYWORDS( "field_names" ),
+        TYPES(    Array_String_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("AtmFieldsFromCompact"),
+        DESCRIPTION
+        (
+         "Extract pressure grid and atmospheric fields from\n"
+         "*atm_fields_compact*.\n"
+         "\n"
+         "An atmospheric scenario includes the following data for each \n"
+         "position (pressure, latitude, longitude) in the atmosphere: \n"
+         "           1. temperature field \n"
+         "           2. the corresponding altitude field \n"
+         "           3. vmr fields for the gaseous species \n"
+         "\n"
+         "This method just splits up the data found in *atm_fields_compact* to\n"
+         "p_grid, lat_grid, lon_grid, and the various fields. No interpolation.\n"
+         "See documentation of *atm_fields_compact* for a definition of the data.\n"
+         "\n"
+         "Possible future extensions: Add a keyword parameter to refine the\n"
+         "pressure grid if it is too coarse. Or a version that interpolates onto\n"
+         "given grids, instead of using and returning the original grids.\n"
+        ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT( p_grid_, lat_grid_, lon_grid_, t_field_, z_field_, vmr_field_ ),
+        INPUT(  atm_fields_compact_, atmosphere_dim_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("AtmosphereSet1D"),
         DESCRIPTION
         (
@@ -2703,6 +2766,30 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME("IndexSetFromArrayOfMatrixLength"),
+        DESCRIPTION
+        (
+         "Sets index workspace variable to the length\n"
+         "of ArrayOfMatrix.\n"
+         "\n"
+         "Handy to set *ybatch_n*.\n"
+         "\n"
+         "Generic output: \n"
+         "   Index : The index variable to be set. \n"
+         "\n"
+         "Generic input: \n"
+         "   ArrayOfMatrix : The array to take the length of.\n"
+        ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( Index_ ),
+        GINPUT(  ArrayOfMatrix_ ),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME("IndexStep"),
         DESCRIPTION
         (
@@ -3349,6 +3436,24 @@ md_data_raw.push_back
         GINPUT( Vector_, Vector_, Vector_ ),
         KEYWORDS( ),
         TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("MatrixExtractFromArrayOfMatrix"),
+        DESCRIPTION
+        (
+         "Extract a Matrix from an array of matrices.\n"
+         "\n"
+         "Copies *Matrix* with given Index from input *ArrayOfMatrix*\n"
+         "variable to create output *Matrix*.\n"
+        ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( Matrix_ ),
+        GINPUT(  ArrayOfMatrix_, Index_ ),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5715,16 +5820,19 @@ md_data_raw.push_back
         (
          "Extract a Vector from a Matrix.\n"
          "\n"
-         "Copies row with given Index from input Matrix variable to create \n"
-         "output Vector.\n"
+         "Copies row or column with given Index from input Matrix variable\n"
+         "to create output Vector.\n"
+         "\n"
+         "Keywords:\n"
+         "   direction : Must be either *row* or *column*.\n"
         ),
-        AUTHORS( "Patrick Eriksson" ),
+        AUTHORS( "Patrick Eriksson, Oliver Lemke, Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Vector_ ),
         GINPUT(  Matrix_, Index_ ),
-        KEYWORDS(),
-        TYPES()));
+        KEYWORDS( "direction" ),
+        TYPES(    String_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6013,7 +6121,7 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
-md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "VectorZtanToZa" ),
         DESCRIPTION
@@ -6043,6 +6151,30 @@ md_data_raw.push_back
         GINPUT( Vector_ ),
         KEYWORDS( "r_geoid" ),
         TYPES( Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "vmr_fieldAddConstantSpecies" ),
+        DESCRIPTION
+        (
+         "Adds a species with constant VMR to vmr_field. \n"
+         "\n"
+         "This is handy for nitrogen or oxygen. The constant VMR value is\n"
+         "appended at the end of the species that are already there. (That means\n"
+         "the first dimension of *vmr_field* is increased by one.) All\n"
+         "dimensions (pressure, latitude, longitude) are filled up, so this\n"
+         "works for 1D, 2D, or 3D atmospheres.\n"
+         "\n"
+         "Keywords:\n"
+         "   value : The mixing ratio value to use.\n"
+        ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT(  vmr_field_ ),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "value" ),
+        TYPES(    Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord

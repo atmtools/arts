@@ -718,6 +718,42 @@ void define_wsv_data()
        ),
       GROUP( Index_ )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "atm_fields_compact" ),
+      DESCRIPTION
+      (
+       "A compact combination of all atmospheric fields for a clear-sky\n"
+       "calculation on a common set of grids.\n"
+       "\n"
+       "This concerns temperature, altitude, and gas VMRs.\n"
+       "\n"
+       "The data is stored in a GriddedField4.\n"
+       "\n"
+       "The order of the fields must be:\n"
+       "T[K] z[m] VMR_1[1] ... VMR[2]\n"
+       "\n"
+       "It is up to the user to decide which VMR belongs to which species in\n"
+       "an ARTS calculation. The method *AtmFieldsFromCompact* will\n"
+       "simply split up the data found here, and create a *vmr_field* from the\n"
+       "various VMR profiles.\n"
+       "\n"
+       "Usage: Used inside batch calculations, to hold successive atmospheric\n"
+       "       states from an ArrayOfGriddedField4.\n"
+       "\n"
+       "Possible future extensions: Add a similar variable\n"
+       "particle_fields_compact for hydrometeors?\n"
+       "\n"
+       "Dimensions: \n"
+       "   GriddedField4:\n"
+       "      ArrayOfString field_names[N_fields]\n"
+       "      Vector p_grid[N_p]\n"
+       "      Vector lat_grid[N_lat]\n"
+       "      Vector lon_grid[N_lon]\n"
+       "      Tensor4 data[N_fields][N_p][N_lat][N_lon]\n"
+       ),
+      GROUP( GriddedField4_ )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "ybatch_calc_agenda" ),

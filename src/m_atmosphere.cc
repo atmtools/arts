@@ -69,6 +69,114 @@ extern const Numeric EARTH_RADIUS;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+
+// Workspace method, doxygen header will be auto-generated.
+// 2007-07-25 Stefan Buehler
+void atm_fields_compactFromMatrix(// WS Output:
+                                  GriddedField4& af, // atm_fields_compact
+                                  // WS Input:
+                                  const Index& atmosphere_dim,
+                                  // WS Generic Input:
+                                  const Matrix& im,
+                                  // WS Generic Input Names:
+                                  const String& im_name,
+                                  // Control Parameters:
+                                  const ArrayOfString& field_names )
+{
+  if (1!=atmosphere_dim)
+    {
+      ostringstream os; 
+      os << "Atmospheric dimension must be one.";
+      throw runtime_error( os.str() );
+    }
+
+  const Index np = im.nrows();   // Number of pressure levels.
+  const Index nf = im.ncols()-1; // Number of fields.
+
+  if (field_names.nelem()!=nf)
+    {
+      ostringstream os; 
+      os << "*field_names* must have one element less than there are\n"
+         << "matrix columns.";
+      throw runtime_error( os.str() );
+    }
+
+  out3 << "Copying *" << im_name << "* to *atm_fields_compact*.\n";
+  
+  af.field_names.resize(nf);
+  af.field_names = field_names;
+
+  af.p_grid.resize(np);
+  af.p_grid = im(Range(joker),0);
+  
+  af.lat_grid.resize(0);
+  af.lon_grid.resize(0);
+  
+  af.data.resize(nf,np,1,1);
+  af.data(Range(joker),Range(joker),0,0) = transpose(im(Range(joker),Range(1,nf)));
+}
+
+
+// Workspace method, doxygen header will be auto-generated.
+// 2007-07-24 Stefan Buehler
+void AtmFieldsFromCompact(// WS Output:
+                          Vector& p_grid,
+                          Vector& lat_grid,
+                          Vector& lon_grid,
+                          Tensor3& t_field,
+                          Tensor3& z_field,
+                          Tensor4& vmr_field,
+                          // WS Input:
+                          const GriddedField4& c, // atm_fields_compact
+                          const Index&  atmosphere_dim )
+{
+  // Check if the grids in our data match atmosphere_dim
+  // (throws an error if the dimensionality is not correct):
+  chk_atm_grids( atmosphere_dim, c.p_grid, c.lat_grid, c.lon_grid );
+
+  const Index nf   = c.field_names.nelem();
+  const Index np   = c.p_grid.nelem();
+  const Index nlat = c.lat_grid.nelem();
+  const Index nlon = c.lon_grid.nelem();
+
+  // Grids:
+  p_grid.resize(np);
+  p_grid = c.p_grid;
+
+  lat_grid.resize(nlat);
+  lat_grid = c.lat_grid;
+
+  lon_grid.resize(nlon);
+  lon_grid = c.lon_grid;
+
+  // The order of the fields is:
+  // T[K] z[m] VMR_1[1] ... VMR[2]
+
+  // Number of VMR species:
+  const Index ns = nf-2;
+  
+  // Check that there is at least one VMR species:
+  if (ns<1)
+    {
+      ostringstream os;
+      os << "There must be at least one VMR profile.";
+      throw runtime_error( os.str() );
+    }
+
+  // Temperature field (first field):
+  t_field.resize(np,nlat,nlon);
+  t_field = c.data(0,Range(joker),Range(joker),Range(joker));
+
+  // Altitude profile (second field):
+  z_field.resize(np,nlat,nlon);
+  z_field = c.data(1,Range(joker),Range(joker),Range(joker));
+
+  // VMR profiles (remaining fields):
+  vmr_field.resize(ns,np,nlat,nlon);
+  vmr_field = c.data(Range(2,ns),Range(joker),Range(joker),Range(joker));
+}
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmosphereSet1D(
         // WS Output:
@@ -790,6 +898,36 @@ void surfaceSimple(
       for( Index is=0; is<stokes_dim; is++ )
         { surface_rmatrix(0,iv,is,is) = 1 - surface_emissivity; }
     }
+}
+
+
+// Workspace method, doxygen header is auto-generated.
+// 2007-07-24 Stefan Buehler
+void vmr_fieldAddConstantSpecies(// WS Output:
+                                 Tensor4& vmr_field,
+                                 // Control Parameters:
+                                 const Numeric& value)
+{
+  const Index ns = vmr_field.nbooks();
+
+  if (0==ns)
+    {
+      ostringstream os;
+      os << "The *vmr_field* must already contain at least one species.";
+      throw runtime_error( os.str() );
+    }
+
+  // Save original field:
+  const Tensor4 dummy = vmr_field;
+
+  // Adjust size:
+  vmr_field.resize( ns+1, dummy.npages(), dummy.nrows(), dummy.ncols() );
+
+  // Copy back original field:
+  vmr_field( Range(0,ns), Range(joker), Range(joker), Range(joker) ) = dummy;
+  
+  // Add the constant value:
+  vmr_field( ns, Range(joker), Range(joker), Range(joker) ) = value;
 }
 
 
