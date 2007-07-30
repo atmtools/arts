@@ -166,6 +166,42 @@ void IndexStep(
   out3 << "  " << outname << " = " << inname << " + 1\n";
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixMatrixMultiply(// WS Generic Output:
+                          Matrix& Y,
+                          // WS Generic Output Names:
+                          const String& Y_name,
+                          // WS Generic Input:
+                          const Matrix& M,
+                          const Matrix& X,
+                          // WS Generic Input Names:
+                          const String& M_name,
+                          const String& X_name)
+{
+  out3 << "  Multiplying " << M_name << " with " << X_name
+       << " and storing the result in " << Y_name << ".\n";
+
+  // Check that dimensions are right, M.ncols() must match X.nrows():
+  if (M.ncols()!=X.nrows())
+    {
+      ostringstream os;
+      os << "Matrix dimensions must be consistent!\n"
+         << M_name << ".ncols() = " << M.ncols() << "\n"
+         << X_name << ".nrows() = " << X.nrows();
+      throw runtime_error( os.str() );
+    }
+
+  // Temporary for the result:
+  Matrix dummy( M.nrows(), X.ncols() );
+
+  mult( dummy, M, X );
+
+  // Copy result to Y:
+
+  Y.resize( dummy.nrows(), dummy.ncols() );
+
+  Y = dummy;
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Matrix1ColFromVector(
@@ -861,6 +897,40 @@ void VectorLinSpace(      Vector&    x,
   }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorMatrixMultiply(// WS Generic Output:
+                          Vector& y,
+                          // WS Generic Output Names:
+                          const String& y_name,
+                          // WS Generic Input:
+                          const Matrix& M,
+                          const Vector& x,
+                          // WS Generic Input Names:
+                          const String& M_name,
+                          const String& x_name)
+{
+  out3 << "  Multiplying " << M_name << " with " << x_name
+       << " and storing the result in " << y_name << ".\n";
+  
+  // Check that dimensions are right, x must match columns of M:
+  if (M.ncols()!=x.nelem())
+    {
+      ostringstream os;
+      os << "Matrix and vector dimensions must be consistent!\n"
+         << M_name << ".ncols() = " << M.ncols() << "\n"
+         << x_name << ".nelem() = " << x.nelem();
+      throw runtime_error( os.str() );
+    }
+
+  // Temporary for the result:
+  Vector dummy( M.nrows() );
+
+  mult(dummy,M,x);
+
+  y.resize(dummy.nelem());
+
+  y = dummy;
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorNLinSpace(     Vector&    x, 

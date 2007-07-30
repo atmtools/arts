@@ -1,3 +1,17 @@
+2007-07-30  Stefan Buehler  <sbuehler@irv.se>
+
+	* arts-1-1-1162
+
+	* src/workspace.cc: Added matrix_2.
+
+	* src/methods.cc: Added MatrixMatrixMultiply and
+	VectorMatrixMultiply from arts-1-0.
+
+	* src/m_basic_types.cc: Added MatrixMatrixMultiply and
+	VectorMatrixMultiply from arts-1-0.
+
+	* doc/uguide/batch.tex: Fixed bug that I had introduced.
+
 2007-07-26  Stefan Buehler  <sbuehler@irv.se>
 
 	* arts-1-1-1161

@@ -3295,6 +3295,33 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("MatrixMatrixMultiply"),
+	DESCRIPTION
+        (
+	 "Multiply a Matrix with another Matrix and store the result in the result\n"
+	 "Matrix.\n"
+	 "\n"
+	 "This just computes the normal Matrix-Matrix product, Y=M*X. It is ok\n"
+	 "if Y and X are the same Matrix. This function is handy for\n"
+	 "multiplying the H Matrix to batch spectra.\n"
+	 "\n"
+	 "Generic output:\n"
+	 "   Matrix : The result of the multiplication (dimension mxc).\n"
+	 "\n"
+	 "Generic input:\n"
+	 "   Matrix : The Matrix to multiply (dimension mxn).\n"
+	 "   Matrix : The original Matrix (dimension nxc).\n"
+        ),
+        AUTHORS( "Stefan Buehler" ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Matrix_, Matrix_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("Matrix1ColFromVector"),
         DESCRIPTION
         (
@@ -5895,6 +5922,33 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "start",   "stop",    "step"    ),
         TYPES(    Numeric_t, Numeric_t, Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("VectorMatrixMultiply"),
+        DESCRIPTION
+        (
+	 "Multiply a Vector with a Matrix and store the result in another\n"
+	 "Vector.\n"
+	 "\n"
+	 "This just computes the normal Matrix-Vector product, y=M*x. It is ok\n"
+	 "if input and output Vector are the same. This function is handy for\n"
+	 "multiplying the H Matrix to spectra.\n"
+	 "\n"
+	 "Generic output:\n"
+	 "   Vector : The result of the multiplication (dimension m).\n"
+	 "\n"
+	 "Generic input:\n"
+	 "   Matrix : The Matrix to multiply (dimension mxn).\n"
+	 "   Vector : The original Vector (dimension n).\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Vector_ ),
+        GINPUT(  Matrix_, Vector_ ),
+        KEYWORDS(  ),
+        TYPES(     )));
 
   md_data_raw.push_back
     ( MdRecord

@@ -1587,6 +1587,21 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "matrix_2" ),
+      DESCRIPTION
+      (
+       "An arbitrary matrix.\n"
+       "\n"
+       "This variable shall be treated as a general variable of type Matrix.\n"
+       "It can be used, for example, when some intermediate data must be\n"
+       "generated or to copy some data.\n"
+       "\n"
+       "Usage: Set by user.\n"
+       ),
+      GROUP( Matrix_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "main_agenda" ),
       DESCRIPTION
       (

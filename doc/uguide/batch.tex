@@ -62,10 +62,10 @@ More in detail, \artsstyle{ybatchCalc} makes the following operations:
 to (\artsstyle{ybatch\_n}-1)
 
 \begin{itemize}
-\item[a.] If \artsstyle{ybatch\_index} = 0, resizes
+\item[a.] Executes \artsstyle{ybatch\_calc\_agenda}.
+\item[b.] If \artsstyle{ybatch\_index} = 0, resizes
 \artsstyle{ybatch} based
 on \artsstyle{ybatch\_n} and length of \artsstyle{y} 
-\item[b.] Executes \artsstyle{ybatch\_calc\_agenda}.
 \item[c.] Makes copy of \artsstyle{y} in column \artsstyle{ybatch\_index} of \artsstyle{ybatch}.
 \end{itemize}
 
