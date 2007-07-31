@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.1164)
+AM_INIT_AUTOMAKE(arts,1.1.1165)
 
 dnl Put the ACLOCAL flags in the Makefile
 ACLOCAL="$ACLOCAL -I m4 $ACLOCAL_FLAGS"
@@ -137,11 +137,11 @@ AC_DEFINE_UNQUOTED(INDEX, $ac_index_type, Default Index type)
 #
 AC_MSG_CHECKING(whether Disort should be supported)
 AC_ARG_ENABLE(disort,
-[  --disable-disort         Disable Disort support (default=enabled)],
+[  --enable-disort         Disable Disort support (default=disabled)],
 [case "${enableval}" in
-   no) ac_disort=no; AC_MSG_RESULT([no]);;
-    *) AC_MSG_RESULT([yes]);
+   yes) AC_MSG_RESULT([yes]);
        AC_CHECK_HEADER(f2c.h, ac_disort=yes, ac_disort=no);;
+    *) ac_disort=no; AC_MSG_RESULT([no]);;
 esac],[ AC_MSG_RESULT([yes]);
         AC_CHECK_HEADER(f2c.h, ac_disort=yes, ac_disort=no) ])
 AM_CONDITIONAL(ENABLE_DISORT, test x$ac_disort = xyes)
@@ -327,8 +327,7 @@ AC_MSG_RESULT([  Debugging                : $ac_debug])
 AC_MSG_RESULT([  Numeric type             : $ac_numeric_type])
 AC_MSG_RESULT([  Index type               : $ac_index_type])
 if test x$ac_disort = xno; then
-  AC_MSG_RESULT([  Disort                   : no (f2c library not found 
-                                 or explicitly turned off)])
+  AC_MSG_RESULT([  Disort                   : no (not enabled or f2c library not found)])
 else
   AC_MSG_RESULT([  Disort                   : yes])
 fi
