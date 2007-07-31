@@ -67,15 +67,15 @@ void bofstream::putByte (bofstream::Byte b)
 
 
 /* Overloaded output operators */
-bofstream &operator<< (bofstream &bof, double n)
+bofstream& operator<< (bofstream& bof, double n)
 { bof.writeFloat (n, binio::Double); return (bof); }
 
-bofstream &operator<< (bofstream &bof, float n)
+bofstream& operator<< (bofstream& bof, float n)
 { bof.writeFloat (n, binio::Double); return (bof); }
 
-bofstream &operator<< (bofstream &bof, long n)
+bofstream& operator<< (bofstream& bof, long n)
 { bof.writeInt (n, 4); return (bof); }
 
-bofstream &operator<< (bofstream &bof, int n)
+bofstream& operator<< (bofstream& bof, int n)
 { bof.writeInt (n, 4); return (bof); }
 

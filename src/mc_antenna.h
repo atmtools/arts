@@ -74,7 +74,7 @@ class MCAntenna {
                     ConstVectorView bore_sight_los) const;
 };
 
-ostream& operator<< (ostream &os, const MCAntenna &mca);
+ostream& operator<< (ostream& os, const MCAntenna& mca);
 
 Numeric ran_gaussian (
                       Rng& rng, 

@@ -85,10 +85,10 @@ typedef struct {
 typedef Array<GriddedField3> ArrayOfGriddedField3;
 typedef Array<GriddedField4> ArrayOfGriddedField4;
 
-ostream& operator<< (ostream &os, const GriddedField3 &gfield3);
-ostream& operator<< (ostream &os, const ArrayOfGriddedField3 &agfield3);
+ostream& operator<< (ostream& os, const GriddedField3& gfield3);
+ostream& operator<< (ostream& os, const ArrayOfGriddedField3& agfield3);
 
-ostream& operator<< (ostream &os, const GriddedField4 &gfield4);
-ostream& operator<< (ostream &os, const ArrayOfGriddedField4 &agfield4);
+ostream& operator<< (ostream& os, const GriddedField4& gfield4);
+ostream& operator<< (ostream& os, const ArrayOfGriddedField4& agfield4);
 
 #endif

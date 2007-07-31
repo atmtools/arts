@@ -1,3 +1,31 @@
+2007-07-31  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1163
+
+	* src/make_auto_md_h.cc:
+
+	Generate prototypes for supergeneric template functions including the
+	doxygen documentation.
+
+	* src/absorption.h, src/wsv_aux.h, src/xml_io_private.h,
+	src/make_auto_md_h.cc, src/matpack{I,III,IV,V,VI,VII}.{cc,h},
+	src/make_array.h, src/bifstream.{cc,h}, src/binio.{cc,h},
+	src/bofstream.{cc,h}, src/optproperties.{cc,h}, src/poly_roots.{cc,h},
+	src/mc_antenna.{cc,h}, src/mc_interp.{cc,h}, src/m_xml.{cc,h},
+	src/gridded_fields.{cc,h}, src/complex.{cc,h},
+	src/gas_abs_lookup.{cc,h}, src/xml_io_compound_types.cc,
+	src/xml_io_basic_types.cc, src/xml_io_array_types.cc,
+	src/xml_io.cc, src/test_readpp.cc, src/test_integration.cc,
+	src/make_auto_wsv_h.cc, src/make_auto_md_cc.cc, src/m_disort.cc,
+	src/agenda_class.cc, src/agenda_record.cc:
+
+	Move the &-sign for references beside the type instead of the
+	variable name for consistency.
+
+	* src/m_general.{cc,h}:
+
+	Pass keyword parameters as reference.
+
 2007-07-30  Stefan Buehler  <sbuehler@irv.se>
 
 	* arts-1-1-1162

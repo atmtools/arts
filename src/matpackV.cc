@@ -2544,7 +2544,7 @@ Numeric min(const ConstTensor5View& x)
     \author Oliver Lemke
     \date   2004-05-10
 */
-Numeric debug_tensor5view_get_elem (Tensor5View &tv, Index s, Index b, Index p,
+Numeric debug_tensor5view_get_elem (Tensor5View& tv, Index s, Index b, Index p,
                                     Index r, Index c)
 {
   return tv(s, b, p, r, c);

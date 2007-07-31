@@ -159,7 +159,7 @@ public:
 
   ConstTensor3View operator()( const Range& b, const Range& p, const Range& r, Index c        ) const;
   ConstTensor3View operator()( const Range& b, const Range& p, Index r,        const Range& c ) const;
-  ConstTensor3View operator()( const Range& b, Index p,        const Range &r, const Range& c ) const;
+  ConstTensor3View operator()( const Range& b, Index p,        const Range& r, const Range& c ) const;
   ConstTensor3View operator()( Index b,        const Range& p, const Range& r, const Range& c ) const;
 
   ConstMatrixView  operator()( const Range& b, const Range& p, Index r,        Index c        ) const;
@@ -247,7 +247,7 @@ public:
 
   ConstTensor3View operator()( const Range& b, const Range& p, const Range& r, Index c        ) const;
   ConstTensor3View operator()( const Range& b, const Range& p, Index r,        const Range& c ) const;
-  ConstTensor3View operator()( const Range& b, Index p,        const Range &r, const Range& c ) const;
+  ConstTensor3View operator()( const Range& b, Index p,        const Range& r, const Range& c ) const;
   ConstTensor3View operator()( Index b,        const Range& p, const Range& r, const Range& c ) const;
 
   ConstMatrixView  operator()( const Range& b, const Range& p, Index r,        Index c        ) const;
@@ -273,7 +273,7 @@ public:
 
   Tensor3View operator()( const Range& b, const Range& p, const Range& r, Index c        );
   Tensor3View operator()( const Range& b, const Range& p, Index r,        const Range& c );
-  Tensor3View operator()( const Range& b, Index p,        const Range &r, const Range& c );
+  Tensor3View operator()( const Range& b, Index p,        const Range& r, const Range& c );
   Tensor3View operator()( Index b,        const Range& p, const Range& r, const Range& c );
 
   MatrixView  operator()( const Range& b, const Range& p, Index r,        Index c        );
@@ -408,7 +408,7 @@ ostream& operator<<(ostream& os, const ConstTensor4View& v);
 // Helper function for debugging
 #ifndef NDEBUG
 
-Numeric debug_tensor4view_get_elem (Tensor4View &tv,
+Numeric debug_tensor4view_get_elem (Tensor4View& tv,
                                     Index b, Index p, Index r, Index c);
 
 #endif

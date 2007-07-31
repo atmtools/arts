@@ -94,7 +94,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const Array<SpeciesRecord>& asrecord,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -176,7 +176,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfArrayOfSpeciesTag& aastag,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -260,7 +260,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfPpath& agpos,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -343,7 +343,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfArrayOfTensor3& aatensor3,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -424,7 +424,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfArrayOfTensor6& aatensor6,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -506,7 +506,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfGridPos& agpos,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -587,7 +587,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfArrayOfGridPos& aagpos,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -668,7 +668,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfArrayOfArrayOfGridPos& aaagpos,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -750,7 +750,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfArrayOfArrayOfArrayOfGridPos& aaaagpos,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -833,7 +833,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfIndex& aindex,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -915,7 +915,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfArrayOfIndex& aaindex,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -998,7 +998,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const Array<IsotopeRecord>& airecord,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1081,7 +1081,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfMatrix& amatrix,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1162,7 +1162,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfArrayOfMatrix& aamatrix,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1243,7 +1243,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfRetrievalQuantity& arq,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1324,7 +1324,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfSpeciesTag& astag,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1404,7 +1404,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfSingleScatteringData& assdata,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1485,7 +1485,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfGriddedField3& agfdata,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1566,7 +1566,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfGriddedField4& agfdata,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1676,7 +1676,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfLineRecord& alrecord,
                      bofstream * /*pbofs*/,
-                     const String &name)
+                     const String& name)
 
 {
   ArtsXMLTag open_tag;
@@ -1760,7 +1760,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfArrayOfLineRecord& aalrecord,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 
 {
   ArtsXMLTag open_tag;
@@ -1817,7 +1817,7 @@ void
 xml_write_to_stream (ostream& /*os_xml*/,
                      const ArrayOfLineshapeSpec& /*alspec*/,
                      bofstream * /*pbofs*/,
-                     const String & /*name*/)
+                     const String&  /*name*/)
 
 {
   // FIXME OLE: Implement this.
@@ -1880,7 +1880,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfTensor3& atensor3,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1963,7 +1963,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfTensor4& atensor4,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2045,7 +2045,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfTensor6& atensor6,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2126,7 +2126,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfTensor7& atensor7,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2207,7 +2207,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfString& astring,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2288,7 +2288,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfVector& avector,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;

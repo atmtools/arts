@@ -36,6 +36,6 @@
 #include "matpackI.h"
 
 int
-poly_root_solve (Matrix &roots, Vector &coeffs);
+poly_root_solve (Matrix& roots, Vector& coeffs);
 
 #endif  /* poly_roots_h */

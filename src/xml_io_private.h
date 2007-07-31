@@ -130,14 +130,14 @@ private:
 ////////////////////////////////////////////////////////////////////////////
 
 void
-xml_parse_error (const String &str_error);
+xml_parse_error (const String& str_error);
 
 void
-xml_data_parse_error (ArtsXMLTag &tag, String str_error);
+xml_data_parse_error (ArtsXMLTag& tag, String str_error);
 
 void
-xml_read_header_from_stream (istream& is, FileType &ftype,
-                             NumericType &ntype, EndianType &etype);
+xml_read_header_from_stream (istream& is, FileType& ftype,
+                             NumericType& ntype, EndianType& etype);
 
 void
 xml_read_footer_from_stream (istream& is);
@@ -149,7 +149,7 @@ void
 xml_write_footer_to_stream (ostream& os);
 
 void
-xml_set_stream_precision (ostream &os);
+xml_set_stream_precision (ostream& os);
 
 
 #endif  /* xml_io_private_h */

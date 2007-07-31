@@ -180,8 +180,8 @@ void Agenda::set_outputs_to_push_and_dup ()
        method != mml.end (); method++)
     {
       // Collect output WSVs
-      const ArrayOfIndex &outs  = md_data[method->Id()].Output ();
-      const ArrayOfIndex &gouts = method->Output ();
+      const ArrayOfIndex& outs  = md_data[method->Id()].Output ();
+      const ArrayOfIndex& gouts = method->Output ();
 
       // Put the outputs into a new set to sort them. Otherwise
       // set_intersection and set_difference screw up.
@@ -193,11 +193,11 @@ void Agenda::set_outputs_to_push_and_dup ()
       outputs.insert (souts.begin (), souts.end ());
 
       // Collect generic input WSVs
-      const ArrayOfIndex &gins = method->Input ();
+      const ArrayOfIndex& gins = method->Input ();
       inputs.insert (gins.begin (), gins.end ());
 
       // Collect input WSVs
-      const ArrayOfIndex &ins = md_data[method->Id()].Input();
+      const ArrayOfIndex& ins = md_data[method->Id()].Input();
       inputs.insert (ins.begin (), ins.end ());
 
       // Find out all output WSVs of current WSM which were
@@ -219,9 +219,9 @@ void Agenda::set_outputs_to_push_and_dup ()
   extern map<String, Index> AgendaMap;
   extern const Array<AgRecord> agenda_data;
 
-  const AgRecord &agr = agenda_data[AgendaMap.find (name ())->second];
-  const ArrayOfIndex &aout = agr.Output ();
-  const ArrayOfIndex &ain = agr.Input ();
+  const AgRecord& agr = agenda_data[AgendaMap.find (name ())->second];
+  const ArrayOfIndex& aout = agr.Output ();
+  const ArrayOfIndex& ain = agr.Input ();
 
   // We have to build a new set of agenda input and output because the
   // set_difference function only works properly on sorted input.

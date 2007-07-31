@@ -670,7 +670,7 @@ unsigned long binostream::writeString(const char *str, unsigned long amount)
 }
 
 #if BINIO_ENABLE_STRING
-unsigned long binostream::writeString(const string &str)
+unsigned long binostream::writeString(const string& str)
 {
   return writeString(str.c_str());
 }

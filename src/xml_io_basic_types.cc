@@ -89,7 +89,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const Index& index,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -181,7 +181,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const Matrix& matrix,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -275,7 +275,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const Numeric& numeric,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -419,7 +419,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const Sparse& sparse,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag sparse_tag;
   ArtsXMLTag row_tag;
@@ -570,9 +570,9 @@ xml_read_from_stream (istream& is_xml,
                  Ignored because strings are always in ASCII format. */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const String &str,
+                     const String& str,
                      bofstream * /* pbofs */,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -667,7 +667,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const Tensor3& tensor,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -794,7 +794,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const Tensor4& tensor,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -931,7 +931,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const Tensor5& tensor,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1078,7 +1078,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const Tensor6& tensor,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1235,7 +1235,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const Tensor7& tensor,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1360,7 +1360,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const Vector& vector,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;

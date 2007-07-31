@@ -1956,7 +1956,7 @@ ostream& operator<<(ostream& os, const ConstTensor7View& v);
 // Helper function for debugging
 #ifndef NDEBUG
 
-Numeric debug_tensor7view_get_elem (Tensor7View &tv, Index l, Index v, Index s,
+Numeric debug_tensor7view_get_elem (Tensor7View& tv, Index l, Index v, Index s,
                                     Index b, Index p, Index r, Index c);
 
 #endif

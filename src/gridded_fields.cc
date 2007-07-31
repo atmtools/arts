@@ -52,27 +52,27 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-ostream& operator<< (ostream &os, const GriddedField3 &/*gfield3*/)
+ostream& operator<< (ostream& os, const GriddedField3& /*gfield3*/)
 {
   os << "GriddedField3: Output operator not implemented";
   return os;
 }
 
 
-ostream& operator<< (ostream &os, const ArrayOfGriddedField3 &/*agfield3*/)
+ostream& operator<< (ostream& os, const ArrayOfGriddedField3& /*agfield3*/)
 {
   os << "ArrayOfGriddedField3: Output operator not implemented";
   return os;
 }
 
-ostream& operator<< (ostream &os, const GriddedField4 &/*gfield3*/)
+ostream& operator<< (ostream& os, const GriddedField4& /*gfield3*/)
 {
   os << "GriddedField4: Output operator not implemented";
   return os;
 }
 
 
-ostream& operator<< (ostream &os, const ArrayOfGriddedField4 &/*agfield3*/)
+ostream& operator<< (ostream& os, const ArrayOfGriddedField4& /*agfield3*/)
 {
   os << "ArrayOfGriddedField4: Output operator not implemented";
   return os;

@@ -326,7 +326,7 @@ public:
   friend class ConstTensor5View;
   friend class ConstTensor6View;
   friend class ConstTensor7View;
-  friend int poly_root_solve (Matrix &roots, Vector &coeffs);
+  friend int poly_root_solve (Matrix& roots, Vector& coeffs);
   friend void mult (VectorView, const ConstMatrixView&,
                     const ConstVectorView&);
   
@@ -360,8 +360,8 @@ protected:
     constant index operators and iterators. */
 class VectorView : public ConstVectorView {
 public:
-  VectorView (const Vector &);
-  VectorView (Vector &v);
+  VectorView (const Vector&);
+  VectorView (Vector& v);
 
   // Typedef for compatibility with STL
   typedef Iterator1D iterator;
@@ -615,7 +615,7 @@ public:
   friend class ConstTensor6View;
   friend class ConstTensor7View;
   friend ConstMatrixView transpose(ConstMatrixView m);
-  friend int poly_root_solve (Matrix &roots, Vector &coeffs);
+  friend int poly_root_solve (Matrix& roots, Vector& coeffs);
   friend void mult (VectorView, const ConstMatrixView&,
                     const ConstVectorView&);
 
@@ -821,7 +821,7 @@ ostream& operator<<(ostream& os, const ConstMatrixView& v);
 // Helper function for debugging
 #ifndef NDEBUG
 
-Numeric debug_matrixview_get_elem (MatrixView &mv, Index r, Index c);
+Numeric debug_matrixview_get_elem (MatrixView& mv, Index r, Index c);
 
 #endif
 ////////////////////////////////

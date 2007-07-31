@@ -157,7 +157,7 @@ public:
   void writeFloat(Float f, FType ft);
   unsigned long writeString(const char *str, unsigned long amount = 0);
 #if BINIO_ENABLE_STRING
-  unsigned long writeString(const string &str);
+  unsigned long writeString(const string& str);
 #endif
 
 protected:

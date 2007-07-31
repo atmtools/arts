@@ -158,8 +158,16 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   // Write the Generic output workspace variables:
   for (Index j=0; j<vgo.nelem(); ++j)
     {
-      ofs << indent << "\\param genericoutput" << j+1
-        << " Generic output\n";
+      if (mdd.Supergeneric ())
+        {
+          ofs << indent << "\\param supergenericoutput" << j+1
+            << " Supergeneric output\n";
+        }
+      else
+        {
+          ofs << indent << "\\param genericoutput" << j+1
+            << " Generic output\n";
+        }
     }
 
   // Write the Generic output workspace variable names:
@@ -179,8 +187,16 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   // Write the Generic input workspace variables:
   for (Index j=0; j<vgi.nelem(); ++j)
     {
-      ofs << indent << "\\param genericinput" << j+1
-        << " WS Generic Input\n";
+      if (mdd.Supergeneric ())
+        {
+          ofs << indent << "\\param supergenericinput" << j+1
+            << " Supergeneric Input\n";
+        }
+      else
+        {
+          ofs << indent << "\\param genericinput" << j+1
+            << " Generic Input\n";
+        }
     }
 
   // Write the Generic input workspace variable names:
@@ -273,8 +289,11 @@ void write_method_header( ofstream& ofs,
   // vector as generic output, this does not mean that it is
   // the same vector!
 
+  if (mdd.Supergeneric ())
+    {
+      ofs << "template <typename T>" << endl;
+    }
 
-              
   // Start with the name of the method:
   ofs << "void " << fullname << "(";
 
@@ -296,7 +315,7 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
 
-        ofs << wsv_group_names[wsv_data[vo[j]].Group()] << " &"
+        ofs << wsv_group_names[wsv_data[vo[j]].Group()] << "& "
           << wsv_data[vo[j]].Name();
       }
   }
@@ -319,7 +338,15 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
 
-        ofs << wsv_group_names[mdd.GOutput()[j]] << " &genericoutput" << j+1;
+        if (wsv_group_names[mdd.GOutput()[j]] == "Any")
+          {
+            ofs << "T& supergenericoutput" << j+1;
+          }
+        else
+          {
+            ofs << wsv_group_names[mdd.GOutput()[j]] << "& genericoutput"
+              << j+1;
+          }
       }
   }
 
@@ -341,7 +368,7 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
 
-        ofs << "const String &genericoutputname" << j+1;
+        ofs << "const String& genericoutputname" << j+1;
       }
   }
 
@@ -364,7 +391,7 @@ void write_method_header( ofstream& ofs,
           }
                 
         ofs << "const "
-          << wsv_group_names[wsv_data[vi[j]].Group()] << " &"
+          << wsv_group_names[wsv_data[vi[j]].Group()] << "& "
           << wsv_data[vi[j]].Name();
       }
   }
@@ -387,9 +414,16 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
                 
-        ofs << "const "
-            << wsv_group_names[mdd.GInput()[j]]
-            << " &genericinput" << j+1;
+        if (wsv_group_names[mdd.GInput()[j]] == "Any")
+          {
+            ofs << "const T& supergenericinput" << j+1;
+          }
+        else
+          {
+            ofs << "const "
+              << wsv_group_names[mdd.GInput()[j]]
+              << "& genericinput" << j+1;
+          }
       }
   }
 
@@ -411,7 +445,7 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
 
-        ofs << "const String &genericinputname" << j+1;
+        ofs << "const String& genericinputname" << j+1;
       }
   }
 
@@ -455,7 +489,7 @@ void write_method_header( ofstream& ofs,
 }
 
 
-bool md_sanity_checks (const Array<MdRecord> &md_data)
+bool md_sanity_checks (const Array<MdRecord>& md_data)
 {
   ostringstream os;
 
@@ -508,6 +542,7 @@ int main()
   try
     {
       // Make the global data visible:
+      extern Array<MdRecord> md_data_raw;
       extern Array<MdRecord> md_data;
       extern const ArrayOfString wsv_group_names;
       extern const Array<WsvRecord> wsv_data;
@@ -581,6 +616,18 @@ int main()
         {
           const MdRecord& mdd = md_data[i];
           if ( !mdd.SuppressHeader() )
+            {
+              write_method_header_documentation( ofs, mdd );
+              write_method_header( ofs, mdd );
+            }
+        }
+
+      // Add all the method function declarations
+      ofs << "// Supergeneric template function declarations:\n\n";
+      for (Index i=0; i<md_data_raw.nelem (); ++i)
+        {
+          const MdRecord& mdd = md_data_raw[i];
+          if ( mdd.Supergeneric() )
             {
               write_method_header_documentation( ofs, mdd );
               write_method_header( ofs, mdd );

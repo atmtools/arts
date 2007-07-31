@@ -57,7 +57,7 @@ extern const Numeric COSMIC_BG_TEMP;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxSetDisort(//WS Output
-                       Index & cloudbox_on,
+                       Index& cloudbox_on,
                        ArrayOfIndex& cloudbox_limits,
                        // WS Input
                        const Vector& p_grid

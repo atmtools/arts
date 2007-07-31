@@ -52,7 +52,7 @@ class IndexComp : public binary_function<Index, Index, bool>
    const T	&m_data;
 
 public:
-   IndexComp (const T &data ) : m_data (data) {}
+   IndexComp (const T& data ) : m_data (data) {}
 
    bool operator()(Index a, Index b) const
    {
@@ -76,7 +76,7 @@ public:
  * \date   2003-08-20
  */
 template <typename T> void
-get_sorted_indexes (ArrayOfIndex &sorted, const T &data)
+get_sorted_indexes (ArrayOfIndex& sorted, const T& data)
 {
   sorted.resize (0);
 

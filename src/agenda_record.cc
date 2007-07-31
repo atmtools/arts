@@ -265,17 +265,17 @@ void write_agenda_wrapper_header( ofstream& ofs,
   ofs << "void " << agr.Name () << "Execute(\n";
 
   // Wrapper function output parameters
-  const ArrayOfIndex &ago = agr.Output ();
+  const ArrayOfIndex& ago = agr.Output ();
   ofs << "        // Output\n";
   for (ArrayOfIndex::const_iterator j = ago.begin (); j != ago.end (); j++)
     {
       ofs << "        ";
-      ofs << wsv_group_names[wsv_data[*j].Group()] << " &";
+      ofs << wsv_group_names[wsv_data[*j].Group()] << "& ";
       ofs << wsv_data[*j].Name() << ",\n";
     }
 
   // Wrapper function input parameters
-  const ArrayOfIndex &agi = agr.Input ();
+  const ArrayOfIndex& agi = agr.Input ();
   ofs << "        // Input\n";
   for (ArrayOfIndex::const_iterator j = agi.begin (); j != agi.end (); j++)
     {
@@ -287,20 +287,20 @@ void write_agenda_wrapper_header( ofstream& ofs,
           String group_name = wsv_group_names[wsv_data[*j].Group()];
 
           ofs << "        const ";
-          ofs << group_name << " ";
+          ofs << group_name;
 
           // Don't pass by reference for elementary types
           if ( group_name != "Index" && group_name != "Numeric")
             {
               ofs << "&";
             }
-          ofs << wsv_data[*j].Name() << ",\n";
+          ofs << " " << wsv_data[*j].Name() << ",\n";
         }
     }
 
   // Wrapper function agenda and silent parameters
   ofs << "        // Wrapper Input\n";
-  ofs << "        const Agenda &input_agenda,\n";
-  ofs << "        const bool &silent)";
+  ofs << "        const Agenda& input_agenda,\n";
+  ofs << "        const bool& silent)";
 }
 

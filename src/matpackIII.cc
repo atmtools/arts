@@ -979,7 +979,7 @@ Numeric min(const ConstTensor3View& x)
     \author Oliver Lemke
     \date   2004-05-10
 */
-Numeric debug_tensor3view_get_elem (Tensor3View &tv,
+Numeric debug_tensor3view_get_elem (Tensor3View& tv,
                                     Index p, Index r, Index c)
 {
   return tv(p, r, c);

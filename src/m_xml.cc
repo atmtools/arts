@@ -31,7 +31,7 @@
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
 output_file_formatSetAscii(// WS Output:
-                           String &file_format)
+                           String& file_format)
 {
   file_format = "ascii";
 }
@@ -40,7 +40,7 @@ output_file_formatSetAscii(// WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
 output_file_formatSetBinary(// WS Output:
-                            String &file_format)
+                            String& file_format)
 {
   file_format = "binary";
 }

@@ -505,7 +505,7 @@ xml_parse_error (const String& str_error)
   \param str_error  Error description
 */
 void
-xml_data_parse_error (ArtsXMLTag &tag, String str_error)
+xml_data_parse_error (ArtsXMLTag& tag, String str_error)
 {
   ostringstream os;
   os << "XML data parse error: Error reading ";
@@ -528,8 +528,8 @@ xml_data_parse_error (ArtsXMLTag &tag, String str_error)
   \param etype  Endian type
 */
 void
-xml_read_header_from_stream (istream& is, FileType &ftype, NumericType &ntype,
-                             EndianType &etype)
+xml_read_header_from_stream (istream& is, FileType& ftype, NumericType& ntype,
+                             EndianType& etype)
 {
   char str[6];
   stringbuf strbuf;
@@ -682,7 +682,7 @@ xml_write_footer_to_stream (ostream& os)
 }
 
 void
-xml_set_stream_precision (ostream &os)
+xml_set_stream_precision (ostream& os)
 {
   // Determine the precision, depending on whether Numeric is double
   // or float:

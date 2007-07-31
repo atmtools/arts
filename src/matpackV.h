@@ -476,7 +476,7 @@ ostream& operator<<(ostream& os, const ConstTensor5View& v);
 // Helper function for debugging
 #ifndef NDEBUG
 
-Numeric debug_tensor5view_get_elem (Tensor5View &tv, Index s, Index b, Index p,
+Numeric debug_tensor5view_get_elem (Tensor5View& tv, Index s, Index b, Index p,
                                     Index r, Index c);
 
 #endif

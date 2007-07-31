@@ -52,7 +52,7 @@ class MakeArray : public Array<base>
 {
 public:
   MakeArray();
-  MakeArray(Array<base> &narray);
+  MakeArray(Array<base>& narray);
   MakeArray(
         const base& a0
         );
@@ -656,7 +656,7 @@ MakeArray<base>::MakeArray() : Array<base>(0)
   // Just an empty array.
 }
 template<class base>
-MakeArray<base>::MakeArray(Array<base> &narray) : Array<base> (narray)
+MakeArray<base>::MakeArray(Array<base>& narray) : Array<base> (narray)
 {
 }
 template<class base>

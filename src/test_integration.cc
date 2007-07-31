@@ -41,10 +41,10 @@ extern const Numeric DEG2RAD;
 extern const Numeric PI;
 
 void init_xy(float stepsize, int frequency,
-             Matrix &Integrand, Vector &za_grid, Vector &aa_grid);
+             Matrix& Integrand, Vector& za_grid, Vector& aa_grid);
 
 void init_x(int vsize, float stepsize, int frequency,
-            Vector &Integrand, Vector &Theta);
+            Vector& Integrand, Vector& Theta);
 
 Numeric AngIntegrate_trapezoid_original(MatrixView Integrand,
                                         ConstVectorView za_grid,
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
   The function is y=x
  */
 void init_x(int vsize, float stepsize, int frequency,
-            Vector &Integrand, Vector &Theta)
+            Vector& Integrand, Vector& Theta)
 {
   cout << "----------------init_x---------------\n";
 
@@ -167,7 +167,7 @@ void init_x(int vsize, float stepsize, int frequency,
   The funcion is a circle around 0
  */
 void init_xy(float stepsize, int frequency,
-          Matrix &Integrand, Vector &za_grid, Vector &aa_grid)
+          Matrix& Integrand, Vector& za_grid, Vector& aa_grid)
 {
   cout << ">>>>>-----------init_xy---------------\n";
   Index n_za = za_grid.nelem();

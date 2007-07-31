@@ -92,7 +92,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const GasAbsLookup& gal,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -177,7 +177,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const GriddedField3& gfield,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -280,7 +280,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const GriddedField4& gfield,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -363,7 +363,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const GridPos& gpos,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -436,7 +436,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const IsotopeRecord& irecord,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -514,7 +514,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const Ppath& ppath,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -606,7 +606,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const RetrievalQuantity& rq,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -639,7 +639,7 @@ xml_write_to_stream (ostream& os_xml,
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      SingleScatteringData &ssdata,
+                      SingleScatteringData& ssdata,
                       bifstream *pbifs)
 {
   ArtsXMLTag tag;
@@ -680,9 +680,9 @@ xml_read_from_stream (istream& is_xml,
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const SingleScatteringData &ssdata,
+                     const SingleScatteringData& ssdata,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -718,7 +718,7 @@ xml_write_to_stream (ostream& os_xml,
 
 void
 xml_read_from_stream (istream& is_xml,
-                      SLIData2 &slidata,
+                      SLIData2& slidata,
                       bifstream *pbifs)
 {
   ArtsXMLTag tag;
@@ -737,9 +737,9 @@ xml_read_from_stream (istream& is_xml,
 
 void
 xml_write_to_stream (ostream& os_xml,
-                     const SLIData2 &slidata,
+                     const SLIData2& slidata,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -801,7 +801,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const SpeciesRecord& srecord,
                      bofstream *pbofs,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -895,7 +895,7 @@ void
 xml_write_to_stream (ostream& os_xml,
                      const SpeciesTag& stag,
                      bofstream * /* pbofs */,
-                     const String &name)
+                     const String& name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;

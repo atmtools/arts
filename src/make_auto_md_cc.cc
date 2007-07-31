@@ -338,9 +338,9 @@ int main()
       extern const Array<AgRecord> agenda_data;
       for (Index i = 0; i < agenda_data.nelem (); i++)
         {
-          const AgRecord &agr = agenda_data[i];
-          const ArrayOfIndex &ago = agr.Output ();
-          const ArrayOfIndex &agi = agr.Input ();
+          const AgRecord& agr = agenda_data[i];
+          const ArrayOfIndex& ago = agr.Output ();
+          const ArrayOfIndex& agi = agr.Input ();
           ostringstream ain_push_os, ain_pop_os;
           ostringstream aout_push_os, aout_pop_os;
 
@@ -354,7 +354,7 @@ int main()
               ofs << "  extern map<String, Index> AgendaMap;\n"
                 << "  extern const Array<AgRecord> agenda_data;\n"
                 << "\n"
-                << "  const AgRecord &agr =\n"
+                << "  const AgRecord& agr =\n"
                 << "    agenda_data[AgendaMap.find (input_agenda.name ())->second];\n"
                 << "\n";
             }
@@ -396,17 +396,17 @@ int main()
 
           if (aout_push_os.str().length())
             {
-              ofs << "  const ArrayOfIndex &aout = agr.Output ();\n";
+              ofs << "  const ArrayOfIndex& aout = agr.Output ();\n";
               ofs << aout_push_os.str () << "\n";
             }
           if (ain_push_os.str().length())
             {
-              ofs << "  const ArrayOfIndex &ain = agr.Input ();\n";
+              ofs << "  const ArrayOfIndex& ain = agr.Input ();\n";
               ofs << ain_push_os.str () << "\n";
             }
 
-          ofs << "  const ArrayOfIndex &outputs_to_push = input_agenda.get_output2push();\n"
-              << "  const ArrayOfIndex &outputs_to_dup = input_agenda.get_output2dup();\n"
+          ofs << "  const ArrayOfIndex& outputs_to_push = input_agenda.get_output2push();\n"
+              << "  const ArrayOfIndex& outputs_to_dup = input_agenda.get_output2dup();\n"
               << "\n"
               << "  for (ArrayOfIndex::const_iterator it = outputs_to_push.begin ();\n"
               << "       it != outputs_to_push.end (); it++)\n"

@@ -70,7 +70,7 @@ void Print(
         // WS Generic Input Names:
         const String&           x_name,
         // Keywords:
-        const Index             level )
+        const Index&            level )
 {
   ostringstream os;
   SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
@@ -88,7 +88,7 @@ void Print(
         // WS Generic Input Names:
         const String&         x_name,
         // Keywords:
-        const Index           level )
+        const Index&          level )
 {
   ostringstream os;
   SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
@@ -105,7 +105,7 @@ void Print(
         // WS Generic Input Names:
         const String&          x_name,
         // Keywords:
-        const Index            level )
+        const Index&           level )
 {
   ostringstream os;
   SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
@@ -123,7 +123,7 @@ Print(
       // WS Generic Input Names:
       const String&   x_name,
       // Keywords:
-      const Index     level )
+      const Index&    level )
 {
   SWITCH_OUTPUT (level, "  The fields of *" << x_name << "*:\n")
   Print( x.dim, "dim", level );
@@ -155,7 +155,7 @@ void Print(
         // WS Generic Input Names:
         const String&           x_name,
         // Keywords:
-        const Index             level )
+        const Index&            level )
 {
   ostringstream os;
   SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
@@ -172,7 +172,7 @@ void Print(
         // WS Generic Input Names:
         const String&  /* x_name */,
         // Keywords:
-        const Index    /* level */ )
+        const Index&   /* level */ )
 {
 /*  ostringstream os;
   cout << "  *" << x_name <<"* =";
@@ -186,7 +186,7 @@ void Print(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void PrintWorkspace(
         // Keywords:
-        const Index    level)
+        const Index&   level)
 {
   extern Workspace workspace;
   ostringstream os;

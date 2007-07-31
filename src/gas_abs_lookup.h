@@ -70,7 +70,7 @@ public:
   friend void xml_write_to_stream ( ostream& os_xml,
                                     const GasAbsLookup& gal,
                                     bofstream *pbofs,
-                                    const String &name);
+                                    const String& name);
 
   friend void abs_lookupCreate(// WS Output:
                       GasAbsLookup& gal,
@@ -210,6 +210,6 @@ private:
 
 };
 
-ostream& operator<< (ostream &os, const GasAbsLookup &gal);
+ostream& operator<< (ostream& os, const GasAbsLookup& gal);
 
 #endif //  gas_abs_lookup_h

@@ -98,7 +98,7 @@ void define_wsv_map();
     \param i Index of WSV
   */
 template <typename OutputStream> void
-PrintWsvName (OutputStream &outstream, Index i)
+PrintWsvName (OutputStream& outstream, Index i)
 {
   extern const Array<WsvRecord> wsv_data;
 
@@ -114,7 +114,7 @@ PrintWsvName (OutputStream &outstream, Index i)
     \param container List of WSV indexes
   */
 template <typename OutputStream, typename Container> void
-PrintWsvNames (OutputStream &outstream, const Container &container)
+PrintWsvNames (OutputStream& outstream, const Container& container)
 {
   for (typename Container::const_iterator it = container.begin ();
        it != container.end (); it++ )

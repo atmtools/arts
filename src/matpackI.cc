@@ -291,7 +291,7 @@ ostream& operator<<(ostream& os, const ConstVectorView& v)
 
 /** Bail out immediately if somebody tries to create a VectorView from
     a const Vector. */
-VectorView::VectorView (const Vector &)
+VectorView::VectorView (const Vector&)
 {
   throw runtime_error("Creating a VectorView from a const Vector is not allowed.");
 
@@ -299,7 +299,7 @@ VectorView::VectorView (const Vector &)
 }
 
 /** Create VectorView from a Vector. */
-VectorView::VectorView (Vector &v)
+VectorView::VectorView (Vector& v)
 {
   mdata = v.mdata;
   mrange = v.mrange;
@@ -1856,7 +1856,7 @@ Numeric min(const ConstMatrixView& x)
     \author Oliver Lemke
     \date   2004-05-10
 */
-Numeric debug_matrixview_get_elem (MatrixView &mv, Index r, Index c)
+Numeric debug_matrixview_get_elem (MatrixView& mv, Index r, Index c)
 {
   return mv(r, c);
 }

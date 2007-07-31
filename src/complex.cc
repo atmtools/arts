@@ -25,45 +25,45 @@
 
 #include "complex.h"
 
-complex<float> operator+ (const double &d, const complex<float> &c)
+complex<float> operator+ (const double& d, const complex<float>& c)
 {
   return (float(d) + c);
 }
 
-complex<float> operator* (const double &d, const complex<float> &c)
+complex<float> operator* (const double& d, const complex<float>& c)
 {
   return (float(d) * c);
 }
 
 
-complex<float> operator+ (const complex<float> &c, const double &d)
+complex<float> operator+ (const complex<float>& c, const double& d)
 {
   return (c + float(d));
 }
 
-complex<float> operator* (const complex<float> &c, const double &d)
+complex<float> operator* (const complex<float>& c, const double& d)
 {
   return (c * float(d));
 }
 
 
 
-complex<double> operator+ (const float &f, const complex<double> &c)
+complex<double> operator+ (const float& f, const complex<double>& c)
 {
   return (double(f) + c);
 }
 
-complex<double> operator* (const float &f, const complex<double> &c)
+complex<double> operator* (const float& f, const complex<double>& c)
 {
   return (double(f) * c);
 }
 
-complex<double> operator+ (const complex<double> &c, const float &f)
+complex<double> operator+ (const complex<double>& c, const float& f)
 {
   return (c + double(f));
 }
 
-complex<double> operator* (const complex<double> &c, const float &f)
+complex<double> operator* (const complex<double>& c, const float& f)
 {
   return (c * double(f));
 }

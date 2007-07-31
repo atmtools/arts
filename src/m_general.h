@@ -58,7 +58,7 @@ Print(
       // WS Generic Input Names:
       const String&   x_name,
       // Keywords:
-      const Index    level )
+      const Index&   level )
 {
   SWITCH_OUTPUT (level, "  *" << x_name << "*:\n" << x << '\n')
 }
@@ -72,7 +72,7 @@ Print(
       // WS Generic Input Names:
       const String&           x_name,
       // Keywords:
-      const Index              level );
+      const Index&             level );
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -83,7 +83,7 @@ Print(
         // WS Generic Input Names:
         const String&         x_name,
         // Keywords:
-        const Index           level );
+        const Index&          level );
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -94,7 +94,7 @@ Print(
         // WS Generic Input Names:
         const String&          x_name,
         // Keywords:
-        const Index            level );
+        const Index&           level );
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -105,7 +105,7 @@ Print(
         // WS Generic Input Names:
         const String&   x_name,
         // Keywords:
-        const Index     level );
+        const Index&    level );
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -115,7 +115,7 @@ void Print(
         // WS Generic Input Names:
         const String&           x_name,
         // Keywords:
-        const Index             level );
+        const Index&            level );
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -125,13 +125,13 @@ void Print(
         // WS Generic Input Names:
         const String&  x_name,
         // Keywords:
-        const Index    level);
+        const Index&   level);
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void PrintWorkspace(
         // Keywords:
-        const Index    level);
+        const Index&   level);
 
 #endif /* m_general_h */
 

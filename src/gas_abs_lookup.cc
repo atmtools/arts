@@ -1291,7 +1291,7 @@ void GasAbsLookup::GetPgrid( Vector& p ) const
 // }
 
 /** */
-ostream& operator<< (ostream &os, const GasAbsLookup & /* gal */)
+ostream& operator<< (ostream& os, const GasAbsLookup& /* gal */)
 {
   os << "GasAbsLookup: Output operator not implemented";
   return os;

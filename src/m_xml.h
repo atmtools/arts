@@ -50,7 +50,7 @@ ReadXML (// WS Generic Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
 WriteXML (//WS Input:
-          const String &file_format,
+          const String& file_format,
           // WS Generic Output:
           const T&            v,
           // WS Generic Output Names:
@@ -72,7 +72,7 @@ WriteXML (//WS Input:
 template<typename T> void
 WriteXMLIndexed (//WS Input:
           const String& file_format,
-          const Index & file_index,
+          const Index&  file_index,
           // WS Generic Output:
           const T&            v,
           // WS Generic Output Names:
@@ -92,13 +92,13 @@ WriteXMLIndexed (//WS Input:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
 output_file_formatSetAscii (// WS Output:
-                            String &file_format);
+                            String& file_format);
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
 output_file_formatSetBinary (// WS Output:
-                             String &file_format);
+                             String& file_format);
 
 
 #endif // m_xml_h

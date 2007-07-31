@@ -1510,7 +1510,7 @@ Numeric min(const ConstTensor4View& x)
     \author Oliver Lemke
     \date   2004-05-10
 */
-Numeric debug_tensor4view_get_elem (Tensor4View &tv,
+Numeric debug_tensor4view_get_elem (Tensor4View& tv,
                                     Index b, Index p, Index r, Index c)
 {
   return tv(b, p, r, c);

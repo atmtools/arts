@@ -36,7 +36,7 @@
 #include "wsv_aux.h"
 #include "mystring.h"
 
-bool wsv_sanity_checks (const Array<WsvRecord> &wsv_data)
+bool wsv_sanity_checks (const Array<WsvRecord>& wsv_data)
 {
   ostringstream os;
 

@@ -66,15 +66,15 @@ bifstream::Byte bifstream::getByte()
 
 
 /* Overloaded input operators */
-bifstream &operator>> (bifstream &bif, double &n)
+bifstream& operator>> (bifstream& bif, double& n)
 { n = (double)bif.readFloat (binio::Double); return (bif); }
 
-bifstream &operator>> (bifstream &bif, float &n)
+bifstream& operator>> (bifstream& bif, float& n)
 { n = (float)bif.readFloat (binio::Double); return (bif); }
 
-bifstream &operator>> (bifstream &bif, long &n)
+bifstream& operator>> (bifstream& bif, long& n)
 { n = (long)bif.readInt (4); return (bif); }
 
-bifstream &operator>> (bifstream &bif, int &n)
+bifstream& operator>> (bifstream& bif, int& n)
 { n = (int)bif.readInt (4); return (bif); }
 

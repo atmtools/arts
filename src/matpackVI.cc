@@ -3002,7 +3002,7 @@ Numeric min(const ConstTensor6View& x)
     \author Oliver Lemke
     \date   2004-05-10
 */
-Numeric debug_tensor6view_get_elem (Tensor6View &tv, Index v, Index s, Index b,
+Numeric debug_tensor6view_get_elem (Tensor6View& tv, Index v, Index s, Index b,
                                     Index p, Index r, Index c)
 {
   return tv(v, s, b, p, r, c);

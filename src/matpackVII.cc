@@ -5507,7 +5507,7 @@ Numeric min(const ConstTensor7View& x)
     \author Oliver Lemke
     \date   2004-05-10
 */
-Numeric debug_tensor7view_get_elem (Tensor7View &tv, Index l, Index v, Index s,
+Numeric debug_tensor7view_get_elem (Tensor7View& tv, Index l, Index v, Index s,
                                     Index b, Index p, Index r, Index c)
 {
   return tv(l, v, s, b, p, r, c);

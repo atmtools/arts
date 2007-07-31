@@ -24,10 +24,10 @@
 
 typedef long PPHeader[65];
 
-void readppheader (bifstream &is, PPHeader &pph);
-void readppdata (bifstream &is, PPHeader &pph, Vector &v);
+void readppheader (bifstream& is, PPHeader& pph);
+void readppdata (bifstream& is, PPHeader& pph, Vector& v);
 
-void readppheader (bifstream &is, PPHeader &pph)
+void readppheader (bifstream& is, PPHeader& pph)
 {
   for (int j = 0; j < 65 && is.good (); j++)
     {
@@ -38,7 +38,7 @@ void readppheader (bifstream &is, PPHeader &pph)
     }
 }
 
-void readppdata (bifstream &is, PPHeader &pph, Vector &v)
+void readppdata (bifstream& is, PPHeader& pph, Vector& v)
 {
   const int EXTRA_DATA = 3;
   v.resize (pph[15] + EXTRA_DATA);

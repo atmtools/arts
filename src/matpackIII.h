@@ -376,7 +376,7 @@ ostream& operator<<(ostream& os, const ConstTensor3View& v);
 // Helper function for debugging
 #ifndef NDEBUG
 
-Numeric debug_tensor3view_get_elem (Tensor3View &tv,
+Numeric debug_tensor3view_get_elem (Tensor3View& tv,
                                     Index p, Index r, Index c);
 
 #endif

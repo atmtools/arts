@@ -70,7 +70,7 @@ public:
   
 };
 
-ostream& operator<< (ostream &os, const SLIData2 &sli);
+ostream& operator<< (ostream& os, const SLIData2& sli);
 
 
 Matrix interp( ConstVectorView itw,
