@@ -1,5 +1,11 @@
 2007-07-31  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1166
+
+	* ChangeLog: DOH! Fixed another typo.
+
+2007-07-31  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1165
 
 	* configure.in:
@@ -8,7 +14,7 @@
 	generate warnings which break the compilation. It can be enabled by
 	passing --enable-disort to configure/autogen.sh.
 
-	* src/make_auto_md_h.cc:
+	* doc/doxygen/Doxyfile.in:
 	
 	Comment out REFERENCES_LINK_SOURCE and CALLER_GRAPH to further improve
 	doxygen backwards compatibility (at least 1.4.6 maybe also older
