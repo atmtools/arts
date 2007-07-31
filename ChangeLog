@@ -1,5 +1,15 @@
 2007-07-31  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1164
+
+	* dox/doxygen/Doxyfile.in:
+
+	Comment out DOXYFILE_ENCODING, CPP_CLI_SUPPORT, INPUT_ENCODING,
+	EXCLUDE_SYMBOLS, MSCGEN_PATH and DOT_GRAPH_MAX_NODES for better
+	compatibility with older doxygen versions.
+
+2007-07-31  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1163
 
 	* src/make_auto_md_h.cc:
