@@ -24,9 +24,9 @@
 
 /***** Configuration *****/
 
-// BINIO_ENABLE_STRING - Build string supporting methods
+// BINIO_ENABLE_STRING - Build std::string supporting methods
 //
-// Set to 1 to build string supporting methods. You need the STL to
+// Set to 1 to build std::string supporting methods. You need the STL to
 // do this.
 #define BINIO_ENABLE_STRING	1
 
@@ -122,14 +122,14 @@ class binistream: virtual public binio
 {
 public:
   binistream();
-  virtual ~binistream() {}
+  virtual ~binistream();
 
   Int readInt(unsigned int size);
   Float readFloat(FType ft);
   unsigned long readString(char *str, unsigned long amount);
-  unsigned long readString(char *str, unsigned long maxlen, char delim);
+  unsigned long readString(char *str, unsigned long maxlen, const char delim);
 #if BINIO_ENABLE_STRING
-  string readString(char delim);
+  std::string readString(const char delim = '\0');
 #endif
 
   Int peekInt(unsigned int size);
@@ -151,13 +151,13 @@ class binostream: virtual public binio
 {
 public:
   binostream();
-  virtual ~binostream() {}
+  virtual ~binostream();
 
   void writeInt(Int val, unsigned int size);
   void writeFloat(Float f, FType ft);
   unsigned long writeString(const char *str, unsigned long amount = 0);
 #if BINIO_ENABLE_STRING
-  unsigned long writeString(const string& str);
+  unsigned long writeString(const std::string &str);
 #endif
 
 protected:
