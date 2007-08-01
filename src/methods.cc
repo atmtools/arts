@@ -229,7 +229,7 @@ void define_md_data_raw()
                     "coefficient (output: *abs_coef*)\n"
                    ),
         AUTHORS( "Stefan Buehler", "Axel von Engeln" ),
-        OUTPUT(	abs_coef_, abs_coef_per_species_ ),
+        OUTPUT( abs_coef_, abs_coef_per_species_ ),
         INPUT( abs_xsec_per_species_, abs_vmrs_ ),
         GOUTPUT( ),
         GINPUT( ),
@@ -334,7 +334,7 @@ void define_md_data_raw()
                     "group of water.\n"
                    ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT(	abs_h2o_ ),
+        OUTPUT( abs_h2o_ ),
         INPUT( abs_species_, abs_vmrs_ ),
         GOUTPUT( ),
         GINPUT( ),
@@ -486,21 +486,21 @@ void define_md_data_raw()
       ( NAME("abs_linesReadFromHitran"),
         DESCRIPTION
         (
-		    "Read all the lines from a HITRAN 1986-2001 catalogue file in\n"
-		    "the given frequency range. Otherwise a runtime error will be\n"
-		    "thrown. For HITRAN 2004 line data use the workspace method \n"
-		    "abs_linesReadFromHitran. \n"
-		    "\n"
-		    "Please note that all lines must correspond to the legal\n"
- 		    "species / isotope combinations and that the line data \n"
-		    "file must be sorted by increasing frequency\n"
-		    "\n"
-        "WWW access of the HITRAN catalog: http://www.hitran.com/\n"
-		    "\n"
-		    "Keywords: \n"
-		    "   filename : Name (and path) of the catalogue file.\n"
-		    "   fmin     : Minimum frequency for lines to read in Hz.\n"
-		    "   fmax     : Maximum frequency for lines to read in Hz.\n"),
+         "Read all the lines from a HITRAN 1986-2001 catalogue file in\n"
+         "the given frequency range. Otherwise a runtime error will be\n"
+         "thrown. For HITRAN 2004 line data use the workspace method \n"
+         "abs_linesReadFromHitran. \n"
+         "\n"
+         "Please note that all lines must correspond to the legal\n"
+         "species / isotope combinations and that the line data \n"
+         "file must be sorted by increasing frequency\n"
+         "\n"
+         "WWW access of the HITRAN catalog: http://www.hitran.com/\n"
+         "\n"
+         "Keywords: \n"
+         "   filename : Name (and path) of the catalogue file.\n"
+         "   fmin     : Minimum frequency for lines to read in Hz.\n"
+         "   fmax     : Maximum frequency for lines to read in Hz.\n"),
         AUTHORS( "Thomas Kuhn" ),
         OUTPUT( abs_lines_ ),
         INPUT( ),
@@ -818,7 +818,7 @@ void define_md_data_raw()
          "   abs_nlsSet{[\"H2O-PWR98\"]}\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT(	abs_nls_ ),
+        OUTPUT( abs_nls_ ),
         INPUT( abs_species_ ),
         GOUTPUT( ),
         GINPUT( ),
@@ -833,7 +833,7 @@ void define_md_data_raw()
                     "molecular nitrogen. See *abs_h2oSet* for more details.\n"
                    ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT(	abs_n2_ ),
+        OUTPUT( abs_n2_ ),
         INPUT( abs_species_, abs_vmrs_ ),
         GOUTPUT( ),
         GINPUT( ),
@@ -1072,47 +1072,49 @@ void define_md_data_raw()
  
   // New name: abs_speciesSet
   // This is duplicate with the 1-1 method abs_species set. Merge!
-//   md_data.push_back
-//     ( MdRecord
-//       ( NAME("tgsDefine"),
-//   	DESCRIPTION(
-// 		    "Set up the list of tag groups.\n"
-// 		    "\n"
-// 		    "The workspace variable *tgs* contains several tag groups. Each \n"
-// 		    "tag group contain one or more tags. This method converts \n"
-// 		    "description of tag groups  given in the keyword to the internal \n"
-// 		    "representation *tgs*. A tag group selects spectral features which \n"
-// 		    "belong to the same species. \n"
-// 		    "   A tag group can contain a mixture of general and special \n"
-// 		    "tags.  All the continuum tags belong to the special tags and \n"
-// 		    "the rest come under the general tags.\n"
-// 		    "   A general tag is defined in terms of the name of the species,\n"
-// 		    "isotope and a range of frequencies. Species are named after the \n"
-// 		    "standard chemical names,e.g., \"O3\".  Isotopes are given by the \n"
-// 		    "last digit of the atomic weight, i.e., \"O3-668\" for the \n"
-// 		    "asymmetric ozone molecule including an oxygen 18 atom.  Groups\n"
-// 		    "of transitions are specified by giving a lower and upper limit \n"
-// 		    "of a frequency range,\"O3-666-500e9-501e9\".Moreover the symbol\n"
-// 		    "'*' acts as a wild card. Furthermore, frequency range or frequency\n"
-// 		    "range and isotope may be omitted.\n"
-// 		    "Example for some tag groups containing only general tags:\n"
-// 		    "tags = [\"O3-666-500e9-501e9, O3-686\",\"O3\"]\n"
-// 		    "The first tag group consist of all O3-666 lines between 500 and\n"
-// 		    "501 GHz plus all O3-686 lines.  The second tag group will contain\n"
-// 		    "all remaining O3 transitions.\n"
-// 		    "\n"
-// 		    "Keywords:\n"
-// 		    "   tags : Specify one String for each tag group that you want to create.\n"
-// 		    "   Inside the String, separate the tags by comma (plus optional blanks).\n"
-// 		    "   Example:\n"
-// 		    "   tag = [\"O3-686\",\"H2O\"]\n"),
-// 	OUTPUT( tgs_ ),
-// 	INPUT(),
-// 	GOUTPUT(),
-// 	GINPUT(),
-// 	KEYWORDS( "tags" ),
-// 	TYPES(    Array_String_t   )));
-  
+//  md_data.push_back
+//    ( MdRecord
+//      ( NAME("tgsDefine"),
+//        DESCRIPTION
+//        (
+//         "Set up the list of tag groups.\n"
+//         "\n"
+//         "The workspace variable *tgs* contains several tag groups. Each \n"
+//         "tag group contain one or more tags. This method converts \n"
+//         "description of tag groups  given in the keyword to the internal \n"
+//         "representation *tgs*. A tag group selects spectral features which \n"
+//         "belong to the same species. \n"
+//         "   A tag group can contain a mixture of general and special \n"
+//         "tags.  All the continuum tags belong to the special tags and \n"
+//         "the rest come under the general tags.\n"
+//         "   A general tag is defined in terms of the name of the species,\n"
+//         "isotope and a range of frequencies. Species are named after the \n"
+//         "standard chemical names,e.g., \"O3\".  Isotopes are given by the \n"
+//         "last digit of the atomic weight, i.e., \"O3-668\" for the \n"
+//         "asymmetric ozone molecule including an oxygen 18 atom.  Groups\n"
+//         "of transitions are specified by giving a lower and upper limit \n"
+//         "of a frequency range,\"O3-666-500e9-501e9\".Moreover the symbol\n"
+//         "'*' acts as a wild card. Furthermore, frequency range or frequency\n"
+//         "range and isotope may be omitted.\n"
+//         "Example for some tag groups containing only general tags:\n"
+//         "tags = [\"O3-666-500e9-501e9, O3-686\",\"O3\"]\n"
+//         "The first tag group consist of all O3-666 lines between 500 and\n"
+//         "501 GHz plus all O3-686 lines.  The second tag group will contain\n"
+//         "all remaining O3 transitions.\n"
+//         "\n"
+//         "Keywords:\n"
+//         "   tags : Specify one String for each tag group that you want to create.\n"
+//         "   Inside the String, separate the tags by comma (plus optional blanks).\n"
+//         "   Example:\n"
+//         "   tag = [\"O3-686\",\"H2O\"]\n"
+//        ),
+//        OUTPUT( tgs_ ),
+//        INPUT(),
+//        GOUTPUT(),
+//        GINPUT(),
+//        KEYWORDS( "tags" ),
+//        TYPES(    Array_String_t   )));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME("abs_vecAddGas"),
@@ -1190,7 +1192,7 @@ void define_md_data_raw()
                     "Calculate cross sections per tag group for continua.\n"
                    ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT(	abs_xsec_per_species_ ),
+        OUTPUT( abs_xsec_per_species_ ),
         INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_n2_, abs_h2o_, abs_vmrs_,
                abs_cont_names_, abs_cont_parameters_,
                abs_cont_models_ ),
@@ -1207,7 +1209,7 @@ void define_md_data_raw()
                     "it to abs_xsec_per_species.\n"
                    ),
         AUTHORS( "Stefan Buehler", "Axel von Engeln" ),
-        OUTPUT(	abs_xsec_per_species_ ),
+        OUTPUT( abs_xsec_per_species_ ),
         INPUT( abs_species_, f_grid_, abs_p_, abs_t_, abs_h2o_, abs_vmrs_, 
                abs_lines_per_species_, abs_lineshape_ ),
         GOUTPUT( ),
@@ -3296,29 +3298,29 @@ md_data_raw.push_back
   md_data_raw.push_back
     ( MdRecord
       ( NAME("MatrixMatrixMultiply"),
-	DESCRIPTION
+        DESCRIPTION
         (
-	 "Multiply a Matrix with another Matrix and store the result in the result\n"
-	 "Matrix.\n"
-	 "\n"
-	 "This just computes the normal Matrix-Matrix product, Y=M*X. It is ok\n"
-	 "if Y and X are the same Matrix. This function is handy for\n"
-	 "multiplying the H Matrix to batch spectra.\n"
-	 "\n"
-	 "Generic output:\n"
-	 "   Matrix : The result of the multiplication (dimension mxc).\n"
-	 "\n"
-	 "Generic input:\n"
-	 "   Matrix : The Matrix to multiply (dimension mxn).\n"
-	 "   Matrix : The original Matrix (dimension nxc).\n"
+         "Multiply a Matrix with another Matrix and store the result in the result\n"
+         "Matrix.\n"
+         "\n"
+         "This just computes the normal Matrix-Matrix product, Y=M*X. It is ok\n"
+         "if Y and X are the same Matrix. This function is handy for\n"
+         "multiplying the H Matrix to batch spectra.\n"
+         "\n"
+         "Generic output:\n"
+         "   Matrix : The result of the multiplication (dimension mxc).\n"
+         "\n"
+         "Generic input:\n"
+         "   Matrix : The Matrix to multiply (dimension mxn).\n"
+         "   Matrix : The original Matrix (dimension nxc).\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Matrix_ ),
-	GINPUT( Matrix_, Matrix_ ),
-	KEYWORDS(),
-	TYPES()));
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Matrix_ ),
+        GINPUT( Matrix_, Matrix_ ),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5928,20 +5930,20 @@ md_data_raw.push_back
       ( NAME("VectorMatrixMultiply"),
         DESCRIPTION
         (
-	 "Multiply a Vector with a Matrix and store the result in another\n"
-	 "Vector.\n"
-	 "\n"
-	 "This just computes the normal Matrix-Vector product, y=M*x. It is ok\n"
-	 "if input and output Vector are the same. This function is handy for\n"
-	 "multiplying the H Matrix to spectra.\n"
-	 "\n"
-	 "Generic output:\n"
-	 "   Vector : The result of the multiplication (dimension m).\n"
-	 "\n"
-	 "Generic input:\n"
-	 "   Matrix : The Matrix to multiply (dimension mxn).\n"
-	 "   Vector : The original Vector (dimension n).\n"
-         ),
+         "Multiply a Vector with a Matrix and store the result in another\n"
+         "Vector.\n"
+         "\n"
+         "This just computes the normal Matrix-Vector product, y=M*x. It is ok\n"
+         "if input and output Vector are the same. This function is handy for\n"
+         "multiplying the H Matrix to spectra.\n"
+         "\n"
+         "Generic output:\n"
+         "   Vector : The result of the multiplication (dimension m).\n"
+         "\n"
+         "Generic input:\n"
+         "   Matrix : The Matrix to multiply (dimension mxn).\n"
+         "   Vector : The original Vector (dimension n).\n"
+        ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT(),
         INPUT(),

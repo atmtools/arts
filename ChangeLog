@@ -1,5 +1,11 @@
 2007-08-01  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1169
+
+	* src/methods.cc, src/continua.{cc,h}: Remove tabs......
+
+2007-08-01  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1168
 
 	* src/binio.{cc,h}: Cherry-pick some changes from libbinio 1.4.
