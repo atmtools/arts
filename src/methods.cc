@@ -1443,6 +1443,30 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("atm_fields_compactAddConstant"),
+        DESCRIPTION
+        (
+         "Adds a constant field to atm_fields_compact. \n"
+         "\n"
+         "This is handy for nitrogen or oxygen. The constant value is\n"
+         "appended at the end of the fields that are already there.  All\n"
+         "dimensions (pressure, latitude, longitude) are filled up, so this\n"
+         "works for 1D, 2D, or 3D atmospheres.\n"
+         "\n"
+         "Keywords:\n"
+         "   name  : The field name. Use, e.g., vmr_o2 for oxygen VMR.\n"
+         "   value : The constant value of this field.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT( atm_fields_compact_ ),
+        INPUT(  atm_fields_compact_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "name",   "value" ),
+        TYPES(    String_t, Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("atm_fields_compactFromMatrix"),
         DESCRIPTION
         (
@@ -1492,13 +1516,19 @@ void define_md_data_raw()
          "p_grid, lat_grid, lon_grid, and the various fields. No interpolation.\n"
          "See documentation of *atm_fields_compact* for a definition of the data.\n"
          "\n"
+         "There are some safety checks on the names of the fields:\n"
+         "The first field must be called *T*, the second *z*.\n"
+         "Remaining fields must be called something like *vmr_H2O*, with\n"
+         "species names fitting the species in *abs_species*.\n"
+         "Only the species name must fit, not the full tag.\n"
+         "\n"
          "Possible future extensions: Add a keyword parameter to refine the\n"
          "pressure grid if it is too coarse. Or a version that interpolates onto\n"
          "given grids, instead of using and returning the original grids.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( p_grid_, lat_grid_, lon_grid_, t_field_, z_field_, vmr_field_ ),
-        INPUT(  atm_fields_compact_, atmosphere_dim_ ),
+        INPUT(  abs_species_, atm_fields_compact_, atmosphere_dim_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -6207,30 +6237,6 @@ md_data_raw.push_back
         GINPUT( Vector_ ),
         KEYWORDS( "r_geoid" ),
         TYPES( Numeric_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "vmr_fieldAddConstantSpecies" ),
-        DESCRIPTION
-        (
-         "Adds a species with constant VMR to vmr_field. \n"
-         "\n"
-         "This is handy for nitrogen or oxygen. The constant VMR value is\n"
-         "appended at the end of the species that are already there. (That means\n"
-         "the first dimension of *vmr_field* is increased by one.) All\n"
-         "dimensions (pressure, latitude, longitude) are filled up, so this\n"
-         "works for 1D, 2D, or 3D atmospheres.\n"
-         "\n"
-         "Keywords:\n"
-         "   value : The mixing ratio value to use.\n"
-        ),
-        AUTHORS( "Stefan Buehler" ),
-        OUTPUT(  vmr_field_ ),
-        INPUT(),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS( "value" ),
-        TYPES(    Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord

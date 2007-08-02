@@ -127,6 +127,7 @@ void AtmFieldsFromCompact(// WS Output:
                           Tensor3& z_field,
                           Tensor4& vmr_field,
                           // WS Input:
+                          const ArrayOfArrayOfSpeciesTag& abs_species,
                           const GriddedField4& c, // atm_fields_compact
                           const Index&  atmosphere_dim )
 {
@@ -159,8 +160,72 @@ void AtmFieldsFromCompact(// WS Output:
   if (ns<1)
     {
       ostringstream os;
-      os << "There must be at least one VMR profile.";
+      os << "There must be at least three fields in *atm_fields_compact*.\n"
+         << "T, z, and at least one VMR.";
       throw runtime_error( os.str() );
+    }
+
+  // Check that first field is T:
+  if (c.field_names[0] != "T")
+    {
+      ostringstream os;
+      os << "The first field must be \"T\", but it is:"
+         << c.field_names[0];
+      throw runtime_error( os.str() );
+    }
+
+  // Check that second field is z:
+  if (c.field_names[1] != "z")
+    {
+      ostringstream os;
+      os << "The second field must be \"z\"*, but it is:"
+         << c.field_names[1];
+      throw runtime_error( os.str() );
+    }
+
+  // Check that the other fields are VMR fields and match abs_species:
+  for (Index i=0; i<ns; ++i)
+    {
+      const String this_field_name = c.field_names[2+i];
+      
+      // There must be at least 5 characters:
+      if (this_field_name.nelem() < 5)
+        {
+          ostringstream os;
+          os << "Field name not valid: "
+             << this_field_name << "\n"
+             << "Name should be something like \"vmr_XXX\".";
+          throw runtime_error( os.str() );
+        }
+      
+      // Split field name in intro and species:
+      const String tf_intro   = this_field_name.substr(0,4); // first 4 chars
+      const String tf_species = this_field_name.substr(4);   // rest
+      
+      // Check that field name begins with "vmr_":
+      if (tf_intro != "vmr_")
+        {
+          ostringstream os;
+          os << "Field name not valid: "
+             << this_field_name << "\n"
+             << "Name should be something like \"vmr_XXX\".";
+          throw runtime_error( os.str() );
+        }
+
+      // Get name of species from abs_species:      
+      extern const Array<SpeciesRecord> species_data;  // The species lookup data:
+      const String as_species = species_data[abs_species[i][0].Species()].Name();
+
+      // Species in field name and abs_species should be the same:
+      if (tf_species != as_species)
+        {
+          ostringstream os;
+          os << "Field name not valid: "
+             << this_field_name << "\n"
+             << "Based on *abs_species*, the field name should be: "
+             << "vmr_" << as_species;
+          throw runtime_error( os.str() );
+        }
     }
 
   // Temperature field (first field):
@@ -902,32 +967,38 @@ void surfaceSimple(
 
 
 // Workspace method, doxygen header is auto-generated.
-// 2007-07-24 Stefan Buehler
-void vmr_fieldAddConstantSpecies(// WS Output:
-                                 Tensor4& vmr_field,
-                                 // Control Parameters:
-                                 const Numeric& value)
+// 2007-07-31 Stefan Buehler
+void atm_fields_compactAddConstant(// WS Output:
+                                   GriddedField4& af,
+                                   // Control Parameters:
+                                   const String& name,
+                                   const Numeric& value)
 {
-  const Index ns = vmr_field.nbooks();
+  // Number of fields already present:
+  const Index nf = af.field_names.nelem();
 
-  if (0==ns)
+  if (0==nf)
     {
       ostringstream os;
-      os << "The *vmr_field* must already contain at least one species.";
+      os << "The *atm_fields_compact* must already contain at least one field,\n"
+         << "so that we can infer the dimensions from that.";
       throw runtime_error( os.str() );
     }
 
-  // Save original field:
-  const Tensor4 dummy = vmr_field;
+  // Add name of new field to field name list:
+  af.field_names.push_back(name);
+
+  // Save original fields:
+  const Tensor4 dummy = af.data;
 
   // Adjust size:
-  vmr_field.resize( ns+1, dummy.npages(), dummy.nrows(), dummy.ncols() );
+  af.data.resize( nf+1, dummy.npages(), dummy.nrows(), dummy.ncols() );
 
   // Copy back original field:
-  vmr_field( Range(0,ns), Range(joker), Range(joker), Range(joker) ) = dummy;
+  af.data( Range(0,nf), Range(joker), Range(joker), Range(joker) ) = dummy;
   
   // Add the constant value:
-  vmr_field( ns, Range(joker), Range(joker), Range(joker) ) = value;
+  af.data( nf, Range(joker), Range(joker), Range(joker) ) = value;
 }
 
 
