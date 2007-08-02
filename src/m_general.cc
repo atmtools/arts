@@ -210,7 +210,7 @@ void
 timerStart (// WS Output
             Timer& starttime)
 {
-  if ((starttime.realtime = times (&starttime.cputime)) == -1)
+  if ((starttime.realtime = times (&starttime.cputime)) == (clock_t)-1)
     throw runtime_error ("Timer error: Unable to get current CPU time");
 }
 
@@ -227,7 +227,7 @@ timerStop (// WS Input
     if ((clktck = sysconf (_SC_CLK_TCK)) < 0)
       throw runtime_error ("Timer error: Unable to determine CPU clock ticks");
 
-  if ((endtime.realtime = times (&endtime.cputime)) == -1)
+  if ((endtime.realtime = times (&endtime.cputime)) == (clock_t)-1)
     throw runtime_error ("Timer error: Unable to get current CPU time");
 
   // FIXME: out1 does not have setf, but we need to set it here

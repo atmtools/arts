@@ -1,3 +1,9 @@
+2007-08-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1170
+
+	* src/getopt.{c,h}, src/m_general.h: Fix compilation on MacOS X Tiger.
+
 2007-08-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1169
