@@ -35,12 +35,9 @@
 #ifndef refraction_h
 #define refraction_h
 
-
 #include "agenda_class.h"
 #include "arts.h"
-#include "matpackI.h"
-
-
+#include "matpackIV.h"
 
 
 void get_refr_index_1d(

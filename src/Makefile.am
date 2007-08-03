@@ -8,7 +8,10 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-EXTRA_DIST = check-code-cheaders.pl  check-code-tab-indent.sh
+EXTRA_DIST = \
+	check-code-cheaders.pl \
+	check-code-tab-indent.sh \
+	check-code-header-consistency.sh
 
 bin_PROGRAMS = arts
 
@@ -1259,10 +1262,15 @@ CLEANFILES = \
 	auto_wsv.h \
 	auto_wsv_groups.h \
 	auto_md.h \
-	auto_md.cc
+	auto_md.cc \
+	check-code-header-consistency.log \
+	test_include \
+	test_include.cc
+
+TESTS_ENVIRONMENT = COMPILE="$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) $(CXXNOSTRICTALIASING)" sh -c
 
 TESTS = \
-	./check-code-cheaders.pl \
-	./check-code-tab-indent.sh
-
+	check-code-cheaders.pl \
+	check-code-tab-indent.sh \
+	check-code-header-consistency.sh
 

@@ -17,6 +17,13 @@
 
 //------------------------------------------------------------------------------
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#else
+#error "Please run ./configure in the top arts directory before compiling."
+#endif
+
+#ifndef HAVE_SSTREAM
 #if !defined(IOTRAITS_H)
 #define IOTRAITS_H
 
@@ -82,3 +89,5 @@ struct ios_traits<char>
 //------------------------------------------------------------------------------
 
 #endif /* IOTRAITS_H */
+#endif /* HAVE_SSTREAM */
+

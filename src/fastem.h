@@ -30,6 +30,8 @@
 #ifndef fastem_h
 #define fastem_h
 
+#include "matpackI.h"
+
 void fastem(// Output:
             VectorView surface_emiss,
             // Input:

@@ -32,9 +32,9 @@
 #ifndef xml_io_instantiation_h
 #define xml_io_instantiation_h
 
-#include "xml_io.h"
 #include <stdexcept>
 #include <cfloat>
+#include "xml_io.h"
 #include "xml_io_basic_types.h"
 #include "xml_io_compound_types.h"
 #include "xml_io_array_types.h"

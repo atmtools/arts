@@ -30,6 +30,8 @@
 #define m_copy_h
 
 #include "messages.h"
+#include "mystring.h"
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template< class T >

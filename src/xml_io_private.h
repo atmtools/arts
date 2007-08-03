@@ -35,12 +35,6 @@
 #include "xml_io.h"
 #include <stdexcept>
 #include <cfloat>
-#include "matpackI.h"
-#include "matpackII.h"
-#include "matpackIII.h"
-#include "matpackIV.h"
-#include "matpackV.h"
-#include "matpackVI.h"
 #include "matpackVII.h"
 #include "array.h"
 #include "messages.h"

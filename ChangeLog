@@ -1,3 +1,29 @@
+2007-08-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1172
+
+	* src/Makefile.am, src/check-code-header-consistency.sh:
+
+	Added test to check if header files are self-contained. This means
+	that a header file itself should include every other header file it
+	depends on. E.g. if a header file uses a Tensor3, it must
+	include at least matpackIII.h.
+
+	* src/check-code-tab-indent.sh:
+
+	Change shell from bash to sh to increase compatibility with non-GNU
+	systems.
+
+	* src/xml_io_instantiation.h, src/optproperties.h, src/continua.h,
+	src/m_copy.h, src/iotraits.h, src/disort.h, src/sstream.h, src/rte.h,
+	src/montecarlo.h, src/xml_io_array_types.h, src/m_basic_types.h,
+	src/geomag_calc.h, src/xml_io_private.h, src/check-code-tab-indent.sh,
+	src/check_input.h, src/refraction.h, src/m_ignore.h,
+	src/xml_io_basic_types.h, src/fastem.h, src/gridded_fields.h,
+	src/scatrte.h, src/geomag_calc.cc, src/gridded_fields.cc:
+
+	Cleanup includes.
+
 2007-08-02  Stefan Buehler  <sbuehler@irv.se>
 
 	* arts-1-1-1171

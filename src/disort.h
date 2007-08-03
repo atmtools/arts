@@ -28,6 +28,12 @@
 #ifndef disort_h
 #define disort_h
 
+#include "agenda_class.h"
+#include "matpackIV.h"
+#include "mystring.h"
+#include "optproperties.h"
+
+
 void dtauc_ssalbCalc(
                     VectorView dtauc,
                     VectorView ssalb,

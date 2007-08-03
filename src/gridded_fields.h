@@ -35,6 +35,10 @@
 #ifndef gridded_fields_h
 #define gridded_fields_h
 
+#include "matpackIV.h"
+#include "mystring.h"
+
+
 //! Contains a GriddedField3.
 /*!
  A GriddedField3 consists of a pressure grid vector, a latitude vector, a

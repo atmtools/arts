@@ -43,9 +43,8 @@
 #include <stdexcept>
 #include <iostream>
 #include "xml_io.h"
-#include "array.h"
-#include "matpackIII.h"
 #include "matpackVI.h"
+#include "mystring.h"
 #include "gridded_fields.h"
 
 /*===========================================================================

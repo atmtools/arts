@@ -36,6 +36,11 @@
 #ifndef scatrte_h
 #define scatrte_h
 
+#include "agenda_class.h"
+#include "matpackVI.h"
+#include "ppath.h"
+
+
 void cloud_fieldsCalc(// Output:
                         Tensor5View ext_mat_field,
                         Tensor4View abs_vec_field,

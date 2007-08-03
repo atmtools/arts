@@ -21,17 +21,18 @@
 /*===========================================================================
   === External declarations
   ===========================================================================*/
+#include <stdexcept>
+#include <cmath>
 #include "messages.h"
 #include "arts.h"
 #include "ppath.h"
 #include "matpackI.h"
 #include "special_interp.h"
 #include "check_input.h"
-#include <stdexcept>
-#include <cmath>
 #include "rte.h"
 #include "lin_alg.h"
 #include "logic.h"
+#include "optproperties.h"
 #include "physics_funcs.h"
 #include "xml_io.h"
 #include "rng.h"

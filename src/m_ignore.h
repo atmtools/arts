@@ -29,6 +29,9 @@
 #ifndef m_ignore_h
 #define m_ignore_h
 
+#include "exceptions.h"
+#include "messages.h"
+#include "mystring.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template< class T >

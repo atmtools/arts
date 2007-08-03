@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 STATE=0
 LIST=

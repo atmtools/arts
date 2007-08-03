@@ -36,6 +36,8 @@
 #ifndef optproperties_h
 #define optproperties_h
 
+#include "matpackVII.h"
+#include "mystring.h"
 
 
 //! An attribute to classify the particle type in a SingleScatteringData

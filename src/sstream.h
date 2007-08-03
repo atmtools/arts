@@ -18,18 +18,25 @@
 //------------------------------------------------------------------------------
 // The first thing to do is to protect the file against multiple inclusion:
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#else
+#error "Please run ./configure in the top arts directory before compiling."
+#endif
+
+#ifndef HAVE_SSTREAM
 #if !defined(SSTREAM_H)
 #define SSTREAM_H
 
 //------------------------------------------------------------------------------
 // Next, some headerfiles are included:
 
+#include <algorithm>
 #include <string>
 #include <streambuf.h>
 #include <iostream.h>
 #include "iotraits.h"
-// Changed < to " SAB 30.05.2000.
-#include <algorithm>
+
 
 //------------------------------------------------------------------------------
 
@@ -570,3 +577,5 @@ basic_stringstream<_CS_cT, _CS_Tr, _CS_Al>::basic_stringstream(
 
 
 #endif /* SSTREAM_H */
+#endif /* HAVE_SSTREAM */
+

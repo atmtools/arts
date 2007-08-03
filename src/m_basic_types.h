@@ -27,7 +27,10 @@
 #ifndef M_BASIC_TYPES_H
 #define M_BASIC_TYPES_H
 
+#include "array.h"
 #include "arts.h"
+#include "exceptions.h"
+#include "matpackVII.h"
 #include "mystring.h"
 #include "messages.h"
 

@@ -32,12 +32,6 @@
 #ifndef xml_io_array_types_h
 #define xml_io_array_types_h
 
-#include "matpackI.h"
-#include "matpackII.h"
-#include "matpackIII.h"
-#include "matpackIV.h"
-#include "matpackV.h"
-#include "matpackVI.h"
 #include "matpackVII.h"
 #include "array.h"
 #include "messages.h"
@@ -45,6 +39,7 @@
 #include "agenda_class.h"
 #include "absorption.h"
 #include "gas_abs_lookup.h"
+#include "gridded_fields.h"
 #include "optproperties.h"
 #include "bifstream.h"
 #include "bofstream.h"

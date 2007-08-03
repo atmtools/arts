@@ -13,7 +13,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-   USA. *
+   USA. */
 
 /*!
   \file   geomag_calc.h
@@ -29,9 +29,7 @@
 #ifndef geomag_calc_h
 #define geomag_calc_h
 
-#include "arts.h"
-#include "matpackI.h"
-#include "matpackIV.h"
+#include "matpack.h"
 
 void magfield_nk(  // Output
                    Numeric& B_r, // radial component of the geomagnetic field
