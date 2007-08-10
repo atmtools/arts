@@ -1243,6 +1243,21 @@ void define_wsv_data()
        ),
       GROUP( Matrix_ )));
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "index_1" ),
+      DESCRIPTION
+      (
+       "An arbitrary index.\n"
+       "\n"
+       "This variable shall be treated as a general variable of type Index.\n"
+       "It can be used, for example, when some intermediate data must be\n"
+       "generated or to copy some data.\n"
+       "\n"
+       "Usage: Set by user.\n"
+       ),
+      GROUP( Index_ )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "iy" ),

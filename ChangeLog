@@ -1,4 +1,14 @@
-2007-08-02  Oliver Lemke  <olemke@core-dump.info>
+2007-08-10  Mathias Milz  <mathias.milz@ltu.se>
+
+	*  arts-1-1-1173
+
+	* src/workspace.cc
+
+	Added workspace variable 'index_1' as general placeholder for 
+	variables of type index
+	
+
+2007-08-02  Oliver Lemke  <olemke@core-dump.info> 
 
 	* arts-1-1-1172
 
