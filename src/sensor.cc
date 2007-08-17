@@ -383,8 +383,8 @@ void mixer_matrix(
 
    The channel frequencies should be given in the RF domain.
 
-   The number of local oscillator frequencies must equal the number of
-   polarisations.
+   The number of local oscillator frequencies and backend channel frequencies
+   must equal the number of polarisations.
 
    The size of the matrix has to be correct before calling this function.
      nrows = number of channel frequencies times polarisations and angles.
@@ -410,35 +410,36 @@ void multi_mixer_matrix(
      ConstVectorView        f_ch,
      ConstVectorView        lo,
      ConstMatrixView        sb_filter,
-     const ArrayOfMatrix&   ch_resp,
+     ConstMatrixView        ch_resp,
      const Index&           n_za,
      const Index&           n_aa,
      const Index&           n_pol,
      const Index&           do_norm)
 {
   // Check that the transfer matrix has the right size
-  assert (H.nrows()==f_ch.nelem()*n_za*n_aa*n_pol);
+  assert (H.nrows()==n_za*n_aa*n_pol);
   assert (H.ncols()==f_grid.nelem()*n_za*n_aa*n_pol);
 
   // Check that the sideband filter is interpolateable over f_grid
   assert (sb_filter(0,0)<=f_grid[0] &&
           sb_filter(sb_filter.nrows()-1,0)>=f_grid[f_grid.nelem()-1]);
 
-  // Assert that the number of *lo* elements equal the number of
+  // Assert that the number of *lo* and *f_ch* elements equal the number of
   // polarisations
   assert (lo.nelem()==n_pol);
-
-  // Check that the channel response has the right number of elements
-  assert (ch_resp.nelem()==1 || ch_resp.nelem()==n_pol);
-  Index pol_full = 1;
-  if (ch_resp.nelem()==1)
-    pol_full = 0;
+  assert (f_ch.nelem()==n_pol);
 
   // Check if there is a sideband filter vector for each mixer
   assert (sb_filter.ncols()==2 || sb_filter.ncols()==lo.nelem()+1);
   Index sb_full = 1;
   if (sb_filter.ncols()==2)
     sb_full = 0;
+
+  //Check if matrix has one frequency column or one for every channel frequency
+  assert (ch_resp.ncols()==2 || ch_resp.ncols()==f_ch.nelem()+1);
+  Index freq_full = 1;
+  if (ch_resp.ncols()==2)
+    freq_full = 0;
 
   // Allocate memory for temporary vectors, temp_long is used to store the
   // expanded result from sensor_integration_vector before inserting them in
@@ -452,80 +453,79 @@ void multi_mixer_matrix(
   ArrayOfGridPos gp(f_grid.nelem());
   gridpos( gp, sb_filter(joker,0), f_grid);
   Matrix itw(gp.nelem(),2);
+  interpweights(itw,gp);
   Vector sb_itrp(f_grid.nelem());
 
-  // Loop over *lo* frequencies (and polarisations) and calculate responses.
-  // FIXME: is this correct: Here we definitely have different responses for
-  // different polarisations.
+  // Loop over *lo* frequencies (i.e. also polarisations and backend channels) 
+  // and calculate the responses.
   for (Index l=0; l<lo.nelem(); l++)
   {
-    Index pol_this = l*pol_full;
-
-    //Check if matrix has one frequency column or one for every channel
-    // frequency
-    assert (ch_resp[pol_this].ncols()==2 ||
-            ch_resp[pol_this].ncols()==f_ch.nelem()+1);
-    Index freq_full = 1;
-    if (ch_resp[pol_this].ncols()==2)
-      freq_full = 0;
-
-    // Loop over channel frequencies
-    for (Index f=0; f<f_ch.nelem(); f++)
+    // Create temporary vectors that holds the primary and mirrored channel
+    // response frequencies and the responses
+    Index nr = ch_resp.nrows();
+    Vector tmp_f(2*nr+2);
+    Vector tmp_resp(2*nr+2,0.0);
+      
+    // Check if primary band is upper or lower
+    if (f_ch[l] < lo[l])
     {
-      // Create temporary vector that holds the primary and mirrored channel
-      // response frequencies and a temporary matrix for the responses
-      Index nr = ch_resp[pol_this].nrows();
-      Index nc = ch_resp[pol_this].ncols();
-      Numeric d_resp = ch_resp[pol_this](nr-1,0)-ch_resp[pol_this](nr-2,0);
-      d_resp /= 1000;
-      Vector tmp_f(nr+2);
-      tmp_f[Range(0,nr)] = ch_resp[pol_this](0,joker);
-      /* Between the two bands we add two extra grid points in between to
-         ensure that we have zero response outside the given fields.
-         For this we use the distance variable d_resp. */
-      tmp_f[nr]=ch_resp[pol_this](nr-1,0)+d_resp;
-      tmp_f[nr+1]=2*lo[l]-ch_resp[pol_this](nr-1,0)-d_resp;
-      tmp_f[Range(tmp_f.nelem()-1,nr,-1)]=ch_resp[pol_this](0,joker);
-      // Add the current channel frequency
-      tmp_f[Range(0,nr+1)] += f_ch[f];
-      tmp_f[Range(nr+2,nr+1)] += 2*lo[l]-f_ch[f];
+      tmp_f[Range(0,nr)] = ch_resp(joker,0);
+      tmp_f[Range(0,nr)] += f_ch[l];
+      tmp_f[Range(tmp_f.nelem()-1,nr,-1)] = ch_resp(joker,0);
+      tmp_f[Range(tmp_f.nelem()-1,nr,-1)] *= -1;
+      tmp_f[Range(tmp_f.nelem()-1,nr,-1)] += 2*lo[l]-f_ch[l];
+        
+      tmp_resp[Range(0,nr)] = ch_resp(joker,l*freq_full+1);
+      tmp_resp[Range(tmp_resp.nelem()-1,nr,-1)] = ch_resp(joker,l*freq_full+1);
+    }
+    else if (f_ch[l] > lo[l])
+    {
+      tmp_f[Range(nr-1,nr,-1)] = ch_resp(joker,0);
+      tmp_f[Range(nr-1,nr,-1)] *= -1;
+      tmp_f[Range(nr-1,nr,-1)] += 2*lo[l]-f_ch[l];
+      tmp_f[Range(nr+2,nr)] = ch_resp(joker,0);
+      tmp_f[Range(nr+2,nr)] += f_ch[l];
+        
+      tmp_resp[Range(nr-1,nr,-1)] = ch_resp(joker,l*freq_full+1);
+      tmp_resp[Range(nr+2,nr)] = ch_resp(joker,l*freq_full+1);
+    }
+        
+    /* Between the two bands we add two extra grid points in between to
+       ensure that we have zero response outside the given fields.
+       For this we use the distance variable d_resp. 
+       It is set to be the smallest of the interdistance of the channel
+       responses or the distance between the edges of the primary and image
+       bands. The smallest of these are divided by 1000. */
+    Numeric d_resp = min(tmp_f[nr-1]-tmp_f[nr-2],tmp_f[nr+2]-tmp_f[nr-1]);
+    d_resp /= 1000;
+    tmp_f[nr] = tmp_f[nr-1]+d_resp;
+    tmp_f[nr+1] = tmp_f[nr+2]-d_resp;
 
-      // Same procedure for the response matrix
-      Matrix tmp_resp(nr+2,nc-1);
-      tmp_resp(Range(0,nr),joker)=ch_resp[pol_this](joker,Range(1,joker));
-      tmp_resp(nr,joker) = 0.0;
-      tmp_resp(nr+1,joker) = 0.0;
-      tmp_resp(Range(tmp_resp.nrows()-1,nr,-1),joker) =
-        ch_resp[pol_this](joker,Range(1,joker));
+    // Call sensor_integration matrix
+    sensor_integration_vector( temp, tmp_resp, tmp_f, f_grid);
 
-      // Call sensor_integration matrix
-      sensor_integration_vector( temp, tmp_resp(joker,f*freq_full),
-                                 tmp_f, f_grid);
+    // Apply sideband filter
+    interp( sb_itrp, itw, sb_filter(joker,l*sb_full+1), gp);
+    for (Index t=0; t<temp.nelem(); t++)
+      temp[t] *= sb_itrp[t];
 
-      // Apply sideband filter
-      interp( sb_itrp, itw, sb_filter(joker,l*sb_full), gp);
-      for (Index t=0; t<temp.nelem(); t++)
-        temp[t] *= sb_itrp[t];
+    // Should vector be normalised?
+    if (do_norm)
+      temp /= temp.sum();
 
-      // Should vector be normalised?
-      if (do_norm)
-        temp /= temp.sum();
-
-      // Distribute for all azimuth angles
-      for (Index a=0; a<n_aa; a++)
+    // Distribute for all azimuth angles
+    for (Index a=0; a<n_aa; a++)
+    {
+      // Distribute for all zenith angles
+      for (Index z=0; z<n_za; z++)
       {
-        // Distribute for all zenith angles
-        for (Index z=0; z<n_za; z++)
-        {
-          // Spread the temporary vector to fit the longer vector,
-          // store data at appropriate positions according to azimuth and
-          // zenith angles.
-          temp_long = 0.0;
-          temp_long[Range(n_pol*n_aa*f_grid.nelem()*z+n_pol*f_grid.nelem()*a+l,
-            temp.nelem(),n_pol)] = temp;
-          H.insert_row(n_pol*n_aa*f_ch.nelem()*z+f_ch.nelem()*n_pol*a+l,
-            temp_long);
-        }
+        // Spread the temporary vector to fit the longer vector,
+        // store data at appropriate positions according to azimuth and
+        // zenith angles.
+        temp_long = 0.0;
+        temp_long[Range(n_pol*n_aa*f_grid.nelem()*z+n_pol*f_grid.nelem()*a+l,
+          temp.nelem(),n_pol)] = temp;
+        H.insert_row(n_pol*n_aa*z+n_pol*a+l, temp_long);
       }
     }
   }

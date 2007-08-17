@@ -761,7 +761,7 @@ void sensor_responseMultiMixerBackend(
      const Matrix&          sensor_pol,
      // WS Generic Input:
      const Matrix&          sb_filter,
-     const ArrayOfMatrix&   ch_resp,
+     const Matrix&          ch_resp,
      // WS Generic Input Names:
      const String&          sb_filter_name,
      const String&          ch_resp_name)
@@ -773,7 +773,7 @@ void sensor_responseMultiMixerBackend(
     // Here we expand *lo* to fit call to multi_mixer_matrix
     lo_tmp = lo[0];
   }
-  else if( lo.nelem()!=sensor_pol.nrows() )
+  else if( lo.nelem()==sensor_pol.nrows() )
   {
     lo_tmp = lo;
   }
@@ -786,11 +786,11 @@ void sensor_responseMultiMixerBackend(
   }
 
   // Check size of *sensor_response*
-  Index n_fap = sensor_response_f.nelem()*sensor_response_za.nelem()*
-    sensor_response_pol;
+  Index n_pza = sensor_response_za.nelem()*sensor_response_pol;
+  Index n_aa = 1;
   if( sensor_response_aa.nelem()!=0 )
-    n_fap *= sensor_response_aa.nelem();
-  if( sensor_response.nrows()!=n_fap )
+    n_aa = sensor_response_aa.nelem();
+  if( sensor_response.nrows()!=n_pza*n_aa*sensor_response_f.nelem() )
   {
     ostringstream os;
     os << "The sensor block response matrix *sensor_response* does not have\n"
@@ -799,26 +799,22 @@ void sensor_responseMultiMixerBackend(
     throw runtime_error(os.str());
   }
 
-  // Check that *f_backend* combined with each of the channel response frequency
-  // grids is covered by *sensor_response_f*
-  for( Index cit=0; cit<ch_resp.nelem(); cit++)
+  // Check that *f_backend* combined with the channel response frequency
+  // grid is covered by *sensor_response_f*
+  if( max(f_backend)+max(ch_resp(joker,0)) > max(sensor_response_f) ||
+      min(f_backend)-min(ch_resp(joker,0)) < min(sensor_response_f) )
   {
-    if( max(f_backend)+max(ch_resp[cit](joker,0)) > max(sensor_response_f) ||
-        min(f_backend)-min(ch_resp[cit](joker,0)) < min(sensor_response_f) )
-    {
-      ostringstream os;
-      os << "The combination of the backend channel frequencies and the "
-            "frequency grid of\nmatrix number " << cit+1 << " in *"
-            << ch_resp_name <<
-            "* are outside the current sensor response\nfrequency grid. "
-            "No weighting can be performed.";
-      throw runtime_error(os.str());
-    }
+    ostringstream os;
+    os << "The combination of the backend channel frequencies and the "
+          "frequency grid of\n*" << ch_resp_name <<
+          "* are outside the current sensor response frequency grid\n. "
+          "No weighting can be performed.";
+    throw runtime_error(os.str());
   }
 
   // Check that the sideband filter covers *sensor_response_f*
-  if( min(sb_filter(joker,0)) < min(sensor_response_f) ||
-      max(sb_filter(joker,0)) > max(sensor_response_f) )
+  if( min(sb_filter(joker,0)) > min(sensor_response_f) ||
+      max(sb_filter(joker,0)) < max(sensor_response_f) )
   {
     ostringstream os;
     os << "The sideband filter has to cover the current sensor response "
@@ -829,19 +825,16 @@ void sensor_responseMultiMixerBackend(
   }
 
   //Call to calculating function
-  Index n_paz = sensor_response_pol * sensor_response_za.nelem()
-                * sensor_response_aa.nelem();
-  Sparse mixer_response(f_backend.nelem()*n_paz, sensor_response_f.nelem()*n_paz);
+  Sparse mixer_response(n_pza*n_aa, sensor_response_f.nelem()*n_pza*n_aa);
   multi_mixer_matrix( mixer_response, sensor_response_f, f_backend, lo_tmp,
-                      sb_filter, ch_resp, sensor_response_za.nelem(),
-                      sensor_response_aa.nelem(), sensor_response_pol,
-                      sensor_norm );
+                      sb_filter, ch_resp, sensor_response_za.nelem(), n_aa, 
+                      sensor_response_pol, sensor_norm );
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
   // take the same object as both input and output.
   Sparse sensor_response_tmp = sensor_response;
-  sensor_response.resize( f_backend.nelem()*n_paz,
+  sensor_response.resize( n_pza*n_aa,
     sensor_response_tmp.ncols());
   mult( sensor_response, mixer_response, sensor_response_tmp);
 

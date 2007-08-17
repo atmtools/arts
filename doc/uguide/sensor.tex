@@ -72,7 +72,7 @@ of characteristics.
 As described in Section~\ref{sec:formalism} the forward model is divided into an atmospheric
 part and a sensor part, Equation~\ref{eq:formalism:fms}. The sensor part can be modelled by a
 sensor transfer matrix which is precalculated for the entire atmospheric simulation, and applied on the monochromatic pencil beam spectra, Equation~\ref{eq:formalism:H}. To calculate the total sensor response each individual part of the sensor has to be calculated and combined.
-The individual parts for a microwave measurements consists in most cases of an antenna, a sideband filter, a mixer and a spectrometer. These are the instruments that has been used as a starting point for the sensor modelling and WSM to compute their transfer matrices has been implemented.
+The individual parts for a microwave measurements consists in most cases of an antenna, a sideband filter, a mixer and a spectrometer. These are the instruments that has been used as a starting point for the sensor modelling and WSM to compute their transfer matrices has been implemented. The description of the sensor response modelling is also found in \citet{eriksson:06}. 
  
 The operations performed by the instruments on the incoming spectra can either be described by a weighting, over viewing angles or frequencies, or a summation of signals in different sidebands.
 Summation and weighting of the spectral components are both linear
@@ -92,7 +92,6 @@ Applying Equation \ref{eq:formalism:H} for the sensor model will
 clearly give very rapid calculations, and we must find ways to
 calculate $\SnsMtr$. Therefore internal functions has been designed to calculate the response of such a weighting or a summation.
 
-\FIXME{Reference to Sensor modelling article.}
 
 \subsection{Weighting}
 The instruments that perform a weighting of the spectra are the antenna which weights different viewing angles by the normalised antenna response, $w_\mathrm{a}$, and the spectrometer that weights signals of neighbouring frequencies by the channel response, $w_\mathrm{ch}$. The influence of the antenna can be expressed as
@@ -365,9 +364,7 @@ where $\mathbf{s}$ is the Stokes components of the incoming radiation and $\math
 For an instrument measuring a single polarisation, the first element of $\mathbf{p}$ shall be one and the three last elements shall fulfil $\sum_{i=2}^4 p_i^2 = 1$, where
 $p_i$ is the $i$:th element of $\mathbf{p}$. For example, if vertical polarisation is measured, then $\mathbf{p}=[1\ 1\ 0\ 0]$ and for linear $\pm45^\circ$ polarisation $\mathbf{p}=[1\ 0\ \mp\!\!1\ 0]$.  
 
-Several sensor parts can have a polarisation varying response, but there is normally a single part that dominates the polarisation response. The normal case for the instrument type considered here is that the mixer is only sensitive to a single polarisation, and the natural time to apply Equation~\ref{eq:sensor:pol:response} or \ref{eq:sensor:pol:rotpolrespons} is then after antenna and sideband folding, but before the backend. 
-
-\FIXME{Check if pol and rot can be run after mixer.}
+Several sensor parts can have a polarisation varying response, but there is normally a single part that dominates the polarisation response. The normal case for the instrument type considered here is that the mixer is only sensitive to a single polarisation, and the natural time to apply Equation~\ref{eq:sensor:pol:response} or \ref{eq:sensor:pol:rotpolrespons} is then after the antenna, but before the sideband folding and the backend. 
 
 \subsection{Polarisation response}
 \label{sec:sensor:pol:polarisation}
@@ -394,7 +391,7 @@ A rotating sensor configuration can be modelled by rotating the sensor frame bet
   \end{array} \right].
 \end{equation}
 
-In ARTS the rotation angles $\chi$ is stored in the vector \artsstyle{sensor\_rot}, and is used to assign a rotation angle for each antenna line-of-sight. \FIXME{Constant rotation?} From Equation~\ref{eq:sensor:pol:rotpolrespons} it can be seen that the rotation should be applied to the incoming intensities before the polarisation, therefor the call to \artsstyle{sensor\_responseRotation} must precede the call to the polarisation WSM in the control file. Since the rotation WSM does not know anything about viewing directions it must also be placed after the antenna function. 
+In ARTS the rotation angles $\chi$ is stored in the vector \artsstyle{sensor\_rot}, and is used to assign a rotation angle for each antenna line-of-sight. If the rotation is constant the \artsstyle{sensor\_rot} vector can contain a single element describing that rotation angle. From Equation~\ref{eq:sensor:pol:rotpolrespons} it can be seen that the rotation should be applied to the incoming intensities before the polarisation, therefor the call to \artsstyle{sensor\_responseRotation} must precede the call to the polarisation WSM in the control file. Since the rotation WSM does not know anything about viewing directions it must also be placed after the antenna function. 
 
 
 %------------------------------------------
@@ -410,13 +407,17 @@ sensor_responseMixer( matrix_1 ) {}
 \end{verbatim}
 The method \artsstyle{sensor\_responseMixer} changes the sensor response grid for frequencies to be in IF, this grid is also stored in \artsstyle{f\_mixer}. Depending on the RF grid configuration, the conservation of all spectral values in RF may increase the number of grid points in IF.
 
-\subsection{Multiple mixers with single backend}
-For a sensor configuration studying more than one polarisation it is sometimes desirable to specify several different mixers. To make this efficient the backend response is also added directly to the mixer response, and this is handled by the method \artsstyle{sensor\_responseMultiMixerBackend}. For each polarisation a \aFrq{\mathrm{LO}} is specified folding the spectra as in Equation~\ref{eq:sensor:sum:I_IF}. Also $w_\mathrm{sb}$ can be given different weights for the different polarisations, these have to be given for the same relative grid and should be stored as subsequent columns in the generic input matrix.
-This method also applies the backend response to the spectra, this means a weighting over frequencies, see Equation~\ref{eq:sensor:weight:spectrometer}. Formally we can write the resulting sensor response as the product of the mixer and backend responses,
+\subsection{Multiple mixers with single backends}
+For a sensor configuration with several channels which are related to different mixers a special WSM have been designed \artsstyle{sensor\_responseMultiMixerBackend}. 
+This method works a bit different from the individual mixer and backend WSM. In this method each channel is related to a polarisation state, a local oscillator and a backend frequency channel. These three variables have to be declared for each channel, even if they are equal for some of the channels. 
+% For a sensor configuration studying more than one polarisation it is sometimes desirable to specify several different mixers. To make this efficient the backend response is also added directly to the mixer response, and this is handled by the method \artsstyle{sensor\_responseMultiMixerBackend}. 
+The WSV that hold these variables are \artsstyle{sensor\_pol}, \artsstyle{lo} and \artsstyle{f\_backend}, and these should all have the same number of rows/length.
+For each channel the specified polarisation state is constructed from the Stokes vector, and a \aFrq{\mathrm{LO}} is specified folding the spectra as in Equation~\ref{eq:sensor:sum:I_IF}. The $w_\mathrm{sb}$ can be given different weights for the different channels, these have to be given for the same relative grid and should be stored as subsequent columns in the generic input matrix.
+This method also applies the backend response to the spectra, this means a weighting over frequencies see Equation~\ref{eq:sensor:weight:spectrometer}, with the possibility of using different backend responses for the different channels. Formally we can write the resulting sensor response as the product of the mixer and backend responses,
 \begin{equation}
 \aSnsMtr{\mathrm{out}} = \aSnsMtr{\mathrm{backend}} \aSnsMtr{\mathrm{mixer}}
 \end{equation}
-This implies that the backend channel characteristics, $w_\mathrm{b}$, and the channel frequencies, \aFrq{\mathrm{ch}}, has to be stored in their WSV prior to calling the WSM. This method operates in RF therefor \aFrq{\mathrm{ch}} also has to be given in that domain, this also set the new sensor response frequency grid to be in RF. For more information about the backend response see Section~\ref{sec:sensor:backend}.
+This implies that the backend channel characteristics, $w_\mathrm{b}$, and the channel frequencies, \aFrq{\mathrm{ch}}, has to be stored in their WSV prior to calling the WSM. This method operates in RF therefore \aFrq{\mathrm{ch}} also has to be given in that domain, this also set the new sensor response frequency grid to be in RF. An important difference to the \artsstyle{sensor\_responseBackend} method is that the backend response is given as a single matrix instead of an array of  matrices. For more information about the backend response see Section~\ref{sec:sensor:backend}.
 
 \subsection{Conversion of IF to RF}
 Since the mixer methods change the sensor response grid into IF, it can sometimes be convenient to be able to convert them back into the RF domain for a more understandable result. This is also a necessary step to perform if the radiances are to be converted into brightness temperatures. The conversion is done by the method \artsstyle{ConvertIFToRF} that given the keyword for which sideband to return, changes the sensor response frequency grid and if necessary re-orders the spectral values. If the IF grid is unfolded to double sidebands the number of grid points in RF will be twice as many as in IF, thus increasing the size of the sensor response frequency vector and the measurement vector. This method only works for single mixer configurations where there is only one $\nu_\mathrm{LO}$ given.

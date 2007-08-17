@@ -1,3 +1,29 @@
+2007-08-17  Mattias Ekstrom  <mattias.ekstrom@chalmers.se>
+
+	* arts-1-1-1174
+
+	* src/sensor.{cc,h}: Fixed some bugs in multi_mixer_matrix and 
+	changed it so that polarisation states, lo- and backend frequencies
+	are now coupled. These of course decreased the number of iterations
+	and also give a more compact output.
+	The backend channel response is given in a single Matrix, instead
+	of and ArrayOfMatrix as for the individual Backend method.
+
+	* src/m_sensor.cc: Changed the input from ArrayOfMatrix to Matrix
+	for the channel backend response, and modified some of the tests
+	to account for the coupling of polarisation, lo- and backend
+	frequencies.
+
+	* src/methods.cc: Changed the declaration of the input and the 
+	description of the method.
+
+	* doc/uguide/sensor.tex: Added reference to the sensor modelling
+	paper in Internat. J. of Remote Sensing. Fixed some FIXMEs and 
+	rewrote the multi-mixer section.
+
+	* doc/uguide/references.bib: Added entry for the sensor response
+	paper; eriksson:06.
+
 2007-08-10  Mathias Milz  <mathias.milz@ltu.se>
 
 	*  arts-1-1-1173

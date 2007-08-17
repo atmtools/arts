@@ -5250,34 +5250,32 @@ md_data_raw.push_back
          "where the first column should hold frequencies and the following\n"
          "columns describe the sideband filter function for each polarisation."
          "\n\n"
-         "The local oscillator frequencies is set by the WSV *lo* which\n"
-         "should have the same length as number of polarisations.\n"
+         "The local oscillator frequencies is set by the WSV *lo* and the\n"
+         "backend channel frequencies by *f_backend* which should both have\n"
+         "the same length as the number of rows of *sensor_pol*.\n"
          "\n"
-         "The channel response is given as the generic input array of\n"
-         "matrices, where each element in the array represent different\n"
-         "polarisations given by *sensor_pol*. The individual matrices\n"
-         "describe the channel responses as function of frequency, where the\n"
-         "first column describes a relative grid of frequencies and the rest\n"
-         "of the columns describe the backend response.\n"
+         "The channel response is given as the generic input matrix.\n"
+         "The first column describes a relative grid of frequencies and the rest\n"
+         "of the columns describe the backend responses.\n"
          "\n"
          "For each level, the response can be described in two ways. Either\n"
-         "one single array element/matrix column is given and then used for\n"
-         "each polarisation/frequency. Or a complete set of array\n"
-         "elements/matrix columns covering all polarisations/frequencies are\n"
-         "given and in each case a individual response will be used.\n"
+         "one single matrix column is given and then used for each\n"
+         "polarisation/frequency. Or a complete set of columns covering all\n"
+         "polarisations/frequencies are given and in each case a individual\n"
+         "response will be used.\n"
          "Note that for both cases there must allways be a column in the\n"
          "matrices, the first, of a relative frequency grid.\n"
          "\n"
          "Generic Input: \n"
          "         Matrix : The sideband filter response matrix.\n"
-         "  ArrayOfMatrix : The backend channel response.\n"
+         "         Matrix : The backend channel response.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( sensor_response_, sensor_response_f_, f_mixer_ ),
         INPUT( sensor_response_pol_, sensor_response_za_, sensor_response_aa_,
                lo_, sensor_norm_, f_backend_, sensor_pol_ ),
         GOUTPUT( ),
-        GINPUT( Matrix_, ArrayOfMatrix_ ),
+        GINPUT( Matrix_, Matrix_ ),
         KEYWORDS( ),
         TYPES( )));
 

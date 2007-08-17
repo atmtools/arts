@@ -82,7 +82,7 @@ void multi_mixer_matrix(
      ConstVectorView        f_ch,
      ConstVectorView        lo,
      ConstMatrixView        sb_filter,
-     const ArrayOfMatrix&   ch_resp,
+     ConstMatrixView        ch_resp,
      const Index&           n_za,
      const Index&           n_aa,
      const Index&           n_pol,
