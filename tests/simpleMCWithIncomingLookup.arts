@@ -56,7 +56,7 @@ ReadXML(abs_lookup){
 filename="data/gas_abs_lookup_adapted.xml.generated"
 }
 
-abs_speciesSet{
+SpeciesSet(abs_species){
 species=["O2","N2","H2O"]
 }
 

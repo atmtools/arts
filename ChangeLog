@@ -1,3 +1,108 @@
+2007-08-27  Stefan Buehler  <sbuehler@irv.se>
+
+	* arts-1-1-1175
+
+	* ATTENTION: You have to modify your controlfile to run with this
+	ARTS version: Change 
+	"abs_speciesSet{...}" to
+	"SpeciesSet(abs_species){...}".
+
+	* Quite big changes in absorption part:
+
+	* The Lookup table should be fully functional now, including
+	cross-dependence of oxygen absorption on H2O. (This was achieved
+	by redefining the meaning of nonlinear species. Now it means that
+	H2O VMR is varied for these species, not the VMR of the species
+	itself. This is less general than what we had originally in mind,
+	but covers all relevant cases in the Earth's atmosphere, I believe.)
+
+	* Rewritten code to use physical cross-sections instead of
+	pseudo cross-sections (see below).
+	
+	* Workspace method changes:
+	
+	* abs_coefCalcFromXsec: Adapted to xsec beeing real cross-sections
+	in units of m^2. (Absorption alpha is xsec*n*VMR.)
+
+	* abs_lookupCreate: Changed definition of nonlinear species. It
+	now means that cross sections are stored for different H2O VMR
+	values. (The perturbing gas is always H2O, not the nonlinear
+	species itself.) This is the case that we need in practice. 
+	The method no longer uses abs_h2o as input, since this is set
+	internally. 
+	The species list has to contain H2O, otherwise an error is
+	thrown. (In principle one could do without H2O, but then only
+	without nonlinear species. And then we would need the reference
+	H2O profile again, which causes a mess.)
+
+	* abs_nlsSet: Removed, this functionality is now provided by the
+	generic method SpeciesSet.
+
+	* abs_speciesSet: Renamed to SpeciesSet.
+
+	* SpeciesSet: Sets any variable of type ArrayOfArrayOfSpeciesTag,
+	can be used instead of the old abs_nlsSet and abs_speciesSet.
+
+	* abs_xsec_per_speciesAddConts: Adapted to using real cross
+	sections (see above).
+
+	* Workspace variable changes:
+
+	* abs_nls: Now is an ArrayOfArrayOfSpeciesTag, no longer an
+	ArrayOfIndex. 
+
+	* abs_nls_pert: Fixed online documentation.
+	
+	* abs_t_pert: Fixed online documentation.
+
+	* abs_xsec_per_species: Now contains real absorption
+	cross-sections (see above). Also fixed online documentation.
+	
+	* File changes:
+	
+	* src/abs_species_tags.cc (get_tagindex_for_Strings): Now uses
+	SpeciesSet instead of abs_speciesSet.
+
+	* src/absorption.cc (xsec_species): Now uses real absorption
+	cross-sections (see above).
+
+	* src/continua.cc (xsec_continuum_tag): Adapted to use real
+	absorption cross-sections (see above). ATTENTION: Coninuum
+	functions internally still use the old pseudo-crosssections (now
+	renamed to pxsec), because it would have been too much mess to go
+	through all functions.
+
+	* src/gas_abs_lookup.cc (Extract): The varied species is now always
+	H2O. 
+
+	* src/gas_abs_lookup.h: Kicked out the member *affected_species*,
+	which is no longer needed. (This was never really used, but I
+	planned to use it when I put it in.)
+
+	* src/logic.cc (is_unique): Added.
+
+	* src/logic.h (is_unique): Added.
+
+	* src/m_abs.cc (abs_coefCalc): Adapted to use real
+	absorption cross-sections (see above). 
+	(abs_coefCalcSaveMemory): Ditto.
+	(abs_coefCalcFromXsec): Ditto.
+
+	* src/m_abs_lookup.cc (abs_lookupCreate): Adapted to use real
+	absorption cross-sections (see above). The varied species is now
+	always H2O.
+	(SpeciesSet): Is now generic, used to be called abs_speciesSet.
+
+	* src/physics_funcs.cc (number_density): Changed assert to ensure
+	that T>0 (used to be T>=0), because T is in the denominator.
+
+	* src/xml_io_compound_types.cc (xml_write_to_stream): Changed
+	"NonLinear..." to "Nonlinear..." in output tag, to be consistent with
+	internal variable name "nonlinear_...".
+
+	* tests/: Replaced "abs_speciesSet{...}" by
+	"SpeciesSet(abs_species){...}" in all control files.
+
 2007-08-17  Mattias Ekstrom  <mattias.ekstrom@chalmers.se>
 
 	* arts-1-1-1174

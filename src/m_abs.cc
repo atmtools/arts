@@ -47,6 +47,7 @@
 #include "physics_funcs.h"
 #include "continua.h"
 #include "make_vector.h"
+#include "check_input.h"
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1837,7 +1838,9 @@ void abs_coefCalc(// WS Output:
   abs_coefCalcFromXsec(abs_coef,
                        abs_coef_per_species,
                        abs_xsec_per_species,
-                       abs_vmrs );
+                       abs_vmrs,
+                       abs_p,
+                       abs_t);
 
 }
 
@@ -1936,7 +1939,9 @@ void abs_coefCalcSaveMemory(// WS Output:
       abs_coefCalcFromXsec(this_abs,
                            this_abs_coef_per_species,
                            abs_xsec_per_species,
-                           this_vmr );
+                           this_vmr,
+                           abs_p,
+                           abs_t);
 
       // Add absorption of this species to total absorption:
       assert(abs_coef.nrows()==this_abs.nrows());
@@ -1948,11 +1953,13 @@ void abs_coefCalcSaveMemory(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_coefCalcFromXsec(// WS Output:
-                          Matrix&                         abs_coef,
-                          ArrayOfMatrix&                  abs_coef_per_species,
-                          // WS Input:                 
-                          const ArrayOfMatrix&            abs_xsec_per_species,
-                          const Matrix&                   abs_vmrs)
+                          Matrix&              abs_coef,
+                          ArrayOfMatrix&       abs_coef_per_species,
+                          // WS Input:         
+                          const ArrayOfMatrix& abs_xsec_per_species,
+                          const Matrix&        abs_vmrs,
+                          const Vector&        abs_p,
+                          const Vector&        abs_t)
 {
   // Check that abs_vmrs and abs_xsec_per_species really have compatible
   // dimensions. In abs_vmrs there should be one row for each tg:
@@ -1976,6 +1983,11 @@ void abs_coefCalcFromXsec(// WS Output:
          << "abs_xsec_per_species[0].ncols() = " << abs_xsec_per_species[0].ncols();
       throw runtime_error(os.str());
     }  
+
+  // Check dimensions of abs_p and abs_t:
+  chk_size("abs_p", abs_p, abs_vmrs.ncols());
+  chk_size("abs_t", abs_t, abs_vmrs.ncols());
+
   
   // Initialize abs_coef and abs_coef_per_species. The array dimension of abs_coef_per_species
   // is the same as that of abs_xsec_per_species. The dimension of abs_coef should
@@ -1999,16 +2011,19 @@ void abs_coefCalcFromXsec(// WS Output:
       // Loop through all altitudes
       for ( Index j=0; j<abs_xsec_per_species[i].ncols(); j++)
         {
+          // Calculate total number density from pressure and temperature.
+          const Numeric n = number_density(abs_p[j],abs_t[j]);
+
           // Loop through all frequencies
           for ( Index k=0; k<abs_xsec_per_species[i].nrows(); k++)
             {
-              abs_coef_per_species[i](k,j) = abs_xsec_per_species[i](k,j) * abs_vmrs(i,j);
+              abs_coef_per_species[i](k,j) = abs_xsec_per_species[i](k,j) * n * abs_vmrs(i,j);
             }
         }
 
       // Add up to the total absorption:
       abs_coef += abs_coef_per_species[i];     // In Matpack you can use the +=
-                                // operator to do elementwise addition.
+                                               // operator to do elementwise addition.
     }
 }
 

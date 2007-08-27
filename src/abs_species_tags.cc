@@ -506,7 +506,7 @@ void get_tagindex_for_Strings(
 
   tags1_index.resize(n2);
   //  cout << "tags2_Strings: " << tags2_Strings << "\n";
-  abs_speciesSet( tags2, tags2_Strings );
+  SpeciesSet( tags2, "tags2", tags2_Strings );
 
   for ( i2=0; i2<n2; i2++ )
   {

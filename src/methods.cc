@@ -223,14 +223,14 @@ void define_md_data_raw()
                     "3. *abs_xsec_per_speciesAddConts* - calculate cross sections per \n"
                     "                   tag group for continua.\n"
                     "Then it calculates the absorption coefficient by multiplying\n"
-                    "the cross section by VMR.\n"
+                    "the cross section by n*VMR.\n"
                     "This is done once for each tag group (output: *abs_coef_per_species*)\n"
                     "and for the sum of all tag group to get the total absorption\n"
                     "coefficient (output: *abs_coef*)\n"
                    ),
         AUTHORS( "Stefan Buehler", "Axel von Engeln" ),
         OUTPUT( abs_coef_, abs_coef_per_species_ ),
-        INPUT( abs_xsec_per_species_, abs_vmrs_ ),
+        INPUT( abs_xsec_per_species_, abs_vmrs_, abs_p_, abs_t_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -750,8 +750,26 @@ void define_md_data_raw()
       ( NAME("abs_lookupCreate"),
         DESCRIPTION
         (
-         "Creates a gas absorption lookup table. FIXME: Description\n"
-        ),
+         "Creates a gas absorption lookup table.\n"
+         "\n"
+         "The lookup table stores absorption cross-sections as a function of\n"
+         "pressure. Additionally, absorption can be stored as a function of\n"
+         "temperature for temperature perturbations from a reference\n"
+         "profile. \n"
+         "\n"
+         "Additionally, absorption can be stored as a function of water vapor\n"
+         "VMR perturbations from a reference profile. The variable *abs_nls*\n"
+         "specifies, for which species water vapor perturbations should be\n"
+         "generated. \n"
+         "\n"
+         "Note, that the absorbing gas can be any gas, but the perturbing gas is\n"
+         "always H2O.\n"
+         "\n"
+         "In contrast to other absorption functions, this method does not use\n"
+         "the input variable *abs_h2o*. This is because *abs_h2o* has to be set\n"
+         "interally to allow perturbations. If there are more than one H2O\n"
+         "species, the first is assumed to be the main one.\n"
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_lookup_, abs_lookup_is_adapted_ ),
         INPUT( abs_species_, 
@@ -765,7 +783,6 @@ void define_md_data_raw()
                abs_t_pert_, 
                abs_nls_pert_,
                abs_n2_,
-               abs_h2o_,
                abs_cont_names_,
                abs_cont_models_, 
                abs_cont_parameters_
@@ -793,37 +810,6 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("abs_nlsSet"),
-        DESCRIPTION
-        (
-         "Defines the list of species with non-linear treatment in absorption\n"
-         "lookup table. \n"
-         "\n"
-         "Usually, nonlinear treatment only is necessary for H2O, because its\n"
-         "concentration in the lower troposphere can be so high. The output of\n"
-         "this method, *abs_nls*, contains indices to elements of *abs_species*,\n"
-         "so *abs_species* is needed as input here. The requested species for\n"
-         "non-linear treatment must be contained in *abs_species*, otherwise an\n"
-         "error is thrown.\n"
-         "\n"
-         "Keywords:\n"
-         "   species : Specify one String for each species for which you want\n"
-         "             non-linear treatment. Inside the String, separate the\n"
-         "             tags by commas (plus optional blanks).\n"
-         "\n"
-         "Usage Example:\n"
-         "   abs_nlsSet{[\"H2O-PWR98\"]}\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUTPUT( abs_nls_ ),
-        INPUT( abs_species_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( "names" ),
-        TYPES(    Array_String_t   )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -927,11 +913,11 @@ void define_md_data_raw()
         (
          "Adds species tag groups to the list of absorption species.\n"
          "\n"
-         "This WSM is similar to *abs_speciesSet*, the only difference is that\n"
+         "This WSM is similar to *SpeciesSet*, the only difference is that\n"
          "this method appends species to an existing list of absorption species instead\n"
          "of creating the whole list.\n"
          "\n"
-         "See *abs_speciesSet* for details on how tags are defined and examples of\n"
+         "See *SpeciesSet* for details on how tags are defined and examples of\n"
          "how to input them in the control file.\n"
          "\n"
          "Keywords:\n"
@@ -1015,16 +1001,16 @@ void define_md_data_raw()
   // This is duplicate with the 1-0 method tgsDefine. Merge!
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_speciesSet"),
+      ( NAME("SpeciesSet"),
         DESCRIPTION
         (
-         "Set up the list of absorption species tag groups.\n"
+         "Set up a list of absorption species tag groups.\n"
          "\n"
-         "The workspace variable *abs_species* contains several tag groups. Each\n"
-         "tag group contain one or more tags. This method converts descriptions\n"
-         "of tag groups given in the keyword to the internal representation of\n"
-         "*abs_species*. A tag group selects spectral features which belong to\n"
-         "the same species.\n"
+         "Workspace variables like *abs_species* contain several tag\n"
+         "groups. Each tag group contains one or more tags. This method converts\n"
+         "descriptions of tag groups given in the keyword to the ARTS internal\n"
+         "representation (an *ArrayOfArrayOfSpeciesTag*). A tag group selects\n"
+         "spectral features which belong to the same species.\n"
          "\n"
          "A tag is defined in terms of the name of the species, isotope, and a\n"
          "range of frequencies. Species are named after the standard chemical\n"
@@ -1037,10 +1023,15 @@ void define_md_data_raw()
          "frequency range and isotope may be omitted.\n"
          "\n"
          "Finally, instead of the isotope the special letter \"nl\" may be given,\n"
-         "e.g., \"H2O-nl\". This means that no lines of this species should be\n"
-         "included in the general line-by-line calculation. This feature is\n"
-         "useful if you want to define a tag group just for a continuum, or for\n"
-         "a complete absorption model.\n"
+         "e.g., \"H2O-nl\". This means that no absorption at all is associated\n"
+         "with this tag. (It is not quite clear if this feature is useful for\n"
+         "anything right now.)\n"
+         "\n"
+         "This method used to be a specific method for *abs_species*. Now it is\n"
+         "generic, so that it can also be used to set *abs_nls* and *abs_pts*.\n"
+         "\n"
+         "Generic Output:\n"
+         "   ArrayOfArrayOfSpeciesTag : Output tag groups.\n"
          "\n"
          "Keywords:\n"
          "   species : Specify one String for each tag group that you want to\n"
@@ -1051,69 +1042,24 @@ void define_md_data_raw()
          "\n"
          "   species = [ \"O3-666-500e9-501e9, O3-686\",\n"
          "               \"O3\",\n"
-         "               \"H2O-nl\" ]\n"
+         "               \"H2O-PWR98\" ]\n"
          "\n"
          "   The first tag group selects all O3-666 lines between 500 and\n"
          "   501 GHz plus all O3-686 lines.  \n"
          "\n"
          "   The second tag group selects all remaining O3 transitions.\n"
          "\n"
-         "   The third tag group selects H2O, but will not put any lines in the\n"
-         "   line list for this species. Presumably, we are using a complete\n"
-         "   absorption model like MPM89 for H2O in this case.\n"
+         "   The third tag group selects H2O, with one of the complete\n"
+         "   absorption models (Rosenkranz 98). No spectrocopic line catalogue\n"
+         "   data will be used for that third tag group.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( abs_species_ ),
+        OUTPUT(),
         INPUT(),
-        GOUTPUT(),
+        GOUTPUT(  ArrayOfArrayOfSpeciesTag_ ),
         GINPUT(),
         KEYWORDS( "species" ),
         TYPES(    Array_String_t   )));
- 
-  // New name: abs_speciesSet
-  // This is duplicate with the 1-1 method abs_species set. Merge!
-//  md_data.push_back
-//    ( MdRecord
-//      ( NAME("tgsDefine"),
-//        DESCRIPTION
-//        (
-//         "Set up the list of tag groups.\n"
-//         "\n"
-//         "The workspace variable *tgs* contains several tag groups. Each \n"
-//         "tag group contain one or more tags. This method converts \n"
-//         "description of tag groups  given in the keyword to the internal \n"
-//         "representation *tgs*. A tag group selects spectral features which \n"
-//         "belong to the same species. \n"
-//         "   A tag group can contain a mixture of general and special \n"
-//         "tags.  All the continuum tags belong to the special tags and \n"
-//         "the rest come under the general tags.\n"
-//         "   A general tag is defined in terms of the name of the species,\n"
-//         "isotope and a range of frequencies. Species are named after the \n"
-//         "standard chemical names,e.g., \"O3\".  Isotopes are given by the \n"
-//         "last digit of the atomic weight, i.e., \"O3-668\" for the \n"
-//         "asymmetric ozone molecule including an oxygen 18 atom.  Groups\n"
-//         "of transitions are specified by giving a lower and upper limit \n"
-//         "of a frequency range,\"O3-666-500e9-501e9\".Moreover the symbol\n"
-//         "'*' acts as a wild card. Furthermore, frequency range or frequency\n"
-//         "range and isotope may be omitted.\n"
-//         "Example for some tag groups containing only general tags:\n"
-//         "tags = [\"O3-666-500e9-501e9, O3-686\",\"O3\"]\n"
-//         "The first tag group consist of all O3-666 lines between 500 and\n"
-//         "501 GHz plus all O3-686 lines.  The second tag group will contain\n"
-//         "all remaining O3 transitions.\n"
-//         "\n"
-//         "Keywords:\n"
-//         "   tags : Specify one String for each tag group that you want to create.\n"
-//         "   Inside the String, separate the tags by comma (plus optional blanks).\n"
-//         "   Example:\n"
-//         "   tag = [\"O3-686\",\"H2O\"]\n"
-//        ),
-//        OUTPUT( tgs_ ),
-//        INPUT(),
-//        GOUTPUT(),
-//        GINPUT(),
-//        KEYWORDS( "tags" ),
-//        TYPES(    Array_String_t   )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1189,7 +1135,7 @@ void define_md_data_raw()
     ( MdRecord
       ( NAME("abs_xsec_per_speciesAddConts"),
         DESCRIPTION(
-                    "Calculate cross sections per tag group for continua.\n"
+                    "Calculate absorption cross sections per tag group for continua.\n"
                    ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_xsec_per_species_ ),

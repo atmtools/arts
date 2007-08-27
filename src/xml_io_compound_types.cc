@@ -104,14 +104,14 @@ xml_write_to_stream (ostream& os_xml,
 
   xml_write_to_stream (os_xml, gal.species, pbofs);
   xml_write_to_stream (os_xml, gal.nonlinear_species, pbofs,
-                       "NonLinearSpecies");
+                       "NonlinearSpecies");
   xml_write_to_stream (os_xml, gal.f_grid, pbofs, "FrequencyGrid");
   xml_write_to_stream (os_xml, gal.p_grid, pbofs, "PressureGrid");
   xml_write_to_stream (os_xml, gal.vmrs_ref, pbofs, "ReferenceVmrProfiles");
   xml_write_to_stream (os_xml, gal.t_ref, pbofs, "ReferenceTemperatureProfile");
   xml_write_to_stream (os_xml, gal.t_pert, pbofs, "TemperaturePertubations");
   xml_write_to_stream (os_xml, gal.nls_pert, pbofs,
-                       "NonLinearSpeciesVmrPertubations");
+                       "NonlinearSpeciesVmrPertubations");
   xml_write_to_stream (os_xml, gal.xsec, pbofs, "AbsorptionCrossSections");
 
   close_tag.set_name ("/GasAbsLookup");

@@ -84,6 +84,8 @@ bool is_increasing( const ArrayOfIndex&   x );
 
 bool is_decreasing( ConstVectorView   x );
 
+bool is_unique( const ArrayOfIndex&   x );
+
 bool is_singular( ConstMatrixView A );
 
 bool is_diagonal( ConstMatrixView A );

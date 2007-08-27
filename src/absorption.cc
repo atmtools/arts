@@ -1925,7 +1925,8 @@ bool LineRecord::ReadFromArtsStream(istream& is)
     Continua are not handled by this function, you have to call
     xsec_continuum_tag for those.
 
-    \retval xsec   Cross section of one tag group.
+    \retval xsec   Cross section of one tag group. This is now the
+                   true absorption cross section in units of m^2.
     \param f_grid  Frequency grid.
     \param abs_p   Pressure grid.
     \param abs_t   Temperatures associated with abs_p.
@@ -1935,7 +1936,13 @@ bool LineRecord::ReadFromArtsStream(istream& is)
     \param ind_ls  Lineshape specifications.
 
     \author Stefan Buehler and Axel von Engeln
-    \date   2001-01-11 */
+    \date   2001-01-11 
+
+    Changed from pseudo cross sections to true cross sections
+
+    \author Stefan Buehler 
+    \date   2007-08-08 
+*/
 void xsec_species( MatrixView               xsec,
                    ConstVectorView          f_grid,
                    ConstVectorView          abs_p,
@@ -2091,7 +2098,9 @@ void xsec_species( MatrixView               xsec,
 
       // Calculate total number density from pressure and temperature.
       // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
-      Numeric n = p_i / BOLTZMAN_CONST / t_i;
+      //      const Numeric n = p_i / BOLTZMAN_CONST / t_i;
+      // This is not needed anymore, since we now calculate true cross
+      // sections, which do not contain the n.
 
       // For the pressure broadening, we also need the partial pressure:
       const Numeric p_partial = p_i * vmr[i];
@@ -2316,14 +2325,16 @@ void xsec_species( MatrixView               xsec,
               {
                 // To make the loop a bit faster, precompute all constant
                 // factors. These are:
-                // 1. Total number density of the air.
+                // 1. Total number density of the air. --> Not
+                //    anymore, we now to real cross-sections
                 // 2. Line intensity.
                 // 3. Isotopic ratio.
                 //
                 // The isotopic ratio must be applied here, since we are
                 // summing up lines belonging to different isotopes.
 
-                const Numeric factors = n * intensity * l_l.IsotopeData().Abundance();
+                //                const Numeric factors = n * intensity * l_l.IsotopeData().Abundance();
+                const Numeric factors = intensity * l_l.IsotopeData().Abundance();
 
                 // We have to do:
                 // xsec(j,i) += factors * ls[j1] * fac[j1];

@@ -147,6 +147,11 @@ void chk_not_empty(
         const String&      x_name,
         const Agenda&      x );
 
+
+/*===========================================================================
+  === Template Functions for Arrays
+  ===========================================================================*/
+
 //! Check if an array contains a value.
 /*!
   This makes sure that the array *x* contains the element with
@@ -205,6 +210,40 @@ Index chk_contains( const String&   x_name,
 
   return -1;
 }
+
+//! Check the size of an array.
+/*! 
+    Checks the size of an Array. Cloned from
+    Patricks similar function for Vector.
+
+    The function throws a runtime_error if the size is not correct.  
+
+    This is a template function that works for any array type.
+
+    \param    x_name   The name of the variable.
+    \param    x        A variable of type ArrayOfIndex.
+    \param    c        The size to match
+
+    \author Stefan Buehler
+    \date   2007-05-18
+*/
+template <class T>
+void chk_size( const String&   x_name,
+               const Array<T>& x,
+               const Index&    c ) 
+{
+  if ( x.nelem() != c )
+    {
+      ostringstream os;
+      os << "The array *" << x_name << "*\n"
+         << "does not have the right size.\n"
+         << "The size should be: " << c << "\n" 
+         << "but it is:          " << x.nelem();
+      throw runtime_error( os.str() );
+    }
+}
+
+
 
 /*===========================================================================
   === Functions for Tensors

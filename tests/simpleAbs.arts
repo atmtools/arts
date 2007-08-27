@@ -40,7 +40,7 @@ VectorNLogSpace(p_grid){
 #
 # The continuum tags are special, since continua are not added by
 # default. Thus, just selecting "H2O" will give you no continuum. 
-abs_speciesSet{
+SpeciesSet(abs_species){
       [ "H2O-PWR98",
 	 "O2-PWR93",
 	 "N2-SelfContStandardType" ] 
@@ -117,8 +117,8 @@ abs_cont_descriptionAppend{
 #abs_coefCalc {}
 
 # Select species for non-linear treatment in lookup table:
-abs_nlsSet{[]}
-#abs_nlsSet{["H2O-PWR98"]}
+SpeciesSet(abs_nls){[]}
+#SpeciesSet(abs_nls){["H2O-PWR98"]}
 
 # Set tempertature perturbation vector for lookup table:
 VectorSetExplicitly(abs_t_pert){[]}

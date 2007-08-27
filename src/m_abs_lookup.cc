@@ -52,7 +52,7 @@ void abs_lookupCreate(// WS Output:
                       const ArrayOfArrayOfSpeciesTag& abs_species,
                       const ArrayOfArrayOfLineRecord& abs_lines_per_species,
                       const ArrayOfLineshapeSpec&     abs_lineshape,
-                      const ArrayOfIndex&             abs_nls,
+                      const ArrayOfArrayOfSpeciesTag& abs_nls_tags,
                       const Vector&                   f_grid,
                       const Vector&                   abs_p,
                       const Matrix&                   abs_vmrs,
@@ -60,7 +60,6 @@ void abs_lookupCreate(// WS Output:
                       const Vector&                   abs_t_pert,
                       const Vector&                   abs_nls_pert, 
                       const Vector&                   abs_n2,            
-                      const Vector&                   abs_h2o,           
                       const ArrayOfString&            abs_cont_names,    
                       const ArrayOfString&            abs_cont_models,   
                       const ArrayOfVector&            abs_cont_parameters )
@@ -76,15 +75,15 @@ void abs_lookupCreate(// WS Output:
   // Absorption coefficients:
   Matrix these_abs_coef;
 
-  // "Cross sections" per tag group. These are not real
-  // cross-sections, but the old definition, abs/VMR!
+  // Absorption cross sections per tag group. 
   ArrayOfMatrix abs_xsec_per_species;
+
 
   // 2. Determine various important sizes:
   const Index n_species = abs_species.nelem();   // Number of abs species
-  const Index n_nls = abs_nls.nelem();           // Number of nonlinear species
+  const Index n_nls = abs_nls_tags.nelem();           // Number of nonlinear species
   const Index n_f_grid = f_grid.nelem();         // Number of frequency grid points
-  const Index n_p_grid = abs_p.nelem();         // Number of presure grid points
+  const Index n_p_grid = abs_p.nelem();          // Number of presure grid points
   const Index n_t_pert = abs_t_pert.nelem();     // Number of temp. perturbations
   const Index n_nls_pert = abs_nls_pert.nelem(); // Number of VMR pert. for NLS
 
@@ -92,6 +91,7 @@ void abs_lookupCreate(// WS Output:
 
   // Absorption vmrs and temperature:
   Matrix this_vmr(1,n_p_grid);
+  Vector abs_h2o(n_p_grid);
   Vector this_t(n_p_grid);
 
   // Species list, lines, and line shapes, all with only 1 element:
@@ -103,14 +103,20 @@ void abs_lookupCreate(// WS Output:
   Vector these_nls_pert;        // Is resized every time when used
   Vector these_t_pert;          // Is resized later on
 
-  // 3.a Set up a logical array for the nonlinear species
-  ArrayOfIndex non_linear(n_species,0);
-  for ( Index s=0; s<n_nls; ++s )
-    {
-      non_linear[abs_nls[s]] = 1;
-    }
-
   // 4. Checks of input parameter correctness:
+
+  // At least one species must be H2O. We will use that to set
+  // h2o_abs, and to perturb in the case of nonlinear species.
+  const Index h2o_index 
+    = find_first_species_tg( abs_species,
+                             species_index_from_species_name("H2O") );
+
+  if ( h2o_index == -1 )
+    {
+      ostringstream os;
+      os << "At least one species must be a H2O species.";
+      throw runtime_error( os.str() );
+    }
 
   // abs_species, f_grid, and p_grid should not be empty:
   if ( 0==n_species ||
@@ -125,27 +131,37 @@ void abs_lookupCreate(// WS Output:
       throw runtime_error( os.str() );
     }
 
-  // abs_nls must not be longer than abs_species, strictly increasing,
-  // and point inside abs_species: 
-  if (0!=n_nls)
+  // Set up the index array abs_nls from the tag array
+  // abs_nls_tags. Give an error message if these
+  // tags are not included in abs_species. 
+  ArrayOfIndex abs_nls;  
+  for (Index i=0; i<n_nls; ++i)
     {
-      chk_if_in_range( "abs_nls.nelem()",
-                       n_nls, 
-                       0, 
-                       n_species );
+      Index s;
+      for (s=0; s<n_species; ++s)
+        {
+          if (abs_nls_tags[i]==abs_species[s])
+            {
+              abs_nls.push_back(s);
+              break;
+            }
+        }
+      if (s==n_species)
+        {
+          ostringstream os;
+          os << "Did not find *abs_nls* tag group \""
+             << get_tag_group_name(abs_nls_tags[i])
+             << "\" in *abs_species*.";
+          throw runtime_error( os.str() );
+        }
+    }
 
-      chk_if_increasing( "abs_nls",
-                         abs_nls ); 
-
-      chk_if_in_range( "min(abs_nls)",
-                       min(abs_nls), 
-                       0, 
-                       n_species-1 );
-
-      chk_if_in_range( "max(abs_nls)",
-                       max(abs_nls), 
-                       0, 
-                       n_species-1 );
+  // Furthermore abs_nls must not contain duplicate values:
+  if ( !is_unique(abs_nls) )
+    {
+      ostringstream os;
+      os << "The variable *abs_nls* must not have duplicate species.\n";
+      throw runtime_error( os.str() );
     }
 
   // VMR matrix must match species list and pressure levels:
@@ -169,9 +185,17 @@ void abs_lookupCreate(// WS Output:
     }
 
 
+  // 4.a Set up a logical array for the nonlinear species.
+  ArrayOfIndex non_linear(n_species,0);
+  for ( Index s=0; s<n_nls; ++s )
+    {
+      non_linear[abs_nls[s]] = 1;
+    }
+
+
   // 5. Set general lookup table properties:
   gal.species = abs_species;    // Species list
-  gal.nonlinear_species = abs_nls;  // Nonlinear species (H2O)
+  gal.nonlinear_species = abs_nls;  // Nonlinear species   (e.g., H2O, O2)
   gal.f_grid = f_grid;           // Frequency grid
   gal.p_grid = abs_p;          // Pressure grid
   gal.vmrs_ref = abs_vmrs;
@@ -240,7 +264,7 @@ void abs_lookupCreate(// WS Output:
       // whether we have nonlinear species or not.
       if ( non_linear[i] )
         {
-          out2 << "  This is a species with non-linear treatment.\n";
+          out2 << "  This is a species with H2O VMR perturbations.\n";
           these_nls_pert.resize(n_nls_pert);
           these_nls_pert = abs_nls_pert;
         }
@@ -253,19 +277,26 @@ void abs_lookupCreate(// WS Output:
       // Loop these_nls_pert:
       for ( Index s=0; s<these_nls_pert.nelem(); ++s,++spec )
         {
-          // Remeber, spec is the index for the second dimension of gal.xsec
+          // Remember, spec is the index for the second dimension of gal.xsec
           
           if ( non_linear[i] )
             {
-              out2 << "  Doing VMR variant " << s << " of " << n_nls_pert << ": "
+              out2 << "  Doing H2O VMR variant " << s+1 << " of " << n_nls_pert << ": "
                    << abs_nls_pert[s] << ".\n";
             }
 
           // VMR for this species:
-          this_vmr(0,joker) = abs_vmrs(i,joker);
-          this_vmr(0,joker) *= these_nls_pert[s]; // Add perturbation
+          this_vmr(0,joker) = abs_vmrs(i,joker);  
+          if ( i==h2o_index )
+            {
+              //              out3 << "  Species is main H2O species.\n";
+              this_vmr(0,joker) *= these_nls_pert[s]; // Add perturbation
+            }
 
-
+          // For abs_h2o, we can always add the perturbations (it will
+          // not make a difference if the species itself is also H2O)
+          abs_h2o = abs_vmrs(h2o_index, joker);   
+          abs_h2o *= these_nls_pert[s]; // Add perturbation
 
           // Loop temperature perturbations:
           for ( Index j=0; j<these_t_pert.nelem(); ++j )
@@ -313,13 +344,14 @@ void abs_lookupCreate(// WS Output:
               // Loop through all altitudes
               for ( Index p=0; p<n_p_grid; ++p )
                 {
-                  // We have to multiply with VMR here, to get
-                  // absorption coefficient from the arts-1-0
-                  // "xsec" (which are not proper cross sections).
-                  // Then divide by n*VMR to get the lookup table
-                  // cross sections. The VMR cancels out, so we
-                  // just divide by n (total number density).
-                  
+                  gal.xsec( j, spec, Range(joker), p )
+                    = abs_xsec_per_species[0](Range(joker),p);
+
+                  // There used to be a division by the number density
+                  // n here. This is no longer necessary, since
+                  // abs_xsec_per_species now contains true absorption
+                  // cross sections.
+
                   // IMPORTANT: There was a bug in my old Matlab
                   // function "create_lookup.m" to generate the lookup
                   // table. (The number density was always the
@@ -330,13 +362,9 @@ void abs_lookupCreate(// WS Output:
                   // Calculate the number density for the given pressure and
                   // temperature: 
                   // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
-                  const Numeric n = number_density( gal.p_grid[p],
-                                                    this_t[p]   );
-
-                  gal.xsec( j, spec, Range(joker), p )
-                    = abs_xsec_per_species[0](Range(joker),p);
-
-                  gal.xsec( j, spec, Range(joker), p ) /= n;
+                  //                  const Numeric n = number_density( gal.p_grid[p],
+                  //                                                    this_t[p]   );
+                  //                  gal.xsec( j, spec, Range(joker), p ) /= n;
                 }
             }
         }
@@ -478,10 +506,12 @@ void abs_speciesInit( ArrayOfArrayOfSpeciesTag& abs_species )
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_speciesSet(// WS Output:
-                    ArrayOfArrayOfSpeciesTag& abs_species,
-                    // Control Parameters:
-                    const ArrayOfString& names)
+void SpeciesSet(// WS Generic Output:
+                ArrayOfArrayOfSpeciesTag& abs_species,
+                // WS Generic Output Names:
+                const String& abs_species_name,
+                // Control Parameters:
+                const ArrayOfString& names)
 {
   abs_species.resize(names.nelem());
 
@@ -497,7 +527,8 @@ void abs_speciesSet(// WS Output:
     }
 
   // Print list of tag groups to the most verbose output stream:
-  out3 << "  Defined tag groups:";
+  out3 << "  Defined tag groups for "
+       << abs_species_name << ":";
   for ( Index i=0; i<abs_species.nelem(); ++i )
     {
       out3 << "\n  " << i << ":";

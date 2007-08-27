@@ -36,6 +36,7 @@
 #include <algorithm> 
 #include <stdexcept>
 #include "logic.h"
+#include "sorting.h"
 
 
 // For checking, if a Numeric equal zero we have to take into account the
@@ -312,6 +313,29 @@ bool is_decreasing( ConstVectorView   x )
   return true;
 }
 
+
+//! Checks if an ArrayOfIndex is unique, i.e., has no duplicate values
+/*! 
+  
+  This only returns true if the array does not contain any duplicate
+  values.  
+  
+  We sort the data first, then check whether it is strictly increasing.
+  
+  \return      True if unique, otherwise false.
+  \param   x   An ArrayOfIndex.
+  
+  \author Stefan Buehler
+  \date   2008-08-24
+
+*/
+bool is_unique( const ArrayOfIndex&   x )
+{
+  ArrayOfIndex si;
+  get_sorted_indexes(si,x);
+
+  return is_increasing(si);
+}
 
 //! Checks if a square matrix is singular.
 /*! 

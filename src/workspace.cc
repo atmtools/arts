@@ -375,18 +375,38 @@ void define_wsv_data()
        ( NAME( "abs_nls" ),
          DESCRIPTION
          (
-          "Vector containing indices to those species in the species list\n"
-          "*abs_species* that should be treated non-linearly (usually only H2O). FIXME: More...\n"
-         ), 
-         GROUP( ArrayOfIndex_ )));
+          "Nonlinear species for absorption lookup table generation.\n"
+          "\n"
+          "A list of absorption species that should be treated non-linearly.\n"
+          "This means that the H2O VMR should be varied when calculating the\n"
+          "lookup table for those species.\n"
+          "\n"
+          "A typical example is for this to containt the Rosenkranz full\n"
+          "absorption model species for water vapor and oxygen \n"
+          "([\"H2O-PWR98\", \"O2-PWR93\"]).\n"
+          "\n"
+          "It only makes sense to put a species here if is either a water vapor\n"
+          "species, or some other species that uses *h2o_abs*, that is, for which\n"
+          "the absorption coefficient depends directly on water vapor.\n"
+          "\n"
+          "See user guide and online documentation of *abs_pts* and *abs_lookupCreate*\n"
+          "for more details and usage examples.\n"
+          ), 
+         GROUP( ArrayOfArrayOfSpeciesTag_ )));
 
     wsv_data.push_back
       (WsvRecord
        ( NAME( "abs_nls_pert" ),
          DESCRIPTION
          (
-          "Vector containing the fractional perturbations\n"
-          "for the nonlinear species in the abs lookup table. FIXME: More...\n"
+          "Fractional perturbations for the nonlinear species in the absorption\n"
+          "lookup table.\n"
+          "\n"
+          "This is a vector of fractional perturbations that should contain 1\n"
+          "(the unperturbed reference profile). A value of 0 may lead to error\n"
+          "messages from some absorption routines, so a possible content for this\n"
+          "variable is: [1e-24, 1, 2].\n"
+          "(This is similar to *abs_t_pert*, but multiplicative, not additive.)\n"
           ), 
          GROUP( Vector_ )));
 
@@ -395,8 +415,13 @@ void define_wsv_data()
        ( NAME( "abs_t_pert" ),
          DESCRIPTION
          (
-          "Vector containing the temperature perturbations\n"
-          "for the abs lookup table. FIXME: More...\n"
+          "Temperature perturbations for the absorption lookup table.\n"
+          "\n"
+          "This is a vector containing temperature perturbations (in Kelvin) that\n"
+          "should be added to the reference temperature profile. (Similar to\n"
+          "*abs_nls_pert*, but additive, not multiplicative.) Should normally\n"
+          "contain 0, to include the reference profile itself. Example content:\n"
+          "[-5, 0, 5].\n"
           ), 
          GROUP( Vector_ )));
 
@@ -588,11 +613,21 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ("abs_xsec_per_species",
-      "These are the cross sections individually for each tag\n"
-      "group. The Array contains one matrix for each tag group,\n"
-      "the matrix format is the same as that of abs_coef\n",
-      ArrayOfMatrix_));
+     ( NAME( "abs_xsec_per_species" ),
+       DESCRIPTION
+       (
+        "Absorption cross sections.\n"
+        "\n"
+        "This variable contains absorption cross section xsec individually for\n"
+        "each tag group. The Array contains one matrix for each tag group, the\n"
+        "matrix format is the same as that of abs_coef.\n"
+        "\n"
+        "Dimensions: [abs_species](f_grid, abs_p)\n"
+        "\n"
+        "Unit:       m^2 (alpha = xsec * n * VMR),\n"
+        "            where n is total density.\n"
+        ),
+       GROUP( ArrayOfMatrix_ )));
 
   wsv_data.push_back
    (WsvRecord

@@ -169,7 +169,7 @@ Numeric number_density(
         const Numeric&   t )
 {
   assert( p >= 0 );
-  assert( t >= 0 );
+  assert( t > 0 );
   return   p / ( t * BOLTZMAN_CONST );
 }
 

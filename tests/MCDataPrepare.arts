@@ -43,7 +43,7 @@ ReadXML(lon_grid){
 filename="data/lon_grid.xml"
 }
 
-abs_speciesSet{
+SpeciesSet(abs_species){
 species=["O2","N2","H2O"]
 }
 

@@ -327,6 +327,8 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
       // Check if this is a nonlinear species:
       if (non_linear[i_current_species[i]])
         {
+          out3 << "  " << get_tag_group_name( current_species[i] ) << "\n";
+
           current_non_linear[i] = 1;
           ++n_current_nonlinear_species;
         }
@@ -464,7 +466,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   This carries out a simple interpolation in temperature and
   pressure. The interpolated value is then scaled by the ratio between
   actual VMR and reference VMR. In the case of nonlinear species the
-  interpolation goes also over VMR.
+  interpolation goes also over H2O VMR.
 
   All input parameters (f_index, p, T, VMRs for non-linear species)
   must be in the range coverd by the table. Violation will result in a
@@ -532,6 +534,23 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
 
   // 2. First some checks on the lookup table itself:
+
+  // If there are nonlinear species, then at least one species must be
+  // H2O. We will use that to perturb in the case of nonlinear
+  // species.
+  Index h2o_index = -1;
+  if (n_nls>0)
+    {
+      h2o_index = find_first_species_tg( species,
+                                         species_index_from_species_name("H2O") );
+
+      if ( h2o_index == -1 )
+        {
+          ostringstream os;
+          os << "At least one species must be a H2O species.";
+          throw runtime_error( os.str() );
+        }
+    }
 
   // Check that the dimension of vmrs_ref is consistent with species and p_grid:
   assert( is_size( vmrs_ref, n_species, n_p_grid) );
@@ -714,6 +733,55 @@ void GasAbsLookup::Extract( Matrix&         sga,
           gridpos( tgp, t_pert, T_offset );
         }
 
+      // Determine the H2O VMR grid position. We need to do this only
+      // once, since the only species who's VMR is interpolated is
+      // H2O. We do this only if there are nonlinear species, but the
+      // variable has to be visible later.
+      GridPos vgp;       // only a scalar
+      if (n_nls>0)
+        {
+          // Similar to the T case, we first interpolate the reference
+          // VMR to the pressure of extraction, then compare with
+          // the extraction VMR to determine the offset/fractional
+          // difference for the VMR interpolation.
+          
+          const Numeric effective_vmr_ref = interp(pitw,
+                                                   vmrs_ref(h2o_index, Range(joker)),
+                                                   pgp);
+              
+          // Fractional VMR:
+          const Numeric VMR_frac = abs_vmrs[h2o_index] / effective_vmr_ref;
+
+          // Check that VMR_frac is inside the allowed range.
+          {
+            // FIXME: This check depends on how I interpolate VMR.
+            const Numeric x_min = nls_pert[0] - 0.5*(nls_pert[1]-nls_pert[0]); 
+            const Numeric x_max = nls_pert[n_nls_pert-1]
+              + 0.5*(nls_pert[n_nls_pert-1]-nls_pert[n_nls_pert-2]);
+
+            if ( ( VMR_frac > x_max ) ||
+                 ( VMR_frac < x_min ) )
+              {
+                ostringstream os;
+                os << "Problem with gas absorption lookup table.\n"
+                   << "VMR for H2O (species " << h2o_index
+                   << ") is outside the range covered by the lookup table.\n" 
+                   << "Your VMR was " << abs_vmrs[h2o_index]
+                   << " at a pressure of " << p << " Pa.\n"
+                   << "The fractional VMR relative to the reference value is "
+                   << VMR_frac << ".\n"
+                   << "The allowed range is " << x_min << " to " << x_max << ".\n"
+                   << "The fractional VMR perturbation grid range in the table is "
+                   << nls_pert[0] << " to " << nls_pert[n_nls_pert-1] << ".\n"
+                   << "We allow a bit of extrapolation, but NOT SO MUCH!";
+                throw runtime_error( os.str() );
+              }
+          }
+
+          // For now, do linear interpolation in the fractional VMR.
+          gridpos( vgp, nls_pert, VMR_frac );
+        }
+
       // 7. Loop species:
       Index fpi=0;
       for ( Index si=0; si<n_species; ++si )
@@ -721,54 +789,6 @@ void GasAbsLookup::Extract( Matrix&         sga,
           // Flag for VMR interpolation, if this is not 0 we want to
           // do VMR interpolation:
           const Index do_VMR = non_linear[si];
-
-          // Determine VMR grid position. This is only done if we want
-          // VMR interpolation for this species, but the variable has to
-          // be visible later.
-          GridPos vgp;       // only a scalar
-          if (do_VMR)
-            {
-              // Similar to the T case, we first interpolate the reference
-              // VMR to the pressure of extraction, then compare with
-              // the extraction VMR to determine the offset/fractional
-              // difference for the VMR interpolation.
-
-              const Numeric effective_vmr_ref = interp(pitw,
-                                                       vmrs_ref(si,Range(joker)),
-                                                       pgp);
-              
-              // Fractional VMR:
-              const Numeric VMR_frac = abs_vmrs[si] / effective_vmr_ref;
-
-              // Check that VMR_frac is inside the allowed range.
-              {
-                // FIXME: This check depends on how I interpolate VMR.
-                const Numeric x_min = nls_pert[0] - 0.5*(nls_pert[1]-nls_pert[0]); 
-                const Numeric x_max = nls_pert[n_nls_pert-1]
-                  + 0.5*(nls_pert[n_nls_pert-1]-nls_pert[n_nls_pert-2]);
-
-                if ( ( VMR_frac > x_max ) ||
-                     ( VMR_frac < x_min ) )
-                {
-                  ostringstream os;
-                  os << "Problem with gas absorption lookup table.\n"
-                     << "VMR for species " << si
-                     << " is outside the range covered by the lookup table.\n" 
-                     << "Your VMR was " << abs_vmrs[si]
-                     << " at a pressure of " << p << " Pa.\n"
-                     << "The fractional VMR relative to the reference value is "
-                     << VMR_frac << ".\n"
-                     << "The allowed range is " << x_min << " to " << x_max << ".\n"
-                     << "The fractional VMR perturbation grid range in the table is "
-                     << nls_pert[0] << " to " << nls_pert[n_nls_pert-1] << ".\n"
-                     << "We allow a bit of extrapolation, but NOT SO MUCH!";
-                  throw runtime_error( os.str() );
-                }
-              }
-
-              // For now, do linear interpolation in the fractional VMR.
-              gridpos( vgp, nls_pert, VMR_frac );
-            }
 
           // We now have everything that we need to handle all
           // different interpolation cases.

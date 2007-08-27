@@ -20,15 +20,22 @@
 /**
    \file   continua.cc
 
-   This is the file from arts-1-0, back-ported to arts-1-1.
+   Continuum absorption models.
 
-   \retval xsec  Absorption cross section, defined such that the
+   This is the file from arts-1-0, back-ported to arts-1-1.   
+
+   \retval pxsec <b>Internal functions:</b> Return pseudo absorption cross sections, defined such that the
                  absorption coefficient \f$\alpha\f$ (in units of 1/m) is:<br>
-                 \f$\alpha\f$ = xsec * VMR.<br>
-     The absorption model functions adds absorption to xsec, 
-                 rather than replacing the previous content. <br>
-   <br>
-   <br>
+                 \f$\alpha\f$ = pxsec * VMR.<br>
+   \retval xsec  <b>xsec_continuum_tag:</b> Now returns true abosorption
+                 cross sections, defined such that the
+                 absorption coefficient \f$\alpha\f$ (in units of 1/m) is:<br>
+                 \f$\alpha\f$ = xsec * n* VMR, where n is the total
+                 number density.<br>
+
+    The absorption model functions add absorption to xsec/pxsec, 
+    rather than replacing the previous content.
+   
    <H3>The following full water vapor models are implemented:</H3><br>
    <ol>
    <li><b>H2O-MPM87</b> absorption model (line and continuum) according to <br>
@@ -333,6 +340,7 @@
 
    \author Thomas Kuhn
    \date   2003-11-19
+
 */
 
 #include <cmath>
@@ -397,7 +405,7 @@ const Numeric VMRCalcLimit = 1.000e-25;
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to MPM87 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the H2O-line strengths [1]
@@ -430,7 +438,7 @@ const Numeric VMRCalcLimit = 1.000e-25;
    \date 2001-11-05
  */ 
 
-void MPM87H2OAbsModel( MatrixView        xsec,
+void MPM87H2OAbsModel( MatrixView        pxsec,
                        const Numeric   CCin,       // continuum scale factor 
            const Numeric   CLin,       // line strength scale factor
            const Numeric   CWin,       // line broadening scale factor
@@ -535,16 +543,16 @@ void MPM87H2OAbsModel( MatrixView        xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
   // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
     {
       // here the total pressure is not multiplied by the H2O vmr for the 
-      // P_H2O calculation because we calculate xsec and not abs: abs = vmr * xsec
+      // P_H2O calculation because we calculate pxsec and not abs: abs = vmr * pxsec
       Numeric pwv_dummy = Pa_to_kPa * abs_p[i];
       // relative inverse temperature [1]
       Numeric theta = (300.0 / abs_t[i]);
@@ -579,8 +587,8 @@ void MPM87H2OAbsModel( MatrixView        xsec,
         // H2O line absorption [dB/km/GHz] like in the original MPM87
         Nppl            += strength * MPMLineShapeFunction(gam, mpm87[l][0], ff); 
       }
-    // xsec = abs/vmr [1/m] but MPM87 is in [dB/km] --> conversion necessary
-    xsec(s,i)  += dB_km_to_1_m * 0.1820 * ff * ( Nppl + (Nppc * ff) );
+    // pxsec = abs/vmr [1/m] but MPM87 is in [dB/km] --> conversion necessary
+    pxsec(s,i)  += dB_km_to_1_m * 0.1820 * ff * ( Nppl + (Nppc * ff) );
   }
     }
   return;
@@ -590,7 +598,7 @@ void MPM87H2OAbsModel( MatrixView        xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to MPM89 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -614,7 +622,7 @@ void MPM87H2OAbsModel( MatrixView        xsec,
    \date 2001-11-05
  */ 
 
-void MPM89H2OAbsModel( MatrixView        xsec,
+void MPM89H2OAbsModel( MatrixView        pxsec,
                        const Numeric   CCin,       // continuum scale factor 
            const Numeric   CLin,       // line strength scale factor
            const Numeric   CWin,       // line broadening scale factor
@@ -720,16 +728,16 @@ void MPM89H2OAbsModel( MatrixView        xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
     {
       // here the total pressure is not multiplied by the H2O vmr for the 
-      // P_H2O calculation because we calculate xsec and not abs: abs = vmr * xsec
+      // P_H2O calculation because we calculate pxsec and not abs: abs = vmr * pxsec
       Numeric pwv_dummy = Pa_to_kPa * abs_p[i];
       // relative inverse temperature [1]
       Numeric theta     = (300.0 / abs_t[i]);
@@ -766,8 +774,8 @@ void MPM89H2OAbsModel( MatrixView        xsec,
         // H2O line absorption [dB/km/GHz] like in the original MPM89
         Nppl            += strength * MPMLineShapeFunction(gam, mpm89[l][0], ff); 
       }
-    // xsec = abs/vmr [1/m] but MPM89 is in [dB/km] --> conversion necessary
-    xsec(s,i) += dB_km_to_1_m * 0.1820 * ff * ( Nppl + (Nppc * ff) );
+    // pxsec = abs/vmr [1/m] but MPM89 is in [dB/km] --> conversion necessary
+    pxsec(s,i) += dB_km_to_1_m * 0.1820 * ff * ( Nppl + (Nppc * ff) );
   }
     }
   return;
@@ -777,7 +785,7 @@ void MPM89H2OAbsModel( MatrixView        xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to MPM93 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -816,7 +824,7 @@ void MPM89H2OAbsModel( MatrixView        xsec,
    \date 2002-05-06
  */ 
 
-void MPM02H2OAbsModel( MatrixView        xsec,
+void MPM02H2OAbsModel( MatrixView        pxsec,
                        const Numeric   CCin,       // continuum scale factor 
            const Numeric   CLin,       // line strength scale factor
            const Numeric   CWin,       // line broadening scale factor
@@ -961,16 +969,16 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
     {
       // here the total pressure is not multiplied by the H2O vmr for the 
-      // P_H2O calculation because we calculate xsec and not abs: abs = vmr * xsec
+      // P_H2O calculation because we calculate pxsec and not abs: abs = vmr * pxsec
       Numeric pwv_dummy = Pa_to_hPa * abs_p[i];
       // relative inverse temperature [1]
       Numeric theta    = (300.0 / abs_t[i]);
@@ -989,7 +997,7 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
     for ( Index l = i_first; l <= i_last; ++l )
       {
         // line strength [ppm]. The missing vmr of H2O will be multiplied 
-        // at the stage of absorption calculation: abs / vmr * xsec.
+        // at the stage of absorption calculation: abs / vmr * pxsec.
         Numeric strength = 0.00;
         Numeric gam = 0.00;
         if ( (l >= 0) && (l <= 33) ) // ---- just the lines ------------------
@@ -1023,8 +1031,8 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
         //gam              = 0.535 * gam + sqrt(0.217*gam*gam + gamd*gamd); 
         // absorption [dB/km] like in the original MPM02
         Numeric Npp = strength * MPMLineShapeFunction(gam, mpm02[l][0], ff); 
-        // xsec = abs/vmr [1/m] but MPM89 is in [dB/km] --> conversion necessary
-        xsec(s,i)   += dB_km_to_1_m * 0.1820 * ff * Npp;
+        // pxsec = abs/vmr [1/m] but MPM89 is in [dB/km] --> conversion necessary
+        pxsec(s,i)   += dB_km_to_1_m * 0.1820 * ff * Npp;
       }
   }
     }
@@ -1036,7 +1044,7 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to MPM93 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -1074,7 +1082,7 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
    \date 2001-11-05
  */ 
 
-void MPM93H2OAbsModel( MatrixView        xsec,
+void MPM93H2OAbsModel( MatrixView        pxsec,
                        const Numeric   CCin,       // continuum scale factor 
            const Numeric   CLin,       // line strength scale factor
            const Numeric   CWin,       // line broadening scale factor
@@ -1199,16 +1207,16 @@ void MPM93H2OAbsModel( MatrixView        xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
     {
       // here the total pressure is not multiplied by the H2O vmr for the 
-      // P_H2O calculation because we calculate xsec and not abs: abs = vmr * xsec
+      // P_H2O calculation because we calculate pxsec and not abs: abs = vmr * pxsec
       Numeric pwv_dummy = Pa_to_hPa * abs_p[i];
       // relative inverse temperature [1]
       Numeric theta    = (300.0 / abs_t[i]);
@@ -1227,7 +1235,7 @@ void MPM93H2OAbsModel( MatrixView        xsec,
     for ( Index l = i_first; l <= i_last; ++l )
       {
         // line strength [ppm]. The missing vmr of H2O will be multiplied 
-        // at the stage of absorption calculation: abs / vmr * xsec.
+        // at the stage of absorption calculation: abs / vmr * pxsec.
         Numeric strength = 0.00;
         Numeric gam = 0.00;
         if ( (l >= 0) && (l <= 33) ) // ---- just the lines ------------------
@@ -1261,8 +1269,8 @@ void MPM93H2OAbsModel( MatrixView        xsec,
         //gam              = 0.535 * gam + sqrt(0.217*gam*gam + gamd*gamd); 
         // absorption [dB/km] like in the original MPM93
         Numeric Npp = strength * MPMLineShapeFunction(gam, mpm93[l][0], ff); 
-        // xsec = abs/vmr [1/m] but MPM89 is in [dB/km] --> conversion necessary
-        xsec(s,i)   += dB_km_to_1_m * 0.1820 * ff * Npp;
+        // pxsec = abs/vmr [1/m] but MPM89 is in [dB/km] --> conversion necessary
+        pxsec(s,i)   += dB_km_to_1_m * 0.1820 * ff * Npp;
       }
   }
     }
@@ -1273,7 +1281,7 @@ void MPM93H2OAbsModel( MatrixView        xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to P. W. Rosenkranz, 1998 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -1298,7 +1306,7 @@ void MPM93H2OAbsModel( MatrixView        xsec,
    \date 2001-11-05
  */ 
 
-void PWR98H2OAbsModel( MatrixView        xsec,
+void PWR98H2OAbsModel( MatrixView        pxsec,
            const Numeric   CCin,       // continuum scale factor 
            const Numeric   CLin,       // line strength scale factor
            const Numeric   CWin,       // line broadening scale factor
@@ -1408,16 +1416,16 @@ void PWR98H2OAbsModel( MatrixView        xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
     {
       // here the total pressure is not multiplied by the H2O vmr for the 
-      // P_H2O calculation because we calculate xsec and not abs: abs = vmr * xsec
+      // P_H2O calculation because we calculate pxsec and not abs: abs = vmr * pxsec
       Numeric pvap_dummy = Pa_to_hPa * abs_p[i];
       // water vapor partial pressure [hPa]
       Numeric pvap       = Pa_to_hPa * abs_p[i] * vmr[i];
@@ -1469,9 +1477,9 @@ void PWR98H2OAbsModel( MatrixView        xsec,
       }
     // line term [Np/km]
     Numeric absl = 0.3183e-4 * den_dummy * sum;
-    // xsec = abs/vmr [1/m] (Rosenkranz model in [Np/km])
+    // pxsec = abs/vmr [1/m] (Rosenkranz model in [Np/km])
     // 4.1907e-5 = 0.230259 * 0.1820 * 1.0e-3    (1/(10*log(e)) = 0.230259)
-    xsec(s,i)  += 1.000e-3 * ( absl + (con * ff * ff) );    
+    pxsec(s,i)  += 1.000e-3 * ( absl + (con * ff * ff) );    
   }
     }
   return;
@@ -1481,7 +1489,7 @@ void PWR98H2OAbsModel( MatrixView        xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to Cruz-Pol 1998 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -1505,7 +1513,7 @@ void PWR98H2OAbsModel( MatrixView        xsec,
    \date 2001-11-05
  */ 
 
-void CP98H2OAbsModel( MatrixView        xsec,
+void CP98H2OAbsModel( MatrixView        pxsec,
                       const Numeric  CCin,       // continuum scale factor 
           const Numeric     CLin,       // line strength scale factor
           const Numeric  CWin,       // line broadening scale factor
@@ -1568,15 +1576,15 @@ void CP98H2OAbsModel( MatrixView        xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
   // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
     {
-      // calculate xsec only if VMR(H2O) > VMRCalcLimit
+      // calculate pxsec only if VMR(H2O) > VMRCalcLimit
       if (vmr[i] > VMRCalcLimit)
   {
     // relative inverse temperature [1]
@@ -1602,8 +1610,8 @@ void CP98H2OAbsModel( MatrixView        xsec,
         // input frequency in [GHz]
         Numeric ff  = f_grid[s] * Hz_to_GHz; 
         Numeric TSf = MPMLineShapeFunction(gam, 22.235080, ff); 
-        // xsec = abs/vmr [1/m] (Cruz-Pol model in [Np/km])
-        xsec(s,i) += 4.1907e-5 * ff * ( (TL * TSf) + (ff * TC) ) / vmr[i];
+        // pxsec = abs/vmr [1/m] (Cruz-Pol model in [Np/km])
+        pxsec(s,i) += 4.1907e-5 * ff * ( (TL * TSf) + (ff * TC) ) / vmr[i];
       }
   }
     }
@@ -1613,7 +1621,7 @@ void CP98H2OAbsModel( MatrixView        xsec,
 // #################################################################################
 //
 /**
-   \retval   xsec           cross section (absorption/volume mixing ratio) of the 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of the 
                             H2O-H2O continuum [1/m]
    \param    Cin            constant absorption strength     [1/m / (Hz*Pa)²]
    \param    xin            temperature exponent of (300/T)  [1]
@@ -1635,7 +1643,7 @@ void CP98H2OAbsModel( MatrixView        xsec,
    \author Thomas Kuhn
    \date 2001-11-05
  */ 
-void Standard_H2O_self_continuum( MatrixView        xsec,
+void Standard_H2O_self_continuum( MatrixView        pxsec,
           const Numeric     Cin,
           const Numeric     xin,
           const String&     model,
@@ -1707,17 +1715,17 @@ void Standard_H2O_self_continuum( MatrixView        xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop over pressure/temperature grid:
   for ( Index i=0; i<n_p; ++i )
     {
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The second vmr of H2O will be multiplied at the stage of absorption 
-      // calculation: abs = vmr * xsec.
+      // calculation: abs = vmr * pxsec.
       Numeric dummy =
   C * pow( (Numeric)300./abs_t[i], x+(Numeric)3. )
         * pow( abs_p[i], (Numeric)2. ) * vmr[i];
@@ -1725,8 +1733,8 @@ void Standard_H2O_self_continuum( MatrixView        xsec,
       // Loop over frequency grid:
       for ( Index s=0; s<n_f; ++s )
   {
-    xsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. );
-    //    cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
+    pxsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. );
+    //    cout << "pxsec(" << s << "," << i << "): " << pxsec(s,i) << "\n";
   }
     }
 }
@@ -1734,7 +1742,7 @@ void Standard_H2O_self_continuum( MatrixView        xsec,
 // #################################################################################
 //
 /**
-   \retval   xsec           cross section (absorption/volume mixing ratio) of the 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of the 
                             H2O-dry air continuum [1/m]
    \param    Cin            constant absorption strength [1/m / (Hz*Pa)²]
    \param    xin            temperature exponent         [1] 
@@ -1757,7 +1765,7 @@ void Standard_H2O_self_continuum( MatrixView        xsec,
    \author Thomas Kuhn
    \date 2001-08-03
  */ 
-void Standard_H2O_foreign_continuum( MatrixView        xsec,
+void Standard_H2O_foreign_continuum( MatrixView        pxsec,
              const Numeric     Cin,
              const Numeric     xin,
              const String&     model,
@@ -1828,10 +1836,10 @@ void Standard_H2O_foreign_continuum( MatrixView        xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
@@ -1840,15 +1848,15 @@ void Standard_H2O_foreign_continuum( MatrixView        xsec,
       Numeric pdry  = abs_p[i] * (1.000e0-vmr[i]);
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The vmr of H2O will be multiplied at the stage of absorption 
-      // calculation: abs = vmr * xsec.
+      // calculation: abs = vmr * pxsec.
       Numeric dummy = C * pow( (Numeric)300./abs_t[i], x+(Numeric)3. )
         * abs_p[i] * pdry;
 
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
   {
-    xsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. );
-    //    cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
+    pxsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. );
+    //    cout << "pxsec(" << s << "," << i << "): " << pxsec(s,i) << "\n";
   }
     }
 }
@@ -1857,7 +1865,7 @@ void Standard_H2O_foreign_continuum( MatrixView        xsec,
 // #################################################################################
 //
 /**
-   \retval   xsec           cross section (absorption/volume mixing ratio) of the 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of the 
                             H2O-dry air continuum [1/m]
    \param    Cin            constant absorption strength [1/m / (Hz*Pa)²]
    \param    xin            temperature exponent         [1] 
@@ -1879,7 +1887,7 @@ void Standard_H2O_foreign_continuum( MatrixView        xsec,
    \author Thomas Kuhn
    \date 2002-12-04
  */ 
-void MaTipping_H2O_foreign_continuum( MatrixView        xsec,
+void MaTipping_H2O_foreign_continuum( MatrixView        pxsec,
               const Numeric   Cin,
               const Numeric   xin,
               const String&     model,
@@ -1929,10 +1937,10 @@ void MaTipping_H2O_foreign_continuum( MatrixView        xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
@@ -1941,15 +1949,15 @@ void MaTipping_H2O_foreign_continuum( MatrixView        xsec,
       Numeric pdry  = abs_p[i] * (1.000e0-vmr[i]);
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The vmr of H2O will be multiplied at the stage of absorption 
-      // calculation: abs = vmr * xsec.
+      // calculation: abs = vmr * pxsec.
       Numeric dummy = C * pow( (Numeric)300./abs_t[i], x )
         * abs_p[i] * pdry;
 
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
   {
-    xsec(s,i) += dummy * pow( f_grid[s], (Numeric)2.0389 );
-    //    cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
+    pxsec(s,i) += dummy * pow( f_grid[s], (Numeric)2.0389 );
+    //    cout << "pxsec(" << s << "," << i << "): " << pxsec(s,i) << "\n";
   }
     }
 }
@@ -2068,7 +2076,7 @@ Numeric RADFN_FUN (const Numeric VI,
 // CKD version 2.2.2 H2O self continuum absorption model
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             H2O self continuum according to CKD_2_2_2  [1/m]
    \param    Cin            strength scaling factor                    [1]
    \param    model          allows user defined input parameter set 
@@ -2092,7 +2100,7 @@ Numeric RADFN_FUN (const Numeric VI,
    \author Thomas Kuhn
    \date 2002-31-10
 */ 
-void CKD_222_self_h2o( MatrixView          xsec,
+void CKD_222_self_h2o( MatrixView          pxsec,
            const Numeric       Cin,
            const String&       model,
            ConstVectorView     f_grid,
@@ -2131,10 +2139,10 @@ void CKD_222_self_h2o( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
 
   // ************************** CKD stuff ************************************
@@ -2342,7 +2350,7 @@ void CKD_222_self_h2o( MatrixView          xsec,
         // interpolate the k vector on the f_grid grid
         // The factor 100 comes from the conversion from 1/cm to 1/m for
         // the absorption coefficient
-        xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
       }
   }
     }
@@ -2356,7 +2364,7 @@ void CKD_222_self_h2o( MatrixView          xsec,
 // CKD version 2.2.2 H2O foreign continuum absorption model
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             H2O foreign continuum according to CKDv.2.2.2    [1/m]
    \param    Cin            strength scaling factor                          [1]
    \param    model          allows user defined input parameter set 
@@ -2380,7 +2388,7 @@ void CKD_222_self_h2o( MatrixView          xsec,
    \author Thomas Kuhn
    \date 2002-28-08
 */ 
-void CKD_222_foreign_h2o( MatrixView          xsec,
+void CKD_222_foreign_h2o( MatrixView          pxsec,
         const Numeric       Cin,
         const String&       model,
         ConstVectorView     f_grid,
@@ -2418,10 +2426,10 @@ void CKD_222_foreign_h2o( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
 
   // ************************** CKD stuff ************************************
@@ -2568,7 +2576,7 @@ void CKD_222_foreign_h2o( MatrixView          xsec,
         // interpolate the k vector on the f_grid grid
         // The factor 100 comes from the conversion from (1/cm) to (1/m) 
         // of the abs. coeff.
-        xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
       }
   }
     }
@@ -2581,7 +2589,7 @@ void CKD_222_foreign_h2o( MatrixView          xsec,
 // CKD version 2.4.2 H2O self continuum absorption model
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             H2O self continuum according to CKD_2_4_2  [1/m]
    \param    Cin            strength scaling factor                    [1]
    \param    model          allows user defined input parameter set 
@@ -2605,7 +2613,7 @@ void CKD_222_foreign_h2o( MatrixView          xsec,
    \author Thomas Kuhn
    \date 2002-30-10
 */ 
-void CKD_242_self_h2o( MatrixView          xsec,
+void CKD_242_self_h2o( MatrixView          pxsec,
            const Numeric       Cin,
            const String&       model,
            ConstVectorView     f_grid,
@@ -2644,10 +2652,10 @@ void CKD_242_self_h2o( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
 
   // ************************** CKD stuff ************************************
@@ -2869,7 +2877,7 @@ void CKD_242_self_h2o( MatrixView          xsec,
         // interpolate the k vector on the f_grid grid
         // The factor 100 comes from the conversion from 1/cm to 1/m for
         // the absorption coefficient
-        xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
       }
   }
     }
@@ -2882,7 +2890,7 @@ void CKD_242_self_h2o( MatrixView          xsec,
 // CKD version 2.4.2 H2O foreign continuum absorption model
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             H2O foreign continuum according to CKDv.2.4.2    [1/m]
    \param    Cin            strength scaling factor                          [1]
    \param    model          allows user defined input parameter set 
@@ -2906,7 +2914,7 @@ void CKD_242_self_h2o( MatrixView          xsec,
    \author Thomas Kuhn
    \date 2002-28-08
 */ 
-void CKD_242_foreign_h2o( MatrixView          xsec,
+void CKD_242_foreign_h2o( MatrixView          pxsec,
         const Numeric       Cin,
         const String&       model,
         ConstVectorView     f_grid,
@@ -2944,10 +2952,10 @@ void CKD_242_foreign_h2o( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
 
   // ************************** CKD stuff ************************************
@@ -3114,7 +3122,7 @@ void CKD_242_foreign_h2o( MatrixView          xsec,
       {
         // arts CKD2.4.2 foreign H2O continuum cross section [1/m]
         // interpolate the k vector on the f_grid grid
-        xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
       }
   }
     }
@@ -3127,7 +3135,7 @@ void CKD_242_foreign_h2o( MatrixView          xsec,
 // CKD version MT 1.00 H2O self continuum absorption model
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             H2O self continuum according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                  [1]
    \param    model          allows user defined input parameter set 
@@ -3151,7 +3159,7 @@ void CKD_242_foreign_h2o( MatrixView          xsec,
    \author   Thomas Kuhn
    \date     2002-28-08
 */ 
-void CKD_mt_100_self_h2o( MatrixView          xsec,
+void CKD_mt_100_self_h2o( MatrixView          pxsec,
         const Numeric       Cin,
         const String&       model,
         ConstVectorView     f_grid,
@@ -3189,10 +3197,10 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
 
   // ************************** CKD stuff ************************************
@@ -3373,7 +3381,7 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
         // interpolate the k vector on the f_grid grid
         // The factor 100 comes from the conversion from 1/cm to 1/m for
         // the absorption coefficient
-        xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
       }
   }
     }
@@ -3385,7 +3393,7 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
 // CKD version MT 1.00 H2O foreign continuum absorption model
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             H2O foreign continuum according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                          [1]
    \param    model          allows user defined input parameter set 
@@ -3409,7 +3417,7 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
    \author Thomas Kuhn
    \date 2002-28-08
 */ 
-void CKD_mt_100_foreign_h2o( MatrixView          xsec,
+void CKD_mt_100_foreign_h2o( MatrixView          pxsec,
            const Numeric       Cin,
            const String&       model,
            ConstVectorView     f_grid,
@@ -3448,10 +3456,10 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
 
   // ************************** CKD stuff ************************************
@@ -3573,7 +3581,7 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
         // interpolate the k vector on the f_grid grid
         // The factor 100 comes from the conversion from (1/cm) to (1/m) 
         // of the abs. coeff.
-        xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
       }
   }
     }
@@ -3587,7 +3595,7 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
 // CKD version 2.4.1 CO2 continuum absorption model
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             CO2 continuum according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                          [1]
    \param    model          allows user defined input parameter set 
@@ -3610,7 +3618,7 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
    \author Thomas Kuhn
    \date 2002-28-08
  */ 
-void CKD_241_co2( MatrixView         xsec,
+void CKD_241_co2( MatrixView         pxsec,
      const Numeric       Cin,
      const String&       model,
      ConstVectorView     f_grid,
@@ -3650,10 +3658,10 @@ void CKD_241_co2( MatrixView         xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
 
   // ************************** CKD stuff ************************************
@@ -3770,7 +3778,7 @@ void CKD_241_co2( MatrixView         xsec,
       {
         // arts cross section [1/m]
         // interpolate the k vector on the f_grid grid
-        xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
       }
   }
     }
@@ -3784,7 +3792,7 @@ void CKD_241_co2( MatrixView         xsec,
 // CKD version MT 1.00 CO2 continuum absorption model
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             CO2 continuum according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                          [1]
    \param    model          allows user defined input parameter set 
@@ -3807,7 +3815,7 @@ void CKD_241_co2( MatrixView         xsec,
    \author   Thomas Kuhn
    \date     2002-28-08
  */ 
-void CKD_mt_co2( MatrixView          xsec,
+void CKD_mt_co2( MatrixView          pxsec,
      const Numeric       Cin,
      const String&       model,
      ConstVectorView     f_grid,
@@ -3848,10 +3856,10 @@ void CKD_mt_co2( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
 
   // ************************** CKD stuff ************************************
@@ -3974,7 +3982,7 @@ void CKD_mt_co2( MatrixView          xsec,
       {
         // arts cross section [1/m]
         // interpolate the k vector on the f_grid grid
-        xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
       }
   }
     }
@@ -3991,7 +3999,7 @@ void CKD_mt_co2( MatrixView          xsec,
 //  Astrophysical Journal, 311, 1043-1057, 1986.
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             N2-N2 CIA rot. band according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                  [1]
    \param    model          allows user defined input parameter set 
@@ -4019,7 +4027,7 @@ void CKD_mt_co2( MatrixView          xsec,
    \author Thomas Kuhn
    \date 2002-28-08
  */ 
-void CKD_mt_CIArot_n2( MatrixView         xsec,
+void CKD_mt_CIArot_n2( MatrixView         pxsec,
           const Numeric       Cin,
           const String&       model,
           ConstVectorView     f_grid,
@@ -4059,10 +4067,10 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
 
   // ************************** CKD stuff ************************************
@@ -4220,7 +4228,7 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
       {
         // arts cross section [1/m]
         // interpolate the k vector on the f_grid grid
-        xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
       }
   }
     }
@@ -4239,7 +4247,7 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
 //  5911-5917, (1996).
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             N2-N2 CIA fundamental band according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                  [1]
    \param    model          allows user defined input parameter set 
@@ -4270,7 +4278,7 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
    \author Thomas Kuhn
    \date 2002-28-08
  */ 
-void CKD_mt_CIAfun_n2( MatrixView         xsec,
+void CKD_mt_CIAfun_n2( MatrixView         pxsec,
           const Numeric       Cin,
           const String&       model,
           ConstVectorView     f_grid,
@@ -4307,10 +4315,10 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
 
   // ************************** CKD stuff ************************************
@@ -4436,7 +4444,7 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
       {
         // arts cross section [1/m]
         // interpolate the k vector on the f_grid grid
-        xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
       }
   }
     }
@@ -4454,7 +4462,7 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
 // Appl. Optics, 35, 5911-5917, (1996).
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             O2-O2 CIA fundamental band according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                  [1]
    \param    model          allows user defined input parameter set 
@@ -4483,7 +4491,7 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
    \author Thomas Kuhn
    \date 2002-28-08
  */ 
-void CKD_mt_CIAfun_o2( MatrixView         xsec,
+void CKD_mt_CIAfun_o2( MatrixView         pxsec,
           const Numeric       Cin,
           const String&       model,
           ConstVectorView     f_grid,
@@ -4520,10 +4528,10 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
 
   // ************************** CKD stuff ************************************
@@ -4641,7 +4649,7 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
       {
         // arts cross section [1/m]
         // interpolate the k vector on the f_grid grid
-        xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
       }
   }
     }
@@ -4668,7 +4676,7 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
 // Journal of Geophysical Research (1997).
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             O2 v0<-v0 band according to CKD_MT 1.00  [1/m]
    \param    Cin            strength scaling factor                  [1]
    \param    model          allows user defined input parameter set 
@@ -4704,7 +4712,7 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
    \author   Thomas Kuhn
    \date     2002-28-08
  */ 
-void CKD_mt_v0v0_o2( MatrixView          xsec,
+void CKD_mt_v0v0_o2( MatrixView          pxsec,
          const Numeric       Cin,
          const String&       model,
          ConstVectorView     f_grid,
@@ -4742,10 +4750,10 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
 
   // ************************** CKD stuff ************************************
@@ -4857,7 +4865,7 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
       {
         // arts cross section [1/m]
         // interpolate the k vector on the f_grid grid
-        xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
       }
   }
     }
@@ -4874,7 +4882,7 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
 // Journal of Geophysical Research, vol 103, no. D4, pp. 3859-3863, 1998.
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             O2 v1<-v0 band according to CKD_MT 1.00  [1/m]
    \param    Cin            strength scaling factor                  [1]
    \param    model          allows user defined input parameter set 
@@ -4909,7 +4917,7 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
    \author Thomas Kuhn
    \date 2002-28-08
  */ 
-void CKD_mt_v1v0_o2( MatrixView          xsec,
+void CKD_mt_v1v0_o2( MatrixView          pxsec,
          const Numeric       Cin,
          const String&       model,
          ConstVectorView     f_grid,
@@ -4945,10 +4953,10 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
 
   // ************************** CKD stuff ************************************
@@ -5087,7 +5095,7 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
       {
         // arts cross section [1/m]
         // interpolate the k vector on the f_grid grid
-        xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+        pxsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
       }
   }
     }
@@ -5099,7 +5107,7 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
 // CKD version 2.4 H2O continuum absorption model
 /**
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             H2O continuum according to CKD2.4    [1/m]
    \param    isf            =0 self continuum, =1 foreign continuum
    \param    Cin            strength scaling factor              [1]
@@ -5131,7 +5139,7 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
    \date 2002-03-06
  */ 
 
-void CKD24_H20( MatrixView          xsec,
+void CKD24_H20( MatrixView          pxsec,
     int                 isf,
     const Numeric       Cin,
     const String&       model,
@@ -5215,10 +5223,10 @@ void CKD24_H20( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   //  ivc = 1     : N2-N2 CKD version of Borysow-Fromhold model
   //  ivc = 21    : H2O CKD2.4  self cont part
@@ -5264,20 +5272,20 @@ void CKD24_H20( MatrixView          xsec,
       for ( Index s=0; s<n_f; ++s )
   {
     // the second vmr of N2 will be multiplied at the stage of
-    // absorption calculation: abs =  vmr * xsec.
+    // absorption calculation: abs =  vmr * pxsec.
     double f = (double) f_grid[s];            // [Hz]
     if (ivc == 1) { // ---------- N2 -----------------
       if (abs_n2[i] > 0.0e0) {
         //cout << "CKD2.4 N2: f   =" << f << " Hz\n";
         double cont = artsckd_(p, T, vmrh2o, vmrn2, vmro2, f, ivc);
-        xsec(s,i) +=  (Numeric) (cont / vmr[i]);
+        pxsec(s,i) +=  (Numeric) (cont / vmr[i]);
         //cout << "CKD2.4 N2: abs =" << cont << " 1/m\n";
       }
     } else { // ---------------- H2O -----------------
       if (vmr[i] > 0.0e0) {
         //cout << "CKD2.4 H2O: f   =" << f << " Hz\n";
         double cont = artsckd_(p, T, vmrh2o, vmrn2, vmro2, f, ivc);
-        xsec(s,i) +=  (Numeric) (cont / vmr[i]);
+        pxsec(s,i) +=  (Numeric) (cont / vmr[i]);
         //cout << "CKD2.4 H2O: abs =" << cont << " 1/m\n";
       }
     }
@@ -5289,7 +5297,7 @@ void CKD24_H20( MatrixView          xsec,
 // #################################################################################
 //
 /** 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    model          allows user defined input parameter set 
@@ -5312,7 +5320,7 @@ void CKD24_H20( MatrixView          xsec,
    \date 2001-04-10
  */ 
 
-void Pardo_ATM_H2O_ForeignContinuum( MatrixView          xsec,
+void Pardo_ATM_H2O_ForeignContinuum( MatrixView          pxsec,
              const Numeric       Cin,
              const String&       model,
              ConstVectorView     f_grid,
@@ -5353,10 +5361,10 @@ void Pardo_ATM_H2O_ForeignContinuum( MatrixView          xsec,
    assert ( n_p==abs_t.nelem() );
    assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop over pressure/temperature grid:
   for ( Index i=0; i<n_p; ++i )
@@ -5374,8 +5382,8 @@ void Pardo_ATM_H2O_ForeignContinuum( MatrixView          xsec,
     // Becaue this is an effective "dry air" continuum, it is not really
     // specific N2 but mainly caused by N2. Therefore the N2 vmr must be 
     // canceled out here which is later in abs_coefCalc multiplied 
-    // (calculation: abs = vmr * xsec):
-    xsec(s,i) += C *                  // strength [1/(m*Hz²Pa²)] 
+    // (calculation: abs = vmr * pxsec):
+    pxsec(s,i) += C *                  // strength [1/(m*Hz²Pa²)] 
       pow( (f_grid[s]/(Numeric)2.25e11), (Numeric)2. ) * // quadratic f dependence [1]
       pow( ((Numeric)300.0/abs_t[i]), (Numeric)3. ) * // free T dependence      [1]
       (pd/1.01300e5)                * // p_dry dependence       [1]
@@ -5393,7 +5401,7 @@ void Pardo_ATM_H2O_ForeignContinuum( MatrixView          xsec,
 //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             H2O according to MPM87 [1/m]
    \param    fcenter        continuum pseudo-line center frequency [Hz]
    \param    b1             continuum pseudo-line line strength [Hz/Pa]
@@ -5425,7 +5433,7 @@ void Pardo_ATM_H2O_ForeignContinuum( MatrixView          xsec,
    \date 2001-11-05
  */ 
 
-void MPM93_H2O_continuum( MatrixView          xsec,
+void MPM93_H2O_continuum( MatrixView          pxsec,
         const Numeric       fcenter,
         const Numeric       b1,
         const Numeric       b2,
@@ -5501,10 +5509,10 @@ void MPM93_H2O_continuum( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
 
   // Loop pressure/temperature:
@@ -5512,7 +5520,7 @@ void MPM93_H2O_continuum( MatrixView          xsec,
     {
       Numeric th = 300.0 / abs_t[i];
       // the vmr of H2O will be multiplied at the stage of absorption calculation:
-      // abs / vmr * xsec.
+      // abs / vmr * pxsec.
       Numeric strength =  MPM93b1pcl * abs_p[i] * pow( th, (Numeric)3.5 )
         * exp(MPM93b2pcl * (1 - th));
       Numeric gam      =  MPM93b3pcl * 0.001 * 
@@ -5521,8 +5529,8 @@ void MPM93_H2O_continuum( MatrixView          xsec,
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
   {
-    // xsec = abs/vmr [1/m] but MPM89 is in [dB/km] --> conversion necessary
-    xsec(s,i) += dB_km_to_1_m * 0.1820 *
+    // pxsec = abs/vmr [1/m] but MPM89 is in [dB/km] --> conversion necessary
+    pxsec(s,i) += dB_km_to_1_m * 0.1820 *
                  f_grid[s] * strength * 
                  MPMLineShapeFunction(gam, MPM93fopcl, f_grid[s]); 
   }
@@ -5535,7 +5543,7 @@ void MPM93_H2O_continuum( MatrixView          xsec,
 // #################################################################################
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             O2 according to MPM89 [1/m]
    \param    CCin           scaling factor for the O2-continuum   [1]
    \param    CLin           scaling factor for the O2-line strengths [1]
@@ -5562,7 +5570,7 @@ void MPM93_H2O_continuum( MatrixView          xsec,
    \date 2002-04-05
  */ 
 
-void MPM85O2AbsModel( MatrixView          xsec,
+void MPM85O2AbsModel( MatrixView          pxsec,
           const Numeric    CCin,       // continuum scale factor 
           const Numeric    CLin,       // line strength scale factor
           const Numeric    CWin,       // line broadening scale factor
@@ -5716,7 +5724,7 @@ void MPM85O2AbsModel( MatrixView          xsec,
 
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
-  // have top devide the line strength by this value since arts multiplies xsec
+  // have top devide the line strength by this value since arts multiplies pxsec
   // by these variables later in abs_coefCalc.
   const Numeric  VMRISO = 0.2085;
 
@@ -5724,10 +5732,10 @@ void MPM85O2AbsModel( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
@@ -5750,7 +5758,7 @@ void MPM85O2AbsModel( MatrixView          xsec,
       // dry air partial pressure [kPa]
       Numeric pda       = (Pa_to_kPa * abs_p[i]) - pwv;
       // here the total pressure is devided by the O2 vmr for the 
-      // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
+      // P_dry calculation because we calculate pxsec and not abs: abs = vmr * pxsec
       Numeric pda_dummy = pda;
       // O2 continuum strength [ppm]
       Numeric strength_cont =  S0 * pda_dummy * pow( theta, (Numeric)2. );
@@ -5763,7 +5771,7 @@ void MPM85O2AbsModel( MatrixView          xsec,
     // input frequency in [GHz]
     Numeric ff = f_grid[s] * Hz_to_GHz; 
     // O2 continuum absorption [1/m]
-    // cross section: xsec = absorption / var
+    // cross section: pxsec = absorption / var
     // the vmr of O2 will be multiplied at the stage of absorption calculation:
     // here the rolloff parameter FAC is implemented!
     // Numeric FAC =  1.000 / ( pow( ff, 2) + pow( 60.000, 2) );
@@ -5802,9 +5810,9 @@ void MPM85O2AbsModel( MatrixView          xsec,
       }
     //
     // O2 line absorption [1/m]
-    // cross section: xsec = absorption / var
+    // cross section: pxsec = absorption / var
     // the vmr of O2 will be multiplied at the stage of absorption calculation:
-    xsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
+    pxsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
   }
     }
   return;
@@ -5814,7 +5822,7 @@ void MPM85O2AbsModel( MatrixView          xsec,
 // 
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             O2 according to MPM89 [1/m]
    \param    CCin           scaling factor for the O2-continuum   [1]
    \param    CLin           scaling factor for the O2-line strengths [1]
@@ -5845,7 +5853,7 @@ void MPM85O2AbsModel( MatrixView          xsec,
    \date 2002-04-05
  */ 
 
-void MPM87O2AbsModel( MatrixView          xsec,
+void MPM87O2AbsModel( MatrixView          pxsec,
           const Numeric    CCin,       // continuum scale factor 
           const Numeric    CLin,       // line strength scale factor
           const Numeric    CWin,       // line broadening scale factor
@@ -6002,7 +6010,7 @@ void MPM87O2AbsModel( MatrixView          xsec,
 
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
-  // have top devide the line strength by this value since arts multiplies xsec
+  // have top devide the line strength by this value since arts multiplies pxsec
   // by these variables later in abs_coefCalc.
   const Numeric  VMRISO = 0.2085;
 
@@ -6010,10 +6018,10 @@ void MPM87O2AbsModel( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
@@ -6036,7 +6044,7 @@ void MPM87O2AbsModel( MatrixView          xsec,
       // dry air partial pressure [kPa]
       Numeric pda       = (Pa_to_kPa * abs_p[i]) - pwv;
       // here the total pressure is devided by the O2 vmr for the 
-      // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
+      // P_dry calculation because we calculate pxsec and not abs: abs = vmr * pxsec
       Numeric pda_dummy = pda;
       // O2 continuum strength [ppm]
       Numeric strength_cont =  S0 * pda_dummy * pow( theta, (Numeric)2. );
@@ -6049,7 +6057,7 @@ void MPM87O2AbsModel( MatrixView          xsec,
     // input frequency in [GHz]
     Numeric ff = f_grid[s] * Hz_to_GHz; 
     // O2 continuum absorption [1/m]
-    // cross section: xsec = absorption / var
+    // cross section: pxsec = absorption / var
     // the vmr of O2 will be multiplied at the stage of absorption calculation:
     Numeric Nppc =  CC * strength_cont * ff * gam_cont /
                     ( pow( ff, (Numeric)2.) + pow( gam_cont, (Numeric)2.) );
@@ -6080,9 +6088,9 @@ void MPM87O2AbsModel( MatrixView          xsec,
       }
     //
     // O2 line absorption [1/m]
-    // cross section: xsec = absorption / var
+    // cross section: pxsec = absorption / var
     // the vmr of O2 will be multiplied at the stage of absorption calculation:
-    xsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
+    pxsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
   }
     }
   return;
@@ -6092,7 +6100,7 @@ void MPM87O2AbsModel( MatrixView          xsec,
 // 
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             O2 according to MPM89 [1/m]
    \param    CCin           scaling factor for the O2-continuum   [1]
    \param    CLin           scaling factor for the O2-line strengths [1]
@@ -6120,7 +6128,7 @@ void MPM87O2AbsModel( MatrixView          xsec,
    \date 2002-04-05
  */ 
 
-void MPM89O2AbsModel( MatrixView          xsec,
+void MPM89O2AbsModel( MatrixView          pxsec,
           const Numeric    CCin,       // continuum scale factor 
           const Numeric    CLin,       // line strength scale factor
           const Numeric    CWin,       // line broadening scale factor
@@ -6270,7 +6278,7 @@ void MPM89O2AbsModel( MatrixView          xsec,
 
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
-  // have top devide the line strength by this value since arts multiplies xsec
+  // have top devide the line strength by this value since arts multiplies pxsec
   // by these variables later in abs_coefCalc.
   const Numeric  VMRISO = 0.2085;
 
@@ -6278,10 +6286,10 @@ void MPM89O2AbsModel( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
@@ -6304,7 +6312,7 @@ void MPM89O2AbsModel( MatrixView          xsec,
       // dry air partial pressure [kPa]
       Numeric pda       = (Pa_to_kPa * abs_p[i]) - pwv;
       // here the total pressure is devided by the O2 vmr for the 
-      // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
+      // P_dry calculation because we calculate pxsec and not abs: abs = vmr * pxsec
       Numeric pda_dummy = pda;
       // O2 continuum strength [ppm]
       Numeric strength_cont =  S0 * pda_dummy * pow( theta, (Numeric)2. );
@@ -6317,7 +6325,7 @@ void MPM89O2AbsModel( MatrixView          xsec,
     // input frequency in [GHz]
     Numeric ff = f_grid[s] * Hz_to_GHz; 
     // O2 continuum absorption [1/m]
-    // cross section: xsec = absorption / var
+    // cross section: pxsec = absorption / var
     // the vmr of O2 will be multiplied at the stage of absorption calculation:
     Numeric Nppc =  CC * strength_cont * ff * gam_cont /
                     ( pow( ff, (Numeric)2.) + pow( gam_cont, (Numeric)2.) );
@@ -6348,9 +6356,9 @@ void MPM89O2AbsModel( MatrixView          xsec,
       }
     //
     // O2 line absorption [1/m]
-    // cross section: xsec = absorption / var
+    // cross section: pxsec = absorption / var
     // the vmr of O2 will be multiplied at the stage of absorption calculation:
-    xsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
+    pxsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
   }
     }
   return;
@@ -6361,7 +6369,7 @@ void MPM89O2AbsModel( MatrixView          xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             O2 according to MPM93 [1/m]
    \param    CCin           scaling factor for the O2-continuum   [1]
    \param    CLin           scaling factor for the O2-line strengths [1]
@@ -6390,7 +6398,7 @@ void MPM89O2AbsModel( MatrixView          xsec,
    \date 2001-11-05
  */ 
 
-void MPM92O2AbsModel( MatrixView          xsec,
+void MPM92O2AbsModel( MatrixView          pxsec,
           const Numeric    CCin,       // continuum scale factor 
           const Numeric    CLin,       // line strength scale factor
           const Numeric    CWin,       // line broadening scale factor
@@ -6531,7 +6539,7 @@ void MPM92O2AbsModel( MatrixView          xsec,
 
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
-  // have top devide the line strength by this value since arts multiplies xsec
+  // have top devide the line strength by this value since arts multiplies pxsec
   // by these variables later in abs_coefCalc.
   const Numeric  VMRISO = 0.2085;
 
@@ -6547,10 +6555,10 @@ void MPM92O2AbsModel( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
@@ -6573,7 +6581,7 @@ void MPM92O2AbsModel( MatrixView          xsec,
       // dry air partial pressure [hPa]
       Numeric pda       = (Pa_to_hPa * abs_p[i]) - pwv;
       // here the total pressure is devided by the O2 vmr for the 
-      // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
+      // P_dry calculation because we calculate pxsec and not abs: abs = vmr * pxsec
       Numeric pda_dummy = pda;
       // O2 continuum strength [ppm]
       Numeric strength_cont =  S0 * pda_dummy * pow( theta, (Numeric)2. );
@@ -6586,7 +6594,7 @@ void MPM92O2AbsModel( MatrixView          xsec,
     // input frequency in [GHz]
     Numeric ff = f_grid[s] * Hz_to_GHz; 
     // O2 continuum absorption [1/m]
-    // cross section: xsec = absorption / var
+    // cross section: pxsec = absorption / var
     // the vmr of O2 will be multiplied at the stage of absorption calculation:
     Numeric Nppc =  CC * strength_cont * ff * gam_cont /
                     ( pow( ff, (Numeric)2.) + pow( gam_cont, (Numeric)2.) );
@@ -6617,9 +6625,9 @@ void MPM92O2AbsModel( MatrixView          xsec,
       }
     //
     // O2 line absorption [1/m]
-    // cross section: xsec = absorption / var
+    // cross section: pxsec = absorption / var
     // the vmr of O2 will be multiplied at the stage of absorption calculation:
-    xsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
+    pxsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
   }
     }
   return;
@@ -6629,7 +6637,7 @@ void MPM92O2AbsModel( MatrixView          xsec,
 // 
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             O2 according to MPM93 [1/m]
    \param    CCin           scaling factor for the O2-continuum   [1]
    \param    CLin           scaling factor for the O2-line strengths [1]
@@ -6659,7 +6667,7 @@ void MPM92O2AbsModel( MatrixView          xsec,
    \date 2001-11-05
  */ 
 
-void MPM93O2AbsModel( MatrixView          xsec,
+void MPM93O2AbsModel( MatrixView          pxsec,
           const Numeric    CCin,       // continuum scale factor 
           const Numeric    CLin,       // line strength scale factor
           const Numeric    CWin,       // line broadening scale factor
@@ -6802,7 +6810,7 @@ void MPM93O2AbsModel( MatrixView          xsec,
 
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
-  // have top devide the line strength by this value since arts multiplies xsec
+  // have top devide the line strength by this value since arts multiplies pxsec
   // by these variables later in abs_coefCalc.
   const Numeric  VMRISO = 0.2085;
 
@@ -6818,10 +6826,10 @@ void MPM93O2AbsModel( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for ( Index i=0; i<n_p; ++i )
@@ -6844,7 +6852,7 @@ void MPM93O2AbsModel( MatrixView          xsec,
       // dry air partial pressure [hPa]
       Numeric pda       = (Pa_to_hPa * abs_p[i]) - pwv;
       // here the total pressure is devided by the O2 vmr for the 
-      // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
+      // P_dry calculation because we calculate pxsec and not abs: abs = vmr * pxsec
       // old version without VMRISO: Numeric pda_dummy = pda / vmr[i];
       Numeric pda_dummy = pda;
       // O2 continuum strength [ppm]
@@ -6858,7 +6866,7 @@ void MPM93O2AbsModel( MatrixView          xsec,
     // input frequency in [GHz]
     Numeric ff = f_grid[s] * Hz_to_GHz; 
     // O2 continuum absorption [1/m]
-    // cross section: xsec = absorption / var
+    // cross section: pxsec = absorption / var
     // the vmr of O2 will be multiplied at the stage of absorption calculation:
     Numeric Nppc =  CC * strength_cont * ff * gam_cont /
                     ( pow( ff, (Numeric)2.)
@@ -6892,9 +6900,9 @@ void MPM93O2AbsModel( MatrixView          xsec,
       }
     //
     // O2 line absorption [1/m]
-    // cross section: xsec = absorption / var
+    // cross section: pxsec = absorption / var
     // the vmr of O2 will be multiplied at the stage of absorption calculation:
-    xsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
+    pxsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
   }
     }
   return;
@@ -6923,7 +6931,7 @@ void MPM93O2AbsModel( MatrixView          xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             O2 according to the P. W. Rosenkranz, 1993 [1/m]
    \param    CCin           O2-continuum scale factor  [1]
    \param    CLin           O2 line strength scale factor [1]
@@ -6956,7 +6964,7 @@ void MPM93O2AbsModel( MatrixView          xsec,
    \date 2001-11-05
  */ 
 
-void PWR93O2AbsModel( MatrixView        xsec,
+void PWR93O2AbsModel( MatrixView        pxsec,
           const Numeric     CCin,      // model parameter
           const Numeric     CLin,      // model parameter
           const Numeric     CWin,      // model parameter
@@ -7205,10 +7213,10 @@ void PWR93O2AbsModel( MatrixView        xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
@@ -7276,8 +7284,8 @@ void PWR93O2AbsModel( MatrixView        xsec,
     // O2ABS = CONT + (2.414322e10 * SUM * abs_p[i] * pow(TH, 3.0) / PI);
     // unit conversion x Nepers/km = y 1/m  --->  y = x * 1.000e-3 
     // therefore 2.414322e10 --> 2.414322e7
-    // xsec [1/m] 
-    xsec(s,i) += CONT + (2.414322e7 * SUM * abs_p[i] * pow(TH, (Numeric)3.) / PI);
+    // pxsec [1/m] 
+    pxsec(s,i) += CONT + (2.414322e7 * SUM * abs_p[i] * pow(TH, (Numeric)3.) / PI);
   }
     }
   return;
@@ -7292,7 +7300,7 @@ void PWR93O2AbsModel( MatrixView        xsec,
 //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 /** 
 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             O2-continuum according to MPM93 [1/m]
    \param    S0in           O2-continuum strength [1/Pa]
    \param    G0in           O2-continuum width [Hz/Pa]
@@ -7322,7 +7330,7 @@ void PWR93O2AbsModel( MatrixView        xsec,
    \date 2001-11-05
  */ 
 
-void MPM93_O2_continuum( MatrixView          xsec,
+void MPM93_O2_continuum( MatrixView          pxsec,
        const Numeric       S0in,         // model parameter
        const Numeric       G0in,         // model parameter
        const Numeric       XS0in,        // model parameter
@@ -7386,14 +7394,14 @@ void MPM93_O2_continuum( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
-  // have top devide the line strength by this value since arts multiplies xsec
+  // have top devide the line strength by this value since arts multiplies pxsec
   // by these variables later in abs_coefCalc.
   const Numeric  VMRISO = 0.2085;
   
@@ -7420,8 +7428,8 @@ void MPM93_O2_continuum( MatrixView          xsec,
       for ( Index s=0; s<n_f; ++s )
   {
     // the vmr of O2 will be multiplied at the stage of absorption calculation:
-    // abs / vmr * xsec.
-    xsec(s,i) +=  (4.0 * PI / SPEED_OF_LIGHT)  *              // unit factor [1/(m*Hz)] 
+    // abs / vmr * pxsec.
+    pxsec(s,i) +=  (4.0 * PI / SPEED_OF_LIGHT)  *              // unit factor [1/(m*Hz)] 
                   (strength / VMRISO)          *              // strength    [1]
                   ( pow( f_grid[s], (Numeric)2.) * gamma /              // line shape  [Hz]
                     ( pow( f_grid[s], (Numeric)2.) + pow( gamma, (Numeric)2.) ) );
@@ -7439,7 +7447,7 @@ void MPM93_O2_continuum( MatrixView          xsec,
 //               Default continuum parameters are  C=1.6E-17*10E-9,  x=0.8
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             O2-continuum according to Rosenkranz 1993 [1/m]
    \param    S0in           line strength [K²/(Hz*Pa*m)]
    \param    G0in           line width [Hz/Pa]
@@ -7467,7 +7475,7 @@ void MPM93_O2_continuum( MatrixView          xsec,
    \date 2001-11-05
  */ 
 
-void Rosenkranz_O2_continuum( MatrixView        xsec,
+void Rosenkranz_O2_continuum( MatrixView        pxsec,
             const Numeric     S0in,         // model parameter
             const Numeric     G0in,         // model parameter
             const Numeric     XS0in,        // model parameter
@@ -7527,10 +7535,10 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
   // loop over all pressure levels:
   for ( Index i=0; i<n_p; ++i )
@@ -7548,8 +7556,8 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,
       for ( Index s=0; s<n_f; ++s )
   {
     // division by vmr of O2 is necessary because of the absorption calculation
-          // abs = vmr * xsec.
-    xsec(s,i) += S0 * abs_p[i] / pow( abs_t[i], XS0 ) * 
+          // abs = vmr * pxsec.
+    pxsec(s,i) += S0 * abs_p[i] / pow( abs_t[i], XS0 ) * 
                         ( pow( f_grid[s], (Numeric)2. )
                           * gamma / ( pow( f_grid[s], 2 )
                                       + pow( gamma, (Numeric)2. ) ) ) ;
@@ -7561,7 +7569,7 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,
 // #################################################################################
 //
 /**
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             O2-continuum according to Rosenkranz 1993 [1/m]
    \param    Cin            O2-continuum coefficient                  [1/(Hz*Pa*m)]
    \param    G0in           line width                                [Hz/Pa]
@@ -7597,7 +7605,7 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,
    \date 2001-11-05
  */ 
 
-void Standard_O2_continuum( MatrixView        xsec,         // cross section
+void Standard_O2_continuum( MatrixView        pxsec,         // cross section
           const Numeric     Cin,          // model parameter
           const Numeric     G0in,         // model parameter
           const Numeric     G0Ain,        // model parameter
@@ -7690,14 +7698,14 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
 
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
-  // have top devide the line strength by this value since arts multiplies xsec
+  // have top devide the line strength by this value since arts multiplies pxsec
   // by these variables later in abs_coefCalc.
   // FIXME const Numeric  VMRISO = 0.2085;
 
@@ -7717,8 +7725,8 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
       for ( Index s=0; s<n_f; ++s )
   {
     // division by vmr of O2 is necessary because of the absorption calculation
-          // abs = vmr * xsec.
-    xsec(s,i) += C * abs_p[i] * pow( TH, (Numeric)2. ) * 
+          // abs = vmr * pxsec.
+    pxsec(s,i) += C * abs_p[i] * pow( TH, (Numeric)2. ) * 
                        ( gamma * pow( f_grid[s], (Numeric)2. ) / 
                          ( pow( f_grid[s], 2 ) + pow( gamma, (Numeric)2. ) ) );
   }
@@ -7736,7 +7744,7 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
 //                 version of the paper
 /**
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             N2-CIA according to BF-86 model      [1/m]
    \param    Cin            strength scaling factor              [1]
    \param    model          allows user defined input parameter set 
@@ -7761,7 +7769,7 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
    \date 2002-03-05
  */ 
 
-void BF86_CIA_N2( MatrixView          xsec,
+void BF86_CIA_N2( MatrixView          pxsec,
       const Numeric       Cin,
       const String&       model,
       ConstVectorView     f_grid,
@@ -7812,10 +7820,10 @@ void BF86_CIA_N2( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
@@ -7833,13 +7841,13 @@ void BF86_CIA_N2( MatrixView          xsec,
       for ( Index s=0; s<n_f; ++s )
   {
     // the second vmr of N2 will be multiplied at the stage of
-    // absorption calculation: abs =  vmr * xsec.
+    // absorption calculation: abs =  vmr * pxsec.
     double f = (double) f_grid[s];
     //cout << "N2-N2 BF86: f     =" << f << " Hz\n";
     double cont = n2n2tks_(T, f);
-    xsec(s,i) += (Numeric) (cont * 1.000e2 * vmr[i] * XAMA2);
+    pxsec(s,i) += (Numeric) (cont * 1.000e2 * vmr[i] * XAMA2);
     //cout << "N2-N2 BF86: cont  =" << cont << " cm-1 * amagat-2\n";
-    //cout << "N2-N2 BF86: abs   =" << (vmr[i] * xsec(s,i)) << " m-1\n";
+    //cout << "N2-N2 BF86: abs   =" << (vmr[i] * pxsec(s,i)) << " m-1\n";
   }
     }
   return;
@@ -7854,7 +7862,7 @@ void BF86_CIA_N2( MatrixView          xsec,
 //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to MPM93 [1/m]
    \param    Cin            continuum strength [ppm/GHz]
    \param    Gin            width parameter [Hz/Pa]
@@ -7884,7 +7892,7 @@ void BF86_CIA_N2( MatrixView          xsec,
    \date 2001-11-05
  */ 
 
-void MPM93_N2_continuum( MatrixView          xsec,
+void MPM93_N2_continuum( MatrixView          pxsec,
        const Numeric       Cin,
        const Numeric       Gin,
        const Numeric       xTin,
@@ -7959,10 +7967,10 @@ void MPM93_N2_continuum( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   Numeric fac = 4.0 * PI / SPEED_OF_LIGHT;  //  = 4 * pi / c
   // Loop pressure/temperature:
@@ -7979,8 +7987,8 @@ void MPM93_N2_continuum( MatrixView          xsec,
   {
     // FIXME Numeric f = f_grid[s] * Hz_to_GHz; // frequency in GHz
     // the vmr of N2 will be multiplied at the stage of absorption calculation:
-    // abs / vmr * xsec.
-    xsec(s,i) += fac * strength *                              // strength
+    // abs / vmr * pxsec.
+    pxsec(s,i) += fac * strength *                              // strength
                        pow(f_grid[s], (Numeric)2.) /                      // frequency dependence
                  ( 1.000 + G0 * pow( f_grid[s], xf) ) *  
                   vmr[i];                                // N2 vmr
@@ -7992,7 +8000,7 @@ void MPM93_N2_continuum( MatrixView          xsec,
 // #################################################################################
 //
 /** 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    model          allows user defined input parameter set 
@@ -8016,7 +8024,7 @@ void MPM93_N2_continuum( MatrixView          xsec,
    \date 2001-04-10
  */ 
 
-void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
+void Pardo_ATM_N2_dry_continuum( MatrixView          pxsec,
          const Numeric       Cin,
          const String&       model,
          ConstVectorView     f_grid,
@@ -8058,10 +8066,10 @@ void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
    assert ( n_p==abs_t.nelem() );
    assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop over pressure/temperature grid:
   for ( Index i=0; i<n_p; ++i )
@@ -8079,8 +8087,8 @@ void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
         // Becaue this is an effective "dry air" continuum, it is not really
         // specific N2 but mainly caused by N2. Therefore the N2 vmr must be 
         // canceled out here which is later in abs_coefCalc multiplied 
-        // (calculation: abs = vmr * xsec):
-        xsec(s,i) += C *                    // strength [1/(m*Hz²Pa²)] 
+        // (calculation: abs = vmr * pxsec):
+        pxsec(s,i) += C *                    // strength [1/(m*Hz²Pa²)] 
     pow( (f_grid[s]/(Numeric)2.25e11), (Numeric)2. ) * // quadratic f dependence [Hz²]
     pow( ((Numeric)300.0/abs_t[i]), (Numeric)3.5 )   * // free T dependence      [1]
     pow( (pd/(Numeric)1.01300e5), (Numeric)2. )      / // quadratic p dependence [Pa²]
@@ -8093,7 +8101,7 @@ void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
 // #################################################################################
 //
 /** 
-   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xin            temperature exponent of N2-continuum [1]
@@ -8118,7 +8126,7 @@ void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
    \date 2001-11-05
  */ 
 
-void Rosenkranz_N2_self_continuum( MatrixView          xsec,
+void Rosenkranz_N2_self_continuum( MatrixView          pxsec,
            const Numeric       Cin,
            const Numeric       xin,
            const String&       model,
@@ -8164,10 +8172,10 @@ void Rosenkranz_N2_self_continuum( MatrixView          xsec,
    assert ( n_p==abs_t.nelem() );
    assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop over pressure/temperature grid:
   for ( Index i=0; i<n_p; ++i )
@@ -8176,8 +8184,8 @@ void Rosenkranz_N2_self_continuum( MatrixView          xsec,
       for ( Index s=0; s<n_f; ++s )
   {
     // The second vmr of N2 will be multiplied at the stage of absorption 
-    // calculation: abs = vmr * xsec.
-    xsec(s,i) += C *                        // strength [1/(m*Hz²Pa²)] 
+    // calculation: abs = vmr * pxsec.
+    pxsec(s,i) += C *                        // strength [1/(m*Hz²Pa²)] 
                  pow( f_grid[s], (Numeric)2. ) *      // quadratic f dependence [Hz²]
                  pow( (Numeric)300.0/abs_t[i], x ) * // free T dependence      [1]
                        pow( abs_p[i], (Numeric)2. ) *       // quadratic p dependence [Pa²]
@@ -8194,7 +8202,7 @@ void Rosenkranz_N2_self_continuum( MatrixView          xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xfin           continuum frequency exponent [1]
@@ -8221,7 +8229,7 @@ void Rosenkranz_N2_self_continuum( MatrixView          xsec,
    \date 2001-11-05
  */ 
 
-void Standard_N2_self_continuum( MatrixView          xsec,
+void Standard_N2_self_continuum( MatrixView          pxsec,
          const Numeric       Cin,
          const Numeric       xfin,
          const Numeric       xtin,
@@ -8279,10 +8287,10 @@ void Standard_N2_self_continuum( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop over pressure/temperature grid:
   for ( Index i=0; i<n_p; ++i )
@@ -8292,8 +8300,8 @@ void Standard_N2_self_continuum( MatrixView          xsec,
       for ( Index s=0; s<n_f; ++s )
   {
     // The second N2-VMR will be multiplied at the stage of absorption 
-    // calculation: abs = vmr * xsec.
-    xsec(s,i) += C                            * // strength [1/(m*Hz²Pa²)]  
+    // calculation: abs = vmr * pxsec.
+    pxsec(s,i) += C                            * // strength [1/(m*Hz²Pa²)]  
                        pow( ((Numeric)300.00/abs_t[i]), xt ) * // T dependence        [1] 
                        pow( f_grid[s], xf )         * // f dependence    [Hz^xt]  
                        pow( abs_p[i], xp )          * // p dependence    [Pa^xp]
@@ -8308,7 +8316,7 @@ void Standard_N2_self_continuum( MatrixView          xsec,
 // #################################################################################
 //
 /** 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             CO2-CO2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xin            continuum temperature exponent [1]
@@ -8333,7 +8341,7 @@ void Standard_N2_self_continuum( MatrixView          xsec,
    \date 2001-11-05
  */ 
 
-void Rosenkranz_CO2_self_continuum( MatrixView          xsec,
+void Rosenkranz_CO2_self_continuum( MatrixView          pxsec,
             const Numeric       Cin,
             const Numeric       xin,
             const String&       model,
@@ -8380,24 +8388,24 @@ void Rosenkranz_CO2_self_continuum( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop over pressure/temperature grid:
   for ( Index i=0; i<n_p; ++i )
     {
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The second vmr of CO2 will be multiplied at the stage of absorption 
-      // calculation: abs = vmr * xsec.
+      // calculation: abs = vmr * pxsec.
       Numeric dummy =
   C * pow( (Numeric)300./abs_t[i], x ) * pow( abs_p[i], (Numeric)2. ) * vmr[i];
 
       // Loop over frequency grid:
       for ( Index s=0; s<n_f; ++s )
   {
-    xsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. );
+    pxsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. );
   }
     }
 }
@@ -8406,7 +8414,7 @@ void Rosenkranz_CO2_self_continuum( MatrixView          xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             CO2-N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xin            continuum temperature exponent [1]
@@ -8432,7 +8440,7 @@ void Rosenkranz_CO2_self_continuum( MatrixView          xsec,
    \date 2001-11-05
  */ 
 
-void Rosenkranz_CO2_foreign_continuum( MatrixView          xsec,
+void Rosenkranz_CO2_foreign_continuum( MatrixView          pxsec,
                const Numeric       Cin,
                const Numeric       xin,
                const String&       model,
@@ -8480,23 +8488,23 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
     {
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The vmr of CO2 will be multiplied at the stage of absorption 
-      // calculation: abs = vmr * xsec.
+      // calculation: abs = vmr * pxsec.
       Numeric dummy = C * pow( (Numeric)300./abs_t[i], x ) * abs_p[i] * abs_p[i] * abs_n2[i];
 
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
   {
-    xsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. );
+    pxsec(s,i) += dummy * pow( f_grid[s], (Numeric)2. );
   }
     }
 }
@@ -8507,7 +8515,7 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             water clouds according to MPM93 [1/m]
    \param    CCin           scaling parameter of the calculated cross section [1]
    \param    CGin           scaling parameter of the first relaxation frequency 
@@ -8537,7 +8545,7 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          xsec,
    \date 2001-11-05
  */ 
 
-void MPM93WaterDropletAbs( MatrixView         xsec,
+void MPM93WaterDropletAbs( MatrixView         pxsec,
          const Numeric      CCin,   // input parameter
          const Numeric      CGin,   // input parameter
          const Numeric      CEin,   // input parameter
@@ -8598,10 +8606,10 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
@@ -8653,16 +8661,16 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
         // MPM93: (w/m)_MPM93  in   (g/m³)/(g/cm³)
         // arts:  (w/m)_arts   in  (kg/m³)/(kg/m³)
         // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
-        // the factor of 1.0e6 is included below in xsec calculation.
+        // the factor of 1.0e6 is included below in pxsec calculation.
         Numeric ImNw = 1.500 / m * 
     ( 3.000 * Imepsilon
                   / ( pow((Reepsilon+(Numeric)2.000),(Numeric)2.)
                       + pow(Imepsilon,(Numeric)2.) ) );
         // liquid water particle absorption cross section [1/m]
         // The vmr of H2O will be multiplied at the stage of absorption 
-        // calculation: abs = vmr * xsec.
-        // xsec = abs/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
-        xsec(s,i) += CC * 1.000e6 * dB_km_to_1_m * 0.1820 * (f_grid[s]*Hz_to_GHz) * ImNw;
+        // calculation: abs = vmr * pxsec.
+        // pxsec = abs/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
+        pxsec(s,i) += CC * 1.000e6 * dB_km_to_1_m * 0.1820 * (f_grid[s]*Hz_to_GHz) * ImNw;
       }
   } else
     {
@@ -8683,7 +8691,7 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             ice clouds according to MPM93 [1/m]
    \param    CCin           scaling parameter of the calculated cross section [1]
    \param    CAin           scaling parameter of the permittivity function a
@@ -8713,7 +8721,7 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
    \date 2001-11-05
  */ 
 
-void MPM93IceCrystalAbs( MatrixView        xsec,
+void MPM93IceCrystalAbs( MatrixView        pxsec,
        const Numeric     CCin,   // input parameter
        const Numeric     CAin,   // input parameter
        const Numeric     CBin,   // input parameter
@@ -8775,10 +8783,10 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
 
 
@@ -8818,16 +8826,16 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
         // MPM93: (w/m)_MPM93  in   (g/m³)/(g/cm³)
         // arts:  (w/m)_arts   in  (kg/m³)/(kg/m³)
         // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
-        // the factor of 1.0e6 is included below in xsec calculation.
+        // the factor of 1.0e6 is included below in pxsec calculation.
         Numeric ImNw = 1.500 / m * 
         ( 3.000 * Imepsilon
                       / ( pow((Reepsilon+(Numeric)2.000),(Numeric)2.)
                           + pow(Imepsilon,(Numeric)2.) ) );
         // ice particle absorption cross section [1/m]
         // The vmr of H2O will be multiplied at the stage of absorption 
-        // calculation: abs = vmr * xsec.
-        // xsec = abs/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
-        xsec(s,i) += CC * 1.000e6 * dB_km_to_1_m * 0.1820 * (f_grid[s]*Hz_to_GHz) * ImNw;
+        // calculation: abs = vmr * pxsec.
+        // pxsec = abs/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
+        pxsec(s,i) += CC * 1.000e6 * dB_km_to_1_m * 0.1820 * (f_grid[s]*Hz_to_GHz) * ImNw;
       }
   } else
     {
@@ -8848,7 +8856,7 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
                             water clouds according to MPM93 [1/m]
    \param    CEin           scaling parameter of the calculated cross section [1]
    \param    CAin           scaling parameter of the factor a_rain [1]
@@ -8875,7 +8883,7 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
    \date 2003-22-05
  */ 
 
-void MPM93RainExt( MatrixView         xsec,
+void MPM93RainExt( MatrixView         pxsec,
        const Numeric      CEin,   // input parameter
        const Numeric      CAin,   // input parameter
        const Numeric      CBin,   // input parameter
@@ -8934,10 +8942,10 @@ void MPM93RainExt( MatrixView         xsec,
   assert ( n_p==abs_t.nelem() );
   assert ( n_p==vmr.nelem()   );
 
-  // Check that dimensions of xsec are consistent with n_f
+  // Check that dimensions of pxsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
-  assert ( n_f==xsec.nrows() );
-  assert ( n_p==xsec.ncols() );
+  assert ( n_f==pxsec.nrows() );
+  assert ( n_p==pxsec.ncols() );
   
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
@@ -9107,9 +9115,9 @@ void MPM93RainExt( MatrixView         xsec,
         Numeric ext_rain = CA * a_rain * pow(vmr[i],(CB*b_rain));
         // rain extinction cross section [1/m]
         // The vmr will be multiplied at the stage of extinction
-        // calculation: ext = vmr * xsec.
-        // xsec = ext/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
-        xsec(s,i) += CE * dB_km_to_1_m * ext_rain / vmr[i];
+        // calculation: ext = vmr * pxsec.
+        // pxsec = ext/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
+        pxsec(s,i) += CE * dB_km_to_1_m * ext_rain / vmr[i];
       }
   } else
     {
@@ -9365,12 +9373,20 @@ Numeric WVSatPressureIce(const Numeric t)
     Calculates model absorption for one continuum or full model tag. 
     Note, that only one tag can be taken at a time. 
 
-    Calculated is the absorption cross section, that means you have to
-    multiply this with the VMR in order to get the absorption
-    coefficient in units of 1/m.
+    Calculated is the true absorption cross section, that means you have to
+    multiply this with n*VMR in order to get the absorption
+    coefficient in units of 1/m. 
+
+    This is the type of xsec that is used all over ARTS, but not what
+    is used by the internal continuum functions! (We have to divide
+    the output of the internal continuum functions by the number
+    density n.)
 
     \retval xsec       Cross section of one continuum tag,<br> 
-                       xsec = alpha / VMR  [1/m * 1]
+                       xsec = alpha / (n*VMR)  [m^2]. This is both input
+                       and output! (The function adds the continuum
+                       absorption cross section to the previous
+                       content of xsec.)
 
     \param  name       The name of the model to calculate (derived from the tag name)
     \param  parameters model parameters, as defined in method
@@ -9390,68 +9406,74 @@ Numeric WVSatPressureIce(const Numeric t)
    \author Stefan Bühler, Thomas Kuhn
    \date 2001-11-05
  */
-
-void xsec_continuum_tag( MatrixView                 xsec,
-       const String&              name,
-       ConstVectorView            parameters,
-                         const String&              model,
-       ConstVectorView        f_grid,
-       ConstVectorView        abs_p,
-       ConstVectorView        abs_t,
-       ConstVectorView        abs_n2,
-       ConstVectorView        abs_h2o,
-       ConstVectorView            vmr )
+void xsec_continuum_tag( MatrixView             xsec,
+                         const String&          name,
+                         ConstVectorView        parameters,
+                         const String&          model,
+                         ConstVectorView        f_grid,
+                         ConstVectorView        abs_p,
+                         ConstVectorView        abs_t,
+                         ConstVectorView        abs_n2,
+                         ConstVectorView        abs_h2o,
+                         ConstVectorView        vmr )
 {
-  //
   /* In the following all the possible tags are listed here and 
-   after a first consistency check about the input parameters the 
-   appropriate internal function is called,
+     after a first consistency check about the input parameters the 
+     appropriate internal function is called,
 
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-  ATTENTION PLEASE UPDATE THIS COMMENT IF ANY CHANGES ARE MADE CONCERNING 
-  THE ASSOCIATED MODELS TO EACH TAG
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+     ATTENTION PLEASE UPDATE THIS COMMENT IF ANY CHANGES ARE MADE CONCERNING 
+     THE ASSOCIATED MODELS TO EACH TAG
+     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  ----------------------------------------------------------------------------------------------------
-                    TAG                      VALID MODELS  
-  ----------------------------------------------------------------------------------------------------
-  *CONTAGMODINFO*   H2O-SelfContStandardType: Rosenkranz, user
-  *CONTAGMODINFO*   H2O-ForeignContStandardType: Rosenkranz, user
-  *CONTAGMODINFO*   H2O-ForeignContMaTippingType: MaTipping, user
-  *CONTAGMODINFO*   H2O-MPM87:               MPM87, MPM87Lines, MPM87Continuum, user
-  *CONTAGMODINFO*   H2O-MPM89:               MPM89, MPM89Lines, MPM89Continuum, user
-  *CONTAGMODINFO*   H2O-MPM93:               MPM93, MPM93Lines, MPM93Continuum, user
-  *CONTAGMODINFO*   H2O-PWR98:               Rosenkranz, RosenkranzLines, RosenkranzContinuum, user
-  *CONTAGMODINFO*   H2O-CP98:                CruzPol, CruzPolLine, CruzPolContinuum, user
-  *CONTAGMODINFO*   H2O-CKD24:               CKD24, user
-  *CONTAGMODINFO*   O2-MPM85:                MPM85, MPM85Lines, MPM85Continuum, MPM85NoCoupling, MPM85NoCutoff, user
-  *CONTAGMODINFO*   O2-MPM87:                MPM87, MPM87Lines, MPM87Continuum, MPM87NoCoupling, MPM87NoCutoff, user
-  *CONTAGMODINFO*   O2-MPM89:                MPM89, MPM89Lines, MPM89Continuum, MPM89NoCoupling, MPM89NoCutoff, user
-  *CONTAGMODINFO*   O2-MPM92:                MPM92, MPM92Lines, MPM92Continuum, MPM92NoCoupling, MPM92NoCutoff, user
-  *CONTAGMODINFO*   O2-MPM93:                MPM93, MPM93Lines, MPM93Continuum, MPM93NoCoupling, MPM92NoCutoff, user
-  *CONTAGMODINFO*   O2-PWR93:                Rosenkranz, RosenkranzLines, RosenkranzContinuum, user
-  *CONTAGMODINFO*   O2-PWR88:                Rosenkranz, RosenkranzLines, RosenkranzContinuum, user
-  *CONTAGMODINFO*   O2-SelfContMPM93:        MPM93, user
-  *CONTAGMODINFO*   O2-SelfContPWR93:        Rosenkranz, user
-  *CONTAGMODINFO*   O2-GenerealCont:         Rosenkranz, MPM93, user
-  *CONTAGMODINFO*   N2-BFCIA86:              BF86, user
-  *CONTAGMODINFO*   N2-SelfContMPM93:        MPM93, user, MPM93Scale
-  *CONTAGMODINFO*   N2-SelfContPWR93:        Rosenkranz, user
-  *CONTAGMODINFO*   N2-SelfContStandardType: Rosenkranz, user
-  *CONTAGMODINFO*   CO2-SelfContPWR93:       Rosenkranz, user
-  *CONTAGMODINFO*   CO2-ForeignContPWR93:    Rosenkranz, user
-  *CONTAGMODINFO*   liquidcloud-MPM93:       MPM93, user
-  *CONTAGMODINFO*   icecloud-MPM93:          MPM93, user
-  *CONTAGMODINFO*   rain-MPM93:              MPM93, user
-  ----------------------------------------------------------------------------------------------------
+     ----------------------------------------------------------------------------------------------------
+     TAG                      VALID MODELS  
+     ----------------------------------------------------------------------------------------------------
+     *CONTAGMODINFO*   H2O-SelfContStandardType: Rosenkranz, user
+     *CONTAGMODINFO*   H2O-ForeignContStandardType: Rosenkranz, user
+     *CONTAGMODINFO*   H2O-ForeignContMaTippingType: MaTipping, user
+     *CONTAGMODINFO*   H2O-MPM87:               MPM87, MPM87Lines, MPM87Continuum, user
+     *CONTAGMODINFO*   H2O-MPM89:               MPM89, MPM89Lines, MPM89Continuum, user
+     *CONTAGMODINFO*   H2O-MPM93:               MPM93, MPM93Lines, MPM93Continuum, user
+     *CONTAGMODINFO*   H2O-PWR98:               Rosenkranz, RosenkranzLines, RosenkranzContinuum, user
+     *CONTAGMODINFO*   H2O-CP98:                CruzPol, CruzPolLine, CruzPolContinuum, user
+     *CONTAGMODINFO*   H2O-CKD24:               CKD24, user
+     *CONTAGMODINFO*   O2-MPM85:                MPM85, MPM85Lines, MPM85Continuum, MPM85NoCoupling, MPM85NoCutoff, user
+     *CONTAGMODINFO*   O2-MPM87:                MPM87, MPM87Lines, MPM87Continuum, MPM87NoCoupling, MPM87NoCutoff, user
+     *CONTAGMODINFO*   O2-MPM89:                MPM89, MPM89Lines, MPM89Continuum, MPM89NoCoupling, MPM89NoCutoff, user
+     *CONTAGMODINFO*   O2-MPM92:                MPM92, MPM92Lines, MPM92Continuum, MPM92NoCoupling, MPM92NoCutoff, user
+     *CONTAGMODINFO*   O2-MPM93:                MPM93, MPM93Lines, MPM93Continuum, MPM93NoCoupling, MPM92NoCutoff, user
+     *CONTAGMODINFO*   O2-PWR93:                Rosenkranz, RosenkranzLines, RosenkranzContinuum, user
+     *CONTAGMODINFO*   O2-PWR88:                Rosenkranz, RosenkranzLines, RosenkranzContinuum, user
+     *CONTAGMODINFO*   O2-SelfContMPM93:        MPM93, user
+     *CONTAGMODINFO*   O2-SelfContPWR93:        Rosenkranz, user
+     *CONTAGMODINFO*   O2-GenerealCont:         Rosenkranz, MPM93, user
+     *CONTAGMODINFO*   N2-BFCIA86:              BF86, user
+     *CONTAGMODINFO*   N2-SelfContMPM93:        MPM93, user, MPM93Scale
+     *CONTAGMODINFO*   N2-SelfContPWR93:        Rosenkranz, user
+     *CONTAGMODINFO*   N2-SelfContStandardType: Rosenkranz, user
+     *CONTAGMODINFO*   CO2-SelfContPWR93:       Rosenkranz, user
+     *CONTAGMODINFO*   CO2-ForeignContPWR93:    Rosenkranz, user
+     *CONTAGMODINFO*   liquidcloud-MPM93:       MPM93, user
+     *CONTAGMODINFO*   icecloud-MPM93:          MPM93, user
+     *CONTAGMODINFO*   rain-MPM93:              MPM93, user
+     ----------------------------------------------------------------------------------------------------
   */
+
+  // Set up a lokal variable pxsec for the pseudo cross sections, that
+  // are used by the internal contiuum functions. It is important that
+  // we also inititialize this to zero here, since the continuum
+  // routines just add to this.
+  // The dimensions of this are [n_frequencies,n_pressures].
+  Matrix pxsec(xsec.nrows(),xsec.ncols(),0.0);
+
   // ============= H2O continuum ========================================================
   if ( "H2O-SelfContStandardType"==name )
     {
       // 
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum coefficient (C_s)  [1/m / (Hz²*Pa²)]
       //     parameters[1] : temperature exponent  (x_s)  [1]
@@ -9462,51 +9484,49 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 2;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    Standard_H2O_self_continuum( xsec,
-               parameters[0],
-               parameters[1],
-               model,
-               f_grid,
-               abs_p,
-               abs_t,
-               vmr );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          Standard_H2O_self_continuum( pxsec,
+                                       parameters[0],
+                                       parameters[1],
+                                       model,
+                                       f_grid,
+                                       abs_p,
+                                       abs_t,
+                                       vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    Standard_H2O_self_continuum( xsec,
-               0.00,
-               0.00,
-               model,
-               f_grid,
-               abs_p,
-               abs_t,
-               vmr );
-  }
+          Standard_H2O_self_continuum( pxsec,
+                                       0.00,
+                                       0.00,
+                                       model,
+                                       f_grid,
+                                       abs_p,
+                                       abs_t,
+                                       vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-ForeignContStandardType"==name )
@@ -9514,7 +9534,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //      
       // specific continuum parameters units:
       //  a) output 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  b) input
       //     parameters[0] : [1/m / (Hz²*Pa²)]
       //     parameters[1] : [1]
@@ -9525,49 +9545,48 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 2;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    Standard_H2O_foreign_continuum( xsec,
-            parameters[0],
-            parameters[1],
-            model,
-            f_grid,
-            abs_p,
-            abs_t,
-            vmr );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          Standard_H2O_foreign_continuum( pxsec,
+                                          parameters[0],
+                                          parameters[1],
+                                          model,
+                                          f_grid,
+                                          abs_p,
+                                          abs_t,
+                                          vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    Standard_H2O_foreign_continuum( xsec,
-            0.00,
-            0.00,
-            model,
-            f_grid,
-            abs_p,
-            abs_t,
-            vmr );
-  }
+          Standard_H2O_foreign_continuum( pxsec,
+                                          0.00,
+                                          0.00,
+                                          model,
+                                          f_grid,
+                                          abs_p,
+                                          abs_t,
+                                          vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-  }
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-ForeignContMaTippingType"==name )
@@ -9575,7 +9594,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //      
       // specific continuum parameters units:
       //  a) output 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  b) input
       //     parameters[0] : [1/m / (Hz²*Pa²)]
       //     parameters[1] : [1]
@@ -9586,49 +9605,48 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 2;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MaTipping_H2O_foreign_continuum( xsec,
-             parameters[0],
-             parameters[1],
-             model,
-             f_grid,
-             abs_p,
-             abs_t,
-            vmr );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MaTipping_H2O_foreign_continuum( pxsec,
+                                           parameters[0],
+                                           parameters[1],
+                                           model,
+                                           f_grid,
+                                           abs_p,
+                                           abs_t,
+                                           vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    MaTipping_H2O_foreign_continuum( xsec,
-             0.00,
-             0.00,
-             model,
-             f_grid,
-             abs_p,
-             abs_t,
-             vmr );
-  }
+          MaTipping_H2O_foreign_continuum( pxsec,
+                                           0.00,
+                                           0.00,
+                                           model,
+                                           f_grid,
+                                           abs_p,
+                                           abs_t,
+                                           vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-  }
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-ContMPM93"==name )
@@ -9639,7 +9657,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : pseudo continuum line frequency                      [Hz]
       //     parameters[1] : pseudo continuum line strength parameter             [Hz/Pa]
@@ -9655,61 +9673,59 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 7;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MPM93_H2O_continuum( xsec,
-             parameters[0],
-             parameters[1],
-             parameters[2],
-             parameters[3],
-             parameters[4],
-             parameters[5],
-             parameters[6],
-             model,
-             f_grid,
-             abs_p,
-             abs_t,
-             vmr   );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM93_H2O_continuum( pxsec,
+                               parameters[0],
+                               parameters[1],
+                               parameters[2],
+                               parameters[3],
+                               parameters[4],
+                               parameters[5],
+                               parameters[6],
+                               model,
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               vmr   );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    MPM93_H2O_continuum( xsec,
-             0.00,
-             0.00,
-             0.00,
-             0.00,
-             0.00,
-             0.00,
-             0.00,
-             model,
-             f_grid,
-             abs_p,
-             abs_t,
-             vmr   );
-  }
+          MPM93_H2O_continuum( pxsec,
+                               0.00,
+                               0.00,
+                               0.00,
+                               0.00,
+                               0.00,
+                               0.00,
+                               0.00,
+                               model,
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               vmr   );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters. " << "\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters. " << "\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-ForeignContATM01"==name )
@@ -9721,7 +9737,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : pseudo continuum line frequency                      [Hz]
       //     f_grid        : [Hz]
@@ -9731,55 +9747,53 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    Pardo_ATM_H2O_ForeignContinuum( xsec,
-            parameters[0],
-            model,
-            f_grid,
-            abs_p,
-            abs_t,
-            vmr   );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          Pardo_ATM_H2O_ForeignContinuum( pxsec,
+                                          parameters[0],
+                                          model,
+                                          f_grid,
+                                          abs_p,
+                                          abs_t,
+                                          vmr   );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    Pardo_ATM_H2O_ForeignContinuum( xsec,
-            0.000,
-            model,
-            f_grid,
-            abs_p,
-            abs_t,
-            vmr   );
-  }
+          Pardo_ATM_H2O_ForeignContinuum( pxsec,
+                                          0.000,
+                                          model,
+                                          f_grid,
+                                          abs_p,
+                                          abs_t,
+                                          vmr   );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters. " << "\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters. " << "\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-SelfContCKD222"==name )
     {
       // OUTPUT:
-      //   xsec           cross section (absorption/volume mixing ratio) of 
+      //   pxsec           cross section (absorption/volume mixing ratio) of 
       //                  H2O self continuum according to CKD2.2.2    [1/m]
       // INPUT:
       //   parameters[0]  strength scaling factor              [1]
@@ -9795,56 +9809,55 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD_222_self_h2o( xsec,
-          parameters[0],
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr,
-          abs_n2 );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD_222_self_h2o( pxsec,
+                            parameters[0],
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr,
+                            abs_n2 );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD_222_self_h2o( xsec,
-          0.000,
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr,
-          abs_n2 );
-  }
+          CKD_222_self_h2o( pxsec,
+                            0.000,
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr,
+                            abs_n2 );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-       {
-    ostringstream os;
-    os << "ERROR: continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-       }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-ForeignContCKD222"==name )
     {
       // OUTPUT:
-      //   xsec           cross section (absorption/volume mixing ratio) of 
+      //   pxsec           cross section (absorption/volume mixing ratio) of 
       //                  H2O foreign continuum according to CKD2.2.2    [1/m]
       // INPUT:
       //   parameters[0]  strength scaling factor              [1]
@@ -9860,56 +9873,55 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD_222_foreign_h2o( xsec,
-             parameters[0],
-             model,
-             f_grid,
-             abs_p,
-             abs_t,
-             vmr,
-             abs_n2 );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD_222_foreign_h2o( pxsec,
+                               parameters[0],
+                               model,
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               vmr,
+                               abs_n2 );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD_222_foreign_h2o( xsec,
-             0.000,
-             model,
-             f_grid,
-             abs_p,
-             abs_t,
-             vmr,
-             abs_n2 );
-  }
+          CKD_222_foreign_h2o( pxsec,
+                               0.000,
+                               model,
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               vmr,
+                               abs_n2 );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-       {
-    ostringstream os;
-    os << "ERROR: continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-       }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-SelfContCKD242"==name )
     {
       // OUTPUT:
-      //   xsec           cross section (absorption/volume mixing ratio) of 
+      //   pxsec           cross section (absorption/volume mixing ratio) of 
       //                  H2O self continuum according to CKD2.4.2    [1/m]
       // INPUT:
       //   parameters[0]  strength scaling factor              [1]
@@ -9925,56 +9937,55 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD_242_self_h2o( xsec,
-          parameters[0],
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr,
-          abs_n2 );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD_242_self_h2o( pxsec,
+                            parameters[0],
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr,
+                            abs_n2 );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD_242_self_h2o( xsec,
-          0.000,
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr,
-          abs_n2 );
-  }
+          CKD_242_self_h2o( pxsec,
+                            0.000,
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr,
+                            abs_n2 );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-       {
-    ostringstream os;
-    os << "ERROR: continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-       }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-ForeignContCKD242"==name )
     {
       // OUTPUT:
-      //   xsec           cross section (absorption/volume mixing ratio) of 
+      //   pxsec           cross section (absorption/volume mixing ratio) of 
       //                  H2O foreign continuum according to CKD2.4.2    [1/m]
       // INPUT:
       //   parameters[0]  strength scaling factor              [1]
@@ -9990,56 +10001,55 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD_242_foreign_h2o( xsec,
-             parameters[0],
-             model,
-             f_grid,
-             abs_p,
-             abs_t,
-             vmr,
-             abs_n2 );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD_242_foreign_h2o( pxsec,
+                               parameters[0],
+                               model,
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               vmr,
+                               abs_n2 );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD_242_foreign_h2o( xsec,
-             0.000,
-             model,
-             f_grid,
-             abs_p,
-             abs_t,
-             vmr,
-             abs_n2 );
-  }
+          CKD_242_foreign_h2o( pxsec,
+                               0.000,
+                               model,
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               vmr,
+                               abs_n2 );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-       }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-SelfContCKDMT100"==name )
     {
       // OUTPUT:
-      //   xsec           cross section (absorption/volume mixing ratio) of 
+      //   pxsec           cross section (absorption/volume mixing ratio) of 
       //                  H2O self continuum according to CKD MT 1.00    [1/m]
       // INPUT:
       //   parameters[0]  strength scaling factor              [1]
@@ -10055,56 +10065,55 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD_mt_100_self_h2o( xsec,
-             parameters[0],
-             model,
-             f_grid,
-             abs_p,
-             abs_t,
-             vmr,
-             abs_n2 );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD_mt_100_self_h2o( pxsec,
+                               parameters[0],
+                               model,
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               vmr,
+                               abs_n2 );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD_mt_100_self_h2o( xsec,
-             0.000,
-             model,
-             f_grid,
-             abs_p,
-             abs_t,
-             vmr,
-             abs_n2 );
-  }
+          CKD_mt_100_self_h2o( pxsec,
+                               0.000,
+                               model,
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               vmr,
+                               abs_n2 );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-       {
-    ostringstream os;
-    os << "ERROR: continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-       }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-ForeignContCKDMT100"==name )
     {
       // OUTPUT:
-      //   xsec           cross section (absorption/volume mixing ratio) of 
+      //   pxsec           cross section (absorption/volume mixing ratio) of 
       //                  H2O foreign continuum according to CKD MT 1.00    [1/m]
       // INPUT:
       //   parameters[0]  strength scaling factor              [1]
@@ -10120,56 +10129,55 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD_mt_100_foreign_h2o( xsec,
-          parameters[0],
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr,
-          abs_n2 );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD_mt_100_foreign_h2o( pxsec,
+                                  parameters[0],
+                                  model,
+                                  f_grid,
+                                  abs_p,
+                                  abs_t,
+                                  vmr,
+                                  abs_n2 );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD_mt_100_foreign_h2o( xsec,
-          0.000,
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr,
-          abs_n2 );
-  }
+          CKD_mt_100_foreign_h2o( pxsec,
+                                  0.000,
+                                  model,
+                                  f_grid,
+                                  abs_p,
+                                  abs_t,
+                                  vmr,
+                                  abs_n2 );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-       }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-SelfContCKD24"==name )
     {
       // OUTPUT:
-      //   xsec           cross section (absorption/volume mixing ratio) of 
+      //   pxsec           cross section (absorption/volume mixing ratio) of 
       //                  H2O continuum according to CKD2.4    [1/m]
       // INPUT:
       //   parameters[0]  strength scaling factor              [1]
@@ -10185,58 +10193,57 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD24_H20( xsec,
-         0,
-         parameters[0],
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         vmr,
-         abs_n2 );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD24_H20( pxsec,
+                     0,
+                     parameters[0],
+                     model,
+                     f_grid,
+                     abs_p,
+                     abs_t,
+                     vmr,
+                     abs_n2 );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD24_H20( xsec,
-         0,
-         0.000,
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         vmr,
-         abs_n2 );
-  }
+          CKD24_H20( pxsec,
+                     0,
+                     0.000,
+                     model,
+                     f_grid,
+                     abs_p,
+                     abs_t,
+                     vmr,
+                     abs_n2 );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-       {
-    ostringstream os;
-    os << "ERROR: continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-       }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-ForeignContCKD24"==name ) 
     {
       // OUTPUT:
-      //   xsec             cross section (absorption/volume mixing ratio) of 
+      //   pxsec             cross section (absorption/volume mixing ratio) of 
       //                    H2O continuum according to CKD2.4    [1/m]
       // INPUT:
       //   Cin            strength scaling factor              [1]
@@ -10252,52 +10259,51 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // WWW resource: ftp.aer.com/aer_contnm_ckd
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD24_H20( xsec,
-         1,
-         parameters[0],
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         vmr,
-         abs_n2 );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD24_H20( pxsec,
+                     1,
+                     parameters[0],
+                     model,
+                     f_grid,
+                     abs_p,
+                     abs_t,
+                     vmr,
+                     abs_n2 );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD24_H20( xsec,
-         1,
-         0,
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         vmr,
-         abs_n2 );
-  }
+          CKD24_H20( pxsec,
+                     1,
+                     0,
+                     model,
+                     f_grid,
+                     abs_p,
+                     abs_t,
+                     vmr,
+                     abs_n2 );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ============= H2O full models ======================================================
   else if ( "H2O-CP98"==name )
@@ -10305,7 +10311,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum scale factor       (CC) [1]
       //     parameters[1] : line strength scale factor   (CL) [1]
@@ -10317,52 +10323,51 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 3;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Full model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CP98H2OAbsModel( xsec,
-         parameters[0],
-         parameters[1],
-         parameters[2],
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         vmr );
-  }
+        {
+          out3 << "Full model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CP98H2OAbsModel( pxsec,
+                           parameters[0],
+                           parameters[1],
+                           parameters[2],
+                           model,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Full model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Full model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Full model " << name << " running with \n" 
+        {
+          out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CP98H2OAbsModel( xsec,
-         0.00,
-         0.00,
-         0.00,
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         vmr );
-  }
+          CP98H2OAbsModel( pxsec,
+                           0.00,
+                           0.00,
+                           0.00,
+                           model,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Full model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Full model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-MPM87"==name )
@@ -10370,7 +10375,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  a) output 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  b) input
       //     parameters[0] : continuum scale factor (CC)       [1]
       //     parameters[1] : line strength scale factor   (CL) [1]
@@ -10382,53 +10387,51 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 3;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Full model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MPM87H2OAbsModel( xsec,
-          parameters[0],
-          parameters[1],
-          parameters[2],
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+        {
+          out3 << "Full model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM87H2OAbsModel( pxsec,
+                            parameters[0],
+                            parameters[1],
+                            parameters[2],
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Full model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Full model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Full model " << name << " running with \n" 
+        {
+          out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    MPM87H2OAbsModel( xsec,
-          0.00,
-          0.00,
-          0.00,
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+          MPM87H2OAbsModel( pxsec,
+                            0.00,
+                            0.00,
+                            0.00,
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Full model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
-       << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+        {
+          ostringstream os;
+          os << "ERROR: Full model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 3.\n";
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-MPM89"==name )
@@ -10436,7 +10439,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  a) output 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  b) input
       //     parameters[0] : continuum scale factor       (CC) [1]
       //     parameters[1] : line strength scale factor   (CL) [1]
@@ -10448,53 +10451,51 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 3;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Full model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MPM89H2OAbsModel( xsec,
-      parameters[0],
-      parameters[1],
-      parameters[2],
-      model,
-      f_grid,
-      abs_p,
-      abs_t,
-      vmr );
-  }
+        {
+          out3 << "Full model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM89H2OAbsModel( pxsec,
+                            parameters[0],
+                            parameters[1],
+                            parameters[2],
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Full model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Full model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Full model " << name << " running with \n" 
+        {
+          out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    MPM89H2OAbsModel( xsec,
-          0.00,
-          0.00,
-          0.00,
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+          MPM89H2OAbsModel( pxsec,
+                            0.00,
+                            0.00,
+                            0.00,
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Full model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Full model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-MPM93"==name )
@@ -10502,7 +10503,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum scale factor       (CC) [1]
       //     parameters[1] : line strength scale factor   (CL) [1]
@@ -10514,60 +10515,58 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 3;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Full model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MPM93H2OAbsModel( xsec,
-          parameters[0],
-          parameters[1],
-          parameters[2],
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+        {
+          out3 << "Full model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM93H2OAbsModel( pxsec,
+                            parameters[0],
+                            parameters[1],
+                            parameters[2],
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Full model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Full model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Full model " << name << " running with \n" 
+        {
+          out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    MPM93H2OAbsModel( xsec,
-          0.00,
-          0.00,
-          0.00,
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+          MPM93H2OAbsModel( pxsec,
+                            0.00,
+                            0.00,
+                            0.00,
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Full model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
-       << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+        {
+          ostringstream os;
+          os << "ERROR: Full model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 3.\n";
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-PWR98"==name )
     {      
       // specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum scale factor       (CC) [1]
       //     parameters[1] : line strength scale factor   (CL) [1]
@@ -10579,53 +10578,51 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 3;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Full model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    PWR98H2OAbsModel( xsec,
-          parameters[0],
-          parameters[1],
-          parameters[2],
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+        {
+          out3 << "Full model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          PWR98H2OAbsModel( pxsec,
+                            parameters[0],
+                            parameters[1],
+                            parameters[2],
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Full model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Full model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Full model " << name << " running with \n" 
+        {
+          out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    PWR98H2OAbsModel( xsec,
-          0.00,
-          0.00,
-          0.00,
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+          PWR98H2OAbsModel( pxsec,
+                            0.00,
+                            0.00,
+                            0.00,
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Full model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Full model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ============= O2 continuum =========================================================
   else if ( "O2-CIAfunCKDMT100"==name )
@@ -10639,7 +10636,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum scaling
       //     model         : model option ("CKD" or "user")
@@ -10651,49 +10648,47 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD_mt_CIAfun_o2( xsec,
-          parameters[0],
-          model, 
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }  
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD_mt_CIAfun_o2( pxsec,
+                            parameters[0],
+                            model, 
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD_mt_CIAfun_o2( xsec,
-          0.00e0,
-          model, 
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+          CKD_mt_CIAfun_o2( pxsec,
+                            0.00e0,
+                            model, 
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "O2-v0v0CKDMT100"==name )
@@ -10706,7 +10701,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum scaling
       //     model         : model option ("CKD" or "user")
@@ -10719,51 +10714,49 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD_mt_v0v0_o2( xsec,
-        parameters[0],
-        model, 
-        f_grid,
-        abs_p,
-        abs_t,
-        vmr,
-        abs_n2 );
-  }  
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD_mt_v0v0_o2( pxsec,
+                          parameters[0],
+                          model, 
+                          f_grid,
+                          abs_p,
+                          abs_t,
+                          vmr,
+                          abs_n2 );
+        }  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD_mt_v0v0_o2( xsec,
-        0.0e0,
-        model, 
-        f_grid,
-        abs_p,
-        abs_t,
-        vmr,
-        abs_n2 );
-  }
+          CKD_mt_v0v0_o2( pxsec,
+                          0.0e0,
+                          model, 
+                          f_grid,
+                          abs_p,
+                          abs_t,
+                          vmr,
+                          abs_n2 );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "O2-v1v0CKDMT100"==name )
@@ -10775,7 +10768,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum scaling
       //     model         : model option ("CKD" or "user")
@@ -10788,49 +10781,47 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD_mt_v1v0_o2( xsec,
-        parameters[0],
-        model, 
-        f_grid,
-        abs_p,
-        abs_t,
-        vmr );
-  }  
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD_mt_v1v0_o2( pxsec,
+                          parameters[0],
+                          model, 
+                          f_grid,
+                          abs_p,
+                          abs_t,
+                          vmr );
+        }  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD_mt_v1v0_o2( xsec,
-        0.0e0,
-        model, 
-        f_grid,
-        abs_p,
-        abs_t,
-        vmr );
-  }
+          CKD_mt_v1v0_o2( pxsec,
+                          0.0e0,
+                          model, 
+                          f_grid,
+                          abs_p,
+                          abs_t,
+                          vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "O2-SelfContStandardType"==name )
@@ -10848,7 +10839,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum coefficient (C)    [1/m*1/Hz*1/Pa] 
       //     parameters[1] : frequency coefficient (G0)   [Hz/Pa]
@@ -10866,61 +10857,59 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 6;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    Standard_O2_continuum( xsec,
-         parameters[0],
-         parameters[1], 
-         parameters[2], 
-         parameters[3], 
-         parameters[4], 
-         parameters[5], 
-         model, 
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }  
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          Standard_O2_continuum( pxsec,
+                                 parameters[0],
+                                 parameters[1], 
+                                 parameters[2], 
+                                 parameters[3], 
+                                 parameters[4], 
+                                 parameters[5], 
+                                 model, 
+                                 f_grid,
+                                 abs_p,
+                                 abs_t,
+                                 abs_h2o,
+                                 vmr );
+        }  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    Standard_O2_continuum( xsec,
-         0.00,
-         0.00,
-         0.00,
-         0.00,
-         0.00,
-         0.00,
-         model, 
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+          Standard_O2_continuum( pxsec,
+                                 0.00,
+                                 0.00,
+                                 0.00,
+                                 0.00,
+                                 0.00,
+                                 0.00,
+                                 model, 
+                                 f_grid,
+                                 abs_p,
+                                 abs_t,
+                                 abs_h2o,
+                                 vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "O2-SelfContMPM93"==name )
@@ -10934,7 +10923,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum coefficient (C)    [1/m / (Hz²*Pa²)]
       //     parameters[1] : temperature exponent  (x_s)  [1]
@@ -10946,57 +10935,55 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MPM93_O2_continuum( xsec,
-            parameters[0],
-            parameters[1], 
-            parameters[2], 
-            parameters[3], 
-            model, 
-            f_grid,
-            abs_p,
-            abs_t,
-            abs_h2o,
-            vmr );
-  }  
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM93_O2_continuum( pxsec,
+                              parameters[0],
+                              parameters[1], 
+                              parameters[2], 
+                              parameters[3], 
+                              model, 
+                              f_grid,
+                              abs_p,
+                              abs_t,
+                              abs_h2o,
+                              vmr );
+        }  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    MPM93_O2_continuum( xsec,
-            0.00,
-            0.00,
-            0.00,
-            0.00,
-            model, 
-            f_grid,
-            abs_p,
-            abs_t,
-            abs_h2o,
-            vmr );
-  }
+          MPM93_O2_continuum( pxsec,
+                              0.00,
+                              0.00,
+                              0.00,
+                              0.00,
+                              model, 
+                              f_grid,
+                              abs_p,
+                              abs_t,
+                              abs_h2o,
+                              vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "O2-SelfContPWR93"==name )
@@ -11009,7 +10996,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // 
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum coefficient (C) [K²/(Hz*Pa*m)]
       //     parameters[1] : temperature exponent  (x) [1]
@@ -11020,57 +11007,55 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    Rosenkranz_O2_continuum( xsec,
-           parameters[0],
-           parameters[1],
-           parameters[2],
-           parameters[3],
-           model,
-           f_grid,
-           abs_p,
-           abs_t,
-           abs_h2o,
-           vmr );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          Rosenkranz_O2_continuum( pxsec,
+                                   parameters[0],
+                                   parameters[1],
+                                   parameters[2],
+                                   parameters[3],
+                                   model,
+                                   f_grid,
+                                   abs_p,
+                                   abs_t,
+                                   abs_h2o,
+                                   vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    Rosenkranz_O2_continuum( xsec,
-           0.00,
-           0.00,
-           0.00,
-           0.00,
-           model,
-           f_grid,
-           abs_p,
-           abs_t,
-           abs_h2o,
-           vmr );
-  }
+          Rosenkranz_O2_continuum( pxsec,
+                                   0.00,
+                                   0.00,
+                                   0.00,
+                                   0.00,
+                                   model,
+                                   f_grid,
+                                   abs_p,
+                                   abs_t,
+                                   abs_h2o,
+                                   vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ============= O2 full model ========================================================
   else if ( "O2-PWR88"==name )
@@ -11090,7 +11075,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum term scale factor,   default CC = 1.000 [1]
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
@@ -11105,59 +11090,57 @@ void xsec_continuum_tag( MatrixView                 xsec,
       const int Nparam = 4;
       const char *version="PWR88";
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Full model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    PWR93O2AbsModel( xsec,
-         parameters[0], // continuum term scale factor
-         parameters[1], // line strength scale factor
-         parameters[2], // line broadening scale factor
-         parameters[3], // line coupling scale factor
-         model,
-         version, 
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+        {
+          out3 << "Full model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          PWR93O2AbsModel( pxsec,
+                           parameters[0], // continuum term scale factor
+                           parameters[1], // line strength scale factor
+                           parameters[2], // line broadening scale factor
+                           parameters[3], // line coupling scale factor
+                           model,
+                           version, 
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Full model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Full model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Full model " << name << " running with \n" 
+        {
+          out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    PWR93O2AbsModel( xsec,
-         0.00,
-         0.00,
-         0.00,
-         0.00,
-         model,
-         version,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+          PWR93O2AbsModel( pxsec,
+                           0.00,
+                           0.00,
+                           0.00,
+                           0.00,
+                           model,
+                           version,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Full model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Full model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "O2-PWR93"==name )
@@ -11170,7 +11153,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum term scale factor,   default CC = 1.000 [1]
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
@@ -11185,59 +11168,57 @@ void xsec_continuum_tag( MatrixView                 xsec,
       const int Nparam = 4;
       const char *version="PWR93";
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Full model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    PWR93O2AbsModel( xsec,
-         parameters[0], // continuum term scale factor
-         parameters[1], // line strength scale factor
-         parameters[2], // line broadening scale factor
-         parameters[3], // line coupling scale factor
-         model,
-         version,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+        {
+          out3 << "Full model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          PWR93O2AbsModel( pxsec,
+                           parameters[0], // continuum term scale factor
+                           parameters[1], // line strength scale factor
+                           parameters[2], // line broadening scale factor
+                           parameters[3], // line coupling scale factor
+                           model,
+                           version,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Full model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Full model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Full model " << name << " running with \n" 
+        {
+          out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    PWR93O2AbsModel( xsec,
-         0.00,
-         0.00,
-         0.00,
-         0.00,
-         model,
-         version,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+          PWR93O2AbsModel( pxsec,
+                           0.00,
+                           0.00,
+                           0.00,
+                           0.00,
+                           model,
+                           version,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Full model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Full model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "O2-PWR98"==name )
@@ -11256,7 +11237,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum term scale factor,   default CC = 1.000 [1]
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
@@ -11271,59 +11252,57 @@ void xsec_continuum_tag( MatrixView                 xsec,
       const int Nparam = 4;
       const char *version="PWR98";
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Full model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    PWR93O2AbsModel( xsec,
-         parameters[0], // continuum term scale factor
-         parameters[1], // line strength scale factor
-         parameters[2], // line broadening scale factor
-         parameters[3], // line coupling scale factor
-         model,
-         version, 
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+        {
+          out3 << "Full model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          PWR93O2AbsModel( pxsec,
+                           parameters[0], // continuum term scale factor
+                           parameters[1], // line strength scale factor
+                           parameters[2], // line broadening scale factor
+                           parameters[3], // line coupling scale factor
+                           model,
+                           version, 
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Full model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Full model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Full model " << name << " running with \n" 
+        {
+          out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    PWR93O2AbsModel( xsec,
-         0.00,
-         0.00,
-         0.00,
-         0.00,
-         model,
-         version,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+          PWR93O2AbsModel( pxsec,
+                           0.00,
+                           0.00,
+                           0.00,
+                           0.00,
+                           model,
+                           version,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Full model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Full model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "O2-MPM93"==name )
@@ -11336,7 +11315,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum term scale factor,   default CC = 1.000 [1]
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
@@ -11350,57 +11329,55 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Full model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MPM93O2AbsModel( xsec,
-         parameters[0], // continuum term scale factor
-         parameters[1], // line strength scale factor
-         parameters[2], // line broadening scale factor
-         parameters[3], // line coupling scale factor
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+        {
+          out3 << "Full model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM93O2AbsModel( pxsec,
+                           parameters[0], // continuum term scale factor
+                           parameters[1], // line strength scale factor
+                           parameters[2], // line broadening scale factor
+                           parameters[3], // line coupling scale factor
+                           model,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Full model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Full model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Full model " << name << " running with \n" 
+        {
+          out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    MPM93O2AbsModel( xsec,
-         0.00,
-         0.00,
-         0.00,
-         0.00,
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+          MPM93O2AbsModel( pxsec,
+                           0.00,
+                           0.00,
+                           0.00,
+                           0.00,
+                           model,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Full model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Full model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "O2-MPM92"==name )
@@ -11412,7 +11389,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum term scale factor,   default CC = 1.000 [1]
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
@@ -11426,57 +11403,55 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Full model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MPM92O2AbsModel( xsec,
-         parameters[0], // continuum term scale factor
-         parameters[1], // line strength scale factor
-         parameters[2], // line broadening scale factor
-         parameters[3], // line coupling scale factor
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+        {
+          out3 << "Full model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM92O2AbsModel( pxsec,
+                           parameters[0], // continuum term scale factor
+                           parameters[1], // line strength scale factor
+                           parameters[2], // line broadening scale factor
+                           parameters[3], // line coupling scale factor
+                           model,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Full model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Full model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Full model " << name << " running with \n" 
+        {
+          out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    MPM92O2AbsModel( xsec,
-         0.00,
-         0.00,
-         0.00,
-         0.00,
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+          MPM92O2AbsModel( pxsec,
+                           0.00,
+                           0.00,
+                           0.00,
+                           0.00,
+                           model,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Full model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Full model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "O2-MPM89"==name )
@@ -11487,7 +11462,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum term scale factor,   default CC = 1.000 [1]
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
@@ -11501,57 +11476,55 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Full model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MPM89O2AbsModel( xsec,
-         parameters[0], // continuum term scale factor
-         parameters[1], // line strength scale factor
-         parameters[2], // line broadening scale factor
-         parameters[3], // line coupling scale factor
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+        {
+          out3 << "Full model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM89O2AbsModel( pxsec,
+                           parameters[0], // continuum term scale factor
+                           parameters[1], // line strength scale factor
+                           parameters[2], // line broadening scale factor
+                           parameters[3], // line coupling scale factor
+                           model,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Full model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Full model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Full model " << name << " running with \n" 
+        {
+          out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    MPM89O2AbsModel( xsec,
-         0.00,
-         0.00,
-         0.00,
-         0.00,
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+          MPM89O2AbsModel( pxsec,
+                           0.00,
+                           0.00,
+                           0.00,
+                           0.00,
+                           model,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Full model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Full model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "O2-MPM87"==name )
@@ -11566,7 +11539,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum term scale factor,   default CC = 1.000 [1]
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
@@ -11580,57 +11553,55 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Full model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MPM87O2AbsModel( xsec,
-         parameters[0], // continuum term scale factor
-         parameters[1], // line strength scale factor
-         parameters[2], // line broadening scale factor
-         parameters[3], // line coupling scale factor
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+        {
+          out3 << "Full model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM87O2AbsModel( pxsec,
+                           parameters[0], // continuum term scale factor
+                           parameters[1], // line strength scale factor
+                           parameters[2], // line broadening scale factor
+                           parameters[3], // line coupling scale factor
+                           model,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Full model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Full model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Full model " << name << " running with \n" 
+        {
+          out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    MPM87O2AbsModel( xsec,
-         0.00,
-         0.00,
-         0.00,
-         0.00,
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+          MPM87O2AbsModel( pxsec,
+                           0.00,
+                           0.00,
+                           0.00,
+                           0.00,
+                           model,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Full model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Full model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "O2-MPM85"==name )
@@ -11641,7 +11612,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum term scale factor,   default CC = 1.000 [1]
       //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
@@ -11655,57 +11626,55 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Full model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MPM85O2AbsModel( xsec,
-         parameters[0], // continuum term scale factor
-         parameters[1], // line strength scale factor
-         parameters[2], // line broadening scale factor
-         parameters[3], // line coupling scale factor
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+        {
+          out3 << "Full model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM85O2AbsModel( pxsec,
+                           parameters[0], // continuum term scale factor
+                           parameters[1], // line strength scale factor
+                           parameters[2], // line broadening scale factor
+                           parameters[3], // line coupling scale factor
+                           model,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Full model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Full model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Full model " << name << " running with \n" 
+        {
+          out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    MPM85O2AbsModel( xsec,
-         0.00,
-         0.00,
-         0.00,
-         0.00,
-         model,
-         f_grid,
-         abs_p,
-         abs_t,
-         abs_h2o,
-         vmr );
-  }
+          MPM85O2AbsModel( pxsec,
+                           0.00,
+                           0.00,
+                           0.00,
+                           0.00,
+                           model,
+                           f_grid,
+                           abs_p,
+                           abs_t,
+                           abs_h2o,
+                           vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Full model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Full model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ============= N2 continuum =========================================================
   else if ( "N2-SelfContMPM93"==name )
@@ -11718,7 +11687,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : strength parameter   [1/m * 1/(Hz²*Pa²)]
       //     parameters[1] : broadening parameter [1]
@@ -11732,84 +11701,81 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MPM93_N2_continuum( xsec,
-            parameters[0],
-            parameters[1],
-            parameters[2],        
-            parameters[3],        
-            model,
-            f_grid,
-            abs_p,
-            abs_t,
-            abs_h2o,
-            vmr );
-  }  
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM93_N2_continuum( pxsec,
+                              parameters[0],
+                              parameters[1],
+                              parameters[2],        
+                              parameters[3],        
+                              model,
+                              f_grid,
+                              abs_p,
+                              abs_t,
+                              abs_h2o,
+                              vmr );
+        }  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model == "MPM93Scale") && (parameters.nelem() == 1) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    MPM93_N2_continuum( xsec,
-            parameters[0],
-            0.00,
-            0.00,
-            0.00,
-            model,
-            f_grid,
-            abs_p,
-            abs_t,
-            abs_h2o,
-            vmr );
-  }
+          MPM93_N2_continuum( pxsec,
+                              parameters[0],
+                              0.00,
+                              0.00,
+                              0.00,
+                              model,
+                              f_grid,
+                              abs_p,
+                              abs_t,
+                              abs_h2o,
+                              vmr );
+        }
       else if ( (model == "MPM93Scale") && (parameters.nelem() != 1) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires 1 scaling input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires 1 scaling input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (model != "MPM93Scale") && (parameters.nelem() == 0) ) // --
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    MPM93_N2_continuum( xsec,
-            0.00,
-            0.00,
-            0.00,
-            0.00,
-            model,
-            f_grid,
-            abs_p,
-            abs_t,
-            abs_h2o,
-            vmr );
-  }
+          MPM93_N2_continuum( pxsec,
+                              0.00,
+                              0.00,
+                              0.00,
+                              0.00,
+                              model,
+                              f_grid,
+                              abs_p,
+                              abs_t,
+                              abs_h2o,
+                              vmr );
+        }
       /* --------------------------------------------------------------------------
-      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
-      ----------------------------------------------------------------------*/
+         else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+         {
+         ostringstream os;
+         os << "ERROR: Continuum model " << name << " requires NO input\n"
+         << "parameters for the model " << model << ",\n"
+         << "but you specified " << parameters.nelem() << " parameters.\n"
+         << "This ambiguity can not be solved by arts.\n"
+         << "Please see the arts user guide chapter 3.\n";
+         throw runtime_error(os.str());
+         }
+         ----------------------------------------------------------------------*/
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "N2-DryContATM01"==name )
@@ -11820,7 +11786,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  a) output 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  b) input
       //     parameters[0] : continuum strength coefficient  [1/m * 1/(Hz*Pa)²]
       //     f_grid        : [Hz]
@@ -11831,51 +11797,49 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    Pardo_ATM_N2_dry_continuum( xsec,
-              parameters[0], // coefficient
-              model,
-              f_grid,
-              abs_p,
-              abs_t,
-              vmr,
-              abs_h2o );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          Pardo_ATM_N2_dry_continuum( pxsec,
+                                      parameters[0], // coefficient
+                                      model,
+                                      f_grid,
+                                      abs_p,
+                                      abs_t,
+                                      vmr,
+                                      abs_h2o );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    Pardo_ATM_N2_dry_continuum( xsec,
-              0.000, // coefficient
-              model,
-              f_grid,
-              abs_p,
-              abs_t,
-              vmr,
-              abs_h2o );
-  } 
+          Pardo_ATM_N2_dry_continuum( pxsec,
+                                      0.000, // coefficient
+                                      model,
+                                      f_grid,
+                                      abs_p,
+                                      abs_t,
+                                      vmr,
+                                      abs_h2o );
+        } 
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "N2-SelfContPWR93"==name )
@@ -11887,7 +11851,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  a) output 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  b) input
       //     parameters[0] : continuum strength coefficient  [1/m * 1/(Hz*Pa)²]
       //     parameters[1] : continuum temperature exponent  [1]
@@ -11898,51 +11862,49 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 2;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    Rosenkranz_N2_self_continuum( xsec,
-          parameters[0], // coefficient
-          parameters[1], // temp. exponent
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          Rosenkranz_N2_self_continuum( pxsec,
+                                        parameters[0], // coefficient
+                                        parameters[1], // temp. exponent
+                                        model,
+                                        f_grid,
+                                        abs_p,
+                                        abs_t,
+                                        vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    Rosenkranz_N2_self_continuum( xsec,
-          0.00,
-          0.00,
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );    
-  } 
+          Rosenkranz_N2_self_continuum( pxsec,
+                                        0.00,
+                                        0.00,
+                                        model,
+                                        f_grid,
+                                        abs_p,
+                                        abs_t,
+                                        vmr );    
+        } 
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "N2-SelfContStandardType"==name )
@@ -11952,7 +11914,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       // OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       // INPUT
       //     parameters[0] : continuum coefficient (C)  [1/m * 1/(Hz*Pa)²]
       //     parameters[1] : frequency exponent    (xf) [1]
@@ -11964,55 +11926,53 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     vmr           : [1]
       const int Nparam = 4;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    Standard_N2_self_continuum( xsec,
-              parameters[0],
-              parameters[1],
-              parameters[2],
-              parameters[3],
-              model,
-              f_grid,
-              abs_p,
-              abs_t,
-              vmr );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          Standard_N2_self_continuum( pxsec,
+                                      parameters[0],
+                                      parameters[1],
+                                      parameters[2],
+                                      parameters[3],
+                                      model,
+                                      f_grid,
+                                      abs_p,
+                                      abs_t,
+                                      vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    Standard_N2_self_continuum( xsec,
-              0.000,
-              0.000,
-              0.000,
-              0.000,
-              model,
-              f_grid,
-              abs_p,
-              abs_t,
-              vmr );
-  } 
+          Standard_N2_self_continuum( pxsec,
+                                      0.000,
+                                      0.000,
+                                      0.000,
+                                      0.000,
+                                      model,
+                                      f_grid,
+                                      abs_p,
+                                      abs_t,
+                                      vmr );
+        } 
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }  
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "N2-SelfContBorysow"==name )
@@ -12022,49 +11982,47 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // Vol. 311, pp.1043-1057, 1986
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    BF86_CIA_N2( xsec,
-           parameters[0], // scaling factor
-           model,
-           f_grid,
-           abs_p,
-           abs_t,
-           vmr   );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          BF86_CIA_N2( pxsec,
+                       parameters[0], // scaling factor
+                       model,
+                       f_grid,
+                       abs_p,
+                       abs_t,
+                       vmr   );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    BF86_CIA_N2( xsec,
-           0.0,
-           model,
-           f_grid,
-           abs_p,
-           abs_t,
-           vmr   );
-  }
+          BF86_CIA_N2( pxsec,
+                       0.0,
+                       model,
+                       f_grid,
+                       abs_p,
+                       abs_t,
+                       vmr   );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters. " << "\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters. " << "\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }  
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "N2-CIArotCKDMT100"==name )
@@ -12074,49 +12032,47 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // Vol. 311, pp.1043-1057, 1986
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD_mt_CIArot_n2( xsec,
-          parameters[0], // scaling factor
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD_mt_CIArot_n2( pxsec,
+                            parameters[0], // scaling factor
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD_mt_CIArot_n2( xsec,
-          0.0,
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+          CKD_mt_CIArot_n2( pxsec,
+                            0.0,
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters. " << "\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters. " << "\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }  
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "N2-CIAfunCKDMT100"==name )
@@ -12130,49 +12086,47 @@ void xsec_continuum_tag( MatrixView                 xsec,
 
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD_mt_CIAfun_n2( xsec,
-          parameters[0], // scaling factor
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD_mt_CIAfun_n2( pxsec,
+                            parameters[0], // scaling factor
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD_mt_CIAfun_n2( xsec,
-          0.0,
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+          CKD_mt_CIAfun_n2( pxsec,
+                            0.0,
+                            model,
+                            f_grid,
+                            abs_p,
+                            abs_t,
+                            vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters. " << "\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters. " << "\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }  
   // ============= CO2 continuum ========================================================
   else if ( "CO2-CKD241"==name )
@@ -12184,7 +12138,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT  
       //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
       //     parameters[1] : continuum temperature exponent  [1]
@@ -12196,49 +12150,47 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD_241_co2( xsec,
-          parameters[0], // abs. scaling
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD_241_co2( pxsec,
+                       parameters[0], // abs. scaling
+                       model,
+                       f_grid,
+                       abs_p,
+                       abs_t,
+                       vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD_241_co2( xsec,
-          0.00,
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+          CKD_241_co2( pxsec,
+                       0.00,
+                       model,
+                       f_grid,
+                       abs_p,
+                       abs_t,
+                       vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters. " << "\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters. " << "\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "CO2-CKDMT100"==name )
@@ -12250,7 +12202,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT  
       //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
       //     parameters[1] : continuum temperature exponent  [1]
@@ -12262,49 +12214,47 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 1;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    CKD_mt_co2( xsec,
-          parameters[0], // abs. scaling
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          CKD_mt_co2( pxsec,
+                      parameters[0], // abs. scaling
+                      model,
+                      f_grid,
+                      abs_p,
+                      abs_t,
+                      vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    CKD_mt_co2( xsec,
-          0.00,
-          model,
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+          CKD_mt_co2( pxsec,
+                      0.00,
+                      model,
+                      f_grid,
+                      abs_p,
+                      abs_t,
+                      vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters. " << "\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters. " << "\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "CO2-SelfContPWR93"==name )
@@ -12316,7 +12266,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT  
       //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
       //     parameters[1] : continuum temperature exponent  [1]
@@ -12327,51 +12277,49 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 2;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    Rosenkranz_CO2_self_continuum( xsec,
-           parameters[0], // coefficient
-           parameters[1], // temp. exponent
-           model,
-           f_grid,
-           abs_p,
-           abs_t,
-           vmr );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          Rosenkranz_CO2_self_continuum( pxsec,
+                                         parameters[0], // coefficient
+                                         parameters[1], // temp. exponent
+                                         model,
+                                         f_grid,
+                                         abs_p,
+                                         abs_t,
+                                         vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    Rosenkranz_CO2_self_continuum( xsec,
-           0.00,
-           0.00,
-           model,
-           f_grid,
-           abs_p,
-           abs_t,
-           vmr );
-  }
+          Rosenkranz_CO2_self_continuum( pxsec,
+                                         0.00,
+                                         0.00,
+                                         model,
+                                         f_grid,
+                                         abs_p,
+                                         abs_t,
+                                         vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters. " << "\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters. " << "\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "CO2-ForeignContPWR93"==name )
@@ -12383,7 +12331,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT
       //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
       //     parameters[1] : continuum temperature exponent  [1]
@@ -12395,53 +12343,51 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       const int Nparam = 2;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "Continuum model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    Rosenkranz_CO2_foreign_continuum( xsec,
-              parameters[0],
-              parameters[1],
-              model,
-              f_grid,
-              abs_p,
-              abs_t,
-              abs_n2,
-              vmr );
-  }
+        {
+          out3 << "Continuum model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          Rosenkranz_CO2_foreign_continuum( pxsec,
+                                            parameters[0],
+                                            parameters[1],
+                                            model,
+                                            f_grid,
+                                            abs_p,
+                                            abs_t,
+                                            abs_n2,
+                                            vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "Continuum model " << name << " requires " << Nparam << " input\n"
-       << "parameters for the model " << model << ",\n"
+        {
+          ostringstream os;
+          os << "Continuum model " << name << " requires " << Nparam << " input\n"
+             << "parameters for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "Continuum model " << name << " running with \n" 
+        {
+          out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-    Rosenkranz_CO2_foreign_continuum( xsec,
-              0.00,
-              0.00,
-              model,
-              f_grid,
-              abs_p,
-              abs_t,
-              abs_n2,
-              vmr );
-  }
+          Rosenkranz_CO2_foreign_continuum( pxsec,
+                                            0.00,
+                                            0.00,
+                                            model,
+                                            f_grid,
+                                            abs_p,
+                                            abs_t,
+                                            abs_n2,
+                                            vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: Continuum model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters. " << "\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: Continuum model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters. " << "\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 3.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ============= cloud and fog absorption from MPM93 ==================================
   else if ( "liquidcloud-MPM93"==name )
@@ -12455,7 +12401,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT  
       //     parameters[0] : [1]
       //     parameters[1] : [1]
@@ -12476,53 +12422,51 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // 
       const int Nparam = 3;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "MPM93 liquid water cloud absorption model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-          MPM93WaterDropletAbs(xsec,
-                parameters[0],     // scaling factror
-                parameters[1],     // scaling factror
-                parameters[2],     // scaling factror
-             model,       // model option
-             f_grid,
-             abs_p,
-             abs_t,
-             vmr );
-  }
+        {
+          out3 << "MPM93 liquid water cloud absorption model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM93WaterDropletAbs(pxsec,
+                               parameters[0],     // scaling factror
+                               parameters[1],     // scaling factror
+                               parameters[2],     // scaling factror
+                               model,       // model option
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "MPM93 liquid water cloud absorption model " << name << " requires\n" 
+        {
+          ostringstream os;
+          os << "MPM93 liquid water cloud absorption model " << name << " requires\n" 
              << Nparam << " input parameter for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "MPM93 liquid water cloud absorption model " << name << " running with \n" 
+        {
+          out3 << "MPM93 liquid water cloud absorption model " << name << " running with \n" 
                << "the parameter for model " << model << ".\n";
-          MPM93WaterDropletAbs(xsec,
-                0.000,        // scaling factror
-                0.000,        // scaling factror
-                0.000,        // scaling factror
-             model,  // model option
-             f_grid,
-             abs_p,
-             abs_t,
-             vmr );
-  }
+          MPM93WaterDropletAbs(pxsec,
+                               0.000,        // scaling factror
+                               0.000,        // scaling factror
+                               0.000,        // scaling factror
+                               model,  // model option
+                               f_grid,
+                               abs_p,
+                               abs_t,
+                               vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: MPM93 liquid water cloud absorption model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: MPM93 liquid water cloud absorption model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 4.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ============= ice particle absorption from MPM93 ===================================
   else if ( "icecloud-MPM93"==name )
@@ -12536,7 +12480,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT  
       //     parameters[0] : [1]
       //     parameters[1] : [1]
@@ -12557,53 +12501,51 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // 
       const int Nparam = 3;
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "MPM93 ice water cloud absorption model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MPM93IceCrystalAbs(xsec,
-           parameters[0],     // scaling factror
-           parameters[1],     // scaling factror
-           parameters[2],     // scaling factror
-           model,       // model option
-           f_grid,
-           abs_p,
-           abs_t,
-           vmr );
-  }
+        {
+          out3 << "MPM93 ice water cloud absorption model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM93IceCrystalAbs(pxsec,
+                             parameters[0],     // scaling factror
+                             parameters[1],     // scaling factror
+                             parameters[2],     // scaling factror
+                             model,       // model option
+                             f_grid,
+                             abs_p,
+                             abs_t,
+                             vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "MPM93 ice water cloud absorption model " << name << " requires \n"
+        {
+          ostringstream os;
+          os << "MPM93 ice water cloud absorption model " << name << " requires \n"
              << Nparam << " input parameter for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "MPM93 ice water cloud absorption model " << name << " running with \n" 
+        {
+          out3 << "MPM93 ice water cloud absorption model " << name << " running with \n" 
                << "the parameter for model " << model << ".\n";
-    MPM93IceCrystalAbs(xsec,
-           0.000,       // scaling factror
-           0.000,       // scaling factror
-           0.000,       // scaling factror
-           model, // model option
-           f_grid,
-           abs_p,
-           abs_t,
-           vmr );
-  }
+          MPM93IceCrystalAbs(pxsec,
+                             0.000,       // scaling factror
+                             0.000,       // scaling factror
+                             0.000,       // scaling factror
+                             model, // model option
+                             f_grid,
+                             abs_p,
+                             abs_t,
+                             vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: MPM93 ice water cloud absorption model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: MPM93 ice water cloud absorption model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 4.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   // ============= rain extinction from MPM93 ===========================================
   else if ( "rain-MPM93"==name )
@@ -12620,7 +12562,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //
       // specific continuum parameters and units:
       //  OUTPUT 
-      //     xsec          : [1/m],
+      //     pxsec          : [1/m],
       //  INPUT  
       //     parameters[0] : [1]
       //     parameters[1] : [1]
@@ -12639,53 +12581,51 @@ void xsec_continuum_tag( MatrixView                 xsec,
       // 
       const int Nparam = 3; 
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
-  {
-    out3 << "MPM93 rain extinction model " << name << " is running with \n"
-         << "user defined parameters according to model " << model << ".\n";
-    MPM93RainExt(xsec,
-           parameters[0],     // scaling factror
-           parameters[1],     // scaling factror
-           parameters[2],     // scaling factror
-           model,             // model option
-           f_grid,
-           abs_p,
-           abs_t,
-           vmr );
-  }
+        {
+          out3 << "MPM93 rain extinction model " << name << " is running with \n"
+               << "user defined parameters according to model " << model << ".\n";
+          MPM93RainExt(pxsec,
+                       parameters[0],     // scaling factror
+                       parameters[1],     // scaling factror
+                       parameters[2],     // scaling factror
+                       model,             // model option
+                       f_grid,
+                       abs_p,
+                       abs_t,
+                       vmr );
+        }
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
-  {
-    ostringstream os;
-    os << "MPM93 rain extinction model  " << name << " requires \n"
+        {
+          ostringstream os;
+          os << "MPM93 rain extinction model  " << name << " requires \n"
              << Nparam << " input parameter for the model " << model << ",\n"
              << "but you specified " << parameters.nelem() << " parameters.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
       else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
-  {
-    out3 << "MPM93 rain extinction model " << name << " running with \n" 
+        {
+          out3 << "MPM93 rain extinction model " << name << " running with \n" 
                << "the parameter for model " << model << ".\n";
-   MPM93RainExt(xsec,
-          0.000,       // scaling factror
-          0.000,       // scaling factror
-          0.000,       // scaling factror
-          model,       // model option
-          f_grid,
-          abs_p,
-          abs_t,
-          vmr );
-  }
+          MPM93RainExt(pxsec,
+                       0.000,       // scaling factror
+                       0.000,       // scaling factror
+                       0.000,       // scaling factror
+                       model,       // model option
+                       f_grid,
+                       abs_p,
+                       abs_t,
+                       vmr );
+        }
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
-  {
-    ostringstream os;
-    os << "ERROR: MPM93 rain extinction model " << name << " requires NO input\n"
-       << "parameters for the model " << model << ",\n"
-       << "but you specified " << parameters.nelem() << " parameters.\n"
-       << "This ambiguity can not be solved by arts.\n"
+        {
+          ostringstream os;
+          os << "ERROR: MPM93 rain extinction model " << name << " requires NO input\n"
+             << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n"
+             << "This ambiguity can not be solved by arts.\n"
              << "Please see the arts user guide chapter 4.\n";
-    throw runtime_error(os.str());
-    return;
-  }
+          throw runtime_error(os.str());
+        }
     }
   else // -----------------------------------------------------------------------
     {
@@ -12693,13 +12633,34 @@ void xsec_continuum_tag( MatrixView                 xsec,
       ostringstream os;
       os << "ERROR: Continuum/ full model tag `" << name << "' not yet implemented in arts!";
       throw runtime_error(os.str());
-      return;
     }
- return;
+
+  // We have to divide the result from the internal continuum model by
+  // the number density n to convert it from pseudo cross section to a
+  // true cross section.
+
+  // Boltzmann constant
+  extern const Numeric BOLTZMAN_CONST;
+
+  // Loop all pressures:
+  for ( Index i=0; i<abs_p.nelem(); ++i )
+    {
+      const Numeric p_i = abs_p[i];
+      const Numeric t_i = abs_t[i];
+
+      // Calculate total number density from pressure and temperature.
+      // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
+      const Numeric n = p_i / BOLTZMAN_CONST / t_i;
+
+      // We add to the output variable xsec here, previous content is
+      // not overwritten!
+      pxsec(joker,i) /= n;
+      xsec(joker,i)  += pxsec(joker,i);
+    }
 }
-//
+
 // #################################################################################
-//
+
 /**
    An auxiliary functions that checks if a given continuum model is
    listed in species_data.cc. This is just in order to verify that this
