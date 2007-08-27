@@ -118,7 +118,7 @@ abs_cont_descriptionAppend{
 
 # Select species for non-linear treatment in lookup table:
 SpeciesSet(abs_nls){[]}
-#SpeciesSet(abs_nls){["H2O-PWR98"]}
+#SpeciesSet(abs_nls){["H2O-PWR98", "O2-PWR93"]}
 
 # Set tempertature perturbation vector for lookup table:
 VectorSetExplicitly(abs_t_pert){[]}
