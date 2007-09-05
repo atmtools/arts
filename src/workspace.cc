@@ -3558,8 +3558,8 @@ void define_wsv_data()
       (
        "Flag to determine whether XML output is binary or ascii\n"
        "\n"
-       "This flag has to be set using the workspace method SetXMLOutputBinary\n"
-       "or SetXMLOutputAscii. One of these methods MUST be called before\n"
+       "This flag has to be set using the workspace method *output_file_formatSetAscii*\n"
+       "or *output_file_formatSetBinary*. One of these methods MUST be called before\n"
        "writing the first output file."
        "\n"
        "Usage:      Set by user.\n"
