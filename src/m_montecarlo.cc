@@ -149,33 +149,6 @@ void mc_IWP_cloud_opt_pathCalc(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void mc_errorApplySensor(
-           Vector&   mc_error,
-     const Sparse&   sensor_response )
-{
-  const Index   n = mc_error.nelem();
-
-  if( sensor_response.ncols() != n )
-    {
-      throw runtime_error(
-                     "Mismatch in size of *sensor_response* and *mc_error*." );
-    }
-
-  Vector  i( n );
-  for( Index j=0; j<n; j++ )
-    { i[j] = mc_error[j]*mc_error[j]; }
-  mc_error.resize( sensor_response.nrows() );
-  mc_error = 0.0;
-  for( Index irow=0; irow<sensor_response.nrows(); irow++ )
-    {
-      for( Index icol=0; icol<n; icol++ )
-        { mc_error[irow] += pow( sensor_response(irow,icol), 2.0 ) * i[icol]; }
-    }
-  transform( mc_error, sqrt, mc_error );
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void mc_antennaSetGaussian(
                            MCAntenna& mc_antenna,
                            //keyword arguments

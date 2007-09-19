@@ -3684,27 +3684,6 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("mc_errorApplySensor"),
-        DESCRIPTION
-        (
-         "Applies the sensor response on *mc_error*.\n"
-         "\n"
-         "The values in *mc_error* are weighted together assuming that the\n"
-         "calculation error is independent between Stokes components, and \n"
-         "is normal distributed. That is, if e=mc_error and H is the sensor\n"
-         "response, the following calculation is performed (Matlab syntax):\n"
-         "   e = sqrt( abs(H)*(e.*e) )\n" 
-        ),
-        AUTHORS( "Cory Davis" ),
-        OUTPUT( mc_error_ ),
-        INPUT( mc_error_, sensor_response_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS( ),
-        TYPES( )));
-  
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("mc_IWP_cloud_opt_pathCalc"),
         DESCRIPTION
         (
@@ -3770,6 +3749,7 @@ md_data_raw.push_back
         KEYWORDS( "std_err", "max_time", "max_iter", "z_field_is_1D"),
         TYPES( Numeric_t, Index_t, Index_t, Index_t)));
 
+  /* Removed as ScatteringMonteCarlo is not working
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("MCSetIncomingEmpty"),
@@ -3784,7 +3764,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
-
+  */
 
   md_data_raw.push_back     
     ( MdRecord
@@ -4616,6 +4596,48 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "RteCalcMC" ),
+        DESCRIPTION
+        (
+         "As *RteCalc* but using *MCGeneral* for doing monochromatic pencil\n"
+         "beam calculations.\n"
+         "\n"
+         "This functions allows Monte Carlo calculations for sets of \n"
+         "frequencies and sensor pos/los in a single run. Sensor responses\n"
+         "can be included in the standard manner (as in *RteCalc*).\n"
+         "\n"
+         "MC unit is set as for *MCGeneral*.No antenna pattern is included.\n"
+         "\n"
+         "This function does not apply the Monte Carlo approach when it comes\n"
+         "to sensor properties. These properties are not considered when\n"
+         "tracking photons, which is done in *MCGeneral* (but only for the\n"
+         "antenna pattern).\n"
+         "\n"
+         "The MC calculation errors are all assumed be uncorrelated and each\n"
+         "have a normal distribution. These properties are of relevance when\n"
+         "weighting the errors with the sensor repsonse matrix. The seed is\n"
+         "reset for each call of *MCGeneral* to obtain uncorrelated errors.\n"
+         "\n"
+         "Keyword arguments as for *MCGeneral*. These arguments are applied\n"
+         "for each monochromatic pencil beam calculation.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUTPUT( y_, mc_error_, f_index_ ),
+        INPUT( iy_space_agenda_, surface_prop_agenda_, opt_prop_gas_agenda_,
+               abs_scalar_gas_agenda_, atmosphere_dim_,
+               p_grid_, lat_grid_, lon_grid_, z_field_, 
+               t_field_, vmr_field_, r_geoid_, z_surface_, 
+               cloudbox_on_, cloudbox_limits_, pnd_field_, scat_data_raw_,
+               sensor_response_, sensor_pos_, 
+               sensor_los_, f_grid_, stokes_dim_, 
+               antenna_dim_, mblock_za_grid_, mblock_aa_grid_, mc_unit_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "std_err", "max_time", "max_iter", "z_field_is_1D" ),
+        TYPES(    Numeric_t, Index_t,    Index_t,    Index_t         )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "RteCalcNoJacobian" ),
         DESCRIPTION
         (
@@ -4894,6 +4916,8 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
  
+  /* Has been found to not work. Probably caused by changes in agenda 
+     functionality.
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "ScatteringMonteCarlo" ),
@@ -4901,7 +4925,6 @@ md_data_raw.push_back
         (
          "This method performs a single pencil beam monochromatic scattering\n"
          "calculation using a Monte Carlo algorithm \n"
-         "\n"
          "\n"
          "The main output variables *iy* and *mc_error* represent the \n"
          "Stokes vector leaving the cloudbox, and the estimated error in the \n"
@@ -4932,6 +4955,7 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS("std_err","max_time","max_iter","incoming_lookup","z_field_is_1D"),
         TYPES( Numeric_t, Index_t, Index_t, Index_t, Index_t )));
+  */
 
   md_data_raw.push_back
     ( MdRecord

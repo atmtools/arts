@@ -44,6 +44,7 @@
 #include "arts.h"
 #include "complex.h"          
 #include "ppath.h"
+#include "matpackII.h"
 #include "matpackIII.h"
 
 
@@ -146,6 +147,31 @@ void rte_std(
        const ArrayOfIndex&            rte_do_gas_jacs,
        const Index&                   rte_do_t_jacs,
        const bool&                    do_transmissions );
+
+void rtecalc_check_input(
+         Index&                      nf,
+         Index&                      nmblock,
+         Index&                      nza,
+         Index&                      naa,
+         Index&                      nblock,
+   const Index&                      atmosphere_dim,
+   const Vector&                     p_grid,
+   const Vector&                     lat_grid,
+   const Vector&                     lon_grid,
+   const Tensor3&                    z_field,
+   const Tensor3&                    t_field,
+   const Matrix&                     r_geoid,
+   const Matrix&                     z_surface,
+   const Index&                      cloudbox_on, 
+   const ArrayOfIndex&               cloudbox_limits,
+   const Sparse&                     sensor_response,
+   const Matrix&                     sensor_pos,
+   const Matrix&                     sensor_los,
+   const Vector&                     f_grid,
+   const Index&                      stokes_dim,
+   const Index&                      antenna_dim,
+   const Vector&                     mblock_za_grid,
+   const Vector&                     mblock_aa_grid );
 
 void surface_calc(
               Matrix&         iy,

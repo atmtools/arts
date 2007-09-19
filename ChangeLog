@@ -1,3 +1,27 @@
+2007-09-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-1-1177
+
+	* src/m_rte.cc (RteCalc): Now using rtecalc_check_input.
+
+	RteCalcMC: New WSM. A shell around MCGeneral, allowing multiple
+	MC calculations in a single run.
+
+	* src/methods.cc: Commented out ScatteringMonteCarlo and
+	MCSetIncomingEmpty.  This as ScatteringMonteCarlo has been found
+	not to work anymore (after changes of agenda). Discussed in email
+	exchange between Bengt and Cory.
+
+	mc_errorApplySensor: Removed. This is now done as part of RteCalcMC.
+
+	RteCalcMC: Added.
+ 
+	* src/workspace.cc: Commented out mc_incoming. Corrected description of
+	mc_error.
+
+	* src/rte.cc (rtecalc_check_input): Moved most check of input in
+	RteCalc to this function.
+
 2007-09-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1176

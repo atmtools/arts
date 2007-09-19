@@ -1742,16 +1742,17 @@ void define_wsv_data()
      ( NAME( "mc_error" ),
        DESCRIPTION
        (
-        "Error in simulated *y* from cloudy-sky arts simulations using ScatteringMonteCarlo.\n"
+        "Error in simulated *y* when using a Monte Carlo approach.\n"
         "\n"
-        "Usage: Output from ScatteringMonteCarlo.. \n"
+        "Usage: Output from Monte Carlo functions. \n"
         "\n"
-        "Units: W / (m^2 Hz sr)\n"
+        "Units: Depends on *mc_unit*.\n"
         "\n"
         "Size:  [ stokes_dim ]\n"
         ), 
        GROUP( Vector_ )));
 
+  /* Removed as ScatteringMonteCarlo is not working
   wsv_data.push_back
     (WsvRecord
      ( NAME( "mc_incoming" ),
@@ -1766,7 +1767,7 @@ void define_wsv_data()
         "Units: [m,degrees,W / (m^2 Hz sr)]\n"
         ), 
        GROUP( SLIData2_ )));
-
+  */
 
   wsv_data.push_back
     (WsvRecord

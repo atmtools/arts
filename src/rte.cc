@@ -1043,6 +1043,183 @@ void rte_std(
 
 
 
+//! rtecalc_check_input
+/*! 
+   Common sub-function for RteCalc functions to check consistency of input.
+
+   All input parameters are identical to the WSV with identical name,
+   beside:
+
+    \param   nf        Number of frequencies in f_grid.
+    \param   nmblock   Number of measurement blocks.
+    \param   nza       Number of zenith angles / measurement block.
+    \param   naa       Number of azimuth angles / measurement block.
+    \param   nblock    Length of for one measurement block.
+
+   \author Patrick Eriksson
+   \date   2007-09-19
+*/
+void rtecalc_check_input(
+         Index&                      nf,
+         Index&                      nmblock,
+         Index&                      nza,
+         Index&                      naa,
+         Index&                      nblock,
+   const Index&                      atmosphere_dim,
+   const Vector&                     p_grid,
+   const Vector&                     lat_grid,
+   const Vector&                     lon_grid,
+   const Tensor3&                    z_field,
+   const Tensor3&                    t_field,
+   const Matrix&                     r_geoid,
+   const Matrix&                     z_surface,
+   const Index&                      cloudbox_on, 
+   const ArrayOfIndex&               cloudbox_limits,
+   const Sparse&                     sensor_response,
+   const Matrix&                     sensor_pos,
+   const Matrix&                     sensor_los,
+   const Vector&                     f_grid,
+   const Index&                      stokes_dim,
+   const Index&                      antenna_dim,
+   const Vector&                     mblock_za_grid,
+   const Vector&                     mblock_aa_grid )
+{
+  // Some sizes
+  nf      = f_grid.nelem();
+  nmblock = sensor_pos.nrows();
+  nza     = mblock_za_grid.nelem();
+
+  // Number of azimuthal direction for pencil beam calculations
+  naa = mblock_aa_grid.nelem();
+  if( antenna_dim == 1 )
+    { naa = 1; }
+
+  // Number of elements of *y* for one mblock
+  nblock = sensor_response.nrows();
+  
+  // Stokes
+  //
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+
+  // Basic checks of atmospheric, geoid and surface variables
+  //  
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                    lon_grid );
+  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                    lon_grid );
+  // vmr_field excluded, could maybe be empty 
+  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, 
+                                                                    lon_grid );
+  chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, 
+                                                                    lon_grid );
+
+  // Check that z_field has strictly increasing pages.
+  //
+  for( Index row=0; row<z_field.nrows(); row++ )
+    {
+      for( Index col=0; col<z_field.ncols(); col++ )
+        {
+          ostringstream os;
+          os << "z_field (for latitude nr " << row << " and longitude nr " 
+             << col << ")";
+          chk_if_increasing( os.str(), z_field(joker,row,col) ); 
+        }
+    }
+
+  // Check that there is no gap between the surface and lowest pressure 
+  // surface
+  //
+  for( Index row=0; row<z_surface.nrows(); row++ )
+    {
+      for( Index col=0; col<z_surface.ncols(); col++ )
+        {
+          if( z_surface(row,col)<z_field(0,row,col) ||
+                   z_surface(row,col)>=z_field(z_field.npages()-1,row,col) )
+            {
+              ostringstream os;
+              os << "The surface altitude (*z_surface*) cannot be outside "
+                 << "of the altitudes in *z_field*.";
+              if( atmosphere_dim > 1 )
+                os << "\nThis was found to be the case for:\n"
+                   << "latitude " << lat_grid[row];
+              if( atmosphere_dim > 2 )
+                os << "\nlongitude " << lon_grid[col];
+              throw runtime_error( os.str() );
+            }
+        }
+    }
+
+  // Cloud box
+  //  
+  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid,
+                                                cloudbox_on, cloudbox_limits );
+
+  // Frequency grid
+  //
+  if( nf == 0 )
+    throw runtime_error( "The frequency grid is empty." );
+  chk_if_increasing( "f_grid", f_grid );
+
+  // Antenna
+  //
+  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
+  if( nza == 0 )
+    throw runtime_error( "The measurement block zenith angle grid is empty." );
+  chk_if_increasing( "mblock_za_grid", mblock_za_grid );
+  if( antenna_dim == 1 )
+    {
+      if( mblock_aa_grid.nelem() != 0 )
+        throw runtime_error( 
+          "For antenna_dim = 1, the azimuthal angle grid must be empty." );
+    }
+  else
+    {
+      if( atmosphere_dim < 3 )
+        throw runtime_error( "2D antennas (antenna_dim=2) can only be "
+                                                 "used with 3D atmospheres." );
+      if( mblock_aa_grid.nelem() == 0 )
+        throw runtime_error(
+                      "The measurement block azimuthal angle grid is empty." );
+      chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
+    }
+
+  // Sensor
+  //
+  if( sensor_response.ncols() != nf * nza * naa * stokes_dim ) 
+    {
+      ostringstream os;
+      os << "The *sensor_response* matrix does not have the right size, \n"
+         << "either the method *sensor_responseInit* has not been run \n"
+         << "prior to the call to *RteCalc* or some of the other sensor\n"
+         << "response methods has not been correctly configured.";
+      throw runtime_error( os.str() );
+    }
+
+  // Sensor position and LOS.
+  //
+  // That the angles are inside OK ranges are checked inside ppathCalc.
+  //
+  if( sensor_pos.ncols() != atmosphere_dim )
+    throw runtime_error( "The number of columns of sensor_pos must be "
+                              "equal to the atmospheric dimensionality." );
+  if( atmosphere_dim <= 2  &&  sensor_los.ncols() != 1 )
+    throw runtime_error( 
+                      "For 1D and 2D, sensor_los shall have one column." );
+  if( atmosphere_dim == 3  &&  sensor_los.ncols() != 2 )
+    throw runtime_error( "For 3D, sensor_los shall have two columns." );
+  if( sensor_los.nrows() != nmblock )
+    {
+      ostringstream os;
+      os << "The number of rows of sensor_pos and sensor_los must be "
+         << "identical, but sensor_pos has " << nmblock << " rows,\n"
+         << "while sensor_los has " << sensor_los.nrows() << " rows.";
+      throw runtime_error( os.str() );
+    }
+}
+
+
 //! surface_calc
 /*!
     Weights together downwelling radiation and surface emission.

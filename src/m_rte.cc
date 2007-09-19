@@ -100,151 +100,24 @@ void RteCalc(
    const ArrayOfArrayOfIndex&        jacobian_indices )
 
 {
-  // Some sizes
-  const Index nf      = f_grid.nelem();
-  const Index nmblock = sensor_pos.nrows();
-  const Index nza     = mblock_za_grid.nelem();
+  // Consistency checks of input. Also returning some basic sizes
+  //
+  Index nf=0, nmblock=0, nza=0, naa=0, nblock=0;
+  //
+  rtecalc_check_input( nf, nmblock, nza, naa, nblock, atmosphere_dim, p_grid, 
+                       lat_grid, lon_grid, z_field, t_field, r_geoid, z_surface,
+                       cloudbox_on,  cloudbox_limits, sensor_response, 
+                       sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, 
+                       mblock_za_grid, mblock_aa_grid );
 
-  // Number of azimuthal direction for pencil beam calculations
-  Index naa = mblock_aa_grid.nelem();
-  if( antenna_dim == 1 )
-    { naa = 1; }
-
-
-  //--- Check input -----------------------------------------------------------
-  //---------------------------------------------------------------------------
-
-  // Agendas (agendas not always used are checked elsewhere when used)
+  // Agendas not checked elsewhere
   //
   chk_not_empty( "ppath_step_agenda", ppath_step_agenda );
   chk_not_empty( "rte_agenda", rte_agenda );
 
-  // Stokes
-  //
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-
-  // Basic checks of atmospheric, geoid and surface variables
-  //  
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-  chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid, 
-                                                                    lon_grid );
-  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, 
-                                                                    lon_grid );
-  chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, 
-                                                                    lon_grid );
-
-  // Check that z_field has strictly increasing pages.
-  //
-  for( Index row=0; row<z_field.nrows(); row++ )
-    {
-      for( Index col=0; col<z_field.ncols(); col++ )
-        {
-          ostringstream os;
-          os << "z_field (for latitude nr " << row << " and longitude nr " 
-             << col << ")";
-          chk_if_increasing( os.str(), z_field(joker,row,col) ); 
-        }
-    }
-
-  // Check that there is no gap between the surface and lowest pressure 
-  // surface
-  //
-  for( Index row=0; row<z_surface.nrows(); row++ )
-    {
-      for( Index col=0; col<z_surface.ncols(); col++ )
-        {
-          if( z_surface(row,col)<z_field(0,row,col) ||
-                   z_surface(row,col)>=z_field(z_field.npages()-1,row,col) )
-            {
-              ostringstream os;
-              os << "The surface altitude (*z_surface*) cannot be outside "
-                 << "of the altitudes in *z_field*.";
-              if( atmosphere_dim > 1 )
-                os << "\nThis was found to be the case for:\n"
-                   << "latitude " << lat_grid[row];
-              if( atmosphere_dim > 2 )
-                os << "\nlongitude " << lon_grid[col];
-              throw runtime_error( os.str() );
-            }
-        }
-    }
-
-  // Cloud box
-  //  
-  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid,
-                                                cloudbox_on, cloudbox_limits );
-
-  // Frequency grid
-  //
-  if( nf == 0 )
-    throw runtime_error( "The frequency grid is empty." );
-  chk_if_increasing( "f_grid", f_grid );
-
-  // Antenna
-  //
-  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
-  if( nza == 0 )
-    throw runtime_error( "The measurement block zenith angle grid is empty." );
-  chk_if_increasing( "mblock_za_grid", mblock_za_grid );
-  if( antenna_dim == 1 )
-    {
-      if( mblock_aa_grid.nelem() != 0 )
-        throw runtime_error( 
-          "For antenna_dim = 1, the azimuthal angle grid must be empty." );
-    }
-  else
-    {
-      if( atmosphere_dim < 3 )
-        throw runtime_error( "2D antennas (antenna_dim=2) can only be "
-                                                 "used with 3D atmospheres." );
-      if( mblock_aa_grid.nelem() == 0 )
-        throw runtime_error(
-                      "The measurement block azimuthal angle grid is empty." );
-      chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
-    }
-
-  // Sensor
-  //
-  if( sensor_response.ncols() != nf * nza * naa * stokes_dim ) 
-    {
-      ostringstream os;
-      os << "The *sensor_response* matrix does not have the right size, \n"
-         << "either the method *sensor_responseInit* has not been run \n"
-         << "prior to the call to *RteCalc* or some of the other sensor\n"
-         << "response methods has not been correctly configured.";
-      throw runtime_error( os.str() );
-    }
-
-  // Sensor position and LOS.
-  //
-  // That the angles are inside OK ranges are checked inside ppathCalc.
-  //
-  if( sensor_pos.ncols() != atmosphere_dim )
-    throw runtime_error( "The number of columns of sensor_pos must be "
-                              "equal to the atmospheric dimensionality." );
-  if( atmosphere_dim <= 2  &&  sensor_los.ncols() != 1 )
-    throw runtime_error( 
-                      "For 1D and 2D, sensor_los shall have one column." );
-  if( atmosphere_dim == 3  &&  sensor_los.ncols() != 2 )
-    throw runtime_error( "For 3D, sensor_los shall have two columns." );
-  if( sensor_los.nrows() != nmblock )
-    {
-      ostringstream os;
-      os << "The number of rows of sensor_pos and sensor_los must be "
-         << "identical, but sensor_pos has " << nmblock << " rows,\n"
-         << "while sensor_los has " << sensor_los.nrows() << " rows.";
-      throw runtime_error( os.str() );
-    }
-  //---------------------------------------------------------------------------
-  //--- End: Check input ------------------------------------------------------
-
 
   //--- Init y and ib ---------------------------------------------------------
 
-  // Number of elements of *y* for one mblock
-  Index    nblock = sensor_response.nrows();
-  
   // Resize *y* to have correct length.
   y.resize( nmblock*nblock );
 
@@ -515,6 +388,193 @@ void RteCalcNoJacobian(
            sensor_los, f_grid, stokes_dim, antenna_dim, mblock_za_grid, 
            mblock_aa_grid, jacobian_quantities, jacobian_indices );
 }
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void RteCalcMC(
+         Vector&                        y,
+         Vector&                        mc_error,
+         Index&                         f_index,
+   const Agenda&                        iy_space_agenda,
+   const Agenda&                        surface_prop_agenda,
+   const Agenda&                        opt_prop_gas_agenda,
+   const Agenda&                        abs_scalar_gas_agenda, 
+   const Index&                         atmosphere_dim,
+   const Vector&                        p_grid,
+   const Vector&                        lat_grid,
+   const Vector&                        lon_grid,
+   const Tensor3&                       z_field,
+   const Tensor3&                       t_field,
+   const Tensor4&                       vmr_field,
+   const Matrix&                        r_geoid,
+   const Matrix&                        z_surface,
+   const Index&                         cloudbox_on, 
+   const ArrayOfIndex&                  cloudbox_limits,
+   const Tensor4&                       pnd_field,
+   const ArrayOfSingleScatteringData&   scat_data_raw,
+   const Sparse&                        sensor_response,
+   const Matrix&                        sensor_pos,
+   const Matrix&                        sensor_los,
+   const Vector&                        f_grid,
+   const Index&                         stokes_dim,
+   const Index&                         antenna_dim,
+   const Vector&                        mblock_za_grid,
+   const Vector&                        mblock_aa_grid,
+   const String&                        mc_unit,
+   //Keyword params
+   const Numeric&                       std_err,
+   const Index&                         max_time,
+   const Index&                         max_iter,
+   const Index&                         z_field_is_1D )
+{
+
+  // Consistency checks of input. Also returning some basic sizes
+  //
+  Index nf=0, nmblock=0, nza=0, naa=0, nblock=0;
+  //
+  if( atmosphere_dim != 3 )
+        throw runtime_error( 
+          "Monte Carlos calculations require that *atmosphere_dim* is 3." );
+  //
+  rtecalc_check_input( nf, nmblock, nza, naa, nblock, atmosphere_dim, p_grid, 
+                       lat_grid, lon_grid, z_field, t_field, r_geoid, z_surface,
+                       cloudbox_on,  cloudbox_limits, sensor_response, 
+                       sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, 
+                       mblock_za_grid, mblock_aa_grid );
+
+  // Some MC variables are only local here
+  Index    mc_iteration_count, mc_seed;
+  Tensor3  mc_points;
+  //
+  MCAntenna mc_antenna;
+  mc_antenna.set_pencil_beam();
+
+
+  //--- Init y and ib ---------------------------------------------------------
+
+  // Resize *y* and *mc_error* to have correct length.
+  y.resize( nmblock*nblock );
+  mc_error.resize( nmblock*nblock );
+  mc_error = 0.0;                     // Needed as values are accumulated below
+
+  // Create vectors for MPB radiances for 1 measurement block.
+  Vector ib( nf*nza*naa*stokes_dim );
+  Vector ib_error( nf*nza*naa*stokes_dim );
+
+  // Vectors for a monochromatic single pencil beam calculation
+  Vector iyf;
+  Vector iyf_error;
+
+  //--- Loop:  measurement block / zenith angle / azimuthal angle
+  //
+  Index    nydone = 0;                 // Number of positions in y done
+  Index    nbdone;                     // Number of positions in ib done
+  Matrix   los(1,sensor_los.ncols());  // LOS of interest
+  Matrix   pos(1,sensor_pos.ncols());  // POS of interest
+  //
+  for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
+    {
+      nbdone = 0;
+
+      for( Index iza=0; iza<nza; iza++ )
+        {
+          for( Index iaa=0; iaa<naa; iaa++ )
+            {
+              //--- POS of interest
+              pos(0,joker)  = sensor_pos( mblock_index, joker );
+
+              //--- LOS of interest
+              los(0,joker)  = sensor_los( mblock_index, joker );
+              los(0,0)     += mblock_za_grid[iza];
+              if( antenna_dim == 2 )
+                { los(0,1) += mblock_aa_grid[iaa]; }
+
+              for( f_index=0; f_index<nf; f_index++ )
+                {
+
+                  ArrayOfSingleScatteringData   scat_data_mono;
+
+                  scat_data_monoCalc( scat_data_mono, scat_data_raw, 
+                                      f_grid, f_index );
+
+                  // Seed reset for each loop. If not done, the errors appear
+                  // to be highly correlated.
+                  MCSetSeedFromTime( mc_seed );
+                  
+                  MCGeneral( iyf, mc_iteration_count, iyf_error, mc_points, 
+                    mc_antenna, f_grid, pos, los, stokes_dim, iy_space_agenda,
+                    surface_prop_agenda, opt_prop_gas_agenda, 
+                    abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, 
+                    z_field, r_geoid, z_surface, t_field, vmr_field, 
+                    cloudbox_limits, pnd_field, scat_data_mono, 
+                    mc_seed, mc_unit, std_err, max_time, max_iter, 
+                    z_field_is_1D ); 
+                  
+                  //--- Copy *iyf* to *ib*
+                  for( Index is=0; is<stokes_dim; is++ )
+                    { 
+                      ib[nbdone+is]       = iyf[is]; 
+                      ib_error[nbdone+is] = iyf_error[is]; 
+                    }
+
+                  // Increase nbdone
+                  nbdone += stokes_dim;
+                }
+
+            } // iaa loop
+        } // iza loop
+
+
+      //--- Apply sensor response matrix on ib and ib_error
+      //
+      mult( y[Range(nydone,nblock)], sensor_response, ib );
+      //
+      for( Index irow=0; irow<nblock; irow++ )
+        {
+          for( Index icol=0; icol<sensor_response.ncols(); icol++ )
+            { mc_error[nydone+irow] += 
+                        pow( sensor_response(irow,icol)*ib_error[icol], 2.0 ); 
+            }
+        }
+
+      //--- Increase nydone
+      nydone += nblock;
+    }
+
+  // Convert *mc_error* from variances to stad. devs.
+  transform( mc_error, sqrt, mc_error );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated 
+void mc_errorApplySensor(
+           Vector&   mc_error,
+     const Sparse&   sensor_response )
+{
+  const Index   n = mc_error.nelem();
+
+  if( sensor_response.ncols() != n )
+    {
+      throw runtime_error(
+                     "Mismatch in size of *sensor_response* and *mc_error*." );
+    }
+
+  Vector  i( n );
+  for( Index j=0; j<n; j++ )
+    { i[j] = mc_error[j]*mc_error[j]; }
+  mc_error.resize( sensor_response.nrows() );
+  mc_error = 0.0;
+  for( Index irow=0; irow<sensor_response.nrows(); irow++ )
+    {
+      for( Index icol=0; icol<n; icol++ )
+        { mc_error[irow] += pow( sensor_response(irow,icol), 2.0 ) * i[icol]; }
+    }
+  transform( mc_error, sqrt, mc_error );
+}
+*/
+
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
