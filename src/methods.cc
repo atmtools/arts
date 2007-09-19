@@ -5241,8 +5241,9 @@ md_data_raw.push_back
          "         Matrix : The backend channel response.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( sensor_response_, sensor_response_f_, f_mixer_ ),
-        INPUT( sensor_response_pol_, sensor_response_za_, sensor_response_aa_,
+        OUTPUT( sensor_response_, sensor_response_f_, f_mixer_, 
+                sensor_response_pol_ ),
+        INPUT( sensor_response_za_, sensor_response_aa_,
                lo_, sensor_norm_, f_backend_, sensor_pol_ ),
         GOUTPUT( ),
         GINPUT( Matrix_, Matrix_ ),

@@ -1,3 +1,18 @@
+2007-09-19  Mattias Ekstrom  <mattias.ekstrom@chalmers.se>
+
+        * arts-1-1-1178
+
+        * src/methods.cc: In declaration of sensor_responseMultiMixerBackend
+        the WSV sensor_response_pol is moved from input to output.
+
+        * src/m_sensor.cc: In sensor_responseMultiMixerBackend the WSV
+        sensor_response_pol is now updated.
+        The numbers of polarisations is in this method coupled to the numbers
+	of backends and mixers, therefore the number of polarisations should
+	not be multiplied with the number of backend frequencies when
+	calculating the size of the sensor response.
+	To accomodate this the sensor_response_pol is set to 1 by this WSM.
+
 2007-09-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-1-1177

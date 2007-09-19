@@ -751,8 +751,8 @@ void sensor_responseMultiMixerBackend(
      Sparse&                sensor_response,
      Vector&                sensor_response_f,
      Vector&                f_mixer,
+     Index&                 sensor_response_pol,
      // WS Input:
-     const Index&           sensor_response_pol,
      const Vector&          sensor_response_za,
      const Vector&          sensor_response_aa,
      const Vector&          lo,
@@ -846,7 +846,11 @@ void sensor_responseMultiMixerBackend(
   sensor_response_f = f_backend;
   f_mixer = f_backend;
   out3 << "  *sensor_response_f* set to *f_backend*\n";
-
+  // Since this method implies a special use of the sensor polaristion response
+  // the sensor_response_pol value is set to one.
+  sensor_response_pol = 1;
+  out3 << "  *sensor_response_pol* set to one due to use of " 
+       << "multi-mixer configuration.\n";
 }
 
 
