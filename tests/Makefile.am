@@ -7,61 +7,44 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-SUBDIRS = data 
-check:
-	python testall.py -v
+SUBDIRS = 
 
-check-parallel: checkall
+TESTDIRS = Abs ClearSky DISORT DOIT MonteCarlo
 
-checkall: MonteCarloTests MiscTests
+TESTFILES = .arts .ac .xml .xml.bin
 
-MonteCarloTests: MonteCarloTest  MonteCarloTest2 \
-		 MonteCarloTest3 MonteCarloTest4
+check: \
+	TestMonteCarloDataPrepare \
+	TestMonteCarloGeneral \
+	TestMonteCarloGeneralGaussian \
+	TestDOIT \
+	TestClearSky \
+	TestAbs
 
-MiscTests: DoitTest ClearSkyTest AbsTest
+# Broken tests:
+#	TestMonteCarloSimple
+#	TestMonteCarloWithIncomingLookup
+#	TestDISORT
 
-DoitTest:
-	@if python testall.py $@ > $@.test.log 2>&1; then \
+#
+# Dependencies between tests
+#
+TestMonteCarloSimple: TestMonteCarloDataPrepare
+
+TestMonteCarloGeneral: TestMonteCarloDataPrepare
+
+TestMonteCarloGeneralGaussian: TestMonteCarloDataPrepare
+
+TestMonteCarloWithIncomingLookup: TestMonteCarloDataPrepare
+
+###############################################################
+
+Test%:
+	@if python testall.py $@ > $@.log 2>&1; then \
 		echo "$@ ok."; \
-		else echo "$@ failed. Find details in $@.test.log"; exit 1; fi
+		else echo "$@ failed. Find details in $@.log"; exit 1; fi
 
-ClearSkyTest:
-	@if python testall.py $@ > $@.test.log 2>&1; then \
-		echo "$@ ok."; \
-		else echo "$@ failed. Find details in $@.test.log"; exit 1; fi
+EXTRA_DIST = testall.py $(foreach dir, $(TESTDIRS), $(foreach extension,$(TESTFILES),$(wildcard $(dir)/*$(extension))))
 
-AbsTest:
-	@if python testall.py $@ > $@.test.log 2>&1; then \
-		echo "$@ ok."; \
-		else echo "$@ failed. Find details in $@.test.log"; exit 1; fi
-
-MonteCarloTest: MCDataPrepareTest
-	@if python testall.py $@ > $@.test.log 2>&1; then \
-		echo "$@ ok."; \
-		else echo "$@ failed. Find details in $@.test.log"; exit 1; fi
-
-MonteCarloTest2: MCDataPrepareTest
-	@if python testall.py $@ > $@.test.log 2>&1; then \
-		echo "$@ ok."; \
-		else echo "$@ failed. Find details in $@.test.log"; exit 1; fi
-
-MonteCarloTest3: MCDataPrepareTest
-	@if python testall.py $@ > $@.test.log 2>&1; then \
-		echo "$@ ok."; \
-		else echo "$@ failed. Find details in $@.test.log"; exit 1; fi
-
-MonteCarloTest4: MCDataPrepareTest
-	@if python testall.py $@ > $@.test.log 2>&1; then \
-		echo "$@ ok."; \
-		else echo "$@ failed. Find details in $@.test.log"; exit 1; fi
-
-MCDataPrepareTest:
-	@if python testall.py $@ > $@.test.log 2>&1; then \
-		echo "$@ ok."; \
-		else echo "$@ failed. Find details in $@.test.log"; exit 1; fi
-
-
-EXTRA_DIST = *.arts testall.py
-
-CLEANFILES = *.rep *.test.log
+CLEANFILES = *.log */*xml.generated* */*.rep
 

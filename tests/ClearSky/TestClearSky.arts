@@ -1,0 +1,181 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# filename: simpleClearSky.arts
+#
+# Demonstration of a ARTS clear sky calculation
+#
+# Author: Patrick Eriksson
+
+
+Main {
+
+
+# Output file format
+# ---
+output_file_formatSetAscii{}
+
+
+# Frequency grid 
+# ---
+# This example is only monochromatic. Note: The frequency must be contained
+# in the gas absorption lookup table.  
+IndexSet(nelem){ 1 }
+VectorSet(f_grid){
+  value = 230e9
+}
+ 
+
+# Number of Stokes components to be computed
+# ---
+IndexSet( stokes_dim ){
+  value = 1
+}
+
+# Dimensionality of the atmosphere
+# -
+AtmosphereSet1D{}
+
+
+# Pressure grid
+# ---
+ReadXML( p_grid ){
+  "p_grid.xml"
+}
+
+
+# Definition of species
+# ---
+SpeciesSet(abs_species){
+  species = [ "H2O", "N2", "O2"]
+}
+
+
+# Atmospheric profiles
+# ---
+AtmRawRead{
+ basename = "tropical"
+}
+#
+AtmFieldsCalc{}
+
+
+# Gas absorption
+# ---
+# Here taken from a lookup table
+# ---
+abs_lookupInit{}
+#
+ReadXML( abs_lookup ){
+   "gas_abs_lookup.xml"
+}
+#  	
+abs_lookupAdapt{}
+
+
+# Agendas associated with absorption
+# ---
+AgendaSet( abs_scalar_gas_agenda ){
+   abs_scalar_gasExtractFromLookup{}
+}
+#
+AgendaSet( emission_agenda ){
+   emissionPlanck{}
+}
+
+
+
+# Definition of Earth surface
+# ---
+# spherical geoid 
+r_geoidSpherical{
+    r = -1
+}
+# Ground altitude (measured from geoid)
+nrowsGet(r_geoid){}
+ncolsGet(r_geoid){}
+MatrixSet( z_surface){
+    value = 500
+}
+# Surface emissivity
+AgendaSet(surface_prop_agenda){
+   InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
+   NumericSet(surface_emissivity){0.9}
+   surfaceSimple{}
+} 
+
+
+# Definition of sensor position and LOS
+# ---
+IndexSet(nrows){ 1 }
+IndexSet(ncols){ 1 }
+MatrixSet(sensor_pos){
+  value = 600e3
+}
+#
+sensor_posAddRgeoid{
+}
+#
+MatrixSet(sensor_los){
+  value = 130
+}
+
+
+
+# No sensor properties
+# ---
+sensorOff{}		
+
+
+# No jacobian calaculations
+# ---
+jacobianOff{}
+
+
+# No scattering
+# ---
+cloudboxOff{}		
+
+
+# Agendas for the calculation of propagation paths
+# ---
+AgendaSet( refr_index_agenda ) {
+  refr_indexThayer{}
+}
+AgendaSet( ppath_step_agenda ) {
+  ppath_stepGeometric{
+    lmax = 5e3
+  }
+}
+
+
+# Agendas for clearsky radiative transfer calculation
+# ---
+AgendaSet( iy_space_agenda ){
+  Ignore(rte_pos){}
+  Ignore(rte_los){}
+  MatrixCBR( iy, f_grid ){}
+}
+#
+AgendaSet( rte_agenda ){
+  RteStd{}
+}
+
+
+# Perform RT calculations
+# ---
+RteCalc{}
+    
+
+# Convert to RJ brightness temperatures
+#
+VectorToTbByRJ( y, y ) {}
+
+
+# Print result
+Print(y){
+  level=1
+}
+
+
+} # End of Main
+ 

@@ -1,3 +1,57 @@
+2007-09-25  Oliver Lemke  <olemke@core-dump.info>
+
+        * arts-1-1-1179
+
+	* tests/Makefile.am:
+
+	Restructured the tests so that every test has its own directory. All
+	files required by a test should be available in that subdirectory.
+	A test directory can contain more than one test if they're closely
+	related (see tests/MonteCarlo).
+	The advantage of having self-contained test directories is that the
+	user can just copy one of the directories and use it as a starting
+	point for his own calculations (having all necessary input files
+	available without collecting them from other directories).
+
+	Convention for naming the tests is to have the testnames all start
+	with 'Test', followed by the name of the subdirectory they're in.
+	If there's more than one test in the subdirectory append a
+	descriptive text to the end of the testname. The controlfiles should
+	have the same name as the test + .arts.
+
+	Example for the MonteCarlo case: 
+
+	Test directory:              tests/MonteCarlo
+
+	Tests (named in testall.py): TestMonteCarloDataPrepare
+	                             TestMonteCarloGeneral
+	                             TestMonteCarloGeneralGaussian
+
+	Corresponding controlfiles:
+
+	tests/MonteCarlo/TestMonteCarloDataPrepare.arts
+	tests/MonteCarlo/TestMonteCarloGeneral.arts
+	tests/MonteCarlo/TestMonteCarloGeneralGaussian.arts
+	
+	All tests have to be added to the "check" target in tests/Makefile.am
+	and the directories to TESTDIRS in the same Makefile.am.
+	Dependencies between tests can also be specified in there.
+
+	Tests can now run in parallel by default. E.g. if you have a computer
+	with 4 CPUs run: make -j4 check
+	To avoid cluttering when running tests in parallel, all output is
+	written to log files (TESTNAME.log).
+	
+	* tests/testall.py:
+
+	Added the ability to run controlfiles from subdirectories.
+
+	Removed numbering from tests and give them clear names. 
+
+	* tests/data/, tests/*.arts: Removed.
+
+	* tests/{Abs,ClearSky,DISORT,DOIT,MonteCarlo}/: Added.
+
 2007-09-19  Mattias Ekstrom  <mattias.ekstrom@chalmers.se>
 
         * arts-1-1-1178
