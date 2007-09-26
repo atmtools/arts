@@ -1,5 +1,33 @@
 2007-09-26  Oliver Lemke  <olemke@core-dump.info>
 
+        * arts-1-1-1181
+
+	* docs/uguide/{concept,scattering}.tex:
+
+	Fix for changed test controlfile names.
+
+	* docs/uguide/ppath.tex:
+
+	MatrixSetTakingSizeFromMatrix no longer exists. Replaced example
+	accordingly.
+
+	* docs/uguide/introduction.tex:
+
+	Replaces docs/examples with tests/.
+
+	* docs/uguide/development.tex:
+
+	Rewrote section 'How to add an example file'. Now called 'How to add
+	a test case'.
+
+	Updated CVS to SVN.
+
+	Revised section 'How to move your arts working directory'.
+
+	* tests/: Updated ignore properties.
+
+2007-09-26  Oliver Lemke  <olemke@core-dump.info>
+
         * arts-1-1-1180
 
 	* configure.in: Removed tests/data/Makefile from AC_OUTPUT.

@@ -1579,10 +1579,11 @@ r_geoidSpherical {
 }
 
 # Set a constant surface altitude of 1 km
-MatrixSetTakingSizeFromMatrix( z_surface, r_geoid ) {
+ncolsGet( r_geoid ) {}
+nrowsGet( r_geoid ) {}
+MatrixSet( z_surface ) {
   value = 1e3
 }
-
 \end{verbatim}
 
 \noindent

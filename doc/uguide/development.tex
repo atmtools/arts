@@ -478,32 +478,36 @@ method can be added.
 \end{enumerate}
 
 
-\subsection{How to add an example file}
+\subsection{How to add a test case}
 %---------------------------------------
 \begin{enumerate}
-\item Create your own example file. The filename should end with
-  \artsstyle{\_example.arts.in}.
-\item If your example uses files from the arts-data package, replace
-  the path to the data package (e.g. \artsstyle{/pool/lookup2/arts-data})
-  with \artsstyle{@ac\_arts\_data@}. Configure will replace this with the
-  correct path.
-\item Add your file to the variable \artsstyle{arts\_examples} in the file\newline
-  \fileindex{doc/examples/Makefile.am}.
-\item Add your file to the AC\_OUTPUT list near the end of configure.in.
-\item The next time when you call \artsstyle{make} the \artsstyle{.arts.in} file will
-  be automatically converted to \artsstyle{.arts}.
+\item Create a new subdirectory in \fileindex{tests/}. If your test is closely
+  related to another test case you can skip this step and instead add it
+  to one of the existing subdirectories.
+\item Create your own test controlfile. The filename should start with
+  \fileindex{Test} followed by the name of the subdirectory it is located in,
+  e.g. \fileindex{tests/DOIT/TestDOIT.arts}. If the subdirectory contains more
+  than one test controlfile append a short descriptive text to the end of the
+  filename like \fileindex{tests/MonteCarlo/TestMonteCarloGaussian.arts}.
+\item Copy all required input files into the subdirectory.
+\item Add the necessary checks for your testcase to
+  \fileindex{tests/testall.py}.
+\item In \fileindex{tests/Makefile.am} add the name of your test to the
+  variable \artsstyle{check} and the subdirectory to the variable
+  \artsstyle{TESTDIRS}.
+
 \end{enumerate}
 
 
-\section{CVS issues}
+\section{SVN issues}
 %======================
  \label{sec:development:cvs}
 
-The arts project is controlled by CVS. This section describes some
-basic CVS commands. For more information see the extensive CVS
-documentation or our own CVS Howto on:
+The arts project is controlled by Subversion. This section describes some
+basic SVN commands. For more information see the extensive SVN
+documentation:
 \begin{quote}
-  \artsstyle{http://www.sat.uni-bremen.de/docs/}
+  \url{http://svnbook.red-bean.com/}
 \end{quote}
 
 
@@ -513,7 +517,7 @@ documentation or our own CVS Howto on:
 %-----------------------------
 \begin{enumerate}
 \item Go to a temporary directory.
-\item Run: \artsstyle{cvs co -P arts}.
+\item Run: \artsstyle{svn co https://www.sat.ltu.se/svn/rt/arts/trunk arts}
 \end{enumerate}
 
 
@@ -521,7 +525,7 @@ documentation or our own CVS Howto on:
 %--------------------------------------------------
 \begin{enumerate}
 \item Go to the top ARTS directory (called simply \artsstyle{arts}).
-\item Run: \artsstyle{cvs update -P}
+\item Run: \artsstyle{svn update}
    
   \textbf{IMPORTANT!} Always update, before you start to make changes
   to the program, especially after a longer pause. If you edit an
@@ -535,15 +539,16 @@ documentation or our own CVS Howto on:
 \begin{enumerate}
 \item You should make sure that the program compiles and runs without
   obvious errors before you commit.
-\item If you have created a new source file, make it known to CVS by
-  running the command \artsstyle{cvs add <my\_file>} in the directory where
+\item If you have created a new source file, make it known to SVN by
+  running the command \artsstyle{svn add <my\_file>} in the directory where
   the file resides.
   
-  In general, when you run \artsstyle{cvs update}, it will warn you about
+  In general, when you run \artsstyle{svn update}, it will warn you about
   any files it doesn't know by marking them with a \artsstyle{?}. Files
   that are created during the compilation process, but should not be
-  part of the package are listed in the \fileindex{.cvsignore} files in
-  each directory.
+  part of the package are ignored by SVN. You can view the list of ignored
+  files for the current directory with \artsstyle{svn propget svn:ignore .}.
+  The list can be edited with \artsstyle{svn propedit svn:ignore .}.
 \item Have you added the documentation for your new features?
 \item Increase the subversion number in file \fileindex{configure.in} in
   the top level ARTS directory.
@@ -563,7 +568,7 @@ documentation or our own CVS Howto on:
     already while you work on a file}. Whenever you make a change to a
   file, there should be a ChangeLog Entry!
 \item Make sure that you have saved all your files. Go to the top
-  level ARTS directory and run: \artsstyle{cvs commit}.
+  level ARTS directory and run: \artsstyle{svn commit}.
 \item This will pop up an editor. Use the mouse to cut and paste the
   Change-Log message also to this editor window. Safe the file and exit
   the editor. If you made changes in different directories, another
@@ -573,18 +578,13 @@ documentation or our own CVS Howto on:
   \begin{quote}
     \artsstyle{export EDITOR=xedit}
   \end{quote}
-  in you shell startup file.
+  in your shell startup file.
  
   With smart editors there can be problems, because they might
   refuse to safe your file if you haven't made changes to it. With
   xedit you just have to push the save button twice to override.
-\item You have to give your version of the program a symbolic name, so
-  that it can be retrieved later on if necessary. Do this by running:
-  \artsstyle{cvs tag arts-x-y-z} where x,y,z must be replace by the version
-  numbers. You have to use dashes to separate the numbers, a point
-  (\artsstyle{.}) will not work.
 \item Tell the other developers about it. The best way to do this is
-  to send an email to \artsstyle{arts-dev@sat.physik.uni-bremen.de}.
+  to send an email to \artsstyle{arts-dev@www.sat.ltu.se}.
 \end{enumerate}
 
 
@@ -611,18 +611,12 @@ documentation or our own CVS Howto on:
 
 \subsection{How to move your arts working directory}
 %----------------------------------------------
-\textbf{Never try to move CVS directories!} Instead:
-\begin{enumerate}
-\item Commit your changes.
-\item Go \emph{above} the top level ARTS directory.
-\item Run: \artsstyle{cvs release -d arts}.
-  
-  This will ask for confirmation, and if you say \artsstyle{y} delete your
-  working copy of arts.
-\item Go to the directory where you want to have your ARTS copy in the
-  future.
-\item Check out a new copy (see other howto above).
-\end{enumerate}
+
+In general it is no problem to move your working directory.
+The only thing to consider is that the autotools write hardwired paths into
+the generated Makefiles. Therefore you have to run \artsstyle{autogen.sh}
+working directory.
+
 
 \section{Debugging (use of assert)}
 %================================
@@ -632,7 +626,7 @@ This section draws heavily on the GNU tools manual of Eleftherios
 Gkioulekas:
 \begin{quote}
 {\footnotesize
-\artsstyle{http://www.amath.washington.edu/~lf/tutorials/autoconf/}}
+\url{http://www.amath.washington.edu/~lf/tutorials/autoconf/}}
 \end{quote}
 
 The idea behind assert is simple. Suppose that at a certain point in
