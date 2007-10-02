@@ -428,8 +428,8 @@ private:
     species (for example overlap coefficients for O2). In the case of
     oxygen two parameters are sufficient to describe the overlap, but
     other species, e.g., methane, may need more coefficients. The
-    default for \texttt{N\_AUX} is zero. In that case, no further
-    \texttt{AUX} fields are present. [FIXME: Check Oxygen.]
+    default for \c N_AUX is zero. In that case, no further
+    \c AUX fields are present. [FIXME: Check Oxygen.]
 
     The names of the private members and public access functions of
     this data structure follow the above table. The only difference is
@@ -474,7 +474,7 @@ public:
  { /* Nothing to do here. */ }
 
   /** Constructor that sets all data elements explicitly. If
-      assertions are not disabled (i.e., if NDEBUG is not #defined),
+      assertions are not disabled (i.e., if NDEBUG is not \#defined),
       assert statements check that the species and isotope data
       exists. */
   LineRecord( Index                 species,
@@ -550,10 +550,10 @@ public:
 
   /** The matching SpeciesRecord from species_data. To get at the
       species data of a LineRecord lr, you can use:
-      \begin{enumerate}
-      \item species_data[lr.Species()]
-      \item lr.SpeciesData()
-      \end{enumerate}
+      <ul>
+      <li>species_data[lr.Species()]</li>
+      <li>lr.SpeciesData()</li>
+      </ul>
       The only advantages of the latter are that the notation is
       slightly nicer and that you don't have to declare the external
       variable species_data. */
@@ -566,11 +566,11 @@ public:
   /** The matching IsotopeRecord from species_data. The IsotopeRecord
       is a subset of the SpeciesRecord. To get at the isotope data of
       a LineRecord lr, you can use:
-      \begin{enumerate}
-      \item species_data[lr.Species()].Isotope()[lr.Isotope()]
-      \item lr.SpeciesData().Isotope()[lr.Isotope()]
-      \item lr.IsotopeData()
-      \end{enumerate}
+      <ul>
+      <li>species_data[lr.Species()].Isotope()[lr.Isotope()]</li>
+      <li>lr.SpeciesData().Isotope()[lr.Isotope()]</li>
+      <li>lr.IsotopeData()</li>
+      </ul>
       The last option is clearly the shortest, and has the advantage
       that you don't have to declare the external variable
       species_data. */

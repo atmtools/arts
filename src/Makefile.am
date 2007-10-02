@@ -1273,6 +1273,7 @@ BUILT_SOURCES = \
 
 CLEANFILES = \
 	auto_wsv.h \
+	auto_wsv.txt \
 	auto_wsv_groups.h \
 	auto_md.h \
 	auto_md.cc \

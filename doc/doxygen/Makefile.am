@@ -33,9 +33,12 @@ doxyfied: Doxyfile $(toexamine)
 	doxygen Doxyfile > /dev/null
 	mv -f latex/Makefile.rescue latex/Makefile
 	doxytag -t arts.tag html
+	cp $(srcdir)/../arts-splash.gif html/
 	touch doxyfied
 
 CLEANFILES = doxyfied
+
+MAINTAINERCLEANFILES = arts.tag
 
 else
 

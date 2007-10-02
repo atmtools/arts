@@ -16,9 +16,9 @@ thisdocdir = $(artsdocdir)/doxygen/latex
 
 #EXTRA_DIST           = $(wildcard *.tex *.eps doxygen.sty refman.dvi refman.ps)
 
-CLEANFILES           = $(wildcard *.aux refman.idx refman.log refman.toc refman.ilg refman.ind)
+CLEANFILES           = $(wildcard *.aux) refman.idx refman.log refman.toc refman.ilg refman.ind)
 
-MAINTAINERCLEANFILES = $(wildcard *.tex *.eps doxygen.sty refman.dvi refman.ps)
+MAINTAINERCLEANFILES = $(wildcard *.tex *.eps *.md5 *.ttf) doxygen.sty refman.dvi refman.ps
 
 all:
 

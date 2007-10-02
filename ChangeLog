@@ -1,3 +1,39 @@
+2007-10-02  Oliver Lemke  <olemke@core-dump.info>
+
+        * arts-1-1-1183
+
+	* src/abs_species_tags.cc:
+
+	Replaced \begin{verbatim} with \verbatim in doxygen docs.
+
+	* src/absorption.h:
+
+	Use <tt></tt> instead of \texttt{} in doxygen docs.
+
+	Use <ul><li></li></ul> instead of \begin{enumerate}...
+	Doxygen cannot handle the latex macros but will translate the html
+	tags properly to latex.
+
+	* src/Makefile.am:
+
+	Added auto_wsv.txt to CLEANFILES.
+
+	* doc/doxygen/Makefile.am:
+
+	Re-add copying of arts-splash.gif with proper srcdir.
+
+	Add arts.tag to MAINTAINERCLEANFILES.
+
+	* doc/doxygen/html/Makefile.am:
+
+	Add arts-splash to _DATA.
+
+	Add *.md5 and *.map to MAINTAINERCLEANFILES.
+
+	* doc/doxygen/html/Makefile.am:
+
+	Add *.md5 and *.ttf to MAINTAINERCLEANFILES.
+
 2007-09-28  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-1-1182
