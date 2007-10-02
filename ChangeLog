@@ -1,5 +1,41 @@
 2007-10-02  Oliver Lemke  <olemke@core-dump.info>
 
+        * arts-1-1-1184
+
+	* doc/uguide/*.tex:
+
+	Remove directory prefixes from all figure names.
+
+	Instead set the graphicspath in every file to Figs/SUBDIRECTORY. Where
+	SUBDIRECTORY is equal to the tex filename.
+
+	* doc/uguide/uguide.tex:
+
+	Remove graphicspath. It is now set in every tex file separately to the
+	corresponding figure subdirectory. This way all figures from one
+	chapter of the user guide are grouped together.
+
+	* doc/uguide/Makefile.am:
+
+	Remove the pdf when errors where encountered while building the user
+	guide. Because latex otherwise leaves the pdf file behind a following
+	'make' will not build the uguide again.
+
+
+	* doc/uguide/Figs/*/Makefile.am: Removed.
+
+	* doc/uguige/Figs/Makefile.am:
+
+	Removed SUBDIRS.
+
+	Added */*.pdf to EXTRA_DIST.
+
+	* doc/uguide/Figs/clouds/: Added.
+
+	* configure.in: Remove all Figs/*/Makefile.
+
+2007-10-02  Oliver Lemke  <olemke@core-dump.info>
+
         * arts-1-1-1183
 
 	* src/abs_species_tags.cc:

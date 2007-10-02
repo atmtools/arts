@@ -1,3 +1,5 @@
+\graphicspath{{Figs/ppath/}}
+
 \chapter{Propagation paths and the geoid}
  \label{sec:ppath}
 
@@ -72,7 +74,7 @@ and \artsstyle{ppath\_stepRefractionEuler}.
 
 \begin{figure}[!t]
  \begin{center}
-  \includegraphics*[width=0.80\hsize]{Figs/ppath/ppath_ex1}
+  \includegraphics*[width=0.80\hsize]{ppath_ex1}
   \caption{Tracking of propagation paths. For legend, see 
     Figure~\ref{fig:ppath:ex2}. The figure tries to visualize how the
     calculations of propagation paths are performed from one grid cell
@@ -89,7 +91,7 @@ and \artsstyle{ppath\_stepRefractionEuler}.
 
 \begin{figure}[!t]
  \begin{center}
-   \includegraphics*[width=0.98\hsize]{Figs/ppath/ppath_ex2}
+   \includegraphics*[width=0.98\hsize]{ppath_ex2}
   \caption{As Figure~\ref{fig:ppath:ex1}, but with a length criterion 
     for the distance between the points defining the path.
     The inclusion of the tangent point is not a result of this length
@@ -606,7 +608,7 @@ to next. The propagation path constant is stored in the field
  \begin{center}
   \begin{minipage}[c]{0.65\textwidth}
    \begin{center}
-    \includegraphics*[width=0.9\hsize]{ppath/geom1d}
+    \includegraphics*[width=0.9\hsize]{geom1d}
    \end{center}
   \end{minipage}%
   \begin{minipage}[c]{0.35\textwidth}
@@ -760,7 +762,7 @@ which can be re-written to
 
 \begin{figure}
  \begin{minipage}[c]{0.45\textwidth}
- \includegraphics*[width=0.92\textwidth]{ppath/psurf_crossing}
+ \includegraphics*[width=0.92\textwidth]{psurf_crossing}
  \end{minipage}%
  \begin{minipage}[c]{0.55\textwidth}
   \caption{Quantities used to describe how to find the crossing between a 
@@ -807,7 +809,7 @@ interest shall not be imaginary.
 
 \begin{figure}[!t]
  \begin{center}
-  \includegraphics*[width=0.80\hsize]{Figs/ppath/ppath_ex3}
+  \includegraphics*[width=0.80\hsize]{ppath_ex3}
   \caption{Example on propagation path steps starting from a latitude end face 
     (solid lines), or the lower pressure surface (dashed lines), to
     all other grid cell faces. The distortion of the grid cell from
@@ -932,7 +934,7 @@ The functions performing these transformations are \funcindex{sph2cart} and
 
 \begin{figure}[!t]
  \begin{center}
-  \includegraphics*[width=0.80\hsize]{Figs/ppath/ppath_3Dsearch}
+  \includegraphics*[width=0.80\hsize]{ppath_3Dsearch}
   \caption{Schematic of Algorithm~\ref{alg:ppath:dogridcell3d}. The
     figure shows two iterations of the algorith to search for the
     total length of the path step. The asterisk $(\ast)$ gives the
@@ -1085,7 +1087,7 @@ not used with present algorithms.\footnote{The expressions mentioned
 
 \begin{figure}[!t]
  \begin{center}
-  \includegraphics*[width=0.80\hsize]{Figs/ppath/ppath_refr1}
+  \includegraphics*[width=0.80\hsize]{ppath_refr1}
   \caption{Comparison of propagation paths calculated geometrically and 
     with refraction considered, for the same zenith angle of the
     sensor line-of-sight. The figure include two pair of paths, with
@@ -1126,7 +1128,7 @@ perpendicular to the path. See further Section~9.4 in
 
 \begin{figure}[!t]
  \begin{center}
-  \includegraphics*{Figs/ppath/euler}
+  \includegraphics*{euler}
   \caption{Schematic of the Euler ray tracing scheme. The ray tracing step 
     length is $l_r$. }
   \label{fig:ppath:euler}  
@@ -1176,14 +1178,14 @@ calculations.
 %-----------------------
 \begin{figure}[!p]
   \begin{center}
-    \includegraphics*{Figs/ppath/snell}
+    \includegraphics*{snell}
     \caption{Geometry to derive Snell's law for a spherical atmosphere. }
     \label{fig:ppath:snell} 
   \end{center} 
 \end{figure}
 \begin{figure}[!p]
  \begin{center}
-  \includegraphics*[width=0.80\hsize]{Figs/ppath/ppath_N}
+  \includegraphics*[width=0.80\hsize]{ppath_N}
   \caption{Vertical variation of refractivity $(n-1)\topowerten{6}$.
      Calculated for a mid-latitude summer climatology (FASCODE), where
      the dashed line is for a completely dry atmosphere, and the solid line
@@ -1243,7 +1245,7 @@ refractive index.
 %-----------------------
 \begin{figure}[!t]
  \begin{center}
-  \includegraphics*[width=0.85\hsize]{Figs/ppath/ppath_dndr}
+  \includegraphics*[width=0.85\hsize]{ppath_dndr}
   \caption{Vertical gradient of the refractive index.
      Calculated for a mid-latitude summer climatology (FASCODE), where
      the dashed line is for a completely dry atmosphere, and the solid line
@@ -1255,7 +1257,7 @@ refractive index.
 
 \begin{figure}[!t]
  \begin{center}
-  \includegraphics*[width=0.85\hsize]{Figs/ppath/ppath_dndlat}
+  \includegraphics*[width=0.85\hsize]{ppath_dndlat}
   \caption{Latitude gradient of the refractive index due to varying radius 
     of the geoid. The gradient is given as the change in refractive
     index over 1~m, which allows direct comparison with the values in
@@ -1420,7 +1422,7 @@ shall rather be valid for a middle point of the propagation paths
  \begin{center}
   \begin{minipage}[c]{0.65\textwidth}
    \begin{center}
-    \includegraphics*[width=0.9\hsize]{ppath/latitudes}
+    \includegraphics*[width=0.9\hsize]{latitudes}
    \end{center}
   \end{minipage}%
   \begin{minipage}[c]{0.35\textwidth}
@@ -1436,7 +1438,7 @@ shall rather be valid for a middle point of the propagation paths
 
 \begin{figure}[!p]
  \begin{minipage}[c]{0.65\textwidth}
- \includegraphics*[width=0.96\textwidth]{ppath/wgs84_radii}
+ \includegraphics*[width=0.96\textwidth]{wgs84_radii}
  \end{minipage}%
  \begin{minipage}[c]{0.35\textwidth}
   \caption{The ellipsoid radius (\aRds{\odot}) and curvature radius (\aRds{c})
@@ -1449,7 +1451,7 @@ shall rather be valid for a middle point of the propagation paths
         
 \begin{figure}[!p]
  \begin{minipage}[c]{0.65\textwidth}
- \includegraphics*[width=0.96\textwidth]{ppath/wgs84_latdiff}
+ \includegraphics*[width=0.96\textwidth]{wgs84_latdiff}
  \end{minipage}%
  \begin{minipage}[c]{0.35\textwidth}
   \caption{The change of the WGS-84 ellipsoid radius for  1\degree\ 
@@ -1460,7 +1462,7 @@ shall rather be valid for a middle point of the propagation paths
 
 %\begin{figure}[!t]
 % \begin{center}
-%  \includegraphics*[width=0.80\hsize]{Figs/ppath/wgs84_dz}
+%  \includegraphics*[width=0.80\hsize]{wgs84_dz}
 %  \caption{The altitude above the geoid as a function of latitude
 %    when using the WGS84 reference ellipsiod (solid line) and when
 %    using a spherical geoid (dashed line). The radius in the latter

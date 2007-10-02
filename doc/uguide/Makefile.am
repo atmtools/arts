@@ -67,12 +67,13 @@ if MAINTAINER_MODE
 # distributed automatically.
 
 uguide.pdf: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide
-	makeindex uguide.idx
-	BIBINPUTS=.:$(srcdir):${BIBINPUTS}: bibtex uguide
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide | tee make.log
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide && \
+	makeindex uguide.idx && \
+	BIBINPUTS=.:$(srcdir):${BIBINPUTS}: bibtex uguide && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide | tee make.log || \
+	(echo "Errors encountered while building user guide."; rm -f uguide.pdf)
 
 
 CLEANFILES = $(wildcard *.aux) \

@@ -1,3 +1,5 @@
+\graphicspath{{Figs/sensor/}}
+
 \chapter{Sensor modeling}
  \label{sec:sensor}
 
@@ -179,7 +181,7 @@ conservation this vector should be normalised such that the sum of
 the elements equals one.
 \begin{figure}[!h]
 \begin{center}
-  \includegraphics{Figs/sensor/integration.pdf}
+  \includegraphics{integration.pdf}
   \caption{Schematic of antenna and backend calculations. The dashed 
     lines show the end points of each integral interval. The
     shaded area corresponds to the interval considered in
@@ -230,7 +232,7 @@ if not the RF grid is perfectly symmetric around the LO frequency.
 
 \begin{figure}[!ht]
 \begin{center}
-  \includegraphics*{Figs/sensor/folding.pdf}
+  \includegraphics*{folding.pdf}
   \caption{Visualisation of how the RF sidebands are folded around $\nu_\mathrm{LO}$ down to the IF. 
            The sideband filter function, $w_\mathrm{sb}$, shows how the sidebands are weighted.}
   \label{fig:sensor:folding}
@@ -323,7 +325,7 @@ Since there only exists a method for 1D antennas, $w_\mathrm{a}$ is so far only 
 \begin{figure}[!ht]
 \label{fig:sensor:ant_diag}
 \begin{center}
-  \includegraphics*{Figs/sensor/ant_diag}
+  \includegraphics*{ant_diag}
   \caption{Visualisation of the antenna pattern WSV \artsstyle{antenna\_diagram} for   
   two viewing directions $\varphi_1$ and $\varphi_2$, $\Delta\varphi$ is the relative   
   angular grid, $f_i$ the $i$:th frequency and $p_j$ the $j$:th polarisation.}
@@ -568,7 +570,7 @@ After applying the sensor response for the backend spectrometer the sensor respo
 % \end{eqnarray}
 % \begin{figure}[tb]
 %    \begin{center}
-%      \includegraphics*{Figs/vecintegr}
+%      \includegraphics*{vecintegr}
 %      \caption{The quantities used in Section \ref{sec:sensor:integr}.}  
 %      \label{fig:sensor:vecintegr} 
 %    \end{center} 
@@ -663,7 +665,7 @@ After applying the sensor response for the backend spectrometer the sensor respo
 
 % \begin{figure}[tb]
 %  \begin{center}
-%    \includegraphics*[width=0.8\hsize]{Figs/sideband}
+%    \includegraphics*[width=0.8\hsize]{sideband}
 %    \caption{Schematic description of image frequency and sideband filtering.}
 %   \label{fig:sensor:sideband} 
 %  \end{center} 

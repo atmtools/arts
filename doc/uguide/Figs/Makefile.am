@@ -7,12 +7,5 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-
-
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#	Don't forget to register new files here!
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-SUBDIRS = concept fm_definitions interpolation polarization ppath rte_theory scattering montecarlo sensor
-
+EXTRA_DIST = $(wildcard */*.pdf)
 
