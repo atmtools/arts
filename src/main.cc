@@ -833,6 +833,14 @@ int main (int argc, char **argv)
            << "I have to be able to write to my report file.";
       arts_exit ();
     }
+  catch (ios_base::failure x)
+    {
+      cerr << x.what() << "\n"
+           << "I have to be able to write to my report file.\n"
+           << "Make sure you have write permissions for the directory where\n"
+           << "the report file is written.";
+      arts_exit ();
+    }
 
   // Now comes the global try block. Exceptions caught after this
   // one are general stuff like file opening errors.

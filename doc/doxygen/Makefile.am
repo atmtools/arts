@@ -21,8 +21,8 @@ noinst_DATA = doxyfied
 
 toexamine = \
 $(top_srcdir)/configure.in \
-$(top_srcdir)/src/*.h \
-$(top_srcdir)/src/*.cc
+$(wildcard $(top_srcdir)/src/*.h) \
+$(wildcard $(top_srcdir)/src/*.cc)
 
 if MAINTAINER_MODE
 
@@ -33,7 +33,6 @@ doxyfied: Doxyfile $(toexamine)
 	doxygen Doxyfile > /dev/null
 	mv -f latex/Makefile.rescue latex/Makefile
 	doxytag -t arts.tag html
-	cp ../arts-splash.gif html/
 	touch doxyfied
 
 CLEANFILES = doxyfied

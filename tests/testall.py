@@ -9,7 +9,8 @@ class ArtsRun:
         self.control_file=control_file
     def run(self):
         """Run the control file"""
-        w,r,e=os.popen3('cd '+self.subdir+'; ../../src/arts '+self.control_file)
+        print self.subdir;
+        w,r,e=os.popen3('cd '+os.environ['SRCDIR']+'/'+self.subdir+'; '+os.environ['BUILDDIR']+'/../src/arts '+self.control_file)
         self.output=r.read()
         self.error=e.read()
     def get_val(self,name):

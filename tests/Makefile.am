@@ -40,11 +40,11 @@ TestMonteCarloWithIncomingLookup: TestMonteCarloDataPrepare
 ###############################################################
 
 Test%:
-	@if python testall.py $@ > $@.log 2>&1; then \
+	@if SRCDIR=$(srcdir) BUILDDIR=$(PWD) python $(srcdir)/testall.py $@ > $@.log 2>&1; then \
 		echo "$@ ok."; \
 		else echo "$@ failed. Find details in $@.log"; exit 1; fi
 
 EXTRA_DIST = testall.py $(foreach dir, $(TESTDIRS), $(foreach extension,$(TESTFILES),$(wildcard $(dir)/*$(extension))))
 
-CLEANFILES = *.log */*xml.generated* */*.rep
+CLEANFILES = $(wildcard *.log) $(wildcard $(srcdir)/*/*xml.generated*) $(wildcard $(srcdir)/*/*.rep)
 

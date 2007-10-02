@@ -58,7 +58,6 @@ autotexfiles =
 
 EXTRA_DIST = \
 	$(texfiles) \
-	$(autotexfiles) \
 	uguide.pdf
 
 
@@ -67,17 +66,17 @@ if MAINTAINER_MODE
 # version.tex.in does not show up explicitly in EXTRA_DIST, since this is
 # distributed automatically.
 
-uguide.pdf: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.tex
-	pdflatex uguide
+uguide.pdf: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide
 	makeindex uguide.idx
-	bibtex uguide
-	pdflatex  uguide
-	pdflatex  uguide
-	pdflatex  uguide | tee make.log
+	BIBINPUTS=.:$(srcdir):${BIBINPUTS}: bibtex uguide
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide | tee make.log
 
 
-CLEANFILES = *.aux \
-	     *.log \
+CLEANFILES = $(wildcard *.aux) \
+	     $(wildcard *.log) \
 	     make.log \
 	     uguide.bbl \
 	     uguide.blg \
@@ -89,7 +88,6 @@ CLEANFILES = *.aux \
 	     uguide.toc
 
 MAINTAINERCLEANFILES = \
-	$(autotexfiles) \
 	auto_version.tex
 
 else

@@ -214,28 +214,41 @@ test_disort$(EXEEXT):
 
 endif
 
-continua.o: arts.h matpackI.h array.h absorption.h messages.h continua.h
-	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
-	       $(AM_CXXFLAGS) $(CXXFLAGS) $(CXXNOSTRICTALIASING) -c continua.cc
+continua.o: continua.cc arts.h matpackI.h array.h absorption.h messages.h continua.h
+	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+		$(AM_CXXFLAGS) $(CXXFLAGS) $(CXXNOSTRICTALIASING) -MT $@ \
+		-MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+		then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; \
+		else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
 
-methods.o: arts.h make_array.h auto_wsv.h methods.h auto_wsv_groups.h methods.cc
-	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
-	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c methods.cc
+methods.o: methods.cc arts.h make_array.h auto_wsv.h methods.h auto_wsv_groups.h
+	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+		$(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -MT $@ \
+		-MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+		then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; \
+		else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
 
-species_data.o: arts.h make_array.h absorption.h species_data.cc
-	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
-	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c species_data.cc
+species_data.o: species_data.cc arts.h make_array.h absorption.h
+	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+		$(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -MT $@ \
+		-MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+		then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; \
+		else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
 
-partition_function_data.o: arts.h make_array.h absorption.h partition_function_data.cc
-	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
-	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c partition_function_data.cc
-
-
+partition_function_data.o: partition_function_data.cc arts.h make_array.h absorption.h
+	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+		$(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -MT $@ \
+		-MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+		then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; \
+		else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
 
 # OLE: Temporarely added to work around a bug in gcc 3.0
-xml_io.o: arts.h xml_io.h xml_io.cc xml_io_instantiation.h xml_io_private.h xml_io_basic_types.h xml_io_compound_types.h xml_io_array_types.h bofstream.h bifstream.h
-	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
-	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c xml_io.cc
+xml_io.o: xml_io.cc arts.h xml_io.h xml_io_instantiation.h xml_io_private.h xml_io_basic_types.h xml_io_compound_types.h xml_io_array_types.h bofstream.h bifstream.h
+	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+		$(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -MT $@ \
+		-MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
+		then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; \
+		else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
 
 noinst_PROGRAMS = \
 	make_auto_md_cc \
@@ -1267,7 +1280,7 @@ CLEANFILES = \
 	test_include \
 	test_include.cc
 
-TESTS_ENVIRONMENT = COMPILE="$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) $(CXXNOSTRICTALIASING)" sh -c
+TESTS_ENVIRONMENT = SRCDIR=$(srcdir) COMPILE="$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) $(CXXNOSTRICTALIASING)" sh -c
 
 TESTS = \
 	check-code-cheaders.pl \

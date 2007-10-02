@@ -51,25 +51,23 @@ if MAINTAINER_MODE
 # Here also, auto_groups.tex is added independently.
 
 reference.pdf: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.tex
-	pdflatex reference
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex reference
 	makeindex reference.idx
-#	bibtex reference
-#	pdflatex  reference
-	pdflatex  reference
-	pdflatex  reference | tee make.log
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex  reference
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex  reference | tee make.log
 
 
-auto_groups.tex: arts_groups_to_latex.sh $(artsexecutable)
-	./arts_groups_to_latex.sh $(artsexecutable) > auto_groups.tex
+auto_groups.tex: $(srcdir)/arts_groups_to_latex.sh $(artsexecutable)
+	$(srcdir)/arts_groups_to_latex.sh $(artsexecutable) > auto_groups.tex
 
-auto_methods.tex: arts_methods_to_latex.sh $(artsexecutable)
-	./arts_methods_to_latex.sh $(artsexecutable) > auto_methods.tex
+auto_methods.tex: $(srcdir)/arts_methods_to_latex.sh $(artsexecutable)
+	$(srcdir)/arts_methods_to_latex.sh $(artsexecutable) > auto_methods.tex
 
-auto_variables.tex: arts_variables_to_latex.sh $(artsexecutable)
-	./arts_variables_to_latex.sh $(artsexecutable) > auto_variables.tex
+auto_variables.tex: $(srcdir)/arts_variables_to_latex.sh $(artsexecutable)
+	$(srcdir)/arts_variables_to_latex.sh $(artsexecutable) > auto_variables.tex
 
-CLEANFILES = *.aux \
-	     *.log \
+CLEANFILES = $(wildcard *.aux) \
+	     $(wildcard *.log) \
 	     make.log \
 	     reference.bbl \
 	     reference.blg \

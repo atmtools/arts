@@ -1,3 +1,83 @@
+2007-09-28  Oliver Lemke  <olemke@core-dump.info>
+
+        * arts-1-1-1182
+
+	* Fix 'make distcheck' (almost). Only problem left is the tests/
+	directory which has to be fixed to not create output in the source
+	tree when a separate builddir is used.
+
+	* src/Makefile.am:
+
+	'make distcheck' failed because it builds outside the src directory.
+	The explicit rules we have for some targets didn't support that. Fixed.
+
+	* aii/Makefile.am:
+
+	Using plain wildcards (like *) to fill a variable with a list of files
+	breaks when building outside the source tree. We have to use make's
+	own $(wildcard *) function to expand filenames with taking the builddir
+	into account.
+
+	* doc/doxygen/Makefile.am:
+
+	Remove copying of arts-splash.gif, which we don't have anymore.
+
+	Use the wildcard function.
+
+	* doc/uguide/Makefile.am:
+
+	Remove unused variable autotextfiles.
+
+	Add $(srcdir) to TEXINPUTS and BIBINPUTS to be able to create
+	uguide.pdf from a separate builddir.
+
+	Use the wildcard function.
+
+	* doc/uguide/{clouds,rte_theory,scattering}.tex:
+
+	Temporary fix for figure paths. Real cleanup will follow.
+
+	* doc/reference/Makefile.am:
+
+	Add $(srcdir) to TEXINPUTS to be able to create references.pdf from a
+	separate builddir.
+
+	Call arts_*.sh scripts in $(srcdir).
+
+	Use the wildcard function.
+
+	* src/Makefile.am:
+
+	Pass srcdir to tests and add DEFAULT_INCLUDES to COMPILE variable.
+
+	* src/check-code-header-consistency.sh:
+
+	Look for headers in $SRCDIR.
+
+	* tests/Makefile.am:
+
+	Add support for running the tests from outside the source tree.
+
+	Use the wildcard function for CLEANFILES.
+
+	* test/testall.py:
+
+	Add support for running the tests from outside the source tree.
+
+	* src/main.cc (main):
+
+	Also catch ios_base::failure when trying to open the report file.
+	Missing write permissions don't throw a runtime_error but an
+	ios_base::failure.
+
+	* src/check-code-header-consistency.sh:
+
+	Trap exit signals and remove test_include.cc on exit.
+	Rationale: Doxygen generation depends on _all_ source files and will
+	always rebuild if test_include.cc is updated by the test script.
+
+	* src/: Ignore check-code-header-consistency.log.
+
 2007-09-26  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-1-1181

@@ -3,10 +3,12 @@
 LOGFILE=check-code-header-consistency.log
 echo > $LOGFILE
 
+trap "rm -f test_include.cc; exit" EXIT 1 2 3 9 15
+
 FAILED=0
 EXPECTED_FAIL=0
 FAILED_HEADERS=
-for i in *.h
+for i in $SRCDIR/*.h
 do
     echo -n "Compiling header $i... "
     echo "Compiling header $i" >> $LOGFILE
@@ -21,7 +23,7 @@ do
     else
         echo >> $LOGFILE
         case "$i" in
-            xml_io_instantiation.h)
+            $SRCDIR/xml_io_instantiation.h)
             echo "FAILED (expected)"
             EXPECTED_FAIL=1
             ;;

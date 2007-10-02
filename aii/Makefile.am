@@ -14,8 +14,8 @@
 aiidir        = $(pkgdatadir)/aii
 
 aii_DATA = \
-	*.pro \
+	$(wildcard *.pro) \
 	README
 
-
 EXTRA_DIST = $(aii_DATA)
+
