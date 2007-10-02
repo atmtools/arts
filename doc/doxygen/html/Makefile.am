@@ -11,8 +11,12 @@ artsdocdir = $(pkgdatadir)/doc
 
 thisdocdir = $(artsdocdir)/doxygen/html
 
-thisdoc_DATA         = $(wildcard *.html *.gif *.png *.css arts-splash.gif)
+thisdoc_DATA         = $(wildcard *.html *.gif *.png *.css) arts-splash.gif
 
-EXTRA_DIST           = $(wildcard *.html *.gif *.png *.css arts-splash.gif)
+EXTRA_DIST           = $(wildcard *.html *.gif *.png *.css) arts-splash.gif
 
-MAINTAINERCLEANFILES = $(wildcard *.html *.gif *.png *.css graph_legend.dot formula.repository arts-splash.gif *.map *.md5)
+MAINTAINERCLEANFILES = $(wildcard *.html *.gif *.png *.css *.map *.md5) \
+		       arts-splash.gif \
+		       formula.repository \
+		       graph_legend.dot
+

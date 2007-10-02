@@ -1,5 +1,21 @@
 2007-10-02  Oliver Lemke  <olemke@core-dump.info>
 
+        * arts-1-1-1185
+
+	* src/Makefile.am: Only execute source level tests in maintainer mode.
+
+	* doc/uguide/Makefile.am: Also set BSTINPUTS to srcdir.
+
+	* doc/doxygen/latex/Makefile.am: Remove spurious ).
+
+	* doc/doxygen/html/Makefile.am:
+
+	Move full filenames outside the wildcard function.
+
+	* doc/uguide/Figs/*/Makefile.am: Really remove these...
+
+2007-10-02  Oliver Lemke  <olemke@core-dump.info>
+
         * arts-1-1-1184
 
 	* doc/uguide/*.tex:

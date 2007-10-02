@@ -1281,10 +1281,14 @@ CLEANFILES = \
 	test_include \
 	test_include.cc
 
+if MAINTAINER_MODE
+
 TESTS_ENVIRONMENT = SRCDIR=$(srcdir) COMPILE="$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) $(CXXNOSTRICTALIASING)" sh -c
 
 TESTS = \
 	check-code-cheaders.pl \
 	check-code-tab-indent.sh \
 	check-code-header-consistency.sh
+
+endif
 

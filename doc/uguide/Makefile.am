@@ -69,7 +69,7 @@ if MAINTAINER_MODE
 uguide.pdf: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
 	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide && \
 	makeindex uguide.idx && \
-	BIBINPUTS=.:$(srcdir):${BIBINPUTS}: bibtex uguide && \
+	BSTINPUTS=.:$(srcdir):${BSTINPUTS}: BIBINPUTS=.:$(srcdir):${BIBINPUTS}: bibtex uguide && \
 	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide && \
 	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide && \
 	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide | tee make.log || \
