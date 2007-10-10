@@ -1,5 +1,7 @@
 2007-10-09  Stefan Buehler  <sbuehler_at_ltu.se>
 
+        * arts-1-1-1186
+
 	* src/methods.cc: Added the new method ybatchCalcRobust. This
 	method does the same as ybatchCalc and has exactly the same 
 	input and output parameters. 
