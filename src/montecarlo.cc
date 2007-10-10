@@ -430,7 +430,7 @@ void Cloudbox_ppathCalc(
       // got stuck in an infinite loop.
       if( istep > 5000 )
         {
-          throw logic_error(
+          throw runtime_error(
              "5000 path points have been reached. Is this an infinite loop?" );
         }
       //     cout << "istep = " << istep << "\n";
@@ -1189,7 +1189,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
       // got stuck in an infinite loop.
       if( istep > 5000 )
         {
-          throw logic_error(
+          throw runtime_error(
                             "5000 path points have been reached. Is this an infinite loop?" );
         }
       evol_opArray[0]=evol_opArray[1];

@@ -6217,7 +6217,7 @@ void ppath_calc(
       // got stuck in an infinite loop.
       if( istep > 5000 )
         {
-          throw logic_error(
+          throw runtime_error(
              "5000 path points have been reached. Is this an infinite loop?" );
         }
       

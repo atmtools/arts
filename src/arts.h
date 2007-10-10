@@ -100,6 +100,7 @@
 #define arts_h
 
 #include <cstddef>
+#include <cstdlib>
 #include "matpack.h"
 
 //----------< First of all, include the configuration header >----------
@@ -130,7 +131,7 @@ void define_species_data();
 void define_lineshape_data();
 void define_lineshape_norm_data();
 
-void arts_exit (int status = 1);
+void arts_exit (int status = EXIT_FAILURE);
 
 //
 // Physical constants are now in constants.cc

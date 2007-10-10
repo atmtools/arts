@@ -270,7 +270,7 @@ void Error(
 void Exit()
 {
   out1 << "  Forced exit.\n";
-  arts_exit (0);
+  arts_exit (EXIT_SUCCESS);
 }
 
 

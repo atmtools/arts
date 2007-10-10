@@ -85,7 +85,7 @@ void MatrixExtractFromArrayOfMatrix(
       throw runtime_error( os.str() );
 
     }
-  out3 << "Copying matrix " << index << " of *" << t3_name
+  out3 << "  Copying matrix " << index << " of *" << t3_name
        << "* to create *" << m_name << "*.\n";
 
   m.resize( t3[index].nrows(), t3[index].ncols() );
@@ -115,7 +115,7 @@ void MatrixExtractFromTensor3(
       throw runtime_error( os.str() );
 
     }
-  out3 << "Copies page " << index << " of *" << t3_name
+  out3 << "  Copying page " << index << " of *" << t3_name
        << "* to create *" << m_name << "*.\n";
 
   m.resize( t3.nrows(), t3.ncols() );
@@ -145,7 +145,7 @@ void NumericExtractFromVector(
       throw runtime_error( os.str() );
 
     }
-  out3 << "Copies column " << index << " of *" << v_name
+  out3 << "  Copying column " << index << " of *" << v_name
        << "* to create *" << n_name << "*.\n";
 
   n = v[ index ];
@@ -174,7 +174,7 @@ void Tensor3ExtractFromTensor4(
       throw runtime_error( os.str() );
 
     }
-  out3 << "Copies book " << index << " of *" << t4_name
+  out3 << "  Copying book " << index << " of *" << t4_name
        << "* to create *" << t3_name << "*.\n";
 
   t3.resize( t4.npages(), t4.nrows(), t4.ncols() );
@@ -204,7 +204,7 @@ void Tensor4ExtractFromTensor5(
       throw runtime_error( os.str() );
 
     }
-  out3 << "Copies shelf " << index << " of *" << t5_name
+  out3 << "  Copying shelf " << index << " of *" << t5_name
        << "* to create *" << t4_name << "*.\n";
 
   t4.resize( t5.nbooks(), t5.npages(), t5.nrows(), t5.ncols() );
@@ -244,7 +244,7 @@ void VectorExtractFromMatrix(
           throw runtime_error( os.str() );
 
         }
-      out3 << "Copying row " << index << " of *" << m_name
+      out3 << "  Copying row " << index << " of *" << m_name
            << "* to create *" << v_name << "*.\n";
 
       v.resize( m.ncols() );
@@ -260,7 +260,7 @@ void VectorExtractFromMatrix(
           throw runtime_error( os.str() );
 
         }
-      out3 << "Copying column " << index << " of *" << m_name
+      out3 << "  Copying column " << index << " of *" << m_name
            << "* to create *" << v_name << "*.\n";
 
       v.resize( m.nrows() );
@@ -275,6 +275,74 @@ void VectorExtractFromMatrix(
     }
 }
 
+/* Implementation of ybatchCalc (robust and not-robust version). The
+   idea is to make this a workspace method when optional keywords
+   work. */
+void ybatchCalc_implementation(
+                               // WS Output:
+                               Matrix&         ybatch,
+                               // WS Input:
+                               const Index&    ybatch_n,
+                               const Agenda&   ybatch_calc_agenda,
+                               // Control parameters:
+                               const Index&    robust)
+{
+  Vector y;
+  bool is_first = true;
+
+  // Go through the batch:
+  for( Index ybatch_index=0; ybatch_index<ybatch_n; ybatch_index++ )
+    {
+      out1 << "  Doing job " << ybatch_index+1 << " of " << ybatch_n << "\n";
+      try
+        {
+          if (is_first)
+            {
+              ybatch_calc_agendaExecute( y, ybatch_index, ybatch_calc_agenda, false );
+              // The false flag at the end means that agenda output is
+              // not suppressed.
+
+              // The size of ybatch has to be set after the first job
+              // has run successfully.
+              ybatch.resize( y.nelem(), ybatch_n); 
+
+              // Initialize with "-1" everywhere. This will also take
+              // care of the case that there were some unsuccessful
+              // jobs before the first successful one.
+              ybatch = -1;
+
+              is_first = false;
+            }
+          else
+            {
+              ybatch_calc_agendaExecute( y, ybatch_index, ybatch_calc_agenda, true );
+              // We are surpressing agenda output here, since this is too
+              // much to be useful. (The true flag at the end does this.)          
+            }
+
+          ybatch( joker, ybatch_index ) = y;
+        }
+      catch (runtime_error e)
+        {
+          if (robust)
+            {
+              out0 << "WARNING! Job failed. Output variable ybatch will be set\n"
+                   << "to -1 for this job. The runtime error produced was:\n"
+                   << e.what() << "\n";
+
+              // No need to set ybatch to -1 here, since it is initialized
+              // with that value.
+            }
+          else
+            {
+              // The user wants the batch job to fail if one of the
+              // jobs goes wrong.
+              throw runtime_error(e.what());
+            }
+        }
+    }
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ybatchCalc(
@@ -284,17 +352,25 @@ void ybatchCalc(
         const Index&          ybatch_n,
         const Agenda&         ybatch_calc_agenda)
 {
-  Vector y;
+  ybatchCalc_implementation( ybatch,
+                             ybatch_n,
+                             ybatch_calc_agenda,
+                             0);
+}
 
-  for( Index ybatch_index=0; ybatch_index<ybatch_n; ybatch_index++ )
-    {
-      ybatch_calc_agendaExecute( y, ybatch_index, ybatch_calc_agenda, false );
-      
-      if( ybatch_index == 0 )
-        { ybatch.resize( y.nelem(), ybatch_n); }
 
-      ybatch( joker, ybatch_index ) = y;
-    }
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ybatchCalcRobust(
+        // WS Output:
+              Matrix&         ybatch,
+        // WS Input:
+        const Index&          ybatch_n,
+        const Agenda&         ybatch_calc_agenda)
+{
+  ybatchCalc_implementation( ybatch,
+                             ybatch_n,
+                             ybatch_calc_agenda,
+                             1);
 }
 
 

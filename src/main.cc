@@ -634,7 +634,7 @@ int main (int argc, char **argv)
       // Just print a help message and then exit.
       cout << "\n" << parameters.usage << "\n\n";
       cout << parameters.helptext << "\n\n";
-      arts_exit (0);
+      arts_exit (EXIT_SUCCESS);
     }
 
   if (parameters.version)
@@ -649,7 +649,7 @@ int main (int argc, char **argv)
         << "  "
         << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float")
         << " precision" << endl;
-      arts_exit (0);
+      arts_exit (EXIT_SUCCESS);
     }
 
 
@@ -717,7 +717,7 @@ int main (int argc, char **argv)
   if ( "" != parameters.methods )
     {
       option_methods(parameters.methods);
-      arts_exit (0);
+      arts_exit (EXIT_SUCCESS);
     }
 
   // React to option `input'. Given the name of a variable (or group)
@@ -726,7 +726,7 @@ int main (int argc, char **argv)
   if ( "" != parameters.input )
     {
       option_input(parameters.input);
-      arts_exit (0);
+      arts_exit (EXIT_SUCCESS);
     }
   
   // React to option `workspacevariables'. If given the argument `all',
@@ -736,7 +736,7 @@ int main (int argc, char **argv)
   if ( "" != parameters.workspacevariables )
     {
       option_workspacevariables(parameters.workspacevariables);
-      arts_exit (0);
+      arts_exit (EXIT_SUCCESS);
     }
 
   // React to option `describe'. This should print the description
@@ -744,7 +744,7 @@ int main (int argc, char **argv)
   if ( "" != parameters.describe )
     {
       option_describe(parameters.describe);
-      arts_exit (0);
+      arts_exit (EXIT_SUCCESS);
     }
 
   
@@ -768,7 +768,7 @@ int main (int argc, char **argv)
 
       if (!parameters.plain)
         cout << "*-------------------------------------------------------------------*\n\n";
-      arts_exit (0);
+      arts_exit (EXIT_SUCCESS);
     }
 
 
@@ -887,10 +887,12 @@ int main (int argc, char **argv)
     }
   catch (runtime_error x)
     {
-      out0 << x.what() << "\n";
+      out0 << x.what() << "\n"
+           << "Stopping ARTS execution.\n"
+           << "Goodbye.\n";
       arts_exit ();
     }
 
   out1 << "Goodbye.\n";
-  arts_exit (0);
+  arts_exit (EXIT_SUCCESS);
 }

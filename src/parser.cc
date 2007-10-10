@@ -1027,8 +1027,8 @@ void parse_method(Index& id,
                 break;
               }
             default:
-              throw logic_error("Impossible parameter type.");
-              break;
+              cerr << "Impossible parameter type.\n";
+              arts_exit(EXIT_FAILURE);
             }
 
           eat_whitespace(text);
@@ -1260,10 +1260,4 @@ void parse_main(Agenda& tasklist, SourceText& text)
       cout << "Runtime error: ";
       cout << x.what() << '\n';
     }
-  catch (const logic_error x)
-    {
-      cout << "Logic error: ";
-      cout << x.what() << '\n';
-    }
-
 }

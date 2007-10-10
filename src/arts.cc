@@ -31,7 +31,10 @@
 /** This is the exit function of ARTS. Whenever arts has to be terminated
   at some point, call this function.
 
-  \param  status  Exit code. 1 if omitted.
+  You can call without any parameters, since the exit status then
+  defaults to EXIT_FAILURE.  
+
+  \param  status  Exit code. EXIT_FAILURE if omitted.
 */
 void arts_exit (int status)
 {

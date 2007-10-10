@@ -72,7 +72,7 @@ public:
     cout << "AgRecord cannot be assigned!\n";
     arts_exit ();
     return AgRecord();
-      }
+  }
 private:
 
   //! The name of this agenda.

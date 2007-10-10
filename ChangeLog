@@ -1,3 +1,30 @@
+2007-10-09  Stefan Buehler  <sbuehler_at_ltu.se>
+
+	* src/methods.cc: Added the new method ybatchCalcRobust. This
+	method does the same as ybatchCalc and has exactly the same 
+	input and output parameters. 
+	The difference is that the batch calculation continues even if
+	individual jobs fail. In that case, a warning message is written to
+	screen and file (out0 output stream), and ybatch for the failed job is
+	set to -1. 
+	ybatchCalcRobust and ybatchCalc share one implementation, which is
+	called with different flags.
+	It is planed to merge this again into a single method, if it is
+	possible to make keywords optional. (In other words, if it is
+	possible to have default values for keywords.)
+	
+	* src/m_batch.cc (ybatchCalc): Suppress agenda output for all jobs
+	except the first.
+	(ybatchCalcRobust): Added.
+
+	* Replaced naked exit() commands by arts_exit() commands. Removed
+	exit value 1 where it was present. It is not necessary, since
+	arts_exit() without arguments does an exit(EXIT_FAILURE). 
+	
+	* Got rid of the exception "logic_error" completely. This was only
+	used in very few places. Replaced either by runtime_error, or
+	arts_exit(). 
+	
 2007-10-02  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-1-1185

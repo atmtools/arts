@@ -117,7 +117,7 @@ int main()
       ofs << "  void safety() {\n"
           << "    cerr << \"Internal error: Tried to convert a WsvP \"\n"
           << "         << \"pointer to the wrong type.\\n\";\n"
-          << "    exit(1);\n"
+          << "    arts_exit();\n"
           << "  };\n";
 
       ofs << "};\n\n";

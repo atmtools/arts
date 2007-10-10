@@ -6292,7 +6292,30 @@ md_data_raw.push_back
          "\n"
          "See the user guide for practical examples.\n"
          ),
-        AUTHORS( "Patrick Eriksson" ),
+        AUTHORS( "Patrick Eriksson, Stefan Buehler" ),
+        OUTPUT( ybatch_ ),
+        INPUT( ybatch_n_, ybatch_calc_agenda_ ), 
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ybatchCalcRobust" ),
+        DESCRIPTION
+        (
+         "Performs robust batch calculations.\n"
+         "\n"
+         "This method does the same as *ybatchCalc* and has exactly the same\n"
+         "input and output parameters. \n"
+         "\n"
+         "The difference is that the batch calculation continues even if\n"
+         "individual jobs fail. In that case, a warning message is written to\n"
+         "screen and file (out1 output stream), and ybatch for the failed job is\n"
+         "set to -1.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( ybatch_ ),
         INPUT( ybatch_n_, ybatch_calc_agenda_ ), 
         GOUTPUT(),

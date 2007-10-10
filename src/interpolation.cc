@@ -2898,7 +2898,7 @@ Numeric interp_poly(ConstVectorView x,
       else
         {
           assert(false);
-          arts_exit(1);
+          arts_exit();
         }
       
       polint(y_int, dy_int, xa, ya, 3, x_i); 

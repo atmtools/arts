@@ -86,7 +86,7 @@ ostream& operator << (ostream& os, const LineRecord& lr)
   switch (sizeof(Numeric)) {
   case sizeof(float)  : precision = FLT_DIG; break;
   case sizeof(double) : precision = DBL_DIG; break;
-  default: out0 << "Numeric must be double or float\n"; exit(1);
+  default: out0 << "Numeric must be double or float\n"; arts_exit();
   }
 
   os << "@"
@@ -353,7 +353,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
                   out0 << "Error: HITRAN mo = " << mo << " is not "
                        << "known to ARTS.\n";
                   warned_missing.push_back(mo);
-                  exit(1);
+                  arts_exit();
                   // SAB 08.08.2000 If you want to make the program
                   // continue anyway, just comment out the exit
                   // line.
@@ -1247,7 +1247,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
                   out0 << "Error: MYTRAN mo = " << mo << " is not "
                        << "known to ARTS.\n";
                   warned_missing.push_back(mo);
-                  exit(1);
+                  arts_exit();
                   // SAB 08.08.2000 If you want to make the program
                   // continue anyway, just comment out the exit
                   // line.

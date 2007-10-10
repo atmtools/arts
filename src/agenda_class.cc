@@ -51,7 +51,7 @@ void Agenda::push_back(MRecord n)
 void give_up(const String& message)
 {
   out0 << message << '\n';
-  arts_exit ();
+  arts_exit();
 }
 
 //! Execute an agenda.
@@ -140,15 +140,20 @@ void Agenda::execute(bool silent) const
         }
       catch (runtime_error x)
         {
-          out0 << "Run-time error in method: " << mdd.Name() << '\n'
-               << x.what() << '\n';
-          arts_exit ();
-        }
-      catch (logic_error x)
-        {
-          out0 << "Logic error in method: " << mdd.Name() << '\n'
-               << x.what() << '\n';
-          arts_exit ();
+          ostringstream os;
+          os << "Run-time error in method: " << mdd.Name() << '\n'
+               << x.what();
+
+          // We have to restore the original message level before
+          // throwing the exception, otherwise no output will be
+          // visible in case the exception is caught higher up and
+          // execution continues.
+          if (silent)
+            {
+              messages = messages_original;
+            }
+
+          throw runtime_error(os.str());
         }
     }
 
