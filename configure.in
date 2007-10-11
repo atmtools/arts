@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.1186)
+AM_INIT_AUTOMAKE(arts,1.1.1187)
 
 dnl Put the ACLOCAL flags in the Makefile
 ACLOCAL="$ACLOCAL -I m4 $ACLOCAL_FLAGS"
@@ -218,23 +218,25 @@ if test x$ac_docgen = xyes; then
 
 fi
 
-WARNING_FLAGS=
+WARNINGCFLAGS=
 if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
   GCC_MAJOR=`$CC -v 2>&1 | grep '^gcc version' | sed 's/^gcc version \([[0-9]]\)\..*$/\1/'`
 
-  WARNING_FLAGS="-W -Wall -Wconversion"
+  WARNINGCFLAGS="-W -Wall -Wconversion"
 
   if test x$ac_more_warnings = xyes; then
-    WARNING_FLAGS="$WARNING_FLAGS -Werror"
+    WARNINGCFLAGS="$WARNINGCFLAGS -Werror"
 
     # gcc2 produces warnings in standard headers, therefore only
     # enable it with gcc3 and gcc4
     if test x$GCC_MAJOR = x3 -o x$GCC_MAJOR = x4; then
-      WARNING_FLAGS="$WARNING_FLAGS -Wshadow"
+      WARNINGCFLAGS="$WARNINGCFLAGS -Wshadow"
     fi
   fi
 
 fi
+
+AC_SUBST(WARNINGCFLAGS)
 
 
 #
@@ -266,9 +268,9 @@ else
   CPPFLAGS="$CPPFLAGS -DNDEBUG"
 fi
 
-CFLAGS="$CFLAGS $DEBUG_FLAGS $WARNING_FLAGS"
+CFLAGS="$CFLAGS $DEBUG_FLAGS"
 if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
-  CXXFLAGS_FIXED="$DEBUG_FLAGS -ftemplate-depth-60 $WARNING_FLAGS"
+  CXXFLAGS_FIXED="$DEBUG_FLAGS -ftemplate-depth-60"
   CXXFLAGS="$CXXFLAGS $CXXFLAGS_FIXED"
   CXXNOSTRICTALIASING="-fno-strict-aliasing"
 else
@@ -325,10 +327,11 @@ fi
 #AC_MSG_RESULT([  Use MPI                  : $ac_use_mpi])
 AC_MSG_RESULT([  Regenerate documentation : $ac_docgen])
 AC_MSG_RESULT()
-AC_MSG_RESULT([  CPPFLAGS : $CPPFLAGS])
-AC_MSG_RESULT([  CFLAGS   : $CFLAGS])
-AC_MSG_RESULT([  CXXFLAGS : $CXXFLAGS])
-AC_MSG_RESULT([  LDFLAGS  : $LDFLAGS])
+AC_MSG_RESULT([  CPPFLAGS      : $CPPFLAGS])
+AC_MSG_RESULT([  CFLAGS        : $CFLAGS])
+AC_MSG_RESULT([  CXXFLAGS      : $CXXFLAGS])
+AC_MSG_RESULT([  WARNINGCFLAGS : $WARNINGCFLAGS])
+AC_MSG_RESULT([  LDFLAGS       : $LDFLAGS])
 AC_MSG_RESULT([*******************************************************])
 AC_MSG_RESULT()
 

@@ -1,3 +1,47 @@
+2007-10-11  Oliver Lemke  <olemke@core-dump.info>
+
+        * arts-1-1-1187
+
+	* configure.in, src/Makefile.am:
+
+	Instead of adding WARNINGCFLAGS to CFLAGS in configure.in, do it in
+	src/Makefile.am for each target. This way it is possible to deactivate
+	some warnings for targets which require it (like code created with
+	f2c).
+
+	* configure.in: Print WARNINGSFLAGS.
+	
+	* src/Makefile.am:
+
+	Create a noinst library libarts.a which contains everything except
+	main.o. Instead of listing all source files again and again for all
+	the more complex tests, just link them against libarts.a. (Reduces
+	size of Makefile.am by 60%...)
+
+	Strip -Werror from libdistort.a CFLAGS.
+
+	Only define noinst_LIBRARIES once and add optional libraries when
+	necessary.
+
+	According to the automake docs, it is dangerous to overwrite target
+	rules to change compilation flags. Instead, the recommended way is to
+	build the affected object files as a separate noinst_LIBRARY and
+	change the target CFLAGS there.
+	See: http://www.gnu.org/software/automake/manual/html_node/Per_002dObject-Flags.html#Per_002dObject-Flags
+	Did it this way for continua.cc to add the -fno-strict-aliasing
+	option. Unfortunately this doesn't work for the other explicit targets
+	we currently have (methods.o, species_data.o,
+	partition_function_data.o, xml_io.o) because it can only be used to
+	add additional CFLAGS, not modify existing ones.
+
+	Add disort_DISORT.h to libarts_SOURCES.
+
+	* src/: Ignore libarts.a, libdisort.a, libcontinua.a.
+
+	* ./: Ignore compile.
+
+	* TODO: Added a list of people which should be informed of a release.
+
 2007-10-09  Stefan Buehler  <sbuehler_at_ltu.se>
 
         * arts-1-1-1186
@@ -26,7 +70,7 @@
 	* Got rid of the exception "logic_error" completely. This was only
 	used in very few places. Replaced either by runtime_error, or
 	arts_exit(). 
-	
+
 2007-10-02  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-1-1185

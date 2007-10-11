@@ -1,8 +1,11 @@
+
+People to be informed in case of a release:
+
+Michael Mishchenko <mmishchenko at giss.nasa.gov>
+
+
 A lot of outdated stuff in this file. Somebody should clean this up one day. :-)
 
-
-SAB 2000-01-30: Oliver: Turn off all debugging options with ./configure flag.
-                (Do not give the -g flag to the compiler, set NDEBUG.)
 
 AvE 2000-08-22: Check that partition funciton coefficients are valid, 
                 some species are not defined, nevertheless a dummy
