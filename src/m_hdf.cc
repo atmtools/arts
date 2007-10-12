@@ -38,9 +38,6 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
-#ifdef HDF_SUPPORT
-
-#include <hdf.h>
 #include <math.h>
 #include "arts.h"
 #include "atm_funcs.h"          
@@ -48,6 +45,10 @@
 #include "messages.h"
 #include "auto_md.h"
 #include "make_array.h"
+
+#ifdef HDF_SUPPORT
+
+#include <hdf.h>
 
 
 
@@ -1351,6 +1352,7 @@ void binfile_read_Stringarray(
   }
 }
 
+#endif // HDF_SUPPORT
 
 
 
@@ -1367,6 +1369,7 @@ void binfile_read_Stringarray(
    \date   2000-11-02
 */
 // This function shall be modified to handle Index
+#ifdef HDF_SUPPORT
 void IndexWriteBinary(
         const Index&      v,
         const String&   var_name,
@@ -1379,6 +1382,15 @@ void IndexWriteBinary(
   binfile_write_index( filename, fid, v, "Index" );
   binfile_close( fid, filename );
 }
+#else
+void IndexWriteBinary(
+        const Index&    /* v */,
+        const String&   /* var_name */,
+        const String&   /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
 
 
 
@@ -1389,6 +1401,7 @@ void IndexWriteBinary(
    \date   2000-11-02
 */
 // This function shall be modified to handle Index
+#ifdef HDF_SUPPORT
 void IndexReadBinary(
               Index&      v,
         const String&   var_name,
@@ -1403,7 +1416,15 @@ void IndexReadBinary(
   v = (int) vtemp;
   binfile_close( fid, filename );
 }
-
+#else
+void IndexReadBinary(
+              Index&    /* v */,
+        const String&   /* var_name */,
+        const String&   /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
 
 
 //=== NUMERIC ==========================================================
@@ -1414,6 +1435,7 @@ void IndexReadBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void NumericWriteBinary(
         const Numeric&  v,
         const String&   var_name,
@@ -1426,6 +1448,16 @@ void NumericWriteBinary(
   binfile_write_numeric( filename, fid, v, "NUMERIC" );
   binfile_close( fid, filename );
 }
+#else
+void NumericWriteBinary(
+        const Numeric&  /* v */,
+        const String&   /* var_name */,
+        const String&   /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1435,6 +1467,7 @@ void NumericWriteBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void NumericReadBinary(
               Numeric&  v,
         const String&   var_name,
@@ -1447,6 +1480,16 @@ void NumericReadBinary(
   binfile_read_numeric( v, filename, fid, "NUMERIC" );
   binfile_close( fid, filename );
 }
+#else
+void NumericReadBinary(
+              Numeric&  /* v */,
+        const String&   /* var_name */,
+        const String&   /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1458,6 +1501,7 @@ void NumericReadBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void VectorWriteBinary(
         const Vector&  v,
         const String&  var_name,
@@ -1470,6 +1514,16 @@ void VectorWriteBinary(
   binfile_write_vector( filename, fid, v, "VECTOR" );
   binfile_close( fid, filename );
 }
+#else
+void VectorWriteBinary(
+        const Vector&   /* v */,
+        const String&   /* var_name */,
+        const String&   /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1479,6 +1533,7 @@ void VectorWriteBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void VectorReadBinary(
               Vector&  v,
         const String&  var_name,
@@ -1491,6 +1546,16 @@ void VectorReadBinary(
   binfile_read_vector( v, filename, fid, "VECTOR" );
   binfile_close( fid, filename );
 }
+#else
+void VectorReadBinary(
+              Vector&  /* v */,
+        const String&   /* var_name */,
+        const String&   /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1502,6 +1567,7 @@ void VectorReadBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void MatrixWriteBinary(
         const Matrix&  v,
         const String&  var_name,
@@ -1514,6 +1580,16 @@ void MatrixWriteBinary(
   binfile_write_matrix( filename, fid, v, "MATRIX" );
   binfile_close( fid, filename );
 }
+#else
+void MatrixWriteBinary(
+        const Matrix&   /* v */,
+        const String&   /* var_name */,
+        const String&   /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1523,6 +1599,7 @@ void MatrixWriteBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void MatrixReadBinary(
               Matrix&  v,
         const String&  var_name,
@@ -1535,6 +1612,16 @@ void MatrixReadBinary(
   binfile_read_matrix( v, filename, fid, "MATRIX" );
   binfile_close( fid, filename );
 }
+#else
+void MatrixReadBinary(
+              Matrix&   /* v */,
+        const String&   /* var_name */,
+        const String&   /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1546,6 +1633,7 @@ void MatrixReadBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void ArrayOfIndexWriteBinary(
         const ArrayOfIndex&  v,
         const String&        var_name,
@@ -1558,6 +1646,16 @@ void ArrayOfIndexWriteBinary(
   binfile_write_indexarray( filename, fid, v, "INDEXARRAY" );
   binfile_close( fid, filename );
 }
+#else
+void ArrayOfIndexWriteBinary(
+        const ArrayOfIndex&   /* v */,
+        const String&         /* var_name */,
+        const String&         /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1567,6 +1665,7 @@ void ArrayOfIndexWriteBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void ArrayOfIndexReadBinary(
               ArrayOfIndex&  v,
         const String&        var_name,
@@ -1579,6 +1678,16 @@ void ArrayOfIndexReadBinary(
   binfile_read_indexarray( v, filename, fid, "INDEXARRAY" );
   binfile_close( fid, filename );
 }
+#else
+void ArrayOfIndexReadBinary(
+              ArrayOfIndex&   /* v */,
+        const String&         /* var_name */,
+        const String&         /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1590,6 +1699,7 @@ void ArrayOfIndexReadBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void ArrayOfVectorWriteBinary(
         const ArrayOfVector&  v,
         const String&         var_name,
@@ -1602,6 +1712,16 @@ void ArrayOfVectorWriteBinary(
   binfile_write_vectorarray( filename, fid, v, "VECTOR" );
   binfile_close( fid, filename );
 }
+#else
+void ArrayOfVectorWriteBinary(
+        const ArrayOfVector&  /* v */,
+        const String&         /* var_name */,
+        const String&         /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1611,6 +1731,7 @@ void ArrayOfVectorWriteBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void ArrayOfVectorReadBinary(
               ArrayOfVector&  v,
         const String&         var_name,
@@ -1623,6 +1744,16 @@ void ArrayOfVectorReadBinary(
   binfile_read_vectorarray( v, filename, fid, "VECTOR" );
   binfile_close( fid, filename );
 }
+#else
+void ArrayOfVectorReadBinary(
+              ArrayOfVector&  /* v */,
+        const String&         /* var_name */,
+        const String&         /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1634,6 +1765,7 @@ void ArrayOfVectorReadBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void ArrayOfMatrixWriteBinary(
         const ArrayOfMatrix&  v,
         const String&         var_name,
@@ -1646,6 +1778,16 @@ void ArrayOfMatrixWriteBinary(
   binfile_write_matrixarray( filename, fid, v, "MATRIX" );
   binfile_close( fid, filename );
 }
+#else
+void ArrayOfMatrixWriteBinary(
+        const ArrayOfMatrix&  /* v */,
+        const String&         /* var_name */,
+        const String&         /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1655,6 +1797,7 @@ void ArrayOfMatrixWriteBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void ArrayOfMatrixReadBinary(
               ArrayOfMatrix&  v,
         const String&         var_name,
@@ -1667,6 +1810,16 @@ void ArrayOfMatrixReadBinary(
   binfile_read_matrixarray( v, filename, fid, "MATRIX" );
   binfile_close( fid, filename );
 }
+#else
+void ArrayOfMatrixReadBinary(
+              ArrayOfMatrix&  /* v */,
+        const String&         /* var_name */,
+        const String&         /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1678,6 +1831,7 @@ void ArrayOfMatrixReadBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void StringWriteBinary(
         const String&  v,
         const String&  var_name,
@@ -1690,6 +1844,16 @@ void StringWriteBinary(
   binfile_write_String( filename, fid, v, "STRING" );
   binfile_close( fid, filename );
 }
+#else
+void StringWriteBinary(
+        const String&  /* v */,
+        const String&  /* var_name */,
+        const String&  /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1699,6 +1863,7 @@ void StringWriteBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void StringReadBinary(
               String&  v,
         const String&  var_name,
@@ -1711,6 +1876,16 @@ void StringReadBinary(
   binfile_read_String( v, filename, fid, "STRING" );
   binfile_close( fid, filename );
 }
+#else
+void StringReadBinary(
+              String&  /* v */,
+        const String&  /* var_name */,
+        const String&  /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1722,6 +1897,7 @@ void StringReadBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void ArrayOfStringWriteBinary(
         const ArrayOfString&  v,
         const String&         var_name,
@@ -1734,6 +1910,16 @@ void ArrayOfStringWriteBinary(
   binfile_write_Stringarray( filename, fid, v, "STRING" );
   binfile_close( fid, filename );
 }
+#else
+void ArrayOfStringWriteBinary(
+        const ArrayOfString&  /* v */,
+        const String&         /* var_name */,
+        const String&         /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1743,6 +1929,7 @@ void ArrayOfStringWriteBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void ArrayOfStringReadBinary(
               ArrayOfString&  v,
         const String&         var_name,
@@ -1755,6 +1942,16 @@ void ArrayOfStringReadBinary(
   binfile_read_Stringarray( v, filename, fid, "STRING" );
   binfile_close( fid, filename );
 }
+#else
+void ArrayOfStringReadBinary(
+              ArrayOfString&  /* v */,
+        const String&         /* var_name */,
+        const String&         /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1766,6 +1963,7 @@ void ArrayOfStringReadBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void LosWriteBinary(
         const Los&      los,
         const String&   var_name,
@@ -1785,6 +1983,16 @@ void LosWriteBinary(
   binfile_write_indexarray(  filename, fid, los.stop,   "LOS.STOP" );
   binfile_close( fid, filename );
 }
+#else
+void LosWriteBinary(
+        const Los&     /* v */,
+        const String&  /* var_name */,
+        const String&  /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
+#endif // HDF_SUPPORT
+
 
 
 
@@ -1794,6 +2002,7 @@ void LosWriteBinary(
    \author Patrick Eriksson
    \date   2000-11-02
 */
+#ifdef HDF_SUPPORT
 void LosReadBinary(
               Los&      los,
         const String&   var_name,
@@ -1813,5 +2022,13 @@ void LosReadBinary(
   binfile_read_indexarray(  los.stop,   filename, fid, "LOS.STOP" );
   binfile_close( fid, filename );
 }
-
+#else
+void LosReadBinary(
+              Los&     /* v */,
+        const String&  /* var_name */,
+        const String&  /* f */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
 #endif // HDF_SUPPORT
+

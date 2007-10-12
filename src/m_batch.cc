@@ -133,6 +133,7 @@ void read_batchdata(
   }
 }
 
+#endif // HDF_SUPPORT
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -145,6 +146,7 @@ void read_batchdata(
    \author Patrick Eriksson
    \date   2000-12-06
 */
+#ifdef HDF_SUPPORT
 void ybatchCalc(
                 // WS Output:
               Matrix&                     ybatch,
@@ -328,7 +330,52 @@ void ybatchCalc(
   }
   out2 << "  ------------------------------------\n";
 }
-
+#else
+void ybatchCalc(
+                // WS Output:
+              Matrix&                     /* ybatch */,
+      // WS Input:
+        const Vector&                     /* f_mono */,
+        const Vector&                     /* p_abs */,
+        const Vector&                     /* t_abs */,
+        const Vector&                     /* n2_abs */,
+        const Vector&                     /* h2o_abs */,
+        const Matrix&                     /* vmrs */,
+        const ArrayOfArrayOfLineRecord&   /* lines_per_tag */,
+        const ArrayOfLineshapeSpec&       /* lineshape */,
+        const Vector&                     /* z_abs */,
+        const Numeric&                    /* z_plat */,
+        const Vector&                     /* za_pencil */,
+        const Numeric&                    /* l_step */,
+        const Index&                        /* refr */,
+        const Index&                        /* refr_lfac */,
+        const Vector&                     /* refr_index */,
+        const Numeric&                    /* z_ground */,
+        const Numeric&                    /* r_geoid */,
+        const Index&                        /* emission */,
+        const Vector&                     /* y_space */,
+        const Vector&                     /* e_ground */,
+        const Numeric&                    /* t_ground */,
+        const String&                     /* batchname */,
+        const TagGroups&                  /* tgs */,
+        const ArrayOfString&              /* cont_description_names */,
+        const ArrayOfVector&              /* cont_description_parameters */,
+        const ArrayOfString&              /* cont_description_models */,
+      // Control Parameters:
+        const Index&                        /* ncalc */,
+        const Index&                        /* do_t */,
+        const String&                     /* t_file */,
+        const Index&                        /* do_z */,
+        const String&                     /* z_file */,
+        const ArrayOfString&              /* do_tags */,
+        const ArrayOfString&              /* tag_files */,
+        const Index&                        /* do_f */,
+        const String&                     /* f_file */,
+        const Index&                        /* do_za */,
+        const String&                     /* za_file */ )
+{
+  throw runtime_error("This method is only available when arts is compiled with HDF support.");
+}
 #endif // HDF_SUPPORT
 
 void ybatchFromRadiosonde(// WS Output:
