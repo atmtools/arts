@@ -1,5 +1,19 @@
 2007-10-12  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-0-208
+
+	* Final fix before release.
+
+	* doc/doxygen/Doxyfile.in: Use default stylesheet.
+
+2007-10-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-0-207
+
+	* Increase version number for release.
+
+2007-10-12  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-0-206
 
 	* src/methods.cc, src/m_batch.cc, src/m_hdf.c:
