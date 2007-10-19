@@ -7,5 +7,17 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-EXTRA_DIST = $(wildcard */*.pdf)
+FIGUREDIRS = \
+     clouds \
+     concept \
+     fm_definitions \
+     interpolation \
+     montecarlo \
+     polarization \
+     ppath \
+     rte_theory \
+     scattering \
+     sensor
+
+EXTRA_DIST =  $(foreach dir,$(FIGUREDIRS),$(wildcard $(dir)/*.pdf))
 

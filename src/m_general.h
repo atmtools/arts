@@ -27,8 +27,16 @@
 #ifndef m_general_h
 #define m_general_h
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#else
+#error "Please run ./configure in the top arts directory before compiling."
+#endif
+
 #include <iostream>
+#ifdef HAVE_POSIX
 #include <sys/times.h>
+#endif
 #include <stdexcept>
 #include "messages.h"
 #include "ppath.h"
@@ -46,8 +54,12 @@ default: throw runtime_error ("Output level must have value from 0-3"); \
 
 
 typedef struct {
+#ifdef HAVE_POSIX
   struct tms cputime;
   clock_t realtime;
+#else
+#error blup
+#endif
 } Timer;
 
 /* Workspace method: Doxygen documentation will be auto-generated */

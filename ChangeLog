@@ -1,3 +1,20 @@
+2007-10-19  Oliver Lemke  <olemke@core-dump.info>
+
+        * arts-1-1-1188
+
+	* configure.in: Check if POSIX functions are available.
+	
+	* src/m_general.{cc,h}:
+
+	Timers are only available if the build environment has POSIX support.
+
+	* doc/uguide/Figs/Makefile.am:
+
+	Loop over the list of figure directories and add the pdfs in each
+	directory separately to EXTRA_DIST. With the */*.pdf wildcard I used
+	before we end up with an extra directory called '*' in the
+	distribution archive which is not what we want.
+
 2007-10-11  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-1-1187
@@ -9,7 +26,7 @@
 	some warnings for targets which require it (like code created with
 	f2c).
 
-	* configure.in: Print WARNINGSFLAGS.
+	* configure.in: Print WARNINGCFLAGS.
 	
 	* src/Makefile.am:
 

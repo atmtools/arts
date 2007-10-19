@@ -206,6 +206,7 @@ void PrintWorkspace(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+#ifdef HAVE_POSIX
 void
 timerStart (// WS Output
             Timer& starttime)
@@ -213,9 +214,18 @@ timerStart (// WS Output
   if ((starttime.realtime = times (&starttime.cputime)) == (clock_t)-1)
     throw runtime_error ("Timer error: Unable to get current CPU time");
 }
+#else
+void
+timerStart (// WS Output
+            Timer& /*starttime*/)
+{
+  throw runtime_error ("Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
+}
+#endif
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+#ifdef HAVE_POSIX
 void
 timerStop (// WS Input
            const Timer& starttime)
@@ -255,7 +265,14 @@ timerStop (// WS Input
     / (Numeric)(endtime.realtime - starttime.realtime) * 100.
     << "%CPU\n";
 }
-
+#else
+void
+timerStop (// WS Input
+           const Timer& starttime)
+{
+  throw runtime_error ("Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
+}
+#endif
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Error(
