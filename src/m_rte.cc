@@ -533,7 +533,7 @@ void RteCalcMC(
         {
           for( Index icol=0; icol<sensor_response.ncols(); icol++ )
             { mc_error[nydone+irow] += 
-                        pow( sensor_response(irow,icol)*ib_error[icol], 2.0 ); 
+                        pow( sensor_response(irow,icol)*ib_error[icol], (Numeric)2.0 ); 
             }
         }
 

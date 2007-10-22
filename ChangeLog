@@ -1,5 +1,25 @@
 2007-10-19  Oliver Lemke  <olemke@core-dump.info>
 
+        * arts-1-1-1189
+
+	* configure.in, src/m_general.{cc,h}, src/test_legendre.cc:
+
+	Instead of checking for sys/times.h explicitly, check for
+	_POSIX_VERSION as recommended in the autoconf docs.
+
+	* src/math_funcs.{cc,h}:
+
+	Comment out overloaded pow functions. They create problems under some
+	circumstances. Compiling with floats as Numeric doesn't work anyway at
+	the moment due to problems in ppath.cc and the better way to fix this
+	is casting parameters passed to pow to Numeric when needed.
+
+	* src/absorption.cc, src/m_sensor.cc, src/m_rte.cc:
+
+	Cast constants which are passed to the pow function to Numeric.
+
+2007-10-19  Oliver Lemke  <olemke@core-dump.info>
+
         * arts-1-1-1188
 
 	* configure.in: Check if POSIX functions are available.

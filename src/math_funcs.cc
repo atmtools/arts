@@ -326,10 +326,10 @@ void nlogspace(
     \date   2003-01-23
 */
 
-double pow (float f, double d)
+/*double pow (float f, double d)
 {
   return (pow (double (f), d));
-}
+}*/
 
 
 //! pow
@@ -344,10 +344,10 @@ double pow (float f, double d)
     \date   2003-01-23
 */
 
-double pow (double d, float f)
+/*double pow (double d, float f)
 {
   return (pow (d, double (f)));
-}
+}*/
 
 
 //! AngIntegrate_trapezoid

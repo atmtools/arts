@@ -1603,7 +1603,7 @@ bool LineRecord::ReadFromJplStream(istream& is)
     extract(s,line,8);
 
     // remove log
-    s = pow(10.,s);
+    s = pow((Numeric)10.,s);
 
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     mi0 = s / 1E12;

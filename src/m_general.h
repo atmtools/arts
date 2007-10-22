@@ -34,7 +34,11 @@
 #endif
 
 #include <iostream>
-#ifdef HAVE_POSIX
+#if HAVE_UNISTD_H
+# include <sys/types.h>
+# include <unistd.h>
+#endif
+#ifdef _POSIX_VERSION
 #include <sys/times.h>
 #endif
 #include <stdexcept>
@@ -54,11 +58,9 @@ default: throw runtime_error ("Output level must have value from 0-3"); \
 
 
 typedef struct {
-#ifdef HAVE_POSIX
+#ifdef _POSIX_VERSION
   struct tms cputime;
   clock_t realtime;
-#else
-#error blup
 #endif
 } Timer;
 

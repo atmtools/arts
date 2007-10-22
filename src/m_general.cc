@@ -43,7 +43,6 @@
   ===========================================================================*/
 
 #include <stdexcept>
-#include <unistd.h>
 
 #include "arts.h"
 
@@ -206,7 +205,7 @@ void PrintWorkspace(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-#ifdef HAVE_POSIX
+#ifdef _POSIX_VERSION
 void
 timerStart (// WS Output
             Timer& starttime)
@@ -225,7 +224,7 @@ timerStart (// WS Output
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-#ifdef HAVE_POSIX
+#ifdef _POSIX_VERSION
 void
 timerStop (// WS Input
            const Timer& starttime)

@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.1188)
+AM_INIT_AUTOMAKE(arts,1.1.1189)
 
 dnl Put the ACLOCAL flags in the Makefile
 ACLOCAL="$ACLOCAL -I m4 $ACLOCAL_FLAGS"
@@ -82,7 +82,6 @@ AC_CHECK_HEADER(math.h, , AC_MSG_ERROR(required header file <math.h> missing))
 AC_CHECK_LIB(m, sin, ,
   AC_MSG_ERROR(function $func not found in math library) )
 
-AC_CHECK_HEADER(sys/times.h, AC_DEFINE_UNQUOTED(HAVE_POSIX, , Use POSIX functions), )
 
 ##
 ## MPI support

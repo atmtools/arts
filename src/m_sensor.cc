@@ -267,7 +267,7 @@ void GaussianResponse(// WS Generic Output:
   //Calculate the normalised gaussian response
   for( Index i=0; i<nrows; i++) {
     r_matrix(i,1) = 1/(sigma*sqrt(2*PI)) *
-                    exp(-pow(r_matrix(i,0),2.0)/(2*pow(sigma,2.0)));
+                    exp(-pow(r_matrix(i,0),(Numeric)2.0)/(2*pow(sigma,(Numeric)2.0)));
   }
 }
 
