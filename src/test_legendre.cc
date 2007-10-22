@@ -22,7 +22,6 @@
 #error "Please run ./configure in the top arts directory before compiling."
 #endif
 
-#include <iostream>
 #if HAVE_UNISTD_H
 # include <sys/types.h>
 # include <unistd.h>

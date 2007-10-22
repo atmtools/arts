@@ -19,6 +19,17 @@
 #include <cstdlib>
 #include <iostream>
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#else
+#error "Please run ./configure in the top arts directory before compiling."
+#endif
+
+#if HAVE_UNISTD_H
+# include <sys/types.h>
+# include <unistd.h>
+#endif
+
 #include "matpackI.h"
 #include "sorting.h"
 
@@ -50,6 +61,7 @@ testVector ()
 
 }
 
+#ifdef _POSIX_VERSION
 void
 testArray ()
 {
@@ -91,12 +103,19 @@ profileVector (Index n)
   ArrayOfIndex i;
   get_sorted_indexes (i, v);
 }
+#endif
 
 int
 main (void)
 {
+#ifdef _POSIX_VERSION
   testVector ();
   testArray ();
+#else
+  cerr << "This test is only available when compiled with POSIX support."
+    << endl;
+#endif
+
 //  profileVector (100 * 100 * 20 * 20);
 
   return (0);
