@@ -789,15 +789,6 @@ void define_wsv_data()
        ),
       GROUP( GriddedField4_ )));
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ybatch_calc_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc.\n"
-       ),
-      GROUP( Agenda_ )));
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "cloudbox_on" ),
@@ -3601,6 +3592,15 @@ void define_wsv_data()
        "       optical thickness.\n"
        ),
       GROUP( Matrix_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ybatch_calc_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc.\n"
+       ),
+      GROUP( Agenda_ )));
 
  wsv_data.push_back
    (WsvRecord

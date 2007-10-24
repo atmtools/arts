@@ -6279,18 +6279,28 @@ md_data_raw.push_back
       ( NAME( "ybatchCalc" ),
         DESCRIPTION
         (
-         "Performs batch calculations."
+         "Performs batch calculations.\n"
          "\n"
          "The method performs the following:\n"
-         "   1. Performs a-c with *ybatch_index* = 0 : (*ybatch_n*-1).\n"
+         "   1. Sets *ybatch_index* = 0.\n"
+         "   2. Performs a-d until *ybatch_index* > *ybatch_n*.\n"
          "    a. Executes *ybatch_calc_agenda*.\n"
          "    b. If *ybatch_index* = 0, resizes *ybatch* based\n"
          "       on *ybatch_n* and length of *y*.\n"
-         "    c. Makes copy of *y* in column *ybatch_index* of *ybatch*.\n"
-         "This means that, beside the *ybatch_calc_agenda*, the WSV *ybatch_n*\n"
-         "must be set before calling this method.\n"
+         "    c. Copies *y* to column *ybatch_index* of *ybatch*.\n"
+         "    d. Adds 1 to *ybatch_index*.\n"
+         "This means that, beside the *ybatch_calc_agenda*, the WSV\n"
+         "*ybatch_n* must be set before calling this method. Further,\n"
+         "*ybatch_calc_agenda* is expected to produce a spectrum and should\n"
+         "accordingly include call of *RteCalc* (or similar method). An\n"
+         "agenda that calculates spectra for different temperature profiles\n"
+         "could look like this:\n"
+         "   AgendaSet(ybatch_calc_agenda){\n"
+         "      Tensor3ExtractFromTensor4(t_field,tensor4_1,ybatch_index){}\n"
+         "      RteCalc{}\n"
+         "   }\n"
          "\n"
-         "See the user guide for practical examples.\n"
+         "See the user guide for further practical examples.\n"
          ),
         AUTHORS( "Patrick Eriksson, Stefan Buehler" ),
         OUTPUT( ybatch_ ),
