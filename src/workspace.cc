@@ -701,6 +701,21 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "arrayofarrayofgriddedfield3_1" ),
+      DESCRIPTION
+      (
+       "An arbitrary variable of type ArrayOfArrayOfGriddedField3.\n"
+       "\n"
+       "This variable can be used to, for example, store a set of \n"
+       "*pnd_field_raw*, to be used in batch calculations.\n"
+       "\n"
+       "Usage: Set by user.\n"
+       ),
+      GROUP( ArrayOfArrayOfGriddedField3_ )));
+
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "arrayofmatrix_1" ),
       DESCRIPTION
       (
