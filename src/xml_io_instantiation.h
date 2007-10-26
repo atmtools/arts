@@ -233,6 +233,10 @@ xml_read_from_file<ArrayOfGriddedField3> (const String&,
                                           ArrayOfGriddedField3&);
 
 template void
+xml_read_from_file<ArrayOfArrayOfGriddedField3> (const String&,
+                                                 ArrayOfArrayOfGriddedField3&);
+
+template void
 xml_read_from_file<ArrayOfGriddedField4> (const String&,
                                           ArrayOfGriddedField4&);
 
@@ -331,6 +335,11 @@ template void
 xml_write_to_file<ArrayOfGriddedField3> (const String&,
                                          const ArrayOfGriddedField3&,
                                          FileType);
+
+template void
+xml_write_to_file<ArrayOfArrayOfGriddedField3> (const String&,
+                                                const ArrayOfArrayOfGriddedField3&,
+                                                FileType);
 
 template void
 xml_write_to_file<ArrayOfGriddedField4> (const String&,

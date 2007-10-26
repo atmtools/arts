@@ -63,6 +63,40 @@ extern const Numeric RAD2DEG;
 
    Implementation largely copied from Patrick's MatrixExtractFromTensor3 method. 
 
+   2007-10-26 Oliver Lemke */
+void ArrayOfGriddedField3ExtractFromArrayOfArrayOfGriddedField3(
+      // WS Generic Output:
+      ArrayOfGriddedField3&          agf,
+      // WS Generic Output Names:
+      const String&    agf_name,
+      // WS Input:
+      // WS Generic Input:
+      const ArrayOfArrayOfGriddedField3&   aagf,
+      const Index&     index,
+      // WS Generic Input Names:
+      const String&    aagf_name,
+      const String&    index_name )
+{
+  if( index >= aagf.nelem() )
+    {
+      ostringstream os;
+      os << "The value of *" << index_name << "* (" << index 
+         << "is outside the range of *" << aagf_name << "*.";
+      throw runtime_error( os.str() );
+
+    }
+  out3 << "  Copying array of gridded field3 " << index << " of *" << aagf_name
+       << "* to create *" << agf_name << "*.\n";
+
+  agf.resize( aagf[index].nelem() );
+  agf = aagf[index];
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated 
+
+   Implementation largely copied from Patrick's MatrixExtractFromTensor3 method. 
+
    2007-07-24 Stefan Buehler */
 void MatrixExtractFromArrayOfMatrix(
       // WS Generic Output:

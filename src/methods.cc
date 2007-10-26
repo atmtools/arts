@@ -1294,6 +1294,25 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("ArrayOfGriddedField3ExtractFromArrayOfArrayOfGriddedField3"),
+        DESCRIPTION
+        (
+         "Extract an ArrayOfGriddedField3 from an array of arrays of GriddedField3.\n"
+         "\n"
+         "Copies *ArrayOfGriddedField3* with given Index from input\n"
+         "*ArrayOfArrayOfGriddedField3* variable to create output\n"
+         "*ArrayOfGriddedField3*.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( ArrayOfGriddedField3_ ),
+        GINPUT(  ArrayOfArrayOfGriddedField3_, Index_ ),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("ArrayOfMatrixSet"),
         DESCRIPTION
         (

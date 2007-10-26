@@ -86,6 +86,7 @@ typedef struct {
       Tensor4 data;
 } GriddedField4;
 
+typedef Array< Array<GriddedField3> > ArrayOfArrayOfGriddedField3;
 typedef Array<GriddedField3> ArrayOfGriddedField3;
 typedef Array<GriddedField4> ArrayOfGriddedField4;
 
