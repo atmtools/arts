@@ -1,3 +1,13 @@
+2007-10-27  Claudia  <claudia.emde@dlr.de>
+
+	* arts-1-1-1194
+
+	* src/m_cloudbox.cc (doit_i_fieldSetClearsky): Included switch: Now 
+	the initial field is by default only calculated for the first 
+	frequency. For the next frequencies the solution fields of the 
+	previous frequency respectively is used.
+	This saves considerable CPU time. 
+
 2007-10-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
         * arts-1-1-1193
