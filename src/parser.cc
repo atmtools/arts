@@ -948,10 +948,22 @@ void parse_method(Index& id,
       //
       // KEYWORDS THAT START WITH A NUMBER WILL BREAK THIS CODE!!
       //
-      for ( Index i=0 ; i<mdd->Keywords().nelem() ; ++i )
+      /*for ( Index i=0 ; i<mdd->Keywords().nelem() ; ++i )*/
+      bool continue_read = true;
+
+
+      values.resize (mdd->Keywords().nelem());
+
+      // Use this array to remember which keywords have been set
+      ArrayOfIndex initialized_keywords (mdd->Keywords().nelem(), 0);
+
+      while (text.Current () != '}')
         {
+          Index keyword_index;
           if (!isalpha(text.Current()) && 1==mdd->Keywords().nelem())
             {
+              keyword_index = 0;
+              initialized_keywords[keyword_index] = 1;
               // Parameter specified directly, without a keyword. This is only
               // allowed for single parameter methods!
 
@@ -960,11 +972,22 @@ void parse_method(Index& id,
           else  
             {      // Look for the keywords and read the parameters:
           
+              bool found_keyword = false;
               String keyname;
               read_name(keyname,text);
 
               // Is the keyname the expected keyname?
-              if ( keyname != mdd->Keywords()[i] )
+              for (keyword_index = 0; keyword_index < mdd->Keywords().nelem();
+                    ++keyword_index)
+                {
+                  if ( keyname == mdd->Keywords()[keyword_index] )
+                    {
+                    found_keyword = true;
+                    initialized_keywords[keyword_index] = 1;
+                    break;
+                    }
+                }
+              if ( !found_keyword )
                 {
                   throw UnexpectedKeyword( keyname,
                                            text.File(),
@@ -982,48 +1005,48 @@ void parse_method(Index& id,
           // Now parse the key value. This can be:
           // String_t,    Index_t,    Numeric_t,
           // Array_String_t, Array_Index_t, Vector_t,
-          switch (mdd->Types()[i]) 
+          switch (mdd->Types()[keyword_index]) 
             {
             case String_t:
               {
                 String dummy;
                 parse_String(dummy, text);
-                values.push_back(dummy);
+                values[keyword_index] = dummy;
                 break;
               }
             case Index_t:
               {
                 Index n;
                 parse_integer(n, text);
-                values.push_back(n);
+                values[keyword_index] = n;
                 break;
               }
             case Numeric_t:
               {
                 Numeric n;
                 parse_numeric(n, text);
-                values.push_back(n);
+                values[keyword_index] = n;
                 break;
               }
             case Array_String_t:
               {
                 ArrayOfString dummy;
                 parse_Stringvector(dummy, text);
-                values.push_back(dummy);
+                values[keyword_index] = dummy;
                 break;
               }
             case Array_Index_t:
               {
                 ArrayOfIndex dummy;
                 parse_intvector(dummy, text);
-                values.push_back(dummy);
+                values[keyword_index] = dummy;
                 break;
               }
             case Vector_t:
               {
                 Vector dummy;
                 parse_numvector(dummy, text);
-                values.push_back(dummy);
+                values[keyword_index] = dummy;
                 break;
               }
             default:
@@ -1036,7 +1059,22 @@ void parse_method(Index& id,
           // Check:
           //      cout << "Value: " << mdd->Values()[i] << '\n';
         }
+
+      // Check if all keywords are set
+      for (Index i = 0; i < initialized_keywords.nelem(); ++i)
+        {
+          if (!initialized_keywords[i])
+            {
+              ostringstream os;
+              os << "Required keyword " << mdd->Keywords()[i] << " was not set.\n";
+              throw ParseError (os.str (),
+                                text.File(),
+                                text.Line(),
+                                text.Column());
+            }
+        }
     }
+
 
   // Now look for the closing curly braces.  We have to catch Eot,
   // because after a method description may be a good place to end
