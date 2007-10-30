@@ -348,329 +348,327 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
   // Initial field only needs to be calculated from clearsky field for the 
   // first frequency. For the next frequencies the solution field from the 
   // previous frequencies is used. 
-  if(f_index == 0){
-    if(atmosphere_dim == 1)
-      {
-        Index  N_f = scat_i_p.nlibraries();
-        if (f_grid.nelem() != N_f){
-          
-          throw runtime_error(" scat_i_p should have same frequency  "
-                            " dimension as f_grid");
-        }
+  if(atmosphere_dim == 1)
+    {
+      Index  N_f = scat_i_p.nlibraries();
+      if (f_grid.nelem() != N_f){
         
-        if(scat_i_p.nvitrines() != 2){
-          throw runtime_error("scat_i_p should have only two elements "
-                              "in pressure grid which corresponds "
-                              "to the two pressure surfaces");
-        }
-        
-     
-        Index N_za = scat_i_p.npages() ;
-   
-        Index N_aa = scat_i_p.nrows();
-        
-        Index N_i = scat_i_p.ncols();
-        
-        //1. interpolation - pressure grid
-        
-        
-        doit_i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1,
-                            1,
-                            1,
-                            N_za,
-                            N_aa,
-                            N_i);
-        
-        doit_i_field = 0.;
-      
-      
-
-        /*the old grid is having only two elements, corresponding to the 
-          cloudbox_limits and the new grid have elements corresponding to
-          all grid points inside the cloudbox plus the cloud_box_limits*/
-
-        ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
-        
-        p2gridpos(p_gp,
-              p_grid[Range(cloudbox_limits[0], 
-                           2,
-                           (cloudbox_limits[1]- cloudbox_limits[0]))],
-                  p_grid[Range(cloudbox_limits[0], 
-                               (cloudbox_limits[1]- cloudbox_limits[0])+1)]);
-        
-        Matrix itw((cloudbox_limits[1]- cloudbox_limits[0])+1, 2);
-        interpweights ( itw, p_gp );
-
-     
- 
-        for (Index za_index = 0; za_index < N_za ; ++ za_index)
-          {
-            for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
-              {
-                for (Index i = 0 ; i < N_i ; ++ i)
-                  {
-                    
-                    VectorView target_field = doit_i_field(Range(joker),
-                                                           0,
-                                                           0,
-                                                           za_index,
-                                                           aa_index,
-                                                           i);
-                    
-                    ConstVectorView source_field = scat_i_p(f_index,
-                                                            Range(joker),    
-                                                            0,
-                                                            0,
-                                                            za_index,
-                                                            aa_index,
-                                                            i);
-                  
-                    interp(target_field,
-                           itw,
-                           source_field,
-                           p_gp);
-                  }
-                
-              }
-          }
-
+        throw runtime_error(" scat_i_p should have same frequency  "
+                          " dimension as f_grid");
       }
-    if(atmosphere_dim == 3)
-      {
-        Index  N_f = scat_i_p.nlibraries();
-        if (scat_i_lat.nlibraries() != N_f || 
-            scat_i_lon.nlibraries() != N_f){
-        
-          throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
-                              "same frequency dimension");
-        }
-        Index N_p = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-        if(scat_i_lon.nvitrines() != N_p ||
-           scat_i_lat.nvitrines() != N_p ){
-          throw runtime_error("scat_i_lat and scat_i_lon should have  "
-                              "same pressure grid dimension as p_grid");
-        }
       
-        Index N_lat =  cloudbox_limits[3] - cloudbox_limits[2] + 1;
-      
-        if(scat_i_lon.nshelves() != N_lat ||
-           scat_i_p.nshelves()   != N_lat){
-          throw runtime_error("scat_i_p and scat_i_lon should have  "
-                              "same latitude grid dimension as lat_grid");
-        }
-  
-        Index N_lon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-        if(scat_i_lat.nbooks() != N_lon ||
-           scat_i_p.nbooks()   != N_lon ){
-          throw runtime_error("scat_i_p and scat_i_lat should have  "
-                              "same longitude grid dimension as lon_grid");
-        }
-        if(scat_i_p.nvitrines() != 2){
-          throw runtime_error("scat_i_p should have only two elements "
-                              "in pressure grid which corresponds "
-                              "to the two pressure surfaces");
-        }
-      
-        if(scat_i_lat.nshelves() != 2){
-          throw runtime_error("scat_i_lat should have only two elements "
-                              "in latitude grid which corresponds "
-                              "to the two latitude surfaces");
-        
-        }
-        if(scat_i_lon.nbooks() != 2){
-          throw runtime_error("scat_i_lon should have only two elements "
-                              "in longitude grid which corresponds "
-                              "to the two longitude surfaces");
-        
-        }
-        Index N_za = scat_i_p.npages() ;
-        if (scat_i_lat.npages() != N_za || 
-            scat_i_lon.npages() != N_za){
-        
-          throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
-                              "same dimension for zenith angles");
-        }
-        Index N_aa = scat_i_p.nrows();
-        if (scat_i_lat.nrows() != N_aa || 
-            scat_i_lon.nrows() != N_aa){
-        
-          throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
-                              "same dimension for azimuth angles");
-        }
-        Index N_i = scat_i_p.ncols();
-        if (scat_i_lat.ncols() != N_i || 
-            scat_i_lon.ncols() != N_i){
-        
-          throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
-                              "same value for stokes_dim and can take only"
-                              "values 1,2,3 or 4");
-        }
-      
-        //1. interpolation - pressure grid, latitude grid and longitude grid
+      if(scat_i_p.nvitrines() != 2){
+        throw runtime_error("scat_i_p should have only two elements "
+                            "in pressure grid which corresponds "
+                            "to the two pressure surfaces");
+      }
       
    
-        //doit_i_field
-        doit_i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 
-                            (cloudbox_limits[3]- cloudbox_limits[2])+1,
-                            (cloudbox_limits[5]- cloudbox_limits[4])+1,
-                            N_za, 
-                            N_aa,
-                            N_i);
-      
-
-      
-        ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
-        ArrayOfGridPos lat_gp((cloudbox_limits[3]- cloudbox_limits[2])+1);
-        ArrayOfGridPos lon_gp((cloudbox_limits[5]- cloudbox_limits[4])+1);
-
-        /*the old grid is having only two elements, corresponding to the 
-          cloudbox_limits and the new grid have elements corresponding to
-          all grid points inside the cloudbox plus the cloud_box_limits*/
-      
-        p2gridpos(p_gp,
-                  p_grid[Range(cloudbox_limits[0], 
-                               2,
-                               (cloudbox_limits[1]- cloudbox_limits[0]))],
-                  p_grid[Range(cloudbox_limits[0], 
-                               (cloudbox_limits[1]- cloudbox_limits[0])+1)]);
-        gridpos(lat_gp,
-                lat_grid[Range(cloudbox_limits[2], 
-                               2,
-                               (cloudbox_limits[3]- cloudbox_limits[2]))],
-                lat_grid[Range(cloudbox_limits[2], 
-                               (cloudbox_limits[3]- cloudbox_limits[2])+1)]);
-        gridpos(lon_gp,
-                lon_grid[Range(cloudbox_limits[4], 
-                               2,
-                               (cloudbox_limits[5]- cloudbox_limits[4]))],
-                lon_grid[Range(cloudbox_limits[4], 
-                               (cloudbox_limits[5]- cloudbox_limits[4])+1)]);
-
+      Index N_za = scat_i_p.npages() ;
  
-        //interpolation weights corresponding to pressure, latitude and 
-        //longitude grids.
+      Index N_aa = scat_i_p.nrows();
+      
+      Index N_i = scat_i_p.ncols();
+      
+      //1. interpolation - pressure grid
+      
+      
+      doit_i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1,
+                          1,
+                          1,
+                          N_za,
+                          N_aa,
+                          N_i);
+      
+      doit_i_field = 0.;
+    
+    
 
-        Matrix itw_p((cloudbox_limits[1]- cloudbox_limits[0])+1, 2);
-        Matrix itw_lat((cloudbox_limits[3]- cloudbox_limits[2])+1, 2);
-        Matrix itw_lon((cloudbox_limits[5]- cloudbox_limits[4])+1, 2);
+      /*the old grid is having only two elements, corresponding to the 
+        cloudbox_limits and the new grid have elements corresponding to
+        all grid points inside the cloudbox plus the cloud_box_limits*/
 
-        interpweights ( itw_p, p_gp );
-        interpweights ( itw_lat, lat_gp );
-        interpweights ( itw_lon, lon_gp );
+      ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
+      
+      p2gridpos(p_gp,
+            p_grid[Range(cloudbox_limits[0], 
+                         2,
+                         (cloudbox_limits[1]- cloudbox_limits[0]))],
+                p_grid[Range(cloudbox_limits[0], 
+                             (cloudbox_limits[1]- cloudbox_limits[0])+1)]);
+      
+      Matrix itw((cloudbox_limits[1]- cloudbox_limits[0])+1, 2);
+      interpweights ( itw, p_gp );
 
-        // interpolation - pressure grid
-        for (Index lat_index = 0; 
-             lat_index <= (cloudbox_limits[3]-cloudbox_limits[2]); ++ lat_index)
-          {
-            for (Index lon_index = 0; 
-                 lon_index <= (cloudbox_limits[5]-cloudbox_limits[4]);
-                 ++ lon_index)
-              {
-                for (Index za_index = 0; za_index < N_za ; ++ za_index)
-                  {
-                    for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
-                      {
-                        for (Index i = 0 ; i < N_i ; ++ i)
-                          {
+   
+
+      for (Index za_index = 0; za_index < N_za ; ++ za_index)
+        {
+          for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
+            {
+              for (Index i = 0 ; i < N_i ; ++ i)
+                {
+                  
+                  VectorView target_field = doit_i_field(Range(joker),
+                                                         0,
+                                                         0,
+                                                         za_index,
+                                                         aa_index,
+                                                         i);
+                  
+                  ConstVectorView source_field = scat_i_p(f_index,
+                                                          Range(joker),    
+                                                          0,
+                                                          0,
+                                                          za_index,
+                                                          aa_index,
+                                                          i);
+                
+                  interp(target_field,
+                         itw,
+                         source_field,
+                         p_gp);
+                }
+              
+            }
+        }
+
+    }
+  if(atmosphere_dim == 3)
+    {
+      Index  N_f = scat_i_p.nlibraries();
+      if (scat_i_lat.nlibraries() != N_f || 
+          scat_i_lon.nlibraries() != N_f){
+      
+        throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
+                            "same frequency dimension");
+      }
+      Index N_p = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+      if(scat_i_lon.nvitrines() != N_p ||
+         scat_i_lat.nvitrines() != N_p ){
+        throw runtime_error("scat_i_lat and scat_i_lon should have  "
+                            "same pressure grid dimension as p_grid");
+      }
+    
+      Index N_lat =  cloudbox_limits[3] - cloudbox_limits[2] + 1;
+    
+      if(scat_i_lon.nshelves() != N_lat ||
+         scat_i_p.nshelves()   != N_lat){
+        throw runtime_error("scat_i_p and scat_i_lon should have  "
+                            "same latitude grid dimension as lat_grid");
+      }
+
+      Index N_lon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+      if(scat_i_lat.nbooks() != N_lon ||
+         scat_i_p.nbooks()   != N_lon ){
+        throw runtime_error("scat_i_p and scat_i_lat should have  "
+                            "same longitude grid dimension as lon_grid");
+      }
+      if(scat_i_p.nvitrines() != 2){
+        throw runtime_error("scat_i_p should have only two elements "
+                            "in pressure grid which corresponds "
+                            "to the two pressure surfaces");
+      }
+    
+      if(scat_i_lat.nshelves() != 2){
+        throw runtime_error("scat_i_lat should have only two elements "
+                            "in latitude grid which corresponds "
+                            "to the two latitude surfaces");
+      
+      }
+      if(scat_i_lon.nbooks() != 2){
+        throw runtime_error("scat_i_lon should have only two elements "
+                            "in longitude grid which corresponds "
+                            "to the two longitude surfaces");
+      
+      }
+      Index N_za = scat_i_p.npages() ;
+      if (scat_i_lat.npages() != N_za || 
+          scat_i_lon.npages() != N_za){
+      
+        throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
+                            "same dimension for zenith angles");
+      }
+      Index N_aa = scat_i_p.nrows();
+      if (scat_i_lat.nrows() != N_aa || 
+          scat_i_lon.nrows() != N_aa){
+      
+        throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
+                            "same dimension for azimuth angles");
+      }
+      Index N_i = scat_i_p.ncols();
+      if (scat_i_lat.ncols() != N_i || 
+          scat_i_lon.ncols() != N_i){
+      
+        throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
+                            "same value for stokes_dim and can take only"
+                            "values 1,2,3 or 4");
+      }
+    
+      //1. interpolation - pressure grid, latitude grid and longitude grid
+    
+ 
+      //doit_i_field
+      doit_i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 
+                          (cloudbox_limits[3]- cloudbox_limits[2])+1,
+                          (cloudbox_limits[5]- cloudbox_limits[4])+1,
+                          N_za, 
+                          N_aa,
+                          N_i);
+    
+
+    
+      ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
+      ArrayOfGridPos lat_gp((cloudbox_limits[3]- cloudbox_limits[2])+1);
+      ArrayOfGridPos lon_gp((cloudbox_limits[5]- cloudbox_limits[4])+1);
+
+      /*the old grid is having only two elements, corresponding to the 
+        cloudbox_limits and the new grid have elements corresponding to
+        all grid points inside the cloudbox plus the cloud_box_limits*/
+    
+      p2gridpos(p_gp,
+                p_grid[Range(cloudbox_limits[0], 
+                             2,
+                             (cloudbox_limits[1]- cloudbox_limits[0]))],
+                p_grid[Range(cloudbox_limits[0], 
+                             (cloudbox_limits[1]- cloudbox_limits[0])+1)]);
+      gridpos(lat_gp,
+              lat_grid[Range(cloudbox_limits[2], 
+                             2,
+                             (cloudbox_limits[3]- cloudbox_limits[2]))],
+              lat_grid[Range(cloudbox_limits[2], 
+                             (cloudbox_limits[3]- cloudbox_limits[2])+1)]);
+      gridpos(lon_gp,
+              lon_grid[Range(cloudbox_limits[4], 
+                             2,
+                             (cloudbox_limits[5]- cloudbox_limits[4]))],
+              lon_grid[Range(cloudbox_limits[4], 
+                             (cloudbox_limits[5]- cloudbox_limits[4])+1)]);
+
+
+      //interpolation weights corresponding to pressure, latitude and 
+      //longitude grids.
+
+      Matrix itw_p((cloudbox_limits[1]- cloudbox_limits[0])+1, 2);
+      Matrix itw_lat((cloudbox_limits[3]- cloudbox_limits[2])+1, 2);
+      Matrix itw_lon((cloudbox_limits[5]- cloudbox_limits[4])+1, 2);
+
+      interpweights ( itw_p, p_gp );
+      interpweights ( itw_lat, lat_gp );
+      interpweights ( itw_lon, lon_gp );
+
+      // interpolation - pressure grid
+      for (Index lat_index = 0; 
+           lat_index <= (cloudbox_limits[3]-cloudbox_limits[2]); ++ lat_index)
+        {
+          for (Index lon_index = 0; 
+               lon_index <= (cloudbox_limits[5]-cloudbox_limits[4]);
+               ++ lon_index)
+            {
+              for (Index za_index = 0; za_index < N_za ; ++ za_index)
+                {
+                  for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
+                    {
+                      for (Index i = 0 ; i < N_i ; ++ i)
+                        {
+                        
+                          VectorView target_field = doit_i_field(Range(joker),
+                                                                 lat_index,
+                                                                 lon_index,
+                                                                 za_index,
+                                                                 aa_index,
+                                                                 i);
+                        
+                          ConstVectorView source_field = scat_i_p(f_index,
+                                                                  Range(joker),    
+                                                                  lat_index,
+                                                                  lon_index,
+                                                                  za_index,
+                                                                  aa_index,
+                                                                  i);
+                        
+                          interp(target_field,
+                                 itw_p,
+                                 source_field,
+                                 p_gp);
+                        }
+                    }
+                }
+            } 
+        }
+      //interpolation latitude
+      for (Index p_index = 0; 
+           p_index <= (cloudbox_limits[1]-cloudbox_limits[0]) ; ++ p_index)
+        {
+          for (Index lon_index = 0; 
+               lon_index <= (cloudbox_limits[5]-cloudbox_limits[4]) ;
+               ++ lon_index)
+            {
+              for (Index za_index = 0; za_index < N_za ; ++ za_index)
+                {
+                  for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
+                    {
+                      for (Index i = 0 ; i < N_i ; ++ i)
+                        {
                           
-                            VectorView target_field = doit_i_field(Range(joker),
-                                                                   lat_index,
-                                                                   lon_index,
-                                                                   za_index,
-                                                                   aa_index,
-                                                                   i);
-                          
-                            ConstVectorView source_field = scat_i_p(f_index,
-                                                                    Range(joker),    
+                          VectorView target_field = doit_i_field
+                            (p_index, Range(joker), lon_index,
+                             za_index, aa_index, i);
+                        
+                          ConstVectorView source_field = scat_i_lat
+                            (f_index, p_index, Range(joker),    
+                             lon_index, za_index, aa_index, i);
+                        
+                          interp(target_field,
+                                 itw_lat,
+                                 source_field,
+                                 lat_gp);
+                        }
+                    }
+                }
+            } 
+        }
+      //interpolation -longitude
+      for (Index p_index = 0; 
+           p_index <= (cloudbox_limits[1]-cloudbox_limits[0]); ++ p_index)
+        {
+          for (Index lat_index = 0; 
+               lat_index <= (cloudbox_limits[3]-cloudbox_limits[2]);
+               ++ lat_index)
+            {
+              for (Index za_index = 0; za_index < N_za ; ++ za_index)
+                {
+                  for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
+                    {
+                      for (Index i = 0 ; i < N_i ; ++ i)
+                        {
+                        
+                          VectorView target_field = doit_i_field(p_index,
+                                                                 lat_index,
+                                                                 Range(joker),
+                                                                 za_index,
+                                                                 aa_index,
+                                                                 i);
+                        
+                          ConstVectorView source_field = scat_i_lon(f_index,
+                                                                    p_index,    
                                                                     lat_index,
-                                                                    lon_index,
+                                                                    Range(joker),
                                                                     za_index,
                                                                     aa_index,
                                                                     i);
-                          
-                            interp(target_field,
-                                   itw_p,
-                                   source_field,
-                                   p_gp);
-                          }
-                      }
-                  }
-              } 
-          }
-        //interpolation latitude
-        for (Index p_index = 0; 
-             p_index <= (cloudbox_limits[1]-cloudbox_limits[0]) ; ++ p_index)
-          {
-            for (Index lon_index = 0; 
-                 lon_index <= (cloudbox_limits[5]-cloudbox_limits[4]) ;
-                 ++ lon_index)
-              {
-                for (Index za_index = 0; za_index < N_za ; ++ za_index)
-                  {
-                    for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
-                      {
-                        for (Index i = 0 ; i < N_i ; ++ i)
-                          {
-                            
-                            VectorView target_field = doit_i_field
-                              (p_index, Range(joker), lon_index,
-                               za_index, aa_index, i);
-                          
-                            ConstVectorView source_field = scat_i_lat
-                              (f_index, p_index, Range(joker),    
-                               lon_index, za_index, aa_index, i);
-                          
-                            interp(target_field,
-                                   itw_lat,
-                                   source_field,
-                                   lat_gp);
-                          }
-                      }
-                  }
-              } 
-          }
-        //interpolation -longitude
-        for (Index p_index = 0; 
-             p_index <= (cloudbox_limits[1]-cloudbox_limits[0]); ++ p_index)
-          {
-            for (Index lat_index = 0; 
-                 lat_index <= (cloudbox_limits[3]-cloudbox_limits[2]);
-                 ++ lat_index)
-              {
-                for (Index za_index = 0; za_index < N_za ; ++ za_index)
-                  {
-                    for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
-                      {
-                        for (Index i = 0 ; i < N_i ; ++ i)
-                          {
-                          
-                            VectorView target_field = doit_i_field(p_index,
-                                                                   lat_index,
-                                                                   Range(joker),
-                                                                   za_index,
-                                                                   aa_index,
-                                                                   i);
-                          
-                            ConstVectorView source_field = scat_i_lon(f_index,
-                                                                      p_index,    
-                                                                      lat_index,
-                                                                      Range(joker),
-                                                                      za_index,
-                                                                      aa_index,
-                                                                      i);
-                          
-                            interp(target_field,
-                                   itw_lon,
-                                   source_field,
-                                   lon_gp);
-                          }
-                      }
-                  }
-              } 
-          }
-        //end of interpolation
-      }//ends atmosphere_dim = 3
-  }// end f_index = 0
+                        
+                          interp(target_field,
+                                 itw_lon,
+                                 source_field,
+                                 lon_gp);
+                        }
+                    }
+                }
+            } 
+        }
+      //end of interpolation
+    }//ends atmosphere_dim = 3
 }
 
 

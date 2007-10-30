@@ -1,3 +1,21 @@
+2007-10-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-1-1197
+
+	* src/m_cloudbox.cc: Removed change from last commit as it
+	resulted in erroneous results. My guess is that the same 
+	incoming field is used for all frequencies. The idea was to keep
+	the old internal field as first guess for next fequency, but the
+	incoming field must be updated.
+
+	I found this by setting pnd_field to zero. I then also noted that 
+	doit_za_interp='polynomial' appears to work better than setting
+	this variable to 'linear'. The difference between clear sky 
+	calculations and DOOIT results with pnd_field=0 decreased with
+	30-80% for the cases I tested when going from 'linear' to
+	'polynomial'. These cases were all treating limb sounding. This
+	choice is probably less critical for down-looking.
+
 2007-10-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1196
