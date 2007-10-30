@@ -33,6 +33,8 @@
 #include "messages.h"
 #include "make_array.h"
 
+#define NODEF "@@THIS_KEYWORD_HAS_NO_DEFAULT_VALUE@@"
+
 //! All information for one workspace method.
 class MdRecord {
 public:
@@ -47,6 +49,7 @@ public:
     mgoutput(     0               ),  
     mginput(      0               ),   
     mkeywords(    0               ),
+    mdefaults(    0               ),
     mtypes(       0               ),
     magenda_method(false),
     msupergeneric(false),
@@ -62,6 +65,7 @@ public:
            const MakeArray<Index>&      goutput,
            const MakeArray<Index>&      ginput,   
            const MakeArray<String>&     keywords,
+           const MakeArray<String>&     defaults,
            const MakeArray<TokValType>& types,
            bool                         agenda_method   = false,
            bool                         suppress_header = false
@@ -76,6 +80,7 @@ public:
   const ArrayOfIndex&      GOutput()        const { return mgoutput; }
   const ArrayOfIndex&      GInput()         const { return mginput; }
   const Array<String>&     Keywords()       const { return mkeywords; }
+  const Array<String>&     Defaults()       const { return mdefaults; }
   const Array<TokValType>& Types()          const { return mtypes; }
   bool                     AgendaMethod()   const { return magenda_method; }
   bool                     Supergeneric()   const { return msupergeneric; }
@@ -135,6 +140,9 @@ private:
 
   //! Keywords.
   ArrayOfString mkeywords;
+
+  //! Keywords.
+  ArrayOfString mdefaults;
 
   //! Types associated with keywords.
   Array<TokValType> mtypes;

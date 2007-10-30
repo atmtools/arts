@@ -1,3 +1,13 @@
+2007-10-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1199
+
+	* src/methods.cc: Added DEFAULTS to all methods.
+
+	* src/methods.h, src/methods_aux.cc, src/parser.cc:
+
+	Added support for keyword default values.
+
 2007-10-30  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-1-1198

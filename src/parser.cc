@@ -527,7 +527,7 @@ void parse_numeric(Numeric& n, SourceText& text)
 void parse_Stringvector(ArrayOfString& res, SourceText& text)
 {
   bool first = true;            // To skip the first comma.
-  res.resize(0);                        // Clear the result vector (just in case).
+  res.resize(0);                // Clear the result vector (just in case).
 
   // Make sure that the current character really is `[' and proceed.
   assertain_character('[',text);
@@ -1078,12 +1078,94 @@ void parse_method(Index& id,
         {
           if (!initialized_keywords[i])
             {
-              ostringstream os;
-              os << "Required keyword " << mdd->Keywords()[i] << " was not set.\n";
-              throw ParseError (os.str (),
-                                text.File(),
-                                text.Line(),
-                                text.Column());
+              if (mdd->Defaults()[i] != NODEF)
+                {
+                  // Now parse the key value. This can be:
+                  // String_t,    Index_t,    Numeric_t,
+                  // Array_String_t, Array_Index_t, Vector_t,
+                  bool failed = false;
+                  switch (mdd->Types()[i]) 
+                    {
+                    case String_t:
+                        {
+                          values[i] = mdd->Defaults()[i];
+                          break;
+                        }
+                    case Index_t:
+                        {
+                          Index n;
+                          istringstream is(mdd->Defaults()[i]);
+                          is >> n;
+                          values[i] = n;
+                          if (is.bad () || is.fail ())
+                            failed = true;
+                          break;
+                        }
+                    case Numeric_t:
+                        {
+                          Numeric n;
+                          istringstream is(mdd->Defaults()[i]);
+                          is >> n;
+                          values[i] = n;
+                          if (is.bad () || is.fail ())
+                            failed = true;
+                          break;
+                        }
+                    case Array_String_t:
+                        {
+                          ostringstream os;
+                          os << "Default values for keywords with type "
+                            << "ArrayOfString are not supported.\n"
+                            << "Either remove the default value for keyword "
+                            << mdd->Keywords()[i] << " in workspace method "
+                            << mdd->Name() << " in methods.cc or discuss this "
+                            << "issue on the arts-dev mailing list.\n";
+                          throw runtime_error (os.str());
+                          break;
+                        }
+                    case Array_Index_t:
+                        {
+                          ostringstream os;
+                          os << "Default values for keywords with type "
+                            << "ArrayOfIndex are not supported.\n"
+                            << "Either remove the default value for keyword "
+                            << mdd->Keywords()[i] << " in workspace method "
+                            << mdd->Name() << " in methods.cc or discuss this "
+                            << "issue on the arts-dev mailing list.\n";
+                          throw runtime_error (os.str());
+                          break;
+                        }
+                    case Vector_t:
+                        {
+                          ostringstream os;
+                          os << "Default values for keywords with type "
+                            << "Vector are not implemented.FIXME: OLE\n";
+                          throw runtime_error (os.str());
+                          break;
+                        }
+                    default:
+                      failed = true;
+                    }
+                  if (failed)
+                    {
+                      ostringstream os;
+                      os << "Failed to assign default value for keyword "
+                        << mdd->Keywords()[i] << ".\n"
+                        << "Check definition of workspace method "
+                        << mdd->Name() << " in methods.cc.\n";
+                      throw runtime_error (os.str());
+                    }
+                }
+              else
+                {
+                  ostringstream os;
+                  os << "Required keyword " << mdd->Keywords()[i]
+                    << " was not set.\n";
+                  throw ParseError (os.str (),
+                                    text.File(),
+                                    text.Line(),
+                                    text.Column());
+                }
             }
         }
     }

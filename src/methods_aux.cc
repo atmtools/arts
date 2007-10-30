@@ -50,6 +50,7 @@ MdRecord::MdRecord(const char                   name[],
                    const MakeArray<Index>&      goutput,
                    const MakeArray<Index>&      ginput,   
                    const MakeArray<String>&     keywords,
+                   const MakeArray<String>&     defaults,
                    const MakeArray<TokValType>& types,
                    bool                         agenda_method,
                    bool                         suppress_header ) :
@@ -61,6 +62,7 @@ MdRecord::MdRecord(const char                   name[],
     mgoutput(       goutput               ),  
     mginput(        ginput                ),   
     mkeywords(      keywords              ),
+    mdefaults(      defaults              ),
     mtypes(         types                 ),
     magenda_method(   agenda_method       ),
     msupergeneric(    false               ),
@@ -74,6 +76,11 @@ MdRecord::MdRecord(const char                   name[],
       // elements. (Types specifies the types associated with each
       // keyword.)
       assert( mkeywords.nelem() == mtypes.nelem() );
+
+      // Keywords and Defaults must have the same number of
+      // elements. (Defaults specifies the default values associated with each
+      // keyword.)
+      assert( mkeywords.nelem() == mdefaults.nelem() );
 
       // Find out if this method is supergeneric, and set the flag if
       // yes:
