@@ -320,8 +320,6 @@ bool is_decreasing( ConstVectorView   x )
   This only returns true if the array does not contain any duplicate
   values.  
   
-  We sort the data first, then check whether it is strictly increasing.
-  
   \return      True if unique, otherwise false.
   \param   x   An ArrayOfIndex.
   
@@ -331,10 +329,15 @@ bool is_decreasing( ConstVectorView   x )
 */
 bool is_unique( const ArrayOfIndex&   x )
 {
-  ArrayOfIndex si;
-  get_sorted_indexes(si,x);
+  // We simply compare the second element to the first, 
+  // the third to the first and second, and so on.
 
-  return is_increasing(si);
+  for (Index i=1; i<x.nelem(); ++i)
+    for (Index s=0; s<i; ++s)
+      if (x[i]==x[s])
+        return false;
+  
+  return true;
 }
 
 //! Checks if a square matrix is singular.

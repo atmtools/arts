@@ -160,7 +160,8 @@ void abs_lookupCreate(// WS Output:
   if ( !is_unique(abs_nls) )
     {
       ostringstream os;
-      os << "The variable *abs_nls* must not have duplicate species.\n";
+      os << "The variable *abs_nls* must not have duplicate species.\n"
+         << "Value of *abs_nls*: " << abs_nls;
       throw runtime_error( os.str() );
     }
 

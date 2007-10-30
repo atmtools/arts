@@ -1,3 +1,13 @@
+2007-10-30  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-1-1198
+
+	* src/logic.cc (is_unique): This function did not work
+	correctly. Fixed it.
+
+	* src/m_abs_lookup.cc (abs_lookupCreate): More details in one
+	error output. 
+
 2007-10-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-1-1197
