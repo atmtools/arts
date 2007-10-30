@@ -983,7 +983,20 @@ void parse_method(Index& id,
                   if ( keyname == mdd->Keywords()[keyword_index] )
                     {
                     found_keyword = true;
-                    initialized_keywords[keyword_index] = 1;
+                    if (initialized_keywords[keyword_index])
+                      {
+                        ostringstream os;
+                        os << "Keyword " << mdd->Keywords()[keyword_index]
+                          << " was already set.\n";
+                        throw ParseError (os.str (),
+                                          text.File(),
+                                          text.Line(),
+                                          text.Column());
+                      }
+                    else
+                      {
+                        initialized_keywords[keyword_index] = 1;
+                      }
                     break;
                     }
                 }
