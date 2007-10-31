@@ -1,3 +1,25 @@
+2007-10-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-1-1204
+
+	* Inluded y_unit keyword in RteCalc functions. Only the option
+	"1" is allowed when including jacobian calculations.
+	
+	* src/m_jacobian.cc: Hard-coded y_unit="1" in call of
+	RteCalcNoJacobian.
+
+	* src/m_rte.cc: Added handling of y_unit in  RteCalc,
+	RteCalcNoJacobian and RteCalcMC.
+
+	* src/rte.cc (rtecalc_check_input): Added check y_unit.
+
+	(apply_y_unit): Function created to apply y_unit. 
+	(apply_y_unit_single): Interface to apply_y_unit. Needed to handle
+	RteCalcMC.
+
+	* src/methods.cc: Added keyword argument y_unit to RteCalc,
+	RteCalcNoJacobian and RteCalcMC.
+	
 2007-10-31  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1203
