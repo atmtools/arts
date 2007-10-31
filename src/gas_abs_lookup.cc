@@ -165,29 +165,25 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
     }
   
   // Nonlinear species:
-  // They should be monotonically increasing and pointing at valid
-  // species. 
-  {
-    Index max = -1;
-    for ( Index i=0; i<nonlinear_species.nelem(); ++i )
-      {
-        ostringstream os;
-        os << "nonlinear_species[" << i << "]";
-        chk_if_in_range( os.str(),
-                         nonlinear_species[i],
-                         0,
-                         n_species-1 );
+  // They should be unique ...
+  if ( !is_unique(nonlinear_species) )
+    {
+      ostringstream os;
+      os << "The table must not have duplicate nonlinear species.\n"
+         << "Value of *nonlinear_species*: " << nonlinear_species;
+      throw runtime_error( os.str() );
+    }
 
-        if ( max >= nonlinear_species[i] )
-        {
-          os << "The array of indices *nonlinear_species* should\n"
-             << "be monotonically increasing.";
-            throw runtime_error( os.str() );
-        }
-
-        max = nonlinear_species[i];
-      }
-  }
+  // ... and pointing at valid species. 
+  for ( Index i=0; i<nonlinear_species.nelem(); ++i )
+    {
+      ostringstream os;
+      os << "nonlinear_species[" << i << "]";
+      chk_if_in_range( os.str(),
+                       nonlinear_species[i],
+                       0,
+                       n_species-1 );
+    }
 
   // Frequency grid:
   chk_if_increasing( "f_grid", f_grid );

@@ -6550,57 +6550,43 @@ md_data_raw.push_back
          "\n"
          "The method performs the following:\n"
          "   1. Sets *ybatch_index* = 0.\n"
-         "   2. Performs a-d until *ybatch_index* > *ybatch_n*.\n"
+         "   2. Performs a-d until *ybatch_index* = *ybatch_n*.\n"
          "    a. Executes *ybatch_calc_agenda*.\n"
          "    b. If *ybatch_index* = 0, resizes *ybatch* based\n"
          "       on *ybatch_n* and length of *y*.\n"
          "    c. Copies *y* to column *ybatch_index* of *ybatch*.\n"
          "    d. Adds 1 to *ybatch_index*.\n"
+         "\n"
          "This means that, beside the *ybatch_calc_agenda*, the WSV\n"
          "*ybatch_n* must be set before calling this method. Further,\n"
          "*ybatch_calc_agenda* is expected to produce a spectrum and should\n"
-         "accordingly include call of *RteCalc* (or similar method). An\n"
-         "agenda that calculates spectra for different temperature profiles\n"
+         "accordingly include a call of *RteCalc* (or a similar method). \n"
+         "\n"
+         "An agenda that calculates spectra for different temperature profiles\n"
          "could look like this:\n"
+         "\n"
          "   AgendaSet(ybatch_calc_agenda){\n"
          "      Tensor3ExtractFromTensor4(t_field,tensor4_1,ybatch_index){}\n"
          "      RteCalc{}\n"
          "   }\n"
          "\n"
          "See the user guide for further practical examples.\n"
+         "\n"
+         "Keywords:\n"
+         "   robust : a flag with value 1 or 0. If set to one, the batch\n"
+         "            calculation will continue, even if individual jobs\n"
+         "            fail. In that case, a warning message is written to \n"
+         "            screen and file (out1 output stream), and ybatch for the\n"
+         "            failed job is set to -1.\n"
          ),
         AUTHORS( "Patrick Eriksson, Stefan Buehler" ),
         OUTPUT( ybatch_ ),
         INPUT( ybatch_n_, ybatch_calc_agenda_ ), 
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ybatchCalcRobust" ),
-        DESCRIPTION
-        (
-         "Performs robust batch calculations.\n"
-         "\n"
-         "This method does the same as *ybatchCalc* and has exactly the same\n"
-         "input and output parameters. \n"
-         "\n"
-         "The difference is that the batch calculation continues even if\n"
-         "individual jobs fail. In that case, a warning message is written to\n"
-         "screen and file (out1 output stream), and ybatch for the failed job is\n"
-         "set to -1.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ybatch_ ),
-        INPUT( ybatch_n_, ybatch_calc_agenda_ ), 
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
+        KEYWORDS( "robust" ),
+        DEFAULTS( "0"),
+        TYPES(    Index_t )));
 
   md_data_raw.push_back
     ( MdRecord

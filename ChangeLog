@@ -1,3 +1,19 @@
+2007-10-31  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-1-1200
+
+	* src/m_batch.cc (ybatchCalc): Added keyword "robust", with
+	default value 0. Value 1 means robust behavior, the same that
+	ybatchCalcRobust used to have. (Batch execution continues if
+	individual jobs fail.)
+
+	* src/methods.cc: Removed ybatchCalcRobust, added robust keyword
+	to ybatchCalc.
+
+	* src/gas_abs_lookup.cc (GasAbsLookup::Adapt): No longer require
+	that nonlinear_species are sorted, just require that they are
+	unique.  
+
 2007-10-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1199
@@ -25,7 +41,7 @@
 	* src/m_cloudbox.cc: Removed change from last commit as it
 	resulted in erroneous results. My guess is that the same 
 	incoming field is used for all frequencies. The idea was to keep
-	the old internal field as first guess for next fequency, but the
+	the old internal field as first guess for next frequency, but the
 	incoming field must be updated.
 
 	I found this by setting pnd_field to zero. I then also noted that 

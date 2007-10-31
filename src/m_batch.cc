@@ -379,32 +379,26 @@ void ybatchCalc_implementation(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchCalc(
-        // WS Output:
-              Matrix&         ybatch,
-        // WS Input:
-        const Index&          ybatch_n,
-        const Agenda&         ybatch_calc_agenda)
+void ybatchCalc(// WS Output:
+                Matrix&         ybatch,
+                // WS Input:
+                const Index&          ybatch_n,
+                const Agenda&         ybatch_calc_agenda,
+                // Control Parameters:
+                const Index& robust)
 {
+  if (0==robust)
+    out2 << "  Robust option is off.\n";
+  else if (1==robust)
+    out2 << "  Robust option is on,\n"
+         << "  batch calc will continue, even if one job fails.\n";
+  else
+    throw runtime_error("Keyword *robust* must be either 0 or 1.");
+
   ybatchCalc_implementation( ybatch,
                              ybatch_n,
                              ybatch_calc_agenda,
-                             0);
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchCalcRobust(
-        // WS Output:
-              Matrix&         ybatch,
-        // WS Input:
-        const Index&          ybatch_n,
-        const Agenda&         ybatch_calc_agenda)
-{
-  ybatchCalc_implementation( ybatch,
-                             ybatch_n,
-                             ybatch_calc_agenda,
-                             1);
+                             robust );
 }
 
 
