@@ -6326,7 +6326,7 @@ md_data_raw.push_back
          "   values  : The vector elements.\n"
          "\n"
          "Usage:\n"
-         "   VectorSetExplicitly(p_grid){[1000 100 10]}\n"
+         "   VectorSetExplicitly(p_grid){[1000, 100, 10]}\n"
          "   Will create a p_grid vector with these three elements.\n"
         ),
         AUTHORS( "Stefan Buehler" ),

@@ -1,5 +1,17 @@
 2007-10-31  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1203
+
+	* src/make_auto_md_h.cc (write_method_header_documentation):
+
+	Add keywords defaults to doxygen documentation.
+
+	* src/methods.cc (VectorSetExplicitly): Add missing commas in example.
+
+	* doc/doxygen/Doxyfile.in: Disable tree view. It's not really helpful.
+
+2007-10-31  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1202
 
 	* src/methods_aux.cc (operator<<):

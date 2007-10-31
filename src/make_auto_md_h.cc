@@ -214,7 +214,14 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
     for (Index j=0; j!=n_mr; ++j)
       {
         ofs << indent << "\\param "
-          << mdd.Keywords()[j] << " Control parameter\n";
+          << mdd.Keywords()[j] << " Control parameter";
+
+        if (mdd.Defaults()[j] != NODEF)
+          {
+            ofs << " (Default: " << mdd.Defaults()[j] << ")";
+          }
+        
+        ofs << "\n";
       }
   }
 
