@@ -1,5 +1,25 @@
 2007-10-31  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1202
+
+	* src/methods_aux.cc (operator<<):
+
+	Show keyword defaults in online help.
+
+	* src/parser.cc (parse_method):
+
+	Improved error messages:
+
+	Also print the name of the WSM if a required keyword is missing.
+
+	Put keywords in quotes and WSMs in *s.
+
+	* src/methods.cc (Print, PrintWorkspace):
+
+	Set default output level to 1.
+
+2007-10-31  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1201
 
 	* src/parser.cc:

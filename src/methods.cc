@@ -4564,7 +4564,7 @@ md_data_raw.push_back
         GOUTPUT( ),
         GINPUT( Any_ ),
         KEYWORDS( "level" ),
-        DEFAULTS( NODEF ),
+        DEFAULTS( "1" ),
         TYPES(    Index_t ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
@@ -4585,7 +4585,7 @@ md_data_raw.push_back
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "level" ),
-        DEFAULTS( NODEF ),
+        DEFAULTS( "1" ),
         TYPES(    Index_t ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));

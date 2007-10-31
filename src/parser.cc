@@ -1192,9 +1192,9 @@ void parse_method(Index& id,
                           ostringstream os;
                           os << "Default values for keywords with type "
                             << "ArrayOfString are not supported.\n"
-                            << "Either remove the default value for keyword "
-                            << mdd->Keywords()[i] << " in workspace method "
-                            << mdd->Name() << " in methods.cc or discuss this "
+                            << "Either remove the default value for keyword '"
+                            << mdd->Keywords()[i] << "' in workspace method *"
+                            << mdd->Name() << "* in methods.cc or discuss this "
                             << "issue on the arts-dev mailing list.\n";
                           throw runtime_error (os.str());
                           break;
@@ -1204,9 +1204,9 @@ void parse_method(Index& id,
                           ostringstream os;
                           os << "Default values for keywords with type "
                             << "ArrayOfIndex are not supported.\n"
-                            << "Either remove the default value for keyword "
-                            << mdd->Keywords()[i] << " in workspace method "
-                            << mdd->Name() << " in methods.cc or discuss this "
+                            << "Either remove the default value for keyword '"
+                            << mdd->Keywords()[i] << "' in workspace method *"
+                            << mdd->Name() << "* in methods.cc or discuss this "
                             << "issue on the arts-dev mailing list.\n";
                           throw runtime_error (os.str());
                           break;
@@ -1228,18 +1228,18 @@ void parse_method(Index& id,
                   if (failed)
                     {
                       ostringstream os;
-                      os << "Failed to assign default value for keyword "
-                        << mdd->Keywords()[i] << ".\n"
-                        << "Check definition of workspace method "
-                        << mdd->Name() << " in methods.cc.\n";
+                      os << "Failed to assign default value for keyword '"
+                        << mdd->Keywords()[i] << "'.\n"
+                        << "Check definition of workspace method *"
+                        << mdd->Name() << "* in methods.cc.\n";
                       throw runtime_error (os.str());
                     }
                 }
               else
                 {
                   ostringstream os;
-                  os << "Required keyword " << mdd->Keywords()[i]
-                    << " was not set.\n";
+                  os << "Required keyword '" << mdd->Keywords()[i]
+                    << "' for WSM *" << mdd->Name() << "* was not set.\n";
                   throw ParseError (os.str (),
                                     text.File(),
                                     text.Line(),

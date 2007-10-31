@@ -440,6 +440,21 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
     }
   os << '\n';
 
+  // Defaults:
+  first = true;
+  os << "Defaults = ";
+  for ( Index i=0; i<mdr.Defaults().nelem(); ++i )
+    {
+      if (first) first=false;
+      else os << ", ";
+
+      if (mdr.Defaults()[i] != NODEF)
+        os << mdr.Defaults()[i];
+      else
+        os << "none";
+    }
+  os << '\n';
+
   // Types:
   first = true;
   os << "Types = ";
