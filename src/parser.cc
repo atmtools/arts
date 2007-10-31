@@ -656,6 +656,82 @@ void parse_numvector(Vector& res, SourceText& text)
   text.AdvanceChar();
 }
 
+
+void eat_whitespace_from_string (String& str, Index& pos)
+{
+  while (pos < str.length() && is_whitespace (str[pos]))
+    pos++;
+}
+
+
+/** Read a vector of Numerics from a String. This looks as follows: [1.3, 5]
+    Whitespace has to have been eaten before, that is, the current
+    character must be `['.
+  
+    The empty vector is allowed.
+  
+    @see parse_numeric */
+bool parse_numvector_from_string (Vector& res, String& str)
+{
+  bool first = true;            // To skip the first comma.
+  Index pos = 0;
+
+  // We need a temporary Array<Numeric>, so that we can use push_back
+  // to store the values.
+  Array<Numeric> tres;
+
+  eat_whitespace_from_string (str, pos);
+
+  // Make sure that the current character really is `[' and proceed.
+  if (str[pos] != '[')
+    {
+      throw runtime_error ("No opening bracket\n");
+    }
+
+  pos++;
+
+  eat_whitespace_from_string (str, pos);
+
+  // Read the elements of the vector (`]' means that we have
+  // reached the end):
+  while ( pos < str.length() && str[pos] != ']'  )
+    {
+      if (first)
+        first = false;
+      else
+        {
+          if (str[pos] != ',')
+            {
+              return false;
+            }
+          pos++;
+          eat_whitespace_from_string (str, pos);
+        }
+
+      Numeric dummy;
+      istringstream is (str.substr(pos));
+      is >> dummy;
+      if (is.bad () || is.fail ())
+        return false;
+      tres.push_back(dummy);
+      while (pos < str.length()
+             && (isdigit(str[pos]) || str[pos] == '-' || str[pos] == '.'
+                 || str[pos] == 'e'))
+        pos++;
+      eat_whitespace_from_string (str, pos);
+    }
+
+  // Copy tres to res:
+  res.resize(tres.nelem());
+  for (int i = 0; i < tres.nelem (); i++)
+    {
+      res[i] = tres[i];
+    }
+
+  return true;
+}
+
+
 /** Parse the Contents of text as ARTS control input. 
 
     Either values or tasks will be empty.
@@ -1137,10 +1213,13 @@ void parse_method(Index& id,
                         }
                     case Vector_t:
                         {
-                          ostringstream os;
-                          os << "Default values for keywords with type "
-                            << "Vector are not implemented.FIXME: OLE\n";
-                          throw runtime_error (os.str());
+                          Vector v;
+                          String s = mdd->Defaults()[i];
+                          if (!parse_numvector_from_string(v, s))
+                            {
+                              failed = true;
+                            }
+                          values[i] = v;
                           break;
                         }
                     default:
