@@ -4773,12 +4773,22 @@ md_data_raw.push_back
          "\n"
          "Analytical jacobians for gas species and temperature can be \n"
          "calcultaed along with the spectrum.\n"
-         "\n"
+         "\n"        
          "See further the user guide.\n"
+         "\n"
+         "Spectra can be returned in several units, selected by keyword\n"
+         "argument *y_unit*. The following options exist:\n"
+         "   1      : No conversion, basic radiances [W/m2/Hz/sr].\n"
+         "   RJ     : Conversion to Rayleigh-Jeans brightness temperature.\n"
+         "   Planck : Conversion to Planck brightness temperature. The\n"
+         "            choice \"planck\" is also allowed.\n"
+         "\n"
+         "Keywords:\n"
+         "   y_unit: Output unit. See above. Default is \"1\".\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( y_, ppath_, ppath_step_, iy_,
-                jacobian_, ppath_array_do_, ppath_array_, ppath_array_index_  ),
+        OUTPUT( y_, ppath_, ppath_step_, iy_, jacobian_, 
+                ppath_array_do_, ppath_array_, ppath_array_index_  ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                surface_prop_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
@@ -4789,9 +4799,9 @@ md_data_raw.push_back
                jacobian_, jacobian_quantities_, jacobian_indices_ ),
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
+        KEYWORDS( "y_unit" ),
+        DEFAULTS( "1"      ),
+        TYPES(    String_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4801,13 +4811,13 @@ md_data_raw.push_back
          "As *RteCalc* but using *MCGeneral* for doing monochromatic pencil\n"
          "beam calculations.\n"
          "\n"
-         "This functions allows Monte Carlo calculations for sets of \n"
+         "This functions allows Monte Carlo (MC) calculations for sets of \n"
          "frequencies and sensor pos/los in a single run. Sensor responses\n"
          "can be included in the standard manner (as in *RteCalc*).\n"
          "\n"
          "MC unit is set as for *MCGeneral*.No antenna pattern is included.\n"
          "\n"
-         "This function does not apply the Monte Carlo approach when it comes\n"
+         "This function does not apply the MC approach when it comes\n"
          "to sensor properties. These properties are not considered when\n"
          "tracking photons, which is done in *MCGeneral* (but only for the\n"
          "antenna pattern).\n"
@@ -4817,8 +4827,9 @@ md_data_raw.push_back
          "weighting the errors with the sensor repsonse matrix. The seed is\n"
          "reset for each call of *MCGeneral* to obtain uncorrelated errors.\n"
          "\n"
-         "Keyword arguments as for *MCGeneral*. These arguments are applied\n"
-         "for each monochromatic pencil beam calculation.\n"
+         "Keyword arguments as combination of *RtecAlc* and *MCGeneral*.\n"
+         "The MC arguments are applied for each monochromatic pencil beam \n"
+         "calculation individually.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( y_, mc_error_, f_index_ ),
@@ -4832,9 +4843,9 @@ md_data_raw.push_back
                antenna_dim_, mblock_za_grid_, mblock_aa_grid_, mc_unit_ ),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS( "std_err", "max_time", "max_iter", "z_field_is_1D" ),
-        DEFAULTS( NODEF,     NODEF,      NODEF,      NODEF ),
-        TYPES(    Numeric_t, Index_t,    Index_t,    Index_t         )));
+        KEYWORDS( "y_unit","std_err","max_time","max_iter","z_field_is_1D"),
+        DEFAULTS( "1",      NODEF,    NODEF,     NODEF,     NODEF         ),
+        TYPES(    String_t,Numeric_t,Index_t,   Index_t,   Index_t        )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4854,9 +4865,9 @@ md_data_raw.push_back
                antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
+        KEYWORDS( "y_unit" ),
+        DEFAULTS( "1"      ),
+        TYPES(    String_t )));
 
   md_data_raw.push_back
     ( MdRecord

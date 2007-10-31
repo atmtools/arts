@@ -97,7 +97,9 @@ void RteCalc(
    const Vector&                     mblock_za_grid,
    const Vector&                     mblock_aa_grid,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
-   const ArrayOfArrayOfIndex&        jacobian_indices )
+   const ArrayOfArrayOfIndex&        jacobian_indices,
+   //Keyword params
+   const String&                     y_unit )
 
 {
   // Consistency checks of input. Also returning some basic sizes
@@ -105,10 +107,10 @@ void RteCalc(
   Index nf=0, nmblock=0, nza=0, naa=0, nblock=0;
   //
   rtecalc_check_input( nf, nmblock, nza, naa, nblock, atmosphere_dim, p_grid, 
-                       lat_grid, lon_grid, z_field, t_field, r_geoid, z_surface,
-                       cloudbox_on,  cloudbox_limits, sensor_response, 
-                       sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, 
-                       mblock_za_grid, mblock_aa_grid );
+                  lat_grid, lon_grid, z_field, t_field, r_geoid, z_surface,
+                  cloudbox_on,  cloudbox_limits, sensor_response, 
+                  sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, 
+                  mblock_za_grid, mblock_aa_grid, y_unit );
 
   // Agendas not checked elsewhere
   //
@@ -126,12 +128,12 @@ void RteCalc(
 
 
   //--- Init Jacobian part ----------------------------------------------------
-
+  //
   ArrayOfIndex     rte_do_vmr_jacs (0);
   Index            rte_do_t_jacs = 0;
   ArrayOfTensor4   diy_dvmr;
   ArrayOfTensor4   diy_dt;
-
+  //
   ArrayOfIndex     jqi_vmr(0);        // Index in jacobian_quantities of VMRs
   ArrayOfIndex     ji0_vmr(0);        // Start index in jacobian for anal. VMRs
   ArrayOfIndex     jin_vmr(0);        // Length of x for anal. VMRs
@@ -140,7 +142,9 @@ void RteCalc(
   Index            jin_t = 0;
   ArrayOfMatrix    ib_vmr_jacs(0);    // Correspondance to *ib* for VMR jac.
   Matrix           ib_t_jacs(0,0);    // Correspondance to *ib* for t jac.
-
+  //
+  ppath_array_do = 0;
+  //
   for( Index i=0; i<jacobian_quantities.nelem(); i++ )
     {
       if ( jacobian_quantities[i].MainTag() == "Abs. species"  &&  
@@ -165,14 +169,19 @@ void RteCalc(
                                           jacobian_quantities[i].Analytical() )
         { 
           ppath_array_do = 1;
-          jqi_t         = i;
-          rte_do_t_jacs = 1; 
+          jqi_t          = i;
+          rte_do_t_jacs  = 1; 
           // Set size of MPB matrix
           ArrayOfIndex ji = jacobian_indices[i];
           const Index  nx = ji[1]-ji[0]+1;
           ji0_t = ji[0];
           jin_t = nx;
           ib_t_jacs = Matrix(ib.nelem(),nx,0.0);
+        }
+
+      if( ppath_array_do  &&  y_unit != "1" )
+        { throw runtime_error( 
+            "Keyword argument *y_unit* must be \"1\" when doing jacobians." );
         }
     }
 
@@ -217,6 +226,9 @@ void RteCalc(
                        sensor_pos(mblock_index,joker), los, f_grid, stokes_dim,
                        ppath_array_do,
                        rte_do_vmr_jacs, rte_do_t_jacs, ag_verb );
+
+              //--- Unit conversions
+              apply_y_unit( iy, y_unit, f_grid );
 
               //--- Copy *iy* to *ib*
               for( Index is=0; is<stokes_dim; is++ )
@@ -264,11 +276,12 @@ void RteCalc(
                     { assert(0); }  // Should have been catched before
 
                   //- Map from ppath to retrieval quantities
-                  {
-                    jacobian_from_path_to_rgrids( ib_vmr_jacs[ig], nbdone,
+                  jacobian_from_path_to_rgrids( ib_vmr_jacs[ig], nbdone,
                                      diy_dvmr, ig, atmosphere_dim, ppath_array,
                                      jacobian_quantities[jqi_vmr[ig]] );
-                  }
+
+                  //--- Unit conversions
+                  apply_y_unit( ib_vmr_jacs[ig], y_unit, f_grid );
                 }
 
               //--- Temperature ---
@@ -278,6 +291,9 @@ void RteCalc(
                   jacobian_from_path_to_rgrids( ib_t_jacs, nbdone, diy_dt, 0,
                                                 atmosphere_dim, ppath_array, 
                                                 jacobian_quantities[jqi_t] );
+
+                  //--- Unit conversions
+                  apply_y_unit( ib_t_jacs, y_unit, f_grid );
                 }
 
               //--- End of jacobian part --------------------------------------
@@ -299,35 +315,11 @@ void RteCalc(
         {
           mult( jacobian(Range(nydone,nblock),Range(ji0_vmr[ig],jin_vmr[ig])),
                                             sensor_response, ib_vmr_jacs[ig] );
-          /*
-          Matrix  K(nblock,jin_vmr[ig]);
-          mult( K, sensor_response, ib_vmr_jacs[ig] );
-          for( Index col=0; col<jin_vmr[ig]; col++ )
-            {
-              for( Index row=0; row<nblock; row++ )
-                {
-                  if( K(row,col) != 0 )
-                    { jacobian.rw(nydone+row,ji0_vmr[ig]+col) = K(row,col); }
-                }
-            }
-          */
         }
       if( rte_do_t_jacs )
         {
           mult( jacobian(Range(nydone,nblock),Range(ji0_t,jin_t)), 
                                                   sensor_response, ib_t_jacs );
-          /*
-          Matrix  K(nblock,jin_t);
-          mult( K, sensor_response, ib_t_jacs );
-          for( Index col=0; col<jin_t; col++ )
-            {
-              for( Index row=0; row<nblock; row++ )
-                {
-                  if( K(row,col) != 0 )
-                    { jacobian.rw(nydone+row,ji0_t+col) = K(row,col); }
-                }
-            }
-          */
         }
 
 
@@ -366,7 +358,8 @@ void RteCalcNoJacobian(
    const Index&                      stokes_dim,
    const Index&                      antenna_dim,
    const Vector&                     mblock_za_grid,
-   const Vector&                     mblock_aa_grid )
+   const Vector&                     mblock_aa_grid,
+   const String&                     y_unit )
 {
   Matrix                     jacobian;
   ArrayOfRetrievalQuantity   jacobian_quantities;
@@ -386,7 +379,7 @@ void RteCalcNoJacobian(
            z_field, t_field, vmr_field, abs_species, r_geoid, z_surface, 
            cloudbox_on,  cloudbox_limits, sensor_response, sensor_pos, 
            sensor_los, f_grid, stokes_dim, antenna_dim, mblock_za_grid, 
-           mblock_aa_grid, jacobian_quantities, jacobian_indices );
+           mblock_aa_grid, jacobian_quantities, jacobian_indices, y_unit );
 }
 
 
@@ -422,6 +415,7 @@ void RteCalcMC(
    const Vector&                        mblock_aa_grid,
    const String&                        mc_unit,
    //Keyword params
+   const String&                        y_unit,
    const Numeric&                       std_err,
    const Index&                         max_time,
    const Index&                         max_iter,
@@ -437,10 +431,10 @@ void RteCalcMC(
           "Monte Carlos calculations require that *atmosphere_dim* is 3." );
   //
   rtecalc_check_input( nf, nmblock, nza, naa, nblock, atmosphere_dim, p_grid, 
-                       lat_grid, lon_grid, z_field, t_field, r_geoid, z_surface,
-                       cloudbox_on,  cloudbox_limits, sensor_response, 
-                       sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, 
-                       mblock_za_grid, mblock_aa_grid );
+                    lat_grid, lon_grid, z_field, t_field, r_geoid, z_surface,
+                    cloudbox_on,  cloudbox_limits, sensor_response, 
+                    sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, 
+                    mblock_za_grid, mblock_aa_grid, y_unit );
 
   // Some MC variables are only local here
   Index    mc_iteration_count, mc_seed;
@@ -510,6 +504,9 @@ void RteCalcMC(
                     mc_seed, mc_unit, std_err, max_time, max_iter, 
                     z_field_is_1D ); 
                   
+                  //--- Unit conversions
+                  apply_y_unit_single( iyf, y_unit, f_grid[f_index] );
+
                   //--- Copy *iyf* to *ib*
                   for( Index is=0; is<stokes_dim; is++ )
                     { 
@@ -533,7 +530,7 @@ void RteCalcMC(
         {
           for( Index icol=0; icol<sensor_response.ncols(); icol++ )
             { mc_error[nydone+irow] += 
-                        pow( sensor_response(irow,icol)*ib_error[icol], (Numeric)2.0 ); 
+               pow( sensor_response(irow,icol)*ib_error[icol], (Numeric)2.0 ); 
             }
         }
 

@@ -52,6 +52,16 @@
   === Functions in rte.cc
   ===========================================================================*/
 
+void apply_y_unit( 
+          Matrix&   iy, 
+    const String&   y_unit, 
+    const Vector&   f_grid );
+
+void apply_y_unit_single( 
+          Vector&   i, 
+    const String&   y_unit, 
+    const Numeric&  f );
+
 void include_trans_in_diy_dq( 
             ArrayOfTensor4&   diy_dq,  
       const Index&            iv,
@@ -171,7 +181,8 @@ void rtecalc_check_input(
    const Index&                      stokes_dim,
    const Index&                      antenna_dim,
    const Vector&                     mblock_za_grid,
-   const Vector&                     mblock_aa_grid );
+   const Vector&                     mblock_aa_grid,
+   const String&                     y_unit );
 
 void surface_calc(
               Matrix&         iy,

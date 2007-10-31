@@ -56,6 +56,84 @@
   === The functions in alphabetical order
   ===========================================================================*/
 
+//! apply_y_unit
+/*!
+    Performs conversion from radiance to other units, following the keyword
+    argument *y_unit* used in the set of RteCalc functions.
+
+    \param   iy       In/Out: Matrix with data to be converted, where each 
+                      row corresponds to a frequency.
+    \param   y_unit   As the keyword argument for *RteCalc*.
+    \param   f_grid   Frequency grid.
+
+    \author Patrick Eriksson 
+    \date   2007-10-31
+*/
+void apply_y_unit( 
+          Matrix&   iy, 
+    const String&   y_unit, 
+    const Vector&   f_grid )
+{
+  assert( f_grid.nelem() == iy.nrows() );
+
+  if( y_unit == "RJ" )
+    {
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          const Numeric scfac = invrayjean( 1, f_grid[iv] );
+          for( Index icol=0; icol<iy.ncols(); icol++ )
+            {
+              iy(iv,icol) *= scfac;
+            }
+        }
+    }
+
+  else if( y_unit == "Planck"  ||  y_unit == "planck" )
+    {
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          for( Index icol=0; icol<iy.ncols(); icol++ )
+            {
+              iy(iv,icol) = invplanck( iy(iv,icol), f_grid[iv] );
+            }
+        }
+    }
+}
+
+
+
+//! apply_y_unit_single
+/*!
+    A version of apply_y_unit handle monochormatic input. Just an interface
+    to apply_y_unit
+
+    \param   i        In/Out: Vector with data to be converted, where each 
+                      position corresponds to a Stokes dimension.
+    \param   y_unit   As the keyword argument for *RteCalc*.
+    \param   f        Frequency value.
+
+    \author Patrick Eriksson 
+    \date   2007-10-31
+*/
+void apply_y_unit_single( 
+          Vector&   i, 
+    const String&   y_unit, 
+    const Numeric&  f )
+{
+  // Create frequency grid vector
+  Vector f_grid(1,f);
+
+  // Create matrix matching WSV iy
+  Matrix iy(1,i.nelem());
+  iy(0,joker) = i;
+
+  apply_y_unit( iy, y_unit, f_grid );
+
+  i = iy(0,joker);
+}
+
+
+
 //! get_radiative_background
 /*!
     Sets *iy* to the radiative background for a propagation path.
@@ -187,7 +265,8 @@ void get_radiative_background(
               throw runtime_error( 
                        "Mismatch in size of *surface_rmatrix* and *f_grid*." );
             if( surface_rmatrix.ncols() != stokes_dim  ||  
-                surface_rmatrix.ncols() != stokes_dim ) throw runtime_error( 
+                surface_rmatrix.ncols() != stokes_dim ) 
+              throw runtime_error( 
               "Mismatch between size of *surface_rmatrix* and *stokes_dim*." );
           }
         if( surface_emission.ncols() != stokes_dim )
@@ -1082,7 +1161,8 @@ void rtecalc_check_input(
    const Index&                      stokes_dim,
    const Index&                      antenna_dim,
    const Vector&                     mblock_za_grid,
-   const Vector&                     mblock_aa_grid )
+   const Vector&                     mblock_aa_grid,
+   const String&                     y_unit )
 {
   // Some sizes
   nf      = f_grid.nelem();
@@ -1215,6 +1295,17 @@ void rtecalc_check_input(
       os << "The number of rows of sensor_pos and sensor_los must be "
          << "identical, but sensor_pos has " << nmblock << " rows,\n"
          << "while sensor_los has " << sensor_los.nrows() << " rows.";
+      throw runtime_error( os.str() );
+    }
+
+  // *y_unit*
+  //
+  if( !( y_unit=="1"  ||  y_unit=="RJ"  ||  y_unit=="planck"  || 
+         y_unit=="Planck" ) )
+    {
+      ostringstream os;
+      os << "Allowed options for *y_unit are: ""1"", ""RJ"", ""planck"" and "
+         << """Planck"".";
       throw runtime_error( os.str() );
     }
 }

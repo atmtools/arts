@@ -91,7 +91,8 @@ void yCalc(
                  t_field, vmr_field, 
                  r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
                  sensor_response, sensor_pos, sensor_los, f_grid, 
-                 stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
+                 stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid, 
+                 "1" );
 }
 
 /*===========================================================================
