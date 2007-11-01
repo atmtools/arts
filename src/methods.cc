@@ -2206,17 +2206,23 @@ md_data_raw.push_back
          "monochromatic radiation field out of these variables.  The \n"
          "output of the method is the first guess field stored in the \n"
          "workspace variable *doit_i_field*.\n"
+         "\n"
+         "Set keyword *all_frequencies* to 1 if for each frequency the \n"
+         "clearsky field should be used as initial field. Set it to 0 if \n"
+         "only for the first frequency in *f_grid* the clearsky field should\n"
+         "be used and for the next frequencies *doit_i_field* of the \n"
+         "previous frequency should be used. Default is 1. \n"
          ),
-        AUTHORS( "Sreerekha T.R." ),
+        AUTHORS( "Sreerekha T.R. and Claudia Emde" ),
         OUTPUT(doit_i_field_),
         INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, f_grid_, 
                f_index_, p_grid_, lat_grid_, lon_grid_, 
                cloudbox_limits_, atmosphere_dim_),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("all_frequencies"),
+        DEFAULTS( "1" ),
+        TYPES(Index_t)));
 
   md_data_raw.push_back
     ( MdRecord

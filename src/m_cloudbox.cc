@@ -331,16 +331,19 @@ void cloudboxSetManuallyAltitude(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
-                const Tensor7& scat_i_p,
-                const Tensor7& scat_i_lat,
-                const Tensor7& scat_i_lon,
-                const Vector& f_grid,
-                const Index& f_index,
-                const Vector& p_grid,
-                const Vector& lat_grid,
-                const Vector& lon_grid,
-                const ArrayOfIndex& cloudbox_limits,
-                const Index& atmosphere_dim )
+                             const Tensor7& scat_i_p,
+                             const Tensor7& scat_i_lat,
+                             const Tensor7& scat_i_lon,
+                             const Vector& f_grid,
+                             const Index& f_index,
+                             const Vector& p_grid,
+                             const Vector& lat_grid,
+                             const Vector& lon_grid,
+                             const ArrayOfIndex& cloudbox_limits,
+                             const Index& atmosphere_dim,
+                             //Keyword:
+                             const Index& all_frequencies
+                             )
 {
   
   out2 << "Interpolate boundary clearsky field to obtain the initial field.\n";
@@ -350,92 +353,102 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
   // previous frequencies is used. 
   if(atmosphere_dim == 1)
     {
-      Index  N_f = scat_i_p.nlibraries();
-      if (f_grid.nelem() != N_f){
-        
-        throw runtime_error(" scat_i_p should have same frequency  "
-                          " dimension as f_grid");
-      }
+       if(f_index == 0 || all_frequencies == true){
+         Index  N_f = scat_i_p.nlibraries();
+         if (f_grid.nelem() != N_f){
+           
+           throw runtime_error(" scat_i_p should have same frequency  "
+                               " dimension as f_grid");
+         }
+         
+         if(scat_i_p.nvitrines() != 2){
+           throw runtime_error("scat_i_p should have only two elements "
+                               "in pressure grid which corresponds "
+                               "to the two pressure surfaces");
+         }
       
-      if(scat_i_p.nvitrines() != 2){
-        throw runtime_error("scat_i_p should have only two elements "
-                            "in pressure grid which corresponds "
-                            "to the two pressure surfaces");
-      }
-      
+         
+         Index N_za = scat_i_p.npages() ;
+         Index N_aa = scat_i_p.nrows();
+         Index N_i = scat_i_p.ncols();
+         
+         //1. interpolation - pressure grid
+         
+         doit_i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1,
+                             1,
+                             1,
+                             N_za,
+                             N_aa,
+                             N_i);
+         
+         doit_i_field = 0.;
+         
+         /*the old grid is having only two elements, corresponding to the 
+           cloudbox_limits and the new grid have elements corresponding to
+           all grid points inside the cloudbox plus the cloud_box_limits*/
+         
+         ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
+         
+         p2gridpos(p_gp,
+                   p_grid[Range(cloudbox_limits[0], 
+                                2,
+                                (cloudbox_limits[1]- cloudbox_limits[0]))],
+                   p_grid[Range(cloudbox_limits[0], 
+                                (cloudbox_limits[1]- cloudbox_limits[0])+1)]);
+         
+         Matrix itw((cloudbox_limits[1]- cloudbox_limits[0])+1, 2);
+         interpweights ( itw, p_gp );
+         
    
-      Index N_za = scat_i_p.npages() ;
- 
-      Index N_aa = scat_i_p.nrows();
-      
-      Index N_i = scat_i_p.ncols();
-      
-      //1. interpolation - pressure grid
-      
-      
-      doit_i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1,
-                          1,
-                          1,
-                          N_za,
-                          N_aa,
-                          N_i);
-      
-      doit_i_field = 0.;
-    
-    
-
-      /*the old grid is having only two elements, corresponding to the 
-        cloudbox_limits and the new grid have elements corresponding to
-        all grid points inside the cloudbox plus the cloud_box_limits*/
-
-      ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
-      
-      p2gridpos(p_gp,
-            p_grid[Range(cloudbox_limits[0], 
-                         2,
-                         (cloudbox_limits[1]- cloudbox_limits[0]))],
-                p_grid[Range(cloudbox_limits[0], 
-                             (cloudbox_limits[1]- cloudbox_limits[0])+1)]);
-      
-      Matrix itw((cloudbox_limits[1]- cloudbox_limits[0])+1, 2);
-      interpweights ( itw, p_gp );
-
-   
-
-      for (Index za_index = 0; za_index < N_za ; ++ za_index)
-        {
-          for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
-            {
-              for (Index i = 0 ; i < N_i ; ++ i)
-                {
-                  
-                  VectorView target_field = doit_i_field(Range(joker),
-                                                         0,
-                                                         0,
-                                                         za_index,
-                                                         aa_index,
-                                                         i);
-                  
-                  ConstVectorView source_field = scat_i_p(f_index,
-                                                          Range(joker),    
-                                                          0,
-                                                          0,
-                                                          za_index,
-                                                          aa_index,
-                                                          i);
-                
-                  interp(target_field,
-                         itw,
-                         source_field,
-                         p_gp);
-                }
-              
-            }
-        }
-
+         
+         for (Index za_index = 0; za_index < N_za ; ++ za_index)
+           {
+             for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
+               {
+                 for (Index i = 0 ; i < N_i ; ++ i)
+                   {
+                     
+                     VectorView target_field = doit_i_field(Range(joker),
+                                                            0,
+                                                            0,
+                                                            za_index,
+                                                            aa_index,
+                                                            i);
+                     
+                     ConstVectorView source_field = scat_i_p(f_index,
+                                                             Range(joker),    
+                                                             0,
+                                                             0,
+                                                             za_index,
+                                                             aa_index,
+                                                             i);
+                     
+                     interp(target_field,
+                            itw,
+                            source_field,
+                            p_gp);
+                   }
+                 
+               }
+           }
+       }
+       else{// no interpolation is required for other frequencies,
+         // but the boundary needs to be set correctly.
+         doit_i_field(0, 0, 0, Range(joker), Range(joker), Range(joker))=
+           scat_i_p(f_index, 0, 0, 0, Range(joker), Range(joker),
+                    Range(joker));
+           doit_i_field(doit_i_field.nvitrines()-1, 0, 0, Range(joker), 
+                        Range(joker), Range(joker))=
+             scat_i_p(f_index, 1, 0, 0, Range(joker), Range(joker),
+                      Range(joker));
+       }
     }
-  if(atmosphere_dim == 3)
+  else if(atmosphere_dim == 3)
     {
+      if (all_frequencies == false)
+        throw runtime_error("Error in doit_i_fieldSetClearsky: For 3D "
+                            "all_frequencies option is not implemented \n");
+
       Index  N_f = scat_i_p.nlibraries();
       if (scat_i_lat.nlibraries() != N_f || 
           scat_i_lon.nlibraries() != N_f){

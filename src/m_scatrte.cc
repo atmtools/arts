@@ -518,7 +518,7 @@ void doit_i_fieldIterate(
                                  doit_i_field,
                                  doit_i_field_old_local,
                                  doit_conv_test_agenda,
-                                 false);
+                                 true);
 
   }//end of while loop, convergence is reached.
 }

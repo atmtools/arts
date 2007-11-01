@@ -1,3 +1,22 @@
+2007-11-01  Claudia Emde <claudia.emde@dlr.de>
+
+	* arts-1-1-1207
+
+	* src/methods.cc (doit_i_fieldSetClearsky): Included keyword  
+	(all_frequencies) which allows to select between using the
+	clearsky field always as initial field for DOIT calculations
+	or using it only for the first frequency (and take the field from 
+	the previous frequency for other frequencies). Default is the 
+	first option (so all control files should run as before).
+	The second option gives significant 
+	speed improvement if the frequencies in f_grid are close. 
+
+	* src/m_cloudbox.cc (doit_i_fieldSetClearsky): Included option 
+	described above. 
+
+	* src/m_scatrte.cc (doit_i_fieldIterate): Suppressed agenda output
+	of convergence_test_agenda.
+
 2007-11-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1206
