@@ -205,6 +205,7 @@ md_data.push_back
       GOUTPUT(),
       GINPUT(),
       KEYWORDS(),
+      DEFAULTS(),
       TYPES()));
 \end{verbatim}
 }
@@ -221,14 +222,17 @@ All WSM definitions have the same elements:
 \item The \emph{input}. This is a list of WSV names (with underscores
   at the end). All these WSVs are required as input by this WSM. This
   means they must have been set before.
-\item The \emph{generic output}. This is a list of WSV group names (with underscores
-  at the end). This defines the group to which output arguments must
-  belong (see below).
-\item The \emph{generic input}. This is a list of WSV group names (with underscores
-  at the end). This defines the group to which input arguments must
-  belong.
-\item The \emph{keywords}, a list of keyword paramters that the user
+\item The \emph{generic output}. This is a list of WSV group names
+(with underscores at the end). This defines the group to which output
+arguments must belong (see below).
+\item The \emph{generic input}. This is a list of WSV group names (with
+underscores at the end). This defines the group to which input arguments
+must belong.
+\item The \emph{keywords}, a list of keyword parameters that the user
   has to specify in the controlfile.
+\item The \emph{defaults}, a list of default values for the keywords.
+\artsstyle{NODEF} means that the keyword has no default and the user has
+to set it in the control file.
 \item The \emph{types}, the data type associated with each keyword.
 \end{enumerate}
 
@@ -278,6 +282,7 @@ md_data.push_back
       GOUTPUT( Vector_ ),
       GINPUT( Vector_ ),
       KEYWORDS(),
+      DEFAULTS(),
       TYPES()));
 \end{verbatim}
 }

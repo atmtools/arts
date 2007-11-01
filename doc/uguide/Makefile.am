@@ -23,36 +23,44 @@ artsexecutable = $(top_builddir)/src/arts
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 texfiles = \
+	absorption.tex \
+	agendas.tex \
 	agu.bst \
+	app_units.tex \
+	app_wsv.tex \
 	atmosphere.tex \
-	references.bib \
+	auto_version.tex \
+	batch.tex \
 	chapter_template.tex \
 	clouds.tex \
 	concept.tex \
+	development.tex \
 	fm_definitions.tex \
 	formalism.tex \
-	development.tex \
-	introduction.tex \
-	interpolation.tex \
-	integration.tex \
-	matrix_vector.tex \
 	formats.tex \
-	rte_theory.tex \
+	integration.tex \
+	interpolation.tex \
+	introduction.tex \
+	lin_alg.tex \
 	main.tex \
-	montecarlo.tex \
+	matrix_vector.tex \
 	measerr.tex \
-	ppath.tex \
-        batch.tex \
+	montecarlo.tex \
+	old_absorption.tex \
 	polarization.tex \
+	ppath.tex \
 	reduction.tex \
+	references.bib \
 	rte.tex \
+	rte_theory.tex \
 	scattering.tex \
 	sensor.tex \
+	surface.tex \
+	symbol_defs.tex \
 	uguide.tex \
 	utilities.tex \
 	wfuns_atm.tex \
-	wfuns_sensor.tex \
-	app_wsv.tex
+	wfuns_sensor.tex
 
 autotexfiles = 
 
