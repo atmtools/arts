@@ -138,7 +138,21 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
 
   ofs << "/*!\n";
 
-  ofs << mdd.Description () << "\n";
+  String DoxyDescription = mdd.Description();
+  Index start_pos = 0;
+
+  while (start_pos != string::npos)
+    {
+      start_pos = DoxyDescription.find ("\n ", start_pos);
+      if (start_pos && start_pos != string::npos
+          && DoxyDescription[start_pos]-1 != '\n')
+        {
+          DoxyDescription.insert (start_pos + 1, "<br>");
+          start_pos += 5;
+        }
+    }
+
+  ofs << DoxyDescription << "\n";
 
   // Write the authors:
   for (Index j=0; j<mdd.Authors().nelem(); ++j)

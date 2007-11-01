@@ -1,5 +1,15 @@
 2007-11-01  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1206
+
+	* src/make_auto_md_h.cc (write_method_header_documentation):
+
+	When the first character in the current line of the Description is a
+	space, add a linebreak to the doxygen documentation. Improves the
+	readability of input/output variable and keyword descriptions.
+
+2007-11-01  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1205
 
 	* doc/uguide/Makefile.am: Added all missing .tex files to texfiles.
