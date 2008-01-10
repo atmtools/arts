@@ -436,6 +436,13 @@ void RteCalcMC(
                     sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, 
                     mblock_za_grid, mblock_aa_grid, y_unit );
 
+  
+  if ( nf > 1 )
+    {
+      throw runtime_error( 
+               "The function works only for single frequency calculations." );
+    }
+
   // Some MC variables are only local here
   Index    mc_iteration_count, mc_seed;
   Tensor3  mc_points;

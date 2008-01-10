@@ -1,3 +1,12 @@
+2008-01-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-1-1209
+
+	* src/m_rte.cc (RteCalcMC): I missed a detail and it turned out that
+	this function only works for single frequency calculations. 
+	Problem will be fixed in the present branch. A runtime error was
+	included in this version to avoid incorrect usage of the function.
+
 2007-12-07  Mattias Ekstrom <mattias.ekstrom@chalmers.se>
 	
 	* arts-1-1-1208
