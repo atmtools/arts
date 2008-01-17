@@ -70,7 +70,7 @@ public:
         return false;
     }
 
-  Tensor3View* const operator->();
+  Tensor3View* operator->();
   Tensor3View& operator*();
 
 private:
@@ -196,6 +196,9 @@ public:
   // Functions returning iterators:
   ConstIterator4D begin() const;
   ConstIterator4D end()   const;
+
+  //! Destructor
+  virtual ~ConstTensor4View() {};
 
   // Friends:
   friend class Tensor4View;
@@ -331,6 +334,9 @@ public:
   Tensor4View& operator+=(const ConstTensor4View& x);
   Tensor4View& operator-=(const ConstTensor4View& x);
 
+  //! Destructor
+  virtual ~Tensor4View() {};
+
   // Friends:
   // friend class VectorView;
   // friend ConstTensor4View transpose(ConstTensor4View m);
@@ -379,7 +385,7 @@ public:
   void resize(Index b, Index p, Index r, Index c);
 
   // Destructor:
-  ~Tensor4();
+  virtual ~Tensor4();
 };
 
 

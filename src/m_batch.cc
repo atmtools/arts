@@ -43,6 +43,10 @@
 #include <cmath>
 using namespace std;
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "arts.h"
 #include "auto_md.h"
 #include "math_funcs.h"
@@ -91,6 +95,44 @@ void ArrayOfGriddedField3ExtractFromArrayOfArrayOfGriddedField3(
   agf.resize( aagf[index].nelem() );
   agf = aagf[index];
 }
+
+
+/* Workspace method: Doxygen documentation will be auto-generated 
+
+   Implementation largely copied from MatrixExtractFromArrayOfMatrix.
+
+   2007-11-26 Stefan Buehler */
+void GriddedField4ExtractFromArrayOfGriddedField4(
+      // WS Generic Output:
+      GriddedField4&          m,
+      // WS Generic Output Names:
+      const String&    m_name,
+      // WS Input:
+      // WS Generic Input:
+      const ArrayOfGriddedField4&   t3,
+      const Index&     index,
+      // WS Generic Input Names:
+      const String&    t3_name,
+      const String&    index_name )
+{
+  if( index >= t3.nelem() )
+    {
+      ostringstream os;
+      os << "The value of *" << index_name << "* (" << index 
+         << "is outside the range of *" << t3_name << "*.";
+      throw runtime_error( os.str() );
+
+    }
+  out3 << "  Copying GriddedField4 " << index << " of *" << t3_name
+       << "* to create *" << m_name << "*.\n";
+
+
+  // I simply use the copy operator here, since I'm too lazy to go
+  // through all members of the structure to resize them. That is not
+  // necessary, since sizes are adjusted automatically.
+  m = t3[index];
+}
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated 
@@ -323,38 +365,75 @@ void ybatchCalc_implementation(
 {
   Vector y;
   bool is_first = true;
+  Index first_ybatch_index = 0;
 
+  while (is_first && first_ybatch_index < ybatch_n)
+    {
+      out2 << "  Doing job " << first_ybatch_index+1 << " of " << ybatch_n << "\n";
+      try
+        {
+          ybatch_calc_agendaExecute( y, first_ybatch_index, ybatch_calc_agenda, false );
+          // The false flag at the end means that agenda output is
+          // not suppressed.
+
+          // The size of ybatch has to be set after the first job
+          // has run successfully.
+          ybatch.resize( y.nelem(), ybatch_n); 
+
+          // Initialize with "-1" everywhere. This will also take
+          // care of the case that there were some unsuccessful
+          // jobs before the first successful one.
+          ybatch = -1;
+
+          is_first = false;
+
+          ybatch( joker, first_ybatch_index ) = y;
+        }
+      catch (runtime_error e)
+        {
+          if (robust)
+            {
+              out0 << "WARNING! Job failed. Output variable ybatch will be set\n"
+                << "to -1 for this job. The runtime error produced was:\n"
+                << e.what() << "\n";
+
+              // No need to set ybatch to -1 here, since it is initialized
+              // with that value.
+            }
+          else
+            {
+              // The user wants the batch job to fail if one of the
+              // jobs goes wrong.
+              throw runtime_error(e.what());
+            }
+        }
+      first_ybatch_index++;
+    }
+
+  extern Messages messages;
+  Messages messages_original( messages );
+
+#ifdef _OPENMP
+#pragma omp parallel private(y)
+#pragma omp for 
+#endif
   // Go through the batch:
-  for( Index ybatch_index=0; ybatch_index<ybatch_n; ybatch_index++ )
+  for(Index ybatch_index = first_ybatch_index; ybatch_index<ybatch_n;
+      ybatch_index++ )
     {
       out1 << "  Doing job " << ybatch_index+1 << " of " << ybatch_n << "\n";
       try
         {
-          if (is_first)
-            {
-              ybatch_calc_agendaExecute( y, ybatch_index, ybatch_calc_agenda, false );
-              // The false flag at the end means that agenda output is
-              // not suppressed.
-
-              // The size of ybatch has to be set after the first job
-              // has run successfully.
-              ybatch.resize( y.nelem(), ybatch_n); 
-
-              // Initialize with "-1" everywhere. This will also take
-              // care of the case that there were some unsuccessful
-              // jobs before the first successful one.
-              ybatch = -1;
-
-              is_first = false;
-            }
-          else
-            {
-              ybatch_calc_agendaExecute( y, ybatch_index, ybatch_calc_agenda, true );
-              // We are surpressing agenda output here, since this is too
-              // much to be useful. (The true flag at the end does this.)          
-            }
-
+          ybatch_calc_agendaExecute( y, ybatch_index, ybatch_calc_agenda,
+                                     true, true );
+          // We are surpressing agenda output here, since this is too
+          // much to be useful. (The true flag at the end does this.)          
           ybatch( joker, ybatch_index ) = y;
+
+#ifdef _OPENMP
+#pragma omp critical(message_level)
+          messages = messages_original;
+#endif
         }
       catch (runtime_error e)
         {
@@ -375,6 +454,7 @@ void ybatchCalc_implementation(
             }
         }
     }
+  messages = messages_original;
 }
 
 

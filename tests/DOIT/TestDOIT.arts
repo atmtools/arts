@@ -11,11 +11,9 @@
 # performed are marked with ===start=== and ===stop===.
 #
 
-Main {
+Arts {
 
-# Output file format
-# ------------------  
-output_file_formatSetAscii{}
+INCLUDE "general"
 
 # Frequency grid 
 # --------------
@@ -35,8 +33,6 @@ IndexSet( stokes_dim ){
 
 # Definition of the atmosphere
 # ----------------------------
-# Atmospheric dimension
-AtmosphereSet1D{}
 
 # Pressure grid
 ReadXML( p_grid ){
@@ -55,31 +51,19 @@ AtmRawRead{
 
 # Gas absorption from lookup table 
 # ---------------------------------
-abs_lookupInit{}
 
 # Lookup tables can be computed using the MATLAB (please contact Stefan)
 ReadXML( abs_lookup ){
    "gas_abs_lookup.xml"
 }
    	
-abs_lookupAdapt{}
+abs_lookupAdapt
 
 AgendaSet( abs_scalar_gas_agenda ){
-   abs_scalar_gasExtractFromLookup{}
+   abs_scalar_gasExtractFromLookup
 }
 
-AtmFieldsCalc{}
-
-AgendaSet( emission_agenda ){
-   emissionPlanck{}
-}
-
-AgendaSet( opt_prop_gas_agenda ){
-   ext_matInit{}
-   abs_vecInit{}
-   ext_matAddGas{}
-   abs_vecAddGas{}
-}
+AtmFieldsCalc
 
 
 # Definition of Earth surface
@@ -92,8 +76,8 @@ r_geoidSpherical{
 }
 
 # Ground altitude (measured from geoid)
-nrowsGet(r_geoid){}
-ncolsGet(r_geoid){}
+nrowsGet(r_geoid)
+ncolsGet(r_geoid)
 MatrixSet( z_surface){
     value = 500
 }
@@ -103,7 +87,7 @@ MatrixSet( z_surface){
 AgendaSet(surface_prop_agenda){
            InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
            surfaceFlat{"water-liebe93"}
-#           surfaceBlackbody{}
+#           surfaceBlackbody
         }
 
 
@@ -122,7 +106,7 @@ VectorSet(vector_1){
 #}
 
 # Sensor altitude from earth surface
-nelemGet(vector_1){}
+nelemGet(vector_1)
 VectorSet( vector_2 ) {
    value =  95000.1
 }
@@ -132,20 +116,12 @@ VectorAddScalar(vector_2, vector_2){
     value = 6.378e6
     }
 
-Matrix1ColFromVector( sensor_pos, vector_2 ) {}
-Matrix1ColFromVector( sensor_los, vector_1 ) {}
+Matrix1ColFromVector( sensor_pos, vector_2 )
+Matrix1ColFromVector( sensor_los, vector_1 )
 
 # SensorOff means that the result of the calculation are the radiances,
 # which are not modified by sensor properties
 sensorOff{}		
-
-# No jacobian calaculations here
-jacobianOff{}		
-
-# Agendas for the calculation of propagation paths
-AgendaSet( refr_index_agenda ) {
-  refr_indexThayer{}
-}
 
 # This should be sufficiently small to assume single scattering in 
 # one propagation path step
@@ -158,13 +134,13 @@ AgendaSet( ppath_step_agenda ) {
 # Agendas for clearsky radiative transfer calculation
 # ----------------------------------------------------
 AgendaSet( iy_space_agenda ){
-  Ignore(rte_pos){}
-  Ignore(rte_los){}
-  MatrixCBR( iy, f_grid ){}
+  Ignore(rte_pos)
+  Ignore(rte_los)
+  MatrixCBR( iy, f_grid )
 }
 
 AgendaSet( rte_agenda ){
-   RteStd{}
+   RteStd
 }
 
 # Set the cloudbox limits (pressure units)
@@ -181,7 +157,7 @@ lon2=0
 
 # Specification of cloud
 # -----------------------
-ParticleTypeInit{}
+ParticleTypeInit
 
 # Only one particle type is added in this example 
 ParticleTypeAdd{
@@ -189,7 +165,7 @@ filename_scat_data="p30f229-231T214-225r100NP-1ar1_5ice.xml"
 filename_pnd_field="pnd_field_1D.xml"
 }
 
-pnd_fieldCalc{}
+pnd_fieldCalc
 
 
 # Select interpolation method ('linear' or 'polynomial'):
@@ -222,16 +198,16 @@ DoitAngularGridsSet{
 # Ouput: the scattered field on the cloudbox boundary
 AgendaSet(doit_mono_agenda){
  # Prepare scattering data for DOIT calculation (Optimized method):
-   DoitScatteringDataPrepare{}
+   DoitScatteringDataPrepare
  # Alternative method (needs less memory):
- # scat_data_monoCalc{}
+ # scat_data_monoCalc
  # Set first guess field:		
-   doit_i_fieldSetClearsky{}
+   doit_i_fieldSetClearsky
  # Perform iterations: 1. scattering integral. 2. RT calculations with 
  #   fixed scattering integral field, 3. convergence test 
-   doit_i_fieldIterate{}
+   doit_i_fieldIterate
  # Put solution into interface for clearsky calculation   
-   DoitCloudboxFieldPut{}
+   DoitCloudboxFieldPut
  # Write the radiation field inside the cloudbox:
    WriteXML(doit_i_field){"doit_i_field.xml.generated"}
  }		
@@ -245,13 +221,13 @@ AgendaSet(doit_mono_agenda){
 # Calculation of the phase matrix
 AgendaSet(pha_mat_spt_agenda){
  # Optimized option:
-   pha_mat_sptFromDataDOITOpt{}
+   pha_mat_sptFromDataDOITOpt
  # Alternative option:
  #  pha_mat_sptFromMonoData{}
 }
 
 AgendaSet(doit_scat_field_agenda){
- doit_scat_fieldCalcLimb{}
+ doit_scat_fieldCalcLimb
  # Alternative: use the same za grids in RT part and scattering integral part
  # doit_scat_fieldCalc{} 
 }
@@ -261,14 +237,14 @@ AgendaSet(doit_scat_field_agenda){
 
 AgendaSet(doit_rte_agenda){
    # Sequential update for 1D
-  doit_i_fieldUpdateSeq1D{}
+  doit_i_fieldUpdateSeq1D
    # Alternatives:
    # Plane parallel approximation for determination of propagation path steps
-   #   doit_i_fieldUpdateSeq1DPP{}
+   #   doit_i_fieldUpdateSeq1DPP
    # Without sequential update (not efficient):
    #   doit_i_fieldUpdate1D
    # 3D atmosphere:
-   #   doit_i_fieldUpdateSeq3D{}
+   #   doit_i_fieldUpdateSeq3D
 }
 
 # Calculate opticle properties of particles and add particle absorption
@@ -276,14 +252,14 @@ AgendaSet(doit_rte_agenda){
 # absorption:
 
 AgendaSet(spt_calc_agenda){
-   opt_prop_sptFromMonoData{}
+   opt_prop_sptFromMonoData
 }
 
 AgendaSet( opt_prop_part_agenda ){
-   ext_matInit{}
-   abs_vecInit{}
-   ext_matAddPart{}
-   abs_vecAddPart{}
+   ext_matInit
+   abs_vecInit
+   ext_matAddPart
+   abs_vecAddPart
 }
 	
 
@@ -307,25 +283,27 @@ AgendaSet( doit_conv_test_agenda) {
 }
 
 AgendaSet(iy_cloudbox_agenda){
-    DoNothing (ppath, ppath) {}
-    DoNothing (rte_pos, rte_pos) {}
-    DoNothing (rte_los, rte_los) {}
-    iyInterpCloudboxField{}
+    DoNothing (ppath, ppath)
+    DoNothing (rte_pos, rte_pos)
+    DoNothing (rte_los, rte_los)
+    iyInterpCloudboxField
     }
 
 #==================start==========================
 
 # Perform scattering calculation 
-CloudboxGetIncoming{}
+CloudboxGetIncoming
 # Initialize Doit variables
-DoitInit{}
+DoitInit
 # Executes doit_mono_agenda for all frequencies
-ScatteringDoit{}
+ScatteringDoit
 
 # Calculate RT from cloudbox boundary to the sensor
-RteCalc{}
+#
+StringSet( y_unit ){ "RJBT" }
+#
+RteCalc
     
-VectorToTbByRJ( y, y ) {}
 
 Print(y){
 level=1

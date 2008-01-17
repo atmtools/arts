@@ -35,8 +35,6 @@
 #include <stack>
 
 #include "array.h"
-#include "wsv_aux.h"
-#include "auto_wsv.h"
 
 //! Workspace class
 /*!
@@ -54,10 +52,10 @@ private:
   Array< stack<WsvStruct *> > ws;
 
   //! Memory handler for allocation and deallocation of WSVs.
-  WorkspaceMemoryHandler wsmh;
 
 public:
   Workspace ();
+  Workspace (const Workspace& workspace);
   virtual ~Workspace ();
 
   //! Checks existence of the given WSV.

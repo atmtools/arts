@@ -48,7 +48,7 @@
 
 const binio::Flags binio::system_flags = binio::detect_system_flags();
 
-const binio::Flags binio::detect_system_flags()
+binio::Flags binio::detect_system_flags()
 {
   Flags f = 0;
 

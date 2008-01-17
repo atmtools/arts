@@ -256,21 +256,22 @@ void interp_scat_angle_temperature(//Output:
    Interpolates several arrays calculated by TarrayCalc to give values at a 
    given pathlength
 
-   \param   T             Output: transmittance matrix ( I may have made this term up ).
-   \param   K_abs         Output: absorption coefficient vector
-   \param   temperature   Output: 
-   \param   K             Output: extinction matrix at interpolation point
-   \param   rte_pos         Output: position at pathlength along ppath
-   \param   rte_los         Output: LOS at pathlength along ppath
-   \param   gp            Output: Gridpos of interpolated point
-   \param   TArray        array of transmittance matrices
-   \param   ext_matArray  array of extinction matrices
-   \param   abs_vecArray  array of absorption coefficients
-   \param   t_ppath       array of temperatures
-   \param   cum_l_step    vector of cumulative pathlengths
-   \param   pathlength    pathlength at which to calculate above values
-   \param   stokes_dim    length of Stokes vector
-   \param   ppath         the Ppath
+   \param[out]  T             transmittance matrix ( I may have made this term up ).
+   \param[out]  K_abs         absorption coefficient vector
+   \param[out]  temperature   temperature
+   \param[out]  K             extinction matrix at interpolation point
+   \param[out]  rte_pos       position at pathlength along ppath
+   \param[out]  rte_los       LOS at pathlength along ppath
+   \param[in]   pnd_vec       pnd vector
+   \param[in]   TArray        array of transmittance matrices
+   \param[in]   ext_matArray  array of extinction matrices
+   \param[in]   abs_vecArray  array of absorption coefficients
+   \param[in]   t_ppath       array of temperatures
+   \param[in]   pnd_ppath     array of pressures
+   \param[in]   cum_l_step    vector of cumulative pathlengths
+   \param[in]   pathlength    pathlength at which to calculate above values
+   \param[in]   stokes_dim    length of Stokes vector
+   \param[in]   ppath         the Ppath
 
 
    \author Cory Davis

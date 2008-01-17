@@ -1813,6 +1813,43 @@ Numeric min(const ConstMatrixView& x)
   return min;
 }
 
+/** Mean function, vector version. */
+Numeric mean(const ConstVectorView& x)
+{
+  // Initial value for mean:
+  Numeric mean = 0;
+
+  const ConstIterator1D xe = x.end();
+  ConstIterator1D       xi = x.begin();
+
+  for ( ; xi!=xe ; ++xi ) mean += *xi;
+
+  mean /= x.nelem();
+  
+  return mean;
+}
+
+/** Mean function, matrix version. */
+Numeric mean(const ConstMatrixView& x)
+{
+  // Initial value for mean:
+  Numeric mean = 0;
+
+  const ConstIterator2D rxe = x.end();
+  ConstIterator2D        rx = x.begin();
+
+  for ( ; rx!=rxe ; ++rx )
+    {
+      const ConstIterator1D cxe = rx->end();
+      ConstIterator1D        cx = rx->begin();
+
+      for ( ; cx!=cxe ; ++cx ) mean += *cx;
+    }
+  
+  mean /= x.nrows()*x.ncols();
+
+  return mean;
+}
 
 /** Assignment operator from Array<Numeric>. This copies the data from
     an Array<Numeric> to this VectorView. Dimensions must agree! 

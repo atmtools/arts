@@ -10,11 +10,9 @@
 # The DISORT calculation is set up in a very similar way to the 
 # DOIT calculation. 
 
-Main {
+Arts {
 
-# Output file format
-# ------------------  
-output_file_formatSetAscii{}
+INCLUDE "general"
 
 # Frequency grid 
 # --------------
@@ -25,17 +23,6 @@ VectorSet(f_grid){
         value = 230e9
 }
  
-
-# Number of Stokes components to be computed
-#-------------------------------------------
-IndexSet( stokes_dim ){
-  value = 1
-}
-
-# Definition of the atmosphere
-# ----------------------------
-# Atmospheric dimension
-AtmosphereSet1D{}
 
 # Pressure grid
 ReadXML( p_grid ){
@@ -54,31 +41,20 @@ AtmRawRead{
 
 # Gas absorption from lookup table 
 # ---------------------------------
-abs_lookupInit{}
+abs_lookupInit
 
 # Lookup tables can be computed using the MATLAB (please contact Stefan)
 ReadXML( abs_lookup ){
    "data/gas_abs_lookup.xml"
 }
    	
-abs_lookupAdapt{}
+abs_lookupAdapt
 
 AgendaSet( abs_scalar_gas_agenda ){
-   abs_scalar_gasExtractFromLookup{}
+   abs_scalar_gasExtractFromLookup
 }
 
-AtmFieldsCalc{}
-
-AgendaSet( emission_agenda ){
-   emissionPlanck{}
-}
-
-AgendaSet( opt_prop_gas_agenda ){
-   ext_matInit{}
-   abs_vecInit{}
-   ext_matAddGas{}
-   abs_vecAddGas{}
-}
+AtmFieldsCalc
 
 
 # Definition of Earth surface
@@ -91,8 +67,8 @@ r_geoidSpherical{
 }
 
 # Ground altitude (measured from geoid)
-nrowsGet(r_geoid){}
-ncolsGet(r_geoid){}
+nrowsGet(r_geoid)
+ncolsGet(r_geoid)
 MatrixSet( z_surface){
     value = 500
 }
@@ -104,9 +80,9 @@ MatrixSet( surface_emissivity_field){
 # Properties of surface
 
 AgendaSet(surface_prop_agenda){
-           Ignore (rte_los) {}
-           InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
-           surfaceBlackbody{}
+           Ignore (rte_los)
+           InterpAtmFieldToRteGps( surface_skin_t, t_field )
+           surfaceBlackbody
         }
 
 
@@ -135,20 +111,12 @@ VectorAddScalar(vector_2, vector_2){
     value = 6.378e6
     }
 
-Matrix1ColFromVector( sensor_pos, vector_2 ) {}
-Matrix1ColFromVector( sensor_los, vector_1 ) {}
+Matrix1ColFromVector( sensor_pos, vector_2 )
+Matrix1ColFromVector( sensor_los, vector_1 )
 
 # SensorOff means that the result of the calculation are the radiances,
 # which are not modified by sensor properties
-sensorOff{}		
-
-# No jacobian calaculations here
-jacobianOff{}		
-
-# Agendas for the calculation of propagation paths
-AgendaSet( refr_index_agenda ) {
-  refr_indexThayer{}
-}
+sensorOff
 
 # This should be sufficiently small to assume single scattering in 
 # one propagation path step
@@ -161,9 +129,9 @@ AgendaSet( ppath_step_agenda ) {
 # Agendas for clearsky radiative transfer calculation
 # ----------------------------------------------------
 AgendaSet( iy_space_agenda ){
-   Ignore( rte_pos ){}
-   Ignore( rte_los ){}
-   MatrixCBR( iy, f_grid ){}
+   Ignore( rte_pos )
+   Ignore( rte_los )
+   MatrixCBR( iy, f_grid )
 }
 
 AgendaSet( rte_agenda ){
@@ -175,9 +143,9 @@ AgendaSet( rte_agenda ){
     
 # Special DISORT function, because cloudbox needs to be extended over the 
 # ehole atmosphere
-cloudboxSetDisort{}
+cloudboxSetDisort
 
-ParticleTypeInit{}
+ParticleTypeInit
 
 # Only one particle type is added in this example
 # Note that you must use p20 data, because disort only works with this
@@ -187,8 +155,8 @@ filename_scat_data="data/scat_data_disort.xml"
 filename_pnd_field="data/pnd_field_1D.xml"
 }
 
-pnd_fieldCalc{}
-scat_data_rawCheck{}
+pnd_fieldCalc
+scat_data_rawCheck
 
 # Select interpolation method ('linear' or 'polynomial'):
 # ----------------------------------------------------
@@ -207,32 +175,35 @@ DoitAngularGridsSet{
 # absorption:
 
 AgendaSet(spt_calc_agenda){
-   opt_prop_sptFromMonoData{}
+   opt_prop_sptFromMonoData
 }
 
 AgendaSet( opt_prop_part_agenda ){
-   ext_matInit{}
-   abs_vecInit{}
-   ext_matAddPart{}
-   abs_vecAddPart{}
+   ext_matInit
+   abs_vecInit
+   ext_matAddPart
+   abs_vecAddPart
 }
 	
 AgendaSet(iy_cloudbox_agenda){
-    DoNothing (ppath, ppath) {}
-    DoNothing (rte_pos, rte_pos) {}
-    DoNothing (rte_los, rte_los) {}
-    iyInterpCloudboxField{}
+    DoNothing (ppath, ppath)
+    DoNothing (rte_pos, rte_pos)
+    DoNothing (rte_los, rte_los)
+    iyInterpCloudboxField
     }
 
 
 #==================start==========================
 
 # Perform scattering calculation 
-ScatteringDisort{}
+ScatteringDisort
     
 # Calculate RT from cloudbox boundary to the sensor
-RteCalc{}
-VectorToTbByRJ( y, y ) {}
+#
+StringSet( y_unit ){ "RJBT" }
+#
+RteCalc
+
 
 Print(y){
 level=1

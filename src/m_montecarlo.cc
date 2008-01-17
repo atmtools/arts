@@ -208,7 +208,7 @@ void MCGeneral(
                const Tensor4&        pnd_field,
                const ArrayOfSingleScatteringData& scat_data_mono,
                const Index&          mc_seed,
-               const String&         mc_unit,
+               const String&         y_unit,
                //Keyword params
                const Numeric&        std_err,
                const Index&          max_time,
@@ -258,20 +258,21 @@ void MCGeneral(
   Isum=0.0;Isquaredsum=0.0;
   Numeric std_err_i;
   bool convert_to_rjbt=false;
-  if ( mc_unit == "RJBT" )
+  if ( y_unit == "RJBT" )
     { 
       std_err_i=f_grid[0]*f_grid[0]*2*BOLTZMAN_CONST/SPEED_OF_LIGHT/SPEED_OF_LIGHT*
         std_err;
       convert_to_rjbt=true;
     }
-  else if ( mc_unit == "radiance" )
+  else if ( y_unit == "1" )
     {
       std_err_i=std_err;
     }
   else
     {
       ostringstream os;
-      os << "invalid value for mc_units - " << mc_unit <<". Must be \"RJBT\" or \"radiance\".";
+      os << "Invalid value for *y_unit*:" << y_unit <<".\n" 
+         << "This method allows only the options \"RJBT\" and \"1\".";
       throw runtime_error( os.str() );
     }
       
@@ -464,7 +465,7 @@ void MCIPA(
            const Tensor4&        pnd_field,
            const ArrayOfSingleScatteringData& scat_data_mono,
            const Index&          mc_seed,
-           const String&         mc_unit,
+           const String&         y_unit,
            //Keyword params
            const Numeric&        std_err,
            const Index&          max_time,
@@ -513,20 +514,21 @@ void MCIPA(
   Isum=0.0;Isquaredsum=0.0;
   Numeric std_err_i;
   bool convert_to_rjbt=false;
-  if ( mc_unit == "RJBT" )
+  if ( y_unit == "RJBT" )
     { 
       std_err_i=f_grid[0]*f_grid[0]*2*BOLTZMAN_CONST/SPEED_OF_LIGHT/SPEED_OF_LIGHT*
         std_err;
       convert_to_rjbt=true;
     }
-  else if ( mc_unit == "radiance" )
+  else if ( y_unit == "1" )
     {
       std_err_i=std_err;
     }
   else
     {
       ostringstream os;
-      os << "invalid value for mc_units - " << mc_unit <<". Must be \"RJBT\" or \"radiance\".";
+      os << "Invalid value for *y_unit*:" << y_unit <<".\n" 
+         << "This method allows only the options \"RJBT\" and \"1\".";
       throw runtime_error( os.str() );
     }
       
@@ -856,7 +858,6 @@ void ScatteringMonteCarlo (
   Vector boundarycontri(stokes_dim);//eq 16 ref1
   Numeric g_los_csc_theta;//eq. 11 ref1 divided by sin(\theta) 
   Numeric albedo;//eq. 9 ref1
-  Numeric dist_to_boundary; //Distance to the far boundary of the cloudbox
   Index N_pt=pnd_field.nbooks();//Number of particle types
   Vector pnd_vec(N_pt); //Vector of particle number densities used at each point
   time_t start_time=time(NULL);
@@ -934,7 +935,6 @@ void ScatteringMonteCarlo (
       cum_l_step=cum_l_stepLOS;
       t_ppath=t_ppathLOS;
       pnd_ppath=pnd_ppathLOS;
-      dist_to_boundary=cum_l_step[ppathcloud.np-1];
          
       if (silent==0){cout<<"mc_iteration_count = "<<mc_iteration_count<<"\n";}
       while (keepgoing)

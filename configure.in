@@ -13,17 +13,17 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-
 AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.1209)
+AM_INIT_AUTOMAKE(arts,1.2.0)
 
 dnl Put the ACLOCAL flags in the Makefile
 ACLOCAL="$ACLOCAL -I m4 $ACLOCAL_FLAGS"
 
 AM_MAINTAINER_MODE
+
 
 #
 # First of all set the default PREFIX if not given
@@ -32,6 +32,11 @@ AM_MAINTAINER_MODE
 if test x${prefix} = xNONE; then
   prefix="/usr/local"
 fi
+
+# If FLAGS are not set, we set them explicitly empty to prevent
+# autoconf from adding its default -O2 -g switches
+test "$CFLAGS" || CFLAGS=""
+test "$CXXFLAGS" || CXXFLAGS=""
 
 # C Compiler:
 AC_PROG_CC
@@ -45,16 +50,28 @@ AC_PROG_CXXCPP
 AC_PROG_RANLIB
 # What's used by make install:
 AC_PROG_INSTALL
+# Check for compiler vendor
+AX_COMPILER_VENDOR
+AC_LANG_PUSH([C++])
+AX_COMPILER_VENDOR
+AC_LANG_POP([C++])
 
+#
 # Check for python
+#
 AC_CHECK_PROG(ac_python, python, yes, no)
 if test x$ac_python = xno; then
   AC_MSG_ERROR([Python not found - Get it from http://www.python.org/])
 fi
 
+#
 # Provide standard headers:
+#
 AC_STDC_HEADERS
+
+#
 # Check features of c++ compiler
+#
 AC_CXX_HAVE_STD
 AC_CXX_BOOL
 AC_CXX_STATIC_CAST
@@ -62,7 +79,9 @@ AC_CXX_CONST_CAST
 AC_CXX_TEMPLATES
 AC_CXX_HAVE_SSTREAM
 
+#
 # Check compiler characteristics
+#
 AC_C_INLINE
 AC_C_CONST
 AC_TYPE_SIZE_T
@@ -71,6 +90,7 @@ AC_CHECK_SIZEOF(double, 16)
 AC_CHECK_SIZEOF(int, 4)
 AC_CHECK_SIZEOF(long, 8)
 AC_CHECK_SIZEOF(size_t, 8)
+
 
 # Special headers that we need:
 # AC_HAVE_HEADERS(getopt.h) (now included in the source)
@@ -82,22 +102,15 @@ AC_CHECK_HEADER(math.h, , AC_MSG_ERROR(required header file <math.h> missing))
 AC_CHECK_LIB(m, sin, ,
   AC_MSG_ERROR(function $func not found in math library) )
 
-
-##
-## MPI support
-##
-#AC_ARG_WITH([mpi],
-#  [  --enable-mpi              MPI support (default is no)],
-#  [case "${withval}" in
-#    yes) ac_use_mpi=yes ;;
-#      *) ac_use_mpi=no ;;
-#   esac],
-#  [ac_use_mpi=no])
 #
-#if test x$ac_use_mpi = xyes; then
-#  AC_CHECK_HEADER(mpi.h, AC_DEFINE_UNQUOTED(HAVE_MPI, , Use MPI support), [AC_MSG_ERROR(mpi.h not found)])
-#fi
+# Check for zlib library
+#
+AC_CHECK_LIB(z, gzopen, ac_zlibsupport=yes, ac_zlibsupport=no )
 
+AM_CONDITIONAL(ENABLE_ZLIB, test x$ac_zlibsupport = xyes)
+if test x$ac_zlibsupport = xyes; then
+  AC_DEFINE([ENABLE_ZLIB],[1],[Define to compile with zlib support])
+fi
 
 #
 # Default Numeric type
@@ -112,10 +125,13 @@ esac],[ ac_numeric_type=double ])
 
 AC_MSG_RESULT(Setting Numeric type to $ac_numeric_type)
 AC_DEFINE_UNQUOTED(NUMERIC, $ac_numeric_type, Default Numeric type)
+if test x$ac_numeric_type = xfloat; then
+  AC_DEFINE_UNQUOTED(USE_FLOAT,, Whether float precision is in use)
+fi
+
 if test x$ac_numeric_type = xdouble; then
   AC_DEFINE_UNQUOTED(USE_DOUBLE,, Whether double precision is in use)
 fi
-
 
 #
 # Default Index type
@@ -133,12 +149,13 @@ esac],[ ac_index_type=long ])
 AC_MSG_RESULT(Setting Index type to $ac_index_type)
 AC_DEFINE_UNQUOTED(INDEX, $ac_index_type, Default Index type)
 
+
 #
 # Detect/disable Disort
 #
 AC_MSG_CHECKING(whether Disort should be supported)
 AC_ARG_ENABLE(disort,
-[  --enable-disort         Disable Disort support (default=disabled)],
+[  --enable-disort          Enable Disort support (default=no)],
 [case "${enableval}" in
    yes) AC_MSG_RESULT([yes]);
    AC_CHECK_HEADER(f2c.h, ac_disort=yes, AC_MSG_ERROR([cannot find f2c.h which is required for disort])) ;;
@@ -150,12 +167,13 @@ if test x$ac_disort = xyes; then
   AC_DEFINE([ENABLE_DISORT],[1],[Define to compile with disort support])
 fi
 
+
 #
 # Enable/disable debugging
 #
 AC_MSG_CHECKING(whether debugging should be activated)
 AC_ARG_ENABLE(debug,
-[  --enable-debug           Activate debugging mode (default=no)],
+[  --enable-debug           Enable debugging mode (default=no)],
 [case "${enableval}" in
   yes) ac_debug=yes ;;
    no) ac_debug=no ;;
@@ -163,6 +181,33 @@ AC_ARG_ENABLE(debug,
 esac],[ ac_debug=$USE_MAINTAINER_MODE ])
 AM_CONDITIONAL(DEBUGGING, test x$ac_debug = xyes)
 AC_MSG_RESULT([$ac_debug])
+
+
+#
+# Enable/disable optimizations
+#
+AC_MSG_CHECKING(whether optimizations should be activated)
+AC_ARG_ENABLE(optimize,
+[  --enable-optimize        Enable compiler optimizations (default=yes)],
+[case "${enableval}" in
+  yes) ac_optimize=yes ;;
+   no) ac_optimize=no ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-optimize) ;;
+  esac],[ ac_optimize=yes ])
+AM_CONDITIONAL(OPTIMIZE, test x$ac_optimize = xyes)
+AC_MSG_RESULT([$ac_optimize])
+
+
+AC_MSG_CHECKING(whether advanced optimizations should be activated)
+AC_ARG_ENABLE(full-optimize,
+[  --enable-full-optimize        Enable advanced compiler optimizations (default=no)],
+[case "${enableval}" in
+  yes) ac_full_optimize=yes ;;
+   no) ac_full_optimize=no ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-full-optimize) ;;
+  esac],[ ac_full_optimize=no ])
+AM_CONDITIONAL(OPTIMIZE, test x$ac_full_optimize = xyes)
+AC_MSG_RESULT([$ac_full_optimize])
 
 
 #
@@ -177,6 +222,35 @@ AC_ARG_ENABLE(more-warnings,
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-more-warnings) ;;
 esac],[ ac_more_warnings=no ])
 AC_MSG_RESULT([$ac_more_warnings])
+
+
+#
+# Enable/disable vectorization
+#
+AC_MSG_CHECKING(whether vectorization should be enabled)
+AC_ARG_ENABLE(vectorize,
+[  --disable-vectorize      Disable OpenMP vectorization (default=auto)],
+[case "${enableval}" in
+   no) ax_openmp=no ;;
+   *) ax_openmp=auto;; esac
+   ],[ax_openmp=auto])
+AC_MSG_RESULT([$ax_openmp])
+
+if test x$ax_openmp = xauto; then
+  # Detect openmp
+  AX_OPENMP(ax_openmp_c=yes,ax_openmp_c=no)
+  AC_LANG_PUSH([C++])
+  AX_OPENMP(ax_openmp_cxx=yes,ax_openmp_cxx=no)
+  AC_LANG_POP([C++])
+
+  if test "$ax_openmp_c" = "yes" -a "$ax_openmp_cxx" = "yes"; then
+    ax_openmp="yes"
+  elif test "$ax_openmp_c" = "no" -a "$ax_openmp_cxx" = "no"; then
+    ax_openmp="no OpenMP support in compiler found"
+  else
+    ax_openmp="partly (check log!)"
+  fi
+fi
 
 
 #
@@ -219,24 +293,116 @@ if test x$ac_docgen = xyes; then
 
 fi
 
+#
+# Set warning flags
+#
 WARNINGCFLAGS=
-if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
-  GCC_MAJOR=`$CC -v 2>&1 | grep '^gcc version' | sed 's/^gcc version \([[0-9]]\)\..*$/\1/'`
+case x$ax_cv_cxx_compiler_vendor in
+  xgnu)
+    AC_CHECK_TOOL(AR,ar)
+    #
+    # GNU Compiler warning flags
+    #
+    GCC_MAJOR=`$CC -v 2>&1 | grep '^gcc version' | sed 's/^gcc version \([[0-9]]\)\..*$/\1/'`
 
-  WARNINGCFLAGS="-W -Wall -Wconversion"
+    WARNINGCFLAGS="-W -Wall -Wconversion"
 
-  if test x$ac_more_warnings = xyes; then
-    WARNINGCFLAGS="$WARNINGCFLAGS -Werror"
+    if test x$ac_more_warnings = xyes; then
+      WARNINGCFLAGS="$WARNINGCFLAGS -Werror"
 
-    # gcc2 produces warnings in standard headers, therefore only
-    # enable it with gcc3 and gcc4
-    if test x$GCC_MAJOR = x3 -o x$GCC_MAJOR = x4; then
-      WARNINGCFLAGS="$WARNINGCFLAGS -Wshadow"
+      # gcc2 produces warnings in standard headers, therefore only
+      # enable it with gcc3 and gcc4
+      if test x$GCC_MAJOR = x3 -o x$GCC_MAJOR = x4; then
+        WARNINGCFLAGS="$WARNINGCFLAGS -Wshadow"
+      fi
     fi
-  fi
 
-fi
+    #
+    # GNU Compiler debug flags
+    #
+    if test x$ac_debug = xyes; then
+      DEBUG_FLAGS="-g"
+    else
+      DEBUG_FLAGS=""
+      CPPFLAGS="-DNDEBUG $CPPFLAGS"
+    fi
 
+    #
+    # GNU Compiler optimization flags
+    #
+    if test x$ac_full_optimize = xyes; then
+      CFLAGS_OPT="-O3"
+      CXXFLAGS_OPT="$CFLAGS_OPT"
+    elif test x$ac_optimize = xyes; then
+      CFLAGS_OPT="-O2"
+      CXXFLAGS_OPT="$CFLAGS_OPT"
+    else
+      CFLAGS_OPT=""
+      CXXFLAGS_OPT=""
+    fi
+
+    CXXFLAGS_NOOPT=""
+    CXXFLAGS="-ftemplate-depth-60 $CXXFLAGS"
+    CXXNOSTRICTALIASING="-fno-strict-aliasing"
+
+    AC_DEFINE_UNQUOTED(_U_, [__attribute((unused))], Macro to ignore unused function parameters)
+    ;;
+  xintel)
+    AC_CHECK_TOOL(AR,xiar)
+    #
+    # Intel Compiler warning flags
+    #
+    WARNINGCFLAGS="-Wall -w1 -diag-disable 383,981,1418,1419"
+
+    if test x$ac_more_warnings = xyes; then
+      WARNINGCFLAGS="$WARNINGCFLAGS -Werror"
+    fi
+
+    #
+    # Intel Compiler debug flags
+    #
+    if test x$ac_debug = xyes; then
+      DEBUG_FLAGS="-g"
+    else
+      DEBUG_FLAGS=""
+      CPPFLAGS="-DNDEBUG $CPPFLAGS"
+    fi
+
+    #
+    # Intel Compiler optimization flags
+    #
+    if test x$ac_full_optimize = xyes; then
+      CFLAGS_OPT="-O3 -ip"
+      CXXFLAGS_OPT="$CFLAGS_OPT"
+    elif test x$ac_optimize = xyes; then
+      CFLAGS_OPT="-O2"
+      CXXFLAGS_OPT="$CFLAGS_OPT"
+    else
+      CFLAGS_OPT=""
+      CXXFLAGS_OPT=""
+    fi
+
+    CXXFLAGS_NOOPT="$CXXFLAGS_OPT"
+    CXXNOSTRICTALIASING=""
+
+    AC_DEFINE_UNQUOTED(_U_, [__attribute((unused))], Macro to ignore unused function parameters)
+
+    #
+    # Intel Compiler linker flags
+    #
+    LDFLAGS="-lstdc++ $LDFLAGS"
+    ;;
+  *)
+    AC_CHECK_TOOL(AR,ar)
+    CFLAGS_OPT="$CFLAGS"
+    CXXFLAGS_OPT="$CXXFLAGS"
+    CFLAGS_NOOPT="$CFLAGS"
+    CXXFLAGS_NOOPT="$CXXFLAGS"
+    CXXNOSTRICTALIASING=""
+    echo "WARNING: UNKNOWN COMPILER VENDOR"
+esac
+
+AC_SUBST(LDFLAGS)
 AC_SUBST(WARNINGCFLAGS)
 
 
@@ -262,29 +428,17 @@ esac
 #
 # Compile flags switches
 #
-if test x$ac_debug = xyes; then
-  DEBUG_FLAGS="-g"
-else
-  DEBUG_FLAGS=""
-  CPPFLAGS="$CPPFLAGS -DNDEBUG"
-fi
+CFLAGS="$DEBUG_FLAGS $CFLAGS $OPENMP_CFLAGS"
+CXXFLAGS="$DEBUG_FLAGS $CXXFLAGS $OPENMP_CXXFLAGS"
 
-CFLAGS="$CFLAGS $DEBUG_FLAGS"
-if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
-  CXXFLAGS_FIXED="$DEBUG_FLAGS -ftemplate-depth-60"
-  CXXFLAGS="$CXXFLAGS $CXXFLAGS_FIXED"
-  CXXNOSTRICTALIASING="-fno-strict-aliasing"
-else
-  CXXFLAGS_FIXED="$CXXFLAGS $DEBUG_FLAGS"
-  CXXFLAGS="$CXXFLAGS_FIXED"
-  CXXNOSTRICTALIASING=""
-fi
-
-AC_SUBST(CXXFLAGS_FIXED)
+AC_SUBST(CFLAGS_OPT)
+AC_SUBST(CFLAGS_NOOPT)
+AC_SUBST(CXXFLAGS_OPT)
+AC_SUBST(CXXFLAGS_NOOPT)
 AC_SUBST(CXXNOSTRICTALIASING)
 
 AM_CONDITIONAL(COMPILE_FLAGS, test "$CXXFLAGS")
-AC_DEFINE_UNQUOTED(COMPILE_FLAGS, "$CXXFLAGS", Compile Flags)
+AC_DEFINE_UNQUOTED(COMPILE_FLAGS, "$CXXFLAGS $CXXFLAGS_OPT", Compile Flags)
 
 AC_OUTPUT([
 arts.spec
@@ -306,6 +460,7 @@ Makefile
          doc/uguide/Figs/Makefile 
       doc/examples/Makefile 
             doc/examples/data/Makefile 
+   includes/Makefile 
    m4/Makefile 
    src/Makefile
    tests/Makefile
@@ -317,22 +472,26 @@ AC_MSG_RESULT([              ARTS configuration summary])
 AC_MSG_RESULT()
 AC_MSG_RESULT([  Maintainer mode          : $USE_MAINTAINER_MODE])
 AC_MSG_RESULT([  Debugging                : $ac_debug])
+AC_MSG_RESULT([  Optimizations            : $ac_optimize])
+AC_MSG_RESULT([  OpenMP support           : $ax_openmp])
 AC_MSG_RESULT([  Numeric type             : $ac_numeric_type])
 AC_MSG_RESULT([  Index type               : $ac_index_type])
+AC_MSG_RESULT([  Zlib support             : $ac_zlibsupport])
 if test x$ac_disort = xno; then
   AC_MSG_RESULT([  Disort                   : no (not enabled or f2c library not found)])
 else
   AC_MSG_RESULT([  Disort                   : yes])
 fi
 
-#AC_MSG_RESULT([  Use MPI                  : $ac_use_mpi])
 AC_MSG_RESULT([  Regenerate documentation : $ac_docgen])
 AC_MSG_RESULT()
-AC_MSG_RESULT([  CPPFLAGS      : $CPPFLAGS])
-AC_MSG_RESULT([  CFLAGS        : $CFLAGS])
-AC_MSG_RESULT([  CXXFLAGS      : $CXXFLAGS])
-AC_MSG_RESULT([  WARNINGCFLAGS : $WARNINGCFLAGS])
-AC_MSG_RESULT([  LDFLAGS       : $LDFLAGS])
+AC_MSG_RESULT([  CC             : $CC])
+AC_MSG_RESULT([  CXX            : $CXX])
+AC_MSG_RESULT([  CPPFLAGS       : $CPPFLAGS])
+AC_MSG_RESULT([  CFLAGS         : $CFLAGS_OPT $CFLAGS])
+AC_MSG_RESULT([  CXXFLAGS       : $CXXFLAGS_OPT $CXXFLAGS])
+AC_MSG_RESULT([  WARNINGFLAGS   : $WARNINGCFLAGS])
+AC_MSG_RESULT([  LDFLAGS        : $LDFLAGS])
 AC_MSG_RESULT([*******************************************************])
 AC_MSG_RESULT()
 

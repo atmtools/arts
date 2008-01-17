@@ -76,7 +76,7 @@ public:
 
   /** The -> operator is needed, so that we can write i->begin() to get
     the 4D iterators. */
-  Tensor4View* const operator->() { return &msv; }
+  Tensor4View* operator->() { return &msv; }
 
   /** Dereferencing. */
   Tensor4View& operator*() { return msv; }
@@ -228,6 +228,9 @@ public:
   // Functions returning iterators:
   ConstIterator5D begin() const;
   ConstIterator5D end()   const;
+
+  //! Destructor
+  virtual ~ConstTensor5View() {};
 
   // Friends:
   friend class Tensor5View;
@@ -401,6 +404,9 @@ public:
   Tensor5View& operator+=(const ConstTensor5View& x);
   Tensor5View& operator-=(const ConstTensor5View& x);
 
+  //! Destructor
+  virtual ~Tensor5View() {};
+
   // Friends:
   // friend class VectorView;
   // friend ConstTensor5View transpose(ConstTensor5View m);
@@ -447,7 +453,7 @@ public:
   void resize(Index s, Index b, Index p, Index r, Index c);
 
   // Destructor:
-  ~Tensor5();
+  virtual ~Tensor5();
 };
 
 

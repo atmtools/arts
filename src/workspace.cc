@@ -729,6 +729,20 @@ void define_wsv_data()
        ),
       GROUP( ArrayOfMatrix_ )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "arrayofmatrix_2" ),
+      DESCRIPTION
+      (
+       "An arbitrary array of matrices.\n"
+       "\n"
+       "This variable shall be treated as a general variable of type\n"
+       "ArrayOfMatrix. It can be used, for example, when some intermediate\n"
+       "data must be generated or to copy some data.\n"
+       "\n"
+       "Usage: Set by user.\n"
+       ),
+      GROUP( ArrayOfMatrix_ )));
 
   wsv_data.push_back
     (WsvRecord
@@ -783,11 +797,6 @@ void define_wsv_data()
        "The order of the fields must be:\n"
        "T[K] z[m] VMR_1[1] ... VMR[2]\n"
        "\n"
-       "It is up to the user to decide which VMR belongs to which species in\n"
-       "an ARTS calculation. The method *AtmFieldsFromCompact* will\n"
-       "simply split up the data found here, and create a *vmr_field* from the\n"
-       "various VMR profiles.\n"
-       "\n"
        "Usage: Used inside batch calculations, to hold successive atmospheric\n"
        "       states from an ArrayOfGriddedField4.\n"
        "\n"
@@ -803,6 +812,18 @@ void define_wsv_data()
        "      Tensor4 data[N_fields][N_p][N_lat][N_lon]\n"
        ),
       GROUP( GriddedField4_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "batch_atm_fields_compact" ),
+      DESCRIPTION
+      (
+       "An array of compact atmospheric states.\n"
+       "\n"
+       "This is used to hold a set of *atm_fields_compact* for batch\n"
+       "calculations. \n"
+       ),
+      GROUP( ArrayOfGriddedField4_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1491,6 +1512,25 @@ void define_wsv_data()
       ),
       GROUP( Vector_ )));
 
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "jacobian_unit" ),
+       DESCRIPTION
+       (
+        "Unit for jacobians calculated in an analytical manner.\n"
+        "\n"
+        "As *y_unit* but applies to analytical jacobians. The unit for\n"
+        "jacobians calculated by perturbations is determined by *y_unit*.\n"
+        "\n"
+        "Units defined as for *y_unit* with two exceptions.\n"
+        " 1. The choice \"PlanckBT\" is not allowed here. \n"
+        " 2. One additional choice exists:\n"
+        " \"-\": Use unit defined by *y_unit*.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+        ),
+       GROUP( String_)));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "jacobian_quantities" ),
@@ -1752,7 +1792,7 @@ void define_wsv_data()
         "\n"
         "Usage: Output from Monte Carlo functions. \n"
         "\n"
-        "Units: Depends on *mc_unit*.\n"
+        "Units: Depends on *y_unit*.\n"
         "\n"
         "Size:  [ stokes_dim ]\n"
         ), 
@@ -1832,7 +1872,7 @@ void define_wsv_data()
         ),
        GROUP( Index_)));
 
-  wsv_data.push_back
+  /*  wsv_data.push_back
     (WsvRecord
      ( NAME( "mc_unit" ),
        DESCRIPTION
@@ -1844,7 +1884,7 @@ void define_wsv_data()
         "\n"
         "Usage: Set by the user.\n"
         ),
-       GROUP( String_)));
+        GROUP( String_)));*/
 
   wsv_data.push_back
    (WsvRecord
@@ -2859,7 +2899,20 @@ void define_wsv_data()
     ( NAME( "sensor_los" ),
       DESCRIPTION
       (
-       "The sensor line-of-sight for each measurement block.\n"
+       "The sensor line-of-sight (LOS) for each measurement block.\n"
+       "\n"
+       "Line-of-sights are specified by giving the zenith and azimuth angles.\n"
+       "Column 1 holds the zenith angle. This angle is simply the angle \n"
+       "between the zenith and LOS directions. For 1D and 3D the valid\n"
+       "range is [0 180], while for 2D angles down to -180 degrees are\n" 
+       "allowed. Negative angles signifie for 2D observations towards\n"
+       "lower latitudes, while positive angles means observations towards\n"
+       "higher latitudes. Nadir corresponds throughout to 180 degrees.\n"
+       "\n"
+       "The azimuth angle is given with respect to the meridian plane. That\n"
+       "is, the plane going through the north and south poles. The valid \n"
+       "range is [-180,180] where angles are counted clockwise; 0 means\n"
+       "that the viewing or propagation direction is north-wise and +90 means\n"        "that the direction of concern goes eastward.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
@@ -2936,6 +2989,15 @@ void define_wsv_data()
       DESCRIPTION
       (
        "The sensor position for each measurement block.\n"
+       "\n"
+       "The sensor positions are specified as a matrix, where the number of\n"
+       "columns shall be equal to *atmosphere_dim*. Column 1 shall contain\n"
+       "the radius of observation posotion, column 2 the latitude and the \n"
+       "last column the longitude. The number of rows corresponds to the\n"
+       "number of measurement blocks.\n" 
+       "\n"
+       "Valid range for latitudes in 3D is [-90,90], while for 2D any value\n"
+       "is accepted. Accepted range for longitudes are [-360,360].\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
@@ -3598,6 +3660,36 @@ void define_wsv_data()
        ),
       GROUP( Vector_ )));
 
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "y_unit" ),
+       DESCRIPTION
+       (
+        "Unit for spectral values returned by radiative transfer methods.\n"
+        "\n"
+        "The basic unit is determined by the definition of background\n"
+        "radiation and atmospheric and surface source terms. The standard\n"
+        "choices corresponds to the unit of radiances [W/m2/Hz/sr]. This\n"
+        "variable allows conversion to other units.\n"
+        "\n"
+        "Possible choices are:\n"
+        " \"1\"       : No conversion.\n"
+        " \"RJBT\"    : Conversion to Rayliegh-Jean brightness temperature.\n"
+        " \"PlanckBT\": Conversion to Planck brightness temperature.\n"
+        "The conversion to brighness temperatures assumes that basic unit is\n"
+        "[W/m2/Hz/sr]. Obtained unit is [K]. \n"
+        "\n"
+        "The conversion is applied on monochromatic pencil beam values. That\n"
+        "is, before any sensor responses have been included.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+        ),
+       GROUP( String_)));
+  // If adding more options for *y_unit*, these needs to be implemented in:
+  //   1. apply_y_unit in rte.cc
+  //   2. yUnit in m_rte.cc
+  //   2. jacobianUnit in m_rte.cc
+  
  wsv_data.push_back
    (WsvRecord
     ( NAME( "ybatch" ),

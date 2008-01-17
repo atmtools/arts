@@ -1,0 +1,123 @@
+Arts {
+
+#
+# initialize the continua tag structures
+#
+abs_cont_descriptionInit
+
+#
+# define the continua tags with the appropriate input
+#
+
+#
+# H2O continuum
+#
+# Rosenkranz-type H2O-H2O continuum:
+abs_cont_descriptionAppend{
+  tagname        = "H2O-SelfContStandardType"
+  model          = "Rosenkranz"
+  userparameters = [ ]
+}
+
+# Rosenkranz-type H2O-dry air continuum
+abs_cont_descriptionAppend{
+  tagname        = "H2O-ForeignContStandardType"
+  model          = "Rosenkranz"
+  userparameters = [ ]
+}
+
+# Rosenkranz H2O continuum
+abs_cont_descriptionAppend{
+  tagname        = "H2O-PWR98"
+  model          = "Rosenkranz"
+  userparameters = [ ]
+}
+
+# Ma Tipping Continuum model
+abs_cont_descriptionAppend{
+  tagname        = "H2O-ForeignContMaTippingType"
+  model          = "MaTipping"
+  userparameters = [ ]
+}
+
+# MPM93-type H2O-air continuum
+abs_cont_descriptionAppend{
+  tagname        = "H2O-ContMPM93"
+  model          = "MPM93"
+  userparameters = [ ]
+}
+
+# CKD2.4 original parameters
+abs_cont_descriptionAppend{
+  tagname        = "H2O-SelfContCKD24"
+  model          = "CKD24"
+  userparameters = [ ]
+}
+
+# CKD2.4 original parameters
+abs_cont_descriptionAppend{
+  tagname        = "H2O-ForeignContCKD24"
+  model          = "CKD24"
+  userparameters = [ ]
+}
+
+#
+# O2 continuum 
+#
+# Standard O2-air continuum
+abs_cont_descriptionAppend{
+  tagname        = "O2-SelfContStandardType"
+  model          = "Rosenkranz"
+  userparameters = [ ]
+}
+
+# Rosenkranz full oxygen continuum
+abs_cont_descriptionAppend{
+  tagname        = "O2-PWR93"
+  model          = "Rosenkranz"
+  userparameters = [ ]
+}
+
+#
+# N2 continuum
+#
+# Rosenkranz N2-N2 continuum (only N2-N2 broadening)
+abs_cont_descriptionAppend{
+  tagname        = "N2-SelfContStandardType"
+  model          = "Rosenkranz"
+  userparameters = [ ]
+}
+
+# MPM93 N2-N2 continuum (only N2-N2 broadening)
+abs_cont_descriptionAppend{
+  tagname        = "N2-SelfContMPM93"
+  model          = "MPM93"
+  userparameters = [ ]
+}
+
+# Borysow-Frommhold original parameters
+abs_cont_descriptionAppend{
+  tagname        = "N2-SelfContBorysow"
+  model          = "BF86"
+  userparameters = [ ]
+}
+
+#
+# CO2 continuum 
+#
+# Rosenkranz CO2-CO2 continuum:
+abs_cont_descriptionAppend{
+  tagname        = "CO2-SelfContPWR93"
+  model          = "Rosenkranz"
+  userparameters = [ ]
+}
+
+# Rosenkranz CO2-N2 continuum:
+abs_cont_descriptionAppend{
+  tagname        = "CO2-ForeignContPWR93"
+  model          = "Rosenkranz"
+  userparameters = [ ]
+}
+
+}
+

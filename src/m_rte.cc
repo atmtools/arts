@@ -98,8 +98,8 @@ void RteCalc(
    const Vector&                     mblock_aa_grid,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
-   //Keyword params
-   const String&                     y_unit )
+   const String&                     y_unit,
+   const String&                     jacobian_unit )
 
 {
   // Consistency checks of input. Also returning some basic sizes
@@ -110,7 +110,7 @@ void RteCalc(
                   lat_grid, lon_grid, z_field, t_field, r_geoid, z_surface,
                   cloudbox_on,  cloudbox_limits, sensor_response, 
                   sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, 
-                  mblock_za_grid, mblock_aa_grid, y_unit );
+                  mblock_za_grid, mblock_aa_grid, y_unit, jacobian_unit );
 
   // Agendas not checked elsewhere
   //
@@ -145,6 +145,10 @@ void RteCalc(
   //
   ppath_array_do = 0;
   //
+  String j_unit = jacobian_unit;
+  if ( jacobian_unit == "-" )
+    { j_unit = y_unit; }
+  //
   for( Index i=0; i<jacobian_quantities.nelem(); i++ )
     {
       if ( jacobian_quantities[i].MainTag() == "Abs. species"  &&  
@@ -177,11 +181,6 @@ void RteCalc(
           ji0_t = ji[0];
           jin_t = nx;
           ib_t_jacs = Matrix(ib.nelem(),nx,0.0);
-        }
-
-      if( ppath_array_do  &&  y_unit != "1" )
-        { throw runtime_error( 
-            "Keyword argument *y_unit* must be \"1\" when doing jacobians." );
         }
     }
 
@@ -281,7 +280,7 @@ void RteCalc(
                                      jacobian_quantities[jqi_vmr[ig]] );
 
                   //--- Unit conversions
-                  apply_y_unit( ib_vmr_jacs[ig], y_unit, f_grid );
+                  apply_y_unit( ib_vmr_jacs[ig], j_unit, f_grid );
                 }
 
               //--- Temperature ---
@@ -293,7 +292,7 @@ void RteCalc(
                                                 jacobian_quantities[jqi_t] );
 
                   //--- Unit conversions
-                  apply_y_unit( ib_t_jacs, y_unit, f_grid );
+                  apply_y_unit( ib_t_jacs, j_unit, f_grid );
                 }
 
               //--- End of jacobian part --------------------------------------
@@ -364,13 +363,14 @@ void RteCalcNoJacobian(
   Matrix                     jacobian;
   ArrayOfRetrievalQuantity   jacobian_quantities;
   ArrayOfArrayOfIndex        jacobian_indices;
+  String                     jacobian_unit;
   ArrayOfArrayOfSpeciesTag   abs_species(0);
   Index                      ppath_array_do;
   ArrayOfPpath               ppath_array;
   Index                      ppath_array_index;
 
 
-  jacobianOff( jacobian, jacobian_quantities, jacobian_indices );
+  jacobianOff( jacobian, jacobian_quantities, jacobian_indices, jacobian_unit );
 
   RteCalc( y, ppath, ppath_step, iy, jacobian, 
            ppath_array_do, ppath_array, ppath_array_index,
@@ -379,7 +379,8 @@ void RteCalcNoJacobian(
            z_field, t_field, vmr_field, abs_species, r_geoid, z_surface, 
            cloudbox_on,  cloudbox_limits, sensor_response, sensor_pos, 
            sensor_los, f_grid, stokes_dim, antenna_dim, mblock_za_grid, 
-           mblock_aa_grid, jacobian_quantities, jacobian_indices, y_unit );
+           mblock_aa_grid, jacobian_quantities, jacobian_indices, 
+           y_unit, jacobian_unit );
 }
 
 
@@ -413,9 +414,8 @@ void RteCalcMC(
    const Index&                         antenna_dim,
    const Vector&                        mblock_za_grid,
    const Vector&                        mblock_aa_grid,
-   const String&                        mc_unit,
-   //Keyword params
    const String&                        y_unit,
+   //Keyword params
    const Numeric&                       std_err,
    const Index&                         max_time,
    const Index&                         max_iter,
@@ -434,7 +434,7 @@ void RteCalcMC(
                     lat_grid, lon_grid, z_field, t_field, r_geoid, z_surface,
                     cloudbox_on,  cloudbox_limits, sensor_response, 
                     sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, 
-                    mblock_za_grid, mblock_aa_grid, y_unit );
+                    mblock_za_grid, mblock_aa_grid, y_unit, "-" );
 
   
   if ( nf > 1 )
@@ -508,7 +508,7 @@ void RteCalcMC(
                     abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, 
                     z_field, r_geoid, z_surface, t_field, vmr_field, 
                     cloudbox_limits, pnd_field, scat_data_mono, 
-                    mc_seed, mc_unit, std_err, max_time, max_iter, 
+                    mc_seed, y_unit, std_err, max_time, max_iter, 
                     z_field_is_1D ); 
                   
                   //--- Unit conversions
@@ -637,3 +637,42 @@ void RteStdWithTransmissions(
            rte_do_gas_jacs, rte_do_t_jacs, true );
 }
 
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void yUnit(
+              Vector&   y,
+        const String&   y_unit,
+        const Matrix&   sensor_pos,
+        const Matrix&   sensor_los,
+        const Vector&   sensor_response_f,
+        const Vector&   sensor_response_za,
+        const Vector&   sensor_response_aa,
+        const Index&    sensor_response_pol )
+{
+  if( y_unit == "1" )
+    {}
+
+  else if( y_unit == "RJBT" )
+    {
+      VectorToRJBT( y, "y", sensor_pos, sensor_los, sensor_response_f,
+                    sensor_response_za, sensor_response_aa, sensor_response_pol,
+                    y, "y" );
+    }
+
+  else if( y_unit == "PlanckBT" )
+    {
+      VectorToPlanckBT( y, "y", sensor_pos, sensor_los, sensor_response_f,
+                    sensor_response_za, sensor_response_aa, sensor_response_pol,
+                    y, "y" );
+    }
+  else
+    {
+      ostringstream os;
+      os << "Unknown option: y_unit = \"" << y_unit << "\"\n"
+         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
+      throw runtime_error( os.str() );      
+    }
+
+}

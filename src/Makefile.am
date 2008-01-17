@@ -15,11 +15,12 @@ EXTRA_DIST = \
 
 bin_PROGRAMS = arts
 
-arts_LDADD = libarts.a libcontinua.a libmatpack.a $(disort_ldflags)
-arts_CFLAGS = $(WARNINGCFLAGS)
+arts_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
+arts_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 arts_SOURCES = main.cc
 
-libarts_a_CFLAGS = $(WARNINGCFLAGS)
+libarts_a_CFLAGS = $(CFLAGS_OPT) $(WARNINGCFLAGS)
+libarts_a_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 libarts_a_SOURCES = \
 	absorption.h \
 	absorption.cc \
@@ -69,6 +70,7 @@ libarts_a_SOURCES = \
 	legendre.h \
 	m_abs.cc \
 	m_agenda.cc \
+	m_append.h \
 	m_atmosphere.cc \
 	m_basic_types.cc \
 	m_basic_types.h \
@@ -84,11 +86,11 @@ libarts_a_SOURCES = \
 	m_scatrte.cc \
 	m_abs_lookup.cc \
 	m_copy.h \
+	m_delete.h \
 	m_ignore.h \
 	m_jacobian.cc \
 	m_montecarlo.cc \
 	m_sensor.cc \
-	m_xml.cc \
 	m_xml.h \
 	m_batch.cc \
 	mc_antenna.cc \
@@ -97,7 +99,6 @@ libarts_a_SOURCES = \
 	mc_interp.h \
 	messages.cc \
 	messages.h \
-	methods.cc \
 	methods.h \
 	methods_aux.cc \
 	montecarlo.cc \
@@ -108,7 +109,6 @@ libarts_a_SOURCES = \
 	parameters.h \
 	parser.cc \
 	parser.h \
-	partition_function_data.cc \
 	ppath.h \
 	ppath.cc \
 	poly_roots.h \
@@ -128,7 +128,6 @@ libarts_a_SOURCES = \
 	sorting.h \
 	special_interp.cc \
 	special_interp.h \
-	species_data.cc \
 	sstream.h \
 	token.cc \
 	token.h \
@@ -157,10 +156,10 @@ libarts_a_SOURCES = \
 	lin_alg.cc \
 	supergeneric.h
 
-libcontinua_a_CFLAGS = $(WARNINGCFLAGS) $(CXXNOSTRICTALIASING)
+libcontinua_a_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS) $(CXXNOSTRICTALIASING)
 libcontinua_a_SOURCES = continua.cc continua.h
 
-libmatpack_a_CFLAGS = $(WARNINGCFLAGS)
+libmatpack_a_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 libmatpack_a_SOURCES = \
 	array.h \
 	complex.h \
@@ -190,7 +189,46 @@ libmatpack_a_SOURCES = \
 	matpackVII.cc \
 	mystring.h
 
-noinst_LIBRARIES = libarts.a libcontinua.a libmatpack.a
+libmethods_a_CXXFLAGS = $(CXXFLAGS_NOOPT) $(WARNINGCFLAGS)
+libmethods_a_SOURCES = \
+	arts.h \
+	auto_wsv.h methods.h \
+	auto_wsv_groups.h \
+	make_array.h \
+	methods.cc
+
+libspecies_data_a_CXXFLAGS = $(CXXFLAGS_NOOPT) $(WARNINGCFLAGS)
+libspecies_data_a_SOURCES = \
+	absorption.h \
+	arts.h \
+	make_array.h \
+	species_data.cc
+
+libpartition_function_data_a_CXXFLAGS = $(CXXFLAGS_NOOPT) $(WARNINGCFLAGS)
+libpartition_function_data_a_SOURCES = \
+	absorption.h \
+	arts.h \
+	make_array.h \
+	partition_function_data.cc
+
+noinst_LIBRARIES = \
+	libarts.a \
+	libcontinua.a \
+	libmatpack.a \
+	libmethods.a \
+	libpartition_function_data.a \
+	libspecies_data.a
+
+if ENABLE_ZLIB
+
+noinst_LIBRARIES += libgzstream.a
+
+libgzstream_a_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
+libgzstream_a_ldflags = libgzstream.a -lz
+libgzstream_a_SOURCES = gzstream.cc gzstream.h
+
+endif
+
 
 if ENABLE_DISORT
 
@@ -200,7 +238,7 @@ disort_ldflags = -lf2c libdisort.a
 
 libarts_a_SOURCES += disort_DISORT.h
 
-libdisort_a_CFLAGS = $(subst -Werror,,$(WARNINGCFLAGS))
+libdisort_a_CFLAGS = $(CFLAGS_OPT) $(subst -Werror,,$(WARNINGCFLAGS))
 libdisort_a_SOURCES = \
 	disort_D1MACH.c \
 	disort_DISORT.c \
@@ -211,35 +249,6 @@ libdisort_a_SOURCES = \
 
 endif
 
-methods.o: methods.cc arts.h make_array.h auto_wsv.h methods.h auto_wsv_groups.h
-	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-		$(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -MT $@ \
-		-MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
-		then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; \
-		else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
-
-species_data.o: species_data.cc arts.h make_array.h absorption.h
-	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-		$(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -MT $@ \
-		-MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
-		then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; \
-		else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
-
-partition_function_data.o: partition_function_data.cc arts.h make_array.h absorption.h
-	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-		$(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -MT $@ \
-		-MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
-		then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; \
-		else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
-
-# OLE: Temporarely added to work around a bug in gcc 3.0
-xml_io.o: xml_io.cc arts.h xml_io.h xml_io_instantiation.h xml_io_private.h xml_io_basic_types.h xml_io_compound_types.h xml_io_array_types.h bofstream.h bifstream.h
-	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-		$(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -MT $@ \
-		-MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
-		then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; \
-		else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
-
 noinst_PROGRAMS = \
 	make_auto_md_cc \
 	make_auto_md_h \
@@ -247,7 +256,7 @@ noinst_PROGRAMS = \
 	make_auto_wsv_h
 
 make_auto_wsv_groups_h_LDADD = libmatpack.a
-make_auto_wsv_groups_h_CFLAGS = $(WARNINGCFLAGS)
+make_auto_wsv_groups_h_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 make_auto_wsv_groups_h_SOURCES = \
 	arts.cc \
 	arts.h \
@@ -257,11 +266,12 @@ make_auto_wsv_groups_h_SOURCES = \
 	m_general.h \
 	make_auto_wsv_groups_h.cc \
 	messages.cc \
+	parameters.cc \
 	version.cc
 
-make_auto_wsv_h_DEPENDENCIES = make_auto_wsv_groups_h$(EXEEXT)
+#make_auto_wsv_h_DEPENDENCIES = make_auto_wsv_groups_h$(EXEEXT)
 make_auto_wsv_h_LDADD = libmatpack.a
-make_auto_wsv_h_CFLAGS = $(WARNINGCFLAGS)
+make_auto_wsv_h_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 make_auto_wsv_h_SOURCES = \
 	agenda_class.h \
 	arts.cc \
@@ -275,15 +285,17 @@ make_auto_wsv_h_SOURCES = \
 	m_general.h \
 	make_auto_wsv_h.cc \
 	messages.cc \
+	parameters.cc \
 	version.cc \
 	workspace.cc \
 	workspace_aux.cc \
 	wsv_aux.h
 
-make_auto_md_h_DEPENDENCIES = make_auto_wsv_h$(EXEEXT) make_auto_wsv_groups_h$(EXEEXT)
-make_auto_md_h_LDADD = libmatpack.a
-make_auto_md_h_CFLAGS = $(WARNINGCFLAGS)
+#make_auto_md_h_DEPENDENCIES = make_auto_wsv_h$(EXEEXT) make_auto_wsv_groups_h$(EXEEXT) libmethods.a
+make_auto_md_h_LDADD = libmethods.a libmatpack.a
+make_auto_md_h_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 make_auto_md_h_SOURCES = \
+	agenda_class.h \
 	agenda_record.cc \
 	agenda_record.h \
 	agendas.cc \
@@ -300,9 +312,9 @@ make_auto_md_h_SOURCES = \
 	make_auto_md_h.cc \
 	messages.cc \
 	messages.h \
-	methods.cc \
 	methods.h \
 	methods_aux.cc \
+	parameters.cc \
 	token.cc \
 	token.h \
 	version.cc \
@@ -312,10 +324,11 @@ make_auto_md_h_SOURCES = \
 	workspace_ng.h \
 	wsv_aux.h
 
-make_auto_md_cc_DEPENDENCIES = make_auto_wsv_h$(EXEEXT) make_auto_wsv_groups_h$(EXEEXT)
-make_auto_md_cc_LDADD = libmatpack.a
-make_auto_md_cc_CFLAGS = $(WARNINGCFLAGS)
+#make_auto_md_cc_DEPENDENCIES = make_auto_wsv_h$(EXEEXT) make_auto_wsv_groups_h$(EXEEXT)
+make_auto_md_cc_LDADD = libmethods.a libmatpack.a
+make_auto_md_cc_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 make_auto_md_cc_SOURCES = \
+	agenda_class.h \
 	agenda_record.cc \
 	agenda_record.h \
 	agendas.cc \
@@ -332,9 +345,9 @@ make_auto_md_cc_SOURCES = \
 	make_auto_md_cc.cc \
 	messages.cc \
 	messages.h \
-	methods.cc \
 	methods.h \
 	methods_aux.cc \
+	parameters.cc \
 	token.cc \
 	token.h \
 	version.cc \
@@ -404,26 +417,26 @@ if ENABLE_DISORT
 noinst_PROGRAMS += test_disort
 
 test_disort_LDADD = $(disort_ldflags)
-test_disort_a_CFLAGS = $(subst -Werror,,$(WARNINGCFLAGS))
+test_disort_a_CFLAGS = $(CFLAGS_OPT) $(subst -Werror,,$(WARNINGCFLAGS))
 test_disort_SOURCES = \
 	disort_DISOTEST.c
 
 endif
 
-test_binaryio_LDADD = libarts.a libcontinua.a libmatpack.a $(disort_ldflags)
-test_binaryio_CFLAGS = $(WARNINGCFLAGS)
+test_binaryio_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
+test_binaryio_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_binaryio_SOURCES = test_binaryio.cc
 
-#test_geomag_calc_LDADD = libarts.a libcontinua.a libmatpack.a $(disort_ldflags)
-#test_geomag_calc_CFLAGS = $(WARNINGCFLAGS)
+#test_geomag_calc_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
+#test_geomag_calc_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 #test_geomag_calc_SOURCES = test_geomag_calc.cc
 
-test_interpolation_LDADD = libarts.a libcontinua.a libmatpack.a $(disort_ldflags)
-test_interpolation_CFLAGS = $(WARNINGCFLAGS)
+test_interpolation_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
+test_interpolation_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_interpolation_SOURCES = test_interpolation.cc
 
 test_legendre_LDADD = libmatpack.a
-test_legendre_CFLAGS = $(WARNINGCFLAGS)
+test_legendre_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_legendre_SOURCES = \
 	constants.cc \
 	legendre.h \
@@ -431,7 +444,7 @@ test_legendre_SOURCES = \
 	test_legendre.cc
 
 test_linalg_LDADD = libmatpack.a
-test_linalg_CFLAGS = $(WARNINGCFLAGS)
+test_linalg_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_linalg_SOURCES = \
 	constants.cc \
 	make_vector.h\
@@ -441,54 +454,54 @@ test_linalg_SOURCES = \
 	test_linalg.cc
 
 test_poly_LDADD = libmatpack.a
-test_poly_CFLAGS = $(WARNINGCFLAGS)
+test_poly_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_poly_SOURCES = \
 	poly_roots.h \
 	poly_roots.cc \
 	test_poly.cc
 
 test_tensor_LDADD = libmatpack.a
-test_tensor_CFLAGS = $(WARNINGCFLAGS)
+test_tensor_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_tensor_SOURCES = \
 	test_tensor.cc
 
 test_matpack_LDADD = libmatpack.a
-test_matpack_CFLAGS = $(WARNINGCFLAGS)
+test_matpack_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_matpack_SOURCES = \
 	describe.h \
 	describe.cc \
 	test_matpack.cc
 
-test_sparse_LDADD = libarts.a libcontinua.a libmatpack.a $(disort_ldflags)
-test_sparse_CFLAGS = $(WARNINGCFLAGS)
+test_sparse_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
+test_sparse_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_sparse_SOURCES = test_sparse.cc
 
-test_xml_LDADD = libarts.a libcontinua.a libmatpack.a $(disort_ldflags)
-test_xml_CFLAGS = $(WARNINGCFLAGS)
+test_xml_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
+test_xml_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_xml_SOURCES = test_xml.cc
 
 test_complex_LDADD = libmatpack.a
-test_complex_CFLAGS = $(WARNINGCFLAGS)
+test_complex_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_complex_SOURCES = test_complex.cc
 
 test_sorting_LDADD = libmatpack.a
-test_sorting_CFLAGS = $(WARNINGCFLAGS)
+test_sorting_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_sorting_SOURCES = \
 	sorting.h \
 	test_sorting.cc
 
-test_sensor_LDADD = libarts.a libcontinua.a libmatpack.a $(disort_ldflags)
-test_sensor_CFLAGS = $(WARNINGCFLAGS)
+test_sensor_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
+test_sensor_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_sensor_SOURCES = test_sensor.cc
 
 test_integration_LDADD = libmatpack.a
-test_integration_CFLAGS = $(WARNINGCFLAGS)
+test_integration_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_integration_SOURCES = \
 	constants.cc \
 	test_integration.cc 
 
 test_readpp_LDADD = libmatpack.a
-test_readpp_CFLAGS = $(WARNINGCFLAGS)
+test_readpp_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_readpp_SOURCES = \
 	bifstream.cc \
 	bifstream.h \

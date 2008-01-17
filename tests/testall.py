@@ -10,13 +10,18 @@ class ArtsRun:
     def run(self):
         """Run the control file"""
         print self.subdir;
-        w,r,e=os.popen3('cd '+os.environ['SRCDIR']+'/'+self.subdir+'; '+os.environ['BUILDDIR']+'/../src/arts '+self.control_file)
+        w,r,e=os.popen3('cd ' + self.subdir + '; '
+                + '../../src/arts '
+                + '-I' + "../" + os.environ['TOPSRCDIR'] + '/includes '
+                + self.control_file)
         self.output=r.read()
         self.error=e.read()
     def get_val(self,name):
         """get a Numeric or vector value from standard output. Always returns a list
         .  This is where numpy would be nice"""
-        str_list=self.output[self.output.index('*'+name+'*'):].splitlines()[1].split()
+        startindex=self.output.index('*'+name+'*')
+        endindex=self.output[startindex+1:].index('*'+name+'*')
+        str_list=self.output[startindex:startindex+endindex].split()[1:]
         #convert to list of floats
         val_list=[]
         for s in str_list:
@@ -128,11 +133,31 @@ class TestClearSky(unittest.TestCase):
         self.CSrun.run()
         assert self.CSrun.error=='','Error running TestClearSky.arts: '+self.CSrun.error
     def test2(self):
-        """Total radiance should be close to 276.523 K"""
-        I=self.CSrun.get_val('y')[0]
-        assert abs(I-276.523) < 0.01, 'I (='+str(I)+'K) is too far away from 276.523 K'
+        """Total radiance should be close to 249.68 K"""
+        I=self.CSrun.get_val('vector_1')[0]
+        assert abs(I-249.68) < 0.01, 'I (='+str(I)+'K) is too far away from 249.68 K'
+    def test3(self):
+        """Difference between on-the-fly and lookup table should be below 0.01 K"""
+        I1=self.CSrun.get_val('vector_1')[0]
+        I2=self.CSrun.get_val('y')[0]
+        assert abs(I2-I1) < 0.02, 'Discrepancy (='+str(I2-I1)+'K) is too far away from 0 K'
 
         
+class TestAMSUB(unittest.TestCase):
+    """Testing AMSU-B calculations"""
+    Amsurun=ArtsRun('AMSUB', 'TestAMSUB.arts')
+    def test1(self):
+        """AMSU-B test should run with no errors"""
+        self.Amsurun.run()
+        assert self.Amsurun.error=='','Error running TestAMSUB.arts: '+self.Amsurun.error
+    def test2(self):
+        """Total radiance should be close to the reference values"""
+        Iref=[206.908, 216.487, 234.643, 219.107, 243.97, 246.883, 237.87, 227.632, 233.211, 233.885, 244.824, 256.532, 272.593, 258.775, 281.049, 280.445, 274.015, 267.47, 271.101, 273.177, 247.158, 242.484, 244.089, 247.547, 246.472, 246.437, 243.072, 242.379, 245.158, 246.549, 261.742, 258.607, 257.91, 260.566, 263.887, 263.914, 257.486, 261.48, 260.261, 263.253, 271.819, 270.812, 271.062, 273.417, 276.509, 275.827, 270.029, 275.638, 271.831, 276.135]
+
+        for k in range (len(Iref)):
+            I=self.Amsurun.get_val('ybatch')[k]
+            assert abs(I-Iref[k]) < 0.01, 'I (='+str(I)+'K) is too far away from '+str(Iref[k])+' K'
+
 class TestAbs(unittest.TestCase):
     """Testing the ARTS Absorption module"""
     Absrun=ArtsRun('Abs', 'TestAbs.arts')

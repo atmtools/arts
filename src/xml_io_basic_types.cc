@@ -537,7 +537,7 @@ xml_read_from_stream (istream& is_xml,
     }
   
   //catch case where string is empty. CPD 29/8/05
-  dummy=is_xml.peek();
+  dummy=(char)is_xml.peek();
   if (dummy=='"')
     {
       str = "";

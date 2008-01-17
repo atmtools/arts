@@ -125,9 +125,9 @@ void MCAntenna::set_gaussian_fwhm (const Numeric& za_fwhm,
 /*!
 The lookup antenna type is not yet implemented
 
-\param za_grid zenith angle grid for the antenna response lookup table
-\param aa_grid azimuthal angle grid for the antenna response lookup table
-\param G_lookup the lookup table data
+\param za_grid_ zenith angle grid for the antenna response lookup table
+\param aa_grid_ azimuthal angle grid for the antenna response lookup table
+\param G_lookup_ the lookup table data
 \author Cory Davis
 \date 2005-12-02
  */

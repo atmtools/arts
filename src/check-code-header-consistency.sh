@@ -3,11 +3,12 @@
 LOGFILE=check-code-header-consistency.log
 echo > $LOGFILE
 
-trap "rm -f test_include.cc; exit" EXIT 1 2 3 9 15
-
 FAILED=0
 EXPECTED_FAIL=0
 FAILED_HEADERS=
+
+trap "rm -f test_include.cc test_include.o; exit \$FAILED" EXIT 1 2 3 9 15
+
 for i in $SRCDIR/*.h
 do
     echo -n "Compiling header $i... "
@@ -16,7 +17,7 @@ do
     echo "#include \"$i\"" > test_include.cc
     echo "int main (void) {return 0;}" >> test_include.cc
 
-    $COMPILE -o check-includes.o $i >> $LOGFILE 2>&1
+    $COMPILE -c test_include.cc >> $LOGFILE 2>&1
 
     if [ $? -eq 0 ]; then
         echo "OK"
@@ -45,8 +46,7 @@ else
     echo $FAILED_HEADERS
     echo
     echo "See $LOGFILE for details"
-    exit 1
 fi
 
-exit 0
+exit $FAILED
 

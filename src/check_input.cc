@@ -1048,7 +1048,7 @@ void chk_size( const String&    x_name,
     \param   sensor_response_f    In: As the WSV with same name.
     \param   sensor_response_za   In: As the WSV with same name.
     \param   sensor_response_aa   In: As the WSV with same name.
-    \param   sensor_pol           In: As the WSV with same name.
+    \param   sensor_response_pol  In: As the WSV with same name.
 
     \author Patrick Eriksson 
     \date   2003-07-13

@@ -41,7 +41,7 @@ void test01()
   a = Complex (1., 1.);
   cout << "a = " << a << "\n";
   cout << "a.abs() = " << abs (a) << "\n";
-  cout << "a.arg()= "<< arg (a)*57.2957914331333 <<"°"<< "\n";
+  cout << "a.arg()= "<< arg (a)*57.2957914331333 <<" degree"<< "\n";
   
 
   Complex c;

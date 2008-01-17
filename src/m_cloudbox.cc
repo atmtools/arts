@@ -44,6 +44,10 @@
 #include <cstdlib>
 #include <cmath>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "arts.h"
 #include "array.h"
 #include "check_input.h"
@@ -734,7 +738,7 @@ void doit_i_fieldSetConst(//WS Output:
  
   if(atmosphere_dim == 1)
     {
-      cout << "atm_dim = 1" << endl; 
+      out3 << "  atm_dim = 1\n"; 
       
     // Define the size of doit_i_field.
     doit_i_field.resize((cloudbox_limits[1] - cloudbox_limits[0])+1, 1, 1,  N_za,
@@ -778,7 +782,7 @@ void doit_i_fieldSetConst(//WS Output:
       
 
       
-      cout << "atm_dim = 3" << endl;      
+      out3 << "atm_dim = 3\n";      
       doit_i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 
                      (cloudbox_limits[3]- cloudbox_limits[2])+1,
                      (cloudbox_limits[5]- cloudbox_limits[4])+1,
@@ -1429,7 +1433,7 @@ void CloudboxGetIncoming(
   // throw runtime_error( "The cloudbox must be activated, and it is not.");
   if( scat_za_grid[0] != 0. || scat_za_grid[Nza-1] != 180. )
         throw runtime_error(
-                     "*scat_za_grid* must include 0° and 180° as endpoints." );
+                     "*scat_za_grid* must include 0 and 180 degrees as endpoints." );
   //--------------------------------------------------------------------------
 
 
@@ -1485,7 +1489,7 @@ void CloudboxGetIncoming(
 
       if( scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360. )
         throw runtime_error(
-                     "*scat_aa_grid* must include 0° and 360° as endpoints." );
+                     "*scat_aa_grid* must include 0 and 360 degrees as endpoints." );
 
       Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
       Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
@@ -1714,10 +1718,10 @@ void CloudboxGetIncoming1DAtm(
 //     throw runtime_error( "The cloudbox must be activated, and it is not.");
   if( scat_za_grid[0] != 0. || scat_za_grid[Nza-1] != 180. )
     throw runtime_error(
-                     "*scat_za_grid* must include 0° and 180° as endpoints." );
+                     "*scat_za_grid* must include 0 and 180 degrees as endpoints." );
   if( scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360. )
     throw runtime_error(
-                     "*scat_aa_grid* must include 0° and 360° as endpoints." );
+                     "*scat_aa_grid* must include 0 and 360 degrees as endpoints." );
   //--------------------------------------------------------------------------
 
   // Dummy variable for flag cloudbox_on. It has to be 0 here not to get

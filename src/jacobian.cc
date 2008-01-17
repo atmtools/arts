@@ -38,57 +38,6 @@ ostream& operator << (ostream& os, const RetrievalQuantity& ot)
   === The functions in alphabetical order
   ===========================================================================*/
 
-//! Appends methods to an agenda
-/*!
-   This function is designed to be called from the jacobian WSMs that add 
-   retrieval quantities and to append their related calculating methods to the
-   jacobian agenda.
-   
-   This function only cares about a method name and a keyword value, therefor 
-   it can not handle agenda methods or generic methods. 
-   The keyword value has to be a string, which for no value should be of length
-   zero.
-   
-   \param agenda        The agenda
-   \param methodname    The name of the WSM
-   \param keywordvalue  The value of the keyword
-   
-   \author Mattias Ekstrom
-   \date   2005-01-05
-*/
-void agenda_append(       Agenda& agenda,
-                    const String& methodname,
-                    const String& keywordvalue)
-{
-  // This should not be a supergeneric method? Therefor take the record 
-  // in md_data. Load the lookup information for workspace methods. 
-  extern const map<String, Index> MdMap;
-  extern const Array<MdRecord> md_data;
-  
-  const MdRecord* mdd;
-  
-  // Find explicit method id in MdMap.
-  const map<String, Index>::const_iterator i2 = MdMap.find(methodname);
-  assert ( i2 != MdMap.end() );
-  Index id = i2->second;            
-          
-  mdd = &md_data[id];
-  
-  Array<TokVal> values(0);
-  ArrayOfIndex output(0);          
-  ArrayOfIndex input(0);
-  Agenda dummy;
-  dummy.resize(0);
-  
-  // If not empty append the keyword value
-  if (keywordvalue.nelem()!=0) 
-    values.push_back(keywordvalue);
-  
-  // Append the method
-  agenda.push_back(MRecord(id,values,output,input,dummy));
-}
-
-
 //! Calculate the number density field
 /*! 
    This function returns the number density for each grid point in the 
@@ -321,11 +270,10 @@ void get_perturbation_gridpos(       ArrayOfGridPos& gp,
    the perturbation grid. The limit indices are checked so 
    that they are ordered in increasing order before return.
    
-   \param limits    The limit indices in the perturbation grid
+   \param limit     The limit indices in the perturbation grid
    \param pert_grid The perturbation grid
    \param atm_limit The atmospheric limits of the box.
-   \return          Boolean for check failure. 
-                  
+
    \author Mattias Ekstrom
    \date   2005-02-25
 */   
@@ -545,14 +493,9 @@ void perturbation_field_3d(       Tensor3View     field,
 
     See AUG for derivation of used expressions.
 
-    \param   die_dx              Input/Output: A matrix corresponding to *iy*
-    \param   nbdone              Input: As *nbdone* in RteCalc.
-    \param   diy_dq              Input: Corresponds to diy_dt
-    \param   iq                  Input: Which book of diy_dq to consider
-    \param   atmosphere_dim      Input: As WSV with same name.
-    \param   ppath_array         Input: As WSV with same name.
-    \param   jacobian_quantity   Input: Element of WSV *jacobian_quantities*
-                                        of interest
+    \param[in,out] diy_dx A matrix corresponding to *iy*
+    \param[in]     diy_dq Corresponds to diy_dt
+    \param[in]     w      FIXME: DOC
 
     \author Patrick Eriksson, 
     \date   2005-06-02

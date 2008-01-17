@@ -66,7 +66,7 @@ public:
 
   /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
-  MatrixView* const operator->() { return &msv; }
+  MatrixView* operator->() { return &msv; }
 
   /** Dereferencing. */
   MatrixView& operator*() { return msv; }
@@ -187,6 +187,9 @@ public:
   ConstIterator3D begin() const;
   ConstIterator3D end() const;
   
+  //! Destructor
+  virtual ~ConstTensor3View() {};
+
   // Friends:
   friend class Tensor3View;
   friend class ConstIterator4D;
@@ -303,6 +306,9 @@ public:
   Tensor3View& operator+=(const ConstTensor3View& x);
   Tensor3View& operator-=(const ConstTensor3View& x);
 
+  //! Destructor
+  virtual ~Tensor3View() {};
+
   // Friends:
   friend class Iterator4D;
   friend class Tensor4View;
@@ -347,7 +353,7 @@ public:
   void resize(Index p, Index r, Index c);
 
   // Destructor:
-  ~Tensor3();
+  virtual ~Tensor3();
 };
 
 

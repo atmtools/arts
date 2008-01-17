@@ -538,47 +538,11 @@ public:
       species_data[Species()].Isotope()[Isotope()].  */
   Index Isotope() const { return misotope; }
 
-  /** The full name of the species and isotope. E.g., `O3-666'. The
-      name is found by looking up the information in species_data,
-      using the species and isotope index. */
-  String Name() const {
-    // The species lookup data:
-    extern const Array<SpeciesRecord> species_data;
-    const SpeciesRecord& sr = species_data[mspecies];
-    return sr.Name() + "-" + sr.Isotope()[misotope].Name();
-  }
+  String Name() const;
 
-  /** The matching SpeciesRecord from species_data. To get at the
-      species data of a LineRecord lr, you can use:
-      <ul>
-      <li>species_data[lr.Species()]</li>
-      <li>lr.SpeciesData()</li>
-      </ul>
-      The only advantages of the latter are that the notation is
-      slightly nicer and that you don't have to declare the external
-      variable species_data. */
-  const SpeciesRecord& SpeciesData() const {
-    // The species lookup data:
-    extern const Array<SpeciesRecord> species_data;
-    return species_data[mspecies];
-  }
+  const SpeciesRecord& SpeciesData() const;
 
-  /** The matching IsotopeRecord from species_data. The IsotopeRecord
-      is a subset of the SpeciesRecord. To get at the isotope data of
-      a LineRecord lr, you can use:
-      <ul>
-      <li>species_data[lr.Species()].Isotope()[lr.Isotope()]</li>
-      <li>lr.SpeciesData().Isotope()[lr.Isotope()]</li>
-      <li>lr.IsotopeData()</li>
-      </ul>
-      The last option is clearly the shortest, and has the advantage
-      that you don't have to declare the external variable
-      species_data. */
-  const IsotopeRecord& IsotopeData() const {
-    // The species lookup data:
-    extern const Array<SpeciesRecord> species_data;
-    return species_data[mspecies].Isotope()[misotope];
-  }
+  const IsotopeRecord& IsotopeData() const;
 
   /** The line center frequency in <b> Hz</b>. */
   Numeric F() const     { return mf; }

@@ -48,9 +48,8 @@ extern const Numeric RAD2DEG;
   \param surface_emiss surface emissivity at one one point
   \param surface_temp surface temperature at one point
   \param surface_wind surface wind at one point
-  \param f_grid frequency grid
-  \param f_index index for the monochromatic frequency
-  \param stokes_dim stokes dimension
+  \param surface_fastem_constants surface fastem constants
+  \param freq frequency
 
   \author Sreerekha Ravi
   \date 2004-08-10
@@ -81,7 +80,7 @@ void fastem(// Output:
       os << "Severe warning from dclamkaouchi: "
         << "The accepted temperature range in centigrade is "
         << "[-5,100],\nbut a value of " << temp_c 
-        << "°C was found. Also the allowed frequency range is "
+        << "degree C was found. Also the allowed frequency range is "
         << "[10 GHz,500 GHz],\nbut a value of " <<  freq
         << " was found.";
       
@@ -95,7 +94,7 @@ void fastem(// Output:
       os << "Warning from dclamkaouchi: "
         << "The accepted temperature range in centigrade is "
         << "[-5,100],\nbut a value of " << temp_c 
-        << "°C was found. Also the allowed frequency range is "
+        << "degree C was found. Also the allowed frequency range is "
         << "[10 GHz,500 GHz],\nbut a value of " <<  freq
         << " was found."<< surface_wind; //remove surface_wind, it
                                          //was only to avoid

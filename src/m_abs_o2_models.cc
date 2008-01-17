@@ -83,7 +83,6 @@
   \retval K      real part of the complex Faddeeva function (equal to the Voigt function)
   \retval L      imaginary part of the complex Faddeeva function (used for line mixing)
  
-  \param N       number of elements of vectors X, K, and L
   \param X       X[i] =  SQRT(ln(2)) * ( (f_grid[i] - F_o)) / gamma_Doppler )
                  where F_o is the line center frequency of the specific line in question
   \param Y       Y    =  SQRT(ln(2)) * (gamma_Lorentz / gamma_Doppler)
@@ -1015,11 +1014,11 @@ static const Numeric V[] ={	  0, 0.0079, -0.0978,  0.0844, -0.1273,
   11-05-97  P. Rosenkranz: 1- line modification.
   12-16-98  P. Rosenkranz: updated submm freq's and intensities from HITRAN96
   
-  \retval   ext_mat_tmp                Tensor3 of the Extinction Matrix [1/m] 
-  \retval   abs_vec_tmp                 Matrix of the Absorption Vector  [1/m]
+  \retval   ext_mat_tmp               Tensor3 of the Extinction Matrix [1/m] 
+  \retval   abs_vec_tmp               Matrix of the Absorption Vector  [1/m]
   \param    geomag_strength           mag. field strength             [Tesla]
   \param    geomag_angle              mag. field orientation angle    [radians]
-  \param    zeeman_o2_onoff,          Zeeman splitting on or off
+  \param    zeeman_o2_onoff           Zeeman splitting on or off
   \param    zeeman_o2_pressure_limit  Zeeman pressure limit           [Pa]
   \param    f_grid_point              frequency vector                [Hz]
   \param    p                         predefined pressure             [Pa]
@@ -1466,7 +1465,7 @@ Index absPWRO2Model(// WS Output:
 
 
 //!   oxygen absorption models
-/*!
+/*
   See arts -d absO2Model for detailed documentation.
   
   \retval   abs_coef            absorption/extinction of oxygen  [1/m]

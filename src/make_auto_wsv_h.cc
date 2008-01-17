@@ -162,11 +162,9 @@ int main()
             <<   "  static void deallocate_wsvg_" << wsv_group_names[i] << "(void *vp)\n"
             <<   "    { delete (" << wsv_group_names[i] << " *)vp; }\n\n"
             <<   "  static void *duplicate_wsvg_" << wsv_group_names[i] << "(void *vp)\n"
-            <<   "    {\n"
-            <<   "      " << wsv_group_names[i] << " *nvp = new " << wsv_group_names[i] << ";\n"
-            <<   "      *nvp = *(" << wsv_group_names[i] << " *)vp;\n"
-            <<   "      return nvp;\n"
-            <<   "    }\n\n";
+            <<   "    { "
+            <<   " return (new " << wsv_group_names[i] << "(*(" << wsv_group_names[i] << " *)vp));\n"
+            <<   " }\n\n";
         }
 
       ofs << "public:\n"

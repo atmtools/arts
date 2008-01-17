@@ -137,7 +137,7 @@ void lineshape_doppler(Vector&       ls,
 
   // SQRT(PI):
   extern const Numeric PI;
-  static const Numeric sqrtPI = sqrt(PI);
+  const Numeric sqrtPI = sqrt(PI);
 
   //  assert( ls.nelem() == nf );
 
@@ -161,7 +161,7 @@ long bfun6_(Numeric y, Numeric x)
   long int ret_val;
 
   /* Local variables */
-  static Numeric s;
+  Numeric s = 0;
 
   /* -------------------------------------------------------------------- */
   s = fabs(x) + y;
@@ -237,8 +237,8 @@ long bfun6_(Numeric y, Numeric x)
     
 
     \author Oliver Lemke and Axel von Engeln
-    \date 2000-09-27 */ 
-
+    \date 2000-09-27
+*/ 
 void lineshape_voigt_kuntz6(Vector&       ls,
                             Vector&       x,
                             Numeric       f0,
@@ -269,26 +269,30 @@ void lineshape_voigt_kuntz6(Vector&       ls,
 
   /* Initialized data */
 
-  static Numeric yps1 = -1.0;
-  static Numeric yps2 = -1.0;
-  static Numeric yps3 = -1.0;
-  static Numeric yps4 = -1.0;
+  Numeric yps1 = -1.0;
+  Numeric yps2 = -1.0;
+  Numeric yps3 = -1.0;
+  Numeric yps4 = -1.0;
 
   /* System generated locals */
   long int i__1, i__2;
   Numeric r__1;
 
   /* Local variables */
-  static long int bmin, lauf[16]        /* was [4][4] */, bmax;
-  static long int imin, imax, stack[80] /* was [20][4] */;
-  static Numeric a1, a2, a3, a4, a5, a6, a8, b8, c8, d8, e8, f8, g8, h8, a7, 
+  long int bmin = 0, lauf[16] = {0}        /* was [4][4] */, bmax;
+  long int imin = 0, imax = 0, stack[80] = {0} /* was [20][4] */;
+  Numeric a1, a2, a3, a4, a5, a6, a8, b8, c8, d8, e8, f8, g8, h8, a7, 
     b7, c7, d7, e7, f7, o8, p8, q8, r8, s8, t8, g7, h7, o7, p7, q7, 
     r7, s7, t7, b6, c6, d6, e6, b5, c5, d5, e5, b4, c4, d4, b3, c3, 
     d3, b1, y2;
-  static long int i2, i1;
-  static Numeric x2, b2, c1;
-  static long int stackp, imitte;
-  static Numeric ym2;
+  a1 = a2 = a3 = a4 = a5 = a6 = a8 = b8 = c8 = d8 = e8 = f8 = g8 = h8 = a7
+    = b7 = c7 = d7 = e7 = f7 = o8 = p8 = q8 = r8 = s8 = t8 = g7 = h7 = o7 = p7
+    = q7 = r7 = s7 = t7 = b6 = c6 = d6 = e6 = b5 = c5 = d5 = e5 = b4 = c4 = d4
+    = b3 = c3 = d3 = b1 = y2 = 0;
+  long int i2 = 0, i1 = 0;
+  Numeric x2 = 0, b2 = 0, c1 = 0;
+  long int stackp = 0, imitte = 0;
+  Numeric ym2 = 0;
 
 
   // variables needed in original c routine:
@@ -570,7 +574,7 @@ long int bfun3_(Numeric y, Numeric x)
     long int ret_val;
 
     /* Local variables */
-    static Numeric x2, y2;
+    Numeric x2 = 0, y2 = 0;
 
 /* -------------------------------------------------------------------- */
     x2 = x * x;
@@ -683,27 +687,31 @@ void lineshape_voigt_kuntz3(Vector&       ls,
 
   /* Initialized data */
 
-  static Numeric yps0 = -1.0;
-  static Numeric yps1 = -1.0;
-  static Numeric yps2 = -1.0;
-  static Numeric yps3 = -1.0;
-  static Numeric yps4 = -1.0;
+  Numeric yps0 = -1.0;
+  Numeric yps1 = -1.0;
+  Numeric yps2 = -1.0;
+  Numeric yps3 = -1.0;
+  Numeric yps4 = -1.0;
 
   /* System generated locals */
   long i__1, i__2;
   Numeric r__1;
 
   /* Local variables */
-  static long bmin, lauf[20]    /* was [5][4] */, bmax, imin, imax;
-  static long stack[80] /* was [20][4] */;
-  static Numeric a0, a1, a2, a3, a4, a5, a6, a7, a8, b8, c8, d8, e8, f8, g8, 
+  long bmin = 0, lauf[20] = {0}    /* was [5][4] */, bmax, imin, imax;
+  long stack[80] = {0} /* was [20][4] */;
+  Numeric a0, a1, a2, a3, a4, a5, a6, a7, a8, b8, c8, d8, e8, f8, g8, 
     h8, b7, c7, d7, e7, f7, g7, o8, p8, q8, r8, s8, t8, h7, o7, p7, 
     q7, r7, s7, t7, b6, c6, d6, e6, b5, c5, d5, e5, b4, c4, d4, b3, 
     c3, d3, b1, y2;
-  static long i2, i1;
-  static Numeric x2, b2, b0, c1;
-  static long stackp, imitte;
-  static Numeric ym2;
+  a0 = a1 = a2 = a3 = a4 = a5 = a6 = a7 = a8 = b8 = c8 = d8 = e8 = f8 = g8
+    = h8 = b7 = c7 = d7 = e7 = f7 = g7 = o8 = p8 = q8 = r8 = s8 = t8 = h7 = o7
+    = p7 = q7 = r7 = s7 = t7 = b6 = c6 = d6 = e6 = b5 = c5 = d5 = e5 = b4 = c4
+    = d4 = b3 = c3 = d3 = b1 = y2 = 0;
+  long i2 = 0, i1 = 0;
+  Numeric x2 = 0, b2 = 0, b0 = 0, c1 = 0;
+  long stackp = 0, imitte = 0;
+  Numeric ym2 = 0;
 
   // variables needed in original c routine:
 
@@ -948,7 +956,7 @@ long bfun4_(Numeric y, Numeric x)
     long ret_val;
 
     /* Local variables */
-    static Numeric x2, y2;
+    Numeric x2 = 0, y2 = 0;
 
     x2 = x * x;
     y2 = y * y;
@@ -1057,27 +1065,31 @@ void lineshape_voigt_kuntz4(Vector&       ls,
 
     /* Initialized data */
 
-    static float yps0 = -1.f;
-    static float yps1 = -1.f;
-    static float yps2 = -1.f;
-    static float yps3 = -1.f;
-    static float yps4 = -1.f;
+    float yps0 = -1.f;
+    float yps1 = -1.f;
+    float yps2 = -1.f;
+    float yps3 = -1.f;
+    float yps4 = -1.f;
 
     /* System generated locals */
     long i__1, i__2;
     float r__1;
 
     /* Local variables */
-    static long bmin, lauf[20]  /* was [5][4] */, bmax, imin, imax;
-    static long stack[80]       /* was [20][4] */;
-    static Numeric a0, a1, a2, a3, a4, a5, a6, a7, a8, b8, c8, d8, e8, f8, g8, 
+    long bmin = 0, lauf[20] = {0}  /* was [5][4] */, bmax, imin, imax;
+    long stack[80] = {0}       /* was [20][4] */;
+    Numeric a0, a1, a2, a3, a4, a5, a6, a7, a8, b8, c8, d8, e8, f8, g8, 
             h8, b7, c7, d7, e7, f7, g7, o8, p8, q8, r8, s8, t8, h7, o7, p7, 
             q7, r7, s7, t7, b6, c6, d6, e6, b5, c5, d5, e5, b4, c4, d4, b3, 
             c3, d3, b1, y2;
-    static long i2, i1;
-    static Numeric x2, b2, b0, c1;
-    static long stackp, imitte;
-    static Numeric ym2;
+    a0 = a1 = a2 = a3 = a4 = a5 = a6 = a7 = a8 = b8 = c8 = d8 = e8 = f8 = g8
+      = h8 = b7 = c7 = d7 = e7 = f7 = g7 = o8 = p8 = q8 = r8 = s8 = t8 = h7
+      = o7 = p7 = q7 = r7 = s7 = t7 = b6 = c6 = d6 = e6 = b5 = c5 = d5 = e5
+      = b4 = c4 = d4 = b3 = c3 = d3 = b1 = y2 = 0;
+    long i2 = 0, i1 = 0;
+    Numeric x2 = 0, b2 = 0, b0 = 0, c1 = 0;
+    long stackp = 0, imitte = 0;
+    Numeric ym2 = 0;
 
   // variables needed in original c routine:
 
@@ -1440,13 +1452,13 @@ void lineshape_voigt_drayson(Vector&       ls,
   // constant normalization factor for voigt
   Numeric fac = 1.0 / sigma * sqrt_invPI;
 
-      static Numeric B[22+1] = {0.,0.,.7093602e-7};
-      static Numeric RI[15+1];
+      Numeric B[22+1] = {0.,0.,.7093602e-7};
+      Numeric RI[15+1] = {0};
       const  Numeric XN[15+1] = {0.,10.,9.,8.,8.,7.,6.,5.,4.,3.,3.,3.,3.,3.,3.,3.};
       const  Numeric YN[15+1] = {0.,.6,.6,.6,.5,.4,.4,.3,.3,.3,.3,1.,.9,.8,.7,.7};
-      static Numeric D0[25+1], D1[25+1], D2[25+1], D3[25+1], D4[25+1];
-      static Numeric HN[25+1];
-      static Numeric H = .201;
+      Numeric D0[25+1] = {0}, D1[25+1] = {0}, D2[25+1] = {0}, D3[25+1] = {0}, D4[25+1] = {0};
+      Numeric HN[25+1] = {0};
+      Numeric H = .201;
       const  Numeric XX[3+1] = {0.,.5246476,1.65068,.7071068};
       const  Numeric HH[3+1] = {0.,.2562121,.2588268e-1,.2820948};
       const  Numeric NBY2[19+1] = {0.,9.5,9.,8.5,8.,7.5,7.,6.5
@@ -1456,10 +1468,10 @@ void lineshape_voigt_drayson(Vector&       ls,
           -.1933631e-3,.4899520e-3,-.1173267e-2,.2648762e-2,
           -.5623190e-2,.1119601e-1,-.2084976e-1,.3621573e-1,
           -.5851412e-1,.8770816e-1,-.121664,.15584,-.184,.2};
-      static Numeric CO;
+      Numeric CO = 0;
       Numeric U, V, UU, VV, Y2, DX;
       int I, J, K, MAX, MIN, N, i1;
-      static int TRU = 0;
+      int TRU = 0;
 
 
       // variables needed in original c routine:
@@ -1597,6 +1609,16 @@ void lineshape_rosenkranz_voigt_kuntz6(Vector&       ls,
   //    extern const Numeric SQRT_NAT_LOG_2;
 
   extern const Numeric PI;
+
+  // ARTS now has a global default of abs_h2o of -1, to flag that it
+  // is not set. This is passed down here as x[4] (aux[4]). We have to
+  // check here if this is positive, to make sure it has been set.
+  if (x[4] < -.99)
+    {
+      ostringstream os;
+      os << "You have to set abs_h2o if you want to use this lineshape.";
+      throw runtime_error( os.str() );
+    }
 
 
   // calculate the required stuff with the parameter of the x array:
@@ -1963,7 +1985,7 @@ void lineshape_norm_no_norm(Vector&       fac,
     \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_grid The frequency grid.
-    \param  T      Temperature (unused here)
+    \param  T      (unused here)
     \param  nf     Dimension of f_grid.
 
     \author Axel von Engeln 30.11.2000 */

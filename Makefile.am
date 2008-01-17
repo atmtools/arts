@@ -9,5 +9,5 @@
 
 EXTRA_DIST = autogen.sh configure make_parallel
 
-SUBDIRS = src aii m4 doc tests 3rdparty
+SUBDIRS = src aii includes m4 doc tests 3rdparty
 

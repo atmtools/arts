@@ -14,7 +14,7 @@ if [ "$LIST" ]; then
     echo
     echo "The following source files use tabs for indentation:"
     echo $LIST
-fi;
+fi
 
 exit $STATE
 

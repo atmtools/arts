@@ -201,10 +201,6 @@ void antenna_matrix(          Sparse&   H,
         // we first check if the same antenna diagram applies for all
         // polarisations, i.e. p_step = 0, if so insert it n_pol times.
         //
-        Index p_step_tmp = p_this;
-        if (p_step==0)
-          p_step_tmp = n_pol-1;
-        //
         temp[ Range( f*n_pol+p, m_za.nelem(), x_f.nelem()*n_pol ) ] = temp_za;
         H.insert_row( a*n_pol*x_f.nelem()+f*n_pol+p, temp );
         //
@@ -651,7 +647,7 @@ void rotation_matrix(
    Scales a Gaussian antenna diagram for a reference frequency to match
    the new frequency.
 
-   \param   s       The scaled antenna diagram
+   \param   sc      The scaled antenna diagram
    \param   srm     The antenna diagram matrix
    \param   f_ref   The reference frequency
    \param   f_new   The new frequency

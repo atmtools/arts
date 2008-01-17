@@ -89,6 +89,8 @@ int main()
           << "#include \"auto_md.h\"\n"
           << "#include \"auto_wsv_groups.h\"\n"
           << "#include \"wsv_aux.h\"\n"
+          << "#include \"m_append.h\"\n"
+          << "#include \"m_delete.h\"\n"
           << "#include \"m_copy.h\"\n"
           << "#include \"m_general.h\"\n"
           << "#include \"m_ignore.h\"\n"
@@ -97,6 +99,7 @@ int main()
           << "#include \"agenda_record.h\"\n"
           << "\n";
 
+      //ofs << "static Index agendacallcount = 0;\n";
       // Declare wsv_data:
       ofs << "// Other wsv data:\n"
           << "extern const Array<WsvRecord> wsv_data;\n\n";
@@ -210,6 +213,22 @@ int main()
                   << "]];\n";
             }
 
+          // Create copy of input agendas with private workspace
+          for (Index j=0; j<vi.nelem(); ++j)
+            {
+              if (wsv_data[vi[j]].Group() == Agenda_)
+                {
+#ifdef _OPENMP
+                  ofs << "  Agenda AI" << j
+#else
+                  ofs << "  Agenda& AI" << j
+#endif
+                    << " = *((" << wsv_group_names[wsv_data[vi[j]].Group()]
+                    <<  " *)ws[" << vi[j] << "]);\n";
+                  ofs << "  AI" << j << ".set_workspace(&ws);\n";
+                }
+            }
+
           ofs << "  " << mdd.Name() << "(";
 
           // Write the Output workspace variables:
@@ -249,9 +268,15 @@ int main()
               // Add comma and line break, if not first element:
               align(ofs,is_first_parameter,indent);
 
-              //ofs << "ws." << wsv_data[vi[j]].Name();
-              ofs << "*((" << wsv_group_names[wsv_data[vi[j]].Group()] <<  " *)ws["
-                << vi[j] << "])";
+              if (wsv_data[vi[j]].Group() == Agenda_)
+                {
+                  ofs << "AI" << j;
+                }
+              else
+                {
+                  ofs << "*((" << wsv_group_names[wsv_data[vi[j]].Group()]
+                    <<  " *)ws[" << vi[j] << "])";
+                }
             }
 
           // Write the Generic input workspace variables:
@@ -348,14 +373,18 @@ int main()
 
           ofs << "\n";
           ofs << "{\n";
-          ofs << "  extern Workspace workspace;\n";
+          ofs << "  Agenda new_input_agenda (input_agenda);\n";
+          ofs << "  if (safe_workspace)\n"
+              << "    new_input_agenda.set_workspace (new Workspace (*new_input_agenda.workspace()));\n";
+          ofs << "  Workspace& ws = *(new_input_agenda.workspace());\n";
+
           if (ago.nelem () || agi.nelem ())
             {
               ofs << "  extern map<String, Index> AgendaMap;\n"
                 << "  extern const Array<AgRecord> agenda_data;\n"
                 << "\n"
                 << "  const AgRecord& agr =\n"
-                << "    agenda_data[AgendaMap.find (input_agenda.name ())->second];\n"
+                << "    agenda_data[AgendaMap.find (new_input_agenda.name ())->second];\n"
                 << "\n";
             }
           if (ago.nelem ())
@@ -367,15 +396,15 @@ int main()
                   while (it != agi.end () && *it != ago[j]) it++;
                   if (it == agi.end ())
                     {
-                      aout_push_os << "  workspace.push_uninitialized (aout[" << j << "], "
+                      aout_push_os << "  ws.push_uninitialized (aout[" << j << "], "
                         << "(void *)&" << wsv_data[ago[j]].Name () << ");\n";
                     }
                   else
                     {
-                      aout_push_os << "  workspace.push (aout[" << j << "], "
+                      aout_push_os << "  ws.push (aout[" << j << "], "
                         << "(void *)&" << wsv_data[ago[j]].Name () << ");\n";
                     }
-                  aout_pop_os << "  workspace.pop (aout[" << j << "]);\n";
+                  aout_pop_os << "  ws.pop (aout[" << j << "]);\n";
                 }
             }
           if (agi.nelem ())
@@ -387,9 +416,9 @@ int main()
                   while (it != ago.end () && *it != agi[j]) it++;
                   if (it == ago.end ())
                     {
-                      ain_push_os << "  workspace.push (ain[" << j << "], "
+                      ain_push_os << "  ws.push (ain[" << j << "], "
                         << "(void *)&" << wsv_data[agi[j]].Name () << ");\n";
-                      ain_pop_os << "  workspace.pop (ain[" << j << "]);\n";
+                      ain_pop_os << "  ws.pop (ain[" << j << "]);\n";
                     }
                 }
             }
@@ -405,27 +434,37 @@ int main()
               ofs << ain_push_os.str () << "\n";
             }
 
-          ofs << "  const ArrayOfIndex& outputs_to_push = input_agenda.get_output2push();\n"
-              << "  const ArrayOfIndex& outputs_to_dup = input_agenda.get_output2dup();\n"
+          ofs << "  const ArrayOfIndex& outputs_to_push = new_input_agenda.get_output2push();\n"
+              << "  const ArrayOfIndex& outputs_to_dup = new_input_agenda.get_output2dup();\n"
               << "\n"
               << "  for (ArrayOfIndex::const_iterator it = outputs_to_push.begin ();\n"
               << "       it != outputs_to_push.end (); it++)\n"
-              << "  { workspace.push (*it, NULL); }\n"
+              << "  { ws.push (*it, NULL); }\n"
               << "\n"
               << "  for (ArrayOfIndex::const_iterator it = outputs_to_dup.begin ();\n"
               << "       it != outputs_to_dup.end (); it++)\n"
-              << "  { workspace.duplicate (*it); }\n"
+              << "  { ws.duplicate (*it); }\n"
               << "\n";
 
-          ofs << "  input_agenda.execute (silent);\n\n";
+          ofs << "  String agenda_error_msg;\n"
+              << "  bool agenda_failed = false;\n\n"
+              << "  try {\n"
+              << "    new_input_agenda.execute (silent);\n"
+              << "  } catch (runtime_error e) {\n"
+              << "    ostringstream os;\n"
+              << "    os << \"Run-time error in agenda: \"\n"
+              << "       << new_input_agenda.name() << \'\\n\' << e.what();\n"
+              << "    agenda_failed = true;\n"
+              << "    agenda_error_msg = os.str();\n"
+              << "  }\n";
 
           ofs << "  for (ArrayOfIndex::const_iterator it = outputs_to_push.begin ();\n"
               << "       it != outputs_to_push.end (); it++)\n"
-              << "    { workspace.pop_free (*it); }\n"
+              << "    { ws.pop_free (*it); }\n"
               << "\n"
               << "  for (ArrayOfIndex::const_iterator it = outputs_to_dup.begin ();\n"
               << "       it != outputs_to_dup.end (); it++)\n"
-              << "    { workspace.pop_free (*it); }\n\n";
+              << "    { ws.pop_free (*it); }\n\n";
 
           if (aout_pop_os.str().length())
             {
@@ -435,6 +474,11 @@ int main()
             {
               ofs << ain_pop_os.str () << "\n";
             }
+
+          ofs << "  if (safe_workspace)\n"
+              << "    delete new_input_agenda.workspace();\n";
+
+          ofs << "  if (agenda_failed) throw runtime_error (agenda_error_msg);\n\n";
 
           ofs << "}\n\n";
         }

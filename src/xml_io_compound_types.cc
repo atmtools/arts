@@ -712,7 +712,7 @@ xml_write_to_stream (ostream& os_xml,
 //! Reads SLIData2 from XML input stream
 /*!
   \param is_xml   XML Input stream
-  \param srecord  SLIData return value
+  \param slidata  SLIData return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 

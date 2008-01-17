@@ -31,13 +31,44 @@
 #include "workspace_ng.h"
 #include "auto_wsv.h"
 
+WorkspaceMemoryHandler wsmh;
+
 //! Construct a new workspace
 /*!
   Create the stacks for the WSVs.
 */
-Workspace::Workspace ()
+Workspace::Workspace () : ws(N_WSV)
 {
-  ws.resize (N_WSV);
+}
+
+//! Workspace copy constructor
+/*!
+  Make a copy of a workspace. The copy constructor will only copy the topmost
+  layer of the workspace variable stacks.
+
+  \param[in] workspace The workspace to be copied
+
+  \author Oliver Lemke
+  \date   2007-11-28
+*/
+Workspace::Workspace (const Workspace& workspace) : ws(N_WSV)
+{
+  for (Index i=0; i < workspace.ws.nelem(); i++)
+    {
+      WsvStruct *wsvs = new WsvStruct;
+      wsvs->auto_allocated = false;
+      if (workspace.ws[i].size() && workspace.ws[i].top()->wsv)
+        {
+          wsvs->wsv = workspace.ws[i].top()->wsv;
+          wsvs->initialized = workspace.ws[i].top()->initialized;
+        }
+      else
+        {
+          wsvs->wsv = NULL;
+          wsvs->initialized = false;
+        }
+      ws[i].push (wsvs);
+    }
 }
 
 //! Destruct the workspace

@@ -582,17 +582,55 @@ void Cloudbox_ppathCalc(
 
    Parameters not already described elsewhere:
    
-   \param    record_ppathcloud   A flag that determines whether ppaths within the 
+   \param[out] ppathcloud
+   \param[out] ppath
+   \param[out] ppath_step
+   \param[out] rte_pos
+   \param[out] rte_los
+   \param[out] cum_l_step
+   \param[out] TArray
+   \param[out] ext_matArray
+   \param[out] abs_vecArray
+   \param[out] t_ppath
+   \param[out] ext_mat
+   \param[out] abs_vec
+   \param[out] rte_pressure
+   \param[out] rte_temperature
+   \param[out] rte_vmr_list
+   \param[out] iy
+   \param[out] pnd_ppath
+   \param[in]  ppath_step_agenda
+   \param[in]  atmosphere_dim
+   \param[in]  p_grid
+   \param[in]  lat_grid
+   \param[in]  lon_grid
+   \param[in]  z_field
+   \param[in]  r_geoid
+   \param[in]  z_surface
+   \param[in]  cloudbox_limits
+   \param[in]  opt_prop_gas_agenda
+   \param[in]  abs_scalar_gas_agenda
+   \param[in]  f_index
+   \param[in]  stokes_dim
+   \param[in]  t_field
+   \param[in]  vmr_field
+   \param[in]  rte_agenda
+   \param[in]  iy_space_agenda
+   \param[in]  surface_prop_agenda
+   \param[in]  iy_cloudbox_agenda
+   \param[in]  f_grid
+   \param[in]  pnd_field
+   \param[in]  scat_data_mono
+   \param[in]  z_field_is_1D
+   \param[in]  record_ppathcloud   A flag that determines whether ppaths within the 
                                  cloud box are recorded for later plotting in 
                                  MATLAB.
-   \param    record_ppath        Similar, but for ppaths determining incoming 
+   \param[in]  record_ppath        Similar, but for ppaths determining incoming 
                                  radiances at the cloudbox boundaries.  For 
                                  normal use both of these parameterss should be 
                                  set to 0.
-   \param    photon_number       used to label ppath files
-   \param    scattering_order    used to label ppath files
-
-
+   \param[in]  photon_number       used to label ppath files
+   \param[in]  scattering_order    used to label ppath files
 
    \author Cory Davis
    \date   2003-06-20
@@ -762,7 +800,7 @@ void cloudbox_ppath_start_stepping(
                                    ConstVectorView       lon_grid,
                                    ConstTensor3View      z_field,
                                    ConstMatrixView       r_geoid,
-                                   ConstMatrixView       z_ground,
+                                   ConstMatrixView       z_ground _U_,
                                    ConstVectorView       rte_pos,
                                    ConstVectorView       rte_los,
                                    const Index&          z_field_is_1D)
@@ -786,7 +824,8 @@ void cloudbox_ppath_start_stepping(
       // yes, is_inside = true. Store geoid and ground radii, grid
       // position and interpolation weights for later use.
       //
-      double   rv_geoid=-1, rv_ground=-1;  // -1 to avoid compiler warnings
+      double rv_geoid=-1;
+      //double rv_ground=-1;  // -1 to avoid compiler warnings
       GridPos   gp_lat, gp_lon;
       Vector    itw(4);
       
@@ -796,7 +835,7 @@ void cloudbox_ppath_start_stepping(
       interpweights( itw, gp_lat, gp_lon );
       
       rv_geoid  = interp( itw, r_geoid, gp_lat, gp_lon );
-      rv_ground = rv_geoid + interp( itw, z_ground, gp_lat, gp_lon );
+      //rv_ground = rv_geoid + interp( itw, z_ground, gp_lat, gp_lon );
 
 //          out2 << "  sensor altitude        : " << (rte_pos[0]-rv_geoid)/1e3 
 //               << " km\n";
@@ -879,13 +918,15 @@ void cum_l_stepCalc(
 
 //! findZ11max
 /*! 
-The direction sampling method requires a bounding value for Z11.  This returns a vector with the maximum value of Z11 for each particle type.
+  The direction sampling method requires a bounding value for Z11.
+  This returns a vector with the maximum value of Z11 for each particle type.
 
-\author Cory Davis
-\data 2004-31-1
+  \param[out] Z11maxvector Maximum value of Z11 for each particle type
+  \param[in]  scat_data_mono
 
+  \author Cory Davis
+  \date   2004-31-1
 */
-
 void findZ11max(Vector& Z11maxvector,
            const ArrayOfSingleScatteringData& scat_data_mono)
 {
@@ -2039,7 +2080,7 @@ from scat_data_mono
    \param za              zenith angle of propagation direction
    \param aa              azimuthal angle of propagation
    \param scat_data_mono  workspace variable
-   \params stokes_dim     workspace variable
+   \param stokes_dim     workspace variable
    \param pnd_vec         vector pf particle number densities (one element per particle type)
    \param rte_temperature loacl temperature (workspace variable)
 
@@ -2128,7 +2169,7 @@ void opt_propExtract(
     // This is only included to remove warnings about unused variables 
     // during compilation
 
-    cout << "Case PTYPE_GENERAL not yet implemented. \n"; 
+    out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
     break;
     
   case PTYPE_MACROS_ISO:
@@ -2232,7 +2273,7 @@ void opt_propExtract(
 
     }
   default:
-    cout << "Not all particle type cases are implemented\n";
+    out0 << "Not all particle type cases are implemented\n";
     
   }
 
@@ -2250,24 +2291,19 @@ void opt_propExtract(
  Returns the total phase matrix for given incident and scattered directions
 . It requires a vector of particle number densities to be precalculated
 
- \param Z               Output: phase matrix
- \param za_scat         scattered 
- \param aa_scat         and
- \param za_inc          incident
- \param aa_inc          directions
- \param scat_data_mono   workspace variable
- \param stokes_dim      workspace variable
- \param f_index         workspace variable
- \param f_grid          workspace variable
- \param scat_theta      workspace variable 
- \param scat_theta_gps  workspace variable
- \param scat_theta_itws workspace variable
- \param pnd_vec         vector of particle number densities at the point 
-                          in question
+ \param[out] Z               Output: phase matrix
+ \param[out] za_sca          scattered 
+ \param[out] aa_sca          and
+ \param[out] za_inc          incident
+ \param[out] aa_inc          directions
+ \param[in]  scat_data_mono  workspace variable
+ \param[in]  stokes_dim      workspace variable
+ \param[in]  pnd_vec         vector of particle number densities at the point 
+                             in question
+ \param[in]  rte_temperature workspace variable
  \author Cory Davis
  \date   2003-11-27
 */
-
 void pha_mat_singleCalc(
                         MatrixView& Z,                  
                         Numeric za_sca, 
@@ -2305,16 +2341,14 @@ void pha_mat_singleCalc(
   Given a monochromatic SingleScatteringData object, incident and 
   scattered directions, and the temperature, this function returns the phase
   matrix in the laboratory frame
-  Output:
-  \param Z the phase matrix
-  Input:
-  \param scat_data a monochromatic SingleScatteringData object
-  \param za_sca 
-  \param aa_sca
-  \param za_inc
-  \param aa_inc
-  \param rte_temperature
-  \param stokes_dim
+  \param[out] Z_spt the phase matrix
+  \param[in]  scat_data a monochromatic SingleScatteringData object
+  \param[in]  za_sca 
+  \param[in]  aa_sca
+  \param[in]  za_inc
+  \param[in]  aa_inc
+  \param[in]  rte_temperature
+  \param[in]  stokes_dim
 
   \author Cory Davis
   \date 2004-07-16
@@ -2335,7 +2369,7 @@ void pha_mat_singleExtract(
 
   case PTYPE_GENERAL:
     // to remove warnings during compilation. 
-    cout << "Case PTYPE_GENERAL not yet implemented. \n"; 
+    out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
     break;
     
   case PTYPE_MACROS_ISO:
@@ -2482,7 +2516,7 @@ void pha_mat_singleExtract(
       
     }  
   default:
-    cout << "Not all particle type cases are implemented\n";
+    out0 << "Not all particle type cases are implemented\n";
     
   }
 }
@@ -2508,12 +2542,21 @@ void pha_mat_singleExtract(
   THIS WHOLE FUNCTION MAY BE SOON REDUNDANT TO SAMPLE_LOS_Z WHICH USES A PDF 
   PROPORTIONAL TO Z11SINZA
 
-   \param   rte_los          Output: incident line of sight for subsequent 
-                                     ray-tracing.                     
-   \param   g_los_csc_theta  Output: probability density for the chosen
-                                     direction multiplied by sin(za)
-   \param   rng              Rng random number generator instance
-   \param   sampling_method  choice of sampling method: 1 or 2.
+   \param[out]    new_rte_los     incident line of sight for subsequent 
+   \param[out]    g_los_csc_theta probability density for the chosen
+                                  direction multiplied by sin(za)
+   \param[out]    Z
+   \param[in,out] rng             Rng random number generator instance
+   \param[in]     rte_los         incident line of sight for subsequent 
+                                  ray-tracing.                     
+   \param[in]     scat_data_mono
+   \param[in]     stokes_dim
+   \param[in]     pnd_vec
+   \param[in]     anyptype30
+   \param[in]     Z11maxvector
+   \param[in]     Csca
+   \param[in]     rte_temperature
+
    \author Cory Davis
    \date   2003-06-19
 */
@@ -2581,14 +2624,14 @@ void Sample_los (
 /*!
    Similar to Sample_ppathlength, but ensures that the sampled point lies within the cloudbox
 
-   \param   ppathlength       Output: the pathlength.
-   \param   g                 Output: the probability density of the returned pathlength.
-   \param   rng               Rng random number generator instance
-   \param   ext_matArray      An array of extinction matrices along the line of sight.
-   \param   dist_to_boundary  the distance from the current position to the far boundary 
-                              along the line of sight
-   \author Cory Davis
-   \date   2003-03-10
+  \param[out]    pathlength  the pathlength.
+  \param[out]    g           the probability density of the returned pathlength.
+  \param[in,out] rng         Rng random number generator instance
+  \param[in]     TArray      FIXME: DOC
+  \param[in]     cum_l_step  FIXME: DOC
+
+  \author Cory Davis
+  \date   2003-03-10
 */
 
 void Sample_ppathlengthLOS (

@@ -27,6 +27,7 @@
 #ifndef m_xml_h
 #define m_xml_h
 
+#include "exceptions.h"
 #include "xml_io.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -59,12 +60,22 @@ WriteXML (//WS Input:
           const String& f)
 {
   String filename = f;
+  FileType ftype;
 
   // Create default filename if empty
   filename_xml (filename, v_name);
 
-  xml_write_to_file
-    (filename, v, file_format == "ascii" ? FILE_TYPE_ASCII : FILE_TYPE_BINARY);
+  if (file_format == "ascii")
+    ftype = FILE_TYPE_ASCII;
+  else if (file_format == "zascii")
+    ftype = FILE_TYPE_ZIPPED_ASCII;
+  else if (file_format == "binary")
+    ftype = FILE_TYPE_BINARY;
+  else
+    throw runtime_error ("file_format contains illegal string. "
+                         "This is not supposed to happen.");
+
+  xml_write_to_file (filename, v, ftype);
 }
 
 
@@ -92,13 +103,28 @@ WriteXMLIndexed (//WS Input:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
 output_file_formatSetAscii (// WS Output:
-                            String& file_format);
+                            String& file_format)
+{
+  file_format = "ascii";
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void
+output_file_formatSetZippedAscii (// WS Output:
+                                  String& file_format)
+{
+  file_format = "zascii";
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
 output_file_formatSetBinary (// WS Output:
-                             String& file_format);
+                             String& file_format)
+{
+  file_format = "binary";
+}
 
 
 #endif // m_xml_h

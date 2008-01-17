@@ -9,9 +9,9 @@
 
 SUBDIRS = 
 
-TESTDIRS = Abs ClearSky DISORT DOIT MonteCarlo
+TESTDIRS = Abs AMSUB ClearSky DISORT DOIT MonteCarlo
 
-TESTFILES = .arts .ac .xml .xml.bin
+TESTFILES = .arts .ac .xml .xml.gz .xml.bin
 
 check: \
 	TestMonteCarloDataPrepare \
@@ -19,7 +19,8 @@ check: \
 	TestMonteCarloGeneralGaussian \
 	TestDOIT \
 	TestClearSky \
-	TestAbs
+	TestAbs \
+	TestAMSUB
 
 # Broken tests:
 #	TestMonteCarloSimple
@@ -39,12 +40,30 @@ TestMonteCarloWithIncomingLookup: TestMonteCarloDataPrepare
 
 ###############################################################
 
+EXTRA_DIST = $(srcdir)/testall.py $(foreach dir, $(TESTDIRS), $(foreach extension,$(TESTFILES),$(wildcard $(srcdir)/$(dir)/*$(extension))))
+
+CLEANFILES = $(wildcard *.log) $(wildcard $(builddir)/*/*xml.generated*) $(wildcard $(builddir)/*/*.rep)
+
+clean-local:
+	@if [ "$(top_builddir)" != "$(top_srcdir)" ]; then \
+		rm -f testall.py; \
+		rm -rf $(TESTDIRS); \
+	fi
+
 Test%:
-	@if SRCDIR=$(srcdir) BUILDDIR=$(PWD) python $(srcdir)/testall.py $@ > $@.log 2>&1; then \
+	@if [ "$(top_builddir)" != "$(top_srcdir)" ]; then \
+		for i in $(TESTDIRS); do \
+			test ! -e "$$i" && mkdir "$$i"; \
+		done; \
+		for i in  $(EXTRA_DIST); do \
+			TESTDIR=$$(basename $$(dirname $$i)); \
+			test "$$TESTDIR" = "tests" && TESTDIR=.; \
+			cp -u "$$i" "$$TESTDIR/"; \
+		done; \
+	fi
+
+	@if TOPSRCDIR=$(top_srcdir) python testall.py $@ > $@.log 2>&1; then \
 		echo "$@ ok."; \
 		else echo "$@ failed. Find details in $@.log"; exit 1; fi
 
-EXTRA_DIST = testall.py $(foreach dir, $(TESTDIRS), $(foreach extension,$(TESTFILES),$(wildcard $(dir)/*$(extension))))
-
-CLEANFILES = $(wildcard *.log) $(wildcard $(srcdir)/*/*xml.generated*) $(wildcard $(srcdir)/*/*.rep)
 

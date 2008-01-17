@@ -1,107 +1,72 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# filename: simpleClearSky.arts
-#
 # Demonstration of a ARTS clear sky calculation
 #
-# Author: Patrick Eriksson
+# Author: Stefan Buehler, adapted from older test by Patrick Eriksson
 
 
-Main {
+Arts {
 
+INCLUDE "general"
 
-# Output file format
+# Pick out the lines we want from HITRAN and save to arts line file
 # ---
-output_file_formatSetAscii{}
+#abs_linesReadFromHitran2004{
+#    filename = "/storage1/pool/lookup2/hitran2004/HITRAN04.par"
+#    fmin      = 310e9
+#    fmax      = 340e9
+#}
+#WriteXML(abs_lines){"abs_lines.xml"}
+
+
+# Read line file
+# ---
+ReadXML(abs_lines){"abs_lines.xml"}
 
 
 # Frequency grid 
+# Note: Should be covered by line catalog.
 # ---
-# This example is only monochromatic. Note: The frequency must be contained
-# in the gas absorption lookup table.  
-IndexSet(nelem){ 1 }
-VectorSet(f_grid){
-  value = 230e9
-}
- 
-
-# Number of Stokes components to be computed
-# ---
-IndexSet( stokes_dim ){
-  value = 1
-}
-
-# Dimensionality of the atmosphere
-# -
-AtmosphereSet1D{}
-
+VectorSetExplicitly(f_grid){[320e9]}
+#VectorNLinSpace(f_grid){start = 320e9
+#                        stop  = 330e9
+#                        n     = 10}
 
 # Pressure grid
 # ---
-ReadXML( p_grid ){
-  "p_grid.xml"
-}
+ReadXML(p_grid){"p_grid.xml"}
 
 
 # Definition of species
 # ---
-SpeciesSet(abs_species){
-  species = [ "H2O", "N2", "O2"]
-}
+SpeciesSet(abs_species){["H2O-SelfContStandardType, H2O-ForeignContStandardType, H2O", 
+                         "N2-SelfContStandardType",
+			 "O3"]}
 
+# Sort the line file according to species
+# ---
+abs_lines_per_speciesCreateFromLines
 
 # Atmospheric profiles
 # ---
-AtmRawRead{
- basename = "tropical"
-}
+AtmRawRead{"tropical"}
 #
-AtmFieldsCalc{}
+AtmFieldsCalc
 
 
-# Gas absorption
-# ---
-# Here taken from a lookup table
-# ---
-abs_lookupInit{}
-#
-ReadXML( abs_lookup ){
-   "gas_abs_lookup.xml"
-}
-#  	
-abs_lookupAdapt{}
+# get ground altitude (z_surface) from z_field
+IndexSet(index_1){0}
+MatrixExtractFromTensor3(z_surface,z_field,index_1)
 
+# This could also be set explicitly like this:
+#nrowsGet(r_geoid){}
+#ncolsGet(r_geoid){}
+#MatrixSet( z_surface){
+#    value = 500
+#}
 
-# Agendas associated with absorption
-# ---
-AgendaSet( abs_scalar_gas_agenda ){
-   abs_scalar_gasExtractFromLookup{}
-}
-#
-AgendaSet( emission_agenda ){
-   emissionPlanck{}
-}
-
-
-
-# Definition of Earth surface
-# ---
-# spherical geoid 
-r_geoidSpherical{
-    r = -1
-}
-# Ground altitude (measured from geoid)
-nrowsGet(r_geoid){}
-ncolsGet(r_geoid){}
-MatrixSet( z_surface){
-    value = 500
-}
 # Surface emissivity
-AgendaSet(surface_prop_agenda){
-   InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
-   NumericSet(surface_emissivity){0.9}
-   surfaceSimple{}
-} 
+NumericSet(surface_emissivity){0.9}
 
 
 # Definition of sensor position and LOS
@@ -112,70 +77,66 @@ MatrixSet(sensor_pos){
   value = 600e3
 }
 #
-sensor_posAddRgeoid{
-}
+sensor_posAddRgeoid
 #
 MatrixSet(sensor_los){
   value = 130
 }
 
 
-
 # No sensor properties
 # ---
-sensorOff{}		
+sensorOff
 
 
-# No jacobian calaculations
+# We select here to use Rayleigh-Jean brightness temperatures
 # ---
-jacobianOff{}
-
-
-# No scattering
-# ---
-cloudboxOff{}		
-
-
-# Agendas for the calculation of propagation paths
-# ---
-AgendaSet( refr_index_agenda ) {
-  refr_indexThayer{}
-}
-AgendaSet( ppath_step_agenda ) {
-  ppath_stepGeometric{
-    lmax = 5e3
-  }
-}
-
-
-# Agendas for clearsky radiative transfer calculation
-# ---
-AgendaSet( iy_space_agenda ){
-  Ignore(rte_pos){}
-  Ignore(rte_los){}
-  MatrixCBR( iy, f_grid ){}
-}
-#
-AgendaSet( rte_agenda ){
-  RteStd{}
-}
+StringSet( y_unit ){ "RJBT" }
 
 
 # Perform RT calculations
 # ---
-RteCalc{}
+timerStart
+RteCalc
+timerStop
     
 
-# Convert to RJ brightness temperatures
-#
-VectorToTbByRJ( y, y ) {}
+# Write out spectrum
+#WriteXML(y){"on_the_fly.y.xml.generated"}
+
+# We need to copy to another variable and use print, so that the
+# python test script can analyse the result.
+Copy(vector_1,y)
+Print(vector_1)
+
+# Do the same calculation again with lookup table absorption.
 
 
-# Print result
-Print(y){
-  level=1
+# Redefine abs_scalar_gas_agenda to use the lookup table
+# ---
+AgendaSet( abs_scalar_gas_agenda ){
+   abs_scalar_gasExtractFromLookup
 }
 
+# Set parameters for absorption lookup table generation
+# ---
+abs_lookupSetup
+
+
+# Generate absorption lookup table
+# ---
+timerStart
+abs_lookupCreate
+timerStop
+#WriteXML(abs_lookup){""}
+
+
+# Redo RT calculation, Tb conversion and save
+# ---
+timerStart
+RteCalc
+timerStop
+Print(y)
 
 } # End of Main
  

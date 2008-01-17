@@ -139,6 +139,7 @@
 
   <dt> Coefficients: 
   <dd> Generally taken from the new program provided by B. Gamache, version 2003. 
+  </dl>
   Partition functions for species included only in JPL, except for BrO, were
   calculated according to the JPL recommended scheme, and a 3rd order
   polynomial fit was performed (with the idl program mentioned above).

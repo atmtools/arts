@@ -2,9 +2,9 @@
 # coefficients. 
 # SAB 16.06.2000
 
-Main {
+Arts {
 
-output_file_formatSetAscii {}
+INCLUDE "general"
 
 # --------------------< A specific method >--------------------
 #                      -------------------
@@ -23,8 +23,6 @@ abs_linesReadFromArts {
 #        fmax     = 200e9
 #}
 #linesWriteAscii{"lines.ac"}
-
-AtmosphereSet1D{}
 
 VectorNLogSpace(p_grid){
         start = 100000
@@ -60,16 +58,16 @@ abs_lines_per_speciesCreateFromLines {}
 
 # Now interpolate all the raw atmospheric input onto the pressure 
 # grid and create the atmospheric variables `t_field', `z_field', `vmr_field'
-AtmFieldsCalc {}
+AtmFieldsCalc
 
 # Initialize the input variables of abs_coefCalc from the Atm fields:
-AbsInputFromAtmFields {}
+AbsInputFromAtmFields
 
 # Set the physical H2O profile from the H2O profile in vmrs:
-abs_h2oSet {}
+abs_h2oSet
 
 # N2 likewise:
-abs_n2Set {}
+abs_n2Set
 
 # Create the frequency grid `f_grid':
 VectorNLinSpace (f_grid) {
@@ -92,29 +90,9 @@ abs_lineshapeDefine{
 #        cutoff = [ -1, -1, -1, -1 ]
 #}
 
-# Formally, we also have to set ContDescription, even though we don't
-# have a continuum:
-abs_cont_descriptionInit {}
-
-abs_cont_descriptionAppend{
-    tagname        = "H2O-PWR98"
-    model          = "Rosenkranz"
-    userparameters = [ ]
-}
-abs_cont_descriptionAppend{
-    tagname        = "O2-PWR93"
-    model          = "Rosenkranz"
-    userparameters = [ ]
-}
-abs_cont_descriptionAppend{
-    tagname        = "N2-SelfContStandardType" 
-    model          = "Rosenkranz"
-    userparameters = [ ]
-}
-
 # Calculate absorption coefficients, both total (`abs_coef') and 
 # separately for each tag group (`abs_coef_per_species'):
-#abs_coefCalc {}
+#abs_coefCalc
 
 # Select species for non-linear treatment in lookup table:
 SpeciesSet(abs_nls){[]}
@@ -136,7 +114,7 @@ VectorSetExplicitly(abs_nls_pert){[]}
 #	n = 5
 #}
 
-abs_lookupCreate{}
+abs_lookupCreate
 
 # Optionally write these to files:
 #WriteXML (abs_t) {"simpleAbs.abs_t.xml.generated"}

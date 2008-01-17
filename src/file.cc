@@ -41,8 +41,8 @@
 #include "matpackI.h"
 #include "array.h"
 #include "messages.h"
+#include "parameters.h"
 #include "file.h"
-
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -284,4 +284,79 @@ int check_newline(const String& s)
   return result;
 }
 
+
+//// check if file exists //////////////////////////////////////////////
+/**
+  Checks if the given file exists.
+
+  @param filename File to check.
+
+  @return Error code (true = file exists, false = file doesn't exist)
+
+  @author Oliver Lemke
+*/
+bool file_exists(const String& filename)
+{
+    bool exists = false;
+    fstream fin;
+    fin.open(filename.c_str(), ios::in);
+    if (fin.is_open())
+    {
+      exists=true;
+    }
+    fin.close();
+    return exists;
+}
+
+
+//// find file in includepath //////////////////////////////////////////////
+/**
+  Find the given file. If it doesn't exist in the current directory, also
+  search the include path.
+
+  @param filename File to check.
+  @param extension Extension tried to be appended to the filename.
+
+  @return Error code (true = file found, false = file not found)
+
+  @author Oliver Lemke
+*/
+bool find_file(String& filename, const char* extension)
+{
+  bool exists = true;
+  extern const Parameters parameters;
+
+  if (!file_exists (filename))
+    {
+      if (file_exists (filename + extension))
+        {
+          filename += extension;
+        }
+      else
+        {
+          Index i;
+          for (i=0; i < parameters.includepath.nelem(); i++)
+            {
+              String fullpath;
+              fullpath = parameters.includepath[i] + "/" + filename;
+              if (file_exists (fullpath))
+                {
+                  filename = fullpath;
+                  break;
+                }
+              else if (file_exists (fullpath + extension))
+                {
+                  filename = fullpath + extension;
+                  break;
+                }
+            }
+          if (i == parameters.includepath.nelem())
+            {
+              exists = false;
+            }
+        }
+    }
+
+  return exists;
+}
 

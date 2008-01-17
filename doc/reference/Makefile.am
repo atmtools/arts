@@ -57,13 +57,13 @@ reference.pdf: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_versi
 	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex  reference | tee make.log
 
 
-auto_groups.tex: $(srcdir)/arts_groups_to_latex.sh $(artsexecutable)
+auto_groups.tex: $(srcdir)/arts_groups_to_latex.sh
 	$(srcdir)/arts_groups_to_latex.sh $(artsexecutable) > auto_groups.tex
 
-auto_methods.tex: $(srcdir)/arts_methods_to_latex.sh $(artsexecutable)
+auto_methods.tex: $(srcdir)/arts_methods_to_latex.sh
 	$(srcdir)/arts_methods_to_latex.sh $(artsexecutable) > auto_methods.tex
 
-auto_variables.tex: $(srcdir)/arts_variables_to_latex.sh $(artsexecutable)
+auto_variables.tex: $(srcdir)/arts_variables_to_latex.sh
 	$(srcdir)/arts_variables_to_latex.sh $(artsexecutable) > auto_variables.tex
 
 CLEANFILES = $(wildcard *.aux) \

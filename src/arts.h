@@ -116,7 +116,7 @@
 
 #ifdef HAVE_NAMESPACES
   // We need those to support ansi-compliant compilers (gcc-3x)
-  namespace std {};
+  namespace std {}
   using namespace std;
 #endif
 

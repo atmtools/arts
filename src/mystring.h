@@ -80,7 +80,7 @@ public:
 //   Index find(const my_basic_string<charT>&  c);
 
   // Index operators:
-  const char operator[](Index n) const;
+  char operator[](Index n) const;
   char& operator[](Index n);
 
   /** Define npos: */
@@ -98,7 +98,7 @@ public:
 /** Default constructor. */
 template<class charT>
 inline my_basic_string<charT>::my_basic_string() : basic_string<charT>()  
-{ /* Nothing to do here. */ };
+{ /* Nothing to do here. */ }
 
 /** Constructor setting size. You may give as a second argument a
     character with which to fill the new string. Per default this is
@@ -110,7 +110,7 @@ inline my_basic_string<charT>::my_basic_string() : basic_string<charT>()
 template<class charT>
 inline my_basic_string<charT>::my_basic_string(Index n, char c) :
   basic_string<charT>(n,c) 
-{ /* Nothing to do here. */ };
+{ /* Nothing to do here. */ }
 
 /** Construnctor from another my_basic_string. */
 // template<class charT>
@@ -160,12 +160,12 @@ inline my_basic_string<charT>::my_basic_string(const basic_string<charT>& A,
 
   basic_string<charT>::operator=(basic_string<charT>(A,pos,numpos));
 
-};
+}
 
 /** Constructor from a C-style char array. */
 template<class charT>
 inline my_basic_string<charT>::my_basic_string(const char A[]) : basic_string<charT>(A) 
-{ /* Nothing to do here. */ };
+{ /* Nothing to do here. */ }
 
 
 /** Assignment from another my_basic_string.
@@ -231,18 +231,26 @@ inline Index my_basic_string<charT>::nelem() const
 // }
 
 
-/** Constant index operator. We redifine this here so that we can have
-    range checking by assert. */
+/**
+  Constant index operator. We redifine this here so that we can have
+  range checking by assert.
+    
+  \param[in] n Index  
+*/
 template<class charT>
-inline const char my_basic_string<charT>::operator[](Index n) const
+inline char my_basic_string<charT>::operator[](Index n) const
 {
   assert(0<=n);
   assert(n<nelem());
   return basic_string<charT>::operator[](n);
 }
 
-/** Non-constant index operator. We redifine this here so that we can
-    have range checking by assert. */
+/**
+  Non-constant index operator. We redifine this here so that we can
+  have range checking by assert.
+    
+  \param[in] n Index
+*/
 template<class charT>
 inline char& my_basic_string<charT>::operator[](Index n)
 {

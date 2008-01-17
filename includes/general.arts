@@ -1,0 +1,172 @@
+#DEFINITIONS:  -*-sh-*-
+#
+# General ARTS defaults
+#
+# Authors: Oliver Lemke, Stefan Buehler, Patrick Eriksson
+
+Arts {
+
+#
+# Default output format
+#
+output_file_formatSetAscii
+
+
+#
+# Number of Stokes components to be computed
+#
+IndexSet (stokes_dim) { 1 }
+
+
+#
+# Dimensionality of the atmosphere
+#
+AtmosphereSet1D
+
+
+#
+# The N2 VMR value is sometimes needed for the calculation of the
+# absorption coefficient of other species. The value here is from
+# Wallace&Hobbs, 2nd edition.
+#
+VectorSetExplicitly(abs_n2){[0.7808]}
+
+
+#
+# The H2O VMR value is sometimes needed for the calculation of the
+# absorption coefficient of other species. We cannot set this to a
+# meaningful default value, since it is very variable. Set it to -1
+# instead. 
+#
+VectorSetExplicitly(abs_h2o){[-1]}
+
+
+#
+# Lineshape function
+#
+# These should be the most accurate settings:
+# Kuntz implementation of the Voigt function, 
+# Van-Vleck and Huber normalization factor,
+# cutoff at 750 GHz, consistent with Clough and Rosenkranz
+#
+abs_lineshapeDefine{shape = "Voigt_Kuntz6" 
+                    normalizationfactor = "VVH"
+                    cutoff = 750e9}
+
+
+#
+# Default is "on-the-fly" absorption
+# Another option is to create an absorption table, which could 
+# save (considerable) time for e.g. limb sounding and batch 
+# calculations.
+# 
+AgendaSet(abs_scalar_gas_agenda){
+  AbsInputFromRteScalars
+  abs_h2oSet
+  abs_coefCalc
+  abs_scalar_gasFromAbsCoef
+}
+
+
+#
+# Definition of Earth surface
+# ---
+# geoid: 
+r_geoidSpherical{
+    r = -1
+}
+
+# Surface emissivity:
+# ---
+# The global default is a black body surface, with skin temperature equal 
+# to the lowest atmospheric temperature. This is not very realistic,
+# but simple.
+NumericSet(surface_emissivity){1}
+AgendaSet(surface_prop_agenda){
+   InterpAtmFieldToRteGps( surface_skin_t, t_field )
+   surfaceSimple
+} 
+
+
+#
+# Default is to include emission in source term
+# 
+AgendaSet (emission_agenda)
+{
+  emissionPlanck
+}
+
+
+#
+# Set opt_prop_gas_agenda
+# 
+AgendaSet (opt_prop_gas_agenda)
+{
+   ext_matInit
+   abs_vecInit
+   ext_matAddGas
+   abs_vecAddGas
+}
+
+
+#
+# Refractive Index Agenda
+# (not used if ppath_stepGeometric used in ppath_step_agenda)
+#
+AgendaSet( refr_index_agenda ) {
+  refr_indexThayer
+}
+
+
+#
+# Agenda for the calculation of propagation path steps
+# (This will result in pure geometrical calculations. That is, refraction is 
+# neglected. The value of 10e3 is OK for limb sounding, and also for
+# down-looking if not very accutate results are demanded.)
+#
+AgendaSet( ppath_step_agenda ) {
+  ppath_stepGeometric{
+    lmax = 10e3
+  }
+}
+
+
+#
+# Agendas for clearsky radiative transfer calculation
+# 
+AgendaSet( iy_space_agenda ){
+  Ignore(rte_pos)
+  Ignore(rte_los)
+  MatrixCBR( iy, f_grid )
+}
+#
+AgendaSet( rte_agenda ){
+  RteStd
+}
+
+
+#
+# No default unit conversion 
+#
+StringSet( y_unit ){ "1" }
+
+
+
+# No scattering
+# ---
+cloudboxOff
+
+
+#
+# No jacobian calculations by default
+#
+jacobianOff
+
+
+#
+# Include default continua settings
+#
+INCLUDE "continua"
+
+}
+

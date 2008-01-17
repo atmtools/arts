@@ -31,6 +31,7 @@
 #include "arts.h"
 #include "exceptions.h"
 #include "matpackVII.h"
+#include "gridded_fields.h"
 #include "mystring.h"
 #include "messages.h"
 
@@ -98,6 +99,8 @@ NGET_GENERIC (nelem, ArrayOfTensor4)
 NGET_GENERIC (nelem, ArrayOfTensor5)
 NGET_GENERIC (nelem, ArrayOfTensor6)
 NGET_GENERIC (nelem, ArrayOfTensor7)
+NGET_GENERIC (nelem, ArrayOfGriddedField3)
+NGET_GENERIC (nelem, ArrayOfGriddedField4)
 NGET_GENERIC (nelem, ArrayOfArrayOfMatrix)
 NGET_GENERIC (nelem, ArrayOfArrayOfTensor3)
 NGET_GENERIC (nelem, ArrayOfArrayOfTensor6)

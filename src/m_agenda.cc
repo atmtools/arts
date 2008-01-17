@@ -53,7 +53,6 @@ void AgendaSet(// WS Generic Output:
   extern const Array<AgRecord>  agenda_data;
   extern const map<String, Index> AgendaMap;
 
-  output_agenda.resize(input_agenda.nelem());
   output_agenda = input_agenda;
   output_agenda.set_name(agenda_name);
 
@@ -118,7 +117,7 @@ void AgendaSet(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Main(// Agenda from controlfile:
+void Arts(// Agenda from controlfile:
           const Agenda& input_agenda)
 {
   input_agenda.execute();

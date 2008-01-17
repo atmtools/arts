@@ -364,9 +364,9 @@ extern const Numeric SPEED_OF_LIGHT;
 // numerical constants specific defined for the file continua.cc
 
 // conversion from neper to decibel:
-const Numeric Np_to_dB  = (10.000000 * LOG10_EULER_NUMBER); // [dB/Np]
+//const Numeric Np_to_dB  = (10.000000 * LOG10_EULER_NUMBER); // [dB/Np]
 // conversion from decibel to neper:
-const Numeric dB_to_Np  = (1.000000 / Np_to_dB);            // [Np/dB]
+//const Numeric dB_to_Np  = (1.000000 / Np_to_dB);            // [Np/dB]
 // conversion from GHz to Hz:
 const Numeric GHz_to_Hz = 1.000000e9;                       // [Hz/GHz]
 // conversion from Hz to GHz:
@@ -388,9 +388,9 @@ const Numeric dB_km_GHz = 0.1820427855916028e+06; // [dB/km/GHz] (4 * pi / c) * 
 // absorption unit conversions
 
 // conversion from dB/km to Np/km for absorption units:
-const Numeric dB_km_to_Np_km = dB_to_Np;
+//const Numeric dB_km_to_Np_km = dB_to_Np;
 // conversion from dB/km to Np/m for absorption units:
-const Numeric dB_km_to_Np_m  = (1.00000e-3 / (10.0 * LOG10_EULER_NUMBER));
+//const Numeric dB_km_to_Np_m  = (1.00000e-3 / (10.0 * LOG10_EULER_NUMBER));
 // conversion from dB/km to 1/m for absorption units:
 const Numeric dB_km_to_1_m   = (1.00000e-3 / (10.0 * LOG10_EULER_NUMBER));
 
@@ -402,10 +402,9 @@ const Numeric VMRCalcLimit = 1.000e-25;
 // #################################################################################
 // ############################## WATER VAPOR MODELS ###############################
 // #################################################################################
-//
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! MPM87H2OAbsModel
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to MPM87 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the H2O-line strengths [1]
@@ -595,10 +594,9 @@ void MPM87H2OAbsModel( MatrixView        pxsec,
 }
 //
 // #################################################################################
-//
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//!  MPM89H2OAbsModel
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to MPM89 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -782,10 +780,9 @@ void MPM89H2OAbsModel( MatrixView        pxsec,
 }
 //
 // #################################################################################
-//
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! MPM02H2OAbsModel
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to MPM93 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -1041,10 +1038,9 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
 //
 //
 // #################################################################################
-//
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! MPM93H2OAbsModel
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to MPM93 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -1278,10 +1274,9 @@ void MPM93H2OAbsModel( MatrixView        pxsec,
 }
 //
 // #################################################################################
-//
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! PWR98H2OAbsModel
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to P. W. Rosenkranz, 1998 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -1487,9 +1482,9 @@ void PWR98H2OAbsModel( MatrixView        pxsec,
 //
 // #################################################################################
 //
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! CP98H2OAbsModel
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to Cruz-Pol 1998 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -1619,9 +1614,9 @@ void CP98H2OAbsModel( MatrixView        pxsec,
 }
 //
 // #################################################################################
-//
-/**
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of the 
+//! Standard_H2O_self_continuum
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of the 
                             H2O-H2O continuum [1/m]
    \param    Cin            constant absorption strength     [1/m / (Hz*Pa)²]
    \param    xin            temperature exponent of (300/T)  [1]
@@ -1740,9 +1735,9 @@ void Standard_H2O_self_continuum( MatrixView        pxsec,
 }
 //
 // #################################################################################
-//
-/**
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of the 
+//! Standard_H2O_foreign_continuum
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of the 
                             H2O-dry air continuum [1/m]
    \param    Cin            constant absorption strength [1/m / (Hz*Pa)²]
    \param    xin            temperature exponent         [1] 
@@ -1863,10 +1858,10 @@ void Standard_H2O_foreign_continuum( MatrixView        pxsec,
 //
 //
 // #################################################################################
-//
-/**
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of the 
-                            H2O-dry air continuum [1/m]
+//! MaTipping_H2O_foreign_continuum
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of
+                            the H2O-dry air continuum [1/m]
    \param    Cin            constant absorption strength [1/m / (Hz*Pa)²]
    \param    xin            temperature exponent         [1] 
    \param    model          allows user defined input parameter set 
@@ -2073,10 +2068,9 @@ Numeric RADFN_FUN (const Numeric VI,
 
 // =================================================================================
 
-// CKD version 2.2.2 H2O self continuum absorption model
-/**
-
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+//! CKD version 2.2.2 H2O self continuum absorption model
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O self continuum according to CKD_2_2_2  [1/m]
    \param    Cin            strength scaling factor                    [1]
    \param    model          allows user defined input parameter set 
@@ -2107,7 +2101,7 @@ void CKD_222_self_h2o( MatrixView          pxsec,
            ConstVectorView     abs_p,
            ConstVectorView     abs_t,
            ConstVectorView     vmr,
-           ConstVectorView     /* abs_n2 */ )
+           ConstVectorView     abs_n2 _U_ )
 {
 
 
@@ -2361,10 +2355,9 @@ void CKD_222_self_h2o( MatrixView          pxsec,
 
 // =================================================================================
 
-// CKD version 2.2.2 H2O foreign continuum absorption model
-/**
-
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+//! CKD version 2.2.2 H2O foreign continuum absorption model
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O foreign continuum according to CKDv.2.2.2    [1/m]
    \param    Cin            strength scaling factor                          [1]
    \param    model          allows user defined input parameter set 
@@ -2395,7 +2388,7 @@ void CKD_222_foreign_h2o( MatrixView          pxsec,
         ConstVectorView     abs_p,
         ConstVectorView     abs_t,
         ConstVectorView     vmr,
-        ConstVectorView     /* abs_n2 */ )
+        ConstVectorView     abs_n2 _U_ )
 {
 
   // check the model name about consistency
@@ -2586,10 +2579,9 @@ void CKD_222_foreign_h2o( MatrixView          pxsec,
 
 // =================================================================================
 
-// CKD version 2.4.2 H2O self continuum absorption model
-/**
-
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+//! CKD version 2.4.2 H2O self continuum absorption model
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O self continuum according to CKD_2_4_2  [1/m]
    \param    Cin            strength scaling factor                    [1]
    \param    model          allows user defined input parameter set 
@@ -2620,7 +2612,7 @@ void CKD_242_self_h2o( MatrixView          pxsec,
            ConstVectorView     abs_p,
            ConstVectorView     abs_t,
            ConstVectorView     vmr,
-           ConstVectorView     /* abs_n2 */ )
+           ConstVectorView     abs_n2 _U_ )
 {
 
 
@@ -2887,10 +2879,9 @@ void CKD_242_self_h2o( MatrixView          pxsec,
 
 // =================================================================================
 
-// CKD version 2.4.2 H2O foreign continuum absorption model
-/**
-
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+//! CKD version 2.4.2 H2O foreign continuum absorption model
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O foreign continuum according to CKDv.2.4.2    [1/m]
    \param    Cin            strength scaling factor                          [1]
    \param    model          allows user defined input parameter set 
@@ -2921,7 +2912,7 @@ void CKD_242_foreign_h2o( MatrixView          pxsec,
         ConstVectorView     abs_p,
         ConstVectorView     abs_t,
         ConstVectorView     vmr,
-        ConstVectorView     /* abs_n2 */ )
+        ConstVectorView     abs_n2 _U_ )
 {
 
 
@@ -3132,10 +3123,9 @@ void CKD_242_foreign_h2o( MatrixView          pxsec,
 
 // =================================================================================
 
-// CKD version MT 1.00 H2O self continuum absorption model
-/**
-
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+//! CKD version MT 1.00 H2O self continuum absorption model
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O self continuum according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                  [1]
    \param    model          allows user defined input parameter set 
@@ -3166,7 +3156,7 @@ void CKD_mt_100_self_h2o( MatrixView          pxsec,
         ConstVectorView     abs_p,
         ConstVectorView     abs_t,
         ConstVectorView     vmr,
-        ConstVectorView     /* abs_n2 */ )
+        ConstVectorView     abs_n2 _U_ )
 {
 
   // check the model name about consistency
@@ -3390,10 +3380,9 @@ void CKD_mt_100_self_h2o( MatrixView          pxsec,
 
 // =================================================================================
 
-// CKD version MT 1.00 H2O foreign continuum absorption model
-/**
-
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+//! CKD version MT 1.00 H2O foreign continuum absorption model
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O foreign continuum according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                          [1]
    \param    model          allows user defined input parameter set 
@@ -3424,7 +3413,7 @@ void CKD_mt_100_foreign_h2o( MatrixView          pxsec,
            ConstVectorView     abs_p,
            ConstVectorView     abs_t,
            ConstVectorView     vmr,
-           ConstVectorView     /* abs_n2 */ )
+           ConstVectorView     abs_n2 _U_ )
 {
 
 
@@ -3592,10 +3581,9 @@ void CKD_mt_100_foreign_h2o( MatrixView          pxsec,
 
 // =================================================================================
 
-// CKD version 2.4.1 CO2 continuum absorption model
-/**
-
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+//! CKD version 2.4.1 CO2 continuum absorption model
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             CO2 continuum according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                          [1]
    \param    model          allows user defined input parameter set 
@@ -3623,8 +3611,8 @@ void CKD_241_co2( MatrixView         pxsec,
      const String&       model,
      ConstVectorView     f_grid,
      ConstVectorView     abs_p,
-     ConstVectorView     abs_t,
-     ConstVectorView     vmr )
+     ConstVectorView     abs_t _U_,
+     ConstVectorView     vmr _U_)
 {
 
   // check the model name about consistency
@@ -3789,10 +3777,9 @@ void CKD_241_co2( MatrixView         pxsec,
 // =================================================================================
 
 
-// CKD version MT 1.00 CO2 continuum absorption model
-/**
-
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+//! CKD version MT 1.00 CO2 continuum absorption model
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             CO2 continuum according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                          [1]
    \param    model          allows user defined input parameter set 
@@ -3821,7 +3808,7 @@ void CKD_mt_co2( MatrixView          pxsec,
      ConstVectorView     f_grid,
      ConstVectorView     abs_p,
      ConstVectorView     abs_t,
-     ConstVectorView     vmr)
+     ConstVectorView     vmr _U_)
 {
 
 
@@ -3991,15 +3978,15 @@ void CKD_mt_co2( MatrixView          pxsec,
 
 
 // =================================================================================
-// CKD version MT 1.00 N2-N2 collision induced absorption (rotational band)
-// Model reference:
-//  Borysow, A, and L. Frommhold, 
-//  "Collision-induced rototranslational absorption spectra of N2-N2
-//  pairs for temperatures from 50 to 300 K", The
-//  Astrophysical Journal, 311, 1043-1057, 1986.
-/**
+//! CKD version MT 1.00 N2-N2 collision induced absorption (rotational band)
+/*!
+  Model reference:
+  Borysow, A, and L. Frommhold, 
+  "Collision-induced rototranslational absorption spectra of N2-N2
+  pairs for temperatures from 50 to 300 K", The
+  Astrophysical Journal, 311, 1043-1057, 1986.
 
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             N2-N2 CIA rot. band according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                  [1]
    \param    model          allows user defined input parameter set 
@@ -4237,17 +4224,17 @@ void CKD_mt_CIArot_n2( MatrixView         pxsec,
 
 // =================================================================================
 
-// CKD version MT 1.00 N2-N2 collision induced absorption (fundamental band)
-// Model reference:
-//  version_1 of the Nitrogen Collision Induced Fundamental
-//  Lafferty, W.J., A.M. Solodov,A. Weber, W.B. Olson and 
-//  J._M. Hartmann, Infrared collision-induced absorption by 
-//  N2 near 4.3 microns for atmospheric applications: 
-//  Measurements and emprirical modeling, Appl. Optics, 35, 
-//  5911-5917, (1996).
-/**
+//! CKD version MT 1.00 N2-N2 collision induced absorption (fundamental band)
+/*!
+  Model reference:
+  version_1 of the Nitrogen Collision Induced Fundamental
+  Lafferty, W.J., A.M. Solodov,A. Weber, W.B. Olson and 
+  J._M. Hartmann, Infrared collision-induced absorption by 
+  N2 near 4.3 microns for atmospheric applications: 
+  Measurements and emprirical modeling, Appl. Optics, 35, 
+  5911-5917, (1996).
 
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             N2-N2 CIA fundamental band according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                  [1]
    \param    model          allows user defined input parameter set 
@@ -4453,16 +4440,16 @@ void CKD_mt_CIAfun_n2( MatrixView         pxsec,
 
 // =================================================================================
 
-// CKD version MT 1.00 O2-O2 collision induced absorption (fundamental band)
-// Model reference:
-// F. Thibault, V. Menoux, R. Le Doucen, L. Rosenman, 
-// J.-M. Hartmann, Ch. Boulet, 
-// "Infrared collision-induced absorption by O2 near 6.4 microns for
-// atmospheric applications: measurements and emprirical modeling", 
-// Appl. Optics, 35, 5911-5917, (1996).
-/**
+//! CKD version MT 1.00 O2-O2 collision induced absorption (fundamental band)
+/*!
+  Model reference:
+  F. Thibault, V. Menoux, R. Le Doucen, L. Rosenman, 
+  J.-M. Hartmann, Ch. Boulet, 
+  "Infrared collision-induced absorption by O2 near 6.4 microns for
+  atmospheric applications: measurements and emprirical modeling", 
+  Appl. Optics, 35, 5911-5917, (1996).
 
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             O2-O2 CIA fundamental band according to CKD_MT 1.00   [1/m]
    \param    Cin            strength scaling factor                  [1]
    \param    model          allows user defined input parameter set 
@@ -4497,7 +4484,7 @@ void CKD_mt_CIAfun_o2( MatrixView         pxsec,
           ConstVectorView     f_grid,
           ConstVectorView     abs_p,
           ConstVectorView     abs_t,
-          ConstVectorView     vmr )
+          ConstVectorView     vmr _U_ )
 {
 
   // check the model name about consistency
@@ -4658,25 +4645,25 @@ void CKD_mt_CIAfun_o2( MatrixView         pxsec,
 
 // =================================================================================
 
-// CKD version MT 1.00 O2 v0<-v0 band absorption
-// Model reference:
-// CKD_MT 1.00 implementation of oxygen collision induced fundamental model of 
-// O2 continuum formulated by 
-//   Mate et al. over the spectral region 7550-8486 cm-1: 
-//   B. Mate, C. Lugez, G.T. Fraser, W.J. Lafferty,
-//   "Absolute Intensities for the O2 1.27 micron
-//   continuum absorption",  
-//   J. Geophys. Res., 104, 30,585-30,590, 1999. 
-//
-// The units of these continua coefficients are  1 / (amagat_O2*amagat_air)
-//
-// Also, refer to the paper "Observed  Atmospheric
-// Collision Induced Absorption in Near Infrared Oxygen Bands",
-// Mlawer, Clough, Brown, Stephen, Landry, Goldman, & Murcray,
-// Journal of Geophysical Research (1997).
-/**
+//! CKD version MT 1.00 O2 v0<-v0 band absorption
+/*!
+  Model reference:
+  CKD_MT 1.00 implementation of oxygen collision induced fundamental model of 
+  O2 continuum formulated by 
+  Mate et al. over the spectral region 7550-8486 cm-1: 
+  B. Mate, C. Lugez, G.T. Fraser, W.J. Lafferty,
+  "Absolute Intensities for the O2 1.27 micron
+  continuum absorption",  
+  J. Geophys. Res., 104, 30,585-30,590, 1999. 
 
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+  The units of these continua coefficients are  1 / (amagat_O2*amagat_air)
+
+  Also, refer to the paper "Observed  Atmospheric
+  Collision Induced Absorption in Near Infrared Oxygen Bands",
+  Mlawer, Clough, Brown, Stephen, Landry, Goldman, & Murcray,
+  Journal of Geophysical Research (1997).
+
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             O2 v0<-v0 band according to CKD_MT 1.00  [1/m]
    \param    Cin            strength scaling factor                  [1]
    \param    model          allows user defined input parameter set 
@@ -4874,15 +4861,15 @@ void CKD_mt_v0v0_o2( MatrixView          pxsec,
 
 // =================================================================================
 
-// CKD version MT 1.00 O2 v1<-v0 band absorption
-// Model reference:
-// CKD_MT 1.00 implementation of oxygen v1<-v0 band model of 
-// Mlawer, Clough, Brown, Stephen, Landry, Goldman, Murcray,
-// "Observed  Atmospheric Collision Induced Absorption in Near Infrared Oxygen Bands",
-// Journal of Geophysical Research, vol 103, no. D4, pp. 3859-3863, 1998.
-/**
+//! CKD version MT 1.00 O2 v1<-v0 band absorption
+/*!
+  Model reference:
+  CKD_MT 1.00 implementation of oxygen v1<-v0 band model of 
+  Mlawer, Clough, Brown, Stephen, Landry, Goldman, Murcray,
+  "Observed  Atmospheric Collision Induced Absorption in Near Infrared Oxygen Bands",
+  Journal of Geophysical Research, vol 103, no. D4, pp. 3859-3863, 1998.
 
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             O2 v1<-v0 band according to CKD_MT 1.00  [1/m]
    \param    Cin            strength scaling factor                  [1]
    \param    model          allows user defined input parameter set 
@@ -5104,10 +5091,9 @@ void CKD_mt_v1v0_o2( MatrixView          pxsec,
 
 // #################################################################################
 
-// CKD version 2.4 H2O continuum absorption model
-/**
-
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+//! CKD version 2.4 H2O continuum absorption model
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O continuum according to CKD2.4    [1/m]
    \param    isf            =0 self continuum, =1 foreign continuum
    \param    Cin            strength scaling factor              [1]
@@ -5130,15 +5116,14 @@ void CKD_mt_v1v0_o2( MatrixView          pxsec,
              USA<br>
              E-mail: sboukaba@aer.com, clough@aer.com
 
-//   \remark   Reference: A. Borysow and L. Frommhold, 
-//           The Astrophysical Journal, vol.311, pp.1043-1057, 1986
-//           see <a href="http://adsabs.harvard.edu/article_service.html">for a scanned 
-//           version of the paper</a>.
+   \remark   Reference: A. Borysow and L. Frommhold, 
+           The Astrophysical Journal, vol.311, pp.1043-1057, 1986
+           see <a href="http://adsabs.harvard.edu/article_service.html">for a scanned 
+           version of the paper</a>.
 
    \author Thomas Kuhn
    \date 2002-03-06
  */ 
-
 void CKD24_H20( MatrixView          pxsec,
     int                 isf,
     const Numeric       Cin,
@@ -5295,9 +5280,9 @@ void CKD24_H20( MatrixView          pxsec,
 }
 //
 // #################################################################################
-//
-/** 
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+//! Pardo_ATM_H2O_ForeignContinuum
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    model          allows user defined input parameter set 
@@ -5394,14 +5379,14 @@ void Pardo_ATM_H2O_ForeignContinuum( MatrixView          pxsec,
 //
 // #################################################################################
 //
-// MPM93 H2O pseudo continuum line parameters:
-// see publication side of National Telecommunications and Information Administration
-//   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
-// and ftp side for downloading the MPM93 original source code:
-//   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
-/** 
+//! MPM93 H2O pseudo continuum line parameters:
+/*!
+  see publication side of National Telecommunications and Information Administration
+  http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
+  and ftp side for downloading the MPM93 original source code:
+  ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             H2O according to MPM87 [1/m]
    \param    fcenter        continuum pseudo-line center frequency [Hz]
    \param    b1             continuum pseudo-line line strength [Hz/Pa]
@@ -5541,9 +5526,9 @@ void MPM93_H2O_continuum( MatrixView          pxsec,
 // #################################################################################
 // ################################# OXYGEN MODELS #################################
 // #################################################################################
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! MPM85O2AbsModel
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             O2 according to MPM89 [1/m]
    \param    CCin           scaling factor for the O2-continuum   [1]
    \param    CLin           scaling factor for the O2-line strengths [1]
@@ -5819,10 +5804,9 @@ void MPM85O2AbsModel( MatrixView          pxsec,
 }
 //
 // #################################################################################
-// 
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! MPM87O2AbsModel 
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             O2 according to MPM89 [1/m]
    \param    CCin           scaling factor for the O2-continuum   [1]
    \param    CLin           scaling factor for the O2-line strengths [1]
@@ -6097,10 +6081,9 @@ void MPM87O2AbsModel( MatrixView          pxsec,
 }
 //
 // #################################################################################
-// 
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! MPM89O2AbsModel
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             O2 according to MPM89 [1/m]
    \param    CCin           scaling factor for the O2-continuum   [1]
    \param    CLin           scaling factor for the O2-line strengths [1]
@@ -6366,10 +6349,9 @@ void MPM89O2AbsModel( MatrixView          pxsec,
 //
 // #################################################################################
 // 
-//
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! MPM92O2AbsModel
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             O2 according to MPM93 [1/m]
    \param    CCin           scaling factor for the O2-continuum   [1]
    \param    CLin           scaling factor for the O2-line strengths [1]
@@ -6634,10 +6616,9 @@ void MPM92O2AbsModel( MatrixView          pxsec,
 }
 //
 // #################################################################################
-// 
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! MPM93O2AbsModel
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             O2 according to MPM93 [1/m]
    \param    CCin           scaling factor for the O2-continuum   [1]
    \param    CLin           scaling factor for the O2-line strengths [1]
@@ -6910,28 +6891,26 @@ void MPM93O2AbsModel( MatrixView          pxsec,
 //
 // #################################################################################
 // 
-//   Oxygen complex at 60 GHz plus mm O2 lines plus O2 continuum
-//
-//    REFERENCES FOR EQUATIONS AND COEFFICIENTS:
-//    P.W. Rosenkranz, CHAP. 2 and appendix, in ATMOSPHERIC REMOTE SENSING
-//     BY MICROWAVE RADIOMETRY (M.A. Janssen, ed., 1993).
-//    H.J. Liebe et al, JQSRT V.48, PP.629-643 (1992).
-//    M.J. Schwartz, Ph.D. thesis, M.I.T. (1997).
-//    SUBMILLIMETER LINE INTENSITIES FROM HITRAN96.
-//    This version differs from Liebe's MPM92 in two significant respects:
-//    1. It uses the modification of the 1- line width temperature dependence
-//    recommended by Schwartz: (1/T).
-//    2. It uses the same temperature dependence (X) for submillimeter 
-//    line widths as in the 60 GHz band: (1/T)**0.8 
-//
-//   history:
-//   05-01-95  P. Rosenkranz 
-//   11-05-97  P. Rosenkranz - 1- line modification.
-//   12-16-98  pwr - updated submm freq's and intensities from HITRAN96
-//
-/** 
+//! Oxygen complex at 60 GHz plus mm O2 lines plus O2 continuum
+/*!
+  REFERENCES FOR EQUATIONS AND COEFFICIENTS:
+  P.W. Rosenkranz, CHAP. 2 and appendix, in ATMOSPHERIC REMOTE SENSING
+  BY MICROWAVE RADIOMETRY (M.A. Janssen, ed., 1993).
+  H.J. Liebe et al, JQSRT V.48, PP.629-643 (1992).
+  M.J. Schwartz, Ph.D. thesis, M.I.T. (1997).
+  SUBMILLIMETER LINE INTENSITIES FROM HITRAN96.
+  This version differs from Liebe's MPM92 in two significant respects:
+  1. It uses the modification of the 1- line width temperature dependence
+  recommended by Schwartz: (1/T).
+  2. It uses the same temperature dependence (X) for submillimeter 
+  line widths as in the 60 GHz band: (1/T)**0.8 
 
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+  history:
+  05-01-95  P. Rosenkranz 
+  11-05-97  P. Rosenkranz - 1- line modification.
+  12-16-98  pwr - updated submm freq's and intensities from HITRAN96
+
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             O2 according to the P. W. Rosenkranz, 1993 [1/m]
    \param    CCin           O2-continuum scale factor  [1]
    \param    CLin           O2 line strength scale factor [1]
@@ -7293,14 +7272,14 @@ void PWR93O2AbsModel( MatrixView        pxsec,
 //
 // #################################################################################
 //
-// MPM93 O2 continuum:
-// see publication side of National Telecommunications and Information Administration
-//   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
-// and ftp side for downloading the MPM93 original source code:
-//   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
-/** 
+//! MPM93 O2 continuum:
+/*!
+  see publication side of National Telecommunications and Information Administration
+  http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
+  and ftp side for downloading the MPM93 original source code:
+  ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             O2-continuum according to MPM93 [1/m]
    \param    S0in           O2-continuum strength [1/Pa]
    \param    G0in           O2-continuum width [Hz/Pa]
@@ -7440,14 +7419,15 @@ void MPM93_O2_continuum( MatrixView          pxsec,
 //
 // #################################################################################
 //
-//   3) O2-air : P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
-//               "Atmospheric Remote Sensing by Microwave Radiometry",
-//               John Wiley & Sons, Inc., 1993. Also stated in 
-//               Liebe et al. JQSRT, Vol 48, Nr 5/6, pp. 629-643, 1992.
-//               Default continuum parameters are  C=1.6E-17*10E-9,  x=0.8
-/** 
+//! 3) O2-air
+/*!
+  P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
+  "Atmospheric Remote Sensing by Microwave Radiometry",
+  John Wiley & Sons, Inc., 1993. Also stated in 
+  Liebe et al. JQSRT, Vol 48, Nr 5/6, pp. 629-643, 1992.
+  Default continuum parameters are  C=1.6E-17*10E-9,  x=0.8
 
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             O2-continuum according to Rosenkranz 1993 [1/m]
    \param    S0in           line strength [K²/(Hz*Pa*m)]
    \param    G0in           line width [Hz/Pa]
@@ -7485,7 +7465,7 @@ void Rosenkranz_O2_continuum( MatrixView        pxsec,
             ConstVectorView    abs_p,        // total pressure [Pa]
             ConstVectorView    abs_t,
             ConstVectorView   abs_h2o,      // H2O VMR
-            ConstVectorView   vmr   )    // O2 VMR
+            ConstVectorView   vmr _U_ )    // O2 VMR
 {
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
@@ -7567,9 +7547,9 @@ void Rosenkranz_O2_continuum( MatrixView        pxsec,
 //
 //
 // #################################################################################
-//
-/**
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+//! Standard_O2_continuum
+/*!
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             O2-continuum according to Rosenkranz 1993 [1/m]
    \param    Cin            O2-continuum coefficient                  [1/(Hz*Pa*m)]
    \param    G0in           line width                                [Hz/Pa]
@@ -7617,7 +7597,7 @@ void Standard_O2_continuum( MatrixView        pxsec,         // cross section
           ConstVectorView   abs_p,        // P_tot grid
           ConstVectorView   abs_t,        // T grid
           ConstVectorView   abs_h2o,      // VMR H2O profile
-          ConstVectorView   vmr  )   // VMR O2  profile
+          ConstVectorView   vmr _U_ )   // VMR O2  profile
 {
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
@@ -7737,14 +7717,14 @@ void Standard_O2_continuum( MatrixView        pxsec,         // cross section
 // ################################ NITROGEN MODELS ################################
 // #################################################################################
 //
-// Borysow-Frommhold 1986 N2-N2 CIA absorption model;
-// see publication A. Borysow and L. Frommhold, 
-//                 The Astrophysical Journal, vol.311, pp.1043-1057, 1986
-//                 see http://adsabs.harvard.edu/article_service.html for a scanned 
-//                 version of the paper
-/**
+//! Borysow-Frommhold 1986 N2-N2 CIA absorption model;
+/*!
+  see publication A. Borysow and L. Frommhold, 
+  The Astrophysical Journal, vol.311, pp.1043-1057, 1986
+  see http://adsabs.harvard.edu/article_service.html for a scanned 
+  version of the paper
 
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             N2-CIA according to BF-86 model      [1/m]
    \param    Cin            strength scaling factor              [1]
    \param    model          allows user defined input parameter set 
@@ -7761,14 +7741,13 @@ void Standard_O2_continuum( MatrixView        pxsec,         // cross section
              <a href="http://www.astro.ku.dk/~aborysow/">F77 code</a>.
 
    \remark   Reference: A. Borysow and L. Frommhold, 
-//           The Astrophysical Journal, vol.311, pp.1043-1057, 1986
-//           see <a href="http://adsabs.harvard.edu/article_service.html">for a scanned 
-//           version of the paper</a>.
+             The Astrophysical Journal, vol.311, pp.1043-1057, 1986
+             see <a href="http://adsabs.harvard.edu/article_service.html">for a scanned 
+             version of the paper</a>.
 
    \author Thomas Kuhn
    \date 2002-03-05
- */ 
-
+*/ 
 void BF86_CIA_N2( MatrixView          pxsec,
       const Numeric       Cin,
       const String&       model,
@@ -7855,14 +7834,14 @@ void BF86_CIA_N2( MatrixView          pxsec,
 //
 // #################################################################################
 //
-// MPM93 N2 continuum:
-// see publication side of National Telecommunications and Information Administration
-//   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
-// and ftp side for downloading the MPM93 original source code:
-//   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
-/** 
+//! MPM93 N2 continuum
+/*!
+  see publication side of National Telecommunications and Information Administration
+  http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
+  and ftp side for downloading the MPM93 original source code:
+  ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to MPM93 [1/m]
    \param    Cin            continuum strength [ppm/GHz]
    \param    Gin            width parameter [Hz/Pa]
@@ -7998,9 +7977,9 @@ void MPM93_N2_continuum( MatrixView          pxsec,
 }
 //
 // #################################################################################
-//
-/** 
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+//! Pardo_ATM_N2_dry_continuum
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    model          allows user defined input parameter set 
@@ -8099,9 +8078,9 @@ void Pardo_ATM_N2_dry_continuum( MatrixView          pxsec,
 }
 //
 // #################################################################################
-//
-/** 
-   \retval   pxsec           cross section (absorption/volume mixing ratio) of 
+//! Rosenkranz_N2_self_continuum
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xin            temperature exponent of N2-continuum [1]
@@ -8197,12 +8176,12 @@ void Rosenkranz_N2_self_continuum( MatrixView          pxsec,
 //
 // #################################################################################
 //
-// 4) N2-N2  : P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
-//    "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
-//
-/** 
+//! 4) N2-N2
+/*!
+  P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
+  "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
 
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xfin           continuum frequency exponent [1]
@@ -8314,9 +8293,9 @@ void Standard_N2_self_continuum( MatrixView          pxsec,
 // #################################################################################
 // ############################## CARBON DIOXIDE MODELS ############################
 // #################################################################################
-//
-/** 
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! Rosenkranz_CO2_self_continuum
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             CO2-CO2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xin            continuum temperature exponent [1]
@@ -8411,10 +8390,9 @@ void Rosenkranz_CO2_self_continuum( MatrixView          pxsec,
 }
 //
 // #################################################################################
-//
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! Rosenkranz_CO2_foreign_continuum
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             CO2-N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xin            continuum temperature exponent [1]
@@ -8448,7 +8426,7 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          pxsec,
                ConstVectorView     abs_p,
                ConstVectorView     abs_t,
                ConstVectorView     abs_n2,
-               ConstVectorView     vmr   )
+               ConstVectorView     vmr _U_ )
 {
 
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
@@ -8512,10 +8490,9 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          pxsec,
 // #################################################################################
 // ################################### CLOUD AND RAIN MODELS #######################
 // #################################################################################
-//
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! MPM93WaterDropletAbs
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             water clouds according to MPM93 [1/m]
    \param    CCin           scaling parameter of the calculated cross section [1]
    \param    CGin           scaling parameter of the first relaxation frequency 
@@ -8688,10 +8665,9 @@ void MPM93WaterDropletAbs( MatrixView         pxsec,
 }
 //
 // #################################################################################
-//
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! MPM93IceCrystalAbs
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             ice clouds according to MPM93 [1/m]
    \param    CCin           scaling parameter of the calculated cross section [1]
    \param    CAin           scaling parameter of the permittivity function a
@@ -8853,10 +8829,9 @@ void MPM93IceCrystalAbs( MatrixView        pxsec,
 }
 //
 // #################################################################################
-//
-/** 
-
-   \retval    pxsec          cross section (absorption/volume mixing ratio) of 
+//! MPM93RainExt
+/*! 
+   \param[out] pxsec        cross section (absorption/volume mixing ratio) of 
                             water clouds according to MPM93 [1/m]
    \param    CEin           scaling parameter of the calculated cross section [1]
    \param    CAin           scaling parameter of the factor a_rain [1]
@@ -8890,7 +8865,7 @@ void MPM93RainExt( MatrixView         pxsec,
        const String&      model, // model
        ConstVectorView    f_grid, // frequency vector
        ConstVectorView    abs_p,  // pressure vector
-       ConstVectorView    abs_t,  // temperature vector
+       ConstVectorView    abs_t _U_,  // temperature vector
        ConstVectorView    vmr)    // rain rate profile [mm/h]
 {
 

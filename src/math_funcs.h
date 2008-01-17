@@ -66,9 +66,6 @@ void nlogspace(
                const Numeric     stop,        
                const Index         n );
 
-//double pow (float f, double d);
-//double pow (double d, float f);
-
 Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
                                ConstVectorView za_grid,
                                ConstVectorView aa_grid);

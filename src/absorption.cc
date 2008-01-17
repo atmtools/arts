@@ -83,11 +83,15 @@ ostream& operator << (ostream& os, const LineRecord& lr)
   // Determine the precision, depending on whether Numeric is double
   // or float:  
   Index precision;
-  switch (sizeof(Numeric)) {
-  case sizeof(float)  : precision = FLT_DIG; break;
-  case sizeof(double) : precision = DBL_DIG; break;
-  default: out0 << "Numeric must be double or float\n"; arts_exit();
-  }
+#ifdef USE_FLOAT
+  precision = FLT_DIG;
+#else
+#ifdef USE_DOUBLE
+  precision = DBL_DIG;
+#else
+#error Numeric must be double or float
+#endif
+#endif
 
   os << "@"
      << " " << lr.Name  ()
@@ -154,6 +158,50 @@ void extract(T&      x,
   item >> x;
 }
 
+/** The full name of the species and isotope. E.g., `O3-666'. The
+  name is found by looking up the information in species_data,
+  using the species and isotope index. */
+String LineRecord::Name() const {
+  // The species lookup data:
+  extern const Array<SpeciesRecord> species_data;
+  const SpeciesRecord& sr = species_data[mspecies];
+  return sr.Name() + "-" + sr.Isotope()[misotope].Name();
+}
+
+
+/** The matching SpeciesRecord from species_data. To get at the
+    species data of a LineRecord lr, you can use:
+    <ul>
+    <li>species_data[lr.Species()]</li>
+    <li>lr.SpeciesData()</li>
+    </ul>
+    The only advantages of the latter are that the notation is
+    slightly nicer and that you don't have to declare the external
+    variable species_data. */
+const SpeciesRecord& LineRecord::SpeciesData() const {
+  // The species lookup data:
+  extern const Array<SpeciesRecord> species_data;
+  return species_data[mspecies];
+}
+
+
+/** The matching IsotopeRecord from species_data. The IsotopeRecord
+    is a subset of the SpeciesRecord. To get at the isotope data of
+    a LineRecord lr, you can use:
+    <ul>
+    <li>species_data[lr.Species()].Isotope()[lr.Isotope()]</li>
+    <li>lr.SpeciesData().Isotope()[lr.Isotope()]</li>
+    <li>lr.IsotopeData()</li>
+    </ul>
+    The last option is clearly the shortest, and has the advantage
+    that you don't have to declare the external variable
+    species_data. */
+const IsotopeRecord& LineRecord::IsotopeData() const {
+  // The species lookup data:
+  extern const Array<SpeciesRecord> species_data;
+  return species_data[mspecies].Isotope()[misotope];
+}
+
 
 // This function reads line data in the Hitran 1986-2001 format. For the Hitran
 // 2004 data format use ReadFromHitran2004Stream.
@@ -164,7 +212,7 @@ void extract(T&      x,
 bool LineRecord::ReadFromHitranStream(istream& is)
 {
   // Global species lookup data:
-  extern Array<SpeciesRecord> species_data;
+  extern const Array<SpeciesRecord> species_data;
 
   // This value is used to flag missing data both in species and
   // isotope lists. Could be any number, it just has to be made sure
@@ -614,7 +662,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 bool LineRecord::ReadFromHitran2004Stream(istream& is)
 {
   // Global species lookup data:
-  extern Array<SpeciesRecord> species_data;
+  extern const Array<SpeciesRecord> species_data;
 
   // This value is used to flag missing data both in species and
   // isotope lists. Could be any number, it just has to be made sure
@@ -1080,7 +1128,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is)
 bool LineRecord::ReadFromMytran2Stream(istream& is)
 {
   // Global species lookup data:
-  extern Array<SpeciesRecord> species_data;
+  extern const Array<SpeciesRecord> species_data;
 
   // This value is used to flag missing data both in species and
   // isotope lists. Could be any number, it just has to be made sure
@@ -1479,7 +1527,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
 bool LineRecord::ReadFromJplStream(istream& is)
 {
   // Global species lookup data:
-  extern Array<SpeciesRecord> species_data;
+  extern const Array<SpeciesRecord> species_data;
 
   // We need a species index sorted by JPL tag. Keep this in a
   // static variable, so that we have to do this only once.  The ARTS
@@ -1723,7 +1771,7 @@ bool LineRecord::ReadFromJplStream(istream& is)
 bool LineRecord::ReadFromArtsStream(istream& is)
 {
   // Global species lookup data:
-  extern Array<SpeciesRecord> species_data;
+  extern const Array<SpeciesRecord> species_data;
 
   // We need a species index sorted by Arts identifier. Keep this in a
   // static variable, so that we have to do this only once.  The ARTS
@@ -1892,7 +1940,7 @@ bool LineRecord::ReadFromArtsStream(istream& is)
           icecream >> mdnself;
           icecream >> mdpsf;
         }
-      catch (runtime_error x)
+      catch (runtime_error)
         {
           // Nothing to do here, the accuracies are optional, so we
           // just set them to -1 and continue reading the next line of
@@ -1927,13 +1975,15 @@ bool LineRecord::ReadFromArtsStream(istream& is)
 
     \retval xsec   Cross section of one tag group. This is now the
                    true absorption cross section in units of m^2.
-    \param f_grid  Frequency grid.
-    \param abs_p   Pressure grid.
-    \param abs_t   Temperatures associated with abs_p.
-    \param abs_h2o Total volume mixing ratio of water vapor.
-    \param vmr     Volume mixing ratio of the calculated species.
-    \param abs_lines   The spectroscopic line list.
-    \param ind_ls  Lineshape specifications.
+    \param f_grid       Frequency grid.
+    \param abs_p        Pressure grid.
+    \param abs_t        Temperatures associated with abs_p.
+    \param abs_h2o_orig Total volume mixing ratio of water vapor.
+    \param vmr          Volume mixing ratio of the calculated species.
+    \param abs_lines    The spectroscopic line list.
+    \param ind_ls       Index to lineshape function.
+    \param ind_lsn      Index to lineshape norm.
+    \param cutoff       Lineshape cutoff.
 
     \author Stefan Buehler and Axel von Engeln
     \date   2001-01-11 
@@ -1947,7 +1997,7 @@ void xsec_species( MatrixView               xsec,
                    ConstVectorView          f_grid,
                    ConstVectorView          abs_p,
                    ConstVectorView          abs_t,
-                   ConstVectorView          abs_h2o,
+                   ConstVectorView          abs_h2o_orig,
                    ConstVectorView          vmr,
                    const ArrayOfLineRecord& abs_lines,
                    const Index              ind_ls,
@@ -1974,8 +2024,8 @@ void xsec_species( MatrixView               xsec,
   // extern const Numeric SQRT_NAT_LOG_2;
 
   // Constant within the Doppler Broadening calculation:
-  static const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST *
-                                             AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
+  const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST *
+                                      AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
 
   // dimension of f_grid, abs_lines
   Index nf = f_grid.nelem();
@@ -2038,7 +2088,7 @@ void xsec_species( MatrixView               xsec,
   Index ii = (nf+1 < 10) ? 10 : nf+1;
   Vector aux(ii);
 
-  // Check that abs_p, abs_t, and abs_h2o all have the same
+  // Check that abs_p, abs_t, and abs_vmrs have the same
   // dimension. This could be a user error, so we throw a
   // runtime_error. 
 
@@ -2060,15 +2110,37 @@ void xsec_species( MatrixView               xsec,
       throw runtime_error(os.str());
     }
 
-  if ( abs_h2o.nelem() != abs_p.nelem() )
+  // With abs_h2o it is different. We do not really need this in most
+  // cases, only the Rosenkranz lineshape for oxygen uses it. There is
+  // a global (scalar) default value of -1, that we are expanding to a
+  // vector here if we find it. The Rosenkranz lineshape does a check
+  // to make sure that the value is actually set, and not the default
+  // value. 
+  Vector abs_h2o(abs_p.nelem());
+  if ( abs_h2o_orig.nelem() == abs_p.nelem() )
     {
-      ostringstream os;
-      os << "Variable abs_h2o must have the same dimension as abs_p.\n"
-         << "abs_h2o.nelem() = " << abs_h2o.nelem() << '\n'
-         << "abs_p.nelem() = " << abs_p.nelem();
-      throw runtime_error(os.str());
+      abs_h2o = abs_h2o_orig;
     }
-
+  else
+    {
+      if ( ( 1   == abs_h2o_orig.nelem()) && 
+           ( -.99 > abs_h2o_orig[0]) )
+        {
+          // We have found the global default value. Expand this to a
+          // vector with the right length, by copying -1 to all
+          // elements of abs_h2o.
+          abs_h2o = -1;         
+        }
+      else
+        {
+          ostringstream os;
+          os << "Variable abs_h2o must have default value -1 or the\n"
+             << "same dimension as abs_p.\n"
+             << "abs_h2o.nelem() = " << abs_h2o.nelem() << '\n'
+             << "abs_p.nelem() = " << abs_p.nelem();
+          throw runtime_error(os.str());
+        }
+    }
 
   // Check that the dimension of xsec is indeed [f_grid.nelem(),
   // abs_p.nelem()]:
@@ -2082,7 +2154,6 @@ void xsec_species( MatrixView               xsec,
          << "abs_p.nelem() = " << abs_p.nelem();
       throw runtime_error(os.str());
     }
-
 
   // Loop all pressures:
   for ( Index i=0; i<abs_p.nelem(); ++i )
@@ -2200,7 +2271,7 @@ void xsec_species( MatrixView               xsec,
           // n_shift = .25 + 1.5 * n_agam
           // Theta has been initialized above.
           F0 += l_l.Psf() * p_i * 
-              std::pow( theta , (Numeric).25 + (Numeric)1.5*l_l.Nair() );
+            std::pow( theta , (Numeric).25 + (Numeric)1.5*l_l.Nair() );
 
           // 4. the rosenkranz lineshape for oxygen calculates the
           // pressure broadening, overlap, ... differently. Therefore
@@ -2282,7 +2353,7 @@ void xsec_species( MatrixView               xsec,
               // Nothing to do here. Note that nfl and nfls are both still set to nf.
             }
 
-          //      cout << "nf, nfl, nfls = " << nf << ", " << nfl << ", " << nfls << ".\n";
+          //          cout << "nf, nfl, nfls = " << nf << ", " << nfl << ", " << nfls << ".\n";
         
           // Maybe there are no frequencies left to compute?  Note that
           // the number that counts here is nfl, since only these are
@@ -2290,6 +2361,11 @@ void xsec_species( MatrixView               xsec,
           // will always be at least one, because it contains the cutoff.
           if ( nfl > 0 )
             {
+//               cout << ls << endl
+//                    << "aux / F0 / gamma / sigma" << aux << "/" << F0 << "/" << gamma << "/" << sigma << endl
+//                    << f_local[Range(i_f_min,nfls)] << endl
+//                    << nfls << endl;
+
               // Calculate the line shape:
               lineshape_data[ind_ls].Function()(ls,
                                                 aux,F0,gamma,sigma,
@@ -2456,7 +2532,7 @@ Numeric wavenumber_to_joule(Numeric e)
   extern const Numeric SPEED_OF_LIGHT;
 
   // Constant to convert lower state energy from cm^-1 to J
-  static const Numeric lower_energy_const = PLANCK_CONST * SPEED_OF_LIGHT * 1E2;
+  const Numeric lower_energy_const = PLANCK_CONST * SPEED_OF_LIGHT * 1E2;
 
   return e*lower_energy_const; 
 }

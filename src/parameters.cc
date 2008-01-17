@@ -87,6 +87,7 @@ bool get_parameters(int argc, char **argv)
     { "basename",           required_argument, NULL, 'b' },
     { "reporting",          required_argument, NULL, 'r' },
     { "methods",            required_argument, NULL, 'm' },
+    { "includepath",        required_argument, NULL, 'I' },
     { "input",              required_argument, NULL, 'i' },
     { "workspacevariables", required_argument, NULL, 'w' },
     { "describe",           required_argument, NULL, 'd' },
@@ -99,6 +100,7 @@ bool get_parameters(int argc, char **argv)
     "Usage: arts [-hvbrmiwdg] [--help] [--version] [--basename <name>]\n"
     "       [--reporting xy]\n"
     "       [--methods all|<variable>]\n"
+    "       [--includepath]\n"
     "       [--input <variable>]\n"
     "       [--workspacevariables all|<method>]\n"
     "       [--describe <method or variable>]\n"
@@ -122,6 +124,8 @@ bool get_parameters(int argc, char **argv)
     "                    (or variable group), it prints all\n"
     "                    methods that produce this\n"
     "                    variable (or group) as output.\n"
+    "-I  --includepath   Search path for include files. Can be given more\n"
+    "                    than once to add several paths.\n"
     "-i, --input         This is complementary to the --methods switch.\n"
     "                    It must be given the name of a variable (or group).\n"
     "                    Then it lists all methods that take this variable\n"
@@ -150,8 +154,7 @@ bool get_parameters(int argc, char **argv)
     int i=0;
     while (NULL != longopts[i].name )
       {
-        // FIXME: Should there be a cast here? The real type of val is int.
-        char c = longopts[i].val;
+        char c = (char)longopts[i].val;
         shortopts += c;
         //      cout << "name = " << longopts[i].name << "\n";
         //      cout << "val  = " << longopts[i].val << "\n";
@@ -210,6 +213,9 @@ bool get_parameters(int argc, char **argv)
           }
         case 'm':
           parameters.methods = optarg;
+          break;
+        case 'I':
+          parameters.includepath.push_back (optarg);
           break;
         case 'i':
           parameters.input = optarg;

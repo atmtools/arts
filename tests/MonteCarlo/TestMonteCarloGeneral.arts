@@ -3,10 +3,9 @@
 #For a single line of sight and a Pencil Beam antenna response
 
 
-Main{
+Arts {
 
-output_file_formatSetAscii{
-}
+INCLUDE "general"
 
 #### LOAD DATA: these files were created with MCDataPrepare.arts ######
 
@@ -22,8 +21,7 @@ ReadXML(p_grid){
 filename="p_grid.xml"
 }
 
-AtmosphereSet3D{
-}
+AtmosphereSet3D
 
 ReadXML(lat_grid){
 filename="lat_grid.xml"
@@ -54,12 +52,14 @@ filename="z_surface.xml.generated"
 }
 
 ReadXML(abs_lookup){
-filename="gas_abs_lookup_adapted.xml.generated"
+filename="abs_lookup.xml.generated"
 }
 
-IndexSet (abs_lookup_is_adapted ){
-value=1
+SpeciesSet(abs_species){
+species=["O2-PWR93","N2-SelfContStandardType","H2O-PWR98"]
 }
+
+abs_lookupAdapt
 
 ReadXML(cloudbox_limits){
 filename="cloudbox_limits.xml.generated"
@@ -77,42 +77,23 @@ filename="scat_data_mono.xml.generated"
 #### Define Agendas #################################################
 
 AgendaSet(iy_space_agenda){
-  Ignore(rte_pos){}
-  Ignore(rte_los){}
-  MatrixCBR(iy,f_grid){
-  }
+  Ignore(rte_pos)
+  Ignore(rte_los)
+  MatrixCBR(iy,f_grid)
 }
 
 AgendaSet(surface_prop_agenda){
-  InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
-  surfaceBlackbody{}
-  Ignore(rte_los){}  
+  InterpAtmFieldToRteGps( surface_skin_t, t_field )
+  surfaceBlackbody
+  Ignore(rte_los)
 }
 
 AgendaSet(abs_scalar_gas_agenda){
-  abs_scalar_gasExtractFromLookup{
-}
-
-}
-
-AgendaSet( emission_agenda ){
-   emissionPlanck{}
-}
-
-AgendaSet(opt_prop_gas_agenda){
-  ext_matInit{
-  }
-  abs_vecInit{
-  }
-  ext_matAddGas{
-  }
-  abs_vecAddGas{
-  }
+  abs_scalar_gasExtractFromLookup
 }
 
 AgendaSet(spt_calc_agenda){
-  opt_prop_sptFromMonoData{
-  }
+  opt_prop_sptFromMonoData
 }
 
 #### Define viewing position and line of sight #########################
@@ -128,18 +109,15 @@ lat=7.61968838781
 lon=0
 }
 
-rte_posAddRgeoid{
-}
+rte_posAddRgeoid
 
-Matrix1RowFromVector(sensor_pos,rte_pos){
-}
+Matrix1RowFromVector(sensor_pos,rte_pos)
 
 Print(sensor_pos){
 level=1
 }
 
-Matrix1RowFromVector(sensor_los,rte_los){
-}
+Matrix1RowFromVector(sensor_los,rte_los)
 
 Print(sensor_los){
 level=1
@@ -151,17 +129,17 @@ IndexSet(stokes_dim){
 value=4
 }
 
-StringSet (mc_unit){
+StringSet (y_unit){
     text="RJBT"
 }
 
-MCSetSeedFromTime{}
+MCSetSeedFromTime
 
 Print(mc_seed){
 level=1
 }
 
-mc_antennaSetPencilBeam{}
+mc_antennaSetPencilBeam
 
 #### Perform Monte Carlo RT Calculation #################################
 
@@ -187,7 +165,7 @@ Print(mc_iteration_count){
 level=1
 }
 
-Print(mc_unit){
+Print(y_unit){
 level=1
 }
 

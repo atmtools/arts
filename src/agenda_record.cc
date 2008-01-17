@@ -94,7 +94,7 @@ bool check_agenda_data()
   // Make external data visible
   extern const Array<WsvRecord> wsv_data;
   extern const Array<AgRecord>  agenda_data;
-  DEBUG_ONLY (extern const map<String, Index> AgendaMap);
+  DEBUG_ONLY (extern map<String, Index> AgendaMap);
   DEBUG_ONLY (extern const map<String, Index> WsvMap);
 
   Index i,j,k;
@@ -235,8 +235,9 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
     {
       // Agenda.
 
-      extern const Array<AgRecord>         agenda_data;
-      extern const map<String, Index> AgendaMap;
+      extern const Array<AgRecord>    agenda_data;
+      // AgendaMap is constant here and should never be changed
+      extern map<String, Index> AgendaMap;
 
       map<String, Index>::const_iterator j =
         AgendaMap.find( wr.Name() );
@@ -256,7 +257,8 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
   \param agr Agenda record.
 */
 void write_agenda_wrapper_header( ofstream& ofs,
-                                  const AgRecord& agr )
+                                  const AgRecord& agr,
+                                  const bool write_default_args )
 {
   extern const ArrayOfString wsv_group_names;
   extern const Array<WsvRecord> wsv_data;
@@ -301,6 +303,10 @@ void write_agenda_wrapper_header( ofstream& ofs,
   // Wrapper function agenda and silent parameters
   ofs << "        // Wrapper Input\n";
   ofs << "        const Agenda& input_agenda,\n";
-  ofs << "        const bool& silent)";
+  ofs << "        const bool silent,\n";
+  ofs << "        const bool safe_workspace";
+  if (write_default_args)
+    ofs << " = false";
+  ofs << ")";
 }
 

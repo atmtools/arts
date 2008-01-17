@@ -125,7 +125,7 @@ inline Array<base>::Array(Index n, const base& fillvalue) :
 {
   // Use fill to fill.
   fill(this->begin(),this->end(),fillvalue);
-};
+}
 
 
 /** Assignment from base type (fill entire Array with this value). */

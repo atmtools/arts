@@ -29,8 +29,8 @@
 
 */
 
-#ifndef xml_io_compound_h
-#define xml_io_compound_h
+#ifndef xml_io_compound_types_h
+#define xml_io_compound_types_h
 
 #include "messages.h"
 #include "ppath.h"

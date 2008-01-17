@@ -36,23 +36,53 @@
 #include <ostream>
 #include <iterator>
 
-//! Append a new method to end of list.
-/*! 
-  This is used by the parser to fill up the agenda.
-
-  \param n New method to add.
-*/
-void Agenda::push_back(MRecord n)
-{
-  mml.push_back(n);
-}
-
 /** Print the error message and exit. */
 void give_up(const String& message)
 {
   out0 << message << '\n';
   arts_exit();
 }
+
+
+//! Appends methods to an agenda
+/*!
+  This function appends a workspace method to the agenda. It currently only
+  supports appending WSMs which have no generic input or output.
+   
+  The keyword value has to be a string, which for no value should be of length
+  zero.
+   
+  \param methodname    The name of the WSM
+  \param keywordvalue  The value of the keyword
+
+  \author Mattias Ekstrom
+  \date   2005-01-05
+*/
+void Agenda::append(const String& methodname,
+                    const String& keywordvalue)
+{
+  extern const map<String, Index> MdMap;
+  
+  // Find explicit method id in MdMap.
+  const map<String, Index>::const_iterator i2 = MdMap.find(methodname);
+  assert ( i2 != MdMap.end() );
+  Index id = i2->second;            
+          
+  Array<TokVal> values(0);
+  ArrayOfIndex output(0);          
+  ArrayOfIndex input(0);
+  Agenda dummy;
+  dummy.resize(0);
+  
+  // If not empty append the keyword value
+  if (keywordvalue.nelem() != 0) 
+    values.push_back(keywordvalue);
+  
+  // Append the method
+  push_back (MRecord(id,values,output,input,dummy));
+  set_outputs_to_push_and_dup ();
+}
+
 
 //! Execute an agenda.
 /*! 
@@ -64,8 +94,7 @@ void give_up(const String& message)
 */
 void Agenda::execute(bool silent) const
 {
-  // The workspace:
-  extern Workspace workspace;
+  assert (agendaworkspace != NULL);
 
   // The method description lookup table:
   extern const Array<MdRecord> md_data;
@@ -74,7 +103,7 @@ void Agenda::execute(bool silent) const
   extern const Array<WsvRecord> wsv_data;
   
   // The array holding the pointers to the getaway functions:
-  extern const void (*getaways[])(Workspace&, const MRecord&);
+  extern void (*getaways[])(Workspace&, const MRecord&);
 
     // The messages level. We will manipulate it in this function, if
   // silent execution is desired.
@@ -120,7 +149,7 @@ void Agenda::execute(bool silent) const
           { // Check if all specific input variables are initialized:
             const ArrayOfIndex& v(mdd.Input());
             for (Index s=0; s<v.nelem(); ++s)
-              if (!workspace.is_initialized(v[s]))
+              if (!agendaworkspace->is_initialized(v[s]))
                 give_up("Method "+mdd.Name()+" needs input variable: "+
                         wsv_data[v[s]].Name());
           }
@@ -129,13 +158,13 @@ void Agenda::execute(bool silent) const
             const ArrayOfIndex& v(mrr.Input());
             //      cout << "v.nelem(): " << v.nelem() << endl;
             for (Index s=0; s<v.nelem(); ++s)
-              if (!workspace.is_initialized(v[s]))
+              if (!agendaworkspace->is_initialized(v[s]))
                 give_up("Generic Method "+mdd.Name()+" needs input variable: "+
                         wsv_data[v[s]].Name());
           }
 
           // Call the getaway function:
-          getaways[mrr.Id()]( workspace, mrr );
+          getaways[mrr.Id()]( *agendaworkspace, mrr );
 
         }
       catch (runtime_error x)
@@ -153,6 +182,8 @@ void Agenda::execute(bool silent) const
               messages = messages_original;
             }
 
+          out1 << "}\n";
+
           throw runtime_error(os.str());
         }
     }
@@ -165,6 +196,7 @@ void Agenda::execute(bool silent) const
       messages = messages_original;
     }
 }
+
 
 //! Retrieve indexes of all input and output WSVs
 /*!
@@ -355,7 +387,6 @@ bool Agenda::is_input(Index var) const
 {
   // Make global method data visible:
   extern const Array<MdRecord>  md_data;
-  extern Workspace workspace;
   extern const ArrayOfString wsv_group_names;
 
   // Make sure that var is the index of a valid method:
@@ -405,7 +436,7 @@ bool Agenda::is_input(Index var) const
           if (md_data[this_method.Id ()].GInput()[j] == WsvAgendaGroupIndex)
             {
               Agenda *AgendaFromGeneralInput =
-                (Agenda *)workspace[this_method.Input ()[j]];
+                (Agenda *)(*agendaworkspace)[this_method.Input ()[j]];
 
               if ((*AgendaFromGeneralInput).is_input(var))
                 {

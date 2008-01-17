@@ -77,7 +77,7 @@ public:
 
   /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
-  Tensor6View* const operator->() { return &msv; }
+  Tensor6View* operator->() { return &msv; }
 
   /** Dereferencing. */
   Tensor6View& operator*() { return msv; }
@@ -723,6 +723,9 @@ public:
   ConstIterator7D begin() const;
   ConstIterator7D end() const;
   
+  //! Destructor.
+  virtual ~ConstTensor7View() {};
+
   // Friends:
   friend class Tensor7View;
 
@@ -1874,6 +1877,9 @@ public:
   Tensor7View& operator+=(const ConstTensor7View& x);
   Tensor7View& operator-=(const ConstTensor7View& x);
 
+  //! Destructor.
+  virtual ~Tensor7View() {};
+
   // Friends:
 
   // Special constructor to make a Tensor7 view of a Tensor6.
@@ -1927,7 +1933,7 @@ public:
               Index        p, Index        r, Index        c);
 
   // Destructor:
-  ~Tensor7();
+  virtual ~Tensor7();
 };
 
 

@@ -73,7 +73,7 @@ Numeric fac(const Index n)
 
   sum = 1.0;
   for (Index i = 1; i <= n; i++)
-    sum = sum * Numeric(i);
+    sum *= Numeric(i);
 
   return(sum);
 }
@@ -313,51 +313,14 @@ void nlogspace(
 }
 
 
-
-//! pow
-/*! 
-    Returns the value of f raised to the power of d.
-
-    \return      The value of f raised to the power of d.
-    \param   f   Float value.
-    \param   d   Double value.
-
-    \author Oliver Lemke
-    \date   2003-01-23
-*/
-
-/*double pow (float f, double d)
-{
-  return (pow (double (f), d));
-}*/
-
-
-//! pow
-/*! 
-    Returns the value of d raised to the power of f.
-
-    \return      The value of f raised to the power of d.
-    \param   d   Double value.
-    \param   f   Float value.
-
-    \author Oliver Lemke
-    \date   2003-01-23
-*/
-
-/*double pow (double d, float f)
-{
-  return (pow (d, double (f)));
-}*/
-
-
 //! AngIntegrate_trapezoid
 /*! 
     Performs an integration of a matrix over all directions defined in angular
     grids using the trapezoidal integration method.
 
-    \param Integrand Input : The Matrix to be integrated
-    \param za_grid Input : The zenith angle grid 
-    \param aa_grid Input : The azimuth angle grid 
+    \param Integrand The Matrix to be integrated
+    \param za_grid   The zenith angle grid 
+    \param aa_grid   The azimuth angle grid 
     
     \return The resulting integral
 */

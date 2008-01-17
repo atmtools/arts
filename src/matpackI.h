@@ -317,6 +317,9 @@ public:
   // Conversion to 1 column matrix:
   operator ConstMatrixView() const;
 
+  //! Destructor
+  virtual ~ConstVectorView() {};
+
   // Friends:
   friend class VectorView;
   friend class ConstIterator2D;
@@ -416,6 +419,9 @@ public:
   // Conversion to a plain C-array
   Numeric *get_c_array();
 
+  //! Destructor
+  virtual ~VectorView() {};
+
   // Friends:
   friend class ConstIterator2D;
   friend class Iterator2D;
@@ -469,7 +475,7 @@ public:
 
   /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
-  VectorView* const operator->() { return &msv; }
+  VectorView * operator->() { return &msv; }
 
   /** Dereferencing. */
   VectorView& operator*() { return msv; }
@@ -555,7 +561,7 @@ public:
   void resize(Index n);
 
   // Destructor:
-  ~Vector();
+  virtual ~Vector();
 };
 
 // Declare class Matrix:
@@ -604,6 +610,9 @@ public:
   // Functions returning iterators:
   ConstIterator2D begin() const;
   ConstIterator2D end() const;
+
+  //! Destructor
+  virtual ~ConstMatrixView() {};
 
   // Friends:
   friend class MatrixView;
@@ -713,6 +722,9 @@ public:
   // Conversion to a plain C-array
   Numeric *get_c_array();
 
+  //! Destructor
+  virtual ~MatrixView() {};
+
   // Friends:
   friend class VectorView;
   friend class Iterator3D;
@@ -759,7 +771,7 @@ public:
   void resize(Index r, Index c);
 
   // Destructor:
-  ~Matrix();
+  virtual ~Matrix();
 
   Numeric *get_raw_data() { return mdata; };
 };
@@ -810,6 +822,10 @@ Numeric max(const ConstMatrixView& x);
 Numeric min(const ConstVectorView& x);
 
 Numeric min(const ConstMatrixView& x);
+
+Numeric mean(const ConstVectorView& x);
+
+Numeric mean(const ConstMatrixView& x);
 
 Numeric operator*(const ConstVectorView& a, const ConstVectorView& b);
 

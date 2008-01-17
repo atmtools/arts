@@ -369,6 +369,8 @@ void define_md_data_raw()
                     "   The general lineshape profile is given by the keyword shape,\n"
                     "while the normalization factor and the cutoff frequency by\n"
                     "normalizationfactor and cutoff respectively.\n"
+                    "   We generate only 1 copy of the lineshape settings. Absorption\n"
+                    "routines check for this case and use it for all species.\n"
                     "\n"
                     "   The available values for these keywords are given below.\n"
                     "shape - \"no_shape\" : no specified shape\n"
@@ -407,7 +409,7 @@ void define_md_data_raw()
                     "   cutoff              : The frequency at which a cutoff can be made.\n"),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUTPUT( abs_lineshape_ ),
-        INPUT( abs_species_ ),
+        INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "shape",  "normalizationfactor", "cutoff" ),
@@ -836,6 +838,107 @@ void define_md_data_raw()
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ))) ;
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("abs_lookupSetup"),
+        DESCRIPTION
+        (
+         "Set up input parameters for abs_lookupCreate.\n"
+         "\n"
+         "More information can be found in the documentation for method\n"
+         "*abs_lookupSetupBatch*\n"
+         "\n"
+         "Keywords:\n"
+         "   p_step   : Maximum step in log(p[Pa]) (natural logarithm, as always). If\n"
+         "              the pressure grid is coarser than this, additional points\n"
+         "              are added until each log step is smaller than this.\n"
+         "              Has a default value.\n"
+         "   t_step   : The temperature variation grid step in Kelvin, for a 2D\n"
+         "              or 3D atmosphere. For a 1D atmosphere this parameter is\n"
+         "              not used. Has a default value.\n"
+         "   h2o_step : The H2O variation grid step [fractional], if H2O variations are done\n"
+         "              (which is determined automatically, based on abs_species\n"
+         "              and the atmospheric dimension). For a 1D atmosphere this parameter is\n"
+         "              not used. Has a default value.\n"
+         "\n"
+         "See also: \n"
+         "   *abs_lookupSetupBatch*\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT(  abs_p_,
+                 abs_t_, 
+                 abs_t_pert_, 
+                 abs_vmrs_,
+                 abs_nls_,
+                 abs_nls_pert_ ),
+        INPUT(   atmosphere_dim_,
+                 p_grid_,
+                 lat_grid_,
+                 lon_grid_,
+                 t_field_,
+                 vmr_field_,
+                 abs_species_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "p_step",  "t_step",  "h2o_step" ),
+        DEFAULTS( "0.05",    "5",       "0.5" ),
+        TYPES(    Numeric_t, Numeric_t, Numeric_t )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("abs_lookupSetupBatch"),
+        DESCRIPTION
+        (
+         "Set up input parameters for abs_lookupCreate for batch calculations.\n"
+         "\n"
+         "This method performs a similar task as *abs_lookupSetup*, with the\n"
+         "difference, that the lookup table setup is not for a single\n"
+         "atmospheric state, but for a whole batch of them, stored in\n"
+         "*batch_atm_fields_compact*.\n"
+         "\n"
+         "The method checks *abs_species* to decide, which species depend on\n"
+         "*h2o_abs*, and hence require nonlinear treatment in the lookup table.\n"
+         "\n"
+         "The method also checks which range of pressures, temperatures, and\n"
+         "VMRs occurs, and sets *abs_p*, *abs_t*, *abs_t_pert*, and *abs_vmrs*\n"
+         "accordingly.\n"
+         "\n"
+         "If nonlinear species are present, *abs_nls* and *abs_nls_pert* are also\n"
+         "generated. \n"
+         "\n"
+         "Keywords:\n"
+         "   p_step   : Maximum step in log(p[Pa]) (natural logarithm, as always). If\n"
+         "              the pressure grid is coarser than this, additional points\n"
+         "              are added until each log step is smaller than this.\n"
+         "              Has a default value.\n"
+         "   t_step   : The temperature variation grid step in Kelvin, for a 2D\n"
+         "              or 3D atmosphere. For a 1D atmosphere this parameter is\n"
+         "              not used. Has a default value.\n"
+         "   h2o_step : The H2O variation grid step [fractional], if H2O variations are done\n"
+         "              (which is determined automatically, based on abs_species\n"
+         "                and the atmospheric dimension). For a 1D atmosphere this parameter is\n"
+         "              not used. Has a default value.\n"
+         "   extremes : You can give here explicit extreme values to add to\n"
+         "              abs_t_pert and abs_nls_pert. The order is [t_pert_min,\n"
+         "              t_pert_max, nls_pert_min, nls_pert_max]. Has a default value of empty.\n"
+         "See also: \n"
+         "   *abs_lookupSetup*\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT(  abs_p_,
+                 abs_t_, 
+                 abs_t_pert_, 
+                 abs_vmrs_,
+                 abs_nls_,
+                 abs_nls_pert_ ),
+        INPUT(   abs_species_,
+                 batch_atm_fields_compact_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "p_step",  "t_step",  "h2o_step", "extremes" ),
+        DEFAULTS( "0.05",    "5",       "0.5",      "[]" ),
+        TYPES(    Numeric_t, Numeric_t, Numeric_t,  Vector_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1340,6 +1443,46 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("Append"),
+        DESCRIPTION
+        (
+         "Append a workspace variable to another workspace variable.\n"
+         "\n"
+         "This is a supergeneric method. It can append a workspace variable\n"
+         "to another workspace variable of the same group. (E.g., a Matrix to\n"
+         "another Matrix.)\n"
+         "\n"
+         "This method is not implemented for all types, just for those where an\n"
+         "append makes sense. A runtime error is thrown if one attempts to use\n"
+         "it on types that are not implemented.\n"         
+         "\n"
+         "As allways, output comes first in the argument list!\n"
+         "\n"
+         "Usage example:\n"
+         "\n"
+         "Append(array_of_matrix_1,array_of_matrix_2){}\n"
+         "\n"
+         "Will append the matrix array 2 to matrix array 1.\n"
+         "\n"
+         "Supergeneric output:\n"
+         "   Any_ : The output variable.\n"
+         "\n"
+         "Supergeneric input:\n"
+         "   Any_ : The input variable.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( Any_ ),
+        GINPUT( Any_ ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("ArrayOfGriddedField3ExtractFromArrayOfArrayOfGriddedField3"),
         DESCRIPTION
         (
@@ -1402,6 +1545,25 @@ void define_md_data_raw()
         KEYWORDS( "text" ),
         DEFAULTS( NODEF ),
         TYPES(    Array_String_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Arts"),
+        DESCRIPTION
+        ( 
+         "Run the agenda that is specified inside the curly braces. ARTS\n"
+         "controlfiles must define this method. It is executed automatically\n"
+         "when ARTS is run on the controlfile.\n" 
+        ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( ),
+        AGENDAMETHOD( true )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1518,6 +1680,44 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("batch_atm_fields_compactFromArrayOfMatrix"),
+        DESCRIPTION
+        (
+         "Expand batch of 1D atmospheric states to a batch_atm_fields_compact.\n"
+         "\n"
+         "This is used to handle 1D batch cases, for example from the Chevallier\n"
+         "data set, stored in a matrix. \n"
+         "\n"
+         "The matrix must contain one row for each pressure level. Row format:\n"
+         "\n"
+         "p[Pa] T[K] z[m] VMR_1[1] ... VMR_N[1]\n"
+         "\n"
+         "Keywords:\n"
+         "   field_names : Field names to store in atm_fields_compact.\n"
+         "                 This should be, e.g.:\n"
+         "                 [\"T\", \"z\", \"H2O\", \"O3\"]\n"
+         "                 There must be one name less than matrix columns,\n"
+         "                 because the first column must contain pressure.\n"
+         "\n"
+         "   extra_field_names : You can add additional constant VMR fields,\n"
+         "                       which is handy for O2 and N2. Give here the\n"
+         "                       field name, e.g., \"O2\". Default: Empty.\n"
+         "\n"
+         "   extra_field_values : Give here the constant field value. Default:\n"
+         "                        Empty. Dimension must match extra_field_names.\n"
+        ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT( batch_atm_fields_compact_ ),
+        INPUT(  atmosphere_dim_ ),
+        GOUTPUT( ),
+        GINPUT( ArrayOfMatrix_ ),
+        KEYWORDS( "field_names", "extra_field_names", "extra_field_values" ),
+        DEFAULTS( NODEF,         "[]",                "[]" ),
+        //        DEFAULTS( NODEF,         NODEF,                NODEF ),
+        TYPES(    Array_String_t, Array_String_t,     Vector_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("AtmFieldsFromCompact"),
         DESCRIPTION
         (
@@ -1534,16 +1734,17 @@ void define_md_data_raw()
          "p_grid, lat_grid, lon_grid, and the various fields. No interpolation.\n"
          "See documentation of *atm_fields_compact* for a definition of the data.\n"
          "\n"
-         "There are some safety checks on the names of the fields:\n"
-         "The first field must be called *T*, the second *z*.\n"
-         "Remaining fields must be called something like *vmr_H2O*, with\n"
-         "species names fitting the species in *abs_species*.\n"
-         "Only the species name must fit, not the full tag.\n"
+         "There are some safety checks on the names of the fields: The first\n"
+         "field must be called *T*, the second *z*.  Remaining fields must be\n"
+         "trace gas species volume mixing ratios, named for example \"H2O\", \"O3\",\n"
+         "and so on. The species names must fit the species in *abs_species*.\n"
+         "(Same species in same order.) Only the species name must fit, not the\n"
+         "full tag.\n"
          "\n"
          "Possible future extensions: Add a keyword parameter to refine the\n"
          "pressure grid if it is too coarse. Or a version that interpolates onto\n"
          "given grids, instead of using and returning the original grids.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( p_grid_, lat_grid_, lon_grid_, t_field_, z_field_, vmr_field_ ),
         INPUT(  abs_species_, atm_fields_compact_, atmosphere_dim_ ),
@@ -1939,6 +2140,27 @@ void define_md_data_raw()
         INPUT( ),
         GOUTPUT( Any_ ),
         GINPUT( Any_ ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Delete"),
+        DESCRIPTION
+        (
+         "Deletes a workspace variable.\n"
+         "\n"
+         "Supergeneric input:\n"
+         "   Any_     : The variable to delete.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT(  Any_ ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -2811,6 +3033,27 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("GriddedField4ExtractFromArrayOfGriddedField4"),
+        DESCRIPTION
+        (
+         "Extract a *GriddedField4* from an array of *GriddedField4*.\n"
+         "This is useful for example for extracting *atm_fields_compact*\n"
+         "from *batch_atm_fields_compact*.\n"
+         "\n"
+         "Copies element with given *Index* from input array\n"
+         "to create output *GriddedField4*.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( GriddedField4_ ),
+        GINPUT(  ArrayOfGriddedField4_, Index_ ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("Ignore"),
         DESCRIPTION
         (
@@ -2869,31 +3112,6 @@ md_data_raw.push_back
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
         TYPES(    Index_t )));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("IndexSetFromArrayOfMatrixLength"),
-        DESCRIPTION
-        (
-         "Sets index workspace variable to the length\n"
-         "of ArrayOfMatrix.\n"
-         "\n"
-         "Handy to set *ybatch_n*.\n"
-         "\n"
-         "Generic output: \n"
-         "   Index : The index variable to be set. \n"
-         "\n"
-         "Generic input: \n"
-         "   ArrayOfMatrix : The array to take the length of.\n"
-        ),
-        AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( Index_ ),
-        GINPUT(  ArrayOfMatrix_ ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -3037,7 +3255,7 @@ md_data_raw.push_back
          "The retrieval unit can be:\n"
          "   \"vmr\" : volume mixing ratio \n"
          "   \"nd\"  : number density \n"
-         "   \"rel\" : relative unit (e.g. 1.1 means 10\% more of the gas) \n"
+         "   \"rel\" : relative unit (e.g. 1.1 means 10% more of the gas) \n"
          "\n"
          "For perturbation calculations the size of the perturbation is set\n"
          "by the user. The unit of the perturbation size is identical to \n"
@@ -3357,7 +3575,8 @@ md_data_raw.push_back
          "this method must be called when no jacobians will be calculated.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( jacobian_, jacobian_quantities_, jacobian_indices_ ),
+        OUTPUT( jacobian_, jacobian_quantities_, jacobian_indices_, 
+                jacobian_unit_ ),
         INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
@@ -3367,22 +3586,24 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Main"),
+      ( NAME( "jacobianUnit" ),
         DESCRIPTION
-        ( 
-         "Run the agenda that is specified inside the curly braces. ARTS\n"
-         "controlfiles must define this method. It is executed automatically\n"
-         "when ARTS is run on the controlfile.\n" 
+        (
+         "Conversion of *jacobian* to other spectral units.\n"
+         "\n"
+         "Works as *yUnit* but operates on *jacobian* and conversion\n "
+         "determined by *jacobian_unit*.\n"
         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        INPUT( ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUTPUT(jacobian_ ),
+        INPUT( jacobian_, jacobian_unit_, y_unit_, sensor_pos_, sensor_los_, 
+               sensor_response_f_, sensor_response_za_, sensor_response_aa_,
+               sensor_response_pol_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         DEFAULTS( ),
-        TYPES( ),
-        AGENDAMETHOD( true )));
+        TYPES( )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -3710,13 +3931,13 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "MatrixToTbByPlanck" ),
+      ( NAME( "MatrixToPlanckBT" ),
         DESCRIPTION
         (
          "Converts a matrix of radiances to brightness temperatures by \n"
          "inverting the Planck function.\n"
          "\n"
-         "This function works as *MatrixToTbByRJ*. However, this function \n"
+         "This function works as *MatrixToRJBT*. However, this function \n"
          "is not recommended in connection with inversions, but can be used \n"
          "to display calculated spectra in a temperature scale.\n"
          "\n"
@@ -3739,15 +3960,15 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "MatrixToTbByRJ" ),
+      ( NAME( "MatrixToRJBT" ),
         DESCRIPTION
         (
          "Converts a matrix of radiances to brightness temperatures by \n"
          "the Rayleigh-Jeans approximation of the Planck function.\n"
          "\n"
-         "This function works as *VectorToTbByRJ*, but operates on a matrix.\n"
+         "This function works as *VectorToRJBT*, but operates on a matrix.\n"
          "Each column of the matrix is treated to contain a spectral vector,\n"
-         "with frequencies repeated as assumed in *VectorToTbByRJ*. \n"
+         "with frequencies repeated as assumed in *VectorToRJBT*. \n"
          "\n"
          "Generic output: \n"
          "   Matrix : A matrix with brightness temperature values. \n"
@@ -3887,11 +4108,12 @@ md_data_raw.push_back
          "according to system time, positive rng_seed values are taken literally.\n"),
         AUTHORS( "Cory Davis" ),
         OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_ ),
-        INPUT( mc_antenna_, f_grid_, sensor_pos_, sensor_los_, stokes_dim_, iy_space_agenda_,
-               surface_prop_agenda_, opt_prop_gas_agenda_, 
+        INPUT( mc_antenna_, f_grid_, sensor_pos_, sensor_los_, stokes_dim_, 
+               iy_space_agenda_, surface_prop_agenda_, opt_prop_gas_agenda_, 
                abs_scalar_gas_agenda_, p_grid_, lat_grid_, lon_grid_, 
                z_field_, r_geoid_, z_surface_, t_field_, vmr_field_, 
-               cloudbox_limits_, pnd_field_, scat_data_mono_, mc_seed_, mc_unit_),
+               cloudbox_limits_, pnd_field_, scat_data_mono_, 
+               mc_seed_, y_unit_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "std_err", "max_time", "max_iter", "z_field_is_1D" ),
@@ -3910,7 +4132,7 @@ md_data_raw.push_back
                surface_prop_agenda_, opt_prop_gas_agenda_, 
                abs_scalar_gas_agenda_, ppath_step_agenda_, p_grid_, lat_grid_, lon_grid_, 
                z_field_, r_geoid_, z_surface_, t_field_, vmr_field_, 
-               cloudbox_limits_, pnd_field_, scat_data_mono_, mc_seed_, mc_unit_),
+               cloudbox_limits_, pnd_field_, scat_data_mono_, mc_seed_, y_unit_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "std_err", "max_time", "max_iter", "z_field_is_1D" ),
@@ -4228,6 +4450,22 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Sets the output file format to binary.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT( output_file_format_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("output_file_formatSetZippedAscii"),
+        DESCRIPTION
+        (
+         "Sets the output file format to zipped ASCII.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
         OUTPUT( output_file_format_ ),
@@ -4781,16 +5019,6 @@ md_data_raw.push_back
          "calcultaed along with the spectrum.\n"
          "\n"        
          "See further the user guide.\n"
-         "\n"
-         "Spectra can be returned in several units, selected by keyword\n"
-         "argument *y_unit*. The following options exist:\n"
-         "   1      : No conversion, basic radiances [W/m2/Hz/sr].\n"
-         "   RJ     : Conversion to Rayleigh-Jeans brightness temperature.\n"
-         "   Planck : Conversion to Planck brightness temperature. The\n"
-         "            choice \"planck\" is also allowed.\n"
-         "\n"
-         "Keywords:\n"
-         "   y_unit: Output unit. See above. Default is \"1\".\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( y_, ppath_, ppath_step_, iy_, jacobian_, 
@@ -4802,12 +5030,13 @@ md_data_raw.push_back
                cloudbox_on_, cloudbox_limits_, sensor_response_, sensor_pos_, 
                sensor_los_, f_grid_, stokes_dim_, 
                antenna_dim_, mblock_za_grid_, mblock_aa_grid_, 
-               jacobian_, jacobian_quantities_, jacobian_indices_ ),
+               jacobian_, jacobian_quantities_, jacobian_indices_,
+               y_unit_, jacobian_unit_ ),
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( "y_unit" ),
-        DEFAULTS( "1"      ),
-        TYPES(    String_t )));
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4833,9 +5062,8 @@ md_data_raw.push_back
          "weighting the errors with the sensor repsonse matrix. The seed is\n"
          "reset for each call of *MCGeneral* to obtain uncorrelated errors.\n"
          "\n"
-         "Keyword arguments as combination of *RtecAlc* and *MCGeneral*.\n"
-         "The MC arguments are applied for each monochromatic pencil beam \n"
-         "calculation individually.\n"
+         "Keyword arguments as for *MCGeneral*. The arguments are applied\n"
+         "for each monochromatic pencil beam calculation individually.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( y_, mc_error_, f_index_ ),
@@ -4846,12 +5074,12 @@ md_data_raw.push_back
                cloudbox_on_, cloudbox_limits_, pnd_field_, scat_data_raw_,
                sensor_response_, sensor_pos_, 
                sensor_los_, f_grid_, stokes_dim_, 
-               antenna_dim_, mblock_za_grid_, mblock_aa_grid_, mc_unit_ ),
+               antenna_dim_, mblock_za_grid_, mblock_aa_grid_, y_unit_ ),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS( "y_unit","std_err","max_time","max_iter","z_field_is_1D"),
-        DEFAULTS( "1",      NODEF,    NODEF,     NODEF,     NODEF         ),
-        TYPES(    String_t,Numeric_t,Index_t,   Index_t,   Index_t        )));
+        KEYWORDS( "std_err", "max_time", "max_iter", "z_field_is_1D" ),
+        DEFAULTS( NODEF,     NODEF,      NODEF,      NODEF           ),
+        TYPES(    Numeric_t, Index_t,    Index_t,    Index_t         )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4868,12 +5096,12 @@ md_data_raw.push_back
                t_field_, vmr_field_, r_geoid_, z_surface_, 
                cloudbox_on_, cloudbox_limits_, sensor_response_, sensor_pos_, 
                sensor_los_, f_grid_, stokes_dim_, 
-               antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
+               antenna_dim_, mblock_za_grid_, mblock_aa_grid_, y_unit_ ),
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( "y_unit" ),
-        DEFAULTS( "1"      ),
-        TYPES(    String_t )));
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5246,11 +5474,11 @@ md_data_raw.push_back
          "   antenna_dim        : 1.\n"
          "   mblock_za_grid     : Length 1, value 0.\n"
          "   mblock_aa_grid     : Empty.\n"
-         "   sensor_response    : As returned by *sensorInit*.\n"
-         "   sensor_response_f  : As returned by *sensorInit*.\n"
-         "   sensor_response_za : As returned by *sensorInit*.\n"
-         "   sensor_response_aa : As returned by *sensorInit*.\n"
-         "   sensor_response_pol: As returned by *sensorInit*.\n"
+         "   sensor_response    : As returned by *sensor_responseInit*.\n"
+         "   sensor_response_f  : As returned by *sensor_responseInit*.\n"
+         "   sensor_response_za : As returned by *sensor_responseInit*.\n"
+         "   sensor_response_aa : As returned by *sensor_responseInit*.\n"
+         "   sensor_response_pol: As returned by *sensor_responseInit*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
@@ -5941,7 +6169,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "Tensor6ToTbByPlanck" ),
+      ( NAME( "Tensor6ToPlanckBT" ),
         DESCRIPTION
         (
          "Converts a Tensor6 of radiances to brightness temperatures by \n"
@@ -6357,13 +6585,13 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "VectorToTbByPlanck" ),
+      ( NAME( "VectorToPlanckBT" ),
         DESCRIPTION
         (
          "Converts a vector of radiances to brightness temperatures by \n"
          "inverting the Planck function.\n"
          "\n"
-         "This function works as *VectorToTbByRJ*. However, this function \n"
+         "This function works as *VectorToRJBT*. However, this function \n"
          "is not recommended in connection with inversions, but can be used \n"
          "to display calculated spectra in a temperature scale.\n"
          "\n"
@@ -6386,7 +6614,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "VectorToTbByRJ" ),
+      ( NAME( "VectorToRJBT" ),
         DESCRIPTION
         (
          "Converts a vector of radiances to brightness temperatures by \n"
@@ -6396,7 +6624,7 @@ md_data_raw.push_back
          "radiances to an approximative temperature scale. The advantage \n"
          "of this linear transformation is that the obtained values can be \n"
          "used for retrievals if the weighting functions are handled \n"
-         "likewise (by *MatrixToTbByRJ*). This is not the case if the \n"
+         "likewise (by *MatrixToRJBT*). This is not the case if the \n"
          "radiances are converted to temparatures by the Planck function \n"
          "directly. \n"
          "\n"
@@ -6408,7 +6636,7 @@ md_data_raw.push_back
          "\n"
          "If *y* shall be converted from radiances to brightness \n"
          "temperatures: \n"
-         "   VectorToTbByRJ(y,y){} \n"
+         "   VectorToRJBT(y,y){} \n"
          "\n"
          "Generic output: \n"
          "   Vector : A vector with brightness temperature values. \n"
@@ -6518,7 +6746,7 @@ md_data_raw.push_back
         GOUTPUT( ),
         GINPUT(  Any_ ),
         KEYWORDS( "filename" ),
-        DEFAULTS( NODEF ),
+        DEFAULTS( "" ),
         TYPES(    String_t   ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
@@ -6680,6 +6908,30 @@ md_data_raw.push_back
         KEYWORDS( "nelem_p_grid", "met_profile_path" ),
         DEFAULTS( NODEF,          NODEF ),
         TYPES(    Index_t,        String_t)));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "yUnit" ),
+        DESCRIPTION
+        (
+         "Conversion of *y* to other spectral units.\n"
+         "\n"
+         "The conversion specified by *y_unit* is applied. This function can\n"
+         "be used if the standard way of making the conversion inside the\n"
+         "radiative transfer function does not work. The WSV *y_unit* should\n"
+         "then be set to \"1\" when performing the radiative transfer\n" 
+         "calculations, and be changed before calling this method.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUTPUT( y_ ),
+        INPUT( y_, y_unit_, sensor_pos_, sensor_los_, sensor_response_f_,
+               sensor_response_za_, sensor_response_aa_,
+               sensor_response_pol_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord

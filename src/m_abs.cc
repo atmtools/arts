@@ -124,7 +124,7 @@ void abs_linesReadFromHitran(// WS Output:
   // Reset lines in case it already existed:
   abs_lines.resize(0);
 
-  out2 << "  Reading file: " << filename << '\n';
+  out2 << "  Reading file: " << filename << "\n";
   open_input_file(is, filename);
 
   bool go_on = true;
@@ -165,7 +165,7 @@ void abs_linesReadFromHitran2004(// WS Output:
   // Reset lines in case it already existed:
   abs_lines.resize(0);
 
-  out2 << "  Reading file: " << filename << '\n';
+  out2 << "  Reading file: " << filename << "\n";
   open_input_file(is, filename);
 
   bool go_on = true;
@@ -206,7 +206,7 @@ void abs_linesReadFromMytran2(// WS Output:
   // Reset lines in case it already existed:
   abs_lines.resize(0);
 
-  out2 << "  Reading file: " << filename << '\n';
+  out2 << "  Reading file: " << filename << "\n";
   open_input_file(is, filename);
 
   bool go_on = true;
@@ -244,7 +244,7 @@ void abs_linesReadFromJpl(// WS Output:
   // Reset lines in case it already existed:
   abs_lines.resize(0);
 
-  out2 << "  Reading file: " << filename << '\n';
+  out2 << "  Reading file: " << filename << "\n";
   open_input_file(is, filename);
 
   bool go_on = true;
@@ -291,7 +291,7 @@ void abs_linesReadFromArts(// WS Output:
   // Reset lines in case it already existed:
   abs_lines.resize(0);
 
-  out2 << "  Reading file: " << filename << '\n';
+  out2 << "  Reading file: " << filename << "\n";
   open_input_file(is, filename);
 
   // Get version tag and check that it corresponds to the current version.
@@ -881,7 +881,6 @@ void abs_speciesDefineAllInScenario(// WS Output:
 void abs_lineshapeDefine(// WS Output:
                          ArrayOfLineshapeSpec&    abs_lineshape,
                          // WS Input:
-                         const ArrayOfArrayOfSpeciesTag&         tgs,
                          const String&            shape,
                          const String&            normalizationfactor,
                          const Numeric&           cutoff)
@@ -892,7 +891,10 @@ void abs_lineshapeDefine(// WS Output:
 
 
   // generate the right number of elements
-  Index tag_sz = tgs.nelem();
+  //  Index tag_sz = tgs.nelem();
+  // We generate only 1 copy of the lineshape settings. Absorption
+  // routines check for this case and use it for all species.
+  Index tag_sz = 1;
   abs_lineshape.resize(tag_sz);
 
   // Is this lineshape available?
@@ -1674,90 +1676,36 @@ void vmrsScale(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_h2oSet(
-                Vector&          abs_h2o,
-                const ArrayOfArrayOfSpeciesTag& tgs,
-                const Matrix&    abs_vmrs )
+void abs_h2oSet(Vector&          abs_h2o,
+                const ArrayOfArrayOfSpeciesTag& abs_species,
+                const Matrix&    abs_vmrs)
 {
-  const Index   n = tgs.nelem();
-  Index   found = -1;
-  String  s;
+  const Index h2o_index 
+    = find_first_species_tg( abs_species,
+                             species_index_from_species_name("H2O") );
 
-  for( Index i=0; i<n && found<0; i++ ) 
-  {
-    s = tgs[i][0].Name();
-
-    if ( s.substr(0,4) == "H2O-" )
-      found = i;
-  }
-
-  /* ----- original version -------------------------------------------
-
-  if ( found < 0 )
-    throw runtime_error("abs_h2oSet: No tag group contains water!");
+  if ( h2o_index < 0 )
+    throw runtime_error("No tag group contains water!");
   
   abs_h2o.resize( abs_vmrs.ncols() );
-  abs_h2o = abs_vmrs(found,Range(joker));   
-  // Matpack can copy the contents of vectors like this. The
-  // dimensions must be the same! The expression
-  // abs_vmrs(found,Range(joker)) selects the row with index corresponding
-  // to found.
-
-  --------------------------------------------------------------------- 
-  */
-
-  abs_h2o.resize( abs_vmrs.ncols() );
-  if ( found >= 0 )
-    {
-      abs_h2o = abs_vmrs(found,Range(joker));       
-    } else {
-      out2 << "  WARNING in abs_h2oSet: could not find any H2O tag. So H2O vmr is set to zero!\n";
-      for( Index i=0; i<abs_h2o.nelem(); i++ ) abs_h2o[i] = 0.0000000000e0;
-    }
+  abs_h2o = abs_vmrs(h2o_index,Range(joker));   
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_n2Set(
-               Vector&            abs_n2,
-               const   ArrayOfArrayOfSpeciesTag& tgs,
-               const   Matrix&    abs_vmrs )
+void abs_n2Set(Vector&            abs_n2,
+               const   ArrayOfArrayOfSpeciesTag& abs_species,
+               const   Matrix&    abs_vmrs)
 {
-  const Index   n = tgs.nelem();
-  Index     found = -1;
-  String  s;
+  const Index n2_index 
+    = find_first_species_tg( abs_species,
+                             species_index_from_species_name("N2") );
 
-  for( Index i=0; i<n && found<0; i++ ) 
-  {
-    s = tgs[i][0].Name();
-    
-    if ( s.substr(0,3) == "N2-" )
-      found = i;
-  }
-
-  /* ----- original version -------------------------------------------
-
-  if ( found < 0 )
-    throw runtime_error("abs_n2Set: No tag group contains nitrogen!");
-  
-  abs_n2.resize( abs_vmrs.ncols() );
-  abs_n2 = abs_vmrs(found,Range(joker));
-  // Matpack can copy the contents of vectors like this. The
-  // dimensions must be the same! The expression
-  // abs_vmrs(found,Range(joker)) selects the row with index corresponding
-  // to found.
-
-  --------------------------------------------------------------------- 
-  */
+  if ( n2_index < 0 )
+    throw runtime_error("No tag group contains nitrogen!");
 
   abs_n2.resize( abs_vmrs.ncols() );
-    if ( found >= 0 )
-    {
-      abs_n2 = abs_vmrs(found,Range(joker));        
-    } else {
-      out2 << "  WARNING in abs_n2Set: could not find any N2 tag. So N2 vmr is set to zero!\n";
-      for( Index i=0; i<abs_n2.nelem(); i++ ) abs_n2[i] = 0.0000000000e0;
-    }
+  abs_n2 = abs_vmrs(n2_index,Range(joker));   
 }
 
 
@@ -1967,7 +1915,7 @@ void abs_coefCalcFromXsec(// WS Output:
     {
       ostringstream os;
       os << "Variable abs_vmrs must have compatible dimension to abs_xsec_per_species.\n"
-         << "abs_vmrs.nrows() = " << abs_vmrs.nrows() << '\n'
+         << "abs_vmrs.nrows() = " << abs_vmrs.nrows() << "\n"
          << "abs_xsec_per_species.nelem() = " << abs_xsec_per_species.nelem();
       throw runtime_error(os.str());
     }
@@ -1979,7 +1927,7 @@ void abs_coefCalcFromXsec(// WS Output:
     {
       ostringstream os;
       os << "Variable abs_vmrs must have same numbers of altitudes as abs_xsec_per_species.\n"
-         << "abs_vmrs.ncols() = " << abs_vmrs.ncols() << '\n'
+         << "abs_vmrs.ncols() = " << abs_vmrs.ncols() << "\n"
          << "abs_xsec_per_species[0].ncols() = " << abs_xsec_per_species[0].ncols();
       throw runtime_error(os.str());
     }  
@@ -2002,7 +1950,7 @@ void abs_coefCalcFromXsec(// WS Output:
   // Loop through all tag groups
   for ( Index i=0; i<abs_xsec_per_species.nelem(); ++i )
     {
-      out2 << "  Tag group " << i << '\n';
+      out2 << "  Tag group " << i << "\n";
 
       // Make this element of abs_xsec_per_species the right size:
       abs_coef_per_species[i].resize( abs_xsec_per_species[i].nrows(), abs_xsec_per_species[i].ncols() );
@@ -2081,15 +2029,17 @@ void abs_xsec_per_speciesAddLines(// WS Output:
     if ( n_tgs != n_xsec  ||
          n_tgs != n_vmrs  ||
          n_tgs != n_lines ||
-         n_tgs != n_shapes   )
+         ( n_tgs != n_shapes &&
+           1     != n_shapes ) )
       {
         ostringstream os;
         os << "The following variables must all have the same dimension:\n"
-           << "tgs:          " << tgs.nelem() << '\n'
-           << "abs_xsec_per_species:  " << abs_xsec_per_species.nelem() << '\n'
-           << "abs_vmrs:         " << abs_vmrs.nrows() << '\n'
-           << "abs_lines_per_species: " << abs_lines_per_species.nelem() << '\n'
-           << "abs_lineshape:    " << abs_lineshape.nelem();
+           << "tgs:          " << tgs.nelem() << "\n"
+           << "abs_xsec_per_species:  " << abs_xsec_per_species.nelem() << "\n"
+           << "abs_vmrs:         " << abs_vmrs.nrows() << "\n"
+           << "abs_lines_per_species: " << abs_lines_per_species.nelem() << "\n"
+           << "abs_lineshape:    " << abs_lineshape.nelem() << "\n"
+           << "(As a special case, abs_lineshape is allowed to have only one element.)";
         throw runtime_error(os.str());
       }
   }  
@@ -2141,8 +2091,14 @@ void abs_xsec_per_speciesAddLines(// WS Output:
       // and over again.
       const ArrayOfLineRecord& ll = abs_lines_per_species[i];
 
-      // Also get a pointer to the lineshape specification:
-      const LineshapeSpec& ls = abs_lineshape[i];
+      // Also get a pointer to the lineshape specification. This
+      // requires special treatment: If there is only 1 lineshape
+      // given, the same line shape should be used for all species.
+      LineshapeSpec ls;
+      if (1==abs_lineshape.nelem())
+        ls = abs_lineshape[0];
+      else
+        ls = abs_lineshape[i];
       
       // Skip the call to abs_xsec_per_species if the line list is empty.
       if ( 0 < ll.nelem() )
@@ -2277,9 +2233,9 @@ void abs_xsec_per_speciesAddConts(// WS Output:
       {
         ostringstream os;
         os << "The following variables must all have the same dimension:\n"
-           << "tgs:          " << tgs.nelem() << '\n'
-           << "abs_xsec_per_species:  " << abs_xsec_per_species.nelem() << '\n'
-           << "abs_vmrs:         " << abs_vmrs.nrows();
+           << "tgs:          " << tgs.nelem() << "\n"
+           << "abs_xsec_per_species:  " << abs_xsec_per_species.nelem() << "\n"
+           << "abs_vmrs.nrows():      " << abs_vmrs.nrows();
         throw runtime_error(os.str());
       }
   }
@@ -2303,7 +2259,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
         }
       ostringstream os;
         os << "The following variables must have the same dimension:\n"
-           << "abs_cont_names:      " << abs_cont_names.nelem() << '\n'
+           << "abs_cont_names:      " << abs_cont_names.nelem() << "\n"
            << "abs_cont_parameters: " << abs_cont_parameters.nelem();
         throw runtime_error(os.str());
     }
@@ -2313,6 +2269,34 @@ void abs_xsec_per_speciesAddConts(// WS Output:
     {
       check_continuum_model(abs_cont_names[i]);
     }
+
+
+  // Check that abs_p, abs_t, and abs_vmrs have the same
+  // dimension. This could be a user error, so we throw a
+  // runtime_error. 
+
+  if ( abs_t.nelem() != abs_p.nelem() )
+    {
+      ostringstream os;
+      os << "Variable abs_t must have the same dimension as abs_p.\n"
+         << "abs_t.nelem() = " << abs_t.nelem() << '\n'
+         << "abs_p.nelem() = " << abs_p.nelem();
+      throw runtime_error(os.str());
+    }
+
+  if ( abs_vmrs.ncols() != abs_p.nelem() )
+    {
+      ostringstream os;
+      os << "Variable dimension abs_vmrs.ncols() must\n"
+         << "be the same as abs_p.nelem().\n"
+         << "abs_vmrs.ncols() = " << abs_vmrs.ncols() << '\n'
+         << "abs_p.nelem() = " << abs_p.nelem();
+      throw runtime_error(os.str());
+    }
+
+  // We do checks on abs_h2o and abs_n2 later, because we only want to
+  // do the check if the parameter are really needed.
+
 
   out3 << "  Calculating continuum spectra.\n";
 
@@ -2398,6 +2382,77 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                   // of options. The actual field of the array is n:
                   const String ContOption = abs_cont_models[n];
 
+
+                  // ------------------------------------------------------------------
+                  // Now is the time to check whether abs_h2o and
+                  // abs_n2 are ok!
+
+                  // abs_h2o has a global scalar default value of -1. We throw an
+                  // appropriate error message here if we find this, since most
+                  // continuum models require it. (abs_h2o is the H2O VMR to be used
+                  // for the continua of other species, such as O2.)
+
+                  if ( -.99 > abs_h2o[0] )
+                    {
+                      ostringstream os;
+                      os << "The variable abs_h2o seems to be set to its global default\n"
+                         << "value of -1. You have to set this to a H2O VMR profile if\n"
+                         << "you want to use absorption contiua. If you are calling\n"
+                         << "absorption routines directly, or on the fly, you could\n"
+                         << "use for example the method *abs_h2oSet*.\n"
+                         << "If you are generating an absorption lookup table with\n"
+                         << "abs_lookupCreate, it should be enough to add a H2O species\n"
+                         << "to your calculation to fix this problem.";
+                      throw runtime_error(os.str());
+                    }
+
+                  // If h2o_abs is not set to the default value, it
+                  // must have the same size as the pressure grid:
+                  if ( abs_h2o.nelem() != abs_p.nelem() )
+                    {
+                      ostringstream os;
+                      os << "Variable abs_h2o must have the same dimension as abs_p.\n"
+                         << "abs_h2o.nelem() = " << abs_h2o.nelem() << '\n'
+                         << "abs_p.nelem() = " << abs_p.nelem();
+                      throw runtime_error(os.str());
+                    }
+
+                  // For abs_n2 the situation is slightly
+                  // different. The global scalar default value is a
+                  // reasonable estimate for the N2 profile, so we
+                  // just have to expand it to a vector here. Because
+                  // we cannot modify abs_n2, we have to make a local
+                  // copy in any case.
+
+                    Vector n2_prof(abs_p.nelem());
+                    if ( abs_n2.nelem() == abs_p.nelem() )
+                      {
+                        n2_prof = abs_n2;
+                      }
+                    else
+                      {
+                        if (1==abs_n2.nelem())
+                          {
+                            // We seem to have found the global
+                            // default value. Expand this to a vector
+                            // with the right length, by copying it to
+                            // all elements of n2_prof.
+                            n2_prof = abs_n2[0];         
+                          }
+                        else
+                          {
+                            ostringstream os;
+                            os << "Variable abs_n2 must have dimension 1, or\n"
+                               << "the same dimension as abs_p.\n"
+                               << "abs_n2.nelem() = " << abs_n2.nelem() << '\n'
+                               << "abs_p.nelem() = " << abs_p.nelem();
+                            throw runtime_error(os.str());
+                          }
+                      }
+
+                  // ------------------------------------------------------------------
+
+
                   // Add the continuum for this tag. The parameters in
                   // this call should be clear. The vmr is in
                   // abs_vmrs(i,Range(joker)). The other vmr variable, `abs_h2o'
@@ -2410,7 +2465,7 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                                       f_grid,
                                       abs_p,
                                       abs_t,
-                                      abs_n2,
+                                      n2_prof,
                                       abs_h2o,
                                       abs_vmrs(i,Range(joker)) );
                   // Calling this function with a row of Matrix abs_vmrs

@@ -87,10 +87,10 @@ void abs_vecTransform(//Output and Input
                       //Input
                       ConstTensor3View abs_vec_data,
                       ConstVectorView za_datagrid,
-                      ConstVectorView aa_datagrid,
+                      ConstVectorView aa_datagrid _U_,
                       const PType& ptype,
-                      const Numeric& za_sca,
-                      const Numeric& aa_sca)
+                      const Numeric& za_sca _U_,
+                      const Numeric& aa_sca _U_)
 {
  const Index stokes_dim = abs_vec_lab.nelem();
     
@@ -102,15 +102,8 @@ void abs_vecTransform(//Output and Input
   switch (ptype){
 
   case PTYPE_GENERAL:
-    // This is only included to remove warnings about unused variables 
-    // during compilation
-    Numeric x;
-    x = za_datagrid[0];
-    x = aa_datagrid[0];
-    x = za_sca;
-    x = aa_sca;
-        
-    cout << "Case PTYPE_GENERAL not yet implemented. \n"; 
+
+    out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
     break;
     
   case PTYPE_MACROS_ISO:
@@ -157,7 +150,7 @@ case PTYPE_HORIZ_AL://Added by Cory Davis 9/12/03
     }
 
    default:
-    cout << "Not all particle type cases are implemented\n";
+    out0 << "Not all particle type cases are implemented\n";
     
   }  
     
@@ -191,10 +184,10 @@ void ext_matTransform(//Output and Input
                       //Input
                       ConstTensor3View ext_mat_data,
                       ConstVectorView za_datagrid,
-                      ConstVectorView aa_datagrid,
+                      ConstVectorView aa_datagrid _U_,
                       const PType& ptype,
                       const Numeric& za_sca,
-                      const Numeric& aa_sca)
+                      const Numeric& aa_sca _U_)
 {
  const Index stokes_dim = ext_mat_lab.ncols();
     
@@ -206,15 +199,8 @@ void ext_matTransform(//Output and Input
   switch (ptype){
 
   case PTYPE_GENERAL:
-    // This is only included to remove warnings about unused variables 
-    // during compilation
-    Numeric x;
-    x = za_datagrid[0];
-    x = aa_datagrid[0];
-    x = za_sca;
-    x = aa_sca;
 
-    cout << "Case PTYPE_GENERAL not yet implemented. \n"; 
+    out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
     break;
     
   case PTYPE_MACROS_ISO:
@@ -309,7 +295,7 @@ void ext_matTransform(//Output and Input
 
     }
   default:
-    cout << "Not all particle type cases are implemented\n";
+    out0 << "Not all particle type cases are implemented\n";
     
   }
 }  
@@ -324,17 +310,17 @@ void ext_matTransform(//Output and Input
   See AUG for information about different classifications of 
   the hydrometeor species. 
 
-  Output and Input:
-  \param pha_mat_lab Absorption vector in Laboratory frame.
-  Input:
-  \param pha_mat_data Absorption vector in database.
-  \param za_datagrid Zenith angle grid in the database.
-  \param aa_datagrid Zenith angle grid in the database.
-  \param ptype Clasiification of the hydometeor species.
-  \param za_sca Zenith angle of scattered direction.
-  \param aa_sca Azimuth angle of scattered direction.
-  \param za_inc Zenith angle of incoming direction.
-  \param aa_inc Azimuth angle of incoming direction.
+  \param[out,in] pha_mat_lab   Absorption vector in Laboratory frame.
+  \param[in]     pha_mat_data  Absorption vector in database.
+  \param[in]     za_datagrid   Zenith angle grid in the database.
+  \param[in]     aa_datagrid   Zenith angle grid in the database.
+  \param[in]     ptype         Classification of the hydometeor species.
+  \param[in]     za_sca_idx    Index of zenith angle of scattered direction.
+  \param[in]     aa_sca_idx    Index of azimuth angle of scattered direction.
+  \param[in]     za_inc_idx    Index of zenith angle of incoming direction.
+  \param[in]     aa_inc_idx    Index of azimuth angle of incoming direction.
+  \param[in]     scat_za_grid  FIXME: DOC
+  \param[in]     scat_aa_grid  FIXME: DOC
   
   \author Claudia Emde
   \date   2003-08-19
@@ -371,11 +357,8 @@ void pha_matTransform(//Output
   switch (ptype){
 
   case PTYPE_GENERAL:
-    // to remove warnings during compilation. 
-    Numeric x;
-    x = aa_datagrid[0];
 
-    cout << "Case PTYPE_GENERAL not yet implemented. \n"; 
+    out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
     break;
     
   case PTYPE_MACROS_ISO:
@@ -522,7 +505,7 @@ void pha_matTransform(//Output
       
     }  
   default:
-    cout << "Not all particle type cases are implemented\n";
+    out0 << "Not all particle type cases are implemented\n";
     
   }
 }
@@ -542,20 +525,15 @@ void pha_matTransform(//Output
   of the scattering angle) is interpolated on the calculated 
   scattering angle.
 
-  Output:
-  \param pha_mat_int Interpolated phase matrix.
-  \param theta_rad Scattering angle [rad].
-  Input:
-  \param pha_mat_data Phase matrix in database.
-  \param za_datagrid Zenith angle grid in the database.
-  \param aa_datagrid Zenith angle grid in the database.
-  \param za_sca_rad Zenith angle of scattered direction [rad].
-  \param aa_sca_rad Azimuth angle of scattered direction [rad].
-  \param za_inc_rad Zenith angle of incoming direction [rad].
-  \param aa_inc_rad Azimuth angle of incoming direction [rad].
-  \param scat_theta Scattering angles.
-  \param scat_theta_gps Array of gridposizions for scattering angle.
-  \param scat_theta_itws Interpolation weights belonging to the scattering angles.
+  \param[out] pha_mat_int     Interpolated phase matrix.
+  \param[in]  pha_mat_data    Phase matrix in database.
+  \param[in]  za_sca_idx      Index of zenith angle of scattered direction.
+  \param[in]  aa_sca_idx      Index of azimuth angle of scattered direction.
+  \param[in]  za_inc_idx      Zenith angle of incoming direction.
+  \param[in]  aa_inc_idx      Azimuth angle of incoming direction.
+  \param[in]  scat_theta_gps  Array of gridposizions for scattering angle.
+  \param[in]  scat_theta_itws Interpolation weights belonging to the scattering
+                              angles.
      
   \author Claudia Emde
   \date   2003-05-13 
@@ -597,17 +575,14 @@ void interpolate_scat_angleDOIT(//Output:
   of the scattering angle) is interpolated on the calculated 
   scattering angle.
 
-  Output:
-  \param pha_mat_int Interpolated phase matrix.
-  \param theta_rad Scattering angle [rad].
-  Input:
-  \param pha_mat_data Phase matrix in database.
-  \param za_datagrid Zenith angle grid in the database.
-  \param aa_datagrid Zenith angle grid in the database.
-  \param za_sca Zenith angle of scattered direction [rad].
-  \param aa_sca Azimuth angle of scattered direction [rad].
-  \param za_inc Zenith angle of incoming direction [rad].
-  \param aa_inc Azimuth angle of incoming direction [rad].
+  \param[out] pha_mat_int  Interpolated phase matrix.
+  \param[out] theta_rad    Scattering angle [rad].
+  \param[in]  pha_mat_data Phase matrix in database.
+  \param[in]  za_datagrid  Zenith angle grid in the database.
+  \param[in]  za_sca       Zenith angle of scattered direction [rad].
+  \param[in]  aa_sca       Azimuth angle of scattered direction [rad].
+  \param[in]  za_inc       Zenith angle of incoming direction [rad].
+  \param[in]  aa_inc       Azimuth angle of incoming direction [rad].
      
   \author Claudia Emde
   \date   2003-08-19

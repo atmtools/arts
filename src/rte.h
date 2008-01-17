@@ -182,7 +182,8 @@ void rtecalc_check_input(
    const Index&                      antenna_dim,
    const Vector&                     mblock_za_grid,
    const Vector&                     mblock_aa_grid,
-   const String&                     y_unit );
+   const String&                     y_unit,
+   const String&                     jacobian_unit );
 
 void surface_calc(
               Matrix&         iy,

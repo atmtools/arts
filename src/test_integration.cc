@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
   if (argc == 1)
     { cerr << argv[0] << " requires one parameter" << endl; exit (1); }
 
-  cout << "Übergabewert von argv : " << argv[1] << endl;
+  cout << "Uebergabewert von argv : " << argv[1] << endl;
 
   int frequency = strtol(argv[1], NULL, 10);  // Zahl zur Basis 10
   cout << "Wert von frequency    : " << frequency << endl;
@@ -186,7 +186,7 @@ void init_xy(float stepsize, int frequency,
   for (Index i = 0; i < n_aa; i++)
     aa_grid[i] = i * stepsize;
 
-  cout << "function x² + y² + z² = 1" << endl
+  cout << "function x^2 + y^2 + z^2 = 1" << endl
        << "n_za = " << n_za << endl
        << "n_aa = " << n_aa << endl
        << "stepsize = " << stepsize << endl

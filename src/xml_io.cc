@@ -37,6 +37,11 @@
 #include "xml_io_instantiation.h"
 #include "bofstream.h"
 #include "bifstream.h"
+#include "file.h"
+
+#ifdef ENABLE_ZLIB
+#include "gzstream.h"
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -363,8 +368,9 @@ filename_xml (String&  filename,
 /*!
   The default name is only used if the filename is empty.
 
-  \param filename filename
-  \param varname variable name
+  \param[out] filename   filename
+  \param[in]  file_index Index appended to the filename
+  \param[in]  varname    variable name
 */
 void
 filename_xml_with_index (
@@ -416,8 +422,8 @@ xml_open_output_file (ofstream& file, const String& name)
 
   // c_str explicitly converts to c String.
   try {
-    file.open(name.c_str() );
-  } catch (ios::failure e) {
+    file.open (name.c_str());
+  } catch (ios::failure) {
     ostringstream os;
     os << "Cannot open output file: " << name << '\n'
       << "Maybe you don't have write access "
@@ -441,6 +447,61 @@ xml_open_output_file (ofstream& file, const String& name)
     }
 }
 
+#ifdef ENABLE_ZLIB
+
+//! Open file for zipped XML output
+/*!
+  This function opens a zipped XML file for writing.
+
+  \param file Output filestream
+  \param name Filename
+*/
+void
+xml_open_output_file (ogzstream& file, const String& name)
+{
+  // Tell the stream that it should throw exceptions.
+  // Badbit means that the entire stream is corrupted, failbit means
+  // that the last operation has failed, but the stream is still
+  // valid. We don't want either to happen!
+  // FIXME: This does not yet work in  egcs-2.91.66, try again later.
+  file.exceptions(ios::badbit |
+                  ios::failbit);
+
+  // c_str explicitly converts to c String.
+  String nname = name;
+  
+  if (nname.substr (nname.length()-3, 3) != ".gz")
+    {
+      nname += ".gz";
+    }
+
+  try {
+    file.open (nname.c_str());
+  } catch (ios::failure) {
+    ostringstream os;
+    os << "Cannot open output file: " << nname + ".gz" << '\n'
+      << "Maybe you don't have write access "
+      << "to the directory or the file?";
+    throw runtime_error(os.str());
+  }
+
+
+  // See if the file is ok.
+  // FIXME: This should not be necessary anymore in the future, when
+  // g++ stream exceptions work properly. (In that case we would not
+  // get here if there really was a problem, because of the exception
+  // thrown by open().)
+  if (!file)
+    {
+      ostringstream os;
+      os << "Cannot open output file: " << nname << '\n'
+         << "Maybe you don't have write access "
+         << "to the directory or the file?";
+      throw runtime_error(os.str());
+    }
+}
+
+#endif /* ENABLE_ZLIB */
 
 //! Open file for XML input
 /*!
@@ -459,7 +520,17 @@ xml_open_input_file (ifstream& ifs, const String& name)
   ifs.exceptions (ios::badbit);
 
   // c_str explicitly converts to c String.
-  ifs.open (name.c_str ());
+  try
+    {
+      ifs.open (name.c_str ());
+    }
+  catch (ios::failure)
+    {
+      ostringstream os;
+      os << "Cannot open input file: " << name << '\n'
+        << "Maybe the file does not exist?";
+      throw runtime_error (os.str ());
+    }
 
   // See if the file is ok.
   // FIXME: This should not be necessary anymore in the future, when
@@ -471,8 +542,57 @@ xml_open_input_file (ifstream& ifs, const String& name)
          << "Maybe the file does not exist?";
       throw runtime_error (os.str ());
     }
+
+  out3 << "- Reading input file " << name << "\n";
 }
 
+
+#ifdef ENABLE_ZLIB
+
+//! Open file for zipped XML input
+/*!
+  This function opens a zipped XML file for reading.
+
+  \param ifs   Input filestream
+  \param name  Filename
+*/
+void
+xml_open_input_file (igzstream& ifs, const String& name)
+{
+  // Tell the stream that it should throw exceptions.
+  // Badbit means that the entire stream is corrupted.
+  // On the other hand, end of file will not lead to an exception, you
+  // have to check this manually!
+  ifs.exceptions (ios::badbit);
+
+  // c_str explicitly converts to c String.
+  try
+    {
+      ifs.open (name.c_str ());
+    }
+  catch (ios::failure)
+    {
+      ostringstream os;
+      os << "Cannot open input file: " << name << '\n'
+        << "Maybe the file does not exist?";
+      throw runtime_error (os.str ());
+    }
+
+  // See if the file is ok.
+  // FIXME: This should not be necessary anymore in the future, when
+  // g++ stream exceptions work properly.
+  if (!ifs)
+    {
+      ostringstream os;
+      os << "Cannot open input file: " << name << '\n'
+         << "Maybe the file does not exist?";
+      throw runtime_error (os.str ());
+    }
+
+  out3 << "- Reading input file " << name << "\n";
+}
+
+#endif /* ENABLE_ZLIB */
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -650,6 +770,7 @@ xml_write_header_to_stream (ostream& os, FileType ftype)
   switch (ftype)
     {
   case FILE_TYPE_ASCII:
+  case FILE_TYPE_ZIPPED_ASCII:
     tag.add_attribute ("format", "ascii");
     break;
   case FILE_TYPE_BINARY:
@@ -687,18 +808,15 @@ xml_set_stream_precision (ostream& os)
   // Determine the precision, depending on whether Numeric is double
   // or float:
   Index precision;
-  switch (sizeof (Numeric))
-    {
-    case sizeof (float):
-      precision = FLT_DIG;
-      break;
-    case sizeof (double):
-      precision = DBL_DIG;
-      break;
-    default:
-      out0 << "Numeric must be double or float\n";
-      arts_exit ();
-  }
+#ifdef USE_FLOAT
+  precision = FLT_DIG;
+#else
+#ifdef USE_DOUBLE
+  precision = DBL_DIG;
+#else
+#error Numeric must be double or float
+#endif
+#endif
 
   os << setprecision (precision);
 }
@@ -720,15 +838,39 @@ template<typename T> void
 xml_read_from_file (const String& filename,
                     T&            type)
 {
-  ifstream ifs;
+  istream* ifs;
   FileType ftype;
   NumericType ntype;
   EndianType etype;
 
   out2 << "  Reading " << filename << '\n';
 
+  String xml_file = filename;
+  bool found_file;
+
+  found_file = find_file (xml_file, ".xml");
+  if (!found_file) found_file = find_file (xml_file, ".xml.gz");
+  if (!found_file) found_file = find_file (xml_file, ".gz");
+
   // Open input stream:
-  xml_open_input_file (ifs, filename);
+  if (xml_file.substr (xml_file.length () - 3, 3) == ".gz")
+#ifdef ENABLE_ZLIB
+    {
+      ifs = new igzstream();
+      xml_open_input_file (*(igzstream *)ifs, xml_file);
+    }
+#else
+    {
+      throw runtime_error (
+        "This arts version was compiled without zlib support.\n"
+        "Thus zipped xml files cannot be read.");
+    }
+#endif /* ENABLE_ZLIB */
+  else
+    {
+      ifs = new ifstream();
+      xml_open_input_file (*(ifstream *)ifs, xml_file);
+    }
 
   // No need to check for error, because xml_open_input_file throws a
   // runtime_error with an appropriate error message.
@@ -738,26 +880,29 @@ xml_read_from_file (const String& filename,
   // filename.
   try
     {
-      xml_read_header_from_stream (ifs, ftype, ntype, etype);
+      xml_read_header_from_stream (*ifs, ftype, ntype, etype);
       if (ftype == FILE_TYPE_ASCII)
         {
-          xml_read_from_stream (ifs, type);
+          xml_read_from_stream (*ifs, type);
         }
       else
         {
           String bfilename = filename + ".bin";
           bifstream bifs (bfilename.c_str ());
-          xml_read_from_stream (ifs, type, &bifs);
+          xml_read_from_stream (*ifs, type, &bifs);
         }
-      xml_read_footer_from_stream (ifs);
+      xml_read_footer_from_stream (*ifs);
     }
   catch (runtime_error e)
     {
+      delete ifs;
       ostringstream os;
       os << "Error reading file: " << filename << '\n'
          << e.what ();
       throw runtime_error (os.str ());
     }
+
+  delete ifs;
 }
 
 
@@ -771,38 +916,58 @@ xml_read_from_file (const String& filename,
   \param ftype     File type
 */
 template<typename T> void
-xml_write_to_file (const String& filename,
-                   const T&      type,
-                         FileType   ftype)
+xml_write_to_file (const String&  filename,
+                   const T&       type,
+                         FileType ftype)
 {
-  ofstream ofs;
-
+  ostream* ofs;
+ 
   out2 << "  Writing " << filename << '\n';
-  xml_open_output_file(ofs, filename);
+  if (ftype == FILE_TYPE_ZIPPED_ASCII)
+#ifdef ENABLE_ZLIB
+    {
+      ofs = new ogzstream();
+      xml_open_output_file(*(ogzstream *)ofs, filename);
+    }
+#else
+    {
+      throw runtime_error (
+        "This arts version was compiled without zlib support.\n"
+        "Thus zipped xml files cannot be written.");
+    }
+#endif /* ENABLE_ZLIB */
+  else
+    {
+      ofs = new ofstream();
+      xml_open_output_file(*(ofstream *)ofs, filename);
+    }
+
 
   try
     {
-      xml_write_header_to_stream (ofs, ftype);
-      if (ftype == FILE_TYPE_ASCII)
+      xml_write_header_to_stream (*ofs, ftype);
+      if (ftype == FILE_TYPE_ASCII || ftype == FILE_TYPE_ZIPPED_ASCII)
         {
-          xml_write_to_stream (ofs, type);
+          xml_write_to_stream (*ofs, type);
         }
       else
         {
           String bfilename = filename + ".bin";
           bofstream bofs (bfilename.c_str ());
-          xml_write_to_stream (ofs, type, &bofs);
+          xml_write_to_stream (*ofs, type, &bofs);
         }
 
-      xml_write_footer_to_stream (ofs);
+      xml_write_footer_to_stream (*ofs);
     }
   catch (runtime_error e)
     {
+      delete ofs;
       ostringstream os;
       os << "Error writing file: " << filename << '\n'
          << e.what ();
       throw runtime_error (os.str ());
     }
 
+  delete ofs;
 }
 

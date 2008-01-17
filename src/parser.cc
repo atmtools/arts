@@ -24,6 +24,7 @@
 #include "methods.h"
 #include "parser.h"
 #include "wsv_aux.h"
+#include "parameters.h"
 
 void SourceText::AppendFile(const String& name) 
 {
@@ -657,7 +658,7 @@ void parse_numvector(Vector& res, SourceText& text)
 }
 
 
-void eat_whitespace_from_string (String& str, Index& pos)
+void eat_whitespace_from_string (String& str, size_t& pos)
 {
   while (pos < str.length() && is_whitespace (str[pos]))
     pos++;
@@ -674,7 +675,7 @@ void eat_whitespace_from_string (String& str, Index& pos)
 bool parse_numvector_from_string (Vector& res, String& str)
 {
   bool first = true;            // To skip the first comma.
-  Index pos = 0;
+  size_t pos = 0;
 
   // We need a temporary Array<Numeric>, so that we can use push_back
   // to store the values.
@@ -732,41 +733,120 @@ bool parse_numvector_from_string (Vector& res, String& str)
 }
 
 
+/** Read an of Strings from a String. This looks as follows:
+    [ "String1", "String2"]
+    Whitespace has to have been eaten before, that is, the current
+    character must be `['.
+  
+    The empty vector is allowed.
+  
+    @see parse_numeric */
+bool parse_stringarray_from_string (ArrayOfString& res, String& str)
+{
+  bool first = true;            // To skip the first comma.
+  size_t pos = 0;
+
+  // We need a temporary Array<Numeric>, so that we can use push_back
+  // to store the values.
+  ArrayOfString tres;
+
+  eat_whitespace_from_string (str, pos);
+
+  // Make sure that the current character really is `[' and proceed.
+  if (str[pos] != '[')
+    {
+      throw runtime_error ("No opening bracket\n");
+    }
+
+  pos++;
+
+  eat_whitespace_from_string (str, pos);
+
+  // Read the elements of the vector (`]' means that we have
+  // reached the end):
+  while ( pos < str.length() && str[pos] != ']'  )
+    {
+      if (first)
+        first = false;
+      else
+        {
+          if (str[pos] != ',')
+            {
+              return false;
+            }
+          pos++;
+          eat_whitespace_from_string (str, pos);
+        }
+
+      if (str[pos] != '"')
+        {
+          throw runtime_error ("Expected quotes\n");
+        }
+
+      pos++;
+
+      String dummy;
+      while ( pos < str.length() && str[pos] != '"'  )
+        {
+          dummy += str[pos];
+          pos++;
+        }
+
+      if (pos == str.length() || str[pos] != '"')
+        return false;
+
+      tres.push_back(dummy);
+
+      eat_whitespace_from_string (str, pos);
+    }
+
+  // Copy tres to res:
+  res.resize(tres.nelem());
+  for (int i = 0; i < tres.nelem (); i++)
+    {
+      res[i] = tres[i];
+    }
+
+  return true;
+}
+
+
 /** Parse the Contents of text as ARTS control input. 
 
-    Either values or tasks will be empty.
+  Either values or tasks will be empty.
 
-    @param id     Output. Method id.
-    @param values Output. Keyword parameter values for this method.
-    @param output Output. Output workspace variables (for generic methods).
-    @param input  Output. Input workspace variables (for generic methods).
-    @param tasks  Output. A list of other methods.
-    @param text The input to parse.
-
-    @param no_eot Suppress throwing an error on EOT after the closing
-    curly brace.
+  \param[out]    id           Method id.
+  \param[out]    values       Keyword parameter values for this method.
+  \param[out]    output       Output workspace variables (for generic methods).
+  \param[out]    input        Input workspace variables (for generic methods).
+  \param[out]    tasks        A list of other methods.
+  \param[out]    include_file The input to parse.
+  \param[in,out] text         The input to parse.
+  \param[in]     no_eot       Suppress throwing an error on EOT after the
+                              closing curly brace.
    
-    @see read_name
-    @see eat_whitespace
-    @see assertain_character
-    @see parse_String
-    @see parse_integer
-    @see parse_numeric
-    @see parse_Stringvector
-    @see parse_intvector
-    @see parse_numvector
+  \see read_name
+  \see eat_whitespace
+  \see assertain_character
+  \see parse_String
+  \see parse_integer
+  \see parse_numeric
+  \see parse_Stringvector
+  \see parse_intvector
+  \see parse_numvector
    
-   @exception UnknownMethod
-   @exception UnknownWsv
-   @exception WrongWsvGroup
-   @exception UnexpectedKeyword
+  \exception UnknownMethod
+  \exception UnknownWsv
+  \exception WrongWsvGroup
+  \exception UnexpectedKeyword
 
-   @author Stefan Buehler  */
+  \author Stefan Buehler  */
 void parse_method(Index& id, 
                   Array<TokVal>& values,
                   ArrayOfIndex& output,
                   ArrayOfIndex& input,
                   Agenda&       tasks,
+                  String&       include_file,
                   SourceText& text,
                   bool no_eot=false)
 {
@@ -799,9 +879,19 @@ void parse_method(Index& id,
   input.resize(  0 );
   tasks.resize(  0 );
   
-  {
-    read_name(methodname, text);
+  read_name(methodname, text);
 
+  if (methodname == "INCLUDE")
+    {
+      String s;
+      eat_whitespace (text);
+      parse_String (include_file, text);
+
+      id = -1;
+
+      return;
+    }
+  else
     {
       // Find method raw id in raw map:
       const map<String, Index>::const_iterator i = MdRawMap.find(methodname);
@@ -838,7 +928,6 @@ void parse_method(Index& id,
 //        cout << "Adjusted Method: " << mdd->Name() << '\n';
         }
     }
-  }
 
   eat_whitespace(text);
 
@@ -994,10 +1083,27 @@ void parse_method(Index& id,
       assertain_character(')',text);
       eat_whitespace(text);
     }
+  else
+    {
+      // Even if the method has no GInput or GOutput the user can
+      // give an empty pair of ()
+      if (text.Current() == '(')
+        {
+          text.AdvanceChar();
+          eat_whitespace(text);
+          assertain_character(')',text);
+          eat_whitespace(text);
+        }
+    }
 
   // Now look for the curly braces:
-  assertain_character('{',text);
-  eat_whitespace(text);
+  bool found_curly_brace = false;
+  if (text.Current() == '{')
+    {
+      text.AdvanceChar();
+      eat_whitespace(text);
+      found_curly_brace = true;
+    }
 
   // There are two kind of methods, agenda methods, which have other
   // methods in the body, and normal methods, expecting keywords and
@@ -1025,15 +1131,35 @@ void parse_method(Index& id,
       // KEYWORDS THAT START WITH A NUMBER WILL BREAK THIS CODE!!
       //
       /*for ( Index i=0 ; i<mdd->Keywords().nelem() ; ++i )*/
-      bool continue_read = true;
 
+      if (!found_curly_brace)
+        {
+          bool all_kw_have_defaults = true;
+          for (Index kw = 0;
+               all_kw_have_defaults && kw < mdd->Keywords().nelem();
+               ++kw)
+            {
+              if (mdd->Defaults()[kw] == NODEF)
+                all_kw_have_defaults = false;
+            }
+
+          if (!all_kw_have_defaults)
+            {
+              ostringstream os;
+              os << "Expected '{', but got `" << text.Current() << "'.";
+              throw UnexpectedChar( os.str(),
+                                    text.File(),
+                                    text.Line(),
+                                    text.Column() );os << "" << endl;
+            }
+        }
 
       values.resize (mdd->Keywords().nelem());
 
       // Use this array to remember which keywords have been set
       ArrayOfIndex initialized_keywords (mdd->Keywords().nelem(), 0);
 
-      while (text.Current () != '}')
+      while (found_curly_brace && text.Current () != '}')
         {
           Index keyword_index;
           if (!isalpha(text.Current()) && 1==mdd->Keywords().nelem())
@@ -1189,14 +1315,13 @@ void parse_method(Index& id,
                         }
                     case Array_String_t:
                         {
-                          ostringstream os;
-                          os << "Default values for keywords with type "
-                            << "ArrayOfString are not supported.\n"
-                            << "Either remove the default value for keyword '"
-                            << mdd->Keywords()[i] << "' in workspace method *"
-                            << mdd->Name() << "* in methods.cc or discuss this "
-                            << "issue on the arts-dev mailing list.\n";
-                          throw runtime_error (os.str());
+                          ArrayOfString v;
+                          String s = mdd->Defaults()[i];
+                          if (!parse_stringarray_from_string(v, s))
+                            {
+                              failed = true;
+                            }
+                          values[i] = v;
                           break;
                         }
                     case Array_Index_t:
@@ -1254,15 +1379,18 @@ void parse_method(Index& id,
   // because after a method description may be a good place to end
   // the control file.
 
-  try
+  if (found_curly_brace)
     {
-      assertain_character('}',text);
-    }
-  catch (const Eot x)
-    {
-      //      cout << "EOT!!!!" << endl;
-      // Re-trow the error if the no_eot flag is not set:
-      if (!no_eot) throw Eot(x);
+      try
+        {
+          assertain_character('}',text);
+        }
+      catch (const Eot x)
+        {
+          //      cout << "EOT!!!!" << endl;
+          // Re-throw the error if the no_eot flag is not set:
+          if (!no_eot) throw Eot(x);
+        }
     }
 }
 
@@ -1296,49 +1424,83 @@ void parse_agenda( Agenda& tasklist,
   ArrayOfIndex input;
   // For Agenda, if ther is any:
   Agenda tasks;
+  // For include statements, holding the include file's name
+  String include_file;
 
   eat_whitespace(text);
 
   while ( '}' != text.Current() )
     {
-      parse_method(id,values,output,input,tasks,text);
+      parse_method(id,values,output,input,tasks,include_file,text);
 
-      // Append taks to task list:      
-      tasklist.push_back(MRecord(id,values,output,input,tasks));
+      // If parse_method found an include statement it returnes -1 for the
+      // method id
+      if (id == -1)
+        {
+          // Command line parameters which give us the include search path.
+          extern const Parameters parameters;
 
-      {
-        // Everything in this block is just to generate some
-        // informative output.  
-        extern const Array<WsvRecord> wsv_data;
+          SourceText include_text;
 
-        out3 << "- " << md_data[id].Name() << "\n";
+          if (!find_file (include_file, ".arts"))
+            {
+              ostringstream os;
+              os << "Cannot find include file " << include_file
+                << ".\n";
+              os << "File: "   << text.File() << '\n';
+              os << "Search path was: . " << parameters.includepath
+                << "\n";
+              throw runtime_error (os.str());
+            }
 
-        for ( Index j=0 ; j<values.nelem() ; ++j )
-          {
-            out3 << "   " 
-                 << md_data[id].Keywords()[j] << ": "
-                 << values[j] << '\n';
-          }
-          
-        // Output workspace variables for generic methods:
-        if ( 0 < md_data[id].GOutput().nelem() + md_data[id].GInput().nelem() )
-          {
-            out3 << "   Output: ";
-            for ( Index j=0 ; j<output.nelem() ; ++j )
-              {
-                out3 << wsv_data[output[j]].Name() << " ";
-              }
-            out3 << "\n";
+          out3 << "- Including control file " << include_file << "\n";
 
-            out3 << "   Input: ";
-            for ( Index j=0 ; j<input.nelem() ; ++j )
-              {
-                out3 << wsv_data[input[j]].Name() << " ";
-              }
-            out3 << "\n";
-          }
-      }
-      
+          include_text.AppendFile (include_file);
+          parse_main (tasks, include_text);
+
+          for (Index i = 0; i < tasks.nelem(); i++)
+            tasklist.push_back (tasks.Methods()[i]);
+        }
+      else
+        {
+          // Append taks to task list:      
+          tasklist.push_back(MRecord(id,values,output,input,tasks));
+
+            {
+              // Everything in this block is just to generate some
+              // informative output.  
+              extern const Array<WsvRecord> wsv_data;
+
+              out3 << "- " << md_data[id].Name() << "\n";
+
+              for ( Index j=0 ; j<values.nelem() ; ++j )
+                {
+                  out3 << "   " 
+                    << md_data[id].Keywords()[j] << ": "
+                    << values[j] << '\n';
+                }
+
+              // Output workspace variables for generic methods:
+              if ( 0 < md_data[id].GOutput().nelem()
+                       + md_data[id].GInput().nelem() )
+                {
+                  out3 << "   Output: ";
+                  for ( Index j=0 ; j<output.nelem() ; ++j )
+                    {
+                      out3 << wsv_data[output[j]].Name() << " ";
+                    }
+                  out3 << "\n";
+
+                  out3 << "   Input: ";
+                  for ( Index j=0 ; j<input.nelem() ; ++j )
+                    {
+                      out3 << wsv_data[input[j]].Name() << " ";
+                    }
+                  out3 << "\n";
+                }
+            }
+        }
+
       eat_whitespace(text);
     }
 }
@@ -1367,17 +1529,19 @@ void parse_main(Agenda& tasklist, SourceText& text)
       ArrayOfIndex input;
       // For Agenda, if ther is any:
       Agenda tasks;
+      // For include statements, holding the include file's name
+      String include_file;
 
       out3 << "\nParsing control text:\n";
 
       text.Init();
       eat_whitespace(text);
 
-      parse_method(id,values,output,input,tasklist,text,true);
+      parse_method(id,values,output,input,tasklist,include_file,text,true);
           
-      if ( "Main" != md_data[id].Name() )
+      if ( "Arts" != md_data[id].Name() )
         {
-          out0 << "The outermost method must be Main!\n"
+          out0 << "The outermost method must be Arts!\n"
                << "(But it seems to be " << md_data[id].Name() << ".)\n";
           arts_exit ();
         }
@@ -1464,12 +1628,7 @@ void parse_main(Agenda& tasklist, SourceText& text)
       out0 << x.what()   << '\n';
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
-      out0 << "Column: " << x.column() << '\n';
+      out3 << "Column: " << x.column() << '\n';
       arts_exit ();
-    }
-  catch (const runtime_error x)
-    {
-      cout << "Runtime error: ";
-      cout << x.what() << '\n';
     }
 }

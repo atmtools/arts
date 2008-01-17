@@ -42,6 +42,7 @@
 #include "wsv_aux.h"
 #include "agenda_record.h"
 #include "mystring.h"
+#include "workspace_ng.h"
 
 /** Remind the user of --help and exit return value 1. */
 void polite_goodby()
@@ -645,10 +646,28 @@ int main (int argc, char **argv)
         << " (compiled " << __DATE__ << " " << __TIME__
         << " on " << OS_NAME << " " << OS_VERSION << ")" << endl
         << "Compile flags: " << COMPILE_FLAGS << endl
-        << "Features enabled/disabled in this build: " << endl
-        << "  "
-        << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float")
-        << " precision" << endl;
+        << "Features in this build: " << endl
+        << "   Numeric precision:  "
+        << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float") << endl
+        << "   OpenMP support:     "
+#ifdef _OPENMP
+        << "enabled" << endl
+#else
+        << "disabled" << endl
+#endif
+        << "   Zipped XML support: "
+#ifdef ENABLE_ZLIB
+        << "enabled" << endl
+#else
+        << "disabled" << endl
+#endif
+        << "   Disort algorithm:   "
+#ifdef ENABLE_DISORT
+        << "enabled" << endl
+#else
+        << "disabled" << endl
+#endif
+        << "";
       arts_exit (EXIT_SUCCESS);
     }
 
@@ -820,7 +839,7 @@ int main (int argc, char **argv)
   // will not exist.
   try
     {
-      extern const String out_basename;     // Basis for file name
+      extern String out_basename;       // Basis for file name
       extern ofstream report_file;      // Report file pointer
       ostringstream report_file_ext;
 
@@ -864,6 +883,8 @@ int main (int argc, char **argv)
       // The list of methods to execute and their keyword data from
       // the control file. 
       Agenda tasklist;
+      extern Workspace workspace;
+      tasklist.set_workspace (&workspace);
 
       // The text of the controlfile.
       SourceText text;
@@ -879,10 +900,10 @@ int main (int argc, char **argv)
       // Call the parser to parse the control text:
       parse_main(tasklist, text);
       
-      tasklist.set_name("Main");
+      tasklist.set_name("Arts");
 
       // Execute main agenda:
-      Main(tasklist);
+      Arts(tasklist);
 
     }
   catch (runtime_error x)

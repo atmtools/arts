@@ -46,6 +46,7 @@
 /*!
   \param i_p Pressure index
   \param pnd_field_raw Particle number density data
+  \param pnd_field_file pnd field filename
 
   \author Claudia Emde
   \date   2005-05-09
@@ -85,8 +86,9 @@ void chk_if_pnd_zero_p(
 
 //! Check whether particle number density is zero at a specified latitude
 /*!
-  \param i_lat Latitude index
-  \param pnd_field_raw Particle number density data
+  \param i_lat          Latitude index
+  \param pnd_field_raw  Particle number density data
+  \param pnd_field_file pnd field filename
 
   \author Claudia Emde
   \date   2005-05-09
@@ -126,8 +128,9 @@ void chk_if_pnd_zero_lat(
 
 //! Check whether particle number density is zero at a specified longitude
 /*!
-  \param i_lon Latitude index
-  \param pnd_field_raw Particle number density data
+  \param i_lon          Latitude index
+  \param pnd_field_raw  Particle number density data
+  \param pnd_field_file pnd field filename
 
   \author Claudia Emde
   \date   2005-05-09
@@ -173,9 +176,13 @@ void chk_if_pnd_zero_lon(
   has the right atmospheric dimension and whether the cloudbox includes
   all points where the particle number density is non-zero. 
 
-  \param pnd_field_raw pnd field data
-  \param pnd_field_file pnd field filename
-  \param atmosphere_dim atmospheric dimension
+  \param pnd_field_raw   pnd field data
+  \param pnd_field_file  pnd field filename
+  \param atmosphere_dim  Atmospheric dimension
+  \param p_grid          Pressure grid
+  \param lat_grid        Latitude grid
+  \param lon_grid        Longitude grid
+  \param cloudbox_limits Cloudbox limits
 
   \author Claudia Emde
   \date   2005-04-05
@@ -274,9 +281,13 @@ void chk_pnd_data(
 //! Check particle number density files (pnd_field_raw)
 /*!
   
- \param pnd_field_raw pnd field raw data (array for all particle types)
- \param pnd_field_file pnd field filename
- \param atmosphere_dim atmospheric dimension
+  \param pnd_field_raw   pnd field raw data (array for all particle types)
+  \param pnd_field_file  pnd field filename
+  \param atmosphere_dim  Atmospheric dimension
+  \param p_grid          Pressure grid
+  \param lat_grid        Latitude grid
+  \param lon_grid        Longitude grid
+  \param cloudbox_limits Cloudbox limits
  
   \author Claudia Emde
   \date   2005-04-05
@@ -311,7 +322,6 @@ void chk_pnd_raw_data(
   \param scat_data_raw Single scattering data
   \param scat_data_file Filename of the data to be checked.
   \param f_grid        Frequency grid
-  \param t_field       Temperature field
   
   \author Claudia Emde
   \date   2005-04-04

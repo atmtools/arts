@@ -141,21 +141,6 @@ void IndexSet(    Index&    x,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IndexSetFromArrayOfMatrixLength(// WS Generic Output:
-                                     Index& n,
-                                     // WS Generic Output Names:
-                                     const String& n_name,
-                                     // WS Generic Input:
-                                     const ArrayOfMatrix& am,
-                                     // WS Generic Input Names:
-                                     const String& am_name)
-{
-  n = am.nelem();
-  out3 << "  Setting " << n_name << " = " << n
-       << " from length of " << am_name << "\n";
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void IndexStep(    
             Index&     xout,       
       const String&    outname,

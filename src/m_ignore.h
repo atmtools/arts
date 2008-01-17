@@ -20,7 +20,7 @@
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 14 17:09:05 2002
   
-  \brief  Implementation of Copy.
+  \brief  Implementation of Ignore.
   
   This file contains the implementation of the supergeneric method
   Ignore.

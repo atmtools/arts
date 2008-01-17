@@ -202,7 +202,7 @@ void jacobianAddAbsSpecies(// WS Output:
            << " " << mode << ".\n"; 
       String methodname = "jacobianCalcAbsSpecies";
       String kwv = species;
-      agenda_append(jacobian_agenda, methodname, kwv);
+      jacobian_agenda.append (methodname, kwv);
     }
 }                    
 
@@ -333,7 +333,7 @@ void jacobianAddParticle(// WS Output:
   // Add gas species method to the jacobian agenda
   String methodname = "jacobianCalcParticle";
   String kwv = "";
-  agenda_append(jacobian_agenda, methodname, kwv);
+  jacobian_agenda.append (methodname, kwv);
 }                    
 
 
@@ -420,7 +420,7 @@ void jacobianAddPointing(// WS Output:
   // Add pointing method to the jacobian agenda
   String methodname = "jacobianCalcPointing";
   String kwv = "";
-  agenda_append(jacobian_agenda, methodname, kwv);
+  jacobian_agenda.append (methodname, kwv);
   
   out2 << "  Adding zenith angle pointing offset to *jacobian_quantities*\n"
        << "  and *jacobian_agenda* with perturbation size " << dza << "\n";
@@ -545,7 +545,7 @@ void jacobianAddTemperature(// WS Output:
   // Add pointing method to the jacobian agenda
   String methodname = "jacobianCalcTemperature";
   String kwv = "";
-  agenda_append(jacobian_agenda, methodname, kwv);
+  jacobian_agenda.append (methodname, kwv);
   
   out2 << "  Adding temperature to *jacobian_quantities* and "
        << "*jacobian_agenda*.\n";
@@ -1420,10 +1420,55 @@ void jacobianInit(
 void jacobianOff(
       Matrix&                    jacobian,
       ArrayOfRetrievalQuantity&  jacobian_quantities,
-      ArrayOfArrayOfIndex&       jacobian_indices)
+      ArrayOfArrayOfIndex&       jacobian_indices,
+      String&                    jacobian_unit )
 {
   jacobianInit( jacobian, jacobian_quantities, jacobian_indices );
+  
+  jacobian_unit = "-";
 }
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianUnit(
+              Matrix&   jacobian,
+        const String&   jacobian_unit,
+        const String&   y_unit,
+        const Matrix&   sensor_pos,
+        const Matrix&   sensor_los,
+        const Vector&   sensor_response_f,
+        const Vector&   sensor_response_za,
+        const Vector&   sensor_response_aa,
+        const Index&    sensor_response_pol )
+{
+  String j_unit = jacobian_unit;
+  //
+  if ( jacobian_unit == "-" )
+    { j_unit = y_unit; }
+  
+
+  if( j_unit == "1" )
+    {}
+
+  else if( j_unit == "RJBT" )
+    {
+      MatrixToRJBT( jacobian, "jacobian", sensor_pos, sensor_los, 
+                    sensor_response_f, sensor_response_za, sensor_response_aa, 
+                    sensor_response_pol, jacobian, "jacobian" );
+    }
+
+  else if( j_unit == "PlanckBT" )
+    {
+      MatrixToPlanckBT( jacobian, "jacobian", sensor_pos, sensor_los, 
+                    sensor_response_f, sensor_response_za, sensor_response_aa, 
+                    sensor_response_pol, jacobian, "jacobian" );
+    }
+  else
+    {
+      ostringstream os;
+      os << "Unknown option: jacobian_unit = \"" << j_unit << "\"\n" 
+         << "Recognised choices are: \"-\", \"1\", \"RJBT\" and \"PlanckBT\"";
+      throw runtime_error( os.str() );      
+    }
+}

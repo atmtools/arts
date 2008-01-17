@@ -145,7 +145,7 @@ void MatrixPlanck(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixToTbByPlanck(
+void MatrixToPlanckBT(
               Matrix&   y_out,
         const String&   y_out_name,
         const Matrix&   sensor_pos,
@@ -191,7 +191,7 @@ void MatrixToTbByPlanck(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixToTbByRJ(
+void MatrixToRJBT(
               Matrix&   y_out,
         const String&   y_out_name,
         const Matrix&   sensor_pos,
@@ -274,7 +274,7 @@ void MatrixUnitIntensity(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor6ToTbByPlanck( // WS Generic Output:
+void Tensor6ToPlanckBT( // WS Generic Output:
                          Tensor6&   y_out,
                          // WS Generic Output Names:
                          const String&   y_out_name,
@@ -329,7 +329,7 @@ void Tensor6ToTbByPlanck( // WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorToTbByPlanck(
+void VectorToPlanckBT(
               Vector&   y_out,
         const String&   y_out_name,
         const Matrix&   sensor_pos,
@@ -368,7 +368,7 @@ void VectorToTbByPlanck(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorToTbByRJ(
+void VectorToRJBT(
               Vector&   y_out,
         const String&   y_out_name,
         const Matrix&   sensor_pos,

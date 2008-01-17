@@ -55,6 +55,7 @@
 #include "math_funcs.h"
 #include "make_vector.h"
 #include "sensor.h"
+#include "wsv_aux.h"
 
 #include "workspace_ng.h"
 

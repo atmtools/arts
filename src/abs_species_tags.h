@@ -144,6 +144,10 @@ Index species_index_from_species_name( String name );
 Index find_first_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
                              const Index& spec );
 
+Index find_next_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
+                            const Index& spec,
+                            const Index& start );
+
 void array_species_tag_from_string( ArrayOfSpeciesTag& tags,
                                     const String& names );
 

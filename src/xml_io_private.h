@@ -52,7 +52,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 void
-xml_open_output_file (ofstream& file, const String& name);
+xml_open_output_file (ostream& file, const String& name);
 
 void
 xml_open_input_file (ifstream& file, const String& name);
@@ -137,7 +137,7 @@ void
 xml_read_footer_from_stream (istream& is);
 
 void
-xml_write_header_to_stream (ostream& os);
+xml_write_header_to_stream (ostream& os, FileType ftype);
 
 void
 xml_write_footer_to_stream (ostream& os);

@@ -121,7 +121,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   const Index n_current_f_grid  = current_f_grid.nelem();
 
   const Index n_species         = species.nelem();
-  const Index n_nls             = nonlinear_species.nelem();
+  //  const Index n_nls             = nonlinear_species.nelem();
   const Index n_nls_pert        = nls_pert.nelem();
   const Index n_f_grid          = f_grid.nelem();
   const Index n_p_grid          = p_grid.nelem();
@@ -138,7 +138,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
 
   // Set up a logical array for the nonlinear species
   ArrayOfIndex non_linear(n_species,0);
-  for ( Index s=0; s<n_nls; ++s )
+  for ( Index s=0; s<nonlinear_species.nelem(); ++s )
     {
       non_linear[nonlinear_species[s]] = 1;
     }
@@ -275,6 +275,18 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
       chk_size( "xsec", xsec, a, b, c, d );
     }
 
+  // We also need indices to the positions of the original species
+  // data in xsec. Nonlinear species take more space, therefor the
+  // position in xsec is not the same as the position in species.
+  ArrayOfIndex original_spec_pos_in_xsec(n_species);
+  for (Index i=0,sp=0; i<n_species; ++i)
+    {
+      original_spec_pos_in_xsec[i] = sp;
+      if (non_linear[i]) sp += n_nls_pert;
+      else               sp += 1;
+    }
+
+
 
   // Now some checks on the input data:
 
@@ -308,15 +320,11 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
 
   // 1a. Find out which of the current species are nonlinear species:
   Index n_current_nonlinear_species = 0;        // Number of current nonlinear species
-  ArrayOfIndex current_non_linear(n_species,0); // A logical array to
-                                                // flag which of the
-                                                // current species are
-                                                // nonlinear.
+  ArrayOfIndex current_non_linear(n_current_species,0); // A logical array to
+                                                        // flag which of the
+                                                        // current species are
+                                                        // nonlinear.
 
-//   ArrayOfIndex current_nonlinear_species; // The actual list of
-//                                           // current nonlinear
-//                                           // species. These are indices into current_species.  
-  
   out3 << "  Finding out which of the current species are nonlinear:\n";
   for ( Index i=0; i<n_current_species; ++i )
     {
@@ -329,7 +337,6 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
           ++n_current_nonlinear_species;
         }
     }
-  
 
   // 2. Find and remember the frequencies of the current calculation in
   //    the lookup table. At the same time verify that all frequencies are
@@ -359,11 +366,8 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
       new_table.species[i] = species[i_current_species[i]];
 
       // Is this a nonlinear species?
-      if ( 0 <= find_first( nonlinear_species,
-                            i_current_species[i] ) )
-        {
-          new_table.nonlinear_species.push_back( i );
-        }
+      if (current_non_linear[i])
+        new_table.nonlinear_species.push_back( i );
     }
 
   // Frequency grid:
@@ -374,7 +378,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
     }
 
   // Pressure grid:
-  new_table.p_grid.resize( n_p_grid );
+  //  new_table.p_grid.resize( n_p_grid ); 
   new_table.p_grid = p_grid;
 
   // Reference VMR profiles:
@@ -389,18 +393,18 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
     }
 
   // Reference temperature profile:
-  new_table.t_ref.resize( t_ref.nelem() );
+  //  new_table.t_ref.resize( t_ref.nelem() );
   new_table.t_ref = t_ref;
 
   // Vector of temperature perturbations:
-  new_table.t_pert.resize( t_pert.nelem() );
+  //  new_table.t_pert.resize( t_pert.nelem() );
   new_table.t_pert = t_pert;
 
   // Vector of perturbations for the VMRs of the nonlinear species: 
   // (Should stay empty if we have no nonlinear species)
   if ( 0 != new_table.nonlinear_species.nelem() )
     {
-      new_table.nls_pert.resize( n_nls_pert );
+      //      new_table.nls_pert.resize( n_nls_pert );
       new_table.nls_pert = nls_pert;
     }
 
@@ -415,34 +419,39 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   // the same.
 
   // Do species:
-  for ( Index i_s=0; i_s<n_current_species; ++i_s )
+  for ( Index i_s=0,sp=0; i_s<n_current_species; ++i_s )
     {
-      // i_v and n_v are used to loop over the VMR perturbations, if
-      // there are any.
+      // n_v is the number of VMR perturbations
       Index n_v;
       if (current_non_linear[i_s])
         n_v = n_nls_pert;
       else
         n_v = 1;
 
-      // Do VMR perturbations
-      for ( Index i_v=0; i_v<n_v; ++i_v )
+//      cout << "i_s / sp / n_v = " << i_s << " / " << sp << " / " << n_v << endl;
+//      cout << "orig_pos = " << original_spec_pos_in_xsec[i_current_species[i_s]] << endl;
+
+      // Do frequencies:
+      for ( Index i_f=0; i_f<n_current_f_grid; ++i_f )
         {
-      
-          // Do frequencies:
-          for ( Index i_f=0; i_f<n_current_f_grid; ++i_f )
-            {
-              new_table.xsec( Range(joker),
-                              i_s+i_v,
-                              i_f,
-                              Range(joker) )
-                =
-                xsec( Range(joker),
-                      i_current_species[i_s]+i_v,
-                      i_current_f_grid[i_f],
-                      Range(joker) );
-            }
+          new_table.xsec( Range(joker),
+                          Range(sp,n_v),
+                          i_f,
+                          Range(joker) )
+            =
+            xsec( Range(joker),
+                  Range(original_spec_pos_in_xsec[i_current_species[i_s]],n_v),
+                  i_current_f_grid[i_f],
+                  Range(joker) );
+
+//           cout << "result: " << xsec( Range(joker),
+//                                       Range(original_spec_pos_in_xsec[i_current_species[i_s]],n_v),
+//                                       i_current_f_grid[i_f],
+//                                       Range(joker) ) << endl;
+
         }
+
+      sp += n_v;
     }
 
 

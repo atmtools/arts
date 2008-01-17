@@ -76,7 +76,10 @@ void apply_y_unit(
 {
   assert( f_grid.nelem() == iy.nrows() );
 
-  if( y_unit == "RJ" )
+  if( y_unit == "1" )
+    {}
+
+  else if( y_unit == "RJBT" )
     {
       for( Index iv=0; iv<f_grid.nelem(); iv++ )
         {
@@ -88,7 +91,7 @@ void apply_y_unit(
         }
     }
 
-  else if( y_unit == "Planck"  ||  y_unit == "planck" )
+  else if( y_unit == "PlanckBT" )
     {
       for( Index iv=0; iv<f_grid.nelem(); iv++ )
         {
@@ -98,6 +101,15 @@ void apply_y_unit(
             }
         }
     }
+  else
+    {
+      ostringstream os;
+      os << "Unknown option: y_unit = \"" << y_unit << "\"\n" 
+         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
+      throw runtime_error( os.str() );      
+    }
+
+  // If adding more options here, also add in yUnit and jacobianUnit.
 }
 
 
@@ -136,23 +148,49 @@ void apply_y_unit_single(
 
 //! get_radiative_background
 /*!
-    Sets *iy* to the radiative background for a propagation path.
+  Sets *iy* to the radiative background for a propagation path.
 
-    The function uses *ppath* to determine the radiative background
-    for a propagation path and calls the relevant agenda. Coding of
-    backgrounds is described in the header of the function
-    ppath_set_background (in ppath.cc).
+  The function uses *ppath* to determine the radiative background
+  for a propagation path and calls the relevant agenda. Coding of
+  backgrounds is described in the header of the function
+  ppath_set_background (in ppath.cc).
 
-    The main purpose of the function is set *iy*. It is NOT needed to set 
-    *iy* to the correct size before calling the function.
+  The main purpose of the function is set *iy*. It is NOT needed to set 
+  *iy* to the correct size before calling the function.
 
-    All input/output is as corresponding WSVs with same name, except:
+  \param[out] iy
+  \param[out] ppath
+  \param[out] ppath_step
+  \param[out] ppath_array_index
+  \param[out] ppath_array
+  \param[out] diy_dvmr
+  \param[out] diy_dt
+  \param[in]  ppath_step_agenda
+  \param[in]  rte_agenda
+  \param[in]  surface_prop_agenda
+  \param[in]  iy_space_agenda
+  \param[in]  iy_cloudbox_agenda
+  \param[in]  atmosphere_dim
+  \param[in]  p_grid
+  \param[in]  lat_grid
+  \param[in]  lon_grid
+  \param[in]  z_field
+  \param[in]  t_field
+  \param[in]  vmr_field
+  \param[in]  r_geoid
+  \param[in]  z_surface
+  \param[in]  cloudbox_on
+  \param[in]  cloudbox_limits
+  \param[in]  f_grid
+  \param[in]  stokes_dim
+  \param[in]  ppath_array_do
+  \param[in]  rte_do_vmr_jacs
+  \param[in]  rte_do_t_jacs
+  \param[in]  agenda_verb        Argument handed to agendas to control
+                                 verbosity.
 
-    \param   agenda_verb        Input: Argument handed to agendas to control
-                                verbosity.
-
-    \author Patrick Eriksson 
-    \date   2002-09-17
+  \author Patrick Eriksson 
+  \date   2002-09-17
 */
 void get_radiative_background(
               Matrix&                  iy,
@@ -516,26 +554,54 @@ void include_trans_in_diy_dq(
 
 //! iy_calc
 /*!
-    Solves the monochromatic pencil beam RTE.
+  Solves the monochromatic pencil beam RTE.
 
-    The function performs three basic tasks: <br>
-      1. Determines the propagation path (by call of ppath_calc). <br>
-      2. Determines the radiative background. <br>
-      3. Executes *rte_agenda*. <br> <br>
+  The function performs three basic tasks: <br>
+    1. Determines the propagation path (by call of ppath_calc). <br>
+    2. Determines the radiative background. <br>
+    3. Executes *rte_agenda*. <br> <br>
 
-    The start position and LOS shall be put into *los* and *pos* (and
-    not *rte_pos* and *rte_los*).
+  The start position and LOS shall be put into *los* and *pos* (and
+  not *rte_pos* and *rte_los*).
 
-    It is NOT needed to set *iy* to the correct size before calling
-    the function.
+  It is NOT needed to set *iy* to the correct size before calling
+  the function.
 
-    All input/output is as corresponding WSVs with same name, except:
-
-    \param   agenda_verb        Input: Argument handed to agendas to control
+  \param[out] iy
+  \param[out] ppath
+  \param[out] ppath_step
+  \param[out] ppath_array_index
+  \param[out] ppath_array
+  \param[out] diy_dvmr
+  \param[out] diy_dt
+  \param[in]  ppath_step_agenda
+  \param[in]  rte_agenda
+  \param[in]  surface_prop_agenda
+  \param[in]  iy_space_agenda
+  \param[in]  iy_cloudbox_agenda
+  \param[in]  atmosphere_dim
+  \param[in]  p_grid
+  \param[in]  lat_grid
+  \param[in]  lon_grid
+  \param[in]  z_field
+  \param[in]  t_field
+  \param[in]  vmr_field
+  \param[in]  r_geoid
+  \param[in]  z_surface
+  \param[in]  cloudbox_on
+  \param[in]  cloudbox_limits
+  \param[in]  pos
+  \param[in]  los
+  \param[in]  f_grid
+  \param[in]  stokes_dim
+  \param[in]  ppath_array_do
+  \param[in]  rte_do_vmr_jacs
+  \param[in]  rte_do_t_jacs
+  \param[in]  agenda_verb       Argument handed to agendas to control
                                 verbosity.
 
-    \author Patrick Eriksson 
-    \date   2002-09-17
+  \author Patrick Eriksson 
+  \date   2002-09-17
 */
 void iy_calc(
               Matrix&                  iy,
@@ -966,18 +1032,29 @@ void rte_step_std_clearsky(
 
 //! rte_std
 /*! 
-   Core function for the different versions of WSM RteStd. 
+  Core function for the different versions of WSM RteStd. 
 
-   See the the online help (arts -d RteStd)
+  See the the online help (arts -d RteStd)
 
-   All input and output arguments are identical to the WSV with identical name,
-   beside:
+  \param[out] iy
+  \param[out] emission
+  \param[out] abs_scalar_gas
+  \param[out] ppath_transmissions
+  \param[out] diy_dvmr
+  \param[out] diy_dt
+  \param[in]  ppath
+  \param[in]  ppath_array
+  \param[in]  ppath_array_index
+  \param[in]  f_grid
+  \param[in]  stokes_dim
+  \param[in]  emission_agenda
+  \param[in]  abs_scalar_gas_agenda
+  \param[in]  rte_do_vmr_jacs
+  \param[in]  rte_do_t_jacs
+  \param[in]  do_transmissions   Boolean to fill *ppath_transmissions* or not.
 
-    \param   do_transmission   Input: Boolean to fill *ppath_transmissions* or 
-                               not.
-
-   \author Patrick Eriksson
-   \date   2005-05-19
+  \author Patrick Eriksson
+  \date   2005-05-19
 */
 void rte_std(
              Matrix&                  iy,
@@ -1126,14 +1203,31 @@ void rte_std(
 /*! 
    Common sub-function for RteCalc functions to check consistency of input.
 
-   All input parameters are identical to the WSV with identical name,
-   beside:
-
-    \param   nf        Number of frequencies in f_grid.
-    \param   nmblock   Number of measurement blocks.
-    \param   nza       Number of zenith angles / measurement block.
-    \param   naa       Number of azimuth angles / measurement block.
-    \param   nblock    Length of for one measurement block.
+   \param[out] nf        Number of frequencies in f_grid.
+   \param[out] nmblock   Number of measurement blocks.
+   \param[out] nza       Number of zenith angles / measurement block.
+   \param[out] naa       Number of azimuth angles / measurement block.
+   \param[out] nblock    Length of for one measurement block.
+   \param[in]  atmosphere_dim
+   \param[in]  p_grid
+   \param[in]  lat_grid
+   \param[in]  lon_grid
+   \param[in]  z_field
+   \param[in]  t_field
+   \param[in]  r_geoid
+   \param[in]  z_surface
+   \param[in]  cloudbox_on
+   \param[in]  cloudbox_limits
+   \param[in]  sensor_response
+   \param[in]  sensor_pos
+   \param[in]  sensor_los
+   \param[in]  f_grid
+   \param[in]  stokes_dim
+   \param[in]  antenna_dim
+   \param[in]  mblock_za_grid
+   \param[in]  mblock_aa_grid
+   \param[in]  y_unit
+   \param[in]  jacobian_unit
 
    \author Patrick Eriksson
    \date   2007-09-19
@@ -1162,7 +1256,8 @@ void rtecalc_check_input(
    const Index&                      antenna_dim,
    const Vector&                     mblock_za_grid,
    const Vector&                     mblock_aa_grid,
-   const String&                     y_unit )
+   const String&                     y_unit,
+   const String&                     jacobian_unit )
 {
   // Some sizes
   nf      = f_grid.nelem();
@@ -1300,12 +1395,22 @@ void rtecalc_check_input(
 
   // *y_unit*
   //
-  if( !( y_unit=="1"  ||  y_unit=="RJ"  ||  y_unit=="planck"  || 
-         y_unit=="Planck" ) )
+  if( !( y_unit=="1"  ||  y_unit=="RJBT"  ||  y_unit=="PlanckBT" ) )
     {
       ostringstream os;
-      os << "Allowed options for *y_unit are: ""1"", ""RJ"", ""planck"" and "
-         << """Planck"".";
+      os << "Allowed options for *y_unit* are: ""1"", ""RJBT"", and "
+         << """PlanckBT"".";
+      throw runtime_error( os.str() );
+    }
+
+  // *jacobian_unit*
+  //
+  if( !( jacobian_unit=="1"  ||  jacobian_unit=="RJBT"  ||  
+         jacobian_unit=="-" ) )
+    {
+      ostringstream os;
+      os << "Allowed options for *jacobian_unit* are: ""1"", ""RJBT"", and "
+         << """-"".";
       throw runtime_error( os.str() );
     }
 }

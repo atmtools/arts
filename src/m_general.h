@@ -74,7 +74,8 @@ Print(
       // Keywords:
       const Index&   level )
 {
-  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n" << x << '\n')
+  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n" << x << '\n'
+                << "  *" << x_name << "*\n");
 }
 
 

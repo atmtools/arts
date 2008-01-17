@@ -11,7 +11,11 @@
 m4datadir = $(datadir)/aclocal
 
 # List your m4 macros here
-m4macros = lf_warnings.m4
+m4macros = ax_openmp.m4 \
+	   ax_compiler_vendor.m4 \
+	   cxx_checks.m4 \
+	   lf_cxx.m4 \
+	   lf_warnings.m4
 
 # The following is boilerplate
 m4data_DATA = $(m4macros) 

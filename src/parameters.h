@@ -49,6 +49,7 @@ struct Parameters {
     controlfiles(),
     reporting(-1),
     methods(""),
+    includepath(),
     input(""),
     workspacevariables(""),
     describe(""),
@@ -82,6 +83,8 @@ struct Parameters {
       all methods. If it is given the name of a variable (or group), it
       prints all methods that produce this variable (or group) as output. */
   String methods;
+  /** List of paths to search for include files. */
+  ArrayOfString includepath; 
   /** This is complementary to the methods switch. It must be given
       the name of a variable (or group). Then it lists all methods that take this
       variable (or group) as input. */

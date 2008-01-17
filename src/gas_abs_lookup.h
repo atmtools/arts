@@ -73,7 +73,7 @@ public:
                                     const String& name);
 
   friend void abs_lookupCreate(// WS Output:
-                      GasAbsLookup& gal,
+                      GasAbsLookup& abs_lookup,
                       Index& abs_lookup_is_adapted,
                       // WS Input:
                       const ArrayOfArrayOfSpeciesTag& abs_species,

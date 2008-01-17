@@ -90,7 +90,7 @@ void align(ofstream& ofs, bool& is_first_parameter, const String& indent)
 
 //! Write method header documentation.
 /*!
-  \param ofs The stream to write to.
+  \param[in,out] ofs The stream to write to.
   \param mdd Method lookup data.
 */
 void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
@@ -139,7 +139,7 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   ofs << "/*!\n";
 
   String DoxyDescription = mdd.Description();
-  Index start_pos = 0;
+  size_t start_pos = 0;
 
   while (start_pos != string::npos)
     {
@@ -165,7 +165,7 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   // Write the Output workspace variables:
   for (Index j=0; j<vo.nelem(); ++j)
     {
-      ofs << indent << "\\param "
+      ofs << indent << "\\param[out] "
         << wsv_data[vo[j]].Name() << " WS Output\n";
     }
 
@@ -174,12 +174,12 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
     {
       if (mdd.Supergeneric ())
         {
-          ofs << indent << "\\param supergenericoutput" << j+1
+          ofs << indent << "\\param[out] supergenericoutput" << j+1
             << " Supergeneric output\n";
         }
       else
         {
-          ofs << indent << "\\param genericoutput" << j+1
+          ofs << indent << "\\param[out] genericoutput" << j+1
             << " Generic output\n";
         }
     }
@@ -187,14 +187,14 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   // Write the Generic output workspace variable names:
   for (Index j=0; j<vgo.nelem(); ++j)
     {
-      ofs << indent << "\\param genericoutputname" << j+1
+      ofs << indent << "\\param[in] genericoutputname" << j+1
         << " Generic output name\n";
     }
 
   // Write the Input workspace variables:
   for (Index j=0; j<vi.nelem(); ++j)
     {
-      ofs << indent << "\\param "
+      ofs << indent << "\\param[in] "
         << wsv_data[vi[j]].Name() << " WS Input\n";
     }
 
@@ -203,12 +203,12 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
     {
       if (mdd.Supergeneric ())
         {
-          ofs << indent << "\\param supergenericinput" << j+1
+          ofs << indent << "\\param[in] supergenericinput" << j+1
             << " Supergeneric Input\n";
         }
       else
         {
-          ofs << indent << "\\param genericinput" << j+1
+          ofs << indent << "\\param[in] genericinput" << j+1
             << " Generic Input\n";
         }
     }
@@ -216,7 +216,7 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   // Write the Generic input workspace variable names:
   for (Index j=0; j<vgi.nelem(); ++j)
     {
-      ofs << indent << "\\param " << "genericinputname" << j+1
+      ofs << indent << "\\param[in] " << "genericinputname" << j+1
         << " Generic input names\n";
     }
 
@@ -227,7 +227,7 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
 
     for (Index j=0; j!=n_mr; ++j)
       {
-        ofs << indent << "\\param "
+        ofs << indent << "\\param[in] "
           << mdd.Keywords()[j] << " Control parameter";
 
         if (mdd.Defaults()[j] != NODEF)
@@ -243,7 +243,7 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   if ( mdd.AgendaMethod() )
     {
       align(ofs,is_first_parameter,indent);
-      ofs << indent << "\\param " << "input_agenda Agenda from controlfile\n";
+      ofs << indent << "\\param[in] " << "input_agenda Agenda from controlfile\n";
     }
 
   ofs << "*/\n";
@@ -684,7 +684,7 @@ int main()
       extern const Array<AgRecord> agenda_data;
       for (Index i = 0; i < agenda_data.nelem (); i++)
         {
-          write_agenda_wrapper_header (ofs, agenda_data[i]);
+          write_agenda_wrapper_header (ofs, agenda_data[i], true);
 
           ofs << ";\n\n";
         }

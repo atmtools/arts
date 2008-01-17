@@ -8,10 +8,10 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 EXTRA_DIST = \
-	convert_disort2arts.sh \
-	DISORT.doc \
-	DISOTEST1.2.out \
-	DISOTEST.doc \
-	rundis1.2 \
-	*.f
+	$(srcdir)/convert_disort2arts.sh \
+	$(srcdir)/DISORT.doc \
+	$(srcdir)/DISOTEST1.2.out \
+	$(srcdir)/DISOTEST.doc \
+	$(srcdir)/rundis1.2 \
+	$(srcdir)/*.f
 

@@ -222,7 +222,8 @@ void expand_md_data_raw_to_md_data()
 */
 void define_md_map()
 {
-  extern const Array<MdRecord> md_data;
+  // md_data is constant here and should never be changed
+  extern Array<MdRecord> md_data;
   extern map<String, Index> MdMap;
   extern const ArrayOfString wsv_group_names;
 

@@ -26,9 +26,9 @@
 #ifndef agenda_class_h
 #define agenda_class_h
 
+#include <set>
 #include "token.h"
-#include "set"
-
+#include "workspace_ng.h"
 // ... and MRecord
 class MRecord;
 
@@ -41,11 +41,22 @@ class MRecord;
 */
 class Agenda {
 public:
+
+  Agenda() : agendaworkspace(NULL)
+    {
+    }
+
+  Agenda(const Agenda& x);
+
+  void append(const String& methodname, const String& keywordvalue);
   void push_back(MRecord n);
   void execute(bool silent=false) const;
-  void resize(Index n);
-  Index nelem() const;
-  Agenda& operator=(const Agenda& x);
+  inline void resize(Index n);
+  inline Index nelem() const;
+  inline Agenda& operator=(const Agenda& x);
+  const Array<MRecord>& Methods () const { return mml; }
+  Workspace* workspace () { return agendaworkspace; }
+  void set_workspace (Workspace* ws) { agendaworkspace = ws; }
   void set_outputs_to_push_and_dup ();
   bool is_input(Index var) const;
   bool is_output(Index var) const;
@@ -62,6 +73,7 @@ private:
   ArrayOfIndex moutput_push;
 
   ArrayOfIndex moutput_dup;
+  Workspace* agendaworkspace;
 };
 
 // Documentation with implementation.
@@ -80,6 +92,14 @@ ostream& operator<<(ostream& os, const Agenda& a);
 class MRecord {
 public:
   MRecord(){ /* Nothing to do here. */ }
+  MRecord(const MRecord& x) : mid(x.mid),
+                              mvalues(x.mvalues),
+                              moutput(x.moutput),
+                              minput(x.minput),
+                              mtasks(x.mtasks)
+    {
+    }
+
   MRecord(const Index id,
           const Array<TokVal>& values,
           const ArrayOfIndex& output,
@@ -158,7 +178,10 @@ private:
   Agenda mtasks;
 };
 
-//! Set size to n.
+//! Resize the method list.
+/*!
+  Resizes the agenda's method list to n elements
+ */
 inline void Agenda::resize(Index n)
 {
   mml.resize(n);
@@ -176,15 +199,43 @@ inline Index Agenda::nelem() const
   return mml.nelem();
 }
 
+
+//! Append a new method to end of list.
+/*! 
+  This is used by the parser to fill up the agenda.
+
+  \param n New method to add.
+*/
+inline void Agenda::push_back(MRecord n)
+{
+  mml.push_back(n);
+}
+
+
+//! Copy constructor.
+/*! 
+  Copies an agenda.
+*/
+inline Agenda::Agenda(const Agenda& x)
+{
+  mml = x.mml;
+  mname = x.mname;
+  agendaworkspace = x.agendaworkspace;
+  moutput_push = x.moutput_push;
+  moutput_dup = x.moutput_dup;
+}
+
 //! Assignment operator.
 /*! 
-  Size of target must have been adjusted before, otherwise an
-  assertion fails. 
+  Copies an agenda.
 */
 inline Agenda& Agenda::operator=(const Agenda& x)
 {
-  assert( mml.nelem() == x.mml.nelem() );
   mml = x.mml;
+  mname = x.mname;
+  agendaworkspace = x.agendaworkspace;
+  moutput_push = x.moutput_push;
+  moutput_dup = x.moutput_dup;
   return *this;
 }
 

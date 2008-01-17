@@ -43,8 +43,7 @@ Constructor creates instance of gsl_rng of type gsl_rng_mt19937
 Rng::Rng()                            
 {
   r = gsl_rng_alloc (gsl_rng_mt19937);
-                               
-};                                     
+}
 
 
 /*!
@@ -52,8 +51,8 @@ Destructor frees memory allocated to gsl_rng
 */
 Rng::~Rng()
 {
-gsl_rng_free (r);
-};
+  gsl_rng_free (r);
+}
 
 /*!
 Seeds the Rng with the integer argument. If no argument is given the Rng is seeded
@@ -61,9 +60,9 @@ using the system time (number of seconds since 1-1-1970)
 */
 void Rng::seed(unsigned long int n)
 {
-seed_no=n;
-gsl_rng_set(r,seed_no);
-};
+  seed_no=n;
+  gsl_rng_set(r,seed_no);
+}
 
 
 /*!
@@ -71,8 +70,8 @@ Draws a double from the uniform distribution [0,1)
 */
 double Rng::draw()
 {
-return gsl_rng_uniform (r);
-};
+  return gsl_rng_uniform (r);
+}
 
 
 /*!
@@ -80,8 +79,8 @@ Returns the seed number
 */
 unsigned long int Rng::showseed() 
 {
-return seed_no; 
-};
+  return seed_no; 
+}
 
 
 /* 
@@ -480,13 +479,9 @@ gsl_set_error_handler_off (void)
 }
 
 static void
-no_error_handler (const char *reason, const char *file, int line, int gsl_errno)
+no_error_handler (const char *reason _U_, const char *file _U_, int line _U_, int gsl_errno _U_)
 {
   /* do nothing */
-  reason = 0;
-  file = 0;
-  line = 0;
-  gsl_errno = 0;
   return;
 }
 

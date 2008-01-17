@@ -62,7 +62,7 @@ public:
   /** A text describing this workspace variable. */
   const String&  Description() const { return mdescription; }
   /** The wsv group to which this variable belongs. */
-  const Index   Group()       const { return mgroup;       }
+  Index   Group()       const { return mgroup;       }
 private:
   String mname;
   String mdescription;

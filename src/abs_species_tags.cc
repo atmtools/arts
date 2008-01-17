@@ -258,11 +258,15 @@ String SpeciesTag::Name() const
   // Determine the precision, depending on whether Numeric is double
   // or float:  
   Index precision;
-  switch (sizeof(Numeric)) {
-  case sizeof(float)  : precision = FLT_DIG; break;
-  case sizeof(double) : precision = DBL_DIG; break;
-  default: assert(false); arts_exit (); // It must be either float or double.
-  }
+#ifdef USE_FLOAT
+  precision = FLT_DIG;
+#else
+#ifdef USE_DOUBLE
+  precision = DBL_DIG;
+#else
+#error Numeric must be double or float
+#endif
+#endif
 
   if ( 0 > mlf )
     {
@@ -340,7 +344,32 @@ String get_tag_group_name( const ArrayOfSpeciesTag& tg )
 Index find_first_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
                              const Index& spec )
 {
-  for ( Index i=0; i<tgs.nelem(); ++i )
+  return find_next_species_tg(tgs, spec, 0);
+}
+
+//! Find next occurrence of species in tag groups.
+/*! 
+  The species to look for must be specified by its species index, not
+  by the name. Use the helper function to get the species index from
+  the species name if necessary.
+
+  \see species_index_from_species_name.
+
+  \param tgs The species tags to search in.
+  \param spec The species index of the species to look for.
+  \param start The index position at which to start the 
+               search (0 would be the very beginning).
+
+  \return The index of spec in tgs, -1 if not found.
+
+  \author Stefan Buehler
+  \date   2007-11-16
+*/
+Index find_next_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
+                            const Index& spec,
+                            const Index& start )
+{
+  for ( Index i=start; i<tgs.nelem(); ++i )
     {
       // We compare the given species index spec to the index of the
       // first element in each tag group. (All elements of a group

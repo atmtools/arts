@@ -27,7 +27,7 @@
 
 /** The -> operator is needed, so that we can write i->begin() to get
     the 3D iterators. */
-Tensor3View* const Iterator4D::operator->()
+Tensor3View* Iterator4D::operator->()
 {
   return &msv;
 }

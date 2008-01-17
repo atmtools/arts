@@ -3,18 +3,13 @@
 #simpleMCGeneral.arts, and simpleMCGeneralGaussian.arts, simpleMC.arts
 
 
-Main{
+Arts {
 
-output_file_formatSetBinary{
-}
+INCLUDE "general"
 
-IndexSet(nelem){
-value=1
-}
+output_file_formatSetBinary
 
-VectorSet(f_grid){
-value=230000000000.0
-}
+VectorSetExplicitly(f_grid){[230e9]}
 
 WriteXML( f_grid ){
 filename="f_grid.xml.generated"
@@ -28,8 +23,7 @@ IndexSet(stokes_dim){
 value=4
 }
 
-AtmosphereSet3D{
-}
+AtmosphereSet3D
 
 ReadXML(p_grid){
 filename="p_grid.xml"
@@ -44,15 +38,16 @@ filename="lon_grid.xml"
 }
 
 SpeciesSet(abs_species){
-species=["O2","N2","H2O"]
+species=["O2-PWR93","N2-SelfContStandardType","H2O-PWR98"]
 }
+
+abs_lines_per_speciesSetEmpty
 
 AtmRawRead{
 basename="tropical"
 }
 
-AtmFieldsCalcExpand1D{
-}
+AtmFieldsCalcExpand1D
 
 WriteXML( t_field ){
 filename="t_field.xml.generated"
@@ -70,11 +65,9 @@ r_geoidSpherical{
 r=-1
 }
 
-nrowsGet(r_geoid){
-}
+nrowsGet(r_geoid)
 
-ncolsGet(r_geoid){
-}
+ncolsGet(r_geoid)
 
 MatrixSet(z_surface){
 value=500.0
@@ -86,24 +79,13 @@ filename="z_surface.xml.generated"
 
 #AgendaSet(surface_prop_agenda){
 #  InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
-#  surfaceBlackbody{}
-#  Ignore(rte_los){}  
+#  surfaceBlackbody
+#  Ignore(rte_los)
 #}
 
-abs_lookupInit{
-}
-
-ReadXML(abs_lookup){
-filename="gas_abs_lookup.xml"
-}
-
-abs_lookupAdapt{
-}
-
-WriteXML(abs_lookup){
-filename="gas_abs_lookup_adapted.xml.generated"
-}
-
+abs_lookupSetup
+abs_lookupCreate
+WriteXML(abs_lookup){"abs_lookup.xml.generated"}
 
 
 cloudboxSetManually{
@@ -120,8 +102,7 @@ Print(cloudbox_limits){
 level=1
 }
 
-ParticleTypeInit{
-}
+ParticleTypeInit
 
 ParticleTypeAdd{
 filename_scat_data="p30f229-231T214-225r100NP-1ar1_5ice.xml"
@@ -132,19 +113,16 @@ ReadXML(pnd_field_raw){
 filename="pnd_field_raw.xml"
 }
 
-pnd_fieldCalc{
-}
+pnd_fieldCalc
 
 WriteXML(pnd_field){
 filename="pnd_field.xml.generated"
 }
 
-scat_data_monoCalc{
-}
+scat_data_monoCalc
 
 #For some reason SingleScatteringData binary files can't be loaded 
-output_file_formatSetAscii{
-}
+output_file_formatSetAscii
 
 WriteXML(scat_data_mono){
 filename="scat_data_mono.xml.generated"

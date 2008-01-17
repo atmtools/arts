@@ -209,7 +209,7 @@ void cloud_fieldsCalc(// Output and Input:
   performed.
 
   WS Output:
-  \param doit_i_field Updated radiation field inside the cloudbox. 
+  \param[out] doit_i_field Updated radiation field inside the cloudbox. 
   WS Input:
   \param p_index // Pressure index
   \param scat_za_index // Index for proagation direction
@@ -226,6 +226,7 @@ void cloud_fieldsCalc(// Output and Input:
   \param p_grid
   \param z_field
   \param r_geoid
+  \param z_surface
   Calculate thermal emission:
   \param t_field
   \param f_grid
@@ -557,6 +558,7 @@ void cloud_ppath_update1D_noseq(
   \param lon_grid
   \param z_field
   \param r_geoid
+  \param z_surface
   Calculate thermal emission:
   \param t_field
   \param f_grid
@@ -1085,10 +1087,12 @@ void cloud_RT_surface(
   \param lon Longitude index
   \param z_field Altitude field
   \param r_geoid Geoid
+  \param z_surface Surface altitude
   \param scat_za_grid Zenith angle grid
   \param aa_grid Azimuth angle grid
   \param scat_za_index Zenith angle index
   \param scat_aa_index Azimuth angle index
+  \param p_grid Pressure grid
   \param lat_grid Latitude grid
   \param lon_grid Longitude grid
 
@@ -1421,12 +1425,8 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
   Stokes vectors are stored in the WSV doit_i_field.
 
  WS Output:
-  \param doit_i_field Updated radiation field inside the cloudbox. 
+  \param[out] doit_i_field Updated radiation field inside the cloudbox. 
   Variables used in opt_prop_xxx_agenda:
-  \param ext_mat
-  \param abs_vec  
-  Variables used in ppath_step_agenda:
-  \param ppath_step
   WS Input:
   \param p_index // Pressure index
   \param scat_za_index // Index for proagation direction
@@ -1754,10 +1754,10 @@ void cloud_ppath_update1D_planeparallel(
           Vector rte_los(1);
           rte_los = scat_za_grid[scat_za_index];//ppath_step.los(np-1,joker);
           //gp_p
-          GridPos rte_gp_p;
-          rte_gp_p.idx   = p_index;
-          rte_gp_p.fd[0] = 0;
-          rte_gp_p.fd[1] = 1;
+          //GridPos rte_gp_p;
+          //rte_gp_p.idx   = p_index;
+          //rte_gp_p.fd[0] = 0;
+          //rte_gp_p.fd[1] = 1;
           //gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
           // Executes the surface agenda
           // FIXME: Convert to new agenda scheme before using

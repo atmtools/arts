@@ -1,3 +1,23 @@
+2008-01-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-2-0
+
+	* Merged all changes up to revision r5615 from the
+	arts2-controlfile-breakage branch back into trunk.
+
+	* configure.in:
+
+	Increased version number to 1.2.0 to reflect that major changes have
+	been made to the controlfiles and the absorption part, and to indicate
+	that we're moving closer to the release of arts 2.0.
+
+2008-01-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1209-1
+
+	* Merged revisions r5531:5614 from trunk. Last step before merging
+	back all the branch changes into the trunk.
+
 2008-01-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-1-1209
@@ -13,6 +33,1121 @@
 
 	* src/workspace.cc: The normalisation of *sensor_pol* is now
 	described in the online documentation.
+
+2008-01-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-54
+
+	* doc/examples/Makefile.am, 3rdparty/disort1.2/Makefile.am:
+
+	Add $(srcdir) to EXTRA_DIST files. Fixes 'make distcheck'.
+
+2008-01-11  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-1-1207-53
+
+	* Easy abs_lookup creation works now, make check runs without
+	error. 
+	
+	* src/m_abs_lookup.cc (abs_lookupSetup): Finally finished this
+	method. This was the last part of the absorption lookup puzzle, I
+	think. Should be very easy to use now, look at
+	TestMonteCarloDataPrepare.arts, where this is used.
+
+	* tests/MonteCarlo/TestMonteCarloDataPrepare.arts: Runs without
+	error now with new abs_lookupSetup method.
+
+	* tests/MonteCarlo/TestMonteCarloGeneralGaussian.arts: Fixed.
+
+	* tests/MonteCarlo/TestMonteCarloGeneral.arts: Fixed.
+
+2008-01-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-52
+
+	* both 'make dist' (to build a distribution package) and
+	'make distcheck' (which also unpacks and tries to build the package)
+	are now working (properly?), except for the failing MC tests. Only
+	catch is that 'make' has to be executed once in the source tree to have
+	the auto_* files built before running make dist{check}.
+
+	* doc/reference/Makefile.am:
+
+	Remove arts executable from the auto_*.tex dependencies. The dependency
+	breaks 'make dist' and is anyway fulfilled by the subdirectory order
+	in the toplevel makefile.
+
+	* includes/Makefile.am: Added the xml files to includes_DATA.
+
+2008-01-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-51
+
+	* tests/testall.py, tests/Makefile.am:
+
+	Fix path handling so 'make check' works also from the toplevel srcdir.
+
+	Also fix the tests when building arts outside the source directory in
+	a separate build directory to come one step closer to get 'make dist'
+	working again. When building outside the source tree the test files
+	are copied into the build directory.
+
+	* src/check-code-header-consistency.sh:
+
+	Return proper exit code.
+
+	Compile the generated test_include.cc, not the header file itself.
+
+	Pass -c instead of -o to the compiler because we just want to compile,
+	not link.
+
+	Works now with gcc and icc.
+
+	* src/m_append.h:
+
+	Include matpackI.h because we use Vector here.
+
+	Include exceptions.h for runtime_error.
+
+	* src/m_basic_types.h: Include gridded_fields.h for the gridded types.
+
+	* src/methods.cc: Remove tab in documentation of abs_lookupSetup.
+
+	* src/check-code-tab-indent.sh: Remove spurious ;.
+
+2008-01-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-1-1207-50
+
+	* Unit of *y* and *jacobian* now controlled by WSVs *y_unit* and
+	*jacobian_unit*.
+
+	* src/m_jacobian.cc (jacobianUnit): Created.
+
+	* src/m_rte.cc (RteCalc): Now using y_unit and jacobian_unit.
+	(yUnit): Created.
+	
+	* src/m_montecarlo.cc: mc_unit replaced with y_unit. 
+
+	* src/rte.cc (rtecalc_check_input): Updated with respect to y_unit and
+	jacobian_unit.
+
+	* src/methods.cc: Replaced keyword argument y_unit in RT methods with
+	new WSV with same name. Replaced mc_unit with y_unit in MC methods.
+
+	Added jacobian_unit to jacobianOff and RteCalc.
+
+	Added methods yUnit and jacobianUnit. 
+	
+	* src/workspace.cc: Improved description of sensor_pos and sensor_los. 
+        Added y_unit and jacobian_unit.
+	Removed mc_unit (replaced by y_unit).
+
+2007-12-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-49
+
+	* src/jacobian.cc, src/agenda_class.{cc,h}:
+
+	Make the agenda_append method a member function of the Agenda class.
+
+	Call set_outputs_to_push_and_dup after adding the new methods to
+	ensure that the list of WSVs we have to duplicate or push when
+	entering the agenda's scope is up to date.
+
+	* src/m_jacobian.cc:
+
+	Replace agenda_append with jacobian_agenda.append.
+
+	* src/m_batch.cc (ybatchCalc_implementation):
+
+	Move "Doing job..." output from out1 to out2.
+
+2007-12-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-48
+
+	* src/abs_species_tags.cc (SpeciesTag::Name), src/absorption.cc
+	(operator<<), src/xml_io.cc (xml_set_stream_precision):
+
+	Instead of using a runtime check (switch statement) to determine the
+	floating point precision, use a preprocessor construct. This way we
+	can already throw an error at compile time if Numeric is not double
+	or float and we know the code will break.
+
+	* src/rng.cc: Remove spurious ; and indent properly.
+
+	* src/sensor.cc (antenna_matrix), src/jacobian.cc (agenda_append),
+	src/m_montecarlo.cc (ScatteringMonteCarlo), src/optproperties.cc
+	(abs_vecTransform, ext_matTransform, pha_matTransform), src/rng.cc
+	(no_error_handler), src/xml_io.cc, src/scatrte.cc
+	(cloud_ppath_update1D_planeparallel), src/montecarlo.cc
+	(cloudbox_ppath_start_stepping), src/absorption.cc
+	(LineRecord::ReadFromArtsStream):
+
+	Removed unused variables.
+
+	* src/optproperties.cc, src/montecarlo.cc
+	(cloudbox_ppath_start_stepping):
+
+	Add _U_ to unused function parameters.
+
+	* src/xml_io_basic_types.cc (xml_read_from_stream):
+
+	Add explicit cast when converting from int to char.
+
+	* configure.in:
+
+	Define USE_FLOAT if we use float.
+
+	Disable some 'not-so-helpful-and-most-of-the-time-false-positive'-
+	warnings of the icc compiler in case someone decides to compile
+	with -w2.
+
+2007-12-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-47
+
+	* src/matpack{I,III,IV,V,VI,VII}.h:
+
+	Make all destructors virtual and add empty virtual destructors to
+	View classes. If the destructors are non-virtual we end up with
+	memory leaks under certain circumstances.
+
+	* src/math_funcs.h (fac): Replace sum=sum*i with sum*=i.
+
+	* src/parameters.cc (get_parameters):
+
+	Cast int to char before assigning it to a char var.
+
+	* configure.in: Remove -Wbrief from icc warning options.
+
+2007-12-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-46
+
+	* configure.in:
+
+	Enable -Werror and -Wall also for the Intel compiler in
+	maintainer mode.
+
+	* src/matpack.h, src/arts.h, src/array.h:
+
+	Remove spurious semikolons.
+
+	* src/methods_aux.cc (define_md_map):
+
+	Remove the const from extern md_data. It was already used non-const
+	in this file and a redefinition of extern variables from non-const to
+	const inside one compilation unit is not allowed.
+	
+	* src/agenda_record.cc (define_agenda_map, check_agenda_map):
+
+	Remove const from AgendaMap for same reason.
+
+	* src/main.cc (main): Remove const from out_basename for same reason.
+
+	* src/absorption.{cc,h} (LineRecord::ReadFromHitranStream,
+	ReadFromHitran2004Stream, LineRecord::ReadFromMytran2Stream,
+	LineRecord::ReadFromJplStream, LineRecord::ReadFromArtsStream):
+
+	Define species_data as const.
+
+	Move implementation of LineRecord::Name, LineRecord::IsotopeData and
+	LineRecord::SpeciesData from header to cc file to avoid the need of
+	making a global variable visible in the header file (and subsequently
+	all source files which include this header).
+
+	* src/m_atmosphere.cc (batch_atm_fields_compactFromArrayOfMatrix),
+	src/m_abs_lookup (abs_lookupCreate):
+
+	Use constant value in for-loop break condition to make the OpenMP
+	for-test conform.
+
+2007-12-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-45
+
+	* configure.in:
+
+	Also display CC and CXX in the summary. Move OpenMP support to upper
+	section.
+
+2007-12-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-44
+
+	* configure.in:
+
+	Don't add libsvml by default to LDFLAGS with icc, it is only needed
+	for processor specific optimizations.
+
+2007-12-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-43
+
+	* configure.in: Don't add any CPU dependent compiler flags.
+
+2007-12-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-42
+
+	* configure.in:
+
+	Enable optimizations by default also in maintainer mode.
+
+	* tests/testall.py (TestAMSUB):
+
+	Test all values of ybatch for correctness.
+
+	(ArtsRun::get_val): Parse also multiline return values.
+
+	* src/m_general.h (Print):
+
+	Print the name of the variable again after the output to make the
+	parsing in testall.py easier.
+
+	* src/continua.cc:
+
+	Comment out unused variables. 
+
+2007-12-07  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-1-1207-41
+
+	* src/methods.cc (Append): Added this new supergeneric method. It
+	appends the contents of one array (of any type) or Vector to
+	another.
+
+	* src/m_append.h: Added. Contains implementation of supergeneric
+	Append method. Only implemented for Array types and Vector so far.
+
+	* src/workspace.cc (arrayofmatrix_2): Added.
+
+	* src/make_auto_md_cc.cc (main): Added m_append.h
+
+	* src/m_abs_lookup.cc (abs_lookupSetupBatch): Removed runtime
+	error on negative fractional VMR values, issue just a warning
+	instead. Added keyword *extremes* which allows extreme abs_t_pert
+	and abs_nls_pert values to be added by hand. Default for extremes
+	is empty, which keeps the old behavior.
+
+	* src/Makefile.am (libarts_a_SOURCES): Added m_append.h
+
+2007-12-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-40
+
+	* configure.in:
+
+	Add support for the Intel C++ compiler. This includes detecting the
+	compiler and setting proper debug/optimization flags.
+
+	Add check for ar. If Intel's compiler is used we switch
+	automatically to xiar to support the -ipo (multifile optimizations)
+	compiler flag.
+
+	Add --enable-full-optimize option which switches to a more aggressive
+	opt level which _might_ affect floating point precision.
+
+	* m4/ax_compiler_vendor.m4: Added.
+
+	* m4/Makefile.am: Added ax_compiler_vendor.m4.
+
+	* src/methods.cc: Replace \% with %.
+
+	* src/m_cloudbox.cc, src/fastem.cc, src/test_integration.cc,
+	src/test_complex.cc:
+
+	Replace invalid multibyte characters.
+
+	* src/matpack*.h, src/binio.cc, src/agenda_class.cc, src/binio.{cc,h},
+	src/mystring.h:
+
+	Remove all const keywords from return types where they have no effect.
+
+2007-12-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-39
+
+	* src/main.cc (main):
+
+	Add info about OpenMP support in -v output. Align output nicely.
+
+2007-12-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-38
+
+	* src/m_cloudbox.cc:
+
+	Fix my last commit. endl doesn't work with out3, use \n instead.
+
+2007-12-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-37
+
+	* src/gas_abs_lookup.cc (GasAbsLookup::Adapt):
+
+	Comment out debug output.
+
+	* src/m_cloudbox.cc: Use out3 instead of cout for atm_dim output.
+
+	* src/optproperties.cc, src/montecarlo.cc:
+
+	Use out0 instead of cout for error output.
+
+2007-12-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-36
+
+	* src/m_batch.cc (ybatchCalc_implementation):
+
+	Vectorize the ybatch loop.
+
+	* tests/AMSUB/TestAMSUB.arts:
+
+	Added DEFINITIONS header to enable syntax highlighting in emacs/vi.
+
+2007-12-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-35
+
+	* src/workspace_ng.cc (Workspace::Workspace):
+
+	Copy the wsv only if it was already allocated. Also copy the
+	initialized status from the original wsv.
+
+	* src/make_auto_md_cc.cc (main):
+
+	Ensure that we make a copy of the input agendas in the getaway
+	functions if OpenMP is enabled. Otherwise we end up with a very
+	schizophrenic workspace.
+
+	* src/xml_io.cc (xml_read_from_file):
+
+	Fix memory leak introduced when changing to dynamically allocating
+	the input stream.
+
+	* src/agenda_class.h (Agenda::Agenda): Also copy moutput_*.
+
+	* src/agenda_class.cc (is_input):
+
+	Use the local agenda workspace instead of the global workspace.
+
+2007-12-04  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-1-1207-34
+
+	* src/gas_abs_lookup.cc (Adapt): Fixed a bug in the bugfix. Now it
+	works (hopefully).
+
+2007-12-04  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-1-1207-33
+
+	* src/m_abs_lookup.cc (abs_lookupSetupBatch): Throw runtime error
+	if there is no data to average at some altitude. (Can happen if
+	the various profiles do not overlap.)
+
+	* src/gas_abs_lookup.cc (Adapt): Fixed bug in handling of
+	nonlinear species that was reported by Oliver.
+
+2007-11-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-32
+
+	* src/make_auto_md_cc.cc (main), src/workspace_ng.cc ():
+
+	Remove debugging leftovers.
+
+2007-11-27  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-31
+
+	* Thread-safe agendas
+
+	* src/make_auto_md_cc.cc (main):
+
+	When agendaExecute is called with the new parameter
+	safe_workspace=true, make a copy of the top workspace variable layer.
+
+	* src/agenda_class.{cc,h}:
+
+	Add member variable agendaworkspace to class Agenda.
+
+	Add copy constructors to Agenda and MRecord. Don't require a properly
+	sized object passed to the copy functions, just resize it to the
+	necessary size.
+
+	Fix includes.
+
+	(Agenda::push_back): Move from cc to h file and make it inline.
+
+	(Agenda::execute):
+
+	Use the new local agenda workspace instead of the global one.
+
+	* src/workspace_ng.{cc,h}:
+
+	Added a copy constructor for Workspace which copies the top layer of
+	the Workspace. It only copies the workspace data structure _NOT_ the
+	actual variables.
+
+	Move declaration of the WorkspaceMemoryHandler from the h to the cc
+	file.
+
+	Remove spurious includes from h file.
+
+	* src/m_agenda.cc (AgendaSet):
+
+	Don't resize the output agenda, it is done now automatically by the =
+	operator.
+
+	* src/agenda_record.{cc,h} (write_agenda_wrapper_header):
+
+	Add parameter write_default_args to optional write default values into
+	the generated function header.
+
+	* src/m_general.cc: Include wsv_aux.h as we use PrintWsvName here.
+
+	* src/make_auto_wsv_h.cc (main):
+
+	Shorten the code of the duplicate_wsvg_* functions.
+
+	* src/make_auto_md_h.cc (main):
+
+	Add true as last argument to write_agenda_wrapper_header.
+
+	* src/Makefile.am:
+
+	Add agenda_class.h to make_auto_md_h_SOURCES and
+	make_auto_md_cc_SOURCES.
+
+	* src/main.cc (main):
+
+	Set the workspace of the outermost agenda (Arts) to the global
+	workspace.
+
+	* src/gzstream.cc: Fix includes.
+
+	* tests/AMSUB/: Ignore *.rep.
+
+2007-11-27  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-30
+
+	* configure.in:
+
+	Refine OpenMP check a bit. Add option --disable-vectorize to
+	explicitly disable OpenMP even if the compiler supports it. Could be
+	helpful for debugging.
+
+	* m4/Makefile.am: Update macro list.
+
+	* tests/AMSUB/TestAMSUB.arts: Remove spurious commas.
+
+	* src/lineshapes.cc:
+
+	Initialize all variables that were static before with 0.
+
+2007-11-27  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-29
+
+	* configure.in:
+
+	Automatically detect openmp compiler support and enable it.
+
+	Remove obsolete mpi option.
+
+	* m4/ax_openmp.m4: Added. Autoconf macro to check for openmp support.
+
+2007-11-27  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-28
+
+	* src/parser.cc (parse_method):
+
+	Allow an empty pair of () for methods that have no GInput or GOutput.
+
+	Make {} optional for function which either have no keywords, or all
+	keywords have defaults.
+
+	* tests/AMSUB/TestAMSUB.arts, tests/Abs/TestAbs.arts,
+	tests/ClearSky/TestClearSky.arts, tests/DISORT/TestDISORT.arts,
+	tests/DOIT/TestDOIT.arts, tests/MonteCarlo/TestMonteCarlo*.arts,
+	include/amsub.arts, include/continua.arts, include/general.arts:
+
+	Remove no longer needed braces.
+
+2007-11-26  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-1-1207-27
+
+	* AMSUB setup with amsub.arts include file, as well as batch
+	example in tests is working now.
+
+	* includes/general.arts: Made surface emissivity 1 (blackbody
+	surface) the general default case, following suggestion by
+	Patrick. 
+
+	* includes/amsub.arts: Added the sensor part. Still open issue:
+	How to do more than one viewing angle at a time. (Sensor part
+	seems to want sensor_pos also to be a vector if sensor_los is a
+	vector.) Have to discuss this with Patrick.
+
+	* includes/amsub.{f_grid,sensor_los,backend}.xml: These are now in
+	direct Ascii format, no longer gzipped. Seems pointless to zip for
+	such small files, also in this way version diffing will work.
+	
+	* tests/AMSUB/TestAMSUB.arts: Finished setting this up. It works
+	nicely now. Also verified with the Chevallier 91L q data set that
+	it gives consistent results with ARTS-1-0 (Viju setup). Ch18 has
+	about 0.5 K difference, because O3 is now included. Differences in
+	other channels are below approximatel 0.1 K.
+
+	* tests/testall.py (TestAMSUB.test2): Added this test. It checks
+	the result of the AMSU simulation. (Only first element of Ch16
+	right now.)
+
+	* src/workspace.cc (atm_fields_compact): Updated documentation.
+
+	* src/m_batch.cc (GriddedField4ExtractFromArrayOfGriddedField4):
+	Added. It takes the field with the given index from the
+	array. Needed inside the ybatch_calc_agenda.
+
+	* src/methods.cc (AtmFieldsFromCompact): Updated documentation.
+	(GriddedField4ExtractFromArrayOfGriddedField4): Added.
+
+	* src/m_basic_types.cc (IndexSetFromArrayOfMatrixLength): Removed
+	this function. It is not needed, one can use instead the more
+	general combination:
+	nelemGet(<some_array>){}
+        Copy(<some_index>, nelem){}
+
+	* src/m_atmosphere.cc (AtmFieldsFromCompact): The name required
+	for species fields in atm_fields_compact is now just "H2O", "O3",
+	and so on, no longer "vmr_H2O", "vmr_O3", and so on.
+
+2007-11-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-26
+
+	* src/m_basic_types.h:
+
+	Create nelemGet functions also for ArrayOfGriddedField[34].
+
+2007-11-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-25
+
+	* tests/testall.py, test/Makefile.am: Add AMSU-B test.
+
+	* tests/TestAMSUB.arts: Fix path to chevallier data.
+
+2007-11-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-24
+
+	* src/make_auto_md_cc.c:
+
+	Re-throwing the exception at the _right_ place is a good idea...
+	prevents arts from coredumping....
+
+	* src/agenda_class.cc (Agenda::execute):
+
+	Write a } to out1 before re-throwing the exception to keep the output
+	nice and clean.
+
+2007-11-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-23
+
+	* src/make_auto_md_cc.c:
+
+	Catch runtime errors in *agendaExecute, cleanup the workspace and then
+	pass on the runtime error. Keeps the workspace in a sane state after
+	an agenda method failed.
+
+2007-11-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-22
+
+	* src/methods.cc:
+
+	Added new WSM Delete. This method can be used to delete workspace
+	variables from the workspace to free memory.
+
+	* src/m_delete.h: Added.
+
+	* src/Makefile.am: Added m_delete.h to libarts.a.
+
+	* src/make_auto_md_cc.cc: Include m_delete.h in generated source.
+
+	* src/m_ignore.h: Minor fix in docs.
+
+2007-11-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-21
+
+	* src/m_abs_lookup.{cc,h} (abs_lookupCreate): Renamed parameters gal
+	and abs_nls_tags to match declaration in auto_md.h. To be able to name
+	the function parameter abs_nls_tags to abs_nls, I renamed the local
+	variable abs_nls to abs_nls_idx.
+
+	* src/continua.cc: Fix doxygen warnings and use _U_ macro.
+
+	* src/xml_io_compound_types.h: Cosmetics.
+
+2007-11-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-20
+
+	* configure.in:
+
+	Define new preprocessor macro _U_. This can be used to tell the
+	compiler that a function parameter is intentionally unused (and thus
+	avoid the warning). The macro is more handy than our old workaround to
+	comment out the parameter name. Additionally, it has the advantage of
+	not breaking the doxygen documentation.
+
+	Before:
+
+	void function_with_unused_param (int i, long /* j */)
+	{ return i; }
+
+	Now:
+	void function_with_unused_param (int i, long j _U_)
+	{ return i; }
+
+	* src/make_auto_md_h.cc (write_method_header_documentation):
+
+	Update doxygen documentation: Instead of just using the keyword param
+	for input and output parameters, we now give param[in] of input
+	parameters and param[out] for output parameters.
+
+	* src/absorption.cc, src/cloudbox.cc, src/disort.cc, src/jacobian.cc,
+	src/m_abs_o2_models.cc, src/mc_interp.cc, src/montecarlo.cc,
+	src/check_input.cc, src/fastem.cc, src/optproperties.cc,
+	src/parser.cc, src/partition_function_data.cc, src/rte.cc,
+	src/scatrte.cc, src/sensor.cc, src/mc_antenna, src/mystring.h,
+	src/xml_io.cc, src/xml_io_array_types.cc, src/lineshapes.cc:
+
+	Add missing/remove non-existent parameters in doxygen documentation.
+
+	* src/math_funcs.{cc,h}:
+
+	Remove obsolete pow functions.
+
+	* doc/doxygen/Doxyfile.in:
+	
+	Reenable treeview.
+
+	Enable expansion of predefined macros (like _U_).
+
+2007-11-23  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-1-1207-19
+
+	* includes/amsub.arts: Added. AMSU-B setup file for arts.
+
+	* includes/amsub.f_grid.xml.gz: Added. Frequency grid for AMSU-B
+	simulations. This is the original old frequency grid from
+	Viju. Rather course, perhaps not optimal in connection with Ozone
+	lines. Might overestimate the O3 impact in band 18, actually.
+
+	* includes/amsub.hitran04_lines.xml.gz: Added. HITRAN04 lines
+	between 80 and 200 GHz. These are all lines of all species
+	understood by ARTS. No attempt to optimize further, for example by
+	taking only the strong O3 lines inside the actual AMSU-B
+	bands. This could be optimized to speed up O3 absorption
+	calculations, if necessary. (O3 is the only absorption model in
+	amsub.arts that needs explicit lines from a catalogue.)
+
+	* tests/AMSUB/TestAMSUB.arts: Added. Test case for AMSU-B batch
+	calculations. 
+
+	* tests/AMSUB/chevallierl91_clear_q_extract.xml.gz: Added. These
+	are the first 10 cases from the chevallierl91_clear_q data set in
+	arts-xml. 
+
+	* tests/MonteCarlo/TestMonteCarloDataPrepare.arts: Generate the
+	absorption lookup table, instead of just reading it from a file. 
+
+	* tests/DOIT/TestDOIT.arts: Removed unnecessary abs_lookupInit. 
+
+	* src/workspace.cc (batch_atm_fields_compact): Added.
+
+	* src/methods.cc (abs_lookupSetupBatch): Added.
+	(batch_atm_fields_compactFromArrayOfMatrix): Added.
+	(sensorOff): Fixed documentation.
+	(WriteXML): Added empty default filename.	
+
+	* src/m_abs_lookup.cc (choose_abs_nls): Added.
+	(choose_abs_t_pert): Added.
+	(choose_abs_nls_pert): Added.
+	(abs_lookupSetup): Added runtime error checks on input
+	variables. Started to work on the 2D/3D case, but this is not finished.
+	(abs_lookupSetupBatch): Added.
+
+	* src/absorption.cc: Removed two unnecessary static declarations. 
+
+	* src/m_abs.cc (abs_h2oSet): Cleaned up, use find_first_species_tg.
+	(abs_n2Set): Cleaned up, use find_first_species_tg. Both methods
+	used to set their respective abs_xxx profiles to zero if no tag of
+	the right species was found. This behaviour is now removed, since
+	we have defaults values for abs_h2o and abs_n2 in
+	general.arts. The methods should only be used if there really is a
+	profile to set. If no suitable profile is found, a runtime error
+	is thrown.
+
+	* src/abs_species_tags.{cc,h} (find_next_species_tg): Added this
+	function. 
+	(find_first_species_tg): Now simply calles find_next_species_tg
+	with starting index 0.
+
+	* src/matpackI.{cc,h} (mean): Added the mean function for vectors
+	and matrices.
+
+	* src/m_atmosphere.cc (batch_atm_fields_compactFromArrayOfMatrix):
+	Added this method.
+
+2007-11-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-18
+
+	* configure.in, src/Makefile.am:
+
+	Reworked the handling of optimizations. Until now we had explicit
+	targets defined for source files which required to be compiled with
+	certain CXXFLAGS. Due to changes in automake this mechanism doesn't
+	work anymore (and was bad anyway).
+
+	The affected source files are now compiled into a library with
+	appropriate compilation flags using the means provided by automake.
+	The recommended way to compile arts _with_ optimizations (-O2) is
+	to pass the option --enable-optimize to autogen.sh or configure.
+	This will turn on -O2 in all places where it's safe to do so.
+
+	MAKE SURE THAT YOUR SHELL ENVIRONMENT VARIABLES CFLAGS AND CXXFLAGS
+	ARE UNSET OR AT LEAST DO NOT CONTAIN -O2.
+	The flags the user specifies have still precedence over what arts
+	things is best to use. If your environment variables contains -O2,
+	even files like methods.cc will be compiled with optimizations which
+	will take an awful long time and lots of memory.
+
+	When autogen.sh is used, we assume that you are a developer. Thus,
+	optimizations are not enabled by default as they have a negative
+	impact on debugging. If you want to optimize anyway, call autogen.sh
+	--enable-optimize. When configure is used, we assume you are a user
+	and optimizations are enable by default, but can be disabled with
+	configure --disable-optimize. For debugging flags it is vice versa.
+
+	* src/: Add new libraries to ignore list.
+
+	* src/lineshapes.cc:
+
+	Initialize all a?, b?, c?, d?, e? variables with 0.
+
+2007-11-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-1-1207-17
+
+	* includes/general.arts: Some more comments. Changed lmax of
+	ppath_stepGeometric.
+
+	* src/Makefile.am (libgzstream_a_ldflags): Changed -lz libgzstream.a
+	to libgzstream.a -lz (after hint from Oliver).	
+
+2007-11-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-16
+
+	* src/xml_io.cc (xml_read_from_file):
+
+	If .xml file is not found, also check for .xml.gz.
+
+2007-11-19  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-15
+
+	* src/parser.cc (parse_stringarray_from_string):
+
+	Implement handling default keyword values for ArrayOfString.
+
+2007-11-19  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-14
+
+	* src/file.{cc,h} (find_file):
+	
+	New function to search the include path for a file.
+
+	* src/Makefile.am: Added parameters.cc to auto_* targets.
+
+	* src/xml_io.cc (xml_open_input_file):
+
+	Use new function find_file to search for xml files.
+
+	* src/parser.cc (parse_agenda):
+
+	Use new function find_file to search for control files.
+
+2007-11-19  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-13
+
+	* src/m_abs_lookup.cc:
+
+	Put #ifdef _OPENMP around omp.h header and pragmas to avoid compiler
+	error/warnings when compiling without openmp.
+
+2007-11-16  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-1-1207-12
+
+	* Played with OpenMP vectorization. Absorption lookup table
+	generation now does the temperature variations in parallel. To
+	enable this, you must use the g++-4.2 compiler (export
+	CXX="g++-4.2") and the -fopenmp command line switch (export
+	CXXFLAGS="-fopenmp"). Set these variables before running
+	autogen.sh. According to the documentation, GNU compiler versions
+	before 4.2 do not include OpenMP.
+	
+	* src/m_abs_lookup.cc (abs_lookupCreate): Added OpenMP pragmas, so
+	that the loop over the temperature perturbations is vectorized.
+
+	* src/lineshapes.cc: Removed all static declarations. I checked
+	for VoigtKuntz6 that the result is unchanged, but not for all
+	other lineshapes. The result should still be correct, since now
+	every run is like the first run with the static variables. Static
+	variables lead to core dumps with OpenMP, because several threads
+	will try to access the same variable at the same time.
+
+2007-11-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-11
+
+	* This commit adds support to write and read zipped xml files.
+
+	* src/gzstream.{cc,h}:
+
+	Added. Classes to read/write zipped files.
+
+	Renamed parameters open_name to gz_open_name to avoid shadowing class
+	members.
+
+	* src/xml_io_instantiation.h: Remove include bofstream.h/bifstream.h.
+
+	* src/xml_io.cc: Add reading/writing support for zipped xml files.
+
+	* src/xml_io.h: Added FILE_TYPE_ZIPPED_ASCII to FileType.
+
+	* src/methods.cc: Add output_file_formatSetZippedAscii.
+
+	* src/m_xml.h:
+
+	Added output_file_formatSetZippedAscii. Merged the one-liner functions
+	output_file_formatSet* from the cc file to the header file.
+
+	* src/m_xml.cc: Removed. Functions moved to header file.
+
+	* src/main.cc (main): Improve output of enabled features.
+
+	* COPYING.LIB: Added. gzstream* is licensed under LGPL.
+
+	* src/: Ignore libgzstream.a.
+
+2007-11-14  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-1-1207-10
+
+	* src/m_abs_lookup.cc (abs_lookupCreate): This works now also if
+	no H2O species is present. But you can not use absorption continua
+	in that case, since they depend on the H2O VMR. You'll get a
+	runtime error if you try anyway.
+
+	* src/m_abs.cc (abs_xsec_per_speciesAddConts): Improved error
+	message when abs_h2o is not set.
+
+2007-11-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-9
+
+	* src/m_abs_lookup.cc (abs_lookupSetup):
+
+	Comment out unused parameters. Fix compilation with -Werror enabled.
+
+2007-11-14  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-1-1207-8
+
+	* includes/general.arts: Added some more things here, taken out of
+	TestClearSky.arts. Cleanup of absorption has also allowed to set
+	more defaults here. New defaults:
+	- abs_n2 is set to 0.7808 (Wallace and Hobbs value).
+	  Absorption routines now use this default, if no N2 profile is
+  	  specified. 
+	- abs_h2o is set to -1. Absorption routines tolerate this default
+	  value, as long as the abs_h2o value is not really needed. The
+	  place where it really is needed is when you want to add
+	  continua. (And one special lineshape for the line spectrum, but
+	  this is almost never used.) If you try to do something where
+	  abs_h2o is needed, and it is still on its default value, a runtime
+	  error is thrown.
+	- abs_lineshape is set to VoigtKunz6, VVH normalization, and
+	  cutoff at 750GHz. These are the most accurate settings. This is
+	  used for all species, unless you specify something else.
+	- abs_scalar_gas_agenda is set correctly for on-the-fly
+	  absorption. I decided on this default, because end-to-end it is
+	  slightly faster than lookup table absorption for 1D cases. You
+	  should set it to abs_scalar_gasExtractFromLookup for 3D or batch
+	  simulations.
+	- r_geoidSpherical is called to define the geoid.
+	- surface_prop_agenda is set to take surface_skin_t from the
+	  lowest level of t_field.
+	- ppath_step_agenda is set to ppath_stepGeometric{5e3}. Patrick,
+	  is this good as a general setting?
+	- iy_space_agenda is set to cosmic background.
+	- rte_agenda is set to RteStd.
+	- cloudboxOff{}	is called.
+	
+	* Absorption routines (m_abs.cc, absorption.cc, methods.cc,
+	m_abs_lookup.cc, lineshapes.cc):
+	- Added new method abs_lookupSetup, which prepares inputs for
+	  abs_lookupCreate. Specifically, it sets abs_p, abs_t, abs_t_pert,
+	  abs_vmrs, abs_nls, and abs_nls_pert. The idea is that you need
+	  only this method and abs_lookupCreate to switch from on-the-fly
+	  absorption to lookup table absorption. Works now for the 1D case
+	  (where the lookup table is just a function of pressure). Still to
+	  do is to make it work for 3D cases, and to add a similar method
+	  for batch calculations. Usage is demonstrated in
+	  TestClearSky.arts. 
+	- Adapted absorption routines to default values for abs_n2 and
+	  abs_h2o. The basic idea is that only when these are needed it is
+	  checked if they are present. The scalar default value for N2 is
+	  expanded to a profile if necessary.
+	- Allow the lineshape settings to be a scalar, in which case they
+	  are used for all species. This allows a global default
+	  setting. Lineshape settings per species are still possible, of
+	  course. abs_lineshapeDefine sets now a scalar value, and thus no
+	  longer depends on abs_species.
+	
+	* tests/ClearSky/TestClearSky.arts: Renovated this test
+	case. The file has become much shorter and cleaner, which was the
+	idea of the include mechanism. Changes:	
+	- Do parallel calculations on-the-fly and with lookup table.
+	- Use new method *abs_lookupSetup* to set up the table.
+	- Remove things that are now in general.arts.
+
+	* tests/testall.py (TestClearSky): Adapted to new test
+	case. Checked are the total radiance and the difference
+	between on-the-fly and lookup table.
+
+2007-11-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-7
+
+	* src/Makefile.am:
+
+	Replace *_CFLAGS with *_CXXFLAGS to make the warning flags work again.
+
+	* src/make_auto_md_h.cc (write_method_header_documentation),
+	src/parser.cc:
+
+	Fix warnings.
+
+2007-11-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-6
+
+	* src/xml_io_private.h (xml_write_header_to_stream):
+
+	Match function prototype to implementation.
+
+2007-11-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-5
+
+	* src/parser.cc (parse_agenda):
+
+	Add the ending .arts to the name of the include file if it wasn't
+	found on the first try.
+
+	* includes/general.arts:
+
+	Include file containing widely used default settings like output
+	format=ascii, atmosphere dimension=1, stokes dimension=1,
+	emission=Planck, opt_prop_gas_agenda
+
+	* includes/continua.arts:
+
+	Include file with default continua settings. Included by general.arts.
+
+	* includes/Makefile.am: Added.
+
+	* includes: Set svn:ignore property.
+
+	* configure.in: Added includes/Makefile to AC_OUTPUT.
+
+	* Makefile.am: Added includes to SUBDIRS.
+
+	* tests/testall.py:
+
+	Add default include directory to searchpath in arts call.
+
+	* tests/*/*.arts: 
+
+	Remove stuff which is now initialized in general.arts and include it.
+
+2007-11-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-4
+
+	* src/parser.cc: 
+
+	(parse_main): Don't catch runtime_error, we hunt it down in main.cc.
+
+	(parse_agenda): Give clear error when include file couldn't be found.
+
+2007-11-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-3
+
+	* src/file.{cc,h}: Added function file_exists.
+
+	* src/parameters.{cc,h}:
+
+	Add command line option -I (--includepath) to specify a search path
+	for include files.
+
+	* src/parser.cc (parse_agenda):
+
+	If include file does not exist in current path, search for it in all
+	directories given in include path until first hit.
+
+2007-11-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-2
+
+	* src/agenda_class.h (Agenda):
+
+	Added access function Methods returning the agenda's method list.
+
+	* src/parser.cc:
+
+	(parse_method): Added argument include_file. Contains the include
+	filename when the parser found an INCLUDE statement.
+
+	(parse_agenda): If parse_method returns an include_file, call
+	parse_main with the contents of this file and append everything to
+	the tasklist.
+
+2007-11-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1207-1
+
+	* Merged r5530 from trunk.
 
 2007-11-01  Claudia Emde <claudia.emde@dlr.de>
 
@@ -32,6 +1167,27 @@
 
 	* src/m_scatrte.cc (doit_i_fieldIterate): Suppressed agenda output
 	of convergence_test_agenda.
+
+2007-11-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1206-2
+
+	* src/main.cc, src/methods.cc, src/m_agenda.cc, src/parser.cc,
+	tests/Abs/TestAbs.arts, tests/ClearSky/TestClearSky.arts,
+	tests/DISORT/TestDISORT.arts, tests/DOIT/TestDOIT.arts,
+	tests/MonteCarlo/TestMonteCarloDataPrepare.arts,
+	tests/MonteCarlo/TestMonteCarloGeneral.arts,
+	tests/MonteCarlo/TestMonteCarloGeneralGaussian.arts,
+	tests/MonteCarlo/TestMonteCarloSimple.arts,
+	tests/MonteCarlo/TestMonteCarloWithIncomingLookup.arts:
+
+	Renamed Main agenda to Arts.
+
+2007-11-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1206-1
+
+	* Test commit in branch.
 
 2007-11-01  Oliver Lemke  <olemke@core-dump.info>
 
