@@ -6402,10 +6402,11 @@ md_data_raw.push_back
          "Creates a vector with linear spacing.\n"
          "\n"
          "The first element equals always the start value, and the spacing\n"
-         "equlas always the step value, but note that the last value can  \n"
+         "equals always the step value, but note that the last value can  \n"
          "deviate from the stop value. The keyword step can be both positive\n"
-         "and negative. \n"
-         "   The vector is [start, start+step, start+2*step, ...]\n "
+         "and negative.\n"
+         "\n"
+         "The vector is [start, start+step, start+2*step, ...]\n "
          "\n"
          "Generic output: \n"
          "   Vector : The vector to be created. \n"
@@ -6416,6 +6417,41 @@ md_data_raw.push_back
          "    step : The spacing of the vector.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( Vector_ ),
+        GINPUT( ),
+        KEYWORDS( "start",   "stop",    "step"    ),
+        DEFAULTS( NODEF,     NODEF,     NODEF ),
+        TYPES(    Numeric_t, Numeric_t, Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("VectorLogSpace"),
+        DESCRIPTION
+        (
+         "Creates a vector with logarithmic spacing.\n"
+         "\n"
+         "The first element equals always the start value, and the spacing\n"
+         "equals always the step value, but note that the last value can  \n"
+         "deviate from the stop value. The keyword step can be both positive\n"
+         "and negative.\n"
+         "\n"
+         "Note, that although start has to be given in direct coordinates,\n"
+         "step has to be given in log coordinates.\n"
+         "\n"
+         "Explicitly, the vector is:\n"
+         " exp([ln(start), ln(start)+step, ln(start)+2*step, ...])\n "
+         "\n"
+         "Generic output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Keywords:\n"
+         "   start : The start value. (Direct coordinates!)\n"
+         "    stop : The maximum value of the end value. (Direct coordinates!)\n"
+         "    step : The spacing of the vector. (Log coordinates!)\n"
+        ),
+        AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Vector_ ),

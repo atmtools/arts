@@ -46,6 +46,7 @@
   === External declarations
   ===========================================================================*/
 
+#include <cmath>
 #include "arts.h"
 #include "array.h"
 #include "matpackI.h"
@@ -873,6 +874,25 @@ void VectorLinSpace(      Vector&    x,
 {
   linspace(x,start,stop,step);
   out2 << "  Creating " << x_name << " as linearly spaced vector.\n";
+  out3 << "        length : " << x.nelem() << "\n";
+  out3 << "   first value : " << x[0] << "\n";
+  if ( x.nelem() > 1 )
+  {
+    out3 << "          step size : " << x[1]-x[0] << "\n";
+    out3 << "         last value : " << x[x.nelem()-1] << "\n";
+  }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorLogSpace(      Vector&    x, 
+                    const String&    x_name,
+                    const Numeric&   start,
+                    const Numeric&   stop,
+                    const Numeric&   step )
+{
+  linspace(x,log(start),log(stop),step);
+  transform(x,exp,x);
+  out2 << "  Creating " << x_name << " as logarithmically spaced vector.\n";
   out3 << "        length : " << x.nelem() << "\n";
   out3 << "   first value : " << x[0] << "\n";
   if ( x.nelem() > 1 )

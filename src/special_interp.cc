@@ -634,11 +634,11 @@ void itw2p(
 
 
 
-//! p2gridpos(_extpol)
+//! p2gridpos
 /*!
    Calculates grid positions for pressure values.
 
-   This function works as *gridpos(_extpol)*, but is adapted to handle
+   This function works as *gridpos*, but is adapted to handle
    pressure grids. The ARTS defintions result in that pressures shall
    not be interpolated directly, it is the log of the pressure that
    shall be interpolated. This means that if some values shall be
@@ -667,6 +667,26 @@ void p2gridpos(
   
   gridpos( gp, logold, lognew );
 }
+
+//! p2gridpos_extpol
+/*!
+   Calculates grid positions for pressure values.
+
+   This function works as *gridpos_extpol*, but is adapted to handle
+   pressure grids. The ARTS defintions result in that pressures shall
+   not be interpolated directly, it is the log of the pressure that
+   shall be interpolated. This means that if some values shall be
+   interpolated to some given pressures, the grid positions shall be
+   calculated with this function. The interpolation can then be
+   performed as usual.
+
+   \param   gp          Output: Grid position Array.
+   \param   old_pgrid   The original pressure grid.
+   \param   new_pgrid   The new pressure grid.
+
+   \author Patrick Eriksson
+   \date   2003-01-20
+*/
 void p2gridpos_extpol(
              ArrayOfGridPos&   gp,
       ConstVectorView          old_pgrid,

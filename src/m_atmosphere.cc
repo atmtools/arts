@@ -390,6 +390,13 @@ void AtmFieldsCalc(//WS Output:
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   
+
+  // Note that we are using the special function p2gridpos below for
+  // all pressure interpolations. This does the usual ARTS pressure
+  // interpolation: Linear in log(p). We don't have to take logs here
+  // explicitly, since it is done by p2gridpos.
+
+
   //==========================================================================
   if ( atmosphere_dim == 1)
     {

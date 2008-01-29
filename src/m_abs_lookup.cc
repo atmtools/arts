@@ -898,7 +898,7 @@ void abs_lookupSetup(// WS Output:
       // Interpolate in pressure, set abs_t, abs_vmr...
 
       // Reference temperature,
-      // interpolate abs_t from t_field:
+      // interpolate abs_t from tmean:
       abs_t.resize(log_abs_p.nelem());
       interp(abs_t,
              itw,

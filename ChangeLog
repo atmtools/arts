@@ -1,3 +1,14 @@
+2008-01-29  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-2-2
+
+	* src/methods.cc (VectorLogSpace): Added this method. Adapted from
+	Patrick's VectorLinSpace method. I needed this for abs_lookup
+	testing, where I want to prescribe a certain spacing of the log p
+	grid, not the number of points as in VectorNLogSpace.
+
+	* src/m_basic_types.cc (VectorLogSpace): Added this function.
+
 2008-01-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-2-1
