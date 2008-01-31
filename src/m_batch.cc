@@ -367,6 +367,9 @@ void ybatchCalc_implementation(
   bool is_first = true;
   Index first_ybatch_index = 0;
 
+  out2 << "  Agenda output is suppressed, use reporting\n"
+       <<"   level 4 if you want to see it.\n";
+
   while (is_first && first_ybatch_index < ybatch_n)
     {
       out2 << "  Doing job " << first_ybatch_index+1 << " of " << ybatch_n << "\n";
@@ -410,9 +413,6 @@ void ybatchCalc_implementation(
       first_ybatch_index++;
     }
 
-  extern Messages messages;
-  Messages messages_original( messages );
-
 #ifdef _OPENMP
 #pragma omp parallel private(y)
 #pragma omp for 
@@ -428,12 +428,8 @@ void ybatchCalc_implementation(
                                      true, true );
           // We are surpressing agenda output here, since this is too
           // much to be useful. (The true flag at the end does this.)          
-          ybatch( joker, ybatch_index ) = y;
-
-#ifdef _OPENMP
-#pragma omp critical(message_level)
-          messages = messages_original;
-#endif
+ 
+         ybatch( joker, ybatch_index ) = y;
         }
       catch (runtime_error e)
         {
@@ -454,7 +450,6 @@ void ybatchCalc_implementation(
             }
         }
     }
-  messages = messages_original;
 }
 
 

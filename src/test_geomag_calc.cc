@@ -54,14 +54,14 @@ int main(void)
   
   
   
-  extern Messages messages;
+  extern Array<Messages> messages;
 
-    {
-      // Reporting was not specified, set default. (Only the
-      // important stuff to the screen, everything to the file.)
-      messages.screen = 2;
-      messages.file   = 0;
-    }
+  messages.resize(1);
+
+  // Set reporting level. (Only the important stuff to the screen,
+  // everything to the file.)
+  messages[0].screen = 1;
+  messages[0].file   = 3;
 
 
   // Feed in altitutde above the mean radius of the Earth in [km].

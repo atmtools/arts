@@ -25,6 +25,13 @@
   \brief  Implementation of agendas.
 */
 
+#include <ostream>
+#include <iterator>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "arts.h"
 #include "agenda_class.h"
 #include "agenda_record.h" // only for test functions
@@ -33,8 +40,6 @@
 #include "messages.h"
 #include "auto_wsv.h"
 #include "workspace_ng.h"
-#include <ostream>
-#include <iterator>
 
 /** Print the error message and exit. */
 void give_up(const String& message)
@@ -105,22 +110,29 @@ void Agenda::execute(bool silent) const
   // The array holding the pointers to the getaway functions:
   extern void (*getaways[])(Workspace&, const MRecord&);
 
-    // The messages level. We will manipulate it in this function, if
+  // The messages level. We will manipulate it in this function, if
   // silent execution is desired.
-  extern Messages messages;
+  extern Array<Messages> messages;
+
+  // Obtain the thread ID from OpenMP. (Zero-based indexing, as usual.)
+#ifdef _OPENMP
+  int thread_num = omp_get_thread_num();
+#else
+  int thread_num = 0;
+#endif
 
   // Backup for the original message level:
-  Messages messages_original( messages );
+  Messages messages_original( messages[thread_num] );
 
   // Manipulate the message level, to allow silent execution:
   if (silent)
     {
       // Level 4 means that the output should remain visible even for
       // silent execution.  
-      if ( messages.screen < 4 )
-        messages.screen = 0;
-      if ( messages.file < 4 )
-        messages.file   = 0;
+      if ( messages[thread_num].screen < 4 )
+        messages[thread_num].screen = 0;
+      if ( messages[thread_num].file < 4 )
+        messages[thread_num].file   = 0;
     }
 
   out1 << "Executing " << name() << "\n"
@@ -179,7 +191,7 @@ void Agenda::execute(bool silent) const
           // execution continues.
           if (silent)
             {
-              messages = messages_original;
+              messages[thread_num] = messages_original;
             }
 
           out1 << "}\n";
@@ -193,7 +205,7 @@ void Agenda::execute(bool silent) const
   // Restore the original message level:
   if (silent)
     {
-      messages = messages_original;
+      messages[thread_num] = messages_original;
     }
 }
 

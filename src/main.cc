@@ -28,9 +28,12 @@
    \date   2001-07-24
 */
 
-#include "arts.h"
 #include <algorithm>
 #include <map>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+#include "arts.h"
 #include "parameters.h"
 #include "messages.h"
 #include "exceptions.h"
@@ -51,31 +54,53 @@ void polite_goodby()
   arts_exit ();
 }
 
-/** Set the reporting level, either the default or based on
-    reporting. If reporting was specified, check if the values make
-    sense. The value -1 for reporting means that it was (probably)
-    not given on the command line, since this is the initialization
-    value.
-    \param r Reporting level from Command line.
-    \author Stefan Buehler */
+/**
+   Set the reporting level.
+
+   Set the reporting level, either the default or based on
+   reporting. If reporting was specified, check if the values make
+   sense. The value -1 for reporting means that it was (probably)
+   not given on the command line, since this is the initialization
+   value.
+   
+   The variable *messages* has to be an array, so that each thread can
+   independently manipulate its output level if we use OpenMP. The
+   size of this array is determined here from the maximum number of
+   OpenMP threads. All array element are then initialized to the same
+   reporting level. Without OpenMP, the array has only one element.
+
+   \param r Reporting level from Command line.
+   \author Stefan Buehler 
+*/
 void set_reporting_level(Index r)
 {
   // The global variable that holds the message levels for screen and file.
-  extern Messages messages;
+  extern Array<Messages> messages;
+
+  // Initialize the messages array:
+#ifdef _OPENMP
+  int max_threads = omp_get_max_threads();
+#else
+  int max_threads = 1;
+#endif
+  messages.resize(max_threads);
 
   if ( -1 == r )
     {
       // Reporting was not specified, set default. (Only the
       // important stuff to the screen, everything to the file.)
-      messages.screen = 1;
-      messages.file   = 0;
+      for (Index i=0; i<max_threads; ++i)
+        {
+          messages[i].screen = 1;
+          messages[i].file   = 0;
+        }
     }
   else
     {
       // Reporting was specified. Check consistency and set report
       // level accordingly. 
         
-        // Separate the two digits by taking modulo 10:
+      // Separate the two digits by taking modulo 10:
       Index s = r / 10;
       Index f = r % 10;
       //        cout << "s=" << s << " f=" << f << "\n";
@@ -88,8 +113,11 @@ void set_reporting_level(Index r)
                << "Only values of 0-3 are allowed for screen and file.\n";
           arts_exit ();
         }
-      messages.screen = s;
-      messages.file   = f;
+      for (Index i=0; i<max_threads; ++i)
+        {
+          messages[i].screen = s;
+          messages[i].file   = f;
+        }
     }
 }
 
@@ -877,6 +905,23 @@ int main (int argc, char **argv)
         extern const String full_name;
 
         out1 << full_name << "\n";
+
+        // Output some OpenMP specific information on output level 2:
+
+#ifdef _OPENMP
+        int max_threads = omp_get_max_threads();
+        bool have_omp = true;
+#else
+        int max_threads = 1;
+        bool have_omp = false;
+#endif
+
+        if (have_omp)
+          out2 << "Running with OpenMP, "
+               << "maximum number of threads = " << max_threads << ".\n";
+        else
+          out2 << "Running without OpenMP.\n";
+        
       }
 
 

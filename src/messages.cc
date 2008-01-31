@@ -28,6 +28,7 @@
 #include "arts.h"
 #include "messages.h"
 #include "mystring.h"
+#include "array.h"
 
 /** The output path. For example for the report file. */
 String out_path;
@@ -40,9 +41,13 @@ String out_basename;
 /** The report file. */
 ofstream report_file;
 
-/** Verbosity levels. 
-    @see Messages */
-Messages messages;
+/** Verbosity levels.
+    @see Messages 
+
+    This has to be an array, because the messages level can be
+    manipulated independently for thread if we run with OpenMP.
+*/
+Array<Messages> messages;
 
 //--------------------< The different output streams >--------------------
 

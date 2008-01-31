@@ -1,3 +1,37 @@
+2008-01-31  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-2-3
+
+	* src/messages.h: Set verbosity level independently for each
+	OpenMP thread.
+
+	* src/parameters.cc (get_parameters): Fixed online documentation
+	to also mention the reporting level 4, which shows suppressed
+	agenda output.
+
+	* src/main.cc (set_reporting_level): Set verbosity level
+	independently for each OpenMP thread.
+
+	* src/agenda_class.cc: Set verbosity level independently for each
+	OpenMP thread.
+
+	* src/messages.cc: Set verbosity level independently for each
+	OpenMP thread.
+
+	* src/m_batch.cc (ybatchCalc_implementation): There used to be a
+	fix here to manually reset the reporting level after the parallel
+	region. Removed the fix, since this should work correctly
+	now. Suppress all agenda output, even the first run, since
+	simultaneous output from several threads would be confusing. Put
+	instead in a message to out2, recommending reporting level 4 for
+	those who want to see the agenda output.
+
+	* src/test_geomag_calc.cc (main): Adjusted to still compile with
+	the new definition of messages.
+
+	* src/m_abs_lookup.cc (abs_fieldCalc): Tried to vectorize this
+	method. Does not yet work correctly!
+
 2008-01-29  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-2-2

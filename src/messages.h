@@ -41,7 +41,13 @@
 
 #include <iostream>
 #include <fstream>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "arts.h"
+#include "array.h"
 
 /**
    The verbosity level for screen and file output. There are four
@@ -84,30 +90,25 @@ public:
 template<class T> 
 void MessagePrint(ostream& os, Index priority, const T& t)
 {
-  extern Messages messages;
+  extern Array<Messages> messages;
   extern ofstream report_file;
 
   // cout << "Printing object of type: " << typeid(t).name() << endl;
 
-  if (messages.screen >= priority)
+  // Obtain the thread ID from OpenMP. (Zero-based indexing, as usual.)
+#ifdef _OPENMP
+  int thread_num = omp_get_thread_num();
+#else
+  int thread_num = 0;
+#endif
+
+  if (messages[thread_num].screen >= priority)
     os << t;
 
-  if (messages.file >= priority)
+  if (messages[thread_num].file >= priority)
     //    if (report_file)              // Check if report file is good
     report_file << t;
 }
-
-/* Parent class for all output streams. These control the level of detail
-    for your output. There are four output streams altogether, out0 to
-    out3. Out0 means highest priority, out3 lowest. Out0 and out1
-    should not be used within methods, only by the ARTS engine.
-
-    Nothing is done in this class, it just servers to group the four
-    output stream classes together.
-
-    \see Messages */
-//class OutStream {
-//};
 
 
 /** Highest priority output stream. This stream is only used for error 
