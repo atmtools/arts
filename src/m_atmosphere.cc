@@ -676,6 +676,157 @@ void AtmFieldsCalcExpand1D(
     }
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void AtmFieldsRefinePgrid(// WS Output:
+                          Vector& p_grid,
+                          Tensor3& t_field,
+                          Tensor3& z_field,
+                          Tensor4& vmr_field,
+                          // WS Input:
+                          const Vector& lat_grid,
+                          const Vector& lon_grid,
+                          const Index& atmosphere_dim,
+                          // Control Parameters:
+                          const Numeric& p_step)
+{
+  // Checks on input parameters:
+  
+  // We don't actually need lat_grid and lon_grid, but we have them as
+  // input variables, so that we can use the standard functions to
+  // check atmospheric fields and grids. A bit cheesy, but I don't
+  // want to program all the checks explicitly.
+
+  // Check grids:
+  chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
+
+  // Check T field:
+  chk_atm_field("t_field", t_field, atmosphere_dim,
+                p_grid, lat_grid, lon_grid);
+ 
+  // Check z field:
+  chk_atm_field("z_field", z_field, atmosphere_dim,
+                p_grid, lat_grid, lon_grid);
+ 
+  // Check VMR field (and abs_species):
+  chk_atm_field("vmr_field", vmr_field, atmosphere_dim,
+                vmr_field.nbooks(), p_grid, lat_grid, lon_grid);
+
+  // Check the keyword arguments:
+  if ( p_step <= 0  )
+    {
+      ostringstream os;
+      os << "The keyword argument p_step must be >0.";
+      throw runtime_error( os.str() );
+    }
+
+  // Ok, all input parameters seem to be reasonable.
+
+  // We will need the log of the pressure grid:
+  Vector log_p_grid(p_grid.nelem());
+  transform(log_p_grid, log, p_grid);
+
+  //  const Numeric epsilon = 0.01 * p_step; // This is the epsilon that
+  //                                         // we use for comparing p grid spacings.
+
+  // Construct abs_p
+  // ---------------
+
+  ArrayOfNumeric log_abs_p_a;  // We take log_abs_p_a as an array of
+                             // Numeric, so that we can easily 
+                             // build it up by appending new elements to the end. 
+
+  // Check whether there are pressure levels that are further apart
+  // (in log(p)) than p_step, and insert additional levels if
+  // necessary:
+
+  log_abs_p_a.push_back(log_p_grid[0]);
+
+  for (Index i=1; i<log_p_grid.nelem(); ++i)
+    {
+      const Numeric dp =  log_p_grid[i-1] - log_p_grid[i]; // The grid is descending.
+
+      const Numeric dp_by_p_step = dp/p_step;
+      //          cout << "dp_by_p_step: " << dp_by_p_step << "\n";
+
+      // How many times does p_step fit into dp?
+      const Index n = (Index) ceil(dp_by_p_step); 
+      // n is the number of intervals that we want to have in the
+      // new grid. The number of additional points to insert is
+      // n-1. But we have to insert the original point as well.
+      //          cout << n << "\n";
+
+      const Numeric ddp = dp/n;
+      //          cout << "ddp: " << ddp << "\n";
+
+      for (Index j=1; j<=n; ++j)
+        log_abs_p_a.push_back(log_p_grid[i-1] - j*ddp);          
+    }
+
+  // Copy to a proper vector, we need this also later for
+  // interpolation: 
+  Vector log_abs_p(log_abs_p_a.nelem());
+  for (Index i=0; i<log_abs_p_a.nelem(); ++i)
+    log_abs_p[i] = log_abs_p_a[i];
+
+  // Copy the new grid to abs_p, removing the log:
+  Vector abs_p(log_abs_p.nelem());
+  transform(abs_p, exp, log_abs_p);
+
+
+  // We will also have to interpolate T and VMR profiles to the new
+  // pressure grid. We interpolate in log(p), as usual in ARTS.
+
+  // Grid positions:
+  ArrayOfGridPos gp(log_abs_p.nelem());
+  gridpos(gp, log_p_grid, log_abs_p);
+
+  // Interpolation weights:
+  Matrix itw(gp.nelem(),2);
+  interpweights(itw,gp);
+
+  // Extent of latitude and longitude grids:
+  Index nlat = lat_grid.nelem();
+  Index nlon = lon_grid.nelem();
+
+  // This here is needed so that the method works for 1D and 2D
+  // atmospheres as well, not just for 3D:
+  if (0 == nlat) nlat = 1;
+  if (0 == nlon) nlon = 1;  
+
+  // Define variables for output fields:
+  Tensor3 abs_t(log_abs_p.nelem(), nlat, nlon);
+  Tensor3 abs_z(log_abs_p.nelem(), nlat, nlon);
+  Tensor4 abs_vmr(vmr_field.nbooks(),
+                  log_abs_p.nelem(), nlat, nlon);
+
+  for (Index ilat=0; ilat<nlat; ++ilat)
+    for (Index ilon=0; ilon<nlon; ++ilon)
+      {
+        interp(abs_t(joker, ilat, ilon),
+               itw,
+               t_field(joker, ilat, ilon),
+               gp);
+
+        interp(abs_z(joker, ilat, ilon),
+               itw,
+               z_field(joker, ilat, ilon),
+               gp);
+
+        for (Index ivmr=0; ivmr<vmr_field.nbooks(); ++ivmr)
+          interp(abs_vmr(ivmr, joker, ilat, ilon),
+                 itw,
+                 vmr_field(ivmr, joker, ilat, ilon),
+                 gp);
+      }
+
+
+  // Copy back the new fields to p_grid, t_field, z_field, vmr_field:
+  p_grid    = abs_p;
+  t_field   = abs_t;
+  z_field   = abs_z; 
+  vmr_field = abs_vmr;
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmRawRead(//WS Output:

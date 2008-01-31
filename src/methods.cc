@@ -1621,6 +1621,41 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("AtmFieldsRefinePgrid"),
+        DESCRIPTION
+        (
+         "Refine the pressure grid in the atmospheric fields.\n"
+         "\n"
+         "This method is used for absorption lookup table testing. It probably\n"
+         "has no other application.\n"
+         "\n"
+         "It adds additional vertical grid points to the atmospheric fields, by\n"
+         "interpolating them in the usual ARTS way (linear in log pressure).\n"
+         "\n"
+         "How fine the new grid will be is determined by the keyword parameter\n"
+         "p_step. The definition of p_step, and the interpolation behavior, is\n"
+         "consistent with *abs_lookupSetup* and *abs_lookupSetupBatch*. (New\n"
+         "points are added between the original ones, so that the spacing is\n"
+         "always below p_step.)\n"
+         "\n"
+         "Keywords:\n"
+         "   p_step   : Maximum step in log(p[Pa]) (natural logarithm, as always). If\n"
+         "              the pressure grid is coarser than this, additional points\n"
+         "              are added until each log step is smaller than this.\n"
+        ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT(p_grid_,
+               t_field_, z_field_, vmr_field_),
+        INPUT( p_grid_, lat_grid_, lon_grid_,
+               t_field_, z_field_, vmr_field_, atmosphere_dim_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "p_step" ),
+        DEFAULTS( NODEF ),
+        TYPES(    Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("atm_fields_compactAddConstant"),
         DESCRIPTION
         (
