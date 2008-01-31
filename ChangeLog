@@ -1,3 +1,22 @@
+2008-01-31  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-2-5
+	
+	* src/m_montecarlo.cc (MCGeneral): Now using f_index.
+
+	* src/montecarlo.cc (cloudy_rt_vars_at_gp): Added f_index as input
+	argument. Used in abs_scalar_gas_agendaExecute.
+	(clear_rt_vars_at_gp): As above.
+
+	(mcPathTraceGeneral): Added f_index as input argument, following
+	change above.
+	(mcPathTrace): As above.
+	(mcPathTraceIPA): As above.
+
+	* src/m_rte.cc (MCGeneral): Conversion to Tb was applied twice!
+	f_index now input to MCGeneral and should work for calculations
+	involving multiple frequencies.
+
 2008-01-31  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-2-4

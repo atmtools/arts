@@ -189,6 +189,7 @@ void MCGeneral(
                Tensor3&              mc_points,
                const MCAntenna&      mc_antenna,
                const Vector&         f_grid,
+               const Index&         f_index,
                const Matrix&         sensor_pos,
                const Matrix&         sensor_los,
                const Index&          stokes_dim,
@@ -291,13 +292,13 @@ void MCGeneral(
       
       while (keepgoing)
         {
-          mcPathTraceGeneral(evol_op, abs_vec_mono, temperature, ext_mat_mono, rng, local_rte_pos, 
-                                 local_rte_los, pnd_vec, g,ppath_step,termination_flag, inside_cloud, 
-                                 opt_prop_gas_agenda,abs_scalar_gas_agenda, 
-                                 stokes_dim, p_grid, 
-                                 lat_grid, lon_grid, z_field, r_geoid, z_surface,
-                                 t_field, vmr_field, cloudbox_limits, pnd_field,
-                                 scat_data_mono,z_field_is_1D);
+          mcPathTraceGeneral( evol_op, abs_vec_mono, temperature, ext_mat_mono, 
+                      rng, local_rte_pos, local_rte_los, pnd_vec, g,ppath_step,
+                      termination_flag, inside_cloud, opt_prop_gas_agenda,
+                      abs_scalar_gas_agenda, stokes_dim, f_index, p_grid, 
+                      lat_grid, lon_grid, z_field, r_geoid, z_surface,
+                      t_field, vmr_field, cloudbox_limits, pnd_field,
+                      scat_data_mono, z_field_is_1D );
            
           np=ppath_step.np;
           mc_points(ppath_step.gp_p[np-1].idx,ppath_step.gp_lat[np-1].idx,
@@ -445,6 +446,7 @@ void MCIPA(
            Tensor3&              mc_points,
            const MCAntenna&      mc_antenna,
            const Vector&         f_grid,
+           const Index&          f_index,
            const Matrix&         sensor_pos,
            const Matrix&         sensor_los,
            const Index&          stokes_dim,
@@ -553,13 +555,14 @@ void MCIPA(
       while (keepgoing)
         {
           //modified path tracing routine for independent pixel approximation
-          mcPathTraceIPA(evol_op, abs_vec_mono, temperature, ext_mat_mono, rng, local_rte_pos, 
-                         local_rte_los, pnd_vec, g,ppath_step,termination_flag, inside_cloud, 
-                         opt_prop_gas_agenda,abs_scalar_gas_agenda, 
-                         stokes_dim, p_grid, 
-                         lat_grid, lon_grid, z_field, r_geoid, z_surface,
-                         t_field, vmr_field, cloudbox_limits, pnd_field,
-                         scat_data_mono,z_field_is_1D,ppath);
+          mcPathTraceIPA( evol_op, abs_vec_mono, temperature, ext_mat_mono, rng,
+                     local_rte_pos, local_rte_los, pnd_vec, g,ppath_step,
+                     termination_flag, inside_cloud, 
+                     opt_prop_gas_agenda,abs_scalar_gas_agenda, 
+                     stokes_dim, f_index, p_grid, 
+                     lat_grid, lon_grid, z_field, r_geoid, z_surface,
+                     t_field, vmr_field, cloudbox_limits, pnd_field,
+                     scat_data_mono, z_field_is_1D, ppath );
             
           np=ppath_step.np;
           mc_points(ppath_step.gp_p[np-1].idx,ppath_step.gp_lat[np-1].idx,
@@ -943,7 +946,7 @@ void ScatteringMonteCarlo (
             {
               mcPathTrace(evol_op, K_abs, rte_temperature, K, rng, rte_pos, 
                           rte_los, pnd_vec, g,left_cloudbox, opt_prop_gas_agenda,
-                          abs_scalar_gas_agenda, stokes_dim, p_grid, 
+                          abs_scalar_gas_agenda, stokes_dim, f_index, p_grid, 
                           lat_grid, lon_grid, z_field, r_geoid, z_surface,
                           t_field, vmr_field, cloudbox_limits, pnd_field,
                           scat_data_mono,z_field_is_1D);

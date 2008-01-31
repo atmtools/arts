@@ -59,6 +59,7 @@ void clear_rt_vars_at_gp(
                          Numeric&                temperature,
                          const Agenda&           opt_prop_gas_agenda,
                          const Agenda&           abs_scalar_gas_agenda,
+                         const Index&            f_index,
                          const GridPos&          gp_p,
                          const GridPos&          gp_lat,
                          const GridPos&          gp_lon,
@@ -112,9 +113,8 @@ void clear_rt_vars_at_gp(
   temperature = t_vec[0];
   
   //calcualte absorption coefficient
-  abs_scalar_gas_agendaExecute( local_abs_scalar_gas,0,p_vec[0],temperature,
-                                vmr_mat(joker,0),abs_scalar_gas_agenda,
-                                       true );
+  abs_scalar_gas_agendaExecute( local_abs_scalar_gas,f_index,p_vec[0],
+    temperature,vmr_mat(joker,0),abs_scalar_gas_agenda,true );
   opt_prop_gas_agendaExecute( local_ext_mat, local_abs_vec, local_abs_scalar_gas,
                               opt_prop_gas_agenda, true );
   ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));
@@ -141,6 +141,7 @@ void cloudy_rt_vars_at_gp(
                           const Agenda&         opt_prop_gas_agenda,
                           const Agenda&         abs_scalar_gas_agenda,
                           const Index&          stokes_dim,
+                          const Index&          f_index,
                           const GridPos         gp_p,
                           const GridPos         gp_lat,
                           const GridPos         gp_lon,
@@ -187,9 +188,8 @@ void cloudy_rt_vars_at_gp(
   //local_rte_pressure    = p_ppath[0];
   temperature = t_ppath[0];
   //rte_vmr_list    = vmr_ppath(joker,0);
-  abs_scalar_gas_agendaExecute( local_abs_scalar_gas,0,p_ppath[0],temperature,
-                                       vmr_ppath(joker,0),abs_scalar_gas_agenda,
-                                       true );
+  abs_scalar_gas_agendaExecute( local_abs_scalar_gas,f_index,p_ppath[0],
+        temperature,vmr_ppath(joker,0),abs_scalar_gas_agenda,true );
   opt_prop_gas_agendaExecute( local_ext_mat, local_abs_vec, local_abs_scalar_gas,
                               opt_prop_gas_agenda, true );
   ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));
@@ -1148,6 +1148,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
                         const Agenda&         opt_prop_gas_agenda,
                         const Agenda&         abs_scalar_gas_agenda,
                         const Index&          stokes_dim,
+                        const Index&          f_index,
                         const Vector&         p_grid,
                         const Vector&         lat_grid,
                         const Vector&         lon_grid,
@@ -1201,18 +1202,19 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
   if (inside_cloud)
     {
       cloudy_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
-                           opt_prop_gas_agenda,abs_scalar_gas_agenda, 
-                           stokes_dim, ppath_step.gp_p[0], ppath_step.gp_lat[0],
-                           ppath_step.gp_lon[0],p_grid[p_range],lat_grid[lat_range], 
-                           lon_grid[lon_range],t_field(p_range,lat_range,lon_range), 
-                           vmr_field(joker,p_range,lat_range,lon_range),pnd_field,
-                           scat_data_mono, cloudbox_limits,ppath_step.los(0,joker));
+                  opt_prop_gas_agenda,abs_scalar_gas_agenda,
+                  stokes_dim, f_index, ppath_step.gp_p[0], ppath_step.gp_lat[0],
+                  ppath_step.gp_lon[0],p_grid[p_range],lat_grid[lat_range], 
+                  lon_grid[lon_range],t_field(p_range,lat_range,lon_range), 
+                  vmr_field(joker,p_range,lat_range,lon_range),pnd_field,
+                  scat_data_mono, cloudbox_limits,ppath_step.los(0,joker));
     }
   else
     {
-      clear_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,temperature, opt_prop_gas_agenda,
-                          abs_scalar_gas_agenda, ppath_step.gp_p[0], ppath_step.gp_lat[0],
-                          ppath_step.gp_lon[0],p_grid, lat_grid, lon_grid, t_field, vmr_field);
+      clear_rt_vars_at_gp( ext_mat_mono, abs_vec_mono, temperature, 
+            opt_prop_gas_agenda, abs_scalar_gas_agenda, f_index, 
+            ppath_step.gp_p[0], ppath_step.gp_lat[0], ppath_step.gp_lon[0],
+            p_grid, lat_grid, lon_grid, t_field, vmr_field );
       pnd_vec=0.0;
     }
   ext_matArray[1]=ext_mat_mono;
@@ -1249,19 +1251,20 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
       if (inside_cloud)
         {
           cloudy_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
-                               opt_prop_gas_agenda,abs_scalar_gas_agenda, 
-                               stokes_dim, ppath_step.gp_p[np-1],ppath_step.gp_lat[np-1],
-                               ppath_step.gp_lon[np-1],p_grid[p_range], lat_grid[lat_range], 
-                               lon_grid[lon_range],t_field(p_range,lat_range,lon_range), 
-                               vmr_field(joker,p_range,lat_range,lon_range),pnd_field,
-                               scat_data_mono, cloudbox_limits,ppath_step.los(np-1,joker));
+               opt_prop_gas_agenda,abs_scalar_gas_agenda, stokes_dim, f_index,
+               ppath_step.gp_p[np-1],ppath_step.gp_lat[np-1],
+               ppath_step.gp_lon[np-1],p_grid[p_range], lat_grid[lat_range], 
+               lon_grid[lon_range],t_field(p_range,lat_range,lon_range), 
+               vmr_field(joker,p_range,lat_range,lon_range),pnd_field,
+               scat_data_mono, cloudbox_limits,ppath_step.los(np-1,joker));
         }
       else
         {
-          clear_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,temperature, opt_prop_gas_agenda,
-                              abs_scalar_gas_agenda,  ppath_step.gp_p[np-1],
-                              ppath_step.gp_lat[np-1],ppath_step.gp_lon[np-1],
-                              p_grid, lat_grid, lon_grid, t_field, vmr_field);
+          clear_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,temperature, 
+               opt_prop_gas_agenda, abs_scalar_gas_agenda, f_index, 
+               ppath_step.gp_p[np-1], ppath_step.gp_lat[np-1],
+               ppath_step.gp_lon[np-1], p_grid, lat_grid, lon_grid, t_field, 
+                                                                    vmr_field);
           pnd_vec=0.0;
         }
       ext_matArray[1]=ext_mat_mono;
@@ -1399,6 +1402,7 @@ void mcPathTraceIPA(MatrixView&           evol_op,
                     const Agenda&         opt_prop_gas_agenda,
                     const Agenda&         abs_scalar_gas_agenda,
                     const Index&          stokes_dim,
+                    const Index&          f_index,
                     const Vector&         p_grid,
                     const Vector&         lat_grid,
                     const Vector&         lon_grid,
@@ -1479,18 +1483,19 @@ void mcPathTraceIPA(MatrixView&           evol_op,
   if (inside_cloud)
     {
       cloudy_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
-                           opt_prop_gas_agenda,abs_scalar_gas_agenda, 
-                           stokes_dim, gp_p, gp_lat, gp_lon,p_grid[p_range], 
-                           lat_grid[lat_range], lon_grid[lon_range], 
-                           t_field(p_range,lat_range,lon_range), 
-                           vmr_field(joker,p_range,lat_range,lon_range),
-                           pnd_field,scat_data_mono, cloudbox_limits,rte_los);
+              opt_prop_gas_agenda,abs_scalar_gas_agenda, stokes_dim, f_index,
+              gp_p, gp_lat, gp_lon,p_grid[p_range], 
+              lat_grid[lat_range], lon_grid[lon_range], 
+              t_field(p_range,lat_range,lon_range), 
+              vmr_field(joker,p_range,lat_range,lon_range),
+              pnd_field,scat_data_mono, cloudbox_limits,rte_los );
     }
   else
     {
-      clear_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,temperature, opt_prop_gas_agenda,
-                          abs_scalar_gas_agenda, gp_p, gp_lat, gp_lon,
-                          p_grid, lat_grid, lon_grid, t_field, vmr_field);
+      clear_rt_vars_at_gp( ext_mat_mono,abs_vec_mono,temperature, 
+                           opt_prop_gas_agenda, abs_scalar_gas_agenda, f_index,
+                           gp_p, gp_lat, gp_lon,
+                           p_grid, lat_grid, lon_grid, t_field, vmr_field);
       pnd_vec=0.0;
     }
   ext_matArray[1]=ext_mat_mono;
@@ -1619,20 +1624,20 @@ void mcPathTraceIPA(MatrixView&           evol_op,
       //calculate RT variables at new point
       if (inside_cloud)
         {
-          cloudy_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
-                               opt_prop_gas_agenda,abs_scalar_gas_agenda, 
-                               stokes_dim, gp_p,gp_lat,gp_lon,p_grid[p_range], 
-                               lat_grid[lat_range], lon_grid[lon_range], 
-                               t_field(p_range,lat_range,lon_range), 
-                               vmr_field(joker,p_range,lat_range,lon_range),
-                               pnd_field,scat_data_mono, cloudbox_limits,rte_los);
+          cloudy_rt_vars_at_gp(ext_mat_mono, abs_vec_mono, pnd_vec, temperature,
+                   opt_prop_gas_agenda, abs_scalar_gas_agenda, stokes_dim, 
+                   f_index, gp_p,gp_lat, gp_lon, p_grid[p_range], 
+                   lat_grid[lat_range], lon_grid[lon_range], 
+                   t_field(p_range,lat_range,lon_range), 
+                   vmr_field(joker,p_range,lat_range,lon_range),
+                   pnd_field, scat_data_mono, cloudbox_limits,rte_los);
         }
       else
         {
-          clear_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,temperature, 
-                               opt_prop_gas_agenda,abs_scalar_gas_agenda,
-                               gp_p,gp_lat,gp_lon,p_grid,lat_grid,lon_grid,t_field, 
-                               vmr_field);
+          clear_rt_vars_at_gp( ext_mat_mono, abs_vec_mono, temperature, 
+                      opt_prop_gas_agenda, abs_scalar_gas_agenda, f_index,
+                      gp_p, gp_lat, gp_lon, p_grid, lat_grid, lon_grid, t_field, 
+                                                                     vmr_field);
           pnd_vec=0.0;
         }
       //put these variables in the last Array slot
@@ -1737,7 +1742,7 @@ atmospheric variables at the new point.
 */
 
 void mcPathTrace(MatrixView&           evol_op,
-                 VectorView&               abs_vec_mono,
+                 VectorView&           abs_vec_mono,
                  Numeric&              rte_temperature,
                  MatrixView&           ext_mat_mono,
                  Rng&                  rng,
@@ -1749,6 +1754,7 @@ void mcPathTrace(MatrixView&           evol_op,
                  const Agenda&         opt_prop_gas_agenda,
                  const Agenda&         abs_scalar_gas_agenda,
                  const Index&          stokes_dim,
+                 const Index&          f_index,
                  const Vector&         p_grid,
                  const Vector&         lat_grid,
                  const Vector&         lon_grid,
@@ -1794,13 +1800,13 @@ void mcPathTrace(MatrixView&           evol_op,
                 cloudbox_limits[3]-cloudbox_limits[2]+1);
   Range lon_range(cloudbox_limits[4], 
                 cloudbox_limits[5]-cloudbox_limits[4]+1);
-  cloudy_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,pnd_vec,rte_temperature,
-                       opt_prop_gas_agenda,abs_scalar_gas_agenda, stokes_dim, 
-                       ppath_step.gp_p[0],ppath_step.gp_lat[0],ppath_step.gp_lon[0],
-                       p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
-                       t_field(p_range,lat_range,lon_range),
-                       vmr_field(joker,p_range,lat_range,lon_range),pnd_field,
-                       scat_data_mono, cloudbox_limits,ppath_step.los(0,joker));
+  cloudy_rt_vars_at_gp( ext_mat_mono, abs_vec_mono,pnd_vec, rte_temperature,
+              opt_prop_gas_agenda, abs_scalar_gas_agenda, stokes_dim, f_index, 
+              ppath_step.gp_p[0], ppath_step.gp_lat[0], ppath_step.gp_lon[0],
+              p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
+              t_field(p_range,lat_range,lon_range),
+              vmr_field(joker,p_range,lat_range,lon_range), pnd_field,
+              scat_data_mono, cloudbox_limits, ppath_step.los(0,joker) );
   ext_matArray[1]=ext_mat_mono;
   abs_vecArray[1]=abs_vec_mono;
   tArray[1]=rte_temperature;
@@ -1821,15 +1827,14 @@ void mcPathTrace(MatrixView&           evol_op,
       cum_l_stepCalc(cum_l_step, ppath_step);
       //path_step should now have two elements.
       //calculate evol_op
-      cloudy_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,pnd_vec,rte_temperature,
-                           opt_prop_gas_agenda,abs_scalar_gas_agenda, 
-                           stokes_dim, ppath_step.gp_p[np-1],ppath_step.gp_lat[np-1],
-                           ppath_step.gp_lon[np-1],p_grid[p_range], 
-                           lat_grid[lat_range], lon_grid[lon_range], 
-                           t_field(p_range,lat_range,lon_range), 
-                           vmr_field(joker,p_range,lat_range,lon_range),
-                           pnd_field,scat_data_mono, cloudbox_limits,
-                           ppath_step.los(np-1,joker));
+      cloudy_rt_vars_at_gp( ext_mat_mono, abs_vec_mono, pnd_vec,
+             rte_temperature, opt_prop_gas_agenda, abs_scalar_gas_agenda, 
+             stokes_dim, f_index, ppath_step.gp_p[np-1], ppath_step.gp_lat[np-1],
+             ppath_step.gp_lon[np-1], p_grid[p_range], lat_grid[lat_range], 
+             lon_grid[lon_range], t_field(p_range,lat_range,lon_range), 
+             vmr_field(joker,p_range,lat_range,lon_range),
+             pnd_field,scat_data_mono, cloudbox_limits,
+             ppath_step.los(np-1,joker));
       ext_matArray[1]=ext_mat_mono;
       abs_vecArray[1]=abs_vec_mono;
       tArray[1]=rte_temperature;

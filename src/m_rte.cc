@@ -485,7 +485,6 @@ void RteCalcMC(
 
               for( f_index=0; f_index<nf; f_index++ )
                 {
-
                   ArrayOfSingleScatteringData   scat_data_mono;
 
                   scat_data_monoCalc( scat_data_mono, scat_data_raw, 
@@ -496,17 +495,13 @@ void RteCalcMC(
                   MCSetSeedFromTime( mc_seed );
                   
                   MCGeneral( iyf, mc_iteration_count, iyf_error, mc_points, 
-                    mc_antenna, f_grid, pos, los, stokes_dim, iy_space_agenda,
-                    surface_prop_agenda, opt_prop_gas_agenda, 
-                    abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, 
-                    z_field, r_geoid, z_surface, t_field, vmr_field, 
-                    cloudbox_limits, pnd_field, scat_data_mono, 
-                    mc_seed, y_unit, std_err, max_time, max_iter, 
-                    z_field_is_1D ); 
+                      mc_antenna, f_grid, f_index, pos, los, stokes_dim, 
+                      iy_space_agenda, surface_prop_agenda, opt_prop_gas_agenda, 
+                      abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, 
+                      z_field, r_geoid, z_surface, t_field, vmr_field, 
+                      cloudbox_limits, pnd_field, scat_data_mono, mc_seed, 
+                      y_unit, std_err, max_time, max_iter, z_field_is_1D ); 
                   
-                  //--- Unit conversions
-                  apply_y_unit_single( iyf, y_unit, f_grid[f_index] );
-
                   //--- Copy *iyf* to *ib*
                   for( Index is=0; is<stokes_dim; is++ )
                     { 
@@ -517,7 +512,6 @@ void RteCalcMC(
                   // Increase nbdone
                   nbdone += stokes_dim;
                 }
-
             } // iaa loop
         } // iza loop
 
