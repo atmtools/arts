@@ -42,12 +42,9 @@
 #include <iostream>
 #include <fstream>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include "arts.h"
 #include "array.h"
+#include "arts_omp.h"
 
 /**
    The verbosity level for screen and file output. There are four
@@ -96,11 +93,7 @@ void MessagePrint(ostream& os, Index priority, const T& t)
   // cout << "Printing object of type: " << typeid(t).name() << endl;
 
   // Obtain the thread ID from OpenMP. (Zero-based indexing, as usual.)
-#ifdef _OPENMP
-  int thread_num = omp_get_thread_num();
-#else
-  int thread_num = 0;
-#endif
+  int thread_num = arts_omp_get_thread_num();
 
   if (messages[thread_num].screen >= priority)
     os << t;

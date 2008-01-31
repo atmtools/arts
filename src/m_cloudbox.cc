@@ -44,10 +44,6 @@
 #include <cstdlib>
 #include <cmath>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include "arts.h"
 #include "array.h"
 #include "check_input.h"

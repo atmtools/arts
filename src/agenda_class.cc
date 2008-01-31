@@ -28,10 +28,6 @@
 #include <ostream>
 #include <iterator>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include "arts.h"
 #include "agenda_class.h"
 #include "agenda_record.h" // only for test functions
@@ -40,6 +36,7 @@
 #include "messages.h"
 #include "auto_wsv.h"
 #include "workspace_ng.h"
+#include "arts_omp.h"
 
 /** Print the error message and exit. */
 void give_up(const String& message)
@@ -115,11 +112,7 @@ void Agenda::execute(bool silent) const
   extern Array<Messages> messages;
 
   // Obtain the thread ID from OpenMP. (Zero-based indexing, as usual.)
-#ifdef _OPENMP
-  int thread_num = omp_get_thread_num();
-#else
-  int thread_num = 0;
-#endif
+  int thread_num = arts_omp_get_thread_num();
 
   // Backup for the original message level:
   Messages messages_original( messages[thread_num] );

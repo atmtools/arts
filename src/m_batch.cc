@@ -43,15 +43,12 @@
 #include <cmath>
 using namespace std;
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include "arts.h"
 #include "auto_md.h"
 #include "math_funcs.h"
 #include "xml_io.h"
 #include "check_input.h"
+#include "arts_omp.h"
 
 extern const Numeric PI;
 extern const Numeric DEG2RAD;

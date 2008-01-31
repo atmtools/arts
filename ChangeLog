@@ -1,5 +1,35 @@
 2008-01-31  Stefan Buehler  <sbuehler(at)ltu.se>
 
+	* arts-1-2-4
+
+	* src/arts_omp.cc: Added. This file contains wrapper functions for
+	standard OMP functions, that work with and without OMP
+	support. This saves the use of #ifdef statements around omp
+	functions in the ARTS main code.
+
+	All functions start with arts_omp. Otherwise, names are the same
+	as the standard OMP function names.
+
+	* src/arts_omp.h: Added. Header file for arts_omp.cc
+
+	* src/m_abs_lookup.cc: Adapted to use arts_omp functions.
+	(abs_fieldCalc): Fixed the vectorization bug following advice from
+	Oliver. I had forgotten to add the flag to clone the workspace.
+
+	* src/messages.h: Adapted to use arts_omp functions.
+
+	* src/m_batch.cc: Adapted to use arts_omp functions.
+
+	* src/main.cc: Adapted to use arts_omp functions.
+
+	* src/agenda_class.cc: Adapted to use arts_omp functions.
+
+	* src/m_cloudbox.cc: Removed unnecessary include of omp.h.
+
+	* src/Makefile.am (libarts_a_SOURCES): Added arts_omp.{cc,h}.
+
+2008-01-31  Stefan Buehler  <sbuehler(at)ltu.se>
+
 	* arts-1-2-3
 
 	* src/messages.h: Set verbosity level independently for each

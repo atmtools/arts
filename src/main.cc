@@ -30,9 +30,6 @@
 
 #include <algorithm>
 #include <map>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 #include "arts.h"
 #include "parameters.h"
 #include "messages.h"
@@ -46,6 +43,7 @@
 #include "agenda_record.h"
 #include "mystring.h"
 #include "workspace_ng.h"
+#include "arts_omp.h"
 
 /** Remind the user of --help and exit return value 1. */
 void polite_goodby()
@@ -78,11 +76,7 @@ void set_reporting_level(Index r)
   extern Array<Messages> messages;
 
   // Initialize the messages array:
-#ifdef _OPENMP
-  int max_threads = omp_get_max_threads();
-#else
-  int max_threads = 1;
-#endif
+  int max_threads = arts_omp_get_max_threads();
   messages.resize(max_threads);
 
   if ( -1 == r )
@@ -903,26 +897,17 @@ int main (int argc, char **argv)
         // place them in the file config.h, which is included in arts.h.
   
         extern const String full_name;
-
         out1 << full_name << "\n";
-
-        // Output some OpenMP specific information on output level 2:
-
-#ifdef _OPENMP
-        int max_threads = omp_get_max_threads();
-        bool have_omp = true;
-#else
-        int max_threads = 1;
-        bool have_omp = false;
-#endif
-
-        if (have_omp)
-          out2 << "Running with OpenMP, "
-               << "maximum number of threads = " << max_threads << ".\n";
-        else
-          out2 << "Running without OpenMP.\n";
-        
       }
+
+      // Output some OpenMP specific information on output level 2:
+#ifdef _OPENMP
+      out2 << "Running with OpenMP, "
+           << "maximum number of threads = "
+           << arts_omp_get_max_threads() << ".\n";
+#else
+      out2 << "Running without OpenMP.\n";        
+#endif
 
 
       // The list of methods to execute and their keyword data from

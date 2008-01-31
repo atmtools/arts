@@ -26,9 +26,7 @@
 #include <algorithm> 
 #include <map>
 #include <limits>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+
 #include "auto_md.h"
 #include "arts.h"
 #include "messages.h"
@@ -39,6 +37,7 @@
 #include "physics_funcs.h"
 #include "math_funcs.h"
 #include "make_vector.h"
+#include "arts_omp.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupInit(GasAbsLookup& /* x */)
@@ -1494,12 +1493,13 @@ void abs_fieldCalc(// WS Output:
                     n_latitudes,
                     n_longitudes );
 
-  // Flag for first time agenda output:
-  Index count = 0;
+
+  out2 << "  Agenda output is suppressed, use reporting\n"
+       <<"   level 4 if you want to see it.\n";
 
   // Now we have to loop all points in the atmosphere:
 #ifdef _OPENMP
-#pragma omp parallel private(asg, a_vmr_list, count)
+#pragma omp parallel private(asg, a_vmr_list)
 #pragma omp for 
 #endif
   for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
@@ -1518,10 +1518,10 @@ void abs_fieldCalc(// WS Output:
             // Execute agenda to calculate local absorption.
             // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
             // Agenda output: asg
-            abs_scalar_gas_agendaExecute (asg,
-                                          f_index, a_pressure,
-                                          a_temperature, a_vmr_list,
-                                          sga_agenda, (count != 0));
+            abs_scalar_gas_agendaExecute(asg,
+                                         f_index, a_pressure,
+                                         a_temperature, a_vmr_list,
+                                         sga_agenda, true, true);
 
             // Verify, that the number of species in asg is
             // constistent with vmr_field:
@@ -1556,7 +1556,6 @@ void abs_fieldCalc(// WS Output:
                        Range(joker),
                        ipr, ila, ilo ) = transpose( asg );
             
-            ++count;
           }
     }
 }

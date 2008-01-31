@@ -26,6 +26,8 @@ libarts_a_SOURCES = \
 	absorption.cc \
 	abs_species_tags.h \
 	abs_species_tags.cc \
+	arts_omp.h \
+	arts_omp.cc \
 	gas_abs_lookup.h \
 	gas_abs_lookup.cc \
 	lineshapes.cc \
@@ -260,13 +262,17 @@ make_auto_wsv_groups_h_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 make_auto_wsv_groups_h_SOURCES = \
 	arts.cc \
 	arts.h \
+	arts_omp.cc \
+	arts_omp.h \
 	file.cc \
 	file.h \
 	groups.cc \
 	m_general.h \
 	make_auto_wsv_groups_h.cc \
+	messages.h \
 	messages.cc \
 	parameters.cc \
+	parameters.h \
 	version.cc
 
 #make_auto_wsv_h_DEPENDENCIES = make_auto_wsv_groups_h$(EXEEXT)
@@ -276,6 +282,8 @@ make_auto_wsv_h_SOURCES = \
 	agenda_class.h \
 	arts.cc \
 	arts.h \
+	arts_omp.cc \
+	arts_omp.h \
 	auto_wsv_groups.h \
 	binio.cc \
 	binio.h \
@@ -284,8 +292,10 @@ make_auto_wsv_h_SOURCES = \
 	groups.cc \
 	m_general.h \
 	make_auto_wsv_h.cc \
+	messages.h \
 	messages.cc \
 	parameters.cc \
+	parameters.h \
 	version.cc \
 	workspace.cc \
 	workspace_aux.cc \
@@ -301,6 +311,8 @@ make_auto_md_h_SOURCES = \
 	agendas.cc \
 	arts.cc \
 	arts.h \
+	arts_omp.cc \
+	arts_omp.h \
 	auto_wsv.h \
 	auto_wsv_groups.h \
 	binio.cc \
@@ -334,6 +346,8 @@ make_auto_md_cc_SOURCES = \
 	agendas.cc \
 	arts.cc \
 	arts.h \
+	arts_omp.cc \
+	arts_omp.h \
 	auto_wsv.h \
 	auto_wsv_groups.h \
 	binio.cc \
