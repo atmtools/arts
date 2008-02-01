@@ -1,5 +1,18 @@
 2008-02-01  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-2-9
+
+	* src/parameters.cc (get_parameters):
+
+	If the environment variable ARTS_INCLUDE_PATH exists, add those paths
+	to parameters.includepath as well.
+
+	Update --help documentation.
+
+	* src/methods.cc (INCLUDE): Update documentation.
+
+2008-02-01  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-2-8
 
 	* src/methods.cc (INCLUDE), src/m_general.cc (INCLUDE):

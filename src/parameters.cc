@@ -26,8 +26,9 @@
 */
 
 #include <iostream>
-#include "arts.h"
 #include <getopt.h>
+#include <cstdlib>
+#include "arts.h"
 #include "parameters.h"
 
 /// Holds the command line parameters.
@@ -100,7 +101,7 @@ bool get_parameters(int argc, char **argv)
     "Usage: arts [-hvbrmiwdg] [--help] [--version] [--basename <name>]\n"
     "       [--reporting xy]\n"
     "       [--methods all|<variable>]\n"
-    "       [--includepath]\n"
+    "       [--includepath <path>]\n"
     "       [--input <variable>]\n"
     "       [--workspacevariables all|<method>]\n"
     "       [--describe <method or variable>]\n"
@@ -130,6 +131,12 @@ bool get_parameters(int argc, char **argv)
     "                    variable (or group) as output.\n"
     "-I  --includepath   Search path for include files. Can be given more\n"
     "                    than once to add several paths.\n"
+    "                    Include paths can also be added by setting the\n"
+    "                    environment variable ARTS_INCLUDE_PATH. Multiple\n"
+    "                    paths have to be separated by colons.\n"
+    "                    Paths specified on the commandline have precedence\n"
+    "                    over the environment variable and will be searched\n"
+    "                    first.\n"
     "-i, --input         This is complementary to the --methods switch.\n"
     "                    It must be given the name of a variable (or group).\n"
     "                    Then it lists all methods that take this variable\n"
@@ -254,7 +261,32 @@ bool get_parameters(int argc, char **argv)
 
   //  cout << "alle:\n" << parameters.controlfiles << '\n';
 
+  // Look for include paths in the ARTS_PATH environment variable and
+  // append them to parameters.includepath
 
+  char *artspathenv = getenv ("ARTS_INCLUDE_PATH");
+
+  if (artspathenv)
+    {
+      String artspath (artspathenv);
+
+      // Skip delimiters at beginning.
+      String::size_type lastPos = artspath.find_first_not_of(":", 0);
+      // Find first "non-delimiter".
+      String::size_type pos     = artspath.find_first_of(":", lastPos);
+
+      cout << "ARTS_INCLUDE_PATH: ";
+
+      while (String::npos != pos || String::npos != lastPos)
+        {
+          parameters.includepath.push_back (artspath.substr (lastPos,
+                                                             pos - lastPos));
+          lastPos = artspath.find_first_not_of(":", pos);
+          pos = artspath.find_first_of(":", lastPos);
+        }
+
+      cout << endl;
+    }
 
   return false;
 }
