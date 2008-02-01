@@ -1,3 +1,14 @@
+2008-02-01  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-2-7
+
+	* src/abs_species_tags.cc (SpeciesTag): Fixed bug reported by
+	Patrick. There was no runtime error if the user chose a
+	non-existing absorption species, only an assertion failure. The
+	reason was a bug in the constructor of SpeciesTag. The helper
+	function find_first returns -1 if the search item is not found,
+	not nelem(), as was assumed.
+
 2008-01-31  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-2-6

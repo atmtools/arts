@@ -140,14 +140,14 @@ SpeciesTag::SpeciesTag(String def)
       misotope = find_first (ins, isoname);
 
       // Check if we found a matching isotope:
-      if ( misotope >= ins.nelem() ) 
+      if ( misotope < 0 ) 
         {
           ostringstream os;
-          os << "Isotope " << isoname << " is not a valid isotope for "
-             << "species " << name << ".\n"
-             << "Valid isotopes are:";
+          os << "Isotope " << isoname << " is not a valid isotope or "
+             << "absorption model for species " << name << ".\n"
+             << "Valid options are:\n";
           for ( Index i=0; i<ins.nelem(); ++i )
-            os << " " << ins[i];
+            os << name << "-" << ins[i] << "\n";
           throw runtime_error(os.str());
         }
     }
