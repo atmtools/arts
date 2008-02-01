@@ -3128,6 +3128,47 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME("INCLUDE"),
+        DESCRIPTION
+        (
+         "Includes the contents of another controlfile.\n"
+         "\n"
+         "The INCLUDE statement inserts the contents of the controlfile\n"
+         "with the given name into the current controlfile.\n"
+         "If the filename is given without path information, ARTS will\n"
+         "first search for the file in the current directory and then in all\n"
+         "directories specified with the -I (see arts -h) commandline option.\n"
+         "\n"
+         "Note that INCLUDE is not a workspace method and thus the\n"
+         "syntax is different:\n"
+         "\n"
+         "Arts {\n"
+         "  INCLUDE \"general.arts\"\n"
+         "}\n"
+         "\n"
+         "Includes can also be nested. In the example above general.arts\n"
+         "can contain further includes which will then be treated\n"
+         "the same way.\n"
+         "\n"
+         "The idea behind this mechanism is that you can write common settings\n"
+         "for a bunch of calculations into one file. Then, you can create\n"
+         "several controlfiles which include the basic settings and tweak them\n"
+         "for different cases. When you decide to make changes to your setup\n"
+         "that should apply to all calculations, you only have to make a\n"
+         "single change in the include file instead of modifying all your\n"
+         "controlfiles.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME("IndexSet"),
         DESCRIPTION
         (

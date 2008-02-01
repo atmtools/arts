@@ -64,6 +64,12 @@
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void INCLUDE()
+{
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Print(
         // WS Generic Input:
         const ArrayOfGridPos&   x,
