@@ -698,9 +698,9 @@ int main (int argc, char **argv)
 #ifdef _OPENMP
       omp_set_num_threads (parameters.numthreads);
 #else
-      out1 << "Ignoring commandline option --numthreads/-n.\n"
-           << "This option takes effect only if Arts was compiled with\n"
-           << "OpenMP support.\n"
+      cerr << "Ignoring commandline option --numthreads/-n.\n"
+           << "This option takes effect only if Arts was compiled with "
+           << "OpenMP support.\n";
 #endif
     }
 

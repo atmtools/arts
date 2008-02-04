@@ -1,5 +1,13 @@
 2008-02-04  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-2-11
+
+	* src/main.cc (main):
+	
+	Fix syntax error and messages bug in non-OpenMP compilation.
+
+2008-02-04  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-2-10
 
 	* src/parameters.cc (get_parameters), src/parameters.h:
