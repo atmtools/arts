@@ -1,3 +1,18 @@
+2008-02-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-2-10
+
+	* src/parameters.cc (get_parameters), src/parameters.h:
+
+	Sort options in help output alphabetically.
+
+	Added option -n/--numthreads to set the maximum number of threads.
+
+	* src/main.cc (main):
+
+	If --numthreads was given on the commandline set the maximum number of
+	threads accordingly.
+
 2008-02-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-2-9

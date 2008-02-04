@@ -49,6 +49,7 @@ struct Parameters {
     controlfiles(),
     reporting(-1),
     methods(""),
+    numthreads(0),
     includepath(),
     input(""),
     workspacevariables(""),
@@ -83,6 +84,8 @@ struct Parameters {
       all methods. If it is given the name of a variable (or group), it
       prints all methods that produce this variable (or group) as output. */
   String methods;
+  /** The maximum number of threads to use. */
+  Index numthreads;
   /** List of paths to search for include files. */
   ArrayOfString includepath; 
   /** This is complementary to the methods switch. It must be given

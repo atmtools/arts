@@ -83,52 +83,49 @@ bool get_parameters(int argc, char **argv)
   */
   struct option longopts[] =
   {
-    { "help",               no_argument,       NULL, 'h' },
-    { "version",            no_argument,       NULL, 'v' },
     { "basename",           required_argument, NULL, 'b' },
-    { "reporting",          required_argument, NULL, 'r' },
-    { "methods",            required_argument, NULL, 'm' },
-    { "includepath",        required_argument, NULL, 'I' },
-    { "input",              required_argument, NULL, 'i' },
-    { "workspacevariables", required_argument, NULL, 'w' },
     { "describe",           required_argument, NULL, 'd' },
     { "groups",             no_argument,       NULL, 'g' },
+    { "help",               no_argument,       NULL, 'h' },
+    { "includepath",        required_argument, NULL, 'I' },
+    { "input",              required_argument, NULL, 'i' },
+    { "methods",            required_argument, NULL, 'm' },
+    { "numthreads",         required_argument, NULL, 'n' },
     { "plain",              no_argument,       NULL, 'p' },
+    { "reporting",          required_argument, NULL, 'r' },
+    { "workspacevariables", required_argument, NULL, 'w' },
+    { "version",            no_argument,       NULL, 'v' },
     { NULL,                 no_argument,       NULL, 0   }
   };
 
   parameters.usage =
-    "Usage: arts [-hvbrmiwdg] [--help] [--version] [--basename <name>]\n"
-    "       [--reporting xy]\n"
-    "       [--methods all|<variable>]\n"
-    "       [--includepath <path>]\n"
-    "       [--input <variable>]\n"
-    "       [--workspacevariables all|<method>]\n"
+    "Usage: arts [-bdghimnrvw]\n"
+    "       [--basename <name>]\n"
     "       [--describe <method or variable>]\n"
     "       [--groups]\n"
+    "       [--help]\n"
+    "       [--includepath <path>]\n"
+    "       [--input <variable>]\n"
+    "       [--methods all|<variable>]\n"
+    "       [--numthreads <#>\n"
     "       [--plain]\n"
+    "       [--reporting xy]\n"
+    "       [--version]\n"
+    "       [--workspacevariables all|<method>]\n"
     "       file1.arts file2.arts ...";
 
   parameters.helptext =
     "The Atmospheric Radiative Transfer System.\n\n"
-    "-h, --help          Print this message.\n"
-    "-v, --version       Show version information.\n"
     "-b, --basename      Set the basename for the report\n"
     "                    file and for other output files.\n"
-    "-r, --reporting     Two digit integer. Sets the reporting\n"
-    "                    level for screen (first digit) anf file\n"
-    "                    (second digit). Levels can reach from 0\n"
-    "                    (only error messages) to 3 (everything).\n"
-    "                    Level 4 has the special meaning that it\n"
-    "                    shows everything, even agenda output that\n"
-    "                    is otherwise suppressed for all reporting\n"
-    "                    levels.\n"
-    "-m, --methods       If this is given the argument `all',\n"
-    "                    it simply prints a list of all methods.\n"
-    "                    If it is given the name of a variable\n"
-    "                    (or variable group), it prints all\n"
-    "                    methods that produce this\n"
-    "                    variable (or group) as output.\n"
+    "-d, --describe      Print the description String of the given\n"
+    "                    workspace variable or method.\n"
+    "-g  --groups        List all workspace variable groups.\n"
+    "-h, --help          Print this message.\n"
+    "-i, --input         This is complementary to the --methods switch.\n"
+    "                    It must be given the name of a variable (or group).\n"
+    "                    Then it lists all methods that take this variable\n"
+    "                    (or group) as input.\n"
     "-I  --includepath   Search path for include files. Can be given more\n"
     "                    than once to add several paths.\n"
     "                    Include paths can also be added by setting the\n"
@@ -137,19 +134,30 @@ bool get_parameters(int argc, char **argv)
     "                    Paths specified on the commandline have precedence\n"
     "                    over the environment variable and will be searched\n"
     "                    first.\n"
-    "-i, --input         This is complementary to the --methods switch.\n"
-    "                    It must be given the name of a variable (or group).\n"
-    "                    Then it lists all methods that take this variable\n"
-    "                    (or group) as input.\n"
+    "-m, --methods       If this is given the argument `all',\n"
+    "                    it simply prints a list of all methods.\n"
+    "                    If it is given the name of a variable\n"
+    "                    (or variable group), it prints all\n"
+    "                    methods that produce this\n"
+    "                    variable (or group) as output.\n"
+    "-n, --numthreads    If arts was compiled with OpenMP support this option\n"
+    "                    can be used to set the maximum number of threads.\n"
+    "                    By default OpenMP uses all processors/cores.\n"
+    "-p  --plain         Generate plain help output suitable for\n"
+    "                    script processing.\n"
+    "-r, --reporting     Two digit integer. Sets the reporting\n"
+    "                    level for screen (first digit) anf file\n"
+    "                    (second digit). Levels can reach from 0\n"
+    "                    (only error messages) to 3 (everything).\n"
+    "                    Level 4 has the special meaning that it\n"
+    "                    shows everything, even agenda output that\n"
+    "                    is otherwise suppressed for all reporting\n"
+    "                    levels.\n"
+    "-v, --version       Show version information.\n"
     "-w, --workspacevariables  If this is given the argument `all',\n"
     "                    it simply prints a list of all variables.\n"
     "                    If it is given the name of a method, it\n"
-    "                    prints all variables needed by this method.\n"
-    "-d, --describe      Print the description String of the given\n"
-    "                    workspace variable or method.\n"
-    "-g  --groups        List all workspace variable groups.\n"
-    "-p  --plain         Generate plain help output suitable for\n"
-    "                    script processing.";
+    "                    prints all variables needed by this method.";
 
   // Set the short options automatically from the last columns of
   // longopts.
@@ -199,11 +207,37 @@ bool get_parameters(int argc, char **argv)
         case 'h':
           parameters.help = true;
           break;
-        case 'v':
-          parameters.version = true;
-          break;
         case 'b':
           parameters.basename = optarg;
+          break;
+        case 'd':
+          parameters.describe = optarg;
+          break;
+        case 'g':
+          parameters.groups = true;
+          break;
+        case 'i':
+          parameters.input = optarg;
+          break;
+        case 'I':
+          parameters.includepath.push_back (optarg);
+          break;
+        case 'm':
+          parameters.methods = optarg;
+          break;
+        case 'n':
+            {
+              istringstream iss(optarg);
+              iss >> std::dec >> parameters.numthreads;
+              if (iss.fail())
+                {
+                  cerr << "Argument to --numthreads (-n) must be an integer!\n";
+                  arts_exit ();
+                }
+              break;
+            }
+        case 'p':
+          parameters.plain = true;
           break;
         case 'r':
           {
@@ -222,26 +256,11 @@ bool get_parameters(int argc, char **argv)
               }
             break;
           }
-        case 'm':
-          parameters.methods = optarg;
-          break;
-        case 'I':
-          parameters.includepath.push_back (optarg);
-          break;
-        case 'i':
-          parameters.input = optarg;
+        case 'v':
+          parameters.version = true;
           break;
         case 'w':
           parameters.workspacevariables = optarg;
-          break;
-        case 'd':
-          parameters.describe = optarg;
-          break;
-        case 'g':
-          parameters.groups = true;
-          break;
-        case 'p':
-          parameters.plain = true;
           break;
         default:
           // There were strange options.

@@ -693,6 +693,16 @@ int main (int argc, char **argv)
       arts_exit (EXIT_SUCCESS);
     }
 
+  if (parameters.numthreads)
+    {
+#ifdef _OPENMP
+      omp_set_num_threads (parameters.numthreads);
+#else
+      out1 << "Ignoring commandline option --numthreads/-n.\n"
+           << "This option takes effect only if Arts was compiled with\n"
+           << "OpenMP support.\n"
+#endif
+    }
 
 
   // For the next couple of options we need to have the workspce and
