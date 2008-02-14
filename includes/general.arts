@@ -78,9 +78,11 @@ r_geoidSpherical{
 
 # Surface emissivity:
 # ---
-# The global default is a black body surface, with skin temperature equal 
-# to the lowest atmospheric temperature. This is not very realistic,
-# but simple.
+# The settings here correspond to specular reflection, with skin temperature 
+# equal to the lowest atmospheric temperature. 
+# The emissivity is here set to 1, modelling a blackbody surface. Not very 
+# realistic, but simple!
+# The emissivity can be changed control files including this file.
 NumericSet(surface_emissivity){1}
 AgendaSet(surface_prop_agenda){
    InterpAtmFieldToRteGps( surface_skin_t, t_field )
@@ -161,12 +163,6 @@ cloudboxOff
 # No jacobian calculations by default
 #
 jacobianOff
-
-
-#
-# Include default continua settings
-#
-INCLUDE "continua"
 
 }
 

@@ -1,0 +1,80 @@
+#DEFINITIONS:  -*-sh-*-
+
+Arts {
+
+# Select frequency band here:
+#
+#INCLUDE "odinsmr_501.arts"
+INCLUDE "odinsmr_544.arts"
+
+
+# Possibility to change considered species
+# For example
+#SpeciesSet(abs_species){[
+#  "H2O,H2O-ForeignContStandardType,H2O-SelfContStandardType",
+#  "O3" ]
+#}
+
+
+
+# ---- Atmospheric scenario --------------------------------------------------
+
+# Here taken from Fascod
+AtmRawRead{"tropical"}
+
+AtmFieldsCalc
+
+# get ground altitude (z_surface) from z_field
+IndexSet(index_1){0}
+MatrixExtractFromTensor3(z_surface,z_field,index_1)
+
+
+
+# ---- Create absorption table -----------------------------------------------
+
+abs_lines_per_speciesCreateFromLines{}
+
+abs_lookupSetup{}
+
+abs_lookupCreate{}
+
+AgendaSet(abs_scalar_gas_agenda){
+  abs_scalar_gasExtractFromLookup
+}
+
+
+
+# ---- Sensor position and LOS -----------------------------------------------
+
+IndexSet(nelem){4}
+
+# Orbit altitude set to 600 km
+VectorSet(vector_1){ 600e3 }
+Matrix1ColFromVector(sensor_pos,vector_1){}
+sensor_posAddRgeoid{}
+
+# LOS, specified by the corresponding geometrical tangent altitudes
+VectorNLinSpace(vector_1){ 
+  start = 50e3
+  stop  = 20e3
+  n     = 4
+}
+Copy(vector_2,vector_1){}
+VectorZtanToZa1D(vector_1,vector_1){}
+Matrix1ColFromVector(sensor_los,vector_1){}
+
+
+
+# ---- Calculate, switch to RF and save
+
+StringSet( y_unit ){ "RJBT" }
+
+RteCalc{}
+
+ConvertIFToRF{ "lower" }
+
+WriteXML(sensor_response_f){""}
+WriteXML(vector_2){"TestOdinSMR.ztan.xml"}
+WriteXML(y){""}
+
+}

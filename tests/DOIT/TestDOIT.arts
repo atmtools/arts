@@ -14,6 +14,8 @@
 Arts {
 
 INCLUDE "general"
+INCLUDE "continua.arts"
+
 
 # Frequency grid 
 # --------------

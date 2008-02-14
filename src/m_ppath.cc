@@ -127,7 +127,6 @@ void rte_posAddRgeoid(
   rte_pos[0] = m(0,0);
 }
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_posSet(
         // WS Output:
@@ -148,6 +147,66 @@ void rte_posSet(
     { rte_pos[1] = lat; }
   if( atmosphere_dim == 3 )
     { rte_pos[2] = lon; }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void rte_pos_and_losFromTangentPressure(
+                    // WS Output:
+                    Vector&          rte_pos,
+                    Vector&          rte_los,
+                    Ppath&           ppath,
+                    Ppath&           ppath_step,
+                    // WS Input:
+                    const Index&     atmosphere_dim,
+                    const Vector&    p_grid,
+                    const Tensor3&   z_field,
+                    const Vector &     lat_grid,      
+                    const Vector &     lon_grid,
+                    const Agenda &     ppath_step_agenda,
+                    const Matrix &     r_geoid,
+                    const Matrix &     z_surface,
+                    // Control Parameters:
+                    const Numeric&   tan_p
+                    )
+{
+  //This function is only ready for 1D calculations
+  if (atmosphere_dim > 1)
+    throw runtime_error(
+      "Sorry, this function currently only works for atmosphere_dim==1");
+  
+
+  Index np=p_grid.nelem();
+  Vector log_p_grid(np);
+  Numeric log_p=log10(tan_p);
+  GridPos gp;
+  Vector itw(2);
+  Numeric z;
+  rte_pos.resize(atmosphere_dim);
+  rte_los.resize(atmosphere_dim);
+  
+  //find z for given tangent pressure
+  for (Index i=0;i<np;i++){log_p_grid[i]=log10(p_grid[i]);}
+  
+  gridpos(gp,log_p_grid,log_p);
+  out1 << "gp.index = " << gp.idx << "\n";
+  interpweights(itw,gp);
+  z = interp(itw,z_field(Range(joker),0,0),gp);
+  out1 <<  " Tangent pressure corresponds to an altitude of " << z << "m.\n";
+  
+  //Use ppath to find the desired point on the edge of the atmosphere
+  rte_pos[0]=z+r_geoid(0,0);
+  rte_los[0]=90;
+
+  Index cloudbox_on=0;
+  ArrayOfIndex cloudbox_limits(2);
+  bool outside_cloudbox=true;
+  ppath_calc(ppath,ppath_step,ppath_step_agenda,atmosphere_dim,p_grid,lat_grid,
+         lon_grid,z_field, r_geoid, z_surface,cloudbox_on, cloudbox_limits,
+         rte_pos, rte_los, outside_cloudbox);
+  rte_pos = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
+  rte_los = ppath.los(ppath.np-1,joker);
+  rte_los[0]=180.0-rte_los[0];
 }
 
 
@@ -404,7 +463,48 @@ void sensor_posAddRgeoid(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorZtanToZaRefr(// WS Output:
+void VectorZtanToZa1D(
+                        // WS Generic Output:
+                        Vector&             za_vector,
+                        // WS Generic Output Names:
+                        const String&       za_v_name,
+                        // WS Input:
+                        const Matrix&       sensor_pos,
+                        const Matrix&       r_geoid,
+                        const Index&        atmosphere_dim,
+                        // WS Generic Input:
+                        const Vector&       ztan_vector,
+                        // WS Generic Input Names:
+                        const String&       ztan_v_name )
+{
+  if( atmosphere_dim != 1 ) {
+    throw runtime_error( "The function can only be used for 1D atmospheres." );
+  }
+
+  const Index   npos = sensor_pos.nrows();
+
+  if( ztan_vector.nelem() != npos )
+    {
+      ostringstream os;
+      os << "The number of altitudes in *" << ztan_v_name << "* must\n"
+         << "match the number of positions in *sensor_pos*.";
+      throw runtime_error( os.str() );
+    }
+
+  out2 << "  Filling *" << za_v_name << "* with zenith angles, based on\n"
+       << "  tangent altitudes from *" << ztan_v_name << ".\n";
+
+  za_vector.resize(npos);
+
+  for( Index i=0; i<npos; i++ )
+    { za_vector[i] = geompath_za_at_r( r_geoid(0,0) + ztan_vector[i], 100,
+                                                           sensor_pos(i,0) ); }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorZtanToZaRefr1D(
+                        // WS Output:
                         Numeric&            refr_index,
                         Numeric&            rte_pressure,
                         Numeric&            rte_temperature,
@@ -421,13 +521,15 @@ void VectorZtanToZaRefr(// WS Output:
                         const Tensor3&      z_field,
                         const Tensor4&      vmr_field,
                         const Matrix&       r_geoid,
-                        const Index&        DEBUG_ONLY (atmosphere_dim),
+                        const Index&        atmosphere_dim,
                         // WS Generic Input:
                         const Vector&       ztan_vector,
                         // WS Generic Input Names:
                         const String&       ztan_vector_name )
 {
-  assert( atmosphere_dim == 1);
+  if( atmosphere_dim != 1 ) {
+    throw runtime_error( "The function can only be used for 1D atmospheres." );
+  }
 
   if( ztan_vector.nelem() != sensor_pos.nrows() ) {
     ostringstream os;
@@ -457,39 +559,6 @@ void VectorZtanToZaRefr(// WS Output:
     za_vector[i] = 180-asin(refr_index*(ztan_vector[i]+r_geoid(0,0)) /
                             sensor_pos(i,0))*RAD2DEG;
   }
-
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void VectorZtanToZa(
-        // WS Output:
-              Vector&    za_vector,
-        const String&    za_v_name,
-        // WS Input:
-        const Matrix&    sensor_pos,
-        const Vector&    ztan_vector,
-        const String&    ztan_v_name,
-        const Numeric&   r_geoid )
-{
-  const Index   npos = sensor_pos.nrows();
-
-  if( ztan_vector.nelem() != npos )
-    {
-      ostringstream os;
-      os << "The number of altitudes in *" << ztan_v_name << "* must\n"
-         << "match the number of positions in *sensor_pos*.";
-      throw runtime_error( os.str() );
-    }
-
-  out2 << "  Filling *" << za_v_name << "* with zenith angles, based on\n"
-       << "  tangent altitudes from *" << ztan_v_name << ".\n";
-
-  za_vector.resize(npos);
-
-  for( Index i=0; i<npos; i++ )
-    { za_vector[i] = geompath_za_at_r( r_geoid + ztan_vector[i], 100,
-                                                           sensor_pos(i,0) ); }
 
 }
 
@@ -620,64 +689,4 @@ void ZaSatOccultation(
   za_out.resize( lat_out.nelem() );
   interp( za_out, itw, za_ref_above, gp );
 
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_pos_and_losFromTangentPressure(
-                    // WS Output:
-                    Vector&          rte_pos,
-                    Vector&          rte_los,
-                    Ppath&           ppath,
-                    Ppath&           ppath_step,
-                    // WS Input:
-                    const Index&     atmosphere_dim,
-                    const Vector&    p_grid,
-                    const Tensor3&   z_field,
-                    const Vector &     lat_grid,      
-                    const Vector &     lon_grid,
-                    const Agenda &     ppath_step_agenda,
-                    const Matrix &     r_geoid,
-                    const Matrix &     z_surface,
-                    // Control Parameters:
-                    const Numeric&   tan_p
-                    )
-{
-  //This function is only ready for 1D calculations
-  if (atmosphere_dim > 1)
-    throw runtime_error(
-      "Sorry, this function currently only works for atmosphere_dim==1");
-  
-
-  Index np=p_grid.nelem();
-  Vector log_p_grid(np);
-  Numeric log_p=log10(tan_p);
-  GridPos gp;
-  Vector itw(2);
-  Numeric z;
-  rte_pos.resize(atmosphere_dim);
-  rte_los.resize(atmosphere_dim);
-  
-  //find z for given tangent pressure
-  for (Index i=0;i<np;i++){log_p_grid[i]=log10(p_grid[i]);}
-  
-  gridpos(gp,log_p_grid,log_p);
-  out1 << "gp.index = " << gp.idx << "\n";
-  interpweights(itw,gp);
-  z = interp(itw,z_field(Range(joker),0,0),gp);
-  out1 <<  " Tangent pressure corresponds to an altitude of " << z << "m.\n";
-  
-  //Use ppath to find the desired point on the edge of the atmosphere
-  rte_pos[0]=z+r_geoid(0,0);
-  rte_los[0]=90;
-
-  Index cloudbox_on=0;
-  ArrayOfIndex cloudbox_limits(2);
-  bool outside_cloudbox=true;
-  ppath_calc(ppath,ppath_step,ppath_step_agenda,atmosphere_dim,p_grid,lat_grid,
-         lon_grid,z_field, r_geoid, z_surface,cloudbox_on, cloudbox_limits,
-         rte_pos, rte_los, outside_cloudbox);
-  rte_pos = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
-  rte_los = ppath.los(ppath.np-1,joker);
-  rte_los[0]=180.0-rte_los[0];
 }

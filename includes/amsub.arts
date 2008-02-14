@@ -3,6 +3,8 @@
 Arts {
 
 INCLUDE "general.arts"
+INCLUDE "continua.arts"
+
 
 output_file_formatSetZippedAscii
 

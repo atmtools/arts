@@ -5,6 +5,8 @@
 Arts {
 
 INCLUDE "general"
+INCLUDE "continua.arts"
+
 
 # --------------------< A specific method >--------------------
 #                      -------------------

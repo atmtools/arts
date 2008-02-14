@@ -6772,7 +6772,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "VectorZtanToZaRefr" ),
+      ( NAME( "VectorZtanToZaRefr1D" ),
         DESCRIPTION
         (
          "Converts a set of true tangent altitudes to zenith angles.\n"
@@ -6780,8 +6780,8 @@ md_data_raw.push_back
          "The tangent altitudes are given to the function as a vector, which\n"
          "are converted to a generic vector of zenith angles. The position of\n"
          "the sensor is given by the WSV *sensor_pos*. The function works only\n"
-         "for a spherical geoid. The zenith angles are always set to be\n"
-                 "positive.\n"
+         "for 1D. The zenith angles are always set to be\n"
+         "positive.\n"
          "The tangent altitudes are given as the altitude above the geoid.\n"
          "\n"
          "Generic output: \n"
@@ -6802,7 +6802,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "VectorZtanToZa" ),
+      ( NAME( "VectorZtanToZa1D" ),
         DESCRIPTION
         (
          "Converts a set of geometrical tangent altitudes to zenith angles.\n"
@@ -6810,8 +6810,8 @@ md_data_raw.push_back
          "The tangent altitudes are given to the function as a vector, which\n"
          "are converted to a generic vector of zenith angles. The position of\n"
          "the sensor is given by the WSV *sensor_pos*. The function works only\n"
-         "for a spherical geoid, where the geoid radius is given as a keyword\n"
-         "argument (*r_geoid*). The zenith angles are always set to be positive.\n"
+         "for 1D, where the geoid radius is taken from *r_geoid*. The zenith\n"
+         "angles are always set to be positive.\n"
          "The tangent altitudes are given as the altitude above the geoid.\n"
          "\n"
          "Generic output: \n"
@@ -6819,18 +6819,15 @@ md_data_raw.push_back
          "\n"
          "Generic input: \n"
          "   Vector : A vector with geometric tangent altitudes\n"
-         "\n"
-         "Keywords:\n"
-         "   r_geoid : The geoid radius for the given tangent altitudes.\n"
         ),
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUTPUT( ),
-        INPUT( sensor_pos_ ),
+        INPUT( sensor_pos_, r_geoid_, atmosphere_dim_ ),
         GOUTPUT( Vector_ ),
         GINPUT( Vector_ ),
-        KEYWORDS( "r_geoid" ),
-        DEFAULTS( NODEF ),
-        TYPES( Numeric_t )));
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord

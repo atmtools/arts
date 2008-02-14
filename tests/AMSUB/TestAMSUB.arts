@@ -3,6 +3,7 @@
 Arts {
 
 INCLUDE "amsub.arts"
+INCLUDE "continua.arts"
 
 
 # Set up absorption

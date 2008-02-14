@@ -8,6 +8,8 @@
 Arts {
 
 INCLUDE "general"
+INCLUDE "continua.arts"
+
 
 # Pick out the lines we want from HITRAN and save to arts line file
 # ---

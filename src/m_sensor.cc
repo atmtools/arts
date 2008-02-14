@@ -146,7 +146,7 @@ void ConvertIFToRF(
 
   // Check that frequencies are not too high. This might be a floating limit.
   // For this we use the variable f_lim, given in Hz.
-  Numeric f_lim = 20e9;
+  Numeric f_lim = 25e9;
   if( min(sensor_response_f) > f_lim )
     throw runtime_error("The frequencies seems to already be given in RF.");
 
