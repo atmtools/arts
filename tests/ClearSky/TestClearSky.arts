@@ -30,9 +30,9 @@ ReadXML(abs_lines){"abs_lines.xml"}
 # Note: Should be covered by line catalog.
 # ---
 VectorSetExplicitly(f_grid){[320e9]}
+#IndexSet(nelem){10}
 #VectorNLinSpace(f_grid){start = 320e9
-#                        stop  = 330e9
-#                        n     = 10}
+#                        stop  = 330e9}
 
 # Pressure grid
 # ---

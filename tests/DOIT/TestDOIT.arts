@@ -101,10 +101,10 @@ VectorSet(vector_1){
         value =99.7841941981
 }
 
+#IndexSet(nelem){19}
 #VectorNLinSpace(vector_1){
 #	start = 0
 #	stop = 180
-#	n = 19
 #}
 
 # Sensor altitude from earth surface

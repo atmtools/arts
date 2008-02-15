@@ -111,10 +111,10 @@ VectorSetExplicitly(lo){
 # Also, the same filter response is used for all channels and it is
 # sufficient to give the filter function once. This can be described 
 # by a 2x2 matrix.
+IndexSet(nelem){2}
 VectorNLinSpace(vector_1){
   start = 85e9
   stop = 200e9
-  n = 2
 }
 IndexSet(nelem){ 2 }
 VectorSet(vector_2){

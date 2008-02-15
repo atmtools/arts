@@ -134,14 +134,14 @@ void ConvertIFToRF(
                    const Vector&    lo,
                    const Index&     atmosphere_dim,
                    const Matrix&    sensor_pos,
-                   // Control Parameters:
-                   const String&    output )
+                   const String&    sideband_mode )
 {
   // This function only supports single mixer spectra, so far. So first
   // check that *lo* only has one element.
   if( lo.nelem()!=1 )
     throw runtime_error(
       "The *ConvertIFToRF* function only supports single mixer setups.");
+
   Numeric l = lo[0];
 
   // Check that frequencies are not too high. This might be a floating limit.
@@ -161,8 +161,8 @@ void ConvertIFToRF(
     throw runtime_error(
       "The measurement vector *y* does not have the correct size.");
 
-  // Check what output option is wanted
-  if( output=="lower" ) {
+  // Check what sideband_mode option is wanted
+  if( sideband_mode=="lower" ) {
     // Only lower sideband will be output, the sizes of the output vectors
     // will not increase, only the values are changed.
     // First we reverse *sensor_response_f* and subtract it from *lo*
@@ -189,13 +189,13 @@ void ConvertIFToRF(
     sensor_response_f = f_out;
     y = y_out;
 
-  } else if( output=="upper") {
+  } else if( sideband_mode=="upper") {
     // Only upper sideband will be output, as above the sizes will not change
     // This time we only need to add *lo* to *sensor_response_f*
     // The measurement vector *y* is untouched.
     sensor_response_f += l;
 
-  } else if( output=="double") {
+  } else if( sideband_mode=="double") {
     // Both upper and lower sideband will be output. The size of both the
     // frequency and measurement vectors will be doubled.
     // First copy the content of *sensor_response_f* twice to f_out, first

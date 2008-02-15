@@ -629,9 +629,9 @@ void ybatchMetProfiles(//Output
       //Making a p_grid with the first and last element taken from the profile.
       VectorNLogSpace(p_grid, 
               "p_grid", 
+              nelem_p_grid,
               t_field_raw.p_grid[0], 
-              t_field_raw.p_grid[N_p -1], 
-              nelem_p_grid);
+              t_field_raw.p_grid[N_p -1]);
       
       /*To set the cloudbox limits, the lower and upper cloudbox limits
     are to be set.  The lower cloudbox limit is set to the lowest
@@ -853,9 +853,9 @@ void ybatchMetProfilesClear(//Output
       
       VectorNLogSpace(p_grid, 
               "p_grid", 
+              nelem_p_grid,
               t_field_raw.p_grid[0], 
-              t_field_raw.p_grid[N_p -1], 
-              nelem_p_grid);
+              t_field_raw.p_grid[N_p -1]);
       cout<<"t_field_raw[0](0,0,0)"<<t_field_raw.p_grid[0]<<endl;
       cout<<"t_field_raw[0](N_p -1,0,0)"<<t_field_raw.p_grid[N_p -1] <<endl;
       xml_write_to_file("p_grid.xml", p_grid);

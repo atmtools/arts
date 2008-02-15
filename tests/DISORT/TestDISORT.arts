@@ -96,10 +96,10 @@ AgendaSet(surface_prop_agenda){
 #        value = 150
 #}
 
+IndexSet(nelem){9}
 VectorNLinSpace(vector_1){
 	start = 100
 	stop = 180
-	n = 9
 }
 
 # Sensor altitude from earth surface

@@ -1,11 +1,6 @@
-# This is a test doing Odin-SMR simulations.
-#
-# The calculations are using multiple measuremeent blocks and the control file
-# can easily be modified to work for 2D or 3D atmospheres.
-# For 1D limb sounding it can be more effecient to do the simulations inside
-# a single measurement block. Especially if the number tangent altitudes are 
-# high and the spacing between tangent altitudes small. See TestOdinSMR_1D.arts
-# for an example on such calculations.
+# This is a test doing Odin-SMR simulations. Same test as in
+# testOdinSMR, but the calculations are here performed inside a single
+# measurement block. This approach can only be used for 1D.
 #
 # Author: Patrick Eriksson
 
@@ -14,8 +9,7 @@ Arts {
 
 # Select frequency band here:
 #
-#INCLUDE "odinsmr_501.arts"
-INCLUDE "odinsmr_544.arts"
+INCLUDE "odinsmr_501_1D.arts"
 
 
 # Possibility to change considered species
@@ -69,24 +63,8 @@ AgendaSet(abs_scalar_gas_agenda){
 
 # ---- Sensor position and LOS -----------------------------------------------
 
-# Number of tangent altitudes
-IndexSet(nelem){4}
-
-# Orbit altitude set to 600 km
-VectorSet(vector_1){ 600e3 }
-Matrix1ColFromVector(sensor_pos,vector_1){}
-sensor_posAddRgeoid{}
-
-# LOS, specified by the corresponding geometrical tangent altitudes
-# Tangent altitudes will be equally spaced between 50 and 20 km
-VectorNLinSpace(vector_1){ 
-  start = 50e3
-  stop  = 20e3
-}
-Copy(vector_2,vector_1){}
-VectorZtanToZa1D(vector_1,vector_1){}
-Matrix1ColFromVector(sensor_los,vector_1){}
-
+# Tangent altitudes are here determined when creating sensor response matrix.
+# The tangent altitudes are stored in *vector_2*.
 
 
 # ---- Calculate, switch to RF and save
@@ -96,7 +74,7 @@ RteCalc{}
 ConvertIFToRF{}
 
 WriteXML(sensor_response_f){""}
-WriteXML(vector_2){"TestOdinSMR.ztan.xml"}
+WriteXML(vector_2){"TestOdinSMR_1D.ztan.xml"}
 WriteXML(y){""}
 
 }

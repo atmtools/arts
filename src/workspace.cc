@@ -3198,6 +3198,25 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "sideband_mode" ),
+      DESCRIPTION
+      (
+        "Description of target sideband(s).\n"
+        "\n"
+        "A text string describing which of the two sidebands that can be\n"
+        "seen as \"main\" band. Possible choices are:\n"
+        " \"double\": Double sideband measurement. Roughly equal weight for\n"
+        "             both bands.\n"
+        " \"lower\" : Single sideband (SSB) measurements, where lower band\n"
+        "             is main band.\n"
+        " \"upper\" : SSB with upper band as main band..\n"
+        "\n"
+        "Usage: Set by the user.\n"
+       ),
+      GROUP( String_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "sparse_1" ),
       DESCRIPTION
       (

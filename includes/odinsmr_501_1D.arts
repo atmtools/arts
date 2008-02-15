@@ -1,0 +1,135 @@
+# As odinsmr_501.arts but the calculations are here done using a single 
+# measurement block.
+#
+# The creation of the sensor response matrix takes here a longer time
+# and this option is most beneficial if the number of spectra is high
+# and there is a considerable overlap of the antenna pattern for
+# different tangent altitudes. 
+#
+# A small part of an Odin-SMR scan is here considered. The tangent altitude
+# spacing is 1.5 km for the shortest integration time.
+#
+# Author: Patrick Eriksson
+
+
+Arts {
+
+INCLUDE "general.arts"
+INCLUDE "odinsmr.arts"
+
+
+# A number of species with very weak emission are here neglected
+SpeciesSet(abs_species){[
+  "H2O,H2O-ForeignContStandardType,H2O-SelfContStandardType",
+  "N2-SelfContMPM93",
+  "O2,O2-PWR98",
+  "O3",
+  "ClO",
+  "N2O" ]
+}
+
+# Line file
+abs_linesReadFromArts{ 
+  filename = "linefile.SM_AC2ab.al" 
+  fmin     = 0
+  fmax     = 2e12
+}
+
+
+
+# Frequency grid
+
+ReadXML(f_grid){"f_mono.SM_AC2ab.xml"}
+
+
+
+#
+# Sensor characteristics
+# 
+
+IndexSet(sensor_norm){1}
+
+# ----- Antenna: -------------------------------------------------------------
+
+# Final sensor_pos and los will here have length 1. The selection of
+# sensor_los is arbitrary as long as the sum of sensor_los and
+# antenna_los gives correct observation directions. It is here selected to
+# put sensor_los to 0.
+
+AntennaSet1D{}
+
+# The folder contains antenna pattern for different integration times.
+# The pattern for smallest integration time is selected here.
+ReadXML(antenna_diagram){"antenna.SM_AC2ab.875ms.xml"}
+
+# Number of pencil beam directions
+IndexSet(nelem){55}
+
+# We need sensor_pos as input to *VectorZtanToZa1D*
+VectorSet(vector_1){ 600e3 }
+Matrix1ColFromVector(sensor_pos,vector_1){}
+sensor_posAddRgeoid{}
+
+# Create vector of pencil beam directions
+VectorNLinSpace(vector_1){ 
+  start = 37e3
+  stop  = 9e3
+}
+VectorZtanToZa1D(mblock_za_grid,vector_1){}
+
+
+# Number of tangent altitudes
+IndexSet(nelem){5}
+
+# We need sensor_pos as input to *VectorZtanToZa1D*
+VectorSet(vector_1){ 600e3 }
+Matrix1ColFromVector(sensor_pos,vector_1){}
+sensor_posAddRgeoid{}
+
+# Create vector of zenith angles for selected tangent altitudes
+# Store tangent altitudes in *vector_2*
+VectorNLinSpace(vector_1){ 
+  start = 26e3
+  stop  = 20e3
+}
+Copy(vector_2,vector_1){}
+VectorZtanToZa1D(vector_1,vector_1){}
+Matrix1ColFromVector(antenna_los,vector_1){}
+
+# Set *sensor_pos*
+VectorSetExplicitly(vector_1){ [600e3] }
+Matrix1ColFromVector(sensor_pos,vector_1){}
+sensor_posAddRgeoid{}
+
+# Set *sensor_los*
+VectorSetExplicitly(vector_1){ [0] }
+Matrix1ColFromVector(sensor_los,vector_1){}
+
+# ----- End of  antenna part --------------------------------------------------
+
+
+
+# Polarisation:
+#
+IndexSet(nrows){1}
+IndexSet(ncols){1}
+MatrixSet(sensor_pol){1}
+
+# Mixer:
+#
+VectorSetExplicitly(lo){[497.88e9]}
+ReadXML(matrix_1){"sideband.SM_AC2ab.xml"}
+StringSet(sideband_mode){ "upper" }
+
+# Spectrometer:
+#
+ReadXML(f_backend){"f_backend.SM_AC2ab.xml"}
+ReadXML(arrayofmatrix_1){"backend.xml"}
+
+
+sensor_responseInit{}
+sensor_responseAntenna1D{}
+sensor_responseMixer(matrix_1){}
+sensor_responseBackend(arrayofmatrix_1){}
+
+} # End Arts

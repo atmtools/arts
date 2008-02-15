@@ -940,9 +940,9 @@ void VectorMatrixMultiply(// WS Generic Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorNLinSpace(     Vector&    x, 
                     const String&    x_name,
+                    const Index&     n,
                     const Numeric&   start,
-                    const Numeric&   stop,
-                    const Index&     n )
+                    const Numeric&   stop )
 {
   if ( n<2 ) 
     throw runtime_error("The number of points must be > 1."); 
@@ -961,9 +961,9 @@ void VectorNLinSpace(     Vector&    x,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorNLogSpace(       Vector&    x, 
                       const String&    x_name,
+                      const Index&     n,
                       const Numeric&   start,
-                      const Numeric&   stop,
-                      const Index&     n )
+                      const Numeric&   stop )
 {
   if ( n<2 )
     throw runtime_error("The number of points must be > 1."); 

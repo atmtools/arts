@@ -2116,8 +2116,11 @@ void define_md_data_raw()
       ( NAME("ConvertIFToRF"),
         DESCRIPTION
         (
-         "Convert *sensor_response_f* from IF to RF, the function also\n"
+         "Convert *sensor_response_f* from IF to RF. The function also\n"
          "unfolds the measurement spectra *y*.\n"
+         "\n"
+         "Type of reciever (DSB/SSB) and main band are set by\n"
+         "*sideband_mode*.\n"
          "\n"
          "This function should be used when the sensor configuration contains\n"
          "a mixer and the spectra should be given in brightness temperature.\n"
@@ -2128,20 +2131,16 @@ void define_md_data_raw()
          "Note that the number of elements in both *sensor_response_f* and\n"
          "*y* will potentially increase, since the IF is mapped to both the\n"
          "lower and upper sidebands.\n"
-         "\n"
-         "Keyword: \n"
-         "   output : Which sideband(s) to output, \"lower\", \"upper\" or\n"
-         "            \"double\"\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( sensor_response_f_, y_ ),
         INPUT( sensor_pol_, sensor_response_za_, sensor_response_aa_, lo_,
-               atmosphere_dim_, sensor_pos_ ),
+               atmosphere_dim_, sensor_pos_, sideband_mode_ ),
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( "output" ),
-        DEFAULTS( NODEF ),
-        TYPES(    String_t )));
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6572,7 +6571,7 @@ md_data_raw.push_back
       ( NAME("VectorNLinSpace"),
         DESCRIPTION
         (
-         "Creates a vector with defined length, equally spaced between the \n"
+         "Creates a vector with length *nelem*, equally spaced between the \n"
          "given end values. \n"
          "\n"
          "The length must be larger than 1. \n"
@@ -6583,23 +6582,22 @@ md_data_raw.push_back
          "Keywords:\n"
          "   start : The start value. \n"
          "    stop : The end value. \n"  
-         "       n : Number of elements of the vector.\n" 
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
-        INPUT( ),
+        INPUT( nelem_ ),
         GOUTPUT(Vector_),
         GINPUT( ),
-        KEYWORDS( "start",   "stop",    "n"   ),
-        DEFAULTS( NODEF,     NODEF,     NODEF ),
-        TYPES(    Numeric_t, Numeric_t, Index_t )));
+        KEYWORDS( "start",   "stop"    ),
+        DEFAULTS( NODEF,     NODEF     ),
+        TYPES(    Numeric_t, Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorNLogSpace"),
         DESCRIPTION
         (
-         "Creates a vector with defined length, equally logarithmically \n"
+         "Creates a vector with length *nelem*, equally logarithmically \n"
          "spaced between the given end values. \n"
          "\n"
          "The length must be larger than 1. \n"
@@ -6614,12 +6612,12 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
-        INPUT( ),
+        INPUT( nelem_ ),
         GOUTPUT(Vector_),
         GINPUT( ),
-        KEYWORDS( "start",   "stop",    "n"   ),
-        DEFAULTS( NODEF,     NODEF,     NODEF ),
-        TYPES(    Numeric_t, Numeric_t, Index_t )));
+        KEYWORDS( "start",   "stop"    ),
+        DEFAULTS( NODEF,     NODEF     ),
+        TYPES(    Numeric_t, Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord

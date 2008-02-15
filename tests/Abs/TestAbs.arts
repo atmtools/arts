@@ -26,10 +26,10 @@ abs_linesReadFromArts {
 #}
 #linesWriteAscii{"lines.ac"}
 
+IndexSet(nelem){10}
 VectorNLogSpace(p_grid){
         start = 100000
         stop  = 10
-        n     = 10
 }
  
 # This defines the list of absorption species. 
@@ -72,10 +72,10 @@ abs_h2oSet
 abs_n2Set
 
 # Create the frequency grid `f_grid':
+IndexSet(nelem){100}
 VectorNLinSpace (f_grid) {
         start = 50e9
-        stop  = 150e9
-        n     = 100    
+        stop  = 150e9    
 }
 
 # set the lineshape function for all calculated tags
@@ -110,10 +110,10 @@ VectorSetExplicitly(abs_t_pert){[]}
 
 # Set non-linear species VMR perturbation vector for lookup table:
 VectorSetExplicitly(abs_nls_pert){[]}
+#IndexSet(nelem){5}
 #VectorNLogSpace(abs_nls_pert){
 #	start = 0.01
-#	stop = 100
-#	n = 5
+#	stop = 10
 #}
 
 abs_lookupCreate

@@ -175,11 +175,6 @@ void antenna_matrix(          Sparse&   H,
         //
         if( newza || a_this!=a_old || p_this!=p_old || f_this!=f_old ) 
           {
-            out2 << "--- TEMPORARY OUTPUT ---\n";
-            out2 << "New antenna pattern for:\n" << 
-                    "   a : " << a << "\n"
-                    "   p : " << p << "\n"
-                    "   f : " << f << "\n";
             sensor_integration_vector( temp_za,
                                      (diag[a_this])[p_this](joker, 1+f_this),
                                      za_rel, m_za );

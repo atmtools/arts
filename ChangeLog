@@ -1,3 +1,49 @@
+2008-02-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-3-0
+
+	Some control files need to be changed !!!
+	
+	* New sub-version (on request from Stefan) as usage of
+	VectorNLinSpace and VectorNLogSpace changed. The number of
+	elements now specified by *nelem*.  This in order to be consistent
+	with e.g. VectorSet and simplify to make control files where
+	vector lengths must be matched.
+
+	* Test case for Odin-SMR created. Data exist for both 501 and 544
+	GHz bands. Settings for operational retrievals have been followed
+	as closely as possibly. Antenna patterns provided for different
+	integration times.
+
+	* tests/DOIT/TestDOIT.arts: Adjusted call of VectorNLin/Log in these 
+	* tests/DISORT/TestDISORT.arts: files.
+	* tests/ClearSky/TestClearSky.arts: 
+	* tests/Abs/TestAbs.arts: 
+	* includes/amsub.arts: 
+
+	* tests/OdinSMR/TestOdinSMR_1D.arts: Created.
+	* includes/odinsmr_501_1D.arts: Created.
+	
+	* includes/odinsmr_501.arts: Improved and polished
+	* includes/odinsmr_544.arts: Improved and polished
+	* includes/odinsmr.arts: Improved and polished
+	* tests/OdinSMR/TestOdinSMR.arts: Improved and polished.
+
+	* tests/OdinSMR/plot_results.m: Now also handling 1D case.
+
+	* tests/OdinSMR/setup_input.m: Now creating antenna patterns for
+	different integration times.
+
+	* src/m_batch.cc: Adjusted calls of VectorNlogSpace.
+
+	* src/m_basic_types.cc 
+	(VectorNLinSpace): Now using *nelem*.
+	(VectorNLogSpace): As above.
+
+	* src/workspace.cc: Added sideband_mode. 
+
+	* src/m_sensor.cc (ConvertIFToRF): Now using sideband_mode. 
+
 2008-02-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-2-12
