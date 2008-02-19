@@ -1,3 +1,24 @@
+2008-02-19  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-3-1
+
+	* src/parser.{cc,h}: Renamed to parser_old.{cc,h}.
+
+	* src/main.cc, src/make_auto_md_h.cc, src/parser.cc:
+
+	Include parser_old.h.
+
+	* src/Makefile.am: Change parser.{cc,h} to parser_old.{cc.h}.
+
+	* src/main.cc (main):
+
+	Reword non-OpenMP error message for --numthreads.
+
+	* tests/DOIT/TestDOIT.arts:
+
+	Cosmetic changes to give nicer diff output for the changes I'm
+	testing.
+
 2008-02-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-3-0

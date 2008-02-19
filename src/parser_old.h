@@ -18,8 +18,8 @@
 /* Header file for functions and classes related to parsing the
    control text. */ 
 
-#ifndef parser_h
-#define parser_h
+#ifndef parser_old_h
+#define parser_old_h
 
 #include <map>
 #include "agenda_class.h"

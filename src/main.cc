@@ -36,7 +36,7 @@
 #include "exceptions.h"
 #include "file.h"
 #include "methods.h"
-#include "parser.h"
+#include "parser_old.h"
 #include "auto_md.h"
 #include "absorption.h"
 #include "wsv_aux.h"
@@ -699,8 +699,7 @@ int main (int argc, char **argv)
       omp_set_num_threads (parameters.numthreads);
 #else
       cerr << "Ignoring commandline option --numthreads/-n.\n"
-           << "This option takes effect only if Arts was compiled with "
-           << "OpenMP support.\n";
+           << "This option only works with an OpenMP enabled ARTS build.\n";
 #endif
     }
 

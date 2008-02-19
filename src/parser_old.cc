@@ -22,7 +22,7 @@
 #include "file.h"
 #include "auto_wsv.h"
 #include "methods.h"
-#include "parser.h"
+#include "parser_old.h"
 #include "wsv_aux.h"
 #include "parameters.h"
 

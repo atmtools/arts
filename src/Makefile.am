@@ -109,8 +109,8 @@ libarts_a_SOURCES = \
 	optproperties.h \
 	parameters.cc \
 	parameters.h \
-	parser.cc \
-	parser.h \
+	parser_old.cc \
+	parser_old.h \
 	ppath.h \
 	ppath.cc \
 	poly_roots.h \
