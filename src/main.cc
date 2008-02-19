@@ -36,7 +36,7 @@
 #include "exceptions.h"
 #include "file.h"
 #include "methods.h"
-#include "parser_old.h"
+#include "parser.h"
 #include "auto_md.h"
 #include "absorption.h"
 #include "wsv_aux.h"
@@ -937,7 +937,9 @@ int main (int argc, char **argv)
         }
 
       // Call the parser to parse the control text:
-      parse_main(tasklist, text);
+      ArtsParser arts_parser (tasklist, text);
+      arts_parser.parse_tasklist();
+      //parse_main(tasklist, text);
       
       tasklist.set_name("Arts");
 

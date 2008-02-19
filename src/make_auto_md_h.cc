@@ -612,7 +612,7 @@ int main()
 
       ofs << "#include \"matpackI.h\"\n"
           << "#include \"auto_wsv.h\"\n"
-          << "#include \"parser_old.h\"\n"
+          << "#include \"parser.h\"\n"
           << "#include \"workspace_ng.h\"\n"
           << "\n";
 

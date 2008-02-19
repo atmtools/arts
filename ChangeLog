@@ -1,5 +1,30 @@
 2008-02-19  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-3-2
+
+	* src/parser.{cc,h}:
+
+	Added.
+
+	Created a new parser class. This is the first object-oriented version
+	doing just the same as the old functional parser. This is a
+	preparation which should ease the upcoming implementation of new
+	features.
+
+	* src/Makefile.am:
+	
+	Add new parser.{cc,h}, remove parser_old.{cc,h}.
+
+	* src/main.cc: Remove parser_old.{cc,h} and include the new parser.
+
+	* src/parser_old.{cc,h}, src/parser.{cc,h}:
+
+	Move SourceText class from old to new parser.
+
+	* src/parser_old.h: Include parser.h.
+
+2008-02-19  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-3-1
 
 	* src/parser.{cc,h}: Renamed to parser_old.{cc,h}.
