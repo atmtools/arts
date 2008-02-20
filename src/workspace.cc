@@ -1020,6 +1020,18 @@ void define_wsv_data()
  
  wsv_data.push_back
    (WsvRecord
+    ( NAME( "doit_is_initialized" ),
+      DESCRIPTION
+      (
+       "Flag to determine if *DoitInit* was called.\n"
+       "\n"
+       "This flag is checked by *ScatteringDoit* to make sure that\n"
+       "*DoitInit* was called before.\n"
+       ),
+      GROUP( Index_ )));
+
+ wsv_data.push_back
+   (WsvRecord
     ( NAME( "doit_iteration_counter" ),
       DESCRIPTION
       (

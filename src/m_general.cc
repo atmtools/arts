@@ -191,16 +191,17 @@ void Print(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void PrintWorkspace(
+        // Workspace reference
+        Workspace& ws,
         // Keywords:
         const Index&   level)
 {
-  extern Workspace workspace;
   ostringstream os;
 
-  os << "  Allocated workspace variables:\n";
-  for (Index i = 0; i < workspace.nelem(); i++)
+  os << "  Allocated workspace variables: ";
+  for (Index i = 0; i < ws.nelem(); i++)
     {
-      if (workspace.is_initialized(i))
+      if (ws.is_initialized(i))
         {
           os << "  ";
           PrintWsvName (os, i);

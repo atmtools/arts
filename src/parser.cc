@@ -25,9 +25,10 @@
 #include "wsv_aux.h"
 
 
-ArtsParser::ArtsParser(Agenda& tasklist, SourceText& source)
-  : mtasklist (tasklist), msource (source)
+ArtsParser::ArtsParser(Agenda& tasklist, String controlfile)
+  : mtasklist (tasklist), mcfile (controlfile)
 {
+  msource.AppendFile (mcfile);
 }
 
 
@@ -205,8 +206,6 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
           // Command line parameters which give us the include search path.
           extern const Parameters parameters;
 
-          SourceText include_text;
-
           if (!find_file (include_file, ".arts"))
             {
               ostringstream os;
@@ -220,8 +219,7 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
 
           out3 << "- Including control file " << include_file << "\n";
 
-          include_text.AppendFile (include_file);
-          ArtsParser include_parser (tasks, include_text);
+          ArtsParser include_parser (tasks, include_file);
           include_parser.parse_tasklist();
 
           for (Index i = 0; i < tasks.nelem(); i++)
@@ -1515,139 +1513,4 @@ bool ArtsParser::parse_stringarray_from_string (ArrayOfString& res, String& str)
 
   return true;
 }
-
-
-void SourceText::AppendFile(const String& name) 
-{
-  mSfLine.push_back(mText.nelem());
-  mSfName.push_back(name);
-
-  read_text_from_file(mText, name);    
-}
-
-
-void SourceText::AdvanceChar() 
-{
-  if ( mColumn < mText[mLine].nelem()-1 )
-    {
-      ++mColumn;
-    }
-  else
-    {
-      mLineBreak = true;
-      do
-        {
-          if (mLine>=mText.nelem()-1)
-            {
-              throw Eot( "",
-                         this->File(),
-                         this->Line(),
-                         this->Column() ); 
-            }
-          else
-            {
-              ++mLine;
-              mColumn = 0;
-            }
-        }
-      while ( 1 > mText[mLine].nelem() ); // Skip empty lines.
-    }
-}
-
-
-void SourceText::AdvanceLine() 
-{
-  mLineBreak = true;
-  mColumn = 0;
-  do
-    {
-      if (mLine>=mText.nelem()-1)
-        {
-          throw Eot( "",
-                     this->File(),
-                     this->Line(),
-                     this->Column() ); 
-        }
-      else
-        {
-          ++mLine;
-        }
-    }
-  while ( 1 > mText[mLine].nelem() ); // Skip empty lines.
-}
-
-
-const String& SourceText::File()
-{
-  Index i    = 0;
-  bool   stop = false;
-
-  while ( i<mSfLine.nelem()-1 && !stop )
-    {
-      if (mLine>=mSfLine[i+1]) ++i;
-      else                     stop = true;
-    }
-
-  return mSfName[i];
-}
-
-
-Index SourceText::Line()
-{
-  Index i    = 0;
-  bool   stop = false;
-
-  while ( i<mSfLine.nelem()-1 && !stop )
-    {
-      if (mLine>=mSfLine[i+1]) ++i;
-      else                     stop = true;
-    }
-
-  return mLine - mSfLine[i] + 1; 
-}
-
-
-void SourceText::Init()
-{
-  mLine   = 0;
-  mColumn = 0;
-    
-  if ( 1 > mText.nelem() )
-    {
-      throw Eot( "Empty text!",
-                 this->File(),
-                 this->Line(),
-                 this->Column() ); 
-    }
-  else
-    {
-      // Skip empty lines:
-      while ( 1 > mText[mLine].nelem() )
-        {
-          if (mLine>=mText.nelem()-1)
-            {
-              throw Eot( "",
-                         this->File(),
-                         this->Line(),
-                         this->Column() ); 
-            }
-          else
-            {
-              mLineBreak = true;
-              ++mLine;
-            }
-        }
-    }
-}
-
-
-ostream& operator << (ostream& os, const SourceText& text)
-{
-  for (Index i=0; i<text.mText.nelem();++i)
-    cout << i
-         << "(" << text.mText[i].nelem() << ")"
-         << ": " << text.mText[i] << '\n';
-  return(os);
-}
-
 

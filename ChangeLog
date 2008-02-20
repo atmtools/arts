@@ -1,3 +1,44 @@
+2008-02-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-3-3
+
+	* src/parser.{cc,h}, src/sourcetext.{cc,h}:
+
+	Move the SourceText class into its own file.
+
+	* src/globals_2.cc: Get rid of the global Workspace variable.
+
+	* src/main.cc (main):
+
+	Execute all controlfiles specified on the commandline.
+
+	Use a local workspace object instead of the obsolete global one.
+
+	* src/m_general.{cc,h} (PrintWorkspace), src/m_delete.h (Delete):
+
+	Use the new passworkspace feature.
+
+	* src/m_scatrte.cc (ScatteringDoit, DoitInit), src/workspace.cc,
+	src/methods.cc:
+
+	Add new WSV doit_is_initialized. This way ScatteringDoit can check if
+	DoitInit was called before without accessing the workspace object
+	directly.
+
+	* src/methods.{cc,h} src/methods_aux.cc:
+
+	Add new option pass_workspace to MdRecord. Since we don't have a global
+	workspace anymore, some methods must have direct access to the
+	workspace (like Delete). If pass_workspace is true, the getaway
+	function will pass a reference to the current workspace to the WSM.
+
+	Add PASSWORKSPACE to Delete and PrintWorkspace.
+
+	* src/make_auto_md_{cc,h}.cc:
+
+	If the PassWorkspace flag is true, pass a workspace reference to the
+	WSM.
+
 2008-02-19  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-3-2

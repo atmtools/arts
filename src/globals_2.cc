@@ -42,8 +42,6 @@
 #include "methods.h"
 #include "workspace_ng.h"
 
-//! The new workspace.
-Workspace workspace;
 
 //                     ---------------
 //--------------------< Methods Stuff >--------------------

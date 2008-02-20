@@ -145,6 +145,8 @@ void Print(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void PrintWorkspace(
+        // Workspace reference
+        Workspace& ws,
         // Keywords:
         const Index&   level);
 

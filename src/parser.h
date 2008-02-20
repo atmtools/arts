@@ -20,13 +20,12 @@
 
 #include <map>
 #include "agenda_class.h"
+#include "sourcetext.h"
 
-
-class SourceText;
 
 class ArtsParser {
 public:
-  ArtsParser(Agenda& tasklist, SourceText& source);
+  ArtsParser(Agenda& tasklist, String controlfile);
 
   void parse_tasklist ();
 
@@ -74,92 +73,11 @@ private:
   bool parse_stringarray_from_string (ArrayOfString& res, String& str);
 
   Agenda& mtasklist;
-  SourceText& msource;
-};
 
+  String mcfile;
 
-/** A smart class to hold the text for parsing. A variable of this
-    class can hold not only the text of the ARTS Control file, but
-    also a position in the text. This is handy for parsing. There is
-    also a function to return the current character and functions to
-    advance the position. (AdvanceChar advances the position to the
-    next character, doing a line break if necessary; AdvanceLine goes
-    to the next line.)
-    
-    mLine and mColumn are 0 based, but Line and Column are 1 based.
-    
-    @author Stefan Buehler */
-class SourceText {
-public:
-
-  /** Default constructor. */
-  SourceText() :  mLine(0), mColumn(0) { /* Nothing to be done here. */ };
-
-  /** Appends contents of file to the source text.
-      @see read_text_from_file */
-  void AppendFile(const String& name);
-
-  /** Return the current character. */
-  char Current() {
-    return mText[mLine][mColumn];
-  }
-
-  /** Advance position pointer by one character. Sets mLineBreak if a
-      line break occured.  
-   
-      @exception Eot The end of text is reached. */
-  void AdvanceChar();
-
-  /** Advances position pointer by one line.
-
-      @exception Eot The end of the text is reached. */
-  void AdvanceLine();
-
-  /** Return the filename associated with the current position. */
-  const String& File();
-
-  /** Return the line number, but for the file that is associated
-      with the current position. */
-  Index Line();
-
-  /** Return the current column. */
-  Index Column() { return mColumn+1; }
-
-  /** This sets the pointer to the first existing character in the
-      text. (First few lines could be empty). */
-  void Init();
-
-  /** Read the line break flag. Set this to false before an operation
-      that you want to monitor and check it afterwards. */
-  bool& LineBreak() { return mLineBreak; }
-
-  /** Const version of LineBreak
-      @see LineBreak */
-  bool  LineBreak() const { return mLineBreak; }
-
-  /** Output operator for SourceText. (Only used for debugging) */
-  friend ostream& operator << (ostream& os, const SourceText& text);
-
-private:
-
-  /** The text. */
-  ArrayOfString mText;
-
-  /** Line position in the text. (0 based!) */
-  Index mLine;
-
-  /** Column position in the text. (0 based!) */
-  Index mColumn;
-
-  /** Remember where which source file starts. */
-  ArrayOfIndex mSfLine;
-
-  /** Names associated with @see mSfLine. */
-  ArrayOfString mSfName;
-
-  /** Is set to true if the last operation caused a line
-      break. Has to be cleared explicitly! */
-  bool mLineBreak;
+  SourceText msource;
 };
 
 #endif /* parser_h */
+

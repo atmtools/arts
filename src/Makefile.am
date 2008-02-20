@@ -128,6 +128,8 @@ libarts_a_SOURCES = \
 	scatrte.cc \
 	scatrte.h \
 	sorting.h \
+	sourcetext.cc \
+	sourcetext.h \
 	special_interp.cc \
 	special_interp.h \
 	sstream.h \

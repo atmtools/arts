@@ -36,16 +36,16 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
-Delete(
-      // WS Generic Input:
-      const T&        x _U_,
-      // WS Generic Input Names:
-      const String&   x_name )
+Delete(// Workspace reference
+       Workspace& ws,
+       // WS Generic Input:
+       const T&        x _U_,
+       // WS Generic Input Names:
+       const String&   x_name )
 {
-  extern Workspace workspace;
   extern map<String, Index> WsvMap;
 
-  workspace.pop_free (WsvMap.find (x_name)->second);
+  ws.pop_free (WsvMap.find (x_name)->second);
 }
 
 

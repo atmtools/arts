@@ -155,7 +155,7 @@ int main()
               // Use parameter name only if it is used inside the function
               // to avoid warnings
               ws = " ws";
-              if (!vo.nelem () && !vi.nelem () && !vgo.nelem () && !vgi.nelem ())
+              if (!mdd.PassWorkspace() && !vo.nelem () && !vi.nelem () && !vgo.nelem () && !vgi.nelem ())
               {
                 ws = "";
               }
@@ -230,6 +230,12 @@ int main()
             }
 
           ofs << "  " << mdd.Name() << "(";
+
+          if (mdd.PassWorkspace())
+            {
+              ofs << "ws";
+              is_first_parameter = false;
+            }
 
           // Write the Output workspace variables:
           for (Index j=0; j<vo.nelem(); ++j)

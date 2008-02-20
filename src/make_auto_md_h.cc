@@ -162,6 +162,11 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
 
   ofs << "\n";
 
+  if ( mdd.PassWorkspace() )
+    {
+      ofs << indent << "\\param[in,out] " << "ws Workspace\n";
+    }
+
   // Write the Output workspace variables:
   for (Index j=0; j<vo.nelem(); ++j)
     {
@@ -317,6 +322,13 @@ void write_method_header( ofstream& ofs,
 
   // Start with the name of the method:
   ofs << "void " << fullname << "(";
+
+  if (mdd.PassWorkspace ())
+    {
+      ofs << "// Workspace reference:\n";
+      ofs << indent << "Workspace& ws";
+      is_first_parameter = false;
+    }
 
   // Write the Output workspace variables:
   {

@@ -918,34 +918,30 @@ int main (int argc, char **argv)
       out2 << "Running without OpenMP.\n";        
 #endif
 
-
-      // The list of methods to execute and their keyword data from
-      // the control file. 
-      Agenda tasklist;
-      extern Workspace workspace;
-      tasklist.set_workspace (&workspace);
-
-      // The text of the controlfile.
-      SourceText text;
-        
-      // Read the control text from the control files:
       out3 << "\nReading control files:\n";
       for ( Index i=0; i<parameters.controlfiles.nelem(); ++i )
         {
           out3 << "- " << parameters.controlfiles[i] << "\n";
-          text.AppendFile(parameters.controlfiles[i]);
+
+          // The list of methods to execute and their keyword data from
+          // the control file. 
+          Agenda tasklist;
+
+          Workspace* workspace = new Workspace();
+          tasklist.set_workspace (workspace);
+
+          // Call the parser to parse the control text:
+          ArtsParser arts_parser(tasklist, parameters.controlfiles[i]);
+
+          arts_parser.parse_tasklist();
+
+          tasklist.set_name("Arts");
+
+          // Execute main agenda:
+          Arts(tasklist);
+
+          delete workspace;
         }
-
-      // Call the parser to parse the control text:
-      ArtsParser arts_parser (tasklist, text);
-      arts_parser.parse_tasklist();
-      //parse_main(tasklist, text);
-      
-      tasklist.set_name("Arts");
-
-      // Execute main agenda:
-      Arts(tasklist);
-
     }
   catch (runtime_error x)
     {

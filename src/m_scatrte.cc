@@ -1396,6 +1396,7 @@ void DoitInit(
               Tensor6& doit_scat_field,
               Tensor6& doit_i_field,
               Index& doit_za_interp,
+              Index& doit_is_initialized,
               // WS Input
               const Index& stokes_dim,
               const Index& atmosphere_dim,
@@ -1512,6 +1513,7 @@ void DoitInit(
   if (doit_za_interp != 1)
     doit_za_interp = 0;
   
+  doit_is_initialized = 1;
 }
 
 
@@ -2324,7 +2326,8 @@ void ScatteringDoit(
                     Tensor7& scat_i_lon,
                     Tensor4& doit_i_field1D_spectrum,
                     const Vector& f_grid,
-                    const Agenda& doit_mono_agenda
+                    const Agenda& doit_mono_agenda,
+                    const Index& doit_is_initialized
                     )
                   
 {
@@ -2339,13 +2342,7 @@ void ScatteringDoit(
   chk_if_increasing( "f_grid", f_grid );
 
   // Check whether DoitInit was executed
-  extern const map<String, Index> WsvMap;
-  extern Workspace workspace;
-  
-  map<String, Index>::const_iterator mi =
-    WsvMap.find( "scat_p_index" );
-
-  if (!workspace.is_initialized(mi->second))
+  if (!doit_is_initialized)
     throw runtime_error(
                         "Initialization method *DoitInit* has to be "
                         "put before\n"

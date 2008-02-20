@@ -53,7 +53,8 @@ public:
     mtypes(       0               ),
     magenda_method(false),
     msupergeneric(false),
-    msuppress_header(false)
+    msuppress_header(false),
+    mpass_workspace(false)
   {};
 
   // Initializing constructor. Implementation in methods_aux.cc.
@@ -68,7 +69,8 @@ public:
            const MakeArray<String>&     defaults,
            const MakeArray<TokValType>& types,
            bool                         agenda_method   = false,
-           bool                         suppress_header = false
+           bool                         suppress_header = false,
+           bool                         pass_workspace   = false
            );
 
   // Methods returning the lookup information:
@@ -85,6 +87,7 @@ public:
   bool                     AgendaMethod()   const { return magenda_method; }
   bool                     Supergeneric()   const { return msupergeneric; }
   bool                     SuppressHeader() const { return msuppress_header; }
+  bool                     PassWorkspace()  const { return mpass_workspace; }
   Index                    ActualGroup()    const { return mactual_group; }
 
   // Expand supergeneric method record to an actual group
@@ -167,6 +170,13 @@ private:
     function, we must not include method headers in auto_md.h.
   */ 
   bool msuppress_header;
+
+  //! Flag, whether a workspace reference should be passed to the WSM.
+  /*!
+    Some WSMs (like Delete) need direct access to the workspace object. If
+    this flag is set to true, the gateway function will take care of that.
+  */ 
+  bool mpass_workspace;
 
   //! The actual group of a supergeneric method.
   /*! 

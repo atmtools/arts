@@ -53,7 +53,8 @@ MdRecord::MdRecord(const char                   name[],
                    const MakeArray<String>&     defaults,
                    const MakeArray<TokValType>& types,
                    bool                         agenda_method,
-                   bool                         suppress_header ) :
+                   bool                         suppress_header,
+                   bool                         pass_workspace ) :
     mname(          name                  ),
     mdescription(   description           ),    
     mauthors(       authors               ),
@@ -67,6 +68,7 @@ MdRecord::MdRecord(const char                   name[],
     magenda_method(   agenda_method       ),
     msupergeneric(    false               ),
     msuppress_header( suppress_header     ),
+    mpass_workspace( pass_workspace       ),
     mactual_group( -1 )
     { 
       // Initializing the various arrays with input data should now

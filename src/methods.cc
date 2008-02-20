@@ -48,6 +48,7 @@
 #define TYPES    MakeArray<TokValType>
 #define AGENDAMETHOD(x) x
 #define SUPPRESSHEADER(x) x
+#define PASSWORKSPACE(x) x
 
 
 /* Here's a template record entry:  (PE 2001-09-18)
@@ -2199,7 +2200,8 @@ void define_md_data_raw()
         DEFAULTS( ),
         TYPES( ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )));
+        SUPPRESSHEADER( true  ),
+        PASSWORKSPACE(  true  )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2406,7 +2408,7 @@ md_data_raw.push_back
         AUTHORS( "Claudia Emde" ),
         OUTPUT( scat_p_index_, scat_lat_index_, scat_lon_index_, 
                 scat_za_index_, scat_aa_index_, doit_scat_field_,
-                doit_i_field_, doit_za_interp_ ),
+                doit_i_field_, doit_za_interp_, doit_is_initialized_ ),
         INPUT( stokes_dim_, atmosphere_dim_, scat_za_grid_, scat_aa_grid_,
                doit_za_grid_size_, cloudbox_limits_, scat_data_raw_ ),
         GOUTPUT( ),
@@ -4910,7 +4912,8 @@ md_data_raw.push_back
         DEFAULTS( "1" ),
         TYPES(    Index_t ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )));
+        SUPPRESSHEADER( true  ),
+        PASSWORKSPACE( true  )));
 
   // New name: p_gridFromAbsLookup
   md_data_raw.push_back     
@@ -5445,7 +5448,7 @@ md_data_raw.push_back
         OUTPUT( doit_i_field_, scat_i_p_, scat_i_lat_, scat_i_lon_,
                 doit_i_field1D_spectrum_ ),
         INPUT( f_grid_, scat_i_p_, scat_i_lat_, scat_i_lon_,
-               doit_mono_agenda_ ),
+               doit_mono_agenda_, doit_is_initialized_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
