@@ -1,5 +1,24 @@
 2008-02-20  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-3-4
+
+	* src/parser.{cc,h}:
+
+	Started to implement features for the new controlfile format.
+	The parser is still backwards compatible with old controlfiles. Use
+	Arts2 instead of Arts as the main agenda name to tell the parser that
+	the controlfile uses the new syntax.
+
+	Added parse_input and parse_output functions.
+
+	Added mcfile_version which holds the controlfile version to
+	distinguish between the old and the new format.
+
+	(parse_method): Require the inputs and outputs to be specified with
+	the new controlfile format.
+
+2008-02-20  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-3-3
 
 	* src/parser.{cc,h}, src/sourcetext.{cc,h}:

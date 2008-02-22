@@ -26,7 +26,7 @@
 
 
 ArtsParser::ArtsParser(Agenda& tasklist, String controlfile)
-  : mtasklist (tasklist), mcfile (controlfile)
+  : mtasklist (tasklist), mcfile (controlfile), mcfile_version (1)
 {
   msource.AppendFile (mcfile);
 }
@@ -67,7 +67,7 @@ void ArtsParser::parse_main()
 
       parse_method(id,values,output,input,mtasklist, include_file,true);
           
-      if ( "Arts" != md_data[id].Name() )
+      if ( "Arts" != md_data[id].Name() &&  "Arts2" != md_data[id].Name() )
         {
           out0 << "The outermost method must be Arts!\n"
                << "(But it seems to be " << md_data[id].Name() << ".)\n";
@@ -351,6 +351,13 @@ void ArtsParser::parse_method(Index& id,
     }
   else
     {
+      if ( "Arts2" == methodname )
+        {
+          mcfile_version = 2;
+          cout << "Controlfile version 2" << endl;
+          methodname = "Arts";
+        }
+
       // Find method raw id in raw map:
       const map<String, Index>::const_iterator i = MdRawMap.find(methodname);
       if ( i == MdRawMap.end() )
@@ -399,6 +406,12 @@ void ArtsParser::parse_method(Index& id,
 
       assertain_character('(');
       eat_whitespace();
+
+      if (mcfile_version == 2 && mdd->Output().nelem())
+        {
+          parse_output(mdd);
+          first = false;
+        }
 
       // First read all output Wsvs:
       for ( Index j=0 ; j<mdd->GOutput().nelem() ; ++j )
@@ -471,6 +484,12 @@ void ArtsParser::parse_method(Index& id,
           eat_whitespace();
         }
 
+      if (mcfile_version == 2 && mdd->Input().nelem())
+        {
+          parse_input(mdd, first);
+          first = false;
+        }
+
       // Then read all input Wsvs:
       for ( Index j=0 ; j<mdd->GInput().nelem() ; ++j )
         {
@@ -539,6 +558,7 @@ void ArtsParser::parse_method(Index& id,
         }
 
       assertain_character(')');
+
       eat_whitespace();
     }
   else
@@ -549,6 +569,17 @@ void ArtsParser::parse_method(Index& id,
         {
           msource.AdvanceChar();
           eat_whitespace();
+          if (mcfile_version == 2)
+            {
+              if (mdd->Output().nelem())
+                {
+                  parse_output(mdd);
+                  if (mdd->Input().nelem())
+                    parse_input(mdd, false);
+                }
+              else if (mdd->Input().nelem())
+                parse_input(mdd);
+            }
           assertain_character(')');
           eat_whitespace();
         }
@@ -853,6 +884,129 @@ void ArtsParser::parse_method(Index& id,
 }
 
 
+/** Parse the input WSVs for current method from the controlfile.
+
+  /param[in] mdd   Pointer to the current WSM
+  /param[in] first If set to false, there must be a comma before the first WSV
+                   in the controlfile
+  */
+void ArtsParser::parse_input(const MdRecord* mdd, bool first)
+{
+  extern const Array<WsvRecord> wsv_data;
+
+  // There are two lists of parameters that we have to read.
+  ArrayOfIndex  vo=mdd->Output();   // Output 
+  ArrayOfIndex  vi=mdd->Input();    // Input
+  // vo and vi contain handles of workspace variables, 
+
+  // Check, if some workspace variables are in both the
+  // input and the output list, and erase those from the input list:
+  for (ArrayOfIndex::const_iterator outs=vo.begin(); outs<vo.end(); ++outs)
+    for (ArrayOfIndex::iterator ins=vi.begin(); ins<vi.end(); ++ins)
+      if ( *outs == *ins )
+        {
+          //              erase_vector_element(vi,k);
+          ins = vi.erase(ins) - 1;
+          // We need the -1 here, otherwise due to the
+          // following increment we would miss the element
+          // behind the erased one, which is now at the
+          // position of the erased one.
+        }
+
+  for (ArrayOfIndex::const_iterator ins=vi.begin(); ins<vi.end(); ++ins)
+    {
+      String wsvname;
+
+      if (first)
+        first = false;
+      else
+        {
+          try
+            {
+              assertain_character(',');
+            }
+          catch (UnexpectedChar)
+            {
+              ostringstream os;
+              os << "Expected input WSV *" << wsv_data[*ins].Name() << "*";
+            }
+          eat_whitespace();
+        }
+
+      read_name(wsvname);
+
+      if (wsvname != wsv_data[*ins].Name())
+        {
+          ostringstream os;
+          if (!wsvname.nelem())
+            os << "Expected input WSV *" << wsv_data[*ins].Name() << "*";
+          else
+            os << "got " << wsvname << ", but expected input WSV *"
+              << wsv_data[*ins].Name() << "*";
+          throw ParseError( os.str(),
+                            msource.File(),
+                            msource.Line(),
+                            msource.Column() );
+        }
+    }
+}
+
+
+/** Parse the output WSVs for current method from the controlfile.
+
+  /param[in] mdd   Pointer to the current WSM
+  /param[in] first If set to false, there must be a comma before the first WSV
+                   in the controlfile
+  */
+void ArtsParser::parse_output(const MdRecord* mdd, bool first)
+{
+  extern const Array<WsvRecord> wsv_data;
+
+  ArrayOfIndex  vo=mdd->Output();
+
+  for (ArrayOfIndex::const_iterator outs=vo.begin(); outs<vo.end(); ++outs)
+    {
+      String wsvname;
+
+      if (first)
+        first = false;
+      else
+        {
+          try
+            {
+              assertain_character(',');
+            }
+          catch (UnexpectedChar)
+            {
+              ostringstream os;
+              os << "Expected output WSV *" << wsv_data[*outs].Name() << "*";
+              throw ParseError( os.str(),
+                                msource.File(),
+                                msource.Line(),
+                                msource.Column() );
+            }
+          eat_whitespace();
+        }
+
+      read_name(wsvname);
+
+      if (wsvname != wsv_data[*outs].Name())
+        {
+          ostringstream os;
+          if (!wsvname.nelem())
+              os << "Expected output WSV *" << wsv_data[*outs].Name() << "*";
+          else
+            os << "got " << wsvname << ", but expected output WSV *"
+              << wsv_data[*outs].Name() << "*";
+          throw ParseError( os.str(),
+                            msource.File(),
+                            msource.Line(),
+                            msource.Column() );
+        }
+    }
+}
+
+
 /** Returns true if this character is considered whitespace. This
     includes the comment sign `\#'. This function is used by other
     functions to test for delimiting whitespace. 
@@ -916,6 +1070,11 @@ void ArtsParser::eat_whitespace()
 }
 
 
+/** Eats whitespace from a String.
+
+  /param[in]     str String.
+  /param[in,out] pos Current position in the String.
+ */
 void ArtsParser::eat_whitespace_from_string(String& str, size_t& pos)
 {
   while (pos < str.length() && is_whitespace(str[pos]))

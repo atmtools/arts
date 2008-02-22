@@ -21,6 +21,7 @@
 #include <map>
 #include "agenda_class.h"
 #include "sourcetext.h"
+#include "methods.h"
 
 
 class ArtsParser {
@@ -41,6 +42,10 @@ private:
                     Agenda&       tasks,
                     String&       include_file,
                     bool no_eot=false);
+
+  void parse_input(const MdRecord* mdd, bool first = true);
+
+  void parse_output(const MdRecord* mdd, bool first = true);
 
   bool is_whitespace(const char c);
 
@@ -77,6 +82,8 @@ private:
   String mcfile;
 
   SourceText msource;
+
+  Index mcfile_version;
 };
 
 #endif /* parser_h */
