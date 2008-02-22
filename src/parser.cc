@@ -170,8 +170,6 @@ void ArtsParser::parse_main()
     @param tasklist Output. The ids and keyword parameter values for the
                     methods to run.
   
-    @param text   The input to parse.
-   
     @see eat_whitespace
     @see parse_method
           
@@ -280,7 +278,6 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
   \param[out]    input        Input workspace variables (for generic methods).
   \param[out]    tasks        A list of other methods.
   \param[out]    include_file The input to parse.
-  \param[in,out] text         The input to parse.
   \param[in]     no_eot       Suppress throwing an error on EOT after the
                               closing curly brace.
    

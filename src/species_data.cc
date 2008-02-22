@@ -91,7 +91,7 @@ Array<SpeciesRecord> species_data;
        <td> 2: <td> jpl isotopic ratio, taken from the documentation coming
                     along with the catalogue. latest catalogue version
                     extracted 27.07.00, can be found at
-                    /pool/lookup/jpl/cat7_00/doc/d<tag_nr>.cat 
+                    /pool/lookup/jpl/cat7_00/doc/d\<tag_nr\>.cat 
        <tr>
        <td> 3: <td> jpl isotopic ratio is multiplied with the maximum isotopic ratio
                     of this species found in hitran. is only performed when

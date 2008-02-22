@@ -571,11 +571,11 @@ void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
   
   \author Stefan Buehler
 
-  \param abs_t_pert[out] Temperature perturbations
-  \param abs_t[in]       Reference temperature profile
-  \param tmin[in]        Minimum temperature profile
-  \param tmax[in]        Maximum temperature profile
-  \param t_step[in]      Temperature perturbation step
+  \param[out] abs_t_pert Temperature perturbations
+  \param[in] abs_t       Reference temperature profile
+  \param[in] tmin        Minimum temperature profile
+  \param[in] tmax        Maximum temperature profile
+  \param[in] t_step      Temperature perturbation step
 */
 void choose_abs_t_pert(Vector&         abs_t_pert,
                        ConstVectorView abs_t,
@@ -626,11 +626,11 @@ void choose_abs_t_pert(Vector&         abs_t_pert,
   
   \author Stefan Buehler
 
-  \param abs_nls_pert[out] H2O VMR perturbations
-  \param refprof[in]       Reference profile
-  \param minprof[in]       Minimum profile
-  \param maxprof[in]       Maximum profile
-  \param step[in]          Fractional perturbation step
+  \param[out] abs_nls_pert H2O VMR perturbations
+  \param[in] refprof       Reference profile
+  \param[in] minprof       Minimum profile
+  \param[in] maxprof       Maximum profile
+  \param[in] step          Fractional perturbation step
 */
 void choose_abs_nls_pert(Vector&         abs_nls_pert,
                        ConstVectorView refprof,
