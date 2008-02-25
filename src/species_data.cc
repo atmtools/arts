@@ -99,12 +99,12 @@ Array<SpeciesRecord> species_data;
        </table>
 
   <dt> Mass: 
-//  <dd> Rounded atomic weight. (SAB: From looking at the table in forward_4_96,
-//       glob_def.c, the difference between the actual mass and the mass
-//       simply estimated from the Atom number is only 0.001. This seems
-//       not worth the trouble. Anyway, the field for the mass is
-//       there. Should anybody feel like adding the true numbers, just go
-//       ahead.)
+  <!-- <dd> Rounded atomic weight. (SAB: From looking at the table in forward_4_96,
+       glob_def.c, the difference between the actual mass and the mass
+       simply estimated from the Atom number is only 0.001. This seems
+       not worth the trouble. Anyway, the field for the mass is
+       there. Should anybody feel like adding the true numbers, just go
+       ahead.) -->
   <dd> mass as given in file MOLPARAM.TXT of HITRAN2000. 
        If tag is not present in HITRAN, the rounded value is stated. 
        Note that the mass is given in units of [g/mol].

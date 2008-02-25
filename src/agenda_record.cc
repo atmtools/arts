@@ -255,6 +255,8 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
 /*!
   \param ofs The stream to write to.
   \param agr Agenda record.
+  \param write_default_args Flag indicating to include the default arguments
+                            in the function header.
 */
 void write_agenda_wrapper_header( ofstream& ofs,
                                   const AgRecord& agr,

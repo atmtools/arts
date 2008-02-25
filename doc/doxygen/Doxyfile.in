@@ -495,7 +495,7 @@ EXCLUDE                = @top_srcdir@/src/sstream.h \
                          @top_srcdir@/src/getopt1.c \
                          @top_srcdir@/src/getopt.h \
                          @top_srcdir@/src/getopt.c \
-                         @top_srcdir@/src/old_absorption.cc
+                         @top_srcdir@/src/m_abs_o2_models.cc
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or 
 # directories that are symbolic links (a Unix filesystem feature) are excluded 

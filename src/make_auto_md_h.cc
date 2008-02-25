@@ -152,6 +152,11 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
         }
     }
 
+  // Some characters have to be masqueraded to appear properly in doxygen
+  // documentation
+  DoxyDescription.insert_substr ("<", "\\");
+  DoxyDescription.insert_substr (">", "\\");
+
   ofs << DoxyDescription << "\n";
 
   // Write the authors:

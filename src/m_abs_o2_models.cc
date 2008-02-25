@@ -1623,7 +1623,7 @@ void absO2ZeemanModel(// WS Output:
                       const Index&     zeeman_o2_onoff, 
                       const Numeric&   zeeman_o2_pressure_limit,
                       const Index&     zeeman_o2_line, 
-                      const Index&     /* ppath_index */,          // index of propagation path index
+                      const Index&     ppath_index _U_,      // index of propagation path index
                       const Numeric&   rte_pressure,         // total atmospheric pressure       [Pa]
                       const Numeric&   rte_temperature,      // temperature                      [K]
                       const Vector&    rte_vmr_list,         // list of species vmr              [1]

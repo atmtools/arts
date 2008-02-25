@@ -72,6 +72,10 @@ public:
   my_basic_string& operator=(const my_basic_string<charT>& A);
   //  my_basic_string& operator=(const char A[]);
 
+  // Insert string before all occurrences of the substring.
+  void insert_substr(const my_basic_string<charT> searchstr,
+                     const my_basic_string<charT> insstr);
+
   // Number of elements:
   Index nelem() const;
 
@@ -179,6 +183,29 @@ inline my_basic_string<charT>& my_basic_string<charT>::operator=(const my_basic_
 {
   basic_string<charT>::operator=(A);
   return *this;
+}
+
+/** Insert string before all occurrences of the substring.
+ 
+ /param[in] searchstr  String to search for.
+ /param[in] insstr     String to insert.
+*/
+template<class charT>
+inline void my_basic_string<charT>::insert_substr(const my_basic_string<charT> searchstr, const my_basic_string<charT> insstr)
+{ 
+  size_t searchstr_size = searchstr.size();
+  size_t insstr_size = insstr.size();
+  size_t start_pos = 0;
+
+  while (start_pos != string::npos)
+    {
+      start_pos = this->find (searchstr, start_pos);
+      if (start_pos && start_pos != string::npos)
+        {
+          this->insert (start_pos, insstr);
+          start_pos += searchstr_size + insstr_size;
+        }
+    }
 }
 
 /** Number of elements. */

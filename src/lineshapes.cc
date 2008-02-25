@@ -57,13 +57,13 @@
     \date   2001-01-16 
     \author Stefan Buehler 
 */
-void lineshape_no_shape(  Vector&       /* ls */,
-                          Vector&       /* X */,
-                          Numeric       /* f0 */,
-                          Numeric       /* gamma */,
-                          Numeric       /* sigma */,
-                          VectorView    /* f_grid */,
-                          const Index   /* nf */)
+void lineshape_no_shape(  Vector&       ls _U_,
+                          Vector&       X _U_,
+                          Numeric       f0 _U_,
+                          Numeric       gamma _U_,
+                          Numeric       sigma _U_,
+                          VectorView    f_grid _U_,
+                          const Index   nf _U_)
 {
   // This function should never be called so throw an error here: 
   throw runtime_error("The no_shape lineshape is only a placeholder, but you tried\n"
@@ -84,10 +84,10 @@ void lineshape_no_shape(  Vector&       /* ls */,
     \author Stefan Buehler 
     \date 2000-06-16 */
 void lineshape_lorentz(Vector&       ls,
-                       Vector&       /* X */,
+                       Vector&       X _U_,
                        Numeric       f0,
                        Numeric       gamma,
-                       Numeric       /* sigma */,
+                       Numeric       sigma _U_,
                        VectorView f_grid,
                        const Index  nf)
 {
@@ -123,9 +123,9 @@ void lineshape_lorentz(Vector&       ls,
     \author Axel von Engeln
     \date 2000-12-06 */
 void lineshape_doppler(Vector&       ls,
-                       Vector&       /* x */,
+                       Vector&       x _U_,
                        Numeric       f0,
-                       Numeric       /* gamma */,
+                       Numeric       gamma _U_,
                        Numeric       sigma,
                        VectorView f_grid,
                        const Index  nf)
@@ -1870,10 +1870,10 @@ void chi_cousin(
     \date 2000-09-04 */
 void lineshape_CO2_lorentz(
             Vector&   ls,
-            Vector&   /* X */,
+            Vector&   X _U_,
             Numeric   f0,
             Numeric   gamma,
-            Numeric   /* sigma */,
+            Numeric   sigma _U_,
       VectorView      f_grid,
       const Index     nf )
 {
@@ -1959,9 +1959,9 @@ void lineshape_CO2_drayson(
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_no_norm(Vector&       fac,
-                            Numeric       /* f0 */,
+                            Numeric       f0 _U_,
                             VectorView    f_grid,
-                            const Numeric /* T */,
+                            const Numeric T _U_,
                             const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
@@ -1992,7 +1992,7 @@ void lineshape_norm_no_norm(Vector&       fac,
 void lineshape_norm_linear(Vector&       fac,
                            Numeric       f0,
                            VectorView    f_grid,
-                           const Numeric /* T */,
+                           const Numeric T _U_,
                            const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
@@ -2019,7 +2019,7 @@ void lineshape_norm_linear(Vector&       fac,
 void lineshape_norm_quadratic(Vector&       fac,
                               Numeric       f0,
                               VectorView    f_grid,
-                              const Numeric /* T */,
+                              const Numeric T _U_,
                               const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the

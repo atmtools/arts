@@ -1466,7 +1466,7 @@ void cloud_ppath_update1D_planeparallel(
                                         // Gas absorption:
                                         const Agenda& opt_prop_gas_agenda,
                                         // Propagation path calculation:
-                                        const Agenda& /* ppath_step_agenda */,
+                                        const Agenda& ppath_step_agenda _U_,
                                         ConstVectorView p_grid,
                                         ConstTensor3View z_field,
                                         ConstMatrixView r_geoid,

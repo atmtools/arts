@@ -23,7 +23,7 @@
   \brief  Helper functions for OpenMP
   
   This file contains wrapper functions for standard OMP functions,
-  that work with and without OMP support. This saves the use of #ifdef
+  that work with and without OMP support. This saves the use of \#ifdef
   statements around omp functions in the ARTS main code.
 
   All functions start with arts_omp. Otherwise, names are the same as

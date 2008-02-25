@@ -84,7 +84,7 @@ typedef Array<Tensor7> ArrayOfTensor7;
 
 /** This can be used to make arrays out of anything.
 
-    A simple #define does not do for this, since I have to implement
+    A simple \#define does not do for this, since I have to implement
     member functions like nelem, in order to be consistent with
     Vector.
 

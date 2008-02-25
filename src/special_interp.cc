@@ -683,6 +683,7 @@ void p2gridpos(
    \param   gp          Output: Grid position Array.
    \param   old_pgrid   The original pressure grid.
    \param   new_pgrid   The new pressure grid.
+   \param   extpolfac   FIXME_DOCMISSING
 
    \author Patrick Eriksson
    \date   2003-01-20

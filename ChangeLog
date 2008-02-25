@@ -1,3 +1,43 @@
+2008-02-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-3-6
+
+	* src/scatrte.cc (cloud_ppath_update1D_planeparallel),
+	src/lineshapes.cc:
+
+	Use _U_ macro in several places to get rid of doxygen warnings.
+
+	* src/agenda_record.cc (write_agenda_wrapper_header):
+
+	Add missing docs for one parameter.
+
+	* src/special_interp.cc (p2gridpos_extpol):
+
+	Add missing docs (FIXME_DOCMISSING) for one parameter.
+
+	* doc/doxygen/Doxyfile.in:
+
+	Add m_abs_o2_models.cc to EXCLUDE list. It is not used ATM.
+
+	Remove old_absorption.cc from EXCLUDE list. The file doesn't exist
+	anymore.
+
+	* src/mystring.h (insert_substr): Added helper function.
+
+	* src/make_auto_md_h.cc:
+
+	Escape < and > in WSM description field to fix appearance in doxygen
+	documentation.
+
+	* src/mc_antenna.h: Remove spurious . in doxygen comment.
+
+	* src/species_data.cc:
+
+	Remove nested C++ comments in doxygen docs and replace the with HTML
+	comments.
+
+	* src/arts_omp.{cc,h}, src/array.h: Mask # signs in doxygen comments.
+
 2008-02-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-3-5

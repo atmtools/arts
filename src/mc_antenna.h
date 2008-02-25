@@ -22,7 +22,7 @@
   ===========================================================================*/
 
 /*!
-  \file   mc_antenna.h.
+  \file   mc_antenna.h
   \author Cory Davis <cdavis@staffmail.ed.ac.uk>
   \date   2005-12-02 
 
