@@ -41,7 +41,7 @@ void ArtsParser::parse_tasklist ()
 /** The main function of the parser. This will parse the entire
     text. FIXME: Add more documentation here.
 
-    @author Stefan Buehler, Oliver Lemke
+    \author Stefan Buehler, Oliver Lemke
     */
 void ArtsParser::parse_main()
 {
@@ -167,13 +167,13 @@ void ArtsParser::parse_main()
     curly braces of an agenda method. So the end is marked by a
     closing curly brace ahead.
 
-    @param tasklist Output. The ids and keyword parameter values for the
+    \param tasklist Output. The ids and keyword parameter values for the
                     methods to run.
   
-    @see eat_whitespace
-    @see parse_method
+    \see eat_whitespace
+    \see parse_method
           
-    @author Stefan Buehler */
+    \author Stefan Buehler */
 void ArtsParser::parse_agenda( Agenda& tasklist )
 {
   extern const Array<MdRecord> md_data;
@@ -883,8 +883,8 @@ void ArtsParser::parse_method(Index& id,
 
 /** Parse the input WSVs for current method from the controlfile.
 
-  /param[in] mdd   Pointer to the current WSM
-  /param[in] first If set to false, there must be a comma before the first WSV
+  \param[in] mdd   Pointer to the current WSM
+  \param[in] first If set to false, there must be a comma before the first WSV
                    in the controlfile
   */
 void ArtsParser::parse_input(const MdRecord* mdd, bool first)
@@ -951,8 +951,8 @@ void ArtsParser::parse_input(const MdRecord* mdd, bool first)
 
 /** Parse the output WSVs for current method from the controlfile.
 
-  /param[in] mdd   Pointer to the current WSM
-  /param[in] first If set to false, there must be a comma before the first WSV
+  \param[in] mdd   Pointer to the current WSM
+  \param[in] first If set to false, there must be a comma before the first WSV
                    in the controlfile
   */
 void ArtsParser::parse_output(const MdRecord* mdd, bool first)
@@ -1010,7 +1010,7 @@ void ArtsParser::parse_output(const MdRecord* mdd, bool first)
 
     The whitespace cases implemented here must be consistent with
     eat_whitespace! 
-    @see eat_whitespace  */
+    \see eat_whitespace  */
 bool ArtsParser::is_whitespace(const char c)
 {
   switch (c) 
@@ -1033,9 +1033,9 @@ bool ArtsParser::is_whitespace(const char c)
   
     The whitespace cases implemented here must be consistent with
     is_whitespace! 
-    @see is_whitespace    
+    \see is_whitespace    
 
-    @exception UnexpectedChar Non-whitespace character encountered. */
+    \exception UnexpectedChar Non-whitespace character encountered. */
 void ArtsParser::eat_whitespace()
 {
   char dummy;
@@ -1069,8 +1069,8 @@ void ArtsParser::eat_whitespace()
 
 /** Eats whitespace from a String.
 
-  /param[in]     str String.
-  /param[in,out] pos Current position in the String.
+  \param[in]     str String.
+  \param[in,out] pos Current position in the String.
  */
 void ArtsParser::eat_whitespace_from_string(String& str, size_t& pos)
 {
@@ -1117,7 +1117,7 @@ void ArtsParser::read_name(String& name)
 /** Make sure that the current character is equal to c and go to the
     next character.
   
-    @exception UnexpectedChar The character is not right. */
+    \exception UnexpectedChar The character is not right. */
 void ArtsParser::assertain_character(char c)
 {
   if ( c != msource.Current() )
@@ -1141,7 +1141,9 @@ void ArtsParser::assertain_character(char c)
   
     Line breaks inside Strings are not allowed. 
 
-    @exception IllegalLinebreak An illegal linebreak has occured. */
+    \param[out] res Output string.
+
+    \exception IllegalLinebreak An illegal linebreak has occured. */
 void ArtsParser::parse_String(String& res)
 {
   bool stop = false;
@@ -1186,8 +1188,10 @@ void ArtsParser::parse_String(String& res)
     There are no whitespaces allowed anywhere, consisten with ANSI C
     scanf. 
 
-    @exception IllegalLinebreak An illegal linebreak has occured. 
-    @exception UnexpectedChar Unexpected character encountered. */
+    \param[out] res Output string containing the integer.
+
+    \exception IllegalLinebreak An illegal linebreak has occured. 
+    \exception UnexpectedChar Unexpected character encountered. */
 void ArtsParser::read_integer(String& res)
 {
   bool stop = false;
@@ -1245,8 +1249,10 @@ void ArtsParser::read_integer(String& res)
     Whitespace is not allowed inside the number.
     Line breaks or whitespace terminates the scanning. 
 
-    @exception IllegalLinebreak Illegal line break.
-    @exception ParseError Cannot parse this as a number. */
+    \param[out] res Output string containing the numeric.
+
+    \exception IllegalLinebreak Illegal line break.
+    \exception ParseError Cannot parse this as a number. */
 void ArtsParser::read_numeric(String& res)
 {
   bool stop;
@@ -1356,7 +1362,10 @@ void ArtsParser::read_numeric(String& res)
 }
 
 
-/** Use a String stream to parse an integer number. */
+/** Use a String stream to parse an integer number.
+ 
+  \param[out] n Parsed integer.
+*/
 void ArtsParser::parse_integer(Index& n)
 {
   String res;
@@ -1366,7 +1375,10 @@ void ArtsParser::parse_integer(Index& n)
 }
 
 
-/** Use a String stream to parse a floating point number. */
+/** Use a String stream to parse a floating point number.
+ 
+  \param[out] n Parsed numeric.
+ */
 void ArtsParser::parse_numeric(Numeric& n)
 {
   String res;
@@ -1389,7 +1401,7 @@ void ArtsParser::parse_numeric(Numeric& n)
     Line breaks are allowed before and after each String. Line breaks
     inside Strings are not allowed. 
    
-    @see parse_String */
+    \see parse_String */
 void ArtsParser::parse_Stringvector(ArrayOfString& res)
 {
   bool first = true;            // To skip the first comma.
@@ -1434,7 +1446,7 @@ void ArtsParser::parse_Stringvector(ArrayOfString& res)
     Line breaks are allowed before and after each number. Line breaks
     inside numbers are not allowed. 
    
-    @see parse_integer */
+    \see parse_integer */
 void ArtsParser::parse_intvector(ArrayOfIndex& res)
 {
   bool first = true;            // To skip the first comma.
@@ -1479,7 +1491,7 @@ void ArtsParser::parse_intvector(ArrayOfIndex& res)
     Line breaks are allowed before and after each number. Line breaks
     inside numbers are not allowed. 
    
-    @see parse_numeric */
+    \see parse_numeric */
 void ArtsParser::parse_numvector(Vector& res)
 {
   bool first = true;            // To skip the first comma.
@@ -1531,7 +1543,7 @@ void ArtsParser::parse_numvector(Vector& res)
   
     The empty vector is allowed.
   
-    @see parse_numeric */
+    \see parse_numeric */
 bool ArtsParser::parse_numvector_from_string (Vector& res, String& str)
 {
   bool first = true;            // To skip the first comma.
@@ -1600,7 +1612,7 @@ bool ArtsParser::parse_numvector_from_string (Vector& res, String& str)
   
     The empty vector is allowed.
   
-    @see parse_numeric */
+    \see parse_numeric */
 bool ArtsParser::parse_stringarray_from_string (ArrayOfString& res, String& str)
 {
   bool first = true;            // To skip the first comma.

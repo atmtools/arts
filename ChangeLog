@@ -1,5 +1,17 @@
 2008-02-25  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-3-7
+
+	* src/parser.cc:
+
+	Doxygen macros start with a \ not a /...
+
+	Replace also all remains of old doxygen style @ signs with \.
+
+	Updated docs.
+
+2008-02-25  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-3-6
 
 	* src/scatrte.cc (cloud_ppath_update1D_planeparallel),
