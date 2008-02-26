@@ -162,9 +162,8 @@ int main()
             <<   "  static void deallocate_wsvg_" << wsv_group_names[i] << "(void *vp)\n"
             <<   "    { delete (" << wsv_group_names[i] << " *)vp; }\n\n"
             <<   "  static void *duplicate_wsvg_" << wsv_group_names[i] << "(void *vp)\n"
-            <<   "    { "
-            <<   " return (new " << wsv_group_names[i] << "(*(" << wsv_group_names[i] << " *)vp));\n"
-            <<   " }\n\n";
+            <<   "    { return (new " << wsv_group_names[i] << "(*("
+            << wsv_group_names[i] << " *)vp)); }\n\n";
         }
 
       ofs << "public:\n"
@@ -175,6 +174,7 @@ int main()
         <<   "  WorkspaceMemoryHandler ()\n"
         <<   "    {\n";
 
+/* FIXMEOLE: REMOVE
       for (Index i = 0; i < wsv_data.nelem (); ++i)
         {
           ofs << "      allocfp[" << i << "] = allocate_wsvg_"
@@ -184,28 +184,39 @@ int main()
             <<   "      duplicatefp[" << i << "] = duplicate_wsvg_"
             <<            wsv_group_names[wsv_data[i].Group()] << ";\n";
         }
+        */
+
+      for (Index i = 0; i < wsv_group_names.nelem (); ++i)
+        {
+          ofs << "      allocfp[" << i << "] = allocate_wsvg_"
+            <<            wsv_group_names[i] << ";\n"
+            <<   "      deallocfp[" << i << "] = deallocate_wsvg_"
+            <<            wsv_group_names[i] << ";\n"
+            <<   "      duplicatefp[" << i << "] = duplicate_wsvg_"
+            <<            wsv_group_names[i] << ";\n";
+        }
 
       ofs << "    }\n\n"
         <<   "  /** Getaway function to call the allocation function for the\n"
-        <<   "      workspace variable with the given Index.\n"
+        <<   "      WSV group with the given Index.\n"
         <<   "  */\n"
-        <<   "  void *allocate (Index wsv)\n"
+        <<   "  void *allocate (Index wsvg)\n"
         <<   "    {\n"
-        <<   "      return allocfp[wsv]();\n"
+        <<   "      return allocfp[wsvg]();\n"
         <<   "    }\n\n"
         <<   "  /** Getaway function to call the deallocation function for the\n"
-        <<   "      workspace variable with the given Index.\n"
+        <<   "      WSV group with the given Index.\n"
         <<   "  */\n"
-        <<   "  void deallocate (Index wsv, void *vp)\n"
+        <<   "  void deallocate (Index wsvg, void *vp)\n"
         <<   "    {\n"
-        <<   "      deallocfp[wsv](vp);\n"
+        <<   "      deallocfp[wsvg](vp);\n"
         <<   "    }\n\n"
         <<   "  /** Getaway function to call the duplication function for the\n"
-        <<   "      workspace variable with the given Index.\n"
+        <<   "      WSV group with the given Index.\n"
         <<   "  */\n"
-        <<   "  void *duplicate (Index wsv, void *vp)\n"
+        <<   "  void *duplicate (Index wsvg, void *vp)\n"
         <<   "    {\n"
-        <<   "      return duplicatefp[wsv](vp);\n"
+        <<   "      return duplicatefp[wsvg](vp);\n"
         <<   "    }\n\n";
 
 

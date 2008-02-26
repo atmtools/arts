@@ -1,3 +1,17 @@
+2008-02-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-3-8
+
+	* src/make_auto_wsv_h.cc:
+
+	Change the allocation, deallocation, and duplication function pointer
+	arrays to store pointers for each WSV group, not each WSV.
+
+	* src/workspace_ng.cc:
+
+	Adapted for the changes in auto_wsv.h. Use the wsv_data array to get
+	the group type and pass it to allocate, deallocate, or duplicate.
+
 2008-02-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-3-7
