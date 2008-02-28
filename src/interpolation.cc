@@ -489,7 +489,7 @@ void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old )
    Returns the complete fractional grid position.
 
    The fractional grid position is the sum of grid index and fraction
-   distance, and is this not an integer value.
+   distance, and is not an integer value.
 
    \return         Fractional grid position.
    \param   gp     Input: Grid position structure.

@@ -101,8 +101,6 @@ IndexSet(nrows){ 1 }
 IndexSet(ncols){ 1 }
 MatrixSet(sensor_los){180}
 
-
-
 # Set the agenda for batch calculations:
 # ---
 AgendaSet(ybatch_calc_agenda){
@@ -118,6 +116,15 @@ AgendaSet(ybatch_calc_agenda){
   # generate p_grid, t_field, z_field, vmr_field:
   AtmFieldsFromCompact
 
+  # Optionally set jacobian parameters:
+  jacobianInit
+  jacobianAddAbsSpecies(p_grid, lat_grid, lon_grid){
+      species = "H2O-PWR98"
+      method = "analytical"
+      unit   = "rel"
+      dx     = 0.01 
+  }
+
   # get z_surface from z_field
   IndexSet(index_1){0}
   MatrixExtractFromTensor3(z_surface,z_field,index_1)
@@ -127,7 +134,8 @@ AgendaSet(ybatch_calc_agenda){
   # ---
   RteCalc
 
-#  WriteXML(y){""}
+  # Optionally write out jacobian:
+  WriteXMLIndexed(jacobian){""}
   
 }
 

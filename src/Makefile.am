@@ -65,6 +65,8 @@ libarts_a_SOURCES = \
 	groups.cc \
 	interpolation.cc \
 	interpolation.h \
+	interpolation_poly.cc \
+	interpolation_poly.h \
 	iotraits.h \
 	jacobian.cc \
 	jacobian.h \
