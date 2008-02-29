@@ -47,6 +47,20 @@ private:
 
   void parse_output(const MdRecord* mdd, bool first = true);
 
+  void parse_output_and_input(const MdRecord*&    mdd,
+                                    Index&        id,
+                                    String&       methodname,
+                                    Array<TokVal>& values,
+                                    ArrayOfIndex& output,
+                                    ArrayOfIndex& input);
+
+  void parse_generic_keywords(const MdRecord*      mdd,
+                                    Array<TokVal>& values);
+
+  void parse_keywords(const MdRecord*      mdd,
+                            Array<TokVal>& values,
+                      const bool           found_curly_brace);
+
   bool is_whitespace(const char c);
 
   void eat_whitespace();

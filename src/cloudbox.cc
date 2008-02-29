@@ -332,7 +332,7 @@ void chk_single_scattering_data(
                                 ConstVectorView f_grid
                                 )
 {
-  out2 << "Check single scattering properties file "<< scat_data_file 
+  out2 << "  Check single scattering properties file "<< scat_data_file 
        << "\n";
 
   if (scat_data_raw.ptype != 10 && 
@@ -435,7 +435,7 @@ void chk_single_scattering_data(
     
   case PTYPE_GENERAL:
     
-    out2 << "Datafile is for arbitrarily orientated particles. \n";
+    out2 << "  Datafile is for arbitrarily orientated particles. \n";
     
     chk_size(os_pha_mat.str(), scat_data_raw.pha_mat_data,
              scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
@@ -456,7 +456,7 @@ void chk_single_scattering_data(
     
   case PTYPE_MACROS_ISO: 
     
-    out2 << "Datafile is for randomly oriented particles, i.e., "
+    out2 << "  Datafile is for randomly oriented particles, i.e., "
          << "macroscopically isotropic and mirror-symmetric scattering "
          << "media. \n";
     
@@ -475,7 +475,7 @@ void chk_single_scattering_data(
     
   case PTYPE_HORIZ_AL:
     
-    out2 << "Datafile is for horizontally aligned particles. \n"; 
+    out2 << "  Datafile is for horizontally aligned particles. \n"; 
     
     chk_size(os_pha_mat.str(), scat_data_raw.pha_mat_data,
              scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),

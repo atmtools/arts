@@ -1,5 +1,7 @@
 import os
 import unittest
+import artsXML
+from numpy import array
 
 class ArtsRun:
     """A baby arts run class for handling test cases"""
@@ -81,13 +83,13 @@ class TestMonteCarloGeneral(unittest.TestCase):
         assert self.MCrun.error=='','Error running TestMonteCarloSimple.arts: '+self.MCrun.error
     def test2(self):
         """Total radiance should be close to 201.8 K"""
-        I=self.MCrun.get_val('y')[0]
-        dI=self.MCrun.get_val('mc_error')[0]
+        I=artsXML.load("MonteCarlo/MonteCarloGeneral.y.xml.generated")[0]
+        dI=artsXML.load("MonteCarlo/MonteCarloGeneral.mc_error.xml.generated")[0]
         assert abs(I-201.8) < 4*dI, 'I (='+str(I)+'K) is too far away from 201.8 K'
     def test3(self):
         """Polarization difference should be close to 7.6 K"""
-        Q=self.MCrun.get_val('y')[1]
-        dQ=self.MCrun.get_val('mc_error')[1]
+        Q=artsXML.load("MonteCarlo/MonteCarloGeneral.y.xml.generated")[1]
+        dQ=artsXML.load("MonteCarlo/MonteCarloGeneral.mc_error.xml.generated")[1]
         assert abs(Q-7.6) < 4*Q, 'Q (='+str(Q)+'K) is too far away from 7.6 K'
         
 class TestMonteCarloGeneralGaussian(unittest.TestCase):
@@ -99,13 +101,13 @@ class TestMonteCarloGeneralGaussian(unittest.TestCase):
         assert self.MCrun.error=='','Error running TestMonteCarloGeneralGaussian.arts: '+self.MCrun.error
     def test2(self):
         """Total radiance should be close to 201 K"""
-        I=self.MCrun.get_val('y')[0]
-        dI=self.MCrun.get_val('mc_error')[0]
+        I=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.y.xml.generated")[0]
+        dI=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.mc_error.xml.generated")[0]
         assert abs(I-201) < 4*dI, 'I (='+str(I)+'K) is too far away from 201 K'
     def test3(self):
         """Polarization difference should be close to 7.7 K"""
-        Q=self.MCrun.get_val('y')[1]
-        dQ=self.MCrun.get_val('mc_error')[1]
+        Q=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.y.xml.generated")[1]
+        dQ=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.mc_error.xml.generated")[1]
         assert abs(Q-7.6) < 4*Q, 'Q (='+str(Q)+'K) is too far away from 7.6 K'
         
 class TestDOIT(unittest.TestCase):
@@ -117,11 +119,11 @@ class TestDOIT(unittest.TestCase):
         assert self.DOITrun.error=='','Error running TestDOIT.arts: '+self.DOITrun.error
     def test2(self):
         """Total radiance should be close to 204.5 K"""
-        I=self.DOITrun.get_val('y')[0]
+        I=artsXML.load("DOIT/DOIT.y.xml.generated")[0]
         assert abs(I-204.5) < 1., 'I (='+str(I)+'K) is too far away from 204.5 K'
     def test3(self):
         """Polarization difference should be close to 7.2 K"""
-        Q=self.DOITrun.get_val('y')[1]
+        Q=artsXML.load("DOIT/DOIT.y.xml.generated")[1]
         assert abs(Q-7.2) < 1., 'Q (='+str(Q)+'K) is too far away from 7.2 K'
         
 
@@ -134,15 +136,15 @@ class TestClearSky(unittest.TestCase):
         assert self.CSrun.error=='','Error running TestClearSky.arts: '+self.CSrun.error
     def test2(self):
         """Total radiance should be close to 249.68 K"""
-        I=self.CSrun.get_val('vector_1')[0]
+        I=artsXML.load("ClearSky/ClearSky.y1.xml.generated")[0]
         assert abs(I-249.68) < 0.01, 'I (='+str(I)+'K) is too far away from 249.68 K'
     def test3(self):
         """Difference between on-the-fly and lookup table should be below 0.01 K"""
-        I1=self.CSrun.get_val('vector_1')[0]
-        I2=self.CSrun.get_val('y')[0]
+        I1=artsXML.load("ClearSky/ClearSky.y1.xml.generated")[0]
+        I2=artsXML.load("ClearSky/ClearSky.y2.xml.generated")[0]
         assert abs(I2-I1) < 0.02, 'Discrepancy (='+str(I2-I1)+'K) is too far away from 0 K'
 
-        
+
 class TestAMSUB(unittest.TestCase):
     """Testing AMSU-B calculations"""
     Amsurun=ArtsRun('AMSUB', 'TestAMSUB.arts')
@@ -152,11 +154,16 @@ class TestAMSUB(unittest.TestCase):
         assert self.Amsurun.error=='','Error running TestAMSUB.arts: '+self.Amsurun.error
     def test2(self):
         """Total radiance should be close to the reference values"""
-        Iref=[206.908, 216.487, 234.643, 219.107, 243.97, 246.883, 237.87, 227.632, 233.211, 233.885, 244.824, 256.532, 272.593, 258.775, 281.049, 280.445, 274.015, 267.47, 271.101, 273.177, 247.158, 242.484, 244.089, 247.547, 246.472, 246.437, 243.072, 242.379, 245.158, 246.549, 261.742, 258.607, 257.91, 260.566, 263.887, 263.914, 257.486, 261.48, 260.261, 263.253, 271.819, 270.812, 271.062, 273.417, 276.509, 275.827, 270.029, 275.638, 271.831, 276.135]
+        Iref=array([[206.908, 216.487, 234.643, 219.107, 243.97, 246.883, 237.87, 227.632, 233.211, 233.885],
+              [244.824, 256.532, 272.593, 258.775, 281.049, 280.445, 274.015, 267.47, 271.101, 273.177],
+              [247.158, 242.484, 244.089, 247.547, 246.472, 246.437, 243.072, 242.379, 245.158, 246.549],
+              [261.742, 258.607, 257.91, 260.566, 263.887, 263.914, 257.486, 261.48, 260.261, 263.253],
+              [271.819, 270.812, 271.062, 273.417, 276.509, 275.827, 270.029, 275.638, 271.831, 276.135]])
 
-        for k in range (len(Iref)):
-            I=self.Amsurun.get_val('ybatch')[k]
-            assert abs(I-Iref[k]) < 0.01, 'I (='+str(I)+'K) is too far away from '+str(Iref[k])+' K'
+        I = artsXML.load("AMSUB/AMSUB.ybatch.xml.generated")
+        for j in range (5):
+            for k in range (10):
+                assert abs(I[j,k]-Iref[j,k]) < 0.01, 'I['+str(j)+','+str(k)+'] = '+str(I[j,k])+' K is too far away from '+str(Iref[j,k])+' K'
 
 class TestAbs(unittest.TestCase):
     """Testing the ARTS Absorption module"""
@@ -165,14 +172,6 @@ class TestAbs(unittest.TestCase):
         """Simple Absorption test should run with no errors"""
         self.Absrun.run()
         assert self.Absrun.error=='','Error running TestAbs.arts: '+self.Absrun.error
-#     def test2(self):
-#         """Total radiance should be close to 204.5 K"""
-#         I=self.Absrun.get_val('y')[0]
-#         assert abs(I-204.5) < 1., 'I (='+str(I)+'K) is too far away from 204.5 K'
-#     def test3(self):
-#         """Polarization difference should be close to 7.2 K"""
-#         Q=self.Absrun.get_val('y')[1]
-#         assert abs(Q-7.2) < 1., 'Q (='+str(Q)+'K) is too far away from 7.2 K'
 
 if __name__=='__main__':
     unittest.main()

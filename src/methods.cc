@@ -49,6 +49,7 @@
 #define AGENDAMETHOD(x) x
 #define SUPPRESSHEADER(x) x
 #define PASSWORKSPACE(x) x
+#define PASSWSVNAMES(x) x
 
 
 /* Here's a template record entry:  (PE 2001-09-18)
@@ -1379,7 +1380,10 @@ void define_md_data_raw()
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
-        AGENDAMETHOD( true )));
+        AGENDAMETHOD(   true  ),
+        SUPPRESSHEADER( false ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2201,7 +2205,8 @@ void define_md_data_raw()
         TYPES( ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
-        PASSWORKSPACE(  true  )));
+        PASSWORKSPACE(  true  ),
+        PASSWSVNAMES(   true  )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4964,7 +4969,9 @@ md_data_raw.push_back
         DEFAULTS( NODEF ),
         TYPES(    String_t   ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )));
+        SUPPRESSHEADER( true  ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -6862,7 +6869,9 @@ md_data_raw.push_back
         DEFAULTS( "" ),
         TYPES(    String_t   ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )));
+        SUPPRESSHEADER( true  ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6897,7 +6906,9 @@ md_data_raw.push_back
         DEFAULTS( NODEF ),
         TYPES(    String_t   ),
         AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )));
+        SUPPRESSHEADER( true  ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )));
 
   md_data_raw.push_back
     ( MdRecord

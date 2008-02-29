@@ -57,7 +57,6 @@ void interp_atmfield_by_itw(
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
         ConstTensor3View        x_field,
-        const String&           x_field_name,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
         const ArrayOfGridPos&   gp_lon,
@@ -70,7 +69,6 @@ void interp_atmfield_by_gp(
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
         ConstTensor3View        x_field,
-        const String&           x_field_name,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
         const ArrayOfGridPos&   gp_lon );
@@ -81,7 +79,6 @@ Numeric interp_atmfield_by_gp(
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
         ConstTensor3View        x_field,
-        const String&           x_field_name,
         const GridPos&          gp_p,
         const GridPos&          gp_lat,
         const GridPos&          gp_lon );
@@ -98,7 +95,6 @@ void interp_atmsurface_by_itw(
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
         ConstMatrixView         x_surface,
-        const String&           x_surface_name,
         const ArrayOfGridPos&   gp_lat,
         const ArrayOfGridPos&   gp_lon,
         ConstMatrixView         itw );
@@ -109,7 +105,6 @@ void interp_atmsurface_by_gp(
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
         ConstMatrixView         x_field,
-        const String&           x_field_name,
         const ArrayOfGridPos&   gp_lat,
         const ArrayOfGridPos&   gp_lon );
 
@@ -118,7 +113,6 @@ Numeric interp_atmsurface_by_gp(
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
         ConstMatrixView         x_field,
-        const String&           x_field_name,
         const GridPos&          gp_lat,
         const GridPos&          gp_lon );
 

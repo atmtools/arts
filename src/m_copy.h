@@ -37,17 +37,12 @@
 template< class T >
 void Copy(// WS Generic Output:
           T& out,
-          // WS Generic Output Names:
-          const String& outname,
           // WS Generic Input:
-          const T& in,
-          // WS Generic Input Names:
-          const String& inname)
+          const T& in)
 {
   // The use of CloneSize should not be necessary anymore, thanks to
   // the new copy semantics.  
   // CloneSize( out, outname, in, inname );
-  out2 << "  Copying " << inname << " to " << outname << ".\n";
   out = in;
 }
 

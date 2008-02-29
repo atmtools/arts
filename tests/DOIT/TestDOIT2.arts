@@ -11,7 +11,7 @@
 # performed are marked with ===start=== and ===stop===.
 #
 
-Arts {
+Arts2 {
 
 INCLUDE "general"
 INCLUDE "continua.arts"
@@ -21,31 +21,31 @@ INCLUDE "continua.arts"
 # --------------
 # This example is only monochromatic. Note: The frequency must be contained
 # in the gas absorption lookup table.  
-IndexSet( nelem ){ 1 }
-VectorSet( f_grid ){ value = 230e9 }
+IndexSet( nelem, 1 )
+VectorSet( f_grid, nelem, 230e9 )
 
 
 # Number of Stokes components to be computed
 #-------------------------------------------
-IndexSet( stokes_dim ){ value = 4 }
+IndexSet( stokes_dim, 4 )
 
 # Definition of the atmosphere
 # ----------------------------
 
 # Pressure grid
-ReadXML( p_grid ){ "p_grid.xml" }
+ReadXML( p_grid, "p_grid.xml" )
 
 # Definition of species
-SpeciesSet( abs_species ){ species = [ "H2O", "N2", "O2"] }
+SpeciesSet( abs_species, [ "H2O", "N2", "O2"] )
 
 # Atmospheric profiles
-AtmRawRead{ basename = "tropical" }
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "tropical" )
 
 # Gas absorption from lookup table 
 # ---------------------------------
 
 # Lookup tables can be computed using the MATLAB (please contact Stefan)
-ReadXML( abs_lookup ){ "gas_abs_lookup.xml" }
+ReadXML( abs_lookup, "gas_abs_lookup.xml" )
    	
 abs_lookupAdapt
 
@@ -59,18 +59,21 @@ AtmFieldsCalc
 # spherical geoid 
 #r_geoidWGS84
 
-r_geoidSpherical{ r = -1 }
+r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
 
 # Ground altitude (measured from geoid)
-nrowsGet( r_geoid )
-ncolsGet( r_geoid )
-MatrixSet( z_surface ){ value = 500 }
+nrowsGet( nrows, r_geoid )
+ncolsGet( ncols, r_geoid )
+MatrixSet( z_surface, nrows, ncols, 500 )
 
 # Properties of surface
 
 AgendaSet( surface_prop_agenda ){
-  InterpAtmFieldToRteGps( surface_skin_t, t_field )
-  surfaceFlat{ "water-liebe93" }
+  InterpAtmFieldToRteGps( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
+                          lon_grid, rte_gp_p, rte_gp_lat, rte_gp_lon, t_field )
+  surfaceFlat( surface_los, surface_rmatrix, surface_emission, f_grid,
+               stokes_dim, atmosphere_dim, rte_los, surface_skin_t,
+	       "water-liebe93" )
   #surfaceBlackbody
 }
 
@@ -78,21 +81,18 @@ AgendaSet( surface_prop_agenda ){
 # Definition of sensor position and LOS
 #--------------------------------------
 # This file holds the viewing angles of the sensor:
-IndexSet( nelem ){ 1 }
-VectorSet( vector_1 ){ value = 99.7841941981 }
+IndexSet( nelem, 1 )
+VectorSet( vector_1, nelem, 99.7841941981 )
 
-#IndexSet( nelem ){ 19 }
-#VectorNLinSpace( vector_1 ){
-#  start = 0
-#  stop = 180
-#}
+#IndexSet( nelem, 19 )
+#VectorNLinSpace( vector_1, 0, 180 )
 
 # Sensor altitude from earth surface
-nelemGet( vector_1 )
-VectorSet( vector_2 ) { value = 95000.1 }
+nelemGet( nelem, vector_1 )
+VectorSet( vector_2, nelem, 95000.1 )
 
 # Add Earth Radius
-VectorAddScalar( vector_2, vector_2 ){ value = 6.378e6 }
+VectorAddScalar( vector_2, vector_2, 6.378e6 )
 
 Matrix1ColFromVector( sensor_pos, vector_2 )
 Matrix1ColFromVector( sensor_los, vector_1 )
@@ -104,7 +104,8 @@ sensorOff
 # This should be sufficiently small to assume single scattering in 
 # one propagation path step
 AgendaSet( ppath_step_agenda ){
-  ppath_stepGeometric{ lmax = -1 }
+  ppath_stepGeometric( ppath_step, atmosphere_dim, p_grid, lat_grid, lon_grid,
+                       z_field, r_geoid, z_surface, -1 )
 }
 
 # Agendas for clearsky radiative transfer calculation
@@ -112,7 +113,7 @@ AgendaSet( ppath_step_agenda ){
 AgendaSet( iy_space_agenda ){
   Ignore( rte_pos )
   Ignore( rte_los )
-  MatrixCBR( iy, f_grid )
+  MatrixCBR( iy, stokes_dim, f_grid )
 }
 
 AgendaSet( rte_agenda ){
@@ -122,24 +123,19 @@ AgendaSet( rte_agenda ){
 # Set the cloudbox limits (pressure units)
 # Alternative: cloudboxSetManuallyAltitude (specification in [km])
 # ----------------------------------------------------------------
-cloudboxSetManually{
-  p1=71617.7922264
-  p2=17111.6808705
-  lat1=0
-  lat2=0
-  lon1=0
-  lon2=0
-}
+cloudboxSetManually( cloudbox_on, cloudbox_limits, atmosphere_dim, p_grid,
+                     lat_grid, lon_grid, 71617.7922264, 17111.6808705,
+                     0, 0, 0, 0 )
 
 # Specification of cloud
 # -----------------------
 ParticleTypeInit
 
 # Only one particle type is added in this example 
-ParticleTypeAdd{
-  filename_scat_data="p30f229-231T214-225r100NP-1ar1_5ice.xml"
-  filename_pnd_field="pnd_field_1D.xml"
-}
+ParticleTypeAdd( scat_data_raw, pnd_field_raw, atmosphere_dim, f_grid, p_grid,
+                 lat_grid, lon_grid, cloudbox_limits,
+                 "p30f229-231T214-225r100NP-1ar1_5ice.xml",
+                 "pnd_field_1D.xml" )
 
 pnd_fieldCalc
 
@@ -151,7 +147,7 @@ pnd_fieldCalc
 # about 90°.
 # If "polynomial" is selected one has to use an optimized grid. Please     
 # use *doit_za_grid_optCalc* to optimize the grid.
-doit_za_interpSet{ interp_method = "linear" }
+doit_za_interpSet( doit_za_interp, atmosphere_dim, "linear" )
 
 # As one needs for the RT calculations in limb direction a much finer
 # zenith angle grid resolution as for the computation of the scattering 
@@ -161,11 +157,8 @@ doit_za_interpSet{ interp_method = "linear" }
 # be given by a file. If no filename is specified (za_grid_opt_file = ""), the 
 # equidistant grids are used for both, scattering integral and RT calculation. 
 # This option can only be used for down-looking geometries. 
-DoitAngularGridsSet{
-  N_za_grid = 19
-  N_aa_grid = 10
-  za_grid_opt_file = "doit_za_grid_opt.xml"
-}
+DoitAngularGridsSet( doit_za_grid_size, scat_aa_grid, scat_za_grid,
+                     19, 10, "doit_za_grid_opt.xml" )
 
 # Main agenda for DOIT calculation
 # --------------------------------
@@ -178,14 +171,16 @@ AgendaSet( doit_mono_agenda ){
   # Alternative method (needs less memory):
   #scat_data_monoCalc
   # Set first guess field:		
-  doit_i_fieldSetClearsky
+  doit_i_fieldSetClearsky(doit_i_field, scat_i_p, scat_i_lat, scat_i_lon,
+                          f_grid, f_index, p_grid, lat_grid, lon_grid,
+                          cloudbox_limits, atmosphere_dim, )
   # Perform iterations: 1. scattering integral. 2. RT calculations with 
   # fixed scattering integral field, 3. convergence test 
   doit_i_fieldIterate
   # Put solution into interface for clearsky calculation   
   DoitCloudboxFieldPut
   # Write the radiation field inside the cloudbox:
-  WriteXML( doit_i_field ){ "doit_i_field.xml.generated" }
+  WriteXML( output_file_format, doit_i_field, "doit_i_field.xml.generated" )
 }
 
 # Definitions for methods used in *i_fieldIterate*:
@@ -243,13 +238,19 @@ AgendaSet( opt_prop_part_agenda ){
 # ----------------------
 AgendaSet( doit_conv_test_agenda ){
   # Give limits for all Stokes components in Rayleigh Jeans BT:
-  doit_conv_flagAbsBT{ epsilon = [0.1, 0.01, 0.01, 0.01] }
+  doit_conv_flagAbsBT( doit_conv_flag, doit_iteration_counter, doit_i_field,
+                       doit_i_field_old, f_grid, f_index,
+                       [0.1, 0.01, 0.01, 0.01] )
+
   # Alternative: Give limits in radiances
-  #doit_conv_flagAbs{ epsilon = [0.1e-15, 0.1e-18, 0.1e-18, 0.1e-18] )
+  #doit_conv_flagAbs( doit_conv_flag, doit_iteration_counter, doit_i_field,
+  #                   doit_i_field_old ){
+  #  epsilon = [0.1e-15, 0.1e-18, 0.1e-18, 0.1e-18]
+  #}
   # If you want to investigat several iteration fields, for example 
   # to investigate the convergence behavior, you can use
   # the following method:
-  #DoitWriteIterationFields{
+  #DoitWriteIterationFields( doit_iteration_counter, doit_i_field ){
   #  iterations = [2, 4]
   #}
 }
@@ -272,12 +273,12 @@ ScatteringDoit
 
 # Calculate RT from cloudbox boundary to the sensor
 #
-StringSet( y_unit ){ "RJBT" }
+StringSet( y_unit, "RJBT" )
 #
 RteCalc
-    
+
 output_file_formatSetAscii
-WriteXML( y ){ "DOIT.y.xml.generated" }
+WriteXML( output_file_format, y, "DOIT2.y.xml.generated" )
 
 #==================stop==========================
 

@@ -1042,7 +1042,6 @@ void chk_size( const String&    x_name,
                                   *y* shall be nf*npol*nspectra.
     \param   y                    In: A vector of measurement data, or e.g.
                                   a column of a Jacobian matrix.
-    \param   y_name               In: Workspace name of *y*.
     \param   sensor_pos           In: As the WSV with same name.
     \param   sensor_los           In: As the WSV with same name.
     \param   sensor_response_f    In: As the WSV with same name.
@@ -1058,7 +1057,6 @@ void chk_y_with_sensor(
               Index&      npol,
               Index&      nspectra, 
         ConstVectorView   y,
-        const String&     y_name,
         ConstMatrixView   sensor_pos,
         ConstMatrixView   sensor_los,
         ConstVectorView   sensor_response_f,
@@ -1080,9 +1078,6 @@ void chk_y_with_sensor(
 
   if( y.nelem() != nf*npol*nspectra )
     {
-      ostringstream os;
-      os << "The size of *" << y_name << "* is not consistent with the "
-         << "sensor variables.";
-      throw runtime_error( os.str() );
+      throw runtime_error( "The size of y is not consistent with the sensor variables." );
     }
 }

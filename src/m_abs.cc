@@ -673,7 +673,7 @@ void abs_lines_per_speciesCreateFromLines(// WS Output:
           // species are only partly covered by tags.
           if ( species_used[this_line.Species()] )
             {
-              out2 << "Your tags include other lines of species "
+              out2 << "  Your tags include other lines of species "
                    << this_line.SpeciesData().Name()
                    << ",\n"
                    << "why do you not include line "
@@ -1244,8 +1244,8 @@ void WaterVaporSaturationInClouds( // WS Input/Output
   // if no water vapor profile is in use do not go further
   if (u < 1)
     {
-      out2 << "WaterVaporSaturationInClouds: no H2O profile found to adjust for clouds.\n"
-           << "Therefore no saturation calculation is performed\n";
+      out2 << "  WaterVaporSaturationInClouds: no H2O profile found to adjust for clouds.\n"
+           << "  Therefore no saturation calculation is performed\n";
       return;
     }
 

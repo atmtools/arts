@@ -69,13 +69,10 @@ template<typename T> void
 Print(
       // WS Generic Input:
       const T&        x,
-      // WS Generic Input Names:
-      const String&   x_name,
       // Keywords:
       const Index&   level )
 {
-  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n" << x << '\n'
-                << "  *" << x_name << "*\n");
+  SWITCH_OUTPUT (level, x);
 }
 
 
@@ -84,8 +81,6 @@ void
 Print(
       // WS Generic Input:
       const ArrayOfGridPos&   x,
-      // WS Generic Input Names:
-      const String&           x_name,
       // Keywords:
       const Index&             level );
 
@@ -95,8 +90,6 @@ void
 Print(
         // WS Generic Input:
         const ArrayOfIndex&   x,
-        // WS Generic Input Names:
-        const String&         x_name,
         // Keywords:
         const Index&          level );
 
@@ -106,8 +99,6 @@ void
 Print(
         // WS Generic Input:
         const ArrayOfString&   x,
-        // WS Generic Input Names:
-        const String&          x_name,
         // Keywords:
         const Index&           level );
 
@@ -117,8 +108,6 @@ void
 Print(
         // WS Generic Input:
         const Ppath&    ppath,
-        // WS Generic Input Names:
-        const String&   x_name,
         // Keywords:
         const Index&    level );
 
@@ -127,8 +116,6 @@ Print(
 void Print(
         // WS Generic Input:
         const ArrayOfPpath&   x,
-        // WS Generic Input Names:
-        const String&           x_name,
         // Keywords:
         const Index&            level );
 
@@ -137,8 +124,6 @@ void Print(
 void Print(
         // WS Generic Input:
         const Timer&   x,
-        // WS Generic Input Names:
-        const String&  x_name,
         // Keywords:
         const Index&   level);
 

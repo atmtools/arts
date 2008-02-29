@@ -131,15 +131,6 @@ void Agenda::execute(bool silent) const
   out1 << "Executing " << name() << "\n"
        << "{\n";
 
-//   for (Index i=0; i<mml.nelem(); ++i)
-//     {
-//       const MRecord&  mrr = mml[i];
-//       cout << "id, input: " << mrr.Id() << ", ";
-//       print_vector(mrr.Input());
-//       cout << "id, output: " << mrr.Id() << ", ";
-//       print_vector(mrr.Output());
-//     }
-
   for (Index i=0; i<mml.nelem(); ++i)
     {
       // Runtime method data for this method:
@@ -149,7 +140,85 @@ void Agenda::execute(bool silent) const
       
       try
         {
-          out1 << "- " << mdd.Name() << '\n';
+          {
+            ostringstream os;
+            out1 << "- " << mdd.Name() << "\n";
+#if 0
+            bool is_first = true;
+            String indent ("        ");
+            os << "- " << mdd.Name() << "( ";
+            out1 << os.str();
+            //for (Index i = 0; i < os.str().length(); i++)
+            //  indent += ' ';
+
+            for (Index i = 0; i < (mdd.Output()).nelem(); i++)
+              {
+                if (is_first)
+                  {
+                    is_first = false;
+                    out1 << wsv_data[mdd.Output()[i]].Name();
+                  }
+                else
+                  {
+                    out1 << ",\n";
+                    out1 << indent << wsv_data[mdd.Output()[i]].Name();
+                  }
+
+              }
+
+            ArrayOfIndex  vi;
+            mdd.input_only (vi);
+
+            for (Index i = 0; i < vi.nelem(); i++)
+              {
+                if (is_first)
+                  {
+                    is_first = false;
+                    out1 << wsv_data[vi[i]].Name();
+                  }
+                else
+                  {
+                    out1 << ",\n";
+                    out1 << indent << wsv_data[vi[i]].Name();
+                  }
+
+              }
+
+            for (Index i = 0; i < (mrr.Output()).nelem(); i++)
+              {
+                if (is_first)
+                  {
+                    is_first = false;
+                    out1 << wsv_data[mrr.Output()[i]].Name();
+                  }
+                else
+                  {
+                    out1 << ",\n";
+                    out1 << indent << wsv_data[mrr.Output()[i]].Name();
+                  }
+
+              }
+
+            mrr.ginput_only(vi);    // Generic Input
+
+            for (Index i = 0; i < vi.nelem(); i++)
+              {
+                if (is_first)
+                  {
+                    is_first = false;
+                    out1 << wsv_data[vi[i]].Name();
+                  }
+                else
+                  {
+                    out1 << ",\n";
+                    out1 << indent << wsv_data[vi[i]].Name();
+                  }
+
+              }
+
+            out1 << " )\n";
+#endif
+          }
         
           { // Check if all specific input variables are initialized:
             const ArrayOfIndex& v(mdd.Input());
@@ -161,7 +230,6 @@ void Agenda::execute(bool silent) const
 
           { // Check if all generic input variables are initialized:
             const ArrayOfIndex& v(mrr.Input());
-            //      cout << "v.nelem(): " << v.nelem() << endl;
             for (Index s=0; s<v.nelem(); ++s)
               if (!agendaworkspace->is_initialized(v[s]))
                 give_up("Generic Method "+mdd.Name()+" needs input variable: "+

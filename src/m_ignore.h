@@ -36,12 +36,8 @@
 /* Workspace method: Doxygen documentation will be auto-generated */
 template< class T >
 void Ignore(// WS Generic Input:
-            const T&,
-            // WS Generic Input Names:
-            const String& inname)
+            const T& in _U_)
 {
-  // Nothing to do here.
-  out2 << "  Ignoring " << inname << ".\n";
 }
 
 
@@ -50,20 +46,12 @@ template< class T >
 void DoNothing(
             // WS Generic Output:
                   T&      out,
-            // WS Generic Output Names:
-            const String& outname,
             // WS Generic Input:
-                  T&      in,
-            // WS Generic Input Names:
-            const String& inname )
+                  T&      in)
 {
   if( &out != &in )
     throw runtime_error(
                    "*DoNothing* requires that input and output is same WSV." );
-
-  // Nothing to do here.
-  String s = inname;
-  out2 << "  Just touching " << outname << ".\n";
 }
 
 #endif // m_ignore_h

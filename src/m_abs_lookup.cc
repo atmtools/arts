@@ -1283,10 +1283,6 @@ void abs_speciesAdd2(// WS Output:
                     const Vector&             rq_p_grid,
                     const Vector&             rq_lat_grid,
                     const Vector&             rq_lon_grid,
-                    // WS Generic Input Names:
-                    const String&             rq_p_grid_name,
-                    const String&             rq_lat_grid_name,
-                    const String&             rq_lon_grid_name,
                     // Control Parameters:
                     const String&             species,
                     const String&             method,
@@ -1310,8 +1306,7 @@ void abs_speciesAdd2(// WS Output:
   // Do retrieval part
   jacobianAddAbsSpecies( jq, jacobian_agenda, jac, atmosphere_dim, 
                          p_grid, lat_grid, lon_grid, rq_p_grid, rq_lat_grid, 
-                         rq_lon_grid, rq_p_grid_name, rq_lat_grid_name, 
-                         rq_lon_grid_name, species, method, mode, dx);
+                         rq_lon_grid, species, method, mode, dx);
 }
 
 
@@ -1325,8 +1320,6 @@ void abs_speciesInit( ArrayOfArrayOfSpeciesTag& abs_species )
 /* Workspace method: Doxygen documentation will be auto-generated */
 void SpeciesSet(// WS Generic Output:
                 ArrayOfArrayOfSpeciesTag& abs_species,
-                // WS Generic Output Names:
-                const String& abs_species_name,
                 // Control Parameters:
                 const ArrayOfString& names)
 {
@@ -1344,8 +1337,7 @@ void SpeciesSet(// WS Generic Output:
     }
 
   // Print list of tag groups to the most verbose output stream:
-  out3 << "  Defined tag groups for "
-       << abs_species_name << ":";
+  out3 << "  Defined tag groups: ";
   for ( Index i=0; i<abs_species.nelem(); ++i )
     {
       out3 << "\n  " << i << ":";

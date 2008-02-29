@@ -31,11 +31,9 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AgendaExecute(// WS Generic Input:
-                   const Agenda& this_agenda,
-                   // WS Generic Input Names:
-                   const String& this_agenda_name)
+                   const Agenda& this_agenda)
 {
-  out3 << "  Manual execution of " << this_agenda_name << "\n";
+  out3 << "  Manual agenda execution\n";
   this_agenda.execute();
 }
 

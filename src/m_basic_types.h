@@ -55,11 +55,10 @@
 #define TMPL_NGET_GENERIC(what) \
   template <typename T> \
   void what##Get( Index&, \
-                  const T&, \
-                  const String& x_name) \
+                  const T&) \
   { \
     ostringstream os; \
-    os << "Variable " << x_name << " has no such attribute.\n"; \
+    os << "The variable has no such attribute.\n"; \
     throw runtime_error(os.str()); \
  }
 
@@ -83,11 +82,9 @@ TMPL_NGET_GENERIC (nlibraries)
 
 #define NGET_GENERIC(what, type) \
   void what##Get( Index&    what, \
-                 const type&   x, \
-                 const String& x_name) \
+                 const type&   x) \
   { \
     what = x.what (); \
-    out3 << "  Got value " << what << " from " << x_name << ".\n"; \
   }
 
 NGET_GENERIC (nelem, Vector)

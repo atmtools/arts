@@ -68,26 +68,19 @@ extern const Numeric RAD2DEG;
 void ArrayOfGriddedField3ExtractFromArrayOfArrayOfGriddedField3(
       // WS Generic Output:
       ArrayOfGriddedField3&          agf,
-      // WS Generic Output Names:
-      const String&    agf_name,
       // WS Input:
       // WS Generic Input:
       const ArrayOfArrayOfGriddedField3&   aagf,
-      const Index&     index,
-      // WS Generic Input Names:
-      const String&    aagf_name,
-      const String&    index_name )
+      const Index&     index)
 {
   if( index >= aagf.nelem() )
     {
       ostringstream os;
-      os << "The value of *" << index_name << "* (" << index 
-         << "is outside the range of *" << aagf_name << "*.";
+      os << "The index " << index 
+         << " is outside the range of the ArrayOfArrayOfGriddedField3.";
       throw runtime_error( os.str() );
 
     }
-  out3 << "  Copying array of gridded field3 " << index << " of *" << aagf_name
-       << "* to create *" << agf_name << "*.\n";
 
   agf.resize( aagf[index].nelem() );
   agf = aagf[index];
@@ -102,27 +95,19 @@ void ArrayOfGriddedField3ExtractFromArrayOfArrayOfGriddedField3(
 void GriddedField4ExtractFromArrayOfGriddedField4(
       // WS Generic Output:
       GriddedField4&          m,
-      // WS Generic Output Names:
-      const String&    m_name,
       // WS Input:
       // WS Generic Input:
       const ArrayOfGriddedField4&   t3,
-      const Index&     index,
-      // WS Generic Input Names:
-      const String&    t3_name,
-      const String&    index_name )
+      const Index&     index)
 {
   if( index >= t3.nelem() )
     {
       ostringstream os;
-      os << "The value of *" << index_name << "* (" << index 
-         << "is outside the range of *" << t3_name << "*.";
+      os << "The index " << index 
+         << " is outside the range of The ArrayOfGriddedField4.";
       throw runtime_error( os.str() );
 
     }
-  out3 << "  Copying GriddedField4 " << index << " of *" << t3_name
-       << "* to create *" << m_name << "*.\n";
-
 
   // I simply use the copy operator here, since I'm too lazy to go
   // through all members of the structure to resize them. That is not
@@ -140,26 +125,18 @@ void GriddedField4ExtractFromArrayOfGriddedField4(
 void MatrixExtractFromArrayOfMatrix(
       // WS Generic Output:
       Matrix&          m,
-      // WS Generic Output Names:
-      const String&    m_name,
       // WS Input:
       // WS Generic Input:
       const ArrayOfMatrix&   t3,
-      const Index&     index,
-      // WS Generic Input Names:
-      const String&    t3_name,
-      const String&    index_name )
+      const Index&     index)
 {
   if( index >= t3.nelem() )
     {
       ostringstream os;
-      os << "The value of *" << index_name << "* (" << index 
-         << "is outside the range of *" << t3_name << "*.";
+      os << "The index " << index
+         << " is outside the range of the ArrayOfMatrix.";
       throw runtime_error( os.str() );
-
     }
-  out3 << "  Copying matrix " << index << " of *" << t3_name
-       << "* to create *" << m_name << "*.\n";
 
   m.resize( t3[index].nrows(), t3[index].ncols() );
   m = t3[index];
@@ -170,26 +147,19 @@ void MatrixExtractFromArrayOfMatrix(
 void MatrixExtractFromTensor3(
       // WS Generic Output:
       Matrix&          m,
-      // WS Generic Output Names:
-      const String&    m_name,
       // WS Input:
       // WS Generic Input:
       const Tensor3&   t3,
-      const Index&     index,
-      // WS Generic Input Names:
-      const String&    t3_name,
-      const String&    index_name )
+      const Index&     index)
 {
   if( index >= t3.npages() )
     {
       ostringstream os;
-      os << "The value of *" << index_name << "* (" << index 
-         << "is outside the page range of *" << t3_name << "*.";
+      os << "The index " << index 
+         << " is outside the page range of the Tensor3.";
       throw runtime_error( os.str() );
 
     }
-  out3 << "  Copying page " << index << " of *" << t3_name
-       << "* to create *" << m_name << "*.\n";
 
   m.resize( t3.nrows(), t3.ncols() );
   m = t3( index, joker, joker );
@@ -200,26 +170,19 @@ void MatrixExtractFromTensor3(
 void NumericExtractFromVector(
       // WS Generic Output:
       Numeric&         n,
-      // WS Generic Output Names:
-      const String&    n_name,
       // WS Input:
       // WS Generic Input:
       const Vector&    v,
-      const Index&     index,
-      // WS Generic Input Names:
-      const String&    v_name,
-      const String&    index_name )
+      const Index&     index)
 {
   if( index >= v.nelem() )
     {
       ostringstream os;
-      os << "The value of *" << index_name << "* (" << index 
-         << "is outside the range of the vector *" << v_name << "*.";
+      os << "The index " << index 
+         << " is outside the range of the Vector.";
       throw runtime_error( os.str() );
 
     }
-  out3 << "  Copying column " << index << " of *" << v_name
-       << "* to create *" << n_name << "*.\n";
 
   n = v[ index ];
 }
@@ -229,26 +192,19 @@ void NumericExtractFromVector(
 void Tensor3ExtractFromTensor4(
       // WS Generic Output:
       Tensor3&         t3,
-      // WS Generic Output Names:
-      const String&    t3_name,
       // WS Input:
       // WS Generic Input:
       const Tensor4&   t4,
-      const Index&     index,
-      // WS Generic Input Names:
-      const String&    t4_name,
-      const String&    index_name )
+      const Index&     index)
 {
   if( index >= t4.nbooks() )
     {
       ostringstream os;
-      os << "The value of *" << index_name << "* (" << index 
-         << "is outside the book range of *" << t4_name << "*.";
+      os << "The index " << index 
+         << " is outside the book range of the Tensor4.";
       throw runtime_error( os.str() );
 
     }
-  out3 << "  Copying book " << index << " of *" << t4_name
-       << "* to create *" << t3_name << "*.\n";
 
   t3.resize( t4.npages(), t4.nrows(), t4.ncols() );
   t3 = t4( index, joker, joker, joker );
@@ -259,26 +215,19 @@ void Tensor3ExtractFromTensor4(
 void Tensor4ExtractFromTensor5(
       // WS Generic Output:
       Tensor4&         t4,
-      // WS Generic Output Names:
-      const String&    t4_name,
       // WS Input:
       // WS Generic Input:
       const Tensor5&   t5,
-      const Index&     index,
-      // WS Generic Input Names:
-      const String&    t5_name,
-      const String&    index_name )
+      const Index&     index)
 {
   if( index >= t5.nshelves() )
     {
       ostringstream os;
-      os << "The value of *" << index_name << "* (" << index 
-         << "is outside the shelf range of *" << t5_name << "*.";
+      os << "The index " << index 
+         << "is outside the shelf range of the Tensor5.";
       throw runtime_error( os.str() );
 
     }
-  out3 << "  Copying shelf " << index << " of *" << t5_name
-       << "* to create *" << t4_name << "*.\n";
 
   t4.resize( t5.nbooks(), t5.npages(), t5.nrows(), t5.ncols() );
   t4 = t5( index, joker, joker, joker, joker );
@@ -295,15 +244,10 @@ void Tensor4ExtractFromTensor5(
 void VectorExtractFromMatrix(
       // WS Generic Output:
       Vector&          v,
-      // WS Generic Output Names:
-      const String&    v_name,
       // WS Input:
       // WS Generic Input:
       const Matrix&    m,
       const Index&     index,
-      // WS Generic Input Names:
-      const String&    m_name,
-      const String&    index_name,
       // Control Parameters:
       const String& direction )
 {
@@ -312,13 +256,11 @@ void VectorExtractFromMatrix(
       if( index >= m.nrows() )
         {
           ostringstream os;
-          os << "The value of *" << index_name << "* (" << index 
-             << "is outside the row range of *" << m_name << "*.";
+          os << "The index " << index 
+             << " is outside the row range of the Matrix.";
           throw runtime_error( os.str() );
 
         }
-      out3 << "  Copying row " << index << " of *" << m_name
-           << "* to create *" << v_name << "*.\n";
 
       v.resize( m.ncols() );
       v = m( index, joker );
@@ -328,13 +270,11 @@ void VectorExtractFromMatrix(
       if( index >= m.ncols() )
         {
           ostringstream os;
-          os << "The value of *" << index_name << "* (" << index 
-             << "is outside the column range of *" << m_name << "*.";
+          os << "The index " << index 
+             << " is outside the column range of the Matrix.";
           throw runtime_error( os.str() );
 
         }
-      out3 << "  Copying column " << index << " of *" << m_name
-           << "* to create *" << v_name << "*.\n";
 
       v.resize( m.nrows() );
       v = m( joker, index );
@@ -628,7 +568,6 @@ void ybatchMetProfiles(//Output
       
       //Making a p_grid with the first and last element taken from the profile.
       VectorNLogSpace(p_grid, 
-              "p_grid", 
               nelem_p_grid,
               t_field_raw.p_grid[0], 
               t_field_raw.p_grid[N_p -1]);
@@ -852,7 +791,6 @@ void ybatchMetProfilesClear(//Output
       // this is because of the extrapolation problem.
       
       VectorNLogSpace(p_grid, 
-              "p_grid", 
               nelem_p_grid,
               t_field_raw.p_grid[0], 
               t_field_raw.p_grid[N_p -1]);

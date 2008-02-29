@@ -78,8 +78,6 @@ void atm_fields_compactFromMatrix(// WS Output:
                                   const Index& atmosphere_dim,
                                   // WS Generic Input:
                                   const Matrix& im,
-                                  // WS Generic Input Names:
-                                  const String& im_name,
                                   // Control Parameters:
                                   const ArrayOfString& field_names )
 {
@@ -96,7 +94,7 @@ void atm_fields_compactFromMatrix(// WS Output:
   if (field_names.nelem()!=nf)
     {
       ostringstream os; 
-      os << "Cannot copy " << im_name << ".\n"
+      os << "Cannot copy Matrix.\n"
          << "*field_names* must have one element less than there are\n"
          << "matrix columns.";
       throw runtime_error( os.str() );
@@ -162,8 +160,6 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
                                                const Index& atmosphere_dim,
                                                // WS Generic Input:
                                                const ArrayOfMatrix& am,
-                                               // WS Generic Input Names:
-                                               const String& amname,
                                                // Control Parameters:
                                                const ArrayOfString& field_names,
                                                const ArrayOfString& extra_field_names,
@@ -197,7 +193,6 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
       atm_fields_compactFromMatrix(batch_atm_fields_compact[i],
                                    atmosphere_dim,
                                    am[i],
-                                   amname,
                                    field_names);
 
       for (Index j=0; j<extra_field_names.nelem(); ++j)
@@ -880,7 +875,6 @@ void AtmRawRead(//WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void InterpAtmFieldToRteGps(
                  Numeric&   outvalue,
-           const String&    outname,
            const Index&     atmosphere_dim,
            const Vector&    p_grid,
            const Vector&    lat_grid,
@@ -888,38 +882,31 @@ void InterpAtmFieldToRteGps(
            const GridPos&   rte_gp_p,
            const GridPos&   rte_gp_lat,
            const GridPos&   rte_gp_lon,
-           const Tensor3&   field,
-           const String&    fieldname )
+           const Tensor3&   field)
 {
-  out2 << "  Interpolates " << fieldname << " to obtain " << outname << ".\n";
-
   // Interpolate
   outvalue = interp_atmfield_by_gp( atmosphere_dim, p_grid, lat_grid, 
-                lon_grid, field, fieldname, rte_gp_p, rte_gp_lat, rte_gp_lon );
+                lon_grid, field, rte_gp_p, rte_gp_lat, rte_gp_lon );
 
-  out3 << "    " << outname << " = " << outvalue << "\n";
+  out3 << "    Result = " << outvalue << "\n";
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void InterpSurfaceFieldToRteGps(
                  Numeric&   outvalue,
-           const String&    outname,
            const Index&     atmosphere_dim,
            const Vector&    lat_grid,
            const Vector&    lon_grid,
            const GridPos&   rte_gp_lat,
            const GridPos&   rte_gp_lon,
-           const Matrix&   field,
-           const String&    fieldname )
+           const Matrix&    field)
 {
-  out2 << "  Interpolates " << fieldname << " to obtain " << outname << ".\n";
-
   // Interpolate
   outvalue = interp_atmsurface_by_gp( atmosphere_dim, lat_grid, 
-                lon_grid, field, fieldname, rte_gp_lat, rte_gp_lon );
+                lon_grid, field, rte_gp_lat, rte_gp_lon );
 
-  out3 << "    " << outname << " = " << outvalue << "\n";
+  out3 << "    Result = " << outvalue << "\n";
 }
 
 
@@ -1683,7 +1670,7 @@ void surfaceSimple(
 //         const GridPos&   rte_gp_lon,
 //         const Vector&    rte_los,
 //         const Index&     atmosphere_dim,
-//  const Vector&    p_grid,
+//         const Vector&    p_grid,
 //         const Vector&    lat_grid,
 //         const Vector&    lon_grid,
 //         const Matrix&    r_geoid,
@@ -1718,7 +1705,7 @@ void surfaceSimple(
 
 //   // Determine the temperature at the point of the surface reflection
 //   const Numeric t = interp_atmfield_by_gp( atmosphere_dim, p_grid, lat_grid, 
-//               lon_grid, t_field, "t_field", rte_gp_p, rte_gp_lat, rte_gp_lon );
+//               lon_grid, t_field, rte_gp_p, rte_gp_lat, rte_gp_lon );
 
 //   out3 << "     Surface temperature is                     : " << t << "\n";
 

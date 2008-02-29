@@ -97,7 +97,7 @@ void clear_rt_vars_at_gp(
   //
   interp_atmfield_by_itw( t_vec,  3, p_grid, 
                           lat_grid, lon_grid, t_field, 
-                          "t_field", ao_gp_p, ao_gp_lat, ao_gp_lon, 
+                          ao_gp_p, ao_gp_lat, ao_gp_lon, 
                           itw_field );
   // 
   for( Index is=0; is<ns; is++ )
@@ -105,7 +105,7 @@ void clear_rt_vars_at_gp(
       interp_atmfield_by_itw( vmr_mat(is, joker), 3, p_grid, 
                               lat_grid, lon_grid, 
                               vmr_field(is, joker, joker, joker), 
-                              "vmr_field", ao_gp_p, ao_gp_lat, 
+                              ao_gp_p, ao_gp_lat, 
                               ao_gp_lon, itw_field );
     }
 
@@ -294,7 +294,7 @@ void cloud_atm_vars_by_gp(
   //
   interp_atmfield_by_itw( temperature,  atmosphere_dim, p_grid_cloud, 
                           lat_grid_cloud, lon_grid_cloud, t_field_cloud, 
-                          "t_field", gp_p_cloud, gp_lat_cloud, gp_lon_cloud, 
+                          gp_p_cloud, gp_lat_cloud, gp_lon_cloud, 
                           itw_field );
   // 
   for( Index is=0; is<ns; is++ )
@@ -302,7 +302,7 @@ void cloud_atm_vars_by_gp(
       interp_atmfield_by_itw( vmr(is, joker), atmosphere_dim, p_grid_cloud, 
                               lat_grid_cloud, lon_grid_cloud, 
                               vmr_field_cloud(is, joker, joker, joker), 
-                              "vmr_field", gp_p_cloud, gp_lat_cloud, 
+                              gp_p_cloud, gp_lat_cloud, 
                               gp_lon_cloud, itw_field );
     }
   
@@ -315,7 +315,7 @@ void cloud_atm_vars_by_gp(
       interp_atmfield_by_itw( pnd(ip, joker), atmosphere_dim,
                               p_grid_cloud, lat_grid_cloud, lon_grid_cloud, 
                               pnd_field(ip, joker, joker,  joker), 
-                              "pnd_field", gp_p_cloud, gp_lat_cloud, 
+                              gp_p_cloud, gp_lat_cloud, 
                               gp_lon_cloud, itw_field );
     }
 }
@@ -1614,7 +1614,7 @@ void mcPathTraceIPA(MatrixView&           evol_op,
           rv_geoid  = interp( itw, r_geoid, gp_lat, gp_lon );          
         }
       rte_pos[0]=rv_geoid+interp_atmfield_by_gp(3,p_grid,lat_grid,lon_grid,z_field,
-                                                "z_field",gp_p,gp_lat,gp_lon);
+                                                gp_p,gp_lat,gp_lon);
       rte_pos[1]=interp(lat_iw, lat_grid,gp_lat);
       rte_pos[2]=interp(lon_iw, lon_grid,gp_lon);
 
@@ -2042,7 +2042,7 @@ Numeric opt_depth_calc(
                           lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
   //
   interp_atmfield_by_itw( t_ppath,  atmosphere_dim, p_grid, lat_grid, 
-                          lon_grid, t_field, "t_field", 
+                          lon_grid, t_field,
                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
   // 
   for( Index is=0; is<ns; is++ )
@@ -2050,7 +2050,7 @@ Numeric opt_depth_calc(
       interp_atmfield_by_itw( vmr_ppath(is, joker), atmosphere_dim,
                               p_grid, lat_grid, lon_grid, 
                               vmr_field(is, joker, joker,  joker), 
-                              "vmr_field", ppath.gp_p, ppath.gp_lat, 
+                              ppath.gp_p, ppath.gp_lat, 
                               ppath.gp_lon, itw_field );
     }
   //Create array of extinction cefficients corresponding to each point in ppath

@@ -67,28 +67,23 @@ void antenna_diagramAppendArray(// WS Output:
                                 // WS Input:
                                 const Matrix&           sensor_pol,
                                 // WS Generic Input:
-                                const ArrayOfMatrix&    a,
-                                // WS Generic Input Names:
-                                const String&           a_name)
+                                const ArrayOfMatrix&    a)
 {
   // Check the size of the array of matrices
   if (a.nelem()==0) {
     ostringstream os;
-    os << "Input "<<a_name<<" must at least contain one element.";
+    os << "Input array must at least contain one element.";
     throw runtime_error(os.str());
   }
   if (a.nelem()>sensor_pol.nrows()) {
     ostringstream os;
-    os << "Input "<<a_name<<" can not contain more elements than\n"
+    os << "Input array can not contain more elements than\n"
        << "the number of polarisations given by *sensor_pol*";
     throw runtime_error(os.str());
   }
 
   // Append the array to antenna_diagram
   antenna_diagram.push_back(a);
-
-  // Output info to user
-  out2 << "  Appending "<<a_name<<" to *antenna_diagram*\n";
 }
 
 
@@ -241,8 +236,6 @@ void ConvertIFToRF(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void GaussianResponse(// WS Generic Output:
                       Matrix&           r_matrix,
-                      // WS Generic Output Names:
-                      const String&     r_matrix_name,
                       // Control Parameters:
                       const Numeric&    FWHM,
                       const Numeric&    TotWidth,
@@ -251,9 +244,6 @@ void GaussianResponse(// WS Generic Output:
   //Calculate new size of matrix
   Index nrows = Index (ceil(TotWidth / MaxSpacing)+1);
   r_matrix.resize(nrows,2);
-
-  out2 << "  Setting up a sensor response matrix in *"
-       << r_matrix_name << "*\n  with gaussian distribution.\n";
 
   //Set up grid column, using temporary vector since nlinspace resizes the
   //input vector.
@@ -473,9 +463,7 @@ void sensor_responseBackend(// WS Output:
                             const Vector&         sensor_response_za,
                             const Index&          sensor_norm,
                             // WS Generic Input:
-                            const ArrayOfMatrix&  ch_response,
-                            // WS Generic Input Names:
-                            const String&         ch_response_name)
+                            const ArrayOfMatrix&  ch_response)
 {
   // Initialise a output stream for runtime errors, a flag for errors
   // and counters for difference between sensor_response_f and the
@@ -498,7 +486,7 @@ void sensor_responseBackend(// WS Output:
   // Check that the number of elements in ch_response is equal one or
   // the number of polarisations
   if (ch_response.nelem()!=1 && ch_response.nelem()==sensor_response_pol) {
-    os << "The ArrayOfMatrix "<<ch_response_name<<" can only contain 1 or "
+    os << "The ArrayOfMatrix can only contain 1 or "
        << sensor_response_pol <<" elements.\n";
     error_found = true;
   }
@@ -541,10 +529,6 @@ void sensor_responseBackend(// WS Output:
   // message.
   if (error_found)
     throw runtime_error(os.str());
-
-  // Give some output to the user.
-  out2 << "  Calculating the backend response using values and grid from "
-       << "*" << ch_response_name << "*.\n";
 
   // Call the function that calculates the sensor transfer matrix.
   Sparse backend_response(f_backend.nelem()*n_za_pol,
@@ -643,9 +627,7 @@ void sensor_responseMixer(// WS Output:
                           const Vector&     lo,
                           const Index&      sensor_norm,
                           // WS Generic Input:
-                          const Matrix&     filter,
-                          // WS Generic Input Names:
-                          const String&     filter_name)
+                          const Matrix&     filter)
 {
   // Initialise a output stream for runtime errors, a flag for errors
   // and counters for difference between sensor_response_f and the
@@ -666,8 +648,8 @@ void sensor_responseMixer(// WS Output:
   // Check that the sideband filter matrix has been initialised...
   if( filter.ncols()!=2 )
   {
-    os << "The sideband filter response matrix *" << filter_name << "* has not"
-       << " been\n correctly initialised. A two column matrix is expected.\n";
+    os << "The sideband filter response matrix has not been\n"
+      << "correctly initialised. A two column matrix is expected.\n";
     error_found = true;
   }
 
@@ -676,23 +658,23 @@ void sensor_responseMixer(// WS Output:
   Numeric df_low = sensor_response_f[0]-filter(0,0);
   if( df_high<0 && df_low<0 )
   {
-    os << "The frequency grid of the sideband filter matrix *" << filter_name
-       << "*\n must be extended by at least " << -df_low << " Hz in the "
+    os << "The frequency grid of the sideband filter matrix\n"
+       << "must be extended by at least " << -df_low << " Hz in the "
        << "lower\n end and " << -df_high << " Hz in the upper end to cover"
        << "the *sensor_response_f* grid.\n";
     error_found = true;
   }
   else if( df_high<0 )
   {
-    os << "The frequency grid of the sideband filter matrix *" << filter_name
-       << "*\n must be extended by at least " << -df_high << " Hz in the "
+    os << "The frequency grid of the sideband filter matrix\n"
+       << "must be extended by at least " << -df_high << " Hz in the "
        << "upper\n end to cover the *sensor_response_f* grid.\n";
     error_found = true;
   }
   else if( df_low<0 )
   {
-   os << "The frequency grid of the sideband filter matrix *" << filter_name
-       << "*\n must be extended by at least " << -df_low << " Hz in the "
+   os << "The frequency grid of the sideband filter matrix\n"
+       << "must be extended by at least " << -df_low << " Hz in the "
        << "lower\n end to cover the *sensor_response_f* grid.\n";
     error_found = true;
   }
@@ -717,10 +699,6 @@ void sensor_responseMixer(// WS Output:
   // message.
   if (error_found)
     throw runtime_error(os.str());
-
-  // Give some output to the user.
-  out2 << "  Calculating the mixer and sideband filter response using values\n"
-       << "  and grid from *" << filter_name << "*.\n";
 
   //Call to calculating function
   Sparse mixer_response;
@@ -761,10 +739,7 @@ void sensor_responseMultiMixerBackend(
      const Matrix&          sensor_pol,
      // WS Generic Input:
      const Matrix&          sb_filter,
-     const Matrix&          ch_resp,
-     // WS Generic Input Names:
-     const String&          sb_filter_name,
-     const String&          ch_resp_name)
+     const Matrix&          ch_resp)
 {
   // Check if a *lo* is given for each polarisation (row in *sensor_pol*).
   Vector lo_tmp(sensor_pol.nrows());
@@ -806,9 +781,9 @@ void sensor_responseMultiMixerBackend(
   {
     ostringstream os;
     os << "The combination of the backend channel frequencies and the "
-          "frequency grid of\n*" << ch_resp_name <<
-          "* are outside the current sensor response frequency grid\n. "
-          "No weighting can be performed.";
+      << "frequency grid are outside the current sensor response\n"
+      << "frequency grid\n. "
+      << "No weighting can be performed.";
     throw runtime_error(os.str());
   }
 
@@ -818,9 +793,10 @@ void sensor_responseMultiMixerBackend(
   {
     ostringstream os;
     os << "The sideband filter has to cover the current sensor response "
-          "frequency grid.\nThe frequencies in *" << sb_filter_name <<
-          "* has to be expanded to cover the frequencies\n"
-          "from the previous sensor parts.";
+      << "frequency grid.\n"
+      << "The frequencies in the sideband filter response matrix has\n"
+      << "to be expanded to cover the frequencies from the previous\n"
+      << "sensor parts.";
     throw runtime_error(os.str());
   }
 

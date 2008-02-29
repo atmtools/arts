@@ -643,16 +643,16 @@ void yUnit(
 
   else if( y_unit == "RJBT" )
     {
-      VectorToRJBT( y, "y", sensor_pos, sensor_los, sensor_response_f,
+      VectorToRJBT( y, sensor_pos, sensor_los, sensor_response_f,
                     sensor_response_za, sensor_response_aa, sensor_response_pol,
-                    y, "y" );
+                    y );
     }
 
   else if( y_unit == "PlanckBT" )
     {
-      VectorToPlanckBT( y, "y", sensor_pos, sensor_los, sensor_response_f,
+      VectorToPlanckBT( y, sensor_pos, sensor_los, sensor_response_f,
                     sensor_response_za, sensor_response_aa, sensor_response_pol,
-                    y, "y" );
+                    y );
     }
   else
     {

@@ -159,6 +159,32 @@ public:
       return *this;
     }
 
+  //! Get list of generic input only WSVs.
+  /*!
+    This function returns an array with the indexes of WSVs which are
+    only input variables but not output.
+
+    \param[out] ginonly Index array of input only WSVs.
+
+    \author Oliver Lemke
+    \date   2008-02-27
+  */
+  void ginput_only (ArrayOfIndex& ginonly) const
+    {
+      ginonly = minput;    // Input
+      for (ArrayOfIndex::const_iterator j=moutput.begin(); j<moutput.end(); ++j)
+        for (ArrayOfIndex::iterator k=ginonly.begin(); k<ginonly.end(); ++k)
+          if ( *j == *k )
+            {
+              //              erase_vector_element(vi,k);
+              k = ginonly.erase(k) - 1;
+              // We need the -1 here, otherwise due to the
+              // following increment we would miss the element
+              // behind the erased one, which is now at the
+              // position of the erased one.
+            }
+    }
+
   // Output operator:
   void                 print( ostream& os,
                               const String& indent ) const;

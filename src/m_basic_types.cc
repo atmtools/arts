@@ -72,12 +72,8 @@
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfMatrixSet(// WS Generic Output:
                       ArrayOfMatrix&  aom,
-                      // WS Generic Output Names:
-                      const String&   aom_name,
                       // WS Generic Input:
                       const Matrix&   m,
-                      // WS Generic Input Names:
-                      const String&   m_name,
                       // Control Parameters:
                       const Index&    element )
 {
@@ -86,16 +82,14 @@ void ArrayOfMatrixSet(// WS Generic Output:
   if (element>aom.nelem()) {
     ostringstream os;
     os << "The element index "<<element<<" is too large, there are only "
-       << aom.nelem() <<" elements in "<<aom_name<<".\n";
+       << aom.nelem() <<" elements in output matrix.\n";
     throw runtime_error(os.str());
   } else if (element<0 || element==aom.nelem()) {
     aom.push_back(m);
-    out2 << "  Appending Matrix " << m_name << " to ArrayOfMatrix "
-       << aom_name << ".\n";
   } else {
     aom[element] = m;
-    out2 << "  Setting element "<<element<<" in ArrayOfMatrix "
-         << aom_name<<" to Matrix "<<m_name<<".\n";
+    out2 << "  Setting element "<<element<<" in output ArrayOfMatrix "
+         << "to input Matrix.\n";
   }
 }
 
@@ -103,77 +97,58 @@ void ArrayOfMatrixSet(// WS Generic Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfStringSet(
               ArrayOfString&  sa,
-        const String&         sa_name,
         const ArrayOfString&  sa2 )
 {
   sa.resize(sa2.nelem());
   sa = sa2;
-  out2 << "  Setting " << sa_name << " to the given string array.\n";
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void FlagOff(    
-            Index&    x,
-      const String&   x_name )
+            Index&    x)
 {
   x = 0;
-  out2 << "  " << x_name << " = 0\n";
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void FlagOn(      
-             Index&    x,
-       const String&   x_name )
+             Index&    x)
 {
   x = 1;
-  out2 << "  " << x_name << " = 1\n";
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void IndexSet(    Index&    x,
-            const String&   x_name,
             const Index&    value )
 {
   x = value;
-  out3 << "  " << x_name << " = " << value << "\n";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void IndexStep(    
             Index&     xout,       
-      const String&    outname,
-      const Index&     xin,
-      const String&    inname )
+      const Index&     xin)
 {
   xout = xin + 1;
-  out3 << "  " << outname << " = " << inname << " + 1\n";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixMatrixMultiply(// WS Generic Output:
                           Matrix& Y,
-                          // WS Generic Output Names:
-                          const String& Y_name,
                           // WS Generic Input:
                           const Matrix& M,
-                          const Matrix& X,
-                          // WS Generic Input Names:
-                          const String& M_name,
-                          const String& X_name)
+                          const Matrix& X)
 {
-  out3 << "  Multiplying " << M_name << " with " << X_name
-       << " and storing the result in " << Y_name << ".\n";
-
   // Check that dimensions are right, M.ncols() must match X.nrows():
   if (M.ncols()!=X.nrows())
     {
       ostringstream os;
       os << "Matrix dimensions must be consistent!\n"
-         << M_name << ".ncols() = " << M.ncols() << "\n"
-         << X_name << ".nrows() = " << X.nrows();
+         << "Matrix1.ncols() = " << M.ncols() << "\n"
+         << "Matrix2.nrows() = " << X.nrows();
       throw runtime_error( os.str() );
     }
 
@@ -193,17 +168,11 @@ void MatrixMatrixMultiply(// WS Generic Output:
 void Matrix1ColFromVector(
         // WS Generic Output:
               Matrix&   m,
-        // WS Generic Output Names:
-        const String&   m_name,
         // WS Generic Input:
-        const Vector&   v,
-        // WS Generic Input Names:
-        const String&   v_name )
+        const Vector&   v)
 {
   const Index nv = v.nelem();
 
-  out2 << "  Creates the matrix " << m_name << " by putting in " << v_name
-       << " as only column.\n";
   m.resize( nv, 1 );
   m( joker,0 ) = v;
 }
@@ -213,23 +182,15 @@ void Matrix1ColFromVector(
 void Matrix2ColFromVectors(
         // WS Generic Output:
               Matrix&   m,
-        // WS Generic Output Names:
-        const String&   m_name,
         // WS Generic Input:
         const Vector&   v1,
-        const Vector&   v2,
-        // WS Generic Input Names:
-        const String&   v1_name,
-        const String&   v2_name )
+        const Vector&   v2)
 {
   const Index nv = v1.nelem();
 
   if( v2.nelem() != nv )
     throw runtime_error("Vectors must be of the same size.");
   
-  out2 << "  Creates the matrix " << m_name << " by putting in\n  "
-       << v1_name << " as first column and\n  "
-       << v2_name << " as second column.\n";
   m.resize( nv, 2 );
   m( joker,0 ) = v1;
   m( joker,1 ) = v2;
@@ -241,31 +202,20 @@ void Matrix2ColFromVectors(
 void Matrix3ColFromVectors(
         // WS Generic Output:
               Matrix&   m,
-        // WS Generic Output Names:
-        const String&   m_name,
         // WS Generic Input:
         const Vector&   v1,
-    const Vector&   v2,
-        const Vector&   v3,
-    // WS Generic Input Names:
-        const String&   v1_name,
-        const String&   v2_name,
-        const String&   v3_name )
+        const Vector&   v2,
+        const Vector&   v3)
 {
   const Index nv = v1.nelem();
 
   if( v3.nelem() != nv || v2.nelem() != nv )
     throw runtime_error("Vectors must be of the same size.");
   
-  out2 << "  Creates the matrix " << m_name << " by putting in\n  "
-       << v1_name << " as first column,\n  "
-       << v2_name << " as second column and\n  "
-       << v3_name << " as third column.\n";
   m.resize( nv, 3 );
   m( joker,0 ) = v1;
   m( joker,1 ) = v2;
   m( joker,2 ) = v3;
-
 }
 
 
@@ -273,17 +223,11 @@ void Matrix3ColFromVectors(
 void Matrix1RowFromVector(
         // WS Generic Output:
               Matrix&   m,
-        // WS Generic Output Names:
-        const String&   m_name,
         // WS Generic Input:
-        const Vector&   v,
-        // WS Generic Input Names:
-        const String&   v_name )
+        const Vector&   v)
 {
   const Index nv = v.nelem();
 
-  out2 << "  Creates the matrix " << m_name << " by putting in " << v_name
-       << " as only row.\n";
   m.resize( 1, nv );
   m( 0, joker ) = v;
 }
@@ -293,23 +237,15 @@ void Matrix1RowFromVector(
 void Matrix2RowFromVectors(
         // WS Generic Output:
               Matrix&   m,
-        // WS Generic Output Names:
-        const String&   m_name,
         // WS Generic Input:
         const Vector&   v1,
-        const Vector&   v2,
-    // WS Generic Input Names:
-        const String&   v1_name,
-        const String&   v2_name )
+        const Vector&   v2)
 {
   const Index nv = v1.nelem();
 
   if( v2.nelem() != nv )
     throw runtime_error("Vectors must be of the same size.");
   
-  out2 << "  Creates the matrix " << m_name << " by putting in\n  "
-       << v1_name << " as first row and\n  "
-       << v2_name << " as second row.\n";
   m.resize( 2, nv );
   m( 0, joker ) = v1;
   m( 1, joker ) = v2;
@@ -321,26 +257,16 @@ void Matrix2RowFromVectors(
 void Matrix3RowFromVectors(
         // WS Generic Output:
               Matrix&   m,
-        // WS Generic Output Names:
-        const String&   m_name,
         // WS Generic Input:
         const Vector&   v1,
-    const Vector&   v2,
-        const Vector&   v3,
-    // WS Generic Input Names:
-        const String&   v1_name,
-        const String&   v2_name,
-        const String&   v3_name )
+        const Vector&   v2,
+        const Vector&   v3)
 {
   const Index nv = v1.nelem();
 
   if( v3.nelem() != nv || v2.nelem() != nv )
     throw runtime_error("Vectors must be of the same size.");
   
-  out2 << "  Creates the matrix " << m_name << " by putting in\n  "
-       << v1_name << " as first row,\n  "
-       << v2_name << " as second row and\n  "
-       << v3_name << " as third row.\n";
   m.resize( 3, nv );
   m( 0, joker ) = v1;
   m( 1, joker ) = v2;
@@ -352,13 +278,9 @@ void Matrix3RowFromVectors(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixScale(
                     Matrix&   out,
-              const String&   out_name,
               const Matrix&   in,
-              const String&   in_name,
               const Numeric&  value )
 {
-  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
-
   // Note that in and out can be the same matrix
   if (&out==&in)
     {
@@ -378,36 +300,28 @@ void MatrixScale(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixSet(           Matrix&    x, 
-                    const String&    x_name,
                     const Index&     nrows,
                     const Index&     ncols,
                     const Numeric&   value )
 {
   x.resize( nrows, ncols );
   x = value;
-  out2 << "  " << x_name << " = " << value << "\n"; 
-  out3 << "             nrows : " << nrows << "\n";
-  out3 << "             ncols : " << ncols << "\n";
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void NumericSet(      Numeric&   x,
-                const String&    x_name,
                 const Numeric&   value )
 {
   x = value;
-  out3 << "  " << x_name << " = " << value << "\n";
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void StringSet(           String&  s, 
-                    const String&  s_name,
                     const String&  s2 )
 {
   s = s2;
-  out3 << "  " << s_name << " = " << s2 << "\n"; 
 }
 
 
@@ -415,25 +329,21 @@ void StringSet(           String&  s,
 void Tensor3FillWithVector(
         // WS Generic Output:
               Tensor3&   t,
-        // WS Generic Output Names:
-        const String&   t_name,
         // WS Generic Input:
         const Vector&   v,
-        // WS Generic Input Names:
-        const String&   v_name,
         // Control Parameters:
         const Index& npages,
         const Index& nrows,
         const Index& ncols )
 {
   if( ( (npages==0) + (nrows==0) + (ncols==0) ) > 1 )
-    throw runtime_error("0nly one of the keyword arguments can be 0."); 
+    throw runtime_error("Only one of the keyword arguments can be 0."); 
 
   const Index nv = v.nelem();
 
   if( ncols == 0 )
     {
-      out2 << "  Creates the tensor " << t_name << " by putting in " << v_name
+      out2 << "  Creates the tensor by putting in the vector"
            << "\n  perpendicular to the column dimension.\n";
       out3 << "            npages : " << npages << "\n";
       out3 << "            nrows  : " << nrows << "\n";
@@ -447,7 +357,7 @@ void Tensor3FillWithVector(
     }
   else if( nrows == 0 )
     {
-      out2 << "  Creates the tensor " << t_name << " by putting in " << v_name
+      out2 << "  Creates the tensor by putting in the vector"
            << "\n  perpendicular to the row dimension.\n";
       out3 << "            npages : " << npages << "\n";
       out3 << "            nrows  : " << nv << "\n";
@@ -461,7 +371,7 @@ void Tensor3FillWithVector(
     }
   else if( npages == 0 )
     {
-      out2 << "  Creates the tensor " << t_name << " by putting in " << v_name
+      out2 << "  Creates the tensor by putting in the vector"
            << "\n  perpendicular to the page dimension.\n";
       out3 << "            npages : " << nv << "\n";
       out3 << "            nrows  : " << nrows << "\n";
@@ -481,13 +391,9 @@ void Tensor3FillWithVector(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor3Scale(        Tensor3&  out,
-                    const String&   out_name,
                     const Tensor3&  in,
-                    const String&   in_name,
                     const Numeric&  value )
 {
-  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
-
   // Note that in and out can be the same vector
   if (&out==&in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -504,7 +410,6 @@ void Tensor3Scale(        Tensor3&  out,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor3Set(          Tensor3&   x, 
-                    const String&    x_name,
                     const Index&     npages,
                     const Index&     nrows,
                     const Index&     ncols,
@@ -512,7 +417,7 @@ void Tensor3Set(          Tensor3&   x,
 {
   x.resize( npages, nrows, ncols );
   x = value;
-  out2 << "  " << x_name << " = " << value  << "\n";
+  out2 << "  Tensor3 = " << value  << "\n";
   out3 << "            npages : " << npages << "\n";
   out3 << "             nrows : " << nrows  << "\n";
   out3 << "             ncols : " << ncols  << "\n";
@@ -521,13 +426,9 @@ void Tensor3Set(          Tensor3&   x,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor4Scale(        Tensor4&  out,
-                    const String&   out_name,
                     const Tensor4&  in,
-                    const String&   in_name,
                     const Numeric&  value )
 {
-  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
-
   // Note that in and out can be the same vector
   if (&out==&in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -544,7 +445,6 @@ void Tensor4Scale(        Tensor4&  out,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor4Set(          Tensor4&   x, 
-                    const String&    x_name,
                     const Index&     nbooks,      
                     const Index&     npages,
                     const Index&     nrows,
@@ -553,7 +453,7 @@ void Tensor4Set(          Tensor4&   x,
 {
   x.resize( nbooks, npages, nrows, ncols );
   x = value;
-  out2 << "  " << x_name << " = " << value  << "\n";
+  out2 << "  Tensor4 = " << value  << "\n";
   out3 << "            nbooks : " << nbooks << "\n";
   out3 << "            npages : " << npages << "\n";
   out3 << "             nrows : " << nrows  << "\n";
@@ -563,13 +463,9 @@ void Tensor4Set(          Tensor4&   x,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor5Scale(        Tensor5&  out,
-                    const String&   out_name,
                     const Tensor5&  in,
-                    const String&   in_name,
                     const Numeric&  value )
 {
-  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
-
   // Note that in and out can be the same vector
   if (&out==&in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -587,7 +483,6 @@ void Tensor5Scale(        Tensor5&  out,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor5Set(          Tensor5&   x, 
-                    const String&    x_name,
                     const Index&     nshelves,     
                     const Index&     nbooks,      
                     const Index&     npages,
@@ -597,7 +492,7 @@ void Tensor5Set(          Tensor5&   x,
 {
   x.resize( nshelves, nbooks, npages, nrows, ncols );
   x = value;
-  out2 << "  " << x_name << " = " << value    << "\n";
+  out2 << "  Tensor5 = " << value    << "\n";
   out3 << "          nshelves : " << nshelves << "\n";
   out3 << "            nbooks : " << nbooks   << "\n";
   out3 << "            npages : " << npages   << "\n";
@@ -608,13 +503,9 @@ void Tensor5Set(          Tensor5&   x,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor6Scale(        Tensor6&  out,
-                    const String&   out_name,
                     const Tensor6&  in,
-                    const String&   in_name,
                     const Numeric&  value )
 {
-  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
-
   // Note that in and out can be the same vector
   if (&out==&in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -632,7 +523,6 @@ void Tensor6Scale(        Tensor6&  out,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor6Set(          Tensor6&   x, 
-                    const String&    x_name,
                     const Index&     nvitrines,   
                     const Index&     nshelves,     
                     const Index&     nbooks,      
@@ -643,7 +533,7 @@ void Tensor6Set(          Tensor6&   x,
 {
   x.resize( nvitrines, nshelves, nbooks, npages, nrows, ncols );
   x = value;
-  out2 << "  " << x_name << " = " << value     << "\n";
+  out2 << "  Tensor6 = " << value     << "\n";
   out3 << "         nvitrines : " << nvitrines << "\n";    
   out3 << "          nshelves : " << nshelves  << "\n";
   out3 << "            nbooks : " << nbooks    << "\n";
@@ -655,13 +545,9 @@ void Tensor6Set(          Tensor6&   x,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor7Scale(        Tensor7&  out,
-                    const String&   out_name,
                     const Tensor7&  in,
-                    const String&   in_name,
                     const Numeric&  value )
 {
-  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
-
   // Note that in and out can be the same vector
   if (&out==&in) {
     // Out and in are the same. Just multiply by the scalar value.
@@ -679,7 +565,6 @@ void Tensor7Scale(        Tensor7&  out,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor7Set(          Tensor7&   x, 
-                    const String&    x_name,
                     const Index&     nlibraries,          
                     const Index&     nvitrines,   
                     const Index&     nshelves,     
@@ -691,7 +576,7 @@ void Tensor7Set(          Tensor7&   x,
 {
   x.resize( nlibraries, nvitrines, nshelves, nbooks, npages, nrows, ncols );
   x = value;
-  out2 << "  " << x_name << " = " << value      << "\n";
+  out2 << "  Tensor7 = " << value      << "\n";
   out3 << "        nlibraries : " << nlibraries << "\n";
   out3 << "         nvitrines : " << nvitrines  << "\n";
   out3 << "          nshelves : " << nshelves   << "\n";
@@ -705,13 +590,9 @@ void Tensor7Set(          Tensor7&   x,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorAddScalar(
                     Vector&   out,
-              const String&   out_name,
               const Vector&   in,
-              const String&   in_name,
               const Numeric&  value )
 {
-  out2<<"  " << out_name << " = " << in_name << " + " << value << "\n";
-
   // Note that in and out can be the same vector
   if (&out==&in)
     {
@@ -732,22 +613,11 @@ void VectorAddScalar(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorInsertGridPoints(// WS Generic Output:
                             Vector& og,                  // Output grid
-                            // WS Generic Output Names:
-                            const String& og_name,
                             // WS Generic Input:
                             const Vector& ingrid,        // Input grid 
-                            const Vector& points,        // Points to insert
-                            // WS Generic Input Names:
-                            const String& ingrid_name,
-                            const String& points_name)
+                            const Vector& points         // Points to insert
+                           )
 {
-
-  out2 << "  Inserting points from *" << points_name
-       << "* into grid in *" << ingrid_name
-       << "*,\n"
-       << "  and returning the result in *" << og_name << "*.\n";
-    
-
   // First make duplikates of the input vectors, in case one of them
   // happens to be identical to the output vector. Also, we can fool
   // around with these, if we want.
@@ -777,7 +647,7 @@ void VectorInsertGridPoints(// WS Generic Output:
   else
     {
       ostringstream os;
-      os << "The Vector *" << ingrid_name <<  "* must be either\n"
+      os << "The input Vector must be either\n"
          << "strictly increasing or strictly decreasing,\n"
          << "but this is not the case.\n";
       os << "The vector contains:\n"
@@ -867,13 +737,12 @@ void VectorInsertGridPoints(// WS Generic Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorLinSpace(      Vector&    x, 
-                    const String&    x_name,
                     const Numeric&   start,
                     const Numeric&   stop,
                     const Numeric&   step )
 {
   linspace(x,start,stop,step);
-  out2 << "  Creating " << x_name << " as linearly spaced vector.\n";
+  out2 << "  Creating a linearly spaced vector.\n";
   out3 << "        length : " << x.nelem() << "\n";
   out3 << "   first value : " << x[0] << "\n";
   if ( x.nelem() > 1 )
@@ -885,14 +754,13 @@ void VectorLinSpace(      Vector&    x,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorLogSpace(      Vector&    x, 
-                    const String&    x_name,
                     const Numeric&   start,
                     const Numeric&   stop,
                     const Numeric&   step )
 {
   linspace(x,log(start),log(stop),step);
   transform(x,exp,x);
-  out2 << "  Creating " << x_name << " as logarithmically spaced vector.\n";
+  out2 << "  Creating a logarithmically spaced vector.\n";
   out3 << "        length : " << x.nelem() << "\n";
   out3 << "   first value : " << x[0] << "\n";
   if ( x.nelem() > 1 )
@@ -905,25 +773,17 @@ void VectorLogSpace(      Vector&    x,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorMatrixMultiply(// WS Generic Output:
                           Vector& y,
-                          // WS Generic Output Names:
-                          const String& y_name,
                           // WS Generic Input:
                           const Matrix& M,
-                          const Vector& x,
-                          // WS Generic Input Names:
-                          const String& M_name,
-                          const String& x_name)
+                          const Vector& x)
 {
-  out3 << "  Multiplying " << M_name << " with " << x_name
-       << " and storing the result in " << y_name << ".\n";
-  
   // Check that dimensions are right, x must match columns of M:
   if (M.ncols()!=x.nelem())
     {
       ostringstream os;
       os << "Matrix and vector dimensions must be consistent!\n"
-         << M_name << ".ncols() = " << M.ncols() << "\n"
-         << x_name << ".nelem() = " << x.nelem();
+         << "Matrix.ncols() = " << M.ncols() << "\n"
+         << "Vector.nelem() = " << x.nelem();
       throw runtime_error( os.str() );
     }
 
@@ -939,7 +799,6 @@ void VectorMatrixMultiply(// WS Generic Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorNLinSpace(     Vector&    x, 
-                    const String&    x_name,
                     const Index&     n,
                     const Numeric&   start,
                     const Numeric&   stop )
@@ -947,7 +806,7 @@ void VectorNLinSpace(     Vector&    x,
   if ( n<2 ) 
     throw runtime_error("The number of points must be > 1."); 
   nlinspace(x,start,stop,n);
-  out2 << "  Creating " << x_name << " as linearly spaced vector.\n";
+  out2 << "  Creating a linearly spaced vector.\n";
   out3 << "            length : " << n << "\n";
   out3 << "       first value : " << x[0] << "\n";
   if ( x.nelem() > 1 )
@@ -960,7 +819,6 @@ void VectorNLinSpace(     Vector&    x,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorNLogSpace(       Vector&    x, 
-                      const String&    x_name,
                       const Index&     n,
                       const Numeric&   start,
                       const Numeric&   stop )
@@ -971,7 +829,7 @@ void VectorNLogSpace(       Vector&    x,
     throw runtime_error("Only positive numbers are allowed."); 
 
   nlogspace(x,start,stop,n);
-  out2 << "  Creating " << x_name << " as logarithmically spaced vector.\n";
+  out2 << "  Creating a logarithmically spaced vector.\n";
   out3 << "            length : " << n << "\n";
   out3 << "       first value : " << x[0] << "\n";
   if ( x.nelem() > 1 )
@@ -982,13 +840,9 @@ void VectorNLogSpace(       Vector&    x,
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorScale(
                     Vector&   out,
-              const String&   out_name,
               const Vector&   in,
-              const String&   in_name,
               const Numeric&  value )
 {
-  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
-
   // Note that in and out can be the same vector
   if (&out==&in)
     {
@@ -1008,13 +862,12 @@ void VectorScale(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorSet(           Vector&    x, 
-                    const String&    x_name,
                     const Index&     n,
                     const Numeric&   value )
 {
   x.resize(n);
   x = value;            
-  out2 << "  Creating " << x_name << " as a constant vector.\n"; 
+  out2 << "  Creating a constant vector.\n"; 
   out3 << "            length : " << n << "\n";
   out3 << "             value : " << value << "\n";
 }
@@ -1022,12 +875,8 @@ void VectorSet(           Vector&    x,
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorSetExplicitly( Vector&       x, 
-                          const String& x_name,
                           const Vector& values )
 {
   x = values;
-  
-  out2 << "  Creating " << x_name << ".\n"; 
-  out3 << "  " << x_name << " = " << x << "\n";
 }
 

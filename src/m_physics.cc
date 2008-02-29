@@ -81,25 +81,15 @@ void emissionPlanck(
 void MatrixCBR(
         // WS Output:
               Matrix&   m,
-        // WS Generic Output Names:
-        const String&   m_name,
         // WS Input:
         const Index&    stokes_dim,
         // WS Generic Input:
-        const Vector&   f,
-        // WS Generic Input Names:
-        const String&   f_name )
+        const Vector&   f)
 {
-  // To avoid compiler warnings
-  String s = f_name;
-
   const Index n = f.nelem();
 
   if( n == 0 )
     throw runtime_error( "The given frequency vector is empty." );
-
-  out2 << "  Setting *" << m_name << "* to hold cosmic background "
-       << "radiation.\n";
 
   m.resize(n,stokes_dim);
   m = 0;
@@ -113,28 +103,18 @@ void MatrixCBR(
 void MatrixPlanck(
         // WS Output:
               Matrix&   m,
-        // WS Generic Output Names:
-        const String&   m_name,
         // WS Input:
         const Index&    stokes_dim,
         // WS Generic Input:
         const Vector&   f,
-        const Numeric&  t,
-        // WS Generic Input Names:
-        const String&   f_name,
-        const String&   t_name )
+        const Numeric&  t)
 {
-  // To avoid compiler warnings
-  String s1 = f_name;
-  String s2 = t_name;
-
   const Index n = f.nelem();
 
   if( n == 0 )
     throw runtime_error( "The given frequency vector is empty." );
 
-  out2 << "  Setting *" << m_name << "* to hold blackbody radiation for a\n"
-       << "temperature of " << t << " K.\n";
+  out2 << "  Setting blackbody radiation for a temperature of " << t << " K.\n";
 
   m.resize(n,stokes_dim);
   m = 0;
@@ -147,24 +127,20 @@ void MatrixPlanck(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixToPlanckBT(
               Matrix&   y_out,
-        const String&   y_out_name,
         const Matrix&   sensor_pos,
         const Matrix&   sensor_los,
         const Vector&   sensor_response_f,
         const Vector&   sensor_response_za,
         const Vector&   sensor_response_aa,
         const Index&    sensor_response_pol,
-        const Matrix&   y_in,
-        const String&   y_in_name )
+        const Matrix&   y_in)
 {
   Index   nf, npol, nspectra;
 
-  chk_y_with_sensor( nf, npol, nspectra,  y_in(joker,0), y_in_name, sensor_pos,
+  chk_y_with_sensor( nf, npol, nspectra,  y_in(joker,0), sensor_pos,
                      sensor_los, sensor_response_f, sensor_response_za, 
                      sensor_response_aa, sensor_response_pol );
 
-  out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << ")\n" ;
- 
   const Index   ncols = y_in.ncols();
 
   // Note that y_in and y_out can be the same matrix
@@ -193,24 +169,20 @@ void MatrixToPlanckBT(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void MatrixToRJBT(
               Matrix&   y_out,
-        const String&   y_out_name,
         const Matrix&   sensor_pos,
         const Matrix&   sensor_los,
         const Vector&   sensor_response_f,
         const Vector&   sensor_response_za,
         const Vector&   sensor_response_aa,
         const Index&    sensor_response_pol,
-        const Matrix&   y_in,
-        const String&   y_in_name )
+        const Matrix&   y_in)
 {
   Index   nf, npol, nspectra;
 
-  chk_y_with_sensor( nf, npol, nspectra,  y_in(joker,0), y_in_name, sensor_pos,
+  chk_y_with_sensor( nf, npol, nspectra,  y_in(joker,0), sensor_pos,
                      sensor_los, sensor_response_f, sensor_response_za, 
                      sensor_response_aa, sensor_response_pol );
 
-  out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << ")\n" ;
- 
   const Index   ncols = y_in.ncols();
 
   // Note that y_in and y_out can be the same matrix
@@ -245,25 +217,17 @@ void MatrixToRJBT(
 void MatrixUnitIntensity(
         // WS Output:
               Matrix&   m,
-        // WS Generic Output Names:
-        const String&   m_name,
         // WS Input:
         const Index&    stokes_dim,
         // WS Generic Input:
-        const Vector&   f,
-        // WS Generic Input Names:
-        const String&   f_name )
+        const Vector&   f)
 {
-  // To avoid compiler warnings
-  String s1 = f_name;
-
   const Index n = f.nelem();
 
   if( n == 0 )
     throw runtime_error( "The given frequency vector is empty." );
 
-  out2 << "  Setting *" << m_name << "* to hold unpolarised radiation with\n"
-       << "an intensity of 1.\n";
+  out2 << "  Setting unpolarised radiation with an intensity of 1.\n";
 
   m.resize(n,stokes_dim);
   m = 0;
@@ -276,15 +240,11 @@ void MatrixUnitIntensity(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor6ToPlanckBT( // WS Generic Output:
                          Tensor6&   y_out,
-                         // WS Generic Output Names:
-                         const String&   y_out_name,
                          // WS Specific Input: 
                          const Index& scat_f_index,
                          const Vector&   f_grid,
                          // WS Generic Input:
-                         const Tensor6&   y_in,
-                         // WS Generic Input Names:
-                         const String&   y_in_name)
+                         const Tensor6&   y_in)
                 
 {
   // Some lengths
@@ -303,8 +263,6 @@ void Tensor6ToPlanckBT( // WS Generic Output:
       y_out.resize(nv, ns, nb, np, nr, nc);
     }
   
-  out2 << "   " << y_out_name << " = inv_of_planck(" << y_in_name << ")\n" ;
-   
   for( Index iv = 0; iv < nv; ++ iv )
     {
       for( Index is = 0; is < ns; ++ is )
@@ -331,23 +289,19 @@ void Tensor6ToPlanckBT( // WS Generic Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorToPlanckBT(
               Vector&   y_out,
-        const String&   y_out_name,
         const Matrix&   sensor_pos,
         const Matrix&   sensor_los,
         const Vector&   sensor_response_f,
         const Vector&   sensor_response_za,
         const Vector&   sensor_response_aa,
         const Index&    sensor_response_pol,
-        const Vector&   y_in,
-        const String&   y_in_name )
+        const Vector&   y_in)
 {
   Index   nf, npol, nspectra;
 
-  chk_y_with_sensor( nf, npol, nspectra,  y_in, y_in_name, sensor_pos,
+  chk_y_with_sensor( nf, npol, nspectra,  y_in, sensor_pos,
                      sensor_los, sensor_response_f, sensor_response_za, 
                      sensor_response_aa, sensor_response_pol );
-
-  out2 << "   " << y_out_name << " = inv_of_planck(" << y_in_name << ")\n" ;
 
   // Note that y_in and y_out can be the same vector
   if ( &y_out != &y_in )
@@ -370,23 +324,19 @@ void VectorToPlanckBT(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorToRJBT(
               Vector&   y_out,
-        const String&   y_out_name,
         const Matrix&   sensor_pos,
         const Matrix&   sensor_los,
         const Vector&   sensor_response_f,
         const Vector&   sensor_response_za,
         const Vector&   sensor_response_aa,
         const Index&    sensor_response_pol,
-        const Vector&   y_in,
-        const String&   y_in_name )
+        const Vector&   y_in)
 {
   Index   nf, npol, nspectra;
 
-  chk_y_with_sensor( nf, npol, nspectra,  y_in, y_in_name, sensor_pos,
+  chk_y_with_sensor( nf, npol, nspectra,  y_in, sensor_pos,
                      sensor_los, sensor_response_f, sensor_response_za, 
                      sensor_response_aa, sensor_response_pol );
-
-  out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << ")\n" ;
 
   // Note that y_in and y_out can be the same vector
   if ( &y_out != &y_in )

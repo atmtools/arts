@@ -121,26 +121,13 @@ int main()
           // There are four lists of parameters that we have to
           // write. 
           ArrayOfIndex  vo=mdd.Output();   // Output 
-          ArrayOfIndex  vi=mdd.Input();    // Input
-          ArrayOfIndex  vgo=mdd.GOutput();   // Generic Output 
-          ArrayOfIndex  vgi=mdd.GInput();    // Generic Input
+          ArrayOfIndex  vi;                // Input
+          ArrayOfIndex  vgo=mdd.GOutput(); // Generic Output 
+          ArrayOfIndex  vgi=mdd.GInput();  // Generic Input
           // vo and vi contain handles of workspace variables, 
           // vgo and vgi handles of workspace variable groups.
 
-          // Check, if some workspace variables are in both the
-          // input and the output list, and erase those from the input 
-          // list:
-          for (ArrayOfIndex::const_iterator j=vo.begin(); j<vo.end(); ++j)
-            for (ArrayOfIndex::iterator k=vi.begin(); k<vi.end(); ++k)
-              if ( *j == *k )
-                {
-                  //              erase_vector_element(vi,k);
-                  k = vi.erase(k) - 1;
-                  // We need the -1 here, otherwise due to the
-                  // following increment we would miss the element
-                  // behind the erased one, which is now at the
-                  // position of the erased one.
-                }
+          mdd.input_only(vi);
 
           // There used to be a similar block here for the generic
           // input/output variables. However, this was a mistake. For
@@ -258,14 +245,17 @@ int main()
             }
 
           // Write the Generic output workspace variable names:
-          for (Index j=0; j<vgo.nelem(); ++j)
+          if (mdd.PassWsvNames())
             {
-              // Add comma and line break, if not first element:
-              align(ofs,is_first_parameter,indent);
+              for (Index j=0; j<vgo.nelem(); ++j)
+                {
+                  // Add comma and line break, if not first element:
+                  align(ofs,is_first_parameter,indent);
 
-              ofs << "wsv_data[mr.Output()["
-                  << j
-                  << "]].Name()";
+                  ofs << "wsv_data[mr.Output()["
+                    << j
+                    << "]].Name()";
+                }
             }
 
           // Write the Input workspace variables:
@@ -295,14 +285,17 @@ int main()
             }
 
           // Write the Generic input workspace variable names:
-          for (Index j=0; j<vgi.nelem(); ++j)
+          if (mdd.PassWsvNames())
             {
-              // Add comma and line break, if not first element:
-              align(ofs,is_first_parameter,indent);
+              for (Index j=0; j<vgi.nelem(); ++j)
+                {
+                  // Add comma and line break, if not first element:
+                  align(ofs,is_first_parameter,indent);
 
-              ofs << "wsv_data[mr.Input()["
-                  << j
-                  << "]].Name()";
+                  ofs << "wsv_data[mr.Input()["
+                    << j
+                    << "]].Name()";
+                }
             }
 
           // Write the control parameters:

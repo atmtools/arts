@@ -54,7 +54,8 @@ MdRecord::MdRecord(const char                   name[],
                    const MakeArray<TokValType>& types,
                    bool                         agenda_method,
                    bool                         suppress_header,
-                   bool                         pass_workspace ) :
+                   bool                         pass_workspace,
+                   bool                         pass_wsv_names ) :
     mname(          name                  ),
     mdescription(   description           ),    
     mauthors(       authors               ),
@@ -69,6 +70,7 @@ MdRecord::MdRecord(const char                   name[],
     msupergeneric(    false               ),
     msuppress_header( suppress_header     ),
     mpass_workspace( pass_workspace       ),
+    mpass_wsv_names( pass_wsv_names       ),
     mactual_group( -1 )
     { 
       // Initializing the various arrays with input data should now
@@ -160,6 +162,34 @@ void MdRecord::subst_any_with_group( Index g )
   // Set the field for the actual group:
   mactual_group = g;
 }
+
+
+//! Get list of input only WSVs.
+/*!
+  This function returns an array with the indexes of WSVs which are
+  only input variables but not output.
+
+  \param[out] inonly Index array of input only WSVs.
+
+  \author Oliver Lemke
+  \date   2008-02-27
+*/
+void MdRecord::input_only(ArrayOfIndex& inonly) const
+{
+  inonly = minput;    // Input
+  for (ArrayOfIndex::const_iterator j=moutput.begin(); j<moutput.end(); ++j)
+    for (ArrayOfIndex::iterator k=inonly.begin(); k<inonly.end(); ++k)
+      if ( *j == *k )
+        {
+          //              erase_vector_element(vi,k);
+          k = inonly.erase(k) - 1;
+          // We need the -1 here, otherwise due to the
+          // following increment we would miss the element
+          // behind the erased one, which is now at the
+          // position of the erased one.
+        }
+}
+
 
 //! Expand supergeneric methods.
 /*!

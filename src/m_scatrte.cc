@@ -166,7 +166,7 @@ void doit_conv_flagAbs(//WS Input and Output:
   //-----------End of checks-------------------------------------------------
                         
 
-  out2 << "Number of DOIT iteration: " << doit_iteration_counter << "\n";
+  out2 << "  Number of DOIT iteration: " << doit_iteration_counter << "\n";
   doit_iteration_counter +=1;
 
 
@@ -214,7 +214,7 @@ void doit_conv_flagAbs(//WS Input and Output:
   
   // Convergence test has been successful, doit_conv_flag can be set to 1.
   doit_conv_flag = 1;
-  out2 << "Number of DOIT-iterations: " << doit_iteration_counter << "\n";
+  out2 << "  Number of DOIT-iterations: " << doit_iteration_counter << "\n";
 }
       
 
@@ -287,7 +287,7 @@ void doit_conv_flagAbsBT(//WS Input and Output:
   
   //-----------End of checks--------------------------------
 
-  out2 << "Number of DOIT iteration: " << doit_iteration_counter << "\n";
+  out2 << "  Number of DOIT iteration: " << doit_iteration_counter << "\n";
   doit_iteration_counter +=1;
 
   for (Index p_index = 0; p_index < N_p; p_index++)
@@ -402,7 +402,7 @@ void doit_conv_flagLsq(//WS Output:
   //-----------End of checks--------------------------------
 
  
-  out2 << "Number of DOIT iteration: " << doit_iteration_counter << "\n";
+  out2 << "  Number of DOIT iteration: " << doit_iteration_counter << "\n";
   doit_iteration_counter +=1;                   
   
   Vector lqs(4, 0.);
@@ -501,14 +501,14 @@ void doit_i_fieldIterate(
     // 2.Calculate scattered field vector for all points in the cloudbox.
     
     // Calculate the scattered field.
-    out2 << "Execute doit_scat_field_agenda. \n";
+    out2 << "  Execute doit_scat_field_agenda. \n";
     doit_scat_field_agendaExecute(doit_scat_field_local,
                                   doit_i_field,
                                   doit_scat_field_agenda,
                                   true);
     
     // Update doit_i_field.
-    out2 << "Execute doit_rte_agenda. \n";
+    out2 << "  Execute doit_rte_agenda. \n";
     doit_rte_agendaExecute(doit_i_field, doit_scat_field_local, 
                                 doit_rte_agenda, true);
 
@@ -557,8 +557,8 @@ doit_i_fieldUpdate1D(// WS Input and Output:
                    )
 {
   
-  out2 << "doit_i_fieldUpdateSeq1D: Radiative transfer calculation in cloudbox\n";
-  out2 << "------------------------------------------------------------- \n";
+  out2 << "  doit_i_fieldUpdateSeq1D: Radiative transfer calculation in cloudbox\n";
+  out2 << "  ------------------------------------------------------------- \n";
   
   // ---------- Check the input ----------------------------------------
   
@@ -720,8 +720,8 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                    )
 {
   
-  out2<<"doit_i_fieldUpdateSeq1D: Radiative transfer calculation in cloudbox\n";
-  out2 << "------------------------------------------------------------- \n";
+  out2<<"  doit_i_fieldUpdateSeq1D: Radiative transfer calculation in cloudbox\n";
+  out2 << "  ------------------------------------------------------------- \n";
 
  // ---------- Check the input ----------------------------------------
   
@@ -952,8 +952,8 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                         const Index& doit_za_interp
                      )
 {
-  out2<<"doit_i_fieldUpdateSeq3D: Radiative transfer calculatiuon in cloudbox.\n";
-  out2 << "------------------------------------------------------------- \n";
+  out2<<"  doit_i_fieldUpdateSeq3D: Radiative transfer calculatiuon in cloudbox.\n";
+  out2 << "  ------------------------------------------------------------- \n";
   
   // ---------- Check the input ----------------------------------------
 
@@ -1248,8 +1248,8 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                 )
 {
 
-  out2 << "doit_i_fieldUpdateSeq1DPP: Radiative transfer calculation in cloudbox.\n";
-  out2 << "--------------------------------------------------------------------- \n";
+  out2 << "  doit_i_fieldUpdateSeq1DPP: Radiative transfer calculation in cloudbox.\n";
+  out2 << "  --------------------------------------------------------------------- \n";
   
   const Index stokes_dim = doit_scat_field.ncols();
   //  const Index atmosphere_dim = 1;
@@ -1665,7 +1665,7 @@ doit_scat_fieldCalc(// WS Output and Input
   
   Tensor3 product_field(Nza, Naa, stokes_dim, 0);
  
-  out2 << "Calculate the scattered field\n";
+  out2 << "  Calculate the scattered field\n";
   
   if  ( atmosphere_dim == 1 )
     {
@@ -2237,7 +2237,7 @@ doit_scat_fieldCalcLimb(// WS Output and Input
     doit_scat_field(joker, joker, joker, joker, 0, joker) =
       doit_scat_field(joker, joker, joker, joker, Naa-1, joker);
   }// end atm_dim=3
-  out2 << "Finished scattered field.\n"; 
+  out2 << "  Finished scattered field.\n"; 
 }
 
 

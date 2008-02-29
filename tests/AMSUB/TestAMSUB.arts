@@ -3,7 +3,6 @@
 Arts {
 
 INCLUDE "amsub.arts"
-INCLUDE "continua.arts"
 
 
 # Set up absorption
@@ -152,10 +151,7 @@ ybatchCalc
 
 # Store result matrix:
 # ---
-#WriteXML(ybatch){""}
-
-# Print out for python test analysis:
-# ---
-Print(ybatch)
+output_file_formatSetAscii
+WriteXML(ybatch){"AMSUB.ybatch.xml.generated"}
 
 }

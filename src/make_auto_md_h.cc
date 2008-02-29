@@ -110,28 +110,13 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   // There are four lists of parameters that we have to
   // write. 
   ArrayOfIndex  vo=mdd.Output();   // Output 
-  ArrayOfIndex  vi=mdd.Input();    // Input
-  ArrayOfIndex  vgo=mdd.GOutput();   // Generic Output 
-  ArrayOfIndex  vgi=mdd.GInput();    // Generic Input
+  ArrayOfIndex  vi;                // Input
+  ArrayOfIndex  vgo=mdd.GOutput(); // Generic Output 
+  ArrayOfIndex  vgi=mdd.GInput();  // Generic Input
   // vo and vi contain handles of workspace variables, 
   // vgo and vgi handles of workspace variable groups.
 
-  // Check, if some workspace variables are in both the
-  // input and the output list, and erase those from the input 
-  // list:
-  for (ArrayOfIndex::const_iterator j=vo.begin(); j<vo.end(); ++j)
-    for (ArrayOfIndex::iterator k=vi.begin(); k<vi.end(); ++k)
-      {
-        if ( *j == *k )
-          {
-            //            erase_vector_element(vi,k);
-            k = vi.erase(k) - 1;
-            // We need the -1 here, otherwise due to the
-            // following increment we would miss the element
-            // behind the erased one, which is now at the
-            // position of the erased one.
-          }
-      }
+  mdd.input_only(vi);
 
   // Start with the name of the one line description
   ofs << "//! WORKSPACE METHOD: " << fullname << ".\n";
@@ -194,13 +179,6 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
         }
     }
 
-  // Write the Generic output workspace variable names:
-  for (Index j=0; j<vgo.nelem(); ++j)
-    {
-      ofs << indent << "\\param[in] genericoutputname" << j+1
-        << " Generic output name\n";
-    }
-
   // Write the Input workspace variables:
   for (Index j=0; j<vi.nelem(); ++j)
     {
@@ -221,13 +199,6 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
           ofs << indent << "\\param[in] genericinput" << j+1
             << " Generic Input\n";
         }
-    }
-
-  // Write the Generic input workspace variable names:
-  for (Index j=0; j<vgi.nelem(); ++j)
-    {
-      ofs << indent << "\\param[in] " << "genericinputname" << j+1
-        << " Generic input names\n";
     }
 
   // Write the control parameters:
@@ -291,28 +262,13 @@ void write_method_header( ofstream& ofs,
   // There are four lists of parameters that we have to
   // write. 
   ArrayOfIndex  vo=mdd.Output();   // Output 
-  ArrayOfIndex  vi=mdd.Input();    // Input
-  ArrayOfIndex  vgo=mdd.GOutput();   // Generic Output 
-  ArrayOfIndex  vgi=mdd.GInput();    // Generic Input
+  ArrayOfIndex  vi;                // Input
+  ArrayOfIndex  vgo=mdd.GOutput(); // Generic Output 
+  ArrayOfIndex  vgi=mdd.GInput();  // Generic Input
   // vo and vi contain handles of workspace variables, 
   // vgo and vgi handles of workspace variable groups.
 
-  // Check, if some workspace variables are in both the
-  // input and the output list, and erase those from the input 
-  // list:
-  for (ArrayOfIndex::const_iterator j=vo.begin(); j<vo.end(); ++j)
-    for (ArrayOfIndex::iterator k=vi.begin(); k<vi.end(); ++k)
-      {
-        if ( *j == *k )
-          {
-            //            erase_vector_element(vi,k);
-            k = vi.erase(k) - 1;
-            // We need the -1 here, otherwise due to the
-            // following increment we would miss the element
-            // behind the erased one, which is now at the
-            // position of the erased one.
-          }
-      }
+  mdd.input_only(vi);
 
   // There used to be a similar block here for the generic
   // input/output variables. However, this was a mistake. For
@@ -389,26 +345,27 @@ void write_method_header( ofstream& ofs,
   }
 
   // Write the Generic output workspace variable names:
-  {
-    // Flag first parameter of this sort:
-    bool is_first_of_these = true;
+  if (mdd.PassWsvNames())
+    {
+      // Flag first parameter of this sort:
+      bool is_first_of_these = true;
 
-    for (Index j=0; j<vgo.nelem(); ++j)
-      {
-        // Add comma and line break, if not first element:
-        align(ofs,is_first_parameter,indent);
+      for (Index j=0; j<vgo.nelem(); ++j)
+        {
+          // Add comma and line break, if not first element:
+          align(ofs,is_first_parameter,indent);
 
-        // Add comment if this is the first of this sort
-        if (is_first_of_these)
-          {
-            ofs << "// WS Generic Output Names:\n";
-            ofs << indent;
-            is_first_of_these = false;
-          }
+          // Add comment if this is the first of this sort
+          if (is_first_of_these)
+            {
+              ofs << "// WS Generic Output Names:\n";
+              ofs << indent;
+              is_first_of_these = false;
+            }
 
-        ofs << "const String& genericoutputname" << j+1;
-      }
-  }
+          ofs << "const String& genericoutputname" << j+1;
+        }
+    }
 
   // Write the Input workspace variables:
   {
@@ -466,26 +423,27 @@ void write_method_header( ofstream& ofs,
   }
 
   // Write the Generic input workspace variable names:
-  {
-    // Flag first parameter of this sort:
-    bool is_first_of_these = true;
+  if (mdd.PassWsvNames())
+    {
+      // Flag first parameter of this sort:
+      bool is_first_of_these = true;
 
-    for (Index j=0; j<vgi.nelem(); ++j)
-      {
-        // Add comma and line break, if not first element:
-        align(ofs,is_first_parameter,indent);
+      for (Index j=0; j<vgi.nelem(); ++j)
+        {
+          // Add comma and line break, if not first element:
+          align(ofs,is_first_parameter,indent);
 
-        // Add comment if this is the first of this sort
-        if (is_first_of_these)
-          {
-            ofs << "// WS Generic Input Names:\n";
-            ofs << indent;
-            is_first_of_these = false;
-          }
+          // Add comment if this is the first of this sort
+          if (is_first_of_these)
+            {
+              ofs << "// WS Generic Input Names:\n";
+              ofs << indent;
+              is_first_of_these = false;
+            }
 
-        ofs << "const String& genericinputname" << j+1;
-      }
-  }
+          ofs << "const String& genericinputname" << j+1;
+        }
+    }
 
   // Write the control parameters:
   {

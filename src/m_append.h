@@ -40,16 +40,11 @@
 template< class T >
 void Append(// WS Generic Output:
           T& out _U_,
-          // WS Generic Output Names:
-          const String& outname,
           // WS Generic Input:
-          const T& in _U_,
-          // WS Generic Input Names:
-          const String& inname)
+          const T& in _U_)
 {
   ostringstream os;                                             \
-  os << "You are trying to append " << inname << " to " << outname << ".\n"
-     << "This operation is not (yet?) implemented for this variable group.";
+  os << "Appending is not (yet?) implemented for this variable group.";
   throw runtime_error(os.str());                \
 }
 
@@ -60,14 +55,9 @@ void Append(// WS Generic Output:
 template< class T >
 void Append(// WS Generic Output:
           Array<T>& out,
-          // WS Generic Output Names:
-          const String& outname,
           // WS Generic Input:
-          const Array<T>& in,
-          // WS Generic Input Names:
-          const String& inname)
+          const Array<T>& in)
 {
-  out2 << "  Appending " << inname << " to " << outname << ".\n";
   // Reserve memory in advance to avoid reallocations:
   out.reserve(out.nelem()+in.nelem());
   // Append in to end of out:
@@ -78,15 +68,9 @@ void Append(// WS Generic Output:
 /* Implementation for Vector */
 void Append(// WS Generic Output:
           Vector& out,
-          // WS Generic Output Names:
-          const String& outname,
           // WS Generic Input:
-          const Vector& in,
-          // WS Generic Input Names:
-          const String& inname)
+          const Vector& in)
 {
-  out2 << "  Appending " << inname << " to " << outname << ".\n";
-
   // Get backup of out:
   Vector dummy = out;
 

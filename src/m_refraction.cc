@@ -63,8 +63,6 @@ void refr_indexFieldAndGradients(
             Vector&                     a_vmr_list,
       // WS Generic Output:
             Tensor4&                    out,
-      // WS Generic Output Names:
-      const String&                     outname,
       // WS Input:
       const Agenda&                     refr_index_agenda,
       const Index&                      atmosphere_dim,
@@ -78,11 +76,7 @@ void refr_indexFieldAndGradients(
       // WS Generic Input:
       const Vector&                     p_values,
       const Vector&                     lat_values,
-      const Vector&                     lon_values,
-      // WS Generic Input Names:
-      const String&                     p_name,
-      const String&                     lat_name,
-      const String&                     lon_name )
+      const Vector&                     lon_values)
 {
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -94,10 +88,6 @@ void refr_indexFieldAndGradients(
                                                                     lon_grid );
   chk_atm_field( "first book of vmr_field", vmr_field(0,joker,joker,joker), 
                                   atmosphere_dim, p_grid, lat_grid, lon_grid );
-
-  out2 << "   Fills " << outname << " with information on the field of\n"
-       << "   refractive index, using " << p_name << "," << lat_name << "\n"
-       << "   and " << lon_name << " as atmospheric grids.\n"; 
 
   // Common variables
   const Index     np = p_values.nelem(), npgrid = p_grid.nelem(); 
@@ -235,7 +225,7 @@ void refr_indexIR(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refr_indexThayer(
-         Numeric&                    refr_index,
+             Numeric&                    refr_index,
        const Numeric&                    a_pressure,
        const Numeric&                    a_temperature,
        const Vector&                     a_vmr_list,

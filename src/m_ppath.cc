@@ -466,16 +466,12 @@ void sensor_posAddRgeoid(
 void VectorZtanToZa1D(
                         // WS Generic Output:
                         Vector&             za_vector,
-                        // WS Generic Output Names:
-                        const String&       za_v_name,
                         // WS Input:
                         const Matrix&       sensor_pos,
                         const Matrix&       r_geoid,
                         const Index&        atmosphere_dim,
                         // WS Generic Input:
-                        const Vector&       ztan_vector,
-                        // WS Generic Input Names:
-                        const String&       ztan_v_name )
+                        const Vector&       ztan_vector)
 {
   if( atmosphere_dim != 1 ) {
     throw runtime_error( "The function can only be used for 1D atmospheres." );
@@ -486,13 +482,10 @@ void VectorZtanToZa1D(
   if( ztan_vector.nelem() != npos )
     {
       ostringstream os;
-      os << "The number of altitudes in *" << ztan_v_name << "* must\n"
+      os << "The number of altitudes in the geometric tangent altitude vector must\n"
          << "match the number of positions in *sensor_pos*.";
       throw runtime_error( os.str() );
     }
-
-  out2 << "  Filling *" << za_v_name << "* with zenith angles, based on\n"
-       << "  tangent altitudes from *" << ztan_v_name << ".\n";
 
   za_vector.resize(npos);
 
@@ -511,8 +504,6 @@ void VectorZtanToZaRefr1D(
                         Vector&             rte_vmr_list,
                         // WS Generic Output:
                         Vector&             za_vector,
-                        // WS Generic Output Names:
-                        const String&       za_vector_name,
                         // WS Input:
                         const Agenda&       refr_index_agenda,
                         const Matrix&       sensor_pos,
@@ -523,9 +514,7 @@ void VectorZtanToZaRefr1D(
                         const Matrix&       r_geoid,
                         const Index&        atmosphere_dim,
                         // WS Generic Input:
-                        const Vector&       ztan_vector,
-                        // WS Generic Input Names:
-                        const String&       ztan_vector_name )
+                        const Vector&       ztan_vector)
 {
   if( atmosphere_dim != 1 ) {
     throw runtime_error( "The function can only be used for 1D atmospheres." );
@@ -533,17 +522,13 @@ void VectorZtanToZaRefr1D(
 
   if( ztan_vector.nelem() != sensor_pos.nrows() ) {
     ostringstream os;
-    os << "The number of altitudes in *" << ztan_vector_name << "* must\n"
+    os << "The number of altitudes in true tangent altitude vector must\n"
        << "match the number of positions in *sensor_pos*.";
     throw runtime_error( os.str() );
   }
 
   //No output from get_refr_index_1d
   Index agenda_verb = 1;
-
-  out2 << "   Filling *" << za_vector_name << "* with zenith angles, based\n"
-       << "   on tangent altitudes from *" << ztan_vector_name << ".\n";
-
 
   //Set za_vector's size equal to ztan_vector
   za_vector.resize( ztan_vector.nelem() );
@@ -569,8 +554,6 @@ void ZaSatOccultation(
         Ppath&                  ppath_step,
         // WS Generic Output:
         Vector&                 za_out,
-        // WS Generic Output Names:
-        const String&           za_out_name,
         // WS Input:
         const Agenda&           ppath_step_agenda,
         const Index&            atmosphere_dim,
@@ -604,9 +587,6 @@ void ZaSatOccultation(
   //Convert heights to radius
   const Numeric     r_recieve = r_geoid(0,0) + z_recieve;
   const Numeric     r_send = r_geoid(0,0) + z_send;
-
-  out2 << "  Setting " << za_out_name << " to hold zenith angles matching an\n"
-       << "  occultation between to satellites.\n";
 
   //Extend upper and lower scan limits to include the limits
   //and convert to radius

@@ -303,7 +303,6 @@ void chk_y_with_sensor(
               Index&      npol,
               Index&      nspectra, 
         ConstVectorView   y,
-        const String&     y_name,
         ConstMatrixView   sensor_pos,
         ConstMatrixView   sensor_los,
         ConstVectorView   sensor_response_f,

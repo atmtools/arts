@@ -187,8 +187,8 @@ inline my_basic_string<charT>& my_basic_string<charT>::operator=(const my_basic_
 
 /** Insert string before all occurrences of the substring.
  
- /param[in] searchstr  String to search for.
- /param[in] insstr     String to insert.
+ \param[in] searchstr  String to search for.
+ \param[in] insstr     String to insert.
 */
 template<class charT>
 inline void my_basic_string<charT>::insert_substr(const my_basic_string<charT> searchstr, const my_basic_string<charT> insstr)

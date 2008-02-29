@@ -660,7 +660,7 @@ void iy_calc(
       interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
                             lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
       interp_atmfield_by_itw( ppath.t,  atmosphere_dim, p_grid, lat_grid, 
-                              lon_grid, t_field, "t_field", ppath.gp_p, 
+                              lon_grid, t_field, ppath.gp_p, 
                               ppath.gp_lat, ppath.gp_lon, itw_field );
 
       //  VMR fields:
@@ -670,7 +670,7 @@ void iy_calc(
         {
           interp_atmfield_by_itw( ppath.vmr(is, joker), atmosphere_dim,
             p_grid, lat_grid, lon_grid, vmr_field( is, joker, joker,  joker ), 
-            "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+            ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
         }
     }
 

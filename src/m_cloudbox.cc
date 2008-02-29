@@ -346,7 +346,7 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
                              )
 {
   
-  out2 << "Interpolate boundary clearsky field to obtain the initial field.\n";
+  out2 << "  Interpolate boundary clearsky field to obtain the initial field.\n";
   
   // Initial field only needs to be calculated from clearsky field for the 
   // first frequency. For the next frequencies the solution field from the 
@@ -701,7 +701,7 @@ void doit_i_fieldSetConst(//WS Output:
                         // Keyword       
                         const Vector& doit_i_field_values)
 {
-  out2 << "Set initial field to constant values: " << doit_i_field_values << "\n"; 
+  out2 << "  Set initial field to constant values: " << doit_i_field_values << "\n"; 
 
   // In the 1D case the atmospheric layers are defined by p_grid and the
   // required interface is scat_i_p.
@@ -954,7 +954,7 @@ void ParticleTypeAddAll( //WS Output:
   for (Index i = 0; i<data_files.nelem(); i++)
     {
       
-      out2 << "Read single scattering data\n";
+      out2 << "  Read single scattering data\n";
       xml_read_from_file( data_files[i], 
                           scat_data_raw[i]);
       
@@ -963,7 +963,7 @@ void ParticleTypeAddAll( //WS Output:
       
     }
   
-  out2 << "Read particle number density date \n";
+  out2 << "  Read particle number density date \n";
   xml_read_from_file(pnd_field_file, pnd_field_raw);
   
   chk_pnd_raw_data(pnd_field_raw,
@@ -1016,13 +1016,13 @@ void ParticleTypeAdd( //WS Output:
   GriddedField3 pnd_field_data;
   pnd_field_raw.push_back(pnd_field_data);
   
-  out2 << "Read single scattering data\n";
+  out2 << "  Read single scattering data\n";
   xml_read_from_file(scat_data_file, scat_data_raw[scat_data_raw.nelem()-1]);
 
   chk_single_scattering_data(scat_data_raw[scat_data_raw.nelem()-1],
                              scat_data_file, f_grid);       
   
-  out2 << "Read particle number density field\n";
+  out2 << "  Read particle number density field\n";
   if (pnd_field_file.nelem() < 1)
     out1 << "Warning: No pnd_field_file specified. Ignored. \n";
   else
@@ -1257,8 +1257,8 @@ void DoitCloudboxFieldPut(//WS Output:
              sensor_pos(i, 0) <= z_field(cloudbox_limits[1], 0, 0) )
             {
               in_cloudbox = true;
-              out2 << "Sensor position in cloudbox, store radiation field\n"
-                   << "in cloudbox for all frequencies. \n"; 
+              out2 << "  Sensor position in cloudbox, store radiation field\n"
+                   << "  in cloudbox for all frequencies. \n"; 
             }
         }
       

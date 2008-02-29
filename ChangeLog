@@ -1,3 +1,98 @@
+2008-02-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-3-10
+
+	* Intermediate commit continuing work on the new controlfile
+	structure. The parser is still backwards compatible with the old
+	controlfiles. If this commit breaks anything it's a bug and you should
+	let me know...
+
+	* The testall.py script now depends on python-numpy.
+
+	* tests/Abs/TestAbs2.arts, tests/DOIT/TestDOIT2 show how the new
+	controlfile structure looks like.
+
+	* src/abs_species_tags.cc, src/m_rte.cc, src/m_abs_lookup.cc,
+	src/m_jacobian.cc, src/m_batch.cc, src/m_agenda.cc, src/m_sensor.cc,
+	src/m_append.h, src/m_basic_types.{cc,h}, src/m_atmosphere, src/m_copy,
+	src/m_ignore.h, src/m_physics.cc, src/m_general.{cc,h},
+	src/check_input.cc, src/m_ppath.cc, src/m_refraction.cc,
+	src/special_interp.(cc,h), src/montecarlo.cc, src/rte.cc
+
+	Remove generic input/output names from WSMs.
+
+	* src/methods.{cc,h}, src/methods_aux.cc:
+
+	Add flag PASSWSVNAMES. Generic output/input variable names are not
+	passed to WSMs anymore. But some functions, like WriteXML and ReadXML,
+	must still have the WSV name to derive a default filename from it.
+	For those functions this flag can be set to true.
+
+	Set PASSWSVNAMES for ReadXML, WriteXML, WriteXMLIndexed and Delete.
+
+	Implement helper function to retrieve a list of input only variables.
+
+	* src/agenda_class.cc (Agenda::execute):
+
+	Also output the method parameters to out1 in addition to the WSM name.
+	(Currently commented out)
+
+	* src/agenda_class.h (MRecord):
+
+	Implement helper function to retrieve a list of generic input only
+	variables.
+
+	* src/make_auto_md_cc.cc, src/make_auto_md_h.cc:
+
+	Remove the generic WSV input and output variable names from the
+	getaway functions.
+
+	Use new helper function MdRecord::input_only.
+
+	* tests/testall.py:
+
+	Use XML files for data exchange between arts and the python test
+	script instead of parsing the arts output. The parsing was tedious and
+	only possible with tweaked output formatting of the ARTS Print method.
+	With the ongoing changes to the structure of the ARTS screen output
+	this would have gotten even more unpractical.
+	Using XML files is much more powerful and flexible. Only disadvantage
+	is that we have to depend python-numpy as we need its 'array' type.
+
+	* tests/artsXML.py:
+
+	Added a stripped down version from pyarts to read arts XML files
+	with the testall.py script.
+
+	* tests/DOIT/TestDOIT.arts,
+	tests/MonteCarlo/TestMonteCarloGeneralGaussian.arts,
+	tests/MonteCarlo/TestMonteCarloGeneral.arts,
+	tests/AMSUB/TestAMSUB.arts, tests/ClearSky/TestClearSky.arts:
+
+	Instead of using the Print method to pass results to the python test
+	script, write those variables to a file.
+
+	* tests/AMSUB/TestAMSUB.arts:
+
+	Do not include continua.arts. Already done in amsub.arts include file.
+
+	* tests/: Ignore *.pyc.
+
+	* src/parser.{cc,h}:
+
+	Split up parse_method into several functions.
+
+	Continued work on the new controlfile format. All parameters are now
+	given in parenthesis. Curly braces are only used for Agendas.
+
+	* src/m_cloudbox.cc, src/cloudbox.cc, src/m_scatrte.cc, src/m_abs.cc:
+
+	Always indent out2 output by 2 spaces.
+
+	* tests/Abs/TestAbs2.arts, tests/DOIT/TestDOIT2:
+
+	Added to demo the new cfile structure.
+
 2008-02-28  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-3-9

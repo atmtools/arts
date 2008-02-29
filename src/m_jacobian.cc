@@ -113,10 +113,6 @@ void jacobianAddAbsSpecies(// WS Output:
                     const Vector&             rq_p_grid,
                     const Vector&             rq_lat_grid,
                     const Vector&             rq_lon_grid,
-                    // WS Generic Input Names:
-                    const String&             rq_p_grid_name,
-                    const String&             rq_lat_grid_name,
-                    const String&             rq_lon_grid_name,
                     // Control Parameters:
                     const String&             species,
                     const String&             method,
@@ -140,7 +136,9 @@ void jacobianAddAbsSpecies(// WS Output:
   ostringstream os;
   if (!check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
         rq_p_grid, rq_lat_grid, rq_lon_grid,
-        rq_p_grid_name, rq_lat_grid_name, rq_lon_grid_name, atmosphere_dim))
+        // FIXMEOLE: These strings have to replaced later with the proper
+        //           names from the WSM documentation in methods.cc
+        "rq_p_grid", "rq_lat_grid", "rq_lon_grid", atmosphere_dim))
     throw runtime_error(os.str());
   }
   
@@ -223,11 +221,7 @@ void jacobianAddParticle(// WS Output:
                          // WS Generic Input:
                          const Vector&             rq_p_grid,
                          const Vector&             rq_lat_grid,
-                         const Vector&             rq_lon_grid,
-                         // WS Generic Input Names:
-                         const String&             rq_p_grid_name,
-                         const String&             rq_lat_grid_name,
-                         const String&             rq_lon_grid_name)
+                         const Vector&             rq_lon_grid)
 {
   throw runtime_error("Particle jacobians not yet handled correctly.");
 
@@ -305,7 +299,9 @@ void jacobianAddParticle(// WS Output:
     ostringstream os;
     if( !check_retrieval_grids( grids, os, p_cbox, lat_cbox, lon_cbox,
                                 rq_p_grid, rq_lat_grid, rq_lon_grid, 
-          rq_p_grid_name, rq_lat_grid_name, rq_lon_grid_name, atmosphere_dim ))
+        // FIXMEOLE: These strings have to replaced later with the proper
+        //           names from the WSM documentation in methods.cc
+          "rq_p_grid", "rq_lat_grid", "rq_lon_grid", atmosphere_dim ))
       throw runtime_error(os.str());
   }
 
@@ -441,10 +437,6 @@ void jacobianAddTemperature(// WS Output:
                     const Vector&             rq_p_grid,
                     const Vector&             rq_lat_grid,
                     const Vector&             rq_lon_grid,
-                    // WS Generic Input Names:
-                    const String&             rq_p_grid_name,
-                    const String&             rq_lat_grid_name,
-                    const String&             rq_lon_grid_name,
                     // Control Parameters:
                     const String&             hse,
                     const String&             method,
@@ -470,7 +462,9 @@ void jacobianAddTemperature(// WS Output:
   ostringstream os;
   if (!check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
         rq_p_grid, rq_lat_grid, rq_lon_grid,
-        rq_p_grid_name, rq_lat_grid_name, rq_lon_grid_name, atmosphere_dim))
+        // FIXMEOLE: These strings have to replaced later with the proper
+        //           names from the WSM documentation in methods.cc
+        "rq_p_grid", "rq_lat_grid", "rq_lon_grid", atmosphere_dim))
     throw runtime_error(os.str());
   }
   
@@ -1453,16 +1447,16 @@ void jacobianUnit(
 
   else if( j_unit == "RJBT" )
     {
-      MatrixToRJBT( jacobian, "jacobian", sensor_pos, sensor_los, 
+      MatrixToRJBT( jacobian, sensor_pos, sensor_los, 
                     sensor_response_f, sensor_response_za, sensor_response_aa, 
-                    sensor_response_pol, jacobian, "jacobian" );
+                    sensor_response_pol, jacobian );
     }
 
   else if( j_unit == "PlanckBT" )
     {
-      MatrixToPlanckBT( jacobian, "jacobian", sensor_pos, sensor_los, 
+      MatrixToPlanckBT( jacobian, sensor_pos, sensor_los, 
                     sensor_response_f, sensor_response_za, sensor_response_aa, 
-                    sensor_response_pol, jacobian, "jacobian" );
+                    sensor_response_pol, jacobian );
     }
   else
     {

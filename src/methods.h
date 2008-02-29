@@ -54,7 +54,8 @@ public:
     magenda_method(false),
     msupergeneric(false),
     msuppress_header(false),
-    mpass_workspace(false)
+    mpass_workspace(false),
+    mpass_wsv_names(false)
   {};
 
   // Initializing constructor. Implementation in methods_aux.cc.
@@ -70,7 +71,8 @@ public:
            const MakeArray<TokValType>& types,
            bool                         agenda_method   = false,
            bool                         suppress_header = false,
-           bool                         pass_workspace   = false
+           bool                         pass_workspace  = false,
+           bool                         pass_wsv_names  = false
            );
 
   // Methods returning the lookup information:
@@ -88,11 +90,16 @@ public:
   bool                     Supergeneric()   const { return msupergeneric; }
   bool                     SuppressHeader() const { return msuppress_header; }
   bool                     PassWorkspace()  const { return mpass_workspace; }
+  bool                     PassWsvNames()   const { return mpass_wsv_names; }
   Index                    ActualGroup()    const { return mactual_group; }
 
   // Expand supergeneric method record to an actual group
   // (documentation with implementation in method_aux.cc):
   void subst_any_with_group( Index g );
+
+  // Helper function returning a list of WSVs which are only input, not
+  // output. (documentation with implementation in method_aux.cc):
+  void input_only(ArrayOfIndex& inonly) const;
 
   //! Print method template for the control file. 
   /*!
@@ -177,6 +184,14 @@ private:
     this flag is set to true, the gateway function will take care of that.
   */ 
   bool mpass_workspace;
+
+  //! Flag, whether WSV names should be passed to the WSM.
+  /*!
+    Some WSMs (like ReadXML, WriteXML) need to know the names of the WSVs that
+    have been passed to them. If this flag is set to true, the gateway function
+    will take care of that.
+  */ 
+  bool mpass_wsv_names;
 
   //! The actual group of a supergeneric method.
   /*! 

@@ -305,27 +305,13 @@ void ArtsParser::parse_method(Index& id,
                               String&       include_file,
                               bool no_eot)
 {
-  extern const Array<WsvRecord> wsv_data;
-  extern const Array<MdRecord> md_data;
-  extern const Array<MdRecord> md_data_raw;
-  extern const ArrayOfString wsv_group_names;
-
-  extern const map<String, Index> MdMap;
-  extern const map<String, Index> MdRawMap;
-  extern const map<String, Index> WsvMap;
-
-  Index wsvid;                  // Workspace variable id, is used to
-                                // access data in wsv_data.
-
   String methodname;            // We need this out here, since it is
                                 // set once and later modified.
 
   const MdRecord* mdd;          // Handle on the method record. Needed here,
                                 // because it is modified.
 
-  bool still_supergeneric=true; // Flag that our MdRecord still is
-                                // from md_data_raw, not from
-                                // md_data. 
+  bool found_curly_brace = false;
 
   // Clear all output variables:
   id = 0;
@@ -348,54 +334,615 @@ void ArtsParser::parse_method(Index& id,
     }
   else
     {
-      if ( "Arts2" == methodname )
+      if (methodname == "Arts2")
         {
           mcfile_version = 2;
-          cout << "Controlfile version 2" << endl;
           methodname = "Arts";
         }
 
-      // Find method raw id in raw map:
-      const map<String, Index>::const_iterator i = MdRawMap.find(methodname);
-      if ( i == MdRawMap.end() )
-        throw UnknownMethod(methodname,
-                            msource.File(),
-                            msource.Line(),
-                            msource.Column());
+      if (methodname == "Arts")
+        out1 << "Controlfile version " << mcfile_version << "\n";
 
-      id = i->second;
+      eat_whitespace();
 
-      // Get a convenient handle on the data record for this method. We
-      // have to use a pointer here, not a reference, because we later
-      // want to change where mdd is pointing!
-      mdd = &md_data_raw[id];
-
-//       cout << "id=" << id << '\n';   
-//       cout << "Method: " << mdd->Name() << '\n';
-
-      // Is this a supergeneric method? If not, take the record in
-      // md_data, rather than in md_data_raw:
-      if ( !mdd->Supergeneric() )
+      if (mcfile_version == 2)
         {
-          // Find explicit method id in MdMap:
-          const map<String, Index>::const_iterator i2 = MdMap.find(methodname);
-          assert ( i2 != MdMap.end() );
-          id = i2->second;            
-          
-          mdd = &md_data[id];
+          parse_output_and_input(mdd, id, methodname, values, output, input);
 
-          still_supergeneric = false;
+          if (msource.Current() == '{')
+            {
+              msource.AdvanceChar();
+              eat_whitespace();
+              found_curly_brace = true;
+            }
 
-//        cout << "Adjusted id=" << id << '\n';   
-//        cout << "Adjusted Method: " << mdd->Name() << '\n';
+          // There are two kind of methods, agenda methods, which have other
+          // methods in the body, and normal methods, expecting keywords and
+          // values. Let's take the agenda case first...
+          if ( mdd->AgendaMethod() )
+            {
+              out3 << "- " << mdd->Name() << "\n";
+              out3 << "{\n";
+              parse_agenda(tasks);
+              out3 << "}\n";
+            }
+          else if (found_curly_brace)
+            { 
+              ostringstream os;
+              os << "Expected method name , but got `" << msource.Current() << "'.";
+              throw UnexpectedChar( os.str(),
+                                    msource.File(),
+                                    msource.Line(),
+                                    msource.Column() );os << "" << endl;
+            }
+
+        }
+      else
+        {
+          parse_output_and_input(mdd, id, methodname, values, output, input);
+
+          // Now look for the curly braces:
+          if (msource.Current() == '{')
+            {
+              msource.AdvanceChar();
+              eat_whitespace();
+              found_curly_brace = true;
+            }
+
+          // There are two kind of methods, agenda methods, which have other
+          // methods in the body, and normal methods, expecting keywords and
+          // values. Let's take the agenda case first...
+          if ( mdd->AgendaMethod() )
+            {
+              out3 << "- " << mdd->Name() << "\n";
+              out3 << "{\n";
+              parse_agenda(tasks);
+              out3 << "}\n";
+            }
+          else
+            { 
+              parse_keywords(mdd, values, found_curly_brace);
+            }
+
+        }
+
+    }
+
+
+  // Now look for the closing curly braces.  We have to catch Eot,
+  // because after a method description may be a good place to end
+  // the control file.
+
+  if (found_curly_brace)
+    {
+      try
+        {
+          assertain_character('}');
+        }
+      catch (const Eot x)
+        {
+          //      cout << "EOT!!!!" << endl;
+          // Re-throw the error if the no_eot flag is not set:
+          if (!no_eot) throw Eot(x);
         }
     }
+}
+
+
+void ArtsParser::parse_generic_keywords(const MdRecord* mdd,
+                                        Array<TokVal>&  values)
+{
+  values.resize (mdd->Keywords().nelem());
+
+  Index keyword_index = 0;
 
   eat_whitespace();
 
+  while (msource.Current() != ')' && keyword_index < mdd->Keywords().nelem())
+    {
+      assertain_character(',');
+      eat_whitespace();
+
+      // If there is a comma or a closing brace means no value was
+      // specified and we use the default value instead (if there is one)
+      if (msource.Current() == ',' || msource.Current() == ')')
+        {
+          if (mdd->Defaults()[keyword_index] != NODEF)
+            {
+              // Now parse the key value. This can be:
+              // String_t,    Index_t,    Numeric_t,
+              // Array_String_t, Array_Index_t, Vector_t,
+              bool failed = false;
+              switch (mdd->Types()[keyword_index]) 
+                {
+                case String_t:
+                    {
+                      values[keyword_index] = mdd->Defaults()[keyword_index];
+                      break;
+                    }
+                case Index_t:
+                    {
+                      Index n;
+                      istringstream is(mdd->Defaults()[keyword_index]);
+                      is >> n;
+                      values[keyword_index] = n;
+                      if (is.bad () || is.fail ())
+                        failed = true;
+                      break;
+                    }
+                case Numeric_t:
+                    {
+                      Numeric n;
+                      istringstream is(mdd->Defaults()[keyword_index]);
+                      is >> n;
+                      values[keyword_index] = n;
+                      if (is.bad () || is.fail ())
+                        failed = true;
+                      break;
+                    }
+                case Array_String_t:
+                    {
+                      ArrayOfString v;
+                      String s = mdd->Defaults()[keyword_index];
+                      if (!parse_stringarray_from_string(v, s))
+                        {
+                          failed = true;
+                        }
+                      values[keyword_index] = v;
+                      break;
+                    }
+                case Array_Index_t:
+                    {
+                      ostringstream os;
+                      os << "Default values for keywords with type "
+                        << "ArrayOfIndex are not supported.\n"
+                        << "Either remove the default value for keyword '"
+                        << mdd->Keywords()[keyword_index] << "' in workspace method *"
+                        << mdd->Name() << "* in methods.cc or discuss this "
+                        << "issue on the arts-dev mailing list.\n";
+                      throw runtime_error (os.str());
+                      break;
+                    }
+                case Vector_t:
+                    {
+                      Vector v;
+                      String s = mdd->Defaults()[keyword_index];
+                      if (!parse_numvector_from_string(v, s))
+                        {
+                          failed = true;
+                        }
+                      values[keyword_index] = v;
+                      break;
+                    }
+                default:
+                  failed = true;
+                }
+              if (failed)
+                {
+                  ostringstream os;
+                  os << "Failed to assign default value for keyword '"
+                    << mdd->Keywords()[keyword_index] << "'.\n"
+                    << "Check definition of workspace method *"
+                    << mdd->Name() << "* in methods.cc.\n";
+                  throw runtime_error (os.str());
+                }
+            }
+          else
+            {
+              ostringstream os;
+              os << "Keyword '" << mdd->Keywords()[keyword_index]
+                << "' omitted but no default value found.\n"
+                << "Check definition of workspace method *"
+                << mdd->Name() << "* in methods.cc.\n";
+              throw runtime_error (os.str());
+            }
+        }
+      else
+        {
+
+          // Now parse the key value. This can be:
+          // String_t,    Index_t,    Numeric_t,
+          // Array_String_t, Array_Index_t, Vector_t,
+          switch (mdd->Types()[keyword_index]) 
+            {
+            case String_t:
+                {
+                  String dummy;
+                  parse_String(dummy);
+                  values[keyword_index] = dummy;
+                  break;
+                }
+            case Index_t:
+                {
+                  Index n;
+                  parse_integer(n);
+                  values[keyword_index] = n;
+                  break;
+                }
+            case Numeric_t:
+                {
+                  Numeric n;
+                  parse_numeric(n);
+                  values[keyword_index] = n;
+                  break;
+                }
+            case Array_String_t:
+                {
+                  ArrayOfString dummy;
+                  parse_Stringvector(dummy);
+                  values[keyword_index] = dummy;
+                  break;
+                }
+            case Array_Index_t:
+                {
+                  ArrayOfIndex dummy;
+                  parse_intvector(dummy);
+                  values[keyword_index] = dummy;
+                  break;
+                }
+            case Vector_t:
+                {
+                  Vector dummy;
+                  parse_numvector(dummy);
+                  values[keyword_index] = dummy;
+                  break;
+                }
+            default:
+              cerr << "Impossible parameter type.\n";
+              arts_exit(EXIT_FAILURE);
+            }
+        }
+
+      eat_whitespace();
+      keyword_index++;
+    }
+
+  if (keyword_index < mdd->Keywords().nelem())
+    {
+      ostringstream os;
+      os << "Expected keyword '" << mdd->Keywords()[keyword_index]
+        << "', but got `" << msource.Current() << "'.";
+      throw UnexpectedChar( os.str(),
+                            msource.File(),
+                            msource.Line(),
+                            msource.Column() );
+    }
+  else if (msource.Current() != ')')
+    {
+      ostringstream os;
+      os << "Expected ')', but got '" << msource.Current() << "'.";
+      throw UnexpectedChar( os.str(),
+                            msource.File(),
+                            msource.Line(),
+                            msource.Column() );
+    }
+
+  msource.AdvanceChar();
+}
+
+
+void ArtsParser::parse_keywords(const MdRecord* mdd,
+                                Array<TokVal>&  values,
+                                const bool      found_curly_brace)
+{
+  // Now we have to deal with two different cases: Keywords with
+  // parameters, or (optionally) only a parameter without a keyword
+  // for methods that have only a single argument.
+  //
+  // We can distinguish the two cases if we check whether the current
+  // character is a letter. (If the parameter is specified directly it
+  // must be either a number, a +- sign or a quotation mark)
+  //
+  // KEYWORDS THAT START WITH A NUMBER WILL BREAK THIS CODE!!
+  //
+  /*for ( Index i=0 ; i<mdd->Keywords().nelem() ; ++i )*/
+
+  if (!found_curly_brace)
+    {
+      bool all_kw_have_defaults = true;
+      for (Index kw = 0;
+           all_kw_have_defaults && kw < mdd->Keywords().nelem();
+           ++kw)
+        {
+          if (mdd->Defaults()[kw] == NODEF)
+            all_kw_have_defaults = false;
+        }
+
+      if (!all_kw_have_defaults)
+        {
+          ostringstream os;
+          os << "Expected '{', but got `" << msource.Current() << "'.";
+          throw UnexpectedChar( os.str(),
+                                msource.File(),
+                                msource.Line(),
+                                msource.Column() );
+        }
+    }
+
+  values.resize (mdd->Keywords().nelem());
+
+  // Use this array to remember which keywords have been set
+  ArrayOfIndex initialized_keywords (mdd->Keywords().nelem(), 0);
+
+  while (found_curly_brace && msource.Current () != '}')
+    {
+      Index keyword_index;
+      if (!isalpha(msource.Current()) && 1==mdd->Keywords().nelem())
+        {
+          keyword_index = 0;
+          initialized_keywords[keyword_index] = 1;
+          // Parameter specified directly, without a keyword. This is only
+          // allowed for single parameter methods!
+
+          // We don't have to do anything here.
+        }
+      else  
+        {      // Look for the keywords and read the parameters:
+
+          bool found_keyword = false;
+          String keyname;
+          read_name(keyname);
+
+          // Is the keyname the expected keyname?
+          for (keyword_index = 0; keyword_index < mdd->Keywords().nelem();
+               ++keyword_index)
+            {
+              if ( keyname == mdd->Keywords()[keyword_index] )
+                {
+                  found_keyword = true;
+                  if (initialized_keywords[keyword_index])
+                    {
+                      ostringstream os;
+                      os << "Keyword " << mdd->Keywords()[keyword_index]
+                        << " was already set.\n";
+                      throw ParseError (os.str (),
+                                        msource.File(),
+                                        msource.Line(),
+                                        msource.Column());
+                    }
+                  else
+                    {
+                      initialized_keywords[keyword_index] = 1;
+                    }
+                  break;
+                }
+            }
+          if ( !found_keyword )
+            {
+              throw UnexpectedKeyword( keyname,
+                                       msource.File(),
+                                       msource.Line(),
+                                       msource.Column());
+            }
+
+          eat_whitespace();
+
+          // Look for '='
+          assertain_character('=');
+          eat_whitespace();
+        }
+
+      // Now parse the key value. This can be:
+      // String_t,    Index_t,    Numeric_t,
+      // Array_String_t, Array_Index_t, Vector_t,
+      switch (mdd->Types()[keyword_index]) 
+        {
+        case String_t:
+            {
+              String dummy;
+              parse_String(dummy);
+              values[keyword_index] = dummy;
+              break;
+            }
+        case Index_t:
+            {
+              Index n;
+              parse_integer(n);
+              values[keyword_index] = n;
+              break;
+            }
+        case Numeric_t:
+            {
+              Numeric n;
+              parse_numeric(n);
+              values[keyword_index] = n;
+              break;
+            }
+        case Array_String_t:
+            {
+              ArrayOfString dummy;
+              parse_Stringvector(dummy);
+              values[keyword_index] = dummy;
+              break;
+            }
+        case Array_Index_t:
+            {
+              ArrayOfIndex dummy;
+              parse_intvector(dummy);
+              values[keyword_index] = dummy;
+              break;
+            }
+        case Vector_t:
+            {
+              Vector dummy;
+              parse_numvector(dummy);
+              values[keyword_index] = dummy;
+              break;
+            }
+        default:
+          cerr << "Impossible parameter type.\n";
+          arts_exit(EXIT_FAILURE);
+        }
+
+      eat_whitespace();
+
+      // Check:
+      //      cout << "Value: " << mdd->Values()[i] << '\n';
+    }
+
+  // Check if all keywords are set
+  for (Index i = 0; i < initialized_keywords.nelem(); ++i)
+    {
+      if (!initialized_keywords[i])
+        {
+          if (mdd->Defaults()[i] != NODEF)
+            {
+              // Now parse the key value. This can be:
+              // String_t,    Index_t,    Numeric_t,
+              // Array_String_t, Array_Index_t, Vector_t,
+              bool failed = false;
+              switch (mdd->Types()[i]) 
+                {
+                case String_t:
+                    {
+                      values[i] = mdd->Defaults()[i];
+                      break;
+                    }
+                case Index_t:
+                    {
+                      Index n;
+                      istringstream is(mdd->Defaults()[i]);
+                      is >> n;
+                      values[i] = n;
+                      if (is.bad () || is.fail ())
+                        failed = true;
+                      break;
+                    }
+                case Numeric_t:
+                    {
+                      Numeric n;
+                      istringstream is(mdd->Defaults()[i]);
+                      is >> n;
+                      values[i] = n;
+                      if (is.bad () || is.fail ())
+                        failed = true;
+                      break;
+                    }
+                case Array_String_t:
+                    {
+                      ArrayOfString v;
+                      String s = mdd->Defaults()[i];
+                      if (!parse_stringarray_from_string(v, s))
+                        {
+                          failed = true;
+                        }
+                      values[i] = v;
+                      break;
+                    }
+                case Array_Index_t:
+                    {
+                      ostringstream os;
+                      os << "Default values for keywords with type "
+                        << "ArrayOfIndex are not supported.\n"
+                        << "Either remove the default value for keyword '"
+                        << mdd->Keywords()[i] << "' in workspace method *"
+                        << mdd->Name() << "* in methods.cc or discuss this "
+                        << "issue on the arts-dev mailing list.\n";
+                      throw runtime_error (os.str());
+                      break;
+                    }
+                case Vector_t:
+                    {
+                      Vector v;
+                      String s = mdd->Defaults()[i];
+                      if (!parse_numvector_from_string(v, s))
+                        {
+                          failed = true;
+                        }
+                      values[i] = v;
+                      break;
+                    }
+                default:
+                  failed = true;
+                }
+              if (failed)
+                {
+                  ostringstream os;
+                  os << "Failed to assign default value for keyword '"
+                    << mdd->Keywords()[i] << "'.\n"
+                    << "Check definition of workspace method *"
+                    << mdd->Name() << "* in methods.cc.\n";
+                  throw runtime_error (os.str());
+                }
+            }
+          else
+            {
+              ostringstream os;
+              os << "Required keyword '" << mdd->Keywords()[i]
+                << "' for WSM *" << mdd->Name() << "* was not set.\n";
+              throw ParseError (os.str (),
+                                msource.File(),
+                                msource.Line(),
+                                msource.Column());
+            }
+        }
+    }
+}
+
+
+void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
+                                        Index&           id,
+                                        String&          methodname,
+                                        Array<TokVal>&   values,
+                                        ArrayOfIndex&    output,
+                                        ArrayOfIndex&    input)
+{
+  extern const map<String, Index> WsvMap;
+  extern const map<String, Index> MdRawMap;
+  extern const Array<MdRecord> md_data;
+  extern const Array<MdRecord> md_data_raw;
+  extern const Array<WsvRecord> wsv_data;
+  extern const ArrayOfString wsv_group_names;
+  extern const map<String, Index> MdMap;
+
+  Index wsvid;                  // Workspace variable id, is used to
+                                // access data in wsv_data.
+
+  bool still_supergeneric=true; // Flag that our MdRecord still is
+                                // from md_data_raw, not from
+                                // md_data. 
+
+                                // Find method raw id in raw map:
+  const map<String, Index>::const_iterator i = MdRawMap.find(methodname);
+  if ( i == MdRawMap.end() )
+    throw UnknownMethod(methodname,
+                        msource.File(),
+                        msource.Line(),
+                        msource.Column());
+
+  id = i->second;
+
+  // Get a convenient handle on the data record for this method. We
+  // have to use a pointer here, not a reference, because we later
+  // want to change where mdd is pointing!
+  mdd = &md_data_raw[id];
+
+  //       cout << "id=" << id << '\n';   
+  //       cout << "Method: " << mdd->Name() << '\n';
+
+  // Is this a supergeneric method? If not, take the record in
+  // md_data, rather than in md_data_raw:
+  if ( !mdd->Supergeneric() )
+    {
+      // Find explicit method id in MdMap:
+      const map<String, Index>::const_iterator i2 = MdMap.find(methodname);
+      assert ( i2 != MdMap.end() );
+      id = i2->second;            
+
+      mdd = &md_data[id];
+
+      still_supergeneric = false;
+
+      //        cout << "Adjusted id=" << id << '\n';   
+      //        cout << "Adjusted Method: " << mdd->Name() << '\n';
+    }
+
   // For generic methods the output and input workspace variables have 
   // to be parsed (given in round brackets).
-  if ( 0 < mdd->GOutput().nelem() + mdd->GInput().nelem() )
+  if ( (0 < mdd->GOutput().nelem() + mdd->GInput().nelem())
+       || (mcfile_version == 2
+           && 0 < mdd->GOutput().nelem() + mdd->GInput().nelem()
+                  + mdd->Keywords().nelem()))
     {
       //      cout << "Generic!" << id << mdd->Name() << '\n';
       String wsvname;
@@ -425,14 +972,15 @@ void ArtsParser::parse_method(Index& id,
 
           {
             // Find Wsv id:
-            const map<String, Index>::const_iterator i = WsvMap.find(wsvname);
-            if ( i == WsvMap.end() )
+            const map<String, Index>::const_iterator wsvit =
+              WsvMap.find(wsvname);
+            if ( wsvit == WsvMap.end() )
               throw UnknownWsv( wsvname,
                                 msource.File(),
                                 msource.Line(),
                                 msource.Column() );
 
-            wsvid = i->second;
+            wsvid = wsvit->second;
           }
 
           // If this is a supergeneric method, now is the time to find
@@ -448,9 +996,9 @@ void ArtsParser::parse_method(Index& id,
               methodname = os.str();
 
               // Find explicit method id in MdMap:
-              const map<String, Index>::const_iterator i = MdMap.find(methodname);
-              assert ( i != MdMap.end() );
-              id = i->second;         
+              const map<String, Index>::const_iterator mdit = MdMap.find(methodname);
+              assert ( mdit != MdMap.end() );
+              id = mdit->second;         
               
               mdd = &md_data[id];
 
@@ -502,14 +1050,15 @@ void ArtsParser::parse_method(Index& id,
 
           {
             // Find Wsv id:
-            const map<String, Index>::const_iterator i = WsvMap.find(wsvname);
-            if ( i == WsvMap.end() )
+            const map<String, Index>::const_iterator wsvit =
+              WsvMap.find(wsvname);
+            if ( wsvit == WsvMap.end() )
               throw UnknownWsv( wsvname,
                                 msource.File(),
                                 msource.Line(),
                                 msource.Column() );
 
-            wsvid = i->second;
+            wsvid = wsvit->second;
           }
 
           // Is the method data record still supergeneric? This could
@@ -523,9 +1072,10 @@ void ArtsParser::parse_method(Index& id,
               methodname = os.str();
 
               // Find explicit method id in MdMap:
-              const map<String, Index>::const_iterator i = MdMap.find(methodname);
-              assert ( i != MdMap.end() );
-              id = i->second;         
+              const map<String, Index>::const_iterator mdit =
+                MdMap.find(methodname);
+              assert ( mdit != MdMap.end() );
+              id = mdit->second;         
 
               mdd = &md_data[id];
 
@@ -554,14 +1104,20 @@ void ArtsParser::parse_method(Index& id,
           eat_whitespace();
         }
 
-      assertain_character(')');
-
-      eat_whitespace();
+      if (mcfile_version == 2)
+        {
+          parse_generic_keywords(mdd, values);
+        }
+      else
+        {
+          assertain_character(')');
+          eat_whitespace();
+        }
     }
   else
     {
       // Even if the method has no GInput or GOutput the user can
-      // give an empty pair of ()
+      // give pass all inputs and outputs in ()
       if (msource.Current() == '(')
         {
           msource.AdvanceChar();
@@ -577,305 +1133,15 @@ void ArtsParser::parse_method(Index& id,
               else if (mdd->Input().nelem())
                 parse_input(mdd);
             }
-          assertain_character(')');
-          eat_whitespace();
-        }
-    }
-
-  // Now look for the curly braces:
-  bool found_curly_brace = false;
-  if (msource.Current() == '{')
-    {
-      msource.AdvanceChar();
-      eat_whitespace();
-      found_curly_brace = true;
-    }
-
-  // There are two kind of methods, agenda methods, which have other
-  // methods in the body, and normal methods, expecting keywords and
-  // values. Let's take the agenda case first...
-  if ( mdd->AgendaMethod() )
-    {
-      out3 << "- " << mdd->Name() << "\n";
-
-      out3 << "{\n";
-
-      parse_agenda(tasks);
-
-      out3 << "}\n";
-    }
-  else
-    {
-      // Now we have to deal with two different cases: Keywords with
-      // parameters, or (optionally) only a parameter without a keyword
-      // for methods that have only a single argument.
-      //
-      // We can distinguish the two cases if we check whether the current
-      // character is a letter. (If the parameter is specified directly it
-      // must be either a number, a +- sign or a quotation mark)
-      //
-      // KEYWORDS THAT START WITH A NUMBER WILL BREAK THIS CODE!!
-      //
-      /*for ( Index i=0 ; i<mdd->Keywords().nelem() ; ++i )*/
-
-      if (!found_curly_brace)
-        {
-          bool all_kw_have_defaults = true;
-          for (Index kw = 0;
-               all_kw_have_defaults && kw < mdd->Keywords().nelem();
-               ++kw)
+          if (mcfile_version == 2)
             {
-              if (mdd->Defaults()[kw] == NODEF)
-                all_kw_have_defaults = false;
+              parse_generic_keywords(mdd, values);
             }
-
-          if (!all_kw_have_defaults)
+          else
             {
-              ostringstream os;
-              os << "Expected '{', but got `" << msource.Current() << "'.";
-              throw UnexpectedChar( os.str(),
-                                    msource.File(),
-                                    msource.Line(),
-                                    msource.Column() );os << "" << endl;
-            }
-        }
-
-      values.resize (mdd->Keywords().nelem());
-
-      // Use this array to remember which keywords have been set
-      ArrayOfIndex initialized_keywords (mdd->Keywords().nelem(), 0);
-
-      while (found_curly_brace && msource.Current () != '}')
-        {
-          Index keyword_index;
-          if (!isalpha(msource.Current()) && 1==mdd->Keywords().nelem())
-            {
-              keyword_index = 0;
-              initialized_keywords[keyword_index] = 1;
-              // Parameter specified directly, without a keyword. This is only
-              // allowed for single parameter methods!
-
-              // We don't have to do anything here.
-            }
-          else  
-            {      // Look for the keywords and read the parameters:
-          
-              bool found_keyword = false;
-              String keyname;
-              read_name(keyname);
-
-              // Is the keyname the expected keyname?
-              for (keyword_index = 0; keyword_index < mdd->Keywords().nelem();
-                    ++keyword_index)
-                {
-                  if ( keyname == mdd->Keywords()[keyword_index] )
-                    {
-                    found_keyword = true;
-                    if (initialized_keywords[keyword_index])
-                      {
-                        ostringstream os;
-                        os << "Keyword " << mdd->Keywords()[keyword_index]
-                          << " was already set.\n";
-                        throw ParseError (os.str (),
-                                          msource.File(),
-                                          msource.Line(),
-                                          msource.Column());
-                      }
-                    else
-                      {
-                        initialized_keywords[keyword_index] = 1;
-                      }
-                    break;
-                    }
-                }
-              if ( !found_keyword )
-                {
-                  throw UnexpectedKeyword( keyname,
-                                           msource.File(),
-                                           msource.Line(),
-                                           msource.Column());
-                }
-
-              eat_whitespace();
-
-              // Look for '='
-              assertain_character('=');
+              assertain_character(')');
               eat_whitespace();
             }
-
-          // Now parse the key value. This can be:
-          // String_t,    Index_t,    Numeric_t,
-          // Array_String_t, Array_Index_t, Vector_t,
-          switch (mdd->Types()[keyword_index]) 
-            {
-            case String_t:
-              {
-                String dummy;
-                parse_String(dummy);
-                values[keyword_index] = dummy;
-                break;
-              }
-            case Index_t:
-              {
-                Index n;
-                parse_integer(n);
-                values[keyword_index] = n;
-                break;
-              }
-            case Numeric_t:
-              {
-                Numeric n;
-                parse_numeric(n);
-                values[keyword_index] = n;
-                break;
-              }
-            case Array_String_t:
-              {
-                ArrayOfString dummy;
-                parse_Stringvector(dummy);
-                values[keyword_index] = dummy;
-                break;
-              }
-            case Array_Index_t:
-              {
-                ArrayOfIndex dummy;
-                parse_intvector(dummy);
-                values[keyword_index] = dummy;
-                break;
-              }
-            case Vector_t:
-              {
-                Vector dummy;
-                parse_numvector(dummy);
-                values[keyword_index] = dummy;
-                break;
-              }
-            default:
-              cerr << "Impossible parameter type.\n";
-              arts_exit(EXIT_FAILURE);
-            }
-
-          eat_whitespace();
-
-          // Check:
-          //      cout << "Value: " << mdd->Values()[i] << '\n';
-        }
-
-      // Check if all keywords are set
-      for (Index i = 0; i < initialized_keywords.nelem(); ++i)
-        {
-          if (!initialized_keywords[i])
-            {
-              if (mdd->Defaults()[i] != NODEF)
-                {
-                  // Now parse the key value. This can be:
-                  // String_t,    Index_t,    Numeric_t,
-                  // Array_String_t, Array_Index_t, Vector_t,
-                  bool failed = false;
-                  switch (mdd->Types()[i]) 
-                    {
-                    case String_t:
-                        {
-                          values[i] = mdd->Defaults()[i];
-                          break;
-                        }
-                    case Index_t:
-                        {
-                          Index n;
-                          istringstream is(mdd->Defaults()[i]);
-                          is >> n;
-                          values[i] = n;
-                          if (is.bad () || is.fail ())
-                            failed = true;
-                          break;
-                        }
-                    case Numeric_t:
-                        {
-                          Numeric n;
-                          istringstream is(mdd->Defaults()[i]);
-                          is >> n;
-                          values[i] = n;
-                          if (is.bad () || is.fail ())
-                            failed = true;
-                          break;
-                        }
-                    case Array_String_t:
-                        {
-                          ArrayOfString v;
-                          String s = mdd->Defaults()[i];
-                          if (!parse_stringarray_from_string(v, s))
-                            {
-                              failed = true;
-                            }
-                          values[i] = v;
-                          break;
-                        }
-                    case Array_Index_t:
-                        {
-                          ostringstream os;
-                          os << "Default values for keywords with type "
-                            << "ArrayOfIndex are not supported.\n"
-                            << "Either remove the default value for keyword '"
-                            << mdd->Keywords()[i] << "' in workspace method *"
-                            << mdd->Name() << "* in methods.cc or discuss this "
-                            << "issue on the arts-dev mailing list.\n";
-                          throw runtime_error (os.str());
-                          break;
-                        }
-                    case Vector_t:
-                        {
-                          Vector v;
-                          String s = mdd->Defaults()[i];
-                          if (!parse_numvector_from_string(v, s))
-                            {
-                              failed = true;
-                            }
-                          values[i] = v;
-                          break;
-                        }
-                    default:
-                      failed = true;
-                    }
-                  if (failed)
-                    {
-                      ostringstream os;
-                      os << "Failed to assign default value for keyword '"
-                        << mdd->Keywords()[i] << "'.\n"
-                        << "Check definition of workspace method *"
-                        << mdd->Name() << "* in methods.cc.\n";
-                      throw runtime_error (os.str());
-                    }
-                }
-              else
-                {
-                  ostringstream os;
-                  os << "Required keyword '" << mdd->Keywords()[i]
-                    << "' for WSM *" << mdd->Name() << "* was not set.\n";
-                  throw ParseError (os.str (),
-                                    msource.File(),
-                                    msource.Line(),
-                                    msource.Column());
-                }
-            }
-        }
-    }
-
-
-  // Now look for the closing curly braces.  We have to catch Eot,
-  // because after a method description may be a good place to end
-  // the control file.
-
-  if (found_curly_brace)
-    {
-      try
-        {
-          assertain_character('}');
-        }
-      catch (const Eot x)
-        {
-          //      cout << "EOT!!!!" << endl;
-          // Re-throw the error if the no_eot flag is not set:
-          if (!no_eot) throw Eot(x);
         }
     }
 }

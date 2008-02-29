@@ -106,10 +106,9 @@ timerStop
 # Write out spectrum
 #WriteXML(y){"on_the_fly.y.xml.generated"}
 
-# We need to copy to another variable and use print, so that the
-# python test script can analyse the result.
-Copy(vector_1,y)
-Print(vector_1)
+# Write the result for the python test script
+output_file_formatSetAscii
+WriteXML( y ){ "ClearSky.y1.xml.generated" }
 
 # Do the same calculation again with lookup table absorption.
 
@@ -138,7 +137,9 @@ timerStop
 timerStart
 RteCalc
 timerStop
-Print(y)
+
+output_file_formatSetAscii
+WriteXML( y ){ "ClearSky.y2.xml.generated" }
 
 } # End of Main
  

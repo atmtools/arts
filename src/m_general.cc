@@ -73,13 +73,10 @@ void INCLUDE()
 void Print(
         // WS Generic Input:
         const ArrayOfGridPos&   x,
-        // WS Generic Input Names:
-        const String&           x_name,
         // Keywords:
         const Index&            level )
 {
   ostringstream os;
-  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
   for( Index i=0; i<x.nelem(); i++ )
     os << "     " << x[i].idx << "  " << x[i].fd[0] << "  " << x[i].fd[1]
          << "\n";
@@ -91,13 +88,10 @@ void Print(
 void Print(
         // WS Generic Input:
         const ArrayOfIndex&   x,
-        // WS Generic Input Names:
-        const String&         x_name,
         // Keywords:
         const Index&          level )
 {
   ostringstream os;
-  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
   for( Index i=0; i<x.nelem(); i++ )
     os << x[i];
   SWITCH_OUTPUT (level, os.str () << '\n')
@@ -108,13 +102,10 @@ void Print(
 void Print(
         // WS Generic Input:
         const ArrayOfString&   x,
-        // WS Generic Input Names:
-        const String&          x_name,
         // Keywords:
         const Index&           level )
 {
   ostringstream os;
-  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
   for( Index i=0; i<x.nelem(); i++ )
     os << x[i] << '\n';
   SWITCH_OUTPUT (level, os.str ())
@@ -126,31 +117,51 @@ void
 Print(
       // WS Generic Input:
       const Ppath&    x,
-      // WS Generic Input Names:
-      const String&   x_name,
       // Keywords:
       const Index&    level )
 {
-  SWITCH_OUTPUT (level, "  The fields of *" << x_name << "*:\n")
-  Print( x.dim, "dim", level );
-  Print( x.np, "np", level );
-  Print( x.refraction, "refraction", level );
-  Print( x.method, "method", level );
-  Print( x.constant, "constant", level );
-  Print( x.pos, "pos", level );
-  Print( x.z, "z", level );
-  Print( x.l_step, "l_step", level );
-  Print( x.gp_p, "gp_p", level );
+  SWITCH_OUTPUT (level, "dim: ")
+  Print( x.dim, level );
+  SWITCH_OUTPUT (level, "np: ")
+  Print( x.np, level );
+  SWITCH_OUTPUT (level, "refraction: ")
+  Print( x.refraction, level );
+  SWITCH_OUTPUT (level, "method: ")
+  Print( x.method, level );
+  SWITCH_OUTPUT (level, "constant: ")
+  Print( x.constant, level );
+  SWITCH_OUTPUT (level, "pos: ")
+  Print( x.pos, level );
+  SWITCH_OUTPUT (level, "z: ")
+  Print( x.z, level );
+  SWITCH_OUTPUT (level, "l_step: ")
+  Print( x.l_step, level );
+  SWITCH_OUTPUT (level, "gp_p: ")
+  Print( x.gp_p, level );
   if( x.dim >= 2 )
-    Print( x.gp_lat, "gp_lat", level );
+    {
+      SWITCH_OUTPUT (level, "gp_lat: ")
+      Print( x.gp_lat, level );
+    }
   if( x.dim == 3 )
-    Print( x.gp_lon, "gp_lon", level );
-  Print( x.los, "los", level );
-  Print( x.background, "background", level );
+    {
+      SWITCH_OUTPUT (level, "gp_lon: ")
+      Print( x.gp_lon, level );
+    }
+  SWITCH_OUTPUT (level, "los: ")
+  Print( x.los, level );
+  SWITCH_OUTPUT (level, "background: ")
+  Print( x.background, level );
   if( x.tan_pos.nelem() )
-    Print( x.tan_pos, "tan_pos", level );
+    {
+      SWITCH_OUTPUT (level, "tan_pos: ")
+      Print( x.tan_pos, level );
+    }
   if( x.geom_tan_pos.nelem() )
-    Print( x.geom_tan_pos, "geom_tan_pos", level );
+    {
+      SWITCH_OUTPUT (level, "geom_tan_pos: ")
+      Print( x.geom_tan_pos, level );
+    }
 }
 
 
@@ -158,16 +169,16 @@ Print(
 void Print(
         // WS Generic Input:
         const ArrayOfPpath&   x,
-        // WS Generic Input Names:
-        const String&           x_name,
         // Keywords:
         const Index&            level )
 {
-  ostringstream os;
-  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
   for( Index i=0; i<x.nelem(); i++ )
-    Print( x[i], x_name, level );
-  SWITCH_OUTPUT (level, os.str ())
+    {
+      ostringstream os;
+      os << "Ppath element " << i << ": ";
+      SWITCH_OUTPUT (level, os.str ())
+      Print( x[i], level );
+    }
 }
 
 
@@ -175,8 +186,6 @@ void Print(
 void Print(
         // WS Generic Input:
         const Timer&   /* x */,
-        // WS Generic Input Names:
-        const String&  /* x_name */,
         // Keywords:
         const Index&   /* level */ )
 {
