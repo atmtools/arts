@@ -90,7 +90,7 @@ void gridpos_poly(ArrayOfGridPosPoly& gp,
                   ConstVectorView old_grid,
                   ConstVectorView new_grid,
                   const Index order,
-                  const Numeric  extpolfac = 0.5)
+                  const Numeric  extpolfac)
 {
   // Number of points used in the interpolation (order + 1):
   Index m=order+1;
@@ -241,4 +241,120 @@ Numeric interp_poly( ConstVectorView    itw,
     }
 
   return tia;
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+//                      Blue interpolation
+////////////////////////////////////////////////////////////////////////////
+
+//! Compute 1D polynomial interpolation weights.
+/*! 
+  For this 1D case there is no distinction between "blue" and "green"
+  type interpolation.
+
+  This is like the corresponding *interpweights* function, but works
+  for interpolation with arbitrary polynomial order. Interpolation
+  order 1 should give the same result as our traditional linear
+  interpolation routines (although the code is different). I did this
+  on purpose, so that consistency can be checked. Order 0 (nearest
+  neighbor) is not implemented, but could easily be, if anybody ever
+  needs it.
+
+  Note that we still do not need the actual field for this step.
+
+  In contrast to the linear *interpweights* function, itw is sized
+  automatically, to allow easy switching between interpolation orders.
+  
+  The interpolation order is determined from the size of the w vector
+  in the grid positions tc.
+
+  \retval itw Interpolation weights.
+  \param cgp  The grid position Array for the column dimension.
+*/
+void interpweights_poly( Matrix& itw,
+                         const ArrayOfGridPosPoly& cgp )
+{
+  Index n = cgp.nelem();
+
+  // We need the number of interpolation points, which is the
+  // interpolation order plus one.
+  Index m=cgp[0].w.nelem();
+
+  itw.resize(n,m);      // We must store m interpolation
+                        // weights for each position.
+
+  // We have to loop all the points in the sequence:
+  for ( Index s=0; s<n; ++s )
+    {
+      // Current grid positions:
+      const GridPosPoly& tc = cgp[s];
+      
+      // Check that the number of interpolation points to use is the
+      // same for all points:
+      assert(is_size(tc.w,m));
+      
+      // This loop is over all points used in the interpolation:
+      for (Index i=0; i<m; ++i)
+        itw(s,i) = tc.w[i];
+    }
+}
+
+//! Polynomial interpolation of 1D field.
+/*! 
+  For this 1D case there is no distinction between "blue" and "green"
+  type interpolation.
+
+  This is like the corresponding *interp* function, but works
+  for interpolation with arbitrary polynomial order. Interpolation
+  order 1 should give the same result as our traditional linear
+  interpolation routines (although the code is different). 
+
+  The output vector ia must have the same length as the grid position
+  vector cgp. And the dimension of itw must be consistent with
+  this.
+
+  \retval ia Vector containing the interpolated field values.
+  \param itw Interpolation weights.
+  \param a   The field to interpolate.
+  \param cgp The grid position Array for the column dimension.
+*/
+void interp_poly( VectorView            ia,
+                  ConstMatrixView       itw,
+                  ConstVectorView       a,    
+                  const ArrayOfGridPosPoly& cgp)
+{
+  // Number of point in the sequence:
+  Index n = itw.nrows();
+  // Number of interpolation points (interpolation order plus one):
+  Index m=itw.ncols();
+
+  assert(is_size(cgp,n));       // cgp must have one element for each point.
+  assert(is_size(ia,n));        // ia must have same size as cgp.
+
+  // Check that interpolation weights are valid. The sum of all
+  // weights (last dimension) must always be approximately one. We
+  // only check the first element.
+  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
+                                  1,
+                                  sum_check_epsilon ) );
+  
+  // We have to loop all the points in the sequence:
+  for ( Index i=0; i<n; ++i )
+    {
+      // Current grid positions:
+      const GridPosPoly& tc = cgp[i];
+
+      // Get handle to current element of output vector and initialize
+      // it to zero:
+      Numeric& tia = ia[i];
+      tia = 0;
+
+      Index iti = 0;
+      for ( Index c=0; c<m; ++c )
+        {
+          tia += a[tc.idx+c] * itw(i,iti);
+          ++iti;
+        }
+    }
 }

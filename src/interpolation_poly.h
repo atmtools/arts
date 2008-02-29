@@ -63,4 +63,25 @@ struct GridPosPoly {
 
 typedef Array<GridPosPoly> ArrayOfGridPosPoly;
 
+void gridpos_poly(ArrayOfGridPosPoly& gp,
+                  ConstVectorView old_grid,
+                  ConstVectorView new_grid,
+                  const Index order,
+                  const Numeric  extpolfac = 0.5);
+
+void interpweights_poly( Vector& itw,
+                         const GridPosPoly& tc );
+
+Numeric interp_poly( ConstVectorView    itw,
+                     ConstVectorView    a,    
+                     const GridPosPoly& tc );
+
+void interpweights_poly( Matrix& itw,
+                         const ArrayOfGridPosPoly& cgp );
+
+void interp_poly( VectorView            ia,
+                  ConstMatrixView       itw,
+                  ConstVectorView       a,    
+                  const ArrayOfGridPosPoly& cgp);
+
 #endif // interpolation_poly_h

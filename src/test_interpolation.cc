@@ -20,6 +20,7 @@
 #include "array.h"
 #include "matpackVII.h"
 #include "interpolation.h"
+#include "interpolation_poly.h"
 #include "make_vector.h"
 #include "xml_io.h"
 #include "math_funcs.h"
@@ -429,8 +430,8 @@ void test06()
 void test07()
 {
   // FileType ftype = FILE_TYPE_ASCII;
-  Vector new_x(1.5, 20, +0.4);
-  Vector x(1, 10, +1);
+  Vector new_x(0, 21, +0.25);
+  Vector x(0, 10, +1);
 
   ArrayOfGridPos gp(new_x.nelem());
   gridpos(gp, x, new_x);
@@ -446,7 +447,7 @@ void test07()
       // cubic function
       y2[i] = pow(x[i],3) + 2;
       // trigonometric function
-      y3[i] = pow(x[i]-1,0.3333);
+      y3[i] = sin(x[i]);
     }
   
   // Linear interpolation:
@@ -461,9 +462,9 @@ void test07()
    interp(y2_lin, itw, y2, gp);
    interp(y3_lin, itw, y3, gp);
 
-   xml_write_to_file( "./test/y1_lin.xml", y1_lin);
-   xml_write_to_file( "./test/y2_lin.xml", y2_lin);
-   xml_write_to_file( "./test/y3_lin.xml", y3_lin);
+   cout << "y1_lin = ["<< y1_lin << "];\n";
+   cout << "y2_lin = ["<< y2_lin << "];\n";
+   cout << "y3_lin = ["<< y3_lin << "];\n";
 
    // Cubic interpolation:
    Vector y1_cub(new_x.nelem());
@@ -477,9 +478,27 @@ void test07()
        y3_cub[i] = interp_poly(x, y3, new_x[i], gp[i]);
      }
    
-   xml_write_to_file( "./test/y1_poly.xml", y1_cub);
-   xml_write_to_file( "./test/y2_poly.xml", y2_cub);
-   xml_write_to_file( "./test/y3_poly.xml", y3_cub);
+   cout << "y1_cub = ["<< y1_cub << "];\n";
+   cout << "y2_cub = ["<< y2_cub << "];\n";
+   cout << "y3_cub = ["<< y3_cub << "];\n";
+
+   // Stefan's new polynomial interpolation routines:
+   Vector y1_new(new_x.nelem());
+   Vector y2_new(new_x.nelem());
+   Vector y3_new(new_x.nelem());
+
+   ArrayOfGridPosPoly gpp(new_x.nelem());
+   gridpos_poly(gpp, x, new_x, 2);   
+   Matrix itwp;
+   interpweights_poly(itwp, gpp);
+
+   interp_poly(y1_new, itwp, y1, gpp);
+   interp_poly(y2_new, itwp, y2, gpp);
+   interp_poly(y3_new, itwp, y3, gpp);
+
+   cout << "y1_new = ["<< y1_new << "];\n";
+   cout << "y2_new = ["<< y2_new << "];\n";
+   cout << "y3_new = ["<< y3_new << "];\n";
 }
    
 
