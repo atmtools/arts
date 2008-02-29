@@ -1,5 +1,28 @@
 2008-02-29  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-3-12
+
+	* src/make_auto_wsv.h, src/make_auto_wsv_groups.h:
+
+	Move definition of the workspace memory handler from auto_wsv.h to
+	auto_wsv_groups.h because it only depends on the WSV groups not the
+	WSVs anymore.
+
+	Fix the size of the function pointer arrays. They should have as many
+	elements as the WSV group names array, not the WSV array.
+
+	* src/make_auto_wsv.h:
+
+	Do not create the obsolete auto_wsv.txt file anymore.
+
+	Don't include matpackI.h.
+
+	* src/workspace_ng.cc:
+
+	Include auto_wsv_groups.h instead of auto_wsv.h.
+
+2008-02-29  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-3-11
 
 	* configure.in: Add -Wshadow to icc compiler flags.

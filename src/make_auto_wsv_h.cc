@@ -29,10 +29,8 @@
 
 #include <iostream>
 #include "arts.h"
-#include "matpackI.h"
 #include "array.h"
 #include "file.h"
-#include "auto_wsv_groups.h"
 #include "wsv_aux.h"
 #include "mystring.h"
 
@@ -76,11 +74,9 @@ int main()
     {
       // Initialize wsv data and wsv group names.
       define_wsv_data();
-      define_wsv_group_names();
 
       // Make the data visible.
       extern const Array<WsvRecord> wsv_data;
-      extern const ArrayOfString wsv_group_names;
 
       if (!wsv_sanity_checks (wsv_data))
         return 1;
@@ -91,7 +87,6 @@ int main()
 
       ofstream ofs,ofs2;
       open_output_file(ofs,"auto_wsv.h");
-      open_output_file(ofs2,"auto_wsv.txt");
 
       ofs << "/*! \\file  auto_wsv.h\n"
           << "    \\brief Declares the enum type that acts as a\n"
@@ -143,99 +138,7 @@ int main()
       ofs << "  " << wsv_data[n_wsv-1].Name() << "_\n";
       ofs << "};\n\n";
 
-      ////////////////////////////////////////////////////////////////////
-      // WorkspaceMemoryHandler class
-      //
-      ofs << "class WorkspaceMemoryHandler {\n"
-        <<   "private:\n"
-        <<   "  // List of function pointers to allocation routines\n"
-        <<   "  void *(*allocfp[" << wsv_data.nelem () << "])();\n"
-        <<   "  // List of function pointers to deallocation routines\n"
-        <<   "  void (*deallocfp[" << wsv_data.nelem () << "])(void *);\n\n"
-        <<   "  // List of function pointers to duplication routines\n"
-        <<   "  void *(*duplicatefp[" << wsv_data.nelem () << "])(void *);\n\n"
-        <<   "  // Allocation and deallocation routines for workspace groups\n";
-      for (Index i = 0; i < wsv_group_names.nelem (); ++i)
-        {
-          ofs << "  static void *allocate_wsvg_" << wsv_group_names[i] << "()\n"
-            <<   "    { return (void *)new " << wsv_group_names[i] << "; }\n\n"
-            <<   "  static void deallocate_wsvg_" << wsv_group_names[i] << "(void *vp)\n"
-            <<   "    { delete (" << wsv_group_names[i] << " *)vp; }\n\n"
-            <<   "  static void *duplicate_wsvg_" << wsv_group_names[i] << "(void *vp)\n"
-            <<   "    { return (new " << wsv_group_names[i] << "(*("
-            << wsv_group_names[i] << " *)vp)); }\n\n";
-        }
-
-      ofs << "public:\n"
-        <<   "  /** Default constructor. Initialize allocation and "
-        <<   "deallocation\n"
-        <<   "      function pointer lists.\n"
-        <<   "  */\n"
-        <<   "  WorkspaceMemoryHandler ()\n"
-        <<   "    {\n";
-
-/* FIXMEOLE: REMOVE
-      for (Index i = 0; i < wsv_data.nelem (); ++i)
-        {
-          ofs << "      allocfp[" << i << "] = allocate_wsvg_"
-            <<            wsv_group_names[wsv_data[i].Group()] << ";\n"
-            <<   "      deallocfp[" << i << "] = deallocate_wsvg_"
-            <<            wsv_group_names[wsv_data[i].Group()] << ";\n"
-            <<   "      duplicatefp[" << i << "] = duplicate_wsvg_"
-            <<            wsv_group_names[wsv_data[i].Group()] << ";\n";
-        }
-        */
-
-      for (Index i = 0; i < wsv_group_names.nelem (); ++i)
-        {
-          ofs << "      allocfp[" << i << "] = allocate_wsvg_"
-            <<            wsv_group_names[i] << ";\n"
-            <<   "      deallocfp[" << i << "] = deallocate_wsvg_"
-            <<            wsv_group_names[i] << ";\n"
-            <<   "      duplicatefp[" << i << "] = duplicate_wsvg_"
-            <<            wsv_group_names[i] << ";\n";
-        }
-
-      ofs << "    }\n\n"
-        <<   "  /** Getaway function to call the allocation function for the\n"
-        <<   "      WSV group with the given Index.\n"
-        <<   "  */\n"
-        <<   "  void *allocate (Index wsvg)\n"
-        <<   "    {\n"
-        <<   "      return allocfp[wsvg]();\n"
-        <<   "    }\n\n"
-        <<   "  /** Getaway function to call the deallocation function for the\n"
-        <<   "      WSV group with the given Index.\n"
-        <<   "  */\n"
-        <<   "  void deallocate (Index wsvg, void *vp)\n"
-        <<   "    {\n"
-        <<   "      deallocfp[wsvg](vp);\n"
-        <<   "    }\n\n"
-        <<   "  /** Getaway function to call the duplication function for the\n"
-        <<   "      WSV group with the given Index.\n"
-        <<   "  */\n"
-        <<   "  void *duplicate (Index wsvg, void *vp)\n"
-        <<   "    {\n"
-        <<   "      return duplicatefp[wsvg](vp);\n"
-        <<   "    }\n\n";
-
-
-      ofs << "};\n\n";
-      //
-      ////////////////////////////////////////////////////////////////////
-
       ofs << "#endif  // auto_wsv_h\n";
-
-      // Write text information file
-      // If you make changes here for the "VARIABLE" and "DATA TYPE" rows,
-      // you probably need to change get_artstype.m in AMI.
-      for ( Index i=0; i<n_wsv; i++ )
-      {
-        ofs2 << "VARIABLE : " << wsv_data[i].Name() << "\n"
-             << "DATA TYPE: " << wsv_group_names[wsv_data[i].Group()] <<"\n"
-             << "DESCRIPTION:\n" 
-             << wsv_data[i].Description() << "\n\n";
-      }
 
     }
   catch (runtime_error x)
