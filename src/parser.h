@@ -43,9 +43,9 @@ private:
                     String&       include_file,
                     bool no_eot=false);
 
-  void parse_input(const MdRecord* mdd, bool first = true);
+  void parse_input(const MdRecord* mdd, bool& first);
 
-  void parse_output(const MdRecord* mdd, bool first = true);
+  void parse_output(const MdRecord* mdd, bool& first);
 
   void parse_output_and_input(const MdRecord*&    mdd,
                                     Index&        id,
@@ -55,7 +55,8 @@ private:
                                     ArrayOfIndex& input);
 
   void parse_generic_keywords(const MdRecord*      mdd,
-                                    Array<TokVal>& values);
+                                    Array<TokVal>& values,
+                                    bool&          first);
 
   void parse_keywords(const MdRecord*      mdd,
                             Array<TokVal>& values,

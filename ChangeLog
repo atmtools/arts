@@ -1,5 +1,46 @@
 2008-02-29  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-3-11
+
+	* configure.in: Add -Wshadow to icc compiler flags.
+
+	* src/agenda_class.cc (Agenda::execute):
+
+	Rename some index variables to avoid shadowing.
+
+	* src/wsv_aux.h (WsvRecord):
+
+	Add member mimplicit which is can be set to true if the variable was
+	automatically created.
+
+	* src/methods.cc, src/m_general.{cc,h}:
+
+	Add keyword only_allocated to PrintWorkspace. Can be used to only
+	print the allocated variables or the whole list of WSVs.
+
+	* src/parser.cc:
+
+	Make wsv_data non-const. The parser needs to change it in the future
+	for creating new variables on the workspace.
+
+	(parser_generic_keywords):
+
+	Add parameter "first". Fixes WSMs which take only keywords.
+
+	(parse_input), (parse_output): Make parameter "first" a reference.
+
+	* src/workspace_ng.{cc,h}:
+
+	Do not use the constant N_WSV to determine the number of WSVs in the
+	workspace. We want to be able to add WSVs to the workspace, therefore
+	we must rely on runtime information.
+
+	* src/main.cc (main):
+
+	Call Workspace::intitialize.
+
+2008-02-29  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-3-10
 
 	* Intermediate commit continuing work on the new controlfile

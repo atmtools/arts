@@ -133,6 +133,7 @@ void PrintWorkspace(
         // Workspace reference
         Workspace& ws,
         // Keywords:
+        const Index&   only_allocated,
         const Index&   level);
 
 #endif /* m_general_h */

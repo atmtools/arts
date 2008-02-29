@@ -203,6 +203,7 @@ void PrintWorkspace(
         // Workspace reference
         Workspace& ws,
         // Keywords:
+        const Index&   only_allocated,
         const Index&   level)
 {
   ostringstream os;
@@ -210,7 +211,7 @@ void PrintWorkspace(
   os << "  Allocated workspace variables: ";
   for (Index i = 0; i < ws.nelem(); i++)
     {
-      if (ws.is_initialized(i))
+      if (!only_allocated || only_allocated && ws.is_initialized(i))
         {
           os << "  ";
           PrintWsvName (os, i);

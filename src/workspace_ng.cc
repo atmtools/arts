@@ -38,9 +38,18 @@ WorkspaceMemoryHandler wsmh;
 /*!
   Create the stacks for the WSVs.
 */
-Workspace::Workspace () : ws(N_WSV)
+Workspace::Workspace () : ws(0)
 {
 }
+
+
+void Workspace::initialize ()
+{
+  extern const Array<WsvRecord> wsv_data;
+
+  ws.resize (wsv_data.nelem());
+}
+
 
 //! Workspace copy constructor
 /*!
@@ -52,7 +61,7 @@ Workspace::Workspace () : ws(N_WSV)
   \author Oliver Lemke
   \date   2007-11-28
 */
-Workspace::Workspace (const Workspace& workspace) : ws(N_WSV)
+Workspace::Workspace (const Workspace& workspace) : ws(workspace.ws.nelem())
 {
   for (Index i=0; i < workspace.ws.nelem(); i++)
     {
@@ -96,7 +105,6 @@ Workspace::~Workspace ()
         }
     }
   ws.empty ();
-
 }
 
 //! Duplicate WSV.

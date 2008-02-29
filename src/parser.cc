@@ -231,7 +231,7 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
             {
               // Everything in this block is just to generate some
               // informative output.  
-              extern const Array<WsvRecord> wsv_data;
+              extern Array<WsvRecord> wsv_data;
 
               out3 << "- " << md_data[id].Name() << "\n";
 
@@ -430,7 +430,8 @@ void ArtsParser::parse_method(Index& id,
 
 
 void ArtsParser::parse_generic_keywords(const MdRecord* mdd,
-                                        Array<TokVal>&  values)
+                                        Array<TokVal>&  values,
+                                        bool&           first)
 {
   values.resize (mdd->Keywords().nelem());
 
@@ -440,8 +441,13 @@ void ArtsParser::parse_generic_keywords(const MdRecord* mdd,
 
   while (msource.Current() != ')' && keyword_index < mdd->Keywords().nelem())
     {
-      assertain_character(',');
-      eat_whitespace();
+      if (!first)
+        {
+          assertain_character(',');
+          eat_whitespace();
+        }
+      else
+        first = false;
 
       // If there is a comma or a closing brace means no value was
       // specified and we use the default value instead (if there is one)
@@ -891,7 +897,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
   extern const map<String, Index> MdRawMap;
   extern const Array<MdRecord> md_data;
   extern const Array<MdRecord> md_data_raw;
-  extern const Array<WsvRecord> wsv_data;
+  extern Array<WsvRecord> wsv_data;
   extern const ArrayOfString wsv_group_names;
   extern const map<String, Index> MdMap;
 
@@ -953,8 +959,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
 
       if (mcfile_version == 2 && mdd->Output().nelem())
         {
-          parse_output(mdd);
-          first = false;
+          parse_output(mdd, first);
         }
 
       // First read all output Wsvs:
@@ -1106,7 +1111,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
 
       if (mcfile_version == 2)
         {
-          parse_generic_keywords(mdd, values);
+          parse_generic_keywords(mdd, values, first);
         }
       else
         {
@@ -1120,22 +1125,23 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
       // give pass all inputs and outputs in ()
       if (msource.Current() == '(')
         {
+          bool first = true;
           msource.AdvanceChar();
           eat_whitespace();
           if (mcfile_version == 2)
             {
               if (mdd->Output().nelem())
                 {
-                  parse_output(mdd);
+                  parse_output(mdd, first);
                   if (mdd->Input().nelem())
-                    parse_input(mdd, false);
+                    parse_input(mdd, first);
                 }
               else if (mdd->Input().nelem())
-                parse_input(mdd);
+                parse_input(mdd, first);
             }
           if (mcfile_version == 2)
             {
-              parse_generic_keywords(mdd, values);
+              parse_generic_keywords(mdd, values, first);
             }
           else
             {
@@ -1153,9 +1159,9 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
   \param[in] first If set to false, there must be a comma before the first WSV
                    in the controlfile
   */
-void ArtsParser::parse_input(const MdRecord* mdd, bool first)
+void ArtsParser::parse_input(const MdRecord* mdd, bool& first)
 {
-  extern const Array<WsvRecord> wsv_data;
+  extern Array<WsvRecord> wsv_data;
 
   // There are two lists of parameters that we have to read.
   ArrayOfIndex  vo=mdd->Output();   // Output 
@@ -1221,9 +1227,9 @@ void ArtsParser::parse_input(const MdRecord* mdd, bool first)
   \param[in] first If set to false, there must be a comma before the first WSV
                    in the controlfile
   */
-void ArtsParser::parse_output(const MdRecord* mdd, bool first)
+void ArtsParser::parse_output(const MdRecord* mdd, bool& first)
 {
-  extern const Array<WsvRecord> wsv_data;
+  extern Array<WsvRecord> wsv_data;
 
   ArrayOfIndex  vo=mdd->Output();
 

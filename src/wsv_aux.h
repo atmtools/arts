@@ -48,12 +48,14 @@ public:
 
     This is used by define_wsv_data() to set the information for each
     workspace variable. */
-  WsvRecord(const char name[],
-            const char description[],
-            const Index group)
+  WsvRecord(const char  name[],
+            const char  description[],
+            const Index group,
+            const bool  implicit = false)
     : mname(name),
       mdescription(description),
-      mgroup(group)
+      mgroup(group),
+      mimplicit(implicit)
   {
     //    Nothing to do here.
   }
@@ -63,10 +65,13 @@ public:
   const String&  Description() const { return mdescription; }
   /** The wsv group to which this variable belongs. */
   Index   Group()       const { return mgroup;       }
+  /** Returns true if the variable was automatically created. */
+  bool    Implicit()    const { return mimplicit;       }
 private:
   String mname;
   String mdescription;
   Index mgroup;
+  bool mimplicit;
 };
 
 /** Output operator for WsvRecord.

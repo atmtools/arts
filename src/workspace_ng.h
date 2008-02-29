@@ -58,6 +58,8 @@ public:
   Workspace (const Workspace& workspace);
   virtual ~Workspace ();
 
+  void initialize ();
+
   //! Checks existence of the given WSV.
   bool is_initialized (Index i) {
     return ((ws[i].size () != 0)

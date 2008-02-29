@@ -148,20 +148,20 @@ void Agenda::execute(bool silent) const
             String indent ("        ");
             os << "- " << mdd.Name() << "( ";
             out1 << os.str();
-            //for (Index i = 0; i < os.str().length(); i++)
+            //for (Index j = 0; j < os.str().length(); j++)
             //  indent += ' ';
 
-            for (Index i = 0; i < (mdd.Output()).nelem(); i++)
+            for (Index j = 0; j < (mdd.Output()).nelem(); j++)
               {
                 if (is_first)
                   {
                     is_first = false;
-                    out1 << wsv_data[mdd.Output()[i]].Name();
+                    out1 << wsv_data[mdd.Output()[j]].Name();
                   }
                 else
                   {
                     out1 << ",\n";
-                    out1 << indent << wsv_data[mdd.Output()[i]].Name();
+                    out1 << indent << wsv_data[mdd.Output()[j]].Name();
                   }
 
               }
@@ -169,49 +169,49 @@ void Agenda::execute(bool silent) const
             ArrayOfIndex  vi;
             mdd.input_only (vi);
 
-            for (Index i = 0; i < vi.nelem(); i++)
+            for (Index j = 0; j < vi.nelem(); j++)
               {
                 if (is_first)
                   {
                     is_first = false;
-                    out1 << wsv_data[vi[i]].Name();
+                    out1 << wsv_data[vi[j]].Name();
                   }
                 else
                   {
                     out1 << ",\n";
-                    out1 << indent << wsv_data[vi[i]].Name();
+                    out1 << indent << wsv_data[vi[j]].Name();
                   }
 
               }
 
-            for (Index i = 0; i < (mrr.Output()).nelem(); i++)
+            for (Index j = 0; j < (mrr.Output()).nelem(); j++)
               {
                 if (is_first)
                   {
                     is_first = false;
-                    out1 << wsv_data[mrr.Output()[i]].Name();
+                    out1 << wsv_data[mrr.Output()[j]].Name();
                   }
                 else
                   {
                     out1 << ",\n";
-                    out1 << indent << wsv_data[mrr.Output()[i]].Name();
+                    out1 << indent << wsv_data[mrr.Output()[j]].Name();
                   }
 
               }
 
             mrr.ginput_only(vi);    // Generic Input
 
-            for (Index i = 0; i < vi.nelem(); i++)
+            for (Index j = 0; j < vi.nelem(); j++)
               {
                 if (is_first)
                   {
                     is_first = false;
-                    out1 << wsv_data[vi[i]].Name();
+                    out1 << wsv_data[vi[j]].Name();
                   }
                 else
                   {
                     out1 << ",\n";
-                    out1 << indent << wsv_data[vi[i]].Name();
+                    out1 << indent << wsv_data[vi[j]].Name();
                   }
 
               }

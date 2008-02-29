@@ -4913,9 +4913,9 @@ md_data_raw.push_back
         INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( "level" ),
-        DEFAULTS( "1" ),
-        TYPES(    Index_t ),
+        KEYWORDS( "only_allocated", "level" ),
+        DEFAULTS( "1",              "1" ),
+        TYPES(    Index_t,          Index_t ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE( true  )));

@@ -937,6 +937,8 @@ int main (int argc, char **argv)
 
           tasklist.set_name("Arts");
 
+          workspace->initialize ();
+
           // Execute main agenda:
           Arts(tasklist);
 
