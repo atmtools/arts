@@ -38,6 +38,7 @@ abs_lines_per_speciesCreateFromLines
 # AMSU uses Planck brightness temperatures
 # ---
 StringSet( y_unit ){ "PlanckBT" }
+StringSet( jacobian_unit ){ "RJBT" }
 
 
 

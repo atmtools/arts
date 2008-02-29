@@ -1,3 +1,19 @@
+2008-02-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-3-14
+
+	* The AMSUB test now runs with jacobians. Though not checked result.
+	But mechanism using
+	file_index appears not to work with new agenda definitions.
+	No time for me to fix this now.
+	
+	* tests/AMSUB/TestAMSUB.arts: Added following calls: 
+	   IndexSet( file_index ){0}
+	   jacobianClose 
+	   IndexStep( file_index, file_index ){}
+
+	* includes/amsub.arts: Added: StringSet( jacobian_unit ){ "RJBT" }
+
 2008-02-29  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-3-13

@@ -102,6 +102,8 @@ MatrixSet(sensor_los){180}
 
 # Set the agenda for batch calculations:
 # ---
+IndexSet( file_index ){0}
+#
 AgendaSet(ybatch_calc_agenda){
   
   # Extract the atmospheric profiles for this case:
@@ -118,11 +120,12 @@ AgendaSet(ybatch_calc_agenda){
   # Optionally set jacobian parameters:
   jacobianInit
   jacobianAddAbsSpecies(p_grid, lat_grid, lon_grid){
-      species = "H2O-PWR98"
-      method = "analytical"
-      unit   = "rel"
-      dx     = 0.01 
+       species = "H2O-PWR98"
+       method = "analytical"
+       unit   = "rel"
+       dx     = 0.01 
   }
+  jacobianClose
 
   # get z_surface from z_field
   IndexSet(index_1){0}
@@ -135,7 +138,8 @@ AgendaSet(ybatch_calc_agenda){
 
   # Optionally write out jacobian:
   WriteXMLIndexed(jacobian){""}
-  
+
+  IndexStep( file_index, file_index ){}
 }
 
 
