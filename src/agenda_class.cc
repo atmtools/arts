@@ -101,9 +101,6 @@ void Agenda::execute(bool silent) const
   // The method description lookup table:
   extern const Array<MdRecord> md_data;
 
-  // The workspace variable lookup table:
-  extern const Array<WsvRecord> wsv_data;
-  
   // The array holding the pointers to the getaway functions:
   extern void (*getaways[])(Workspace&, const MRecord&);
 
@@ -156,12 +153,12 @@ void Agenda::execute(bool silent) const
                 if (is_first)
                   {
                     is_first = false;
-                    out1 << wsv_data[mdd.Output()[j]].Name();
+                    out1 << Workspace::wsv_data[mdd.Output()[j]].Name();
                   }
                 else
                   {
                     out1 << ",\n";
-                    out1 << indent << wsv_data[mdd.Output()[j]].Name();
+                    out1 << indent << Workspace::wsv_data[mdd.Output()[j]].Name();
                   }
 
               }
@@ -174,12 +171,12 @@ void Agenda::execute(bool silent) const
                 if (is_first)
                   {
                     is_first = false;
-                    out1 << wsv_data[vi[j]].Name();
+                    out1 << Workspace::wsv_data[vi[j]].Name();
                   }
                 else
                   {
                     out1 << ",\n";
-                    out1 << indent << wsv_data[vi[j]].Name();
+                    out1 << indent << Workspace::wsv_data[vi[j]].Name();
                   }
 
               }
@@ -189,12 +186,12 @@ void Agenda::execute(bool silent) const
                 if (is_first)
                   {
                     is_first = false;
-                    out1 << wsv_data[mrr.Output()[j]].Name();
+                    out1 << Workspace::wsv_data[mrr.Output()[j]].Name();
                   }
                 else
                   {
                     out1 << ",\n";
-                    out1 << indent << wsv_data[mrr.Output()[j]].Name();
+                    out1 << indent << Workspace::wsv_data[mrr.Output()[j]].Name();
                   }
 
               }
@@ -206,12 +203,12 @@ void Agenda::execute(bool silent) const
                 if (is_first)
                   {
                     is_first = false;
-                    out1 << wsv_data[vi[j]].Name();
+                    out1 << Workspace::wsv_data[vi[j]].Name();
                   }
                 else
                   {
                     out1 << ",\n";
-                    out1 << indent << wsv_data[vi[j]].Name();
+                    out1 << indent << Workspace::wsv_data[vi[j]].Name();
                   }
 
               }
@@ -225,7 +222,7 @@ void Agenda::execute(bool silent) const
             for (Index s=0; s<v.nelem(); ++s)
               if (!agendaworkspace->is_initialized(v[s]))
                 give_up("Method "+mdd.Name()+" needs input variable: "+
-                        wsv_data[v[s]].Name());
+                        Workspace::wsv_data[v[s]].Name());
           }
 
           { // Check if all generic input variables are initialized:
@@ -233,7 +230,7 @@ void Agenda::execute(bool silent) const
             for (Index s=0; s<v.nelem(); ++s)
               if (!agendaworkspace->is_initialized(v[s]))
                 give_up("Generic Method "+mdd.Name()+" needs input variable: "+
-                        wsv_data[v[s]].Name());
+                        Workspace::wsv_data[v[s]].Name());
           }
 
           // Call the getaway function:
@@ -660,7 +657,6 @@ ostream& operator<<(ostream& os, const Agenda& a)
 void MRecord::print( ostream& os,
                      const String& indent ) const
 {
-  extern const Array<WsvRecord> wsv_data;
   extern const Array<MdRecord>  md_data;
 
   // Get a handle on the right record:
@@ -681,7 +677,7 @@ void MRecord::print( ostream& os,
           if (first) first=false;
           else os << ",";
 
-          os << wsv_data[Output()[i]];
+          os << Workspace::wsv_data[Output()[i]];
         }
 
       for (Index i=0; i<Input().nelem(); ++i)
@@ -689,7 +685,7 @@ void MRecord::print( ostream& os,
           if (first) first=false;
           else os << ",";
 
-          os << wsv_data[Input()[i]];
+          os << Workspace::wsv_data[Input()[i]];
         }
 
       os << ')';

@@ -28,9 +28,10 @@
 
 #include <set>
 #include "token.h"
-#include "workspace_ng.h"
-// ... and MRecord
+
 class MRecord;
+
+class Workspace;
 
 //! The Agenda class.
 /*! An agenda is a list of workspace methods (including keyword data)

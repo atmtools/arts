@@ -34,6 +34,10 @@
 
 WorkspaceMemoryHandler wsmh;
 
+Array<WsvRecord> Workspace::wsv_data;
+
+map<String, Index> Workspace::WsvMap;
+
 //! Construct a new workspace
 /*!
   Create the stacks for the WSVs.
@@ -43,10 +47,17 @@ Workspace::Workspace () : ws(0)
 }
 
 
+void Workspace::define_wsv_map()
+{
+  for ( Index i=0 ; i<wsv_data.nelem() ; ++i )
+    {
+      WsvMap[wsv_data[i].Name()] = i;
+    }
+}
+
+
 void Workspace::initialize ()
 {
-  extern const Array<WsvRecord> wsv_data;
-
   ws.resize (wsv_data.nelem());
 }
 
@@ -87,8 +98,6 @@ Workspace::Workspace (const Workspace& workspace) : ws(workspace.ws.nelem())
 */
 Workspace::~Workspace ()
 {
-  extern const Array<WsvRecord> wsv_data;
-
   for (int i = 0; i < ws.nelem (); i++)
     {
       WsvStruct *wsvs;
@@ -115,7 +124,6 @@ Workspace::~Workspace ()
  */
 void Workspace::duplicate (Index i)
 {
-  extern const Array<WsvRecord> wsv_data;
   WsvStruct *wsvs = new WsvStruct;
 
   wsvs->auto_allocated = true;
@@ -160,7 +168,6 @@ void *Workspace::pop (Index i)
  */
 void Workspace::pop_free (Index i)
 {
-  extern const Array<WsvRecord> wsv_data;
   WsvStruct *wsvs = ws[i].top ();
 
   if (wsvs)
@@ -221,8 +228,6 @@ void *Workspace::operator[](Index i)
 
   if (!ws[i].top ()->wsv)
     {
-      extern const Array<WsvRecord> wsv_data;
-
       ws[i].top ()->auto_allocated = true;
       ws[i].top ()->wsv = wsmh.allocate (wsv_data[i].Group());
     }

@@ -139,7 +139,6 @@ libarts_a_SOURCES = \
 	token.h \
 	version.cc \
 	workspace.cc \
-	workspace_aux.cc \
 	workspace_ng.cc \
 	workspace_ng.h \
 	wsv_aux.h \
@@ -283,7 +282,6 @@ make_auto_wsv_groups_h_SOURCES = \
 make_auto_wsv_h_LDADD = libmatpack.a
 make_auto_wsv_h_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 make_auto_wsv_h_SOURCES = \
-	agenda_class.h \
 	arts.cc \
 	arts.h \
 	arts_omp.cc \
@@ -301,8 +299,9 @@ make_auto_wsv_h_SOURCES = \
 	parameters.cc \
 	parameters.h \
 	version.cc \
+	workspace_ng.cc \
+	workspace_ng.h \
 	workspace.cc \
-	workspace_aux.cc \
 	wsv_aux.h
 
 #make_auto_md_h_DEPENDENCIES = make_auto_wsv_h$(EXEEXT) make_auto_wsv_groups_h$(EXEEXT) libmethods.a
@@ -335,7 +334,6 @@ make_auto_md_h_SOURCES = \
 	token.h \
 	version.cc \
 	workspace.cc \
-	workspace_aux.cc \
 	workspace_ng.cc \
 	workspace_ng.h \
 	wsv_aux.h
@@ -370,7 +368,6 @@ make_auto_md_cc_SOURCES = \
 	token.h \
 	version.cc \
 	workspace.cc \
-	workspace_aux.cc \
 	workspace_ng.cc \
 	workspace_ng.h \
 	wsv_aux.h

@@ -43,9 +43,7 @@ Delete(// Workspace reference
        // WS Generic Input Names:
        const String&   x_name )
 {
-  extern map<String, Index> WsvMap;
-
-  ws.pop_free (WsvMap.find (x_name)->second);
+  ws.pop_free (ws.WsvMap.find (x_name)->second);
 }
 
 

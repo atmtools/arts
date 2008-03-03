@@ -46,8 +46,8 @@ public:
 
   /** Initializing constructor.
 
-    This is used by define_wsv_data() to set the information for each
-    workspace variable. */
+    This is used by Workspace::define_wsv_data() to set the information for
+    each workspace variable. */
   WsvRecord(const char  name[],
             const char  description[],
             const Index group,
@@ -78,37 +78,6 @@ private:
   \author Stefan Buehler */
 ostream& operator<<(ostream& os, const WsvRecord& wr);
 
-
-/** Define the lookup data for the workspace variables. The array
-    wsv_data contains all that we need to know about each workspace
-    variable. The array WsvGroupName contains the names of the work
-    space variable groups. These two lookup tables are global
-    variables. They can be made visible anywhere with an extern
-    declaration.
-
-    \author Stefan Buehler */
-void define_wsv_data();
-
-/** Define WsvMap. WsvMap can be used to find workspace variable data
-    by name.
-
-    \author Stefan Buehler */ 
-void define_wsv_map();
-
-//! Print WSV name to output stream.
-/** Looks up the name of the WSV with index i and
-    prints it to the given output stream.
-
-    \param outstream OutputStream
-    \param i Index of WSV
-  */
-template <typename OutputStream> void
-PrintWsvName (OutputStream& outstream, Index i)
-{
-  extern const Array<WsvRecord> wsv_data;
-
-  outstream << wsv_data[i].Name () << "(" << i << ") ";
-}
 
 //! Print list of WSV names to output stream.
 /** Runs through the list of WSV indexes and print all names

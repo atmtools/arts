@@ -33,7 +33,7 @@
 #include "auto_wsv.h"
 #include "methods.h"
 #include "wsv_aux.h"
-
+#include "workspace_ng.h"
 
 //! Initializing constructor for MdRecord
 /*!
@@ -376,7 +376,6 @@ ostream& MdRecord::PrintTemplate(ostream& os,
 //! Output operator for MdRecord.
 ostream& operator<<(ostream& os, const MdRecord& mdr)
 {
-  extern const Array<WsvRecord> wsv_data;
   extern const ArrayOfString wsv_group_names;
   extern const String TokValTypeName[];
   bool first;
@@ -421,7 +420,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       if (first) first=false;
       else os << ", ";
 
-      os << wsv_data[mdr.Output()[i]].Name();
+      os << Workspace::wsv_data[mdr.Output()[i]].Name();
     }
   os << '\n';
 
@@ -433,7 +432,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       if (first) first=false;
       else os << ", ";
 
-      os << wsv_data[mdr.Input()[i]].Name();
+      os << Workspace::wsv_data[mdr.Input()[i]].Name();
     }
   os << '\n';
       

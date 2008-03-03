@@ -40,6 +40,7 @@
 #include "auto_wsv_groups.h"
 #include "wsv_aux.h"
 #include "ppath.h"
+#include "workspace_ng.h"
 
 // Some #defines to make the records better readable:
 #define NAME(x)        x 
@@ -47,10 +48,7 @@
 #define GROUP(x)       x 
 
 
-/*! The lookup information for the workspace variables. */
-Array<WsvRecord> wsv_data;
-
-void define_wsv_data()
+void Workspace::define_wsv_data()
 {
   
   //--------------------< Build the wsv data >--------------------

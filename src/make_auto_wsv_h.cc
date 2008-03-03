@@ -31,7 +31,7 @@
 #include "arts.h"
 #include "array.h"
 #include "file.h"
-#include "wsv_aux.h"
+#include "workspace_ng.h"
 #include "mystring.h"
 
 bool wsv_sanity_checks (const Array<WsvRecord>& wsv_data)
@@ -73,10 +73,10 @@ int main()
   try
     {
       // Initialize wsv data and wsv group names.
-      define_wsv_data();
+      Workspace::define_wsv_data();
 
       // Make the data visible.
-      extern const Array<WsvRecord> wsv_data;
+      const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
 
       if (!wsv_sanity_checks (wsv_data))
         return 1;

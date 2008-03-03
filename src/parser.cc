@@ -23,6 +23,7 @@
 #include "methods.h"
 #include "parameters.h"
 #include "wsv_aux.h"
+#include "workspace_ng.h"
 
 
 ArtsParser::ArtsParser(Agenda& tasklist, String controlfile)
@@ -231,7 +232,6 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
             {
               // Everything in this block is just to generate some
               // informative output.  
-              extern Array<WsvRecord> wsv_data;
 
               out3 << "- " << md_data[id].Name() << "\n";
 
@@ -249,14 +249,14 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
                   out3 << "   Output: ";
                   for ( Index j=0 ; j<output.nelem() ; ++j )
                     {
-                      out3 << wsv_data[output[j]].Name() << " ";
+                      out3 << Workspace::wsv_data[output[j]].Name() << " ";
                     }
                   out3 << "\n";
 
                   out3 << "   Input: ";
                   for ( Index j=0 ; j<input.nelem() ; ++j )
                     {
-                      out3 << wsv_data[input[j]].Name() << " ";
+                      out3 << Workspace::wsv_data[input[j]].Name() << " ";
                     }
                   out3 << "\n";
                 }
@@ -893,11 +893,9 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
                                         ArrayOfIndex&    output,
                                         ArrayOfIndex&    input)
 {
-  extern const map<String, Index> WsvMap;
   extern const map<String, Index> MdRawMap;
   extern const Array<MdRecord> md_data;
   extern const Array<MdRecord> md_data_raw;
-  extern Array<WsvRecord> wsv_data;
   extern const ArrayOfString wsv_group_names;
   extern const map<String, Index> MdMap;
 
@@ -978,8 +976,8 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           {
             // Find Wsv id:
             const map<String, Index>::const_iterator wsvit =
-              WsvMap.find(wsvname);
-            if ( wsvit == WsvMap.end() )
+              Workspace::WsvMap.find(wsvname);
+            if ( wsvit == Workspace::WsvMap.end() )
               throw UnknownWsv( wsvname,
                                 msource.File(),
                                 msource.Line(),
@@ -993,11 +991,11 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           if ( still_supergeneric )
             {
 //            cout << "wsvid = " << wsvid << "\n";
-//            cout << "wsv_group_names[wsv_data[wsvid].Group()] = "
-//                 << wsv_group_names[wsv_data[wsvid].Group()] << "\n";
+//            cout << "wsv_group_names[Workspace::wsv_data[wsvid].Group()] = "
+//                 << wsv_group_names[Workspace::wsv_data[wsvid].Group()] << "\n";
               ostringstream os;
               os << mdd->Name() << "_sg_"
-                 << wsv_group_names[wsv_data[wsvid].Group()];
+                 << wsv_group_names[Workspace::wsv_data[wsvid].Group()];
               methodname = os.str();
 
               // Find explicit method id in MdMap:
@@ -1018,11 +1016,11 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           // methods should be necessary.
 
           // Check that this Wsv belongs to the correct group:
-          if ( wsv_data[wsvid].Group() != mdd->GOutput()[j] )
+          if ( Workspace::wsv_data[wsvid].Group() != mdd->GOutput()[j] )
             {
             throw WrongWsvGroup( wsvname+" is not "+
                         wsv_group_names[mdd->GOutput()[j]]+", it is "+ 
-                        wsv_group_names[wsv_data[wsvid].Group()],
+                        wsv_group_names[Workspace::wsv_data[wsvid].Group()],
                                  msource.File(),
                                  msource.Line(),
                                  msource.Column() );
@@ -1056,8 +1054,8 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           {
             // Find Wsv id:
             const map<String, Index>::const_iterator wsvit =
-              WsvMap.find(wsvname);
-            if ( wsvit == WsvMap.end() )
+              Workspace::WsvMap.find(wsvname);
+            if ( wsvit == Workspace::WsvMap.end() )
               throw UnknownWsv( wsvname,
                                 msource.File(),
                                 msource.Line(),
@@ -1073,7 +1071,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
             {
               ostringstream os;
               os << mdd->Name() << "_sg_"
-                 << wsv_group_names[wsv_data[wsvid].Group()];
+                 << wsv_group_names[Workspace::wsv_data[wsvid].Group()];
               methodname = os.str();
 
               // Find explicit method id in MdMap:
@@ -1095,10 +1093,10 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           // methods should be necessary.
 
           // Check that this Wsv belongs to the correct group:
-          if ( wsv_data[wsvid].Group() != mdd->GInput()[j] )
+          if ( Workspace::wsv_data[wsvid].Group() != mdd->GInput()[j] )
             throw WrongWsvGroup( wsvname+" is not "+
                         wsv_group_names[mdd->GInput()[j]]+", it is "+ 
-                        wsv_group_names[wsv_data[wsvid].Group()],
+                        wsv_group_names[Workspace::wsv_data[wsvid].Group()],
                                  msource.File(),
                                  msource.Line(),
                                  msource.Column() );
@@ -1161,8 +1159,6 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
   */
 void ArtsParser::parse_input(const MdRecord* mdd, bool& first)
 {
-  extern Array<WsvRecord> wsv_data;
-
   // There are two lists of parameters that we have to read.
   ArrayOfIndex  vo=mdd->Output();   // Output 
   ArrayOfIndex  vi=mdd->Input();    // Input
@@ -1197,21 +1193,21 @@ void ArtsParser::parse_input(const MdRecord* mdd, bool& first)
           catch (UnexpectedChar)
             {
               ostringstream os;
-              os << "Expected input WSV *" << wsv_data[*ins].Name() << "*";
+              os << "Expected input WSV *" << Workspace::wsv_data[*ins].Name() << "*";
             }
           eat_whitespace();
         }
 
       read_name(wsvname);
 
-      if (wsvname != wsv_data[*ins].Name())
+      if (wsvname != Workspace::wsv_data[*ins].Name())
         {
           ostringstream os;
           if (!wsvname.nelem())
-            os << "Expected input WSV *" << wsv_data[*ins].Name() << "*";
+            os << "Expected input WSV *" << Workspace::wsv_data[*ins].Name() << "*";
           else
             os << "got " << wsvname << ", but expected input WSV *"
-              << wsv_data[*ins].Name() << "*";
+              << Workspace::wsv_data[*ins].Name() << "*";
           throw ParseError( os.str(),
                             msource.File(),
                             msource.Line(),
@@ -1229,8 +1225,6 @@ void ArtsParser::parse_input(const MdRecord* mdd, bool& first)
   */
 void ArtsParser::parse_output(const MdRecord* mdd, bool& first)
 {
-  extern Array<WsvRecord> wsv_data;
-
   ArrayOfIndex  vo=mdd->Output();
 
   for (ArrayOfIndex::const_iterator outs=vo.begin(); outs<vo.end(); ++outs)
@@ -1248,7 +1242,7 @@ void ArtsParser::parse_output(const MdRecord* mdd, bool& first)
           catch (UnexpectedChar)
             {
               ostringstream os;
-              os << "Expected output WSV *" << wsv_data[*outs].Name() << "*";
+              os << "Expected output WSV *" << Workspace::wsv_data[*outs].Name() << "*";
               throw ParseError( os.str(),
                                 msource.File(),
                                 msource.Line(),
@@ -1259,14 +1253,14 @@ void ArtsParser::parse_output(const MdRecord* mdd, bool& first)
 
       read_name(wsvname);
 
-      if (wsvname != wsv_data[*outs].Name())
+      if (wsvname != Workspace::wsv_data[*outs].Name())
         {
           ostringstream os;
           if (!wsvname.nelem())
-              os << "Expected output WSV *" << wsv_data[*outs].Name() << "*";
+              os << "Expected output WSV *" << Workspace::wsv_data[*outs].Name() << "*";
           else
             os << "got " << wsvname << ", but expected output WSV *"
-              << wsv_data[*outs].Name() << "*";
+              << Workspace::wsv_data[*outs].Name() << "*";
           throw ParseError( os.str(),
                             msource.File(),
                             msource.Line(),

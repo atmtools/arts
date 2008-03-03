@@ -33,8 +33,10 @@
 #define WORKSPACE_NG_INCLUDED
 
 #include <stack>
+#include <map>
 
 #include "array.h"
+#include "wsv_aux.h"
 
 //! Workspace class
 /*!
@@ -51,12 +53,18 @@ private:
   //! Workspace variable container.
   Array< stack<WsvStruct *> > ws;
 
-  //! Memory handler for allocation and deallocation of WSVs.
-
 public:
+  static Array<WsvRecord> wsv_data;
+
+  /*! The map assiciated with wsv_data. */
+  static map<String, Index> WsvMap;
+
   Workspace ();
   Workspace (const Workspace& workspace);
   virtual ~Workspace ();
+
+  static void define_wsv_data();
+  static void define_wsv_map();
 
   void initialize ();
 
@@ -79,6 +87,21 @@ public:
 
   void *operator[](Index i);
 };
+
+
+//! Print WSV name to output stream.
+/** Looks up the name of the WSV with index i and
+    prints it to the given output stream.
+
+    \param outstream OutputStream
+    \param i Index of WSV
+  */
+template <typename OutputStream> void
+PrintWsvName (OutputStream& outstream, Index i)
+{
+  outstream << Workspace::wsv_data[i].Name () << "(" << i << ") ";
+}
+
 
 #endif /* WORKSPACE_NG_INCLUDED */
 

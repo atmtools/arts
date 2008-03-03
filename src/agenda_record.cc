@@ -27,6 +27,7 @@
 #include <iostream>
 #include "agenda_record.h"
 #include "wsv_aux.h"
+#include "workspace_ng.h"
 
 //! The only non-trivial constructor for AgRecord, which sets all the fields.
 /*! 
@@ -50,12 +51,6 @@ AgRecord::AgRecord( const char                  name[],
 { 
   // We must check that this agenda exists in the workspace
 
-  // The workspace variable lookup table:
-  //      extern const Array<WsvRecord> wsv_data;
-
-  // The map associated with wsv_data:
-  DEBUG_ONLY (extern const map<String, Index> WsvMap);
-
   // Find returns end() if the name is not found in the map.  If
   // this assertion fails, it means that we are trying to set the
   // lookup data for an agenda that has not been defined in
@@ -63,8 +58,8 @@ AgRecord::AgRecord( const char                  name[],
   // in workspace.cc for your agenda. If you have done so and
   // still get an assertion failure, then check that you spelled
   // the name in exactly the same way in both places.
-  assert( WsvMap.end() !=
-          WsvMap.find(mname) );
+  assert( Workspace::WsvMap.end() !=
+          Workspace::WsvMap.find(mname) );
 }
 
 void define_agenda_map()
@@ -92,10 +87,8 @@ void define_agenda_map()
 bool check_agenda_data()
 {
   // Make external data visible
-  extern const Array<WsvRecord> wsv_data;
   extern const Array<AgRecord>  agenda_data;
   DEBUG_ONLY (extern map<String, Index> AgendaMap);
-  DEBUG_ONLY (extern const map<String, Index> WsvMap);
 
   Index i,j,k;
 
@@ -114,17 +107,17 @@ bool check_agenda_data()
       // exactly the same in both places.
       // Uncomment the cout statement above and recompile to see which
       // agenda causes the trouble.
-      assert( WsvMap.end() !=
-              WsvMap.find(agenda_data[i].Name()) );
+      assert( Workspace::WsvMap.end() !=
+              Workspace::WsvMap.find(agenda_data[i].Name()) );
     }
 
   // Check, that each agenda from wsv_data occurs in agenda_data:
-  for ( j=0; j<wsv_data.nelem(); ++j )
+  for ( j=0; j<Workspace::wsv_data.nelem(); ++j )
     {
       // Is this an agenda WSV?
-      if ( Agenda_ == wsv_data[j].Group() )
+      if ( Agenda_ == Workspace::wsv_data[j].Group() )
         {
-          //      cout << "Checking agenda_data for " << wsv_data[j].Name() << ".\n";
+          //      cout << "Checking agenda_data for " << Workspace::wsv_data[j].Name() << ".\n";
 
           // Find returns end() if the name is not found in the map.  If
           // this assertion fails, it means that agenda_data does not contain
@@ -135,9 +128,9 @@ bool check_agenda_data()
           // Uncomment the cout statement above and recompile to see which
           // agenda causes the trouble.
           assert( AgendaMap.end() !=
-                  AgendaMap.find(wsv_data[j].Name()) );
+                  AgendaMap.find(Workspace::wsv_data[j].Name()) );
 
-          // Counts the number of agenda WSVs in wsv_data:
+          // Counts the number of agenda WSVs in Workspace::wsv_data:
           ++k;
         }
     }
@@ -159,7 +152,6 @@ bool check_agenda_data()
 */
 ostream& operator<<(ostream& os, const AgRecord& agr)
 {
-  extern const Array<WsvRecord> wsv_data;
   //  extern const ArrayOfString wsv_group_names;
   //  extern const String TokValTypeName[];
   bool first;
@@ -183,7 +175,7 @@ ostream& operator<<(ostream& os, const AgRecord& agr)
       if (first) first=false;
       else os << ", ";
 
-      os << wsv_data[agr.Output()[i]].Name();
+      os << Workspace::wsv_data[agr.Output()[i]].Name();
     }
   os << "\n";
 
@@ -195,7 +187,7 @@ ostream& operator<<(ostream& os, const AgRecord& agr)
       if (first) first=false;
       else os << ", ";
 
-      os << wsv_data[agr.Input()[i]].Name();
+      os << Workspace::wsv_data[agr.Input()[i]].Name();
     }
       
   os << "\n*-------------------------------------------------------------------*\n";
@@ -263,7 +255,6 @@ void write_agenda_wrapper_header( ofstream& ofs,
                                   const bool write_default_args )
 {
   extern const ArrayOfString wsv_group_names;
-  extern const Array<WsvRecord> wsv_data;
 
   // Wrapper function
   ofs << "void " << agr.Name () << "Execute(\n";
@@ -274,8 +265,8 @@ void write_agenda_wrapper_header( ofstream& ofs,
   for (ArrayOfIndex::const_iterator j = ago.begin (); j != ago.end (); j++)
     {
       ofs << "        ";
-      ofs << wsv_group_names[wsv_data[*j].Group()] << "& ";
-      ofs << wsv_data[*j].Name() << ",\n";
+      ofs << wsv_group_names[Workspace::wsv_data[*j].Group()] << "& ";
+      ofs << Workspace::wsv_data[*j].Name() << ",\n";
     }
 
   // Wrapper function input parameters
@@ -288,7 +279,7 @@ void write_agenda_wrapper_header( ofstream& ofs,
       while (it != ago.end () && *it != *j) it++;
       if (it == ago.end ())
         {
-          String group_name = wsv_group_names[wsv_data[*j].Group()];
+          String group_name = wsv_group_names[Workspace::wsv_data[*j].Group()];
 
           ofs << "        const ";
           ofs << group_name;
@@ -298,7 +289,7 @@ void write_agenda_wrapper_header( ofstream& ofs,
             {
               ofs << "&";
             }
-          ofs << " " << wsv_data[*j].Name() << ",\n";
+          ofs << " " << Workspace::wsv_data[*j].Name() << ",\n";
         }
     }
 

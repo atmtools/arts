@@ -42,6 +42,7 @@
 
 #include <cmath>
 #include <stdexcept>
+#include "agenda_class.h"
 #include "array.h"
 #include "auto_md.h"
 #include "check_input.h"

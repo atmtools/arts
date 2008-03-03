@@ -64,12 +64,9 @@ int main()
           << "#include \"optproperties.h\"\n\n"
           << "#include \"gridded_fields.h\"\n\n"
           << "#include \"jacobian.h\"\n\n"
+          << "#include \"agenda_class.h\"\n\n"
           << "#include \"mc_interp.h\"\n\n"
           << "#include \"mc_antenna.h\"\n\n";
-
-      ofs << "// Declare existence of class Agenda. We cannot include agenda.h here,\n"
-          << "// because that would generate a dependency loop.\n"
-          << "class Agenda;\n";
 
       ofs << "/*! This is only used for a consistency check. You can get the\n"
           << "    number of groups from wsv_group_names.nelem(). */\n"

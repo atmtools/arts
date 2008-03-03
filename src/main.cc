@@ -125,12 +125,12 @@ void set_reporting_level(Index r)
     \author Stefan Buehler */
 void option_methods(const String& methods)
 {
+  Workspace workspace;
+  workspace.initialize();
   // Make global data visible:
   extern const Array<MdRecord>  md_data_raw;
-  extern const Array<WsvRecord> wsv_data;
   extern const Parameters parameters;
   //  extern const map<String, Index> MdMap;
-  extern const map<String, Index> WsvMap;
   extern const ArrayOfString wsv_group_names;
 
   // This is used to count the number of matches to a query, so
@@ -165,8 +165,8 @@ void option_methods(const String& methods)
 
   // Check if the user gave the name of a specific variable.
   map<String, Index>::const_iterator mi =
-    WsvMap.find(methods);
-  if ( mi != WsvMap.end() )
+    Workspace::WsvMap.find(methods);
+  if ( mi != Workspace::WsvMap.end() )
     {
       // If we are here, then the given name matches a variable.
       Index wsv_key = mi->second;
@@ -175,7 +175,7 @@ void option_methods(const String& methods)
       hitcount = 0;
       cout 
         << "\n*-------------------------------------------------------------------*\n"
-        << "Generic and supergeneric methods that can generate " << wsv_data[wsv_key].Name() 
+        << "Generic and supergeneric methods that can generate " << Workspace::wsv_data[wsv_key].Name() 
         << ":\n"
         << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
@@ -189,7 +189,7 @@ void option_methods(const String& methods)
           // The else clause picks up methods with supergeneric input.
           if ( count( mdd.GOutput().begin(),
                       mdd.GOutput().end(),
-                      wsv_data[wsv_key].Group() ) )
+                      Workspace::wsv_data[wsv_key].Group() ) )
             {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
@@ -209,7 +209,7 @@ void option_methods(const String& methods)
       hitcount = 0;
       cout 
         << "\n---------------------------------------------------------------------\n"
-        << "Specific methods that can generate " << wsv_data[wsv_key].Name() 
+        << "Specific methods that can generate " << Workspace::wsv_data[wsv_key].Name() 
         << ":\n"
         << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
@@ -310,9 +310,7 @@ void option_input(const String& input)
 {
   // Make global data visible:
   extern const Array<MdRecord>  md_data_raw;
-  extern const Array<WsvRecord> wsv_data;
   //  extern const map<String, Index> MdMap;
-  extern const map<String, Index> WsvMap;
   extern const ArrayOfString wsv_group_names;
 
   // This is used to count the number of matches to a query, so
@@ -324,8 +322,8 @@ void option_input(const String& input)
 
   // Check if the user gave the name of a specific variable.
   map<String, Index>::const_iterator mi =
-    WsvMap.find(input);
-  if ( mi != WsvMap.end() )
+    Workspace::WsvMap.find(input);
+  if ( mi != Workspace::WsvMap.end() )
     {
       // If we are here, then the given name matches a variable.
       Index wsv_key = mi->second;
@@ -334,7 +332,7 @@ void option_input(const String& input)
       hitcount = 0;
       cout 
       << "\n*-------------------------------------------------------------------*\n"
-      << "Generic and supergeneric methods that can use " << wsv_data[wsv_key].Name() << ":\n"
+      << "Generic and supergeneric methods that can use " << Workspace::wsv_data[wsv_key].Name() << ":\n"
       << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
         {
@@ -347,7 +345,7 @@ void option_input(const String& input)
           // The else clause picks up methods with supergeneric input.
           if ( count( mdd.GInput().begin(),
                       mdd.GInput().end(),
-                      wsv_data[wsv_key].Group() ) )
+                      Workspace::wsv_data[wsv_key].Group() ) )
             {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
@@ -367,7 +365,7 @@ void option_input(const String& input)
       hitcount = 0;
       cout 
       << "\n---------------------------------------------------------------------\n"
-      << "Specific methods that require " << wsv_data[wsv_key].Name() 
+      << "Specific methods that require " << Workspace::wsv_data[wsv_key].Name() 
       << ":\n"
       << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
@@ -467,7 +465,6 @@ void option_workspacevariables(const String& workspacevariables)
 {
   // Make global data visible:
   extern const Array<MdRecord>  md_data;
-  extern const Array<WsvRecord> wsv_data;
   extern const map<String, Index> MdMap;
   extern const Parameters parameters;
   //  extern const map<String, Index> WsvMap;
@@ -489,10 +486,10 @@ void option_workspacevariables(const String& workspacevariables)
             << "---------------------------------------------------------------------\n";
         }
 
-      for ( Index i=0; i<wsv_data.nelem(); ++i )
+      for ( Index i=0; i<Workspace::wsv_data.nelem(); ++i )
         {
           if (!parameters.plain) cout << "- ";
-          cout << wsv_data[i].Name() << "\n";
+          cout << Workspace::wsv_data[i].Name() << "\n";
         }
 
       if (!parameters.plain)
@@ -534,7 +531,7 @@ void option_workspacevariables(const String& workspacevariables)
       << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<mdr.Input().nelem(); ++i )
         {
-          cout << "- " << wsv_data[mdr.Input()[i]].Name() << "\n";
+          cout << "- " << Workspace::wsv_data[mdr.Input()[i]].Name() << "\n";
           ++hitcount;
         }
       if ( 0==hitcount )
@@ -562,9 +559,7 @@ void option_describe(const String& describe)
 {
   // Make global data visible:
   extern const Array<MdRecord>  md_data_raw;
-  extern const Array<WsvRecord> wsv_data;
   extern const map<String, Index> MdRawMap;
-  extern const map<String, Index> WsvMap;
   //  extern const ArrayOfString wsv_group_names;
 
   // Let's first assume it is a method that the user wants to have
@@ -584,12 +579,12 @@ void option_describe(const String& describe)
   // described.
 
   // Find wsv id:
-  i = WsvMap.find(describe);
-  if ( i != WsvMap.end() )
+  i = Workspace::WsvMap.find(describe);
+  if ( i != Workspace::WsvMap.end() )
     {
       // If we are here, then the given name matches a workspace
       // variable.
-      cout << wsv_data[i->second] << "\n";
+      cout << Workspace::wsv_data[i->second] << "\n";
       return;     
     }
 
@@ -616,11 +611,10 @@ void check_built_headers()
   // Make lookup data visible:
   //  extern const Array<MdRecord>  md_data;
   DEBUG_ONLY (extern const ArrayOfString wsv_group_names);
-  DEBUG_ONLY (extern const Array<WsvRecord> wsv_data);
 
   // Checks:
   assert( N_WSV_GROUPS == wsv_group_names.nelem() );
-  assert( N_WSV        == wsv_data.nelem()        );
+  assert( N_WSV        == Workspace::wsv_data.nelem()        );
 
 }
 
@@ -717,7 +711,7 @@ int main (int argc, char **argv)
   expand_md_data_raw_to_md_data();
 
   // Initialize the wsv data:
-  define_wsv_data();
+  Workspace::define_wsv_data();
 
   // Initialize MdMap:
   define_md_map();
@@ -726,7 +720,7 @@ int main (int argc, char **argv)
   define_md_raw_map();
 
   // Initialize WsvMap:
-  define_wsv_map();
+  Workspace::define_wsv_map();
 
   // Initialize the agenda lookup data:
   define_agenda_data();
@@ -751,9 +745,7 @@ int main (int argc, char **argv)
 
   // Make all these data visible:
   //  extern const Array<MdRecord>  md_data;
-  //  extern const Array<WsvRecord> wsv_data;
   //  extern const map<String, Index> MdMap;
-  //  extern const map<String, Index> WsvMap;
   extern const ArrayOfString wsv_group_names;
 
   // Now we are set to deal with the more interesting command line
@@ -927,8 +919,8 @@ int main (int argc, char **argv)
           // the control file. 
           Agenda tasklist;
 
-          Workspace* workspace = new Workspace();
-          tasklist.set_workspace (workspace);
+          Workspace workspace;
+          tasklist.set_workspace (&workspace);
 
           // Call the parser to parse the control text:
           ArtsParser arts_parser(tasklist, parameters.controlfiles[i]);
@@ -937,12 +929,10 @@ int main (int argc, char **argv)
 
           tasklist.set_name("Arts");
 
-          workspace->initialize ();
+          workspace.initialize ();
 
           // Execute main agenda:
           Arts(tasklist);
-
-          delete workspace;
         }
     }
   catch (runtime_error x)

@@ -21,7 +21,7 @@
 #include "file.h"
 #include "auto_wsv.h"
 #include "methods.h"
-#include "wsv_aux.h"
+#include "workspace_ng.h"
 #include "agenda_record.h"
 
 /* Adds commas and indentation to parameter lists. */
@@ -45,7 +45,7 @@ int main()
       // Make the global data visible:
       extern Array<MdRecord> md_data;
       extern const ArrayOfString wsv_group_names;
-      extern const Array<WsvRecord> wsv_data;
+      const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
 
       // Initialize method data.
       define_md_data_raw();
@@ -57,7 +57,7 @@ int main()
       expand_md_data_raw_to_md_data();
 
       // Initialize wsv data.
-      define_wsv_data();
+      Workspace::define_wsv_data();
   
 
       const Index n_md  = md_data.nelem();
@@ -97,13 +97,10 @@ int main()
           << "#include \"m_xml.h\"\n"
           << "#include \"m_basic_types.h\"\n"
           << "#include \"agenda_record.h\"\n"
+          << "#include \"workspace_ng.h\"\n"
           << "\n";
 
       //ofs << "static Index agendacallcount = 0;\n";
-      // Declare wsv_data:
-      ofs << "// Other wsv data:\n"
-          << "extern const Array<WsvRecord> wsv_data;\n\n";
-
 
       // Write all get-away functions:
       // -----------------------------
@@ -210,7 +207,7 @@ int main()
 #else
                   ofs << "  Agenda& AI" << j
 #endif
-                    << " = *((" << wsv_group_names[wsv_data[vi[j]].Group()]
+                    << " = *((" << wsv_group_names[Workspace::wsv_data[vi[j]].Group()]
                     <<  " *)ws[" << vi[j] << "]);\n";
                   ofs << "  AI" << j << ".set_workspace(&ws);\n";
                 }
@@ -252,7 +249,7 @@ int main()
                   // Add comma and line break, if not first element:
                   align(ofs,is_first_parameter,indent);
 
-                  ofs << "wsv_data[mr.Output()["
+                  ofs << "Workspace::wsv_data[mr.Output()["
                     << j
                     << "]].Name()";
                 }
@@ -292,7 +289,7 @@ int main()
                   // Add comma and line break, if not first element:
                   align(ofs,is_first_parameter,indent);
 
-                  ofs << "wsv_data[mr.Input()["
+                  ofs << "Workspace::wsv_data[mr.Input()["
                     << j
                     << "]].Name()";
                 }
@@ -356,7 +353,7 @@ int main()
       // Create implementation of the agenda wrappers
 
       // Initialize agenda data.
-      define_wsv_map ();
+      Workspace::define_wsv_map ();
       define_agenda_data ();
 
       extern const Array<AgRecord> agenda_data;

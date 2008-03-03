@@ -27,6 +27,7 @@
 #include "agenda_class.h"
 #include "wsv_aux.h"
 #include "agenda_record.h"
+#include "workspace_ng.h"
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -47,7 +48,6 @@ void AgendaSet(// WS Generic Output:
                const Agenda& input_agenda)
 {
   // Make external data visible
-  extern const Array<WsvRecord> wsv_data;
   extern const Array<AgRecord>  agenda_data;
   extern const map<String, Index> AgendaMap;
 
@@ -80,11 +80,11 @@ void AgendaSet(// WS Generic Output:
           ostringstream os;
           os << "The agenda " << output_agenda.name()
              << " must generate the output WSV "
-             << wsv_data[this_wsv].Name() << ",\n"
+             << Workspace::wsv_data[this_wsv].Name() << ",\n"
              << "but it does not. It only generates:\n";
-          for ( Index j=0; j<wsv_data.nelem(); ++j )
+          for ( Index j=0; j<Workspace::wsv_data.nelem(); ++j )
             if ( output_agenda.is_output(j) )
-              os << wsv_data[j].Name() << "\n";
+              os << Workspace::wsv_data[j].Name() << "\n";
           throw runtime_error (os.str());
         }
     }
@@ -101,11 +101,11 @@ void AgendaSet(// WS Generic Output:
           ostringstream os;
           os << "The agenda " << output_agenda.name()
              << " must use the input WSV "
-             << wsv_data[this_wsv].Name() << ",\n"
+             << Workspace::wsv_data[this_wsv].Name() << ",\n"
              << "but it does not. It only uses:\n";
-          for ( Index j=0; j<wsv_data.nelem(); ++j )
+          for ( Index j=0; j<Workspace::wsv_data.nelem(); ++j )
             if ( output_agenda.is_input(j) )
-              os << wsv_data[j].Name() << "\n";
+              os << Workspace::wsv_data[j].Name() << "\n";
           throw runtime_error (os.str());
         }
     }

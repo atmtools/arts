@@ -71,7 +71,7 @@
 #include "file.h"
 #include "auto_wsv.h"
 #include "methods.h"
-#include "wsv_aux.h"
+#include "workspace_ng.h"
 #include "agenda_record.h"
 
 /* Adds commas and indentation to parameter lists. */
@@ -95,7 +95,7 @@ void align(ofstream& ofs, bool& is_first_parameter, const String& indent)
 */
 void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
 {
-  extern const Array<WsvRecord> wsv_data;
+  const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
 
   String fullname = mdd.Name();
 
@@ -239,7 +239,6 @@ void write_method_header( ofstream& ofs,
                           const MdRecord& mdd )
 {
   extern const ArrayOfString wsv_group_names;
-  extern const Array<WsvRecord> wsv_data;
 
 //   // Work out the full name to use:
 //   String fullname;
@@ -309,8 +308,8 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
 
-        ofs << wsv_group_names[wsv_data[vo[j]].Group()] << "& "
-          << wsv_data[vo[j]].Name();
+        ofs << wsv_group_names[Workspace::wsv_data[vo[j]].Group()] << "& "
+          << Workspace::wsv_data[vo[j]].Name();
       }
   }
 
@@ -386,8 +385,8 @@ void write_method_header( ofstream& ofs,
           }
                 
         ofs << "const "
-          << wsv_group_names[wsv_data[vi[j]].Group()] << "& "
-          << wsv_data[vi[j]].Name();
+          << wsv_group_names[Workspace::wsv_data[vi[j]].Group()] << "& "
+          << Workspace::wsv_data[vi[j]].Name();
       }
   }
 
@@ -541,7 +540,7 @@ int main()
       extern Array<MdRecord> md_data_raw;
       extern Array<MdRecord> md_data;
       extern const ArrayOfString wsv_group_names;
-      extern const Array<WsvRecord> wsv_data;
+      const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
 
       // Initialize method data.
       define_md_data_raw();
@@ -553,7 +552,7 @@ int main()
       expand_md_data_raw_to_md_data();
 
         // Initialize wsv data.
-      define_wsv_data();
+      Workspace::define_wsv_data();
 
       if (!md_sanity_checks (md_data))
         return 1;
@@ -653,7 +652,7 @@ int main()
       // Create prototypes for the agenda wrappers
 
       // Initialize agenda data.
-      define_wsv_map ();
+      Workspace::define_wsv_map ();
       define_agenda_data ();
 
       extern const Array<AgRecord> agenda_data;

@@ -47,6 +47,7 @@
 #include "special_interp.h"
 #include "mystring.h"
 
+class Workspace;
 
 #define SWITCH_OUTPUT(x,y) switch (x) { \
 case 0: out0 << y;break; \
