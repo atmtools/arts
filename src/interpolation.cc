@@ -110,15 +110,13 @@ ostream& operator<<(ostream& os, const GridPos& gp)
 
 
 //! Set up a grid position Array. 
-/*!
- This is the simplest function to set up a grid position Array.
- As usual, gp has to have the right dimension. There could be other
- helper functions to set up grid position Arrays, but right now I
- cannot think of any. 
+/*! 
+ This is the function to find the position in the original grid
+ and set the fd for the linear interpolation case.
 
- The old grid has to be strictly sorted. It can be in ascending or descending
- order. But there must not be any duplicate values. Furthermore, the
- old grid must contain at least two points.
+ The old grid has to be strictly sorted. It can be in ascending or
+ descending order. But there must not be any duplicate
+ values. Furthermore, the old grid must contain at least two points.
 
  The new grid doesn't have to be sorted, but the function will be
  faster if it is sorted or mostly sorted. It is ok if the new grid
@@ -139,16 +137,20 @@ ostream& operator<<(ostream& os, const GridPos& gp)
  In this case, if point 0 is at 0 and point 1 is at 1, the new grid can
  be extended to -0.5.
 
- \param gp Output: Grid position Array.
+ 0.5 is the default value for extpolfac. Normally, you should just use
+ the function with 3 arguments, which means that the default value
+ will be used.
+
+ \retval gp        Grid position Array.
  \param old_grid   The original grid.
  \param new_grid   The new grid where we want to have the interpolated values. 
- \param extpolfac  Extrapolation factor.
+ \param extpolfac  Extrapolation factor. Has a default value of
+                   0.5. You should normally not specify this parameter!
 
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
 */
-void gridpos_extpol( 
-              ArrayOfGridPos& gp,
+void gridpos( ArrayOfGridPos& gp,
               ConstVectorView old_grid,
               ConstVectorView new_grid,
               const Numeric&  extpolfac )
@@ -304,7 +306,7 @@ void gridpos_extpol(
     }
   else                          //   if (ascending)  
     {
-      // Now we are in the "descending old grid" part. We do exatly
+      // Now we are in the "descending old grid" part. We do exactly
       // the same as in the other part, just accounting for the
       // different order of things. Comments here refer only to
       // interesting differences from the ascending case. See that
@@ -411,55 +413,36 @@ void gridpos_extpol(
 }
 
 
-
-//! gridpos
-/*!
-   Standard function to calculate grid positions.
-  
-   This function shall be used for ordinary interpolations.
-
-   The standard choice for extrapolation factor is 0.5.
-
-   \param   gp         Output: Obtained grid positions
-   \param   old_grid   The original grid.
-   \param   new_grid   The position where we want to have the interpolated 
-                       value.
-
-   \author Patrick Eriksson
-   \date   2005-06-03
-*/
-void gridpos( 
-              ArrayOfGridPos& gp,
-              ConstVectorView old_grid,
-              ConstVectorView new_grid )
-{
-   gridpos_extpol( gp, old_grid, new_grid, 0.5 );
-}
-
-
-
 //! gridpos
 /*!
    Creates a grid position structure.
   
-   This is a gateaway to the function for arrays of grid positions, to be
+   This is a gateway to the function for arrays of grid positions, to be
    used for e.g. "red interpolation".
 
-   \param   gp         Output: The GridPos structure. 
+   \retval  gp         The GridPos structure. 
    \param   old_grid   The original grid.
    \param   new_grid   The position where we want to have the interpolated 
                        value.
+   \param   extpolfac  Extrapolation factor. Default value is 0.5,
+                       which means that extrapolation of half of the
+                       last grid distance is allowed.
+                       You don't have to specify this.
 
    \author Patrick Eriksson
    \date   2002-12-31
+
+   \author Stefan Buehler
+   \date   2008-03-03
 */
 void gridpos( GridPos& gp,
               ConstVectorView old_grid,
-              const Numeric&  new_grid )
+              const Numeric&  new_grid,
+              const Numeric&  extpolfac )
 {
   ArrayOfGridPos  agp(1);
   Vector          v( 1, new_grid );
-  gridpos( agp, old_grid, v );
+  gridpos( agp, old_grid, v, extpolfac );
   gridpos_copy( gp,  agp[0] );  
 }
 
@@ -469,8 +452,8 @@ void gridpos( GridPos& gp,
 /*!
    Copies the content of a GridPos structure.
 
-   \param   gp_new   Output: The GridPos structure to be filled. 
-   \param   gp_old   Input:  The GridPos structure to be copied. 
+   \retval  gp_new   The GridPos structure to be filled. 
+   \param   gp_old   The GridPos structure to be copied. 
 
    \author Patrick Eriksson
    \date   2002-09-17
@@ -512,7 +495,7 @@ Numeric fractional_gp( const GridPos&   gp )
    have been calculated correctly, but the limited numerical precision can
    give values below 0 or above 1.
 
-   \param   gp     Output: Grid position structure.
+   \retval   gp     Grid position structure.
 
    \author Patrick Eriksson
    \date   2002-05-21
@@ -553,7 +536,7 @@ void gridpos_check_fd( GridPos&   gp )
    The input fractional distances are not allowed to deviate freom 0 and 1
    with more than FD_TOL.
 
-   \param   gp     Output: Grid position structure.
+   \retval   gp     Grid position structure.
 
    \author Patrick Eriksson
    \date   2002-05-22
@@ -573,7 +556,7 @@ void gridpos_force_end_fd( GridPos&   gp )
       //assert( fabs(gp.fd[0] -1 ) <= FD_TOL );
       gp.fd[0] = 1;
       gp.fd[1] = 0;
-    }    
+    }
 }
 
 
@@ -679,8 +662,8 @@ Index gridpos2gridrange(
   The length of itw must be consistent with the dimension of the
   field to be interpolated (2^n).
 
-  \param itw Output: Interpolation weights.
-  \param tc  The grid position for the column dimension.
+  \retval itw Interpolation weights.
+  \param  tc  The grid position for the column dimension.
 
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
@@ -736,9 +719,9 @@ void interpweights( VectorView itw,
   The length of itw must be consistent with the dimension of the
   field to be interpolated (2^n).
 
-  \param itw Output: Interpolation weights.
-  \param tr  The grid position for the row dimension.
-  \param tc  The grid position for the column dimension.
+  \retval itw Interpolation weights.
+  \param tr   The grid position for the row dimension.
+  \param tc   The grid position for the column dimension.
 
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
@@ -767,10 +750,10 @@ void interpweights( VectorView itw,
   The length of itw must be consistent with the dimension of the
   field to be interpolated (2^n).
 
-  \param itw Output: Interpolation weights.
-  \param tp  The grid position for the page    dimension.
-  \param tr  The grid position for the row     dimension.
-  \param tc  The grid position for the column  dimension.
+  \retval itw Interpolation weights.
+  \param tp   The grid position for the page    dimension.
+  \param tr   The grid position for the row     dimension.
+  \param tc   The grid position for the column  dimension.
 
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
@@ -801,11 +784,11 @@ void interpweights( VectorView itw,
   The length of itw must be consistent with the dimension of the
   field to be interpolated (2^n).
 
-  \param itw Output: Interpolation weights.
-  \param tb  The grid position for the book    dimension.
-  \param tp  The grid position for the page    dimension.
-  \param tr  The grid position for the row     dimension.
-  \param tc  The grid position for the column  dimension.
+  \retval itw Interpolation weights.
+  \param tb   The grid position for the book    dimension.
+  \param tp   The grid position for the page    dimension.
+  \param tr   The grid position for the row     dimension.
+  \param tc   The grid position for the column  dimension.
 
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
@@ -838,12 +821,12 @@ void interpweights( VectorView itw,
   The length of itw must be consistent with the dimension of the
   field to be interpolated (2^n).
 
-  \param itw Output: Interpolation weights.
-  \param ts  The grid position for the shelf   dimension.
-  \param tb  The grid position for the book    dimension.
-  \param tp  The grid position for the page    dimension.
-  \param tr  The grid position for the row     dimension.
-  \param tc  The grid position for the column  dimension.
+  \retval itw Interpolation weights.
+  \param ts   The grid position for the shelf   dimension.
+  \param tb   The grid position for the book    dimension.
+  \param tp   The grid position for the page    dimension.
+  \param tr   The grid position for the row     dimension.
+  \param tc   The grid position for the column  dimension.
 
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
@@ -878,13 +861,13 @@ void interpweights( VectorView itw,
   The length of itw must be consistent with the dimension of the
   field to be interpolated (2^n).
 
-  \param itw Output: Interpolation weights.
-  \param tv  The grid position for the vitrine dimension.
-  \param ts  The grid position for the shelf   dimension.
-  \param tb  The grid position for the book    dimension.
-  \param tp  The grid position for the page    dimension.
-  \param tr  The grid position for the row     dimension.
-  \param tc  The grid position for the column  dimension.
+  \retval itw Interpolation weights.
+  \param  tv  The grid position for the vitrine dimension.
+  \param  ts  The grid position for the shelf   dimension.
+  \param  tb  The grid position for the book    dimension.
+  \param  tp  The grid position for the page    dimension.
+  \param  tr  The grid position for the row     dimension.
+  \param  tc  The grid position for the column  dimension.
 
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri Jun 28 10:53:32 2002
@@ -1240,8 +1223,8 @@ Numeric interp( ConstVectorView  itw,
   Note that we still do not need the actual field for this step.
 
   
-  \param itw Output: Interpolation weights.
-  \param cgp The grid position Array for the column dimension.
+  \retval itw Interpolation weights.
+  \param  cgp The grid position Array for the column dimension.
 
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Fri May  3 08:55:51 2002
@@ -1312,9 +1295,9 @@ void interpweights( MatrixView itw,
  output is a Matrix, whereas in the other case it is a Tensor with one
  more dimension than there are input grid position Arrays.
 
- \param itw Output: Interpolation weights.
- \param rgp The grid position Array for the row dimension.
- \param cgp The grid position Array for the column dimension.
+ \retval itw Interpolation weights.
+ \param  rgp The grid position Array for the row dimension.
+ \param  cgp The grid position Array for the column dimension.
 
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
@@ -1368,10 +1351,10 @@ void interpweights( MatrixView itw,
  output is a Matrix, whereas in the other case it is a Tensor with one
  more dimension than there are input grid position Arrays.
 
- \param itw Output: Interpolation weights.
- \param pgp The grid position Array for the page dimension.
- \param rgp The grid position Array for the row dimension.
- \param cgp The grid position Array for the column dimension.
+ \retval itw Interpolation weights.
+ \param  pgp The grid position Array for the page dimension.
+ \param  rgp The grid position Array for the row dimension.
+ \param  cgp The grid position Array for the column dimension.
 
  \author Stefan Buehler <sbuehler@ltu.se>
  \date   Fri May  3 08:55:51 2002
@@ -1421,7 +1404,7 @@ void interpweights( MatrixView itw,
  output is a Matrix, whereas in the other case it is a Tensor with one
  more dimension than there are input grid position Arrays.
 
- \param itw Output: Interpolation weights.
+ \retval itw Interpolation weights.
  \param bgp The grid position Array for the book    dimension.
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
@@ -1479,7 +1462,7 @@ void interpweights( MatrixView itw,
  output is a Matrix, whereas in the other case it is a Tensor with one
  more dimension than there are input grid position Arrays.
 
- \param itw Output: Interpolation weights.
+ \retval itw Interpolation weights.
  \param sgp The grid position Array for the shelf   dimension.
  \param bgp The grid position Array for the book    dimension.
  \param pgp The grid position Array for the page    dimension.
@@ -1542,7 +1525,7 @@ void interpweights( MatrixView itw,
  output is a Matrix, whereas in the other case it is a Tensor with one
  more dimension than there are input grid position Arrays.
 
- \param itw Output: Interpolation weights.
+ \retval itw Interpolation weights.
  \param vgp The grid position Array for the vitrine dimension.
  \param sgp The grid position Array for the shelf   dimension.
  \param bgp The grid position Array for the book    dimension.
@@ -1604,7 +1587,7 @@ void interpweights( MatrixView itw,
   vector cgp. And the dimension of itw must be consistent with
   this.
 
-  \param ia  Output: Vector containing the interpolated field values.
+  \retval ia  Vector containing the interpolated field values.
   \param itw Interpolation weights.
   \param a   The field to interpolate.
   \param cgp The grid position Array for the column dimension.
@@ -1662,7 +1645,7 @@ void interp( VectorView            ia,
  interpolation function (that creates an entire field of interpolated
  values), because of the dimension of ia and itw.
 
- \param ia  Output: Vector containing the interpolated field values.
+ \retval ia  Vector containing the interpolated field values.
  \param itw Interpolation weights.
  \param a   The field to interpolate.
  \param rgp The grid position Array for the row    dimension.
@@ -1726,7 +1709,7 @@ void interp( VectorView            ia,
  interpolation function (that creates an entire field of interpolated
  values), because of the dimension of ia and itw.
 
- \param ia  Output: Vector containing the interpolated field values.
+ \retval ia  Vector containing the interpolated field values.
  \param itw Interpolation weights.
  \param a   The field to interpolate.
  \param pgp The grid position Array for the page    dimension.
@@ -1796,7 +1779,7 @@ void interp( VectorView            ia,
  interpolation function (that creates an entire field of interpolated
  values), because of the dimension of ia and itw.
 
- \param ia  Output: Vector containing the interpolated field values.
+ \retval ia  Vector containing the interpolated field values.
  \param itw Interpolation weights.
  \param a   The field to interpolate.
  \param bgp The grid position Array for the book    dimension.
@@ -1872,7 +1855,7 @@ void interp( VectorView            ia,
  interpolation function (that creates an entire field of interpolated
  values), because of the dimension of ia and itw.
 
- \param ia  Output: Vector containing the interpolated field values.
+ \retval ia  Vector containing the interpolated field values.
  \param itw Interpolation weights.
  \param a   The field to interpolate.
  \param sgp The grid position Array for the shelf   dimension.
@@ -1954,7 +1937,7 @@ void interp( VectorView            ia,
  interpolation function (that creates an entire field of interpolated
  values), because of the dimension of ia and itw.
 
- \param ia  Output: Vector containing the interpolated field values.
+ \retval ia  Vector containing the interpolated field values.
  \param itw Interpolation weights.
  \param a   The field to interpolate.
  \param vgp The grid position Array for the vitrine dimension.
@@ -2048,7 +2031,7 @@ void interp( VectorView            ia,
  output is a Tensor with one more dimension than the number of grid
  position Arrays.
 
- \param itw Output: Interpolation weights
+ \retval itw Interpolation weights
  \param rgp The grid position Array for the row dimension.
  \param cgp The grid position Array for the column dimension.
  
@@ -2109,7 +2092,7 @@ void interpweights( Tensor3View itw,
  output is a Tensor with one more dimension than the number of grid
  position Arrays.
 
- \param itw Output: Interpolation weights
+ \retval itw Interpolation weights
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
@@ -2169,7 +2152,7 @@ void interpweights( Tensor4View itw,
  output is a Tensor with one more dimension than the number of grid
  position Arrays.
 
- \param itw Output: Interpolation weights
+ \retval itw Interpolation weights
  \param bgp The grid position Array for the book    dimension.
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
@@ -2237,7 +2220,7 @@ void interpweights( Tensor5View itw,
  output is a Tensor with one more dimension than the number of grid
  position Arrays.
 
- \param itw Output: Interpolation weights
+ \retval itw Interpolation weights
  \param sgp The grid position Array for the shelf   dimension.
  \param bgp The grid position Array for the book    dimension.
  \param pgp The grid position Array for the page    dimension.
@@ -2313,7 +2296,7 @@ void interpweights( Tensor6View itw,
  output is a Tensor with one more dimension than the number of grid
  position Arrays.
 
- \param itw Output: Interpolation weights
+ \retval itw Interpolation weights
  \param vgp The grid position Array for the vitrine dimension.
  \param sgp The grid position Array for the shelf   dimension.
  \param bgp The grid position Array for the book    dimension.
@@ -2395,7 +2378,7 @@ void interpweights( Tensor7View itw,
  The size of ia and itw in all dimensions must be consistent with the grid
  position Arrays.
 
- \param ia  Output: Interpolated field.
+ \retval ia  Interpolated field.
  \param itw Interpolation weights.
  \param a   The field to interpolate.
  \param rgp The grid position Array for the row dimension.
@@ -2464,7 +2447,7 @@ void interp( MatrixView            ia,
  The size of ia and itw in all dimensions must be consistent with the grid
  position Arrays.
 
- \param ia  Output: Interpolated field.
+ \retval ia  Interpolated field.
  \param itw Interpolation weights.
  \param a   The field to interpolate.
  \param pgp The grid position Array for the page    dimension.
@@ -2543,7 +2526,7 @@ void interp( Tensor3View           ia,
  The size of ia and itw in all dimensions must be consistent with the grid
  position Arrays.
 
- \param ia  Output: Interpolated field.
+ \retval ia  Interpolated field.
  \param itw Interpolation weights.
  \param a   The field to interpolate.
  \param bgp The grid position Array for the book    dimension.
@@ -2631,7 +2614,7 @@ void interp( Tensor4View           ia,
  The size of ia and itw in all dimensions must be consistent with the grid
  position Arrays.
 
- \param ia  Output: Interpolated field.
+ \retval ia  Interpolated field.
  \param itw Interpolation weights.
  \param a   The field to interpolate.
  \param sgp The grid position Array for the shelf   dimension.
@@ -2728,7 +2711,7 @@ void interp( Tensor5View           ia,
  The size of ia and itw in all dimensions must be consistent with the grid
  position Arrays.
 
- \param ia  Output: Interpolated field.
+ \retval ia  Interpolated field.
  \param itw Interpolation weights.
  \param a   The field to interpolate.
  \param vgp The grid position Array for the vitrine dimension.

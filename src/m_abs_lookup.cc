@@ -1068,8 +1068,8 @@ void abs_lookupSetupBatch(// WS Output:
 
       // Grid positions:
       ArrayOfGridPos gp(active_log_abs_p.nelem());
-      //      gridpos_extpol(gp, log_p_grid, active_log_abs_p, 100);
       gridpos(gp, log_p_grid, active_log_abs_p);
+      //      gridpos(gp, log_p_grid, active_log_abs_p, 100);
       // We allow much more extrapolation here than normal (0.5 is
       // normal). If we do not do this, then we get problems for
       // p_grids that are much finer than abs_p.

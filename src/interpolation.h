@@ -72,9 +72,9 @@
   (called ArrayOfGridPos). 
 */
 struct GridPos {
-   Index   idx;                 /*!< Original grid index below interpolation point. */
-   Numeric fd[2];               /*!< Fractional distance to next point
-                                  (0<=fd[0]<=1), fd[1] = 1-fd[0]. */ 
+  Index   idx;                 /*!< Original grid index below interpolation point. */
+  Numeric fd[2];               /*!< Fractional distance to next point
+                                    (0<=fd[0]<=1), fd[1] = 1-fd[0]. */ 
 };
 
 //! An Array of grid positions.
@@ -91,19 +91,15 @@ typedef Array<Array<Array<Array<GridPos> > > > ArrayOfArrayOfArrayOfArrayOfGridP
 
 ostream& operator<<(ostream& os, const GridPos& gp);
 
-void gridpos_extpol( 
-              ArrayOfGridPos& gp,
-              ConstVectorView old_grid,
-              ConstVectorView new_grid,
-              const Numeric&  extpolfac );
-
 void gridpos( ArrayOfGridPos& gp,
               ConstVectorView old_grid,
-              ConstVectorView new_grid );
+              ConstVectorView new_grid,
+              const Numeric&  extpolfac=0.5  );
 
 void gridpos( GridPos& gp,
               ConstVectorView old_grid,
-              const Numeric&  new_grid );
+              const Numeric&  new_grid,
+              const Numeric&  extpolfac=0.5 );
 
 void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old );
 

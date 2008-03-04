@@ -145,7 +145,6 @@ void fix_gridpos_at_boundary(//Input and Output
         }
       assert(gp[i].idx > -1);
     }
-  
 }
         
 
@@ -635,14 +634,21 @@ void itw2p(
    \param   gp          Output: Grid position Array.
    \param   old_pgrid   The original pressure grid.
    \param   new_pgrid   The new pressure grid.
+   \param   extpolfac   Extrapolation factor. Default value is 0.5,
+                        which means that extrapolation of half of the
+                        last grid distance is allowed.
+                        You don't have to specify this.
 
    \author Patrick Eriksson
    \date   2003-01-20
+
+   \author Stefan Buehler
+   \date   2008-03-03
 */
-void p2gridpos(
-             ArrayOfGridPos&   gp,
-      ConstVectorView          old_pgrid,
-      ConstVectorView          new_pgrid )
+void p2gridpos( ArrayOfGridPos& gp,
+                ConstVectorView old_pgrid,
+                ConstVectorView new_pgrid,
+                const Numeric&  extpolfac )
 {
   // Local variable to store log of the pressure grids
   Vector logold( old_pgrid.nelem() );
@@ -651,46 +657,8 @@ void p2gridpos(
   transform( logold, log, old_pgrid );
   transform( lognew, log, new_pgrid );
   
-  gridpos( gp, logold, lognew );
+  gridpos( gp, logold, lognew, extpolfac );
 }
-
-//! p2gridpos_extpol
-/*!
-   Calculates grid positions for pressure values.
-
-   This function works as *gridpos_extpol*, but is adapted to handle
-   pressure grids. The ARTS defintions result in that pressures shall
-   not be interpolated directly, it is the log of the pressure that
-   shall be interpolated. This means that if some values shall be
-   interpolated to some given pressures, the grid positions shall be
-   calculated with this function. The interpolation can then be
-   performed as usual.
-
-   \param   gp          Output: Grid position Array.
-   \param   old_pgrid   The original pressure grid.
-   \param   new_pgrid   The new pressure grid.
-   \param   extpolfac   FIXME_DOCMISSING
-
-   \author Patrick Eriksson
-   \date   2003-01-20
-*/
-void p2gridpos_extpol(
-             ArrayOfGridPos&   gp,
-      ConstVectorView          old_pgrid,
-      ConstVectorView          new_pgrid,   
-      const Numeric&           extpolfac ) 
-{
-  // Local variable to store log of the pressure grids
-  Vector logold( old_pgrid.nelem() );
-  Vector lognew( new_pgrid.nelem() );
-
-  transform( logold, log, old_pgrid );
-  transform( lognew, log, new_pgrid );
-  
-  gridpos_extpol( gp, logold, lognew, extpolfac );
-}
-
-
 
 
 

@@ -125,13 +125,8 @@ void itw2p(
 void p2gridpos(
              ArrayOfGridPos&   gp,
       ConstVectorView          old_pgrid,
-      ConstVectorView          new_pgrid );
-
-void p2gridpos_extpol(
-             ArrayOfGridPos&   gp,
-      ConstVectorView          old_pgrid,
       ConstVectorView          new_pgrid,   
-      const Numeric&           extpolfac );
+      const Numeric&           extpolfac=0.5 );
 
 void z_at_lat_2d(
              VectorView   z,

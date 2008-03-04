@@ -27,12 +27,19 @@
 #define interpolation_poly_h
 
 #include "matpackI.h"
+#include "interpolation.h"
 
 //! Structure to store a grid position for higher order interpolation.
 /*! 
   This serves the same purpose as GridPos for linear
   interpolation. The main difference is that we store not fractional
-  distances (fd), but interpolation weights (w).
+  distances (fd), but interpolation weights (w). For the linear case:
+  w[0] = fd[1]
+  w[1] = fd[0]
+
+  Because the w are associated with each interpolation point, they
+  work also for higher interpolation order, whereas the concept of
+  fractional distance does not.
 
   There is some confusion between the meaning of fractional distances
   and interpolation weights. In fact the two are almost the same in the 1D
@@ -52,7 +59,7 @@ struct GridPosPoly {
   //! Index to first point to use for interpolation in the original grid.
   Index  idx;
   /*! Interpolation weight for each grid point to use.
-  (Dimension is the number of points in the interpolation, m.)  */
+      (Dimension is the number of points in the interpolation, m.)  */
   Vector w;
 };
 

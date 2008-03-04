@@ -551,7 +551,7 @@ void jacobian_from_path_to_rgrids(
           r_grid = jacobian_quantity.Grids()[0];
           Index            nr1 = r_grid.nelem();
           ArrayOfGridPos   gp_p(ppath_array[ia].np);
-          p2gridpos_extpol( gp_p, r_grid, ppath_array[ia].p, extpolfac );
+          p2gridpos( gp_p, r_grid, ppath_array[ia].p, extpolfac );
 
           // Latitude
           Index            nr2 = 1;
@@ -561,7 +561,7 @@ void jacobian_from_path_to_rgrids(
               gp_lat.resize(ppath_array[ia].np);
               r_grid = jacobian_quantity.Grids()[1];
               nr2    = r_grid.nelem();
-              gridpos_extpol( gp_lat, r_grid, ppath_array[ia].pos(joker,1), 
+              gridpos( gp_lat, r_grid, ppath_array[ia].pos(joker,1), 
                                                                    extpolfac );
             }
 
@@ -573,7 +573,7 @@ void jacobian_from_path_to_rgrids(
               gp_lon.resize(ppath_array[ia].np);
               r_grid = jacobian_quantity.Grids()[2];
               nr3    = r_grid.nelem();
-              gridpos_extpol( gp_lon, r_grid, ppath_array[ia].pos(joker,2), 
+              gridpos( gp_lon, r_grid, ppath_array[ia].pos(joker,2), 
                                                                    extpolfac );
             }
           
