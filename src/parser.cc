@@ -183,9 +183,9 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
   Index id;             
   // For keyword parameter values:
   Array<TokVal> values;
-  // Output workspace variables (for generic methods):
+  // Output workspace variables:
   ArrayOfIndex output;          
-  // Input workspace variables (for generic methods):
+  // Input workspace variables:
   ArrayOfIndex input;
   // For Agenda, if ther is any:
   Agenda tasks;
@@ -943,7 +943,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
 
   // For generic methods the output and input workspace variables have 
   // to be parsed (given in round brackets).
-  if ( (0 < mdd->GOutput().nelem() + mdd->GInput().nelem())
+  if ( (mdd->GOutput().nelem() + mdd->GInput().nelem() > 0)
        || (mcfile_version == 2
            && 0 < mdd->GOutput().nelem() + mdd->GInput().nelem()
                   + mdd->Keywords().nelem()))
@@ -957,7 +957,15 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
 
       if (mcfile_version == 2 && mdd->Output().nelem())
         {
-          parse_output(mdd, first);
+          parse_output(mdd, output, first);
+        }
+      else
+        {
+          ArrayOfIndex vo=mdd->Output();
+          for (ArrayOfIndex::const_iterator outs=vo.begin(); outs<vo.end(); ++outs)
+            {
+              output.push_back (*outs);
+            }
         }
 
       // First read all output Wsvs:
@@ -1034,8 +1042,17 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
 
       if (mcfile_version == 2 && mdd->Input().nelem())
         {
-          parse_input(mdd, first);
+          parse_input(mdd, input, first);
           first = false;
+        }
+      else
+        {
+          ArrayOfIndex vi;
+          mdd->input_only(vi);
+          for (ArrayOfIndex::const_iterator ins=vi.begin(); ins<vi.end(); ++ins)
+            {
+              input.push_back (*ins);
+            }
         }
 
       // Then read all input Wsvs:
@@ -1120,7 +1137,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
   else
     {
       // Even if the method has no GInput or GOutput the user can
-      // give pass all inputs and outputs in ()
+      // pass all inputs and outputs in ()
       if (msource.Current() == '(')
         {
           bool first = true;
@@ -1130,12 +1147,12 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
             {
               if (mdd->Output().nelem())
                 {
-                  parse_output(mdd, first);
+                  parse_output(mdd, output, first);
                   if (mdd->Input().nelem())
-                    parse_input(mdd, first);
+                    parse_input(mdd, input, first);
                 }
               else if (mdd->Input().nelem())
-                parse_input(mdd, first);
+                parse_input(mdd, input, first);
             }
           if (mcfile_version == 2)
             {
@@ -1147,36 +1164,45 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
               eat_whitespace();
             }
         }
+      else
+        {
+          // If the () were omitted we still have to add the implicit outputs
+          // and inputs to the methods input and output variable lists
+          ArrayOfIndex vo=mdd->Output();
+          for (ArrayOfIndex::const_iterator outs=vo.begin(); outs<vo.end(); ++outs)
+            {
+              output.push_back (*outs);
+            }
+          ArrayOfIndex vi;
+          mdd->input_only(vi);
+          for (ArrayOfIndex::const_iterator ins=vi.begin(); ins<vi.end(); ++ins)
+            {
+              input.push_back (*ins);
+            }
+        }
     }
 }
 
 
 /** Parse the input WSVs for current method from the controlfile.
 
-  \param[in] mdd   Pointer to the current WSM
-  \param[in] first If set to false, there must be a comma before the first WSV
-                   in the controlfile
+  \param[in]  mdd    Pointer to the current WSM
+  \param[out] input  Indexes of input variables for the WSM
+  \param[in]  first  If set to false, there must be a comma before the first WSV
+                     in the controlfile
   */
-void ArtsParser::parse_input(const MdRecord* mdd, bool& first)
+void ArtsParser::parse_input(const MdRecord* mdd, ArrayOfIndex& input, bool& first)
 {
-  // There are two lists of parameters that we have to read.
-  ArrayOfIndex  vo=mdd->Output();   // Output 
-  ArrayOfIndex  vi=mdd->Input();    // Input
-  // vo and vi contain handles of workspace variables, 
+  extern const ArrayOfString wsv_group_names;
 
-  // Check, if some workspace variables are in both the
-  // input and the output list, and erase those from the input list:
-  for (ArrayOfIndex::const_iterator outs=vo.begin(); outs<vo.end(); ++outs)
-    for (ArrayOfIndex::iterator ins=vi.begin(); ins<vi.end(); ++ins)
-      if ( *outs == *ins )
-        {
-          //              erase_vector_element(vi,k);
-          ins = vi.erase(ins) - 1;
-          // We need the -1 here, otherwise due to the
-          // following increment we would miss the element
-          // behind the erased one, which is now at the
-          // position of the erased one.
-        }
+  // There are two lists of parameters that we have to read.
+  ArrayOfIndex  vo=mdd->Output();  // Output 
+  ArrayOfIndex  vi;                // Input
+
+  Index wsvid;  // Workspace variable id, is used to
+                // access data in wsv_data.
+
+  mdd->input_only(vi);             // Input only variables
 
   for (ArrayOfIndex::const_iterator ins=vi.begin(); ins<vi.end(); ++ins)
     {
@@ -1200,32 +1226,50 @@ void ArtsParser::parse_input(const MdRecord* mdd, bool& first)
 
       read_name(wsvname);
 
-      if (wsvname != Workspace::wsv_data[*ins].Name())
-        {
-          ostringstream os;
-          if (!wsvname.nelem())
-            os << "Expected input WSV *" << Workspace::wsv_data[*ins].Name() << "*";
-          else
-            os << "got " << wsvname << ", but expected input WSV *"
-              << Workspace::wsv_data[*ins].Name() << "*";
-          throw ParseError( os.str(),
+      {
+        // Find Wsv id:
+        const map<String, Index>::const_iterator wsvit =
+          Workspace::WsvMap.find(wsvname);
+        if ( wsvit == Workspace::WsvMap.end() )
+          throw UnknownWsv( wsvname,
                             msource.File(),
                             msource.Line(),
                             msource.Column() );
+
+        wsvid = wsvit->second;
+      }
+
+      // Check that this Wsv belongs to the correct group:
+      if ( Workspace::wsv_data[wsvid].Group() != Workspace::wsv_data[*ins].Group() )
+        {
+          throw WrongWsvGroup( wsvname+" is not "+
+                               wsv_group_names[Workspace::wsv_data[*ins].Group()]+", it is "+ 
+                               wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+                               msource.File(),
+                               msource.Line(),
+                               msource.Column() );
         }
+
+      input.push_back(wsvid);
     }
 }
 
 
 /** Parse the output WSVs for current method from the controlfile.
 
-  \param[in] mdd   Pointer to the current WSM
-  \param[in] first If set to false, there must be a comma before the first WSV
-                   in the controlfile
+  \param[in]  mdd     Pointer to the current WSM
+  \param[out] output  Indexes of output variables for the WSM
+  \param[in]  first   If set to false, there must be a comma before the first WSV
+                      in the controlfile
   */
-void ArtsParser::parse_output(const MdRecord* mdd, bool& first)
+void ArtsParser::parse_output(const MdRecord* mdd, ArrayOfIndex& output, bool& first)
 {
+  extern const ArrayOfString wsv_group_names;
+
   ArrayOfIndex  vo=mdd->Output();
+
+  Index wsvid;                  // Workspace variable id, is used to
+                                // access data in wsv_data.
 
   for (ArrayOfIndex::const_iterator outs=vo.begin(); outs<vo.end(); ++outs)
     {
@@ -1253,19 +1297,31 @@ void ArtsParser::parse_output(const MdRecord* mdd, bool& first)
 
       read_name(wsvname);
 
-      if (wsvname != Workspace::wsv_data[*outs].Name())
-        {
-          ostringstream os;
-          if (!wsvname.nelem())
-              os << "Expected output WSV *" << Workspace::wsv_data[*outs].Name() << "*";
-          else
-            os << "got " << wsvname << ", but expected output WSV *"
-              << Workspace::wsv_data[*outs].Name() << "*";
-          throw ParseError( os.str(),
+      {
+        // Find Wsv id:
+        const map<String, Index>::const_iterator wsvit =
+          Workspace::WsvMap.find(wsvname);
+        if ( wsvit == Workspace::WsvMap.end() )
+          throw UnknownWsv( wsvname,
                             msource.File(),
                             msource.Line(),
                             msource.Column() );
+
+        wsvid = wsvit->second;
+      }
+
+      // Check that this Wsv belongs to the correct group:
+      if ( Workspace::wsv_data[wsvid].Group() != Workspace::wsv_data[*outs].Group() )
+        {
+          throw WrongWsvGroup( wsvname+" is not "+
+                               wsv_group_names[Workspace::wsv_data[*outs].Group()]+", it is "+ 
+                               wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+                               msource.File(),
+                               msource.Line(),
+                               msource.Column() );
         }
+
+      output.push_back(wsvid);
     }
 }
 

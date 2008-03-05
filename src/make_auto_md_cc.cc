@@ -146,7 +146,7 @@ int main()
 
               // Use parameter name only if it is used inside the function
               // to avoid warnings
-              if ( vgo.nelem () || vgi.nelem ()
+              if ( vo.nelem () || vi.nelem () || vgo.nelem () || vgi.nelem ()
                    || mdd.Keywords().nelem() || mdd.AgendaMethod())
                 {
                   mr = " mr";
@@ -169,34 +169,6 @@ int main()
                 }
             }
 
-          // Define generic output pointers
-          for (Index j=0; j<vgo.nelem(); ++j)
-            {
-              // Check by assert whether the group identifier is too
-              // large to correspond to a group. This can easily
-              // happen if somebody puts a variable identifier instead
-              // of a group identifier in the argument of GOUTPUT:
-              assert( vgo[j] < wsv_group_names.nelem() );
-
-              ofs << "  " << wsv_group_names[vgo[j]]
-                  << " *GO" << j << " = (" << wsv_group_names[vgo[j]] << " *)ws[mr.Output()[" << j
-                  << "]];\n";
-            }
-
-          // Define generic input pointers
-          for (Index j=0; j<vgi.nelem(); ++j)
-            {
-              // Check by assert whether the group identifier is too
-              // large to correspond to a group. This can easily
-              // happen if somebody puts a variable identifier instead
-              // of a group identifier in the argument of GINPUT:
-              assert( vgi[j] < wsv_group_names.nelem() );
-
-              ofs << "  " << wsv_group_names[vgi[j]]
-                  << " *GI" << j << " = (" << wsv_group_names[vgi[j]] << " *)ws[mr.Input()[" << j
-                  << "]];\n";
-            }
-
           // Create copy of input agendas with private workspace
           for (Index j=0; j<vi.nelem(); ++j)
             {
@@ -207,8 +179,10 @@ int main()
 #else
                   ofs << "  Agenda& AI" << j
 #endif
-                    << " = *((" << wsv_group_names[Workspace::wsv_data[vi[j]].Group()]
-                    <<  " *)ws[" << vi[j] << "]);\n";
+                    << " = *(("
+                    << wsv_group_names[wsv_data[vi[j]].Group()]
+                    << " *)ws[mr.Input()[" << j
+                    << "]]);\n";
                   ofs << "  AI" << j << ".set_workspace(&ws);\n";
                 }
             }
@@ -224,21 +198,36 @@ int main()
           // Write the Output workspace variables:
           for (Index j=0; j<vo.nelem(); ++j)
             {
+              // Check by assert whether the group identifier is too
+              // large to correspond to a group. This can easily
+              // happen if somebody puts a variable identifier instead
+              // of a group identifier in the argument of GOUTPUT:
+              assert( wsv_data[vo[j]].Group() < wsv_group_names.nelem() );
+
               // Add comma and line break, if not first element:
               align(ofs,is_first_parameter,indent);
 
-              //ofs << "ws." << wsv_data[vo[j]].Name();
-              ofs << "*((" << wsv_group_names[wsv_data[vo[j]].Group()] <<  " *)ws["
-                << vo[j] << "])";
+              ofs << "*(("
+                  << wsv_group_names[wsv_data[vo[j]].Group()]
+                  << " *)ws[mr.Output()[" << j
+                  << "]])";
             }
 
           // Write the Generic output workspace variables:
           for (Index j=0; j<vgo.nelem(); ++j)
             {
+              // Check by assert whether the group identifier is too
+              // large to correspond to a group. This can easily
+              // happen if somebody puts a variable identifier instead
+              // of a group identifier in the argument of GOUTPUT:
+              assert( vgo[j] < wsv_group_names.nelem() );
+
               // Add comma and line break, if not first element:
               align(ofs,is_first_parameter,indent);
 
-              ofs << "*GO" << j;
+              ofs << "*((" << wsv_group_names[vgo[j]]
+                  << " *)ws[mr.Output()[" << j+vo.nelem()
+                  << "]])";
             }
 
           // Write the Generic output workspace variable names:
@@ -250,7 +239,7 @@ int main()
                   align(ofs,is_first_parameter,indent);
 
                   ofs << "Workspace::wsv_data[mr.Output()["
-                    << j
+                    << j+vo.nelem()
                     << "]].Name()";
                 }
             }
@@ -267,18 +256,28 @@ int main()
                 }
               else
                 {
-                  ofs << "*((" << wsv_group_names[wsv_data[vi[j]].Group()]
-                    <<  " *)ws[" << vi[j] << "])";
+                  ofs << "*(("
+                    << wsv_group_names[wsv_data[vi[j]].Group()]
+                    << " *)ws[mr.Input()[" << j
+                    << "]])";
                 }
             }
 
           // Write the Generic input workspace variables:
           for (Index j=0; j<vgi.nelem(); ++j)
             {
+              // Check by assert whether the group identifier is too
+              // large to correspond to a group. This can easily
+              // happen if somebody puts a variable identifier instead
+              // of a group identifier in the argument of GINPUT:
+              assert( vgi[j] < wsv_group_names.nelem() );
+
               // Add comma and line break, if not first element:
               align(ofs,is_first_parameter,indent);
 
-              ofs << "*GI" << j;
+              ofs << "*((" << wsv_group_names[vgi[j]]
+                  << " *)ws[mr.Input()[" << j+vi.nelem()
+                  << "]])";
             }
 
           // Write the Generic input workspace variable names:

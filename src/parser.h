@@ -43,9 +43,9 @@ private:
                     String&       include_file,
                     bool no_eot=false);
 
-  void parse_input(const MdRecord* mdd, bool& first);
+  void parse_input(const MdRecord* mdd, ArrayOfIndex& input, bool& first);
 
-  void parse_output(const MdRecord* mdd, bool& first);
+  void parse_output(const MdRecord* mdd, ArrayOfIndex& output, bool& first);
 
   void parse_output_and_input(const MdRecord*&    mdd,
                                     Index&        id,

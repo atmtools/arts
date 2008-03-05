@@ -196,9 +196,9 @@ private:
   /** List of parameter values (see methods.h for definition of
       TokVal). */
   Array<TokVal> mvalues;
-  /** Output workspace variables (for generic methods). */
+  /** Output workspace variables. */
   ArrayOfIndex moutput;
-  /** Input workspace variables (for generic methods). */
+  /** Input workspace variables. */
   ArrayOfIndex minput;
   /** An agenda, which can be given in the controlfile instead of
       keywords. */
