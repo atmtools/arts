@@ -1,5 +1,21 @@
 2008-03-05  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-3-18
+
+	* src/parser.{cc,h}:
+
+	(ArtsParser::parse_generic_keywords):
+
+	Renamed to parse_keywords2 and added docs.
+
+	(ArtsParser::parse_keywords): Added docs.
+
+	(ArtsParser::parse_method): Cleanup and simplify code.
+
+	(ArtsParser::parse_output_and_input): Add docs. Cleanup code.
+
+2008-03-05  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-3-17
 
 	* Continued work on the new controlfile features.

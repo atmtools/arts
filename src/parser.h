@@ -54,13 +54,13 @@ private:
                                     ArrayOfIndex& output,
                                     ArrayOfIndex& input);
 
-  void parse_generic_keywords(const MdRecord*      mdd,
-                                    Array<TokVal>& values,
-                                    bool&          first);
-
   void parse_keywords(const MdRecord*      mdd,
                             Array<TokVal>& values,
                       const bool           found_curly_brace);
+
+  void parse_keywords2(const MdRecord*      mdd,
+                             Array<TokVal>& values,
+                             bool&          first);
 
   bool is_whitespace(const char c);
 
