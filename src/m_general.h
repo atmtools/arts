@@ -50,10 +50,10 @@
 class Workspace;
 
 #define SWITCH_OUTPUT(x,y) switch (x) { \
-case 0: out0 << y;break; \
-case 1: out1 << y;break; \
-case 2: out2 << y;break; \
-case 3: out3 << y;break; \
+case 0: out0 << y << "\n";break; \
+case 1: out1 << y << "\n";break; \
+case 2: out2 << y << "\n";break; \
+case 3: out3 << y << "\n";break; \
 default: throw runtime_error ("Output level must have value from 0-3"); \
 }
 

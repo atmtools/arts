@@ -56,6 +56,14 @@ void Workspace::define_wsv_map()
 }
 
 
+Index Workspace::add_wsv (const WsvRecord& wsv)
+{
+  Workspace::wsv_data.push_back(wsv);
+  Workspace::define_wsv_map();
+  return wsv_data.nelem()-1;
+}
+
+
 void Workspace::initialize ()
 {
   ws.resize (wsv_data.nelem());

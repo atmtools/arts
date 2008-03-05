@@ -987,16 +987,31 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           read_name(wsvname);
 
           {
+            wsvid = -1;
             // Find Wsv id:
-            const map<String, Index>::const_iterator wsvit =
+            map<String, Index>::const_iterator wsvit =
               Workspace::WsvMap.find(wsvname);
             if ( wsvit == Workspace::WsvMap.end() )
-              throw UnknownWsv( wsvname,
-                                msource.File(),
-                                msource.Line(),
-                                msource.Column() );
+              {
+                if (mcfile_version == 1 || still_supergeneric)
+                  {
+                    throw UnknownWsv( wsvname,
+                                      msource.File(),
+                                      msource.Line(),
+                                      msource.Column() );
+                  }
+                else
+                  {
+                    wsvid = Workspace::add_wsv(
+                              WsvRecord(wsvname.c_str(),
+                                        "Automatically allocated variable.",
+                                        mdd->GOutput()[j],
+                                        true));
+                  }
+              }
 
-            wsvid = wsvit->second;
+            if (wsvid == -1)
+              wsvid = wsvit->second;
           }
 
           // If this is a supergeneric method, now is the time to find
@@ -1311,8 +1326,9 @@ void ArtsParser::parse_output(const MdRecord* mdd, ArrayOfIndex& output, bool& f
       read_name(wsvname);
 
       {
+        wsvid = -1;
         // Find Wsv id:
-        const map<String, Index>::const_iterator wsvit =
+        map<String, Index>::const_iterator wsvit =
           Workspace::WsvMap.find(wsvname);
         if ( wsvit == Workspace::WsvMap.end() )
           {
@@ -1323,9 +1339,18 @@ void ArtsParser::parse_output(const MdRecord* mdd, ArrayOfIndex& output, bool& f
                                   msource.Line(),
                                   msource.Column() );
               }
+            else
+              {
+                wsvid = Workspace::add_wsv(
+                          WsvRecord(wsvname.c_str(),
+                                    "Automatically allocated variable.",
+                                    Workspace::wsv_data[*outs].Group(),
+                                    true));
+              }
           }
 
-        wsvid = wsvit->second;
+        if (wsvid == -1)
+          wsvid = wsvit->second;
       }
 
       // Check that this Wsv belongs to the correct group:

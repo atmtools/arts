@@ -63,8 +63,9 @@ public:
   Workspace (const Workspace& workspace);
   virtual ~Workspace ();
 
-  static void define_wsv_data();
-  static void define_wsv_map();
+  static void  define_wsv_data();
+  static void  define_wsv_map();
+  static Index add_wsv (const WsvRecord& wsv);
 
   void initialize ();
 

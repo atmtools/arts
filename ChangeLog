@@ -1,5 +1,33 @@
 2008-03-05  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-3-19
+
+	* New feature: Creating new workspace variables at runtime.
+	If the user specifies an output variable that does not exist, arts
+	automatically creates the variable instead of throwing an error. E.g.:
+
+	IndexSet( nelem, 10 )
+	VectorNLogSpace( myfancyvector, nelem, 10, 20 )
+
+	In this case a new workspace variable 'myfancyvector' is created and
+	initialized.
+
+	This works for outputs as well as generic outputs.
+
+	* src/workspace_ng.{cc,h}:
+
+	Add new function add_wsv to extend the workspace at runtime.
+
+	* src/parser.cc:
+
+	When a output or generic output variable doesn't exist, create it.
+
+	* src/m_general.h (SWITCH_OUTPUT):
+
+	Output a newline after printing the variable.
+
+2008-03-05  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-3-18
 
 	* src/parser.{cc,h}:
