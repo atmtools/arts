@@ -117,11 +117,11 @@ void gridpos_poly(ArrayOfGridPosPoly& gp,
       Index k = IMIN(IMAX(gp_trad[s].idx-(m-1)/2, 0),
                      n_old-m);
 
-      cout << "m: "<< m << ", gp[s].idx: " << gp[s].idx << ", k: " << k << endl;
+      //      cout << "m: "<< m << ", k: " << k << endl;
 
-      gp[s].idx = k;
 
-      // Make gp[s].w the right size:
+      // Make gp[s].idx and gp[s].w the right size:
+      gp[s].idx.resize(m);
       gp[s].w.resize(m);
       
       // Calculate w for each interpolation point. In the linear case
@@ -131,6 +131,8 @@ void gridpos_poly(ArrayOfGridPosPoly& gp,
       // eq. 3.1.1.
       for (Index i=0; i<m; ++i)
         {
+          gp[s].idx[i] = k+i;
+
           //  Numerical Recipes, 2nd edition, section 3.1, eq. 3.1.1.
 
           // Numerator:
@@ -149,216 +151,12 @@ void gridpos_poly(ArrayOfGridPosPoly& gp,
         }
 
       // Debugging: Test if sum of all w is 1, as it should be:
-      Numeric testsum = 0;
-      for (Index i=0; i<m; ++i) testsum += gp[s].w[i];
-      cout << "Testsum = " << testsum << endl;        
+//       Numeric testsum = 0;
+//       for (Index i=0; i<m; ++i) testsum += gp[s].w[i];
+//       cout << "Testsum = " << testsum << endl;        
       
     }
 }
-
-
-////////////////////////////////////////////////////////////////////////////
-//                      Red Interpolation
-////////////////////////////////////////////////////////////////////////////
-
-
-//! Red 1D polynomial interpolation weights.
-/*!
-  This is like the corresponding *interpweights* function, but works
-  for interpolation with arbitrary polynomial order. Interpolation
-  order 1 should give the same result as our traditional linear
-  interpolation routines (although the code is different). I did this
-  on purpose, so that consistency can be checked. Order 0 (nearest
-  neighbor) is not implemented, but could easily be, if anybody ever
-  needs it.
-
-  In contrast to the traditional *interpweights*, the output vector itw
-  is resized automatically, so that it is easy to switch interpolation
-  orders without changing a lot of code.
-
-  The interpolation order is determined from the size of the w vector
-  in the grid positions tc.
-
-  \retval itw Interpolation weights.
-  \param  tc Grid position (of the interpolation point in old_grid).
-*/
-void interpweights_poly( Vector& itw,
-                         const GridPosPoly& tc )
-{
-  // We need the number of interpolation points, which is the
-  // interpolation order plus one.
-  Index m=tc.w.nelem();
-  
-  // In the linear case we need 2 weights, in the quadratic case 3, etc..
-  itw.resize(m);
-
-  // This loop is over all points used in the interpolation:
-  for (Index i=0; i<m; ++i)
-    {
-      itw[i] = tc.w[i];
-    }
-
-}
-
-//! Red 1D Polynomial Interpolate.
-/*! 
-  "Red" interpolation returns just a scalar.
-
-  The dimension of itw must be consistent with the dimension of the
-  interpolation (m^n), where m is the number of points in the
-  interpolation scheme (2 for linear), and n is the dimension of the field.
-
-  \param itw  Interpolation weights.
-  \param a    The field to interpolate.
-  \param tc   The grid position for the column dimension.
-
-  \return Interpolated value.
-*/
-Numeric interp_poly( ConstVectorView    itw,
-                     ConstVectorView    a,    
-                     const GridPosPoly& tc )
-{
-  // Number of points in interpolation scheme:
-  Index m = itw.nelem();
-
-  // Dimensions of itw and tc must be consistent:
-  assert( is_size(tc.w,m) );
-
-  // Check that interpolation weights are valid. The sum of all
-  // weights (last dimension) must always be approximately one.
-  assert( is_same_within_epsilon( itw.sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
-  // To store interpolated value:
-  Numeric tia = 0;
-
-  Index iti = 0;
-  for ( Index c=0; c<m; ++c )
-    {
-      tia += a[tc.idx+c] * itw[iti];
-      ++iti;
-    }
-
-  return tia;
-}
-
-
-////////////////////////////////////////////////////////////////////////////
-//                      Blue interpolation
-////////////////////////////////////////////////////////////////////////////
-
-//! Compute 1D polynomial interpolation weights.
-/*! 
-  For this 1D case there is no distinction between "blue" and "green"
-  type interpolation.
-
-  This is like the corresponding *interpweights* function, but works
-  for interpolation with arbitrary polynomial order. Interpolation
-  order 1 should give the same result as our traditional linear
-  interpolation routines (although the code is different). I did this
-  on purpose, so that consistency can be checked. Order 0 (nearest
-  neighbor) is not implemented, but could easily be, if anybody ever
-  needs it.
-
-  Note that we still do not need the actual field for this step.
-
-  In contrast to the linear *interpweights* function, itw is sized
-  automatically, to allow easy switching between interpolation orders.
-  
-  The interpolation order is determined from the size of the w vector
-  in the grid positions tc.
-
-  \retval itw Interpolation weights.
-  \param cgp  The grid position Array for the column dimension.
-*/
-void interpweights_poly( Matrix& itw,
-                         const ArrayOfGridPosPoly& cgp )
-{
-  Index n = cgp.nelem();
-
-  // We need the number of interpolation points, which is the
-  // interpolation order plus one.
-  Index m=cgp[0].w.nelem();
-
-  itw.resize(n,m);      // We must store m interpolation
-                        // weights for each position.
-
-  // We have to loop all the points in the sequence:
-  for ( Index s=0; s<n; ++s )
-    {
-      // Current grid positions:
-      const GridPosPoly& tc = cgp[s];
-      
-      // Check that the number of interpolation points to use is the
-      // same for all points:
-      assert(is_size(tc.w,m));
-      
-      // This loop is over all points used in the interpolation:
-      for (Index i=0; i<m; ++i)
-        itw(s,i) = tc.w[i];
-    }
-}
-
-//! Polynomial interpolation of 1D field.
-/*! 
-  For this 1D case there is no distinction between "blue" and "green"
-  type interpolation.
-
-  This is like the corresponding *interp* function, but works
-  for interpolation with arbitrary polynomial order. Interpolation
-  order 1 should give the same result as our traditional linear
-  interpolation routines (although the code is different). 
-
-  The output vector ia must have the same length as the grid position
-  vector cgp. And the dimension of itw must be consistent with
-  this.
-
-  \retval ia Vector containing the interpolated field values.
-  \param itw Interpolation weights.
-  \param a   The field to interpolate.
-  \param cgp The grid position Array for the column dimension.
-*/
-void interp_poly( VectorView            ia,
-                  ConstMatrixView       itw,
-                  ConstVectorView       a,    
-                  const ArrayOfGridPosPoly& cgp)
-{
-  // Number of point in the sequence:
-  Index n = itw.nrows();
-  // Number of interpolation points (interpolation order plus one):
-  Index m=itw.ncols();
-
-  assert(is_size(cgp,n));       // cgp must have one element for each point.
-  assert(is_size(ia,n));        // ia must have same size as cgp.
-
-  // Check that interpolation weights are valid. The sum of all
-  // weights (last dimension) must always be approximately one. We
-  // only check the first element.
-  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
-                                  1,
-                                  sum_check_epsilon ) );
-  
-  // We have to loop all the points in the sequence:
-  for ( Index i=0; i<n; ++i )
-    {
-      // Current grid positions:
-      const GridPosPoly& tc = cgp[i];
-
-      // Get handle to current element of output vector and initialize
-      // it to zero:
-      Numeric& tia = ia[i];
-      tia = 0;
-
-      Index iti = 0;
-      for ( Index c=0; c<m; ++c )
-        {
-          tia += a[tc.idx+c] * itw(i,iti);
-          ++iti;
-        }
-    }
-}
-
 
 
 
@@ -371,7 +169,7 @@ void interp_poly( VectorView            ia,
 
 //! Macro for interpolation weight loops.
 /*!
-  We use the macro LOOPIT to make the notation for the nested for
+  We use the macro LOOPW to make the notation for the nested for
   loops in the interpweights functions more concise, and to avoid
   typing errors.
 
@@ -384,10 +182,40 @@ void interp_poly( VectorView            ia,
   for ( ConstIterator1D x=tx.w.begin(); x!=tx.w.end(); ++x )
 
 */
-//#define LOOPIT(x) for ( const Numeric* x=&t##x.fd[1]; x>=&t##x.fd[0]; --x )
-//#define LOOPIT(x) for ( Index x=0; x<t##x.w.nelem(); ++x )
-#define LOOPIT(x) for ( ConstIterator1D x=t##x.w.begin(); x!=t##x.w.end(); ++x )
+//#define LOOPW(x) for ( const Numeric* x=&t##x.fd[1]; x>=&t##x.fd[0]; --x )
+//#define LOOPW(x) for ( Index x=0; x<t##x.w.nelem(); ++x )
+#define LOOPW(x) for ( ConstIterator1D x=t##x.w.begin(); x!=t##x.w.end(); ++x )
 
+//! Macro for interpolation index loops.
+/*!
+  This is the same as LOOPW, but for loops over tx.idx. Since tx.idx
+  is an ArrayOfIndex, not a Vector, we have to use a different type of
+  iterator.
+*/
+#define LOOPIDX(x) for (ArrayOfIndex::const_iterator x=t##x.idx.begin(); x!=t##x.idx.end(); ++x)
+
+
+//! Output operator for GridPosPoly.
+/*!
+  This is just intended for testing and debugging.
+  
+  \param os Output stream.
+  \param gp Grid position.
+
+  \return The output stream.
+*/
+ostream& operator<<(ostream& os, const GridPosPoly& gp)
+{
+  os << "idx: " << gp.idx << "\n";
+  os << "w:   " << gp.w   << "\n";
+
+//   cout << "Test iterator:\n";
+//   for (ArrayOfIndex::const_iterator x=gp.idx.begin(); x!=gp.idx.end(); ++x)
+//     cout << *x << ":";
+//   cout << "\n";
+
+  return os;
+}
 
 
 
@@ -424,7 +252,7 @@ void interpweights( VectorView itw,
 
   Index iti = 0;
 
-  LOOPIT(c)
+  LOOPW(c)
     {
       itw[iti] = *c;
       ++iti;
@@ -455,8 +283,8 @@ void interpweights( VectorView itw,
                  tc.w.nelem())); 
   Index iti = 0;
 
-  LOOPIT(r)
-  LOOPIT(c)
+  LOOPW(r)
+  LOOPW(c)
     {
       itw[iti] = (*r) * (*c);
       ++iti;
@@ -491,9 +319,9 @@ void interpweights( VectorView itw,
                                
   Index iti = 0;
 
-  LOOPIT(p)
-  LOOPIT(r)
-  LOOPIT(c)
+  LOOPW(p)
+  LOOPW(r)
+  LOOPW(c)
     {
       itw[iti] = (*p) * (*r) * (*c);
       ++iti;
@@ -531,10 +359,10 @@ void interpweights( VectorView itw,
                                 
   Index iti = 0;
 
-  LOOPIT(b)
-  LOOPIT(p)
-  LOOPIT(r)
-  LOOPIT(c)
+  LOOPW(b)
+  LOOPW(p)
+  LOOPW(r)
+  LOOPW(c)
     {
       itw[iti] = (*b) * (*p) * (*r) * (*c);
       ++iti;
@@ -575,11 +403,11 @@ void interpweights( VectorView itw,
                                 
   Index iti = 0;
 
-  LOOPIT(s)
-  LOOPIT(b)
-  LOOPIT(p)
-  LOOPIT(r)
-  LOOPIT(c)
+  LOOPW(s)
+  LOOPW(b)
+  LOOPW(p)
+  LOOPW(r)
+  LOOPW(c)
     {
       itw[iti] = (*s) * (*b) * (*p) * (*r) * (*c);
       ++iti;
@@ -623,12 +451,12 @@ void interpweights( VectorView itw,
                                 
   Index iti = 0;
 
-  LOOPIT(v)
-  LOOPIT(s)
-  LOOPIT(b)
-  LOOPIT(p)
-  LOOPIT(r)
-  LOOPIT(c)
+  LOOPW(v)
+  LOOPW(s)
+  LOOPW(b)
+  LOOPW(p)
+  LOOPW(r)
+  LOOPW(c)
     {
       itw[iti] = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
       ++iti;
@@ -667,9 +495,9 @@ Numeric interp( ConstVectorView itw,
   Numeric tia = 0;
 
   Index iti = 0;
-  for ( Index c=0; c<2; ++c )
+  LOOPIDX(c)
     {
-      tia += a[tc.idx+c] * itw[iti];
+      tia += a[*c] * itw[iti];
       ++iti;
     }
 
@@ -712,11 +540,11 @@ Numeric interp( ConstVectorView  itw,
   Numeric tia = 0;
 
   Index iti = 0;
-  for ( Index r=0; r<2; ++r )
-    for ( Index c=0; c<2; ++c )
+  LOOPIDX(r)
+    LOOPIDX(c)
       {
-        tia += a(tr.idx+r,
-                 tc.idx+c) * itw[iti];
+        tia += a(*r,
+                 *c) * itw[iti];
         ++iti;
       }
 
@@ -762,13 +590,13 @@ Numeric interp( ConstVectorView  itw,
   Numeric tia = 0;
 
   Index iti = 0;
-  for ( Index p=0; p<2; ++p )
-    for ( Index r=0; r<2; ++r )
-      for ( Index c=0; c<2; ++c )
+  LOOPIDX(p)
+  LOOPIDX(r)
+  LOOPIDX(c)
         {
-          tia += a(tp.idx+p,
-                   tr.idx+r,
-                   tc.idx+c) * itw[iti];
+          tia += a(*p,
+                   *r,
+                   *c) * itw[iti];
           ++iti;
         }
 
@@ -817,15 +645,15 @@ Numeric interp( ConstVectorView  itw,
   Numeric tia = 0;
 
   Index iti = 0;
-  for ( Index b=0; b<2; ++b )
-    for ( Index p=0; p<2; ++p )
-      for ( Index r=0; r<2; ++r )
-        for ( Index c=0; c<2; ++c )
+  LOOPIDX(b)
+  LOOPIDX(p)
+  LOOPIDX(r)
+  LOOPIDX(c)
           {
-            tia += a(tb.idx+b,
-                     tp.idx+p,
-                     tr.idx+r,
-                     tc.idx+c) * itw[iti];
+            tia += a(*b,
+                     *p,
+                     *r,
+                     *c) * itw[iti];
             ++iti;
           }
 
@@ -877,17 +705,17 @@ Numeric interp( ConstVectorView  itw,
   Numeric tia = 0;
 
   Index iti = 0;
-  for ( Index s=0; s<2; ++s )
-    for ( Index b=0; b<2; ++b )
-      for ( Index p=0; p<2; ++p )
-        for ( Index r=0; r<2; ++r )
-          for ( Index c=0; c<2; ++c )
+  LOOPIDX(s)
+  LOOPIDX(b)
+  LOOPIDX(p)
+  LOOPIDX(r)
+  LOOPIDX(c)
             {
-              tia += a(ts.idx+s,
-                       tb.idx+b,
-                       tp.idx+p,
-                       tr.idx+r,
-                       tc.idx+c) * itw[iti];
+              tia += a(*s,
+                       *b,
+                       *p,
+                       *r,
+                       *c) * itw[iti];
               ++iti;
             }
 
@@ -942,19 +770,19 @@ Numeric interp( ConstVectorView  itw,
   Numeric tia = 0;
 
   Index iti = 0;
-  for ( Index v=0; v<2; ++v )
-    for ( Index s=0; s<2; ++s )
-      for ( Index b=0; b<2; ++b )
-        for ( Index p=0; p<2; ++p )
-          for ( Index r=0; r<2; ++r )
-            for ( Index c=0; c<2; ++c )
+  LOOPIDX(v)
+  LOOPIDX(s)
+  LOOPIDX(b)
+  LOOPIDX(p)
+  LOOPIDX(r)
+  LOOPIDX(c)
               {
-                tia += a(tv.idx+v,
-                         ts.idx+s,
-                         tb.idx+b,
-                         tp.idx+p,
-                         tr.idx+r,
-                         tc.idx+c) * itw[iti];
+                tia += a(*v,
+                         *s,
+                         *b,
+                         *p,
+                         *r,
+                         *c) * itw[iti];
                 ++iti;
               }
 
@@ -1023,11 +851,11 @@ void interpweights( MatrixView itw,
       //        }
       //
       // For higher dimensions we have to nest these loops. To avoid
-      // typos and safe typing, I use the LOOPIT macro, which expands
-      // to the for loop above. Note: NO SEMICOLON AFTER THE LOOPIT
+      // typos and safe typing, I use the LOOPW macro, which expands
+      // to the for loop above. Note: NO SEMICOLON AFTER THE LOOPW
       // COMMAND! 
 
-      LOOPIT(c)
+      LOOPW(c)
         {
           itw(i,iti) = *c;
           ++iti;
@@ -1084,8 +912,8 @@ void interpweights( MatrixView itw,
 
       Index iti = 0;
 
-      LOOPIT(r)
-      LOOPIT(c)
+      LOOPW(r)
+      LOOPW(c)
           {
             itw(i,iti) = (*r) * (*c);
             ++iti;
@@ -1139,9 +967,9 @@ void interpweights( MatrixView itw,
       const GridPosPoly& tc = cgp[i];
 
       Index iti = 0;
-      LOOPIT(p)
-      LOOPIT(r)
-      LOOPIT(c)
+      LOOPW(p)
+      LOOPW(r)
+      LOOPW(c)
         {
           itw(i,iti) = (*p) * (*r) * (*c);
           ++iti;
@@ -1200,10 +1028,10 @@ void interpweights( MatrixView itw,
       const GridPosPoly& tc = cgp[i];
 
       Index iti = 0;
-      LOOPIT(b)
-      LOOPIT(p)
-      LOOPIT(r)
-      LOOPIT(c)
+      LOOPW(b)
+      LOOPW(p)
+      LOOPW(r)
+      LOOPW(c)
         {
           itw(i,iti) = (*b) * (*p) * (*r) * (*c);
           ++iti;
@@ -1267,11 +1095,11 @@ void interpweights( MatrixView itw,
       const GridPosPoly& tc = cgp[i];
 
       Index iti = 0;
-      LOOPIT(s)
-      LOOPIT(b)
-      LOOPIT(p)
-      LOOPIT(r)
-      LOOPIT(c)
+      LOOPW(s)
+      LOOPW(b)
+      LOOPW(p)
+      LOOPW(r)
+      LOOPW(c)
         {
           itw(i,iti) = (*s) * (*b) * (*p) * (*r) * (*c);
           ++iti;
@@ -1340,12 +1168,12 @@ void interpweights( MatrixView itw,
       const GridPosPoly& tc = cgp[i];
 
       Index iti = 0;
-      LOOPIT(v)
-      LOOPIT(s)
-      LOOPIT(b)
-      LOOPIT(p)
-      LOOPIT(r)
-      LOOPIT(c)
+      LOOPW(v)
+      LOOPW(s)
+      LOOPW(b)
+      LOOPW(p)
+      LOOPW(r)
+      LOOPW(c)
         {
           itw(i,iti) = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
           ++iti;
@@ -1399,9 +1227,9 @@ void interp( VectorView            ia,
       tia = 0;
 
       Index iti = 0;
-      for ( Index c=0; c<2; ++c )
+      LOOPIDX(c)
         {
-          tia += a[tc.idx+c] * itw(i,iti);
+          tia += a[*c] * itw(i,iti);
           ++iti;
         }
     }
@@ -1462,11 +1290,11 @@ void interp( VectorView            ia,
       tia = 0;
 
       Index iti = 0;
-      for ( Index r=0; r<2; ++r )
-        for ( Index c=0; c<2; ++c )
+      LOOPIDX(r)
+        LOOPIDX(c)
           {
-            tia += a(tr.idx+r,
-                     tc.idx+c) * itw(i,iti);
+            tia += a(*r,
+                     *c) * itw(i,iti);
             ++iti;
           }
     }
@@ -1532,13 +1360,13 @@ void interp( VectorView            ia,
       tia = 0;
 
       Index iti = 0;
-      for ( Index p=0; p<2; ++p )
-        for ( Index r=0; r<2; ++r )
-          for ( Index c=0; c<2; ++c )
+      LOOPIDX(p)
+      LOOPIDX(r)
+      LOOPIDX(c)
             {
-              tia += a(tp.idx+p,
-                       tr.idx+r,
-                       tc.idx+c) * itw(i,iti);
+              tia += a(*p,
+                       *r,
+                       *c) * itw(i,iti);
               ++iti;
             }
     }
@@ -1609,15 +1437,15 @@ void interp( VectorView            ia,
       tia = 0;
 
       Index iti = 0;
-      for ( Index b=0; b<2; ++b )
-        for ( Index p=0; p<2; ++p )
-          for ( Index r=0; r<2; ++r )
-            for ( Index c=0; c<2; ++c )
+      LOOPIDX(b)
+      LOOPIDX(p)
+      LOOPIDX(r)
+      LOOPIDX(c)
               {
-                tia += a(tb.idx+b,
-                         tp.idx+p,
-                         tr.idx+r,
-                         tc.idx+c) * itw(i,iti);
+                tia += a(*b,
+                         *p,
+                         *r,
+                         *c) * itw(i,iti);
                 ++iti;
               }
     }
@@ -1693,17 +1521,17 @@ void interp( VectorView            ia,
       tia = 0;
 
       Index iti = 0;
-      for ( Index s=0; s<2; ++s )
-        for ( Index b=0; b<2; ++b )
-          for ( Index p=0; p<2; ++p )
-            for ( Index r=0; r<2; ++r )
-              for ( Index c=0; c<2; ++c )
+      LOOPIDX(s)
+      LOOPIDX(b)
+      LOOPIDX(p)
+      LOOPIDX(r)
+      LOOPIDX(c)
                 {
-                  tia += a(ts.idx+s,
-                           tb.idx+b,
-                           tp.idx+p,
-                           tr.idx+r,
-                           tc.idx+c) * itw(i,iti);
+                  tia += a(*s,
+                           *b,
+                           *p,
+                           *r,
+                           *c) * itw(i,iti);
                   ++iti;
                 }
     }
@@ -1784,19 +1612,19 @@ void interp( VectorView            ia,
       tia = 0;
 
       Index iti = 0;
-      for ( Index v=0; v<2; ++v )
-        for ( Index s=0; s<2; ++s )
-          for ( Index b=0; b<2; ++b )
-            for ( Index p=0; p<2; ++p )
-              for ( Index r=0; r<2; ++r )
-                for ( Index c=0; c<2; ++c )
+      LOOPIDX(v)
+      LOOPIDX(s)
+      LOOPIDX(b)
+      LOOPIDX(p)
+      LOOPIDX(r)
+      LOOPIDX(c)
                   {
-                    tia += a(tv.idx+v,
-                             ts.idx+s,
-                             tb.idx+b,
-                             tp.idx+p,
-                             tr.idx+r,
-                             tc.idx+c) * itw(i,iti);
+                    tia += a(*v,
+                             *s,
+                             *b,
+                             *p,
+                             *r,
+                             *c) * itw(i,iti);
                     ++iti;
                   }
     }
@@ -1859,8 +1687,8 @@ void interpweights( Tensor3View itw,
 
           Index iti = 0;
 
-          LOOPIT(r)
-            LOOPIT(c)
+          LOOPW(r)
+            LOOPW(c)
             {
               itw(ir,ic,iti) = (*r) * (*c);
               ++iti;
@@ -1919,9 +1747,9 @@ void interpweights( Tensor4View itw,
 
               Index iti = 0;
 
-              LOOPIT(p)
-                LOOPIT(r)
-                LOOPIT(c)
+              LOOPW(p)
+                LOOPW(r)
+                LOOPW(c)
                 {
                   itw(ip,ir,ic,iti) =
                     (*p) * (*r) * (*c);
@@ -1989,10 +1817,10 @@ void interpweights( Tensor5View itw,
 
                   Index iti = 0;
 
-                  LOOPIT(b)
-                    LOOPIT(p)
-                    LOOPIT(r)
-                    LOOPIT(c)
+                  LOOPW(b)
+                    LOOPW(p)
+                    LOOPW(r)
+                    LOOPW(c)
                     {
                       itw(ib,ip,ir,ic,iti) =
                         (*b) * (*p) * (*r) * (*c);
@@ -2068,11 +1896,11 @@ void interpweights( Tensor6View itw,
 
                       Index iti = 0;
 
-                      LOOPIT(s)
-                        LOOPIT(b)
-                        LOOPIT(p)
-                        LOOPIT(r)
-                        LOOPIT(c)
+                      LOOPW(s)
+                        LOOPW(b)
+                        LOOPW(p)
+                        LOOPW(r)
+                        LOOPW(c)
                         {
                           itw(is,ib,ip,ir,ic,iti) =
                             (*s) * (*b) * (*p) * (*r) * (*c);
@@ -2156,12 +1984,12 @@ void interpweights( Tensor7View itw,
 
                           Index iti = 0;
 
-                          LOOPIT(v)
-                            LOOPIT(s)
-                            LOOPIT(b)
-                            LOOPIT(p)
-                            LOOPIT(r)
-                            LOOPIT(c)
+                          LOOPW(v)
+                            LOOPW(s)
+                            LOOPW(b)
+                            LOOPW(p)
+                            LOOPW(r)
+                            LOOPW(c)
                             {
                               itw(iv,is,ib,ip,ir,ic,iti) =
                                 (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
@@ -2234,11 +2062,11 @@ void interp( MatrixView            ia,
           tia = 0;
 
           Index iti = 0;
-          for ( Index r=0; r<2; ++r )
-            for ( Index c=0; c<2; ++c )
+          LOOPIDX(r)
+          LOOPIDX(c)
             {
-              tia += a(tr.idx+r,
-                       tc.idx+c) * itw(ir,ic,iti);
+              tia += a(*r,
+                       *c) * itw(ir,ic,iti);
               ++iti;
             }
         }
@@ -2311,13 +2139,13 @@ void interp( Tensor3View           ia,
               tia = 0;
 
               Index iti = 0;
-              for ( Index p=0; p<2; ++p )
-                for ( Index r=0; r<2; ++r )
-                  for ( Index c=0; c<2; ++c )
+              LOOPIDX(p)
+              LOOPIDX(r)
+              LOOPIDX(c)
                     {
-                      tia += a(tp.idx+p,
-                               tr.idx+r,
-                               tc.idx+c) * itw(ip,ir,ic,
+                      tia += a(*p,
+                               *r,
+                               *c) * itw(ip,ir,ic,
                                                iti);
                       ++iti;
                     }
@@ -2399,15 +2227,15 @@ void interp( Tensor4View           ia,
                   tia = 0;
 
                   Index iti = 0;
-                  for ( Index b=0; b<2; ++b )
-                    for ( Index p=0; p<2; ++p )
-                      for ( Index r=0; r<2; ++r )
-                        for ( Index c=0; c<2; ++c )
+                  LOOPIDX(b)
+                  LOOPIDX(p)
+                  LOOPIDX(r)
+                  LOOPIDX(c)
                           {
-                            tia += a(tb.idx+b,
-                                     tp.idx+p,
-                                     tr.idx+r,
-                                     tc.idx+c) * itw(ib,ip,ir,ic,
+                            tia += a(*b,
+                                     *p,
+                                     *r,
+                                     *c) * itw(ib,ip,ir,ic,
                                                      iti);
                             ++iti;
                           }
@@ -2497,17 +2325,17 @@ void interp( Tensor5View           ia,
                       tia = 0;
 
                       Index iti = 0;
-                      for ( Index s=0; s<2; ++s )
-                        for ( Index b=0; b<2; ++b )
-                          for ( Index p=0; p<2; ++p )
-                            for ( Index r=0; r<2; ++r )
-                              for ( Index c=0; c<2; ++c )
+                      LOOPIDX(s)
+                      LOOPIDX(b)
+                      LOOPIDX(p)
+                      LOOPIDX(r)
+                      LOOPIDX(c)
                                 {
-                                  tia += a(ts.idx+s,
-                                           tb.idx+b,
-                                           tp.idx+p,
-                                           tr.idx+r,
-                                           tc.idx+c) * itw(is,ib,ip,ir,ic,
+                                  tia += a(*s,
+                                           *b,
+                                           *p,
+                                           *r,
+                                           *c) * itw(is,ib,ip,ir,ic,
                                                            iti);
                                   ++iti;
                                 }
@@ -2605,19 +2433,19 @@ void interp( Tensor6View           ia,
                           tia = 0;
 
                           Index iti = 0;
-                          for ( Index v=0; v<2; ++v )
-                            for ( Index s=0; s<2; ++s )
-                              for ( Index b=0; b<2; ++b )
-                                for ( Index p=0; p<2; ++p )
-                                  for ( Index r=0; r<2; ++r )
-                                    for ( Index c=0; c<2; ++c )
+                          LOOPIDX(v)
+                          LOOPIDX(s)
+                          LOOPIDX(b)
+                          LOOPIDX(p)
+                          LOOPIDX(r)
+                          LOOPIDX(c)
                                       {
-                                        tia += a(tv.idx+v,
-                                                 ts.idx+s,
-                                                 tb.idx+b,
-                                                 tp.idx+p,
-                                                 tr.idx+r,
-                                                 tc.idx+c) * itw(iv,is,ib,ip,ir,ic,
+                                        tia += a(*v,
+                                                 *s,
+                                                 *b,
+                                                 *p,
+                                                 *r,
+                                                 *c) * itw(iv,is,ib,ip,ir,ic,
                                                                  iti);
                                         ++iti;
                                       }

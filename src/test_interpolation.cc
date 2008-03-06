@@ -483,24 +483,77 @@ void test07()
    cout << "y3_cub = ["<< y3_cub << "];\n";
 
    // Stefan's new polynomial interpolation routines:
+   Index order = 2;
+
    Vector y1_new(new_x.nelem());
    Vector y2_new(new_x.nelem());
    Vector y3_new(new_x.nelem());
 
    ArrayOfGridPosPoly gpp(new_x.nelem());
-   gridpos_poly(gpp, x, new_x, 2);   
-   Matrix itwp;
-   interpweights_poly(itwp, gpp);
+   gridpos_poly(gpp, x, new_x, order);   
+   Matrix itwp(new_x.nelem(), order+1);
+   interpweights(itwp, gpp);
 
-   interp_poly(y1_new, itwp, y1, gpp);
-   interp_poly(y2_new, itwp, y2, gpp);
-   interp_poly(y3_new, itwp, y3, gpp);
+   interp(y1_new, itwp, y1, gpp);
+   interp(y2_new, itwp, y2, gpp);
+   interp(y3_new, itwp, y3, gpp);
 
    cout << "y1_new = ["<< y1_new << "];\n";
    cout << "y2_new = ["<< y2_new << "];\n";
    cout << "y3_new = ["<< y3_new << "];\n";
 }
    
+void test08()
+{
+  cout << "Very simple interpolation case for the new higher order polynomials.\n";
+
+  Vector og(1,5,+1);            // 1, 2, 3, 4, 5
+  Vector ng(2,5,0.25);          // 2.0, 2,25, 2.5, 2.75, 3.0
+
+  cout << "Original grid:\n" << og << "\n";
+  cout << "New grid:\n" << ng << "\n";
+
+  // To store the grid positions:
+  ArrayOfGridPosPoly gp(ng.nelem());
+
+  Index order=2;                // Interpolation order.
+
+  gridpos_poly(gp,og,ng,order);
+  cout << "Grid positions:\n" << gp;
+
+  // To store interpolation weights:
+  Matrix itw(gp.nelem(),order+1);
+  interpweights(itw,gp);
+    
+  cout << "Interpolation weights:\n" << itw << "\n";
+
+  // Original field:
+  Vector of(og.nelem(),0);
+  of[2] = 10;                   // 0, 0, 10, 0, 0
+
+  cout << "Original field:\n" << of << "\n";
+
+  // Interpolated field:
+  Vector nf(ng.nelem());
+
+  interp(nf, itw, of, gp);
+
+  cout << "New field (order=" << order << "):\n" << nf << "\n";  
+
+  cout << "All orders systematically:\n";
+  for (order=1; order<5; ++order)
+    {
+      gridpos_poly(gp,og,ng,order);
+      itw.resize(gp.nelem(),order+1);
+      interpweights(itw,gp);
+      interp(nf, itw, of, gp);
+
+      cout << "order " << order << ": ";
+      for (Index i=0; i<nf.nelem(); ++i)
+        cout << setw(8) << nf[i] << " ";
+      cout << "\n";
+    }
+}
 
 int main()
 {
