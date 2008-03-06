@@ -609,6 +609,149 @@ page 2:
 \end{verbatim}
 }
 
+
+\section{Higher order interpolation}
+%----------------------------------------------------------------------
+
+Everything that was written so far in this chapter referred to linear
+interpolation, which uses 2 neighboring data points in the 1D
+case. But ARTS has also a framework for higher order polynomial
+interpolation. It is defined in the two files
+
+\begin{itemize}
+\item \artsstyle{interpolation\_poly.h}
+\item \artsstyle{interpolation\_poly.cc}
+\end{itemize}
+
+We define interpolation order $O$ as the order of the polynomial that
+is used. Linear interpolation, the ARTS standard case, corresponds to
+$O=1$. $O=2$ is quadratic interpolation, $O=3$ cubic interpolation.
+The number of interpolation points (and weights) for a 1D
+interpolation is $O+1$ for each point in the new grid. So, linear
+interpolation uses 2 points, quadratic 3, and cubic 4.
+
+Note, that if you use even interpolation orders, you will have an
+unequal number of interpolation points `to the left' and `to the
+right' of your new point. This is an argument for preferring $O=3$ as the
+basic higher order polynomial interpolation, instead of $O=2$.
+
+Overall, higher order interpolation works rather similarly to the
+linear case.  The main difference is that grid positions for higher
+order interpolation are stored in an object of type
+\artsstyle{GridPosPoly}, instead of \artsstyle{GridPos}. A
+\artsstyle{GridPosPoly} object contains grid indices and interpolation
+weights for all interpolation points. For each point in the new grid,
+there are $O+1$ indices and $O+1$ weights.
+
+The reason
+why we store all interpolation point indices, and not only the index
+of the first point, is to allow correct handling of circular
+interpolation, for example in scattering phase function $\phi$
+angle. If the angle goes from 0 to 360$^\circ$, then points just below
+360 should be used in interpolations to points just above 0, so the
+indices to use are not contiguous in memory. Functions to handle this
+are not yet implemented, but this should be a relatively simple matter.
+
+In contrast to \artsstyle{GridPos}, \artsstyle{GridPosPoly} stores
+weights \artsstyle{w} rather than fractional distances \artsstyle{fd}.
+For the linear case:
+\begin{verbatim}
+  w[0] = fd[1]
+  w[1] = fd[0]
+\end{verbatim}
+
+So the two concepts are almost the same.  Because the w are associated
+with each interpolation point, they work also for higher interpolation
+order, whereas the concept of fractional distance does not.
+
+The weights are calculated according to 
+section 3.1, eq. 3.1.1 of \citep{numerical_recipes_C:97}. These are
+for the 1D case. For 2D and higher dimensional cases, the weights of
+the individual dimensions have to be multiplied, just as in the linear
+interpolation case.
+
+Instead of \artsstyle{gridpos}, you have to use the function
+\artsstyle{gridpos\_poly} for higher order interpolation. It works
+exactly like \artsstyle{gridpos}, but has an additional argument that
+gives the interpolation order $O$. 
+
+After setting up the \artsstyle{GridPosPoly} object with
+\artsstyle{gridpos\_poly}, you have to call \artsstyle{interpweights}
+and \artsstyle{interp}, exactly as in the linear case. (The actual
+functions used are not the same, since the name is overloaded. The
+\artsstyle{interpweights} and \artsstyle{interp} functions for use
+with \artsstyle{GridPosPoly} are implemented in
+\artsstyle{interpolation\_poly.cc}.) So, a complete interpolation chain
+involves:
+
+\begin{verbatim}
+gridpos_poly
+interpweights
+interp
+\end{verbatim}
+
+For $O=1$ the result of the
+interpolation chain will be the same as for the linear interpolation
+routines. Below is a simple complete example, taken from
+the file \artsstyle{test\_interpolation.cc} in the arts source directory: 
+
+\begin{verbatim}
+void test08()
+{
+  cout << "Very simple interpolation case for the "
+       << "new higher order polynomials.\n";
+
+  Vector og(1,5,+1);            // 1, 2, 3, 4, 5
+  Vector ng(2,5,0.25);          // 2.0, 2,25, 2.5, 2.75, 3.0
+
+  cout << "Original grid:\n" << og << "\n";
+  cout << "New grid:\n" << ng << "\n";
+
+  // To store the grid positions:
+  ArrayOfGridPosPoly gp(ng.nelem());
+
+  Index order=2;                // Interpolation order.
+
+  gridpos_poly(gp,og,ng,order);
+  cout << "Grid positions:\n" << gp;
+
+  // To store interpolation weights:
+  Matrix itw(gp.nelem(),order+1);
+  interpweights(itw,gp);
+    
+  cout << "Interpolation weights:\n" << itw << "\n";
+
+  // Original field:
+  Vector of(og.nelem(),0);
+  of[2] = 10;                   // 0, 0, 10, 0, 0
+
+  cout << "Original field:\n" << of << "\n";
+
+  // Interpolated field:
+  Vector nf(ng.nelem());
+
+  interp(nf, itw, of, gp);
+
+  cout << "New field (order=" << order << "):\n" << nf << "\n";  
+
+  cout << "All orders systematically:\n";
+  for (order=1; order<5; ++order)
+    {
+      gridpos_poly(gp,og,ng,order);
+      itw.resize(gp.nelem(),order+1);
+      interpweights(itw,gp);
+      interp(nf, itw, of, gp);
+
+      cout << "order " << order << ": ";
+      for (Index i=0; i<nf.nelem(); ++i)
+        cout << setw(8) << nf[i] << " ";
+      cout << "\n";
+    }
+}
+\end{verbatim}
+
+
+
 \section{Summary}
 %----------------------------------------------------------------------
 
@@ -616,18 +759,18 @@ Now you probably understand better what was written at the very
 beginning of this chapter, namely that doing an interpolation always
 requires the chain of function calls:
 \begin{enumerate}
-\item \artsstyle{gridpos} (one for each interpolation dimension)
+\item \artsstyle{gridpos} or \artsstyle{gridpos\_poly} (one for each interpolation dimension)
 \item \artsstyle{interpweights}
 \item \artsstyle{interp}
 \end{enumerate}
 If you are interested in how the functions really work, look in file
-\artsstyle{interpolation.cc}. The documentation there is quite detailed.
-When you are using interpolation, you should always give some thought
-to whether you can re-use grid positions or even interpolation
-weights. This can really save you a lot of computation time. For
-example, if you want to interpolate several fields --- which are all
-on the same grids --- to some position, you only have to compute the
-weights once.
+\artsstyle{interpolation.cc} or \artsstyle{interpolation\_poly.cc}.
+The documentation there is quite detailed.  When you are using
+interpolation, you should always give some thought to whether you can
+re-use grid positions or even interpolation weights. This can really
+save you a lot of computation time. For example, if you want to
+interpolate several fields --- which are all on the same grids --- to
+some position, you only have to compute the weights once.
 
 
 %%% Local Variables: 

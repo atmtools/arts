@@ -505,7 +505,8 @@ void test07()
    
 void test08()
 {
-  cout << "Very simple interpolation case for the new higher order polynomials.\n";
+  cout << "Very simple interpolation case for the "
+       << "new higher order polynomials.\n";
 
   Vector og(1,5,+1);            // 1, 2, 3, 4, 5
   Vector ng(2,5,0.25);          // 2.0, 2,25, 2.5, 2.75, 3.0
@@ -557,5 +558,5 @@ void test08()
 
 int main()
 {
-  test07();
+  test08();
 }
