@@ -289,7 +289,7 @@ int main()
                   align(ofs,is_first_parameter,indent);
 
                   ofs << "Workspace::wsv_data[mr.Input()["
-                    << j
+                    << j+vi.nelem()
                     << "]].Name()";
                 }
             }
