@@ -26,6 +26,13 @@
 #include "workspace_ng.h"
 
 
+/** Constructs a new parser.
+
+    \param[out] tasklist    Method list read from the controlfile.
+    \param[in]  controlfile Path to the controlfile.
+
+    \author Oliver Lemke
+*/
 ArtsParser::ArtsParser(Agenda& tasklist, String controlfile)
   : mtasklist (tasklist), mcfile (controlfile), mcfile_version (1)
 {
@@ -33,6 +40,10 @@ ArtsParser::ArtsParser(Agenda& tasklist, String controlfile)
 }
 
 
+/** Public interface to the main function of the parser.
+
+    \author Oliver Lemke
+*/
 void ArtsParser::parse_tasklist ()
 {
   parse_main ();
@@ -43,7 +54,7 @@ void ArtsParser::parse_tasklist ()
     text. FIXME: Add more documentation here.
 
     \author Stefan Buehler, Oliver Lemke
-    */
+*/
 void ArtsParser::parse_main()
 {
   try 
@@ -61,12 +72,16 @@ void ArtsParser::parse_main()
       // For include statements, holding the include file's name
       String include_file;
 
+      ArrayOfIndex  auto_vars;
+      Array<TokVal> auto_vars_values;
+
       out3 << "\nParsing control text:\n";
 
       msource.Init();
       eat_whitespace();
 
-      parse_method(id,values,output,input,mtasklist, include_file,true);
+      parse_method(id,values,output,input,mtasklist,auto_vars,auto_vars_values,
+                   include_file,true);
           
       if ( "Arts" != md_data[id].Name() &&  "Arts2" != md_data[id].Name() )
         {
@@ -111,7 +126,7 @@ void ArtsParser::parse_main()
       out0 << x.what()   << '\n';
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
-      out3 << "Column: " << x.column() << '\n';
+      out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
   catch (const UnknownWsv x)
@@ -123,7 +138,7 @@ void ArtsParser::parse_main()
       out0 << x.what()   << '\n';
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
-      out3 << "Column: " << x.column() << '\n';
+      out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
   catch (const WrongWsvGroup x)
@@ -135,7 +150,7 @@ void ArtsParser::parse_main()
       out0 << x.what()   << '\n';
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
-      out3 << "Column: " << x.column() << '\n';
+      out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
   catch (const UnexpectedKeyword x)
@@ -147,7 +162,7 @@ void ArtsParser::parse_main()
       out0 << x.what()   << '\n';
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
-      out3 << "Column: " << x.column() << '\n';
+      out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
   catch (const ParseError x)
@@ -157,10 +172,11 @@ void ArtsParser::parse_main()
       out0 << x.what()   << '\n';
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
-      out3 << "Column: " << x.column() << '\n';
+      out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
 }
+
 
 /** Parse the Contents of text as ARTS control input. 
   
@@ -168,13 +184,14 @@ void ArtsParser::parse_main()
     curly braces of an agenda method. So the end is marked by a
     closing curly brace ahead.
 
-    \param tasklist Output. The ids and keyword parameter values for the
-                    methods to run.
+    \param[out] tasklist The ids and keyword parameter values for the
+                         methods to run.
   
     \see eat_whitespace
     \see parse_method
           
-    \author Stefan Buehler */
+    \author Stefan Buehler
+*/
 void ArtsParser::parse_agenda( Agenda& tasklist )
 {
   extern const Array<MdRecord> md_data;
@@ -187,16 +204,20 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
   ArrayOfIndex output;          
   // Input workspace variables:
   ArrayOfIndex input;
-  // For Agenda, if ther is any:
+  // For Agenda, if there is any:
   Agenda tasks;
   // For include statements, holding the include file's name
   String include_file;
+
+  ArrayOfIndex  auto_vars;
+  Array<TokVal> auto_vars_values;
 
   eat_whitespace();
 
   while ( '}' != msource.Current() )
     {
-      parse_method(id,values,output,input,tasks,include_file);
+      parse_method(id,values,output,input,tasks,
+                   auto_vars,auto_vars_values,include_file);
 
       // If parse_method found an include statement it returnes -1 for the
       // method id
@@ -226,45 +247,49 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
         }
       else
         {
-          // Append taks to task list:      
+          tasklist_insert_set_delete(auto_vars, auto_vars_values, 0, tasklist);
+
+          // Append task to task list:      
           tasklist.push_back(MRecord(id,values,output,input,tasks));
 
-            {
-              // Everything in this block is just to generate some
-              // informative output.  
+          tasklist_insert_set_delete(auto_vars, auto_vars_values, 1, tasklist);
 
-              out3 << "- " << md_data[id].Name() << "\n";
+          {
+            // Everything in this block is just to generate some
+            // informative output.  
 
-              for ( Index j=0 ; j<values.nelem() ; ++j )
-                {
-                  out3 << "   " 
-                    << md_data[id].Keywords()[j] << ": "
-                    << values[j] << '\n';
-                }
+            out3 << "- " << md_data[id].Name() << "\n";
 
-              // Output workspace variables for generic methods:
-              if ( 0 < md_data[id].GOutput().nelem()
-                       + md_data[id].GInput().nelem() )
-                {
-                  out3 << "   Output: ";
-                  for ( Index j=0 ; j<output.nelem() ; ++j )
-                    {
-                      out3 << Workspace::wsv_data[output[j]].Name() << " ";
-                    }
-                  out3 << "\n";
+            for ( Index j=0 ; j<values.nelem() ; ++j )
+              {
+                out3 << "   " 
+                  << md_data[id].Keywords()[j] << ": "
+                  << values[j] << '\n';
+              }
 
-                  out3 << "   Input: ";
-                  for ( Index j=0 ; j<input.nelem() ; ++j )
-                    {
-                      out3 << Workspace::wsv_data[input[j]].Name() << " ";
-                    }
-                  out3 << "\n";
-                }
-            }
+            // Output workspace variables for generic methods:
+            if ( 0 < md_data[id].GOutput().nelem()
+                 + md_data[id].GInput().nelem() )
+              {
+                out3 << "   Output: ";
+                for ( Index j=0 ; j<output.nelem() ; ++j )
+                  {
+                    out3 << Workspace::wsv_data[output[j]].Name() << " ";
+                  }
+                out3 << "\n";
+
+                out3 << "   Input: ";
+                for ( Index j=0 ; j<input.nelem() ; ++j )
+                  {
+                    out3 << Workspace::wsv_data[input[j]].Name() << " ";
+                  }
+                out3 << "\n";
+              }
+          }
         }
 
       eat_whitespace();
-    }
+    } 
 }
 
 
@@ -277,6 +302,8 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
   \param[out]    output       Output workspace variables (for generic methods).
   \param[out]    input        Input workspace variables (for generic methods).
   \param[out]    tasks        A list of other methods.
+  \param[out]    auto_vars    Indexes of automatically created variables.
+  \param[out]    auto_vars_values    Values of automatically created variables.
   \param[out]    include_file The input to parse.
   \param[in]     no_eot       Suppress throwing an error on EOT after the
                               closing curly brace.
@@ -296,13 +323,16 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
   \exception WrongWsvGroup
   \exception UnexpectedKeyword
 
-  \author Stefan Buehler  */
+  \author Stefan Buehler
+*/
 void ArtsParser::parse_method(Index& id, 
                               Array<TokVal>& values,
-                              ArrayOfIndex& output,
-                              ArrayOfIndex& input,
-                              Agenda&       tasks,
-                              String&       include_file,
+                              ArrayOfIndex&  output,
+                              ArrayOfIndex&  input,
+                              Agenda&        tasks,
+                              ArrayOfIndex&  auto_vars,
+                              Array<TokVal>& auto_vars_values,
+                              String&        include_file,
                               bool no_eot)
 {
   String methodname;            // We need this out here, since it is
@@ -319,6 +349,9 @@ void ArtsParser::parse_method(Index& id,
   output.resize( 0 );
   input.resize(  0 );
   tasks.resize(  0 );
+  auto_vars.resize(  0 );
+  auto_vars_values.resize(  0 );
+  include_file = "";
   
   read_name(methodname);
 
@@ -342,7 +375,8 @@ void ArtsParser::parse_method(Index& id,
 
       eat_whitespace();
 
-      parse_output_and_input(mdd, id, methodname, values, output, input);
+      parse_output_and_input(mdd, id, methodname, values, output, input,
+                             auto_vars, auto_vars_values);
 
       // Now look for the curly braces:
       if (msource.Current() == '{')
@@ -888,6 +922,8 @@ void ArtsParser::parse_keywords2(const MdRecord* mdd,
   \param[out] values     Keyword values
   \param[out] output     Output WSVs
   \param[out] input      Input WSVs
+  \param[out] auto_vars  Indexes of automatically created variables.
+  \param[out] auto_vars_values    Values of automatically created variables.
 
   \author Oliver Lemke
   \date   2008-03-05
@@ -897,7 +933,9 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
                                         String&          methodname,
                                         Array<TokVal>&   values,
                                         ArrayOfIndex&    output,
-                                        ArrayOfIndex&    input)
+                                        ArrayOfIndex&    input,
+                                        ArrayOfIndex&    auto_vars,
+                                        Array<TokVal>&   auto_vars_values)
 {
   extern const map<String, Index> MdRawMap;
   extern const Array<MdRecord> md_data;
@@ -993,9 +1031,15 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
               Workspace::WsvMap.find(wsvname);
             if ( wsvit == Workspace::WsvMap.end() )
               {
-                if (mcfile_version == 1 || still_supergeneric)
+                if (still_supergeneric)
                   {
-                    throw UnknownWsv( wsvname,
+                    ostringstream os;
+                    os << "This might be either a typo or you have to create "
+                      << "the variable\nby calling TYPECreate(" << wsvname
+                      << ") first. Replace TYPE with the\n"
+                      << "WSV group your variable should belong to.";
+
+                    throw UnknownWsv( os.str(),
                                       msource.File(),
                                       msource.Line(),
                                       msource.Column() );
@@ -1063,7 +1107,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
       if (mcfile_version == 2 && mdd->Input().nelem())
         {
           // Parse all input variables
-          parse_input(mdd, input, first);
+          parse_input(mdd, input, auto_vars, auto_vars_values, first);
           first = false;
         }
       else
@@ -1090,7 +1134,13 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
               eat_whitespace();
             }
 
-          read_name(wsvname);
+          {
+            ostringstream os;
+            os << j;
+            read_name_or_value(wsvname, auto_vars, auto_vars_values,
+                               "generic" + os.str(),
+                               mdd, mdd->GInput()[j]);
+          }
 
           {
             // Find Wsv id:
@@ -1171,10 +1221,10 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
                 {
                   parse_output(mdd, output, first);
                   if (mdd->Input().nelem())
-                    parse_input(mdd, input, first);
+                    parse_input(mdd, input, auto_vars, auto_vars_values, first);
                 }
               else if (mdd->Input().nelem())
-                parse_input(mdd, input, first);
+                parse_input(mdd, input, auto_vars, auto_vars_values, first);
 
               parse_keywords2(mdd, values, first);
             }
@@ -1216,7 +1266,11 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
   \author Oliver Lemke
   \date   2008-03-05
   */
-void ArtsParser::parse_input(const MdRecord* mdd, ArrayOfIndex& input, bool& first)
+void ArtsParser::parse_input(const MdRecord*      mdd,
+                                   ArrayOfIndex&  input,
+                                   ArrayOfIndex&  auto_vars,
+                                   Array<TokVal>& auto_vars_values,
+                                   bool&          first)
 {
   extern const ArrayOfString wsv_group_names;
 
@@ -1249,7 +1303,9 @@ void ArtsParser::parse_input(const MdRecord* mdd, ArrayOfIndex& input, bool& fir
           eat_whitespace();
         }
 
-      read_name(wsvname);
+      read_name_or_value(wsvname, auto_vars, auto_vars_values,
+                         Workspace::wsv_data[*ins].Name(),
+                         mdd, Workspace::wsv_data[*ins].Group());
 
       {
         // Find Wsv id:
@@ -1369,6 +1425,90 @@ void ArtsParser::parse_output(const MdRecord* mdd, ArrayOfIndex& output, bool& f
 }
 
 
+/** Insert Set and Delete methods for automatically allocated output WSVs.
+
+    This function inserts either a bunch of Set or Delete methods for
+    implicitly allocated output WSVs. This needs to be done if the controlfile contains
+    a value instead of an output variable name.
+
+    \see ArtsParser::parse_agenda
+
+    \param[in]  auto_vars        Indexes of automatically created variables.
+    \param[in]  auto_vars_values Values of automatically created variables.
+    \param[in]  method_type      0 = insert Set method, 1 = insert Delete method.
+    \param[out] tasklist         Agenda to which the methods should be appended.
+*/
+void ArtsParser::tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
+                                            const Array<TokVal>& auto_vars_values,
+                                            const Index          method_type,
+                                                  Agenda&        tasklist)
+{
+  extern const map<String, Index> MdMap;
+  extern const ArrayOfString wsv_group_names;
+
+  for (Index i=0; i<auto_vars.nelem(); i++)
+    {
+      map<String, Index>::const_iterator mdit;
+      Index         init_mdid;
+      Array<TokVal> auto_var_value;
+      ArrayOfIndex  auto_output_var;
+      ArrayOfIndex  auto_input_var;
+      Agenda        auto_tasks;
+
+      switch(Workspace::wsv_data[auto_vars[i]].Group())
+        {
+        case ArrayOfIndex_:
+          throw runtime_error("Not yet implement!!!!!!!!!");
+          break;
+        case ArrayOfString_:
+          throw runtime_error("Not yet implement!!!!!!!!!");
+          break;
+        case Index_:
+          // Find explicit method id in MdMap:
+          break;
+        case Numeric_:
+          // Find explicit method id in MdMap:
+          break;
+        case String_:
+          // Find explicit method id in MdMap:
+          break;
+        case Vector_:
+          throw runtime_error("Not yet implemented!!!!!!!!!");
+          break;
+        default:
+          throw runtime_error("Unknown type!!!!!!!!!");
+        }
+
+      String method_name;
+      switch (method_type)
+        {
+        case 0:
+          auto_var_value.push_back(auto_vars_values[i]);
+          auto_output_var.push_back(auto_vars[i]);
+          method_name = wsv_group_names[Workspace::wsv_data[auto_vars[i]].Group()] + "Set";
+          break;
+        case 1:
+          auto_input_var.push_back(auto_vars[i]);
+          method_name = "Delete_sg_" + wsv_group_names[Workspace::wsv_data[auto_vars[i]].Group()];
+          break;
+        default:
+          throw runtime_error("Invalid method_type");
+        }
+
+      cout << "!!!!!!!!!" << method_name << endl;
+      mdit = MdMap.find(method_name);
+      assert ( mdit != MdMap.end() );
+      init_mdid = mdit->second;         
+
+      cout << "!!!!!!!!" << Workspace::wsv_data[auto_vars[i]].Name() << endl;
+
+      tasklist.push_back(MRecord(init_mdid, auto_var_value,
+                                 auto_output_var, auto_input_var,
+                                 auto_tasks));
+    }
+}
+
+
 /** Returns true if this character is considered whitespace. This
     includes the comment sign `\#'. This function is used by other
     functions to test for delimiting whitespace. 
@@ -1451,11 +1591,24 @@ void ArtsParser::eat_whitespace_from_string(String& str, size_t& pos)
     Line break or any other character ends the name.
   
     Whitespace has to have been eaten before. Scanns source for the
-    name, starting at position specified by line and column. */
+    name, starting at position specified by line and column.
+    
+    \param[out] name Method, keyword or WSV name
+*/
 void ArtsParser::read_name(String& name)
 {
   bool stop = false;
   name = "";
+
+  if (!isalpha(msource.Current()))
+    {
+      ostringstream os;
+      os << "Workspace variable names must start with a letter!";
+      throw ParseError( os.str(),
+                        msource.File(),
+                        msource.Line(),
+                        msource.Column() );
+    }
 
   while (!stop) 
     {
@@ -1476,6 +1629,119 @@ void ArtsParser::read_name(String& name)
     }
 
   //  cout << "Name: " << name << '\n';
+}
+
+
+/** Reads name of a workspace variable or a value.
+  
+    These names may consist only of letters (case matters!), numbers, and
+    underscores.
+    Line break or any other character ends the name.
+  
+    Whitespace has to have been eaten before. Scanns source for the
+    name, starting at position specified by line and column.
+
+    \param[out] name  WSV name or value
+    \param[in]  group Expected WSV group index
+    
+    \return -1 If a WSV name was found or the index of the newly created
+               WSV
+*/
+Index ArtsParser::read_name_or_value(      String&        name,
+                                           ArrayOfIndex&  auto_vars,
+                                           Array<TokVal>& auto_vars_values,
+                                     const String&        default_name,
+                                     const MdRecord*      mdd,
+                                     const Index          group)
+{
+  name = "";
+
+  if (isalpha(msource.Current()))
+    {
+      read_name(name);
+      return -1;
+    }
+
+  if (group == Any_) 
+    {
+      ostringstream os;
+      os << "Passing constants as supergeneric parameters is not yet supported.";
+      throw ParseError (os.str (),
+                        msource.File(),
+                        msource.Line(),
+                        msource.Column());
+    }
+
+  // If a value was given instead of a variable name, we create
+  // a new variable in the workspace and fill it with the given
+  // value
+
+  Index wsvid;
+
+  name = "auto_" + mdd->Name() + "_" + default_name;
+  map<String, Index>::const_iterator wsvit = Workspace::WsvMap.find(name);
+  if (wsvit == Workspace::WsvMap.end())
+    {
+      wsvid = Workspace::add_wsv(WsvRecord(name.c_str(),
+                                           "Automatically allocated variable.",
+                                           group,
+                                           true));
+    }
+  else
+    {
+      wsvid = wsvit->second;
+    }
+
+  auto_vars.push_back(wsvid);
+
+  // Now parse the value. This can be:
+  // String_, Index_, Numeric_, Array_String_, Array_Index_, Vector_
+  switch (group) 
+    {
+    case String_:
+        {
+          String dummy;
+          parse_String(dummy);
+          auto_vars_values.push_back(dummy);
+          break;
+        }
+    case Index_:
+        {
+          Index n;
+          parse_integer(n);
+          auto_vars_values.push_back(n);
+          break;
+        }
+    case Numeric_:
+        {
+          Numeric n;
+          parse_numeric(n);
+          break;
+        }
+    case ArrayOfString_:
+        {
+          ArrayOfString dummy;
+          parse_Stringvector(dummy);
+          break;
+        }
+    case ArrayOfIndex_:
+        {
+          ArrayOfIndex dummy;
+          parse_intvector(dummy);
+          break;
+        }
+    case Vector_:
+        {
+          Vector dummy;
+          parse_numvector(dummy);
+          break;
+        }
+    default:
+      cerr << "Impossible parameter type.\n";
+      arts_exit(EXIT_FAILURE);
+    }
+
+  return wsvid;
 }
 
 

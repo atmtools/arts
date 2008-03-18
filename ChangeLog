@@ -1,3 +1,107 @@
+2008-03-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-3-23
+
+	* IMPORTANT: In rare cases, the changes in this commit might break your
+	controlfiles. This only happens if you have used one of the following
+	variables as a supergeneric output:
+
+	arrayofarrayofgriddedfield3_1
+	arrayofmatrix_[12]
+	arrayofstring_1
+	index_1
+	matrix_[12]
+	numeric_[12]
+	sparse_1,
+	tensor[3456]_[123]
+	vector_[123]
+
+	If this is the case for you, please read on.
+
+	* Continued work on the automatic creation of output WSVs. For
+	supergeneric methods we don't know which type the output variable
+	should have if it doesn't already exist. For this purpose, Create
+	functions for the most commonly used types have been added.
+
+	All workspace variables ending in _[1-3] like vector_1, matrix_1 etc.
+	have been removed. They are not needed anymore because they can be
+	created at runtime.
+
+	If you have used these variables in your controlfiles as an output
+	variable of a supergeneric method, you have to add a call to TYPECreate
+	before calling the supergeneric method. Example taken from
+	tests/AMSUB/TestAMSUB.arts:
+
+	Before:
+
+	ReadXML(arrayofmatrix_1){"chevallierl91_clear_q_extract.xml"}
+
+	Now:
+
+	ArrayOfMatrixCreate(arrayofmatrix_1)
+	ReadXML(arrayofmatrix_1){"chevallierl91_clear_q_extract.xml"}
+
+	* src/parser.{cc,h}:
+
+	(parse_method), (parse_input), (parse_output_and_input):
+
+	Add two parameters: auto_vars and auto_vars_values. They handle
+	parameters for which the user passed constant values in the
+	controlfile. One holds the indexes of the automatically allocated
+	variables and the other one their values.
+
+	(read_name_or_value):
+
+	New function that parses WSV names and values.
+
+	(read_name):
+
+	Throw exception if first character of the WSV name is not a letter.
+
+	(parse_main):
+
+	In case of a runtime_error also output the column number to out0, not
+	just to out3.
+
+	(parse_agenda):
+
+	Use tasklist_insert_set_delete.
+
+	(tasklist_insert_set_delete):
+
+	Insert Set and Delete methods for the automatically allocated
+	variables into the agenda.
+
+	* src/workspace.cc:
+
+	Remove arrayofarrayofgriddedfield3_1, arrayofmatrix_[12],
+	arrayofstring_1, index_1, matrix_[12], numeric_[12], sparse_1,
+	tensor[3456]_[123], vector_[123]. Not needed anymore because output
+	variables can now be created at runtime.
+
+	* src/methods.cc, src/m_basic_types.cc:
+
+	New methods ArrayOfMatrixCreate, ArrayOfStringCreate, IndexCreate,
+	MatrixCreate, NumericCreate, SparseCreate, StringCreate,
+	Tensor[34567]Create, VectorCreate.
+
+	* tests/AMSUB/TestAMSUB.arts:
+
+	Use new method ArrayOfMatrixCreate to create arrayofmatrix_1.
+
+	* includes/amsub.arts:
+
+	Use MatrixCreate for matrix_2.
+
+	* src/m_xml.h (WriteXML):
+
+	Better runtime error message.
+
+	* src/m_general.cc (PrintWorkspace):
+
+	When displaying the whole Workspace, mark allocated variables with a
+	plus sign.
+
 2008-03-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-3-22

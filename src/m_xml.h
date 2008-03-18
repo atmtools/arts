@@ -73,7 +73,10 @@ WriteXML (//WS Input:
     ftype = FILE_TYPE_BINARY;
   else
     throw runtime_error ("file_format contains illegal string. "
-                         "This is not supposed to happen.");
+                         "Valid values are:\n"
+                         "  ascii:  XML output\n"
+                         "  zascii: Zipped XML output\n"
+                         "  binary: XML + binary output");
 
   xml_write_to_file (filename, v, ftype);
 }

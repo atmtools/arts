@@ -139,6 +139,7 @@ VectorSetExplicitly(f_backend){
 # multi-mixer response. Monochromatic radiances can be approximated with 
 # very narrow channel responses (narrower than the spacing in *f_grid*)
 # ---
+MatrixCreate(matrix_2)
 ReadXML(matrix_2){"./amsub.backend.xml"}
 
 # The multi-mixer response

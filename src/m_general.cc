@@ -208,12 +208,22 @@ void PrintWorkspace(
 {
   ostringstream os;
 
-  os << "  Allocated workspace variables: ";
+  if (only_allocated)
+    os << "  Allocated workspace variables: \n";
+  else
+    os << "  Workspace variables: \n";
   for (Index i = 0; i < ws.nelem(); i++)
     {
-      if (!only_allocated || only_allocated && ws.is_initialized(i))
+      if (!only_allocated)
         {
-          os << "  ";
+          os << "    ";
+          PrintWsvName (os, i);
+          if (ws.is_initialized(i)) os << "+";
+          os << "\n";
+        }
+      else if (ws.is_initialized(i))
+        {
+          os << "    ";
           PrintWsvName (os, i);
           os << "\n";
         }

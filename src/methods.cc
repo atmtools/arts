@@ -1508,6 +1508,27 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ArrayOfMatrixCreate" ),
+        DESCRIPTION
+        (
+         "Creates an empty ArrayOfMatrix.\n"
+         "\n"
+         "If the variable already exists, it will be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   ArrayOfMatrix: New empty ArrayOfMatrix.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( ArrayOfMatrix_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("ArrayOfMatrixSet"),
         DESCRIPTION
         (
@@ -1533,6 +1554,27 @@ void define_md_data_raw()
         KEYWORDS( "element" ),
         DEFAULTS( NODEF ),
         TYPES( Index_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ArrayOfStringCreate" ),
+        DESCRIPTION
+        (
+         "Creates an empty ArrayOfString.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   ArrayOfString: New empty ArrayOfString.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( ArrayOfString_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3175,6 +3217,27 @@ md_data_raw.push_back
         DEFAULTS( ),
         TYPES( )));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "IndexCreate" ),
+        DESCRIPTION
+        (
+         "Creates an Index variable.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   Index: New Index variable.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Index_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
+
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("IndexSet"),
@@ -3725,6 +3788,27 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "MatrixCreate" ),
+        DESCRIPTION
+        (
+         "Creates an empty Matrix.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   Matrix: New empty Matrix.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Matrix_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("MatrixMatrixMultiply"),
         DESCRIPTION
         (
@@ -4255,6 +4339,27 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "NumericCreate" ),
+        DESCRIPTION
+        (
+         "Creates a Numeric variable.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   Numeric: New Numeric variable.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Numeric_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5855,6 +5960,48 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "SparseCreate" ),
+        DESCRIPTION
+        (
+         "Creates an empty Sparse matrix.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   Sparse: New empty Sparse matrix.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Sparse_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "StringCreate" ),
+        DESCRIPTION
+        (
+         "Creates an empty String.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   String: New empty String.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( String_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("StringSet"),
         DESCRIPTION
         (
@@ -5976,6 +6123,27 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "Tensor3Create" ),
+        DESCRIPTION
+        (
+         "Creates an empty Tensor3.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   Tensor3: New empty Tensor3.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Tensor3_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("Tensor3ExtractFromTensor4"),
         DESCRIPTION
         (
@@ -6081,6 +6249,27 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "Tensor4Create" ),
+        DESCRIPTION
+        (
+         "Creates an empty Tensor4.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   Tensor4: New empty Tensor4.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Tensor4_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("Tensor4ExtractFromTensor5"),
         DESCRIPTION
         (
@@ -6152,6 +6341,27 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "Tensor5Create" ),
+        DESCRIPTION
+        (
+         "Creates an empty Tensor5.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   Tensor5: New empty Tensor5.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Tensor5_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("Tensor5Scale"),
         DESCRIPTION
         (
@@ -6201,6 +6411,27 @@ md_data_raw.push_back
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
         TYPES(    Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "Tensor6Create" ),
+        DESCRIPTION
+        (
+         "Creates an empty Tensor6.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   Tensor6: New empty Tensor6.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Tensor6_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6277,6 +6508,27 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "Tensor7Create" ),
+        DESCRIPTION
+        (
+         "Creates an empty Tensor7.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   Tensor7: New empty Tensor7.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Tensor7_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6425,6 +6677,27 @@ md_data_raw.push_back
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
         TYPES(    Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "VectorCreate" ),
+        DESCRIPTION
+        (
+         "Creates an empty Vector.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   Vector: New empty Vector.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Vector_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord

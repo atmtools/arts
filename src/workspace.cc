@@ -699,65 +699,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "arrayofarrayofgriddedfield3_1" ),
-      DESCRIPTION
-      (
-       "An arbitrary variable of type ArrayOfArrayOfGriddedField3.\n"
-       "\n"
-       "This variable can be used to, for example, store a set of \n"
-       "*pnd_field_raw*, to be used in batch calculations.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( ArrayOfArrayOfGriddedField3_ )));
-
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "arrayofmatrix_1" ),
-      DESCRIPTION
-      (
-       "An arbitrary array of matrices.\n"
-       "\n"
-       "This variable shall be treated as a general variable of type\n"
-       "ArrayOfMatrix. It can be used, for example, when some intermediate\n"
-       "data must be generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( ArrayOfMatrix_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "arrayofmatrix_2" ),
-      DESCRIPTION
-      (
-       "An arbitrary array of matrices.\n"
-       "\n"
-       "This variable shall be treated as a general variable of type\n"
-       "ArrayOfMatrix. It can be used, for example, when some intermediate\n"
-       "data must be generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( ArrayOfMatrix_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "arrayofstring_1" ),
-       DESCRIPTION
-       (
-        "An arbitrary array of strings.\n"
-        "\n"
-        "This variable shall be treated as a general variable of type\n"
-        "ArrayOfString. \n"
-        "\n"
-        "Usage: Set by user.\n"
-        ),
-       GROUP( ArrayOfString_ )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "atmosphere_dim" ),
       DESCRIPTION
       (
@@ -1315,21 +1256,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( Matrix_ )));
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "index_1" ),
-      DESCRIPTION
-      (
-       "An arbitrary index.\n"
-       "\n"
-       "This variable shall be treated as a general variable of type Index.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( Index_ )));
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "iy" ),
@@ -1678,36 +1604,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "matrix_1" ),
-      DESCRIPTION
-      (
-       "An arbitrary matrix.\n"
-       "\n"
-       "This variable shall be treated as a general variable of type Matrix.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( Matrix_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "matrix_2" ),
-      DESCRIPTION
-      (
-       "An arbitrary matrix.\n"
-       "\n"
-       "This variable shall be treated as a general variable of type Matrix.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( Matrix_ )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "main_agenda" ),
       DESCRIPTION
       (
@@ -2006,36 +1902,6 @@ void Workspace::define_wsv_data()
         "See *ncols*.\n"
        ),
       GROUP( Index_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "numeric_1" ),
-      DESCRIPTION
-      (
-      "An arbitrary numeric scalar.\n"
-      "\n"
-      "This variable shall be treated as a general variable of type Numeric.\n"
-      "It can be used, for example, when some intermediate data must be\n"
-      "generated or to copy some data.\n"
-      "\n"
-      "Usage: Set by user.\n"
-       ),
-      GROUP( Numeric_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "numeric_2" ),
-      DESCRIPTION
-      (
-      "An arbitrary numeric scalar.\n"
-      "\n"
-      "This variable shall be treated as a general variable of type Numeric.\n"
-      "It can be used, for example, when some intermediate data must be\n"
-      "generated or to copy some data.\n"
-      "\n"
-      "Usage: Set by user.\n"
-       ),
-      GROUP( Numeric_ )));
 
  wsv_data.push_back
    (WsvRecord
@@ -3225,21 +3091,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( String_ )));
 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sparse_1" ),
-      DESCRIPTION
-      (
-       "An arbitrary sparse matrix.\n"
-       "\n"
-       "This variable shall be treated as a general variable of type Sparse.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( Sparse_ )));
-
  wsv_data.push_back
    (WsvRecord
     ( NAME( "species_index" ),
@@ -3392,111 +3243,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( Numeric_ )));
 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "tensor3_1" ),
-      DESCRIPTION
-      (
-       "An arbitrary Tensor3.\n"
-       "\n"
-       "This variable is a general variable of type Tensor3.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( Tensor3_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "tensor3_2" ),
-      DESCRIPTION
-      (
-       "An arbitrary Tensor3.\n"
-       "\n"
-       "This variable is a general variable of type Tensor3.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( Tensor3_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "tensor4_1" ),
-      DESCRIPTION
-      (
-       "An arbitrary Tensor4.\n"
-       "\n"
-       "This variable is a general variable of type Tensor4.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( Tensor4_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "tensor4_2" ),
-      DESCRIPTION
-      (
-       "An arbitrary Tensor4.\n"
-       "\n"
-       "This variable is a general variable of type Tensor4.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( Tensor4_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "tensor5_1" ),
-      DESCRIPTION
-      (
-       "An arbitrary Tensor5.\n"
-       "\n"
-       "This variable is a general variable of type Tensor5.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( Tensor5_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "tensor5_2" ),
-      DESCRIPTION
-      (
-       "An arbitrary Tensor4.\n"
-       "\n"
-       "This variable is a general variable of type Tensor5.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( Tensor5_ )));
-
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "tensor6_1" ), 
-       DESCRIPTION
-      (
-       "An arbitrary tensor6. \n"
-       "\n"
-       "This variable is a general variable of type Tensor6.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-       GROUP( Tensor6_ )));
-
  wsv_data.push_back
    (WsvRecord
     ( NAME( "timer" ),
@@ -3556,51 +3302,6 @@ void Workspace::define_wsv_data()
        "       [N_p, N_lat, N_lon] \n"
        ),
       GROUP( GriddedField3_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "vector_1" ),
-      DESCRIPTION
-      (
-       "An arbitrary vector.\n"
-       "\n"
-       "This variable shall be treated as a general variable of type Vector.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "vector_2" ),
-      DESCRIPTION
-      (
-       "An arbitrary vector.\n"
-       "\n"
-       "This variable shall be treated as a general variable of type Vector.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "vector_3" ),
-      DESCRIPTION
-      (
-       "An arbitrary vector.\n"
-       "\n"
-       "This variable shall be treated as a general variable of type Vector.\n"
-       "It can be used, for example, when some intermediate data must be\n"
-       "generated or to copy some data.\n"
-       "\n"
-       "Usage: Set by user.\n"
-       ),
-      GROUP( Vector_ )));
 
   wsv_data.push_back
    (WsvRecord

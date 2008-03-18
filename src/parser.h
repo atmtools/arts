@@ -37,22 +37,30 @@ private:
 
   void parse_method(Index& id, 
                     Array<TokVal>& values,
-                    ArrayOfIndex& output,
-                    ArrayOfIndex& input,
-                    Agenda&       tasks,
-                    String&       include_file,
+                    ArrayOfIndex&  output,
+                    ArrayOfIndex&  input,
+                    Agenda&        tasks,
+                    ArrayOfIndex&  auto_vars,
+                    Array<TokVal>& auto_vars_values,
+                    String&        include_file,
                     bool no_eot=false);
 
-  void parse_input(const MdRecord* mdd, ArrayOfIndex& input, bool& first);
+  void parse_input(const MdRecord*      mdd,
+                         ArrayOfIndex&  input,
+                         ArrayOfIndex&  auto_vars,
+                         Array<TokVal>& auto_vars_values,
+                         bool&          first);
 
   void parse_output(const MdRecord* mdd, ArrayOfIndex& output, bool& first);
 
-  void parse_output_and_input(const MdRecord*&    mdd,
-                                    Index&        id,
-                                    String&       methodname,
+  void parse_output_and_input(const MdRecord*&     mdd,
+                                    Index&         id,
+                                    String&        methodname,
                                     Array<TokVal>& values,
-                                    ArrayOfIndex& output,
-                                    ArrayOfIndex& input);
+                                    ArrayOfIndex&  output,
+                                    ArrayOfIndex&  input,
+                                    ArrayOfIndex&  auto_vars,
+                                    Array<TokVal>& auto_vars_values);
 
   void parse_keywords(const MdRecord*      mdd,
                             Array<TokVal>& values,
@@ -62,6 +70,11 @@ private:
                              Array<TokVal>& values,
                              bool&          first);
 
+  void tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
+                                  const Array<TokVal>& auto_vars_values,
+                                  const Index          method_type,
+                                        Agenda&        tasklist);
+
   bool is_whitespace(const char c);
 
   void eat_whitespace();
@@ -69,6 +82,13 @@ private:
   void eat_whitespace_from_string(String& str, size_t& pos);
 
   void read_name(String& name);
+
+  Index read_name_or_value(      String&        name,
+                                 ArrayOfIndex&  auto_vars,
+                                 Array<TokVal>& auto_vars_values,
+                           const String&        default_name,
+                           const MdRecord*      mdd,
+                           const Index          group);
 
   void assertain_character(char c);
 
