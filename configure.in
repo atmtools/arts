@@ -17,7 +17,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.3.23)
+AM_INIT_AUTOMAKE(arts,1.3.24)
 
 dnl Put the ACLOCAL flags in the Makefile
 ACLOCAL="$ACLOCAL -I m4 $ACLOCAL_FLAGS"
@@ -237,18 +237,24 @@ AC_ARG_ENABLE(vectorize,
 AC_MSG_RESULT([$ax_openmp])
 
 if test x$ax_openmp = xauto; then
-  # Detect openmp
-  AX_OPENMP(ax_openmp_c=yes,ax_openmp_c=no)
-  AC_LANG_PUSH([C++])
-  AX_OPENMP(ax_openmp_cxx=yes,ax_openmp_cxx=no)
-  AC_LANG_POP([C++])
-
-  if test "$ax_openmp_c" = "yes" -a "$ax_openmp_cxx" = "yes"; then
-    ax_openmp="yes"
-  elif test "$ax_openmp_c" = "no" -a "$ax_openmp_cxx" = "no"; then
-    ax_openmp="no OpenMP support in compiler found"
+  if test "$ac_optimize" = "no" -a "$ax_cv_cxx_compiler_vendor" = "intel"; then
+    ax_openmp="OpenMP disabled because it doesn't work properly
+                             with the Intel compiler when compiling without
+                             optimizations"
   else
-    ax_openmp="partly (check log!)"
+    # Detect openmp
+    AX_OPENMP(ax_openmp_c=yes,ax_openmp_c=no)
+    AC_LANG_PUSH([C++])
+    AX_OPENMP(ax_openmp_cxx=yes,ax_openmp_cxx=no)
+    AC_LANG_POP([C++])
+
+    if test "$ax_openmp_c" = "yes" -a "$ax_openmp_cxx" = "yes"; then
+      ax_openmp="yes"
+    elif test "$ax_openmp_c" = "no" -a "$ax_openmp_cxx" = "no"; then
+      ax_openmp="no OpenMP support in compiler found"
+    else
+      ax_openmp="partly (check log!)"
+    fi
   fi
 fi
 

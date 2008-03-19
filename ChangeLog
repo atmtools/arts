@@ -1,3 +1,14 @@
+2008-03-19  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-3-24
+
+	* configure.in:
+
+	Disable OpenMP if the user compiles without optimizations and uses the
+	Intel compiler. The resulting application is not properly parallelized
+	and will execute the same iteration multiple times on different
+	threads.
+
 2008-03-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-3-23
