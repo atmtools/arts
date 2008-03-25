@@ -26,6 +26,7 @@
 #include <cmath>
 #include "gas_abs_lookup.h"
 #include "interpolation.h"
+#include "interpolation_poly.h"
 #include "make_vector.h"
 #include "logic.h"
 #include "check_input.h"
@@ -658,6 +659,10 @@ void GasAbsLookup::Extract( Matrix&         sga,
   }
   
   // For sure, we need to store the pressure grid position. 
+ 
+  // Tests showed that higher order interpolation for p increased the
+  // max. errors. There was a clear conclusion that linear is best in
+  // this case.
   GridPos pgp;
   gridpos( pgp,
            p_grid,
@@ -677,6 +682,10 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // pressure levels:
   Tensor3 xsec_pre_interpolated( 2, f_extent, n_species );
 
+  // Set temperature and H2O interpolation order:
+  Index t_interp_order   = 4;
+  Index h2o_interp_order = 4;
+
   assert(pgp.idx+1 < n_p_grid); // To be completely on the safe side
   for ( Index pi=0; pi<2; ++pi )
     {
@@ -689,7 +698,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
       // Determine temperature grid position. This is only done if we
       // want temperature interpolation, but the variable tgp has to
       // be visible also outside for later use:
-      GridPos tgp;       // only a scalar
+      GridPosPoly tgp;       // only a scalar
       if (do_T)
         {
             
@@ -735,14 +744,14 @@ void GasAbsLookup::Extract( Matrix&         sga,
             }
           }
 
-          gridpos( tgp, t_pert, T_offset );
+          gridpos_poly( tgp, t_pert, T_offset, t_interp_order );
         }
 
       // Determine the H2O VMR grid position. We need to do this only
       // once, since the only species who's VMR is interpolated is
       // H2O. We do this only if there are nonlinear species, but the
       // variable has to be visible later.
-      GridPos vgp;       // only a scalar
+      GridPosPoly vgp;       // only a scalar
       if (n_nls>0)
         {
           // Similar to the T case, we first interpolate the reference
@@ -784,7 +793,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
           }
 
           // For now, do linear interpolation in the fractional VMR.
-          gridpos( vgp, nls_pert, VMR_frac );
+          gridpos_poly( vgp, nls_pert, VMR_frac, h2o_interp_order );
         }
 
       // 7. Loop species:
@@ -814,7 +823,8 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
                 // This is a "red" 2D interpolation case.
 
-                Vector itw(4);
+                Vector itw( (t_interp_order+1)*
+                            (h2o_interp_order+1) );
                 
                 interpweights(itw,tgp,vgp);
 
@@ -835,10 +845,10 @@ void GasAbsLookup::Extract( Matrix&         sga,
                 res = 0;
                 Vector res_dummy(f_extent);
                 Index iti = 0;
-                for ( Index r=0; r<2; ++r )
-                  for ( Index c=0; c<2; ++c )
+                for ( Index r=0; r<t_interp_order+1; ++r )
+                  for ( Index c=0; c<h2o_interp_order+1; ++c )
                     {
-                      res_dummy  = this_xsec( tgp.idx+r, vgp.idx+c, Range(joker) );
+                      res_dummy  = this_xsec( tgp.idx[r], vgp.idx[c], Range(joker) );
                       res_dummy *= itw[iti];
 
                       res += res_dummy;
@@ -851,7 +861,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
                 // This is a "red" 1D interpolation case.
 
-                Vector itw(2);
+                Vector itw(t_interp_order+1);
                 
                 interpweights(itw,tgp);
 
@@ -868,19 +878,18 @@ void GasAbsLookup::Extract( Matrix&         sga,
                 // choose to do this explicitly here, but directly for
                 // all frequencies. This should be much more efficient.
 
-                // Mathematically, this is:
-                // res = this[0]*itw[0] + this[1]*itw[1]
-                // It looks more complicated, because we have no
-                // "return" versions of vector/matrix operations.
-                res              = this_xsec( tgp.idx, Range(joker) );
-                res             *= itw[0];
-                Vector res_dummy = this_xsec( tgp.idx+1, Range(joker) );
-                res_dummy       *= itw[1];
-                res             += res_dummy;
-
-                //                cout << "res[0] = " << res[0] << endl;
-                //                cout << "tgp = " << tgp << endl;
-
+                // Initialize result to zero:
+                res = 0;
+                Vector res_dummy(f_extent);
+                Index iti = 0;
+                for ( Index r=0; r<t_interp_order+1; ++r )
+                  {
+                    res_dummy  = this_xsec( tgp.idx[r], Range(joker) );
+                    res_dummy *= itw[iti];
+                    
+                    res += res_dummy;
+                    ++iti;
+                  }
               }
           else
             if (do_VMR)
@@ -889,7 +898,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
                 // This is a "red" 1D interpolation case.
 
-                Vector itw(2);
+                Vector itw(h2o_interp_order+1);
                 
                 interpweights(itw,vgp);
 
@@ -906,15 +915,18 @@ void GasAbsLookup::Extract( Matrix&         sga,
                 // choose to do this explicitly here, but directly for
                 // all frequencies. This should be much more efficient.
 
-                // Mathematically, this is:
-                // res = this[0]*itw[0] + this[1]*itw[1]
-                // It looks more complicated, because we have no
-                // "return" versions of vector/matrix operations.
-                res              = this_xsec( vgp.idx, Range(joker) );
-                res             *= itw[0];
-                Vector res_dummy = this_xsec( vgp.idx+1, Range(joker) );
-                res_dummy       *= itw[1];
-                res             += res_dummy;
+                // Initialize result to zero:
+                res = 0;
+                Vector res_dummy(f_extent);
+                Index iti = 0;
+                for ( Index c=0; c<h2o_interp_order+1; ++c )
+                  {
+                    res_dummy  = this_xsec( vgp.idx[c], Range(joker) );
+                    res_dummy *= itw[iti];
+                    
+                    res += res_dummy;
+                    ++iti;
+                  }
               }
             else
               {
@@ -946,6 +958,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
   // It is a "red" 1D interpolation case we are talking about here.
   // (But for a matrix in frequency and species.) 
+
   // We do it by hand, rather than using interp, for better
   // efficiency, and because this case is almost trivial.
 
@@ -983,339 +996,7 @@ void GasAbsLookup::GetPgrid( Vector& p ) const
 }
 
 
-
-// Below is the version of extract for the whole atmospheric field
-// that I started, but never finished. 
-
-// //! Extract scalar gas absorption coefficients from the lookup table. 
-// /*! 
-//   This carries out a simple interpolation in temperature and
-//   pressure. The interpolated value is then scaled by the ratio between
-//   actual VMR and reference VMR. In the case of nonlinear species the
-//   interpolation goes also over VMR.
-
-//   All input parameters (f_index, p, T) must be in the range coverd by
-//   the table.
-
-//   FIXME: Should we interpolate linearly in pressure or in
-//   log-pressure? In this case pressure is not an altitude coordinate!
-//   Anyway, I'll use log-pressure for now.
-
-//   This can extract for a whole bunch of atmospheric conditions
-//   simultaneously, which is much more efficient than doing it one by
-//   one. Input variables p, T, and abs_vmrs must have consistent dimensions.
-
-//   \retval sga A Tensor5 with scalar gas absorption coefficients
-//   [1/m]. Dimension must be either [1, n_species, p_grid, lat_grid,
-//   lon_grid] or [n_f_grid, n_species, p_grid, lat_grid, lon_grid]!
-
-//   \param f_index The frequency index. If this is >=0, it means that
-//   absorption for this frequency will be extracted. (The relevant
-//   dimension of sga will be 1.) If this is <0, it means that absorption
-//   for ALL frequencies is extracted. (The relevant dimension of sga
-//   must then be n_f_grid.)
-
-//   \param p The pressures [Pa]. Dimension: [p_grid].
-
-//   \param T The temperaturea [K]. Dimension: [p_grid, lat_grid, lon_grid].
-
-//   \param abs_vmrs The VMRs [absolute number]. Dimension: [species, p_grid,
-//   lat_grid, lon_grid].  
-
-//   \date 2002-09-20, 2003-02-22
-// */
-// void GasAbsLookup::Extract( Tensor5View      sga,
-//                             const Index&     f_index,
-//                             ConstVectorView  p,
-//                             ConstTensor3View T,
-//                             ConstTensor4iew  abs_vmrs ) const
-// {
-
-//   // Obtain some properties of the lookup table:
-  
-//   // Number of gas species in the table:
-//   const Index n_species = species.nelem();
-
-//   // Number of nonlinear species:
-//   const Index n_nonlinear_species = nonlinear_species.nelem();
-
-//   // Number of frequencies in the table:
-//   const Index n_f_grid = f_grid.nelem();
-
-//   // Number of pressure grid points in the table:
-//   const Index n_p_grid = p_grid.nelem();
-
-//   // Number of temperature perturbations:
-//   const Index n_t_pert = t_pert.nelem();
-
-//   // Number of nonlinear species perturbations:
-//   //  const Index n_nls_pert = nls_pert.nelem();
-
-
-//   // First some checks on the lookup table itself:
-
-//   // Assert that log_p_grid has been initialized:
-//   assert( is_size( log_p_grid, n_p_grid) );
-
-//   // Check that the dimension of vmrs_ref is consistent with species and p_grid:
-//   assert( is_size( vmrs_ref, n_species, n_p_grid) );
-
-//   // Check dimension of t_ref:
-//   assert( is_size( t_ref, n_p_grid) );
-
-
-//   // Following are some checks on the input variables:
-
-//   // Number of pressures for which we want to extract:
-//   const Index n_p = p.nelem();
-
-//   // Number of latitudes for which we want to extract:
-//   const Index n_lat = T.nrows();
-
-//   // Number of longitudes for which we want to extract:
-//   const Index n_lon = T.ncols();
-
-//   // Assert, that first dimension of T is consistent with p:
-//   assert( n_p == T.npages() );
-
-//   // Assert that abs_vmrs has the right dimension:
-//   assert( is_size( abs_vmrs, n_species, n_p, n_lat, n_lon ) );
-
-//   // We need the log10 of the pressure:
-//   Vector log_p(n_p);
-//   transform( log_p, log10, p);
-
-
-//   // We also set the start and extent for the frequency loop.
-//   Index f_start, f_extent;
-
-//   if ( f_index < 0 )
-//     {
-//       // This means we should extract for all frequencies.
-
-//       // Assert size of sga accordingly:
-//       assert(is_size(sga, n_p, n_f_grid, n_species));
-      
-//       f_start  = 0;
-//       f_extent = n_f_grid;
-//     }
-//   else
-//     {
-//       // This means we should extract only for one frequency.
-
-//       // Assert size of sga accordingly:
-//       assert(is_size(sga, n_p, 1, n_species));
-
-//       // Check that f_index is inside f_grid:
-//       assert( f_index < n_f_grid );
-
-//       f_start  = f_index;
-//       f_extent = 1;
-//     }
-
-
-//   // Now we will start to do some business.
-
-//   // For sure, we need to store the pressure grid positions. Remember
-//   // that we use log interpolation here. (FIXME: Discuss with Patrick.)
-//   ArrayOfGridPos pgp(n_p);
-//   gridpos( pgp,
-//            log_p_grid,
-//            log_p );
-
-//   // Let's first treat the case with no nonlinear species.
-//   // This case is marked by n_nonlinear_species == 0.
-//   if ( 0 == n_nonlinear_species )
-//     {
-//       // In this case, n_nls_pert must also be zero:
-//       assert( is_size( nls_pert, 0 ) );
-      
-//       // The simplest case is that the table contains neither temperature
-//       // nor VMR perturbations. This means it is not really a
-//       // lookup table, just an absorption profile. In this case we ignore
-//       // the temperature, and interpolate in pressure only.
-//       // This case is marked by t_pert being an empty vector, since we
-//       // already know that there are no non-linear species.
-//       if ( 0 == n_t_pert )
-//         {
-//           // Verify, that abs_coef has the right dimensions for this case:
-//           assert( is_size( abs_coef,
-//                            1,          // temperature perturbations
-//                            n_species,  // species  
-//                            n_f_grid,   // frequency grid points
-//                            n_p_grid    // pressure levels      
-//                            ) );
-          
-//           // To store interpolation weights:
-//           Matrix itw(n_p,2);
-//           interpweights(itw,pgp);
-
-//           // To temporarily store interpolation result:
-//           Vector sga_interp(n_p);
-
-//           // VMR scaling factors:
-//           Vector vmr_scaling(n_p);
-
-//           // Loop over frequency:
-//           for ( Index s=f_start; s<f_extent; ++s )
-//             {
-//               // Loop over species:
-//               for ( Index i=0; i<n_species; ++i )
-//                 {
-//                   // Get the right view on abs_coef. (Only a vector of
-//                   // pressure for this particular species and
-//                   // frequency):
-//                   ConstVectorView this_abs = abs_coef( 0,      // T
-//                                                   i,      // species
-//                                                   s,      // frequency
-//                                                   joker   // p
-//                                                   );
-
-//                   // Do the interpolation:
-//                   interp( sga_interp,
-//                           itw,
-//                           this_abs,
-//                           pgp );
-
-//                   // Copy this result to all latitudes and
-//                   // longitudes. This is ok, since we have no T
-//                   // dependence in the table. Don't forget to scale
-//                   // with the VMR!
-//                   for ( j=0; j<n_lat; ++j )
-//                     for ( k=0; k<n_lon; ++k )
-//                       {
-//                         // Get the right view on our result variable,
-//                         // sga. (Only a vector of pressure.)
-//                         VectorView this_sga = sga( s,         // frequency
-//                                                    i,         // species
-//                                                    joker,     // p
-//                                                    j,         // lat
-//                                                    k          // lon
-//                                                    );
-//                         this_sga = sga_interp;
-//                         // Watch out, this is not yet the final
-//                         // result, we need to scale with the actual
-//                         // VMR values.
-
-//                         // Determine VMR scaling factors:
-//                         vmr_scaling = abs_vmrs( i,            // species
-//                                             joker,        // p
-//                                             j,            // lat
-//                                             k             // lon
-//                                             );
-//                         vmr_scaling /= abs_vmrs_ref( i,       // species
-//                                                  joker    // p
-//                                                  );
-
-//                         // Scale this_vmr with the VMR scaling factors:
-//                         this_sga *= vmr_scaling;
-//                       }
-
-//                 }
-//             }
-//         }
-//       else
-//         {
-//           // This is the case with temperature variations, but without nonlinear species. 
-          
-//           // This means we have to do a simultaneous interpolation in pressure and temperature. 
-
-//           // Verify, that abs_coef has the right dimensions for this case:
-//           assert( is_size( abs_coef,
-//                            n_t_pert,   // temperature perturbations
-//                            n_species,  // species  
-//                            n_f_grid,   // frequency grid points
-//                            n_p_grid    // pressure levels      
-//                            ) );
-
-//           // We need to create the temperature grid for each pressure
-//           // level, it is not stored directly in the table:
-//           Vector t_grid(n_t_pert);
-
-//           // To store interpolation weights:
-//           Vector itw(4);
-
-//           // Loop pressures:
-//           for ( m=0; m<n_p; ++m )
-//             {
-//               t_grid = t_pert;
-//               // Now t_grid contains just the perturbations. We
-//               // need to add the reference value for the given
-//               // pressure:
-//               t_grid += t_ref[m];
-
-//               // Loop latitudes:
-//               for ( j=0; j<n_lat; ++j )
-//                 {
-//                   // Loop longitudes:
-//                   for ( k=0; k<n_lon; ++k )
-//                     {
-//                       // We already have the pressure grip positions in pgp, but
-//                       // now we also need the temperature grid position:
-//                       GridPos tgp;       // only a scalar 
-          
-//                       // Calculate T grid position:
-//                       gridpos( tgp,
-//                                t_grid,
-//                                T( m,     // pressure
-//                                   j,     // latitude
-//                                   k      // longitude
-//                                   )
-//                                );
-
-//                       interpweights( itw, tgp, pgp[m] );
-
-//                       // Loop over frequency:
-//                       for ( Index s=f_start; s<f_extent; ++s )
-//                         {
-//                           // Loop over species:
-//                           for ( Index i=0; i<n_species; ++i )
-//                             {
-//                               // Get view on abs_coef:
-//                               ConstMatrixView this_abs = abs_coef( joker,  // T
-//                                                               i,      // species
-//                                                               s,      // frequency
-//                                                               joker   // p
-//                                                               );
-//                               // Get view on sga:
-//                               Numeric& this_sga = sga( s,         // frequency
-//                                                        i,         // species
-//                                                        m,         // p
-//                                                        j,         // lat
-//                                                        k          // lon
-//                                                        );
-
-//                               // Interpolate:
-//                               interp( this_sga,
-//                                       itw,
-//                                       this_abs,
-//                                       tgp,
-//                                       pgp );
-
-//                               // Scale with VMR:
-//                               this_sga *= abs_vmrs( i,            // species
-//                                                 m,            // p
-//                                                 j,            // lat
-//                                                 k             // lon
-//                                                 );
-//                               this_sga /= vmrs_ref( i,        // species
-//                                                     m         // p
-//                                                     );
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//   else
-//     {
-//       // So, we *do* have nonlinear species.
-//       throw(runtime_error("This case is not yet implemented"));
-//     }
-// }
-
-/** */
+/** Output operatior for GasAbsLookup. */
 ostream& operator<< (ostream& os, const GasAbsLookup& /* gal */)
 {
   os << "GasAbsLookup: Output operator not implemented";

@@ -594,11 +594,24 @@ void choose_abs_t_pert(Vector&         abs_t_pert,
 
   out3 << "  mindev/maxdev : " << mindev << " / " << maxdev << "\n";
   Numeric start = 0;
-  while (mindev < start) start -= t_step;
+  // n is used to make sure that there are at least 5 points in total,
+  // as required for 4th order interpolation.
+  // In other words, we add at least two points above and below
+  // the reference profile.
+  Index   n_points = 0;                
+  while ( (mindev<start) || (n_points<2) ) 
+    {
+      start -= t_step;
+      ++n_points;
+    }
+  
   Numeric stop  = 0;
-  while (maxdev > stop) stop += t_step;
-
-  //  Numeric extent = (stop-start)/t_step + 1;  
+  n_points = 0;                
+  while ( (maxdev > stop) || (n_points<2) )
+    {
+      stop += t_step;
+      ++n_points;
+    }
 
   linspace(abs_t_pert,start,stop,t_step);
 
@@ -653,9 +666,21 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
 
   out3 << "  mindev/maxdev : " << mindev << " / " << maxdev << "\n";
   Numeric start = 1;
-  while (mindev < start) start -= step;
+  // n is used to make sure that there are at least 5 points in total,
+  // as required for 4th order interpolation.
+  Index   n_points = 1;                
+  while ( (mindev < start) )
+    {
+      start -= step;
+      ++n_points;
+    }
+
   Numeric stop  = 1;
-  while (maxdev > stop) stop += step;
+  while ( (maxdev > stop) || (n_points<5) )
+    {
+      stop += step;
+      ++n_points;
+    }
 
   linspace(abs_nls_pert,start,stop,step);
 

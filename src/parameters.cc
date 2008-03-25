@@ -294,8 +294,6 @@ bool get_parameters(int argc, char **argv)
       // Find first "non-delimiter".
       String::size_type pos     = artspath.find_first_of(":", lastPos);
 
-      cout << "ARTS_INCLUDE_PATH: ";
-
       while (String::npos != pos || String::npos != lastPos)
         {
           parameters.includepath.push_back (artspath.substr (lastPos,
@@ -303,8 +301,6 @@ bool get_parameters(int argc, char **argv)
           lastPos = artspath.find_first_not_of(":", pos);
           pos = artspath.find_first_of(":", lastPos);
         }
-
-      cout << endl;
     }
 
   return false;
