@@ -1,3 +1,12 @@
+2008-04-10  Mattias Ekstrom  <mattias.ekstrom@chalmers.se>
+
+	* arts-1-3-27
+
+	* test/general.arts: Now treats the surface as a blackbody. 
+
+	* test/odinsmr.arts: Reset the userparameter for N2-SelfContMPM93
+	to 1.
+
 2008-04-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-3-26

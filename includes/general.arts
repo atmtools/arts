@@ -86,7 +86,8 @@ r_geoidSpherical{
 NumericSet(surface_emissivity){1}
 AgendaSet(surface_prop_agenda){
    InterpAtmFieldToRteGps( surface_skin_t, t_field )
-   surfaceSimple
+   Ignore(rte_los)
+   surfaceBlackbody
 } 
 
 

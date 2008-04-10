@@ -73,7 +73,7 @@ abs_cont_descriptionAppend{
 abs_cont_descriptionAppend{
     tagname        = "N2-SelfContMPM93"
     model          = "MPM93Scale"
-    userparameters = [1.34 ]
+    userparameters = [1 ]
 } 
 
 # ----- End of absorption models used for Odin-SMR -------------------------
