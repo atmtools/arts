@@ -1,3 +1,14 @@
+2008-04-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-3-28
+
+	* test/testall.py:
+
+	Update the comparison values for the AMSU-B test case. Because the
+	surface is now treated as a blackbody, the BTs have changed
+	significantly esp. for the two surface channels which made the test
+	fail.
+
 2008-04-10  Mattias Ekstrom  <mattias.ekstrom@chalmers.se>
 
 	* arts-1-3-27
