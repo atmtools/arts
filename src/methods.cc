@@ -1529,20 +1529,21 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ArrayOfMatrixSet"),
+      ( NAME("ArrayOfMatrixInsert"),
         DESCRIPTION
         (
-         "Sets a element in an ArrayOfMatrix to a Matrix.\n"
+         "Inserts a Matrix in an ArrayOfMatrix.\n"
          "\n"
          "The keyword can be used to chose which element will be set, If a\n"
          "negative number is given, the matrix will be appended to the array.\n"
          "Note that zero-based indexing is used.\n"
          "\n"
          "Generic output:\n"
-         "  ArrayOfMatrix : The array to be expanded.\n"
+         "  ArrayOfMatrix : The new array.\n"
          "\n"
          "Generic input:\n"
-         "         Matrix : The matrix to append.\n"
+         "  ArrayOfMatrix : The original array.\n"
+         "         Matrix : The matrix to insert.\n"
          "Keywords:\n"
          "        element : The index to be set.\n"
         ),
@@ -1550,7 +1551,7 @@ void define_md_data_raw()
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ArrayOfMatrix_ ),
-        GINPUT( Matrix_ ),
+        GINPUT( ArrayOfMatrix_, Matrix_ ),
         KEYWORDS( "element" ),
         DEFAULTS( NODEF ),
         TYPES( Index_t )));

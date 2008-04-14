@@ -79,27 +79,39 @@ void ArrayOfMatrixCreate(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfMatrixSet(// WS Generic Output:
-                      ArrayOfMatrix&  aom,
-                      // WS Generic Input:
-                      const Matrix&   m,
-                      // Control Parameters:
-                      const Index&    element )
+void ArrayOfMatrixInsert(// WS Generic Output:
+                         ArrayOfMatrix&        aom_out,
+                         // WS Generic Input:
+                         const ArrayOfMatrix&  aom_in,
+                         const Matrix&         m,
+                         // Control Parameters:
+                         const Index&          element )
 {
+  // Set index to the element
+  Index idx = element;  
+
   // Check input index, if larger than number of elements in
   // the array, return error message
-  if (element>aom.nelem()) {
+  if (element>aom_in.nelem()) {
     ostringstream os;
     os << "The element index "<<element<<" is too large, there are only "
-       << aom.nelem() <<" elements in output matrix.\n";
+       << aom_in.nelem() <<" elements in output matrix.\n";
     throw runtime_error(os.str());
-  } else if (element<0 || element==aom.nelem()) {
-    aom.push_back(m);
-  } else {
-    aom[element] = m;
-    out2 << "  Setting element "<<element<<" in output ArrayOfMatrix "
-         << "to input Matrix.\n";
-  }
+  }  
+
+  // Check if new matrix should be appended
+  if (element<0 || element==aom_in.nelem()) {
+    // Element appended, resize output
+    idx = aom_in.nelem();
+    aom_out.resize(idx+1);
+  } 
+
+  // Copy the old content of the input array
+  for ( Index i=0; i<aom_in.nelem(); ++i ) 
+      aom_out[i] = aom_in[i]; 
+
+  // Insert new matrix
+  aom_out[idx] = m;
 }
 
 
