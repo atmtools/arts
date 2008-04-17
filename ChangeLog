@@ -1,3 +1,13 @@
+2008-04-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-3-30
+
+	* autogen.sh:
+
+	Raise requirement for automake to 1.7. 1.6 does not support conditional
+	variables. Also add 1.10 to the compatibility list. (Reported by
+	Carlos Jimenez).
+
 2008-04-14  Mattias Ekstrom  <mattias.ekstrom@chalmers.se>
 
 	* arts-1-3-29
