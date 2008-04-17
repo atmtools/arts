@@ -105,8 +105,6 @@ struct option
    differences in the consts, in stdlib.h.  To avoid compilation
    errors, only prototype getopt for the GNU C library.  */
 extern int getopt (int argc, char *const *argv, const char *shortopts);
-#elif !defined (__DARWIN_UNIX03) /* not __GNU_LIBRARY__ nor __DARWIN_UNIX03 */
-extern int getopt ();
 #endif /* __GNU_LIBRARY__ */
 extern int getopt_long (int argc, char *const *argv, const char *shortopts,
                         const struct option *longopts, int *longind);

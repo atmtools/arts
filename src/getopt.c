@@ -666,7 +666,7 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
       /* Test all long options for either exact match
          or abbreviated matches.  */
       for (p = longopts, option_index = 0; p->name; p++, option_index++)
-        if (!strncmp (p->name, nextchar, (unsigned int)(nameend - nextchar)))
+        if (!strncmp (p->name, nextchar, (size_t)(nameend - nextchar)))
           {
             if ((unsigned int) (nameend - nextchar)
                 == (unsigned int) strlen (p->name))
@@ -855,7 +855,7 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
         /* Test all long options for either exact match
            or abbreviated matches.  */
         for (p = longopts, option_index = 0; p->name; p++, option_index++)
-          if (!strncmp (p->name, nextchar, (unsigned int)(nameend - nextchar)))
+          if (!strncmp (p->name, nextchar, (size_t)(nameend - nextchar)))
             {
               if ((unsigned int) (nameend - nextchar) == strlen (p->name))
                 {

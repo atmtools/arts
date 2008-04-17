@@ -1,5 +1,13 @@
 2008-04-17  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-3-31
+
+	* src/getopt.h: Fix compilation on Mac OS X Tiger.
+
+	* src/getopt.cc: Fix 64-bit compilation on Mac OS X Leopard.
+
+2008-04-17  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-3-30
 
 	* autogen.sh:
