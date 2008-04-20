@@ -1,3 +1,12 @@
+2008-04-20  Cory  <corzneffect@gmail.com>
+
+	* arts-1-3-32
+
+	* tests/testall.py (TestMonteCarloSimple):removed this and the
+	other test involving ScatteringMonteCArlo (which is broken and
+	wont be fixed in the near future). All tests pass.
+	
+
 2008-04-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-3-31

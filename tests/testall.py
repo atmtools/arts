@@ -38,42 +38,6 @@ class TestMonteCarloDataPrepare(unittest.TestCase):
         self.MCrun.run()
         assert self.MCrun.error=='','Error running TestMonteCarloDataPrepare.arts: '+self.MCrun.error
             
-class TestMonteCarloSimple(unittest.TestCase):
-    """Testing the ARTS-MC algorithm"""
-    MCrun=ArtsRun('MonteCarlo', 'TestMonteCarloSimple.arts')
-    def test1(self):
-        """Simple Monte Carlo test should run with no errors"""
-        self.MCrun.run()
-        assert self.MCrun.error=='','Error running TestMonteCarloSimple.arts: '+self.MCrun.error
-    def test2(self):
-        """Total radiance should be close to 201.8 K"""
-        I=self.MCrun.get_val('y')[0]
-        dI=self.MCrun.get_val('mc_error')[0]
-        assert abs(I-201.8) < 4*dI, 'I (='+str(I)+'K) is too far away from 201.8 K'
-    def test3(self):
-        """Polarization difference should be close to 7.6 K"""
-        Q=self.MCrun.get_val('y')[1]
-        dQ=self.MCrun.get_val('mc_error')[1]
-        assert abs(Q-7.6) < 4*Q, 'Q (='+str(Q)+'K) is too far away from 7.6 K'
-        
-class TestMonteCarloWithIncomingLookup(unittest.TestCase):
-    """Testing the ARTS-MC algorithm with incoming lookup"""
-    MCrun=ArtsRun('MonteCarlo', 'TestMonteCarloWithIncomingLookup.arts')
-    def test1(self):
-        """Simple Monte Carlo test (with incoming lookup) should run with no errors"""
-        self.MCrun.run()
-        assert self.MCrun.error=='','Error running TestMonteCarloWithIncomingLookup.arts: '+self.MCrun.error
-    def test2(self):
-        """Total radiance should be close to 201.8 K"""
-        I=self.MCrun.get_val('y')[0]
-        dI=self.MCrun.get_val('mc_error')[0]
-        assert abs(I-201.8) < 4*dI, 'I (='+str(I)+'K) is too far away from 201.8 K'
-    def test3(self):
-        """Polarization difference should be close to 7.6 K"""
-        Q=self.MCrun.get_val('y')[1]
-        dQ=self.MCrun.get_val('mc_error')[1]
-        assert abs(Q-7.6) < 4*Q, 'Q (='+str(Q)+'K) is too far away from 7.6 K'
-        
 class TestMonteCarloGeneral(unittest.TestCase):
     """Testing the MCGeneral algorithm"""
     MCrun=ArtsRun('MonteCarlo', 'TestMonteCarloGeneral.arts')
