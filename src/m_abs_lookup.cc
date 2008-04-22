@@ -668,15 +668,18 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
   Numeric start = 1;
   // n is used to make sure that there are at least 5 points in total,
   // as required for 4th order interpolation.
-  Index   n_points = 1;                
-  while ( (mindev < start) )
+  // In other words, we add at least two points above and below
+  // the reference profile.
+  Index   n_points = 0;                
+  while ( (mindev < start) || (n_points<2) )
     {
       start -= step;
       ++n_points;
     }
 
   Numeric stop  = 1;
-  while ( (maxdev > stop) || (n_points<5) )
+  n_points = 0;                
+  while ( (maxdev > stop) || (n_points<2) )
     {
       stop += step;
       ++n_points;
