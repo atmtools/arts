@@ -103,7 +103,6 @@ MatrixSet(sensor_los){180}
 
 # Set the agenda for batch calculations:
 # ---
-IndexSet( file_index ){0}
 #
 AgendaSet(ybatch_calc_agenda){
   
@@ -137,10 +136,10 @@ AgendaSet(ybatch_calc_agenda){
   # ---
   RteCalc
 
+  Copy(file_index, ybatch_index)
   # Optionally write out jacobian:
   WriteXMLIndexed(jacobian){""}
 
-  IndexStep( file_index, file_index ){}
 }
 
 
