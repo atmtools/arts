@@ -64,6 +64,51 @@ Index Workspace::add_wsv (const WsvRecord& wsv)
 }
 
 
+//! Delete WSV.
+/*!
+  Frees the memory of the topmost WSV on the stack.
+
+  \param i WSV index.
+ */
+void Workspace::del (Index i)
+{
+  WsvStruct *wsvs = ws[i].top ();
+
+  if (wsvs &&& wsvs->wsv)
+    {
+      wsmh.deallocate (wsv_data[i].Group(), wsvs->wsv);
+      wsvs->wsv = NULL;
+      wsvs->auto_allocated = false;
+      wsvs->initialized = false;
+    }
+}
+
+
+//! Duplicate WSV.
+/*!
+  Copies the topmost WSV and puts it back on the WSV stack.
+
+  \param i WSV index.
+ */
+void Workspace::duplicate (Index i)
+{
+  WsvStruct *wsvs = new WsvStruct;
+
+  wsvs->auto_allocated = true;
+  if (ws[i].size() && ws[i].top()->wsv)
+    {
+      wsvs->wsv = wsmh.duplicate (wsv_data[i].Group(), ws[i].top()->wsv);
+      wsvs->initialized = true;
+    }
+  else
+    {
+      wsvs->wsv = NULL;
+      wsvs->initialized = false;
+    }
+  ws[i].push (wsvs);
+}
+
+
 void Workspace::initialize ()
 {
   ws.resize (wsv_data.nelem());
@@ -100,6 +145,7 @@ Workspace::Workspace (const Workspace& workspace) : ws(workspace.ws.nelem())
     }
 }
 
+
 //! Destruct the workspace
 /*!
   Frees all WSVs.
@@ -124,29 +170,6 @@ Workspace::~Workspace ()
   ws.empty ();
 }
 
-//! Duplicate WSV.
-/*!
-  Copies the topmost WSV and puts it back on the WSV stack.
-
-  \param i WSV index.
- */
-void Workspace::duplicate (Index i)
-{
-  WsvStruct *wsvs = new WsvStruct;
-
-  wsvs->auto_allocated = true;
-  if (ws[i].size())
-    {
-      wsvs->wsv = wsmh.duplicate (wsv_data[i].Group(), ws[i].top()->wsv);
-      wsvs->initialized = true;
-    }
-  else
-    {
-      wsvs->wsv = NULL;
-      wsvs->initialized = false;
-    }
-  ws[i].push (wsvs);
-}
 
 //! Pop the topmost wsv from its stack.
 /*!
@@ -168,6 +191,7 @@ void *Workspace::pop (Index i)
   return vp;
 }
 
+
 //! Pop the topmost wsv from its stack and free its memory.
 /*!
   Removes the topmost element from the wsv's stack and frees memory.
@@ -188,6 +212,7 @@ void Workspace::pop_free (Index i)
     }
 }
 
+
 //! Push a new wsv onto its stack.
 /*!
   Adds the pointer to the variable to the stack of the WSV with index i.
@@ -203,6 +228,7 @@ void Workspace::push (Index i, void *wsv)
   wsvs->wsv = wsv;
   ws[i].push (wsvs);
 }
+
 
 //! Push a new wsv onto its stack but mark it as uninitialized.
 /*!
@@ -221,6 +247,7 @@ void Workspace::push_uninitialized (Index i, void *wsv)
   wsvs->wsv = wsv;
   ws[i].push (wsvs);
 }
+
 
 //! Retrieve pointer to the given WSV.
 /*!

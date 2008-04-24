@@ -1495,12 +1495,9 @@ void ArtsParser::tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
           throw runtime_error("Invalid method_type");
         }
 
-      cout << "!!!!!!!!!" << method_name << endl;
       mdit = MdMap.find(method_name);
       assert ( mdit != MdMap.end() );
       init_mdid = mdit->second;         
-
-      cout << "!!!!!!!!" << Workspace::wsv_data[auto_vars[i]].Name() << endl;
 
       tasklist.push_back(MRecord(init_mdid, auto_var_value,
                                  auto_output_var, auto_input_var,

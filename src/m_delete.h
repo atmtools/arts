@@ -43,7 +43,7 @@ Delete(// Workspace reference
        // WS Generic Input Names:
        const String&   x_name )
 {
-  ws.pop_free (ws.WsvMap.find (x_name)->second);
+  ws.del (ws.WsvMap.find (x_name)->second);
 }
 
 

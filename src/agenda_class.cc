@@ -217,19 +217,11 @@ void Agenda::execute(bool silent) const
 #endif
           }
         
-          { // Check if all specific input variables are initialized:
-            const ArrayOfIndex& v(mdd.Input());
-            for (Index s=0; s<v.nelem(); ++s)
-              if (!agendaworkspace->is_initialized(v[s]))
-                give_up("Method "+mdd.Name()+" needs input variable: "+
-                        Workspace::wsv_data[v[s]].Name());
-          }
-
           { // Check if all generic input variables are initialized:
             const ArrayOfIndex& v(mrr.Input());
             for (Index s=0; s<v.nelem(); ++s)
               if (!agendaworkspace->is_initialized(v[s]))
-                give_up("Generic Method "+mdd.Name()+" needs input variable: "+
+                give_up("Method "+mdd.Name()+" needs input variable: "+
                         Workspace::wsv_data[v[s]].Name());
           }
 
@@ -296,16 +288,25 @@ void Agenda::set_outputs_to_push_and_dup ()
       souts.insert ( outs.begin (), outs.end ());
       souts.insert ( gouts.begin (), gouts.end ());
 
-      // Add all outputs of this WSM to global list of outputs
-      outputs.insert (souts.begin (), souts.end ());
-
       // Collect generic input WSVs
       const ArrayOfIndex& gins = method->Input ();
       inputs.insert (gins.begin (), gins.end ());
 
+      /* Special case: For the Delete WSM add its input to the list
+       * of output variables to force a duplication of those variables.
+       * It avoids deleting variables outside the agenda's scope.
+       */
+      if (md_data[method->Id()].Name() == "Delete")
+        {
+          souts.insert ( gins.begin (), gins.end ());
+        }
+
       // Collect input WSVs
       const ArrayOfIndex& ins = md_data[method->Id()].Input();
       inputs.insert (ins.begin (), ins.end ());
+
+      // Add all outputs of this WSM to global list of outputs
+      outputs.insert (souts.begin (), souts.end ());
 
       // Find out all output WSVs of current WSM which were
       // already used as input. We have to place a copy of them on

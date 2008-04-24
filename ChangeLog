@@ -1,3 +1,27 @@
+2008-04-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-3-35
+
+	* src/agenda_class.cc (Agenda::set_outputs_to_push_and_dup):
+
+	Added special treatment for the Delete method. Add its input variable
+	to the output variable list. This makes sure that the variable which
+	will be deleted is duplicated and restricts the effect of the Delete
+	method to the agenda's scope.
+
+	(Agenda::execute):
+
+	Remove code to check if specific inputs are initialized. Not needed
+	anymore because all variables are now treated as generic inputs.
+
+	* src/workspace_ng.{cc,h}:
+
+	Add new method 'del' to free a WSV's memory.
+
+	* src/m_delete.h (Delete): Use ws.del instead of ws.pop_free.
+
+	* src/parser.cc (tasklist_insert_set_delete): Remove debug output.
+
 2008-04-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-3-34

@@ -67,14 +67,16 @@ public:
   static void  define_wsv_map();
   static Index add_wsv (const WsvRecord& wsv);
 
+  void del (Index i);
+
+  void duplicate (Index i);
+
   void initialize ();
 
   //! Checks existence of the given WSV.
   bool is_initialized (Index i) {
     return ((ws[i].size () != 0)
             && (ws[i].top()->initialized == true)); }
-
-  void duplicate (Index i);
 
   void *pop (Index i);
 
