@@ -43,6 +43,7 @@
 #include <cmath>
 #include <stdexcept>
 #include "arts.h"
+#include "arts_omp.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "jacobian.h"
@@ -131,8 +132,6 @@ void RteCalc(
   //
   ArrayOfIndex     rte_do_vmr_jacs (0);
   Index            rte_do_t_jacs = 0;
-  ArrayOfTensor4   diy_dvmr;
-  ArrayOfTensor4   diy_dt;
   //
   ArrayOfIndex     jqi_vmr(0);        // Index in jacobian_quantities of VMRs
   ArrayOfIndex     ji0_vmr(0);        // Start index in jacobian for anal. VMRs
@@ -188,29 +187,37 @@ void RteCalc(
   //--- Loop:  measurement block / zenith angle / azimuthal angle
   //
   Index    nydone = 0;                 // Number of positions in y done
-  Index    nbdone;                     // Number of positions in ib done
-  Vector   los( sensor_los.ncols() );  // LOS of interest
   //
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
-      nbdone = 0;
-
       for( Index iza=0; iza<nza; iza++ )
         {
           for( Index iaa=0; iaa<naa; iaa++ )
             {
               //--- Argument for verbosity of agendas
-              bool  ag_verb = ( (iaa + iza + mblock_index) != 0 );
+              const bool  ag_verb = ( (iaa + iza + mblock_index) != 0 );
+
+              //--- Start index in *ib* for data to include 
+              const Index   nbdone = ( iza*naa + iaa ) * nf * stokes_dim;
 
               //--- LOS of interest
+              //
+              Vector   los( sensor_los.ncols() );
+              //
               los     = sensor_los( mblock_index, joker );
               los[0] += mblock_za_grid[iza];
+              //
               if( antenna_dim == 2 )
                 { los[1] += mblock_aa_grid[iaa]; }
 
               //--- Set *ppath_array* and *diy_dX*-variables to be empty
+              //
               ppath_array_index = -1;
               ppath_array.resize(0);
+              //
+              ArrayOfTensor4   diy_dvmr;
+              ArrayOfTensor4   diy_dt;
+              //
               diy_dvmr.resize(0);
               diy_dt.resize(0);
 
@@ -296,10 +303,6 @@ void RteCalc(
                 }
 
               //--- End of jacobian part --------------------------------------
-
-
-              // Increase nbdone
-              nbdone += nf*stokes_dim;
 
             } // iaa loop
         } // iza loop
