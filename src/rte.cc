@@ -195,7 +195,6 @@ void apply_y_unit_single(
 void get_radiative_background(
               Matrix&                  iy,
               Ppath&                   ppath,
-              Ppath&                   ppath_step,
               Index&                   ppath_array_index,
               ArrayOfPpath&            ppath_array,
               ArrayOfTensor4&          diy_dvmr,
@@ -315,7 +314,7 @@ void get_radiative_background(
                        "Mismatch in size of *surface_emission* and f_grid*." );
         //---------------------------------------------------------------------
 
-        // Variable to hold downvelling radiation
+        // Variable to hold down-welling radiation
         Tensor3   I( nlos, nf, stokes_dim );
  
         // Loop *surface_los*-es. If no such LOS, we are ready.
@@ -332,7 +331,7 @@ void get_radiative_background(
               {
                 // Calculate downwelling radiation for LOS ilos 
                 const Index   agenda_verb2 = 0;
-                iy_calc( iy, ppath, ppath_step, ppath_array_index, ppath_array,
+                iy_calc( iy, ppath, ppath_array_index, ppath_array,
                    diy_dvmr, diy_dt, ppath_step_agenda, rte_agenda, 
                    iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
                    atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
@@ -606,7 +605,6 @@ void include_trans_in_diy_dq(
 void iy_calc(
               Matrix&                  iy,
               Ppath&                   ppath,
-              Ppath&                   ppath_step,
               Index&                   ppath_array_index,
               ArrayOfPpath&            ppath_array,
               ArrayOfTensor4&          diy_dvmr,
@@ -638,7 +636,7 @@ void iy_calc(
 {
   //- Determine propagation path
   const bool  outside_cloudbox = true;
-  ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, p_grid, 
+  ppath_calc( ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
               cloudbox_on, cloudbox_limits, pos, los, outside_cloudbox );
   //
@@ -712,7 +710,7 @@ void iy_calc(
   //
   iy.resize(f_grid.nelem(),stokes_dim);
   //
-  get_radiative_background( iy, ppath, ppath_step, ppath_array_index,
+  get_radiative_background( iy, ppath, ppath_array_index,
               ppath_array, diy_dvmr, diy_dt, ppath_step_agenda, rte_agenda, 
               surface_prop_agenda, iy_space_agenda, iy_cloudbox_agenda, 
               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
@@ -741,7 +739,6 @@ void iy_calc(
 void iy_calc_no_jacobian(
               Matrix&         iy,
               Ppath&          ppath,
-              Ppath&          ppath_step,
         const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
         const Agenda&         iy_space_agenda,
@@ -772,7 +769,7 @@ void iy_calc_no_jacobian(
   ArrayOfPpath               ppath_array(0);
   Index                      ppath_array_index=-1;
 
-  iy_calc( iy, ppath, ppath_step,
+  iy_calc( iy, ppath, 
            ppath_array_index, ppath_array, diy_dvmr, diy_dt, 
            ppath_step_agenda, rte_agenda, iy_space_agenda, surface_prop_agenda,
            iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, lon_grid, 

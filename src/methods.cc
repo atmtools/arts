@@ -1957,8 +1957,7 @@ void define_md_data_raw()
          "DOIT method.\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
-                cloudbox_on_),
+        OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, cloudbox_on_),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                surface_prop_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
@@ -1986,8 +1985,7 @@ void define_md_data_raw()
          "This method can only be used for 3D cases.\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
-                cloudbox_on_),
+        OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, cloudbox_on_),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                surface_prop_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
@@ -4892,7 +4890,7 @@ md_data_raw.push_back
          "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\").\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ppath_, ppath_step_ ),
+        OUTPUT( ppath_ ),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_, z_field_, r_geoid_, z_surface_, 
                cloudbox_on_, cloudbox_limits_, rte_pos_, rte_los_ ),
@@ -5215,8 +5213,7 @@ md_data_raw.push_back
          "See further the user guide.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( y_, ppath_, ppath_step_, iy_, jacobian_, 
-                ppath_array_do_, ppath_array_, ppath_array_index_  ),
+        OUTPUT( y_, jacobian_  ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                surface_prop_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
@@ -5283,7 +5280,7 @@ md_data_raw.push_back
          "As *RteCalc* but throughout ignores jacobians.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( y_, ppath_, ppath_step_, iy_ ),
+        OUTPUT( y_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                surface_prop_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
@@ -5487,7 +5484,7 @@ md_data_raw.push_back
          "This function is a work in progress. Only 1D is currently supported\n"
         ),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( rte_pos_, rte_los_, ppath_, ppath_step_ ),
+        OUTPUT( rte_pos_, rte_los_, ppath_ ),
         INPUT( atmosphere_dim_, p_grid_, z_field_, lat_grid_, lon_grid_,
                ppath_step_agenda_, r_geoid_, z_surface_ ),
         GOUTPUT( ),
@@ -7345,7 +7342,7 @@ md_data_raw.push_back
          "*z_scan_low* and *z_scan_high*.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( ppath_step_),
+        OUTPUT(),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
                lon_grid_, z_field_, r_geoid_, z_surface_ ),
         GOUTPUT( Vector_ ),

@@ -65,13 +65,7 @@
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RteCalc(
          Vector&                     y,
-         Ppath&                      ppath,
-         Ppath&                      ppath_step,
-         Matrix&                     iy,
          Matrix&                     jacobian,
-         Index&                      ppath_array_do,
-         ArrayOfPpath&               ppath_array,
-         Index&                      ppath_array_index,
    const Agenda&                     ppath_step_agenda,
    const Agenda&                     rte_agenda,
    const Agenda&                     iy_space_agenda,
@@ -142,7 +136,7 @@ void RteCalc(
   ArrayOfMatrix    ib_vmr_jacs(0);    // Correspondance to *ib* for VMR jac.
   Matrix           ib_t_jacs(0,0);    // Correspondance to *ib* for t jac.
   //
-  ppath_array_do = 0;
+  Index            ppath_array_do = 0;
   //
   String j_unit = jacobian_unit;
   if ( jacobian_unit == "-" )
@@ -210,6 +204,12 @@ void RteCalc(
               if( antenna_dim == 2 )
                 { los[1] += mblock_aa_grid[iaa]; }
 
+              //--- Define *iy* and ppath variables
+              Matrix                     iy;
+              Ppath                      ppath;
+              ArrayOfPpath               ppath_array;
+              Index                      ppath_array_index;
+
               //--- Set *ppath_array* and *diy_dX*-variables to be empty
               //
               ppath_array_index = -1;
@@ -222,9 +222,8 @@ void RteCalc(
               diy_dt.resize(0);
 
               //--- Calculate *iy*
-              iy_calc( iy, ppath, ppath_step,
-                       ppath_array_index,
-                       ppath_array, diy_dvmr, diy_dt,
+              iy_calc( iy, ppath, ppath_array_index, ppath_array, 
+                       diy_dvmr, diy_dt,
                        ppath_step_agenda, rte_agenda, iy_space_agenda, 
                        surface_prop_agenda, iy_cloudbox_agenda, atmosphere_dim,
                        p_grid, lat_grid, lon_grid, z_field, t_field, vmr_field,
@@ -334,9 +333,6 @@ void RteCalc(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RteCalcNoJacobian(
          Vector&                     y,
-         Ppath&                      ppath,
-         Ppath&                      ppath_step,
-         Matrix&                     iy,
    const Agenda&                     ppath_step_agenda,
    const Agenda&                     rte_agenda,
    const Agenda&                     iy_space_agenda,
@@ -368,15 +364,11 @@ void RteCalcNoJacobian(
   ArrayOfArrayOfIndex        jacobian_indices;
   String                     jacobian_unit;
   ArrayOfArrayOfSpeciesTag   abs_species(0);
-  Index                      ppath_array_do;
-  ArrayOfPpath               ppath_array;
-  Index                      ppath_array_index;
 
 
   jacobianOff( jacobian, jacobian_quantities, jacobian_indices, jacobian_unit );
 
-  RteCalc( y, ppath, ppath_step, iy, jacobian, 
-           ppath_array_do, ppath_array, ppath_array_index,
+  RteCalc( y, jacobian, 
            ppath_step_agenda, rte_agenda, iy_space_agenda, surface_prop_agenda,
            iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, lon_grid, 
            z_field, t_field, vmr_field, abs_species, r_geoid, z_surface, 

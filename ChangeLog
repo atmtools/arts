@@ -1,5 +1,38 @@
 2008-04-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-3-40
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming): Removed *iy* and *ppath* as
+	output variables.
+	(CloudboxGetIncoming1DAtm): As above.
+
+	* src/ppath.cc (ppath_calc): Removed *ppath_step* as input.
+
+	* Removed Removed *ppath_step* from these functions:
+	* src/m_ppath.cc (ppathCalc): 
+	*                (rte_pos_and_losFromTangentPressure): 
+	*                (ZaSatOccultation): 
+	* src/rte.cc (get_radiative_background): 
+	*            (iy_calc): 
+	*            (iy_calc_no_jacobian): 
+	* src/montecarlo.cc (montecarloGetIncoming):
+	*                   (iwp_cloud_opt_pathCalc): 
+	* src/m_cloudbox.cc (CloudboxGetIncoming): 
+	                    (CloudboxGetIncoming1DAtm): 
+
+	* src/m_montecarlo.cc (MCIPA): Removed *ppath_step* from the function.
+	Information now taken from ppath: ppath_step.np replaced by ppath.np
+	etc.
+
+	* src/montecarlo.cc (mcPathTraceIPA): Removed *ppath_step* as input.
+	
+	* src/m_jacobian.cc (yCalc): Adapted to changes in RteCalcNoJacobian.
+
+	* src/m_rte.cc (RteCalc): Output is now only *y* and *jacobians*.
+	(RteCalcNoJacobian): Output is now only *y*.
+
+2008-04-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-3-39
 
 	* src/m_rte.cc (RteCalc): Changed treatment of some variables as a first

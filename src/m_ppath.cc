@@ -156,7 +156,6 @@ void rte_pos_and_losFromTangentPressure(
                     Vector&          rte_pos,
                     Vector&          rte_los,
                     Ppath&           ppath,
-                    Ppath&           ppath_step,
                     // WS Input:
                     const Index&     atmosphere_dim,
                     const Vector&    p_grid,
@@ -201,7 +200,7 @@ void rte_pos_and_losFromTangentPressure(
   Index cloudbox_on=0;
   ArrayOfIndex cloudbox_limits(2);
   bool outside_cloudbox=true;
-  ppath_calc(ppath,ppath_step,ppath_step_agenda,atmosphere_dim,p_grid,lat_grid,
+  ppath_calc(ppath,ppath_step_agenda,atmosphere_dim,p_grid,lat_grid,
          lon_grid,z_field, r_geoid, z_surface,cloudbox_on, cloudbox_limits,
          rte_pos, rte_los, outside_cloudbox);
   rte_pos = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
@@ -214,7 +213,6 @@ void rte_pos_and_losFromTangentPressure(
 void ppathCalc(
         // WS Output:
               Ppath&          ppath,
-              Ppath&          ppath_step,
         // WS Input:
         const Agenda&         ppath_step_agenda,
         const Index&          atmosphere_dim,
@@ -229,7 +227,7 @@ void ppathCalc(
         const Vector&         rte_pos,
         const Vector&         rte_los )
 {
-  ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
+  ppath_calc( ppath, ppath_step_agenda, atmosphere_dim, 
               p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
 }
@@ -550,8 +548,6 @@ void VectorZtanToZaRefr1D(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ZaSatOccultation(
-        // WS Output:
-        Ppath&                  ppath_step,
         // WS Generic Output:
         Vector&                 za_out,
         // WS Input:
@@ -609,7 +605,7 @@ void ZaSatOccultation(
   Index i;
   for ( i=0; i<za_ref.nelem(); i++ ) {
     Ppath ppath;
-    ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim,
+    ppath_calc( ppath, ppath_step_agenda, atmosphere_dim,
                 p_grid, lat_grid, lon_grid, z_field, r_geoid,
                 z_surface, 0, ArrayOfIndex(0), Vector(1,r_recieve),
                 Vector(1,za_ref[i]), 1 );

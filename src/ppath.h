@@ -268,7 +268,6 @@ void ppath_step_refr_3d(
 
 void ppath_calc(
               Ppath&          ppath,
-              Ppath&          ppath_step,
         const Agenda&         ppath_step_agenda,
         const Index&          atmosphere_dim,
         const Vector&         p_grid,

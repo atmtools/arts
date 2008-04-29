@@ -6077,7 +6077,6 @@ void ppath_start_stepping(
    additional argument(s):
 
    \param ppath              Output: A Ppath structure
-   \param ppath_step         FIXME: Add documentation.
    \param ppath_step_agenda  FIXME: Add documentation.
    \param atmosphere_dim     The atmospheric dimensionality.
    \param p_grid             The pressure grid.
@@ -6103,7 +6102,6 @@ void ppath_start_stepping(
 void ppath_calc(
         // WS Output:
               Ppath&          ppath,
-              Ppath&          ppath_step,
         // WS Input:
         const Agenda&         ppath_step_agenda,
         const Index&          atmosphere_dim,
@@ -6176,6 +6174,8 @@ void ppath_calc(
   // The function checks also that the sensor position and LOS give an
   // allowed path.
   //
+  Ppath   ppath_step;
+  //
   ppath_start_stepping( ppath_step, atmosphere_dim, p_grid, lat_grid, 
             lon_grid, z_field, r_geoid, z_surface,
             cloudbox_on, cloudbox_limits, outside_cloudbox, rte_pos, rte_los );
@@ -6201,27 +6201,15 @@ void ppath_calc(
   
   while( !ppath_what_background( ppath_step ) )
     {
-
       // Call ppath_step agenda. 
       // The new path step is added to *ppath_array* last in the while block
       //
       istep++;
       //
-      ppath_step_agendaExecute(ppath_step, atmosphere_dim, p_grid,
-                               lat_grid, lon_grid, z_field, r_geoid, z_surface,
-                               ppath_step_agenda, true);
+      ppath_step_agendaExecute( ppath_step, atmosphere_dim, p_grid,
+                                lat_grid, lon_grid, z_field, r_geoid, z_surface,
+                                ppath_step_agenda, true );
 
-      //Print( ppath_step, "ppath", 1 );
-
-      // Before everything is tested carefully, we consider more than 5000
-      // path points to be an indication on that the calcululations have
-      // got stuck in an infinite loop.
-      if( istep > 5000 )
-        {
-          throw runtime_error(
-             "5000 path points have been reached. Is this an infinite loop?" );
-        }
-      
       // Number of points in returned path step
       const Index n = ppath_step.np;
 

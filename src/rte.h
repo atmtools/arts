@@ -73,7 +73,6 @@ void include_trans_in_diy_dq(
 void iy_calc(
               Matrix&                  iy,
               Ppath&                   ppath,
-              Ppath&                   ppath_step,
               Index&                   ppath_array_index,
               ArrayOfPpath&            ppath_array,
               ArrayOfTensor4&          diy_dvmr,
@@ -106,7 +105,6 @@ void iy_calc(
 void iy_calc_no_jacobian(
               Matrix&         iy,
               Ppath&          ppath,
-              Ppath&          ppath_step,
         const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
         const Agenda&         iy_space_agenda,

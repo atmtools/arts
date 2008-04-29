@@ -80,19 +80,14 @@ void yCalc(
    const Vector&                     mblock_za_grid,
    const Vector&                     mblock_aa_grid )
 {
-  Ppath        ppath;
-  Ppath        ppath_step;
-  Matrix       iy;
-
-        RteCalcNoJacobian( y, ppath, ppath_step,
-                 iy, ppath_step_agenda, rte_agenda,
-                 iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
-                 atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
-                 t_field, vmr_field, 
-                 r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
-                 sensor_response, sensor_pos, sensor_los, f_grid, 
-                 stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid, 
-                 "1" );
+  RteCalcNoJacobian( y, ppath_step_agenda, rte_agenda,
+                     iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
+                     atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                     t_field, vmr_field, 
+                     r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
+                     sensor_response, sensor_pos, sensor_los, f_grid, 
+                     stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid, 
+                     "1" );
 }
 
 /*===========================================================================

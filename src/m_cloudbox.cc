@@ -1392,9 +1392,6 @@ void CloudboxGetIncoming(
               Tensor7&        scat_i_p,
               Tensor7&        scat_i_lat,
               Tensor7&        scat_i_lon,
-              Matrix&         iy,
-              Ppath&          ppath,
-              Ppath&          ppath_step,
               Index&          cloudbox_on,
         const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
@@ -1416,10 +1413,12 @@ void CloudboxGetIncoming(
         const Vector&         scat_za_grid,
         const Vector&         scat_aa_grid )
 {
-  Index Nf       = f_grid.nelem();
-  Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-  Index Nza      = scat_za_grid.nelem();
-  Index Ni       = stokes_dim;
+  Index  Nf       = f_grid.nelem();
+  Index  Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+  Index  Nza      = scat_za_grid.nelem();
+  Index  Ni       = stokes_dim;
+  Matrix iy;
+  Ppath  ppath;
 
 
   //--- Check input ----------------------------------------------------------
@@ -1462,7 +1461,7 @@ void CloudboxGetIncoming(
             {
               los[0] =  scat_za_grid[scat_za_index];
 
-              iy_calc_no_jacobian( iy, ppath, ppath_step,
+              iy_calc_no_jacobian( iy, ppath,
                                    ppath_step_agenda, rte_agenda, 
                                    iy_space_agenda, surface_prop_agenda,
                                    iy_cloudbox_agenda, atmosphere_dim,
@@ -1537,7 +1536,7 @@ void CloudboxGetIncoming(
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_calc_no_jacobian( iy, ppath, ppath_step,
+                              iy_calc_no_jacobian( iy, ppath, 
                                                    ppath_step_agenda, 
                                                    rte_agenda, iy_space_agenda,
                                                    surface_prop_agenda, 
@@ -1590,7 +1589,7 @@ void CloudboxGetIncoming(
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_calc_no_jacobian( iy, ppath, ppath_step,
+                              iy_calc_no_jacobian( iy, ppath, 
                                                    ppath_step_agenda, 
                                                    rte_agenda, iy_space_agenda,
                                                    surface_prop_agenda, 
@@ -1643,7 +1642,7 @@ void CloudboxGetIncoming(
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_calc_no_jacobian( iy, ppath, ppath_step,
+                              iy_calc_no_jacobian( iy, ppath,
                                                    ppath_step_agenda, 
                                                    rte_agenda, iy_space_agenda,
                                                    surface_prop_agenda, 
@@ -1674,10 +1673,7 @@ void CloudboxGetIncoming1DAtm(
               Tensor7&        scat_i_p,
               Tensor7&        scat_i_lat,
               Tensor7&        scat_i_lon,
-              Matrix&         iy,
-              Ppath&          ppath,
-              Ppath&          ppath_step,
-              Index& cloudbox_on,
+              Index&          cloudbox_on,
         const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
         const Agenda&         iy_space_agenda,
@@ -1698,13 +1694,15 @@ void CloudboxGetIncoming1DAtm(
         const Vector&         scat_za_grid,
         const Vector&         scat_aa_grid )
 {
-  Index Nf       = f_grid.nelem();
-  Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-  Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
-  Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-  Index Nza      = scat_za_grid.nelem();
-  Index Naa      = scat_aa_grid.nelem();
-  Index Ni       = stokes_dim;
+  Index  Nf       = f_grid.nelem();
+  Index  Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+  Index  Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
+  Index  Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+  Index  Nza      = scat_za_grid.nelem();
+  Index  Naa      = scat_aa_grid.nelem();
+  Index  Ni       = stokes_dim;
+  Matrix iy;
+  Ppath  ppath;
 
 
   //--- Check input ----------------------------------------------------------
@@ -1763,7 +1761,7 @@ void CloudboxGetIncoming1DAtm(
         {
           los[0] = scat_za_grid[scat_za_index];
           
-          iy_calc_no_jacobian(iy, ppath, ppath_step, ppath_step_agenda,
+          iy_calc_no_jacobian(iy, ppath, ppath_step_agenda,
                               rte_agenda, iy_space_agenda, surface_prop_agenda, 
                               iy_cloudbox_agenda, atmosphere_dim, p_grid,
                               lat_grid, lon_grid, z_field, t_field, vmr_field,

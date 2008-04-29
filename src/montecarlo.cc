@@ -745,7 +745,7 @@ void Cloudbox_ppath_rteCalc(
              vmr_field(joker,p_range,lat_range,lon_range),
              pnd_field,scat_data_mono,cloudbox_limits);
 
-  iy_calc_no_jacobian(iy, ppath, ppath_step, ppath_step_agenda, 
+  iy_calc_no_jacobian(iy, ppath, ppath_step_agenda, 
                       rte_agenda, iy_space_agenda, surface_prop_agenda,
                       iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid,
                       lon_grid, z_field, t_field, vmr_field, r_geoid, z_surface,
@@ -1015,13 +1015,13 @@ void iwp_cloud_opt_pathCalc(
                             )
 {
   //internal declarations
-  Ppath ppath,ppath_step;
+  Ppath ppath;
   Vector local_rte_pos=rte_pos;
   Vector local_rte_los=rte_los;
   iwp=0;
   cloud_opt_path=0;
   //calculate ppath to cloudbox boundary
-  ppath_calc( ppath, ppath_step, ppath_step_agenda, 3, 
+  ppath_calc( ppath, ppath_step_agenda, 3, 
               p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
               1, cloudbox_limits, local_rte_pos, local_rte_los, 1 );
   //if this ppath hit a cloud, now take ppath inside cloud
@@ -1039,7 +1039,7 @@ void iwp_cloud_opt_pathCalc(
       Range lon_range(cloudbox_limits[4], 
                       cloudbox_limits[5]-cloudbox_limits[4]+1);
 
-      ppath_calc( ppath, ppath_step, ppath_step_agenda, 3, 
+      ppath_calc( ppath, ppath_step_agenda, 3, 
                   p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                   1, cloudbox_limits, local_rte_pos, local_rte_los, 0 );
 
@@ -1396,7 +1396,6 @@ void mcPathTraceIPA(MatrixView&           evol_op,
                     Vector&               rte_los,
                     Vector&               pnd_vec,
                     Numeric&              g,
-                    Ppath&                ppath_step,
                     Index&                termination_flag,
                     bool&                 inside_cloud,
                     const Agenda&         opt_prop_gas_agenda,
@@ -1459,6 +1458,9 @@ void mcPathTraceIPA(MatrixView&           evol_op,
   id_mat(evol_op);
   evol_opArray[1]=evol_op;
   //initialise Ppath with ppath_start_stepping
+  //
+  Ppath ppath_step;
+  //
   ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
                         lon_grid, z_field, r_geoid, z_surface,
                         0, cloudbox_limits, false, 
@@ -1943,7 +1945,6 @@ void montecarloGetIncoming(
                            Vector&               rte_pos,
                            Vector&               rte_los,
                            Ppath&                ppath,
-                           Ppath&                ppath_step,
                            const Agenda&         ppath_step_agenda,
                            const Agenda&         rte_agenda,
                            const Agenda&         iy_space_agenda,
@@ -1982,7 +1983,7 @@ void montecarloGetIncoming(
   
   Vector pos = rte_pos;
   Vector los = rte_los;
-  iy_calc_no_jacobian( iy, ppath, ppath_step,
+  iy_calc_no_jacobian( iy, ppath,
                        ppath_step_agenda, rte_agenda, iy_space_agenda,
                        surface_prop_agenda, iy_cloudbox_agenda,
                        atmosphere_dim, p_grid, lat_grid, lon_grid, z_field,

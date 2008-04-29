@@ -548,7 +548,7 @@ void MCIPA(
       //Obtain a reference propagation path to use for obtaining optical properties
       //for the IPA method.
       Ppath ppath;
-      ppath_calc( ppath, ppath_step, ppath_step_agenda, 3, 
+      ppath_calc( ppath, ppath_step_agenda, 3, 
                   p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                   0, cloudbox_limits, local_rte_pos, local_rte_los, 1 );
       
@@ -556,7 +556,7 @@ void MCIPA(
         {
           //modified path tracing routine for independent pixel approximation
           mcPathTraceIPA( evol_op, abs_vec_mono, temperature, ext_mat_mono, rng,
-                     local_rte_pos, local_rte_los, pnd_vec, g,ppath_step,
+                     local_rte_pos, local_rte_los, pnd_vec, g,
                      termination_flag, inside_cloud, 
                      opt_prop_gas_agenda,abs_scalar_gas_agenda, 
                      stokes_dim, f_index, p_grid, 
@@ -564,9 +564,9 @@ void MCIPA(
                      t_field, vmr_field, cloudbox_limits, pnd_field,
                      scat_data_mono, z_field_is_1D, ppath );
             
-          np=ppath_step.np;
-          mc_points(ppath_step.gp_p[np-1].idx,ppath_step.gp_lat[np-1].idx,
-                    ppath_step.gp_lon[np-1].idx)+=1;
+          np=ppath.np;
+          mc_points(ppath.gp_p[np-1].idx,ppath.gp_lat[np-1].idx,
+                    ppath.gp_lon[np-1].idx)+=1;
           if (termination_flag==1)
             {
               iy_space_agendaExecute(local_iy,local_rte_pos,local_rte_los,
@@ -595,7 +595,7 @@ void MCIPA(
                 }
               //decide whether we have reflection or emission
               surface_prop_agendaExecute(local_surface_emission, local_surface_los, 
-                                         local_surface_rmatrix, ppath_step.gp_p[np-1],
+                                         local_surface_rmatrix, ppath.gp_p[np-1],
                                          latgp,longp,local_rte_los, surface_prop_agenda, true);
               //deal with blackbody case
               if (local_surface_los.nrows()==0)
@@ -974,8 +974,7 @@ void ScatteringMonteCarlo (
                 }
               else
                 {
-                  montecarloGetIncoming(iy,rte_pos,rte_los,
-                                        ppath,ppath_step,
+                  montecarloGetIncoming(iy,rte_pos,rte_los,ppath,
                                         //ppath_p, ppath_t, ppath_vmr,
                                         ppath_step_agenda,
                                         rte_agenda,iy_space_agenda,surface_prop_agenda,
