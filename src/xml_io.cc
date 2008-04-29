@@ -479,7 +479,7 @@ xml_open_output_file (ogzstream& file, const String& name)
     file.open (nname.c_str());
   } catch (ios::failure) {
     ostringstream os;
-    os << "Cannot open output file: " << nname + ".gz" << '\n'
+    os << "Cannot open output file: " << nname << '\n'
       << "Maybe you don't have write access "
       << "to the directory or the file?";
     throw runtime_error(os.str());

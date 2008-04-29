@@ -138,7 +138,7 @@ AgendaSet(ybatch_calc_agenda){
 
   Copy(file_index, ybatch_index)
   # Optionally write out jacobian:
-  WriteXMLIndexed(jacobian){""}
+  WriteXMLIndexed(jacobian){"AMSUB.jacobian.generated"}
 
 }
 

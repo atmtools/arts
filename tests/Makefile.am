@@ -40,13 +40,13 @@ TestMonteCarloWithIncomingLookup: TestMonteCarloDataPrepare
 
 ###############################################################
 
-EXTRA_DIST = $(srcdir)/testall.py $(foreach dir, $(TESTDIRS), $(foreach extension,$(TESTFILES),$(wildcard $(srcdir)/$(dir)/*$(extension))))
+EXTRA_DIST = $(srcdir)/artsXML.py  $(srcdir)/testall.py $(foreach dir, $(TESTDIRS), $(foreach extension,$(TESTFILES),$(wildcard $(srcdir)/$(dir)/*$(extension))))
 
-CLEANFILES = $(wildcard *.log) $(wildcard $(builddir)/*/*xml.generated*) $(wildcard $(builddir)/*/*.rep)
+CLEANFILES = $(wildcard *.log) $(wildcard $(builddir)/*/*.generated.*.xml*) $(wildcard $(builddir)/*/*xml.generated*) $(wildcard $(builddir)/*/*.rep)
 
 clean-local:
 	@if [ "$(top_builddir)" != "$(top_srcdir)" ]; then \
-		rm -f testall.py; \
+		rm -f artsXML.py artsXML.pyc testall.py; \
 		rm -rf $(TESTDIRS); \
 	fi
 
