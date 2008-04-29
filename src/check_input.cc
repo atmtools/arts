@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2007
+/* Copyright (C) 2002-2008
    Patrick Eriksson <patrick@rss.chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
 

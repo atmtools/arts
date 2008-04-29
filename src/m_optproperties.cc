@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2007
+/* Copyright (C) 2002-2008
    Sreerekha T.R. <rekha@uni-bremen.de>
    Claudia Emde <claudia.emde@dlr.de>
    Cory Davies <cory@met.ed.ac.uk>

@@ -1,4 +1,4 @@
-/* Copyright (C) 2000-2007
+/* Copyright (C) 2000-2008
    Stefan Buehler <buehler@uni-bremen.de>
    Patrick Eriksson <patrick@rss.chalmers.se>
 

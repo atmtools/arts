@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2007
+/* Copyright (C) 2002-2008
    Stefan Buehler <sbuehler@ltu.se>
    Wolfram-Andre Haas <wolhaas@hermes.fho-emden.de>
 

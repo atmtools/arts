@@ -89,10 +89,7 @@ VectorSetExplicitly( abs_nls_pert, [] )
 #IndexSet( nelem, 5 )
 #VectorNLogSpace( abs_nls_pert, 0.01, 10 )
 
-abs_lookupCreate( abs_lookup, abs_lookup_is_adapted, abs_species,
-                  abs_lines_per_species, abs_lineshape, abs_nls, f_grid, abs_p,
-                  abs_vmrs, abs_t, abs_t_pert, abs_nls_pert, abs_n2,
-                  abs_cont_names, abs_cont_models, abs_cont_parameters )
+abs_lookupCreate
 
 # Optionally write these to files:
 #WriteXML( output_file_format, abs_t, "simpleAbs.abs_t.xml.generated" )

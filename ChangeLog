@@ -1,3 +1,15 @@
+2008-04-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-3-37
+
+	* doc/uguide/main.tex, configure.in, src/*.{cc,h}:
+
+	Update copyright info for 2008.
+
+	* tests/Abs/TestAbs2.arts: Use short call for abs_lookupCreate.
+
+	* tests/AMSUB/: Ignore *.generated* .
+
 2008-04-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-3-36

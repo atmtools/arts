@@ -1,4 +1,4 @@
-/* Copyright (C) 2001-2007
+/* Copyright (C) 2001-2008
    Thomas Kuhn    <tkuhn@uni-bremen.de>
    Stefan Buehler <sbuehler@ltu.se>
 
