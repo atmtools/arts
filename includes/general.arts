@@ -149,14 +149,14 @@ AgendaSet( rte_agenda ){
 
 
 #
-# No default unit conversion 
+# No unit conversion 
 #
 StringSet( y_unit ){ "1" }
 
 
-
+#
 # No scattering
-# ---
+#
 cloudboxOff
 
 

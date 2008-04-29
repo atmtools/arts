@@ -1,3 +1,16 @@
+2008-04-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-3-38
+
+	* Odin test control files updated to ARTS2 format. Test cases run.
+	
+	* includes/odinsmr.arts: 
+	* includes/odinsmr_501_1D.arts: 
+	* tests/OdinSMR/TestOdinSMR_1D.arts: 
+	* includes/odinsmr_544.arts: 
+	* includes/odinsmr_501.arts: 
+	* tests/OdinSMR/TestOdinSMR.arts: 
+
 2008-04-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-3-37

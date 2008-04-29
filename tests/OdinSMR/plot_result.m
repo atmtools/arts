@@ -3,7 +3,7 @@
 % A simple function to plot the simulation results. Set do_1d to plot
 % results from the special 1D test case.
 
-function plot_result(do_1d)
+function [f,Y] = plot_result(do_1d)
 
 if ~nargin  |  ~do_1d
   f    = xmlLoad( 'TestOdinSMR.sensor_response_f.xml' ); 
