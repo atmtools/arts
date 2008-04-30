@@ -1,5 +1,17 @@
 2008-04-30  Stefan Buehler  <sbuehler(at)ltu.se>
 
+	* arts-1-4-1
+
+	* tests/Abs/TestAbs.arts: Removed stuff that is already set in
+	general.arts. In particular, the lineshape setting were not only a
+	duplicate, but also unreasonable!
+
+	* tests/Abs/TestAbs2.arts: Removed stuff that is already set in
+	general.arts. In particular, the lineshape setting were not only a
+	duplicate, but also unreasonable!
+
+2008-04-30  Stefan Buehler  <sbuehler(at)ltu.se>
+
 	* arts-1-4-0
 
 	* Changes to arguments of *sensor_responseMultiMixerBackend*,

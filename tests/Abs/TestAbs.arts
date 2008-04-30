@@ -65,32 +65,12 @@ AtmFieldsCalc
 # Initialize the input variables of abs_coefCalc from the Atm fields:
 AbsInputFromAtmFields
 
-# Set the physical H2O profile from the H2O profile in vmrs:
-abs_h2oSet
-
-# N2 likewise:
-abs_n2Set
-
 # Create the frequency grid `f_grid':
 IndexSet(nelem){100}
 VectorNLinSpace (f_grid) {
         start = 50e9
         stop  = 150e9    
 }
-
-# set the lineshape function for all calculated tags
-abs_lineshapeDefine{
-        shape = "Voigt_Kuntz6" 
-        normalizationfactor = "linear"
-        cutoff = -1
-}
-
-# or set it separately for each tag
-#abs_lineshape_per_tgDefine{
-#        shape = [ "Voigt_Kuntz6", "no_shape", "Voigt_Kuntz6", "Voigt_Kuntz6" ]
-#        normalizationfactor = [ "quadratic", "no_norm", "linear", "linear" ]
-#        cutoff = [ -1, -1, -1, -1 ]
-#}
 
 # Calculate absorption coefficients, both total (`abs_coef') and 
 # separately for each tag group (`abs_coef_per_species'):
