@@ -8,7 +8,7 @@ INCLUDE "continua.arts"
 
 output_file_formatSetZippedAscii
 
-ReadXML(f_grid){"amsub.f_grid.xml"}
+#ReadXML(f_grid){"amsub.f_grid.xml"}
 
 # We take a smaller cutoff, since the line-by-line calculation is 
 # only for O3, where only the local lines matter.
@@ -72,6 +72,33 @@ VectorSet( mblock_za_grid ){
 # --- 
 AntennaSet1D
 
+# The local oscillators of each mixer
+# ---
+# The local oscillator frequency must be given for each channel, even if
+# several channels use the same mixer. 
+VectorSetExplicitly(lo){
+  values = [89e9, 150e9, 183.31e9, 183.31e9, 183.31e9]
+}
+
+# The backend channel frequencies
+# ---
+# The number of backend channel frequencies should either be equal to the
+# number of mixers, i.e. elements of *lo*, or one.
+# Note that only one of the sidebands are defined in ARTS, here the upper
+# side is chosen but the choice is arbitrary.
+VectorSetExplicitly(f_backend){
+  values = [89.9e9, 150.9e9, 184.31e9, 186.31e9, 190.31e9]
+}
+
+# Backend channel response
+# ---
+# The channel backend respones have to be defined for the setup of the 
+# multi-mixer response. Monochromatic radiances can be approximated with 
+# very narrow channel responses (narrower than the spacing in *f_grid*)
+# ---
+MatrixCreate(backend_channel_response)
+ReadXML(backend_channel_response){"./amsub.backend.xml"}
+
 # Initialise sensor response
 # ---
 sensor_responseInit
@@ -94,14 +121,6 @@ MatrixSet(sensor_pol){ 2 }
 # ---
 sensor_responsePolarisation
 
-# The local oscillators of each mixer
-# ---
-# The local oscillator frequency must be given for each channel, even if
-# several channels use the same mixer. 
-VectorSetExplicitly(lo){
-  values = [89e9, 150e9, 183.31e9, 183.31e9, 183.31e9]
-}
-
 # Sidebands filter response
 # ---
 # For true double sideband mixers the response can be represented by a 
@@ -121,29 +140,13 @@ IndexSet(nelem){ 2 }
 VectorSet(vector_2){
   value = 1
 }
-Matrix2ColFromVectors(matrix_1,vector_1,vector_2){}
-
-# The backend channel frequencies
-# ---
-# The number of backend channel frequencies should either be equal to the
-# number of mixers, i.e. elements of *lo*, or one.
-# Note that only one of the sidebands are defined in ARTS, here the upper
-# side is chosen but the choice is arbitrary.
-VectorSetExplicitly(f_backend){
-  values = [89.9e9, 150.9e9, 184.31e9, 186.31e9, 190.31e9]
-}
-
-# Backend channel response
-# ---
-# The channel backend respones have to be defined for the setup of the 
-# multi-mixer response. Monochromatic radiances can be approximated with 
-# very narrow channel responses (narrower than the spacing in *f_grid*)
-# ---
-ReadXML(backend_channel_response){"./amsub.backend.xml"}
+# The WSV sideband_filter_response is created on the fly here, it is
+# not a standard WSV.
+Matrix2ColFromVectors(sideband_filter_response,vector_1,vector_2){}
 
 # The multi-mixer response
 # ---
-sensor_responseMultiMixerBackend(matrix_1){}
+sensor_responseMultiMixerBackend(sideband_filter_response, backend_channel_response){}
 
 # Write the sensor variable to xml-files
 #WriteXML(sensor_response){ "" }

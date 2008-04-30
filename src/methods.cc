@@ -201,8 +201,26 @@ void define_md_data_raw()
         DESCRIPTION(
                     "Calculate absorption coefficients. \n"
                     "\n"
-                    "This function calculates both, the total absorption (*abs_coef*)\n"
-                    "and the absorption per tag group (*abs_coef_per_species*).\n"
+                    "This function calculates both, the total absorption (*abs_coef*), and\n"
+                    "the absorption per species (*abs_coef_per_species*).\n"
+                    "\n"
+                    "The method calls four other  methods:\n"
+                    "\n"
+                    "1. *abs_xsec_per_speciesInit*:\n"
+                    "   Initialize *abs_xsec_per_species* \n"
+                    "\n"
+                    "2. *abs_xsec_per_speciesAddLines*:\n"
+                    "   Calculate cross sections per tag group for line spectra.\n"
+                    "\n"
+                    "3. *abs_xsec_per_speciesAddConts*:\n"
+                    "   Calculate cross sections per tag group for continua.\n"
+                    "\n"
+                    "4. *abs_coefCalcFromXsec*:\n"
+                    "   Calculate absorption coefficients from the cross sections by\n"
+                    "   multiplying each cross section by n*VMR.\n"
+                    "\n"
+                    "This is done once for each tag group (output *abs_coef_per_species*),\n"
+                    "and for the sum of all tag groups (output *abs_coef*).\n"
                    ) ,
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUTPUT( abs_coef_  , abs_coef_per_species_ ),
@@ -224,17 +242,8 @@ void define_md_data_raw()
                     "\n"
                     "This calculates both the total absorption and the\n"
                     "absorption per tag group. \n"
-                    "This method calls three other  methods:\n"
-                    "1. *abs_xsec_per_speciesInit* - initialize *abs_xsec_per_species* \n"
-                    "2. *abs_xsec_per_speciesAddLine* - calculate cross sections per \n"
-                    "                   tag group for line spectra.\n"
-                    "3. *abs_xsec_per_speciesAddConts* - calculate cross sections per \n"
-                    "                   tag group for continua.\n"
-                    "Then it calculates the absorption coefficient by multiplying\n"
-                    "the cross section by n*VMR.\n"
-                    "This is done once for each tag group (output: *abs_coef_per_species*)\n"
-                    "and for the sum of all tag group to get the total absorption\n"
-                    "coefficient (output: *abs_coef*)\n"
+                    "\n"
+                    "Cross sections are multiplied by n*VMR.\n"
                    ),
         AUTHORS( "Stefan Buehler", "Axel von Engeln" ),
         OUTPUT( abs_coef_, abs_coef_per_species_ ),
@@ -3029,6 +3038,33 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
+
+//   md_data_raw.push_back     
+//     ( MdRecord
+//       ( NAME("f_grid"),
+//         DESCRIPTION
+//         (
+//          "Automatically calculate f_grid to match the instrument\n"
+//          "\n"
+//          "This method is handy if you are simulating an AMSU-type instrument,\n"
+//          "consisting of a few discrete channels.\n"
+//          "\n"
+//          "It calculates f_grid to match the instrument, as given by the local\n"
+//          "oscillator frequencies *lo*, the backend frequencies *f_backend*, and\n"
+//          "the backend channel responses *backend_channel_response*.\n"
+//          "\n"
+//          "You have to specify the desired spacing in the keyword *spacing*, which\n"
+//          "has a default value of 100 MHz. (The actual value is 0.1e9, since our\n"
+//          "unit is Hz.)\n"
+//         ),
+//         AUTHORS( "Stefan Buehler" ),
+//         OUTPUT( f_grid_ ),
+//         INPUT( lo_, f_backend_, backend_channel_response_ ),
+//         GOUTPUT( ),
+//         GINPUT( ),
+//         KEYWORDS( "spacing" ),
+//         DEFAULTS( ".1e9"),
+//         TYPES(    Numeric_t )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -5886,29 +5922,19 @@ md_data_raw.push_back
          "backend channel frequencies by *f_backend* which should both have\n"
          "the same length as the number of rows of *sensor_pol*.\n"
          "\n"
-         "The channel response is given as the generic input matrix.\n"
-         "The first column describes a relative grid of frequencies and the rest\n"
-         "of the columns describe the backend responses.\n"
-         "\n"
-         "For each level, the response can be described in two ways. Either\n"
-         "one single matrix column is given and then used for each\n"
-         "polarisation/frequency. Or a complete set of columns covering all\n"
-         "polarisations/frequencies are given and in each case a individual\n"
-         "response will be used.\n"
-         "Note that for both cases there must allways be a column in the\n"
-         "matrices, the first, of a relative frequency grid.\n"
+         "The channel response is given by the WSV *backend_channel_response*.\n"
          "\n"
          "Generic Input: \n"
          "         Matrix : The sideband filter response matrix.\n"
-         "         Matrix : The backend channel response.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( sensor_response_, sensor_response_f_, f_mixer_, 
                 sensor_response_pol_ ),
         INPUT( sensor_response_za_, sensor_response_aa_,
-               lo_, sensor_norm_, f_backend_, sensor_pol_ ),
+               lo_, sensor_norm_, f_backend_, sensor_pol_,
+               backend_channel_response_ ),
         GOUTPUT( ),
-        GINPUT( Matrix_, Matrix_ ),
+        GINPUT( Matrix_ ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));

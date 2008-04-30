@@ -737,9 +737,9 @@ void sensor_responseMultiMixerBackend(
      const Index&           sensor_norm,
      const Vector&          f_backend,
      const Matrix&          sensor_pol,
+     const Matrix&          ch_resp,
      // WS Generic Input:
-     const Matrix&          sb_filter,
-     const Matrix&          ch_resp)
+     const Matrix&          sb_filter)
 {
   // Check if a *lo* is given for each polarisation (row in *sensor_pol*).
   Vector lo_tmp(sensor_pol.nrows());

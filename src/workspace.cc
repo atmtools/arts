@@ -754,6 +754,29 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "backend_channel_response" ),
+      DESCRIPTION
+      (
+       "Backend channel response matrix.\n"
+       "\n"
+       "The first column describes a relative grid of frequencies and the rest\n"
+       "of the columns describe the backend responses.\n"
+       "\n"
+       "For each level, the response can be described in two ways. Either one\n"
+       "single matrix column is given and then used for each\n"
+       "polarisation/frequency. Or a complete set of columns covering all\n"
+       "polarisations/frequencies are given and in each case a individual\n"
+       "response will be used.  Note that for both cases there must allways be\n"
+       "a column in the matrices, the first, of a relative frequency grid.\n"
+       "\n"
+       "FIXME: This description is cryptic and should be improved.\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       ),
+      GROUP( Matrix_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "batch_atm_fields_compact" ),
       DESCRIPTION
       (

@@ -2,13 +2,13 @@
 
 Arts {
 
-INCLUDE "amsub.arts"
+INCLUDE "amsua.arts"
 
 INCLUDE "TestAMSU_generic.arts"
 
 # Store result matrix:
 # ---
 output_file_formatSetAscii
-WriteXML(ybatch){"AMSUB.ybatch.xml.generated"}
+WriteXML(ybatch){"AMSUA.ybatch.xml.generated"}
 
 }

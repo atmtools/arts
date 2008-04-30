@@ -1,3 +1,39 @@
+2008-04-30  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-4-0
+
+	* Changes to arguments of *sensor_responseMultiMixerBackend*,
+	hence new version number. Also corrected documentation in old
+	absorption part, an error discovered by Claudia.
+
+	* src/workspace.cc (backend_channel_response): Added. The
+	documentation is copied from *sensor_responseMultiMixerBackend*. It
+	is unclear and should be improved.
+
+	* src/m_sensor.cc (sensor_responseMultiMixerBackend): Made
+	*backend_channel_response* a specific input. (Was generic input of
+	type Matrix.)
+
+	* src/methods.cc (abs_coefCalc): Fixed documentation.
+	(abs_coefCalcFromXsec): Fixed documentation.
+	(sensor_responseMultiMixerBackend): Made
+	*backend_channel_response* a specific input. (Was generic input of
+	type Matrix.)
+
+	* includes/amsua.arts: Added. Not yet finished.
+
+	* includes/amsub.arts: Adapted to change in
+	*sensor_responseMultiMixerBackend*. 
+
+	* tests/AMSUB/TestAMSUA.arts: Added. Not yet finished.
+
+	* tests/AMSUB/TestAMSUB.arts: Moved most content to
+	TestAMSU_generic.arts. 
+
+	* tests/AMSUB/TestAMSU_generic.arts: Added. This contains the
+	general AMSU test, those parts that are the same for AMSU A and
+	B. 
+
 2008-04-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-3-40
