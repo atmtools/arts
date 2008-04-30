@@ -1,3 +1,30 @@
+2008-04-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-4-2
+
+	* RteCalc now using threads. The threading added around the zenith
+	angle loop. This means that threads are only activated if the
+	calculations involve more than one zenith angle (always the case
+	if an antenna pattern is used). Tested succesfully with Odin 501
+	example.
+ 	
+	* src/ppath.cc (ppath_calc): Added private copy flag for call of
+	ppath_step_agenda. Introduced a local copy of ppath_step_agenda
+	to avoid conflicts between threads (solution provided by Oliver).
+
+	* src/rte.cc (get_radiative_background): Added private copy flag for
+	all called agendas.
+	(iy_calc): As above for call of rte_agenda.
+
+	* src/m_rte.cc (RteCalc): Included OpenMP thread around za loop.
+
+	* includes/odinsmr_501_1D.arts: As below.
+	* includes/odinsmr_544.arts: As below.
+
+	* includes/odinsmr_501.arts: A (temporary) fix to aviod Stefan's 
+	introduction of backend_channel_response (I had selected exactly
+	the same name when defining a variable.)
+
 2008-04-30  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-4-1

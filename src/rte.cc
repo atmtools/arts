@@ -260,7 +260,7 @@ void get_radiative_background(
         chk_not_empty( "iy_space_agenda", iy_space_agenda );
 
         iy_space_agendaExecute( iy, rte_pos, rte_los, 
-                                                iy_space_agenda, agenda_verb );
+                                iy_space_agenda, agenda_verb, true );
      
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {
@@ -285,7 +285,7 @@ void get_radiative_background(
         //
         surface_prop_agendaExecute( surface_emission, surface_los, 
                     surface_rmatrix, rte_gp_p, rte_gp_lat, rte_gp_lon, rte_los,
-                                            surface_prop_agenda, agenda_verb );
+                                    surface_prop_agenda, agenda_verb, true );
 
         // Check output of *surface_prop_agenda*
         //
@@ -338,7 +338,7 @@ void get_radiative_background(
                    t_field, vmr_field, r_geoid, z_surface, cloudbox_on, 
                    cloudbox_limits, rte_pos, surface_los(ilos,joker), f_grid, 
                    stokes_dim, ppath_array_do,
-                   rte_do_vmr_jacs, rte_do_t_jacs, agenda_verb2 );
+                         rte_do_vmr_jacs, rte_do_t_jacs, agenda_verb2 );
 
                 I(ilos,joker,joker) = iy;
 
@@ -394,7 +394,7 @@ void get_radiative_background(
 
         iy_cloudbox_agendaExecute( iy, ppath_local, rte_pos, rte_los, rte_gp_p,
                                    rte_gp_lat, rte_gp_lon,
-                                   iy_cloudbox_agenda, agenda_verb);
+                                   iy_cloudbox_agenda, agenda_verb, true );
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {
@@ -410,8 +410,9 @@ void get_radiative_background(
     case 4: // inside the cloudbox
       {
         chk_not_empty( "iy_cloudbox_agenda", iy_cloudbox_agenda );
+
         iy_cloudbox_agendaExecute( iy, ppath, rte_pos, rte_los, rte_gp_p, 
-                     rte_gp_lat, rte_gp_lon, iy_cloudbox_agenda, agenda_verb );
+               rte_gp_lat, rte_gp_lon, iy_cloudbox_agenda, agenda_verb, true );
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {
@@ -726,7 +727,7 @@ void iy_calc(
       rte_agendaExecute( iy, diy_dvmr, diy_dt, ppath,
                          ppath_array, ppath_array_index,
                          rte_do_vmr_jacs, rte_do_t_jacs,
-                         stokes_dim, f_grid, rte_agenda, agenda_verb );
+                         stokes_dim, f_grid, rte_agenda, agenda_verb, true );
     }
 }
 

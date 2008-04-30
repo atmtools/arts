@@ -74,8 +74,8 @@ StringSet( sideband_mode, "upper" )
 # Spectrometer:
 #
 ReadXML( f_backend, "f_backend.SM_AC2ab.xml" )
-ArrayOfMatrixCreate( backend_channel_response )
-ReadXML( backend_channel_response, "backend.xml" )
+ArrayOfMatrixCreate( backend_ch_response )
+ReadXML( backend_ch_response, "backend.xml" )
 
 
 sensor_responseInit
@@ -88,7 +88,7 @@ sensor_responseMixer(
 sensor_responseBackend( 
   sensor_response, sensor_response_f,
   f_backend, sensor_response_pol, sensor_response_za, sensor_norm,
-  backend_channel_response
+  backend_ch_response
 )
 
 } # End Arts
