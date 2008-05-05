@@ -1,5 +1,15 @@
 2008-05-05  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-4-4
+
+	* src/methods_aux.cc (operator<<):
+
+	Print method's synopsis in online help for easy copy'n'paste.
+	
+	Refine author list in online help.
+
+2008-05-05  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-4-3
 
 	* Compilation fixes for gcc 4.3

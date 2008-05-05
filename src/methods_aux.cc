@@ -390,6 +390,56 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       os << "\n";
     }
 
+  // Print the method's synopsis
+  {
+    bool separate_lines = false;
+    String indent = "";
+
+    // If the method has more than 4 arguments, put them on
+    // separate lines for better readability
+    if (mdr.Output().nelem() + mdr.GOutput().nelem() + mdr.Input().nelem()
+        + mdr.GInput().nelem() + mdr.Keywords().nelem() > 4)
+      {
+        separate_lines = true;
+        indent = "\n";
+        for (size_t i=0; i<mdr.Name().length() + 2; i++, indent+=' ');
+      }
+
+    os << "Synopsis (Arts2 Syntax):\n\n";
+    os << mdr.Name() << "( ";
+    first = true;
+    for ( Index i=0; i<mdr.Output().nelem(); ++i )
+      {
+        if (first) first=false; else os << ", " << indent;
+        os << Workspace::wsv_data[mdr.Output()[i]].Name();
+      }
+
+    for ( Index i=0; i<mdr.GOutput().nelem(); ++i )
+      {
+        if (first) first=false; else os << ", " << indent;
+        os << wsv_group_names[mdr.GOutput()[i]];
+      }
+
+    for ( Index i=0; i<mdr.Input().nelem(); ++i )
+      {
+        if (first) first=false; else os << ", " << indent;
+        os << Workspace::wsv_data[mdr.Input()[i]].Name();
+      }
+
+    for ( Index i=0; i<mdr.GInput().nelem(); ++i )
+      {
+        if (first) first=false; else os << ", " << indent;
+        os << wsv_group_names[mdr.GInput()[i]];
+      }
+
+    for ( Index i=0; i<mdr.Keywords().nelem(); ++i )
+      {
+        if (first) first=false; else os << ", " << indent;
+        os << '"' << mdr.Keywords()[i]<< '"';
+      }
+    os << " )\n\n";
+  }
+
   {
     bool is_first_author = true;
     for (Index i = 0; i < mdr.Authors().nelem(); i++)
@@ -400,7 +450,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
             is_first_author = false;
           }
         else
-          os << "         ";
+          os << ", ";
 
         os << mdr.Authors()[i];
       }
