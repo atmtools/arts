@@ -28,8 +28,10 @@
 #define array_h
 
 #include <vector>
+#include <iostream>
 #include <iomanip>
 #include <cassert>
+#include <climits>
 #include "matpack.h"
 
 

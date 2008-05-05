@@ -26,6 +26,7 @@
 */
 
 #include <ostream>
+#include <algorithm>
 #include <iterator>
 
 #include "arts.h"

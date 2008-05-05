@@ -1,3 +1,31 @@
+2008-05-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-4-3
+
+	* Compilation fixes for gcc 4.3
+
+	* configure.in:
+
+	Don't enable -Werror flag for gcc 4.3. Reason: The new gcc is _VERY_
+	picky about unsigned->signed conversions and down casting from larger
+	to smaller data types (long -> int) which could lead to overflows.
+	Fixing those warnings would need substantial code changes (if possible
+	at all). Needs further research.
+
+	* src/array.h:
+
+	Include <climits> for LONG_MAX and <iostream> for ostream.operator<<.
+
+	* src/xml_io.cc (xml_read_header_from_stream):
+
+	Use C++ string comparison instead of C function.
+
+	* src/agenda_class.cc:
+
+	Include <algorithm> for set_intersection and set_difference.
+
+	* src/gzstream.cc: Include <cstring> instead of <string> for memcpy.
+
 2008-04-30  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-4-2
