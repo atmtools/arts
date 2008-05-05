@@ -48,6 +48,7 @@
 #include "continua.h"
 #include "make_vector.h"
 #include "check_input.h"
+#include "xml_io.h"
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -275,6 +276,20 @@ void abs_linesReadFromJpl(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_linesReadFromArts(// WS Output:
+                       ArrayOfLineRecord& abs_lines,
+                       // Control Parameters:
+                       const String& filename,
+                       const Numeric& fmin,
+                       const Numeric& fmax)
+{
+  xml_read_arts_catalogue_from_file (filename, abs_lines, fmin, fmax);
+
+  out2 << "  Read " << abs_lines.nelem() << " lines.\n";
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_linesReadFromArtsObsolete(// WS Output:
                        ArrayOfLineRecord& abs_lines,
                        // Control Parameters:
                        const String& filename,

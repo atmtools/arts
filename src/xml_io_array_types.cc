@@ -1746,6 +1746,80 @@ xml_read_from_stream (istream& is_xml,
 }
 
 
+//! Reads ArrayOfLineRecord from XML input stream within specified frequency
+//! range
+/*!
+  \param is_xml   XML Input stream
+  \param alrecord ArrayOfLineRecord return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfLineRecord& alrecord,
+                      const Numeric fmin,
+                      const Numeric fmax,
+                      bifstream * pbifs _U_)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("ArrayOfLineRecord");
+
+  tag.get_attribute_value ("nelem", nelem);
+
+  LineRecord dummy_line_record;
+  String version;
+  tag.get_attribute_value ("version", version);
+
+  if (version != dummy_line_record.Version())
+    {
+      ostringstream os;
+
+      if (9 <= version.nelem())
+        {
+          if ("ARTSCAT" == version.substr (0,7))
+            {
+              os << "The ARTS line file you are trying contains a version tag\n"
+                << "different from the current version.\n"
+                << "Tag in file:     " << version << "\n"
+                << "Current version: " << dummy_line_record.Version();
+              throw runtime_error (os.str());
+            }
+        }
+
+      os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
+        << "Probably it was created with an older version of ARTS that used different units.";
+      throw runtime_error (os.str());
+    }
+
+  alrecord.resize (0);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          LineRecord lr;
+          if (lr.ReadFromArtsStream (is_xml))
+            throw runtime_error ("Cannot read line from file");
+
+          if ( fmin <= lr.F() && lr.F() <= fmax )
+            alrecord.push_back (lr);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfLineRecord: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/ArrayOfLineRecord");
+}
+
+
 //! Writes ArrayOfLineRecord to XML output stream
 /*!
   \param os_xml   XML Output stream

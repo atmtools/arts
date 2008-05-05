@@ -907,6 +907,80 @@ xml_read_from_file (const String& filename,
 }
 
 
+void
+xml_read_arts_catalogue_from_file (const String&      filename,
+                                   ArrayOfLineRecord& type,
+                                   const Numeric&     fmin,
+                                   const Numeric&     fmax)
+{
+  istream* ifs;
+  FileType ftype;
+  NumericType ntype;
+  EndianType etype;
+
+  out2 << "  Reading " << filename << '\n';
+
+  String xml_file = filename;
+  bool found_file;
+
+  found_file = find_file (xml_file, ".xml");
+  if (!found_file) found_file = find_file (xml_file, ".xml.gz");
+  if (!found_file) found_file = find_file (xml_file, ".gz");
+
+  // Open input stream:
+  if (xml_file.substr (xml_file.length () - 3, 3) == ".gz")
+#ifdef ENABLE_ZLIB
+    {
+      ifs = new igzstream();
+      xml_open_input_file (*(igzstream *)ifs, xml_file);
+    }
+#else
+    {
+      throw runtime_error (
+        "This arts version was compiled without zlib support.\n"
+        "Thus zipped xml files cannot be read.");
+    }
+#endif /* ENABLE_ZLIB */
+  else
+    {
+      ifs = new ifstream();
+      xml_open_input_file (*(ifstream *)ifs, xml_file);
+    }
+
+  // No need to check for error, because xml_open_input_file throws a
+  // runtime_error with an appropriate error message.
+
+  // Read the matrix from the stream. Here we catch the exception,
+  // because then we can issue a nicer error message that includes the
+  // filename.
+  try
+    {
+      xml_read_header_from_stream (*ifs, ftype, ntype, etype);
+      if (ftype == FILE_TYPE_ASCII)
+        {
+          xml_read_from_stream (*ifs, type, fmin, fmax);
+        }
+      else
+        {
+          String bfilename = filename + ".bin";
+          bifstream bifs (bfilename.c_str ());
+          xml_read_from_stream (*ifs, type, fmin, fmax, &bifs);
+        }
+      xml_read_footer_from_stream (*ifs);
+    }
+  catch (runtime_error e)
+    {
+      delete ifs;
+      ostringstream os;
+      os << "Error reading file: " << filename << '\n'
+         << e.what ();
+      throw runtime_error (os.str ());
+    }
+
+  delete ifs;
+}
+
+
 //! Write data to XML file
 /*!
   This is a generic functions that is used to write the XML header and

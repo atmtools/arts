@@ -510,6 +510,30 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("abs_linesReadFromArtsObsolete"),
+        DESCRIPTION(
+                    "Read all the lines from an Arts catalogue file in the \n"
+                    "given frequency range. Otherwise a runtime error will be\n"
+                    "thrown \n"
+                    "\n"
+                    "Please note that all lines must correspond\n"
+                    "to the legal species / isotope combinations\n"
+                    "\n"
+                    "Keywords: \n"
+                    "   filename : Name (and path) of the catalogue file.\n"
+                    "   fmin     : Minimum frequency for lines to read in Hz.\n"
+                    "   fmax     : Maximum frequency for lines to read in Hz.\n"),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT( abs_lines_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "filename", "fmin",    "fmax" ),
+        DEFAULTS( NODEF,      NODEF,     NODEF ),
+        TYPES(    String_t,   Numeric_t, Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("abs_linesReadFromHitran"),
         DESCRIPTION
         (

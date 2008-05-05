@@ -102,6 +102,10 @@ void
 xml_read_from_stream (istream&, ArrayOfLineRecord&, bifstream * = NULL);
 
 void
+xml_read_from_stream (istream&, ArrayOfLineRecord&,
+                      const Numeric, const Numeric, bifstream * = NULL);
+
+void
 xml_write_to_stream (ostream&, const ArrayOfLineRecord&,
                      bofstream * = NULL, const String & = "");
 

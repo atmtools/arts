@@ -13,10 +13,11 @@ INCLUDE "continua.arts"
 # Read the spectroscopic line data from the ARTS catalogue and
 # create the workspace variable `lines'.
 abs_linesReadFromArts {
-   filename = "lines.ac"
+   filename = "lines.xml"
    fmin     = 1e9
    fmax     = 200e9
 }
+
 # This test catalogue was generated from the HITRAN catalogue in the
 # following way:
 #abs_linesReadFromHitran {
@@ -24,7 +25,7 @@ abs_linesReadFromArts {
 #        fmin     = 1e9
 #        fmax     = 200e9
 #}
-#linesWriteAscii{"lines.ac"}
+#WriteXML(abs_lines){ "lines.xml" }
 
 IndexSet(nelem){10}
 VectorNLogSpace(p_grid){

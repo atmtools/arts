@@ -33,6 +33,7 @@
 #define xml_io_h
 
 #include "mystring.h"
+#include "absorption.h"
 
 typedef enum {
   FILE_TYPE_ASCII,
@@ -65,11 +66,17 @@ filename_xml_with_index (
 
 template<typename T> void
 xml_read_from_file (const String& filename,
-                          T&      data);
+                          T&      type);
+
+void
+xml_read_arts_catalogue_from_file (const String&      filename,
+                                   ArrayOfLineRecord& type,
+                                   const Numeric&     fmin,
+                                   const Numeric&     fmax);
 
 template<typename T> void
-xml_write_to_file (const String& filename,
-                   const      T& data,
-                           FileType ftype = FILE_TYPE_ASCII);
+xml_write_to_file (const String&  filename,
+                   const      T&  type,
+                   const FileType ftype = FILE_TYPE_ASCII);
 
 #endif

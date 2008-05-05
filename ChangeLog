@@ -1,5 +1,41 @@
 2008-05-05  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-4-6
+
+	* src/xml_io.{cc,h} (xml_write_to_file): Make ftype const.
+
+	(xml_read_arts_catalogue_from_file): Added.
+
+	* src/xml_io_array_types.{cc,h}:
+
+	Added xml_read_from_stream function which reads lines within a certain
+	frequency range from an ARTS catalogue.
+
+	* src/m_abs.cc:
+
+	Rename old abs_linesReadFromArts function to
+	abs_linesReadFromArtsObsoleteObsolete and change abs_linesReadFromArts
+	to read XML catalogue files.
+
+	* src/methods.cc: Add WSM abs_linesReadFromArtsObsolete.
+
+	* tests/Abs/lines.ac, tests/OdinSMR/linefile.SM_AC2ab.al,
+	tests/OdinSMR/linefile.SM_AC1e.al: Removed after conversion to xml.
+
+	* tests/Abs/lines.xml: Added.
+
+	* includes/linefile.SM_AC2ab.xml, includes/linefile.SM_AC1e.xml:
+
+	Added. Moved from the tests directory to here because the linefiles
+	are read by the Odin include files.
+
+	* includes/odinsmr_544.arts, includes/odinsmr_501_1D.arts,
+	includes/odinsmr_501.arts:
+
+	Read lines from XML file.
+
+2008-05-05  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-4-5
 
 	* tests/testall.py, tests/Makefile.am: Run OdinSMR testcase.
