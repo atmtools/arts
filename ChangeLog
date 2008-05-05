@@ -1,5 +1,17 @@
 2008-05-05  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-4-5
+
+	* tests/testall.py, tests/Makefile.am: Run OdinSMR testcase.
+
+	* tests/OdinSMR/TestOdinSMR.arts, tests/OdinSMR/TestOdinSMR_1D.arts:
+
+	Add .generated to output filenames.
+
+	* tests/OdinSMR/: Update ignores.
+
+2008-05-05  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-4-4
 
 	* src/methods_aux.cc (operator<<):

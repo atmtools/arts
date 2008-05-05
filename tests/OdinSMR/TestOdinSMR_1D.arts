@@ -71,8 +71,11 @@ RteCalc
 
 ConvertIFToRF
 
-WriteXML( output_file_format, sensor_response_f, ""                        )
-WriteXML( output_file_format, z_tan,             "TestOdinSMR_1D.ztan.xml" )
-WriteXML( output_file_format, y,                 ""                        )
+WriteXML( output_file_format, sensor_response_f,
+          "TestOdinSMR_1D.sensor_response_f.xml.generated" )
+WriteXML( output_file_format, z_tan,
+          "TestOdinSMR_1D.ztan.xml.generated" )
+WriteXML( output_file_format, y,
+          "TestOdinSMR_1D.y.xml.generated" )
 
 }

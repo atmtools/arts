@@ -9,7 +9,7 @@
 
 SUBDIRS = 
 
-TESTDIRS = Abs AMSUB ClearSky DISORT DOIT MonteCarlo
+TESTDIRS = Abs AMSUB ClearSky DISORT DOIT MonteCarlo OdinSMR
 
 TESTFILES = .arts .ac .xml .xml.gz .xml.bin
 
@@ -17,6 +17,7 @@ check: \
 	TestMonteCarloDataPrepare \
 	TestMonteCarloGeneral \
 	TestMonteCarloGeneralGaussian \
+	TestOdinSMR \
 	TestDOIT \
 	TestClearSky \
 	TestAbs \

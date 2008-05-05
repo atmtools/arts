@@ -90,8 +90,11 @@ timerStop
 
 ConvertIFToRF
 
-WriteXML( output_file_format, sensor_response_f, ""                     )
-WriteXML( output_file_format, z_tan,             "TestOdinSMR.ztan.xml" )
-WriteXML( output_file_format, y,                 ""                     )
+WriteXML( output_file_format, sensor_response_f,
+          "TestOdinSMR.sensor_response_f.xml.generated" )
+WriteXML( output_file_format, z_tan,
+          "TestOdinSMR.ztan.xml.generated" )
+WriteXML( output_file_format, y,
+          "TestOdinSMR.y.xml.generated" )
 
 }

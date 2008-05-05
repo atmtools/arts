@@ -74,6 +74,14 @@ class TestMonteCarloGeneralGaussian(unittest.TestCase):
         dQ=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.mc_error.xml.generated")[1]
         assert abs(Q-7.6) < 4*Q, 'Q (='+str(Q)+'K) is too far away from 7.6 K'
         
+class TestOdinSMR(unittest.TestCase):
+    """Testing OdinSMR calculation"""
+    ODINrun=ArtsRun('OdinSMR', 'TestOdinSMR.arts')
+    def test1(self):
+        """TestOdinSMR.arts should run with no errors"""
+        self.ODINrun.run()
+        assert self.ODINrun.error=='','Error running TestOdinSMR.arts: '+self.ODINrun.error
+
 class TestDOIT(unittest.TestCase):
     """Testing the ARTS-DOIT algorithm"""
     DOITrun=ArtsRun('DOIT', 'TestDOIT.arts')
