@@ -420,10 +420,12 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
         os << wsv_group_names[mdr.GOutput()[i]];
       }
 
-    for ( Index i=0; i<mdr.Input().nelem(); ++i )
+    ArrayOfIndex inonly;
+    mdr.input_only (inonly);
+    for ( Index i=0; i<inonly.nelem(); ++i )
       {
         if (first) first=false; else os << ", " << indent;
-        os << Workspace::wsv_data[mdr.Input()[i]].Name();
+        os << Workspace::wsv_data[inonly[i]].Name();
       }
 
     for ( Index i=0; i<mdr.GInput().nelem(); ++i )

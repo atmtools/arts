@@ -1,3 +1,18 @@
+2008-05-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-4-7
+
+	* src/methods_aux.cc (operator<<):
+
+	Fix bug in synopsis output. Variables which are specific in- and output
+	should not be displayed twice.
+	
+	* tests/Abs/TestAbs.arts, tests/ClearSky/TestClearSky.arts:
+
+	Changed to new format.
+
+	* tests/Abs/TestAbs2.arts: Removed.
+
 2008-05-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-4-6

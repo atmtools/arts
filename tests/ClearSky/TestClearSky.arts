@@ -5,7 +5,7 @@
 # Author: Stefan Buehler, adapted from older test by Patrick Eriksson
 
 
-Arts {
+Arts2 {
 
 INCLUDE "general"
 INCLUDE "continua.arts"
@@ -13,37 +13,35 @@ INCLUDE "continua.arts"
 
 # Pick out the lines we want from HITRAN and save to arts line file
 # ---
-#abs_linesReadFromHitran2004{
-#    filename = "/storage1/pool/lookup2/hitran2004/HITRAN04.par"
-#    fmin      = 310e9
-#    fmax      = 340e9
-#}
-#WriteXML(abs_lines){"abs_lines.xml"}
+#abs_linesReadFromHitran2004( abs_lines,
+#                             "/storage1/pool/lookup2/hitran2004/HITRAN04.par",
+#                             310e9,
+#                             340e9 )
+#WriteXML( output_file_format, abs_lines, "abs_lines.xml" )
 
 
 # Read line file
 # ---
-ReadXML(abs_lines){"abs_lines.xml"}
+ReadXML( abs_lines, "abs_lines.xml" )
 
 
 # Frequency grid 
 # Note: Should be covered by line catalog.
 # ---
-VectorSetExplicitly(f_grid){[320e9]}
-#IndexSet(nelem){10}
-#VectorNLinSpace(f_grid){start = 320e9
-#                        stop  = 330e9}
+VectorSetExplicitly( f_grid, [320e9] )
+#VectorNLinSpace( f_grid, 10, 320e9, 330e9 )
 
 # Pressure grid
 # ---
-ReadXML(p_grid){"p_grid.xml"}
+ReadXML( p_grid, "p_grid.xml" )
 
 
 # Definition of species
 # ---
-SpeciesSet(abs_species){["H2O-SelfContStandardType, H2O-ForeignContStandardType, H2O", 
-                         "N2-SelfContStandardType",
-			 "O3"]}
+SpeciesSet( abs_species,
+            ["H2O-SelfContStandardType, H2O-ForeignContStandardType, H2O", 
+             "N2-SelfContStandardType",
+             "O3"] )
 
 # Sort the line file according to species
 # ---
@@ -51,39 +49,28 @@ abs_lines_per_speciesCreateFromLines
 
 # Atmospheric profiles
 # ---
-AtmRawRead{"tropical"}
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "tropical" )
 #
 AtmFieldsCalc
 
 
 # get ground altitude (z_surface) from z_field
-IndexSet(index_1){0}
-MatrixExtractFromTensor3(z_surface,z_field,index_1)
+MatrixExtractFromTensor3( z_surface, z_field, 0 )
 
 # This could also be set explicitly like this:
-#nrowsGet(r_geoid){}
-#ncolsGet(r_geoid){}
-#MatrixSet( z_surface){
-#    value = 500
-#}
+#MatrixSet( z_surface, r_geoid, r_geoid, 500 )
 
 # Surface emissivity
-NumericSet(surface_emissivity){0.9}
+NumericSet( surface_emissivity, 0.9 )
 
 
 # Definition of sensor position and LOS
 # ---
-IndexSet(nrows){ 1 }
-IndexSet(ncols){ 1 }
-MatrixSet(sensor_pos){
-  value = 600e3
-}
+MatrixSet( sensor_pos, 1, 1, 600e3 )
 #
 sensor_posAddRgeoid
 #
-MatrixSet(sensor_los){
-  value = 130
-}
+MatrixSet( sensor_los, 1, 1, 130 )
 
 
 # No sensor properties
@@ -93,7 +80,7 @@ sensorOff
 
 # We select here to use Rayleigh-Jean brightness temperatures
 # ---
-StringSet( y_unit ){ "RJBT" }
+StringSet( y_unit, "RJBT" )
 
 
 # Perform RT calculations
@@ -108,7 +95,7 @@ timerStop
 
 # Write the result for the python test script
 output_file_formatSetAscii
-WriteXML( y ){ "ClearSky.y1.xml.generated" }
+WriteXML( output_file_format, y, "ClearSky.y1.xml.generated" )
 
 # Do the same calculation again with lookup table absorption.
 
@@ -121,7 +108,9 @@ AgendaSet( abs_scalar_gas_agenda ){
 
 # Set parameters for absorption lookup table generation
 # ---
-abs_lookupSetup
+abs_lookupSetup( abs_p, abs_t, abs_t_pert, abs_vmrs, abs_nls, 
+                 abs_nls_pert, atmosphere_dim, p_grid, lat_grid, 
+                 lon_grid, t_field, vmr_field, abs_species, , , )
 
 
 # Generate absorption lookup table
@@ -129,7 +118,7 @@ abs_lookupSetup
 timerStart
 abs_lookupCreate
 timerStop
-#WriteXML(abs_lookup){""}
+#WriteXML( output_file_format, abs_lookup, "" )
 
 
 # Redo RT calculation, Tb conversion and save
@@ -139,7 +128,7 @@ RteCalc
 timerStop
 
 output_file_formatSetAscii
-WriteXML( y ){ "ClearSky.y2.xml.generated" }
+WriteXML( output_file_format, y, "ClearSky.y2.xml.generated" )
 
 } # End of Main
  
