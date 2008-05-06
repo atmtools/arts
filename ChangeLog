@@ -1,3 +1,36 @@
+2008-05-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-4-8
+
+	* tests/MonteCarlo/TestMonteCarloDataPrepare.arts: Added saving of
+	scat_data_raw.
+
+	* tests/MonteCarlo/TestRteCalcMC.arts: Created.
+
+	* src/m_ppath.cc (sensor_posAddGeoidWGS84): Indexing when extracting 
+	data from matrix r was wrong.
+
+	* src/m_rte.cc (RteCalcMC): Removed f_index as output. Made some 
+	work in order to introduce threads. Most importantly, ibdone now
+	calculated instead of calculated in += fashion.
+
+	* src/m_rte.cc (RteStdWithTransmissions): Removed *emission* 
+	and *abs_scalar_gas* as output.
+
+	              (RteStd): As above. 
+	* src/rte.cc (rte_std): As above.
+
+	* src/methods.cc: A quick revision of description for methods with
+	me as author, beside sensor and jacobian methods. Fixed spelling and
+	som eupdates. Set Claudia as author for some methods.
+
+	* tests/OdinSMR/plot_result.m: Name of files to load had to be changed
+	(.generated added).
+
+	* tests/OdinSMR/TestOdinSMR.arts: Changed number of spectra calculated
+	to 4 (was set to 31 for test of speed improvement with threads). 
+	Removed timer output.
+
 2008-05-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-4-7

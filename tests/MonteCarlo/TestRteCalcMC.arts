@@ -1,0 +1,107 @@
+#DEFINITIONS:  -*-sh-*-
+#This control file perfoems an ARTS-MC radiative transfer simulation
+#For a single line of sight and a Pencil Beam antenna response
+
+
+Arts2 {
+
+INCLUDE "general"
+
+#### LOAD DATA: these files were created with MCDataPrepare.arts ######
+
+ReadXML( f_grid, "f_grid.xml.generated" )
+
+IndexSet( f_index, 0 )
+
+ReadXML( p_grid, "p_grid.xml" )
+
+AtmosphereSet3D
+
+ReadXML( lat_grid, "lat_grid.xml" )
+
+ReadXML( lon_grid, "lon_grid.xml" )
+
+ReadXML( t_field, "t_field.xml.generated" )
+
+ReadXML( z_field, "z_field.xml.generated" )
+
+ReadXML( vmr_field, "vmr_field.xml.generated" )
+
+r_geoidSpherical(  r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
+
+ReadXML( z_surface, "z_surface.xml.generated" )
+
+ReadXML( abs_lookup, "abs_lookup.xml.generated" )
+
+SpeciesSet( abs_species, ["O2-PWR93","N2-SelfContStandardType","H2O-PWR98"] )
+
+abs_lookupAdapt
+
+ReadXML( cloudbox_limits, "cloudbox_limits.xml.generated" )
+
+ReadXML( pnd_field, "pnd_field.xml.generated" )
+
+ReadXML( scat_data_raw, "scat_data_raw.xml.generated" )
+
+
+#### Define Agendas #################################################
+
+AgendaSet(abs_scalar_gas_agenda){
+  abs_scalar_gasExtractFromLookup
+}
+
+AgendaSet(spt_calc_agenda){
+  opt_prop_sptFromMonoData
+}
+
+#### Define viewing position and line of sight #########################
+
+# Number of tangent altitudes
+IndexSet( n_tan, 3 )
+
+# Sensor POS and LOS set in such way that tangent points are found around
+# latitude +0.7, longitude 0 and altitudes between 6 and 13.5 km.
+
+VectorSet( z_plat, n_tan, 600e3 )
+VectorSet( lat_plat, n_tan, -23 )
+VectorSet( lon_plat, n_tan, 0 )
+
+Matrix3ColFromVectors( sensor_pos, z_plat, lat_plat, lon_plat )
+sensor_posAddGeoidWGS84
+
+VectorNLinSpace( za, n_tan, 113.65, 113.75 )
+VectorSet( aa, n_tan, 0 )
+
+Matrix2ColFromVectors( sensor_los, za, aa )
+
+
+#### Perform Monte Carlo RT Calculation #################################
+
+IndexSet( stokes_dim, 4 )
+
+StringSet(y_unit, "RJBT" )
+
+sensorOff
+
+RteCalc
+
+timerStart
+RteCalcMC( y, mc_error, iy_space_agenda, surface_prop_agenda, 
+    opt_prop_gas_agenda, abs_scalar_gas_agenda, atmosphere_dim, p_grid, 
+    lat_grid, lon_grid, z_field, t_field, vmr_field, r_geoid, z_surface, 
+    cloudbox_on, cloudbox_limits, pnd_field, scat_data_raw, sensor_response, 
+    sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, mblock_za_grid, 
+    mblock_aa_grid, y_unit, 2, -1, -1, 1 )
+timerStop
+
+
+#### Save calculated Stokes vector and std. err.#########################
+
+output_file_formatSetAscii
+
+WriteXML( output_file_format, y, "RteCalcMC.y.xml.generated" )
+
+WriteXML( output_file_format, mc_error, "RteCalcMC.mc_error.xml.generated" )
+
+}
+

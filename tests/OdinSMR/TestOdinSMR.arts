@@ -68,7 +68,7 @@ AgendaSet( abs_scalar_gas_agenda ){
 # ---- Sensor position and LOS -----------------------------------------------
 
 # Number of tangent altitudes
-IndexSet( n_tan, 31 )
+IndexSet( n_tan, 4 )
 
 # Sensor position, with platform altitude set to 600 km
 MatrixSet( sensor_pos, n_tan, 1, 600e3 )
@@ -84,9 +84,7 @@ Matrix1ColFromVector( sensor_los, za )
 
 # ---- Calculate, switch to RF and save
 
-timerStart
 RteCalc
-timerStop
 
 ConvertIFToRF
 

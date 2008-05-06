@@ -388,7 +388,7 @@ void sensor_posAddGeoidWGS84(
           Matrix r;
           r_geoidWGS84( r, 2, lats, Vector(0), -999, -999 );
           
-          sensor_pos(i,0) += r(i,pos_used);
+          sensor_pos(i,0) += r(pos_used,0);
         }
     }
 }

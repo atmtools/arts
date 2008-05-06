@@ -386,7 +386,6 @@ void RteCalcNoJacobian(
 void RteCalcMC(
          Vector&                        y,
          Vector&                        mc_error,
-         Index&                         f_index,
    const Agenda&                        iy_space_agenda,
    const Agenda&                        surface_prop_agenda,
    const Agenda&                        opt_prop_gas_agenda,
@@ -460,14 +459,15 @@ void RteCalcMC(
   //--- Loop:  measurement block / zenith angle / azimuthal angle
   //
   Index    nydone = 0;                 // Number of positions in y done
-  Index    nbdone;                     // Number of positions in ib done
   Matrix   los(1,sensor_los.ncols());  // LOS of interest
   Matrix   pos(1,sensor_pos.ncols());  // POS of interest
   //
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
-      nbdone = 0;
-
+//#ifdef _OPENMP
+//#pragma omp parallel private(pos,los,mc_seed,iyf,iyf_error,mc_iteration_count)
+//#pragma omp for 
+//#endif
       for( Index iza=0; iza<nza; iza++ )
         {
           for( Index iaa=0; iaa<naa; iaa++ )
@@ -481,7 +481,7 @@ void RteCalcMC(
               if( antenna_dim == 2 )
                 { los(0,1) += mblock_aa_grid[iaa]; }
 
-              for( f_index=0; f_index<nf; f_index++ )
+              for( Index f_index=0; f_index<nf; f_index++ )
                 {
                   ArrayOfSingleScatteringData   scat_data_mono;
 
@@ -493,13 +493,17 @@ void RteCalcMC(
                   MCSetSeedFromTime( mc_seed );
                   
                   MCGeneral( iyf, mc_iteration_count, iyf_error, mc_points, 
-                      mc_antenna, f_grid, f_index, pos, los, stokes_dim, 
-                      iy_space_agenda, surface_prop_agenda, opt_prop_gas_agenda, 
-                      abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, 
-                      z_field, r_geoid, z_surface, t_field, vmr_field, 
-                      cloudbox_limits, pnd_field, scat_data_mono, mc_seed, 
-                      y_unit, std_err, max_time, max_iter, z_field_is_1D ); 
+                     mc_antenna, f_grid, f_index, pos, los, stokes_dim, 
+                     iy_space_agenda, surface_prop_agenda, opt_prop_gas_agenda, 
+                     abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, 
+                     z_field, r_geoid, z_surface, t_field, vmr_field, 
+                     cloudbox_limits, pnd_field, scat_data_mono, mc_seed, 
+                     y_unit, std_err, max_time, max_iter, z_field_is_1D ); 
                   
+                  //--- Start index in *ib* for data to include 
+                  const Index   nbdone = 
+                              ( ( iza*naa + iaa ) * nf + f_index ) * stokes_dim;
+
                   //--- Copy *iyf* to *ib*
                   for( Index is=0; is<stokes_dim; is++ )
                     { 
@@ -508,7 +512,7 @@ void RteCalcMC(
                     }
 
                   // Increase nbdone
-                  nbdone += stokes_dim;
+                  //nbdone += stokes_dim;
                 }
             } // iaa loop
         } // iza loop
@@ -570,8 +574,6 @@ void mc_errorApplySensor(
 void RteStd(
       // WS Output:
              Matrix&                  iy,
-             Vector&                  emission,
-             Matrix&                  abs_scalar_gas,
              ArrayOfTensor4&          diy_dvmr,
              ArrayOfTensor4&          diy_dt,
        // WS Input:
@@ -587,8 +589,7 @@ void RteStd(
 {
   Tensor4 dummy(0,0,0,0);
 
-  rte_std( iy, emission, abs_scalar_gas,
-           dummy, diy_dvmr, diy_dt,
+  rte_std( iy, dummy, diy_dvmr, diy_dt,
            ppath, ppath_array, ppath_array_index, f_grid, stokes_dim, 
            emission_agenda, abs_scalar_gas_agenda,
            rte_do_gas_jacs, rte_do_t_jacs, false );
@@ -599,8 +600,6 @@ void RteStd(
 void RteStdWithTransmissions(
       // WS Output:
              Matrix&                  iy,
-             Vector&                  emission,
-             Matrix&                  abs_scalar_gas,
              Tensor4&                 ppath_transmissions,
              ArrayOfTensor4&          diy_dvmr,
              ArrayOfTensor4&          diy_dt,
@@ -615,8 +614,7 @@ void RteStdWithTransmissions(
        const ArrayOfIndex&            rte_do_gas_jacs,
        const Index&                   rte_do_t_jacs )
 {
-  rte_std( iy, emission, abs_scalar_gas,
-           ppath_transmissions, diy_dvmr, diy_dt,
+  rte_std( iy, ppath_transmissions, diy_dvmr, diy_dt,
            ppath, ppath_array, ppath_array_index, f_grid, stokes_dim, 
            emission_agenda, abs_scalar_gas_agenda,
            rte_do_gas_jacs, rte_do_t_jacs, true );

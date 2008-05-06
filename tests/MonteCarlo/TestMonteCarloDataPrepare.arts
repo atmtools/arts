@@ -126,6 +126,10 @@ scat_data_monoCalc
 #For some reason SingleScatteringData binary files can't be loaded 
 output_file_formatSetAscii
 
+WriteXML(scat_data_raw){
+filename="scat_data_raw.xml.generated"
+}
+
 WriteXML(scat_data_mono){
 filename="scat_data_mono.xml.generated"
 }

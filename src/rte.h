@@ -140,8 +140,6 @@ void rte_step_std(
 
 void rte_std(
              Matrix&                  iy,
-             Vector&                  emission,
-             Matrix&                  abs_scalar_gas,
              Tensor4&                 ppath_transmissions,
              ArrayOfTensor4&          diy_dvmr,
              ArrayOfTensor4&          diy_dt,

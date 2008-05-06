@@ -6,13 +6,13 @@
 function [f,Y] = plot_result(do_1d)
 
 if ~nargin  |  ~do_1d
-  f    = xmlLoad( 'TestOdinSMR.sensor_response_f.xml' ); 
-  ztan = xmlLoad( 'TestOdinSMR.ztan.xml' );
-  y    = xmlLoad( 'TestOdinSMR.y.xml' );
+  f    = xmlLoad( 'TestOdinSMR.sensor_response_f.xml.generated' ); 
+  ztan = xmlLoad( 'TestOdinSMR.ztan.xml.generated' );
+  y    = xmlLoad( 'TestOdinSMR.y.xml.generated' );
 else
-  f    = xmlLoad( 'TestOdinSMR_1D.sensor_response_f.xml' ); 
-  ztan = xmlLoad( 'TestOdinSMR_1D.ztan.xml' );
-  y    = xmlLoad( 'TestOdinSMR_1D.y.xml' );
+  f    = xmlLoad( 'TestOdinSMR_1D.sensor_response_f.xml.generated' ); 
+  ztan = xmlLoad( 'TestOdinSMR_1D.ztan.xml.generated' );
+  y    = xmlLoad( 'TestOdinSMR_1D.y.xml.generated' );
 end
 
 Y = reshape( y, length(f), length(ztan) );

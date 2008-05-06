@@ -306,7 +306,7 @@ void MCGeneral(
           if (termination_flag==1)
             {
               iy_space_agendaExecute(local_iy,local_rte_pos,local_rte_los,
-                                                         iy_space_agenda,true);
+                                     iy_space_agenda,true);
               mult(vector1,evol_op,local_iy(0,joker));
               mult(I_i,Q,vector1);
               I_i/=g;
@@ -315,10 +315,10 @@ void MCGeneral(
           else if (termination_flag==2)
             {
               //decide whether we have reflection or emission
-              surface_prop_agendaExecute(local_surface_emission, local_surface_los, 
-                                         local_surface_rmatrix, ppath_step.gp_p[np-1],
-                                         ppath_step.gp_lat[np-1],ppath_step.gp_lon[np-1],local_rte_los,
-                                         surface_prop_agenda, true);
+              surface_prop_agendaExecute( local_surface_emission, 
+                local_surface_los, local_surface_rmatrix, ppath_step.gp_p[np-1],
+                ppath_step.gp_lat[np-1],ppath_step.gp_lon[np-1],local_rte_los,
+                surface_prop_agenda,true);
               //deal with blackbody case
               if (local_surface_los.nrows()==0)
                 {

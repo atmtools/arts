@@ -1423,7 +1423,7 @@ void define_md_data_raw()
       ( NAME("AntennaSet1D"),
         DESCRIPTION
         (
-         "To set the antenna dimension to be 1D.\n"
+         "Sets the antenna dimension to 1D.\n"
          "\n"
          "Sets *antenna_dim* to 1 and sets *mblock_aa_grid* to be empty.\n"
         ),
@@ -1441,7 +1441,7 @@ void define_md_data_raw()
       ( NAME("AntennaSet2D"),
         DESCRIPTION
         (
-         "To set the antenna dimension to be 2D.\n"
+         "Sets the antenna dimension to 2D.\n"
          "\n"
          "Sets *antenna_dim* to 2.\n"
          "\n"
@@ -1679,16 +1679,16 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Interpolate 1D raw atmospheric fields to create 2D or 3D \n"
-         "homogenous atmospheric fields.\n"
+         "homogeneous atmospheric fields.\n"
          "\n"
          "The method works as *AtmFieldsCalc* but accepts only raw 1D\n"
-         "atmsopheres. The raw atmsophere is interpolated to *p_grid* and \n"
+         "atmospheres. The raw atmosphere is interpolated to *p_grid* and \n"
          "the obtained values are applied for all latitudes, and also \n"
-         "longitudes for 3D, to create a homogenous atmsophere. \n"
+         "longitudes for 3D, to create a homogeneous atmosphere. \n"
          "\n"
-         "Note that the method only deals with the atmospheric fields, and\n"
-         "to create a 2D or 3D version of a 1D case, a demand is also that\n"
-         "the geoid radius is set to be constant for all latitudes/longitudes.\n"
+         "The method deals only with the atmospheric fields, and to create\n"
+         "a true 2D or 3D version of a 1D case, a demand is also that the\n"
+         "geoid radius is set to be constant for all latitudes/longitudes.\n"
         ),
         AUTHORS( "Patrick Eriksson", "Claudia Emde" ),
         OUTPUT( t_field_, z_field_, vmr_field_ ),
@@ -1875,7 +1875,7 @@ void define_md_data_raw()
       ( NAME("AtmosphereSet1D"),
         DESCRIPTION
         (
-         "To set the atmosheric dimension to be 1D.\n"
+         "Sets the atmospheric dimension to 1D.\n"
          "\n"
          "Sets *atmosphere_dim* to 1 and gives some variables dummy values.\n"
          "\n"
@@ -1895,7 +1895,7 @@ void define_md_data_raw()
       ( NAME("AtmosphereSet2D"),
         DESCRIPTION
         (
-         "To set the atmosheric dimension to be 2D.\n"
+         "Sets the atmospheric dimension to be 2D.\n"
          "\n"
          "Sets *atmosphere_dim* to 2 and gives some variables dummy values.\n"
          "\n"
@@ -1917,7 +1917,7 @@ void define_md_data_raw()
       ( NAME("AtmosphereSet3D"),
         DESCRIPTION
         (
-         "To set the atmosheric dimension to be 3D.\n"
+         "Sets the atmospheric dimension to 3D.\n"
          "\n"
          "Sets *atmosphere_dim* to 3 and gives some variables dummy values.\n"
          "\n"
@@ -2957,7 +2957,7 @@ md_data_raw.push_back
          "are expected not to be used for the particular case. An inclusion\n"
          "in *surface_prop_agenda* could look like:\n   "
          "Error{\"Surface interceptions of propagation path not expected.\"}\n"
-         "(ignore and other dummy metho calls must still be included)\n"
+         "(ignore and other dummy method calls must still be included)\n"
          "\n"
          "Keywords: \n"
          "   msg : String describing the error.\n"
@@ -3122,7 +3122,6 @@ md_data_raw.push_back
         DEFAULTS( ),
         TYPES( )));
 
-  // New name: f_gridFromAbsLookup
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("f_gridFromGasAbsLookup"),
@@ -3342,7 +3341,7 @@ md_data_raw.push_back
       ( NAME("InterpAtmFieldToRteGps"),
         DESCRIPTION
         (
-         "Scalar interpolation  of atmospheric fields.\n" 
+         "Scalar interpolation of atmospheric fields.\n" 
          "\n"
          "The position is specified by the combination of *rte_gp_p*, \n"
          "*rte_gp_lat* and *rte_gp_lon*.\n"
@@ -3400,7 +3399,7 @@ md_data_raw.push_back
          "the scattering inside the cloud box is handled by the DOIT method.\n"
          "\n"
          "The intensity field is interpolated to the position and direction\n"
-         "given (specified by *rte_XXX*). A linear interpolation is used in\n"
+         "given (specified by *rte_XXX*). A linear interpolation is used for\n"
          "all dimensions.\n"
          "\n"
          "The intensity field on the cloux box boundaries is provided by\n"
@@ -3409,7 +3408,7 @@ md_data_raw.push_back
          "\n"
          "Interpolation of the internal field is not yet possible.\n"
          ),
-        AUTHORS( "Patrick Eriksson" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT( iy_ ),
         INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, doit_i_field1D_spectrum_,
                rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_,  cloudbox_on_,
@@ -3431,7 +3430,7 @@ md_data_raw.push_back
          "Works so far only for 1D cases, and accordingly a cubic\n"
          "interpolation along *scat_za_grid* is performed.\n"
          ),
-        AUTHORS( "Patrick Eriksson" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT( iy_ ),
         INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, doit_i_field1D_spectrum_,
                rte_gp_p_, rte_gp_lat_,
@@ -4121,7 +4120,7 @@ md_data_raw.push_back
          "   Matrix : Original matrix. \n"
          "\n"
          "Keywords: \n"
-         "   value : The value to be multiplicated with the matrix.\n"
+         "   value : The value to be multiplied with the matrix.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
@@ -4137,9 +4136,8 @@ md_data_raw.push_back
       ( NAME("MatrixSet"),
         DESCRIPTION
         (
-         "Creates a workspace matrix and sets all elements of the \n"
-         "matrix to the specified value. The size is determined by \n"
-         "the variables *ncols* and *nrows*.\n"
+         "Creates a matrix and sets all elements to the specified value.\n"
+         "The size is determined by the variables *ncols* and *nrows*.\n"
          "\n"
          "Generic output: \n"
          "   Matrix : The matrix to be created. \n"
@@ -5011,8 +5009,8 @@ md_data_raw.push_back
          "steps. A geometric path step is calculated from each point by \n"
          "using the local line-of-sight. Except for 1D zenith angles, the\n"
          "path quantities are propagated by solving the differential \n"
-         "equations by the Euler method. Snell's law for a case with \n"
-         "spherical symmetry is used for 1D to update the zenith angles. \n"
+         "equations by the Euler method. Snell's law for spherical symmetry\n"
+         "is used for 1D to update the zenith angles. \n"
          "\n"
          "See further the on-line information for *ppath_stepGeometric*\n"
          "(type \"arts -d ppath_stepGeometric\") and the user guide for more\n"
@@ -5084,7 +5082,6 @@ md_data_raw.push_back
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE( true  )));
 
-  // New name: p_gridFromAbsLookup
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("p_gridFromGasAbsLookup"),
@@ -5152,7 +5149,7 @@ md_data_raw.push_back
          "second latitude values, and the last longitude values. For \n"
          "dimensions not used, the corresponding position vector is ignored.\n"
          "\n"
-         "The calculated values for a Tensor4, with size:\n"
+         "The calculated values form a Tensor4, with size:\n"
          "   [atmosphere_dim+1, np, nlat, nlon] \n"
          "where np is the number of pressures given etc. The book of the\n"
          "tensor with the following index holds:\n"
@@ -5179,14 +5176,11 @@ md_data_raw.push_back
       ( NAME("refr_indexIR"),
         DESCRIPTION
         (
-         "Calculates the microwave refractive index due to gases in the\n"
+         "Calculates the IR refractive index due to gases in the\n"
          "Earth's atmosphere. \n"
          "\n"
-         "Only refractivity of dry air is considered. All other gases has\n"
-                 "a negligible contribution.  \n"
-         "\n"
-         "The formula used is contributed by Michael Hoefner,\n"
-                 "Forschungszentrum Karlsruhe.\n"
+         "Only refractivity of dry air is considered. The formula used is\n"
+         "contributed by Michael Hoefner,bForschungszentrum Karlsruhe.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( refr_index_ ),
@@ -5206,7 +5200,7 @@ md_data_raw.push_back
          "Earth's atmosphere. \n"
          "\n"
          "The refractivity of dry air and water vapour is summed. All\n"
-         "other gases has a negligible contribution.  \n"
+         "other gases are assumed ti have a negligible contribution.  \n"
          "\n"
          "The parameterisation of Thayer (Radio Science, 9, 803-807, 1974)\n"
          "is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104, \n"
@@ -5317,7 +5311,7 @@ md_data_raw.push_back
          "for each monochromatic pencil beam calculation individually.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( y_, mc_error_, f_index_ ),
+        OUTPUT( y_, mc_error_ ),
         INPUT( iy_space_agenda_, surface_prop_agenda_, opt_prop_gas_agenda_,
                abs_scalar_gas_agenda_, atmosphere_dim_,
                p_grid_, lat_grid_, lon_grid_, z_field_, 
@@ -5372,7 +5366,7 @@ md_data_raw.push_back
          "See further the user guide.\n"
         ),
         AUTHORS( "Claudia Emde", "Patrick Eriksson" ),
-        OUTPUT( iy_, emission_, abs_scalar_gas_, diy_dvmr_, diy_dt_ ),
+        OUTPUT( iy_, diy_dvmr_, diy_dt_ ),
         INPUT( iy_, diy_dvmr_, diy_dt_, ppath_, ppath_array_,
                ppath_array_index_, f_grid_, stokes_dim_, emission_agenda_,
                abs_scalar_gas_agenda_, rte_do_vmr_jacs_,
@@ -5394,8 +5388,7 @@ md_data_raw.push_back
          "in *ppath_transmissions*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( iy_, emission_, abs_scalar_gas_,
-                ppath_transmissions_, diy_dvmr_, diy_dt_ ),
+        OUTPUT( iy_, ppath_transmissions_, diy_dvmr_, diy_dt_ ),
         INPUT( iy_, diy_dvmr_, diy_dt_, ppath_, ppath_array_,
                ppath_array_index_, f_grid_, stokes_dim_,
                emission_agenda_, abs_scalar_gas_agenda_,
@@ -5443,13 +5436,13 @@ md_data_raw.push_back
          "The variable *rte_pos* shall contain the radius instead of the\n"
          "altitude and that can be achieved by this function. The function\n"
          "adds a geoid radius to the given altitude. The geoid radius is\n"
-         "taken from the WGS-84 reference ellipsiod.\n"
+         "taken from the WGS-84 reference ellipsoid.\n"
          "\n"
          "For 1D, the geoid radius is set to the radius of curvature of the\n"
-         "WGS-84 ellipsiod for the position and observation direction \n"
+         "WGS-84 ellipsoid for the position and observation direction \n"
          "described with *lat_1d* and *meridian_angle_1d*.\n"
          "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
-         "ellipsiod for the latitude value in *rte_pos*.\n"
+         "ellipsoid for the latitude value in *rte_pos*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( rte_pos_ ),
@@ -5498,7 +5491,7 @@ md_data_raw.push_back
          "\n"
          "The first keyword argument can either be a radius, or an altitude\n"
          "above the geoid. In the latter case, a function such as\n"
-         "*rte_posAddGeoidWGS84* should also be called to obtain a radius as\n"
+         "*rte_posAddGeoidWGS84* could be called to obtain a radius as\n"
          "first element of *rte_pos*.\n"
          "\n"
          "Keywords: \n"
@@ -5520,7 +5513,7 @@ md_data_raw.push_back
       ( NAME( "rte_posShift" ),
         DESCRIPTION
         (
-         "shifts rte_pos and rte_los, and rte_gp_XXX to the end of ppath.\n"
+         "Shifts rte_pos and rte_los, and rte_gp_XXX to the end of ppath.\n"
         ),
         AUTHORS( "Cory Davis" ),
         OUTPUT( rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_ ),
@@ -5581,13 +5574,13 @@ md_data_raw.push_back
       ( NAME( "r_geoidWGS84" ),
         DESCRIPTION
         (
-         "Sets the geoid radius to match the WGS-84 reference ellipsiod.\n"
+         "Sets the geoid radius to match the WGS-84 reference ellipsoid.\n"
          "\n"
          "For 1D, the geoid radius is set to the radius of curvature of the\n"
-         "WGS-84 ellipsiod for the position and observation direction \n"
+         "WGS-84 ellipsoid for the position and observation direction \n"
          "described with *lat_1d* and *meridian_angle_1d*.\n"
          "For 2D and 3D, *r_geoid* is set to the radius of the WGS-84\n"
-         "ellipsiod for the crossing points of the latitude and longitude\n"
+         "ellipsoid for the crossing points of the latitude and longitude\n"
          "grids.\n"
          "\n"
          "Please note that the latitude grid must contain true latitudes\n"
@@ -5755,13 +5748,13 @@ md_data_raw.push_back
          "The variable *sensor_pos* shall contain the radius instead of the\n"
          "altitude and that can be achieved by this function. The function\n"
          "adds a geoid radius to the given altitude. The geoid radius is\n"
-         "taken from the WGS-84 reference ellipsiod.\n"
+         "taken from the WGS-84 reference ellipsoid.\n"
          "\n"
          "For 1D, the geoid radius is set to the radius of curvature of the\n"
-         "WGS-84 ellipsiod for the position and observation direction \n"
+         "WGS-84 ellipsoid for the position and observation direction \n"
          "described with *lat_1d* and *meridian_angle_1d*.\n"
          "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
-         "ellipsiod for the latitude values in *sensor_pos*.\n"
+         "ellipsoid for the latitude values in *sensor_pos*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( sensor_pos_ ),
@@ -6053,7 +6046,7 @@ md_data_raw.push_back
       ( NAME("StringSet"),
         DESCRIPTION
         (
-         "Sets a String to the given text String.\n"
+         "Sets a String to the given text string.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
@@ -6114,13 +6107,13 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Creates variables to mimic specular reflection by a surface with\n"
-         "dielectric constant following an intrnal model.\n"
+         "dielectric constant following an internal model.\n"
          "\n"
          "The method results in that the reflection properties differ\n"
-         "between frequencies and polarisations. The properties of the\n"
-         "surface medium are dtermined by the model for dielectric constant\n"
-         "selected. Thermodynamic equilibrium is assumed, which in the\n"
-         "corresponds to the reflection and emission coefficients add up\n"
+         "between frequencies and polarizations. The properties of the\n"
+         "surface medium are determined by the model for dielectric constant\n"
+         "selected. Local thermodynamic equilibrium is assumed, which\n"
+         "corresponds to that the reflection and emission coefficients add up\n"
          "to 1.\n"
          "\n"
          "Available dielectric models:\n"
@@ -6153,7 +6146,7 @@ md_data_raw.push_back
          "a single emissivity.\n"
          "\n"
          "A constant emissivity is assumed as a function of frequency and\n"
-         "polarisation (vertical and horisontal reflection coefficients are\n"
+         "polarization (vertical and horizontal reflection coefficients are\n"
          "equal. The number of directions in *surface_los* is one.\n"
          "\n"
          "Surface properties are specified by *surface_emissivity* and \n"
@@ -6197,7 +6190,7 @@ md_data_raw.push_back
         (
          "Extract a Tensor3 from a Tensor4.\n"
          "\n"
-         "Copies book with given Imdex from input Tensor4 variable to create \n"
+         "Copies book with given Index from input Tensor4 variable to create \n"
          "output Tensor3.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
@@ -6548,7 +6541,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Tenosr6 : A Tensor6 with radiance values. \n"
          ),
-        AUTHORS( "Patrick Eriksson" ),
+        AUTHORS( "Claudia Emde" ),
         OUTPUT( ),
         INPUT(f_index_, f_grid_),
         GOUTPUT( Tensor6_ ),
@@ -6811,9 +6804,9 @@ md_data_raw.push_back
          "Creates a vector with linear spacing.\n"
          "\n"
          "The first element equals always the start value, and the spacing\n"
-         "equals always the step value, but note that the last value can  \n"
-         "deviate from the stop value. The keyword step can be both positive\n"
-         "and negative.\n"
+         "equals always the step value, but the last value can deviate from\n"
+         "the stop value. The keyword step can be both positive and\n"
+         "negative.\n"
          "\n"
          "The vector is [start, start+step, start+2*step, ...]\n "
          "\n"
@@ -7108,9 +7101,8 @@ md_data_raw.push_back
          "\n"
          "The tangent altitudes are given to the function as a vector, which\n"
          "are converted to a generic vector of zenith angles. The position of\n"
-         "the sensor is given by the WSV *sensor_pos*. The function works only\n"
-         "for 1D. The zenith angles are always set to be\n"
-         "positive.\n"
+         "the sensor is given by the WSV *sensor_pos*. The function works\n"
+         "only for 1D. The zenith angles are always set to be positive.\n"
          "The tangent altitudes are given as the altitude above the geoid.\n"
          "\n"
          "Generic output: \n"
@@ -7138,10 +7130,10 @@ md_data_raw.push_back
          "\n"
          "The tangent altitudes are given to the function as a vector, which\n"
          "are converted to a generic vector of zenith angles. The position of\n"
-         "the sensor is given by the WSV *sensor_pos*. The function works only\n"
-         "for 1D, where the geoid radius is taken from *r_geoid*. The zenith\n"
-         "angles are always set to be positive.\n"
-         "The tangent altitudes are given as the altitude above the geoid.\n"
+         "the sensor is given by the WSV *sensor_pos*. The function works\n"
+         "only for 1D, where the geoid radius is taken from *r_geoid*. The\n"
+         "zenith angles are always set to be positive. The tangent altitudes\n"
+         "are given as the altitude above the geoid.\n"
          "\n"
          "Generic output: \n"
          "   Vector : A vector with zenith angles. \n"
