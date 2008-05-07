@@ -1,5 +1,22 @@
 2008-05-07  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-4-11
+
+	* src/arts_omp.cc (arts_omp_in_parallel):
+
+	omp_in_parallel behaves differently in gcc and icc. omp_in_parallel
+	in the intel compiler returns true even if the maximum number of
+	threads is set to 1, but false in gcc. On the other hand,
+	omp_get_max_threads in gcc always returns 1 instead of the correct
+	number of max threads when called inside a parallelized region. So,
+	we have to use to use omp_get_max_threads with the intel compiler and
+	omp_in_parallel with gcc to determine if we're running multiple threads
+	or not. Bummer.
+
+2008-05-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-4-10
+
 	* src/m_rte.cc (RteCalcMC): Parallelized za loop.
 
 2008-05-07  Oliver Lemke  <olemke@core-dump.info>
