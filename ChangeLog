@@ -1,5 +1,9 @@
 2008-05-07  Oliver Lemke  <olemke@core-dump.info>
 
+	* src/m_rte.cc (RteCalcMC): Parallelized za loop.
+
+2008-05-07  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-4-9
 
 	* src/arts_omp.{cc,h} (arts_omp_in_parallel):

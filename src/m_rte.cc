@@ -434,7 +434,6 @@ void RteCalcMC(
                     mblock_za_grid, mblock_aa_grid, y_unit, "-" );
 
   // Some MC variables are only local here
-  Index    mc_iteration_count, mc_seed;
   Tensor3  mc_points;
   //
   MCAntenna mc_antenna;
@@ -452,24 +451,51 @@ void RteCalcMC(
   Vector ib( nf*nza*naa*stokes_dim );
   Vector ib_error( nf*nza*naa*stokes_dim );
 
-  // Vectors for a monochromatic single pencil beam calculation
-  Vector iyf;
-  Vector iyf_error;
 
   //--- Loop:  measurement block / zenith angle / azimuthal angle
   //
   Index    nydone = 0;                 // Number of positions in y done
-  Matrix   los(1,sensor_los.ncols());  // LOS of interest
-  Matrix   pos(1,sensor_pos.ncols());  // POS of interest
   //
+
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
-//#ifdef _OPENMP
-//#pragma omp parallel private(pos,los,mc_seed,iyf,iyf_error,mc_iteration_count)
-//#pragma omp for 
-//#endif
+#ifdef _OPENMP
+#pragma omp parallel
+#pragma omp for 
+#endif
       for( Index iza=0; iza<nza; iza++ )
         {
+          Matrix   los(1,sensor_los.ncols());  // LOS of interest
+          Matrix   pos(1,sensor_pos.ncols());  // POS of interest
+
+          // Vectors for a monochromatic single pencil beam calculation
+          Vector iyf;
+          Vector iyf_error;
+
+          Index mc_iteration_count;
+          Index mc_seed;
+
+          // Create local agenda copies
+          Agenda local_iy_space_agenda( iy_space_agenda );
+          Agenda local_surface_prop_agenda( surface_prop_agenda );
+          Agenda local_opt_prop_gas_agenda( opt_prop_gas_agenda );
+          Agenda local_abs_scalar_gas_agenda( abs_scalar_gas_agenda );
+
+          // If this region is parallelized, we have to make sure that
+          // each thread has its own workspace copy
+          if (arts_omp_in_parallel())
+            {
+              local_iy_space_agenda.set_workspace (
+                  new Workspace (*local_iy_space_agenda.workspace() ) );
+              // One workspace copy per thread is enough, so we can use the
+              // same copy for all agendas in this thread
+              local_surface_prop_agenda.set_workspace (
+                  local_iy_space_agenda.workspace());
+              local_opt_prop_gas_agenda.set_workspace (
+                  local_iy_space_agenda.workspace());
+              local_abs_scalar_gas_agenda.set_workspace (
+                  local_iy_space_agenda.workspace());
+            }
           for( Index iaa=0; iaa<naa; iaa++ )
             {
               //--- POS of interest
@@ -494,8 +520,9 @@ void RteCalcMC(
                   
                   MCGeneral( iyf, mc_iteration_count, iyf_error, mc_points, 
                      mc_antenna, f_grid, f_index, pos, los, stokes_dim, 
-                     iy_space_agenda, surface_prop_agenda, opt_prop_gas_agenda, 
-                     abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, 
+                     local_iy_space_agenda, local_surface_prop_agenda,
+                     local_opt_prop_gas_agenda, local_abs_scalar_gas_agenda,
+                     p_grid, lat_grid, lon_grid, 
                      z_field, r_geoid, z_surface, t_field, vmr_field, 
                      cloudbox_limits, pnd_field, scat_data_mono, mc_seed, 
                      y_unit, std_err, max_time, max_iter, z_field_is_1D ); 
@@ -515,6 +542,12 @@ void RteCalcMC(
                   //nbdone += stokes_dim;
                 }
             } // iaa loop
+
+          // Remove this thread's workspace copy
+          if (arts_omp_in_parallel())
+            {
+              delete local_iy_space_agenda.workspace();
+            }
         } // iza loop
 
 
