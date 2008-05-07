@@ -30,6 +30,8 @@
   the standard OMP function names.
 */
 
+#include <iostream>
+using namespace std;
 #include "arts_omp.h"
 
 
@@ -49,6 +51,23 @@ int arts_omp_get_max_threads()
 #endif
 
   return max_threads;
+}
+
+
+//! Wrapper for omp_in_parallel.
+/*! 
+  This wrapper works with and without OMP support.
+
+  \return Returns true if the current region is running parallelized.
+*/
+bool arts_omp_in_parallel()
+{
+
+#ifdef _OPENMP
+  return omp_in_parallel();
+#else
+  return false;
+#endif
 }
 
 

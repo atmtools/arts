@@ -658,7 +658,6 @@ xml_read_header_from_stream (istream& is, FileType& ftype, NumericType& ntype,
 
   is.get (str, 6);
 
-  //if (strcasecmp (str, "<?xml"))
   if (string(str) != "<?xml")
     {
       xml_parse_error ("Input file is not a valid xml file "
@@ -993,7 +992,7 @@ xml_read_arts_catalogue_from_file (const String&      filename,
 template<typename T> void
 xml_write_to_file (const String&  filename,
                    const T&       type,
-                         FileType ftype)
+                   const FileType ftype)
 {
   ostream* ofs;
  

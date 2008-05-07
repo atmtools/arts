@@ -40,6 +40,8 @@
 
 int arts_omp_get_max_threads();
 
+bool arts_omp_in_parallel();
+
 int arts_omp_get_thread_num();
 
 

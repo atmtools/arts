@@ -362,7 +362,7 @@ void ybatchCalc_implementation(
       try
         {
           ybatch_calc_agendaExecute( y, ybatch_index, ybatch_calc_agenda,
-                                     true, true );
+                                     true, arts_omp_in_parallel() );
           // We are surpressing agenda output here, since this is too
           // much to be useful. (The true flag at the end does this.)          
  

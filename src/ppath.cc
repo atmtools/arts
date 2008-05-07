@@ -44,6 +44,7 @@
 #include <stdexcept>
 #include "agenda_class.h"
 #include "array.h"
+#include "arts_omp.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "math_funcs.h"
@@ -6201,9 +6202,12 @@ void ppath_calc(
   // Make a local ppath_step_agenda and use it inside while loop.
   // This in order to enable threading in calling methods. 
   Agenda local_ppath_step_agenda (ppath_step_agenda);
-  local_ppath_step_agenda.set_workspace (new Workspace 
+  if (arts_omp_in_parallel())
+    {
+      local_ppath_step_agenda.set_workspace (new Workspace 
                            (*local_ppath_step_agenda.workspace() ) ); 
-  
+    }
+
   while( !ppath_what_background( ppath_step ) )
     {
       // Call ppath_step agenda. 
@@ -6395,8 +6399,10 @@ void ppath_calc(
 
     } // End path steps
 
-  delete local_ppath_step_agenda.workspace();   
- 
+  if (arts_omp_in_parallel())
+    {
+      delete local_ppath_step_agenda.workspace();   
+    }
 
   // Combine all structures in ppath_array to form the return Ppath structure.
   //

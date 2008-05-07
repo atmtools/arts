@@ -1541,7 +1541,8 @@ void abs_fieldCalc(// WS Output:
             abs_scalar_gas_agendaExecute(asg,
                                          f_index, a_pressure,
                                          a_temperature, a_vmr_list,
-                                         sga_agenda, true, true);
+                                         sga_agenda, true,
+                                         arts_omp_in_parallel());
 
             // Verify, that the number of species in asg is
             // constistent with vmr_field:
