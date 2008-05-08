@@ -40,6 +40,8 @@ TestMonteCarloGeneralGaussian: TestMonteCarloDataPrepare
 
 TestMonteCarloWithIncomingLookup: TestMonteCarloDataPrepare
 
+TestRteCalcMC: TestMonteCarloDataPrepare
+
 ###############################################################
 
 EXTRA_DIST = $(srcdir)/artsXML.py  $(srcdir)/testall.py $(foreach dir, $(TESTDIRS), $(foreach extension,$(TESTFILES),$(wildcard $(srcdir)/$(dir)/*$(extension))))
