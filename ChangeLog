@@ -1,5 +1,11 @@
 2008-05-08  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-0-210
+
+	* configure.in: Fix search and replace error in previous commit.
+
+2008-05-08  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-0-209
 
 	* configure.in:

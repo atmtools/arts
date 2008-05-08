@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.209)
+AM_INIT_AUTOMAKE(arts,1.0.210)
 
 AM_MAINTAINER_MODE
 
@@ -148,7 +148,7 @@ AC_ARG_WITH(index-type,
   long)  ac_index_type=long ;;
   size_t)  ac_index_type=size_t ;;
     *) AC_MSG_ERROR(bad value ${withval} for --with-index-type) ;;
-esac],[ ac_index=long ])
+esac],[ ac_index_type=long ])
 
 AC_MSG_RESULT(Setting Index type to $ac_index_type)
 AC_DEFINE_UNQUOTED(INDEX, $ac_index_type, Default index type)
