@@ -1,3 +1,11 @@
+2008-05-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-0-209
+
+	* configure.in:
+
+	Make --with-index-type option work properly.
+
 2007-10-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-0-208

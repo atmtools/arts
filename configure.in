@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.208)
+AM_INIT_AUTOMAKE(arts,1.0.209)
 
 AM_MAINTAINER_MODE
 
@@ -138,20 +138,20 @@ fi
 
 
 #
-# Default integer type
+# Default index type
 #
-AC_ARG_WITH(integer-type,
-[  --with-index-type=ARG    Set integer type (default=long)],
+AC_ARG_WITH(index-type,
+[  --with-index-type=ARG    Set index type (default=long)],
 [case "${withval}" in
-  short) ac_integer_type=short ;;
-  int)  ac_integer_type=int ;;
-  long)  ac_integer_type=long ;;
-  size_t)  ac_integer_type=size_t ;;
-    *) AC_MSG_ERROR(bad value ${withval} for --with-integer-type) ;;
-esac],[ ac_integer_type=long ])
+  short) ac_index_type=short ;;
+  int)  ac_index_type=int ;;
+  long)  ac_index_type=long ;;
+  size_t)  ac_index_type=size_t ;;
+    *) AC_MSG_ERROR(bad value ${withval} for --with-index-type) ;;
+esac],[ ac_index=long ])
 
-AC_MSG_RESULT(Setting Index type to $ac_integer_type)
-AC_DEFINE_UNQUOTED(INDEX, $ac_integer_type, Default integer type)
+AC_MSG_RESULT(Setting Index type to $ac_index_type)
+AC_DEFINE_UNQUOTED(INDEX, $ac_index_type, Default index type)
 
 
 #
@@ -375,7 +375,7 @@ AC_MSG_RESULT()
 AC_MSG_RESULT([  Maintainer mode          : $USE_MAINTAINER_MODE])
 AC_MSG_RESULT([  Debugging                : $ac_debug])
 AC_MSG_RESULT([  Numeric type             : $ac_numeric_type])
-AC_MSG_RESULT([  Index type               : $ac_integer_type])
+AC_MSG_RESULT([  Index type               : $ac_index_type])
 AC_MSG_RESULT([  Regenerate documentation : $ac_docgen])
 if test $ac_hdf_support = autodetect; then
   AC_MSG_RESULT([  HDF support              : $ac_hdf (autodetected)])
