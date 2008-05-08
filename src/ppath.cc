@@ -6199,15 +6199,6 @@ void ppath_calc(
   const Index imax_lat = lat_grid.nelem() - 1;
   const Index imax_lon = lon_grid.nelem() - 1;
 
-  // Make a local ppath_step_agenda and use it inside while loop.
-  // This in order to enable threading in calling methods. 
-  Agenda local_ppath_step_agenda (ppath_step_agenda);
-  if (arts_omp_in_parallel())
-    {
-      local_ppath_step_agenda.set_workspace (new Workspace 
-                           (*local_ppath_step_agenda.workspace() ) ); 
-    }
-
   while( !ppath_what_background( ppath_step ) )
     {
       // Call ppath_step agenda. 
@@ -6217,7 +6208,7 @@ void ppath_calc(
       //
       ppath_step_agendaExecute( ppath_step, atmosphere_dim, p_grid,
                                 lat_grid, lon_grid, z_field, r_geoid, z_surface,
-                                local_ppath_step_agenda, true );
+                                ppath_step_agenda, true );
 
       // Number of points in returned path step
       const Index n = ppath_step.np;
@@ -6398,11 +6389,6 @@ void ppath_calc(
       ppath_array.push_back( ppath_step );
 
     } // End path steps
-
-  if (arts_omp_in_parallel())
-    {
-      delete local_ppath_step_agenda.workspace();   
-    }
 
   // Combine all structures in ppath_array to form the return Ppath structure.
   //

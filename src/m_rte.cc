@@ -190,6 +190,39 @@ void RteCalc(
 #endif
       for( Index iza=0; iza<nza; iza++ )
         {
+          //--- Define *iy* and ppath variables
+          Matrix           iy;
+          Ppath            ppath;
+          ArrayOfPpath     ppath_array;
+          Index            ppath_array_index;
+          ArrayOfTensor4   diy_dvmr;
+          ArrayOfTensor4   diy_dt;
+
+          // Create local agenda copies
+          Agenda local_iy_space_agenda( iy_space_agenda );
+          Agenda local_ppath_step_agenda( ppath_step_agenda );
+          Agenda local_rte_agenda( rte_agenda );
+          Agenda local_surface_prop_agenda( surface_prop_agenda );
+          Agenda local_iy_cloudbox_agenda( iy_cloudbox_agenda );
+
+          // If this region is parallelized, we have to make sure that
+          // each thread has its own workspace copy
+          if (arts_omp_in_parallel())
+            {
+              local_iy_space_agenda.set_workspace(
+                 new Workspace (*local_iy_space_agenda.workspace() ) );
+              // One workspace copy per thread is enough, so we can use the
+              // same copy for all agendas in this thread
+              local_ppath_step_agenda.set_workspace(
+                                           local_iy_space_agenda.workspace() );
+              local_rte_agenda.set_workspace(
+                                           local_iy_space_agenda.workspace() );
+              local_surface_prop_agenda.set_workspace(
+                                           local_iy_space_agenda.workspace() );
+              local_iy_cloudbox_agenda.set_workspace(
+                                           local_iy_space_agenda.workspace() );
+            }
+
           for( Index iaa=0; iaa<naa; iaa++ )
             {
               //--- Argument for verbosity of agendas
@@ -208,14 +241,6 @@ void RteCalc(
               if( antenna_dim == 2 )
                 { los[1] += mblock_aa_grid[iaa]; }
 
-              //--- Define *iy* and ppath variables
-              Matrix           iy;
-              Ppath            ppath;
-              ArrayOfPpath     ppath_array;
-              Index            ppath_array_index;
-              ArrayOfTensor4   diy_dvmr;
-              ArrayOfTensor4   diy_dt;
-
               //--- Set *ppath_array* and *diy_dX*-variables to be empty
               //
               ppath_array_index = -1;
@@ -227,13 +252,14 @@ void RteCalc(
               //--- Calculate *iy*
               iy_calc( iy, ppath, ppath_array_index, ppath_array, 
                        diy_dvmr, diy_dt,
-                       ppath_step_agenda, rte_agenda, iy_space_agenda, 
-                       surface_prop_agenda, iy_cloudbox_agenda, atmosphere_dim,
-                       p_grid, lat_grid, lon_grid, z_field, t_field, vmr_field,
+                       local_ppath_step_agenda, local_rte_agenda, 
+                       local_iy_space_agenda, local_surface_prop_agenda, 
+                       local_iy_cloudbox_agenda, atmosphere_dim, p_grid, 
+                       lat_grid, lon_grid, z_field, t_field, vmr_field,
                        r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
-                       sensor_pos(mblock_index,joker), los, f_grid, stokes_dim,
-                       ppath_array_do,
-                       rte_do_vmr_jacs, rte_do_t_jacs, ag_verb );
+                       sensor_pos(mblock_index,joker), los, f_grid, 
+                       stokes_dim, ppath_array_do, rte_do_vmr_jacs, 
+                       rte_do_t_jacs, ag_verb );
 
               //--- Unit conversions
               apply_y_unit( iy, y_unit, f_grid );
@@ -307,6 +333,13 @@ void RteCalc(
               //--- End of jacobian part --------------------------------------
 
             } // iaa loop
+
+          // Remove this thread's workspace copy
+          if (arts_omp_in_parallel())
+            {
+              delete local_iy_space_agenda.workspace();
+            }
+
         } // iza loop
 
 
@@ -472,6 +505,7 @@ void RteCalcMC(
           Vector iyf;
           Vector iyf_error;
 
+          // Some MC variables
           Index mc_iteration_count;
           Index mc_seed;
 
@@ -485,17 +519,19 @@ void RteCalcMC(
           // each thread has its own workspace copy
           if (arts_omp_in_parallel())
             {
-              local_iy_space_agenda.set_workspace (
-                  new Workspace (*local_iy_space_agenda.workspace() ) );
+              local_iy_space_agenda.set_workspace(
+                         new Workspace( *local_iy_space_agenda.workspace() ) );
               // One workspace copy per thread is enough, so we can use the
               // same copy for all agendas in this thread
-              local_surface_prop_agenda.set_workspace (
-                  local_iy_space_agenda.workspace());
-              local_opt_prop_gas_agenda.set_workspace (
-                  local_iy_space_agenda.workspace());
-              local_abs_scalar_gas_agenda.set_workspace (
-                  local_iy_space_agenda.workspace());
+              local_surface_prop_agenda.set_workspace(
+                                           local_iy_space_agenda.workspace() );
+              local_opt_prop_gas_agenda.set_workspace(
+                                           local_iy_space_agenda.workspace() );
+              local_abs_scalar_gas_agenda.set_workspace(
+                                           local_iy_space_agenda.workspace() );
             }
+
+          // Loop azimuth angles
           for( Index iaa=0; iaa<naa; iaa++ )
             {
               //--- POS of interest
@@ -512,7 +548,7 @@ void RteCalcMC(
                   ArrayOfSingleScatteringData   scat_data_mono;
 
                   scat_data_monoCalc( scat_data_mono, scat_data_raw, 
-                                      f_grid, f_index );
+                                                             f_grid, f_index );
 
                   // Seed reset for each loop. If not done, the errors appear
                   // to be highly correlated.
@@ -528,19 +564,17 @@ void RteCalcMC(
                      y_unit, std_err, max_time, max_iter, z_field_is_1D ); 
                   
                   //--- Start index in *ib* for data to include 
-                  const Index   nbdone = 
-                              ( ( iza*naa + iaa ) * nf + f_index ) * stokes_dim;
+                  const Index   nbdone = ( ( iza*naa + iaa ) * nf + 
+                                                        f_index ) * stokes_dim;
 
                   //--- Copy *iyf* to *ib*
                   for( Index is=0; is<stokes_dim; is++ )
                     { 
                       ib[nbdone+is]       = iyf[is]; 
                       ib_error[nbdone+is] = iyf_error[is]; 
-                    }
+                    } // is loop
 
-                  // Increase nbdone
-                  //nbdone += stokes_dim;
-                }
+                } // f_index loop
             } // iaa loop
 
           // Remove this thread's workspace copy
@@ -548,6 +582,7 @@ void RteCalcMC(
             {
               delete local_iy_space_agenda.workspace();
             }
+
         } // iza loop
 
 
@@ -567,7 +602,7 @@ void RteCalcMC(
       nydone += nblock;
     }
 
-  // Convert *mc_error* from variances to stad. devs.
+  // Convert *mc_error* from variances to std. devs.
   transform( mc_error, sqrt, mc_error );
 }
 

@@ -17,6 +17,7 @@ check: \
 	TestMonteCarloDataPrepare \
 	TestMonteCarloGeneral \
 	TestMonteCarloGeneralGaussian \
+	TestRteCalcMC \
 	TestOdinSMR \
 	TestDOIT \
 	TestClearSky \

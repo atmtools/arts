@@ -73,6 +73,19 @@ class TestMonteCarloGeneralGaussian(unittest.TestCase):
         Q=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.y.xml.generated")[1]
         dQ=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.mc_error.xml.generated")[1]
         assert abs(Q-7.6) < 4*Q, 'Q (='+str(Q)+'K) is too far away from 7.6 K'
+
+class TestRteCalcMC(unittest.TestCase):
+    """Testing the WSM RteCalcMC"""
+    MCrun=ArtsRun('MonteCarlo', 'TestRteCalcMC.arts')
+    def test1(self):
+        """RteCalcMC test should run with no errors"""
+        self.MCrun.run()
+        assert self.MCrun.error=='','Error running RteCalcMC.arts: '+self.MCrun.error
+    def test2(self):
+        """Total radiance should be close to 199.5 K"""
+        I=artsXML.load("MonteCarlo/RteCalcMC.y.xml.generated")[0]
+        dI=artsXML.load("MonteCarlo/RteCalcMC.mc_error.xml.generated")[0]
+        assert abs(I-199.5) < 4*dI, 'I (='+str(I)+'K) is too far away from 199.5 K'
         
 class TestOdinSMR(unittest.TestCase):
     """Testing OdinSMR calculation"""
@@ -81,6 +94,10 @@ class TestOdinSMR(unittest.TestCase):
         """TestOdinSMR.arts should run with no errors"""
         self.ODINrun.run()
         assert self.ODINrun.error=='','Error running TestOdinSMR.arts: '+self.ODINrun.error
+    def test2(self):
+        """Max radiance should be close to 113.2 K"""
+        I=artsXML.load("OdinSMR/TestOdinSMR.y.xml.generated")
+        assert abs( max(I)-113.2 ) < 0.1, 'I (='+str(max(I))+'K) is too far away from 113.2 K'
 
 class TestDOIT(unittest.TestCase):
     """Testing the ARTS-DOIT algorithm"""

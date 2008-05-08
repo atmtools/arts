@@ -54,45 +54,51 @@ AgendaSet(spt_calc_agenda){
   opt_prop_sptFromMonoData
 }
 
+
 #### Define viewing position and line of sight #########################
 
-# Number of tangent altitudes
-IndexSet( n_tan, 3 )
+rte_losSet( rte_los, atmosphere_dim, 99.7841941981, 180 )
 
-# Sensor POS and LOS set in such way that tangent points are found around
-# latitude +0.7, longitude 0 and altitudes between 6 and 13.5 km.
+rte_posSet( rte_pos, atmosphere_dim, 95000.1, 7.61968838781, 0 )
 
-VectorSet( z_plat, n_tan, 600e3 )
-VectorSet( lat_plat, n_tan, -23 )
-VectorSet( lon_plat, n_tan, 0 )
+rte_posAddRgeoid
 
-Matrix3ColFromVectors( sensor_pos, z_plat, lat_plat, lon_plat )
-sensor_posAddGeoidWGS84
+Matrix1RowFromVector( sensor_pos, rte_pos )
+Matrix1RowFromVector( sensor_los, rte_los )
 
-VectorNLinSpace( za, n_tan, 113.65, 113.75 )
-VectorSet( aa, n_tan, 0 )
 
-Matrix2ColFromVectors( sensor_los, za, aa )
+#### Include an antenna pattern #########################################
+
+IndexSet( stokes_dim, 4 )
+
+AntennaSet1D
+#
+VectorSetExplicitly( mblock_za_grid, [
+ -0.2,-0.02,0.00,0.02,0.20
+] )
+#
+MatrixSet( antenna_los, 1, 1, 0 )
+
+# An antenna pattern from Odin-SMR is used here
+ReadXML( antenna_diagram, "antenna.SM_AC2ab.875ms.xml" )
+
+
+IndexSet( sensor_norm, 1 )
+
+sensor_responseInit
+sensor_responseAntenna1D
 
 
 #### Perform Monte Carlo RT Calculation #################################
 
-IndexSet( stokes_dim, 4 )
-
 StringSet(y_unit, "RJBT" )
 
-sensorOff
-
-RteCalc
-
-timerStart
 RteCalcMC( y, mc_error, iy_space_agenda, surface_prop_agenda, 
     opt_prop_gas_agenda, abs_scalar_gas_agenda, atmosphere_dim, p_grid, 
     lat_grid, lon_grid, z_field, t_field, vmr_field, r_geoid, z_surface, 
     cloudbox_on, cloudbox_limits, pnd_field, scat_data_raw, sensor_response, 
     sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, mblock_za_grid, 
-    mblock_aa_grid, y_unit, 2, -1, -1, 1 )
-timerStop
+    mblock_aa_grid, y_unit, 4, -1, -1, 1 )
 
 
 #### Save calculated Stokes vector and std. err.#########################

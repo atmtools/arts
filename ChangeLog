@@ -1,3 +1,28 @@
+2008-05-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-4-12
+
+	* tests/testall.py: Added TestRteCalcMC. Added check of radiance
+	produced by OdinSMR test.
+
+	* tests/Makefile.am: Added TestRteCalcMC. 
+
+	* src/rte.cc (iy_calc): Removed private copy flag for rte_agenda.
+
+	(get_radiative_background): As above for all call of agendas.
+
+	* src/ppath.cc: Removed copying of agenda. Now handled in RteCalc. 
+
+	* src/m_rte.cc (RteCalcMC): Polished code and added some comments. The 
+	threading appears to work.
+
+	(RteCalc): Local copy of workspace for threading now handled as
+	introduced by Oliver in RteCalcMC.
+
+	* tests/MonteCarlo/TestRteCalcMC.arts: Changed from using multiple 
+	mblocks, to use an antenna diagram (taken from Odin-SMR). This in
+	order to test usage of threads in RteCalcMC.
+
 2008-05-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-4-11
