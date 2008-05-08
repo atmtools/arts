@@ -3063,32 +3063,37 @@ md_data_raw.push_back
         DEFAULTS( ),
         TYPES( )));
 
-//   md_data_raw.push_back     
-//     ( MdRecord
-//       ( NAME("f_grid"),
-//         DESCRIPTION
-//         (
-//          "Automatically calculate f_grid to match the instrument\n"
-//          "\n"
-//          "This method is handy if you are simulating an AMSU-type instrument,\n"
-//          "consisting of a few discrete channels.\n"
-//          "\n"
-//          "It calculates f_grid to match the instrument, as given by the local\n"
-//          "oscillator frequencies *lo*, the backend frequencies *f_backend*, and\n"
-//          "the backend channel responses *backend_channel_response*.\n"
-//          "\n"
-//          "You have to specify the desired spacing in the keyword *spacing*, which\n"
-//          "has a default value of 100 MHz. (The actual value is 0.1e9, since our\n"
-//          "unit is Hz.)\n"
-//         ),
-//         AUTHORS( "Stefan Buehler" ),
-//         OUTPUT( f_grid_ ),
-//         INPUT( lo_, f_backend_, backend_channel_response_ ),
-//         GOUTPUT( ),
-//         GINPUT( ),
-//         KEYWORDS( "spacing" ),
-//         DEFAULTS( ".1e9"),
-//         TYPES(    Numeric_t )));
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("f_gridFromSensor"),
+        DESCRIPTION
+        (
+         "Automatically calculate f_grid to match the sensor.\n"
+         "\n"
+         "This method is handy if you are simulating an AMSU-type instrument,\n"
+         "consisting of a few discrete channels.\n"
+         "\n"
+         "It calculates f_grid to match the instrument, as given by the local\n"
+         "oscillator frequencies *lo*, the backend frequencies *f_backend*, and\n"
+         "the backend channel responses *backend_channel_response*.\n"
+         "\n"
+         "You have to specify the desired spacing in the keyword *spacing*, which\n"
+         "has a default value of 100 MHz. (The actual value is 0.1e9, since our\n"
+         "unit is Hz.)\n"
+         "\n"
+         "The produced grid will not have exactly the requested spacing, but\n"
+         "will not be coarser than requested. The algorithm starts with the band\n"
+         "edges, then adds additional points until the spacing is at least as\n"
+         "fine as requested.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT( f_grid_ ),
+        INPUT( lo_, f_backend_, backend_channel_response_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "spacing" ),
+        DEFAULTS( ".1e9"),
+        TYPES(    Numeric_t )));
 
   md_data_raw.push_back     
     ( MdRecord

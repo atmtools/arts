@@ -146,7 +146,7 @@ Matrix2ColFromVectors(sideband_filter_response,vector_1,vector_2){}
 
 # The multi-mixer response
 # ---
-sensor_responseMultiMixerBackend(sideband_filter_response, backend_channel_response){}
+sensor_responseMultiMixerBackend(backend_channel_response){}
 
 # Write the sensor variable to xml-files
 #WriteXML(sensor_response){ "" }

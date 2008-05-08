@@ -51,6 +51,7 @@
 #include "xml_io.h"
 #include "sensor.h"
 #include "make_vector.h"
+#include "sorting.h"
 
 extern const Numeric PI;
 
@@ -1000,3 +1001,185 @@ void sensor_responseRotation(// WS Output:
 
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void f_gridFromSensor(// WS Output:
+                      Vector& f_grid,
+                      // WS Input:
+                      const Vector& lo,
+                      const Vector& f_backend,
+                      const Matrix& backend_channel_response,
+                      // Control Parameters:
+                      const Numeric& spacing)
+{
+  const Index n_chan = lo.nelem();
+
+  // Checks on input quantities:
+
+  // There must be at least one channel:
+  if (n_chan < 1)
+    {
+      ostringstream os;
+      os << "There must be at least one channel.\n"
+         << "(The vector *lo* must have at least one element.)";
+      throw runtime_error(os.str());
+    }
+
+  // Does length of f_backend match lo?
+  if (f_backend.nelem() != n_chan)
+    {
+      ostringstream os;
+      os << "The vectors *lo* and *f_backend* must have same number of elements.";
+      throw runtime_error(os.str());
+    }
+
+  // Does backend_channel_response have the right dimension?
+  if (backend_channel_response.ncols() != n_chan+1)
+    {
+      ostringstream os;
+      os << "The number of columns in matrix *backend_channel_response*\n"
+         << "Must be 1 plus the number of channels. (First column is frequency.)";
+      throw runtime_error(os.str());
+    }
+
+  // Check that the frequency grid in backend_channel_response is strictly
+  // increasing:
+  if (!is_increasing(backend_channel_response(joker,0)))
+    {
+      ostringstream os;
+      os << "The frequency grid in backend_channel_response must be "
+         << "strictly increasing.";
+      throw runtime_error(os.str());
+    }
+
+  // Construct image bands:
+  Vector f_image(n_chan);
+  for (Index i=0; i<n_chan; ++i)
+    {
+      Numeric offset = f_backend[i] - lo[i];
+      f_image[i] = lo[i] - offset;
+    }
+  out3 << "  Image band nominal frequencies: " << f_image << "\n";
+
+  // Find out the non-zero frequency range for each band:
+
+  Vector f_min(n_chan), f_max(n_chan);
+  const Index nf = backend_channel_response.nrows(); // Number of
+                                                     // frequency grid points in 
+                                                     // backend_channel_response
+
+  for (Index i=0; i<n_chan; ++i)
+    {
+      // Make sure that not all response values are zero: 
+      if (max(backend_channel_response(joker,1+i)) == 0)
+        {
+          ostringstream os;
+          os << "The response for one of the channels seems to be all zero!";
+          throw runtime_error(os.str());
+        }
+          
+      // To go through backend_channel_response frequency grid:
+      Index imin=0;                
+      while (backend_channel_response(imin,1+i)==0) ++imin;
+
+      Index imax=nf-1;                
+      while (backend_channel_response(imax,1+i)==0) --imax;
+      
+      if (imax == imin)
+        {
+          ostringstream os;
+          os << "For one channel there is only a single respons value in"
+             << "backend_channel_response, but we need at least two.";
+          throw runtime_error(os.str());
+        }
+
+      // Actually, f_grid must cover not only the non-zero response
+      // frequencies of the channel response matrix, but one point
+      // more on both sides, because the response is assumed to vary linearly
+      // between the grid points.
+      if (imin>0)    --imin;
+      if (imax<nf-1) ++imax;
+
+      f_min[i] = backend_channel_response(imin,0);
+      f_max[i] = backend_channel_response(imax,0);      
+    }  
+
+  // Now we build up a total list of absolute frequency ranges for
+  // both signal and image sidebands:
+  Vector fabs_min(2*n_chan), fabs_max(2*n_chan);
+  Index ifabs=0;
+  for (Index i=0; i<n_chan; ++i)
+    {
+      // Signal sideband:
+      fabs_min[ifabs] = f_backend[i] + f_min[i];
+      fabs_max[ifabs] = f_backend[i] + f_max[i];
+      ++ifabs;
+
+      // Image sideband:
+      fabs_min[ifabs] = f_image[i] + f_min[i];
+      fabs_max[ifabs] = f_image[i] + f_max[i];
+      ++ifabs;
+    }
+
+//   cout << "fabs_min: " << fabs_min << "\n";
+//   cout << "fabs_max: " << fabs_max << "\n";
+
+  // Check for overlap:
+  for (Index i=1; i<fabs_min.nelem(); ++i)
+    {
+      for (Index s=0; s<i; ++s)
+        {
+          // We check if either fabs_min[i] or fabs_max[i] are inside
+          // the interval of any fabs with a smaller index.
+          if (((fabs_min[i]>=fabs_min[s]) && (fabs_min[i]<=fabs_max[s])) ||
+              ((fabs_max[i]>=fabs_min[s]) && (fabs_max[i]<=fabs_max[s])) )
+            {
+              ostringstream os;
+              os << "Your instrument bands overlap. This case it not (yet) handled.";
+              throw runtime_error(os.str());
+            }
+        }
+    }  
+
+  // Create f_grid_unsorted. This is an array of Numeric, so that we
+  // can use the STL push_back function.
+  ArrayOfNumeric f_grid_unsorted;
+  for (Index i=0; i<fabs_min.nelem(); ++i)
+    {
+      // Band width:
+      const Numeric bw = fabs_max[i] - fabs_min[i];
+
+      // How many grid intervals do I need?
+      const Numeric npf = ceil(bw/spacing);
+
+      // How many grid points to store? - Number of grid intervals
+      // plus 1.
+      const Index   npi = (Index) npf + 1;
+
+      // What is the actual grid spacing inside the band?
+      const Numeric gs = bw/npf;
+
+      // Create the grid for this band:
+      Vector grid(fabs_min[i], npi, gs);
+
+      out3 << "  Band range " << i << ": " << grid << "\n";
+
+      // Append to f_grid_unsorted:
+      f_grid_unsorted.reserve(f_grid_unsorted.nelem()+npi);
+      for (Index s=0; s<npi; ++s)
+        f_grid_unsorted.push_back(grid[s]);
+    }
+
+  // Sort the entire f_grid by increasing frequency:
+  f_grid.resize(f_grid_unsorted.nelem());
+  ArrayOfIndex si;
+  get_sorted_indexes(si, f_grid_unsorted);
+  for (Index i=0; i<f_grid_unsorted.nelem(); ++i)
+    f_grid[i] = f_grid_unsorted[si[i]];
+
+  //  cout << "Sorted indices: " << si << "\n";
+
+  //   cout << "Created f_grid:\n"
+  //        << "  " << f_grid << "\n";
+
+  // That's it, we're done!
+}

@@ -1,3 +1,38 @@
+2008-05-08  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-4-13
+
+	* src/m_abs_lookup.cc (abs_lookupCreate): Check that dimensions of
+	abs_species and abs_lines_per_species match. This as a safeguard
+	in case somebody modifies abs_species after abs_lines_per_species
+	has been generated.
+	(abs_lookupCreate): Put a try/catch block around the entire
+	content of the parallelized for loop. This is necessary to avoid a
+	core dump if an exception is thrown inside the parallel
+	region. The plan is that this will eventually be fixed for all
+	parallel for loops by Oliver, using Macros.
+
+	* src/m_abs.cc (abs_xsec_per_speciesAddLines): Check that the
+	first line of the line list for each species matches the species
+	tag. This as a safeguard in case somebody modifies abs_species
+	after abs_lines_per_species has been generated.
+
+	* src/methods.cc (f_gridFromSensor): Added this method.
+
+	* src/m_sensor.cc (f_gridFromSensor): Added this method.
+
+	* includes/{amsu,odin}: Created these directories. Includes is
+	getting messy, so I plan split its content into subdirectories for
+	the different instruments.
+	
+	* includes/amsub.arts: Rearranged to use f_gridFromSensor. But not
+	yet activated. Needs major rearrangement to be more idiot-proof,
+	after two bad bugs.
+
+	* includes/amsua.arts: Started. 
+
+	* src/main.cc (main): Just added a comment concerning arts_exit.
+
 2008-05-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-4-12

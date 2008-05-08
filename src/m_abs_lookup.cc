@@ -180,6 +180,15 @@ void abs_lookupCreate(// WS Output:
       throw runtime_error( os.str() );
     }
 
+  // abs_lines_per_species must match abs_species:
+  if (abs_lines_per_species.nelem() != abs_species.nelem())
+    {
+      ostringstream os;
+      os << "Dimensions of *abs_species* and *abs_lines_per_species* must match.";
+      throw runtime_error( os.str() );      
+    }
+
+
   // VMR matrix must match species list and pressure levels:
   chk_size( "abs_vmrs",
             abs_vmrs,
@@ -343,72 +352,82 @@ void abs_lookupCreate(// WS Output:
 #endif
           for ( Index j=0; j<these_t_pert_nelem; ++j )
             {
-              if ( 0!=n_t_pert )
+              try
                 {
-                  out3 << "  Doing temperature variant " << j+1
-                       << " of " << n_t_pert << ": "
-                       << these_t_pert[j] << ".\n";
-                }
+                  if ( 0!=n_t_pert )
+                    {
+                      out3 << "  Doing temperature variant " << j+1
+                           << " of " << n_t_pert << ": "
+                           << these_t_pert[j] << ".\n";
+                    }
               
-              // Create perturbed temperature profile:
-              this_t = abs_lookup.t_ref;
-              this_t += these_t_pert[j];
+                  // Create perturbed temperature profile:
+                  this_t = abs_lookup.t_ref;
+                  this_t += these_t_pert[j];
       
-              // The sequence of function calls here is inspired from
-              // abs_coefCalcSaveMemory. 
+                  // The sequence of function calls here is inspired from
+                  // abs_coefCalcSaveMemory. 
 
-              abs_xsec_per_speciesInit( abs_xsec_per_species, this_species,
-                                        f_grid, abs_p );
+                  abs_xsec_per_speciesInit( abs_xsec_per_species, this_species,
+                                            f_grid, abs_p );
 
-              abs_xsec_per_speciesAddLines( abs_xsec_per_species,
-                                            this_species,
-                                            f_grid,
-                                            abs_p,
-                                            this_t,
-                                            abs_h2o,
-                                            this_vmr,
-                                            these_lines,
-                                            this_lineshape );
+                  abs_xsec_per_speciesAddLines( abs_xsec_per_species,
+                                                this_species,
+                                                f_grid,
+                                                abs_p,
+                                                this_t,
+                                                abs_h2o,
+                                                this_vmr,
+                                                these_lines,
+                                                this_lineshape );
 
-              abs_xsec_per_speciesAddConts( abs_xsec_per_species,
-                                            this_species,
-                                            f_grid,
-                                            abs_p,
-                                            this_t,
-                                            abs_n2,
-                                            abs_h2o,
-                                            this_vmr,
-                                            abs_cont_names,
-                                            abs_cont_parameters,
-                                            abs_cont_models);
+                  abs_xsec_per_speciesAddConts( abs_xsec_per_species,
+                                                this_species,
+                                                f_grid,
+                                                abs_p,
+                                                this_t,
+                                                abs_n2,
+                                                abs_h2o,
+                                                this_vmr,
+                                                abs_cont_names,
+                                                abs_cont_parameters,
+                                                abs_cont_models);
 
-              // Store in the right place:
-              // Loop through all altitudes
-              for ( Index p=0; p<n_p_grid; ++p )
+                  // Store in the right place:
+                  // Loop through all altitudes
+                  for ( Index p=0; p<n_p_grid; ++p )
+                    {
+                      abs_lookup.xsec( j, spec, Range(joker), p )
+                        = abs_xsec_per_species[0](Range(joker),p);
+
+                      // There used to be a division by the number density
+                      // n here. This is no longer necessary, since
+                      // abs_xsec_per_species now contains true absorption
+                      // cross sections.
+
+                      // IMPORTANT: There was a bug in my old Matlab
+                      // function "create_lookup.m" to generate the lookup
+                      // table. (The number density was always the
+                      // reference one, and did not change for different
+                      // temperatures.) Patricks Atmlab function
+                      // "arts_abstable_from_arts1.m" did *not* have this bug.
+
+                      // Calculate the number density for the given pressure and
+                      // temperature: 
+                      // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
+                      //                  const Numeric n = number_density( abs_lookup.p_grid[p],
+                      //                                                    this_t[p]   );
+                      //                  abs_lookup.xsec( j, spec, Range(joker), p ) /= n;
+                    }
+                } // end of try block
+              catch (runtime_error e)
                 {
-                  abs_lookup.xsec( j, spec, Range(joker), p )
-                    = abs_xsec_per_species[0](Range(joker),p);
-
-                  // There used to be a division by the number density
-                  // n here. This is no longer necessary, since
-                  // abs_xsec_per_species now contains true absorption
-                  // cross sections.
-
-                  // IMPORTANT: There was a bug in my old Matlab
-                  // function "create_lookup.m" to generate the lookup
-                  // table. (The number density was always the
-                  // reference one, and did not change for different
-                  // temperatures.) Patricks Atmlab function
-                  // "arts_abstable_from_arts1.m" did *not* have this bug.
-
-                  // Calculate the number density for the given pressure and
-                  // temperature: 
-                  // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
-                  //                  const Numeric n = number_density( abs_lookup.p_grid[p],
-                  //                                                    this_t[p]   );
-                  //                  abs_lookup.xsec( j, spec, Range(joker), p ) /= n;
+                  out0 << e.what() << "\n"
+                       << "Stopping ARTS execution.\n"
+                       << "Goodbye.\n";
+                  arts_exit();	// No argument means failure.
                 }
-            }
+            } // end of parallel for loop
         }
     }
 

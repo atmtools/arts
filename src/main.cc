@@ -940,7 +940,7 @@ int main (int argc, char **argv)
       out0 << x.what() << "\n"
            << "Stopping ARTS execution.\n"
            << "Goodbye.\n";
-      arts_exit ();
+      arts_exit();              // No argument means failure.
     }
 
   out1 << "Goodbye.\n";

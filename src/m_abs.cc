@@ -2023,7 +2023,7 @@ void abs_xsec_per_speciesInit(// WS Output:
 void abs_xsec_per_speciesAddLines(// WS Output:
                          ArrayOfMatrix&                   abs_xsec_per_species,
                          // WS Input:             
-                         const ArrayOfArrayOfSpeciesTag&                 tgs,
+                         const ArrayOfArrayOfSpeciesTag&  tgs,
                          const Vector&                    f_grid,
                          const Vector&                    abs_p,
                          const Vector&                    abs_t,
@@ -2118,6 +2118,19 @@ void abs_xsec_per_speciesAddLines(// WS Output:
       // Skip the call to abs_xsec_per_species if the line list is empty.
       if ( 0 < ll.nelem() )
         {
+          // As a safety check, check that the species of the first
+          // line matches the species we should have according to
+          // tgs. (This in case the order in tgs has been changed and
+          // abs_lines_per_species has not been changed consistently.)
+          if (ll[0].Species() != tgs[i][0].Species() )
+            {
+              ostringstream os;
+              os << "The species in the line list does not match the species\n"
+                 << "for which you want to calculate absorption:\n"
+                 << "abs_species:           " << get_tag_group_name(tgs[i]) << "\n"
+                 << "abs_lines_per_species: " << ll[0].Name();
+              throw runtime_error(os.str());
+            }
 
           // Get the name of the species. The member function name of a
           // LineRecord returns the full name (species + isotope). So
