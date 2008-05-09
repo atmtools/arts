@@ -3,13 +3,13 @@
 	* arts-1-4-16
 
 	* A small change of control files including a description of
-	ppath_step_agenda is needed. You need now to define ppath_lmax.
+	ppath_step_agenda is needed. You need to define ppath_lmax.
 
 	The keyword arguments lmax and lraytrace are now WSV, denoted as
 	ppath_lmax and ppath_lraytrace.  This in order to allow that
 	"lmax" can be changed, without needing to specify the complete
 	agenda (including a selection if refraction shall be
-	considered). This allows also a much nicer definition of
+	considered or not). This allows also a much nicer definition of
 	ppath_step_agenda in the ARTS2 format (no need to list all input
 	variables).
 
