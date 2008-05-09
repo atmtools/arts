@@ -1,0 +1,27 @@
+Arts {
+
+# We take a smaller cutoff, since the line-by-line calculation is 
+# only for O3, where only the local lines matter.
+# Could be speed-optimized further by selecting only the relevant 
+# lines from the line list.
+abs_lineshapeDefine{ shape               = "Voigt_Kuntz6"
+                     normalizationfactor = "VVH"
+                     cutoff              = 5e9 }
+
+SpeciesSet(abs_species){["H2O-PWR98",
+                         "O3",
+			 "O2-PWR93",
+			 "N2-SelfContStandardType"]}
+
+# Read HITRAN catalog (needed for O3):
+#abs_linesReadFromHitran2004{
+#   filename = "/storage1/pool/lookup2/hitran2004/HITRAN04.par"
+#   fmin     = 80e9
+#   fmax     = 200e9 
+#}
+#WriteXML(abs_lines){"amsub.hitran04_lines.xml"}
+
+ReadXML(abs_lines){"amsu/amsub.hitran04_lines.xml"}
+abs_lines_per_speciesCreateFromLines
+
+}

@@ -1,5 +1,15 @@
 2008-05-09  Stefan Buehler  <sbuehler(at)ltu.se>
 
+	* arts-1-5-3
+
+	* I'm working on rearranging AMSU setup files. For now they will
+	not work. Unfortunately, I am forced to commit anyway, due to the
+	restrictions of SVN (modifying and renaming things at the same
+	time is not possible). If you are working with AMSU, do not update
+	right now! Everything should be stable again early next week.
+	
+2008-05-09  Stefan Buehler  <sbuehler(at)ltu.se>
+
 	* arts-1-5-2
 
 	* Ups, I should have started with 1-5-0 for the last
