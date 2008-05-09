@@ -103,8 +103,9 @@ sensorOff
 
 # This should be sufficiently small to assume single scattering in 
 # one propagation path step
+NumericSet( ppath_lmax ){ -1 }
 AgendaSet( ppath_step_agenda ){
-  ppath_stepGeometric{ lmax = -1 }
+  ppath_stepGeometric{}
 }
 
 # Agendas for clearsky radiative transfer calculation

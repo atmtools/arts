@@ -2215,6 +2215,33 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "ppath_lmax" ),
+      DESCRIPTION
+      (
+       "Maximum length between points describing propagation paths.\n"
+       "\n"
+       "See *ppath_stepGeometric* for a description of this variable.\n"
+       "\n"
+       "Usage: Ppath methods such as *ppath_stepGeometric*.\n"
+       ),
+      GROUP( Numeric_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppath_lraytrace" ),
+      DESCRIPTION
+      (
+       "Maximum length of ray tracing steps when determining propagation\n"
+       "paths.\n"
+       "\n"
+       "See *ppath_stepRefractionEuler* for a description of this variable.\n"
+       "\n"
+       "Usage: Refraction ppath methods such as *ppath_stepRefractionEuler*.\n"
+       ),
+      GROUP( Numeric_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "ppath_step" ),
       DESCRIPTION
       (

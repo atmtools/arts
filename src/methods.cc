@@ -4974,11 +4974,11 @@ md_data_raw.push_back
          "This function determines a propagation path step by pure\n"
          "geometrical calculations. That is, refraction is neglected. Path\n"
          "points are always included for crossings with the grids, tangent\n"
-         "points and points of surface intersections. The keyword *lmax* \n"
+         "points and points of surface intersections. The WSV *ppath_lmax* \n"
          "gives the option to include additional points to ensure that the\n"
          "distance along the path between the points does not exceed the \n"
          "selected maximum length. No additional points are included if\n"
-         "*lmax* is set to <= 0.\n"
+         "*ppath_lmax* is set to <= 0.\n"
          "\n"
          "As functions of this kind should very seldom be called directly,\n"
          "and that the functions can be called a high number of times, these\n"
@@ -4987,19 +4987,16 @@ md_data_raw.push_back
          "\n"
          "For further information, type see the on-line information for\n"
          "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\").\n"
-         "\n"
-         "Keywords: \n"
-         "   lmax      : Maximum allowed length between path points.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ppath_step_ ),
         INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
-               z_field_, r_geoid_, z_surface_ ),
+               z_field_, r_geoid_, z_surface_, ppath_lmax_ ),
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( "lmax" ),
-        DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5021,28 +5018,24 @@ md_data_raw.push_back
          "(type \"arts -d ppath_stepGeometric\") and the user guide for more\n"
          "details on the algorithms used.\n"
          "\n"
-         "The maximum length of each ray tracing step is given by the \n"
-         "keyword argument *lraytrace*. The length will never exceed the \n" 
+         "The maximum length of each ray tracing step is given by the WSV\n"
+         "*ppath_lraytrace*. The length will never exceed the \n" 
          "given maximum value, but can be smaller. The ray tracing steps are\n"
-         "only used to determine the path, points to describe the path for \n" 
+         "only used to determine the path. Points to describe the path for \n" 
          "*RteCalc* are included as for *ppath_stepGeometric*, this\n"
-         "including the functionality for the keyword *lmax*.\n"
-         "\n"
-         "Keywords: \n"
-         "   lraytrace : Maximum length of ray tracing steps.\n"
-         "   lmax      : Maximum allowed length between path points.\n"
+         "including the functionality of *ppath_lmax*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ppath_step_, rte_pressure_, rte_temperature_, rte_vmr_list_, 
                 refr_index_ ),
         INPUT( refr_index_agenda_, ppath_step_, atmosphere_dim_, p_grid_, 
                lat_grid_, lon_grid_, z_field_, t_field_, vmr_field_, r_geoid_,
-               z_surface_ ),
+               z_surface_, ppath_lmax_, ppath_lraytrace_ ),
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( "lraytrace", "lmax"    ),
-        DEFAULTS( NODEF,       NODEF ),
-        TYPES(    Numeric_t,   Numeric_t )));
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
 
   md_data_raw.push_back     
     ( MdRecord

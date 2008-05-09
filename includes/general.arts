@@ -113,7 +113,7 @@ AgendaSet (opt_prop_gas_agenda)
 
 
 #
-# Refractive Index Agenda
+# Refractive index agenda
 # (not used if ppath_stepGeometric used in ppath_step_agenda)
 #
 AgendaSet( refr_index_agenda ) {
@@ -124,13 +124,12 @@ AgendaSet( refr_index_agenda ) {
 #
 # Agenda for the calculation of propagation path steps
 # (This will result in pure geometrical calculations. That is, refraction is 
-# neglected. The value of 10e3 is OK for limb sounding, and also for
-# down-looking if not very accutate results are demanded.)
+# neglected. The value for ppath_lmax of 10e3 is OK for limb sounding, and 
+# also for down-looking if not very accutate results are demanded.)
 #
+NumericSet( ppath_lmax ){ 10e3 }
 AgendaSet( ppath_step_agenda ) {
-  ppath_stepGeometric{
-    lmax = 10e3
-  }
+  ppath_stepGeometric{}
 }
 
 

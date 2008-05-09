@@ -1,3 +1,32 @@
+2008-05-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-4-16
+
+	* A small change of control files including a description of
+	ppath_step_agenda is needed. You need now to define ppath_lmax.
+
+	The keyword arguments lmax and lraytrace are now WSV, denoted as
+	ppath_lmax and ppath_lraytrace.  This in order to allow that
+	"lmax" can be changed, without needing to specify the complete
+	agenda (including a selection if refraction shall be
+	considered). This allows also a much nicer definition of
+	ppath_step_agenda in the ARTS2 format (no need to list all input
+	variables).
+
+	* includes/general.arts: Introduced ppath_lmax (value still 10 km).
+	* tests/DOIT/TestDOIT.arts: Introduced ppath_lmax (value still -1).
+	
+	* includes/odinsmr.arts: ppath_lmax set to 20 km to mimic Qsmr.
+	
+	
+	* src/m_ppath.cc (ppath_stepRefractionEuler): Now using ppath_lmax
+	and ppath_lraytrace.
+	
+	(ppath_stepGeometric): Now using ppath_lmax.
+
+	* src/workspace.cc: Introduced ppath_lmax and ppath_lraytrace. To 
+	replace the corresponding keyword arguments in ppath_step WSMs.
+
 2008-05-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-4-15

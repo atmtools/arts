@@ -245,8 +245,7 @@ void ppath_stepGeometric(
         const Tensor3&   z_field,
         const Matrix&    r_geoid,
         const Matrix&    z_surface,
-        // Control Parameters:
-        const Numeric&   lmax )
+        const Numeric&   ppath_lmax )
 {
   // Input checks here would be rather costly as this function is called
   // many times. So we perform asserts in the sub-functions, but no checks 
@@ -254,16 +253,17 @@ void ppath_stepGeometric(
 
   if( atmosphere_dim == 1 )
     { ppath_step_geom_1d( ppath_step, p_grid, z_field(joker,0,0), 
-                                         r_geoid(0,0), z_surface(0,0), lmax ); }
+                          r_geoid(0,0), z_surface(0,0), ppath_lmax ); }
 
   else if( atmosphere_dim == 2 )
     { ppath_step_geom_2d( ppath_step, p_grid, lat_grid,
-         z_field(joker,joker,0), r_geoid(joker,0), z_surface(joker,0), lmax ); }
+                          z_field(joker,joker,0), r_geoid(joker,0), 
+                          z_surface(joker,0), ppath_lmax ); }
 
 
   else if( atmosphere_dim == 3 )
     { ppath_step_geom_3d( ppath_step, p_grid, lat_grid, lon_grid,
-                                          z_field, r_geoid, z_surface, lmax ); }
+                          z_field, r_geoid, z_surface, ppath_lmax ); }
 
   else
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
@@ -289,37 +289,36 @@ void ppath_stepRefractionEuler(
         const Tensor4&    vmr_field,
         const Matrix&     r_geoid,
         const Matrix&     z_surface,
-        // Control Parameters:
-        const Numeric&    lraytrace,
-        const Numeric&    lmax )
+        const Numeric&    ppath_lmax,
+        const Numeric&    ppath_lraytrace )
 {
   // Input checks here would be rather costly as this function is called
   // many times. So we do only asserts. The keywords are checked here,
   // other input in the sub-functions to make them as simple as possible.
 
-  assert( lraytrace > 0 );
+  assert( ppath_lraytrace > 0 );
 
   if( atmosphere_dim == 1 )
     { ppath_step_refr_1d( ppath_step, rte_pressure, rte_temperature, 
-                          rte_vmr_list, refr_index, refr_index_agenda,
-                          p_grid, z_field(joker,0,0), t_field(joker,0,0), 
+                       rte_vmr_list, refr_index, refr_index_agenda,
+                       p_grid, z_field(joker,0,0), t_field(joker,0,0), 
                        vmr_field(joker,joker,0,0), r_geoid(0,0), z_surface(0,0),
-                                           "linear_euler", lraytrace, lmax ); }
+                       "linear_euler", ppath_lraytrace, ppath_lmax ); }
 
   else if( atmosphere_dim == 2 )
     { ppath_step_refr_2d( ppath_step, rte_pressure, rte_temperature, 
-                          rte_vmr_list, refr_index, refr_index_agenda,
-                          p_grid, lat_grid, z_field(joker,joker,0),
+                       rte_vmr_list, refr_index, refr_index_agenda,
+                       p_grid, lat_grid, z_field(joker,joker,0),
                        t_field(joker,joker,0), vmr_field(joker, joker,joker,0),
-                          r_geoid(joker,0), z_surface(joker,0), 
-                                           "linear_euler", lraytrace, lmax ); }
+                       r_geoid(joker,0), z_surface(joker,0), 
+                       "linear_euler", ppath_lraytrace, ppath_lmax ); }
 
   else if( atmosphere_dim == 3 )
     { ppath_step_refr_3d( ppath_step, rte_pressure, rte_temperature, 
-                          rte_vmr_list, refr_index, refr_index_agenda,
-                          p_grid, lat_grid, lon_grid, z_field, 
-                          t_field, vmr_field, r_geoid, z_surface, 
-                                           "linear_euler", lraytrace, lmax ); }
+                       rte_vmr_list, refr_index, refr_index_agenda,
+                       p_grid, lat_grid, lon_grid, z_field, 
+                       t_field, vmr_field, r_geoid, z_surface, 
+                       "linear_euler", ppath_lraytrace, ppath_lmax ); }
 
   else
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }

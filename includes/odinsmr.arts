@@ -81,6 +81,11 @@ abs_lineshapeDefine( abs_lineshape,
 )
 
 
+# Odin-SMR gives RJ brightness temperatures
 StringSet( y_unit, "RJBT" )
+
+
+# A RT step length of 20 km is applied in operational processing
+NumericSet( ppath_lmax, 20e3 )
 
 }
