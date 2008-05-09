@@ -1928,19 +1928,21 @@ void ArtsParser::read_numeric(String& res)
       res += ".";
       msource.AdvanceChar();
       if ( msource.LineBreak() )
-        if (found_digit)
-          {
-            // Line break ends scanning immediately, if we have
-            // already found at least one digit.
-            return;
-          }
-        else
-          {
-            throw IllegalLinebreak("Expected at least one digit.",
-                                   msource.File(),
-                                   msource.Line(),
-                                   msource.Column());
-          }
+        {
+          if (found_digit)
+            {
+              // Line break ends scanning immediately, if we have
+              // already found at least one digit.
+              return;
+            }
+          else
+            {
+              throw IllegalLinebreak("Expected at least one digit.",
+                                     msource.File(),
+                                     msource.Line(),
+                                     msource.Column());
+            }
+        }
 
       // ... followed by optional more digits
       stop = false;

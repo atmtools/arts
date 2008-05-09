@@ -1,5 +1,23 @@
 2008-05-08  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-4-15
+
+	* src/methods_aux.cc (operator<<): 
+
+	Reformat for-loop for better readability.
+
+	* src/scatrte.cc:
+	
+	Put parenthesis around && when used in proximity of ||.
+	(b || c && d) -> (b || (c && d))
+	Better readability: http://bytes.com/forum/thread602250.html
+
+	* src/parser.cc (ArtsParser::read_numeric), src/binio.cc:
+
+	Add braces in several places to avoid ambiguous else.
+
+2008-05-08  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-4-14
 
 	* tests/Makefile.am:

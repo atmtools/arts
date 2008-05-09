@@ -66,12 +66,18 @@ binio::Flags binio::detect_system_flags()
   Byte	*dat = (Byte *)&fl;
 
   if(sizeof(float) == 4 && sizeof(double) == 8)
-    if(f & BigEndian) {
-      if(dat[0] == 0x40 && dat[1] == 0xD0 && !dat[2] && !dat[3])
-        f |= FloatIEEE;
-    } else
-      if(dat[3] == 0x40 && dat[2] == 0xD0 && !dat[1] && !dat[0])
-      f |= FloatIEEE;
+    {
+      if(f & BigEndian)
+        {
+          if(dat[0] == 0x40 && dat[1] == 0xD0 && !dat[2] && !dat[3])
+            f |= FloatIEEE;
+        }
+      else
+        {
+          if(dat[3] == 0x40 && dat[2] == 0xD0 && !dat[1] && !dat[0])
+            f |= FloatIEEE;
+        }
+    }
 
   return f;
 }
@@ -223,19 +229,24 @@ binistream::Float binistream::ieee_single2float(Byte *data)
 
   // Signed and unsigned infinity (maybe unsupported on non-IEEE systems)
   if(exp == 255)
-    if(!fracthi7 && !data[2] && !data[3]) {
+    {
+      if(!fracthi7 && !data[2] && !data[3])
+        {
 #ifdef HUGE_VAL
-      if(sign == -1) return -HUGE_VAL; else return HUGE_VAL;
+          if(sign == -1) return -HUGE_VAL; else return HUGE_VAL;
 #else
-      err |= Unsupported;
-      if(sign == -1) return -1.0; else return 1.0;
+          err |= Unsupported;
+          if(sign == -1) return -1.0; else return 1.0;
 #endif
-    } else {	  // Not a number (maybe unsupported on non-IEEE systems)
+        }
+      else
+        {	  // Not a number (maybe unsupported on non-IEEE systems)
 #ifdef NAN
-      return NAN;
+          return NAN;
 #else
-      err |= Unsupported; return 0.0;
+          err |= Unsupported; return 0.0;
 #endif
+        }
     }
 
   if(!exp)	// Unnormalized float values
@@ -261,20 +272,25 @@ binistream::Float binistream::ieee_double2float(Byte *data)
 
   // Signed and unsigned infinity  (maybe unsupported on non-IEEE systems)
   if(exp == 2047)
-    if(!fracthi4 && !data[2] && !data[3] && !data[4] && !data[5] && !data[6] &&
-       !data[7]) {
+    {
+      if(!fracthi4 && !data[2] && !data[3] && !data[4] && !data[5] && !data[6] &&
+         !data[7])
+        {
 #ifdef HUGE_VAL
-      if(sign == -1) return -HUGE_VAL; else return HUGE_VAL;
+          if(sign == -1) return -HUGE_VAL; else return HUGE_VAL;
 #else
-      err |= Unsupported;
-      if(sign == -1) return -1.0; else return 1.0;
+          err |= Unsupported;
+          if(sign == -1) return -1.0; else return 1.0;
 #endif
-    } else {	  // Not a number (maybe unsupported on non-IEEE systems)
+        }
+      else
+        {	  // Not a number (maybe unsupported on non-IEEE systems)
 #ifdef NAN
-      return NAN;
+          return NAN;
 #else
-      err |= Unsupported; return 0.0;
+          err |= Unsupported; return 0.0;
 #endif
+        }
     }
 
   if(!exp)	// Unnormalized float values

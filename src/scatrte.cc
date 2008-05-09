@@ -310,8 +310,8 @@ void cloud_ppath_update1D(
   // cloudbox a radiative transfer step caclulation has to
   // be performed.
   
-  if((cloudbox_limits[0] <= ppath_step.gp_p[1].idx) &&
-     cloudbox_limits[1] > ppath_step.gp_p[1].idx ||
+  if((cloudbox_limits[0] <= ppath_step.gp_p[1].idx &&
+     cloudbox_limits[1] > ppath_step.gp_p[1].idx) ||
      (cloudbox_limits[1] == ppath_step.gp_p[1].idx &&
       abs(ppath_step.gp_p[1].fd[0]) < 1e-6))
     {
@@ -456,8 +456,8 @@ void cloud_ppath_update1D_noseq(
   // cloudbox a radiative transfer step caclulation has to
   // be performed.
   
-  if((cloudbox_limits[0] <= ppath_step.gp_p[1].idx) &&
-     cloudbox_limits[1] > ppath_step.gp_p[1].idx ||
+  if((cloudbox_limits[0] <= ppath_step.gp_p[1].idx &&
+     cloudbox_limits[1] > ppath_step.gp_p[1].idx) ||
      (cloudbox_limits[1] == ppath_step.gp_p[1].idx &&
       abs(ppath_step.gp_p[1].fd[0]) < 1e-6))
     {

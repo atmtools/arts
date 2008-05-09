@@ -402,7 +402,10 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       {
         separate_lines = true;
         indent = "\n";
-        for (size_t i=0; i<mdr.Name().length() + 2; i++, indent+=' ');
+        for (size_t i = 0; i < mdr.Name().length() + 2; i++)
+          {
+            indent += ' ';
+          }
       }
 
     os << "Synopsis (Arts2 Syntax):\n\n";
