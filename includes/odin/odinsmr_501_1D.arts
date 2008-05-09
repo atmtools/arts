@@ -15,7 +15,7 @@
 Arts2 {
 
 INCLUDE "general.arts"
-INCLUDE "odinsmr.arts"
+INCLUDE "odin/odinsmr.arts"
 
 
 # A number of species with very weak emission are here neglected
@@ -29,12 +29,12 @@ SpeciesSet( abs_species, [
 ] )
 
 # Line file
-abs_linesReadFromArts( abs_lines, "linefile.SM_AC2ab.xml", 0, 2e12 )
+abs_linesReadFromArts( abs_lines, "odin/linefile.SM_AC2ab.xml", 0, 2e12 )
 
 
 
 # Frequency grid
-ReadXML( f_grid, "f_mono.SM_AC2ab.xml" )
+ReadXML( f_grid, "odin/f_mono.SM_AC2ab.xml" )
 
 
 
@@ -60,7 +60,7 @@ AntennaSet1D
 
 # The folder contains antenna pattern for different integration times.
 # The pattern for smallest integration time is selected here.
-ReadXML( antenna_diagram, "antenna.SM_AC2ab.875ms.xml" )
+ReadXML( antenna_diagram, "odin/antenna.SM_AC2ab.875ms.xml" )
 
 # We need sensor_pos as input to *VectorZtanToZa1D*
 MatrixSet( sensor_pos, n_pbeams, 1, 600e3 )
@@ -99,14 +99,14 @@ MatrixSet( sensor_pol, 1, 1, 1 )
 #
 VectorSetExplicitly( lo, [497.88e9] )
 MatrixCreate( sideband_response )
-ReadXML( sideband_response, "sideband.SM_AC2ab.xml" )
+ReadXML( sideband_response, "odin/sideband.SM_AC2ab.xml" )
 StringSet( sideband_mode, "upper" )
 
 # Spectrometer:
 #
-ReadXML( f_backend, "f_backend.SM_AC2ab.xml" )
+ReadXML( f_backend, "odin/f_backend.SM_AC2ab.xml" )
 ArrayOfMatrixCreate( backend_ch_response )
-ReadXML( backend_ch_response, "backend.xml" )
+ReadXML( backend_ch_response, "odin/backend.xml" )
 
 
 sensor_responseInit

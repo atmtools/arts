@@ -8,7 +8,7 @@ INCLUDE "continua.arts"
 
 output_file_formatSetZippedAscii
 
-ReadXML(f_grid){"amsub.f_grid.xml"}
+ReadXML(f_grid){"amsu/amsub.f_grid.xml"}
 
 # We take a smaller cutoff, since the line-by-line calculation is 
 # only for O3, where only the local lines matter.
@@ -31,7 +31,7 @@ SpeciesSet(abs_species){["H2O-PWR98",
 #}
 #WriteXML(abs_lines){"amsub.hitran04_lines.xml"}
 
-ReadXML(abs_lines){"amsub.hitran04_lines.xml"}
+ReadXML(abs_lines){"amsu/amsub.hitran04_lines.xml"}
 abs_lines_per_speciesCreateFromLines
 
 
@@ -46,7 +46,7 @@ StringSet( jacobian_unit ){ "RJBT" }
 
 # Definition of sensor position and LOS
 # ---
-ReadXML(sensor_los){"amsub.sensor_los.xml"}
+ReadXML(sensor_los){"amsu/amsub.sensor_los.xml"}
 nrowsGet(sensor_los)
 ncolsGet(sensor_los)
 MatrixSet(sensor_pos){850e3}
@@ -97,7 +97,7 @@ VectorSetExplicitly(f_backend){
 # very narrow channel responses (narrower than the spacing in *f_grid*)
 # ---
 MatrixCreate(backend_channel_response)
-ReadXML(backend_channel_response){"./amsub.backend.xml"}
+ReadXML(backend_channel_response){"amsu/amsub.backend.xml"}
 
 # Calculate f_grid
 # ---

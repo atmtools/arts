@@ -1,5 +1,28 @@
 2008-05-09  Stefan Buehler  <sbuehler(at)ltu.se>
 
+	* arts-1-5-1
+
+	* Moved sensor specific include files to subdirectories "amsu" and
+	"odin" of includes directory. A new second digit version number
+	for this, since some control files may break. To fix, replace:
+	INCLUDE "amsub.arts" by
+	INCLUDE "amsu/amsub.arts"
+	likewise:
+	INCLUDE "odinsmr_501_1D.arts" by
+	INCLUDE "odin/odinsmr_501_1D.arts"
+
+	* includes/odin/: Contains now all Odin specific include files. I
+	have moved here also many files (f_grid, backend, antenna, etc.)
+	that were in tests/OdinSMR, but should actually be with the
+	include files, because the include files will not work without them.
+
+	* includes/amsu/: Contains now all AMSU specific include files.
+
+	* tests/: Adapted all tests to work with the include files in the
+	new locations. All tests run through.
+
+2008-05-09  Stefan Buehler  <sbuehler(at)ltu.se>
+
 	* arts-1-4-18
 
 	* Adapted all parallel for loops to correctly handle runtime

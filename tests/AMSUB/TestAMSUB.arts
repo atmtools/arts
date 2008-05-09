@@ -2,7 +2,7 @@
 
 Arts {
 
-INCLUDE "amsub.arts"
+INCLUDE "amsu/amsub.arts"
 
 INCLUDE "TestAMSU_generic.arts"
 
