@@ -2,10 +2,6 @@
 
 Arts {
 
-INCLUDE "general.arts"
-INCLUDE "continua.arts"
-
-
 output_file_formatSetZippedAscii
 
 ReadXML(f_grid){"amsu/amsub.f_grid.xml"}

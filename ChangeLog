@@ -1,5 +1,11 @@
 2008-05-09  Stefan Buehler  <sbuehler(at)ltu.se>
 
+	* arts-1-5-4
+
+	* AMSU-B Test works again.
+
+2008-05-09  Stefan Buehler  <sbuehler(at)ltu.se>
+
 	* arts-1-5-3
 
 	* I'm working on rearranging AMSU setup files. For now they will
