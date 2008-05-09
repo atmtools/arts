@@ -1,3 +1,41 @@
+2008-05-09  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-4-18
+
+	* Adapted all parallel for loops to correctly handle runtime
+	errors. These changes were necessary, because exceptions must be
+	handled inside the same parallel region in an OpenMP
+	environment. With OpenMP, the program now simply terminates with
+	the error message when a runtime error is encountered. Without
+	OpenMP, the exception is re-thrown. The consequence of this is
+	that the robust option for ybatchCalc will not work with OpenMP,
+	but at least without OpenMP.
+
+	* src/m_batch.cc (ybatchCalc_implementation): Use new function
+	exit_or_rethrow, instead of arts_exit_with_error_message.
+
+	* src/arts.{cc,h} (arts_exit_with_error_message): Added.
+	(exit_or_rethrow): Added.
+
+	* src/m_rte.cc (RteCalc): Added try/catch block for correct
+	runtime error handling. 
+	(RteCalcMC): Added try/catch block for correct runtime error
+	handling. 
+
+	* src/main.cc (main): Use new function
+	arts_exit_with_error_message to exit upon runtime error.
+
+	* src/m_abs_lookup.cc (abs_lookupCreate): Added try/catch block
+	for correct runtime error handling.
+	(abs_fieldCalc): Added try/catch block for correct runtime error
+	handling.
+
+	* src/methods.cc (ybatchCalc): Pointed out in documentation that
+	robust will only work without OpenMP.
+
+	* src/m_atmosphere.cc (batch_atm_fields_compactFromArrayOfMatrix):
+	Added try/catch block for correct runtime error handling.
+
 2008-05-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-4-17

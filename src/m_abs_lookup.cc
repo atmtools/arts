@@ -188,7 +188,6 @@ void abs_lookupCreate(// WS Output:
       throw runtime_error( os.str() );      
     }
 
-
   // VMR matrix must match species list and pressure levels:
   chk_size( "abs_vmrs",
             abs_vmrs,
@@ -345,11 +344,17 @@ void abs_lookupCreate(// WS Output:
               abs_h2o *= these_nls_pert[s]; // Add perturbation
             }
 
-          // Loop temperature perturbations:
+          // Loop temperature perturbations
+          // ------------------------------
+
+          // We use a paralle for loop for this.
+
 #pragma omp parallel private(this_t, abs_xsec_per_species)
 #pragma omp for 
           for ( Index j=0; j<these_t_pert_nelem; ++j )
             {
+              // The try block here is necessary to correctly handle
+              // exceptions inside the parallel region. 
               try
                 {
                   if ( 0!=n_t_pert )
@@ -420,10 +425,7 @@ void abs_lookupCreate(// WS Output:
                 } // end of try block
               catch (runtime_error e)
                 {
-                  out0 << e.what() << "\n"
-                       << "Stopping ARTS execution.\n"
-                       << "Goodbye.\n";
-                  arts_exit();	// No argument means failure.
+                  exit_or_rethrow(e.what());
                 }
             } // end of parallel for loop
         }
@@ -1539,60 +1541,69 @@ void abs_fieldCalc(// WS Output:
 #pragma omp for 
   for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
     {
-      Numeric a_pressure = p_grid[ipr];
+      // The try block here is necessary to correctly handle
+      // exceptions inside the parallel region. 
+      try
+        {
+          Numeric a_pressure = p_grid[ipr];
 
-      out3 << "  p_grid[" << ipr << "] = " << a_pressure << "\n";
+          out3 << "  p_grid[" << ipr << "] = " << a_pressure << "\n";
 
-      for ( Index ila=0; ila<n_latitudes; ++ila )   // Latitude:  ila
-        for ( Index ilo=0; ilo<n_longitudes; ++ilo ) // Longitude: ilo
-          {
-            Numeric a_temperature = t_field( ipr, ila, ilo );
-            a_vmr_list    = vmr_field( Range(joker),
-                                       ipr, ila, ilo );
-
-            // Execute agenda to calculate local absorption.
-            // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
-            // Agenda output: asg
-            abs_scalar_gas_agendaExecute(asg,
-                                         f_index, a_pressure,
-                                         a_temperature, a_vmr_list,
-                                         sga_agenda, true,
-                                         arts_omp_in_parallel());
-
-            // Verify, that the number of species in asg is
-            // constistent with vmr_field:
-            if ( n_species != asg.ncols() )
+          for ( Index ila=0; ila<n_latitudes; ++ila )   // Latitude:  ila
+            for ( Index ilo=0; ilo<n_longitudes; ++ilo ) // Longitude: ilo
               {
-                ostringstream os;
-                os << "The number of gas species in vmr_field is "
-                   << n_species << ",\n"
-                   << "but the number of species returned by the agenda is "
-                   << asg.ncols() << ".";
-                throw runtime_error( os.str() );
-              }
+                Numeric a_temperature = t_field( ipr, ila, ilo );
+                a_vmr_list    = vmr_field( Range(joker),
+                                           ipr, ila, ilo );
 
-            // Verify, that the number of frequencies in asg is
-            // constistent with f_extent:
-            if ( f_extent != asg.nrows() )
-              {
-                ostringstream os;
-                os << "The number of frequencies desired is "
-                   << n_frequencies << ",\n"
-                   << "but the number of frequencies returned by the agenda is "
-                   << asg.nrows() << ".";
-                throw runtime_error( os.str() );
-              }
+                // Execute agenda to calculate local absorption.
+                // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
+                // Agenda output: asg
+                abs_scalar_gas_agendaExecute(asg,
+                                             f_index, a_pressure,
+                                             a_temperature, a_vmr_list,
+                                             sga_agenda, true,
+                                             arts_omp_in_parallel());
 
-            // Store the result in output field.
-            // We have to transpose asg, because the dimensions of the
-            // two variables are:
-            // asg_field: [ abs_species, f_grid, p_grid, lat_grid, lon_grid]
-            // asg:       [ f_grid, abs_species ]
-            asg_field( Range(joker),
-                       Range(joker),
-                       ipr, ila, ilo ) = transpose( asg );
+                // Verify, that the number of species in asg is
+                // constistent with vmr_field:
+                if ( n_species != asg.ncols() )
+                  {
+                    ostringstream os;
+                    os << "The number of gas species in vmr_field is "
+                       << n_species << ",\n"
+                       << "but the number of species returned by the agenda is "
+                       << asg.ncols() << ".";
+                    throw runtime_error( os.str() );
+                  }
+
+                // Verify, that the number of frequencies in asg is
+                // constistent with f_extent:
+                if ( f_extent != asg.nrows() )
+                  {
+                    ostringstream os;
+                    os << "The number of frequencies desired is "
+                       << n_frequencies << ",\n"
+                       << "but the number of frequencies returned by the agenda is "
+                       << asg.nrows() << ".";
+                    throw runtime_error( os.str() );
+                  }
+
+                // Store the result in output field.
+                // We have to transpose asg, because the dimensions of the
+                // two variables are:
+                // asg_field: [ abs_species, f_grid, p_grid, lat_grid, lon_grid]
+                // asg:       [ f_grid, abs_species ]
+                asg_field( Range(joker),
+                           Range(joker),
+                           ipr, ila, ilo ) = transpose( asg );
             
-          }
+              }
+        }
+      catch (runtime_error e)
+        {
+          exit_or_rethrow(e.what());
+        }
     }
 }
 

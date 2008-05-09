@@ -364,7 +364,7 @@ void ybatchCalc_implementation(
           // We are surpressing agenda output here, since this is too
           // much to be useful. (The true flag at the end does this.)          
  
-         ybatch( joker, ybatch_index ) = y;
+          ybatch( joker, ybatch_index ) = y;
         }
       catch (runtime_error e)
         {
@@ -381,7 +381,7 @@ void ybatchCalc_implementation(
             {
               // The user wants the batch job to fail if one of the
               // jobs goes wrong.
-              throw runtime_error(e.what());
+              exit_or_rethrow(e.what());
             }
         }
     }

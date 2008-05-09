@@ -886,9 +886,6 @@ int main (int argc, char **argv)
 
   // Now comes the global try block. Exceptions caught after this
   // one are general stuff like file opening errors.
-  // FIXME: Maybe this is not really necessary, since methods
-  // using files could always check for these errors? Think about
-  // which way is easier.
   try
     {
       {
@@ -937,10 +934,7 @@ int main (int argc, char **argv)
     }
   catch (runtime_error x)
     {
-      out0 << x.what() << "\n"
-           << "Stopping ARTS execution.\n"
-           << "Goodbye.\n";
-      arts_exit();              // No argument means failure.
+      arts_exit_with_error_message(x.what());
     }
 
   out1 << "Goodbye.\n";

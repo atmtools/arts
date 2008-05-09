@@ -188,15 +188,24 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
 #pragma omp for 
   for (Index i=0; i<amnelem; ++i)
     {
-      atm_fields_compactFromMatrix(batch_atm_fields_compact[i],
-                                   atmosphere_dim,
-                                   am[i],
-                                   field_names);
+      // The try block here is necessary to correctly handle
+      // exceptions inside the parallel region. 
+      try
+        {
+          atm_fields_compactFromMatrix(batch_atm_fields_compact[i],
+                                       atmosphere_dim,
+                                       am[i],
+                                       field_names);
 
-      for (Index j=0; j<extra_field_names.nelem(); ++j)
-        atm_fields_compactAddConstant(batch_atm_fields_compact[i],
-                                      extra_field_names[j],
-                                      extra_field_values[j]);
+          for (Index j=0; j<extra_field_names.nelem(); ++j)
+            atm_fields_compactAddConstant(batch_atm_fields_compact[i],
+                                          extra_field_names[j],
+                                          extra_field_values[j]);
+        }
+      catch (runtime_error e)
+        {
+          exit_or_rethrow(e.what());
+        }
     }    
 }
 

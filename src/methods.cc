@@ -7257,7 +7257,9 @@ md_data_raw.push_back
          "            calculation will continue, even if individual jobs\n"
          "            fail. In that case, a warning message is written to \n"
          "            screen and file (out1 output stream), and ybatch for the\n"
-         "            failed job is set to -1.\n"
+         "            failed job is set to -1. The robust behavior does only work\n"
+         "            properly if you have compiled the program without OpenMP!\n"
+         "            (Use the configure option \"--disable-vectorize\".)\n"
          ),
         AUTHORS( "Patrick Eriksson, Stefan Buehler" ),
         OUTPUT( ybatch_ ),
