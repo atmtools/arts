@@ -136,7 +136,7 @@ class TestClearSky(unittest.TestCase):
 
 class TestAMSUB(unittest.TestCase):
     """Testing AMSU-B calculations"""
-    Amsurun=ArtsRun('AMSUB', 'TestAMSUB.arts')
+    Amsurun=ArtsRun('AMSU', 'TestAMSUB.arts')
     def test1(self):
         """AMSU-B test should run with no errors"""
         self.Amsurun.run()
@@ -150,7 +150,7 @@ class TestAMSUB(unittest.TestCase):
             [261.742918749543, 258.609206351036, 257.912411012791, 260.568150892205, 263.888416168249, 263.915825751693, 257.488376783408, 261.483547654897, 260.261597049341, 263.254661016021],
             [272.221778675292, 270.904055405926, 271.075284996257, 273.550056008027, 276.5132021352, 275.829729379469, 270.03635743901, 275.671275961664, 271.840735738719, 276.15583394648]]);
 
-        I = artsXML.load("AMSUB/AMSUB.ybatch.xml.generated")
+        I = artsXML.load("AMSU/AMSUB.ybatch.xml.generated")
         for j in range (5):
             for k in range (10):
                 assert abs(I[j,k]-Iref[j,k]) < 0.01, 'I['+str(j)+','+str(k)+'] = '+str(I[j,k])+' K is too far away from '+str(Iref[j,k])+' K'

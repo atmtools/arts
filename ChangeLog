@@ -1,5 +1,18 @@
 2008-05-09  Stefan Buehler  <sbuehler(at)ltu.se>
 
+	* arts-1-5-2
+
+	* Ups, I should have started with 1-5-0 for the last
+	commit. Anyway now I'll just keep counting.
+
+	* Svn added missing Makefile.am files. Adjusted paths in several
+	Makefiles. 
+
+	* test/AMSU/: Renamed this directory from AMSUB to AMSU, since it
+	will hold also an AMSU-A test case.
+
+2008-05-09  Stefan Buehler  <sbuehler(at)ltu.se>
+
 	* arts-1-5-1
 
 	* Moved sensor specific include files to subdirectories "amsu" and
