@@ -184,10 +184,8 @@ void RteCalc(
   //
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
-#ifdef _OPENMP
 #pragma omp parallel
 #pragma omp for 
-#endif
       for( Index iza=0; iza<nza; iza++ )
         {
           //--- Define *iy* and ppath variables
@@ -492,10 +490,8 @@ void RteCalcMC(
 
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
-#ifdef _OPENMP
 #pragma omp parallel
 #pragma omp for 
-#endif
       for( Index iza=0; iza<nza; iza++ )
         {
           Matrix   los(1,sensor_los.ncols());  // LOS of interest

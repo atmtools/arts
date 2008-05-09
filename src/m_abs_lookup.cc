@@ -346,10 +346,8 @@ void abs_lookupCreate(// WS Output:
             }
 
           // Loop temperature perturbations:
-#ifdef _OPENMP
 #pragma omp parallel private(this_t, abs_xsec_per_species)
 #pragma omp for 
-#endif
           for ( Index j=0; j<these_t_pert_nelem; ++j )
             {
               try
@@ -1537,10 +1535,8 @@ void abs_fieldCalc(// WS Output:
        <<"   level 4 if you want to see it.\n";
 
   // Now we have to loop all points in the atmosphere:
-#ifdef _OPENMP
 #pragma omp parallel private(asg, a_vmr_list)
 #pragma omp for 
-#endif
   for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
     {
       Numeric a_pressure = p_grid[ipr];

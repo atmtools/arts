@@ -184,10 +184,8 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
   batch_atm_fields_compact.resize(amnelem);
 
   // Loop the batch cases:
-#ifdef _OPENMP
 #pragma omp parallel
 #pragma omp for 
-#endif
   for (Index i=0; i<amnelem; ++i)
     {
       atm_fields_compactFromMatrix(batch_atm_fields_compact[i],

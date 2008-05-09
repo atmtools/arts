@@ -350,10 +350,8 @@ void ybatchCalc_implementation(
       first_ybatch_index++;
     }
 
-#ifdef _OPENMP
 #pragma omp parallel private(y)
 #pragma omp for 
-#endif
   // Go through the batch:
   for(Index ybatch_index = first_ybatch_index; ybatch_index<ybatch_n;
       ybatch_index++ )
