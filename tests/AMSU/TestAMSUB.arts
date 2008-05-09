@@ -2,7 +2,8 @@
 
 Arts {
 
-INCLUDE "amsu/amsub.arts"
+INCLUDE "amsu/amsu_spectroscopy_with_O3.arts"
+INCLUDE "amsu/amsua_sensor.arts"
 
 INCLUDE "TestAMSU_generic.arts"
 
