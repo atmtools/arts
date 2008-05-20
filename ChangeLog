@@ -1,3 +1,51 @@
+2008-05-20  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-6-0
+
+	* Fixed a bug in the amsub setup in the includes
+	directory. Emissivity was set, but the surface_prop_agenda was not
+	redefined, so that in fact the calculation was always for a
+	blackbody surface. The bug affected the AMSU-B setup in all ARTS
+	versions since 1.3.27, where the surface model in general.arts was
+	changed.
+	
+	* Again rearranged the include files for AMSU (hence the new
+	version number). Reverted back to having only a single include file
+	"amsub.arts". You have to also include general.arts and
+	continua.arts. There will be a similar file "amsua.arts" soon.
+
+	* includes/general.arts: Removed the line that set
+	surface_emissivity. That line was misleading, since in fact the
+	value is not used as long as surface_prop_agenda contains
+	surfaceBlackbody.
+
+	* includes/amsu/amsub.arts: Reintroduced this. Fixed surface
+	emissivity bug.
+
+	* tests/testall.py (TestAMSUB.test2): Adapted to new surface
+	emissivity value.
+
+	* tests/AMSU/TestAMSUB.arts: Adapted to new include file. 
+
+	* tests/ClearSky/TestClearSky.arts: This file also contained the
+	surface emissivity bug! Removed the line where the emissivity is
+	set and put instead a comment there, that explains how to turn on
+	surface modeling.
+
+	* includes/amsu/amsub.f_grid.xml: Removed, since f_grid is now
+	generated on the fly with f_gridFromSensor. Verified that the
+	difference introduced by this is negligible.
+
+	* includes/amsu/amsu_spectroscopy_with_O3.arts: Removed.
+	* includes/amsu/amsu_spectroscopy_no_O3.arts: Removed.
+        * includes/amsu/amsua_sensor.arts: Removed.
+        * includes/amsu/amsub_sensor.arts: Removed.
+
+	* includes/amsu/amsub.backend.xml: The AMSU bands where a bit too
+	narrow, for technical reasons related to the old f_grid. Adjusted
+	them to fit the KLM user guide description. Verified that the
+	difference introduced by this is negligible.
+
 2008-05-09  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-5-4

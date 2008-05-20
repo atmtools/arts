@@ -61,7 +61,14 @@ MatrixExtractFromTensor3( z_surface, z_field, 0 )
 #MatrixSet( z_surface, r_geoid, r_geoid, 500 )
 
 # Surface emissivity
-NumericSet( surface_emissivity, 0.9 )
+# Comment all this out if you want to have something other than a
+# blackbody surface. 
+#
+#NumericSet( surface_emissivity, 0.9 )
+#AgendaSet(surface_prop_agenda){
+#   InterpAtmFieldToRteGps( surface_skin_t, t_field )
+#   surfaceSimple
+#} 
 
 
 # Definition of sensor position and LOS
