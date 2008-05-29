@@ -49,12 +49,12 @@ class TestMonteCarloGeneral(unittest.TestCase):
         """Total radiance should be close to 201.8 K"""
         I=artsXML.load("MonteCarlo/MonteCarloGeneral.y.xml.generated")[0]
         dI=artsXML.load("MonteCarlo/MonteCarloGeneral.mc_error.xml.generated")[0]
-        assert abs(I-201.8) < 4*dI, 'I (='+str(I)+'K) is too far away from 201.8 K'
+        assert abs(I-201.8) < 4*dI, 'I (= %.2f K) is too far away from 201.8 K' % I
     def test3(self):
         """Polarization difference should be close to 7.6 K"""
         Q=artsXML.load("MonteCarlo/MonteCarloGeneral.y.xml.generated")[1]
         dQ=artsXML.load("MonteCarlo/MonteCarloGeneral.mc_error.xml.generated")[1]
-        assert abs(Q-7.6) < 4*Q, 'Q (='+str(Q)+'K) is too far away from 7.6 K'
+        assert abs(Q-7.6) < 4*Q, 'Q (= %.2f K) is too far away from 7.6 K' % Q
         
 class TestMonteCarloGeneralGaussian(unittest.TestCase):
     """Testing the MCGeneral algorithm with a Gaussian antenna response"""
@@ -67,12 +67,12 @@ class TestMonteCarloGeneralGaussian(unittest.TestCase):
         """Total radiance should be close to 201 K"""
         I=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.y.xml.generated")[0]
         dI=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.mc_error.xml.generated")[0]
-        assert abs(I-201) < 4*dI, 'I (='+str(I)+'K) is too far away from 201 K'
+        assert abs(I-201) < 4*dI, 'I (= %.2f K) is too far away from 201 K' % I
     def test3(self):
         """Polarization difference should be close to 7.7 K"""
         Q=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.y.xml.generated")[1]
         dQ=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.mc_error.xml.generated")[1]
-        assert abs(Q-7.6) < 4*Q, 'Q (='+str(Q)+'K) is too far away from 7.6 K'
+        assert abs(Q-7.6) < 4*Q, 'Q (= %.2f K) is too far away from 7.6 K' % Q
 
 class TestRteCalcMC(unittest.TestCase):
     """Testing the WSM RteCalcMC"""
@@ -85,7 +85,7 @@ class TestRteCalcMC(unittest.TestCase):
         """Total radiance should be close to 199.5 K"""
         I=artsXML.load("MonteCarlo/RteCalcMC.y.xml.generated")[0]
         dI=artsXML.load("MonteCarlo/RteCalcMC.mc_error.xml.generated")[0]
-        assert abs(I-199.5) < 4*dI, 'I (='+str(I)+'K) is too far away from 199.5 K'
+        assert abs(I-199.5) < 4*dI, 'I (=%.2f K) is too far away from 199.5 K' % I
         
 class TestOdinSMR(unittest.TestCase):
     """Testing OdinSMR calculation"""
@@ -97,7 +97,7 @@ class TestOdinSMR(unittest.TestCase):
     def test2(self):
         """Max radiance should be close to 113.2 K"""
         I=artsXML.load("OdinSMR/TestOdinSMR.y.xml.generated")
-        assert abs( max(I)-113.2 ) < 0.1, 'I (='+str(max(I))+'K) is too far away from 113.2 K'
+        assert abs( max(I)-113.2 ) < 0.1, 'I (=%.2f K) is too far away from 113.2 K' % (max(I))
 
 class TestDOIT(unittest.TestCase):
     """Testing the ARTS-DOIT algorithm"""
@@ -113,7 +113,7 @@ class TestDOIT(unittest.TestCase):
     def test3(self):
         """Polarization difference should be close to 7.2 K"""
         Q=artsXML.load("DOIT/DOIT.y.xml.generated")[1]
-        assert abs(Q-7.2) < 1., 'Q (='+str(Q)+'K) is too far away from 7.2 K'
+        assert abs(Q-7.2) < 1., 'Q (=%.2f K) is too far away from 7.2 K' % Q
         
 
 class TestClearSky(unittest.TestCase):
@@ -131,7 +131,7 @@ class TestClearSky(unittest.TestCase):
         """Difference between on-the-fly and lookup table should be below 0.01 K"""
         I1=artsXML.load("ClearSky/ClearSky.y1.xml.generated")[0]
         I2=artsXML.load("ClearSky/ClearSky.y2.xml.generated")[0]
-        assert abs(I2-I1) < 0.02, 'Discrepancy (='+str(I2-I1)+'K) is too far away from 0 K'
+        assert abs(I2-I1) < 0.02, 'Discrepancy (=%.3f K) is too large' % I2-I1
 
 
 class TestAMSUB(unittest.TestCase):
@@ -153,7 +153,7 @@ class TestAMSUB(unittest.TestCase):
         I = artsXML.load("AMSU/AMSUB.ybatch.xml.generated")
         for j in range (5):
             for k in range (10):
-                assert abs(I[j,k]-Iref[j,k]) < 0.01, 'I['+str(j)+','+str(k)+'] = '+str(I[j,k])+' K is too far away from '+str(Iref[j,k])+' K'
+                assert abs(I[j,k]-Iref[j,k]) < 0.01,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
 
 class TestAbs(unittest.TestCase):
     """Testing the ARTS Absorption module"""

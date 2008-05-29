@@ -115,6 +115,8 @@ ReadXML(backend_channel_response){"amsu/amsub.backend.xml"}
 # ---
 f_gridFromSensor
 
+WriteXML(f_grid){""}
+
 # Initialise sensor response
 # ---
 sensor_responseInit

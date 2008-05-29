@@ -1,5 +1,7 @@
 2008-05-29  Cory Davis <corzneffect@gmail.com>
 
+        * tests/testall.py: Made all the assert message lines nicer by using format strings
+
 	* arts-1-6-1
 
 	* src/workspace.cc: Added batch_pnd_fields and batch_cloudbox_lims.
