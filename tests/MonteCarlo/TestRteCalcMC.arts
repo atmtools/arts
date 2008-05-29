@@ -1,6 +1,6 @@
 #DEFINITIONS:  -*-sh-*-
-#This control file perfoems an ARTS-MC radiative transfer simulation
-#For a single line of sight and a Pencil Beam antenna response
+#This control file performs an ARTS-MC radiative transfer simulation
+#through the WSM RteCalcMC
 
 
 Arts2 {
@@ -10,8 +10,6 @@ INCLUDE "general"
 #### LOAD DATA: these files were created with MCDataPrepare.arts ######
 
 ReadXML( f_grid, "f_grid.xml.generated" )
-
-IndexSet( f_index, 0 )
 
 ReadXML( p_grid, "p_grid.xml" )
 
@@ -27,7 +25,7 @@ ReadXML( z_field, "z_field.xml.generated" )
 
 ReadXML( vmr_field, "vmr_field.xml.generated" )
 
-r_geoidSpherical(  r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
+r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
 
 ReadXML( z_surface, "z_surface.xml.generated" )
 
@@ -48,10 +46,6 @@ ReadXML( scat_data_raw, "scat_data_raw.xml.generated" )
 
 AgendaSet(abs_scalar_gas_agenda){
   abs_scalar_gasExtractFromLookup
-}
-
-AgendaSet(spt_calc_agenda){
-  opt_prop_sptFromMonoData
 }
 
 

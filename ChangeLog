@@ -1,13 +1,33 @@
+2008-05-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-6-2
+
+	* src/scatrte.cc: Added f_index in calls of opt_prop_gas_agenda.
+	* src/montecarlo.cc: As above. 
+
+	* src/agendas.cc (opt_prop_gas_agenda): f_index now specified as
+	agenda input. This in order to make this dependency explicit, and
+	fix that this agenda works as abs_scalar_gas_agenda.
+
+	* tests/MonteCarlo/TestMonteCarloGeneral.arts: Removed definition of
+	spt_calc_agenda. Not used.
+	* tests/MonteCarlo/TestMonteCarloGeneralGaussian.arts: As above. 
+
+	* tests/MonteCarlo/TestRteCalcMC.arts: As above. Removed setting
+	of f_index. Now not needed with change in opt_prop_gas_agenda.
+	
 2008-05-29  Cory Davis <corzneffect@gmail.com>
 
-        * tests/testall.py: Made all the assert message lines nicer by using format strings
+        * tests/testall.py: Made all the assert message lines nicer by
+	using format strings
 
 	* arts-1-6-1
 
 	* src/workspace.cc: Added batch_pnd_fields and batch_cloudbox_lims.
 
 	* src/methods.cc: Added Tensor4ExtractFromArrayOfTensor4 and
-	ArrayOfIndexExtractFromArrayOfArrayOfIndex. Nasty. If only we could use a=b[i].
+	ArrayOfIndexExtractFromArrayOfArrayOfIndex. Nasty. If only we
+	could use a=b[i].
 	
 	* src/m_batch.cc: Added the above two methods.
 

@@ -92,9 +92,6 @@ AgendaSet(abs_scalar_gas_agenda){
   abs_scalar_gasExtractFromLookup
 }
 
-AgendaSet(spt_calc_agenda){
-  opt_prop_sptFromMonoData
-}
 
 #### Define viewing position and line of sight #########################
 

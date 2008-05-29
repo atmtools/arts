@@ -908,18 +908,20 @@ void cloud_RT_no_background(//Output
       // and ext_mat.
       //
               
-      abs_scalar_gas_agendaExecute(abs_scalar_gas_local, 
-                                          f_index, 
-                                          rte_pressure_local, 
-                                          rte_temperature_local, 
-                                          rte_vmr_list_local,
-                                          abs_scalar_gas_agenda,
-                                          true);
+      abs_scalar_gas_agendaExecute( abs_scalar_gas_local, 
+                                    f_index, 
+                                    rte_pressure_local, 
+                                    rte_temperature_local, 
+                                    rte_vmr_list_local,
+                                    abs_scalar_gas_agenda,
+                                    true );
               
-      opt_prop_gas_agendaExecute(ext_mat_local, abs_vec_local, 
+      opt_prop_gas_agendaExecute( ext_mat_local, 
+                                  abs_vec_local, 
+                                  f_index, 
                                   abs_scalar_gas_local,
                                   opt_prop_gas_agenda,
-                                  true);
+                                  true );
               
       //
       // Add average particle extinction to ext_mat. 
@@ -1544,16 +1546,20 @@ void cloud_ppath_update1D_planeparallel(
               // and ext_mat.
               //
               
-              abs_scalar_gas_agendaExecute(abs_scalar_gas, 
-                                                  f_index, 
-                                                  rte_pressure, 
-                                                  rte_temperature, 
-                                                  rte_vmr_list,
-                                                  abs_scalar_gas_agenda,
-                                                  (p_index != 0));
+              abs_scalar_gas_agendaExecute( abs_scalar_gas, 
+                                            f_index, 
+                                            rte_pressure, 
+                                            rte_temperature, 
+                                            rte_vmr_list,
+                                            abs_scalar_gas_agenda,
+                                            (p_index != 0) );
               
-              opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
-                                         opt_prop_gas_agenda, (p_index != 0));
+              opt_prop_gas_agendaExecute( ext_mat, 
+                                          abs_vec, 
+                                          f_index,
+                                          abs_scalar_gas,
+                                          opt_prop_gas_agenda, 
+                                          (p_index != 0) );
               
               //
               // Add average particle extinction to ext_mat. 
@@ -1658,16 +1664,20 @@ void cloud_ppath_update1D_planeparallel(
               // and ext_mat.
               //
 
-              abs_scalar_gas_agendaExecute(abs_scalar_gas, 
-                                                  f_index, 
-                                                  rte_pressure, 
-                                                  rte_temperature, 
-                                                  rte_vmr_list,
-                                                  abs_scalar_gas_agenda,
-                                                  (p_index != 0));
+              abs_scalar_gas_agendaExecute( abs_scalar_gas, 
+                                            f_index, 
+                                            rte_pressure, 
+                                            rte_temperature, 
+                                            rte_vmr_list,
+                                            abs_scalar_gas_agenda,
+                                            (p_index != 0) );
 
-              opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
-                                         opt_prop_gas_agenda, (p_index != 0));
+              opt_prop_gas_agendaExecute( ext_mat, 
+                                          abs_vec, 
+                                          f_index,
+                                          abs_scalar_gas,
+                                          opt_prop_gas_agenda, 
+                                          (p_index != 0) );
 
               //
               // Add average particle extinction to ext_mat. 

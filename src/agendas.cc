@@ -401,7 +401,7 @@ void define_agenda_data()
         "   abs_scalar_gas : Scalar gas absorption. \n"
         ),
        OUTPUT( ext_mat_, abs_vec_ ),
-       INPUT( ext_mat_, abs_vec_, abs_scalar_gas_)));
+       INPUT( ext_mat_, abs_vec_, f_index_, abs_scalar_gas_ )));
 
 
  agenda_data.push_back

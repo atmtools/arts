@@ -115,8 +115,8 @@ void clear_rt_vars_at_gp(
   //calcualte absorption coefficient
   abs_scalar_gas_agendaExecute( local_abs_scalar_gas,f_index,p_vec[0],
     temperature,vmr_mat(joker,0),abs_scalar_gas_agenda,true );
-  opt_prop_gas_agendaExecute( local_ext_mat, local_abs_vec, local_abs_scalar_gas,
-                              opt_prop_gas_agenda, true );
+  opt_prop_gas_agendaExecute( local_ext_mat, local_abs_vec, f_index,
+                              local_abs_scalar_gas, opt_prop_gas_agenda, true );
   ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));
   abs_vec_mono=local_abs_vec(0,Range(joker));
 }
@@ -190,8 +190,8 @@ void cloudy_rt_vars_at_gp(
   //rte_vmr_list    = vmr_ppath(joker,0);
   abs_scalar_gas_agendaExecute( local_abs_scalar_gas,f_index,p_ppath[0],
         temperature,vmr_ppath(joker,0),abs_scalar_gas_agenda,true );
-  opt_prop_gas_agendaExecute( local_ext_mat, local_abs_vec, local_abs_scalar_gas,
-                              opt_prop_gas_agenda, true );
+  opt_prop_gas_agendaExecute( local_ext_mat, local_abs_vec, f_index,
+                              local_abs_scalar_gas, opt_prop_gas_agenda, true );
   ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));
   abs_vec_mono=local_abs_vec(0,Range(joker));
   ext_mat_part=0.0;
@@ -2065,7 +2065,7 @@ Numeric opt_depth_calc(
                                            rte_pressure, rte_temperature,
                                            rte_vmr_list,
                                            abs_scalar_gas_agenda, true);
-      opt_prop_gas_agendaExecute (ext_mat, abs_vec, abs_scalar_gas,
+      opt_prop_gas_agendaExecute (ext_mat, abs_vec, f_index, abs_scalar_gas,
                                   opt_prop_gas_agenda, true);
       kvector[i]=ext_mat(0,0,0);
     }
@@ -2773,7 +2773,7 @@ void TArrayCalc(
                                            rte_pressure, rte_temperature,
                                            rte_vmr_list,
                                            abs_scalar_gas_agenda, true);
-      opt_prop_gas_agendaExecute( ext_mat, abs_vec, abs_scalar_gas,
+      opt_prop_gas_agendaExecute( ext_mat, abs_vec, f_index, abs_scalar_gas,
                                   opt_prop_gas_agenda, true );
       ext_mat_part=0.0;
       abs_vec_part=0.0;

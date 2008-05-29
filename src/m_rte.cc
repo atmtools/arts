@@ -212,17 +212,17 @@ void RteCalc(
               if (arts_omp_in_parallel())
                 {
                   local_iy_space_agenda.set_workspace(
-                                                      new Workspace (*local_iy_space_agenda.workspace() ) );
+                          new Workspace (*local_iy_space_agenda.workspace() ) );
                   // One workspace copy per thread is enough, so we can use the
                   // same copy for all agendas in this thread
                   local_ppath_step_agenda.set_workspace(
-                                                        local_iy_space_agenda.workspace() );
+                                            local_iy_space_agenda.workspace() );
                   local_rte_agenda.set_workspace(
-                                                 local_iy_space_agenda.workspace() );
+                                            local_iy_space_agenda.workspace() );
                   local_surface_prop_agenda.set_workspace(
-                                                          local_iy_space_agenda.workspace() );
+                                            local_iy_space_agenda.workspace() );
                   local_iy_cloudbox_agenda.set_workspace(
-                                                         local_iy_space_agenda.workspace() );
+                                            local_iy_space_agenda.workspace() );
                 }
 
               for( Index iaa=0; iaa<naa; iaa++ )
@@ -271,13 +271,14 @@ void RteCalc(
                     { ib[Range(nbdone+is,nf,stokes_dim)] = iy(joker,is); }
 
 
-                  //--- Jacobian part: --------------------------------------------
+                  //--- Jacobian part: -----------------------------------------
 
                   //--- Absorption species ---
                   for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
                     {
                       //- Scale to other species retrieval modes
-                      const String mode = jacobian_quantities[jqi_vmr[ig]].Mode();
+                      const String mode = 
+                                        jacobian_quantities[jqi_vmr[ig]].Mode();
                       if( mode == "vmr" )
                         {}
                       else if( mode == "rel" )
@@ -288,7 +289,7 @@ void RteCalc(
                                 {
                                   for( Index ip=0; ip<ppath_array[ia].np; ip++ )
                                     { diy_dvmr[ia](ig,ip,joker,joker) *= 
-                                        ppath_array[ia].vmr(rte_do_vmr_jacs[ig],ip);
+                                    ppath_array[ia].vmr(rte_do_vmr_jacs[ig],ip);
                                     }
                                 }
                             }
@@ -313,8 +314,8 @@ void RteCalc(
 
                       //- Map from ppath to retrieval quantities
                       jacobian_from_path_to_rgrids( ib_vmr_jacs[ig], nbdone,
-                                                    diy_dvmr, ig, atmosphere_dim, ppath_array,
-                                                    jacobian_quantities[jqi_vmr[ig]] );
+                                     diy_dvmr, ig, atmosphere_dim, ppath_array,
+                                     jacobian_quantities[jqi_vmr[ig]] );
 
                       //--- Unit conversions
                       apply_y_unit( ib_vmr_jacs[ig], j_unit, f_grid );
@@ -324,15 +325,15 @@ void RteCalc(
                   if( rte_do_t_jacs )
                     {
                       //- Map from ppath to retrieval quantities
-                      jacobian_from_path_to_rgrids( ib_t_jacs, nbdone, diy_dt, 0,
-                                                    atmosphere_dim, ppath_array, 
-                                                    jacobian_quantities[jqi_t] );
+                      jacobian_from_path_to_rgrids( ib_t_jacs, nbdone, diy_dt,
+                                                 0, atmosphere_dim, ppath_array, 
+                                                 jacobian_quantities[jqi_t] );
 
                       //--- Unit conversions
                       apply_y_unit( ib_t_jacs, j_unit, f_grid );
                     }
 
-                  //--- End of jacobian part --------------------------------------
+                  //--- End of jacobian part -----------------------------------
 
                 } // iaa loop
 
@@ -528,15 +529,15 @@ void RteCalcMC(
               if (arts_omp_in_parallel())
                 {
                   local_iy_space_agenda.set_workspace(
-                                                      new Workspace( *local_iy_space_agenda.workspace() ) );
+                          new Workspace( *local_iy_space_agenda.workspace() ) );
                   // One workspace copy per thread is enough, so we can use the
                   // same copy for all agendas in this thread
                   local_surface_prop_agenda.set_workspace(
-                                                          local_iy_space_agenda.workspace() );
+                                            local_iy_space_agenda.workspace() );
                   local_opt_prop_gas_agenda.set_workspace(
-                                                          local_iy_space_agenda.workspace() );
+                                            local_iy_space_agenda.workspace() );
                   local_abs_scalar_gas_agenda.set_workspace(
-                                                            local_iy_space_agenda.workspace() );
+                                            local_iy_space_agenda.workspace() );
                 }
 
               // Loop azimuth angles
@@ -558,18 +559,18 @@ void RteCalcMC(
                       scat_data_monoCalc( scat_data_mono, scat_data_raw, 
                                           f_grid, f_index );
 
-                      // Seed reset for each loop. If not done, the errors appear
-                      // to be highly correlated.
+                      // Seed reset for each loop. If not done, the errors 
+                      // appear to be highly correlated.
                       MCSetSeedFromTime( mc_seed );
                   
                       MCGeneral( iyf, mc_iteration_count, iyf_error, mc_points, 
-                                 mc_antenna, f_grid, f_index, pos, los, stokes_dim, 
-                                 local_iy_space_agenda, local_surface_prop_agenda,
-                                 local_opt_prop_gas_agenda, local_abs_scalar_gas_agenda,
-                                 p_grid, lat_grid, lon_grid, 
-                                 z_field, r_geoid, z_surface, t_field, vmr_field, 
-                                 cloudbox_limits, pnd_field, scat_data_mono, mc_seed, 
-                                 y_unit, std_err, max_time, max_iter, z_field_is_1D ); 
+                         mc_antenna, f_grid, f_index, pos, los, stokes_dim, 
+                         local_iy_space_agenda, local_surface_prop_agenda,
+                         local_opt_prop_gas_agenda, local_abs_scalar_gas_agenda,
+                         p_grid, lat_grid, lon_grid, 
+                         z_field, r_geoid, z_surface, t_field, vmr_field, 
+                         cloudbox_limits, pnd_field, scat_data_mono, mc_seed, 
+                         y_unit, std_err, max_time, max_iter, z_field_is_1D ); 
                   
                       //--- Start index in *ib* for data to include 
                       const Index   nbdone = ( ( iza*naa + iaa ) * nf + 

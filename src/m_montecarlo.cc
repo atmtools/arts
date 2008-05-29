@@ -189,7 +189,7 @@ void MCGeneral(
                Tensor3&              mc_points,
                const MCAntenna&      mc_antenna,
                const Vector&         f_grid,
-               const Index&         f_index,
+               const Index&          f_index,
                const Matrix&         sensor_pos,
                const Matrix&         sensor_los,
                const Index&          stokes_dim,
