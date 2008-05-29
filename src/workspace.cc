@@ -789,6 +789,30 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "batch_cloudbox_limits" ),
+      DESCRIPTION
+      (
+       "An array of cloudbox_limits.\n"
+       "\n"
+       "This is used to hold a set of *cloudbox-limits* for batch\n"
+       "calculations. \n"
+       ),
+      GROUP( ArrayOfArrayOfIndex_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "batch_pnd_fields" ),
+      DESCRIPTION
+      (
+       "An array of compact pnd states.\n"
+       "\n"
+       "This is used to hold a set of 1D *pnd_fields* for batch\n"
+       "calculations. \n"
+       ),
+      GROUP( ArrayOfTensor4_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "cloudbox_on" ),
       DESCRIPTION
       (

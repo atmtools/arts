@@ -1,3 +1,14 @@
+2008-05-29  Cory Davis <corzneffect@gmail.com>
+
+	* arts-1-6-1
+
+	* src/workspace.cc: Added batch_pnd_fields and batch_cloudbox_lims.
+
+	* src/methods.cc: Added Tensor4ExtractFromArrayOfTensor4 and
+	ArrayOfIndexExtractFromArrayOfArrayOfIndex. Nasty. If only we could use a=b[i].
+	
+	* src/m_batch.cc: Added the above two methods.
+
 2008-05-20  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-6-0

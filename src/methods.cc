@@ -1541,6 +1541,22 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("ArrayOfIndexExtractFromArrayOfArrayOfIndex"),
+        DESCRIPTION
+        (
+         "Extract an ArrayOfIndex from an array of arrays of Index.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( ArrayOfIndex_ ),
+        GINPUT(  ArrayOfArrayOfIndex_, Index_ ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ArrayOfMatrixCreate" ),
         DESCRIPTION
         (
@@ -6322,6 +6338,22 @@ md_data_raw.push_back
         INPUT( ),
         GOUTPUT( Tensor4_ ),
         GINPUT(  Tensor5_, Index_ ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Tensor4ExtractFromArrayOfTensor4"),
+        DESCRIPTION
+        (
+         "Extract a Tensor4 from an ArrayOfTensor4 .\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( Tensor4_ ),
+        GINPUT(  ArrayOfTensor4_, Index_ ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));

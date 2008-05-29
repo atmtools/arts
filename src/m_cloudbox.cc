@@ -2,7 +2,8 @@
    Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
    Claudia Emde     <claudia.emde@dlr.de>
-                            
+   Cory Davis       <cory.davis@metservice.com>	   
+                         
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any

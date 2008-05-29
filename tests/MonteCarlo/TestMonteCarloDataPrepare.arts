@@ -99,6 +99,7 @@ lon1=-1.8
 lon2=1.8
 }
 
+WriteXML(cloudbox_limits){}
 
 Print(cloudbox_limits){
 level=1

@@ -86,6 +86,29 @@ void ArrayOfGriddedField3ExtractFromArrayOfArrayOfGriddedField3(
   agf = aagf[index];
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfIndexExtractFromArrayOfArrayOfIndex(
+      // WS Generic Output:
+      ArrayOfIndex&          aoi,
+      // WS Input:
+      // WS Generic Input:
+      const ArrayOfArrayOfIndex&   aoaoi,
+      const Index&     index)
+{
+  if( index >= aoaoi.nelem() )
+    {
+      ostringstream os;
+      os << "The index " << index 
+         << " is outside the range of the Array.";
+      throw runtime_error( os.str() );
+
+    }
+
+  aoi.resize( aoaoi[index].nelem() );
+  aoi = aoaoi[index];
+}
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated 
 
@@ -210,6 +233,28 @@ void Tensor3ExtractFromTensor4(
   t3 = t4( index, joker, joker, joker );
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Tensor4ExtractFromArrayOfTensor4(
+      // WS Generic Output:
+      Tensor4&         t4,
+      // WS Input:
+      // WS Generic Input:
+      const ArrayOfTensor4&   aot4,
+      const Index&     index)
+{
+  if( index >= aot4.nelem() )
+    {
+      ostringstream os;
+      os << "The index " << index 
+         << "is outside the range of the Array.";
+      throw runtime_error( os.str() );
+
+    }
+  t4.resize( aot4[ index ].nbooks(), aot4[ index ].npages(), 
+             aot4[ index ].nrows(), aot4[ index ].ncols() );
+  t4 = aot4[ index ];
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor4ExtractFromTensor5(
