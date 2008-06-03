@@ -378,6 +378,8 @@ void ArtsParser::parse_method(Index& id,
       parse_output_and_input(mdd, id, methodname, values, output, input,
                              auto_vars, auto_vars_values);
 
+      eat_whitespace();
+
       // Now look for the curly braces:
       if (msource.Current() == '{')
         {

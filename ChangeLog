@@ -1,5 +1,13 @@
 2008-06-03  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-6-4
+
+	* src/parser.cc (ArtsParser::parse_method):
+
+	Ignore whitespace between ) and {. Fixes ticket #7.
+
+2008-06-03  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-6-3
 
 	* src/parser.cc (ArtsParser::read_name_or_value):
