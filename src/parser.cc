@@ -1713,24 +1713,28 @@ Index ArtsParser::read_name_or_value(      String&        name,
         {
           Numeric n;
           parse_numeric(n);
+          auto_vars_values.push_back(n);
           break;
         }
     case ArrayOfString_:
         {
           ArrayOfString dummy;
           parse_Stringvector(dummy);
+          auto_vars_values.push_back(dummy);
           break;
         }
     case ArrayOfIndex_:
         {
           ArrayOfIndex dummy;
           parse_intvector(dummy);
+          auto_vars_values.push_back(dummy);
           break;
         }
     case Vector_:
         {
           Vector dummy;
           parse_numvector(dummy);
+          auto_vars_values.push_back(dummy);
           break;
         }
     default:

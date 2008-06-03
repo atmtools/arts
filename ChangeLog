@@ -1,3 +1,12 @@
+2008-06-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-6-3
+
+	* src/parser.cc (ArtsParser::read_name_or_value):
+
+	For some data types the values where not added to the auto_vars_values
+	array.
+
 2008-05-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-6-2
