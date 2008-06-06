@@ -1420,6 +1420,27 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("AntennaOff"),
+        DESCRIPTION
+        (
+         "Sets some antenna related variables\n"
+         "\n"
+         "Use this method to set *antenna_dim*, *mblock_za_grid* and\n"
+         "*mblock_aa_grid* to suitable values (1, [0] and [], respectively)\n"
+         "for cases when a sensor is included, but the antenna pattern is\n"
+         "neglected.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUTPUT( antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("AntennaSet1D"),
         DESCRIPTION
         (
@@ -2214,7 +2235,7 @@ void define_md_data_raw()
          "Convert *sensor_response_f* from IF to RF. The function also\n"
          "unfolds the measurement spectra *y*.\n"
          "\n"
-         "Type of reciever (DSB/SSB) and main band are set by\n"
+         "Type of receiver (DSB/SSB) and main band are set by\n"
          "*sideband_mode*.\n"
          "\n"
          "This function should be used when the sensor configuration contains\n"
@@ -5723,6 +5744,36 @@ md_data_raw.push_back
  
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "sensorOff_NEW" ),
+        DESCRIPTION
+        (
+         "Sets sensor WSVs to obtain monochromatic pencil beam values.\n"
+         "\n"
+         "The variables are set as follows:\n"
+         "   antenna_dim             : 1.\n"
+         "   mblock_za_grid          : Length 1, value 0.\n"
+         "   mblock_aa_grid          : Empty.\n"
+         "   sensor_response         : As returned by *sensor_responseInit*.\n"
+         "   sensor_response_f       : As returned by *sensor_responseInit*.\n"
+         "   sensor_response_pol     : As returned by *sensor_responseInit*.\n"
+         "   sensor_response_za      : As returned by *sensor_responseInit*.\n"
+         "   sensor_response_aa      : As returned by *sensor_responseInit*.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUTPUT( sensor_response_, sensor_response_f_NEW_, 
+                sensor_response_pol_NEW_, sensor_response_za_NEW_,
+                sensor_response_aa_NEW_, 
+                antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
+        INPUT( atmosphere_dim_, stokes_dim_, sensor_pos_, sensor_los_,
+               f_grid_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "sensorOff" ),
         DESCRIPTION
         (
@@ -5879,6 +5930,56 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("sensor_responseInit_NEW"),
+        DESCRIPTION
+        (
+         "Initialises the variables summarising the sensor response.\n"
+         "\n"
+         "This method sets the variables to match monochromatic pencil beam\n"
+         "calculations, to be further modified by inclusion of sensor\n"
+         "characteristics. If pure monochromatic pencil beam calculations\n"
+         "shall be performed use *sensorOff*.\n"
+         "\n"
+         "The variables are set as follows:\n"
+         "   sensor_response : Identity matrix, with size matching *f_grid*,\n"
+         "                     *stokes_dim* *mblock_za_grid* and\n"
+         "                     *mblock_aa_grid*.\n"
+         "   sensor_response_f       : Repeated values of *f_grid*.\n"
+         "   sensor_response_pol     : Data matching *stokes_dim*.\n"
+         "   sensor_response_za      : Repeated values of *mblock_za_grid*.\n"
+         "   sensor_response_aa      : Repeated values of *mblock_aa_grid*.\n"
+         "   sensor_response_f_grid  : Equal to *f_grid*.\n"
+         "   sensor_response_pol_grid: Set to 1:*stokes_dim*.\n"
+         "   sensor_response_za_grid : Equal to *mblock_za_grid*.\n"
+         "   sensor_response_aa_grid : Equal to *mblock_aa_grid*.\n"
+         "\n"
+         "The standard order of WSM calls for creating *sensor_response* is:\n"
+         "   sensor_responseInit\n"
+         "   sensor_responseAntenna1D\n"
+         "   sensor_responseRotation\n"
+         "   sensor_responsePolarisation\n"
+         "   sensor_responseMixer\n"
+         "   sensor_responseBackend\n"
+         "It is not necessary to include a method for all sensor responses.\n"
+         "There exist several method versions for some responses.\n"
+        ),
+        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
+        OUTPUT( sensor_response_, sensor_response_f_NEW_, 
+                sensor_response_pol_NEW_, sensor_response_za_NEW_,
+                sensor_response_aa_NEW_, 
+                sensor_response_f_grid_NEW_, sensor_response_pol_grid_NEW_,
+                sensor_response_za_grid_NEW_, sensor_response_aa_grid_NEW_ ),
+        INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_,
+               atmosphere_dim_, stokes_dim_, sensor_pos_, sensor_los_, 
+               sensor_norm_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("sensor_responseInit"),
         DESCRIPTION
         (
@@ -5903,6 +6004,29 @@ md_data_raw.push_back
                 sensor_response_aa_, sensor_response_pol_  ),
         INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_,
                atmosphere_dim_, stokes_dim_, sensor_norm_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("sensor_responseMixer_NEW"),
+        DESCRIPTION
+        (
+         "Returns the response block matrix after it has been modified by\n"
+         "the mixer and sideband filter. The returned matrix converts RF to\n"
+         "IF.\n"
+        ),
+        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
+        OUTPUT( sensor_response_, sensor_response_f_NEW_, 
+                sensor_response_f_grid_NEW_ ),
+        INPUT( sensor_response_, sensor_response_f_NEW_, 
+               sensor_response_f_grid_NEW_,
+               sensor_response_pol_grid_NEW_, sensor_response_za_grid_NEW_,
+               sensor_response_aa_grid_NEW_,
+               lo_NEW_, sideband_response_NEW_, sensor_norm_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),

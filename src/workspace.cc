@@ -1590,6 +1590,23 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "lo_NEW" ),
+      DESCRIPTION
+      (
+       "The local oscillator frequency.\n"
+       "\n"
+       "A local oscillator frequency is used in a heterodyne system when\n"
+       "the mixer folds the spectra from from radio frequencies (RF) to\n"
+       "intermediate frequencies (IF).\n"
+       "\n"
+       "Unit: Hz\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       ),
+      GROUP( Numeric_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "lo" ),
       DESCRIPTION
       (
@@ -2881,20 +2898,57 @@ void Workspace::define_wsv_data()
     ( NAME( "sensor_norm" ),
       DESCRIPTION
       (
-       "Flag if sensor response should be normalised (0 or 1).\n"
+       "Flag if sensor response should be normalised or not (0 or 1).\n"
        "\n"
        "If the flag is set to 1 each sensor response block will be\n"
-       "normalised. For a flag equal 0 the sensor response is left as is.\n"
-       "The polarisation response is the exception, it is not affected by\n"
-       "this flag.\n"
+       "normalised. If set to 0 the sensor responses are left as provided.\n"
+       "This with the exception of *sensor_pol*, that never is normalised.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
+       "this variable is discussed. The variable is listed as a sub-entry to\n"
        "\"workspace variables\".\n"
        "\n"
        "Usage: Set by the user.\n"
        ),
       GROUP( Index_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_pol_NEW" ),
+      DESCRIPTION
+      (
+       "The polarisation response of the sensor.\n"
+       "\n"
+       "This is a Mueller matrix describing the polarisation response. The\n"
+       "number of columns shall equal *stokes_dim*. The number of rows\n"
+       "corresponds *sensor_n_recievers*. For example, if horizontal and\n"
+       "vertical polarisations are measured simultaneously (by two mixers /\n"
+       "reciever chains), the matrix has two rows. This matrix is multiplied\n"
+       "with the Stokes vector, converted to the sensor frame, before the\n"
+       "sensor response is applied. \n"
+       "\n"
+       "Example on suitable settings:\n"
+       "   Total power: If the sensor provides the total power (that is, sum\n"
+       "of H and V, or the sum of any other complementary polarisations),\n"
+       "the matrix is set to [1 0 0 0] (fewer zeros if *stokes_dim* is < 4).\n"
+       "   Polarised response: The elements of the first column are set to 0.5\n"
+       "and the sum of squares of the following elements (for each row) should\n"
+       "be 0.5.\n"
+       "   Tb: If data are reported  in some brightness temperature scale,\n"
+       "the structure of the matrix is the same as above for the case above,\n"
+       "but both first element and sum of squares shall be 1. This is a\n"
+       "consequence of that all conversion from radiance to Tb uses the\n"
+       "Planck function corresponding to total power.\n"
+       "   Stokes components: The \"no sensor\" case. The *sensor_pol* matrix\n"
+       "is then set to the identity matrix with a size matching *stokes_dim*.\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  [ - (0-1) ]\n"
+       "\n"
+       "Size:  [ sensor_n_recievers, stokes_dim ]\n"
+       ),
+      GROUP( Vector_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2966,12 +3020,14 @@ void Workspace::define_wsv_data()
     ( NAME( "sensor_response" ),
       DESCRIPTION
       (
-        "The response block matrix modelling the total sensor response.\n"
+        "The response matrix modelling the total sensor response.\n"
+        "\n"
+        "This matrix describes the sensor respons for one measurement block\n"
+        "The response is assumed to be identical for each such block.\n"
         "\n"
         "The matrix is the product of all the individual sensor response\n"
-        "matrices. Therefore its dimension are depending on the sensor\n"
-        "configuration and where in the calculations we are.\n"
-        "The *sensor_response* has to initialised by the \n"
+        "matrices. Therefore its dimensions are depending on the total sensor\n"
+        "configuration. The *sensor_response* has to initialised by the \n"
         "*sensor_responseInit* method.\n"
         "\n"
         "Usage:   Output/input to the *sensor_response...* methods.\n"
@@ -2982,6 +3038,173 @@ void Workspace::define_wsv_data()
         "               documentation.\n"
        ),
       GROUP( Sparse_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_aa_NEW" ),
+      DESCRIPTION
+      (
+       "The relative azimuth angles associated with the output of\n"
+       "*sensor_response*.\n"
+       "\n"
+       "Definition of angle matches *mblock_aa_grid*. Works otherwise as\n"
+       "*sensor_response_f*.\n"
+       "\n"
+       "The variable shall not be set manually, it will be set together with\n"
+       "*sensor_response* by sensor response WSMs.\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ degrees ]\n"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_f_NEW" ),
+      DESCRIPTION
+      (
+       "The frequencies associated with the output of *sensor_response*.\n"
+       "\n"
+       "This vector gives the frequency for each element of the measurement\n"
+       "vector produced inside one measurement block. The frequencies of\n"
+       "the total measurement vector, *y*, are obtained by repeating these\n"
+       "frequencies n times, where n is the number of measurement blocks\n"
+       "(e.g. the number of rows in *sensor_pos*).\n"
+       "\n"
+       "The variable shall not be set manually, it will be set together with\n"
+       "*sensor_response* by sensor response WSMs.\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ Hz ]\n"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_pol_NEW" ),
+      DESCRIPTION
+      (
+       "The polarisation channel index associated with the output of\n"
+       "*sensor_response*.\n"
+       "\n"
+       "The index is taken from *stokes_dim* and *sensor_pol*. Please note\n"
+       "that only the index is provided (1-based). No information of the\n"
+       "actual polarisation state is included. Works otherwise as\n"
+       "*sensor_response_f*.\n"
+       "\n"
+       "The variable shall not be set manually, it will be set together with\n"
+       "*sensor_response* by sensor response WSMs.\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ - ]\n"
+       ),
+      GROUP( ArrayOfIndex_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_za_NEW" ),
+      DESCRIPTION
+      (
+       "The relative zenith angles associated with the output of\n"
+       "*sensor_response*.\n"
+       "\n"
+       "Definition of angle matches *mblock_za_grid*. Works otherwise as\n"
+       "*sensor_response_f*.\n"
+       "\n"
+       "The variable shall not be set manually, it will be set together with\n"
+       "*sensor_response* by sensor response WSMs.\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ degrees ]\n"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_aa_grid_NEW" ),
+      DESCRIPTION
+      (
+       "The azimuth angle grid associated with *sensor_response*.\n"
+       "\n"
+       "A variable for communication between sensor response WSMs. Matches\n"
+       "initially *mblock_aa_grid*, but is later adjusted according to the\n"
+       "sensor specifications. Only defined when a common grid exists. Values\n"
+       "are here not repeated as in *sensor_response_aa*\n"
+       "\n"
+       "The zenith and azimuth dimensions are joined into a single dimension\n"
+       "after the antenna. The variables *sensor_response_za_grid* and \n"
+       "*sensor_response_aa_grid* have then the same length after the antenna\n"
+       "(if antenna_dim = 2), holding data taken from the columns of \n"
+       "*antenna_los*.\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ Hz ]\n"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_f_grid_NEW" ),
+      DESCRIPTION
+      (
+       "The frequency grid associated with *sensor_response*.\n"
+       "\n"
+       "A variable for communication between sensor response WSMs. Matches\n"
+       "initially *f_grid*, but is later adjusted according to the sensor\n"
+       "specifications. Only defined when a common grid exists. Values are\n"
+       "here not repeated as in *sensor_response_f*\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ Hz ]\n"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_pol_grid_NEW" ),
+      DESCRIPTION
+      (
+       "The \"polarisation grid\" associated with *sensor_response*.\n"
+       "\n"
+       "A variable for communication between sensor response WSMs. Matches\n"
+       "initially *stokes_dim*, but is later adjusted according to the \n"
+       "sensor specifications. Only defined when a common grid exists. \n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ Hz ]\n"
+       ),
+      GROUP( ArrayOfIndex_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_za_grid_NEW" ),
+      DESCRIPTION
+      (
+       "The zenith angle grid associated with *sensor_response*.\n"
+       "\n"
+       "A variable for communication between sensor response WSMs. Matches\n"
+       "initially *mblock_za_grid*, but is later adjusted according to the\n"
+       "sensor specifications. Only defined when a common grid exists. Values\n"
+       "are here not repeated as in *sensor_response_za*\n"
+       "\n"
+       "The zenith and azimuth dimensions are joined into a single dimension\n"
+       "after the antenna. The variables *sensor_response_za_grid* and \n"
+       "*sensor_response_aa_grid* have then the same length after the antenna\n"
+       "(if antenna_dim = 2), holding data taken from the columns of \n"
+       "*antenna_los*.\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ Hz ]\n"
+       ),
+      GROUP( Vector_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3151,19 +3374,36 @@ void Workspace::define_wsv_data()
     ( NAME( "sideband_mode" ),
       DESCRIPTION
       (
-        "Description of target sideband(s).\n"
+        "Description of target sideband.\n"
         "\n"
-        "A text string describing which of the two sidebands that can be\n"
-        "seen as \"main\" band. Possible choices are:\n"
+        "A text string describing which of the two sidebands (of a heterodyne\n"
+        "instrument) that can be seen as \"main\" band. Possible choices are:\n"
         " \"double\": Double sideband measurement. Roughly equal weight for\n"
         "             both bands.\n"
         " \"lower\" : Single sideband (SSB) measurements, where lower band\n"
         "             is main band.\n"
-        " \"upper\" : SSB with upper band as main band..\n"
+        " \"upper\" : SSB with upper band as main band.\n"
         "\n"
         "Usage: Set by the user.\n"
        ),
       GROUP( String_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sideband_response_NEW" ),
+      DESCRIPTION
+      (
+        "Description of (mixer) sideband responses.\n"
+        "\n"
+        "This variable describes the response of each sideband of a heterodyne\n"
+        "receiver. The response is given as a two-column matrix, where the\n"
+        "first column is a frequency grid and the second column describes\n"
+        "the sideband filter function. An interpolation is applied to obtain\n"
+        "the response for intermediate frequencies.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+       ),
+      GROUP( Matrix_ )));
 
  wsv_data.push_back
    (WsvRecord

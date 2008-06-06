@@ -1,3 +1,30 @@
+2008-06-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-6-5
+
+	* Started on modified version of the sensor part. New or modified
+	variables and methods include _NEW, and old version is left until
+	new version has been finished.
+
+	* includes/amsu/amsub.arts: Now using AntennaOff.
+
+	* src/m_sensor.cc: Created AntennaOff, sensorOff_NEW and
+	sensor_responseInit_NEW. sensorOff consists now of call of the
+	other two methods. Check of sensor_pos and sensor_los moved to
+	sensor_responseInit, and is thus now always performed.
+
+	* src/sensor.cc (scale_antenna_diagram): Commented out. Function 
+	presently not used.
+
+	* src/workspace.cc: Added 
+	sensor_response_aa_NEW, sensor_response_f_NEW, 
+	sensor_response_pol_NEW, sensor_response_za_NEW,
+	sensor_response_aa_grid_NEW, sensor_response_f_grid_NEW,
+	sensor_response_pol_grid_NEW, sensor_response_za_grid_NEW,
+	sideband_response_NEW, sensor_pol_NEW
+
+	Somewhat improved description of some other sensor variables.
+	
 2008-06-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-6-4

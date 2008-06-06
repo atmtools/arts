@@ -72,17 +72,9 @@ sensor_posAddRgeoid
 # ---
 IndexSet(sensor_norm){ 1 }
 
-# Measurement blocks
+# Antenna
 # ---
-# Only zenith angles are defined for 1D atmosphere
-IndexSet(nelem){ 1 }
-VectorSet( mblock_za_grid ){
-  value = 0
-}
-
-# Antenna dimensionality
-# --- 
-AntennaSet1D
+AntennaOff
 
 # The local oscillators of each mixer
 # ---

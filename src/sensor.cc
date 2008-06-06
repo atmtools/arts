@@ -41,6 +41,8 @@
   extern const Numeric DEG2RAD;
   extern const Numeric PI;
 
+
+
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
@@ -207,51 +209,6 @@ void antenna_matrix(          Sparse&   H,
 
 
 
-//! merge_grids
-/*!
-   Sets up the total grid defined by a reference grid and a relative grid.
-
-   Any redundant grid points due to overlap will be removed.
-
-   The returned frequencies are given in IF, so both primary and mirror band
-   is converted down.
-
-   \param   tot       The resulting total grid
-   \param   ref       The reference grid
-   \param   rel       The relative grid
-
-   \author Mattias Ekström
-   \date   2004-05-28
-* /
-void merge_grids(
-              Vector&   tot,
-      ConstVectorView   ref,
-      ConstVectorView   rel )
-{
-  // FIXME: Warn about overlap?
-
-  // Loop trough all combinations and store added values in a list.
-  list<Numeric> l_tot;
-  for (Index ref_it=0; ref_it<ref.nelem(); ref_it++) {
-    for (Index rel_it=0; rel_it<rel.nelem(); rel_it++) {
-      l_tot.push_back(ref[ref_it]+rel[rel_it]);
-    }
-  }
-
-  // Sort and remove doubles.
-  l_tot.sort();
-  l_tot.unique();
-
-  // Resize output vector and store remaining values in it.
-  tot.resize( l_tot.size() );
-  Index e=0;
-  for (list<Numeric>::iterator li=l_tot.begin(); li != l_tot.end(); li++) {
-    tot[e] = *li;
-    e++;
-  }
-}
-*/
-
 //! mixer_matrix
 /*!
    Sets up the sparse matrix that models the response from sideband filtering
@@ -271,7 +228,7 @@ void merge_grids(
    \param   lo        The local oscillator frequency
    \param   filter    The sideband filter matrix
    \param   n_pol     The number of polarisations to consider
-   \param   n_za      The number of zenith angles/antennas
+   \param   n_sp      The number of spectra (viewing directions)
    \param   do_norm   Flag whether rows should be normalised
 
    \author Mattias Ekström
@@ -284,88 +241,97 @@ void mixer_matrix(
         const Numeric   lo,
       ConstMatrixView   filter,
           const Index   n_pol,
-          const Index   n_za,
+          const Index   n_sp,
           const Index   do_norm )
 {
   // Check that the sideband filter matrix at least has two columns and
   // that its frequency grid expands outside f_grid.
-  assert( filter.ncols()==2 );
-  assert( filter(0,0)<=f_grid[0] );
-  assert( filter(filter.nrows()-1,0)>=f_grid[f_grid.nelem()-1] );
+  assert( filter.ncols() == 2 );
+  assert( filter(0,0) <= f_grid[0] );
+  assert( filter(filter.nrows()-1,0) >= f_grid[f_grid.nelem()-1] );
 
   // Check that the lo frequency is within the f_grid
-  assert( lo>f_grid[0] && lo<f_grid[f_grid.nelem()-1] );
+  assert( lo > f_grid[0]  &&  lo < f_grid[f_grid.nelem()-1] );
 
   // Find indices in f_grid where f_grid is just below and above the
   // lo frequency.
   Index i_low = 0, i_high = f_grid.nelem()-1, i_mean;
   while (i_high-i_low>1)
-  {
-    i_mean = (Index) (i_high+i_low)/2;
-    if (f_grid[i_mean]<lo)
     {
-      i_low = i_mean;
+      i_mean = (Index) (i_high+i_low)/2;
+      if (f_grid[i_mean]<lo)
+        { 
+          i_low = i_mean; 
+        }
+      else
+        {
+          i_high = i_mean;
+        }
     }
-    else
-    {
-      i_high = i_mean;
-    }
-  }
   if (f_grid[i_high]==lo)
-    i_high++;
+    {
+      i_high++;
+    }
 
   // Calculate the cut-off limits to assure that all frequencies in IF are
   // computable, i.e. possible to interpolate, in RF.
-  const Numeric lim_low = max(lo-f_grid[i_low], f_grid[i_high]-lo);
-  const Numeric lim_high = min(lo-f_grid[0], f_grid[f_grid.nelem()-1]-lo);
+  const Numeric lim_low  = max( lo-f_grid[i_low], f_grid[i_high]-lo );
+  const Numeric lim_high = min( lo-f_grid[0],     f_grid[f_grid.nelem()-1]-lo );
 
   // Convert sidebands to IF and use list to make a unique sorted
   // vector, this sorted vector is f_mixer.
   list<Numeric> l_mixer;
   for (Index i=0; i<f_grid.nelem(); i++)
-  {
-    if (fabs(f_grid[i]-lo)>=lim_low && fabs(f_grid[i]-lo)<=lim_high)
-      l_mixer.push_back(fabs(f_grid[i]-lo));
-  }
+    {
+      if (fabs(f_grid[i]-lo)>=lim_low && fabs(f_grid[i]-lo)<=lim_high)
+        {
+          l_mixer.push_back(fabs(f_grid[i]-lo));
+        }
+    }
   l_mixer.sort();
   l_mixer.unique();
   f_mixer.resize((Index) l_mixer.size());
   Index e=0;
   for (list<Numeric>::iterator li=l_mixer.begin(); li != l_mixer.end(); li++)
-  {
-    f_mixer[e] = *li;
-    e++;
-  }
+    {
+      f_mixer[e] = *li;
+      e++;
+    }
 
   // Now we know the final size of H, so resize it
-  H.resize( f_mixer.nelem()*n_pol*n_za, f_grid.nelem()*n_pol*n_za );
+  H.resize( f_mixer.nelem()*n_pol*n_sp, f_grid.nelem()*n_pol*n_sp );
 
   // Calculate the sensor summation vector and insert the values in the
   // final matrix taking number of polarisations and zenith angles into
   // account.
-  Vector row_temp(f_grid.nelem());
-  Vector row_final(f_grid.nelem()*n_pol*n_za);
-  for (Index i=0; i<f_mixer.nelem(); i++) {
-    sensor_summation_vector(row_temp, f_mixer[i], f_grid, lo, filter );
-    // Normalise if flag is set
-    if (do_norm)
-      row_temp /= row_temp.sum();
-
-    // Loop over number of polarisations
-    for (Index p=0; p<n_pol; p++)
+  Vector row_temp( f_grid.nelem() );
+  Vector row_final( f_grid.nelem()*n_pol*n_sp );
+  //
+  for( Index i=0; i<f_mixer.nelem(); i++ ) 
     {
-      // Loop over number of zenith angles/antennas
-      for (Index a=0; a<n_za; a++)
-      {
-        // Distribute elements of row_temp to row_final.
-        row_final = 0.0;
-        row_final[Range(a*f_grid.nelem()*n_pol+p,f_grid.nelem(),n_pol)]
-          = row_temp;
-        H.insert_row(a*f_mixer.nelem()*n_pol+p+i*n_pol,row_final);
-      }
+      sensor_summation_vector( row_temp, f_mixer[i], f_grid, lo, filter );
+
+      // Normalise if flag is set
+      if (do_norm)
+        row_temp /= row_temp.sum();
+
+      // Loop over number of polarisations
+      for (Index p=0; p<n_pol; p++)
+        {
+          // Loop over number of zenith angles/antennas
+          for (Index a=0; a<n_sp; a++)
+            {
+              // Distribute elements of row_temp to row_final.
+              row_final = 0.0;
+              row_final[Range(a*f_grid.nelem()*n_pol+p,f_grid.nelem(),n_pol)]
+                                                                     = row_temp;
+              H.insert_row(a*f_mixer.nelem()*n_pol+p+i*n_pol,row_final);
+            }
+        }
     }
-  }
 }
+
+
 
 //! multi_mixer_matrix
 /*!
@@ -522,6 +488,8 @@ void multi_mixer_matrix(
   }
 }
 
+
+
 //! polarisation_matrix
 /*!
    Sets up the polarisation transfer matrix from stokes vectors describing
@@ -581,6 +549,7 @@ void polarisation_matrix(
 }
 
 
+
 //! rotation_matrix
 /*!
    Sets up the rotation transfer matrix from the sensor rotation vector.
@@ -637,8 +606,9 @@ void rotation_matrix(
 }
 
 
+/*
 //! scale_antenna_diagram
-/*!
+/ *!
    Scales a Gaussian antenna diagram for a reference frequency to match
    the new frequency.
 
@@ -649,7 +619,7 @@ void rotation_matrix(
 
    \author Mattias Ekström
    \date   2003-08-14
-*/
+* /
 void scale_antenna_diagram(
              VectorView   sc,
         ConstMatrixView   srm,
@@ -667,6 +637,10 @@ void scale_antenna_diagram(
     sc[i]=pow(srm(i,1), s);
   }
 }
+*/
+
+
+
 
 //! sensor_integration_vector
 /*!
@@ -774,6 +748,8 @@ void sensor_integration_vector(
   }
 }
 
+
+
 //! sensor_summation_vector
 /*!
    Constructs the (row) vector that sums components of another (column) vector.
@@ -851,6 +827,8 @@ void sensor_summation_vector(
   h[gp_low[0].idx+1] += filt_low/filt_sum * gp_low[0].fd[0];
 
 }
+
+
 
 //! spectrometer_matrix
 /*!

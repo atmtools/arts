@@ -29,4 +29,4 @@ for i = 1 :length(ztan)
   L{i} = sprintf( '%.1f km', ztan(i)/1e3 );
 end
 %
-legend( L{end:-1:1} );
+legend( L{end:-1:1}, 'Location', 'Best' );
