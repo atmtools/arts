@@ -757,19 +757,19 @@ void Workspace::define_wsv_data()
     ( NAME( "backend_channel_response" ),
       DESCRIPTION
       (
-       "Backend channel response matrix.\n"
+       "The response of each backend channel\n"
        "\n"
-       "The first column describes a relative grid of frequencies and the rest\n"
-       "of the columns describe the backend responses.\n"
+       "The response is given as a matrix. The first column gives a grid of\n"
+       "relative frequencies. These frequencies are added to *f_backend* to\n"
+       "obtain the absolute frequency for each response values.\n"
        "\n"
-       "For each level, the response can be described in two ways. Either one\n"
-       "single matrix column is given and then used for each\n"
-       "polarisation/frequency. Or a complete set of columns covering all\n"
-       "polarisations/frequencies are given and in each case a individual\n"
-       "response will be used.  Note that for both cases there must allways be\n"
-       "a column in the matrices, the first, of a relative frequency grid.\n"
-       "\n"
-       "FIXME: This description is cryptic and should be improved.\n"
+       "Following columns holds response values. There are here two options.\n"
+       "If the matrix has only two columns, the values of the second column is\n"
+       "applied for all channels. Accordingly, this assumes that all channels\n"
+       "have the same response function. The second option is to specify the\n"
+       "response for each channel seperately. This signifies that the\n"
+       "*backend_channel_response* has either two or n+1 columns, where n is\n"
+       "the length of *f_backend*\n"
        "\n"
        "Usage: Set by the user.\n"
        ),
@@ -3061,6 +3061,30 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "sensor_response_aa_grid_NEW" ),
+      DESCRIPTION
+      (
+       "The azimuth angle grid associated with *sensor_response*.\n"
+       "\n"
+       "A variable for communication between sensor response WSMs. Matches\n"
+       "initially *mblock_aa_grid*, but is later adjusted according to the\n"
+       "sensor specifications. Only defined when a common grid exists. Values\n"
+       "are here not repeated as in *sensor_response_aa*\n"
+       "\n"
+       "The zenith and azimuth dimensions are joined into a single dimension\n"
+       "after the antenna. The variables *sensor_response_za_grid* and \n"
+       "*sensor_response_aa_grid* have then the same length after the antenna\n"
+       "(if antenna_dim = 2), holding data taken from the columns of \n"
+       "*antenna_los*.\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ degrees ]\n"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "sensor_response_f_NEW" ),
       DESCRIPTION
       (
@@ -3074,6 +3098,24 @@ void Workspace::define_wsv_data()
        "\n"
        "The variable shall not be set manually, it will be set together with\n"
        "*sensor_response* by sensor response WSMs.\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ Hz ]\n"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_f_grid_NEW" ),
+      DESCRIPTION
+      (
+       "The frequency grid associated with *sensor_response*.\n"
+       "\n"
+       "A variable for communication between sensor response WSMs. Matches\n"
+       "initially *f_grid*, but is later adjusted according to the sensor\n"
+       "specifications. Only defined when a common grid exists. Values are\n"
+       "here not repeated as in *sensor_response_f*\n"
        "\n"
        "Usage: Set by sensor response methods.\n"
        "\n"
@@ -3105,6 +3147,23 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "sensor_response_pol_grid_NEW" ),
+      DESCRIPTION
+      (
+       "The \"polarisation grid\" associated with *sensor_response*.\n"
+       "\n"
+       "A variable for communication between sensor response WSMs. Matches\n"
+       "initially *stokes_dim*, but is later adjusted according to the \n"
+       "sensor specifications. Only defined when a common grid exists. \n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ - ]\n"
+       ),
+      GROUP( ArrayOfIndex_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "sensor_response_za_NEW" ),
       DESCRIPTION
       (
@@ -3122,65 +3181,6 @@ void Workspace::define_wsv_data()
        "Unit:  [ degrees ]\n"
        ),
       GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sensor_response_aa_grid_NEW" ),
-      DESCRIPTION
-      (
-       "The azimuth angle grid associated with *sensor_response*.\n"
-       "\n"
-       "A variable for communication between sensor response WSMs. Matches\n"
-       "initially *mblock_aa_grid*, but is later adjusted according to the\n"
-       "sensor specifications. Only defined when a common grid exists. Values\n"
-       "are here not repeated as in *sensor_response_aa*\n"
-       "\n"
-       "The zenith and azimuth dimensions are joined into a single dimension\n"
-       "after the antenna. The variables *sensor_response_za_grid* and \n"
-       "*sensor_response_aa_grid* have then the same length after the antenna\n"
-       "(if antenna_dim = 2), holding data taken from the columns of \n"
-       "*antenna_los*.\n"
-       "\n"
-       "Usage: Set by sensor response methods.\n"
-       "\n"
-       "Unit:  [ Hz ]\n"
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sensor_response_f_grid_NEW" ),
-      DESCRIPTION
-      (
-       "The frequency grid associated with *sensor_response*.\n"
-       "\n"
-       "A variable for communication between sensor response WSMs. Matches\n"
-       "initially *f_grid*, but is later adjusted according to the sensor\n"
-       "specifications. Only defined when a common grid exists. Values are\n"
-       "here not repeated as in *sensor_response_f*\n"
-       "\n"
-       "Usage: Set by sensor response methods.\n"
-       "\n"
-       "Unit:  [ Hz ]\n"
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sensor_response_pol_grid_NEW" ),
-      DESCRIPTION
-      (
-       "The \"polarisation grid\" associated with *sensor_response*.\n"
-       "\n"
-       "A variable for communication between sensor response WSMs. Matches\n"
-       "initially *stokes_dim*, but is later adjusted according to the \n"
-       "sensor specifications. Only defined when a common grid exists. \n"
-       "\n"
-       "Usage: Set by sensor response methods.\n"
-       "\n"
-       "Unit:  [ Hz ]\n"
-       ),
-      GROUP( ArrayOfIndex_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3202,7 +3202,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Set by sensor response methods.\n"
        "\n"
-       "Unit:  [ Hz ]\n"
+       "Unit:  [ degrees ]\n"
        ),
       GROUP( Vector_ )));
 
@@ -3342,35 +3342,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "single_scattering_data" ),
-      DESCRIPTION
-      (
-       "Structure for the  single scattering data.\n"
-       "\n"
-       "See futher the ArtsWiki documentation were the SingleScatteringData\n"
-       "structure is disussed.\n"
-       "\n"
-       "Usage: Set by the user.\n"
-       "\n"
-       "Dimensions:  SingleScatteringData \n"
-       "  Enum[particle type attribute]\n"
-       "  String[description] \n"
-       "  Vector[f_grid]\n"
-       "  Vector[T_grid]\n"
-       "  Vector[za_grid]\n"
-       "  Vector[aa_grid]\n"
-       "  Tensor7[pha_mat_data]\n"
-       "      [f_grid, T_grid, za_grid, aa_grid, za_grid, aa_grid,"
-       "matrix_element]\n"
-       "  Tensor5[ext_mat_data]\n"
-       "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
-       "  Tensor5[abs_vec_data]\n"
-       "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
-       ),
-      GROUP( SingleScatteringData_ )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "sideband_mode" ),
       DESCRIPTION
       (
@@ -3404,6 +3375,35 @@ void Workspace::define_wsv_data()
         "Usage: Set by the user.\n"
        ),
       GROUP( Matrix_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "single_scattering_data" ),
+      DESCRIPTION
+      (
+       "Structure for the  single scattering data.\n"
+       "\n"
+       "See futher the ArtsWiki documentation were the SingleScatteringData\n"
+       "structure is disussed.\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Dimensions:  SingleScatteringData \n"
+       "  Enum[particle type attribute]\n"
+       "  String[description] \n"
+       "  Vector[f_grid]\n"
+       "  Vector[T_grid]\n"
+       "  Vector[za_grid]\n"
+       "  Vector[aa_grid]\n"
+       "  Tensor7[pha_mat_data]\n"
+       "      [f_grid, T_grid, za_grid, aa_grid, za_grid, aa_grid,"
+       "matrix_element]\n"
+       "  Tensor5[ext_mat_data]\n"
+       "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
+       "  Tensor5[abs_vec_data]\n"
+       "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
+       ),
+      GROUP( SingleScatteringData_ )));
 
  wsv_data.push_back
    (WsvRecord
@@ -3705,6 +3705,58 @@ void Workspace::define_wsv_data()
       GROUP( Vector_ )));
 
   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "y_aa_NEW" ),
+      DESCRIPTION
+      (
+       "The relative azimuth angles associated with *y*.\n"
+       "\n"
+       "Works as *sensor_response_aa*, but is valid for *y* and not only a\n"
+       "single measurement block. In addition, this variable holds absolute\n"
+       "angles instead of relative angles.\n"
+       "\n"
+       "Usage: Output from radiative transfer calculations considering\n"
+       "       sensor response.\n"
+       "\n"
+       "Unit:  [ degrees ]\n"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "y_f_NEW" ),
+      DESCRIPTION
+      (
+       "The frequencies associated with *y*.\n"
+       "\n"
+       "Works as *sensor_response_f*, but is valid for *y* and not only a\n"
+       "single measurement block.\n"
+       "\n"
+       "Usage: Output from radiative transfer calculations considering\n"
+       "       sensor response.\n"
+       "\n"
+       "Unit:  [ Hz ]\n"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "y_pol_NEW" ),
+      DESCRIPTION
+      (
+       "The polarisation channel index associated *y*.\n"
+       "\n"
+       "Works as *sensor_response_pol*, but is valid for *y* and not only a\n"
+       "single measurement block.\n"
+       "\n"
+       "Usage: Output from radiative transfer calculations considering\n"
+       "       sensor response.\n"
+       "\n"
+       "Unit:  [ - ]\n"
+       ),
+      GROUP( ArrayOfIndex_ )));
+
+  wsv_data.push_back
     (WsvRecord
      ( NAME( "y_unit" ),
        DESCRIPTION
@@ -3734,6 +3786,24 @@ void Workspace::define_wsv_data()
   //   2. yUnit in m_rte.cc
   //   2. jacobianUnit in m_rte.cc
   
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "y_za_NEW" ),
+      DESCRIPTION
+      (
+       "The zenith angles associated with *y*.\n"
+       "\n"
+       "Works as *sensor_response_za*, but is valid for *y* and not only a\n"
+       "single measurement block. In addition, this variable holds absolute\n"
+       "angles instead of relative angles.\n"
+       "\n"
+       "Usage: Output from radiative transfer calculations considering\n"
+       "       sensor response.\n"
+       "\n"
+       "Unit:  [ degrees ]\n"
+        ),
+      GROUP( Vector_ )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "ybatch" ),

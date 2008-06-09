@@ -1,3 +1,24 @@
+2008-06-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-6-6
+
+	* src/m_rte.cc (RteCalc_NEW): Created.
+
+	* src/make_array.h: Added template and functions for WSM with up
+	to 35 arguments (RteCalc_NEW sets a new record!).
+
+	* src/workspace.cc: Introduced y_f, y_pol, y_za and y_aa. Much improved
+	description of backend_channel_response.
+
+	* src/sensor.cc (sensor_aux_vectors): Created. 
+
+	* src/m_sensor.cc (sensor_responseInit_NEW): Removed consistency
+	check of sensor_pos and sensor_los as these variables normally are
+	set further down in the control file, and check anyhow done in RteCalc.
+	(sensorOff_NEW): Removed input sensor_pos and sensor_los.
+
+	(sensor_responseMixer_NEW): Created.
+
 2008-06-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-6-5

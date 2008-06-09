@@ -107,6 +107,16 @@ void scale_antenna_diagram(
        const Numeric&   f_ref,
        const Numeric&   f_new );
 
+void sensor_aux_vectors(
+          Vector&           sensor_response_f,
+          ArrayOfIndex&     sensor_response_pol,
+          Vector&           sensor_response_za,
+          Vector&           sensor_response_aa,
+          ConstVectorView   sensor_response_f_grid,
+    const ArrayOfIndex&     sensor_response_pol_grid,
+          ConstVectorView   sensor_response_za_grid,
+          ConstVectorView   sensor_response_aa_grid );
+
 void sensor_integration_vector(
            VectorView   h,
       ConstVectorView   f,

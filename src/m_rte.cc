@@ -63,6 +63,351 @@
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void RteCalc_NEW(
+         Vector&                     y,
+         Vector&                     y_f,
+         ArrayOfIndex&               y_pol,
+         Vector&                     y_za,
+         Vector&                     y_aa,
+         Matrix&                     jacobian,
+   const Agenda&                     ppath_step_agenda,
+   const Agenda&                     rte_agenda,
+   const Agenda&                     iy_space_agenda,
+   const Agenda&                     surface_prop_agenda,
+   const Agenda&                     iy_cloudbox_agenda,
+   const Index&                      atmosphere_dim,
+   const Vector&                     p_grid,
+   const Vector&                     lat_grid,
+   const Vector&                     lon_grid,
+   const Tensor3&                    z_field,
+   const Tensor3&                    t_field,
+   const Tensor4&                    vmr_field,
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
+   const Matrix&                     r_geoid,
+   const Matrix&                     z_surface,
+   const Index&                      cloudbox_on, 
+   const ArrayOfIndex&               cloudbox_limits,
+   const Sparse&                     sensor_response,
+   const Vector&                     sensor_response_f,
+   const ArrayOfIndex&               sensor_response_pol,
+   const Vector&                     sensor_response_za,
+   const Vector&                     sensor_response_aa,
+   const Matrix&                     sensor_pos,
+   const Matrix&                     sensor_los,
+   const Vector&                     f_grid,
+   const Index&                      stokes_dim,
+   const Index&                      antenna_dim,
+   const Vector&                     mblock_za_grid,
+   const Vector&                     mblock_aa_grid,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfArrayOfIndex&        jacobian_indices,
+   const String&                     y_unit,
+   const String&                     jacobian_unit )
+{
+  // Consistency checks of input. Also returning some basic sizes
+  //
+  Index nf=0, nmblock=0, nza=0, naa=0, nblock=0;
+  //
+  rtecalc_check_input( nf, nmblock, nza, naa, nblock, atmosphere_dim, p_grid, 
+                  lat_grid, lon_grid, z_field, t_field, r_geoid, z_surface,
+                  cloudbox_on,  cloudbox_limits, sensor_response, 
+                  sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, 
+                  mblock_za_grid, mblock_aa_grid, y_unit, jacobian_unit );
+
+  if( nblock != sensor_response_f.nelem()   ||  
+      nblock != sensor_response_pol.nelem() ||
+      nblock != sensor_response_za.nelem() )
+    {
+      throw runtime_error( "Sensor auxiliary variables have not correct size." );
+
+    }
+
+  // Agendas not checked elsewhere
+  //
+  chk_not_empty( "ppath_step_agenda", ppath_step_agenda );
+  chk_not_empty( "rte_agenda", rte_agenda );
+
+
+  //--- Init y and ib ---------------------------------------------------------
+
+  // Resize *y* and auxiliary to have correct length.
+  y.resize( nmblock*nblock );
+  y_f.resize( nmblock*nblock );
+  y_pol.resize( nmblock*nblock );
+  y_za.resize( nmblock*nblock );
+  if( sensor_response_aa.nelem() )
+    { y_aa.resize( nmblock*nblock ); }
+
+  // Create vector for MPB radiances for 1 measurement block.
+  Vector ib( nf*nza*naa*stokes_dim );
+
+
+  //--- Init Jacobian part ----------------------------------------------------
+  //
+  ArrayOfIndex     rte_do_vmr_jacs (0);
+  Index            rte_do_t_jacs = 0;
+  //
+  ArrayOfIndex     jqi_vmr(0);        // Index in jacobian_quantities of VMRs
+  ArrayOfIndex     ji0_vmr(0);        // Start index in jacobian for anal. VMRs
+  ArrayOfIndex     jin_vmr(0);        // Length of x for anal. VMRs
+  Index            jqi_t = 0;         // As above, but for temperature
+  Index            ji0_t = 0;        
+  Index            jin_t = 0;
+  ArrayOfMatrix    ib_vmr_jacs(0);    // Correspondance to *ib* for VMR jac.
+  Matrix           ib_t_jacs(0,0);    // Correspondance to *ib* for t jac.
+  //
+  Index            ppath_array_do = 0;
+  //
+  String j_unit = jacobian_unit;
+  if ( jacobian_unit == "-" )
+    { j_unit = y_unit; }
+  //
+  for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+    {
+      if ( jacobian_quantities[i].MainTag() == "Abs. species"  &&  
+                                          jacobian_quantities[i].Analytical() )
+        { 
+          ppath_array_do = 1;
+          jqi_vmr.push_back( i );
+          // Find index in *abs_species* of jacobian species
+          ArrayOfSpeciesTag   tags;
+          array_species_tag_from_string( tags, 
+                                             jacobian_quantities[i].Subtag() );
+          Index si = chk_contains( "abs_species", abs_species, tags );
+          rte_do_vmr_jacs.push_back( si ); 
+          // Set size of MPB matrix
+          ArrayOfIndex ji = jacobian_indices[i];
+          const Index  nx = ji[1]-ji[0]+1;
+          ji0_vmr.push_back( ji[0] );
+          jin_vmr.push_back( nx );
+          ib_vmr_jacs.push_back( Matrix(ib.nelem(),nx,0.0) );
+        }
+      if ( jacobian_quantities[i].MainTag() == "Temperature"  &&  
+                                          jacobian_quantities[i].Analytical() )
+        { 
+          ppath_array_do = 1;
+          jqi_t          = i;
+          rte_do_t_jacs  = 1; 
+          // Set size of MPB matrix
+          ArrayOfIndex ji = jacobian_indices[i];
+          const Index  nx = ji[1]-ji[0]+1;
+          ji0_t = ji[0];
+          jin_t = nx;
+          ib_t_jacs = Matrix(ib.nelem(),nx,0.0);
+        }
+    }
+
+
+  //--- Loop:  measurement block / zenith angle / azimuthal angle
+  //
+  Index    nydone = 0;                 // Number of positions in y done
+  //
+  for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
+    {
+#pragma omp parallel
+#pragma omp for 
+      for( Index iza=0; iza<nza; iza++ )
+        {
+          // The try block here is necessary to correctly handle
+          // exceptions inside the parallel region. 
+          try
+            {
+              //--- Define *iy* and ppath variables
+              Matrix           iy;
+              Ppath            ppath;
+              ArrayOfPpath     ppath_array;
+              Index            ppath_array_index;
+              ArrayOfTensor4   diy_dvmr;
+              ArrayOfTensor4   diy_dt;
+
+              // Create local agenda copies
+              Agenda local_iy_space_agenda( iy_space_agenda );
+              Agenda local_ppath_step_agenda( ppath_step_agenda );
+              Agenda local_rte_agenda( rte_agenda );
+              Agenda local_surface_prop_agenda( surface_prop_agenda );
+              Agenda local_iy_cloudbox_agenda( iy_cloudbox_agenda );
+
+              // If this region is parallelized, we have to make sure that
+              // each thread has its own workspace copy
+              if (arts_omp_in_parallel())
+                {
+                  local_iy_space_agenda.set_workspace(
+                          new Workspace (*local_iy_space_agenda.workspace() ) );
+                  // One workspace copy per thread is enough, so we can use the
+                  // same copy for all agendas in this thread
+                  local_ppath_step_agenda.set_workspace(
+                                            local_iy_space_agenda.workspace() );
+                  local_rte_agenda.set_workspace(
+                                            local_iy_space_agenda.workspace() );
+                  local_surface_prop_agenda.set_workspace(
+                                            local_iy_space_agenda.workspace() );
+                  local_iy_cloudbox_agenda.set_workspace(
+                                            local_iy_space_agenda.workspace() );
+                }
+
+              for( Index iaa=0; iaa<naa; iaa++ )
+                {
+                  //--- Argument for verbosity of agendas
+                  const bool   ag_verb = ( (iaa + iza + mblock_index) != 0 );
+
+                  //--- Start index in *ib* for data to include 
+                  const Index   nbdone = ( iza*naa + iaa ) * nf * stokes_dim;
+
+                  //--- LOS of interest
+                  //
+                  Vector los( sensor_los.ncols() );
+                  //
+                  los     = sensor_los( mblock_index, joker );
+                  los[0] += mblock_za_grid[iza];
+                  //
+                  if( antenna_dim == 2 )
+                    { los[1] += mblock_aa_grid[iaa]; }
+
+                  //--- Set *ppath_array* and *diy_dX*-variables to be empty
+                  //
+                  ppath_array_index = -1;
+                  ppath_array.resize(0);
+                  //
+                  diy_dvmr.resize(0);
+                  diy_dt.resize(0);
+
+                  //--- Calculate *iy*
+                  iy_calc( iy, ppath, ppath_array_index, ppath_array, 
+                           diy_dvmr, diy_dt,
+                           local_ppath_step_agenda, local_rte_agenda, 
+                           local_iy_space_agenda, local_surface_prop_agenda, 
+                           local_iy_cloudbox_agenda, atmosphere_dim, p_grid, 
+                           lat_grid, lon_grid, z_field, t_field, vmr_field,
+                           r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
+                           sensor_pos(mblock_index,joker), los, f_grid, 
+                           stokes_dim, ppath_array_do, rte_do_vmr_jacs, 
+                           rte_do_t_jacs, ag_verb );
+
+                  //--- Unit conversions
+                  apply_y_unit( iy, y_unit, f_grid );
+
+                  //--- Copy *iy* to *ib*
+                  for( Index is=0; is<stokes_dim; is++ )
+                    { ib[Range(nbdone+is,nf,stokes_dim)] = iy(joker,is); }
+
+
+                  //--- Jacobian part: -----------------------------------------
+
+                  //--- Absorption species ---
+                  for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
+                    {
+                      //- Scale to other species retrieval modes
+                      const String mode = 
+                                        jacobian_quantities[jqi_vmr[ig]].Mode();
+                      if( mode == "vmr" )
+                        {}
+                      else if( mode == "rel" )
+                        {
+                          for( Index ia=0; ia<ppath_array.nelem(); ia++ )
+                            {
+                              if( ppath_array[ia].np > 1 )
+                                {
+                                  for( Index ip=0; ip<ppath_array[ia].np; ip++ )
+                                    { diy_dvmr[ia](ig,ip,joker,joker) *= 
+                                    ppath_array[ia].vmr(rte_do_vmr_jacs[ig],ip);
+                                    }
+                                }
+                            }
+                        }
+                      else if( mode == "nd" )
+                        {
+                          for( Index ia=0; ia<ppath_array.nelem(); ia++ )
+                            {
+                              if( ppath_array[ia].np > 1 )
+                                {
+                                  for( Index ip=0; ip<ppath_array[ia].np; ip++ )
+                                    { 
+                                      diy_dvmr[ia](ig,ip,joker,joker) /= 
+                                        number_density( ppath_array[ia].p[ip],
+                                                        ppath_array[ia].t[ip] );
+                                    }
+                                }
+                            }    
+                        }              
+                      else
+                        { assert(0); }  // Should have been catched before
+
+                      //- Map from ppath to retrieval quantities
+                      jacobian_from_path_to_rgrids( ib_vmr_jacs[ig], nbdone,
+                                     diy_dvmr, ig, atmosphere_dim, ppath_array,
+                                     jacobian_quantities[jqi_vmr[ig]] );
+
+                      //--- Unit conversions
+                      apply_y_unit( ib_vmr_jacs[ig], j_unit, f_grid );
+                    }
+
+                  //--- Temperature ---
+                  if( rte_do_t_jacs )
+                    {
+                      //- Map from ppath to retrieval quantities
+                      jacobian_from_path_to_rgrids( ib_t_jacs, nbdone, diy_dt,
+                                                 0, atmosphere_dim, ppath_array, 
+                                                 jacobian_quantities[jqi_t] );
+
+                      //--- Unit conversions
+                      apply_y_unit( ib_t_jacs, j_unit, f_grid );
+                    }
+
+                  //--- End of jacobian part -----------------------------------
+
+                } // iaa loop
+
+              // Remove this thread's workspace copy
+              if (arts_omp_in_parallel())
+                {
+                  delete local_iy_space_agenda.workspace();
+                }
+            } // end try block
+          catch (runtime_error e)
+            {
+              exit_or_rethrow(e.what());
+            }
+        } // iza loop
+
+ 
+      //--- Apply sensor response matrix on ib
+      mult( y[Range(nydone,nblock)], sensor_response, ib );
+
+      //--- Auxiliary variables
+      y_f[Range(nydone,nblock)] = sensor_response_f;
+      for( Index ii=0; ii<nblock; ii++ )
+        { 
+          y_pol[nydone+ii] = sensor_response_pol[ii]; 
+          y_za[nydone+ii]  = sensor_los( mblock_index, 0 ) +
+                             sensor_response_za[ii];
+          if( sensor_response_aa.nelem() )
+            { 
+              y_aa[nydone+ii] = sensor_los( mblock_index, 0 ) +
+                                sensor_response_aa[ii]; 
+            }
+        }
+
+      //--- Apply sensor response matrix on jacobians, and store
+      for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
+        {
+          mult( jacobian(Range(nydone,nblock),Range(ji0_vmr[ig],jin_vmr[ig])),
+                                            sensor_response, ib_vmr_jacs[ig] );
+        }
+      if( rte_do_t_jacs )
+        {
+          mult( jacobian(Range(nydone,nblock),Range(ji0_t,jin_t)), 
+                                                  sensor_response, ib_t_jacs );
+        }
+
+
+      //--- Increase nydone
+      nydone += nblock;
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void RteCalc(
          Vector&                     y,
          Matrix&                     jacobian,
@@ -371,6 +716,7 @@ void RteCalc(
       nydone += nblock;
     }
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -606,6 +606,7 @@ void rotation_matrix(
 }
 
 
+
 /*
 //! scale_antenna_diagram
 / *!
@@ -639,6 +640,89 @@ void scale_antenna_diagram(
 }
 */
 
+
+
+//! sensor_aux_vectors
+/*!
+   Sets up the the auxiliary vectors for sensor_response.
+
+   The function assumes that all grids are common, and the aux vectors
+   are just the grids repeated
+
+   \param   sensor_response_f          As the WSV with same name
+   \param   sensor_response_pol        As the WSV with same name
+   \param   sensor_response_za         As the WSV with same name
+   \param   sensor_response_aa         As the WSV with same name
+   \param   sensor_response_f_grid     As the WSV with same name
+   \param   sensor_response_pol_grid   As the WSV with same name
+   \param   sensor_response_za_grid    As the WSV with same name
+   \param   sensor_response_aa_grid    As the WSV with same name
+
+   \author Patrick Eriksson
+   \date   2008-06-09
+*/
+void sensor_aux_vectors(
+          Vector&           sensor_response_f,
+          ArrayOfIndex&     sensor_response_pol,
+          Vector&           sensor_response_za,
+          Vector&           sensor_response_aa,
+          ConstVectorView   sensor_response_f_grid,
+    const ArrayOfIndex&     sensor_response_pol_grid,
+          ConstVectorView   sensor_response_za_grid,
+          ConstVectorView   sensor_response_aa_grid )
+{
+  // Sizes
+  const Index nf       = sensor_response_f_grid.nelem();
+  const Index npol     = sensor_response_pol_grid.nelem();
+  const Index nza      = sensor_response_za_grid.nelem();
+        Index naa      = sensor_response_aa_grid.nelem();
+        Index empty_aa = 0;
+  //
+  if( naa == 0 )
+    {
+      empty_aa = 1;
+      naa      = 1; 
+    }
+  //
+  const Index n = nf * npol * nza * naa;
+
+  // Allocate
+  sensor_response_f.resize( n );
+  sensor_response_pol.resize( n );
+  sensor_response_za.resize( n );
+  if( empty_aa )
+    { sensor_response_aa.resize( 0 ); }
+  else
+    { sensor_response_aa.resize( n ); }
+  
+  // Fill
+  for( Index iaa=0; iaa<naa; iaa++ )
+    {
+      const Index i1 = iaa * nza * nf * npol;
+      //
+      for( Index iza=0; iza<nza; iza++ )
+        {
+          const Index i2 = i1 + iza * nf * npol;
+          //
+          for( Index ifr=0; ifr<nf; ifr++ ) 
+            {
+              const Index i3 = i2 + ifr * npol;
+              //
+              for( Index ip=0; ip<npol; ip++ )
+                {
+                  const Index i = i3 + ip;
+                  //
+                  sensor_response_f[i]   = sensor_response_f_grid[ifr];
+                  sensor_response_pol[i] = sensor_response_pol_grid[ip];
+                  sensor_response_za[i]  = sensor_response_za_grid[iza];
+                  if( !empty_aa )
+                    { sensor_response_aa[i] = sensor_response_aa_grid[iaa]; }
+                }
+            }
+        }
+    }
+
+}
 
 
 

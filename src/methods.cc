@@ -5275,6 +5275,53 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "RteCalc_NEW" ),
+        DESCRIPTION
+        (
+         "Main function for calculation of spectra.\n"
+         "\n"
+         "The overall scheme to solve the radiative transfer equation (RTE)\n"
+         "is fixed and found in this method. In short, the method calculates\n"
+         "monochromatic spectra for all pencil beam directions and applies\n"
+         "the sensor response on obtained radiances.\n"
+         "\n"
+         "The first step is to calculate the propagation path through the\n"
+         "atmosphere for the considered viewing direction. The next step is\n"
+         "to determine the spectrum at the starting point of the propagation\n"
+         "path. The start point of the propagation path can be found at the\n"
+         "top of the atmosphere, the surface, or at the boundary or inside\n"
+         "the cloud box. To determine the start spectrum can involve a\n"
+         "recursive call of RteCalc (for example to calculate the radiation\n"
+         "reflected by the surface). After this, the vector radiative\n"
+         "transfer equation is solved to the end point of the propagation\n"
+         "path. Finally, the response of the sensor is applied.\n"
+         "\n"
+         "Analytical jacobians for gas species and temperature can be \n"
+         "calcultaed along with the spectrum.\n"
+         "\n"        
+         "See further the user guide.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUTPUT( y_, y_f_NEW_, y_pol_NEW_, y_za_NEW_, y_aa_NEW_, jacobian_ ),
+        INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
+               surface_prop_agenda_, iy_cloudbox_agenda_,
+               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
+               t_field_, vmr_field_, abs_species_, r_geoid_, z_surface_, 
+               cloudbox_on_, cloudbox_limits_, sensor_response_, 
+               sensor_response_f_NEW_, sensor_response_pol_NEW_, 
+               sensor_response_za_NEW_, sensor_response_aa_NEW_, 
+               sensor_pos_, sensor_los_, f_grid_, stokes_dim_, 
+               antenna_dim_, mblock_za_grid_, mblock_aa_grid_, 
+               jacobian_, jacobian_quantities_, jacobian_indices_,
+               y_unit_, jacobian_unit_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "RteCalc" ),
         DESCRIPTION
         (
@@ -5764,8 +5811,7 @@ md_data_raw.push_back
                 sensor_response_pol_NEW_, sensor_response_za_NEW_,
                 sensor_response_aa_NEW_, 
                 antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
-        INPUT( atmosphere_dim_, stokes_dim_, sensor_pos_, sensor_los_,
-               f_grid_ ),
+        INPUT( atmosphere_dim_, stokes_dim_, f_grid_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -5970,8 +6016,7 @@ md_data_raw.push_back
                 sensor_response_f_grid_NEW_, sensor_response_pol_grid_NEW_,
                 sensor_response_za_grid_NEW_, sensor_response_aa_grid_NEW_ ),
         INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_,
-               atmosphere_dim_, stokes_dim_, sensor_pos_, sensor_los_, 
-               sensor_norm_ ),
+               atmosphere_dim_, stokes_dim_, sensor_norm_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -6021,8 +6066,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUTPUT( sensor_response_, sensor_response_f_NEW_, 
+                sensor_response_pol_NEW_,
+                sensor_response_za_NEW_,
+                sensor_response_aa_NEW_, 
                 sensor_response_f_grid_NEW_ ),
         INPUT( sensor_response_, sensor_response_f_NEW_, 
+               sensor_response_pol_NEW_,
+               sensor_response_za_NEW_,
+               sensor_response_aa_NEW_, 
                sensor_response_f_grid_NEW_,
                sensor_response_pol_grid_NEW_, sensor_response_za_grid_NEW_,
                sensor_response_aa_grid_NEW_,
