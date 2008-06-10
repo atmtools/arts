@@ -45,6 +45,7 @@ ReadXML( f_grid, "odin/f_mono.SM_AC2ab.xml" )
 
 IndexSet( sensor_norm, 1 )
 
+
 # Antenna:
 #
 AntennaSet1D
@@ -60,35 +61,24 @@ MatrixSet( antenna_los, 1, 1, 0 )
 # The pattern for smallest integration time is selected here.
 ReadXML( antenna_diagram, "odin/antenna.SM_AC2ab.875ms.xml" )
 
-# Polarisation:
-#
-MatrixSet( sensor_pol, 1, 1, 1 )
 
 # Mixer:
 #
-VectorSetExplicitly( lo, [497.88e9] )
-MatrixCreate( sideband_response )
-ReadXML( sideband_response, "odin/sideband.SM_AC2ab.xml" )
+NumericSet( lo_NEW, 497.88e9 )
+ReadXML( sideband_response_NEW, "odin/sideband.SM_AC2ab.xml" )
 StringSet( sideband_mode, "upper" )
+
 
 # Spectrometer:
 #
 ReadXML( f_backend, "odin/f_backend.SM_AC2ab.xml" )
-ArrayOfMatrixCreate( backend_ch_response )
-ReadXML( backend_ch_response, "odin/backend.xml" )
+ReadXML( backend_channel_response, "odin/backend_channel_response.xml" )
 
 
-sensor_responseInit
-sensor_responseAntenna1D
-sensor_responseMixer( 
-  sensor_response, sensor_response_f, f_mixer,
-  sensor_response_pol, sensor_response_za, lo, sensor_norm,
-  sideband_response 
-)
-sensor_responseBackend( 
-  sensor_response, sensor_response_f,
-  f_backend, sensor_response_pol, sensor_response_za, sensor_norm,
-  backend_ch_response
-)
+AntennaOff
+
+sensor_responseInit_NEW
+sensor_responseMixer_NEW
+sensor_responseBackend_NEW
 
 } # End Arts

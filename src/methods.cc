@@ -5940,6 +5940,39 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("sensor_responseBackend_NEW"),
+        DESCRIPTION
+        (
+         "Adds response of the backend (spectrometer).\n"
+         "\n"
+         "The function returns the sensor response matrix after the backend\n" 
+         "characteristics have been included.\n"
+         "\n"
+         "See *f_backend*, *backend_channel_response* and *sensor_norm* for\n"
+         "details on how to specify the backend response.\n"
+        ),
+        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
+        OUTPUT( sensor_response_, sensor_response_f_NEW_, 
+                sensor_response_pol_NEW_,
+                sensor_response_za_NEW_,
+                sensor_response_aa_NEW_, 
+                sensor_response_f_grid_NEW_ ),
+        INPUT( sensor_response_, sensor_response_f_NEW_, 
+               sensor_response_pol_NEW_,
+               sensor_response_za_NEW_,
+               sensor_response_aa_NEW_, 
+               sensor_response_f_grid_NEW_,
+               sensor_response_pol_grid_NEW_, sensor_response_za_grid_NEW_,
+               sensor_response_aa_grid_NEW_,
+               f_backend_, backend_channel_response_, sensor_norm_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("sensor_responseBackend"),
         DESCRIPTION
         (
@@ -6060,9 +6093,14 @@ md_data_raw.push_back
       ( NAME("sensor_responseMixer_NEW"),
         DESCRIPTION
         (
-         "Returns the response block matrix after it has been modified by\n"
-         "the mixer and sideband filter. The returned matrix converts RF to\n"
-         "IF.\n"
+         "Adds response of the mixer of a heterodyne system.\n"
+         "\n"
+         "The function returns the sensor response matrix after the mixer\n" 
+         "characteristics have been included. Frequency variables are\n"
+         "converted from radio frequency (RF) to intermediate frequency (IF).\n"
+         "\n"
+         "See *lo* and *sideband_response* for details on how to specify the\n"
+         "mixer response\n"
         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUTPUT( sensor_response_, sensor_response_f_NEW_, 

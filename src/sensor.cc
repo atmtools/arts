@@ -298,7 +298,7 @@ void mixer_matrix(
       e++;
     }
 
-  // Now we know the final size of H, so resize it
+  // Reisze H
   H.resize( f_mixer.nelem()*n_pol*n_sp, f_grid.nelem()*n_pol*n_sp );
 
   // Calculate the sensor summation vector and insert the values in the
@@ -919,6 +919,92 @@ void sensor_summation_vector(
    Constructs the sparse matrix that multiplied with the spectral values
    gives the spectra from the spectrometer.
 
+   The input to the function corresponds mainly to WSVs. See f_backend and
+   backend_channel_response for how the backend response is specified.
+
+   \param   H             The response matrix.
+   \param   ch_response   Corresponds directly to WSV backend_channel_response.
+   \param   ch_f          Corresponds directly to WSV f_backend.
+   \param   sensor_f      Corresponds directly to WSV sensor_response_f_grid.
+   \param   n_pol         The number of polarisations.
+   \param   n_sp          The number of spectra (viewing directions).
+   \param   do_norm       Corresponds directly to WSV sensor_norm.
+
+   \author Mattias Ekström and Patrick Eriksson
+   \date   2003-08-26 / 2008-06-10
+*/
+void spectrometer_matrix_NEW( 
+              Sparse&          H,
+        ConstMatrixView        ch_response,
+        ConstVectorView        ch_f,
+        ConstVectorView        sensor_f,
+        const Index&           n_pol,
+        const Index&           n_sp,
+        const Index&           do_norm )
+{
+  // Check if matrix has one frequency column or one for every channel
+  // frequency
+  assert( ch_response.ncols()==2 || ch_response.ncols()==ch_f.nelem()+1 );
+  Index freq_full = 1;
+  if( ch_response.ncols() == 2 )
+    { freq_full = 0; }
+
+  // Reisze H
+  //
+  const Index   nin_f  = sensor_f.nelem();
+  const Index   nout_f = ch_f.nelem();
+  const Index   nin    = n_sp * nin_f  * n_pol;
+  const Index   nout   = n_sp * nout_f * n_pol;
+  //
+  H.resize( nout, nin );
+
+  // Calculate the sensor integration vector and put values in the temporary
+  // vector, then copy vector to the transfer matrix
+  //
+  Vector ch_response_f;
+  Vector weights( nin_f );
+  Vector weights_long( nin, 0.0 );
+  //
+  for( Index ifr=0; ifr<nout_f; ifr++ ) 
+    {
+      //The spectrometer response is shifted for each centre frequency step
+      ch_response_f = ch_response(joker,0);
+      ch_response_f += ch_f[ifr];
+
+      // Call sensor_integration_vector and store it in the temp vector
+      sensor_integration_vector( weights, ch_response(joker,1+ifr*freq_full),
+                                 ch_response_f, sensor_f );
+
+      // Normalise if flag is set
+      if( do_norm )
+        weights /= weights.sum();
+
+      // Loop over polarisation and spectra (viewing directions)
+      // Weights change only with frequency
+      for( Index sp=0; sp<n_sp; sp++ ) 
+        {
+          for( Index pol=0; pol<n_pol; pol++ ) 
+            {
+              // Distribute the compact weight vector into weight_long
+              weights_long[Range(sp*nin_f*n_pol+pol,nin_f,n_pol)] = weights;
+
+              // Insert temp_long into H at the correct row
+              H.insert_row( sp*nout_f*pol + ifr*n_pol + pol, weights_long );
+
+              // Reset weight_long to zero.
+              weights_long = 0.0;
+            }
+        }
+    }
+}
+
+
+
+//! spectrometer_matrix
+/*!
+   Constructs the sparse matrix that multiplied with the spectral values
+   gives the spectra from the spectrometer.
+
    The size of the spectrometer transfer matrix has to be set by the calling
    function, and the number of rows must match the number of spectrometer
    channels times the number of viewing angles and polarisations while the
@@ -945,13 +1031,14 @@ void sensor_summation_vector(
    \author Mattias Ekström
    \date   2003-08-26
 */
-void spectrometer_matrix( Sparse&                H,
-                                   const ArrayOfMatrix&   ch_response,
-                                   ConstVectorView        ch_f,
-                                   ConstVectorView        sensor_f,
-                                   const Index&           n_za,
-                                   const Index&           n_pol,
-                                   const Index&           do_norm )
+void spectrometer_matrix( 
+              Sparse&          H,
+        const ArrayOfMatrix&   ch_response,
+        ConstVectorView        ch_f,
+        ConstVectorView        sensor_f,
+        const Index&           n_za,
+        const Index&           n_pol,
+        const Index&           do_norm )
 {
   // Check that the transfer matrix has the right size
   assert (H.nrows()==ch_f.nelem()*n_za*n_pol);

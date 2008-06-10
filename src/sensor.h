@@ -130,6 +130,15 @@ void sensor_summation_vector(
         const Numeric   lo,
       ConstMatrixView   sfrm );
 
+void spectrometer_matrix_NEW( 
+              Sparse&          H,
+        ConstMatrixView        ch_response,
+        ConstVectorView        ch_f,
+        ConstVectorView        sensor_f,
+        const Index&           n_pol,
+        const Index&           n_sp,
+        const Index&           do_norm );
+
 void spectrometer_matrix(
               Sparse&   H,
  const ArrayOfMatrix&   ch_response,
