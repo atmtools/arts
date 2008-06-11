@@ -17,7 +17,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.6.7)
+AM_INIT_AUTOMAKE(arts,1.6.8)
 
 dnl Put the ACLOCAL flags in the Makefile
 ACLOCAL="$ACLOCAL -I m4 $ACLOCAL_FLAGS"
@@ -314,7 +314,7 @@ case x$ax_cv_cxx_compiler_vendor in
 
     WARNINGCFLAGS="-W -Wall -Wconversion"
 
-    if test x$ax_openmp != xyes; then
+    if test x"$ax_openmp" != xyes; then
       WARNINGCFLAGS="$WARNINGCFLAGS -Wno-unknown-pragmas"
     fi
 
@@ -369,7 +369,7 @@ case x$ax_cv_cxx_compiler_vendor in
     #
     WARNINGCFLAGS="-Wall -Wshadow -w1 -diag-disable 383,981,1418,1419"
 
-    if test x$ax_openmp != xyes; then
+    if test x"$ax_openmp" != xyes; then
       WARNINGCFLAGS="$WARNINGCFLAGS -Wno-unknown-pragmas"
     fi
 
