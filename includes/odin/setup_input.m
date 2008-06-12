@@ -2,6 +2,9 @@ function setup_input
   
 % Both Qsmr and Atmlab are needed to run this script.
   
+% All storing de-activated (by %) to not cause any unnecessary svn commits.
+% Active the storing of the files you want to change.
+  
   
 %- Input is taken from operational software: Qsmr
 %
@@ -11,7 +14,11 @@ inpath = '/home/patrick/Projects/SMR/Qsmr/Input';
 %- Nominal LO settings
 %
 lo = [ 497.88e9 548.502e9 ];
+%
+%xmlStore( 'lo.SM_AC2ab.xml', lo(1), 'Numeric', 'DOUBLE' );
+%xmlStore( 'lo.SM_AC1e.xml', lo(2), 'Numeric', 'DOUBLE' );
 
+  
 
 %- Frequency grids
 %
@@ -87,19 +94,20 @@ r = qsmr_r_diplexer2( lo(2), lo(2)+3.9e9, f, 0 ) .* ...     % LO part
 %
 A = read_datafile( fullfile(inpath,'Backend','finalresponse.2001khz.aa'),...
                                                                     'Matrix' ); 
-xmlStore( 'backend_channel_response.xml', A, 'Matrix' );
+%xmlStore( 'backend_channel_response.xml', A, 'Matrix' );
 
 
 
 %- Nominal position of spectrometer channels
 %
-f = sort( abs( [501.170:0.001:501.592,501.970:0.001:502.392]*1e9 - lo(1) ) );
+f = 1e9 * [501.170:0.001:501.592,501.970:0.001:502.392];
 %
-%xmlStore( 'f_backend.SM_AC2ab.xml', f, 'Vector' );
+xmlStore( 'f_backend.SM_AC2ab.xml', f, 'Vector' );
 %
-f = sort( abs( [544.1:0.001:544.9]*1e9 -lo(2) ) );
+f = 1e9 * [544.1:0.001:544.9];
 %
-%xmlStore( 'f_backend.SM_AC1e.xml', f, 'Vector' );
+xmlStore( 'f_backend.SM_AC1e.xml', f, 'Vector' );
+
 
 
 

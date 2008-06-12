@@ -33,6 +33,7 @@
 #include <cmath>
 #include <list>
 #include "arts.h"
+#include "logic.h"
 #include "matpackI.h"
 #include "matpackII.h"
 #include "messages.h"
@@ -736,29 +737,60 @@ void sensor_aux_vectors(
 
    \param   h      The multiplication (row) vector.
    \param   f      The values of function f(x).
-   \param   x_ftot The grid points of function f(x).
-   \param   x_g    The grid points of function g(x).
+   \param   x_ftot The grid points of function f(x). Must be
+                   increasing.
+   \param   x_g    The grid points of function g(x). Can be
+                   increasing or decreasing.
 
-   \author Mattias Ekström
-   \date   2003-02-13
+   \author Mattias Ekström and Patrick Eriksson
+   \date   2003-02-13 / 2008-06-12
 */
 void sensor_integration_vector(
            VectorView   h,
       ConstVectorView   f,
-      ConstVectorView   x_ftot,
-      ConstVectorView   x_g )
+      ConstVectorView   x_ftot_in,
+      ConstVectorView   x_g_in )
 {
-  //Check that vectors are sorted, ascending (no descending?)
+  const Index ng = x_g_in.nelem();
+
+  assert( is_increasing( x_ftot_in ) );
+  assert( is_increasing( x_g_in ) || is_decreasing( x_g_in ) );
 
   //Assert that h has the right size
-  assert( h.nelem() == x_g.nelem() );
+  assert( h.nelem() == ng );
+
+  // Copy grids, handle reversed x_g and normalise to cover the range
+  // [0 1]. This is necessary to avoid numerical problems for
+  // frequency grids (e.g. experienced for a case with frequencies
+  // around 501 GHz).
+  //
+  Vector x_g         = x_g_in;
+  Vector x_ftot      = x_ftot_in;
+  Index  xg_reversed = 0;
+  //
+  if( is_decreasing( x_g ) )
+    {
+      xg_reversed = 1;
+      Vector tmp  = x_g[Range(ng-1,ng,-1)];   // Flip order
+      x_g         = tmp;
+    }
+  //
+  const Numeric xmin = min( x_g[0], x_ftot[0] );
+  const Numeric xmax = max( last(x_g), last(x_ftot) );
+  //
+  x_ftot -= xmin;
+  x_g    -= xmin;
+  x_ftot /= xmax - xmin;
+  x_g    /= xmax - xmin;
+
+
 
   //Find x_f points that lies outside the scope of x_g and remove them
   Index i1_f = 0, i2_f = x_ftot.nelem()-1;
   while( x_ftot[i1_f] < x_g[0] ) {
     i1_f++;
   }
-  while( x_ftot[i2_f] > x_g[x_g.nelem()-1] ) {
+  while( x_ftot[i2_f] > x_g[ng-1] ) {
     i2_f--;
   }
   Vector x_f = x_ftot[Range(i1_f, i2_f-i1_f+1)];
@@ -768,11 +800,10 @@ void sensor_integration_vector(
   list<Numeric> l_x;
   for (Index it=0; it<x_f.nelem(); it++)
     l_x.push_back(x_f[it]);
-  for (Index it=0; it<x_g.nelem(); it++) {
+  for (Index it=0; it<ng; it++) {
     if( x_g[it]>x_f[0] && x_g[it]<x_f[x_f.nelem()-1] )
       l_x.push_back(x_g[it]);
   }
-
 
   l_x.sort();
   l_x.unique();
@@ -791,7 +822,7 @@ void sensor_integration_vector(
   Index i_g = 0;
   //i = 0;
   Numeric dx,a0,b0,c0,a1,b1,c1,x3,x2,x1;
-  //while( i_g < x_g.nelem() && i_f < x_f.nelem() ) {
+  //while( i_g < ng && i_f < x_f.nelem() ) {
   for( Index i=0; i<x_ref.nelem()-1; i++ ) {
     //Find for what index in x_g (which is the same as for h) and f
     //calculation corresponds to
@@ -800,7 +831,6 @@ void sensor_integration_vector(
     }
     while( x_ftot[i_f+1] <= x_ref[i] ) {
      i_f++;
-     //cout << "i_f: " << i_f << "\n";
     }
 
     //If x_ref[i] is out of x_ftot's range then that part of the integral
@@ -828,8 +858,14 @@ void sensor_integration_vector(
       h[i_g+1] += (a1*x3+b1*x2+c1*x1) / dx;
 
     }
-    //i++;
   }
+
+  // Flip back if x_g was decreasing
+  if( xg_reversed )
+    {
+      Vector tmp = h[Range(ng-1,ng,-1)];   // Flip order
+      h = tmp;
+    }
 }
 
 

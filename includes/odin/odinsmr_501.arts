@@ -64,14 +64,15 @@ ReadXML( antenna_diagram, "odin/antenna.SM_AC2ab.875ms.xml" )
 
 # Mixer:
 #
-NumericSet( lo_NEW, 497.88e9 )
+ReadXML( lo_NEW, "odin/lo.SM_AC2ab.xml" )
 ReadXML( sideband_response_NEW, "odin/sideband.SM_AC2ab.xml" )
-StringSet( sideband_mode, "upper" )
+StringSet( sideband_mode_NEW, "upper" )
 
 
 # Spectrometer:
 #
 ReadXML( f_backend, "odin/f_backend.SM_AC2ab.xml" )
+#ReadXML( f_backend, "odin/f_backend_2.SM_AC2ab.xml" )
 ReadXML( backend_channel_response, "odin/backend_channel_response.xml" )
 
 
@@ -79,6 +80,7 @@ AntennaOff
 
 sensor_responseInit_NEW
 sensor_responseMixer_NEW
+sensor_responseIF2RF
 sensor_responseBackend_NEW
 
 } # End Arts

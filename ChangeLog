@@ -1,3 +1,43 @@
+2008-06-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-6-9
+
+	* New mixer and backend functions ready (but more testing needed).
+	Improved documentation and input checks. Functionality
+	streamlined. Conversion from IF to RF now handled inside the
+	sensor part (by sensor_responseIF2RF). Obtained RFs are decreasing
+	if lower band is target band. This is handled automatically by the
+	backend function.
+
+	* src/sensor.cc (sensor_integration_vector): Used grids are now 
+	normalised to cover the range [0,1]. This to avoid numerical problems.
+	For example, I got strange results when doing the Odin backend using
+	RFs around 501 GHz, instead of using IFs around 4 GHz. An awful detail
+	that could have caused undetected bad results. 
+
+	The function handles now also decreasing "g grids". Simplifies
+	strongly the IF to RF conversion. 
+
+	* includes/odin/odinsmr_501.arts: LO now taken from file.
+	* includes/odin/odinsmr_544.arts: Copied recent changes in 501 test
+	file.
+
+	* includes/odin/setup_input.m (setup_input): LO frequencies now stored
+	to files. To ensure consistency between this set-up script and
+	control files.
+
+	* src/m_sensor.cc (sensor_responseIF2RF): Created. The IF 2 RF
+	conversion is now handled when creating the sensor reponse matrix.
+	Much neater solution.
+	(sensor_responseInit_NEW): It is now checked that grids are
+	sorted. Decreasing grids allowed for mblock_za_grid and
+	mblock_aa_grid.
+	(sensor_responseMixer_NEW): It is now checked that frequency grid of
+	sideband_response is strictly increasing.
+	
+	* src/workspace.cc: Introduced sideband_mode_NEW. Allowed options
+	are now only "lower" and "upper".	
+
 2008-06-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-6-8

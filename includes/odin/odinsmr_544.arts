@@ -27,7 +27,7 @@ SpeciesSet( abs_species, [
 ] )
 
 # Line file
-abs_linesReadFromArts{ abs_lines, "odin/linefile.SM_AC1e.xml", 0, 2e12 )
+abs_linesReadFromArts( abs_lines, "odin/linefile.SM_AC1e.xml", 0, 2e12 )
 
 
 
@@ -58,35 +58,26 @@ MatrixSet( antenna_los, 1, 1, 0 )
 ReadXML( antenna_diagram, "odin/antenna.SM_AC1e.875ms.xml" )
 
 
-# Polarisation:
-#
-MatrixSet( sensor_pol, 1, 1, 1 )
-
 # Mixer:
 #
-VectorSetExplicitly( lo, [548.502e9] )
-MatrixCreate( sideband_response )
-ReadXML( sideband_response, "odin/sideband.SM_AC1e.xml" )
-StringSet( sideband_mode, "lower" )
+ReadXML( lo_NEW, "odin/lo.SM_AC1e.xml" )
+ReadXML( sideband_response_NEW, "odin/sideband.SM_AC1e.xml" )
+StringSet( sideband_mode_NEW, "lower" )
+
 
 # Spectrometer:
 #
 ReadXML( f_backend, "odin/f_backend.SM_AC1e.xml" )
-ArrayOfMatrixCreate( backend_ch_response )
-ReadXML( backend_ch_response, "odin/backend.xml" )
+#ReadXML( f_backend, "odin/f_backend_2.SM_AC1e.xml" )
+ReadXML( backend_channel_response, "odin/backend_channel_response.xml" )
 
 
-sensor_responseInit
-sensor_responseAntenna1D
-sensor_responseMixer( 
-  sensor_response, sensor_response_f, f_mixer,
-  sensor_response_pol, sensor_response_za, lo, sensor_norm,
-  sideband_response 
-)
-sensor_responseBackend( 
-  sensor_response, sensor_response_f,
-  f_backend, sensor_response_pol, sensor_response_za, sensor_norm,
-  backend_ch_response
-)
+AntennaOff
+
+sensor_responseInit_NEW
+sensor_responseMixer_NEW
+sensor_responseIF2RF
+sensor_responseBackend_NEW
+
 
 } # End Arts

@@ -3342,6 +3342,22 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "sideband_mode_NEW" ),
+      DESCRIPTION
+      (
+        "Description of target sideband.\n"
+        "\n"
+        "A text string describing which of the two sidebands (of a heterodyne\n"
+        "instrument) that can be seen as \"main\" band. Possible choices are:\n"
+        " \"lower\" : Low frequency sideband shall be considered as target.\n"
+        " \"upper\" : High frequency sideband shall be considered as target.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+       ),
+      GROUP( String_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "sideband_mode" ),
       DESCRIPTION
       (

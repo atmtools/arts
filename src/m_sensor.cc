@@ -750,7 +750,8 @@ void sensor_responseBackend_NEW(
     error_found = true;
   }
 
-  // Check number of columns in backend_channel_response 
+  // Check number of columns in backend_channel_response and that frequencies
+  // are strictly increasing
   if( backend_channel_response.ncols() != 2  &&
       backend_channel_response.ncols() == f_backend.nelem()+1 ) 
     {
@@ -758,6 +759,9 @@ void sensor_responseBackend_NEW(
          << "where n is the length of *f_backend*.\n"; 
       error_found = true;
     }
+  chk_if_increasing( "frequency grid of *backend_channel_response*", 
+                                            backend_channel_response(joker,0) );
+  // We allow f_backend to be unsorted
 
   // Check if the relative grid added to the channel frequencies expands
   // outside sensor_response_f_grid.
@@ -765,11 +769,10 @@ void sensor_responseBackend_NEW(
   Numeric f_dlow  = 0.0;
   Numeric f_dhigh = 0.0;
   //
-  f_dlow  = min( f_dlow, (backend_channel_response(0,0)+f_backend[0]) -
-                                                    sensor_response_f_grid[0] );
-  f_dhigh = min( f_dhigh, last(sensor_response_f) -
-        (backend_channel_response(backend_channel_response.nrows()-1,0) + 
-                                                             last(f_backend)) );
+  f_dlow  = min(f_backend) + backend_channel_response(0,0) -
+                                                    min(sensor_response_f_grid);
+  f_dhigh = max(sensor_response_f) - ( max(f_backend) +
+               backend_channel_response(backend_channel_response.nrows()-1,0) );
   //
   if (f_dlow<0) {
     os << "The WSV *sensor_response_f_grid* is too narrow. It should be\n"
@@ -926,149 +929,46 @@ void sensor_responseBackend(// WS Output:
 
 
 
-/* Workspace method: Doxygen documentation will be auto-generated 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseIF2RF(
         // WS Output:
-              Vector&         y,
               Vector&         sensor_response_f,
-              ArrayOfIndex&   sensor_response_pol,
-              Vector&         sensor_response_za,
-              Vector&         sensor_response_aa,
               Vector&         sensor_response_f_grid,
         // WS Input:
-        const ArrayOfIndex&   sensor_response_pol_grid,
-        const Vector&         sensor_response_za_grid,
-        const Vector&         sensor_response_aa_grid,
         const Numeric&        lo,
         const String&         sideband_mode )
 {
   // Check that frequencies are not too high. This might be a floating limit.
   // For this we use the variable f_lim, given in Hz.
-  Numeric f_lim = 50e9;
+  Numeric f_lim = 30e9;
   if( max(sensor_response_f_grid) > f_lim )
-    throw runtime_error("The frequencies seems to already be given in RF.");
-
-  // Some sizes
-  const Index nf   = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
-  const Index nza  = sensor_response_za_grid.nelem();
-  const Index naa  = sensor_response_aa_grid.nelem();
-  const Index nin  = nf * npol * nza;
-  // Note that there is no distinction between za and aa grids after the antenna
-
-  // Initialise a output stream for runtime errors and a flag for errors
-  ostringstream os;
-  bool          error_found = false;
-
-  // Check that sensor_response variables and y are consistent in size
-  if( sensor_response_f.nelem() != y.nelem() )
-  {
-    os << "Inconsistency in size between *sensor_response_f* and *y*.\n";
-    error_found = true;
-  }
-  if( sensor_response_f.nelem() != nin )
-  {
-    os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
-       << "grid variables (sensor_response_f_grid etc.).\n";
-    error_found = true;
-  }
-  if( naa  &&  naa != nza )
-  {
-    os << "Incorrect size of *sensor_response_aa_grid*.\n";
-    error_found = true;
-  }
-  if( sensor_response.nrows() != nin )
-  {
-    os << "The sensor block response matrix *sensor_response* does not have\n"
-       << "right size compared to the sensor grid variables\n"
-       << "(sensor_response_f_grid etc.).\n";
-    error_found = true;
-  }
-
-  // If errors where found throw runtime_error with the collected error
-  // message.
-  if (error_found)
-    throw runtime_error(os.str());
+    throw runtime_error( "The frequencies seem to already be given in RF." );
 
 
-  // SSB, lower band is target
-  if( sideband_mode=="lower" ) 
+  // Lower band
+  if( sideband_mode == "lower" ) 
     {
-      // Only lower sideband will be output, the sizes of the output vectors
-      // will not increase, only the values are changed.
-      // First we reverse *sensor_response_f* and subtract it from *lo*
-      Vector f_tmp = sensor_response_f_grid;
-      //
-      f_tmp = f_tmp[Range(sensor_response_f.nelem()-1,joker,-1)];
-      f_tmp *= -1;
-      f_tmp += lo;
-
-      // The measurement vector *y* then also has to be reversed for each
-      // measurement block, zenith and azimuth angle, and polarisation to 
-      // match the frequency vector.
-      Vector y_out( y.nelem() );
-    for( Index mb=0; mb<n_mb; mb++ ) {
-      for( Index az=0; az<n_az; az++ ) {
-        Index mb_az = (mb*n_az+az)*n_pol*n_freq;
-        for( Index p=0; p<n_pol; p++ ) {
-          y_out[Range(mb_az+p,n_freq,n_pol)] =
-            y[Range(mb_az+(n_freq-1)*n_pol+p,n_freq,-n_pol)];
-        }
-      }
+      sensor_response_f      *= -1;
+      sensor_response_f_grid *= -1;
+      sensor_response_f      += lo;
+      sensor_response_f_grid += lo;
     }
 
-    // Copy temporary vectors to output vectors
-    sensor_response_f = f_out;
-    y = y_out;
-
-  } else if( sideband_mode=="upper") {
-    // Only upper sideband will be output, as above the sizes will not change
-    // This time we only need to add *lo* to *sensor_response_f*
-    // The measurement vector *y* is untouched.
-    sensor_response_f += l;
-
-  } else if( sideband_mode=="double") {
-    // Both upper and lower sideband will be output. The size of both the
-    // frequency and measurement vectors will be doubled.
-    // First copy the content of *sensor_response_f* twice to f_out, first
-    // reversed and then in normal order
-    Vector f_out( n_freq*2 );
-    f_out[Range(0,n_freq)] = sensor_response_f[Range(n_freq-1,joker,-1)];
-    f_out[Range(n_freq,n_freq)] = sensor_response_f;
-
-    // Subtract f_out from *lo* for the first half, and then add *lo* to
-    // f_out for the second half
-    f_out[Range(0,n_freq)] *= -1;
-    f_out += l;
-
-    // The measurement vector *y* is also unfolded in a similar manner.
-    Vector y_out( y.nelem()*2 );
-    for( Index mb=0; mb<n_mb; mb++ ) {
-      for( Index az=0; az<n_az; az++ ) {
-        // Primary band, just moved down the vector
-        Index mb_az = (mb*n_az+az)*n_pol*n_freq;
-        y_out[Range(2*mb_az+n_az*n_freq*n_pol,n_az*n_freq*n_pol)] =
-          y[Range(mb_az,n_az*n_freq*n_pol)];
-        // Image band, here we need to resort the vector        
-        for( Index p=0; p<n_pol; p++ ) {
-          Index mb2_az = (2*mb*n_az+az)*n_pol*n_freq;
-          y_out[Range(mb2_az+p,n_freq,n_pol)] =
-            y[Range(mb_az+(n_freq-1)*n_pol+p,n_freq,-n_pol)];
-        }
-      }
+  // Upper band
+  else if( sideband_mode=="upper" ) 
+    {
+      sensor_response_f      += lo;
+      sensor_response_f_grid += lo;
     }
-    
-    // Copy temporary vectors to output vectors
-    sensor_response_f = f_out;
-    y = y_out;
 
-  } else {
-    // If keyword is wrong, throw runtime error
-    throw runtime_error(
-      "The keyword \"output\" is either wrong or misspelled.");
-  }
+  // Unknown option
+  else
+    {
+      throw runtime_error(
+      "Only allowed options for *sideband _mode* are \"lower\" and \"upper\"." );
+    }
 }
-*/
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1093,13 +993,24 @@ void sensor_responseInit_NEW(
         const Index&          sensor_norm )
 {
   // Check input
-  //
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+
+  // Basic variables
+  chk_if_in_range( "stokes_dim",  stokes_dim,  1, 4 );
   chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
-  //
+  chk_if_bool(     "sensor_norm", sensor_norm       );
+
+  // f_grid (could in fact be decreasing, but an increasing grid is
+  // demanded in other parts).
+  chk_if_increasing( "f_grid", f_grid );
+  
+  // mblock_za_grid
   if( mblock_za_grid.nelem() == 0 )
     throw runtime_error( "The measurement block zenith angle grid is empty." );
-  chk_if_increasing( "mblock_za_grid", mblock_za_grid );
+  if( !is_increasing(mblock_za_grid)  &&  !is_decreasing(mblock_za_grid) )  
+    throw runtime_error( 
+        "The WSV *mblock_za_grid* must be strictly increasing or decreasing." );
+
+  // mblock_za_grid
   if( antenna_dim == 1 )
     {
       if( mblock_aa_grid.nelem() != 0 )
@@ -1118,12 +1029,10 @@ void sensor_responseInit_NEW(
              << "a 2D antenna pattern is flagged (*antenna_dim*).";
           throw runtime_error( os.str() );
         }
-      chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
+      if( !is_increasing(mblock_za_grid)  &&  !is_decreasing(mblock_za_grid) )  
+        throw runtime_error( 
+        "The WSV *mblock_aa_grid* must be strictly increasing or decreasing." );
     }
-  //
-  if( sensor_norm!=1  &&  sensor_norm!=0 )
-    throw runtime_error(
-      "The normalisation flag, *sensor_norm*, has to be either 0 or 1." );
 
 
   // Set grid variables
@@ -1268,13 +1177,16 @@ void sensor_responseMixer_NEW(
     error_found = true;
   }
 
-  // Check that the sideband filter matrix has OK size
+  // Check that the sideband filter matrix has OK size and that frequencies
+  // are strictly increasing
   if( sbresponse.ncols()!=2 )
   {
     os << "The sideband filter response matrix has not been\n"
        << "correctly initialised. A two column matrix is expected.\n";
     error_found = true;
   }
+  chk_if_increasing( "frequency grid of *sideband_response*", 
+                                                         sbresponse(joker,0) );
 
   // and that it covers the whole sensor_response_f range.
   Numeric df_high = sbresponse(sbresponse.nrows()-1,0) - 

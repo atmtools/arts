@@ -2225,8 +2225,6 @@ void define_md_data_raw()
         TYPES(    Numeric_t, Numeric_t, Numeric_t, Numeric_t, Numeric_t, 
                   Numeric_t )));
 
-  
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME("ConvertIFToRF"),
@@ -5965,6 +5963,32 @@ md_data_raw.push_back
                sensor_response_pol_grid_NEW_, sensor_response_za_grid_NEW_,
                sensor_response_aa_grid_NEW_,
                f_backend_, backend_channel_response_, sensor_norm_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("sensor_responseIF2RF"),
+        DESCRIPTION
+        (
+         "Converts sensor response variables from IF to RF.\n"
+         "\n"
+         "The function converts intermediate frequencies (IF) in\n"
+         "*sensor_response_f* and *sensor_response_f_grid* to radio\n"
+         "frequencies (RF). This conversion is needed if the frequency\n"
+         "translation of a mixer is included and the position of backend\n"
+         "channels are specified in RF.\n"
+         "\n"
+         "A direct frequency conversion is performed. Values are not\n"
+         "sorted in any way.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUTPUT( sensor_response_f_NEW_, sensor_response_f_grid_NEW_ ),
+        INPUT( sensor_response_f_NEW_, sensor_response_f_grid_NEW_, 
+               lo_NEW_, sideband_mode_NEW_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
