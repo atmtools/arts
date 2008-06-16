@@ -1,3 +1,12 @@
+2008-06-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-6-10
+
+	* doc/uguide/Makefile.am, doc/reference/Makefile.am:
+
+	Set environment variable save_size to 15000. (Thanks to Cory for the
+	hint!)
+
 2008-06-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-6-9

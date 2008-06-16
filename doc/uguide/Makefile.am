@@ -75,12 +75,12 @@ if MAINTAINER_MODE
 # distributed automatically.
 
 uguide.pdf: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex uguide && \
 	makeindex uguide.idx && \
-	BSTINPUTS=.:$(srcdir):${BSTINPUTS}: BIBINPUTS=.:$(srcdir):${BIBINPUTS}: bibtex uguide && \
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide && \
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide && \
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: pdflatex uguide | tee make.log || \
+	BSTINPUTS=.:$(srcdir):${BSTINPUTS}: BIBINPUTS=.:$(srcdir):${BIBINPUTS}: save_size=15000 bibtex uguide && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex uguide && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex uguide && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex uguide | tee make.log || \
 	(echo "Errors encountered while building user guide."; rm -f uguide.pdf)
 
 
