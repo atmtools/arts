@@ -92,7 +92,7 @@ RteCalcMC( y, mc_error, iy_space_agenda, surface_prop_agenda,
     lat_grid, lon_grid, z_field, t_field, vmr_field, r_geoid, z_surface, 
     cloudbox_on, cloudbox_limits, pnd_field, scat_data_raw, sensor_response, 
     sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, mblock_za_grid, 
-    mblock_aa_grid, y_unit, 4, -1, -1, 1 )
+    mblock_aa_grid, y_unit, -1, 4, -1, 1 )
 
 
 #### Save calculated Stokes vector and std. err.#########################

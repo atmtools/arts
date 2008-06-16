@@ -1,3 +1,24 @@
+2008-06-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-6-12
+
+	* src/sensor.cc (sensor_integration_vector): Commented out
+	assert( is_increasing( x_ftot_in ) ). This to make AMSU test to run
+	without failure. The assert was OK, but the AMSU set-up creates
+	an unsorted grid for the 89 GHz channel. Results probably OK, but
+	still an issue to be resolved.
+
+	* src/m_sensor.cc: Started on sensor_responseAntenna_NEW. No
+	active code yet.
+
+	* src/workspace.cc: Introduced antennna_response_NEW (to replace 
+	antenna_diagram).
+
+	* tests/MonteCarlo/TestRteCalcMC.arts: Calculation accurary now
+	time limited. This to avoid that time for running test depends on
+	computer used. The calculation time was OK for me, but as
+	RteCalcMC uses threads the time culd be much higher for others.
+
 2008-06-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-6-11

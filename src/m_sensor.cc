@@ -556,6 +556,101 @@ void sensorOff(
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated 
+void sensor_responseAntenna_NEW(
+        // WS Output:
+              Sparse&                 sensor_response,
+              Vector&                 sensor_response_f,
+              ArrayOfIndex&           sensor_response_pol,
+              Vector&                 sensor_response_za,
+              Vector&                 sensor_response_aa,
+              Vector&                 sensor_response_za_grid,
+        // WS Input:
+        const ArrayOfIndex&           sensor_response_pol_grid,
+        const Vector&                 sensor_response_f_grid,
+        const Vector&                 sensor_response_aa_grid,
+        const Index&                  atmosphere_dim,
+        const Index&                  antenna_dim,
+        const Matrix&                 antenna_los,
+        const ArrayOfGriddedField3&   aresponse )
+{
+  // Basic checks
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
+
+  // Some sizes
+  const Index nf   = sensor_response_f_grid.nelem();
+  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nza  = sensor_response_za_grid.nelem();
+  const Index naa  = max( 1, sensor_response_aa_grid.nelem() );
+  const Index nin  = nf * npol * nza naa;
+
+  // Initialise a output stream for runtime errors and a flag for errors
+  ostringstream os;
+  bool          error_found = false;
+
+  // Check that sensor_response variables are consistent in size
+  if( sensor_response_f.nelem() != nin )
+  {
+    os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
+       << "grid variables (sensor_response_f_grid etc.).\n";
+    error_found = true;
+  }
+  if( sensor_response.nrows() != nin )
+  {
+    os << "The sensor block response matrix *sensor_response* does not have\n"
+       << "right size compared to the sensor grid variables\n"
+       << "(sensor_response_f_grid etc.).\n";
+    error_found = true;
+  }
+
+  // Checks related to antenna dimension
+  if( antenna_dim == 2  &&  atmosphere_dim < 3 )
+  {
+    os << "If *antenna_dim* is 2, *atmosphere_dim* must be 3.\n";
+    error_found = true;
+  }
+  if( antenna_dim == 1  &&  sensor_response_aa_grid.nelem() )
+  {
+    os << "If *antenna_dim* is 1, *sensor_response_aa_grid* (and\n"
+       << "*mblock_aa_grid*) must be empty.";
+    error_found = true;
+  }
+
+  // Check of antenna_los
+  if( antenna_dim != antenna_los.ncols() ) 
+  {
+    os << "The number of columns of *antenna_los* must be *antenna_dim*.\n";
+    error_found = true;
+  }
+
+  // Checks of antenna_response
+  if( aresponse.nelem() != 1  && aresponse.nelem() < npol )  
+  {
+    os << "The number of array elements in *antenna_response* must be 1 or\n"
+       << ">= the number of polarisations (normally equal to *stokes_dim*).\n";
+    error_found = true;
+  }
+  for( Index ip=0; ip<aresponse.nelem(); ip++ )
+  {  
+    Vector& f_grid  = aresponse[ip].p_grid;
+    Vector& za_grid = aresponse[ip].lat_grid;
+    Vector& aa_grid = aresponse[ip].lon_grid;
+
+    if( !is_increasing( f_grid ) )
+      {}
+  }
+
+  // If errors where found throw runtime_error with the collected error
+  // message.
+  if (error_found)
+    throw runtime_error(os.str());
+
+}
+*/
+
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseAntenna1D(
        // WS Output:

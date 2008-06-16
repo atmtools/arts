@@ -699,6 +699,19 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "antenna_response_NEW" ),
+      DESCRIPTION
+      (
+       "The antenna pattern/response.\n"
+       "\n"
+       "To be written ...\n"
+       "\n"
+       "Usage:      Set by the user.\n"
+       ),
+      GROUP( ArrayOfGriddedField3_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "atmosphere_dim" ),
       DESCRIPTION
       (

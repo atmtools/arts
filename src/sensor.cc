@@ -48,6 +48,137 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+void antenna_matrix_NEW(      Sparse&   H,
+                      ConstVectorView   m_za,
+          const ArrayOfArrayOfMatrix&   diag,
+                      ConstVectorView   x_f,
+                      ConstVectorView   ant_za,
+                         const Index&   n_pol,
+                         const Index&   do_norm )
+{
+  // Calculate number of antennas/beams
+  const Index n_ant = ant_za.nelem();
+
+  // Check that the output matrix the right size
+  assert(H.nrows()==x_f.nelem()*n_ant*n_pol);
+  assert(H.ncols()==m_za.nelem()*x_f.nelem()*n_pol);
+  
+  // Check the size of the antenna diagram array of arrays and set a flag
+  // if only one angle is given or if there is a complete set for each
+  // angle. Initialise also flags for polarisation and frequency.
+  assert(diag.nelem()==1 || diag.nelem()==n_ant);
+  Index a_step = 0;
+  Index p_step = 0;
+  Index f_step = 0;
+  if (diag.nelem()>1)
+    a_step = 1;
+
+  // Initialise variables that will store the angle, polarisation and
+  // frequency grid points, so that we can check if the same antenna
+  // diagram is used in succeding loops. We need the variables to
+  // start with values out of the range of the different grids, therefore
+  // we initialise them to their respective grid number of elements plus
+  // one.
+  Index a_old = n_ant+1;
+  Index p_old = n_pol+1;
+  Index f_old = x_f.nelem()+1;
+
+  // We need also to keep track of changes in za's
+  Index newza = 1;
+
+  // Initialise temporary vectors for storing integration vector values
+  // before storing them in the final sparse matrix and start looping
+  // through the viewing angles.
+  //
+  Vector temp( H.ncols(), 0.0 );
+  Vector temp_za( m_za.nelem(), 0.0 );
+  Vector za_rel(0);
+  //
+  for (Index a=0; a<n_ant; a++) {
+
+    Index a_this = a*a_step;
+
+    // Check the size of this element of diag and set a flag if only one
+    // polarisation is given or if there is a complete set for each
+    // polarisation.
+    assert( diag[a_this].nelem()==1 || diag[a_this].nelem()==n_pol );
+    //
+    if (diag[a_this].nelem()>1)
+      p_step = 1;
+    else
+      p_step = 0;
+
+    // Loop through the polarisation antenna diagrams.
+    for (Index p=0; p<n_pol; p++) {
+
+      Index p_this = p*p_step;
+
+      // Check the number of columns in this matrix and set flag if one
+      // column is given or if there is a complete set for each frequency.
+      assert( (diag[a_this])[p_this].ncols()==2 || 
+              (diag[a_this])[p_this].ncols()==x_f.nelem()+1 );
+      //
+      if ((diag[a_this])[p_this].ncols()!=2)
+        f_step = 1;
+      else
+        f_step = 0;
+
+      // Add the angle offset of this antenna/beam.
+      // This must be done for every new beam.
+      //
+      if( a!=a_old  ||  p_this!=p_old )
+        {
+          za_rel  = (diag[a_this])[p_this](joker, 0);
+          za_rel += ant_za[a];
+          newza   = 1;
+        }
+
+
+      // Loop through x_f and calculate the sensor integration vector
+      // for each frequency and put values in the temp vector. For this
+      // we use vectorviews where the elements are separated by number
+      // of frequencies in x_f.
+      for (Index f=0; f<x_f.nelem(); f++) {
+
+        Index f_this = f*f_step;
+
+        // Check if the antenna pointer still points to the same antenna
+        // diagram, if so don't recalculate the integration vector.
+        //
+        if( newza || a_this!=a_old || p_this!=p_old || f_this!=f_old ) 
+          {
+            sensor_integration_vector( temp_za,
+                                     (diag[a_this])[p_this](joker, 1+f_this),
+                                     za_rel, m_za );
+
+            // Normalise if flag is set
+            if (do_norm)
+              temp_za /= temp_za.sum();
+
+            a_old = a_this;
+            p_old = p_this;
+            f_old = f_this;
+            newza = 0;
+          }
+
+        // Now distribute the temp_za elements into temp, where they will
+        // be spread with the number of frequencies. Then insert the
+        // vector into the output matrix at the specific row corresponding
+        // to this frequency, polarisation and viewing direction. To do
+        // we first check if the same antenna diagram applies for all
+        // polarisations, i.e. p_step = 0, if so insert it n_pol times.
+        //
+        temp[ Range( f*n_pol+p, m_za.nelem(), x_f.nelem()*n_pol ) ] = temp_za;
+        H.insert_row( a*n_pol*x_f.nelem()+f*n_pol+p, temp );
+        //
+        temp = 0.0;
+      }
+    }
+  }
+}
+
+
+
 //! antenna_matrix
 /*!
    Constructs the sparse matrix that multiplied with the spectral values
@@ -737,10 +868,10 @@ void sensor_aux_vectors(
 
    \param   h      The multiplication (row) vector.
    \param   f      The values of function f(x).
-   \param   x_ftot The grid points of function f(x). Must be
-                   increasing.
-   \param   x_g    The grid points of function g(x). Can be
-                   increasing or decreasing.
+   \param   x_ftot The grid points of function f(x). Must be increasing.
+   \param   x_g    The grid points of function g(x). Can be increasing or 
+                   decreasing. Must cover a wider range than x_ftot (in
+                   both ends).
 
    \author Mattias Ekström and Patrick Eriksson
    \date   2003-02-13 / 2008-06-12
@@ -753,10 +884,8 @@ void sensor_integration_vector(
 {
   const Index ng = x_g_in.nelem();
 
-  assert( is_increasing( x_ftot_in ) );
+  //assert( is_increasing( x_ftot_in ) );
   assert( is_increasing( x_g_in ) || is_decreasing( x_g_in ) );
-
-  //Assert that h has the right size
   assert( h.nelem() == ng );
 
   // Copy grids, handle reversed x_g and normalise to cover the range
@@ -794,6 +923,7 @@ void sensor_integration_vector(
     i2_f--;
   }
   Vector x_f = x_ftot[Range(i1_f, i2_f-i1_f+1)];
+
 
   //Create a reference grid vector, x_ref that containing the values of
   //x_f and x_g strictly sorted.
