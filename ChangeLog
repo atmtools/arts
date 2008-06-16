@@ -1,5 +1,15 @@
 2008-06-16  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-6-11
+	
+	* README: Add list of prerequisites.
+
+	* doc/uguide/development.tex:
+
+	Add documentation of common configure arguments.
+
+2008-06-16  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-6-10
 
 	* doc/uguide/Makefile.am, doc/reference/Makefile.am:

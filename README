@@ -10,6 +10,28 @@ http://www.sat.uni-bremen.de/arts/docs.php
 For documentation, please see the files in the doc subdirectory.
 For building and installation instructions please see the INSTALL file.
 
+Prerequisites for building arts:
+
+gcc (or icc)
+g++ (or icc)
+automake
+zlib
+
+To build from subversion you additionally need:
+
+pdflatex
+doxygen
+graphviz
+
+On ubuntu you have to install the following packages:
+
+build-essential
+automake
+zlib1g-dev
+texlive
+doxygen
+graphviz
+
 It is likely that you want to install ARTS under your home directory
 as a normal user. In this case, if your homedirectory is /home/myself,
 you should run the configure script like this:

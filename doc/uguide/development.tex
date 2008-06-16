@@ -105,23 +105,30 @@ very good in the GNU system, so we had to use some tricks to make sure
 that the Doxygen automatic documentation and the User Guide work as they
 should. 
 
-%\subsection{Configure options}
-%%============================
+\subsection{Configure options}
+%========================================
 
-% FIXME: Oliver, please put in a part here about the different
-% ARTS specific configure options. (Particularly maintainer-mode.)
+Here are some interesting options for \artsstyle{configure}/\artsstyle{autogen.sh}:
 
-% Here are some interesting options for \artsstyle{configure}:
-%
-%\begin{description}
-%\item[--disable-warnings:] 
-%  Compile without \artsstyle{-Wall} on g++ compilers (by default warnings are on).
-%\item[--disable-assert:] Include \artsstyle{#define NDEBUG 1} in
-%  \fileindex{config.h}.  The central switch to turn off all debugging
-%  features (index range checking for vectors, the trace facility,
-%  assertions,...) \textbf{Not yet implemented.}
-%
-%\end{description}
+\begin{description}
+\item[\artsstyle{--disable-debug}:] Removes '-g' from the compiler flags and includes \artsstyle{\#define NDEBUG 1} in
+\fileindex{config.h}.  The central switch to turn off all debugging
+features (index range checking for vectors, the trace facility,
+assertions,...). In maintainer mode, debugging is enabled by default.
+
+\item[\artsstyle{--disable-maintainer-mode}:] 
+Disables certain developer-centric features such as generating the user guide and the doxygen html documentation. The maintainer mode is enabled by default when using \artsstyle{autogen.sh} to configure arts.
+
+\item[\artsstyle{--disable-more-warnings}:] 
+Compile without \artsstyle{-Werror}. More warnings are enabled by default in maintainer mode except for compilers which are known to throw warnings.
+
+\item[\artsstyle{--disable-optimize}:]
+Disable optimizations. Certain variables or functions might not be visible to the debugger when optimizations are enabled. The compiler can decide to not allocate memory for certain variables or inline whole functions for speed. This can lead to strange behaviour while debugging the program. Note: If you use the Intel C++ Compiler, disabling optimizations also turns off OpenMP parallization.
+
+\item[\artsstyle{--disable-vectorize}:] 
+Disables the generation of multi-threaded code. Configure tries to detect if the compiler supports OpenMP and enables it by default.
+
+\end{description}
 
 
 \subsection{Adding directories or files}
