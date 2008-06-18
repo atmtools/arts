@@ -72,7 +72,6 @@ StringSet( sideband_mode_NEW, "upper" )
 # Spectrometer:
 #
 ReadXML( f_backend, "odin/f_backend.SM_AC2ab.xml" )
-#ReadXML( f_backend, "odin/f_backend_2.SM_AC2ab.xml" )
 ReadXML( backend_channel_response, "odin/backend_channel_response.xml" )
 
 

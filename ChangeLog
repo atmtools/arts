@@ -1,3 +1,35 @@
+2008-06-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-6-14
+
+	* Basic parts of new version for mixer and backend finished. So far
+	only tested through the Odin test case.
+	
+	* includes/odin/setup_input.m: Sideband response now stored as a
+	function of IF.
+
+	* src/m_sensor.cc (sensor_responseMixer_NEW): Modified checks to match
+	change of sideband_response_NEW, and added more checks.
+
+	* src/workspace.cc: Changed defintion of
+	sideband_response_NEW. Shall now be given as IF, and must have end
+	points symmetrically placed around 0.
+
+	* src/sensor.cc (sensor_integration_vector_NEW): New version of
+	this function. Polished, complete set of asserts and removed
+	unneccesary removal of values in x_f.
+
+ 	(spectrometer_matrix_NEW): Some polishing.
+
+	(sensor_summation_vector_NEW): Function revised. Function header
+	and variables are now expressed in general terms, and not
+	mixer/sideband specific. For example, lo was input before. Changed
+	to new demand that sensor response is narrower than spectral
+	coverage.
+
+	(mixer_matrix_NEW): Changed according to new definition of
+	sideband_response_NEW, more asserts and revised in general.
+ 
 2008-06-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-6-13

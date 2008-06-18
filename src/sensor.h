@@ -59,12 +59,15 @@ void antenna_matrix(
                  const Index&   n_pol,
                  const Index&   do_norm );
 
-/*
-void merge_grids(
-              Vector&   tot,
-      ConstVectorView   ref,
-      ConstVectorView   rel );
-*/
+void mixer_matrix_NEW(
+              Sparse&   H,
+              Vector&   f_mixer,
+      ConstVectorView   f_grid,
+        const Numeric   lo,
+      ConstMatrixView   filter,
+          const Index   n_pol,
+          const Index   n_sp,
+          const Index   do_norm );
 
 void mixer_matrix(
               Sparse&   H,

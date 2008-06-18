@@ -179,6 +179,533 @@ void antenna_matrix_NEW(      Sparse&   H,
 
 
 
+//! mixer_matrix
+/*!
+   Sets up the sparse matrix that models the response from sideband filtering
+   and the mixer.
+
+   The size of the transfer matrix is changed in the function
+   as follows:
+     nrows = f_mixer.nelem()
+     ncols = f_grid.nelem()
+
+   The returned frequencies are given in IF, so both primary and mirror band
+   is converted down.
+
+   \param   H         The mixer/sideband filter transfer matrix
+   \param   f_mixer   The frequency grid of the mixer
+   \param   f_grid    The original frequency grid of the spectrum
+   \param   lo        The local oscillator frequency
+   \param   filter    The sideband filter matrix. See *sideband_response*
+                      for format and constraints.
+   \param   n_pol     The number of polarisations to consider
+   \param   n_sp      The number of spectra (viewing directions)
+   \param   do_norm   Flag whether rows should be normalised
+
+   \author Mattias Ekström / Patrick Eriksson
+   \date   2003-05-27 / 2008-06-17
+*/
+void mixer_matrix_NEW(
+              Sparse&   H,
+              Vector&   f_mixer,
+      ConstVectorView   f_grid,
+        const Numeric   lo,
+      ConstMatrixView   filter,
+          const Index   n_pol,
+          const Index   n_sp,
+          const Index   do_norm )
+{
+  const Index nrp = filter.nrows();
+
+  // Asserts
+  assert( lo > f_grid[0] );
+  assert( lo < last(f_grid) );
+  assert( filter.ncols() == 2 );
+  assert( filter.nrows() >= 2 );
+  assert( fabs(filter(nrp-1,0)+filter(0,0)) < 1e3 );
+  assert( lo+filter(0,0) >= f_grid[0] );
+  assert( lo+filter(nrp-1,0) <= last(f_grid) );
+
+  // Find indices in f_grid where f_grid is just below and above the
+  // lo frequency.
+  Index i_low = 0, i_high = f_grid.nelem()-1, i_mean;
+  while( i_high-i_low > 1 )
+    {
+      i_mean = (Index) (i_high+i_low)/2;
+      if (f_grid[i_mean]<lo)
+        { 
+          i_low = i_mean; 
+        }
+      else
+        {
+          i_high = i_mean;
+        }
+    }
+  if (f_grid[i_high]==lo)
+    {
+      i_high++;
+    }
+
+  // Determine IF limits for new frequency grid
+  const Numeric lim_low  = max( lo-f_grid[i_low], f_grid[i_high]-lo );
+  const Numeric lim_high = -filter(0,0);
+
+  // Convert sidebands to IF and use list to make a unique sorted
+  // vector, this sorted vector is f_mixer.
+  list<Numeric> l_mixer;
+  for( Index i=0; i<f_grid.nelem(); i++ )
+    {
+      if( fabs(f_grid[i]-lo)>=lim_low && fabs(f_grid[i]-lo)<=lim_high )
+        {
+          l_mixer.push_back(fabs(f_grid[i]-lo));
+        }
+    }
+  l_mixer.push_back(lim_high);   // Not necessarily a point in f_grid
+  l_mixer.sort();
+  l_mixer.unique();
+  f_mixer.resize((Index) l_mixer.size());
+  Index e=0;
+  for (list<Numeric>::iterator li=l_mixer.begin(); li != l_mixer.end(); li++)
+    {
+      f_mixer[e] = *li;
+      e++;
+    }
+
+  // Reisze H
+  H.resize( f_mixer.nelem()*n_pol*n_sp, f_grid.nelem()*n_pol*n_sp );
+
+  // Calculate the sensor summation vector and insert the values in the
+  // final matrix taking number of polarisations and zenith angles into
+  // account.
+  Vector row_temp( f_grid.nelem() );
+  Vector row_final( f_grid.nelem()*n_pol*n_sp );
+  //
+  Vector if_grid  = f_grid;
+         if_grid -= lo;
+  //
+  for( Index i=0; i<f_mixer.nelem(); i++ ) 
+    {
+      sensor_summation_vector_NEW( row_temp, filter(joker,1), filter(joker,0), 
+                                   if_grid, f_mixer[i], -f_mixer[i] );
+
+      // Normalise if flag is set
+      if (do_norm)
+        row_temp /= row_temp.sum();
+
+      // Loop over number of polarisations
+      for (Index p=0; p<n_pol; p++)
+        {
+          // Loop over number of zenith angles/antennas
+          for (Index a=0; a<n_sp; a++)
+            {
+              // Distribute elements of row_temp to row_final.
+              row_final = 0.0;
+              row_final[Range(a*f_grid.nelem()*n_pol+p,f_grid.nelem(),n_pol)]
+                                                                     = row_temp;
+              H.insert_row(a*f_mixer.nelem()*n_pol+p+i*n_pol,row_final);
+            }
+        }
+    }
+}
+
+
+
+//! sensor_aux_vectors
+/*!
+   Sets up the the auxiliary vectors for sensor_response.
+
+   The function assumes that all grids are common, and the aux vectors
+   are just the grids repeated
+
+   \param   sensor_response_f          As the WSV with same name
+   \param   sensor_response_pol        As the WSV with same name
+   \param   sensor_response_za         As the WSV with same name
+   \param   sensor_response_aa         As the WSV with same name
+   \param   sensor_response_f_grid     As the WSV with same name
+   \param   sensor_response_pol_grid   As the WSV with same name
+   \param   sensor_response_za_grid    As the WSV with same name
+   \param   sensor_response_aa_grid    As the WSV with same name
+
+   \author Patrick Eriksson
+   \date   2008-06-09
+*/
+void sensor_aux_vectors(
+          Vector&           sensor_response_f,
+          ArrayOfIndex&     sensor_response_pol,
+          Vector&           sensor_response_za,
+          Vector&           sensor_response_aa,
+          ConstVectorView   sensor_response_f_grid,
+    const ArrayOfIndex&     sensor_response_pol_grid,
+          ConstVectorView   sensor_response_za_grid,
+          ConstVectorView   sensor_response_aa_grid )
+{
+  // Sizes
+  const Index nf       = sensor_response_f_grid.nelem();
+  const Index npol     = sensor_response_pol_grid.nelem();
+  const Index nza      = sensor_response_za_grid.nelem();
+        Index naa      = sensor_response_aa_grid.nelem();
+        Index empty_aa = 0;
+  //
+  if( naa == 0 )
+    {
+      empty_aa = 1;
+      naa      = 1; 
+    }
+  //
+  const Index n = nf * npol * nza * naa;
+
+  // Allocate
+  sensor_response_f.resize( n );
+  sensor_response_pol.resize( n );
+  sensor_response_za.resize( n );
+  if( empty_aa )
+    { sensor_response_aa.resize( 0 ); }
+  else
+    { sensor_response_aa.resize( n ); }
+  
+  // Fill
+  for( Index iaa=0; iaa<naa; iaa++ )
+    {
+      const Index i1 = iaa * nza * nf * npol;
+      //
+      for( Index iza=0; iza<nza; iza++ )
+        {
+          const Index i2 = i1 + iza * nf * npol;
+          //
+          for( Index ifr=0; ifr<nf; ifr++ ) 
+            {
+              const Index i3 = i2 + ifr * npol;
+              //
+              for( Index ip=0; ip<npol; ip++ )
+                {
+                  const Index i = i3 + ip;
+                  //
+                  sensor_response_f[i]   = sensor_response_f_grid[ifr];
+                  sensor_response_pol[i] = sensor_response_pol_grid[ip];
+                  sensor_response_za[i]  = sensor_response_za_grid[iza];
+                  if( !empty_aa )
+                    { sensor_response_aa[i] = sensor_response_aa_grid[iaa]; }
+                }
+            }
+        }
+    }
+}
+
+
+
+//! sensor_integration_vector
+/*!
+   Calculates the (row) vector that multiplied with an unknown
+   (column) vector approximates the integral of the product
+   between the functions represented by the two vectors.
+
+   E.g. h*g = integral( f(x)*g(x) dx )
+
+   See Eriksson et al., Efficient forward modelling by matrix
+   representation of sensor responses, Int. J. Remote Sensing, 27,
+   1793-1808, 2006, for details.
+
+   The grids are internally normalised to cover the range [0,1] for
+   increased numerical stability.
+
+   \param   h       The multiplication (row) vector.
+   \param   f       The values of function f(x).
+   \param   x_f_in  The grid points of function f(x). Must be increasing.
+   \param   x_g     The grid points of function g(x). Can be increasing or 
+                    decreasing. Must cover a wider range than x_ft (in
+                    both ends).
+
+   \author Mattias Ekström and Patrick Eriksson
+   \date   2003-02-13 / 2008-06-12
+*/
+void sensor_integration_vector_NEW(
+           VectorView   h,
+      ConstVectorView   f,
+      ConstVectorView   x_f_in,
+      ConstVectorView   x_g_in )
+{
+  // Basic sizes 
+  const Index nf = x_f_in.nelem();
+  const Index ng = x_g_in.nelem();
+
+  // Asserts
+  assert( h.nelem() == ng );
+  assert( f.nelem() == nf );
+  assert( is_increasing( x_f_in ) );
+  assert( is_increasing( x_g_in ) || is_decreasing( x_g_in ) );
+  // More asserts below
+
+  // Copy grids, handle reversed x_g and normalise to cover the range
+  // [0 1]. This is necessary to avoid numerical problems for
+  // frequency grids (e.g. experienced for a case with frequencies
+  // around 501 GHz).
+  //
+  Vector x_g         = x_g_in;
+  Vector x_f         = x_f_in;
+  Index  xg_reversed = 0;
+  //
+  if( is_decreasing( x_g ) )
+    {
+      xg_reversed = 1;
+      Vector tmp  = x_g[Range(ng-1,ng,-1)];   // Flip order
+      x_g         = tmp;
+    }
+  //
+  assert( x_g[0]    <= x_f[0] );
+  assert( x_g[ng-1] >= x_f[nf-1] );
+  //
+  const Numeric xmin = x_g[0];
+  const Numeric xmax = x_g[ng-1];
+  //
+  x_f -= xmin;
+  x_g -= xmin;
+  x_f /= xmax - xmin;
+  x_g /= xmax - xmin;
+
+  //Create a reference grid vector, x_ref that containing the values
+  //of x_f and x_g strictly sorted. Only g points inside the f range
+  //are of concern.
+  list<Numeric> l_x;
+  for( Index it=0; it<nf; it++ )
+    l_x.push_back(x_f[it]);
+  for (Index it=0; it<ng; it++) 
+    {
+      if( x_g[it]>x_f[0] && x_g[it]<x_f[x_f.nelem()-1] )
+        l_x.push_back(x_g[it]);
+    }
+
+  l_x.sort();
+  l_x.unique();
+
+  Vector x_ref(l_x.size());
+  Index e=0;
+  for (list<Numeric>::iterator li=l_x.begin(); li != l_x.end(); li++) {
+    x_ref[e] = *li;
+    e++;
+  }
+
+  //Initiate output vector, with equal size as x_g, with zeros.
+  //Start calculations
+  h = 0.0;
+  Index i_f = 0;
+  Index i_g = 0;
+  //i = 0;
+  Numeric dx,a0,b0,c0,a1,b1,c1,x3,x2,x1;
+  //while( i_g < ng && i_f < x_f.nelem() ) {
+  for( Index i=0; i<x_ref.nelem()-1; i++ ) {
+    //Find for what index in x_g (which is the same as for h) and f
+    //calculation corresponds to
+    while( x_g[i_g+1] <= x_ref[i] ) {
+      i_g++;
+    }
+    while( x_f[i_f+1] <= x_ref[i] ) {
+     i_f++;
+    }
+
+    //If x_ref[i] is out of x_f's range then that part of the integral
+    //is set to 0, so no calculations will be done
+    if( x_ref[i] >= x_f[0] && x_ref[i] < x_f[x_f.nelem()-1] ) {
+      //Product of steps in x_f and x_g
+      dx = (x_f[i_f+1] - x_f[i_f]) * (x_g[i_g+1] - x_g[i_g]);
+
+      //Calculate a, b and c coefficients; h[i]=ax^3+bx^2+cx
+      a0 = (f[i_f] - f[i_f+1]) / 3;
+      b0 = (-f[i_f]*(x_g[i_g+1]+x_f[i_f+1])+f[i_f+1]*(x_g[i_g+1]+x_f[i_f]))
+           /2;
+      c0 = f[i_f]*x_f[i_f+1]*x_g[i_g+1]-f[i_f+1]*x_f[i_f]*x_g[i_g+1];
+
+      a1 = -a0;
+      b1 = (f[i_f]*(x_g[i_g]+x_f[i_f+1])-f[i_f+1]*(x_g[i_g]+x_f[i_f]))/2;
+      c1 = -f[i_f]*x_f[i_f+1]*x_g[i_g]+f[i_f+1]*x_f[i_f]*x_g[i_g];
+
+      x3 = pow(x_ref[i+1],3) - pow(x_ref[i],3);
+      x2 = pow(x_ref[i+1],2) - pow(x_ref[i],2);
+      x1 = x_ref[i+1]-x_ref[i];
+
+      //Calculate h[i] and h[i+1] increment
+      h[i_g] += (a0*x3+b0*x2+c0*x1) / dx;
+      h[i_g+1] += (a1*x3+b1*x2+c1*x1) / dx;
+
+    }
+  }
+
+  // Flip back if x_g was decreasing
+  if( xg_reversed )
+    {
+      Vector tmp = h[Range(ng-1,ng,-1)];   // Flip order
+      h = tmp;
+    }
+}
+
+
+
+//! sensor_summation_vector
+/*!
+   Calculates the (row) vector that multiplied with an unknown
+   (column) vector approximates the sum of the product 
+   between the functions at two points.
+
+   E.g. h*g = f(x1)*g(x1) + f(x2)*g(x2)
+
+   The typical application is to set up the combined response matrix
+   for mixer and sideband filter.
+
+   See Eriksson et al., Efficient forward modelling by matrix
+   representation of sensor responses, Int. J. Remote Sensing, 27,
+   1793-1808, 2006, for details.
+
+   No normalisation of the response is made.
+
+   \param   h     The summation (row) vector.
+   \param   f     Sideband response.
+   \param   x_f   The grid points of function f(x).
+   \param   x_g   The grid for spectral values (normally equal to f_grid) 
+   \param   x1    Point 1
+   \param   x2    Point 2
+
+   \author Mattias Ekström / Patrick Eriksson
+   \date   2003-05-26 / 2008-06-17
+*/
+void sensor_summation_vector_NEW(
+           VectorView   h,
+      ConstVectorView   f,
+      ConstVectorView   x_f,
+      ConstVectorView   x_g,
+      const Numeric     x1,
+      const Numeric     x2 )
+{
+  // Asserts
+  assert( h.nelem() == x_g.nelem() );
+  assert( f.nelem() == x_f.nelem() );
+  assert( x_g[0]    <= x_f[0] );
+  assert( last(x_g) >= last(x_f) );
+  assert( x1        >= x_f[0] );
+  assert( x2        >= x_f[0] );
+  assert( x1        <= last(x_f) );
+  assert( x2        <= last(x_f) );
+
+  // Determine grid positions for point 1 (both with respect to f and g grids)
+  // and interpolate response function.
+  ArrayOfGridPos gp1g(1), gp1f(1);
+  gridpos( gp1g, x_g, x1 );
+  gridpos( gp1f, x_f, x1 );
+  Matrix itw1(1,2);
+  interpweights( itw1, gp1f );
+  Numeric f1;
+  interp( f1, itw1, f, gp1f );
+
+  // Same for point 2
+  ArrayOfGridPos gp2g(1), gp2f(1);
+  gridpos( gp2g, x_g, x2 );
+  gridpos( gp2f, x_f, x2 );
+  Matrix itw2(1,2);
+  interpweights( itw2, gp2f );
+  Numeric f2;
+  interp( f2, itw2, f, gp2f );
+
+  //Initialise h at zero and store calculated weighting components
+  h = 0.0;
+  h[gp1g[0].idx]   += f1 * gp1g[0].fd[1];
+  h[gp1g[0].idx+1] += f1 * gp1g[0].fd[0];
+  h[gp2g[0].idx]   += f2 * gp2g[0].fd[1];
+  h[gp2g[0].idx+1] += f2 * gp2g[0].fd[0];
+}
+
+
+
+//! spectrometer_matrix
+/*!
+   Constructs the sparse matrix that multiplied with the spectral values
+   gives the spectra from the spectrometer.
+
+   The input to the function corresponds mainly to WSVs. See f_backend and
+   backend_channel_response for how the backend response is specified.
+
+   \param   H             The response matrix.
+   \param   ch_response   Corresponds directly to WSV backend_channel_response.
+   \param   ch_f          Corresponds directly to WSV f_backend.
+   \param   sensor_f      Corresponds directly to WSV sensor_response_f_grid.
+   \param   n_pol         The number of polarisations.
+   \param   n_sp          The number of spectra (viewing directions).
+   \param   do_norm       Corresponds directly to WSV sensor_norm.
+
+   \author Mattias Ekström and Patrick Eriksson
+   \date   2003-08-26 / 2008-06-10
+*/
+void spectrometer_matrix_NEW( 
+              Sparse&          H,
+        ConstMatrixView        ch_response,
+        ConstVectorView        ch_f,
+        ConstVectorView        sensor_f,
+        const Index&           n_pol,
+        const Index&           n_sp,
+        const Index&           do_norm )
+{
+  // Check if matrix has one frequency column or one for every channel
+  // frequency
+  //
+  assert( ch_response.ncols()==2 || ch_response.ncols()==ch_f.nelem()+1 );
+  //
+  Index freq_full = ch_response.ncols() > 2;
+
+  // Reisze H
+  //
+  const Index   nin_f  = sensor_f.nelem();
+  const Index   nout_f = ch_f.nelem();
+  const Index   nin    = n_sp * nin_f  * n_pol;
+  const Index   nout   = n_sp * nout_f * n_pol;
+  //
+  H.resize( nout, nin );
+
+  // Calculate the sensor integration vector and put values in the temporary
+  // vector, then copy vector to the transfer matrix
+  //
+  Vector ch_response_f;
+  Vector weights( nin_f );
+  Vector weights_long( nin, 0.0 );
+  //
+  for( Index ifr=0; ifr<nout_f; ifr++ ) 
+    {
+      //The spectrometer response is shifted for each centre frequency step
+      ch_response_f = ch_response(joker,0);
+      ch_response_f += ch_f[ifr];
+
+      // Call sensor_integration_vector and store it in the temp vector
+      sensor_integration_vector_NEW( weights, 
+                                     ch_response(joker,1+ifr*freq_full),
+                                     ch_response_f, 
+                                     sensor_f );
+
+      // Normalise if flag is set
+      if( do_norm )
+        weights /= weights.sum();
+
+      // Loop over polarisation and spectra (viewing directions)
+      // Weights change only with frequency
+      for( Index sp=0; sp<n_sp; sp++ ) 
+        {
+          for( Index pol=0; pol<n_pol; pol++ ) 
+            {
+              // Distribute the compact weight vector into weight_long
+              weights_long[Range(sp*nin_f*n_pol+pol,nin_f,n_pol)] = weights;
+
+              // Insert temp_long into H at the correct row
+              H.insert_row( sp*nout_f*pol + ifr*n_pol + pol, weights_long );
+
+              // Reset weight_long to zero.
+              weights_long = 0.0;
+            }
+        }
+    }
+}
+
+
+
+
+
+
+//--- Old stuff ---------------------------------------------------------------
+
 //! antenna_matrix
 /*!
    Constructs the sparse matrix that multiplied with the spectral values
@@ -774,90 +1301,6 @@ void scale_antenna_diagram(
 
 
 
-//! sensor_aux_vectors
-/*!
-   Sets up the the auxiliary vectors for sensor_response.
-
-   The function assumes that all grids are common, and the aux vectors
-   are just the grids repeated
-
-   \param   sensor_response_f          As the WSV with same name
-   \param   sensor_response_pol        As the WSV with same name
-   \param   sensor_response_za         As the WSV with same name
-   \param   sensor_response_aa         As the WSV with same name
-   \param   sensor_response_f_grid     As the WSV with same name
-   \param   sensor_response_pol_grid   As the WSV with same name
-   \param   sensor_response_za_grid    As the WSV with same name
-   \param   sensor_response_aa_grid    As the WSV with same name
-
-   \author Patrick Eriksson
-   \date   2008-06-09
-*/
-void sensor_aux_vectors(
-          Vector&           sensor_response_f,
-          ArrayOfIndex&     sensor_response_pol,
-          Vector&           sensor_response_za,
-          Vector&           sensor_response_aa,
-          ConstVectorView   sensor_response_f_grid,
-    const ArrayOfIndex&     sensor_response_pol_grid,
-          ConstVectorView   sensor_response_za_grid,
-          ConstVectorView   sensor_response_aa_grid )
-{
-  // Sizes
-  const Index nf       = sensor_response_f_grid.nelem();
-  const Index npol     = sensor_response_pol_grid.nelem();
-  const Index nza      = sensor_response_za_grid.nelem();
-        Index naa      = sensor_response_aa_grid.nelem();
-        Index empty_aa = 0;
-  //
-  if( naa == 0 )
-    {
-      empty_aa = 1;
-      naa      = 1; 
-    }
-  //
-  const Index n = nf * npol * nza * naa;
-
-  // Allocate
-  sensor_response_f.resize( n );
-  sensor_response_pol.resize( n );
-  sensor_response_za.resize( n );
-  if( empty_aa )
-    { sensor_response_aa.resize( 0 ); }
-  else
-    { sensor_response_aa.resize( n ); }
-  
-  // Fill
-  for( Index iaa=0; iaa<naa; iaa++ )
-    {
-      const Index i1 = iaa * nza * nf * npol;
-      //
-      for( Index iza=0; iza<nza; iza++ )
-        {
-          const Index i2 = i1 + iza * nf * npol;
-          //
-          for( Index ifr=0; ifr<nf; ifr++ ) 
-            {
-              const Index i3 = i2 + ifr * npol;
-              //
-              for( Index ip=0; ip<npol; ip++ )
-                {
-                  const Index i = i3 + ip;
-                  //
-                  sensor_response_f[i]   = sensor_response_f_grid[ifr];
-                  sensor_response_pol[i] = sensor_response_pol_grid[ip];
-                  sensor_response_za[i]  = sensor_response_za_grid[iza];
-                  if( !empty_aa )
-                    { sensor_response_aa[i] = sensor_response_aa_grid[iaa]; }
-                }
-            }
-        }
-    }
-
-}
-
-
-
 //! sensor_integration_vector
 /*!
    Calculates the (row) vector that multiplied with an unknown
@@ -1076,92 +1519,6 @@ void sensor_summation_vector(
   h[gp_low[0].idx] += filt_low/filt_sum * gp_low[0].fd[1];
   h[gp_low[0].idx+1] += filt_low/filt_sum * gp_low[0].fd[0];
 
-}
-
-
-
-//! spectrometer_matrix
-/*!
-   Constructs the sparse matrix that multiplied with the spectral values
-   gives the spectra from the spectrometer.
-
-   The input to the function corresponds mainly to WSVs. See f_backend and
-   backend_channel_response for how the backend response is specified.
-
-   \param   H             The response matrix.
-   \param   ch_response   Corresponds directly to WSV backend_channel_response.
-   \param   ch_f          Corresponds directly to WSV f_backend.
-   \param   sensor_f      Corresponds directly to WSV sensor_response_f_grid.
-   \param   n_pol         The number of polarisations.
-   \param   n_sp          The number of spectra (viewing directions).
-   \param   do_norm       Corresponds directly to WSV sensor_norm.
-
-   \author Mattias Ekström and Patrick Eriksson
-   \date   2003-08-26 / 2008-06-10
-*/
-void spectrometer_matrix_NEW( 
-              Sparse&          H,
-        ConstMatrixView        ch_response,
-        ConstVectorView        ch_f,
-        ConstVectorView        sensor_f,
-        const Index&           n_pol,
-        const Index&           n_sp,
-        const Index&           do_norm )
-{
-  // Check if matrix has one frequency column or one for every channel
-  // frequency
-  assert( ch_response.ncols()==2 || ch_response.ncols()==ch_f.nelem()+1 );
-  Index freq_full = 1;
-  if( ch_response.ncols() == 2 )
-    { freq_full = 0; }
-
-  // Reisze H
-  //
-  const Index   nin_f  = sensor_f.nelem();
-  const Index   nout_f = ch_f.nelem();
-  const Index   nin    = n_sp * nin_f  * n_pol;
-  const Index   nout   = n_sp * nout_f * n_pol;
-  //
-  H.resize( nout, nin );
-
-  // Calculate the sensor integration vector and put values in the temporary
-  // vector, then copy vector to the transfer matrix
-  //
-  Vector ch_response_f;
-  Vector weights( nin_f );
-  Vector weights_long( nin, 0.0 );
-  //
-  for( Index ifr=0; ifr<nout_f; ifr++ ) 
-    {
-      //The spectrometer response is shifted for each centre frequency step
-      ch_response_f = ch_response(joker,0);
-      ch_response_f += ch_f[ifr];
-
-      // Call sensor_integration_vector and store it in the temp vector
-      sensor_integration_vector( weights, ch_response(joker,1+ifr*freq_full),
-                                 ch_response_f, sensor_f );
-
-      // Normalise if flag is set
-      if( do_norm )
-        weights /= weights.sum();
-
-      // Loop over polarisation and spectra (viewing directions)
-      // Weights change only with frequency
-      for( Index sp=0; sp<n_sp; sp++ ) 
-        {
-          for( Index pol=0; pol<n_pol; pol++ ) 
-            {
-              // Distribute the compact weight vector into weight_long
-              weights_long[Range(sp*nin_f*n_pol+pol,nin_f,n_pol)] = weights;
-
-              // Insert temp_long into H at the correct row
-              H.insert_row( sp*nout_f*pol + ifr*n_pol + pol, weights_long );
-
-              // Reset weight_long to zero.
-              weights_long = 0.0;
-            }
-        }
-    }
 }
 
 

@@ -33,4 +33,3 @@ end
 %
 legend( h(2:end), L{end:-1:1}, 'Location', 'Best' );
 
-whos

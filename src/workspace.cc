@@ -1234,7 +1234,7 @@ void Workspace::define_wsv_data()
      ( NAME( "f_backend" ),
        DESCRIPTION
        (
-        "The frequency grid of the backend channels.\n"
+        "The frequency position of each backend channel.\n"
         "\n"
         "Usage:      Input to *sensor_responseBackend*.\n "
         "\n"
@@ -3393,13 +3393,19 @@ void Workspace::define_wsv_data()
     ( NAME( "sideband_response_NEW" ),
       DESCRIPTION
       (
-        "Description of (mixer) sideband responses.\n"
+        "Description of (mixer) sideband response.\n"
         "\n"
         "This variable describes the response of each sideband of a heterodyne\n"
         "receiver. The response is given as a two-column matrix, where the\n"
         "first column is a frequency grid and the second column describes\n"
         "the sideband filter function. An interpolation is applied to obtain\n"
         "the response for intermediate frequencies.\n"
+        "\n"
+        "The frequency grid should be given in terms of IF, with end points\n"
+        "symmetrically placed around zero. That is, the grid must contain\n"
+        "both negative and positive values. The sideband response (after \n"
+        "summation with *lo*) is not allowed to extend outside the range\n"
+        "for which spectral data exist (normally determined by *f_grid*).\n"
         "\n"
         "Usage: Set by the user.\n"
        ),
