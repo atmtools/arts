@@ -42,14 +42,116 @@
 
 #include <stdexcept>
 #include <iostream>
-#include "xml_io.h"
-#include "matpackVI.h"
 #include "mystring.h"
+#include "exceptions.h"
 #include "gridded_fields.h"
 
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
+
+Index GField::get_grid_size (Index i) const
+{
+  Index ret = 0;
+  assert (i < dim);
+  switch (mgridtype[i])
+    {
+    case GRIDTYPE_NUMERIC: ret = mnumericgrids[i].nelem(); break;
+    case GRIDTYPE_STRING:  ret = mstringgrids[i].nelem(); break;
+    }
+
+  return ret;
+}
+
+
+ConstVectorView GField::get_numeric_grid (Index i) const
+{
+  assert (i < dim);
+  assert (mgridtype[i] == GRIDTYPE_NUMERIC);
+
+  return (mnumericgrids[i]);
+}
+
+
+const ArrayOfString& GField::get_string_grid (Index i) const
+{
+  assert (i < dim);
+  assert (mgridtype[i] == GRIDTYPE_STRING);
+
+  return (mstringgrids[i]);
+}
+
+
+void GField::set_grid (Index i, const Vector& g)
+{
+  assert (i < dim);
+  mgridtype[i] = GRIDTYPE_NUMERIC;
+  mstringgrids[i].resize(0);
+  mnumericgrids[i] = g;
+}
+
+
+void GField::set_grid (Index i, const ArrayOfString& g)
+{
+  assert (i < dim);
+  mgridtype[i] = GRIDTYPE_STRING;
+  mnumericgrids[i].resize(0);
+  mstringgrids[i] = g;
+}
+
+
+ostream& operator<<(ostream& os, const GField& gf)
+{
+  if (gf.mname.size()) os << gf.mname << ":" << endl;
+
+  for( Index i = 0; i < gf.dim; i++)
+    {
+      if (gf.mgridnames[i].size()) os << gf.mgridnames[i];
+      else os << "Grid " << i;
+      os << ": ";
+      switch (gf.mgridtype[i])
+        {
+        case GRIDTYPE_STRING:
+          os << gf.mstringgrids[i];
+          break;
+        case GRIDTYPE_NUMERIC:
+          os << gf.mnumericgrids[i];
+          break;
+        }
+      os << endl;
+    }
+
+  return os;
+}
+
+
+ostream& operator<<(ostream& os, const GField1& gf)
+{
+  os << (GField)gf;
+  return os << "Data:" << endl << (Vector)gf << endl;
+}
+
+
+ostream& operator<<(ostream& os, const GField2& gf)
+{
+  os << (GField)gf;
+  return os << "Data:" << endl << (Matrix)gf;
+}
+
+
+ostream& operator<<(ostream& os, const GField3& gf)
+{
+  os << (GField)gf;
+  return os << "Data:" << endl << (Tensor3)gf;
+}
+
+
+ostream& operator<<(ostream& os, const GField4& gf)
+{
+  os << (GField)gf;
+  return os << "Data:" << endl << (Tensor4)gf;
+}
+
 
 ostream& operator<< (ostream& os, const GriddedField3& /*gfield3*/)
 {

@@ -1,3 +1,24 @@
+2008-06-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-6-15
+
+	* src/gridded_fields.{cc,h}:
+
+	Getting started with the new GriddedFields implementation.
+
+	GField is an abstract base class maintaining the grids. GField1,
+	GField2 etc. are using multiple inheritance to combine either a
+	Vector, Matrix or Tensor with the grids. This way, everything that can
+	be done with Vectors, Matrices or Tensors is also possible with
+	GFields. E.g. it is possible to multiply a Matrix with a GField2.
+	Not finished yet.
+
+	* src/sensor.h:
+
+	Unbreak compilation by adding declaration of
+	sensor_summation_vector_NEW to sensor.h. It was used before being
+	defined in sensor.cc.
+
 2008-06-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-6-14

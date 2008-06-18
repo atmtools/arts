@@ -36,7 +36,137 @@
 #define gridded_fields_h
 
 #include "matpackIV.h"
+#include "array.h"
 #include "mystring.h"
+
+/*! Enumeration containing the possible grid types for gridded fields */
+typedef enum {
+  GRIDTYPE_NUMERIC,
+  GRIDTYPE_STRING
+} GridType;
+
+typedef Array<GridType> ArrayOfGridType;
+
+/*! Abstract base class for GriddedFields */
+class GField
+{
+private:
+  Index dim;
+  String mname;
+  Array<GridType> mgridtype;
+  ArrayOfString mgridnames;
+  Array<ArrayOfString> mstringgrids;
+  ArrayOfVector mnumericgrids;
+
+protected:
+  GField() : dim(0) {};
+  GField(const Index d, const String s) : dim(d),
+                                          mname(s),
+                                          mgridtype(d, GRIDTYPE_NUMERIC),
+                                          mgridnames(d),
+                                          mstringgrids(d),
+                                          mnumericgrids(d) {}
+                                          
+
+public:
+  Index get_grid_size (Index i) const;
+
+  ConstVectorView get_numeric_grid (Index i) const;
+
+  const ArrayOfString& get_string_grid (Index i) const;
+
+  const ArrayOfString& get_gridnames () const { return mgridnames; }
+
+  const String& get_name () const { return mname; }
+
+  void set_grid (Index i, const Vector& g);
+
+  void set_grid (Index i, const ArrayOfString& g);
+
+  void set_gridname (Index i, const String& s)
+    {
+      assert (i < dim);
+      mgridnames[i] = s;
+    };
+
+  virtual bool checksize() const { return false; };
+
+  friend ostream& operator<<(ostream& os, const GField& gf);
+};
+
+
+class GField1: public GField, public Vector
+{
+public:
+  GField1() : GField(1, "") {};
+  GField1(const String name) : GField(1, name) {};
+
+  virtual bool checksize() const
+    {
+      return (nelem() == get_grid_size(0));
+    }
+
+  friend ostream& operator<<(ostream& os, const GField1& gf);
+};
+
+
+class GField2: public GField, public Matrix
+{
+public:
+  GField2() : GField(2, "") {};
+  GField2(const String name) : GField(2, name) {};
+
+  virtual bool checksize() const
+    {
+      return (ncols() == get_grid_size(0)
+              && nrows() == get_grid_size(1));
+    }
+
+  friend ostream& operator<<(ostream& os, const GField2& gf);
+};
+
+
+class GField3: public GField, public Tensor3
+{
+public:
+  GField3() : GField(3, "") {};
+  GField3(const String name) : GField(3, name) {};
+
+  virtual bool checksize() const
+    {
+      return (ncols() == get_grid_size(0)
+              && nrows() == get_grid_size(1)
+              && npages() == get_grid_size(2));
+    }
+
+  friend ostream& operator<<(ostream& os, const GField3& gf);
+};
+
+
+class GField4: public GField, public Tensor4
+{
+public:
+  GField4() : GField(4, "") {};
+  GField4(const String name) : GField(4, name) {};
+
+  virtual bool checksize() const
+    {
+      return (ncols() == get_grid_size(0)
+              && nrows() == get_grid_size(1)
+              && npages() == get_grid_size(2)
+              && nbooks() == get_grid_size(3));
+    }
+
+  friend ostream& operator<<(ostream& os, const GField4& gf);
+};
+
+
+ostream& operator<<(ostream& os, const GField& gf);
+ostream& operator<<(ostream& os, const GField1& gf);
+ostream& operator<<(ostream& os, const GField2& gf);
+ostream& operator<<(ostream& os, const GField3& gf);
+ostream& operator<<(ostream& os, const GField4& gf);
+
 
 
 //! Contains a GriddedField3.
