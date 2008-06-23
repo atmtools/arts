@@ -53,7 +53,7 @@ class GField
 private:
   Index dim;
   String mname;
-  Array<GridType> mgridtype;
+  Array<GridType> mgridtypes;
   ArrayOfString mgridnames;
   Array<ArrayOfString> mstringgrids;
   ArrayOfVector mnumericgrids;
@@ -62,20 +62,24 @@ protected:
   GField() : dim(0) {};
   GField(const Index d, const String s) : dim(d),
                                           mname(s),
-                                          mgridtype(d, GRIDTYPE_NUMERIC),
+                                          mgridtypes(d, GRIDTYPE_NUMERIC),
                                           mgridnames(d),
                                           mstringgrids(d),
                                           mnumericgrids(d) {}
                                           
 
 public:
-  Index get_grid_size (Index i) const;
+  Index get_dim () const { return dim; }
+
+  const String& get_gridname (Index i) const { return mgridnames[i]; }
+
+  Index get_grid_size (const Index i) const;
+
+  GridType get_gridtype (Index i) const { return mgridtypes[i]; }
 
   ConstVectorView get_numeric_grid (Index i) const;
 
   const ArrayOfString& get_string_grid (Index i) const;
-
-  const ArrayOfString& get_gridnames () const { return mgridnames; }
 
   const String& get_name () const { return mname; }
 
@@ -88,6 +92,8 @@ public:
       assert (i < dim);
       mgridnames[i] = s;
     };
+
+  void set_name (const String& s) { mname = s; }
 
   virtual bool checksize() const { return false; };
 
@@ -118,8 +124,8 @@ public:
 
   virtual bool checksize() const
     {
-      return (ncols() == get_grid_size(0)
-              && nrows() == get_grid_size(1));
+      return (ncols() == get_grid_size(1)
+              && nrows() == get_grid_size(0));
     }
 
   friend ostream& operator<<(ostream& os, const GField2& gf);
@@ -134,9 +140,9 @@ public:
 
   virtual bool checksize() const
     {
-      return (ncols() == get_grid_size(0)
+      return (ncols() == get_grid_size(2)
               && nrows() == get_grid_size(1)
-              && npages() == get_grid_size(2));
+              && npages() == get_grid_size(0));
     }
 
   friend ostream& operator<<(ostream& os, const GField3& gf);
@@ -151,10 +157,10 @@ public:
 
   virtual bool checksize() const
     {
-      return (ncols() == get_grid_size(0)
-              && nrows() == get_grid_size(1)
-              && npages() == get_grid_size(2)
-              && nbooks() == get_grid_size(3));
+      return (ncols() == get_grid_size(3)
+              && nrows() == get_grid_size(2)
+              && npages() == get_grid_size(1)
+              && nbooks() == get_grid_size(0));
     }
 
   friend ostream& operator<<(ostream& os, const GField4& gf);

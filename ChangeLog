@@ -1,3 +1,55 @@
+2008-06-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-6-16
+
+	* src/xml_io_array_types.{cc,h}, src/xml_io_basic_types.{cc,h}:
+
+	Split xml_read_from_stream for Vectors and ArrayOfString into two
+	functions. Needed to be able to re-use the parsing code for reading
+	the gridded field grids.
+
+	* src/xml_io_compound_types.{h,cc}:
+
+	Add GField3 reading and writing routines.
+
+	(xml_parse_grid_from_stream): Added.
+
+	* src/xml_io_instantiation.h:
+
+	Add GField3 reading and writing routines.
+
+	* src/xml_io.cc (ArtsXMLTag::get_attribute_value):
+
+	Return empty string instead of *N/A* for empty attributes.
+
+	(ArtsXMLTag::read_from_stream): Don't crash if attribute is an empty
+	string.
+
+	Fix reading of attribute values containing spaces.
+
+	* src/gridded_fields.h:
+
+	Add member functions get_dim, get_gridtype, and set_name.
+
+	Fix checksize.
+
+	mgridtype->mgridtypes.
+
+	* src/gridded_fields.cc:
+
+	mgridtype->mgridtypes.
+
+	Cast to GField reference in output operators.
+
+	* src/groups.cc: Temporarely add GField3 for testing.
+
+	* src/workspace.cc: Temporarely add gfield3 for testing.
+
+	* src/Makefile.am:
+
+	Added gridded_fields.cc to make_auto_wsv_h_SOURCES,
+	make_auto_md_h_SOURCES, and make_auto_md_cc_SOURCES.
+
 2008-06-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-6-15

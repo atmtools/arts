@@ -3928,6 +3928,15 @@ void Workspace::define_wsv_data()
 
    wsv_data.push_back
    (WsvRecord
+    ( NAME( "gfield3" ),
+      DESCRIPTION
+      (
+       "Variable for testing the new gridded fields implementation.\n"
+       ),
+      GROUP( GField3_ )));
+
+   wsv_data.push_back
+   (WsvRecord
     ( NAME( "z_field_raw" ),
       DESCRIPTION
       (

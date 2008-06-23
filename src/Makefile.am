@@ -291,6 +291,7 @@ make_auto_wsv_h_SOURCES = \
 	binio.h \
 	file.cc \
 	file.h \
+	gridded_fields.cc \
 	groups.cc \
 	m_general.h \
 	make_auto_wsv_h.cc \
@@ -323,6 +324,7 @@ make_auto_md_h_SOURCES = \
 	file.cc \
 	file.h \
 	globals_2.cc \
+	gridded_fields.cc \
 	groups.cc \
 	make_auto_md_h.cc \
 	messages.cc \
@@ -357,6 +359,7 @@ make_auto_md_cc_SOURCES = \
 	file.cc \
 	file.h \
 	globals_2.cc \
+	gridded_fields.cc \
 	groups.cc \
 	make_auto_md_cc.cc \
 	messages.cc \

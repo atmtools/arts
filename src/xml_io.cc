@@ -142,7 +142,7 @@ ArtsXMLTag::check_attribute (const String& aname, const String& value)
 void
 ArtsXMLTag::get_attribute_value (const String& aname, String& value)
 {
-  value = "*N/A*";
+  value = "";
 
   Array<XMLAttribute>::iterator it = attribs.begin ();
   while (it != attribs.end ())
@@ -270,13 +270,22 @@ ArtsXMLTag::read_from_stream (istream& is)
         xml_parse_error ("Missing \" in tag: " + tag.str ());
       }
 
-    pos = token.find ("\"", 1);
+    while ((pos = token.find ("\"", 1)) == (String::size_type)String::npos && token != ">")
+      {
+        String ntoken;
+        sstr >> ntoken;
+        token += " " + ntoken;
+      }
+
     if (pos == (String::size_type)String::npos)
       {
         xml_parse_error ("Missing \" in tag: " + sstr.str ());
       }
 
-    attr.value = token.substr (1, pos - 1);
+    if (pos == 1)
+      attr.value = "";
+    else
+      attr.value = token.substr (1, pos - 1);
 
     attribs.push_back (attr);
 
@@ -696,7 +705,7 @@ xml_read_header_from_stream (istream& is, FileType& ftype, NumericType& ntype,
     {
       etype = ENDIAN_TYPE_BIG;
     }
-  if (strtype == "*N/A*")
+  if (strtype == "")
     {
 /*      out1 << "  Warning: Endian type not specified in XML file, "
         <<    "assuming little endian (PC)\n";*/
@@ -720,7 +729,7 @@ xml_read_header_from_stream (istream& is, FileType& ftype, NumericType& ntype,
     {
       ntype = NUMERIC_TYPE_DOUBLE;
     }
-  else if (strtype == "*N/A*")
+  else if (strtype == "")
     {
 /*      out1 << "  Warning: Numeric type not specified in XML file, "
         <<    "assuming double\n";*/

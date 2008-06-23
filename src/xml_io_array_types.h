@@ -218,6 +218,9 @@ xml_write_to_stream (ostream&, const ArrayOfSpeciesTag&, bofstream * = NULL,
                      const String& = "");
 
 void
+xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&);
+
+void
 xml_read_from_stream (istream&, ArrayOfString&, bifstream * = NULL);
 
 void

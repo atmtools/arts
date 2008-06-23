@@ -1298,22 +1298,20 @@ xml_write_to_stream (ostream& os_xml,
 
 //=== Vector ==========================================================
 
-//! Reads Vector from XML input stream
+//! Parses Vector from XML input stream
 /*!
   \param is_xml  XML Input stream
   \param vector  Vector return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+  \param tag     XML tag object
 */
 void
-xml_read_from_stream (istream& is_xml,
-                      Vector& vector,
-                      bifstream *pbifs)
+xml_parse_from_stream (istream& is_xml,
+                       Vector& vector,
+                       bifstream *pbifs,
+                       ArtsXMLTag& tag)
 {
-  ArtsXMLTag tag;
   Index nelem;
-
-  tag.read_from_stream (is_xml);
-  tag.check_name ("Vector");
 
   tag.get_attribute_value ("nelem", nelem);
   vector.resize (nelem);
@@ -1343,6 +1341,26 @@ xml_read_from_stream (istream& is_xml,
             }
         }
     }
+}
+
+
+//! Reads Vector from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param vector  Vector return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      Vector& vector,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Vector");
+
+  xml_parse_from_stream (is_xml, vector, pbifs, tag);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/Vector");

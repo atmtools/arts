@@ -120,6 +120,148 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
+//=== GField ===========================================================
+
+//! Reads the grids for gridded fields from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param gfield  GField return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      GField& gfield,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+
+  for(Index i=0; i < gfield.get_dim(); i++)
+    {
+      tag.read_from_stream (is_xml);
+      if (tag.get_name() == "Vector")
+        {
+          String s;
+          tag.get_attribute_value ("name", s);
+          if (s.length())
+            gfield.set_gridname (i, s);
+
+          Vector v;
+          xml_parse_from_stream (is_xml, v, pbifs, tag);
+          gfield.set_grid (i, v);
+          tag.read_from_stream (is_xml);
+          tag.check_name ("/Vector");
+        }
+      else if (tag.get_name() == "Array")
+        {
+          String s;
+          tag.get_attribute_value ("name", s);
+          if (s.length())
+            gfield.set_gridname (i, s);
+
+          tag.get_attribute_value ("type", s);
+          if (s == "String")
+            {
+              ArrayOfString as;
+              xml_parse_from_stream (is_xml, as, pbifs, tag);
+              gfield.set_grid (i, as);
+              tag.read_from_stream (is_xml);
+              tag.check_name ("/Array");
+
+            }
+          else
+            {
+              xml_parse_error ("Grids must be of type <Vector> or <ArrayOfString> but <ArrayOf"
+                               + s + "> found.");
+            }
+        }
+      else
+        {
+          xml_parse_error ("Grids must be of type <Vector> or <ArrayOfString> but <"
+                           + tag.get_name() + "> found.");
+        }
+    }
+}
+
+
+//=== GField3 ===========================================================
+
+//! Reads GField3 from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param gfield  GField3 return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      GField3& gfield,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("GriddedField3");
+
+  String s;
+  tag.get_attribute_value ("name", s);
+  if (s.length())
+    gfield.set_name (s);
+
+  xml_read_from_stream (is_xml, (GField&)gfield, pbifs);
+  xml_read_from_stream (is_xml, (Tensor3&)gfield, pbifs);
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/GriddedField3");
+}
+
+
+//! Writes GField3 to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param gfield  GriddedField3
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const GField3& gfield,
+                     bofstream *pbofs,
+                     const String& name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("GriddedField3");
+  if (!name.length () && (gfield.get_name().length ()))
+    open_tag.add_attribute ("name", gfield.get_name());
+  else if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for (Index i = 0; i < 3; i++)
+    {
+      switch (gfield.get_gridtype(i))
+        {
+        case GRIDTYPE_NUMERIC:
+          xml_write_to_stream (os_xml, gfield.get_numeric_grid(i),
+                               pbofs, gfield.get_gridname(i));
+          break;
+        case GRIDTYPE_STRING:
+          xml_write_to_stream (os_xml, gfield.get_string_grid(i),
+                               pbofs, gfield.get_gridname(i));
+          break;
+        }
+    }
+
+  xml_write_to_stream (os_xml, (Tensor3&)gfield, pbofs, "Data");
+
+  close_tag.set_name ("/GriddedField3");
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+}
+
+
 //=== GriddedField3 ===========================================================
 
 //! Reads GriddedField3 from XML input stream

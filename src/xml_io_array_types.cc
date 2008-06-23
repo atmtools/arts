@@ -2310,22 +2310,21 @@ xml_write_to_stream (ostream& os_xml,
 
 //=== ArrayOfString ==========================================================
 
-//! Reads ArrayOfString from XML input stream
+//! Parse ArrayOfString from XML input stream
 /*!
   \param is_xml   XML Input stream
   \param astring  ArrayOfString return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+  \param tag      XML tag object
 */
 void
-xml_read_from_stream (istream& is_xml,
-                      ArrayOfString& astring,
-                      bifstream *pbifs)
+xml_parse_from_stream (istream& is_xml,
+                       ArrayOfString& astring,
+                       bifstream *pbifs,
+                       ArtsXMLTag& tag)
 {
-  ArtsXMLTag tag;
   Index nelem;
 
-  tag.read_from_stream (is_xml);
-  tag.check_name ("Array");
   tag.check_attribute ("type", "String");
 
   tag.get_attribute_value ("nelem", nelem);
@@ -2341,10 +2340,30 @@ xml_read_from_stream (istream& is_xml,
     } catch (runtime_error e) {
       ostringstream os;
       os << "Error reading ArrayOfString: "
-         << "\n Element: " << n
-         << "\n" << e.what();
+        << "\n Element: " << n
+        << "\n" << e.what();
       throw runtime_error(os.str());
     }
+}
+
+
+//! Reads ArrayOfString from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param astring  ArrayOfString return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfString& astring,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Array");
+
+  xml_parse_from_stream (is_xml, astring, pbifs, tag);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/Array");

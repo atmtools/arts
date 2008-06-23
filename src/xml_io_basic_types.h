@@ -130,6 +130,9 @@ xml_write_to_stream (ostream&, const Timer&, bofstream * = NULL,
                      const String& = "");
 
 void
+xml_parse_from_stream (istream&, Vector&, bifstream *, ArtsXMLTag&);
+
+void
 xml_read_from_stream (istream&, Vector&, bifstream * = NULL);
 
 void
