@@ -41,6 +41,17 @@ class Agenda;
     absorption. Extraction routines are implemented as member functions. */
 class GasAbsLookup {
 public:
+  GasAbsLookup() : species(),
+                   nonlinear_species(),
+                   f_grid(),
+                   p_grid(),
+                   vmrs_ref(),
+                   t_ref(),
+                   t_pert(),
+                   nls_pert(),
+                   xsec()
+  { /* Nothing to do here */ }
+
   // Documentation is with the implementation!
   void Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
               ConstVectorView current_f_grid );

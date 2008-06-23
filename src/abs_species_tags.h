@@ -45,7 +45,11 @@
 class SpeciesTag {
 public:
   /** Default constructor. */
-  SpeciesTag() { /* Nothing to be done here. */ }
+  SpeciesTag() : mspecies(-1),
+                 misotope(-1),
+                 mlf(0.),
+                 muf(0.) 
+  { /* Nothing to be done here. */ }
 
   // Documentation is with implementation.
   SpeciesTag(String def); 

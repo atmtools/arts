@@ -99,10 +99,10 @@ class Array : public vector<base>
 {
 public:
   // Constructors:
-  Array()                     : vector<base>()  { /* Nothing to do here. */ };
-  explicit Array(Index n)     : vector<base>(n) { /* Nothing to do here. */ };
+  Array()                     : vector<base>()  { /* Nothing to do here. */ }
+  explicit Array(Index n)     : vector<base>(n) { /* Nothing to do here. */ }
   Array(Index n, const base& fillvalue);
-  Array(const Array<base>& A) : vector<base>(A) { /* Nothing to do here. */ };
+  Array(const Array<base>& A) : vector<base>(A) { /* Nothing to do here. */ }
 
   // Assignment operators:
   Array& operator=(base x);

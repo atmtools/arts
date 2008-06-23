@@ -54,24 +54,32 @@ typedef enum{
 /*! This class provides the means of sampling various types of 2D antenna
 functions.. */ 
 class MCAntenna {
-      AType atype;
-      Numeric sigma_aa,sigma_za;
-      Vector aa_grid,za_grid;
-      Matrix G_lookup;
+  AType atype;
+  Numeric sigma_aa,sigma_za;
+  Vector aa_grid,za_grid;
+  Matrix G_lookup;
       
- public:
-      void set_pencil_beam (void);
-      void set_gaussian (const Numeric& za_sigma,
-                         const Numeric& aa_sigma);
-      void set_gaussian_fwhm (const Numeric& za_fwhm,
-                              const Numeric& aa_fwhm);
-      void set_lookup (ConstVectorView& za_grid,
-                       ConstVectorView& aa_grid,
-                       ConstMatrixView& G_lookup);
-      AType get_type(void) const;      
-      void draw_los(VectorView& sampled_rte_los,
-                    Rng& rng,
-                    ConstVectorView bore_sight_los) const;
+public:
+  MCAntenna() : atype(),
+                sigma_aa(0.),
+                sigma_za(0.),
+                aa_grid(),
+                za_grid(),
+                G_lookup()
+  { /* Nothing to do here */ }
+
+  void set_pencil_beam (void);
+  void set_gaussian (const Numeric& za_sigma,
+                     const Numeric& aa_sigma);
+  void set_gaussian_fwhm (const Numeric& za_fwhm,
+                          const Numeric& aa_fwhm);
+  void set_lookup (ConstVectorView& za_grid,
+                   ConstVectorView& aa_grid,
+                   ConstMatrixView& G_lookup);
+  AType get_type(void) const;      
+  void draw_los(VectorView& sampled_rte_los,
+                Rng& rng,
+                ConstVectorView bore_sight_los) const;
 };
 
 ostream& operator<< (ostream& os, const MCAntenna& mca);

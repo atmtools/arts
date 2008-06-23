@@ -1,5 +1,53 @@
 2008-06-23  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-6-17
+
+	* Now that the snow is gone, it's time for some C++-code spring
+	cleaning. ;-)
+
+	* src/matpack*.h: 
+
+	Add missing initialization for all member variables in default
+	constructors of the View types.
+
+	* src/token.h (TokVal), src/agenda_class.h (Agenda, MRecord):
+
+	Move initialization of member variables from the constructors'
+	function bodies to the member initialization lists.
+
+	Add missing members to initialization lists as well.
+
+	* src/absorption.h (SpeciesRecord, LineshapeRecord, IsotopeRecord,
+	LineshapeNormRecord, LineshapeSpec), src/abs_species_tag.h
+	(SpeciesTag), src/gridded_fields.h (GField), jacobian.h
+	(RetrievalQuantity), src/methods.h (MdRecord), src/gas_abs_lookup.h
+	(GasAbsLookup), mc_antenna.h (MCAntenna), wsv_aux.h (WsvRecord):
+
+	Initialize all members in constructors.
+
+	* src/matpackI.{cc,h} (VectorView::operator=):
+
+	The assignment operators didn't return a reference.
+
+        * src/methods.h (MdRecord::operator=):
+	
+	Same as above. In this case the program exits anyway, but for the sake
+	of consistency....
+
+	* src/gridded_fields.cc: Add virtual destructor to GField.
+
+	* src/parameters.h (Parameters):
+
+	Add missing members to initialization list.
+
+	Change from struct to class and make members public.
+
+	* src/array.h:
+
+	Remove spurious semikolons after function bodies.
+
+2008-06-23  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-6-16
 
 	* src/xml_io_array_types.{cc,h}, src/xml_io_basic_types.{cc,h}:

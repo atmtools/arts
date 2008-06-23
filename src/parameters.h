@@ -39,10 +39,13 @@
    to have them in the same place. 
    @author SAB
 */
-struct Parameters {
+class Parameters {
+public:
   /** Default constructor. Care has to be taken to properly initialize
       all variables, e.g., bool options to false. */
   Parameters() :
+    usage(),
+    helptext(),
     help(false),
     version(false),
     basename(""),

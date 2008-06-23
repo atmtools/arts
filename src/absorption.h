@@ -53,7 +53,10 @@ class LineshapeRecord{
 public:
 
   /** Default constructor. */
-  LineshapeRecord(){};
+  LineshapeRecord() : mname(),
+                      mdescription(),
+                      mfunction()
+  { /* Nothing to do here. */ }
 
   /** Initializing constructor, used to build the lookup table. */
   LineshapeRecord(const String& name,
@@ -94,7 +97,10 @@ class LineshapeNormRecord{
 public:
 
   /** Default constructor. */
-  LineshapeNormRecord(){};
+  LineshapeNormRecord() : mname(),
+                          mdescription(),
+                          mfunction()
+  { /* Nothing to do here. */ }
 
   /** Initializing constructor, used to build the lookup table. */
   LineshapeNormRecord(const String& name,
@@ -125,7 +131,10 @@ class LineshapeSpec{
 public:
 
   /** Default constructor. */
-  LineshapeSpec(){};
+  LineshapeSpec() : mind_ls(-1),
+                    mind_lsn(-1),
+                    mcutoff(0.)
+  { /* Nothing to do here. */ }
 
   /** Initializing constructor. */
   LineshapeSpec(const Index&    ind_ls,
@@ -172,7 +181,14 @@ class IsotopeRecord{
 public:
 
   /** Default constructor. Needed by make_array. */
-  IsotopeRecord() { /* Nothing to do here */ }
+  IsotopeRecord() : mname(),
+                    mabundance(0.),
+                    mmass(0.),
+                    mmytrantag(-1),
+                    mhitrantag(-1),
+                    mjpltags(),
+                    mqcoeff()
+  { /* Nothing left to do here. */ }
 
   /** Copy constructor. We need this, since operator= does not work
       correctly for Arrays. (Target Array has to be resized first.) */
@@ -182,7 +198,8 @@ public:
     mmass(x.mmass),
     mmytrantag(x.mmytrantag),
     mhitrantag(x.mhitrantag),
-    mjpltags(x.mjpltags)
+    mjpltags(x.mjpltags),
+    mqcoeff()
   { /* Nothing left to do here. */ }
 
   /** Constructor that sets the values. */
@@ -197,7 +214,8 @@ public:
     mmass(mass),
     mmytrantag(mytrantag),
     mhitrantag(hitrantag),
-    mjpltags(jpltags)
+    mjpltags(jpltags),
+    mqcoeff()
   {
     // With Matpack, initialization of mjpltags from jpltags should now work correctly.
 
@@ -289,7 +307,9 @@ class SpeciesRecord{
 public:
 
   /** Default constructor. */
-  SpeciesRecord(){}  ;
+  SpeciesRecord() : mname(),
+                    mdegfr(-1),
+                    misotope() { /* Nothing to do here */ };
   
   /** The constructor used in define_species_data. */
   SpeciesRecord(const char name[],
@@ -509,7 +529,14 @@ public:
       mnair    (nair       ),
       mnself   (nself      ),
       mtgam    (tgam       ), 
-      maux     (aux        )
+      maux     (aux        ),
+      mdf      (-1.    ),
+      mdi0     (-1.    ),
+      mdagam   (-1.    ),
+      mdsgam   (-1.    ),
+      mdnair   (-1.    ),
+      mdnself  (-1.    ),
+      mdpsf    (-1.    )
   {
     // Thanks to Matpack, initialization of misotope with isotope
     // should now work correctly.  

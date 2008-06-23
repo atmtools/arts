@@ -44,7 +44,14 @@ class RetrievalQuantity {
 public:
 
   /** Default constructor. Needed by make_array. */
-  RetrievalQuantity() { /* Nothing to do here */ }
+  RetrievalQuantity() : mmaintag(),
+                        msubtag(),
+                        mmode(),
+                        manalytical(-1),
+                        mperturbation(0.),
+                        mgrids()
+  { /* Nothing to do here. */ }
+
 
   /** Copy constructor. We need this, since operator= does not work
       correctly for Arrays. (Target Array has to be resized first.) */

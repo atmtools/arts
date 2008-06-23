@@ -42,7 +42,7 @@ public:
   // ------------------------
 
   /** Default constructor. */
-  Iterator5D() { /* Nothing to do here. */ }
+  Iterator5D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
   /** Copy constructor. */
   Iterator5D(const Iterator5D& o) : msv(o.msv), mstride(o.mstride)
@@ -93,7 +93,7 @@ class ConstIterator5D {
 public:
   // Constructors:
   /** Default constructor. */
-  ConstIterator5D() { /* Nothing to do here. */ }
+  ConstIterator5D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
   /** Copy constructor. */
   ConstIterator5D(const ConstIterator5D& o) : msv(o.msv), mstride(o.mstride)

@@ -35,7 +35,7 @@ class Iterator3D {
 public:
   // Constructors:
   /** Default constructor. */
-  Iterator3D() { /* Nothing to do here. */ }
+  Iterator3D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
   /** Copy constructor. */
   Iterator3D(const Iterator3D& o) : msv(o.msv), mstride(o.mstride)
@@ -83,7 +83,7 @@ class ConstIterator3D {
 public:
   // Constructors:
   /** Default constructor. */
-  ConstIterator3D() { /* Nothing to do here. */ }
+  ConstIterator3D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
   /** Copy constructor. */
   ConstIterator3D(const ConstIterator3D& o) : msv(o.msv), mstride(o.mstride)

@@ -211,7 +211,7 @@ private:
 class Iterator1D {
 public:
   /** Default constructor. */
-  Iterator1D() { /* Nothing to do here. */ }
+  Iterator1D() : mx(NULL), mstride(0) { /* Nothing to do here. */ }
 
   /** Copy constructor. */
   Iterator1D(const Iterator1D& o) : mx(o.mx), mstride(o.mstride)
@@ -247,7 +247,7 @@ private:
 class ConstIterator1D {
 public:
   /** Default constructor. */
-  ConstIterator1D()
+  ConstIterator1D() : mx(NULL), mstride(0)
     { /* Nothing to do here. */ }
 
   /** Copy constructor. */
@@ -397,11 +397,11 @@ public:
   Iterator1D end();
 
   // Assignment operators:
-  VectorView operator=(const ConstVectorView& v);
-  VectorView operator=(const VectorView& v);
-  VectorView operator=(const Vector& v);
-/*  VectorView operator=(const Array<Numeric>& v); */
-  VectorView operator=(Numeric x);
+  VectorView& operator=(const ConstVectorView& v);
+  VectorView& operator=(const VectorView& v);
+  VectorView& operator=(const Vector& v);
+/*  VectorView& operator=(const Array<Numeric>& v); */
+  VectorView& operator=(Numeric x);
 
   // Other operators:
   VectorView operator*=(Numeric x);
@@ -450,7 +450,7 @@ class Iterator2D {
 public:
   // Constructors:
   /** Default constructor. */
-  Iterator2D() { /* Nothing to do here. */ }
+  Iterator2D() : msv(), mstride(0)  { /* Nothing to do here. */ }
 
   /** Copy constructor. */
   Iterator2D(const Iterator2D& o) : msv(o.msv), mstride(o.mstride)
@@ -494,7 +494,7 @@ class ConstIterator2D {
 public:
   // Constructors:
   /** Default constructor. */
-  ConstIterator2D() { /* Nothing to do here. */ }
+  ConstIterator2D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
   /** Copy constructor. */
   ConstIterator2D(const ConstIterator2D& o) : msv(o.msv), mstride(o.mstride)

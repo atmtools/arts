@@ -59,13 +59,21 @@ private:
   ArrayOfVector mnumericgrids;
 
 protected:
-  GField() : dim(0) {};
+  GField() : dim(0),
+             mname(),
+             mgridtypes(),
+             mgridnames(),
+             mstringgrids(),
+             mnumericgrids()
+  { /* Nothing to do here */ };
+
   GField(const Index d, const String s) : dim(d),
                                           mname(s),
                                           mgridtypes(d, GRIDTYPE_NUMERIC),
                                           mgridnames(d),
                                           mstringgrids(d),
-                                          mnumericgrids(d) {}
+                                          mnumericgrids(d)
+  { /* Nothing to do here */ }
                                           
 
 public:
@@ -96,6 +104,8 @@ public:
   void set_name (const String& s) { mname = s; }
 
   virtual bool checksize() const { return false; };
+
+  virtual ~GField() { }
 
   friend ostream& operator<<(ostream& os, const GField& gf);
 };

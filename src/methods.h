@@ -55,7 +55,8 @@ public:
     msupergeneric(false),
     msuppress_header(false),
     mpass_workspace(false),
-    mpass_wsv_names(false)
+    mpass_wsv_names(false),
+    mactual_group(-1)
   {};
 
   // Initializing constructor. Implementation in methods_aux.cc.
@@ -115,11 +116,11 @@ public:
 
   //! To override the default assignment operator.
   /*! MdRecords cannot be assigned! */
-  MdRecord operator=(const MdRecord& m){
+  MdRecord& operator=(const MdRecord& m){
     out0 << "MdRecord cannot be assigned!\n"
          << "You tried to assign: " << m << "\n";
     arts_exit ();
-    return MdRecord();
+    return *this;
   }
 
   // Needed by make_auto_md_h.cc. See documentation there.

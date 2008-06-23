@@ -43,11 +43,19 @@ class Workspace;
 class Agenda {
 public:
 
-  Agenda() : agendaworkspace(NULL)
-    {
-    }
+  Agenda() : mname(), mml(), moutput_push(), moutput_dup(),
+             agendaworkspace(NULL) { }
 
-  Agenda(const Agenda& x);
+  /*! 
+    Copies an agenda.
+  */
+  Agenda(const Agenda& x) : mname(x.mname),
+                            mml(x.mml),
+                            moutput_push(x.moutput_push),
+                            moutput_dup(x.moutput_dup),
+                            agendaworkspace(x.agendaworkspace)
+  { /* Nothing to do here */ }
+
 
   void append(const String& methodname, const String& keywordvalue);
   void push_back(MRecord n);
@@ -92,28 +100,30 @@ ostream& operator<<(ostream& os, const Agenda& a);
     @author Stefan Buehler */
 class MRecord {
 public:
-  MRecord(){ /* Nothing to do here. */ }
+  MRecord() : mid(-1),
+              mvalues(),
+              moutput(),
+              minput(),
+              mtasks() { /* Nothing to do here. */ }
+
   MRecord(const MRecord& x) : mid(x.mid),
                               mvalues(x.mvalues),
                               moutput(x.moutput),
                               minput(x.minput),
                               mtasks(x.mtasks)
-    {
-    }
+    { /* Nothing to do here */ }
 
   MRecord(const Index id,
           const Array<TokVal>& values,
           const ArrayOfIndex& output,
           const ArrayOfIndex& input,
-          const Agenda&       tasks)
-    : mid(id),
-      mvalues( values ),
-      moutput( output ),
-      minput(  input  ),
-      mtasks( tasks )
-  { 
-    // Initialization of arrays from other array now works correctly.
-  }
+          const Agenda&       tasks) : mid(id),
+                                       mvalues(values),
+                                       moutput(output),
+                                       minput(input),
+                                       mtasks(tasks)
+  { /* Nothing to do here */ }
+
   Index                Id()       const { return mid;     }
   const Array<TokVal>& Values()   const { return mvalues; }
   const ArrayOfIndex&  Output()   const { return moutput; }
@@ -238,19 +248,6 @@ inline void Agenda::push_back(MRecord n)
   mml.push_back(n);
 }
 
-
-//! Copy constructor.
-/*! 
-  Copies an agenda.
-*/
-inline Agenda::Agenda(const Agenda& x)
-{
-  mml = x.mml;
-  mname = x.mname;
-  agendaworkspace = x.agendaworkspace;
-  moutput_push = x.moutput_push;
-  moutput_dup = x.moutput_dup;
-}
 
 //! Assignment operator.
 /*! 

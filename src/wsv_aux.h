@@ -42,7 +42,11 @@ class WsvRecord {
 public:
 
   /** Default constructor. */
-  WsvRecord(){};
+  WsvRecord() : mname(),
+                mdescription(),
+                mgroup(-1),
+                mimplicit(false)
+  { /* Nothing to do here */ }
 
   /** Initializing constructor.
 

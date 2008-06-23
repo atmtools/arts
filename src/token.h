@@ -34,51 +34,35 @@ class TokVal {
 public:
 
   /** Default Constructor. (Sets type to undefined_t) */
-  TokVal() {
-    mtype = undefined_t;
-  }
+  TokVal() : mtype(undefined_t), ms(), mn(-1), mx(0.), msv(), mnv(), mxv() { }
 
   /** To set TokVal from String (C - style). */
-  TokVal(const char s[]) {
-    mtype = String_t;
-    ms = s;
-  }
+  TokVal(const char s[]) : mtype(String_t), ms(s), mn(-1), mx(0.),
+                           msv(), mnv(), mxv() { }
 
   /** To set TokVal from String (C++ - style). */
-  TokVal(const String& s) {
-    mtype = String_t;
-    ms = s;
-  }
+  TokVal(const String& s) : mtype(String_t), ms(s), mn(-1), mx(0.),
+                           msv(), mnv(), mxv() { }
 
   /** To set TokVal from an integer. */
-  TokVal(Index n) {
-    mtype = Index_t;
-    mn = n;
-  }
+  TokVal(Index n) : mtype(Index_t), ms(), mn(n), mx(0.),
+                           msv(), mnv(), mxv() { }
 
   /** To set TokVal from a Numeric. */
-  TokVal(Numeric x) {
-    mtype = Numeric_t;
-    mx = x;
-  }
+  TokVal(Numeric x) : mtype(Numeric_t), ms(), mn(-1), mx(x),
+                           msv(), mnv(), mxv() { }
 
   /** To set TokVal from an array of Strings. */
-  TokVal(ArrayOfString sv) : msv(sv)
-  {
-    mtype = Array_String_t;
-  }
+  TokVal(ArrayOfString sv) : mtype(Array_String_t), ms(), mn(-1), mx(0.),
+                           msv(sv), mnv(), mxv() { }
 
   /** To set TokVal from an array of integers. */
-  TokVal(ArrayOfIndex nv) : mnv(nv)
-  {
-    mtype = Array_Index_t;
-  }
+  TokVal(ArrayOfIndex nv) : mtype(Array_Index_t), ms(), mn(-1), mx(0.),
+                           msv(), mnv(nv), mxv() { }
 
   /** To set TokVal from a Vector. */
-  TokVal(Vector xv) : mxv(xv)
-  {
-    mtype = Vector_t;
-  }
+  TokVal(Vector xv) : mtype(Vector_t), ms(), mn(-1), mx(0.),
+                           msv(), mnv(), mxv(xv) { }
 
   // Conversion functions to return TokVal for the 6 different types: 
   
@@ -100,13 +84,13 @@ public:
   friend ostream& operator<<(ostream& os, const TokVal& a);
 
 private:
-  TokValType mtype;
-  String       ms;
-  Index          mn;
-  Numeric      mx;   
-  ArrayOfString  msv;
-  ArrayOfIndex     mnv;
-  Vector         mxv;
+  TokValType    mtype;
+  String        ms;
+  Index         mn;
+  Numeric       mx;   
+  ArrayOfString msv;
+  ArrayOfIndex  mnv;
+  Vector        mxv;
 };
 
 

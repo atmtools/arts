@@ -39,7 +39,7 @@ class Iterator4D {
 public:
   // Constructors:
   /** Default constructor. */
-  Iterator4D() { /* Nothing to do here. */ }
+  Iterator4D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
   /** Copy constructor. */
   Iterator4D(const Iterator4D& o) : msv(o.msv), mstride(o.mstride)
@@ -88,7 +88,7 @@ public:
   // -----------------------------
 
   /** Default constructor. */
-  ConstIterator4D() { /* Nothing to do here. */ }
+  ConstIterator4D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
   /** Copy constructor. */
   ConstIterator4D(const ConstIterator4D& o) : msv(o.msv), mstride(o.mstride)

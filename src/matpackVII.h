@@ -36,7 +36,7 @@ class Iterator7D {
 public:
   // Constructors:
   /** Default constructor. */
-  Iterator7D() { /* Nothing to do here. */ }
+  Iterator7D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
   /** Copy constructor. */
   Iterator7D(const Iterator7D& o) : msv(o.msv), mstride(o.mstride)
@@ -94,7 +94,7 @@ class ConstIterator7D {
 public:
   // Constructors:
   /** Default constructor. */
-  ConstIterator7D() { /* Nothing to do here. */ }
+  ConstIterator7D() : msv(), mstride(0) { /* Nothing to do here. */ }
 
   /** Copy constructor. */
   ConstIterator7D(const ConstIterator7D& o) : msv(o.msv), mstride(o.mstride)
