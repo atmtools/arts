@@ -21,15 +21,13 @@
 /*!
   \file   gridded_fields.cc
   \author Oliver Lemke  <olemke@core-dump.info>
-  \author Claudia Emde <claudia.emde@dlr.de>
-  \date   Wed Jun 26 17:48:29 2002
+  \date   2008-06-24
   
-  \brief  Reading routines for gridded fields.
+  \brief  Implementation of gridded fields.
   
-  This file contains reading routines for gridded fields. Gridded fields are
+  This file contains the implemenation gridded fields. Gridded fields are
   needed to store moredimesional data together with the corresponding grids 
-  in the same variable. The datatype og a gridded field is always an array
-  of tensors.
+  in the same variable.
 
   For further description see AUG.
 
@@ -50,6 +48,13 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+//! Get the size of a grid.
+/*!
+  Returns the size of grid i.
+
+  \param[in]  i  Grid index.
+  \return        Grid size.
+*/
 Index GField::get_grid_size (Index i) const
 {
   Index ret = 0;
@@ -64,24 +69,67 @@ Index GField::get_grid_size (Index i) const
 }
 
 
+//! Get a numeric grid.
+/*!
+  Returns the numeric grid with index i.
+
+  Throws a runtime error if grid i is not of type Numeric.
+
+  \param[in]  i  Grid index.
+  \return        Numeric grid.
+*/
 ConstVectorView GField::get_numeric_grid (Index i) const
 {
   assert (i < dim);
-  assert (mgridtypes[i] == GRIDTYPE_NUMERIC);
+  if (mgridtypes[i] != GRIDTYPE_NUMERIC)
+    {
+      ostringstream os;
+      if (mgridnames[i].length())
+        os << mgridnames[i];
+      else
+        os << "Grid " << i;
+      os << " is not a numeric grid.";
+      throw runtime_error(os.str());
+    }
 
   return (mnumericgrids[i]);
 }
 
 
+//! Get a string grid.
+/*!
+  Returns the string grid with index i.
+
+  Throws a runtime error if grid i is not of type String.
+
+  \param[in]  i  Grid index.
+  \return        String grid.
+*/
 const ArrayOfString& GField::get_string_grid (Index i) const
 {
   assert (i < dim);
-  assert (mgridtypes[i] == GRIDTYPE_STRING);
+  if (mgridtypes[i] != GRIDTYPE_STRING)
+    {
+      ostringstream os;
+      if (mgridnames[i].length())
+        os << mgridnames[i];
+      else
+        os << "Grid " << i;
+      os << " is not a string grid.";
+      throw runtime_error(os.str());
+    }
 
   return (mstringgrids[i]);
 }
 
 
+//! Set a numeric grid.
+/*!
+  Sets grid i to the given grid.
+
+  \param[in]  i  Grid index.
+  \param[in]  g  New grid.
+*/
 void GField::set_grid (Index i, const Vector& g)
 {
   assert (i < dim);
@@ -91,6 +139,13 @@ void GField::set_grid (Index i, const Vector& g)
 }
 
 
+//! Set a string grid.
+/*!
+  Sets grid i to the given grid.
+
+  \param  i[in]  Grid index.
+  \param  g[in]  New grid.
+*/
 void GField::set_grid (Index i, const ArrayOfString& g)
 {
   assert (i < dim);
@@ -100,6 +155,13 @@ void GField::set_grid (Index i, const ArrayOfString& g)
 }
 
 
+//! Output operator for GField
+/*!
+  Outputs the grids for the given GField.
+
+  \param[in,out]  os  Output stream.
+  \param[in]      gf  GField.
+*/
 ostream& operator<<(ostream& os, const GField& gf)
 {
   if (gf.mname.size()) os << gf.mname << ":" << endl;
@@ -125,6 +187,13 @@ ostream& operator<<(ostream& os, const GField& gf)
 }
 
 
+//! Output operator for GField1
+/*!
+  Outputs the given GField1.
+
+  \param[in,out]  os  Output stream.
+  \param[in]      gf  GField1.
+*/
 ostream& operator<<(ostream& os, const GField1& gf)
 {
   os << (GField&)gf;
@@ -132,6 +201,13 @@ ostream& operator<<(ostream& os, const GField1& gf)
 }
 
 
+//! Output operator for GField2
+/*!
+  Outputs the given GField2.
+
+  \param[in,out]  os  Output stream.
+  \param[in]      gf  GField2.
+*/
 ostream& operator<<(ostream& os, const GField2& gf)
 {
   os << (GField&)gf;
@@ -139,6 +215,13 @@ ostream& operator<<(ostream& os, const GField2& gf)
 }
 
 
+//! Output operator for GField3
+/*!
+  Outputs the given GField3.
+
+  \param[in,out]  os  Output stream.
+  \param[in]      gf  GField3.
+*/
 ostream& operator<<(ostream& os, const GField3& gf)
 {
   os << (GField&)gf;
@@ -146,6 +229,13 @@ ostream& operator<<(ostream& os, const GField3& gf)
 }
 
 
+//! Output operator for GField4
+/*!
+  Outputs the given GField4.
+
+  \param[in,out]  os  Output stream.
+  \param[in]      gf  GField4.
+*/
 ostream& operator<<(ostream& os, const GField4& gf)
 {
   os << (GField&)gf;

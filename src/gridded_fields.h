@@ -47,7 +47,7 @@ typedef enum {
 
 typedef Array<GridType> ArrayOfGridType;
 
-/*! Abstract base class for GriddedFields */
+/*! Abstract base class for gridded fields. */
 class GField
 {
 private:
@@ -59,6 +59,11 @@ private:
   ArrayOfVector mnumericgrids;
 
 protected:
+  //! Construct an empty GField
+  /*!
+    The constructor for GField is protected because it is only used internally
+    by the derived classed.
+  */
   GField() : dim(0),
              mname(),
              mgridtypes(),
@@ -67,6 +72,16 @@ protected:
              mnumericgrids()
   { /* Nothing to do here */ };
 
+  //! Construct a GField
+  /*!
+    Constructs a GField with the given dimension and name.
+
+    The constructor for GField is protected because it is only used internally
+    by the derived classed.
+
+    \param[in] d Dimension.
+    \param[in] s Name.
+  */
   GField(const Index d, const String s) : dim(d),
                                           mname(s),
                                           mgridtypes(d, GRIDTYPE_NUMERIC),
@@ -77,34 +92,70 @@ protected:
                                           
 
 public:
+  //! Get the dimension of this gridded field.
+  /*! \return Dimension. */
   Index get_dim () const { return dim; }
 
+  //! Get grid name.
+  /*!
+     Returns the name of the grid with index i.
+
+     \param[in] i Grid index.
+     \return      Grid name.
+  */
   const String& get_gridname (Index i) const { return mgridnames[i]; }
 
   Index get_grid_size (const Index i) const;
 
+  //! Get grid type.
+  /*!
+     Returns the type of the grid with index i.
+
+     \param[in] i Grid index.
+     \return      Grid type.
+  */
   GridType get_gridtype (Index i) const { return mgridtypes[i]; }
 
   ConstVectorView get_numeric_grid (Index i) const;
 
   const ArrayOfString& get_string_grid (Index i) const;
 
+  //! Get the name of this gridded field.
+  /*! \return Gridded field name. */
   const String& get_name () const { return mname; }
 
   void set_grid (Index i, const Vector& g);
 
   void set_grid (Index i, const ArrayOfString& g);
 
+  //! Set grid name.
+  /*!
+    Sets the name with the given index.
+
+    \param[in] i Grid index.
+    \param[in] s Grid name.
+  */
   void set_gridname (Index i, const String& s)
     {
       assert (i < dim);
       mgridnames[i] = s;
     };
 
+  //! Set name of this gridded field.
+  /*! \param[in] s Gridded field name. */
   void set_name (const String& s) { mname = s; }
 
+  //! Consistency check.
+  /*!
+    Check if the sizes of the grids match the data dimension.
+
+    This function must be overwritten by the derived classes.
+
+    \return True if sizes match.
+  */
   virtual bool checksize() const { return false; };
 
+  //! GField destructor
   virtual ~GField() { }
 
   friend ostream& operator<<(ostream& os, const GField& gf);
@@ -114,9 +165,18 @@ public:
 class GField1: public GField, public Vector
 {
 public:
+  //! Construct an empty GField1
   GField1() : GField(1, "") {};
-  GField1(const String name) : GField(1, name) {};
+  //! Construct an empty GField1 with the given name
+  /*! \param[in] s Name. */
+  GField1(const String s) : GField(1, s) {};
 
+  //! Consistency check.
+  /*!
+    Check if the sizes of the grids match the data dimension.
+
+    \return True if sizes match.
+  */
   virtual bool checksize() const
     {
       return (nelem() == get_grid_size(0));
@@ -129,9 +189,18 @@ public:
 class GField2: public GField, public Matrix
 {
 public:
+  //! Construct an empty GField2
   GField2() : GField(2, "") {};
-  GField2(const String name) : GField(2, name) {};
+  //! Construct an empty GField2 with the given name
+  /*! \param[in] s Name. */
+  GField2(const String s) : GField(1, s) {};
 
+  //! Consistency check.
+  /*!
+    Check if the sizes of the grids match the data dimension.
+
+    \return True if sizes match.
+  */
   virtual bool checksize() const
     {
       return (ncols() == get_grid_size(1)
@@ -145,9 +214,18 @@ public:
 class GField3: public GField, public Tensor3
 {
 public:
+  //! Construct an empty GField3
   GField3() : GField(3, "") {};
-  GField3(const String name) : GField(3, name) {};
+  //! Construct an empty GField3 with the given name
+  /*! \param[in] s Name. */
+  GField3(const String s) : GField(3, s) {};
 
+  //! Consistency check.
+  /*!
+    Check if the sizes of the grids match the data dimension.
+
+    \return True if sizes match.
+  */
   virtual bool checksize() const
     {
       return (ncols() == get_grid_size(2)
@@ -162,9 +240,18 @@ public:
 class GField4: public GField, public Tensor4
 {
 public:
+  //! Construct an empty GField4
   GField4() : GField(4, "") {};
-  GField4(const String name) : GField(4, name) {};
+  //! Construct an empty GField4 with the given name
+  /*! \param[in] s Name. */
+  GField4(const String s) : GField(4, s) {};
 
+  //! Consistency check.
+  /*!
+    Check if the sizes of the grids match the data dimension.
+
+    \return True if sizes match.
+  */
   virtual bool checksize() const
     {
       return (ncols() == get_grid_size(3)
@@ -177,12 +264,15 @@ public:
 };
 
 
+/********** Output operators **********/
+
 ostream& operator<<(ostream& os, const GField& gf);
 ostream& operator<<(ostream& os, const GField1& gf);
 ostream& operator<<(ostream& os, const GField2& gf);
 ostream& operator<<(ostream& os, const GField3& gf);
 ostream& operator<<(ostream& os, const GField4& gf);
 
+/**************************************/
 
 
 //! Contains a GriddedField3.
@@ -203,6 +293,7 @@ typedef struct {
       //! Data.
       Tensor3 data;
 } GriddedField3;
+
 
 //! Contains a GriddedField4.
 /*!
