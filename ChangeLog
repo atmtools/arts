@@ -1,5 +1,21 @@
 2008-06-24  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-6-21
+
+	* src/m_basic_types.h: Added NGET_GENERIC for ArrayOfGField4.
+
+	* src/xml_io_compound_types.{h,cc}, src/xml_instantiation.h:
+
+	Added read/write support for GField4.
+
+	Added a common function to write the grids for all GFieldX types.
+
+	* src/xml_io_array_types.{h,cc}, src/xml_instantiation.h:
+
+	Added read/write support for ArrayOfGField4 and ArrayOfArrayOfGField3.
+
+2008-06-24  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-6-20
 
 	* Changed t_field_raw, z_field_raw, and vmr_field_raw to GField3 and

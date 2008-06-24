@@ -183,6 +183,34 @@ xml_read_from_stream (istream& is_xml,
 }
 
 
+//! Writes the grids for gridded fields to an XML input stream
+/*!
+  \param os_xml  XML output stream
+  \param gfield  GField with the grids
+  \param pbofs   Pointer to binary output stream. NULL in case of ASCII file.
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const GField& gfield,
+                     bofstream *pbofs)
+{
+  for (Index i = 0; i < gfield.get_dim(); i++)
+    {
+      switch (gfield.get_grid_type(i))
+        {
+        case GRIDTYPE_NUMERIC:
+          xml_write_to_stream (os_xml, gfield.get_numeric_grid(i),
+                               pbofs, gfield.get_grid_name(i));
+          break;
+        case GRIDTYPE_STRING:
+          xml_write_to_stream (os_xml, gfield.get_string_grid(i),
+                               pbofs, gfield.get_grid_name(i));
+          break;
+        }
+    }
+}
+
+
 //=== GField3 ===========================================================
 
 //! Reads GField3 from XML input stream
@@ -239,22 +267,73 @@ xml_write_to_stream (ostream& os_xml,
   open_tag.write_to_stream (os_xml);
   os_xml << '\n';
 
-  for (Index i = 0; i < 3; i++)
-    {
-      switch (gfield.get_grid_type(i))
-        {
-        case GRIDTYPE_NUMERIC:
-          xml_write_to_stream (os_xml, gfield.get_numeric_grid(i),
-                               pbofs, gfield.get_grid_name(i));
-          break;
-        case GRIDTYPE_STRING:
-          xml_write_to_stream (os_xml, gfield.get_string_grid(i),
-                               pbofs, gfield.get_grid_name(i));
-          break;
-        }
-    }
-
+  xml_write_to_stream (os_xml, (GField&)gfield, pbofs);
   xml_write_to_stream (os_xml, (Tensor3&)gfield, pbofs, "Data");
+
+  close_tag.set_name ("/GriddedField3");
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+}
+
+
+//=== GField4 ===========================================================
+
+//! Reads GField4 from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param gfield  GField4 return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      GField4& gfield,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("GriddedField4");
+
+  String s;
+  tag.get_attribute_value ("name", s);
+  if (s.length())
+    gfield.set_name (s);
+
+  xml_read_from_stream (is_xml, (GField&)gfield, pbifs);
+  xml_read_from_stream (is_xml, (Tensor4&)gfield, pbifs);
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/GriddedField4");
+}
+
+
+//! Writes GField4 to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param gfield  GriddedField3
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const GField4& gfield,
+                     bofstream *pbofs,
+                     const String& name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("GriddedField3");
+  if (!name.length () && (gfield.get_name().length ()))
+    open_tag.add_attribute ("name", gfield.get_name());
+  else if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  xml_write_to_stream(os_xml, (GField&)gfield, pbofs);
+  xml_write_to_stream (os_xml, (Tensor4&)gfield, pbofs, "Data");
 
   close_tag.set_name ("/GriddedField3");
   close_tag.write_to_stream (os_xml);

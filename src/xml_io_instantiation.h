@@ -131,6 +131,9 @@ template void
 xml_read_from_file<GField3> (const String&, GField3&);
 
 template void
+xml_read_from_file<GField4> (const String&, GField4&);
+
+template void
 xml_read_from_file<GriddedField3> (const String&, GriddedField3&);
 
 template void
@@ -172,6 +175,10 @@ xml_write_to_file<GasAbsLookup> (const String&, const GasAbsLookup&, FileType);
 
 template void
 xml_write_to_file<GField3> (const String&, const GField3&,
+                            FileType);
+
+template void
+xml_write_to_file<GField4> (const String&, const GField4&,
                             FileType);
 
 template void
@@ -234,8 +241,14 @@ xml_read_from_file<ArrayOfSingleScatteringData> (const String&,
                                               ArrayOfSingleScatteringData&);
 
 template void
-xml_read_from_file<ArrayOfGField3> (const String&,
-                                    ArrayOfGField3&);
+xml_read_from_file<ArrayOfGField3> (const String&, ArrayOfGField3&);
+
+template void
+xml_read_from_file<ArrayOfArrayOfGField3> (const String&,
+                                           ArrayOfArrayOfGField3&);
+
+template void
+xml_read_from_file<ArrayOfGField4> (const String&, ArrayOfGField4&);
 
 template void
 xml_read_from_file<ArrayOfGriddedField3> (const String&,
@@ -343,6 +356,16 @@ xml_write_to_file<ArrayOfSingleScatteringData> (const String&,
 template void
 xml_write_to_file<ArrayOfGField3> (const String&,
                                    const ArrayOfGField3&,
+                                   FileType);
+
+template void
+xml_write_to_file<ArrayOfArrayOfGField3> (const String&,
+                                          const ArrayOfArrayOfGField3&,
+                                          FileType);
+
+template void
+xml_write_to_file<ArrayOfGField4> (const String&,
+                                   const ArrayOfGField4&,
                                    FileType);
 
 template void
