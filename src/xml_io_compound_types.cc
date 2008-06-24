@@ -241,15 +241,15 @@ xml_write_to_stream (ostream& os_xml,
 
   for (Index i = 0; i < 3; i++)
     {
-      switch (gfield.get_gridtype(i))
+      switch (gfield.get_grid_type(i))
         {
         case GRIDTYPE_NUMERIC:
           xml_write_to_stream (os_xml, gfield.get_numeric_grid(i),
-                               pbofs, gfield.get_gridname(i));
+                               pbofs, gfield.get_grid_name(i));
           break;
         case GRIDTYPE_STRING:
           xml_write_to_stream (os_xml, gfield.get_string_grid(i),
-                               pbofs, gfield.get_gridname(i));
+                               pbofs, gfield.get_grid_name(i));
           break;
         }
     }

@@ -60,6 +60,11 @@
 #include "math_funcs.h"
 #include "physics_funcs.h"
 
+extern const Index P_GRID;
+extern const Index LAT_GRID;
+extern const Index LON_GRID;
+
+
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
@@ -1096,7 +1101,7 @@ void pnd_fieldCalc(//WS Output:
       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
         {
           // Calculate grid positions:
-          p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(0), p_grid_cloud);
+          p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(P_GRID), p_grid_cloud);
          
           // Interpolation weights:
           Matrix itw(Np_cloud, 2);
@@ -1127,7 +1132,7 @@ void pnd_fieldCalc(//WS Output:
   //       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
   //         {
   //           // Calculate grid positions:
-  //           p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(0), p_grid);
+  //           p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(P_GRID), p_grid);
   //           gridpos(gp_lat, pnd_field_raw[i](0, joker, 0), 
   //                   lat_grid);
       
@@ -1172,9 +1177,12 @@ void pnd_fieldCalc(//WS Output:
       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
         {
           // Calculate grid positions:
-          p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(0), p_grid_cloud);
-          gridpos(gp_lat, pnd_field_raw[i].get_numeric_grid(1), lat_grid_cloud);
-          gridpos(gp_lon, pnd_field_raw[i].get_numeric_grid(2), lon_grid_cloud);
+          p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(P_GRID),
+                    p_grid_cloud);
+          gridpos(gp_lat, pnd_field_raw[i].get_numeric_grid(LAT_GRID),
+                  lat_grid_cloud);
+          gridpos(gp_lon, pnd_field_raw[i].get_numeric_grid(LON_GRID),
+                  lon_grid_cloud);
           
           // Interpolation weights:
           Tensor4 itw(Np_cloud, Nlat_cloud, Nlon_cloud, 8);

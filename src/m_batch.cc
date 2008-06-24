@@ -53,6 +53,7 @@ using namespace std;
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
+extern const Index   P_GRID;
 
 
 /*===========================================================================
@@ -476,16 +477,16 @@ void ybatchMetProfiles(//Output
                const String& met_profile_path,
                const String& met_profile_pnd_path)
 {
-  GriddedField3        t_field_raw;
-  GriddedField3        z_field_raw;
-  ArrayOfGriddedField3 vmr_field_raw;
+  GField3        t_field_raw;
+  GField3        z_field_raw;
+  ArrayOfGField3 vmr_field_raw;
   ArrayOfGField3 pnd_field_raw;
-  Vector               p_grid;
-  Matrix               sensor_los;
-  Index                cloudbox_on;
-  ArrayOfIndex         cloudbox_limits;
-  Matrix               z_surface;
-  Vector               y;
+  Vector         p_grid;
+  Matrix         sensor_los;
+  Index          cloudbox_on;
+  ArrayOfIndex   cloudbox_limits;
+  Matrix         z_surface;
+  Vector         y;
   Index no_profiles = met_amsu_data.nrows();
   
   //  *vmr_field_raw* is an ArrayOfArrayOfTensor3 where the first array
@@ -571,7 +572,7 @@ void ybatchMetProfiles(//Output
       // xml_write_to_file("profile_number.xml", i);
       
       // Set z_surface from lowest level of z_field 
-      z_surface(0,0) = z_field_raw.data(0,0,0);
+      z_surface(0,0) = z_field_raw(0,0,0);
       
       /* The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
      array is for species.
@@ -585,35 +586,27 @@ void ybatchMetProfiles(//Output
     longitude grid.  The third tensor which is the vmr is set to a 
     constant value of 0.782, corresponding to N2.*/
 
-      vmr_field_raw[1].data.resize(vmr_field_raw[0].p_grid.nelem(),
-                 vmr_field_raw[0].lat_grid.nelem(),
-                 vmr_field_raw[0].lon_grid.nelem());
-
-      vmr_field_raw[1].p_grid = vmr_field_raw[0].p_grid; //pressure grid for 1st element
-      vmr_field_raw[1].lat_grid = vmr_field_raw[0].lat_grid; //latitude grid for 1st element
-      vmr_field_raw[1].lon_grid = vmr_field_raw[0].lon_grid; //longitude grid for 1st element
-      vmr_field_raw[1].data = 0.782;//vmr of N2
+      vmr_field_raw[1].resize(vmr_field_raw[0]);
+      vmr_field_raw[1].copy_grids(vmr_field_raw[0]);
+      vmr_field_raw[1] = 0.782;//vmr of N2
       
       /*the third element of the species.  the first 3 Tensors in the
     array are the same .  They are pressure grid, latitude grid and
     longitude grid.  The third tensor which is the vmr is set to a 
     constant value of 0.209, corresponding to O2.*/
-      vmr_field_raw[2].data.resize(vmr_field_raw[0].p_grid.nelem(),
-                 vmr_field_raw[0].lat_grid.nelem(),
-                 vmr_field_raw[0].lon_grid.nelem());
-      vmr_field_raw[2].p_grid = vmr_field_raw[0].p_grid;//pressure grid for 2nd element
-      vmr_field_raw[2].lat_grid = vmr_field_raw[0].lat_grid;//latitude grid for 2nd element
-      vmr_field_raw[2].lon_grid = vmr_field_raw[0].lon_grid;//longitude grid for 2nd element
-      vmr_field_raw[2].data =  0.209;//vmr of O2
+      vmr_field_raw[2].resize(vmr_field_raw[0]);
+      vmr_field_raw[2].copy_grids(vmr_field_raw[0]);
+      vmr_field_raw[2] =  0.209;//vmr of O2
       
+      const ConstVectorView tfr_p_grid = t_field_raw.get_numeric_grid(P_GRID);
       // N_p is the number of elements in the pressure grid
-      Index N_p = t_field_raw.p_grid.nelem();
+      Index N_p = tfr_p_grid.nelem();
       
       //Making a p_grid with the first and last element taken from the profile.
       VectorNLogSpace(p_grid, 
               nelem_p_grid,
-              t_field_raw.p_grid[0], 
-              t_field_raw.p_grid[N_p -1]);
+              tfr_p_grid[0], 
+              tfr_p_grid[N_p -1]);
       
       /*To set the cloudbox limits, the lower and upper cloudbox limits
     are to be set.  The lower cloudbox limit is set to the lowest
@@ -623,7 +616,7 @@ void ybatchMetProfiles(//Output
       
       //Lower limit = lowest pressure level of the original grid.
       //Could it be the interpolated p_grid? FIXME STR
-      cl_grid_min = t_field_raw.p_grid[0];
+      cl_grid_min = tfr_p_grid[0];
       
       // A counter for non-zero ice content
       Index level_counter = 0;
@@ -641,7 +634,7 @@ void ybatchMetProfiles(//Output
           //cloudbox limit. Moreover, we take one level higher 
           // than the upper limit because we want the upper limit
           //to have 0 pnd.
-          cl_grid_max = t_field_raw.p_grid[ip +1];
+          cl_grid_max = tfr_p_grid[ip +1];
         }
     }
       
@@ -702,21 +695,21 @@ void ybatchMetProfilesClear(//Output
                 const Index& nelem_p_grid,
                 const String& met_profile_path)
 {
-  GriddedField3        t_field_raw;
-  GriddedField3        z_field_raw;
-  ArrayOfGriddedField3 vmr_field_raw;
+  GField3        t_field_raw;
+  GField3        z_field_raw;
+  ArrayOfGField3 vmr_field_raw;
   ArrayOfGField3 pnd_field_raw;
-  Vector               p_grid;
-  Matrix               sensor_los;
-  Index                cloudbox_on = 0;
-  ArrayOfIndex         cloudbox_limits;
-  Matrix               z_surface;
-  Vector               y;
+  Vector         p_grid;
+  Matrix         sensor_los;
+  Index          cloudbox_on = 0;
+  ArrayOfIndex   cloudbox_limits;
+  Matrix         z_surface;
+  Vector         y;
   Index no_profiles = met_amsu_data.nrows();
   //Index no_profiles = met_profile_basenames.nelem();
   // The humidity data is stored as  an ArrayOfTensor3 whereas
   // vmr_field_raw is an ArrayOfArrayOfTensor3
-  GriddedField3 vmr_field_raw_h2o;
+  GField3 vmr_field_raw_h2o;
   
   vmr_field_raw.resize(abs_species.nelem());
   
@@ -797,9 +790,10 @@ void ybatchMetProfilesClear(//Output
       
       // N_p is the number of elements in the pressure grid
       //z_surface(0,0) = oro_height[i]+ 0.01;
-      z_surface(0,0) = z_field_raw.data(0,0,0);
+      z_surface(0,0) = z_field_raw(0,0,0);
       cout<<"z_surface"<<z_surface<<endl;
-      Index N_p = t_field_raw.p_grid.nelem();
+      const ConstVectorView tfr_p_grid = t_field_raw.get_numeric_grid(P_GRID);
+      Index N_p = tfr_p_grid.nelem();
       
       vmr_field_raw[0] = vmr_field_raw_h2o;
       
@@ -807,25 +801,17 @@ void ybatchMetProfilesClear(//Output
       //array are the same .  They are pressure grid, latitude grid and
       // longitude grid.  The third tensor which is the vmr is set to a 
       // constant value of 0.782.
-      vmr_field_raw[1].data.resize(vmr_field_raw[0].p_grid.nelem(),
-                 vmr_field_raw[0].lat_grid.nelem(),
-                 vmr_field_raw[0].lon_grid.nelem());
-      vmr_field_raw[1].p_grid = vmr_field_raw[0].p_grid;
-      vmr_field_raw[1].lat_grid = vmr_field_raw[0].lat_grid;
-      vmr_field_raw[1].lon_grid = vmr_field_raw[0].lon_grid;
-      vmr_field_raw[1].data(joker, joker, joker) = 0.782;
+      vmr_field_raw[1].resize(vmr_field_raw[0]);
+      vmr_field_raw[1].copy_grids(vmr_field_raw[0]);
+      vmr_field_raw[1](joker, joker, joker) = 0.782;
       
       // the second element of the species.  the first 3 Tensors in the
       //array are the same .  They are pressure grid, latitude grid and
       // longitude grid.  The third tensor which is the vmr is set to a 
       // constant value of 0.209.
-      vmr_field_raw[2].data.resize(vmr_field_raw[0].p_grid.nelem(),
-                 vmr_field_raw[0].lat_grid.nelem(),
-                 vmr_field_raw[0].lon_grid.nelem());
-      vmr_field_raw[2].p_grid = vmr_field_raw[0].p_grid;
-      vmr_field_raw[2].lat_grid = vmr_field_raw[0].lat_grid;
-      vmr_field_raw[2].lon_grid = vmr_field_raw[0].lon_grid;
-      vmr_field_raw[2].data(joker, joker, joker) = 0.209;
+      vmr_field_raw[2].resize(vmr_field_raw[0]);
+      vmr_field_raw[2].copy_grids(vmr_field_raw[0]);
+      vmr_field_raw[2](joker, joker, joker) = 0.209;
       
       //xml_write_to_file(met_profile_basenames[i]+ ".N2.xml", vmr_field_raw[1]);
       //xml_write_to_file(met_profile_basenames[i]+ ".O2.xml", vmr_field_raw[2]);
@@ -835,10 +821,10 @@ void ybatchMetProfilesClear(//Output
       
       VectorNLogSpace(p_grid, 
               nelem_p_grid,
-              t_field_raw.p_grid[0], 
-              t_field_raw.p_grid[N_p -1]);
-      cout<<"t_field_raw[0](0,0,0)"<<t_field_raw.p_grid[0]<<endl;
-      cout<<"t_field_raw[0](N_p -1,0,0)"<<t_field_raw.p_grid[N_p -1] <<endl;
+              tfr_p_grid[0], 
+              tfr_p_grid[N_p -1]);
+      cout<<"t_field_raw[0](0,0,0)"<<tfr_p_grid[0]<<endl;
+      cout<<"t_field_raw[0](N_p -1,0,0)"<<tfr_p_grid[N_p -1] <<endl;
       xml_write_to_file("p_grid.xml", p_grid);
 
       // executing the met_profile_calc_agenda

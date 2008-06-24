@@ -63,6 +63,9 @@ extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric EARTH_RADIUS;
 
+extern const Index P_GRID;
+extern const Index LAT_GRID;
+extern const Index LON_GRID;
 
 
 /*===========================================================================
@@ -376,15 +379,21 @@ void AtmFieldsCalc(//WS Output:
                    Tensor3& z_field,
                    Tensor4& vmr_field,
                    //WS Input
-                   const Vector& p_grid,
-                   const Vector& lat_grid,
-                   const Vector& lon_grid,
-                   const GriddedField3& t_field_raw,
-                   const GriddedField3& z_field_raw,
-                   const ArrayOfGriddedField3& vmr_field_raw,
-                   const Index& atmosphere_dim
+                   const Vector&         p_grid,
+                   const Vector&         lat_grid,
+                   const Vector&         lon_grid,
+                   const GField3&        t_field_raw,
+                   const GField3&        z_field_raw,
+                   const ArrayOfGField3& vmr_field_raw,
+                   const Index&          atmosphere_dim
                    )
 {
+  const ConstVectorView tfr_p_grid = t_field_raw.get_numeric_grid(P_GRID);
+  const ConstVectorView tfr_lat_grid = t_field_raw.get_numeric_grid(LAT_GRID);
+  const ConstVectorView tfr_lon_grid = t_field_raw.get_numeric_grid(LON_GRID);
+  const ConstVectorView zfr_p_grid = z_field_raw.get_numeric_grid(P_GRID);
+  const ConstVectorView zfr_lat_grid = z_field_raw.get_numeric_grid(LAT_GRID);
+  const ConstVectorView zfr_lon_grid = z_field_raw.get_numeric_grid(LON_GRID);
 
   // Basic checks of input variables
   //
@@ -402,15 +411,15 @@ void AtmFieldsCalc(//WS Output:
   //==========================================================================
   if ( atmosphere_dim == 1)
     {
-      if( !( t_field_raw.lat_grid.nelem() == 1 &&
-             t_field_raw.lon_grid.nelem() == 1 ))
+      if( !( tfr_lat_grid.nelem() == 1 &&
+             tfr_lon_grid.nelem() == 1 ))
         throw runtime_error(
                             "Temperature data (T_field) has wrong dimension "
                             "(2D or 3D).\n"
                             );
 
-      if( !( z_field_raw.lat_grid.nelem() == 1 &&
-             z_field_raw.lon_grid.nelem() == 1 ))
+      if( !( zfr_lat_grid.nelem() == 1 &&
+             zfr_lon_grid.nelem() == 1 ))
         throw runtime_error(
                             "Altitude data (z_field) has wrong dimension "
                             "(2D or 3D).\n"
@@ -428,7 +437,7 @@ void AtmFieldsCalc(//WS Output:
       // Interpolate t_field:
       
       // Calculate grid positions:
-      p2gridpos( gp_p, t_field_raw.p_grid, p_grid );
+      p2gridpos( gp_p, tfr_p_grid, p_grid );
 
       // Interpolation weights:
       Matrix itw(p_grid.nelem(), 2);
@@ -437,28 +446,28 @@ void AtmFieldsCalc(//WS Output:
   
       // Interpolate:
       interp( t_field(joker, 0, 0), itw, 
-              t_field_raw.data(joker, 0, 0),  gp_p);
+              t_field_raw(joker, 0, 0),  gp_p);
 
   
       // Interpolate z_field:
       
       // Calculate grid positions:
-      p2gridpos( gp_p, z_field_raw.p_grid, p_grid );
+      p2gridpos( gp_p, zfr_p_grid, p_grid );
      
       // Interpolation weights:
       interpweights( itw, gp_p );
       
       // Interpolate:
       interp( z_field(joker, 0, 0), itw,
-              z_field_raw.data(joker, 0, 0), gp_p);
+              z_field_raw(joker, 0, 0), gp_p);
       
   
       // Interpolate vmr_field. 
       // Loop over the gaseous species:
       for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
         {
-          if( !( vmr_field_raw[gas_i].lat_grid.nelem() == 1 &&
-                 vmr_field_raw[gas_i].lon_grid.nelem() == 1 ))
+          if( !( vmr_field_raw[gas_i].get_numeric_grid(LAT_GRID).nelem() == 1 &&
+                 vmr_field_raw[gas_i].get_numeric_grid(LON_GRID).nelem() == 1 ))
             {
               ostringstream os; 
               os << "VMR data of the " << gas_i << "th species has "
@@ -467,14 +476,14 @@ void AtmFieldsCalc(//WS Output:
             }
           
           // Calculate grid positions:
-          p2gridpos(gp_p, vmr_field_raw[gas_i].p_grid, p_grid);
+          p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(P_GRID), p_grid);
           
           // Interpolation weights:
           interpweights( itw, gp_p);
           
           // Interpolate:
           interp( vmr_field(gas_i, joker, 0, 0),
-                  itw, vmr_field_raw[gas_i].data(joker, 0, 0), gp_p);
+                  itw, vmr_field_raw[gas_i](joker, 0, 0), gp_p);
         }
       
     }
@@ -482,8 +491,8 @@ void AtmFieldsCalc(//WS Output:
   //=========================================================================
   else if(atmosphere_dim == 2)
     {
-      if( t_field_raw.lat_grid.nelem() == 1 &&
-          t_field_raw.lon_grid.nelem() == 1 )
+      if( tfr_lat_grid.nelem() == 1 &&
+          tfr_lon_grid.nelem() == 1 )
         throw runtime_error(
                             "Raw data has wrong dimension (1D). "
                             "You have to use \n"
@@ -504,8 +513,8 @@ void AtmFieldsCalc(//WS Output:
       // Interpolate t_field:
       
       // Calculate grid positions:
-      p2gridpos( gp_p, t_field_raw.p_grid, p_grid );
-      gridpos( gp_lat, t_field_raw.lat_grid, lat_grid );
+      p2gridpos( gp_p, tfr_p_grid, p_grid );
+      gridpos( gp_lat, tfr_lat_grid, lat_grid );
             
       // Interpolation weights:
       Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), 4);
@@ -514,20 +523,20 @@ void AtmFieldsCalc(//WS Output:
       
       // Interpolate:
       interp( t_field(joker, joker, 0 ), itw,
-              t_field_raw.data(joker, joker, 0),  gp_p, gp_lat);
+              t_field_raw(joker, joker, 0),  gp_p, gp_lat);
       
       
       // Interpolate z_field:
       // Calculate grid positions:
-      p2gridpos( gp_p, z_field_raw.p_grid, p_grid );
-      gridpos( gp_lat, z_field_raw.lat_grid, lat_grid );
+      p2gridpos( gp_p, zfr_p_grid, p_grid );
+      gridpos( gp_lat, zfr_lat_grid, lat_grid );
             
       // Interpolation weights:
       interpweights( itw, gp_p, gp_lat);
       
       // Interpolate:
       interp( z_field(joker, joker, 0), itw, 
-              z_field_raw.data(joker, joker, 0), gp_p, gp_lat);
+              z_field_raw(joker, joker, 0), gp_p, gp_lat);
       
       
       // Interpolate vmr_field. 
@@ -535,15 +544,15 @@ void AtmFieldsCalc(//WS Output:
       for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
         {
           // Calculate grid positions:
-          p2gridpos(gp_p, vmr_field_raw[gas_i].p_grid, p_grid);
-          gridpos(gp_lat, vmr_field_raw[gas_i].lat_grid, lat_grid);
+          p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(P_GRID), p_grid);
+          gridpos(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(LAT_GRID), lat_grid);
                   
           // Interpolation weights:
           interpweights( itw, gp_p, gp_lat);
           
           // Interpolate:
           interp( vmr_field(gas_i, joker, joker, 0),
-                  itw, vmr_field_raw[gas_i].data(joker, joker, 0),
+                  itw, vmr_field_raw[gas_i](joker, joker, 0),
                   gp_p, gp_lat);
         }
     }
@@ -552,8 +561,8 @@ void AtmFieldsCalc(//WS Output:
   // atmosphere_dim = 3    
   else
     {
-      if( t_field_raw.lat_grid.nelem() == 1 &&
-          t_field_raw.lon_grid.nelem() == 1 )
+      if( tfr_lat_grid.nelem() == 1 &&
+          tfr_lon_grid.nelem() == 1 )
         throw runtime_error(
                             "Raw data has wrong dimension. You have to use \n"
                             "AtmFieldsCalcExpand1D instead of AtmFieldsCalc."
@@ -575,9 +584,9 @@ void AtmFieldsCalc(//WS Output:
       // Interpolate t_field:
       
       // Calculate grid positions:
-      p2gridpos( gp_p, t_field_raw.p_grid, p_grid );
-      gridpos( gp_lat, t_field_raw.lat_grid, lat_grid );
-      gridpos( gp_lon, t_field_raw.lon_grid, lon_grid );
+      p2gridpos( gp_p, tfr_p_grid, p_grid );
+      gridpos( gp_lat, tfr_lat_grid, lat_grid );
+      gridpos( gp_lon, tfr_lon_grid, lon_grid );
       
       // Interpolation weights:
       Tensor4 itw(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem(), 8);
@@ -585,21 +594,21 @@ void AtmFieldsCalc(//WS Output:
       interpweights( itw, gp_p, gp_lat, gp_lon );
       
       // Interpolate:
-      interp( t_field, itw, t_field_raw.data,  gp_p, gp_lat, gp_lon);
+      interp( t_field, itw, t_field_raw,  gp_p, gp_lat, gp_lon);
       
       
       // Interpolate z_field:
       
       // Calculate grid positions:
-      p2gridpos( gp_p, z_field_raw.p_grid, p_grid );
-      gridpos( gp_lat, z_field_raw.lat_grid, lat_grid );
-      gridpos( gp_lon, z_field_raw.lon_grid, lon_grid );
+      p2gridpos( gp_p, zfr_p_grid, p_grid );
+      gridpos( gp_lat, zfr_lat_grid, lat_grid );
+      gridpos( gp_lon, zfr_lon_grid, lon_grid );
       
       // Interpolation weights:
       interpweights( itw, gp_p, gp_lat, gp_lon );
       
       // Interpolate:
-      interp( z_field, itw, z_field_raw.data, gp_p, gp_lat, gp_lon);
+      interp( z_field, itw, z_field_raw, gp_p, gp_lat, gp_lon);
       
       
       // Interpolate vmr_field. 
@@ -607,16 +616,16 @@ void AtmFieldsCalc(//WS Output:
       for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
         {
           // Calculate grid positions:
-          p2gridpos(gp_p, vmr_field_raw[gas_i].p_grid, p_grid);
-          gridpos(gp_lat, vmr_field_raw[gas_i].lat_grid, lat_grid);
-          gridpos(gp_lon, vmr_field_raw[gas_i].lon_grid, lon_grid);
+          p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(P_GRID), p_grid);
+          gridpos(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(LAT_GRID), lat_grid);
+          gridpos(gp_lon, vmr_field_raw[gas_i].get_numeric_grid(LON_GRID), lon_grid);
           
           // Interpolation weights:
           interpweights( itw, gp_p, gp_lat, gp_lon );
           
           // Interpolate:
           interp( vmr_field(gas_i, joker, joker, joker),
-                  itw, vmr_field_raw[gas_i].data, gp_p, gp_lat, gp_lon);
+                  itw, vmr_field_raw[gas_i], gp_p, gp_lat, gp_lon);
         }
     }
 }
@@ -624,16 +633,16 @@ void AtmFieldsCalc(//WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldsCalcExpand1D(
-            Tensor3&                 t_field,
-            Tensor3&                 z_field,
-            Tensor4&                 vmr_field,
-      const Vector&                  p_grid,
-      const Vector&                  lat_grid,
-      const Vector&                  lon_grid,
-      const GriddedField3&          t_field_raw,
-      const GriddedField3&          z_field_raw,
-      const ArrayOfGriddedField3&   vmr_field_raw,
-      const Index&                   atmosphere_dim )
+            Tensor3&        t_field,
+            Tensor3&        z_field,
+            Tensor4&        vmr_field,
+      const Vector&         p_grid,
+      const Vector&         lat_grid,
+      const Vector&         lon_grid,
+      const GField3&        t_field_raw,
+      const GField3&        z_field_raw,
+      const ArrayOfGField3& vmr_field_raw,
+      const Index&          atmosphere_dim )
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
@@ -832,13 +841,13 @@ void AtmFieldsRefinePgrid(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmRawRead(//WS Output:
-                GriddedField3& t_field_raw,
-                GriddedField3& z_field_raw,
-                ArrayOfGriddedField3& vmr_field_raw,
+                GField3&        t_field_raw,
+                GField3&        z_field_raw,
+                ArrayOfGField3& vmr_field_raw,
                 //WS Input:
                 const ArrayOfArrayOfSpeciesTag& abs_species,
                 //Keyword:
-                const String& basename)
+                const String&   basename)
 {
   // Read the temperature field:
   String file_name = basename + ".t.xml";
@@ -866,7 +875,7 @@ void AtmRawRead(//WS Output:
         species_data[abs_species[i][0].Species()].Name() + ".xml";
       
       // Add an element for this tag group to the vmr profiles:
-      GriddedField3 vmr_field_data;
+      GField3 vmr_field_data;
       vmr_field_raw.push_back(vmr_field_data);
       
       // Read the VMR:

@@ -3644,13 +3644,13 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       K\n"
        "\n"
-       "Size   GriddedField3 \n "
+       "Size   GField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        ),
-      GROUP( GriddedField3_ )));
+      GROUP( GField3_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3697,13 +3697,13 @@ void Workspace::define_wsv_data()
        "Unit:        absolute number\n"
        "\n"
        "Size:  Array[N_pt]\n"
-       "       GriddedField3 \n "
+       "       GField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        ),
-      GROUP( ArrayOfGriddedField3_ )));
+      GROUP( ArrayOfGField3_ )));
 
 
   wsv_data.push_back
@@ -3953,13 +3953,13 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       K\n"
        "\n"
-       "Size   GriddedField3 \n "
+       "Size   GField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        ),
-      GROUP( GriddedField3_ )));
+      GROUP( GField3_ )));
 
   wsv_data.push_back
    (WsvRecord

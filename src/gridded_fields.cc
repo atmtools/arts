@@ -48,6 +48,35 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+//! Copy grids
+/*!
+  Copies the grids from the given GField to the current one.
+
+  \param[in] gf Source gridded field
+*/
+void GField::copy_grids (const GField& gf)
+{
+  assert(gf.get_dim() == dim);
+
+  for (Index i = 0; i < dim; i++)
+    {
+      switch (gf.get_grid_type(i))
+        {
+        case GRIDTYPE_NUMERIC:
+          mgridtypes[i] = GRIDTYPE_NUMERIC;
+          mnumericgrids[i] = gf.get_numeric_grid(i);
+          mstringgrids[i].resize(0);
+          break;
+        case GRIDTYPE_STRING:
+          mgridtypes[i] = GRIDTYPE_STRING;
+          mstringgrids[i] = gf.get_string_grid(i);
+          mnumericgrids[i].resize(0);
+          break;
+        }
+    }
+}
+
+
 //! Get the size of a grid.
 /*!
   Returns the size of grid i.

@@ -212,6 +212,27 @@ extern const Numeric EARTH_GRAV_CONST = 3.98601E14;
 */
 extern const Numeric HZ2CM =  0.01 / SPEED_OF_LIGHT;
 
+/** Global constant, Index of the pressure grid in gridded fields.
+
+    \author Oliver Lemke
+    \date   2008-06-24
+*/
+extern const Index P_GRID = 0;
+
+/** Global constant, Index of the latitude grid in gridded fields.
+
+    \author Oliver Lemke
+    \date   2008-06-24
+*/
+extern const Index LAT_GRID = 1;
+
+/** Global constant, Index of the longitude grid in gridded fields.
+
+    \author Oliver Lemke
+    \date   2008-06-24
+*/
+extern const Index LON_GRID = 2;
+
 /** Define the global joker objekt. This is used by Matpack to specify joker ranges.  
     
     \author Stefan Buehler

@@ -96,6 +96,8 @@ public:
   /*! \return Dimension. */
   Index get_dim () const { return dim; }
 
+  void copy_grids (const GField& gf);
+
   //! Get grid name.
   /*!
      Returns the name of the grid with index i.
@@ -103,7 +105,7 @@ public:
      \param[in] i Grid index.
      \return      Grid name.
   */
-  const String& get_gridname (Index i) const { return mgridnames[i]; }
+  const String& get_grid_name (Index i) const { return mgridnames[i]; }
 
   Index get_grid_size (const Index i) const;
 
@@ -114,7 +116,7 @@ public:
      \param[in] i Grid index.
      \return      Grid type.
   */
-  GridType get_gridtype (Index i) const { return mgridtypes[i]; }
+  GridType get_grid_type (Index i) const { return mgridtypes[i]; }
 
   ConstVectorView get_numeric_grid (Index i) const;
 
@@ -182,6 +184,13 @@ public:
       return (nelem() == get_grid_size(0));
     }
 
+  //! Make this GField1 the same size as the given one.
+  /*! \param[in] gf Source gridded field. */
+  void resize(const GField1& gf)
+    {
+      Vector::resize(gf.get_grid_size(0));
+    }
+
   friend ostream& operator<<(ostream& os, const GField1& gf);
 };
 
@@ -193,7 +202,7 @@ public:
   GField2() : GField(2, "") {};
   //! Construct an empty GField2 with the given name
   /*! \param[in] s Name. */
-  GField2(const String s) : GField(1, s) {};
+  GField2(const String s) : GField(2, s) {};
 
   //! Consistency check.
   /*!
@@ -205,6 +214,14 @@ public:
     {
       return (ncols() == get_grid_size(1)
               && nrows() == get_grid_size(0));
+    }
+
+  //! Make this GField2 the same size as the given one.
+  /*! \param[in] gf Source gridded field. */
+  void resize(const GField2& gf)
+    {
+      Matrix::resize(gf.get_grid_size(0),
+                     gf.get_grid_size(1));
     }
 
   friend ostream& operator<<(ostream& os, const GField2& gf);
@@ -220,6 +237,13 @@ public:
   /*! \param[in] s Name. */
   GField3(const String s) : GField(3, s) {};
 
+  GField3& operator=(Numeric n)
+    {
+      Tensor3::operator=(n);
+
+      return *this;
+    }
+
   //! Consistency check.
   /*!
     Check if the sizes of the grids match the data dimension.
@@ -231,6 +255,15 @@ public:
       return (ncols() == get_grid_size(2)
               && nrows() == get_grid_size(1)
               && npages() == get_grid_size(0));
+    }
+
+  //! Make this GField3 the same size as the given one.
+  /*! \param[in] gf Source gridded field. */
+  void resize(const GField3& gf)
+    {
+      Tensor3::resize(gf.get_grid_size(0),
+                      gf.get_grid_size(1),
+                      gf.get_grid_size(2));
     }
 
   friend ostream& operator<<(ostream& os, const GField3& gf);
@@ -258,6 +291,16 @@ public:
               && nrows() == get_grid_size(2)
               && npages() == get_grid_size(1)
               && nbooks() == get_grid_size(0));
+    }
+
+  //! Make this GField4 the same size as the given one.
+  /*! \param[in] gf Source gridded field. */
+  void resize(const GField4& gf)
+    {
+      Tensor4::resize(gf.get_grid_size(0),
+                      gf.get_grid_size(1),
+                      gf.get_grid_size(2),
+                      gf.get_grid_size(3));
     }
 
   friend ostream& operator<<(ostream& os, const GField4& gf);
