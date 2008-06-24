@@ -2171,8 +2171,8 @@ void Workspace::define_wsv_data()
        "This variable contains the particle number density data for all \n"
        "chosen particle types. It includes the grids corresponding to the \n"
        "grids in the database. \n"
-       "*pnd_field_raw* is an Array of GriddedField3. It includes a\n"
-       "GriddedField3 for each particle type which contains the data and \n"
+       "*pnd_field_raw* is an Array of GField3. It includes a\n"
+       "GField3 for each particle type which contains the data and \n"
        "also the grids.\n"
        "\n"
        "Usage:      Used in the methods *ParticleTypeAdd* and \n"
@@ -2181,13 +2181,13 @@ void Workspace::define_wsv_data()
        "Unit:        m^-3\n"
        "\n"
        "Size:  Array[N_pt]\n"
-       "       GriddedField3 \n "
+       "       GField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        ),
-      GROUP( ArrayOfGriddedField3_ )));
+      GROUP( ArrayOfGField3_ )));
 
   wsv_data.push_back
    (WsvRecord

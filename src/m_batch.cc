@@ -479,7 +479,7 @@ void ybatchMetProfiles(//Output
   GriddedField3        t_field_raw;
   GriddedField3        z_field_raw;
   ArrayOfGriddedField3 vmr_field_raw;
-  ArrayOfGriddedField3 pnd_field_raw;
+  ArrayOfGField3 pnd_field_raw;
   Vector               p_grid;
   Matrix               sensor_los;
   Index                cloudbox_on;
@@ -633,8 +633,8 @@ void ybatchMetProfiles(//Output
     {
       //Checking for non-zero ice content. 0.001 is a threshold for
       //ice water content.    
-      // if((pnd_field_raw[0].data(ip, 0, 0) > 0.001) || (pnd_field_raw[1].data(ip, 0, 0) > 0.001)) 
-          if(pnd_field_raw[0].data(ip, 0, 0) > 0.001) 
+      // if((pnd_field_raw[0](ip, 0, 0) > 0.001) || (pnd_field_raw[1](ip, 0, 0) > 0.001)) 
+          if(pnd_field_raw[0](ip, 0, 0) > 0.001) 
         {
           ++level_counter;
           //if non-zero ice content is found, it is set to upper 
@@ -705,7 +705,7 @@ void ybatchMetProfilesClear(//Output
   GriddedField3        t_field_raw;
   GriddedField3        z_field_raw;
   ArrayOfGriddedField3 vmr_field_raw;
-  ArrayOfGriddedField3 pnd_field_raw;
+  ArrayOfGField3 pnd_field_raw;
   Vector               p_grid;
   Matrix               sensor_los;
   Index                cloudbox_on = 0;

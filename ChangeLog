@@ -1,5 +1,32 @@
 2008-06-24  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-6-19
+
+	* First real life test for the new gridded fields. Changing type of
+	pnd_field_raw to GField3. Seems to work....
+
+	* src/cloudbox.{cc,h}, src/m_cloudbox.cc, src/m_batch.cc,
+	src/workspace.cc:
+
+	Change pnd_field_raw from GriddedField3 to GField3.
+
+	* src/groups.cc:
+
+	Add group ArrayOfGField3.
+
+	* src/m_basic_types.h: Add NGET_GENERIC for ArrayOfGField3.
+
+	* src/xml_io_array_types.{cc,h}, src/xml_io_instantiation.h:
+
+	Add read/write support for ArrayOfGField3.
+
+	* src/gridded_fields.h:
+
+	Add typedefs for ArrayOfArrayOfGField3, ArrayOfGField3, and
+	ArrayOfGField4.
+
+2008-06-24  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-6-18
 
 	* src/gridded_fields.{cc,h}:

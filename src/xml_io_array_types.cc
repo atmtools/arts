@@ -1431,6 +1431,87 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
+//=== ArrayOfGField3 ===========================================
+
+//! Reads ArrayOfGField3 from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param agfield  ArrayOfGField3 return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfGField3& agfield,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "GriddedField3");
+
+  tag.get_attribute_value ("nelem", nelem);
+  agfield.resize (nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is_xml, agfield[n], pbifs);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfGField3: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfGField3 to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param agfield  ArrayOfGField3
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const ArrayOfGField3& agfield,
+                     bofstream *pbofs,
+                     const String& name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.add_attribute ("type", "GriddedField3");
+  open_tag.add_attribute ("nelem", agfield.nelem ());
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < agfield.nelem (); n++)
+    {
+      xml_write_to_stream (os_xml, agfield[n], pbofs);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os_xml);
+
+  os_xml << '\n';
+}
+
+
 //=== ArrayOfGriddedField3 ===========================================
 
 //! Reads ArrayOfGriddedField3 from XML input stream

@@ -234,6 +234,10 @@ xml_read_from_file<ArrayOfSingleScatteringData> (const String&,
                                               ArrayOfSingleScatteringData&);
 
 template void
+xml_read_from_file<ArrayOfGField3> (const String&,
+                                    ArrayOfGField3&);
+
+template void
 xml_read_from_file<ArrayOfGriddedField3> (const String&,
                                           ArrayOfGriddedField3&);
 
@@ -335,6 +339,11 @@ template void
 xml_write_to_file<ArrayOfSingleScatteringData> (const String&,
                                                 const ArrayOfSingleScatteringData&,
                                                 FileType);
+
+template void
+xml_write_to_file<ArrayOfGField3> (const String&,
+                                   const ArrayOfGField3&,
+                                   FileType);
 
 template void
 xml_write_to_file<ArrayOfGriddedField3> (const String&,

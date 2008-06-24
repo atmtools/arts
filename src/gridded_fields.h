@@ -275,6 +275,11 @@ ostream& operator<<(ostream& os, const GField4& gf);
 /**************************************/
 
 
+typedef Array< Array<GField3> > ArrayOfArrayOfGField3;
+typedef Array<GField3> ArrayOfGField3;
+typedef Array<GField4> ArrayOfGField4;
+
+
 //! Contains a GriddedField3.
 /*!
  A GriddedField3 consists of a pressure grid vector, a latitude vector, a

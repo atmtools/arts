@@ -53,16 +53,20 @@
 */ 
 void chk_if_pnd_zero_p(
                        const Index& i_p,
-                       const GriddedField3& pnd_field_raw,
+                       const GField3& pnd_field_raw,
                        const String& pnd_field_file
                        )
   
 {
-  for (Index i = 0; i < pnd_field_raw.lat_grid.nelem(); i++ ) 
+  const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(0);
+  const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(1);
+  const ConstVectorView pfr_lon_grid = pnd_field_raw.get_numeric_grid(2);
+
+  for (Index i = 0; i < pfr_lat_grid.nelem(); i++ ) 
     {
-      for (Index j = 0; j < pnd_field_raw.lon_grid.nelem(); j++ )
+      for (Index j = 0; j < pfr_lon_grid.nelem(); j++ )
         {
-          if ( pnd_field_raw.data(i_p, i, j) != 0. )
+          if ( pnd_field_raw(i_p, i, j) != 0. )
             {
               ostringstream os;
               os << "Warning: \n"
@@ -70,11 +74,11 @@ void chk_if_pnd_zero_p(
                  << pnd_field_file << "'\nis non-zero outside the cloudbox "
                  << "or close the cloudbox boundary at the \n"
                  << "following position:\n"
-                 << "pressure = " << pnd_field_raw.p_grid[i_p] 
+                 << "pressure = " << pfr_p_grid[i_p] 
                  << ", p_index = " << i_p << "\n"
-                 << "latitude = " << pnd_field_raw.lat_grid[i] 
+                 << "latitude = " << pfr_lat_grid[i] 
                  << ", lat_index = " << i << "\n"
-                 << "longitude = " << pnd_field_raw.lon_grid[j] 
+                 << "longitude = " << pfr_lon_grid[j] 
                  << ", lon_index = " << j << "\n"
                  << "\n";
               // throw runtime_error( os.str() );
@@ -95,16 +99,20 @@ void chk_if_pnd_zero_p(
 */           
 void chk_if_pnd_zero_lat(
                        const Index& i_lat,
-                       const GriddedField3& pnd_field_raw,
+                       const GField3& pnd_field_raw,
                        const String& pnd_field_file
                        )
   
 {
-  for (Index i = 0; i < pnd_field_raw.p_grid.nelem(); i++ ) 
+  const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(0);
+  const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(1);
+  const ConstVectorView pfr_lon_grid = pnd_field_raw.get_numeric_grid(2);
+
+  for (Index i = 0; i < pfr_p_grid.nelem(); i++ ) 
     {
-      for (Index j = 0; j < pnd_field_raw.lon_grid.nelem(); j++ )
+      for (Index j = 0; j < pfr_lon_grid.nelem(); j++ )
         {
-          if ( pnd_field_raw.data(i, i_lat, j) != 0. )
+          if ( pnd_field_raw(i, i_lat, j) != 0. )
             {
               ostringstream os;
               os << "Warning: \n" 
@@ -112,11 +120,11 @@ void chk_if_pnd_zero_lat(
                  << pnd_field_file << "'\nis non-zero outside the cloudbox "
                  << "or close the cloudbox boundary at the \n"
                  << "following position:\n"
-                 << "pressure = " << pnd_field_raw.p_grid[i] << ", p_index = "
+                 << "pressure = " << pfr_p_grid[i] << ", p_index = "
                  << i << "\n"
-                 << "latitude = " << pnd_field_raw.lat_grid[i_lat] 
+                 << "latitude = " << pfr_lat_grid[i_lat] 
                  << ", lat_index = "<<i_lat<< "\n"
-                 << "longitude = " << pnd_field_raw.lon_grid[j] 
+                 << "longitude = " << pfr_lon_grid[j] 
                  << ", lon_index = " << j << "\n"
                  << "\n";
                 //throw runtime_error( os.str() );
@@ -137,16 +145,20 @@ void chk_if_pnd_zero_lat(
 */           
 void chk_if_pnd_zero_lon(
                        const Index& i_lon,
-                       const GriddedField3& pnd_field_raw,
+                       const GField3& pnd_field_raw,
                        const String& pnd_field_file
                        )
   
 {
-  for (Index i = 0; i < pnd_field_raw.p_grid.nelem(); i++ ) 
+  const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(0);
+  const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(1);
+  const ConstVectorView pfr_lon_grid = pnd_field_raw.get_numeric_grid(2);
+
+  for (Index i = 0; i < pfr_p_grid.nelem(); i++ ) 
     {
-      for (Index j = 0; j < pnd_field_raw.lat_grid.nelem(); j++ )
+      for (Index j = 0; j < pfr_lat_grid.nelem(); j++ )
         {
-          if ( pnd_field_raw.data(i, j, i_lon) != 0. )
+          if ( pnd_field_raw(i, j, i_lon) != 0. )
             {
               ostringstream os;
               os << "Warning: \n" 
@@ -154,11 +166,11 @@ void chk_if_pnd_zero_lon(
                  << pnd_field_file << "'\nis non-zero outside the cloudbox "
                  << "or close the cloudbox boundary at the \n"
                  << "following position:\n"
-                 << "pressure = " << pnd_field_raw.p_grid[i] 
+                 << "pressure = " << pfr_p_grid[i] 
                  << ", p_index = " << i << "\n"
-                 << "latitude = " << pnd_field_raw.lat_grid[j] 
+                 << "latitude = " << pfr_lat_grid[j] 
                  << ", lat_index = " << j << "\n"
-                 << "longitude = " << pnd_field_raw.lon_grid[i_lon] 
+                 << "longitude = " << pfr_lon_grid[i_lon] 
                  << ", lon_index = "
                  << i_lon << "\n"
                  << "\n";
@@ -188,7 +200,7 @@ void chk_if_pnd_zero_lon(
   \date   2005-04-05
 */ 
 void chk_pnd_data(
-                  const GriddedField3& pnd_field_raw,
+                  const GField3& pnd_field_raw,
                   const String& pnd_field_file,
                   const Index& atmosphere_dim,
                   ConstVectorView p_grid,
@@ -197,6 +209,10 @@ void chk_pnd_data(
                   const ArrayOfIndex& cloudbox_limits
                   )
 {
+  const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(0);
+  const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(1);
+  const ConstVectorView pfr_lon_grid = pnd_field_raw.get_numeric_grid(2);
+
   // The consistency of the dimensions is checked in the reading routine. 
   // Here we have to check whether the atmospheric dimension is correct and whether 
   // the particle number density is 0 on the cloudbox boundary and outside the cloudbox.
@@ -207,19 +223,19 @@ void chk_pnd_data(
   Index i_p;
  
   // Lower pressure limit
-  for (i_p = 0; pnd_field_raw.p_grid[i_p] > p_grid[cloudbox_limits[0]]; i_p++)
+  for (i_p = 0; pfr_p_grid[i_p] > p_grid[cloudbox_limits[0]]; i_p++)
     { chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file); }
   // The first point inside the cloudbox also needs to be zero !!
   //chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
   
   //Upper pressure limit 
-  for (i_p = pnd_field_raw.p_grid.nelem()-1;
-       pnd_field_raw.p_grid[i_p] < p_grid[cloudbox_limits[1]]; i_p--)
+  for (i_p = pfr_p_grid.nelem()-1;
+       pfr_p_grid[i_p] < p_grid[cloudbox_limits[1]]; i_p--)
     { chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file); }
   //chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
   
-  if (atmosphere_dim == 1 && (pnd_field_raw.lat_grid.nelem() != 1 
-                              || pnd_field_raw.lon_grid.nelem() != 1) )
+  if (atmosphere_dim == 1 && (pfr_lat_grid.nelem() != 1 
+                              || pfr_lon_grid.nelem() != 1) )
     {
       ostringstream os; 
       os << "The atmospheric dimension is 1D but the particle "
@@ -231,8 +247,8 @@ void chk_pnd_data(
   
   else if( atmosphere_dim == 3) 
     {
-      if(pnd_field_raw.lat_grid.nelem() == 1 
-         || pnd_field_raw.lon_grid.nelem() == 1)
+      if(pfr_lat_grid.nelem() == 1 
+         || pfr_lon_grid.nelem() == 1)
         {
           ostringstream os; 
           os << "The atmospheric dimension is 3D but the particle "
@@ -245,7 +261,7 @@ void chk_pnd_data(
       Index i_lon;
 
       // Lower latitude limit
-      for (i_lat = 0; pnd_field_raw.lat_grid[i_lat] > 
+      for (i_lat = 0; pfr_lat_grid[i_lat] > 
                       lat_grid[cloudbox_limits[2]]; i_lat++)
         { chk_if_pnd_zero_lat(i_lat, pnd_field_raw, pnd_field_file); }
 
@@ -253,22 +269,22 @@ void chk_pnd_data(
       // chk_if_pnd_zero_lat(i_lat+1, pnd_field_raw, pnd_field_file);
 
       //Upper latitude limit 
-      for (i_lat = pnd_field_raw.lat_grid.nelem()-1;
-           pnd_field_raw.lat_grid[i_lat] < lat_grid[cloudbox_limits[3]]; 
+      for (i_lat = pfr_lat_grid.nelem()-1;
+           pfr_lat_grid[i_lat] < lat_grid[cloudbox_limits[3]]; 
            i_lat--)
         { chk_if_pnd_zero_lat(i_lat, pnd_field_raw, pnd_field_file); }
       //chk_if_pnd_zero_lat(i_lat-1, pnd_field_raw, pnd_field_file);
       
       // Lower longitude limit
-      for (i_lon = 0; pnd_field_raw.lon_grid[i_lon] > 
+      for (i_lon = 0; pfr_lon_grid[i_lon] > 
            lon_grid[cloudbox_limits[4]]; i_lon++)
         { chk_if_pnd_zero_lon(i_lon, pnd_field_raw, pnd_field_file); }
       // The first point inside the cloudbox also needs to be zero !!
       // chk_if_pnd_zero_lon(i_lon+1, pnd_field_raw, pnd_field_file);
       
       //Upper longitude limit 
-      for (i_lon = pnd_field_raw.lon_grid.nelem()-1;
-           pnd_field_raw.lon_grid[i_lon] < lon_grid[cloudbox_limits[5]]; 
+      for (i_lon = pfr_lon_grid.nelem()-1;
+           pfr_lon_grid[i_lon] < lon_grid[cloudbox_limits[5]]; 
            i_lon--)
         { chk_if_pnd_zero_lon(i_lon, pnd_field_raw, pnd_field_file); }
       //chk_if_pnd_zero_lon(i_lon-1, pnd_field_raw, pnd_field_file);
@@ -293,7 +309,7 @@ void chk_pnd_data(
   \date   2005-04-05
 */ 
 void chk_pnd_raw_data(
-                      const ArrayOfGriddedField3& pnd_field_raw,
+                      const ArrayOfGField3& pnd_field_raw,
                       const String& pnd_field_file,
                       const Index& atmosphere_dim,
                       ConstVectorView p_grid,
