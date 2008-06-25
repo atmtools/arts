@@ -212,26 +212,54 @@ extern const Numeric EARTH_GRAV_CONST = 3.98601E14;
 */
 extern const Numeric HZ2CM =  0.01 / SPEED_OF_LIGHT;
 
-/** Global constant, Index of the pressure grid in gridded fields.
+/** Global constant, Index of the pressure grid in GriddedField3.
 
     \author Oliver Lemke
     \date   2008-06-24
 */
-extern const Index P_GRID = 0;
+extern const Index GFIELD3_P_GRID = 0;
 
-/** Global constant, Index of the latitude grid in gridded fields.
-
-    \author Oliver Lemke
-    \date   2008-06-24
-*/
-extern const Index LAT_GRID = 1;
-
-/** Global constant, Index of the longitude grid in gridded fields.
+/** Global constant, Index of the latitude grid in GriddedField3.
 
     \author Oliver Lemke
     \date   2008-06-24
 */
-extern const Index LON_GRID = 2;
+extern const Index GFIELD3_LAT_GRID = 1;
+
+/** Global constant, Index of the longitude grid in GriddedField3.
+
+    \author Oliver Lemke
+    \date   2008-06-24
+*/
+extern const Index GFIELD3_LON_GRID = 2;
+
+/** Global constant, Index of the field names in GriddedField4.
+
+    \author Oliver Lemke
+    \date   2008-06-25
+*/
+extern const Index GFIELD4_FIELD_NAMES = 0;
+
+/** Global constant, Index of the pressure grid in GriddedField4.
+
+    \author Oliver Lemke
+    \date   2008-06-25
+*/
+extern const Index GFIELD4_P_GRID = 1;
+
+/** Global constant, Index of the latitude grid in GriddedField4.
+
+    \author Oliver Lemke
+    \date   2008-06-25
+*/
+extern const Index GFIELD4_LAT_GRID = 2;
+
+/** Global constant, Index of the longitude grid in GriddedField4.
+
+    \author Oliver Lemke
+    \date   2008-06-25
+*/
+extern const Index GFIELD4_LON_GRID = 3;
 
 /** Define the global joker objekt. This is used by Matpack to specify joker ranges.  
     

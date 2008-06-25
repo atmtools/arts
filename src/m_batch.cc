@@ -53,7 +53,7 @@ using namespace std;
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
-extern const Index   P_GRID;
+extern const Index   GFIELD3_P_GRID;
 
 
 /*===========================================================================
@@ -118,10 +118,10 @@ void ArrayOfIndexExtractFromArrayOfArrayOfIndex(
    2007-11-26 Stefan Buehler */
 void GriddedField4ExtractFromArrayOfGriddedField4(
       // WS Generic Output:
-      GriddedField4&          m,
+      GField4&          m,
       // WS Input:
       // WS Generic Input:
-      const ArrayOfGriddedField4&   t3,
+      const ArrayOfGField4&   t3,
       const Index&     index)
 {
   if( index >= t3.nelem() )
@@ -598,7 +598,7 @@ void ybatchMetProfiles(//Output
       vmr_field_raw[2].copy_grids(vmr_field_raw[0]);
       vmr_field_raw[2] =  0.209;//vmr of O2
       
-      const ConstVectorView tfr_p_grid = t_field_raw.get_numeric_grid(P_GRID);
+      const ConstVectorView tfr_p_grid = t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
       // N_p is the number of elements in the pressure grid
       Index N_p = tfr_p_grid.nelem();
       
@@ -792,7 +792,7 @@ void ybatchMetProfilesClear(//Output
       //z_surface(0,0) = oro_height[i]+ 0.01;
       z_surface(0,0) = z_field_raw(0,0,0);
       cout<<"z_surface"<<z_surface<<endl;
-      const ConstVectorView tfr_p_grid = t_field_raw.get_numeric_grid(P_GRID);
+      const ConstVectorView tfr_p_grid = t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
       Index N_p = tfr_p_grid.nelem();
       
       vmr_field_raw[0] = vmr_field_raw_h2o;

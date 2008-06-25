@@ -152,6 +152,33 @@ const ArrayOfString& GField::get_string_grid (Index i) const
 }
 
 
+//! Get a string grid.
+/*!
+  Returns the string grid with index i.
+
+  Throws a runtime error if grid i is not of type String.
+
+  \param[in]  i  Grid index.
+  \return        String grid.
+*/
+ArrayOfString& GField::get_string_grid (Index i)
+{
+  assert (i < dim);
+  if (mgridtypes[i] != GRIDTYPE_STRING)
+    {
+      ostringstream os;
+      if (mgridnames[i].length())
+        os << mgridnames[i];
+      else
+        os << "Grid " << i;
+      os << " is not a string grid.";
+      throw runtime_error(os.str());
+    }
+
+  return (mstringgrids[i]);
+}
+
+
 //! Set a numeric grid.
 /*!
   Sets grid i to the given grid.

@@ -1,5 +1,42 @@
 2008-06-24  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-6-22
+
+	* src/workspace.cc, src/methods.cc, src/m_atmosphere.cc
+
+	Change atm_fields_compact to GField4 and batch_atm_fields_compact to
+	ArrayOfGField4.
+
+	* src/methods.cc, src/m_batch.cc
+	(GriddedField4ExtractFromArrayOfGriddedField4):
+
+	Change m to GField4.
+
+	* src/m_abs_lookup.cc (abs_lookupSetupBatch):
+
+	Change batch_fields to ArrayOfGField4.
+
+	* src/groups.cc: Add GField4 and ArrayOfGField4.
+
+	* src/constants.cc, src/cloudbox.cc, src/m_batch.cc,
+	src/m_cloudbox.cc:
+
+	Rename P_GRID, LAT_GRID, LON_GRID constants for backwards
+	compatibility to GFIELD3_P_GRID, GFIELD3_LAT_GRID, GFIELD3_LON_GRID.
+
+	Added constants GFIELD4_FIELD_NAMES, GFIELD4_P_GRID, GFIELD4_LAT_GRID,
+	GFIELD4_LON_GRID.
+
+	In the future, the grid names should be used to find the correct grid.
+
+	* src/gridded_fields.{cc,h}:
+
+	Add non-const version of get_string_grid.
+
+	Make the original resize functions visible again.
+
+2008-06-24  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-6-21
 
 	* src/m_basic_types.h: Added NGET_GENERIC for ArrayOfGField4.

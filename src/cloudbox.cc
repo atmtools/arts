@@ -26,9 +26,9 @@
 
 #include "cloudbox.h"
 
-extern const Index P_GRID;
-extern const Index LAT_GRID;
-extern const Index LON_GRID;
+extern const Index GFIELD3_P_GRID;
+extern const Index GFIELD3_LAT_GRID;
+extern const Index GFIELD3_LON_GRID;
 
 
 /*===========================================================================
@@ -63,9 +63,9 @@ void chk_if_pnd_zero_p(
                        )
   
 {
-  const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(P_GRID);
-  const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(LAT_GRID);
-  const ConstVectorView pfr_lon_grid = pnd_field_raw.get_numeric_grid(LON_GRID);
+  const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+  const ConstVectorView pfr_lon_grid = pnd_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 
   for (Index i = 0; i < pfr_lat_grid.nelem(); i++ ) 
     {
@@ -109,9 +109,9 @@ void chk_if_pnd_zero_lat(
                        )
   
 {
-  const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(P_GRID);
-  const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(LAT_GRID);
-  const ConstVectorView pfr_lon_grid = pnd_field_raw.get_numeric_grid(LON_GRID);
+  const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+  const ConstVectorView pfr_lon_grid = pnd_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 
   for (Index i = 0; i < pfr_p_grid.nelem(); i++ ) 
     {
@@ -155,9 +155,9 @@ void chk_if_pnd_zero_lon(
                        )
   
 {
-  const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(P_GRID);
-  const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(LAT_GRID);
-  const ConstVectorView pfr_lon_grid = pnd_field_raw.get_numeric_grid(LON_GRID);
+  const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+  const ConstVectorView pfr_lon_grid = pnd_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 
   for (Index i = 0; i < pfr_p_grid.nelem(); i++ ) 
     {
@@ -214,9 +214,9 @@ void chk_pnd_data(
                   const ArrayOfIndex& cloudbox_limits
                   )
 {
-  const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(P_GRID);
-  const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(LAT_GRID);
-  const ConstVectorView pfr_lon_grid = pnd_field_raw.get_numeric_grid(LON_GRID);
+  const ConstVectorView pfr_p_grid = pnd_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const ConstVectorView pfr_lat_grid = pnd_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+  const ConstVectorView pfr_lon_grid = pnd_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 
   // The consistency of the dimensions is checked in the reading routine. 
   // Here we have to check whether the atmospheric dimension is correct and whether 

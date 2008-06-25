@@ -3227,8 +3227,8 @@ md_data_raw.push_back
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( GriddedField4_ ),
-        GINPUT(  ArrayOfGriddedField4_, Index_ ),
+        GOUTPUT( GField4_ ),
+        GINPUT(  ArrayOfGField4_, Index_ ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));

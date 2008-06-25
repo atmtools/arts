@@ -60,9 +60,9 @@
 #include "math_funcs.h"
 #include "physics_funcs.h"
 
-extern const Index P_GRID;
-extern const Index LAT_GRID;
-extern const Index LON_GRID;
+extern const Index GFIELD3_P_GRID;
+extern const Index GFIELD3_LAT_GRID;
+extern const Index GFIELD3_LON_GRID;
 
 
 /*===========================================================================
@@ -1101,7 +1101,7 @@ void pnd_fieldCalc(//WS Output:
       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
         {
           // Calculate grid positions:
-          p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(P_GRID), p_grid_cloud);
+          p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID), p_grid_cloud);
          
           // Interpolation weights:
           Matrix itw(Np_cloud, 2);
@@ -1132,7 +1132,7 @@ void pnd_fieldCalc(//WS Output:
   //       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
   //         {
   //           // Calculate grid positions:
-  //           p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(P_GRID), p_grid);
+  //           p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID), p_grid);
   //           gridpos(gp_lat, pnd_field_raw[i](0, joker, 0), 
   //                   lat_grid);
       
@@ -1177,11 +1177,11 @@ void pnd_fieldCalc(//WS Output:
       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
         {
           // Calculate grid positions:
-          p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(P_GRID),
+          p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID),
                     p_grid_cloud);
-          gridpos(gp_lat, pnd_field_raw[i].get_numeric_grid(LAT_GRID),
+          gridpos(gp_lat, pnd_field_raw[i].get_numeric_grid(GFIELD3_LAT_GRID),
                   lat_grid_cloud);
-          gridpos(gp_lon, pnd_field_raw[i].get_numeric_grid(LON_GRID),
+          gridpos(gp_lon, pnd_field_raw[i].get_numeric_grid(GFIELD3_LON_GRID),
                   lon_grid_cloud);
           
           // Interpolation weights:

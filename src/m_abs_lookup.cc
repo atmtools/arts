@@ -39,6 +39,10 @@
 #include "make_vector.h"
 #include "arts_omp.h"
 
+extern const Index GFIELD4_FIELD_NAMES;
+extern const Index GFIELD4_P_GRID;
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupInit(GasAbsLookup& /* x */)
 {
@@ -994,7 +998,7 @@ void abs_lookupSetupBatch(// WS Output:
                           Vector& abs_nls_pert,
                           // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
-                          const ArrayOfGriddedField4& batch_fields,
+                          const ArrayOfGField4& batch_fields,
                           // Control Parameters:
                           const Numeric& p_step,
                           const Numeric& t_step,
@@ -1009,14 +1013,14 @@ void abs_lookupSetupBatch(// WS Output:
   choose_abs_nls(abs_nls, abs_species);
 
   // Find out maximum and minimum pressure.
-  Numeric maxp=batch_fields[0].p_grid[0];
-  Numeric minp=batch_fields[0].p_grid[batch_fields[0].p_grid.nelem()-1];
+  Numeric maxp=batch_fields[0].get_numeric_grid(GFIELD4_P_GRID)[0];
+  Numeric minp=batch_fields[0].get_numeric_grid(GFIELD4_P_GRID)[batch_fields[0].get_numeric_grid(GFIELD4_P_GRID).nelem()-1];
   for (Index i=0; i<batch_fields.nelem(); ++i)
     {
-      if (maxp < batch_fields[i].p_grid[0])
-        maxp = batch_fields[i].p_grid[0];
-      if (minp > batch_fields[i].p_grid[batch_fields[i].p_grid.nelem()-1])
-        minp = batch_fields[i].p_grid[batch_fields[i].p_grid.nelem()-1];
+      if (maxp < batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)[0])
+        maxp = batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)[0];
+      if (minp > batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)[batch_fields[i].get_numeric_grid(GFIELD4_P_GRID).nelem()-1])
+        minp = batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)[batch_fields[i].get_numeric_grid(GFIELD4_P_GRID).nelem()-1];
     }
   out3 << "  maxp/minp: " << maxp << " / " << minp << "\n";
 
@@ -1040,7 +1044,7 @@ void abs_lookupSetupBatch(// WS Output:
   // Now we have to determine the statistics of T and VMRs, we need
   // profiles of min, max, and mean of these, on the abs_p grid.
 
-  Index n_variables = batch_fields[0].data.nbooks();
+  Index n_variables = batch_fields[0].nbooks();
 
   // The first dimension of datamin, datamax, and datamean is the
   // variable (T,Z,H2O,O3,...). The second dimension is pressure. We
@@ -1056,30 +1060,31 @@ void abs_lookupSetupBatch(// WS Output:
     {
       // Check that really each case has the same variables (see
       // comment above.)
-      if (batch_fields[i].field_names != batch_fields[0].field_names)
+      if (batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)
+          != batch_fields[0].get_string_grid(GFIELD4_FIELD_NAMES))
         throw runtime_error("All fields in the batch must have the same field names.");
 
       // Check that the first field is indeed T and the third field is
       // indeed H2O:
-      if ("T" != batch_fields[i].field_names[0])
+      if ("T" != batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[0])
         {
           ostringstream os;
           os << "The first variable in the compact atmospheric state must be \"T\",\n"
-             << "but yours is: " << batch_fields[i].field_names[0];
+             << "but yours is: " << batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[0];
           throw runtime_error( os.str() );
         }
 
-      if ("H2O" != batch_fields[i].field_names[2])
+      if ("H2O" != batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[2])
         {
           ostringstream os;
           os << "The third variable in the compact atmospheric state must be \"H2O\",\n"
-             << "but yours is: " << batch_fields[i].field_names[0];
+             << "but yours is: " << batch_fields[i].get_string_grid(GFIELD4_FIELD_NAMES)[0];
           throw runtime_error( os.str() );
         }
 
       // Create convenient handles:
-      ConstVectorView  p_grid = batch_fields[i].p_grid;
-      ConstTensor4View data   = batch_fields[i].data;
+      ConstVectorView  p_grid = batch_fields[i].get_numeric_grid(GFIELD4_P_GRID);
+      ConstTensor4View data   = batch_fields[i];
  
 
       // Interpolate the current batch fields to the abs_p grid. We

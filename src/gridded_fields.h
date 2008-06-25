@@ -122,6 +122,8 @@ public:
 
   const ArrayOfString& get_string_grid (Index i) const;
 
+  ArrayOfString& get_string_grid (Index i);
+
   //! Get the name of this gridded field.
   /*! \return Gridded field name. */
   const String& get_name () const { return mname; }
@@ -191,6 +193,13 @@ public:
       Vector::resize(gf.get_grid_size(0));
     }
 
+  //! Resize the data vector.
+  /*! \see Vector::resize */
+  void resize(Index n)
+    {
+      Vector::resize(n);
+    }
+
   friend ostream& operator<<(ostream& os, const GField1& gf);
 };
 
@@ -222,6 +231,13 @@ public:
     {
       Matrix::resize(gf.get_grid_size(0),
                      gf.get_grid_size(1));
+    }
+
+  //! Resize the data matrix.
+  /*! \see Matrix::resize */
+  void resize(Index r, Index c)
+    {
+      Matrix::resize(r, c);
     }
 
   friend ostream& operator<<(ostream& os, const GField2& gf);
@@ -266,6 +282,13 @@ public:
                       gf.get_grid_size(2));
     }
 
+  //! Resize the data tensor.
+  /*! \see Tensor3::resize */
+  void resize(Index p, Index r, Index c)
+    {
+      Tensor3::resize(p, r, c);
+    }
+
   friend ostream& operator<<(ostream& os, const GField3& gf);
 };
 
@@ -301,6 +324,13 @@ public:
                       gf.get_grid_size(1),
                       gf.get_grid_size(2),
                       gf.get_grid_size(3));
+    }
+
+  //! Resize the data tensor.
+  /*! \see Tensor4::resize */
+  void resize(Index b, Index p, Index r, Index c)
+    {
+      Tensor4::resize(b, p, r, c);
     }
 
   friend ostream& operator<<(ostream& os, const GField4& gf);

@@ -63,9 +63,13 @@ extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric EARTH_RADIUS;
 
-extern const Index P_GRID;
-extern const Index LAT_GRID;
-extern const Index LON_GRID;
+extern const Index GFIELD3_P_GRID;
+extern const Index GFIELD3_LAT_GRID;
+extern const Index GFIELD3_LON_GRID;
+extern const Index GFIELD4_FIELD_NAMES;
+extern const Index GFIELD4_P_GRID;
+extern const Index GFIELD4_LAT_GRID;
+extern const Index GFIELD4_LON_GRID;
 
 
 /*===========================================================================
@@ -76,7 +80,7 @@ extern const Index LON_GRID;
 // Workspace method, doxygen header will be auto-generated.
 // 2007-07-25 Stefan Buehler
 void atm_fields_compactFromMatrix(// WS Output:
-                                  GriddedField4& af, // atm_fields_compact
+                                  GField4& af, // atm_fields_compact
                                   // WS Input:
                                   const Index& atmosphere_dim,
                                   // WS Generic Input:
@@ -105,17 +109,15 @@ void atm_fields_compactFromMatrix(// WS Output:
 
   //  out3 << "Copying *" << im_name << "* to *atm_fields_compact*.\n";
   
-  af.field_names.resize(nf);
-  af.field_names = field_names;
+  af.set_grid(GFIELD4_FIELD_NAMES, field_names);
 
-  af.p_grid.resize(np);
-  af.p_grid = im(Range(joker),0);
+  af.set_grid(GFIELD4_P_GRID, im(Range(joker),0));
   
-  af.lat_grid.resize(0);
-  af.lon_grid.resize(0);
+  af.set_grid(GFIELD4_LAT_GRID, Vector());
+  af.set_grid(GFIELD4_LON_GRID, Vector());
   
-  af.data.resize(nf,np,1,1);
-  af.data(Range(joker),Range(joker),0,0) = transpose(im(Range(joker),Range(1,nf)));
+  af.resize(nf,np,1,1);
+  af(Range(joker),Range(joker),0,0) = transpose(im(Range(joker),Range(1,nf)));
 }
 
 
@@ -123,13 +125,13 @@ void atm_fields_compactFromMatrix(// WS Output:
 // Workspace method, doxygen header is auto-generated.
 // 2007-07-31 Stefan Buehler
 void atm_fields_compactAddConstant(// WS Output:
-                                   GriddedField4& af,
+                                   GField4& af,
                                    // Control Parameters:
                                    const String& name,
                                    const Numeric& value)
 {
   // Number of fields already present:
-  const Index nf = af.field_names.nelem();
+  const Index nf = af.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
 
   if (0==nf)
     {
@@ -140,25 +142,25 @@ void atm_fields_compactAddConstant(// WS Output:
     }
 
   // Add name of new field to field name list:
-  af.field_names.push_back(name);
+  af.get_string_grid(GFIELD4_FIELD_NAMES).push_back(name);
 
   // Save original fields:
-  const Tensor4 dummy = af.data;
+  const Tensor4 dummy = af;
 
   // Adjust size:
-  af.data.resize( nf+1, dummy.npages(), dummy.nrows(), dummy.ncols() );
+  af.resize( nf+1, dummy.npages(), dummy.nrows(), dummy.ncols() );
 
   // Copy back original field:
-  af.data( Range(0,nf), Range(joker), Range(joker), Range(joker) ) = dummy;
+  af( Range(0,nf), Range(joker), Range(joker), Range(joker) ) = dummy;
   
   // Add the constant value:
-  af.data( nf, Range(joker), Range(joker), Range(joker) ) = value;
+  af( nf, Range(joker), Range(joker), Range(joker) ) = value;
 }
 
 
 // Workspace method, doxygen header is auto-generated.
 void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
-                                               ArrayOfGriddedField4& batch_atm_fields_compact,
+                                               ArrayOfGField4& batch_atm_fields_compact,
                                                // WS Input:
                                                const Index& atmosphere_dim,
                                                // WS Generic Input:
@@ -224,30 +226,28 @@ void AtmFieldsFromCompact(// WS Output:
                           Tensor4& vmr_field,
                           // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
-                          const GriddedField4& atm_fields_compact,
+                          const GField4& atm_fields_compact,
                           const Index&  atmosphere_dim )
 {
   // Make a handle on atm_fields_compact to save typing:
-  const GriddedField4& c = atm_fields_compact;
+  const GField4& c = atm_fields_compact;
   
   // Check if the grids in our data match atmosphere_dim
   // (throws an error if the dimensionality is not correct):
-  chk_atm_grids( atmosphere_dim, c.p_grid, c.lat_grid, c.lon_grid );
+  chk_atm_grids(atmosphere_dim,
+                c.get_numeric_grid(GFIELD4_P_GRID),
+                c.get_numeric_grid(GFIELD4_LAT_GRID),
+                c.get_numeric_grid(GFIELD4_LON_GRID));
 
-  const Index nf   = c.field_names.nelem();
-  const Index np   = c.p_grid.nelem();
-  const Index nlat = c.lat_grid.nelem();
-  const Index nlon = c.lon_grid.nelem();
+  const Index nf   = c.get_grid_size(GFIELD4_FIELD_NAMES);
+  const Index np   = c.get_grid_size(GFIELD4_P_GRID);
+  const Index nlat = c.get_grid_size(GFIELD4_LAT_GRID);
+  const Index nlon = c.get_grid_size(GFIELD4_LON_GRID);
 
   // Grids:
-  p_grid.resize(np);
-  p_grid = c.p_grid;
-
-  lat_grid.resize(nlat);
-  lat_grid = c.lat_grid;
-
-  lon_grid.resize(nlon);
-  lon_grid = c.lon_grid;
+  p_grid = c.get_numeric_grid(GFIELD4_P_GRID);
+  lat_grid = c.get_numeric_grid(GFIELD4_LAT_GRID);
+  lon_grid = c.get_numeric_grid(GFIELD4_LON_GRID);
 
   // The order of the fields is:
   // T[K] z[m] VMR_1[1] ... VMR[2]
@@ -265,27 +265,27 @@ void AtmFieldsFromCompact(// WS Output:
     }
 
   // Check that first field is T:
-  if (c.field_names[0] != "T")
+  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[0] != "T")
     {
       ostringstream os;
       os << "The first field must be \"T\", but it is:"
-         << c.field_names[0];
+         << c.get_string_grid(GFIELD4_FIELD_NAMES)[0];
       throw runtime_error( os.str() );
     }
 
   // Check that second field is z:
-  if (c.field_names[1] != "z")
+  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[1] != "z")
     {
       ostringstream os;
       os << "The second field must be \"z\"*, but it is:"
-         << c.field_names[1];
+         << c.get_string_grid(GFIELD4_FIELD_NAMES)[1];
       throw runtime_error( os.str() );
     }
 
   // Check that the other fields are VMR fields and match abs_species:
   for (Index i=0; i<ns; ++i)
     {
-      const String tf_species = c.field_names[2+i];
+      const String tf_species = c.get_string_grid(GFIELD4_FIELD_NAMES)[2+i];
       
       // Get name of species from abs_species:      
       extern const Array<SpeciesRecord> species_data;  // The species lookup data:
@@ -305,15 +305,15 @@ void AtmFieldsFromCompact(// WS Output:
 
   // Temperature field (first field):
   t_field.resize(np,nlat,nlon);
-  t_field = c.data(0,Range(joker),Range(joker),Range(joker));
+  t_field = c(0,Range(joker),Range(joker),Range(joker));
 
   // Altitude profile (second field):
   z_field.resize(np,nlat,nlon);
-  z_field = c.data(1,Range(joker),Range(joker),Range(joker));
+  z_field = c(1,Range(joker),Range(joker),Range(joker));
 
   // VMR profiles (remaining fields):
   vmr_field.resize(ns,np,nlat,nlon);
-  vmr_field = c.data(Range(2,ns),Range(joker),Range(joker),Range(joker));
+  vmr_field = c(Range(2,ns),Range(joker),Range(joker),Range(joker));
 }
 
 
@@ -388,12 +388,12 @@ void AtmFieldsCalc(//WS Output:
                    const Index&          atmosphere_dim
                    )
 {
-  const ConstVectorView tfr_p_grid = t_field_raw.get_numeric_grid(P_GRID);
-  const ConstVectorView tfr_lat_grid = t_field_raw.get_numeric_grid(LAT_GRID);
-  const ConstVectorView tfr_lon_grid = t_field_raw.get_numeric_grid(LON_GRID);
-  const ConstVectorView zfr_p_grid = z_field_raw.get_numeric_grid(P_GRID);
-  const ConstVectorView zfr_lat_grid = z_field_raw.get_numeric_grid(LAT_GRID);
-  const ConstVectorView zfr_lon_grid = z_field_raw.get_numeric_grid(LON_GRID);
+  const ConstVectorView tfr_p_grid = t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const ConstVectorView tfr_lat_grid = t_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+  const ConstVectorView tfr_lon_grid = t_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
+  const ConstVectorView zfr_p_grid = z_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const ConstVectorView zfr_lat_grid = z_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
+  const ConstVectorView zfr_lon_grid = z_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 
   // Basic checks of input variables
   //
@@ -466,8 +466,8 @@ void AtmFieldsCalc(//WS Output:
       // Loop over the gaseous species:
       for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
         {
-          if( !( vmr_field_raw[gas_i].get_numeric_grid(LAT_GRID).nelem() == 1 &&
-                 vmr_field_raw[gas_i].get_numeric_grid(LON_GRID).nelem() == 1 ))
+          if( !( vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() == 1 &&
+                 vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() == 1 ))
             {
               ostringstream os; 
               os << "VMR data of the " << gas_i << "th species has "
@@ -476,7 +476,7 @@ void AtmFieldsCalc(//WS Output:
             }
           
           // Calculate grid positions:
-          p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(P_GRID), p_grid);
+          p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), p_grid);
           
           // Interpolation weights:
           interpweights( itw, gp_p);
@@ -544,8 +544,8 @@ void AtmFieldsCalc(//WS Output:
       for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
         {
           // Calculate grid positions:
-          p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(P_GRID), p_grid);
-          gridpos(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(LAT_GRID), lat_grid);
+          p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), p_grid);
+          gridpos(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), lat_grid);
                   
           // Interpolation weights:
           interpweights( itw, gp_p, gp_lat);
@@ -616,9 +616,9 @@ void AtmFieldsCalc(//WS Output:
       for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
         {
           // Calculate grid positions:
-          p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(P_GRID), p_grid);
-          gridpos(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(LAT_GRID), lat_grid);
-          gridpos(gp_lon, vmr_field_raw[gas_i].get_numeric_grid(LON_GRID), lon_grid);
+          p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), p_grid);
+          gridpos(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), lat_grid);
+          gridpos(gp_lon, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID), lon_grid);
           
           // Interpolation weights:
           interpweights( itw, gp_p, gp_lat, gp_lon );

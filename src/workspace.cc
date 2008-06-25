@@ -763,7 +763,7 @@ void Workspace::define_wsv_data()
        "      Vector lon_grid[N_lon]\n"
        "      Tensor4 data[N_fields][N_p][N_lat][N_lon]\n"
        ),
-      GROUP( GriddedField4_ )));
+      GROUP( GField4_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -798,7 +798,7 @@ void Workspace::define_wsv_data()
        "This is used to hold a set of *atm_fields_compact* for batch\n"
        "calculations. \n"
        ),
-      GROUP( ArrayOfGriddedField4_ )));
+      GROUP( ArrayOfGField4_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2171,8 +2171,8 @@ void Workspace::define_wsv_data()
        "This variable contains the particle number density data for all \n"
        "chosen particle types. It includes the grids corresponding to the \n"
        "grids in the database. \n"
-       "*pnd_field_raw* is an Array of GField3. It includes a\n"
-       "GField3 for each particle type which contains the data and \n"
+       "*pnd_field_raw* is an Array of GriddedField3. It includes a\n"
+       "GriddedField3 for each particle type which contains the data and \n"
        "also the grids.\n"
        "\n"
        "Usage:      Used in the methods *ParticleTypeAdd* and \n"
@@ -2181,7 +2181,7 @@ void Workspace::define_wsv_data()
        "Unit:        m^-3\n"
        "\n"
        "Size:  Array[N_pt]\n"
-       "       GField3 \n "
+       "       GriddedField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
@@ -3644,7 +3644,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       K\n"
        "\n"
-       "Size   GField3 \n "
+       "Size   GriddedField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
@@ -3697,7 +3697,7 @@ void Workspace::define_wsv_data()
        "Unit:        absolute number\n"
        "\n"
        "Size:  Array[N_pt]\n"
-       "       GField3 \n "
+       "       GriddedField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
@@ -3953,7 +3953,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       K\n"
        "\n"
-       "Size   GField3 \n "
+       "Size   GriddedField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
