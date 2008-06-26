@@ -100,8 +100,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("GField4");
   wsv_group_names.push_back("ArrayOfGField3");
   wsv_group_names.push_back("ArrayOfGField4");
-  wsv_group_names.push_back("GriddedField3");
-  wsv_group_names.push_back("GriddedField4");
+  wsv_group_names.push_back("ArrayOfArrayOfGField3");
   wsv_group_names.push_back("ArrayOfGriddedField3");
   wsv_group_names.push_back("ArrayOfArrayOfGriddedField3");
   wsv_group_names.push_back("ArrayOfGriddedField4");

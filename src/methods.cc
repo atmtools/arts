@@ -1554,8 +1554,8 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( ArrayOfGriddedField3_ ),
-        GINPUT(  ArrayOfArrayOfGriddedField3_, Index_ ),
+        GOUTPUT( ArrayOfGField3_ ),
+        GINPUT(  ArrayOfArrayOfGField3_, Index_ ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));

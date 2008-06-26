@@ -68,10 +68,10 @@ extern const Index   GFIELD3_P_GRID;
    2007-10-26 Oliver Lemke */
 void ArrayOfGriddedField3ExtractFromArrayOfArrayOfGriddedField3(
       // WS Generic Output:
-      ArrayOfGriddedField3&          agf,
+      ArrayOfGField3&          agf,
       // WS Input:
       // WS Generic Input:
-      const ArrayOfArrayOfGriddedField3&   aagf,
+      const ArrayOfArrayOfGField3&   aagf,
       const Index&     index)
 {
   if( index >= aagf.nelem() )
