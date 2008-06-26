@@ -55,7 +55,9 @@
 #include "sorting.h"
 
 extern const Numeric PI;
-
+extern const Index GFIELD3_P_GRID;
+extern const Index GFIELD3_LAT_GRID;
+extern const Index GFIELD3_LON_GRID;
 
 
 /*===========================================================================
@@ -166,7 +168,7 @@ void sensor_responseAntenna_NEW(
         const Index&                  atmosphere_dim,
         const Index&                  antenna_dim,
         const Matrix&                 antenna_los,
-        const ArrayOfGriddedField3&   aresponse )
+        const ArrayOfGField3&         aresponse )
 {
   // Basic checks
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -227,9 +229,9 @@ void sensor_responseAntenna_NEW(
   }
   for( Index ip=0; ip<aresponse.nelem(); ip++ )
   {  
-    Vector& f_grid  = aresponse[ip].p_grid;
-    Vector& za_grid = aresponse[ip].lat_grid;
-    Vector& aa_grid = aresponse[ip].lon_grid;
+    ConstVectorView f_grid  = aresponse[ip].get_numeric_grid(GFIELD3_P_GRID);
+    ConstVectorView za_grid = aresponse[ip].get_numeric_grid(GFIELD3_LAT_GRID);
+    ConstVectorView aa_grid = aresponse[ip].get_numeric_grid(GFIELD3_LON_GRID);
 
     if( !is_increasing( f_grid ) )
       {}

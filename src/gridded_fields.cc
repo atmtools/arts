@@ -125,6 +125,33 @@ ConstVectorView GField::get_numeric_grid (Index i) const
 }
 
 
+//! Get a numeric grid.
+/*!
+  Returns the numeric grid with index i.
+
+  Throws a runtime error if grid i is not of type Numeric.
+
+  \param[in]  i  Grid index.
+  \return        Numeric grid.
+*/
+VectorView GField::get_numeric_grid (Index i)
+{
+  assert (i < dim);
+  if (mgridtypes[i] != GRIDTYPE_NUMERIC)
+    {
+      ostringstream os;
+      if (mgridnames[i].length())
+        os << mgridnames[i];
+      else
+        os << "Grid " << i;
+      os << " is not a numeric grid.";
+      throw runtime_error(os.str());
+    }
+
+  return (mnumericgrids[i]);
+}
+
+
 //! Get a string grid.
 /*!
   Returns the string grid with index i.
@@ -296,32 +323,5 @@ ostream& operator<<(ostream& os, const GField4& gf)
 {
   os << (GField&)gf;
   return os << "Data:" << endl << (Tensor4&)gf;
-}
-
-
-ostream& operator<< (ostream& os, const GriddedField3& /*gfield3*/)
-{
-  os << "GriddedField3: Output operator not implemented";
-  return os;
-}
-
-
-ostream& operator<< (ostream& os, const ArrayOfGriddedField3& /*agfield3*/)
-{
-  os << "ArrayOfGriddedField3: Output operator not implemented";
-  return os;
-}
-
-ostream& operator<< (ostream& os, const GriddedField4& /*gfield3*/)
-{
-  os << "GriddedField4: Output operator not implemented";
-  return os;
-}
-
-
-ostream& operator<< (ostream& os, const ArrayOfGriddedField4& /*agfield3*/)
-{
-  os << "ArrayOfGriddedField4: Output operator not implemented";
-  return os;
 }
 

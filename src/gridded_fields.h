@@ -120,6 +120,8 @@ public:
 
   ConstVectorView get_numeric_grid (Index i) const;
 
+  VectorView get_numeric_grid (Index i);
+
   const ArrayOfString& get_string_grid (Index i) const;
 
   ArrayOfString& get_string_grid (Index i);
@@ -352,63 +354,5 @@ typedef Array< Array<GField3> > ArrayOfArrayOfGField3;
 typedef Array<GField3> ArrayOfGField3;
 typedef Array<GField4> ArrayOfGField4;
 
-
-//! Contains a GriddedField3.
-/*!
- A GriddedField3 consists of a pressure grid vector, a latitude vector, a
- longitude vector and a Tensor3 for the data itself.
-
- \author Oliver Lemke
- \date   2003-06-19
- */
-typedef struct {
-      //! Pressure grid.
-      Vector p_grid;
-      //! Latitude grid.
-      Vector lat_grid;
-      //! Longitude grid.
-      Vector lon_grid;
-      //! Data.
-      Tensor3 data;
-} GriddedField3;
-
-
-//! Contains a GriddedField4.
-/*!
-  A GriddedField4 can be used to store fields of several scalar
-  variables on the same p-lat-lon grid. A typical example is to store
-  several atmospheric variables from a circulation model, or a
-  radiosonde profile.
-
-  A GriddedField4 consists of a field name array, a pressure grid
-  vector, a latitude vector, a longitude vector and a Tensor4 for the
-  data itself. The dimensions in the data tensor are also sorted in
-  the above order.
-  
-  \author Stefan Buehler
-  \date   2007-07-25
- */
-typedef struct {
-      //! Field names
-      ArrayOfString field_names;
-      //! Pressure grid.
-      Vector p_grid;
-      //! Latitude grid.
-      Vector lat_grid;
-      //! Longitude grid.
-      Vector lon_grid;
-      //! Data.
-      Tensor4 data;
-} GriddedField4;
-
-typedef Array< Array<GriddedField3> > ArrayOfArrayOfGriddedField3;
-typedef Array<GriddedField3> ArrayOfGriddedField3;
-typedef Array<GriddedField4> ArrayOfGriddedField4;
-
-ostream& operator<< (ostream& os, const GriddedField3& gfield3);
-ostream& operator<< (ostream& os, const ArrayOfGriddedField3& agfield3);
-
-ostream& operator<< (ostream& os, const GriddedField4& gfield4);
-ostream& operator<< (ostream& os, const ArrayOfGriddedField4& agfield4);
-
 #endif
+

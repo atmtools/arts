@@ -1,5 +1,27 @@
 2008-06-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-6-25
+
+	* Removing the last remainders of the old GriddedFields.
+
+	* src/gridded_fields.{h,cc}:
+
+	Remove implementation of the old GriddedFields.
+
+	* src/m_basic_types.h:
+
+	Remove NGET_GENERIC for ArrayOfGriddedField3 and ArrayOfGriddedField4.
+
+	* src/m_sensor.cc (sensor_responseAntenna_NEW):
+
+	Change aresponse to ArrayOfGField3.
+
+	* src/gridded_fields.{cc,h}:
+
+	Add non-const version for get_numeric_grid.
+
+2008-06-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-6-24
 
 	* src/workspace.cc
