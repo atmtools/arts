@@ -134,12 +134,6 @@ template void
 xml_read_from_file<GField4> (const String&, GField4&);
 
 template void
-xml_read_from_file<GriddedField3> (const String&, GriddedField3&);
-
-template void
-xml_read_from_file<GriddedField4> (const String&, GriddedField4&);
-
-template void
 xml_read_from_file<GridPos> (const String&, GridPos&);
 
 template void
@@ -180,14 +174,6 @@ xml_write_to_file<GField3> (const String&, const GField3&,
 template void
 xml_write_to_file<GField4> (const String&, const GField4&,
                             FileType);
-
-template void
-xml_write_to_file<GriddedField3> (const String&, const GriddedField3&,
-                                  FileType);
-
-template void
-xml_write_to_file<GriddedField4> (const String&, const GriddedField4&,
-                                  FileType);
 
 template void
 xml_write_to_file<GridPos> (const String&, const GridPos&, FileType);
@@ -249,18 +235,6 @@ xml_read_from_file<ArrayOfArrayOfGField3> (const String&,
 
 template void
 xml_read_from_file<ArrayOfGField4> (const String&, ArrayOfGField4&);
-
-template void
-xml_read_from_file<ArrayOfGriddedField3> (const String&,
-                                          ArrayOfGriddedField3&);
-
-template void
-xml_read_from_file<ArrayOfArrayOfGriddedField3> (const String&,
-                                                 ArrayOfArrayOfGriddedField3&);
-
-template void
-xml_read_from_file<ArrayOfGriddedField4> (const String&,
-                                          ArrayOfGriddedField4&);
 
 template void
 xml_read_from_file<ArrayOfLineRecord> (const String&,
@@ -367,21 +341,6 @@ template void
 xml_write_to_file<ArrayOfGField4> (const String&,
                                    const ArrayOfGField4&,
                                    FileType);
-
-template void
-xml_write_to_file<ArrayOfGriddedField3> (const String&,
-                                         const ArrayOfGriddedField3&,
-                                         FileType);
-
-template void
-xml_write_to_file<ArrayOfArrayOfGriddedField3> (const String&,
-                                                const ArrayOfArrayOfGriddedField3&,
-                                                FileType);
-
-template void
-xml_write_to_file<ArrayOfGriddedField4> (const String&,
-                                         const ArrayOfGriddedField4&,
-                                         FileType);
 
 template void
 xml_write_to_file<ArrayOfLineRecord> (const String&,

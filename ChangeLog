@@ -1,5 +1,27 @@
 2008-06-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-6-24
+
+	* src/workspace.cc
+
+	Change antenna_response_NEW to ArrayOfGField3.
+
+	* src/groups.cc:
+
+	Remove ArrayOfGriddedField3, ArrayOfArrayOfGriddedField3, and
+	ArrayOfGriddedField4.
+
+	* src/xml_io_instantiation.h, src/xml_io_compound_types.{cc,h}
+
+	Remove read/write routines for GriddedField3 and GriddedField4.
+
+	* src/xml_io_instantiation.h, src/xml_io_array_types.{cc,h}
+
+	Remove read/write routines for ArrayOfArrayOfGriddedField3,
+	ArrayOfGriddedField3, and ArrayOfGriddedField4.
+
+2008-06-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-6-23
 
 	* src/methods.cc, src/m_batch.cc

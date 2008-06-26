@@ -708,7 +708,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:      Set by the user.\n"
        ),
-      GROUP( ArrayOfGriddedField3_ )));
+      GROUP( ArrayOfGField3_ )));
 
   wsv_data.push_back
    (WsvRecord
