@@ -247,6 +247,13 @@ extern const Index GFIELD4_FIELD_NAMES = 0;
 */
 extern const Index GFIELD4_P_GRID = 1;
 
+/** Global constant, Index of the frequency grid in GriddedField4.
+
+    \author Patrick Eriksson
+    \date   2008-07-01
+*/
+extern const Index GFIELD4_F_GRID = 1;
+
 /** Global constant, Index of the latitude grid in GriddedField4.
 
     \author Oliver Lemke
@@ -254,12 +261,26 @@ extern const Index GFIELD4_P_GRID = 1;
 */
 extern const Index GFIELD4_LAT_GRID = 2;
 
+/** Global constant, Index of the zenith angle grid in GriddedField4.
+
+    \author Patrick Eriksson
+    \date   2008-07-01
+*/
+extern const Index GFIELD4_ZA_GRID = 2;
+
 /** Global constant, Index of the longitude grid in GriddedField4.
 
     \author Oliver Lemke
     \date   2008-06-25
 */
 extern const Index GFIELD4_LON_GRID = 3;
+
+/** Global constant, Index of the azimuth angle grid in GriddedField4.
+
+    \author Patrick Eriksson
+    \date   2008-07-01
+*/
+extern const Index GFIELD4_AA_GRID = 3;
 
 /** Define the global joker objekt. This is used by Matpack to specify joker ranges.  
     

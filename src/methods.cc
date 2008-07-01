@@ -5900,6 +5900,35 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("sensor_responseAntenna_NEW"),
+        DESCRIPTION
+        (
+         "...\n"
+        ),
+        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
+        OUTPUT( sensor_response_, sensor_response_f_NEW_, 
+                sensor_response_pol_NEW_,
+                sensor_response_za_NEW_,
+                sensor_response_aa_NEW_, 
+                sensor_response_za_grid_NEW_,
+                sensor_response_aa_grid_NEW_ ),
+        INPUT( sensor_response_, sensor_response_f_NEW_, 
+               sensor_response_pol_NEW_,
+               sensor_response_za_NEW_,
+               sensor_response_aa_NEW_, 
+               sensor_response_f_grid_NEW_,
+               sensor_response_pol_grid_NEW_, sensor_response_za_grid_NEW_,
+               sensor_response_aa_grid_NEW_,
+               atmosphere_dim_, antenna_dim_, antenna_los_, 
+               antenna_response_NEW_, sensor_norm_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("sensor_responseAntenna1D"),
         DESCRIPTION
         (

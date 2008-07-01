@@ -55,9 +55,10 @@
 #include "sorting.h"
 
 extern const Numeric PI;
-extern const Index GFIELD3_P_GRID;
-extern const Index GFIELD3_LAT_GRID;
-extern const Index GFIELD3_LON_GRID;
+extern const Index GFIELD4_FIELD_NAMES;
+extern const Index GFIELD4_F_GRID;
+extern const Index GFIELD4_ZA_GRID;
+extern const Index GFIELD4_AA_GRID;
 
 
 /*===========================================================================
@@ -152,38 +153,43 @@ void sensorOff_NEW(
 
 
 
-/* Workspace method: Doxygen documentation will be auto-generated 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseAntenna_NEW(
         // WS Output:
-              Sparse&                 sensor_response,
-              Vector&                 sensor_response_f,
-              ArrayOfIndex&           sensor_response_pol,
-              Vector&                 sensor_response_za,
-              Vector&                 sensor_response_aa,
-              Vector&                 sensor_response_za_grid,
+              Sparse&           sensor_response,
+              Vector&           sensor_response_f,
+              ArrayOfIndex&     sensor_response_pol,
+              Vector&           sensor_response_za,
+              Vector&           sensor_response_aa,
+              Vector&           sensor_response_za_grid,
+              Vector&           sensor_response_aa_grid,
         // WS Input:
-        const ArrayOfIndex&           sensor_response_pol_grid,
-        const Vector&                 sensor_response_f_grid,
-        const Vector&                 sensor_response_aa_grid,
-        const Index&                  atmosphere_dim,
-        const Index&                  antenna_dim,
-        const Matrix&                 antenna_los,
-        const ArrayOfGField3&         aresponse )
+        const Vector&           sensor_response_f_grid,
+        const ArrayOfIndex&     sensor_response_pol_grid,
+        const Index&            atmosphere_dim,
+        const Index&            antenna_dim,
+        const Matrix&           antenna_los,
+        const GField4&          aresponse,
+        const Index&            sensor_norm )
 {
   // Basic checks
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
+  chk_if_in_range( "antenna_dim",    antenna_dim,    1, 2 );
+  chk_if_bool(     "sensor_norm",    sensor_norm          );
+
 
   // Some sizes
   const Index nf   = sensor_response_f_grid.nelem();
   const Index npol = sensor_response_pol_grid.nelem();
   const Index nza  = sensor_response_za_grid.nelem();
-  const Index naa  = max( 1, sensor_response_aa_grid.nelem() );
-  const Index nin  = nf * npol * nza naa;
+  const Index naa  = max( Index(1), sensor_response_aa_grid.nelem() );
+  const Index nin  = nf * npol * nza * naa;
+
 
   // Initialise a output stream for runtime errors and a flag for errors
   ostringstream os;
   bool          error_found = false;
+
 
   // Check that sensor_response variables are consistent in size
   if( sensor_response_f.nelem() != nin )
@@ -200,6 +206,7 @@ void sensor_responseAntenna_NEW(
     error_found = true;
   }
 
+
   // Checks related to antenna dimension
   if( antenna_dim == 2  &&  atmosphere_dim < 3 )
   {
@@ -213,37 +220,176 @@ void sensor_responseAntenna_NEW(
     error_found = true;
   }
 
+
   // Check of antenna_los
   if( antenna_dim != antenna_los.ncols() ) 
   {
     os << "The number of columns of *antenna_los* must be *antenna_dim*.\n";
     error_found = true;
   }
+  // We allow angles in antenna_los to be unsorted
 
-  // Checks of antenna_response
-  if( aresponse.nelem() != 1  && aresponse.nelem() < npol )  
+
+  // Checks of antenna_response polarisation dimension
+  //
+  const Index lpolgrid = aresponse.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
+  //
+  if( lpolgrid != 1  &&  lpolgrid != npol ) 
   {
-    os << "The number of array elements in *antenna_response* must be 1 or\n"
-       << ">= the number of polarisations (normally equal to *stokes_dim*).\n";
+    os << "The number of polarisation in *antenna_response* must be 1 or be\n"
+       << "equal to the number of polarisations used (determined by\n"
+       << "*stokes_dim* or *sensor_pol*).\n";
     error_found = true;
   }
-  for( Index ip=0; ip<aresponse.nelem(); ip++ )
-  {  
-    ConstVectorView f_grid  = aresponse[ip].get_numeric_grid(GFIELD3_P_GRID);
-    ConstVectorView za_grid = aresponse[ip].get_numeric_grid(GFIELD3_LAT_GRID);
-    ConstVectorView aa_grid = aresponse[ip].get_numeric_grid(GFIELD3_LON_GRID);
 
-    if( !is_increasing( f_grid ) )
-      {}
+
+  // Checks of antenna_response frequency dimension
+  //
+  ConstVectorView aresponse_f_grid = aresponse.get_numeric_grid(GFIELD4_F_GRID);
+  //
+  chk_if_increasing( "f_grid of antenna_response", aresponse_f_grid );
+  //
+  Numeric f_dlow  = 0.0;
+  Numeric f_dhigh = 0.0;
+  //
+  f_dlow  = min(sensor_response_f_grid) - aresponse_f_grid[0];
+  f_dhigh = last(aresponse_f_grid) - max(sensor_response_f_grid);
+  //
+  if( f_dlow < 0 ) 
+  {
+    os << "The frequency grid of *antenna_response is too narrow. It must\n"
+       << "cover all considered frequencies (*f_grid*). The grid needs to be\n"
+       << "expanded with "<<-f_dlow<<" Hz in the lower end.\n";
+    error_found = true;
   }
+  if( f_dhigh < 0 ) 
+  {
+    os << "The frequency grid of *antenna_response* is too narrow. It must\n"
+       << "cover all considered frequencies (*f_grid*). The grid needs to be\n"
+       << "expanded with "<<-f_dhigh<<" Hz in the higher end.\n";
+    error_found = true;
+  }
+  
+
+  // Checks of antenna_response za dimension
+  //
+  ConstVectorView aresponse_za_grid = 
+                                    aresponse.get_numeric_grid(GFIELD4_ZA_GRID);
+  //
+  chk_if_increasing( "za_grid of antenna_response", aresponse_za_grid );
+  //
+  // Check if the relative grid added to the antena_los za angles
+  // outside sensor_response_za_grid.
+  //
+  Numeric za_dlow  = 0.0;
+  Numeric za_dhigh = 0.0;
+  //
+  za_dlow = min(antenna_los(joker,0)) + aresponse_za_grid[0] -
+                                                   min(sensor_response_za_grid);
+  za_dhigh = max(sensor_response_za_grid) - ( max(antenna_los(joker,0)) +
+                                                      last(aresponse_za_grid) );
+  //
+  if( za_dlow < 0 ) 
+  {
+    os << "The WSV *sensor_response_za_grid* is too narrow. It should be\n"
+       << "expanded with "<<-za_dlow<<" deg in the lower end. This change\n"
+       << "should be probably applied to *mblock_za_grid*.\n";
+    error_found = true;
+  }
+  if( f_dhigh < 0 ) 
+  {
+    os << "The WSV *sensor_response_za_grid* is too narrow. It should be\n"
+       << "expanded with "<<-za_dhigh<<" deg in the higher end. This change\n"
+       << "should be probably applied to *mblock_za_grid*.\n";
+    error_found = true;
+  }
+
+
+  // Checks of antenna_response aa dimension
+  //
+  ConstVectorView aresponse_aa_grid = 
+                                    aresponse.get_numeric_grid(GFIELD4_AA_GRID);
+  //
+  if( antenna_dim == 1 )
+  {
+    if( aresponse_aa_grid.nelem() != 1 )
+    {
+      os << "The azimuthal dimension of *antenna_response* must be 1 if\n"
+         << "*antenna_dim* equals 1.\n";
+      error_found = true;    
+    }
+  }
+  else
+  {
+    chk_if_increasing( "aa_grid of antenna_response", aresponse_aa_grid );
+
+    // Check if the relative grid added to the antena_los aa angles
+    // outside sensor_response_aa_grid.
+    //
+    Numeric aa_dlow  = 0.0;
+    Numeric aa_dhigh = 0.0;
+    //
+    aa_dlow = min(antenna_los(joker,1)) + aresponse_aa_grid[0] -
+                                                   min(sensor_response_aa_grid);
+    aa_dhigh = max(sensor_response_aa_grid) - ( max(antenna_los(joker,1)) +
+                                                      last(aresponse_aa_grid) );
+    //
+    if( aa_dlow < 0 ) 
+    {
+      os << "The WSV *sensor_response_aa_grid* is too narrow. It should be\n"
+         << "expanded with "<<-aa_dlow<<" deg in the lower end. This change\n"
+         << "should be probably applied to *mblock_aa_grid*.\n";
+      error_found = true;
+    }
+    if( f_dhigh < 0 ) 
+    {
+      os << "The WSV *sensor_response_aa_grid* is too narrow. It should be\n"
+         << "expanded with "<<-aa_dhigh<<" deg in the higher end. This change\n"
+         << "should be probably applied to *mblock_aa_grid*.\n";
+      error_found = true;
+    }
+  }
+
 
   // If errors where found throw runtime_error with the collected error
   // message.
   if (error_found)
     throw runtime_error(os.str());
 
+
+
+  // Call the core function 
+  //
+  Sparse hantenna;
+  //
+  // antenna_matrix_NEW( hantenna
+
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse htmp = sensor_response;
+  sensor_response.resize( hantenna.nrows(), htmp.ncols());
+  mult( sensor_response, hantenna, htmp );
+
+  // Some extra output.
+  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
+       << "x" << sensor_response.ncols() << "\n";
+
+  // Update sensor_response_za_grid
+  sensor_response_za_grid = antenna_los(joker,0);
+
+  // Update sensor_response_aa_grid
+  if( antenna_dim == 2 )
+    sensor_response_aa_grid = antenna_los(joker,1);
+
+  // Set aux variables
+  sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
+                      sensor_response_za,      sensor_response_aa, 
+                      sensor_response_f_grid,  sensor_response_pol_grid, 
+                      sensor_response_za_grid, sensor_response_aa_grid );
 }
-*/
+
+
 
 
 
@@ -321,17 +467,19 @@ void sensor_responseBackend_NEW(
   //
   f_dlow  = min(f_backend) + backend_channel_response(0,0) -
                                                     min(sensor_response_f_grid);
-  f_dhigh = max(sensor_response_f) - ( max(f_backend) +
+  f_dhigh = max(sensor_response_f_grid) - ( max(f_backend) +
                backend_channel_response(backend_channel_response.nrows()-1,0) );
   //
-  if (f_dlow<0) {
+  if( f_dlow < 0 ) 
+  {
     os << "The WSV *sensor_response_f_grid* is too narrow. It should be\n"
        << "expanded with "<<-f_dlow<<" Hz in the lower end. This change\n"
        << "should be applied to either *f_grid* or the sensor part in\n"
        << "front of *sensor_responseBackend*\n";
     error_found = true;
   }
-  if (f_dhigh<0) {
+  if( f_dhigh < 0 ) 
+  {
     os << "The WSV *sensor_response_f_grid* is too narrow. It should be\n"
        << "expanded with "<<-f_dhigh<<" Hz in the higher end. This change\n"
        << "should be applied to either *f_grid* or the sensor part in\n"
@@ -347,18 +495,18 @@ void sensor_responseBackend_NEW(
 
   // Call the core function 
   //
-  Sparse backend_response;
+  Sparse hbackend;
   //
-  spectrometer_matrix_NEW( backend_response, backend_channel_response,
+  spectrometer_matrix_NEW( hbackend, backend_channel_response,
                            f_backend, sensor_response_f_grid, npol, nza,
                            sensor_norm );
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
   // take the same object as both input and output.
-  Sparse sensor_response_tmp = sensor_response;
-  sensor_response.resize( backend_response.nrows(), sensor_response_tmp.ncols());
-  mult( sensor_response, backend_response, sensor_response_tmp );
+  Sparse htmp = sensor_response;
+  sensor_response.resize( hbackend.nrows(), htmp.ncols());
+  mult( sensor_response, hbackend, htmp );
 
   // Some extra output.
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
@@ -591,18 +739,18 @@ void sensor_responseMixer_NEW(
 
   //Call the core function
   //
-  Sparse mixer_response;
+  Sparse hmixer;
   Vector f_mixer;
   //
-  mixer_matrix_NEW( mixer_response, f_mixer, sensor_response_f_grid, lo,
+  mixer_matrix_NEW( hmixer, f_mixer, sensor_response_f_grid, lo,
                     sideband_response, npol, nza, sensor_norm );
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
   // take the same object as both input and output.
-  Sparse sensor_response_tmp = sensor_response;
-  sensor_response.resize( mixer_response.nrows(), sensor_response_tmp.ncols() );
-  mult( sensor_response, mixer_response, sensor_response_tmp );
+  Sparse htmp = sensor_response;
+  sensor_response.resize( hmixer.nrows(), htmp.ncols() );
+  mult( sensor_response, hmixer, htmp );
 
   // Some extra output.
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()

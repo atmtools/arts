@@ -704,11 +704,41 @@ void Workspace::define_wsv_data()
       (
        "The antenna pattern/response.\n"
        "\n"
-       "To be written ...\n"
+       "This WSV describes the antenna response as a function of zenith angle\n"
+       "(za), azimuth angle (aa), frequencue (f) and polarisation (pol):\n"
+       "\n"
+       "Zenith angle dimension: This dimension must always have a size >= 2\n"
+       "The response outside covered grid range is treated as zero. If\n"
+       "*antenna_dim* equals 1, the data should correspond to the response\n"
+       "integrated in the azimuthal direction.\n"
+       "\n"
+       "Azimuth angle dimension: If *antenna_dim* equals 1, this dimension\n"
+       "must have size 1. A size >= 2 is otherwise required. The response\n"
+       "outside covered grid range is treated as zero.\n"
+       "\n"
+       "Frequency dimension: If this dimension has size 1, the data are\n"
+       "applied for all frequencies of concern. A linear interpolation is\n"
+       "otherwise applied.\n"
+       "\n"
+       "Polarisation dimension: If this dimension has size 1, the data are\n"
+       "applied for all polarisations of concern. The data are otherwise used\n"
+       "in sequential order. This signifies that, in general, the first\n"
+       "polarisation \"layer\" corresponds to the first stokes dimension\n"
+       "etc. An exception is if a polarisation rotation has been applied. In\n"
+       "any case, it is up to the user to ensure that polarisations are\n"
+       "consistently defined.\n"
        "\n"
        "Usage:      Set by the user.\n"
+       "\n"
+       "Dimensions: \n"
+       "   GriddedField4:\n"
+       "      Vector za_grid[N_za]\n"
+       "      Vector aa_grid[N_aa]\n"
+       "      Vector f_grid[N_f]\n"
+       "      ArrayOfString field_names[N_pol]\n"
+       "      Tensor4 data[N_za][N_aa][N_f][N_pol]\n"
        ),
-      GROUP( ArrayOfGField3_ )));
+      GROUP( GField4_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2933,12 +2963,10 @@ void Workspace::define_wsv_data()
        "The polarisation response of the sensor.\n"
        "\n"
        "This is a Mueller matrix describing the polarisation response. The\n"
-       "number of columns shall equal *stokes_dim*. The number of rows\n"
-       "corresponds *sensor_n_recievers*. For example, if horizontal and\n"
-       "vertical polarisations are measured simultaneously (by two mixers /\n"
-       "reciever chains), the matrix has two rows. This matrix is multiplied\n"
-       "with the Stokes vector, converted to the sensor frame, before the\n"
-       "sensor response is applied. \n"
+       "number of columns shall equal *stokes_dim*. The number of rows shall\n"
+       "match the number of polarisations recorded. For example, if horizontal\n"
+       "and vertical polarisations are measured in parallel, the matrix has\n"
+       "two rows.\n"
        "\n"
        "Example on suitable settings:\n"
        "   Total power: If the sensor provides the total power (that is, sum\n"
@@ -2959,9 +2987,9 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  [ - (0-1) ]\n"
        "\n"
-       "Size:  [ sensor_n_recievers, stokes_dim ]\n"
+       "Size:  [ number of recorded polarisations, stokes_dim ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( Matrix_ )));
 
   wsv_data.push_back
    (WsvRecord
