@@ -113,11 +113,17 @@ ConstVectorView GField::get_numeric_grid (Index i) const
   if (mgridtypes[i] != GRIDTYPE_NUMERIC)
     {
       ostringstream os;
+
+      if (mname.length())
+        os << mname << " ";
+
+      os << "Grid ";
       if (mgridnames[i].length())
         os << mgridnames[i];
       else
-        os << "Grid " << i;
+        os << i;
       os << " is not a numeric grid.";
+
       throw runtime_error(os.str());
     }
 
@@ -140,11 +146,17 @@ VectorView GField::get_numeric_grid (Index i)
   if (mgridtypes[i] != GRIDTYPE_NUMERIC)
     {
       ostringstream os;
+
+      if (mname.length())
+        os << mname << " ";
+
+      os << "Grid ";
       if (mgridnames[i].length())
         os << mgridnames[i];
       else
-        os << "Grid " << i;
+        os << i;
       os << " is not a numeric grid.";
+
       throw runtime_error(os.str());
     }
 
@@ -167,13 +179,20 @@ const ArrayOfString& GField::get_string_grid (Index i) const
   if (mgridtypes[i] != GRIDTYPE_STRING)
     {
       ostringstream os;
+
+      if (mname.length())
+        os << mname << " ";
+
+      os << "Grid ";
       if (mgridnames[i].length())
         os << mgridnames[i];
       else
-        os << "Grid " << i;
+        os << i;
       os << " is not a string grid.";
+
       throw runtime_error(os.str());
     }
+
 
   return (mstringgrids[i]);
 }
@@ -194,13 +213,20 @@ ArrayOfString& GField::get_string_grid (Index i)
   if (mgridtypes[i] != GRIDTYPE_STRING)
     {
       ostringstream os;
+
+      if (mname.length())
+        os << mname << " ";
+
+      os << "Grid ";
       if (mgridnames[i].length())
         os << mgridnames[i];
       else
-        os << "Grid " << i;
+        os << i;
       os << " is not a string grid.";
+
       throw runtime_error(os.str());
     }
+
 
   return (mstringgrids[i]);
 }
