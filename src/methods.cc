@@ -5991,7 +5991,7 @@ md_data_raw.push_back
                sensor_response_f_grid_NEW_,
                sensor_response_pol_grid_NEW_, sensor_response_za_grid_NEW_,
                sensor_response_aa_grid_NEW_,
-               f_backend_, backend_channel_response_, sensor_norm_ ),
+               f_backend_, backend_channel_response_NEW_, sensor_norm_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),

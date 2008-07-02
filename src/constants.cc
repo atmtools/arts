@@ -212,6 +212,13 @@ extern const Numeric EARTH_GRAV_CONST = 3.98601E14;
 */
 extern const Numeric HZ2CM =  0.01 / SPEED_OF_LIGHT;
 
+/** Global constant, Index of the frequency grid in GriddedField1.
+
+    \author Patrick Eriksson
+    \date   2008-07-02
+*/
+extern const Index GFIELD1_F_GRID = 0;
+
 /** Global constant, Index of the pressure grid in GriddedField3.
 
     \author Oliver Lemke

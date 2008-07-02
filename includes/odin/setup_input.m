@@ -78,7 +78,13 @@ l = l0 + ct*(t-t0) + sb_path/2;
 r = qsmr_r_diplexer2( lo(1), lo(1)+3.9e9, lo(1)+f, 0 ) .* ...     % LO part
     qsmr_r_diplexer( l, lo(1)+f, r_min );                         % Filter part
 %
-%xmlStore( 'sideband.SM_AC2ab.xml', [f,r], 'Matrix' );
+G.name      = 'Sideband response function';
+G.gridnames = { 'Frequency' };
+G.grids     = { f };
+G.dataname  = 'Response';
+G.data      = r;
+%
+%xmlStore( 'sideband.SM_AC2ab.xml', G, 'GriddedField1' );
 %
 %
 r_min   = 10^-1.44;
@@ -96,6 +102,9 @@ l = l0 + ct*(t-t0) + sb_path/2;
 r = qsmr_r_diplexer2( lo(2), lo(2)+3.9e9, lo(2)+f, 0 ) .* ...     % LO part
     qsmr_r_diplexer( l, lo(2)+f, r_min );                         % Filter part
 %
+G.grids     = { f };
+G.data      = r;
+%
 %xmlStore( 'sideband.SM_AC1e.xml', [f,r], 'Matrix' );
 
 
@@ -104,7 +113,14 @@ r = qsmr_r_diplexer2( lo(2), lo(2)+3.9e9, lo(2)+f, 0 ) .* ...     % LO part
 %
 A = read_datafile( fullfile(inpath,'Backend','finalresponse.2001khz.aa'),...
                                                                     'Matrix' ); 
-%xmlStore( 'backend_channel_response.xml', A, 'Matrix' );
+%
+G.name      = 'Backend channel response function';
+G.gridnames = { 'Frequency' };
+G.grids     = { A(:,1) };
+G.dataname  = 'Response';
+G.data      = A(:,2);
+%
+%xmlStore( 'backend_channel_response.xml', {G}, 'ArrayOfGriddedField1' );
 
 
 

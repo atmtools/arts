@@ -798,24 +798,38 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "backend_channel_response_NEW" ),
+      DESCRIPTION
+      (
+       "The response of each backend channel.\n"
+       "\n"
+       "The response is given as an ArrayOfGField1. The grid consists of\n"
+       "relative frequencies. These relative frequencies are added to \n"
+       "*f_backend* to obtain the absolute frequency for each response values.\n"
+       "The actual data are the response at each frequency grid point.\n"
+       "\n"
+       "There are here two options. If the array has length 1, the same\n"
+       "response is applied for all channels. Accordingly, this assumes that\n"
+       "all channels have the same response function. The second option is to\n"
+       "specify the response for each channel seperately. This signifies that\n"
+       "the *backend_channel_response* array has either 1 or n elements, where\n"
+       "n is the length of *f_backend*\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Size:  Array[N_ch]\n"
+       "       GriddedField1 \n "
+       "       [N_f] \n"
+       "       [N_f] \n"
+       ),
+      GROUP( ArrayOfGField1_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "backend_channel_response" ),
       DESCRIPTION
       (
-       "The response of each backend channel\n"
-       "\n"
-       "The response is given as a matrix. The first column gives a grid of\n"
-       "relative frequencies. These frequencies are added to *f_backend* to\n"
-       "obtain the absolute frequency for each response values.\n"
-       "\n"
-       "Following columns holds response values. There are here two options.\n"
-       "If the matrix has only two columns, the values of the second column is\n"
-       "applied for all channels. Accordingly, this assumes that all channels\n"
-       "have the same response function. The second option is to specify the\n"
-       "response for each channel seperately. This signifies that the\n"
-       "*backend_channel_response* has either two or n+1 columns, where n is\n"
-       "the length of *f_backend*\n"
-       "\n"
-       "Usage: Set by the user.\n"
+       "Will be removed.\n"
        ),
       GROUP( Matrix_ )));
 
@@ -3422,23 +3436,28 @@ void Workspace::define_wsv_data()
     ( NAME( "sideband_response_NEW" ),
       DESCRIPTION
       (
-        "Description of (mixer) sideband response.\n"
-        "\n"
-        "This variable describes the response of each sideband of a heterodyne\n"
-        "receiver. The response is given as a two-column matrix, where the\n"
-        "first column is a frequency grid and the second column describes\n"
-        "the sideband filter function. An interpolation is applied to obtain\n"
-        "the response for intermediate frequencies.\n"
-        "\n"
-        "The frequency grid should be given in terms of IF, with end points\n"
-        "symmetrically placed around zero. That is, the grid must contain\n"
-        "both negative and positive values. The sideband response (after \n"
-        "summation with *lo*) is not allowed to extend outside the range\n"
-        "for which spectral data exist (normally determined by *f_grid*).\n"
-        "\n"
-        "Usage: Set by the user.\n"
+       "Description of (mixer) sideband response.\n"
+       "\n"
+       "This variable describes the response of each sideband of a heterodyne\n"
+       "receiver. The response is given as a GField1, with frequency as the\n"
+       "grid. The actual describe the sideband filter function at each\n"
+       "frequency grid point. An interpolation is applied to obtain the\n"
+       "response for intermediate frequencies.\n"
+       "\n"
+       "The frequency grid should be given in terms of IF, with end points\n"
+       "symmetrically placed around zero. That is, the grid must contain\n"
+       "both negative and positive values. The sideband response (after \n"
+       "summation with *lo*) is not allowed to extend outside the range\n"
+       "for which spectral data exist (normally determined by *f_grid*).\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Dimensions: \n"
+       "   GriddedField1:\n"
+       "      Vector f_grid[N_f]\n"
+       "      Vector data[N_f]\n"
        ),
-      GROUP( Matrix_ )));
+      GROUP( GField1_ )));
 
   wsv_data.push_back
    (WsvRecord

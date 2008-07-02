@@ -70,12 +70,12 @@ void antenna1d_matrix_NEW(
 void mixer_matrix_NEW(
            Sparse&   H,
            Vector&   f_mixer,
-     const Numeric   lo,
-   ConstMatrixView   filter,
+    const Numeric&   lo,
+    const GField1&   filter,
    ConstVectorView   f_grid,
-       const Index   n_pol,
-       const Index   n_sp,
-       const Index   do_norm );
+      const Index&   n_pol,
+      const Index&   n_sp,
+      const Index&   do_norm );
 
 void mixer_matrix(
               Sparse&   H,
@@ -156,13 +156,13 @@ void sensor_summation_vector(
       ConstMatrixView   sfrm );
 
 void spectrometer_matrix_NEW( 
-           Sparse&   H,
-   ConstVectorView   ch_f,
-   ConstMatrixView   ch_response,
-   ConstVectorView   sensor_f,
-      const Index&   n_pol,
-      const Index&   n_sp,
-      const Index&   do_norm );
+           Sparse&         H,
+   ConstVectorView         ch_f,
+   const ArrayOfGField1&   ch_response,
+   ConstVectorView         sensor_f,
+      const Index&         n_pol,
+      const Index&         n_sp,
+      const Index&         do_norm );
 
 void spectrometer_matrix(
               Sparse&   H,

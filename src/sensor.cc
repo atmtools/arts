@@ -40,6 +40,7 @@
 #include "sensor.h"
 
 extern const Numeric PI;
+extern const Index GFIELD1_F_GRID;
 extern const Index GFIELD4_FIELD_NAMES;
 extern const Index GFIELD4_F_GRID;
 extern const Index GFIELD4_ZA_GRID;
@@ -204,10 +205,10 @@ void antenna1d_matrix_NEW(
 
    \param   H         The mixer/sideband filter transfer matrix
    \param   f_mixer   The frequency grid of the mixer
-   \param   f_grid    The original frequency grid of the spectrum
    \param   lo        The local oscillator frequency
-   \param   filter    The sideband filter matrix. See *sideband_response*
+   \param   filter    The sideband filter data. See *sideband_response*
                       for format and constraints.
+   \param   f_grid    The original frequency grid of the spectrum
    \param   n_pol     The number of polarisations to consider
    \param   n_sp      The number of spectra (viewing directions)
    \param   do_norm   Flag whether rows should be normalised
@@ -218,21 +219,23 @@ void antenna1d_matrix_NEW(
 void mixer_matrix_NEW(
            Sparse&   H,
            Vector&   f_mixer,
-     const Numeric   lo,
-   ConstMatrixView   filter,
+    const Numeric&   lo,
+    const GField1&   filter,
    ConstVectorView   f_grid,
-       const Index   n_pol,
-       const Index   n_sp,
-       const Index   do_norm )
+      const Index&   n_pol,
+      const Index&   n_sp,
+      const Index&   do_norm )
 {
-  const Index nrp = filter.nrows();
+  // Frequency grid of for sideband response specification
+  ConstVectorView filter_grid = filter.get_numeric_grid(GFIELD1_F_GRID);
+
+  const Index nrp = filter.nelem();
 
   // Asserts
   assert( lo > f_grid[0] );
   assert( lo < last(f_grid) );
-  assert( filter.ncols() == 2 );
-  assert( filter.nrows() >= 2 );
-  assert( fabs(filter(nrp-1,0)+filter(0,0)) < 1e3 );
+  assert( filter_grid.nelem() == nrp );
+  assert( fabs(last(filter_grid)+filter_grid[0]) < 1e3 );
   // If response data extend outside f_grid is checked in sensor_summation_vector
 
   // Find indices in f_grid where f_grid is just below and above the
@@ -257,7 +260,7 @@ void mixer_matrix_NEW(
 
   // Determine IF limits for new frequency grid
   const Numeric lim_low  = max( lo-f_grid[i_low], f_grid[i_high]-lo );
-  const Numeric lim_high = -filter(0,0);
+  const Numeric lim_high = -filter_grid[0];
 
   // Convert sidebands to IF and use list to make a unique sorted
   // vector, this sorted vector is f_mixer.
@@ -294,7 +297,7 @@ void mixer_matrix_NEW(
   //
   for( Index i=0; i<f_mixer.nelem(); i++ ) 
     {
-      sensor_summation_vector_NEW( row_temp, filter(joker,1), filter(joker,0), 
+      sensor_summation_vector_NEW( row_temp, filter, filter_grid, 
                                    if_grid, f_mixer[i], -f_mixer[i] );
 
       // Normalise if flag is set
@@ -642,20 +645,20 @@ void sensor_summation_vector_NEW(
    \date   2003-08-26 / 2008-06-10
 */
 void spectrometer_matrix_NEW( 
-           Sparse&   H,
-   ConstVectorView   ch_f,
-   ConstMatrixView   ch_response,
-   ConstVectorView   sensor_f,
-      const Index&   n_pol,
-      const Index&   n_sp,
-      const Index&   do_norm )
+           Sparse&         H,
+   ConstVectorView         ch_f,
+   const ArrayOfGField1&   ch_response,
+   ConstVectorView         sensor_f,
+      const Index&         n_pol,
+      const Index&         n_sp,
+      const Index&         do_norm )
 {
   // Check if matrix has one frequency column or one for every channel
   // frequency
   //
-  assert( ch_response.ncols()==2 || ch_response.ncols()==ch_f.nelem()+1 );
+  assert( ch_response.nelem()==1 || ch_response.nelem()==ch_f.nelem() );
   //
-  Index freq_full = ch_response.ncols() > 2;
+  Index freq_full = ch_response.nelem() > 1;
 
   // If response data extend outside sensor_f is checked in 
   // sensor_integration_vector
@@ -678,15 +681,15 @@ void spectrometer_matrix_NEW(
   //
   for( Index ifr=0; ifr<nout_f; ifr++ ) 
     {
+      const Index irp = ifr * freq_full;
+
       //The spectrometer response is shifted for each centre frequency step
-      ch_response_f = ch_response(joker,0);
+      ch_response_f  = ch_response[irp].get_numeric_grid(GFIELD1_F_GRID);
       ch_response_f += ch_f[ifr];
 
       // Call sensor_integration_vector and store it in the temp vector
-      sensor_integration_vector_NEW( weights, 
-                                     ch_response(joker,1+ifr*freq_full),
-                                     ch_response_f, 
-                                     sensor_f );
+      sensor_integration_vector_NEW( weights, ch_response[irp],
+                                     ch_response_f, sensor_f );
 
       // Normalise if flag is set
       if( do_norm )

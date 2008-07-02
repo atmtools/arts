@@ -1,3 +1,28 @@
+2008-07-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-6-31
+
+	* src/m_sensor.cc (sensor_responseBackend_NEW): backend_channel_response
+	now an ArrayOfGField1.
+	(sensor_responseMixer_NEW): sideband_response now a GField1.
+	These functions run with the Odin test case with result that look OK.
+	
+	* src/sensor.cc (spectrometer_matrix_NEW): ch_response now an
+	ArrayOfGField1.
+	(mixer_matrix_NEW): filter now a GField1.
+
+	* src/workspace.cc: Changed type for backend_channel_response and
+	sideband_response, and changed description accordingly. Had to
+	introduce backend_channel_response_NEW.
+
+	* includes/odin/setup_input.m: Sideband filter and backend channel
+	responses now stored as (ArrayOf)GriddedField1.
+
+	* src/constants.cc: Added GFIELD1_F_GRID (though value is obvious).
+
+	* src/groups.cc (define_wsv_group_names): Added GField1, GField2,
+	ArrayOfGField1 and ArrayOfGField2.
+
 2008-07-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-6-30
