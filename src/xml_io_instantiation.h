@@ -128,6 +128,12 @@ template void
 xml_read_from_file<GasAbsLookup> (const String&, GasAbsLookup&);
 
 template void
+xml_read_from_file<GField1> (const String&, GField1&);
+
+template void
+xml_read_from_file<GField2> (const String&, GField2&);
+
+template void
 xml_read_from_file<GField3> (const String&, GField3&);
 
 template void
@@ -166,6 +172,14 @@ xml_write_to_file<Agenda> (const String&, const Agenda&, FileType);
 
 template void
 xml_write_to_file<GasAbsLookup> (const String&, const GasAbsLookup&, FileType);
+
+template void
+xml_write_to_file<GField1> (const String&, const GField1&,
+                            FileType);
+
+template void
+xml_write_to_file<GField2> (const String&, const GField2&,
+                            FileType);
 
 template void
 xml_write_to_file<GField3> (const String&, const GField3&,
