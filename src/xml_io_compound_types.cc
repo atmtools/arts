@@ -211,6 +211,136 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
+//=== GField1 ===========================================================
+
+//! Reads GField1 from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param gfield  GField1 return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      GField1& gfield,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("GriddedField1");
+
+  String s;
+  tag.get_attribute_value ("name", s);
+  if (s.length())
+    gfield.set_name (s);
+
+  xml_read_from_stream (is_xml, (GField&)gfield, pbifs);
+  xml_read_from_stream (is_xml, (Vector&)gfield, pbifs);
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/GriddedField1");
+}
+
+
+//! Writes GField1 to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param gfield  GriddedField1
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const GField1& gfield,
+                     bofstream *pbofs,
+                     const String& name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("GriddedField1");
+  if (!name.length () && (gfield.get_name().length ()))
+    open_tag.add_attribute ("name", gfield.get_name());
+  else if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  xml_write_to_stream (os_xml, (GField&)gfield, pbofs);
+  xml_write_to_stream (os_xml, (Vector&)gfield, pbofs, "Data");
+
+  close_tag.set_name ("/GriddedField1");
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+}
+
+
+//=== GField2 ===========================================================
+
+//! Reads GField2 from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param gfield  GField2 return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      GField2& gfield,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("GriddedField3");
+
+  String s;
+  tag.get_attribute_value ("name", s);
+  if (s.length())
+    gfield.set_name (s);
+
+  xml_read_from_stream (is_xml, (GField&)gfield, pbifs);
+  xml_read_from_stream (is_xml, (Matrix&)gfield, pbifs);
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/GriddedField3");
+}
+
+
+//! Writes GField2 to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param gfield  GriddedField3
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const GField2& gfield,
+                     bofstream *pbofs,
+                     const String& name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("GriddedField2");
+  if (!name.length () && (gfield.get_name().length ()))
+    open_tag.add_attribute ("name", gfield.get_name());
+  else if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  xml_write_to_stream (os_xml, (GField&)gfield, pbofs);
+  xml_write_to_stream (os_xml, (Matrix&)gfield, pbofs, "Data");
+
+  close_tag.set_name ("/GriddedField2");
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+}
+
+
 //=== GField3 ===========================================================
 
 //! Reads GField3 from XML input stream

@@ -350,9 +350,11 @@ ostream& operator<<(ostream& os, const GField4& gf);
 /**************************************/
 
 
-typedef Array< Array<GField3> > ArrayOfArrayOfGField3;
+typedef Array<GField1> ArrayOfGField1;
+typedef Array<GField2> ArrayOfGField2;
 typedef Array<GField3> ArrayOfGField3;
 typedef Array<GField4> ArrayOfGField4;
+typedef Array< Array<GField3> > ArrayOfArrayOfGField3;
 
 #endif
 

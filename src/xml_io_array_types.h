@@ -78,6 +78,20 @@ xml_write_to_stream (ostream&, const ArrayOfSingleScatteringData&,
                      bofstream * = NULL, const String & = "");
 
 void
+xml_read_from_stream (istream&, ArrayOfGField1&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfGField1&,
+                     bofstream * = NULL, const String & = "");
+
+void
+xml_read_from_stream (istream&, ArrayOfGField2&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfGField2&,
+                     bofstream * = NULL, const String & = "");
+
+void
 xml_read_from_stream (istream&, ArrayOfGField3&, bifstream * = NULL);
 
 void

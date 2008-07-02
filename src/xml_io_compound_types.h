@@ -64,6 +64,20 @@ xml_write_to_stream (ostream&, const GasAbsLookup&, bofstream * = NULL,
                      const String& = "");
 
 void
+xml_read_from_stream (istream&, GField1&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const GField1&, bofstream * = NULL,
+                     const String& = "");
+
+void
+xml_read_from_stream (istream&, GField2&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const GField2&, bofstream * = NULL,
+                     const String& = "");
+
+void
 xml_read_from_stream (istream&, GField3&, bifstream * = NULL);
 
 void
