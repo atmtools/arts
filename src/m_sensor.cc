@@ -169,7 +169,7 @@ void sensor_responseAntenna_NEW(
         const Index&            atmosphere_dim,
         const Index&            antenna_dim,
         const Matrix&           antenna_los,
-        const GField4&          aresponse,
+        const GField4&          antenna_response,
         const Index&            sensor_norm )
 {
   // Basic checks
@@ -232,7 +232,8 @@ void sensor_responseAntenna_NEW(
 
   // Checks of antenna_response polarisation dimension
   //
-  const Index lpolgrid = aresponse.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
+  const Index lpolgrid = 
+                  antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
   //
   if( lpolgrid != 1  &&  lpolgrid != npol ) 
   {
@@ -245,7 +246,8 @@ void sensor_responseAntenna_NEW(
 
   // Checks of antenna_response frequency dimension
   //
-  ConstVectorView aresponse_f_grid = aresponse.get_numeric_grid(GFIELD4_F_GRID);
+  ConstVectorView aresponse_f_grid = 
+                              antenna_response.get_numeric_grid(GFIELD4_F_GRID);
   //
   chk_if_increasing( "f_grid of antenna_response", aresponse_f_grid );
   //
@@ -255,28 +257,51 @@ void sensor_responseAntenna_NEW(
   f_dlow  = min(sensor_response_f_grid) - aresponse_f_grid[0];
   f_dhigh = last(aresponse_f_grid) - max(sensor_response_f_grid);
   //
-  if( f_dlow < 0 ) 
+  if( aresponse_f_grid.nelem() == 1 )
   {
-    os << "The frequency grid of *antenna_response is too narrow. It must\n"
-       << "cover all considered frequencies (*f_grid*). The grid needs to be\n"
-       << "expanded with "<<-f_dlow<<" Hz in the lower end.\n";
-    error_found = true;
+    if( f_dlow > 0  ||  f_dhigh > 0 )
+    {
+      os << "The frequency grid of *antenna_response has a single value. In \n"
+         << "this case, the grid frequency point must be inside the range\n"
+         << "of considered frequencies (*f_grid*).\n";
+      error_found = true;
+    } 
   }
-  if( f_dhigh < 0 ) 
+  else
   {
-    os << "The frequency grid of *antenna_response* is too narrow. It must\n"
-       << "cover all considered frequencies (*f_grid*). The grid needs to be\n"
-       << "expanded with "<<-f_dhigh<<" Hz in the higher end.\n";
-    error_found = true;
+    //
+    if( f_dlow < 0 ) 
+    {
+      os << "The frequency grid of *antenna_response is too narrow. It must\n"
+         << "cover all considered frequencies (*f_grid*), if the length\n"
+         << "is > 1. The grid needs to be expanded with "<<-f_dlow<<" Hz in\n"
+         << "the lower end.\n";
+      error_found = true;
+    }
+    if( f_dhigh < 0 ) 
+    {
+      os << "The frequency grid of *antenna_response is too narrow. It must\n"
+         << "cover all considered frequencies (*f_grid*), if the length\n"
+         << "is > 1. The grid needs to be expanded with "<<-f_dhigh<<" Hz in\n"
+         << "the upper end.\n";
+      error_found = true;
+    }
   }
-  
+
 
   // Checks of antenna_response za dimension
   //
   ConstVectorView aresponse_za_grid = 
-                                    aresponse.get_numeric_grid(GFIELD4_ZA_GRID);
+                             antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
   //
-  chk_if_increasing( "za_grid of antenna_response", aresponse_za_grid );
+  chk_if_increasing( "za_grid of *antenna_response*", aresponse_za_grid );
+  //
+  if( aresponse_za_grid.nelem() < 2 )
+  {
+    os << "The zenith angle grid of *antenna_response* must have >= 2 values.\n";
+    error_found = true;
+    
+  }
   //
   // Check if the relative grid added to the antena_los za angles
   // outside sensor_response_za_grid.
@@ -308,7 +333,7 @@ void sensor_responseAntenna_NEW(
   // Checks of antenna_response aa dimension
   //
   ConstVectorView aresponse_aa_grid = 
-                                    aresponse.get_numeric_grid(GFIELD4_AA_GRID);
+                             antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
   //
   if( antenna_dim == 1 )
   {
@@ -322,7 +347,13 @@ void sensor_responseAntenna_NEW(
   else
   {
     chk_if_increasing( "aa_grid of antenna_response", aresponse_aa_grid );
-
+    //
+    if( aresponse_za_grid.nelem() < 2 )
+      {
+        os << "The zenith angle grid of *antenna_response* must have >= 2\n"
+           << "values.\n";
+        error_found = true;
+      }
     // Check if the relative grid added to the antena_los aa angles
     // outside sensor_response_aa_grid.
     //
@@ -362,7 +393,12 @@ void sensor_responseAntenna_NEW(
   //
   Sparse hantenna;
   //
-  // antenna_matrix_NEW( hantenna
+  if( antenna_dim == 1 )
+    antenna1d_matrix_NEW( hantenna, antenna_dim, antenna_los, antenna_response, 
+                          sensor_response_za_grid, sensor_response_f_grid, 
+                          npol, sensor_norm );
+  else
+    throw runtime_error( "2D antenna cases are not yet handled." );
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
@@ -497,9 +533,8 @@ void sensor_responseBackend_NEW(
   //
   Sparse hbackend;
   //
-  spectrometer_matrix_NEW( hbackend, backend_channel_response,
-                           f_backend, sensor_response_f_grid, npol, nza,
-                           sensor_norm );
+  spectrometer_matrix_NEW( hbackend, f_backend, backend_channel_response,
+                           sensor_response_f_grid, npol, nza, sensor_norm );
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
@@ -742,8 +777,8 @@ void sensor_responseMixer_NEW(
   Sparse hmixer;
   Vector f_mixer;
   //
-  mixer_matrix_NEW( hmixer, f_mixer, sensor_response_f_grid, lo,
-                    sideband_response, npol, nza, sensor_norm );
+  mixer_matrix_NEW( hmixer, f_mixer, lo, sideband_response, 
+                    sensor_response_f_grid, npol, nza, sensor_norm );
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not

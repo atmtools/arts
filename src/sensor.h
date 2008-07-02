@@ -37,13 +37,11 @@
 #define sensor_h
 
 #include "arts.h"
+#include "gridded_fields.h"
+#include "interpolation.h"
+#include "math_funcs.h"
 #include "matpackI.h"
 #include "matpackII.h"
-#include "interpolation.h"
-//#include "agenda_class.h"
-//#include "array.h"
-#include "math_funcs.h"
-//#include "mystring.h"
 
 
 /*===========================================================================
@@ -59,15 +57,25 @@ void antenna_matrix(
                  const Index&   n_pol,
                  const Index&   do_norm );
 
+void antenna1d_matrix_NEW(      
+           Sparse&   H,
+      const Index&   antenna_dim,
+   ConstMatrixView   antenna_los,
+    const GField4&   antenna_response,
+   ConstVectorView   za_grid,
+   ConstVectorView   f_grid,
+       const Index   n_pol,
+       const Index   do_norm );
+
 void mixer_matrix_NEW(
-              Sparse&   H,
-              Vector&   f_mixer,
-      ConstVectorView   f_grid,
-        const Numeric   lo,
-      ConstMatrixView   filter,
-          const Index   n_pol,
-          const Index   n_sp,
-          const Index   do_norm );
+           Sparse&   H,
+           Vector&   f_mixer,
+     const Numeric   lo,
+   ConstMatrixView   filter,
+   ConstVectorView   f_grid,
+       const Index   n_pol,
+       const Index   n_sp,
+       const Index   do_norm );
 
 void mixer_matrix(
               Sparse&   H,
@@ -111,14 +119,14 @@ void scale_antenna_diagram(
        const Numeric&   f_new );
 
 void sensor_aux_vectors(
-          Vector&           sensor_response_f,
-          ArrayOfIndex&     sensor_response_pol,
-          Vector&           sensor_response_za,
-          Vector&           sensor_response_aa,
-          ConstVectorView   sensor_response_f_grid,
-    const ArrayOfIndex&     sensor_response_pol_grid,
-          ConstVectorView   sensor_response_za_grid,
-          ConstVectorView   sensor_response_aa_grid );
+               Vector&   sensor_response_f,
+         ArrayOfIndex&   sensor_response_pol,
+               Vector&   sensor_response_za,
+               Vector&   sensor_response_aa,
+       ConstVectorView   sensor_response_f_grid,
+   const ArrayOfIndex&   sensor_response_pol_grid,
+       ConstVectorView   sensor_response_za_grid,
+       ConstVectorView   sensor_response_aa_grid );
 
 void sensor_integration_vector(
            VectorView   h,
@@ -126,13 +134,19 @@ void sensor_integration_vector(
       ConstVectorView   x_ftot,
       ConstVectorView   x_g );
 
+void sensor_integration_vector_NEW(
+        VectorView   h,
+   ConstVectorView   f,
+   ConstVectorView   x_f_in,
+   ConstVectorView   x_g_in );
+
 void sensor_summation_vector_NEW(
-           VectorView   h,
-      ConstVectorView   f,
-      ConstVectorView   x_f,
-      ConstVectorView   x_g,
-      const Numeric     x1,
-      const Numeric     x2 );
+        VectorView   h,
+   ConstVectorView   f,
+   ConstVectorView   x_f,
+   ConstVectorView   x_g,
+     const Numeric   x1,
+     const Numeric   x2 );
 
 void sensor_summation_vector(
            VectorView   h,
@@ -142,13 +156,13 @@ void sensor_summation_vector(
       ConstMatrixView   sfrm );
 
 void spectrometer_matrix_NEW( 
-              Sparse&          H,
-        ConstMatrixView        ch_response,
-        ConstVectorView        ch_f,
-        ConstVectorView        sensor_f,
-        const Index&           n_pol,
-        const Index&           n_sp,
-        const Index&           do_norm );
+           Sparse&   H,
+   ConstVectorView   ch_f,
+   ConstMatrixView   ch_response,
+   ConstVectorView   sensor_f,
+      const Index&   n_pol,
+      const Index&   n_sp,
+      const Index&   do_norm );
 
 void spectrometer_matrix(
               Sparse&   H,

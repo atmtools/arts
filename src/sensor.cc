@@ -39,8 +39,11 @@
 #include "messages.h"
 #include "sensor.h"
 
-  extern const Numeric DEG2RAD;
-  extern const Numeric PI;
+extern const Numeric PI;
+extern const Index GFIELD4_FIELD_NAMES;
+extern const Index GFIELD4_F_GRID;
+extern const Index GFIELD4_ZA_GRID;
+extern const Index GFIELD4_AA_GRID;
 
 
 
@@ -48,133 +51,140 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-void antenna_matrix_NEW(      Sparse&   H,
-                      ConstVectorView   m_za,
-          const ArrayOfArrayOfMatrix&   diag,
-                      ConstVectorView   x_f,
-                      ConstVectorView   ant_za,
-                         const Index&   n_pol,
-                         const Index&   do_norm )
+void antenna1d_matrix_NEW(      
+           Sparse&   H,
+      const Index&   antenna_dim,
+   ConstMatrixView   antenna_los,
+    const GField4&   antenna_response,
+   ConstVectorView   za_grid,
+   ConstVectorView   f_grid,
+       const Index   n_pol,
+       const Index   do_norm )
 {
-  // Calculate number of antennas/beams
-  const Index n_ant = ant_za.nelem();
+  // Number of input za and frequency angles
+  const Index n_za = za_grid.nelem();
+  const Index n_f  = f_grid.nelem();
 
-  // Check that the output matrix the right size
-  assert(H.nrows()==x_f.nelem()*n_ant*n_pol);
-  assert(H.ncols()==m_za.nelem()*x_f.nelem()*n_pol);
+  // Calculate number of antenna beams
+  const Index n_ant = antenna_los.nrows();
+
+  // Asserts for variables beside antenna_response
+  assert( antenna_dim == 1 );
+  assert( antenna_los.ncols() == antenna_dim );
+  assert( H.nrows() == n_ant * n_f * n_pol );
+  assert( H.ncols() == n_za * n_f * n_pol );
+  assert( n_za >= 2 );
+  assert( n_f >= 2 );
+  assert( n_pol >= 1 );
+  assert( do_norm >= 0  &&  do_norm <= 1 );
   
-  // Check the size of the antenna diagram array of arrays and set a flag
-  // if only one angle is given or if there is a complete set for each
-  // angle. Initialise also flags for polarisation and frequency.
-  assert(diag.nelem()==1 || diag.nelem()==n_ant);
-  Index a_step = 0;
-  Index p_step = 0;
-  Index f_step = 0;
-  if (diag.nelem()>1)
-    a_step = 1;
-
-  // Initialise variables that will store the angle, polarisation and
-  // frequency grid points, so that we can check if the same antenna
-  // diagram is used in succeding loops. We need the variables to
-  // start with values out of the range of the different grids, therefore
-  // we initialise them to their respective grid number of elements plus
-  // one.
-  Index a_old = n_ant+1;
-  Index p_old = n_pol+1;
-  Index f_old = x_f.nelem()+1;
-
-  // We need also to keep track of changes in za's
-  Index newza = 1;
-
-  // Initialise temporary vectors for storing integration vector values
-  // before storing them in the final sparse matrix and start looping
-  // through the viewing angles.
+  // Extract antenna_response grids
+  const Index n_ar_pol = 
+                  antenna_response.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
+  ConstVectorView aresponse_f_grid = 
+                  antenna_response.get_numeric_grid(GFIELD4_F_GRID);
+  ConstVectorView aresponse_za_grid = 
+                  antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
+  const Index n_ar_aa = 
+                  antenna_response.get_numeric_grid(GFIELD4_AA_GRID).nelem();
   //
-  Vector temp( H.ncols(), 0.0 );
-  Vector temp_za( m_za.nelem(), 0.0 );
-  Vector za_rel(0);
-  //
-  for (Index a=0; a<n_ant; a++) {
+  const Index n_ar_f  = aresponse_f_grid.nelem();
+  const Index n_ar_za = aresponse_za_grid.nelem();
+  const Index pol_step = n_ar_pol > 1;
+  
+  // Asserts for antenna_response
+  assert( n_ar_pol == 1  ||  n_ar_pol == n_pol );
+  assert( n_ar_f );
+  assert( n_ar_za > 1 );
+  assert( n_ar_aa == 1 );
 
-    Index a_this = a*a_step;
+  // If response data extend outside za_grid is checked in 
+  // sensor_integration_vector
+  
 
-    // Check the size of this element of diag and set a flag if only one
-    // polarisation is given or if there is a complete set for each
-    // polarisation.
-    assert( diag[a_this].nelem()==1 || diag[a_this].nelem()==n_pol );
-    //
-    if (diag[a_this].nelem()>1)
-      p_step = 1;
-    else
-      p_step = 0;
+  // Storage vectors for response weights
+  Vector hrow( H.ncols(), 0.0 );
+  Vector hza( n_za, 0.0 );
 
-    // Loop through the polarisation antenna diagrams.
-    for (Index p=0; p<n_pol; p++) {
+  // Antenna response to apply (possibly obtained by frequency interpolation)
+  Vector aresponse( n_ar_za, 0.0 );
 
-      Index p_this = p*p_step;
+  // Some size(s)
+  const Index nfpol = n_f * n_pol;
 
-      // Check the number of columns in this matrix and set flag if one
-      // column is given or if there is a complete set for each frequency.
-      assert( (diag[a_this])[p_this].ncols()==2 || 
-              (diag[a_this])[p_this].ncols()==x_f.nelem()+1 );
-      //
-      if ((diag[a_this])[p_this].ncols()!=2)
-        f_step = 1;
-      else
-        f_step = 0;
+  // Antenna beam loop
+  for( Index ia=0; ia<n_ant; ia++ )
+    {
+      Vector shifted_aresponse_za_grid  = aresponse_za_grid;
+             shifted_aresponse_za_grid += antenna_los(ia,0);
 
-      // Add the angle offset of this antenna/beam.
-      // This must be done for every new beam.
-      //
-      if( a!=a_old  ||  p_this!=p_old )
+
+      // Order of loops assumes that the antenna response more often
+      // changes with frequency than for polarisation
+
+      // Frequency loop
+      for( Index f=0; f<n_f; f++ )
         {
-          za_rel  = (diag[a_this])[p_this](joker, 0);
-          za_rel += ant_za[a];
-          newza   = 1;
+
+          // Polarisation loop
+          for( Index ip=0; ip<n_pol; ip++ )
+            {
+              // Determine antenna pattern to apply
+              //
+              // Interpolation needed only if response has a frequency grid
+              // New antenna for each loop of response changes with polarisation
+              //
+              Index new_antenna = 1; 
+              //
+              if( n_ar_f > 1 )
+                {
+                  // Interpolation (do this in "green way")
+                  ArrayOfGridPos gp_f( 1 ), gp_za(n_za);
+                  gridpos( gp_f, aresponse_f_grid, Vector(1,f_grid[f]) );
+                  gridpos( gp_za, aresponse_za_grid, aresponse_za_grid );
+                  Tensor3 itw( 1, n_za, 4 );
+                  interpweights( itw, gp_f, gp_za );
+                  Matrix aresponse_matrix(1,n_za);
+                  interp( aresponse_matrix, itw, 
+                          antenna_response(ip,joker,joker,0), gp_f, gp_za );
+                  aresponse = aresponse_matrix(0,joker);
+                }
+              else if( pol_step )   // Response changes with polarisation
+                {
+                  aresponse = antenna_response(ip,0,joker,0);
+                }
+              else if( f == 0 )  // Same response for all f and polarisations
+                {
+                  aresponse = antenna_response(0,0,joker,0);
+                }
+              else
+                {
+                  new_antenna = 0;
+                }
+
+              // Calculate response weights
+              if( new_antenna )
+                {
+                  sensor_integration_vector_NEW( hza, aresponse,
+                                                 shifted_aresponse_za_grid,
+                                                 za_grid );
+                  // Normalisation?
+                  if( do_norm )
+                    { hza /= hza.sum(); }
+                }
+
+              // Put weights into H
+              //
+              const Index ii = f*n_pol + ip;
+              //
+              hrow[ Range(ii,n_za,nfpol) ] = hza;
+              //
+              H.insert_row( ia*nfpol+ii, hrow );
+              //
+              hrow = 0;
+            }
         }
-
-
-      // Loop through x_f and calculate the sensor integration vector
-      // for each frequency and put values in the temp vector. For this
-      // we use vectorviews where the elements are separated by number
-      // of frequencies in x_f.
-      for (Index f=0; f<x_f.nelem(); f++) {
-
-        Index f_this = f*f_step;
-
-        // Check if the antenna pointer still points to the same antenna
-        // diagram, if so don't recalculate the integration vector.
-        //
-        if( newza || a_this!=a_old || p_this!=p_old || f_this!=f_old ) 
-          {
-            sensor_integration_vector( temp_za,
-                                     (diag[a_this])[p_this](joker, 1+f_this),
-                                     za_rel, m_za );
-
-            // Normalise if flag is set
-            if (do_norm)
-              temp_za /= temp_za.sum();
-
-            a_old = a_this;
-            p_old = p_this;
-            f_old = f_this;
-            newza = 0;
-          }
-
-        // Now distribute the temp_za elements into temp, where they will
-        // be spread with the number of frequencies. Then insert the
-        // vector into the output matrix at the specific row corresponding
-        // to this frequency, polarisation and viewing direction. To do
-        // we first check if the same antenna diagram applies for all
-        // polarisations, i.e. p_step = 0, if so insert it n_pol times.
-        //
-        temp[ Range( f*n_pol+p, m_za.nelem(), x_f.nelem()*n_pol ) ] = temp_za;
-        H.insert_row( a*n_pol*x_f.nelem()+f*n_pol+p, temp );
-        //
-        temp = 0.0;
-      }
     }
-  }
 }
 
 
@@ -206,14 +216,14 @@ void antenna_matrix_NEW(      Sparse&   H,
    \date   2003-05-27 / 2008-06-17
 */
 void mixer_matrix_NEW(
-              Sparse&   H,
-              Vector&   f_mixer,
-      ConstVectorView   f_grid,
-        const Numeric   lo,
-      ConstMatrixView   filter,
-          const Index   n_pol,
-          const Index   n_sp,
-          const Index   do_norm )
+           Sparse&   H,
+           Vector&   f_mixer,
+     const Numeric   lo,
+   ConstMatrixView   filter,
+   ConstVectorView   f_grid,
+       const Index   n_pol,
+       const Index   n_sp,
+       const Index   do_norm )
 {
   const Index nrp = filter.nrows();
 
@@ -223,8 +233,7 @@ void mixer_matrix_NEW(
   assert( filter.ncols() == 2 );
   assert( filter.nrows() >= 2 );
   assert( fabs(filter(nrp-1,0)+filter(0,0)) < 1e3 );
-  assert( lo+filter(0,0) >= f_grid[0] );
-  assert( lo+filter(nrp-1,0) <= last(f_grid) );
+  // If response data extend outside f_grid is checked in sensor_summation_vector
 
   // Find indices in f_grid where f_grid is just below and above the
   // lo frequency.
@@ -330,14 +339,14 @@ void mixer_matrix_NEW(
    \date   2008-06-09
 */
 void sensor_aux_vectors(
-          Vector&           sensor_response_f,
-          ArrayOfIndex&     sensor_response_pol,
-          Vector&           sensor_response_za,
-          Vector&           sensor_response_aa,
-          ConstVectorView   sensor_response_f_grid,
-    const ArrayOfIndex&     sensor_response_pol_grid,
-          ConstVectorView   sensor_response_za_grid,
-          ConstVectorView   sensor_response_aa_grid )
+               Vector&   sensor_response_f,
+         ArrayOfIndex&   sensor_response_pol,
+               Vector&   sensor_response_za,
+               Vector&   sensor_response_aa,
+       ConstVectorView   sensor_response_f_grid,
+   const ArrayOfIndex&   sensor_response_pol_grid,
+       ConstVectorView   sensor_response_za_grid,
+       ConstVectorView   sensor_response_aa_grid )
 {
   // Sizes
   const Index nf       = sensor_response_f_grid.nelem();
@@ -419,10 +428,10 @@ void sensor_aux_vectors(
    \date   2003-02-13 / 2008-06-12
 */
 void sensor_integration_vector_NEW(
-           VectorView   h,
-      ConstVectorView   f,
-      ConstVectorView   x_f_in,
-      ConstVectorView   x_g_in )
+        VectorView   h,
+   ConstVectorView   f,
+   ConstVectorView   x_f_in,
+   ConstVectorView   x_g_in )
 {
   // Basic sizes 
   const Index nf = x_f_in.nelem();
@@ -567,12 +576,12 @@ void sensor_integration_vector_NEW(
    \date   2003-05-26 / 2008-06-17
 */
 void sensor_summation_vector_NEW(
-           VectorView   h,
-      ConstVectorView   f,
-      ConstVectorView   x_f,
-      ConstVectorView   x_g,
-      const Numeric     x1,
-      const Numeric     x2 )
+        VectorView   h,
+   ConstVectorView   f,
+   ConstVectorView   x_f,
+   ConstVectorView   x_g,
+     const Numeric   x1,
+     const Numeric   x2 )
 {
   // Asserts
   assert( h.nelem() == x_g.nelem() );
@@ -622,8 +631,8 @@ void sensor_summation_vector_NEW(
    backend_channel_response for how the backend response is specified.
 
    \param   H             The response matrix.
-   \param   ch_response   Corresponds directly to WSV backend_channel_response.
    \param   ch_f          Corresponds directly to WSV f_backend.
+   \param   ch_response   Corresponds directly to WSV backend_channel_response.
    \param   sensor_f      Corresponds directly to WSV sensor_response_f_grid.
    \param   n_pol         The number of polarisations.
    \param   n_sp          The number of spectra (viewing directions).
@@ -633,13 +642,13 @@ void sensor_summation_vector_NEW(
    \date   2003-08-26 / 2008-06-10
 */
 void spectrometer_matrix_NEW( 
-              Sparse&          H,
-        ConstMatrixView        ch_response,
-        ConstVectorView        ch_f,
-        ConstVectorView        sensor_f,
-        const Index&           n_pol,
-        const Index&           n_sp,
-        const Index&           do_norm )
+           Sparse&   H,
+   ConstVectorView   ch_f,
+   ConstMatrixView   ch_response,
+   ConstVectorView   sensor_f,
+      const Index&   n_pol,
+      const Index&   n_sp,
+      const Index&   do_norm )
 {
   // Check if matrix has one frequency column or one for every channel
   // frequency
@@ -647,6 +656,9 @@ void spectrometer_matrix_NEW(
   assert( ch_response.ncols()==2 || ch_response.ncols()==ch_f.nelem()+1 );
   //
   Index freq_full = ch_response.ncols() > 2;
+
+  // If response data extend outside sensor_f is checked in 
+  // sensor_integration_vector
 
   // Reisze H
   //
