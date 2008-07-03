@@ -72,8 +72,6 @@ void antenna1d_matrix_NEW(
   // Asserts for variables beside antenna_response
   assert( antenna_dim == 1 );
   assert( antenna_los.ncols() == antenna_dim );
-  assert( H.nrows() == n_ant * n_f * n_pol );
-  assert( H.ncols() == n_za * n_f * n_pol );
   assert( n_za >= 2 );
   assert( n_f >= 2 );
   assert( n_pol >= 1 );
@@ -103,6 +101,12 @@ void antenna1d_matrix_NEW(
   // sensor_integration_vector
   
 
+  // Some size(s)
+  const Index nfpol = n_f * n_pol;  
+
+  // Resize H
+  H.resize( n_ant*nfpol, n_za*nfpol );
+
   // Storage vectors for response weights
   Vector hrow( H.ncols(), 0.0 );
   Vector hza( n_za, 0.0 );
@@ -110,8 +114,6 @@ void antenna1d_matrix_NEW(
   // Antenna response to apply (possibly obtained by frequency interpolation)
   Vector aresponse( n_ar_za, 0.0 );
 
-  // Some size(s)
-  const Index nfpol = n_f * n_pol;
 
   // Antenna beam loop
   for( Index ia=0; ia<n_ant; ia++ )
@@ -283,7 +285,7 @@ void mixer_matrix_NEW(
       e++;
     }
 
-  // Reisze H
+  // Resize H
   H.resize( f_mixer.nelem()*n_pol*n_sp, f_grid.nelem()*n_pol*n_sp );
 
   // Calculate the sensor summation vector and insert the values in the
@@ -705,7 +707,7 @@ void spectrometer_matrix_NEW(
               weights_long[Range(sp*nin_f*n_pol+pol,nin_f,n_pol)] = weights;
 
               // Insert temp_long into H at the correct row
-              H.insert_row( sp*nout_f*pol + ifr*n_pol + pol, weights_long );
+              H.insert_row( sp*nout_f*n_pol + ifr*n_pol + pol, weights_long );
 
               // Reset weight_long to zero.
               weights_long = 0.0;

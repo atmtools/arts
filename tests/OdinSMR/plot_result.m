@@ -1,20 +1,15 @@
-% plot_result( [do_1d] )
+% plot_result
 %
-% A simple function to plot the simulation results. Set do_1d to plot
-% results from the special 1D test case.
+% A simple function to plot the simulation results.
 
-function [f_grid,Y] = plot_result(do_1d)
+function [f_grid,Y] = plot_result
 
-if ~nargin  |  ~do_1d
-  f      = xmlLoad( 'TestOdinSMR.y_f.xml.generated' ); 
-  f_grid = xmlLoad( 'TestOdinSMR.sensor_response_f_grid.xml.generated' ); 
-  ztan   = xmlLoad( 'TestOdinSMR.ztan.xml.generated' );
-  y      = xmlLoad( 'TestOdinSMR.y.xml.generated' );
-else
-  f      = xmlLoad( 'TestOdinSMR_1D.y_f.xml.generated' ); 
-  ztan   = xmlLoad( 'TestOdinSMR_1D.ztan.xml.generated' );
-  y      = xmlLoad( 'TestOdinSMR_1D.y.xml.generated' );
-end
+
+f      = xmlLoad( 'TestOdinSMR.y_f.xml.generated' ); 
+f_grid = xmlLoad( 'TestOdinSMR.sensor_response_f_grid.xml.generated' ); 
+ztan   = xmlLoad( 'TestOdinSMR.ztan.xml.generated' );
+y      = xmlLoad( 'TestOdinSMR.y.xml.generated' );
+
 
 Y = reshape( y, length(f_grid), length(ztan) );
 

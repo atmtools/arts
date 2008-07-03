@@ -38,20 +38,36 @@ f = read_datafile( fullfile(inpath,'Fmono','200mK','f_mono.SM_AC1e.aa'), ...
 % The broadening is here considered by sub-function.
 %
 t = 0.875;   %Shortest integration time
-t = 1.875;   %Intermediate integration time
-t = 3.875;   %Longest integration time
+%t = 1.875;   %Intermediate integration time
+%t = 3.875;   %Longest integration time
 %
 A = read_datafile( fullfile(inpath,'Antenna','Lab','antenna.SM_AC2ab.aa'),...
                                                                     'Matrix' ); 
 A = broaden_apattern(A,t);
+%
+G.name      = 'Antenna response function';
+G.gridnames = { 'Polarisation', 'Frequency', 'Zenith angle', 'Azimuth angle' };
+G.grids     = { {'1'}, 501.3e9, A(:,1), 0 };
+G.dataname  = 'Response';
+G.data(1,1,:,1) = A(:,2);
+%
 name = sprintf( 'antenna.SM_AC2ab.%.0fms.xml', 1e3*t );
-%xmlStore( name, {{A}}, 'ArrayOfArrayOfMatrix' );
+xmlStore( name, G, 'GriddedField4' );
 %
 A = read_datafile( fullfile(inpath,'Antenna','Lab','antenna.SM_AC1e.aa'),...
                                                                     'Matrix' ); 
 A = broaden_apattern(A,t);
+%
+G.name      = 'Antenna response function';
+G.gridnames = { 'Polarisation', 'Frequency', 'Zenith angle', 'Azimuth angle' };
+G.grids     = { {'1'}, 544.5e9, A(:,1), 0 };
+G.dataname  = 'Response';
+G.data(1,1,:,1) = A(:,2);
+%
 name = sprintf( 'antenna.SM_AC1e.%.0fms.xml', 1e3*t );
-%xmlStore( name, {{A}}, 'ArrayOfArrayOfMatrix' );
+xmlStore( name, G, 'GriddedField4' );
+
+return
 
 
 
@@ -105,7 +121,7 @@ r = qsmr_r_diplexer2( lo(2), lo(2)+3.9e9, lo(2)+f, 0 ) .* ...     % LO part
 G.grids     = { f };
 G.data      = r;
 %
-%xmlStore( 'sideband.SM_AC1e.xml', [f,r], 'Matrix' );
+%xmlStore( 'sideband.SM_AC1e.xml', G, 'GriddedField1' );  
 
 
 

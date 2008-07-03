@@ -1,3 +1,12 @@
+2008-07-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-6-32
+
+	* Odin test cases updated to new data formats. All test cases
+	run (after some small bug fixes) with results that look OK. The
+	standard 501 case compared to older version with results inside
+	0.01 K (new version probably better).
+	
 2008-07-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-6-31

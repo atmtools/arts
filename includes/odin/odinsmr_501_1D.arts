@@ -45,7 +45,9 @@ ReadXML( f_grid, "odin/f_mono.SM_AC2ab.xml" )
 IndexSet( sensor_norm, 1 )
 
 
-# ----- Antenna: -------------------------------------------------------------
+#--- Antenna: ----------------------------------------------------------------
+#
+AntennaSet1D
 
 # Number of pencil beam directions and tangent altitudes
 IndexSet( n_pbeams, 55 )
@@ -56,11 +58,9 @@ IndexSet( n_tan, 5 )
 # antenna_los gives correct observation directions. It is here selected to
 # put sensor_los to 0. 
 
-AntennaSet1D
-
 # The folder contains antenna pattern for different integration times.
 # The pattern for smallest integration time is selected here.
-ReadXML( antenna_diagram, "odin/antenna.SM_AC2ab.875ms.xml" )
+ReadXML( antenna_response_NEW, "odin/antenna.SM_AC2ab.875ms.xml" )
 
 # We need sensor_pos as input to *VectorZtanToZa1D*
 MatrixSet( sensor_pos, n_pbeams, 1, 600e3 )
@@ -69,7 +69,6 @@ sensor_posAddRgeoid
 # Create vector of pencil beam directions
 VectorNLinSpace( z_pbeams, n_pbeams, 37e3, 9e3 )
 VectorZtanToZa1D( mblock_za_grid, sensor_pos, r_geoid, atmosphere_dim, z_pbeams )
-
 
 # We need sensor_pos as input to *VectorZtanToZa1D*
 MatrixSet( sensor_pos, n_tan, 1, 600e3 )
@@ -90,36 +89,24 @@ MatrixSet( sensor_los, 1, 1, 0)
 # ----- End of  antenna part --------------------------------------------------
 
 
-
-# Polarisation:
-#
-MatrixSet( sensor_pol, 1, 1, 1 )
-
 # Mixer:
 #
-VectorSetExplicitly( lo, [497.88e9] )
-MatrixCreate( sideband_response )
-ReadXML( sideband_response, "odin/sideband.SM_AC2ab.xml" )
-StringSet( sideband_mode, "upper" )
+ReadXML( lo_NEW, "odin/lo.SM_AC2ab.xml" )
+ReadXML( sideband_response_NEW, "odin/sideband.SM_AC2ab.xml" )
+StringSet( sideband_mode_NEW, "upper" )
+
 
 # Spectrometer:
 #
 ReadXML( f_backend, "odin/f_backend.SM_AC2ab.xml" )
-ArrayOfMatrixCreate( backend_ch_response )
-ReadXML( backend_ch_response, "odin/backend.xml" )
+ReadXML( backend_channel_response_NEW, "odin/backend_channel_response.xml" )
 
 
-sensor_responseInit
-sensor_responseAntenna1D
-sensor_responseMixer( 
-  sensor_response, sensor_response_f, f_mixer,
-  sensor_response_pol, sensor_response_za, lo, sensor_norm,
-  sideband_response 
-)
-sensor_responseBackend( 
-  sensor_response, sensor_response_f,
-  f_backend, sensor_response_pol, sensor_response_za, sensor_norm,
-  backend_ch_response
-)
+sensor_responseInit_NEW
+sensor_responseAntenna_NEW
+sensor_responseMixer_NEW
+sensor_responseIF2RF
+sensor_responseBackend_NEW
+
 
 } # End Arts

@@ -82,7 +82,7 @@ Matrix1ColFromVector( sensor_los, za )
 
 
 
-# ---- Calculate, switch to RF and save
+# ---- Calculate spectra and save
 
 RteCalc_NEW
 

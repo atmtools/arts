@@ -65,17 +65,23 @@ AgendaSet( abs_scalar_gas_agenda ){
 # The tangent altitudes are stored in *vector_2*.
 
 
+
 # ---- Calculate, switch to RF and save
 
-RteCalc
+RteCalc_NEW
 
-ConvertIFToRF
 
-WriteXML( output_file_format, sensor_response_f,
-          "TestOdinSMR_1D.sensor_response_f.xml.generated" )
-WriteXML( output_file_format, z_tan,
-          "TestOdinSMR_1D.ztan.xml.generated" )
-WriteXML( output_file_format, y,
-          "TestOdinSMR_1D.y.xml.generated" )
+WriteXML( output_file_format, y,         "TestOdinSMR.y.xml.generated" )
+
+WriteXML( output_file_format, z_tan,     "TestOdinSMR.ztan.xml.generated" )
+
+WriteXML( output_file_format, y_f_NEW,   "TestOdinSMR.y_f.xml.generated" )
+
+WriteXML( output_file_format, sensor_response_f_grid_NEW, 
+                        "TestOdinSMR.sensor_response_f_grid.xml.generated" )
+
+WriteXML( output_file_format, y_pol_NEW, "TestOdinSMR.y_pol.xml.generated" )
+
+WriteXML( output_file_format, y_za_NEW,  "TestOdinSMR.y_za.xml.generated" )
 
 }
