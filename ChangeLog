@@ -1,3 +1,20 @@
+2008-07-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-6-34
+
+	* AMSU-B test case updated to new sensor part. Difference to when
+	old methods used is below 6e-6 K.
+	
+	* includes/amsu/amsub.arts: Now uses new sensor implementation.
+	All input created by a matlab function: setup_input.m. f_grid
+	not created on-the-fly. Old grid hard coded in setup_input.m.
+	Will be fixed.
+
+	* src/m_sensor.cc (sensor_responseBackend_NEW): One check was
+	incorrectly implemented.
+	(sensor_responseMultiMixerBackend_NEW): Created. Totally new
+	implementation of this method.
+ 
 2008-07-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-6-33

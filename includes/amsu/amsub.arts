@@ -76,91 +76,31 @@ IndexSet(sensor_norm){ 1 }
 # ---
 AntennaOff
 
-# The local oscillators of each mixer
-# ---
-# The local oscillator frequency must be given for each channel, even if
-# several channels use the same mixer. 
-VectorSetExplicitly(lo){
-  values = [89e9, 150e9, 183.31e9, 183.31e9, 183.31e9]
-}
 
-# The backend channel frequencies
-# ---
-# The number of backend channel frequencies should either be equal to the
-# number of mixers, i.e. elements of *lo*, or one.
-# Note that only one of the sidebands are defined in ARTS, here the upper
-# side is chosen but the choice is arbitrary.
-VectorSetExplicitly(f_backend){
-  values = [89.9e9, 150.9e9, 184.31e9, 186.31e9, 190.31e9]
-}
+# See setup_input.m for details around other sensor variables 
 
-# Backend channel response
-# ---
-# The channel backend respones have to be defined for the setup of the 
-# multi-mixer response. Monochromatic radiances can be approximated with 
-# very narrow channel responses (narrower than the spacing in *f_grid*)
-# ---
-MatrixCreate(backend_channel_response)
-ReadXML(backend_channel_response){"amsu/amsub.backend.xml"}
 
-# Calculate f_grid
-# ---
-f_gridFromSensor
+# f_mono
+#
+ReadXML(f_grid){"amsu/amsub.f_grid.xml"}
 
-#WriteXML(f_grid){""}
 
-# Initialise sensor response
-# ---
-sensor_responseInit
+# Mixer:
+#
+ReadXML(lo_multi_NEW){"amsu/amsub.lo.xml"}
+ReadXML(sideband_response_multi_NEW){"amsu/amsub.sideband_response.xml"}
+ReadXML(sideband_mode_multi_NEW){"amsu/amsub.sideband_mode.xml"}
 
-# The number of polarisations
-# ---
-# In the multi-mixer setup each mixer is related to a polarisation state. 
-# Several mixers can of course be related to the same polarisation state, 
-# but the polarisation state has then to be repeated for every mixer.
-# The number of polarisation states, given by the rows of *sensor_pol*, 
-# shoud be equal to the number of mixers, given by the elements of *lo*.
-# ---
-# Here we construct a matrix with the desired number of rows, but with 
-# the same polarisation reponse for each mixer.
-IndexSet(nrows){ 5 }
-IndexSet(ncols){ 1 }
-MatrixSet(sensor_pol){ 2 }
 
-# Setup the polarisation response
-# ---
-sensor_responsePolarisation
+# Spectrometer:
+#
+ReadXML(f_backend_multi_NEW){"amsu/amsub.f_backend.xml"}
+ReadXML(backend_channel_response_multi_NEW){"amsu/amsub.backend_channel_response.xml"}
 
-# Sidebands filter response
-# ---
-# For true double sideband mixers the response can be represented by a 
-# constant line at one for all frequencies.
-# The sideband filter has to cover the entire frequency range of 
-# *f_grid* so only two points on each side of *f_grid* is needed to 
-# the describe the constant response.
-# Also, the same filter response is used for all channels and it is
-# sufficient to give the filter function once. This can be described 
-# by a 2x2 matrix.
-IndexSet(nelem){2}
-VectorNLinSpace(vector_1){
-  start = 85e9
-  stop = 200e9
-}
-IndexSet(nelem){ 2 }
-VectorSet(vector_2){
-  value = 1
-}
-# The WSV sideband_filter_response is created on the fly here, it is
-# not a standard WSV.
-Matrix2ColFromVectors(sideband_filter_response,vector_1,vector_2){}
 
-# The multi-mixer response
-# ---
-sensor_responseMultiMixerBackend(sideband_filter_response){}
+sensor_responseInit_NEW
+sensor_responseMultiMixerBackend_NEW
 
-# Write the sensor variable to xml-files
-#WriteXML(sensor_response){ "" }
-#WriteXML(sensor_response_f){ "" }
 
 # End of sensor response setup
 

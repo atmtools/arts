@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<Array type="ArrayOfGriddedField1" nelem="3">
+<Array type="GriddedField1" nelem="1">
+<GriddedField1 name="Backend channel response function">
+<Vector name="Frequency" nelem="4">
+-5.0100000e+08
+-4.9900000e+08
+4.9900000e+08
+5.0100000e+08
+</Vector>
+<Vector nelem="4">
+0.0000000e+00
+1.0000000e+00
+1.0000000e+00
+0.0000000e+00
+</Vector>
+</GriddedField1>
+</Array>
+<Array type="GriddedField1" nelem="1">
+<GriddedField1 name="Backend channel response function">
+<Vector name="Frequency" nelem="4">
+-5.0100000e+08
+-4.9900000e+08
+4.9900000e+08
+5.0100000e+08
+</Vector>
+<Vector nelem="4">
+0.0000000e+00
+1.0000000e+00
+1.0000000e+00
+0.0000000e+00
+</Vector>
+</GriddedField1>
+</Array>
+<Array type="GriddedField1" nelem="3">
+<GriddedField1 name="Backend channel response function">
+<Vector name="Frequency" nelem="4">
+-2.5100000e+08
+-2.4900000e+08
+2.4900000e+08
+2.5100000e+08
+</Vector>
+<Vector nelem="4">
+0.0000000e+00
+1.0000000e+00
+1.0000000e+00
+0.0000000e+00
+</Vector>
+</GriddedField1>
+<GriddedField1 name="Backend channel response function">
+<Vector name="Frequency" nelem="4">
+-5.0100000e+08
+-4.9900000e+08
+4.9900000e+08
+5.0100000e+08
+</Vector>
+<Vector nelem="4">
+0.0000000e+00
+1.0000000e+00
+1.0000000e+00
+0.0000000e+00
+</Vector>
+</GriddedField1>
+<GriddedField1 name="Backend channel response function">
+<Vector name="Frequency" nelem="4">
+-1.0010000e+09
+-9.9900000e+08
+9.9900000e+08
+1.0010000e+09
+</Vector>
+<Vector nelem="4">
+0.0000000e+00
+1.0000000e+00
+1.0000000e+00
+0.0000000e+00
+</Vector>
+</GriddedField1>
+</Array>
+</Array>
+</arts>

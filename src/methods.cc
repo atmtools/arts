@@ -6238,6 +6238,46 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("sensor_responseMultiMixerBackend_NEW"),
+        DESCRIPTION
+        (
+         "Handles mixer and backend parts for an instrument having multiple\n"
+         "mixer chains.\n"
+         "\n"
+         "The WSMs *sensor_responseMixer*, *sensor_responseIF2RF* and\n"
+         "*sensor_responseBackend* are called for each mixer chain, and a\n"
+         "complete *sensor_response* is assembled. The instrument responses\n"
+         "are described by *lo_multi*, *sideband_response_multi*,\n"
+         "*sideband_mode_multi*, *f_backend_multi* and\n"
+         "*backend_channel_response_multi*. All these WSVs must have same\n"
+         "(vector or array) length. As *sensor_responseIF2RF* is called,\n"
+         "*f_backend_multi* must hold RF (not IF) and output frequencies\n"
+         "will be in absolute frequency (RF).\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUTPUT( sensor_response_, sensor_response_f_NEW_, 
+                sensor_response_pol_NEW_,
+                sensor_response_za_NEW_,
+                sensor_response_aa_NEW_, 
+                sensor_response_f_grid_NEW_ ),
+        INPUT( sensor_response_, sensor_response_f_NEW_, 
+               sensor_response_pol_NEW_,
+               sensor_response_za_NEW_,
+               sensor_response_aa_NEW_, 
+               sensor_response_f_grid_NEW_,
+               sensor_response_pol_grid_NEW_, sensor_response_za_grid_NEW_,
+               sensor_response_aa_grid_NEW_,
+               lo_multi_NEW_, sideband_response_multi_NEW_, 
+               sideband_mode_multi_NEW_, f_backend_multi_NEW_,
+               backend_channel_response_multi_NEW_, sensor_norm_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("sensor_responsePolarisation"),
         DESCRIPTION
         (

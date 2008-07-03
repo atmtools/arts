@@ -825,6 +825,23 @@ void Workspace::define_wsv_data()
       GROUP( ArrayOfGField1_ )));
 
   wsv_data.push_back
+    (WsvRecord
+     ( NAME( "backend_channel_response_multi_NEW" ),
+       DESCRIPTION
+       (
+        "As *backend_channel_response_multi* but describes an instrument with\n"
+        "muliple mixer/reciever chains.\n"
+        "\n"
+        "See *f_backend_multi* for when to use this variable and size\n"
+        "constraints.\n"
+        "\n"
+        "Usage:      Set by the user.\n "
+        "\n"
+        "Unit:       Hz\n"
+        ),
+      GROUP( ArrayOfArrayOfGField1_ )));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "backend_channel_response" ),
       DESCRIPTION
@@ -1281,11 +1298,33 @@ void Workspace::define_wsv_data()
        (
         "The frequency position of each backend channel.\n"
         "\n"
-        "Usage:      Input to *sensor_responseBackend*.\n "
+        "Usage:      Set by the user.\n "
         "\n"
         "Unit:       Hz\n"
         ),
         GROUP( Vector_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "f_backend_multi_NEW" ),
+       DESCRIPTION
+       (
+        "As *f_backend* but describes an instrument with muliple\n"
+        "mixer/reciever chains.\n"
+        "\n"
+        "This variable is needed when e.g. the reciever has several mixers\n"
+        "or the the reciever measures several polarisation and the channels\n"
+        "differ in position or response function. \n"
+        "\n"
+        "The array has one element for each \"reciever chain\". The array\n"
+        "length must match *backend_channel_response_multi*, and possibly\n"
+        "also *lo_multi*.\n"
+        "\n"
+        "Usage:      Set by the user.\n "
+        "\n"
+        "Unit:       Hz\n"
+        ),
+        GROUP( ArrayOfVector_ )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1662,6 +1701,24 @@ void Workspace::define_wsv_data()
        "Usage: Set by the user.\n"
        ),
       GROUP( Numeric_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "lo_multi_NEW" ),
+      DESCRIPTION
+      (
+       "Local oscillator frequencies.\n"
+       "\n"
+       "As *lo* but describes an instrument with multiple mixers. A vector\n"
+       "element for each LO. The size of this variable and\n"
+       "*sideband_response_multi* shall match, and probably also.\n"
+       "*sideband_mode_multi*.\n"
+       "\n"
+       "Unit: Hz\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       ),
+      GROUP( Vector_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3414,6 +3471,22 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "sideband_mode_multi_NEW" ),
+      DESCRIPTION
+      (
+        "Description of target sideband for a multiple LO reciever.\n"
+        "\n"
+        "As *sideband_mode* but handles an instrument with several LO chains.\n"
+        "See further *lo_multi* and *sideband_response_multi*. This length of\n"
+        "this array must match the size of those WSVs.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+       ),
+      GROUP( ArrayOfString_ )));
+
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "sideband_mode" ),
       DESCRIPTION
       (
@@ -3458,6 +3531,23 @@ void Workspace::define_wsv_data()
        "      Vector data[N_f]\n"
        ),
       GROUP( GField1_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sideband_response_multi_NEW" ),
+      DESCRIPTION
+      (
+       "Description of multiple (mixer) sideband responses.\n"
+       "\n"
+       "As *sideband_response* but describes an instrument with multiple\n"
+       "mixers. An array element for each LO. The size of this variable and\n"
+       "*lo_multi* shall match.\n"
+       "\n"
+       "Unit: Hz\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       ),
+      GROUP( ArrayOfGField1_ )));
 
   wsv_data.push_back
    (WsvRecord

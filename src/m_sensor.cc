@@ -482,14 +482,16 @@ void sensor_responseBackend_NEW(
   // We allow f_backend to be unsorted, but must be inside sensor_response_f_grid
   if( min(f_backend) < min(sensor_response_f_grid) )
     {
-      os << "At least one value in *f_backend* below range covered by\n"
-         << "*sensor_response_f_grid* (a mistake or increase *f_grid*?).\n"; 
+      os << "At least one value in *f_backend* (" << min(f_backend) 
+         << ") below range\ncovered by *sensor_response_f_grid* ("
+         << min(sensor_response_f_grid) << ").\n";
       error_found = true;
     }
   if( max(f_backend) > max(sensor_response_f_grid) )
     {
-      os << "At least one value in *f_backend* above range covered by\n"
-         << "*sensor_response_f_grid* (a mistake or increase *f_grid*?).\n"; 
+      os << "At least one value in *f_backend* (" << max(f_backend) 
+         << ") above range\ncovered by *sensor_response_f_grid* ("
+         << max(sensor_response_f_grid) << ").\n";
       error_found = true;
     }
 
@@ -535,10 +537,9 @@ void sensor_responseBackend_NEW(
       // Check if the relative grid added to the channel frequencies expands
       // outside sensor_response_f_grid.
       //
-      Numeric f1  = min(f_backend) + bchr_f_grid[0] -
-                                                    min(sensor_response_f_grid);
+      Numeric f1 = f_backend[i] + bchr_f_grid[0] - min(sensor_response_f_grid);
       Numeric f2 = max(sensor_response_f_grid) - 
-                                         ( max(f_backend) + last(bchr_f_grid) );
+                                          ( f_backend[i] + last(bchr_f_grid) );
       //
       f_dlow  = min( f_dlow, f1 );
       f_dhigh = min( f_dhigh, f2 );
@@ -549,7 +550,7 @@ void sensor_responseBackend_NEW(
     os << "The WSV *sensor_response_f_grid* is too narrow. It should be\n"
        << "expanded with "<<-f_dlow<<" Hz in the lower end. This change\n"
        << "should be applied to either *f_grid* or the sensor part in\n"
-       << "front of *sensor_responseBackend*\n";
+       << "front of *sensor_responseBackend*.\n";
     error_found = true;
   }
   if( f_dhigh < 0 ) 
@@ -557,7 +558,7 @@ void sensor_responseBackend_NEW(
     os << "The WSV *sensor_response_f_grid* is too narrow. It should be\n"
        << "expanded with "<<-f_dhigh<<" Hz in the higher end. This change\n"
        << "should be applied to either *f_grid* or the sensor part in\n"
-       << "front of *sensor_responseBackend*\n";
+       << "front of *sensor_responseBackend*.\n";
     error_found = true;
   }
 
@@ -593,6 +594,48 @@ void sensor_responseBackend_NEW(
                       sensor_response_za,      sensor_response_aa, 
                       sensor_response_f_grid,  sensor_response_pol_grid, 
                       sensor_response_za_grid, sensor_response_aa_grid );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responseIF2RF(
+        // WS Output:
+              Vector&         sensor_response_f,
+              Vector&         sensor_response_f_grid,
+        // WS Input:
+        const Numeric&        lo,
+        const String&         sideband_mode )
+{
+  // Check that frequencies are not too high. This might be a floating limit.
+  // For this we use the variable f_lim, given in Hz.
+  Numeric f_lim = 30e9;
+  if( max(sensor_response_f_grid) > f_lim )
+    throw runtime_error( "The frequencies seem to already be given in RF." );
+
+
+  // Lower band
+  if( sideband_mode == "lower" ) 
+    {
+      sensor_response_f      *= -1;
+      sensor_response_f_grid *= -1;
+      sensor_response_f      += lo;
+      sensor_response_f_grid += lo;
+    }
+
+  // Upper band
+  else if( sideband_mode=="upper" ) 
+    {
+      sensor_response_f      += lo;
+      sensor_response_f_grid += lo;
+    }
+
+  // Unknown option
+  else
+    {
+      throw runtime_error(
+      "Only allowed options for *sideband _mode* are \"lower\" and \"upper\"." );
+    }
 }
 
 
@@ -843,6 +886,181 @@ void sensor_responseMixer_NEW(
                       sensor_response_za_grid, sensor_response_aa_grid );
 }
 
+
+
+void sensor_responseMultiMixerBackend_NEW(
+   // WS Output:
+                        Sparse&   sensor_response,
+                        Vector&   sensor_response_f,
+                  ArrayOfIndex&   sensor_response_pol,
+                        Vector&   sensor_response_za,
+                        Vector&   sensor_response_aa,
+                        Vector&   sensor_response_f_grid,
+   // WS Input:
+            const ArrayOfIndex&   sensor_response_pol_grid,
+                  const Vector&   sensor_response_za_grid,
+                  const Vector&   sensor_response_aa_grid,
+                  const Vector&   lo_multi,
+          const ArrayOfGField1&   sideband_response_multi,
+           const ArrayOfString&   sideband_mode_multi,
+           const ArrayOfVector&   f_backend_multi,
+   const ArrayOfArrayOfGField1&   backend_channel_response_multi,
+                   const Index&   sensor_norm )
+{
+  // Some sizes
+  const Index nf   = sensor_response_f_grid.nelem();
+  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nza  = sensor_response_za_grid.nelem();
+  const Index naa  = sensor_response_aa_grid.nelem();
+  const Index nin  = nf * npol * nza;
+  // Note that there is no distinction between za and aa grids after the antenna
+  const Index nlo  = lo_multi.nelem();
+
+  // Initialise a output stream for runtime errors and a flag for errors
+  ostringstream os;
+  bool          error_found = false;
+
+  // Check that sensor_response variables are consistent in size
+  if( sensor_response_f.nelem() != nin )
+  {
+    os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
+       << "grid variables (sensor_response_f_grid etc.).\n";
+    error_found = true;
+  }
+  if( naa  &&  naa != nza )
+  {
+    os << "Incorrect size of *sensor_response_aa_grid*.\n";
+    error_found = true;
+  }
+  if( sensor_response.nrows() != nin )
+  {
+    os << "The sensor block response matrix *sensor_response* does not have\n"
+       << "right size compared to the sensor grid variables\n"
+       << "(sensor_response_f_grid etc.).\n";
+    error_found = true;
+  }
+
+  // Check that response data are consistent with respect to number of
+  // mixer/reciever chains.
+  if( sideband_response_multi.nelem() != nlo )
+  {
+    os << "Inconsistency in length between *lo_mixer* and "
+       << "*sideband_response_multi*.\n";
+    error_found = true;
+  }
+  if( sideband_mode_multi.nelem() != nlo )
+  {
+    os << "Inconsistency in length between *lo_mixer* and "
+       << "*sideband_mode_multi*.\n";
+    error_found = true;
+  }
+  if( f_backend_multi.nelem() != nlo )
+  {
+    os << "Inconsistency in length between *lo_mixer* and "
+       << "*f_backend_multi*.\n";
+    error_found = true;
+  }
+  if( backend_channel_response_multi.nelem() != nlo )
+  {
+    os << "Inconsistency in length between *lo_mixer* and "
+       << "*backend_channel_response_multi*.\n";
+    error_found = true;
+  }
+
+  // If errors where found throw runtime_error with the collected error
+  // message. Data for each mixer and reciever chain are checked below.
+  if (error_found)
+    throw runtime_error(os.str());
+
+
+  // Variables for data to be appended
+  Array<Sparse> sr;
+  ArrayOfVector srfgrid;
+  Index         ntot = 0, nftot = 0; 
+
+  for( Index ilo=0; ilo<nlo; ilo++ )
+    {
+      // Copies of variables that will be changed, but must be
+      // restored for next loop
+      Sparse       sr1      = sensor_response;
+      Vector       srf1     = sensor_response_f;
+      ArrayOfIndex srpol1   = sensor_response_pol;
+      Vector       srza1    = sensor_response_za;
+      Vector       sraa1    = sensor_response_aa;
+      Vector       srfgrid1 = sensor_response_f_grid;
+
+      // Call single reciever methods. Try/catch for improved error message.
+      try
+        {
+          sensor_responseMixer_NEW( sr1, srf1, srpol1, srza1, sraa1, srfgrid1,
+                                    sensor_response_pol_grid,
+                                    sensor_response_za_grid, 
+                                    sensor_response_aa_grid,
+                                    lo_multi[ilo], 
+                                    sideband_response_multi[ilo], 
+                                    sensor_norm );
+
+          sensor_responseIF2RF( srf1, srfgrid1,
+                                lo_multi[ilo], sideband_mode_multi[ilo] );
+
+          sensor_responseBackend_NEW( sr1, srf1, srpol1, srza1, sraa1, srfgrid1,
+                                      sensor_response_pol_grid,
+                                      sensor_response_za_grid, 
+                                      sensor_response_aa_grid,
+                                      f_backend_multi[ilo],
+                                      backend_channel_response_multi[ilo],
+                                      sensor_norm );
+        } 
+      catch (runtime_error e) 
+        {
+          ostringstream os2;
+          os2 << "Error when dealing with reciver/mixer chain (1-based index) " 
+              << ilo+1 << ":\n" << e.what();
+          throw runtime_error(os2.str());
+        }
+
+      // Store in temporary arrays
+      sr.push_back( sr1 );
+      srfgrid.push_back( srfgrid1 );
+      //
+      ntot        += sr1.nrows();
+      nftot       += srfgrid1.nelem();
+    }
+
+  // Append data to create total sensor_response and sensor_response_f_grid
+  //
+  const Index ncols = sr[0].ncols();
+  Index row0 = 0, if0 = 0;
+  Vector dummy( ncols, 0.0 );
+  //
+  sensor_response.resize( ntot, ncols );
+  sensor_response_f_grid.resize( nftot );
+  //
+  for( Index ilo=0; ilo<nlo; ilo++ )
+    {
+      for( Index row=0; row<sr[ilo].nrows(); row++ )
+        {
+          // "Poor mans" transfer of a row from one sparse to another 
+          for( Index ic=0; ic<ncols; ic++ )
+            { dummy[ic] = sr[ilo](row,ic); }
+
+          sensor_response.insert_row( row0+row, dummy );
+        }
+      row0 += sr[ilo].nrows();
+      
+      for( Index i=0; i<srfgrid[ilo].nelem(); i++ )
+        {
+          sensor_response_f_grid[if0+i] = srfgrid[ilo][i];
+        }
+      if0 += srfgrid[ilo].nelem();
+    }  
+
+  // Set aux variables
+  sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
+                      sensor_response_za,      sensor_response_aa, 
+                      sensor_response_f_grid,  sensor_response_pol_grid, 
+                      sensor_response_za_grid, sensor_response_aa_grid );
+}
 
 
 
@@ -1514,45 +1732,6 @@ void sensor_responseBackend(// WS Output:
 
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseIF2RF(
-        // WS Output:
-              Vector&         sensor_response_f,
-              Vector&         sensor_response_f_grid,
-        // WS Input:
-        const Numeric&        lo,
-        const String&         sideband_mode )
-{
-  // Check that frequencies are not too high. This might be a floating limit.
-  // For this we use the variable f_lim, given in Hz.
-  Numeric f_lim = 30e9;
-  if( max(sensor_response_f_grid) > f_lim )
-    throw runtime_error( "The frequencies seem to already be given in RF." );
-
-
-  // Lower band
-  if( sideband_mode == "lower" ) 
-    {
-      sensor_response_f      *= -1;
-      sensor_response_f_grid *= -1;
-      sensor_response_f      += lo;
-      sensor_response_f_grid += lo;
-    }
-
-  // Upper band
-  else if( sideband_mode=="upper" ) 
-    {
-      sensor_response_f      += lo;
-      sensor_response_f_grid += lo;
-    }
-
-  // Unknown option
-  else
-    {
-      throw runtime_error(
-      "Only allowed options for *sideband _mode* are \"lower\" and \"upper\"." );
-    }
-}
 
 
 

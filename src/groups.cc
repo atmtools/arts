@@ -104,6 +104,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfGField2");
   wsv_group_names.push_back("ArrayOfGField3");
   wsv_group_names.push_back("ArrayOfGField4");
+  wsv_group_names.push_back("ArrayOfArrayOfGField1");
   wsv_group_names.push_back("ArrayOfArrayOfGField3");
   wsv_group_names.push_back("ArrayOfRetrievalQuantity");
   wsv_group_names.push_back("MCAntenna");

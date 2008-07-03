@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<Array type="GriddedField1" nelem="3">
+<GriddedField1 name="Sideband response function">
+<Vector name="Frequency" nelem="2">
+-1.4010000e+09
+1.4010000e+09
+</Vector>
+<Vector nelem="2">
+5.0000000e-01
+5.0000000e-01
+</Vector>
+</GriddedField1>
+<GriddedField1 name="Sideband response function">
+<Vector name="Frequency" nelem="2">
+-1.4010000e+09
+1.4010000e+09
+</Vector>
+<Vector nelem="2">
+5.0000000e-01
+5.0000000e-01
+</Vector>
+</GriddedField1>
+<GriddedField1 name="Sideband response function">
+<Vector name="Frequency" nelem="2">
+-8.0010000e+09
+8.0010000e+09
+</Vector>
+<Vector nelem="2">
+5.0000000e-01
+5.0000000e-01
+</Vector>
+</GriddedField1>
+</Array>
+</arts>
