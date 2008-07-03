@@ -250,6 +250,10 @@ template void
 xml_read_from_file<ArrayOfGField3> (const String&, ArrayOfGField3&);
 
 template void
+xml_read_from_file<ArrayOfArrayOfGField1> (const String&,
+                                           ArrayOfArrayOfGField1&);
+
+template void
 xml_read_from_file<ArrayOfArrayOfGField3> (const String&,
                                            ArrayOfArrayOfGField3&);
 
@@ -361,6 +365,11 @@ template void
 xml_write_to_file<ArrayOfGField3> (const String&,
                                    const ArrayOfGField3&,
                                    FileType);
+
+template void
+xml_write_to_file<ArrayOfArrayOfGField1> (const String&,
+                                          const ArrayOfArrayOfGField1&,
+                                          FileType);
 
 template void
 xml_write_to_file<ArrayOfArrayOfGField3> (const String&,

@@ -99,6 +99,13 @@ xml_write_to_stream (ostream&, const ArrayOfGField3&,
                      bofstream * = NULL, const String & = "");
 
 void
+xml_read_from_stream (istream&, ArrayOfArrayOfGField1&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfArrayOfGField1&,
+                     bofstream * = NULL, const String & = "");
+
+void
 xml_read_from_stream (istream&, ArrayOfArrayOfGField3&, bifstream * = NULL);
 
 void
