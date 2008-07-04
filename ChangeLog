@@ -1,5 +1,19 @@
 2008-07-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-6-36
+
+	* Missed to compile all test files. test_sensor.cc did not compile
+	as variables used been removed. The complete test removed. 
+
+	* src/test_sensor.cc: Removed. Obsolete. Sensor parts now better checked
+	with Odin and other similar tests.
+	
+	* src/Makefile.am: Removed test_sensor parts.  
+
+2008-07-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-6-35
+
 	* includes/amsu/amsub.arts: Removed _NEW from variable and method
 	names in all control files.
 

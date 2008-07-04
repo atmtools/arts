@@ -424,7 +424,6 @@ noinst_PROGRAMS += \
 	test_legendre \
 	test_linalg \
 	test_interpolation \
-	test_sensor \
 	test_xml \
 	test_complex \
 	test_sorting \
@@ -507,10 +506,6 @@ test_sorting_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_sorting_SOURCES = \
 	sorting.h \
 	test_sorting.cc
-
-test_sensor_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
-test_sensor_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
-test_sensor_SOURCES = test_sensor.cc
 
 test_integration_LDADD = libmatpack.a
 test_integration_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
