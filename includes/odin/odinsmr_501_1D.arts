@@ -60,7 +60,7 @@ IndexSet( n_tan, 5 )
 
 # The folder contains antenna pattern for different integration times.
 # The pattern for smallest integration time is selected here.
-ReadXML( antenna_response_NEW, "odin/antenna.SM_AC2ab.875ms.xml" )
+ReadXML( antenna_response, "odin/antenna.SM_AC2ab.875ms.xml" )
 
 # We need sensor_pos as input to *VectorZtanToZa1D*
 MatrixSet( sensor_pos, n_pbeams, 1, 600e3 )
@@ -91,22 +91,22 @@ MatrixSet( sensor_los, 1, 1, 0)
 
 # Mixer:
 #
-ReadXML( lo_NEW, "odin/lo.SM_AC2ab.xml" )
-ReadXML( sideband_response_NEW, "odin/sideband.SM_AC2ab.xml" )
-StringSet( sideband_mode_NEW, "upper" )
+ReadXML( lo, "odin/lo.SM_AC2ab.xml" )
+ReadXML( sideband_response, "odin/sideband.SM_AC2ab.xml" )
+StringSet( sideband_mode, "upper" )
 
 
 # Spectrometer:
 #
 ReadXML( f_backend, "odin/f_backend.SM_AC2ab.xml" )
-ReadXML( backend_channel_response_NEW, "odin/backend_channel_response.xml" )
+ReadXML( backend_channel_response, "odin/backend_channel_response.xml" )
 
 
-sensor_responseInit_NEW
-sensor_responseAntenna_NEW
-sensor_responseMixer_NEW
+sensor_responseInit
+sensor_responseAntenna
+sensor_responseMixer
 sensor_responseIF2RF
-sensor_responseBackend_NEW
+sensor_responseBackend
 
 
 } # End Arts

@@ -1480,28 +1480,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("antenna_diagramAppendArray"),
-        DESCRIPTION
-        (
-         "Appends a ArrayOfMatrix to *antenna_diagram*.\n"
-         "\n"
-         "This method can be used both to initialise and expand\n"
-         "the viewing angles of *antenna_diagram*. At least one viewing\n"
-         "angle must be given in *antenna_diagram*, and the array that\n"
-         "is appended must have at least one element but not more than\n"
-         "the number of polarisation given by *sensor_pol*.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( antenna_diagram_ ),
-        INPUT( sensor_pol_ ),
-        GOUTPUT( ),
-        GINPUT( ArrayOfMatrix_ ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("Append"),
         DESCRIPTION
         (
@@ -2224,37 +2202,6 @@ void define_md_data_raw()
                   NODEF ),
         TYPES(    Numeric_t, Numeric_t, Numeric_t, Numeric_t, Numeric_t, 
                   Numeric_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ConvertIFToRF"),
-        DESCRIPTION
-        (
-         "Convert *sensor_response_f* from IF to RF. The function also\n"
-         "unfolds the measurement spectra *y*.\n"
-         "\n"
-         "Type of receiver (DSB/SSB) and main band are set by\n"
-         "*sideband_mode*.\n"
-         "\n"
-         "This function should be used when the sensor configuration contains\n"
-         "a mixer and the spectra should be given in brightness temperature.\n"
-         "The reason is that the mixer converts the RF to IF, and to be able\n"
-         "to perform the Rayleigh-Jeans conversion from radiance to\n"
-         "brightness temperature, the radiance needs to be given in RF.\n"
-         "\n"
-         "Note that the number of elements in both *sensor_response_f* and\n"
-         "*y* will potentially increase, since the IF is mapped to both the\n"
-         "lower and upper sidebands.\n"
-         ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( sensor_response_f_, y_ ),
-        INPUT( sensor_pol_, sensor_response_za_, sensor_response_aa_, lo_,
-               atmosphere_dim_, sensor_pos_, sideband_mode_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3098,6 +3045,7 @@ md_data_raw.push_back
         DEFAULTS( ),
         TYPES( )));
 
+   /* Not yet updated
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("f_gridFromSensor"),
@@ -3129,6 +3077,7 @@ md_data_raw.push_back
         KEYWORDS( "spacing" ),
         DEFAULTS( ".1e9"),
         TYPES(    Numeric_t )));
+   */
 
   md_data_raw.push_back     
     ( MdRecord
@@ -3180,37 +3129,6 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("GaussianResponse"),
-        DESCRIPTION
-        (
-         "Creates a matrix with a relative grid and a gaussian response.\n"
-         "\n"
-         "The grid is a relative grid so therefore it is centred around\n"
-         "zero, the TotWidth keyword describes the difference between the\n"
-         "maximum grid point and the minimum. The grid range is then divided\n"
-         "into grid points equally spaced with max distance equal or less\n"
-         "than MaxSpacing. The results are the stored in columns in the matrix.\n"
-         "Grid points in the first and values in the second column.\n"
-         "\n"
-         "Generic output: \n"
-         "   Matrix     : The matrix containing the grid and response values.\n"
-         "\n"
-         "Keywords:\n"
-         "   fwhm       : The Full Width at Half Mean value for the response.\n"
-         "   tot_width   : The total width of the relative grid.\n"
-         "   max_spacing : The maximum step between grid points.\n"
-         ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( ),
-        KEYWORDS( "fwhm",    "tot_width", "max_spacing" ),
-        DEFAULTS( NODEF,     NODEF,       NODEF ),
-        TYPES(    Numeric_t, Numeric_t,   Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3829,6 +3747,7 @@ md_data_raw.push_back
         DEFAULTS( ),
         TYPES( )));
 
+   /* Not yet updated
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "jacobianUnit" ),
@@ -3849,6 +3768,7 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
+   */
 
   md_data_raw.push_back     
     ( MdRecord
@@ -4196,64 +4116,6 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "MatrixToPlanckBT" ),
-        DESCRIPTION
-        (
-         "Converts a matrix of radiances to brightness temperatures by \n"
-         "inverting the Planck function.\n"
-         "\n"
-         "This function works as *MatrixToRJBT*. However, this function \n"
-         "is not recommended in connection with inversions, but can be used \n"
-         "to display calculated spectra in a temperature scale.\n"
-         "\n"
-         "Generic output: \n"
-         "   Matrix : A matrix with brightness temperature values. \n"
-         "\n"
-         "Generic input: \n"
-         "   Matrix : A matrix with radiance values.\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        INPUT( sensor_pos_, sensor_los_, sensor_response_f_,
-               sensor_response_za_, sensor_response_aa_,
-               sensor_response_pol_ ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Matrix_ ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "MatrixToRJBT" ),
-        DESCRIPTION
-        (
-         "Converts a matrix of radiances to brightness temperatures by \n"
-         "the Rayleigh-Jeans approximation of the Planck function.\n"
-         "\n"
-         "This function works as *VectorToRJBT*, but operates on a matrix.\n"
-         "Each column of the matrix is treated to contain a spectral vector,\n"
-         "with frequencies repeated as assumed in *VectorToRJBT*. \n"
-         "\n"
-         "Generic output: \n"
-         "   Matrix : A matrix with brightness temperature values. \n"
-         "\n"
-         "Generic input: \n"
-         "   Matrix : A matrix with radiance values.\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        INPUT( sensor_pos_, sensor_los_, sensor_response_f_,
-               sensor_response_za_, sensor_response_aa_,
-               sensor_response_pol_ ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Matrix_ ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("MatrixUnitIntensity"),
         DESCRIPTION
         (
@@ -4359,18 +4221,23 @@ md_data_raw.push_back
         DESCRIPTION
         ("A generalised 3D reversed Monte Carlo radiative algorithm, that \n"
          "allows for 2D antenna patterns, surface reflection and arbitrary\n"
-         "sensor positions.\n\n"
+         "sensor positions.\n"
+         "\n"
          "The main output variables *y* and *mc_error* represent the \n"
          "Stokes vector integrated over the antenna function, and the \n"
          "estimated error in this vector respectively.\n"
-         "The keyword parameter `maxiter\' describes the number of `photons\'\n"
+         "\n"
+         "The WSV *mc_max_iter* describes the number of `photons\'\n"
          "used in the simulation (more photons means smaller *mc_error*).\n"
-         "std_err is the desired value of mc_error, and max_time is the maximum\n"
-         "allowed number of seconds for MCGeneral.  MCGeneral\n"
-         "will terminate once any of the max_iter, std_err, max_time criteria are\n"
-         "met.  If negative values are given for these parameters then it is ignored.\n"
-         " Negative values of rng_seed seed the random number generator \n "
-         "according to system time, positive rng_seed values are taken literally.\n"),
+         "*mc_std_err* is the desired value of mc_error, and *mc_max_time* is\n"
+         "the maximum allowed number of seconds for MCGeneral. MCGeneral will\n"
+         "terminate once any of the max_iter, std_err, max_time criteria are\n"
+         "met. If negative values are given for these parameters then it is\n"
+         "ignored.\n"
+         "\n"
+         "Negative values of mc_seed seed the random number generator \n"
+         "according to system time, positive rng_seed values are taken\n"
+         "literally.\n"),
         AUTHORS( "Cory Davis" ),
         OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_ ),
         INPUT( mc_antenna_, f_grid_, f_index_, sensor_pos_, sensor_los_, 
@@ -4378,19 +4245,21 @@ md_data_raw.push_back
                opt_prop_gas_agenda_, abs_scalar_gas_agenda_, p_grid_, lat_grid_, 
                lon_grid_, z_field_, r_geoid_, z_surface_, t_field_, vmr_field_, 
                cloudbox_limits_, pnd_field_, scat_data_mono_, 
-               mc_seed_, y_unit_ ),
+               mc_seed_, y_unit_, 
+               mc_std_err_, mc_max_time_, mc_max_iter_, mc_z_field_is_1D_ ),
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( "std_err", "max_time", "max_iter", "z_field_is_1D" ),
-        DEFAULTS( NODEF,     NODEF,      NODEF,      NODEF ),
-        TYPES(    Numeric_t, Index_t,    Index_t,    Index_t )));
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
 
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("MCIPA"),
         DESCRIPTION
         ("A specialised 3D reversed Monte Carlo radiative algorithm, that \n"
-         "mimics independent pixel appoximation simulations .  Probably temporary.\n"),
+         "mimics independent pixel appoximation simulations.\n"
+         "Probably temporary.\n"),
         AUTHORS( "Cory Davis" ),
         OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_),
         INPUT( mc_antenna_, f_grid_, f_index_, sensor_pos_, sensor_los_, 
@@ -4398,12 +4267,13 @@ md_data_raw.push_back
                opt_prop_gas_agenda_, abs_scalar_gas_agenda_, ppath_step_agenda_,
                p_grid_, lat_grid_, lon_grid_, z_field_, r_geoid_, z_surface_, 
                t_field_, vmr_field_, cloudbox_limits_, pnd_field_, 
-               scat_data_mono_, mc_seed_, y_unit_ ),
+               scat_data_mono_, mc_seed_, y_unit_,
+               mc_std_err_, mc_max_time_, mc_max_iter_, mc_z_field_is_1D_ ),
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( "std_err", "max_time", "max_iter", "z_field_is_1D" ),
-        DEFAULTS( NODEF,     NODEF,      NODEF,      NODEF ),
-        TYPES(    Numeric_t, Index_t,    Index_t,    Index_t )));
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
 
   /* Removed as ScatteringMonteCarlo is not working
   md_data_raw.push_back     
@@ -5273,53 +5143,6 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "RteCalc_NEW" ),
-        DESCRIPTION
-        (
-         "Main function for calculation of spectra.\n"
-         "\n"
-         "The overall scheme to solve the radiative transfer equation (RTE)\n"
-         "is fixed and found in this method. In short, the method calculates\n"
-         "monochromatic spectra for all pencil beam directions and applies\n"
-         "the sensor response on obtained radiances.\n"
-         "\n"
-         "The first step is to calculate the propagation path through the\n"
-         "atmosphere for the considered viewing direction. The next step is\n"
-         "to determine the spectrum at the starting point of the propagation\n"
-         "path. The start point of the propagation path can be found at the\n"
-         "top of the atmosphere, the surface, or at the boundary or inside\n"
-         "the cloud box. To determine the start spectrum can involve a\n"
-         "recursive call of RteCalc (for example to calculate the radiation\n"
-         "reflected by the surface). After this, the vector radiative\n"
-         "transfer equation is solved to the end point of the propagation\n"
-         "path. Finally, the response of the sensor is applied.\n"
-         "\n"
-         "Analytical jacobians for gas species and temperature can be \n"
-         "calcultaed along with the spectrum.\n"
-         "\n"        
-         "See further the user guide.\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( y_, y_f_NEW_, y_pol_NEW_, y_za_NEW_, y_aa_NEW_, jacobian_ ),
-        INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
-               surface_prop_agenda_, iy_cloudbox_agenda_,
-               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               t_field_, vmr_field_, abs_species_, r_geoid_, z_surface_, 
-               cloudbox_on_, cloudbox_limits_, sensor_response_, 
-               sensor_response_f_NEW_, sensor_response_pol_NEW_, 
-               sensor_response_za_NEW_, sensor_response_aa_NEW_, 
-               sensor_pos_, sensor_los_, f_grid_, stokes_dim_, 
-               antenna_dim_, mblock_za_grid_, mblock_aa_grid_, 
-               jacobian_, jacobian_quantities_, jacobian_indices_,
-               y_unit_, jacobian_unit_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS(),
-        DEFAULTS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "RteCalc" ),
         DESCRIPTION
         (
@@ -5347,13 +5170,15 @@ md_data_raw.push_back
          "See further the user guide.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( y_, jacobian_  ),
+        OUTPUT( y_, y_f_, y_pol_, y_za_, y_aa_, jacobian_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                surface_prop_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
                t_field_, vmr_field_, abs_species_, r_geoid_, z_surface_, 
-               cloudbox_on_, cloudbox_limits_, sensor_response_, sensor_pos_, 
-               sensor_los_, f_grid_, stokes_dim_, 
+               cloudbox_on_, cloudbox_limits_, sensor_response_, 
+               sensor_response_f_, sensor_response_pol_, 
+               sensor_response_za_, sensor_response_aa_, 
+               sensor_pos_, sensor_los_, f_grid_, stokes_dim_, 
                antenna_dim_, mblock_za_grid_, mblock_aa_grid_, 
                jacobian_, jacobian_quantities_, jacobian_indices_,
                y_unit_, jacobian_unit_ ),
@@ -5387,24 +5212,27 @@ md_data_raw.push_back
          "weighting the errors with the sensor repsonse matrix. The seed is\n"
          "reset for each call of *MCGeneral* to obtain uncorrelated errors.\n"
          "\n"
-         "Keyword arguments as for *MCGeneral*. The arguments are applied\n"
+         "MC control arguments (mc_std_err, mc_max_time, mc_max_iter and\n"
+         "mc_z_field_is_1D) as for *MCGeneral*. The arguments are applied\n"
          "for each monochromatic pencil beam calculation individually.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( y_, mc_error_ ),
+        OUTPUT( y_, y_f_, y_pol_, y_za_, y_aa_, mc_error_ ),
         INPUT( iy_space_agenda_, surface_prop_agenda_, opt_prop_gas_agenda_,
                abs_scalar_gas_agenda_, atmosphere_dim_,
                p_grid_, lat_grid_, lon_grid_, z_field_, 
                t_field_, vmr_field_, r_geoid_, z_surface_, 
                cloudbox_on_, cloudbox_limits_, pnd_field_, scat_data_raw_,
-               sensor_response_, sensor_pos_, 
-               sensor_los_, f_grid_, stokes_dim_, 
-               antenna_dim_, mblock_za_grid_, mblock_aa_grid_, y_unit_ ),
+               sensor_response_, sensor_response_f_, sensor_response_pol_, 
+               sensor_response_za_, sensor_response_aa_, 
+               sensor_pos_, sensor_los_, f_grid_, stokes_dim_, 
+               antenna_dim_, mblock_za_grid_, mblock_aa_grid_, y_unit_, 
+               mc_std_err_, mc_max_time_, mc_max_iter_, mc_z_field_is_1D_ ),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS( "std_err", "max_time", "max_iter", "z_field_is_1D" ),
-        DEFAULTS( NODEF,     NODEF,      NODEF,      NODEF           ),
-        TYPES(    Numeric_t, Index_t,    Index_t,    Index_t         )));
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5414,13 +5242,15 @@ md_data_raw.push_back
          "As *RteCalc* but throughout ignores jacobians.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( y_ ),
+        OUTPUT( y_, y_f_, y_pol_, y_za_, y_aa_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                surface_prop_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
                t_field_, vmr_field_, r_geoid_, z_surface_, 
-               cloudbox_on_, cloudbox_limits_, sensor_response_, sensor_pos_, 
-               sensor_los_, f_grid_, stokes_dim_, 
+               cloudbox_on_, cloudbox_limits_, sensor_response_, 
+               sensor_response_f_, sensor_response_pol_, 
+               sensor_response_za_, sensor_response_aa_, 
+               sensor_pos_, sensor_los_, f_grid_, stokes_dim_, 
                antenna_dim_, mblock_za_grid_, mblock_aa_grid_, y_unit_ ),
         GOUTPUT( ),
         GINPUT( ),
@@ -5789,7 +5619,7 @@ md_data_raw.push_back
  
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "sensorOff_NEW" ),
+      ( NAME( "sensorOff" ),
         DESCRIPTION
         (
          "Sets sensor WSVs to obtain monochromatic pencil beam values.\n"
@@ -5805,40 +5635,11 @@ md_data_raw.push_back
          "   sensor_response_aa      : As returned by *sensor_responseInit*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( sensor_response_, sensor_response_f_NEW_, 
-                sensor_response_pol_NEW_, sensor_response_za_NEW_,
-                sensor_response_aa_NEW_, 
+        OUTPUT( sensor_response_, sensor_response_f_, 
+                sensor_response_pol_, sensor_response_za_,
+                sensor_response_aa_, 
                 antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
         INPUT( atmosphere_dim_, stokes_dim_, f_grid_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "sensorOff" ),
-        DESCRIPTION
-        (
-         "Sets sensor WSVs to obtain monochromatic pencil beam values.\n"
-         "\n"
-         "The variables are set as follows:\n"
-         "   antenna_dim        : 1.\n"
-         "   mblock_za_grid     : Length 1, value 0.\n"
-         "   mblock_aa_grid     : Empty.\n"
-         "   sensor_response    : As returned by *sensor_responseInit*.\n"
-         "   sensor_response_f  : As returned by *sensor_responseInit*.\n"
-         "   sensor_response_za : As returned by *sensor_responseInit*.\n"
-         "   sensor_response_aa : As returned by *sensor_responseInit*.\n"
-         "   sensor_response_pol: As returned by *sensor_responseInit*.\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
-                sensor_response_aa_, sensor_response_pol_,
-                antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
-        INPUT( atmosphere_dim_, stokes_dim_, sensor_pos_, sensor_los_,
-               f_grid_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -5900,27 +5701,29 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("sensor_responseAntenna_NEW"),
+      ( NAME("sensor_responseAntenna"),
         DESCRIPTION
         (
-         "...\n"
+         "Adds response of the antenna.\n"
+         "\n"
+         "The function returns the sensor response matrix after the antenna\n" 
+         "characteristics have been included.\n"
+         "\n"
+         "The function handles \"multi-beam\" cases where the polarisation\n"
+         "coordinate system is the same for all beams.\n"
+         "\n"         
+         "See *antenna_dim*, *antenna_los* and *antenna_response* for\n"
+         "details on how to specify the antenna response.\n"
         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUTPUT( sensor_response_, sensor_response_f_NEW_, 
-                sensor_response_pol_NEW_,
-                sensor_response_za_NEW_,
-                sensor_response_aa_NEW_, 
-                sensor_response_za_grid_NEW_,
-                sensor_response_aa_grid_NEW_ ),
-        INPUT( sensor_response_, sensor_response_f_NEW_, 
-               sensor_response_pol_NEW_,
-               sensor_response_za_NEW_,
-               sensor_response_aa_NEW_, 
-               sensor_response_f_grid_NEW_,
-               sensor_response_pol_grid_NEW_, sensor_response_za_grid_NEW_,
-               sensor_response_aa_grid_NEW_,
-               atmosphere_dim_, antenna_dim_, antenna_los_, 
-               antenna_response_NEW_, sensor_norm_ ),
+        OUTPUT( sensor_response_, sensor_response_f_, sensor_response_pol_,
+                sensor_response_za_, sensor_response_aa_, 
+                sensor_response_za_grid_, sensor_response_aa_grid_ ),
+        INPUT( sensor_response_, sensor_response_f_, sensor_response_pol_,
+               sensor_response_za_, sensor_response_aa_, sensor_response_f_grid_,
+               sensor_response_pol_grid_, sensor_response_za_grid_,
+               sensor_response_aa_grid_, atmosphere_dim_, antenna_dim_, 
+               antenna_los_, antenna_response_, sensor_norm_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -5929,45 +5732,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("sensor_responseAntenna1D"),
-        DESCRIPTION
-        (
-         "Returns the response block matrix after it has been modified by\n"
-         "a 1D antenna response.\n"
-         "\n"
-         "The antenna diagram patterns are given as the input variable\n"
-         "*antenna_diagram*, which is an array of ArrayOfMatrix. The\n"
-         "structure of this variable is that the Matrix describes the\n"
-         "antenna diagram values by a relative zenith angle grid, the\n"
-         "ArrayOfMatrix then contains antenna diagrams for each polarisation\n"
-         "given by the rows of *sensor_pol* and at the top level, the\n"
-         "*antenna_diagram* contains antenna diagrams for each viewing angle\n"
-         "of the antennas/beams described by *antenna_los*.\n"
-         "\n"
-         "The individual antenna diagrams, described by the matrices,\n"
-         "contain at least two columns where the first column describes a\n"
-         "relative grid of angles and the following column(s) describe\n"
-         "the antenna diagram.\n"
-         "\n"
-         "For each level in the antenna diagram there exist two cases,\n"
-         "either only one element/column of antenna gain values are given,\n"
-         "this element/column will then be used for all directions/-\n"
-         "polarisations/frequencies. Or else each direction/polarisation/-\n"
-         "frequency is given its individual element/column.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( sensor_response_, sensor_response_za_ ),
-        INPUT( sensor_response_f_, sensor_response_pol_, mblock_za_grid_,
-               antenna_dim_, antenna_diagram_, sensor_norm_, antenna_los_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("sensor_responseBackend_NEW"),
+      ( NAME("sensor_responseBackend"),
         DESCRIPTION
         (
          "Adds response of the backend (spectrometer).\n"
@@ -5979,19 +5744,14 @@ md_data_raw.push_back
          "details on how to specify the backend response.\n"
         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUTPUT( sensor_response_, sensor_response_f_NEW_, 
-                sensor_response_pol_NEW_,
-                sensor_response_za_NEW_,
-                sensor_response_aa_NEW_, 
-                sensor_response_f_grid_NEW_ ),
-        INPUT( sensor_response_, sensor_response_f_NEW_, 
-               sensor_response_pol_NEW_,
-               sensor_response_za_NEW_,
-               sensor_response_aa_NEW_, 
-               sensor_response_f_grid_NEW_,
-               sensor_response_pol_grid_NEW_, sensor_response_za_grid_NEW_,
-               sensor_response_aa_grid_NEW_,
-               f_backend_, backend_channel_response_NEW_, sensor_norm_ ),
+        OUTPUT( sensor_response_, sensor_response_f_, sensor_response_pol_,
+                sensor_response_za_, sensor_response_aa_, 
+                sensor_response_f_grid_ ),
+        INPUT( sensor_response_, sensor_response_f_, sensor_response_pol_,
+               sensor_response_za_, sensor_response_aa_, 
+               sensor_response_f_grid_, sensor_response_pol_grid_, 
+               sensor_response_za_grid_, sensor_response_aa_grid_,
+               f_backend_, backend_channel_response_, sensor_norm_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -6015,9 +5775,9 @@ md_data_raw.push_back
          "sorted in any way.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( sensor_response_f_NEW_, sensor_response_f_grid_NEW_ ),
-        INPUT( sensor_response_f_NEW_, sensor_response_f_grid_NEW_, 
-               lo_NEW_, sideband_mode_NEW_ ),
+        OUTPUT( sensor_response_f_, sensor_response_f_grid_ ),
+        INPUT( sensor_response_f_, sensor_response_f_grid_, 
+               lo_, sideband_mode_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -6026,43 +5786,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("sensor_responseBackend"),
-        DESCRIPTION
-        (
-         "Returns the response block matrix after it has been modified by\n"
-         "a spectrometer backend response.\n"
-         "\n"
-         "The channel response is given as the generic input array of\n"
-         "matrices, where each element in the array represent different\n"
-         "polarisations given by *sensor_pol*. The individual matrices\n"
-         "describe the channel responses as function of frequency, where the\n"
-         "first column describes a relative grid of frequencies and the rest\n"
-         "of the columns describe the backend response.\n"
-         "\n"
-         "For each level, the response can be described in two ways. Either\n"
-         "one single array element/matrix column is given and then used for\n"
-         "each polarisation/frequency. Or a complete set of array\n"
-         "elements/matrix columns covering all polarisations/frequencies are\n"
-         "given and in each case a individual response will be used.\n"
-         "Note that for both cases there must allways be a column in the\n"
-         "matrices, the first, of a relative frequency grid.\n"
-         "\n"
-         "Generic Input: \n"
-         "  ArrayOfMatrix : The backend channel response.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( sensor_response_, sensor_response_f_ ),
-        INPUT( f_backend_, sensor_response_pol_, sensor_response_za_,
-               sensor_norm_ ),
-        GOUTPUT( ),
-        GINPUT( ArrayOfMatrix_ ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("sensor_responseInit_NEW"),
+      ( NAME("sensor_responseInit"),
         DESCRIPTION
         (
          "Initialises the variables summarising the sensor response.\n"
@@ -6096,11 +5820,10 @@ md_data_raw.push_back
          "There exist several method versions for some responses.\n"
         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUTPUT( sensor_response_, sensor_response_f_NEW_, 
-                sensor_response_pol_NEW_, sensor_response_za_NEW_,
-                sensor_response_aa_NEW_, 
-                sensor_response_f_grid_NEW_, sensor_response_pol_grid_NEW_,
-                sensor_response_za_grid_NEW_, sensor_response_aa_grid_NEW_ ),
+        OUTPUT( sensor_response_, sensor_response_f_, sensor_response_pol_, 
+                sensor_response_za_, sensor_response_aa_, 
+                sensor_response_f_grid_, sensor_response_pol_grid_,
+                sensor_response_za_grid_, sensor_response_aa_grid_ ),
         INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_,
                atmosphere_dim_, stokes_dim_, sensor_norm_ ),
         GOUTPUT( ),
@@ -6111,39 +5834,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("sensor_responseInit"),
-        DESCRIPTION
-        (
-         "Initialises some sensor response variables.\n"
-         "\n"
-         "This method sets some variables to match monochromatic pencil beam\n"
-         "calculations, to be further modified by inclusion of sensor\n"
-         "characteristics. If pure monochromatic pencil beam calculations\n"
-         "shall be performed use *sensorOff*.\n"
-         "\n"
-         "The variables are set as follows:\n"
-         "   sensor_response : Identity matrix, with size matching *f_grid*,\n"
-         "                     *mblock_za_grid*, *mblock_aa_grid* and \n"
-         "                     *sensor_pol*.\n"
-         "   sensor_response_f  : Equal to *f_grid*.\n"
-         "   sensor_response_za : Equal to *mblock_za_grid*.\n"
-         "   sensor_response_aa : Equal to *mblock_aa_grid*.\n"
-         "   sensor_response_pol: Equal to *stokes_dim*.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
-                sensor_response_aa_, sensor_response_pol_  ),
-        INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_,
-               atmosphere_dim_, stokes_dim_, sensor_norm_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("sensor_responseMixer_NEW"),
+      ( NAME("sensor_responseMixer"),
         DESCRIPTION
         (
          "Adds response of the mixer of a heterodyne system.\n"
@@ -6156,19 +5847,13 @@ md_data_raw.push_back
          "mixer response\n"
         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUTPUT( sensor_response_, sensor_response_f_NEW_, 
-                sensor_response_pol_NEW_,
-                sensor_response_za_NEW_,
-                sensor_response_aa_NEW_, 
-                sensor_response_f_grid_NEW_ ),
-        INPUT( sensor_response_, sensor_response_f_NEW_, 
-               sensor_response_pol_NEW_,
-               sensor_response_za_NEW_,
-               sensor_response_aa_NEW_, 
-               sensor_response_f_grid_NEW_,
-               sensor_response_pol_grid_NEW_, sensor_response_za_grid_NEW_,
-               sensor_response_aa_grid_NEW_,
-               lo_NEW_, sideband_response_NEW_, sensor_norm_ ),
+        OUTPUT( sensor_response_, sensor_response_f_, sensor_response_pol_,
+                sensor_response_za_, sensor_response_aa_, 
+                sensor_response_f_grid_ ),
+        INPUT( sensor_response_, sensor_response_f_, sensor_response_pol_,
+               sensor_response_za_, sensor_response_aa_, sensor_response_f_grid_,
+               sensor_response_pol_grid_, sensor_response_za_grid_,
+               sensor_response_aa_grid_, lo_, sideband_response_, sensor_norm_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -6177,68 +5862,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("sensor_responseMixer"),
-        DESCRIPTION
-        (
-         "Returns the response block matrix after it has been modified by\n"
-         "the mixer and sideband filter. The returned matrix converts RF to\n"
-         "IF.\n"
-         "\n"
-         "The generic input matrix is a two-column matrix where the first\n"
-         "column should be equal to *f_grid* and the second column desrcibes\n"
-         "the sideband filter function.\n"
-         "\n"
-         "The local oscillator frequency is set by the keyword *lo*.\n"
-         "\n"
-         "Generic Input: \n"
-         "       Matrix : The sideband filter response matrix.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( sensor_response_, sensor_response_f_, f_mixer_ ),
-        INPUT( sensor_response_pol_, sensor_response_za_, lo_, sensor_norm_ ),
-        GOUTPUT( ),
-        GINPUT( Matrix_ ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("sensor_responseMultiMixerBackend"),
-        DESCRIPTION
-        (
-         "Returns the response block matrix after it has been modified by\n"
-         "a mixer-sideband filter-spectrometer configuration, where several\n"
-         "mixers are allowed.\n"
-         "\n"
-         "The sideband filter is represented by the generic input matrix,\n"
-         "where the first column should hold frequencies and the following\n"
-         "columns describe the sideband filter function for each polarisation."
-         "\n\n"
-         "The local oscillator frequencies is set by the WSV *lo* and the\n"
-         "backend channel frequencies by *f_backend* which should both have\n"
-         "the same length as the number of rows of *sensor_pol*.\n"
-         "\n"
-         "The channel response is given by the WSV *backend_channel_response*.\n"
-         "\n"
-         "Generic Input: \n"
-         "         Matrix : The sideband filter response matrix.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( sensor_response_, sensor_response_f_, f_mixer_, 
-                sensor_response_pol_ ),
-        INPUT( sensor_response_za_, sensor_response_aa_,
-               lo_, sensor_norm_, f_backend_, sensor_pol_,
-               backend_channel_response_ ),
-        GOUTPUT( ),
-        GINPUT( Matrix_ ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("sensor_responseMultiMixerBackend_NEW"),
         DESCRIPTION
         (
          "Handles mixer and backend parts for an instrument having multiple\n"
@@ -6255,27 +5879,23 @@ md_data_raw.push_back
          "will be in absolute frequency (RF).\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( sensor_response_, sensor_response_f_NEW_, 
-                sensor_response_pol_NEW_,
-                sensor_response_za_NEW_,
-                sensor_response_aa_NEW_, 
-                sensor_response_f_grid_NEW_ ),
-        INPUT( sensor_response_, sensor_response_f_NEW_, 
-               sensor_response_pol_NEW_,
-               sensor_response_za_NEW_,
-               sensor_response_aa_NEW_, 
-               sensor_response_f_grid_NEW_,
-               sensor_response_pol_grid_NEW_, sensor_response_za_grid_NEW_,
-               sensor_response_aa_grid_NEW_,
-               lo_multi_NEW_, sideband_response_multi_NEW_, 
-               sideband_mode_multi_NEW_, f_backend_multi_NEW_,
-               backend_channel_response_multi_NEW_, sensor_norm_ ),
+        OUTPUT( sensor_response_, sensor_response_f_, sensor_response_pol_,
+                sensor_response_za_, sensor_response_aa_, 
+                sensor_response_f_grid_ ),
+        INPUT( sensor_response_, sensor_response_f_, sensor_response_pol_,
+               sensor_response_za_, sensor_response_aa_, 
+               sensor_response_f_grid_, sensor_response_pol_grid_, 
+               sensor_response_za_grid_, sensor_response_aa_grid_,
+               lo_multi_, sideband_response_multi_, 
+               sideband_mode_multi_, f_backend_multi_,
+               backend_channel_response_multi_, sensor_norm_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
-
+  
+  /* Not yet updated
   md_data_raw.push_back
     ( MdRecord
       ( NAME("sensor_responsePolarisation"),
@@ -6294,7 +5914,9 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
+  */
 
+  /* Not yet updated
   md_data_raw.push_back
     ( MdRecord
       ( NAME("sensor_responseRotation"),
@@ -6318,6 +5940,7 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
+  */
 
   md_data_raw.push_back
     ( MdRecord
@@ -7358,78 +6981,6 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "VectorToPlanckBT" ),
-        DESCRIPTION
-        (
-         "Converts a vector of radiances to brightness temperatures by \n"
-         "inverting the Planck function.\n"
-         "\n"
-         "This function works as *VectorToRJBT*. However, this function \n"
-         "is not recommended in connection with inversions, but can be used \n"
-         "to display calculated spectra in a temperature scale.\n"
-         "\n"
-         "Generic output: \n"
-         "   Vector : A vector with brightness temperature values. \n"
-         "\n"
-         "Generic input: \n"
-         "   Vector : A vector with radiance values.\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        INPUT( sensor_pos_, sensor_los_, sensor_response_f_,
-               sensor_response_za_, sensor_response_aa_,
-               sensor_response_pol_ ),
-        GOUTPUT( Vector_ ),
-        GINPUT( Vector_ ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "VectorToRJBT" ),
-        DESCRIPTION
-        (
-         "Converts a vector of radiances to brightness temperatures by \n"
-         "the Rayleigh-Jeans approximation of the Planck function.\n"
-         "\n"
-         "This function performs a linear transformation of spectral \n"
-         "radiances to an approximative temperature scale. The advantage \n"
-         "of this linear transformation is that the obtained values can be \n"
-         "used for retrievals if the weighting functions are handled \n"
-         "likewise (by *MatrixToRJBT*). This is not the case if the \n"
-         "radiances are converted to temparatures by the Planck function \n"
-         "directly. \n"
-         "\n"
-         "The conversion assumes that the elements of the input vector are\n"
-         "stored in standard order and correspond to *sensor_response_f*,\n"
-         "*sensor_response_za*, *sensor_response_aa* and *sensor_pol*.\n"
-         "The standard option shall accordingly be to perform this \n"
-         "conversion directly after *RteCalc*.\n"
-         "\n"
-         "If *y* shall be converted from radiances to brightness \n"
-         "temperatures: \n"
-         "   VectorToRJBT(y,y){} \n"
-         "\n"
-         "Generic output: \n"
-         "   Vector : A vector with brightness temperature values. \n"
-         "\n"
-         "Generic input: \n"
-         "   Vector : A vector with radiance values.\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        INPUT( sensor_pos_, sensor_los_, sensor_response_f_,
-               sensor_response_za_, sensor_response_aa_,
-               sensor_response_pol_ ),
-        GOUTPUT( Vector_ ),
-        GINPUT( Vector_ ),
-        KEYWORDS( ),
-        DEFAULTS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "VectorZtanToZaRefr1D" ),
         DESCRIPTION
         (
@@ -7686,6 +7237,24 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ybatchUnit" ),
+        DESCRIPTION
+        (
+         "Conversion of *ybatch* to other spectral units.\n"
+         "\n"
+         "As *yUnit* but operates on *ybatch*.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUTPUT( ybatch_ ),
+        INPUT( ybatch_, y_unit_, sensor_response_f_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        DEFAULTS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "yUnit" ),
         DESCRIPTION
         (
@@ -7696,12 +7265,13 @@ md_data_raw.push_back
          "radiative transfer function does not work. The WSV *y_unit* should\n"
          "then be set to \"1\" when performing the radiative transfer\n" 
          "calculations, and be changed before calling this method.\n"
+         "\n"
+         "Note that *sensor_response_f* provides the frequency for each\n"
+         "element in *y* (the variables has the same length).\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( y_ ),
-        INPUT( y_, y_unit_, sensor_pos_, sensor_los_, sensor_response_f_,
-               sensor_response_za_, sensor_response_aa_,
-               sensor_response_pol_ ),
+        INPUT( y_, y_unit_, sensor_response_f_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),

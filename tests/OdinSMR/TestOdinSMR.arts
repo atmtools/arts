@@ -84,20 +84,20 @@ Matrix1ColFromVector( sensor_los, za )
 
 # ---- Calculate spectra and save
 
-RteCalc_NEW
+RteCalc
 
 
-WriteXML( output_file_format, y,         "TestOdinSMR.y.xml.generated" )
+WriteXML( output_file_format, y,     "TestOdinSMR.y.xml.generated" )
 
-WriteXML( output_file_format, z_tan,     "TestOdinSMR.ztan.xml.generated" )
+WriteXML( output_file_format, z_tan, "TestOdinSMR.ztan.xml.generated" )
 
-WriteXML( output_file_format, y_f_NEW,   "TestOdinSMR.y_f.xml.generated" )
+WriteXML( output_file_format, y_f,   "TestOdinSMR.y_f.xml.generated" )
 
-WriteXML( output_file_format, sensor_response_f_grid_NEW, 
-                        "TestOdinSMR.sensor_response_f_grid.xml.generated" )
+WriteXML( output_file_format, sensor_response_f_grid, 
+                           "TestOdinSMR.sensor_response_f_grid.xml.generated" )
 
-WriteXML( output_file_format, y_pol_NEW, "TestOdinSMR.y_pol.xml.generated" )
+WriteXML( output_file_format, y_pol, "TestOdinSMR.y_pol.xml.generated" )
 
-WriteXML( output_file_format, y_za_NEW,  "TestOdinSMR.y_za.xml.generated" )
+WriteXML( output_file_format, y_za,  "TestOdinSMR.y_za.xml.generated" )
 
 }

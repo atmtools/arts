@@ -210,7 +210,6 @@ void MCGeneral(
                const ArrayOfSingleScatteringData& scat_data_mono,
                const Index&          mc_seed,
                const String&         y_unit,
-               //Keyword params
                const Numeric&        std_err,
                const Index&          max_time,
                const Index&          max_iter,

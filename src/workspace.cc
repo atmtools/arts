@@ -629,30 +629,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "antenna_diagram" ),
-      DESCRIPTION
-      (
-       "The antenna diagram.\n"
-       "\n"
-       "The diagram is described by an ArrayOfArrayOfMatrix. The highest\n"
-       "level corresponds to different viewing angles of an multiple antenna\n"
-       "array or multiple beam antenna. The next level, i.e. the elements\n"
-       "of the different ArrayOfMatrix corresponds to different polarisations.\n"
-       "The individual matrices then describes the antenna diagrams, with the\n"
-       "first column describing a relative angle grid and the antenna gain\n"
-       "given for different frequencies in the consecutive columns.\n"
-       "\n"
-       "For each level in the antenna diagram there is a choice to provide\n"
-       "a single ArrayOfMatrix/Matrix/column that will be used for all\n"
-       "existing viewing angles/polarisations/frequencies, or to provide a\n"
-       "full description for each viewing angle/polarisation/frequency.\n"
-       "\n"
-       "Usage:      Set by the user.\n"
-       ),
-      GROUP( ArrayOfArrayOfMatrix_ )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "antenna_dim" ),
       DESCRIPTION
       (
@@ -699,7 +675,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "antenna_response_NEW" ),
+    ( NAME( "antenna_response" ),
       DESCRIPTION
       (
        "The antenna pattern/response.\n"
@@ -798,7 +774,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "backend_channel_response_NEW" ),
+    ( NAME( "backend_channel_response" ),
       DESCRIPTION
       (
        "The response of each backend channel.\n"
@@ -826,7 +802,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "backend_channel_response_multi_NEW" ),
+     ( NAME( "backend_channel_response_multi" ),
        DESCRIPTION
        (
         "As *backend_channel_response_multi* but describes an instrument with\n"
@@ -840,15 +816,6 @@ void Workspace::define_wsv_data()
         "Unit:       Hz\n"
         ),
       GROUP( ArrayOfArrayOfGField1_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "backend_channel_response" ),
-      DESCRIPTION
-      (
-       "Will be removed.\n"
-       ),
-      GROUP( Matrix_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1306,7 +1273,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "f_backend_multi_NEW" ),
+     ( NAME( "f_backend_multi" ),
        DESCRIPTION
        (
         "As *f_backend* but describes an instrument with muliple\n"
@@ -1687,7 +1654,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "lo_NEW" ),
+    ( NAME( "lo" ),
       DESCRIPTION
       (
        "The local oscillator frequency.\n"
@@ -1704,7 +1671,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "lo_multi_NEW" ),
+    ( NAME( "lo_multi" ),
       DESCRIPTION
       (
        "Local oscillator frequencies.\n"
@@ -1713,23 +1680,6 @@ void Workspace::define_wsv_data()
        "element for each LO. The size of this variable and\n"
        "*sideband_response_multi* shall match, and probably also.\n"
        "*sideband_mode_multi*.\n"
-       "\n"
-       "Unit: Hz\n"
-       "\n"
-       "Usage: Set by the user.\n"
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "lo" ),
-      DESCRIPTION
-      (
-       "The local oscillator frequency.\n"
-       "\n"
-       "The local oscillator frequency is used in a heterodyne system when\n"
-       "the mixer folds the spectra from from radio frequencies (RF) to\n"
-       "intermediate frequencies (IF).\n"
        "\n"
        "Unit: Hz\n"
        "\n"
@@ -1956,6 +1906,56 @@ void Workspace::define_wsv_data()
         "Usage: Set by MCSetSeed.\n"
         ),
        GROUP( Index_)));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_std_err" ),
+       DESCRIPTION
+       (
+        "Target precision (1 std. dev.) for Monte Carlo calculations.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+        ),
+       GROUP( Numeric_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_max_time" ),
+       DESCRIPTION
+       (
+        "The maximum time allowed for Monte Carlo calculations.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+        "\n"
+        "Unit: s\n"
+        ),
+       GROUP( Index_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_max_iter" ),
+       DESCRIPTION
+       (
+        "The maximum number of iterations allowed for Monte Carlo\n"
+        "calculations.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+        ),
+       GROUP( Index_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_z_field_is_1D" ),
+       DESCRIPTION
+       (
+        "Flag for MCGeneral and associated methods.\n"
+        "\n"
+        "If fields outside the cloud box are 1D, this flag can be set to 1\n"
+        "and the calculations will be more rapid.\n"
+        "\n"
+        "Usage: Set by the user.\n"
+        ),
+       GROUP( Index_ )));
 
   /*  wsv_data.push_back
     (WsvRecord
@@ -3027,9 +3027,10 @@ void Workspace::define_wsv_data()
        ),
       GROUP( Index_ )));
 
+  /* Sensor polarisation not yet updated 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sensor_pol_NEW" ),
+    ( NAME( "sensor_pol" ),
       DESCRIPTION
       (
        "The polarisation response of the sensor.\n"
@@ -3062,43 +3063,7 @@ void Workspace::define_wsv_data()
        "Size:  [ number of recorded polarisations, stokes_dim ]\n"
        ),
       GROUP( Matrix_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sensor_pol" ),
-      DESCRIPTION
-      (
-       "The sensor polarisation response.\n"
-       "\n"
-       "The number of rows of this matrix equals the number of polarisation\n"
-       "channels of the sensor. For example, if horisontal and vertical \n"
-       "polarisation are measured simultaneously, the matrix has two rows. \n"
-       "This matrix is multiplicated with the Stokes vector, converted to \n"
-       "the sensor frame, before the sensor response is applied. \n"
-       "\n"
-       "For the measurements of polarisation states the first element in each\n"
-       "row should equal 1 and the sum of squares of the following elements\n"
-       "should also equal 1. In the computation of *sensor_response* this\n"
-       "will be normalised by a division of 2.\n"
-       "Note: this normalisation is allways applied and should be considered\n"
-       "for special configurations of *sensor_pol* as well.\n"
-       "\n"       
-       "If the purpose of the simulations is to extract the polarisation\n"
-       "of the radiation coming from the atmosphere (no sensor), the matrix\n"
-       "shall be set to the identity matrix with a size matching\n"
-       "*stokes_dim*. \n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
-       "Usage: Set by the user.\n"
-       "\n"
-       "Unit:  [ - (0-1) ]\n"
-       "\n"
-       "Size:  [ number of polarisation values, stokes_dim ]\n"
-       ),
-      GROUP( Matrix_ )));
+  */
 
   wsv_data.push_back
    (WsvRecord
@@ -3154,7 +3119,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sensor_response_aa_NEW" ),
+    ( NAME( "sensor_response_aa" ),
       DESCRIPTION
       (
        "The relative azimuth angles associated with the output of\n"
@@ -3174,7 +3139,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sensor_response_aa_grid_NEW" ),
+    ( NAME( "sensor_response_aa_grid" ),
       DESCRIPTION
       (
        "The azimuth angle grid associated with *sensor_response*.\n"
@@ -3198,7 +3163,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sensor_response_f_NEW" ),
+    ( NAME( "sensor_response_f" ),
       DESCRIPTION
       (
        "The frequencies associated with the output of *sensor_response*.\n"
@@ -3220,7 +3185,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sensor_response_f_grid_NEW" ),
+    ( NAME( "sensor_response_f_grid" ),
       DESCRIPTION
       (
        "The frequency grid associated with *sensor_response*.\n"
@@ -3238,7 +3203,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sensor_response_pol_NEW" ),
+    ( NAME( "sensor_response_pol" ),
       DESCRIPTION
       (
        "The polarisation channel index associated with the output of\n"
@@ -3260,7 +3225,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sensor_response_pol_grid_NEW" ),
+    ( NAME( "sensor_response_pol_grid" ),
       DESCRIPTION
       (
        "The \"polarisation grid\" associated with *sensor_response*.\n"
@@ -3277,7 +3242,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sensor_response_za_NEW" ),
+    ( NAME( "sensor_response_za" ),
       DESCRIPTION
       (
        "The relative zenith angles associated with the output of\n"
@@ -3297,7 +3262,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sensor_response_za_grid_NEW" ),
+    ( NAME( "sensor_response_za_grid" ),
       DESCRIPTION
       (
        "The zenith angle grid associated with *sensor_response*.\n"
@@ -3319,89 +3284,7 @@ void Workspace::define_wsv_data()
        ),
       GROUP( Vector_ )));
 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sensor_response_f" ),
-      DESCRIPTION
-      (
-       "The frequencies associated with *sensor_response*.\n"
-       "\n"
-       "This vector gives the output frequencies for the sensor parts\n"
-       "considered in *sensor_response*.\n"
-       "\n"
-       "The variable shall not be set manually, it will be set together with\n"
-       "*sensor_response* by sensor response WSMs.\n"
-       "\n"
-       "Usage: Set by sensor response methods.\n"
-       "\n"
-       "Unit:  [ Hz ]\n"
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sensor_response_za" ),
-      DESCRIPTION
-      (
-       "The relative zenith angles associated with *sensor_response*.\n"
-       "\n"
-       "This vector summed with the zenith angles in *sensor_los* gives the\n"
-       "observation directions observed. For example, if the measurement \n"
-       "blocks consist of one spectrum, this vector has length 1, and most \n"
-       "likely with the value 0.\n"
-       "\n"
-       "The variable shall not be set manually, it will be set together with\n"
-       "*sensor_response* by sensor response WSMs.\n"
-       "\n"
-       "Usage: Set by sensor response methods.\n"
-       "\n"
-       "Unit:  [ degrees ]\n"
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sensor_response_aa" ),
-      DESCRIPTION
-      (
-       "The azimuth angles associated with *sensor_response*.\n"
-       "\n"
-       "The relative azimuth angles associated with *sensor_response*.\n"
-       "The variable shall be empty if *antenna_dim* = 1.\n"
-       "\n"
-       "This vector summed with the azimuth angles in *sensor_los* gives the\n"
-       "observation directions observed. For example, if the measurement \n"
-       "blocks consist of one spectrum, this vector has length 1, and most \n"
-       "likely with the value 0.\n"
-       "\n"
-       "The variable shall not be set manually, it will be set together with\n"
-       "*sensor_response* by sensor response WSMs.\n"
-       "\n"
-       "Usage: Set by sensor response methods.\n"
-       "\n"
-       "Unit:  [ degrees ]\n"
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sensor_response_pol" ),
-      DESCRIPTION
-      (
-       "The number of polarisations measured by the sensor.\n"
-       "\n"
-       "This variable is set to be equal to *stokes_dim* when the sensor\n"
-       "is initialised. If a polarisation response is calculated the\n"
-       "variable is updated to match the output polarisations from\n"
-       "the sensor response.\n"
-       "\n"
-       "The variable shall not be set manually, it will be set together with\n"
-       "*sensor_response* by sensor response WSMs.\n"
-       "\n"
-       "Usage: Set by sensor response methods.\n"
-       ),
-      GROUP( Index_ )));
-
+  /* Sensor rotation not yet updated 
   wsv_data.push_back
    (WsvRecord
     ( NAME( "sensor_rot" ),
@@ -3432,6 +3315,7 @@ void Workspace::define_wsv_data()
        "Size:  [ number of antennae or one ]\n"
        ),
       GROUP( Vector_ )));
+  */
 
   wsv_data.push_back
    (WsvRecord
@@ -3455,7 +3339,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sideband_mode_NEW" ),
+    ( NAME( "sideband_mode" ),
       DESCRIPTION
       (
         "Description of target sideband.\n"
@@ -3471,7 +3355,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sideband_mode_multi_NEW" ),
+    ( NAME( "sideband_mode_multi" ),
       DESCRIPTION
       (
         "Description of target sideband for a multiple LO reciever.\n"
@@ -3487,26 +3371,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sideband_mode" ),
-      DESCRIPTION
-      (
-        "Description of target sideband.\n"
-        "\n"
-        "A text string describing which of the two sidebands (of a heterodyne\n"
-        "instrument) that can be seen as \"main\" band. Possible choices are:\n"
-        " \"double\": Double sideband measurement. Roughly equal weight for\n"
-        "             both bands.\n"
-        " \"lower\" : Single sideband (SSB) measurements, where lower band\n"
-        "             is main band.\n"
-        " \"upper\" : SSB with upper band as main band.\n"
-        "\n"
-        "Usage: Set by the user.\n"
-       ),
-      GROUP( String_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "sideband_response_NEW" ),
+    ( NAME( "sideband_response" ),
       DESCRIPTION
       (
        "Description of (mixer) sideband response.\n"
@@ -3534,7 +3399,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sideband_response_multi_NEW" ),
+    ( NAME( "sideband_response_multi" ),
       DESCRIPTION
       (
        "Description of multiple (mixer) sideband responses.\n"
@@ -3632,12 +3497,12 @@ void Workspace::define_wsv_data()
         DESCRIPTION
         ( "The emission from the surface at a specified position.\n"
           "\n"
-      "The position is normally specified by *rte_pos* or the combination of\n"
-      "*rte_gp_p*, *rte_gp_lat* and *rte_gp_lon*.\n"
+       "The position is normally specified by *rte_pos* or the combination of\n"
+          "*rte_gp_p*, *rte_gp_lat* and *rte_gp_lon*.\n"
           "\n"
           "See further *surfaceCalc* and the user guide.\n"
           "\n"
-      "Usage:      Input to methods for *iy_surface_agenda*."
+          "Usage:      Input to methods for *iy_surface_agenda*."
           "\n"
           "Unit:       W / (m^2 Hz sr)\n"
           "\n"
@@ -3879,7 +3744,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "y_aa_NEW" ),
+    ( NAME( "y_aa" ),
       DESCRIPTION
       (
        "The relative azimuth angles associated with *y*.\n"
@@ -3897,7 +3762,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "y_f_NEW" ),
+    ( NAME( "y_f" ),
       DESCRIPTION
       (
        "The frequencies associated with *y*.\n"
@@ -3914,7 +3779,7 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "y_pol_NEW" ),
+    ( NAME( "y_pol" ),
       DESCRIPTION
       (
        "The polarisation channel index associated *y*.\n"
@@ -3961,7 +3826,7 @@ void Workspace::define_wsv_data()
   
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "y_za_NEW" ),
+    ( NAME( "y_za" ),
       DESCRIPTION
       (
        "The zenith angles associated with *y*.\n"

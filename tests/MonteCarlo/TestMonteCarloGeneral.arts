@@ -140,12 +140,12 @@ mc_antennaSetPencilBeam
 
 #### Perform Monte Carlo RT Calculation #################################
 
-MCGeneral{
-    std_err=-1
-    max_time=20
-    max_iter=-1
-    z_field_is_1D=1
-}
+NumericSet(mc_std_err){-1}
+IndexSet(mc_max_time){20}
+IndexSet(mc_max_iter){-1}
+IndexSet(mc_z_field_is_1D){1}
+
+MCGeneral
 
 #### Save calculated Stokes vector and std. err.#########################
 

@@ -55,27 +55,27 @@ MatrixSet( antenna_los, 1, 1, 0 )
 
 # The folder contains antenna pattern for different integration times.
 # The pattern for smallest integration time is selected here.
-ReadXML( antenna_response_NEW, "odin/antenna.SM_AC1e.875ms.xml" )
+ReadXML( antenna_response, "odin/antenna.SM_AC1e.875ms.xml" )
 
 
 # Mixer:
 #
-ReadXML( lo_NEW, "odin/lo.SM_AC1e.xml" )
-ReadXML( sideband_response_NEW, "odin/sideband.SM_AC1e.xml" )
-StringSet( sideband_mode_NEW, "lower" )
+ReadXML( lo, "odin/lo.SM_AC1e.xml" )
+ReadXML( sideband_response, "odin/sideband.SM_AC1e.xml" )
+StringSet( sideband_mode, "lower" )
 
 
 # Spectrometer:
 #
 ReadXML( f_backend, "odin/f_backend.SM_AC1e.xml" )
-ReadXML( backend_channel_response_NEW, "odin/backend_channel_response.xml" )
+ReadXML( backend_channel_response, "odin/backend_channel_response.xml" )
 
 
-sensor_responseInit_NEW
-sensor_responseAntenna_NEW
-sensor_responseMixer_NEW
+sensor_responseInit
+sensor_responseAntenna
+sensor_responseMixer
 sensor_responseIF2RF
-sensor_responseBackend_NEW
+sensor_responseBackend
 
 
 } # End Arts

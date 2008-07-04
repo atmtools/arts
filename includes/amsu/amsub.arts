@@ -87,19 +87,19 @@ ReadXML(f_grid){"amsu/amsub.f_grid.xml"}
 
 # Mixer:
 #
-ReadXML(lo_multi_NEW){"amsu/amsub.lo.xml"}
-ReadXML(sideband_response_multi_NEW){"amsu/amsub.sideband_response.xml"}
-ReadXML(sideband_mode_multi_NEW){"amsu/amsub.sideband_mode.xml"}
+ReadXML(lo_multi){"amsu/amsub.lo.xml"}
+ReadXML(sideband_response_multi){"amsu/amsub.sideband_response.xml"}
+ReadXML(sideband_mode_multi){"amsu/amsub.sideband_mode.xml"}
 
 
 # Spectrometer:
 #
-ReadXML(f_backend_multi_NEW){"amsu/amsub.f_backend.xml"}
-ReadXML(backend_channel_response_multi_NEW){"amsu/amsub.backend_channel_response.xml"}
+ReadXML(f_backend_multi){"amsu/amsub.f_backend.xml"}
+ReadXML(backend_channel_response_multi){"amsu/amsub.backend_channel_response.xml"}
 
 
-sensor_responseInit_NEW
-sensor_responseMultiMixerBackend_NEW
+sensor_responseInit
+sensor_responseMultiMixerBackend
 
 
 # End of sensor response setup

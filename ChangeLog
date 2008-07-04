@@ -1,3 +1,60 @@
+2008-07-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* includes/amsu/amsub.arts: Removed _NEW from variable and method
+	names in all control files.
+
+	* tests/OdinSMR: Removed _NEW from variable and method names in all
+	control files.
+
+	* includes/odin: Removed _NEW from variable and method names in all
+	control files.
+
+	* tests/MonteCarlo: Updated control files to changes below. 
+
+	* tests/MonteCarlo/antenna.SM_AC2ab.875ms.xml: Copied from Odin
+	include folder. Set the frequency to 230e9. There must now be a
+	perfect match if the arts run involves a single frequency and the
+	antenna pattern is only given for a single frequency.
+
+	* src/m_montecarlo.cc (MCGeneral): std_err, max_time, max_iter and
+	z_field_is_1D are now WSVs, not keyword arguments.  This to avoid
+	very long argument lists for MC methods (in arts2 control file
+	format).
+	(MCIPA): As above.
+
+	* src/m_sensor.cc: File removed from now obselete functions. _NEW
+	removed from new methods.
+	
+	* src/sensor.cc: File removed from now obselete functions. _NEW
+	removed from new methods.
+
+	* src/check_input.cc (chk_y_with_sensor): Removed. 
+
+	* src/m_physics.cc
+	(VectorToPlanckBT, VectorToRJBT, MatrixToPlanckBT, MatrixToRJBT):
+	Removed.
+	The task of these functions can be performed by yUnit, ybatchUnit
+	and jacobianUnit.
+
+	* src/m_jacobian.cc (jacobianUnit): Now calling ybatchUnit instead 
+	of MatrixToPlanck etc.
+	(yCalc): Fixed call of RteCalcNoJacobian.
+	
+	* src/m_batch.cc (ybatchUnit): Created. Matches yUnit.
+
+	* src/m_rte.cc (yUnit): Now only using sensor_response_f as sensor
+	aux input. 
+	(RteCalcNoJacobian): Now using new version of RteCalc.
+	(RteCalc): Replaced by temporary _NEW version. 
+	(RteCalcMC): Updated following new WSV.
+	
+	* src/workspace.cc: Old sensor variables removed. _NEW removed
+	from new variables. Introduced: 
+	   mc_std_err
+	   mc_max_time,
+	   mc_max_iter 
+	   mc_z_field_is_1D
+
 2008-07-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-6-34

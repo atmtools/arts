@@ -80,12 +80,23 @@ void yCalc(
    const Vector&                     mblock_za_grid,
    const Vector&                     mblock_aa_grid )
 {
-  RteCalcNoJacobian( y, ppath_step_agenda, rte_agenda,
+  Vector               y_f, y_za, y_aa;
+  ArrayOfIndex         y_pol;
+  const Index          n = sensor_response.nrows();
+  const Vector         sensor_response_f(n);
+  const ArrayOfIndex   sensor_response_pol(n);
+  const Vector         sensor_response_za(n);
+  const Vector         sensor_response_aa(n);
+
+  RteCalcNoJacobian( y, y_f, y_pol, y_za, y_aa, 
+                     ppath_step_agenda, rte_agenda,
                      iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
                      atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
                      t_field, vmr_field, 
                      r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
-                     sensor_response, sensor_pos, sensor_los, f_grid, 
+                     sensor_response, sensor_response_f,
+               sensor_response_pol, sensor_response_za, sensor_response_aa,
+                     sensor_pos, sensor_los, f_grid, 
                      stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid, 
                      "1" );
 }
@@ -1424,36 +1435,18 @@ void jacobianUnit(
               Matrix&   jacobian,
         const String&   jacobian_unit,
         const String&   y_unit,
-        const Matrix&   sensor_pos,
-        const Matrix&   sensor_los,
-        const Vector&   sensor_response_f,
-        const Vector&   sensor_response_za,
-        const Vector&   sensor_response_aa,
-        const Index&    sensor_response_pol )
+        const Vector&   sensor_response_f )
 {
   String j_unit = jacobian_unit;
   //
   if ( jacobian_unit == "-" )
     { j_unit = y_unit; }
   
-
-  if( j_unit == "1" )
-    {}
-
-  else if( j_unit == "RJBT" )
+  try
     {
-      MatrixToRJBT( jacobian, sensor_pos, sensor_los, 
-                    sensor_response_f, sensor_response_za, sensor_response_aa, 
-                    sensor_response_pol, jacobian );
+      ybatchUnit( jacobian, j_unit, sensor_response_f );
     }
-
-  else if( j_unit == "PlanckBT" )
-    {
-      MatrixToPlanckBT( jacobian, sensor_pos, sensor_los, 
-                    sensor_response_f, sensor_response_za, sensor_response_aa, 
-                    sensor_response_pol, jacobian );
-    }
-  else
+  catch( runtime_error e ) 
     {
       ostringstream os;
       os << "Unknown option: jacobian_unit = \"" << j_unit << "\"\n" 

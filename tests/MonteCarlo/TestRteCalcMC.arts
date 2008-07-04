@@ -74,25 +74,25 @@ VectorSetExplicitly( mblock_za_grid, [
 MatrixSet( antenna_los, 1, 1, 0 )
 
 # An antenna pattern from Odin-SMR is used here
-ReadXML( antenna_diagram, "antenna.SM_AC2ab.875ms.xml" )
+ReadXML( antenna_response, "antenna.SM_AC2ab.875ms.xml" )
 
 
 IndexSet( sensor_norm, 1 )
 
 sensor_responseInit
-sensor_responseAntenna1D
+sensor_responseAntenna
 
 
 #### Perform Monte Carlo RT Calculation #################################
 
 StringSet(y_unit, "RJBT" )
 
-RteCalcMC( y, mc_error, iy_space_agenda, surface_prop_agenda, 
-    opt_prop_gas_agenda, abs_scalar_gas_agenda, atmosphere_dim, p_grid, 
-    lat_grid, lon_grid, z_field, t_field, vmr_field, r_geoid, z_surface, 
-    cloudbox_on, cloudbox_limits, pnd_field, scat_data_raw, sensor_response, 
-    sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, mblock_za_grid, 
-    mblock_aa_grid, y_unit, -1, 4, -1, 1 )
+NumericSet( mc_std_err,      -1 )
+IndexSet(   mc_max_time,      4 )
+IndexSet(   mc_max_iter,     -1 )
+IndexSet(   mc_z_field_is_1D, 1 )
+
+RteCalcMC
 
 
 #### Save calculated Stokes vector and std. err.#########################

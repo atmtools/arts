@@ -44,11 +44,11 @@
 using namespace std;
 
 #include "arts.h"
+#include "arts_omp.h"
 #include "auto_md.h"
 #include "math_funcs.h"
+#include "physics_funcs.h"
 #include "xml_io.h"
-#include "check_input.h"
-#include "arts_omp.h"
 
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
@@ -838,5 +838,66 @@ void ybatchMetProfilesClear(//Output
       ybatch(i, Range(joker)) = y;
       
     }// closing the loop over profile basenames
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ybatchUnit(
+              Matrix&   ybatch,
+        const String&   y_unit,
+        const Vector&   sensor_response_f )
+{
+  const Index nrows = ybatch.nrows();
+  const Index ncols = ybatch.ncols();
+
+  if( sensor_response_f.nelem() != nrows )
+    {
+      ostringstream os;
+      os << "The numberof rows in *ybatch* and the length *sensor_response_f*\n"
+         << "must be equal.";
+      throw runtime_error( os.str() );      
+    }
+
+  if( y_unit == "1" )
+    {}
+
+  else if( y_unit == "RJBT" )
+    {
+      // Here we try to save time by determining the scaling from radiances
+      // to brightness temperature for each frequency, and applying this
+      // scaling on each repition for that frequency. Note that relationship
+      // between radiance and Tb is linear for a given frequency.
+
+      for( Index ir=0; ir<nrows; ir++ )
+        {
+          const Numeric scfac = invrayjean( 1, sensor_response_f[ir] );
+
+          for( Index ic=0; ic<ncols; ic++ )
+            {  
+              ybatch(ir,ic) = scfac * ybatch(ir,ic);
+            }
+        }
+    }
+
+  else if( y_unit == "PlanckBT" )
+    {
+      for( Index ir=0; ir<nrows; ir++ )
+        {
+          for( Index ic=0; ic<ncols; ic++ )
+            {  
+              ybatch(ir,ic) = invplanck( ybatch(ir,ic), sensor_response_f[ir] );
+            }
+        }
+    }
+
+  else
+    {
+      ostringstream os;
+      os << "Unknown option: y_unit = \"" << y_unit << "\"\n"
+         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
+      throw runtime_error( os.str() );      
+    }
+
 }
 

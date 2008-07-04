@@ -48,16 +48,7 @@
   === Functions from sensor.cc
   ===========================================================================*/
 
-void antenna_matrix(
-                      Sparse&   H,
-              ConstVectorView   m_za,
-  const ArrayOfArrayOfMatrix&   diag,
-              ConstVectorView   x_f,
-              ConstVectorView   ant_za,
-                 const Index&   n_pol,
-                 const Index&   do_norm );
-
-void antenna1d_matrix_NEW(      
+void antenna1d_matrix(      
            Sparse&   H,
       const Index&   antenna_dim,
    ConstMatrixView   antenna_los,
@@ -67,7 +58,7 @@ void antenna1d_matrix_NEW(
        const Index   n_pol,
        const Index   do_norm );
 
-void mixer_matrix_NEW(
+void mixer_matrix(
            Sparse&   H,
            Vector&   f_mixer,
     const Numeric&   lo,
@@ -76,47 +67,6 @@ void mixer_matrix_NEW(
       const Index&   n_pol,
       const Index&   n_sp,
       const Index&   do_norm );
-
-void mixer_matrix(
-              Sparse&   H,
-              Vector&   f_mixer,
-      ConstVectorView   f_grid,
-        const Numeric   lo,
-      ConstMatrixView   filter,
-          const Index   n_pol,
-          const Index   n_za,
-          const Index   do_norm );
-
-void multi_mixer_matrix(
-     Sparse&                H,
-     ConstVectorView        f_mono,
-     ConstVectorView        f_ch,
-     ConstVectorView        lo,
-     ConstMatrixView        sb_filter,
-     ConstMatrixView        ch_resp,
-     const Index&           n_za,
-     const Index&           n_aa,
-     const Index&           n_pol,
-     const Index&           do_norm);
-
-void polarisation_matrix(
-              Sparse&   H,
-      ConstMatrixView   pol,
-          const Index   n_f,
-          const Index   n_za,
-          const Index   dim );
-
-void rotation_matrix(
-              Sparse&   H,
-      ConstVectorView   rot,
-          const Index   n_f,
-          const Index   dim );
-
-void scale_antenna_diagram(
-           VectorView   sc,
-      ConstMatrixView   srm,
-       const Numeric&   f_ref,
-       const Numeric&   f_new );
 
 void sensor_aux_vectors(
                Vector&   sensor_response_f,
@@ -129,18 +79,12 @@ void sensor_aux_vectors(
        ConstVectorView   sensor_response_aa_grid );
 
 void sensor_integration_vector(
-           VectorView   h,
-      ConstVectorView   f,
-      ConstVectorView   x_ftot,
-      ConstVectorView   x_g );
-
-void sensor_integration_vector_NEW(
         VectorView   h,
    ConstVectorView   f,
    ConstVectorView   x_f_in,
    ConstVectorView   x_g_in );
 
-void sensor_summation_vector_NEW(
+void sensor_summation_vector(
         VectorView   h,
    ConstVectorView   f,
    ConstVectorView   x_f,
@@ -148,14 +92,7 @@ void sensor_summation_vector_NEW(
      const Numeric   x1,
      const Numeric   x2 );
 
-void sensor_summation_vector(
-           VectorView   h,
-        const Numeric   f,
-      ConstVectorView   f_grid,
-        const Numeric   lo,
-      ConstMatrixView   sfrm );
-
-void spectrometer_matrix_NEW( 
+void spectrometer_matrix( 
            Sparse&         H,
    ConstVectorView         ch_f,
    const ArrayOfGField1&   ch_response,
@@ -163,14 +100,5 @@ void spectrometer_matrix_NEW(
       const Index&         n_pol,
       const Index&         n_sp,
       const Index&         do_norm );
-
-void spectrometer_matrix(
-              Sparse&   H,
- const ArrayOfMatrix&   ch_response,
-      ConstVectorView   ch_f,
-      ConstVectorView   sensor_f,
-         const Index&   n_za,
-         const Index&   n_pol,
-         const Index&   do_norm );
 
 #endif  // sensor_h
