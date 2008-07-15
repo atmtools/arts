@@ -67,17 +67,23 @@ AgendaSet(abs_scalar_gas_agenda){
   abs_scalar_gasFromAbsCoef
 }
 
+#
+# In case we do use the lookup table, the interpolation order for T
+# and nls must be set. We set here a default value of 4 for both.
+#
+IndexSet(abs_t_interp_order){4}
+IndexSet(abs_h2o_interp_order){4}
 
 #
 # Definition of Earth surface
-# ---
+# 
 # geoid: 
 r_geoidSpherical{
     r = -1
 }
 
-# Surface emissivity:
-# ---
+# Surface emissivity
+# 
 # The default model is a blackbody surface. This is a good choice only
 # if your sensor operates at a frequency where the troposphere is
 # opaque, but it is the fastest option.

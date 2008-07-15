@@ -1,3 +1,13 @@
+2008-07-15  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-6-37
+
+	* src/workspace.cc (abs_nls_interp_order, abs_t_interp_order):
+	Introduced these new WSVs.
+
+	* includes/general.arts: Set default values of 4 for
+	abs_nls_interp_order and abs_t_interp_order.
+
 2008-07-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-6-36

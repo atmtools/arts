@@ -410,6 +410,22 @@ void Workspace::define_wsv_data()
 
     wsv_data.push_back
       (WsvRecord
+       ( NAME( "abs_nls_interp_order" ),
+         DESCRIPTION
+         (
+          "The interpolation order to use when interpolating absorption between\n"
+          "the H2O values given by *abs_nls_pert*. This is used by methods\n"
+          "extracting absorption coefficients from the lookup table, and by\n"
+          "methods setting up parameters for lookup table generation. Has a\n"
+          "default value, which is set in general.arts.\n"
+          "\n"
+          "Note that the number of points used in the interpolation scheme is\n"
+          "interpolation order + 1 (e.g., two for first order interpolation).\n"
+          ), 
+         GROUP( Index_ )));
+
+    wsv_data.push_back
+      (WsvRecord
        ( NAME( "abs_t_pert" ),
          DESCRIPTION
          (
@@ -422,6 +438,22 @@ void Workspace::define_wsv_data()
           "[-5, 0, 5].\n"
           ), 
          GROUP( Vector_ )));
+
+    wsv_data.push_back
+      (WsvRecord
+       ( NAME( "abs_t_interp_order" ),
+         DESCRIPTION
+         (
+          "The interpolation order to use when interpolating absorption between\n"
+          "the temperature values given by *abs_t_pert*. This is used by methods\n"
+          "extracting absorption coefficients from the lookup table, and by\n"
+          "methods setting up parameters for lookup table generation. Has a\n"
+          "default value, which is set in general.arts.\n"
+          "\n"
+          "Note that the number of points used in the interpolation scheme is\n"
+          "interpolation order + 1 (e.g., two for first order interpolation).\n"
+          ), 
+         GROUP( Index_ )));
 
   wsv_data.push_back
     (WsvRecord
