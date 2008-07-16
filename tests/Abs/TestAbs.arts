@@ -4,7 +4,7 @@
 
 Arts2 {
 
-INCLUDE "general"
+INCLUDE "general.arts"
 INCLUDE "continua.arts"
 
 

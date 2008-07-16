@@ -3,139 +3,102 @@
 #simpleMCGeneral.arts, and simpleMCGeneralGaussian.arts, simpleMC.arts
 
 
-Arts {
+Arts2 {
 
-INCLUDE "general"
+INCLUDE "general.arts"
 INCLUDE "continua.arts"
 
 
 output_file_formatSetBinary
 
-VectorSetExplicitly(f_grid){[230e9]}
+VectorSetExplicitly( f_grid, [ 230e9 ] )
 
-WriteXML( f_grid ){
-filename="f_grid.xml.generated"
-}
+WriteXML( output_file_format, f_grid,  "f_grid.xml.generated" )
 
-IndexSet(f_index){
-value=0
-}
+IndexSet( f_index, 0 )
 
-IndexSet(stokes_dim){
-value=4
-}
+IndexSet( stokes_dim, 4 )
 
 AtmosphereSet3D
 
-ReadXML(p_grid){
-filename="p_grid.xml"
-}
+ReadXML( p_grid, "p_grid.xml" )
 
-ReadXML(lat_grid){
-filename="lat_grid.xml"
-}
+ReadXML( lat_grid, "lat_grid.xml" )
 
-ReadXML(lon_grid){
-filename="lon_grid.xml"
-}
+ReadXML( lon_grid, "lon_grid.xml" )
 
-SpeciesSet(abs_species){
-species=["O2-PWR93","N2-SelfContStandardType","H2O-PWR98"]
-}
+SpeciesSet( abs_species,
+            [ "O2-PWR93", "N2-SelfContStandardType", "H2O-PWR98" ] )
 
 abs_lines_per_speciesSetEmpty
 
-AtmRawRead{
-basename="tropical"
-}
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "tropical" )
 
 AtmFieldsCalcExpand1D
 
-WriteXML( t_field ){
-filename="t_field.xml.generated"
-} 
+WriteXML( output_file_format, t_field, "t_field.xml.generated" )
 
-WriteXML( z_field ){
-filename="z_field.xml.generated"
-} 
+WriteXML( output_file_format, z_field, "z_field.xml.generated" )
 
-WriteXML( vmr_field ){
-filename="vmr_field.xml.generated"
-} 
+WriteXML( output_file_format, vmr_field, "vmr_field.xml.generated" )
 
-r_geoidSpherical{
-r=-1
-}
+r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
 
-nrowsGet(r_geoid)
+nrowsGet( nrows, r_geoid )
 
-ncolsGet(r_geoid)
+ncolsGet( ncols, r_geoid )
 
-MatrixSet(z_surface){
-value=500.0
-}
+MatrixSet( z_surface, nrows, ncols, 500.0 )
 
-WriteXML(z_surface){
-filename="z_surface.xml.generated"
-}
+WriteXML( output_file_format, z_surface, "z_surface.xml.generated" )
 
-#AgendaSet(surface_prop_agenda){
-#  InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
+#AgendaSet( surface_prop_agenda ){
+#  InterpAtmFieldToRteGps( surface_skin_t,
+#                          atmosphere_dim, 
+#                          p_grid, lat_grid, lon_grid, 
+#                          rte_gp_p, rte_gp_lat, rte_gp_lon, 
+#                          t_field )
 #  surfaceBlackbody
-#  Ignore(rte_los)
+#  Ignore( rte_los )
 #}
 
 abs_lookupSetup
 abs_lookupCreate
-WriteXML(abs_lookup){"abs_lookup.xml.generated"}
+WriteXML( output_file_format, abs_lookup, "abs_lookup.xml.generated" )
 
 
-cloudboxSetManually{
-p1=21617.7922264
-p2=17111.6808705
-lat1=-1.8
-lat2=1.8
-lon1=-1.8
-lon2=1.8
-}
+cloudboxSetManually( cloudbox_on, cloudbox_limits, 
+                     atmosphere_dim, 
+                     p_grid, lat_grid, lon_grid,
+                     21617.7922264, 17111.6808705,
+                     -1.8, 1.8, -1.8, 1.8 )
 
-Print(cloudbox_limits){
-level=1
-}
+Print( cloudbox_limits, 1 )
 
 ParticleTypeInit
 
-ParticleTypeAdd{
-filename_scat_data="p30f229-231T214-225r100NP-1ar1_5ice.xml"
-filename_pnd_field=""
-}
+ParticleTypeAdd( scat_data_raw, pnd_field_raw, 
+                 atmosphere_dim, 
+                 f_grid, p_grid, lat_grid, lon_grid, 
+                 cloudbox_limits,
+                 "p30f229-231T214-225r100NP-1ar1_5ice.xml",
+                 "" )
 
-ReadXML(pnd_field_raw){
-filename="pnd_field_raw.xml"
-}
+ReadXML( pnd_field_raw, "pnd_field_raw.xml" )
 
 pnd_fieldCalc
 
-WriteXML(pnd_field){
-filename="pnd_field.xml.generated"
-}
+WriteXML( output_file_format, pnd_field, "pnd_field.xml.generated" )
 
 scat_data_monoCalc
 
 #For some reason SingleScatteringData binary files can't be loaded 
 output_file_formatSetAscii
 
-WriteXML(scat_data_raw){
-filename="scat_data_raw.xml.generated"
-}
+WriteXML( output_file_format, scat_data_raw, "scat_data_raw.xml.generated" )
 
-WriteXML(scat_data_mono){
-filename="scat_data_mono.xml.generated"
-}
+WriteXML( output_file_format, scat_data_mono, "scat_data_mono.xml.generated" )
 
-WriteXML(cloudbox_limits){
-filename="cloudbox_limits.xml.generated"
-}
-
+WriteXML( output_file_format, cloudbox_limits, "cloudbox_limits.xml.generated" )
 
 }

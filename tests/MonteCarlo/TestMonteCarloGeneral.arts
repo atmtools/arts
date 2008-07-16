@@ -3,167 +3,121 @@
 #For a single line of sight and a Pencil Beam antenna response
 
 
-Arts {
+Arts2 {
 
-INCLUDE "general"
+INCLUDE "general.arts"
 
 #### LOAD DATA: these files were created with MCDataPrepare.arts ######
 
-ReadXML( f_grid ){
-filename="f_grid.xml.generated"
-} 
+ReadXML( f_grid, "f_grid.xml.generated" )
 
-IndexSet(f_index){
-value=0
-}
+IndexSet( f_index, 0 )
 
-ReadXML(p_grid){
-filename="p_grid.xml"
-}
+ReadXML( p_grid, "p_grid.xml" )
 
 AtmosphereSet3D
 
-ReadXML(lat_grid){
-filename="lat_grid.xml"
-}
+ReadXML( lat_grid, "lat_grid.xml" )
 
-ReadXML(lon_grid){
-filename="lon_grid.xml"
-}
+ReadXML( lon_grid, "lon_grid.xml" )
 
-ReadXML( t_field ){
-filename="t_field.xml.generated"
-} 
+ReadXML( t_field, "t_field.xml.generated" )
 
-ReadXML( z_field ){
-filename="z_field.xml.generated"
-} 
+ReadXML( z_field, "z_field.xml.generated" )
 
-ReadXML( vmr_field ){
-filename="vmr_field.xml.generated"
-} 
+ReadXML( vmr_field, "vmr_field.xml.generated" )
 
-r_geoidSpherical{
-r=-1
-}
+r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
 
-ReadXML(z_surface){
-filename="z_surface.xml.generated"
-}
+ReadXML( z_surface, "z_surface.xml.generated" )
 
-ReadXML(abs_lookup){
-filename="abs_lookup.xml.generated"
-}
+ReadXML( abs_lookup, "abs_lookup.xml.generated" )
 
-SpeciesSet(abs_species){
-species=["O2-PWR93","N2-SelfContStandardType","H2O-PWR98"]
-}
+SpeciesSet( abs_species,
+            [ "O2-PWR93", "N2-SelfContStandardType", "H2O-PWR98" ] )
 
 abs_lookupAdapt
 
-ReadXML(cloudbox_limits){
-filename="cloudbox_limits.xml.generated"
-}
+ReadXML( cloudbox_limits, "cloudbox_limits.xml.generated" )
 
-ReadXML(pnd_field){
-filename="pnd_field.xml.generated"
-}
+ReadXML( pnd_field, "pnd_field.xml.generated" )
 
-ReadXML(scat_data_mono){
-filename="scat_data_mono.xml.generated"
-}
+ReadXML( scat_data_mono, "scat_data_mono.xml.generated" )
 
 
 #### Define Agendas #################################################
 
-AgendaSet(iy_space_agenda){
-  Ignore(rte_pos)
-  Ignore(rte_los)
-  MatrixCBR(iy,f_grid)
+AgendaSet( iy_space_agenda ){
+  Ignore( rte_pos )
+  Ignore( rte_los )
+  MatrixCBR( iy, stokes_dim, f_grid )
 }
 
-AgendaSet(surface_prop_agenda){
-  InterpAtmFieldToRteGps( surface_skin_t, t_field )
+AgendaSet( surface_prop_agenda ){
+  InterpAtmFieldToRteGps( surface_skin_t,
+                          atmosphere_dim, 
+                          p_grid, lat_grid, lon_grid, 
+                          rte_gp_p, rte_gp_lat, rte_gp_lon,
+                          t_field )
   surfaceBlackbody
-  Ignore(rte_los)
+  Ignore( rte_los )
 }
 
-AgendaSet(abs_scalar_gas_agenda){
+AgendaSet( abs_scalar_gas_agenda ){
   abs_scalar_gasExtractFromLookup
 }
 
 
 #### Define viewing position and line of sight #########################
 
-rte_losSet{
-za=99.7841941981
-aa=180
-}
+rte_losSet( rte_los, atmosphere_dim, 99.7841941981, 180 )
 
-rte_posSet{
-r_or_z=95000.1
-lat=7.61968838781
-lon=0
-}
+rte_posSet( rte_pos, atmosphere_dim, 95000.1, 7.61968838781, 0 )
 
 rte_posAddRgeoid
 
-Matrix1RowFromVector(sensor_pos,rte_pos)
+Matrix1RowFromVector( sensor_pos, rte_pos )
 
-Print(sensor_pos){
-level=1
-}
+Print( sensor_pos, 1 )
 
-Matrix1RowFromVector(sensor_los,rte_los)
+Matrix1RowFromVector( sensor_los, rte_los )
 
-Print(sensor_los){
-level=1
-}
+Print( sensor_los, 1 )
 
 #### Set some Monte Carlo parameters ###################################
 
-IndexSet(stokes_dim){
-value=4
-}
+IndexSet( stokes_dim, 4 )
 
-StringSet (y_unit){
-    text="RJBT"
-}
+StringSet( y_unit, "RJBT" )
 
 MCSetSeedFromTime
 
-Print(mc_seed){
-level=1
-}
+Print( mc_seed, 1 )
 
 mc_antennaSetPencilBeam
 
 #### Perform Monte Carlo RT Calculation #################################
 
-NumericSet(mc_std_err){-1}
-IndexSet(mc_max_time){20}
-IndexSet(mc_max_iter){-1}
-IndexSet(mc_z_field_is_1D){1}
+NumericSet( mc_std_err, -1 )
+IndexSet( mc_max_time, 20 )
+IndexSet( mc_max_iter, -1 )
+IndexSet( mc_z_field_is_1D, 1 )
 
 MCGeneral
 
 #### Save calculated Stokes vector and std. err.#########################
 
 output_file_formatSetAscii
-WriteXML( y ){ "MonteCarloGeneral.y.xml.generated" }
+WriteXML( output_file_format, y, "MonteCarloGeneral.y.xml.generated" )
 
-WriteXML( mc_error ){ "MonteCarloGeneral.mc_error.xml.generated" }
+WriteXML( output_file_format, mc_error,
+          "MonteCarloGeneral.mc_error.xml.generated" )
 
 #### Print number of photons and radiance units ########################
 
-Print(mc_iteration_count){
-level=1
-}
+Print( mc_iteration_count, 1 )
 
-Print(y_unit){
-level=1
-}
-
+Print( y_unit, 1 )
 
 }
 

@@ -7,7 +7,7 @@
 
 Arts2 {
 
-INCLUDE "general"
+INCLUDE "general.arts"
 INCLUDE "continua.arts"
 
 
@@ -115,10 +115,7 @@ AgendaSet( abs_scalar_gas_agenda ){
 
 # Set parameters for absorption lookup table generation
 # ---
-abs_lookupSetup( abs_p, abs_t, abs_t_pert, abs_vmrs, abs_nls, 
-                 abs_nls_pert, atmosphere_dim, p_grid, lat_grid, 
-                 lon_grid, t_field, vmr_field, abs_species, , , )
-
+abs_lookupSetup
 
 # Generate absorption lookup table
 # ---

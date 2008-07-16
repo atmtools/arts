@@ -1,5 +1,24 @@
 2008-07-16  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-6-42
+
+	* tests/MonteCarlo/TestMonteCarloDataPrepare.arts,
+	tests/MonteCarlo/TestMonteCarloGeneral.arts:
+
+	Converted to Arts2 syntax.
+
+	* tests/Abs/TestAbs.arts:
+
+	Replace "general" by "general.arts".
+
+	* tests/ClearSky/TestClearSky.arts:
+
+	Remove arguments from abs_lookupSetup (uses only defaults).
+
+	Replace "general" by "general.arts".
+
+2008-07-16  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-6-41
 
 	* src/parser.{cc,h}: 
