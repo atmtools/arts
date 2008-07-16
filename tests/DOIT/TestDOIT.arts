@@ -13,7 +13,7 @@
 
 Arts {
 
-INCLUDE "general"
+INCLUDE "general.arts"
 INCLUDE "continua.arts"
 
 

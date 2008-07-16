@@ -58,9 +58,11 @@ public:
 
   // Documentation is with the implementation!
   void Extract( Matrix&         sga,
-                            const Index&    f_index,
-                            const Numeric&  p,
-                            const Numeric&  T,
+                const Index&    h2o_interp_order,
+                const Index&    t_interp_order,
+                const Index&    f_index,
+                const Numeric&  p,
+                const Numeric&  T,
                 ConstVectorView abs_vmrs ) const;
 
   void GetFgrid( Vector& f ) const;

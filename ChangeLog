@@ -1,3 +1,27 @@
+2008-07-16  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-6-40
+
+	* You can now choose the interpolation orders for the absorption
+	lookup table. For now, the recommended (and default) value is 4
+	for both interpolations (T and H2O).
+	
+	* src/methods.cc (abs_scalar_gasExtractFromLookup): Added new
+	input variables abs_nls_interp_order and abs_t_interp_order.
+
+	* src/m_abs_lookup.cc (abs_scalar_gasExtractFromLookup): Added new
+	input variables abs_nls_interp_order and abs_t_interp_order.
+
+	* src/gas_abs_lookup{.cc,h} (Extract): Added new input variables
+	for the H2O and temperature interpolation order.
+
+	* includes/general.arts: Added default values of 4 for the new
+	input variables abs_nls_interp_order and abs_t_interp_order.
+
+	* tests/DOIT/TestDOIT.arts: Replace "general" by
+	"general.arts". Works also without extension, but kept it for
+	consistency. 
+
 2008-07-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-6-39

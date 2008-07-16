@@ -122,7 +122,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   const Index n_current_f_grid  = current_f_grid.nelem();
 
   const Index n_species         = species.nelem();
-  //  const Index n_nls             = nonlinear_species.nelem();
+  const Index n_nls             = nonlinear_species.nelem();
   const Index n_nls_pert        = nls_pert.nelem();
   const Index n_f_grid          = f_grid.nelem();
   const Index n_p_grid          = p_grid.nelem();
@@ -132,14 +132,14 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
        << "  Adapt to:       " << n_current_species << " species, "
        << n_current_f_grid << " frequencies.\n";
 
-  if ( 0 == nonlinear_species.nelem() )
+  if ( 0 == n_nls )
     {
       out2 << "  Table contains no nonlinear species.\n";
     }
 
   // Set up a logical array for the nonlinear species
   ArrayOfIndex non_linear(n_species,0);
-  for ( Index s=0; s<nonlinear_species.nelem(); ++s )
+  for ( Index s=0; s<n_nls; ++s )
     {
       non_linear[nonlinear_species[s]] = 1;
     }
@@ -176,7 +176,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
     }
 
   // ... and pointing at valid species. 
-  for ( Index i=0; i<nonlinear_species.nelem(); ++i )
+  for ( Index i=0; i<n_nls; ++i )
     {
       ostringstream os;
       os << "nonlinear_species[" << i << "]";
@@ -205,7 +205,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   // Perturbations for nonlinear species:
   // Check that nls_pert is empty if and only if nonlinear_species is
   // empty:
-  if ( 0 == nonlinear_species.nelem() )
+  if ( 0 == n_nls )
     {
       chk_vector_length( "nls_pert", nls_pert, 0 );
     }
@@ -227,7 +227,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   //
   //     Dimension: [ a, b, c, d ]
   //
-  if ( 0==nonlinear_species.nelem() )
+  if ( 0==n_nls )
     {
       if ( 0==t_pert.nelem() )
         {
@@ -268,8 +268,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
       //     d = n_p_grid
       Index a = t_pert.nelem();
       Index b = n_species
-        + nonlinear_species.nelem()
-        * ( n_nls_pert - 1 );
+        + n_nls * ( n_nls_pert - 1 );
       Index c = n_f_grid;
       Index d = n_p_grid;
 
@@ -513,6 +512,8 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   \author Stefan Buehler
 */
 void GasAbsLookup::Extract( Matrix&         sga,
+                            const Index&    h2o_interp_order,
+                            const Index&    t_interp_order,
                             const Index&    f_index,
                             const Numeric&  p,
                             const Numeric&  T,
@@ -541,6 +542,10 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
   // 2. First some checks on the lookup table itself:
 
+  // Most checks here are asserts, because they check the internal
+  // consistency of the lookup table. They should never fail if the
+  // table has been created with ARTS.
+
   // If there are nonlinear species, then at least one species must be
   // H2O. We will use that to perturb in the case of nonlinear
   // species.
@@ -550,10 +555,14 @@ void GasAbsLookup::Extract( Matrix&         sga,
       h2o_index = find_first_species_tg( species,
                                          species_index_from_species_name("H2O") );
 
+      // This is a runtime error, even though it would be more logical
+      // for it to be an assertion, since it is an internal check on
+      // the table. The reason is that it is somewhat awkward to check
+      // for this in other places.
       if ( h2o_index == -1 )
         {
           ostringstream os;
-          os << "At least one species must be a H2O species.";
+          os << "With nonlinear species, at least one species must be a H2O species.";
           throw runtime_error( os.str() );
         }
     }
@@ -585,11 +594,42 @@ void GasAbsLookup::Extract( Matrix&         sga,
       assert( is_size( xsec, a, b, c, d ) );
     })
 
+  // Verify that we have enough temperature and humdity grid points
+  // for the desired interpolation orders. This check is not only
+  // table internal, since abs_nls_interp_order and abs_t_interp_order
+  // are separate WSVs that could have been modified. Hence, these are
+  // runtime errors.
+
+  if ( (n_nls_pert != 0) && (n_nls_pert < h2o_interp_order+1) )
+    {
+      ostringstream os;
+      os << "The number of humidity perturbation grid points in the table ("
+         << n_nls_pert << ") is not enough for the desired order of interpolation ("
+         << h2o_interp_order << ").";
+      throw runtime_error( os.str() );
+    }
+
+  if ( (n_t_pert != 0) && (n_t_pert < t_interp_order+1) )
+    {
+      ostringstream os;
+      os << "The number of temperature perturbation grid points in the table ("
+         << n_t_pert << ") is not enough for the desired order of interpolation ("
+         << t_interp_order << ").";
+      throw runtime_error( os.str() );
+    }
+
 
   // 3. Checks on the input variables:
 
   // Assert that abs_vmrs has the right dimension:
-  assert( is_size( abs_vmrs, n_species ) );
+  if ( !is_size( abs_vmrs, n_species ) )
+    {
+      ostringstream os;
+      os << "Number of species in lookup table does not match number\n"
+         << "of species for which you want to extract absorption.\n"
+         << "Have you used abs_lookupAdapt?";
+      throw runtime_error( os.str() );
+    }
 
 
   // 4. Set up some things we will need later on: 
@@ -681,10 +721,6 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // To store the interpolated result for the 2
   // pressure levels:
   Tensor3 xsec_pre_interpolated( 2, f_extent, n_species );
-
-  // Set temperature and H2O interpolation order:
-  Index t_interp_order   = 4;
-  Index h2o_interp_order = 4;
 
   assert(pgp.idx+1 < n_p_grid); // To be completely on the safe side
   for ( Index pi=0; pi<2; ++pi )

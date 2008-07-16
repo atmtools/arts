@@ -70,7 +70,7 @@ AgendaSet( abs_scalar_gas_agenda ){
 # and nls must be set. We set here a default value of 4 for both.
 #
 IndexSet( abs_t_interp_order, 4 )
-IndexSet( abs_h2o_interp_order, 4 )
+IndexSet( abs_nls_interp_order, 4 )
 
 #
 # Definition of Earth surface

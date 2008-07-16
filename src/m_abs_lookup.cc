@@ -1417,6 +1417,8 @@ void abs_lookupAdapt( GasAbsLookup&                   abs_lookup,
 void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
                                       const GasAbsLookup& abs_lookup,
                                       const Index&        abs_lookup_is_adapted, 
+                                      const Index&        abs_nls_interp_order,
+                                      const Index&        abs_t_interp_order,
                                       const Index&        f_index,
                                       const Numeric&      a_pressure,
                                       const Numeric&      a_temperature,
@@ -1431,10 +1433,12 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
   // functions that adjust the size of their output argument
   // automatically. 
   abs_lookup.Extract( abs_scalar_gas,
-                          f_index,
-                          a_pressure,
-                          a_temperature,
-                          a_vmr_list );
+                      abs_nls_interp_order,
+                      abs_t_interp_order,
+                      f_index,
+                      a_pressure,
+                      a_temperature,
+                      a_vmr_list );
 }
 
 

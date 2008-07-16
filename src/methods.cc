@@ -1006,10 +1006,14 @@ void define_md_data_raw()
          "Extraction can be either for a single frequency (f_index>=0), or for\n"
          "all frequencies (f_index<0). The dimension of the output\n"
          "abs_scalar_gas is adjusted accordingly.\n"
+         "\n"
+         "The interpolation order in T and H2O is given by *abs_t_interp_order*\n"
+         "and *abs_nls_interp_order*, respectively.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_scalar_gas_ ),
         INPUT(  abs_lookup_, abs_lookup_is_adapted_,
+                abs_nls_interp_order_, abs_t_interp_order_,
                 f_index_, 
                 rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         GOUTPUT( ),
