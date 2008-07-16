@@ -705,6 +705,113 @@ void ArtsParser::parse_keywords(const MdRecord* mdd,
 }
 
 
+//! Set keyword to default value.
+/** Sets the value of the keyword with the given index to its default value.
+ 
+  \param[in]      mdd           Method object.
+  \param[out]     values        Keyword values.
+  \param[in]      keyword_index Index of the keyword which should be set to
+                                its default value.
+
+  \author Oliver Lemke
+  \date   2008-07-16
+*/
+void ArtsParser::set_keyword_to_default(const MdRecord* mdd,
+                                        Array<TokVal>&  values,
+                                        Index           keyword_index)
+{
+  if (mdd->Defaults()[keyword_index] != NODEF)
+    {
+      // Now parse the key value. This can be:
+      // String_t,    Index_t,    Numeric_t,
+      // Array_String_t, Array_Index_t, Vector_t,
+      bool failed = false;
+      switch (mdd->Types()[keyword_index]) 
+        {
+        case String_t:
+            {
+              values[keyword_index] = mdd->Defaults()[keyword_index];
+              break;
+            }
+        case Index_t:
+            {
+              Index n;
+              istringstream is(mdd->Defaults()[keyword_index]);
+              is >> n;
+              values[keyword_index] = n;
+              if (is.bad () || is.fail ())
+                failed = true;
+              break;
+            }
+        case Numeric_t:
+            {
+              Numeric n;
+              istringstream is(mdd->Defaults()[keyword_index]);
+              is >> n;
+              values[keyword_index] = n;
+              if (is.bad () || is.fail ())
+                failed = true;
+              break;
+            }
+        case Array_String_t:
+            {
+              ArrayOfString v;
+              String s = mdd->Defaults()[keyword_index];
+              if (!parse_stringarray_from_string(v, s))
+                {
+                  failed = true;
+                }
+              values[keyword_index] = v;
+              break;
+            }
+        case Array_Index_t:
+            {
+              ostringstream os;
+              os << "Default values for keywords with type "
+                << "ArrayOfIndex are not supported.\n"
+                << "Either remove the default value for keyword '"
+                << mdd->Keywords()[keyword_index] << "' in workspace method *"
+                << mdd->Name() << "* in methods.cc or discuss this "
+                << "issue on the arts-dev mailing list.\n";
+              throw runtime_error (os.str());
+              break;
+            }
+        case Vector_t:
+            {
+              Vector v;
+              String s = mdd->Defaults()[keyword_index];
+              if (!parse_numvector_from_string(v, s))
+                {
+                  failed = true;
+                }
+              values[keyword_index] = v;
+              break;
+            }
+        default:
+          failed = true;
+        }
+      if (failed)
+        {
+          ostringstream os;
+          os << "Failed to assign default value for keyword '"
+            << mdd->Keywords()[keyword_index] << "'.\n"
+            << "Check definition of workspace method *"
+            << mdd->Name() << "* in methods.cc.\n";
+          throw runtime_error (os.str());
+        }
+    }
+  else
+    {
+      ostringstream os;
+      os << "Keyword '" << mdd->Keywords()[keyword_index]
+        << "' omitted but no default value found.\n"
+        << "Check definition of workspace method *"
+        << mdd->Name() << "* in methods.cc.\n";
+      throw runtime_error (os.str());
+    }
+}
+
+
 //! Parse keywords.
 /** Parses the keyword parameters from a v2 controlfile.
  
@@ -741,95 +848,7 @@ void ArtsParser::parse_keywords2(const MdRecord* mdd,
       // specified and we use the default value instead (if there is one)
       if (msource.Current() == ',' || msource.Current() == ')')
         {
-          if (mdd->Defaults()[keyword_index] != NODEF)
-            {
-              // Now parse the key value. This can be:
-              // String_t,    Index_t,    Numeric_t,
-              // Array_String_t, Array_Index_t, Vector_t,
-              bool failed = false;
-              switch (mdd->Types()[keyword_index]) 
-                {
-                case String_t:
-                    {
-                      values[keyword_index] = mdd->Defaults()[keyword_index];
-                      break;
-                    }
-                case Index_t:
-                    {
-                      Index n;
-                      istringstream is(mdd->Defaults()[keyword_index]);
-                      is >> n;
-                      values[keyword_index] = n;
-                      if (is.bad () || is.fail ())
-                        failed = true;
-                      break;
-                    }
-                case Numeric_t:
-                    {
-                      Numeric n;
-                      istringstream is(mdd->Defaults()[keyword_index]);
-                      is >> n;
-                      values[keyword_index] = n;
-                      if (is.bad () || is.fail ())
-                        failed = true;
-                      break;
-                    }
-                case Array_String_t:
-                    {
-                      ArrayOfString v;
-                      String s = mdd->Defaults()[keyword_index];
-                      if (!parse_stringarray_from_string(v, s))
-                        {
-                          failed = true;
-                        }
-                      values[keyword_index] = v;
-                      break;
-                    }
-                case Array_Index_t:
-                    {
-                      ostringstream os;
-                      os << "Default values for keywords with type "
-                        << "ArrayOfIndex are not supported.\n"
-                        << "Either remove the default value for keyword '"
-                        << mdd->Keywords()[keyword_index] << "' in workspace method *"
-                        << mdd->Name() << "* in methods.cc or discuss this "
-                        << "issue on the arts-dev mailing list.\n";
-                      throw runtime_error (os.str());
-                      break;
-                    }
-                case Vector_t:
-                    {
-                      Vector v;
-                      String s = mdd->Defaults()[keyword_index];
-                      if (!parse_numvector_from_string(v, s))
-                        {
-                          failed = true;
-                        }
-                      values[keyword_index] = v;
-                      break;
-                    }
-                default:
-                  failed = true;
-                }
-              if (failed)
-                {
-                  ostringstream os;
-                  os << "Failed to assign default value for keyword '"
-                    << mdd->Keywords()[keyword_index] << "'.\n"
-                    << "Check definition of workspace method *"
-                    << mdd->Name() << "* in methods.cc.\n";
-                  throw runtime_error (os.str());
-                }
-            }
-          else
-            {
-              ostringstream os;
-              os << "Keyword '" << mdd->Keywords()[keyword_index]
-                << "' omitted but no default value found.\n"
-                << "Check definition of workspace method *"
-                << mdd->Name() << "* in methods.cc.\n";
-              throw runtime_error (os.str());
-            }
+          set_keyword_to_default(mdd, values, keyword_index);
         }
       else
         {
@@ -987,8 +1006,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
   // part of the argument list in parenthesis.
   if ( (mdd->GOutput().nelem() + mdd->GInput().nelem() > 0)
        || (mcfile_version == 2
-           && 0 < mdd->GOutput().nelem() + mdd->GInput().nelem()
-                  + mdd->Keywords().nelem()))
+           && 0 < mdd->GOutput().nelem() + mdd->GInput().nelem()))
     {
       String wsvname;
       bool first = true;        // To skip the first comma.
@@ -1253,6 +1271,35 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
             {
               input.push_back (*ins);
             }
+
+          if (mcfile_version == 2)
+            {
+              // Make sure all keywords have default values, otherwise the
+              // user has to specify them in the controlfile.
+              bool all_kw_have_defaults = true;
+              values.resize (mdd->Keywords().nelem());
+              for (Index kw = 0;
+                   all_kw_have_defaults && kw < mdd->Keywords().nelem();
+                   ++kw)
+                {
+                  if (mdd->Defaults()[kw] == NODEF)
+                    all_kw_have_defaults = false;
+                  else
+                    set_keyword_to_default(mdd, values, kw);
+                }
+
+              if (!all_kw_have_defaults)
+                {
+                  ostringstream os;
+                  os << "Not all keywords of this method have default values, you have "
+                    << "to specify them!";
+                  throw UnexpectedChar( os.str(),
+                                        msource.File(),
+                                        msource.Line(),
+                                        msource.Column() );
+                }
+            }
+
         }
     }
 }

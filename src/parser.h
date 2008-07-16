@@ -70,6 +70,10 @@ private:
                              Array<TokVal>& values,
                              bool&          first);
 
+  void set_keyword_to_default(const MdRecord* mdd,
+                              Array<TokVal>&  values,
+                              Index           keyword_index);
+
   void tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
                                   const Array<TokVal>& auto_vars_values,
                                   const Index          method_type,

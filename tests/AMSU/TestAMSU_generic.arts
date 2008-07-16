@@ -47,10 +47,11 @@ Delete( arrayofmatrix_1 )
 
 # Set parameters for lookup table
 # ---
-abs_lookupSetupBatch( abs_p, abs_t, abs_t_pert, abs_vmrs, abs_nls,
-                      abs_nls_pert, abs_species, 
-                      batch_atm_fields_compact,
-                      ,,, )
+#abs_lookupSetupBatch( abs_p, abs_t, abs_t_pert, abs_vmrs, abs_nls,
+#                      abs_nls_pert, abs_species, 
+#                      batch_atm_fields_compact,
+#                      ,,, )
+abs_lookupSetupBatch
 
 
 # Optional manual override of T and VMR perturbations
@@ -152,6 +153,6 @@ nelemGet( ybatch_n, batch_atm_fields_compact )
 
 # Execute the batch calculations:
 # ---
-ybatchCalc( ybatch, ybatch_n, ybatch_calc_agenda, )
+ybatchCalc
 
 }
