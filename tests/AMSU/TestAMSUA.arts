@@ -1,6 +1,6 @@
 #DEFINITIONS:  -*-sh-*-
 
-Arts {
+Arts2 {
 
 INCLUDE "amsua.arts"
 
@@ -8,7 +8,6 @@ INCLUDE "TestAMSU_generic.arts"
 
 # Store result matrix:
 # ---
-output_file_formatSetAscii
-WriteXML(ybatch){"AMSUA.ybatch.xml.generated"}
+WriteXML( "ascii", ybatch, "AMSUA.ybatch.xml.generated"}
 
 }

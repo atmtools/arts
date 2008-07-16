@@ -2,7 +2,7 @@
 
 # ARTS setup file for AMSUB simulations
 
-Arts {
+Arts2 {
 
 
 # 1. General
@@ -12,12 +12,16 @@ output_file_formatSetZippedAscii
 
 # AMSU uses Planck brightness temperatures
 # ---
-StringSet( y_unit ){ "PlanckBT" }
-StringSet( jacobian_unit ){ "RJBT" }
+StringSet( y_unit, "PlanckBT" )
+StringSet( jacobian_unit, "RJBT" )
 
 # Surface
-AgendaSet(surface_prop_agenda){
-   InterpAtmFieldToRteGps( surface_skin_t, t_field )
+AgendaSet( surface_prop_agenda ){
+   InterpAtmFieldToRteGps( surface_skin_t,
+                           atmosphere_dim, 
+                           p_grid, lat_grid, lon_grid, 
+                           rte_gp_p, rte_gp_lat, rte_gp_lon,
+                           t_field )
    surfaceSimple
 } 
 
@@ -28,24 +32,21 @@ AgendaSet(surface_prop_agenda){
 # only for O3, where only the local lines matter.
 # Could be speed-optimized further by selecting only the relevant 
 # lines from the line list.
-abs_lineshapeDefine{ shape               = "Voigt_Kuntz6"
-                     normalizationfactor = "VVH"
-                     cutoff              = 5e9 }
+abs_lineshapeDefine( abs_lineshapeDefine, "Voigt_Kuntz6", "VVH", 5e9 )
 
-SpeciesSet(abs_species){["H2O-PWR98",
-                         "O3",
-			 "O2-PWR93",
-			 "N2-SelfContStandardType"]}
+SpeciesSet( abs_species, [ "H2O-PWR98",
+                           "O3",
+                           "O2-PWR93",
+                           "N2-SelfContStandardType" ] )
 
 # Read HITRAN catalog (needed for O3):
-#abs_linesReadFromHitran2004{
-#   filename = "/storage1/pool/lookup2/hitran2004/HITRAN04.par"
-#   fmin     = 80e9
-#   fmax     = 200e9 
-#}
-#WriteXML(abs_lines){"amsu/amsub.hitran04_lines.xml"}
+#abs_linesReadFromHitran2004( abs_lines,
+#                             "/storage1/pool/lookup2/hitran2004/HITRAN04.par",
+#                             80e9,
+#                             200e9 )
+#WriteXML( "ascii", abs_lines, "amsu/amsub.hitran04_lines.xml" )
 
-ReadXML(abs_lines){"amsu/amsub.hitran04_lines.xml"}
+ReadXML( abs_lines, "amsu/amsub.hitran04_lines.xml" )
 abs_lines_per_speciesCreateFromLines
 
 # WARNING: If you redifine abs_species, and want to do a line-by-line
@@ -58,10 +59,10 @@ abs_lines_per_speciesCreateFromLines
 
 # Definition of sensor position and LOS
 # ---
-ReadXML(sensor_los){"amsu/amsub.sensor_los.xml"}
-nrowsGet(sensor_los)
-ncolsGet(sensor_los)
-MatrixSet(sensor_pos){850e3}
+ReadXML( sensor_los, "amsu/amsub.sensor_los.xml" )
+nrowsGet( nrows, sensor_los )
+ncolsGet( ncols, sensor_los )
+MatrixSet( sensor_pos, nrows, ncols, 850e3 )
 sensor_posAddRgeoid
 
 
@@ -70,7 +71,7 @@ sensor_posAddRgeoid
 
 # Normalise the sensor response
 # ---
-IndexSet(sensor_norm){ 1 }
+IndexSet( sensor_norm, 1 )
 
 # Antenna
 # ---
@@ -82,20 +83,21 @@ AntennaOff
 
 # f_mono
 #
-ReadXML(f_grid){"amsu/amsub.f_grid.xml"}
+ReadXML( f_grid, "amsu/amsub.f_grid.xml" )
 
 
 # Mixer:
 #
-ReadXML(lo_multi){"amsu/amsub.lo.xml"}
-ReadXML(sideband_response_multi){"amsu/amsub.sideband_response.xml"}
-ReadXML(sideband_mode_multi){"amsu/amsub.sideband_mode.xml"}
+ReadXML( lo_multi, "amsu/amsub.lo.xml" )
+ReadXML( sideband_response_multi, "amsu/amsub.sideband_response.xml" )
+ReadXML( sideband_mode_multi, "amsu/amsub.sideband_mode.xml" )
 
 
 # Spectrometer:
 #
-ReadXML(f_backend_multi){"amsu/amsub.f_backend.xml"}
-ReadXML(backend_channel_response_multi){"amsu/amsub.backend_channel_response.xml"}
+ReadXML( f_backend_multi, "amsu/amsub.f_backend.xml" )
+ReadXML( backend_channel_response_multi,
+         "amsu/amsub.backend_channel_response.xml" )
 
 
 sensor_responseInit

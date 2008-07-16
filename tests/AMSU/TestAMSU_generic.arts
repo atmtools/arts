@@ -7,7 +7,7 @@
 # DO NOT RUN THIS FILE DIRECTLY, RUN TestAMSUA.arts or TestAMSUB.arts!
 # --------------------------------------------------------------------
 
-Arts {
+Arts2 {
 
 # Set up absorption
 # =================
@@ -20,9 +20,10 @@ Arts {
 # meaning of the columns is:
 # p[Pa]        T[K]         z[m]         H2O[VMR]	O3[VMR]
 #
-#ReadXML(arrayofmatrix_1){"/storage2/home/sbuehler/checkouts/arts-xml-data/atmosphere/chevallier_91L/chevallierl91_clear_q.xml"}
-ArrayOfMatrixCreate(arrayofmatrix_1)
-ReadXML(arrayofmatrix_1){"chevallierl91_clear_q_extract.xml"}
+#ReadXML( arrayofmatrix_1,
+#         "/storage2/home/sbuehler/checkouts/arts-xml-data/atmosphere/chevallier_91L/chevallierl91_clear_q.xml" )
+ArrayOfMatrixCreate( arrayofmatrix_1 )
+ReadXML( arrayofmatrix_1, "chevallierl91_clear_q_extract.xml" )
 
 # Storage in an array of matrix is handy for Chevallier data, because
 # it is very compact. However, the more general internal
@@ -31,19 +32,25 @@ ReadXML(arrayofmatrix_1){"chevallierl91_clear_q_extract.xml"}
 # Convert to batch_atm_fields_compact
 # ---
 # The values taken for O2 and N2 are from Wallace&Hobbs, 2nd edition.
-batch_atm_fields_compactFromArrayOfMatrix(arrayofmatrix_1){
-   field_names        = ["T", "z", "H2O", "O3"]
-   extra_field_names  = ["O2", "N2"]
-   extra_field_values = [0.2095, 0.7808]
-}
+batch_atm_fields_compactFromArrayOfMatrix(
+   batch_atm_fields_compact,
+   atmosphere_dim,
+   arrayofmatrix_1,
+   ["T", "z", "H2O", "O3"],
+   ["O2", "N2"],
+   [0.2095, 0.7808]
+)
 
 # Delete original data array to conserve memory:
 # ---
-Delete(arrayofmatrix_1)
+Delete( arrayofmatrix_1 )
 
 # Set parameters for lookup table
 # ---
-abs_lookupSetupBatch
+abs_lookupSetupBatch( abs_p, abs_t, abs_t_pert, abs_vmrs, abs_nls,
+                      abs_nls_pert, abs_species, 
+                      batch_atm_fields_compact,
+                      ,,, )
 
 
 # Optional manual override of T and VMR perturbations
@@ -55,12 +62,8 @@ abs_lookupSetupBatch
 # 0 to 6 (fractional units). This should be the reasonable range of
 # atmospheric variability. You will get failures from individual jobs in
 # the batch, that are outside this range.
-#VectorLinSpace(abs_t_pert){start = -70
-#                           stop  = 55
-#                           step  = 5 }
-#VectorLinSpace(abs_nls_pert){start = 0
-#                             stop  = 6
-#                             step  = 0.5}
+#VectorLinSpace( abs_t_pert, -70, 55, 5 )
+#VectorLinSpace( abs_nls_pert, 0, 6, 0.5 )
 
 
 # Create the lookup table
@@ -69,7 +72,7 @@ abs_lookupCreate
 
 # Set abs_scalar_gas_agenda to use lookup table
 # ---
-AgendaSet(abs_scalar_gas_agenda){
+AgendaSet( abs_scalar_gas_agenda ){
   abs_scalar_gasExtractFromLookup
 }
 
@@ -79,7 +82,7 @@ AgendaSet(abs_scalar_gas_agenda){
 # Set surface emissivity
 # ---
 # Here we take a value representative for the sea surface.
-NumericSet(surface_emissivity){0.6}
+NumericSet( surface_emissivity, 0.6 )
 
 
 # Definition of sensor position and LOS
@@ -88,10 +91,8 @@ NumericSet(surface_emissivity){0.6}
 # Optionally set sensor_pos
 # ---
 # The sensor altitude is predefined in amsu.arts to 850 km above the geoid. 
-# Comment out the next four lines if you want to set it to something else.
-IndexSet(nrows){ 1 }
-IndexSet(ncols){ 1 }
-MatrixSet(sensor_pos){850e3}
+# Comment out the next two lines if you want to set it to something else.
+MatrixSet( sensor_pos, 1, 1, 850e3 )
 sensor_posAddRgeoid
 
 
@@ -101,14 +102,12 @@ sensor_posAddRgeoid
 # There are 45 different angles, corresponding to one side of the AMSU-B
 # Scan. You can instead set it here to a single value if you want to 
 # calculate only for one viewing angle.
-IndexSet(nrows){ 1 }
-IndexSet(ncols){ 1 }
-MatrixSet(sensor_los){180}
+MatrixSet( sensor_los, 1, 1, 180 )
 
 # Set the agenda for batch calculations:
 # ---
 #
-AgendaSet(ybatch_calc_agenda){
+AgendaSet( ybatch_calc_agenda ){
   
   # Extract the atmospheric profiles for this case:
   GriddedField4ExtractFromArrayOfGriddedField4(
@@ -123,37 +122,36 @@ AgendaSet(ybatch_calc_agenda){
 
   # Optionally set jacobian parameters:
 #   jacobianInit
-#   jacobianAddAbsSpecies(p_grid, lat_grid, lon_grid){
-#        species = "H2O-PWR98"
-#        method = "analytical"
-#        unit   = "rel"
-#        dx     = 0.01 
-#   }
+#   jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda, jacobian, 
+#                          atmosphere_dim,
+#                          p_grid, lat_grid, lon_grid, 
+#                          p_grid, lat_grid, lon_grid,
+#                          "H2O-PWR98",
+#                          "analytical",
+#                          "rel",
+#                          0.01 )
 #   jacobianClose
 
   # get z_surface from z_field
-  IndexSet(index_1){0}
-  MatrixExtractFromTensor3(z_surface,z_field,index_1)
-  #  Print(z_surface){1}
+  MatrixExtractFromTensor3( z_surface, z_field, 0 )
+  #  Print( z_surface, 1 )
 
   # Perform RT calculations
   # ---
   RteCalc
 
-  Copy(file_index, ybatch_index)
   # Optionally write out jacobian:
-#  WriteXMLIndexed(jacobian){""}
+#  WriteXMLIndexed( output_file_format, ybatch_index, jacobian, "" )
 
 }
 
 
 # Set number of batch cases:
-nelemGet(batch_atm_fields_compact)
-Copy(ybatch_n, nelem)
+nelemGet( ybatch_n, batch_atm_fields_compact )
 #IndexSet(ybatch_n){10}
 
 # Execute the batch calculations:
 # ---
-ybatchCalc
+ybatchCalc( ybatch, ybatch_n, ybatch_calc_agenda, )
 
 }
