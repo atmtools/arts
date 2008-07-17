@@ -1,5 +1,18 @@
 2008-07-17  Stefan Buehler  <sbuehler(at)ltu.se>
 
+	* arts-1-6-45
+
+	* src/methods.cc (f_gridFromSensor): Reintroduced this method.
+
+	* src/m_sensor.cc (f_gridFromSensor): Adapted to new sensor
+	variables. There still is a strange numerical problem, the
+	auto-generated grid does not work, even though it is practically
+	identical to the previous one.
+
+	* includes/amsu/amsub.arts: Playing with f_gridFromSensor.
+
+2008-07-17  Stefan Buehler  <sbuehler(at)ltu.se>
+
 	* arts-1-6-44
 
 	* src/methods.cc (abs_lookupSetup, abs_lookupSetupBatch): Added
@@ -11,7 +24,7 @@
 	(abs_lookupSetup, abs_lookupSetupBatch): Adapted to the new WSVs
 	abs_nls_interp_order and abs_t_interp_order. Main changes are in
 	the choose functions. This is likely to be adapted further after
-	thorrough testing with Chevallier data.
+	thorough testing with Chevallier data.
 
 	* tests/ClearSky/TestClearSky.arts: Only comment changes.
 

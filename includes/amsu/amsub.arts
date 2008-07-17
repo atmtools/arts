@@ -81,11 +81,6 @@ AntennaOff
 # See setup_input.m for details around other sensor variables 
 
 
-# f_mono
-#
-ReadXML( f_grid, "amsu/amsub.f_grid.xml" )
-
-
 # Mixer:
 #
 ReadXML( lo_multi, "amsu/amsub.lo.xml" )
@@ -99,6 +94,15 @@ ReadXML( f_backend_multi, "amsu/amsub.f_backend.xml" )
 ReadXML( backend_channel_response_multi,
          "amsu/amsub.backend_channel_response.xml" )
 
+
+# Frequency grid:
+#
+ReadXML( f_grid, "amsu/amsub.f_grid.xml" )
+#ReadXML( f_grid, "new_grid.xml" )
+#f_gridFromSensor
+#WriteXML( output_file_format, f_grid, "new_grid.xml" )
+# FIXME: There is a strange numerical problem in the sensor part right now. 
+# The auto-generated grid works only if saved and re-read!
 
 sensor_responseInit
 sensor_responseMultiMixerBackend

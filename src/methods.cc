@@ -3067,7 +3067,6 @@ md_data_raw.push_back
         DEFAULTS( ),
         TYPES( )));
 
-   /* Not yet updated
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("f_gridFromSensor"),
@@ -3079,8 +3078,8 @@ md_data_raw.push_back
          "consisting of a few discrete channels.\n"
          "\n"
          "It calculates f_grid to match the instrument, as given by the local\n"
-         "oscillator frequencies *lo*, the backend frequencies *f_backend*, and\n"
-         "the backend channel responses *backend_channel_response*.\n"
+         "oscillator frequencies *lo_multi*, the backend frequencies *f_backend_multi*, and\n"
+         "the backend channel responses *backend_channel_response_multi*.\n"
          "\n"
          "You have to specify the desired spacing in the keyword *spacing*, which\n"
          "has a default value of 100 MHz. (The actual value is 0.1e9, since our\n"
@@ -3093,13 +3092,12 @@ md_data_raw.push_back
          ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( f_grid_ ),
-        INPUT( lo_, f_backend_, backend_channel_response_ ),
+        INPUT( lo_multi_, f_backend_multi_, backend_channel_response_multi_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "spacing" ),
         DEFAULTS( ".1e9"),
         TYPES(    Numeric_t )));
-   */
 
   md_data_raw.push_back     
     ( MdRecord

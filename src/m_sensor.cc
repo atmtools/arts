@@ -1071,17 +1071,22 @@ void sensor_responseMultiMixerBackend(
 
 
 
-/* Workspace method: Doxygen documentation will be auto-generated 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromSensor(// WS Output:
                       Vector& f_grid,
                       // WS Input:
                       const Vector& lo,
-                      const Vector& f_backend,
-                      const Matrix& backend_channel_response,
+                      const ArrayOfVector& f_backend,
+                      const ArrayOfArrayOfGField1& backend_channel_response,
                       // Control Parameters:
                       const Numeric& spacing)
 {
-  const Index n_chan = lo.nelem();
+  // Find out how many channels we have in total:
+  // f_backend is an array of vectors, containing the band frequencies for each Mixer.
+  Index n_chan = 0;
+  for (Index i=0; i<f_backend.nelem(); ++i)
+    for (Index s=0; s<f_backend[i].nelem(); ++s)
+      ++n_chan;
 
   // Checks on input quantities:
 
@@ -1094,104 +1099,54 @@ void f_gridFromSensor(// WS Output:
       throw runtime_error(os.str());
     }
 
-  // Does length of f_backend match lo?
-  if (f_backend.nelem() != n_chan)
+  // Is number of LOs consistent in all input variables?
+  if ( (f_backend.nelem()                != lo.nelem()) ||
+       (backend_channel_response.nelem() != lo.nelem()) )
     {
       ostringstream os;
-      os << "The vectors *lo* and *f_backend* must have same number of elements.";
+      os << "Variables *lo_multi*, *f_backend_multi* and *backend_channel_response_multi*\n"
+         << "must have same number of elements (number of LOs).";
       throw runtime_error(os.str());
     }
 
-  // Does backend_channel_response have the right dimension?
-  if (backend_channel_response.ncols() != n_chan+1)
+  // Is number of bands consistent for each LO?
+  for (Index i=0; i<f_backend.nelem(); ++i)
+    if (f_backend[i].nelem() != backend_channel_response[i].nelem())
     {
       ostringstream os;
-      os << "The number of columns in matrix *backend_channel_response*\n"
-         << "Must be 1 plus the number of channels. (First column is frequency.)";
+      os << "Variables *f_backend_multi* and *backend_channel_response_multi*\n"
+         << "must have same number of bands for each LO.";
       throw runtime_error(os.str());
     }
 
-  // Check that the frequency grid in backend_channel_response is strictly
-  // increasing:
-  if (!is_increasing(backend_channel_response(joker,0)))
-    {
-      ostringstream os;
-      os << "The frequency grid in backend_channel_response must be "
-         << "strictly increasing.";
-      throw runtime_error(os.str());
-    }
+  // Start the actual work.
 
-  // Construct image bands:
-  Vector f_image(n_chan);
-  for (Index i=0; i<n_chan; ++i)
-    {
-      Numeric offset = f_backend[i] - lo[i];
-      f_image[i] = lo[i] - offset;
-    }
-  out3 << "  Image band nominal frequencies: " << f_image << "\n";
-
-  // Find out the non-zero frequency range for each band:
-
-  Vector f_min(n_chan), f_max(n_chan);
-  const Index nf = backend_channel_response.nrows(); // Number of
-                                                     // frequency grid points in 
-                                                     // backend_channel_response
-
-  for (Index i=0; i<n_chan; ++i)
-    {
-      // Make sure that not all response values are zero: 
-      if (max(backend_channel_response(joker,1+i)) == 0)
-        {
-          ostringstream os;
-          os << "The response for one of the channels seems to be all zero!";
-          throw runtime_error(os.str());
-        }
-          
-      // To go through backend_channel_response frequency grid:
-      Index imin=0;                
-      while (backend_channel_response(imin,1+i)==0) ++imin;
-
-      Index imax=nf-1;                
-      while (backend_channel_response(imax,1+i)==0) --imax;
-      
-      if (imax == imin)
-        {
-          ostringstream os;
-          os << "For one channel there is only a single respons value in"
-             << "backend_channel_response, but we need at least two.";
-          throw runtime_error(os.str());
-        }
-
-      // Actually, f_grid must cover not only the non-zero response
-      // frequencies of the channel response matrix, but one point
-      // more on both sides, because the response is assumed to vary linearly
-      // between the grid points.
-      if (imin>0)    --imin;
-      if (imax<nf-1) ++imax;
-
-      f_min[i] = backend_channel_response(imin,0);
-      f_max[i] = backend_channel_response(imax,0);      
-    }  
-
-  // Now we build up a total list of absolute frequency ranges for
+  // We build up a total list of absolute frequency ranges for
   // both signal and image sidebands:
   Vector fabs_min(2*n_chan), fabs_max(2*n_chan);
   Index ifabs=0;
-  for (Index i=0; i<n_chan; ++i)
-    {
-      // Signal sideband:
-      fabs_min[ifabs] = f_backend[i] + f_min[i];
-      fabs_max[ifabs] = f_backend[i] + f_max[i];
-      ++ifabs;
+  for (Index i=0; i<f_backend.nelem(); ++i)
+    for (Index s=0; s<f_backend[i].nelem(); ++s)
+      {
+        ConstVectorView this_grid = backend_channel_response[i][s].get_numeric_grid(0);
+        const Numeric this_f_backend = f_backend[i][s];
 
-      // Image sideband:
-      fabs_min[ifabs] = f_image[i] + f_min[i];
-      fabs_max[ifabs] = f_image[i] + f_max[i];
-      ++ifabs;
-    }
+        // Signal sideband:
+        fabs_min[ifabs] = this_f_backend + this_grid[0];
+        fabs_max[ifabs] = this_f_backend + this_grid[this_grid.nelem()-1];
+        ++ifabs;
+        
+        // Image sideband:
+        Numeric offset  = this_f_backend - lo[i];
+        Numeric f_image = lo[i] - offset;
 
-//   cout << "fabs_min: " << fabs_min << "\n";
-//   cout << "fabs_max: " << fabs_max << "\n";
+        fabs_min[ifabs] = f_image + this_grid[0];                  
+        fabs_max[ifabs] = f_image + this_grid[this_grid.nelem()-1];
+        ++ifabs;
+      }
+
+  //  cout << "fabs_min: " << fabs_min << "\n";
+  //  cout << "fabs_max: " << fabs_max << "\n";
 
   // Check for overlap:
   for (Index i=1; i<fabs_min.nelem(); ++i)
@@ -1253,7 +1208,6 @@ void f_gridFromSensor(// WS Output:
 
   // That's it, we're done!
 }
-*/
 
 
 

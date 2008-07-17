@@ -1,6 +1,6 @@
 function setup_input
 
-% These variables end with _multi in arts, but the names are here shorten
+% These variables end with _multi in arts, but the names are here shortened
 % to the names used for single mixer cases
   
 % AMSU-B is a true DSB instrument, but one sideband must be assigned as 
