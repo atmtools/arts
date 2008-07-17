@@ -884,6 +884,13 @@ void define_md_data_raw()
          "More information can be found in the documentation for method\n"
          "*abs_lookupSetupBatch*\n"
          "\n"
+         "Max and min values of H2O and temperature are adjusted to allow for\n"
+         "numerical perturbations in Jacobian calculation.\n"
+         "\n"
+         "The input variables *abs_nls_interp_order* and *abs_t_interp_order*\n"
+         "are used to make sure that there are enough points in *abs_nls_pert*\n"
+         "and *abs_t_pert* for the chosen interpolation order.\n"
+         "\n"
          "Keywords:\n"
          "   p_step   : Maximum step in log(p[Pa]) (natural logarithm, as always). If\n"
          "              the pressure grid is coarser than this, additional points\n"
@@ -913,7 +920,9 @@ void define_md_data_raw()
                  lon_grid_,
                  t_field_,
                  vmr_field_,
-                 abs_species_ ),
+                 abs_species_,
+                 abs_nls_interp_order_,
+                 abs_t_interp_order_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "p_step",  "t_step",  "h2o_step" ),
@@ -942,6 +951,13 @@ void define_md_data_raw()
          "If nonlinear species are present, *abs_nls* and *abs_nls_pert* are also\n"
          "generated. \n"
          "\n"
+         "Max and min values of H2O and temperature are adjusted to allow for\n"
+         "numerical perturbations in Jacobian calculation.\n"
+         "\n"
+         "The input variables *abs_nls_interp_order* and *abs_t_interp_order*\n"
+         "are used to make sure that there are enough points in *abs_nls_pert*\n"
+         "and *abs_t_pert* for the chosen interpolation order.\n"
+         "\n"
          "Keywords:\n"
          "   p_step   : Maximum step in log(p[Pa]) (natural logarithm, as always). If\n"
          "              the pressure grid is coarser than this, additional points\n"
@@ -968,7 +984,9 @@ void define_md_data_raw()
                  abs_nls_,
                  abs_nls_pert_ ),
         INPUT(   abs_species_,
-                 batch_atm_fields_compact_ ),
+                 batch_atm_fields_compact_,
+                 abs_nls_interp_order_,
+                 abs_t_interp_order_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "p_step",  "t_step",  "h2o_step", "extremes" ),

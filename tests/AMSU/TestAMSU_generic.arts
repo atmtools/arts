@@ -47,11 +47,22 @@ Delete( arrayofmatrix_1 )
 
 # Set parameters for lookup table
 # ---
-#abs_lookupSetupBatch( abs_p, abs_t, abs_t_pert, abs_vmrs, abs_nls,
-#                      abs_nls_pert, abs_species, 
-#                      batch_atm_fields_compact,
-#                      ,,, )
+# Arguments omitted for better maintainability of this test file.
 abs_lookupSetupBatch
+# abs_lookupSetupBatch( abs_p, 
+#                       abs_t, 
+#                       abs_t_pert, 
+#                       abs_vmrs, 
+#                       abs_nls, 
+#                       abs_nls_pert, 
+#                       abs_species, 
+#                       batch_atm_fields_compact, 
+#                       abs_nls_interp_order, 
+#                       abs_t_interp_order, 
+#                       , 
+#                       15, 
+#                       1, 
+#                       )
 
 
 # Optional manual override of T and VMR perturbations

@@ -604,7 +604,8 @@ void choose_abs_t_pert(Vector&         abs_t_pert,
                        ConstVectorView abs_t,
                        ConstVectorView tmin,
                        ConstVectorView tmax,
-                       const Numeric&  t_step)
+                       const Numeric&  t_step,
+                       const Index&    interp_order)
 {
   Vector tmindist = tmin;
   Vector tmaxdist = tmax;
@@ -614,15 +615,19 @@ void choose_abs_t_pert(Vector&         abs_t_pert,
 
   const Numeric mindev = min(tmindist);
   const Numeric maxdev = max(tmaxdist);
-
   out3 << "  mindev/maxdev : " << mindev << " / " << maxdev << "\n";
-  Numeric start = 0;
-  // n is used to make sure that there are at least 5 points in total,
-  // as required for 4th order interpolation.
-  // In other words, we add at least two points above and below
-  // the reference profile.
+
+  // Things to do with getting the required number of points for the
+  // interpolation order: 
+  // We do not add 1 here, because the point "0" is already included.
+  const Index needpoints_total = interp_order; 
+  const Index needpoints_below = needpoints_total/2;     // Will take floor.
+  const Index needpoints_above = needpoints_total - needpoints_below;
+  //  cout << needpoints_below << "/" << needpoints_above << "\n";
+ 
+  Numeric start    = 0;
   Index   n_points = 0;                
-  while ( (mindev<start) || (n_points<2) ) 
+  while ( (mindev<start) || (n_points<needpoints_below) ) 
     {
       start -= t_step;
       ++n_points;
@@ -630,7 +635,7 @@ void choose_abs_t_pert(Vector&         abs_t_pert,
   
   Numeric stop  = 0;
   n_points = 0;                
-  while ( (maxdev > stop) || (n_points<2) )
+  while ( (maxdev > stop) || (n_points<needpoints_above) )
     {
       stop += t_step;
       ++n_points;
@@ -638,18 +643,9 @@ void choose_abs_t_pert(Vector&         abs_t_pert,
 
   linspace(abs_t_pert,start,stop,t_step);
 
-  // Special treatment for the case that there actually are no
-  // temperature variations present (1-D case blown up to 3D):
-  if (1==abs_t_pert.nelem())
-    {
-      out2 << "  No temperature variations, choosing default.\n";
-      abs_t_pert = MakeVector(-t_step, 0, t_step);
-    }
-
   out2 << "  abs_t_pert: " << abs_t_pert[0] << " K to " << abs_t_pert[abs_t_pert.nelem()-1]
        << " K in steps of " << t_step
        << " K (" << abs_t_pert.nelem() << " grid points)\n";
-
 }
 
 
@@ -669,10 +665,11 @@ void choose_abs_t_pert(Vector&         abs_t_pert,
   \param[in] step          Fractional perturbation step
 */
 void choose_abs_nls_pert(Vector&         abs_nls_pert,
-                       ConstVectorView refprof,
-                       ConstVectorView minprof,
-                       ConstVectorView maxprof,
-                       const Numeric&  step)
+                         ConstVectorView refprof,
+                         ConstVectorView minprof,
+                         ConstVectorView maxprof,
+                         const Numeric&  step,
+                         const Index&    interp_order)
 {
   Vector minprofdist = minprof;
   Vector maxprofdist = maxprof;
@@ -680,46 +677,47 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
   minprofdist /= refprof;
   maxprofdist /= refprof;
 
-  const Numeric mindev = min(minprofdist);
-  const Numeric maxdev = max(maxprofdist);
+  Numeric mindev = min(minprofdist);
+  Numeric maxdev = max(maxprofdist);
 
+  bool allownegative = false;
   if (mindev<0) 
-    out2 << "  Warning: I am getting a negative fractional distance to the H2O\n"
-         << "  reference profile. Some of your H2O fields contain negative values.\n";
+    {
+      out2 << "  Warning: I am getting a negative fractional distance to the H2O\n"
+           << "  reference profile. Some of your H2O fields contain negative values.\n"
+           << "  Will allow negative values also for abs_nls_pert.\n";
+      allownegative = true;
+    }
 
   out3 << "  mindev/maxdev : " << mindev << " / " << maxdev << "\n";
-  Numeric start = 1;
-  // n is used to make sure that there are at least 5 points in total,
-  // as required for 4th order interpolation.
-  // In other words, we add at least two points above and below
-  // the reference profile.
-  Index   n_points = 0;                
-  while ( (mindev < start) || (n_points<2) )
+
+  if (maxdev-mindev < 1e-3)
     {
-      start -= step;
-      ++n_points;
+      mindev=0;
+      maxdev=2;
+      out3 << "  Adjusted mindev/maxdev : " << mindev << " / " << maxdev << "\n";
     }
 
-  Numeric stop  = 1;
-  n_points = 0;                
-  while ( (maxdev > stop) || (n_points<2) )
-    {
-      stop += step;
-      ++n_points;
-    }
+  // We need a completely different approach here from the temperature
+  // case, since there is no correct spacing in an absolute sense,
+  // everything depends on the reference profile. 
+  // Strategy:
+  // - Start with [mindev, 1, maxdev]
+  // - Subdivide the interval above and below 1 as required
+  //
+  // FIXME: Replace h2o_step by n_h2o?
+  // Test which strategy works with Chevallier data.
+  // Something preliminary:
+  
+  linspace(abs_nls_pert, mindev, maxdev, step);
 
-  linspace(abs_nls_pert,start,stop,step);
-
-  // Special treatment for the case that there actually are no
-  // H2O variations present (1-D case blown up to 3D):
-  if (1==abs_nls_pert.nelem())
+  if (abs_nls_pert.nelem() < interp_order+1)
     {
-      out2 << "  No H2O variations, choosing default.\n";
-      abs_nls_pert = MakeVector(1-step, 1, 1+step);
+      nlinspace(abs_nls_pert, mindev, maxdev, interp_order+1);
     }
 
   out2 << "  abs_nls_pert: " << abs_nls_pert[0] << " to " << abs_nls_pert[abs_nls_pert.nelem()-1]
-       << " (fractional units) in steps of " << step
+       << " (fractional units) in steps of " << abs_nls_pert[1]-abs_nls_pert[0]
        << " (" << abs_nls_pert.nelem() << " grid points)\n";
 
 }
@@ -741,6 +739,8 @@ void abs_lookupSetup(// WS Output:
                      const Tensor3& t_field,
                      const Tensor4& vmr_field,
                      const ArrayOfArrayOfSpeciesTag& abs_species,
+                     const Index& abs_nls_interp_order,
+                     const Index& abs_t_interp_order,
                      // Control Parameters:
                      const Numeric& p_step,
                      const Numeric& t_step,
@@ -956,7 +956,7 @@ void abs_lookupSetup(// WS Output:
              gp);
 
       // Temperature perturbations:
-      choose_abs_t_pert(abs_t_pert, tmean, tmin, tmax, t_step);
+      choose_abs_t_pert(abs_t_pert, tmean, tmin, tmax, t_step, abs_t_interp_order);
 //       cout << "abs_t_pert: " << abs_t_pert << "\n";
 
       // Reference VMR profiles,
@@ -975,7 +975,8 @@ void abs_lookupSetup(// WS Output:
                               vmrmean(h2o_index, joker),
                               h2omin,
                               h2omax,
-                              h2o_step);
+                              h2o_step,
+                              abs_nls_interp_order);
         }
       else
         {
@@ -999,6 +1000,8 @@ void abs_lookupSetupBatch(// WS Output:
                           // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
                           const ArrayOfGField4& batch_fields,
+                          const Index& abs_nls_interp_order,
+                          const Index& abs_t_interp_order,
                           // Control Parameters:
                           const Numeric& p_step,
                           const Numeric& t_step,
@@ -1008,6 +1011,8 @@ void abs_lookupSetupBatch(// WS Output:
   // FIXME: Some runtime input variable checks here, e.g.:
   // Field names for first batch case, is T, z, in the right place? Do
   // the species match?
+
+  // FXIME: Adjustment of min/max values for Jacobian perturbations is still missing. 
 
   // Make an intelligent choice for the nonlinear species.
   choose_abs_nls(abs_nls, abs_species);
@@ -1218,13 +1223,13 @@ void abs_lookupSetupBatch(// WS Output:
   // Construct abs_t_pert:
   ConstVectorView tmin = datamin(0,joker);
   ConstVectorView tmax = datamax(0,joker);
-  choose_abs_t_pert(abs_t_pert, abs_t, tmin, tmax, t_step);
+  choose_abs_t_pert(abs_t_pert, abs_t, tmin, tmax, t_step, abs_t_interp_order);
   //  cout << "abs_t_pert: " << abs_t_pert << "\n";
 
   // Construct abs_nls_pert:
   ConstVectorView h2omin = datamin(2,joker);
   ConstVectorView h2omax = datamax(2,joker);
-  choose_abs_nls_pert(abs_nls_pert, abs_vmrs(0,joker), h2omin, h2omax, h2o_step);
+  choose_abs_nls_pert(abs_nls_pert, abs_vmrs(0,joker), h2omin, h2omax, h2o_step, abs_nls_interp_order);
   //  cout << "abs_nls_pert: " << abs_nls_pert << "\n";
 
   // Append the explicitly given user extreme values, if necessary:

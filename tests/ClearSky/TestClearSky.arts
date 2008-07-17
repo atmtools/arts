@@ -115,6 +115,7 @@ AgendaSet( abs_scalar_gas_agenda ){
 
 # Set parameters for absorption lookup table generation
 # ---
+# Arguments omitted for better maintainability of this test file.
 abs_lookupSetup
 
 # Generate absorption lookup table
