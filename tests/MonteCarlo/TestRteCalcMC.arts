@@ -5,7 +5,7 @@
 
 Arts2 {
 
-INCLUDE "general"
+INCLUDE "general.arts"
 
 #### LOAD DATA: these files were created with MCDataPrepare.arts ######
 
@@ -44,7 +44,7 @@ ReadXML( scat_data_raw, "scat_data_raw.xml.generated" )
 
 #### Define Agendas #################################################
 
-AgendaSet(abs_scalar_gas_agenda){
+AgendaSet( abs_scalar_gas_agenda ){
   abs_scalar_gasExtractFromLookup
 }
 
@@ -85,7 +85,7 @@ sensor_responseAntenna
 
 #### Perform Monte Carlo RT Calculation #################################
 
-StringSet(y_unit, "RJBT" )
+StringSet( y_unit, "RJBT" )
 
 NumericSet( mc_std_err,      -1 )
 IndexSet(   mc_max_time,      4 )

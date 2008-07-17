@@ -1,3 +1,16 @@
+2008-07-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-6-43
+
+	* tests/MonteCarlo/TestMonteCarloGeneralGaussian.arts,
+	tests/DOIT/TestDOIT.arts:
+
+	Converted to Arts2 syntax.
+
+	* tests/DOIT/TestDOIT2.arts: Removed.
+
+	* tests/MonteCarlo/TestRteCalcMC.arts: general -> general.arts
+
 2008-07-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-6-42
