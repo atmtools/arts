@@ -1,5 +1,12 @@
 2008-07-18  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-7-0
+
+	* Increase minor version number because the previous change breaks
+	controlfile compatibility.
+
+2008-07-18  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-6-46
 
 	* src/parser.cc:
