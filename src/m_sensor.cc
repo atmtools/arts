@@ -1131,17 +1131,22 @@ void f_gridFromSensor(// WS Output:
         ConstVectorView this_grid = backend_channel_response[i][s].get_numeric_grid(0);
         const Numeric this_f_backend = f_backend[i][s];
 
+        // We need to add a bit of extra margin at both sides,
+        // otherwise there is a numerical problem in the sensor
+        // WSMs. We take 1% of the requested frequncy grid spacing. 
+        const Numeric delta = 0.01 * spacing;
+
         // Signal sideband:
-        fabs_min[ifabs] = this_f_backend + this_grid[0];
-        fabs_max[ifabs] = this_f_backend + this_grid[this_grid.nelem()-1];
+        fabs_min[ifabs] = this_f_backend + this_grid[0] - delta;
+        fabs_max[ifabs] = this_f_backend + this_grid[this_grid.nelem()-1] + delta;
         ++ifabs;
         
         // Image sideband:
         Numeric offset  = this_f_backend - lo[i];
         Numeric f_image = lo[i] - offset;
 
-        fabs_min[ifabs] = f_image + this_grid[0];                  
-        fabs_max[ifabs] = f_image + this_grid[this_grid.nelem()-1];
+        fabs_min[ifabs] = f_image + this_grid[0] - delta;                  
+        fabs_max[ifabs] = f_image + this_grid[this_grid.nelem()-1] + delta;
         ++ifabs;
       }
 

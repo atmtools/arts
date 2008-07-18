@@ -98,13 +98,11 @@ ReadXML( backend_channel_response_multi,
 
 # Frequency grid:
 #
-ReadXML( f_grid, "amsu/amsub.f_grid.xml" )
-#ReadXML( f_grid, "new_grid.xml" )
-#f_gridFromSensor
-#WriteXML( output_file_format, f_grid, "new_grid.xml" )
-# FIXME: There is a strange numerical problem in the sensor part right now. 
-# The auto-generated grid works only if saved and re-read!
+f_gridFromSensor
 
+
+# Construct sensor response from all these inputs:
+#
 sensor_responseInit
 sensor_responseMultiMixerBackend
 

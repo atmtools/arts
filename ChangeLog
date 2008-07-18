@@ -1,3 +1,14 @@
+2008-07-18  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-7-1
+
+	* src/m_sensor.cc (f_gridFromSensor): Add some margin around the
+	actual band frequency borders, in order to avoid numerical problem
+	in sensor WSMs. The margin added is 1% of the requested frequency
+	grid spacing.
+
+	* includes/amsu/amsub.arts: Now uses f_gridFromSensor.
+
 2008-07-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-7-0
