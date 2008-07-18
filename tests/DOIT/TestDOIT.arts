@@ -82,6 +82,7 @@ AgendaSet( surface_prop_agenda ){
 #--------------------------------------
 # This file holds the viewing angles of the sensor:
 IndexSet( nelem, 1 )
+VectorCreate( vector_1 )
 VectorSet( vector_1, nelem, 99.7841941981 )
 
 #IndexSet( nelem, 19 )
@@ -89,6 +90,7 @@ VectorSet( vector_1, nelem, 99.7841941981 )
 
 # Sensor altitude from earth surface
 nelemGet( nelem, vector_1 )
+VectorCreate( vector_2 )
 VectorSet( vector_2, nelem, 95000.1 )
 
 # Add Earth Radius

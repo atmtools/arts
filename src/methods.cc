@@ -1578,6 +1578,48 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ArrayOfLineRecordCreate" ),
+        DESCRIPTION
+        (
+         "Creates an empty ArrayOfLineRecord.\n"
+         "\n"
+         "If the variable already exists, it will be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   ArrayOfLineRecord: New empty ArrayOfLineRecord.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( ArrayOfLineRecord_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ArrayOfLineshapeSpecCreate" ),
+        DESCRIPTION
+        (
+         "Creates an empty ArrayOfLineshapeSpec.\n"
+         "\n"
+         "If the variable already exists, it will be reset.\n"
+         "\n"
+         "Generic output: \n"
+         "   ArrayOfLineshapeSpec: New empty ArrayOfLineshapeSpec.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( ArrayOfLineshapeSpec_ ),
+        GINPUT(),
+        KEYWORDS(),
+        DEFAULTS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ArrayOfMatrixCreate" ),
         DESCRIPTION
         (

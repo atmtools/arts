@@ -1066,11 +1066,30 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
                   }
                 else
                   {
-                    wsvid = Workspace::add_wsv(
-                              WsvRecord(wsvname.c_str(),
-                                        "Automatically allocated variable.",
-                                        mdd->GOutput()[j],
-                                        true));
+                    if (mdd->Name().length() > 6
+                        && mdd->Name().substr (mdd->Name().length() - 6)
+                        != "Create")
+                      {
+                        ostringstream os;
+                        os << "This might be either a typo or you have to create "
+                          << "the variable\nby calling "
+                          << wsv_group_names[mdd->GOutput()[j]]
+                          << "Create( " << wsvname
+                          << " ) first.\n";
+
+                        throw UnknownWsv( os.str(),
+                                          msource.File(),
+                                          msource.Line(),
+                                          msource.Column() );
+                      }
+                    else
+                      {
+                        wsvid = Workspace::add_wsv(
+                          WsvRecord(wsvname.c_str(),
+                                    "Automatically allocated variable.",
+                                    mdd->GOutput()[j],
+                                    true));
+                      }
                   }
               }
 
@@ -1446,11 +1465,30 @@ void ArtsParser::parse_output(const MdRecord* mdd, ArrayOfIndex& output, bool& f
               }
             else
               {
-                wsvid = Workspace::add_wsv(
-                          WsvRecord(wsvname.c_str(),
-                                    "Automatically allocated variable.",
-                                    Workspace::wsv_data[*outs].Group(),
-                                    true));
+                if (mdd->Name().length() > 6
+                    && mdd->Name().substr (mdd->Name().length() - 6)
+                    != "Create")
+                  {
+                    ostringstream os;
+                    os << "This might be either a typo or you have to create "
+                      << "the variable\nby calling "
+                      << wsv_group_names[Workspace::wsv_data[*outs].Group()]
+                      << "Create( " << wsvname
+                      << " ) first.\n";
+
+                    throw UnknownWsv( os.str(),
+                                      msource.File(),
+                                      msource.Line(),
+                                      msource.Column() );
+                  }
+                else
+                  {
+                    wsvid = Workspace::add_wsv(
+                      WsvRecord(wsvname.c_str(),
+                                "Automatically allocated variable.",
+                                Workspace::wsv_data[*outs].Group(),
+                                true));
+                  }
               }
           }
 

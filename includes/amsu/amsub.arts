@@ -32,6 +32,7 @@ AgendaSet( surface_prop_agenda ){
 # only for O3, where only the local lines matter.
 # Could be speed-optimized further by selecting only the relevant 
 # lines from the line list.
+ArrayOfLineshapeSpecCreate( abs_lineshapeDefine )
 abs_lineshapeDefine( abs_lineshapeDefine, "Voigt_Kuntz6", "VVH", 5e9 )
 
 SpeciesSet( abs_species, [ "H2O-PWR98",

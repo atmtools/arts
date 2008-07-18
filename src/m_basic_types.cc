@@ -71,14 +71,6 @@
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfMatrixCreate(// WS Generic Output:
-                         ArrayOfMatrix& aom )
-{
-  aom = ArrayOfMatrix();
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfMatrixInsert(// WS Generic Output:
                          ArrayOfMatrix&        aom_out,
                          // WS Generic Input:
@@ -116,14 +108,6 @@ void ArrayOfMatrixInsert(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfStringCreate(// WS Generic Output:
-                         ArrayOfString& aos )
-{
-  aos = ArrayOfString();
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfStringSet(
               ArrayOfString&  sa,
         const ArrayOfString&  sa2 )
@@ -150,14 +134,6 @@ void FlagOn(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void IndexCreate(// WS Generic Output:
-                 Index& i )
-{
-  i = 0;
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void IndexSet(    Index&    x,
             const Index&    value )
 {
@@ -170,14 +146,6 @@ void IndexStep(
       const Index&     xin)
 {
   xout = xin + 1;
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixCreate(// WS Generic Output:
-                  Matrix& m )
-{
-  m = Matrix();
 }
 
 
@@ -356,14 +324,6 @@ void MatrixSet(           Matrix&    x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void NumericCreate(// WS Generic Output:
-                   Numeric& n )
-{
-  n = 0.;
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void NumericSet(      Numeric&   x,
                 const Numeric&   value )
 {
@@ -372,34 +332,10 @@ void NumericSet(      Numeric&   x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void SparseCreate(// WS Generic Output:
-                  Sparse& s )
-{
-  s = Sparse();
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void StringCreate(// WS Generic Output:
-                  String& s )
-{
-  s = "";
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void StringSet(           String&  s, 
                     const String&  s2 )
 {
   s = s2;
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor3Create(// WS Generic Output:
-                   Tensor3& t )
-{
-  t = Tensor3();
 }
 
 
@@ -503,14 +439,6 @@ void Tensor3Set(          Tensor3&   x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor4Create(// WS Generic Output:
-                   Tensor4& t )
-{
-  t = Tensor4();
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor4Scale(        Tensor4&  out,
                     const Tensor4&  in,
                     const Numeric&  value )
@@ -544,14 +472,6 @@ void Tensor4Set(          Tensor4&   x,
   out3 << "            npages : " << npages << "\n";
   out3 << "             nrows : " << nrows  << "\n";
   out3 << "             ncols : " << ncols  << "\n";
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor5Create(// WS Generic Output:
-                   Tensor5& t _U_ )
-{
-  t = Tensor5();
 }
 
 
@@ -596,14 +516,6 @@ void Tensor5Set(          Tensor5&   x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor6Create(// WS Generic Output:
-                   Tensor6& t _U_ )
-{
-  t = Tensor6();
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor6Scale(        Tensor6&  out,
                     const Tensor6&  in,
                     const Numeric&  value )
@@ -642,14 +554,6 @@ void Tensor6Set(          Tensor6&   x,
   out3 << "            npages : " << npages    << "\n";
   out3 << "             nrows : " << nrows     << "\n";
   out3 << "             ncols : " << ncols     << "\n";
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor7Create(// WS Generic Output:
-                   Tensor7& t )
-{
-  t = Tensor7();
 }
 
 
@@ -717,14 +621,6 @@ void VectorAddScalar(
       out = in;
       out += value;
     }
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void VectorCreate(// WS Generic Output:
-                  Vector& v )
-{
-  v = Vector();
 }
 
 
