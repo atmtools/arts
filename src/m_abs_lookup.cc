@@ -709,7 +709,11 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
   // Test which strategy works with Chevallier data.
   // Something preliminary:
   
-  linspace(abs_nls_pert, mindev, maxdev, step);
+  linspace(abs_nls_pert, mindev, maxdev+step, step);
+  // FIXME: The maxdev+step is necessary, because linspace may not get
+  // up to maxdev. This is preliminary, there should be something more
+  // elaborate here.
+  
 
   if (abs_nls_pert.nelem() < interp_order+1)
     {
