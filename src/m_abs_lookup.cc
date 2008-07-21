@@ -750,6 +750,11 @@ void abs_lookupSetup(// WS Output:
                      const Numeric& t_step,
                      const Numeric& h2o_step)
 {
+  // For consistency with other code around arts (e.g., correlation
+  // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
+  // convert it here to the natural log:
+  const Numeric p_step = log(pow(10.0, p_step10));
+
   // Checks on input parameters:
   
   // We don't actually need lat_grid and lon_grid, but we have them as
@@ -1007,16 +1012,21 @@ void abs_lookupSetupBatch(// WS Output:
                           const Index& abs_nls_interp_order,
                           const Index& abs_t_interp_order,
                           // Control Parameters:
-                          const Numeric& p_step,
+                          const Numeric& p_step10,
                           const Numeric& t_step,
                           const Numeric& h2o_step,
                           const Vector&  extremes)
 {
+  // For consistency with other code around arts (e.g., correlation
+  // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
+  // convert it here to the natural log:
+  const Numeric p_step = log(pow(10.0, p_step10));
+
   // FIXME: Some runtime input variable checks here, e.g.:
   // Field names for first batch case, is T, z, in the right place? Do
   // the species match?
 
-  // FXIME: Adjustment of min/max values for Jacobian perturbations is still missing. 
+  // FIXME: Adjustment of min/max values for Jacobian perturbations is still missing. 
 
   // Make an intelligent choice for the nonlinear species.
   choose_abs_nls(abs_nls, abs_species);

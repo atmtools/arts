@@ -892,7 +892,7 @@ void define_md_data_raw()
          "and *abs_t_pert* for the chosen interpolation order.\n"
          "\n"
          "Keywords:\n"
-         "   p_step   : Maximum step in log(p[Pa]) (natural logarithm, as always). If\n"
+         "   p_step   : Maximum step in log10(p[Pa]) (base 10 logarithm). If\n"
          "              the pressure grid is coarser than this, additional points\n"
          "              are added until each log step is smaller than this.\n"
          "              Has a default value.\n"
@@ -926,7 +926,7 @@ void define_md_data_raw()
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "p_step",  "t_step",  "h2o_step" ),
-        DEFAULTS( "0.05",    "5",       "0.5" ),
+        DEFAULTS( "0.02",    "5",       "0.5" ),
         TYPES(    Numeric_t, Numeric_t, Numeric_t )));
 
   md_data_raw.push_back     
@@ -959,7 +959,7 @@ void define_md_data_raw()
          "and *abs_t_pert* for the chosen interpolation order.\n"
          "\n"
          "Keywords:\n"
-         "   p_step   : Maximum step in log(p[Pa]) (natural logarithm, as always). If\n"
+         "   p_step   : Maximum step in log10(p[Pa]) (base 10 logarithm). If\n"
          "              the pressure grid is coarser than this, additional points\n"
          "              are added until each log step is smaller than this.\n"
          "              Has a default value.\n"
@@ -990,7 +990,7 @@ void define_md_data_raw()
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "p_step",  "t_step",  "h2o_step", "extremes" ),
-        DEFAULTS( "0.05",    "5",       "0.5",      "[]" ),
+        DEFAULTS( "0.02",    "5",       "0.5",      "[]" ),
         TYPES(    Numeric_t, Numeric_t, Numeric_t,  Vector_t )));
 
   md_data_raw.push_back
