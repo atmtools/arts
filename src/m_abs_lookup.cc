@@ -746,7 +746,7 @@ void abs_lookupSetup(// WS Output:
                      const Index& abs_nls_interp_order,
                      const Index& abs_t_interp_order,
                      // Control Parameters:
-                     const Numeric& p_step,
+                     const Numeric& p_step10,
                      const Numeric& t_step,
                      const Numeric& h2o_step)
 {
