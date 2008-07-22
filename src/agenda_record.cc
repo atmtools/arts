@@ -25,6 +25,7 @@
 
 #include <map>
 #include <iostream>
+#include "messages.h"
 #include "agenda_record.h"
 #include "wsv_aux.h"
 #include "workspace_ng.h"
@@ -115,7 +116,7 @@ bool check_agenda_data()
   for ( j=0; j<Workspace::wsv_data.nelem(); ++j )
     {
       // Is this an agenda WSV?
-      if ( Agenda_ == Workspace::wsv_data[j].Group() )
+      if ( get_wsv_group_id ("Agenda") == Workspace::wsv_data[j].Group() )
         {
           //      cout << "Checking agenda_data for " << Workspace::wsv_data[j].Name() << ".\n";
 
@@ -211,7 +212,7 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
 
   // We need a special treatment for the case that the WSV is an agenda.
 
-  if ( Agenda_ != wr.Group() )
+  if ( get_wsv_group_id("Agenda") != wr.Group() )
     {
       // No agenda.
       

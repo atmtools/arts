@@ -196,7 +196,7 @@ void option_methods(const String& methods)
             }
           else if  ( count( mdd.GOutput().begin(),
                       mdd.GOutput().end(),
-                      Any_ ) )
+                      get_wsv_group_id("Any") ) )
             {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
@@ -276,7 +276,7 @@ void option_methods(const String& methods)
             }
           else if  ( count( mdd.GOutput().begin(),
                       mdd.GOutput().end(),
-                      Any_ ) )
+                      get_wsv_group_id("Any") ) )
             {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
@@ -352,7 +352,7 @@ void option_input(const String& input)
             }
           else if  ( count( mdd.GInput().begin(),
                       mdd.GInput().end(),
-                      Any_ ) )
+                      get_wsv_group_id("Any") ) )
             {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
@@ -432,7 +432,7 @@ void option_input(const String& input)
             }
           else if  ( count( mdd.GInput().begin(),
                       mdd.GInput().end(),
-                      Any_ ) )
+                      get_wsv_group_id("Any") ) )
             {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
@@ -595,30 +595,6 @@ void option_describe(const String& describe)
 }
 
 
-//! Checks the dimensions of stuff in generated headers.
-/*!
-  The header files wsv.h and md.h are generated automatically from the
-  files workspace.cc and methods.cc. This function checks, if at least
-  the dimensions agree between the .h files and the .cc files.
-
-  FIXME: Update this, add automatic wsv groups.
-
-  \author Stefan Buehler
-  \date   2000-08-04
-*/
-void check_built_headers()
-{
-  // Make lookup data visible:
-  //  extern const Array<MdRecord>  md_data;
-  DEBUG_ONLY (extern const ArrayOfString wsv_group_names);
-
-  // Checks:
-  assert( N_WSV_GROUPS == wsv_group_names.nelem() );
-  assert( N_WSV        == Workspace::wsv_data.nelem()        );
-
-}
-
-
 /** This is the main function of ARTS. (You never guessed that, did you?)
     The getopt_long function is used to parse the command line parameters.
  
@@ -701,11 +677,11 @@ int main (int argc, char **argv)
   // For the next couple of options we need to have the workspce and
   // method lookup data.
 
-  // Initialize the md data:
-  define_md_data_raw();
-
   // Initialize the wsv group name array:
   define_wsv_group_names();
+
+    // Initialize the md data:
+  define_md_data_raw();
 
   // Expand supergeneric methods:
   expand_md_data_raw_to_md_data();

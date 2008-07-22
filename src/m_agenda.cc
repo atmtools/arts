@@ -25,6 +25,7 @@
 
 #include <map>
 #include "agenda_class.h"
+#include "messages.h"
 #include "wsv_aux.h"
 #include "agenda_record.h"
 #include "workspace_ng.h"

@@ -37,7 +37,6 @@
 #include "matpackIII.h"
 #include "matpackVI.h"
 #include "array.h"
-#include "auto_wsv_groups.h"
 #include "wsv_aux.h"
 #include "ppath.h"
 #include "workspace_ng.h"
@@ -117,7 +116,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Unit: 1/m\n"
         ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -128,7 +127,7 @@ void Workspace::define_wsv_data()
        "tag group. The Array contains one matrix for each tag group,\n"
        "the matrix format is the same as that of abs_coef\n"
       ),
-      GROUP( ArrayOfMatrix_ )));
+      GROUP( "ArrayOfMatrix" )));
 
 //   wsv_data.push_back
 //    (WsvRecord
@@ -137,7 +136,7 @@ void Workspace::define_wsv_data()
 //       (
 //         "See agendas.cc.\n"
 //        ),
-//       GROUP( Agenda_)));
+//       GROUP( "Agenda" )));
   
   wsv_data.push_back
     (WsvRecord
@@ -150,7 +149,7 @@ void Workspace::define_wsv_data()
        "for each entry in `abs_cont_names'.See also the online" 
        "documentation in arts/doc/doxygen/html/continua_cc.html.\n"
       ),
-      GROUP( ArrayOfString_ )));
+      GROUP( "ArrayOfString" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -296,7 +295,7 @@ void Workspace::define_wsv_data()
        "    calculating thermal emission by rain!\n"
        "    Please use rain-MPM93 only for calculation of attenuation.\n"
       ),
-      GROUP( ArrayOfString_ )));
+      GROUP( "ArrayOfString" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -309,7 +308,7 @@ void Workspace::define_wsv_data()
        "`abs_cont_names'. See also the online documentation in\n"
        "arts/doc/doxygen/html/continua_cc.html.\n"
       ),
-      GROUP( ArrayOfVector_ )));
+      GROUP( "ArrayOfVector" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -318,7 +317,7 @@ void Workspace::define_wsv_data()
       (
        "The total water profile associated with the pressures in abs_p [-]\n"
       ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -327,7 +326,7 @@ void Workspace::define_wsv_data()
        (
         "A list of spectral line data.\n"
        ), 
-       GROUP( ArrayOfLineRecord_ )));
+       GROUP( "ArrayOfLineRecord" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -339,7 +338,7 @@ void Workspace::define_wsv_data()
         "abs_tags for different isotopes or transitions of a species, you\n"
         "may use different lineshapes.\n"
        ),
-       GROUP( ArrayOfLineshapeSpec_ )));
+       GROUP( "ArrayOfLineshapeSpec" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -349,7 +348,7 @@ void Workspace::define_wsv_data()
         "A list of spectral line data for each tag.\n"
         "Dimensions: (tag_groups.nelem()) (# of lines for this tag)\n"
        ), 
-       GROUP( ArrayOfArrayOfLineRecord_ )));
+       GROUP( "ArrayOfArrayOfLineRecord" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -366,7 +365,7 @@ void Workspace::define_wsv_data()
         "class GasAbsLookup for details. FIXME: Add here a reference to AUG,\n"
         "once the chapter on the lookup table has been written.\n"
         ), 
-       GROUP( GasAbsLookup_ )));
+       GROUP( "GasAbsLookup" )));
 
     wsv_data.push_back
       (WsvRecord
@@ -390,7 +389,7 @@ void Workspace::define_wsv_data()
           "See user guide and online documentation of *abs_pts* and *abs_lookupCreate*\n"
           "for more details and usage examples.\n"
           ), 
-         GROUP( ArrayOfArrayOfSpeciesTag_ )));
+         GROUP( "ArrayOfArrayOfSpeciesTag" )));
 
     wsv_data.push_back
       (WsvRecord
@@ -406,7 +405,7 @@ void Workspace::define_wsv_data()
           "variable is: [1e-24, 1, 2].\n"
           "(This is similar to *abs_t_pert*, but multiplicative, not additive.)\n"
           ), 
-         GROUP( Vector_ )));
+         GROUP( "Vector" )));
 
     wsv_data.push_back
       (WsvRecord
@@ -422,7 +421,7 @@ void Workspace::define_wsv_data()
           "Note that the number of points used in the interpolation scheme is\n"
           "interpolation order + 1 (e.g., two for first order interpolation).\n"
           ), 
-         GROUP( Index_ )));
+         GROUP( "Index" )));
 
     wsv_data.push_back
       (WsvRecord
@@ -438,7 +437,7 @@ void Workspace::define_wsv_data()
           "Note that the number of points used in the interpolation scheme is\n"
           "interpolation order + 1 (e.g., two for first order interpolation).\n"
           ), 
-         GROUP( Index_ )));
+         GROUP( "Index" )));
 
     wsv_data.push_back
       (WsvRecord
@@ -453,7 +452,7 @@ void Workspace::define_wsv_data()
           "contain 0, to include the reference profile itself. Example content:\n"
           "[-5, 0, 5].\n"
           ), 
-         GROUP( Vector_ )));
+         GROUP( "Vector" )));
 
     wsv_data.push_back
       (WsvRecord
@@ -469,7 +468,7 @@ void Workspace::define_wsv_data()
           "Note that the number of points used in the interpolation scheme is\n"
           "interpolation order + 1 (e.g., two for first order interpolation).\n"
           ), 
-         GROUP( Index_ )));
+         GROUP( "Index" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -481,7 +480,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Values: 0=false, 1=true.\n"
         ), 
-       GROUP( Index_ )));
+       GROUP( "Index" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -490,7 +489,7 @@ void Workspace::define_wsv_data()
       (
        "The total nitrogen profile associated with the pressures in abs_p [-]\n"
       ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -510,7 +509,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit: Pa\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -531,7 +530,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit: 1/m\n"
        ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -540,7 +539,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_)));
+      GROUP( "Agenda" )));
   
   wsv_data.push_back
    (WsvRecord
@@ -561,7 +560,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [species, f_grid, p_grid, lat_grid, lon_grid]\n"
         ),
-      GROUP( Tensor5_ ))); 
+      GROUP( "Tensor5" ))); 
 
   wsv_data.push_back
     (WsvRecord
@@ -575,7 +574,7 @@ void Workspace::define_wsv_data()
         "coefficients.  See online documentation of method *abs_speciesSet* for\n"
         "more detailed information how tag groups work and some examples.\n"
         ), 
-       GROUP( ArrayOfArrayOfSpeciesTag_ )));
+       GROUP( "ArrayOfArrayOfSpeciesTag" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -593,7 +592,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit: K\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
  wsv_data.push_back
     (WsvRecord
@@ -623,7 +622,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [f_grid, stokes_dim]\n"
         ),
-       GROUP( Matrix_ )));
+       GROUP( "Matrix" )));
 
  wsv_data.push_back
     (WsvRecord
@@ -645,7 +644,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Dimensions: [part_types,stokes_dim]\n"
         ),
-       GROUP( Matrix_ ) ));
+       GROUP( "Matrix" ) ));
 
   wsv_data.push_back
     (WsvRecord
@@ -655,7 +654,7 @@ void Workspace::define_wsv_data()
        "The VMRs (unit: absolute number) on the abs_p grid.\n"
        "Dimensions: [tag_groups.nelem(), abs_p.nelem()]\n"
       ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -673,7 +672,7 @@ void Workspace::define_wsv_data()
         "Unit:       m^2 (alpha = xsec * n * VMR),\n"
         "            where n is total density.\n"
         ),
-       GROUP( ArrayOfMatrix_ )));
+       GROUP( "ArrayOfMatrix" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -689,7 +688,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:      Set by the user.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -719,7 +718,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Size:  [ number of antennae, 1 or 2 ]\n"
        ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -763,7 +762,7 @@ void Workspace::define_wsv_data()
        "      Vector aa_grid[N_aa]\n"
        "      Tensor4 data[N_pol][N_f][N_za][N_aa]\n"
        ),
-      GROUP( GField4_ )));
+      GROUP( "GField4" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -787,7 +786,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:      Set by the user.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -818,7 +817,7 @@ void Workspace::define_wsv_data()
        "      Vector lon_grid[N_lon]\n"
        "      Tensor4 data[N_fields][N_p][N_lat][N_lon]\n"
        ),
-      GROUP( GField4_ )));
+      GROUP( "GField4" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -846,7 +845,7 @@ void Workspace::define_wsv_data()
        "       [N_f] \n"
        "       [N_f] \n"
        ),
-      GROUP( ArrayOfGField1_ )));
+      GROUP( "ArrayOfGField1" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -863,7 +862,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Unit:       Hz\n"
         ),
-      GROUP( ArrayOfArrayOfGField1_ )));
+      GROUP( "ArrayOfArrayOfGField1" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -875,7 +874,7 @@ void Workspace::define_wsv_data()
        "This is used to hold a set of *atm_fields_compact* for batch\n"
        "calculations. \n"
        ),
-      GROUP( ArrayOfGField4_ )));
+      GROUP( "ArrayOfGField4" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -887,7 +886,7 @@ void Workspace::define_wsv_data()
        "This is used to hold a set of *cloudbox-limits* for batch\n"
        "calculations. \n"
        ),
-      GROUP( ArrayOfArrayOfIndex_ )));
+      GROUP( "ArrayOfArrayOfIndex" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -899,7 +898,7 @@ void Workspace::define_wsv_data()
        "This is used to hold a set of 1D *pnd_fields* for batch\n"
        "calculations. \n"
        ),
-      GROUP( ArrayOfTensor4_ )));
+      GROUP( "ArrayOfTensor4" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -919,7 +918,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:      Set by the user.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -961,7 +960,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Size:  [ 2 * atmosphere_dim ]\n"
        ),
-      GROUP( ArrayOfIndex_ )));
+      GROUP( "ArrayOfIndex" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -981,7 +980,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [ppath_array][ 1 ppath.np, f_grid, stokes_dim ]\n"
        ),
-      GROUP( ArrayOfTensor4_ )));
+      GROUP( "ArrayOfTensor4" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -999,7 +998,7 @@ void Workspace::define_wsv_data()
        "Dimensions: \n"
        "     [ppath_array][ rte_do_vmr_species, ppath.np, f_grid, stokes_dim ]\n"
        ),
-      GROUP( ArrayOfTensor4_ )));
+      GROUP( "ArrayOfTensor4" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1015,7 +1014,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Method output. \n"
       ), 
-      GROUP( Index_ ))); 
+      GROUP( "Index" ))); 
 
  wsv_data.push_back
    (WsvRecord
@@ -1024,7 +1023,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_ )));
+      GROUP( "Agenda" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1046,7 +1045,7 @@ void Workspace::define_wsv_data()
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
        "        N_za, N_aa, N_i ]\n"
        ),
-       GROUP( Tensor6_ )));
+       GROUP( "Tensor6" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1068,7 +1067,7 @@ void Workspace::define_wsv_data()
        "       (cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
        "        N_za, N_aa, N_i ]\n"
        ),
-      GROUP( Tensor4_ )));
+      GROUP( "Tensor4" )));
  
  wsv_data.push_back
    (WsvRecord
@@ -1092,7 +1091,7 @@ void Workspace::define_wsv_data()
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
        "        N_za, N_aa, N_i ]\n"
        ),
-      GROUP( Tensor6_ )));
+      GROUP( "Tensor6" )));
  
  wsv_data.push_back
    (WsvRecord
@@ -1104,7 +1103,7 @@ void Workspace::define_wsv_data()
        "This flag is checked by *ScatteringDoit* to make sure that\n"
        "*DoitInit* was called before.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1116,7 +1115,7 @@ void Workspace::define_wsv_data()
        "This variable holds the number of iterations \n"
        "while solving the VRTE using the DOIT method. \n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1125,7 +1124,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_ )));
+      GROUP( "Agenda" )));
  
  wsv_data.push_back
    (WsvRecord
@@ -1134,7 +1133,7 @@ void Workspace::define_wsv_data()
       (
        "See agendas.cc.\n"
        ),
-      GROUP( Agenda_ ))); 
+      GROUP( "Agenda" ))); 
 
  wsv_data.push_back
    (WsvRecord
@@ -1143,7 +1142,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_ ))); 
+      GROUP( "Agenda" ))); 
 
  wsv_data.push_back
    (WsvRecord
@@ -1165,7 +1164,7 @@ void Workspace::define_wsv_data()
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
        "        N_za, N_aa, N_i ]\n"
        ),
-      GROUP( Tensor6_ )));   
+      GROUP( "Tensor6" )));   
 
  wsv_data.push_back
    (WsvRecord
@@ -1183,7 +1182,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Unit:    degrees \n"
         ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1198,7 +1197,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Output of *DoitAngularGridsSet*.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
  
  wsv_data.push_back
    (WsvRecord
@@ -1213,7 +1212,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Set by user in *doit_za_interpSet*. \n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1233,7 +1232,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [ f_grid ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
  wsv_data.push_back
     (WsvRecord
@@ -1242,7 +1241,7 @@ void Workspace::define_wsv_data()
        (
         "See agendas.cc.\n"
         ),
-       GROUP(  Agenda_ )));
+       GROUP( "Agenda" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1272,7 +1271,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [f_grid, stokes_dim, stokes_dim]\n"
        ),
-       GROUP( Tensor3_ )));
+       GROUP( "Tensor3" )));
 
   wsv_data.push_back
      (WsvRecord
@@ -1291,7 +1290,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [part_types, stokes_dim, stokes_dim]\n"
        ),
-      GROUP( Tensor3_ )));
+      GROUP( "Tensor3" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1304,7 +1303,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage:   Input to *WriteXMLIndexed* and *ReadXMLIndexed*. \n"
         ),
-        GROUP( Index_ )));
+        GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1313,7 +1312,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_)));
+      GROUP( "Agenda" )));
   
   wsv_data.push_back
     (WsvRecord
@@ -1325,7 +1324,7 @@ void Workspace::define_wsv_data()
         "This is the index that is used by method *ForLoop* to loop over\n"
         "*forloop_agenda*. \n"
         ),
-        GROUP( Index_ )));
+        GROUP( "Index" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1338,7 +1337,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Unit:       Hz\n"
         ),
-        GROUP( Vector_ )));
+        GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1360,7 +1359,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Unit:       Hz\n"
         ),
-        GROUP( ArrayOfVector_ )));
+        GROUP( "ArrayOfVector" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1373,7 +1372,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Unit:       Hz\n"
         ),
-        GROUP( Vector_ )));
+        GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1396,7 +1395,7 @@ void Workspace::define_wsv_data()
        "                     *opt_prop_gas_agenda\n"
        "                     *opt_prop_part_agenda*.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1409,7 +1408,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Unit:       Hz\n"
         ),
-        GROUP( Vector_ )));
+        GROUP( "Vector" )));
   
  wsv_data.push_back
    (WsvRecord
@@ -1418,7 +1417,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_ )));
+      GROUP( "Agenda" )));
 
 
   wsv_data.push_back
@@ -1434,7 +1433,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [Magnetic field B, angle between B and los] \n"
        ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1457,7 +1456,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [ f_grid, stokes_dim ]\n"
        ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
 
  wsv_data.push_back
     (WsvRecord
@@ -1466,7 +1465,7 @@ void Workspace::define_wsv_data()
        (
         "See agendas.cc.\n"
         ),
-       GROUP(  Agenda_ )));
+       GROUP( "Agenda" )));
 
  wsv_data.push_back
     (WsvRecord
@@ -1475,7 +1474,7 @@ void Workspace::define_wsv_data()
        (
         "See agendas.cc.\n"
         ),
-       GROUP(  Agenda_ )));
+       GROUP( "Agenda" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1495,7 +1494,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [ f_grid, stokes_dim ]\n"
        ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1516,7 +1515,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Dimension:   [ y, number of retrieval quantities and grids ]\n"
       ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1525,7 +1524,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_ )));
+      GROUP( "Agenda" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1539,7 +1538,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:      Set by *jacobianClose*.\n"
       ),
-      GROUP( ArrayOfArrayOfIndex_ )));
+      GROUP( "ArrayOfArrayOfIndex" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1548,7 +1547,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_ )));
+      GROUP( "Agenda" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1580,7 +1579,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       degrees\n"
       ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1609,7 +1608,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       degrees\n"
       ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1626,7 +1625,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:        Pa\n"
       ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1645,7 +1644,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Set by the user.\n"
         ),
-       GROUP( String_)));
+       GROUP( "String" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1662,7 +1661,7 @@ void Workspace::define_wsv_data()
        "         jacobianAddTemp,\n"
        "         ...\n"
       ),
-      GROUP( ArrayOfRetrievalQuantity_ )));
+      GROUP( "ArrayOfRetrievalQuantity" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1695,7 +1694,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       degrees\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1719,7 +1718,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  degrees\n"
        ),
-      GROUP( Numeric_ )));
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1736,7 +1735,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Set by the user.\n"
        ),
-      GROUP( Numeric_ )));
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1754,7 +1753,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Set by the user.\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1781,7 +1780,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  degrees\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1798,7 +1797,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       m \n"
        ),
-      GROUP( Numeric_ )));
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1807,7 +1806,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_)));
+      GROUP( "Agenda" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1828,7 +1827,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  degrees\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1849,7 +1848,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  degrees\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1862,7 +1861,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Input to MCGeneral \n"
         ), 
-       GROUP( MCAntenna_ )));
+       GROUP( "MCAntenna" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1873,7 +1872,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
         ), 
-       GROUP( Numeric_ )));
+       GROUP( "Numeric" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1885,7 +1884,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
         ), 
-       GROUP( Numeric_ )));
+       GROUP( "Numeric" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1900,7 +1899,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Size:  [ stokes_dim ]\n"
         ), 
-       GROUP( Vector_ )));
+       GROUP( "Vector" )));
 
   /* Removed as ScatteringMonteCarlo is not working
   wsv_data.push_back
@@ -1916,7 +1915,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Units: [m,degrees,W / (m^2 Hz sr)]\n"
         ), 
-       GROUP( SLIData2_ )));
+       GROUP( "SLIData2" )));
   */
 
   wsv_data.push_back
@@ -1929,7 +1928,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Set by ScatteringMonteCarlo.\n"
         ),
-       GROUP( Index_)));
+       GROUP( "Index" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1940,7 +1939,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
         ), 
-       GROUP( Numeric_ )));
+       GROUP( "Numeric" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1951,7 +1950,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
         ), 
-       GROUP( Numeric_ )));
+       GROUP( "Numeric" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1962,7 +1961,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Set by MCGeneral.\n"
         ),
-       GROUP( Tensor3_)));
+       GROUP( "Tensor3" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1974,7 +1973,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Set by MCSetSeed.\n"
         ),
-       GROUP( Index_)));
+       GROUP( "Index" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1985,7 +1984,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Set by the user.\n"
         ),
-       GROUP( Numeric_ )));
+       GROUP( "Numeric" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1998,7 +1997,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Unit: s\n"
         ),
-       GROUP( Index_ )));
+       GROUP( "Index" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -2010,7 +2009,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Set by the user.\n"
         ),
-       GROUP( Index_ )));
+       GROUP( "Index" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -2024,7 +2023,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Set by the user.\n"
         ),
-       GROUP( Index_ )));
+       GROUP( "Index" )));
 
   /*  wsv_data.push_back
     (WsvRecord
@@ -2038,7 +2037,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Set by the user.\n"
         ),
-        GROUP( String_)));*/
+        GROUP( "String" )));*/
 
   wsv_data.push_back
    (WsvRecord
@@ -2058,7 +2057,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit: degrees\n"
        ),
-      GROUP( Numeric_ )));
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2076,7 +2075,7 @@ void Workspace::define_wsv_data()
        "\n"
        "See documentation of WSM *ybatchMetProfiles* for more information.\n"
        ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
  
  wsv_data.push_back
    (WsvRecord
@@ -2085,7 +2084,7 @@ void Workspace::define_wsv_data()
       (
         "This variable is used by the VectorSet workspace method.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2095,7 +2094,7 @@ void Workspace::define_wsv_data()
         "This variable is used by the MatrixSet, Tensor3Set, etc. \n"
         "workspace methods.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2104,7 +2103,7 @@ void Workspace::define_wsv_data()
       (
         "See *ncols*.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2113,7 +2112,7 @@ void Workspace::define_wsv_data()
       (
         "See *ncols*.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2122,7 +2121,7 @@ void Workspace::define_wsv_data()
       (
         "See *ncols*.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2131,7 +2130,7 @@ void Workspace::define_wsv_data()
       (
         "See *ncols*.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2140,7 +2139,7 @@ void Workspace::define_wsv_data()
       (
         "See *ncols*.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2149,7 +2148,7 @@ void Workspace::define_wsv_data()
       (
         "See *ncols*.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2158,7 +2157,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_)));
+      GROUP( "Agenda" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2167,7 +2166,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_)));
+      GROUP( "Agenda" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -2176,7 +2175,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_)));
+      GROUP( "Agenda" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -2191,7 +2190,7 @@ void Workspace::define_wsv_data()
        "To change the value of this variable use the workspace methods\n"
        "*output_file_formatSetAscii* and *output_file_formatSetBinary*\n"
        ),
-      GROUP( String_ )));
+      GROUP( "String" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -2202,7 +2201,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Set by the user\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
     wsv_data.push_back
    (WsvRecord
@@ -2225,7 +2224,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [ scat_za_grid, scat_aa_grid, stokes_dim, stokes_dim ]\n"
        ),
-      GROUP( Tensor4_ )));
+      GROUP( "Tensor4" )));
    
    wsv_data.push_back
    (WsvRecord
@@ -2248,7 +2247,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [part_types, scat_za_grid, scat_aa_grid, stokes_dim, stokes_dim]\n"
        ),
-      GROUP( Tensor5_ )));
+      GROUP( "Tensor5" )));
 
     wsv_data.push_back
    (WsvRecord
@@ -2257,7 +2256,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_ ))); 
+      GROUP( "Agenda" ))); 
 
    wsv_data.push_back
    (WsvRecord
@@ -2281,7 +2280,7 @@ void Workspace::define_wsv_data()
        "[T, scat_za_grid,scat_aa_grid, scat_za_grid, scat_aa_grid,\n"
        "stokes_dim, stokes_dim]\n"
        ),
-      GROUP( ArrayOfTensor7_ )));
+      GROUP( "ArrayOfTensor7" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -2303,7 +2302,7 @@ void Workspace::define_wsv_data()
        "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1 ] \n"
         ),
-      GROUP( Tensor4_ )));
+      GROUP( "Tensor4" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -2330,7 +2329,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [N_retrieval_quantities, as *pnd_field* ]\n"
         ),
-      GROUP( Tensor5_ )));
+      GROUP( "Tensor5" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2358,7 +2357,7 @@ void Workspace::define_wsv_data()
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        ),
-      GROUP( ArrayOfGField3_ )));
+      GROUP( "ArrayOfGField3" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2380,7 +2379,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Output from the method *ppathCalc*.\n"
        ),
-      GROUP( Ppath_ )));
+      GROUP( "Ppath" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2404,7 +2403,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: See above.\n"
        ),
-      GROUP( ArrayOfPpath_ )));
+      GROUP( "ArrayOfPpath" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2420,7 +2419,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Set by *RteCalc*.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2436,7 +2435,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Communication with *iy_calc*.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2449,7 +2448,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Ppath methods such as *ppath_stepGeometric*.\n"
        ),
-      GROUP( Numeric_ )));
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2463,7 +2462,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Refraction ppath methods such as *ppath_stepRefractionEuler*.\n"
        ),
-      GROUP( Numeric_ )));
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2484,7 +2483,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Members: See AUG.\n"
        ),
-      GROUP( Ppath_ )));
+      GROUP( "Ppath" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2493,7 +2492,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_ )));
+      GROUP( "Agenda" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2502,7 +2501,7 @@ void Workspace::define_wsv_data()
       (
         "?\n"
        ),
-      GROUP( Tensor4_ )));
+      GROUP( "Tensor4" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -2527,7 +2526,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  Pa\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -2544,7 +2543,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit: 1\n"
        ),
-      GROUP( Numeric_ )));
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2553,7 +2552,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_ )));
+      GROUP( "Agenda" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2562,7 +2561,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_ )));
+      GROUP( "Agenda" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2576,7 +2575,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:   Set internally, by *RteCalc*.\n"
       ),
-      GROUP( ArrayOfIndex_ )));
+      GROUP( "ArrayOfIndex" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2587,7 +2586,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:   Set internally, by *RteCalc*.\n"
       ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2602,7 +2601,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:   Set internally.\n"
        ),
-      GROUP( GridPos_ )));
+      GROUP( "GridPos" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2617,7 +2616,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:   Set internally.\n"
        ),
-      GROUP( GridPos_ )));
+      GROUP( "GridPos" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2632,7 +2631,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:   Set internally.\n"
        ),
-      GROUP( GridPos_ )));
+      GROUP( "GridPos" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2658,7 +2657,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Size:  [ 1 or 2 ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2674,7 +2673,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       W / (m^2 Hz sr)\n "
        ),
-      GROUP( Numeric_ )));
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2700,7 +2699,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Size:  [ atmosphere_dim ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2717,7 +2716,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Units: [ Pa ]\n"
        ),
-      GROUP( Numeric_ )));
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2734,7 +2733,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Units: [ K ]\n"
        ),
-      GROUP( Numeric_ )));
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2754,7 +2753,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Size:  Should match abs_species.nelem()\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2787,7 +2786,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [ lat_grid, lon_grid ]\n"
        ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -2806,7 +2805,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Unit:       degrees \n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2824,7 +2823,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:    Method output.\n"
        ),
-     GROUP( Index_ ))); 
+     GROUP( "Index" ))); 
 
    wsv_data.push_back
      (WsvRecord
@@ -2838,7 +2837,7 @@ void Workspace::define_wsv_data()
          "*scat_data_monoCalc*, which interpolates scat_data_raw for the \n"
          "required frequency.\n"
          ),
-        GROUP( ArrayOfSingleScatteringData_ ))); 
+        GROUP( "ArrayOfSingleScatteringData" ))); 
 
    wsv_data.push_back
      (WsvRecord
@@ -2870,7 +2869,7 @@ void Workspace::define_wsv_data()
          "  Tensor4[abs_vec_data]\n"
          "      [f_grid, za_grid, aa_grid, matrix_element]\n"
          ),
-        GROUP( ArrayOfSingleScatteringData_ ))); 
+        GROUP( "ArrayOfSingleScatteringData" ))); 
    
  wsv_data.push_back
    (WsvRecord
@@ -2899,7 +2898,7 @@ void Workspace::define_wsv_data()
        "Dimensions: [ f_grid, p_grid, latitude surface, lon_grid, \n"
        "              scat_za_grid \n  scat_aa_grid, stokes_dim ]\n"
        ),
-      GROUP( Tensor7_ )));
+      GROUP( "Tensor7" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2928,7 +2927,7 @@ void Workspace::define_wsv_data()
        "Dimensions: [ f_grid, p_grid, lat_grid, latitude surface, \n"
        "              scat_za_grid, scat_aa_grid, stokes_dim]\n"
        ),
-      GROUP( Tensor7_ )));
+      GROUP( "Tensor7" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2956,7 +2955,7 @@ void Workspace::define_wsv_data()
        "Dimensions: [ f_grid, pressure surfaces, lat_grid, lon_grid, \n" 
        "              scat_za_grid, scat_aa_grid, stokes_dim]\n"
        ),
-      GROUP( Tensor7_ )));
+      GROUP( "Tensor7" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2973,7 +2972,7 @@ void Workspace::define_wsv_data()
        "Usage:    Input to the methods *spt_calc_agenda*,\n"
        "                               *pha_mat_spt_agenda*\n"
        ),
-     GROUP( Index_ ))); 
+     GROUP( "Index" ))); 
 
  wsv_data.push_back
    (WsvRecord
@@ -2990,7 +2989,7 @@ void Workspace::define_wsv_data()
        "Usage:    Input to the methods *spt_calc_agenda*,\n"
        "                               *pha_mat_spt_agenda*\n"
        ),
-     GROUP( Index_ ))); 
+     GROUP( "Index" ))); 
 
   wsv_data.push_back
    (WsvRecord
@@ -3007,7 +3006,7 @@ void Workspace::define_wsv_data()
        "Usage:    Input to the methods *spt_calc_agenda*,\n"
        "                               *pha_mat_spt_agenda*\n"
        ),
-     GROUP( Index_ ))); 
+     GROUP( "Index" ))); 
   
   wsv_data.push_back
     (WsvRecord
@@ -3026,7 +3025,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Unit:       degrees \n"
         ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3041,7 +3040,7 @@ void Workspace::define_wsv_data()
        "Usage:    Input to the agendas *spt_calc_agenda*, \n "
        "                               *pha_mat_spt_agenda*.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
  
  
@@ -3075,7 +3074,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Size:  [ number of measurement blocks, 1 or 2 ]\n"
        ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3094,7 +3093,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Set by the user.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
   /* Sensor polarisation not yet updated 
   wsv_data.push_back
@@ -3131,7 +3130,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Size:  [ number of recorded polarisations, stokes_dim ]\n"
        ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
   */
 
   wsv_data.push_back
@@ -3160,7 +3159,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Size:  [ number of measurement blocks, atmosphere_dim ]\n"
        ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3184,7 +3183,7 @@ void Workspace::define_wsv_data()
         "Dimension:     See the individual *sensor_response...* method \n"
         "               documentation.\n"
        ),
-      GROUP( Sparse_ )));
+      GROUP( "Sparse" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3204,7 +3203,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  [ degrees ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3228,7 +3227,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  [ degrees ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3250,7 +3249,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  [ Hz ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3268,7 +3267,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  [ Hz ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3290,7 +3289,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  [ - ]\n"
        ),
-      GROUP( ArrayOfIndex_ )));
+      GROUP( "ArrayOfIndex" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3307,7 +3306,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  [ - ]\n"
        ),
-      GROUP( ArrayOfIndex_ )));
+      GROUP( "ArrayOfIndex" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3327,7 +3326,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  [ degrees ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3351,7 +3350,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  [ degrees ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   /* Sensor rotation not yet updated 
   wsv_data.push_back
@@ -3383,7 +3382,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Size:  [ number of antennae or one ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
   */
 
   wsv_data.push_back
@@ -3404,7 +3403,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Size:  [ number of measurement blocks ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3420,7 +3419,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Set by the user.\n"
        ),
-      GROUP( String_ )));
+      GROUP( "String" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3435,7 +3434,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Set by the user.\n"
        ),
-      GROUP( ArrayOfString_ )));
+      GROUP( "ArrayOfString" )));
 
 
   wsv_data.push_back
@@ -3464,7 +3463,7 @@ void Workspace::define_wsv_data()
        "      Vector f_grid[N_f]\n"
        "      Vector data[N_f]\n"
        ),
-      GROUP( GField1_ )));
+      GROUP( "GField1" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3481,7 +3480,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Set by the user.\n"
        ),
-      GROUP( ArrayOfGField1_ )));
+      GROUP( "ArrayOfGField1" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3510,7 +3509,7 @@ void Workspace::define_wsv_data()
        "  Tensor5[abs_vec_data]\n"
        "      [f_grid, T_grid, za_grid, aa_grid, matrix_element]\n"
        ),
-      GROUP( SingleScatteringData_ )));
+      GROUP( "SingleScatteringData" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -3523,7 +3522,7 @@ void Workspace::define_wsv_data()
        "controle file specified list of tags for which calculations should\n"
        "be performed.\n"
        ),
-      GROUP( ArrayOfIndex_ )));
+      GROUP( "ArrayOfIndex" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3534,7 +3533,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:      Set by the user.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -3543,7 +3542,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_ )));
+      GROUP( "Agenda" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -3558,7 +3557,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:      Calculated internally.\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
  
    wsv_data.push_back
      (WsvRecord
@@ -3577,7 +3576,7 @@ void Workspace::define_wsv_data()
           "\n"
           "Dimensions: [ f_grid, stokes_dim ]\n"
          ), 
-        GROUP( Matrix_ )));
+        GROUP( "Matrix" )));
 
    wsv_data.push_back
      (WsvRecord
@@ -3589,7 +3588,7 @@ void Workspace::define_wsv_data()
           "\n"
           "Unit: a value between 0 and 1\n"
          ), 
-        GROUP( Numeric_ )));
+        GROUP( "Numeric" )));
 
    wsv_data.push_back
      (WsvRecord
@@ -3599,7 +3598,7 @@ void Workspace::define_wsv_data()
           "\n"
           "Dimensions: [ lat_grid, lon_grid ]\n"
          ), 
-        GROUP( Matrix_ )));
+        GROUP( "Matrix" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -3615,7 +3614,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Size:  [ any number, 1 or 2 ]\n"
         ), 
-       GROUP( Matrix_ )));
+       GROUP( "Matrix" )));
 
  wsv_data.push_back
     (WsvRecord
@@ -3624,7 +3623,7 @@ void Workspace::define_wsv_data()
        (
         "See agendas.cc.\n"
         ),
-       GROUP(  Agenda_ )));
+       GROUP( "Agenda" )));
   
   wsv_data.push_back
     (WsvRecord
@@ -3651,7 +3650,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Dimensions: [ surface_los, f_grid, stokes_dim, stokes_dim ]\n"
         ), 
-       GROUP( Tensor4_ )));
+       GROUP( "Tensor4" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -3662,7 +3661,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:   Input to methods for *iy_surface_agenda*.\n"
        ),
-      GROUP( Numeric_ )));
+      GROUP( "Numeric" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -3671,7 +3670,7 @@ void Workspace::define_wsv_data()
       (
        "Stores the starting time for time measurements.\n"
        ),
-      GROUP( Timer_ )));
+      GROUP( "Timer" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3696,7 +3695,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
        ),
-      GROUP( Tensor3_ )));
+      GROUP( "Tensor3" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -3722,7 +3721,7 @@ void Workspace::define_wsv_data()
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        ),
-      GROUP( GField3_ )));
+      GROUP( "GField3" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3745,7 +3744,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [species, p_grid, lat_grid, lon_grid]\n"
         ),
-      GROUP( Tensor4_ ))); 
+      GROUP( "Tensor4" ))); 
 
   wsv_data.push_back
    (WsvRecord
@@ -3775,7 +3774,7 @@ void Workspace::define_wsv_data()
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        ),
-      GROUP( ArrayOfGField3_ )));
+      GROUP( "ArrayOfGField3" )));
 
 
   wsv_data.push_back
@@ -3791,7 +3790,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage:      Set by user.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3809,7 +3808,7 @@ void Workspace::define_wsv_data()
        "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
        "       optical thickness.\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3827,7 +3826,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  [ degrees ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3844,7 +3843,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  [ Hz ]\n"
        ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3861,7 +3860,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  [ - ]\n"
        ),
-      GROUP( ArrayOfIndex_ )));
+      GROUP( "ArrayOfIndex" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -3887,7 +3886,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Set by the user.\n"
         ),
-       GROUP( String_)));
+       GROUP( "String" )));
   // If adding more options for *y_unit*, these needs to be implemented in:
   //   1. apply_y_unit in rte.cc
   //   2. yUnit in m_rte.cc
@@ -3909,7 +3908,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  [ degrees ]\n"
         ),
-      GROUP( Vector_ )));
+      GROUP( "Vector" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -3926,7 +3925,7 @@ void Workspace::define_wsv_data()
        "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
        "       optical thickness.\n"
        ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -3935,7 +3934,7 @@ void Workspace::define_wsv_data()
       (
         "See agendas.cc.\n"
        ),
-      GROUP( Agenda_ )));
+      GROUP( "Agenda" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -3949,7 +3948,7 @@ void Workspace::define_wsv_data()
        "Usage: Set by *ybatchCalc*, for communication with\n"
        "       *bach_update_agenda*.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -3962,7 +3961,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Output from *batch_pre_agenda*.\n"
        ),
-      GROUP( Index_ )));
+      GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3996,7 +3995,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [ p_grid, lat_grid, lon_grid ]\n"
        ),
-      GROUP( Tensor3_ )));
+      GROUP( "Tensor3" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -4005,7 +4004,7 @@ void Workspace::define_wsv_data()
       (
        "Variable for testing the new gridded fields implementation.\n"
        ),
-      GROUP( GField3_ )));
+      GROUP( "GField3" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -4031,7 +4030,7 @@ void Workspace::define_wsv_data()
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        ),
-      GROUP( GField3_ )));
+      GROUP( "GField3" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -4062,7 +4061,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Dimensions: [ lat_grid, lon_grid ]\n"
        ),
-      GROUP( Matrix_ )));
+      GROUP( "Matrix" )));
  
 
   //--------------------------------------------------------------------------------
@@ -4094,7 +4093,7 @@ void Workspace::define_wsv_data()
 //        "\n"
 //        "Dimensions: [f_grid, stokes_dim]\n"
 //         ),
-//        GROUP( Matrix_ )));
+//        GROUP( "Matrix" )));
 
 // wsv_data.push_back
 //     (WsvRecord
@@ -4114,7 +4113,7 @@ void Workspace::define_wsv_data()
 //        "\n"
 //        "Dimensions: [f_grid, stokes_dim, stokes_dim]\n"
 //        ),
-//        GROUP( Tensor3_ )));
+//        GROUP( "Tensor3" )));
 
 //  wsv_data.push_back
 //    (WsvRecord
@@ -4123,7 +4122,7 @@ void Workspace::define_wsv_data()
 //       (
 //         "See agendas.cc.\n"
 //        ),
-//       GROUP( Agenda_ )));
+//       GROUP( "Agenda" )));
 
 //   wsv_data.push_back
 //     (WsvRecord
@@ -4135,7 +4134,7 @@ void Workspace::define_wsv_data()
 //        "If zeeman_o2_onoff=1 the Zeeman effect is considered,\n"
 //        "and if zeeman_o2_onoff=0 the Zeeman effect is omitted.\n"
 //        ),
-//       GROUP( Index_ )));
+//       GROUP( "Index" )));
  
 //   wsv_data.push_back
 //     (WsvRecord
@@ -4147,7 +4146,7 @@ void Workspace::define_wsv_data()
 //        "This variable sets the upper pressure limit [Pa] at which the\n"
 //        " Zeeman splitting is taken into account\n"
 //        ),
-//       GROUP( Numeric_ )));
+//       GROUP( "Numeric" )));
 
 //   wsv_data.push_back
 //     (WsvRecord
@@ -4159,11 +4158,7 @@ void Workspace::define_wsv_data()
 //        "number N, postive values of zeeman_o2_line are N+ transitions,\n"
 //        "negative are N-.\n"
 //        ),
-//       GROUP( Index_ )));
-
-
-
-
-
+//       GROUP( "Index" )));
 
 }
+

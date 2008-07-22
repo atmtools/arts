@@ -47,11 +47,11 @@ int main()
       extern const ArrayOfString wsv_group_names;
       const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
 
-      // Initialize method data.
-      define_md_data_raw();
-
       // Initialize the wsv group name array:
       define_wsv_group_names();
+
+      // Initialize method data.
+      define_md_data_raw();
 
       // Expand supergeneric methods:
       expand_md_data_raw_to_md_data();
@@ -87,7 +87,6 @@ int main()
       ofs << "#include \"arts.h\"\n"
           << "#include \"make_array.h\"\n"
           << "#include \"auto_md.h\"\n"
-          << "#include \"auto_wsv_groups.h\"\n"
           << "#include \"wsv_aux.h\"\n"
           << "#include \"m_append.h\"\n"
           << "#include \"m_delete.h\"\n"
@@ -172,7 +171,7 @@ int main()
           // Create copy of input agendas with private workspace
           for (Index j=0; j<vi.nelem(); ++j)
             {
-              if (wsv_data[vi[j]].Group() == Agenda_)
+              if (wsv_data[vi[j]].Group() == get_wsv_group_id("Agenda"))
                 {
 #ifdef _OPENMP
                   ofs << "  Agenda AI" << j
@@ -250,7 +249,7 @@ int main()
               // Add comma and line break, if not first element:
               align(ofs,is_first_parameter,indent);
 
-              if (wsv_data[vi[j]].Group() == Agenda_)
+              if (wsv_data[vi[j]].Group() == get_wsv_group_id("Agenda"))
                 {
                   ofs << "AI" << j;
                 }
@@ -478,7 +477,7 @@ int main()
           ofs << "}\n\n";
         }
     }
-  catch (exception x)
+  catch (runtime_error x)
     {
       cout << "Something went wrong. Message text:\n";
       cout << x.what() << '\n';

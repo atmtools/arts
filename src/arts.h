@@ -128,6 +128,7 @@
 //---------------< Global function declarations: >---------------
 // Documentations are with function definitions.
 void define_wsv_group_names();  
+Index get_wsv_group_id(const String& name);
 void define_species_data();
 void define_lineshape_data();
 void define_lineshape_norm_data();

@@ -72,6 +72,10 @@ int main()
 {
   try
     {
+
+      // Initialize the wsv group name array:
+      define_wsv_group_names();
+
       // Initialize wsv data and wsv group names.
       Workspace::define_wsv_data();
 

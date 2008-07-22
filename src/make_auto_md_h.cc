@@ -542,11 +542,11 @@ int main()
       extern const ArrayOfString wsv_group_names;
       const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
 
-      // Initialize method data.
-      define_md_data_raw();
-
       // Initialize the wsv group name array:
       define_wsv_group_names();
+
+      // Initialize method data.
+      define_md_data_raw();
 
       // Expand supergeneric methods:
       expand_md_data_raw_to_md_data();
@@ -669,7 +669,7 @@ int main()
       ofs.close();
 
     }
-  catch (exception x)
+  catch (runtime_error x)
     {
       cout << "Something went wrong. Message text:\n";
       cout << x.what() << '\n';

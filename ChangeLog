@@ -1,3 +1,77 @@
+2008-07-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-7-6
+
+	* Replacing the enum values for groups in methods.cc by Strings.
+
+	* methods.{h,cc}, methods_aux.cc:
+
+	Change GINPUT and GOUTPUT to String arrays.
+
+	Map the strings to group index in the MdRecord constructor.
+
+	(define_md_data_raw):
+
+	Call define_wsv_group_names here because we have a strict dependency
+	on the group names now.
+
+	* src/workspace.cc:
+
+	Change GROUP to String.
+
+	Don't include auto_wsv_groups.h anymore.
+
+	* src/wsv_aux.h:
+
+	Added constructor that takes the Group name as a String and maps it to
+	the group index.
+
+	Don't include auto_wsv_groups.h anymore.
+
+	Include exceptions.h
+
+	* src/groups.cc (get_wsv_group_id): Added. Finds group id by name.
+
+	* src/main.cc, src/parser.cc, src/methods_aux.cc,
+	src/agenda_record.cc, src/make_auto_md_cc.cc:
+
+	Use new function get_wsv_group_id.
+
+	* src/agenda_record.cc, src/m_agenda.cc: Include messages.h.
+
+	* src/methods.cc, src/globals2.cc:
+
+	Don't include auto_wsv_groups.h anymore.
+
+	* src/methods_aux.cc: Don't include auto_wsv.h anymore.
+
+	* src/make_auto_md_cc.cc:
+
+	Don't include auto_wsv_groups.h in generated source anymore.
+
+	* src/make_auto_wsv_h.cc (main):
+
+	Call define_wsv_group_names before Workspace::define_wsv_data.
+	
+	* src/make_auto_wsv_groups_h.cc (main):
+
+	Remove N_WSV_GROUPS and WsvGroup from generated source.
+
+	* src/main.cc (main):
+
+	Call define_wsv_group_names before define_md_data_raw.
+
+	* src/make_auto_md_{h,cc}.cc:
+
+	Call define_wsv_group_names before define_md_data_raw.
+
+	Catch runtime_error instead of exception to get proper error message
+	output.
+
+	* src/main.cc (check_built_headers): Removed unused function.
+
+	* src/arts.h: Add prototype for get_wsv_group_id.
+
 2008-07-22  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-7-5

@@ -111,3 +111,18 @@ void define_wsv_group_names()
   wsv_group_names.push_back("SLIData2");
 }
 
+Index get_wsv_group_id(const String& name)
+{
+  Index ret = -1;
+  Index index = 0;
+  while (index < wsv_group_names.nelem() && ret == -1)
+    {
+      // loop while more elements remain and while key not found. 
+      if (wsv_group_names[index] == name)
+        ret = index;
+      index++;
+    }
+
+  return ret;
+}
+

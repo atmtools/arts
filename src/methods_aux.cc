@@ -30,7 +30,6 @@
 #include "arts.h"
 #include <map>
 #include "make_array.h"
-#include "auto_wsv.h"
 #include "methods.h"
 #include "wsv_aux.h"
 #include "workspace_ng.h"
@@ -47,8 +46,8 @@ MdRecord::MdRecord(const char                   name[],
                    const MakeArray<String>&     authors,
                    const MakeArray<Index>&      output,
                    const MakeArray<Index>&      input,   
-                   const MakeArray<Index>&      goutput,
-                   const MakeArray<Index>&      ginput,   
+                   const MakeArray<String>&     goutput,
+                   const MakeArray<String>&     ginput,   
                    const MakeArray<String>&     keywords,
                    const MakeArray<String>&     defaults,
                    const MakeArray<TokValType>& types,
@@ -61,8 +60,8 @@ MdRecord::MdRecord(const char                   name[],
     mauthors(       authors               ),
     moutput(        output                ),  
     minput(         input                 ),   
-    mgoutput(       goutput               ),  
-    mginput(        ginput                ),   
+    mgoutput(       0                     ),  
+    mginput(        0                     ),   
     mkeywords(      keywords              ),
     mdefaults(      defaults              ),
     mtypes(         types                 ),
@@ -86,13 +85,42 @@ MdRecord::MdRecord(const char                   name[],
       // keyword.)
       assert( mkeywords.nelem() == mdefaults.nelem() );
 
+      // Map the group names to groups' indexes
+      mgoutput.resize(goutput.nelem());
+      for ( Index j=0; j<goutput.nelem(); ++j )
+        {
+          mgoutput[j] = get_wsv_group_id (goutput[j]);
+          if (mgoutput[j] == -1)
+            {
+              ostringstream os;
+
+              os << "Unknown WSV Group " << goutput[j] << " for generic output"
+                << "  in WSM " << mname;
+              throw runtime_error( os.str() );
+            }
+        }
+
+      mginput.resize(ginput.nelem());
+      for ( Index j=0; j<ginput.nelem(); ++j )
+        {
+          mginput[j] = get_wsv_group_id (ginput[j]);
+          if (mginput[j] == -1)
+            {
+              ostringstream os;
+
+              os << "Unknown WSV Group " << ginput[j] << " for generic input"
+                << "  in WSM " << mname;
+              throw runtime_error( os.str() );
+            }
+        }
+
       // Find out if this method is supergeneric, and set the flag if
       // yes:
       for ( Index j=0; j<mgoutput.nelem(); ++j )
-        if ( Any_ == mgoutput[j] )
+        if ( get_wsv_group_id("Any") == mgoutput[j] )
           msupergeneric = true;
       for ( Index j=0; j<mginput.nelem(); ++j )
-        if ( Any_ == mginput[j] )
+        if ( get_wsv_group_id("Any") == mginput[j] )
           msupergeneric = true;
     }
 
@@ -132,6 +160,7 @@ MdRecord::MdRecord(const char                   name[],
 */
 void MdRecord::subst_any_with_group( Index g )
 {
+  const Index wsv_group_id_Any = get_wsv_group_id("Any");
   // The group names, we need them for the expansion:
   DEBUG_ONLY (extern const ArrayOfString wsv_group_names);
 
@@ -141,7 +170,7 @@ void MdRecord::subst_any_with_group( Index g )
   // Make sure that g is in the allowed range, which means
   // 0<=g<wsv_group_names.nelem() and g != Any_
   assert( 0 <= g );
-  assert( Any_ != g );
+  assert( wsv_group_id_Any != g );
   assert( g < wsv_group_names.nelem() );
 
   // Make sure that this really is a supergeneric method:
@@ -155,9 +184,9 @@ void MdRecord::subst_any_with_group( Index g )
 //   }
   
   for ( Index j=0; j<mgoutput.nelem(); ++j )
-    if ( Any_ == mgoutput[j] )          mgoutput[j] = g;
+    if ( wsv_group_id_Any == mgoutput[j] )          mgoutput[j] = g;
   for ( Index j=0; j<mginput.nelem(); ++j )
-    if ( Any_ == mginput[j] )           mginput[j] = g;
+    if ( wsv_group_id_Any == mginput[j] )           mginput[j] = g;
 
   // Set the field for the actual group:
   mactual_group = g;
@@ -209,6 +238,8 @@ void expand_md_data_raw_to_md_data()
   // The group names, we need them for the expansion:
   extern const ArrayOfString wsv_group_names;
 
+  const Index wsv_group_id_Any = get_wsv_group_id("Any");
+
   // Make sure that they have been initialized:
   assert ( 0!=wsv_group_names.nelem() );
 
@@ -232,7 +263,7 @@ void expand_md_data_raw_to_md_data()
             {
               // Any_ itself is also a group, but we don't want to
               // create a record for Any_!
-              if ( Any_ != j )
+              if ( wsv_group_id_Any != j )
                 {
                   // Not a reference but a copy this time, since we
                   // have to manipulate this.

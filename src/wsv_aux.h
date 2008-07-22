@@ -28,7 +28,8 @@
 #ifndef wsv_aux_h
 #define wsv_aux_h
 
-#include "auto_wsv_groups.h"
+#include "arts.h"
+#include "exceptions.h"
 
 /** This class contains all static information for one workspace
     variable.
@@ -54,6 +55,29 @@ public:
     each workspace variable. */
   WsvRecord(const char  name[],
             const char  description[],
+            const String group,
+            const bool  implicit = false)
+    : mname(name),
+      mdescription(description),
+      mgroup(-1),
+      mimplicit(implicit)
+  {
+    // Map the group names to groups' indexes
+    mgroup = get_wsv_group_id(group);
+    if (mgroup == -1)
+      {
+        ostringstream os;
+
+        os << "Unknown WSV Group " << group << " WSV " << mname;
+        throw runtime_error( os.str() );
+      }
+  }
+
+  /** Initializing constructor.
+
+    This is used by the parser to create automatically allocated variables */
+  WsvRecord(const char  name[],
+            const char  description[],
             const Index group,
             const bool  implicit = false)
     : mname(name),
@@ -61,7 +85,7 @@ public:
       mgroup(group),
       mimplicit(implicit)
   {
-    //    Nothing to do here.
+    // Nothing to do here
   }
   /** Name of this workspace variable. */
   const String&  Name()        const { return mname;        }   

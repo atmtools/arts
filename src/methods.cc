@@ -33,7 +33,6 @@
 #include "make_array.h"
 #include "auto_wsv.h"
 #include "methods.h"
-#include "auto_wsv_groups.h"
 
 // Some #defines and typedefs to make the records better readable:
 #define NAME(x) x
@@ -41,8 +40,8 @@
 #define AUTHORS  MakeArray<String>
 #define OUTPUT   MakeArray<Index>
 #define INPUT    MakeArray<Index>
-#define GOUTPUT  MakeArray<Index>
-#define GINPUT   MakeArray<Index>
+#define GOUTPUT  MakeArray<String>
+#define GINPUT   MakeArray<String>
 #define KEYWORDS MakeArray<String>
 #define DEFAULTS MakeArray<String>
 #define TYPES    MakeArray<TokValType>
@@ -95,7 +94,7 @@
         OUTPUT(),
         INPUT( z_plat_, abs_p_, z_abs_, l_step_, refr_, refr_lfac_,
                refr_index_, r_geoid_, z_surface_ ),
-        GOUTPUT( Vector_ ),
+        GOUTPUT( "Vector" ),
         GINPUT(),
         KEYWORDS( "delta_t", "z_tan_lim" ),
         DEFAULTS( NODEF,     NODEF ),
@@ -137,7 +136,6 @@ void define_md_data_raw()
 {
   // The variable md_data is defined in file methods_aux.cc.
   extern Array<MdRecord> md_data_raw;
-
 
   // Initialize to zero, just in case:
   md_data_raw.resize(0);
@@ -1145,7 +1143,7 @@ void define_md_data_raw()
         INPUT( abs_species_, jacobian_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_ ),
         GOUTPUT(),
-        GINPUT( Vector_, Vector_, Vector_ ),
+        GINPUT( "Vector", "Vector", "Vector" ),
         KEYWORDS( "species", "method", "unit", "dx" ),
         DEFAULTS( NODEF,     NODEF,    NODEF,  NODEF ),
         TYPES( String_t, String_t, String_t, Numeric_t )));
@@ -1250,7 +1248,7 @@ void define_md_data_raw()
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT(  ArrayOfArrayOfSpeciesTag_ ),
+        GOUTPUT(  "ArrayOfArrayOfSpeciesTag" ),
         GINPUT( ),
         KEYWORDS( "species" ),
         DEFAULTS( NODEF ),
@@ -1397,7 +1395,7 @@ void define_md_data_raw()
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
-        GINPUT( Agenda_ ),
+        GINPUT( "Agenda" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES(),
@@ -1430,7 +1428,7 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(  ),
         INPUT(  ),
-        GOUTPUT( Agenda_ ),
+        GOUTPUT( "Agenda" ),
         GINPUT( ),
         KEYWORDS( ),
         DEFAULTS( ),
@@ -1524,16 +1522,16 @@ void define_md_data_raw()
          "Will append the matrix array 2 to matrix array 1.\n"
          "\n"
          "Supergeneric output:\n"
-         "   Any_ : The output variable.\n"
+         "   Any : The output variable.\n"
          "\n"
          "Supergeneric input:\n"
-         "   Any_ : The input variable.\n"
+         "   Any : The input variable.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Any_ ),
-        GINPUT( Any_ ),
+        GOUTPUT( "Any" ),
+        GINPUT( "Any" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -1554,8 +1552,8 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( ArrayOfGField3_ ),
-        GINPUT(  ArrayOfArrayOfGField3_, Index_ ),
+        GOUTPUT( "ArrayOfGField3" ),
+        GINPUT(  "ArrayOfArrayOfGField3", "Index" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -1570,8 +1568,8 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( ArrayOfIndex_ ),
-        GINPUT(  ArrayOfArrayOfIndex_, Index_ ),
+        GOUTPUT( "ArrayOfIndex" ),
+        GINPUT(  "ArrayOfArrayOfIndex", "Index" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -1591,7 +1589,7 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( ArrayOfLineRecord_ ),
+        GOUTPUT( "ArrayOfLineRecord" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -1612,7 +1610,7 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( ArrayOfLineshapeSpec_ ),
+        GOUTPUT( "ArrayOfLineshapeSpec" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -1633,7 +1631,7 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( ArrayOfMatrix_ ),
+        GOUTPUT( "ArrayOfMatrix" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -1662,8 +1660,8 @@ void define_md_data_raw()
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( ArrayOfMatrix_ ),
-        GINPUT( ArrayOfMatrix_, Matrix_ ),
+        GOUTPUT( "ArrayOfMatrix" ),
+        GINPUT( "ArrayOfMatrix", "Matrix" ),
         KEYWORDS( "element" ),
         DEFAULTS( NODEF ),
         TYPES( Index_t )));
@@ -1683,7 +1681,7 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( ArrayOfString_ ),
+        GOUTPUT( "ArrayOfString" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -1700,7 +1698,7 @@ void define_md_data_raw()
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( ArrayOfString_ ),
+        GOUTPUT( "ArrayOfString" ),
         GINPUT(),
         KEYWORDS( "text" ),
         DEFAULTS( NODEF ),
@@ -1868,7 +1866,7 @@ void define_md_data_raw()
         OUTPUT( atm_fields_compact_ ),
         INPUT(  atmosphere_dim_ ),
         GOUTPUT( ),
-        GINPUT( Matrix_ ),
+        GINPUT( "Matrix" ),
         KEYWORDS( "field_names" ),
         DEFAULTS( NODEF ),
         TYPES(    Array_String_t )));
@@ -1905,7 +1903,7 @@ void define_md_data_raw()
         OUTPUT( batch_atm_fields_compact_ ),
         INPUT(  atmosphere_dim_ ),
         GOUTPUT( ),
-        GINPUT( ArrayOfMatrix_ ),
+        GINPUT( "ArrayOfMatrix" ),
         KEYWORDS( "field_names", "extra_field_names", "extra_field_values" ),
         DEFAULTS( NODEF,         "[]",                "[]" ),
         //        DEFAULTS( NODEF,         NODEF,                NODEF ),
@@ -2289,16 +2287,16 @@ void define_md_data_raw()
          "methods).\n"
          "\n"
          "Supergeneric output:\n"
-         "   Any_ : The output variable.\n"
+         "   Any : The output variable.\n"
          "\n"
          "Supergeneric input:\n"
-         "   Any_ : The input variable.\n"
+         "   Any : The input variable.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Any_ ),
-        GINPUT( Any_ ),
+        GOUTPUT( "Any" ),
+        GINPUT( "Any" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -2313,13 +2311,13 @@ void define_md_data_raw()
          "Deletes a workspace variable.\n"
          "\n"
          "Supergeneric input:\n"
-         "   Any_     : The variable to delete.\n"
+         "   Any     : The variable to delete.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
-        GINPUT(  Any_ ),
+        GINPUT(  "Any" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -2960,13 +2958,13 @@ md_data_raw.push_back
          "Input and output MUST be identical.\n"
          "\n"
          "Supergeneric output:\n"
-         "   Any_ : The input variable.\n"
+         "   Any : The input variable.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Any_ ),
-        GINPUT( Any_ ),
+        GOUTPUT( "Any" ),
+        GINPUT( "Any" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -3151,7 +3149,7 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Index_ ),
+        GOUTPUT( "Index" ),
         GINPUT( ),
         KEYWORDS( ),
         DEFAULTS( ),
@@ -3167,7 +3165,7 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Index_ ),
+        GOUTPUT( "Index" ),
         GINPUT( ),
         KEYWORDS( ),
         DEFAULTS( ),
@@ -3242,8 +3240,8 @@ md_data_raw.push_back
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( GField4_ ),
-        GINPUT(  ArrayOfGField4_, Index_ ),
+        GOUTPUT( "GField4" ),
+        GINPUT(  "ArrayOfGField4", "Index" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -3274,13 +3272,13 @@ md_data_raw.push_back
          "*elsLorentz* does not need it.\n"
          "\n"
          "Supergeneric input:\n"
-         "   Any_ : The input variable.\n"
+         "   Any : The input variable.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
-        GINPUT(  Any_ ),
+        GINPUT(  "Any" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -3345,7 +3343,7 @@ md_data_raw.push_back
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( Index_ ),
+        GOUTPUT( "Index" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -3367,7 +3365,7 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Index_ ),
+        GOUTPUT( "Index" ),
         GINPUT( ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
@@ -3385,8 +3383,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Index_ ),
-        GINPUT( Index_ ),
+        GOUTPUT( "Index" ),
+        GINPUT( "Index" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -3411,8 +3409,8 @@ md_data_raw.push_back
         OUTPUT( ),
         INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
                rte_gp_p_, rte_gp_lat_, rte_gp_lon_ ),
-        GOUTPUT( Numeric_ ),
-        GINPUT( Tensor3_ ),
+        GOUTPUT( "Numeric" ),
+        GINPUT( "Tensor3" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -3437,8 +3435,8 @@ md_data_raw.push_back
         OUTPUT( ),
         INPUT( atmosphere_dim_, lat_grid_, lon_grid_, 
                rte_gp_lat_, rte_gp_lon_ ),
-        GOUTPUT( Numeric_ ),
-        GINPUT( Matrix_ ),
+        GOUTPUT( "Numeric" ),
+        GINPUT( "Matrix" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -3536,7 +3534,7 @@ md_data_raw.push_back
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT( ),
-        GINPUT( Vector_, Vector_, Vector_ ),
+        GINPUT( "Vector", "Vector", "Vector" ),
         KEYWORDS( "species", "method", "unit",   "dx" ),
         DEFAULTS( NODEF,     NODEF,    NODEF,    NODEF),
         TYPES(    String_t,  String_t, String_t, Numeric_t )));
@@ -3568,7 +3566,7 @@ md_data_raw.push_back
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
                pnd_field_, pnd_field_perturb_, cloudbox_limits_ ),
         GOUTPUT( ),
-        GINPUT( Vector_, Vector_, Vector_ ),
+        GINPUT( "Vector", "Vector", "Vector" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -3643,7 +3641,7 @@ md_data_raw.push_back
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT( ),
-        GINPUT( Vector_, Vector_, Vector_ ),
+        GINPUT( "Vector", "Vector", "Vector" ),
         KEYWORDS( "hse",    "method", "dx" ),
         DEFAULTS( NODEF,    NODEF,    NODEF ),
         TYPES(    String_t, String_t, Numeric_t )));
@@ -3895,8 +3893,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( stokes_dim_ ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Vector_ ),
+        GOUTPUT( "Matrix" ),
+        GINPUT( "Vector" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -3916,7 +3914,7 @@ md_data_raw.push_back
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( Matrix_ ),
+        GOUTPUT( "Matrix" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -3944,8 +3942,8 @@ md_data_raw.push_back
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Matrix_, Matrix_ ),
+        GOUTPUT( "Matrix" ),
+        GINPUT( "Matrix", "Matrix" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -3966,8 +3964,8 @@ md_data_raw.push_back
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Vector_ ),
+        GOUTPUT( "Matrix" ),
+        GINPUT( "Vector" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -3992,8 +3990,8 @@ md_data_raw.push_back
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Vector_, Vector_ ),
+        GOUTPUT( "Matrix" ),
+        GINPUT( "Vector", "Vector" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -4019,8 +4017,8 @@ md_data_raw.push_back
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Vector_, Vector_, Vector_ ),
+        GOUTPUT( "Matrix" ),
+        GINPUT( "Vector", "Vector", "Vector" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -4041,8 +4039,8 @@ md_data_raw.push_back
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Vector_ ),
+        GOUTPUT( "Matrix" ),
+        GINPUT( "Vector" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -4067,8 +4065,8 @@ md_data_raw.push_back
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Vector_, Vector_ ),
+        GOUTPUT( "Matrix" ),
+        GINPUT( "Vector", "Vector" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -4094,8 +4092,8 @@ md_data_raw.push_back
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Vector_, Vector_, Vector_ ),
+        GOUTPUT( "Matrix" ),
+        GINPUT( "Vector", "Vector", "Vector" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -4113,8 +4111,8 @@ md_data_raw.push_back
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Matrix_ ),
-        GINPUT(  ArrayOfMatrix_, Index_ ),
+        GOUTPUT( "Matrix" ),
+        GINPUT(  "ArrayOfMatrix", "Index" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -4132,8 +4130,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Matrix_ ),
-        GINPUT(  Tensor3_, Index_ ),
+        GOUTPUT( "Matrix" ),
+        GINPUT(  "Tensor3", "Index" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -4155,8 +4153,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( stokes_dim_ ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Vector_, Numeric_ ),
+        GOUTPUT( "Matrix" ),
+        GINPUT( "Vector", "Numeric" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -4182,8 +4180,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Matrix_ ),
+        GOUTPUT( "Matrix" ),
+        GINPUT( "Matrix" ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
         TYPES(    Numeric_t   )));
@@ -4205,7 +4203,7 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( nrows_, ncols_ ),
-        GOUTPUT( Matrix_ ),
+        GOUTPUT( "Matrix" ),
         GINPUT( ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
@@ -4227,8 +4225,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( stokes_dim_ ),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Vector_ ),
+        GOUTPUT( "Matrix" ),
+        GINPUT( "Vector" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -4419,7 +4417,7 @@ md_data_raw.push_back
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( Numeric_ ),
+        GOUTPUT( "Numeric" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -4441,7 +4439,7 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( Numeric_ ),
+        GOUTPUT( "Numeric" ),
         GINPUT(),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
@@ -4459,7 +4457,7 @@ md_data_raw.push_back
         OUTPUT( nelem_ ),
         INPUT( ),
         GOUTPUT( ),
-        GINPUT( Any_ ),
+        GINPUT( "Any" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -4478,7 +4476,7 @@ md_data_raw.push_back
         OUTPUT( ncols_ ),
         INPUT( ),
         GOUTPUT( ),
-        GINPUT( Any_ ),
+        GINPUT( "Any" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -4497,7 +4495,7 @@ md_data_raw.push_back
         OUTPUT( nrows_ ),
         INPUT( ),
         GOUTPUT( ),
-        GINPUT( Any_ ),
+        GINPUT( "Any" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -4516,7 +4514,7 @@ md_data_raw.push_back
         OUTPUT( npages_ ),
         INPUT( ),
         GOUTPUT( ),
-        GINPUT( Any_ ),
+        GINPUT( "Any" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -4535,7 +4533,7 @@ md_data_raw.push_back
         OUTPUT( nbooks_ ),
         INPUT( ),
         GOUTPUT( ),
-        GINPUT( Any_ ),
+        GINPUT( "Any" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -4554,7 +4552,7 @@ md_data_raw.push_back
         OUTPUT( nshelves_ ),
         INPUT( ),
         GOUTPUT( ),
-        GINPUT( Any_ ),
+        GINPUT( "Any" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -4573,7 +4571,7 @@ md_data_raw.push_back
         OUTPUT( nvitrines_ ),
         INPUT( ),
         GOUTPUT( ),
-        GINPUT( Any_ ),
+        GINPUT( "Any" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -4592,7 +4590,7 @@ md_data_raw.push_back
         OUTPUT( nlibraries_ ),
         INPUT( ),
         GOUTPUT( ),
-        GINPUT( Any_ ),
+        GINPUT( "Any" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
@@ -4612,8 +4610,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Numeric_ ),
-        GINPUT(  Vector_, Index_ ),
+        GOUTPUT( "Numeric" ),
+        GINPUT(  "Vector", "Index" ),
         KEYWORDS(),
         DEFAULTS( ),
         TYPES()));
@@ -5053,7 +5051,7 @@ md_data_raw.push_back
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
-        GINPUT( Any_ ),
+        GINPUT( "Any" ),
         KEYWORDS( "level" ),
         DEFAULTS( "1" ),
         TYPES(    Index_t ),
@@ -5116,7 +5114,7 @@ md_data_raw.push_back
          "Will read the frequency grid *f_grid* from the specified file.\n"
          "\n"
          "Supergeneric output:\n"
-         "   Any_     : The variable to read.\n"
+         "   Any     : The variable to read.\n"
          "\n"
          "Keywords:\n"
          "   filename : Name of the input file.\n"
@@ -5124,7 +5122,7 @@ md_data_raw.push_back
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( Any_ ),
+        GOUTPUT( "Any" ),
         GINPUT(),
         KEYWORDS( "filename" ),
         DEFAULTS( NODEF ),
@@ -5165,8 +5163,8 @@ md_data_raw.push_back
         OUTPUT( refr_index_, rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         INPUT( refr_index_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_, r_geoid_, z_field_, t_field_, vmr_field_ ),
-        GOUTPUT( Tensor4_ ),
-        GINPUT( Vector_, Vector_, Vector_  ),
+        GOUTPUT( "Tensor4" ),
+        GINPUT( "Vector", "Vector", "Vector"  ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -6054,7 +6052,7 @@ md_data_raw.push_back
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( Sparse_ ),
+        GOUTPUT( "Sparse" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -6075,7 +6073,7 @@ md_data_raw.push_back
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( String_ ),
+        GOUTPUT( "String" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -6091,7 +6089,7 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( String_ ),
+        GOUTPUT( "String" ),
         GINPUT( ),
         KEYWORDS( "text"   ),
         DEFAULTS( NODEF ),
@@ -6217,7 +6215,7 @@ md_data_raw.push_back
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( Tensor3_ ),
+        GOUTPUT( "Tensor3" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -6236,8 +6234,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Tensor3_ ),
-        GINPUT(  Tensor4_, Index_ ),
+        GOUTPUT( "Tensor3" ),
+        GINPUT(  "Tensor4", "Index" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -6270,8 +6268,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Tensor3_ ),
-        GINPUT( Vector_ ),
+        GOUTPUT( "Tensor3" ),
+        GINPUT( "Vector" ),
         KEYWORDS( "npages", "nrows", "ncols"   ),
         DEFAULTS( NODEF,    NODEF,   NODEF ),
         TYPES(    Index_t,  Index_t, Index_t )));
@@ -6298,8 +6296,8 @@ md_data_raw.push_back
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Tensor3_ ),
-        GINPUT( Tensor3_ ),
+        GOUTPUT( "Tensor3" ),
+        GINPUT( "Tensor3" ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
         TYPES( Numeric_t )));
@@ -6322,7 +6320,7 @@ md_data_raw.push_back
         AUTHORS( "Claudia Emde" ),
         OUTPUT( ),
         INPUT( npages_, nrows_, ncols_ ),
-        GOUTPUT( Tensor3_ ),
+        GOUTPUT( "Tensor3" ),
         GINPUT( ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
@@ -6343,7 +6341,7 @@ md_data_raw.push_back
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( Tensor4_ ),
+        GOUTPUT( "Tensor4" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -6362,8 +6360,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Tensor4_ ),
-        GINPUT(  Tensor5_, Index_ ),
+        GOUTPUT( "Tensor4" ),
+        GINPUT(  "Tensor5", "Index" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -6378,8 +6376,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Tensor4_ ),
-        GINPUT(  ArrayOfTensor4_, Index_ ),
+        GOUTPUT( "Tensor4" ),
+        GINPUT(  "ArrayOfTensor4", "Index" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -6406,8 +6404,8 @@ md_data_raw.push_back
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Tensor4_ ),
-        GINPUT( Tensor4_ ),
+        GOUTPUT( "Tensor4" ),
+        GINPUT( "Tensor4" ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
         TYPES( Numeric_t )));
@@ -6430,7 +6428,7 @@ md_data_raw.push_back
         AUTHORS( "Claudia Emde" ),
         OUTPUT( ),
         INPUT( nbooks_, npages_, nrows_, ncols_ ),
-        GOUTPUT( Tensor4_ ),
+        GOUTPUT( "Tensor4" ),
         GINPUT( ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
@@ -6451,7 +6449,7 @@ md_data_raw.push_back
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( Tensor5_ ),
+        GOUTPUT( "Tensor5" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -6479,8 +6477,8 @@ md_data_raw.push_back
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Tensor5_ ),
-        GINPUT( Tensor5_ ),
+        GOUTPUT( "Tensor5" ),
+        GINPUT( "Tensor5" ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
         TYPES(    Numeric_t )));
@@ -6503,7 +6501,7 @@ md_data_raw.push_back
         AUTHORS( "Claudia Emde" ),
         OUTPUT( ),
         INPUT( nshelves_, nbooks_, npages_, nrows_, ncols_ ),
-        GOUTPUT( Tensor5_ ),
+        GOUTPUT( "Tensor5" ),
         GINPUT( ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
@@ -6524,7 +6522,7 @@ md_data_raw.push_back
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( Tensor6_ ),
+        GOUTPUT( "Tensor6" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -6552,8 +6550,8 @@ md_data_raw.push_back
         AUTHORS( "Mattias Ekstrom" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Tensor6_ ),
-        GINPUT( Tensor6_ ),
+        GOUTPUT( "Tensor6" ),
+        GINPUT( "Tensor6" ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
         TYPES(    Numeric_t )));
@@ -6577,7 +6575,7 @@ md_data_raw.push_back
         AUTHORS( "Claudia Emde" ),
         OUTPUT( ),
         INPUT( nvitrines_, nshelves_, nbooks_, npages_, nrows_, ncols_ ),
-        GOUTPUT( Tensor6_ ),
+        GOUTPUT( "Tensor6" ),
         GINPUT( ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
@@ -6600,8 +6598,8 @@ md_data_raw.push_back
         AUTHORS( "Claudia Emde" ),
         OUTPUT( ),
         INPUT(f_index_, f_grid_),
-        GOUTPUT( Tensor6_ ),
-        GINPUT( Tensor6_ ),
+        GOUTPUT( "Tensor6" ),
+        GINPUT( "Tensor6" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -6621,7 +6619,7 @@ md_data_raw.push_back
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( Tensor7_ ),
+        GOUTPUT( "Tensor7" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -6649,8 +6647,8 @@ md_data_raw.push_back
         AUTHORS( "Claudia Emde" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Tensor7_ ),
-        GINPUT( Tensor7_ ),
+        GOUTPUT( "Tensor7" ),
+        GINPUT( "Tensor7" ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
         TYPES( Numeric_t )));
@@ -6675,7 +6673,7 @@ md_data_raw.push_back
         OUTPUT( ),
         INPUT( nlibraries_, nvitrines_, nshelves_, nbooks_, npages_, nrows_,
                ncols_ ),
-        GOUTPUT( Tensor7_ ),
+        GOUTPUT( "Tensor7" ),
         GINPUT( ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
@@ -6769,8 +6767,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Vector_ ),
-        GINPUT( Vector_ ),
+        GOUTPUT( "Vector" ),
+        GINPUT( "Vector" ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
         TYPES(    Numeric_t )));
@@ -6790,7 +6788,7 @@ md_data_raw.push_back
         AUTHORS( "Oliver Lemke" ),
         OUTPUT(),
         INPUT(),
-        GOUTPUT( Vector_ ),
+        GOUTPUT( "Vector" ),
         GINPUT(),
         KEYWORDS(),
         DEFAULTS(),
@@ -6812,8 +6810,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson, Oliver Lemke, Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Vector_ ),
-        GINPUT(  Matrix_, Index_ ),
+        GOUTPUT( "Vector" ),
+        GINPUT(  "Matrix", "Index" ),
         KEYWORDS( "direction" ),
         DEFAULTS( NODEF ),
         TYPES(    String_t )));
@@ -6846,8 +6844,8 @@ md_data_raw.push_back
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Vector_ ),
-        GINPUT(  Vector_, Vector_ ),
+        GOUTPUT( "Vector" ),
+        GINPUT(  "Vector", "Vector" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -6877,7 +6875,7 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Vector_ ),
+        GOUTPUT( "Vector" ),
         GINPUT( ),
         KEYWORDS( "start",   "stop",    "step"    ),
         DEFAULTS( NODEF,     NODEF,     NODEF ),
@@ -6912,7 +6910,7 @@ md_data_raw.push_back
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Vector_ ),
+        GOUTPUT( "Vector" ),
         GINPUT( ),
         KEYWORDS( "start",   "stop",    "step"    ),
         DEFAULTS( NODEF,     NODEF,     NODEF ),
@@ -6940,8 +6938,8 @@ md_data_raw.push_back
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Vector_ ),
-        GINPUT(  Matrix_, Vector_ ),
+        GOUTPUT( "Vector" ),
+        GINPUT(  "Matrix", "Vector" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -6966,7 +6964,7 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( nelem_ ),
-        GOUTPUT(Vector_),
+        GOUTPUT("Vector"),
         GINPUT( ),
         KEYWORDS( "start",   "stop"    ),
         DEFAULTS( NODEF,     NODEF     ),
@@ -6993,7 +6991,7 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( nelem_ ),
-        GOUTPUT(Vector_),
+        GOUTPUT("Vector"),
         GINPUT( ),
         KEYWORDS( "start",   "stop"    ),
         DEFAULTS( NODEF,     NODEF     ),
@@ -7020,8 +7018,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Vector_ ),
-        GINPUT( Vector_ ),
+        GOUTPUT( "Vector" ),
+        GINPUT( "Vector" ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
         TYPES(    Numeric_t )));
@@ -7044,7 +7042,7 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson" ),
         OUTPUT( ),
         INPUT( nelem_ ),
-        GOUTPUT( Vector_ ),
+        GOUTPUT( "Vector" ),
         GINPUT( ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
@@ -7070,7 +7068,7 @@ md_data_raw.push_back
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( ),
         INPUT( ),
-        GOUTPUT( Vector_ ),
+        GOUTPUT( "Vector" ),
         GINPUT( ),
         KEYWORDS( "values"   ),
         DEFAULTS( NODEF ),
@@ -7099,8 +7097,8 @@ md_data_raw.push_back
         OUTPUT( refr_index_, rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         INPUT( refr_index_agenda_, sensor_pos_, p_grid_, t_field_, z_field_,
                            vmr_field_, r_geoid_, atmosphere_dim_ ),
-        GOUTPUT( Vector_ ),
-        GINPUT( Vector_ ),
+        GOUTPUT( "Vector" ),
+        GINPUT( "Vector" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -7128,8 +7126,8 @@ md_data_raw.push_back
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUTPUT( ),
         INPUT( sensor_pos_, r_geoid_, atmosphere_dim_ ),
-        GOUTPUT( Vector_ ),
-        GINPUT( Vector_ ),
+        GOUTPUT( "Vector" ),
+        GINPUT( "Vector" ),
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
@@ -7152,7 +7150,7 @@ md_data_raw.push_back
          "Will write the frequency grid *f_grid* to the default file.\n"
          "\n"
          "Supergeneric input:\n"
-         "   Any_     : The variable to write.\n"
+         "   Any     : The variable to write.\n"
          "\n"
          "Keywords:\n"
          "   filename : Name of the output file.\n"
@@ -7161,7 +7159,7 @@ md_data_raw.push_back
         OUTPUT( ),
         INPUT( output_file_format_ ),
         GOUTPUT( ),
-        GINPUT(  Any_ ),
+        GINPUT(  "Any" ),
         KEYWORDS( "filename" ),
         DEFAULTS( "" ),
         TYPES(    String_t   ),
@@ -7189,7 +7187,7 @@ md_data_raw.push_back
          "extension. Omitting filename works as for *WriteXML*.\n"
          "\n"
          "Supergeneric input:\n"
-         "   Any_     : The variable to write.\n"
+         "   Any     : The variable to write.\n"
          "\n"
          "Keywords:\n"
          "   filename : Name of the output file.\n"
@@ -7198,7 +7196,7 @@ md_data_raw.push_back
         OUTPUT( ),
         INPUT( output_file_format_, file_index_ ),
         GOUTPUT( ),
-        GINPUT(  Any_ ),
+        GINPUT(  "Any" ),
         KEYWORDS( "filename" ),
         DEFAULTS( "" ),
         TYPES(    String_t   ),
@@ -7392,7 +7390,7 @@ md_data_raw.push_back
         OUTPUT(),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
                lon_grid_, z_field_, r_geoid_, z_surface_ ),
-        GOUTPUT( Vector_ ),
+        GOUTPUT( "Vector" ),
         GINPUT( ),
         KEYWORDS( "z_recieve", "z_send",  "t_sample", 
                   "z_scan_low", "z_scan_high" ),

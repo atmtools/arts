@@ -68,23 +68,6 @@ int main()
           << "#include \"mc_interp.h\"\n\n"
           << "#include \"mc_antenna.h\"\n\n";
 
-      ofs << "/*! This is only used for a consistency check. You can get the\n"
-          << "    number of groups from wsv_group_names.nelem(). */\n"
-          << "#define N_WSV_GROUPS " << n_wsv_groups << "\n\n";
-
-      ofs << "/*! The enum type that identifies wsv groups.\n"
-          << "    This is used to group workspace variables of the same type\n"
-          << "    together, so that generic methods can operate on any of them. */\n";
-
-      ofs << "enum WsvGroup{\n";
-      // Now write the group handles one by one:
-      for (Index i=0; i<n_wsv_groups; ++i)
-        {
-          ofs << (i?",\n":"") << "  " << wsv_group_names[i] << "_";
-        }
-      ofs << "\n};\n\n";
-
-      
       // Now write the declaration of the WsvP class.
 
       ofs << "/*! Base class for the different Wsv pointers.\n"
