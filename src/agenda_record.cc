@@ -43,12 +43,12 @@
 */
 AgRecord::AgRecord( const char                  name[],
                     const char                  description[],
-                    const MakeArray<Index>&     output,
-                    const MakeArray<Index>&     input ) :   
-  mname(          name                    ),
-  mdescription(   description             ),    
-  moutput(        output          ),  
-  minput(         input           )
+                    const MakeArray<String>&    output,
+                    const MakeArray<String>&    input ) :   
+  mname(          name        ),
+  mdescription(   description ),    
+  moutput(        0           ),  
+  minput(         0           )
 { 
   // We must check that this agenda exists in the workspace
 
@@ -61,6 +61,33 @@ AgRecord::AgRecord( const char                  name[],
   // the name in exactly the same way in both places.
   assert( Workspace::WsvMap.end() !=
           Workspace::WsvMap.find(mname) );
+
+  moutput.resize(output.nelem());
+  for ( Index j=0; j<output.nelem(); ++j )
+    {
+      moutput[j] = get_wsv_id (output[j]);
+      if (moutput[j] == -1)
+        {
+          ostringstream os;
+
+          os << "Unknown output WSV " << output[j] << " in WSM " << mname;
+          throw runtime_error( os.str() );
+        }
+    }
+
+  minput.resize(input.nelem());
+  for ( Index j=0; j<input.nelem(); ++j )
+    {
+      minput[j] = get_wsv_id (input[j]);
+      if (minput[j] == -1)
+        {
+          ostringstream os;
+
+          os << "Unknown input WSV " << input[j] << " in WSM " << mname;
+          throw runtime_error( os.str() );
+        }
+    }
+
 }
 
 void define_agenda_map()

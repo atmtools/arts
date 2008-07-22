@@ -94,8 +94,8 @@ MdRecord::MdRecord(const char                   name[],
             {
               ostringstream os;
 
-              os << "Unknown WSV Group " << goutput[j] << " for generic output"
-                << "  in WSM " << mname;
+              os << "Unknown WSV Group " << goutput[j] << " for generic output "
+                << "in WSM " << mname;
               throw runtime_error( os.str() );
             }
         }
@@ -108,8 +108,8 @@ MdRecord::MdRecord(const char                   name[],
             {
               ostringstream os;
 
-              os << "Unknown WSV Group " << ginput[j] << " for generic input"
-                << "  in WSM " << mname;
+              os << "Unknown WSV Group " << ginput[j] << " for generic input "
+                << "in WSM " << mname;
               throw runtime_error( os.str() );
             }
         }

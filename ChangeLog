@@ -1,5 +1,23 @@
 2008-07-22  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-7-7
+
+	* Continuing migration from enums to Strings. Now replacing all enum
+	values for WSVs in agendas.cc by Strings.
+
+	* src/agendas.cc: Make OUTPUT and INPUT String arrays.
+
+	* src/workspace.cc, src/arts.h: Added get_wsv_id.
+
+	* src/agenda_record.{cc,h}:
+
+	Replace output and input with String array in constructor and map WSV
+	names to ids.
+
+	* src/methods_aux.cc (MdRecord::MdRecord): Remove spurious spaces.
+
+2008-07-22  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-7-6
 
 	* Replacing the enum values for groups in methods.cc by Strings.

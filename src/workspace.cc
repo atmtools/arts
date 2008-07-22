@@ -4162,3 +4162,18 @@ void Workspace::define_wsv_data()
 
 }
 
+Index get_wsv_id(const String& name)
+{
+  Index ret = -1;
+  Index index = 0;
+  while (index < Workspace::wsv_data.nelem() && ret == -1)
+    {
+      // loop while more elements remain and while key not found. 
+      if (Workspace::wsv_data[index].Name() == name)
+        ret = index;
+      index++;
+    }
+
+  return ret;
+}
+

@@ -32,8 +32,8 @@
 // Some #defines and typedefs to make the records better readable:
 #define NAME(x) x 
 #define DESCRIPTION(x) x
-#define OUTPUT   MakeArray<Index>
-#define INPUT    MakeArray<Index>
+#define OUTPUT   MakeArray<String>
+#define INPUT    MakeArray<String>
 
 /*! The lookup information for the agendas. */
 Array<AgRecord> agenda_data;
@@ -56,12 +56,12 @@ void define_agenda_data()
 //        (
 //         "FIXME: This is just a placeholder for now."
 //         ),
-//        OUTPUT( abs_coef_ ),
-//        INPUT(  abs_species_,
-//                abs_lines_per_species_,
-//                abs_lineshape_,
-//                abs_vmrs_,
-//                abs_t_ )));
+//        OUTPUT( "abs_coef" ),
+//        INPUT(  "abs_species",
+//                "abs_lines_per_species",
+//                "abs_lineshape",
+//                "abs_vmrs",
+//                "abs_t" )));
   
   agenda_data.push_back
     (AgRecord
@@ -86,8 +86,8 @@ void define_agenda_data()
         "The methods inside this agenda may require a lot of additional\n"
         "input variables, such as *f_grid*, *species*, etc.."
         ),
-       OUTPUT( abs_scalar_gas_ ),
-       INPUT(  f_index_, rte_pressure_, rte_temperature_, rte_vmr_list_ )));
+       OUTPUT( "abs_scalar_gas" ),
+       INPUT(  "f_index", "rte_pressure", "rte_temperature", "rte_vmr_list" )));
   
  agenda_data.push_back
     (AgRecord
@@ -98,8 +98,8 @@ void define_agenda_data()
         "\n"
         "Must produce a new spectrum vector (y). See further *ybatchCalc*."
         ),
-       OUTPUT( y_ ),
-       INPUT( ybatch_index_ )));
+       OUTPUT( "y" ),
+       INPUT( "ybatch_index" )));
 
  agenda_data.push_back
     (AgRecord
@@ -122,9 +122,9 @@ void define_agenda_data()
         "  because result can be inaccurate.\n"
         "\n"
         ),
-       OUTPUT( doit_conv_flag_, doit_iteration_counter_ ),
-       INPUT(  doit_conv_flag_, doit_iteration_counter_,
-               doit_i_field_, doit_i_field_old_)));
+       OUTPUT( "doit_conv_flag", "doit_iteration_counter" ),
+       INPUT(  "doit_conv_flag", "doit_iteration_counter",
+               "doit_i_field", "doit_i_field_old" )));
 
  agenda_data.push_back
     (AgRecord
@@ -150,8 +150,8 @@ void define_agenda_data()
         "  is much faster than *doit_scat_fieldCalc*. \n"
         "\n"
         ),
-        OUTPUT( doit_scat_field_ ),
-        INPUT(  doit_scat_field_, doit_i_field_)));
+        OUTPUT( "doit_scat_field" ),
+        INPUT(  "doit_scat_field", "doit_i_field")));
 
   agenda_data.push_back
     (AgRecord
@@ -176,9 +176,9 @@ void define_agenda_data()
        "the methods.\n"
        "\n"
         ),
-       OUTPUT(doit_i_field_,scat_i_p_,scat_i_lat_, scat_i_lon_, 
-              doit_i_field1D_spectrum_),
-       INPUT(f_index_,scat_i_p_,scat_i_lat_, scat_i_lon_)));
+       OUTPUT( "doit_i_field", "scat_i_p", "scat_i_lat", "scat_i_lon", 
+               "doit_i_field1D_spectrum"),
+       INPUT("f_index", "scat_i_p", "scat_i_lat", "scat_i_lon")));
             
  agenda_data.push_back
     (AgRecord
@@ -210,8 +210,8 @@ void define_agenda_data()
         "*doit_i_fieldUpdate{1,3}D*: Old function.\n"
         "\n"
         ),
-        OUTPUT( doit_i_field_),
-       INPUT( doit_i_field_, doit_scat_field_)));
+        OUTPUT( "doit_i_field" ),
+       INPUT(   "doit_i_field", "doit_scat_field" )));
  
   agenda_data.push_back
     (AgRecord
@@ -228,8 +228,8 @@ void define_agenda_data()
         "By setting *emission* to zeros and *iy_space* to ones, the\n"
         "obtained spectrum will be the transmission through the atmosphere."
         ),
-       OUTPUT( emission_ ),
-       INPUT( rte_temperature_ )));
+       OUTPUT( "emission" ),
+       INPUT( "rte_temperature" )));
  
   agenda_data.push_back
     (AgRecord
@@ -242,7 +242,7 @@ void define_agenda_data()
         "method *ForLoop*.  \n"
         ),
        OUTPUT(),
-       INPUT( forloop_index_ )));
+       INPUT( "forloop_index" )));
  
   agenda_data.push_back
     (AgRecord
@@ -266,7 +266,7 @@ void define_agenda_data()
         "       geomag_intensitities.xml \n"
         "\n"
           ),
-       OUTPUT( geomag_los_ ),
+       OUTPUT( "geomag_los" ),
        INPUT(  )));
 
   agenda_data.push_back
@@ -287,8 +287,8 @@ void define_agenda_data()
         "\n"
         "Usage:   Called from *RteCalc*."
         ),
-       OUTPUT( iy_, ppath_, rte_pos_, rte_los_ ),
-       INPUT( ppath_, rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_ )));
+       OUTPUT( "iy", "ppath", "rte_pos", "rte_los" ),
+       INPUT( "ppath", "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", "rte_gp_lon" )));
 
   agenda_data.push_back
     (AgRecord
@@ -306,8 +306,8 @@ void define_agenda_data()
         "\n"
         "Usage:   Called from *RteCalc*."
         ),
-       OUTPUT( iy_ ),
-       INPUT( rte_pos_, rte_los_ )));
+       OUTPUT( "iy" ),
+       INPUT( "rte_pos", "rte_los" )));
 
   agenda_data.push_back
     (AgRecord
@@ -320,7 +320,7 @@ void define_agenda_data()
         "\n"
         "Usage:   Called from *jacobianCalc*."
        ),
-       OUTPUT( jacobian_ ),
+       OUTPUT( "jacobian" ),
        INPUT())),
        
   agenda_data.push_back
@@ -336,7 +336,7 @@ void define_agenda_data()
         "Usage:   Called from *jacobianCalcParticle*."
        ),
        OUTPUT( ),
-       INPUT( pnd_field_ ))),
+       INPUT( "pnd_field" ))),
        
   agenda_data.push_back
     (AgRecord
@@ -374,10 +374,10 @@ void define_agenda_data()
         "then add the method *VectorToTbByPlanck*.  \n"
         "\n"
        ),
-       OUTPUT( y_ ),
-       INPUT(t_field_raw_, vmr_field_raw_, z_field_raw_, pnd_field_raw_,
-             p_grid_, sensor_los_, cloudbox_on_, cloudbox_limits_,
-             z_surface_)));
+       OUTPUT( "y" ),
+       INPUT("t_field_raw", "vmr_field_raw", "z_field_raw", "pnd_field_raw",
+             "p_grid", "sensor_los", "cloudbox_on", "cloudbox_limits",
+             "z_surface")));
 
   agenda_data.push_back
     (AgRecord
@@ -413,8 +413,8 @@ void define_agenda_data()
         "   abs_vec     : Absorption vector. \n"
         "   abs_scalar_gas : Scalar gas absorption. \n"
         ),
-       OUTPUT( ext_mat_, abs_vec_ ),
-       INPUT( ext_mat_, abs_vec_, f_index_, abs_scalar_gas_ )));
+       OUTPUT( "ext_mat", "abs_vec" ),
+       INPUT( "ext_mat", "abs_vec", "f_index", "abs_scalar_gas" )));
 
 
  agenda_data.push_back
@@ -453,11 +453,11 @@ void define_agenda_data()
         "   scat_lat_index : Position. \n"
         "   scat_lon_index : Position. \n"
         ),
-       OUTPUT( ext_mat_, abs_vec_ ),
-       INPUT( ext_mat_, abs_vec_, 
-              ext_mat_spt_, abs_vec_spt_,
-              scat_p_index_, scat_lat_index_,
-              scat_lon_index_ )));
+       OUTPUT( "ext_mat", "abs_vec" ),
+       INPUT( "ext_mat", "abs_vec", 
+              "ext_mat_spt", "abs_vec_spt",
+              "scat_p_index", "scat_lat_index",
+              "scat_lon_index" )));
 
  agenda_data.push_back
     (AgRecord
@@ -470,9 +470,9 @@ void define_agenda_data()
         "*pha_mat_sptFromData* or *pha_mat_sptDOITOpt*. \n"
         "\n"
         ),
-       OUTPUT( pha_mat_spt_),
-       INPUT( pha_mat_spt_, scat_za_index_, scat_lat_index_, scat_lon_index_,
-              scat_p_index_, scat_aa_index_, rte_temperature_)));
+       OUTPUT( "pha_mat_spt"),
+       INPUT( "pha_mat_spt", "scat_za_index", "scat_lat_index", "scat_lon_index",
+              "scat_p_index", "scat_aa_index", "rte_temperature")));
        
 
   agenda_data.push_back
@@ -540,9 +540,9 @@ void define_agenda_data()
         "Usage: Called from *PpathCalc* and from functions doing scattering\n"
         "       calculations."
         ),
-       OUTPUT(ppath_step_),
-       INPUT(ppath_step_, atmosphere_dim_, p_grid_, lat_grid_,
-             lon_grid_, z_field_, r_geoid_, z_surface_)));
+       OUTPUT("ppath_step"),
+       INPUT("ppath_step", "atmosphere_dim", "p_grid", "lat_grid",
+             "lon_grid", "z_field", "r_geoid", "z_surface")));
   
   agenda_data.push_back
     (AgRecord
@@ -556,8 +556,8 @@ void define_agenda_data()
         "atmospheric state is speciefied by *rte_pressure*, \n"
         "*rte_temperature* and *rte_vmr_list*."
         ),
-       OUTPUT( refr_index_ ),
-       INPUT(  rte_pressure_, rte_temperature_, rte_vmr_list_ )));
+       OUTPUT( "refr_index" ),
+       INPUT(  "rte_pressure", "rte_temperature", "rte_vmr_list" )));
 
   agenda_data.push_back
     (AgRecord
@@ -572,9 +572,9 @@ void define_agenda_data()
         "by *ppath*. The agenda then solves the radiative transfer equation\n"
         "along the propagation path and returns the result in *iy*."
         ),
-       OUTPUT( iy_, diy_dvmr_, diy_dt_ ),
-       INPUT( iy_, diy_dvmr_, diy_dt_, ppath_, ppath_array_, ppath_array_index_,
-              rte_do_vmr_jacs_, rte_do_t_jacs_, stokes_dim_, f_grid_ )));
+       OUTPUT( "iy", "diy_dvmr", "diy_dt" ),
+       INPUT( "iy", "diy_dvmr", "diy_dt", "ppath", "ppath_array", "ppath_array_index",
+              "rte_do_vmr_jacs", "rte_do_t_jacs", "stokes_dim", "f_grid" )));
 
  agenda_data.push_back
     (AgRecord
@@ -591,10 +591,10 @@ void define_agenda_data()
         " opt_prop_sptFromMonoData{} \n"
         "\n"
         ),
-       OUTPUT( ext_mat_spt_, abs_vec_spt_),
-       INPUT(  ext_mat_spt_, abs_vec_spt_,
-               scat_p_index_, scat_lat_index_, scat_lon_index_,
-               rte_temperature_, scat_za_index_, scat_aa_index_
+       OUTPUT( "ext_mat_spt", "abs_vec_spt"),
+       INPUT(  "ext_mat_spt", "abs_vec_spt",
+               "scat_p_index", "scat_lat_index", "scat_lon_index",
+               "rte_temperature", "scat_za_index", "scat_aa_index"
                )));
 
   agenda_data.push_back
@@ -611,8 +611,8 @@ void define_agenda_data()
         //        "A function calling this agenda shall set *rte_gp_p/lat/lon* to\n"
         //"the position of intersection with the surface."
         ),
-       OUTPUT( surface_emission_, surface_los_, surface_rmatrix_ ),
-       INPUT( rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ )));
+       OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
+       INPUT( "rte_gp_p", "rte_gp_lat", "rte_gp_lon", "rte_los" )));
 
 
 //  agenda_data.push_back
