@@ -426,6 +426,22 @@ void Workspace::define_wsv_data()
 
     wsv_data.push_back
       (WsvRecord
+       ( NAME( "abs_p_interp_order" ),
+         DESCRIPTION
+         (
+          "The interpolation order to use when interpolating absorption\n"
+          "between pressure levels. This is used by methods extracting\n"
+          "absorption coefficients from the lookup table, and by methods\n"
+          "setting up parameters for lookup table generation. Has a\n"
+          "default value, which is set in general.arts.\n"
+          "\n"
+          "Note that the number of points used in the interpolation scheme is\n"
+          "interpolation order + 1 (e.g., two for first order interpolation).\n"
+          ), 
+         GROUP( Index_ )));
+
+    wsv_data.push_back
+      (WsvRecord
        ( NAME( "abs_t_pert" ),
          DESCRIPTION
          (
@@ -1287,6 +1303,27 @@ void Workspace::define_wsv_data()
         "See *WriteXMLIndexed* for further information.\n"
         "\n"
         "Usage:   Input to *WriteXMLIndexed* and *ReadXMLIndexed*. \n"
+        ),
+        GROUP( Index_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "forloop_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc.\n"
+       ),
+      GROUP( Agenda_)));
+  
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "forloop_index" ),
+       DESCRIPTION
+       (
+        "The index for for loops.\n"
+        "\n"
+        "This is the index that is used by method *ForLoop* to loop over\n"
+        "*forloop_agenda*. \n"
         ),
         GROUP( Index_ )));
 

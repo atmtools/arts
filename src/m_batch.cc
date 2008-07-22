@@ -63,6 +63,24 @@ extern const Index   GFIELD3_P_GRID;
 
 /* Workspace method: Doxygen documentation will be auto-generated 
 
+   2008-07-21 Stefan Buehler */
+void ForLoop(// WS Input:
+             const Agenda& forloop_agenda,
+             // Control Parameters:
+             const Index& start,
+             const Index& stop,
+             const Index& step)
+{
+  for (Index i=start; i<=stop; i+=step)
+    {
+      out1 << "  Executing for loop body, index: " << i << "\n";
+      forloop_agendaExecute(i, forloop_agenda, false);
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated 
+
    Implementation largely copied from Patrick's MatrixExtractFromTensor3 method. 
 
    2007-10-26 Oliver Lemke */
@@ -402,7 +420,7 @@ void ybatchCalc_implementation(
   for(Index ybatch_index = first_ybatch_index; ybatch_index<ybatch_n;
       ybatch_index++ )
     {
-      out1 << "  Doing job " << ybatch_index+1 << " of " << ybatch_n << "\n";
+      out2 << "  Doing job " << ybatch_index+1 << " of " << ybatch_n << "\n";
       try
         {
           ybatch_calc_agendaExecute( y, ybatch_index, ybatch_calc_agenda,

@@ -1,3 +1,32 @@
+2008-07-22  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-7-5
+
+	* src/gas_abs_lookup{.cc,h} (Extract): Added input variable
+	p_interp_order for pressure interpolation order. Rearranged order
+	of input variables.
+
+	* src/m_abs_lookup.cc: Adapted to new p_interp_order WSV and to new
+	order of interpolation order parameters in some method calls.
+
+	* src/methods.cc: Adapted to new p_interp_order WSV and to new
+	order of interpolation order parameters in some method calls.
+	(ForLoop): Added this new method, which can be used to implement
+	simple control file loops.
+
+	* includes/general.arts: Added default for abs_p_interp_order.
+
+	* src/workspace.cc (abs_p_interp_order): Added.
+	(for_loop_agenda): Added.
+	(for_loop_index): Added.
+
+	* src/agendas.cc (forloop_agenda): Added this new agenda. It can
+	hold the loop body for the ForLoop method.
+
+	* src/m_batch.cc (ForLoop): Added this new method.
+
+	* src/m_abs.cc: Removed unnecessary include of auto_wsv.h.
+
 2008-07-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-7-4

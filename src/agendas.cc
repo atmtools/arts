@@ -233,6 +233,19 @@ void define_agenda_data()
  
   agenda_data.push_back
     (AgRecord
+     ( NAME( "forloop_agenda" ),
+       DESCRIPTION
+       (
+        "The body for a for loop.\n"
+        "\n"
+        "This agenda contains the body of the for loop to be execute by the\n"
+        "method *ForLoop*.  \n"
+        ),
+       OUTPUT(),
+       INPUT( forloop_index_ )));
+ 
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "geomag_los_calc_agenda" ),
        DESCRIPTION
        (

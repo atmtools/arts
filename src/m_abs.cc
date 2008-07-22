@@ -40,7 +40,6 @@
 #include "messages.h"
 #include "file.h"
 #include "absorption.h"
-#include "auto_wsv.h"
 #include "auto_md.h"
 #include "math_funcs.h"
 #include "make_array.h"

@@ -743,8 +743,8 @@ void abs_lookupSetup(// WS Output:
                      const Tensor3& t_field,
                      const Tensor4& vmr_field,
                      const ArrayOfArrayOfSpeciesTag& abs_species,
-                     const Index& abs_nls_interp_order,
                      const Index& abs_t_interp_order,
+                     const Index& abs_nls_interp_order,
                      // Control Parameters:
                      const Numeric& p_step10,
                      const Numeric& t_step,
@@ -1009,8 +1009,8 @@ void abs_lookupSetupBatch(// WS Output:
                           // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
                           const ArrayOfGField4& batch_fields,
-                          const Index& abs_nls_interp_order,
                           const Index& abs_t_interp_order,
+                          const Index& abs_nls_interp_order,
                           // Control Parameters:
                           const Numeric& p_step10,
                           const Numeric& t_step,
@@ -1057,7 +1057,7 @@ void abs_lookupSetupBatch(// WS Output:
   abs_p.resize(np);
   transform(abs_p, exp, log_abs_p);  
   out2 << "  abs_p: " << abs_p[0] << " Pa to " << abs_p[np-1]
-       << " Pa in log(p[hPa]) in steps of " << p_step
+       << " Pa in log10 steps of " << p_step10
        << " (" << np << " grid points)\n";
 
   // Now we have to determine the statistics of T and VMRs, we need
@@ -1436,8 +1436,9 @@ void abs_lookupAdapt( GasAbsLookup&                   abs_lookup,
 void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
                                       const GasAbsLookup& abs_lookup,
                                       const Index&        abs_lookup_is_adapted, 
-                                      const Index&        abs_nls_interp_order,
+                                      const Index&        abs_p_interp_order,
                                       const Index&        abs_t_interp_order,
+                                      const Index&        abs_nls_interp_order,
                                       const Index&        f_index,
                                       const Numeric&      a_pressure,
                                       const Numeric&      a_temperature,
@@ -1452,8 +1453,9 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
   // functions that adjust the size of their output argument
   // automatically. 
   abs_lookup.Extract( abs_scalar_gas,
-                      abs_nls_interp_order,
+                      abs_p_interp_order,
                       abs_t_interp_order,
+                      abs_nls_interp_order,
                       f_index,
                       a_pressure,
                       a_temperature,

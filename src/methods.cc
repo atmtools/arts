@@ -921,8 +921,8 @@ void define_md_data_raw()
                  t_field_,
                  vmr_field_,
                  abs_species_,
-                 abs_nls_interp_order_,
-                 abs_t_interp_order_ ),
+                 abs_t_interp_order_,
+                 abs_nls_interp_order_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "p_step",  "t_step",  "h2o_step" ),
@@ -985,8 +985,8 @@ void define_md_data_raw()
                  abs_nls_pert_ ),
         INPUT(   abs_species_,
                  batch_atm_fields_compact_,
-                 abs_nls_interp_order_,
-                 abs_t_interp_order_ ),
+                 abs_t_interp_order_,
+                 abs_nls_interp_order_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "p_step",  "t_step",  "h2o_step", "extremes" ),
@@ -1031,7 +1031,7 @@ void define_md_data_raw()
         AUTHORS( "Stefan Buehler" ),
         OUTPUT( abs_scalar_gas_ ),
         INPUT(  abs_lookup_, abs_lookup_is_adapted_,
-                abs_nls_interp_order_, abs_t_interp_order_,
+                abs_p_interp_order_, abs_t_interp_order_, abs_nls_interp_order_, 
                 f_index_, 
                 rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         GOUTPUT( ),
@@ -3191,6 +3191,41 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("ForLoop"),
+        DESCRIPTION
+        (
+         "A simple for loop.\n"
+         "\n"
+         "This method is handy when you quickly want to test out a calculation\n"
+         "with a set of different settings.\n"
+         "\n"
+         "It does a for loop from start to stop in steps of step. (Who would\n"
+         "have guessed that.) For each iteration, the agenda *forloop_agenda* is\n"
+         "executed. Inside the agenda, the variable *forloop_index* is available\n"
+         "as index counter. \n"
+         "\n"
+         "There are no other inputs to *forloop_agenda*, and also no outputs. That\n"
+         "means, if you want to get any results out of this loop, you have to\n"
+         "save it to files (for example with *WriteXMLIndexed*), since\n"
+         "variables used inside the agenda will only be local.\n"
+         "\n"
+         "Note that this kind of for loop is not parallel. \n"
+         "\n"
+         "The method is intended for simple testing, not as a replacement of\n"
+         "*ybatchCalc*. However, it is compatible with *ybatchCalc*, in the sense\n"
+         "that *ybatchCalc* may occur inside *forloop_agenda*.\n"
+        ),
+        AUTHORS( "Stefan Buehler" ),
+        OUTPUT(),
+        INPUT(  forloop_agenda_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "start", "stop",  "step" ),
+        DEFAULTS( NODEF,   NODEF,   NODEF ),
+        TYPES(    Index_t, Index_t, Index_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7165,7 +7200,7 @@ md_data_raw.push_back
         GOUTPUT( ),
         GINPUT(  Any_ ),
         KEYWORDS( "filename" ),
-        DEFAULTS( NODEF ),
+        DEFAULTS( "" ),
         TYPES(    String_t   ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),

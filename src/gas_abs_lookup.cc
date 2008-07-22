@@ -512,8 +512,9 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   \author Stefan Buehler
 */
 void GasAbsLookup::Extract( Matrix&         sga,
-                            const Index&    h2o_interp_order,
+                            const Index&    p_interp_order,
                             const Index&    t_interp_order,
+                            const Index&    h2o_interp_order,
                             const Index&    f_index,
                             const Numeric&  p,
                             const Numeric&  T,
@@ -594,11 +595,20 @@ void GasAbsLookup::Extract( Matrix&         sga,
       assert( is_size( xsec, a, b, c, d ) );
     })
 
-  // Verify that we have enough temperature and humdity grid points
+  // Verify that we have enough pressure, temperature and humdity grid points
   // for the desired interpolation orders. This check is not only
   // table internal, since abs_nls_interp_order and abs_t_interp_order
   // are separate WSVs that could have been modified. Hence, these are
   // runtime errors.
+
+  if ( (n_p_grid < p_interp_order+1) )
+    {
+      ostringstream os;
+      os << "The number of pressure grid points in the table ("
+         << n_p_grid << ") is not enough for the desired order of interpolation ("
+         << p_interp_order << ").";
+      throw runtime_error( os.str() );
+    }
 
   if ( (n_nls_pert != 0) && (n_nls_pert < h2o_interp_order+1) )
     {
@@ -700,32 +710,29 @@ void GasAbsLookup::Extract( Matrix&         sga,
   
   // For sure, we need to store the pressure grid position. 
  
-  // Tests showed that higher order interpolation for p increased the
-  // max. errors. There was a clear conclusion that linear is best in
-  // this case.
-  GridPos pgp;
-  gridpos( pgp,
-           p_grid,
-           p );
+  GridPosPoly pgp;
+  gridpos_poly( pgp,
+                p_grid,
+                p,
+                p_interp_order );
 
   // Pressure interpolation weights:
-  Vector pitw(2);
+  Vector pitw(p_interp_order+1);
   interpweights(pitw,pgp);
 
 
   // 6. We do the T and VMR interpolation for the pressure levels
-  // below and above the grid position.
-  // The two lookup table pressure levels in question are
-  // pgp.idx and pgp.idx+1
-
-  // To store the interpolated result for the 2
+  // that are used in the pressure interpolation. (How many depends on
+  // p_interp_order.)  
+  
+  // To store the interpolated result for the p_interp_order+1
   // pressure levels:
-  Tensor3 xsec_pre_interpolated( 2, f_extent, n_species );
+  Tensor3 xsec_pre_interpolated( p_interp_order+1, f_extent, n_species );
 
-  assert(pgp.idx+1 < n_p_grid); // To be completely on the safe side
-  for ( Index pi=0; pi<2; ++pi )
+  for ( Index pi=0; pi<p_interp_order+1; ++pi )
     {
-      const Index this_p_grid_index = pi+pgp.idx; // Index into p_grid
+      // Index into p_grid:
+      const Index this_p_grid_index = pgp.idx[pi];
 
       // Flag for temperature interpolation, if this is not 0 we want
       // to do T interpolation: 
@@ -818,6 +825,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
                    << ") is outside the range covered by the lookup table.\n" 
                    << "Your VMR was " << abs_vmrs[h2o_index]
                    << " at a pressure of " << p << " Pa.\n"
+                   << "The reference VMR value there is " << effective_vmr_ref << "\n"
                    << "The fractional VMR relative to the reference value is "
                    << VMR_frac << ".\n"
                    << "The allowed range is " << x_min << " to " << x_max << ".\n"
@@ -990,22 +998,22 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
     } // End of pressure index loop (below and above gp)
 
-  // Now we have to interpolate between the two pressure levels
+  // Now we have to interpolate between the p_interp_order+1 pressure levels
 
   // It is a "red" 1D interpolation case we are talking about here.
-  // (But for a matrix in frequency and species.) 
-
-  // We do it by hand, rather than using interp, for better
-  // efficiency, and because this case is almost trivial.
-
-  // Multiply pre interpolated quantities with pressure interpolation weights:
-  xsec_pre_interpolated(0,Range(joker),Range(joker)) *= pitw[0];
-  xsec_pre_interpolated(1,Range(joker),Range(joker)) *= pitw[1];
-
-  // Add up in sga:
+  // (But for a matrix in frequency and species.) Doing a loop over
+  // frequency and species with an interp call inside would be
+  // unefficient, so we do this by hand here.
   sga.resize(f_extent, n_species);
-  sga = xsec_pre_interpolated(0,Range(joker),Range(joker));
-  sga += xsec_pre_interpolated(1,Range(joker),Range(joker));
+  sga = 0;
+  for ( Index pi=0; pi<p_interp_order+1; ++pi )
+    {
+      // Multiply pre interpolated quantities with pressure interpolation weights:
+      xsec_pre_interpolated(pi,Range(joker),Range(joker)) *= pitw[pi];
+
+      // Add up in sga:
+      sga += xsec_pre_interpolated(pi,Range(joker),Range(joker));
+    }
 
   // Watch out, this is not yet the final result, we
   // need to multiply with the number density of the species, i.e.,

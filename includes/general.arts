@@ -69,7 +69,8 @@ AgendaSet( abs_scalar_gas_agenda ){
 # In case we do use the lookup table, the interpolation order for T
 # and nls must be set. We set here a default value of 4 for both.
 #
-IndexSet( abs_t_interp_order, 4 )
+IndexSet( abs_p_interp_order,   1 )
+IndexSet( abs_t_interp_order,   4 )
 IndexSet( abs_nls_interp_order, 4 )
 
 #

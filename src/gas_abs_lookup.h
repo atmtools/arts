@@ -58,8 +58,9 @@ public:
 
   // Documentation is with the implementation!
   void Extract( Matrix&         sga,
-                const Index&    h2o_interp_order,
+                const Index&    p_interp_order,
                 const Index&    t_interp_order,
+                const Index&    h2o_interp_order,
                 const Index&    f_index,
                 const Numeric&  p,
                 const Numeric&  T,
