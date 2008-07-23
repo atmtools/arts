@@ -35,7 +35,6 @@
 #include "methods.h"
 #include "wsv_aux.h"
 #include "messages.h"
-#include "auto_wsv.h"
 #include "workspace_ng.h"
 #include "arts_omp.h"
 

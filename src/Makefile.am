@@ -35,7 +35,6 @@ libarts_a_SOURCES = \
 	arts.h \
 	auto_md.cc \
 	auto_md.h \
-	auto_wsv.h \
 	auto_wsv_groups.h \
 	bifstream.h \
 	bifstream.cc \
@@ -198,7 +197,7 @@ libmatpack_a_SOURCES = \
 libmethods_a_CXXFLAGS = $(CXXFLAGS_NOOPT) $(WARNINGCFLAGS)
 libmethods_a_SOURCES = \
 	arts.h \
-	auto_wsv.h methods.h \
+	methods.h \
 	auto_wsv_groups.h \
 	make_array.h \
 	methods.cc
@@ -258,8 +257,7 @@ endif
 noinst_PROGRAMS = \
 	make_auto_md_cc \
 	make_auto_md_h \
-	make_auto_wsv_groups_h \
-	make_auto_wsv_h
+	make_auto_wsv_groups_h
 
 make_auto_wsv_groups_h_LDADD = libmatpack.a
 make_auto_wsv_groups_h_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
@@ -279,34 +277,6 @@ make_auto_wsv_groups_h_SOURCES = \
 	parameters.h \
 	version.cc
 
-#make_auto_wsv_h_DEPENDENCIES = make_auto_wsv_groups_h$(EXEEXT)
-make_auto_wsv_h_LDADD = libmatpack.a
-make_auto_wsv_h_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
-make_auto_wsv_h_SOURCES = \
-	arts.cc \
-	arts.h \
-	arts_omp.cc \
-	arts_omp.h \
-	auto_wsv_groups.h \
-	binio.cc \
-	binio.h \
-	file.cc \
-	file.h \
-	gridded_fields.cc \
-	groups.cc \
-	m_general.h \
-	make_auto_wsv_h.cc \
-	messages.h \
-	messages.cc \
-	parameters.cc \
-	parameters.h \
-	version.cc \
-	workspace_ng.cc \
-	workspace_ng.h \
-	workspace.cc \
-	wsv_aux.h
-
-#make_auto_md_h_DEPENDENCIES = make_auto_wsv_h$(EXEEXT) make_auto_wsv_groups_h$(EXEEXT) libmethods.a
 make_auto_md_h_LDADD = libmethods.a libmatpack.a
 make_auto_md_h_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 make_auto_md_h_SOURCES = \
@@ -318,7 +288,6 @@ make_auto_md_h_SOURCES = \
 	arts.h \
 	arts_omp.cc \
 	arts_omp.h \
-	auto_wsv.h \
 	auto_wsv_groups.h \
 	binio.cc \
 	binio.h \
@@ -341,7 +310,6 @@ make_auto_md_h_SOURCES = \
 	workspace_ng.h \
 	wsv_aux.h
 
-#make_auto_md_cc_DEPENDENCIES = make_auto_wsv_h$(EXEEXT) make_auto_wsv_groups_h$(EXEEXT)
 make_auto_md_cc_LDADD = libmethods.a libmatpack.a
 make_auto_md_cc_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 make_auto_md_cc_SOURCES = \
@@ -353,7 +321,6 @@ make_auto_md_cc_SOURCES = \
 	arts.h \
 	arts_omp.cc \
 	arts_omp.h \
-	auto_wsv.h \
 	auto_wsv_groups.h \
 	binio.cc \
 	binio.h \
@@ -376,9 +343,6 @@ make_auto_md_cc_SOURCES = \
 	workspace_ng.h \
 	wsv_aux.h
 
-auto_wsv.h: make_auto_wsv_h$(EXEEXT)
-	$(top_builddir)/src/make_auto_wsv_h$(EXEEXT)
-
 auto_wsv_groups.h: make_auto_wsv_groups_h$(EXEEXT)
 	$(top_builddir)/src/make_auto_wsv_groups_h$(EXEEXT)
 
@@ -390,12 +354,12 @@ auto_md.cc: make_auto_md_cc$(EXEEXT)
 
 BUILT_SOURCES = \
 	auto_wsv_groups.h \
-	auto_wsv.h \
 	auto_md.h \
 	auto_md.cc
 
 CLEANFILES = \
 	auto_wsv.h \
+	make_auto_wsv_h$(EXEEXT) \
 	auto_wsv.txt \
 	auto_wsv_groups.h \
 	auto_md.h \

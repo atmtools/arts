@@ -19,7 +19,6 @@
 #include "token.h"
 #include "array.h"
 #include "file.h"
-#include "auto_wsv.h"
 #include "methods.h"
 #include "workspace_ng.h"
 #include "agenda_record.h"
@@ -50,28 +49,20 @@ int main()
       // Initialize the wsv group name array:
       define_wsv_group_names();
 
+      // Initialize wsv data.
+      Workspace::define_wsv_data();
+  
+      // Initialize WsvMap.
+      Workspace::define_wsv_map();
+
       // Initialize method data.
       define_md_data_raw();
 
       // Expand supergeneric methods:
       expand_md_data_raw_to_md_data();
 
-      // Initialize wsv data.
-      Workspace::define_wsv_data();
-  
 
       const Index n_md  = md_data.nelem();
-      const Index n_wsv = wsv_data.nelem();
-
-      // For safety, check if n_wsv and N_WSV have the same value. If not, 
-      // then the file wsv.h is not up to date.
-      if (N_WSV != n_wsv)
-        {
-          cout << "The file wsv.h is not up to date!\n";
-          cout << "(N_WSV = " << N_WSV << ", n_wsv = " << n_wsv << ")\n";
-          cout << "Make wsv.h first. Check if Makefile is correct.\n";
-          return 1;
-        }
 
       // Write auto_md.cc:
       // -----------
@@ -88,6 +79,7 @@ int main()
           << "#include \"make_array.h\"\n"
           << "#include \"auto_md.h\"\n"
           << "#include \"wsv_aux.h\"\n"
+          << "#include \"mc_interp.h\"\n"
           << "#include \"m_append.h\"\n"
           << "#include \"m_delete.h\"\n"
           << "#include \"m_copy.h\"\n"

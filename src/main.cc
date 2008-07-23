@@ -680,23 +680,23 @@ int main (int argc, char **argv)
   // Initialize the wsv group name array:
   define_wsv_group_names();
 
-    // Initialize the md data:
+  // Initialize the wsv data:
+  Workspace::define_wsv_data();
+
+  // Initialize WsvMap:
+  Workspace::define_wsv_map();
+
+  // Initialize the md data:
   define_md_data_raw();
 
   // Expand supergeneric methods:
   expand_md_data_raw_to_md_data();
-
-  // Initialize the wsv data:
-  Workspace::define_wsv_data();
 
   // Initialize MdMap:
   define_md_map();
 
   // Initialize MdRawMap (needed by parser and online docu).
   define_md_raw_map();
-
-  // Initialize WsvMap:
-  Workspace::define_wsv_map();
 
   // Initialize the agenda lookup data:
   define_agenda_data();

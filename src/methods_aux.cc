@@ -44,8 +44,8 @@
 MdRecord::MdRecord(const char                   name[],
                    const char                   description[],
                    const MakeArray<String>&     authors,
-                   const MakeArray<Index>&      output,
-                   const MakeArray<Index>&      input,   
+                   const MakeArray<String>&     output,
+                   const MakeArray<String>&     input,   
                    const MakeArray<String>&     goutput,
                    const MakeArray<String>&     ginput,   
                    const MakeArray<String>&     keywords,
@@ -58,8 +58,8 @@ MdRecord::MdRecord(const char                   name[],
     mname(          name                  ),
     mdescription(   description           ),    
     mauthors(       authors               ),
-    moutput(        output                ),  
-    minput(         input                 ),   
+    moutput(        0                     ),  
+    minput(         0                     ),   
     mgoutput(       0                     ),  
     mginput(        0                     ),   
     mkeywords(      keywords              ),
@@ -84,6 +84,35 @@ MdRecord::MdRecord(const char                   name[],
       // elements. (Defaults specifies the default values associated with each
       // keyword.)
       assert( mkeywords.nelem() == mdefaults.nelem() );
+
+      // Map the WSV names to indexes
+      moutput.resize(output.nelem());
+      for ( Index j=0; j<output.nelem(); ++j )
+        {
+          moutput[j] = get_wsv_id (output[j]);
+          if (moutput[j] == -1)
+            {
+              ostringstream os;
+
+              os << "Unknown WSV " << output[j] << " for output "
+                << "in WSM " << mname;
+              throw runtime_error( os.str() );
+            }
+        }
+
+      minput.resize(input.nelem());
+      for ( Index j=0; j<input.nelem(); ++j )
+        {
+          minput[j] = get_wsv_id (input[j]);
+          if (minput[j] == -1)
+            {
+              ostringstream os;
+
+              os << "Unknown WSV " << input[j] << " for input "
+                << "in WSM " << mname;
+              throw runtime_error( os.str() );
+            }
+        }
 
       // Map the group names to groups' indexes
       mgoutput.resize(goutput.nelem());

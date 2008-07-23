@@ -27,7 +27,6 @@
 */
 
 #include "agenda_record.h"
-#include "auto_wsv.h"
 
 // Some #defines and typedefs to make the records better readable:
 #define NAME(x) x 

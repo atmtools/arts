@@ -56,7 +56,7 @@ private:
 public:
   static Array<WsvRecord> wsv_data;
 
-  /*! The map assiciated with wsv_data. */
+  /*! The map associated with wsv_data. */
   static map<String, Index> WsvMap;
 
   Workspace ();

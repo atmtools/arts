@@ -36,7 +36,6 @@
 #include "arts.h"
 #include <map>
 #include "array.h"
-#include "auto_wsv.h"
 #include "wsv_aux.h"
 #include "methods.h"
 #include "workspace_ng.h"

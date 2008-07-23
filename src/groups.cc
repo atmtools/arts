@@ -28,17 +28,25 @@
   \author Stefan Buehler
   \date   2000-08-04 */
 
+#include <map>
 #include "arts.h"
 #include "array.h"
 #include "mystring.h"
-// #include "supergeneric.h"
-// #include "ppath.h"
-// #include "gas_abs_lookup.h"
+
 
 /*! The names associated with Wsv groups as Strings.
   See function define_wsv_group_names for more information. */
 ArrayOfString wsv_group_names;
+map<String, Index> WsvGroupMap;
 
+
+void define_wsv_group_map()
+{
+  for ( Index i=0 ; i<wsv_group_names.nelem() ; ++i )
+    {
+      WsvGroupMap[wsv_group_names[i]] = i;
+    }
+}
 
 //! Define the array of workspace variable group names.
 /*!
@@ -109,20 +117,17 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfRetrievalQuantity");
   wsv_group_names.push_back("MCAntenna");
   wsv_group_names.push_back("SLIData2");
+
+  define_wsv_group_map();
 }
+
 
 Index get_wsv_group_id(const String& name)
 {
-  Index ret = -1;
-  Index index = 0;
-  while (index < wsv_group_names.nelem() && ret == -1)
-    {
-      // loop while more elements remain and while key not found. 
-      if (wsv_group_names[index] == name)
-        ret = index;
-      index++;
-    }
-
-  return ret;
+  map<String, Index>::const_iterator it = WsvGroupMap.find (name);
+  if (it == WsvGroupMap.end())
+    return -1;
+  else
+    return it->second;
 }
 

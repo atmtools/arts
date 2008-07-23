@@ -1,3 +1,53 @@
+2008-07-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-7-8
+
+	* Continuing migration from enums to Strings. Now replacing all enum
+	values for WSVs in methods.cc by Strings.
+
+	* src/methods.cc: Make OUTPUT and INPUT String arrays.
+
+	* src/methods.h, src/methods_aux.cc:
+
+	Change output and input to string arrays in constructor of MdRecord.
+
+	* src/make_auto_md_h.cc, src/make_auto_md_cc.cc, src/main.cc (main):
+
+	Call define_wsv_data before define_md_data_raw.
+
+	* src/agendas.cc, src/agenda_class.cc, src/globals2.cc, src/methods.cc:
+
+	Remove auto_wsv.h from includes.
+
+	* src/Makefile.am, src/make_auto_wsv_h.cc:
+
+	Bye Bye auto_wsv.h. Not needed anymore.
+
+	Added make_auto_wsv_h to CLEANFILES for now.
+
+	* src/make_auto_md_h.cc, src/make_auto_md_cc.cc:
+
+	Remove auto_wsv.h from includes.
+
+	Add include files to generated source that were previously pulled in
+	by auto_wsv.h.
+
+	* src/montecarlo.cc: Include mc_interp.h.
+
+	* src/workspace_ng.h: Fix typo in doc.
+
+	* src/workspace.cc (get_wsv_id):
+
+	Use WsvMap instead of a while loop to find the WSV indexes.
+
+	* src/groups.cc (get_wsv_group_id):
+
+	Add a WsvGroupMap along with define_wsv_group_map.
+
+	Use WsvGroupMap instead of a while loop to find the group indexes.
+
+	* src/parser_old.{h,cc}: Removed.
+
 2008-07-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-7-7

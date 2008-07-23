@@ -69,7 +69,6 @@
 #include "token.h"
 #include "array.h"
 #include "file.h"
-#include "auto_wsv.h"
 #include "methods.h"
 #include "workspace_ng.h"
 #include "agenda_record.h"
@@ -540,10 +539,15 @@ int main()
       extern Array<MdRecord> md_data_raw;
       extern Array<MdRecord> md_data;
       extern const ArrayOfString wsv_group_names;
-      const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
 
       // Initialize the wsv group name array:
       define_wsv_group_names();
+
+      // Initialize wsv data.
+      Workspace::define_wsv_data();
+
+      // Initialize WsvMap.
+      Workspace::define_wsv_map();
 
       // Initialize method data.
       define_md_data_raw();
@@ -551,24 +555,10 @@ int main()
       // Expand supergeneric methods:
       expand_md_data_raw_to_md_data();
 
-        // Initialize wsv data.
-      Workspace::define_wsv_data();
-
       if (!md_sanity_checks (md_data))
         return 1;
 
       const Index n_md  = md_data.nelem();
-      const Index n_wsv = wsv_data.nelem();
-
-      // For safety, check if n_wsv and N_WSV have the same value. If not, 
-      // then the file wsv.h is not up to date.
-      if (N_WSV != n_wsv)
-        {
-          cout << "The file wsv.h is not up to date!\n";
-          cout << "(N_WSV = " << N_WSV << ", n_wsv = " << n_wsv << ")\n";
-          cout << "Make wsv.h first. Check if Makefile is correct.\n";
-          return 1;
-        }
 
       // Write auto_md.h:
       // -----------
@@ -585,7 +575,14 @@ int main()
       ofs << "#define auto_md_h\n\n";
 
       ofs << "#include \"matpackI.h\"\n"
-          << "#include \"auto_wsv.h\"\n"
+          << "#include \"matpackII.h\"\n"
+          << "#include \"abs_species_tags.h\"\n"
+          << "#include \"gas_abs_lookup.h\"\n"
+          << "#include \"gridded_fields.h\"\n"
+          << "#include \"optproperties.h\"\n"
+          << "#include \"jacobian.h\"\n"
+          << "#include \"mc_antenna.h\"\n"
+          << "#include \"m_general.h\"\n"
           << "#include \"parser.h\"\n"
           << "#include \"workspace_ng.h\"\n"
           << "\n";

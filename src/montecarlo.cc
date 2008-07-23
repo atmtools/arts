@@ -36,6 +36,7 @@
 
 #include "auto_md.h"
 #include "montecarlo.h"
+#include "mc_interp.h"
 
 #ifdef HAVE_SSTREAM
 #include <sstream>
