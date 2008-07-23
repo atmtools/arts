@@ -759,7 +759,19 @@ void GasAbsLookup::Extract( Matrix&         sga,
           // version, is that it avoids the problem of needing
           // oversized temperature perturbations if the pressure
           // grid is coarse.
+          //
+          // No! The above approach leads to problems when combined with
+          // higher order pressure interpolation. The problem is that
+          // the reference T and VMR profiles may be very
+          // irregular. (For example the H2O profile often has a big
+          // jump near the bottom.) That sometimes leads to negative
+          // effective reference values when the reference profile is
+          // interpolated. I therefore reverted back to the original
+          // version of using the real temperature and humidity, not
+          // the interpolated one.
+
           const Numeric effective_T_ref = interp(pitw,t_ref,pgp);
+          //          const Numeric effective_T_ref = t_ref[this_p_grid_index];
 
           // Convert temperature to offset from t_ref:
           const Numeric T_offset = T - effective_T_ref;
@@ -801,10 +813,22 @@ void GasAbsLookup::Extract( Matrix&         sga,
           // VMR to the pressure of extraction, then compare with
           // the extraction VMR to determine the offset/fractional
           // difference for the VMR interpolation.
+          //
+          // No! The above approach leads to problems when combined with
+          // higher order pressure interpolation. The problem is that
+          // the reference T and VMR profiles may be very
+          // irregular. (For example the H2O profile often has a big
+          // jump near the bottom.) That sometimes leads to negative
+          // effective reference values when the reference profile is
+          // interpolated. I therefore reverted back to the original
+          // version of using the real temperature and humidity, not
+          // the interpolated one.
           
           const Numeric effective_vmr_ref = interp(pitw,
                                                    vmrs_ref(h2o_index, Range(joker)),
                                                    pgp);
+//          const Numeric effective_vmr_ref = vmrs_ref(h2o_index, this_p_grid_index);
+
               
           // Fractional VMR:
           const Numeric VMR_frac = abs_vmrs[h2o_index] / effective_vmr_ref;

@@ -73,6 +73,10 @@ void abs_lookupCreate(// WS Output:
                       const ArrayOfString&            abs_cont_models,   
                       const ArrayOfVector&            abs_cont_parameters )
 {
+  // We need this to restore the original setting of omp_nested at the
+  // end.
+  int omp_nested_original = arts_omp_get_nested();
+
   // We will be calling an absorption agenda one species at a
   // time. This is better than doing all simultaneously, because is
   // saves memory and allows for consistent treatment of nonlinear
@@ -101,7 +105,8 @@ void abs_lookupCreate(// WS Output:
   // Absorption vmrs and temperature:
   Matrix this_vmr(1,n_p_grid);
   Vector abs_h2o(n_p_grid);
-  Vector this_t(n_p_grid);
+  Vector this_t;                // Has same dimension, but is
+                                // initialized by assignment later.
 
   // Species list, lines, and line shapes, all with only 1 element:
   ArrayOfArrayOfSpeciesTag this_species(1);
@@ -204,8 +209,8 @@ void abs_lookupCreate(// WS Output:
             n_p_grid ); 
 
   // abs_nls_pert should only be not-empty if we have nonlinear species:
-  if ( ( 0==n_nls && 0 != n_nls_pert ) ||
-       ( 0!=n_nls && 0 == n_nls_pert ))
+  if ( ( (0==n_nls) && (0!=n_nls_pert) ) ||
+       ( (0!=n_nls) && (0==n_nls_pert) ) )
     {
       ostringstream os;
       os << "You have to set both abs_nls and abs_nls_pert, or none.";
@@ -247,7 +252,6 @@ void abs_lookupCreate(// WS Output:
     abs_lookup.xsec.resize( a, b, c, d );
   }
 
-
   // 6.a. Set up these_t_pert. This is done so that we can use the
   // same loop over the perturbations, independent of
   // whether we have temperature perturbations or not.
@@ -262,6 +266,12 @@ void abs_lookupCreate(// WS Output:
       out2 << "  No temperature perturbations.\n";
       these_t_pert.resize(1);
       these_t_pert = 0;
+
+      // In this case, we also want to enable nested parallel
+      // execution. Normally, it is the loop over the temperature
+      // perturbations that is parallel, but in this case that one is
+      // trivial. 
+      arts_omp_set_nested(1);
     }
 
   const Index these_t_pert_nelem = these_t_pert.nelem();
@@ -351,12 +361,26 @@ void abs_lookupCreate(// WS Output:
           // Loop temperature perturbations
           // ------------------------------
 
-          // We use a paralle for loop for this.
+          // We use a parallel for loop for this. The loop uses some
+          // variables that are marked as private. See comment below.
 
 #pragma omp parallel private(this_t, abs_xsec_per_species)
 #pragma omp for 
           for ( Index j=0; j<these_t_pert_nelem; ++j )
             {
+              // Private variables are not copied upon loop entry, but
+              // are uninitialized inside the loop. We have to make
+              // sure that they are initialized correctly! Resize does
+              // nothing if the size already fits, so this does not
+              // cost us much in the non-parallel case.
+              //
+              // In the special case here, we do not have to do
+              // anything, because both private variables are anyway
+              // not initialized outside the loop, but will be
+              // initialized by assignments here inside the loop. In
+              // the general case, there should be some resize
+              // statements for the private variables here.
+
               // The try block here is necessary to correctly handle
               // exceptions inside the parallel region. 
               try
@@ -438,6 +462,9 @@ void abs_lookupCreate(// WS Output:
   // Set the abs_lookup_is_adapted flag. After all, the table fits the
   // current frequency grid and species selection.
   abs_lookup_is_adapted = 1;
+
+  // Reset the omp_nested state to original value:
+  arts_omp_set_nested(omp_nested_original);
 }
 
 
@@ -709,7 +736,7 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
   // Test which strategy works with Chevallier data.
   // Something preliminary:
   
-  linspace(abs_nls_pert, mindev, maxdev+step, step);
+  linspace(abs_nls_pert, mindev, maxdev+2*step, step);
   // FIXME: The maxdev+step is necessary, because linspace may not get
   // up to maxdev. This is preliminary, there should be something more
   // elaborate here.

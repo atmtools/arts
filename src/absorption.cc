@@ -2031,6 +2031,9 @@ void xsec_species( MatrixView               xsec,
   Index nf = f_grid.nelem();
   Index nl = abs_lines.nelem();
 
+  // number of pressure levels:
+  Index np = abs_p.nelem();
+
   // Define the vector for the line shape function and the
   // normalization factor of the lineshape here, so that we don't need
   // so many free store allocations.  the last element is used to
@@ -2092,21 +2095,21 @@ void xsec_species( MatrixView               xsec,
   // dimension. This could be a user error, so we throw a
   // runtime_error. 
 
-  if ( abs_t.nelem() != abs_p.nelem() )
+  if ( abs_t.nelem() != np )
     {
       ostringstream os;
       os << "Variable abs_t must have the same dimension as abs_p.\n"
          << "abs_t.nelem() = " << abs_t.nelem() << '\n'
-         << "abs_p.nelem() = " << abs_p.nelem();
+         << "abs_p.nelem() = " << np;
       throw runtime_error(os.str());
     }
 
-  if ( vmr.nelem() != abs_p.nelem() )
+  if ( vmr.nelem() != np )
     {
       ostringstream os;
       os << "Variable vmr must have the same dimension as abs_p.\n"
          << "vmr.nelem() = " << vmr.nelem() << '\n'
-         << "abs_p.nelem() = " << abs_p.nelem();
+         << "abs_p.nelem() = " << np;
       throw runtime_error(os.str());
     }
 
@@ -2116,8 +2119,8 @@ void xsec_species( MatrixView               xsec,
   // vector here if we find it. The Rosenkranz lineshape does a check
   // to make sure that the value is actually set, and not the default
   // value. 
-  Vector abs_h2o(abs_p.nelem());
-  if ( abs_h2o_orig.nelem() == abs_p.nelem() )
+  Vector abs_h2o(np);
+  if ( abs_h2o_orig.nelem() == np )
     {
       abs_h2o = abs_h2o_orig;
     }
@@ -2137,297 +2140,319 @@ void xsec_species( MatrixView               xsec,
           os << "Variable abs_h2o must have default value -1 or the\n"
              << "same dimension as abs_p.\n"
              << "abs_h2o.nelem() = " << abs_h2o.nelem() << '\n'
-             << "abs_p.nelem() = " << abs_p.nelem();
+             << "abs_p.nelem() = " << np;
           throw runtime_error(os.str());
         }
     }
 
   // Check that the dimension of xsec is indeed [f_grid.nelem(),
   // abs_p.nelem()]:
-  if ( xsec.nrows() != nf || xsec.ncols() != abs_p.nelem() )
+  if ( xsec.nrows() != nf || xsec.ncols() != np )
     {
       ostringstream os;
       os << "Variable xsec must have dimensions [f_grid.nelem(),abs_p.nelem()].\n"
          << "[xsec.nrows(),xsec.ncols()] = [" << xsec.nrows()
          << ", " << xsec.ncols() << "]\n"
          << "f_grid.nelem() = " << nf << '\n'
-         << "abs_p.nelem() = " << abs_p.nelem();
+         << "abs_p.nelem() = " << np;
       throw runtime_error(os.str());
     }
 
   // Loop all pressures:
-  for ( Index i=0; i<abs_p.nelem(); ++i )
-    {
 
-      // store variables abs_p[i] and abs_t[i],
-      // this is slightly faster
-      Numeric p_i = abs_p[i];
-      Numeric t_i = abs_t[i];
+#pragma omp parallel private(ls, fac, f_local, aux)
+#pragma omp for 
+  for ( Index i=0; i<np; ++i )
+    {
+      // Private variables are not copied upon loop entry, but are
+      // uninitialized inside the loop. We have to make sure that they are
+      // initialized correctly! Resize does nothing if the size
+      // already fits, so this does not cost us much in the
+      // non-parallel case.
+      ls.resize(nf+1);
+      fac.resize(nf+1);
+      f_local.resize(nf+1); 
+      aux.resize(ii);
+
+      // The try block here is necessary to correctly handle
+      // exceptions inside the parallel region. 
+      try
+        {
+
+          // store variables abs_p[i] and abs_t[i],
+          // this is slightly faster
+          Numeric p_i = abs_p[i];
+          Numeric t_i = abs_t[i];
 
     
-      //out3 << "  p = " << p_i << " Pa\n";
+          //out3 << "  p = " << p_i << " Pa\n";
 
-      // Calculate total number density from pressure and temperature.
-      // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
-      //      const Numeric n = p_i / BOLTZMAN_CONST / t_i;
-      // This is not needed anymore, since we now calculate true cross
-      // sections, which do not contain the n.
+          // Calculate total number density from pressure and temperature.
+          // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
+          //      const Numeric n = p_i / BOLTZMAN_CONST / t_i;
+          // This is not needed anymore, since we now calculate true cross
+          // sections, which do not contain the n.
 
-      // For the pressure broadening, we also need the partial pressure:
-      const Numeric p_partial = p_i * vmr[i];
-
-
-      // Loop all lines:
-      for ( Index l=0; l< nl; ++l )
-        {
-          // Copy f_grid to the beginning of f_local. There is one
-          // element left at the end of f_local.  
-          // THIS HAS TO BE INSIDE THE LINE LOOP, BECAUSE THE CUTOFF
-          // FREQUENCY IS ALWAYS PUT IN A DIFFERENT PLACE!
-          f_local[Range(0,nf)] = f_grid;
-
-          // This will hold the actual number of frequencies to add to
-          // xsec later on:
-          Index nfl = nf;
-
-          // This will hold the actual number of frequencies for the
-          // call to the lineshape functions later on:
-          Index nfls = nf;      
-
-          // The baseline to substract for cutoff frequency
-          Numeric base=0.0;
-
-          // abs_lines[l] is used several times, this construct should be
-          // faster (Oliver Lemke)
-          LineRecord l_l = abs_lines[l];  // which line are we dealing with
-          // Center frequency in vacuum:
-          Numeric F0 = l_l.F();
-
-          // Intensity is already in the right units (Hz*m^2). It also
-          // includes already the isotopic ratio. Needs only to be
-          // coverted to the actual temperature and multiplied by total
-          // number density and lineshape.
-          Numeric intensity = l_l.I0();
-
-          // Lower state energy is already in the right unit (Joule).
-          Numeric e_lower = l_l.Elow();
-
-          // Upper state energy:
-          Numeric e_upper = e_lower + F0 * PLANCK_CONST;
-
-          // Get the ratio of the partition function.
-          // This will throw a runtime error if no data exists.
-          // Important: This function needs both the reference
-          // temperature and the actual temperature, because the
-          // reference temperature can be different for each line,
-          // even of the same species.
-          Numeric part_fct_ratio =
-            l_l.IsotopeData().CalculatePartitionFctRatio( l_l.Ti0(),
-                                                          t_i );
-
-          // Boltzmann factors
-          Numeric nom = exp(- e_lower / ( BOLTZMAN_CONST * t_i ) ) - 
-            exp(- e_upper / ( BOLTZMAN_CONST * t_i ) );
-
-          Numeric denom = exp(- e_lower / ( BOLTZMAN_CONST * l_l.Ti0() ) ) - 
-            exp(- e_upper / ( BOLTZMAN_CONST * l_l.Ti0() ) );
+          // For the pressure broadening, we also need the partial pressure:
+          const Numeric p_partial = p_i * vmr[i];
 
 
-          // intensity at temperature
-          // (calculate the line intensity according to the standard 
-          // expression given in HITRAN)
-          intensity *= part_fct_ratio * nom / denom;
-
-          if (lineshape_norm_data[ind_lsn].Name() == "quadratic")
+          // Loop all lines:
+          for ( Index l=0; l< nl; ++l )
             {
-              // in case of the quadratic normalization factor use the 
-              // so called 'microwave approximation' of the line intensity 
-              // given by 
-              // P. W. Rosenkranz, Chapter 2, Eq.(2.16), in M. A. Janssen, 
-              // Atmospheric Remote Sensing by Microwave Radiometry, 
-              // John Wiley & Sons, Inc., 1993
-              Numeric mafac = (PLANCK_CONST * F0) / (2.000e0 * BOLTZMAN_CONST
-                                                     * t_i);
-              intensity     = intensity * mafac / sinh(mafac);
-            }
+              // Copy f_grid to the beginning of f_local. There is one
+              // element left at the end of f_local.  
+              // THIS HAS TO BE INSIDE THE LINE LOOP, BECAUSE THE CUTOFF
+              // FREQUENCY IS ALWAYS PUT IN A DIFFERENT PLACE!
+              f_local[Range(0,nf)] = f_grid;
+
+              // This will hold the actual number of frequencies to add to
+              // xsec later on:
+              Index nfl = nf;
+
+              // This will hold the actual number of frequencies for the
+              // call to the lineshape functions later on:
+              Index nfls = nf;      
+
+              // The baseline to substract for cutoff frequency
+              Numeric base=0.0;
+
+              // abs_lines[l] is used several times, this construct should be
+              // faster (Oliver Lemke)
+              LineRecord l_l = abs_lines[l];  // which line are we dealing with
+              // Center frequency in vacuum:
+              Numeric F0 = l_l.F();
+
+              // Intensity is already in the right units (Hz*m^2). It also
+              // includes already the isotopic ratio. Needs only to be
+              // coverted to the actual temperature and multiplied by total
+              // number density and lineshape.
+              Numeric intensity = l_l.I0();
+
+              // Lower state energy is already in the right unit (Joule).
+              Numeric e_lower = l_l.Elow();
+
+              // Upper state energy:
+              Numeric e_upper = e_lower + F0 * PLANCK_CONST;
+
+              // Get the ratio of the partition function.
+              // This will throw a runtime error if no data exists.
+              // Important: This function needs both the reference
+              // temperature and the actual temperature, because the
+              // reference temperature can be different for each line,
+              // even of the same species.
+              Numeric part_fct_ratio =
+                l_l.IsotopeData().CalculatePartitionFctRatio( l_l.Ti0(),
+                                                              t_i );
+
+              // Boltzmann factors
+              Numeric nom = exp(- e_lower / ( BOLTZMAN_CONST * t_i ) ) - 
+                exp(- e_upper / ( BOLTZMAN_CONST * t_i ) );
+
+              Numeric denom = exp(- e_lower / ( BOLTZMAN_CONST * l_l.Ti0() ) ) - 
+                exp(- e_upper / ( BOLTZMAN_CONST * l_l.Ti0() ) );
 
 
-          // 2. Get pressure broadened line width:
-          // (Agam is in Hz/Pa, abs_p is in Pa, gamma is in Hz)
-          const Numeric theta = l_l.Tgam() / t_i;
-          const Numeric theta_Nair = pow(theta, l_l.Nair());
+              // intensity at temperature
+              // (calculate the line intensity according to the standard 
+              // expression given in HITRAN)
+              intensity *= part_fct_ratio * nom / denom;
 
-          Numeric gamma
-            = l_l.Agam() * theta_Nair  * (p_i - p_partial)
-            + l_l.Sgam() * pow(theta, l_l.Nself()) * p_partial;
-
-          // 3. Doppler broadening without the sqrt(ln(2)) factor, which
-          // seems to be redundant FIXME: verify .
-          Numeric sigma = F0 * doppler_const * 
-            sqrt( t_i / l_l.IsotopeData().Mass());
-
-          // 3.a. Put in pressure shift.
-          // The T dependence is connected to that of agam by:
-          // n_shift = .25 + 1.5 * n_agam
-          // Theta has been initialized above.
-          F0 += l_l.Psf() * p_i * 
-            std::pow( theta , (Numeric).25 + (Numeric)1.5*l_l.Nair() );
-
-          // 4. the rosenkranz lineshape for oxygen calculates the
-          // pressure broadening, overlap, ... differently. Therefore
-          // all required parameters are passed in the aux array, the
-          // given order must agree with how they are accessed in the
-          // used lineshape (currently only the Rosenkranz routines are
-          // using this method of passing parameters). Parameters are
-          // always passed, because the Rosenkranz lineshape function
-          // can be used without overlap correction, which is then just
-          // set to 0. I know, this is not very nice, but I suggested to
-          // put the oxygen absorption into a different workspace
-          // method, but nobody listened to me, Schnief.
-          aux[0] = theta;
-          aux[1] = theta_Nair;
-          aux[2] = p_i;
-          aux[3] = vmr[i];
-          aux[4] = abs_h2o[i];
-          aux[5] = l_l.Agam();
-          aux[6] = l_l.Nair();
-          // is overlap available, otherwise pass zero
-          if (l_l.Naux() > 1)
-            {
-              aux[7] = l_l.Aux()[0];
-              aux[8] = l_l.Aux()[1];
-              //            cout << "aux7, aux8: " << aux[7] << " " << aux[8] << "\n";
-            }
-          else
-            {
-              aux[7] = 0.0;
-              aux[8] = 0.0;
-            }
-
-
-          // Indices pointing at begin/end frequencies of f_grid or at
-          // the elements that have to be calculated in case of cutoff
-          Index i_f_min = 0;            
-          Index i_f_max = nf-1;         
-
-          // cutoff ?
-          if ( cut )
-            {
-              // Check whether we have elements in ls that can be
-              // ignored at lower frequencies of f_grid.
-              //
-              // Loop through all frequencies, finding min value and
-              // set all values to zero on that way.
-              while ( i_f_min < nf && (F0 - cutoff) > f_grid[i_f_min] )
+              if (lineshape_norm_data[ind_lsn].Name() == "quadratic")
                 {
-                  //              ls[i_f_min] = 0;
-                  ++i_f_min;
+                  // in case of the quadratic normalization factor use the 
+                  // so called 'microwave approximation' of the line intensity 
+                  // given by 
+                  // P. W. Rosenkranz, Chapter 2, Eq.(2.16), in M. A. Janssen, 
+                  // Atmospheric Remote Sensing by Microwave Radiometry, 
+                  // John Wiley & Sons, Inc., 1993
+                  Numeric mafac = (PLANCK_CONST * F0) / (2.000e0 * BOLTZMAN_CONST
+                                                         * t_i);
+                  intensity     = intensity * mafac / sinh(mafac);
                 }
-              
 
-              // Check whether we have elements in ls that can be
-              // ignored at higher frequencies of f_grid.
-              //
-              // Loop through all frequencies, finding max value and
-              // set all values to zero on that way.
-              while ( i_f_max >= 0 && (F0 + cutoff) < f_grid[i_f_max] )
+
+              // 2. Get pressure broadened line width:
+              // (Agam is in Hz/Pa, abs_p is in Pa, gamma is in Hz)
+              const Numeric theta = l_l.Tgam() / t_i;
+              const Numeric theta_Nair = pow(theta, l_l.Nair());
+
+              Numeric gamma
+                = l_l.Agam() * theta_Nair  * (p_i - p_partial)
+                + l_l.Sgam() * pow(theta, l_l.Nself()) * p_partial;
+
+              // 3. Doppler broadening without the sqrt(ln(2)) factor, which
+              // seems to be redundant FIXME: verify .
+              Numeric sigma = F0 * doppler_const * 
+                sqrt( t_i / l_l.IsotopeData().Mass());
+
+              // 3.a. Put in pressure shift.
+              // The T dependence is connected to that of agam by:
+              // n_shift = .25 + 1.5 * n_agam
+              // Theta has been initialized above.
+              F0 += l_l.Psf() * p_i * 
+                std::pow( theta , (Numeric).25 + (Numeric)1.5*l_l.Nair() );
+
+              // 4. the rosenkranz lineshape for oxygen calculates the
+              // pressure broadening, overlap, ... differently. Therefore
+              // all required parameters are passed in the aux array, the
+              // given order must agree with how they are accessed in the
+              // used lineshape (currently only the Rosenkranz routines are
+              // using this method of passing parameters). Parameters are
+              // always passed, because the Rosenkranz lineshape function
+              // can be used without overlap correction, which is then just
+              // set to 0. I know, this is not very nice, but I suggested to
+              // put the oxygen absorption into a different workspace
+              // method, but nobody listened to me, Schnief.
+              aux[0] = theta;
+              aux[1] = theta_Nair;
+              aux[2] = p_i;
+              aux[3] = vmr[i];
+              aux[4] = abs_h2o[i];
+              aux[5] = l_l.Agam();
+              aux[6] = l_l.Nair();
+              // is overlap available, otherwise pass zero
+              if (l_l.Naux() > 1)
                 {
-                  //              ls[i_f_max] = 0;
-                  --i_f_max;
+                  aux[7] = l_l.Aux()[0];
+                  aux[8] = l_l.Aux()[1];
+                  //            cout << "aux7, aux8: " << aux[7] << " " << aux[8] << "\n";
                 }
-              
-              // Append the cutoff frequency to f_local:
-              ++i_f_max;
-              f_local[i_f_max] = F0 + cutoff;
+              else
+                {
+                  aux[7] = 0.0;
+                  aux[8] = 0.0;
+                }
 
-              // Number of frequencies to calculate:
-              nfls = i_f_max - i_f_min + 1; // Add one because indices
-              // are pointing to first and
-              // last valid element. This
-              // is for the lineshape
-              // calls. 
-              nfl = nfls -1;              // This is for xsec.
-            }
-          else
-            {
-              // Nothing to do here. Note that nfl and nfls are both still set to nf.
-            }
 
-          //          cout << "nf, nfl, nfls = " << nf << ", " << nfl << ", " << nfls << ".\n";
-        
-          // Maybe there are no frequencies left to compute?  Note that
-          // the number that counts here is nfl, since only these are
-          // the `real' frequencies, for which xsec is changed. nfls
-          // will always be at least one, because it contains the cutoff.
-          if ( nfl > 0 )
-            {
-//               cout << ls << endl
-//                    << "aux / F0 / gamma / sigma" << aux << "/" << F0 << "/" << gamma << "/" << sigma << endl
-//                    << f_local[Range(i_f_min,nfls)] << endl
-//                    << nfls << endl;
-
-              // Calculate the line shape:
-              lineshape_data[ind_ls].Function()(ls,
-                                                aux,F0,gamma,sigma,
-                                                f_local[Range(i_f_min,nfls)],
-                                                nfls);
-
-              // Calculate the chosen normalization factor:
-              lineshape_norm_data[ind_lsn].Function()(fac,F0,
-                                                      f_local[Range(i_f_min,nfls)],
-                                                      t_i,nfls);
-
-              // Get a handle on the range of xsec that we want to change.
-              // We use nfl here, which could be one less than nfls.
-              VectorView this_xsec = xsec(Range(i_f_min,nfl),i);
-
-              // Get handles on the range of ls and fac that we need.
-              VectorView this_ls  = ls[Range(0,nfl)];
-              VectorView this_fac = fac[Range(0,nfl)];
+              // Indices pointing at begin/end frequencies of f_grid or at
+              // the elements that have to be calculated in case of cutoff
+              Index i_f_min = 0;            
+              Index i_f_max = nf-1;         
 
               // cutoff ?
               if ( cut )
                 {
-                  // The index nfls-1 should be exactly the index pointing
-                  // to the value at the cutoff frequency.
-                  base = ls[nfls-1];
+                  // Check whether we have elements in ls that can be
+                  // ignored at lower frequencies of f_grid.
+                  //
+                  // Loop through all frequencies, finding min value and
+                  // set all values to zero on that way.
+                  while ( i_f_min < nf && (F0 - cutoff) > f_grid[i_f_min] )
+                    {
+                      //              ls[i_f_min] = 0;
+                      ++i_f_min;
+                    }
+              
 
-                  // Subtract baseline from xsec. 
-                  // this_xsec -= base;
-                  this_ls -= base;
+                  // Check whether we have elements in ls that can be
+                  // ignored at higher frequencies of f_grid.
+                  //
+                  // Loop through all frequencies, finding max value and
+                  // set all values to zero on that way.
+                  while ( i_f_max >= 0 && (F0 + cutoff) < f_grid[i_f_max] )
+                    {
+                      //              ls[i_f_max] = 0;
+                      --i_f_max;
+                    }
+              
+                  // Append the cutoff frequency to f_local:
+                  ++i_f_max;
+                  f_local[i_f_max] = F0 + cutoff;
+
+                  // Number of frequencies to calculate:
+                  nfls = i_f_max - i_f_min + 1; // Add one because indices
+                  // are pointing to first and
+                  // last valid element. This
+                  // is for the lineshape
+                  // calls. 
+                  nfl = nfls -1;              // This is for xsec.
+                }
+              else
+                {
+                  // Nothing to do here. Note that nfl and nfls are both still set to nf.
                 }
 
-              // Add line to xsec. 
-              {
-                // To make the loop a bit faster, precompute all constant
-                // factors. These are:
-                // 1. Total number density of the air. --> Not
-                //    anymore, we now to real cross-sections
-                // 2. Line intensity.
-                // 3. Isotopic ratio.
-                //
-                // The isotopic ratio must be applied here, since we are
-                // summing up lines belonging to different isotopes.
+              //          cout << "nf, nfl, nfls = " << nf << ", " << nfl << ", " << nfls << ".\n";
+        
+              // Maybe there are no frequencies left to compute?  Note that
+              // the number that counts here is nfl, since only these are
+              // the `real' frequencies, for which xsec is changed. nfls
+              // will always be at least one, because it contains the cutoff.
+              if ( nfl > 0 )
+                {
+                  //               cout << ls << endl
+                  //                    << "aux / F0 / gamma / sigma" << aux << "/" << F0 << "/" << gamma << "/" << sigma << endl
+                  //                    << f_local[Range(i_f_min,nfls)] << endl
+                  //                    << nfls << endl;
 
-                //                const Numeric factors = n * intensity * l_l.IsotopeData().Abundance();
-                const Numeric factors = intensity * l_l.IsotopeData().Abundance();
+                  // Calculate the line shape:
+                  lineshape_data[ind_ls].Function()(ls,
+                                                    aux,F0,gamma,sigma,
+                                                    f_local[Range(i_f_min,nfls)],
+                                                    nfls);
 
-                // We have to do:
-                // xsec(j,i) += factors * ls[j1] * fac[j1];
-                //
-                // We use ls as a dummy to compute the product, then add it
-                // to this_xsec.
+                  // Calculate the chosen normalization factor:
+                  lineshape_norm_data[ind_lsn].Function()(fac,F0,
+                                                          f_local[Range(i_f_min,nfls)],
+                                                          t_i,nfls);
 
-                // FIXME: Maybe try if this is faster with a good
-                // old-fashioned simple loop.
+                  // Get a handle on the range of xsec that we want to change.
+                  // We use nfl here, which could be one less than nfls.
+                  VectorView this_xsec = xsec(Range(i_f_min,nfl),i);
 
-                this_ls *= this_fac;
-                this_ls *= factors;
-                this_xsec += this_ls;
-              }
+                  // Get handles on the range of ls and fac that we need.
+                  VectorView this_ls  = ls[Range(0,nfl)];
+                  VectorView this_fac = fac[Range(0,nfl)];
+
+                  // cutoff ?
+                  if ( cut )
+                    {
+                      // The index nfls-1 should be exactly the index pointing
+                      // to the value at the cutoff frequency.
+                      base = ls[nfls-1];
+
+                      // Subtract baseline from xsec. 
+                      // this_xsec -= base;
+                      this_ls -= base;
+                    }
+
+                  // Add line to xsec. 
+                  {
+                    // To make the loop a bit faster, precompute all constant
+                    // factors. These are:
+                    // 1. Total number density of the air. --> Not
+                    //    anymore, we now to real cross-sections
+                    // 2. Line intensity.
+                    // 3. Isotopic ratio.
+                    //
+                    // The isotopic ratio must be applied here, since we are
+                    // summing up lines belonging to different isotopes.
+
+                    //                const Numeric factors = n * intensity * l_l.IsotopeData().Abundance();
+                    const Numeric factors = intensity * l_l.IsotopeData().Abundance();
+
+                    // We have to do:
+                    // xsec(j,i) += factors * ls[j1] * fac[j1];
+                    //
+                    // We use ls as a dummy to compute the product, then add it
+                    // to this_xsec.
+
+                    // FIXME: Maybe try if this is faster with a good
+                    // old-fashioned simple loop.
+
+                    this_ls *= this_fac;
+                    this_ls *= factors;
+                    this_xsec += this_ls;
+                  }
+                }
             }
+        } // end of try block
+      catch (runtime_error e)
+        {
+          exit_or_rethrow(e.what());
         }
-    }
+    } // end of parallel for loop
 }
 
 

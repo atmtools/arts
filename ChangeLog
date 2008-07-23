@@ -1,3 +1,27 @@
+2008-07-23  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-7-12
+
+	* src/absorption.cc (xsec_species): Parallelized the loop over
+	pressure. This speeds things up in case that abs_lookupCreate does
+	not do temperature perturbations. Also should help for on-the-fly
+	simulations, of course.
+
+	* src/m_abs_lookup.cc (abs_lookupCreate): 
+
+	1. Clarified documentation about use of a private statement in omp
+	parallel regions. Private variables are not initialized inside the
+	parallel region, so they should be initialized at the beginning.
+
+	2. Enable nested parallel execution, in case there are no
+	temperature perturbations. This is necessary in order to benefit
+	from the now parallelized line-by-line code in xsec_species.
+	
+	* src/arts_omp{h,.cc} (arts_omp_get_nested): Added.
+	(arts_omp_set_nested): Added.
+	
+	* src/gas_abs_lookup.h: Only cosmetics.
+
 2008-07-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-7-11

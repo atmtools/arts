@@ -44,5 +44,9 @@ bool arts_omp_in_parallel();
 
 int arts_omp_get_thread_num();
 
+int arts_omp_get_nested();
+
+void arts_omp_set_nested(int i);
+
 
 #endif  // arts_omp_h
