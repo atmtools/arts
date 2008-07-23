@@ -35,7 +35,7 @@ libarts_a_SOURCES = \
 	arts.h \
 	auto_md.cc \
 	auto_md.h \
-	auto_wsv_groups.h \
+	auto_workspace.h \
 	bifstream.h \
 	bifstream.cc \
 	bofstream.h \
@@ -198,7 +198,7 @@ libmethods_a_CXXFLAGS = $(CXXFLAGS_NOOPT) $(WARNINGCFLAGS)
 libmethods_a_SOURCES = \
 	arts.h \
 	methods.h \
-	auto_wsv_groups.h \
+	auto_workspace.h \
 	make_array.h \
 	methods.cc
 
@@ -257,11 +257,11 @@ endif
 noinst_PROGRAMS = \
 	make_auto_md_cc \
 	make_auto_md_h \
-	make_auto_wsv_groups_h
+	make_auto_workspace_h
 
-make_auto_wsv_groups_h_LDADD = libmatpack.a
-make_auto_wsv_groups_h_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
-make_auto_wsv_groups_h_SOURCES = \
+make_auto_workspace_h_LDADD = libmatpack.a
+make_auto_workspace_h_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
+make_auto_workspace_h_SOURCES = \
 	arts.cc \
 	arts.h \
 	arts_omp.cc \
@@ -270,7 +270,7 @@ make_auto_wsv_groups_h_SOURCES = \
 	file.h \
 	groups.cc \
 	m_general.h \
-	make_auto_wsv_groups_h.cc \
+	make_auto_workspace_h.cc \
 	messages.h \
 	messages.cc \
 	parameters.cc \
@@ -288,7 +288,7 @@ make_auto_md_h_SOURCES = \
 	arts.h \
 	arts_omp.cc \
 	arts_omp.h \
-	auto_wsv_groups.h \
+	auto_workspace.h \
 	binio.cc \
 	binio.h \
 	file.cc \
@@ -321,7 +321,7 @@ make_auto_md_cc_SOURCES = \
 	arts.h \
 	arts_omp.cc \
 	arts_omp.h \
-	auto_wsv_groups.h \
+	auto_workspace.h \
 	binio.cc \
 	binio.h \
 	file.cc \
@@ -343,8 +343,8 @@ make_auto_md_cc_SOURCES = \
 	workspace_ng.h \
 	wsv_aux.h
 
-auto_wsv_groups.h: make_auto_wsv_groups_h$(EXEEXT)
-	$(top_builddir)/src/make_auto_wsv_groups_h$(EXEEXT)
+auto_workspace.h: make_auto_workspace_h$(EXEEXT)
+	$(top_builddir)/src/make_auto_workspace_h$(EXEEXT)
 
 auto_md.h: make_auto_md_h$(EXEEXT)
 	$(top_builddir)/src/make_auto_md_h$(EXEEXT)
@@ -353,15 +353,17 @@ auto_md.cc: make_auto_md_cc$(EXEEXT)
 	$(top_builddir)/src/make_auto_md_cc$(EXEEXT)
 
 BUILT_SOURCES = \
-	auto_wsv_groups.h \
+	auto_workspace.h \
 	auto_md.h \
 	auto_md.cc
 
 CLEANFILES = \
 	auto_wsv.h \
 	make_auto_wsv_h$(EXEEXT) \
+	make_auto_wsv_groups_h$(EXEEXT) \
 	auto_wsv.txt \
 	auto_wsv_groups.h \
+	auto_workspace.h \
 	auto_md.h \
 	auto_md.cc \
 	check-code-header-consistency.log \

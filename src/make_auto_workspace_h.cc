@@ -32,19 +32,17 @@ int main()
       // Make the names visible.
       extern const ArrayOfString wsv_group_names;
 
-      const Index n_wsv_groups = wsv_group_names.nelem();
-
       ofstream ofs;
-      open_output_file(ofs,"auto_wsv_groups.h");
+      open_output_file(ofs,"auto_workspace.h");
 
-      ofs << "/*! \\file  auto_wsv_groups.h\n"
+      ofs << "/*! \\file  auto_workspace.h\n"
           << "    \\brief Defines the enum type that acts as a\n"
           << "    handle for workspace variables groups.\n\n"
 
           << "    Also defined here is a special pointer class that can hold\n"
           << "    a pointer to any workspace variable.\n\n"
 
-          << "    This file was generated automatically by make_auto_wsv_groups_h.cc.\n"
+          << "    This file was generated automatically by make_auto_workspace_h.cc.\n"
 
           << "    <b>DO NOT EDIT!</b>\n\n"
 
@@ -52,8 +50,8 @@ int main()
           << __DATE__ << ", "
           << __TIME__ << " */\n\n";
 
-      ofs << "#ifndef auto_wsv_groups_h\n"
-          << "#define auto_wsv_groups_h\n\n";
+      ofs << "#ifndef auto_workspace_h\n"
+          << "#define auto_workspace_h\n\n";
 
       ofs << "#include <iostream>\n"
           << "#include \"matpackII.h\"\n"
@@ -67,40 +65,6 @@ int main()
           << "#include \"agenda_class.h\"\n\n"
           << "#include \"mc_interp.h\"\n\n"
           << "#include \"mc_antenna.h\"\n\n";
-
-      // Now write the declaration of the WsvP class.
-
-      ofs << "/*! Base class for the different Wsv pointers.\n"
-          << "    This contains a virtual function for the\n"
-          << "    conversion operator for each group.\n\n"
-          << "    \\author Stefan Buehler */\n";
-      
-      ofs << "class WsvP {\n"
-          << "public:\n";
-      for (Index i=0; i<n_wsv_groups; ++i)
-        {
-          ofs << "  virtual operator "
-              << wsv_group_names[i]
-              << "*(){safety();return NULL;};\n";
-        }
-
-      ofs << "\nvirtual ~WsvP(){};\n";
-
-      ofs << "\nprivate:\n";
-
-      ofs << "/*! Safety check. This is called by all the virtual conversion\n"
-          << "    operators. It just stops the program with an error message. This\n"
-          << "    should never happen, because conversion should only be attempted\n"
-          << "    to the correct type, for which an overloaded conversion operator\n"
-          << "    exists. */\n";
-
-      ofs << "  void safety() {\n"
-          << "    cerr << \"Internal error: Tried to convert a WsvP \"\n"
-          << "         << \"pointer to the wrong type.\\n\";\n"
-          << "    arts_exit();\n"
-          << "  };\n";
-
-      ofs << "};\n\n";
 
       ////////////////////////////////////////////////////////////////////
       // WorkspaceMemoryHandler class
@@ -171,7 +135,7 @@ int main()
       ////////////////////////////////////////////////////////////////////
 
 
-      ofs << "#endif  // auto_wsv_groups_h\n";      
+      ofs << "#endif  // auto_workspace_h\n";      
     }
   catch (runtime_error x)
     {

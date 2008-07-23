@@ -30,7 +30,7 @@
 
 #include "workspace_ng.h"
 #include "wsv_aux.h"
-#include "auto_wsv_groups.h"
+#include "auto_workspace.h"
 
 WorkspaceMemoryHandler wsmh;
 

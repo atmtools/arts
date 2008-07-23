@@ -1,5 +1,17 @@
 2008-07-23  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-7-9
+
+	* src/make_auto_wsv_groups_h.cc: Renamed to make_auto_workspace_h.cc
+
+	* src/make_auto_workspace_h.cc: Don't generate WsvP anymore.
+
+	* src/Makefile.am, src/workspace_ng.cc:
+	
+	auto_wsv_groups -> auto_workspace.
+
+2008-07-23  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-7-8
 
 	* Continuing migration from enums to Strings. Now replacing all enum
