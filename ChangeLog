@@ -1,5 +1,23 @@
 2008-07-23  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-7-11
+
+	* src/groups.cc:
+	
+	(define_valid_keyword_groups):
+
+	Define a list of valid groups for keywords.
+
+	(is_valid_keyword_group): Check if given group is a keyword group.
+
+	* src/methods_aux.cc:
+
+	Check if the groups for keywords are valid.
+
+	* arts.h: Temporarely add declaration of is_valid_keyword_group.
+
+2008-07-23  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-7-10
 
 	* src/methods.cc: Changes TYPES to String array.

@@ -94,7 +94,6 @@ MdRecord::MdRecord(const char                   name[],
           if (moutput[j] == -1)
             {
               ostringstream os;
-
               os << "Unknown WSV " << output[j] << " for output "
                 << "in WSM " << mname;
               throw runtime_error( os.str() );
@@ -108,7 +107,6 @@ MdRecord::MdRecord(const char                   name[],
           if (minput[j] == -1)
             {
               ostringstream os;
-
               os << "Unknown WSV " << input[j] << " for input "
                 << "in WSM " << mname;
               throw runtime_error( os.str() );
@@ -123,7 +121,6 @@ MdRecord::MdRecord(const char                   name[],
           if (mgoutput[j] == -1)
             {
               ostringstream os;
-
               os << "Unknown WSV Group " << goutput[j] << " for generic output "
                 << "in WSM " << mname;
               throw runtime_error( os.str() );
@@ -137,7 +134,6 @@ MdRecord::MdRecord(const char                   name[],
           if (mginput[j] == -1)
             {
               ostringstream os;
-
               os << "Unknown WSV Group " << ginput[j] << " for generic input "
                 << "in WSM " << mname;
               throw runtime_error( os.str() );
@@ -152,8 +148,14 @@ MdRecord::MdRecord(const char                   name[],
           if (mtypes[j] == -1)
             {
               ostringstream os;
-
-              os << "Unknown Group " << types[j] << " for keyword"
+              os << "Unknown Group " << types[j] << " for keyword "
+                << "in WSM " << mname;
+              throw runtime_error( os.str() );
+            }
+          else if (!is_valid_keyword_group(mtypes[j]))
+            {
+              ostringstream os;
+              os << "Group " << types[j] << " is not a valid group for keywords "
                 << "in WSM " << mname;
               throw runtime_error( os.str() );
             }

@@ -39,6 +39,21 @@
 ArrayOfString wsv_group_names;
 map<String, Index> WsvGroupMap;
 
+/*! Groups that can be used as keywords */
+ArrayOfIndex valid_keyword_groups;
+
+
+void define_valid_keyword_groups()
+{
+  valid_keyword_groups.resize(0);
+  valid_keyword_groups.push_back(get_wsv_group_id("String"));
+  valid_keyword_groups.push_back(get_wsv_group_id("Index"));
+  valid_keyword_groups.push_back(get_wsv_group_id("Numeric"));
+  valid_keyword_groups.push_back(get_wsv_group_id("ArrayOfString"));
+  valid_keyword_groups.push_back(get_wsv_group_id("ArrayOfIndex"));
+  valid_keyword_groups.push_back(get_wsv_group_id("Vector"));
+}
+
 
 void define_wsv_group_map()
 {
@@ -47,6 +62,7 @@ void define_wsv_group_map()
       WsvGroupMap[wsv_group_names[i]] = i;
     }
 }
+
 
 //! Define the array of workspace variable group names.
 /*!
@@ -119,8 +135,20 @@ void define_wsv_group_names()
   wsv_group_names.push_back("SLIData2");
 
   define_wsv_group_map();
+  define_valid_keyword_groups();
 }
 
+
+bool is_valid_keyword_group(const Index group)
+{
+  for (Index i = 0; i < valid_keyword_groups.nelem(); i++)
+    {
+      if (valid_keyword_groups[i] == group)
+        return true;
+    }
+
+  return false;
+}
 
 Index get_wsv_group_id(const String& name)
 {
