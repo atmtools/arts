@@ -1,5 +1,28 @@
 2008-07-23  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-7-10
+
+	* src/methods.cc: Changes TYPES to String array.
+
+	* src/methods.h, src/methods_aux.cc
+
+	Change mtypes from Array<TokVal> to ArrayOfIndex. In preparation of
+	treating keywords like generic inputs.
+
+	* src/make_auto_md_h.cc:
+	
+	Don't include token.h.
+
+	Use wsv_group_names instead of TokValTypeName.
+
+	* src/make_auto_md_cc.cc: Don't include token.h.
+
+	* src/parser.cc:
+
+	Use group ids for keyword types instead of TokValType.
+
+2008-07-23  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-7-9
 
 	* src/make_auto_wsv_groups_h.cc: Renamed to make_auto_workspace_h.cc

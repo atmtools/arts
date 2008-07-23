@@ -66,7 +66,6 @@
 */
 
 #include "arts.h"
-#include "token.h"
 #include "array.h"
 #include "file.h"
 #include "methods.h"
@@ -464,8 +463,7 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
 
-        extern String TokValTypeName[];
-        ofs << "const " << TokValTypeName[mdd.Types()[j]] << "& "
+        ofs << "const " << wsv_group_names[mdd.Types()[j]] << "& "
             << mdd.Keywords()[j];
       }
   }

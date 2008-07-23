@@ -547,54 +547,46 @@ void ArtsParser::parse_keywords(const MdRecord* mdd,
           eat_whitespace();
         }
 
-      // Now parse the key value. This can be:
-      // String_t,    Index_t,    Numeric_t,
-      // Array_String_t, Array_Index_t, Vector_t,
-      switch (mdd->Types()[keyword_index]) 
+      // Now parse the key value.
+      if (mdd->Types()[keyword_index] == get_wsv_group_id ("String")) 
         {
-        case String_t:
-            {
-              String dummy;
-              parse_String(dummy);
-              values[keyword_index] = dummy;
-              break;
-            }
-        case Index_t:
-            {
-              Index n;
-              parse_integer(n);
-              values[keyword_index] = n;
-              break;
-            }
-        case Numeric_t:
-            {
-              Numeric n;
-              parse_numeric(n);
-              values[keyword_index] = n;
-              break;
-            }
-        case Array_String_t:
-            {
-              ArrayOfString dummy;
-              parse_Stringvector(dummy);
-              values[keyword_index] = dummy;
-              break;
-            }
-        case Array_Index_t:
-            {
-              ArrayOfIndex dummy;
-              parse_intvector(dummy);
-              values[keyword_index] = dummy;
-              break;
-            }
-        case Vector_t:
-            {
-              Vector dummy;
-              parse_numvector(dummy);
-              values[keyword_index] = dummy;
-              break;
-            }
-        default:
+          String dummy;
+          parse_String(dummy);
+          values[keyword_index] = dummy;
+        }
+      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("Index")) 
+        {
+          Index n;
+          parse_integer(n);
+          values[keyword_index] = n;
+        }
+      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("Numeric")) 
+        {
+          Numeric n;
+          parse_numeric(n);
+          values[keyword_index] = n;
+        }
+      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("ArrayOfString")) 
+        {
+          ArrayOfString dummy;
+          parse_Stringvector(dummy);
+          values[keyword_index] = dummy;
+        }
+      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("ArrayOfIndex")) 
+        {
+          ArrayOfIndex dummy;
+          parse_intvector(dummy);
+          values[keyword_index] = dummy;
+        }
+      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("Vector")) 
+        {
+          Vector dummy;
+          parse_numvector(dummy);
+          values[keyword_index] = dummy;
+          break;
+        }
+      else
+        {
           cerr << "Impossible parameter type.\n";
           arts_exit(EXIT_FAILURE);
         }
@@ -613,73 +605,67 @@ void ArtsParser::parse_keywords(const MdRecord* mdd,
           if (mdd->Defaults()[i] != NODEF)
             {
               // Now parse the key value. This can be:
-              // String_t,    Index_t,    Numeric_t,
-              // Array_String_t, Array_Index_t, Vector_t,
+              // String, Index, Numeric, ArrayOfString, ArrayOfIndex, Vector
               bool failed = false;
-              switch (mdd->Types()[i]) 
-                {
-                case String_t:
+              if (mdd->Types()[i] == get_wsv_group_id ("String")) 
                     {
                       values[i] = mdd->Defaults()[i];
                       break;
                     }
-                case Index_t:
+              else if (mdd->Types()[i] == get_wsv_group_id ("Index")) 
+                {
+                  Index n;
+                  istringstream is(mdd->Defaults()[i]);
+                  is >> n;
+                  values[i] = n;
+                  if (is.bad () || is.fail ())
+                    failed = true;
+                }
+              else if (mdd->Types()[i] == get_wsv_group_id ("Numeric")) 
+                {
+                  Numeric n;
+                  istringstream is(mdd->Defaults()[i]);
+                  is >> n;
+                  values[i] = n;
+                  if (is.bad () || is.fail ())
+                    failed = true;
+                }
+              else if (mdd->Types()[i] == get_wsv_group_id ("ArrayOfString")) 
+                {
+                  ArrayOfString v;
+                  String s = mdd->Defaults()[i];
+                  if (!parse_stringarray_from_string(v, s))
                     {
-                      Index n;
-                      istringstream is(mdd->Defaults()[i]);
-                      is >> n;
-                      values[i] = n;
-                      if (is.bad () || is.fail ())
-                        failed = true;
-                      break;
+                      failed = true;
                     }
-                case Numeric_t:
+                  values[i] = v;
+                }
+              else if (mdd->Types()[i] == get_wsv_group_id ("ArrayOfIndex")) 
+                {
+                  ostringstream os;
+                  os << "Default values for keywords with type "
+                    << "ArrayOfIndex are not supported.\n"
+                    << "Either remove the default value for keyword '"
+                    << mdd->Keywords()[i] << "' in workspace method *"
+                    << mdd->Name() << "* in methods.cc or discuss this "
+                    << "issue on the arts-dev mailing list.\n";
+                  throw runtime_error (os.str());
+                }
+              else if (mdd->Types()[i] == get_wsv_group_id ("Vector")) 
+                {
+                  Vector v;
+                  String s = mdd->Defaults()[i];
+                  if (!parse_numvector_from_string(v, s))
                     {
-                      Numeric n;
-                      istringstream is(mdd->Defaults()[i]);
-                      is >> n;
-                      values[i] = n;
-                      if (is.bad () || is.fail ())
-                        failed = true;
-                      break;
+                      failed = true;
                     }
-                case Array_String_t:
-                    {
-                      ArrayOfString v;
-                      String s = mdd->Defaults()[i];
-                      if (!parse_stringarray_from_string(v, s))
-                        {
-                          failed = true;
-                        }
-                      values[i] = v;
-                      break;
-                    }
-                case Array_Index_t:
-                    {
-                      ostringstream os;
-                      os << "Default values for keywords with type "
-                        << "ArrayOfIndex are not supported.\n"
-                        << "Either remove the default value for keyword '"
-                        << mdd->Keywords()[i] << "' in workspace method *"
-                        << mdd->Name() << "* in methods.cc or discuss this "
-                        << "issue on the arts-dev mailing list.\n";
-                      throw runtime_error (os.str());
-                      break;
-                    }
-                case Vector_t:
-                    {
-                      Vector v;
-                      String s = mdd->Defaults()[i];
-                      if (!parse_numvector_from_string(v, s))
-                        {
-                          failed = true;
-                        }
-                      values[i] = v;
-                      break;
-                    }
-                default:
+                  values[i] = v;
+                }
+              else
+                {
                   failed = true;
                 }
+
               if (failed)
                 {
                   ostringstream os;
@@ -723,73 +709,66 @@ void ArtsParser::set_keyword_to_default(const MdRecord* mdd,
   if (mdd->Defaults()[keyword_index] != NODEF)
     {
       // Now parse the key value. This can be:
-      // String_t,    Index_t,    Numeric_t,
-      // Array_String_t, Array_Index_t, Vector_t,
+      // String, Index, Numeric, ArrayOfString, ArrayOfIndex, Vector
       bool failed = false;
-      switch (mdd->Types()[keyword_index]) 
+      if (mdd->Types()[keyword_index] == get_wsv_group_id ("String")) 
         {
-        case String_t:
+          values[keyword_index] = mdd->Defaults()[keyword_index];
+        }
+      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("Index")) 
+        {
+          Index n;
+          istringstream is(mdd->Defaults()[keyword_index]);
+          is >> n;
+          values[keyword_index] = n;
+          if (is.bad () || is.fail ())
+            failed = true;
+        }
+      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("Numeric")) 
+        {
+          Numeric n;
+          istringstream is(mdd->Defaults()[keyword_index]);
+          is >> n;
+          values[keyword_index] = n;
+          if (is.bad () || is.fail ())
+            failed = true;
+        }
+      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("ArrayOfString")) 
+        {
+          ArrayOfString v;
+          String s = mdd->Defaults()[keyword_index];
+          if (!parse_stringarray_from_string(v, s))
             {
-              values[keyword_index] = mdd->Defaults()[keyword_index];
-              break;
+              failed = true;
             }
-        case Index_t:
+          values[keyword_index] = v;
+        }
+      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("ArrayOfIndex")) 
+        {
+          ostringstream os;
+          os << "Default values for keywords with type "
+            << "ArrayOfIndex are not supported.\n"
+            << "Either remove the default value for keyword '"
+            << mdd->Keywords()[keyword_index] << "' in workspace method *"
+            << mdd->Name() << "* in methods.cc or discuss this "
+            << "issue on the arts-dev mailing list.\n";
+          throw runtime_error (os.str());
+        }
+      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("Vector")) 
+        {
+          Vector v;
+          String s = mdd->Defaults()[keyword_index];
+          if (!parse_numvector_from_string(v, s))
             {
-              Index n;
-              istringstream is(mdd->Defaults()[keyword_index]);
-              is >> n;
-              values[keyword_index] = n;
-              if (is.bad () || is.fail ())
-                failed = true;
-              break;
+              failed = true;
             }
-        case Numeric_t:
-            {
-              Numeric n;
-              istringstream is(mdd->Defaults()[keyword_index]);
-              is >> n;
-              values[keyword_index] = n;
-              if (is.bad () || is.fail ())
-                failed = true;
-              break;
-            }
-        case Array_String_t:
-            {
-              ArrayOfString v;
-              String s = mdd->Defaults()[keyword_index];
-              if (!parse_stringarray_from_string(v, s))
-                {
-                  failed = true;
-                }
-              values[keyword_index] = v;
-              break;
-            }
-        case Array_Index_t:
-            {
-              ostringstream os;
-              os << "Default values for keywords with type "
-                << "ArrayOfIndex are not supported.\n"
-                << "Either remove the default value for keyword '"
-                << mdd->Keywords()[keyword_index] << "' in workspace method *"
-                << mdd->Name() << "* in methods.cc or discuss this "
-                << "issue on the arts-dev mailing list.\n";
-              throw runtime_error (os.str());
-              break;
-            }
-        case Vector_t:
-            {
-              Vector v;
-              String s = mdd->Defaults()[keyword_index];
-              if (!parse_numvector_from_string(v, s))
-                {
-                  failed = true;
-                }
-              values[keyword_index] = v;
-              break;
-            }
-        default:
+          values[keyword_index] = v;
+        }
+      else
+        {
           failed = true;
         }
+
       if (failed)
         {
           ostringstream os;
@@ -854,53 +833,45 @@ void ArtsParser::parse_keywords2(const MdRecord* mdd,
         {
 
           // Now parse the key value. This can be:
-          // String_t,    Index_t,    Numeric_t,
-          // Array_String_t, Array_Index_t, Vector_t,
-          switch (mdd->Types()[keyword_index]) 
+          // String, Index, Numeric, ArrayOfString, ArrayOfIndex, Vector
+          if (mdd->Types()[keyword_index] == get_wsv_group_id ("String")) 
             {
-            case String_t:
-                {
-                  String dummy;
-                  parse_String(dummy);
-                  values[keyword_index] = dummy;
-                  break;
-                }
-            case Index_t:
-                {
-                  Index n;
-                  parse_integer(n);
-                  values[keyword_index] = n;
-                  break;
-                }
-            case Numeric_t:
-                {
-                  Numeric n;
-                  parse_numeric(n);
-                  values[keyword_index] = n;
-                  break;
-                }
-            case Array_String_t:
-                {
-                  ArrayOfString dummy;
-                  parse_Stringvector(dummy);
-                  values[keyword_index] = dummy;
-                  break;
-                }
-            case Array_Index_t:
-                {
-                  ArrayOfIndex dummy;
-                  parse_intvector(dummy);
-                  values[keyword_index] = dummy;
-                  break;
-                }
-            case Vector_t:
-                {
-                  Vector dummy;
-                  parse_numvector(dummy);
-                  values[keyword_index] = dummy;
-                  break;
-                }
-            default:
+              String dummy;
+              parse_String(dummy);
+              values[keyword_index] = dummy;
+            }
+          else if (mdd->Types()[keyword_index] == get_wsv_group_id ("Index")) 
+            {
+              Index n;
+              parse_integer(n);
+              values[keyword_index] = n;
+            }
+          else if (mdd->Types()[keyword_index] == get_wsv_group_id ("Numeric")) 
+            {
+              Numeric n;
+              parse_numeric(n);
+              values[keyword_index] = n;
+            }
+          else if (mdd->Types()[keyword_index] == get_wsv_group_id ("ArrayOfString")) 
+            {
+              ArrayOfString dummy;
+              parse_Stringvector(dummy);
+              values[keyword_index] = dummy;
+            }
+          else if (mdd->Types()[keyword_index] == get_wsv_group_id ("ArrayOfIndex")) 
+            {
+              ArrayOfIndex dummy;
+              parse_intvector(dummy);
+              values[keyword_index] = dummy;
+            }
+          else if (mdd->Types()[keyword_index] == get_wsv_group_id ("Vector")) 
+            {
+              Vector dummy;
+              parse_numvector(dummy);
+              values[keyword_index] = dummy;
+            }
+          else
+            {
               cerr << "Impossible parameter type.\n";
               arts_exit(EXIT_FAILURE);
             }

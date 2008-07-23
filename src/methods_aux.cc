@@ -50,7 +50,7 @@ MdRecord::MdRecord(const char                   name[],
                    const MakeArray<String>&     ginput,   
                    const MakeArray<String>&     keywords,
                    const MakeArray<String>&     defaults,
-                   const MakeArray<TokValType>& types,
+                   const MakeArray<String>&     types,
                    bool                         agenda_method,
                    bool                         suppress_header,
                    bool                         pass_workspace,
@@ -64,7 +64,7 @@ MdRecord::MdRecord(const char                   name[],
     mginput(        0                     ),   
     mkeywords(      keywords              ),
     mdefaults(      defaults              ),
-    mtypes(         types                 ),
+    mtypes(         0                     ),
     magenda_method(   agenda_method       ),
     msupergeneric(    false               ),
     msuppress_header( suppress_header     ),
@@ -78,6 +78,7 @@ MdRecord::MdRecord(const char                   name[],
       // Keywords and type must have the same number of
       // elements. (Types specifies the types associated with each
       // keyword.)
+      mtypes.resize(types.nelem());
       assert( mkeywords.nelem() == mtypes.nelem() );
 
       // Keywords and Defaults must have the same number of
@@ -138,6 +139,21 @@ MdRecord::MdRecord(const char                   name[],
               ostringstream os;
 
               os << "Unknown WSV Group " << ginput[j] << " for generic input "
+                << "in WSM " << mname;
+              throw runtime_error( os.str() );
+            }
+        }
+
+
+      // Map the keyword types to group indexes
+      for ( Index j=0; j<types.nelem(); ++j )
+        {
+          mtypes[j] = get_wsv_group_id (types[j]);
+          if (mtypes[j] == -1)
+            {
+              ostringstream os;
+
+              os << "Unknown Group " << types[j] << " for keyword"
                 << "in WSM " << mname;
               throw runtime_error( os.str() );
             }

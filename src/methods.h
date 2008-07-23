@@ -29,7 +29,6 @@
 #define methods_h
 
 #include <iosfwd>
-#include "token.h"
 #include "messages.h"
 #include "make_array.h"
 
@@ -69,7 +68,7 @@ public:
            const MakeArray<String>&     ginput,   
            const MakeArray<String>&     keywords,
            const MakeArray<String>&     defaults,
-           const MakeArray<TokValType>& types,
+           const MakeArray<String>&     types,
            bool                         agenda_method   = false,
            bool                         suppress_header = false,
            bool                         pass_workspace  = false,
@@ -86,7 +85,7 @@ public:
   const ArrayOfIndex&      GInput()         const { return mginput; }
   const Array<String>&     Keywords()       const { return mkeywords; }
   const Array<String>&     Defaults()       const { return mdefaults; }
-  const Array<TokValType>& Types()          const { return mtypes; }
+  const ArrayOfIndex&      Types()          const { return mtypes; }
   bool                     AgendaMethod()   const { return magenda_method; }
   bool                     Supergeneric()   const { return msupergeneric; }
   bool                     SuppressHeader() const { return msuppress_header; }
@@ -156,7 +155,7 @@ private:
   ArrayOfString mdefaults;
 
   //! Types associated with keywords.
-  Array<TokValType> mtypes;
+  ArrayOfIndex mtypes;
 
   //! Flag, whether this is an agenda method. 
   /*!

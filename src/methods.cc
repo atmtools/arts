@@ -43,7 +43,7 @@
 #define GINPUT   MakeArray<String>
 #define KEYWORDS MakeArray<String>
 #define DEFAULTS MakeArray<String>
-#define TYPES    MakeArray<TokValType>
+#define TYPES    MakeArray<String>
 #define AGENDAMETHOD(x) x
 #define SUPPRESSHEADER(x) x
 #define PASSWORKSPACE(x) x
@@ -97,7 +97,7 @@
         GINPUT(),
         KEYWORDS( "delta_t", "z_tan_lim" ),
         DEFAULTS( NODEF,     NODEF ),
-        TYPES(    Numeric_t, Vector_t    )));
+        TYPES(    "Numeric", "Vector"    )));
   */
 
   /* Here's an empty record entry:  (PE 2001-09-18)
@@ -309,7 +309,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "tagname", "model",  "userparameters" ),
         DEFAULTS( NODEF,     NODEF,    NODEF),
-        TYPES(    String_t,  String_t, Vector_t )));
+        TYPES(    "String",  "String", "Vector" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -422,7 +422,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "shape",  "normalizationfactor", "cutoff" ),
         DEFAULTS( NODEF,    NODEF,                 NODEF ),
-        TYPES(    String_t, String_t,              Numeric_t )));
+        TYPES(    "String", "String",              "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -479,7 +479,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "shape",        "normalizationfactor", "cutoff" ),
         DEFAULTS( NODEF,          NODEF,                 NODEF ),
-        TYPES(    Array_String_t, Array_String_t,        Vector_t )));
+        TYPES(    "ArrayOfString", "ArrayOfString",        "Vector" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -503,7 +503,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "filename", "fmin",    "fmax" ),
         DEFAULTS( NODEF,      NODEF,     NODEF ),
-        TYPES(    String_t,   Numeric_t, Numeric_t )));
+        TYPES(    "String",   "Numeric", "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -527,7 +527,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "filename", "fmin",    "fmax" ),
         DEFAULTS( NODEF,      NODEF,     NODEF ),
-        TYPES(    String_t,   Numeric_t, Numeric_t )));
+        TYPES(    "String",   "Numeric", "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -556,7 +556,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "filename",  "fmin",    "fmax" ),
         DEFAULTS( NODEF,       NODEF,     NODEF ),
-        TYPES(    String_t,    Numeric_t, Numeric_t)));
+        TYPES(    "String",    "Numeric", "Numeric")));
 
   md_data_raw.push_back
     ( MdRecord
@@ -588,7 +588,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "filename",  "fmin",    "fmax" ),
         DEFAULTS( NODEF,       NODEF,     NODEF ),
-        TYPES( String_t, Numeric_t, Numeric_t )));
+        TYPES( "String", "Numeric", "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -614,7 +614,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "filename",  "fmin", "fmax" ),
         DEFAULTS( NODEF,       NODEF,     NODEF ),
-        TYPES( String_t, Numeric_t, Numeric_t )));
+        TYPES( "String", "Numeric", "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -638,7 +638,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "filename", "fmin", "fmax" ),
         DEFAULTS( NODEF,       NODEF,     NODEF ),
-        TYPES( String_t, Numeric_t, Numeric_t )));
+        TYPES( "String", "Numeric", "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -755,7 +755,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "filenames",    "formats",      "fmin",   "fmax" ),
         DEFAULTS( NODEF,          NODEF,          NODEF,    NODEF ),
-        TYPES(    Array_String_t, Array_String_t, Vector_t, Vector_t )));
+        TYPES(    "ArrayOfString", "ArrayOfString", "Vector", "Vector" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -924,7 +924,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "p_step",  "t_step",  "h2o_step" ),
         DEFAULTS( "0.02",    "5",       "0.5" ),
-        TYPES(    Numeric_t, Numeric_t, Numeric_t )));
+        TYPES(    "Numeric", "Numeric", "Numeric" )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -988,7 +988,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "p_step",  "t_step",  "h2o_step", "extremes" ),
         DEFAULTS( "0.02",    "5",       "0.5",      "[]" ),
-        TYPES(    Numeric_t, Numeric_t, Numeric_t,  Vector_t )));
+        TYPES(    "Numeric", "Numeric", "Numeric",  "Vector" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1119,7 +1119,7 @@ void define_md_data_raw()
         GINPUT(),
         KEYWORDS( "species" ),
         DEFAULTS( NODEF ),
-        TYPES(    Array_String_t   )));
+        TYPES(    "ArrayOfString"   )));
  
   md_data_raw.push_back
     ( MdRecord
@@ -1145,7 +1145,7 @@ void define_md_data_raw()
         GINPUT( "Vector", "Vector", "Vector" ),
         KEYWORDS( "species", "method", "unit", "dx" ),
         DEFAULTS( NODEF,     NODEF,    NODEF,  NODEF ),
-        TYPES( String_t, String_t, String_t, Numeric_t )));
+        TYPES( "String", "String", "String", "Numeric" )));
  
   md_data_raw.push_back
     ( MdRecord
@@ -1171,7 +1171,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "basename" ),
         DEFAULTS( NODEF ),
-        TYPES( String_t )));
+        TYPES( "String" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1251,7 +1251,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "species" ),
         DEFAULTS( NODEF ),
-        TYPES(    Array_String_t   )));
+        TYPES(    "ArrayOfString"   )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1663,7 +1663,7 @@ void define_md_data_raw()
         GINPUT( "ArrayOfMatrix", "Matrix" ),
         KEYWORDS( "element" ),
         DEFAULTS( NODEF ),
-        TYPES( Index_t )));
+        TYPES( "Index" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1701,7 +1701,7 @@ void define_md_data_raw()
         GINPUT(),
         KEYWORDS( "text" ),
         DEFAULTS( NODEF ),
-        TYPES(    Array_String_t )));
+        TYPES(    "ArrayOfString" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1809,7 +1809,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "p_step" ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1834,7 +1834,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "name",   "value" ),
         DEFAULTS( NODEF,    NODEF ),
-        TYPES(    String_t, Numeric_t )));
+        TYPES(    "String", "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1868,7 +1868,7 @@ void define_md_data_raw()
         GINPUT( "Matrix" ),
         KEYWORDS( "field_names" ),
         DEFAULTS( NODEF ),
-        TYPES(    Array_String_t )));
+        TYPES(    "ArrayOfString" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1906,7 +1906,7 @@ void define_md_data_raw()
         KEYWORDS( "field_names", "extra_field_names", "extra_field_values" ),
         DEFAULTS( NODEF,         "[]",                "[]" ),
         //        DEFAULTS( NODEF,         NODEF,                NODEF ),
-        TYPES(    Array_String_t, Array_String_t,     Vector_t )));
+        TYPES(    "ArrayOfString", "ArrayOfString",     "Vector" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2048,7 +2048,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "basename" ),
         DEFAULTS( NODEF ),
-        TYPES(    String_t )));
+        TYPES(    "String" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2215,8 +2215,8 @@ void define_md_data_raw()
                   "lon2" ),
         DEFAULTS( NODEF,     NODEF,     NODEF,     NODEF,     NODEF,
                   NODEF ),
-        TYPES(    Numeric_t, Numeric_t, Numeric_t, Numeric_t, Numeric_t, 
-                  Numeric_t )));
+        TYPES(    "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", 
+                  "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2261,8 +2261,8 @@ void define_md_data_raw()
                   "lon2" ),
         DEFAULTS( NODEF,     NODEF,     NODEF,     NODEF,     NODEF,
                   NODEF ),
-        TYPES(    Numeric_t, Numeric_t, Numeric_t, Numeric_t, Numeric_t, 
-                  Numeric_t )));
+        TYPES(    "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", 
+                  "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2390,7 +2390,7 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "N_za_grid", "N_aa_grid", "za_grid_opt_file"),
         DEFAULTS( NODEF,       NODEF,       NODEF ),
-        TYPES(    Index_t,     Index_t,     String_t)));
+        TYPES(    "Index",     "Index",     "String")));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2452,7 +2452,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "epsilon" ),
         DEFAULTS( NODEF ),
-        TYPES(    Vector_t )));
+        TYPES(    "Vector" )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -2480,7 +2480,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "epsilon" ),
         DEFAULTS( NODEF ),
-        TYPES(    Vector_t )));
+        TYPES(    "Vector" )));
   
   md_data_raw.push_back     
     ( MdRecord
@@ -2516,7 +2516,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "epsilon" ),
         DEFAULTS( NODEF ),
-        TYPES(    Vector_t )));
+        TYPES(    "Vector" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2603,7 +2603,7 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS("all_frequencies"),
         DEFAULTS( "1" ),
-        TYPES(Index_t)));
+        TYPES("Index")));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2631,7 +2631,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
-        TYPES(    Vector_t )));
+        TYPES(    "Vector" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2886,7 +2886,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "iterations" ),
         DEFAULTS( NODEF ),
-        TYPES(    Array_Index_t )));
+        TYPES(    "ArrayOfIndex" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2916,7 +2916,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "acc" ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
                                                                                
   md_data_raw.push_back
     ( MdRecord
@@ -2939,7 +2939,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "interp_method" ),
         DEFAULTS( NODEF ),
-        TYPES(    String_t )));
+        TYPES(    "String" )));
  
   md_data_raw.push_back
     ( MdRecord
@@ -3013,7 +3013,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "msg" ),
         DEFAULTS( NODEF ),
-        TYPES(    String_t )));
+        TYPES(    "String" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3137,7 +3137,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "spacing" ),
         DEFAULTS( ".1e9"),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -3223,7 +3223,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "start", "stop",  "step" ),
         DEFAULTS( NODEF,   NODEF,   NODEF ),
-        TYPES(    Index_t, Index_t, Index_t )));
+        TYPES(    "Index", "Index", "Index" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3369,7 +3369,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
-        TYPES(    Index_t )));
+        TYPES(    "Index" )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -3537,7 +3537,7 @@ md_data_raw.push_back
         GINPUT( "Vector", "Vector", "Vector" ),
         KEYWORDS( "species", "method", "unit",   "dx" ),
         DEFAULTS( NODEF,     NODEF,    NODEF,    NODEF),
-        TYPES(    String_t,  String_t, String_t, Numeric_t )));
+        TYPES(    "String",  "String", "String", "Numeric" )));
          
   md_data_raw.push_back
     ( MdRecord
@@ -3604,7 +3604,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "dza",     "poly_order" ),
         DEFAULTS( NODEF,     NODEF ),
-        TYPES(    Numeric_t, Index_t )));
+        TYPES(    "Numeric", "Index" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3644,7 +3644,7 @@ md_data_raw.push_back
         GINPUT( "Vector", "Vector", "Vector" ),
         KEYWORDS( "hse",    "method", "dx" ),
         DEFAULTS( NODEF,    NODEF,    NODEF ),
-        TYPES(    String_t, String_t, Numeric_t )));
+        TYPES(    "String", "String", "Numeric" )));
   
   md_data_raw.push_back
     ( MdRecord
@@ -3691,7 +3691,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "species" ),
         DEFAULTS( NODEF ),
-        TYPES(    String_t )));
+        TYPES(    "String" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4184,7 +4184,7 @@ md_data_raw.push_back
         GINPUT( "Matrix" ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t   )));
+        TYPES(    "Numeric"   )));
 
    md_data_raw.push_back
     ( MdRecord
@@ -4207,7 +4207,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4249,7 +4249,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "za_sigma", "aa_sigma" ),
         DEFAULTS( NODEF,      NODEF ),
-        TYPES(    Numeric_t,  Numeric_t)));
+        TYPES(    "Numeric",  "Numeric")));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4269,7 +4269,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "za_fwhm", "aa_fwhm" ),
         DEFAULTS( NODEF,     NODEF ),
-        TYPES(    Numeric_t, Numeric_t)));
+        TYPES(    "Numeric", "Numeric")));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4308,7 +4308,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "max_iter" ),
         DEFAULTS( NODEF ),
-        TYPES(    Index_t )));
+        TYPES(    "Index" )));
   
   md_data_raw.push_back     
     ( MdRecord
@@ -4443,7 +4443,7 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -4761,7 +4761,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "filename_scat_data", "filename_pnd_field" ),
         DEFAULTS( NODEF,                NODEF ),
-        TYPES(    String_t,             String_t )));
+        TYPES(    "String",             "String" )));
  
   md_data_raw.push_back
     ( MdRecord
@@ -4786,7 +4786,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "filename_scat_data", "filename_pnd_field" ),
         DEFAULTS( NODEF,                NODEF ),
-        TYPES(    String_t,             String_t )));
+        TYPES(    "String",             "String" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5054,7 +5054,7 @@ md_data_raw.push_back
         GINPUT( "Any" ),
         KEYWORDS( "level" ),
         DEFAULTS( "1" ),
-        TYPES(    Index_t ),
+        TYPES(    "Index" ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -5075,7 +5075,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "only_allocated", "level" ),
         DEFAULTS( "1",              "1" ),
-        TYPES(    Index_t,          Index_t ),
+        TYPES(    "Index",          "Index" ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE( true  )));
@@ -5126,7 +5126,7 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "filename" ),
         DEFAULTS( NODEF ),
-        TYPES(    String_t   ),
+        TYPES(    "String"   ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE(  false ),
@@ -5427,7 +5427,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "za",      "aa"      ),
         DEFAULTS( NODEF,     NODEF ),
-        TYPES(    Numeric_t, Numeric_t )));
+        TYPES(    "Numeric", "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5511,7 +5511,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "r_or_z",  "lat",     "lon"     ),
         DEFAULTS( NODEF,     NODEF,     NODEF ),
-        TYPES(    Numeric_t, Numeric_t, Numeric_t )));
+        TYPES(    "Numeric", "Numeric", "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5549,7 +5549,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "tan_p" ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5572,7 +5572,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "r" ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5664,8 +5664,8 @@ md_data_raw.push_back
                   "z_field_is_1D"),
         DEFAULTS( NODEF,     NODEF,      NODEF,      NODEF,
                   NODEF ),
-        TYPES(    Numeric_t, Index_t,    Index_t,    Index_t,
-                  Index_t )));
+        TYPES(    "Numeric", "Index",    "Index",    "Index",
+                  "Index" )));
   */
 
   md_data_raw.push_back
@@ -6093,7 +6093,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "text"   ),
         DEFAULTS( NODEF ),
-        TYPES(    String_t )));
+        TYPES(    "String" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6173,7 +6173,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "epsmodel" ),
         DEFAULTS( NODEF ),
-        TYPES(    String_t   )));
+        TYPES(    "String"   )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6272,7 +6272,7 @@ md_data_raw.push_back
         GINPUT( "Vector" ),
         KEYWORDS( "npages", "nrows", "ncols"   ),
         DEFAULTS( NODEF,    NODEF,   NODEF ),
-        TYPES(    Index_t,  Index_t, Index_t )));
+        TYPES(    "Index",  "Index", "Index" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6300,7 +6300,7 @@ md_data_raw.push_back
         GINPUT( "Tensor3" ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
-        TYPES( Numeric_t )));
+        TYPES( "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6324,7 +6324,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6408,7 +6408,7 @@ md_data_raw.push_back
         GINPUT( "Tensor4" ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
-        TYPES( Numeric_t )));
+        TYPES( "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6432,7 +6432,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6481,7 +6481,7 @@ md_data_raw.push_back
         GINPUT( "Tensor5" ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6505,7 +6505,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6554,7 +6554,7 @@ md_data_raw.push_back
         GINPUT( "Tensor6" ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6579,7 +6579,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6651,7 +6651,7 @@ md_data_raw.push_back
         GINPUT( "Tensor7" ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
-        TYPES( Numeric_t )));
+        TYPES( "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6677,7 +6677,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6771,7 +6771,7 @@ md_data_raw.push_back
         GINPUT( "Vector" ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6814,7 +6814,7 @@ md_data_raw.push_back
         GINPUT(  "Matrix", "Index" ),
         KEYWORDS( "direction" ),
         DEFAULTS( NODEF ),
-        TYPES(    String_t )));
+        TYPES(    "String" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6879,7 +6879,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "start",   "stop",    "step"    ),
         DEFAULTS( NODEF,     NODEF,     NODEF ),
-        TYPES(    Numeric_t, Numeric_t, Numeric_t )));
+        TYPES(    "Numeric", "Numeric", "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6914,7 +6914,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "start",   "stop",    "step"    ),
         DEFAULTS( NODEF,     NODEF,     NODEF ),
-        TYPES(    Numeric_t, Numeric_t, Numeric_t )));
+        TYPES(    "Numeric", "Numeric", "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6968,7 +6968,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "start",   "stop"    ),
         DEFAULTS( NODEF,     NODEF     ),
-        TYPES(    Numeric_t, Numeric_t )));
+        TYPES(    "Numeric", "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6995,7 +6995,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "start",   "stop"    ),
         DEFAULTS( NODEF,     NODEF     ),
-        TYPES(    Numeric_t, Numeric_t )));
+        TYPES(    "Numeric", "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7022,7 +7022,7 @@ md_data_raw.push_back
         GINPUT( "Vector" ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7046,7 +7046,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
-        TYPES(    Numeric_t )));
+        TYPES(    "Numeric" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7072,7 +7072,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "values"   ),
         DEFAULTS( NODEF ),
-        TYPES(    Vector_t )));
+        TYPES(    "Vector" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7162,7 +7162,7 @@ md_data_raw.push_back
         GINPUT(  "Any" ),
         KEYWORDS( "filename" ),
         DEFAULTS( "" ),
-        TYPES(    String_t   ),
+        TYPES(    "String"   ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE(  false ),
@@ -7199,7 +7199,7 @@ md_data_raw.push_back
         GINPUT(  "Any" ),
         KEYWORDS( "filename" ),
         DEFAULTS( "" ),
-        TYPES(    String_t   ),
+        TYPES(    "String"   ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE(  false ),
@@ -7252,7 +7252,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "robust" ),
         DEFAULTS( "0"),
-        TYPES(    Index_t )));
+        TYPES(    "Index" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7290,7 +7290,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "nelem_p_grid", "met_profile_path", "met_profile_pnd_path" ),
         DEFAULTS( NODEF,          NODEF,              NODEF ),
-        TYPES(    Index_t,        String_t,           String_t )));
+        TYPES(    "Index",        "String",           "String" )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7328,7 +7328,7 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "nelem_p_grid", "met_profile_path" ),
         DEFAULTS( NODEF,          NODEF ),
-        TYPES(    Index_t,        String_t)));
+        TYPES(    "Index",        "String")));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7396,8 +7396,8 @@ md_data_raw.push_back
                   "z_scan_low", "z_scan_high" ),
         DEFAULTS( NODEF,       NODEF,     NODEF,
                   NODEF,        NODEF ),
-        TYPES(    Numeric_t,   Numeric_t, Numeric_t,
-                  Numeric_t,    Numeric_t )));
+        TYPES(    "Numeric",   "Numeric", "Numeric",
+                  "Numeric",    "Numeric" )));
 
 
   //--------------------------------------------------------------------------------
@@ -7510,7 +7510,7 @@ md_data_raw.push_back
 //         GINPUT( ),
 //         KEYWORDS( "ZeemanO2OnOff", "ZeemanO2PressureLimit", "ZeemanO2Line" ),
 //         DEFAULTS( NODEF,           NODEF,                   NODEF ),
-//         TYPES(    Index_t,         Numeric_t,               Index_t)));
+//         TYPES(    "Index",         "Numeric",               "Index")));
 
 
 //  md_data_raw.push_back

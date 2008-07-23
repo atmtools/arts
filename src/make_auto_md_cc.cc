@@ -16,7 +16,6 @@
    USA. */
 
 #include "arts.h"
-#include "token.h"
 #include "array.h"
 #include "file.h"
 #include "methods.h"
