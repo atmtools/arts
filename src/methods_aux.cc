@@ -455,7 +455,6 @@ ostream& MdRecord::PrintTemplate(ostream& os,
 ostream& operator<<(ostream& os, const MdRecord& mdr)
 {
   extern const ArrayOfString wsv_group_names;
-  extern const String TokValTypeName[];
   bool first;
 
   os << "\n*-------------------------------------------------------------------*\n"
@@ -628,7 +627,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       if (first) first=false;
       else os << ", ";
 
-      os << TokValTypeName[mdr.Types()[i]];
+      os << wsv_group_names[mdr.Types()[i]];
     }
   os << "\n*-------------------------------------------------------------------*\n";
 
