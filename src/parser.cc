@@ -1514,17 +1514,16 @@ void ArtsParser::tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
       Agenda        auto_tasks;
 
       const Index auto_group = Workspace::wsv_data[auto_vars[i]].Group();
-      if   (   auto_group == get_wsv_group_id("ArrayOfIndex")
-            || auto_group == get_wsv_group_id("ArrayOfString")
-            || auto_group == get_wsv_group_id("Vector"))
-          {
-            throw runtime_error("Not yet implement!!!!!!!!!");
-          }
-      else if (   auto_group != get_wsv_group_id("Index")
-               && auto_group != get_wsv_group_id("Numeric")
-               && auto_group != get_wsv_group_id("String"))
+      if (auto_group != get_wsv_group_id("Index")
+          && auto_group != get_wsv_group_id("Numeric")
+          && auto_group != get_wsv_group_id("String")
+          && auto_group != get_wsv_group_id("Vector"))
         {
-          throw runtime_error("Unknown type!!!!!!!!!");
+          ostringstream os;
+          os << "Passing a "
+            << wsv_group_names[Workspace::wsv_data[auto_vars[i]].Group()]
+            << " constant to a WSM is not supported!";
+          throw runtime_error(os.str());
         }
 
       String method_name;
@@ -1533,7 +1532,12 @@ void ArtsParser::tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
         case 0:
           auto_var_value.push_back(auto_vars_values[i]);
           auto_output_var.push_back(auto_vars[i]);
-          method_name = wsv_group_names[Workspace::wsv_data[auto_vars[i]].Group()] + "Set";
+          method_name = wsv_group_names[
+            Workspace::wsv_data[auto_vars[i]].Group()] + "Set";
+          if (auto_group == get_wsv_group_id("Vector"))
+            {
+              method_name += "Explicitly";
+            }
           break;
         case 1:
           auto_input_var.push_back(auto_vars[i]);
@@ -1710,7 +1714,7 @@ Index ArtsParser::read_name_or_value(      String&        name,
   if (group == get_wsv_group_id ("Any")) 
     {
       ostringstream os;
-      os << "Passing constants as supergeneric parameters is not yet supported.";
+      os << "Passing constants as supergeneric parameters is not supported.";
       throw ParseError (os.str (),
                         msource.File(),
                         msource.Line(),
@@ -1747,43 +1751,42 @@ Index ArtsParser::read_name_or_value(      String&        name,
       parse_String(dummy);
       auto_vars_values.push_back(dummy);
     }
+  else if (group == get_wsv_group_id("Index"))
+    {
+      Index n;
+      parse_integer(n);
+      auto_vars_values.push_back(n);
+    }
+  else if (group == get_wsv_group_id("Numeric"))
+    {
+      Numeric n;
+      parse_numeric(n);
+      auto_vars_values.push_back(n);
+    }
+  else if (group == get_wsv_group_id("ArrayOfString"))
+    {
+      ArrayOfString dummy;
+      parse_Stringvector(dummy);
+      auto_vars_values.push_back(dummy);
+    }
+  else if (group == get_wsv_group_id("ArrayOfIndex"))
+    {
+      ArrayOfIndex dummy;
+      parse_intvector(dummy);
+      auto_vars_values.push_back(dummy);
+    }
+  else if (group == get_wsv_group_id("Vector"))
+    {
+      Vector dummy;
+      parse_numvector(dummy);
+      auto_vars_values.push_back(dummy);
+    }
   else
     {
-      if (group == get_wsv_group_id("Index"))
-        {
-          Index n;
-          parse_integer(n);
-          auto_vars_values.push_back(n);
-        }
-      else if (group == get_wsv_group_id("Numeric"))
-        {
-          Numeric n;
-          parse_numeric(n);
-          auto_vars_values.push_back(n);
-        }
-      else if (group == get_wsv_group_id("ArrayOfString"))
-        {
-          ArrayOfString dummy;
-          parse_Stringvector(dummy);
-          auto_vars_values.push_back(dummy);
-        }
-      else if (group == get_wsv_group_id("ArrayOfIndex"))
-        {
-          ArrayOfIndex dummy;
-          parse_intvector(dummy);
-          auto_vars_values.push_back(dummy);
-        }
-      else if (group == get_wsv_group_id("Vector"))
-        {
-          Vector dummy;
-          parse_numvector(dummy);
-          auto_vars_values.push_back(dummy);
-        }
-      else
-        {
-          cerr << "Impossible parameter type.\n";
-          arts_exit(EXIT_FAILURE);
-        }
+      extern const ArrayOfString wsv_group_names;
+      ostringstream os;
+      os << "Unsupported parameter type: " << wsv_group_names[group];
+      throw runtime_error (os.str());
     }
 
   return wsvid;

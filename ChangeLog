@@ -1,5 +1,22 @@
 2008-07-24  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-7-14
+
+	* src/parser.cc (tasklist_insert_set_delete):
+
+	Add support for Vector constants.
+
+	Use SetVectorExplicitly to set the auto variable instead of SetVector.
+
+	(read_name_or_value):
+
+	Fix if statements.
+
+	Throw runtime_error for unsupported parameter types instead of cerr +
+	arts_exit.
+
+2008-07-24  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-7-13
 
 	* src/methods_aux.cc (operator<<):
