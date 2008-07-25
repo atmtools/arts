@@ -155,7 +155,7 @@ class TestAMSUB(unittest.TestCase):
         I = artsXML.load("AMSU/AMSUB.ybatch.xml.generated")
         for j in range (5):
             for k in range (10):
-                assert abs(I[j,k]-Iref[j,k]) < 0.01,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
+                assert abs(I[j,k]-Iref[j,k]) < 0.02,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
 
 class TestAbs(unittest.TestCase):
     """Testing the ARTS Absorption module"""

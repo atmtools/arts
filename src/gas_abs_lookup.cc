@@ -458,12 +458,11 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   // 4. Replace original table by the new one.
   *this = new_table;
 
-  // Obsolete!
-  //   // 5. Initialize log_p_grid.
-  //   log_p_grid.resize( n_p_grid );
-  //   transform( log_p_grid,
-  //              log10,
-  //              p_grid );
+  // 5. Initialize log_p_grid.
+  log_p_grid.resize( n_p_grid );
+  transform( log_p_grid,
+             log,
+             p_grid );
 }
 
 //! Extract scalar gas absorption coefficients from the lookup table. 
@@ -595,6 +594,15 @@ void GasAbsLookup::Extract( Matrix&         sga,
       assert( is_size( xsec, a, b, c, d ) );
     })
 
+  // Make sure that log_p_grid is initialized:
+  if (log_p_grid.nelem() != n_p_grid)
+    {
+      ostringstream os;
+      os << "The lookup table internal variable log_p_grid is not initialized.\n"
+         << "Use the abs_lookupAdapt method!";
+      throw runtime_error( os.str() );
+    }
+
   // Verify that we have enough pressure, temperature and humdity grid points
   // for the desired interpolation orders. This check is not only
   // table internal, since abs_nls_interp_order and abs_t_interp_order
@@ -708,12 +716,14 @@ void GasAbsLookup::Extract( Matrix&         sga,
     }
   }
   
+
   // For sure, we need to store the pressure grid position. 
- 
+  // We do the interpolation in log(p). Test have shown that this
+  // gives slightly better accuracy than interpolating in p directly. 
   GridPosPoly pgp;
   gridpos_poly( pgp,
-                p_grid,
-                p,
+                log_p_grid,
+                log(p),
                 p_interp_order );
 
   // Pressure interpolation weights:

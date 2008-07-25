@@ -236,6 +236,11 @@ void abs_lookupCreate(// WS Output:
   abs_lookup.t_pert = abs_t_pert;
   abs_lookup.nls_pert = abs_nls_pert;
 
+  // 5.a. Set log_p_grid:
+  abs_lookup.log_p_grid.resize(n_p_grid);
+  transform( abs_lookup.log_p_grid, log, abs_lookup.p_grid );
+
+
   // 6. Create abs_lookup.xsec with the right dimensions:
   {
     Index a,b,c,d;

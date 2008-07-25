@@ -1,5 +1,26 @@
 2008-07-25  Stefan Buehler  <sbuehler(at)ltu.se>
 
+	* arts-1-7-16
+
+	* src/gas_abs_lookup.h: (Re)introduced the lookup table member
+	variable log_p_grid. It is not stored with the lookup table, but
+	set by abs_lookupAdapt.
+
+	* src/gas_abs_lookup.cc (Adapt): Also set log_p_grid.
+	(Extract): Added runtime error check to make sure that log_p_grid
+	is set. Do the pressure interpolation with log_p_grid and log(p),
+	instead of p_grid and p.
+
+	* src/m_abs_lookup.cc (abs_lookupCreate): Also set log_p_grid. 
+
+	* tests/testall.py (TestAMSUB.test2): Relax the condition for
+	agreement from .01 K to .02 K.
+
+	* src: Set ignore property for auto_workspace.h and
+	make_auto_workspace.
+	
+2008-07-25  Stefan Buehler  <sbuehler(at)ltu.se>
+
 	* arts-1-7-15
 
 	* src/gas_abs_lookup.cc (Extract): No longer interpolate the

@@ -128,6 +128,14 @@ private:
   /*! Must be sorted in decreasing order. */
   Vector    p_grid;  
 
+  //! The natural log of the pressure grid.
+  /*! This is not stored with the table, it is calculated by the
+    abs_lookupAdapt method.
+
+    We are interpolating the cross sections in log(p). Storing this
+    with the table avoids having to calculate it over and over again.  */
+  Vector    log_p_grid;  
+
   //! The reference VMR profiles.
   /*! The VMRs for all species, associated with p_grid. Dimension:
     [n_species, n_p_grid]. These VMRs are needed to scale the
