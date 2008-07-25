@@ -770,8 +770,8 @@ void GasAbsLookup::Extract( Matrix&         sga,
           // version of using the real temperature and humidity, not
           // the interpolated one.
 
-          const Numeric effective_T_ref = interp(pitw,t_ref,pgp);
-          //          const Numeric effective_T_ref = t_ref[this_p_grid_index];
+          //          const Numeric effective_T_ref = interp(pitw,t_ref,pgp);
+          const Numeric effective_T_ref = t_ref[this_p_grid_index];
 
           // Convert temperature to offset from t_ref:
           const Numeric T_offset = T - effective_T_ref;
@@ -824,10 +824,10 @@ void GasAbsLookup::Extract( Matrix&         sga,
           // version of using the real temperature and humidity, not
           // the interpolated one.
           
-          const Numeric effective_vmr_ref = interp(pitw,
-                                                   vmrs_ref(h2o_index, Range(joker)),
-                                                   pgp);
-//          const Numeric effective_vmr_ref = vmrs_ref(h2o_index, this_p_grid_index);
+//           const Numeric effective_vmr_ref = interp(pitw,
+//                                                    vmrs_ref(h2o_index, Range(joker)),
+//                                                    pgp);
+          const Numeric effective_vmr_ref = vmrs_ref(h2o_index, this_p_grid_index);
 
               
           // Fractional VMR:
