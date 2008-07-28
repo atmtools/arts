@@ -1,3 +1,14 @@
+2008-07-28  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-7-17
+
+	* src/arts_omp.cc (arts_omp_set_nested):
+
+	Use _U_ to avoid unused parameter warning when compiling without
+	OpenMP.
+
+	Include config.h for _U_.
+
 2008-07-25  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-7-16

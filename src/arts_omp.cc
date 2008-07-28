@@ -30,8 +30,15 @@
   the standard OMP function names.
 */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#else
+#error "Please run ./configure in the top arts directory before compiling."
+#endif
+
 #include <iostream>
 using namespace std;
+
 #include "arts_omp.h"
 
 
@@ -119,7 +126,11 @@ int arts_omp_get_nested()
 
   \param i Turn on nested parallelism with 1, turn off with 0.
 */
+#ifdef _OPENMP
 void arts_omp_set_nested(int i)
+#else
+void arts_omp_set_nested(int i _U_)
+#endif
 {
 
 #ifdef _OPENMP
