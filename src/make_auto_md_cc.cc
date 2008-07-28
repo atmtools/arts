@@ -111,6 +111,7 @@ int main()
           ArrayOfIndex  vi;                // Input
           ArrayOfIndex  vgo=mdd.GOutput(); // Generic Output 
           ArrayOfIndex  vgi=mdd.GInput();  // Generic Input
+          ArrayOfIndex  kgi=mdd.Types();   // Keyword Input
           // vo and vi contain handles of workspace variables, 
           // vgo and vgi handles of workspace variable groups.
 
@@ -129,7 +130,7 @@ int main()
               // Use parameter name only if it is used inside the function
               // to avoid warnings
               ws = " ws";
-              if (!mdd.PassWorkspace() && !vo.nelem () && !vi.nelem () && !vgo.nelem () && !vgi.nelem ())
+              if (!mdd.PassWorkspace() && !vo.nelem () && !vi.nelem () && !vgo.nelem () && !vgi.nelem () && !kgi.nelem())
               {
                 ws = "";
               }
@@ -286,16 +287,31 @@ int main()
 
           // Write the control parameters:
           {
-            // The mr parameters look all the same (mr[i]), so we just
-            // need to know the number of them: 
-            Index n_mr = mdd.Keywords().nelem();
-
-            for (Index j=0; j!=n_mr; ++j)
+            if (mdd.SetMethod())
               {
                 // Add comma and line break, if not first element:
                 align(ofs,is_first_parameter,indent);
 
-                ofs << "mr.Values()[" << j << "]";
+                ofs << "mr.SetValue()";
+              }
+            else
+              {
+                // Write the Keyword input workspace variables:
+                for (Index j=0; j<kgi.nelem(); ++j)
+                  {
+                    // Check by assert whether the group identifier is too
+                    // large to correspond to a group. This can easily
+                    // happen if somebody puts a variable identifier instead
+                    // of a group identifier in the argument of GINPUT:
+                    assert( kgi[j] < wsv_group_names.nelem() );
+
+                    // Add comma and line break, if not first element:
+                    align(ofs,is_first_parameter,indent);
+
+                    ofs << "*((" << wsv_group_names[kgi[j]]
+                      << " *)ws[mr.Values()[" << j
+                      << "]])";
+                  }
               }
           }
 

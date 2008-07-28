@@ -104,31 +104,36 @@ public:
               mvalues(),
               moutput(),
               minput(),
+              msetvalue(),
               mtasks() { /* Nothing to do here. */ }
 
   MRecord(const MRecord& x) : mid(x.mid),
                               mvalues(x.mvalues),
                               moutput(x.moutput),
                               minput(x.minput),
+                              msetvalue(x.msetvalue),
                               mtasks(x.mtasks)
     { /* Nothing to do here */ }
 
   MRecord(const Index id,
-          const Array<TokVal>& values,
+          const ArrayOfIndex& values,
           const ArrayOfIndex& output,
           const ArrayOfIndex& input,
+          const TokVal&       setvalue,
           const Agenda&       tasks) : mid(id),
-                                       mvalues(values),
-                                       moutput(output),
-                                       minput(input),
-                                       mtasks(tasks)
+                                              mvalues(values),
+                                              moutput(output),
+                                              minput(input),
+                                              msetvalue(setvalue),
+                                              mtasks(tasks)
   { /* Nothing to do here */ }
 
-  Index                Id()       const { return mid;     }
-  const Array<TokVal>& Values()   const { return mvalues; }
-  const ArrayOfIndex&  Output()   const { return moutput; }
-  const ArrayOfIndex&  Input()    const { return minput;  }
-  const Agenda&        Tasks()    const { return mtasks;  }
+  Index               Id()       const { return mid;       }
+  const ArrayOfIndex& Values()   const { return mvalues;   }
+  const ArrayOfIndex& Output()   const { return moutput;   }
+  const ArrayOfIndex& Input()    const { return minput;    }
+  const TokVal&       SetValue() const { return msetvalue; }
+  const Agenda&       Tasks()    const { return mtasks;    }
 
   //! Assignment operator for MRecord.
   /*! 
@@ -154,6 +159,8 @@ public:
   MRecord& operator=(const MRecord& x)
     {
       mid = x.mid;
+
+      msetvalue = x.msetvalue;
 
       mvalues.resize(x.mvalues.nelem());
       mvalues = x.mvalues;
@@ -203,13 +210,14 @@ public:
 private:
   /** Method id. */
   Index mid;
-  /** List of parameter values (see methods.h for definition of
-      TokVal). */
-  Array<TokVal> mvalues;
+  /** Keyword workspace variables. */
+  ArrayOfIndex mvalues;
   /** Output workspace variables. */
   ArrayOfIndex moutput;
   /** Input workspace variables. */
   ArrayOfIndex minput;
+  /** Keyword value for Set methods. */
+  TokVal msetvalue;
   /** An agenda, which can be given in the controlfile instead of
       keywords. */
   Agenda mtasks;

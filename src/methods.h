@@ -50,6 +50,7 @@ public:
     mkeywords(    0               ),
     mdefaults(    0               ),
     mtypes(       0               ),
+    mset_method(false),
     magenda_method(false),
     msupergeneric(false),
     msuppress_header(false),
@@ -69,6 +70,7 @@ public:
            const MakeArray<String>&     keywords,
            const MakeArray<String>&     defaults,
            const MakeArray<String>&     types,
+           bool                         set_method      = false,
            bool                         agenda_method   = false,
            bool                         suppress_header = false,
            bool                         pass_workspace  = false,
@@ -86,6 +88,7 @@ public:
   const Array<String>&     Keywords()       const { return mkeywords; }
   const Array<String>&     Defaults()       const { return mdefaults; }
   const ArrayOfIndex&      Types()          const { return mtypes; }
+  bool                     SetMethod()      const { return mset_method; }
   bool                     AgendaMethod()   const { return magenda_method; }
   bool                     Supergeneric()   const { return msupergeneric; }
   bool                     SuppressHeader() const { return msuppress_header; }
@@ -156,6 +159,13 @@ private:
 
   //! Types associated with keywords.
   ArrayOfIndex mtypes;
+
+  //! Flag, whether this is a set method. 
+  /*!
+    Set methods have exactly one keyword. Unlike other keywords these
+    are not stored in a workspace variable.
+  */
+  bool mset_method;
 
   //! Flag, whether this is an agenda method. 
   /*!

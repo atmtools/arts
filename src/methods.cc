@@ -44,6 +44,7 @@
 #define KEYWORDS MakeArray<String>
 #define DEFAULTS MakeArray<String>
 #define TYPES    MakeArray<String>
+#define SETMETHOD(x) x
 #define AGENDAMETHOD(x) x
 #define SUPPRESSHEADER(x) x
 #define PASSWORKSPACE(x) x
@@ -1398,6 +1399,7 @@ void define_md_data_raw()
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES(),
+        SETMETHOD(    false ),
         AGENDAMETHOD( false )));
       
   md_data_raw.push_back
@@ -1432,6 +1434,7 @@ void define_md_data_raw()
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   true  ),
         SUPPRESSHEADER( false ),
         PASSWORKSPACE(  false ),
@@ -1534,6 +1537,7 @@ void define_md_data_raw()
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -1701,7 +1705,8 @@ void define_md_data_raw()
         GINPUT(),
         KEYWORDS( "text" ),
         DEFAULTS( NODEF ),
-        TYPES(    "ArrayOfString" )));
+        TYPES(    "ArrayOfString" ),
+        SETMETHOD( true )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1720,7 +1725,8 @@ void define_md_data_raw()
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
-        AGENDAMETHOD( true )));
+        SETMETHOD(    false ),
+        AGENDAMETHOD( true  )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2299,6 +2305,7 @@ void define_md_data_raw()
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -2320,6 +2327,7 @@ void define_md_data_raw()
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE(  true  ),
@@ -2968,6 +2976,7 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -3282,6 +3291,7 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -3369,7 +3379,8 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "value" ),
         DEFAULTS( NODEF ),
-        TYPES(    "Index" )));
+        TYPES(    "Index" ),
+        SETMETHOD( true )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -3691,7 +3702,8 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "species" ),
         DEFAULTS( NODEF ),
-        TYPES(    "String" )));
+        TYPES(    "String" ),
+        SETMETHOD( true )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4443,7 +4455,8 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "value"   ),
         DEFAULTS( NODEF ),
-        TYPES(    "Numeric" )));
+        TYPES(    "Numeric" ),
+        SETMETHOD( true )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -4461,6 +4474,7 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -4480,6 +4494,7 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -4499,6 +4514,7 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -4518,6 +4534,7 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -4537,6 +4554,7 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -4556,6 +4574,7 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -4575,6 +4594,7 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -4594,6 +4614,7 @@ md_data_raw.push_back
         KEYWORDS( ),
         DEFAULTS( ),
         TYPES( ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -5055,6 +5076,7 @@ md_data_raw.push_back
         KEYWORDS( "level" ),
         DEFAULTS( "1" ),
         TYPES(    "Index" ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
@@ -5076,6 +5098,7 @@ md_data_raw.push_back
         KEYWORDS( "only_allocated", "level" ),
         DEFAULTS( "1",              "1" ),
         TYPES(    "Index",          "Index" ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE( true  )));
@@ -5127,6 +5150,7 @@ md_data_raw.push_back
         KEYWORDS( "filename" ),
         DEFAULTS( NODEF ),
         TYPES(    "String"   ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE(  false ),
@@ -6093,7 +6117,8 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "text"   ),
         DEFAULTS( NODEF ),
-        TYPES(    "String" )));
+        TYPES(    "String" ),
+        SETMETHOD( true )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7072,7 +7097,8 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "values"   ),
         DEFAULTS( NODEF ),
-        TYPES(    "Vector" )));
+        TYPES(    "Vector" ),
+        SETMETHOD( true )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7163,6 +7189,7 @@ md_data_raw.push_back
         KEYWORDS( "filename" ),
         DEFAULTS( "" ),
         TYPES(    "String"   ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE(  false ),
@@ -7200,6 +7227,7 @@ md_data_raw.push_back
         KEYWORDS( "filename" ),
         DEFAULTS( "" ),
         TYPES(    "String"   ),
+        SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE(  false ),

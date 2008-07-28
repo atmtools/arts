@@ -49,7 +49,8 @@ void give_up(const String& message)
 //! Appends methods to an agenda
 /*!
   This function appends a workspace method to the agenda. It currently only
-  supports appending WSMs which have no generic input or output.
+  supports appending WSMs which have no generic input or output, and which are
+  defined as Set methods which take only one keyword.
    
   The keyword value has to be a string, which for no value should be of length
   zero.
@@ -70,18 +71,14 @@ void Agenda::append(const String& methodname,
   assert ( i2 != MdMap.end() );
   Index id = i2->second;            
           
-  Array<TokVal> values(0);
+  ArrayOfIndex values(0);
   ArrayOfIndex output(0);          
   ArrayOfIndex input(0);
   Agenda dummy;
   dummy.resize(0);
   
-  // If not empty append the keyword value
-  if (keywordvalue.nelem() != 0) 
-    values.push_back(keywordvalue);
-  
   // Append the method
-  push_back (MRecord(id,values,output,input,dummy));
+  push_back (MRecord(id,values,output,input,keywordvalue,dummy));
   set_outputs_to_push_and_dup ();
 }
 

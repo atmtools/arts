@@ -1,3 +1,42 @@
+2008-07-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-7-19
+
+	* It is now possible to pass WSVs as keywords!
+	
+	E.g.: StringCreate( outfile )
+	      StringSet( outfile, "myoutputfile.xml" )
+	      WriteXML( "ascii", ybatch, outfile )
+
+	* src/methods.{h,cc}, src/methods_aux.cc:
+
+	Add flag set_method to MdRecord. For Set methods the keyword is not
+	stored as a workspace variable.
+
+	* src/agenda_class.{h,cc}:
+
+	Change mvalues to ArrayOfIndex. It no longer contains the keyword
+	value but the Index to the WSV containing the keyword's value.
+
+	Add msetvalue to MRecord. Contains the keyword value for Set methods.
+
+	(append): Adapt for changes in keyword handling.
+
+	* src/parser.{cc,h}:
+
+	Use auto_vars for keywords.
+
+	Change type of values from Array<TokVal> to ArrayOfIndex.
+
+	Use ParseError instead of runtime_error in several places.
+
+	(tasklist_insert_set_delete): Also pass mdd as argument.
+
+	* make_auto_md_cd.cc:
+
+	Adapt getaway functions to take the different handling of keywords
+	into account.
+
 2008-07-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-7-18
