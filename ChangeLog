@@ -1,5 +1,19 @@
 2008-07-28  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-7-18
+
+	* src/sensor.cc (antenna1d_matrix):
+
+	Only define n_ar_aa in DEBUG mode to avoid warning in non-debug
+	compiles.
+
+	Add _U_ for antenna_dim parameter for same reason.
+
+	(mixer_matrix): Only define nrp in DEBUG mode to avoid warning in
+	non-debug compiles.
+
+2008-07-28  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-7-17
 
 	* src/arts_omp.cc (arts_omp_set_nested):

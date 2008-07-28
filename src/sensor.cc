@@ -54,7 +54,11 @@ extern const Index GFIELD4_AA_GRID;
 
 void antenna1d_matrix(      
            Sparse&   H,
+#ifndef NDEBUG
       const Index&   antenna_dim,
+#else
+      const Index&   antenna_dim _U_,
+#endif
    ConstMatrixView   antenna_los,
     const GField4&   antenna_response,
    ConstVectorView   za_grid,
@@ -83,8 +87,9 @@ void antenna1d_matrix(
                   antenna_response.get_numeric_grid(GFIELD4_F_GRID);
   ConstVectorView aresponse_za_grid = 
                   antenna_response.get_numeric_grid(GFIELD4_ZA_GRID);
-  const Index n_ar_aa = 
-                  antenna_response.get_numeric_grid(GFIELD4_AA_GRID).nelem();
+  DEBUG_ONLY( const Index n_ar_aa = 
+                  antenna_response.get_numeric_grid(GFIELD4_AA_GRID).nelem(); )
+
   //
   const Index n_ar_f  = aresponse_f_grid.nelem();
   const Index n_ar_za = aresponse_za_grid.nelem();
@@ -230,7 +235,7 @@ void mixer_matrix(
   // Frequency grid of for sideband response specification
   ConstVectorView filter_grid = filter.get_numeric_grid(GFIELD1_F_GRID);
 
-  const Index nrp = filter.nelem();
+  DEBUG_ONLY( const Index nrp = filter.nelem(); )
 
   // Asserts
   assert( lo > f_grid[0] );
