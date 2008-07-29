@@ -45,9 +45,6 @@
 #include "workspace_ng.h"
 #include "arts_omp.h"
 
-// The global variable that holds the message levels for screen and file.
-extern Messages artsmessages;
-#pragma omp threadprivate(artsmessages)
 
 /** Remind the user of --help and exit return value 1. */
 void polite_goodby()
@@ -63,44 +60,45 @@ void polite_goodby()
    reporting. If reporting was specified, check if the values make
    sense. The value -1 for reporting means that it was (probably)
    not given on the command line, since this is the initialization
-   value.
-   
-   The variable *artsmessages* has to be declared "copyin" for Open MP
-   loops, so that each thread gets a copy of its original state.
+   value.   
 
    \param r Reporting level from Command line.
    \author Stefan Buehler 
 */
 void set_reporting_level(Index r)
 {
+  extern Messages arts_messages;
+
   if ( -1 == r )
     {
-      // Reporting was not specified, set default. (Only the
-      // important stuff to the screen, everything to the file.)
-      artsmessages.screen = 1;
-      artsmessages.file   = 0;
+      // Reporting was not specified, set default. (No output from
+      // agendas (except main of course), only the important stuff to
+      // the screen, nothing to the file.)
+      arts_messages.va = 0;     // agendas
+      arts_messages.vs = 1;     // screen
+      arts_messages.vf = 0;     // file
     }
   else
     {
       // Reporting was specified. Check consistency and set report
       // level accordingly. 
         
-      // Separate the two digits by taking modulo 10:
-      Index s = r / 10;
-      Index f = r % 10;
-      //        cout << "s=" << s << " f=" << f << "\n";
+      // Separate the three digits:
+      arts_messages.va = r/100;
+      arts_messages.vs = (r%100)/10;
+      arts_messages.vf = r%10;
 
-      if ( s<0 || s>4 || f<0 || f>4 )
+      if ( !arts_messages.valid() )
         {
           cerr << "Illegal value specified for --reporting (-r).\n"
                << "The specified value is " << r << ", which would be\n"
-               << "interpreted as screen=" << s << ", file=" << f << ".\n"
-               << "Only values of 0-3 are allowed for screen and file.\n";
+               << "interpreted as:\n"
+               << "Verbosity for agendas:     " << arts_messages.va << "\n"
+               << "Verbosity for screen:      " << arts_messages.vs << "\n"
+               << "Verbosity for report file: " << arts_messages.vf << "\n"
+               << "Only values of 0-3 are allowed for each verbosity.\n";
           arts_exit ();
         }
-
-      artsmessages.screen = s;
-      artsmessages.file   = f;
     }
 }
 
@@ -837,7 +835,7 @@ int main (int argc, char **argv)
   catch (runtime_error x)
     {
       cerr << x.what() << "\n"
-           << "I have to be able to write to my report file.";
+           << "I have to be able to write to my report file.\n";
       arts_exit ();
     }
   catch (ios_base::failure x)
@@ -845,7 +843,7 @@ int main (int argc, char **argv)
       cerr << x.what() << "\n"
            << "I have to be able to write to my report file.\n"
            << "Make sure you have write permissions for the directory where\n"
-           << "the report file is written.";
+           << "the report file is written.\n";
       arts_exit ();
     }
 
@@ -872,6 +870,15 @@ int main (int argc, char **argv)
       out2 << "Running without OpenMP.\n";        
 #endif
 
+      {
+        // Output verbosity settings. This is not too interesting, it
+        // goes only to out3.
+        extern Messages arts_messages;        
+        out3 << "Verbosity settings: Agendas:     " << arts_messages.va << "\n"
+             << "                    Screen:      " << arts_messages.vs << "\n"
+             << "                    Report file: " << arts_messages.vf << "\n";
+      }
+
       out3 << "\nReading control files:\n";
       for ( Index i=0; i<parameters.controlfiles.nelem(); ++i )
         {
@@ -890,6 +897,8 @@ int main (int argc, char **argv)
           arts_parser.parse_tasklist();
 
           tasklist.set_name("Arts");
+
+          tasklist.set_main_agenda();
 
           workspace.initialize ();
 

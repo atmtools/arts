@@ -38,10 +38,6 @@
 #include "workspace_ng.h"
 #include "arts_omp.h"
 
-// The messages level. We will manipulate it if
-// silent agenda execution is desired.
-extern Messages artsmessages;
-#pragma omp threadprivate(artsmessages)
 
 /** Print the error message and exit. */
 void give_up(const String& message)
@@ -92,37 +88,36 @@ void Agenda::append(const String& methodname,
 /*! 
   This executes the methods specified in tasklist on the given
   workspace. It also checks for errors during the method execution and
-  stops the program if an error has occured.
+  stops the program if an error has occured. 
 
-  The workspace itself is made visible by an external declaration.
+  FIXME: The silent flag is obsolete now. I leave it here to avoid SVN
+  conflicts with simultaneous work by Oliver. Should be removed as
+  soon as possible.
+
 */
 void Agenda::execute(bool silent) const
 {
   assert (agendaworkspace != NULL);
+
+  // FIXME: We just use the silent flag here to avoid compiler errors
+  // about unused variables. Remove this!
+  if (silent)
+    {
+      out3 << "  Ignoring silent parameter.\n";
+    }
+
+  // If (and only if) this agenda is the main agenda, then we set the
+  // thread local global variable in_main_agenda to true, otherwise to
+  // false. The variable in_main_agenda is declared in messages.h and
+  // defined in messages.cc.
+  bool original_in_main_agenda = in_main_agenda;
+  in_main_agenda = is_main_agenda();
 
   // The method description lookup table:
   extern const Array<MdRecord> md_data;
 
   // The array holding the pointers to the getaway functions:
   extern void (*getaways[])(Workspace&, const MRecord&);
-
-  // Backup for the original message level.
-  // IMPORTANT: The variable *artsmessages* is globally declared
-  // "threadprivate". It also has to be declared "copyin" for Open MP
-  // loops that use agenda calls, so that each thread gets a copy
-  // before the thread is started.
-  Messages messages_original = artsmessages;
-
-  // Manipulate the message level, to allow silent execution:
-  if (silent)
-    {
-      // Level 4 means that the output should remain visible even for
-      // silent execution.  
-      if ( artsmessages.screen < 4 )
-        artsmessages.screen = 0;
-      if ( artsmessages.file < 4 )
-        artsmessages.file   = 0;
-    }
 
   out1 << "Executing " << name() << "\n"
        << "{\n";
@@ -234,14 +229,11 @@ void Agenda::execute(bool silent) const
           os << "Run-time error in method: " << mdd.Name() << '\n'
                << x.what();
 
-          // We have to restore the original message level before
-          // throwing the exception, otherwise no output will be
-          // visible in case the exception is caught higher up and
-          // execution continues.
-          if (silent)
-            {
-              artsmessages = messages_original;
-            }
+          // We have to restore the original content of
+          // in_main_agenda, otherwise no output will be visible in
+          // case the exception is caught higher up and execution
+          // continues.
+          in_main_agenda = original_in_main_agenda;
 
           out1 << "}\n";
 
@@ -251,11 +243,8 @@ void Agenda::execute(bool silent) const
 
   out1 << "}\n";
 
-  // Restore the original message level:
-  if (silent)
-    {
-      artsmessages = messages_original;
-    }
+  // Restore the original content of in_main_agenda:
+  in_main_agenda = original_in_main_agenda;
 }
 
 

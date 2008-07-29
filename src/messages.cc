@@ -41,24 +41,63 @@ String out_basename;
 /** The report file. */
 ofstream report_file;
 
-/** Verbosity levels.
-    @see Messages 
+/** A thread private flag that says whether we are in the main agenda,
+    or not. If we are not, then agenda output is suppressed or
+    enabled, according to the verbosity setting.
 
-    This has to be declared copyin for Open MP loops that involve agendas.
+    We initialize it to true, so that we also get output from before
+    the execution of main.
 */
-Messages artsmessages;
-#pragma omp threadprivate(artsmessages)
+bool in_main_agenda=true;
+#pragma omp threadprivate(in_main_agenda)
 
+// The global message verbosity settings:
+Messages arts_messages;
 
-bool sufficient_priority_screen(Index priority)
+/**
+   Check if artsmessages contains valid message levels.
+
+   \return True if ok. */
+bool Messages::valid()
 {
-  return artsmessages.screen >= priority;
+  if (va<0 || va>3) return false;
+  if (vs<0 || vs>3) return false;
+  if (vf<0 || vf>3) return false;
+
+  return true;
 }
 
 
-bool sufficient_priority_file(Index priority)
+//! Does the current message have sufficient priority for agenda?
+/*! 
+  \param priority Priority of current message.
+
+  \return true if priority is sufficient, otherwise false. */
+bool Messages::sufficient_priority_agenda(Index priority)
 {
-  return artsmessages.file >= priority;
+  return va >= priority;
+}
+
+
+//! Does the current message have sufficient priority for screen?
+/*! 
+  \param priority Priority of current message.
+
+  \return true if priority is sufficient, otherwise false. */
+bool Messages::sufficient_priority_screen(Index priority)
+{
+  return vs >= priority;
+}
+
+
+//! Does the current message have sufficient priority for file?
+/*! 
+  \param priority Priority of current message.
+
+  \return true if priority is sufficient, otherwise false. */
+bool Messages::sufficient_priority_file(Index priority)
+{
+  return vf >= priority;
 }
 
 //--------------------< The different output streams >--------------------

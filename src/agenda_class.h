@@ -44,7 +44,7 @@ class Agenda {
 public:
 
   Agenda() : mname(), mml(), moutput_push(), moutput_dup(),
-             agendaworkspace(NULL) { }
+             agendaworkspace(NULL), main_agenda(false) { }
 
   /*! 
     Copies an agenda.
@@ -53,7 +53,8 @@ public:
                             mml(x.mml),
                             moutput_push(x.moutput_push),
                             moutput_dup(x.moutput_dup),
-                            agendaworkspace(x.agendaworkspace)
+                            agendaworkspace(x.agendaworkspace),
+                            main_agenda(x.main_agenda)
   { /* Nothing to do here */ }
 
 
@@ -75,6 +76,8 @@ public:
   const ArrayOfIndex& get_output2dup() const { return moutput_dup; }
   void print( ostream& os,
               const String& indent ) const;
+  void set_main_agenda() {main_agenda = true;};
+  bool is_main_agenda() const {return main_agenda;};
 private:
   String         mname; /*!< Agenda name. */
   Array<MRecord> mml;   /*!< The actual list of methods to execute. */
@@ -83,6 +86,9 @@ private:
 
   ArrayOfIndex moutput_dup;
   Workspace* agendaworkspace;
+
+  //! Is set to true if this is the main agenda.
+  bool main_agenda;
 };
 
 // Documentation with implementation.

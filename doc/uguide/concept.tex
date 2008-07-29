@@ -4,6 +4,7 @@
  \label{sec:concept}
 
 \starthistory
+  080729 & Section on command line parameters updated by Stefan Buehler.\\
   050613 & Updated by Patrick Eriksson.\\
   020613 & Updated and extended by Stefan Buehler.\\
   000616 & Created by Stefan Buehler, based on my DPG2000 poster.
@@ -64,7 +65,7 @@ changes to the program logic or to the parser. How such an extension
 can be made practically is described in Section \ref{sec:development}.
 
 
-\section{Generic Workspace Methods}
+\section{Generic workspace methods}
 %=================================
 \label{sec:concept:generic}
 
@@ -144,6 +145,8 @@ uses the user selected method for calculating the emission term.
 %=================================
 \label{sec:concept:practical}
 
+\subsection{Test controlfiles}
+
 The subdirectory \fileindex{tests} contains some example controlfiles.
 You should study them to learn more about how the program works. You
 can also run these controlfiles like this:
@@ -161,11 +164,15 @@ also run all of the examples, by saying
 \end{verbatim}
 \end{quote}
 
+\subsection{Command line parameters}
+
 ARTS offers a number of useful command line parameters. In general,
 there is a short form and a long form for each parameter. The short
 form consists of a minus sign and a single letter, whereas the long
-form consists of two minus signs and a descriptive name. To get a full
-list, type
+form consists of two minus signs and a descriptive name. 
+
+\subsubsection{Help}
+To get a full list of available command line parameters, type
 \begin{quote}
 \begin{verbatim}
   arts -h
@@ -177,6 +184,8 @@ or
   arts --help
 \end{verbatim}
 \end{quote}
+
+\subsubsection{Online documentation}
 Most useful at the beginning should be the \artsstyle{-d}
 (\artsstyle{--describe}), \artsstyle{-m} (\artsstyle{--methods}), \artsstyle{-w}
 (\artsstyle{--workspacevariables}), and \artsstyle{-i} (\artsstyle{--input}) flags.
@@ -240,6 +249,53 @@ that can calculate \artsstyle{abs\_coef}. So, you will find the method
 required input variables of that method. Then you can use the
 \artsstyle{-m} flag again, to find the methods producing these variables,
 and so on.
+
+\subsubsection{Verbosity levels}
+
+The command line parameter 
+\begin{quote}
+\begin{verbatim}
+  arts -r
+\end{verbatim}
+\end{quote}
+or
+\begin{quote}
+\begin{verbatim}
+  arts --reporting
+\end{verbatim}
+\end{quote}
+can be used to set how much output ARTS produces. You can supply a
+three-digit integer here. Each digit can have a value between 0 and 3.
+
+The last digit determines, how verbose ARTS
+is in its report file. If it is 0, the report file will be empty, if
+it is 3 it will be longest.
+
+The middle digit determines, how verbose ARTS is on the screen
+(stdout). The meaning of the values is exactly as for the report
+file. 
+
+The first digit is special. It determines how much you will see of the
+output of agendas (other than the main program agenda). Normally, you
+do not want to see this output, since many agendas are called over and
+over again in a normal program run. 
+
+The agenda verbosity applies in addition to the screen or file
+verbosity. For example, if you set the reporting level to `123', you
+will get: 
+\begin{itemize}
+\item From the main agenda: Level 1-2 outputs to the screen, and level
+  1-3 outputs to the report file.
+\item From all other agendas: Only level 1 outputs to both screen and
+  report file.
+\end{itemize}
+
+If you set the reporting level to `120', the report file will be
+empty.
+
+The default setting for ARTS (if you do not use the command line flag)
+is `010', i.e., only the important messages to the screen, nothing to
+the report file, and no sub-agenda output.
 
 %%% Local Variables: 
 %%% mode: latex

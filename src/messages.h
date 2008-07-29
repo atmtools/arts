@@ -46,61 +46,78 @@
 #include "array.h"
 #include "arts_omp.h"
 
-/**
-   The verbosity level for screen and file output. There are four
-   different output streams: out0, out1, out2, and out3. They have different
-   priority, out0 the highest, out3 the lowest.
+extern bool in_main_agenda;
+#pragma omp threadprivate(in_main_agenda)
 
-   The verbosity level is stored in the workspace variable messages of
-   this type and can be set separately for file and screen output. In
-   both cases the level can range from 0 to 4, where 0 = no output
-   (except error messages), 1 = only out1, 2 = out1+out2, 3 = all
-   output, 4 = all output including suppressed agenda output.
+//! For global ARTS verbosity settings.
+/*! 
+  This class controls the ARTS verbosity.
 
-   \author Stefan Buehler 
-   \date   1999-06-30
+  There are four different output streams: out0, out1, out2, and
+  out3. They have different priority, out0 the highest, out3 the
+  lowest.
 
-   Introduced Out0, which prints to stderr rather than stdout.
-   \author Stefan Buehler 
-   \date   1999-11-03 */
+  The verbosity level can be set separately for file and screen output. In
+  both cases the level can range from 0 to 3, where 0 = no output
+  (except error messages), 1 = only out1, 2 = out1+out2, and 3 = all
+  output.
+   
+  For agenda output, the verbosity level can also be between 0 and
+  3. The condition for agenda output is evaluated in addition to the
+  screen or file output condition. In other words, output from a
+  sub-agenda will only be shown on the screen, if its priority is high
+  enough for both the agenda verbosity setting, and the screen
+  verbosity setting.
+
+  \author Stefan Buehler 
+  \date   2008-07-29  */
 class Messages {
 public:
-  /** Default constructor. Set both levels to -1. The default output
-      level is set explicitly in main. */
-  Messages() : screen(-1), file(-1) { /* nothing to do here */ }
-  /** Verbosity of screen output. */
-  Index screen;
-  /** Verbosity of file output. */
-  Index file;
-};
-
-bool sufficient_priority_screen(Index priority);
-
-bool sufficient_priority_file(Index priority);
+  bool valid();
+  bool sufficient_priority_agenda(Index priority);
+  bool sufficient_priority_screen(Index priority);
+  bool sufficient_priority_file(Index priority);
 
 /** Print a message to stream and report file. The message is printed
-    only if the priority is higher 
-    than specified in messages.
+    only if the priority is higher than specified in messages. (Low
+    number means high priority.)
   
     \param os       Stream to print to (cout or cerr).
     \param priority Priority of this message (0-3, 0=highest).
     \param t        The stuff to print (can be of any type).
     \author Stefan Buehler 
     \see Messages  */
-template<class T> 
-void MessagePrint(ostream& os, Index priority, const T& t)
-{
-  extern ofstream report_file;
+  template<class T> 
+  void Print(ostream& os, Index priority, const T& t)
+  {
+    extern ofstream report_file;
+    
+    // cout << "Printing object of type: " << typeid(t).name() << "\n";
+    
+    // If we are not in the main agenda, then the condition for agenda
+    // output must be fulfilled in addition to the condition for
+    // screen or file. 
 
-  // cout << "Printing object of type: " << typeid(t).name() << endl;
+    if (in_main_agenda || sufficient_priority_agenda(priority))
+      {
+        if (sufficient_priority_screen(priority))
+          os << t;
+    
+        if (sufficient_priority_file(priority))
+          //    if (report_file)              // Check if report file is good
+          report_file << t;
+      }
+  }
+  
+  //! Verbosity for agenda output. Can be 0-3.
+  Index va;
+  //! Verbosity for output to screen. Can be 0-3.
+  Index vs;
+  //! Verbosity for output to file. Can be 0-3.
+  Index vf;
+};
 
-  if (sufficient_priority_screen(priority))
-    os << t;
 
-  if (sufficient_priority_file(priority))
-    //    if (report_file)              // Check if report file is good
-    report_file << t;
-}
 
 
 /** Highest priority output stream. This stream is only used for error 
@@ -128,13 +145,15 @@ class Out2 {
 class Out3 {
 };
 
+
 //--------------------< Output Operators >--------------------
 
 /** Output operator for Out0. */
 template<class T>
 Out0& operator<<(Out0& os, const T& t)
 {
-  MessagePrint(cerr,0,t);
+  extern Messages arts_messages;
+  arts_messages.Print(cerr,0,t);
   return os;
 }
 
@@ -143,7 +162,8 @@ template<class T>
 Out1& operator<<(Out1& os, const T& t)
 {
   //  cout << "Outing Object Of Type: " << Typeid(T).Name() << Endl;
-  MessagePrint(cout,1,t);
+  extern Messages arts_messages;
+  arts_messages.Print(cout,1,t);
   return os;
 }
 
@@ -151,7 +171,8 @@ Out1& operator<<(Out1& os, const T& t)
 template<class T>
 Out2& operator<<(Out2& os, const T& t)
 {
-  MessagePrint(cout,2,t);
+  extern Messages arts_messages;
+  arts_messages.Print(cout,2,t);
   return os;
 }
 
@@ -159,7 +180,8 @@ Out2& operator<<(Out2& os, const T& t)
 template<class T>
 Out3& operator<<(Out3& os, const T& t)
 {
-  MessagePrint(cout,3,t);
+  extern Messages arts_messages;
+  arts_messages.Print(cout,3,t);
   return os;
 }
 

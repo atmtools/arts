@@ -1,5 +1,45 @@
 2008-07-29  Stefan Buehler  <sbuehler(at)ltu.se>
 
+	* arts-1-7-21
+
+	* src/messages{.h,.cc}: Complete redesign of the verbosity control
+	mechanism. The -r command line flag now takes a 3-digit integer,
+	where the first digit controls the verbosity of agenda
+	output. Default is 010, i.e., all sub-agenda output is
+	suppressed. (You will still see output from the main agenda,
+	though.) This makes the silent flag to agenda_execute obsolete. At
+	the moment the flag is still there, in order to avoid SVN
+	conflicts with other ongoing work. When that is complete, the flag
+	should be removed.
+
+	* src/parameters.cc (get_parameters): Updated online help text to
+	describe the new verbosity options.
+
+	* src/main.cc: Adapted to redesign of the verbosity control
+	mechanism.
+
+	* src/agenda_class.cc (execute): Adapted to redesign of the
+	verbosity control mechanism.
+
+	* src/m_abs_lookup.cc,
+	  src/m_rte.cc,
+	  src/m_batch.cc: 
+	We no longer need any special code to handle messages for parallel
+	loop with agendas!
+
+	* src/agenda_class.h: Added member main_agenda, plus associated
+	member functions set_main_agenda() and get_main_agenda(). This can
+	be used to decide whether the current agenda is the program main
+	agenda, or a sub-agenda.
+
+	* src/test_geomag_calc.cc (main): Commented out code dealing with
+	message levels.
+
+	* doc/uguide/concept.tex (section{Practical hints}): Restructured
+	this section, and added a part about the verbosity settings.
+
+2008-07-29  Stefan Buehler  <sbuehler(at)ltu.se>
+
 	* arts-1-7-20
 
 	* WARNING: This version does not compile with g++, due to a

@@ -43,12 +43,6 @@ extern const Index GFIELD4_FIELD_NAMES;
 extern const Index GFIELD4_P_GRID;
 
 
-// Parallel loops that contain agenda calls need their own copy of
-// the message levels.
-extern Messages artsmessages;
-#pragma omp threadprivate(artsmessages)
-
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupInit(GasAbsLookup& /* x */)
 {
@@ -1606,10 +1600,7 @@ void abs_fieldCalc(// WS Output:
 
   // Now we have to loop all points in the atmosphere.
 
-  // Parallel loops that contain agenda calls need their own copy of
-  // the message levels.
-
-#pragma omp parallel private(asg, a_vmr_list) copyin(artsmessages)
+#pragma omp parallel private(asg, a_vmr_list)
 #pragma omp for 
   for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
     {
