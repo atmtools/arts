@@ -44,10 +44,22 @@ ofstream report_file;
 /** Verbosity levels.
     @see Messages 
 
-    This has to be an array, because the messages level can be
-    manipulated independently for thread if we run with OpenMP.
+    This has to be declared copyin for Open MP loops that involve agendas.
 */
-Array<Messages> messages;
+Messages artsmessages;
+#pragma omp threadprivate(artsmessages)
+
+
+bool sufficient_priority_screen(Index priority)
+{
+  return artsmessages.screen >= priority;
+}
+
+
+bool sufficient_priority_file(Index priority)
+{
+  return artsmessages.file >= priority;
+}
 
 //--------------------< The different output streams >--------------------
 

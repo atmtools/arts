@@ -45,6 +45,10 @@
 #include "workspace_ng.h"
 #include "arts_omp.h"
 
+// The global variable that holds the message levels for screen and file.
+extern Messages artsmessages;
+#pragma omp threadprivate(artsmessages)
+
 /** Remind the user of --help and exit return value 1. */
 void polite_goodby()
 {
@@ -61,33 +65,20 @@ void polite_goodby()
    not given on the command line, since this is the initialization
    value.
    
-   The variable *messages* has to be an array, so that each thread can
-   independently manipulate its output level if we use OpenMP. The
-   size of this array is determined here from the maximum number of
-   OpenMP threads. All array element are then initialized to the same
-   reporting level. Without OpenMP, the array has only one element.
+   The variable *artsmessages* has to be declared "copyin" for Open MP
+   loops, so that each thread gets a copy of its original state.
 
    \param r Reporting level from Command line.
    \author Stefan Buehler 
 */
 void set_reporting_level(Index r)
 {
-  // The global variable that holds the message levels for screen and file.
-  extern Array<Messages> messages;
-
-  // Initialize the messages array:
-  int max_threads = arts_omp_get_max_threads();
-  messages.resize(max_threads);
-
   if ( -1 == r )
     {
       // Reporting was not specified, set default. (Only the
       // important stuff to the screen, everything to the file.)
-      for (Index i=0; i<max_threads; ++i)
-        {
-          messages[i].screen = 1;
-          messages[i].file   = 0;
-        }
+      artsmessages.screen = 1;
+      artsmessages.file   = 0;
     }
   else
     {
@@ -107,11 +98,9 @@ void set_reporting_level(Index r)
                << "Only values of 0-3 are allowed for screen and file.\n";
           arts_exit ();
         }
-      for (Index i=0; i<max_threads; ++i)
-        {
-          messages[i].screen = s;
-          messages[i].file   = f;
-        }
+
+      artsmessages.screen = s;
+      artsmessages.file   = f;
     }
 }
 

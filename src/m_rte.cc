@@ -55,6 +55,10 @@
 #include "rte.h"
 #include "special_interp.h"
 
+// Parallel loops that contain agenda calls need their own copy of
+// the message levels.
+extern Messages artsmessages;
+#pragma omp threadprivate(artsmessages)
 
 
 /*===========================================================================
@@ -204,7 +208,11 @@ void RteCalc(
   //
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
-#pragma omp parallel
+
+      // Parallel loops that contain agenda calls need their own copy of
+      // the message levels.
+
+#pragma omp parallel copyin(artsmessages)
 #pragma omp for 
       for( Index iza=0; iza<nza; iza++ )
         {
@@ -564,7 +572,11 @@ void RteCalcMC(
 
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
-#pragma omp parallel
+
+      // Parallel loops that contain agenda calls need their own copy of
+      // the message levels.
+
+#pragma omp parallel copyin(artsmessages)
 #pragma omp for 
       for( Index iza=0; iza<nza; iza++ )
         {

@@ -38,6 +38,11 @@
 #include "workspace_ng.h"
 #include "arts_omp.h"
 
+// The messages level. We will manipulate it if
+// silent agenda execution is desired.
+extern Messages artsmessages;
+#pragma omp threadprivate(artsmessages)
+
 /** Print the error message and exit. */
 void give_up(const String& message)
 {
@@ -101,25 +106,22 @@ void Agenda::execute(bool silent) const
   // The array holding the pointers to the getaway functions:
   extern void (*getaways[])(Workspace&, const MRecord&);
 
-  // The messages level. We will manipulate it in this function, if
-  // silent execution is desired.
-  extern Array<Messages> messages;
-
-  // Obtain the thread ID from OpenMP. (Zero-based indexing, as usual.)
-  int thread_num = arts_omp_get_thread_num();
-
-  // Backup for the original message level:
-  Messages messages_original( messages[thread_num] );
+  // Backup for the original message level.
+  // IMPORTANT: The variable *artsmessages* is globally declared
+  // "threadprivate". It also has to be declared "copyin" for Open MP
+  // loops that use agenda calls, so that each thread gets a copy
+  // before the thread is started.
+  Messages messages_original = artsmessages;
 
   // Manipulate the message level, to allow silent execution:
   if (silent)
     {
       // Level 4 means that the output should remain visible even for
       // silent execution.  
-      if ( messages[thread_num].screen < 4 )
-        messages[thread_num].screen = 0;
-      if ( messages[thread_num].file < 4 )
-        messages[thread_num].file   = 0;
+      if ( artsmessages.screen < 4 )
+        artsmessages.screen = 0;
+      if ( artsmessages.file < 4 )
+        artsmessages.file   = 0;
     }
 
   out1 << "Executing " << name() << "\n"
@@ -238,7 +240,7 @@ void Agenda::execute(bool silent) const
           // execution continues.
           if (silent)
             {
-              messages[thread_num] = messages_original;
+              artsmessages = messages_original;
             }
 
           out1 << "}\n";
@@ -252,7 +254,7 @@ void Agenda::execute(bool silent) const
   // Restore the original message level:
   if (silent)
     {
-      messages[thread_num] = messages_original;
+      artsmessages = messages_original;
     }
 }
 

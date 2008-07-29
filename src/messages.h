@@ -53,9 +53,9 @@
 
    The verbosity level is stored in the workspace variable messages of
    this type and can be set separately for file and screen output. In
-   both cases the level can range from 0 to 3, where 0 = no output
+   both cases the level can range from 0 to 4, where 0 = no output
    (except error messages), 1 = only out1, 2 = out1+out2, 3 = all
-   output.
+   output, 4 = all output including suppressed agenda output.
 
    \author Stefan Buehler 
    \date   1999-06-30
@@ -74,6 +74,9 @@ public:
   Index file;
 };
 
+bool sufficient_priority_screen(Index priority);
+
+bool sufficient_priority_file(Index priority);
 
 /** Print a message to stream and report file. The message is printed
     only if the priority is higher 
@@ -87,18 +90,14 @@ public:
 template<class T> 
 void MessagePrint(ostream& os, Index priority, const T& t)
 {
-  extern Array<Messages> messages;
   extern ofstream report_file;
 
   // cout << "Printing object of type: " << typeid(t).name() << endl;
 
-  // Obtain the thread ID from OpenMP. (Zero-based indexing, as usual.)
-  int thread_num = arts_omp_get_thread_num();
-
-  if (messages[thread_num].screen >= priority)
+  if (sufficient_priority_screen(priority))
     os << t;
 
-  if (messages[thread_num].file >= priority)
+  if (sufficient_priority_file(priority))
     //    if (report_file)              // Check if report file is good
     report_file << t;
 }

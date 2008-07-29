@@ -55,6 +55,10 @@ extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Index   GFIELD3_P_GRID;
 
+// Parallel loops that contain agenda calls need their own copy of
+// the message levels.
+extern Messages artsmessages;
+#pragma omp threadprivate(artsmessages)
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -414,10 +418,14 @@ void ybatchCalc_implementation(
       first_ybatch_index++;
     }
 
-#pragma omp parallel private(y)
+  // Parallel loops that contain agenda calls need their own copy of
+  // the message levels.
+
+#pragma omp parallel private(y) copyin(artsmessages)
 #pragma omp for 
   // Go through the batch:
-  for(Index ybatch_index = first_ybatch_index; ybatch_index<ybatch_n;
+  for(Index ybatch_index = first_ybatch_index;
+      ybatch_index<ybatch_n;
       ybatch_index++ )
     {
       out2 << "  Doing job " << ybatch_index+1 << " of " << ybatch_n << "\n";
