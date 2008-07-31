@@ -528,9 +528,6 @@ void VectorZtanToZaRefr1D(
     throw runtime_error( os.str() );
   }
 
-  //No output from get_refr_index_1d
-  Index agenda_verb = 1;
-
   //Set za_vector's size equal to ztan_vector
   za_vector.resize( ztan_vector.nelem() );
 
@@ -538,7 +535,7 @@ void VectorZtanToZaRefr1D(
   for( Index i=0; i<ztan_vector.nelem(); i++ ) {
     get_refr_index_1d( ws,
       refr_index, rte_pressure, rte_temperature, rte_vmr_list, 
-      refr_index_agenda, agenda_verb, p_grid, r_geoid(0,0), 
+      refr_index_agenda, p_grid, r_geoid(0,0), 
       z_field(joker,0,0), t_field(joker,0,0), vmr_field(joker,joker,0,0),
       ztan_vector[i]+r_geoid(0,0) );
 

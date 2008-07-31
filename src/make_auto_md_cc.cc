@@ -454,7 +454,7 @@ int main()
           ofs << "  String agenda_error_msg;\n"
               << "  bool agenda_failed = false;\n\n"
               << "  try {\n"
-              << "    input_agenda.execute (ws, silent);\n"
+              << "    input_agenda.execute (ws);\n"
               << "  } catch (runtime_error e) {\n"
               << "    ostringstream os;\n"
               << "    os << \"Run-time error in agenda: \"\n"

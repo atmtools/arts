@@ -279,8 +279,7 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
                             in the function header.
 */
 void write_agenda_wrapper_header( ofstream& ofs,
-                                  const AgRecord& agr,
-                                  const bool write_default_args )
+                                  const AgRecord& agr)
 {
   extern const ArrayOfString wsv_group_names;
 
@@ -326,10 +325,6 @@ void write_agenda_wrapper_header( ofstream& ofs,
 
   // Wrapper function agenda and silent parameters
   ofs << "        // Wrapper Input\n";
-  ofs << "        const Agenda& input_agenda,\n";
-  ofs << "        const bool silent\n";
-  if (write_default_args)
-    ofs << " = false";
-  ofs << ")";
+  ofs << "        const Agenda& input_agenda)";
 }
 

@@ -115,9 +115,9 @@ void clear_rt_vars_at_gp(Workspace&              ws,
   
   //calcualte absorption coefficient
   abs_scalar_gas_agendaExecute( ws, local_abs_scalar_gas,f_index,p_vec[0],
-    temperature,vmr_mat(joker,0),abs_scalar_gas_agenda,true );
+    temperature,vmr_mat(joker,0),abs_scalar_gas_agenda );
   opt_prop_gas_agendaExecute( ws, local_ext_mat, local_abs_vec, f_index,
-                              local_abs_scalar_gas, opt_prop_gas_agenda, true );
+                              local_abs_scalar_gas, opt_prop_gas_agenda );
   ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));
   abs_vec_mono=local_abs_vec(0,Range(joker));
 }
@@ -190,9 +190,9 @@ void cloudy_rt_vars_at_gp(Workspace&            ws,
   temperature = t_ppath[0];
   //rte_vmr_list    = vmr_ppath(joker,0);
   abs_scalar_gas_agendaExecute( ws, local_abs_scalar_gas,f_index,p_ppath[0],
-        temperature,vmr_ppath(joker,0),abs_scalar_gas_agenda,true );
+        temperature,vmr_ppath(joker,0),abs_scalar_gas_agenda );
   opt_prop_gas_agendaExecute( ws, local_ext_mat, local_abs_vec, f_index,
-                              local_abs_scalar_gas, opt_prop_gas_agenda, true );
+                              local_abs_scalar_gas, opt_prop_gas_agenda );
   ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));
   abs_vec_mono=local_abs_vec(0,Range(joker));
   ext_mat_part=0.0;
@@ -424,7 +424,7 @@ void Cloudbox_ppathCalc(Workspace&      ws,
       //
       ppath_step_agendaExecute(ws, ppath_step, atmosphere_dim, p_grid,
                                lat_grid, lon_grid, z_field, r_geoid, z_surface,
-                               ppath_step_agenda, true);
+                               ppath_step_agenda );
 
       // Before everything is tested carefully, we consider more than 1000
       // path points to be an indication on that the calcululations have
@@ -751,7 +751,7 @@ void Cloudbox_ppath_rteCalc( Workspace&            ws,
                       iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid,
                       lon_grid, z_field, t_field, vmr_field, r_geoid, z_surface,
                       cloudbox_on_dummy, cloudbox_limits,
-                      rte_pos, rte_los, f_grid,stokes_dim, 1);
+                      rte_pos, rte_los, f_grid,stokes_dim);
 
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(iy(0,i)));}
   
@@ -1994,7 +1994,7 @@ void montecarloGetIncoming(Workspace&            ws,
                        atmosphere_dim, p_grid, lat_grid, lon_grid, z_field,
                        t_field, vmr_field, r_geoid, z_surface,
                        cloudbox_on_dummy, cloudbox_limits,
-                       pos, los, f_grid,stokes_dim, 1);
+                       pos, los, f_grid,stokes_dim );
   
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(iy(0,i)));}
 }
@@ -2069,9 +2069,9 @@ Numeric opt_depth_calc(Workspace& ws,
       abs_scalar_gas_agendaExecute (ws, abs_scalar_gas, f_index,
                                     rte_pressure, rte_temperature,
                                     rte_vmr_list,
-                                    abs_scalar_gas_agenda, true);
+                                    abs_scalar_gas_agenda);
       opt_prop_gas_agendaExecute (ws, ext_mat, abs_vec, f_index, abs_scalar_gas,
-                                  opt_prop_gas_agenda, true);
+                                  opt_prop_gas_agenda);
       kvector[i]=ext_mat(0,0,0);
     }
   for (Index i=1; i<ppath.np;i++)
@@ -2777,9 +2777,9 @@ void TArrayCalc(Workspace& ws,
       abs_scalar_gas_agendaExecute (ws, abs_scalar_gas, f_index,
                                     rte_pressure, rte_temperature,
                                     rte_vmr_list,
-                                    abs_scalar_gas_agenda, true);
+                                    abs_scalar_gas_agenda);
       opt_prop_gas_agendaExecute( ws, ext_mat, abs_vec, f_index, abs_scalar_gas,
-                                  opt_prop_gas_agenda, true );
+                                  opt_prop_gas_agenda );
       ext_mat_part=0.0;
       abs_vec_part=0.0;
       //Make sure scat_aa is between -180 and 180

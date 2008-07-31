@@ -1447,10 +1447,6 @@ void CloudboxGetIncoming(
   // box at some other position.
   cloudbox_on = 0;
 
-  // Make all agendas silent
-  const Index   agenda_verb = true;
-
-
   if( atmosphere_dim == 1 )
     {
       // Resize interface variables:
@@ -1479,7 +1475,7 @@ void CloudboxGetIncoming(
                                    t_field, vmr_field,
                                    r_geoid, z_surface, cloudbox_on,
                                    cloudbox_limits, pos, los, f_grid,
-                                   stokes_dim, agenda_verb );
+                                   stokes_dim );
 
               scat_i_p( joker, boundary, 0, 0, scat_za_index, 0, joker ) = iy;
             }
@@ -1558,7 +1554,7 @@ void CloudboxGetIncoming(
                                                    cloudbox_on,
                                                    cloudbox_limits, 
                                                    pos, los, f_grid,
-                                                   stokes_dim, agenda_verb );
+                                                   stokes_dim );
                             }
 
                           scat_i_p( joker, boundary, lat_index, lon_index, 
@@ -1610,8 +1606,7 @@ void CloudboxGetIncoming(
                                                    r_geoid, z_surface, 
                                                    cloudbox_on,
                                                    cloudbox_limits, pos, los,
-                                                   f_grid, stokes_dim,
-                                                   agenda_verb );
+                                                   f_grid, stokes_dim );
                             }
 
                           scat_i_lat( joker, p_index, boundary, lon_index, 
@@ -1663,7 +1658,7 @@ void CloudboxGetIncoming(
                                                    z_surface, cloudbox_on,
                                                    cloudbox_limits, 
                                                    pos, los, f_grid,
-                                                   stokes_dim, agenda_verb );
+                                                   stokes_dim );
                             }
 
                           scat_i_lon( joker, p_index, lat_index, boundary, 
@@ -1734,9 +1729,6 @@ void CloudboxGetIncoming1DAtm(
   // box at some other position.
   cloudbox_on = 0;
 
-  // Make all agendas silent
-  const Index   agenda_verb = true;
-
   // Convert scat_za_grid to "sensor coordinates"
   //(-180° < azimuth angle < 180°)
   //
@@ -1778,7 +1770,7 @@ void CloudboxGetIncoming1DAtm(
                               lat_grid, lon_grid, z_field, t_field, vmr_field,
                               r_geoid, z_surface,
                               cloudbox_on, cloudbox_limits, pos, 
-                              los, f_grid, stokes_dim, agenda_verb );
+                              los, f_grid, stokes_dim );
           
           for (Index aa = 0; aa < Naa; aa ++)
             {

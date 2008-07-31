@@ -1326,7 +1326,6 @@ void surfaceSimple(
 //       for( Index ilos=0; ilos<nlos; ilos++ )
 //         {
 //           // Calculate downwelling radiation for LOS ilos 
-//           const Index   agenda_verb = 0;
 //           iy_calc( iy, ppath, ppath_step,
 //                    ppath_array_index, ppath_array,
 //                    diy_dvmr, diy_dt,
@@ -1338,7 +1337,7 @@ void surfaceSimple(
 //                    rte_pos, surface_los(ilos,joker),
 //                    f_grid, stokes_dim, 
 //                    ppath_array_do,
-//                    rte_do_vmr_jacs, rte_do_t_jacs, agenda_verb );
+//                    rte_do_vmr_jacs, rte_do_t_jacs );
 
 //           I(ilos,joker,joker) = iy;
 
@@ -1440,7 +1439,6 @@ void surfaceSimple(
 //   surface_specular_los( rte_los, atmosphere_dim );
 
 //   // Calculate downwelling radiation and put in local variable
-//   const Index   agenda_verb = 0;
 //   Vector   pos( rte_pos.nelem() ), los( rte_los.nelem() );
 //   //
 //   pos = rte_pos;
@@ -1450,7 +1448,7 @@ void surfaceSimple(
 //            ppath_step_agenda, rte_agenda, iy_space_agenda, 
 //            iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid, 
 //            lat_grid, lon_grid, z_field, r_geoid, z_surface, cloudbox_on, 
-//            cloudbox_limits, pos, los, f_grid, stokes_dim, agenda_verb );
+//            cloudbox_limits, pos, los, f_grid, stokes_dim );
 //   //
 //   Matrix   idown( iy.nrows(), iy.ncols() );
 //   idown = iy;

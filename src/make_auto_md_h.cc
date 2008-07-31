@@ -702,7 +702,7 @@ int main()
       extern const Array<AgRecord> agenda_data;
       for (Index i = 0; i < agenda_data.nelem (); i++)
         {
-          write_agenda_wrapper_header (ofs, agenda_data[i], true);
+          write_agenda_wrapper_header (ofs, agenda_data[i]);
 
           ofs << ";\n\n";
         }

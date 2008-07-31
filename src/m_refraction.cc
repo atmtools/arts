@@ -163,13 +163,10 @@ void refr_indexFieldAndGradients(
           for( Index ip=0; ip<np; ip++ )
             {
 
-              const Index   agenda_verb = ip + ilat + ilon;
-
               if( atmosphere_dim == 1 )
                 {
                   refr_gradients_1d( ws, refr_index, dndr, a_pressure, 
                                a_temperature, a_vmr_list, refr_index_agenda, 
-                               agenda_verb,
                                p_grid, r_geoid(0,0), z_field(joker,0,0), 
                                t_field(joker,0,0), vmr_field(joker,joker,0,0),
                                                                        r[ip] );
@@ -179,7 +176,6 @@ void refr_indexFieldAndGradients(
                 {
                   refr_gradients_2d( ws, refr_index, dndr, dndlat, a_pressure, 
                                a_temperature, a_vmr_list, refr_index_agenda,
-                               agenda_verb,
                                p_grid, lat_grid, r_geoid(joker,0), 
                                z_field(joker,joker,0), t_field(joker,joker,0), 
                                vmr_field(joker,joker,joker,0),
@@ -192,7 +188,6 @@ void refr_indexFieldAndGradients(
                   refr_gradients_3d( ws, refr_index, dndr, dndlat, dndlon,
                                a_pressure, 
                                a_temperature, a_vmr_list, refr_index_agenda, 
-                               agenda_verb,
                                p_grid, lat_grid, lon_grid, r_geoid, 
                                z_field, t_field, vmr_field,
                                    r[ip], lat_values[ilat], lon_values[ilon] );

@@ -75,7 +75,7 @@ void ForLoop(Workspace& ws,
   for (Index i=start; i<=stop; i+=step)
     {
       out1 << "  Executing for loop body, index: " << i << "\n";
-      forloop_agendaExecute(ws, i, forloop_agenda, false);
+      forloop_agendaExecute(ws, i, forloop_agenda);
     }
 }
 
@@ -377,7 +377,7 @@ void ybatchCalc_implementation(Workspace&      ws,
       out2 << "  Doing job " << first_ybatch_index+1 << " of " << ybatch_n << "\n";
       try
         {
-          ybatch_calc_agendaExecute( ws, y, first_ybatch_index, ybatch_calc_agenda, false );
+          ybatch_calc_agendaExecute( ws, y, first_ybatch_index, ybatch_calc_agenda );
           // The false flag at the end means that agenda output is
           // not suppressed.
 
@@ -432,8 +432,7 @@ void ybatchCalc_implementation(Workspace&      ws,
       try
         {
           ybatch_calc_agendaExecute( l_ws, y, ybatch_index,
-                                     l_ybatch_calc_agenda,
-                                     true );
+                                     l_ybatch_calc_agenda );
           // We are surpressing agenda output here, since this is too
           // much to be useful. (The true flag at the end does this.)          
  
@@ -702,7 +701,7 @@ void ybatchMetProfiles(
                                       z_field_raw, pnd_field_raw, p_grid,
                                       sensor_los, cloudbox_on,
                                       cloudbox_limits, z_surface,
-                                      met_profile_calc_agenda, false);
+                                      met_profile_calc_agenda );
       
       //putting in the spectra *y* for each profile, thus assigning y
       //to the ith row of ybatch
@@ -865,7 +864,7 @@ void ybatchMetProfilesClear(
                                       z_field_raw, pnd_field_raw, p_grid,
                                       sensor_los, cloudbox_on,
                                       cloudbox_limits, z_surface,
-                                      met_profile_calc_agenda, false);
+                                      met_profile_calc_agenda );
       
       //putting in the spectra *y* for each profile
       ybatch(i, Range(joker)) = y;

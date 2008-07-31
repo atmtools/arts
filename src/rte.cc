@@ -186,8 +186,6 @@ void apply_y_unit_single(
   \param[in]  ppath_array_do
   \param[in]  rte_do_vmr_jacs
   \param[in]  rte_do_t_jacs
-  \param[in]  agenda_verb        Argument handed to agendas to control
-                                 verbosity.
 
   \author Patrick Eriksson 
   \date   2002-09-17
@@ -220,8 +218,7 @@ void get_radiative_background(
         const Index&                   stokes_dim,
         const Index&                   ppath_array_do,
         const ArrayOfIndex&            rte_do_vmr_jacs,
-        const Index&                   rte_do_t_jacs,
-        const bool&                    agenda_verb )
+        const Index&                   rte_do_t_jacs )
 {
   // Some sizes
   const Index nf      = f_grid.nelem();
@@ -261,7 +258,7 @@ void get_radiative_background(
         chk_not_empty( "iy_space_agenda", iy_space_agenda );
 
         iy_space_agendaExecute( ws, iy, rte_pos, rte_los, 
-                                iy_space_agenda, agenda_verb );
+                                iy_space_agenda );
      
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {
@@ -286,7 +283,7 @@ void get_radiative_background(
         //
         surface_prop_agendaExecute( ws, surface_emission, surface_los, 
                     surface_rmatrix, rte_gp_p, rte_gp_lat, rte_gp_lon, rte_los,
-                    surface_prop_agenda, agenda_verb );
+                    surface_prop_agenda );
 
         // Check output of *surface_prop_agenda*
         //
@@ -331,15 +328,13 @@ void get_radiative_background(
             for( Index ilos=0; ilos<nlos; ilos++ )
               {
                 // Calculate downwelling radiation for LOS ilos 
-                const Index   agenda_verb2 = 0;
                 iy_calc( ws, iy, ppath, ppath_array_index, ppath_array,
                    diy_dvmr, diy_dt, ppath_step_agenda, rte_agenda, 
                    iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
                    atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
                    t_field, vmr_field, r_geoid, z_surface, cloudbox_on, 
                    cloudbox_limits, rte_pos, surface_los(ilos,joker), f_grid, 
-                   stokes_dim, ppath_array_do, rte_do_vmr_jacs, rte_do_t_jacs, 
-                   agenda_verb2 );
+                   stokes_dim, ppath_array_do, rte_do_vmr_jacs, rte_do_t_jacs );
 
                 I(ilos,joker,joker) = iy;
 
@@ -396,7 +391,7 @@ void get_radiative_background(
         iy_cloudbox_agendaExecute( ws, iy, ppath_local,
                                    rte_pos, rte_los, rte_gp_p,
                                    rte_gp_lat, rte_gp_lon,
-                                   iy_cloudbox_agenda, agenda_verb );
+                                   iy_cloudbox_agenda );
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {
@@ -414,7 +409,7 @@ void get_radiative_background(
         chk_not_empty( "iy_cloudbox_agenda", iy_cloudbox_agenda );
 
         iy_cloudbox_agendaExecute( ws, iy, ppath, rte_pos, rte_los, rte_gp_p, 
-                     rte_gp_lat, rte_gp_lon, iy_cloudbox_agenda, agenda_verb );
+                     rte_gp_lat, rte_gp_lon, iy_cloudbox_agenda );
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {
@@ -599,8 +594,6 @@ void include_trans_in_diy_dq(
   \param[in]  ppath_array_do
   \param[in]  rte_do_vmr_jacs
   \param[in]  rte_do_t_jacs
-  \param[in]  agenda_verb       Argument handed to agendas to control
-                                verbosity.
 
   \author Patrick Eriksson 
   \date   2002-09-17
@@ -634,8 +627,7 @@ void iy_calc( Workspace&               ws,
         const Index&                   stokes_dim,
         const Index&                   ppath_array_do,
         const ArrayOfIndex&            rte_do_vmr_jacs,
-        const Index&                   rte_do_t_jacs,
-        const bool&                    agenda_verb )
+        const Index&                   rte_do_t_jacs )
 {
   //- Determine propagation path
   const bool  outside_cloudbox = true;
@@ -719,7 +711,7 @@ void iy_calc( Workspace&               ws,
               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
               vmr_field, r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
               f_grid, stokes_dim, ppath_array_do, rte_do_vmr_jacs, 
-              rte_do_t_jacs, agenda_verb );
+              rte_do_t_jacs );
 
 
   // If the number of propagation path points is 0 or 1, we are already ready,
@@ -729,7 +721,7 @@ void iy_calc( Workspace&               ws,
       rte_agendaExecute( ws, iy, diy_dvmr, diy_dt, ppath,
                          ppath_array, ppath_array_index,
                          rte_do_vmr_jacs, rte_do_t_jacs,
-                         stokes_dim, f_grid, rte_agenda, agenda_verb );
+                         stokes_dim, f_grid, rte_agenda );
     }
 }
 
@@ -762,8 +754,7 @@ void iy_calc_no_jacobian(
         const Vector&         pos,
         const Vector&         los,
         const Vector&         f_grid,
-        const Index&          stokes_dim,
-        const bool&           agenda_verb )
+        const Index&          stokes_dim )
 {
   ArrayOfIndex               rte_do_vmr_jacs(0);
   ArrayOfTensor4             diy_dvmr(0);
@@ -780,7 +771,7 @@ void iy_calc_no_jacobian(
            z_field, t_field, vmr_field, r_geoid, z_surface, cloudbox_on, 
            cloudbox_limits, pos, los, f_grid, stokes_dim, 
            ppath_array_do,
-           rte_do_vmr_jacs, rte_do_t_jacs, agenda_verb );
+           rte_do_vmr_jacs, rte_do_t_jacs );
 }
 
 
@@ -1119,11 +1110,9 @@ void rte_std(Workspace&               ws,
         { rte_vmr_list[is] = 0.5 * ( ppath.vmr(is,ip) + ppath.vmr(is, ip-1) );}
       
       // Call agendas for RT properties
-      emission_agendaExecute( ws, emission, rte_temperature, emission_agenda,
-                                                                    (ip != 0) );
+      emission_agendaExecute( ws, emission, rte_temperature, emission_agenda );
       abs_scalar_gas_agendaExecute( ws, abs_scalar_gas, f_index,
-          rte_pressure, rte_temperature, rte_vmr_list, abs_scalar_gas_agenda,
-                                                                    (ip != 0) );
+          rte_pressure, rte_temperature, rte_vmr_list, abs_scalar_gas_agenda );
 
       // Polarised absorption?
       // What check to do here?

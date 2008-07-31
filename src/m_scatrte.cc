@@ -505,21 +505,19 @@ void doit_i_fieldIterate(
     out2 << "  Execute doit_scat_field_agenda. \n";
     doit_scat_field_agendaExecute(ws, doit_scat_field_local,
                                   doit_i_field,
-                                  doit_scat_field_agenda,
-                                  true);
+                                  doit_scat_field_agenda);
     
     // Update doit_i_field.
     out2 << "  Execute doit_rte_agenda. \n";
     doit_rte_agendaExecute(ws, doit_i_field, doit_scat_field_local, 
-                           doit_rte_agenda, true);
+                           doit_rte_agenda);
 
     //Convergence test.
     doit_conv_test_agendaExecute(ws, doit_conv_flag_local,
                                  doit_iteration_counter_local,
                                  doit_i_field,
                                  doit_i_field_old_local,
-                                 doit_conv_test_agenda,
-                                 true);
+                                 doit_conv_test_agenda);
 
   }//end of while loop, convergence is reached.
 }
@@ -1703,8 +1701,7 @@ doit_scat_fieldCalc(Workspace& ws,
                                         p_index,
                                         scat_aa_index_local,
                                         rte_temperature_local,
-                                        pha_mat_spt_agenda,
-                                        true);
+                                        pha_mat_spt_agenda);
               
               // Sum over all particle types
               pha_matCalc(pha_mat_local, pha_mat_spt_local, pnd_field, 
@@ -1792,8 +1789,7 @@ doit_scat_fieldCalc(Workspace& ws,
                                                     p_index, 
                                                     scat_aa_index_local,
                                                     rte_temperature_local,
-                                                    pha_mat_spt_agenda,
-                                                    true);
+                                                    pha_mat_spt_agenda);
                           
                           pha_matCalc(pha_mat_local, pha_mat_spt_local,
                                       pnd_field, 
@@ -2054,8 +2050,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                                         p_index,
                                         scat_aa_index_local,
                                         rte_temperature_local,
-                                        pha_mat_spt_agenda,
-                                        true);
+                                        pha_mat_spt_agenda);
               
               // Sum over all particle types
               pha_matCalc(pha_mat_local, pha_mat_spt_local, pnd_field, 
@@ -2176,8 +2171,7 @@ doit_scat_fieldCalcLimb(Workspace& ws,
                                                   p_index, 
                                                   scat_aa_index_local,
                                                   rte_temperature_local,
-                                                  pha_mat_spt_agenda,
-                                                  true);
+                                                  pha_mat_spt_agenda);
   
                         pha_matCalc(pha_mat_local, pha_mat_spt_local,
                                     pnd_field, 
@@ -2365,8 +2359,7 @@ void ScatteringDoit(Workspace& ws,
       out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
       doit_mono_agendaExecute(ws, doit_i_field, scat_i_p, scat_i_lat,
                               scat_i_lon, doit_i_field1D_spectrum,
-                              f_index, doit_mono_agenda,
-                              false); 
+                              f_index, doit_mono_agenda);
     }
 }
 

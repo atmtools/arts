@@ -230,9 +230,6 @@ void RteCalc(
 
               for( Index iaa=0; iaa<naa; iaa++ )
                 {
-                  //--- Argument for verbosity of agendas
-                  const bool   ag_verb = ( (iaa + iza + mblock_index) != 0 );
-
                   //--- Start index in *ib* for data to include 
                   const Index   nbdone = ( iza*naa + iaa ) * nf * stokes_dim;
 
@@ -264,7 +261,7 @@ void RteCalc(
                            r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
                            sensor_pos(mblock_index,joker), los, f_grid, 
                            stokes_dim, ppath_array_do, rte_do_vmr_jacs, 
-                           rte_do_t_jacs, ag_verb );
+                           rte_do_t_jacs );
 
                   //--- Unit conversions
                   apply_y_unit( iy, y_unit, f_grid );

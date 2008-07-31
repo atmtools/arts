@@ -1,3 +1,31 @@
+2008-07-31  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-7-23
+
+	* src/make_auto_md_cc.cc, src/agenda_class.{h,cc} (Agenda::execute)
+
+	Remove the agenda silent flag. It obsolete since arts-1-7-21.
+
+	* src/agenda_record.{h,cc} (write_agenda_wrapper_header):
+
+	Remove write_default_args and silent flag.
+
+	* src/make_auto_md_h.cc:
+
+	Adapt call of write_agenda_wrapper_header.
+
+	* src/disort.cc, src/m_abs_lookup.cc, src/m_batch.cc,
+	src/m_jacobian.cc, src/m_montecarlo.cc, src/m_scatrte.cc,
+	src/montecarlo.cc, src/scatrte.cc:
+
+	Remove silent flag from agendaExecute calls.
+
+	* src/m_cloudbox.cc, src/m_atmosphere.cc, src/m_ppath.cc,
+	src/ppath.cc, src/refraction.{h,cc}, src/rte.{h,cc},
+	src/m_refraction.cc, src/m_rte.cc:
+
+	Remove the agenda_verb and silent flags.
+
 2008-07-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-7-22

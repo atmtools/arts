@@ -169,8 +169,7 @@ void cloud_fieldsCalc(Workspace& ws,
                                      rte_temperature_local,
                                      scat_za_index,
                                      scat_aa_index,
-                                     spt_calc_agenda,
-                                     true);
+                                     spt_calc_agenda);
 
               opt_prop_part_agendaExecute(ws, ext_mat_local, abs_vec_local, 
                                           ext_mat_spt_local, 
@@ -178,8 +177,7 @@ void cloud_fieldsCalc(Workspace& ws,
                                           scat_p_index_local,
                                           scat_lat_index_local,
                                           scat_lon_index_local,
-                                          opt_prop_part_agenda,
-                                          true);
+                                          opt_prop_part_agenda);
            
               // Store coefficients in arrays for the whole cloudbox.
               abs_vec_field(scat_p_index_local, scat_lat_index_local,
@@ -304,7 +302,7 @@ void cloud_ppath_update1D(Workspace& ws,
   ppath_step_agendaExecute(ws, ppath_step, 1, p_grid,
                            unused_lat_grid, unused_lon_grid,
                            z_field, r_geoid, z_surface,
-                           ppath_step_agenda, true);
+                           ppath_step_agenda);
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -451,7 +449,7 @@ void cloud_ppath_update1D_noseq(
   ppath_step_agendaExecute(ws, ppath_step, 1, p_grid,
                            unused_lat_grid, unused_lon_grid,
                            z_field, r_geoid, z_surface,
-                           ppath_step_agenda, true);
+                           ppath_step_agenda);
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -654,7 +652,7 @@ void cloud_ppath_update3D(Workspace& ws,
   // Call ppath_step_agenda: 
   ppath_step_agendaExecute(ws, ppath_step, 3, p_grid,
                            lat_grid, lon_grid, z_field, r_geoid, z_surface,
-                           ppath_step_agenda, true);
+                           ppath_step_agenda);
 
     // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -916,15 +914,13 @@ void cloud_RT_no_background(Workspace& ws,
                                     rte_pressure_local, 
                                     rte_temperature_local, 
                                     rte_vmr_list_local,
-                                    abs_scalar_gas_agenda,
-                                    true );
+                                    abs_scalar_gas_agenda );
               
       opt_prop_gas_agendaExecute( ws, ext_mat_local, 
                                   abs_vec_local, 
                                   f_index, 
                                   abs_scalar_gas_local,
-                                  opt_prop_gas_agenda,
-                                  true );
+                                  opt_prop_gas_agenda );
               
       //
       // Add average particle extinction to ext_mat. 
@@ -1047,7 +1043,7 @@ void cloud_RT_surface(Workspace& ws,
                              surface_rmatrix, ppath_step.gp_p[np-1],
                              dummy_ppath_step_gp_lat, 
                              dummy_ppath_step_gp_lon, rte_los,
-                             surface_prop_agenda, true);
+                             surface_prop_agenda);
   
   iy = surface_emission;
 
@@ -1161,7 +1157,7 @@ void ppath_step_in_cloudbox(Workspace& ws,
   // Call ppath_step_agenda: 
   ppath_step_agendaExecute(ws, ppath_step, 3, p_grid,
                            lat_grid, lon_grid, z_field, r_geoid, z_surface,
-                           ppath_step_agenda, true);
+                           ppath_step_agenda);
 }
 
 //! interp_cloud_coeff1D 
@@ -1555,15 +1551,13 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                             rte_pressure, 
                                             rte_temperature, 
                                             rte_vmr_list,
-                                            abs_scalar_gas_agenda,
-                                            (p_index != 0) );
+                                            abs_scalar_gas_agenda );
               
               opt_prop_gas_agendaExecute( ws, ext_mat, 
                                           abs_vec, 
                                           f_index,
                                           abs_scalar_gas,
-                                          opt_prop_gas_agenda, 
-                                          (p_index != 0) );
+                                          opt_prop_gas_agenda );
               
               //
               // Add average particle extinction to ext_mat. 
@@ -1673,15 +1667,13 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                             rte_pressure, 
                                             rte_temperature, 
                                             rte_vmr_list,
-                                            abs_scalar_gas_agenda,
-                                            (p_index != 0) );
+                                            abs_scalar_gas_agenda );
 
               opt_prop_gas_agendaExecute( ws, ext_mat, 
                                           abs_vec, 
                                           f_index,
                                           abs_scalar_gas,
-                                          opt_prop_gas_agenda, 
-                                          (p_index != 0) );
+                                          opt_prop_gas_agenda );
 
               //
               // Add average particle extinction to ext_mat. 
@@ -1882,7 +1874,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
           //abs_scalar_gas_agenda.execute(p_index);
           
           opt_prop_gas_agendaExecute(ext_mat, abs_vec, abs_scalar_gas,
-                                     opt_prop_gas_agenda, (p_index != 0));
+                                     opt_prop_gas_agenda);
           
           //
           // Add average particle extinction to ext_mat. 

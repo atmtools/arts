@@ -59,7 +59,7 @@ public:
 
   void append(const String& methodname, const String& keywordvalue);
   void push_back(MRecord n);
-  void execute(Workspace& ws, bool silent=false) const;
+  void execute(Workspace& ws) const;
   inline void resize(Index n);
   inline Index nelem() const;
   inline Agenda& operator=(const Agenda& x);

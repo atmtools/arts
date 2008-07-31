@@ -1631,7 +1631,7 @@ void abs_fieldCalc(Workspace& ws,
                                              asg,
                                              f_index, a_pressure,
                                              a_temperature, a_vmr_list,
-                                             l_sga_agenda, true);
+                                             l_sga_agenda);
 
                 // Verify, that the number of species in asg is
                 // constistent with vmr_field:

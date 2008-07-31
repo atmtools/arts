@@ -308,7 +308,7 @@ void MCGeneral(Workspace&            ws,
           if (termination_flag==1)
             {
               iy_space_agendaExecute(ws, local_iy,local_rte_pos,local_rte_los,
-                                     iy_space_agenda,true);
+                                     iy_space_agenda);
               mult(vector1,evol_op,local_iy(0,joker));
               mult(I_i,Q,vector1);
               I_i/=g;
@@ -320,7 +320,7 @@ void MCGeneral(Workspace&            ws,
               surface_prop_agendaExecute( ws, local_surface_emission, 
                 local_surface_los, local_surface_rmatrix, ppath_step.gp_p[np-1],
                 ppath_step.gp_lat[np-1],ppath_step.gp_lon[np-1],local_rte_los,
-                surface_prop_agenda,true);
+                surface_prop_agenda );
               //deal with blackbody case
               if (local_surface_los.nrows()==0)
                 {
@@ -573,7 +573,7 @@ void MCIPA(Workspace&            ws,
           if (termination_flag==1)
             {
               iy_space_agendaExecute(ws, local_iy,local_rte_pos,local_rte_los,
-                                     iy_space_agenda,true);
+                                     iy_space_agenda);
               mult(vector1,evol_op,local_iy(0,joker));
               mult(I_i,Q,vector1);
               I_i/=g;
@@ -600,7 +600,7 @@ void MCIPA(Workspace&            ws,
               surface_prop_agendaExecute(ws,
                     local_surface_emission, local_surface_los, 
                     local_surface_rmatrix, ppath.gp_p[np-1],
-                    latgp,longp,local_rte_los, surface_prop_agenda, true);
+                    latgp,longp,local_rte_los, surface_prop_agenda);
               //deal with blackbody case
               if (local_surface_los.nrows()==0)
                 {

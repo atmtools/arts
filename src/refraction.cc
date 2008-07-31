@@ -68,8 +68,6 @@ extern const Numeric RAD2DEG;
    \param   a_temperature       Temperature in K.
    \param   a_vmr_list          Vector with VMR values.
    \param   refr_index_agenda   As the WSV with the same name.
-   \param   agenda_verb         This argument is given as input to the agenda
-                                above to control the verbosity.
    \param   p_grid              As the WSV with the same name.   
    \param   r_geoid             As the WSV with the same name.
    \param   z_field             The geometric altitude of each pressure surface
@@ -87,7 +85,6 @@ void get_refr_index_1d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
-        const Index&      agenda_verb,
         ConstVectorView   p_grid,
         const Numeric&    r_geoid,
         ConstVectorView   z_field,
@@ -125,7 +122,7 @@ void get_refr_index_1d(
 
   refr_index_agendaExecute( ws,
                             refr_index, a_pressure, a_temperature, a_vmr_list,
-                            refr_index_agenda, agenda_verb );
+                            refr_index_agenda );
 }
 
 
@@ -147,8 +144,6 @@ void get_refr_index_1d(
    \param   a_temperature       Temperature in K.
    \param   a_vmr_list          Vector with VMR values.
    \param   refr_index_agenda   As the WSV with the same name.
-   \param   agenda_verb         This argument is given as input to the agenda
-                                above to control the verbosity.
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
    \param   r_geoid             As the WSV with the same name.
@@ -169,7 +164,6 @@ void get_refr_index_2d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
-        const Index&      agenda_verb,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   r_geoid,
@@ -224,7 +218,7 @@ void get_refr_index_2d(
 
   refr_index_agendaExecute( ws,
                             refr_index, a_pressure, a_temperature, a_vmr_list,
-                            refr_index_agenda, agenda_verb );
+                            refr_index_agenda );
 }
 
 
@@ -242,8 +236,6 @@ void get_refr_index_2d(
    \param   a_temperature       Temperature in K.
    \param   a_vmr_list          Vector with VMR values.
    \param   refr_index_agenda   As the WSV with the same name.
-   \param   agenda_verb         This argument is given as input to the agenda
-                                above to control the verbosity.
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
    \param   lon_grid            As the WSV with the same name.
@@ -265,7 +257,6 @@ void get_refr_index_3d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
-        const Index&      agenda_verb,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
@@ -326,7 +317,7 @@ void get_refr_index_3d(
 
   refr_index_agendaExecute( ws,
                             refr_index, a_pressure, a_temperature, a_vmr_list,
-                            refr_index_agenda, agenda_verb );
+                            refr_index_agenda );
 }
 
 
@@ -350,8 +341,6 @@ void get_refr_index_3d(
    \param   a_temperature       Temperature in K.
    \param   a_vmr_list          Vector with VMR values.
    \param   refr_index_agenda   As the WSV with the same name.
-   \param   agenda_verb         This argument is given as input to the agenda
-                                above to control the verbosity.
    \param   p_grid              As the WSV with the same name.
    \param   r_geoid             As the WSV with the same name.
    \param   z_field             The geometric altitude of each pressure surface
@@ -371,7 +360,6 @@ void refr_gradients_1d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
-        const Index&      agenda_verb,
         ConstVectorView   p_grid,
         const Numeric&    r_geoid,
         ConstVectorView   z_field,
@@ -380,13 +368,13 @@ void refr_gradients_1d(
         const Numeric&    r )
 { 
    get_refr_index_1d( ws, refr_index, a_pressure,  a_temperature, a_vmr_list, 
-                      refr_index_agenda, agenda_verb, p_grid, 
+                      refr_index_agenda, p_grid, 
                       r_geoid, z_field, t_field, vmr_field, r );
 
    const Numeric   n0 = refr_index;
 
    get_refr_index_1d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, 1, p_grid, 
+                      refr_index_agenda, p_grid, 
                       r_geoid, z_field, t_field, vmr_field, r+1 );
 
    dndr = refr_index - n0;
@@ -421,8 +409,6 @@ void refr_gradients_1d(
    \param   a_temperature       Temperature in K.
    \param   a_vmr_list          Vector with VMR values.
    \param   refr_index_agenda   As the WSV with the same name.
-   \param   agenda_verb         This argument is given as input to the agenda
-                                above to control the verbosity.
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
    \param   r_geoid             As the WSV with the same name.
@@ -445,7 +431,6 @@ void refr_gradients_2d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
-        const Index&      agenda_verb,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   r_geoid,
@@ -456,13 +441,13 @@ void refr_gradients_2d(
         const Numeric&    lat )
 { 
    get_refr_index_2d( ws, refr_index, a_pressure,  a_temperature, a_vmr_list, 
-                      refr_index_agenda, agenda_verb, p_grid, lat_grid,
+                      refr_index_agenda, p_grid, lat_grid,
                       r_geoid, z_field, t_field, vmr_field, r, lat );
 
    const Numeric   n0 = refr_index;
 
    get_refr_index_2d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, 1, p_grid, lat_grid, r_geoid, 
+                      refr_index_agenda, p_grid, lat_grid, r_geoid, 
                       z_field, t_field, vmr_field, r+1, lat );
 
    dndr = refr_index - n0;
@@ -470,7 +455,7 @@ void refr_gradients_2d(
    const Numeric   dlat = 1e-4;
 
    get_refr_index_2d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, 1, p_grid, lat_grid, r_geoid, 
+                      refr_index_agenda, p_grid, lat_grid, r_geoid, 
                       z_field, t_field, vmr_field, r, lat+dlat );
 
    dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
@@ -503,8 +488,6 @@ void refr_gradients_2d(
    \param   a_temperature       Temperature in K.
    \param   a_vmr_list          Vector with VMR values.
    \param   refr_index_agenda   As the WSV with the same name.
-   \param   agenda_verb         This argument is given as input to the agenda
-                                above to control the verbosity.
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
    \param   lon_grid            As the WSV with the same name.
@@ -529,7 +512,6 @@ void refr_gradients_3d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
-        const Index&      agenda_verb,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
@@ -542,13 +524,13 @@ void refr_gradients_3d(
         const Numeric&    lon )
 { 
    get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-               refr_index_agenda, agenda_verb, p_grid, lat_grid, 
+               refr_index_agenda, p_grid, lat_grid, 
                lon_grid, r_geoid, z_field, t_field, vmr_field, r, lat, lon );
 
    const Numeric   n0 = refr_index;
 
    get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-               refr_index_agenda, 1, p_grid, lat_grid, 
+               refr_index_agenda, p_grid, lat_grid, 
                lon_grid, r_geoid, z_field, t_field, vmr_field, r+1, lat, lon );
 
    dndr = refr_index - n0;
@@ -556,7 +538,7 @@ void refr_gradients_3d(
    const Numeric   dlat = 1e-4;
 
    get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, 1, p_grid, lat_grid, 
+                      refr_index_agenda, p_grid, lat_grid, 
                       lon_grid, r_geoid, z_field, t_field, vmr_field, 
                       r, lat+dlat, lon );
 
@@ -565,7 +547,7 @@ void refr_gradients_3d(
    const Numeric   dlon = 1e-4;
 
    get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, 1, p_grid, lat_grid, 
+                      refr_index_agenda, p_grid, lat_grid, 
                       lon_grid, r_geoid, z_field, t_field, vmr_field, 
                       r, lat, lon+dlon);
 

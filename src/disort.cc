@@ -110,23 +110,20 @@ void dtauc_ssalbCalc(Workspace& ws,
        t_field(scat_p_index_local, 0, 0);
      
      //Calculate optical properties for single particle types:
-     //( Execute agendas silently. )
      spt_calc_agendaExecute(ws,
                             ext_mat_spt_local, 
                             abs_vec_spt_local,
                             scat_p_index_local, 0, 0, //position
                             rte_temperature_local,
                             0, 0, // angles, only needed for za=0
-                            spt_calc_agenda,
-                            true);
+                            spt_calc_agenda);
 
      opt_prop_part_agendaExecute(ws,
                                  ext_mat_local, abs_vec_local, 
                                  ext_mat_spt_local, 
                                  abs_vec_spt_local,
                                  scat_p_index_local, 0, 0, 
-                                 opt_prop_part_agenda, 
-                                 true);
+                                 opt_prop_part_agenda);
 
      ext_vector[scat_p_index_local] = ext_mat_local(0,0,0);
      abs_vector[scat_p_index_local] = abs_vec_local(0,0);
@@ -164,8 +161,7 @@ void dtauc_ssalbCalc(Workspace& ws,
                                   rte_pressure_local, 
                                   rte_temperature_local, 
                                   rte_vmr_list_local,
-                                  abs_scalar_gas_agenda,
-                                  true);
+                                  abs_scalar_gas_agenda);
      
      Numeric abs_total = abs_scalar_gas_local(0,joker).sum();
 

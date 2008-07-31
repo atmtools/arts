@@ -89,21 +89,9 @@ void Agenda::append(const String& methodname,
   This executes the methods specified in tasklist on the given
   workspace. It also checks for errors during the method execution and
   stops the program if an error has occured. 
-
-  FIXME: The silent flag is obsolete now. I leave it here to avoid SVN
-  conflicts with simultaneous work by Oliver. Should be removed as
-  soon as possible.
-
 */
-void Agenda::execute(Workspace& ws, bool silent) const
+void Agenda::execute(Workspace& ws) const
 {
-  // FIXME: We just use the silent flag here to avoid compiler errors
-  // about unused variables. Remove this!
-  if (silent)
-    {
-      out3 << "  Ignoring silent parameter.\n";
-    }
-
   // If (and only if) this agenda is the main agenda, then we set the
   // thread local global variable in_main_agenda to true, otherwise to
   // false. The variable in_main_agenda is declared in messages.h and

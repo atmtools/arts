@@ -594,7 +594,7 @@ void jacobianCalc(      Workspace&                 ws,
   out2 << "  Calculating *jacobian*.\n";
   
   // Run jacobian_agenda
-  jacobian_agendaExecute( ws, jacobian,  jacobian_agenda, false );
+  jacobian_agendaExecute( ws, jacobian, jacobian_agenda );
 }
 
 
@@ -1004,7 +1004,7 @@ void jacobianCalcParticle(
                       pnd_p *= base_pert;
                       pnd_p += pnd_field;
                       jacobian_particle_update_agendaExecute( ws, pnd_p, 
-                                      jacobian_particle_update_agenda, false );
+                                      jacobian_particle_update_agenda );
             
                       // Calculate the perturbed spectrum  
                       yCalc( ws, yp, ppath_step_agenda, rte_agenda, 

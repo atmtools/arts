@@ -4037,7 +4037,6 @@ void raytrace_1d_linear_euler(
   // Variables for output from do_gridrange_1d
   Vector    r_v, lat_v, za_v;
   double   lstep, dlat = 9999;
-  Index     agenda_verb = 0;
 
   while( !ready )
     {
@@ -4085,10 +4084,8 @@ void raytrace_1d_linear_euler(
       //
       // Refractive index at *r*
       get_refr_index_1d( ws, refr_index, rte_pressure, rte_temperature,
-                         rte_vmr_list, refr_index_agenda, agenda_verb,
+                         rte_vmr_list, refr_index_agenda,
                          p_grid, r_geoid, z_field, t_field, vmr_field, r );
-
-      agenda_verb = 1;
 
       const double   ppc_local = ppc / refr_index; 
 
@@ -4211,7 +4208,6 @@ void raytrace_2d_linear_euler(
   // Variables for output from do_gridcell_2d
   Vector   r_v, lat_v, za_v;
   double   lstep, dlat = 9999, r_new, lat_new;
-  Index    agenda_verb = 0;
 
   while( !ready )
     {
@@ -4279,11 +4275,8 @@ void raytrace_2d_linear_euler(
 
           refr_gradients_2d( ws, refr_index, dndr, dndlat, rte_pressure, 
                              rte_temperature, rte_vmr_list, refr_index_agenda,
-                             agenda_verb,
                              p_grid, lat_grid, r_geoid, z_field, t_field, 
                              vmr_field, r, lat );
-
-          agenda_verb = 1;
 
           za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
                                                         cos(za_rad) * dndlat );
@@ -4435,7 +4428,6 @@ void raytrace_3d_linear_euler(
   Vector    r_v, lat_v, lon_v, za_v, aa_v;
   double    r_new, lat_new, lon_new, za_new, aa_new;
   double    lstep;
-  Index     agenda_verb = 0;
 
   while( !ready )
     {
@@ -4528,11 +4520,8 @@ void raytrace_3d_linear_euler(
           refr_gradients_3d( ws,
                              refr_index, dndr, dndlat, dndlon, rte_pressure, 
                              rte_temperature, rte_vmr_list, refr_index_agenda, 
-                             agenda_verb,
                              p_grid, lat_grid, lon_grid, r_geoid, z_field, 
                              t_field, vmr_field, r, lat, lon );
-
-          agenda_verb = 1;
 
           const double   aterm = RAD2DEG * lstep / refr_index;
           const double   za_rad = DEG2RAD * za;
@@ -4679,7 +4668,7 @@ void ppath_step_refr_1d(
     { 
       get_refr_index_1d( ws, refr_index, rte_pressure, rte_temperature,
                          rte_vmr_list, 
-                         refr_index_agenda, 1, p_grid, r_geoid, z_field, 
+                         refr_index_agenda, p_grid, r_geoid, z_field, 
                          t_field, vmr_field, r_start );
       ppc = refraction_ppc( r_start, za_start, refr_index ); 
     }
@@ -6222,7 +6211,7 @@ void ppath_calc(
       //
       ppath_step_agendaExecute( ws, ppath_step, atmosphere_dim, p_grid,
                                 lat_grid, lon_grid, z_field, r_geoid, z_surface,
-                                ppath_step_agenda, true );
+                                ppath_step_agenda );
 
       // Number of points in returned path step
       const Index n = ppath_step.np;

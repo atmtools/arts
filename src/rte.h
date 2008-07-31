@@ -99,8 +99,7 @@ void iy_calc( Workspace&               ws,
         const Index&                   stokes_dim,
         const Index&                   ppath_array_do,
         const ArrayOfIndex&            rte_do_vmr_jacs,
-        const Index&                   rte_do_t_jacs,
-        const bool&                    agenda_verb );
+        const Index&                   rte_do_t_jacs );
 
 void iy_calc_no_jacobian(
               Workspace&      ws,
@@ -125,8 +124,7 @@ void iy_calc_no_jacobian(
         const Vector&         pos,
         const Vector&         los,
         const Vector&         f_grid,
-        const Index&          stokes_dim,
-        const bool&           agenda_verb );
+        const Index&          stokes_dim );
 
 void rte_step_std(
          //Output and Input:
