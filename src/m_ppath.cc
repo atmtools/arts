@@ -152,6 +152,7 @@ void rte_posSet(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_pos_and_losFromTangentPressure(
+                    Workspace&       ws,
                     // WS Output:
                     Vector&          rte_pos,
                     Vector&          rte_los,
@@ -200,7 +201,7 @@ void rte_pos_and_losFromTangentPressure(
   Index cloudbox_on=0;
   ArrayOfIndex cloudbox_limits(2);
   bool outside_cloudbox=true;
-  ppath_calc(ppath,ppath_step_agenda,atmosphere_dim,p_grid,lat_grid,
+  ppath_calc(ws, ppath,ppath_step_agenda,atmosphere_dim,p_grid,lat_grid,
          lon_grid,z_field, r_geoid, z_surface,cloudbox_on, cloudbox_limits,
          rte_pos, rte_los, outside_cloudbox);
   rte_pos = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
@@ -211,6 +212,7 @@ void rte_pos_and_losFromTangentPressure(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppathCalc(
+              Workspace&      ws,
         // WS Output:
               Ppath&          ppath,
         // WS Input:
@@ -227,7 +229,7 @@ void ppathCalc(
         const Vector&         rte_pos,
         const Vector&         rte_los )
 {
-  ppath_calc( ppath, ppath_step_agenda, atmosphere_dim, 
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, 
               p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
 }
@@ -272,6 +274,7 @@ void ppath_stepGeometric(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ppath_stepRefractionEuler(
+              Workspace&  ws,
         // WS Output:
               Ppath&      ppath_step,
               Numeric&    rte_pressure,
@@ -299,14 +302,14 @@ void ppath_stepRefractionEuler(
   assert( ppath_lraytrace > 0 );
 
   if( atmosphere_dim == 1 )
-    { ppath_step_refr_1d( ppath_step, rte_pressure, rte_temperature, 
+    { ppath_step_refr_1d( ws, ppath_step, rte_pressure, rte_temperature, 
                        rte_vmr_list, refr_index, refr_index_agenda,
                        p_grid, z_field(joker,0,0), t_field(joker,0,0), 
                        vmr_field(joker,joker,0,0), r_geoid(0,0), z_surface(0,0),
                        "linear_euler", ppath_lraytrace, ppath_lmax ); }
 
   else if( atmosphere_dim == 2 )
-    { ppath_step_refr_2d( ppath_step, rte_pressure, rte_temperature, 
+    { ppath_step_refr_2d( ws, ppath_step, rte_pressure, rte_temperature, 
                        rte_vmr_list, refr_index, refr_index_agenda,
                        p_grid, lat_grid, z_field(joker,joker,0),
                        t_field(joker,joker,0), vmr_field(joker, joker,joker,0),
@@ -314,7 +317,7 @@ void ppath_stepRefractionEuler(
                        "linear_euler", ppath_lraytrace, ppath_lmax ); }
 
   else if( atmosphere_dim == 3 )
-    { ppath_step_refr_3d( ppath_step, rte_pressure, rte_temperature, 
+    { ppath_step_refr_3d( ws, ppath_step, rte_pressure, rte_temperature, 
                        rte_vmr_list, refr_index, refr_index_agenda,
                        p_grid, lat_grid, lon_grid, z_field, 
                        t_field, vmr_field, r_geoid, z_surface, 
@@ -494,6 +497,7 @@ void VectorZtanToZa1D(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorZtanToZaRefr1D(
+                        Workspace&          ws,
                         // WS Output:
                         Numeric&            refr_index,
                         Numeric&            rte_pressure,
@@ -532,7 +536,8 @@ void VectorZtanToZaRefr1D(
 
   //Calculate refractive index for the tangential altitudes
   for( Index i=0; i<ztan_vector.nelem(); i++ ) {
-    get_refr_index_1d( refr_index, rte_pressure, rte_temperature, rte_vmr_list, 
+    get_refr_index_1d( ws,
+      refr_index, rte_pressure, rte_temperature, rte_vmr_list, 
       refr_index_agenda, agenda_verb, p_grid, r_geoid(0,0), 
       z_field(joker,0,0), t_field(joker,0,0), vmr_field(joker,joker,0,0),
       ztan_vector[i]+r_geoid(0,0) );
@@ -547,8 +552,9 @@ void VectorZtanToZaRefr1D(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ZaSatOccultation(
+              Workspace&        ws,
         // WS Generic Output:
-        Vector&                 za_out,
+              Vector&           za_out,
         // WS Input:
         const Agenda&           ppath_step_agenda,
         const Index&            atmosphere_dim,
@@ -604,7 +610,7 @@ void ZaSatOccultation(
   Index i;
   for ( i=0; i<za_ref.nelem(); i++ ) {
     Ppath ppath;
-    ppath_calc( ppath, ppath_step_agenda, atmosphere_dim,
+    ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim,
                 p_grid, lat_grid, lon_grid, z_field, r_geoid,
                 z_surface, 0, ArrayOfIndex(0), Vector(1,r_recieve),
                 Vector(1,za_ref[i]), 1 );

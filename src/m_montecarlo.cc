@@ -71,6 +71,7 @@ extern const Numeric SPEED_OF_LIGHT;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void mc_IWP_cloud_opt_pathCalc(
+                         Workspace& ws,
                          //output
                          Numeric& mc_IWP,
                          Numeric& mc_cloud_opt_path,
@@ -103,7 +104,7 @@ void mc_IWP_cloud_opt_pathCalc(
   //for now do monte carlo integration
   if (mc_antenna.get_type()==ATYPE_PENCIL_BEAM)
     {
-      iwp_cloud_opt_pathCalc(mc_IWP,mc_cloud_opt_path,sensor_pos(0,joker),
+      iwp_cloud_opt_pathCalc(ws, mc_IWP,mc_cloud_opt_path,sensor_pos(0,joker),
                              sensor_los(0,joker),
                              ppath_step_agenda,p_grid,lat_grid,lon_grid,
                              r_geoid,z_surface,z_field,t_field,vmr_field,cloudbox_limits,
@@ -125,7 +126,8 @@ void mc_IWP_cloud_opt_pathCalc(
         {
           mc_antenna.draw_los(local_rte_los,rng,sensor_los(0,joker));
           mc_iteration_count+=1;
-          iwp_cloud_opt_pathCalc(iwp,cloud_opt_path,sensor_pos(0,joker),local_rte_los,
+          iwp_cloud_opt_pathCalc(ws, iwp,cloud_opt_path,sensor_pos(0,joker),
+                                 local_rte_los,
                                  ppath_step_agenda,p_grid,lat_grid,lon_grid,
                                  r_geoid,z_surface,z_field,t_field,vmr_field,
                                  cloudbox_limits,
@@ -182,7 +184,7 @@ void mc_antennaSetPencilBeam(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MCGeneral(
+void MCGeneral(Workspace&            ws,
                Vector&               y,
                Index&                mc_iteration_count,
                Vector&               mc_error,
@@ -291,7 +293,8 @@ void MCGeneral(
       
       while (keepgoing)
         {
-          mcPathTraceGeneral( evol_op, abs_vec_mono, temperature, ext_mat_mono, 
+          mcPathTraceGeneral( ws,
+                      evol_op, abs_vec_mono, temperature, ext_mat_mono, 
                       rng, local_rte_pos, local_rte_los, pnd_vec, g,ppath_step,
                       termination_flag, inside_cloud, opt_prop_gas_agenda,
                       abs_scalar_gas_agenda, stokes_dim, f_index, p_grid, 
@@ -304,7 +307,7 @@ void MCGeneral(
                     ppath_step.gp_lon[np-1].idx)+=1;
           if (termination_flag==1)
             {
-              iy_space_agendaExecute(local_iy,local_rte_pos,local_rte_los,
+              iy_space_agendaExecute(ws, local_iy,local_rte_pos,local_rte_los,
                                      iy_space_agenda,true);
               mult(vector1,evol_op,local_iy(0,joker));
               mult(I_i,Q,vector1);
@@ -314,7 +317,7 @@ void MCGeneral(
           else if (termination_flag==2)
             {
               //decide whether we have reflection or emission
-              surface_prop_agendaExecute( local_surface_emission, 
+              surface_prop_agendaExecute( ws, local_surface_emission, 
                 local_surface_los, local_surface_rmatrix, ppath_step.gp_p[np-1],
                 ppath_step.gp_lat[np-1],ppath_step.gp_lon[np-1],local_rte_los,
                 surface_prop_agenda,true);
@@ -438,7 +441,7 @@ void MCGeneral(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MCIPA(
+void MCIPA(Workspace&            ws,
            Vector&               y,
            Index&                mc_iteration_count,
            Vector&               mc_error,
@@ -547,14 +550,15 @@ void MCIPA(
       //Obtain a reference propagation path to use for obtaining optical properties
       //for the IPA method.
       Ppath ppath;
-      ppath_calc( ppath, ppath_step_agenda, 3, 
+      ppath_calc( ws, ppath, ppath_step_agenda, 3, 
                   p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                   0, cloudbox_limits, local_rte_pos, local_rte_los, 1 );
       
       while (keepgoing)
         {
           //modified path tracing routine for independent pixel approximation
-          mcPathTraceIPA( evol_op, abs_vec_mono, temperature, ext_mat_mono, rng,
+          mcPathTraceIPA( ws,
+                     evol_op, abs_vec_mono, temperature, ext_mat_mono, rng,
                      local_rte_pos, local_rte_los, pnd_vec, g,
                      termination_flag, inside_cloud, 
                      opt_prop_gas_agenda,abs_scalar_gas_agenda, 
@@ -568,8 +572,8 @@ void MCIPA(
                     ppath.gp_lon[np-1].idx)+=1;
           if (termination_flag==1)
             {
-              iy_space_agendaExecute(local_iy,local_rte_pos,local_rte_los,
-                                                         iy_space_agenda,true);
+              iy_space_agendaExecute(ws, local_iy,local_rte_pos,local_rte_los,
+                                     iy_space_agenda,true);
               mult(vector1,evol_op,local_iy(0,joker));
               mult(I_i,Q,vector1);
               I_i/=g;
@@ -593,9 +597,10 @@ void MCIPA(
                   gridpos(longp,lon_grid,ppath.geom_tan_pos[2]);
                 }
               //decide whether we have reflection or emission
-              surface_prop_agendaExecute(local_surface_emission, local_surface_los, 
-                                         local_surface_rmatrix, ppath.gp_p[np-1],
-                                         latgp,longp,local_rte_los, surface_prop_agenda, true);
+              surface_prop_agendaExecute(ws,
+                    local_surface_emission, local_surface_los, 
+                    local_surface_rmatrix, ppath.gp_p[np-1],
+                    latgp,longp,local_rte_los, surface_prop_agenda, true);
               //deal with blackbody case
               if (local_surface_los.nrows()==0)
                 {
@@ -737,7 +742,7 @@ void MCSetSeedFromTime(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ScatteringMonteCarlo (
+void ScatteringMonteCarlo (Workspace&            ws,
                            // WS Output:
                            Ppath&                ppath,
                            Ppath&                ppath_step,
@@ -869,7 +874,7 @@ void ScatteringMonteCarlo (
   //////////////////////////////////////////////////////////////////////////////
   //Calculate the clea-sky transmittance between cloud box and sensor using the
   //existing ppath.
-  Numeric transmittance= exp(-opt_depth_calc(ext_mat, abs_vec, rte_pressure, rte_temperature, 
+  Numeric transmittance= exp(-opt_depth_calc(ws, ext_mat, abs_vec, rte_pressure, rte_temperature, 
                         rte_vmr_list, ppath, opt_prop_gas_agenda,
                         abs_scalar_gas_agenda, f_index, p_grid,
                         lat_grid, lon_grid, t_field, vmr_field,
@@ -893,7 +898,7 @@ void ScatteringMonteCarlo (
   //out1 << rte_los << "\n";
   rng.seed(mc_seed);
   Agenda iy_cloudbox_agenda;
-  Cloudbox_ppath_rteCalc(ppathLOS, ppath, ppath_step, 
+  Cloudbox_ppath_rteCalc(ws, ppathLOS, ppath, ppath_step, 
                          //ppath_p, ppath_t, ppath_vmr, 
                          rte_pos, rte_los, 
                          cum_l_stepLOS, TArrayLOS, ext_matArrayLOS, 
@@ -943,7 +948,7 @@ void ScatteringMonteCarlo (
         {
            if (scattering_order>0)
             {
-              mcPathTrace(evol_op, K_abs, rte_temperature, K, rng, rte_pos, 
+              mcPathTrace(ws, evol_op, K_abs, rte_temperature, K, rng, rte_pos, 
                           rte_los, pnd_vec, g,left_cloudbox, opt_prop_gas_agenda,
                           abs_scalar_gas_agenda, stokes_dim, f_index, p_grid, 
                           lat_grid, lon_grid, z_field, r_geoid, z_surface,
@@ -973,7 +978,7 @@ void ScatteringMonteCarlo (
                 }
               else
                 {
-                  montecarloGetIncoming(iy,rte_pos,rte_los,ppath,
+                  montecarloGetIncoming(ws, iy,rte_pos,rte_los,ppath,
                                         //ppath_p, ppath_t, ppath_vmr,
                                         ppath_step_agenda,
                                         rte_agenda,iy_space_agenda,surface_prop_agenda,

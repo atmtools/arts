@@ -79,6 +79,15 @@ Print(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
+Print(Workspace& ws,
+      // WS Generic Input:
+      const Agenda&   x,
+      // Keywords:
+      const Index&    level );
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void
 Print(
       // WS Generic Input:
       const ArrayOfGridPos&   x,

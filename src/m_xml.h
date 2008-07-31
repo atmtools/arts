@@ -49,6 +49,20 @@ ReadXML (// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void
+ReadXML (Workspace&    ws _U_,
+         // WS Generic Output:
+         Agenda&       v,
+         // WS Generic Output Names:
+         const String& v_name,
+         // Control Parameters:
+         const String& f)
+{
+  ReadXML (v, v_name, f);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
 WriteXML (//WS Input:
           const String& file_format,
@@ -83,16 +97,32 @@ WriteXML (//WS Input:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-template<typename T> void
-WriteXMLIndexed (//WS Input:
+void
+WriteXML (Workspace& ws _U_,
+          //WS Input:
           const String& file_format,
-          const Index&  file_index,
           // WS Generic Output:
-          const T&            v,
+          const Agenda& v,
           // WS Generic Output Names:
           const String& v_name,
           // Control Parameters:
           const String& f)
+{
+  WriteXML (file_format, v, v_name, f);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+template<typename T> void
+WriteXMLIndexed (//WS Input:
+                 const String& file_format,
+                 const Index&  file_index,
+                 // WS Generic Output:
+                 const T&            v,
+                 // WS Generic Output Names:
+                 const String& v_name,
+                 // Control Parameters:
+                 const String& f)
 {
   String filename = f;
 
@@ -100,6 +130,23 @@ WriteXMLIndexed (//WS Input:
   filename_xml_with_index( filename, file_index, v_name );
 
   WriteXML( file_format, v, v_name, filename );
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void
+WriteXMLIndexed (Workspace& ws _U_,
+                 //WS Input:
+                 const String& file_format,
+                 const Index&  file_index,
+                 // WS Generic Output:
+                 const Agenda& v,
+                 // WS Generic Output Names:
+                 const String& v_name,
+                 // Control Parameters:
+                 const String& f)
+{
+  WriteXMLIndexed (file_format, file_index, v, v_name, f);
 }
 
 

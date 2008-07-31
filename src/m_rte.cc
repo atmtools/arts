@@ -63,6 +63,7 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RteCalc(
+         Workspace&                  ws,
          Vector&                     y,
          Vector&                     y_f,
          ArrayOfIndex&               y_pol,
@@ -196,6 +197,14 @@ void RteCalc(
         }
     }
 
+  // We have to make a local copy of the Workspace and the agendas because
+  // only non-reference types can be declared firstprivate in OpenMP
+  Workspace l_ws (ws);
+  Agenda l_iy_space_agenda (iy_space_agenda);
+  Agenda l_ppath_step_agenda (ppath_step_agenda);
+  Agenda l_rte_agenda (rte_agenda);
+  Agenda l_surface_prop_agenda (surface_prop_agenda);
+  Agenda l_iy_cloudbox_agenda (iy_cloudbox_agenda);
 
   //--- Loop:  measurement block / zenith angle / azimuthal angle
   //
@@ -203,7 +212,7 @@ void RteCalc(
   //
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
-#pragma omp parallel
+#pragma omp parallel firstprivate(l_ws,l_iy_space_agenda,l_ppath_step_agenda,l_rte_agenda,l_surface_prop_agenda,l_iy_cloudbox_agenda)
 #pragma omp for 
       for( Index iza=0; iza<nza; iza++ )
         {
@@ -218,31 +227,6 @@ void RteCalc(
               Index            ppath_array_index;
               ArrayOfTensor4   diy_dvmr;
               ArrayOfTensor4   diy_dt;
-
-              // Create local agenda copies
-              Agenda local_iy_space_agenda( iy_space_agenda );
-              Agenda local_ppath_step_agenda( ppath_step_agenda );
-              Agenda local_rte_agenda( rte_agenda );
-              Agenda local_surface_prop_agenda( surface_prop_agenda );
-              Agenda local_iy_cloudbox_agenda( iy_cloudbox_agenda );
-
-              // If this region is parallelized, we have to make sure that
-              // each thread has its own workspace copy
-              if (arts_omp_in_parallel())
-                {
-                  local_iy_space_agenda.set_workspace(
-                          new Workspace (*local_iy_space_agenda.workspace() ) );
-                  // One workspace copy per thread is enough, so we can use the
-                  // same copy for all agendas in this thread
-                  local_ppath_step_agenda.set_workspace(
-                                            local_iy_space_agenda.workspace() );
-                  local_rte_agenda.set_workspace(
-                                            local_iy_space_agenda.workspace() );
-                  local_surface_prop_agenda.set_workspace(
-                                            local_iy_space_agenda.workspace() );
-                  local_iy_cloudbox_agenda.set_workspace(
-                                            local_iy_space_agenda.workspace() );
-                }
 
               for( Index iaa=0; iaa<naa; iaa++ )
                 {
@@ -271,11 +255,11 @@ void RteCalc(
                   diy_dt.resize(0);
 
                   //--- Calculate *iy*
-                  iy_calc( iy, ppath, ppath_array_index, ppath_array, 
+                  iy_calc( l_ws, iy, ppath, ppath_array_index, ppath_array, 
                            diy_dvmr, diy_dt,
-                           local_ppath_step_agenda, local_rte_agenda, 
-                           local_iy_space_agenda, local_surface_prop_agenda, 
-                           local_iy_cloudbox_agenda, atmosphere_dim, p_grid, 
+                           l_ppath_step_agenda, l_rte_agenda, 
+                           l_iy_space_agenda, l_surface_prop_agenda, 
+                           l_iy_cloudbox_agenda, atmosphere_dim, p_grid, 
                            lat_grid, lon_grid, z_field, t_field, vmr_field,
                            r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
                            sensor_pos(mblock_index,joker), los, f_grid, 
@@ -356,11 +340,6 @@ void RteCalc(
 
                 } // iaa loop
 
-              // Remove this thread's workspace copy
-              if (arts_omp_in_parallel())
-                {
-                  delete local_iy_space_agenda.workspace();
-                }
             } // end try block
           catch (runtime_error e)
             {
@@ -409,6 +388,7 @@ void RteCalc(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RteCalcNoJacobian(
+         Workspace&                  ws,
          Vector&                     y,
          Vector&                     y_f,
          ArrayOfIndex&               y_pol,
@@ -453,7 +433,7 @@ void RteCalcNoJacobian(
 
   jacobianOff( jacobian, jacobian_quantities, jacobian_indices, jacobian_unit );
 
-  RteCalc( y, y_f, y_pol, y_za, y_aa, jacobian, 
+  RteCalc( ws, y, y_f, y_pol, y_za, y_aa, jacobian, 
            ppath_step_agenda, rte_agenda, iy_space_agenda, surface_prop_agenda,
            iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, lon_grid, 
            z_field, t_field, vmr_field, abs_species, r_geoid, z_surface, 
@@ -468,6 +448,7 @@ void RteCalcNoJacobian(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RteCalcMC(
+         Workspace&                     ws,
          Vector&                        y,
          Vector&                        y_f,
          ArrayOfIndex&                  y_pol,
@@ -561,9 +542,17 @@ void RteCalcMC(
   Index    nydone = 0;                 // Number of positions in y done
   //
 
+  // We have to make a local copy of the Workspace and the agendas because
+  // only non-reference types can be declared firstprivate in OpenMP
+  Workspace l_ws (ws);
+  Agenda l_iy_space_agenda (iy_space_agenda);
+  Agenda l_surface_prop_agenda (surface_prop_agenda);
+  Agenda l_opt_prop_gas_agenda (opt_prop_gas_agenda);
+  Agenda l_abs_scalar_gas_agenda (abs_scalar_gas_agenda);
+
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
-#pragma omp parallel
+#pragma omp parallel firstprivate(l_ws,l_iy_space_agenda,l_surface_prop_agenda,l_opt_prop_gas_agenda,l_abs_scalar_gas_agenda)
 #pragma omp for 
       for( Index iza=0; iza<nza; iza++ )
         {
@@ -581,28 +570,6 @@ void RteCalcMC(
               // Some MC variables
               Index mc_iteration_count;
               Index mc_seed;
-
-              // Create local agenda copies
-              Agenda local_iy_space_agenda( iy_space_agenda );
-              Agenda local_surface_prop_agenda( surface_prop_agenda );
-              Agenda local_opt_prop_gas_agenda( opt_prop_gas_agenda );
-              Agenda local_abs_scalar_gas_agenda( abs_scalar_gas_agenda );
-
-              // If this region is parallelized, we have to make sure that
-              // each thread has its own workspace copy
-              if (arts_omp_in_parallel())
-                {
-                  local_iy_space_agenda.set_workspace(
-                          new Workspace( *local_iy_space_agenda.workspace() ) );
-                  // One workspace copy per thread is enough, so we can use the
-                  // same copy for all agendas in this thread
-                  local_surface_prop_agenda.set_workspace(
-                                            local_iy_space_agenda.workspace() );
-                  local_opt_prop_gas_agenda.set_workspace(
-                                            local_iy_space_agenda.workspace() );
-                  local_abs_scalar_gas_agenda.set_workspace(
-                                            local_iy_space_agenda.workspace() );
-                }
 
               // Loop azimuth angles
               for( Index iaa=0; iaa<naa; iaa++ )
@@ -627,15 +594,19 @@ void RteCalcMC(
                       // appear to be highly correlated.
                       MCSetSeedFromTime( mc_seed );
                   
-                      MCGeneral( iyf, mc_iteration_count, iyf_error, mc_points, 
-                         mc_antenna, f_grid, f_index, pos, los, stokes_dim, 
-                         local_iy_space_agenda, local_surface_prop_agenda,
-                         local_opt_prop_gas_agenda, local_abs_scalar_gas_agenda,
-                         p_grid, lat_grid, lon_grid, 
-                         z_field, r_geoid, z_surface, t_field, vmr_field, 
-                         cloudbox_limits, pnd_field, scat_data_mono, mc_seed, 
-                         y_unit, mc_std_err, mc_max_time, mc_max_iter, 
-                         mc_z_field_is_1D ); 
+                      MCGeneral( l_ws,
+                                 iyf, mc_iteration_count, iyf_error, mc_points, 
+                                 mc_antenna, f_grid, f_index, pos, los,
+                                 stokes_dim, l_iy_space_agenda,
+                                 l_surface_prop_agenda, l_opt_prop_gas_agenda,
+                                 l_abs_scalar_gas_agenda,
+                                 p_grid, lat_grid, lon_grid, 
+                                 z_field, r_geoid, z_surface,
+                                 t_field, vmr_field, 
+                                 cloudbox_limits, pnd_field,
+                                 scat_data_mono, mc_seed, 
+                                 y_unit, mc_std_err, mc_max_time, mc_max_iter, 
+                                 mc_z_field_is_1D ); 
                   
                       //--- Start index in *ib* for data to include 
                       const Index   nbdone = ( ( iza*naa + iaa ) * nf + 
@@ -651,11 +622,6 @@ void RteCalcMC(
                     } // f_index loop
                 } // iaa loop
 
-              // Remove this thread's workspace copy
-              if (arts_omp_in_parallel())
-                {
-                  delete local_iy_space_agenda.workspace();
-                }
             } // end try block
           catch (runtime_error e)
             {
@@ -731,7 +697,7 @@ void mc_errorApplySensor(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void RteStd(
+void RteStd( Workspace&               ws,
       // WS Output:
              Matrix&                  iy,
              ArrayOfTensor4&          diy_dvmr,
@@ -749,7 +715,7 @@ void RteStd(
 {
   Tensor4 dummy(0,0,0,0);
 
-  rte_std( iy, dummy, diy_dvmr, diy_dt,
+  rte_std( ws, iy, dummy, diy_dvmr, diy_dt,
            ppath, ppath_array, ppath_array_index, f_grid, stokes_dim, 
            emission_agenda, abs_scalar_gas_agenda,
            rte_do_gas_jacs, rte_do_t_jacs, false );
@@ -758,6 +724,7 @@ void RteStd(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void RteStdWithTransmissions(
+             Workspace&               ws,
       // WS Output:
              Matrix&                  iy,
              Tensor4&                 ppath_transmissions,
@@ -774,7 +741,7 @@ void RteStdWithTransmissions(
        const ArrayOfIndex&            rte_do_gas_jacs,
        const Index&                   rte_do_t_jacs )
 {
-  rte_std( iy, ppath_transmissions, diy_dvmr, diy_dt,
+  rte_std( ws, iy, ppath_transmissions, diy_dvmr, diy_dt,
            ppath, ppath_array, ppath_array_index, f_grid, stokes_dim, 
            emission_agenda, abs_scalar_gas_agenda,
            rte_do_gas_jacs, rte_do_t_jacs, true );

@@ -105,6 +105,10 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   // indentation of the functin parameters:
   String indent("  ");
 
+  // Flag to pass the workspace to the WSM. Only true if the WSM has
+  // an Agenda as input.
+  bool pass_workspace = false;
+
   // There are four lists of parameters that we have to
   // write. 
   ArrayOfIndex  vo=mdd.Output();   // Output 
@@ -115,6 +119,26 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   // vgo and vgi handles of workspace variable groups.
 
   mdd.input_only(vi);
+
+  // Find out if the WSM gets an agenda as input. If so, pass
+  // the current workspace to this method
+  for (Index j = 0; !pass_workspace && j < mdd.Input().nelem(); j++)
+    {
+      if (wsv_data[mdd.Input()[j]].Group() == get_wsv_group_id ("Agenda"))
+        {
+          pass_workspace = true;
+        }
+    }
+
+  // Find out if the WSM gets an agenda as input. If so, pass
+  // the current workspace to this method
+  for (Index j = 0; !pass_workspace && j < mdd.GInput().nelem(); j++)
+    {
+      if (mdd.GInput()[j] == get_wsv_group_id ("Agenda"))
+        {
+          pass_workspace = true;
+        }
+    }
 
   // Start with the name of the one line description
   ofs << "//! WORKSPACE METHOD: " << fullname << ".\n";
@@ -150,7 +174,7 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
 
   ofs << "\n";
 
-  if ( mdd.PassWorkspace() )
+  if ( pass_workspace || mdd.PassWorkspace() )
     {
       ofs << indent << "\\param[in,out] " << "ws Workspace\n";
     }
@@ -237,6 +261,7 @@ void write_method_header( ofstream& ofs,
                           const MdRecord& mdd )
 {
   extern const ArrayOfString wsv_group_names;
+  const Array<WsvRecord>& wsv_data = Workspace::wsv_data;
 
 //   // Work out the full name to use:
 //   String fullname;
@@ -256,6 +281,10 @@ void write_method_header( ofstream& ofs,
   // indentation of the functin parameters:
   String indent(fullname.nelem()+6,' ');
 
+  // Flag to pass the workspace to the WSM. Only true if the WSM has
+  // an Agenda as input.
+  bool pass_workspace = false;
+
   // There are four lists of parameters that we have to
   // write. 
   ArrayOfIndex  vo=mdd.Output();   // Output 
@@ -266,6 +295,26 @@ void write_method_header( ofstream& ofs,
   // vgo and vgi handles of workspace variable groups.
 
   mdd.input_only(vi);
+
+  // Find out if the WSM gets an agenda as input. If so, pass
+  // the current workspace to this method
+  for (Index j = 0; !pass_workspace && j < mdd.Input().nelem(); j++)
+    {
+      if (wsv_data[mdd.Input()[j]].Group() == get_wsv_group_id ("Agenda"))
+        {
+          pass_workspace = true;
+        }
+    }
+
+  // Find out if the WSM gets an agenda as input. If so, pass
+  // the current workspace to this method
+  for (Index j = 0; !pass_workspace && j < mdd.GInput().nelem(); j++)
+    {
+      if (mdd.GInput()[j] == get_wsv_group_id ("Agenda"))
+        {
+          pass_workspace = true;
+        }
+    }
 
   // There used to be a similar block here for the generic
   // input/output variables. However, this was a mistake. For
@@ -281,7 +330,7 @@ void write_method_header( ofstream& ofs,
   // Start with the name of the method:
   ofs << "void " << fullname << "(";
 
-  if (mdd.PassWorkspace ())
+  if (pass_workspace || mdd.PassWorkspace() || mdd.AgendaMethod())
     {
       ofs << "// Workspace reference:\n";
       ofs << indent << "Workspace& ws";

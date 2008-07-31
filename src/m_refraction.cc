@@ -56,6 +56,7 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void refr_indexFieldAndGradients(
+            Workspace&                  ws,
       // WS Output:
             Numeric&                    refr_index,
             Numeric&                    a_pressure,
@@ -166,7 +167,7 @@ void refr_indexFieldAndGradients(
 
               if( atmosphere_dim == 1 )
                 {
-                  refr_gradients_1d( refr_index, dndr, a_pressure, 
+                  refr_gradients_1d( ws, refr_index, dndr, a_pressure, 
                                a_temperature, a_vmr_list, refr_index_agenda, 
                                agenda_verb,
                                p_grid, r_geoid(0,0), z_field(joker,0,0), 
@@ -176,7 +177,7 @@ void refr_indexFieldAndGradients(
 
               else if( atmosphere_dim == 2 )
                 {
-                  refr_gradients_2d( refr_index, dndr, dndlat, a_pressure, 
+                  refr_gradients_2d( ws, refr_index, dndr, dndlat, a_pressure, 
                                a_temperature, a_vmr_list, refr_index_agenda,
                                agenda_verb,
                                p_grid, lat_grid, r_geoid(joker,0), 
@@ -188,7 +189,7 @@ void refr_indexFieldAndGradients(
               
               else
                 {
-                  refr_gradients_3d( refr_index, dndr, dndlat, dndlon,
+                  refr_gradients_3d( ws, refr_index, dndr, dndlat, dndlon,
                                a_pressure, 
                                a_temperature, a_vmr_list, refr_index_agenda, 
                                agenda_verb,

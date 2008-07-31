@@ -1398,6 +1398,7 @@ void DoitCloudboxFieldPut(//WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void CloudboxGetIncoming(
+              Workspace&      ws,
               Tensor7&        scat_i_p,
               Tensor7&        scat_i_lat,
               Tensor7&        scat_i_lon,
@@ -1470,7 +1471,7 @@ void CloudboxGetIncoming(
             {
               los[0] =  scat_za_grid[scat_za_index];
 
-              iy_calc_no_jacobian( iy, ppath,
+              iy_calc_no_jacobian( ws, iy, ppath,
                                    ppath_step_agenda, rte_agenda, 
                                    iy_space_agenda, surface_prop_agenda,
                                    iy_cloudbox_agenda, atmosphere_dim,
@@ -1545,7 +1546,7 @@ void CloudboxGetIncoming(
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_calc_no_jacobian( iy, ppath, 
+                              iy_calc_no_jacobian( ws, iy, ppath, 
                                                    ppath_step_agenda, 
                                                    rte_agenda, iy_space_agenda,
                                                    surface_prop_agenda, 
@@ -1598,7 +1599,7 @@ void CloudboxGetIncoming(
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_calc_no_jacobian( iy, ppath, 
+                              iy_calc_no_jacobian( ws, iy, ppath, 
                                                    ppath_step_agenda, 
                                                    rte_agenda, iy_space_agenda,
                                                    surface_prop_agenda, 
@@ -1651,7 +1652,7 @@ void CloudboxGetIncoming(
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_calc_no_jacobian( iy, ppath,
+                              iy_calc_no_jacobian( ws, iy, ppath,
                                                    ppath_step_agenda, 
                                                    rte_agenda, iy_space_agenda,
                                                    surface_prop_agenda, 
@@ -1679,6 +1680,7 @@ void CloudboxGetIncoming(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void CloudboxGetIncoming1DAtm(
+              Workspace&      ws,
               Tensor7&        scat_i_p,
               Tensor7&        scat_i_lat,
               Tensor7&        scat_i_lon,
@@ -1770,7 +1772,7 @@ void CloudboxGetIncoming1DAtm(
         {
           los[0] = scat_za_grid[scat_za_index];
           
-          iy_calc_no_jacobian(iy, ppath, ppath_step_agenda,
+          iy_calc_no_jacobian(ws, iy, ppath, ppath_step_agenda,
                               rte_agenda, iy_space_agenda, surface_prop_agenda, 
                               iy_cloudbox_agenda, atmosphere_dim, p_grid,
                               lat_grid, lon_grid, z_field, t_field, vmr_field,

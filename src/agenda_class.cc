@@ -95,10 +95,8 @@ void Agenda::append(const String& methodname,
   soon as possible.
 
 */
-void Agenda::execute(bool silent) const
+void Agenda::execute(Workspace& ws, bool silent) const
 {
-  assert (agendaworkspace != NULL);
-
   // FIXME: We just use the silent flag here to avoid compiler errors
   // about unused variables. Remove this!
   if (silent)
@@ -214,13 +212,13 @@ void Agenda::execute(bool silent) const
           { // Check if all generic input variables are initialized:
             const ArrayOfIndex& v(mrr.Input());
             for (Index s=0; s<v.nelem(); ++s)
-              if (!agendaworkspace->is_initialized(v[s]))
+              if (!ws.is_initialized(v[s]))
                 give_up("Method "+mdd.Name()+" needs input variable: "+
                         Workspace::wsv_data[v[s]].Name());
           }
 
           // Call the getaway function:
-          getaways[mrr.Id()]( *agendaworkspace, mrr );
+          getaways[mrr.Id()]( ws, mrr );
 
         }
       catch (runtime_error x)
@@ -442,7 +440,7 @@ void Agenda::set_outputs_to_push_and_dup ()
 
   \return True if var is an input variable of this agenda.
 */
-bool Agenda::is_input(Index var) const
+bool Agenda::is_input(Workspace& ws, Index var) const
 {
   // Make global method data visible:
   extern const Array<MdRecord>  md_data;
@@ -495,9 +493,9 @@ bool Agenda::is_input(Index var) const
           if (md_data[this_method.Id ()].GInput()[j] == WsvAgendaGroupIndex)
             {
               Agenda *AgendaFromGeneralInput =
-                (Agenda *)(*agendaworkspace)[this_method.Input ()[j]];
+                (Agenda *)ws[this_method.Input ()[j]];
 
-              if ((*AgendaFromGeneralInput).is_input(var))
+              if ((*AgendaFromGeneralInput).is_input(ws, var))
                 {
                   return true;
                 }

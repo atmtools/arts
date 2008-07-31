@@ -54,6 +54,7 @@
 // Temporary solution
 
 void yCalc(
+         Workspace&                  ws,
          Vector&                     y,
    const Agenda&                     ppath_step_agenda,
    const Agenda&                     rte_agenda,
@@ -88,7 +89,7 @@ void yCalc(
   const Vector         sensor_response_za(n);
   const Vector         sensor_response_aa(n);
 
-  RteCalcNoJacobian( y, y_f, y_pol, y_za, y_aa, 
+  RteCalcNoJacobian( ws, y, y_f, y_pol, y_za, y_aa, 
                      ppath_step_agenda, rte_agenda,
                      iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
                      atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
@@ -561,7 +562,8 @@ void jacobianAddTemperature(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalc(// WS Output:
+void jacobianCalc(      Workspace&                 ws,
+                  // WS Output:
                         Matrix&                    jacobian,
                   // WS Input:
                   const Agenda&                    jacobian_agenda,
@@ -592,12 +594,13 @@ void jacobianCalc(// WS Output:
   out2 << "  Calculating *jacobian*.\n";
   
   // Run jacobian_agenda
-  jacobian_agendaExecute( jacobian, jacobian_agenda, false );
+  jacobian_agendaExecute( ws, jacobian,  jacobian_agenda, false );
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcAbsSpecies(
+           Workspace&                ws,
      // WS Output:
            Matrix&                   jacobian,
      // WS Input:
@@ -778,13 +781,13 @@ void jacobianCalcAbsSpecies(
         // Calculate the perturbed spectrum  
         out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
              << ji[1]+1 << "\n";
-        yCalc( yp, ppath_step_agenda, rte_agenda,
-                 iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
-                 atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
-                 t_field, vmr_p,
-                 r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
-                 sensor_response, sensor_pos, sensor_los, f_grid, 
-                 stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
+        yCalc( ws, yp, ppath_step_agenda, rte_agenda,
+               iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
+               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+               t_field, vmr_p,
+               r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
+               sensor_response, sensor_pos, sensor_los, f_grid, 
+               stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
     
         // Add dy/dx as column in jacobian
         for (Index y_it=0; y_it<y.nelem(); y_it++)
@@ -801,6 +804,7 @@ void jacobianCalcAbsSpecies(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcParticle(
+           Workspace&                  ws,
      // WS Output:
            Matrix&                     jacobian,
      // WS Input:
@@ -999,11 +1003,11 @@ void jacobianCalcParticle(
                       // reference field and recalculate the scattered field
                       pnd_p *= base_pert;
                       pnd_p += pnd_field;
-                      jacobian_particle_update_agendaExecute( pnd_p, 
+                      jacobian_particle_update_agendaExecute( ws, pnd_p, 
                                       jacobian_particle_update_agenda, false );
             
                       // Calculate the perturbed spectrum  
-                      yCalc( yp, ppath_step_agenda, rte_agenda, 
+                      yCalc( ws, yp, ppath_step_agenda, rte_agenda, 
                              iy_space_agenda, surface_prop_agenda, 
                              iy_cloudbox_agenda, atmosphere_dim,
                              p_grid, lat_grid, lon_grid, z_field, t_field, 
@@ -1031,6 +1035,7 @@ void jacobianCalcParticle(
                      
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcPointing(
+           Workspace&                ws,
      // WS Output:
            Matrix&                   jacobian,
      // WS Input:
@@ -1122,7 +1127,7 @@ void jacobianCalcPointing(
   sensor_los_pert(joker,0) += rq.Perturbation();
      
   // Calculate the perturbed spectrum for the zeroth order polynomial
-  yCalc( yp, ppath_step_agenda, rte_agenda,
+  yCalc( ws, yp, ppath_step_agenda, rte_agenda,
          iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
          atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
          vmr_field, r_geoid, 
@@ -1174,6 +1179,7 @@ void jacobianCalcPointing(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcTemperature(
+           Workspace&                ws,
      // WS Output:
            Matrix&                   jacobian,
      // WS Input:
@@ -1323,7 +1329,7 @@ void jacobianCalcTemperature(
         out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
              << ji[1]+1 << "\n";
 
-        yCalc( yp, ppath_step_agenda, rte_agenda, iy_space_agenda, 
+        yCalc( ws, yp, ppath_step_agenda, rte_agenda, iy_space_agenda, 
                surface_prop_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid,
                lat_grid, lon_grid, z_field, t_p, vmr_field, 
                r_geoid, z_surface, cloudbox_on, cloudbox_limits, 

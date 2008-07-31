@@ -193,6 +193,7 @@ void apply_y_unit_single(
   \date   2002-09-17
 */
 void get_radiative_background(
+              Workspace&               ws,
               Matrix&                  iy,
               Ppath&                   ppath,
               Index&                   ppath_array_index,
@@ -259,8 +260,8 @@ void get_radiative_background(
       {
         chk_not_empty( "iy_space_agenda", iy_space_agenda );
 
-        iy_space_agendaExecute( iy, rte_pos, rte_los, 
-                                                iy_space_agenda, agenda_verb );
+        iy_space_agendaExecute( ws, iy, rte_pos, rte_los, 
+                                iy_space_agenda, agenda_verb );
      
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {
@@ -283,9 +284,9 @@ void get_radiative_background(
         Tensor4   surface_rmatrix;
         Matrix    surface_emission;
         //
-        surface_prop_agendaExecute( surface_emission, surface_los, 
+        surface_prop_agendaExecute( ws, surface_emission, surface_los, 
                     surface_rmatrix, rte_gp_p, rte_gp_lat, rte_gp_lon, rte_los,
-                                            surface_prop_agenda, agenda_verb );
+                    surface_prop_agenda, agenda_verb );
 
         // Check output of *surface_prop_agenda*
         //
@@ -331,7 +332,7 @@ void get_radiative_background(
               {
                 // Calculate downwelling radiation for LOS ilos 
                 const Index   agenda_verb2 = 0;
-                iy_calc( iy, ppath, ppath_array_index, ppath_array,
+                iy_calc( ws, iy, ppath, ppath_array_index, ppath_array,
                    diy_dvmr, diy_dt, ppath_step_agenda, rte_agenda, 
                    iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
                    atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
@@ -392,8 +393,10 @@ void get_radiative_background(
 
         chk_not_empty( "iy_cloudbox_agenda", iy_cloudbox_agenda );
 
-        iy_cloudbox_agendaExecute( iy, ppath_local, rte_pos, rte_los, rte_gp_p,
-                     rte_gp_lat, rte_gp_lon, iy_cloudbox_agenda, agenda_verb );
+        iy_cloudbox_agendaExecute( ws, iy, ppath_local,
+                                   rte_pos, rte_los, rte_gp_p,
+                                   rte_gp_lat, rte_gp_lon,
+                                   iy_cloudbox_agenda, agenda_verb );
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {
@@ -410,7 +413,7 @@ void get_radiative_background(
       {
         chk_not_empty( "iy_cloudbox_agenda", iy_cloudbox_agenda );
 
-        iy_cloudbox_agendaExecute( iy, ppath, rte_pos, rte_los, rte_gp_p, 
+        iy_cloudbox_agendaExecute( ws, iy, ppath, rte_pos, rte_los, rte_gp_p, 
                      rte_gp_lat, rte_gp_lon, iy_cloudbox_agenda, agenda_verb );
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
@@ -602,7 +605,7 @@ void include_trans_in_diy_dq(
   \author Patrick Eriksson 
   \date   2002-09-17
 */
-void iy_calc(
+void iy_calc( Workspace&               ws,
               Matrix&                  iy,
               Ppath&                   ppath,
               Index&                   ppath_array_index,
@@ -636,7 +639,7 @@ void iy_calc(
 {
   //- Determine propagation path
   const bool  outside_cloudbox = true;
-  ppath_calc( ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
               cloudbox_on, cloudbox_limits, pos, los, outside_cloudbox );
   //
@@ -710,7 +713,7 @@ void iy_calc(
   //
   iy.resize(f_grid.nelem(),stokes_dim);
   //
-  get_radiative_background( iy, ppath, ppath_array_index,
+  get_radiative_background( ws, iy, ppath, ppath_array_index,
               ppath_array, diy_dvmr, diy_dt, ppath_step_agenda, rte_agenda, 
               surface_prop_agenda, iy_space_agenda, iy_cloudbox_agenda, 
               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
@@ -723,7 +726,7 @@ void iy_calc(
   // the observed spectrum equals then the radiative background.
   if( np > 1 )
     {
-      rte_agendaExecute( iy, diy_dvmr, diy_dt, ppath,
+      rte_agendaExecute( ws, iy, diy_dvmr, diy_dt, ppath,
                          ppath_array, ppath_array_index,
                          rte_do_vmr_jacs, rte_do_t_jacs,
                          stokes_dim, f_grid, rte_agenda, agenda_verb );
@@ -737,6 +740,7 @@ void iy_calc(
     Interface to *iy_calc* where jacobian variables can be left out.
 */
 void iy_calc_no_jacobian(
+              Workspace&      ws,
               Matrix&         iy,
               Ppath&          ppath,
         const Agenda&         ppath_step_agenda,
@@ -769,7 +773,7 @@ void iy_calc_no_jacobian(
   ArrayOfPpath               ppath_array(0);
   Index                      ppath_array_index=-1;
 
-  iy_calc( iy, ppath, 
+  iy_calc( ws, iy, ppath, 
            ppath_array_index, ppath_array, diy_dvmr, diy_dt, 
            ppath_step_agenda, rte_agenda, iy_space_agenda, surface_prop_agenda,
            iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, lon_grid, 
@@ -1051,7 +1055,7 @@ void rte_step_std_clearsky(
   \author Patrick Eriksson
   \date   2005-05-19
 */
-void rte_std(
+void rte_std(Workspace&               ws,
              Matrix&                  iy,
              Tensor4&                 ppath_transmissions,
              ArrayOfTensor4&          diy_dvmr,
@@ -1115,9 +1119,9 @@ void rte_std(
         { rte_vmr_list[is] = 0.5 * ( ppath.vmr(is,ip) + ppath.vmr(is, ip-1) );}
       
       // Call agendas for RT properties
-      emission_agendaExecute( emission, rte_temperature, emission_agenda,
+      emission_agendaExecute( ws, emission, rte_temperature, emission_agenda,
                                                                     (ip != 0) );
-      abs_scalar_gas_agendaExecute (abs_scalar_gas, f_index,
+      abs_scalar_gas_agendaExecute( ws, abs_scalar_gas, f_index,
           rte_pressure, rte_temperature, rte_vmr_list, abs_scalar_gas_agenda,
                                                                     (ip != 0) );
 

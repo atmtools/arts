@@ -41,20 +41,22 @@
 #include "ppath.h"
 
 
-void cloud_fieldsCalc(// Output:
-                        Tensor5View ext_mat_field,
-                        Tensor4View abs_vec_field,
-                        // Input:
-                        const Agenda& spt_calc_agenda,
-                        const Agenda& opt_prop_part_agenda,
-                        const Index& scat_za_index, 
-                        const Index& scat_aa_index,
-                        const ArrayOfIndex& cloudbox_limits,
-                        const Tensor3View t_field, 
-                        const Tensor4View pnd_field
-                        );
+void cloud_fieldsCalc(Workspace& ws,
+                      // Output:
+                      Tensor5View ext_mat_field,
+                      Tensor4View abs_vec_field,
+                      // Input:
+                      const Agenda& spt_calc_agenda,
+                      const Agenda& opt_prop_part_agenda,
+                      const Index& scat_za_index, 
+                      const Index& scat_aa_index,
+                      const ArrayOfIndex& cloudbox_limits,
+                      const Tensor3View t_field, 
+                      const Tensor4View pnd_field
+                     );
 
 void cloud_ppath_update1D(
+                  Workspace& ws,
                   Tensor6View i_field,
                   // ppath_step_agenda:
                   const Index& p_index,
@@ -85,6 +87,7 @@ void cloud_ppath_update1D(
                   );
 
 void cloud_ppath_update1D_noseq(
+                          Workspace& ws,
                           // Input and output
                           Tensor6View doit_i_field,
                           // ppath_step_agenda:
@@ -118,6 +121,7 @@ void cloud_ppath_update1D_noseq(
                           );
 
 void cloud_ppath_update1D_planeparallel(
+                  Workspace& ws,
                   Tensor6View i_field,
                   // ppath_step_agenda:
                   const Index& p_index,
@@ -145,7 +149,7 @@ void cloud_ppath_update1D_planeparallel(
                   // const Agenda& surface_agenda 
                   );
 
-void cloud_ppath_update3D(
+void cloud_ppath_update3D(Workspace& ws,
                           Tensor6View doit_i_field,
                           // ppath_step_agenda:
                           const Index& p_index,
@@ -180,7 +184,8 @@ void cloud_ppath_update3D(
                           const Index& //scat_za_interp
                           );
 
-void cloud_RT_no_background(//Output
+void cloud_RT_no_background(Workspace& ws,
+                            //Output
                             Tensor6View doit_i_field,
                             // Input
                             const Agenda& abs_scalar_gas_agenda,
@@ -202,7 +207,8 @@ void cloud_RT_no_background(//Output
                             const Index& scat_za_index,
                             const Index& scat_aa_index);
 
-void cloud_RT_surface(//Output
+void cloud_RT_surface(Workspace& ws,
+                      //Output
                       Tensor6View doit_i_field,
                       //Input
                       const Agenda& surface_prop_agenda,
@@ -215,7 +221,8 @@ void cloud_RT_surface(//Output
                       );
 
 
-void ppath_step_in_cloudbox(Ppath& ppath_step,
+void ppath_step_in_cloudbox(Workspace& ws,
+                            Ppath& ppath_step,
                             const Agenda& ppath_step_agenda,
                             const Index& p,
                             const Index& lat, 

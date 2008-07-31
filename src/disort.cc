@@ -64,18 +64,18 @@ extern const Numeric BOLTZMAN_CONST;
   \author Claudia Emde
   \date   2006-02-10
 */
-void dtauc_ssalbCalc(
-                    VectorView dtauc,
-                    VectorView ssalb,
-                    const Agenda& opt_prop_part_agenda,
-                    const Agenda& abs_scalar_gas_agenda,
-                    const Agenda& spt_calc_agenda,
-                    ConstTensor4View pnd_field,
-                    ConstTensor3View t_field,
-                    ConstTensor3View z_field, 
-                    ConstVectorView p_grid,
-                    ConstTensor4View vmr_field,
-                    const Index& f_index
+void dtauc_ssalbCalc(Workspace& ws,
+                     VectorView dtauc,
+                     VectorView ssalb,
+                     const Agenda& opt_prop_part_agenda,
+                     const Agenda& abs_scalar_gas_agenda,
+                     const Agenda& spt_calc_agenda,
+                     ConstTensor4View pnd_field,
+                     ConstTensor3View t_field,
+                     ConstTensor3View z_field, 
+                     ConstVectorView p_grid,
+                     ConstTensor4View vmr_field,
+                     const Index& f_index
                     )
 {
   
@@ -111,7 +111,8 @@ void dtauc_ssalbCalc(
      
      //Calculate optical properties for single particle types:
      //( Execute agendas silently. )
-     spt_calc_agendaExecute(ext_mat_spt_local, 
+     spt_calc_agendaExecute(ws,
+                            ext_mat_spt_local, 
                             abs_vec_spt_local,
                             scat_p_index_local, 0, 0, //position
                             rte_temperature_local,
@@ -119,7 +120,8 @@ void dtauc_ssalbCalc(
                             spt_calc_agenda,
                             true);
 
-     opt_prop_part_agendaExecute(ext_mat_local, abs_vec_local, 
+     opt_prop_part_agendaExecute(ws,
+                                 ext_mat_local, abs_vec_local, 
                                  ext_mat_spt_local, 
                                  abs_vec_spt_local,
                                  scat_p_index_local, 0, 0, 
@@ -156,13 +158,14 @@ void dtauc_ssalbCalc(
                                       vmr_field(j, i+1, 0, 0));
    
   
-     abs_scalar_gas_agendaExecute(abs_scalar_gas_local, 
-                                         f_index,  // monochromatic calculation
-                                         rte_pressure_local, 
-                                         rte_temperature_local, 
-                                         rte_vmr_list_local,
-                                         abs_scalar_gas_agenda,
-                                         true);
+     abs_scalar_gas_agendaExecute(ws,
+                                  abs_scalar_gas_local, 
+                                  f_index,  // monochromatic calculation
+                                  rte_pressure_local, 
+                                  rte_temperature_local, 
+                                  rte_vmr_list_local,
+                                  abs_scalar_gas_agenda,
+                                  true);
      
      Numeric abs_total = abs_scalar_gas_local(0,joker).sum();
 

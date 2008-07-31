@@ -889,7 +889,6 @@ int main (int argc, char **argv)
           Agenda tasklist;
 
           Workspace workspace;
-          tasklist.set_workspace (&workspace);
 
           // Call the parser to parse the control text:
           ArtsParser arts_parser(tasklist, parameters.controlfiles[i]);
@@ -903,7 +902,7 @@ int main (int argc, char **argv)
           workspace.initialize ();
 
           // Execute main agenda:
-          Arts(tasklist);
+          Arts(workspace, tasklist);
         }
     }
   catch (runtime_error x)

@@ -46,4 +46,17 @@ void Copy(// WS Generic Output:
   out = in;
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Copy(Workspace& ws _U_,
+          // WS Generic Output:
+          Agenda& out,
+          // WS Generic Input:
+          const Agenda& in)
+{
+  // The use of CloneSize should not be necessary anymore, thanks to
+  // the new copy semantics.  
+  // CloneSize( out, outname, in, inname );
+  out = in;
+}
+
 #endif // m_copy_h

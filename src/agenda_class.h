@@ -43,8 +43,8 @@ class Workspace;
 class Agenda {
 public:
 
-  Agenda() : mname(), mml(), moutput_push(), moutput_dup(),
-             agendaworkspace(NULL), main_agenda(false) { }
+  Agenda() : mname(), mml(), moutput_push(), moutput_dup(), main_agenda(false)
+  { /* Nothing to do here */ }
 
   /*! 
     Copies an agenda.
@@ -53,22 +53,19 @@ public:
                             mml(x.mml),
                             moutput_push(x.moutput_push),
                             moutput_dup(x.moutput_dup),
-                            agendaworkspace(x.agendaworkspace),
                             main_agenda(x.main_agenda)
   { /* Nothing to do here */ }
 
 
   void append(const String& methodname, const String& keywordvalue);
   void push_back(MRecord n);
-  void execute(bool silent=false) const;
+  void execute(Workspace& ws, bool silent=false) const;
   inline void resize(Index n);
   inline Index nelem() const;
   inline Agenda& operator=(const Agenda& x);
   const Array<MRecord>& Methods () const { return mml; }
-  Workspace* workspace () { return agendaworkspace; }
-  void set_workspace (Workspace* ws) { agendaworkspace = ws; }
   void set_outputs_to_push_and_dup ();
-  bool is_input(Index var) const;
+  bool is_input(Workspace& ws, Index var) const;
   bool is_output(Index var) const;
   void set_name(const String& nname);
   String name() const;
@@ -85,7 +82,6 @@ private:
   ArrayOfIndex moutput_push;
 
   ArrayOfIndex moutput_dup;
-  Workspace* agendaworkspace;
 
   //! Is set to true if this is the main agenda.
   bool main_agenda;
@@ -271,7 +267,6 @@ inline Agenda& Agenda::operator=(const Agenda& x)
 {
   mml = x.mml;
   mname = x.mname;
-  agendaworkspace = x.agendaworkspace;
   moutput_push = x.moutput_push;
   moutput_dup = x.moutput_dup;
   return *this;

@@ -70,7 +70,7 @@ void include_trans_in_diy_dq(
       const ArrayOfPpath&     ppath_array, 
       const Index&            ppath_array_index );
 
-void iy_calc(
+void iy_calc( Workspace&               ws,
               Matrix&                  iy,
               Ppath&                   ppath,
               Index&                   ppath_array_index,
@@ -103,6 +103,7 @@ void iy_calc(
         const bool&                    agenda_verb );
 
 void iy_calc_no_jacobian(
+              Workspace&      ws,
               Matrix&         iy,
               Ppath&          ppath,
         const Agenda&         ppath_step_agenda,
@@ -138,7 +139,7 @@ void rte_step_std(
          const Numeric& l_step,
          const Numeric& rte_planck_value );
 
-void rte_std(
+void rte_std(Workspace&               ws,
              Matrix&                  iy,
              Tensor4&                 ppath_transmissions,
              ArrayOfTensor4&          diy_dvmr,

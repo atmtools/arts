@@ -38,10 +38,24 @@
 
 /* Throw runtime error for all unsupported types. */
 template< class T >
+void Append(Workspace& ws _U_,
+            // WS Generic Output:
+            T& out _U_,
+            // WS Generic Input:
+            const T& in _U_)
+{
+  ostringstream os;                                             \
+  os << "Appending is not (yet?) implemented for this variable group.";
+  throw runtime_error(os.str());                \
+}
+
+
+/* Throw runtime error for all unsupported types. */
+template< class T >
 void Append(// WS Generic Output:
-          T& out _U_,
-          // WS Generic Input:
-          const T& in _U_)
+            T& out _U_,
+            // WS Generic Input:
+            const T& in _U_)
 {
   ostringstream os;                                             \
   os << "Appending is not (yet?) implemented for this variable group.";
@@ -54,9 +68,9 @@ void Append(// WS Generic Output:
 /* Implementation for array types */
 template< class T >
 void Append(// WS Generic Output:
-          Array<T>& out,
-          // WS Generic Input:
-          const Array<T>& in)
+            Array<T>& out,
+            // WS Generic Input:
+            const Array<T>& in)
 {
   // Reserve memory in advance to avoid reallocations:
   out.reserve(out.nelem()+in.nelem());
@@ -67,9 +81,9 @@ void Append(// WS Generic Output:
 
 /* Implementation for Vector */
 void Append(// WS Generic Output:
-          Vector& out,
-          // WS Generic Input:
-          const Vector& in)
+            Vector& out,
+            // WS Generic Input:
+            const Vector& in)
 {
   // Get backup of out:
   Vector dummy = out;

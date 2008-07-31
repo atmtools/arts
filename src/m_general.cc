@@ -70,6 +70,20 @@ void INCLUDE()
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Print(
+        Workspace& ws _U_,
+        // WS Generic Input:
+        const Agenda&   x,
+        // Keywords:
+        const Index&            level )
+{
+  ostringstream os;
+  os << "     " << x << "\n";
+  SWITCH_OUTPUT (level, os.str ())
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Print(
         // WS Generic Input:
         const ArrayOfGridPos&   x,
         // Keywords:

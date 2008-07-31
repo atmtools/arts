@@ -74,6 +74,28 @@ TMPL_NGET_GENERIC (nlibraries)
 // Undefine the macro to make sure that it is never used anywhere else
 #undef TMPL_NGET_GENERIC
 
+#define TMPL_NGET_AGENDA(what) \
+  void what##Get( Workspace& ws _U_, \
+                  Index&, \
+                  const Agenda&) \
+  { \
+    ostringstream os; \
+    os << "The variable has no such attribute.\n"; \
+    throw runtime_error(os.str()); \
+ }
+
+TMPL_NGET_AGENDA (nelem)
+TMPL_NGET_AGENDA (ncols)
+TMPL_NGET_AGENDA (nrows)
+TMPL_NGET_AGENDA (npages)
+TMPL_NGET_AGENDA (nbooks)
+TMPL_NGET_AGENDA (nshelves)
+TMPL_NGET_AGENDA (nvitrines)
+TMPL_NGET_AGENDA (nlibraries)
+
+// Undefine the macro to make sure that it is never used anywhere else
+#undef TMPL_NGET_AGENDA
+
 
 ////////////////////////////////////////////////////////////////////////
 // The following functions are special implementations of the template
@@ -81,7 +103,7 @@ TMPL_NGET_GENERIC (nlibraries)
 // value of the requested attribute.
 
 #define NGET_GENERIC(what, type) \
-  void what##Get( Index&    what, \
+  void what##Get(Index&    what, \
                  const type&   x) \
   { \
     what = x.what (); \

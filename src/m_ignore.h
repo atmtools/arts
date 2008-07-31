@@ -34,12 +34,32 @@
 #include "mystring.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void Ignore(Workspace& ws _U_,
+            // WS Generic Input:
+            const Agenda& in _U_)
+{
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 template< class T >
 void Ignore(// WS Generic Input:
             const T& in _U_)
 {
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void DoNothing(Workspace& ws _U_,
+            // WS Generic Output:
+                  Agenda& out,
+            // WS Generic Input:
+                  Agenda& in)
+{
+  if( &out != &in )
+    throw runtime_error(
+                   "*DoNothing* requires that input and output is same WSV." );
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template< class T >

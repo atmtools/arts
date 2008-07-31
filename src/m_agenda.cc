@@ -32,16 +32,18 @@
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AgendaExecute(// WS Generic Input:
+void AgendaExecute(Workspace& ws,
+                   // WS Generic Input:
                    const Agenda& this_agenda)
 {
   out3 << "  Manual agenda execution\n";
-  this_agenda.execute();
+  this_agenda.execute(ws);
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void AgendaSet(// WS Generic Output:
+void AgendaSet(Workspace& ws,
+               // WS Generic Output:
                Agenda& output_agenda,
                // WS Generic Output Names:
                const String& agenda_name,
@@ -97,7 +99,7 @@ void AgendaSet(// WS Generic Output:
       // The WSV for which to check:
       Index this_wsv = this_data.Input()[i];
 
-      if ( !output_agenda.is_input(this_wsv) )
+      if ( !output_agenda.is_input(ws, this_wsv) )
         {
           ostringstream os;
           os << "The agenda " << output_agenda.name()
@@ -105,7 +107,7 @@ void AgendaSet(// WS Generic Output:
              << Workspace::wsv_data[this_wsv].Name() << ",\n"
              << "but it does not. It only uses:\n";
           for ( Index j=0; j<Workspace::wsv_data.nelem(); ++j )
-            if ( output_agenda.is_input(j) )
+            if ( output_agenda.is_input(ws, j) )
               os << Workspace::wsv_data[j].Name() << "\n";
           throw runtime_error (os.str());
         }
@@ -116,9 +118,10 @@ void AgendaSet(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Arts(// Agenda from controlfile:
-          const Agenda& input_agenda)
+void Arts(Workspace& ws,
+          // Agenda from controlfile:
+          const Agenda&    input_agenda)
 {
-  input_agenda.execute();
+  input_agenda.execute(ws);
 }
 

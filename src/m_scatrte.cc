@@ -461,6 +461,7 @@ void doit_conv_flagLsq(//WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void doit_i_fieldIterate(
+               Workspace& ws,
                // WS Input and Output:
                Tensor6& doit_i_field,
                // WS Input:  
@@ -502,18 +503,18 @@ void doit_i_fieldIterate(
     
     // Calculate the scattered field.
     out2 << "  Execute doit_scat_field_agenda. \n";
-    doit_scat_field_agendaExecute(doit_scat_field_local,
+    doit_scat_field_agendaExecute(ws, doit_scat_field_local,
                                   doit_i_field,
                                   doit_scat_field_agenda,
                                   true);
     
     // Update doit_i_field.
     out2 << "  Execute doit_rte_agenda. \n";
-    doit_rte_agendaExecute(doit_i_field, doit_scat_field_local, 
-                                doit_rte_agenda, true);
+    doit_rte_agendaExecute(ws, doit_i_field, doit_scat_field_local, 
+                           doit_rte_agenda, true);
 
     //Convergence test.
-    doit_conv_test_agendaExecute(doit_conv_flag_local,
+    doit_conv_test_agendaExecute(ws, doit_conv_flag_local,
                                  doit_iteration_counter_local,
                                  doit_i_field,
                                  doit_i_field_old_local,
@@ -526,7 +527,9 @@ void doit_i_fieldIterate(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-doit_i_fieldUpdate1D(// WS Input and Output:
+doit_i_fieldUpdate1D(
+                   Workspace& ws,
+                   // WS Input and Output:
                    Tensor6& doit_i_field,
                    // WS Input:
                    const Tensor6& doit_i_field_old,
@@ -659,7 +662,7 @@ doit_i_fieldUpdate1D(// WS Input and Output:
       // from the workspace.
       // *scat_p_index* is needed for communication with agenda 
       // *opt_prop_part_agenda*.
-      cloud_fieldsCalc(ext_mat_field, abs_vec_field,
+      cloud_fieldsCalc(ws, ext_mat_field, abs_vec_field,
                        spt_calc_agenda, 
                        opt_prop_part_agenda, scat_za_index_local, 
                        scat_aa_index_local,
@@ -672,7 +675,7 @@ doit_i_fieldUpdate1D(// WS Input and Output:
       for(Index p_index = cloudbox_limits[0]; p_index
             <= cloudbox_limits[1]; p_index ++)
         {
-          cloud_ppath_update1D_noseq(doit_i_field, 
+          cloud_ppath_update1D_noseq(ws, doit_i_field, 
                                      p_index, scat_za_index_local, 
                                      scat_za_grid,
                                      cloudbox_limits, doit_i_field_old, 
@@ -690,7 +693,9 @@ doit_i_fieldUpdate1D(// WS Input and Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-doit_i_fieldUpdateSeq1D(// WS Input and Output:
+doit_i_fieldUpdateSeq1D(
+                   Workspace& ws,
+                   // WS Input and Output:
                    Tensor6& doit_i_field,
                    // WS Input:
                    const Tensor6& doit_scat_field,
@@ -826,7 +831,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
       // from the workspace.
       // *scat_p_index* is needed for communication with agenda 
       // *opt_prop_part_agenda*.
-      cloud_fieldsCalc(ext_mat_field, abs_vec_field, 
+      cloud_fieldsCalc(ws, ext_mat_field, abs_vec_field, 
                        spt_calc_agenda, opt_prop_part_agenda, 
                        scat_za_index_local, scat_aa_index_local, 
                        cloudbox_limits, t_field, pnd_field);
@@ -852,7 +857,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
           for(Index p_index = cloudbox_limits[1]-1; p_index
                 >= cloudbox_limits[0]; p_index --)
             {
-              cloud_ppath_update1D(doit_i_field, 
+              cloud_ppath_update1D(ws, doit_i_field, 
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    abs_scalar_gas_agenda, vmr_field,
@@ -871,7 +876,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-              cloud_ppath_update1D(doit_i_field,  
+              cloud_ppath_update1D(ws, doit_i_field,  
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    abs_scalar_gas_agenda, vmr_field,
@@ -902,7 +907,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
               // gives an error for such cases.
               if (!(p_index == 0 && scat_za_grid[scat_za_index_local] > 90.))
                 {
-                  cloud_ppath_update1D(doit_i_field,  
+                  cloud_ppath_update1D(ws, doit_i_field,  
                                        p_index, scat_za_index_local,
                                        scat_za_grid,
                                        cloudbox_limits, doit_scat_field,
@@ -921,7 +926,8 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                          
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-doit_i_fieldUpdateSeq3D(// WS Output and Input:
+doit_i_fieldUpdateSeq3D(Workspace& ws,
+                        // WS Output and Input:
                         Tensor6& doit_i_field,
                         // WS Input:
                         const Tensor6& doit_scat_field,
@@ -1077,7 +1083,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
           // This function has to be called inside the angular loop, as
           // it spt_calc_agenda takes *scat_za_index* and *scat_aa_index* 
           // from the workspace.
-          cloud_fieldsCalc(ext_mat_field, abs_vec_field, 
+          cloud_fieldsCalc(ws, ext_mat_field, abs_vec_field, 
                            spt_calc_agenda, 
                            opt_prop_part_agenda, scat_za_index, 
                            scat_aa_index, cloudbox_limits, t_field, 
@@ -1106,7 +1112,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                       for(Index lon_index = lon_low; lon_index <= lon_up; 
                           lon_index ++)
                         {
-                          cloud_ppath_update3D(doit_i_field, 
+                          cloud_ppath_update3D(ws, doit_i_field, 
                                                p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -1138,7 +1144,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                       for(Index lon_index = lon_low; lon_index <= lon_up; 
                           lon_index ++)
                         {
-                          cloud_ppath_update3D(doit_i_field, 
+                          cloud_ppath_update3D(ws, doit_i_field, 
                                                p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -1182,7 +1188,7 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
                           for(Index lon_index = lon_low; lon_index <= lon_up; 
                               lon_index ++)
                             {
-                              cloud_ppath_update3D(doit_i_field, 
+                              cloud_ppath_update3D(ws, doit_i_field, 
                                                    p_index, 
                                                    lat_index, 
                                                    lon_index, scat_za_index, 
@@ -1219,7 +1225,9 @@ doit_i_fieldUpdateSeq3D(// WS Output and Input:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-doit_i_fieldUpdateSeq1DPP(// WS Output:
+doit_i_fieldUpdateSeq1DPP(
+                Workspace& ws,
+                // WS Output:
                 Tensor6& doit_i_field,
                 // spt_calc_agenda:
                 Index& scat_za_index ,
@@ -1315,7 +1323,7 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
       //Only dummy variables:
       Index scat_aa_index = 0;
       
-      cloud_fieldsCalc(ext_mat_field, abs_vec_field, 
+      cloud_fieldsCalc(ws, ext_mat_field, abs_vec_field, 
                        spt_calc_agenda, 
                        opt_prop_part_agenda, scat_za_index, scat_aa_index, 
                        cloudbox_limits, t_field, 
@@ -1340,7 +1348,7 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
           for(Index p_index = cloudbox_limits[1] -1; p_index
                 >= cloudbox_limits[0]; p_index --)
             {
-              cloud_ppath_update1D_planeparallel(doit_i_field, 
+              cloud_ppath_update1D_planeparallel(ws, doit_i_field, 
                                                  p_index, scat_za_index,
                                                  scat_za_grid,
                                                  cloudbox_limits,
@@ -1364,7 +1372,7 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-              cloud_ppath_update1D_planeparallel(doit_i_field,  
+              cloud_ppath_update1D_planeparallel(ws, doit_i_field,  
                                                  p_index, scat_za_index,
                                                  scat_za_grid,
                                                  cloudbox_limits,
@@ -1555,7 +1563,8 @@ void DoitWriteIterationFields(//WS input
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-doit_scat_fieldCalc(// WS Output and Input
+doit_scat_fieldCalc(Workspace& ws,
+                    // WS Output and Input
                     Tensor6& doit_scat_field,
                     //WS Input:
                     const Agenda& pha_mat_spt_agenda,
@@ -1687,7 +1696,7 @@ doit_scat_fieldCalc(// WS Output and Input
               
               // Calculate the phase matric of a single particle type
               out3 << "Calculate the phase matrix \n"; 
-              pha_mat_spt_agendaExecute(pha_mat_spt_local,
+              pha_mat_spt_agendaExecute(ws, pha_mat_spt_local,
                                         scat_za_index_local,
                                         index_zero,
                                         index_zero,
@@ -1776,7 +1785,7 @@ doit_scat_fieldCalc(// WS Output and Input
                            scat_za_index_local ++)
                         {
                           out3 << "Calculate phase matrix \n";
-                          pha_mat_spt_agendaExecute(pha_mat_spt_local,
+                          pha_mat_spt_agendaExecute(ws, pha_mat_spt_local,
                                                     scat_za_index_local,
                                                     lat_index,
                                                     lon_index,
@@ -1852,7 +1861,8 @@ doit_scat_fieldCalc(// WS Output and Input
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void
-doit_scat_fieldCalcLimb(// WS Output and Input
+doit_scat_fieldCalcLimb(Workspace& ws,
+                        // WS Output and Input
                         Tensor6& doit_scat_field,
                         //WS Input:
                         const Agenda& pha_mat_spt_agenda,
@@ -2037,7 +2047,7 @@ doit_scat_fieldCalcLimb(// WS Output and Input
               
               // Calculate the phase matrix of a single particle type
               out3 << "Calculate the phase matrix \n"; 
-              pha_mat_spt_agendaExecute(pha_mat_spt_local,
+              pha_mat_spt_agendaExecute(ws, pha_mat_spt_local,
                                         scat_za_index_local,
                                         index_zero,
                                         index_zero,
@@ -2159,7 +2169,7 @@ doit_scat_fieldCalcLimb(// WS Output and Input
                       {
                         
                         out3 << "Calculate phase matrix \n";
-                        pha_mat_spt_agendaExecute(pha_mat_spt_local,
+                        pha_mat_spt_agendaExecute(ws, pha_mat_spt_local,
                                                   scat_za_index_local,
                                                   lat_index,
                                                   lon_index,
@@ -2319,7 +2329,7 @@ void doit_za_interpSet(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ScatteringDoit(
+void ScatteringDoit(Workspace& ws,
                     Tensor6& doit_i_field,
                     Tensor7& scat_i_p, 
                     Tensor7& scat_i_lat, 
@@ -2353,7 +2363,7 @@ void ScatteringDoit(
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
     {
       out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
-      doit_mono_agendaExecute(doit_i_field, scat_i_p, scat_i_lat,
+      doit_mono_agendaExecute(ws, doit_i_field, scat_i_p, scat_i_lat,
                               scat_i_lon, doit_i_field1D_spectrum,
                               f_index, doit_mono_agenda,
                               false); 

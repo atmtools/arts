@@ -687,7 +687,7 @@ void ext_matAddGas( Tensor3&      ext_mat,
   // abs_scalar_gas. Check this:
   if ( f_dim != abs_scalar_gas.nrows() )
     throw runtime_error("Frequency dimension of ext_mat and abs_scalar_gas\n"
-                        "are inconsistent.");
+                        "are inconsistent in ext_matAddGas.");
 
   // Sum up absorption over all species.
   // This gives us an absorption vector for all frequencies. Of course
@@ -741,7 +741,7 @@ void abs_vecAddGas( Matrix&       abs_vec,
   // abs_scalar_gas. Check this:
   if ( f_dim != abs_scalar_gas.nrows() )
     throw runtime_error("Frequency dimension of abs_vec and abs_scalar_gas\n"
-                        "are inconsistent.");
+                        "are inconsistent in abs_vecAddGas.");
 
   // Loop all frequencies. Of course this includes the special case
   // that there is only one frequency.

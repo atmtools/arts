@@ -104,6 +104,9 @@ int main()
           // The String indent is needed to achieve the correct
           // indentation of the functin parameters:
           String indent = String(mdd.Name().nelem()+3,' ');;
+          // Flag to pass the workspace to the WSM. Only true if the WSM has
+          // an Agenda as input.
+          bool pass_workspace = false;
           
           // There are four lists of parameters that we have to
           // write. 
@@ -130,10 +133,30 @@ int main()
               // Use parameter name only if it is used inside the function
               // to avoid warnings
               ws = " ws";
-              if (!mdd.PassWorkspace() && !vo.nelem () && !vi.nelem () && !vgo.nelem () && !vgi.nelem () && !kgi.nelem())
+              if (!mdd.AgendaMethod() && !mdd.PassWorkspace() && !vo.nelem () && !vi.nelem () && !vgo.nelem () && !vgi.nelem () && !kgi.nelem())
               {
                 ws = "";
               }
+
+              // Find out if the WSM gets an agenda as input. If so, pass
+              // the current workspace to this method
+              for (Index j = 0; !pass_workspace && j < mdd.Input().nelem(); j++)
+                {
+                  if (wsv_data[mdd.Input()[j]].Group() == get_wsv_group_id ("Agenda"))
+                    {
+                      pass_workspace = true;
+                    }
+                }
+
+              // Find out if the WSM gets an agenda as input. If so, pass
+              // the current workspace to this method
+              for (Index j = 0; !pass_workspace && j < mdd.GInput().nelem(); j++)
+                {
+                  if (mdd.GInput()[j] == get_wsv_group_id ("Agenda"))
+                    {
+                      pass_workspace = true;
+                    }
+                }
 
               // Use parameter name only if it is used inside the function
               // to avoid warnings
@@ -160,27 +183,9 @@ int main()
                 }
             }
 
-          // Create copy of input agendas with private workspace
-          for (Index j=0; j<vi.nelem(); ++j)
-            {
-              if (wsv_data[vi[j]].Group() == get_wsv_group_id("Agenda"))
-                {
-#ifdef _OPENMP
-                  ofs << "  Agenda AI" << j
-#else
-                  ofs << "  Agenda& AI" << j
-#endif
-                    << " = *(("
-                    << wsv_group_names[wsv_data[vi[j]].Group()]
-                    << " *)ws[mr.Input()[" << j
-                    << "]]);\n";
-                  ofs << "  AI" << j << ".set_workspace(&ws);\n";
-                }
-            }
-
           ofs << "  " << mdd.Name() << "(";
 
-          if (mdd.PassWorkspace())
+          if (pass_workspace || mdd.PassWorkspace() || mdd.AgendaMethod())
             {
               ofs << "ws";
               is_first_parameter = false;
@@ -243,7 +248,10 @@ int main()
 
               if (wsv_data[vi[j]].Group() == get_wsv_group_id("Agenda"))
                 {
-                  ofs << "AI" << j;
+                  ofs << "*(("
+                    << wsv_group_names[wsv_data[vi[j]].Group()]
+                    << " *)ws[mr.Input()[" << j
+                    << "]])";
                 }
               else
                 {
@@ -374,10 +382,6 @@ int main()
 
           ofs << "\n";
           ofs << "{\n";
-          ofs << "  Agenda new_input_agenda (input_agenda);\n";
-          ofs << "  if (safe_workspace)\n"
-              << "    new_input_agenda.set_workspace (new Workspace (*new_input_agenda.workspace()));\n";
-          ofs << "  Workspace& ws = *(new_input_agenda.workspace());\n";
 
           if (ago.nelem () || agi.nelem ())
             {
@@ -385,7 +389,7 @@ int main()
                 << "  extern const Array<AgRecord> agenda_data;\n"
                 << "\n"
                 << "  const AgRecord& agr =\n"
-                << "    agenda_data[AgendaMap.find (new_input_agenda.name ())->second];\n"
+                << "    agenda_data[AgendaMap.find (input_agenda.name ())->second];\n"
                 << "\n";
             }
           if (ago.nelem ())
@@ -435,8 +439,8 @@ int main()
               ofs << ain_push_os.str () << "\n";
             }
 
-          ofs << "  const ArrayOfIndex& outputs_to_push = new_input_agenda.get_output2push();\n"
-              << "  const ArrayOfIndex& outputs_to_dup = new_input_agenda.get_output2dup();\n"
+          ofs << "  const ArrayOfIndex& outputs_to_push = input_agenda.get_output2push();\n"
+              << "  const ArrayOfIndex& outputs_to_dup = input_agenda.get_output2dup();\n"
               << "\n"
               << "  for (ArrayOfIndex::const_iterator it = outputs_to_push.begin ();\n"
               << "       it != outputs_to_push.end (); it++)\n"
@@ -450,11 +454,11 @@ int main()
           ofs << "  String agenda_error_msg;\n"
               << "  bool agenda_failed = false;\n\n"
               << "  try {\n"
-              << "    new_input_agenda.execute (silent);\n"
+              << "    input_agenda.execute (ws, silent);\n"
               << "  } catch (runtime_error e) {\n"
               << "    ostringstream os;\n"
               << "    os << \"Run-time error in agenda: \"\n"
-              << "       << new_input_agenda.name() << \'\\n\' << e.what();\n"
+              << "       << input_agenda.name() << \'\\n\' << e.what();\n"
               << "    agenda_failed = true;\n"
               << "    agenda_error_msg = os.str();\n"
               << "  }\n";
@@ -475,9 +479,6 @@ int main()
             {
               ofs << ain_pop_os.str () << "\n";
             }
-
-          ofs << "  if (safe_workspace)\n"
-              << "    delete new_input_agenda.workspace();\n";
 
           ofs << "  if (agenda_failed) throw runtime_error (agenda_error_msg);\n\n";
 

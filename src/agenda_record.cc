@@ -287,6 +287,9 @@ void write_agenda_wrapper_header( ofstream& ofs,
   // Wrapper function
   ofs << "void " << agr.Name () << "Execute(\n";
 
+  // Wrapper function Workspace parameters
+  ofs << "        // Workspace\n";
+  ofs << "        Workspace& ws,\n";
   // Wrapper function output parameters
   const ArrayOfIndex& ago = agr.Output ();
   ofs << "        // Output\n";
@@ -324,8 +327,7 @@ void write_agenda_wrapper_header( ofstream& ofs,
   // Wrapper function agenda and silent parameters
   ofs << "        // Wrapper Input\n";
   ofs << "        const Agenda& input_agenda,\n";
-  ofs << "        const bool silent,\n";
-  ofs << "        const bool safe_workspace";
+  ofs << "        const bool silent\n";
   if (write_default_args)
     ofs << " = false";
   ofs << ")";

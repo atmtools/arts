@@ -54,7 +54,7 @@
 */  
 
 
-void clear_rt_vars_at_gp(
+void clear_rt_vars_at_gp(Workspace&              ws,
                          MatrixView&             ext_mat_mono,
                          VectorView&             abs_vec_mono,
                          Numeric&                temperature,
@@ -114,9 +114,9 @@ void clear_rt_vars_at_gp(
   temperature = t_vec[0];
   
   //calcualte absorption coefficient
-  abs_scalar_gas_agendaExecute( local_abs_scalar_gas,f_index,p_vec[0],
+  abs_scalar_gas_agendaExecute( ws, local_abs_scalar_gas,f_index,p_vec[0],
     temperature,vmr_mat(joker,0),abs_scalar_gas_agenda,true );
-  opt_prop_gas_agendaExecute( local_ext_mat, local_abs_vec, f_index,
+  opt_prop_gas_agendaExecute( ws, local_ext_mat, local_abs_vec, f_index,
                               local_abs_scalar_gas, opt_prop_gas_agenda, true );
   ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));
   abs_vec_mono=local_abs_vec(0,Range(joker));
@@ -134,7 +134,7 @@ void clear_rt_vars_at_gp(
 */  
 
 
-void cloudy_rt_vars_at_gp(
+void cloudy_rt_vars_at_gp(Workspace&            ws,
                           MatrixView&           ext_mat_mono,
                           VectorView&           abs_vec_mono,
                           VectorView&           pnd_vec,
@@ -189,9 +189,9 @@ void cloudy_rt_vars_at_gp(
   //local_rte_pressure    = p_ppath[0];
   temperature = t_ppath[0];
   //rte_vmr_list    = vmr_ppath(joker,0);
-  abs_scalar_gas_agendaExecute( local_abs_scalar_gas,f_index,p_ppath[0],
+  abs_scalar_gas_agendaExecute( ws, local_abs_scalar_gas,f_index,p_ppath[0],
         temperature,vmr_ppath(joker,0),abs_scalar_gas_agenda,true );
-  opt_prop_gas_agendaExecute( local_ext_mat, local_abs_vec, f_index,
+  opt_prop_gas_agendaExecute( ws, local_ext_mat, local_abs_vec, f_index,
                               local_abs_scalar_gas, opt_prop_gas_agenda, true );
   ext_mat_mono=local_ext_mat(0, Range(joker), Range(joker));
   abs_vec_mono=local_abs_vec(0,Range(joker));
@@ -332,7 +332,7 @@ void cloud_atm_vars_by_gp(
 \date 2003-06-19
 */  
 
-void Cloudbox_ppathCalc(
+void Cloudbox_ppathCalc(Workspace&      ws,
                         //  Output:
                         Ppath&          ppath,
                         Ppath&          ppath_step,
@@ -422,7 +422,7 @@ void Cloudbox_ppathCalc(
       //
       istep++;
       //
-      ppath_step_agendaExecute(ppath_step, atmosphere_dim, p_grid,
+      ppath_step_agendaExecute(ws, ppath_step, atmosphere_dim, p_grid,
                                lat_grid, lon_grid, z_field, r_geoid, z_surface,
                                ppath_step_agenda, true);
 
@@ -637,7 +637,7 @@ void Cloudbox_ppathCalc(
    \date   2003-06-20
 */
 
-void Cloudbox_ppath_rteCalc(
+void Cloudbox_ppath_rteCalc( Workspace&            ws,
                              Ppath&                ppathcloud,
                              Ppath&                ppath,
                              Ppath&                ppath_step,
@@ -709,7 +709,7 @@ void Cloudbox_ppath_rteCalc(
   Tensor7 scat_i_lon_dummy;
  
   //  cout << "Cloudbox_ppathCalc\n";
-  Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+  Cloudbox_ppathCalc(ws, ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
                      p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
                      cloudbox_limits, rte_pos,rte_los,z_field_is_1D);
   
@@ -737,7 +737,7 @@ void Cloudbox_ppath_rteCalc(
   Range lon_range(cloudbox_limits[4], 
                 cloudbox_limits[5]-cloudbox_limits[4]+1);
   //Calculate array of transmittance matrices
-  TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, ext_mat, abs_vec, 
+  TArrayCalc(ws, TArray, ext_matArray, abs_vecArray, t_ppath, ext_mat, abs_vec, 
              rte_pressure, rte_temperature, 
              rte_vmr_list, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
              abs_scalar_gas_agenda, f_index, stokes_dim, 
@@ -746,7 +746,7 @@ void Cloudbox_ppath_rteCalc(
              vmr_field(joker,p_range,lat_range,lon_range),
              pnd_field,scat_data_mono,cloudbox_limits);
 
-  iy_calc_no_jacobian(iy, ppath, ppath_step_agenda, 
+  iy_calc_no_jacobian(ws, iy, ppath, ppath_step_agenda, 
                       rte_agenda, iy_space_agenda, surface_prop_agenda,
                       iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid,
                       lon_grid, z_field, t_field, vmr_field, r_geoid, z_surface,
@@ -994,7 +994,7 @@ a given sensor_pos_ and sensor_los
 */
 
 
-void iwp_cloud_opt_pathCalc(
+void iwp_cloud_opt_pathCalc(Workspace& ws,
                             Numeric& iwp,
                             Numeric& cloud_opt_path,
                             //input
@@ -1022,7 +1022,7 @@ void iwp_cloud_opt_pathCalc(
   iwp=0;
   cloud_opt_path=0;
   //calculate ppath to cloudbox boundary
-  ppath_calc( ppath, ppath_step_agenda, 3, 
+  ppath_calc( ws, ppath, ppath_step_agenda, 3, 
               p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
               1, cloudbox_limits, local_rte_pos, local_rte_los, 1 );
   //if this ppath hit a cloud, now take ppath inside cloud
@@ -1040,7 +1040,7 @@ void iwp_cloud_opt_pathCalc(
       Range lon_range(cloudbox_limits[4], 
                       cloudbox_limits[5]-cloudbox_limits[4]+1);
 
-      ppath_calc( ppath, ppath_step_agenda, 3, 
+      ppath_calc( ws, ppath, ppath_step_agenda, 3, 
                   p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                   1, cloudbox_limits, local_rte_pos, local_rte_los, 0 );
 
@@ -1132,7 +1132,8 @@ atmospheric variables at the new point.
 
 */
 
-void mcPathTraceGeneral(MatrixView&           evol_op,
+void mcPathTraceGeneral(Workspace&            ws,
+                        MatrixView&           evol_op,
                         Vector&               abs_vec_mono,
                         Numeric&              temperature,
                         MatrixView&           ext_mat_mono,
@@ -1202,7 +1203,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
   
   if (inside_cloud)
     {
-      cloudy_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
+      cloudy_rt_vars_at_gp(ws,ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
                   opt_prop_gas_agenda,abs_scalar_gas_agenda,
                   stokes_dim, f_index, ppath_step.gp_p[0], ppath_step.gp_lat[0],
                   ppath_step.gp_lon[0],p_grid[p_range],lat_grid[lat_range], 
@@ -1212,7 +1213,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
     }
   else
     {
-      clear_rt_vars_at_gp( ext_mat_mono, abs_vec_mono, temperature, 
+      clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
             opt_prop_gas_agenda, abs_scalar_gas_agenda, f_index, 
             ppath_step.gp_p[0], ppath_step.gp_lat[0], ppath_step.gp_lon[0],
             p_grid, lat_grid, lon_grid, t_field, vmr_field );
@@ -1251,7 +1252,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
       inside_cloud=is_inside_cloudbox( ppath_step, cloudbox_limits, true );
       if (inside_cloud)
         {
-          cloudy_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
+          cloudy_rt_vars_at_gp(ws,ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
                opt_prop_gas_agenda,abs_scalar_gas_agenda, stokes_dim, f_index,
                ppath_step.gp_p[np-1],ppath_step.gp_lat[np-1],
                ppath_step.gp_lon[np-1],p_grid[p_range], lat_grid[lat_range], 
@@ -1261,11 +1262,11 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
         }
       else
         {
-          clear_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,temperature, 
+          clear_rt_vars_at_gp(ws, ext_mat_mono,abs_vec_mono,temperature, 
                opt_prop_gas_agenda, abs_scalar_gas_agenda, f_index, 
                ppath_step.gp_p[np-1], ppath_step.gp_lat[np-1],
                ppath_step.gp_lon[np-1], p_grid, lat_grid, lon_grid, t_field, 
-                                                                    vmr_field);
+               vmr_field);
           pnd_vec=0.0;
         }
       ext_matArray[1]=ext_mat_mono;
@@ -1388,7 +1389,8 @@ modified for the independent pixel approximation.
 
 */
 
-void mcPathTraceIPA(MatrixView&           evol_op,
+void mcPathTraceIPA(Workspace&            ws,
+                    MatrixView&           evol_op,
                     Vector&               abs_vec_mono,
                     Numeric&              temperature,
                     MatrixView&           ext_mat_mono,
@@ -1485,7 +1487,7 @@ void mcPathTraceIPA(MatrixView&           evol_op,
   
   if (inside_cloud)
     {
-      cloudy_rt_vars_at_gp(ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
+      cloudy_rt_vars_at_gp(ws, ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
               opt_prop_gas_agenda,abs_scalar_gas_agenda, stokes_dim, f_index,
               gp_p, gp_lat, gp_lon,p_grid[p_range], 
               lat_grid[lat_range], lon_grid[lon_range], 
@@ -1495,7 +1497,7 @@ void mcPathTraceIPA(MatrixView&           evol_op,
     }
   else
     {
-      clear_rt_vars_at_gp( ext_mat_mono,abs_vec_mono,temperature, 
+      clear_rt_vars_at_gp( ws, ext_mat_mono,abs_vec_mono,temperature, 
                            opt_prop_gas_agenda, abs_scalar_gas_agenda, f_index,
                            gp_p, gp_lat, gp_lon,
                            p_grid, lat_grid, lon_grid, t_field, vmr_field);
@@ -1627,7 +1629,8 @@ void mcPathTraceIPA(MatrixView&           evol_op,
       //calculate RT variables at new point
       if (inside_cloud)
         {
-          cloudy_rt_vars_at_gp(ext_mat_mono, abs_vec_mono, pnd_vec, temperature,
+          cloudy_rt_vars_at_gp(ws,
+                   ext_mat_mono, abs_vec_mono, pnd_vec, temperature,
                    opt_prop_gas_agenda, abs_scalar_gas_agenda, stokes_dim, 
                    f_index, gp_p,gp_lat, gp_lon, p_grid[p_range], 
                    lat_grid[lat_range], lon_grid[lon_range], 
@@ -1637,7 +1640,7 @@ void mcPathTraceIPA(MatrixView&           evol_op,
         }
       else
         {
-          clear_rt_vars_at_gp( ext_mat_mono, abs_vec_mono, temperature, 
+          clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
                       opt_prop_gas_agenda, abs_scalar_gas_agenda, f_index,
                       gp_p, gp_lat, gp_lon, p_grid, lat_grid, lon_grid, t_field, 
                                                                      vmr_field);
@@ -1744,7 +1747,8 @@ atmospheric variables at the new point.
 
 */
 
-void mcPathTrace(MatrixView&           evol_op,
+void mcPathTrace(Workspace&            ws,
+                 MatrixView&           evol_op,
                  VectorView&           abs_vec_mono,
                  Numeric&              rte_temperature,
                  MatrixView&           ext_mat_mono,
@@ -1803,7 +1807,7 @@ void mcPathTrace(MatrixView&           evol_op,
                 cloudbox_limits[3]-cloudbox_limits[2]+1);
   Range lon_range(cloudbox_limits[4], 
                 cloudbox_limits[5]-cloudbox_limits[4]+1);
-  cloudy_rt_vars_at_gp( ext_mat_mono, abs_vec_mono,pnd_vec, rte_temperature,
+  cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono,pnd_vec, rte_temperature,
               opt_prop_gas_agenda, abs_scalar_gas_agenda, stokes_dim, f_index, 
               ppath_step.gp_p[0], ppath_step.gp_lat[0], ppath_step.gp_lon[0],
               p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
@@ -1830,7 +1834,7 @@ void mcPathTrace(MatrixView&           evol_op,
       cum_l_stepCalc(cum_l_step, ppath_step);
       //path_step should now have two elements.
       //calculate evol_op
-      cloudy_rt_vars_at_gp( ext_mat_mono, abs_vec_mono, pnd_vec,
+      cloudy_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, pnd_vec,
              rte_temperature, opt_prop_gas_agenda, abs_scalar_gas_agenda, 
              stokes_dim, f_index, ppath_step.gp_p[np-1], ppath_step.gp_lat[np-1],
              ppath_step.gp_lon[np-1], p_grid[p_range], lat_grid[lat_range], 
@@ -1941,7 +1945,7 @@ Used in ScatteringMonteCarlo.
    \date   2003-11-28
 */
 
-void montecarloGetIncoming(
+void montecarloGetIncoming(Workspace&            ws,
                            Matrix&               iy,
                            Vector&               rte_pos,
                            Vector&               rte_los,
@@ -1984,7 +1988,7 @@ void montecarloGetIncoming(
   
   Vector pos = rte_pos;
   Vector los = rte_los;
-  iy_calc_no_jacobian( iy, ppath,
+  iy_calc_no_jacobian( ws, iy, ppath,
                        ppath_step_agenda, rte_agenda, iy_space_agenda,
                        surface_prop_agenda, iy_cloudbox_agenda,
                        atmosphere_dim, p_grid, lat_grid, lon_grid, z_field,
@@ -2006,7 +2010,7 @@ void montecarloGetIncoming(
 */
 
 
-Numeric opt_depth_calc(
+Numeric opt_depth_calc(Workspace& ws,
                        Tensor3&   ext_mat,
                        Matrix&    abs_vec,
                        Numeric&   rte_pressure,
@@ -2062,11 +2066,11 @@ Numeric opt_depth_calc(
       rte_pressure    = p_ppath[i];
       rte_temperature = t_ppath[i];
       rte_vmr_list    = vmr_ppath(joker,i);
-      abs_scalar_gas_agendaExecute (abs_scalar_gas, f_index,
-                                           rte_pressure, rte_temperature,
-                                           rte_vmr_list,
-                                           abs_scalar_gas_agenda, true);
-      opt_prop_gas_agendaExecute (ext_mat, abs_vec, f_index, abs_scalar_gas,
+      abs_scalar_gas_agendaExecute (ws, abs_scalar_gas, f_index,
+                                    rte_pressure, rte_temperature,
+                                    rte_vmr_list,
+                                    abs_scalar_gas_agenda, true);
+      opt_prop_gas_agendaExecute (ws, ext_mat, abs_vec, f_index, abs_scalar_gas,
                                   opt_prop_gas_agenda, true);
       kvector[i]=ext_mat(0,0,0);
     }
@@ -2696,7 +2700,7 @@ void Sample_ppathlengthLOS (
 
 
                 
-void TArrayCalc(
+void TArrayCalc(Workspace& ws,
                 //output
                 ArrayOfMatrix& TArray,
                 ArrayOfMatrix& ext_matArray,
@@ -2770,11 +2774,11 @@ void TArrayCalc(
       rte_pressure    = p_ppath[scat_za_index];
       rte_temperature = t_ppath[scat_za_index];
       rte_vmr_list    = vmr_ppath(joker,scat_za_index);
-      abs_scalar_gas_agendaExecute (abs_scalar_gas, f_index,
-                                           rte_pressure, rte_temperature,
-                                           rte_vmr_list,
-                                           abs_scalar_gas_agenda, true);
-      opt_prop_gas_agendaExecute( ext_mat, abs_vec, f_index, abs_scalar_gas,
+      abs_scalar_gas_agendaExecute (ws, abs_scalar_gas, f_index,
+                                    rte_pressure, rte_temperature,
+                                    rte_vmr_list,
+                                    abs_scalar_gas_agenda, true);
+      opt_prop_gas_agendaExecute( ws, ext_mat, abs_vec, f_index, abs_scalar_gas,
                                   opt_prop_gas_agenda, true );
       ext_mat_part=0.0;
       abs_vec_part=0.0;

@@ -1,3 +1,77 @@
+2008-07-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-7-22
+
+	* The Workspace is no longer stored along with each agenda. Instead, a
+	Workspace reference is passed to functions which need it (basically
+	all functions that call agendas). This reference is then passed to
+	each agendaExecute call because we only need one workspace per thread,
+	not per agenda.
+
+	* The parallized loops have been adapted to use OpenMP to create
+	copies of the agendas and workspace were necessary. This saves some
+	amount of copying. Before, we made a copy of each agenda for each
+	iteration in parallized loops. Now, OpenMP will take care that only
+	one copy per thread is made. And one thread is reused for several
+	iterations inside the loop. E.g. if you have 4 CPUs and make a batch
+	calculation over 1000 jobs, OpenMP will start 4 threads and each
+	thread will calculate 250 iterations. If 4 agendas are called inside
+	the loops we had to make 4000 agenda copies plus the workspace
+	structure. Resulting in 8000 object copies.
+	Now it is only 4 agenda copies + 1 workspace copy in front of the
+	OpenMP loop (needed because OpenMP cannot make private thread copies
+	of reference objects), and N*4 agenda copies + N Workspace copies
+	(N=number of threads/CPUs) inside the loop. So, for a 4 CPU system
+	this is 25 copies instead of 8000.
+	Ok, this sounds much and will definitely save some memory and
+	calculation time. But running 'make check' doesn't give any indication
+	of a performance gain. Most likely because the jobs are rather short.
+	Your mileage may vary with larger jobs.
+	Note: When I speak of 'workspace copies' above I don't mean deep copies
+	including all the variables. Only the book-keeping part of it is
+	duplicated.
+
+	* src/agenda_class.{h,cc}:
+
+	Remove the workspace from the Agenda class. Instead pass it to
+	Agenda::execute.
+
+	Remove workspace get and set methods from Agenda class.
+
+	* src/m_agenda.cc (Arts): Add workspace reference to parameters.
+
+	* src/agenda_record.cc (write_agenda_wrapper_header):
+
+	Add Workspace reference to agendaExecute methods.
+	
+	Remove safe_workspace flag.
+
+	* src/make_auto_md_cc.cc (main):
+
+	No local copy of input agenda in agendaExecute methods anymore.
+
+	Pass the newly added workspace reference on to Agenda::Execute.
+
+	* src/make_auto_md_cc.cc (main), src/make_auto_md_h.cc (main): 
+
+	Pass Workspace to WSMs that have agendas as input or generic input.
+
+	* src/main.cc: Pass workspace to Arts().
+
+	* src/m_append.cc, src/m_copy.h, src/m_abs_lookup.cc, src/m_ignore.h,
+	src/m_basic_types.h, src/m_general.{h,cc}, src/m_xml.h, src/m_disort.cc,
+	src/disort.cc, src/m_batch.cc, src/m_rte.cc, src/m_montecarlo.cc,
+	src/rte.{h,cc}, src/ppath.cc, src/m_cloudbox.cc, src/m_scatrte.cc,
+	src/scatrte.{h,cc}, src/m_jacobian.cc, src/montecarlo.{h,cc},
+	src/ppath.{h,cc}, src/m_ppath.cc, src/refraction.{h,cc},
+	src/m_refraction.cc:
+
+	Add Workspace reference as first argument to all WSMs and functions
+	that have an agenda as an input parameter.
+
+	Instead of making local copies of agendas inside parallel loops use
+	the OMP firstprivate mechanism.
+
 2008-07-29  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-7-21

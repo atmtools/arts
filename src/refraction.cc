@@ -81,6 +81,7 @@ extern const Numeric RAD2DEG;
    \date   2003-01-16
 */
 void get_refr_index_1d(
+              Workspace&  ws,
               Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
@@ -122,7 +123,8 @@ void get_refr_index_1d(
       a_vmr_list[is] = dummy[0];
     }
 
-  refr_index_agendaExecute( refr_index, a_pressure, a_temperature, a_vmr_list,
+  refr_index_agendaExecute( ws,
+                            refr_index, a_pressure, a_temperature, a_vmr_list,
                             refr_index_agenda, agenda_verb );
 }
 
@@ -161,6 +163,7 @@ void get_refr_index_1d(
    \date   2003-01-14
 */
 void get_refr_index_2d(
+              Workspace&  ws,
               Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
@@ -219,7 +222,8 @@ void get_refr_index_2d(
       a_vmr_list[is] = dummy[0];
     }
 
-  refr_index_agendaExecute( refr_index, a_pressure, a_temperature, a_vmr_list,
+  refr_index_agendaExecute( ws,
+                            refr_index, a_pressure, a_temperature, a_vmr_list,
                             refr_index_agenda, agenda_verb );
 }
 
@@ -255,6 +259,7 @@ void get_refr_index_2d(
    \date   2003-01-17
 */
 void get_refr_index_3d(
+              Workspace&  ws,
               Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
@@ -319,7 +324,8 @@ void get_refr_index_3d(
       a_vmr_list[is] = dummy[0];
     }
 
-  refr_index_agendaExecute( refr_index, a_pressure, a_temperature, a_vmr_list,
+  refr_index_agendaExecute( ws,
+                            refr_index, a_pressure, a_temperature, a_vmr_list,
                             refr_index_agenda, agenda_verb );
 }
 
@@ -358,6 +364,7 @@ void get_refr_index_3d(
    \date   2003-01-20
 */
 void refr_gradients_1d(
+              Workspace&  ws,
               Numeric&    refr_index,
               Numeric&    dndr,
               Numeric&    a_pressure,
@@ -372,13 +379,13 @@ void refr_gradients_1d(
         ConstMatrixView   vmr_field,
         const Numeric&    r )
 { 
-   get_refr_index_1d( refr_index, a_pressure,  a_temperature, a_vmr_list, 
+   get_refr_index_1d( ws, refr_index, a_pressure,  a_temperature, a_vmr_list, 
                       refr_index_agenda, agenda_verb, p_grid, 
                       r_geoid, z_field, t_field, vmr_field, r );
 
    const Numeric   n0 = refr_index;
 
-   get_refr_index_1d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+   get_refr_index_1d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, 1, p_grid, 
                       r_geoid, z_field, t_field, vmr_field, r+1 );
 
@@ -430,6 +437,7 @@ void refr_gradients_1d(
    \date   2003-01-14
 */
 void refr_gradients_2d(
+              Workspace&  ws,
               Numeric&    refr_index,
               Numeric&    dndr,
               Numeric&    dndlat,
@@ -447,13 +455,13 @@ void refr_gradients_2d(
         const Numeric&    r,
         const Numeric&    lat )
 { 
-   get_refr_index_2d( refr_index, a_pressure,  a_temperature, a_vmr_list, 
+   get_refr_index_2d( ws, refr_index, a_pressure,  a_temperature, a_vmr_list, 
                       refr_index_agenda, agenda_verb, p_grid, lat_grid,
                       r_geoid, z_field, t_field, vmr_field, r, lat );
 
    const Numeric   n0 = refr_index;
 
-   get_refr_index_2d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+   get_refr_index_2d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, 1, p_grid, lat_grid, r_geoid, 
                       z_field, t_field, vmr_field, r+1, lat );
 
@@ -461,7 +469,7 @@ void refr_gradients_2d(
 
    const Numeric   dlat = 1e-4;
 
-   get_refr_index_2d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+   get_refr_index_2d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, 1, p_grid, lat_grid, r_geoid, 
                       z_field, t_field, vmr_field, r, lat+dlat );
 
@@ -512,6 +520,7 @@ void refr_gradients_2d(
    \date   2003-01-17
 */
 void refr_gradients_3d(
+              Workspace&  ws,
               Numeric&    refr_index,
               Numeric&    dndr,
               Numeric&    dndlat,
@@ -532,21 +541,21 @@ void refr_gradients_3d(
         const Numeric&    lat,
         const Numeric&    lon )
 { 
-   get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, agenda_verb, p_grid, lat_grid, 
-                 lon_grid, r_geoid, z_field, t_field, vmr_field, r, lat, lon );
+   get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
+               refr_index_agenda, agenda_verb, p_grid, lat_grid, 
+               lon_grid, r_geoid, z_field, t_field, vmr_field, r, lat, lon );
 
    const Numeric   n0 = refr_index;
 
-   get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, 1, p_grid, lat_grid, 
+   get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
+               refr_index_agenda, 1, p_grid, lat_grid, 
                lon_grid, r_geoid, z_field, t_field, vmr_field, r+1, lat, lon );
 
    dndr = refr_index - n0;
 
    const Numeric   dlat = 1e-4;
 
-   get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+   get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, 1, p_grid, lat_grid, 
                       lon_grid, r_geoid, z_field, t_field, vmr_field, 
                       r, lat+dlat, lon );
@@ -555,7 +564,7 @@ void refr_gradients_3d(
 
    const Numeric   dlon = 1e-4;
 
-   get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+   get_refr_index_3d( ws, refr_index, a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, 1, p_grid, lat_grid, 
                       lon_grid, r_geoid, z_field, t_field, vmr_field, 
                       r, lat, lon+dlon);

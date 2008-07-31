@@ -4005,6 +4005,7 @@ void ppath_step_geom_3d(
    \date   2002-12-02
 */
 void raytrace_1d_linear_euler(
+              Workspace&       ws,
               Array<double>&   r_array,
               Array<double>&   lat_array,
               Array<double>&   za_array,
@@ -4083,7 +4084,7 @@ void raytrace_1d_linear_euler(
       // Calculate LOS zenith angle at found point.
       //
       // Refractive index at *r*
-      get_refr_index_1d( refr_index, rte_pressure, rte_temperature,
+      get_refr_index_1d( ws, refr_index, rte_pressure, rte_temperature,
                          rte_vmr_list, refr_index_agenda, agenda_verb,
                          p_grid, r_geoid, z_field, t_field, vmr_field, r );
 
@@ -4173,6 +4174,7 @@ void raytrace_1d_linear_euler(
    \date   2002-12-02
 */
 void raytrace_2d_linear_euler(
+              Workspace&       ws,
               Array<double>&   r_array,
               Array<double>&   lat_array,
               Array<double>&   za_array,
@@ -4275,7 +4277,7 @@ void raytrace_2d_linear_euler(
                 Numeric   dndr, dndlat;
           const double   za_rad = DEG2RAD * za;
 
-          refr_gradients_2d( refr_index, dndr, dndlat, rte_pressure, 
+          refr_gradients_2d( ws, refr_index, dndr, dndlat, rte_pressure, 
                              rte_temperature, rte_vmr_list, refr_index_agenda,
                              agenda_verb,
                              p_grid, lat_grid, r_geoid, z_field, t_field, 
@@ -4382,6 +4384,7 @@ void raytrace_2d_linear_euler(
    \date   2003-01-18
 */
 void raytrace_3d_linear_euler(
+              Workspace&       ws,
               Array<double>&   r_array,
               Array<double>&   lat_array,
               Array<double>&   lon_array,
@@ -4522,7 +4525,8 @@ void raytrace_3d_linear_euler(
         {
           Numeric   dndr, dndlat, dndlon;
 
-          refr_gradients_3d( refr_index, dndr, dndlat, dndlon, rte_pressure, 
+          refr_gradients_3d( ws,
+                             refr_index, dndr, dndlat, dndlon, rte_pressure, 
                              rte_temperature, rte_vmr_list, refr_index_agenda, 
                              agenda_verb,
                              p_grid, lat_grid, lon_grid, r_geoid, z_field, 
@@ -4633,6 +4637,7 @@ void raytrace_3d_linear_euler(
    \date   2002-11-26
 */
 void ppath_step_refr_1d(
+              Workspace&  ws,
               Ppath&      ppath,
               Numeric&    rte_pressure,
               Numeric&    rte_temperature,
@@ -4672,7 +4677,8 @@ void ppath_step_refr_1d(
   double ppc;
   if( ppath.constant < 0 )
     { 
-      get_refr_index_1d( refr_index, rte_pressure, rte_temperature, rte_vmr_list, 
+      get_refr_index_1d( ws, refr_index, rte_pressure, rte_temperature,
+                         rte_vmr_list, 
                          refr_index_agenda, 1, p_grid, r_geoid, z_field, 
                          t_field, vmr_field, r_start );
       ppc = refraction_ppc( r_start, za_start, refr_index ); 
@@ -4705,7 +4711,8 @@ void ppath_step_refr_1d(
       else
         { method = "1D linear Euler, with length criterion"; }
 
-      raytrace_1d_linear_euler( r_array, lat_array, za_array, l_array, endface,
+      raytrace_1d_linear_euler( ws,
+        r_array, lat_array, za_array, l_array, endface,
         tanpoint, r_start, lat_start, za_start, rte_pressure, rte_temperature, 
             rte_vmr_list, refr_index, refr_index_agenda, ppc, lraytrace, 
             r_geoid+z_field[ip], r_geoid+z_field[ip+1], r_geoid + z_surface, 
@@ -4746,8 +4753,9 @@ void ppath_step_refr_1d(
 
       out3 << "  --- Recursive step to include tangent point --------\n"; 
 
-      ppath_step_refr_1d( ppath2, rte_pressure, rte_temperature, rte_vmr_list,
-                      refr_index, refr_index_agenda, p_grid, z_field, t_field,
+      ppath_step_refr_1d( ws,
+                ppath2, rte_pressure, rte_temperature, rte_vmr_list,
+                refr_index, refr_index_agenda, p_grid, z_field, t_field,
                 vmr_field, r_geoid, z_surface, rtrace_method, lraytrace, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
@@ -4789,6 +4797,7 @@ void ppath_step_refr_1d(
    \date   2002-12-02
 */
 void ppath_step_refr_2d(
+              Workspace&  ws,
               Ppath&      ppath,
               Numeric&    rte_pressure,
               Numeric&    rte_temperature,
@@ -4853,11 +4862,12 @@ void ppath_step_refr_2d(
       else
         { method = "2D linear Euler, with length criterion"; }
 
-      raytrace_2d_linear_euler( r_array, lat_array, za_array, l_array, endface,
+      raytrace_2d_linear_euler( ws,
+        r_array, lat_array, za_array, l_array, endface,
         tanpoint, r_start, lat_start, za_start, rte_pressure, rte_temperature, 
-                    rte_vmr_list, refr_index, refr_index_agenda, lraytrace, 
-                          lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
-                      p_grid, lat_grid, r_geoid, z_field, t_field, vmr_field );
+        rte_vmr_list, refr_index, refr_index_agenda, lraytrace, 
+        lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
+        p_grid, lat_grid, r_geoid, z_field, t_field, vmr_field );
     }
 #ifndef NDEBUG
   else
@@ -4894,10 +4904,11 @@ void ppath_step_refr_2d(
       out3 << "  --- Recursive step to include tangent point --------\n"; 
 
       // Call this function recursively
-      ppath_step_refr_2d( ppath2, rte_pressure, rte_temperature, rte_vmr_list,
+      ppath_step_refr_2d( ws,
+                    ppath2, rte_pressure, rte_temperature, rte_vmr_list,
                     refr_index, refr_index_agenda, p_grid, lat_grid, z_field, 
                     t_field, vmr_field, 
-                           r_geoid, z_surface, rtrace_method, lraytrace, lmax );
+                    r_geoid, z_surface, rtrace_method, lraytrace, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
@@ -4939,6 +4950,7 @@ void ppath_step_refr_2d(
    \date   2003-01-08
 */
 void ppath_step_refr_3d(
+              Workspace&  ws,
               Ppath&      ppath,
               Numeric&    rte_pressure,
               Numeric&    rte_temperature,
@@ -5013,7 +5025,7 @@ void ppath_step_refr_3d(
       else
         { method = "3D linear Euler, with length criterion"; }
 
-      raytrace_3d_linear_euler( r_array, lat_array, lon_array, za_array, 
+      raytrace_3d_linear_euler( ws, r_array, lat_array, lon_array, za_array, 
                                 aa_array, l_array, endface, tanpoint, r_start,
                                 lat_start, lon_start, za_start, aa_start, 
                                 rte_pressure, rte_temperature, rte_vmr_list, 
@@ -5061,7 +5073,8 @@ void ppath_step_refr_3d(
       out3 << "  --- Recursive step to include tangent point --------\n"; 
 
       // Call this function recursively
-      ppath_step_refr_3d( ppath2, rte_pressure, rte_temperature, rte_vmr_list,
+      ppath_step_refr_3d( ws,
+                          ppath2, rte_pressure, rte_temperature, rte_vmr_list,
                           refr_index, refr_index_agenda, p_grid, lat_grid, 
                           lon_grid, z_field, t_field, vmr_field, 
                           r_geoid, z_surface, rtrace_method, lraytrace, lmax );
@@ -6101,6 +6114,7 @@ void ppath_start_stepping(
    \date   2003-01-08
 */
 void ppath_calc(
+              Workspace&      ws,
         // WS Output:
               Ppath&          ppath,
         // WS Input:
@@ -6206,7 +6220,7 @@ void ppath_calc(
       //
       istep++;
       //
-      ppath_step_agendaExecute( ppath_step, atmosphere_dim, p_grid,
+      ppath_step_agendaExecute( ws, ppath_step, atmosphere_dim, p_grid,
                                 lat_grid, lon_grid, z_field, r_geoid, z_surface,
                                 ppath_step_agenda, true );
 

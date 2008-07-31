@@ -1496,7 +1496,8 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_fieldCalc(// WS Output:
+void abs_fieldCalc(Workspace& ws,
+                   // WS Output:
                    Tensor5& asg_field,
                    // WS Input:
                    const Agenda&  sga_agenda,
@@ -1598,9 +1599,13 @@ void abs_fieldCalc(// WS Output:
   out2 << "  Agenda output is suppressed, use reporting\n"
        <<"   level 4 if you want to see it.\n";
 
-  // Now we have to loop all points in the atmosphere.
+  // We have to make a local copy of the Workspace and the agendas because
+  // only non-reference types can be declared firstprivate in OpenMP
+  Workspace l_ws (ws);
+  Agenda l_sga_agenda (sga_agenda);
 
-#pragma omp parallel private(asg, a_vmr_list)
+  // Now we have to loop all points in the atmosphere:
+#pragma omp parallel private(asg, a_vmr_list) firstprivate(l_ws,l_sga_agenda)
 #pragma omp for 
   for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
     {
@@ -1622,11 +1627,11 @@ void abs_fieldCalc(// WS Output:
                 // Execute agenda to calculate local absorption.
                 // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
                 // Agenda output: asg
-                abs_scalar_gas_agendaExecute(asg,
+                abs_scalar_gas_agendaExecute(l_ws,
+                                             asg,
                                              f_index, a_pressure,
                                              a_temperature, a_vmr_list,
-                                             sga_agenda, true,
-                                             arts_omp_in_parallel());
+                                             l_sga_agenda, true);
 
                 // Verify, that the number of species in asg is
                 // constistent with vmr_field:

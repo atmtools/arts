@@ -42,7 +42,7 @@ extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric PI;
 
-void clear_rt_vars_at_gp(
+void clear_rt_vars_at_gp(Workspace&              ws,
                          MatrixView&             ext_mat_mono,
                          VectorView&             abs_vec_mono,
                          Numeric&                temperature,
@@ -75,7 +75,7 @@ void cloud_atm_vars_by_gp(
                           const ConstTensor4View   pnd_field
 );
 
-void Cloudbox_ppathCalc(
+void Cloudbox_ppathCalc(Workspace&      ws,
                         //  Output:
                         Ppath&          ppath,
                         Ppath&          ppath_step,
@@ -94,7 +94,7 @@ void Cloudbox_ppathCalc(
                         const Index& z_field_is_1D);
 
 
-void Cloudbox_ppath_rteCalc(
+void Cloudbox_ppath_rteCalc( Workspace&            ws,
                              Ppath&                ppathcloud,
                              Ppath&                ppath,
                              Ppath&                ppath_step,
@@ -166,6 +166,7 @@ void cloudbox_ppath_start_stepping(
           
 
 void cloudy_rt_vars_at_gp(
+                       Workspace&            ws,
                        MatrixView&           ext_mat_mono,
                        VectorView&           abs_vec_mono,
                        VectorView&           pnd_vec,
@@ -198,7 +199,7 @@ void findZ11max(Vector& Z11maxvector,
 
 bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono);
 
-void iwp_cloud_opt_pathCalc(
+void iwp_cloud_opt_pathCalc(Workspace& ws,
                             Numeric& iwp,
                             Numeric& cloud_opt_path,
                             //input
@@ -223,7 +224,8 @@ void iwp_cloud_opt_pathCalc(
 void matrix_exp_p30(MatrixView& M,
                     ConstMatrixView& A);
 
-void mcPathTrace(MatrixView&           evol_op,
+void mcPathTrace(Workspace& ws,
+                 MatrixView&           evol_op,
                  VectorView& abs_vec_mono,
                  Numeric& temperature,
                  MatrixView& ext_mat_mono,
@@ -250,7 +252,8 @@ void mcPathTrace(MatrixView&           evol_op,
                  const ArrayOfSingleScatteringData& scat_data_mono,
                  const Index& z_field_is_1D);
 
-void mcPathTraceGeneral(MatrixView&           evol_op,
+void mcPathTraceGeneral(Workspace&            ws,
+                        MatrixView&           evol_op,
                         Vector&               abs_vec_mono,
                         Numeric&              temperature,
                         MatrixView&           ext_mat_mono,
@@ -281,7 +284,8 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
                         const ArrayOfSingleScatteringData& scat_data_mono,
                         const Index&          z_field_is_1D);
 
-void mcPathTraceIPA(MatrixView&           evol_op,
+void mcPathTraceIPA(Workspace&            ws,
+                    MatrixView&           evol_op,
                     Vector&               abs_vec_mono,
                     Numeric&              temperature,
                     MatrixView&           ext_mat_mono,
@@ -312,7 +316,7 @@ void mcPathTraceIPA(MatrixView&           evol_op,
                     const Index&          z_field_is_1D,
                     const Ppath&          ppath);
 
-void montecarloGetIncoming(
+void montecarloGetIncoming(Workspace&            ws,
                            Matrix&               iy,
                            Vector&               rte_pos,
                            Vector&               rte_los,
@@ -339,7 +343,7 @@ void montecarloGetIncoming(
                            const Index&          stokes_dim
                            );
 
-Numeric opt_depth_calc(
+Numeric opt_depth_calc(Workspace& ws,
                        Tensor3& ext_mat,
                        Matrix&  abs_vec,
                        Numeric&   rte_pressure,
@@ -425,7 +429,7 @@ void Sample_ppathlengthLOS (
                          );
 
 
-void TArrayCalc(
+void TArrayCalc(Workspace& ws,
                 //output
                 ArrayOfMatrix& TArray,
                 ArrayOfMatrix& ext_matArray,

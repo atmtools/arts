@@ -213,6 +213,7 @@ void ppath_step_geom_3d(
     const double&      lmax );
 
 void ppath_step_refr_1d(
+              Workspace&  ws,
               Ppath&      ppath,
               Numeric&    rte_pressure,
               Numeric&    rte_temperature,
@@ -230,6 +231,7 @@ void ppath_step_refr_1d(
         const double&     lmax );
 
 void ppath_step_refr_2d(
+              Workspace&  ws,
               Ppath&      ppath,
               Numeric&    rte_pressure,
               Numeric&    rte_temperature,
@@ -248,6 +250,7 @@ void ppath_step_refr_2d(
         const double&     lmax );
 
 void ppath_step_refr_3d(
+              Workspace&  ws,
               Ppath&      ppath,
               Numeric&    rte_pressure,
               Numeric&    rte_temperature,
@@ -267,6 +270,7 @@ void ppath_step_refr_3d(
         const double&     lmax );
 
 void ppath_calc(
+              Workspace&      ws,
               Ppath&          ppath,
         const Agenda&         ppath_step_agenda,
         const Index&          atmosphere_dim,

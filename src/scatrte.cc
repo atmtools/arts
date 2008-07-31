@@ -81,18 +81,19 @@ extern const Numeric RAD2DEG;
   \author Claudia Emde
   \date 2002-06-03
 */
-void cloud_fieldsCalc(// Output and Input:
-                        Tensor5View ext_mat_field,
-                        Tensor4View abs_vec_field,
-                        // Input:
-                        const Agenda& spt_calc_agenda,
-                        const Agenda& opt_prop_part_agenda,
-                        const Index& scat_za_index, 
-                        const Index& scat_aa_index,
-                        const ArrayOfIndex& cloudbox_limits,
-                        const Tensor3View t_field, 
-                        const Tensor4View pnd_field
-                        )
+void cloud_fieldsCalc(Workspace& ws,
+                      // Output and Input:
+                      Tensor5View ext_mat_field,
+                      Tensor4View abs_vec_field,
+                      // Input:
+                      const Agenda& spt_calc_agenda,
+                      const Agenda& opt_prop_part_agenda,
+                      const Index& scat_za_index, 
+                      const Index& scat_aa_index,
+                      const ArrayOfIndex& cloudbox_limits,
+                      const Tensor3View t_field, 
+                      const Tensor4View pnd_field
+                     )
 {
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from 
   // where this function is called.
@@ -160,7 +161,7 @@ void cloud_fieldsCalc(// Output and Input:
               
               //Calculate optical properties for single particle types:
               //( Execute agendas silently. )
-              spt_calc_agendaExecute(ext_mat_spt_local, 
+              spt_calc_agendaExecute(ws, ext_mat_spt_local, 
                                      abs_vec_spt_local,
                                      scat_p_index_local,
                                      scat_lat_index_local,
@@ -171,7 +172,7 @@ void cloud_fieldsCalc(// Output and Input:
                                      spt_calc_agenda,
                                      true);
 
-              opt_prop_part_agendaExecute(ext_mat_local, abs_vec_local, 
+              opt_prop_part_agendaExecute(ws, ext_mat_local, abs_vec_local, 
                                           ext_mat_spt_local, 
                                           abs_vec_spt_local,
                                           scat_p_index_local,
@@ -240,7 +241,7 @@ void cloud_fieldsCalc(// Output and Input:
   \author Claudia Emde
   \date 2003-06-04
 */
-void cloud_ppath_update1D(
+void cloud_ppath_update1D(Workspace& ws,
                           // Input and output
                           Tensor6View doit_i_field,
                           // ppath_step_agenda:
@@ -300,7 +301,7 @@ void cloud_ppath_update1D(
   // Call ppath_step_agenda: 
   Vector unused_lat_grid(0);
   Vector unused_lon_grid(0);
-  ppath_step_agendaExecute(ppath_step, 1, p_grid,
+  ppath_step_agendaExecute(ws, ppath_step, 1, p_grid,
                            unused_lat_grid, unused_lon_grid,
                            z_field, r_geoid, z_surface,
                            ppath_step_agenda, true);
@@ -352,7 +353,7 @@ void cloud_ppath_update1D(
       // Radiative transfer from one layer to the next, starting
       // at the intersection with the next layer and propagating
       // to the considered point.
-      cloud_RT_no_background(doit_i_field, 
+      cloud_RT_no_background(ws, doit_i_field, 
                              abs_scalar_gas_agenda,
                                  opt_prop_gas_agenda, ppath_step, 
                              t_int, vmr_list_int,
@@ -366,7 +367,7 @@ void cloud_ppath_update1D(
       if (bkgr == 2)
         {
           // cout << "hit surface "<< ppath_step.gp_p << endl;
-          cloud_RT_surface(
+          cloud_RT_surface(ws,
                            doit_i_field, surface_prop_agenda, 
                            f_index, stokes_dim, ppath_step, cloudbox_limits, 
                            scat_za_grid, scat_za_index); 
@@ -385,6 +386,7 @@ void cloud_ppath_update1D(
   \date 2005-05-04
 */
 void cloud_ppath_update1D_noseq(
+                          Workspace& ws,
                           // Output
                           Tensor6View doit_i_field,
                           // ppath_step_agenda:
@@ -446,7 +448,7 @@ void cloud_ppath_update1D_noseq(
   // Call ppath_step_agenda: 
   Vector unused_lat_grid(0);
   Vector unused_lon_grid(0);
-  ppath_step_agendaExecute(ppath_step, 1, p_grid,
+  ppath_step_agendaExecute(ws, ppath_step, 1, p_grid,
                            unused_lat_grid, unused_lon_grid,
                            z_field, r_geoid, z_surface,
                            ppath_step_agenda, true);
@@ -500,7 +502,7 @@ void cloud_ppath_update1D_noseq(
           // Radiative transfer from one layer to the next, starting
           // at the intersection with the next layer and propagating
           // to the considered point.
-          cloud_RT_no_background(doit_i_field,
+          cloud_RT_no_background(ws, doit_i_field,
                                  abs_scalar_gas_agenda,
                                  opt_prop_gas_agenda, ppath_step, 
                                  t_int, vmr_list_int,
@@ -569,7 +571,7 @@ void cloud_ppath_update1D_noseq(
   \author Claudia Emde
   \date 2003-06-04
 */
-void cloud_ppath_update3D(
+void cloud_ppath_update3D(Workspace& ws,
                           Tensor6View doit_i_field,
                           // ppath_step_agenda:
                           const Index& p_index,
@@ -650,7 +652,7 @@ void cloud_ppath_update3D(
   ppath_step.gp_lon[0].fd[1] = 1.;
 
   // Call ppath_step_agenda: 
-  ppath_step_agendaExecute(ppath_step, 3, p_grid,
+  ppath_step_agendaExecute(ws, ppath_step, 3, p_grid,
                            lat_grid, lon_grid, z_field, r_geoid, z_surface,
                            ppath_step_agenda, true);
 
@@ -808,7 +810,7 @@ void cloud_ppath_update3D(
       itw2p( p_int, p_grid, ppath_step.gp_p, itw_p);
       
       out3 << "Calculate radiative transfer inside cloudbox.\n";
-      cloud_RT_no_background(doit_i_field, 
+      cloud_RT_no_background(ws, doit_i_field, 
                              abs_scalar_gas_agenda,
                              opt_prop_gas_agenda, ppath_step, 
                              t_int, vmr_list_int,
@@ -852,7 +854,8 @@ void cloud_ppath_update3D(
   \author Claudia Emde
   \date 2005-05-13
 */
-void cloud_RT_no_background(//Output
+void cloud_RT_no_background(Workspace& ws,
+                            //Output
                             Tensor6View doit_i_field,
                             // Input
                             const Agenda& abs_scalar_gas_agenda,
@@ -908,7 +911,7 @@ void cloud_RT_no_background(//Output
       // and ext_mat.
       //
               
-      abs_scalar_gas_agendaExecute( abs_scalar_gas_local, 
+      abs_scalar_gas_agendaExecute( ws, abs_scalar_gas_local, 
                                     f_index, 
                                     rte_pressure_local, 
                                     rte_temperature_local, 
@@ -916,7 +919,7 @@ void cloud_RT_no_background(//Output
                                     abs_scalar_gas_agenda,
                                     true );
               
-      opt_prop_gas_agendaExecute( ext_mat_local, 
+      opt_prop_gas_agendaExecute( ws, ext_mat_local, 
                                   abs_vec_local, 
                                   f_index, 
                                   abs_scalar_gas_local,
@@ -1002,7 +1005,7 @@ void cloud_RT_no_background(//Output
   \author Claudia Emde
   \date 2005-05-13
 */
-void cloud_RT_surface(
+void cloud_RT_surface(Workspace& ws,
                       //Output
                       Tensor6View doit_i_field,
                       //Input
@@ -1040,7 +1043,7 @@ void cloud_RT_surface(
   //Execute the surface_prop_agenda which gives the surface 
   //parameters.
   
-  surface_prop_agendaExecute(surface_emission, surface_los, 
+  surface_prop_agendaExecute(ws, surface_emission, surface_los, 
                              surface_rmatrix, ppath_step.gp_p[np-1],
                              dummy_ppath_step_gp_lat, 
                              dummy_ppath_step_gp_lon, rte_los,
@@ -1101,7 +1104,8 @@ void cloud_RT_surface(
   \author Claudia Emde
   \date 2003-06-06
 */
-void ppath_step_in_cloudbox(//Output:
+void ppath_step_in_cloudbox(Workspace& ws,
+                            //Output:
                             Ppath& ppath_step,
                             //Input:
                             const Agenda& ppath_step_agenda,
@@ -1155,7 +1159,7 @@ void ppath_step_in_cloudbox(//Output:
   ppath_step.gp_lon[0].fd[1] = 1.;
               
   // Call ppath_step_agenda: 
-  ppath_step_agendaExecute(ppath_step, 3, p_grid,
+  ppath_step_agendaExecute(ws, ppath_step, 3, p_grid,
                            lat_grid, lon_grid, z_field, r_geoid, z_surface,
                            ppath_step_agenda, true);
 }
@@ -1455,7 +1459,7 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
   \author Sreerekha Ravi
   \date 2003-11-17
 */
-void cloud_ppath_update1D_planeparallel(
+void cloud_ppath_update1D_planeparallel(Workspace& ws,
                                         Tensor6View doit_i_field,
                                         const Index& p_index,
                                         const Index& scat_za_index,
@@ -1546,7 +1550,7 @@ void cloud_ppath_update1D_planeparallel(
               // and ext_mat.
               //
               
-              abs_scalar_gas_agendaExecute( abs_scalar_gas, 
+              abs_scalar_gas_agendaExecute( ws, abs_scalar_gas, 
                                             f_index, 
                                             rte_pressure, 
                                             rte_temperature, 
@@ -1554,7 +1558,7 @@ void cloud_ppath_update1D_planeparallel(
                                             abs_scalar_gas_agenda,
                                             (p_index != 0) );
               
-              opt_prop_gas_agendaExecute( ext_mat, 
+              opt_prop_gas_agendaExecute( ws, ext_mat, 
                                           abs_vec, 
                                           f_index,
                                           abs_scalar_gas,
@@ -1664,7 +1668,7 @@ void cloud_ppath_update1D_planeparallel(
               // and ext_mat.
               //
 
-              abs_scalar_gas_agendaExecute( abs_scalar_gas, 
+              abs_scalar_gas_agendaExecute( ws, abs_scalar_gas, 
                                             f_index, 
                                             rte_pressure, 
                                             rte_temperature, 
@@ -1672,7 +1676,7 @@ void cloud_ppath_update1D_planeparallel(
                                             abs_scalar_gas_agenda,
                                             (p_index != 0) );
 
-              opt_prop_gas_agendaExecute( ext_mat, 
+              opt_prop_gas_agendaExecute( ws, ext_mat, 
                                           abs_vec, 
                                           f_index,
                                           abs_scalar_gas,

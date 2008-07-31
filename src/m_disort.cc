@@ -72,7 +72,8 @@ void cloudboxSetDisort(//WS Output
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 #ifdef ENABLE_DISORT
-void ScatteringDisort(// WS Output:
+void ScatteringDisort(Workspace& ws,
+                      // WS Output:
                       Tensor7& scat_i_p,
                       Tensor7& scat_i_lat,
                       Tensor7& scat_i_lon,
@@ -257,7 +258,7 @@ void ScatteringDisort(// WS Output:
       
       scat_data_monoCalc(scat_data_mono, scat_data_raw, f_grid, f_index);
       
-      dtauc_ssalbCalc(dtauc, ssalb, opt_prop_part_agenda,
+      dtauc_ssalbCalc(ws, dtauc, ssalb, opt_prop_part_agenda,
                       abs_scalar_gas_agenda, spt_calc_agenda, 
                       pnd_field, 
                       t_field, z_field, p_grid, vmr_field, f_index);
@@ -326,7 +327,8 @@ void ScatteringDisort(// WS Output:
   delete [] prnt;
     
 #else
-void ScatteringDisort(// WS Output:
+void ScatteringDisort(Workspace&,
+                      // WS Output:
                       Tensor7&,
                       Tensor7&,
                       Tensor7&,

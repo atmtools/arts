@@ -64,7 +64,8 @@ extern const Index   GFIELD3_P_GRID;
 /* Workspace method: Doxygen documentation will be auto-generated 
 
    2008-07-21 Stefan Buehler */
-void ForLoop(// WS Input:
+void ForLoop(Workspace& ws,
+             // WS Input:
              const Agenda& forloop_agenda,
              // Control Parameters:
              const Index& start,
@@ -74,7 +75,7 @@ void ForLoop(// WS Input:
   for (Index i=start; i<=stop; i+=step)
     {
       out1 << "  Executing for loop body, index: " << i << "\n";
-      forloop_agendaExecute(i, forloop_agenda, false);
+      forloop_agendaExecute(ws, i, forloop_agenda, false);
     }
 }
 
@@ -355,7 +356,7 @@ void VectorExtractFromMatrix(
 /* Implementation of ybatchCalc (robust and not-robust version). The
    idea is to make this a workspace method when optional keywords
    work. */
-void ybatchCalc_implementation(
+void ybatchCalc_implementation(Workspace&      ws,
                                // WS Output:
                                Matrix&         ybatch,
                                // WS Input:
@@ -376,7 +377,7 @@ void ybatchCalc_implementation(
       out2 << "  Doing job " << first_ybatch_index+1 << " of " << ybatch_n << "\n";
       try
         {
-          ybatch_calc_agendaExecute( y, first_ybatch_index, ybatch_calc_agenda, false );
+          ybatch_calc_agendaExecute( ws, y, first_ybatch_index, ybatch_calc_agenda, false );
           // The false flag at the end means that agenda output is
           // not suppressed.
 
@@ -414,10 +415,14 @@ void ybatchCalc_implementation(
       first_ybatch_index++;
     }
 
+  // We have to make a local copy of the Workspace and the agendas because
+  // only non-reference types can be declared firstprivate in OpenMP
+  Workspace l_ws (ws);
+  Agenda l_ybatch_calc_agenda (ybatch_calc_agenda);
 
   // Go through the batch:
 
-#pragma omp parallel private(y)
+#pragma omp parallel private(y) firstprivate(l_ws,l_ybatch_calc_agenda)
 #pragma omp for 
   for(Index ybatch_index = first_ybatch_index;
       ybatch_index<ybatch_n;
@@ -426,8 +431,9 @@ void ybatchCalc_implementation(
       out2 << "  Doing job " << ybatch_index+1 << " of " << ybatch_n << "\n";
       try
         {
-          ybatch_calc_agendaExecute( y, ybatch_index, ybatch_calc_agenda,
-                                     true, arts_omp_in_parallel() );
+          ybatch_calc_agendaExecute( l_ws, y, ybatch_index,
+                                     l_ybatch_calc_agenda,
+                                     true );
           // We are surpressing agenda output here, since this is too
           // much to be useful. (The true flag at the end does this.)          
  
@@ -456,11 +462,12 @@ void ybatchCalc_implementation(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchCalc(// WS Output:
+void ybatchCalc(Workspace&      ws, 
+                // WS Output:
                 Matrix&         ybatch,
                 // WS Input:
-                const Index&          ybatch_n,
-                const Agenda&         ybatch_calc_agenda,
+                const Index&    ybatch_n,
+                const Agenda&   ybatch_calc_agenda,
                 // Control Parameters:
                 const Index& robust)
 {
@@ -472,7 +479,8 @@ void ybatchCalc(// WS Output:
   else
     throw runtime_error("Keyword *robust* must be either 0 or 1.");
 
-  ybatchCalc_implementation( ybatch,
+  ybatchCalc_implementation( ws,
+                             ybatch,
                              ybatch_n,
                              ybatch_calc_agenda,
                              robust );
@@ -480,7 +488,9 @@ void ybatchCalc(// WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchMetProfiles(//Output
+void ybatchMetProfiles(
+               Workspace& ws,
+               //Output
                Matrix& ybatch,
                //Input
                const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -688,7 +698,7 @@ void ybatchMetProfiles(//Output
     z_field_raw, vmr_field_raw, pnd_field_raw, p_grid,
     sensor_los, cloudbox_on, cloudbox_limits, z_surface, */
         
-      met_profile_calc_agendaExecute (y, t_field_raw, vmr_field_raw,
+      met_profile_calc_agendaExecute (ws, y, t_field_raw, vmr_field_raw,
                                       z_field_raw, pnd_field_raw, p_grid,
                                       sensor_los, cloudbox_on,
                                       cloudbox_limits, z_surface,
@@ -703,7 +713,9 @@ void ybatchMetProfiles(//Output
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchMetProfilesClear(//Output
+void ybatchMetProfilesClear(
+                Workspace& ws,
+                //Output
                 Matrix& ybatch,
                 //Input
                 const ArrayOfArrayOfSpeciesTag& abs_species,
@@ -849,7 +861,7 @@ void ybatchMetProfilesClear(//Output
       xml_write_to_file("p_grid.xml", p_grid);
 
       // executing the met_profile_calc_agenda
-      met_profile_calc_agendaExecute (y, t_field_raw, vmr_field_raw,
+      met_profile_calc_agendaExecute (ws, y, t_field_raw, vmr_field_raw,
                                       z_field_raw, pnd_field_raw, p_grid,
                                       sensor_los, cloudbox_on,
                                       cloudbox_limits, z_surface,

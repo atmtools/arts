@@ -95,6 +95,7 @@ public:
   bool                     PassWorkspace()  const { return mpass_workspace; }
   bool                     PassWsvNames()   const { return mpass_wsv_names; }
   Index                    ActualGroup()    const { return mactual_group; }
+  void                     SetPassWorkspace()  { mpass_workspace = true; }
 
   // Expand supergeneric method record to an actual group
   // (documentation with implementation in method_aux.cc):

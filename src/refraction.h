@@ -41,6 +41,7 @@
 
 
 void get_refr_index_1d(
+              Workspace&  ws,
               Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
@@ -55,6 +56,7 @@ void get_refr_index_1d(
         const Numeric&    r );
 
 void get_refr_index_2d(
+              Workspace&  ws,
               Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
@@ -71,6 +73,7 @@ void get_refr_index_2d(
         const Numeric&    lat );
 
 void get_refr_index_3d(
+              Workspace&  ws,
               Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
@@ -89,6 +92,7 @@ void get_refr_index_3d(
         const Numeric&    lon );
 
 void refr_gradients_1d(
+              Workspace&  ws,
               Numeric&    refr_index,
               Numeric&    dndr,
               Numeric&    a_pressure,
@@ -104,6 +108,7 @@ void refr_gradients_1d(
         const Numeric&    r );
 
 void refr_gradients_2d(
+              Workspace&  ws,
               Numeric&    refr_index,
               Numeric&    dndr,
               Numeric&    dndlat,
@@ -122,6 +127,7 @@ void refr_gradients_2d(
         const Numeric&    lat );
 
 void refr_gradients_3d(
+              Workspace&  ws,
               Numeric&    refr_index,
               Numeric&    dndr,
               Numeric&    dndlat,
