@@ -26,20 +26,8 @@
 */
 
 #include "arts.h"
-#include "messages.h"
 #include "mystring.h"
 #include "array.h"
-
-/** The output path. For example for the report file. */
-String out_path;
-
-/** The basename for the report file and for all other output
-    files. The files will have names like \<basename\>.rep (for the
-    report file). */
-String out_basename;
-
-/** The report file. */
-ofstream report_file;
 
 /** A thread private flag that says whether we are in the main agenda,
     or not. If we are not, then agenda output is suppressed or
@@ -51,8 +39,21 @@ ofstream report_file;
 bool in_main_agenda=true;
 #pragma omp threadprivate(in_main_agenda)
 
+#include "messages.h"
+
 // The global message verbosity settings:
 Messages arts_messages;
+
+/** The output path. For example for the report file. */
+String out_path;
+
+/** The basename for the report file and for all other output
+    files. The files will have names like \<basename\>.rep (for the
+    report file). */
+String out_basename;
+
+/** The report file. */
+ofstream report_file;
 
 /**
    Check if artsmessages contains valid message levels.
