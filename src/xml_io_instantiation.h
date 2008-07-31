@@ -117,7 +117,7 @@ TMPL_XML_READ_WRITE( ArrayOfVector )
 //==========================================================================
 
 // Undefine the macro to avoid it being used anywhere else
-#undef TMP_XML_READ_WRITE
+#undef TMPL_XML_READ_WRITE
 
 #endif /* xml_io_instantiation_h */
 

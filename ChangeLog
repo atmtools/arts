@@ -1,5 +1,13 @@
 2008-07-31  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-7-26
+
+	* src/xml_io_instantiation.h: Fix typo in macro name.
+
+	* ChangeLog: Fix typo in my previous commit.
+
+2008-07-31  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-7-25
 
 	* src/messages.cc:
@@ -7,7 +15,7 @@
 	Fix compilation with icc. First define in_main_agenda and then include
 	messages.h. i_m_a has to be initialized before being referenced
 	anywhere else. As in_main_agenda is declared extern in messages.h, icc
-	will otherwise through the error: Threadprivate directive must
+	will otherwise throw the error: Threadprivate directive must
 	lexically precede all references to any variables in its list.
 
 2008-07-31  Oliver Lemke  <olemke@core-dump.info>
