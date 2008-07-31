@@ -22,10 +22,9 @@
 /*!
   \file   xml_io_instantiation.h
   \author Oliver Lemke <olemke@core-dump.info>
-  \date   2002-11-06
+  \date   2008-07-31
 
-  \brief This file contains private function declarations and
-         template instantiation to handle XML data files.
+  \brief This file contains template instantiations to handle XML data files.
 
 */
 
@@ -39,6 +38,10 @@
 #include "xml_io_compound_types.h"
 #include "xml_io_array_types.h"
 
+#define TMPL_XML_READ_WRITE(what) \
+  template void xml_read_from_file<what> (const String&, what&); \
+  template void xml_write_to_file<what> (const String&, const what&, FileType);
+
 
 ////////////////////////////////////////////////////////////////////////////
 //   Explicit instantiation of template functions we need
@@ -46,438 +49,75 @@
 
 //=== Basic Types ==========================================================
 
-template void
-xml_read_from_file<Index> (const String&, Index&);
-
-template void
-xml_read_from_file<Matrix> (const String&, Matrix&);
-
-template void
-xml_read_from_file<Numeric> (const String&, Numeric&);
-
-template void
-xml_read_from_file<Sparse> (const String&, Sparse&);
-
-template void
-xml_read_from_file<String> (const String&, String&);
-
-template void
-xml_read_from_file<Tensor3> (const String&, Tensor3&);
-
-template void
-xml_read_from_file<Tensor4> (const String&, Tensor4&);
-
-template void
-xml_read_from_file<Tensor5> (const String&, Tensor5&);
-
-template void
-xml_read_from_file<Tensor6> (const String&, Tensor6&);
-
-template void
-xml_read_from_file<Tensor7> (const String&, Tensor7&);
-
-template void
-xml_read_from_file<Timer> (const String&, Timer&);
-
-template void
-xml_read_from_file<Vector> (const String&, Vector&);
-
-template void
-xml_write_to_file<Index> (const String&, const Index&, FileType);
-
-template void
-xml_write_to_file<Matrix> (const String&, const Matrix&, FileType);
-
-template void
-xml_write_to_file<Numeric> (const String&, const Numeric&, FileType);
-
-template void
-xml_write_to_file<Sparse> (const String&, const Sparse&, FileType);
-
-template void
-xml_write_to_file<String> (const String&, const String&, FileType);
-
-template void
-xml_write_to_file<Tensor3> (const String&, const Tensor3&, FileType);
-
-template void
-xml_write_to_file<Tensor4> (const String&, const Tensor4&, FileType);
-
-template void
-xml_write_to_file<Tensor5> (const String&, const Tensor5&, FileType);
-
-template void
-xml_write_to_file<Tensor6> (const String&, const Tensor6&, FileType);
-
-template void
-xml_write_to_file<Tensor7> (const String&, const Tensor7&, FileType);
-
-template void
-xml_write_to_file<Timer> (const String&, const Timer&, FileType);
-
-template void
-xml_write_to_file<Vector> (const String&, const Vector&, FileType);
-
+TMPL_XML_READ_WRITE( Index )
+TMPL_XML_READ_WRITE( Matrix )
+TMPL_XML_READ_WRITE( Numeric )
+TMPL_XML_READ_WRITE( Sparse )
+TMPL_XML_READ_WRITE( String )
+TMPL_XML_READ_WRITE( Tensor3 )
+TMPL_XML_READ_WRITE( Tensor4 )
+TMPL_XML_READ_WRITE( Tensor5 )
+TMPL_XML_READ_WRITE( Tensor6 )
+TMPL_XML_READ_WRITE( Tensor7 )
+TMPL_XML_READ_WRITE( Timer )
+TMPL_XML_READ_WRITE( Vector )
 
 //=== Compound Types =======================================================
 
-template void
-xml_read_from_file<Agenda> (const String&, Agenda&);
-
-template void
-xml_read_from_file<GasAbsLookup> (const String&, GasAbsLookup&);
-
-template void
-xml_read_from_file<GField1> (const String&, GField1&);
-
-template void
-xml_read_from_file<GField2> (const String&, GField2&);
-
-template void
-xml_read_from_file<GField3> (const String&, GField3&);
-
-template void
-xml_read_from_file<GField4> (const String&, GField4&);
-
-template void
-xml_read_from_file<GridPos> (const String&, GridPos&);
-
-template void
-xml_read_from_file<IsotopeRecord> (const String&, IsotopeRecord&);
-
-template void
-xml_read_from_file<MCAntenna> (const String&, MCAntenna&);
-
-template void
-xml_read_from_file<Ppath> (const String&, Ppath&);
-
-
-template void
-xml_read_from_file<RetrievalQuantity> (const String&, RetrievalQuantity&);
-
-template void
-xml_read_from_file<SingleScatteringData> (const String&, SingleScatteringData&);
-
-template void
-xml_read_from_file<SLIData2> (const String&, SLIData2&);
-
-template void
-xml_read_from_file<SpeciesRecord> (const String&, SpeciesRecord&);
-
-template void
-xml_read_from_file<SpeciesTag> (const String&, SpeciesTag&);
-
-template void
-xml_write_to_file<Agenda> (const String&, const Agenda&, FileType);
-
-template void
-xml_write_to_file<GasAbsLookup> (const String&, const GasAbsLookup&, FileType);
-
-template void
-xml_write_to_file<GField1> (const String&, const GField1&,
-                            FileType);
-
-template void
-xml_write_to_file<GField2> (const String&, const GField2&,
-                            FileType);
-
-template void
-xml_write_to_file<GField3> (const String&, const GField3&,
-                            FileType);
-
-template void
-xml_write_to_file<GField4> (const String&, const GField4&,
-                            FileType);
-
-template void
-xml_write_to_file<GridPos> (const String&, const GridPos&, FileType);
-
-template void
-xml_write_to_file<IsotopeRecord> (const String&, const IsotopeRecord&,
-                                  FileType);
-
-template void
-xml_write_to_file<MCAntenna> (const String&, const MCAntenna&, FileType);
-
-template void
-xml_write_to_file<Ppath> (const String&, const Ppath&, FileType);
-
-template void
-xml_write_to_file<RetrievalQuantity> (const String&,
-                                      const RetrievalQuantity&, FileType);
-
-template void
-xml_write_to_file<SingleScatteringData> (const String&,
-                                         const SingleScatteringData&, FileType);
-
-template void
-xml_write_to_file<SLIData2> (const String&,
-                             const SLIData2&, FileType);
-
-template void
-xml_write_to_file<SpeciesRecord> (const String&, const SpeciesRecord&,
-                                  FileType);
-
-template void
-xml_write_to_file<SpeciesTag> (const String&, const SpeciesTag&, FileType);
-
+TMPL_XML_READ_WRITE( Agenda )
+TMPL_XML_READ_WRITE( GField1 )
+TMPL_XML_READ_WRITE( GField2 )
+TMPL_XML_READ_WRITE( GField3 )
+TMPL_XML_READ_WRITE( GField4 )
+TMPL_XML_READ_WRITE( GasAbsLookup )
+TMPL_XML_READ_WRITE( GridPos )
+TMPL_XML_READ_WRITE( IsotopeRecord )
+TMPL_XML_READ_WRITE( MCAntenna )
+TMPL_XML_READ_WRITE( Ppath )
+TMPL_XML_READ_WRITE( RetrievalQuantity )
+TMPL_XML_READ_WRITE( SLIData2 )
+TMPL_XML_READ_WRITE( SingleScatteringData )
+TMPL_XML_READ_WRITE( SpeciesRecord )
+TMPL_XML_READ_WRITE( SpeciesTag )
 
 //=== Array Types ==========================================================
 
-template void
-xml_read_from_file< Array<IsotopeRecord> > (const String&,
-                                            Array<IsotopeRecord>&);
+TMPL_XML_READ_WRITE( Array<IsotopeRecord> )
+TMPL_XML_READ_WRITE( Array<SpeciesRecord> )
+TMPL_XML_READ_WRITE( ArrayOfArrayOfArrayOfArrayOfGridPos )
+TMPL_XML_READ_WRITE( ArrayOfArrayOfGField1 )
+TMPL_XML_READ_WRITE( ArrayOfArrayOfGField3 )
+TMPL_XML_READ_WRITE( ArrayOfArrayOfGridPos )
+TMPL_XML_READ_WRITE( ArrayOfArrayOfIndex )
+TMPL_XML_READ_WRITE( ArrayOfArrayOfLineRecord )
+TMPL_XML_READ_WRITE( ArrayOfArrayOfMatrix )
+TMPL_XML_READ_WRITE( ArrayOfArrayOfSpeciesTag )
+TMPL_XML_READ_WRITE( ArrayOfArrayOfTensor3 )
+TMPL_XML_READ_WRITE( ArrayOfArrayOfTensor6 )
+TMPL_XML_READ_WRITE( ArrayOfGField1 )
+TMPL_XML_READ_WRITE( ArrayOfGField2 )
+TMPL_XML_READ_WRITE( ArrayOfGField3 )
+TMPL_XML_READ_WRITE( ArrayOfGField4 )
+TMPL_XML_READ_WRITE( ArrayOfGridPos )
+TMPL_XML_READ_WRITE( ArrayOfIndex )
+TMPL_XML_READ_WRITE( ArrayOfLineRecord )
+TMPL_XML_READ_WRITE( ArrayOfLineshapeSpec )
+TMPL_XML_READ_WRITE( ArrayOfMatrix )
+TMPL_XML_READ_WRITE( ArrayOfPpath )
+TMPL_XML_READ_WRITE( ArrayOfRetrievalQuantity )
+TMPL_XML_READ_WRITE( ArrayOfSingleScatteringData )
+TMPL_XML_READ_WRITE( ArrayOfSpeciesTag )
+TMPL_XML_READ_WRITE( ArrayOfString )
+TMPL_XML_READ_WRITE( ArrayOfTensor3 )
+TMPL_XML_READ_WRITE( ArrayOfTensor4 )
+TMPL_XML_READ_WRITE( ArrayOfTensor6 )
+TMPL_XML_READ_WRITE( ArrayOfTensor7 )
+TMPL_XML_READ_WRITE( ArrayOfVector )
 
-template void
-xml_read_from_file< Array<SpeciesRecord> > (const String&,
-                                            Array<SpeciesRecord>&);
+//==========================================================================
 
-template void
-xml_read_from_file<ArrayOfArrayOfSpeciesTag> (const String&,
-                                              ArrayOfArrayOfSpeciesTag&);
-
-template void
-xml_read_from_file<ArrayOfSingleScatteringData> (const String&,
-                                              ArrayOfSingleScatteringData&);
-
-template void
-xml_read_from_file<ArrayOfGField1> (const String&, ArrayOfGField1&);
-
-template void
-xml_read_from_file<ArrayOfGField2> (const String&, ArrayOfGField2&);
-
-template void
-xml_read_from_file<ArrayOfGField3> (const String&, ArrayOfGField3&);
-
-template void
-xml_read_from_file<ArrayOfArrayOfGField1> (const String&,
-                                           ArrayOfArrayOfGField1&);
-
-template void
-xml_read_from_file<ArrayOfArrayOfGField3> (const String&,
-                                           ArrayOfArrayOfGField3&);
-
-template void
-xml_read_from_file<ArrayOfGField4> (const String&, ArrayOfGField4&);
-
-template void
-xml_read_from_file<ArrayOfLineRecord> (const String&,
-                                       ArrayOfLineRecord&);
-
-template void
-xml_read_from_file<ArrayOfArrayOfLineRecord> (const String&,
-                                              ArrayOfArrayOfLineRecord&);
-
-template void
-xml_read_from_file<ArrayOfLineshapeSpec> (const String&,
-                                          ArrayOfLineshapeSpec&);
-
-template void
-xml_read_from_file<ArrayOfPpath> (const String&, ArrayOfPpath&);
-
-template void
-xml_read_from_file<ArrayOfArrayOfTensor3> (const String&,
-                                           ArrayOfArrayOfTensor3&);
-
-template void
-xml_read_from_file<ArrayOfArrayOfTensor6> (const String&,
-                                           ArrayOfArrayOfTensor6&);
-
-template void
-xml_read_from_file<ArrayOfGridPos> (const String&, ArrayOfGridPos&);
-
-template void
-xml_read_from_file<ArrayOfArrayOfGridPos> 
-(const String&, ArrayOfArrayOfGridPos&);
-
-template void
-xml_read_from_file<ArrayOfArrayOfArrayOfGridPos> 
-(const String&, ArrayOfArrayOfArrayOfGridPos&);
-
-template void
-xml_read_from_file<ArrayOfArrayOfArrayOfArrayOfGridPos>
-(const String&, ArrayOfArrayOfArrayOfArrayOfGridPos&);
-
-template void
-xml_read_from_file<ArrayOfIndex> (const String&, ArrayOfIndex&);
-
-template void
-xml_read_from_file<ArrayOfArrayOfIndex> (const String&, ArrayOfArrayOfIndex&);
-
-template void
-xml_read_from_file<ArrayOfMatrix> (const String&, ArrayOfMatrix&);
-
-template void
-xml_read_from_file<ArrayOfArrayOfMatrix> 
-(const String&, ArrayOfArrayOfMatrix&);
-
-template void
-xml_read_from_file<ArrayOfRetrievalQuantity> (const String&,
-                                              ArrayOfRetrievalQuantity&);
-
-template void
-xml_read_from_file<ArrayOfSpeciesTag> (const String&, ArrayOfSpeciesTag&);
-
-template void
-xml_read_from_file<ArrayOfTensor3> (const String&, ArrayOfTensor3&);
-
-template void
-xml_read_from_file<ArrayOfTensor4> (const String&, ArrayOfTensor4&);
-
-template void
-xml_read_from_file<ArrayOfTensor6> (const String&, ArrayOfTensor6&);
-
-template void
-xml_read_from_file<ArrayOfTensor7> (const String&, ArrayOfTensor7&);
-
-template void
-xml_read_from_file<ArrayOfString> (const String&, ArrayOfString&);
-
-template void
-xml_read_from_file<ArrayOfVector> (const String&, ArrayOfVector&);
-
-template void
-xml_write_to_file<Array<IsotopeRecord> > (const String&,
-                                          const Array<IsotopeRecord>&,
-                                          FileType);
-
-template void
-xml_write_to_file<Array<SpeciesRecord> > (const String&,
-                                          const Array<SpeciesRecord>&,
-                                          FileType);
-
-template void
-xml_write_to_file<ArrayOfSingleScatteringData> (const String&,
-                                                const ArrayOfSingleScatteringData&,
-                                                FileType);
-
-template void
-xml_write_to_file<ArrayOfGField1> (const String&,
-                                   const ArrayOfGField1&,
-                                   FileType);
-
-template void
-xml_write_to_file<ArrayOfGField2> (const String&,
-                                   const ArrayOfGField2&,
-                                   FileType);
-
-template void
-xml_write_to_file<ArrayOfGField3> (const String&,
-                                   const ArrayOfGField3&,
-                                   FileType);
-
-template void
-xml_write_to_file<ArrayOfArrayOfGField1> (const String&,
-                                          const ArrayOfArrayOfGField1&,
-                                          FileType);
-
-template void
-xml_write_to_file<ArrayOfArrayOfGField3> (const String&,
-                                          const ArrayOfArrayOfGField3&,
-                                          FileType);
-
-template void
-xml_write_to_file<ArrayOfGField4> (const String&,
-                                   const ArrayOfGField4&,
-                                   FileType);
-
-template void
-xml_write_to_file<ArrayOfLineRecord> (const String&,
-                                      const ArrayOfLineRecord&,
-                                      FileType);
-
-template void
-xml_write_to_file<ArrayOfArrayOfLineRecord> (const String&,
-                                             const ArrayOfArrayOfLineRecord&,
-                                             FileType);
-
-template void
-xml_write_to_file<ArrayOfLineshapeSpec> (const String&,
-                                         const ArrayOfLineshapeSpec&,
-                                         FileType);
-
-template void
-xml_write_to_file<ArrayOfIndex> (const String&, const ArrayOfIndex&, FileType);
-
-template void
-xml_write_to_file<ArrayOfArrayOfIndex> (const String&, const ArrayOfArrayOfIndex&, FileType);
-
-template void
-xml_write_to_file<ArrayOfMatrix> (const String&, const ArrayOfMatrix&,
-                                  FileType);
-
-template void
-xml_write_to_file<ArrayOfArrayOfMatrix>
-(const String&, const ArrayOfArrayOfMatrix&, FileType);
-
-template void
-xml_write_to_file<ArrayOfRetrievalQuantity> (const String&,
-                                             const ArrayOfRetrievalQuantity&,
-                                             FileType);
-
-template void
-xml_write_to_file<ArrayOfPpath> (const String&,
-                                   const ArrayOfPpath&,
-                                   FileType);
-
-template void
-xml_write_to_file<ArrayOfTensor3> (const String&, const ArrayOfTensor3&,
-                                   FileType);
-
-template void
-xml_write_to_file<ArrayOfArrayOfTensor3> (const String&,
-                                          const ArrayOfArrayOfTensor3&,
-                                          FileType);
-
-template void
-xml_write_to_file<ArrayOfTensor4> (const String&, const ArrayOfTensor4&,
-                                   FileType);
-
-template void
-xml_write_to_file<ArrayOfTensor6> (const String&, const ArrayOfTensor6&,
-                                   FileType);
-
-template void
-xml_write_to_file<ArrayOfTensor7> (const String&, const ArrayOfTensor7&,
-                                   FileType);
-
-template void
-xml_write_to_file<ArrayOfArrayOfTensor6> (const String&,
-                                          const ArrayOfArrayOfTensor6&,
-                                          FileType);
-
-template void
-xml_write_to_file<ArrayOfString> (const String&, const ArrayOfString&,
-                                  FileType);
-
-template void
-xml_write_to_file<ArrayOfVector> (const String&, const ArrayOfVector&,
-                                  FileType);
-
-template void
-xml_write_to_file<ArrayOfArrayOfSpeciesTag> (const String&,
-                                             const ArrayOfArrayOfSpeciesTag&,
-                                             FileType);
-
-template void
-xml_write_to_file<ArrayOfGridPos> (const String&,
-                                   const ArrayOfGridPos&,
-                                   FileType);
-
-template void
-xml_write_to_file<ArrayOfArrayOfGridPos> (const String&,
-                                   const ArrayOfArrayOfGridPos&,
-                                   FileType);
-
-template void
-xml_write_to_file<ArrayOfArrayOfArrayOfGridPos> (const String&,
-                                                 const ArrayOfArrayOfArrayOfGridPos&,
-                                                 FileType);
-
-template void
-xml_write_to_file<ArrayOfArrayOfArrayOfArrayOfGridPos> (const String&,
-                                   const ArrayOfArrayOfArrayOfArrayOfGridPos&,
-                                   FileType);
+// Undefine the macro to avoid it being used anywhere else
+#undef TMP_XML_READ_WRITE
 
 #endif /* xml_io_instantiation_h */
 
