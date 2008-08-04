@@ -1,3 +1,21 @@
+2008-08-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-7-27
+
+	* doc/reference/Makefile.am: Increase texcapacity to 25000.
+
+	* src/m_append.h
+
+	Include workspace_ng.h
+	
+	* src/m_copy.h, src/m_ignore.h, src/m_basic_types.h, src/xml.h:
+
+	Include workspace_ng.h and agenda_class.h.
+
+	* src/xml_io_array_types.h, src/xml_io_basic_types.h:
+
+	Include xml_io_private.h for ArtsXMLTag.
+
 2008-07-31  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-7-26

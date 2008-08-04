@@ -29,6 +29,8 @@
 
 #include "exceptions.h"
 #include "xml_io.h"
+#include "workspace_ng.h"
+#include "agenda_class.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void

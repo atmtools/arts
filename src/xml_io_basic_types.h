@@ -46,6 +46,7 @@
 #include "m_general.h"
 #include "bifstream.h"
 #include "bofstream.h"
+#include "xml_io_private.h"
 
 
 ////////////////////////////////////////////////////////////////////////////

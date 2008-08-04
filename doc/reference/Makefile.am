@@ -51,10 +51,10 @@ if MAINTAINER_MODE
 # Here also, auto_groups.tex is added independently.
 
 reference.pdf: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.tex
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex reference
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=25000 pdflatex reference
 	makeindex reference.idx
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex  reference
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex  reference | tee make.log
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=25000 pdflatex  reference
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=25000 pdflatex  reference | tee make.log
 
 
 auto_groups.tex: $(srcdir)/arts_groups_to_latex.sh

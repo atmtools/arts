@@ -34,6 +34,8 @@
 #include "gridded_fields.h"
 #include "mystring.h"
 #include "messages.h"
+#include "workspace_ng.h"
+#include "agenda_class.h"
 
 #ifdef HAVE_SSTREAM
 #include <sstream>

@@ -44,6 +44,7 @@
 #include "bifstream.h"
 #include "bofstream.h"
 #include "jacobian.h"
+#include "xml_io_private.h"
 
 
 ////////////////////////////////////////////////////////////////////////////

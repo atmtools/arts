@@ -34,6 +34,7 @@
 #include "messages.h"
 #include "mystring.h"
 #include "matpackI.h"
+#include "workspace_ng.h"
 
 
 /* Throw runtime error for all unsupported types. */

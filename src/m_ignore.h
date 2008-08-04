@@ -32,6 +32,8 @@
 #include "exceptions.h"
 #include "messages.h"
 #include "mystring.h"
+#include "workspace_ng.h"
+#include "agenda_class.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void Ignore(Workspace& ws _U_,
