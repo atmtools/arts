@@ -1,3 +1,12 @@
+2008-08-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-7-28
+
+	* src/xml_io_basic_types.h, src/xml_io_array_types.h,
+	src/xml_io_compound_types.h:
+
+	Use macros for function declarations.
+
 2008-08-04  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-7-27

@@ -46,242 +46,63 @@
 #include "jacobian.h"
 #include "xml_io_private.h"
 
+#define TMPL_XML_READ_WRITE_STREAM(what) \
+  void xml_read_from_stream (istream&, what&, bifstream * = NULL); \
+  void xml_write_to_stream (ostream&, const what&, bofstream * = NULL, \
+                            const String& = "");
+
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for XML streams
 ////////////////////////////////////////////////////////////////////////////
 
-void
-xml_read_from_stream (istream&, Array<IsotopeRecord>&, bifstream * = NULL);
+//=== Array Types ==========================================================
 
-void
-xml_write_to_stream (ostream&, const Array<IsotopeRecord>&, bofstream * = NULL,
-                     const String& = "");
+TMPL_XML_READ_WRITE_STREAM( Array<IsotopeRecord> )
+TMPL_XML_READ_WRITE_STREAM( Array<SpeciesRecord> )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfArrayOfArrayOfArrayOfGridPos )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfArrayOfGField1 )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfArrayOfGField3 )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfArrayOfGridPos )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfArrayOfArrayOfGridPos )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfArrayOfIndex )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfArrayOfLineRecord )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfArrayOfMatrix )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfArrayOfSpeciesTag )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfArrayOfTensor3 )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfArrayOfTensor6 )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfGField1 )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfGField2 )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfGField3 )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfGField4 )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfGridPos )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfIndex )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfLineRecord )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfLineshapeSpec )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfMatrix )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfPpath )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfRetrievalQuantity )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfSingleScatteringData )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfSpeciesTag )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfString )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfTensor3 )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfTensor4 )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfTensor6 )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfTensor7 )
+TMPL_XML_READ_WRITE_STREAM( ArrayOfVector )
 
-void
-xml_read_from_stream (istream&, Array<SpeciesRecord>&, bifstream * = NULL);
+//==========================================================================
 
-void
-xml_write_to_stream (ostream&, const Array<SpeciesRecord>&, bofstream * = NULL,
-                     const String& = "");
+// Undefine the macro to avoid it being used anywhere else
+#undef TMPL_XML_READ_WRITE_STREAM
 
-void
-xml_read_from_stream (istream&, ArrayOfArrayOfSpeciesTag&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfSpeciesTag&,
-                     bofstream * = NULL, const String& = "");
-void
-xml_read_from_stream (istream&, ArrayOfSingleScatteringData&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfSingleScatteringData&,
-                     bofstream * = NULL, const String & = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfGField1&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfGField1&,
-                     bofstream * = NULL, const String & = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfGField2&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfGField2&,
-                     bofstream * = NULL, const String & = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfGField3&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfGField3&,
-                     bofstream * = NULL, const String & = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfArrayOfGField1&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfGField1&,
-                     bofstream * = NULL, const String & = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfArrayOfGField3&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfGField3&,
-                     bofstream * = NULL, const String & = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfGField4&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfGField4&,
-                     bofstream * = NULL, const String & = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfLineRecord&, bifstream * = NULL);
 
 void
 xml_read_from_stream (istream&, ArrayOfLineRecord&,
                       const Numeric, const Numeric, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const ArrayOfLineRecord&,
-                     bofstream * = NULL, const String & = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfArrayOfLineRecord&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfLineRecord&,
-                     bofstream * = NULL, const String & = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfLineshapeSpec&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfLineshapeSpec&,
-                     bofstream * = NULL, const String & = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfPpath&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfPpath&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfArrayOfTensor3&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfTensor3&,
-                     bofstream * = NULL, const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfArrayOfTensor6&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfTensor6&,
-                     bofstream * = NULL, const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfGridPos&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfGridPos&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfArrayOfGridPos&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfGridPos&, 
-                     bofstream * = NULL, const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfArrayOfArrayOfGridPos&, 
-                      bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfArrayOfGridPos&, 
-                     bofstream * = NULL, const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfArrayOfArrayOfArrayOfGridPos&,
-                      bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfArrayOfArrayOfGridPos&, 
-                     bofstream * = NULL, const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfIndex&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfIndex&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfArrayOfIndex&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfIndex&,
-                     bofstream * = NULL, const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfMatrix&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfMatrix&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&,ArrayOfArrayOfMatrix&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfMatrix&,
-                     bofstream * = NULL, const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfRetrievalQuantity&,
-                      bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfRetrievalQuantity&,
-                     bofstream * = NULL, const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfSpeciesTag&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfSpeciesTag&, bofstream * = NULL,
-                     const String& = "");
-
-void
 xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&);
 
-void
-xml_read_from_stream (istream&, ArrayOfString&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfString&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfTensor3&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfTensor3&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfTensor4&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfTensor4&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfTensor6&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfTensor6&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfTensor7&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfTensor7&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, ArrayOfVector&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const ArrayOfVector&, bofstream * = NULL,
-                     const String& = "");
 
 #endif  /* xml_io_array_types_h */

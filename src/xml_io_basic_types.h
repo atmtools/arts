@@ -48,97 +48,39 @@
 #include "bofstream.h"
 #include "xml_io_private.h"
 
+#define TMPL_XML_READ_WRITE_STREAM(what) \
+  void xml_read_from_stream (istream&, what&, bifstream * = NULL); \
+  void xml_write_to_stream (ostream&, const what&, bofstream * = NULL, \
+                            const String& = "");
+
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for XML streams
 ////////////////////////////////////////////////////////////////////////////
 
-void
-xml_read_from_stream (istream&, Index&, bifstream * = NULL);
+//=== Basic Types ==========================================================
 
-void
-xml_write_to_stream (ostream&, const Index&, bofstream * = NULL,
-                     const String& = "");
+TMPL_XML_READ_WRITE_STREAM( Index )
+TMPL_XML_READ_WRITE_STREAM( Matrix )
+TMPL_XML_READ_WRITE_STREAM( Numeric )
+TMPL_XML_READ_WRITE_STREAM( Sparse )
+TMPL_XML_READ_WRITE_STREAM( String )
+TMPL_XML_READ_WRITE_STREAM( Tensor3 )
+TMPL_XML_READ_WRITE_STREAM( Tensor4 )
+TMPL_XML_READ_WRITE_STREAM( Tensor5 )
+TMPL_XML_READ_WRITE_STREAM( Tensor6 )
+TMPL_XML_READ_WRITE_STREAM( Tensor7 )
+TMPL_XML_READ_WRITE_STREAM( Timer )
+TMPL_XML_READ_WRITE_STREAM( Vector )
 
-void
-xml_read_from_stream (istream&, Matrix&, bifstream * = NULL);
+//==========================================================================
 
-void
-xml_write_to_stream (ostream&, const Matrix&, bofstream * = NULL,
-                     const String& = "");
+// Undefine the macro to avoid it being used anywhere else
+#undef TMPL_XML_READ_WRITE_STREAM
 
-void
-xml_read_from_stream (istream&, Numeric&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const Numeric&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, Sparse&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const Sparse&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, String&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const String&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, Tensor3&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const Tensor3&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, Tensor4&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const Tensor4&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, Tensor5&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const Tensor5&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, Tensor6&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const Tensor6&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, Tensor7&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const Tensor7&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, Timer&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const Timer&, bofstream * = NULL,
-                     const String& = "");
 
 void
 xml_parse_from_stream (istream&, Vector&, bifstream *, ArtsXMLTag&);
-
-void
-xml_read_from_stream (istream&, Vector&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const Vector&, bofstream * = NULL,
-                     const String& = "");
 
 
 #endif  /* xml_io_basic_types_h */

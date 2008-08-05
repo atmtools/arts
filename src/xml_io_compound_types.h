@@ -45,116 +45,38 @@
 #include "mc_interp.h"
 #include "mc_antenna.h"
 
+#define TMPL_XML_READ_WRITE_STREAM(what) \
+  void xml_read_from_stream (istream&, what&, bifstream * = NULL); \
+  void xml_write_to_stream (ostream&, const what&, bofstream * = NULL, \
+                            const String& = "");
+
+
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for XML streams
 ////////////////////////////////////////////////////////////////////////////
 
-void
-xml_read_from_stream (istream&, Agenda&, bifstream * = NULL);
+//=== Compound Types =======================================================
 
-void
-xml_write_to_stream (ostream&, const Agenda&, bofstream * = NULL,
-                     const String& = "");
+TMPL_XML_READ_WRITE_STREAM( Agenda )
+TMPL_XML_READ_WRITE_STREAM( GField1 )
+TMPL_XML_READ_WRITE_STREAM( GField2 )
+TMPL_XML_READ_WRITE_STREAM( GField3 )
+TMPL_XML_READ_WRITE_STREAM( GField4 )
+TMPL_XML_READ_WRITE_STREAM( GasAbsLookup )
+TMPL_XML_READ_WRITE_STREAM( GridPos )
+TMPL_XML_READ_WRITE_STREAM( IsotopeRecord )
+TMPL_XML_READ_WRITE_STREAM( MCAntenna )
+TMPL_XML_READ_WRITE_STREAM( Ppath )
+TMPL_XML_READ_WRITE_STREAM( RetrievalQuantity )
+TMPL_XML_READ_WRITE_STREAM( SLIData2 )
+TMPL_XML_READ_WRITE_STREAM( SingleScatteringData )
+TMPL_XML_READ_WRITE_STREAM( SpeciesRecord )
+TMPL_XML_READ_WRITE_STREAM( SpeciesTag )
 
-void
-xml_read_from_stream (istream&, GasAbsLookup&, bifstream * = NULL);
+//==========================================================================
 
-void
-xml_write_to_stream (ostream&, const GasAbsLookup&, bofstream * = NULL,
-                     const String& = "");
+// Undefine the macro to avoid it being used anywhere else
+#undef TMPL_XML_READ_WRITE_STREAM
 
-void
-xml_read_from_stream (istream&, GField1&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const GField1&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, GField2&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const GField2&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, GField3&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const GField3&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, GField4&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const GField4&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, GridPos&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const GridPos&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, IsotopeRecord&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const IsotopeRecord&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, MCAntenna&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const MCAntenna&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, Ppath&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const Ppath&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, RetrievalQuantity&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const RetrievalQuantity&,
-                     bofstream * = NULL, const String& = "");
-
-void
-xml_read_from_stream (istream&, SingleScatteringData&,
-                      bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const SingleScatteringData&,
-                     bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, SLIData2&,
-                      bifstream * = NULL);
-void
-xml_write_to_stream (ostream&, const SLIData2&,
-                     bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, SpeciesRecord&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const SpeciesRecord&, bofstream * = NULL,
-                     const String& = "");
-
-void
-xml_read_from_stream (istream&, SpeciesTag&, bifstream * = NULL);
-
-void
-xml_write_to_stream (ostream&, const SpeciesTag&, bofstream * = NULL,
-                     const String& = "");
 
 #endif  /* xml_io_compound_types_h */
