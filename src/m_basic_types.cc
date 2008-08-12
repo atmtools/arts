@@ -313,10 +313,18 @@ void MatrixScale(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void MatrixSet(           Matrix&    x, 
-                    const Index&     nrows,
-                    const Index&     ncols,
-                    const Numeric&   value )
+void MatrixSet(      Matrix& x, 
+               const Matrix& values )
+{
+  x = values;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void MatrixSetConstant(      Matrix&    x, 
+                       const Index&     nrows,
+                       const Index&     ncols,
+                       const Numeric&   value )
 {
   x.resize( nrows, ncols );
   x = value;
@@ -423,11 +431,11 @@ void Tensor3Scale(        Tensor3&  out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor3Set(          Tensor3&   x, 
-                    const Index&     npages,
-                    const Index&     nrows,
-                    const Index&     ncols,
-                    const Numeric&   value )
+void Tensor3SetConstant(          Tensor3&   x, 
+                        const Index&     npages,
+                        const Index&     nrows,
+                        const Index&     ncols,
+                        const Numeric&   value )
 {
   x.resize( npages, nrows, ncols );
   x = value;
@@ -458,12 +466,12 @@ void Tensor4Scale(        Tensor4&  out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor4Set(          Tensor4&   x, 
-                    const Index&     nbooks,      
-                    const Index&     npages,
-                    const Index&     nrows,
-                    const Index&     ncols,
-                    const Numeric&   value )
+void Tensor4SetConstant(          Tensor4&   x, 
+                        const Index&     nbooks,      
+                        const Index&     npages,
+                        const Index&     nrows,
+                        const Index&     ncols,
+                        const Numeric&   value )
 {
   x.resize( nbooks, npages, nrows, ncols );
   x = value;
@@ -496,13 +504,13 @@ void Tensor5Scale(        Tensor5&  out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor5Set(          Tensor5&   x, 
-                    const Index&     nshelves,     
-                    const Index&     nbooks,      
-                    const Index&     npages,
-                    const Index&     nrows,
-                    const Index&     ncols,
-                    const Numeric&   value )
+void Tensor5SetConstant(          Tensor5&   x, 
+                        const Index&     nshelves,     
+                        const Index&     nbooks,      
+                        const Index&     npages,
+                        const Index&     nrows,
+                        const Index&     ncols,
+                        const Numeric&   value )
 {
   x.resize( nshelves, nbooks, npages, nrows, ncols );
   x = value;
@@ -536,14 +544,14 @@ void Tensor6Scale(        Tensor6&  out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor6Set(          Tensor6&   x, 
-                    const Index&     nvitrines,   
-                    const Index&     nshelves,     
-                    const Index&     nbooks,      
-                    const Index&     npages,
-                    const Index&     nrows,
-                    const Index&     ncols,
-                    const Numeric&   value )
+void Tensor6SetConstant(          Tensor6&   x, 
+                        const Index&     nvitrines,   
+                        const Index&     nshelves,     
+                        const Index&     nbooks,      
+                        const Index&     npages,
+                        const Index&     nrows,
+                        const Index&     ncols,
+                        const Numeric&   value )
 {
   x.resize( nvitrines, nshelves, nbooks, npages, nrows, ncols );
   x = value;
@@ -578,15 +586,15 @@ void Tensor7Scale(        Tensor7&  out,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Tensor7Set(          Tensor7&   x, 
-                    const Index&     nlibraries,          
-                    const Index&     nvitrines,   
-                    const Index&     nshelves,     
-                    const Index&     nbooks,      
-                    const Index&     npages,
-                    const Index&     nrows,
-                    const Index&     ncols,
-                    const Numeric&   value )
+void Tensor7SetConstant(          Tensor7&   x, 
+                        const Index&     nlibraries,          
+                        const Index&     nvitrines,   
+                        const Index&     nshelves,     
+                        const Index&     nbooks,      
+                        const Index&     npages,
+                        const Index&     nrows,
+                        const Index&     ncols,
+                        const Numeric&   value )
 {
   x.resize( nlibraries, nvitrines, nshelves, nbooks, npages, nrows, ncols );
   x = value;
@@ -875,9 +883,9 @@ void VectorScale(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorSet(           Vector&    x, 
-                    const Index&     n,
-                    const Numeric&   value )
+void VectorSetConstant(      Vector&    x, 
+                       const Index&     n,
+                       const Numeric&   value )
 {
   x.resize(n);
   x = value;            
@@ -888,8 +896,8 @@ void VectorSet(           Vector&    x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void VectorSetExplicitly( Vector&       x, 
-                          const Vector& values )
+void VectorSet(      Vector&       x, 
+               const Vector& values )
 {
   x = values;
 }

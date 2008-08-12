@@ -1,5 +1,46 @@
 2008-08-12  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-8-0
+
+	* Increased minor version number because this commit breaks
+	controlfile compatibility. All Set methods behave consistently now.
+
+	You have to make the following changes to your controlfiles:
+
+	Replace VectorSet           by VectorSetConstant.
+	Replace MatrixSet           by MatrixSetConstant.
+	Replace Tensor[34567]Set    by Tensor[34567]SetConstant.
+	Replace VectorSetExplicitly by VectorSet.
+
+	* src/methods.cc, src/m_basic_types.cc:
+
+	Rename VectorSet to VectorSetConstant and VectorSetExplicitly to
+	VectorSet.
+
+	MatrixSet -> MatrixSetConstant
+	Tensor[34567]Set -> Tensor[34567]SetConstant
+
+	* src/parser.cc:
+
+	Remove special case where the SetExplicitly method was called for
+	Vector instead of just the Set method like for other types.
+
+	* includes/general.arts, includes/odin/odinsmr_544.arts,
+	includes/odin/odinsmr_501.arts, includes/amsu/amsub.arts,
+	includes/odin/odinsmr_501_1D.arts,
+	tests/MonteCarlo/TestMonteCarloDataPrepare.arts,
+	tests/MonteCarlo/TestRteCalcMC.arts,
+	tests/OdinSMR/TestOdinSMR_1D.arts, tests/OdinSMR/TestOdinSMR.arts,
+	tests/DOIT/TestDOIT.arts, tests/DISORT/TestDISORT.arts,
+	tests/ClearSky/TestClearSky.arts, tests/Abs/TestAbs.arts,
+	tests/AMSU/TestAMSU_generic.arts,
+
+	VectorSet -> VectorSetConstant
+	VectorSetExplicitly -> VectorSet
+	MatrixSet -> MatrixSetConstant
+
+2008-08-12  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-7-29
 
 	* src/methods.{h,cc}, src/methods_aux.cc:

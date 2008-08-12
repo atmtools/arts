@@ -48,8 +48,8 @@ abs_lines_per_speciesCreateFromLines
 
 AbsInputFromAtmFields
 SpeciesSet( abs_nls, [] )
-VectorSetExplicitly( abs_nls_pert, [] )
-VectorSetExplicitly( abs_t_pert, [] )
+VectorSet( abs_nls_pert, [] )
+VectorSet( abs_t_pert, [] )
 
 abs_lookupCreate
 

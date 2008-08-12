@@ -28,7 +28,7 @@ ReadXML( abs_lines, "abs_lines.xml" )
 # Frequency grid 
 # Note: Should be covered by line catalog.
 # ---
-VectorSetExplicitly( f_grid, [320e9] )
+VectorSet( f_grid, [320e9] )
 #VectorNLinSpace( f_grid, 10, 320e9, 330e9 )
 
 # Pressure grid
@@ -58,7 +58,7 @@ AtmFieldsCalc
 MatrixExtractFromTensor3( z_surface, z_field, 0 )
 
 # This could also be set explicitly like this:
-#MatrixSet( z_surface, r_geoid, r_geoid, 500 )
+#MatrixSetConstant( z_surface, r_geoid, r_geoid, 500 )
 
 # Surface emissivity
 # Comment all this out if you want to have something other than a
@@ -73,11 +73,11 @@ MatrixExtractFromTensor3( z_surface, z_field, 0 )
 
 # Definition of sensor position and LOS
 # ---
-MatrixSet( sensor_pos, 1, 1, 600e3 )
+MatrixSetConstant( sensor_pos, 1, 1, 600e3 )
 #
 sensor_posAddRgeoid
 #
-MatrixSet( sensor_los, 1, 1, 130 )
+MatrixSetConstant( sensor_los, 1, 1, 130 )
 
 
 # No sensor properties

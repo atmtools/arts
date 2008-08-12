@@ -1473,10 +1473,6 @@ void ArtsParser::tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
           auto_output_var.push_back(auto_vars[i]);
           method_name = wsv_group_names[
             Workspace::wsv_data[auto_vars[i]].Group()] + "Set";
-          if (auto_group == get_wsv_group_id("Vector"))
-            {
-              method_name += "Explicitly";
-            }
           break;
         case 1:
           auto_input_var.push_back(auto_vars[i]);

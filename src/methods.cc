@@ -4200,7 +4200,7 @@ md_data_raw.push_back
 
    md_data_raw.push_back
     ( MdRecord
-      ( NAME("MatrixSet"),
+      ( NAME("MatrixSetConstant"),
         DESCRIPTION
         (
          "Creates a matrix and sets all elements to the specified value.\n"
@@ -6329,7 +6329,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor3Set"),
+      ( NAME("Tensor3SetConstant"),
         DESCRIPTION
         (
          "Creates a workspace tensor3 and sets all elements of the \n"
@@ -6437,7 +6437,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor4Set"),
+      ( NAME("Tensor4SetConstant"),
         DESCRIPTION
         (
          "Creates a workspace tensor4 and sets all elements of the \n"
@@ -6510,7 +6510,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor5Set"),
+      ( NAME("Tensor5SetConstant"),
         DESCRIPTION
         (
          "Creates a workspace tensor5 and sets all elements of the \n"
@@ -6583,7 +6583,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor6Set"),
+      ( NAME("Tensor6SetConstant"),
         DESCRIPTION
         (
          "Creates a workspace tensor6 and sets all elements of the \n"
@@ -6680,7 +6680,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor7Set"),
+      ( NAME("Tensor7SetConstant"),
         DESCRIPTION
         (
          "Creates a workspace tensor7 and sets all elements of the \n"
@@ -7051,7 +7051,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorSet"),
+      ( NAME("VectorSetConstant"),
         DESCRIPTION
         (
          "Creates a workspace vector and sets all elements of the \n"
@@ -7075,7 +7075,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorSetExplicitly"),
+      ( NAME("VectorSet"),
         DESCRIPTION
         (
          "Create a vector from the given list of numbers.\n"
@@ -7087,7 +7087,7 @@ md_data_raw.push_back
          "   values  : The vector elements.\n"
          "\n"
          "Usage:\n"
-         "   VectorSetExplicitly(p_grid){[1000, 100, 10]}\n"
+         "   VectorSet(p_grid){[1000, 100, 10]}\n"
          "   Will create a p_grid vector with these three elements.\n"
         ),
         AUTHORS( "Stefan Buehler" ),

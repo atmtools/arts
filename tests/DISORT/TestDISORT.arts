@@ -21,7 +21,7 @@ INCLUDE "continua.arts"
 # This example is only monochromatic. Note: The frequency must be contained
 # in the gas absorption lookup table.  
 IndexSet(nelem){ 1 }
-VectorSet(f_grid){
+VectorSetConstant(f_grid){
         value = 230e9
 }
  
@@ -71,11 +71,11 @@ r_geoidSpherical{
 # Ground altitude (measured from geoid)
 nrowsGet(r_geoid)
 ncolsGet(r_geoid)
-MatrixSet( z_surface){
+MatrixSetConstant( z_surface){
     value = 500
 }
 
-MatrixSet( surface_emissivity_field){
+MatrixSetConstant( surface_emissivity_field){
     value = 1
 }
 
@@ -92,7 +92,7 @@ AgendaSet(surface_prop_agenda){
 #--------------------------------------
 # This file holds the viewing angles of the sensor:
 #IndexSet(nelem){ 1 }
-#VectorSet(vector_1){
+#VectorSetConstant(vector_1){
 #        value = 150
 #}
 
@@ -104,7 +104,7 @@ VectorNLinSpace(vector_1){
 
 # Sensor altitude from earth surface
 nelemGet(vector_1){}
-VectorSet( vector_2 ) {
+VectorSetConstant( vector_2 ) {
    value =  96000.1
 }
 

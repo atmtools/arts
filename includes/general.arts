@@ -29,7 +29,7 @@ AtmosphereSet1D
 # absorption coefficient of other species. The value here is from
 # Wallace&Hobbs, 2nd edition.
 #
-VectorSetExplicitly( abs_n2, [ 0.7808 ] )
+VectorSet( abs_n2, [ 0.7808 ] )
 
 
 #
@@ -38,7 +38,7 @@ VectorSetExplicitly( abs_n2, [ 0.7808 ] )
 # meaningful default value, since it is very variable. Set it to -1
 # instead. 
 #
-VectorSetExplicitly( abs_h2o, [ -1 ] )
+VectorSet( abs_h2o, [ -1 ] )
 
 
 #

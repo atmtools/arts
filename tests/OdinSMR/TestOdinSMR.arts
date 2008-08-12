@@ -54,8 +54,8 @@ abs_lines_per_speciesCreateFromLines
 
 AbsInputFromAtmFields
 SpeciesSet( abs_nls, [] )
-VectorSetExplicitly( abs_nls_pert, [] )
-VectorSetExplicitly( abs_t_pert, [] )
+VectorSet( abs_nls_pert, [] )
+VectorSet( abs_t_pert, [] )
 
 abs_lookupCreate
 
@@ -72,7 +72,7 @@ IndexCreate( n_tan )
 IndexSet( n_tan, 4 )
 
 # Sensor position, with platform altitude set to 600 km
-MatrixSet( sensor_pos, n_tan, 1, 600e3 )
+MatrixSetConstant( sensor_pos, n_tan, 1, 600e3 )
 sensor_posAddRgeoid
 
 # LOS, specified by the corresponding geometrical tangent altitudes

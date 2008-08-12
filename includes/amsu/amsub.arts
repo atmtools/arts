@@ -63,7 +63,7 @@ abs_lines_per_speciesCreateFromLines
 ReadXML( sensor_los, "amsu/amsub.sensor_los.xml" )
 nrowsGet( nrows, sensor_los )
 ncolsGet( ncols, sensor_los )
-MatrixSet( sensor_pos, nrows, ncols, 850e3 )
+MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
 sensor_posAddRgeoid
 
 

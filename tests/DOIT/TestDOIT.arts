@@ -22,7 +22,7 @@ INCLUDE "continua.arts"
 # This example is only monochromatic. Note: The frequency must be contained
 # in the gas absorption lookup table.  
 IndexSet( nelem, 1 )
-VectorSet( f_grid, nelem, 230e9 )
+VectorSetConstant( f_grid, nelem, 230e9 )
 
 
 # Number of Stokes components to be computed
@@ -64,7 +64,7 @@ r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
 # Ground altitude (measured from geoid)
 nrowsGet( nrows, r_geoid )
 ncolsGet( ncols, r_geoid )
-MatrixSet( z_surface, nrows, ncols, 500 )
+MatrixSetConstant( z_surface, nrows, ncols, 500 )
 
 # Properties of surface
 
@@ -83,7 +83,7 @@ AgendaSet( surface_prop_agenda ){
 # This file holds the viewing angles of the sensor:
 IndexSet( nelem, 1 )
 VectorCreate( vector_1 )
-VectorSet( vector_1, nelem, 99.7841941981 )
+VectorSetConstant( vector_1, nelem, 99.7841941981 )
 
 #IndexSet( nelem, 19 )
 #VectorNLinSpace( vector_1, 0, 180 )
@@ -91,7 +91,7 @@ VectorSet( vector_1, nelem, 99.7841941981 )
 # Sensor altitude from earth surface
 nelemGet( nelem, vector_1 )
 VectorCreate( vector_2 )
-VectorSet( vector_2, nelem, 95000.1 )
+VectorSetConstant( vector_2, nelem, 95000.1 )
 
 # Add Earth Radius
 VectorAddScalar( vector_2, vector_2, 6.378e6 )

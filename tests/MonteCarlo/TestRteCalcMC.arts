@@ -67,11 +67,11 @@ IndexSet( stokes_dim, 4 )
 
 AntennaSet1D
 #
-VectorSetExplicitly( mblock_za_grid, [
+VectorSet( mblock_za_grid, [
  -0.2,-0.02,0.00,0.02,0.20
 ] )
 #
-MatrixSet( antenna_los, 1, 1, 0 )
+MatrixSetConstant( antenna_los, 1, 1, 0 )
 
 # An antenna pattern from Odin-SMR is used here
 ReadXML( antenna_response, "antenna.SM_AC2ab.875ms.xml" )

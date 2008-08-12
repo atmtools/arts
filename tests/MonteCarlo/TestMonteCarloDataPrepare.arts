@@ -11,7 +11,7 @@ INCLUDE "continua.arts"
 
 output_file_formatSetBinary
 
-VectorSetExplicitly( f_grid, [ 230e9 ] )
+VectorSet( f_grid, [ 230e9 ] )
 
 WriteXML( output_file_format, f_grid,  "f_grid.xml.generated" )
 
@@ -48,7 +48,7 @@ nrowsGet( nrows, r_geoid )
 
 ncolsGet( ncols, r_geoid )
 
-MatrixSet( z_surface, nrows, ncols, 500.0 )
+MatrixSetConstant( z_surface, nrows, ncols, 500.0 )
 
 WriteXML( output_file_format, z_surface, "z_surface.xml.generated" )
 
