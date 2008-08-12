@@ -44,8 +44,8 @@ public:
     mdescription( ""              ),
     mauthors(     0               ),
     moutput(      0               ),  
-    minput(       0               ),   
     mgoutput(     0               ),  
+    minput(       0               ),   
     mginput(      0               ),   
     mkeywords(    0               ),
     mdefaults(    0               ),
@@ -64,8 +64,8 @@ public:
            const char                   description[],
            const MakeArray<String>&     authors,
            const MakeArray<String>&     output,
-           const MakeArray<String>&     input,   
            const MakeArray<String>&     goutput,
+           const MakeArray<String>&     input,   
            const MakeArray<String>&     ginput,   
            const MakeArray<String>&     keywords,
            const MakeArray<String>&     defaults,
@@ -143,11 +143,11 @@ private:
   //! Workspace Output.
   ArrayOfIndex moutput;
 
-  //! Workspace Input.
-  ArrayOfIndex minput;
-
   //! Generic Workspace Output.
   ArrayOfIndex mgoutput;
+
+  //! Workspace Input.
+  ArrayOfIndex minput;
 
   //! Generic Workspace Input.
   ArrayOfIndex mginput;

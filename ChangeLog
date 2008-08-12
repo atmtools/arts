@@ -1,3 +1,12 @@
+2008-08-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-7-29
+
+	* src/methods.{h,cc}, src/methods_aux.cc:
+
+	For consistency, change order of output, input, goutput, ginput
+	to output, goutput, input, ginput.
+
 2008-08-05  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-7-28
