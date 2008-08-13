@@ -476,9 +476,9 @@ bool Agenda::is_input(Workspace& ws, Index var) const
 
       // If a General Input variable of this method (e.g. AgendaExecute)
       // is of type Agenda, check its input recursively for matches
-      for ( Index j = 0; j < md_data[this_method.Id ()].GInput().nelem(); j++)
+      for ( Index j = 0; j < md_data[this_method.Id ()].GInType().nelem(); j++)
         {
-          if (md_data[this_method.Id ()].GInput()[j] == WsvAgendaGroupIndex)
+          if (md_data[this_method.Id ()].GInType()[j] == WsvAgendaGroupIndex)
             {
               Agenda *AgendaFromGeneralInput =
                 (Agenda *)ws[this_method.Input ()[j]];
@@ -640,7 +640,7 @@ void MRecord::print( ostream& os,
   os << indent << tmd.Name();
 
   // Is this a generic method? -- Then we need round braces.
-  if ( 0 != tmd.GOutput().nelem()+tmd.GInput().nelem() )
+  if ( 0 != tmd.GOutType().nelem()+tmd.GInType().nelem() )
     {
       // First entry needs no leading comma:
       bool first=true;

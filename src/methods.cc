@@ -36,14 +36,16 @@
 // Some #defines and typedefs to make the records better readable:
 #define NAME(x) x
 #define DESCRIPTION(x) x
-#define AUTHORS  MakeArray<String>
-#define OUTPUT   MakeArray<String>
-#define INPUT    MakeArray<String>
-#define GOUTPUT  MakeArray<String>
-#define GINPUT   MakeArray<String>
-#define KEYWORDS MakeArray<String>
-#define DEFAULTS MakeArray<String>
-#define TYPES    MakeArray<String>
+#define AUTHORS     MakeArray<String>
+#define OUT         MakeArray<String>
+#define GOUT        MakeArray<String>
+#define GOUT_TYPE   MakeArray<String>
+#define IN          MakeArray<String>
+#define GIN         MakeArray<String>
+#define KEYWORDS    MakeArray<String>
+#define GIN_TYPE    MakeArray<String>
+#define GIN_DEFAULT MakeArray<String>
+#define TYPES       MakeArray<String>
 #define SETMETHOD(x) x
 #define AGENDAMETHOD(x) x
 #define SUPPRESSHEADER(x) x
@@ -91,13 +93,15 @@
          "   z_tan_lim : Vector with start and stop tangent altitudes.\n"
         ),
         AUTHORS( "unknown" ),
-        OUTPUT(),
-        GOUTPUT( "Vector" ),
-        INPUT( "z_plat", "abs_p", "z_abs", "l_step", "refr", "refr_lfac",
+        OUT(),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN( "z_plat", "abs_p", "z_abs", "l_step", "refr", "refr_lfac",
                "refr_index", "r_geoid", "z_surface" ),
-        GINPUT(),
+        GIN(     ),
         KEYWORDS( "delta_t", "z_tan_lim" ),
-        DEFAULTS( NODEF,     NODEF ),
+        GIN_TYPE(),
+        GIN_DEFAULT( NODEF,     NODEF ),
         TYPES(    "Numeric", "Vector"    )));
   */
 
@@ -120,12 +124,14 @@
          "   \n"
         ),
         AUTHORS( "unknown" ),
-        OUTPUT(),
-        GOUTPUT(),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(     ),
+        GOUT_TYPE(),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
   */
 
@@ -159,12 +165,14 @@ void define_md_data_raw()
                     "This only works for a 1D atmosphere!\n"
                    ) ,
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_p", "abs_t", "abs_vmrs" ),
-        GOUTPUT( ),
-        INPUT( "atmosphere_dim", "p_grid", "t_field", "vmr_field" ),
-        GINPUT( ),
+        OUT( "abs_p", "abs_t", "abs_vmrs" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "atmosphere_dim", "p_grid", "t_field", "vmr_field" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -185,12 +193,14 @@ void define_md_data_raw()
                     "if the method is used inside an agenda.)\n"
                    ) ,
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "f_grid", "abs_p", "abs_t", "abs_vmrs" ),
-        GOUTPUT( ),
-        INPUT( "f_index", "f_grid", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
-        GINPUT( ),
+        OUT( "f_grid", "abs_p", "abs_t", "abs_vmrs" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "f_index", "f_grid", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -221,15 +231,17 @@ void define_md_data_raw()
                     "and for the sum of all tag groups (output *abs_coef*).\n"
                    ) ,
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
-        OUTPUT( "abs_coef"  , "abs_coef_per_species" ),
-        GOUTPUT( ),
-        INPUT( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
+        OUT( "abs_coef"  , "abs_coef_per_species" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
                "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
                "abs_cont_names", "abs_cont_models", 
                "abs_cont_parameters" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -244,12 +256,14 @@ void define_md_data_raw()
                     "Cross sections are multiplied by n*VMR.\n"
                    ),
         AUTHORS( "Stefan Buehler", "Axel von Engeln" ),
-        OUTPUT( "abs_coef", "abs_coef_per_species" ),
-        GOUTPUT( ),
-        INPUT( "abs_xsec_per_species", "abs_vmrs", "abs_p", "abs_t" ),
-        GINPUT( ),
+        OUT( "abs_coef", "abs_coef_per_species" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_xsec_per_species", "abs_vmrs", "abs_p", "abs_t" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -267,15 +281,17 @@ void define_md_data_raw()
                     "The implementation follows abs_coefCalc.\n"
                    ) ,
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_coef" ),
-        GOUTPUT( ),
-        INPUT( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
+        OUT( "abs_coef" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
                "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
                "abs_cont_names", "abs_cont_models", 
                "abs_cont_parameters" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -300,16 +316,18 @@ void define_md_data_raw()
          "                how many parameters are required depends on the model.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_cont_names", 
+        OUT( "abs_cont_names", 
                 "abs_cont_models",
                 "abs_cont_parameters" ),
-        GOUTPUT( ),
-        INPUT(  "abs_cont_names", 
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "abs_cont_names", 
                 "abs_cont_models",
                 "abs_cont_parameters" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "tagname", "model",  "userparameters" ),
-        DEFAULTS( NODEF,     NODEF,    NODEF),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,     NODEF,    NODEF),
         TYPES(    "String",  "String", "Vector" )));
 
   md_data_raw.push_back
@@ -329,14 +347,16 @@ void define_md_data_raw()
          "not want to use any continua.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_cont_names", 
+        OUT( "abs_cont_names", 
                 "abs_cont_models",
                 "abs_cont_parameters" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -353,12 +373,14 @@ void define_md_data_raw()
                     "group of water.\n"
                    ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "abs_h2o" ),
-        GOUTPUT( ),
-        INPUT( "abs_species", "abs_vmrs" ),
-        GINPUT( ),
+        OUT( "abs_h2o" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_species", "abs_vmrs" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -417,12 +439,14 @@ void define_md_data_raw()
                     "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
                     "   cutoff              : The frequency at which a cutoff can be made.\n" ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
-        OUTPUT( "abs_lineshape" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "abs_lineshape" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "shape",  "normalizationfactor", "cutoff" ),
-        DEFAULTS( NODEF,    NODEF,                 NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,    NODEF,                 NODEF ),
         TYPES(    "String", "String",              "Numeric" )));
 
   md_data_raw.push_back
@@ -474,12 +498,14 @@ void define_md_data_raw()
                     "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
                     "   cutoff              : The frequency at which a cutoff can be made.\n" ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
-        OUTPUT( "abs_lineshape" ),
-        GOUTPUT( ),
-        INPUT( "abs_species" ),
-        GINPUT( ),
+        OUT( "abs_lineshape" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_species" ),
+        GIN(      ),
         KEYWORDS( "shape",        "normalizationfactor", "cutoff" ),
-        DEFAULTS( NODEF,          NODEF,                 NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,          NODEF,                 NODEF ),
         TYPES(    "ArrayOfString", "ArrayOfString",        "Vector" )));
 
   md_data_raw.push_back
@@ -498,12 +524,14 @@ void define_md_data_raw()
                     "   fmin     : Minimum frequency for lines to read in Hz.\n"
                     "   fmax     : Maximum frequency for lines to read in Hz.\n" ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_lines" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "abs_lines" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "filename", "fmin",    "fmax" ),
-        DEFAULTS( NODEF,      NODEF,     NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,      NODEF,     NODEF ),
         TYPES(    "String",   "Numeric", "Numeric" )));
 
   md_data_raw.push_back
@@ -522,12 +550,14 @@ void define_md_data_raw()
                     "   fmin     : Minimum frequency for lines to read in Hz.\n"
                     "   fmax     : Maximum frequency for lines to read in Hz.\n" ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_lines" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "abs_lines" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "filename", "fmin",    "fmax" ),
-        DEFAULTS( NODEF,      NODEF,     NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,      NODEF,     NODEF ),
         TYPES(    "String",   "Numeric", "Numeric" )));
 
   md_data_raw.push_back
@@ -551,12 +581,14 @@ void define_md_data_raw()
          "   fmin     : Minimum frequency for lines to read in Hz.\n"
          "   fmax     : Maximum frequency for lines to read in Hz.\n" ),
         AUTHORS( "Thomas Kuhn" ),
-        OUTPUT( "abs_lines" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "abs_lines" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "filename",  "fmin",    "fmax" ),
-        DEFAULTS( NODEF,       NODEF,     NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
         TYPES(    "String",    "Numeric", "Numeric")));
 
   md_data_raw.push_back
@@ -583,12 +615,14 @@ void define_md_data_raw()
                     "   fmin     : Minimum frequency for lines to read in Hz.\n"
                     "   fmax     : Maximum frequency for lines to read in Hz.\n" ),
         AUTHORS( "Hermann Berg", "Thomas Kuhn" ),
-        OUTPUT( "abs_lines" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "abs_lines" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "filename",  "fmin",    "fmax" ),
-        DEFAULTS( NODEF,       NODEF,     NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
         TYPES( "String", "Numeric", "Numeric" )));
 
   md_data_raw.push_back
@@ -609,12 +643,14 @@ void define_md_data_raw()
                     "   fmin     : Minimum frequency for lines to read in Hz.\n"
                     "   fmax     : Maximum frequency for lines to read in Hz.\n" ),
         AUTHORS( "Thomas Kuhn" ),
-        OUTPUT( "abs_lines" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "abs_lines" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "filename",  "fmin", "fmax" ),
-        DEFAULTS( NODEF,       NODEF,     NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
         TYPES( "String", "Numeric", "Numeric" )));
 
   md_data_raw.push_back
@@ -633,12 +669,14 @@ void define_md_data_raw()
                     "   fmin     : Minimum frequency for lines to read in Hz.\n"
                     "   fmax     : Maximum frequency for lines to read in Hz.\n" ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
-        OUTPUT( "abs_lines" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "abs_lines" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "filename", "fmin", "fmax" ),
-        DEFAULTS( NODEF,       NODEF,     NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
         TYPES( "String", "Numeric", "Numeric" )));
 
   md_data_raw.push_back
@@ -651,12 +689,14 @@ void define_md_data_raw()
                     "entry at frequency -f is added to *abs_lines_per_species*.The mirror \n"
                     "lines are appended to the line lists after the original lines.\n" ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
-        OUTPUT( "abs_lines_per_species" ),
-        GOUTPUT( ),
-        INPUT( "abs_lines_per_species" ),
-        GINPUT( ),
+        OUT( "abs_lines_per_species" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_lines_per_species" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -668,12 +708,14 @@ void define_md_data_raw()
                     "It should be particularly useful to call this method after\n"
                     "*abs_lines_per_speciesAddMirrorLines*.\n" ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
-        OUTPUT( "abs_lines_per_species" ),
-        GOUTPUT( ),
-        INPUT( "abs_lines_per_species", "abs_lineshape", "f_grid" ),
-        GINPUT( ),
+        OUT( "abs_lines_per_species" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_lines_per_species", "abs_lineshape", "f_grid" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -688,12 +730,14 @@ void define_md_data_raw()
                     "That means if you do [\"O3-666\",\"O3\"],the last group O3 \n"
                     "gets assigned all the O3 lines that do not fit in the first group.\n" ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_lines_per_species" ),
-        GOUTPUT( ),
-        INPUT( "abs_lines", "abs_species" ),
-        GINPUT( ),
+        OUT( "abs_lines_per_species" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_lines", "abs_species" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -750,12 +794,14 @@ void define_md_data_raw()
                     "   fmin      : Minimum frequency for lines to read in Hz.\n"
                     "   fmax      : Maximum frequency for lines to read in Hz.\n" ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_lines_per_species" ),
-        GOUTPUT( ),
-        INPUT( "abs_species" ),
-        GINPUT( ),
+        OUT( "abs_lines_per_species" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_species" ),
+        GIN(      ),
         KEYWORDS( "filenames",    "formats",      "fmin",   "fmax" ),
-        DEFAULTS( NODEF,          NODEF,          NODEF,    NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,          NODEF,          NODEF,    NODEF ),
         TYPES(    "ArrayOfString", "ArrayOfString", "Vector", "Vector" )));
 
   md_data_raw.push_back
@@ -770,12 +816,14 @@ void define_md_data_raw()
          "abs_lines_per_species to be set.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_lines_per_species" ),
-        GOUTPUT( ),
-        INPUT( "abs_species" ),
-        GINPUT( ),
+        OUT( "abs_lines_per_species" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_species" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   // New name: abs_lookupAdapt
@@ -796,12 +844,14 @@ void define_md_data_raw()
          "table. If something is not ok, a runtime error is thrown.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_lookup", "abs_lookup_is_adapted" ),
-        GOUTPUT( ),
-        INPUT(  "abs_lookup", "abs_species", "f_grid" ),
-        GINPUT( ),
+        OUT( "abs_lookup", "abs_lookup_is_adapted" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "abs_lookup", "abs_species", "f_grid" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back     
@@ -830,9 +880,10 @@ void define_md_data_raw()
          "species, the first is assumed to be the main one.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_lookup", "abs_lookup_is_adapted" ),
-        GOUTPUT( ),
-        INPUT( "abs_species", 
+        OUT( "abs_lookup", "abs_lookup_is_adapted" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_species", 
                "abs_lines_per_species",
                "abs_lineshape",
                "abs_nls",
@@ -847,9 +898,10 @@ void define_md_data_raw()
                "abs_cont_models", 
                "abs_cont_parameters"
                ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   // New name: abs_lookupInit
@@ -864,12 +916,14 @@ void define_md_data_raw()
          "the empty table to an XML file, to see the file format.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_lookup" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "abs_lookup" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( ))) ;
 
   md_data_raw.push_back     
@@ -906,14 +960,15 @@ void define_md_data_raw()
          "   *abs_lookupSetupBatch*\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT(  "abs_p",
+        OUT(  "abs_p",
                  "abs_t", 
                  "abs_t_pert", 
                  "abs_vmrs",
                  "abs_nls",
                  "abs_nls_pert" ),
-        GOUTPUT( ),
-        INPUT(   "atmosphere_dim",
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(   "atmosphere_dim",
                  "p_grid",
                  "lat_grid",
                  "lon_grid",
@@ -922,9 +977,10 @@ void define_md_data_raw()
                  "abs_species",
                  "abs_t_interp_order",
                  "abs_nls_interp_order" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "p_step",  "t_step",  "h2o_step" ),
-        DEFAULTS( "0.02",    "5",       "0.5" ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( "0.02",    "5",       "0.5" ),
         TYPES(    "Numeric", "Numeric", "Numeric" )));
 
   md_data_raw.push_back     
@@ -975,20 +1031,22 @@ void define_md_data_raw()
          "   *abs_lookupSetup*\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT(  "abs_p",
+        OUT(  "abs_p",
                  "abs_t", 
                  "abs_t_pert", 
                  "abs_vmrs",
                  "abs_nls",
                  "abs_nls_pert" ),
-        GOUTPUT( ),
-        INPUT(   "abs_species",
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(   "abs_species",
                  "batch_atm_fields_compact",
                  "abs_t_interp_order",
                  "abs_nls_interp_order" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "p_step",  "t_step",  "h2o_step", "extremes" ),
-        DEFAULTS( "0.02",    "5",       "0.5",      "[]" ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( "0.02",    "5",       "0.5",      "[]" ),
         TYPES(    "Numeric", "Numeric", "Numeric",  "Vector" )));
 
   md_data_raw.push_back
@@ -999,12 +1057,14 @@ void define_md_data_raw()
                     "molecular nitrogen. See *abs_h2oSet* for more details.\n"
                    ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "abs_n2" ),
-        GOUTPUT( ),
-        INPUT( "abs_species", "abs_vmrs" ),
-        GINPUT( ),
+        OUT( "abs_n2" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_species", "abs_vmrs" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back     
@@ -1027,15 +1087,17 @@ void define_md_data_raw()
          "and *abs_nls_interp_order*, respectively.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_scalar_gas" ),
-        GOUTPUT( ),
-        INPUT(  "abs_lookup", "abs_lookup_is_adapted",
+        OUT( "abs_scalar_gas" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "abs_lookup", "abs_lookup_is_adapted",
                 "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order", 
                 "f_index", 
                 "rte_pressure", "rte_temperature", "rte_vmr_list" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back     
@@ -1048,12 +1110,14 @@ void define_md_data_raw()
          "*abs_scalar_gas_agenda*. See also method *AbsInputFromRteScalars*.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_scalar_gas" ),
-        GOUTPUT( ),
-        INPUT(  "abs_coef_per_species" ),
-        GINPUT( ),
+        OUT( "abs_scalar_gas" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "abs_coef_per_species" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back     
@@ -1081,17 +1145,19 @@ void define_md_data_raw()
          "*abs_scalar_gas_agenda*.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_field" ),
-        GOUTPUT( ),
-        INPUT(  "abs_scalar_gas_agenda",
+        OUT( "abs_field" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "abs_scalar_gas_agenda",
                 "f_index",
                 "f_grid",
                 "atmosphere_dim",
                 "p_grid", "lat_grid", "lon_grid",
                 "t_field", "vmr_field" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -1114,12 +1180,14 @@ void define_md_data_raw()
          "             (plus optional blanks).\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_species" ),
-        GOUTPUT(),
-        INPUT(  "abs_species" ),
-        GINPUT(),
+        OUT( "abs_species" ),
+        GOUT(     ),
+        GOUT_TYPE(),
+        IN(  "abs_species" ),
+        GIN(     ),
         KEYWORDS( "species" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE(),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "ArrayOfString"   )));
  
   md_data_raw.push_back
@@ -1139,13 +1207,15 @@ void define_md_data_raw()
          "*abs_speciesAdd*\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "abs_species", "jacobian_quantities", "jacobian_agenda" ),
-        GOUTPUT(),
-        INPUT( "abs_species", "jacobian", "atmosphere_dim", "p_grid", "lat_grid", 
+        OUT( "abs_species", "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(     ),
+        GOUT_TYPE(),
+        IN( "abs_species", "jacobian", "atmosphere_dim", "p_grid", "lat_grid", 
                "lon_grid" ),
-        GINPUT( "Vector", "Vector", "Vector" ),
+        GIN(      ""      , ""      , ""       ),
         KEYWORDS( "species", "method", "unit", "dx" ),
-        DEFAULTS( NODEF,     NODEF,    NODEF,  NODEF ),
+        GIN_TYPE( "Vector", "Vector", "Vector" ),
+        GIN_DEFAULT( NODEF,     NODEF,    NODEF,  NODEF ),
         TYPES( "String", "String", "String", "Numeric" )));
  
   md_data_raw.push_back
@@ -1166,12 +1236,14 @@ void define_md_data_raw()
          "              For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_species" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "abs_species" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "basename" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES( "String" )));
 
   md_data_raw.push_back
@@ -1182,12 +1254,14 @@ void define_md_data_raw()
          "Sets  *abs_speciesSet* to be empty.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_species" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "abs_species" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   // This is duplicate with the 1-0 method tgsDefine. Merge!
@@ -1246,12 +1320,14 @@ void define_md_data_raw()
          "   data will be used for that third tag group.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT(  "ArrayOfArrayOfSpeciesTag" ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(       ""                         ),
+        GOUT_TYPE(  "ArrayOfArrayOfSpeciesTag" ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "species" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "ArrayOfString"   )));
 
   md_data_raw.push_back
@@ -1266,12 +1342,14 @@ void define_md_data_raw()
          "absorption vector.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT("abs_vec"),
-        GOUTPUT( ),
-        INPUT("abs_vec", "abs_scalar_gas"),
-        GINPUT( ),
+        OUT("abs_vec"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("abs_vec", "abs_scalar_gas"),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES()));
 
   md_data_raw.push_back
@@ -1294,13 +1372,15 @@ void define_md_data_raw()
          "are specified in the control file.\n"
          ),
         AUTHORS( "Sreerekha T.R." ),
-        OUTPUT("abs_vec"),
-        GOUTPUT( ),
-        INPUT("abs_vec", "abs_vec_spt", "pnd_field", "atmosphere_dim",
+        OUT("abs_vec"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("abs_vec", "abs_vec_spt", "pnd_field", "atmosphere_dim",
               "scat_p_index",  "scat_lat_index", "scat_lon_index"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -1319,12 +1399,14 @@ void define_md_data_raw()
          "leading frequency dimension.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT("abs_vec"),
-        GOUTPUT( ),
-        INPUT("f_grid", "stokes_dim", "f_index"),
-        GINPUT( ),
+        OUT("abs_vec"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("f_grid", "stokes_dim", "f_index"),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -1334,14 +1416,16 @@ void define_md_data_raw()
                     "Calculate absorption cross sections per tag group for continua.\n"
                    ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_xsec_per_species" ),
-        GOUTPUT( ),
-        INPUT( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
+        OUT( "abs_xsec_per_species" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
                "abs_vmrs", "abs_cont_names", "abs_cont_parameters",
                "abs_cont_models" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -1352,13 +1436,15 @@ void define_md_data_raw()
                     "it to abs_xsec_per_species.\n"
                    ),
         AUTHORS( "Stefan Buehler", "Axel von Engeln" ),
-        OUTPUT( "abs_xsec_per_species" ),
-        GOUTPUT( ),
-        INPUT( "abs_species", "f_grid", "abs_p", "abs_t", "abs_h2o",
+        OUT( "abs_xsec_per_species" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_h2o",
                "abs_vmrs", "abs_lines_per_species", "abs_lineshape" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -1373,12 +1459,14 @@ void define_md_data_raw()
                     "The size is determined from *tgs*.\n"
                    ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "abs_xsec_per_species" ),
-        GOUTPUT( ),
-        INPUT( "abs_species", "f_grid", "abs_p" ),
-        GINPUT( ),
+        OUT( "abs_xsec_per_species" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_species", "f_grid", "abs_p" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -1392,12 +1480,14 @@ void define_md_data_raw()
          "   Agenda : The agenda.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( "Agenda" ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Agenda" ),
+        GIN_DEFAULT( ),
         TYPES(),
         SETMETHOD(    false ),
         AGENDAMETHOD( false )));
@@ -1427,12 +1517,14 @@ void define_md_data_raw()
          "   No keywords, but other methods can appear in the method body.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(  ),
-        GOUTPUT( "Agenda" ),
-        INPUT(  ),
-        GINPUT( ),
+        OUT(  ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Agenda" ),
+        IN(  ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   true  ),
@@ -1453,12 +1545,14 @@ void define_md_data_raw()
          "neglected.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES()));
 
   md_data_raw.push_back
@@ -1471,12 +1565,14 @@ void define_md_data_raw()
          "Sets *antenna_dim* to 1 and sets *mblock_aa_grid* to be empty.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "antenna_dim", "mblock_aa_grid" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "antenna_dim", "mblock_aa_grid" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES()));
 
   md_data_raw.push_back
@@ -1492,12 +1588,14 @@ void define_md_data_raw()
          "equals 3.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "antenna_dim" ),
-        GOUTPUT( ),
-        INPUT( "atmosphere_dim" ),
-        GINPUT( ),
+        OUT( "antenna_dim" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "atmosphere_dim" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -1530,12 +1628,14 @@ void define_md_data_raw()
          "   Any : The input variable.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT( "Any" ),
-        INPUT( ),
-        GINPUT( "Any" ),
+        OUT( ),
+        GOUT(      ""    ),
+        GOUT_TYPE( "Any" ),
+        IN( ),
+        GIN(      ""    ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Any" ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -1553,12 +1653,14 @@ void define_md_data_raw()
          "*ArrayOfGriddedField3*.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( ),
-        GOUTPUT( "ArrayOfGField3" ),
-        INPUT( ),
-        GINPUT(  "ArrayOfArrayOfGField3", "Index" ),
+        OUT( ),
+        GOUT(      ""               ),
+        GOUT_TYPE( "ArrayOfGField3" ),
+        IN( ),
+        GIN(       ""                     , ""      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE(  "ArrayOfArrayOfGField3", "Index" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -1569,12 +1671,14 @@ void define_md_data_raw()
          "Extract an ArrayOfIndex from an array of arrays of Index.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( ),
-        GOUTPUT( "ArrayOfIndex" ),
-        INPUT( ),
-        GINPUT(  "ArrayOfArrayOfIndex", "Index" ),
+        OUT( ),
+        GOUT(      ""             ),
+        GOUT_TYPE( "ArrayOfIndex" ),
+        IN( ),
+        GIN(       ""                   , ""      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE(  "ArrayOfArrayOfIndex", "Index" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -1590,12 +1694,14 @@ void define_md_data_raw()
          "   ArrayOfLineRecord: New empty ArrayOfLineRecord.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "ArrayOfLineRecord" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""                  ),
+        GOUT_TYPE( "ArrayOfLineRecord" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -1611,12 +1717,14 @@ void define_md_data_raw()
          "   ArrayOfLineshapeSpec: New empty ArrayOfLineshapeSpec.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "ArrayOfLineshapeSpec" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""                     ),
+        GOUT_TYPE( "ArrayOfLineshapeSpec" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -1632,12 +1740,14 @@ void define_md_data_raw()
          "   ArrayOfMatrix: New empty ArrayOfMatrix.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "ArrayOfMatrix" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""              ),
+        GOUT_TYPE( "ArrayOfMatrix" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -1661,12 +1771,14 @@ void define_md_data_raw()
          "        element : The index to be set.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( ),
-        GOUTPUT( "ArrayOfMatrix" ),
-        INPUT( ),
-        GINPUT( "ArrayOfMatrix", "Matrix" ),
+        OUT( ),
+        GOUT(      ""              ),
+        GOUT_TYPE( "ArrayOfMatrix" ),
+        IN( ),
+        GIN(      ""             , ""       ),
         KEYWORDS( "element" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( "ArrayOfMatrix", "Matrix" ),
+        GIN_DEFAULT( NODEF ),
         TYPES( "Index" )));
 
   md_data_raw.push_back
@@ -1682,12 +1794,14 @@ void define_md_data_raw()
          "   ArrayOfString: New empty ArrayOfString.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "ArrayOfString" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""              ),
+        GOUT_TYPE( "ArrayOfString" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -1699,12 +1813,14 @@ void define_md_data_raw()
          "The format is text = [\"String1\",\"String2\",...]\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT(),
-        GOUTPUT( "ArrayOfString" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""              ),
+        GOUT_TYPE( "ArrayOfString" ),
+        IN(),
+        GIN(     ),
         KEYWORDS( "text" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE(),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "ArrayOfString" ),
         SETMETHOD( true )));
 
@@ -1718,12 +1834,14 @@ void define_md_data_raw()
          "when ARTS is run on the controlfile.\n" 
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(    false ),
         AGENDAMETHOD( true  )));
@@ -1746,13 +1864,15 @@ void define_md_data_raw()
          "(*p_grid*, *lat_grid*, *lon_grid*).\n"
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT("t_field", "z_field", "vmr_field"),
-        GOUTPUT( ),
-        INPUT("p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
+        OUT("t_field", "z_field", "vmr_field"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
               "vmr_field_raw", "atmosphere_dim"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -1773,13 +1893,15 @@ void define_md_data_raw()
          "geoid radius is set to be constant for all latitudes/longitudes.\n"
         ),
         AUTHORS( "Patrick Eriksson", "Claudia Emde" ),
-        OUTPUT( "t_field", "z_field", "vmr_field" ),
-        GOUTPUT( ),
-        INPUT( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
+        OUT( "t_field", "z_field", "vmr_field" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
                "vmr_field_raw", "atmosphere_dim"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -1807,14 +1929,16 @@ void define_md_data_raw()
          "              are added until each log step is smaller than this.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT("p_grid",
+        OUT("p_grid",
                "t_field", "z_field", "vmr_field"),
-        GOUTPUT( ),
-        INPUT( "p_grid", "lat_grid", "lon_grid",
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "p_grid", "lat_grid", "lon_grid",
                "t_field", "z_field", "vmr_field", "atmosphere_dim"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "p_step" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -1834,12 +1958,14 @@ void define_md_data_raw()
          "   value : The constant value of this field.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "atm_fields_compact" ),
-        GOUTPUT( ),
-        INPUT(  "atm_fields_compact" ),
-        GINPUT( ),
+        OUT( "atm_fields_compact" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "atm_fields_compact" ),
+        GIN(      ),
         KEYWORDS( "name",   "value" ),
-        DEFAULTS( NODEF,    NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,    NODEF ),
         TYPES(    "String", "Numeric" )));
 
   md_data_raw.push_back
@@ -1868,12 +1994,14 @@ void define_md_data_raw()
          "                 because the first column must contain pressure.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "atm_fields_compact" ),
-        GOUTPUT( ),
-        INPUT(  "atmosphere_dim" ),
-        GINPUT( "Matrix" ),
+        OUT( "atm_fields_compact" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "atmosphere_dim" ),
+        GIN(      ""       ),
         KEYWORDS( "field_names" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( "Matrix" ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "ArrayOfString" )));
 
   md_data_raw.push_back
@@ -1905,13 +2033,15 @@ void define_md_data_raw()
          "                        Empty. Dimension must match extra_field_names.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "batch_atm_fields_compact" ),
-        GOUTPUT( ),
-        INPUT(  "atmosphere_dim" ),
-        GINPUT( "ArrayOfMatrix" ),
+        OUT( "batch_atm_fields_compact" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "atmosphere_dim" ),
+        GIN(      ""              ),
         KEYWORDS( "field_names", "extra_field_names", "extra_field_values" ),
-        DEFAULTS( NODEF,         "[]",                "[]" ),
-        //        DEFAULTS( NODEF,         NODEF,                NODEF ),
+        GIN_TYPE( "ArrayOfMatrix" ),
+        GIN_DEFAULT( NODEF,         "[]",                "[]" ),
+        //GIN_DEFAULT( NODEF,         NODEF,                NODEF ),
         TYPES(    "ArrayOfString", "ArrayOfString",     "Vector" )));
 
   md_data_raw.push_back
@@ -1944,12 +2074,14 @@ void define_md_data_raw()
          "given grids, instead of using and returning the original grids.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field" ),
-        GOUTPUT( ),
-        INPUT(  "abs_species", "atm_fields_compact", "atmosphere_dim" ),
-        GINPUT( ),
+        OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "abs_species", "atm_fields_compact", "atmosphere_dim" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -1964,12 +2096,14 @@ void define_md_data_raw()
          "The latitude and longitude grids are set to be empty.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "atmosphere_dim", "lat_grid", "lon_grid" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "atmosphere_dim", "lat_grid", "lon_grid" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -1986,12 +2120,14 @@ void define_md_data_raw()
          "message if used.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "atmosphere_dim", "lon_grid", "lat_1d", "meridian_angle_1d"),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "atmosphere_dim", "lon_grid", "lat_1d", "meridian_angle_1d"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -2007,12 +2143,14 @@ void define_md_data_raw()
          "values that cause an error message if used.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "atmosphere_dim", "lat_1d", "meridian_angle_1d" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "atmosphere_dim", "lat_1d", "meridian_angle_1d" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -2048,12 +2186,14 @@ void define_md_data_raw()
          "/smiles_local/arts-data/atmosphere/fascod/tropical \n"
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT("t_field_raw", "z_field_raw", "vmr_field_raw"),
-        GOUTPUT( ),
-        INPUT("abs_species"),
-        GINPUT( ),
+        OUT("t_field_raw", "z_field_raw", "vmr_field_raw"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("abs_species"),
+        GIN(      ),
         KEYWORDS( "basename" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "String" )));
 
   md_data_raw.push_back
@@ -2072,17 +2212,19 @@ void define_md_data_raw()
          "DOIT method.\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUTPUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "cloudbox_on"),
-        GOUTPUT( ),
-        INPUT( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
+        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "cloudbox_on"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
                "surface_prop_agenda", "iy_cloudbox_agenda",
                "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
                "t_field", "vmr_field", "r_geoid", "z_surface", 
                "cloudbox_limits", "f_grid", "stokes_dim", 
                "scat_za_grid", "scat_aa_grid" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -2100,17 +2242,19 @@ void define_md_data_raw()
          "This method can only be used for 3D cases.\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUTPUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "cloudbox_on"),
-        GOUTPUT( ),
-        INPUT( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
+        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "cloudbox_on"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
                "surface_prop_agenda", "iy_cloudbox_agenda",
                "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
                "t_field", "vmr_field", "r_geoid", "z_surface", 
                "cloudbox_limits", "f_grid", "stokes_dim", 
                "scat_za_grid", "scat_aa_grid" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -2124,12 +2268,14 @@ void define_md_data_raw()
          "empty vector and *iy_cloudbox_agenda* to an empty agenda.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
   
    md_data_raw.push_back
@@ -2142,12 +2288,14 @@ void define_md_data_raw()
          "This method sets *cloudbox_limits* accordingly. \n"
          ), 
         AUTHORS( "Claudia Emde" ),
-        OUTPUT("cloudbox_on", "cloudbox_limits"),
-        GOUTPUT( ),
-        INPUT("p_grid"),
-        GINPUT( ),
+        OUT("cloudbox_on", "cloudbox_limits"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("p_grid"),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
 
@@ -2169,12 +2317,14 @@ void define_md_data_raw()
          "replaced by this method. \n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "pnd_field", "scat_data_raw"),
-        GOUTPUT( ),
-        INPUT( "p_grid", "lat_grid", "lon_grid" ),
-        GINPUT( ),
+        OUT( "pnd_field", "scat_data_raw"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "p_grid", "lat_grid", "lon_grid" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -2213,13 +2363,15 @@ void define_md_data_raw()
          "   lon2 : Upper longitude point.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "cloudbox_on", "cloudbox_limits"),
-        GOUTPUT( ),
-        INPUT( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GINPUT( ),
+        OUT( "cloudbox_on", "cloudbox_limits"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+        GIN(      ),
         KEYWORDS( "p1",      "p2",      "lat1",    "lat2",    "lon1",
                   "lon2" ),
-        DEFAULTS( NODEF,     NODEF,     NODEF,     NODEF,     NODEF,
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,     NODEF,     NODEF,     NODEF,     NODEF,
                   NODEF ),
         TYPES(    "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", 
                   "Numeric" )));
@@ -2259,13 +2411,15 @@ void define_md_data_raw()
          "   lon2 : Upper longitude point.\n"
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "cloudbox_on", "cloudbox_limits"),
-        GOUTPUT( ),
-        INPUT( "atmosphere_dim", "z_field", "lat_grid", "lon_grid" ),
-        GINPUT( ),
+        OUT( "cloudbox_on", "cloudbox_limits"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "atmosphere_dim", "z_field", "lat_grid", "lon_grid" ),
+        GIN(      ),
         KEYWORDS( "z1",      "z2",      "lat1",    "lat2",    "lon1",
                   "lon2" ),
-        DEFAULTS( NODEF,     NODEF,     NODEF,     NODEF,     NODEF,
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,     NODEF,     NODEF,     NODEF,     NODEF,
                   NODEF ),
         TYPES(    "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", 
                   "Numeric" )));
@@ -2298,12 +2452,14 @@ void define_md_data_raw()
          "   Any : The input variable.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT( "Any" ),
-        INPUT( ),
-        GINPUT( "Any" ),
+        OUT( ),
+        GOUT(      ""    ),
+        GOUT_TYPE( "Any" ),
+        IN( ),
+        GIN(      ""    ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Any" ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -2320,12 +2476,14 @@ void define_md_data_raw()
          "   Any     : The variable to delete.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT(  "Any" ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(       ""    ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE(  "Any" ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -2342,17 +2500,19 @@ void define_md_data_raw()
          "Detailed documentation to be added.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT("scat_i_p", "scat_i_lat", "scat_i_lon", 
+        OUT("scat_i_p", "scat_i_lat", "scat_i_lon", 
                "f_index", "scat_data_mono", "doit_i_field1D_spectrum"),
-        GOUTPUT( ),
-        INPUT("cloudbox_limits", "stokes_dim", "opt_prop_part_agenda", 
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("cloudbox_limits", "stokes_dim", "opt_prop_part_agenda", 
               "abs_scalar_gas_agenda", "spt_calc_agenda", 
               "pnd_field", "t_field", 
               "z_field", "p_grid", "vmr_field", "scat_data_raw", "f_grid", 
               "scat_za_grid", "surface_emissivity_field" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
 
@@ -2392,12 +2552,14 @@ void define_md_data_raw()
          "cases to speed up the calculation. \n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "doit_za_grid_size", "scat_aa_grid", "scat_za_grid"),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "doit_za_grid_size", "scat_aa_grid", "scat_za_grid"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "N_za_grid", "N_aa_grid", "za_grid_opt_file"),
-        DEFAULTS( NODEF,       NODEF,       NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,       NODEF,       NODEF ),
         TYPES(    "Index",     "Index",     "String")));
 
   md_data_raw.push_back
@@ -2416,15 +2578,17 @@ void define_md_data_raw()
          "can be included.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "scat_i_p", "scat_i_lat", "scat_i_lon",
+        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon",
                 "doit_i_field1D_spectrum" ),
-        GOUTPUT( ),
-        INPUT( "doit_i_field", "f_grid", "f_index",   "p_grid", "lat_grid", 
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "doit_i_field", "f_grid", "f_index",   "p_grid", "lat_grid", 
                "lon_grid", "scat_za_grid", "scat_aa_grid", "stokes_dim",
                "atmosphere_dim", "cloudbox_limits", "sensor_pos", "z_field" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
 md_data_raw.push_back     
@@ -2453,13 +2617,15 @@ md_data_raw.push_back
          "This method can be used in *doit_convergence_test_agenda*.\n"
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT("doit_conv_flag", "doit_iteration_counter"),
-        GOUTPUT( ),
-        INPUT("doit_conv_flag", "doit_iteration_counter",
+        OUT("doit_conv_flag", "doit_iteration_counter"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("doit_conv_flag", "doit_iteration_counter",
               "doit_i_field", "doit_i_field_old"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "epsilon" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Vector" )));
 
   md_data_raw.push_back     
@@ -2481,13 +2647,15 @@ md_data_raw.push_back
          "DOIT result might be wrong. \n" 
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT("doit_conv_flag", "doit_iteration_counter"),
-        GOUTPUT( ),
-        INPUT("doit_conv_flag", "doit_iteration_counter", 
+        OUT("doit_conv_flag", "doit_iteration_counter"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("doit_conv_flag", "doit_iteration_counter", 
               "doit_i_field", "doit_i_field_old", "f_grid", "f_index"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "epsilon" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Vector" )));
   
   md_data_raw.push_back     
@@ -2517,13 +2685,15 @@ md_data_raw.push_back
          "This method can be used in *doit_convergence_test_agenda*.\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUTPUT("doit_conv_flag", "doit_iteration_counter"),
-        GOUTPUT( ),
-        INPUT("doit_conv_flag", "doit_iteration_counter",
+        OUT("doit_conv_flag", "doit_iteration_counter"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("doit_conv_flag", "doit_iteration_counter",
               "doit_i_field", "doit_i_field_old", "f_grid", "f_index"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "epsilon" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Vector" )));
 
   md_data_raw.push_back
@@ -2537,15 +2707,17 @@ md_data_raw.push_back
          "to initialize the required WSVs. \n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "scat_p_index", "scat_lat_index", "scat_lon_index", 
+        OUT( "scat_p_index", "scat_lat_index", "scat_lon_index", 
                 "scat_za_index", "scat_aa_index", "doit_scat_field",
                 "doit_i_field", "doit_za_interp", "doit_is_initialized" ),
-        GOUTPUT( ),
-        INPUT( "stokes_dim", "atmosphere_dim", "scat_za_grid", "scat_aa_grid",
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "stokes_dim", "atmosphere_dim", "scat_za_grid", "scat_aa_grid",
                "doit_za_grid_size", "cloudbox_limits", "scat_data_raw" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -2569,13 +2741,15 @@ md_data_raw.push_back
          "      supported.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT("doit_i_field"),
-        GOUTPUT( ),
-        INPUT( "doit_i_field", "doit_scat_field_agenda", "doit_rte_agenda", 
+        OUT("doit_i_field"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "doit_i_field", "doit_scat_field_agenda", "doit_rte_agenda", 
                "doit_conv_test_agenda"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -2603,14 +2777,16 @@ md_data_raw.push_back
          "previous frequency should be used. Default is 1. \n"
          ),
         AUTHORS( "Sreerekha T.R. and Claudia Emde" ),
-        OUTPUT("doit_i_field"),
-        GOUTPUT(),
-        INPUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "f_grid", 
+        OUT("doit_i_field"),
+        GOUT(     ),
+        GOUT_TYPE(),
+        IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "f_grid", 
                "f_index", "p_grid", "lat_grid", "lon_grid", 
                "cloudbox_limits", "atmosphere_dim"),
-        GINPUT(),
+        GIN(     ),
         KEYWORDS("all_frequencies"),
-        DEFAULTS( "1" ),
+        GIN_TYPE(),
+        GIN_DEFAULT( "1" ),
         TYPES("Index")));
 
   md_data_raw.push_back
@@ -2631,14 +2807,16 @@ md_data_raw.push_back
          "workspace variable *doit_i_field*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT("doit_i_field"),
-        GOUTPUT( ),
-        INPUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "p_grid", "lat_grid", 
+        OUT("doit_i_field"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "p_grid", "lat_grid", 
                "lon_grid", 
                "cloudbox_limits", "atmosphere_dim", "stokes_dim"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "value" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Vector" )));
 
   md_data_raw.push_back
@@ -2657,18 +2835,20 @@ md_data_raw.push_back
          "It is recommended to use *doit_i_fieldUpdateSeq1D*.\n"
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT("doit_i_field"),
-        GOUTPUT( ),
-        INPUT("doit_i_field_old", "doit_scat_field", "cloudbox_limits", 
+        OUT("doit_i_field"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("doit_i_field_old", "doit_scat_field", "cloudbox_limits", 
               "abs_scalar_gas_agenda",
               "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
               "opt_prop_part_agenda", "opt_prop_gas_agenda",
               "ppath_step_agenda", "p_grid", "z_field", "r_geoid", "z_surface",
               "t_field", "f_grid", "f_index", "surface_prop_agenda",
               "doit_za_interp"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -2689,18 +2869,20 @@ md_data_raw.push_back
          "because it is the most efficient and accurate method.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT("doit_i_field"),
-        GOUTPUT( ),
-        INPUT("doit_i_field", "doit_scat_field", "cloudbox_limits", 
+        OUT("doit_i_field"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("doit_i_field", "doit_scat_field", "cloudbox_limits", 
               "abs_scalar_gas_agenda",
               "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field",
               "opt_prop_part_agenda", "opt_prop_gas_agenda",
               "ppath_step_agenda", "p_grid", "z_field", "r_geoid", "z_surface",
               "t_field", "f_grid", "f_index", "surface_prop_agenda",
               "doit_za_interp"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -2720,17 +2902,19 @@ md_data_raw.push_back
          "be used for limb simulations. \n"
          ),
         AUTHORS( "Sreerekha T.R." ),
-        OUTPUT("doit_i_field", "scat_za_index"),
-        GOUTPUT( ),
-        INPUT("doit_scat_field", "cloudbox_limits", 
+        OUT("doit_i_field", "scat_za_index"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("doit_scat_field", "cloudbox_limits", 
               "abs_scalar_gas_agenda",
               "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
               "opt_prop_part_agenda", "opt_prop_gas_agenda",
               "ppath_step_agenda", "p_grid", "z_field", "r_geoid", "t_field",
               "f_grid", "f_index"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -2753,9 +2937,10 @@ md_data_raw.push_back
          "module or an independent pixel approach applying DOIT-1D. \n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT("doit_i_field"),
-        GOUTPUT( ),
-        INPUT("doit_i_field", "doit_scat_field", "cloudbox_limits", 
+        OUT("doit_i_field"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN("doit_i_field", "doit_scat_field", "cloudbox_limits", 
               "abs_scalar_gas_agenda",
               "vmr_field", "spt_calc_agenda", "scat_za_grid", "scat_aa_grid",
               "pnd_field",
@@ -2763,9 +2948,10 @@ md_data_raw.push_back
               "ppath_step_agenda", "p_grid", "lat_grid", "lon_grid", "z_field",
               "r_geoid", "z_surface", "t_field",
               "f_grid", "f_index", "doit_za_interp"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
   
   md_data_raw.push_back
@@ -2783,15 +2969,17 @@ md_data_raw.push_back
          "which is used in the radiative transfer part (*doit_i_fieldUpdateXXX*).\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUTPUT( "doit_scat_field" ),
-        GOUTPUT( ),
-        INPUT( "doit_scat_field", "pha_mat_spt_agenda",
+        OUT( "doit_scat_field" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "doit_scat_field", "pha_mat_spt_agenda",
                "doit_i_field", "pnd_field", "t_field", "atmosphere_dim", 
                "cloudbox_limits", "scat_za_grid", "scat_aa_grid",  
                "doit_za_grid_size"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -2821,15 +3009,17 @@ md_data_raw.push_back
          "For more information please refer to AUG.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "doit_scat_field"),
-        GOUTPUT( ),
-        INPUT( "doit_scat_field", "pha_mat_spt_agenda",
+        OUT( "doit_scat_field"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "doit_scat_field", "pha_mat_spt_agenda",
                "doit_i_field", "pnd_field", "t_field", "atmosphere_dim", 
                "cloudbox_limits", "scat_za_grid", "scat_aa_grid",  
                "doit_za_grid_size", "doit_za_interp" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -2854,13 +3044,15 @@ md_data_raw.push_back
          "*pha_mat_sptFromDataDOITOpt*. \n"
           ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "pha_mat_sptDOITOpt", "scat_data_mono" ),
-        GOUTPUT( ),
-        INPUT( "doit_za_grid_size", "scat_aa_grid", "scat_data_raw", "f_grid", 
+        OUT( "pha_mat_sptDOITOpt", "scat_data_mono" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "doit_za_grid_size", "scat_aa_grid", "scat_data_raw", "f_grid", 
                "f_index", "atmosphere_dim", "stokes_dim" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -2888,12 +3080,14 @@ md_data_raw.push_back
          "   'iterations = [0]'.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( "doit_iteration_counter", "doit_i_field" ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "doit_iteration_counter", "doit_i_field" ),
+        GIN(      ),
         KEYWORDS( "iterations" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "ArrayOfIndex" )));
 
   md_data_raw.push_back
@@ -2918,12 +3112,14 @@ md_data_raw.push_back
          "frequency.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "doit_za_grid_opt" ),
-        GOUTPUT( ),
-        INPUT( "doit_i_field", "scat_za_grid", "doit_za_interp" ),
-        GINPUT( ),
+        OUT( "doit_za_grid_opt" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "doit_i_field", "scat_za_grid", "doit_za_interp" ),
+        GIN(      ),
         KEYWORDS( "acc" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
                                                                                
   md_data_raw.push_back
@@ -2941,12 +3137,14 @@ md_data_raw.push_back
          "  interp_method - 'linear' or 'polynomial' \n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "doit_za_interp" ),
-        GOUTPUT( ),
-        INPUT( "atmosphere_dim" ),
-        GINPUT( ),
+        OUT( "doit_za_interp" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "atmosphere_dim" ),
+        GIN(      ),
         KEYWORDS( "interp_method" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "String" )));
  
   md_data_raw.push_back
@@ -2969,12 +3167,14 @@ md_data_raw.push_back
          "   Any : The input variable.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT( "Any" ),
-        INPUT( ),
-        GINPUT( "Any" ),
+        OUT( ),
+        GOUT(      ""    ),
+        GOUT_TYPE( "Any" ),
+        IN( ),
+        GIN(      ""    ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Any" ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -2991,12 +3191,14 @@ md_data_raw.push_back
          "thermodynamic equilibrium is valid.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "emission" ),
-        GOUTPUT( ),
-        INPUT( "f_grid", "rte_temperature" ),
-        GINPUT( ),
+        OUT( "emission" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "f_grid", "rte_temperature" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -3016,12 +3218,14 @@ md_data_raw.push_back
          "   msg : String describing the error.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "msg" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "String" )));
 
   md_data_raw.push_back
@@ -3036,12 +3240,14 @@ md_data_raw.push_back
          "it is reached, it will terminate the program.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -3055,12 +3261,14 @@ md_data_raw.push_back
          "different gas species and add the result to the extinction matrix.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "ext_mat" ),
-        GOUTPUT( ),
-        INPUT( "ext_mat", "abs_scalar_gas" ),
-        GINPUT( ),
+        OUT( "ext_mat" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "ext_mat", "abs_scalar_gas" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -3083,13 +3291,15 @@ md_data_raw.push_back
          "are specified in the control file.\n"
          ),
         AUTHORS( "Sreerekha T.R." ),
-        OUTPUT( "ext_mat" ),
-        GOUTPUT( ),
-        INPUT( "ext_mat", "ext_mat_spt", "pnd_field", "atmosphere_dim", 
+        OUT( "ext_mat" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "ext_mat", "ext_mat_spt", "pnd_field", "atmosphere_dim", 
                "scat_p_index", "scat_lat_index", "scat_lon_index" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
  
   md_data_raw.push_back
@@ -3108,12 +3318,14 @@ md_data_raw.push_back
          "leading frequency dimension.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "ext_mat" ),
-        GOUTPUT( ),
-        INPUT( "f_grid", "stokes_dim", "f_index" ),
-        GINPUT( ),
+        OUT( "ext_mat" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "f_grid", "stokes_dim", "f_index" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back     
@@ -3140,12 +3352,14 @@ md_data_raw.push_back
          "fine as requested.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( "f_grid" ),
-        GOUTPUT( ),
-        INPUT( "lo_multi", "f_backend_multi", "backend_channel_response_multi" ),
-        GINPUT( ),
+        OUT( "f_grid" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "lo_multi", "f_backend_multi", "backend_channel_response_multi" ),
+        GIN(      ),
         KEYWORDS( "spacing" ),
-        DEFAULTS( ".1e9"),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ".1e9"),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back     
@@ -3156,12 +3370,14 @@ md_data_raw.push_back
          "Sets an index variable that acts as an on/off flag to 0.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Index" ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ""      ),
+        GOUT_TYPE( "Index" ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back     
@@ -3172,12 +3388,14 @@ md_data_raw.push_back
          "Sets an index variable that acts as an on/off flag to 1.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Index" ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ""      ),
+        GOUT_TYPE( "Index" ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back     
@@ -3191,12 +3409,14 @@ md_data_raw.push_back
          "call of *abs_lookupAdapt*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "f_grid"  ),
-        GOUTPUT( ),
-        INPUT(  "abs_lookup" ),
-        GINPUT( ),
+        OUT( "f_grid"  ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "abs_lookup" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back     
@@ -3226,12 +3446,14 @@ md_data_raw.push_back
          "that *ybatchCalc* may occur inside *forloop_agenda*.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT(),
-        GOUTPUT( ),
-        INPUT(  "forloop_agenda" ),
-        GINPUT( ),
+        OUT(),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "forloop_agenda" ),
+        GIN(      ),
         KEYWORDS( "start", "stop",  "step" ),
-        DEFAULTS( NODEF,   NODEF,   NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,   NODEF,   NODEF ),
         TYPES(    "Index", "Index", "Index" )));
 
   md_data_raw.push_back
@@ -3247,12 +3469,14 @@ md_data_raw.push_back
          "to create output *GriddedField4*.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT( "GField4" ),
-        INPUT( ),
-        GINPUT(  "ArrayOfGField4", "Index" ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "GField4" ),
+        IN( ),
+        GIN(       ""              , ""      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE(  "ArrayOfGField4", "Index" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -3284,12 +3508,14 @@ md_data_raw.push_back
          "   Any : The input variable.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT(  "Any" ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(       ""    ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE(  "Any" ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -3330,12 +3556,14 @@ md_data_raw.push_back
          "controlfiles.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -3351,12 +3579,14 @@ md_data_raw.push_back
          "   Index: New Index variable.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "Index" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""      ),
+        GOUT_TYPE( "Index" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back     
@@ -3373,12 +3603,14 @@ md_data_raw.push_back
          "   value : A positive integer.\n" 
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Index" ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ""      ),
+        GOUT_TYPE( "Index" ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "value" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Index" ),
         SETMETHOD( true )));
 
@@ -3387,17 +3619,19 @@ md_data_raw.push_back
       ( NAME("IndexStep"),
         DESCRIPTION
         (
-         "Performs GOUTPUT = GINPUT + 1\n"
+         "Performs GOUT_TYPE = GIN_TYPE + 1\n"
          "\n"
          "Input and output can be same variable.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Index" ),
-        INPUT( ),
-        GINPUT( "Index" ),
+        OUT( ),
+        GOUT(      ""      ),
+        GOUT_TYPE( "Index" ),
+        IN( ),
+        GIN(      ""      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back     
@@ -3417,13 +3651,15 @@ md_data_raw.push_back
          "   Tensor3 : Field to interpolate.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Numeric" ),
-        INPUT( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Numeric" ),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
                "rte_gp_p", "rte_gp_lat", "rte_gp_lon" ),
-        GINPUT( "Tensor3" ),
+        GIN(      ""        ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Tensor3" ),
+        GIN_DEFAULT( ),
         TYPES( )));
   
   md_data_raw.push_back     
@@ -3443,13 +3679,15 @@ md_data_raw.push_back
          "   Matrix : Field to interpolate.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Numeric" ),
-        INPUT( "atmosphere_dim", "lat_grid", "lon_grid", 
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Numeric" ),
+        IN( "atmosphere_dim", "lat_grid", "lon_grid", 
                "rte_gp_lat", "rte_gp_lon" ),
-        GINPUT( "Matrix" ),
+        GIN(      ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Matrix" ),
+        GIN_DEFAULT( ),
         TYPES( )));
   
   md_data_raw.push_back
@@ -3473,15 +3711,17 @@ md_data_raw.push_back
          "Interpolation of the internal field is not yet possible.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "iy" ),
-        GOUTPUT( ),
-        INPUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
+        OUT( "iy" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
                "rte_gp_p", "rte_gp_lat", "rte_gp_lon", "rte_los",  "cloudbox_on",
                "cloudbox_limits", "atmosphere_dim", "stokes_dim", "scat_za_grid",
                "scat_aa_grid", "f_grid" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -3495,16 +3735,18 @@ md_data_raw.push_back
          "interpolation along *scat_za_grid* is performed.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "iy" ),
-        GOUTPUT( ),
-        INPUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
+        OUT( "iy" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
                "rte_gp_p", "rte_gp_lat",
                "rte_gp_lon", "rte_los",  "cloudbox_on", "cloudbox_limits",
                "atmosphere_dim", "stokes_dim", "scat_za_grid", "scat_aa_grid", 
                "f_grid" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -3542,12 +3784,14 @@ md_data_raw.push_back
          "  dx      : Size of perturbation.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( "jacobian_quantities", "jacobian_agenda" ),
-        GOUTPUT( ),
-        INPUT( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GINPUT( "Vector", "Vector", "Vector" ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+        GIN(      ""      , ""      , ""       ),
         KEYWORDS( "species", "method", "unit",   "dx" ),
-        DEFAULTS( NODEF,     NODEF,    NODEF,    NODEF),
+        GIN_TYPE( "Vector", "Vector", "Vector" ),
+        GIN_DEFAULT( NODEF,     NODEF,    NODEF,    NODEF),
         TYPES(    "String",  "String", "String", "Numeric" )));
          
   md_data_raw.push_back
@@ -3573,13 +3817,15 @@ md_data_raw.push_back
          "  Vector : The longitude grid of the retrieval field.\n"
         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUTPUT( "jacobian_quantities", "jacobian_agenda" ),
-        GOUTPUT( ),
-        INPUT( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
                "pnd_field", "pnd_field_perturb", "cloudbox_limits" ),
-        GINPUT( "Vector", "Vector", "Vector" ),
+        GIN(      ""      , ""      , ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Vector", "Vector", "Vector" ),
+        GIN_DEFAULT( ),
         TYPES( )));
          
   md_data_raw.push_back
@@ -3609,12 +3855,14 @@ md_data_raw.push_back
          "  poly_order          : Order of the polynomial.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( "jacobian_quantities", "jacobian_agenda" ),
-        GOUTPUT( ),
-        INPUT( "jacobian", "sensor_pos", "sensor_time" ),
-        GINPUT( ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "jacobian", "sensor_pos", "sensor_time" ),
+        GIN(      ),
         KEYWORDS( "dza",     "poly_order" ),
-        DEFAULTS( NODEF,     NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,     NODEF ),
         TYPES(    "Numeric", "Index" )));
 
   md_data_raw.push_back
@@ -3649,12 +3897,14 @@ md_data_raw.push_back
          "  dx      : Size of perturbation.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( "jacobian_quantities", "jacobian_agenda" ),
-        GOUTPUT( ),
-        INPUT( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GINPUT( "Vector", "Vector", "Vector" ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+        GIN(      ""      , ""      , ""       ),
         KEYWORDS( "hse",    "method", "dx" ),
-        DEFAULTS( NODEF,    NODEF,    NODEF ),
+        GIN_TYPE( "Vector", "Vector", "Vector" ),
+        GIN_DEFAULT( NODEF,    NODEF,    NODEF ),
         TYPES(    "String", "String", "Numeric" )));
   
   md_data_raw.push_back
@@ -3669,12 +3919,14 @@ md_data_raw.push_back
          "*y*.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( "jacobian" ),
-        GOUTPUT( ),
-        INPUT( "jacobian_agenda", "jacobian_indices" ),
-        GINPUT( ),
+        OUT( "jacobian" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "jacobian_agenda", "jacobian_indices" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
         
   md_data_raw.push_back
@@ -3688,9 +3940,10 @@ md_data_raw.push_back
         "and should normally not be called by the user.\n"
         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUTPUT( "jacobian" ),
-        GOUTPUT( ),
-        INPUT( "y", "jacobian_quantities", "jacobian_indices", "abs_species", 
+        OUT( "jacobian" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "y", "jacobian_quantities", "jacobian_indices", "abs_species", 
                "ppath_step_agenda", 
                "rte_agenda", "iy_space_agenda", "surface_prop_agenda", 
                "iy_cloudbox_agenda", "atmosphere_dim", "p_grid", "lat_grid", 
@@ -3699,9 +3952,10 @@ md_data_raw.push_back
                "cloudbox_limits", "sensor_response", "sensor_pos", "sensor_los", 
                "f_grid", "stokes_dim", "antenna_dim", "mblock_za_grid", 
                "mblock_aa_grid" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "species" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "String" ),
         SETMETHOD( true )));
 
@@ -3716,9 +3970,10 @@ md_data_raw.push_back
         "and should normally not be called by the user.\n"
         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUTPUT( "jacobian" ),
-        GOUTPUT( ),
-        INPUT( "y", "jacobian_quantities", "jacobian_indices", "pnd_field_perturb",
+        OUT( "jacobian" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "y", "jacobian_quantities", "jacobian_indices", "pnd_field_perturb",
                "jacobian_particle_update_agenda",
                "ppath_step_agenda", "rte_agenda", "iy_space_agenda", 
                "surface_prop_agenda", "iy_cloudbox_agenda", "atmosphere_dim", 
@@ -3727,9 +3982,10 @@ md_data_raw.push_back
                "cloudbox_on", "cloudbox_limits", "pnd_field",
                "sensor_response", "sensor_pos", "sensor_los", "f_grid", 
                "stokes_dim", "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
         
   md_data_raw.push_back
@@ -3743,9 +3999,10 @@ md_data_raw.push_back
         "and should normally not be called by the user.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( "jacobian" ),
-        GOUTPUT( ),
-        INPUT( "y", "jacobian_quantities", "jacobian_indices", 
+        OUT( "jacobian" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "y", "jacobian_quantities", "jacobian_indices", 
                "sensor_time", "ppath_step_agenda", 
                "rte_agenda", "iy_space_agenda", "surface_prop_agenda", 
                "iy_cloudbox_agenda", "atmosphere_dim", "p_grid", "lat_grid", 
@@ -3754,9 +4011,10 @@ md_data_raw.push_back
                "cloudbox_limits", "sensor_response", "sensor_pos", "sensor_los", 
                "f_grid", "stokes_dim", "antenna_dim", "mblock_za_grid", 
                "mblock_aa_grid" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -3770,9 +4028,10 @@ md_data_raw.push_back
         "and should normally not be called by the user.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( "jacobian" ),
-        GOUTPUT( ),
-        INPUT( "y", "jacobian_quantities", "jacobian_indices", "ppath_step_agenda",
+        OUT( "jacobian" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "y", "jacobian_quantities", "jacobian_indices", "ppath_step_agenda",
                "rte_agenda", 
                "iy_space_agenda", "surface_prop_agenda", "iy_cloudbox_agenda", 
                "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
@@ -3780,9 +4039,10 @@ md_data_raw.push_back
                "cloudbox_on", "cloudbox_limits", 
                "sensor_response", "sensor_pos", "sensor_los", "f_grid", 
                "stokes_dim", "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -3802,12 +4062,14 @@ md_data_raw.push_back
          "and the size of *sensor_response* has to be defined.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( "jacobian", "jacobian_indices" ),
-        GOUTPUT( ),
-        INPUT( "jacobian_quantities", "sensor_pos", "sensor_response" ),
-        GINPUT( ),
+        OUT( "jacobian", "jacobian_indices" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "jacobian_quantities", "sensor_pos", "sensor_response" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -3825,12 +4087,14 @@ md_data_raw.push_back
          "The Jacobian quantities are initialised to be empty.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( "jacobian", "jacobian_quantities", "jacobian_indices" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "jacobian", "jacobian_quantities", "jacobian_indices" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -3845,13 +4109,15 @@ md_data_raw.push_back
          "this method must be called when no jacobians will be calculated.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "jacobian", "jacobian_quantities", "jacobian_indices", 
+        OUT( "jacobian", "jacobian_quantities", "jacobian_indices", 
                 "jacobian_unit" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
    /* Not yet updated
@@ -3866,14 +4132,16 @@ md_data_raw.push_back
          "determined by *jacobian_unit*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT("jacobian" ),
-        GOUTPUT( ),
-        INPUT( "jacobian", "jacobian_unit", "y_unit", "sensor_pos", "sensor_los", 
+        OUT("jacobian" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "jacobian", "jacobian_unit", "y_unit", "sensor_pos", "sensor_los", 
                "sensor_response_f", "sensor_response_za", "sensor_response_aa",
                "sensor_response_pol" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
    */
 
@@ -3903,12 +4171,14 @@ md_data_raw.push_back
          "   Vector : A set of frequencies.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( "stokes_dim" ),
-        GINPUT( "Vector" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( "stokes_dim" ),
+        GIN(      ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Vector" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -3924,12 +4194,14 @@ md_data_raw.push_back
          "   Matrix: New empty Matrix.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "Matrix" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -3952,12 +4224,14 @@ md_data_raw.push_back
          "   Matrix : The original Matrix (dimension nxc).\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( ),
-        GINPUT( "Matrix", "Matrix" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( ),
+        GIN(      ""      , ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Matrix", "Matrix" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -3974,12 +4248,14 @@ md_data_raw.push_back
          "   Vector : The vector to be copied.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( ),
-        GINPUT( "Vector" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( ),
+        GIN(      ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Vector" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4000,12 +4276,14 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the second column.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( ),
-        GINPUT( "Vector", "Vector" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( ),
+        GIN(      ""      , ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Vector", "Vector" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4027,12 +4305,14 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the third column.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( ),
-        GINPUT( "Vector", "Vector", "Vector" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( ),
+        GIN(      ""      , ""      , ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Vector", "Vector", "Vector" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4049,12 +4329,14 @@ md_data_raw.push_back
          "   Vector : The vector to be copied.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( ),
-        GINPUT( "Vector" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( ),
+        GIN(      ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Vector" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4075,12 +4357,14 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the second row.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( ),
-        GINPUT( "Vector", "Vector" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( ),
+        GIN(      ""      , ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Vector", "Vector" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4102,12 +4386,14 @@ md_data_raw.push_back
          "   Vector : The vector to be copied into the third row.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( ),
-        GINPUT( "Vector", "Vector", "Vector" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( ),
+        GIN(      ""      , ""      , ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Vector", "Vector", "Vector" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4121,12 +4407,14 @@ md_data_raw.push_back
          "variable to create output *Matrix*.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( ),
-        GINPUT(  "ArrayOfMatrix", "Index" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( ),
+        GIN(       ""             , ""      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE(  "ArrayOfMatrix", "Index" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4140,12 +4428,14 @@ md_data_raw.push_back
          "output Matrix.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( ),
-        GINPUT(  "Tensor3", "Index" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( ),
+        GIN(       ""       , ""      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE(  "Tensor3", "Index" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4163,12 +4453,14 @@ md_data_raw.push_back
          "   Numeric : Blackbody temperature. \n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( "stokes_dim" ),
-        GINPUT( "Vector", "Numeric" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( "stokes_dim" ),
+        GIN(      ""      , ""        ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Vector", "Numeric" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4190,12 +4482,14 @@ md_data_raw.push_back
          "   value : The value to be multiplied with the matrix.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( ),
-        GINPUT( "Matrix" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( ),
+        GIN(      ""       ),
         KEYWORDS( "value" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( "Matrix" ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric"   )));
 
    md_data_raw.push_back
@@ -4213,12 +4507,14 @@ md_data_raw.push_back
          "   value : The value of the matrix elements.\n" 
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( "nrows", "ncols" ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( "nrows", "ncols" ),
+        GIN(      ),
         KEYWORDS( "value"   ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -4235,12 +4531,14 @@ md_data_raw.push_back
          "   Vector  : A set of frequencies.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Matrix" ),
-        INPUT( "stokes_dim" ),
-        GINPUT( "Vector" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Matrix" ),
+        IN( "stokes_dim" ),
+        GIN(      ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Vector" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4255,12 +4553,14 @@ md_data_raw.push_back
          "uncorrelated bivariate normal distribution\n"
         ),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( "mc_antenna" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "mc_antenna" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "za_sigma", "aa_sigma" ),
-        DEFAULTS( NODEF,      NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,      NODEF ),
         TYPES(    "Numeric",  "Numeric")));
 
   md_data_raw.push_back
@@ -4275,12 +4575,14 @@ md_data_raw.push_back
          "of the antenna response, in the zenith and azimuthal planes.\n"
         ),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( "mc_antenna" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "mc_antenna" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "za_fwhm", "aa_fwhm" ),
-        DEFAULTS( NODEF,     NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,     NODEF ),
         TYPES(    "Numeric", "Numeric")));
 
   md_data_raw.push_back
@@ -4294,12 +4596,14 @@ md_data_raw.push_back
          "RT calculations.\n" 
         ),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( "mc_antenna" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "mc_antenna" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4311,15 +4615,17 @@ md_data_raw.push_back
          "for a given viewing direction\n"
         ),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( "mc_IWP", "mc_cloud_opt_path", "mc_IWP_error", "mc_cloud_opt_path_error", 
+        OUT( "mc_IWP", "mc_cloud_opt_path", "mc_IWP_error", "mc_cloud_opt_path_error", 
                 "mc_iteration_count"),
-        GOUTPUT( ),
-        INPUT( "mc_antenna", "sensor_pos", "sensor_los", "ppath_step_agenda", "p_grid", 
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "mc_antenna", "sensor_pos", "sensor_los", "ppath_step_agenda", "p_grid", 
                "lat_grid", "lon_grid", "r_geoid", "z_surface", "z_field", "t_field", "vmr_field", 
                "cloudbox_limits", "pnd_field", "scat_data_mono", "particle_masses", "mc_seed"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "max_iter" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Index" )));
   
   md_data_raw.push_back     
@@ -4346,18 +4652,20 @@ md_data_raw.push_back
          "according to system time, positive rng_seed values are taken\n"
          "literally.\n"),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( "y", "mc_iteration_count", "mc_error", "mc_points" ),
-        GOUTPUT( ),
-        INPUT( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
+        OUT( "y", "mc_iteration_count", "mc_error", "mc_points" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
                "stokes_dim", "iy_space_agenda", "surface_prop_agenda", 
                "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "p_grid", "lat_grid", 
                "lon_grid", "z_field", "r_geoid", "z_surface", "t_field", "vmr_field", 
                "cloudbox_limits", "pnd_field", "scat_data_mono", 
                "mc_seed", "y_unit", 
                "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back     
@@ -4368,18 +4676,20 @@ md_data_raw.push_back
          "mimics independent pixel appoximation simulations.\n"
          "Probably temporary.\n"),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( "y", "mc_iteration_count", "mc_error", "mc_points"),
-        GOUTPUT( ),
-        INPUT( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
+        OUT( "y", "mc_iteration_count", "mc_error", "mc_points"),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
                "stokes_dim", "iy_space_agenda", "surface_prop_agenda", 
                "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "ppath_step_agenda",
                "p_grid", "lat_grid", "lon_grid", "z_field", "r_geoid", "z_surface", 
                "t_field", "vmr_field", "cloudbox_limits", "pnd_field", 
                "scat_data_mono", "mc_seed", "y_unit",
                "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   /* Removed as ScatteringMonteCarlo is not working
@@ -4391,12 +4701,14 @@ md_data_raw.push_back
          "This is needed when using ScatteringMonteCarlo with incoming_lookup=0\n"
         ),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( "mc_incoming" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "mc_incoming" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
   */
 
@@ -4406,12 +4718,14 @@ md_data_raw.push_back
         DESCRIPTION
         ("Sets the value of mc_seed from system time\n"),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( "mc_seed" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "mc_seed" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4427,12 +4741,14 @@ md_data_raw.push_back
          "   Numeric: New Numeric variable.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "Numeric" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Numeric" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -4449,12 +4765,14 @@ md_data_raw.push_back
          "   value : The value.\n" 
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT(),
-        GOUTPUT( "Numeric" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Numeric" ),
+        IN(),
+        GIN(     ),
         KEYWORDS( "value"   ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE(),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" ),
         SETMETHOD( true )));
 
@@ -4467,12 +4785,14 @@ md_data_raw.push_back
          "workspace variable *nelem*\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( "nelem" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( "Any" ),
+        OUT( "nelem" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ""    ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Any" ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -4487,12 +4807,14 @@ md_data_raw.push_back
          "workspace variable *ncols*\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( "ncols" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( "Any" ),
+        OUT( "ncols" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ""    ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Any" ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -4507,12 +4829,14 @@ md_data_raw.push_back
          "workspace variable *nrows*\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( "nrows" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( "Any" ),
+        OUT( "nrows" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ""    ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Any" ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -4527,12 +4851,14 @@ md_data_raw.push_back
          "workspace variable *npages*\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( "npages" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( "Any" ),
+        OUT( "npages" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ""    ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Any" ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -4547,12 +4873,14 @@ md_data_raw.push_back
          "workspace variable *nbooks*\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( "nbooks" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( "Any" ),
+        OUT( "nbooks" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ""    ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Any" ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -4567,12 +4895,14 @@ md_data_raw.push_back
          "workspace variable *nshelves*\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( "nshelves" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( "Any" ),
+        OUT( "nshelves" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ""    ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Any" ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -4587,12 +4917,14 @@ md_data_raw.push_back
          "workspace variable *nvitrines*\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( "nvitrines" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( "Any" ),
+        OUT( "nvitrines" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ""    ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Any" ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -4607,12 +4939,14 @@ md_data_raw.push_back
          "workspace variable *nlibraries*\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( "nlibraries" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( "Any" ),
+        OUT( "nlibraries" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ""    ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Any" ),
+        GIN_DEFAULT( ),
         TYPES( ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -4629,12 +4963,14 @@ md_data_raw.push_back
          "create output Numeric.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Numeric" ),
-        INPUT( ),
-        GINPUT(  "Vector", "Index" ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Numeric" ),
+        IN( ),
+        GIN(       ""      , ""      ),
         KEYWORDS(),
-        DEFAULTS( ),
+        GIN_TYPE(  "Vector", "Index" ),
+        GIN_DEFAULT( ),
         TYPES()));
 
   md_data_raw.push_back
@@ -4660,16 +4996,18 @@ md_data_raw.push_back
          "for each particle type. \n"
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "ext_mat_spt", "abs_vec_spt" ),
-        GOUTPUT( ),
-        INPUT(  "ext_mat_spt", "abs_vec_spt", "scat_data_raw",
+        OUT( "ext_mat_spt", "abs_vec_spt" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "ext_mat_spt", "abs_vec_spt", "scat_data_raw",
                 "scat_za_grid", 
                 "scat_aa_grid", "scat_za_index", "scat_aa_index", 
                 "f_index", "f_grid", "rte_temperature",
                 "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4690,15 +5028,17 @@ md_data_raw.push_back
          "for each particle type. \n"
         ),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( "ext_mat_spt", "abs_vec_spt" ),
-        GOUTPUT( ),
-        INPUT(  "ext_mat_spt", "abs_vec_spt", "scat_data_mono",
+        OUT( "ext_mat_spt", "abs_vec_spt" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "ext_mat_spt", "abs_vec_spt", "scat_data_mono",
                 "scat_za_grid", 
                 "scat_aa_grid", "scat_za_index", "scat_aa_index", "rte_temperature",
                 "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
  
   md_data_raw.push_back
@@ -4709,12 +5049,14 @@ md_data_raw.push_back
          "Sets the output file format to ASCII.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( "output_file_format" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "output_file_format" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4725,12 +5067,14 @@ md_data_raw.push_back
          "Sets the output file format to binary.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( "output_file_format" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "output_file_format" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4741,12 +5085,14 @@ md_data_raw.push_back
          "Sets the output file format to zipped ASCII.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( "output_file_format" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "output_file_format" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -4775,13 +5121,15 @@ md_data_raw.push_back
          "   filename_pnd_field : File including  the WSV *pnd_field_raw*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "scat_data_raw", "pnd_field_raw" ),
-        GOUTPUT( ),
-        INPUT( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", 
+        OUT( "scat_data_raw", "pnd_field_raw" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", 
                "cloudbox_limits" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "filename_scat_data", "filename_pnd_field" ),
-        DEFAULTS( NODEF,                NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,                NODEF ),
         TYPES(    "String",             "String" )));
  
   md_data_raw.push_back
@@ -4800,13 +5148,15 @@ md_data_raw.push_back
          "   filename_pnd_field : Filename of the corresponding pnd_field \n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "scat_data_raw", "pnd_field_raw" ),
-        GOUTPUT( ),
-        INPUT( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", 
+        OUT( "scat_data_raw", "pnd_field_raw" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", 
                "cloudbox_limits" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "filename_scat_data", "filename_pnd_field" ),
-        DEFAULTS( NODEF,                NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,                NODEF ),
         TYPES(    "String",             "String" )));
 
   md_data_raw.push_back
@@ -4822,12 +5172,14 @@ md_data_raw.push_back
          "*ParticleTypeAdd(All)*.\n"
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "scat_data_raw", "pnd_field_raw" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "scat_data_raw", "pnd_field_raw" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ), 
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( ))); 
 
    md_data_raw.push_back
@@ -4847,13 +5199,15 @@ md_data_raw.push_back
          "are specified in the control file.\n"
          ),
         AUTHORS( "Sreerekha T.R." ),
-        OUTPUT( "pha_mat" ),
-        GOUTPUT( ),
-        INPUT( "pha_mat_spt", "pnd_field", "atmosphere_dim", "scat_p_index",
+        OUT( "pha_mat" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "pha_mat_spt", "pnd_field", "atmosphere_dim", "scat_p_index",
                "scat_lat_index", "scat_lon_index" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( ))); 
 
   md_data_raw.push_back
@@ -4874,15 +5228,17 @@ md_data_raw.push_back
          "laboratory coordinate system is done.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "pha_mat_spt" ),
-        GOUTPUT( ),
-        INPUT( "pha_mat_spt", "scat_data_raw", "scat_za_grid", "scat_aa_grid", 
+        OUT( "pha_mat_spt" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "pha_mat_spt", "scat_data_raw", "scat_za_grid", "scat_aa_grid", 
                "scat_za_index", "scat_aa_index", "f_index", "f_grid",
                "rte_temperature", "pnd_field", "scat_p_index", "scat_lat_index",
                "scat_lon_index" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( ))); 
 
    md_data_raw.push_back
@@ -4895,14 +5251,16 @@ md_data_raw.push_back
          "This function is the monchromatic version of *pha_mat_sptFromData*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "pha_mat_spt" ),
-        GOUTPUT( ),
-        INPUT( "pha_mat_spt", "scat_data_mono", "doit_za_grid_size",
+        OUT( "pha_mat_spt" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "pha_mat_spt", "scat_data_mono", "doit_za_grid_size",
                "scat_aa_grid", "scat_za_index", "scat_aa_index", "rte_temperature",
                "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( ))); 
 
    md_data_raw.push_back
@@ -4918,16 +5276,18 @@ md_data_raw.push_back
          "conbination with *ScatteringDataPrepareDOITOpt*. \n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "pha_mat_spt" ),
-        GOUTPUT( ),
-        INPUT( "pha_mat_spt", "pha_mat_sptDOITOpt", "scat_data_mono", 
+        OUT( "pha_mat_spt" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "pha_mat_spt", "pha_mat_sptDOITOpt", "scat_data_mono", 
                "doit_za_grid_size",
                "scat_aa_grid", 
                "scat_za_index", "scat_aa_index", "rte_temperature",
                "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS(),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( ))); 
 
   md_data_raw.push_back
@@ -4946,13 +5306,15 @@ md_data_raw.push_back
          "particle type. \n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUTPUT( "pnd_field" ),
-        GOUTPUT( ),
-        INPUT( "p_grid", "lat_grid", "lon_grid", "pnd_field_raw", "atmosphere_dim",
+        OUT( "pnd_field" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "p_grid", "lat_grid", "lon_grid", "pnd_field_raw", "atmosphere_dim",
                "cloudbox_limits" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( ))); 
 
   md_data_raw.push_back
@@ -4974,14 +5336,16 @@ md_data_raw.push_back
          "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\").\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "ppath" ),
-        GOUTPUT( ),
-        INPUT( "ppath_step_agenda", "atmosphere_dim", "p_grid", "lat_grid", 
+        OUT( "ppath" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "ppath_step_agenda", "atmosphere_dim", "p_grid", "lat_grid", 
                "lon_grid", "z_field", "r_geoid", "z_surface", 
                "cloudbox_on", "cloudbox_limits", "rte_pos", "rte_los" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
 
@@ -5010,13 +5374,15 @@ md_data_raw.push_back
          "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\").\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "ppath_step" ),
-        GOUTPUT( ),
-        INPUT( "ppath_step", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
+        OUT( "ppath_step" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "ppath_step", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
                "z_field", "r_geoid", "z_surface", "ppath_lmax" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5047,15 +5413,17 @@ md_data_raw.push_back
          "including the functionality of *ppath_lmax*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "ppath_step", "rte_pressure", "rte_temperature", "rte_vmr_list", 
+        OUT( "ppath_step", "rte_pressure", "rte_temperature", "rte_vmr_list", 
                 "refr_index" ),
-        GOUTPUT( ),
-        INPUT( "refr_index_agenda", "ppath_step", "atmosphere_dim", "p_grid", 
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "refr_index_agenda", "ppath_step", "atmosphere_dim", "p_grid", 
                "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
                "z_surface", "ppath_lmax", "ppath_lraytrace" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back     
@@ -5069,12 +5437,14 @@ md_data_raw.push_back
          "   level : Output level to use. \n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( "Any" ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ""    ),
         KEYWORDS( "level" ),
-        DEFAULTS( "1" ),
+        GIN_TYPE( "Any" ),
+        GIN_DEFAULT( "1" ),
         TYPES(    "Index" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -5091,12 +5461,14 @@ md_data_raw.push_back
          "   level : Output level to use. \n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "only_allocated", "level" ),
-        DEFAULTS( "1",              "1" ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( "1",              "1" ),
         TYPES(    "Index",          "Index" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -5111,12 +5483,14 @@ md_data_raw.push_back
          "Sets *p_grid* to the frequency grid of *abs_lookup*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "p_grid"  ),
-        GOUTPUT( ),
-        INPUT(  "abs_lookup" ),
-        GINPUT( ),
+        OUT( "p_grid"  ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(  "abs_lookup" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5143,12 +5517,14 @@ md_data_raw.push_back
          "   filename : Name of the input file.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "Any" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""    ),
+        GOUT_TYPE( "Any" ),
+        IN(),
+        GIN(     ),
         KEYWORDS( "filename" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE(),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "String"   ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -5184,13 +5560,15 @@ md_data_raw.push_back
          "   RefrIndexFieldAndGradients(tensor4_1,p_grid,lat_grid,lon_grid)\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "refr_index", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
-        GOUTPUT( "Tensor4" ),
-        INPUT( "refr_index_agenda", "atmosphere_dim", "p_grid", "lat_grid", 
+        OUT( "refr_index", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor4" ),
+        IN( "refr_index_agenda", "atmosphere_dim", "p_grid", "lat_grid", 
                "lon_grid", "r_geoid", "z_field", "t_field", "vmr_field" ),
-        GINPUT( "Vector", "Vector", "Vector"  ),
+        GIN(      ""      , ""      , ""        ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Vector", "Vector", "Vector"  ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5205,12 +5583,14 @@ md_data_raw.push_back
          "contributed by Michael Hoefner,bForschungszentrum Karlsruhe.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( "refr_index" ),
-        GOUTPUT( ),
-        INPUT( "rte_pressure", "rte_temperature", "rte_vmr_list" ),
-        GINPUT( ),
+        OUT( "refr_index" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "rte_pressure", "rte_temperature", "rte_vmr_list" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5229,12 +5609,14 @@ md_data_raw.push_back
          "pp. 9664). \n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "refr_index" ),
-        GOUTPUT( ),
-        INPUT( "rte_pressure", "rte_temperature", "rte_vmr_list", "abs_species" ),
-        GINPUT( ),
+        OUT( "refr_index" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "rte_pressure", "rte_temperature", "rte_vmr_list", "abs_species" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5252,12 +5634,14 @@ md_data_raw.push_back
          "*refr_index_agenda*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "refr_index" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "refr_index" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5289,9 +5673,10 @@ md_data_raw.push_back
          "See further the user guide.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "y", "y_f", "y_pol", "y_za", "y_aa", "jacobian" ),
-        GOUTPUT( ),
-        INPUT( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
+        OUT( "y", "y_f", "y_pol", "y_za", "y_aa", "jacobian" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
                "surface_prop_agenda", "iy_cloudbox_agenda",
                "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
                "t_field", "vmr_field", "abs_species", "r_geoid", "z_surface", 
@@ -5302,9 +5687,10 @@ md_data_raw.push_back
                "antenna_dim", "mblock_za_grid", "mblock_aa_grid", 
                "jacobian", "jacobian_quantities", "jacobian_indices",
                "y_unit", "jacobian_unit" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE( ),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -5336,9 +5722,10 @@ md_data_raw.push_back
          "for each monochromatic pencil beam calculation individually.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "y", "y_f", "y_pol", "y_za", "y_aa", "mc_error" ),
-        GOUTPUT(),
-        INPUT( "iy_space_agenda", "surface_prop_agenda", "opt_prop_gas_agenda",
+        OUT( "y", "y_f", "y_pol", "y_za", "y_aa", "mc_error" ),
+        GOUT(     ),
+        GOUT_TYPE(),
+        IN( "iy_space_agenda", "surface_prop_agenda", "opt_prop_gas_agenda",
                "abs_scalar_gas_agenda", "atmosphere_dim",
                "p_grid", "lat_grid", "lon_grid", "z_field", 
                "t_field", "vmr_field", "r_geoid", "z_surface", 
@@ -5348,9 +5735,10 @@ md_data_raw.push_back
                "sensor_pos", "sensor_los", "f_grid", "stokes_dim", 
                "antenna_dim", "mblock_za_grid", "mblock_aa_grid", "y_unit", 
                "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
-        GINPUT(),
+        GIN(     ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE(),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5361,9 +5749,10 @@ md_data_raw.push_back
          "As *RteCalc* but throughout ignores jacobians.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "y", "y_f", "y_pol", "y_za", "y_aa" ),
-        GOUTPUT( ),
-        INPUT( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
+        OUT( "y", "y_f", "y_pol", "y_za", "y_aa" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
                "surface_prop_agenda", "iy_cloudbox_agenda",
                "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
                "t_field", "vmr_field", "r_geoid", "z_surface", 
@@ -5372,9 +5761,10 @@ md_data_raw.push_back
                "sensor_response_za", "sensor_response_aa", 
                "sensor_pos", "sensor_los", "f_grid", "stokes_dim", 
                "antenna_dim", "mblock_za_grid", "mblock_aa_grid", "y_unit" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE( ),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -5395,15 +5785,17 @@ md_data_raw.push_back
          "See further the user guide.\n"
         ),
         AUTHORS( "Claudia Emde", "Patrick Eriksson" ),
-        OUTPUT( "iy", "diy_dvmr", "diy_dt" ),
-        GOUTPUT( ),
-        INPUT( "iy", "diy_dvmr", "diy_dt", "ppath", "ppath_array",
+        OUT( "iy", "diy_dvmr", "diy_dt" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "iy", "diy_dvmr", "diy_dt", "ppath", "ppath_array",
                "ppath_array_index", "f_grid", "stokes_dim", "emission_agenda",
                "abs_scalar_gas_agenda", "rte_do_vmr_jacs",
                "rte_do_t_jacs" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5417,15 +5809,17 @@ md_data_raw.push_back
          "in *ppath_transmissions*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "iy", "ppath_transmissions", "diy_dvmr", "diy_dt" ),
-        GOUTPUT( ),
-        INPUT( "iy", "diy_dvmr", "diy_dt", "ppath", "ppath_array",
+        OUT( "iy", "ppath_transmissions", "diy_dvmr", "diy_dt" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "iy", "diy_dvmr", "diy_dt", "ppath", "ppath_array",
                "ppath_array_index", "f_grid", "stokes_dim",
                "emission_agenda", "abs_scalar_gas_agenda",
                "rte_do_vmr_jacs", "rte_do_t_jacs" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5445,12 +5839,14 @@ md_data_raw.push_back
          "   aa : Azimuth angle of sensor line-of-sight.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "rte_los" ),
-        GOUTPUT( ),
-        INPUT( "atmosphere_dim" ),
-        GINPUT( ),
+        OUT( "rte_los" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "atmosphere_dim" ),
+        GIN(      ),
         KEYWORDS( "za",      "aa"      ),
-        DEFAULTS( NODEF,     NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,     NODEF ),
         TYPES(    "Numeric", "Numeric" )));
 
   md_data_raw.push_back
@@ -5474,12 +5870,14 @@ md_data_raw.push_back
          "ellipsoid for the latitude value in *rte_pos*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "rte_pos" ),
-        GOUTPUT( ),
-        INPUT( "rte_pos", "atmosphere_dim", "lat_1d", "meridian_angle_1d" ),
-        GINPUT( ),
+        OUT( "rte_pos" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "rte_pos", "atmosphere_dim", "lat_1d", "meridian_angle_1d" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5498,12 +5896,14 @@ md_data_raw.push_back
          "given position is outside the latitude and longitude grids.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "rte_pos" ),
-        GOUTPUT( ),
-        INPUT( "rte_pos", "atmosphere_dim", "lat_grid", "lon_grid", "r_geoid" ),
-        GINPUT( ),
+        OUT( "rte_pos" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "rte_pos", "atmosphere_dim", "lat_grid", "lon_grid", "r_geoid" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5529,12 +5929,14 @@ md_data_raw.push_back
          "   lon : Longitude of sensor position.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "rte_pos" ),
-        GOUTPUT( ),
-        INPUT( "atmosphere_dim" ),
-        GINPUT( ),
+        OUT( "rte_pos" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "atmosphere_dim" ),
+        GIN(      ),
         KEYWORDS( "r_or_z",  "lat",     "lon"     ),
-        DEFAULTS( NODEF,     NODEF,     NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,     NODEF,     NODEF ),
         TYPES(    "Numeric", "Numeric", "Numeric" )));
 
   md_data_raw.push_back
@@ -5545,12 +5947,14 @@ md_data_raw.push_back
          "Shifts rte_pos and rte_los, and rte_gp_XXX to the end of ppath.\n"
         ),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", "rte_gp_lon" ),
-        GOUTPUT( ),
-        INPUT( "ppath", "atmosphere_dim" ),
-        GINPUT( ),
+        OUT( "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", "rte_gp_lon" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "ppath", "atmosphere_dim" ),
+        GIN(      ),
         KEYWORDS(),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5566,13 +5970,15 @@ md_data_raw.push_back
          "This function is a work in progress. Only 1D is currently supported\n"
         ),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( "rte_pos", "rte_los", "ppath" ),
-        GOUTPUT( ),
-        INPUT( "atmosphere_dim", "p_grid", "z_field", "lat_grid", "lon_grid",
+        OUT( "rte_pos", "rte_los", "ppath" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "atmosphere_dim", "p_grid", "z_field", "lat_grid", "lon_grid",
                "ppath_step_agenda", "r_geoid", "z_surface" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "tan_p" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -5590,12 +5996,14 @@ md_data_raw.push_back
          "   r : Radius of geoid sphere. See further above.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "r_geoid" ),
-        GOUTPUT( ),
-        INPUT( "atmosphere_dim", "lat_grid", "lon_grid" ),
-        GINPUT( ),
+        OUT( "r_geoid" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "atmosphere_dim", "lat_grid", "lon_grid" ),
+        GIN(      ),
         KEYWORDS( "r" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -5617,13 +6025,15 @@ md_data_raw.push_back
          "orbit angles which is allowed for 2D cases.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "r_geoid" ),
-        GOUTPUT( ),
-        INPUT( "atmosphere_dim", "lat_grid", "lon_grid", "lat_1d",
+        OUT( "r_geoid" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "atmosphere_dim", "lat_grid", "lon_grid", "lat_1d",
                "meridian_angle_1d" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5637,14 +6047,16 @@ md_data_raw.push_back
          "*scat_i_lat* and *scat_i_lon* (3D)).\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( "doit_i_field", "scat_i_p", "scat_i_lat", "scat_i_lon",
+        OUT( "doit_i_field", "scat_i_p", "scat_i_lat", "scat_i_lon",
                 "doit_i_field1D_spectrum" ),
-        GOUTPUT( ),
-        INPUT( "f_grid", "scat_i_p", "scat_i_lat", "scat_i_lon",
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "f_grid", "scat_i_p", "scat_i_lat", "scat_i_lon",
                "doit_mono_agenda", "doit_is_initialized" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
  
   /* Has been found to not work. Probably caused by changes in agenda 
@@ -5672,21 +6084,23 @@ md_data_raw.push_back
          "a precalculated grid (mc_incoming) or calculated on the fly\n"
           ),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( "ppath", "ppath_step", 
+        OUT( "ppath", "ppath_step", 
                 "mc_error", "mc_iteration_count", "rte_pos", "rte_los", "iy", 
                 "rte_pressure", "rte_temperature", 
                 "rte_vmr_list", "ext_mat", "abs_vec" ),
-        GOUTPUT( ),
-        INPUT( "ppath", "rte_pos", "rte_los", "ppath_step_agenda", "atmosphere_dim",
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "ppath", "rte_pos", "rte_los", "ppath_step_agenda", "atmosphere_dim",
                "p_grid", "lat_grid", "lon_grid", "z_field", "r_geoid", "z_surface",
                "cloudbox_limits", "stokes_dim", "rte_agenda", "iy_space_agenda",
                "surface_prop_agenda", "t_field", "f_grid", "opt_prop_gas_agenda",
                "abs_scalar_gas_agenda", "vmr_field",
                "scat_data_mono", "pnd_field", "mc_seed", "f_index" , "mc_incoming"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "std_err", "max_time", "max_iter", "incoming_lookup",
                   "z_field_is_1D"),
-        DEFAULTS( NODEF,     NODEF,      NODEF,      NODEF,
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,     NODEF,      NODEF,      NODEF,
                   NODEF ),
         TYPES(    "Numeric", "Index",    "Index",    "Index",
                   "Index" )));
@@ -5700,12 +6114,14 @@ md_data_raw.push_back
          "Interpolates scat_data_raw by frequency to give scat_data_mono\n"
          ),
         AUTHORS( "Cory Davis" ),
-        OUTPUT( "scat_data_mono" ),
-        GOUTPUT( ),
-        INPUT( "scat_data_raw", "f_grid", "f_index" ),
-        GINPUT( ),
+        OUT( "scat_data_mono" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "scat_data_raw", "f_grid", "f_index" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5728,12 +6144,14 @@ md_data_raw.push_back
          "The result is printed on the screen.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( "scat_data_raw" ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "scat_data_raw" ),
+        GIN(      ),
         KEYWORDS(),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
  
   md_data_raw.push_back
@@ -5754,15 +6172,17 @@ md_data_raw.push_back
          "   sensor_response_aa      : As returned by *sensor_responseInit*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "sensor_response", "sensor_response_f", 
+        OUT( "sensor_response", "sensor_response_f", 
                 "sensor_response_pol", "sensor_response_za",
                 "sensor_response_aa", 
                 "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
-        GOUTPUT( ),
-        INPUT( "atmosphere_dim", "stokes_dim", "f_grid" ),
-        GINPUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "atmosphere_dim", "stokes_dim", "f_grid" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5786,12 +6206,14 @@ md_data_raw.push_back
          "ellipsoid for the latitude values in *sensor_pos*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "sensor_pos" ),
-        GOUTPUT( ),
-        INPUT( "sensor_pos", "atmosphere_dim", "lat_1d", "meridian_angle_1d" ),
-        GINPUT( ),
+        OUT( "sensor_pos" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "sensor_pos", "atmosphere_dim", "lat_1d", "meridian_angle_1d" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5810,12 +6232,14 @@ md_data_raw.push_back
          "given position is outside the latitude and longitude grids.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "sensor_pos" ),
-        GOUTPUT( ),
-        INPUT( "sensor_pos", "atmosphere_dim", "lat_grid", "lon_grid", "r_geoid" ),
-        GINPUT( ),
+        OUT( "sensor_pos" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "sensor_pos", "atmosphere_dim", "lat_grid", "lon_grid", "r_geoid" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5835,18 +6259,20 @@ md_data_raw.push_back
          "details on how to specify the antenna response.\n"
         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUTPUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
                 "sensor_response_za", "sensor_response_aa", 
                 "sensor_response_za_grid", "sensor_response_aa_grid" ),
-        GOUTPUT( ),
-        INPUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
                "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
                "sensor_response_pol_grid", "sensor_response_za_grid",
                "sensor_response_aa_grid", "atmosphere_dim", "antenna_dim", 
                "antenna_los", "antenna_response", "sensor_norm" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5863,18 +6289,20 @@ md_data_raw.push_back
          "details on how to specify the backend response.\n"
         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUTPUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
                 "sensor_response_za", "sensor_response_aa", 
                 "sensor_response_f_grid" ),
-        GOUTPUT( ),
-        INPUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
                "sensor_response_za", "sensor_response_aa", 
                "sensor_response_f_grid", "sensor_response_pol_grid", 
                "sensor_response_za_grid", "sensor_response_aa_grid",
                "f_backend", "backend_channel_response", "sensor_norm" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5894,13 +6322,15 @@ md_data_raw.push_back
          "sorted in any way.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "sensor_response_f", "sensor_response_f_grid" ),
-        GOUTPUT( ),
-        INPUT( "sensor_response_f", "sensor_response_f_grid", 
+        OUT( "sensor_response_f", "sensor_response_f_grid" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "sensor_response_f", "sensor_response_f_grid", 
                "lo", "sideband_mode" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5939,16 +6369,18 @@ md_data_raw.push_back
          "There exist several method versions for some responses.\n"
         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUTPUT( "sensor_response", "sensor_response_f", "sensor_response_pol", 
+        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol", 
                 "sensor_response_za", "sensor_response_aa", 
                 "sensor_response_f_grid", "sensor_response_pol_grid",
                 "sensor_response_za_grid", "sensor_response_aa_grid" ),
-        GOUTPUT( ),
-        INPUT( "f_grid", "mblock_za_grid", "mblock_aa_grid", "antenna_dim",
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "f_grid", "mblock_za_grid", "mblock_aa_grid", "antenna_dim",
                "atmosphere_dim", "stokes_dim", "sensor_norm" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5966,17 +6398,19 @@ md_data_raw.push_back
          "mixer response\n"
         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUTPUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
                 "sensor_response_za", "sensor_response_aa", 
                 "sensor_response_f_grid" ),
-        GOUTPUT( ),
-        INPUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
                "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
                "sensor_response_pol_grid", "sensor_response_za_grid",
                "sensor_response_aa_grid", "lo", "sideband_response", "sensor_norm" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -5998,20 +6432,22 @@ md_data_raw.push_back
          "will be in absolute frequency (RF).\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
                 "sensor_response_za", "sensor_response_aa", 
                 "sensor_response_f_grid" ),
-        GOUTPUT( ),
-        INPUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
                "sensor_response_za", "sensor_response_aa", 
                "sensor_response_f_grid", "sensor_response_pol_grid", 
                "sensor_response_za_grid", "sensor_response_aa_grid",
                "lo_multi", "sideband_response_multi", 
                "sideband_mode_multi", "f_backend_multi",
                "backend_channel_response_multi", "sensor_norm" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
   
   /* Not yet updated
@@ -6025,13 +6461,15 @@ md_data_raw.push_back
          "The output polarisations are given by matrix *sensor_pol*.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( "sensor_response", "sensor_response_pol" ),
-        GOUTPUT( ),
-        INPUT( "sensor_pol", "sensor_response_za", "sensor_response_aa",
+        OUT( "sensor_response", "sensor_response_pol" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "sensor_pol", "sensor_response_za", "sensor_response_aa",
                "sensor_response_f", "stokes_dim"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
   */
 
@@ -6051,13 +6489,15 @@ md_data_raw.push_back
          "function and prior to sensor_responsePolarisation.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( "sensor_response" ),
-        GOUTPUT( ),
-        INPUT( "sensor_rot", "antenna_los", "antenna_dim", "stokes_dim",
+        OUT( "sensor_response" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "sensor_rot", "antenna_los", "antenna_dim", "stokes_dim",
                "sensor_response_f", "sensor_response_za"),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
   */
 
@@ -6074,12 +6514,14 @@ md_data_raw.push_back
          "   Sparse: New empty Sparse matrix.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "Sparse" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Sparse" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -6095,12 +6537,14 @@ md_data_raw.push_back
          "   String: New empty String.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "String" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""       ),
+        GOUT_TYPE( "String" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -6111,12 +6555,14 @@ md_data_raw.push_back
          "Sets a String to the given text string.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "String" ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "String" ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "text"   ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "String" ),
         SETMETHOD( true )));
 
@@ -6133,12 +6579,14 @@ md_data_raw.push_back
          "to hold blackbody radiation for a temperature of *surface_skin_t*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "surface_los", "surface_rmatrix", "surface_emission" ),
-        GOUTPUT( ),
-        INPUT( "f_grid", "stokes_dim", "surface_skin_t" ),
-        GINPUT( ),
+        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "f_grid", "stokes_dim", "surface_skin_t" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
 //   md_data_raw.push_back
@@ -6154,13 +6602,15 @@ md_data_raw.push_back
 //          "equal. The number of directions in *surface_los* is one.\n"
 //          ),
 //         AUTHORS( "Cory Davis" ),
-//         OUTPUT( "surface_los", "surface_rmatrix", "surface_emission" ),
-//         GOUTPUT( ),
-//         INPUT( "f_grid", "rte_gp_lat",rte_gp_lon_,stokes_dim_, "atmosphere_dim", "rte_los", 
+//         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+//         GOUT(      ),
+//         GOUT_TYPE( ),
+//         IN( "f_grid", "rte_gp_lat",rte_gp_lon_,stokes_dim_, "atmosphere_dim", "rte_los", 
 //                "surface_skin_t", "surface_emissivity_field" ),
-//         GINPUT( ),
+//         GIN(      ),
 //         KEYWORDS( ),
-//         DEFAULTS( ),
+//         GIN_TYPE( ),
+//         GIN_DEFAULT( ),
 //         TYPES( )));
 
 
@@ -6191,13 +6641,15 @@ md_data_raw.push_back
          "   epsmodel : Name of model for dielectric constant.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "surface_los", "surface_rmatrix", "surface_emission" ),
-        GOUTPUT( ),
-        INPUT( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
+        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
                "surface_skin_t" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "epsmodel" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "String"   )));
 
   md_data_raw.push_back
@@ -6216,13 +6668,15 @@ md_data_raw.push_back
          "*surface_skin_t*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "surface_los", "surface_rmatrix", "surface_emission" ),
-        GOUTPUT( ),
-        INPUT( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
+        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
                "surface_emissivity", "surface_skin_t" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -6238,12 +6692,14 @@ md_data_raw.push_back
          "   Tensor3: New empty Tensor3.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "Tensor3" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor3" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -6257,12 +6713,14 @@ md_data_raw.push_back
          "output Tensor3.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor3" ),
-        INPUT( ),
-        GINPUT(  "Tensor4", "Index" ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor3" ),
+        IN( ),
+        GIN(       ""       , ""      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE(  "Tensor4", "Index" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -6291,12 +6749,14 @@ md_data_raw.push_back
          "   ncols  : Number of columns in the tensor.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor3" ),
-        INPUT( ),
-        GINPUT( "Vector" ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor3" ),
+        IN( ),
+        GIN(      ""       ),
         KEYWORDS( "npages", "nrows", "ncols"   ),
-        DEFAULTS( NODEF,    NODEF,   NODEF ),
+        GIN_TYPE( "Vector" ),
+        GIN_DEFAULT( NODEF,    NODEF,   NODEF ),
         TYPES(    "Index",  "Index", "Index" )));
 
   md_data_raw.push_back
@@ -6319,12 +6779,14 @@ md_data_raw.push_back
          "   value  : The scale factor.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor3" ),
-        INPUT( ),
-        GINPUT( "Tensor3" ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor3" ),
+        IN( ),
+        GIN(      ""        ),
         KEYWORDS( "value"   ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( "Tensor3" ),
+        GIN_DEFAULT( NODEF ),
         TYPES( "Numeric" )));
 
   md_data_raw.push_back
@@ -6343,12 +6805,14 @@ md_data_raw.push_back
          "   value  : The value of the tensor3 elements.\n"
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor3" ),
-        INPUT( "npages", "nrows", "ncols" ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor3" ),
+        IN( "npages", "nrows", "ncols" ),
+        GIN(      ),
         KEYWORDS( "value"   ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -6364,12 +6828,14 @@ md_data_raw.push_back
          "   Tensor4: New empty Tensor4.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "Tensor4" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor4" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -6383,12 +6849,14 @@ md_data_raw.push_back
          "create output Tensor4.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor4" ),
-        INPUT( ),
-        GINPUT(  "Tensor5", "Index" ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor4" ),
+        IN( ),
+        GIN(       ""       , ""      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE(  "Tensor5", "Index" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -6399,12 +6867,14 @@ md_data_raw.push_back
          "Extract a Tensor4 from an ArrayOfTensor4 .\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor4" ),
-        INPUT( ),
-        GINPUT(  "ArrayOfTensor4", "Index" ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor4" ),
+        IN( ),
+        GIN(       ""              , ""      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE(  "ArrayOfTensor4", "Index" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -6427,12 +6897,14 @@ md_data_raw.push_back
          "   value  : The scale factor.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor4" ),
-        INPUT( ),
-        GINPUT( "Tensor4" ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor4" ),
+        IN( ),
+        GIN(      ""        ),
         KEYWORDS( "value"   ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( "Tensor4" ),
+        GIN_DEFAULT( NODEF ),
         TYPES( "Numeric" )));
 
   md_data_raw.push_back
@@ -6451,12 +6923,14 @@ md_data_raw.push_back
          "   value  : The value of the tensor4 elements.\n"
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor4" ),
-        INPUT( "nbooks", "npages", "nrows", "ncols" ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor4" ),
+        IN( "nbooks", "npages", "nrows", "ncols" ),
+        GIN(      ),
         KEYWORDS( "value"   ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -6472,12 +6946,14 @@ md_data_raw.push_back
          "   Tensor5: New empty Tensor5.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "Tensor5" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor5" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -6500,12 +6976,14 @@ md_data_raw.push_back
          "   value  : The scale factor.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor5" ),
-        INPUT( ),
-        GINPUT( "Tensor5" ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor5" ),
+        IN( ),
+        GIN(      ""        ),
         KEYWORDS( "value"   ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( "Tensor5" ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -6524,12 +7002,14 @@ md_data_raw.push_back
          "   value   : The value of the tensor5 elements.\n"
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor5" ),
-        INPUT( "nshelves", "nbooks", "npages", "nrows", "ncols" ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor5" ),
+        IN( "nshelves", "nbooks", "npages", "nrows", "ncols" ),
+        GIN(      ),
         KEYWORDS( "value" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -6545,12 +7025,14 @@ md_data_raw.push_back
          "   Tensor6: New empty Tensor6.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "Tensor6" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor6" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -6573,12 +7055,14 @@ md_data_raw.push_back
          "   value  : The scale factor.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor6" ),
-        INPUT( ),
-        GINPUT( "Tensor6" ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor6" ),
+        IN( ),
+        GIN(      ""        ),
         KEYWORDS( "value"   ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( "Tensor6" ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -6598,12 +7082,14 @@ md_data_raw.push_back
          "   value     : The value of the tensor6 elements.\n"
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor6" ),
-        INPUT( "nvitrines", "nshelves", "nbooks", "npages", "nrows", "ncols" ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor6" ),
+        IN( "nvitrines", "nshelves", "nbooks", "npages", "nrows", "ncols" ),
+        GIN(      ),
         KEYWORDS( "value" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -6621,12 +7107,14 @@ md_data_raw.push_back
          "   Tenosr6 : A Tensor6 with radiance values. \n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor6" ),
-        INPUT("f_index", "f_grid"),
-        GINPUT( "Tensor6" ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor6" ),
+        IN("f_index", "f_grid"),
+        GIN(      ""        ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Tensor6" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -6642,12 +7130,14 @@ md_data_raw.push_back
          "   Tensor7: New empty Tensor7.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "Tensor7" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor7" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -6670,12 +7160,14 @@ md_data_raw.push_back
          "   value  : The scale factor.\n"
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor7" ),
-        INPUT( ),
-        GINPUT( "Tensor7" ),
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor7" ),
+        IN( ),
+        GIN(      ""        ),
         KEYWORDS( "value" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( "Tensor7" ),
+        GIN_DEFAULT( NODEF ),
         TYPES( "Numeric" )));
 
   md_data_raw.push_back
@@ -6695,13 +7187,15 @@ md_data_raw.push_back
          "   value      : The value of the tensor7 elements.\n"
         ),
         AUTHORS( "Claudia Emde" ),
-        OUTPUT( ),
-        GOUTPUT( "Tensor7" ),
-        INPUT( "nlibraries", "nvitrines", "nshelves", "nbooks", "npages", "nrows",
+        OUT( ),
+        GOUT(      ""        ),
+        GOUT_TYPE( "Tensor7" ),
+        IN( "nlibraries", "nvitrines", "nshelves", "nbooks", "npages", "nrows",
                "ncols" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "value" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -6717,12 +7211,14 @@ md_data_raw.push_back
          "something out quickly.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -6743,12 +7239,14 @@ md_data_raw.push_back
          "Prints the CPU time spent for reading the XML file\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( "timer" ),
-        GOUTPUT( ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( "timer" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
 
@@ -6763,12 +7261,14 @@ md_data_raw.push_back
          "since *timerStart*. See *timerStart* for example\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( "timer" ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "timer" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -6790,12 +7290,14 @@ md_data_raw.push_back
          "   value : The value to be added to the vector.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Vector" ),
-        INPUT( ),
-        GINPUT( "Vector" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN( ),
+        GIN(      ""       ),
         KEYWORDS( "value" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( "Vector" ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -6811,12 +7313,14 @@ md_data_raw.push_back
          "   Vector: New empty Vector.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT(),
-        GOUTPUT( "Vector" ),
-        INPUT(),
-        GINPUT(),
+        OUT(),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN(),
+        GIN(     ),
         KEYWORDS(),
-        DEFAULTS(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
         TYPES()));
 
   md_data_raw.push_back
@@ -6833,12 +7337,14 @@ md_data_raw.push_back
          "   direction : Must be either *row* or *column*.\n"
         ),
         AUTHORS( "Patrick Eriksson, Oliver Lemke, Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT( "Vector" ),
-        INPUT( ),
-        GINPUT(  "Matrix", "Index" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN( ),
+        GIN(       ""      , ""      ),
         KEYWORDS( "direction" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE(  "Matrix", "Index" ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "String" )));
 
   md_data_raw.push_back
@@ -6867,12 +7373,14 @@ md_data_raw.push_back
          "  Vector : The points to insert.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT( "Vector" ),
-        INPUT( ),
-        GINPUT(  "Vector", "Vector" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN( ),
+        GIN(       ""      , ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE(  "Vector", "Vector" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -6898,12 +7406,14 @@ md_data_raw.push_back
          "    step : The spacing of the vector.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Vector" ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "start",   "stop",    "step"    ),
-        DEFAULTS( NODEF,     NODEF,     NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,     NODEF,     NODEF ),
         TYPES(    "Numeric", "Numeric", "Numeric" )));
 
   md_data_raw.push_back
@@ -6933,12 +7443,14 @@ md_data_raw.push_back
          "    step : The spacing of the vector. (Log coordinates!)\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT( "Vector" ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "start",   "stop",    "step"    ),
-        DEFAULTS( NODEF,     NODEF,     NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,     NODEF,     NODEF ),
         TYPES(    "Numeric", "Numeric", "Numeric" )));
 
   md_data_raw.push_back
@@ -6961,12 +7473,14 @@ md_data_raw.push_back
          "   Vector : The original Vector (dimension n).\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT( "Vector" ),
-        INPUT( ),
-        GINPUT(  "Matrix", "Vector" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN( ),
+        GIN(       ""      , ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE(  "Matrix", "Vector" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -6987,12 +7501,14 @@ md_data_raw.push_back
          "    stop : The end value. \n"  
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT("Vector"),
-        INPUT( "nelem" ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(     ""      ),
+        GOUT_TYPE("Vector"),
+        IN( "nelem" ),
+        GIN(      ),
         KEYWORDS( "start",   "stop"    ),
-        DEFAULTS( NODEF,     NODEF     ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,     NODEF     ),
         TYPES(    "Numeric", "Numeric" )));
 
   md_data_raw.push_back
@@ -7014,12 +7530,14 @@ md_data_raw.push_back
          "       n : Number of elements of the vector.\n" 
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT("Vector"),
-        INPUT( "nelem" ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(     ""      ),
+        GOUT_TYPE("Vector"),
+        IN( "nelem" ),
+        GIN(      ),
         KEYWORDS( "start",   "stop"    ),
-        DEFAULTS( NODEF,     NODEF     ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,     NODEF     ),
         TYPES(    "Numeric", "Numeric" )));
 
   md_data_raw.push_back
@@ -7041,12 +7559,14 @@ md_data_raw.push_back
          "   value : The value to be multiplicated with the vector.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Vector" ),
-        INPUT( ),
-        GINPUT( "Vector" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN( ),
+        GIN(      ""       ),
         KEYWORDS( "value" ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( "Vector" ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -7065,12 +7585,14 @@ md_data_raw.push_back
          "   value  : The value of the vector elements.\n" 
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( "Vector" ),
-        INPUT( "nelem" ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN( "nelem" ),
+        GIN(      ),
         KEYWORDS( "value"   ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back
@@ -7091,12 +7613,14 @@ md_data_raw.push_back
          "   Will create a p_grid vector with these three elements.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
-        OUTPUT( ),
-        GOUTPUT( "Vector" ),
-        INPUT( ),
-        GINPUT( ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN( ),
+        GIN(      ),
         KEYWORDS( "values"   ),
-        DEFAULTS( NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF ),
         TYPES(    "Vector" ),
         SETMETHOD( true )));
 
@@ -7120,13 +7644,15 @@ md_data_raw.push_back
          "   Vector : A vector with true tangent altitudes\n"
         ),
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
-        OUTPUT( "refr_index", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
-        GOUTPUT( "Vector" ),
-        INPUT( "refr_index_agenda", "sensor_pos", "p_grid", "t_field", "z_field",
+        OUT( "refr_index", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN( "refr_index_agenda", "sensor_pos", "p_grid", "t_field", "z_field",
                            "vmr_field", "r_geoid", "atmosphere_dim" ),
-        GINPUT( "Vector" ),
+        GIN(      ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Vector" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -7150,12 +7676,14 @@ md_data_raw.push_back
          "   Vector : A vector with geometric tangent altitudes\n"
         ),
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
-        OUTPUT( ),
-        GOUTPUT( "Vector" ),
-        INPUT( "sensor_pos", "r_geoid", "atmosphere_dim" ),
-        GINPUT( "Vector" ),
+        OUT( ),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN( "sensor_pos", "r_geoid", "atmosphere_dim" ),
+        GIN(      ""       ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( "Vector" ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -7182,12 +7710,14 @@ md_data_raw.push_back
          "   filename : Name of the output file.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( "output_file_format" ),
-        GINPUT(  "Any" ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "output_file_format" ),
+        GIN(       ""    ),
         KEYWORDS( "filename" ),
-        DEFAULTS( "" ),
+        GIN_TYPE(  "Any" ),
+        GIN_DEFAULT( "" ),
         TYPES(    "String"   ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -7220,12 +7750,14 @@ md_data_raw.push_back
          "   filename : Name of the output file.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( ),
-        GOUTPUT( ),
-        INPUT( "output_file_format", "file_index" ),
-        GINPUT(  "Any" ),
+        OUT( ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "output_file_format", "file_index" ),
+        GIN(       ""    ),
         KEYWORDS( "filename" ),
-        DEFAULTS( "" ),
+        GIN_TYPE(  "Any" ),
+        GIN_DEFAULT( "" ),
         TYPES(    "String"   ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -7274,12 +7806,14 @@ md_data_raw.push_back
          "            (Use the configure option \"--disable-vectorize\".)\n"
          ),
         AUTHORS( "Patrick Eriksson, Stefan Buehler" ),
-        OUTPUT( "ybatch" ),
-        GOUTPUT( ),
-        INPUT( "ybatch_n", "ybatch_calc_agenda" ), 
-        GINPUT( ),
+        OUT( "ybatch" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "ybatch_n", "ybatch_calc_agenda" ), 
+        GIN(      ),
         KEYWORDS( "robust" ),
-        DEFAULTS( "0"),
+        GIN_TYPE( ),
+        GIN_DEFAULT( "0"),
         TYPES(    "Index" )));
 
   md_data_raw.push_back
@@ -7310,14 +7844,16 @@ md_data_raw.push_back
          "from the profiles inside the function\n"
          ),
         AUTHORS( "Sreerekha T.R." ),
-        OUTPUT( "ybatch" ),
-        GOUTPUT( ),
-        INPUT( "abs_species", "met_profile_calc_agenda", "f_grid", "met_amsu_data",
+        OUT( "ybatch" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_species", "met_profile_calc_agenda", "f_grid", "met_amsu_data",
                "sensor_pos", "r_geoid", "lat_grid", "lon_grid", "atmosphere_dim",
                "scat_data_raw" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "nelem_p_grid", "met_profile_path", "met_profile_pnd_path" ),
-        DEFAULTS( NODEF,          NODEF,              NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,          NODEF,              NODEF ),
         TYPES(    "Index",        "String",           "String" )));
 
   md_data_raw.push_back
@@ -7349,13 +7885,15 @@ md_data_raw.push_back
          "from the profiles inside the function\n"
          ),
         AUTHORS( "Seerekha T.R." ),
-        OUTPUT( "ybatch" ),
-        GOUTPUT( ),
-        INPUT( "abs_species", "met_profile_calc_agenda", 
+        OUT( "ybatch" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "abs_species", "met_profile_calc_agenda", 
                "f_grid", "met_amsu_data", "sensor_pos", "r_geoid" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "nelem_p_grid", "met_profile_path" ),
-        DEFAULTS( NODEF,          NODEF ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,          NODEF ),
         TYPES(    "Index",        "String")));
 
   md_data_raw.push_back
@@ -7368,12 +7906,14 @@ md_data_raw.push_back
          "As *yUnit* but operates on *ybatch*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "ybatch" ),
-        GOUTPUT( ),
-        INPUT( "ybatch", "y_unit", "sensor_response_f" ),
-        GINPUT( ),
+        OUT( "ybatch" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "ybatch", "y_unit", "sensor_response_f" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -7393,12 +7933,14 @@ md_data_raw.push_back
          "element in *y* (the variables has the same length).\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUTPUT( "y" ),
-        GOUTPUT( ),
-        INPUT( "y", "y_unit", "sensor_response_f" ),
-        GINPUT( ),
+        OUT( "y" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "y", "y_unit", "sensor_response_f" ),
+        GIN(      ),
         KEYWORDS( ),
-        DEFAULTS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
         TYPES( )));
 
   md_data_raw.push_back
@@ -7415,14 +7957,16 @@ md_data_raw.push_back
          "*z_scan_low* and *z_scan_high*.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUTPUT(),
-        GOUTPUT( "Vector" ),
-        INPUT( "ppath_step_agenda", "atmosphere_dim", "p_grid", "lat_grid",
+        OUT(),
+        GOUT(      ""       ),
+        GOUT_TYPE( "Vector" ),
+        IN( "ppath_step_agenda", "atmosphere_dim", "p_grid", "lat_grid",
                "lon_grid", "z_field", "r_geoid", "z_surface" ),
-        GINPUT( ),
+        GIN(      ),
         KEYWORDS( "z_recieve", "z_send",  "t_sample", 
                   "z_scan_low", "z_scan_high" ),
-        DEFAULTS( NODEF,       NODEF,     NODEF,
+        GIN_TYPE( ),
+        GIN_DEFAULT( NODEF,       NODEF,     NODEF,
                   NODEF,        NODEF ),
         TYPES(    "Numeric",   "Numeric", "Numeric",
                   "Numeric",    "Numeric" )));
@@ -7469,16 +8013,18 @@ md_data_raw.push_back
 //          "                         pre-defined models is used.\n"
 //         ),
 //         AUTHORS( "Thomas Kuhn", "Axel von Engeln" ),
-//         OUTPUT( "ext_mat_zee", "abs_vec_zee"),
-//         GOUTPUT( ),
-//         INPUT(  "geomag_los", "f_grid", 
+//         OUT( "ext_mat_zee", "abs_vec_zee"),
+//         GOUT(      ),
+//         GOUT_TYPE( ),
+//         IN(  "geomag_los", "f_grid", 
 //                 zeeman_o2_onoff_, zeeman_o2_pressure_limit_, zeeman_o2_line_,
 //                 "ppath_index", "rte_pressure", 
 //                 "rte_temperature",rte_vmr_list_, "species_index",
 //                 "abs_model", "abs_user_parameters", "stokes_dim" ),
-//         GINPUT( ),
+//         GIN(      ),
 //         KEYWORDS( ),
-//         DEFAULTS( ),
+//         GIN_TYPE( ),
+//         GIN_DEFAULT( ),
 //         TYPES( )));
   
 //  md_data_raw.push_back
@@ -7493,12 +8039,14 @@ md_data_raw.push_back
 //          "of the absorption vector.\n"
 //         ),
 //         AUTHORS( "Sreerekha T.R." ),
-//         OUTPUT( "abs_vec" ),
-//         GOUTPUT( ),
-//         INPUT( "abs_vec", "abs_vec_zee" ),
-//         GINPUT( ),
+//         OUT( "abs_vec" ),
+//         GOUT(      ),
+//         GOUT_TYPE( ),
+//         IN( "abs_vec", "abs_vec_zee" ),
+//         GIN(      ),
 //         KEYWORDS( ),
-//         DEFAULTS( ),
+//         GIN_TYPE( ),
+//         GIN_DEFAULT( ),
 //         TYPES( )));
 
 //   md_data_raw.push_back
@@ -7510,12 +8058,14 @@ md_data_raw.push_back
 //          " \n"
 //          ),
 //         AUTHORS( "Sreerekha T.R." ),
-//         OUTPUT( "ext_mat" ),
-//         GOUTPUT( ),
-//         INPUT( "ext_mat", "ext_mat_zee" ),
-//         GINPUT( ),
+//         OUT( "ext_mat" ),
+//         GOUT(      ),
+//         GOUT_TYPE( ),
+//         IN( "ext_mat", "ext_mat_zee" ),
+//         GIN(      ),
 //         KEYWORDS( ),
-//         DEFAULTS( ),
+//         GIN_TYPE( ),
+//         GIN_DEFAULT( ),
 //         TYPES( )));
 
 //   md_data_raw.push_back
@@ -7532,12 +8082,14 @@ md_data_raw.push_back
 //          "   ZeemanO2Line          : Line to do with Zeeman. \n"
 //         ),
 //         AUTHORS( "Thomas Kuhn", "Axel von Engeln" ),
-//         OUTPUT( zeeman_o2_onoff_, zeeman_o2_pressure_limit_, zeeman_o2_line_),
-//         GOUTPUT( ),
-//         INPUT( ),
-//         GINPUT( ),
+//         OUT( zeeman_o2_onoff_, zeeman_o2_pressure_limit_, zeeman_o2_line_),
+//         GOUT(      ),
+//         GOUT_TYPE( ),
+//         IN( ),
+//         GIN(      ),
 //         KEYWORDS( "ZeemanO2OnOff", "ZeemanO2PressureLimit", "ZeemanO2Line" ),
-//         DEFAULTS( NODEF,           NODEF,                   NODEF ),
+//         GIN_TYPE( ),
+//         GIN_DEFAULT( NODEF,           NODEF,                   NODEF ),
 //         TYPES(    "Index",         "Numeric",               "Index")));
 
 
@@ -7548,15 +8100,21 @@ md_data_raw.push_back
 //                     "\n"
 //                     ),
 //         AUTHORS( "Thomas Kuhn" ),
-//         OUTPUT( ),
-//         GOUTPUT( ),
-//         INPUT( "opt_prop_gas_agenda" ),
-//         GINPUT( ),
+//         OUT( ),
+//         GOUT(      ),
+//         GOUT_TYPE( ),
+//         IN( "opt_prop_gas_agenda" ),
+//         GIN(      ),
 //         KEYWORDS( ),
-//         DEFAULTS( ),
+//         GIN_TYPE( ),
+//         GIN_DEFAULT( ),
 //         TYPES( )));
 
 
 }
+
+
+
+
 
 

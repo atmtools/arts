@@ -44,10 +44,12 @@ public:
     mdescription( ""              ),
     mauthors(     0               ),
     moutput(      0               ),  
-    mgoutput(     0               ),  
+    mgout(        0               ),  
+    mgouttype(    0               ),  
     minput(       0               ),   
-    mginput(      0               ),   
+    mgin(         0               ),   
     mkeywords(    0               ),
+    mgintype(     0               ),   
     mdefaults(    0               ),
     mtypes(       0               ),
     mset_method(false),
@@ -64,10 +66,12 @@ public:
            const char                   description[],
            const MakeArray<String>&     authors,
            const MakeArray<String>&     output,
-           const MakeArray<String>&     goutput,
+           const MakeArray<String>&     gout,
+           const MakeArray<String>&     gouttype,
            const MakeArray<String>&     input,   
-           const MakeArray<String>&     ginput,   
+           const MakeArray<String>&     gin,
            const MakeArray<String>&     keywords,
+           const MakeArray<String>&     gintype,   
            const MakeArray<String>&     defaults,
            const MakeArray<String>&     types,
            bool                         set_method      = false,
@@ -82,10 +86,12 @@ public:
   const String&            Description()    const { return mdescription; }
   const ArrayOfString&     Authors()        const { return mauthors; }   
   const ArrayOfIndex&      Output()         const { return moutput; }
+  const ArrayOfString&     GOut()           const { return mgout; }
+  const ArrayOfIndex&      GOutType()       const { return mgouttype; }
   const ArrayOfIndex&      Input()          const { return minput; }
-  const ArrayOfIndex&      GOutput()        const { return mgoutput; }
-  const ArrayOfIndex&      GInput()         const { return mginput; }
+  const ArrayOfString&     GIn()            const { return mgin; }
   const Array<String>&     Keywords()       const { return mkeywords; }
+  const ArrayOfIndex&      GInType()        const { return mgintype; }
   const Array<String>&     Defaults()       const { return mdefaults; }
   const ArrayOfIndex&      Types()          const { return mtypes; }
   bool                     SetMethod()      const { return mset_method; }
@@ -143,17 +149,23 @@ private:
   //! Workspace Output.
   ArrayOfIndex moutput;
 
-  //! Generic Workspace Output.
-  ArrayOfIndex mgoutput;
+  //! Generic Workspace Output Names.
+  ArrayOfString mgout;
+
+  //! Generic Workspace Output Type.
+  ArrayOfIndex mgouttype;
 
   //! Workspace Input.
   ArrayOfIndex minput;
 
-  //! Generic Workspace Input.
-  ArrayOfIndex mginput;
+  //! Generic Workspace Input Names.
+  ArrayOfString mgin;
 
-  //! Keywords.
+  //! Keywords Names.
   ArrayOfString mkeywords;
+
+  //! Generic Workspace Input.
+  ArrayOfIndex mgintype;
 
   //! Keywords.
   ArrayOfString mdefaults;
@@ -177,7 +189,7 @@ private:
 
   //! Flag, whether this method is supergeneric.
   /*!
-    This flag is set automatically if the goutput or ginput contains
+    This flag is set automatically if the gouttype or gintype contains
     Any_.
   */ 
   bool msupergeneric;

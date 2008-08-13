@@ -113,8 +113,8 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   // write. 
   ArrayOfIndex  vo=mdd.Output();   // Output 
   ArrayOfIndex  vi;                // Input
-  ArrayOfIndex  vgo=mdd.GOutput(); // Generic Output 
-  ArrayOfIndex  vgi=mdd.GInput();  // Generic Input
+  ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
+  ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
   // vo and vi contain handles of workspace variables, 
   // vgo and vgi handles of workspace variable groups.
 
@@ -132,9 +132,9 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
 
   // Find out if the WSM gets an agenda as input. If so, pass
   // the current workspace to this method
-  for (Index j = 0; !pass_workspace && j < mdd.GInput().nelem(); j++)
+  for (Index j = 0; !pass_workspace && j < mdd.GInType().nelem(); j++)
     {
-      if (mdd.GInput()[j] == get_wsv_group_id ("Agenda"))
+      if (mdd.GInType()[j] == get_wsv_group_id ("Agenda"))
         {
           pass_workspace = true;
         }
@@ -289,8 +289,8 @@ void write_method_header( ofstream& ofs,
   // write. 
   ArrayOfIndex  vo=mdd.Output();   // Output 
   ArrayOfIndex  vi;                // Input
-  ArrayOfIndex  vgo=mdd.GOutput(); // Generic Output 
-  ArrayOfIndex  vgi=mdd.GInput();  // Generic Input
+  ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
+  ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
   // vo and vi contain handles of workspace variables, 
   // vgo and vgi handles of workspace variable groups.
 
@@ -308,9 +308,9 @@ void write_method_header( ofstream& ofs,
 
   // Find out if the WSM gets an agenda as input. If so, pass
   // the current workspace to this method
-  for (Index j = 0; !pass_workspace && j < mdd.GInput().nelem(); j++)
+  for (Index j = 0; !pass_workspace && j < mdd.GInType().nelem(); j++)
     {
-      if (mdd.GInput()[j] == get_wsv_group_id ("Agenda"))
+      if (mdd.GInType()[j] == get_wsv_group_id ("Agenda"))
         {
           pass_workspace = true;
         }
@@ -378,13 +378,13 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
 
-        if (wsv_group_names[mdd.GOutput()[j]] == "Any")
+        if (wsv_group_names[mdd.GOutType()[j]] == "Any")
           {
             ofs << "T& supergenericoutput" << j+1;
           }
         else
           {
-            ofs << wsv_group_names[mdd.GOutput()[j]] << "& genericoutput"
+            ofs << wsv_group_names[mdd.GOutType()[j]] << "& genericoutput"
               << j+1;
           }
       }
@@ -455,14 +455,14 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
                 
-        if (wsv_group_names[mdd.GInput()[j]] == "Any")
+        if (wsv_group_names[mdd.GInType()[j]] == "Any")
           {
             ofs << "const T& supergenericinput" << j+1;
           }
         else
           {
             ofs << "const "
-              << wsv_group_names[mdd.GInput()[j]]
+              << wsv_group_names[mdd.GInType()[j]]
               << "& genericinput" << j+1;
           }
       }

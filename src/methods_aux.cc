@@ -45,10 +45,12 @@ MdRecord::MdRecord(const char                   name[],
                    const char                   description[],
                    const MakeArray<String>&     authors,
                    const MakeArray<String>&     output,
-                   const MakeArray<String>&     goutput,
+                   const MakeArray<String>&     gout,
+                   const MakeArray<String>&     gouttype,
                    const MakeArray<String>&     input,   
-                   const MakeArray<String>&     ginput,   
+                   const MakeArray<String>&     gin,   
                    const MakeArray<String>&     keywords,
+                   const MakeArray<String>&     gintype,   
                    const MakeArray<String>&     defaults,
                    const MakeArray<String>&     types,
                    bool                         set_method,
@@ -60,10 +62,12 @@ MdRecord::MdRecord(const char                   name[],
     mdescription(     description         ),    
     mauthors(         authors             ),
     moutput(          0                   ),  
-    mgoutput(         0                   ),  
+    mgout(            gout                ),  
+    mgouttype(        0                   ),  
     minput(           0                   ),   
-    mginput(          0                   ),   
+    mgin(             gin                 ),   
     mkeywords(        keywords            ),
+    mgintype(         0                   ),   
     mdefaults(        defaults            ),
     mtypes(           0                   ),
     mset_method(      set_method          ),
@@ -116,27 +120,27 @@ MdRecord::MdRecord(const char                   name[],
         }
 
       // Map the group names to groups' indexes
-      mgoutput.resize(goutput.nelem());
-      for ( Index j=0; j<goutput.nelem(); ++j )
+      mgouttype.resize(gouttype.nelem());
+      for ( Index j=0; j<gouttype.nelem(); ++j )
         {
-          mgoutput[j] = get_wsv_group_id (goutput[j]);
-          if (mgoutput[j] == -1)
+          mgouttype[j] = get_wsv_group_id (gouttype[j]);
+          if (mgouttype[j] == -1)
             {
               ostringstream os;
-              os << "Unknown WSV Group " << goutput[j] << " for generic output "
+              os << "Unknown WSV Group " << gouttype[j] << " for generic output "
                 << "in WSM " << mname;
               throw runtime_error( os.str() );
             }
         }
 
-      mginput.resize(ginput.nelem());
-      for ( Index j=0; j<ginput.nelem(); ++j )
+      mgintype.resize(gintype.nelem());
+      for ( Index j=0; j<gintype.nelem(); ++j )
         {
-          mginput[j] = get_wsv_group_id (ginput[j]);
-          if (mginput[j] == -1)
+          mgintype[j] = get_wsv_group_id (gintype[j]);
+          if (mgintype[j] == -1)
             {
               ostringstream os;
-              os << "Unknown WSV Group " << ginput[j] << " for generic input "
+              os << "Unknown WSV Group " << gintype[j] << " for generic input "
                 << "in WSM " << mname;
               throw runtime_error( os.str() );
             }
@@ -165,11 +169,11 @@ MdRecord::MdRecord(const char                   name[],
 
       // Find out if this method is supergeneric, and set the flag if
       // yes:
-      for ( Index j=0; j<mgoutput.nelem(); ++j )
-        if ( get_wsv_group_id("Any") == mgoutput[j] )
+      for ( Index j=0; j<mgouttype.nelem(); ++j )
+        if ( get_wsv_group_id("Any") == mgouttype[j] )
           msupergeneric = true;
-      for ( Index j=0; j<mginput.nelem(); ++j )
-        if ( get_wsv_group_id("Any") == mginput[j] )
+      for ( Index j=0; j<mgintype.nelem(); ++j )
+        if ( get_wsv_group_id("Any") == mgintype[j] )
           msupergeneric = true;
     }
 
@@ -186,8 +190,8 @@ MdRecord::MdRecord(const char                   name[],
 // {
 //   bool is_supergeneric = false;
 
-//   const ArrayOfIndex&  vgo=mdd.GOutput();   // Generic Output 
-//   const ArrayOfIndex&  vgi=mdd.GInput();    // Generic Input
+//   const ArrayOfIndex&  vgo=mdd.GOutType();   // Generic Output 
+//   const ArrayOfIndex&  vgi=mdd.GInType();    // Generic Input
 
 //   for ( Index j=0; j<vgo.nelem(); ++j )
 //     if ( Any_ == vgo[j] )            is_supergeneric = true;
@@ -199,8 +203,8 @@ MdRecord::MdRecord(const char                   name[],
 
 //! Expand supergeneric record for given group.
 /*! 
-  This function will substitute any occurance of Any_ in the goutput
-  and ginput list of MdRecord by group g. 
+  This function will substitute any occurance of Any_ in the GOutType
+  and GInType list of MdRecord by group g. 
 
   It also adds the group to the name like this: Copy becomes
   Copy_sg_Vector, Copy_sg_Matrix, etc..
@@ -232,10 +236,10 @@ void MdRecord::subst_any_with_group( Index g )
 //     mname = os.str();
 //   }
   
-  for ( Index j=0; j<mgoutput.nelem(); ++j )
-    if ( wsv_group_id_Any == mgoutput[j] )          mgoutput[j] = g;
-  for ( Index j=0; j<mginput.nelem(); ++j )
-    if ( wsv_group_id_Any == mginput[j] )           mginput[j] = g;
+  for ( Index j=0; j<mgouttype.nelem(); ++j )
+    if ( wsv_group_id_Any == mgouttype[j] )          mgouttype[j] = g;
+  for ( Index j=0; j<mgintype.nelem(); ++j )
+    if ( wsv_group_id_Any == mgintype[j] )           mgintype[j] = g;
 
   // Set the field for the actual group:
   mactual_group = g;
@@ -276,7 +280,7 @@ void MdRecord::input_only(ArrayOfIndex& inonly) const
   supergeneric method Copy(Any,Any) there will be
   Copy_sg_Vector(Vector,Vector), Copy_sg_Matrix(Matrix,Matrix), etc..
 
-  Not only the goutput and ginput lists are manipulated, also the
+  Not only the GOutType and GInType lists are manipulated, also the
   method name.
 */
 void expand_md_data_raw_to_md_data()
@@ -405,27 +409,27 @@ ostream& MdRecord::PrintTemplate(ostream& os,
   os << Name();
 
   // Is this a generic method? -- Then we need round braces.
-  if ( 0 != GOutput().nelem()+GInput().nelem() )
+  if ( 0 != GOutType().nelem()+GInType().nelem() )
     {
       // First entry needs to comma before:
       bool first=true;
 
       os << '(';
 
-      for (Index i=0; i<GOutput().nelem(); ++i)
+      for (Index i=0; i<GOutType().nelem(); ++i)
         {
           if (first) first=false;
           else os << ",\n";
 
-          os << wsv_group_names[GOutput()[i]];
+          os << wsv_group_names[GOutType()[i]];
         }
 
-      for (Index i=0; i<GInput().nelem(); ++i)
+      for (Index i=0; i<GInType().nelem(); ++i)
         {
           if (first) first=false;
           else os << ",\n";
 
-          os << wsv_group_names[GInput()[i]];
+          os << wsv_group_names[GInType()[i]];
         }
 
       os << ')';
@@ -476,8 +480,8 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
 
     // If the method has more than 4 arguments, put them on
     // separate lines for better readability
-    if (mdr.Output().nelem() + mdr.GOutput().nelem() + mdr.Input().nelem()
-        + mdr.GInput().nelem() + mdr.Keywords().nelem() > 4)
+    if (mdr.Output().nelem() + mdr.GOutType().nelem() + mdr.Input().nelem()
+        + mdr.GInType().nelem() + mdr.Keywords().nelem() > 4)
       {
         separate_lines = true;
         indent = "\n";
@@ -496,10 +500,10 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
         os << Workspace::wsv_data[mdr.Output()[i]].Name();
       }
 
-    for ( Index i=0; i<mdr.GOutput().nelem(); ++i )
+    for ( Index i=0; i<mdr.GOutType().nelem(); ++i )
       {
         if (first) first=false; else os << ", " << indent;
-        os << wsv_group_names[mdr.GOutput()[i]];
+        os << wsv_group_names[mdr.GOutType()[i]];
       }
 
     ArrayOfIndex inonly;
@@ -510,10 +514,10 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
         os << Workspace::wsv_data[inonly[i]].Name();
       }
 
-    for ( Index i=0; i<mdr.GInput().nelem(); ++i )
+    for ( Index i=0; i<mdr.GInType().nelem(); ++i )
       {
         if (first) first=false; else os << ", " << indent;
-        os << wsv_group_names[mdr.GInput()[i]];
+        os << wsv_group_names[mdr.GInType()[i]];
       }
 
     for ( Index i=0; i<mdr.Keywords().nelem(); ++i )
@@ -572,25 +576,25 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       
   // GOutput:
   first = true;
-  os << "GOutput = ";
-  for ( Index i=0; i<mdr.GOutput().nelem(); ++i )
+  os << "GOutType = ";
+  for ( Index i=0; i<mdr.GOutType().nelem(); ++i )
     {
       if (first) first=false;
       else os << ", ";
 
-      os << wsv_group_names[mdr.GOutput()[i]];
+      os << wsv_group_names[mdr.GOutType()[i]];
     }
   os << '\n';
 
-  // GInput:
+  // GInType:
   first = true;
-  os << "GInput = ";
-  for ( Index i=0; i<mdr.GInput().nelem(); ++i )
+  os << "GInType = ";
+  for ( Index i=0; i<mdr.GInType().nelem(); ++i )
     {
       if (first) first=false;
       else os << ", ";
 
-      os << wsv_group_names[mdr.GInput()[i]];
+      os << wsv_group_names[mdr.GInType()[i]];
     }
   os << '\n';
 

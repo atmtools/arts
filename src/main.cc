@@ -170,19 +170,19 @@ void option_methods(const String& methods)
           // Get handle on method record:
           const MdRecord& mdd = md_data_raw[i];
 
-          // This if statement checks whether GOutput, the list
+          // This if statement checks whether GOutType, the list
           // of output variable types contains the group of the
           // requested variable.
           // The else clause picks up methods with supergeneric input.
-          if ( count( mdd.GOutput().begin(),
-                      mdd.GOutput().end(),
+          if ( count( mdd.GOutType().begin(),
+                      mdd.GOutType().end(),
                       Workspace::wsv_data[wsv_key].Group() ) )
             {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
             }
-          else if  ( count( mdd.GOutput().begin(),
-                      mdd.GOutput().end(),
+          else if  ( count( mdd.GOutType().begin(),
+                      mdd.GOutType().end(),
                       get_wsv_group_id("Any") ) )
             {
               cout << "- " << mdd.Name() << "\n";
@@ -250,19 +250,19 @@ void option_methods(const String& methods)
           // Get handle on method record:
           const MdRecord& mdd = md_data_raw[i];
 
-          // This if statement checks whether GOutput, the list
+          // This if statement checks whether GOutType, the list
           // of output variable types contains the
           // requested group.
           // The else clause picks up methods with supergeneric input.
-          if ( count( mdd.GOutput().begin(),
-                      mdd.GOutput().end(),
+          if ( count( mdd.GOutType().begin(),
+                      mdd.GOutType().end(),
                       group_key ) )
             {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
             }
-          else if  ( count( mdd.GOutput().begin(),
-                      mdd.GOutput().end(),
+          else if  ( count( mdd.GOutType().begin(),
+                      mdd.GOutType().end(),
                       get_wsv_group_id("Any") ) )
             {
               cout << "- " << mdd.Name() << "\n";
@@ -326,19 +326,19 @@ void option_input(const String& input)
           // Get handle on method record:
           const MdRecord& mdd = md_data_raw[i];
           
-          // This if statement checks whether GInput, the list
+          // This if statement checks whether GInType, the list
           // of input variable types contains the group of the
           // requested variable.
           // The else clause picks up methods with supergeneric input.
-          if ( count( mdd.GInput().begin(),
-                      mdd.GInput().end(),
+          if ( count( mdd.GInType().begin(),
+                      mdd.GInType().end(),
                       Workspace::wsv_data[wsv_key].Group() ) )
             {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
             }
-          else if  ( count( mdd.GInput().begin(),
-                      mdd.GInput().end(),
+          else if  ( count( mdd.GInType().begin(),
+                      mdd.GInType().end(),
                       get_wsv_group_id("Any") ) )
             {
               cout << "- " << mdd.Name() << "\n";
@@ -406,19 +406,19 @@ void option_input(const String& input)
           // Get handle on method record:
           const MdRecord& mdd = md_data_raw[i];
 
-          // This if statement checks whether GOutput, the list
+          // This if statement checks whether GOutType, the list
           // of output variable types contains the
           // requested group.
           // The else clause picks up methods with supergeneric input.
-          if ( count( mdd.GInput().begin(),
-                      mdd.GInput().end(),
+          if ( count( mdd.GInType().begin(),
+                      mdd.GInType().end(),
                       group_key ) )
             {
               cout << "- " << mdd.Name() << "\n";
               ++hitcount;
             }
-          else if  ( count( mdd.GInput().begin(),
-                      mdd.GInput().end(),
+          else if  ( count( mdd.GInType().begin(),
+                      mdd.GInType().end(),
                       get_wsv_group_id("Any") ) )
             {
               cout << "- " << mdd.Name() << "\n";
@@ -502,9 +502,9 @@ void option_workspacevariables(const String& workspacevariables)
       << "Generic workspace variables required by " << mdr.Name()
       << " are of type:\n"
       << "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<mdr.GInput().nelem(); ++i )
+      for ( Index i=0; i<mdr.GInType().nelem(); ++i )
         {
-          cout << "- " << wsv_group_names[mdr.GInput()[i]] << "\n";
+          cout << "- " << wsv_group_names[mdr.GInType()[i]] << "\n";
           ++hitcount;
         }
       if ( 0==hitcount )

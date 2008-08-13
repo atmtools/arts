@@ -1,5 +1,38 @@
 2008-08-12  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-8-1
+
+	* Rearranged lots of stuff in methods.cc and dependent files to
+	prepare for the merge of keywords with generic inputs.
+
+	* src/methods.{h,cc}, src/methods_aux.cc:
+
+	Rename GOUTPUT to GOUT_TYPE.
+
+	Rename GINPUT to GIN_TYPE.
+
+	Rename DEFAULTS to GIN_DEFAULT.
+
+	Rename OUTPUT to OUT.
+
+	Rename INPUT to IN.
+
+	Change goutput to gouttype.
+
+	Change ginput to gintype.
+
+	Introduce gout which contains the generic output names.
+
+	Introduce gin which contains the generic input names.
+
+	* src/agenda_class.cc, src/parser.cc, src/make_auto_md_cc.cc,
+	src/make_auto_md_h.cc, src/main.cc:
+
+	Change GOutput to GOutType.
+	Change GInput to GInType.
+
+2008-08-12  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-8-0
 
 	* Increased minor version number because this commit breaks

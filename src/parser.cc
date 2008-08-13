@@ -280,8 +280,8 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
               }*/
 
             // Output workspace variables for generic methods:
-            if ( 0 < md_data[id].GOutput().nelem()
-                 + md_data[id].GInput().nelem() )
+            if ( 0 < md_data[id].GOutType().nelem()
+                 + md_data[id].GInType().nelem() )
               {
                 out3 << "   Output: ";
                 for ( Index j=0 ; j<output.nelem() ; ++j )
@@ -909,9 +909,9 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
   // variables have to be parsed (given in round brackets).
   // For v2 controlfiles, we also have to parse the keywords which are now
   // part of the argument list in parenthesis.
-  if ( (mdd->GOutput().nelem() + mdd->GInput().nelem() > 0)
+  if ( (mdd->GOutType().nelem() + mdd->GInType().nelem() > 0)
        || (mcfile_version == 2
-           && 0 < mdd->GOutput().nelem() + mdd->GInput().nelem()))
+           && 0 < mdd->GOutType().nelem() + mdd->GInType().nelem()))
     {
       String wsvname;
       bool first = true;        // To skip the first comma.
@@ -937,7 +937,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
         }
 
       // Parse all generic output variables
-      for ( Index j=0 ; j<mdd->GOutput().nelem() ; ++j )
+      for ( Index j=0 ; j<mdd->GOutType().nelem() ; ++j )
         {
           if (first)
             first = false;
@@ -978,7 +978,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
                         ostringstream os;
                         os << "This might be either a typo or you have to create "
                           << "the variable\nby calling "
-                          << wsv_group_names[mdd->GOutput()[j]]
+                          << wsv_group_names[mdd->GOutType()[j]]
                           << "Create( " << wsvname
                           << " ) first.\n";
 
@@ -992,7 +992,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
                         wsvid = Workspace::add_wsv(
                           WsvRecord(wsvname.c_str(),
                                     "Automatically allocated variable.",
-                                    mdd->GOutput()[j],
+                                    mdd->GOutType()[j],
                                     true));
                       }
                   }
@@ -1032,10 +1032,10 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           // methods should be necessary.
 
           // Check that this Wsv belongs to the correct group:
-          if ( Workspace::wsv_data[wsvid].Group() != mdd->GOutput()[j] )
+          if ( Workspace::wsv_data[wsvid].Group() != mdd->GOutType()[j] )
             {
             throw WrongWsvGroup( wsvname+" is not "+
-                        wsv_group_names[mdd->GOutput()[j]]+", it is "+ 
+                        wsv_group_names[mdd->GOutType()[j]]+", it is "+ 
                         wsv_group_names[Workspace::wsv_data[wsvid].Group()],
                                  msource.File(),
                                  msource.Line(),
@@ -1068,7 +1068,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
         }
 
       // Then parse all generic input variables
-      for ( Index j=0 ; j<mdd->GInput().nelem() ; ++j )
+      for ( Index j=0 ; j<mdd->GInType().nelem() ; ++j )
         {
           if (first)
             first = false;
@@ -1083,7 +1083,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
             os << j;
             read_name_or_value(wsvname, auto_vars, auto_vars_values,
                                "generic" + os.str(),
-                               mdd, mdd->GInput()[j]);
+                               mdd, mdd->GInType()[j]);
           }
 
           {
@@ -1125,9 +1125,9 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           // methods should be necessary.
 
           // Check that this Wsv belongs to the correct group:
-          if ( Workspace::wsv_data[wsvid].Group() != mdd->GInput()[j] )
+          if ( Workspace::wsv_data[wsvid].Group() != mdd->GInType()[j] )
             throw WrongWsvGroup( wsvname+" is not "+
-                        wsv_group_names[mdd->GInput()[j]]+", it is "+ 
+                        wsv_group_names[mdd->GInType()[j]]+", it is "+ 
                         wsv_group_names[Workspace::wsv_data[wsvid].Group()],
                                  msource.File(),
                                  msource.Line(),
@@ -1152,7 +1152,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
     }
   else
     {
-      // Even if the method has no GInput or GOutput the user can
+      // Even if the method has no GInType or GOutType the user can
       // pass all inputs and outputs in parenthesis
       if (msource.Current() == '(')
         {

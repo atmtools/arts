@@ -112,8 +112,8 @@ int main()
           // write. 
           ArrayOfIndex  vo=mdd.Output();   // Output 
           ArrayOfIndex  vi;                // Input
-          ArrayOfIndex  vgo=mdd.GOutput(); // Generic Output 
-          ArrayOfIndex  vgi=mdd.GInput();  // Generic Input
+          ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
+          ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
           ArrayOfIndex  kgi=mdd.Types();   // Keyword Input
           // vo and vi contain handles of workspace variables, 
           // vgo and vgi handles of workspace variable groups.
@@ -150,9 +150,9 @@ int main()
 
               // Find out if the WSM gets an agenda as input. If so, pass
               // the current workspace to this method
-              for (Index j = 0; !pass_workspace && j < mdd.GInput().nelem(); j++)
+              for (Index j = 0; !pass_workspace && j < mdd.GInType().nelem(); j++)
                 {
-                  if (mdd.GInput()[j] == get_wsv_group_id ("Agenda"))
+                  if (mdd.GInType()[j] == get_wsv_group_id ("Agenda"))
                     {
                       pass_workspace = true;
                     }
