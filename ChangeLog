@@ -1,3 +1,39 @@
+2008-08-13  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-8-3
+
+	* The absorption lookup table should be again safe to use now. Let
+	me know if you encounter any problems. With the new settings,
+	accuracy is better than before, but lookup table size should be
+	only a few percent of the original size.
+	
+	* includes/general.arts: Modified the default absorption
+	interpolation settings. The new settings are:
+	IndexSet( abs_p_interp_order,   5 )
+	IndexSet( abs_t_interp_order,   7 )
+	IndexSet( abs_nls_interp_order, 5 )
+
+	* src/m_abs_lookup.cc (choose_abs_t_pert): Rewritten. Adjusts
+	abs_t_pert to interpolation order.
+	(choose_abs_nls_pert): Rewritten. Adjusts abs_nls_pert to
+	interpolation order.
+	(abs_lookupSetup): Added abs_p_interp_order.
+	(abs_lookupSetupBatch): Added abs_p_interp_order. Do some
+	smoothing of the reference profiles, according to the
+	interpolation order in pressure. (Otherwise, sharp jumps in the
+	reference profiles lead to numerical problems.)
+
+	* src/methods.cc (abs_lookupSetup, abs_lookupSetupBatch): Added
+	input variable *abs_p_interp_order*. Changed
+	default values for grid steps. Defaults are now such that the
+	pressure grid spacing is about 1 km. T and NLS spacing are set to
+	very large values (100), so that in practice the interpolation
+	order determines the spacing.
+	(abs_lookupTestAccuracy): Added this new method, which will
+	calculate and print out	the lookup table accuracy. The
+	implementation of this method still has to be done, so far it is
+	just an empty shell.
+
 2008-08-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-8-2

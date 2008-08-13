@@ -38,6 +38,7 @@
 #include "math_funcs.h"
 #include "make_vector.h"
 #include "arts_omp.h"
+#include "interpolation_poly.h"
 
 extern const Index GFIELD4_FIELD_NAMES;
 extern const Index GFIELD4_P_GRID;
@@ -621,8 +622,7 @@ void choose_abs_nls(ArrayOfArrayOfSpeciesTag& abs_nls,
 /*!  
   This simple function creates a vector of temperature
   perturbations, relative to the reference temperature profile, that
-  covers the minimum and maximum temperature profile. The value 0 is
-  always included.
+  covers the minimum and maximum temperature profile. 
   
   \author Stefan Buehler
 
@@ -636,47 +636,60 @@ void choose_abs_t_pert(Vector&         abs_t_pert,
                        ConstVectorView abs_t,
                        ConstVectorView tmin,
                        ConstVectorView tmax,
-                       const Numeric&  t_step,
-                       const Index&    interp_order)
+                       const Numeric&  step,
+                       const Index&    p_interp_order,
+                       const Index&    t_interp_order)
 {
-  Vector tmindist = tmin;
-  Vector tmaxdist = tmax;
-
-  tmindist -= abs_t;
-  tmaxdist -= abs_t;
-
-  const Numeric mindev = min(tmindist);
-  const Numeric maxdev = max(tmaxdist);
-  out3 << "  mindev/maxdev : " << mindev << " / " << maxdev << "\n";
-
-  // Things to do with getting the required number of points for the
-  // interpolation order: 
-  // We do not add 1 here, because the point "0" is already included.
-  const Index needpoints_total = interp_order; 
-  const Index needpoints_below = needpoints_total/2;     // Will take floor.
-  const Index needpoints_above = needpoints_total - needpoints_below;
-  //  cout << needpoints_below << "/" << needpoints_above << "\n";
- 
-  Numeric start    = 0;
-  Index   n_points = 0;                
-  while ( (mindev<start) || (n_points<needpoints_below) ) 
-    {
-      start -= t_step;
-      ++n_points;
-    }
+  // The code to find out the range for perturbation is a bit
+  // complicated. The problem is that, since we use higher order
+  // interpolation for p, we may require temperatures well outside the
+  // local min/max range at the reference level. We solve this by
+  // really looking at the min/max range for those levels required by
+  // the p_interp_order.
   
-  Numeric stop  = 0;
-  n_points = 0;                
-  while ( (maxdev > stop) || (n_points<needpoints_above) )
+  Numeric mindev = 1e9;
+  Numeric maxdev = -1e9;
+
+  Vector the_grid(0,abs_t.nelem(),1);
+  for (Index i=0; i<the_grid.nelem(); ++i)
     {
-      stop += t_step;
-      ++n_points;
+      GridPosPoly gp;
+      gridpos_poly(gp, the_grid, i, p_interp_order);
+
+      for (Index j=0; j<gp.idx.nelem(); ++j)
+        {
+          // Our pressure grid for the lookup table may be coarser than
+          // the original one for the batch cases. This may lead to max/min
+          // values in the original data that exceed those we assumed
+          // above. We add some extra margin here to account for
+          // that. (The margin is +-10K)
+
+          Numeric delta_min = tmin[i] - abs_t[gp.idx[j]] - 10;
+          Numeric delta_max = tmax[i] - abs_t[gp.idx[j]] + 10;
+
+          if ( delta_min < mindev ) mindev = delta_min;
+          if ( delta_max > maxdev ) maxdev = delta_max;
+        }
     }
 
-  linspace(abs_t_pert,start,stop,t_step);
+  out3 << "  abs_t_pert: mindev/maxdev : " << mindev << " / " << maxdev << "\n";
+
+  // We divide the interval between mindev and maxdev, so that the
+  // steps are of size *step* or smaller. But we also need at least
+  // *t_interp_order*+1 points.
+  Index   div = t_interp_order;
+  Numeric effective_step;
+  do
+    {
+      effective_step = (maxdev-mindev)/div;
+      ++div;
+    }
+  while (effective_step > step);
+
+  abs_t_pert = Vector(mindev, div, effective_step);
 
   out2 << "  abs_t_pert: " << abs_t_pert[0] << " K to " << abs_t_pert[abs_t_pert.nelem()-1]
-       << " K in steps of " << t_step
+       << " K in steps of " << effective_step
        << " K (" << abs_t_pert.nelem() << " grid points)\n";
 }
 
@@ -685,8 +698,7 @@ void choose_abs_t_pert(Vector&         abs_t_pert,
 /*!  
   This simple function creates a vector of fractional H2O VMR
   perturbations, relative to the reference H2O profile, that
-  covers the minimum and maximum profile. The value 1 is
-  always included.
+  covers the minimum and maximum profile. 
   
   \author Stefan Buehler
 
@@ -701,55 +713,92 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
                          ConstVectorView minprof,
                          ConstVectorView maxprof,
                          const Numeric&  step,
-                         const Index&    interp_order)
+                         const Index&    p_interp_order,
+                         const Index&    nls_interp_order)
 {
-  Vector minprofdist = minprof;
-  Vector maxprofdist = maxprof;
+  // The code to find out the range for perturbation is a bit
+  // complicated. The problem is that, since we use higher order
+  // interpolation for p, we may require humidities well outside the
+  // local min/max range at the reference level. We solve this by
+  // really looking at the min/max range for those levels required by
+  // the p_interp_order.
 
-  minprofdist /= refprof;
-  maxprofdist /= refprof;
+  Numeric mindev = 0;
+  Numeric maxdev = -1e9;
 
-  Numeric mindev = min(minprofdist);
-  Numeric maxdev = max(maxprofdist);
+  // mindev is set to zero from the start, since we always want to
+  // include 0.
 
+  Vector the_grid(0,refprof.nelem(),1);
+  for (Index i=0; i<the_grid.nelem(); ++i)
+    {
+//       cout << "!!!!!! i = " << i << "\n";
+//       cout << " min/ref/max = " << minprof[i] << " / "
+//            << refprof[i] << " / "
+//            << maxprof[i] << "\n";
+  
+      GridPosPoly gp;
+      gridpos_poly(gp, the_grid, i, p_interp_order);
+
+      for (Index j=0; j<gp.idx.nelem(); ++j)
+        {
+//           cout << "!!!!!! j = " << j << "\n";
+//           cout << "  ref[j] = " << refprof[gp.idx[j]] << "   ";
+//           cout << "  minfrac[j] = " << minprof[i] / refprof[gp.idx[j]] << "   ";
+//           cout << "  maxfrac[j] = " << maxprof[i] / refprof[gp.idx[j]] << "  \n";
+
+          // Our pressure grid for the lookup table may be coarser than
+          // the original one for the batch cases. This may lead to max/min
+          // values in the original data that exceed those we assumed
+          // above. We add some extra margin to the max value here to account for
+          // that. (The margin is a factor of 2.)
+
+          Numeric delta_min = minprof[i] / refprof[gp.idx[j]];
+          Numeric delta_max = 2*maxprof[i] / refprof[gp.idx[j]];
+
+          if ( delta_min < mindev ) mindev = delta_min;
+          if ( delta_max > maxdev ) maxdev = delta_max;
+        }
+    }
+
+  out3 << "  abs_nls_pert: mindev/maxdev : " << mindev << " / " << maxdev << "\n";
+      
   bool allownegative = false;
   if (mindev<0) 
     {
       out2 << "  Warning: I am getting a negative fractional distance to the H2O\n"
-           << "  reference profile. Some of your H2O fields contain negative values.\n"
+           << "  reference profile. Some of your H2O fields may contain negative values.\n"
            << "  Will allow negative values also for abs_nls_pert.\n";
       allownegative = true;
     }
 
-  out3 << "  mindev/maxdev : " << mindev << " / " << maxdev << "\n";
-
-  if (maxdev-mindev < 1e-3)
+  if (!allownegative)
     {
       mindev=0;
-      maxdev=2;
-      out3 << "  Adjusted mindev/maxdev : " << mindev << " / " << maxdev << "\n";
+      out3 << "  Adjusted mindev : " << mindev << "\n";
     }
 
-  // We need a completely different approach here from the temperature
-  // case, since there is no correct spacing in an absolute sense,
-  // everything depends on the reference profile. 
-  // Strategy:
-  // - Start with [mindev, 1, maxdev]
-  // - Subdivide the interval above and below 1 as required
-  //
-  // FIXME: Replace h2o_step by n_h2o?
-  // Test which strategy works with Chevallier data.
-  // Something preliminary:
-  
-  linspace(abs_nls_pert, mindev, maxdev+2*step, step);
-  // FIXME: The maxdev+step is necessary, because linspace may not get
-  // up to maxdev. This is preliminary, there should be something more
-  // elaborate here.
-  
-
-  if (abs_nls_pert.nelem() < interp_order+1)
+  // We divide the interval between mindev and maxdev, so that the
+  // steps are of size *step* or smaller. But we also need at least
+  // *nls_interp_order*+1 points.
+  Index   div = nls_interp_order;
+  Numeric effective_step;
+  do
     {
-      nlinspace(abs_nls_pert, mindev, maxdev, interp_order+1);
+      effective_step = (maxdev-mindev)/div;
+      ++div;
+    }
+  while (effective_step > step);
+
+  abs_nls_pert = Vector(mindev, div, effective_step);
+
+  // If there are negative values, we also add 0. The reason for this
+  // is that 0 is a turning point.
+  if (allownegative)
+    {
+      VectorInsertGridPoints(abs_nls_pert, abs_nls_pert, MakeVector(0));
+      out2 << "  I am including also 0 in the abs_nls_pert, because it is a turning \n"
+           << "  point. Consider to use a higher abs_nls_interp_order, for example 4.\n";
     }
 
   out2 << "  abs_nls_pert: " << abs_nls_pert[0] << " to " << abs_nls_pert[abs_nls_pert.nelem()-1]
@@ -775,6 +824,7 @@ void abs_lookupSetup(// WS Output:
                      const Tensor3& t_field,
                      const Tensor4& vmr_field,
                      const ArrayOfArrayOfSpeciesTag& abs_species,
+                     const Index& abs_p_interp_order,
                      const Index& abs_t_interp_order,
                      const Index& abs_nls_interp_order,
                      // Control Parameters:
@@ -796,6 +846,13 @@ void abs_lookupSetup(// WS Output:
 
   // Check grids:
   chk_atm_grids(atmosphere_dim, p_grid, lat_grid, lon_grid);
+
+  if (p_grid.nelem()<2)
+    {
+      ostringstream os;
+      os << "You need at least two pressure levels.";
+      throw runtime_error( os.str() );
+    }
 
   // Check T field:
   chk_atm_field("t_field", t_field, atmosphere_dim,
@@ -867,6 +924,13 @@ void abs_lookupSetup(// WS Output:
   abs_p.resize(log_abs_p.nelem());
   transform(abs_p, exp, log_abs_p);
 
+  // Check that abs_p has enough points for the interpolation order
+  if (abs_p.nelem()<abs_p_interp_order+1)
+    {
+      ostringstream os;
+      os << "Your pressure grid does not have enough levels for the desired interpolation order.";
+      throw runtime_error( os.str() );
+    }
 
   // We will also have to interpolate T and VMR profiles to the new
   // pressure grid. We interpolate in log(p), as usual in ARTS.
@@ -997,7 +1061,7 @@ void abs_lookupSetup(// WS Output:
              gp);
 
       // Temperature perturbations:
-      choose_abs_t_pert(abs_t_pert, tmean, tmin, tmax, t_step, abs_t_interp_order);
+      choose_abs_t_pert(abs_t_pert, tmean, tmin, tmax, t_step, abs_p_interp_order, abs_t_interp_order);
 //       cout << "abs_t_pert: " << abs_t_pert << "\n";
 
       // Reference VMR profiles,
@@ -1017,6 +1081,7 @@ void abs_lookupSetup(// WS Output:
                               h2omin,
                               h2omax,
                               h2o_step,
+                              abs_p_interp_order,
                               abs_nls_interp_order);
         }
       else
@@ -1041,6 +1106,7 @@ void abs_lookupSetupBatch(// WS Output:
                           // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
                           const ArrayOfGField4& batch_fields,
+                          const Index& abs_p_interp_order,
                           const Index& abs_t_interp_order,
                           const Index& abs_nls_interp_order,
                           // Control Parameters:
@@ -1075,14 +1141,27 @@ void abs_lookupSetupBatch(// WS Output:
     }
   out3 << "  maxp/minp: " << maxp << " / " << minp << "\n";
 
+  if (maxp==minp)
+    {
+      ostringstream os;
+      os << "You need at least two pressure levels.";
+      throw runtime_error( os.str() );
+    }
+
   // We construct the pressure grid as follows:
   // - Everything is done in log(p).
   // - Start with maxp and go down in steps of p_step until we are <= minp.
   // - Adjust the final pressure value to be exactly minp, otherwise
   //   we have problems in getting min, max, and mean values for this
   //   point later.
-  const Index np = (Index) ceil((log(maxp)-log(minp))/p_step)+1;
-  // The +1 above has to be there because we must include also both grid end points. 
+  Index np = (Index) ceil((log(maxp)-log(minp))/p_step)+1;
+  // The +1 above has to be there because we must include also both
+  // grid end points. 
+
+  // If np is too small for the interpolation order, we increase it:
+  if (np < abs_p_interp_order+1)
+    np = abs_p_interp_order+1;
+
   Vector log_abs_p(log(maxp), np, -p_step);
   log_abs_p[np-1] = log(minp);
 
@@ -1192,10 +1271,10 @@ void abs_lookupSetupBatch(// WS Output:
       for (Index lo=0; lo<data.ncols(); ++lo)
         for (Index la=0; la<data.nrows(); ++la)
           for (Index fi=0; fi<data.nbooks(); ++fi)
-              interp(data_interp(fi, joker, la, lo),
-                     itw,
-                     data(fi, joker, la, lo),
-                     gp);
+            interp(data_interp(fi, joker, la, lo),
+                   itw,
+                   data(fi, joker, la, lo),
+                   gp);
 
       // Now update our datamin, datamax, and datamean variables.
       // We need the min and max only for the T and H2O profile, 
@@ -1253,29 +1332,59 @@ void abs_lookupSetupBatch(// WS Output:
               throw runtime_error( os.str() );
             }
         }
+
+  // If we do higher order pressure interpolation, then we should
+  // smooth the reference profiles with a boxcar filter of width
+  // p_interp_order+1. Otherwise we get numerical problems if there
+  // are any sharp spikes in the reference profiles. 
+  assert(log_abs_p.nelem()==np);
+  Matrix smooth_datamean(datamean.nrows(), datamean.ncols(), 0);
+  for (Index i=0; i<np; ++i)
+    {
+      GridPosPoly gp;
+      gridpos_poly(gp, log_abs_p, log_abs_p[i], abs_p_interp_order);
+
+      // We do this in practice by using the indices returned by
+      // gridpos_poly. We simply take a mean over all points that
+      // would be used in the interpolation.
+
+      for (Index fi=0; fi<datamean.nrows(); ++fi)
+        if (1!=fi)      // We skip the z field, which we do not need
+          {
+            for (Index j=0; j<gp.idx.nelem(); ++j)
+              {
+                smooth_datamean(fi,i) += datamean(fi,gp.idx[j]);
+              }
+            smooth_datamean(fi,i) /= gp.idx.nelem();            
+          }
+//       cout << "H2O-raw / H2O-smooth: "
+//            << datamean(2,i) << " / "
+//            << smooth_datamean(2,i) << "\n";
+    }
+
   // Set abs_t:
   abs_t.resize(np);
-  abs_t = datamean(0,joker);
+  abs_t = smooth_datamean(0,joker);
   //   cout << "abs_t: " << abs_t << "\n\n";
   //   cout << "tmin:  " << datamin(0,joker) << "\n\n";
   //   cout << "tmax:  " << datamax(0,joker) << "\n";
   
   // Set abs_vmrs:
-  assert(abs_species.nelem()==datamean.nrows()-2);
+  assert(abs_species.nelem()==smooth_datamean.nrows()-2);
   abs_vmrs.resize(abs_species.nelem(), np);
-  abs_vmrs = datamean(Range(2,abs_species.nelem()),joker);
+  abs_vmrs = smooth_datamean(Range(2,abs_species.nelem()),joker);
   //  cout << "\n\nabs_vmrs: " << abs_vmrs << "\n\n";
   
   // Construct abs_t_pert:
   ConstVectorView tmin = datamin(0,joker);
   ConstVectorView tmax = datamax(0,joker);
-  choose_abs_t_pert(abs_t_pert, abs_t, tmin, tmax, t_step, abs_t_interp_order);
+  choose_abs_t_pert(abs_t_pert, abs_t, tmin, tmax, t_step, abs_p_interp_order, abs_t_interp_order);
   //  cout << "abs_t_pert: " << abs_t_pert << "\n";
 
   // Construct abs_nls_pert:
   ConstVectorView h2omin = datamin(2,joker);
   ConstVectorView h2omax = datamax(2,joker);
-  choose_abs_nls_pert(abs_nls_pert, abs_vmrs(0,joker), h2omin, h2omax, h2o_step, abs_nls_interp_order);
+  choose_abs_nls_pert(abs_nls_pert, abs_vmrs(0,joker), h2omin, h2omax, h2o_step, abs_p_interp_order, abs_nls_interp_order);
   //  cout << "abs_nls_pert: " << abs_nls_pert << "\n";
 
   // Append the explicitly given user extreme values, if necessary:
@@ -1693,3 +1802,14 @@ void p_gridFromGasAbsLookup(
   abs_lookup.GetPgrid( p_grid );
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lookupTestAccuracy(// WS Input:
+                            const GasAbsLookup& abs_lookup,
+                            const Index& abs_p_interp_order,
+                            const Index& abs_t_interp_order,
+                            const Index& abs_nls_interp_order)
+{
+  // Avoid compiler warning:
+  cout << abs_lookup << abs_p_interp_order << abs_t_interp_order << abs_nls_interp_order;
+}

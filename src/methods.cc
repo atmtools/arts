@@ -975,12 +975,13 @@ void define_md_data_raw()
                  "t_field",
                  "vmr_field",
                  "abs_species",
+                 "abs_p_interp_order",
                  "abs_t_interp_order",
                  "abs_nls_interp_order" ),
         GIN(      ),
         KEYWORDS( "p_step",  "t_step",  "h2o_step" ),
         GIN_TYPE( ),
-        GIN_DEFAULT( "0.02",    "5",       "0.5" ),
+        GIN_DEFAULT( "0.05",    "100",       "100" ),
         TYPES(    "Numeric", "Numeric", "Numeric" )));
 
   md_data_raw.push_back     
@@ -1041,13 +1042,41 @@ void define_md_data_raw()
         GOUT_TYPE( ),
         IN(   "abs_species",
                  "batch_atm_fields_compact",
+                 "abs_p_interp_order",
                  "abs_t_interp_order",
                  "abs_nls_interp_order" ),
         GIN(      ),
         KEYWORDS( "p_step",  "t_step",  "h2o_step", "extremes" ),
         GIN_TYPE( ),
-        GIN_DEFAULT( "0.02",    "5",       "0.5",      "[]" ),
+        GIN_DEFAULT( "0.05",    "100",       "100",      "[]" ),
         TYPES(    "Numeric", "Numeric", "Numeric",  "Vector" )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("abs_lookupTestAccuracy"),
+        DESCRIPTION
+        (
+         "Test accuracy of absorption lookup table.\n"
+         "\n"
+         "Explicitly compare absorption from the lookup table with line-by-line\n"
+         "calculations for strategically selected conditions (in-between the\n"
+         "lookup table grid points).\n"
+         "\n"
+         "Produces no workspace output, only output to the output streams.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT( ),
+        GOUT( ),
+        GOUT_TYPE( ),
+        IN(   "abs_lookup",
+              "abs_p_interp_order",
+              "abs_t_interp_order",
+              "abs_nls_interp_order" ),
+        GIN( ),
+        KEYWORDS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
+        TYPES(    )));
 
   md_data_raw.push_back
     ( MdRecord
