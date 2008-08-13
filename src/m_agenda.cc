@@ -73,10 +73,10 @@ void AgendaSet(Workspace& ws,
 
   // Check that the output produced by the actual methods in the
   // agenda corresponds to what is desired in the lookup data:
-  for ( Index i=0; i<this_data.Output().nelem(); ++i )
+  for ( Index i=0; i<this_data.Out().nelem(); ++i )
     {
       // The WSV for which to check:
-      Index this_wsv = this_data.Output()[i];
+      Index this_wsv = this_data.Out()[i];
 
       if ( !output_agenda.is_output(this_wsv) )
         {
@@ -94,10 +94,10 @@ void AgendaSet(Workspace& ws,
 
   // Check that the input used by the actual methods in the
   // agenda corresponds to what is desired in the lookup data:
-  for ( Index i=0; i<this_data.Input().nelem(); ++i )
+  for ( Index i=0; i<this_data.In().nelem(); ++i )
     {
       // The WSV for which to check:
-      Index this_wsv = this_data.Input()[i];
+      Index this_wsv = this_data.In()[i];
 
       if ( !output_agenda.is_input(ws, this_wsv) )
         {

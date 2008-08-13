@@ -132,8 +132,8 @@ public:
 
   Index               Id()       const { return mid;       }
   const ArrayOfIndex& Values()   const { return mvalues;   }
-  const ArrayOfIndex& Output()   const { return moutput;   }
-  const ArrayOfIndex& Input()    const { return minput;    }
+  const ArrayOfIndex& Out()      const { return moutput;   }
+  const ArrayOfIndex& In()       const { return minput;    }
   const TokVal&       SetValue() const { return msetvalue; }
   const Agenda&       Tasks()    const { return mtasks;    }
 

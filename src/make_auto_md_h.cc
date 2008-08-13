@@ -111,7 +111,7 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
 
   // There are four lists of parameters that we have to
   // write. 
-  ArrayOfIndex  vo=mdd.Output();   // Output 
+  ArrayOfIndex  vo=mdd.Out();   // Output 
   ArrayOfIndex  vi;                // Input
   ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
   ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
@@ -122,9 +122,9 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
 
   // Find out if the WSM gets an agenda as input. If so, pass
   // the current workspace to this method
-  for (Index j = 0; !pass_workspace && j < mdd.Input().nelem(); j++)
+  for (Index j = 0; !pass_workspace && j < mdd.In().nelem(); j++)
     {
-      if (wsv_data[mdd.Input()[j]].Group() == get_wsv_group_id ("Agenda"))
+      if (wsv_data[mdd.In()[j]].Group() == get_wsv_group_id ("Agenda"))
         {
           pass_workspace = true;
         }
@@ -287,7 +287,7 @@ void write_method_header( ofstream& ofs,
 
   // There are four lists of parameters that we have to
   // write. 
-  ArrayOfIndex  vo=mdd.Output();   // Output 
+  ArrayOfIndex  vo=mdd.Out();   // Output 
   ArrayOfIndex  vi;                // Input
   ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
   ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
@@ -298,9 +298,9 @@ void write_method_header( ofstream& ofs,
 
   // Find out if the WSM gets an agenda as input. If so, pass
   // the current workspace to this method
-  for (Index j = 0; !pass_workspace && j < mdd.Input().nelem(); j++)
+  for (Index j = 0; !pass_workspace && j < mdd.In().nelem(); j++)
     {
-      if (wsv_data[mdd.Input()[j]].Group() == get_wsv_group_id ("Agenda"))
+      if (wsv_data[mdd.In()[j]].Group() == get_wsv_group_id ("Agenda"))
         {
           pass_workspace = true;
         }

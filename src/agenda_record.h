@@ -62,8 +62,8 @@ public:
 
   const String&            Name()         const { return mname;          }   
   const String&            Description()  const { return mdescription;   }
-  const ArrayOfIndex&      Output()       const { return moutput;        }
-  const ArrayOfIndex&      Input()        const { return minput;         }
+  const ArrayOfIndex&      Out()          const { return moutput;        }
+  const ArrayOfIndex&      In()           const { return minput;         }
 
   //! Assignment operator.
   /*! To override the default assignment operator. AgRecords cannot be

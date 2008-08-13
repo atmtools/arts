@@ -198,24 +198,24 @@ ostream& operator<<(ostream& os, const AgRecord& agr)
   // Output:
   first = true;
   os << "Output = ";
-  for ( Index i=0; i<agr.Output().nelem(); ++i )
+  for ( Index i=0; i<agr.Out().nelem(); ++i )
     {
       if (first) first=false;
       else os << ", ";
 
-      os << Workspace::wsv_data[agr.Output()[i]].Name();
+      os << Workspace::wsv_data[agr.Out()[i]].Name();
     }
   os << "\n";
 
   // Input:
   first = true;
   os << "Input  = ";
-  for ( Index i=0; i<agr.Input().nelem(); ++i )
+  for ( Index i=0; i<agr.In().nelem(); ++i )
     {
       if (first) first=false;
       else os << ", ";
 
-      os << Workspace::wsv_data[agr.Input()[i]].Name();
+      os << Workspace::wsv_data[agr.In()[i]].Name();
     }
       
   os << "\n*-------------------------------------------------------------------*\n";
@@ -290,7 +290,7 @@ void write_agenda_wrapper_header( ofstream& ofs,
   ofs << "        // Workspace\n";
   ofs << "        Workspace& ws,\n";
   // Wrapper function output parameters
-  const ArrayOfIndex& ago = agr.Output ();
+  const ArrayOfIndex& ago = agr.Out();
   ofs << "        // Output\n";
   for (ArrayOfIndex::const_iterator j = ago.begin (); j != ago.end (); j++)
     {
@@ -300,7 +300,7 @@ void write_agenda_wrapper_header( ofstream& ofs,
     }
 
   // Wrapper function input parameters
-  const ArrayOfIndex& agi = agr.Input ();
+  const ArrayOfIndex& agi = agr.In();
   ofs << "        // Input\n";
   for (ArrayOfIndex::const_iterator j = agi.begin (); j != agi.end (); j++)
     {

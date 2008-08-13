@@ -110,7 +110,7 @@ int main()
           
           // There are four lists of parameters that we have to
           // write. 
-          ArrayOfIndex  vo=mdd.Output();   // Output 
+          ArrayOfIndex  vo=mdd.Out();   // Output 
           ArrayOfIndex  vi;                // Input
           ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
           ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
@@ -140,9 +140,9 @@ int main()
 
               // Find out if the WSM gets an agenda as input. If so, pass
               // the current workspace to this method
-              for (Index j = 0; !pass_workspace && j < mdd.Input().nelem(); j++)
+              for (Index j = 0; !pass_workspace && j < mdd.In().nelem(); j++)
                 {
-                  if (wsv_data[mdd.Input()[j]].Group() == get_wsv_group_id ("Agenda"))
+                  if (wsv_data[mdd.In()[j]].Group() == get_wsv_group_id ("Agenda"))
                     {
                       pass_workspace = true;
                     }
@@ -205,7 +205,7 @@ int main()
 
               ofs << "*(("
                   << wsv_group_names[wsv_data[vo[j]].Group()]
-                  << " *)ws[mr.Output()[" << j
+                  << " *)ws[mr.Out()[" << j
                   << "]])";
             }
 
@@ -222,7 +222,7 @@ int main()
               align(ofs,is_first_parameter,indent);
 
               ofs << "*((" << wsv_group_names[vgo[j]]
-                  << " *)ws[mr.Output()[" << j+vo.nelem()
+                  << " *)ws[mr.Out()[" << j+vo.nelem()
                   << "]])";
             }
 
@@ -234,7 +234,7 @@ int main()
                   // Add comma and line break, if not first element:
                   align(ofs,is_first_parameter,indent);
 
-                  ofs << "Workspace::wsv_data[mr.Output()["
+                  ofs << "Workspace::wsv_data[mr.Out()["
                     << j+vo.nelem()
                     << "]].Name()";
                 }
@@ -250,14 +250,14 @@ int main()
                 {
                   ofs << "*(("
                     << wsv_group_names[wsv_data[vi[j]].Group()]
-                    << " *)ws[mr.Input()[" << j
+                    << " *)ws[mr.In()[" << j
                     << "]])";
                 }
               else
                 {
                   ofs << "*(("
                     << wsv_group_names[wsv_data[vi[j]].Group()]
-                    << " *)ws[mr.Input()[" << j
+                    << " *)ws[mr.In()[" << j
                     << "]])";
                 }
             }
@@ -275,7 +275,7 @@ int main()
               align(ofs,is_first_parameter,indent);
 
               ofs << "*((" << wsv_group_names[vgi[j]]
-                  << " *)ws[mr.Input()[" << j+vi.nelem()
+                  << " *)ws[mr.In()[" << j+vi.nelem()
                   << "]])";
             }
 
@@ -287,7 +287,7 @@ int main()
                   // Add comma and line break, if not first element:
                   align(ofs,is_first_parameter,indent);
 
-                  ofs << "Workspace::wsv_data[mr.Input()["
+                  ofs << "Workspace::wsv_data[mr.In()["
                     << j+vi.nelem()
                     << "]].Name()";
                 }
@@ -373,8 +373,8 @@ int main()
       for (Index i = 0; i < agenda_data.nelem (); i++)
         {
           const AgRecord& agr = agenda_data[i];
-          const ArrayOfIndex& ago = agr.Output ();
-          const ArrayOfIndex& agi = agr.Input ();
+          const ArrayOfIndex& ago = agr.Out();
+          const ArrayOfIndex& agi = agr.In();
           ostringstream ain_push_os, ain_pop_os;
           ostringstream aout_push_os, aout_pop_os;
 
@@ -430,12 +430,12 @@ int main()
 
           if (aout_push_os.str().length())
             {
-              ofs << "  const ArrayOfIndex& aout = agr.Output ();\n";
+              ofs << "  const ArrayOfIndex& aout = agr.Out();\n";
               ofs << aout_push_os.str () << "\n";
             }
           if (ain_push_os.str().length())
             {
-              ofs << "  const ArrayOfIndex& ain = agr.Input ();\n";
+              ofs << "  const ArrayOfIndex& ain = agr.In();\n";
               ofs << ain_push_os.str () << "\n";
             }
 

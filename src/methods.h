@@ -85,10 +85,10 @@ public:
   const String&            Name()           const { return mname; }   
   const String&            Description()    const { return mdescription; }
   const ArrayOfString&     Authors()        const { return mauthors; }   
-  const ArrayOfIndex&      Output()         const { return moutput; }
+  const ArrayOfIndex&      Out()            const { return moutput; }
   const ArrayOfString&     GOut()           const { return mgout; }
   const ArrayOfIndex&      GOutType()       const { return mgouttype; }
-  const ArrayOfIndex&      Input()          const { return minput; }
+  const ArrayOfIndex&      In()             const { return minput; }
   const ArrayOfString&     GIn()            const { return mgin; }
   const Array<String>&     Keywords()       const { return mkeywords; }
   const ArrayOfIndex&      GInType()        const { return mgintype; }

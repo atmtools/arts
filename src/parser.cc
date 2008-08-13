@@ -919,7 +919,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
       assertain_character('(');
       eat_whitespace();
 
-      if (mcfile_version == 2 && mdd->Output().nelem())
+      if (mcfile_version == 2 && mdd->Out().nelem())
         {
           // Parse all output variables.
           parse_output(mdd, output, first);
@@ -929,7 +929,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           // To keep v1 controlfiles compatible, we have to add the static
           // outputs to the output variable list and just hardwire them to the
           // WSVs given in the method's definition in methods.cc.
-          ArrayOfIndex vo=mdd->Output();
+          ArrayOfIndex vo=mdd->Out();
           for (ArrayOfIndex::const_iterator outs=vo.begin(); outs<vo.end(); ++outs)
             {
               output.push_back (*outs);
@@ -1048,7 +1048,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           eat_whitespace();
         }
 
-      if (mcfile_version == 2 && mdd->Input().nelem())
+      if (mcfile_version == 2 && mdd->In().nelem())
         {
           // Parse all input variables
           parse_input(mdd, input, auto_vars, auto_vars_values, first);
@@ -1161,13 +1161,13 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           eat_whitespace();
           if (mcfile_version == 2)
             {
-              if (mdd->Output().nelem())
+              if (mdd->Out().nelem())
                 {
                   parse_output(mdd, output, first);
-                  if (mdd->Input().nelem())
+                  if (mdd->In().nelem())
                     parse_input(mdd, input, auto_vars, auto_vars_values, first);
                 }
-              else if (mdd->Input().nelem())
+              else if (mdd->In().nelem())
                 parse_input(mdd, input, auto_vars, auto_vars_values, first);
 
               parse_keywords2(mdd, values, auto_vars, auto_vars_values, first);
@@ -1183,7 +1183,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
         {
           // If the parenthesis were omitted we still have to add the implicit
           // outputs and inputs to the methods input and output variable lists
-          ArrayOfIndex vo=mdd->Output();
+          ArrayOfIndex vo=mdd->Out();
           for (ArrayOfIndex::const_iterator outs=vo.begin();
                outs<vo.end(); ++outs)
             {
@@ -1249,7 +1249,7 @@ void ArtsParser::parse_input(const MdRecord*      mdd,
   extern const ArrayOfString wsv_group_names;
 
   // There are two lists of parameters that we have to read.
-  ArrayOfIndex  vo=mdd->Output();  // Output 
+  ArrayOfIndex  vo=mdd->Out();  // Output 
   ArrayOfIndex  vi;                // Input
 
   Index wsvid;  // Workspace variable id, is used to
@@ -1324,7 +1324,7 @@ void ArtsParser::parse_output(const MdRecord* mdd, ArrayOfIndex& output, bool& f
 {
   extern const ArrayOfString wsv_group_names;
 
-  ArrayOfIndex  vo=mdd->Output();
+  ArrayOfIndex  vo=mdd->Out();
 
   Index wsvid;                  // Workspace variable id, is used to
                                 // access data in wsv_data.

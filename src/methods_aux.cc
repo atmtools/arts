@@ -480,7 +480,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
 
     // If the method has more than 4 arguments, put them on
     // separate lines for better readability
-    if (mdr.Output().nelem() + mdr.GOutType().nelem() + mdr.Input().nelem()
+    if (mdr.Out().nelem() + mdr.GOutType().nelem() + mdr.In().nelem()
         + mdr.GInType().nelem() + mdr.Keywords().nelem() > 4)
       {
         separate_lines = true;
@@ -494,10 +494,10 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
     os << "Synopsis (Arts2 Syntax):\n\n";
     os << mdr.Name() << "( ";
     first = true;
-    for ( Index i=0; i<mdr.Output().nelem(); ++i )
+    for ( Index i=0; i<mdr.Out().nelem(); ++i )
       {
         if (first) first=false; else os << ", " << indent;
-        os << Workspace::wsv_data[mdr.Output()[i]].Name();
+        os << Workspace::wsv_data[mdr.Out()[i]].Name();
       }
 
     for ( Index i=0; i<mdr.GOutType().nelem(); ++i )
@@ -550,31 +550,31 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   //  os << "\n-----\nName = " << mdr.Name() << '\n\n'
   //     << "Description =\n" << mdr.Description() << "\n\n";
 
-  // Output:
+  // Out:
   first = true;
-  os << "Output = ";
-  for ( Index i=0; i<mdr.Output().nelem(); ++i )
+  os << "Out = ";
+  for ( Index i=0; i<mdr.Out().nelem(); ++i )
     {
       if (first) first=false;
       else os << ", ";
 
-      os << Workspace::wsv_data[mdr.Output()[i]].Name();
+      os << Workspace::wsv_data[mdr.Out()[i]].Name();
     }
   os << '\n';
 
-  // Input:
+  // In:
   first = true;
-  os << "Input = ";
-  for ( Index i=0; i<mdr.Input().nelem(); ++i )
+  os << "In = ";
+  for ( Index i=0; i<mdr.In().nelem(); ++i )
     {
       if (first) first=false;
       else os << ", ";
 
-      os << Workspace::wsv_data[mdr.Input()[i]].Name();
+      os << Workspace::wsv_data[mdr.In()[i]].Name();
     }
   os << '\n';
       
-  // GOutput:
+  // GOut:
   first = true;
   os << "GOutType = ";
   for ( Index i=0; i<mdr.GOutType().nelem(); ++i )

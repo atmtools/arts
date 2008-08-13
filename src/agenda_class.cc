@@ -128,17 +128,17 @@ void Agenda::execute(Workspace& ws) const
             //for (Index j = 0; j < os.str().length(); j++)
             //  indent += ' ';
 
-            for (Index j = 0; j < (mdd.Output()).nelem(); j++)
+            for (Index j = 0; j < (mdd.Out()).nelem(); j++)
               {
                 if (is_first)
                   {
                     is_first = false;
-                    out1 << Workspace::wsv_data[mdd.Output()[j]].Name();
+                    out1 << Workspace::wsv_data[mdd.Out()[j]].Name();
                   }
                 else
                   {
                     out1 << ",\n";
-                    out1 << indent << Workspace::wsv_data[mdd.Output()[j]].Name();
+                    out1 << indent << Workspace::wsv_data[mdd.Out()[j]].Name();
                   }
 
               }
@@ -161,17 +161,17 @@ void Agenda::execute(Workspace& ws) const
 
               }
 
-            for (Index j = 0; j < (mrr.Output()).nelem(); j++)
+            for (Index j = 0; j < (mrr.Out()).nelem(); j++)
               {
                 if (is_first)
                   {
                     is_first = false;
-                    out1 << Workspace::wsv_data[mrr.Output()[j]].Name();
+                    out1 << Workspace::wsv_data[mrr.Out()[j]].Name();
                   }
                 else
                   {
                     out1 << ",\n";
-                    out1 << indent << Workspace::wsv_data[mrr.Output()[j]].Name();
+                    out1 << indent << Workspace::wsv_data[mrr.Out()[j]].Name();
                   }
 
               }
@@ -198,7 +198,7 @@ void Agenda::execute(Workspace& ws) const
           }
         
           { // Check if all generic input variables are initialized:
-            const ArrayOfIndex& v(mrr.Input());
+            const ArrayOfIndex& v(mrr.In());
             for (Index s=0; s<v.nelem(); ++s)
               if (!ws.is_initialized(v[s]))
                 give_up("Method "+mdd.Name()+" needs input variable: "+
@@ -253,8 +253,8 @@ void Agenda::set_outputs_to_push_and_dup ()
        method != mml.end (); method++)
     {
       // Collect output WSVs
-      const ArrayOfIndex& outs  = md_data[method->Id()].Output ();
-      const ArrayOfIndex& gouts = method->Output ();
+      const ArrayOfIndex& outs  = md_data[method->Id()].Out();
+      const ArrayOfIndex& gouts = method->Out();
 
       // Put the outputs into a new set to sort them. Otherwise
       // set_intersection and set_difference screw up.
@@ -263,7 +263,7 @@ void Agenda::set_outputs_to_push_and_dup ()
       souts.insert ( gouts.begin (), gouts.end ());
 
       // Collect generic input WSVs
-      const ArrayOfIndex& gins = method->Input ();
+      const ArrayOfIndex& gins = method->In();
       inputs.insert (gins.begin (), gins.end ());
 
       /* Special case: For the Delete WSM add its input to the list
@@ -276,7 +276,7 @@ void Agenda::set_outputs_to_push_and_dup ()
         }
 
       // Collect input WSVs
-      const ArrayOfIndex& ins = md_data[method->Id()].Input();
+      const ArrayOfIndex& ins = md_data[method->Id()].In();
       inputs.insert (ins.begin (), ins.end ());
 
       // Add all outputs of this WSM to global list of outputs
@@ -302,8 +302,8 @@ void Agenda::set_outputs_to_push_and_dup ()
   extern const Array<AgRecord> agenda_data;
 
   const AgRecord& agr = agenda_data[AgendaMap.find (name ())->second];
-  const ArrayOfIndex& aout = agr.Output ();
-  const ArrayOfIndex& ain = agr.Input ();
+  const ArrayOfIndex& aout = agr.Out();
+  const ArrayOfIndex& ain = agr.In();
 
   // We have to build a new set of agenda input and output because the
   // set_difference function only works properly on sorted input.
@@ -455,7 +455,7 @@ bool Agenda::is_input(Workspace& ws, Index var) const
       // Is var a specific input?
       {
         // Get a handle on the Input list for the current method:
-        const ArrayOfIndex& input = md_data[this_method.Id()].Input();
+        const ArrayOfIndex& input = md_data[this_method.Id()].In();
 
         for ( Index j=0; j<input.nelem(); ++j )
           {
@@ -466,7 +466,7 @@ bool Agenda::is_input(Workspace& ws, Index var) const
       // Is var a generic input?
       {
         // Get a handle on the Input list:
-        const ArrayOfIndex& input = this_method.Input();
+        const ArrayOfIndex& input = this_method.In();
 
         for ( Index j=0; j<input.nelem(); ++j )
           {
@@ -481,7 +481,7 @@ bool Agenda::is_input(Workspace& ws, Index var) const
           if (md_data[this_method.Id ()].GInType()[j] == WsvAgendaGroupIndex)
             {
               Agenda *AgendaFromGeneralInput =
-                (Agenda *)ws[this_method.Input ()[j]];
+                (Agenda *)ws[this_method.In()[j]];
 
               if ((*AgendaFromGeneralInput).is_input(ws, var))
                 {
@@ -518,7 +518,7 @@ bool Agenda::is_output(Index var) const
         extern const Array<MdRecord>  md_data;
 
         // Get a handle on the Output list for the current method:
-        const ArrayOfIndex& output = md_data[this_method.Id()].Output();
+        const ArrayOfIndex& output = md_data[this_method.Id()].Out();
 
         for ( Index j=0; j<output.nelem(); ++j )
           {
@@ -529,7 +529,7 @@ bool Agenda::is_output(Index var) const
       // Is var a generic output?
       {
         // Get a handle on the Output list:
-        const ArrayOfIndex& output = this_method.Output();
+        const ArrayOfIndex& output = this_method.Out();
 
         for ( Index j=0; j<output.nelem(); ++j )
           {
@@ -647,20 +647,20 @@ void MRecord::print( ostream& os,
 
       os << '(';
 
-      for (Index i=0; i<Output().nelem(); ++i)
+      for (Index i=0; i<Out().nelem(); ++i)
         {
           if (first) first=false;
           else os << ",";
 
-          os << Workspace::wsv_data[Output()[i]];
+          os << Workspace::wsv_data[Out()[i]];
         }
 
-      for (Index i=0; i<Input().nelem(); ++i)
+      for (Index i=0; i<In().nelem(); ++i)
         {
           if (first) first=false;
           else os << ",";
 
-          os << Workspace::wsv_data[Input()[i]];
+          os << Workspace::wsv_data[In()[i]];
         }
 
       os << ')';

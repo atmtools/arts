@@ -1,3 +1,13 @@
+2008-08-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-8-2
+
+	* src/methods.h, src/methods_aux.cc, src/agenda_class.{h,cc},
+	src/make_auto_md_cc.cc, src/make_auto_md_h.cc,
+	src/agenda_record.{h,cc}, src/m_agenda.cc, src/main.cc, src/parser.cc:
+
+	Rename Output and Input to Out and In for consistency.
+
 2008-08-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-8-1

@@ -207,8 +207,8 @@ void option_methods(const String& methods)
           // This if statement checks whether Output, the list
           // of output variables contains the workspace
           // variable key.
-          if ( count( mdd.Output().begin(),
-                      mdd.Output().end(),
+          if ( count( mdd.Out().begin(),
+                      mdd.Out().end(),
                       wsv_key ) ) 
             {
               cout << "- " << mdd.Name() << "\n";
@@ -363,8 +363,8 @@ void option_input(const String& input)
           // This if statement checks whether Output, the list
           // of output variables contains the workspace
           // variable key.
-          if ( count( mdd.Input().begin(),
-                      mdd.Input().end(),
+          if ( count( mdd.In().begin(),
+                      mdd.In().end(),
                       wsv_key ) ) 
             {
               cout << "- " << mdd.Name() << "\n";
@@ -516,9 +516,9 @@ void option_workspacevariables(const String& workspacevariables)
       << "\n---------------------------------------------------------------------\n"
       << "Specific workspace variables required by " << mdr.Name() << ":\n"
       << "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<mdr.Input().nelem(); ++i )
+      for ( Index i=0; i<mdr.In().nelem(); ++i )
         {
-          cout << "- " << Workspace::wsv_data[mdr.Input()[i]].Name() << "\n";
+          cout << "- " << Workspace::wsv_data[mdr.In()[i]].Name() << "\n";
           ++hitcount;
         }
       if ( 0==hitcount )
