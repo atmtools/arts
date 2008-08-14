@@ -21,8 +21,7 @@ INCLUDE "continua.arts"
 # --------------
 # This example is only monochromatic. Note: The frequency must be contained
 # in the gas absorption lookup table.  
-IndexSet( nelem, 1 )
-VectorSetConstant( f_grid, nelem, 230e9 )
+VectorSet( f_grid, [230e9] )
 
 
 # Number of Stokes components to be computed

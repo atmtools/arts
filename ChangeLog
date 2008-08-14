@@ -1,3 +1,19 @@
+2008-08-14  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-8-4
+
+	* src/m_scatrte.cc (ScatteringDoit): Parallelized this function. I
+	have no good test case, unfortunately. Hope it is ok. 
+
+	* src/m_abs_lookup.cc (abs_lookupSetupBatch): Fixed bug reported
+	by Mathias. If all input profiles had zero H2O at some altitude,
+	the reference profile was zero, leading to numerical problems. Now
+	instead assign an ad-hoc value of 1-9 to the mean profile.
+
+	* src/m_batch.cc (ybatchCalc_implementation): Cosmetics.
+
+	* tests/DOIT/TestDOIT.arts: Cosmetics.
+
 2008-08-13  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-8-3

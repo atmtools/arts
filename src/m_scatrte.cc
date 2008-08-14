@@ -2354,7 +2354,18 @@ void ScatteringDoit(Workspace& ws,
 
   //-------- end of checks ----------------------------------------
 
-  for (Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
+
+  // We have to make a local copy of the Workspace and the agendas because
+  // only non-reference types can be declared firstprivate in OpenMP
+  Workspace l_ws (ws);
+  Agenda l_doit_mono_agenda(doit_mono_agenda);
+
+  // OMP likes simple loop end conditions, so we make a local copy here: 
+  const Index nf = f_grid.nelem();
+
+#pragma omp parallel firstprivate(l_ws, l_doit_mono_agenda)
+#pragma omp for 
+  for (Index f_index = 0; f_index < nf; f_index ++)
     {
       out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
       doit_mono_agendaExecute(ws, doit_i_field, scat_i_p, scat_i_lat,

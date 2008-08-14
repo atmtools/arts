@@ -774,7 +774,7 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
 
   if (!allownegative)
     {
-      mindev=0;
+      mindev = 0;
       out3 << "  Adjusted mindev : " << mindev << "\n";
     }
 
@@ -1360,6 +1360,27 @@ void abs_lookupSetupBatch(// WS Output:
 //       cout << "H2O-raw / H2O-smooth: "
 //            << datamean(2,i) << " / "
 //            << smooth_datamean(2,i) << "\n";
+    }
+
+  // There is another complication: If the (smoothed) mean for the H2O
+  // reference profile is 0, then we have to adjust both mean and max
+  // value to a non-zero number, otherwise the reference profile will
+  // be zero, and we will get numerical problems later on when we
+  // divide by the reference value. So, we set it here to 1e-9.
+  for (Index i=0; i<np; ++i)
+    {
+      // Assert that really H2O has index 2 in the VMR field list
+      assert("H2O" == batch_fields[0].get_string_grid(GFIELD4_FIELD_NAMES)[2]);
+
+      // Find mean and max H2O for this level:
+      Numeric& mean_h2o = smooth_datamean(2,i);
+      Numeric& max_h2o  = datamax(2,i);
+      if (mean_h2o <= 0)
+        {
+          mean_h2o = 1e-9;
+          max_h2o  = 1e-9;
+          out3 << "  H2O profile contained zero values, adjusted to 1e-9.\n";
+        }
     }
 
   // Set abs_t:

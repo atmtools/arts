@@ -369,9 +369,6 @@ void ybatchCalc_implementation(Workspace&      ws,
   bool is_first = true;
   Index first_ybatch_index = 0;
 
-  out2 << "  Agenda output is suppressed, use reporting\n"
-       <<"   level 4 if you want to see it.\n";
-
   while (is_first && first_ybatch_index < ybatch_n)
     {
       out2 << "  Doing job " << first_ybatch_index+1 << " of " << ybatch_n << "\n";
