@@ -845,6 +845,10 @@ void sensor_responseMixer(
   }
   else if( df_low > 0 )
   {
+    cout << sensor_response_f_grid[0] << "\n";
+    cout << lo << "\n";
+    cout << sbresponse_f_grid[0] << "\n";
+
     os << "The *sensor_response_f* grid must be extended by at " << df_low
        << " Hz\nin the lower end to cover frequency range set by\n"
        << "*sideband_response* and *lo*. Or can the frequency grid of\n"
@@ -1016,7 +1020,7 @@ void sensor_responseMultiMixerBackend(
       catch( runtime_error e ) 
         {
           ostringstream os2;
-          os2 << "Error when dealing with reciver/mixer chain (1-based index) " 
+          os2 << "Error when dealing with receiver/mixer chain (1-based index) " 
               << ilo+1 << ":\n" << e.what();
           throw runtime_error(os2.str());
         }
@@ -1134,7 +1138,7 @@ void f_gridFromSensor(// WS Output:
         // We need to add a bit of extra margin at both sides,
         // otherwise there is a numerical problem in the sensor
         // WSMs. We take 1% of the requested frequncy grid spacing. 
-        const Numeric delta = 0.01 * spacing;
+        const Numeric delta = 0.001 * spacing;
 
         // Signal sideband:
         fabs_min[ifabs] = this_f_backend + this_grid[0] - delta;

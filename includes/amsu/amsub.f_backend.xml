@@ -1,15 +1,19 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
-<Array type="Vector" nelem="3">
+<Array type="Vector" nelem="5">
 <Vector nelem="1">
 8.9900000e+10
 </Vector>
 <Vector nelem="1">
 1.5090000e+11
 </Vector>
-<Vector nelem="3">
+<Vector nelem="1">
 1.8431000e+11
+</Vector>
+<Vector nelem="1">
 1.8631000e+11
+</Vector>
+<Vector nelem="1">
 1.9031000e+11
 </Vector>
 </Array>

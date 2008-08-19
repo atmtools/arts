@@ -1,3 +1,27 @@
+2008-08-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-8-5
+
+	* src/m_sensor.cc (f_gridFromSensor): Changed the size of margin
+	to 0.001*spacing. I got it to work with no extra margin, but could
+	maybe be safer to keep some margin. Will be discussed with Stefan
+	through email.
+
+	* includes/amsu/setup_input.m: Removed storage of f_grid. Now
+	created dynamically again.
+
+	Backend channel response now described to be perfectly
+	rectangular.  The response outside covaered range is treated to be
+	0 and in fact it has been possible all time to have a response >0
+	at the end points. Adjusted range for sideband response definition
+	correspondingly.
+
+	All channels are now specified individually (e.g. lo frequency
+	repeated for channels 18-20). This on request from Stefan. You now 
+	select channels by standard numbering (that is, channels 16-20).
+	
+	* includes/amsu/amsub.f_grid.xml: Removed.
+	
 2008-08-14  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-8-4
