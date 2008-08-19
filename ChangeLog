@@ -1,3 +1,10 @@
+2008-08-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-0-211
+
+	* configure.in: Changed message if hdf not found to reflect that
+	Qpack now can be used without hdf.
+
 2008-05-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-0-210

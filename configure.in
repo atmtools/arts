@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.210)
+AM_INIT_AUTOMAKE(arts,1.0.211)
 
 AM_MAINTAINER_MODE
 
@@ -383,7 +383,7 @@ else
   AC_MSG_RESULT([  HDF support              : $ac_hdf])
 fi
 if test $ac_hdf = no; then
-  AC_MSG_RESULT([  WARNING: Without HDF you cannot use Qpack!!!])
+  AC_MSG_RESULT([  WARNING: Without HDF you cannot create binary files !!!])
 fi
 AC_MSG_RESULT()
 AC_MSG_RESULT([  CPPFLAGS : $CPPFLAGS])
