@@ -20,9 +20,9 @@ Arts2 {
 # meaning of the columns is:
 # p[Pa]        T[K]         z[m]         H2O[VMR]	O3[VMR]
 #
+ArrayOfMatrixCreate( arrayofmatrix_1 )
 #ReadXML( arrayofmatrix_1,
 #         "/storage2/home/sbuehler/checkouts/arts-xml-data/atmosphere/chevallier_91L/chevallierl91_clear_q.xml" )
-ArrayOfMatrixCreate( arrayofmatrix_1 )
 ReadXML( arrayofmatrix_1, "chevallierl91_clear_q_extract.xml" )
 
 # Storage in an array of matrix is handy for Chevallier data, because
@@ -82,11 +82,20 @@ abs_lookupSetupBatch
 # ---
 abs_lookupCreate
 
+# Test (and print) lookup table accuracy
+# ---
+# This method is not necessary, it just tests and prints the lookup
+# table accuracy. Comment it out if you do not want this
+# information. The test should take approximately as much time as the
+# lookup table generation, perhaps even more. So, it is not cheap!
+abs_lookupTestAccuracy
+
 # Set abs_scalar_gas_agenda to use lookup table
 # ---
 AgendaSet( abs_scalar_gas_agenda ){
   abs_scalar_gasExtractFromLookup
 }
+
 
 # Set up RT calculation
 # =====================

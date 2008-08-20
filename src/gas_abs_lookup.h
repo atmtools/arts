@@ -34,6 +34,7 @@
 class bifstream;
 class bofstream;
 class Agenda;
+class Workspace;
 
 //! An absorption lookup table.
 /*! This class holds an absorption lookup table, as well as all
@@ -70,13 +71,6 @@ public:
 
   void GetPgrid( Vector& p ) const;
 
-    // Obsolete try for a function to extract for the entire field:
-    //   void Extract( Tensor5View      sga,
-    //                 const Index&     f_index,
-    //                 ConstVectorView  p,
-    //                 ConstTensor3View T,
-    //                 ConstTensor4View abs_vmrs ) const;
-
   // IO functions must be friends:
   friend void xml_read_from_stream( istream& is_xml,
                                     GasAbsLookup& gal,
@@ -105,6 +99,16 @@ public:
                       const ArrayOfString&            abs_cont_models,   
                       const ArrayOfVector&            abs_cont_parameters );
 
+  friend void abs_lookupTestAccuracy(
+                            // Workspace reference:
+                            Workspace& ws,
+                            // WS Input:
+                            const GasAbsLookup& al,
+                            const Index&        abs_lookup_is_adapted, 
+                            const Index&        abs_p_interp_order,
+                            const Index&        abs_t_interp_order,
+                            const Index&        abs_nls_interp_order,
+                            const Agenda&       abs_scalar_gas_agenda );
 
 private:
 

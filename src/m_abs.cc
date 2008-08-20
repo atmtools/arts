@@ -26,8 +26,6 @@
 
    Stuff related to the calculation of absorption coefficients.
 
-   This is the file from arts-1-0, back-ported to arts-1-1.
-
    \author Stefan Buehler
    \date   2001-03-12
 */
@@ -52,35 +50,15 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AbsInputFromRteScalars(// WS Output:
-                            Vector&        f_grid,
                             Vector&        abs_p,
                             Vector&        abs_t,
                             Matrix&        abs_vmrs,
                             // WS Input:
-                            const Index&   f_index,
+                            const Vector&  f_grid,
                             const Numeric& rte_pressure,
                             const Numeric& rte_temperature,
                             const Vector&  rte_vmr_list)
 {
-  // Prepare f_grid. f_index < 0 means retain all frequencies, but
-  // f_index >= 0 means to retain only that frequency. 
-  if ( f_index >= 0 )
-    {
-      // Check that f_index is inside f_grid:
-      if ( f_index >= f_grid.nelem() )
-      {
-        ostringstream os;
-        os << "The frequency index you want is outside f_grid.\n"
-           << "You have " << f_index
-           << ", the largest allowed value is " << f_grid.nelem()-1 << ".";
-        throw runtime_error( os.str() );
-      }
-
-      Vector dummy = f_grid;
-      f_grid.resize(1);
-      f_grid = dummy[f_index];
-    }
-
   // Prepare abs_p:
   abs_p.resize(1);
   abs_p = rte_pressure;
@@ -1853,12 +1831,12 @@ void abs_coefCalcSaveMemory(// WS Output:
   abs_coef.resize( f_grid.nelem(), abs_p.nelem() );
   abs_coef = 0;                      // Matpack can set all elements like this.
 
-  out2 << "  Number of tag groups to do: " << tgs.nelem() << "\n";
+  out3 << "  Number of tag groups to do: " << tgs.nelem() << "\n";
 
   // Loop over all species:
   for ( Index i=0; i<tgs.nelem(); ++i )
     {
-      out2 << "  Doing tag group " << i << ".\n";
+      out3 << "  Doing tag group " << i << ".\n";
 
       // Get a dummy list of tag groups with only the current element:
       this_tg[0].resize(tgs[i].nelem());
@@ -1959,12 +1937,12 @@ void abs_coefCalcFromXsec(// WS Output:
 
   abs_coef_per_species.resize( abs_xsec_per_species.nelem() );
 
-  out2 << "  Computing abs_coef and abs_coef_per_species from abs_xsec_per_species.\n";
+  out3 << "  Computing abs_coef and abs_coef_per_species from abs_xsec_per_species.\n";
 
   // Loop through all tag groups
   for ( Index i=0; i<abs_xsec_per_species.nelem(); ++i )
     {
-      out2 << "  Tag group " << i << "\n";
+      out3 << "  Tag group " << i << "\n";
 
       // Make this element of abs_xsec_per_species the right size:
       abs_coef_per_species[i].resize( abs_xsec_per_species[i].nrows(), abs_xsec_per_species[i].ncols() );
@@ -2731,3 +2709,114 @@ void abs_scalar_gasFromAbsCoef(// WS Output:
 
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_scalar_gasCalcLBL(// WS Output:
+                           Matrix& abs_scalar_gas,
+                           // WS Input:
+                           const Vector& f_grid,
+                           const ArrayOfArrayOfSpeciesTag& abs_species,
+                           const Vector& abs_n2,
+                           const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                           const ArrayOfLineshapeSpec& abs_lineshape,
+                           const ArrayOfString& abs_cont_names,
+                           const ArrayOfString& abs_cont_models,
+                           const ArrayOfVector& abs_cont_parameters,
+                           const Index& f_index,
+                           const Numeric& rte_pressure,
+                           const Numeric& rte_temperature,
+                           const Vector& rte_vmr_list)
+{
+  // Output of AbsInputFromRteScalars:
+  Vector        abs_p;
+  Vector        abs_t;
+  Matrix        abs_vmrs;
+  // Output of abs_h2oSet:
+  Vector          abs_h2o;
+  // Output of abs_coefCalc:
+  Matrix                         abs_coef;
+  ArrayOfMatrix                  abs_coef_per_species;
+
+  
+  // If f_index>=0, we need to make a local copy of f_grid, because
+  // AbsInputFromRteScalars will destroy f_grid.
+  // In any case, we assign f_grid_pointer so that it points to the
+  // valid f_grid (either original or copy).
+  Vector local_f_grid;
+  const Vector* f_grid_pointer;
+  if (f_index>=0)
+    {
+      // Make copy:
+      local_f_grid = f_grid;          
+
+      // Select the right frequency:
+      f_gridSelectFIndex(local_f_grid, f_index);
+
+      // Make pointer point to copy:
+      f_grid_pointer = &local_f_grid; 
+    }
+  else
+    {
+      // Make pointer point to original.
+      f_grid_pointer = &f_grid;
+    }
+
+  AbsInputFromRteScalars( abs_p, 
+                          abs_t, 
+                          abs_vmrs, 
+                          *f_grid_pointer, 
+                          rte_pressure, 
+                          rte_temperature, 
+                          rte_vmr_list );
+
+  abs_h2oSet( abs_h2o,
+              abs_species,
+              abs_vmrs );
+
+  abs_coefCalc( abs_coef, 
+                abs_coef_per_species, 
+                abs_species, 
+                *f_grid_pointer, 
+                abs_p, 
+                abs_t, 
+                abs_n2, 
+                abs_h2o, 
+                abs_vmrs, 
+                abs_lines_per_species, 
+                abs_lineshape, 
+                abs_cont_names, 
+                abs_cont_models, 
+                abs_cont_parameters );
+
+  abs_scalar_gasFromAbsCoef( abs_scalar_gas,
+                             abs_coef_per_species );
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void f_gridSelectFIndex(// WS Output:
+                        Vector& f_grid,
+                        // WS Input:
+                        const Index& f_index)
+{
+  // Prepare f_grid. f_index < 0 means retain all frequencies, but
+  // f_index >= 0 means to retain only that frequency. 
+  if ( f_index >= 0 )
+    {
+      // Check that f_index is inside f_grid:
+      if ( f_index >= f_grid.nelem() )
+      {
+        ostringstream os;
+        os << "The frequency index you want is outside f_grid.\n"
+           << "You have " << f_index
+           << ", the largest allowed value is " << f_grid.nelem()-1 << ".";
+        throw runtime_error( os.str() );
+      }
+
+      Numeric this_f = f_grid[f_index];
+      f_grid.resize(1);
+      f_grid = this_f;
+    }
+
+
+}

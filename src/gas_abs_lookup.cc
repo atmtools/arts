@@ -483,12 +483,8 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   In this case pressure is not an altitude coordinate, so we are free
   to choose the type of interpolation that gives lowest interpolation
   errors or is easiest. I tested both linear and log p interpolation
-  with the result that it makes no difference. Therefore, linear
-  interpolation is used. I also tested taking the log of xsec, before
-  interpolating, but this gave somewhat worse results than
-  interpolating it directly. Interpolation with higher order than
-  linear was not tried. It is problematic, because the pressure
-  dependence of xsec varies quite a lot.
+  with the result that log p interpolation is slightly better, so that
+  is used.
 
   \retval sga A Matrix with scalar gas absorption coefficients
   [1/m]. Dimension is adjusted automatically to either
@@ -1080,4 +1076,5 @@ ostream& operator<< (ostream& os, const GasAbsLookup& /* gal */)
   os << "GasAbsLookup: Output operator not implemented";
   return os;
 }
+
 

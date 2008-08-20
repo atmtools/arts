@@ -1,3 +1,47 @@
+2008-08-20  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-8-7
+
+	* Work on lookup table cleanup is still ongoing. This commit is
+	mainly to have a backup of the state of my work. However,
+	everything is working fine, so no problem to use this version for
+	operational applications.
+
+	* src/m_abs_lookup.cc (abs_lookupTestAccuracy): Added a first
+	crude implementation of this. Will be refined in next commit. 
+
+	* tests/AMSU/TestAMSU_generic.arts: Added the new
+	abs_lookupTestAccuracy method.
+
+	* src/m_abs.cc (AbsInputFromRteScalars): The reduction of the
+	frequency grid was moved from this method to the new method
+	f_gridSelectFIndex. 
+	(f_gridSelectFIndex): Added.
+	(abs_coefCalc, abs_coefCalcSaveMemory): Downgraded some output
+	from out2 to out3.
+	(abs_scalar_gasCalcLBL): Added this new method, which is a
+	shortcut for:
+	   f_gridSelectFIndex
+  	   AbsInputFromRteScalars
+  	   abs_h2oSet
+  	   abs_coefCalc
+  	   abs_scalar_gasFromAbsCoef
+
+	* includes/general.arts (abs_scalar_gas_agenda): Replace the
+	explicit list of methods in the agenda body by a call of
+	abs_scalar_gasCalcLBL. 
+
+	* src/gas_abs_lookup.cc (Extract): Update of doxygen
+	documentation. 
+
+	* src/methods.cc (AbsInputFromRteScalars, abs_lookupTestAccuracy):
+	Modified.  
+	(abs_scalar_gasCalcLBL, f_gridSelectFIndex): Added.
+	
+	* src/gas_abs_lookup.h (class GasAbsLookup): Added
+	abs_lookupTestAccuracy as friend. (This will probably be modified
+	again in my next commit.)
+
 2008-08-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-8-6

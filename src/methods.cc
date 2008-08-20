@@ -1,6 +1,7 @@
 /* Copyright (C) 2000-2008
-   Stefan Buehler <buehler@uni-bremen.de>
+   Stefan Buehler <sbuehler@uni-bremen.de>
    Patrick Eriksson <patrick@rss.chalmers.se>
+   Oliver Lemke <olemke@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -193,10 +194,10 @@ void define_md_data_raw()
                     "if the method is used inside an agenda.)\n"
                    ) ,
         AUTHORS( "Stefan Buehler" ),
-        OUT( "f_grid", "abs_p", "abs_t", "abs_vmrs" ),
+        OUT( "abs_p", "abs_t", "abs_vmrs" ),
         GOUT(      ),
         GOUT_TYPE( ),
-        IN( "f_index", "f_grid", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
+        IN( "f_grid", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
         GIN(      ),
         KEYWORDS( ),
         GIN_TYPE( ),
@@ -1063,15 +1064,19 @@ void define_md_data_raw()
          "lookup table grid points).\n"
          "\n"
          "Produces no workspace output, only output to the output streams.\n"
+         "\n"
+         "FIXME: Explain about abs_scalar_gas_agenda.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( ),
         GOUT( ),
         GOUT_TYPE( ),
         IN(   "abs_lookup",
+              "abs_lookup_is_adapted",
               "abs_p_interp_order",
               "abs_t_interp_order",
-              "abs_nls_interp_order" ),
+              "abs_nls_interp_order",
+              "abs_scalar_gas_agenda"),
         GIN( ),
         KEYWORDS( ),
         GIN_TYPE( ),
@@ -1098,6 +1103,50 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME("abs_scalar_gasCalcLBL"),
+        DESCRIPTION
+        (
+         "Calculates scalar gas absorption coefficients line-by-line.\n"
+         "\n"
+         "This method can be used inside *abs_scalar_gas_agenda* just like\n"
+         "*abs_scalar_gasExtractFromLookup*. It is a shortcut for putting in\n"
+         "some other methods explicitly, namely:\n"
+         "\n"
+         "  f_gridSelectFIndex\n"
+         "  AbsInputFromRteScalars\n"
+         "  abs_h2oSet\n"
+         "  abs_coefCalc\n"
+         "  abs_scalar_gasFromAbsCoef\n"
+         "\n"
+         "Actually, all the method does is to call the above four methods.\n"
+         "\n"
+         "The calculation is for one specific atmospheric condition, i.e., a set\n"
+         "of pressure, temperature, and VMR values. It can be either for a\n"
+         "single frequency (f_index>=0), or for all frequencies (f_index<0). The\n"
+         "dimension of the output abs_scalar_gas is adjusted accordingly.\n"
+        ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT( "abs_scalar_gas" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "f_grid",
+            "abs_species",
+            "abs_n2",
+            "abs_lines_per_species",
+            "abs_lineshape",
+            "abs_cont_names",
+            "abs_cont_models",
+            "abs_cont_parameters",
+            "f_index", 
+            "rte_pressure", "rte_temperature", "rte_vmr_list" ),
+        GIN(      ),
+        KEYWORDS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
+        TYPES( )));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME("abs_scalar_gasExtractFromLookup"),
         DESCRIPTION
         (
@@ -1114,6 +1163,8 @@ void define_md_data_raw()
          "\n"
          "The interpolation order in T and H2O is given by *abs_t_interp_order*\n"
          "and *abs_nls_interp_order*, respectively.\n"
+         "\n"
+         "See also: *abs_scalar_gasCalcLBL*.\n"
         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_scalar_gas" ),
@@ -3390,6 +3441,31 @@ md_data_raw.push_back
         GIN_TYPE( ),
         GIN_DEFAULT( ".1e9"),
         TYPES(    "Numeric" )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("f_gridSelectFIndex"),
+        DESCRIPTION
+        (
+         "Reduce f_grid to the frequency given by f_index.\n"
+         "\n"
+         "This is one of the methods necessary to do line by line absorption\n"
+         "calculations inside *abs_scalar_gas_agenda*.\n"
+         "\n"
+         "It reduces the f_grid to only one frequency, the one given by\n"
+         "f_index. If f_index is -1, then all frequencies are kept. This\n"
+         "behavior is consistent with *abs_scalar_gasExtractFromLookup*.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT( "f_grid" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "f_grid", "f_index" ),
+        GIN(      ),
+        KEYWORDS( ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ),
+        TYPES( )));
 
   md_data_raw.push_back     
     ( MdRecord

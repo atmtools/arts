@@ -59,10 +59,13 @@ abs_lineshapeDefine( abs_lineshape, "Voigt_Kuntz6", "VVH", 750e9 )
 # calculations.
 # 
 AgendaSet( abs_scalar_gas_agenda ){
-  AbsInputFromRteScalars
-  abs_h2oSet
-  abs_coefCalc
-  abs_scalar_gasFromAbsCoef
+  abs_scalar_gasCalcLBL
+# The above method is a shortcut for the sequence of methods below:
+#   f_gridSelectFIndex
+#   AbsInputFromRteScalars
+#   abs_h2oSet
+#   abs_coefCalc
+#   abs_scalar_gasFromAbsCoef
 }
 
 #
