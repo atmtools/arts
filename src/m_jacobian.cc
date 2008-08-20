@@ -81,22 +81,23 @@ void yCalc(
    const Vector&                     mblock_za_grid,
    const Vector&                     mblock_aa_grid )
 {
-  Vector               y_f, y_za, y_aa;
+  Vector               y_f;
   ArrayOfIndex         y_pol;
+  Matrix               y_pos, y_los;
   const Index          n = sensor_response.nrows();
   const Vector         sensor_response_f(n);
   const ArrayOfIndex   sensor_response_pol(n);
   const Vector         sensor_response_za(n);
   const Vector         sensor_response_aa(n);
 
-  RteCalcNoJacobian( ws, y, y_f, y_pol, y_za, y_aa, 
+  RteCalcNoJacobian( ws, y, y_f, y_pol, y_pos, y_los, 
                      ppath_step_agenda, rte_agenda,
                      iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
                      atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
                      t_field, vmr_field, 
                      r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
                      sensor_response, sensor_response_f,
-               sensor_response_pol, sensor_response_za, sensor_response_aa,
+                     sensor_response_pol, sensor_response_za, sensor_response_aa,
                      sensor_pos, sensor_los, f_grid, 
                      stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid, 
                      "1" );

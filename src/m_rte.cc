@@ -67,8 +67,8 @@ void RteCalc(
          Vector&                     y,
          Vector&                     y_f,
          ArrayOfIndex&               y_pol,
-         Vector&                     y_za,
-         Vector&                     y_aa,
+         Matrix&                     y_pos,
+         Matrix&                     y_los,
          Matrix&                     jacobian,
    const Agenda&                     ppath_step_agenda,
    const Agenda&                     rte_agenda,
@@ -134,9 +134,8 @@ void RteCalc(
   y.resize( nmblock*nblock );
   y_f.resize( nmblock*nblock );
   y_pol.resize( nmblock*nblock );
-  y_za.resize( nmblock*nblock );
-  if( sensor_response_aa.nelem() )
-    { y_aa.resize( nmblock*nblock ); }
+  y_pos.resize( nmblock*nblock, sensor_pos.ncols() );
+  y_los.resize( nmblock*nblock, sensor_los.ncols() );
 
   // Create vector for MPB radiances for 1 measurement block.
   Vector ib( nf*nza*naa*stokes_dim );
@@ -351,14 +350,15 @@ void RteCalc(
       //--- Auxiliary variables
       for( Index ii=0; ii<nblock; ii++ )
         { 
-          y_f[nydone+ii]   = sensor_response_f[ii];
-          y_pol[nydone+ii] = sensor_response_pol[ii]; 
-          y_za[nydone+ii]  = sensor_los( mblock_index, 0 ) +
-                             sensor_response_za[ii];
+          y_f[nydone+ii]         = sensor_response_f[ii];
+          y_pol[nydone+ii]       = sensor_response_pol[ii]; 
+          y_pos(nydone+ii,joker) = sensor_pos(mblock_index,joker);
+          y_los(nydone+ii,0)     = sensor_los(mblock_index,0) +
+                                   sensor_response_za[ii];
           if( sensor_response_aa.nelem() )
             { 
-              y_aa[nydone+ii] = sensor_los( mblock_index, 0 ) +
-                                sensor_response_aa[ii]; 
+              y_los(nydone+ii,1) = sensor_los(mblock_index,0) +
+                                   sensor_response_aa[ii]; 
             }
         }
 
@@ -389,8 +389,8 @@ void RteCalcNoJacobian(
          Vector&                     y,
          Vector&                     y_f,
          ArrayOfIndex&               y_pol,
-         Vector&                     y_za,
-         Vector&                     y_aa,
+         Matrix&                     y_pos,
+         Matrix&                     y_los,
    const Agenda&                     ppath_step_agenda,
    const Agenda&                     rte_agenda,
    const Agenda&                     iy_space_agenda,
@@ -430,7 +430,7 @@ void RteCalcNoJacobian(
 
   jacobianOff( jacobian, jacobian_quantities, jacobian_indices, jacobian_unit );
 
-  RteCalc( ws, y, y_f, y_pol, y_za, y_aa, jacobian, 
+  RteCalc( ws, y, y_f, y_pol, y_pos, y_los, jacobian, 
            ppath_step_agenda, rte_agenda, iy_space_agenda, surface_prop_agenda,
            iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, lon_grid, 
            z_field, t_field, vmr_field, abs_species, r_geoid, z_surface, 
@@ -449,8 +449,8 @@ void RteCalcMC(
          Vector&                        y,
          Vector&                        y_f,
          ArrayOfIndex&                  y_pol,
-         Vector&                        y_za,
-         Vector&                        y_aa,
+         Matrix&                        y_pos,
+         Matrix&                        y_los,
          Vector&                        mc_error,
    const Agenda&                        iy_space_agenda,
    const Agenda&                        surface_prop_agenda,
@@ -523,9 +523,8 @@ void RteCalcMC(
   y.resize( nmblock*nblock );
   y_f.resize( nmblock*nblock );
   y_pol.resize( nmblock*nblock );
-  y_za.resize( nmblock*nblock );
-  if( sensor_response_aa.nelem() )
-    { y_aa.resize( nmblock*nblock ); }
+  y_pos.resize( nmblock*nblock, sensor_pos.ncols() );
+  y_los.resize( nmblock*nblock, sensor_los.ncols() );
   mc_error.resize( nmblock*nblock );
   mc_error = 0.0;                     // Needed as values are accumulated below
 
@@ -642,14 +641,15 @@ void RteCalcMC(
       //--- Auxiliary variables
       for( Index ii=0; ii<nblock; ii++ )
         { 
-          y_f[nydone+ii]   = sensor_response_f[ii];
-          y_pol[nydone+ii] = sensor_response_pol[ii]; 
-          y_za[nydone+ii]  = sensor_los( mblock_index, 0 ) +
-                             sensor_response_za[ii];
+          y_f[nydone+ii]         = sensor_response_f[ii];
+          y_pol[nydone+ii]       = sensor_response_pol[ii]; 
+          y_pos(nydone+ii,joker) = sensor_pos(mblock_index,joker);
+          y_los(nydone+ii,0)     = sensor_los(mblock_index,0) +
+                                   sensor_response_za[ii];
           if( sensor_response_aa.nelem() )
             { 
-              y_aa[nydone+ii] = sensor_los( mblock_index, 0 ) +
-                                sensor_response_aa[ii]; 
+              y_los(nydone+ii,1) = sensor_los(mblock_index,0) +
+                                   sensor_response_aa[ii]; 
             }
         }
 
@@ -660,36 +660,6 @@ void RteCalcMC(
   // Convert *mc_error* from variances to std. devs.
   transform( mc_error, sqrt, mc_error );
 }
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated 
-void mc_errorApplySensor(
-           Vector&   mc_error,
-     const Sparse&   sensor_response )
-{
-  const Index   n = mc_error.nelem();
-
-  if( sensor_response.ncols() != n )
-    {
-      throw runtime_error(
-                     "Mismatch in size of *sensor_response* and *mc_error*." );
-    }
-
-  Vector  i( n );
-  for( Index j=0; j<n; j++ )
-    { i[j] = mc_error[j]*mc_error[j]; }
-  mc_error.resize( sensor_response.nrows() );
-  mc_error = 0.0;
-  for( Index irow=0; irow<sensor_response.nrows(); irow++ )
-    {
-      for( Index icol=0; icol<n; icol++ )
-        { mc_error[irow] += pow( sensor_response(irow,icol), 2.0 ) * i[icol]; }
-    }
-  transform( mc_error, sqrt, mc_error );
-}
-*/
-
 
 
 

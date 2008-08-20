@@ -755,7 +755,7 @@ void Workspace::define_wsv_data()
        "Usage:      Set by the user.\n"
        "\n"
        "Dimensions: \n"
-       "   GriddedField4:\n"
+       "   GField4:\n"
        "      ArrayOfString field_names[N_pol]\n"
        "      Vector f_grid[N_f]\n"
        "      Vector za_grid[N_za]\n"
@@ -798,19 +798,19 @@ void Workspace::define_wsv_data()
        "\n"
        "This concerns temperature, altitude, and gas VMRs.\n"
        "\n"
-       "The data is stored in a GriddedField4.\n"
+       "The data is stored in a GField4.\n"
        "\n"
        "The order of the fields must be:\n"
        "T[K] z[m] VMR_1[1] ... VMR[2]\n"
        "\n"
        "Usage: Used inside batch calculations, to hold successive atmospheric\n"
-       "       states from an ArrayOfGriddedField4.\n"
+       "       states from an ArrayOfGField4.\n"
        "\n"
        "Possible future extensions: Add a similar variable\n"
        "particle_fields_compact for hydrometeors?\n"
        "\n"
        "Dimensions: \n"
-       "   GriddedField4:\n"
+       "   GField4:\n"
        "      ArrayOfString field_names[N_fields]\n"
        "      Vector p_grid[N_p]\n"
        "      Vector lat_grid[N_lat]\n"
@@ -841,7 +841,7 @@ void Workspace::define_wsv_data()
        "Usage: Set by the user.\n"
        "\n"
        "Size:  Array[N_ch]\n"
-       "       GriddedField1 \n "
+       "       GField1 \n "
        "       [N_f] \n"
        "       [N_f] \n"
        ),
@@ -2341,8 +2341,8 @@ void Workspace::define_wsv_data()
        "This variable contains the particle number density data for all \n"
        "chosen particle types. It includes the grids corresponding to the \n"
        "grids in the database. \n"
-       "*pnd_field_raw* is an Array of GriddedField3. It includes a\n"
-       "GriddedField3 for each particle type which contains the data and \n"
+       "*pnd_field_raw* is an Array of GField3. It includes a\n"
+       "GField3 for each particle type which contains the data and \n"
        "also the grids.\n"
        "\n"
        "Usage:      Used in the methods *ParticleTypeAdd* and \n"
@@ -2351,7 +2351,7 @@ void Workspace::define_wsv_data()
        "Unit:        m^-3\n"
        "\n"
        "Size:  Array[N_pt]\n"
-       "       GriddedField3 \n "
+       "       GField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
@@ -3459,7 +3459,7 @@ void Workspace::define_wsv_data()
        "Usage: Set by the user.\n"
        "\n"
        "Dimensions: \n"
-       "   GriddedField1:\n"
+       "   GField1:\n"
        "      Vector f_grid[N_f]\n"
        "      Vector data[N_f]\n"
        ),
@@ -3715,7 +3715,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       K\n"
        "\n"
-       "Size   GriddedField3 \n "
+       "Size   GField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
@@ -3768,7 +3768,7 @@ void Workspace::define_wsv_data()
        "Unit:        absolute number\n"
        "\n"
        "Size:  Array[N_pt]\n"
-       "       GriddedField3 \n "
+       "       GField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
@@ -3812,24 +3812,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "y_aa" ),
-      DESCRIPTION
-      (
-       "The relative azimuth angles associated with *y*.\n"
-       "\n"
-       "Works as *sensor_response_aa*, but is valid for *y* and not only a\n"
-       "single measurement block. In addition, this variable holds absolute\n"
-       "angles instead of relative angles.\n"
-       "\n"
-       "Usage: Output from radiative transfer calculations considering\n"
-       "       sensor response.\n"
-       "\n"
-       "Unit:  [ degrees ]\n"
-       ),
-      GROUP( "Vector" )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "y_f" ),
       DESCRIPTION
       (
@@ -3847,6 +3829,26 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "y_los" ),
+      DESCRIPTION
+      (
+       "The line-of-sights associated with *y*.\n"
+       "\n"
+       "Definition of angles matches *sensor_los* (such as first column holds\n"
+       "zenith angles), but gives actual observed LOS. That is, the values of\n"
+       "both *sensor_los* and *antenna_los* are considered. Data are provided\n"
+       "for each element of *y*, following y_f, and the number of rows equals\n"
+       "the length of *y*.\n"
+       "\n"
+       "Usage: Output from radiative transfer calculations considering\n"
+       "       sensor response.\n"
+       "\n"
+       "Unit:  [ degrees, degrees ]\n"
+        ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "y_pol" ),
       DESCRIPTION
       (
@@ -3861,6 +3863,24 @@ void Workspace::define_wsv_data()
        "Unit:  [ - ]\n"
        ),
       GROUP( "ArrayOfIndex" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "y_pos" ),
+      DESCRIPTION
+      (
+       "The sensor positions associated with *y*.\n"
+       "\n"
+       "Definition of positions matches *sensor_pos* (such as first column\n"
+       "holds the radius). Data are provided for each element of *y*,\n"
+       "following y_f, and the number of rows equals the length of *y*.\n"
+       "\n"
+       "Usage: Output from radiative transfer calculations considering\n"
+       "       sensor response.\n"
+       "\n"
+       "Unit:  [ degrees, degrees ]\n"
+        ),
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -3892,24 +3912,6 @@ void Workspace::define_wsv_data()
   //   2. yUnit in m_rte.cc
   //   2. jacobianUnit in m_rte.cc
   
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "y_za" ),
-      DESCRIPTION
-      (
-       "The zenith angles associated with *y*.\n"
-       "\n"
-       "Works as *sensor_response_za*, but is valid for *y* and not only a\n"
-       "single measurement block. In addition, this variable holds absolute\n"
-       "angles instead of relative angles.\n"
-       "\n"
-       "Usage: Output from radiative transfer calculations considering\n"
-       "       sensor response.\n"
-       "\n"
-       "Unit:  [ degrees ]\n"
-        ),
-      GROUP( "Vector" )));
-
  wsv_data.push_back
    (WsvRecord
     ( NAME( "ybatch" ),
@@ -4024,7 +4026,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       K\n"
        "\n"
-       "Size   GriddedField3 \n "
+       "Size   GField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"

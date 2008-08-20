@@ -5173,8 +5173,9 @@ md_data_raw.push_back
          "and appends the variables *scat_data_raw* and *pnd_field_raw*. \n"
          "\n"
          "Keywords:\n"
-         "   filename_scat_data : Filename of single scattering data \n"
-         "   filename_pnd_field : Filename of the corresponding pnd_field \n"
+         "   filename_scat_data : Filename of single scattering data. \n"
+         "   filename_pnd_field : Filename of the corresponding pnd_field\n"
+         "                        (format here is GField3).\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_data_raw", "pnd_field_raw" ),
@@ -5702,7 +5703,7 @@ md_data_raw.push_back
          "See further the user guide.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_za", "y_aa", "jacobian" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "jacobian" ),
         GOUT(      ),
         GOUT_TYPE( ),
         IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
@@ -5751,7 +5752,7 @@ md_data_raw.push_back
          "for each monochromatic pencil beam calculation individually.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_za", "y_aa", "mc_error" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "mc_error" ),
         GOUT(     ),
         GOUT_TYPE(),
         IN( "iy_space_agenda", "surface_prop_agenda", "opt_prop_gas_agenda",
@@ -5778,7 +5779,7 @@ md_data_raw.push_back
          "As *RteCalc* but throughout ignores jacobians.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_za", "y_aa" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los" ),
         GOUT(      ),
         GOUT_TYPE( ),
         IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",

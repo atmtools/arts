@@ -20,14 +20,14 @@ i0 = 15;
 %
 lo = [ 89e9, 150e9, 183.31e9, 183.31e9, 183.31e9 ];
 %
-xmlStore( 'amsub.lo.xml', lo(ind-i0), 'Vector' );
+%xmlStore( 'amsub.lo.xml', lo(ind-i0), 'Vector' );
 
 
 %--- Main sideband (see above)
 %
 sideband_mode = { 'upper', 'upper', 'upper', 'upper', 'upper' };
 %
-xmlStore( 'amsub.sideband_mode.xml', {sideband_mode{ind-i0}}, 'ArrayOfString' );
+%xmlStore( 'amsub.sideband_mode.xml', {sideband_mode{ind-i0}}, 'ArrayOfString' );
 
 
 %--- Sideband response
@@ -58,7 +58,7 @@ xmlStore( 'amsub.sideband_response.xml', {G{ind-i0}}, 'ArrayOfGriddedField1' );
 %
 G = { [89.9e9], [150.9e9], [184.31e9], [186.31e9], [190.31e9] };
 %
-xmlStore( 'amsub.f_backend.xml', {G{ind-i0}}, 'ArrayOfVector' );
+%xmlStore( 'amsub.f_backend.xml', {G{ind-i0}}, 'ArrayOfVector' );
 
 
 %--- Backend channel response functions
@@ -81,6 +81,6 @@ G{4}{1}       = G{1}{1};
 G{5}{1}       = Gtmplt;
 G{5}{1}.grids = { [-1000 1000]*1e6 };
 %
-xmlStore( 'amsub.backend_channel_response.xml', {G{ind-i0}}, 'ArrayOfArrayOfGriddedField1' );
+%xmlStore( 'amsub.backend_channel_response.xml', {G{ind-i0}}, 'ArrayOfArrayOfGriddedField1' );
 
 

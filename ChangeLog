@@ -1,3 +1,26 @@
+2008-08-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-8-6
+
+	* includes/amsu/amsub.sideband_response.xml: Recreated this file. It 
+	had been corrupted (some characters were missing)!
+
+	* src/m_rte.cc (RteCalc): Added handling of y_pos and y_los.
+	(RteCalcNoJacobian): As above.
+	(RteCalcMC): As above.
+
+	* src/m_jacobian.cc: Adapted call of RteCalcNoJacobian.
+
+	* tests/OdinSMR/TestOdinSMR.arts: Replaced saving of y_za and y_aa with
+	saving of y_pos and y_los.
+	* tests/OdinSMR/TestOdinSMR_1D.arts: As above.
+
+	* src/methods.cc: Replaced y_za and y_aa with y_pos and y_los. 
+	Added that pnd field file shall have GField3 format.
+
+	* src/workspace.cc: Replaced y_za and y_aa with y_pos and y_los.
+	Replaced GriddedField with GField in variable descriptions.
+
 2008-08-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-8-5
