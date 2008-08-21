@@ -1,3 +1,10 @@
+2008-08-21  Viju Oommen John  <viju.john@metoffice.gov.uk>
+
+	* arts-1-8-8
+	
+	* includes/hirs: Added this directory. Also, added frequency and 
+	  spectral response functions for all HIRS instruments.
+
 2008-08-20  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-8-7
