@@ -34,20 +34,23 @@ AgendaSet( surface_prop_agenda ){
 # lines from the line list.
 ArrayOfLineshapeSpecCreate( abs_lineshapeDefine )
 abs_lineshapeDefine( abs_lineshapeDefine, "Voigt_Kuntz6", "VVH", 5e9 )
+# FIXME: Line shapes and cutoff must be adjusted.
 
+# FIXME: Species and continua must be adjusted.
 SpeciesSet( abs_species, [ "H2O-PWR98",
                            "O3",
                            "O2-PWR93",
                            "N2-SelfContStandardType" ] )
 
-# Read HITRAN catalog (needed for O3):
-#abs_linesReadFromHitran2004( abs_lines,
-#                             "/storage1/pool/lookup2/hitran2004/HITRAN04.par",
-#                             80e9,
-#                             200e9 )
+# Read HITRAN catalog:
+# FIXME: Frequency boundaries must be adjusted.
+abs_linesReadFromHitran2004( abs_lines,
+                             hitran_file,
+                             80e9,
+                             200e9 )
 #WriteXML( "ascii", abs_lines, "amsu/amsub.hitran04_lines.xml" )
 
-ReadXML( abs_lines, "amsu/amsub.hitran04_lines.xml" )
+#ReadXML( abs_lines, "amsu/amsub.hitran04_lines.xml" )
 abs_lines_per_speciesCreateFromLines
 
 # WARNING: If you redifine abs_species, and want to do a line-by-line
@@ -60,6 +63,7 @@ abs_lines_per_speciesCreateFromLines
 
 # Definition of sensor position and LOS
 # ---
+# FIXME: sensor_los probably has to be adjusted.
 ReadXML( sensor_los, "amsu/amsub.sensor_los.xml" )
 nrowsGet( nrows, sensor_los )
 ncolsGet( ncols, sensor_los )
@@ -82,29 +86,23 @@ AntennaOff
 # See setup_input.m for details around other sensor variables 
 
 
-# Mixer:
-#
-ReadXML( lo_multi, "amsu/amsub.lo.xml" )
-ReadXML( sideband_response_multi, "amsu/amsub.sideband_response.xml" )
-ReadXML( sideband_mode_multi, "amsu/amsub.sideband_mode.xml" )
-
 
 # Spectrometer:
 #
-ReadXML( f_backend_multi, "amsu/amsub.f_backend.xml" )
-ReadXML( backend_channel_response_multi,
-         "amsu/amsub.backend_channel_response.xml" )
+ReadXML( f_backend, f_backend_file )
+ReadXML( backend_channel_response,
+         sideband_response_file )
 
 
 # Frequency grid:
 #
-f_gridFromSensorAMSU
+f_gridFromSensorHIRS( f_grid, f_backend, backend_channel_response, 1e11 )
 
 
 # Construct sensor response from all these inputs:
 #
 sensor_responseInit
-sensor_responseMultiMixerBackend
+sensor_responseBackend
 
 
 # End of sensor response setup

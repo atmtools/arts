@@ -54,7 +54,6 @@ void AbsInputFromRteScalars(// WS Output:
                             Vector&        abs_t,
                             Matrix&        abs_vmrs,
                             // WS Input:
-                            const Vector&  f_grid,
                             const Numeric& rte_pressure,
                             const Numeric& rte_temperature,
                             const Vector&  rte_vmr_list)
@@ -2739,7 +2738,7 @@ void abs_scalar_gasCalcLBL(// WS Output:
 
   
   // If f_index>=0, we need to make a local copy of f_grid, because
-  // AbsInputFromRteScalars will destroy f_grid.
+  // f_gridSelectFIndex will destroy f_grid.
   // In any case, we assign f_grid_pointer so that it points to the
   // valid f_grid (either original or copy).
   Vector local_f_grid;
@@ -2764,7 +2763,6 @@ void abs_scalar_gasCalcLBL(// WS Output:
   AbsInputFromRteScalars( abs_p, 
                           abs_t, 
                           abs_vmrs, 
-                          *f_grid_pointer, 
                           rte_pressure, 
                           rte_temperature, 
                           rte_vmr_list );

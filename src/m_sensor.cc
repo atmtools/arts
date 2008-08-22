@@ -1076,7 +1076,7 @@ void sensor_responseMultiMixerBackend(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void f_gridFromSensor(// WS Output:
+void f_gridFromSensorAMSU(// WS Output:
                       Vector& f_grid,
                       // WS Input:
                       const Vector& lo,
@@ -1137,8 +1137,13 @@ void f_gridFromSensor(// WS Output:
 
         // We need to add a bit of extra margin at both sides,
         // otherwise there is a numerical problem in the sensor
-        // WSMs. We take 1% of the requested frequncy grid spacing. 
-        const Numeric delta = 0.001 * spacing;
+        // WSMs. We take 0.1% of the requested frequency grid spacing. 
+        // 
+        // 2008-8-21: This seems to be no longer necessary, the
+        // problem was that my sideband response function
+        // frequency grid was too wide. 
+        //        const Numeric delta = 0.001 * spacing;
+        const Numeric delta = 0;
 
         // Signal sideband:
         fabs_min[ifabs] = this_f_backend + this_grid[0] - delta;
@@ -1218,6 +1223,160 @@ void f_gridFromSensor(// WS Output:
   // That's it, we're done!
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void f_gridFromSensorHIRS(// WS Output:
+                          Vector& f_grid,
+                          // WS Input:
+                          const Vector& f_backend,
+                          const ArrayOfGField1& backend_channel_response,
+                          // Control Parameters:
+                          const Numeric& spacing)
+{
+  // For various loop indices (in one case we need the value after the
+  // loop, so we define the variable here):
+  Index i;  
+  
+  // How many channels in total:
+  const Index n_chan = f_backend.nelem();
+
+  // Checks on input quantities:
+
+  // There must be at least one channel.
+  if (n_chan < 1)
+    {
+      ostringstream os;
+      os << "There must be at least one channel.\n"
+         << "(The vector *f_backend* must have at least one element.)";
+      throw runtime_error(os.str());
+    }
+
+  // There must be a response function for each channel.
+  if (n_chan != backend_channel_response.nelem())
+    {
+      ostringstream os;
+      os << "Variables *f_backend_multi* and *backend_channel_response_multi*\n"
+         << "must have same number of bands for each LO.";
+      throw runtime_error(os.str());
+    }
+
+  // Frequency grids for response functions must be strictly increasing.
+  for (i=0; i<n_chan; ++i)
+    {
+      // Frequency grid for this response function:
+      const Vector& backend_f_grid = backend_channel_response[i].get_numeric_grid(0);
+
+      if ( !is_increasing(backend_f_grid) )
+        {
+          ostringstream os;
+          os << "The frequency grid for the backend channel response of\n"
+             << "channel " << i << " is not strictly increasing.\n";
+          os << "It is: " << backend_f_grid << "\n";
+          throw runtime_error( os.str() );
+        }
+    }
+
+
+  // Start the actual work.
+
+  out2 << "  fmin/max orig:\n";
+
+  // Get a list of original channel boundaries:
+  Vector fmin_orig(n_chan);
+  Vector fmax_orig(n_chan);  
+  for (i=0; i<n_chan; ++i)
+    {
+      const Vector& backend_f_grid = backend_channel_response[i].get_numeric_grid(0);
+      const Index nf = backend_f_grid.nelem();
+
+      // We need to add a bit of extra margin at both sides,
+      // otherwise there is a numerical problem in the sensor
+      // WSMs. We take 100% of the requested frequency grid spacing. 
+      // FIXME: Patrick, set this to zero to check for the runtime
+      // error in sensor_responseBackend.
+      const Numeric delta = 1.0 * spacing;
+
+      fmin_orig[i] = f_backend[i] + backend_f_grid[0] - delta;
+      fmax_orig[i] = f_backend[i] + backend_f_grid[nf-1] + delta;
+
+      out2 << "     " << fmin_orig[i] << " / " << fmax_orig[i] << "\n";
+    }
+
+  // The problem is that channels may be overlapping. In that case, we
+  // want to create a frequency grid that covers their entire range,
+  // but we do not want to duplicate any frequencies.
+
+  // Sort channels by frequency:
+  ArrayOfIndex isorted;  
+  get_sorted_indexes (isorted, f_backend);
+
+  // Now we go through the original response functions, in sorted
+  // order, and see if we can combine any of them.
+
+  // Arrays of Numeric, that we can grow with push_back.
+  ArrayOfNumeric fmin, fmax;
+  for (i=0; i<n_chan-1; ++i)
+    {
+      fmin.push_back(fmin_orig[isorted[i]]);
+
+      while ( i<n_chan-1 &&
+              fmin_orig[isorted[i+1]] <= fmax_orig[isorted[i]] )
+        ++i;
+
+      fmax.push_back(fmax_orig[isorted[i]]);
+    }
+
+  // Add the last channel, if not already there:
+  if (i<n_chan)
+    {
+      fmin.push_back(fmin_orig[isorted[i]]);
+      fmax.push_back(fmax_orig[isorted[i]]);
+    }
+
+  out2 << "  fmin/max new:\n";
+  for (i=0; i<fmin.nelem(); ++i)
+    out2 << "  " << fmin[i] << " / " << fmax[i] << "\n";
+
+  
+  // Ok, now we just have to create a frequency grid for each of the
+  // fmin/fmax ranges.
+
+  // Create f_grid_array. This is an array of Numeric, so that we
+  // can use the STL push_back function.
+  ArrayOfNumeric f_grid_array;
+
+  for (i=0; i<fmin.nelem(); ++i)
+    {
+      // Band width:
+      const Numeric bw = fmax[i] - fmin[i];
+
+      // How many grid intervals do I need?
+      const Numeric npf = ceil(bw/spacing);
+
+      // How many grid points to store? - Number of grid intervals
+      // plus 1.
+      const Index   npi = (Index) npf + 1;
+
+      // What is the actual grid spacing inside the band?
+      const Numeric gs = bw/npf;
+
+      // Create the grid for this band:
+      Vector grid(fmin[i], npi, gs);
+
+      out3 << "  Band range " << i << ": " << grid << "\n";
+
+      // Append to f_grid_array:
+      f_grid_array.reserve(f_grid_array.nelem()+npi);
+      for (Index s=0; s<npi; ++s)
+        f_grid_array.push_back(grid[s]);
+    }
+
+  // Copy result to output vector:
+  f_grid = f_grid_array;
+
+  //  cout << "f_grid: " << f_grid << "\n";
+  out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated 

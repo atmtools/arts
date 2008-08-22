@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
-<Array type="GriddedField1" nelem="1">
+<Array type="GriddedField1" nelem="19">
 <GriddedField1 name="Sideband response function">
 <Vector name="Frequency" nelem="61">
   -2.7787772e+11

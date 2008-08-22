@@ -197,7 +197,7 @@ void define_md_data_raw()
         OUT( "abs_p", "abs_t", "abs_vmrs" ),
         GOUT(      ),
         GOUT_TYPE( ),
-        IN( "f_grid", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
+        IN( "rte_pressure", "rte_temperature", "rte_vmr_list" ),
         GIN(      ),
         KEYWORDS( ),
         GIN_TYPE( ),
@@ -3410,7 +3410,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("f_gridFromSensor"),
+      ( NAME("f_gridFromSensorAMSU"),
         DESCRIPTION
         (
          "Automatically calculate f_grid to match the sensor.\n"
@@ -3430,6 +3430,9 @@ md_data_raw.push_back
          "will not be coarser than requested. The algorithm starts with the band\n"
          "edges, then adds additional points until the spacing is at least as\n"
          "fine as requested.\n"
+         "\n"
+         "There is a similar method for HIRS-type instruments, see\n"
+         "*f_gridFromSensorHIRS*.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "f_grid" ),
@@ -3440,6 +3443,44 @@ md_data_raw.push_back
         KEYWORDS( "spacing" ),
         GIN_TYPE( ),
         GIN_DEFAULT( ".1e9"),
+        TYPES(    "Numeric" )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("f_gridFromSensorHIRS"),
+        DESCRIPTION
+        (
+         "Automatically calculate f_grid to match the sensor.\n"
+         "\n"
+         "This method is handy if you are simulating a HIRS-type instrument,\n"
+         "consisting of a few discrete channels.\n"
+         "\n"
+         "It calculates f_grid to match the instrument, as given by the nominal\n"
+         "band frequencies *f_backend* and the spectral channel response\n"
+         "functions given by *backend_channel_response*.\n"
+         "\n"
+         "You have to specify the desired spacing in the keyword *spacing*, which\n"
+         "has a default value of 100 MHz. (The actual value is 0.1e9, since our\n"
+         "unit is Hz.) FIXME: This perhaps has to be adjusted to a suitable\n"
+         "default value for HIRS.\n"
+         "\n"
+         "The produced grid will not have exactly the requested spacing, but\n"
+         "will not be coarser than requested. The algorithm starts with the band\n"
+         "edges, then adds additional points until the spacing is at least as\n"
+         "fine as requested.\n"
+         "\n"
+         "There is a similar method for AMSU-type instruments, see\n"
+         "*f_gridFromSensorAMSU*.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT( "f_grid" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN( "f_backend", "backend_channel_response" ),
+        GIN(      ),
+        KEYWORDS( "spacing" ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( ".1e11"),
         TYPES(    "Numeric" )));
 
   md_data_raw.push_back     

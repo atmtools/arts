@@ -1,62 +1,24 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
-<Array type="Vector" nelem="19">
-<Vector nelem="1">
+<Vector nelem="19">
    2.0057491e+13
-</Vector>
-<Vector nelem="1">
    2.0365794e+13
-</Vector>
-<Vector nelem="1">
    2.0723901e+13
-</Vector>
-<Vector nelem="1">
    2.1104490e+13
-</Vector>
-<Vector nelem="1">
    2.1481078e+13
-</Vector>
-<Vector nelem="1">
    2.1962741e+13
-</Vector>
-<Vector nelem="1">
    2.2427089e+13
-</Vector>
-<Vector nelem="1">
    2.6940769e+13
-</Vector>
-<Vector nelem="1">
    3.0853066e+13
-</Vector>
-<Vector nelem="1">
    3.6458061e+13
-</Vector>
-<Vector nelem="1">
    4.0895501e+13
-</Vector>
-<Vector nelem="1">
    4.4534244e+13
-</Vector>
-<Vector nelem="1">
    6.5727862e+13
-</Vector>
-<Vector nelem="1">
    6.6356551e+13
-</Vector>
-<Vector nelem="1">
    6.7185828e+13
-</Vector>
-<Vector nelem="1">
    6.8246723e+13
-</Vector>
-<Vector nelem="1">
    7.0799426e+13
-</Vector>
-<Vector nelem="1">
    7.5329519e+13
-</Vector>
-<Vector nelem="1">
    8.0011887e+13
 </Vector>
-</Array>
 </arts>

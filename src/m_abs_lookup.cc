@@ -1963,7 +1963,7 @@ void abs_lookupTestAccuracy(// Workspace reference:
 
   // Some important sizes:
   const Index n_nls     = al.nonlinear_species.nelem();
-  const Index n_species = al.species.nelem();
+  //  const Index n_species = al.species.nelem();
   const Index n_f       = al.f_grid.nelem();
   const Index n_p       = al.log_p_grid.nelem();
 

@@ -1,3 +1,47 @@
+2008-08-22  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-8-9
+	
+	* src/m_sensor.cc (f_gridFromSensorAMSU): Renamed this
+	function. (Used to be just f_gridFromSensor). After Patrick's fix
+	of the sideband grid, the margin can now be zero here.
+	(f_gridFromSensorHIRS): Added this function, which does the same
+	for a HIRS type instrument. There still is a problem with the
+	width of the grid for sensor_responseBackend. I have to add a big
+	margin to make it work.
+
+	* includes/hirs/NOAA*_HIRS.sideband_response.xml: Corrected file format.
+
+	* includes/hirs/NOAA*_HIRS.f_backend.xml: Corrected file format.
+
+	* includes/hirs/TIROSN_HIRS.*: Ditto.
+
+	* includes/hirs/hirs.arts: Added. Will contain standard sensor
+	setup for HIRS when finished. Still requires adaption, some
+	obvious ones marked by FIXME.
+
+	* tests/HIRS/TestHIRS.arts: Added this directory and file, which
+	contains a batch test for HIRS, similar to the one for AMSU. This
+	is work in progress, not yet suitable for general use!
+	
+	* includes/amsu/amsub.arts: Adapted to name change of
+	f_gridFromSensorAMSU. 
+
+	* src/m_abs.cc (abs_scalar_gasCalcLBL): Removed unused parameter
+	f_grid from AbsInputFromRteScalars call.
+
+	* src/m_abs_lookup.cc (abs_lookupTestAccuracy): Removed unused
+	variable n_species.
+
+	* src/methods.cc (AbsInputFromRteScalars): Removed unused f_grid.
+	(f_gridFromSensorAMSU): Renamed from f_gridFromSensor.
+	(f_gridFromSensorHIRS): Added.
+
+        * src/matpackI.{h,cc}: Commented in again assignment operators for
+	Vector with parameter type Array<Numeric>. We commented this out a
+	long time ago, because we wanted to split matpack from
+	ARTS. However, that has never happened, and the function is handy.
+
 2008-08-21  Viju Oommen John  <viju.john@metoffice.gov.uk>
 
 	* arts-1-8-8
