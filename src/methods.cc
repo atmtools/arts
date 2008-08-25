@@ -1064,8 +1064,6 @@ void define_md_data_raw()
          "lookup table grid points).\n"
          "\n"
          "Produces no workspace output, only output to the output streams.\n"
-         "\n"
-         "FIXME: Explain about abs_scalar_gas_agenda.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( ),
@@ -1076,7 +1074,12 @@ void define_md_data_raw()
               "abs_p_interp_order",
               "abs_t_interp_order",
               "abs_nls_interp_order",
-              "abs_scalar_gas_agenda"),
+              "abs_n2",
+              "abs_lines_per_species", 
+              "abs_lineshape", 
+              "abs_cont_names", 
+              "abs_cont_models", 
+              "abs_cont_parameters" ),
         GIN( ),
         KEYWORDS( ),
         GIN_TYPE( ),

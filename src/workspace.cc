@@ -146,7 +146,7 @@ void Workspace::define_wsv_data()
        "Continuum / full model absorption model description parameter.\n"
        "See the WSV `abs_cont_names' for a detailed description\n"
        "of the allowed continuum models. There should be one string here\n"
-       "for each entry in `abs_cont_names'.See also the online" 
+       "for each entry in `abs_cont_names'.See also the online\n" 
        "documentation in arts/doc/doxygen/html/continua_cc.html.\n"
       ),
       GROUP( "ArrayOfString" )));

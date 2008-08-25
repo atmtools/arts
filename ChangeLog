@@ -1,3 +1,25 @@
+2008-08-25  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-8-10
+	
+	* src/m_abs_lookup.cc (calc_lookup_error): Added this new
+	function. It does most of the work for abs_lookupTestAccuracy, in
+	that it calls both lookup table extraction and LBL calculation for
+	local atmospheric conditions.
+	(abs_lookupTestAccuracy): Now simply loops over calc_lookup_error
+	for different atmospheric conditions.
+
+	* src/methods.cc (abs_lookupTestAccuracy): Updated. 
+
+	* src/gas_abs_lookup.h (class GasAbsLookup): Declare both
+	calc_lookup_error and abs_lookupTestAccuracy as friends.
+
+	* src/interpolation_poly.cc (gridpos_poly): Parallelized main
+	loop. 
+
+	* src/workspace.cc (abs_cont_models): Fixed missing line break in
+	documentation. 
+	
 2008-08-22  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-8-9

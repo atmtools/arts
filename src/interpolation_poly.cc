@@ -110,6 +110,13 @@ void gridpos_poly(ArrayOfGridPosPoly& gp,
   ArrayOfGridPos gp_trad(n_new);
   gridpos( gp_trad, old_grid, new_grid, extpolfac );
 
+
+  // This loop is parallelized. I thought this could help a bit, since
+  // we spend some time waiting for new memory being allocated by
+  // resize. Dunno if the benefit is very large, though.
+
+#pragma omp parallel 
+#pragma omp for 
   for (Index s=0; s<n_new; ++s)
     {
                    

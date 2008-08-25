@@ -99,16 +99,36 @@ public:
                       const ArrayOfString&            abs_cont_models,   
                       const ArrayOfVector&            abs_cont_parameters );
 
-  friend void abs_lookupTestAccuracy(
-                            // Workspace reference:
-                            Workspace& ws,
-                            // WS Input:
-                            const GasAbsLookup& al,
-                            const Index&        abs_lookup_is_adapted, 
-                            const Index&        abs_p_interp_order,
-                            const Index&        abs_t_interp_order,
-                            const Index&        abs_nls_interp_order,
-                            const Agenda&       abs_scalar_gas_agenda );
+  friend Numeric calc_lookup_error(// Parameters for lookup table:
+                          const GasAbsLookup& al,
+                          const Index&        abs_p_interp_order,  
+                          const Index&        abs_t_interp_order,  
+                          const Index&        abs_nls_interp_order,
+                          const bool          ignore_errors,
+                          // Parameters for LBL:
+                          const Vector&                   abs_n2,
+                          const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                          const ArrayOfLineshapeSpec&     abs_lineshape,
+                          const ArrayOfString&            abs_cont_names,
+                          const ArrayOfString&            abs_cont_models,
+                          const ArrayOfVector&            abs_cont_parameters,
+                          // Parameters for both:
+                          const Numeric&      local_p,
+                          const Numeric&      local_t,
+                          const Vector&       local_vmrs);
+
+  friend void abs_lookupTestAccuracy(// WS Input:
+                            const GasAbsLookup&             al,
+                            const Index&                    abs_lookup_is_adapted, 
+                            const Index&                    abs_p_interp_order,
+                            const Index&                    abs_t_interp_order,
+                            const Index&                    abs_nls_interp_order,
+                            const Vector&                   abs_n2,
+                            const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                            const ArrayOfLineshapeSpec&     abs_lineshape,
+                            const ArrayOfString&            abs_cont_names,
+                            const ArrayOfString&            abs_cont_models,
+                            const ArrayOfVector&            abs_cont_parameters );
 
 private:
 

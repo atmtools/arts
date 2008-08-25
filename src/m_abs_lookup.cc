@@ -1849,111 +1849,127 @@ void p_gridFromGasAbsLookup(
   between lookup and LBL, in percent. Or -1 if the case should be
   ignored according to the "ignore_errors" flag.
 */
-// Numeric calc_lookup_error(// Parameters for lookup table:
-//                           const Index&   abs_p_interp_order,  
-//                           const Index&   abs_t_interp_order,  
-//                           const Index&   abs_nls_interp_order,
-//                           const bool     ignore_errors,
-//                           // Parameters for LBL:
-//                           Workspace&     l_ws,
-//                           const Agenda&  l_abs_scalar_gas_agenda,
-//                           // Parameters for both:
-//                           const Numeric& local_p,
-//                           const Numeric& local_t,
-//                           const Numeric& local_vmrs)
-// {
-//   // Allocate some matrices and vectors. I also tried
-//   // allocating them outside the loop, but there was no
-//   // significant speed advantage. (I guess the LBL calculation
-//   // is expensive enough to make the extra time of allocation
-//   // here insignificant.)
-//   Vector local_vmrs;	// dimension [n_species]:
-//   Matrix sga_tab;	// Absorption, dimension [n_f_grid,n_species]:
-//   Matrix sga_lbl;
-//   Vector abs_tab(n_f);
-//   Vector abs_lbl(n_f);
-//   Vector abs_rel_diff(n_f);                  
+Numeric calc_lookup_error(// Parameters for lookup table:
+                          const GasAbsLookup& al,
+                          const Index&        abs_p_interp_order,  
+                          const Index&        abs_t_interp_order,  
+                          const Index&        abs_nls_interp_order,
+                          const bool          ignore_errors,
+                          // Parameters for LBL:
+                          const Vector&                   abs_n2,
+                          const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                          const ArrayOfLineshapeSpec&     abs_lineshape,
+                          const ArrayOfString&            abs_cont_names,
+                          const ArrayOfString&            abs_cont_models,
+                          const ArrayOfVector&            abs_cont_parameters,
+                          // Parameters for both:
+                          const Numeric&      local_p,
+                          const Numeric&      local_t,
+                          const Vector&       local_vmrs)
+{
+  // Allocate some matrices. I also tried allocating these (and the
+  // vectors below) outside, but there was no significant speed
+  // advantage. (I guess the LBL calculation is expensive enough to
+  // make the extra time of allocation here insignificant.)
+  Matrix sga_tab;	// Absorption, dimension [n_f_grid,n_species]:
+  Matrix sga_lbl;
 
-//   // Do lookup table first:
+  // Do lookup table first:
 
-//   bool skip_this = false; // If this becomes true, we skip this case.
-
-//   try            
-//     {
-//       // Absorption, dimension [n_f_grid,n_species]:
-//       // Output variable: sga_tab
-//       al.Extract(sga_tab,
-//                  abs_p_interp_order,
-//                  abs_t_interp_order,
-//                  abs_nls_interp_order,
-//                  -1,
-//                  local_p,
-//                  local_t,
-//                  local_vmrs );
-//     }
-//   catch (runtime_error x)
-//     {
-//       // If ignore_errors is set to true, then we mark this case for
-//       // skipping, and ignore the exceptions.
-//       // Otherwise, we re-throw the exception.
-//       if (ignore_errors)
-//         return -1;
-//       else
-//         throw runtime_error(x.what());
-//     }
-
-//   // Sum up for all species, to get total absorption:          
-//   for (Index i=0; i<n_f; ++i)
-//     abs_tab[i] = sga_tab(i,joker).sum();
+  try            
+    {
+      // Absorption, dimension [n_f_grid,n_species]:
+      // Output variable: sga_tab
+      al.Extract(sga_tab,
+                 abs_p_interp_order,
+                 abs_t_interp_order,
+                 abs_nls_interp_order,
+                 -1,
+                 local_p,
+                 local_t,
+                 local_vmrs );
+    }
+  catch (runtime_error x)
+    {
+      // If ignore_errors is set to true, then we mark this case for
+      // skipping, and ignore the exceptions.
+      // Otherwise, we re-throw the exception.
+      if (ignore_errors)
+        return -1;
+      else
+        throw runtime_error(x.what());
+    }
 
 
-//   // Now get absorption line-by-line, by calling the agenda:
+  // Get number of frequencies. (We cannot do this earlier, since we
+  // get it from the output of al.Extract.)
+  const Index n_f = sga_tab.nrows();
+  
+  // Allocate some vectors with this dimension:
+  Vector abs_tab(n_f);
+  Vector abs_lbl(n_f);
+  Vector abs_rel_diff(n_f);                  
+
+  // Sum up for all species, to get total absorption:          
+  for (Index i=0; i<n_f; ++i)
+    abs_tab[i] = sga_tab(i,joker).sum();
 
 
-//   // Output variable: sga_lbl
-//   abs_scalar_gas_agendaExecute(l_ws,
-//                                sga_lbl,
-//                                -1,
-//                                local_p,
-//                                local_t,
-//                                local_vmrs,
-//                                l_abs_scalar_gas_agenda);
-//   // Sum up for all species, to get total absorption:          
-//   for (Index i=0; i<n_f; ++i)
-//     abs_lbl[i] = sga_lbl(i,joker).sum();
+  // Now get absorption line-by-line.
+
+  abs_scalar_gasCalcLBL( sga_lbl, 
+                         al.f_grid, 
+                         al.species, 
+                         abs_n2, 
+                         abs_lines_per_species, 
+                         abs_lineshape, 
+                         abs_cont_names, 
+                         abs_cont_models, 
+                         abs_cont_parameters, 
+                         -1,
+                         local_p,
+                         local_t,
+                         local_vmrs );
+
+  // Sum up for all species, to get total absorption:          
+  for (Index i=0; i<n_f; ++i)
+    abs_lbl[i] = sga_lbl(i,joker).sum();
 
 
-//   // Ok. What we have to compare is abs_tab and abs_lbl.
+  // Ok. What we have to compare is abs_tab and abs_lbl.
 
-//   assert(abs_tab.nelem()==n_f);
-//   assert(abs_lbl.nelem()==n_f);
-//   assert(abs_rel_diff.nelem()==n_f);
-//   for (Index i=0; i<n_f; ++i)
-//     {
-//       // Absolute value of relative difference in percent:
-//       abs_rel_diff[i] = fabs( (abs_tab[i] - abs_lbl[i]) / abs_lbl[i] * 100); 
-//     }
+  assert(abs_tab.nelem()==n_f);
+  assert(abs_lbl.nelem()==n_f);
+  assert(abs_rel_diff.nelem()==n_f);
+  for (Index i=0; i<n_f; ++i)
+    {
+      // Absolute value of relative difference in percent:
+      abs_rel_diff[i] = fabs( (abs_tab[i] - abs_lbl[i]) / abs_lbl[i] * 100); 
+    }
 
-//   // Maximum of this:
-//   Numeric max_abs_rel_diff = max(abs_rel_diff);
+  // Maximum of this:
+  Numeric max_abs_rel_diff = max(abs_rel_diff);
 
-//   //          cout << "ma " << max_abs_rel_diff << "\n";
+  //          cout << "ma " << max_abs_rel_diff << "\n";
 
-//   return  max_abs_rel_diff;
+  return  max_abs_rel_diff;
 
-// }
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void abs_lookupTestAccuracy(// Workspace reference:
-                            Workspace& ws,
-                            // WS Input:
-                            const GasAbsLookup& al,
-                            const Index&        abs_lookup_is_adapted, 
-                            const Index&        abs_p_interp_order,
-                            const Index&        abs_t_interp_order,
-                            const Index&        abs_nls_interp_order,
-                            const Agenda&       abs_scalar_gas_agenda )
+void abs_lookupTestAccuracy(// WS Input:
+                            const GasAbsLookup&             al,
+                            const Index&                    abs_lookup_is_adapted, 
+                            const Index&                    abs_p_interp_order,
+                            const Index&                    abs_t_interp_order,
+                            const Index&                    abs_nls_interp_order,
+                            const Vector&                   abs_n2,
+                            const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                            const ArrayOfLineshapeSpec&     abs_lineshape,
+                            const ArrayOfString&            abs_cont_names,
+                            const ArrayOfString&            abs_cont_models,
+                            const ArrayOfVector&            abs_cont_parameters )
 {
   // Check if the table has been adapted:
   if ( 1!=abs_lookup_is_adapted )
@@ -1964,13 +1980,14 @@ void abs_lookupTestAccuracy(// Workspace reference:
   // Some important sizes:
   const Index n_nls     = al.nonlinear_species.nelem();
   //  const Index n_species = al.species.nelem();
-  const Index n_f       = al.f_grid.nelem();
+  //  const Index n_f       = al.f_grid.nelem();
   const Index n_p       = al.log_p_grid.nelem();
 
   if ( n_nls <= 0 )
     {
       ostringstream os;
-      os << "This function currently works only with lookup tables containing nonlinear species.";
+      os << "This function currently works only with lookup tables\n"
+         << "containing nonlinear species.";
       throw runtime_error( os.str() );
     }
 
@@ -2007,29 +2024,12 @@ void abs_lookupTestAccuracy(// Workspace reference:
   // lookup table, in percent.
   Numeric err_t = -999;
 
-  // We have to make a local copy of the Workspace and the agendas because
-  // only non-reference types can be declared firstprivate in OpenMP
-  Workspace l_ws (ws);
-  Agenda l_abs_scalar_gas_agenda(abs_scalar_gas_agenda);
-
-#pragma omp parallel firstprivate(l_ws, l_abs_scalar_gas_agenda)
+#pragma omp parallel
 #pragma omp for 
   for (Index pi=0; pi<n_p; ++pi)
     for (Index ti=0; ti<inbet_t_pert.nelem(); ++ti)
       {
-        // Allocate some matrices and vectors. I also tried
-        // allocating them outside the loop, but there was no
-        // significant speed advantage. (I guess the LBL calculation
-        // is expensive enough to make the extra time of allocation
-        // here insignificant.)
-        Vector local_vmrs;	// dimension [n_species]:
-        Matrix sga_tab;	// Absorption, dimension [n_f_grid,n_species]:
-        Matrix sga_lbl;
-        Vector abs_tab(n_f);
-        Vector abs_lbl(n_f);
-        Vector abs_rel_diff(n_f);                  
-
-        // First find local conditions:
+        // Find local conditions:
 
         // Pressure:
         Numeric local_p = al.p_grid[pi];
@@ -2038,76 +2038,31 @@ void abs_lookupTestAccuracy(// Workspace reference:
         Numeric local_t = al.t_ref[pi] + inbet_t_pert[ti];
 
         // VMRs:
-        local_vmrs = al.vmrs_ref(joker, pi);
+        Vector local_vmrs = al.vmrs_ref(joker, pi);
 
-        // Get absorption from lookup table
+        Numeric max_abs_rel_diff =
+          calc_lookup_error(// Parameters for lookup table:
+                            al,
+                            abs_p_interp_order,  
+                            abs_t_interp_order,  
+                            abs_nls_interp_order,
+                            true, 			// ignore errors
+                            // Parameters for LBL:
+                            abs_n2,
+                            abs_lines_per_species,
+                            abs_lineshape,
+                            abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+                            // Parameters for both:
+                            local_p,
+                            local_t,
+                            local_vmrs );
 
-        // This one is a bit tricky. In some cases, the local
-        // conditions will be outside the allowed range for the
-        // lookup table. It is too difficult to figure this out
-        // exactly, so I simply will ignore that error.
+        //          cout << "ma " << max_abs_rel_diff << "\n";
 
-        bool skip_this = false; // If this becomes true, we skip this case.
-
-        try            
-          {
-            // Absorption, dimension [n_f_grid,n_species]:
-            // Output variable: sga_tab
-            al.Extract(sga_tab,
-                       abs_p_interp_order,
-                       abs_t_interp_order,
-                       abs_nls_interp_order,
-                       -1,
-                       local_p,
-                       local_t,
-                       local_vmrs );
-          }
-        catch (runtime_error x)
-          {
-            skip_this = true;
-          }
-
-        if (!skip_this)
-          {
-            // Sum up for all species, to get total absorption:          
-            for (Index i=0; i<n_f; ++i)
-              abs_tab[i] = sga_tab(i,joker).sum();
-
-
-            // Now get absorption line-by-line, by calling the agenda:
-
-
-            // Output variable: sga_lbl
-            abs_scalar_gas_agendaExecute(l_ws,
-                                         sga_lbl,
-                                         -1,
-                                         local_p,
-                                         local_t,
-                                         local_vmrs,
-                                         l_abs_scalar_gas_agenda);
-            // Sum up for all species, to get total absorption:          
-            for (Index i=0; i<n_f; ++i)
-              abs_lbl[i] = sga_lbl(i,joker).sum();
-
-
-            // Ok. What we have to compare is abs_tab and abs_lbl.
-
-            assert(abs_tab.nelem()==n_f);
-            assert(abs_lbl.nelem()==n_f);
-            assert(abs_rel_diff.nelem()==n_f);
-            for (Index i=0; i<n_f; ++i)
-              {
-                // Absolute value of relative difference in percent:
-                abs_rel_diff[i] = fabs( (abs_tab[i] - abs_lbl[i]) / abs_lbl[i] * 100); 
-              }
-            // Maximum of this:
-            Numeric max_abs_rel_diff = max(abs_rel_diff);
-
-            //          cout << "ma " << max_abs_rel_diff << "\n";
-
-            if (max_abs_rel_diff > err_t)
+        if (max_abs_rel_diff > err_t)
               err_t = max_abs_rel_diff;
-          }
       }
 
 
@@ -2123,24 +2078,12 @@ void abs_lookupTestAccuracy(// Workspace reference:
   // lookup table, in percent.
   Numeric err_nls = -999;
 
-#pragma omp parallel firstprivate(l_ws, l_abs_scalar_gas_agenda)
+#pragma omp parallel 
 #pragma omp for 
   for (Index pi=0; pi<n_p; ++pi)
     for (Index ni=0; ni<inbet_nls_pert.nelem(); ++ni)
         {
-          // Allocate some matrices and vectors. I also tried
-          // allocating them outside the loop, but there was no
-          // significant speed advantage. (I guess the LBL calculation
-          // is expensive enough to make the extra time of allocation
-          // here insignificant.)
-          Vector local_vmrs;	// dimension [n_species]:
-          Matrix sga_tab;	// Absorption, dimension [n_f_grid,n_species]:
-          Matrix sga_lbl;
-          Vector abs_tab(n_f);
-          Vector abs_lbl(n_f);
-          Vector abs_rel_diff(n_f);                  
-
-          // First find local conditions:
+          // Find local conditions:
 
           // Pressure:
           Numeric local_p = al.p_grid[pi];
@@ -2149,79 +2092,33 @@ void abs_lookupTestAccuracy(// Workspace reference:
           Numeric local_t = al.t_ref[pi];
 
           // VMRs:
-          local_vmrs = al.vmrs_ref(joker, pi);
+          Vector local_vmrs = al.vmrs_ref(joker, pi);
 
           // Now we have to modify the H2O VMR according to nls_pert:
           local_vmrs[h2o_index] *= inbet_nls_pert[ni];
 
-          // Get absorption from lookup table
+          Numeric max_abs_rel_diff =
+            calc_lookup_error(// Parameters for lookup table:
+                              al,
+                              abs_p_interp_order,  
+                              abs_t_interp_order,  
+                              abs_nls_interp_order,
+                              true, 			// ignore errors
+                              // Parameters for LBL:
+                              abs_n2,
+                              abs_lines_per_species,
+                              abs_lineshape,
+                              abs_cont_names,
+                              abs_cont_models,
+                              abs_cont_parameters,
+                              // Parameters for both:
+                              local_p,
+                              local_t,
+                              local_vmrs );
 
-          // This one is a bit tricky. In some cases, the local
-          // conditions will be outside the allowed range for the
-          // lookup table. It is too difficult to figure this out
-          // exactly, so I simply will ignore that error.
-
-          bool skip_this = false; // If this becomes true, we skip this case.
-
-          try            
-            {
-              // Absorption, dimension [n_f_grid,n_species]:
-              // Output variable: sga_tab
-              al.Extract(sga_tab,
-                         abs_p_interp_order,
-                         abs_t_interp_order,
-                         abs_nls_interp_order,
-                         -1,
-                         local_p,
-                         local_t,
-                         local_vmrs );
-            }
-          catch (runtime_error x)
-            {
-              skip_this = true;
-            }
-
-          if (!skip_this)
-            {
-              // Sum up for all species, to get total absorption:          
-              for (Index i=0; i<n_f; ++i)
-                abs_tab[i] = sga_tab(i,joker).sum();
-
-
-              // Now get absorption line-by-line, by calling the agenda:
-
-
-              // Output variable: sga_lbl
-              abs_scalar_gas_agendaExecute(l_ws,
-                                           sga_lbl,
-                                           -1,
-                                           local_p,
-                                           local_t,
-                                           local_vmrs,
-                                           l_abs_scalar_gas_agenda);
-              // Sum up for all species, to get total absorption:          
-              for (Index i=0; i<n_f; ++i)
-                abs_lbl[i] = sga_lbl(i,joker).sum();
-
-
-              // Ok. What we have to compare is abs_tab and abs_lbl.
-
-              assert(abs_tab.nelem()==n_f);
-              assert(abs_lbl.nelem()==n_f);
-              assert(abs_rel_diff.nelem()==n_f);
-              for (Index i=0; i<n_f; ++i)
-                {
-                  // Absolute value of relative difference in percent:
-                  abs_rel_diff[i] = fabs( (abs_tab[i] - abs_lbl[i]) / abs_lbl[i] * 100); 
-                }
-              // Maximum of this:
-              Numeric max_abs_rel_diff = max(abs_rel_diff);
-
-              //          cout << "ma " << max_abs_rel_diff << "\n";
-
-              if (max_abs_rel_diff > err_nls)
-                err_nls = max_abs_rel_diff;
-            }
+          if (max_abs_rel_diff > err_nls)
+            err_nls = max_abs_rel_diff;
+            
         }
 
 
@@ -2240,23 +2137,11 @@ void abs_lookupTestAccuracy(// Workspace reference:
   // lookup table, in percent.
   Numeric err_p = -999;
 
-#pragma omp parallel firstprivate(l_ws, l_abs_scalar_gas_agenda)
+#pragma omp parallel
 #pragma omp for 
   for (Index pi=0; pi<n_p-1; ++pi)
     {
-      // Allocate some matrices and vectors. I also tried
-      // allocating them outside the loop, but there was no
-      // significant speed advantage. (I guess the LBL calculation
-      // is expensive enough to make the extra time of allocation
-      // here insignificant.)
-      Vector local_vmrs;	// dimension [n_species]:
-      Matrix sga_tab;	// Absorption, dimension [n_f_grid,n_species]:
-      Matrix sga_lbl;
-      Vector abs_tab(n_f);
-      Vector abs_lbl(n_f);
-      Vector abs_rel_diff(n_f);                  
-
-      // First find local conditions:
+      // Find local conditions:
 
       // Pressure:
       Numeric local_p = inbet_p_grid[pi];
@@ -2265,56 +2150,26 @@ void abs_lookupTestAccuracy(// Workspace reference:
       Numeric local_t = al.t_ref[pi];
 
       // VMRs:
-      local_vmrs = al.vmrs_ref(joker, pi);
+      Vector local_vmrs = al.vmrs_ref(joker, pi);
 
-      // Get absorption from lookup table
-
-      // Absorption, dimension [n_f_grid,n_species]:
-      // Output variable: sga_tab
-      al.Extract(sga_tab,
-                 abs_p_interp_order,
-                 abs_t_interp_order,
-                 abs_nls_interp_order,
-                 -1,
-                 local_p,
-                 local_t,
-                 local_vmrs );
-
-      // Sum up for all species, to get total absorption:          
-      for (Index i=0; i<n_f; ++i)
-        abs_tab[i] = sga_tab(i,joker).sum();
-
-
-      // Now get absorption line-by-line, by calling the agenda:
-
-
-      // Output variable: sga_lbl
-      abs_scalar_gas_agendaExecute(l_ws,
-                                   sga_lbl,
-                                   -1,
-                                   local_p,
-                                   local_t,
-                                   local_vmrs,
-                                   l_abs_scalar_gas_agenda);
-      // Sum up for all species, to get total absorption:          
-      for (Index i=0; i<n_f; ++i)
-        abs_lbl[i] = sga_lbl(i,joker).sum();
-
-
-      // Ok. What we have to compare is abs_tab and abs_lbl.
-
-      assert(abs_tab.nelem()==n_f);
-      assert(abs_lbl.nelem()==n_f);
-      assert(abs_rel_diff.nelem()==n_f);
-      for (Index i=0; i<n_f; ++i)
-        {
-          // Absolute value of relative difference in percent:
-          abs_rel_diff[i] = fabs( (abs_tab[i] - abs_lbl[i]) / abs_lbl[i] * 100); 
-        }
-      // Maximum of this:
-      Numeric max_abs_rel_diff = max(abs_rel_diff);
-
-      //          cout << "ma " << max_abs_rel_diff << "\n";
+      Numeric max_abs_rel_diff =
+        calc_lookup_error(// Parameters for lookup table:
+                          al,
+                          abs_p_interp_order,  
+                          abs_t_interp_order,  
+                          abs_nls_interp_order,
+                          true, 			// ignore errors
+                          // Parameters for LBL:
+                          abs_n2,
+                          abs_lines_per_species,
+                          abs_lineshape,
+                          abs_cont_names,
+                          abs_cont_models,
+                          abs_cont_parameters,
+                          // Parameters for both:
+                          local_p,
+                          local_t,
+                          local_vmrs );
 
       if (max_abs_rel_diff > err_p)
         err_p = max_abs_rel_diff;
