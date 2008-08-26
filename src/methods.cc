@@ -1054,6 +1054,55 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME("abs_lookupSetupWide"),
+        DESCRIPTION
+        (
+         "Set up input parameters for abs_lookupCalc for a wide range of\n"
+         "atmospheric conditions.\n"
+         "\n"
+         "This method can be used to set up parameters for a lookup table that\n"
+         "really covers all reasonable atmospheric conditions.\n"
+         "\n"
+         "Reference profiles of T and H2O will be constant, so that the\n"
+         "different dimensions in the lookup table are actually \"orthogonal\",\n"
+         "unlike the traditional case where we have pressure dependent reference\n"
+         "profiles. This makes the table numerically somewhat more robust then\n"
+         "the traditional ones, and it makes it straightforward to calculate the\n"
+         "accuracy for the different interpolations with abs_lookupTestAccuracy.\n"
+         "\n"
+         "You can give min an max values for the atmospheric conditions. The\n"
+         "default values are chosen such that they cover all Chevallier data set\n"
+         "cases, and a bit more. The statistics of the Chevallier data are:\n"
+         "\n"
+         "min(p)   / max(p)   [Pa]:  1 / 104960\n"
+         "min(T)   / max(T)   [K]:   158.21 / 320.39\n"
+         "min(H2O) / max(H2O) [VMR]: -5.52e-07 / 0.049\n"
+         "\n"
+         "p_step is in log10(p[hPa])\n"
+         "\n"
+         "FIXME: Explicitly document keywords.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT(  "abs_p",
+              "abs_t", 
+              "abs_t_pert", 
+              "abs_vmrs",
+              "abs_nls",
+              "abs_nls_pert" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        IN(      "abs_species",
+                 "abs_p_interp_order",
+                 "abs_t_interp_order",
+                 "abs_nls_interp_order" ),
+        GIN(      ),
+        KEYWORDS( "p_min",   "p_max",   "p_step",  "t_min",   "t_max",   "h2o_min", "h2o_max" ),
+        GIN_TYPE( ),
+        GIN_DEFAULT( "0.5",  "110000",  "0.05",    "100",     "400",     "0",       "0.1" ),
+        TYPES(    "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric" )));
+  
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME("abs_lookupTestAccuracy"),
         DESCRIPTION
         (

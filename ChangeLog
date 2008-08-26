@@ -1,3 +1,17 @@
+2008-08-26  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-8-11
+	
+	* src/methods.cc (abs_lookupSetupWide): Added.
+
+	* src/m_abs_lookup.cc (abs_lookupSetupBatch): Output also global
+	min/max values for p, T, and H2O. This is handy as input for
+	abs_lookupSetupWide.
+	(abs_lookupSetupWide): Added first implementation of this. Does
+	not yet work satisfactorily.
+	(abs_lookupTestAccuracy): Continued work on this method. Fixed
+	diverse bugs. Added test for total accuracy.
+
 2008-08-25  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-8-10

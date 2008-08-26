@@ -1139,7 +1139,7 @@ void abs_lookupSetupBatch(// WS Output:
       if (minp > batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)[batch_fields[i].get_numeric_grid(GFIELD4_P_GRID).nelem()-1])
         minp = batch_fields[i].get_numeric_grid(GFIELD4_P_GRID)[batch_fields[i].get_numeric_grid(GFIELD4_P_GRID).nelem()-1];
     }
-  out3 << "  maxp/minp: " << maxp << " / " << minp << "\n";
+  //  cout << "  minp/maxp: " << minp << " / " << maxp << "\n";
 
   if (maxp==minp)
     {
@@ -1186,6 +1186,16 @@ void abs_lookupSetupBatch(// WS Output:
   Matrix datamean (n_variables, np, 0);
   Vector mean_norm(np,0);          // Divide by this to get mean.
 
+
+  // We will loop over all batch cases to analyze the statistics and
+  // calculate reference profiles. As a little side project, we will
+  // also calculate the absolute min and max of temperature and
+  // humidity. This is handy as input to abs_lookupSetupWide.
+  Numeric mint=+1e99;
+  Numeric maxt=-1e99;
+  Numeric minh2o=+1e99;
+  Numeric maxh2o=-1e99;
+
   for (Index i=0; i<batch_fields.nelem(); ++i)
     {
       // Check that really each case has the same variables (see
@@ -1213,9 +1223,26 @@ void abs_lookupSetupBatch(// WS Output:
         }
 
       // Create convenient handles:
-      ConstVectorView  p_grid = batch_fields[i].get_numeric_grid(GFIELD4_P_GRID);
-      ConstTensor4View data   = batch_fields[i];
- 
+      const Vector&  p_grid = batch_fields[i].get_numeric_grid(GFIELD4_P_GRID);
+      const Tensor4& data   = batch_fields[i];
+
+      // Update our global max/min values for T and H2O:
+
+      // We have to loop over pressure, latitudes, and longitudes
+      // here. The dimensions of data are:
+      // data[N_fields][N_p][N_lat][N_lon]
+
+      for (Index ip=0; ip<data.npages(); ++ip)
+        for (Index ilat=0; ilat<data.nrows(); ++ilat)
+          for (Index ilon=0; ilon<data.ncols(); ++ilon)
+        {
+          // Field 0 is temperature:
+          if (data(0,ip,ilat,ilon) < mint) mint = data(0,ip,ilat,ilon);
+          if (data(0,ip,ilat,ilon) > maxt) maxt = data(0,ip,ilat,ilon);
+          // Field 2 is H2O:
+          if (data(2,ip,ilat,ilon) < minh2o) minh2o = data(2,ip,ilat,ilon);
+          if (data(2,ip,ilat,ilon) > maxh2o) maxh2o = data(2,ip,ilat,ilon);
+        }
 
       // Interpolate the current batch fields to the abs_p grid. We
       // have to do this for each batch case, since the grids could
@@ -1310,8 +1337,13 @@ void abs_lookupSetupBatch(// WS Output:
 
             mean_norm[Range(first_p, extent_p)] += 1;
           }
-
     }  
+
+  out2 << "  Global statistics:\n"
+       << "  min(p)   / max(p)   [Pa]:  " << minp << " / " << maxp << "\n"
+       << "  min(T)   / max(T)   [K]:   " << mint << " / " << maxt << "\n"
+       << "  min(H2O) / max(H2O) [VMR]: " << minh2o << " / " << maxh2o << "\n";
+
 
   // Divide mean by mean_norm to get the mean:
   assert(np==mean_norm.nelem());
@@ -1463,6 +1495,161 @@ void abs_lookupSetupBatch(// WS Output:
           out2 << "  Added max extreme value for abs_nls_pert: "
                << abs_nls_pert[abs_nls_pert.nelem()-1] << "\n";
         }
+    }
+}
+
+
+void abs_lookupSetupWide(// WS Output:
+                         Vector& abs_p,
+                         Vector& abs_t,
+                         Vector& abs_t_pert,
+                         Matrix& abs_vmrs,
+                         ArrayOfArrayOfSpeciesTag& abs_nls,
+                         Vector& abs_nls_pert,
+                         // WS Input:
+                         const ArrayOfArrayOfSpeciesTag& abs_species,
+                         const Index& abs_p_interp_order,
+                         const Index& abs_t_interp_order,
+                         const Index& abs_nls_interp_order,
+                         // Control Parameters:
+                         const Numeric& p_min,
+                         const Numeric& p_max,
+                         const Numeric& p_step10,
+                         const Numeric& t_min,
+                         const Numeric& t_max,
+                         const Numeric& h2o_min,
+                         const Numeric& h2o_max)
+{
+  // For consistency with other code around arts (e.g., correlation
+  // lengths in atmlab), p_step is given as log10(p[Pa]). However, we
+  // convert it here to the natural log:
+  const Numeric p_step = log(pow(10.0, p_step10));
+
+  // Make an intelligent choice for the nonlinear species.
+  choose_abs_nls(abs_nls, abs_species);
+
+  // 1. Fix pressure grid abs_p
+  // --------------------------
+  
+  // We construct the pressure grid as follows:
+  // - Everything is done in log(p).
+  // - Start with p_max and go down in steps of p_step until we are <= p_min.
+
+  Index np = (Index) ceil((log(p_max)-log(p_min))/p_step)+1;
+  // The +1 above has to be there because we must include also both
+  // grid end points. 
+
+  // If np is too small for the interpolation order, we increase it:
+  if (np < abs_p_interp_order+1)
+    np = abs_p_interp_order+1;
+
+  Vector log_abs_p(log(p_max), np, -p_step);
+
+  abs_p.resize(np);
+  transform(abs_p, exp, log_abs_p);  
+  out2 << "  abs_p: " << abs_p[0] << " Pa to " << abs_p[np-1]
+       << " Pa in log10 steps of " << p_step10
+       << " (" << np << " grid points)\n";
+
+
+  // 2. Fix reference temperature profile abs_t and temperature perturbations
+  // ------------------------------------------------------------------------
+
+  // We simply take a constant reference profile.
+
+  Numeric t_ref = (t_min + t_max) / 2;
+
+  abs_t.resize(np);
+  abs_t = t_ref;                // Assign same value to all elements.
+
+  // We have to make vectors out of t_min and t_max, so we can use
+  // them in the choose_abs_t_pert function call:
+  Vector min_prof(np), max_prof(np);
+  min_prof = t_min;
+  max_prof = t_max;
+
+  // Chose temperature perturbations:
+  choose_abs_t_pert(abs_t_pert,
+                    abs_t, min_prof, max_prof, 100,
+                    abs_p_interp_order, abs_t_interp_order);
+
+
+  // 3. Fix reference H2O profile and abs_nls_pert
+  // ---------------------------------------------
+
+  // We take a constant reference profile of 1ppm (=1e-6)
+
+  Numeric h2o_ref = 1e-6;
+
+  // We have to assign this value to all pressures of the H2O profile,
+  // and 0 to all other profiles.
+
+  // abs_vmrs has dimension [n_species, np].
+  abs_vmrs.resize(abs_species.nelem(), np);
+  abs_vmrs = 0;
+  
+  // We look for O2 and N2, and assign constant values to them.
+  // The values are from Wallace&Hobbs, 2nd edition.
+
+  const Index o2_index 
+    = find_first_species_tg( abs_species,
+                             species_index_from_species_name("O2") );
+  if (o2_index>=0)
+    {
+      abs_vmrs(o2_index, joker) = 0.2095;
+    }
+
+  const Index n2_index 
+    = find_first_species_tg( abs_species,
+                             species_index_from_species_name("N2") );
+  if (n2_index>=0)
+    {
+      abs_vmrs(n2_index, joker) = 0.7808;
+    }
+
+
+  // Which species is H2O?
+  const Index h2o_index 
+    = find_first_species_tg( abs_species,
+                             species_index_from_species_name("H2O") );
+
+  // The function returns "-1" if there is no H2O
+  // species.
+  if (0<abs_nls.nelem())
+    {
+      if (h2o_index<0)
+        {
+          ostringstream os;
+          os << "Some of your species require nonlinear treatment,\n"
+             << "but you have no H2O species.";
+          throw runtime_error( os.str() );
+        }
+
+      // Assign constant reference value to all H2O levels:
+      abs_vmrs(h2o_index, joker) = h2o_ref;
+
+      // We have to make vectors out of h2o_min and h2o_max, so we can use
+      // them in the choose_abs_nls_pert function call. 
+      // We re-use the vectors min_prof and max_prof that we have
+      // defined above.
+      min_prof = h2o_min;
+      max_prof = h2o_max;
+
+      // Construct abs_nls_pert:
+      choose_abs_nls_pert(abs_nls_pert,
+                          abs_vmrs(h2o_index, joker),
+                          min_prof,
+                          max_prof,
+                          1e99,
+                          abs_p_interp_order,
+                          abs_nls_interp_order);     
+    }
+  else
+    {
+      out1 << "  WARNING:\n"
+           << "  You have no species that require H2O variations.\n"
+           << "  This case might work, but it has never been tested.\n"
+           << "  Please test it, then remove this warning.\n";
     }
 }
 
@@ -1979,7 +2166,7 @@ void abs_lookupTestAccuracy(// WS Input:
 
   // Some important sizes:
   const Index n_nls     = al.nonlinear_species.nelem();
-  //  const Index n_species = al.species.nelem();
+  const Index n_species = al.species.nelem();
   //  const Index n_f       = al.f_grid.nelem();
   const Index n_p       = al.log_p_grid.nelem();
 
@@ -2040,6 +2227,11 @@ void abs_lookupTestAccuracy(// WS Input:
         // VMRs:
         Vector local_vmrs = al.vmrs_ref(joker, pi);
 
+        // Watch out, the table probably does not have an absorption
+        // value for exactly the reference H2O profile. We multiply
+        // with the first perturbation.
+        local_vmrs[h2o_index] *= al.nls_pert[0];
+
         Numeric max_abs_rel_diff =
           calc_lookup_error(// Parameters for lookup table:
                             al,
@@ -2061,9 +2253,15 @@ void abs_lookupTestAccuracy(// WS Input:
 
         //          cout << "ma " << max_abs_rel_diff << "\n";
 
-        if (max_abs_rel_diff > err_t)
-              err_t = max_abs_rel_diff;
-      }
+        //Critical directive here is necessary, because all threads
+        //access the same variable.
+#pragma omp critical
+        {
+          if (max_abs_rel_diff > err_t)
+            err_t = max_abs_rel_diff;
+        }
+
+      } // end parallel for loop
 
 
 
@@ -2082,44 +2280,54 @@ void abs_lookupTestAccuracy(// WS Input:
 #pragma omp for 
   for (Index pi=0; pi<n_p; ++pi)
     for (Index ni=0; ni<inbet_nls_pert.nelem(); ++ni)
+      {
+        // Find local conditions:
+
+        // Pressure:
+        Numeric local_p = al.p_grid[pi];
+
+        // Temperature:
+
+        // Watch out, the table probably does not have an absorption
+        // value for exactly the reference temperature. We add
+        // the first perturbation.
+
+        Numeric local_t = al.t_ref[pi] + al.t_pert[0];
+
+        // VMRs:
+        Vector local_vmrs = al.vmrs_ref(joker, pi);
+
+        // Now we have to modify the H2O VMR according to nls_pert:
+        local_vmrs[h2o_index] *= inbet_nls_pert[ni];
+
+        Numeric max_abs_rel_diff =
+          calc_lookup_error(// Parameters for lookup table:
+                            al,
+                            abs_p_interp_order,  
+                            abs_t_interp_order,  
+                            abs_nls_interp_order,
+                            true, 			// ignore errors
+                            // Parameters for LBL:
+                            abs_n2,
+                            abs_lines_per_species,
+                            abs_lineshape,
+                            abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+                            // Parameters for both:
+                            local_p,
+                            local_t,
+                            local_vmrs );
+
+        //Critical directive here is necessary, because all threads
+        //access the same variable.
+#pragma omp critical
         {
-          // Find local conditions:
-
-          // Pressure:
-          Numeric local_p = al.p_grid[pi];
-
-          // Temperature:
-          Numeric local_t = al.t_ref[pi];
-
-          // VMRs:
-          Vector local_vmrs = al.vmrs_ref(joker, pi);
-
-          // Now we have to modify the H2O VMR according to nls_pert:
-          local_vmrs[h2o_index] *= inbet_nls_pert[ni];
-
-          Numeric max_abs_rel_diff =
-            calc_lookup_error(// Parameters for lookup table:
-                              al,
-                              abs_p_interp_order,  
-                              abs_t_interp_order,  
-                              abs_nls_interp_order,
-                              true, 			// ignore errors
-                              // Parameters for LBL:
-                              abs_n2,
-                              abs_lines_per_species,
-                              abs_lineshape,
-                              abs_cont_names,
-                              abs_cont_models,
-                              abs_cont_parameters,
-                              // Parameters for both:
-                              local_p,
-                              local_t,
-                              local_vmrs );
-
           if (max_abs_rel_diff > err_nls)
             err_nls = max_abs_rel_diff;
-            
-        }
+        }            
+
+      } // end parallel for loop
 
 
   // Check pressure interpolation
@@ -2128,10 +2336,17 @@ void abs_lookupTestAccuracy(// WS Input:
   // unless we have constant reference profiles for T and
   // H2O. Otherwise we have T and H2O interpolation mixed in.
 
-  Vector inbet_p_grid(al.log_p_grid.nelem()-1);
+  Vector inbet_p_grid(n_p-1);
+  Vector inbet_t_ref(n_p-1);
+  Matrix inbet_vmrs_ref(n_species, n_p-1);
   for (Index i=0; i<inbet_p_grid.nelem(); ++i)
-    inbet_p_grid[i] = exp((al.log_p_grid[i]+al.log_p_grid[i+1])/2.0);
-
+    {
+      inbet_p_grid[i] = exp((al.log_p_grid[i]+al.log_p_grid[i+1])/2.0);
+      inbet_t_ref[i]  = (al.t_ref[i]+al.t_ref[i+1])/2.0;
+      for (Index j=0; j<n_species; ++j)
+        inbet_vmrs_ref(j,i) = (al.vmrs_ref(j,i)+al.vmrs_ref(j,i+1))/2.0;
+    }
+  
   // To store the interpolation error, which we define as the maximum of
   // the absolute value of the relative difference between LBL and
   // lookup table, in percent.
@@ -2147,10 +2362,20 @@ void abs_lookupTestAccuracy(// WS Input:
       Numeric local_p = inbet_p_grid[pi];
 
       // Temperature:
-      Numeric local_t = al.t_ref[pi];
+
+      // Watch out, the table probably does not have an absorption
+      // value for exactly the reference temperature. We add
+      // the first perturbation.
+
+      Numeric local_t = inbet_t_ref[pi] + al.t_pert[0];
 
       // VMRs:
-      Vector local_vmrs = al.vmrs_ref(joker, pi);
+      Vector local_vmrs = inbet_vmrs_ref(joker, pi);
+
+      // Watch out, the table probably does not have an absorption
+      // value for exactly the reference H2O profile. We multiply
+      // with the first perturbation.
+      local_vmrs[h2o_index] *= al.nls_pert[0];
 
       Numeric max_abs_rel_diff =
         calc_lookup_error(// Parameters for lookup table:
@@ -2171,8 +2396,74 @@ void abs_lookupTestAccuracy(// WS Input:
                           local_t,
                           local_vmrs );
 
-      if (max_abs_rel_diff > err_p)
-        err_p = max_abs_rel_diff;
+      //Critical directive here is necessary, because all threads
+      //access the same variable.
+#pragma omp critical
+      {
+        if (max_abs_rel_diff > err_p)
+          err_p = max_abs_rel_diff;
+      }
+    }
+
+
+  // Check total error
+
+  // To store the interpolation error, which we define as the maximum of
+  // the absolute value of the relative difference between LBL and
+  // lookup table, in percent.
+  Numeric err_tot = -999;
+
+#pragma omp parallel 
+#pragma omp for 
+  for (Index pi=0; pi<n_p-1; ++pi)
+    for (Index ti=0; ti<inbet_t_pert.nelem(); ++ti)
+      for (Index ni=0; ni<inbet_nls_pert.nelem(); ++ni)
+    {
+      // Find local conditions:
+
+      // Pressure:
+      Numeric local_p = inbet_p_grid[pi];
+
+      // Temperature:
+      Numeric local_t = inbet_t_ref[pi] + inbet_t_pert[ti];
+
+      // VMRs:
+      Vector local_vmrs = inbet_vmrs_ref(joker, pi);
+
+      // Multiply with perturbation.
+      local_vmrs[h2o_index] *= inbet_nls_pert[ni];
+
+      Numeric max_abs_rel_diff =
+        calc_lookup_error(// Parameters for lookup table:
+                          al,
+                          abs_p_interp_order,  
+                          abs_t_interp_order,  
+                          abs_nls_interp_order,
+                          true, 			// ignore errors
+                          // Parameters for LBL:
+                          abs_n2,
+                          abs_lines_per_species,
+                          abs_lineshape,
+                          abs_cont_names,
+                          abs_cont_models,
+                          abs_cont_parameters,
+                          // Parameters for both:
+                          local_p,
+                          local_t,
+                          local_vmrs );
+
+      //Critical directive here is necessary, because all threads
+      //access the same variable.
+#pragma omp critical
+      {
+        if (max_abs_rel_diff > err_tot)
+          {
+            err_tot = max_abs_rel_diff;
+            
+            cout << "New max error: pi, ti, ni, err_tot:\n"
+                 << pi << ", " << ti << ", " << ni << ", " << err_tot << "\n";
+          }
+      }
     }
 
 
@@ -2181,7 +2472,8 @@ void abs_lookupTestAccuracy(// WS Input:
        << "  pressure interpolation error will have other errors mixed in.\n"
        << "  Temperature interpolation: " << err_t << "%\n"
        << "  H2O (NLS) interpolation:   " << err_nls << "%\n"
-       << "  Pressure interpolation:    " << err_p << "%\n";
+       << "  Pressure interpolation:    " << err_p << "%\n"
+       << "  Total error:               " << err_tot << "%\n";
 
   // Check pressure interpolation
 

@@ -48,6 +48,7 @@ Delete( arrayofmatrix_1 )
 # Set parameters for lookup table
 # ---
 # Arguments omitted for better maintainability of this test file.
+#abs_lookupSetupWide
 abs_lookupSetupBatch
 # abs_lookupSetupBatch( abs_p, 
 #                       abs_t, 
