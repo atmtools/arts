@@ -72,14 +72,13 @@ void Agenda::append(const String& methodname,
   assert ( i2 != MdMap.end() );
   Index id = i2->second;            
           
-  ArrayOfIndex values(0);
   ArrayOfIndex output(0);          
   ArrayOfIndex input(0);
   Agenda dummy;
   dummy.resize(0);
   
   // Append the method
-  push_back (MRecord(id,values,output,input,keywordvalue,dummy));
+  push_back (MRecord(id,output,input,keywordvalue,dummy));
   set_outputs_to_push_and_dup ();
 }
 
@@ -200,7 +199,7 @@ void Agenda::execute(Workspace& ws) const
           { // Check if all generic input variables are initialized:
             const ArrayOfIndex& v(mrr.In());
             for (Index s=0; s<v.nelem(); ++s)
-              if (!ws.is_initialized(v[s]))
+              if (!ws.is_initialized(v[s]) && !mdd.SetMethod() )
                 give_up("Method "+mdd.Name()+" needs input variable: "+
                         Workspace::wsv_data[v[s]].Name());
           }
@@ -668,36 +667,9 @@ void MRecord::print( ostream& os,
 
   os << "{\n";
 
-  // Is this an agenda method?
   if ( 0 != Tasks().nelem() )
     {
-      // Assert that the keyword list really is empty:
-      assert ( 0 == tmd.Keywords().nelem() );
-
       Tasks().print(os,indent+"   ");
-    }
-  else
-    {
-      // We must have a plain method.
-
-      // Print the keywords:
-
-      // Determine the length of the longest keyword:
-      Index maxsize = 0;
-      for (Index i=0; i<tmd.Keywords().nelem(); ++i)
-        if ( tmd.Keywords()[i].nelem() > maxsize )
-          maxsize = tmd.Keywords()[i].nelem();
-
-      // The number of actual parameters must match the number of
-      // keywords: 
-      assert( tmd.Keywords().nelem() == Values().nelem() );
-
-      for (Index i=0; i<tmd.Keywords().nelem(); ++i)
-        {
-          os << indent << "   " << setw(maxsize)
-             << tmd.Keywords()[i] << " = "
-             << Values()[i] << "\n";
-        }
     }
 
   os << indent << "}";

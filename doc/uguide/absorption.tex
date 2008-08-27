@@ -331,27 +331,27 @@ examples in ~sbuehler/arts\_calc/abs\_lookup\_2/.}
 
 \begin{verbatim}
 # Read lookup table:
-ReadXML(abs_lookup){"some_table.xml"}
+ReadXML( abs_lookup, "some_table.xml" )
 
 # Adapt lookup table:
-abs_lookupAdapt{}
+abs_lookupAdapt
 
 # Set agenda for extracting absorption
-AgendaSet(abs_scalar_gas_agenda){
-  abs_scalar_gasExtractFromLookup{}
+AgendaSet( abs_scalar_gas_agenda ){
+  abs_scalar_gasExtractFromLookup
 }
 
 # Input to abs_scalar_gasExtractFromLookup{}, 
 # means to calculate all frequencies.
-IndexSet(f_index){-1}
+IndexSet( f_index, -1 )
 
 # Calculate scalar gas absorption field. (This assumes that 
 # also the WSVs f_grid, atmosphere_dim, p_grid, lat_grid, 
 # lon_grid, t_field, and vmr_field have been defined.)
-abs_fieldCalc{}
+abs_fieldCalc
 
 # Write out the field:
-WriteXML(abs_field){""}
+WriteXML( "ascii", abs_field, "" )
 \end{verbatim}
 
 Use the online documentation for the methods and variables mentioned

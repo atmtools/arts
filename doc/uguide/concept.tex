@@ -36,9 +36,7 @@ a more technical nature, for example various grids.
 The program performs a calculation by executing a list of
 \textindex{workspace methods}, which are specified in a
 controlfile. These workspace methods take workspace variables as
-input, and generate workspace variables as output. Additional
-input parameters can be specified as \textindex{keyword parameters} in
-the controlfile (Figure \ref{fig:method}).
+input, and generate workspace variables as output.
 
 \begin{figure}
   \begin{center}
@@ -46,8 +44,8 @@ the controlfile (Figure \ref{fig:method}).
     \caption{\textindex{Specific
         workspace methods} act on specific workspace variables to
         generate other specific workspace variables. Additional input
-        parameters can be specified as keyword parameters in the
-        controlfile.}
+        parameters can be specified as generic input and output parameters
+        in the controlfile.}
     \label{fig:method}
   \end{center}
 \end{figure}
@@ -57,7 +55,7 @@ well-defined syntax. This syntax is understood by the ARTS parser.
 The great advantage of this concept is that it is very easy to add
 new workspace variables and new workspace methods. The program has
 an internal lookup table which lists all workspace methods, as well
-as their input variables, output variables, and keyword
+as their input variables, output variables, and generic input/output
 parameters. To add a new method, one just has to add an entry to
 this lookup table, and write the code for the method itself. No
 further changes to the program are necessary. In particular, no
@@ -71,10 +69,10 @@ can be made practically is described in Section \ref{sec:development}.
 
 Generic methods (Figure \ref{fig:generic_method}) allow the user of
 the program even more freedom than specific methods. A generic method
-is for example \artsstyle{MatrixSet}, which can be used to set any
+is for example \artsstyle{MatrixSetConstant}, which can be used to set any
 workspace variable which is a matrix. For example
 \begin{quote}
-  \artsstyle{MatrixSet(z\_surface){0.0}}
+  \artsstyle{MatrixSetConstant( z\_surface, 10, 10, 0.0 )}
 \end{quote}
 will set all elements of \artsstyle{z\_surface} to 0.0 (as long as
 \artsstyle{nrows} and \artsstyle{ncols} are set).
@@ -129,8 +127,8 @@ emission agenda in the control file:
 
 {\small
 \begin{verbatim}
-AgendaSet(emission_agenda){
-  emissionPlanck{}
+AgendaSet( emission_agenda ){
+  emissionPlanck
 }
 \end{verbatim}
 }

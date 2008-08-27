@@ -49,10 +49,8 @@ MdRecord::MdRecord(const char                   name[],
                    const MakeArray<String>&     gouttype,
                    const MakeArray<String>&     input,   
                    const MakeArray<String>&     gin,   
-                   const MakeArray<String>&     keywords,
                    const MakeArray<String>&     gintype,   
-                   const MakeArray<String>&     defaults,
-                   const MakeArray<String>&     types,
+                   const MakeArray<String>&     gindefault,
                    bool                         set_method,
                    bool                         agenda_method,
                    bool                         suppress_header,
@@ -66,10 +64,8 @@ MdRecord::MdRecord(const char                   name[],
     mgouttype(        0                   ),  
     minput(           0                   ),   
     mgin(             gin                 ),   
-    mkeywords(        keywords            ),
     mgintype(         0                   ),   
-    mdefaults(        defaults            ),
-    mtypes(           0                   ),
+    mgindefault(      gindefault          ),
     mset_method(      set_method          ),
     magenda_method(   agenda_method       ),
     msupergeneric(    false               ),
@@ -81,16 +77,12 @@ MdRecord::MdRecord(const char                   name[],
       // Initializing the various arrays with input data should now
       // work correctly.  
 
-      // Keywords and type must have the same number of
-      // elements. (Types specifies the types associated with each
-      // keyword.)
-      mtypes.resize(types.nelem());
-      assert( mkeywords.nelem() == mtypes.nelem() );
-
-      // Keywords and Defaults must have the same number of
+      // Generic variable names, types and defaults must have the same number of
       // elements. (Defaults specifies the default values associated with each
-      // keyword.)
-      assert( mkeywords.nelem() == mdefaults.nelem() );
+      // generic input.)
+      assert( mgout.nelem() == gouttype.nelem() );
+      assert( mgin.nelem() == mgindefault.nelem() );
+      assert( mgin.nelem() == gintype.nelem() );
 
       // Map the WSV names to indexes
       moutput.resize(output.nelem());
@@ -141,27 +133,6 @@ MdRecord::MdRecord(const char                   name[],
             {
               ostringstream os;
               os << "Unknown WSV Group " << gintype[j] << " for generic input "
-                << "in WSM " << mname;
-              throw runtime_error( os.str() );
-            }
-        }
-
-
-      // Map the keyword types to group indexes
-      for ( Index j=0; j<types.nelem(); ++j )
-        {
-          mtypes[j] = get_wsv_group_id (types[j]);
-          if (mtypes[j] == -1)
-            {
-              ostringstream os;
-              os << "Unknown Group " << types[j] << " for keyword "
-                << "in WSM " << mname;
-              throw runtime_error( os.str() );
-            }
-          else if (!is_valid_keyword_group(mtypes[j]))
-            {
-              ostringstream os;
-              os << "Group " << types[j] << " is not a valid group for keywords "
                 << "in WSM " << mname;
               throw runtime_error( os.str() );
             }
@@ -441,15 +412,15 @@ ostream& MdRecord::PrintTemplate(ostream& os,
 
   // Determine the length of the longest keyword:
   Index maxsize = 0;
-  for (Index i=0; i<Keywords().nelem(); ++i)
-    if ( Keywords()[i].nelem() > maxsize )
-      maxsize = Keywords()[i].nelem();
+  for (Index i=0; i<GIn().nelem(); ++i)
+    if ( GIn()[i].nelem() > maxsize )
+      maxsize = GIn()[i].nelem();
 
 
-  for (Index i=0; i<Keywords().nelem(); ++i)
+  for (Index i=0; i<GIn().nelem(); ++i)
     {
       os << "\t" << setw(maxsize)
-         << Keywords()[i] << " = \n";
+         << GIn()[i] << " = \n";
     }
 
   os << '}';
@@ -475,15 +446,13 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
 
   // Print the method's synopsis
   {
-    bool separate_lines = false;
     String indent = "";
 
     // If the method has more than 4 arguments, put them on
     // separate lines for better readability
-    if (mdr.Out().nelem() + mdr.GOutType().nelem() + mdr.In().nelem()
-        + mdr.GInType().nelem() + mdr.Keywords().nelem() > 4)
+    if (mdr.Out().nelem() + mdr.GOut().nelem() + mdr.In().nelem()
+        + mdr.GIn().nelem() > 4)
       {
-        separate_lines = true;
         indent = "\n";
         for (size_t i = 0; i < mdr.Name().length() + 2; i++)
           {
@@ -520,11 +489,6 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
         os << wsv_group_names[mdr.GInType()[i]];
       }
 
-    for ( Index i=0; i<mdr.Keywords().nelem(); ++i )
-      {
-        if (first) first=false; else os << ", " << indent;
-        os << '"' << mdr.Keywords()[i]<< '"';
-      }
     os << " )\n\n";
   }
 
@@ -598,43 +562,21 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
     }
   os << '\n';
 
-  // Keywords:
-  first = true;
-  os << "Keywords = ";
-  for ( Index i=0; i<mdr.Keywords().nelem(); ++i )
-    {
-      if (first) first=false;
-      else os << ", ";
-
-      os << mdr.Keywords()[i];
-    }
-  os << '\n';
-
   // Defaults:
   first = true;
-  os << "Defaults = ";
-  for ( Index i=0; i<mdr.Defaults().nelem(); ++i )
+  os << "GInDefault = ";
+  for ( Index i=0; i<mdr.GInDefault().nelem(); ++i )
     {
       if (first) first=false;
       else os << ", ";
 
-      if (mdr.Defaults()[i] != NODEF)
-        os << mdr.Defaults()[i];
+      if (mdr.GInDefault()[i] != NODEF)
+        os << mdr.GInDefault()[i];
       else
         os << "none";
     }
   os << '\n';
 
-  // Types:
-  first = true;
-  os << "Types = ";
-  for ( Index i=0; i<mdr.Types().nelem(); ++i )
-    {
-      if (first) first=false;
-      else os << ", ";
-
-      os << wsv_group_names[mdr.Types()[i]];
-    }
   os << "\n*-------------------------------------------------------------------*\n";
 
   return os;

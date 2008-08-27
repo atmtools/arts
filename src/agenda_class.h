@@ -93,8 +93,7 @@ ostream& operator<<(ostream& os, const Agenda& a);
 
 /** Method runtime data. In contrast to MdRecord, an object of this
     class contains the runtime information for one method: The method
-    id and the keyword parameter values. This is all that the engine
-    needs to execute the stack of methods.
+    id. This is all that the engine needs to execute the stack of methods.
 
     An MRecord includes a member magenda, which can contain an entire
     agenda, i.e., a list of other MRecords. 
@@ -103,14 +102,12 @@ ostream& operator<<(ostream& os, const Agenda& a);
 class MRecord {
 public:
   MRecord() : mid(-1),
-              mvalues(),
               moutput(),
               minput(),
               msetvalue(),
               mtasks() { /* Nothing to do here. */ }
 
   MRecord(const MRecord& x) : mid(x.mid),
-                              mvalues(x.mvalues),
                               moutput(x.moutput),
                               minput(x.minput),
                               msetvalue(x.msetvalue),
@@ -118,12 +115,10 @@ public:
     { /* Nothing to do here */ }
 
   MRecord(const Index id,
-          const ArrayOfIndex& values,
           const ArrayOfIndex& output,
           const ArrayOfIndex& input,
           const TokVal&       setvalue,
           const Agenda&       tasks) : mid(id),
-                                              mvalues(values),
                                               moutput(output),
                                               minput(input),
                                               msetvalue(setvalue),
@@ -131,7 +126,6 @@ public:
   { /* Nothing to do here */ }
 
   Index               Id()       const { return mid;       }
-  const ArrayOfIndex& Values()   const { return mvalues;   }
   const ArrayOfIndex& Out()      const { return moutput;   }
   const ArrayOfIndex& In()       const { return minput;    }
   const TokVal&       SetValue() const { return msetvalue; }
@@ -163,9 +157,6 @@ public:
       mid = x.mid;
 
       msetvalue = x.msetvalue;
-
-      mvalues.resize(x.mvalues.nelem());
-      mvalues = x.mvalues;
 
       moutput.resize(x.moutput.nelem());
       moutput = x.moutput;
@@ -212,8 +203,6 @@ public:
 private:
   /** Method id. */
   Index mid;
-  /** Keyword workspace variables. */
-  ArrayOfIndex mvalues;
   /** Output workspace variables. */
   ArrayOfIndex moutput;
   /** Input workspace variables. */

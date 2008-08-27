@@ -850,7 +850,7 @@ void abs_speciesDefineAllInScenario(// WS Output:
           // Add this tag group to tgs:
           tgs.push_back(this_group);
         }
-      catch (runtime_error x)
+      catch (runtime_error)
         {
           // Ok, the file for the species could not be found.
           excluded.push_back(specname);

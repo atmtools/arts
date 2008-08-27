@@ -1453,7 +1453,7 @@ void jacobianUnit(
     {
       ybatchUnit( jacobian, j_unit, sensor_response_f );
     }
-  catch( runtime_error e ) 
+  catch( runtime_error ) 
     {
       ostringstream os;
       os << "Unknown option: jacobian_unit = \"" << j_unit << "\"\n" 

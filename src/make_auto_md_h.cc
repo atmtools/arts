@@ -218,29 +218,23 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
         }
       else
         {
-          ofs << indent << "\\param[in] genericinput" << j+1
-            << " Generic Input\n";
-        }
+          if (mdd.GIn()[j] != "")
+            {
+              ofs << indent << "\\param[in] " << mdd.GIn()[j]
+                << " Generic Input\n";
+            }
+          else
+            {
+              ofs << indent << "\\param[in] genericinput" << j+1
+                << " Generic Input\n";
+            }
+
+          if (mdd.GInDefault()[j] != NODEF)
+            {
+              ofs << " (Default: " << mdd.GInDefault()[j] << ")";
+            }
+         }
     }
-
-  // Write the control parameters:
-  {
-    // Number of keyword parameters.
-    Index n_mr = mdd.Keywords().nelem();
-
-    for (Index j=0; j!=n_mr; ++j)
-      {
-        ofs << indent << "\\param[in] "
-          << mdd.Keywords()[j] << " Control parameter";
-
-        if (mdd.Defaults()[j] != NODEF)
-          {
-            ofs << " (Default: " << mdd.Defaults()[j] << ")";
-          }
-        
-        ofs << "\n";
-      }
-  }
 
   // Write agenda, if there is one:
   if ( mdd.AgendaMethod() )
@@ -490,32 +484,6 @@ void write_method_header( ofstream& ofs,
           ofs << "const String& genericinputname" << j+1;
         }
     }
-
-  // Write the control parameters:
-  {
-    // Flag first parameter of this sort.
-    bool is_first_of_these = true;
-
-    // Number of keyword parameters.
-    Index n_mr = mdd.Keywords().nelem();
-
-    for (Index j=0; j!=n_mr; ++j)
-      {
-        // Add comma and line break, if not first element:
-        align(ofs,is_first_parameter,indent);
-                    
-        // Add type if this is the first of this sort.
-        if (is_first_of_these)
-          {
-            ofs << "// Control Parameters:\n";
-            ofs << indent;                
-            is_first_of_these = false;
-          }
-
-        ofs << "const " << wsv_group_names[mdd.Types()[j]] << "& "
-            << mdd.Keywords()[j];
-      }
-  }
 
   // Write agenda, if there is one:
   if ( mdd.AgendaMethod() )

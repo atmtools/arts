@@ -59,6 +59,14 @@
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfIndexCreate(// WS Generic Output:
+                        ArrayOfIndex& aoi )
+{
+  aoi = ArrayOfIndex();
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfLineRecordCreate(// WS Generic Output:
                              ArrayOfLineRecord& aolr )
 {

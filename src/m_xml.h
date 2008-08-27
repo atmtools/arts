@@ -38,8 +38,10 @@ ReadXML (// WS Generic Output:
          T&            v,
          // WS Generic Output Names:
          const String& v_name,
-         // Control Parameters:
-         const String& f)
+         // WS Generic Input:
+         const String& f,
+         // WS Generic Input Names:
+         const String& f_name _U_)
 {
   String filename = f;
 
@@ -57,10 +59,12 @@ ReadXML (Workspace&    ws _U_,
          Agenda&       v,
          // WS Generic Output Names:
          const String& v_name,
-         // Control Parameters:
-         const String& f)
+         // WS Generic Input:
+         const String& f,
+         // WS Generic Input Names:
+         const String& f_name)
 {
-  ReadXML (v, v_name, f);
+  ReadXML (v, v_name, f, f_name);
 }
 
 
@@ -68,12 +72,13 @@ ReadXML (Workspace&    ws _U_,
 template<typename T> void
 WriteXML (//WS Input:
           const String& file_format,
-          // WS Generic Output:
+          // WS Generic Input:
           const T&            v,
-          // WS Generic Output Names:
+          const String& f,
+          // WS Generic Input Names:
           const String& v_name,
-          // Control Parameters:
-          const String& f)
+          const String& f_name _U_)
+
 {
   String filename = f;
   FileType ftype;
@@ -103,14 +108,14 @@ void
 WriteXML (Workspace& ws _U_,
           //WS Input:
           const String& file_format,
-          // WS Generic Output:
+          // WS Generic Input:
           const Agenda& v,
-          // WS Generic Output Names:
+          const String& f,
+          // WS Generic Input Names:
           const String& v_name,
-          // Control Parameters:
-          const String& f)
+          const String& f_name)
 {
-  WriteXML (file_format, v, v_name, f);
+  WriteXML (file_format, v, f, v_name, f_name);
 }
 
 
@@ -119,19 +124,19 @@ template<typename T> void
 WriteXMLIndexed (//WS Input:
                  const String& file_format,
                  const Index&  file_index,
-                 // WS Generic Output:
-                 const T&            v,
-                 // WS Generic Output Names:
+                 // WS Generic Input:
+                 const T&      v,
+                 const String& f,
+                 // WS Generic Input Names:
                  const String& v_name,
-                 // Control Parameters:
-                 const String& f)
+                 const String& f_name _U_)
 {
   String filename = f;
 
   // Create default filename if empty
   filename_xml_with_index( filename, file_index, v_name );
 
-  WriteXML( file_format, v, v_name, filename );
+  WriteXML( file_format, v, filename, v_name, f_name );
 }
 
 
@@ -141,14 +146,14 @@ WriteXMLIndexed (Workspace& ws _U_,
                  //WS Input:
                  const String& file_format,
                  const Index&  file_index,
-                 // WS Generic Output:
+                 // WS Generic Input:
                  const Agenda& v,
-                 // WS Generic Output Names:
+                 const String& f,
+                 // WS Generic Input Names:
                  const String& v_name,
-                 // Control Parameters:
-                 const String& f)
+                 const String& f_name)
 {
-  WriteXMLIndexed (file_format, file_index, v, v_name, f);
+  WriteXMLIndexed (file_format, file_index, v, f, v_name, f_name);
 }
 
 

@@ -48,10 +48,8 @@ public:
     mgouttype(    0               ),  
     minput(       0               ),   
     mgin(         0               ),   
-    mkeywords(    0               ),
     mgintype(     0               ),   
-    mdefaults(    0               ),
-    mtypes(       0               ),
+    mgindefault(  0               ),
     mset_method(false),
     magenda_method(false),
     msupergeneric(false),
@@ -70,10 +68,8 @@ public:
            const MakeArray<String>&     gouttype,
            const MakeArray<String>&     input,   
            const MakeArray<String>&     gin,
-           const MakeArray<String>&     keywords,
            const MakeArray<String>&     gintype,   
-           const MakeArray<String>&     defaults,
-           const MakeArray<String>&     types,
+           const MakeArray<String>&     gindefault _U_,
            bool                         set_method      = false,
            bool                         agenda_method   = false,
            bool                         suppress_header = false,
@@ -90,10 +86,8 @@ public:
   const ArrayOfIndex&      GOutType()       const { return mgouttype; }
   const ArrayOfIndex&      In()             const { return minput; }
   const ArrayOfString&     GIn()            const { return mgin; }
-  const Array<String>&     Keywords()       const { return mkeywords; }
   const ArrayOfIndex&      GInType()        const { return mgintype; }
-  const Array<String>&     Defaults()       const { return mdefaults; }
-  const ArrayOfIndex&      Types()          const { return mtypes; }
+  const Array<String>&     GInDefault()     const { return mgindefault; }
   bool                     SetMethod()      const { return mset_method; }
   bool                     AgendaMethod()   const { return magenda_method; }
   bool                     Supergeneric()   const { return msupergeneric; }
@@ -161,29 +155,23 @@ private:
   //! Generic Workspace Input Names.
   ArrayOfString mgin;
 
-  //! Keywords Names.
-  ArrayOfString mkeywords;
-
   //! Generic Workspace Input.
   ArrayOfIndex mgintype;
 
-  //! Keywords.
-  ArrayOfString mdefaults;
-
-  //! Types associated with keywords.
-  ArrayOfIndex mtypes;
+  //! Generic Workspace Input Defaults.
+  ArrayOfString mgindefault;
 
   //! Flag, whether this is a set method. 
   /*!
-    Set methods have exactly one keyword. Unlike other keywords these
+    Set methods have exactly one generic input. Unlike other inputs these
     are not stored in a workspace variable.
   */
   bool mset_method;
 
   //! Flag, whether this is an agenda method. 
   /*!
-    Agenda methods do not expect keywords, but other method
-    definitions inside their body in the controlfile.
+    Agenda methods expect other method definitions inside their body
+    in the controlfile.
   */
   bool magenda_method;
 

@@ -143,7 +143,7 @@ propagation path at all crossings with the grids, tangent points and
 points of surface reflection. Additional points can be included in the
 propagation paths. For example, an upper distance between the points
 defining the path can be set for \artsstyle{ppath\_stepGeometric} by
-the keyword \artsstyle{lmax} (see Figure~\ref{fig:ppath:ex2}).
+the generic input \artsstyle{lmax} (see Figure~\ref{fig:ppath:ex2}).
 
 In many cases the propagation path can/must be considered to consist
 of several parts. One exemple is surface reflection (see
@@ -1156,10 +1156,10 @@ corrected to compensate for the bending due to refraction. The
 calculation of propagation paths including the effect of refraction is
 often denoted as \textindex{ray tracing}.
 
-The length of the calculation steps is set by the keyword
+The length of the calculation steps is set by the generic input
 \artsstyle{lraytrace}. This length shall not be confused with the
 final distance between the points that define the path, which is
-controlled by the keyword \artsstyle{lmax}. The path is first
+controlled by the generic input \artsstyle{lmax}. The path is first
 determined in steps of \artsstyle{lraytrace}. The found ray tracing
 points are then used for an interpolation to create a path step
 defined exactly as for geometrical calculations. The normal situation
@@ -1554,38 +1554,27 @@ Some examples on how the geoid radius and the surface altitude can be set:
 \begin{verbatim}
 
 # Set the geoid to model WGS84 for 2D and 3D.
-r_geoidWGS84 {
-}
+r_geoidWGS84
 
 # For 1D, *lat_1d* and *meridian_angle_1d* must be specified 
 # to define the position and direction for which the curvature 
 # radius shall be extracted.
-NumericSet( lat_1d ) {
-  value = 45
-}
-NumericSet( meridian_angle_1d ) {
-  value = 0
-}
-r_geoidWGS84 {
-}
+NumericSet( lat_1d, 45 )
+NumericSet( meridian_angle_1d, 0 )
+r_geoidWGS84
 
 # Set the geoid to be spherical, with a radius of 6370 km
-r_geoidSpherical {
-  r = 6370e3
-}
+r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid,
+                  6370e3 )
 
 # Set the geoid to be spherical, with standard radius (defined 
 # in arts.h)
-r_geoidSpherical {
-  r = -1
-}
+r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
 
 # Set a constant surface altitude of 1 km
-ncolsGet( r_geoid ) {}
-nrowsGet( r_geoid ) {}
-MatrixSet( z_surface ) {
-  value = 1e3
-}
+ncolsGet( ncols, r_geoid )
+nrowsGet( nrows, r_geoid )
+MatrixSetConstant( z_surface, nrows, ncols, 1e3 )
 \end{verbatim}
 
 \noindent
@@ -1595,22 +1584,24 @@ Different possibilities for the \artsstyle{ppath\_step\_agenda}:
 # Select geometric calculations, with no length criterion 
 # for path points.
 AgendaSet( ppath_step_agenda ) {
-  ppath_stepGeometric{
-    lmax = -1
-  }
+  ppath_stepGeometric( ppath_step, atmosphere_dim, p_grid, lat_grid,
+                       lon_grid, z_field, r_geoid, z_surface, -1 )
 }
 
 # Consider refraction. The ray tracing step length is 2 km 
 # and the length criterion for path points is 10 km.
 AgendaSet( refr_index_agenda ) {
-  refr_indexThayer{
-  }
+  refr_indexThayer
 }
 AgendaSet( ppath_step_agenda ) {
-  ppath_stepRefractionEuler{
-    lraytrace = 2e3
-    lmax      = 10e3
-  }
+  ppath_stepRefractionEuler( ppath_step, rte_pressure,
+                             rte_temperature, rte_vmr_list,
+                             refr_index, refr_index_agenda, 
+                             atmosphere_dim, p_grid, lat_grid,
+                             lon_grid, z_field, t_field,
+                             vmr_field, r_geoid, z_surface,
+                             10e3,
+                             2e3 )
 }
 \end{verbatim}
 

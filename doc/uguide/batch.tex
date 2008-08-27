@@ -91,26 +91,26 @@ of zenith angles is found in the last file. The batch calculations
 are then performed as:
 
 \begin{verbatim}
-ReadXML  (tensor4_1) {"batch_t_field.xml"}
-ReadXML  (tensor4_2) {"batch_z_field.xml"}
-ReadXML  (tensor5_1) {"batch_vmr_field.xml"}
-ReadXML  (tensor3_1) {"batch_za.xml" }
-IndexSet (ybatch_n)  {5}
+ReadXML( tensor4_1, "batch_t_field.xml" )
+ReadXML( tensor4_2, "batch_z_field.xml" )
+ReadXML( tensor5_1, "batch_vmr_field.xml" )
+ReadXML( tensor3_1, "batch_za.xml" )
+IndexSet( ybatch_n, 5 )
 
-AgendaSet (ybatch_calc_agenda) {
-  Print (ybatch_index) {0}
-  Tensor3ExtractFromTensor4 (t_field,    tensor4_1, ybatch_index) {}
-  Tensor3ExtractFromTensor4 (z_field,    tensor4_2, ybatch_index) {}
-  Tensor4ExtractFromTensor5 (vmr_field,  tensor5_1, ybatch_index) {}
-  MatrixExtractFromTensor3  (sensor_los, tensor3_1, ybatch_index) {}
+AgendaSet ( ybatch_calc_agenda ){
+  Print( ybatch_index, 0 )
+  Tensor3ExtractFromTensor4( t_field,    tensor4_1, ybatch_index )
+  Tensor3ExtractFromTensor4( z_field,    tensor4_2, ybatch_index )
+  Tensor4ExtractFromTensor5( vmr_field,  tensor5_1, ybatch_index )
+  MatrixExtractFromTensor3(  sensor_los, tensor3_1, ybatch_index )
 
-  RteCalc {}
+  RteCalc
 }
 
-ybatchCalc {}
-MatrixToTbByRJ (ybatch, ybatch) {}
+ybatchCalc
+MatrixToTbByRJ( ybatch, ybatch )
 
-WriteXML (ybatch) {"ybatch_run1.xml"}
+WriteXML( "ascii", ybatch, "ybatch_run1.xml" )
 \end{verbatim}
 
 If you then want to repeat the calculations, for example with another
@@ -118,14 +118,17 @@ propagation path step length (e.g. 25\,km), it is sufficient to add
 the lines:
 
 \begin{verbatim}
-AgendaSet (ppath_step_agenda) {
-   ppath_stepGeometric {25e3}
+AgendaSet( ppath_step_agenda ){
+   ppath_stepGeometric( ppath_step, atmosphere_dim, p_grid,
+                        lat_grid, lon_grid,
+                        z_field, r_geoid, z_surface,
+                        25e3 )
 }
 
-ybatchCalc {}
-MatrixToTbByRJ (ybatch, ybatch) {}
+ybatchCalc
+MatrixToTbByRJ( ybatch, ybatch )
 
-WriteXML (ybatch) {"ybatch_run2.xml"}
+WriteXML( "ascii", ybatch, "ybatch_run2.xml" )
 \end{verbatim}
 
 %%% Local Variables: 

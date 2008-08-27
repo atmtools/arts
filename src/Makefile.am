@@ -94,6 +94,7 @@ libarts_a_SOURCES = \
 	m_ignore.h \
 	m_jacobian.cc \
 	m_montecarlo.cc \
+	m_select.h \
 	m_sensor.cc \
 	m_xml.h \
 	m_batch.cc \

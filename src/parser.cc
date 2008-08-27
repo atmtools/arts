@@ -63,8 +63,6 @@ void ArtsParser::parse_main()
 
       // For method ids:
       Index id;         
-      // For keyword parameter values:
-      ArrayOfIndex values;
       // Output workspace variables (for generic methods):
       ArrayOfIndex output;              
       // Input workspace variables (for generic methods):
@@ -80,7 +78,7 @@ void ArtsParser::parse_main()
       msource.Init();
       eat_whitespace();
 
-      parse_method(id,values,output,input,mtasklist,auto_vars,auto_vars_values,
+      parse_method(id,output,input,mtasklist,auto_vars,auto_vars_values,
                    include_file,true);
           
       if ( "Arts" != md_data[id].Name() &&  "Arts2" != md_data[id].Name() )
@@ -184,8 +182,7 @@ void ArtsParser::parse_main()
     curly braces of an agenda method. So the end is marked by a
     closing curly brace ahead.
 
-    \param[out] tasklist The ids and keyword parameter values for the
-                         methods to run.
+    \param[out] tasklist The method ids.
   
     \see eat_whitespace
     \see parse_method
@@ -198,8 +195,6 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
 
   // For method ids:
   Index id;             
-  // For keyword parameter values:
-  ArrayOfIndex values;
   // Output workspace variables:
   ArrayOfIndex output;          
   // Input workspace variables:
@@ -216,7 +211,7 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
 
   while ( '}' != msource.Current() )
     {
-      parse_method(id,values,output,input,tasks,
+      parse_method(id,output,input,tasks,
                    auto_vars,auto_vars_values,include_file);
 
       // If parse_method found an include statement it returnes -1 for the
@@ -250,7 +245,7 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
           if (md_data[id].SetMethod())
             {
               // Append task to task list:      
-              tasklist.push_back(MRecord(id,values,output,input,
+              tasklist.push_back(MRecord(id,output,input,
                                          auto_vars_values[0],tasks));
             }
           else
@@ -259,7 +254,7 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
                                          0, tasklist);
 
               // Append task to task list:      
-              tasklist.push_back(MRecord(id,values,output,input,TokVal(),tasks));
+              tasklist.push_back(MRecord(id,output,input,TokVal(),tasks));
 
               tasklist_insert_set_delete(auto_vars, auto_vars_values,
                                          1, tasklist);
@@ -270,14 +265,6 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
             // informative output.  
 
             out3 << "- " << md_data[id].Name() << "\n";
-
-            /* FIXME OLE */
-            /*for ( Index j=0 ; j<values.nelem() ; ++j )
-              {
-                out3 << "   " 
-                  << md_data[id].Keywords()[j] << ": "
-                  << values[j] << '\n';
-              }*/
 
             // Output workspace variables for generic methods:
             if ( 0 < md_data[id].GOutType().nelem()
@@ -301,6 +288,7 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
         }
 
       eat_whitespace();
+      msource.Current();
     } 
 }
 
@@ -310,7 +298,6 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
   Either values or tasks will be empty.
 
   \param[out]    id           Method id.
-  \param[out]    values       Keyword parameter values for this method.
   \param[out]    output       Output workspace variables (for generic methods).
   \param[out]    input        Input workspace variables (for generic methods).
   \param[out]    tasks        A list of other methods.
@@ -338,7 +325,6 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
   \author Stefan Buehler
 */
 void ArtsParser::parse_method(Index& id, 
-                              ArrayOfIndex&  values,
                               ArrayOfIndex&  output,
                               ArrayOfIndex&  input,
                               Agenda&        tasks,
@@ -357,7 +343,6 @@ void ArtsParser::parse_method(Index& id,
 
   // Clear all output variables:
   id = 0;
-  values.resize( 0 );
   output.resize( 0 );
   input.resize(  0 );
   tasks.resize(  0 );
@@ -384,10 +369,14 @@ void ArtsParser::parse_method(Index& id,
           mcfile_version = 2;
           methodname = "Arts";
         }
+      else if (methodname == "Arts")
+        {
+          throw runtime_error("Arts version 1 controlfiles are no longer supported.");
+        }
 
       eat_whitespace();
 
-      parse_output_and_input(mdd, id, methodname, values, output, input,
+      parse_output_and_input(mdd, id, methodname, output, input,
                              auto_vars, auto_vars_values);
 
       eat_whitespace();
@@ -410,14 +399,6 @@ void ArtsParser::parse_method(Index& id,
           parse_agenda(tasks);
           out3 << "}\n";
         }
-
-      // For controlfiles v1 parse the keywords (or set them to default
-      // values)
-      if (mcfile_version == 1 && !mdd->AgendaMethod())
-        {
-          parse_keywords(mdd, values, auto_vars, auto_vars_values,
-                         found_curly_brace);
-        } 
 
       // Curly braces in non-agenda methods are not valid in v2 controlfiles
       if (mcfile_version == 2 && !mdd->AgendaMethod() && found_curly_brace)
@@ -449,222 +430,71 @@ void ArtsParser::parse_method(Index& id,
 }
 
 
-//! Parse keywords.
-/** Parses the keyword parameters from a v1 controlfile.
+//! Set generic input to default value.
+/** Sets the value of the generic input with the given index to its default value.
  
-  \param[in]  mdd               Method object.
-  \param[out] values            Parsed keyword values.
-  \param[in]  found_curly_brace Tells this method if the parser found an
-                                opening curly brace before. If not, we just
-                                fill all keywords with their default values.
+  \param[in]      mdd       Method object.
+  \param[out]     input     Generic inputs.
+  \param[in]      gin_index Index of the generic input which should be set to
+                            its default value.
 
-  \author Oliver Lemke
-  \date   2008-03-05
-*/
-void ArtsParser::parse_keywords(const MdRecord* mdd,
-                                ArrayOfIndex&   values,
-                                ArrayOfIndex&   auto_vars,
-                                Array<TokVal>&  auto_vars_values,
-                                const bool      found_curly_brace)
-{
-  // Now we have to deal with two different cases: Keywords with
-  // parameters, or (optionally) only a parameter without a keyword
-  // for methods that have only a single argument.
-  //
-  // We can distinguish the two cases if we check whether the current
-  // character is a letter. (If the parameter is specified directly it
-  // must be either a number, a +- sign or a quotation mark)
-  //
-  // KEYWORDS THAT START WITH A NUMBER WILL BREAK THIS CODE!!
-
-  if (!found_curly_brace)
-    {
-      bool all_kw_have_defaults = true;
-      for (Index kw = 0;
-           all_kw_have_defaults && kw < mdd->Keywords().nelem();
-           ++kw)
-        {
-          if (mdd->Defaults()[kw] == NODEF)
-            all_kw_have_defaults = false;
-        }
-
-      if (!all_kw_have_defaults)
-        {
-          ostringstream os;
-          os << "Expected '{', but got `" << msource.Current() << "'.";
-          throw UnexpectedChar( os.str(),
-                                msource.File(),
-                                msource.Line(),
-                                msource.Column() );
-        }
-    }
-  values.resize (mdd->Keywords().nelem());
-
-  // Use this array to remember which keywords have been set
-  ArrayOfIndex initialized_keywords (mdd->Keywords().nelem(), 0);
-
-  while (found_curly_brace && msource.Current () != '}')
-    {
-      Index keyword_index;
-      if (!isalpha(msource.Current()) && 1==mdd->Keywords().nelem())
-        {
-          keyword_index = 0;
-          initialized_keywords[keyword_index] = 1;
-          // Parameter specified directly, without a keyword. This is only
-          // allowed for single parameter methods!
-
-          // We don't have to do anything here.
-        }
-      else  
-        {      // Look for the keywords and read the parameters:
-
-          bool found_keyword = false;
-          String keyname;
-          read_name(keyname);
-
-          // Is the keyname the expected keyname?
-          for (keyword_index = 0; keyword_index < mdd->Keywords().nelem();
-               ++keyword_index)
-            {
-              if ( keyname == mdd->Keywords()[keyword_index] )
-                {
-                  found_keyword = true;
-                  if (initialized_keywords[keyword_index])
-                    {
-                      ostringstream os;
-                      os << "Keyword " << mdd->Keywords()[keyword_index]
-                        << " was already set.\n";
-                      throw ParseError (os.str (),
-                                        msource.File(),
-                                        msource.Line(),
-                                        msource.Column());
-                    }
-                  else
-                    {
-                      initialized_keywords[keyword_index] = 1;
-                    }
-                  break;
-                }
-            }
-          if ( !found_keyword )
-            {
-              throw UnexpectedKeyword( keyname,
-                                       msource.File(),
-                                       msource.Line(),
-                                       msource.Column());
-            }
-
-          eat_whitespace();
-
-          // Look for '='
-          assertain_character('=');
-          eat_whitespace();
-        }
-
-        {
-          // Now parse the key value.
-          String wsvname;
-          ostringstream os;
-          os << keyword_index;
-          read_name_or_value(wsvname,
-                             auto_vars, auto_vars_values,
-                             "keyword" + os.str() + "_"
-                             + mdd->Keywords()[keyword_index],
-                             mdd, mdd->Types()[keyword_index]);
-
-            {
-              // Find Wsv id:
-              const map<String, Index>::const_iterator wsvit =
-                Workspace::WsvMap.find(wsvname);
-              if ( wsvit == Workspace::WsvMap.end() )
-                throw UnknownWsv( wsvname,
-                                  msource.File(),
-                                  msource.Line(),
-                                  msource.Column() );
-              values[keyword_index] = wsvit->second;
-            }
-
-      }
-
-      eat_whitespace();
-
-      // Check:
-      //      cout << "Value: " << mdd->Values()[i] << '\n';
-    }
-
-  // Check if all keywords are set
-  for (Index i = 0; i < initialized_keywords.nelem(); ++i)
-    {
-      if (!initialized_keywords[i])
-        {
-          set_keyword_to_default(mdd, values, auto_vars, auto_vars_values, i);
-        }
-    }
-}
-
-
-//! Set keyword to default value.
-/** Sets the value of the keyword with the given index to its default value.
- 
-  \param[in]      mdd           Method object.
-  \param[out]     values        Keyword values.
-  \param[in]      keyword_index Index of the keyword which should be set to
-                                its default value.
+  \returns Workspace variable name containing the default value
 
   \author Oliver Lemke
   \date   2008-07-16
 */
-void ArtsParser::set_keyword_to_default(const MdRecord* mdd,
-                                        ArrayOfIndex&   values,
-                                        ArrayOfIndex&   auto_vars,
-                                        Array<TokVal>&  auto_vars_values,
-                                        Index           keyword_index)
+String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
+                                            ArrayOfIndex&   auto_vars,
+                                            Array<TokVal>&  auto_vars_values,
+                                            Index           gin_index)
 {
-  if (mdd->Defaults()[keyword_index] != NODEF)
+  String name;
+
+  if (mdd->GInDefault()[gin_index] != NODEF)
     {
       TokVal tv;
       // Now parse the key value. This can be:
       // String, Index, Numeric, ArrayOfString, ArrayOfIndex, Vector
       bool failed = false;
-      if (mdd->Types()[keyword_index] == get_wsv_group_id ("String")) 
+      if (mdd->GInType()[gin_index] == get_wsv_group_id ("String")) 
         {
-          tv = mdd->Defaults()[keyword_index];
+          tv = mdd->GInDefault()[gin_index];
         }
-      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("Index")) 
+      else if (mdd->GInType()[gin_index] == get_wsv_group_id ("Index")) 
         {
           Index n;
-          istringstream is(mdd->Defaults()[keyword_index]);
+          istringstream is(mdd->GInDefault()[gin_index]);
           is >> n;
           tv = n;
           if (is.bad () || is.fail ())
             failed = true;
         }
-      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("Numeric")) 
+      else if (mdd->GInType()[gin_index] == get_wsv_group_id ("Numeric")) 
         {
           Numeric n;
-          istringstream is(mdd->Defaults()[keyword_index]);
+          istringstream is(mdd->GInDefault()[gin_index]);
           is >> n;
           tv = n;
           if (is.bad () || is.fail ())
             failed = true;
         }
-      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("ArrayOfString")) 
+      else if (mdd->GInType()[gin_index] == get_wsv_group_id ("ArrayOfString")) 
         {
           ArrayOfString v;
-          String s = mdd->Defaults()[keyword_index];
+          String s = mdd->GInDefault()[gin_index];
           if (!parse_stringarray_from_string(v, s))
             {
               failed = true;
             }
           tv = v;
         }
-      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("ArrayOfIndex")) 
+      else if (mdd->GInType()[gin_index] == get_wsv_group_id ("ArrayOfIndex")) 
         {
           ostringstream os;
-          os << "Default values for keywords with type "
+          os << "Default values for generic inputs with type "
             << "ArrayOfIndex are not supported.\n"
-            << "Either remove the default value for keyword '"
-            << mdd->Keywords()[keyword_index] << "' in workspace method *"
+            << "Either remove the default value for generic input '"
+            << mdd->GIn()[gin_index] << "' in workspace method *"
             << mdd->Name() << "* in methods.cc or discuss this "
             << "issue on the arts-dev mailing list.\n";
           throw ParseError (os.str(),
@@ -672,10 +502,10 @@ void ArtsParser::set_keyword_to_default(const MdRecord* mdd,
                             msource.Line(),
                             msource.Column());
         }
-      else if (mdd->Types()[keyword_index] == get_wsv_group_id ("Vector")) 
+      else if (mdd->GInType()[gin_index] == get_wsv_group_id ("Vector")) 
         {
           Vector v;
-          String s = mdd->Defaults()[keyword_index];
+          String s = mdd->GInDefault()[gin_index];
           if (!parse_numvector_from_string(v, s))
             {
               failed = true;
@@ -688,14 +518,13 @@ void ArtsParser::set_keyword_to_default(const MdRecord* mdd,
         }
 
       Index wsvid;
-      String name;
 
       {
           ostringstream os;
-          os << keyword_index;
+          os << gin_index;
 
-          name = "auto_" + mdd->Name() + "_" + "keyword" + os.str() + "_"
-            + mdd->Keywords()[keyword_index];
+          name = "auto_" + mdd->Name() + "_" + "gin" + os.str() + "_"
+            + mdd->GIn()[gin_index];
       }
 
       map<String, Index>::const_iterator wsvit =
@@ -705,7 +534,7 @@ void ArtsParser::set_keyword_to_default(const MdRecord* mdd,
           wsvid = Workspace::add_wsv(
             WsvRecord(name.c_str(),
                       "Automatically allocated variable.",
-                      mdd->Types()[keyword_index],
+                      mdd->GInType()[gin_index],
                       true));
         }
       else
@@ -715,15 +544,14 @@ void ArtsParser::set_keyword_to_default(const MdRecord* mdd,
 
       auto_vars.push_back(wsvid);
       auto_vars_values.push_back(tv);
-      values[keyword_index] = wsvid;
 
       if (failed)
         {
           ostringstream os;
-          os << "Failed to assign default value for keyword '"
-            << mdd->Keywords()[keyword_index] << "'.\n"
-            << "Check definition of workspace method *"
-            << mdd->Name() << "* in methods.cc.\n";
+          os << "Failed to assign default value for generic '"
+            << mdd->GIn()[gin_index] << "'.\n"
+            << "Check the documentation of workspace method *"
+            << mdd->Name() << "*.\n";
           throw ParseError (os.str(),
                             msource.File(),
                             msource.Line(),
@@ -733,109 +561,17 @@ void ArtsParser::set_keyword_to_default(const MdRecord* mdd,
   else
     {
       ostringstream os;
-      os << "Keyword '" << mdd->Keywords()[keyword_index]
+      os << "Generic input '" << mdd->GIn()[gin_index]
         << "' omitted but no default value found.\n"
-        << "Check definition of workspace method *"
-        << mdd->Name() << "* in methods.cc.\n";
+        << "Check the documentation of workspace method *"
+        << mdd->Name() << "*.\n";
       throw ParseError (os.str(),
                         msource.File(),
                         msource.Line(),
                         msource.Column());
     }
-}
 
-
-//! Parse keywords.
-/** Parses the keyword parameters from a v2 controlfile.
- 
-  \param[in]      mdd     Method object.
-  \param[out]     values  Parsed keyword values.
-  \param[in,out]  first   Tells this method if there were any other arguments
-                          passed to this method before. If so, we have to look
-                          for a comma first.
-
-  \author Oliver Lemke
-  \date   2008-03-05
-*/
-void ArtsParser::parse_keywords2(const MdRecord* mdd,
-                                 ArrayOfIndex&   values,
-                                 ArrayOfIndex&   auto_vars,
-                                 Array<TokVal>&  auto_vars_values,
-                                 bool&           first)
-{
-  Index keyword_index = 0;
-
-  eat_whitespace();
-
-  values.resize(mdd->Keywords().nelem());
-
-  while (msource.Current() != ')' && keyword_index < mdd->Keywords().nelem())
-    {
-      if (!first)
-        {
-          assertain_character(',');
-          eat_whitespace();
-        }
-      else
-        first = false;
-
-      // If there is a comma or a closing brace means no value was
-      // specified and we use the default value instead (if there is one)
-      if (msource.Current() == ',' || msource.Current() == ')')
-        {
-          set_keyword_to_default(mdd, values, auto_vars, auto_vars_values,
-                                 keyword_index);
-        }
-      else
-        {
-          String wsvname;
-          ostringstream os;
-          os << keyword_index;
-          read_name_or_value(wsvname,
-                             auto_vars, auto_vars_values,
-                             "keyword" + os.str() + "_"
-                             + mdd->Keywords()[keyword_index],
-                             mdd, mdd->Types()[keyword_index]);
-
-          {
-            // Find Wsv id:
-            const map<String, Index>::const_iterator wsvit =
-              Workspace::WsvMap.find(wsvname);
-            if ( wsvit == Workspace::WsvMap.end() )
-              throw UnknownWsv( wsvname,
-                                msource.File(),
-                                msource.Line(),
-                                msource.Column() );
-            values[keyword_index] = wsvit->second;
-          }
-
-        }
-
-      eat_whitespace();
-      keyword_index++;
-    }
-
-  if (keyword_index < mdd->Keywords().nelem())
-    {
-      ostringstream os;
-      os << "Expected keyword '" << mdd->Keywords()[keyword_index]
-        << "', but got `" << msource.Current() << "'.";
-      throw UnexpectedChar( os.str(),
-                            msource.File(),
-                            msource.Line(),
-                            msource.Column() );
-    }
-  else if (msource.Current() != ')')
-    {
-      ostringstream os;
-      os << "Expected ')', but got '" << msource.Current() << "'.";
-      throw UnexpectedChar( os.str(),
-                            msource.File(),
-                            msource.Line(),
-                            msource.Column() );
-    }
-
-  msource.AdvanceChar();
+  return name;
 }
 
 
@@ -845,7 +581,6 @@ void ArtsParser::parse_keywords2(const MdRecord* mdd,
   \param[in]  mdd        Method
   \param[out] id         Method index in md_data.
   \param[out] methodname Name of the WSM
-  \param[out] values     Keyword values
   \param[out] output     Output WSVs
   \param[out] input      Input WSVs
   \param[out] auto_vars  Indexes of automatically created variables.
@@ -857,7 +592,6 @@ void ArtsParser::parse_keywords2(const MdRecord* mdd,
 void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
                                         Index&           id,
                                         String&          methodname,
-                                        ArrayOfIndex&    values,
                                         ArrayOfIndex&    output,
                                         ArrayOfIndex&    input,
                                         ArrayOfIndex&    auto_vars,
@@ -905,13 +639,8 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
       still_supergeneric = false;
     }
 
-  // For generic methods in v1 controlfiles the output and input workspace
-  // variables have to be parsed (given in round brackets).
-  // For v2 controlfiles, we also have to parse the keywords which are now
-  // part of the argument list in parenthesis.
-  if ( (mdd->GOutType().nelem() + mdd->GInType().nelem() > 0)
-       || (mcfile_version == 2
-           && 0 < mdd->GOutType().nelem() + mdd->GInType().nelem()))
+  if ( mdd->GOut().nelem() > 0
+       || (mdd->GIn().nelem() > 0 && msource.Current() == '('))
     {
       String wsvname;
       bool first = true;        // To skip the first comma.
@@ -937,7 +666,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
         }
 
       // Parse all generic output variables
-      for ( Index j=0 ; j<mdd->GOutType().nelem() ; ++j )
+      for ( Index j=0 ; j<mdd->GOut().nelem() ; ++j )
         {
           if (first)
             first = false;
@@ -1006,9 +735,6 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           // out the actual group of the argument(s)!
           if ( still_supergeneric )
             {
-//            cout << "wsvid = " << wsvid << "\n";
-//            cout << "wsv_group_names[Workspace::wsv_data[wsvid].Group()] = "
-//                 << wsv_group_names[Workspace::wsv_data[wsvid].Group()] << "\n";
               ostringstream os;
               os << mdd->Name() << "_sg_"
                  << wsv_group_names[Workspace::wsv_data[wsvid].Group()];
@@ -1022,9 +748,6 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
               mdd = &md_data[id];
 
               still_supergeneric = false;
-
-//            cout << "Adjusted id=" << id << '\n';   
-//            cout << "Adjusted Method: " << mdd->Name() << '\n';
             }
 
           // Now we have explicitly the method record for the right
@@ -1074,27 +797,39 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
             first = false;
           else
             {
-              assertain_character(',');
-              eat_whitespace();
+              if (msource.Current() != ')')
+                {
+                  assertain_character(',');
+                  eat_whitespace();
+                }
             }
 
-          {
-            ostringstream os;
-            os << j;
-            read_name_or_value(wsvname, auto_vars, auto_vars_values,
-                               "generic" + os.str(),
-                               mdd, mdd->GInType()[j]);
-          }
+          // If there is a comma or a closing brace means no value was
+          // specified and we use the default value instead (if there is one)
+          if (msource.Current() == ',' || msource.Current() == ')')
+            {
+              wsvname = set_gin_to_default(mdd, auto_vars, auto_vars_values, j);
+            }
+          else
+            {
+              ostringstream os;
+              os << j;
+              read_name_or_value(wsvname, auto_vars, auto_vars_values,
+                                 "generic" + os.str(),
+                                 mdd, mdd->GInType()[j]);
+            }
 
           {
             // Find Wsv id:
             const map<String, Index>::const_iterator wsvit =
               Workspace::WsvMap.find(wsvname);
             if ( wsvit == Workspace::WsvMap.end() )
+              {
               throw UnknownWsv( wsvname,
                                 msource.File(),
                                 msource.Line(),
                                 msource.Column() );
+              }
 
             wsvid = wsvit->second;
           }
@@ -1139,16 +874,7 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           eat_whitespace();
         }
 
-      if (mcfile_version == 2)
-        {
-          // For v2 controlfiles we also parse the keywords
-          parse_keywords2(mdd, values, auto_vars, auto_vars_values, first);
-        }
-      else
-        {
-          assertain_character(')');
-          eat_whitespace();
-        }
+      msource.AdvanceChar();
     }
   else
     {
@@ -1159,25 +885,17 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
           bool first = true;
           msource.AdvanceChar();
           eat_whitespace();
-          if (mcfile_version == 2)
+          if (mdd->Out().nelem())
             {
-              if (mdd->Out().nelem())
-                {
-                  parse_output(mdd, output, first);
-                  if (mdd->In().nelem())
-                    parse_input(mdd, input, auto_vars, auto_vars_values, first);
-                }
-              else if (mdd->In().nelem())
+              parse_output(mdd, output, first);
+              if (mdd->In().nelem())
                 parse_input(mdd, input, auto_vars, auto_vars_values, first);
-
-              parse_keywords2(mdd, values, auto_vars, auto_vars_values, first);
             }
+          else if (mdd->In().nelem())
+            parse_input(mdd, input, auto_vars, auto_vars_values, first);
 
-          if (mcfile_version == 1)
-            {
-              assertain_character(')');
-              eat_whitespace();
-            }
+          eat_whitespace();
+          assertain_character(')');
         }
       else
         {
@@ -1196,35 +914,50 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
               input.push_back (*ins);
             }
 
-          if (mcfile_version == 2)
             {
               // Make sure all keywords have default values, otherwise the
               // user has to specify them in the controlfile.
               bool all_kw_have_defaults = true;
-              values.resize (mdd->Keywords().nelem());
               for (Index kw = 0;
-                   all_kw_have_defaults && kw < mdd->Keywords().nelem();
+                   all_kw_have_defaults && kw < mdd->GIn().nelem();
                    ++kw)
                 {
-                  if (mdd->Defaults()[kw] == NODEF)
+                  if (mdd->GInDefault()[kw] == NODEF)
                     all_kw_have_defaults = false;
                   else
-                    set_keyword_to_default(mdd, values,
-                                           auto_vars, auto_vars_values, kw);
+                    {
+                      String wsvname;
+                      wsvname = set_gin_to_default(mdd, auto_vars,
+                                                   auto_vars_values, kw);
+                        {
+                          // Find Wsv id:
+                          const map<String, Index>::const_iterator wsvit =
+                            Workspace::WsvMap.find(wsvname);
+                          if ( wsvit == Workspace::WsvMap.end() )
+                            {
+                              throw UnknownWsv( wsvname,
+                                                msource.File(),
+                                                msource.Line(),
+                                                msource.Column() );
+                            }
+
+                          wsvid = wsvit->second;
+                        }
+                      input.push_back(wsvid);
+                    }
                 }
 
               if (!all_kw_have_defaults)
                 {
                   ostringstream os;
-                  os << "Not all keywords of this method have default values, you have "
-                    << "to specify them!";
+                  os << "Not all generic inputs of this method have default "
+                    << "values, you have to specify them!";
                   throw UnexpectedChar( os.str(),
                                         msource.File(),
                                         msource.Line(),
                                         msource.Column() );
                 }
             }
-
         }
     }
 }
@@ -1362,39 +1095,29 @@ void ArtsParser::parse_output(const MdRecord* mdd, ArrayOfIndex& output, bool& f
           Workspace::WsvMap.find(wsvname);
         if ( wsvit == Workspace::WsvMap.end() )
           {
-            if (mcfile_version == 1)
+            if (mdd->Name().length() > 6
+                && mdd->Name().substr (mdd->Name().length() - 6)
+                != "Create")
               {
-                throw UnknownWsv( wsvname,
+                ostringstream os;
+                os << "This might be either a typo or you have to create "
+                  << "the variable\nby calling "
+                  << wsv_group_names[Workspace::wsv_data[*outs].Group()]
+                  << "Create( " << wsvname
+                  << " ) first.\n";
+
+                throw UnknownWsv( os.str(),
                                   msource.File(),
                                   msource.Line(),
                                   msource.Column() );
               }
             else
               {
-                if (mdd->Name().length() > 6
-                    && mdd->Name().substr (mdd->Name().length() - 6)
-                    != "Create")
-                  {
-                    ostringstream os;
-                    os << "This might be either a typo or you have to create "
-                      << "the variable\nby calling "
-                      << wsv_group_names[Workspace::wsv_data[*outs].Group()]
-                      << "Create( " << wsvname
-                      << " ) first.\n";
-
-                    throw UnknownWsv( os.str(),
-                                      msource.File(),
-                                      msource.Line(),
-                                      msource.Column() );
-                  }
-                else
-                  {
-                    wsvid = Workspace::add_wsv(
-                      WsvRecord(wsvname.c_str(),
-                                "Automatically allocated variable.",
-                                Workspace::wsv_data[*outs].Group(),
-                                true));
-                  }
+                wsvid = Workspace::add_wsv(
+                                           WsvRecord(wsvname.c_str(),
+                                             "Automatically allocated variable.",
+                                             Workspace::wsv_data[*outs].Group(),
+                                             true));
               }
           }
 
@@ -1486,7 +1209,7 @@ void ArtsParser::tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
       assert ( mdit != MdMap.end() );
       init_mdid = mdit->second;         
 
-      tasklist.push_back(MRecord(init_mdid, ArrayOfIndex(),
+      tasklist.push_back(MRecord(init_mdid,
                                  auto_output_var, auto_input_var,
                                  auto_keyword_value,
                                  auto_tasks));
@@ -1612,8 +1335,6 @@ void ArtsParser::read_name(String& name)
           stop = true;
         }
     }
-
-  //  cout << "Name: " << name << '\n';
 }
 
 
@@ -1738,7 +1459,7 @@ void ArtsParser::assertain_character(char c)
   if ( c != msource.Current() )
     {
       ostringstream os;
-      os << "Expected `" << c << "', but got `" << msource.Current() << "'.";
+      os << "Expected '" << c << "', but got '" << msource.Current() << "'.";
       throw UnexpectedChar( os.str(),
                             msource.File(),
                             msource.Line(),
@@ -1829,7 +1550,8 @@ void ArtsParser::read_integer(String& res)
   if (!isdigit(msource.Current()))
     {
       ostringstream os;
-      os << "Expected digit, but got `" << msource.Current() << "'.";
+      os << "Expected digit or variable name, but got `" << msource.Current()
+        << "'.";
       throw UnexpectedChar(os.str(),
                            msource.File(),
                            msource.Line(),

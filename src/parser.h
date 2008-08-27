@@ -36,7 +36,6 @@ private:
   void parse_agenda(Agenda& tasklist);
 
   void parse_method(Index& id, 
-                    ArrayOfIndex&  values,
                     ArrayOfIndex&  output,
                     ArrayOfIndex&  input,
                     Agenda&        tasks,
@@ -56,29 +55,15 @@ private:
   void parse_output_and_input(const MdRecord*&     mdd,
                                     Index&         id,
                                     String&        methodname,
-                                    ArrayOfIndex&  values,
                                     ArrayOfIndex&  output,
                                     ArrayOfIndex&  input,
                                     ArrayOfIndex&  auto_vars,
                                     Array<TokVal>& auto_vars_values);
 
-  void parse_keywords(const MdRecord*      mdd,
-                            ArrayOfIndex&  values,
-                            ArrayOfIndex&  auto_vars,
-                            Array<TokVal>& auto_vars_values,
-                      const bool           found_curly_brace);
-
-  void parse_keywords2(const MdRecord*      mdd,
-                             ArrayOfIndex&  values,
-                             ArrayOfIndex&  auto_vars,
-                             Array<TokVal>& auto_vars_values,
-                             bool&          first);
-
-  void set_keyword_to_default(const MdRecord* mdd,
-                              ArrayOfIndex&   values,
-                              ArrayOfIndex&   auto_vars,
-                              Array<TokVal>&  auto_vars_values,
-                              Index           keyword_index);
+  String set_gin_to_default(const MdRecord* mdd,
+                                  ArrayOfIndex&   auto_vars,
+                                  Array<TokVal>&  auto_vars_values,
+                                  Index           keyword_index);
 
   void tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
                                   const Array<TokVal>& auto_vars_values,

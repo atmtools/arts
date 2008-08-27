@@ -482,14 +482,11 @@ First we have to define the cloudbox region, i.e. the region where
 scattering objects are found. To do this we use the method
 \wsmindex{cloudboxSetManuallyAltitude}:
 \begin{verbatim}
-cloudboxSetManuallyAltitude{
-z1=8000
-z2=120000
-lat1=0
-lat2=0
-lon1=0
-lon2=0
-}
+cloudboxSetManuallyAltitude( cloudbox_on, cloudbox_limits,
+                             atmosphere_dim, p_grid,
+                             lat_grid, lon_grid,
+                             8000, 120000,
+                             0, 0, 0, 0 )
 \end{verbatim}
 If we want to do a simulation for a
 cirrus cloud at an altitude from 9 to 11\,km the cloudbox limits can
@@ -503,29 +500,32 @@ Now we have to specify the cloud particles inside the scattering
 region:
 \begin{verbatim}
 # Initialisation
-ParticleTypeInit{}
+ParticleTypeInit
 # Only one particle type is added in this example 
-ParticleTypeAdd{
-filename_scat_data="ssd_sphere_50um_p20.xml"
-filename_pnd_field="pnd_sphere_50um_p20.xml"
-}
+ParticleTypeAdd( scat_data_raw, pnd_field_raw,
+                 atmosphere_dim, f_grid, p_grid,
+                 lat_grid, lon_grid, cloudbox_limits,
+                 "ssd_sphere_50um_p20.xml",
+                 "pnd_sphere_50um_p20.xml" )
 \end{verbatim}
 In the workspace method \wsmindex{ParticleTypeAdd} the single
-scattering properties for one particle type are
-read. The first keyword \artsstyle{filename\_scat\_data} must be set to the filename of a
-datafile including scattering data (class \typeindex{SingleScatteringData})
-in xml-format. The second keyword \artsstyle{filename\_pnd\_field} must
-contain the filename of the corresponding particle number density
-field in xml-format (class \typeindex{GriddedField3}). If the cloud is
-composed of several different particle types
-\wsmindex{ParticleTypeAdd} can be used repeatedly for all particle
-types, for instance one could add to the randomly oriented spherical
-particles above horizontally aligned cylindrical particles: 
+scattering properties for one particle type are read. The
+generic input \artsstyle{filename\_scat\_data} must be set to
+the filename of a datafile including scattering data (class
+\typeindex{SingleScatteringData}) in xml-format. The generic input
+\artsstyle{filename\_pnd\_field} must contain the filename of the
+corresponding particle number density field in xml-format (class
+\typeindex{GriddedField3}). If the cloud is composed of several
+different particle types \wsmindex{ParticleTypeAdd} can be used
+repeatedly for all particle types, for instance one could add to the
+randomly oriented spherical particles above horizontally aligned
+cylindrical particles:
 \begin{verbatim}
-ParticleTypeAdd{
-filename_scat_data="ssd_cylinder_30um_p30.xml"
-filename_pnd_field="pnd_cylinder_30um_p30.xml"
-}
+ParticleTypeAdd( scat_data_raw, pnd_field_raw,
+                 atmosphere_dim, f_grid, p_grid,
+                 lat_grid, lon_grid, cloudbox_limits,
+                 "ssd_cylinder_30um_p30.xml",
+                 "pnd_cylinder_30um_p30.xml" )
 \end{verbatim}
 Alternatively it is possible to use the method
 \wsmindex{ParticleTypeAddAll}, which is convenient to generate a size
@@ -544,7 +544,7 @@ After reading the data the workspace variable \wsvindex{pnd\_field} is
 calculated using \wsmindex{pnd\_fieldCalc}: 
 \begin{verbatim}
 # Calculate the particle number density field
-pnd_fieldCalc{}
+pnd_fieldCalc
 \end{verbatim}
 
 The definition of the single scattering data along with the

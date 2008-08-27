@@ -71,6 +71,14 @@
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfIndexSet(      ArrayOfIndex& aoi, 
+                     const ArrayOfIndex& values )
+{
+  aoi = values;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void ArrayOfMatrixInsert(// WS Generic Output:
                          ArrayOfMatrix&        aom_out,
                          // WS Generic Input:

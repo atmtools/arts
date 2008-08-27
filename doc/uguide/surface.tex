@@ -215,23 +215,23 @@ The agenda \wsaindex{surface\_prop\_agenda} sets the surface properties.
 A simple example where specular reflection is assumed and the surface 
 emissivity is 0.9:
 \begin{verbatim}
-AgendaSet(surface_prop_agenda){
-   InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
-   NumericSet(surface_emissivity){0.9}
-   surfaceSimple{}
+AgendaSet( surface_prop_agenda ){
+   InterpAtmFieldToRteGps( surface_skin_t, t_field )
+   NumericSet( surface_emissivity, 0.9 )
+   surfaceSimple
 }
 
 \end{verbatim}
 To read surface properties from files:
 \begin{verbatim}
-AgendaSet(surface_prop_agenda){
-   Ignore(rte_gp_p){}
-   Ignore(rte_gp_lat){}
-   Ignore(rte_gp_lon){}
-   Ignore(rte_los){}
-   ReadXML(surface_los){"surface_los.xml"}
-   ReadXML(surface_rmatrix){"surface_rmatrix.xml"}
-   ReadXML(surface_emission){"surface_emission.xml"}
+AgendaSet( surface_prop_agenda ){
+   Ignore( rte_gp_p )
+   Ignore( rte_gp_lat )
+   Ignore( rte_gp_lon )
+   Ignore( rte_los )
+   ReadXML( surface_los, "surface_los.xml" )
+   ReadXML( surface_rmatrix, "surface_rmatrix.xml" )
+   ReadXML( surface_emission, "surface_emission.xml" )
 }
 \end{verbatim}
 

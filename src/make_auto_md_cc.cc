@@ -84,6 +84,7 @@ int main()
           << "#include \"m_copy.h\"\n"
           << "#include \"m_general.h\"\n"
           << "#include \"m_ignore.h\"\n"
+          << "#include \"m_select.h\"\n"
           << "#include \"m_xml.h\"\n"
           << "#include \"m_basic_types.h\"\n"
           << "#include \"agenda_record.h\"\n"
@@ -114,7 +115,6 @@ int main()
           ArrayOfIndex  vi;                // Input
           ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
           ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
-          ArrayOfIndex  kgi=mdd.Types();   // Keyword Input
           // vo and vi contain handles of workspace variables, 
           // vgo and vgi handles of workspace variable groups.
 
@@ -133,7 +133,7 @@ int main()
               // Use parameter name only if it is used inside the function
               // to avoid warnings
               ws = " ws";
-              if (!mdd.AgendaMethod() && !mdd.PassWorkspace() && !vo.nelem () && !vi.nelem () && !vgo.nelem () && !vgi.nelem () && !kgi.nelem())
+              if (!mdd.AgendaMethod() && !mdd.PassWorkspace() && !vo.nelem () && !vi.nelem () && !vgo.nelem () && !vgi.nelem ())
               {
                 ws = "";
               }
@@ -161,7 +161,7 @@ int main()
               // Use parameter name only if it is used inside the function
               // to avoid warnings
               if ( vo.nelem () || vi.nelem () || vgo.nelem () || vgi.nelem ()
-                   || mdd.Keywords().nelem() || mdd.AgendaMethod())
+                   || mdd.AgendaMethod())
                 {
                   mr = " mr";
                 }
@@ -262,37 +262,6 @@ int main()
                 }
             }
 
-          // Write the Generic input workspace variables:
-          for (Index j=0; j<vgi.nelem(); ++j)
-            {
-              // Check by assert whether the group identifier is too
-              // large to correspond to a group. This can easily
-              // happen if somebody puts a variable identifier instead
-              // of a group identifier in the argument of GINPUT:
-              assert( vgi[j] < wsv_group_names.nelem() );
-
-              // Add comma and line break, if not first element:
-              align(ofs,is_first_parameter,indent);
-
-              ofs << "*((" << wsv_group_names[vgi[j]]
-                  << " *)ws[mr.In()[" << j+vi.nelem()
-                  << "]])";
-            }
-
-          // Write the Generic input workspace variable names:
-          if (mdd.PassWsvNames())
-            {
-              for (Index j=0; j<vgi.nelem(); ++j)
-                {
-                  // Add comma and line break, if not first element:
-                  align(ofs,is_first_parameter,indent);
-
-                  ofs << "Workspace::wsv_data[mr.In()["
-                    << j+vi.nelem()
-                    << "]].Name()";
-                }
-            }
-
           // Write the control parameters:
           {
             if (mdd.SetMethod())
@@ -304,21 +273,35 @@ int main()
               }
             else
               {
-                // Write the Keyword input workspace variables:
-                for (Index j=0; j<kgi.nelem(); ++j)
+                // Write the Generic input workspace variables:
+                for (Index j=0; j<vgi.nelem(); ++j)
                   {
                     // Check by assert whether the group identifier is too
                     // large to correspond to a group. This can easily
                     // happen if somebody puts a variable identifier instead
                     // of a group identifier in the argument of GINPUT:
-                    assert( kgi[j] < wsv_group_names.nelem() );
+                    assert( vgi[j] < wsv_group_names.nelem() );
 
                     // Add comma and line break, if not first element:
                     align(ofs,is_first_parameter,indent);
 
-                    ofs << "*((" << wsv_group_names[kgi[j]]
-                      << " *)ws[mr.Values()[" << j
+                    ofs << "*((" << wsv_group_names[vgi[j]]
+                      << " *)ws[mr.In()[" << j+vi.nelem()
                       << "]])";
+                  }
+
+                // Write the Generic input workspace variable names:
+                if (mdd.PassWsvNames())
+                  {
+                    for (Index j=0; j<vgi.nelem(); ++j)
+                      {
+                        // Add comma and line break, if not first element:
+                        align(ofs,is_first_parameter,indent);
+
+                        ofs << "Workspace::wsv_data[mr.In()["
+                          << j+vi.nelem()
+                          << "]].Name()";
+                      }
                   }
               }
           }
