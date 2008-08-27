@@ -46,7 +46,6 @@ do
                  cat << EOF
 {\\footnotesize\\tt\\hbadness=10000
 EOF
-#\\footnotesize\\begin{verbatim}
                  INSIDE_DESC=yes
              else
                  echo "$j"
@@ -55,11 +54,10 @@ EOF
 EOF
              fi
              ;;
-         "Types ="*)
-             echo "\\noindent $j" \
+         "GInDefault ="*)
+             echo "\\\\noindent $j" \
               | sed "s/_/\\\_/g"
              echo "}"
-             #echo "\\end{verbatim}"
              INSIDE_DESC=no
              ;;
          *)
@@ -68,7 +66,7 @@ EOF
 \vspace{1em}
 EOF
              else
-                 echo "\\noindent $j " \
+                 echo "\\\\noindent $j " \
                   | sed "s/_/\\\_/g" \
                   | sed "s/\#/\\\#/g" \
                   | sed "s/\^/\\\^/g"
