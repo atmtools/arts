@@ -1,5 +1,13 @@
 2008-08-28  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-9-3
+
+	* src/methods.cc, src/m_create.cc:
+
+	Added ArrayOfGriddedField1Create.
+
+2008-08-28  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-9-2
 
 	* src/methods.cc, src/m_create.cc:

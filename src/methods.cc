@@ -1724,6 +1724,25 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ArrayOfGriddedField1Create" ),
+        DESCRIPTION
+        (
+         "Creates an empty ArrayOfGriddedField1.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(      "arrayofgfield1"       ),
+        GOUT_TYPE( "ArrayOfGField1" ),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT()
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("ArrayOfGriddedField3ExtractFromArrayOfArrayOfGriddedField3"),
         DESCRIPTION
         (

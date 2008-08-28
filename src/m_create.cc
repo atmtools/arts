@@ -51,11 +51,20 @@
 #include "matpackVII.h"
 #include "mystring.h"
 #include "absorption.h"
+#include "gridded_fields.h"
 
 
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfGriddedField1Create(// WS Generic Output:
+                                ArrayOfGField1& aogf1 )
+{
+  aogf1 = ArrayOfGField1();
+}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
