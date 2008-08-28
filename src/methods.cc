@@ -1939,6 +1939,25 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ArrayOfVectorCreate" ),
+        DESCRIPTION
+        (
+         "Creates an empty ArrayOfVector.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(      "arrayofvector"       ),
+        GOUT_TYPE( "ArrayOfVector" ),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT()
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("Arts"),
         DESCRIPTION
         ( 

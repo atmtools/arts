@@ -99,6 +99,14 @@ void ArrayOfStringCreate(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ArrayOfVectorCreate(// WS Generic Output:
+                         ArrayOfVector& aov )
+{
+  aov = ArrayOfVector();
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void IndexCreate(// WS Generic Output:
                  Index& i )
 {
