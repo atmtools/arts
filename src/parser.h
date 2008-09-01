@@ -44,23 +44,41 @@ private:
                     String&        include_file,
                     bool no_eot=false);
 
-  void parse_input(const MdRecord*      mdd,
-                         ArrayOfIndex&  input,
-                         ArrayOfIndex&  auto_vars,
-                         Array<TokVal>& auto_vars_values,
-                         bool&          first);
+  void parse_generic_input(const MdRecord*&     mdd,
+                                 Index&         id,
+                                 String&        methodname,
+                                 ArrayOfIndex&  input,
+                                 ArrayOfIndex&  auto_vars,
+                                 Array<TokVal>& auto_vars_values,
+                                 bool&          first,
+                                 bool&          still_supergeneric);
 
-  void parse_output(const MdRecord* mdd, ArrayOfIndex& output, bool& first);
+  void parse_generic_output(const MdRecord*&     mdd,
+                                  Index&         id,
+                                  String&        methodname,
+                                  ArrayOfIndex&  output,
+                                  bool&          first,
+                                  bool&          still_supergeneric);
 
-  void parse_output_and_input(const MdRecord*&     mdd,
-                                    Index&         id,
-                                    String&        methodname,
-                                    ArrayOfIndex&  output,
-                                    ArrayOfIndex&  input,
-                                    ArrayOfIndex&  auto_vars,
-                                    Array<TokVal>& auto_vars_values);
+  void parse_specific_input(const MdRecord*      mdd,
+                                  ArrayOfIndex&  input,
+                                  ArrayOfIndex&  auto_vars,
+                                  Array<TokVal>& auto_vars_values,
+                                  bool&          first);
 
-  String set_gin_to_default(const MdRecord* mdd,
+  void parse_specific_output(const MdRecord*     mdd,
+                                   ArrayOfIndex& output,
+                                   bool&         first);
+
+  void parse_method_args(const MdRecord*&     mdd,
+                               Index&         id,
+                               String&        methodname,
+                               ArrayOfIndex&  output,
+                               ArrayOfIndex&  input,
+                               ArrayOfIndex&  auto_vars,
+                               Array<TokVal>& auto_vars_values);
+
+  String set_gin_to_default(const MdRecord*       mdd,
                                   ArrayOfIndex&   auto_vars,
                                   Array<TokVal>&  auto_vars_values,
                                   Index           keyword_index);

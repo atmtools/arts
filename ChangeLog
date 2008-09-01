@@ -1,3 +1,27 @@
+2008-09-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-9-4
+
+	* src/exceptions.h: Remove UnexpectedKeyword exception.
+
+	* src/parser.{cc,h}:
+
+	Updated doxygen documentation.
+
+	Rename parse_output_and_input to parse_method_args.
+
+	Rename parse_input to parse_specific_input.
+
+	Rename parse_output to parse_specific_output.
+	
+	(parse_generic_output): Split into method to make the code cleaner.
+
+	(parse_generic_input): Split into method to make the code cleaner.
+
+	(parse_method): Remove UnexpectedKeyword exception.
+
+	(parse_method_args): Code cleanup.
+
 2008-08-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-9-3

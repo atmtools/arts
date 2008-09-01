@@ -51,7 +51,7 @@ void ArtsParser::parse_tasklist ()
 
 
 /** The main function of the parser. This will parse the entire
-    text. FIXME: Add more documentation here.
+    text.
 
     \author Stefan Buehler, Oliver Lemke
 */
@@ -83,7 +83,7 @@ void ArtsParser::parse_main()
           
       if ( "Arts" != md_data[id].Name() &&  "Arts2" != md_data[id].Name() )
         {
-          out0 << "The outermost method must be Arts!\n"
+          out0 << "The outermost agenda must be Arts2!\n"
                << "(But it seems to be " << md_data[id].Name() << ".)\n";
           arts_exit ();
         }
@@ -145,18 +145,6 @@ void ArtsParser::parse_main()
       // [**This should give a hint on how to obtain a list of Wsvs in 
       // this group.
       out0 << "Workspace variable belongs to the wrong group:\n";
-      out0 << x.what()   << '\n';
-      out0 << "File: "   << x.file() << '\n';
-      out0 << "Line: "   << x.line() << '\n';
-      out0 << "Column: " << x.column() << '\n';
-      arts_exit ();
-    }
-  catch (const UnexpectedKeyword x)
-    {
-      // Keyword unknown:
-      // [**This should give a hint on how to obtain a list of allowed 
-      // keywords.]
-      out0 << "Unknown keyword:\n";
       out0 << x.what()   << '\n';
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
@@ -320,18 +308,17 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
   \exception UnknownMethod
   \exception UnknownWsv
   \exception WrongWsvGroup
-  \exception UnexpectedKeyword
 
   \author Stefan Buehler
 */
-void ArtsParser::parse_method(Index& id, 
+void ArtsParser::parse_method(Index&         id, 
                               ArrayOfIndex&  output,
                               ArrayOfIndex&  input,
                               Agenda&        tasks,
                               ArrayOfIndex&  auto_vars,
                               Array<TokVal>& auto_vars_values,
                               String&        include_file,
-                              bool no_eot)
+                              bool           no_eot)
 {
   String methodname;            // We need this out here, since it is
                                 // set once and later modified.
@@ -376,8 +363,8 @@ void ArtsParser::parse_method(Index& id,
 
       eat_whitespace();
 
-      parse_output_and_input(mdd, id, methodname, output, input,
-                             auto_vars, auto_vars_values);
+      parse_method_args(mdd, id, methodname, output, input,
+                        auto_vars, auto_vars_values);
 
       eat_whitespace();
 
@@ -431,11 +418,13 @@ void ArtsParser::parse_method(Index& id,
 
 
 //! Set generic input to default value.
-/** Sets the value of the generic input with the given index to its default value.
+/** Sets the value of the generic input with the given index to its default
+    value.
  
-  \param[in]      mdd       Method object.
-  \param[out]     input     Generic inputs.
-  \param[in]      gin_index Index of the generic input which should be set to
+  \param[in]     mdd        Method object.
+  \param[out]    auto_vars  Indexes of automatically created variables.
+  \param[out]    auto_vars_values    Values of automatically created variables.
+  \param[in]     gin_index  Index of the generic input which should be set to
                             its default value.
 
   \returns Workspace variable name containing the default value
@@ -576,7 +565,7 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
 
 
 //! Parse method's argument list.
-/** This function parses a method's argument list for v1 and v2 controlfiles.
+/** This function parses a method's argument list.
 
   \param[in]  mdd        Method
   \param[out] id         Method index in md_data.
@@ -589,18 +578,17 @@ String ArtsParser::set_gin_to_default(const MdRecord*       mdd,
   \author Oliver Lemke
   \date   2008-03-05
 */
-void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
-                                        Index&           id,
-                                        String&          methodname,
-                                        ArrayOfIndex&    output,
-                                        ArrayOfIndex&    input,
-                                        ArrayOfIndex&    auto_vars,
-                                        Array<TokVal>&   auto_vars_values)
+void ArtsParser::parse_method_args(const MdRecord*&       mdd,
+                                         Index&           id,
+                                         String&          methodname,
+                                         ArrayOfIndex&    output,
+                                         ArrayOfIndex&    input,
+                                         ArrayOfIndex&    auto_vars,
+                                         Array<TokVal>&   auto_vars_values)
 {
   extern const map<String, Index> MdRawMap;
   extern const Array<MdRecord> md_data;
   extern const Array<MdRecord> md_data_raw;
-  extern const ArrayOfString wsv_group_names;
   extern const map<String, Index> MdMap;
 
   Index wsvid;                  // Workspace variable id, is used to
@@ -639,345 +627,362 @@ void ArtsParser::parse_output_and_input(const MdRecord*& mdd,
       still_supergeneric = false;
     }
 
-  if ( mdd->GOut().nelem() > 0
-       || (mdd->GIn().nelem() > 0 && msource.Current() == '('))
+  if (msource.Current() == '(')
     {
       String wsvname;
       bool first = true;        // To skip the first comma.
 
-      assertain_character('(');
+      msource.AdvanceChar();
       eat_whitespace();
 
-      if (mcfile_version == 2 && mdd->Out().nelem())
-        {
-          // Parse all output variables.
-          parse_output(mdd, output, first);
-        }
-      else
-        {
-          // To keep v1 controlfiles compatible, we have to add the static
-          // outputs to the output variable list and just hardwire them to the
-          // WSVs given in the method's definition in methods.cc.
-          ArrayOfIndex vo=mdd->Out();
-          for (ArrayOfIndex::const_iterator outs=vo.begin(); outs<vo.end(); ++outs)
-            {
-              output.push_back (*outs);
-            }
-        }
+      parse_specific_output(mdd, output, first);
 
-      // Parse all generic output variables
-      for ( Index j=0 ; j<mdd->GOut().nelem() ; ++j )
-        {
-          if (first)
-            first = false;
-          else
-            {
-              assertain_character(',');
-              eat_whitespace();
-            }
+      parse_generic_output(mdd, id, methodname, output,
+                           first, still_supergeneric);
 
-          read_name(wsvname);
+      parse_specific_input(mdd, input, auto_vars, auto_vars_values, first);
 
-          {
-            wsvid = -1;
-            // Find Wsv id:
-            map<String, Index>::const_iterator wsvit =
-              Workspace::WsvMap.find(wsvname);
-            if ( wsvit == Workspace::WsvMap.end() )
-              {
-                if (still_supergeneric)
-                  {
-                    ostringstream os;
-                    os << "This might be either a typo or you have to create "
-                      << "the variable\nby calling TYPECreate(" << wsvname
-                      << ") first. Replace TYPE with the\n"
-                      << "WSV group your variable should belong to.";
+      parse_generic_input(mdd, id, methodname, input,
+                          auto_vars, auto_vars_values,
+                          first, still_supergeneric);
 
-                    throw UnknownWsv( os.str(),
-                                      msource.File(),
-                                      msource.Line(),
-                                      msource.Column() );
-                  }
-                else
-                  {
-                    if (mdd->Name().length() > 6
-                        && mdd->Name().substr (mdd->Name().length() - 6)
-                        != "Create")
-                      {
-                        ostringstream os;
-                        os << "This might be either a typo or you have to create "
-                          << "the variable\nby calling "
-                          << wsv_group_names[mdd->GOutType()[j]]
-                          << "Create( " << wsvname
-                          << " ) first.\n";
-
-                        throw UnknownWsv( os.str(),
-                                          msource.File(),
-                                          msource.Line(),
-                                          msource.Column() );
-                      }
-                    else
-                      {
-                        wsvid = Workspace::add_wsv(
-                          WsvRecord(wsvname.c_str(),
-                                    "Automatically allocated variable.",
-                                    mdd->GOutType()[j],
-                                    true));
-                      }
-                  }
-              }
-
-            if (wsvid == -1)
-              wsvid = wsvit->second;
-          }
-
-          // If this is a supergeneric method, now is the time to find
-          // out the actual group of the argument(s)!
-          if ( still_supergeneric )
-            {
-              ostringstream os;
-              os << mdd->Name() << "_sg_"
-                 << wsv_group_names[Workspace::wsv_data[wsvid].Group()];
-              methodname = os.str();
-
-              // Find explicit method id in MdMap:
-              const map<String, Index>::const_iterator mdit = MdMap.find(methodname);
-              assert ( mdit != MdMap.end() );
-              id = mdit->second;         
-              
-              mdd = &md_data[id];
-
-              still_supergeneric = false;
-            }
-
-          // Now we have explicitly the method record for the right
-          // group. From now on no special treatment of supergeneric
-          // methods should be necessary.
-
-          // Check that this Wsv belongs to the correct group:
-          if ( Workspace::wsv_data[wsvid].Group() != mdd->GOutType()[j] )
-            {
-            throw WrongWsvGroup( wsvname+" is not "+
-                        wsv_group_names[mdd->GOutType()[j]]+", it is "+ 
-                        wsv_group_names[Workspace::wsv_data[wsvid].Group()],
-                                 msource.File(),
-                                 msource.Line(),
-                                 msource.Column() );
-            }
-
-          // Add this one to the list of output workspace variables:
-          output.push_back(wsvid);
-          
-          eat_whitespace();
-        }
-
-      if (mcfile_version == 2 && mdd->In().nelem())
-        {
-          // Parse all input variables
-          parse_input(mdd, input, auto_vars, auto_vars_values, first);
-          first = false;
-        }
-      else
-        {
-          // To keep v1 controlfiles compatible, we have to add the static
-          // inputs to the input variable list and just hardwire them to the
-          // WSVs given in the method's definition in methods.cc.
-          ArrayOfIndex vi;
-          mdd->input_only(vi);
-          for (ArrayOfIndex::const_iterator ins=vi.begin(); ins<vi.end(); ++ins)
-            {
-              input.push_back (*ins);
-            }
-        }
-
-      // Then parse all generic input variables
-      for ( Index j=0 ; j<mdd->GInType().nelem() ; ++j )
-        {
-          if (first)
-            first = false;
-          else
-            {
-              if (msource.Current() != ')')
-                {
-                  assertain_character(',');
-                  eat_whitespace();
-                }
-            }
-
-          // If there is a comma or a closing brace means no value was
-          // specified and we use the default value instead (if there is one)
-          if (msource.Current() == ',' || msource.Current() == ')')
-            {
-              wsvname = set_gin_to_default(mdd, auto_vars, auto_vars_values, j);
-            }
-          else
-            {
-              ostringstream os;
-              os << j;
-              read_name_or_value(wsvname, auto_vars, auto_vars_values,
-                                 "generic" + os.str(),
-                                 mdd, mdd->GInType()[j]);
-            }
-
-          {
-            // Find Wsv id:
-            const map<String, Index>::const_iterator wsvit =
-              Workspace::WsvMap.find(wsvname);
-            if ( wsvit == Workspace::WsvMap.end() )
-              {
-              throw UnknownWsv( wsvname,
-                                msource.File(),
-                                msource.Line(),
-                                msource.Column() );
-              }
-
-            wsvid = wsvit->second;
-          }
-
-          // Is the method data record still supergeneric? This could
-          // be the case if there are no output arguments, only input
-          // arguments. In that case, let's find out the actual group!
-          if ( still_supergeneric )
-            {
-              ostringstream os;
-              os << mdd->Name() << "_sg_"
-                 << wsv_group_names[Workspace::wsv_data[wsvid].Group()];
-              methodname = os.str();
-
-              // Find explicit method id in MdMap:
-              const map<String, Index>::const_iterator mdit =
-                MdMap.find(methodname);
-              assert ( mdit != MdMap.end() );
-              id = mdit->second;         
-
-              mdd = &md_data[id];
-
-              still_supergeneric = false;
-            }
-
-          // Now we have explicitly the method record for the right
-          // group. From now on no special treatment of supergeneric
-          // methods should be necessary.
-
-          // Check that this Wsv belongs to the correct group:
-          if ( Workspace::wsv_data[wsvid].Group() != mdd->GInType()[j] )
-            throw WrongWsvGroup( wsvname+" is not "+
-                        wsv_group_names[mdd->GInType()[j]]+", it is "+ 
-                        wsv_group_names[Workspace::wsv_data[wsvid].Group()],
-                                 msource.File(),
-                                 msource.Line(),
-                                 msource.Column() );
-
-          // Add this one to the list of input variables:
-          input.push_back(wsvid);
-          
-          eat_whitespace();
-        }
-
-      msource.AdvanceChar();
+      assertain_character(')');
     }
   else
     {
-      // Even if the method has no GInType or GOutType the user can
-      // pass all inputs and outputs in parenthesis
-      if (msource.Current() == '(')
+      // If the parenthesis were omitted we still have to add the implicit
+      // outputs and inputs to the methods input and output variable lists
+      ArrayOfIndex vo=mdd->Out();
+      for (ArrayOfIndex::const_iterator outs=vo.begin();
+           outs<vo.end(); ++outs)
         {
-          bool first = true;
-          msource.AdvanceChar();
-          eat_whitespace();
-          if (mdd->Out().nelem())
-            {
-              parse_output(mdd, output, first);
-              if (mdd->In().nelem())
-                parse_input(mdd, input, auto_vars, auto_vars_values, first);
-            }
-          else if (mdd->In().nelem())
-            parse_input(mdd, input, auto_vars, auto_vars_values, first);
-
-          eat_whitespace();
-          assertain_character(')');
+          output.push_back (*outs);
         }
-      else
+      ArrayOfIndex vi;
+      mdd->input_only(vi);
+      for (ArrayOfIndex::const_iterator ins=vi.begin(); ins<vi.end(); ++ins)
         {
-          // If the parenthesis were omitted we still have to add the implicit
-          // outputs and inputs to the methods input and output variable lists
-          ArrayOfIndex vo=mdd->Out();
-          for (ArrayOfIndex::const_iterator outs=vo.begin();
-               outs<vo.end(); ++outs)
-            {
-              output.push_back (*outs);
-            }
-          ArrayOfIndex vi;
-          mdd->input_only(vi);
-          for (ArrayOfIndex::const_iterator ins=vi.begin(); ins<vi.end(); ++ins)
-            {
-              input.push_back (*ins);
-            }
+          input.push_back (*ins);
+        }
 
+        {
+          // Make sure all keywords have default values, otherwise the
+          // user has to specify them in the controlfile.
+          bool all_gin_have_defaults = true;
+          for (Index gin = 0;
+               all_gin_have_defaults && gin < mdd->GIn().nelem();
+               ++gin)
             {
-              // Make sure all keywords have default values, otherwise the
-              // user has to specify them in the controlfile.
-              bool all_kw_have_defaults = true;
-              for (Index kw = 0;
-                   all_kw_have_defaults && kw < mdd->GIn().nelem();
-                   ++kw)
+              if (mdd->GInDefault()[gin] == NODEF)
+                all_gin_have_defaults = false;
+              else
                 {
-                  if (mdd->GInDefault()[kw] == NODEF)
-                    all_kw_have_defaults = false;
-                  else
+                  String wsvname;
+                  wsvname = set_gin_to_default(mdd, auto_vars,
+                                               auto_vars_values, gin);
                     {
-                      String wsvname;
-                      wsvname = set_gin_to_default(mdd, auto_vars,
-                                                   auto_vars_values, kw);
+                      // Find Wsv id:
+                      const map<String, Index>::const_iterator wsvit =
+                        Workspace::WsvMap.find(wsvname);
+                      if ( wsvit == Workspace::WsvMap.end() )
                         {
-                          // Find Wsv id:
-                          const map<String, Index>::const_iterator wsvit =
-                            Workspace::WsvMap.find(wsvname);
-                          if ( wsvit == Workspace::WsvMap.end() )
-                            {
-                              throw UnknownWsv( wsvname,
-                                                msource.File(),
-                                                msource.Line(),
-                                                msource.Column() );
-                            }
-
-                          wsvid = wsvit->second;
+                          throw UnknownWsv( wsvname,
+                                            msource.File(),
+                                            msource.Line(),
+                                            msource.Column() );
                         }
-                      input.push_back(wsvid);
-                    }
-                }
 
-              if (!all_kw_have_defaults)
-                {
-                  ostringstream os;
-                  os << "Not all generic inputs of this method have default "
-                    << "values, you have to specify them!";
-                  throw UnexpectedChar( os.str(),
-                                        msource.File(),
-                                        msource.Line(),
-                                        msource.Column() );
+                      wsvid = wsvit->second;
+                    }
+                  input.push_back(wsvid);
                 }
+            }
+
+          if (!all_gin_have_defaults)
+            {
+              ostringstream os;
+              os << "Not all generic inputs of this method have default "
+                << "values, you have to specify them!";
+              throw UnexpectedChar( os.str(),
+                                    msource.File(),
+                                    msource.Line(),
+                                    msource.Column() );
             }
         }
     }
 }
 
 
-/** Parse the input WSVs for current method from the controlfile.
+/** Parse the generic input WSVs for current method from the controlfile.
 
-  \param[in]  mdd    Pointer to the current WSM
-  \param[out] input  Indexes of input variables for the WSM
+  \param[in]  mdd        Pointer to the current WSM
+  \param[out] id         Method index in md_data.
+  \param[out] methodname Name of the WSM
+  \param[out] input      Input WSVs
+  \param[out] auto_vars  Indexes of automatically created variables.
+  \param[out] auto_vars_values    Values of automatically created variables.
+  \param[in,out]  first  If set to false, there must be a comma before the first
+                         WSV in the controlfile
+  \param[in,out]  still_supergeneric  True if the supergeneric method has not
+                                      been expanded for the different types yet.
+
+  \author Oliver Lemke
+  \date   2008-03-05
+  */
+void ArtsParser::parse_generic_input(const MdRecord*&     mdd,
+                                           Index&         id,
+                                           String&        methodname,
+                                           ArrayOfIndex&  input,
+                                           ArrayOfIndex&  auto_vars,
+                                           Array<TokVal>& auto_vars_values,
+                                           bool&          first,
+                                           bool&          still_supergeneric)
+{
+  String wsvname;
+  Index wsvid;
+  extern const ArrayOfString wsv_group_names;
+  extern const Array<MdRecord> md_data;
+  extern const map<String, Index> MdMap;
+
+  // Then parse all generic input variables
+  for ( Index j=0 ; j<mdd->GInType().nelem() ; ++j )
+    {
+      if (first)
+        first = false;
+      else
+        {
+          if (msource.Current() != ')')
+            {
+              assertain_character(',');
+              eat_whitespace();
+            }
+        }
+
+      // If there is a comma or a closing brace means no value was
+      // specified and we use the default value instead (if there is one)
+      if (msource.Current() == ',' || msource.Current() == ')')
+        {
+          wsvname = set_gin_to_default(mdd, auto_vars, auto_vars_values, j);
+        }
+      else
+        {
+          ostringstream os;
+          os << j;
+          read_name_or_value(wsvname, auto_vars, auto_vars_values,
+                             "generic" + os.str(),
+                             mdd, mdd->GInType()[j]);
+        }
+
+        {
+          // Find Wsv id:
+          const map<String, Index>::const_iterator wsvit =
+            Workspace::WsvMap.find(wsvname);
+          if ( wsvit == Workspace::WsvMap.end() )
+            {
+              throw UnknownWsv( wsvname,
+                                msource.File(),
+                                msource.Line(),
+                                msource.Column() );
+            }
+
+          wsvid = wsvit->second;
+        }
+
+      // Is the method data record still supergeneric? This could
+      // be the case if there are no output arguments, only input
+      // arguments. In that case, let's find out the actual group!
+      if ( still_supergeneric )
+        {
+          ostringstream os;
+          os << mdd->Name() << "_sg_"
+            << wsv_group_names[Workspace::wsv_data[wsvid].Group()];
+          methodname = os.str();
+
+          // Find explicit method id in MdMap:
+          const map<String, Index>::const_iterator mdit =
+            MdMap.find(methodname);
+          assert ( mdit != MdMap.end() );
+          id = mdit->second;         
+
+          mdd = &md_data[id];
+
+          still_supergeneric = false;
+        }
+
+      // Now we have explicitly the method record for the right
+      // group. From now on no special treatment of supergeneric
+      // methods should be necessary.
+
+      // Check that this Wsv belongs to the correct group:
+      if ( Workspace::wsv_data[wsvid].Group() != mdd->GInType()[j] )
+        throw WrongWsvGroup( wsvname+" is not "+
+                             wsv_group_names[mdd->GInType()[j]]+", it is "+ 
+                             wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+                             msource.File(),
+                             msource.Line(),
+                             msource.Column() );
+
+      // Add this one to the list of input variables:
+      input.push_back(wsvid);
+
+      eat_whitespace();
+    }
+
+}
+
+
+/** Parse the generic output WSVs for current method from the controlfile.
+
+  \param[in]  mdd        Pointer to the current WSM
+  \param[out] id         Method index in md_data.
+  \param[out] methodname Name of the WSM
+  \param[out] output     Output WSVs
+  \param[in,out]  first  If set to false, there must be a comma before the first
+                         WSV in the controlfile
+  \param[in,out]  still_supergeneric  True if the supergeneric method has not
+                                      been expanded for the different types yet.
+
+  \author Oliver Lemke
+  \date   2008-03-05
+  */
+void ArtsParser::parse_generic_output(const MdRecord*&     mdd,
+                                            Index&         id,
+                                            String&        methodname,
+                                            ArrayOfIndex&  output,
+                                            bool&          first,
+                                            bool&          still_supergeneric)
+{
+  String wsvname;
+  Index wsvid;
+  extern const ArrayOfString wsv_group_names;
+  extern const Array<MdRecord> md_data;
+  extern const map<String, Index> MdMap;
+
+  // Parse all generic output variables
+  for ( Index j=0 ; j<mdd->GOut().nelem() ; ++j )
+    {
+      if (first)
+        first = false;
+      else
+        {
+          assertain_character(',');
+          eat_whitespace();
+        }
+
+      read_name(wsvname);
+
+        {
+          wsvid = -1;
+          // Find Wsv id:
+          map<String, Index>::const_iterator wsvit =
+            Workspace::WsvMap.find(wsvname);
+          if ( wsvit == Workspace::WsvMap.end() )
+            {
+              if (still_supergeneric)
+                {
+                  ostringstream os;
+                  os << "This might be either a typo or you have to create "
+                    << "the variable\nby calling TYPECreate(" << wsvname
+                    << ") first. Replace TYPE with the\n"
+                    << "WSV group your variable should belong to.";
+
+                  throw UnknownWsv( os.str(),
+                                    msource.File(),
+                                    msource.Line(),
+                                    msource.Column() );
+                }
+              else
+                {
+                  if (mdd->Name().length() > 6
+                      && mdd->Name().substr (mdd->Name().length() - 6)
+                      != "Create")
+                    {
+                      ostringstream os;
+                      os << "This might be either a typo or you have to create "
+                        << "the variable\nby calling "
+                        << wsv_group_names[mdd->GOutType()[j]]
+                        << "Create( " << wsvname
+                        << " ) first.\n";
+
+                      throw UnknownWsv( os.str(),
+                                        msource.File(),
+                                        msource.Line(),
+                                        msource.Column() );
+                    }
+                  else
+                    {
+                      wsvid = Workspace::add_wsv(
+                                                 WsvRecord(wsvname.c_str(),
+                                                           "Automatically allocated variable.",
+                                                           mdd->GOutType()[j],
+                                                           true));
+                    }
+                }
+            }
+
+          if (wsvid == -1)
+            wsvid = wsvit->second;
+        }
+
+      // If this is a supergeneric method, now is the time to find
+      // out the actual group of the argument(s)!
+      if ( still_supergeneric )
+        {
+          ostringstream os;
+          os << mdd->Name() << "_sg_"
+            << wsv_group_names[Workspace::wsv_data[wsvid].Group()];
+          methodname = os.str();
+
+          // Find explicit method id in MdMap:
+          const map<String, Index>::const_iterator mdit = MdMap.find(methodname);
+          assert ( mdit != MdMap.end() );
+          id = mdit->second;         
+
+          mdd = &md_data[id];
+
+          still_supergeneric = false;
+        }
+
+      // Now we have explicitly the method record for the right
+      // group. From now on no special treatment of supergeneric
+      // methods should be necessary.
+
+      // Check that this Wsv belongs to the correct group:
+      if ( Workspace::wsv_data[wsvid].Group() != mdd->GOutType()[j] )
+        {
+          throw WrongWsvGroup( wsvname+" is not "+
+                               wsv_group_names[mdd->GOutType()[j]]+", it is "+ 
+                               wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+                               msource.File(),
+                               msource.Line(),
+                               msource.Column() );
+        }
+
+      // Add this one to the list of output workspace variables:
+      output.push_back(wsvid);
+
+      eat_whitespace();
+    }
+}
+
+
+/** Parse the specific input WSVs for current method from the controlfile.
+
+  \param[in]  mdd        Pointer to the current WSM
+  \param[out] input      Indexes of input variables for the WSM
+  \param[out] auto_vars  Indexes of automatically created variables.
+  \param[out] auto_vars_values    Values of automatically created variables.
   \param[in]  first  If set to false, there must be a comma before the first WSV
                      in the controlfile
 
   \author Oliver Lemke
   \date   2008-03-05
   */
-void ArtsParser::parse_input(const MdRecord*      mdd,
-                                   ArrayOfIndex&  input,
-                                   ArrayOfIndex&  auto_vars,
-                                   Array<TokVal>& auto_vars_values,
-                                   bool&          first)
+void ArtsParser::parse_specific_input(const MdRecord*      mdd,
+                                            ArrayOfIndex&  input,
+                                            ArrayOfIndex&  auto_vars,
+                                            Array<TokVal>& auto_vars_values,
+                                            bool&          first)
 {
   extern const ArrayOfString wsv_group_names;
 
@@ -1040,6 +1045,8 @@ void ArtsParser::parse_input(const MdRecord*      mdd,
 
       input.push_back(wsvid);
     }
+
+  eat_whitespace();
 }
 
 
@@ -1053,7 +1060,9 @@ void ArtsParser::parse_input(const MdRecord*      mdd,
   \author Oliver Lemke
   \date   2008-03-05
   */
-void ArtsParser::parse_output(const MdRecord* mdd, ArrayOfIndex& output, bool& first)
+void ArtsParser::parse_specific_output(const MdRecord*     mdd,
+                                             ArrayOfIndex& output,
+                                             bool&         first)
 {
   extern const ArrayOfString wsv_group_names;
 
@@ -1138,6 +1147,8 @@ void ArtsParser::parse_output(const MdRecord* mdd, ArrayOfIndex& output, bool& f
 
       output.push_back(wsvid);
     }
+
+  eat_whitespace();
 }
 
 
@@ -1223,6 +1234,9 @@ void ArtsParser::tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
 
     The whitespace cases implemented here must be consistent with
     eat_whitespace! 
+
+    \param[in] c Character to test.
+
     \see eat_whitespace  */
 bool ArtsParser::is_whitespace(const char c)
 {
@@ -1347,8 +1361,12 @@ void ArtsParser::read_name(String& name)
     Whitespace has to have been eaten before. Scanns source for the
     name, starting at position specified by line and column.
 
-    \param[out] name  WSV name or value
-    \param[in]  group Expected WSV group index
+    \param[out] name       WSV name or value
+    \param[out] auto_vars  Indexes of automatically created variables.
+    \param[out] auto_vars_values    Values of automatically created variables.
+    \param[in]  default_name        Default WSV name.
+    \param[in]  mdd        Pointer to the current WSM
+    \param[in]  group      Expected WSV group index
     
     \return -1 If a WSV name was found or the index of the newly created
                WSV
@@ -1452,6 +1470,8 @@ Index ArtsParser::read_name_or_value(      String&        name,
 
 /** Make sure that the current character is equal to c and go to the
     next character.
+
+    \param[in] c Expected character.
   
     \exception UnexpectedChar The character is not right. */
 void ArtsParser::assertain_character(char c)
