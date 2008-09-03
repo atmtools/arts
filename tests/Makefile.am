@@ -22,7 +22,8 @@ check: \
 	TestDOIT \
 	TestClearSky \
 	TestAbs \
-	TestAMSUB
+	TestAMSUB \
+	TestAMSUB_fast
 
 # Broken tests:
 #	TestMonteCarloSimple
@@ -41,6 +42,8 @@ TestMonteCarloGeneralGaussian: TestMonteCarloDataPrepare
 TestMonteCarloWithIncomingLookup: TestMonteCarloDataPrepare
 
 TestRteCalcMC: TestMonteCarloDataPrepare
+
+TestAMSUB_fast: TestAMSUB
 
 ###############################################################
 

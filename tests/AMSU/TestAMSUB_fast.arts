@@ -1,0 +1,15 @@
+#DEFINITIONS:  -*-sh-*-
+
+Arts2 {
+
+INCLUDE "general.arts"
+INCLUDE "continua.arts"
+INCLUDE "amsu/amsub_fast.arts"
+
+INCLUDE "TestAMSU_generic.arts"
+
+# Store result matrix:
+# ---
+WriteXML( "ascii", ybatch, "AMSUB_fast.ybatch.xml.generated" )
+
+}

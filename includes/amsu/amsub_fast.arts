@@ -1,0 +1,136 @@
+#DEFINITIONS:  -*-sh-*-
+
+# ARTS setup file for AMSUB simulations
+# 
+# This is a setup with a reduced frequency grid, only 2 frequencies
+# for each channel (1 for each sideband).
+#
+# The frequencies have been derived with the atmlab function
+# optimize_f_grid over the Chevallier data set.
+#
+# Accuracy for the different channels:
+# Channel RMS_err[K]  Max_err[K]
+# 16      0.000808466 0.00208452
+# 17      0.00656138  0.0355162
+# 18      0.0435299   0.31704
+# 19      0.0270451   0.154509
+# 20      0.0198627   0.0972374
+#
+# Channel 18 is worst, possibly because of Ozone interference, which
+# would require a finer frequency grid. 
+#
+# 2008-09-02 Stefan Buehler
+
+Arts2 {
+
+
+# 1. General
+#-----------
+
+output_file_formatSetZippedAscii
+
+# AMSU uses Planck brightness temperatures
+# ---
+StringSet( y_unit, "PlanckBT" )
+StringSet( jacobian_unit, "RJBT" )
+
+# Surface
+AgendaSet( surface_prop_agenda ){
+   InterpAtmFieldToRteGps( surface_skin_t,
+                           atmosphere_dim, 
+                           p_grid, lat_grid, lon_grid, 
+                           rte_gp_p, rte_gp_lat, rte_gp_lon,
+                           t_field )
+   surfaceSimple
+} 
+
+# 2. Spectroscopy
+#----------------
+
+# We take a smaller cutoff, since the line-by-line calculation is 
+# only for O3, where only the local lines matter.
+# Could be speed-optimized further by selecting only the relevant 
+# lines from the line list.
+ArrayOfLineshapeSpecCreate( abs_lineshapeDefine )
+abs_lineshapeDefine( abs_lineshapeDefine, "Voigt_Kuntz6", "VVH", 5e9 )
+
+SpeciesSet( abs_species, [ "H2O-PWR98",
+                           "O3",
+                           "O2-PWR93",
+                           "N2-SelfContStandardType" ] )
+
+# Read HITRAN catalog (needed for O3):
+#abs_linesReadFromHitran2004( abs_lines,
+#                             "/storage1/pool/lookup2/hitran2004/HITRAN04.par",
+#                             80e9,
+#                             200e9 )
+#WriteXML( "ascii", abs_lines, "amsu/amsub.hitran04_lines.xml" )
+
+ReadXML( abs_lines, "amsu/amsub.hitran04_lines.xml" )
+abs_lines_per_speciesCreateFromLines
+
+# WARNING: If you redifine abs_species, and want to do a line-by-line
+# calculation, you also have to call
+# abs_lines_per_speciesCreateFromLines again.
+
+
+# 3. Sensor:
+#-----------
+
+# Definition of sensor position and LOS
+# ---
+ReadXML( sensor_los, "amsu/amsub.sensor_los.xml" )
+nrowsGet( nrows, sensor_los )
+ncolsGet( ncols, sensor_los )
+MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
+sensor_posAddRgeoid
+
+
+# Start sensor response setup
+# ---
+
+# Normalise the sensor response
+# ---
+IndexSet( sensor_norm, 1 )
+
+# Antenna
+# ---
+AntennaOff
+
+
+# See setup_input.m for details around other sensor variables 
+
+
+# Mixer:
+#
+ReadXML( lo_multi, "amsu/amsub.lo.xml" )
+ReadXML( sideband_response_multi, "amsu/amsub.sideband_response.xml" )
+ReadXML( sideband_mode_multi, "amsu/amsub.sideband_mode.xml" )
+
+
+# Spectrometer:
+#
+ReadXML( f_backend_multi, "amsu/amsub.f_backend.xml" )
+ReadXML( backend_channel_response_multi,
+         "amsu/amsub.backend_channel_response.xml" )
+
+
+# Frequency grid:
+#
+f_gridFromSensorAMSU
+
+
+# Construct sensor response from all these inputs:
+#
+sensor_responseInit
+sensor_responseMultiMixerBackend
+
+# Replace f_grid and sensor_response by optimized ones.
+ReadXML( f_grid, "amsu/amsub.f_grid_fast.xml")
+ReadXML( sensor_response, "amsu/amsub.sensor_response_fast.xml")
+
+
+# End of sensor response setup
+
+
+}
