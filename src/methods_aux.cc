@@ -464,7 +464,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   ostringstream buf;
   ostringstream param;
   String indent = "";
-  const size_t linelen = 70;
+  const size_t linelen = 68;
 
   os << "\n*-------------------------------------------------------------------*\n"
      << "Workspace method = " << mdr.Name() << 
