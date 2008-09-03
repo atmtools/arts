@@ -109,7 +109,7 @@ abs_lookupSetupBatch
 # ---
 abs_lookupCreate
 
-WriteXML("binary", abs_lookup, "n14hirs12.gal.xml")
+WriteXML("binary", abs_lookup, "n14hirs12.gal.xml.generated")
 
 # Test (and print) lookup table accuracy
 # ---
@@ -207,6 +207,6 @@ ybatchCalc
 
 # Store result matrix:
 # ---
-WriteXML( "ascii", ybatch, "n14hirs12.ybatch.xml" )
+WriteXML( "ascii", ybatch, "n14hirs12.ybatch.xml.generated" )
 
 }

@@ -118,82 +118,19 @@ void Agenda::execute(Workspace& ws) const
         {
           {
             ostringstream os;
-            out1 << "- " << mdd.Name() << "\n";
-#if 0
-            bool is_first = true;
-            String indent ("        ");
-            os << "- " << mdd.Name() << "( ";
-            out1 << os.str();
-            //for (Index j = 0; j < os.str().length(); j++)
-            //  indent += ' ';
-
-            for (Index j = 0; j < (mdd.Out()).nelem(); j++)
+            if ((mdd.SetMethod() && mrr.Out().nelem()
+                && Workspace::wsv_data[mrr.Out()[0]].Name().substr(0, 5)
+                   == "auto_")
+                || (mdd.Name() == "Delete" && mrr.In().nelem()
+                && Workspace::wsv_data[mrr.In()[0]].Name().substr(0, 5)
+                   == "auto_"))
               {
-                if (is_first)
-                  {
-                    is_first = false;
-                    out1 << Workspace::wsv_data[mdd.Out()[j]].Name();
-                  }
-                else
-                  {
-                    out1 << ",\n";
-                    out1 << indent << Workspace::wsv_data[mdd.Out()[j]].Name();
-                  }
-
+                out3 << "- " << mdd.Name() << "\n";
               }
-
-            ArrayOfIndex  vi;
-            mdd.input_only (vi);
-
-            for (Index j = 0; j < vi.nelem(); j++)
+            else
               {
-                if (is_first)
-                  {
-                    is_first = false;
-                    out1 << Workspace::wsv_data[vi[j]].Name();
-                  }
-                else
-                  {
-                    out1 << ",\n";
-                    out1 << indent << Workspace::wsv_data[vi[j]].Name();
-                  }
-
+                out1 << "- " << mdd.Name() << "\n";
               }
-
-            for (Index j = 0; j < (mrr.Out()).nelem(); j++)
-              {
-                if (is_first)
-                  {
-                    is_first = false;
-                    out1 << Workspace::wsv_data[mrr.Out()[j]].Name();
-                  }
-                else
-                  {
-                    out1 << ",\n";
-                    out1 << indent << Workspace::wsv_data[mrr.Out()[j]].Name();
-                  }
-
-              }
-
-            mrr.ginput_only(vi);    // Generic Input
-
-            for (Index j = 0; j < vi.nelem(); j++)
-              {
-                if (is_first)
-                  {
-                    is_first = false;
-                    out1 << Workspace::wsv_data[vi[j]].Name();
-                  }
-                else
-                  {
-                    out1 << ",\n";
-                    out1 << indent << Workspace::wsv_data[vi[j]].Name();
-                  }
-
-              }
-
-            out1 << " )\n";
-#endif
           }
         
           { // Check if all generic input variables are initialized:

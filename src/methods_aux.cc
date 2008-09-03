@@ -34,6 +34,11 @@
 #include "wsv_aux.h"
 #include "workspace_ng.h"
 
+
+void limit_line_length( ostream& os, ostringstream& curline,
+                        ostringstream& token, const String& indent,
+                        size_t linelen);
+
 //! Initializing constructor for MdRecord
 /*!
   This is the only non-trivial constructor, which sets all the
@@ -428,11 +433,38 @@ ostream& MdRecord::PrintTemplate(ostream& os,
   return os;
 }
 
+
+//! Limit length of output
+/*! Automatically inserts linebreaks at certain length.
+  
+  \author Oliver Lemke
+  \date   2008-09-03
+*/
+void limit_line_length( ostream& os,
+                        ostringstream& curline,
+                        ostringstream& token,
+                        const String& indent,
+                        size_t linelen)
+{
+  if (indent.length() + curline.str().length() + token.str().length() > linelen)
+    {
+      os << curline.str() << endl << indent;
+      curline.str("");
+    }
+  curline << token.str();
+  token.str("");
+}
+
+
 //! Output operator for MdRecord.
 ostream& operator<<(ostream& os, const MdRecord& mdr)
 {
   extern const ArrayOfString wsv_group_names;
   bool first;
+  ostringstream buf;
+  ostringstream param;
+  String indent = "";
+  const size_t linelen = 70;
 
   os << "\n*-------------------------------------------------------------------*\n"
      << "Workspace method = " << mdr.Name() << 
@@ -445,52 +477,57 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
     }
 
   // Print the method's synopsis
-  {
-    String indent = "";
+  while (indent.length() < mdr.Name().length() + 2) indent += ' ';
 
-    // If the method has more than 4 arguments, put them on
-    // separate lines for better readability
-    if (mdr.Out().nelem() + mdr.GOut().nelem() + mdr.In().nelem()
-        + mdr.GIn().nelem() > 4)
-      {
-        indent = "\n";
-        for (size_t i = 0; i < mdr.Name().length() + 2; i++)
-          {
-            indent += ' ';
-          }
-      }
+  os << "Synopsis:\n\n";
+  buf << mdr.Name() << "( ";
+  first = true;
+  for ( Index i=0; i<mdr.Out().nelem(); ++i )
+    {
+      if (first) first=false; else buf << ", ";
+      param << Workspace::wsv_data[mdr.Out()[i]].Name();
 
-    os << "Synopsis (Arts2 Syntax):\n\n";
-    os << mdr.Name() << "( ";
-    first = true;
-    for ( Index i=0; i<mdr.Out().nelem(); ++i )
-      {
-        if (first) first=false; else os << ", " << indent;
-        os << Workspace::wsv_data[mdr.Out()[i]].Name();
-      }
+      limit_line_length( os, buf, param, indent, linelen );
+    }
 
-    for ( Index i=0; i<mdr.GOutType().nelem(); ++i )
-      {
-        if (first) first=false; else os << ", " << indent;
-        os << wsv_group_names[mdr.GOutType()[i]];
-      }
+  for ( Index i=0; i<mdr.GOutType().nelem(); ++i )
+    {
+      if (first) first=false; else buf << ", ";
+      if (mdr.GOut()[i].length())
+        param << mdr.GOut()[i];
+      else
+        param << "gout" << i;
 
-    ArrayOfIndex inonly;
-    mdr.input_only (inonly);
-    for ( Index i=0; i<inonly.nelem(); ++i )
-      {
-        if (first) first=false; else os << ", " << indent;
-        os << Workspace::wsv_data[inonly[i]].Name();
-      }
+      limit_line_length( os, buf, param, indent, linelen );
+    }
 
-    for ( Index i=0; i<mdr.GInType().nelem(); ++i )
-      {
-        if (first) first=false; else os << ", " << indent;
-        os << wsv_group_names[mdr.GInType()[i]];
-      }
+  ArrayOfIndex inonly;
+  mdr.input_only (inonly);
+  for ( Index i=0; i<inonly.nelem(); ++i )
+    {
+      if (first) first=false; else buf << ", ";
+      param << Workspace::wsv_data[inonly[i]].Name();
 
-    os << " )\n\n";
-  }
+      limit_line_length( os, buf, param, indent, linelen );
+    }
+
+  for ( Index i=0; i<mdr.GInType().nelem(); ++i )
+    {
+      if (first) first=false; else buf << ", ";
+      if (mdr.GIn()[i].length())
+        {
+          param << mdr.GIn()[i];
+        }
+      else
+        {
+          param << "gin" << i;
+        }
+
+      limit_line_length( os, buf, param, indent, linelen );
+    }
+  if (buf.str().length()) os << buf.str();
+
+  os << " )\n\n";
 
   {
     bool is_first_author = true;
@@ -516,65 +553,130 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
 
   // Out:
   first = true;
-  os << "Out = ";
+  os <<    "Out = ";
+  indent = "      ";
+  buf.str("");
+  param.str("");
   for ( Index i=0; i<mdr.Out().nelem(); ++i )
     {
-      if (first) first=false;
-      else os << ", ";
+      if (first) first=false; else buf << ", ";
 
-      os << Workspace::wsv_data[mdr.Out()[i]].Name();
+      param << Workspace::wsv_data[mdr.Out()[i]].Name();
+
+      limit_line_length( os, buf, param, indent, linelen );
     }
+  if (buf.str().length()) os << buf.str();
   os << '\n';
 
   // In:
   first = true;
-  os << "In = ";
+  os <<    "In = ";
+  indent = "     ";
+  buf.str("");
+  param.str("");
   for ( Index i=0; i<mdr.In().nelem(); ++i )
     {
-      if (first) first=false;
-      else os << ", ";
+      if (first) first=false; else buf << ", ";
 
-      os << Workspace::wsv_data[mdr.In()[i]].Name();
+      param << Workspace::wsv_data[mdr.In()[i]].Name();
+
+      limit_line_length( os, buf, param, indent, linelen );
     }
+  if (buf.str().length()) os << buf.str();
   os << '\n';
       
   // GOut:
   first = true;
-  os << "GOutType = ";
+  os <<    "GOut = ";
+  indent = "       ";
+  buf.str("");
+  param.str("");
+  for ( Index i=0; i<mdr.GOut().nelem(); ++i )
+    {
+      if (first) first=false; else buf << ", ";
+
+      if (mdr.GOut()[i].length())
+        param << mdr.GOut()[i];
+      else
+        param << "gout" << i;
+
+      limit_line_length( os, buf, param, indent, linelen );
+    }
+  if (buf.str().length()) os << buf.str();
+  os << '\n';
+
+  // GOutType:
+  first = true;
+  os <<    "GOutType = ";
+  indent = "           ";
+  buf.str("");
+  param.str("");
   for ( Index i=0; i<mdr.GOutType().nelem(); ++i )
     {
-      if (first) first=false;
-      else os << ", ";
+      if (first) first=false; else buf << ", ";
 
-      os << wsv_group_names[mdr.GOutType()[i]];
+      param << wsv_group_names[mdr.GOutType()[i]];
+
+      limit_line_length( os, buf, param, indent, linelen );
     }
+  if (buf.str().length()) os << buf.str();
+  os << '\n';
+
+  // GIn:
+  first = true;
+  os <<    "GIn = ";
+  indent = "      ";
+  buf.str("");
+  param.str("");
+  for ( Index i=0; i<mdr.GIn().nelem(); ++i )
+    {
+      if (first) first=false; else buf << ", ";
+
+      if (mdr.GIn()[i].length())
+        param << mdr.GIn()[i];
+      else
+        param << "gin" << i;
+
+      limit_line_length( os, buf, param, indent, linelen );
+    }
+  if (buf.str().length()) os << buf.str();
   os << '\n';
 
   // GInType:
   first = true;
-  os << "GInType = ";
+  os <<    "GInType = ";
+  indent = "          ";
+  buf.str("");
+  param.str("");
   for ( Index i=0; i<mdr.GInType().nelem(); ++i )
     {
-      if (first) first=false;
-      else os << ", ";
+      if (first) first=false; else buf << ", ";
 
-      os << wsv_group_names[mdr.GInType()[i]];
+      param << wsv_group_names[mdr.GInType()[i]];
+
+      limit_line_length( os, buf, param, indent, linelen );
     }
+  if (buf.str().length()) os << buf.str();
   os << '\n';
 
   // Defaults:
   first = true;
-  os << "GInDefault = ";
+  os <<    "GInDefault = ";
+  indent = "             ";
+  buf.str("");
+  param.str("");
   for ( Index i=0; i<mdr.GInDefault().nelem(); ++i )
     {
-      if (first) first=false;
-      else os << ", ";
+      if (first) first=false; else buf << ", ";
 
       if (mdr.GInDefault()[i] != NODEF)
-        os << mdr.GInDefault()[i];
+        param << mdr.GInDefault()[i];
       else
-        os << "none";
+        param << "none";
+
+      limit_line_length( os, buf, param, indent, linelen );
     }
+  if (buf.str().length()) os << buf.str();
   os << '\n';
 
   os << "\n*-------------------------------------------------------------------*\n";
