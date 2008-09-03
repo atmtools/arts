@@ -1,3 +1,15 @@
+2008-09-03  Viju Oommen John  <viju.john@metoffice.gov.uk>
+
+	* arts-1-9-6
+	
+        * tests/HIRS/TestHIRS.arts: Fine tuned.
+
+        * tests/HIRS/garand_profiles.xml.gz: Added.
+
+        * includes/hirs/hirs.arts: Tuned.
+
+        * includes/continua.arts: Tuned.
+
 2008-09-03  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-9-5
