@@ -69,6 +69,27 @@ abs_cont_descriptionAppend( abs_cont_names,
                             [ ] )
 
 #
+# CKD MT 1.00 self continuum original parameters:
+abs_cont_descriptionAppend( abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+                            "H2O-SelfContCKDMT100",
+                            "CKDMT100",
+                            [ ]
+                          )
+#
+# CKD MT 1.00 H2O foreign continuum original parameters:
+abs_cont_descriptionAppend( abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+                            "H2O-ForeignContCKDMT100",
+                            "CKDMT100", 
+                            [ ]
+                          )
+#
+
+
+#
 # O2 continuum 
 #
 # Standard O2-air continuum
@@ -86,6 +107,17 @@ abs_cont_descriptionAppend( abs_cont_names,
                             "O2-PWR93",
                             "Rosenkranz",
                             [ ] )
+
+#
+# Thibault et  al. from CKD F77 program:
+abs_cont_descriptionAppend( abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+                            "O2-CIAfunCKDMT100",
+                            "CKDMT100",
+                            [ ]
+                          )
+#
 
 #
 # N2 continuum
@@ -114,6 +146,27 @@ abs_cont_descriptionAppend( abs_cont_names,
                             "BF86",
                             [ ] )
 
+# Borysow-Frommhold from CKD F77 program:
+abs_cont_descriptionAppend( abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+                            "N2-CIArotCKDMT100",
+                            "CKDMT100",
+                            [ ]
+                          )
+#
+#
+# Lafferty et  al. from CKD F77 program:
+abs_cont_descriptionAppend( abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+                            "N2-CIAfunCKDMT100",
+                            "CKDMT100",
+                            [ ] 
+                          )
+
+#
+
 #
 # CO2 continuum 
 #
@@ -133,5 +186,15 @@ abs_cont_descriptionAppend( abs_cont_names,
                             "Rosenkranz",
                             [ ] )
 
-}
 
+#
+# far line wing continuum from CKD F77 program:
+abs_cont_descriptionAppend( abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+	                    "CO2-CKDMT100",
+                            "CKDMT100",
+                            [ ] 
+                          )
+
+}

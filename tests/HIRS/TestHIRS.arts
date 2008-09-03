@@ -17,8 +17,8 @@ StringCreate(hitran_file)
 
 # Select here which HIRS instrument you want
 # ---
-StringSet(f_backend_file, "hirs/NOAA16_HIRS.f_backend.xml")
-StringSet(sideband_response_file, "hirs/NOAA16_HIRS.sideband_response.xml")
+StringSet(f_backend_file, "hirs/NOAA14_HIRS.f_backend.xml")
+StringSet(sideband_response_file, "hirs/NOAA14_HIRS.sideband_response.xml")
 
 # You have to give here the location of the HITRAN catalogue
 # ---
@@ -48,7 +48,9 @@ INCLUDE "hirs/hirs.arts"
 ArrayOfMatrixCreate( arrayofmatrix_1 )
 #ReadXML( arrayofmatrix_1,
 #         "/storage2/home/sbuehler/checkouts/arts-xml-data/atmosphere/chevallier_91L/chevallierl91_clear_q.xml" )
-ReadXML( arrayofmatrix_1, "../AMSU/chevallierl91_clear_q_extract.xml" )
+#ReadXML( arrayofmatrix_1, "../AMSU/chevallierl91_clear_q_extract.xml" )
+
+ReadXML( arrayofmatrix_1, "garand_profiles.xml" )
 
 # Storage in an array of matrix is handy for Chevallier data, because
 # it is very compact. However, the more general internal
@@ -61,7 +63,7 @@ batch_atm_fields_compactFromArrayOfMatrix(
    batch_atm_fields_compact,
    atmosphere_dim,
    arrayofmatrix_1,
-   ["T", "z", "H2O", "O3"],
+   ["T", "z", "H2O", "O3", "CO2", "N2O", "CO", "CH4"],
    ["O2", "N2"],
    [0.2095, 0.7808]
 )
@@ -107,13 +109,15 @@ abs_lookupSetupBatch
 # ---
 abs_lookupCreate
 
+WriteXML("binary", abs_lookup, "n14hirs12.gal.xml")
+
 # Test (and print) lookup table accuracy
 # ---
 # This method is not necessary, it just tests and prints the lookup
 # table accuracy. Comment it out if you do not want this
 # information. The test should take approximately as much time as the
 # lookup table generation, perhaps even more. So, it is not cheap!
-abs_lookupTestAccuracy
+#abs_lookupTestAccuracy
 
 # Set abs_scalar_gas_agenda to use lookup table
 # ---
@@ -128,7 +132,7 @@ AgendaSet( abs_scalar_gas_agenda ){
 # Set surface emissivity
 # ---
 # Here we take a value representative for the sea surface.
-NumericSet( surface_emissivity, 0.6 )
+NumericSet( surface_emissivity, 1.0 )
 
 
 # Definition of sensor position and LOS
@@ -203,6 +207,6 @@ ybatchCalc
 
 # Store result matrix:
 # ---
-WriteXML( "ascii", ybatch,  )
+WriteXML( "ascii", ybatch, "n14hirs12.ybatch.xml" )
 
 }

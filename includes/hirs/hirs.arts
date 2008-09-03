@@ -17,11 +17,12 @@ StringSet( jacobian_unit, "RJBT" )
 
 # Surface
 AgendaSet( surface_prop_agenda ){
-   InterpAtmFieldToRteGps( surface_skin_t,
-                           atmosphere_dim, 
-                           p_grid, lat_grid, lon_grid, 
-                           rte_gp_p, rte_gp_lat, rte_gp_lon,
-                           t_field )
+    InterpAtmFieldToRteGps( 
+	surface_skin_t,
+	atmosphere_dim, 
+	p_grid, lat_grid, lon_grid, 
+	rte_gp_p, rte_gp_lat, rte_gp_lon,
+	t_field )
    surfaceSimple
 } 
 
@@ -33,21 +34,34 @@ AgendaSet( surface_prop_agenda ){
 # Could be speed-optimized further by selecting only the relevant 
 # lines from the line list.
 ArrayOfLineshapeSpecCreate( abs_lineshapeDefine )
-abs_lineshapeDefine( abs_lineshapeDefine, "Voigt_Kuntz6", "VVH", 5e9 )
-# FIXME: Line shapes and cutoff must be adjusted.
 
-# FIXME: Species and continua must be adjusted.
-SpeciesSet( abs_species, [ "H2O-PWR98",
-                           "O3",
-                           "O2-PWR93",
-                           "N2-SelfContStandardType" ] )
+#abs_lineshapeDefine( abs_lineshapeDefine, 
+#                     "Voigt_Kuntz6", 
+#                     "VVH", 
+#                     750e9 )
+
+SpeciesSet( abs_species, [ "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100", 
+	                   "O3", 
+                           "CO2, CO2-CKDMT100", 
+                           "N2O", 
+                           "CO", 
+                           "CH4", 
+                           "O2, O2-CIAfunCKDMT100", 
+                           "N2, N2-CIAfunCKDMT100, N2-CIArotCKDMT100" ] )
+
+abs_lineshape_per_tgDefine( abs_lineshape, 
+                            abs_species,
+                            ["Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6", 
+			     "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6"],
+                            ["VVH", "VVH", "VVH", "VVH", "VVH", "VVH", "VVH", "VVH"],
+                            [750e9, 750e7, 750e7, 750e7, 750e7, 750e7, 750e7, 750e7] )
 
 # Read HITRAN catalog:
 # FIXME: Frequency boundaries must be adjusted.
 abs_linesReadFromHitran2004( abs_lines,
                              hitran_file,
-                             80e9,
-                             200e9 )
+                             2.0022234e+12,
+                             7.9855733e+14 )
 #WriteXML( "ascii", abs_lines, "amsu/amsub.hitran04_lines.xml" )
 
 #ReadXML( abs_lines, "amsu/amsub.hitran04_lines.xml" )
@@ -89,14 +103,26 @@ AntennaOff
 
 # Spectrometer:
 #
-ReadXML( f_backend, f_backend_file )
-ReadXML( backend_channel_response,
+VectorCreate(f_backend_temp)
+ArrayOfGriddedField1Create(backend_channel_response_temp)
+
+ReadXML( f_backend_temp, f_backend_file )
+ReadXML( backend_channel_response_temp,
          sideband_response_file )
+
+ArrayOfIndexCreate(channels)
+ArrayOfIndexSet(channels, [11])
+
+Select(f_backend, f_backend_temp, channels)
+Select(backend_channel_response, backend_channel_response_temp, channels)
 
 
 # Frequency grid:
 #
-f_gridFromSensorHIRS( f_grid, f_backend, backend_channel_response, 1e11 )
+f_gridFromSensorHIRS( f_grid, f_backend, backend_channel_response, 5e9 )
+
+
+abs_lines_per_speciesCompact
 
 
 # Construct sensor response from all these inputs:
