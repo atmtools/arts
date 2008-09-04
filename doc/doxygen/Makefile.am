@@ -7,7 +7,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-SUBDIRS        = . html latex
+SUBDIRS        = . html
 
 # The latex docuement is huge, and seems not to be too useful.
 
@@ -29,9 +29,7 @@ if MAINTAINER_MODE
 doxyfied: Doxyfile $(toexamine)
 # An already existing Makefile.rescue indicates that the last
 # doxygen run was cancelled. In that case we don't copy it again.
-	[ -e latex/Makefile.rescue ] || cp latex/Makefile latex/Makefile.rescue
 	doxygen Doxyfile > /dev/null
-	mv -f latex/Makefile.rescue latex/Makefile
 	doxytag -t arts.tag html
 	cp $(srcdir)/../arts-splash.gif html/
 	touch doxyfied
