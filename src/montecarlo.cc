@@ -583,6 +583,7 @@ void Cloudbox_ppathCalc(Workspace&      ws,
 
    Parameters not already described elsewhere:
    
+   \param[in,out] ws  Current Workspace
    \param[out] ppathcloud
    \param[out] ppath
    \param[out] ppath_step

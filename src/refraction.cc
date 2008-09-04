@@ -63,6 +63,7 @@ extern const Numeric RAD2DEG;
    longitude dimensions are removed from the atmospheric fields. For
    example, the temperature is given as a vector (the vertical profile).
 
+   \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
    \param   a_pressure          Pressure in hPa.
    \param   a_temperature       Temperature in K.
@@ -139,6 +140,7 @@ void get_refr_index_1d(
    dimension is removed from the atmospheric fields. For example,
    the temperature is given as a matrix.
 
+   \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
    \param   a_pressure          Pressure in hPa.
    \param   a_temperature       Temperature in K.
@@ -231,6 +233,7 @@ void get_refr_index_2d(
    calls *refr_index_agenda* to determine the refractive index for the
    given point.
 
+   \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
    \param   a_pressure          Pressure in hPa.
    \param   a_temperature       Temperature in K.
@@ -335,6 +338,7 @@ void get_refr_index_3d(
    longitude dimensions are removed from the atmospheric fields. For
    example, the temperature is given as a vector.
 
+   \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
    \param   dndr                Output: Radial gradient of refractive index.
    \param   a_pressure          Pressure in hPa.
@@ -402,6 +406,7 @@ void refr_gradients_1d(
    dimension is removed from the atmospheric fields. For example,
    the temperature is given as a matrix.
 
+   \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
    \param   dndr                Output: Radial gradient of refractive index.
    \param   dndlat              Output: Latitude gradient of refractive index.
@@ -480,6 +485,7 @@ void refr_gradients_2d(
    refractive index for a movement of 1m in the latitude or longitude
    direction.
 
+   \param   ws                  Current Workspace
    \param   refr_index          Output: As the WSV with the same name.
    \param   dndr                Output: Radial gradient of refractive index.
    \param   dndlat              Output: Latitude gradient of refractive index.

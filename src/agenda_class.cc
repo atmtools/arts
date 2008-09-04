@@ -360,7 +360,8 @@ void Agenda::set_outputs_to_push_and_dup ()
   A variable is agenda input if it is an input variable to any of the
   methods making up the agenda. 
 
-  \param var The workspace variable to check.
+  \param[in,out] ws Current Workspace
+  \param[in] var The workspace variable to check.
 
   \return True if var is an input variable of this agenda.
 */

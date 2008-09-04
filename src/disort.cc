@@ -49,6 +49,7 @@ extern const Numeric BOLTZMAN_CONST;
   single scattering albedo (ssalb). These variables are required as
   input for the DISORT subroutine
 
+  \param ws                    Current workspace
   \param dtauc                 optical depths for all layers
   \param ssalb                 single scattering albedos for all layers
   \param opt_prop_part_agenda  use arts -d for docu

@@ -3975,6 +3975,7 @@ void ppath_step_geom_3d(
    the start position when calling the function. The length of *l_array*
    will be one smaller than the length of the other arrays.
 
+   \param   ws           Current Workspace
    \param   r_array      Out: Radius of ray tracing points.
    \param   lat_array    Out: Latitude of ray tracing points.
    \param   za_array     Out: LOS zenith angle at ray tracing points.
@@ -4136,6 +4137,7 @@ void raytrace_1d_linear_euler(
    the start position when calling the function. The length of *l_array*
    will be one smaller than the length of the other arrays.
 
+   \param   ws              Current Workspace
    \param   r_array         Out: Radius of ray tracing points.
    \param   lat_array       Out: Latitude of ray tracing points.
    \param   za_array        Out: LOS zenith angle at ray tracing points.
@@ -4329,6 +4331,7 @@ void raytrace_2d_linear_euler(
    function. The length of *l_array* will be one smaller than the
    length of the other arrays.
 
+   \param   ws             Current Workspace
    \param   r_array        Out: Radius of ray tracing points.
    \param   lat_array      Out: Latitude of ray tracing points.
    \param   lon_array      Out: Longitude of ray tracing points.
@@ -4605,6 +4608,7 @@ void raytrace_3d_linear_euler(
    calculations. The maximum distance between the path points is still
    determined by *lmax*.
 
+   \param   ws                Current Workspace
    \param   ppath             Out: A Ppath structure.
    \param   rte_pressure      Out: The WSV with the same name.
    \param   rte_temperature   Out: The WSV with the same name.
@@ -4764,6 +4768,7 @@ void ppath_step_refr_1d(
    Works as the same function for 1D despite that some input arguments are
    of different type.
 
+   \param   ws                Current Workspace
    \param   ppath             Out: A Ppath structure.
    \param   rte_pressure      Out: The WSV with the same name.
    \param   rte_temperature   Out: The WSV with the same name.
@@ -4916,6 +4921,7 @@ void ppath_step_refr_2d(
    Works as the same function for 1D despite that some input arguments are
    of different type.
 
+   \param   ws                Current Workspace
    \param   ppath             Out: A Ppath structure.
    \param   rte_pressure      Out: The WSV with the same name.
    \param   rte_temperature   Out: The WSV with the same name.
@@ -6079,6 +6085,7 @@ void ppath_start_stepping(
    input arguments are the WSV with the same name), but there are some
    additional argument(s):
 
+   \param ws                 Current Workspace
    \param ppath              Output: A Ppath structure
    \param ppath_step_agenda  FIXME: Add documentation.
    \param atmosphere_dim     The atmospheric dimensionality.

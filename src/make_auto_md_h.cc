@@ -174,7 +174,7 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
 
   ofs << "\n";
 
-  if ( pass_workspace || mdd.PassWorkspace() )
+  if (pass_workspace || mdd.PassWorkspace() || mdd.AgendaMethod())
     {
       ofs << indent << "\\param[in,out] " << "ws Workspace\n";
     }
@@ -183,64 +183,84 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   for (Index j=0; j<vo.nelem(); ++j)
     {
       ofs << indent << "\\param[out] "
-        << wsv_data[vo[j]].Name() << " WS Output\n";
+        << wsv_data[vo[j]].Name() << "    WS Output\n";
     }
 
   // Write the Generic output workspace variables:
   for (Index j=0; j<vgo.nelem(); ++j)
     {
-      if (mdd.Supergeneric ())
-        {
-          ofs << indent << "\\param[out] supergenericoutput" << j+1
-            << " Supergeneric output\n";
-        }
+      ofs << indent << "\\param[out]    ";
+
+      if (mdd.GOut()[j].length())
+        ofs << mdd.GOut()[j];
       else
+        ofs << "genericoutput" << j+1;
+
+      if (mdd.Supergeneric ()) ofs << " Supergeneric output\n";
+      else ofs << " Generic output\n";
+    }
+
+  // Write the Generic output workspace variable names:
+  if (mdd.PassWsvNames())
+    {
+      for (Index j=0; j<vgo.nelem(); ++j)
         {
-          ofs << indent << "\\param[out] genericoutput" << j+1
-            << " Generic output\n";
+          ofs << indent << "\\param[in]     ";
+          if (mdd.GOut()[j].length())
+            ofs << mdd.GOut()[j] << "_wsvname";
+          else
+            ofs << "genericoutput" << j+1 << "_wsvname";
+
+          ofs << " Generic Output Name" << endl;
         }
     }
 
   // Write the Input workspace variables:
   for (Index j=0; j<vi.nelem(); ++j)
     {
-      ofs << indent << "\\param[in] "
+      ofs << indent << "\\param[in]     "
         << wsv_data[vi[j]].Name() << " WS Input\n";
     }
 
   // Write the Generic input workspace variables:
   for (Index j=0; j<vgi.nelem(); ++j)
     {
-      if (mdd.Supergeneric ())
-        {
-          ofs << indent << "\\param[in] supergenericinput" << j+1
-            << " Supergeneric Input\n";
-        }
+      ofs << indent << "\\param[in]     ";
+      if (mdd.GIn()[j] != "")
+        ofs << mdd.GIn()[j];
       else
-        {
-          if (mdd.GIn()[j] != "")
-            {
-              ofs << indent << "\\param[in] " << mdd.GIn()[j]
-                << " Generic Input\n";
-            }
-          else
-            {
-              ofs << indent << "\\param[in] genericinput" << j+1
-                << " Generic Input\n";
-            }
+        ofs << "genericinput" << j+1;
 
-          if (mdd.GInDefault()[j] != NODEF)
-            {
-              ofs << " (Default: " << mdd.GInDefault()[j] << ")";
-            }
-         }
+      ofs << " Generic Input";
+
+      if (mdd.GInDefault()[j] != NODEF)
+        {
+          ofs << " (Default: \"" << mdd.GInDefault()[j] << "\")";
+        }
+      ofs << endl;
     }
+
+  // Write the Generic input workspace variable names:
+  if (mdd.PassWsvNames())
+    {
+      for (Index j=0; j<vgi.nelem(); ++j)
+        {
+          ofs << indent << "\\param[in]     ";
+          if (mdd.GIn()[j].length())
+            ofs << mdd.GIn()[j] << "_wsvname";
+          else
+            ofs << "genericinput" << j+1 << "_wsvname";
+
+          ofs << " Generic Input Name" << endl;
+        }
+    }
+
 
   // Write agenda, if there is one:
   if ( mdd.AgendaMethod() )
     {
       align(ofs,is_first_parameter,indent);
-      ofs << indent << "\\param[in] " << "input_agenda Agenda from controlfile\n";
+      ofs << indent << "\\param[in]     " << "input_agenda Agenda from controlfile\n";
     }
 
   ofs << "*/\n";
@@ -372,15 +392,11 @@ void write_method_header( ofstream& ofs,
             is_first_of_these = false;
           }
 
-        if (wsv_group_names[mdd.GOutType()[j]] == "Any")
-          {
-            ofs << "T& supergenericoutput" << j+1;
-          }
-        else
-          {
-            ofs << wsv_group_names[mdd.GOutType()[j]] << "& genericoutput"
-              << j+1;
-          }
+        if (wsv_group_names[mdd.GOutType()[j]] == "Any") ofs << "T& ";
+        else ofs << wsv_group_names[mdd.GOutType()[j]] << "& ";
+
+        if (mdd.GOut()[j].length()) ofs << mdd.GOut()[j];
+        else ofs << "genericoutput" << j+1;
       }
   }
 
@@ -403,7 +419,11 @@ void write_method_header( ofstream& ofs,
               is_first_of_these = false;
             }
 
-          ofs << "const String& genericoutputname" << j+1;
+          ofs << "const String& ";
+          if (mdd.GOut()[j].length())
+            ofs << mdd.GOut()[j] << "_wsvname";
+          else
+            ofs << "genericoutput" << j+1 << "_wsvname";
         }
     }
 
@@ -451,13 +471,15 @@ void write_method_header( ofstream& ofs,
                 
         if (wsv_group_names[mdd.GInType()[j]] == "Any")
           {
-            ofs << "const T& supergenericinput" << j+1;
+            ofs << "const T& ";
+            if (mdd.GIn()[j].length()) ofs << mdd.GIn()[j];
+            else ofs << "genericinput" << j+1;
           }
         else
           {
-            ofs << "const "
-              << wsv_group_names[mdd.GInType()[j]]
-              << "& genericinput" << j+1;
+            ofs << "const " << wsv_group_names[mdd.GInType()[j]] << "& ";
+            if (mdd.GIn()[j].length()) ofs << mdd.GIn()[j];
+            else ofs << "genericinput" << j+1;
           }
       }
   }
@@ -481,7 +503,11 @@ void write_method_header( ofstream& ofs,
               is_first_of_these = false;
             }
 
-          ofs << "const String& genericinputname" << j+1;
+          ofs << "const String& ";
+          if (mdd.GIn()[j].length())
+            ofs << mdd.GIn()[j] << "_wsvname";
+          else
+            ofs << "genericinput" << j+1 << "_wsvname";
         }
     }
 

@@ -564,6 +564,7 @@ void include_trans_in_diy_dq(
   It is NOT needed to set *iy* to the correct size before calling
   the function.
 
+  \param[in,out] ws Current Workspace
   \param[out] iy
   \param[out] ppath
   \param[out] ppath_step
@@ -1028,6 +1029,7 @@ void rte_step_std_clearsky(
 
   See the the online help (arts -d RteStd)
 
+  \param[in,out] ws Current Workspace
   \param[out] iy
   \param[out] ppath_transmissions
   \param[out] diy_dvmr

@@ -67,6 +67,7 @@ extern const Numeric RAD2DEG;
   the point below. 
 
   // Output
+  \param ws Current Workspace
   \param ext_mat_field extinction matrix field
   \param abs_vec_field absorption vector field
   // Input
@@ -207,6 +208,7 @@ void cloud_fieldsCalc(Workspace& ws,
   interpolated an the intersection point. Then a radiative transfer step is 
   performed.
 
+  \param[in,out] ws Current Workspace
   WS Output:
   \param[out] doit_i_field Updated radiation field inside the cloudbox. 
   WS Input:
@@ -1426,6 +1428,7 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
   performed using the stokes vector as output and input. The inermediate
   Stokes vectors are stored in the WSV doit_i_field.
 
+  \param[in,out] ws Current Workspace
  WS Output:
   \param[out] doit_i_field Updated radiation field inside the cloudbox. 
   Variables used in opt_prop_xxx_agenda:

@@ -1,5 +1,27 @@
 2008-09-04  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-9-10
+	
+	* src/make_auto_md_h.cc:
+
+	Make parameter documentation consistent with function declarations.
+
+	If parameter names for GIn and GOut are defined in methods.cc, use
+	them instead of generic names like genericinput1 or genericoutput2 for
+	the WSM function parameters.
+
+	* src/agenda_record.cc, src/disort.cc, src/montecarlo.cc,
+	src/ppath.cc, src/refraction.cc, src/rte.cc, src/scatrte.cc,
+	src/agenda_class.cc:
+
+	Clean up doxygen docs.
+
+	* doc/doxygen/Makefile.am:
+
+	Don't send stdout of doxygen to /dev/null for now.
+
+2008-09-04  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-9-9
 	
 	* configure.in, doc/doxygen/Doxyfile.in, doc/doxygen/latex,

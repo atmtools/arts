@@ -27,9 +27,7 @@ $(wildcard $(top_srcdir)/src/*.cc)
 if MAINTAINER_MODE
 
 doxyfied: Doxyfile $(toexamine)
-# An already existing Makefile.rescue indicates that the last
-# doxygen run was cancelled. In that case we don't copy it again.
-	doxygen Doxyfile > /dev/null
+	doxygen Doxyfile
 	doxytag -t arts.tag html
 	cp $(srcdir)/../arts-splash.gif html/
 	touch doxyfied
