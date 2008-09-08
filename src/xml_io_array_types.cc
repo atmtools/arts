@@ -1994,6 +1994,8 @@ xml_read_from_stream (istream& is_xml,
 /*!
   \param is_xml   XML Input stream
   \param alrecord ArrayOfLineRecord return value
+  \param fmin     Lowest frequency
+  \param fmax     Highest frequency
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void

@@ -118,7 +118,7 @@ public:
                           const Vector&       local_vmrs);
 
   friend void abs_lookupTestAccuracy(// WS Input:
-                            const GasAbsLookup&             al,
+                            const GasAbsLookup&             abs_lookup,
                             const Index&                    abs_lookup_is_adapted, 
                             const Index&                    abs_p_interp_order,
                             const Index&                    abs_t_interp_order,

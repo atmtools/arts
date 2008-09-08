@@ -536,6 +536,7 @@ void cloud_ppath_update1D_noseq(
   performed using the stokes vector as output and input. The inermediate
   Stokes vectors are stored in the WSV doit_i_field.
 
+  \param[in,out] ws Current workspace
  WS Output:
   \param doit_i_field Updated radiation field inside the cloudbox. 
   WS Input:
@@ -1083,6 +1084,7 @@ void cloud_RT_surface(Workspace& ws,
   The function is needed in the sequential update
   (doit_i_fieldUpdateSeq3D).
   
+  \param[in,out] ws Current workspace
   \param ppath_step Propagation path step
   \param ppath_step_agenda Agenda for calculating propagation paths
   \param p Pressure index 

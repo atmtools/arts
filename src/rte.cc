@@ -158,9 +158,9 @@ void apply_y_unit_single(
   The main purpose of the function is set *iy*. It is NOT needed to set 
   *iy* to the correct size before calling the function.
 
+  \param[in,out] ws Current workspace
   \param[out] iy
   \param[out] ppath
-  \param[out] ppath_step
   \param[out] ppath_array_index
   \param[out] ppath_array
   \param[out] diy_dvmr
@@ -567,7 +567,6 @@ void include_trans_in_diy_dq(
   \param[in,out] ws Current Workspace
   \param[out] iy
   \param[out] ppath
-  \param[out] ppath_step
   \param[out] ppath_array_index
   \param[out] ppath_array
   \param[out] diy_dvmr

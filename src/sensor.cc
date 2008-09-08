@@ -429,7 +429,7 @@ void sensor_aux_vectors(
    \param   h       The multiplication (row) vector.
    \param   f       The values of function f(x).
    \param   x_f_in  The grid points of function f(x). Must be increasing.
-   \param   x_g     The grid points of function g(x). Can be increasing or 
+   \param   x_g_in  The grid points of function g(x). Can be increasing or 
                     decreasing. Must cover a wider range than x_ft (in
                     both ends).
 

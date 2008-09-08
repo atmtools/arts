@@ -2017,6 +2017,7 @@ void p_gridFromGasAbsLookup(
   local p, T, and VMR conditions, performs lookup table extraction and
   line by line absorption calculation, and compares the difference.
   
+  \param al                   Lookup table
   \param abs_p_interp_order   Pressure interpolation order.
   \param abs_t_interp_order   Temperature interpolation order.
   \param abs_nls_interp_order H2O interpolation order.
@@ -2025,9 +2026,6 @@ void p_gridFromGasAbsLookup(
                               because in some cases it is not easy to
                               make sure that all local conditions are
                               inside the valid range for the lookup table.
-  \param l_ws                 Copy of workspace.  
-  \param l_abs_scalar_gas_agenda Copy of agenda to calculate
-                                 absorption.  
   \param local_p 
   \param local_t 
   \param local_vmrs 
@@ -2146,7 +2144,7 @@ Numeric calc_lookup_error(// Parameters for lookup table:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_lookupTestAccuracy(// WS Input:
-                            const GasAbsLookup&             al,
+                            const GasAbsLookup&             abs_lookup,
                             const Index&                    abs_lookup_is_adapted, 
                             const Index&                    abs_p_interp_order,
                             const Index&                    abs_t_interp_order,
@@ -2158,6 +2156,8 @@ void abs_lookupTestAccuracy(// WS Input:
                             const ArrayOfString&            abs_cont_models,
                             const ArrayOfVector&            abs_cont_parameters )
 {
+  const GasAbsLookup& al = abs_lookup;
+
   // Check if the table has been adapted:
   if ( 1!=abs_lookup_is_adapted )
     throw runtime_error("Gas absorption lookup table must be adapted,\n"

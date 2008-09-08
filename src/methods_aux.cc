@@ -154,29 +154,6 @@ MdRecord::MdRecord(const char                   name[],
     }
 
 
-// //! Find out if the method is supergeneric.
-// /*! 
-//    We will need special treatment for those.
-
-//    \param mdd The record for the method to check.
-
-//    \return True if this is a supergeneric method.
-// */
-// bool is_supergeneric(const MdRecord& mdd)
-// {
-//   bool is_supergeneric = false;
-
-//   const ArrayOfIndex&  vgo=mdd.GOutType();   // Generic Output 
-//   const ArrayOfIndex&  vgi=mdd.GInType();    // Generic Input
-
-//   for ( Index j=0; j<vgo.nelem(); ++j )
-//     if ( Any_ == vgo[j] )            is_supergeneric = true;
-//   for ( Index j=0; j<vgi.nelem(); ++j )
-//     if ( Any_ == vgi[j] )            is_supergeneric = true;
-
-//   return is_supergeneric;
-// }
-
 //! Expand supergeneric record for given group.
 /*! 
   This function will substitute any occurance of Any_ in the GOutType

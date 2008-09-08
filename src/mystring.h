@@ -217,47 +217,6 @@ inline Index my_basic_string<charT>::nelem() const
   return static_cast<long>(s);
 }
 
-// /** Find function for char.
-
-//     \param c What character to find.
-//     \return Position of c, or npos if not found.
-
-//     Unfortunately, the basid_string.find() functions returns npos
-//     when the character is not found. This is -1, but assigned to a
-//     positive type! Gives a very high number. If you add 1 to this
-//     number you get zero again, so it does indeed bahave like -1 in a
-//     way. Yuck! With Index this does not work. */
-// template<class charT>
-// inline Index my_basic_string<charT>::find(char c)
-// {
-//   basic_string<charT>::size_type i = basic_string<charT>::find(c);
-//   if ( i == basic_string<charT>::npos )
-//     return npos;
-//   else
-//     return static_cast<Index>(i);
-// }
-
-// /** Find function for string.
-
-//     \param c What string to find.
-//     \return Position of c, or npos if not found.
-
-//     Unfortunately, the basid_string.find() functions returns npos
-//     when the character is not found. This is -1, but assigned to a
-//     positive type! Gives a very high number. If you add 1 to this
-//     number you get zero again, so it does indeed bahave like -1 in a
-//     way. Yuck! With Index this does not work. */
-// template<class charT>
-// inline Index my_basic_string<charT>::find(const my_basic_string<charT>& c)
-// {
-//   basic_string<charT>::size_type i = basic_string<charT>::find(c);
-//   if ( i == basic_string<charT>::npos )
-//     return npos;
-//   else
-//     return static_cast<Index>(i);
-// }
-
-
 /**
   Constant index operator. We redifine this here so that we can have
   range checking by assert.

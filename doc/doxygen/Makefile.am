@@ -28,7 +28,7 @@ if MAINTAINER_MODE
 
 doxyfied: Doxyfile $(toexamine)
 	doxygen Doxyfile
-	doxytag -t arts.tag html
+	doxytag -t arts.tag html > /dev/null
 	cp $(srcdir)/../arts-splash.gif html/
 	touch doxyfied
 

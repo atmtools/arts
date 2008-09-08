@@ -252,8 +252,8 @@ void GField::set_grid (Index i, const Vector& g)
 /*!
   Sets grid i to the given grid.
 
-  \param  i[in]  Grid index.
-  \param  g[in]  New grid.
+  \param[in] i Grid index.
+  \param[in] g New grid.
 */
 void GField::set_grid (Index i, const ArrayOfString& g)
 {
