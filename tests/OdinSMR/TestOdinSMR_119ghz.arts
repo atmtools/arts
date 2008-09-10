@@ -1,0 +1,300 @@
+# This control files performs simulations around the 119 GHz O2 line
+#
+# No include files are used, to give a complete view all workspace 
+# variables used.
+#
+# Author: Patrick Eriksson
+
+
+Arts2{
+
+##############################################################################
+### Control variables
+##############################################################################
+
+# Define the variables used below
+#
+NumericCreate( ztan_start )
+NumericCreate( ztan_stop )
+IndexCreate( ztan_n )
+NumericCreate( f_shift )
+NumericCreate( dfmono1 )
+NumericCreate( dfmono2 )
+NumericCreate( dfmono3 )
+
+# Define output tangent altitudes
+#
+# There will be ztan_n equally spaced altitudes between ztan_start and 
+# ztan_stop.
+#
+NumericSet( ztan_start, 80e3 )
+NumericSet( ztan_stop,  20e3 )
+IndexSet(   ztan_n,     31 )
+
+# Shift of frequencies from nominal settings
+#
+NumericSet( f_shift, 0 )
+
+
+# Spacing in grid for monochromatic frequencies.
+# Spacing defined separately for each filter bank channel, with 1 as 
+# centre channel
+#
+NumericSet( dfmono1, 200e3 )
+NumericSet( dfmono2, 2e6 )
+NumericSet( dfmono3, 10e6 )
+
+
+
+
+
+##############################################################################
+### Stuff of general character
+##############################################################################
+
+# Default output format
+#
+output_file_formatSetAscii
+
+
+# Number of Stokes components to be computed
+#
+IndexSet( stokes_dim, 1 )
+
+
+# Dimensionality of the atmosphere
+#
+AtmosphereSet1D
+
+
+
+
+
+##############################################################################
+### Absorption calculation settings
+##############################################################################
+
+# Lineshape
+#
+abs_lineshapeDefine( abs_lineshape, "Voigt_Kuntz6", "VVH", -1 )
+
+# No absorption models need to be specified
+#
+abs_cont_descriptionInit
+
+# "On-the-fly" absorption
+# 
+# This means that absorption is calculated separately for each propagation 
+# path point.
+# For operational usgae it should be more efficient to use the option of an
+# absorption look-up table
+# 
+AgendaSet( abs_scalar_gas_agenda ){
+  abs_scalar_gasCalcLBL
+}
+
+# Set VMR for N2, to be used for absorption calculations
+#
+VectorSet( abs_n2, [ 0.7808 ] )
+
+
+
+
+
+##############################################################################
+### Species, line data and atmospheric scenario
+##############################################################################
+
+# Gas species
+#
+# Just line-by-line calculations (no "continuum")
+# "O2" includes all lines, of all isotopologues.
+# H2O must always be included, as the absorption calculation needs the H2O
+# VMR profile
+#
+SpeciesSet( abs_species, [
+  "O2",
+  "O3",
+  "H2O"
+] )
+
+# Line file
+#
+# The file includes transitions of O2-66, O2-67, O2-68 and O3-666.
+# I selected the O3 lines that appeared the strongest. Could need a revision.
+#
+abs_linesReadFromArts( abs_lines, "odin/linefile.119ghz.xml", 0, 2e12 )
+
+# Atmospheric scenario
+#
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "tropical" )
+
+
+
+
+
+##############################################################################
+### Calculation grids
+##############################################################################
+
+# Pressure grid
+#
+# Upper pressure point defines the atmospheric limit. Here about 95 km.
+# Input profiles must be extended to increase this altitude.
+#
+VectorNLogSpace( p_grid, 321, 1000e2, 0.1 )
+
+# Frequency grid
+#
+# Use different spacings for the three channels
+#
+VectorCreate( f_tmp )
+#
+# Centre channel
+VectorLinSpace( f_grid, 118.730e9, 118.770e9, dfmono1 )
+# Add middle channel
+VectorLinSpace( f_tmp,  118.800e9, 118.840e9, dfmono2 )
+Append( f_grid, f_tmp )
+# Add middle channel
+VectorLinSpace( f_tmp,  119.180e9, 119.220e9, dfmono3 )
+Append( f_grid, f_tmp )
+
+# Add frequency shift
+#
+VectorAddScalar( f_grid, f_grid, f_shift )
+
+
+
+
+
+##############################################################################
+### Surface properties
+##############################################################################
+
+# Geiod radius
+#
+r_geoidWGS84( r_geoid, atmosphere_dim, lat_grid, lon_grid, 0, 7 )
+
+# Surface altitude
+#
+# Is set automatically below.
+
+# Set surface to be a blackbody
+#
+AgendaSet( surface_prop_agenda ){
+   InterpAtmFieldToRteGps( surface_skin_t, atmosphere_dim, p_grid, lat_grid, 
+                        lon_grid, rte_gp_p, rte_gp_lat, rte_gp_lon, t_field )
+   Ignore( rte_los )
+   surfaceBlackbody
+} 
+
+
+
+
+
+
+##############################################################################
+### Radiative transfer
+##############################################################################
+
+# Propagation path definitions
+#
+# Refraction is neglected
+#
+NumericSet( ppath_lmax, 10e3 )
+AgendaSet( ppath_step_agenda ){
+  ppath_stepGeometric
+}
+
+# Cosmic background radiation
+#
+AgendaSet( iy_space_agenda ){
+  Ignore( rte_pos )
+  Ignore( rte_los )
+  MatrixCBR( iy, stokes_dim, f_grid )
+}
+
+# Emission
+#
+AgendaSet( emission_agenda ){
+  emissionPlanck
+}
+
+# Standard method for RT 
+#
+AgendaSet( rte_agenda ){
+  RteStd
+}
+
+# No scattering
+#
+cloudboxOff
+
+# Convert to Rayleigh-Jeans Tb
+#
+StringSet( y_unit, "RJBT" )
+
+
+
+
+
+##############################################################################
+### Sensor response
+##############################################################################
+
+# Normalise inputs
+#
+IndexSet( sensor_norm, 1 )
+
+# Antenna:
+#
+AntennaOff
+
+# Spectrometer:
+#
+VectorSet( f_backend, [118.75e9,118.82e9,119.2e9] )
+ReadXML( backend_channel_response, "odin/filterbank_response.xml" )
+
+# Add frequency shift
+#
+VectorAddScalar( f_backend, f_backend, f_shift )
+
+# Create response matrix data 
+#
+sensor_responseInit
+sensor_responseBackend
+
+
+
+
+
+##############################################################################
+### Start of calculations
+##############################################################################
+
+AtmFieldsCalc
+
+MatrixExtractFromTensor3( z_surface, z_field, 0 )
+
+abs_lines_per_speciesCreateFromLines
+
+MatrixSetConstant( sensor_pos, ztan_n, 1, 600e3 )
+sensor_posAddRgeoid
+
+VectorCreate( ztan )
+VectorNLinSpace( ztan, ztan_n, ztan_start, ztan_stop )
+VectorCreate( za )
+VectorZtanToZa1D( za, sensor_pos, r_geoid, atmosphere_dim, ztan )
+Matrix1ColFromVector( sensor_los, za )
+
+
+# Calculate spectra and save
+#
+RteCalcNoJacobian
+#
+WriteXML( output_file_format, y,     "TestOdinSMR_119ghz.y.xml.generated" )
+WriteXML( output_file_format, ztan,  "TestOdinSMR_119ghz.ztan.xml.generated" )
+WriteXML( output_file_format, sensor_response_f_grid, 
+                                     "TestOdinSMR_119ghz.f.xml.generated" )
+
+}
