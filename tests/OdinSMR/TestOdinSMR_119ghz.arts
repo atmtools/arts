@@ -17,6 +17,9 @@ Arts2{
 NumericCreate( ztan_start )
 NumericCreate( ztan_stop )
 IndexCreate( ztan_n )
+NumericCreate( zpb_start )
+NumericCreate( zpb_stop )
+IndexCreate( zpb_n )
 NumericCreate( f_shift )
 NumericCreate( dfmono1 )
 NumericCreate( dfmono2 )
@@ -31,10 +34,18 @@ NumericSet( ztan_start, 80e3 )
 NumericSet( ztan_stop,  20e3 )
 IndexSet(   ztan_n,     31 )
 
+# Coverage and spacing of pencil beam calculations
+#
+# There will be zpb_n equally spaced altitudes between zpb_start and 
+# zpb_stop.
+#
+NumericSet( zpb_start, 95e3 )
+NumericSet( zpb_stop,  5e3 )
+IndexSet(   zpb_n,     181 )
+
 # Shift of frequencies from nominal settings
 #
 NumericSet( f_shift, 0 )
-
 
 # Spacing in grid for monochromatic frequencies.
 # Spacing defined separately for each filter bank channel, with 1 as 
@@ -49,7 +60,7 @@ NumericSet( dfmono3, 10e6 )
 
 
 ##############################################################################
-### Stuff of general character
+### Some basic stuff
 ##############################################################################
 
 # Default output format
@@ -65,6 +76,10 @@ IndexSet( stokes_dim, 1 )
 # Dimensionality of the atmosphere
 #
 AtmosphereSet1D
+
+# Temporary variables
+#
+VectorCreate( a_vector )
 
 
 
@@ -148,16 +163,14 @@ VectorNLogSpace( p_grid, 321, 1000e2, 0.1 )
 #
 # Use different spacings for the three channels
 #
-VectorCreate( f_tmp )
-#
 # Centre channel
 VectorLinSpace( f_grid, 118.730e9, 118.770e9, dfmono1 )
 # Add middle channel
-VectorLinSpace( f_tmp,  118.800e9, 118.840e9, dfmono2 )
-Append( f_grid, f_tmp )
+VectorLinSpace( a_vector,  118.800e9, 118.840e9, dfmono2 )
+Append( f_grid, a_vector )
 # Add middle channel
-VectorLinSpace( f_tmp,  119.180e9, 119.220e9, dfmono3 )
-Append( f_grid, f_tmp )
+VectorLinSpace( a_vector,  119.180e9, 119.220e9, dfmono3 )
+Append( f_grid, a_vector )
 
 # Add frequency shift
 #
@@ -201,7 +214,7 @@ AgendaSet( surface_prop_agenda ){
 #
 # Refraction is neglected
 #
-NumericSet( ppath_lmax, 10e3 )
+NumericSet( ppath_lmax, 20e3 )
 AgendaSet( ppath_step_agenda ){
   ppath_stepGeometric
 }
@@ -239,30 +252,88 @@ StringSet( y_unit, "RJBT" )
 
 
 ##############################################################################
-### Sensor response
+### Sensor responses
 ##############################################################################
 
 # Normalise inputs
 #
 IndexSet( sensor_norm, 1 )
 
-# Antenna:
-#
-AntennaOff
+# Antenna: ###################################################################
 
-# Spectrometer:
+# 1D antenna
+#
+AntennaSet1D
+
+# Read antenna response
+#
+# So far just a gaussian response with approximate width (covering +-3si)
+#
+ReadXML( antenna_response, "odin/antenna.119ghz.xml" )
+
+
+
+
+# Spectrometer: ##############################################################
+
+# Centre position of each channel
 #
 VectorSet( f_backend, [118.75e9,118.82e9,119.2e9] )
-ReadXML( backend_channel_response, "odin/filterbank_response.xml" )
 
 # Add frequency shift
 #
 VectorAddScalar( f_backend, f_backend, f_shift )
 
-# Create response matrix data 
+# Read channel response function
 #
-sensor_responseInit
-sensor_responseBackend
+# Same rectangular response so far assumed for all channels
+#
+ReadXML( backend_channel_response, "odin/filterbank_response.xml" )
+
+
+
+
+
+##############################################################################
+### Sensor position and zenith angles
+##############################################################################
+
+# The calculations are here done using a single "measurement block".
+# This to use the fact that antenna patterns overlap (in zenith angle 
+# coverage) for quicker calculations.
+# The actual directions are then put into *antenna_los* and *sensor_los*
+# is set to 0.
+
+# Orbit altitude here set to 600 km, but does not matter as tangent
+# altitudes are specified.
+#
+NumericCreate( z_orbit )
+NumericSet( z_orbit, 600e3 )
+
+# The grid for pencil beam calculations
+#
+MatrixSetConstant( sensor_pos, zpb_n, 1, z_orbit )
+sensor_posAddRgeoid
+VectorCreate( ztan )
+VectorNLinSpace( ztan, zpb_n, zpb_start, zpb_stop )
+VectorZtanToZa1D( mblock_za_grid, sensor_pos, r_geoid, atmosphere_dim, ztan )
+
+# The centre zenith angle for each spectrum
+#
+MatrixSetConstant( sensor_pos, ztan_n, 1, z_orbit )
+sensor_posAddRgeoid
+VectorNLinSpace( ztan, ztan_n, ztan_start, ztan_stop )
+VectorZtanToZa1D( a_vector, sensor_pos, r_geoid, atmosphere_dim, ztan )
+Matrix1ColFromVector( antenna_los, a_vector )
+
+# Sensor LOS
+#
+MatrixSetConstant( sensor_los, 1, 1, 0e3 )
+
+# Sensor position
+#
+MatrixSetConstant( sensor_pos, 1, 1, z_orbit )
+sensor_posAddRgeoid
 
 
 
@@ -278,15 +349,9 @@ MatrixExtractFromTensor3( z_surface, z_field, 0 )
 
 abs_lines_per_speciesCreateFromLines
 
-MatrixSetConstant( sensor_pos, ztan_n, 1, 600e3 )
-sensor_posAddRgeoid
-
-VectorCreate( ztan )
-VectorNLinSpace( ztan, ztan_n, ztan_start, ztan_stop )
-VectorCreate( za )
-VectorZtanToZa1D( za, sensor_pos, r_geoid, atmosphere_dim, ztan )
-Matrix1ColFromVector( sensor_los, za )
-
+sensor_responseInit
+sensor_responseAntenna
+sensor_responseBackend
 
 # Calculate spectra and save
 #
