@@ -1,5 +1,12 @@
 2008-09-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-9-15
+
+	* tests/OdinSMR/TestOdinSMR_119ghz.arts: Missed to change back a
+	setting after a test run.
+
+2008-09-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-9-14
 
 	* tests/OdinSMR/TestOdinSMR_119ghz.arts: Now including an antenna

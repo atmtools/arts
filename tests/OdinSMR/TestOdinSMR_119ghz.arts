@@ -41,7 +41,7 @@ IndexSet(   ztan_n,     31 )
 #
 NumericSet( zpb_start, 95e3 )
 NumericSet( zpb_stop,  5e3 )
-IndexSet(   zpb_n,     181 )
+IndexSet(   zpb_n,     91 )
 
 # Shift of frequencies from nominal settings
 #
