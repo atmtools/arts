@@ -72,7 +72,7 @@ class TestMonteCarloGeneralGaussian(unittest.TestCase):
         """Polarization difference should be close to 7.7 K"""
         Q=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.y.xml.generated")[1]
         dQ=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.mc_error.xml.generated")[1]
-        assert abs(Q-7.6) < 4*Q, 'Q (= %.2f K) is too far away from 7.6 K' % Q
+        assert abs(Q-7.6) < 4*dQ, 'Q (= %.2f K) is too far away from 7.6 K' % Q
 
 class TestRteCalcMC(unittest.TestCase):
     """Testing the WSM RteCalcMC"""
