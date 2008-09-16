@@ -17,7 +17,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.9.16)
+AM_INIT_AUTOMAKE(arts,1.9.17)
 
 
 dnl Put the ACLOCAL flags in the Makefile
@@ -111,6 +111,16 @@ AC_CHECK_LIB(z, gzopen, ac_zlibsupport=yes, ac_zlibsupport=no )
 AM_CONDITIONAL(ENABLE_ZLIB, test x$ac_zlibsupport = xyes)
 if test x$ac_zlibsupport = xyes; then
   AC_DEFINE([ENABLE_ZLIB],[1],[Define to compile with zlib support])
+fi
+
+#
+# Check for netcdf library
+#
+AC_CHECK_LIB(netcdf_c++, main, ac_ncsupport=yes, ac_ncsupport=no, -lnetcdf )
+
+AM_CONDITIONAL(ENABLE_NETCDF, test x$ac_ncsupport = xyes)
+if test x$ac_ncsupport = xyes; then
+  AC_DEFINE([ENABLE_NETCDF],[1],[Define to compile with NetCDF support])
 fi
 
 #
@@ -496,6 +506,7 @@ AC_MSG_RESULT([  OpenMP support           : $ax_openmp])
 AC_MSG_RESULT([  Numeric type             : $ac_numeric_type])
 AC_MSG_RESULT([  Index type               : $ac_index_type])
 AC_MSG_RESULT([  Zlib support             : $ac_zlibsupport])
+AC_MSG_RESULT([  NetCDF support           : $ac_ncsupport])
 if test x$ac_disort = xno; then
   AC_MSG_RESULT([  Disort                   : no (not enabled or f2c library not found)])
 else

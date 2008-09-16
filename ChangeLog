@@ -1,5 +1,14 @@
 2008-09-16  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-9-17
+
+	* configure.in:
+
+	Added netcdf check. (Lame commit mainly to test the new automated
+	build server)
+
+2008-09-16  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-9-16
 
 	* tests/testall.py: 
