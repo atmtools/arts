@@ -41,6 +41,7 @@
   ===========================================================================*/
 
 #include <cmath>
+#include <stdexcept>
 #include <string>
 #include "arts.h"
 #include "auto_md.h"

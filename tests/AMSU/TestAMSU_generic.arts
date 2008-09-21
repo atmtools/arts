@@ -154,9 +154,9 @@ AgendaSet( ybatch_calc_agenda ){
 #                          0.01 )
 #   jacobianClose
 
-  # get z_surface from z_field
+  # get some surface properties from corresponding atmospheric fields
   MatrixExtractFromTensor3( z_surface, z_field, 0 )
-  #  Print( z_surface, 1 )
+  MatrixExtractFromTensor3( t_surface, t_field, 0 )
 
   # Perform RT calculations
   # ---

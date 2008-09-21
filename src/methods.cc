@@ -52,76 +52,32 @@
 #define PASSWSVNAMES(x) x
 
 
-/* Here's a template record entry:  (PE 2001-09-18)
+/* Here's a template record entry:  (PE 2008-09-20)
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "FunctionName" ),
+      ( NAME("MethodName"),
         DESCRIPTION
         (
-         "A summary of the function in one sentence.\n"
+         "A concise summary of the method.\n"
          "\n"
-         "A detailed description of the function. Please, try to be as \n"
-         "clear and detailed as possible, this will help both you and \n"
-         "others in the long run. \n"
+         "A more detailed description of the method. Try to describe the\n"
+         "purpose of the method and important considerations. Try to avoid\n"
+         "references to other WSMs as they might change. Refer to the user\n"
+         "guide for more complex information (as long as it exists, or that\n"
+         "you add it to AUG!).\n"
          "\n"
-         "Paragraphs are seperated with blank lines.\n"
+         "You do not need to describe workspace variables used. That\n"
+         "information is found in workspace.cc. On the other hand, generic\n"
+         "output and input variables must be described. The example below\n"
+         "assumes that the method has one generic output variable named out1\n"
+         "and the two input variables named in1 and in2.\n"
          "\n"
-         "The names of workspace variables and other methods are marked by\n"
-         "stars, for example *z_plat*.\n"
-         "\n"
-         "Generic input and output, and keywords shall be described \n"
-         "as exemplified below. If there is no variables of a group, \n"
-         "(e.g. generic input) remove that part totally. Note that the \n"
-         "on-line help just gives the type of generic input/output and the \n"
-         "keyword names, and additional information is for sure needed.\n"
-         "\n"
-         "Leave space and brake lines when listing input and output \n"
-         "variabales to make the code easier to read. See example below. \n"
-         "\n"
-         "Generic input: \n"
-         "   Vector : Vector giving some very important input. Don't \n"
-         "            be too short. Use the type of indention used here. \n"
-         "\n"
-         "Generic output: \n"
-         "   Vector : Return vector for the zenith angles. The normal \n"
-         "            options are ZA_PENCIL and ZA_SENSOR. \n"
-         "\n"
-         "Keywords:\n"
-         "   delta_t   : Time increment between observations.\n"
-         "   z_tan_lim : Vector with start and stop tangent altitudes.\n"
-        ),
-        AUTHORS( "unknown" ),
-        OUT(),
-        GOUT(      ""       ),
-        GOUT_TYPE( "Vector" ),
-        IN( "z_plat", "abs_p", "z_abs", "l_step", "refr", "refr_lfac",
-               "refr_index", "r_geoid", "z_surface" ),
-        GIN( "delta_t", "z_tan_lim" ),
-        GIN_TYPE(    "Numeric", "Vector"    ),
-        GIN_DEFAULT( NODEF,     NODEF )
-      ));
-  */
-
-  /* Here's an empty record entry:  (PE 2001-09-18)
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "" ),
-        DESCRIPTION
-        (
-         "\n"
-         "\n"
-         "Generic input: \n"
-         "   \n"
-         "\n"
-         "Generic output: \n"
-         "   \n"
-         "\n"
-         "Keywords:\n"
-         "   \n"
-        ),
-        AUTHORS( "unknown" ),
+         "Generic output and input variables: \n"
+         "  out1 : ...\n"
+         "  in1  : ...\n"
+         "  in2  : ...\n" ),
+        AUTHORS( "Your Name" ),
         OUT(),
         GOUT(),
         GOUT_TYPE(),
@@ -130,9 +86,8 @@
         GIN_TYPE(),
         GIN_DEFAULT()
       ));
-  */
 
-
+*/
 
 
 void define_md_data_raw()
@@ -2560,6 +2515,33 @@ void define_md_data_raw()
                   "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF,     NODEF,     NODEF,     NODEF,
                   NODEF )
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("complex_nWaterLiebe93"),
+        DESCRIPTION
+        (
+         "Complex refractive index of liquid water according to Liebe 1993.\n"
+         "\n"
+         "The method treats liquid water without salt. Not valid below 10 GHz.\n"
+         "Upper frequency limit not known and is here set to 1000 GHz. Model\n"
+         "parameters taken from Atmlab function epswater93 (by C. Maetzler),\n"
+         "which refer to Liebe 1993 without closer specifications.\n"
+         "\n"
+         "Temperature must be between 0 and 100 degrees Celsius.\n"
+         "\n"
+         "Global input:\n"
+         "   t : Temperature [K].\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "complex_n" ),
+        GOUT(),
+        GOUT_TYPE(),
+        IN( "f_grid" ),
+        GIN( "t" ),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( NODEF )
       ));
 
   md_data_raw.push_back
@@ -6678,91 +6660,87 @@ md_data_raw.push_back
         GIN_DEFAULT()
       ));
 
-//   md_data_raw.push_back
-//     ( MdRecord
-//       ( NAME( "surfaceEmissivityInterpolate" ),
-//         DESCRIPTION
-//         (
-//          "Creates variables to mimic specular reflection by a surface with\n"
-//          "emissivity interpolated from WSV surface_emissivity_field by lat..\n"
-//          "and lon.\n"
-//          "A constant emissivity is assumed as a function of frequency and\n"
-//          "polarisation (vertical and horisontal reflection coefficients are\n"
-//          "equal. The number of directions in *surface_los* is one.\n"
-//          ),
-//         AUTHORS( "Cory Davis" ),
-//         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
-//         GOUT(),
-//         GOUT_TYPE(),
-//         IN( "f_grid", "rte_gp_lat",rte_gp_lon_,stokes_dim_, "atmosphere_dim", "rte_los", 
-//                "surface_skin_t", "surface_emissivity_field" ),
-//         GIN(),
-//         GIN_TYPE(),
-//         GIN_DEFAULT()
-//        ));
-
-
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "surfaceFlat" ),
+      ( NAME( "surfaceFlatRefractiveIndex" ),
         DESCRIPTION
         (
-         "Creates variables to mimic specular reflection by a surface with\n"
-         "dielectric constant following an internal model.\n"
+         "Creates variables to mimic specular reflection by a (flat) surface\n"
+         "where the refracive index is specified.\n"
          "\n"
-         "The method results in that the reflection properties differ\n"
-         "between frequencies and polarizations. The properties of the\n"
-         "surface medium are determined by the model for dielectric constant\n"
-         "selected. Local thermodynamic equilibrium is assumed, which\n"
-         "corresponds to that the reflection and emission coefficients add up\n"
-         "to 1.\n"
+         "The dielectric properties of the surface are described by\n"
+         "*complex_n*. The Fresnel eqiuations are used to calculate \n"
+         "amplitude reflection coefficients. The method can thus result\n"
+         "in that the reflection properties differ between frequencies\n"
+         "and polarizations.\n"
          "\n"
-         "Available dielectric models:\n"
-         "\n"
-         " \"water-liebe93\"\n"
-         "   Treats liquid water without salt. Not valid below 10 GHz.\n"
-         "   Upper frequency limit not known. Model parameters taken from\n"
-         "   Atmlab function epswater93 (by C. Maetzler), which refer to\n"
-         "   Liebe 93 without closer specifications.\n"
-         "\n"
-         "Keyword: \n"
-         "   epsmodel : Name of model for dielectric constant.\n"
+         "Local thermodynamic equilibrium is assumed, which corresponds to\n"
+         "that the reflection and emission coefficients add up to 1.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
         GOUT_TYPE(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
-               "surface_skin_t" ),
-        GIN( "epsmodel" ),
-        GIN_TYPE(    "String"   ),
+            "surface_skin_t", "complex_n" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT()
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "surfaceFlatSingleEmissivity" ),
+        DESCRIPTION
+        (
+         "Creates variables to mimic specular reflection by a (flat) surface\n"
+         "where the emissivity is specified.\n"
+         "\n"
+         "As *surfaceFlatVaryingEmissivity*, but assumes that the emissivity\n"
+         "does not vary with frequency.\n"
+         "\n"
+         "Generic output and input:\n"
+         "  surface_emissivity : The emissivity, a value between 0 and 1.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        GOUT(),
+        GOUT_TYPE(),
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
+            "surface_skin_t" ),
+        GIN( "surface_emissivity" ),
+        GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( NODEF )
       ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "surfaceSimple" ),
+      ( NAME( "surfaceFlatVaryingEmissivity" ),
         DESCRIPTION
         (
-         "Creates variables to mimic specular reflection by a surface with\n"
-         "a single emissivity.\n"
+         "Creates variables to mimic specular reflection by a (flat) surface\n"
+         "where the emissivity is specified.\n"
          "\n"
-         "A constant emissivity is assumed as a function of frequency and\n"
-         "polarization (vertical and horizontal reflection coefficients are\n"
-         "equal. The number of directions in *surface_los* is one.\n"
+         "The usage of emissivity does not provide any polarisation\n"
+         "information and it is only formally correct to use this method\n"
+         "for *stokes_dim* = 1 (but there is no hard-coded restriction).\n"
          "\n"
-         "Surface properties are specified by *surface_emissivity* and \n"
-         "*surface_skin_t*.\n"
+         "Local thermodynamic equilibrium is assumed, which corresponds to\n"
+         "that the reflection and emission coefficients add up to 1.\n"
+         "\n"
+         "Generic output and input:\n"
+         "  surface_emissivity : The emissivity, for each frequency in\n"
+         "                       *f_grid*. Values between 0 and 1.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
         GOUT_TYPE(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
-               "surface_emissivity", "surface_skin_t" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT()
+            "surface_skin_t" ),
+        GIN( "surface_emissivity" ),
+        GIN_TYPE( "Vector" ),
+        GIN_DEFAULT( NODEF )
       ));
 
   md_data_raw.push_back
@@ -8045,139 +8023,6 @@ md_data_raw.push_back
                   NODEF,        NODEF )
       ));
 
-
-  //--------------------------------------------------------------------------------
-  // Zeeman Methods:
-  // These were all commented out when the absorption part was
-  // back-ported from ARTS-1-0 to ARTS-1-1.  
-
-//   md_data_raw.push_back     
-//     ( MdRecord
-//       ( NAME("absO2ZeemanModel"),
-//         DESCRIPTION
-//         (
-//          "Calculate oxygen absorption in the 1-1000GHz range from  the absorption"
-//          " model based on P.W.Rosenkranz and H. J. Liebe (MPM).\n"
-//          "Output:\n"
-//          "   abs_coef    : absorption coefficients [1/m], \n"
-//          "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
-//          "\n"
-//          "Input:\n"
-//          "   geomag_los          : magnetic filed strength and angle with respect to the LOS\n"
-//          "   f_grid              : Frequency grid [Hz].\n"
-//          "   abs_p               : List of pressures [Pa].\n"
-//          "   abs_t               : List of temperatures [K].\n"
-//          "                         (Must have same length as abs_p!)\n"
-//          "   abs_vmr             : List of H2O volume mixing ratios [absolute number].\n"
-//          "                         Must have same length as abs_p!\n"
-//          "   abs_model           : String specifying the model to use.\n"
-//          "                         Allowed options are:\n"
-//          "   abs_user_parameters : Only used if abs_model==\"user\" or \"*Scaling\". \n"
-//          "                         In that case, abs_user_parameters must have \n"
-//          "                         4 or 1 element(s) respectively.\n"
-//          "                         abs_model==\"user\": \n"
-//          "                         1. O2 Continuum scaling factor\n"
-//          "                         2. O2 line strength scaling factor\n"
-//          "                         3. O2 line pressure broadening scaling factor\n"
-//          "                         4. O2 line mixing scaling factor\n"
-//          "                         abs_model==\"*Scaling\": \n"
-//          "                         1. O2 absorption overall scaling factor\n"
-//          "                         Note:\n"
-//          "                         abs_user_parameters must be empty if one of the\n"
-//          "                         pre-defined models is used.\n"
-//         ),
-//         AUTHORS( "Thomas Kuhn", "Axel von Engeln" ),
-//         OUT( "ext_mat_zee", "abs_vec_zee"),
-//         GOUT(),
-//         GOUT_TYPE(),
-//         IN(  "geomag_los", "f_grid", 
-//                 zeeman_o2_onoff_, zeeman_o2_pressure_limit_, zeeman_o2_line_,
-//                 "ppath_index", "rte_pressure", 
-//                 "rte_temperature",rte_vmr_list_, "species_index",
-//                 "abs_model", "abs_user_parameters", "stokes_dim" ),
-//         GIN(),
-//         GIN_TYPE(),
-//         GIN_DEFAULT()
-//        ));
-  
-//  md_data_raw.push_back
-//     ( MdRecord
-//       ( NAME("abs_vecAddGasZeeman"),
-//         DESCRIPTION
-//         (
-//          "Add zeeman absorption to the elements of absorption vector.\n"
-//          "\n"
-//          "The task of this method is to sum up the gas absorption of the\n"
-//          "different gas species and add the result to the first element\n"
-//          "of the absorption vector.\n"
-//         ),
-//         AUTHORS( "Sreerekha T.R." ),
-//         OUT( "abs_vec" ),
-//         GOUT(),
-//         GOUT_TYPE(),
-//         IN( "abs_vec", "abs_vec_zee" ),
-//         GIN(),
-//         GIN_TYPE(),
-//         GIN_DEFAULT()
-//        ));
-
-//   md_data_raw.push_back
-//     ( MdRecord
-//       ( NAME("ext_matAddGasZeeman"),
-//         DESCRIPTION
-//         (
-//          "Add Zeeman extinction  to the elements of extinction matrix.\n"
-//          " \n"
-//          ),
-//         AUTHORS( "Sreerekha T.R." ),
-//         OUT( "ext_mat" ),
-//         GOUT(),
-//         GOUT_TYPE(),
-//         IN( "ext_mat", "ext_mat_zee" ),
-//         GIN(),
-//         GIN_TYPE(),
-//         GIN_DEFAULT()
-//        ));
-
-//   md_data_raw.push_back
-//     ( MdRecord
-//       ( NAME("ZeemanO2Settings"),
-//         DESCRIPTION
-//         (
-//          "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
-//          "splitting for the microwave range (1-1000 GHz)\n"
-//          "\n"
-//          "Keywords:\n"
-//          "   ZeemanO2OnOff         : The start value. \n"
-//          "   ZeemanO2PressureLimit : The end value.   \n"  
-//          "   ZeemanO2Line          : Line to do with Zeeman. \n"
-//         ),
-//         AUTHORS( "Thomas Kuhn", "Axel von Engeln" ),
-//         OUT( zeeman_o2_onoff_, zeeman_o2_pressure_limit_, zeeman_o2_line_),
-//         GOUT(),
-//         GOUT_TYPE(),
-//         IN(),
-//         GIN( "ZeemanO2OnOff", "ZeemanO2PressureLimit", "ZeemanO2Line" ),
-//         GIN_TYPE(    "Index",         "Numeric",               "Index"),
-//         GIN_DEFAULT( NODEF,           NODEF,                   NODEF )
-//        ));
-
-
-//  md_data_raw.push_back
-//     ( MdRecord
-//       ( NAME("test_zeeman"),
-//         DESCRIPTION(
-//                     "\n"
-//                     ),
-//         AUTHORS( "Thomas Kuhn" ),
-//         OUT(),
-//         GOUT(),
-//         GOUT_TYPE(),
-//         IN( "opt_prop_gas_agenda" ),
-//         GIN(),
-//         GIN_TYPE(),
-//         GIN_DEFAULT()
-//        ));
 
 }
 

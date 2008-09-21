@@ -962,6 +962,27 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "ArrayOfIndex" )));
 
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME("complex_n"),
+       DESCRIPTION
+       (
+        "Complex refractive index (n).\n"
+        "\n"
+        "This matrix describes the dielectric properties of some medium. \n"
+        "A typical usage of this variable is to describe the properties of the\n"
+        "surface (if it is assumed to be flat).\n"
+        "\n"
+        "This is a two-column matrix. The first column holds the real part\n"
+        "of n, and the second column the imaginary part. The number of rows\n"
+        "should normally match *f_grid*."
+        "\n"
+        "Unit:        -\n"
+        "\n"
+        "Dimensions: [f_grid,2]\n"
+        ),
+       GROUP( "Matrix" ) ));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "diy_dt" ),
@@ -3563,32 +3584,16 @@ void Workspace::define_wsv_data()
      (WsvRecord
       ( NAME( "surface_emission" ),
         DESCRIPTION
-        ( "The emission from the surface at a specified position.\n"
-          "\n"
-       "The position is normally specified by *rte_pos* or the combination of\n"
-          "*rte_gp_p*, *rte_gp_lat* and *rte_gp_lon*.\n"
+        ( "The emission from the surface for a specified position and\n"
+          "direction.\n"
           "\n"
           "See further *surfaceCalc* and the user guide.\n"
-          "\n"
-          "Usage:      Input to methods for *iy_surface_agenda*."
           "\n"
           "Unit:       W / (m^2 Hz sr)\n"
           "\n"
           "Dimensions: [ f_grid, stokes_dim ]\n"
          ), 
         GROUP( "Matrix" )));
-
-   wsv_data.push_back
-     (WsvRecord
-      ( NAME( "surface_emissivity" ),
-        DESCRIPTION
-        ( "The surface emissivity at position of interest.\n"
-          "\n"
-          "Usage: Input to surfaceSingleEmissivity.\n"
-          "\n"
-          "Unit: a value between 0 and 1\n"
-         ), 
-        GROUP( "Numeric" )));
 
    wsv_data.push_back
      (WsvRecord
@@ -3599,6 +3604,32 @@ void Workspace::define_wsv_data()
           "Dimensions: [ lat_grid, lon_grid ]\n"
          ), 
         GROUP( "Matrix" )));
+
+   /* A first step towards a complete solution:
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "surface_emissivity_field" ),
+        DESCRIPTION
+        ( "Surface emissivity.\n"
+          "\n"
+          "This variable describes the surface emissivity as a function of\n"
+          "incidence angle, frequency, latitude and longitude. An azimuthal\n"
+          "symmetry is assumed and relevant range of incidence angles (ia) is\n"
+          "[0,90].\n"
+          "\n"
+          "It is only totally correct to use this varaible for flat surfaces\n"
+          "and *stokes_dim* = 1.\n"
+          "\n"
+          "Dimensions: \n"
+          "   GField4:\n"
+          "      Vector ia_grid[N_ia]\n"
+          "      Vector f_grid[N_f]\n"
+          "      Vector lat_grid[N_latt]\n"
+          "      Vector lon_grid[N_lon]\n"
+          "      Tensor4 data[N_ia][N_f][N_lat][N_lon]\n"
+         ), 
+        GROUP( "GField4" )));
+   */
 
   wsv_data.push_back
     (WsvRecord
@@ -3658,6 +3689,10 @@ void Workspace::define_wsv_data()
       DESCRIPTION
       (
        "Surface skin temperature.\n"
+       "\n"
+       "This temperature shall be selected considering the radiative\n"
+       "properties of the surface, and can differ from the \"bulk\"\n"
+       "temperature.\n"
        "\n"
        "Usage:   Input to methods for *iy_surface_agenda*.\n"
        ),
@@ -3722,6 +3757,31 @@ void Workspace::define_wsv_data()
        "       [N_p, N_lat, N_lon] \n"
        ),
       GROUP( "GField3" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "t_surface" ),
+      DESCRIPTION
+      (
+       "The surface temperature.\n"
+       "\n"
+       "This variable holds the temperature of the surface at each latitude\n"
+       "and longitude grid crossing. The normal case should be that this \n"
+       "temperature field is interpolated to obtain *surface_skin_t*.\n"
+       "Accordingly, for 1D cases it could be a better idea to specify\n"
+       "*surface_skin_t* directly.\n"
+       "\n"
+       "These temperature shall be selected considering the radiative\n"
+       "properties of the surface, and can differ from the \"bulk\"\n"
+       "temperatures.\n"
+       "\n"
+       "Usage:      Set by user.\n"
+       "\n"
+       "Unit:       K\n"
+       "\n"
+       "Dimensions: [ lat_grid, lon_grid ]\n"
+       ),
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
    (WsvRecord

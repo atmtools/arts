@@ -247,6 +247,13 @@ extern const Index GFIELD3_LON_GRID = 2;
 */
 extern const Index GFIELD4_FIELD_NAMES = 0;
 
+/** Global constant, Index of incidence angles in GriddedField4.
+
+    \author Patrick Eriksson
+    \date   2008-09-20
+*/
+extern const Index GFIELD4_IA_GRID = 0;
+
 /** Global constant, Index of the pressure grid in GriddedField4.
 
     \author Oliver Lemke

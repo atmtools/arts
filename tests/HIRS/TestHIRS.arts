@@ -29,6 +29,7 @@ StringSet(sideband_response_file, "hirs/NOAA14_HIRS.sideband_response.xml")
 # We can also include a pre-calculated absorption table for HIRS with
 # ARTS. 
 StringSet(hitran_file,"/storage1/pool/lookup2/hitran2004/HITRAN04.par")
+StringSet(hitran_file,"/home/patrick/Data/HITRAN_2004/HITRAN04.par")
 
 
 INCLUDE "hirs/hirs.arts"
@@ -182,9 +183,9 @@ AgendaSet( ybatch_calc_agenda ){
 #                          0.01 )
 #   jacobianClose
 
-  # get z_surface from z_field
+  # get some surface properties from corresponding atmospheric fields
   MatrixExtractFromTensor3( z_surface, z_field, 0 )
-  #  Print( z_surface, 1 )
+  MatrixExtractFromTensor3( t_surface, t_field, 0 )
 
   # Perform RT calculations
   # ---

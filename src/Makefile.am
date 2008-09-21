@@ -88,6 +88,7 @@ libarts_a_SOURCES = \
 	m_refraction.cc \
 	m_rte.cc \
 	m_scatrte.cc \
+    m_surface.cc \
 	m_abs_lookup.cc \
 	m_copy.h \
 	m_delete.h \
