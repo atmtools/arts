@@ -1,5 +1,17 @@
 2008-09-22  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-9-23
+
+	* doc/examples: Removed cruft.
+
+	* configure.in: Removed doc/examples/{Makefile,data/Makefile}
+
+	* doc/Makefile.am: Removed examples.
+
+	* src/workspace.cc: Cosmetics.
+
+2008-09-22  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-9-22
 
 	* src/methods_aux.cc:

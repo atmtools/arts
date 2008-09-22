@@ -17,7 +17,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.9.22)
+AM_INIT_AUTOMAKE(arts,1.9.23)
 
 
 dnl Put the ACLOCAL flags in the Makefile
@@ -485,8 +485,6 @@ Makefile
       doc/uguide/Makefile 
       doc/uguide/auto_version.tex 
          doc/uguide/Figs/Makefile 
-      doc/examples/Makefile 
-            doc/examples/data/Makefile 
    includes/Makefile 
       includes/amsu/Makefile 
       includes/odin/Makefile 

@@ -1978,7 +1978,7 @@ void Workspace::define_wsv_data()
      ( NAME( "mc_points" ),
        DESCRIPTION
        (
-        "Counts the number of MC endpoints in each grid cell\n"
+        "Counts the number of MC endpoints in each grid cell.\n"
         "\n"
         "Usage: Set by MCGeneral.\n"
         ),
