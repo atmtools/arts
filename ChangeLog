@@ -1,3 +1,9 @@
+2008-09-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-9-20
+
+	* includes/amsu/amsub_fast.arts: Missed to fix this test case.
+
 2008-09-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-9-19
