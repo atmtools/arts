@@ -1,3 +1,12 @@
+2008-09-22  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-9-21
+
+	* tests/AMSU/TestAMSU_generic.arts: Removed lookup table accuracy
+	test, to increase speed.
+
+	* includes/hirs/hirs.arts: Cosmetics.
+
 2008-09-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-9-20

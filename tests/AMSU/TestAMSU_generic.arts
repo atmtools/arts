@@ -89,7 +89,7 @@ abs_lookupCreate
 # table accuracy. Comment it out if you do not want this
 # information. The test should take approximately as much time as the
 # lookup table generation, perhaps even more. So, it is not cheap!
-abs_lookupTestAccuracy
+#abs_lookupTestAccuracy
 
 # Set abs_scalar_gas_agenda to use lookup table
 # ---

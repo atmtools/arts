@@ -59,7 +59,6 @@ abs_lineshape_per_tgDefine( abs_lineshape,
                             [750e9, 750e7, 750e7, 750e7, 750e7, 750e7, 750e7, 750e7] )
 
 # Read HITRAN catalog:
-# FIXME: Frequency boundaries must be adjusted.
 abs_linesReadFromHitran2004( abs_lines,
                              hitran_file,
                              2.0022234e+12,
@@ -112,9 +111,8 @@ ReadXML( f_backend_temp, f_backend_file )
 ReadXML( backend_channel_response_temp,
          sideband_response_file )
 
-ArrayOfIndexCreate(channels)
-ArrayOfIndexSet(channels, [11])
-
+# Select the desired channels:
+#
 Select(f_backend, f_backend_temp, channels)
 Select(backend_channel_response, backend_channel_response_temp, channels)
 
@@ -122,6 +120,10 @@ Select(backend_channel_response, backend_channel_response_temp, channels)
 # Frequency grid:
 #
 f_gridFromSensorHIRS( f_grid, f_backend, backend_channel_response, 5e9 )
+
+# FIXME: We might use an optimized frequency grid here. Then it is
+# important to kick out those frequencies that are not used by the
+# selected channels.
 
 
 abs_lines_per_speciesCompact
