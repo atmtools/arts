@@ -1,3 +1,20 @@
+2008-09-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-9-24
+
+	* src/methods.cc:
+
+	Replace empty gin and gout names with generic names (gin1, gin2...).
+
+	* src/methods.{h,cc}, src/methods_aux.cc:
+
+	Add new two new fields (GIN_DESC and GOUT_DESC) to MdRecord. They
+	contain a short description for each GIN and GOUT variable.
+
+	* src/methods_aux.cc:
+
+	Output GIN and GOUT descriptions in online help.
+
 2008-09-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-9-23

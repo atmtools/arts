@@ -41,10 +41,12 @@
 #define OUT         MakeArray<String>
 #define GOUT        MakeArray<String>
 #define GOUT_TYPE   MakeArray<String>
+#define GOUT_DESC   MakeArray<String>
 #define IN          MakeArray<String>
 #define GIN         MakeArray<String>
 #define GIN_TYPE    MakeArray<String>
 #define GIN_DEFAULT MakeArray<String>
+#define GIN_DESC    MakeArray<String>
 #define SETMETHOD(x) x
 #define AGENDAMETHOD(x) x
 #define SUPPRESSHEADER(x) x
@@ -81,10 +83,12 @@
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
 */
@@ -120,10 +124,12 @@ void define_md_data_raw()
         OUT( "abs_p", "abs_t", "abs_vmrs" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "atmosphere_dim", "p_grid", "t_field", "vmr_field" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -147,10 +153,12 @@ void define_md_data_raw()
         OUT( "abs_p", "abs_t", "abs_vmrs" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "rte_pressure", "rte_temperature", "rte_vmr_list" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -184,13 +192,15 @@ void define_md_data_raw()
         OUT( "abs_coef"  , "abs_coef_per_species" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
                "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
                "abs_cont_names", "abs_cont_models", 
                "abs_cont_parameters" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -208,10 +218,12 @@ void define_md_data_raw()
         OUT( "abs_coef", "abs_coef_per_species" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_xsec_per_species", "abs_vmrs", "abs_p", "abs_t" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -232,13 +244,15 @@ void define_md_data_raw()
         OUT( "abs_coef" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
                "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
                "abs_cont_names", "abs_cont_models", 
                "abs_cont_parameters" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -268,12 +282,16 @@ void define_md_data_raw()
                 "abs_cont_parameters" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "abs_cont_names", 
                 "abs_cont_models",
                 "abs_cont_parameters" ),
         GIN( "tagname", "model",  "userparameters" ),
         GIN_TYPE(    "String",  "String", "Vector" ),
-        GIN_DEFAULT( NODEF,     NODEF,    NODEF)
+        GIN_DEFAULT( NODEF,     NODEF,    NODEF),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -298,10 +316,12 @@ void define_md_data_raw()
                 "abs_cont_parameters" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -321,10 +341,12 @@ void define_md_data_raw()
         OUT( "abs_h2o" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species", "abs_vmrs" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -386,10 +408,14 @@ void define_md_data_raw()
         OUT( "abs_lineshape" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "shape",  "normalizationfactor", "cutoff" ),
         GIN_TYPE(    "String", "String",              "Numeric" ),
-        GIN_DEFAULT( NODEF,    NODEF,                 NODEF )
+        GIN_DEFAULT( NODEF,    NODEF,                 NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -444,10 +470,14 @@ void define_md_data_raw()
         OUT( "abs_lineshape" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species" ),
         GIN( "shape",        "normalizationfactor", "cutoff" ),
         GIN_TYPE(    "ArrayOfString", "ArrayOfString",        "Vector" ),
-        GIN_DEFAULT( NODEF,          NODEF,                 NODEF )
+        GIN_DEFAULT( NODEF,          NODEF,                 NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -469,10 +499,14 @@ void define_md_data_raw()
         OUT( "abs_lines" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "filename", "fmin",    "fmax" ),
         GIN_TYPE(    "String",   "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,      NODEF,     NODEF )
+        GIN_DEFAULT( NODEF,      NODEF,     NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -494,10 +528,14 @@ void define_md_data_raw()
         OUT( "abs_lines" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "filename", "fmin",    "fmax" ),
         GIN_TYPE(    "String",   "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,      NODEF,     NODEF )
+        GIN_DEFAULT( NODEF,      NODEF,     NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -524,10 +562,14 @@ void define_md_data_raw()
         OUT( "abs_lines" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "filename",  "fmin",    "fmax" ),
         GIN_TYPE(    "String",    "Numeric", "Numeric"),
-        GIN_DEFAULT( NODEF,       NODEF,     NODEF )
+        GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -557,10 +599,14 @@ void define_md_data_raw()
         OUT( "abs_lines" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "filename",  "fmin",    "fmax" ),
         GIN_TYPE( "String", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,       NODEF,     NODEF )
+        GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -584,10 +630,14 @@ void define_md_data_raw()
         OUT( "abs_lines" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "filename",  "fmin", "fmax" ),
         GIN_TYPE( "String", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,       NODEF,     NODEF )
+        GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -609,10 +659,14 @@ void define_md_data_raw()
         OUT( "abs_lines" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "filename", "fmin", "fmax" ),
         GIN_TYPE( "String", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,       NODEF,     NODEF )
+        GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -628,10 +682,12 @@ void define_md_data_raw()
         OUT( "abs_lines_per_species" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_lines_per_species" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -646,10 +702,12 @@ void define_md_data_raw()
         OUT( "abs_lines_per_species" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_lines_per_species", "abs_lineshape", "f_grid" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -667,10 +725,12 @@ void define_md_data_raw()
         OUT( "abs_lines_per_species" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_lines", "abs_species" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -730,10 +790,15 @@ void define_md_data_raw()
         OUT( "abs_lines_per_species" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species" ),
         GIN( "filenames",    "formats",      "fmin",   "fmax" ),
         GIN_TYPE(    "ArrayOfString", "ArrayOfString", "Vector", "Vector" ),
-        GIN_DEFAULT( NODEF,          NODEF,          NODEF,    NODEF )
+        GIN_DEFAULT( NODEF,          NODEF,          NODEF,    NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -751,10 +816,12 @@ void define_md_data_raw()
         OUT( "abs_lines_per_species" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   // New name: abs_lookupAdapt
@@ -778,10 +845,12 @@ void define_md_data_raw()
         OUT( "abs_lookup", "abs_lookup_is_adapted" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "abs_lookup", "abs_species", "f_grid" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -813,6 +882,7 @@ void define_md_data_raw()
         OUT( "abs_lookup", "abs_lookup_is_adapted" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species", 
                "abs_lines_per_species",
                "abs_lineshape",
@@ -830,7 +900,8 @@ void define_md_data_raw()
                ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   // New name: abs_lookupInit
@@ -848,10 +919,12 @@ void define_md_data_raw()
         OUT( "abs_lookup" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -896,6 +969,7 @@ void define_md_data_raw()
                  "abs_nls_pert" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(   "atmosphere_dim",
                  "p_grid",
                  "lat_grid",
@@ -908,7 +982,10 @@ void define_md_data_raw()
                  "abs_nls_interp_order" ),
         GIN( "p_step",  "t_step",  "h2o_step" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
-        GIN_DEFAULT( "0.05",    "100",       "100" )
+        GIN_DEFAULT( "0.05",    "100",       "100" ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back     
@@ -967,6 +1044,7 @@ void define_md_data_raw()
                  "abs_nls_pert" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(   "abs_species",
                  "batch_atm_fields_compact",
                  "abs_p_interp_order",
@@ -974,7 +1052,11 @@ void define_md_data_raw()
                  "abs_nls_interp_order" ),
         GIN( "p_step",  "t_step",  "h2o_step", "extremes" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric",  "Vector" ),
-        GIN_DEFAULT( "0.05",    "100",       "100",      "[]" )
+        GIN_DEFAULT( "0.05",    "100",       "100",      "[]" ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back     
@@ -1016,13 +1098,21 @@ void define_md_data_raw()
               "abs_nls_pert" ),
         GOUT(      ),
         GOUT_TYPE( ),
+        GOUT_DESC(),
         IN(      "abs_species",
                  "abs_p_interp_order",
                  "abs_t_interp_order",
                  "abs_nls_interp_order" ),
         GIN( "p_min",   "p_max",   "p_step",  "t_min",   "t_max",   "h2o_min", "h2o_max" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric" ),
-        GIN_DEFAULT( "0.5",  "110000",  "0.05",    "100",     "400",     "0",       "0.1" )
+        GIN_DEFAULT( "0.5",  "110000",  "0.05",    "100",     "400",     "0",       "0.1" ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
   
   md_data_raw.push_back     
@@ -1042,6 +1132,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(   "abs_lookup",
               "abs_lookup_is_adapted",
               "abs_p_interp_order",
@@ -1055,7 +1146,8 @@ void define_md_data_raw()
               "abs_cont_parameters" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1069,10 +1161,12 @@ void define_md_data_raw()
         OUT( "abs_n2" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species", "abs_vmrs" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -1103,6 +1197,7 @@ void define_md_data_raw()
         OUT( "abs_scalar_gas" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "f_grid",
             "abs_species",
             "abs_n2",
@@ -1115,7 +1210,8 @@ void define_md_data_raw()
             "rte_pressure", "rte_temperature", "rte_vmr_list" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -1143,13 +1239,15 @@ void define_md_data_raw()
         OUT( "abs_scalar_gas" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "abs_lookup", "abs_lookup_is_adapted",
                 "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order", 
                 "f_index", 
                 "rte_pressure", "rte_temperature", "rte_vmr_list" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -1165,10 +1263,12 @@ void define_md_data_raw()
         OUT( "abs_scalar_gas" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "abs_coef_per_species" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -1199,6 +1299,7 @@ void define_md_data_raw()
         OUT( "abs_field" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "abs_scalar_gas_agenda",
                 "f_index",
                 "f_grid",
@@ -1207,7 +1308,8 @@ void define_md_data_raw()
                 "t_field", "vmr_field" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1233,10 +1335,12 @@ void define_md_data_raw()
         OUT( "abs_species" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "abs_species" ),
         GIN( "species" ),
         GIN_TYPE(    "ArrayOfString"   ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
  
   md_data_raw.push_back
@@ -1259,14 +1363,22 @@ void define_md_data_raw()
         OUT( "abs_species", "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species", "jacobian", "atmosphere_dim", "p_grid", "lat_grid", 
                "lon_grid" ),
-        GIN(      ""      , ""      , ""      ,
+        GIN(      "gin1"      , "gin2"      , "gin3"      ,
                   "species", "method", "unit", "dx" ),
         GIN_TYPE(    "Vector", "Vector", "Vector",
                   "String", "String", "String", "Numeric" ),
         GIN_DEFAULT( NODEF   , NODEF   , NODEF   ,
-                  NODEF,     NODEF,    NODEF,  NODEF )
+                  NODEF,     NODEF,    NODEF,  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
  
   md_data_raw.push_back
@@ -1290,10 +1402,12 @@ void define_md_data_raw()
         OUT( "abs_species" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "basename" ),
         GIN_TYPE( "String" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -1307,10 +1421,12 @@ void define_md_data_raw()
         OUT( "abs_species" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   // This is duplicate with the 1-0 method tgsDefine. Merge!
@@ -1370,12 +1486,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
-        GOUT(       ""                         ),
+        GOUT(       "gout1"                         ),
         GOUT_TYPE(  "ArrayOfArrayOfSpeciesTag" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN( "species" ),
         GIN_TYPE(    "ArrayOfString"   ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -1393,10 +1511,12 @@ void define_md_data_raw()
         OUT("abs_vec"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("abs_vec", "abs_scalar_gas"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1422,11 +1542,13 @@ void define_md_data_raw()
         OUT("abs_vec"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("abs_vec", "abs_vec_spt", "pnd_field", "atmosphere_dim",
               "scat_p_index",  "scat_lat_index", "scat_lon_index"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1448,10 +1570,12 @@ void define_md_data_raw()
         OUT("abs_vec"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("f_grid", "stokes_dim", "f_index"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1464,12 +1588,14 @@ void define_md_data_raw()
         OUT( "abs_xsec_per_species" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
                "abs_vmrs", "abs_cont_names", "abs_cont_parameters",
                "abs_cont_models" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1483,11 +1609,13 @@ void define_md_data_raw()
         OUT( "abs_xsec_per_species" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_h2o",
                "abs_vmrs", "abs_lines_per_species", "abs_lineshape" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1505,10 +1633,12 @@ void define_md_data_raw()
         OUT( "abs_xsec_per_species" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species", "f_grid", "abs_p" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1525,10 +1655,12 @@ void define_md_data_raw()
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
-        GIN(      ""       ),
+        GIN(      "gin1"       ),
         GIN_TYPE(    "Agenda" ),
         GIN_DEFAULT( NODEF    ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(    false ),
         AGENDAMETHOD( false )
       ));
@@ -1559,12 +1691,14 @@ void define_md_data_raw()
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Agenda" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
+        GIN_DESC(),
         SETMETHOD(      false ),
         AGENDAMETHOD(   true  ),
         SUPPRESSHEADER( false ),
@@ -1588,10 +1722,12 @@ void define_md_data_raw()
         OUT( "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1607,10 +1743,12 @@ void define_md_data_raw()
         OUT( "antenna_dim", "mblock_aa_grid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1629,10 +1767,12 @@ void define_md_data_raw()
         OUT( "antenna_dim" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "atmosphere_dim" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1666,12 +1806,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
-        GOUT(      ""    ),
+        GOUT(      "gout1"    ),
         GOUT_TYPE( "Any" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""    ),
+        GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -1690,10 +1832,12 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "arrayofgfield1"       ),
         GOUT_TYPE( "ArrayOfGField1" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1709,12 +1853,15 @@ void define_md_data_raw()
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""               ),
+        GOUT(      "gout1"               ),
         GOUT_TYPE( "ArrayOfGField3" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(       ""                     , ""      ),
+        GIN(       "gin1"                     , "gin2"      ),
         GIN_TYPE(     "ArrayOfArrayOfGField3", "Index" ),
-        GIN_DEFAULT(  NODEF                  , NODEF   )
+        GIN_DEFAULT(  NODEF                  , NODEF   ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -1730,10 +1877,12 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "arrayofindex"       ),
         GOUT_TYPE( "ArrayOfIndex" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1747,10 +1896,12 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "arrayofindex"       ),
         GOUT_TYPE( "ArrayOfIndex" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(         "values" ),
         GIN_TYPE(    "ArrayOfIndex" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD( true )
       ));
 
@@ -1763,12 +1914,15 @@ void define_md_data_raw()
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""             ),
+        GOUT(      "gout1"             ),
         GOUT_TYPE( "ArrayOfIndex" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(       ""                   , ""      ),
+        GIN(       "gin1"                   , "gin2"      ),
         GIN_TYPE(     "ArrayOfArrayOfIndex", "Index" ),
-        GIN_DEFAULT(  NODEF                , NODEF   )
+        GIN_DEFAULT(  NODEF                , NODEF   ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -1785,12 +1939,14 @@ void define_md_data_raw()
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""                  ),
+        GOUT(      "gout1"                  ),
         GOUT_TYPE( "ArrayOfLineRecord" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1807,12 +1963,14 @@ void define_md_data_raw()
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""                     ),
+        GOUT(      "gout1"                     ),
         GOUT_TYPE( "ArrayOfLineshapeSpec" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1829,12 +1987,14 @@ void define_md_data_raw()
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""              ),
+        GOUT(      "gout1"              ),
         GOUT_TYPE( "ArrayOfMatrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1859,15 +2019,19 @@ void define_md_data_raw()
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      ""              ),
+        GOUT(      "gout1"              ),
         GOUT_TYPE( "ArrayOfMatrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""             , ""      ,
+        GIN(      "gin1"             , "gin2"      ,
                   "element" ),
         GIN_TYPE(    "ArrayOfMatrix", "Matrix",
                   "Index" ),
         GIN_DEFAULT( NODEF          , NODEF   ,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -1884,12 +2048,14 @@ void define_md_data_raw()
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""              ),
+        GOUT(      "gout1"              ),
         GOUT_TYPE( "ArrayOfString" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1902,12 +2068,14 @@ void define_md_data_raw()
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""              ),
+        GOUT(      "gout1"              ),
         GOUT_TYPE( "ArrayOfString" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN( "text" ),
         GIN_TYPE(    "ArrayOfString" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD( true )
       ));
 
@@ -1924,10 +2092,12 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "arrayofvector"       ),
         GOUT_TYPE( "ArrayOfVector" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -1943,10 +2113,12 @@ void define_md_data_raw()
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
+        GIN_DESC(),
         SETMETHOD(    false ),
         AGENDAMETHOD( true  )
       ));
@@ -1972,11 +2144,13 @@ void define_md_data_raw()
         OUT("t_field", "z_field", "vmr_field"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
               "vmr_field_raw", "atmosphere_dim"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -2000,11 +2174,13 @@ void define_md_data_raw()
         OUT( "t_field", "z_field", "vmr_field" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
                "vmr_field_raw", "atmosphere_dim"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -2036,11 +2212,13 @@ void define_md_data_raw()
                "t_field", "z_field", "vmr_field"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid",
                "t_field", "z_field", "vmr_field", "atmosphere_dim"),
         GIN( "p_step" ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -2063,10 +2241,13 @@ void define_md_data_raw()
         OUT( "atm_fields_compact" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "atm_fields_compact" ),
         GIN( "name",   "value" ),
         GIN_TYPE(    "String", "Numeric" ),
-        GIN_DEFAULT( NODEF,    NODEF )
+        GIN_DEFAULT( NODEF,    NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -2098,13 +2279,16 @@ void define_md_data_raw()
         OUT( "atm_fields_compact" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "atmosphere_dim" ),
-        GIN(      ""      ,
+        GIN(      "gin1"      ,
                   "field_names" ),
         GIN_TYPE(    "Matrix",
                      "ArrayOfString" ),
         GIN_DEFAULT( NODEF   ,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -2139,14 +2323,19 @@ void define_md_data_raw()
         OUT( "batch_atm_fields_compact" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "atmosphere_dim" ),
-        GIN(      ""             ,
+        GIN(      "gin1"             ,
                   "field_names", "extra_field_names", "extra_field_values" ),
         GIN_TYPE(    "ArrayOfMatrix",
                      "ArrayOfString", "ArrayOfString",     "Vector" ),
         GIN_DEFAULT( NODEF          ,
-                  NODEF,         "[]",                "[]" )
+                  NODEF,         "[]",                "[]" ),
         //KW_DEFAULT( NODEF,         NODEF,                NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -2182,10 +2371,12 @@ void define_md_data_raw()
         OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "vmr_field" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "abs_species", "atm_fields_compact", "atmosphere_dim" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -2203,10 +2394,12 @@ void define_md_data_raw()
         OUT( "atmosphere_dim", "lat_grid", "lon_grid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -2226,10 +2419,12 @@ void define_md_data_raw()
         OUT( "atmosphere_dim", "lon_grid", "lat_1d", "meridian_angle_1d"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -2248,10 +2443,12 @@ void define_md_data_raw()
         OUT( "atmosphere_dim", "lat_1d", "meridian_angle_1d" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -2290,10 +2487,12 @@ void define_md_data_raw()
         OUT("t_field_raw", "z_field_raw", "vmr_field_raw"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("abs_species"),
         GIN( "basename" ),
         GIN_TYPE(    "String" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -2315,6 +2514,7 @@ void define_md_data_raw()
         OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "cloudbox_on"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
                "surface_prop_agenda", "iy_cloudbox_agenda",
                "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
@@ -2323,7 +2523,8 @@ void define_md_data_raw()
                "scat_za_grid", "scat_aa_grid" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -2344,6 +2545,7 @@ void define_md_data_raw()
         OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "cloudbox_on"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
                "surface_prop_agenda", "iy_cloudbox_agenda",
                "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
@@ -2352,7 +2554,8 @@ void define_md_data_raw()
                "scat_za_grid", "scat_aa_grid" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -2369,10 +2572,12 @@ void define_md_data_raw()
         OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
   
    md_data_raw.push_back
@@ -2388,10 +2593,12 @@ void define_md_data_raw()
         OUT("cloudbox_on", "cloudbox_limits"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("p_grid"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
 
@@ -2416,10 +2623,12 @@ void define_md_data_raw()
         OUT( "pnd_field", "scat_data_raw"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -2461,13 +2670,20 @@ void define_md_data_raw()
         OUT( "cloudbox_on", "cloudbox_limits"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
         GIN( "p1",      "p2",      "lat1",    "lat2",    "lon1",
                   "lon2" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", 
                   "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF,     NODEF,     NODEF,     NODEF,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -2508,13 +2724,20 @@ void define_md_data_raw()
         OUT( "cloudbox_on", "cloudbox_limits"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "atmosphere_dim", "z_field", "lat_grid", "lon_grid" ),
         GIN( "z1",      "z2",      "lat1",    "lat2",    "lon1",
                   "lon2" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", 
                   "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF,     NODEF,     NODEF,     NODEF,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -2538,10 +2761,12 @@ void define_md_data_raw()
         OUT( "complex_n" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "f_grid" ),
         GIN( "t" ),
         GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -2573,12 +2798,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
-        GOUT(      ""    ),
+        GOUT(      "gout1"    ),
         GOUT_TYPE( "Any" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""    ),
+        GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -2598,10 +2825,12 @@ void define_md_data_raw()
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
-        GIN(       ""    ),
+        GIN(       "gin1"    ),
         GIN_TYPE(     "Any" ),
         GIN_DEFAULT(  NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
@@ -2622,6 +2851,7 @@ void define_md_data_raw()
                "f_index", "scat_data_mono", "doit_i_field1D_spectrum"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("cloudbox_limits", "stokes_dim", "opt_prop_part_agenda", 
               "abs_scalar_gas_agenda", "spt_calc_agenda", 
               "pnd_field", "t_field", 
@@ -2629,7 +2859,8 @@ void define_md_data_raw()
               "scat_za_grid", "surface_emissivity_field" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
 
@@ -2672,10 +2903,14 @@ void define_md_data_raw()
         OUT( "doit_za_grid_size", "scat_aa_grid", "scat_za_grid"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "N_za_grid", "N_aa_grid", "za_grid_opt_file"),
         GIN_TYPE(    "Index",     "Index",     "String"),
-        GIN_DEFAULT( NODEF,       NODEF,       NODEF )
+        GIN_DEFAULT( NODEF,       NODEF,       NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -2698,12 +2933,14 @@ void define_md_data_raw()
                 "doit_i_field1D_spectrum" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "doit_i_field", "f_grid", "f_index",   "p_grid", "lat_grid", 
                "lon_grid", "scat_za_grid", "scat_aa_grid", "stokes_dim",
                "atmosphere_dim", "cloudbox_limits", "sensor_pos", "z_field" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
 md_data_raw.push_back     
@@ -2735,11 +2972,13 @@ md_data_raw.push_back
         OUT("doit_conv_flag", "doit_iteration_counter"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("doit_conv_flag", "doit_iteration_counter",
               "doit_i_field", "doit_i_field_old"),
         GIN( "epsilon" ),
         GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back     
@@ -2764,11 +3003,13 @@ md_data_raw.push_back
         OUT("doit_conv_flag", "doit_iteration_counter"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("doit_conv_flag", "doit_iteration_counter", 
               "doit_i_field", "doit_i_field_old", "f_grid", "f_index"),
         GIN( "epsilon" ),
         GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
   
   md_data_raw.push_back     
@@ -2801,11 +3042,13 @@ md_data_raw.push_back
         OUT("doit_conv_flag", "doit_iteration_counter"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("doit_conv_flag", "doit_iteration_counter",
               "doit_i_field", "doit_i_field_old", "f_grid", "f_index"),
         GIN( "epsilon" ),
         GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -2824,11 +3067,13 @@ md_data_raw.push_back
                 "doit_i_field", "doit_za_interp", "doit_is_initialized" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "stokes_dim", "atmosphere_dim", "scat_za_grid", "scat_aa_grid",
                "doit_za_grid_size", "cloudbox_limits", "scat_data_raw" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -2855,11 +3100,13 @@ md_data_raw.push_back
         OUT("doit_i_field"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "doit_i_field", "doit_scat_field_agenda", "doit_rte_agenda", 
                "doit_conv_test_agenda"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -2890,12 +3137,14 @@ md_data_raw.push_back
         OUT("doit_i_field"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "f_grid", 
                "f_index", "p_grid", "lat_grid", "lon_grid", 
                "cloudbox_limits", "atmosphere_dim"),
         GIN("all_frequencies"),
         GIN_TYPE("Index"),
-        GIN_DEFAULT( "1" )
+        GIN_DEFAULT( "1" ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -2919,12 +3168,14 @@ md_data_raw.push_back
         OUT("doit_i_field"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "p_grid", "lat_grid", 
                "lon_grid", 
                "cloudbox_limits", "atmosphere_dim", "stokes_dim"),
         GIN( "value" ),
         GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -2946,6 +3197,7 @@ md_data_raw.push_back
         OUT("doit_i_field"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("doit_i_field_old", "doit_scat_field", "cloudbox_limits", 
               "abs_scalar_gas_agenda",
               "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
@@ -2955,7 +3207,8 @@ md_data_raw.push_back
               "doit_za_interp"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -2979,6 +3232,7 @@ md_data_raw.push_back
         OUT("doit_i_field"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("doit_i_field", "doit_scat_field", "cloudbox_limits", 
               "abs_scalar_gas_agenda",
               "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field",
@@ -2988,7 +3242,8 @@ md_data_raw.push_back
               "doit_za_interp"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -3011,6 +3266,7 @@ md_data_raw.push_back
         OUT("doit_i_field", "scat_za_index"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("doit_scat_field", "cloudbox_limits", 
               "abs_scalar_gas_agenda",
               "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
@@ -3019,7 +3275,8 @@ md_data_raw.push_back
               "f_grid", "f_index"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -3045,6 +3302,7 @@ md_data_raw.push_back
         OUT("doit_i_field"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN("doit_i_field", "doit_scat_field", "cloudbox_limits", 
               "abs_scalar_gas_agenda",
               "vmr_field", "spt_calc_agenda", "scat_za_grid", "scat_aa_grid",
@@ -3055,7 +3313,8 @@ md_data_raw.push_back
               "f_grid", "f_index", "doit_za_interp"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
   
   md_data_raw.push_back
@@ -3076,13 +3335,15 @@ md_data_raw.push_back
         OUT( "doit_scat_field" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "doit_scat_field", "pha_mat_spt_agenda",
                "doit_i_field", "pnd_field", "t_field", "atmosphere_dim", 
                "cloudbox_limits", "scat_za_grid", "scat_aa_grid",  
                "doit_za_grid_size"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -3115,13 +3376,15 @@ md_data_raw.push_back
         OUT( "doit_scat_field"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "doit_scat_field", "pha_mat_spt_agenda",
                "doit_i_field", "pnd_field", "t_field", "atmosphere_dim", 
                "cloudbox_limits", "scat_za_grid", "scat_aa_grid",  
                "doit_za_grid_size", "doit_za_interp" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -3149,11 +3412,13 @@ md_data_raw.push_back
         OUT( "pha_mat_sptDOITOpt", "scat_data_mono" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "doit_za_grid_size", "scat_aa_grid", "scat_data_raw", "f_grid", 
                "f_index", "atmosphere_dim", "stokes_dim" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -3184,10 +3449,12 @@ md_data_raw.push_back
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "doit_iteration_counter", "doit_i_field" ),
         GIN( "iterations" ),
         GIN_TYPE(    "ArrayOfIndex" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -3215,10 +3482,12 @@ md_data_raw.push_back
         OUT( "doit_za_grid_opt" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "doit_i_field", "scat_za_grid", "doit_za_interp" ),
         GIN( "acc" ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
                                                                                
   md_data_raw.push_back
@@ -3239,10 +3508,12 @@ md_data_raw.push_back
         OUT( "doit_za_interp" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "atmosphere_dim" ),
         GIN( "interp_method" ),
         GIN_TYPE(    "String" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
  
   md_data_raw.push_back
@@ -3266,12 +3537,14 @@ md_data_raw.push_back
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
-        GOUT(      ""    ),
+        GOUT(      "gout1"    ),
         GOUT_TYPE( "Any" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""    ),
+        GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -3291,10 +3564,12 @@ md_data_raw.push_back
         OUT( "emission" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "f_grid", "rte_temperature" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -3317,10 +3592,12 @@ md_data_raw.push_back
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "msg" ),
         GIN_TYPE(    "String" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -3338,10 +3615,12 @@ md_data_raw.push_back
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -3358,10 +3637,12 @@ md_data_raw.push_back
         OUT( "ext_mat" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "ext_mat", "abs_scalar_gas" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -3387,11 +3668,13 @@ md_data_raw.push_back
         OUT( "ext_mat" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "ext_mat", "ext_mat_spt", "pnd_field", "atmosphere_dim", 
                "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
  
   md_data_raw.push_back
@@ -3413,10 +3696,12 @@ md_data_raw.push_back
         OUT( "ext_mat" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "f_index" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -3449,10 +3734,12 @@ md_data_raw.push_back
         OUT( "f_grid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "lo_multi", "f_backend_multi", "backend_channel_response_multi" ),
         GIN( "spacing" ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( ".1e9" )
+        GIN_DEFAULT( ".1e9" ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back     
@@ -3486,10 +3773,12 @@ md_data_raw.push_back
         OUT( "f_grid" ),
         GOUT(      ),
         GOUT_TYPE( ),
+        GOUT_DESC(),
         IN( "f_backend", "backend_channel_response" ),
         GIN( "spacing" ),
         GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( ".1e11")
+        GIN_DEFAULT( ".1e11"),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back     
@@ -3510,10 +3799,12 @@ md_data_raw.push_back
         OUT( "f_grid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "f_grid", "f_index" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -3525,12 +3816,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""      ),
+        GOUT(      "gout1"      ),
         GOUT_TYPE( "Index" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -3542,12 +3835,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""      ),
+        GOUT(      "gout1"      ),
         GOUT_TYPE( "Index" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -3564,10 +3859,12 @@ md_data_raw.push_back
         OUT( "f_grid"  ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "abs_lookup" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -3600,10 +3897,14 @@ md_data_raw.push_back
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "forloop_agenda" ),
         GIN( "start", "stop",  "step" ),
         GIN_TYPE(    "Index", "Index", "Index" ),
-        GIN_DEFAULT( NODEF,   NODEF,   NODEF )
+        GIN_DEFAULT( NODEF,   NODEF,   NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -3620,12 +3921,15 @@ md_data_raw.push_back
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "GField4" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(       ""              , ""      ),
+        GIN(       "gin1"              , "gin2"      ),
         GIN_TYPE(     "ArrayOfGField4", "Index" ),
-        GIN_DEFAULT(  NODEF           , NODEF   )
+        GIN_DEFAULT(  NODEF           , NODEF   ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -3660,10 +3964,12 @@ md_data_raw.push_back
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
-        GIN(       ""    ),
+        GIN(       "gin1"    ),
         GIN_TYPE(     "Any" ),
         GIN_DEFAULT(  NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -3707,10 +4013,12 @@ md_data_raw.push_back
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -3727,12 +4035,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""      ),
+        GOUT(      "gout1"      ),
         GOUT_TYPE( "Index" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -3750,12 +4060,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""      ),
+        GOUT(      "gout1"      ),
         GOUT_TYPE( "Index" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN( "value" ),
         GIN_TYPE(    "Index" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD( true )
       ));
 
@@ -3770,12 +4082,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""      ),
+        GOUT(      "gout1"      ),
         GOUT_TYPE( "Index" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""      ),
+        GIN(      "gin1"      ),
         GIN_TYPE(    "Index" ),
-        GIN_DEFAULT( NODEF   )
+        GIN_DEFAULT( NODEF   ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back     
@@ -3796,13 +4110,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Numeric" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
                "rte_gp_p", "rte_gp_lat", "rte_gp_lon" ),
-        GIN(      ""        ),
+        GIN(      "gin1"        ),
         GIN_TYPE(    "Tensor3" ),
-        GIN_DEFAULT( NODEF     )
+        GIN_DEFAULT( NODEF     ),
+        GIN_DESC("FIXME DOC")
       ));
   
   md_data_raw.push_back     
@@ -3823,13 +4139,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Numeric" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "atmosphere_dim", "lat_grid", "lon_grid", 
                "rte_gp_lat", "rte_gp_lon" ),
-        GIN(      ""       ),
+        GIN(      "gin1"       ),
         GIN_TYPE(    "Matrix" ),
-        GIN_DEFAULT( NODEF    )
+        GIN_DEFAULT( NODEF    ),
+        GIN_DESC("FIXME DOC")
       ));
   
   md_data_raw.push_back
@@ -3856,13 +4174,15 @@ md_data_raw.push_back
         OUT( "iy" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
                "rte_gp_p", "rte_gp_lat", "rte_gp_lon", "rte_los",  "cloudbox_on",
                "cloudbox_limits", "atmosphere_dim", "stokes_dim", "scat_za_grid",
                "scat_aa_grid", "f_grid" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -3879,6 +4199,7 @@ md_data_raw.push_back
         OUT( "iy" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
                "rte_gp_p", "rte_gp_lat",
                "rte_gp_lon", "rte_los",  "cloudbox_on", "cloudbox_limits",
@@ -3886,7 +4207,8 @@ md_data_raw.push_back
                "f_grid" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -3927,13 +4249,21 @@ md_data_raw.push_back
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN(      ""      , ""      , ""      ,
+        GIN(      "gin1"      , "gin2"      , "gin3"      ,
                   "species", "method", "unit",   "dx" ),
         GIN_TYPE(    "Vector", "Vector", "Vector",
                      "String",  "String", "String", "Numeric" ),
         GIN_DEFAULT( NODEF   , NODEF   , NODEF   ,
-                  NODEF,     NODEF,    NODEF,    NODEF)
+                  NODEF,     NODEF,    NODEF,    NODEF),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
          
   md_data_raw.push_back
@@ -3962,11 +4292,15 @@ md_data_raw.push_back
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
                "pnd_field", "pnd_field_perturb", "cloudbox_limits" ),
-        GIN(      ""      , ""      , ""       ),
+        GIN(      "gin1"      , "gin2"      , "gin3"       ),
         GIN_TYPE(    "Vector", "Vector", "Vector" ),
-        GIN_DEFAULT( NODEF   , NODEF   , NODEF    )
+        GIN_DEFAULT( NODEF   , NODEF   , NODEF    ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
          
   md_data_raw.push_back
@@ -3999,10 +4333,13 @@ md_data_raw.push_back
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "jacobian", "sensor_pos", "sensor_time" ),
         GIN( "dza",     "poly_order" ),
         GIN_TYPE(    "Numeric", "Index" ),
-        GIN_DEFAULT( NODEF,     NODEF )
+        GIN_DEFAULT( NODEF,     NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4040,13 +4377,20 @@ md_data_raw.push_back
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN(      ""      , ""      , ""      ,
+        GIN(      "gin1"      , "gin2"      , "gin3"      ,
                   "hse",    "method", "dx" ),
         GIN_TYPE(    "Vector", "Vector", "Vector",
                      "String", "String", "Numeric" ),
         GIN_DEFAULT( NODEF   , NODEF   , NODEF   ,
-                  NODEF,    NODEF,    NODEF )
+                  NODEF,    NODEF,    NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
   
   md_data_raw.push_back
@@ -4064,10 +4408,12 @@ md_data_raw.push_back
         OUT( "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "jacobian_agenda", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
         
   md_data_raw.push_back
@@ -4084,6 +4430,7 @@ md_data_raw.push_back
         OUT( "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "y", "jacobian_quantities", "jacobian_indices", "abs_species", 
                "ppath_step_agenda", 
                "rte_agenda", "iy_space_agenda", "surface_prop_agenda", 
@@ -4096,6 +4443,7 @@ md_data_raw.push_back
         GIN( "species" ),
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD( true )
       ));
 
@@ -4113,6 +4461,7 @@ md_data_raw.push_back
         OUT( "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "y", "jacobian_quantities", "jacobian_indices", "pnd_field_perturb",
                "jacobian_particle_update_agenda",
                "ppath_step_agenda", "rte_agenda", "iy_space_agenda", 
@@ -4124,7 +4473,8 @@ md_data_raw.push_back
                "stokes_dim", "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
         
   md_data_raw.push_back
@@ -4141,6 +4491,7 @@ md_data_raw.push_back
         OUT( "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "y", "jacobian_quantities", "jacobian_indices", 
                "sensor_time", "ppath_step_agenda", 
                "rte_agenda", "iy_space_agenda", "surface_prop_agenda", 
@@ -4152,7 +4503,8 @@ md_data_raw.push_back
                "mblock_aa_grid" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -4169,6 +4521,7 @@ md_data_raw.push_back
         OUT( "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "y", "jacobian_quantities", "jacobian_indices", "ppath_step_agenda",
                "rte_agenda", 
                "iy_space_agenda", "surface_prop_agenda", "iy_cloudbox_agenda", 
@@ -4179,7 +4532,8 @@ md_data_raw.push_back
                "stokes_dim", "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -4202,10 +4556,12 @@ md_data_raw.push_back
         OUT( "jacobian", "jacobian_indices" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "jacobian_quantities", "sensor_pos", "sensor_response" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -4226,10 +4582,12 @@ md_data_raw.push_back
         OUT( "jacobian", "jacobian_quantities", "jacobian_indices" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -4248,10 +4606,12 @@ md_data_raw.push_back
                 "jacobian_unit" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
    /* Not yet updated
@@ -4269,12 +4629,14 @@ md_data_raw.push_back
         OUT("jacobian" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "jacobian", "jacobian_unit", "y_unit", "sensor_pos", "sensor_los", 
                "sensor_response_f", "sensor_response_za", "sensor_response_aa",
                "sensor_response_pol" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
    */
 
@@ -4305,12 +4667,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "stokes_dim" ),
-        GIN(      ""       ),
+        GIN(      "gin1"       ),
         GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF    )
+        GIN_DEFAULT( NODEF    ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4327,12 +4691,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -4356,12 +4722,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""      , ""       ),
+        GIN(      "gin1"      , "gin2"       ),
         GIN_TYPE(    "Matrix", "Matrix" ),
-        GIN_DEFAULT( NODEF   , NODEF    )
+        GIN_DEFAULT( NODEF   , NODEF    ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4379,12 +4748,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""       ),
+        GIN(      "gin1"       ),
         GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF    )
+        GIN_DEFAULT( NODEF    ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4406,12 +4777,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""      , ""       ),
+        GIN(      "gin1"      , "gin2"       ),
         GIN_TYPE(    "Vector", "Vector" ),
-        GIN_DEFAULT( NODEF   , NODEF    )
+        GIN_DEFAULT( NODEF   , NODEF    ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4434,12 +4808,16 @@ md_data_raw.push_back
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""      , ""      , ""       ),
+        GIN(      "gin1"      , "gin2"      , "gin3"       ),
         GIN_TYPE(    "Vector", "Vector", "Vector" ),
-        GIN_DEFAULT( NODEF   , NODEF   , NODEF    )
+        GIN_DEFAULT( NODEF   , NODEF   , NODEF    ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4457,12 +4835,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""       ),
+        GIN(      "gin1"       ),
         GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF    )
+        GIN_DEFAULT( NODEF    ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4484,12 +4864,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""      , ""       ),
+        GIN(      "gin1"      , "gin2"       ),
         GIN_TYPE(    "Vector", "Vector" ),
-        GIN_DEFAULT( NODEF   , NODEF    )
+        GIN_DEFAULT( NODEF   , NODEF    ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4512,12 +4895,16 @@ md_data_raw.push_back
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""      , ""      , ""       ),
+        GIN(      "gin1"      , "gin2"      , "gin3"       ),
         GIN_TYPE(    "Vector", "Vector", "Vector" ),
-        GIN_DEFAULT( NODEF   , NODEF   , NODEF    )
+        GIN_DEFAULT( NODEF   , NODEF   , NODEF    ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4532,12 +4919,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(       ""             , ""      ),
+        GIN(       "gin1"             , "gin2"      ),
         GIN_TYPE(     "ArrayOfMatrix", "Index" ),
-        GIN_DEFAULT(  NODEF          , NODEF   )
+        GIN_DEFAULT(  NODEF          , NODEF   ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4552,12 +4942,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(       ""       , ""      ),
+        GIN(       "gin1"       , "gin2"      ),
         GIN_TYPE(     "Tensor3", "Index" ),
-        GIN_DEFAULT(  NODEF    , NODEF   )
+        GIN_DEFAULT(  NODEF    , NODEF   ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4576,12 +4969,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "stokes_dim" ),
-        GIN(      ""      , ""        ),
+        GIN(      "gin1"      , "gin2"        ),
         GIN_TYPE(    "Vector", "Numeric" ),
-        GIN_DEFAULT( NODEF   , NODEF     )
+        GIN_DEFAULT( NODEF   , NODEF     ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4604,15 +5000,18 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""      ,
+        GIN(      "gin1"      ,
                   "value" ),
         GIN_TYPE(    "Matrix",
                      "Numeric"   ),
         GIN_DEFAULT( NODEF   ,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
    md_data_raw.push_back
@@ -4631,12 +5030,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "nrows", "ncols" ),
         GIN( "value"   ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4654,12 +5055,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "stokes_dim" ),
-        GIN(      ""       ),
+        GIN(      "gin1"       ),
         GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF    )
+        GIN_DEFAULT( NODEF    ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4677,10 +5080,13 @@ md_data_raw.push_back
         OUT( "mc_antenna" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "za_sigma", "aa_sigma" ),
         GIN_TYPE(    "Numeric",  "Numeric"),
-        GIN_DEFAULT( NODEF,      NODEF )
+        GIN_DEFAULT( NODEF,      NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4698,10 +5104,13 @@ md_data_raw.push_back
         OUT( "mc_antenna" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "za_fwhm", "aa_fwhm" ),
         GIN_TYPE(    "Numeric", "Numeric"),
-        GIN_DEFAULT( NODEF,     NODEF )
+        GIN_DEFAULT( NODEF,     NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4718,10 +5127,12 @@ md_data_raw.push_back
         OUT( "mc_antenna" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -4737,12 +5148,14 @@ md_data_raw.push_back
                 "mc_iteration_count"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "mc_antenna", "sensor_pos", "sensor_los", "ppath_step_agenda", "p_grid", 
                "lat_grid", "lon_grid", "r_geoid", "z_surface", "z_field", "t_field", "vmr_field", 
                "cloudbox_limits", "pnd_field", "scat_data_mono", "particle_masses", "mc_seed"),
         GIN( "max_iter" ),
         GIN_TYPE(    "Index" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
   
   md_data_raw.push_back     
@@ -4772,6 +5185,7 @@ md_data_raw.push_back
         OUT( "y", "mc_iteration_count", "mc_error", "mc_points" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
                "stokes_dim", "iy_space_agenda", "surface_prop_agenda", 
                "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "p_grid", "lat_grid", 
@@ -4781,7 +5195,8 @@ md_data_raw.push_back
                "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -4795,6 +5210,7 @@ md_data_raw.push_back
         OUT( "y", "mc_iteration_count", "mc_error", "mc_points"),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
                "stokes_dim", "iy_space_agenda", "surface_prop_agenda", 
                "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "ppath_step_agenda",
@@ -4804,7 +5220,8 @@ md_data_raw.push_back
                "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   /* Removed as ScatteringMonteCarlo is not working
@@ -4819,10 +5236,12 @@ md_data_raw.push_back
         OUT( "mc_incoming" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
   */
 
@@ -4835,10 +5254,12 @@ md_data_raw.push_back
         OUT( "mc_seed" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -4855,12 +5276,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Numeric" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -4878,12 +5301,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Numeric" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN( "value"   ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD( true )
       ));
 
@@ -4899,10 +5324,12 @@ md_data_raw.push_back
         OUT( "nelem" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
-        GIN(      ""    ),
+        GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -4920,10 +5347,12 @@ md_data_raw.push_back
         OUT( "ncols" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
-        GIN(      ""    ),
+        GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -4941,10 +5370,12 @@ md_data_raw.push_back
         OUT( "nrows" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
-        GIN(      ""    ),
+        GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -4962,10 +5393,12 @@ md_data_raw.push_back
         OUT( "npages" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
-        GIN(      ""    ),
+        GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -4983,10 +5416,12 @@ md_data_raw.push_back
         OUT( "nbooks" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
-        GIN(      ""    ),
+        GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5004,10 +5439,12 @@ md_data_raw.push_back
         OUT( "nshelves" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
-        GIN(      ""    ),
+        GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5025,10 +5462,12 @@ md_data_raw.push_back
         OUT( "nvitrines" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
-        GIN(      ""    ),
+        GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5046,10 +5485,12 @@ md_data_raw.push_back
         OUT( "nlibraries" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
-        GIN(      ""    ),
+        GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5067,12 +5508,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Numeric" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(       ""      , ""      ),
+        GIN(       "gin1"      , "gin2"      ),
         GIN_TYPE(     "Vector", "Index" ),
-        GIN_DEFAULT(  NODEF   , NODEF   )
+        GIN_DEFAULT(  NODEF   , NODEF   ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -5101,6 +5545,7 @@ md_data_raw.push_back
         OUT( "ext_mat_spt", "abs_vec_spt" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "ext_mat_spt", "abs_vec_spt", "scat_data_raw",
                 "scat_za_grid", 
                 "scat_aa_grid", "scat_za_index", "scat_aa_index", 
@@ -5108,7 +5553,8 @@ md_data_raw.push_back
                 "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5132,13 +5578,15 @@ md_data_raw.push_back
         OUT( "ext_mat_spt", "abs_vec_spt" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "ext_mat_spt", "abs_vec_spt", "scat_data_mono",
                 "scat_za_grid", 
                 "scat_aa_grid", "scat_za_index", "scat_aa_index", "rte_temperature",
                 "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
  
   md_data_raw.push_back
@@ -5152,10 +5600,12 @@ md_data_raw.push_back
         OUT( "output_file_format" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5169,10 +5619,12 @@ md_data_raw.push_back
         OUT( "output_file_format" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5186,10 +5638,12 @@ md_data_raw.push_back
         OUT( "output_file_format" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5221,11 +5675,14 @@ md_data_raw.push_back
         OUT( "scat_data_raw", "pnd_field_raw" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", 
                "cloudbox_limits" ),
         GIN( "filename_scat_data", "filename_pnd_field" ),
         GIN_TYPE(    "String",             "String" ),
-        GIN_DEFAULT( NODEF,                NODEF )
+        GIN_DEFAULT( NODEF,                NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
  
   md_data_raw.push_back
@@ -5248,11 +5705,14 @@ md_data_raw.push_back
         OUT( "scat_data_raw", "pnd_field_raw" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", 
                "cloudbox_limits" ),
         GIN( "filename_scat_data", "filename_pnd_field" ),
         GIN_TYPE(    "String",             "String" ),
-        GIN_DEFAULT( NODEF,                NODEF )
+        GIN_DEFAULT( NODEF,                NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -5271,10 +5731,12 @@ md_data_raw.push_back
         OUT( "scat_data_raw", "pnd_field_raw" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(), 
         GIN_TYPE(), 
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
    md_data_raw.push_back
@@ -5297,11 +5759,13 @@ md_data_raw.push_back
         OUT( "pha_mat" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "pha_mat_spt", "pnd_field", "atmosphere_dim", "scat_p_index",
                "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(), 
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5325,13 +5789,15 @@ md_data_raw.push_back
         OUT( "pha_mat_spt" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "pha_mat_spt", "scat_data_raw", "scat_za_grid", "scat_aa_grid", 
                "scat_za_index", "scat_aa_index", "f_index", "f_grid",
                "rte_temperature", "pnd_field", "scat_p_index", "scat_lat_index",
                "scat_lon_index" ),
         GIN(),
         GIN_TYPE(), 
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
    md_data_raw.push_back
@@ -5347,12 +5813,14 @@ md_data_raw.push_back
         OUT( "pha_mat_spt" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "pha_mat_spt", "scat_data_mono", "doit_za_grid_size",
                "scat_aa_grid", "scat_za_index", "scat_aa_index", "rte_temperature",
                "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(), 
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
    md_data_raw.push_back
@@ -5371,6 +5839,7 @@ md_data_raw.push_back
         OUT( "pha_mat_spt" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "pha_mat_spt", "pha_mat_sptDOITOpt", "scat_data_mono", 
                "doit_za_grid_size",
                "scat_aa_grid", 
@@ -5378,7 +5847,8 @@ md_data_raw.push_back
                "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(), 
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5400,11 +5870,13 @@ md_data_raw.push_back
         OUT( "pnd_field" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "pnd_field_raw", "atmosphere_dim",
                "cloudbox_limits" ),
         GIN(),
         GIN_TYPE(), 
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5429,12 +5901,14 @@ md_data_raw.push_back
         OUT( "ppath" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "ppath_step_agenda", "atmosphere_dim", "p_grid", "lat_grid", 
                "lon_grid", "z_field", "r_geoid", "z_surface", 
                "cloudbox_on", "cloudbox_limits", "rte_pos", "rte_los" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
 
@@ -5466,11 +5940,13 @@ md_data_raw.push_back
         OUT( "ppath_step" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "ppath_step", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
                "z_field", "r_geoid", "z_surface", "ppath_lmax" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5505,12 +5981,14 @@ md_data_raw.push_back
                 "refr_index" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "refr_index_agenda", "ppath_step", "atmosphere_dim", "p_grid", 
                "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
                "z_surface", "ppath_lmax", "ppath_lraytrace" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back     
@@ -5527,13 +6005,16 @@ md_data_raw.push_back
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
-        GIN(      ""   ,
+        GIN(      "gin1"   ,
                   "level" ),
         GIN_TYPE(    "Any",
                      "Index" ),
         GIN_DEFAULT( NODEF,
                   "1" ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5553,10 +6034,13 @@ md_data_raw.push_back
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN( "only_allocated", "level" ),
         GIN_TYPE(    "Index",          "Index" ),
         GIN_DEFAULT( "1",              "1" ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
@@ -5574,10 +6058,12 @@ md_data_raw.push_back
         OUT( "p_grid"  ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(  "abs_lookup" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5605,12 +6091,14 @@ md_data_raw.push_back
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""    ),
+        GOUT(      "gout1"    ),
         GOUT_TYPE( "Any" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN( "filename" ),
         GIN_TYPE(    "String"   ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
@@ -5647,13 +6135,17 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "refr_index", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor4" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "refr_index_agenda", "atmosphere_dim", "p_grid", "lat_grid", 
                "lon_grid", "r_geoid", "z_field", "t_field", "vmr_field" ),
-        GIN(      ""      , ""      , ""        ),
+        GIN(      "gin1"      , "gin2"      , "gin3"        ),
         GIN_TYPE(    "Vector", "Vector", "Vector"  ),
-        GIN_DEFAULT( NODEF   , NODEF   , NODEF     )
+        GIN_DEFAULT( NODEF   , NODEF   , NODEF     ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -5671,10 +6163,12 @@ md_data_raw.push_back
         OUT( "refr_index" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "rte_pressure", "rte_temperature", "rte_vmr_list" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5696,10 +6190,12 @@ md_data_raw.push_back
         OUT( "refr_index" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "rte_pressure", "rte_temperature", "rte_vmr_list", "abs_species" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5720,10 +6216,12 @@ md_data_raw.push_back
         OUT( "refr_index" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5758,6 +6256,7 @@ md_data_raw.push_back
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
                "surface_prop_agenda", "iy_cloudbox_agenda",
                "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
@@ -5771,7 +6270,8 @@ md_data_raw.push_back
                "y_unit", "jacobian_unit" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5806,6 +6306,7 @@ md_data_raw.push_back
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "mc_error" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "iy_space_agenda", "surface_prop_agenda", "opt_prop_gas_agenda",
                "abs_scalar_gas_agenda", "atmosphere_dim",
                "p_grid", "lat_grid", "lon_grid", "z_field", 
@@ -5818,7 +6319,8 @@ md_data_raw.push_back
                "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5832,6 +6334,7 @@ md_data_raw.push_back
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
                "surface_prop_agenda", "iy_cloudbox_agenda",
                "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
@@ -5843,7 +6346,8 @@ md_data_raw.push_back
                "antenna_dim", "mblock_za_grid", "mblock_aa_grid", "y_unit" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5867,13 +6371,15 @@ md_data_raw.push_back
         OUT( "iy", "diy_dvmr", "diy_dt" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "iy", "diy_dvmr", "diy_dt", "ppath", "ppath_array",
                "ppath_array_index", "f_grid", "stokes_dim", "emission_agenda",
                "abs_scalar_gas_agenda", "rte_do_vmr_jacs",
                "rte_do_t_jacs" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5890,13 +6396,15 @@ md_data_raw.push_back
         OUT( "iy", "ppath_transmissions", "diy_dvmr", "diy_dt" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "iy", "diy_dvmr", "diy_dt", "ppath", "ppath_array",
                "ppath_array_index", "f_grid", "stokes_dim",
                "emission_agenda", "abs_scalar_gas_agenda",
                "rte_do_vmr_jacs", "rte_do_t_jacs" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5919,10 +6427,13 @@ md_data_raw.push_back
         OUT( "rte_los" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "atmosphere_dim" ),
         GIN( "za",      "aa"      ),
         GIN_TYPE(    "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,     NODEF )
+        GIN_DEFAULT( NODEF,     NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -5949,10 +6460,12 @@ md_data_raw.push_back
         OUT( "rte_pos" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "rte_pos", "atmosphere_dim", "lat_1d", "meridian_angle_1d" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -5974,10 +6487,12 @@ md_data_raw.push_back
         OUT( "rte_pos" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "rte_pos", "atmosphere_dim", "lat_grid", "lon_grid", "r_geoid" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6006,10 +6521,14 @@ md_data_raw.push_back
         OUT( "rte_pos" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "atmosphere_dim" ),
         GIN( "r_or_z",  "lat",     "lon"     ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,     NODEF,     NODEF )
+        GIN_DEFAULT( NODEF,     NODEF,     NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -6023,10 +6542,12 @@ md_data_raw.push_back
         OUT( "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", "rte_gp_lon" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "ppath", "atmosphere_dim" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6045,11 +6566,13 @@ md_data_raw.push_back
         OUT( "rte_pos", "rte_los", "ppath" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "atmosphere_dim", "p_grid", "z_field", "lat_grid", "lon_grid",
                "ppath_step_agenda", "r_geoid", "z_surface" ),
         GIN( "tan_p" ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -6070,10 +6593,12 @@ md_data_raw.push_back
         OUT( "r_geoid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "atmosphere_dim", "lat_grid", "lon_grid" ),
         GIN( "r" ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -6098,11 +6623,13 @@ md_data_raw.push_back
         OUT( "r_geoid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "atmosphere_dim", "lat_grid", "lon_grid", "lat_1d",
                "meridian_angle_1d" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6120,11 +6647,13 @@ md_data_raw.push_back
                 "doit_i_field1D_spectrum" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "f_grid", "scat_i_p", "scat_i_lat", "scat_i_lon",
                "doit_mono_agenda", "doit_is_initialized" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
  
   /* Has been found to not work. Probably caused by changes in agenda 
@@ -6158,6 +6687,7 @@ md_data_raw.push_back
                 "rte_vmr_list", "ext_mat", "abs_vec" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "ppath", "rte_pos", "rte_los", "ppath_step_agenda", "atmosphere_dim",
                "p_grid", "lat_grid", "lon_grid", "z_field", "r_geoid", "z_surface",
                "cloudbox_limits", "stokes_dim", "rte_agenda", "iy_space_agenda",
@@ -6169,7 +6699,12 @@ md_data_raw.push_back
         GIN_TYPE(    "Numeric", "Index",    "Index",    "Index",
                   "Index" ),
         GIN_DEFAULT( NODEF,     NODEF,      NODEF,      NODEF,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
                   ));
   */
 
@@ -6184,10 +6719,12 @@ md_data_raw.push_back
         OUT( "scat_data_mono" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "scat_data_raw", "f_grid", "f_index" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6213,10 +6750,12 @@ md_data_raw.push_back
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "scat_data_raw" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
    md_data_raw.push_back
@@ -6231,10 +6770,13 @@ md_data_raw.push_back
         OUT(),
         GOUT( "needles" ),
         GOUT_TYPE( "Any"),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN( "haystack", "needleindexes"),
         GIN_TYPE( "Any", "ArrayOfIndex" ),
         GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -6264,10 +6806,12 @@ md_data_raw.push_back
                 "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "atmosphere_dim", "stokes_dim", "f_grid" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6294,10 +6838,12 @@ md_data_raw.push_back
         OUT( "sensor_pos" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "sensor_pos", "atmosphere_dim", "lat_1d", "meridian_angle_1d" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6319,10 +6865,12 @@ md_data_raw.push_back
         OUT( "sensor_pos" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "sensor_pos", "atmosphere_dim", "lat_grid", "lon_grid", "r_geoid" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6347,6 +6895,7 @@ md_data_raw.push_back
                 "sensor_response_za_grid", "sensor_response_aa_grid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
                "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
                "sensor_response_pol_grid", "sensor_response_za_grid",
@@ -6354,7 +6903,8 @@ md_data_raw.push_back
                "antenna_los", "antenna_response", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6376,6 +6926,7 @@ md_data_raw.push_back
                 "sensor_response_f_grid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
                "sensor_response_za", "sensor_response_aa", 
                "sensor_response_f_grid", "sensor_response_pol_grid", 
@@ -6383,7 +6934,8 @@ md_data_raw.push_back
                "f_backend", "backend_channel_response", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6406,11 +6958,13 @@ md_data_raw.push_back
         OUT( "sensor_response_f", "sensor_response_f_grid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "sensor_response_f", "sensor_response_f_grid", 
                "lo", "sideband_mode" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6455,11 +7009,13 @@ md_data_raw.push_back
                 "sensor_response_za_grid", "sensor_response_aa_grid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "f_grid", "mblock_za_grid", "mblock_aa_grid", "antenna_dim",
                "atmosphere_dim", "stokes_dim", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6482,13 +7038,15 @@ md_data_raw.push_back
                 "sensor_response_f_grid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
                "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
                "sensor_response_pol_grid", "sensor_response_za_grid",
                "sensor_response_aa_grid", "lo", "sideband_response", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6515,6 +7073,7 @@ md_data_raw.push_back
                 "sensor_response_f_grid" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
                "sensor_response_za", "sensor_response_aa", 
                "sensor_response_f_grid", "sensor_response_pol_grid", 
@@ -6524,7 +7083,8 @@ md_data_raw.push_back
                "backend_channel_response_multi", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
   
   /* Not yet updated
@@ -6541,11 +7101,13 @@ md_data_raw.push_back
         OUT( "sensor_response", "sensor_response_pol" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "sensor_pol", "sensor_response_za", "sensor_response_aa",
                "sensor_response_f", "stokes_dim"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
   */
 
@@ -6568,11 +7130,13 @@ md_data_raw.push_back
         OUT( "sensor_response" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "sensor_rot", "antenna_los", "antenna_dim", "stokes_dim",
                "sensor_response_f", "sensor_response_za"),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
   */
 
@@ -6590,12 +7154,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Sparse" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6612,12 +7178,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "String" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6629,12 +7197,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "String" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN( "text"   ),
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD( true )
       ));
 
@@ -6654,10 +7224,12 @@ md_data_raw.push_back
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "surface_skin_t" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6681,11 +7253,13 @@ md_data_raw.push_back
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
             "surface_skin_t", "complex_n" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6706,11 +7280,13 @@ md_data_raw.push_back
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
             "surface_skin_t" ),
         GIN( "surface_emissivity" ),
         GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -6736,11 +7312,13 @@ md_data_raw.push_back
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
             "surface_skin_t" ),
         GIN( "surface_emissivity" ),
         GIN_TYPE( "Vector" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -6757,12 +7335,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor3" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6777,12 +7357,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor3" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(       ""       , ""      ),
+        GIN(       "gin1"       , "gin2"      ),
         GIN_TYPE(     "Tensor4", "Index" ),
-        GIN_DEFAULT(  NODEF    , NODEF   )
+        GIN_DEFAULT(  NODEF    , NODEF   ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -6812,15 +7395,20 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor3" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""      ,
+        GIN(      "gin1"      ,
                   "npages", "nrows", "ncols"   ),
         GIN_TYPE(    "Vector",
                      "Index",  "Index", "Index" ),
         GIN_DEFAULT( NODEF   ,
-                  NODEF,    NODEF,   NODEF )
+                  NODEF,    NODEF,   NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -6844,15 +7432,18 @@ md_data_raw.push_back
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor3" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""       ,
+        GIN(      "gin1"       ,
                   "value"   ),
         GIN_TYPE(    "Tensor3",
                   "Numeric" ),
         GIN_DEFAULT( NODEF    ,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -6872,12 +7463,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor3" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "npages", "nrows", "ncols" ),
         GIN( "value"   ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -6894,12 +7487,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor4" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -6914,12 +7509,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor4" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(       ""       , ""      ),
+        GIN(       "gin1"       , "gin2"      ),
         GIN_TYPE(     "Tensor5", "Index" ),
-        GIN_DEFAULT(  NODEF    , NODEF   )
+        GIN_DEFAULT(  NODEF    , NODEF   ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -6931,12 +7529,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor4" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(       ""              , ""      ),
+        GIN(       "gin1"              , "gin2"      ),
         GIN_TYPE(     "ArrayOfTensor4", "Index" ),
-        GIN_DEFAULT(  NODEF           , NODEF   )
+        GIN_DEFAULT(  NODEF           , NODEF   ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -6960,15 +7561,18 @@ md_data_raw.push_back
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor4" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""       ,
+        GIN(      "gin1"       ,
                   "value"   ),
         GIN_TYPE(    "Tensor4",
                   "Numeric" ),
         GIN_DEFAULT( NODEF    ,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -6988,12 +7592,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor4" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "nbooks", "npages", "nrows", "ncols" ),
         GIN( "value"   ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7010,12 +7616,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor5" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -7039,15 +7647,18 @@ md_data_raw.push_back
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor5" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""       ,
+        GIN(      "gin1"       ,
                   "value"   ),
         GIN_TYPE(    "Tensor5",
                      "Numeric" ),
         GIN_DEFAULT( NODEF    ,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7067,12 +7678,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor5" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "nshelves", "nbooks", "npages", "nrows", "ncols" ),
         GIN( "value" ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7089,12 +7702,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor6" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -7118,15 +7733,18 @@ md_data_raw.push_back
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor6" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""       ,
+        GIN(      "gin1"       ,
                   "value"   ),
         GIN_TYPE(    "Tensor6",
                      "Numeric" ),
         GIN_DEFAULT( NODEF    ,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7147,12 +7765,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor6" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "nvitrines", "nshelves", "nbooks", "npages", "nrows", "ncols" ),
         GIN( "value" ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7171,12 +7791,14 @@ md_data_raw.push_back
          ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor6" ),
+        GOUT_DESC("FIXME DOC"),
         IN("f_index", "f_grid"),
-        GIN(      ""        ),
+        GIN(      "gin1"        ),
         GIN_TYPE(    "Tensor6" ),
-        GIN_DEFAULT( NODEF     )
+        GIN_DEFAULT( NODEF     ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7193,12 +7815,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor7" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -7222,15 +7846,18 @@ md_data_raw.push_back
         ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor7" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""       ,
+        GIN(      "gin1"       ,
                   "value" ),
         GIN_TYPE(    "Tensor7",
                   "Numeric" ),
         GIN_DEFAULT( NODEF    ,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7251,13 +7878,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
-        GOUT(      ""        ),
+        GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor7" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "nlibraries", "nvitrines", "nshelves", "nbooks", "npages", "nrows",
                "ncols" ),
         GIN( "value" ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7276,10 +7905,12 @@ md_data_raw.push_back
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -7303,10 +7934,12 @@ md_data_raw.push_back
         OUT( "timer" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
 
@@ -7324,10 +7957,12 @@ md_data_raw.push_back
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "timer" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -7350,15 +7985,18 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""      ,
+        GIN(      "gin1"      ,
                   "value" ),
         GIN_TYPE(    "Vector",
                      "Numeric" ),
         GIN_DEFAULT( NODEF   ,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7375,12 +8013,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -7398,15 +8038,19 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson, Oliver Lemke, Stefan Buehler" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(       ""      , ""     ,
+        GIN(       "gin1"      , "gin2"     ,
                   "direction" ),
         GIN_TYPE(     "Matrix", "Index",
                      "String" ),
         GIN_DEFAULT(  NODEF   , NODEF  ,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7436,12 +8080,15 @@ md_data_raw.push_back
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(       ""      , ""       ),
+        GIN(       "gin1"      , "gin2"       ),
         GIN_TYPE(     "Vector", "Vector" ),
-        GIN_DEFAULT(  NODEF   , NODEF    )
+        GIN_DEFAULT(  NODEF   , NODEF    ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7468,12 +8115,16 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN( "start",   "stop",    "step"    ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,     NODEF,     NODEF )
+        GIN_DEFAULT( NODEF,     NODEF,     NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7504,12 +8155,16 @@ md_data_raw.push_back
         ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN( "start",   "stop",    "step"    ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,     NODEF,     NODEF )
+        GIN_DEFAULT( NODEF,     NODEF,     NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7533,12 +8188,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(       ""      , ""       ),
+        GIN(       "gin1"      , "gin2"       ),
         GIN_TYPE(     "Matrix", "Vector" ),
-        GIN_DEFAULT(  NODEF   , NODEF    )
+        GIN_DEFAULT(  NODEF   , NODEF    ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7560,12 +8218,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(     ""      ),
+        GOUT(     "gout1"      ),
         GOUT_TYPE("Vector"),
+        GOUT_DESC("FIXME DOC"),
         IN( "nelem" ),
         GIN( "start",   "stop"    ),
         GIN_TYPE(    "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,     NODEF     )
+        GIN_DEFAULT( NODEF,     NODEF     ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7588,12 +8249,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(     ""      ),
+        GOUT(     "gout1"      ),
         GOUT_TYPE("Vector"),
+        GOUT_DESC("FIXME DOC"),
         IN( "nelem" ),
         GIN( "start",   "stop"    ),
         GIN_TYPE(    "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,     NODEF     )
+        GIN_DEFAULT( NODEF,     NODEF     ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7616,15 +8280,18 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
-        GIN(      ""      ,
+        GIN(      "gin1"      ,
                   "value" ),
         GIN_TYPE(    "Vector",
                      "Numeric" ),
         GIN_DEFAULT( NODEF   ,
-                  NODEF )
+                  NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7644,12 +8311,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "nelem" ),
         GIN( "value"   ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF )
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7671,12 +8340,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
+        GOUT_DESC("FIXME DOC"),
         IN(),
         GIN( "values"   ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC"),
         SETMETHOD( true )
       ));
 
@@ -7701,13 +8372,15 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUT( "refr_index", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "refr_index_agenda", "sensor_pos", "p_grid", "t_field", "z_field",
                            "vmr_field", "r_geoid", "atmosphere_dim" ),
-        GIN(      ""       ),
+        GIN(      "gin1"       ),
         GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF    )
+        GIN_DEFAULT( NODEF    ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7732,12 +8405,14 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "sensor_pos", "r_geoid", "atmosphere_dim" ),
-        GIN(      ""       ),
+        GIN(      "gin1"       ),
         GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF    )
+        GIN_DEFAULT( NODEF    ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7767,13 +8442,16 @@ md_data_raw.push_back
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "output_file_format" ),
-        GIN(       ""   ,
+        GIN(       "gin1"   ,
                   "filename" ),
         GIN_TYPE(     "Any",
                      "String"   ),
         GIN_DEFAULT(  NODEF,
                   "" ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
@@ -7809,13 +8487,16 @@ md_data_raw.push_back
         OUT(),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "output_file_format", "file_index" ),
-        GIN(       ""   ,
+        GIN(       "gin1"   ,
                   "filename" ),
         GIN_TYPE(     "Any",
                      "String"   ),
         GIN_DEFAULT(  NODEF,
                   "" ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
@@ -7867,10 +8548,12 @@ md_data_raw.push_back
         OUT( "ybatch" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "ybatch_n", "ybatch_calc_agenda" ), 
         GIN( "robust" ),
         GIN_TYPE(    "Index" ),
-        GIN_DEFAULT( "0" )
+        GIN_DEFAULT( "0" ),
+        GIN_DESC("FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7904,12 +8587,16 @@ md_data_raw.push_back
         OUT( "ybatch" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species", "met_profile_calc_agenda", "f_grid", "met_amsu_data",
                "sensor_pos", "r_geoid", "lat_grid", "lon_grid", "atmosphere_dim",
                "scat_data_raw" ),
         GIN( "nelem_p_grid", "met_profile_path", "met_profile_pnd_path" ),
         GIN_TYPE(    "Index",        "String",           "String" ),
-        GIN_DEFAULT( NODEF,          NODEF,              NODEF )
+        GIN_DEFAULT( NODEF,          NODEF,              NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7944,11 +8631,14 @@ md_data_raw.push_back
         OUT( "ybatch" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "abs_species", "met_profile_calc_agenda", 
                "f_grid", "met_amsu_data", "sensor_pos", "r_geoid" ),
         GIN( "nelem_p_grid", "met_profile_path" ),
         GIN_TYPE(    "Index",        "String"),
-        GIN_DEFAULT( NODEF,          NODEF )
+        GIN_DEFAULT( NODEF,          NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7964,10 +8654,12 @@ md_data_raw.push_back
         OUT( "ybatch" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "ybatch", "y_unit", "sensor_response_f" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -7990,10 +8682,12 @@ md_data_raw.push_back
         OUT( "y" ),
         GOUT(),
         GOUT_TYPE(),
+        GOUT_DESC(),
         IN( "y", "y_unit", "sensor_response_f" ),
         GIN(),
         GIN_TYPE(),
-        GIN_DEFAULT()
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -8011,8 +8705,9 @@ md_data_raw.push_back
         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      ""       ),
+        GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
+        GOUT_DESC("FIXME DOC"),
         IN( "ppath_step_agenda", "atmosphere_dim", "p_grid", "lat_grid",
                "lon_grid", "z_field", "r_geoid", "z_surface" ),
         GIN( "z_recieve", "z_send",  "t_sample", 
@@ -8020,14 +8715,14 @@ md_data_raw.push_back
         GIN_TYPE(    "Numeric",   "Numeric", "Numeric",
                   "Numeric",    "Numeric" ),
         GIN_DEFAULT( NODEF,       NODEF,     NODEF,
-                  NODEF,        NODEF )
+                  NODEF,        NODEF ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC")
       ));
 
 
 }
-
-
-
-
-
 

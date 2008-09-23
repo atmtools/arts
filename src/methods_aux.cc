@@ -52,10 +52,12 @@ MdRecord::MdRecord(const char                   name[],
                    const MakeArray<String>&     output,
                    const MakeArray<String>&     gout,
                    const MakeArray<String>&     gouttype,
+                   const MakeArray<String>&     goutdesc,
                    const MakeArray<String>&     input,   
                    const MakeArray<String>&     gin,   
                    const MakeArray<String>&     gintype,   
                    const MakeArray<String>&     gindefault,
+                   const MakeArray<String>&     gindesc,
                    bool                         set_method,
                    bool                         agenda_method,
                    bool                         suppress_header,
@@ -67,10 +69,12 @@ MdRecord::MdRecord(const char                   name[],
     moutput(          0                   ),  
     mgout(            gout                ),  
     mgouttype(        0                   ),  
+    mgoutdesc(        goutdesc            ),
     minput(           0                   ),   
     mgin(             gin                 ),   
     mgintype(         0                   ),   
     mgindefault(      gindefault          ),
+    mgindesc(         gindesc             ),
     mset_method(      set_method          ),
     magenda_method(   agenda_method       ),
     msupergeneric(    false               ),
@@ -86,8 +90,10 @@ MdRecord::MdRecord(const char                   name[],
       // elements. (Defaults specifies the default values associated with each
       // generic input.)
       assert( mgout.nelem() == gouttype.nelem() );
+      assert( mgout.nelem() == goutdesc.nelem() );
       assert( mgin.nelem() == mgindefault.nelem() );
       assert( mgin.nelem() == gintype.nelem() );
+      assert( mgin.nelem() == gindesc.nelem() );
 
       // Map the WSV names to indexes
       moutput.resize(output.nelem());
@@ -649,8 +655,20 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
         buf << "gout" << i;
       buf << " (";
       buf << wsv_group_names[mdr.GOutType()[i]];
-      buf << "): FIXME";
-      if (buf.str().length()) os << buf.str() << endl;
+
+      buf << "): ";
+      desc = mdr.GOutDescription()[i];
+      if (buf.str().length() + desc.length() > linelen)
+        {
+          format_paragraph (desc, indent, linelen);
+          buf << endl << desc;
+        }
+      else
+        {
+          buf << desc;
+        }
+
+      os << buf.str() << endl;
     }
 
   for ( Index i=0; i<mdr.GIn().nelem(); ++i )
@@ -678,8 +696,20 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
             }
 
         }
-      buf << "): FIXME";
-      if (buf.str().length()) os << buf.str() << endl;
+
+      buf << "): ";
+      desc = mdr.GInDescription()[i];
+      if (buf.str().length() + desc.length() > linelen)
+        {
+          format_paragraph (desc, indent, linelen);
+          buf << endl << desc;
+        }
+      else
+        {
+          buf << desc;
+        }
+
+      os << buf.str() << endl;
     }
 
   os << "\n*-------------------------------------------------------------------*\n";

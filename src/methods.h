@@ -46,10 +46,12 @@ public:
     moutput(      0               ),  
     mgout(        0               ),  
     mgouttype(    0               ),  
+    mgoutdesc(    0               ),  
     minput(       0               ),   
     mgin(         0               ),   
     mgintype(     0               ),   
     mgindefault(  0               ),
+    mgindesc(     0               ),
     mset_method(false),
     magenda_method(false),
     msupergeneric(false),
@@ -66,10 +68,12 @@ public:
            const MakeArray<String>&     output,
            const MakeArray<String>&     gout,
            const MakeArray<String>&     gouttype,
+           const MakeArray<String>&     goutdesc,
            const MakeArray<String>&     input,   
            const MakeArray<String>&     gin,
            const MakeArray<String>&     gintype,   
            const MakeArray<String>&     gindefault _U_,
+           const MakeArray<String>&     gindesc,
            bool                         set_method      = false,
            bool                         agenda_method   = false,
            bool                         suppress_header = false,
@@ -84,10 +88,12 @@ public:
   const ArrayOfIndex&      Out()            const { return moutput; }
   const ArrayOfString&     GOut()           const { return mgout; }
   const ArrayOfIndex&      GOutType()       const { return mgouttype; }
+  const Array<String>&     GOutDescription()const { return mgoutdesc; }
   const ArrayOfIndex&      In()             const { return minput; }
   const ArrayOfString&     GIn()            const { return mgin; }
   const ArrayOfIndex&      GInType()        const { return mgintype; }
   const Array<String>&     GInDefault()     const { return mgindefault; }
+  const Array<String>&     GInDescription() const { return mgindesc; }
   bool                     SetMethod()      const { return mset_method; }
   bool                     AgendaMethod()   const { return magenda_method; }
   bool                     Supergeneric()   const { return msupergeneric; }
@@ -149,6 +155,9 @@ private:
   //! Generic Workspace Output Type.
   ArrayOfIndex mgouttype;
 
+  //! Generic Workspace Output Description.
+  ArrayOfString mgoutdesc;
+
   //! Workspace Input.
   ArrayOfIndex minput;
 
@@ -160,6 +169,9 @@ private:
 
   //! Generic Workspace Input Defaults.
   ArrayOfString mgindefault;
+
+  //! Generic Workspace Input Description.
+  ArrayOfString mgindesc;
 
   //! Flag, whether this is a set method. 
   /*!
