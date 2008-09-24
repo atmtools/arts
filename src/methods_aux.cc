@@ -232,6 +232,32 @@ void MdRecord::input_only(ArrayOfIndex& inonly) const
 }
 
 
+//! Get list of input and output WSVs.
+/*!
+  This function returns an array with the indexes of WSVs which are
+  input and output variables.
+
+  \param[out] inout Index array of input and output WSVs.
+
+  \author Oliver Lemke
+  \date   2008-09-24
+*/
+void MdRecord::input_and_output(ArrayOfIndex& inout) const
+{
+  inout.resize(0);
+  Index i = 0;
+  for (ArrayOfIndex::const_iterator j=moutput.begin(); j<moutput.end(); ++j, ++i)
+    {
+      for (ArrayOfIndex::const_iterator k=minput.begin(); k<minput.end(); ++k)
+        if ( *j == *k )
+          {
+            //              erase_vector_element(vi,k);
+            inout.push_back(i);
+          }
+    }
+}
+
+
 //! Expand supergeneric methods.
 /*!
   This creates md_data from md_data_raw, by explicitly expanding

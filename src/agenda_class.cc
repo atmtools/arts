@@ -133,12 +133,22 @@ void Agenda::execute(Workspace& ws) const
               }
           }
         
-          { // Check if all generic input variables are initialized:
+          { // Check if all input variables are initialized:
             const ArrayOfIndex& v(mrr.In());
             for (Index s=0; s<v.nelem(); ++s)
               if (!ws.is_initialized(v[s]) && !mdd.SetMethod() )
                 give_up("Method "+mdd.Name()+" needs input variable: "+
                         Workspace::wsv_data[v[s]].Name());
+          }
+
+          { // Check if all output variables which are also used as input
+            // are initialized
+            ArrayOfIndex v;
+            mdd.input_and_output(v);
+            for (Index s=0; s<v.nelem(); ++s)
+              if (!ws.is_initialized(mrr.Out()[v[s]]) )
+                give_up("Method "+mdd.Name()+" needs input variable: "+
+                        Workspace::wsv_data[mrr.Out()[v[s]]].Name());
           }
 
           // Call the getaway function:

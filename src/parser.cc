@@ -768,9 +768,17 @@ void ArtsParser::parse_generic_input(const MdRecord*&     mdd,
         {
           ostringstream os;
           os << j;
-          read_name_or_value(wsvname, auto_vars, auto_vars_values,
-                             "generic" + os.str(),
-                             mdd, mdd->GInType()[j]);
+          if (read_name_or_value(wsvname, auto_vars, auto_vars_values,
+                                 "generic" + os.str(),
+                                 mdd, mdd->GInType()[j]) == -1
+              && mdd->SetMethod())
+            {
+              throw ParseError("Only constants can be passed to Set methods.\n"
+                               "You might want to use the *Copy* here.",
+                               msource.File(),
+                               msource.Line(),
+                               msource.Column() );
+            }
         }
 
         {

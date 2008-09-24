@@ -111,6 +111,10 @@ public:
   // output. (documentation with implementation in method_aux.cc):
   void input_only(ArrayOfIndex& inonly) const;
 
+  // Helper function returning a list of WSVs which are input and output
+  // (documentation with implementation in method_aux.cc):
+  void input_and_output(ArrayOfIndex& inout) const;
+
   //! Print method template for the control file. 
   /*!
     This prints the method data exactly in the same way how it can
