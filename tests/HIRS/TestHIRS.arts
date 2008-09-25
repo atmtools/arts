@@ -12,13 +12,23 @@ INCLUDE "general.arts"
 INCLUDE "continua.arts"
 
 StringCreate(f_backend_file)
-StringCreate(sideband_response_file)
+StringCreate(backend_channel_response_file)
+ArrayOfIndexCreate(channels)
 StringCreate(hitran_file)
+
 
 # Select here which HIRS instrument you want
 # ---
-StringSet(f_backend_file, "hirs/NOAA14_HIRS.f_backend.xml")
-StringSet(sideband_response_file, "hirs/NOAA14_HIRS.sideband_response.xml")
+StringSet(f_backend_file,
+          "hirs/NOAA14_HIRS.f_backend.xml")
+StringSet(backend_channel_response_file,
+          "hirs/NOAA14_HIRS.backend_channel_response.xml")
+
+
+# Select here which channels you want
+# ---
+ArrayOfIndexSet(channels, [11])
+
 
 # You have to give here the location of the HITRAN catalogue
 # ---
@@ -29,10 +39,10 @@ StringSet(sideband_response_file, "hirs/NOAA14_HIRS.sideband_response.xml")
 # We can also include a pre-calculated absorption table for HIRS with
 # ARTS. 
 StringSet(hitran_file,"/storage1/pool/lookup2/hitran2004/HITRAN04.par")
-StringSet(hitran_file,"/home/patrick/Data/HITRAN_2004/HITRAN04.par")
+#StringSet(hitran_file,"/home/patrick/Data/HITRAN_2004/HITRAN04.par")
 
 
-INCLUDE "hirs/hirs.arts"
+INCLUDE "hirs/hirs_reference.arts"
 
 
 # Set up absorption
@@ -110,7 +120,7 @@ abs_lookupSetupBatch
 # ---
 abs_lookupCreate
 
-WriteXML("binary", abs_lookup, "n14hirs12.gal.xml.generated")
+#WriteXML("binary", abs_lookup)
 
 # Test (and print) lookup table accuracy
 # ---
@@ -208,6 +218,26 @@ ybatchCalc
 
 # Store result matrix:
 # ---
-WriteXML( "ascii", ybatch, "n14hirs12.ybatch.xml.generated" )
+WriteXML( "ascii", ybatch )
+
+Exit
+
+# Store H matrix:
+WriteXML( "ascii", sensor_response )
+
+
+# Turn sensor off and repeat calculation
+sensorOff
+
+ybatchCalc
+
+MatrixCreate(ybatch_mono)
+
+Copy(ybatch_mono, ybatch)
+
+WriteXML( "ascii", ybatch_mono )
+
+WriteXML( "ascii", f_grid )
+
 
 }

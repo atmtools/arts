@@ -1,3 +1,18 @@
+2008-09-25  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-9-29
+
+	* includes/hirs/hirs_fast.arts: Added. Will be the standard HIRS
+	setup for end users, with optimized frequency grid.
+	
+	* includes/hirs/hirs_reference.arts: Renamed from
+	hirs.arts. Updated to file and variable name change
+	(backend_channel_response). Added channels variable for channel
+	selection. Added documentation at file start.
+
+	* tests/HIRS/TestHIRS.arts: Updated to changed file and variable
+	names. 
+
 2008-09-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-9-28

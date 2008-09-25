@@ -1,0 +1,154 @@
+#DEFINITIONS:  -*-sh-*-
+
+# ARTS setup file for HIRS reference simulations.
+#
+# Use this if you want to do exact calculations, for example to
+# validate fast calculations.  
+#
+# This expects a number of workspace variables to exist and to be set:
+# 
+# f_backend_file                (String) Nominal channel frequencies. 
+# backend_channel_response_file (String) Instrument response functions.
+# channels                      (ArrayOfIndex) Which channels you want.
+# hitran_file                   (String) Name of HITRAN catalogue file.
+
+
+Arts2 {
+
+
+# 1. General
+#-----------
+
+output_file_formatSetZippedAscii
+
+# AMSU uses Planck brightness temperatures
+# ---
+StringSet( y_unit, "PlanckBT" )
+StringSet( jacobian_unit, "RJBT" )
+
+# Surface
+NumericCreate( surface_emissivity )
+AgendaSet( surface_prop_agenda ){
+  Ignore(rte_gp_p)
+  InterpSurfaceFieldToRteGps( surface_skin_t, atmosphere_dim, lat_grid, 
+                              lon_grid, rte_gp_lat, rte_gp_lon, t_surface )
+  surfaceFlatSingleEmissivity( surface_los, surface_rmatrix, surface_emission, 
+                               f_grid, stokes_dim, atmosphere_dim, rte_los, 
+                               surface_skin_t, surface_emissivity )
+} 
+
+
+
+# 2. Spectroscopy
+#----------------
+
+# We take a smaller cutoff, since the line-by-line calculation is 
+# only for O3, where only the local lines matter.
+# Could be speed-optimized further by selecting only the relevant 
+# lines from the line list.
+ArrayOfLineshapeSpecCreate( abs_lineshapeDefine )
+
+#abs_lineshapeDefine( abs_lineshapeDefine, 
+#                     "Voigt_Kuntz6", 
+#                     "VVH", 
+#                     750e9 )
+
+SpeciesSet( abs_species, [ "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100", 
+	                   "O3", 
+                           "CO2, CO2-CKDMT100", 
+                           "N2O", 
+                           "CO", 
+                           "CH4", 
+                           "O2, O2-CIAfunCKDMT100", 
+                           "N2, N2-CIAfunCKDMT100, N2-CIArotCKDMT100" ] )
+
+abs_lineshape_per_tgDefine( abs_lineshape, 
+                            abs_species,
+                            ["Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6", 
+			     "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6"],
+                            ["VVH", "VVH", "VVH", "VVH", "VVH", "VVH", "VVH", "VVH"],
+                            [750e9, 750e7, 750e7, 750e7, 750e7, 750e7, 750e7, 750e7] )
+
+# Read HITRAN catalog:
+abs_linesReadFromHitran2004( abs_lines,
+                             hitran_file,
+                             2.0022234e+12,
+                             7.9855733e+14 )
+
+abs_lines_per_speciesCreateFromLines
+#WriteXML( "ascii", abs_lines_per_species, "hirs.hitran04_lines.xml" )
+#ReadXML( abs_lines_per_species, "hirs/hirs.hitran04_lines.xml.gz" )
+#  The resulting file here is unfortunately too large to include with
+#  the ARTS SVN package.
+
+# WARNING: If you redifine abs_species, and want to do a line-by-line
+# calculation, you also have to call
+# abs_lines_per_speciesCreateFromLines again.
+
+
+# 3. Sensor:
+#-----------
+
+# Definition of sensor position and LOS
+# ---
+# FIXME: sensor_los probably has to be adjusted.
+ReadXML( sensor_los, "amsu/amsub.sensor_los.xml" )
+nrowsGet( nrows, sensor_los )
+ncolsGet( ncols, sensor_los )
+MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
+sensor_posAddRgeoid
+
+
+# Start sensor response setup
+# ---
+
+# Normalise the sensor response
+# ---
+IndexSet( sensor_norm, 1 )
+
+# Antenna
+# ---
+AntennaOff
+
+
+# See setup_input.m for details around other sensor variables 
+
+
+
+# Spectrometer:
+#
+VectorCreate(f_backend_temp)
+ArrayOfGriddedField1Create(backend_channel_response_temp)
+
+ReadXML( f_backend_temp, f_backend_file )
+ReadXML( backend_channel_response_temp,
+         backend_channel_response_file )
+
+# Select the desired channels:
+#
+Select(f_backend, f_backend_temp, channels)
+Select(backend_channel_response, backend_channel_response_temp, channels)
+
+
+# Frequency grid:
+#
+f_gridFromSensorHIRS( f_grid, f_backend, backend_channel_response, 5e9 )
+
+# FIXME: We might use an optimized frequency grid here. Then it is
+# important to kick out those frequencies that are not used by the
+# selected channels.
+
+
+abs_lines_per_speciesCompact
+
+
+# Construct sensor response from all these inputs:
+#
+sensor_responseInit
+sensor_responseBackend
+
+
+# End of sensor response setup
+
+
+}
