@@ -1,3 +1,17 @@
+2008-09-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-9-26
+
+	* src/methods.h, src/methods_aux.cc:
+
+	Instead of finding out the input only and input/output variables
+	everytime they are needed, calculate them once in the constructor of
+	MdRecord and cache them.
+
+	* src/make_auto_md_{h,cc}.cc, src/agenda_class.cc, src/parser.cc:
+
+	Adapt for changes in MdRecord.
+
 2008-09-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-9-25

@@ -143,8 +143,7 @@ void Agenda::execute(Workspace& ws) const
 
           { // Check if all output variables which are also used as input
             // are initialized
-            ArrayOfIndex v;
-            mdd.input_and_output(v);
+            const ArrayOfIndex& v = mdd.InOut();
             for (Index s=0; s<v.nelem(); ++s)
               if (!ws.is_initialized(mrr.Out()[v[s]]) )
                 give_up("Method "+mdd.Name()+" needs input variable: "+

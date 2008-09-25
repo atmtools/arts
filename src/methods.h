@@ -94,6 +94,8 @@ public:
   const ArrayOfIndex&      GInType()        const { return mgintype; }
   const Array<String>&     GInDefault()     const { return mgindefault; }
   const Array<String>&     GInDescription() const { return mgindesc; }
+  const ArrayOfIndex&      InOnly()         const { return minonly; }
+  const ArrayOfIndex&      InOut()          const { return minout; }
   bool                     SetMethod()      const { return mset_method; }
   bool                     AgendaMethod()   const { return magenda_method; }
   bool                     Supergeneric()   const { return msupergeneric; }
@@ -106,14 +108,6 @@ public:
   // Expand supergeneric method record to an actual group
   // (documentation with implementation in method_aux.cc):
   void subst_any_with_group( Index g );
-
-  // Helper function returning a list of WSVs which are only input, not
-  // output. (documentation with implementation in method_aux.cc):
-  void input_only(ArrayOfIndex& inonly) const;
-
-  // Helper function returning a list of WSVs which are input and output
-  // (documentation with implementation in method_aux.cc):
-  void input_and_output(ArrayOfIndex& inout) const;
 
   //! Print method template for the control file. 
   /*!
@@ -176,6 +170,12 @@ private:
 
   //! Generic Workspace Input Description.
   ArrayOfString mgindesc;
+
+  //! Indexes of Input-only variables.
+  ArrayOfIndex minonly;
+
+  //! Indexes of Input-Output variables.
+  ArrayOfIndex minout;
 
   //! Flag, whether this is a set method. 
   /*!

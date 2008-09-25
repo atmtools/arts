@@ -658,8 +658,8 @@ void ArtsParser::parse_method_args(const MdRecord*&       mdd,
         {
           output.push_back (*outs);
         }
-      ArrayOfIndex vi;
-      mdd->input_only(vi);
+
+      const ArrayOfIndex &vi = mdd->InOnly();
       for (ArrayOfIndex::const_iterator ins=vi.begin(); ins<vi.end(); ++ins)
         {
           input.push_back (*ins);
@@ -996,12 +996,10 @@ void ArtsParser::parse_specific_input(const MdRecord*      mdd,
 
   // There are two lists of parameters that we have to read.
   ArrayOfIndex  vo=mdd->Out();  // Output 
-  ArrayOfIndex  vi;                // Input
+  const ArrayOfIndex &vi = mdd->InOnly(); // Input
 
   Index wsvid;  // Workspace variable id, is used to
                 // access data in wsv_data.
-
-  mdd->input_only(vi);             // Input only variables
 
   for (ArrayOfIndex::const_iterator ins=vi.begin(); ins<vi.end(); ++ins)
     {

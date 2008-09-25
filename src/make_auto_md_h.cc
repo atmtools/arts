@@ -112,13 +112,11 @@ void write_method_header_documentation (ofstream& ofs, const MdRecord& mdd)
   // There are four lists of parameters that we have to
   // write. 
   ArrayOfIndex  vo=mdd.Out();   // Output 
-  ArrayOfIndex  vi;                // Input
+  const ArrayOfIndex &vi = mdd.InOnly(); // Input
   ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
   ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
   // vo and vi contain handles of workspace variables, 
   // vgo and vgi handles of workspace variable groups.
-
-  mdd.input_only(vi);
 
   // Find out if the WSM gets an agenda as input. If so, pass
   // the current workspace to this method
@@ -302,13 +300,11 @@ void write_method_header( ofstream& ofs,
   // There are four lists of parameters that we have to
   // write. 
   ArrayOfIndex  vo=mdd.Out();   // Output 
-  ArrayOfIndex  vi;                // Input
+  const ArrayOfIndex &vi = mdd.InOnly(); // Input
   ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
   ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
   // vo and vi contain handles of workspace variables, 
   // vgo and vgi handles of workspace variable groups.
-
-  mdd.input_only(vi);
 
   // Find out if the WSM gets an agenda as input. If so, pass
   // the current workspace to this method

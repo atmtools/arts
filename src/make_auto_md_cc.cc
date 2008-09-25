@@ -112,13 +112,11 @@ int main()
           // There are four lists of parameters that we have to
           // write. 
           ArrayOfIndex  vo=mdd.Out();   // Output 
-          ArrayOfIndex  vi;                // Input
+          const ArrayOfIndex& vi = mdd.InOnly(); // Input
           ArrayOfIndex  vgo=mdd.GOutType(); // Generic Output 
           ArrayOfIndex  vgi=mdd.GInType();  // Generic Input
           // vo and vi contain handles of workspace variables, 
           // vgo and vgi handles of workspace variable groups.
-
-          mdd.input_only(vi);
 
           // There used to be a similar block here for the generic
           // input/output variables. However, this was a mistake. For

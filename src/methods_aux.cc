@@ -82,82 +82,103 @@ MdRecord::MdRecord(const char                   name[],
     mpass_workspace(  pass_workspace      ),
     mpass_wsv_names(  pass_wsv_names      ),
     mactual_group(    -1                  )
-    { 
-      // Initializing the various arrays with input data should now
-      // work correctly.  
+{ 
+  // Initializing the various arrays with input data should now
+  // work correctly.  
 
-      // Generic variable names, types and defaults must have the same number of
-      // elements. (Defaults specifies the default values associated with each
-      // generic input.)
-      assert( mgout.nelem() == gouttype.nelem() );
-      assert( mgout.nelem() == goutdesc.nelem() );
-      assert( mgin.nelem() == mgindefault.nelem() );
-      assert( mgin.nelem() == gintype.nelem() );
-      assert( mgin.nelem() == gindesc.nelem() );
+  // Generic variable names, types and defaults must have the same number of
+  // elements. (Defaults specifies the default values associated with each
+  // generic input.)
+  assert( mgout.nelem() == gouttype.nelem() );
+  assert( mgout.nelem() == goutdesc.nelem() );
+  assert( mgin.nelem() == mgindefault.nelem() );
+  assert( mgin.nelem() == gintype.nelem() );
+  assert( mgin.nelem() == gindesc.nelem() );
 
-      // Map the WSV names to indexes
-      moutput.resize(output.nelem());
-      for ( Index j=0; j<output.nelem(); ++j )
+  // Map the WSV names to indexes
+  moutput.resize(output.nelem());
+  for ( Index j=0; j<output.nelem(); ++j )
+    {
+      moutput[j] = get_wsv_id (output[j]);
+      if (moutput[j] == -1)
         {
-          moutput[j] = get_wsv_id (output[j]);
-          if (moutput[j] == -1)
-            {
-              ostringstream os;
-              os << "Unknown WSV " << output[j] << " for output "
-                << "in WSM " << mname;
-              throw runtime_error( os.str() );
-            }
+          ostringstream os;
+          os << "Unknown WSV " << output[j] << " for output "
+            << "in WSM " << mname;
+          throw runtime_error( os.str() );
         }
-
-      minput.resize(input.nelem());
-      for ( Index j=0; j<input.nelem(); ++j )
-        {
-          minput[j] = get_wsv_id (input[j]);
-          if (minput[j] == -1)
-            {
-              ostringstream os;
-              os << "Unknown WSV " << input[j] << " for input "
-                << "in WSM " << mname;
-              throw runtime_error( os.str() );
-            }
-        }
-
-      // Map the group names to groups' indexes
-      mgouttype.resize(gouttype.nelem());
-      for ( Index j=0; j<gouttype.nelem(); ++j )
-        {
-          mgouttype[j] = get_wsv_group_id (gouttype[j]);
-          if (mgouttype[j] == -1)
-            {
-              ostringstream os;
-              os << "Unknown WSV Group " << gouttype[j] << " for generic output "
-                << "in WSM " << mname;
-              throw runtime_error( os.str() );
-            }
-        }
-
-      mgintype.resize(gintype.nelem());
-      for ( Index j=0; j<gintype.nelem(); ++j )
-        {
-          mgintype[j] = get_wsv_group_id (gintype[j]);
-          if (mgintype[j] == -1)
-            {
-              ostringstream os;
-              os << "Unknown WSV Group " << gintype[j] << " for generic input "
-                << "in WSM " << mname;
-              throw runtime_error( os.str() );
-            }
-        }
-
-      // Find out if this method is supergeneric, and set the flag if
-      // yes:
-      for ( Index j=0; j<mgouttype.nelem(); ++j )
-        if ( get_wsv_group_id("Any") == mgouttype[j] )
-          msupergeneric = true;
-      for ( Index j=0; j<mgintype.nelem(); ++j )
-        if ( get_wsv_group_id("Any") == mgintype[j] )
-          msupergeneric = true;
     }
+
+  minput.resize(input.nelem());
+  for ( Index j=0; j<input.nelem(); ++j )
+    {
+      minput[j] = get_wsv_id (input[j]);
+      if (minput[j] == -1)
+        {
+          ostringstream os;
+          os << "Unknown WSV " << input[j] << " for input "
+            << "in WSM " << mname;
+          throw runtime_error( os.str() );
+        }
+    }
+
+  // Map the group names to groups' indexes
+  mgouttype.resize(gouttype.nelem());
+  for ( Index j=0; j<gouttype.nelem(); ++j )
+    {
+      mgouttype[j] = get_wsv_group_id (gouttype[j]);
+      if (mgouttype[j] == -1)
+        {
+          ostringstream os;
+          os << "Unknown WSV Group " << gouttype[j] << " for generic output "
+            << "in WSM " << mname;
+          throw runtime_error( os.str() );
+        }
+    }
+
+  mgintype.resize(gintype.nelem());
+  for ( Index j=0; j<gintype.nelem(); ++j )
+    {
+      mgintype[j] = get_wsv_group_id (gintype[j]);
+      if (mgintype[j] == -1)
+        {
+          ostringstream os;
+          os << "Unknown WSV Group " << gintype[j] << " for generic input "
+            << "in WSM " << mname;
+          throw runtime_error( os.str() );
+        }
+    }
+
+  // Find out if this method is supergeneric, and set the flag if
+  // yes:
+  for ( Index j=0; j<mgouttype.nelem(); ++j )
+    if ( get_wsv_group_id("Any") == mgouttype[j] )
+      msupergeneric = true;
+  for ( Index j=0; j<mgintype.nelem(); ++j )
+    if ( get_wsv_group_id("Any") == mgintype[j] )
+      msupergeneric = true;
+
+  // Determine variables that are only input
+  minonly = minput;    // Input
+  for (ArrayOfIndex::const_iterator j=moutput.begin(); j<moutput.end(); ++j)
+    for (ArrayOfIndex::iterator k=minonly.begin(); k<minonly.end(); ++k)
+      if ( *j == *k )
+        {
+          k = minonly.erase(k) - 1;
+          // We need the -1 here, otherwise due to the
+          // following increment we would miss the element
+          // behind the erased one, which is now at the
+          // position of the erased one.
+        }
+
+  // Determine variables that are input and output
+  minout.resize(0);
+  Index i = 0;
+  for (ArrayOfIndex::const_iterator j=moutput.begin(); j<moutput.end(); ++j,++i)
+    for (ArrayOfIndex::const_iterator k=minput.begin(); k<minput.end(); ++k)
+      if ( *j == *k )
+        minout.push_back(i);
+}
 
 
 //! Expand supergeneric record for given group.
@@ -202,59 +223,6 @@ void MdRecord::subst_any_with_group( Index g )
 
   // Set the field for the actual group:
   mactual_group = g;
-}
-
-
-//! Get list of input only WSVs.
-/*!
-  This function returns an array with the indexes of WSVs which are
-  only input variables but not output.
-
-  \param[out] inonly Index array of input only WSVs.
-
-  \author Oliver Lemke
-  \date   2008-02-27
-*/
-void MdRecord::input_only(ArrayOfIndex& inonly) const
-{
-  inonly = minput;    // Input
-  for (ArrayOfIndex::const_iterator j=moutput.begin(); j<moutput.end(); ++j)
-    for (ArrayOfIndex::iterator k=inonly.begin(); k<inonly.end(); ++k)
-      if ( *j == *k )
-        {
-          //              erase_vector_element(vi,k);
-          k = inonly.erase(k) - 1;
-          // We need the -1 here, otherwise due to the
-          // following increment we would miss the element
-          // behind the erased one, which is now at the
-          // position of the erased one.
-        }
-}
-
-
-//! Get list of input and output WSVs.
-/*!
-  This function returns an array with the indexes of WSVs which are
-  input and output variables.
-
-  \param[out] inout Index array of input and output WSVs.
-
-  \author Oliver Lemke
-  \date   2008-09-24
-*/
-void MdRecord::input_and_output(ArrayOfIndex& inout) const
-{
-  inout.resize(0);
-  Index i = 0;
-  for (ArrayOfIndex::const_iterator j=moutput.begin(); j<moutput.end(); ++j, ++i)
-    {
-      for (ArrayOfIndex::const_iterator k=minput.begin(); k<minput.end(); ++k)
-        if ( *j == *k )
-          {
-            //              erase_vector_element(vi,k);
-            inout.push_back(i);
-          }
-    }
 }
 
 
@@ -564,8 +532,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       limit_line_length( os, buf, param, indent, linelen );
     }
 
-  ArrayOfIndex inonly;
-  mdr.input_only (inonly);
+  const ArrayOfIndex &inonly = mdr.InOnly();
   for ( Index i=0; i<inonly.nelem(); ++i )
     {
       if (first) first=false; else buf << ", ";
