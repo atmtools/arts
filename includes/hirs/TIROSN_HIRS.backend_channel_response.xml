@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <arts format="ascii" version="1">
 <Array type="GriddedField1" nelem="19">
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="25">
   -2.0601902e+12
   -4.9869013e+11
@@ -57,7 +57,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="31">
   -2.3657930e+12
   -5.3069289e+11
@@ -125,7 +125,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="42">
   -8.0389987e+11
   -7.0129986e+11
@@ -215,7 +215,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="44">
   -8.8538920e+11
   -6.8828919e+11
@@ -309,7 +309,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="52">
   -7.1927748e+11
   -6.3557748e+11
@@ -419,7 +419,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="47">
   -8.4334073e+11
   -7.2634072e+11
@@ -519,7 +519,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="54">
   -8.2708816e+11
   -6.8488815e+11
@@ -633,7 +633,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="58">
   -1.4434681e+12
   -1.2208681e+12
@@ -755,7 +755,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="58">
   -1.4527653e+12
   -1.2685653e+12
@@ -877,7 +877,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="67">
   -1.5080600e+12
   -1.3550600e+12
@@ -1017,7 +1017,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="53">
   -1.9044994e+12
   -1.4844993e+12
@@ -1129,7 +1129,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="78">
   -2.9872429e+12
   -2.3632429e+12
@@ -1291,7 +1291,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="40">
   -1.2308597e+12
   -9.4285974e+11
@@ -1377,7 +1377,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="48">
   -1.8535485e+12
   -1.2985485e+12
@@ -1479,7 +1479,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="51">
   -1.1288256e+12
   -1.0088256e+12
@@ -1587,7 +1587,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="49">
   -2.2497203e+12
   -1.9467203e+12
@@ -1691,7 +1691,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="48">
   -1.7994241e+12
   -1.0854241e+12
@@ -1793,7 +1793,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="44">
   -2.2465163e+12
   -1.9225162e+12
@@ -1887,7 +1887,7 @@
        0.0000000
 </Vector>
 </GriddedField1>
-<GriddedField1 name="Sideband response function">
+<GriddedField1 name="Backend channel response function">
 <Vector name="Frequency" nelem="57">
   -5.0028844e+12
   -4.1958844e+12

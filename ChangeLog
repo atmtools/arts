@@ -1,5 +1,14 @@
 2008-09-25  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-9-27
+
+	* includes/hirs/*sideband*.xml:
+
+	Renamed to *backend_channel*. Also replace Sideband inside file with
+	Backend channel.
+
+2008-09-25  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-9-26
 
 	* src/methods.h, src/methods_aux.cc:
