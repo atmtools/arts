@@ -1,5 +1,16 @@
 2008-09-25  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-9-28
+
+	* MonteCarlo/TestRteCalcMC.arts:
+
+	Use a fixed number of photons instead of 4 sec calculation time. As
+	the runtime is measured in real time, it could mean that only a few
+	photons are calculated if the computer is under high load which leads
+	to results being way off (and the test fails).
+
+2008-09-25  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-9-27
 
 	* includes/hirs/*sideband*.xml:
