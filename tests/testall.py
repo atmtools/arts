@@ -156,6 +156,13 @@ class TestAMSUB(unittest.TestCase):
         for j in range (5):
             for k in range (10):
                 assert abs(I[j,k]-Iref[j,k]) < 0.02,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
+    def test3(self):
+        """Total radiance should be close to the values of TestAMSUB_fast"""
+        Iref = artsXML.load("AMSU/AMSUB.ybatch.xml.generated")
+        I    = artsXML.load("AMSU/AMSUB_fast.ybatch.xml.generated")
+        for j in range (5):
+            for k in range (10):
+                assert abs(I[j,k]-Iref[j,k]) < 0.2,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
 
 class TestAMSUB_fast(unittest.TestCase):
     """Testing AMSU-B fast calculation (reduced frequency set)"""
@@ -164,13 +171,6 @@ class TestAMSUB_fast(unittest.TestCase):
         """AMSU-B fast test should run with no errors"""
         self.Amsurun.run()
         assert self.Amsurun.error=='','Error running TestAMSUB_fast.arts: '+self.Amsurun.error
-    def test2(self):
-        """Total radiance should be close to the values of TestAMSUB"""
-        Iref = artsXML.load("AMSU/AMSUB.ybatch.xml.generated")
-        I    = artsXML.load("AMSU/AMSUB_fast.ybatch.xml.generated")
-        for j in range (5):
-            for k in range (10):
-                assert abs(I[j,k]-Iref[j,k]) < 0.2,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
 
 class TestAbs(unittest.TestCase):
     """Testing the ARTS Absorption module"""

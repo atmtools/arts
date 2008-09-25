@@ -13,7 +13,7 @@ TESTDIRS = Abs AMSU ClearSky DISORT DOIT MonteCarlo OdinSMR
 
 TESTFILES = .arts .ac .xml .xml.gz .xml.bin
 
-check: \
+check-fast: \
 	TestMonteCarloDataPrepare \
 	TestMonteCarloGeneral \
 	TestMonteCarloGeneralGaussian \
@@ -22,8 +22,11 @@ check: \
 	TestDOIT \
 	TestClearSky \
 	TestAbs \
-	TestAMSUB \
 	TestAMSUB_fast
+
+check: \
+	check-fast \
+	TestAMSUB
 
 # Broken tests:
 #	TestMonteCarloSimple
@@ -43,7 +46,7 @@ TestMonteCarloWithIncomingLookup: TestMonteCarloDataPrepare
 
 TestRteCalcMC: TestMonteCarloDataPrepare
 
-TestAMSUB_fast: TestAMSUB
+TestAMSUB: TestAMSUB_fast
 
 ###############################################################
 
