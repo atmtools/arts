@@ -611,32 +611,6 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       os << buf.str() << endl;
     }
 
-  for ( Index i=0; i<mdr.In().nelem(); ++i )
-    {
-      buf.str("");
-      buf <<    "IN    ";
-
-      buf << Workspace::wsv_data[mdr.In()[i]].Name();
-      buf << " (";
-      buf << wsv_group_names[Workspace::wsv_data[mdr.In()[i]].Group()];
-      buf << "): ";
-
-      get_short_wsv_description(
-        desc, Workspace::wsv_data[mdr.In()[i]].Description());
-
-      if (buf.str().length() + desc.length() > linelen)
-        {
-          format_paragraph (desc, indent, linelen);
-          buf << endl << desc;
-        }
-      else
-        {
-          buf << desc;
-        }
-
-      os << buf.str() << endl;
-    }
-
   for ( Index i=0; i<mdr.GOut().nelem(); ++i )
     {
       buf.str("");
@@ -651,6 +625,32 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
 
       buf << "): ";
       desc = mdr.GOutDescription()[i];
+      if (buf.str().length() + desc.length() > linelen)
+        {
+          format_paragraph (desc, indent, linelen);
+          buf << endl << desc;
+        }
+      else
+        {
+          buf << desc;
+        }
+
+      os << buf.str() << endl;
+    }
+
+  for ( Index i=0; i<mdr.In().nelem(); ++i )
+    {
+      buf.str("");
+      buf <<    "IN    ";
+
+      buf << Workspace::wsv_data[mdr.In()[i]].Name();
+      buf << " (";
+      buf << wsv_group_names[Workspace::wsv_data[mdr.In()[i]].Group()];
+      buf << "): ";
+
+      get_short_wsv_description(
+        desc, Workspace::wsv_data[mdr.In()[i]].Description());
+
       if (buf.str().length() + desc.length() > linelen)
         {
           format_paragraph (desc, indent, linelen);

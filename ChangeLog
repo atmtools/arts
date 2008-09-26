@@ -1,3 +1,11 @@
+2008-09-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-9-31
+
+	* src/methods_aux.cc (operator<<):
+
+	Fix the order of GOUT / IN in the variable description list.
+
 2008-09-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-9-30
