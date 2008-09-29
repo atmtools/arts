@@ -30,9 +30,7 @@
 
 #include "arts.h"
 #include "xml_io_private.h"
-#include "xml_io_basic_types.h"
-#include "xml_io_compound_types.h"
-#include "xml_io_array_types.h"
+#include "xml_io_types.h"
 #include "jacobian.h"
 
 

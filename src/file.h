@@ -22,8 +22,7 @@
 /**
    \file  file.h
 
-   This file contains basic functions to handle ASCII and binary (HDF)
-   data files.
+   This file contains basic functions to handle ASCII files.
 
    \author Patrick Eriksson
    \date 2000-10-28 

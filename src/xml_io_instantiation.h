@@ -34,9 +34,7 @@
 #include <stdexcept>
 #include <cfloat>
 #include "xml_io.h"
-#include "xml_io_basic_types.h"
-#include "xml_io_compound_types.h"
-#include "xml_io_array_types.h"
+#include "xml_io_types.h"
 
 #define TMPL_XML_READ_WRITE(what) \
   template void xml_read_from_file<what> (const String&, what&); \

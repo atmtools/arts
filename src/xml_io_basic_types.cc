@@ -31,7 +31,7 @@
 #include "arts.h"
 #include "xml_io.h"
 #include "xml_io_private.h"
-#include "xml_io_basic_types.h"
+#include "xml_io_types.h"
 
 
 ////////////////////////////////////////////////////////////////////////////

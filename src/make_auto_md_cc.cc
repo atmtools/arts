@@ -84,6 +84,7 @@ int main()
           << "#include \"m_copy.h\"\n"
           << "#include \"m_general.h\"\n"
           << "#include \"m_ignore.h\"\n"
+          << "#include \"m_nc.h\"\n"
           << "#include \"m_select.h\"\n"
           << "#include \"m_xml.h\"\n"
           << "#include \"m_basic_types.h\"\n"

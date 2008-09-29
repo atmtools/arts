@@ -15,12 +15,14 @@ EXTRA_DIST = \
 
 bin_PROGRAMS = arts
 
-arts_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
+arts_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd)
+arts_LDFLAGS = $(libarts_a_ldflags)
 arts_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 arts_SOURCES = main.cc
 
 libarts_a_CFLAGS = $(CFLAGS_OPT) $(WARNINGCFLAGS)
 libarts_a_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
+libarts_a_ldflags = 
 libarts_a_SOURCES = \
 	absorption.h \
 	absorption.cc \
@@ -82,13 +84,14 @@ libarts_a_SOURCES = \
 	m_disort.cc \
 	m_general.cc \
 	m_general.h \
+	m_nc.h \
 	m_optproperties.cc \
 	m_physics.cc \
 	m_ppath.cc \
 	m_refraction.cc \
 	m_rte.cc \
 	m_scatrte.cc \
-    m_surface.cc \
+	m_surface.cc \
 	m_abs_lookup.cc \
 	m_copy.h \
 	m_delete.h \
@@ -148,11 +151,9 @@ libarts_a_SOURCES = \
 	xml_io_instantiation.h \
 	xml_io_private.h \
 	xml_io_basic_types.cc \
-	xml_io_basic_types.h \
 	xml_io_compound_types.cc \
-	xml_io_compound_types.h \
 	xml_io_array_types.cc \
-	xml_io_array_types.h \
+	xml_io_types.h \
 	xml_io.cc \
 	agenda_class.h \
 	agenda_class.cc \
@@ -162,6 +163,15 @@ libarts_a_SOURCES = \
 	lin_alg.h \
 	lin_alg.cc \
 	supergeneric.h
+
+if ENABLE_NETCDF
+libarts_a_ldflags += -lnetcdf -lnetcdf_c++
+libarts_a_SOURCES += \
+	nc_io.h \
+	nc_io.cc \
+	nc_io_basic_types.cc \
+	nc_io_types.h
+endif
 
 libcontinua_a_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS) $(CXXNOSTRICTALIASING)
 libcontinua_a_SOURCES = continua.cc continua.h
@@ -231,7 +241,7 @@ if ENABLE_ZLIB
 noinst_LIBRARIES += libgzstream.a
 
 libgzstream_a_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
-libgzstream_a_ldflags = libgzstream.a -lz
+libgzstream_a_ldadd = libgzstream.a -lz
 libgzstream_a_SOURCES = gzstream.cc gzstream.h
 
 endif
@@ -241,7 +251,7 @@ if ENABLE_DISORT
 
 noinst_LIBRARIES += libdisort.a
 
-disort_ldflags = -lf2c libdisort.a
+disort_a_ldadd = -lf2c libdisort.a
 
 libarts_a_SOURCES += disort_DISORT.h
 
@@ -402,22 +412,24 @@ if ENABLE_DISORT
 
 noinst_PROGRAMS += test_disort
 
-test_disort_LDADD = $(disort_ldflags)
+test_disort_a_ldadd = $(disort_a_ldadd)
 test_disort_a_CFLAGS = $(CFLAGS_OPT) $(subst -Werror,,$(WARNINGCFLAGS))
 test_disort_SOURCES = \
 	disort_DISOTEST.c
 
 endif
 
-test_binaryio_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
+test_binaryio_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd)
+test_binaryio_LDFLAGS = $(libarts_a_ldflags)
 test_binaryio_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_binaryio_SOURCES = test_binaryio.cc
 
-#test_geomag_calc_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
+#test_geomag_calc_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd)
 #test_geomag_calc_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 #test_geomag_calc_SOURCES = test_geomag_calc.cc
 
-test_interpolation_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
+test_interpolation_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd)
+test_interpolation_LDFLAGS = $(libarts_a_ldflags)
 test_interpolation_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_interpolation_SOURCES = test_interpolation.cc
 
@@ -458,11 +470,13 @@ test_matpack_SOURCES = \
 	describe.cc \
 	test_matpack.cc
 
-test_sparse_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
+test_sparse_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd)
+test_sparse_LDFLAGS = $(libarts_a_ldflags)
 test_sparse_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_sparse_SOURCES = test_sparse.cc
 
-test_xml_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldflags) $(disort_ldflags)
+test_xml_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd)
+test_xml_LDFLAGS =  $(libarts_a_ldflags)
 test_xml_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_xml_SOURCES = test_xml.cc
 

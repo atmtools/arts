@@ -640,6 +640,12 @@ int main (int argc, char **argv)
 #else
         << "disabled" << endl
 #endif
+        << "   NetCDF support:     "
+#ifdef ENABLE_NETCDF
+        << "enabled" << endl
+#else
+        << "disabled" << endl
+#endif
         << "   Disort algorithm:   "
 #ifdef ENABLE_DISORT
         << "enabled" << endl

@@ -20,7 +20,7 @@
 //   File description
 ////////////////////////////////////////////////////////////////////////////
 /*!
-  \file   xml_io_array_types.h
+  \file   xml_io_types.h
   \author Oliver Lemke <olemke@core-dump.info>
   \date   2003-06-11
 
@@ -29,21 +29,27 @@
 
 */
 
-#ifndef xml_io_array_types_h
-#define xml_io_array_types_h
+#ifndef xml_io_types_h
+#define xml_io_types_h
 
-#include "matpackVII.h"
-#include "array.h"
-#include "messages.h"
-#include "ppath.h"
-#include "agenda_class.h"
+#include <stdexcept>
+#include <cfloat>
 #include "absorption.h"
-#include "gas_abs_lookup.h"
-#include "gridded_fields.h"
-#include "optproperties.h"
+#include "agenda_class.h"
+#include "array.h"
 #include "bifstream.h"
 #include "bofstream.h"
+#include "gas_abs_lookup.h"
+#include "gridded_fields.h"
 #include "jacobian.h"
+#include "m_general.h"
+#include "mc_antenna.h"
+#include "mc_interp.h"
+#include "matpackII.h"
+#include "matpackVII.h"
+#include "messages.h"
+#include "optproperties.h"
+#include "ppath.h"
 #include "xml_io_private.h"
 
 #define TMPL_XML_READ_WRITE_STREAM(what) \
@@ -55,6 +61,39 @@
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for XML streams
 ////////////////////////////////////////////////////////////////////////////
+
+//=== Basic Types ==========================================================
+
+TMPL_XML_READ_WRITE_STREAM( Index )
+TMPL_XML_READ_WRITE_STREAM( Matrix )
+TMPL_XML_READ_WRITE_STREAM( Numeric )
+TMPL_XML_READ_WRITE_STREAM( Sparse )
+TMPL_XML_READ_WRITE_STREAM( String )
+TMPL_XML_READ_WRITE_STREAM( Tensor3 )
+TMPL_XML_READ_WRITE_STREAM( Tensor4 )
+TMPL_XML_READ_WRITE_STREAM( Tensor5 )
+TMPL_XML_READ_WRITE_STREAM( Tensor6 )
+TMPL_XML_READ_WRITE_STREAM( Tensor7 )
+TMPL_XML_READ_WRITE_STREAM( Timer )
+TMPL_XML_READ_WRITE_STREAM( Vector )
+
+//=== Compound Types =======================================================
+
+TMPL_XML_READ_WRITE_STREAM( Agenda )
+TMPL_XML_READ_WRITE_STREAM( GField1 )
+TMPL_XML_READ_WRITE_STREAM( GField2 )
+TMPL_XML_READ_WRITE_STREAM( GField3 )
+TMPL_XML_READ_WRITE_STREAM( GField4 )
+TMPL_XML_READ_WRITE_STREAM( GasAbsLookup )
+TMPL_XML_READ_WRITE_STREAM( GridPos )
+TMPL_XML_READ_WRITE_STREAM( IsotopeRecord )
+TMPL_XML_READ_WRITE_STREAM( MCAntenna )
+TMPL_XML_READ_WRITE_STREAM( Ppath )
+TMPL_XML_READ_WRITE_STREAM( RetrievalQuantity )
+TMPL_XML_READ_WRITE_STREAM( SLIData2 )
+TMPL_XML_READ_WRITE_STREAM( SingleScatteringData )
+TMPL_XML_READ_WRITE_STREAM( SpeciesRecord )
+TMPL_XML_READ_WRITE_STREAM( SpeciesTag )
 
 //=== Array Types ==========================================================
 
@@ -96,6 +135,8 @@ TMPL_XML_READ_WRITE_STREAM( ArrayOfVector )
 // Undefine the macro to avoid it being used anywhere else
 #undef TMPL_XML_READ_WRITE_STREAM
 
+void
+xml_parse_from_stream (istream&, Vector&, bifstream *, ArtsXMLTag&);
 
 void
 xml_read_from_stream (istream&, ArrayOfLineRecord&,
@@ -104,5 +145,4 @@ xml_read_from_stream (istream&, ArrayOfLineRecord&,
 void
 xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&);
 
-
-#endif  /* xml_io_array_types_h */
+#endif  /* xml_io_types_h */

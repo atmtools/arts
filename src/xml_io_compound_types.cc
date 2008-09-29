@@ -29,9 +29,7 @@
 
 #include "arts.h"
 #include "xml_io_private.h"
-#include "xml_io_basic_types.h"
-#include "xml_io_compound_types.h"
-#include "xml_io_array_types.h"
+#include "xml_io_types.h"
 #include "matpackI.h"
 #include "matpackII.h"
 #include "matpackIII.h"
@@ -1100,3 +1098,4 @@ xml_write_to_stream (ostream&,
 {
   throw runtime_error("Method not implemented!");
 }
+

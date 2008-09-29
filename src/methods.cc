@@ -8417,6 +8417,50 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("WriteNetCDF"),
+        DESCRIPTION
+        (
+         "Writes a workspace variable to a NetCDF file.\n"
+         "\n"
+         "This is a supergeneric method. It can write variables of any group.\n"
+         "\n"
+         "If the filename is omitted, the variable is written\n"
+         "to <basename>.<variable_name>.nc.\n"
+         "\n"
+         "Usage example:\n"
+         "\n"
+         "WriteNetCDF(f_grid){\"\"}\n"
+         "Will write the frequency grid *f_grid* to the default file.\n"
+         "\n"
+         "Supergeneric input:\n"
+         "   Any     : The variable to write.\n"
+         "\n"
+         "Keywords:\n"
+         "   filename : Name of the output file.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(      "",
+                  "filename" ),
+        GIN_TYPE(     "Any",
+                     "String"   ),
+        GIN_DEFAULT(  NODEF,
+                  "" ),
+        GIN_DESC("WSV to be saved.",
+                 "Filename"),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("WriteXML"),
         DESCRIPTION
         (

@@ -1,3 +1,36 @@
+2008-09-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-9-32
+
+	* src/xml_io_types.h:
+
+	Merged xml_io_basic_types.h, xml_io_compound_types.h, and
+	xml_io_array_types.h into this file.
+
+	* src/xml_io_basic_types.h, src/xml_io_compound_types.h,
+	src/xml_io_array_types.h: Removed.
+
+	* src/xml_io_basic_types.h, src/xml_io_compound_types.h,
+	src/xml_io_array_types.h, src/xml_io_instantiation.h, src/xml_io.cc:
+
+	Include new xml_io_types.h.
+
+	* src/Makefile.am:
+
+	Conditionally add NetCDF sources and libraries if available.
+
+	* src/nc_io.{h,cc}, src/nc_io_types.h, src/nc_io_basic_types.cc:
+
+	Added framework for NetCDF support.
+
+	* src/make_auto_md_cc.cc
+
+	Include m_nc.h.
+
+	* src/main.cc:  Added NetCDF status to arts -v.
+
+	* src/file.h: Cosmetics.
+
 2008-09-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-9-31
