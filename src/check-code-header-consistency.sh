@@ -24,7 +24,7 @@ do
     else
         echo >> $LOGFILE
         case "$i" in
-            $SRCDIR/xml_io_instantiation.h)
+            $SRCDIR/nc_io_instantiation.h|$SRCDIR/xml_io_instantiation.h)
             echo "FAILED (expected)"
             EXPECTED_FAIL=1
             ;;

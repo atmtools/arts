@@ -1,5 +1,13 @@
 2008-10-01  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-9-34
+
+	* src/check-code-headers.sh:
+
+	Add exception for nc_io_instantiation.h. Fixes make check in src.
+
+2008-10-01  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-9-33
 
 	* src/nc_io_instantiation.h: Added.
