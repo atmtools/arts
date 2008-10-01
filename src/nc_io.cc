@@ -32,6 +32,7 @@
 #include "arts.h"
 #include "nc_io.h"
 #include "nc_io_types.h"
+#include "nc_io_instantiation.h"
 #include "file.h"
 #include "messages.h"
 #include "exceptions.h"
@@ -92,4 +93,32 @@ filename_nc_with_index (
       filename = os.str();
     }
 }
+
+
+template<typename T> void
+nc_read_from_file (const String& filename _U_,
+                         T&      type _U_)
+{
+  throw runtime_error("NetCDF reading not implemented for this type yet.");
+}
+
+
+template<typename T> void
+nc_write_to_file (const String&  filename,
+                  const      T&  type _U_)
+{
+  out2 << "  Writing " << filename << '\n';
+
+  NcFile ncf(filename.c_str(), NcFile::Replace);
+
+  if (!ncf.is_valid())
+    {
+      ostringstream os;
+      os << "Error writing file: " << filename << endl;
+      throw runtime_error (os.str());
+    }
+
+  nc_write_to_file (ncf, type);
+}
+
 

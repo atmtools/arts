@@ -1,3 +1,23 @@
+2008-10-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-9-33
+
+	* src/nc_io_instantiation.h: Added.
+
+	* src/nc_io.{h,cc}: Moved templates from header to cc file.
+
+	* src/m_nc.h: Include config.h.
+
+	* src/matpackI.{h,cc}:
+
+	Implement the get_c_array functions also for const objects.
+
+	* src/nc_io_types.h: Fixes.
+
+	* src/nc_io_basic_types.cc:
+
+	Added first version of storing matrices in NetCDF.
+
 2008-09-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-9-32

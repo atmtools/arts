@@ -27,6 +27,12 @@
 #ifndef m_nc_h
 #define m_nc_h
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#else
+#error "Please run ./configure in the top arts directory before compiling."
+#endif
+
 #include "exceptions.h"
 #include "workspace_ng.h"
 #include "agenda_class.h"

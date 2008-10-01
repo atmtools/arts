@@ -29,32 +29,16 @@
 
 */
 
-#ifndef nc_io_types_h
-#define nc_io_types_h
+#ifndef nc_io_instantiation_h
+#define nc_io_instantiation_h
 
 #include <stdexcept>
 #include <cfloat>
 #include "nc_io.h"
-#include "absorption.h"
-#include "agenda_class.h"
-#include "array.h"
-#include "bifstream.h"
-#include "bofstream.h"
-#include "gas_abs_lookup.h"
-#include "gridded_fields.h"
-#include "jacobian.h"
-#include "m_general.h"
-#include "mc_antenna.h"
-#include "mc_interp.h"
-#include "matpackII.h"
-#include "matpackVII.h"
-#include "messages.h"
-#include "optproperties.h"
-#include "ppath.h"
-
+#include "nc_io_types.h"
 
 #define TMPL_NC_READ_WRITE_FILE(what) \
-  void nc_write_to_file (NcFile&, const what&);
+  template void nc_write_to_file<what> (const String&, const what&);
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -144,4 +128,4 @@ xml_read_from_stream (istream&, ArrayOfLineRecord&,
 void
 xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&);*/
 
-#endif  /* nc_io_types_h */
+#endif  /* nc_io_instantiation_h */

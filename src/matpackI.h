@@ -417,6 +417,7 @@ public:
   // Conversion to 1 column matrix:
   operator MatrixView();
   // Conversion to a plain C-array
+  const Numeric *get_c_array() const;
   Numeric *get_c_array();
 
   //! Destructor
@@ -720,6 +721,7 @@ public:
   MatrixView& operator-=(const ConstVectorView& x);
 
   // Conversion to a plain C-array
+  const Numeric *get_c_array() const;
   Numeric *get_c_array();
 
   //! Destructor

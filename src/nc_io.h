@@ -57,36 +57,11 @@ filename_nc_with_index (       String&  filename,
 
 template<typename T> void
 nc_read_from_file (const String& filename _U_,
-                         T&      type _U_)
-{
-  throw runtime_error("NetCDF reading not implemented for this type yet.");
-}
+                         T&      type _U_);
 
 
 template<typename T> void
 nc_write_to_file (const String&  filename,
-                  const      T&  type)
-{
-  out2 << "  Writing " << filename << '\n';
-
-  NcFile ncf(filename.c_str(), NcFile::Replace);
-
-  if (!ncf.is_valid())
-    {
-      ostringstream os;
-      os << "Error writing file: " << filename << endl;
-      throw runtime_error (os.str());
-    }
-
-  nc_write_to_file (ncf, type);
-}
-
-
-template<typename T> void
-nc_write_to_file (const NcFile&,
-                  const T&)
-{
-  throw runtime_error("NetCDF writing not implemented for this type yet.");
-}
+                  const      T&  type);
 
 #endif /* nc_io_h */

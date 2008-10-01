@@ -28,37 +28,130 @@
 
 */
 
-#include <netcdfcpp.h>
 #include "arts.h"
 #include "nc_io.h"
-//#include "nc_io_private.h"
 #include "nc_io_types.h"
+
+//=== Matrix ==========================================================
+
+//! Writes Matrix to NetCDF file
+/*!
+  \param ncf     NetCDF file discriptor
+  \param m       Matrix
+*/
+void
+nc_write_to_file (NcFile &ncf,
+                  const Matrix& m)
+{
+  NcDim *cols = ncf.add_dim ("cols", m.ncols());
+  NcDim *rows = ncf.add_dim ("rows", m.nrows());
+
+  NcVar *data = ncf.add_var ("Matrix", ncDouble, rows, cols);
+
+  const Numeric *np = m.get_c_array();
+  data->put (np, m.nrows(), m.ncols());
+
+}
 
 //=== Vector ==========================================================
 
 //! Writes Vector to NetCDF file
 /*!
   \param ncf     NetCDF file discriptor
-  \param vector  Vector
+  \param v       Vector
 */
 void
-nc_write_to_file (NcFile &ncf _U_,
-                  const Vector& v _U_)
+nc_write_to_file (NcFile &ncf,
+                  const Vector& v)
 {
   NcDim *dim = ncf.add_dim ("nelem", v.nelem());
 
   NcVar *data = ncf.add_var ("Vector", ncDouble, dim);
 
-  for (Index i = 0; i < v.nelem(); i++)
-    {
-      double n = v[i];
-      data->put (&n, 1);
-    }
-
+  const Numeric *np = v.get_c_array();
+  data->put (np, v.nelem());
 }
 
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which
 //   IO function have not yet been implemented
 ////////////////////////////////////////////////////////////////////////////
+
+#define TMPL_NC_READ_WRITE_FILE_DUMMY(what) \
+  void nc_write_to_file (NcFile&, const what&) \
+  { \
+    throw runtime_error ("NetCDF support not yet implemented for this type!"); \
+  }
+
+//=== Basic Types ==========================================================
+
+TMPL_NC_READ_WRITE_FILE_DUMMY( Index )
+TMPL_NC_READ_WRITE_FILE_DUMMY( Numeric )
+TMPL_NC_READ_WRITE_FILE_DUMMY( Sparse )
+TMPL_NC_READ_WRITE_FILE_DUMMY( String )
+TMPL_NC_READ_WRITE_FILE_DUMMY( Tensor3 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( Tensor4 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( Tensor5 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( Tensor6 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( Tensor7 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( Timer )
+
+//=== Compound Types =======================================================
+
+TMPL_NC_READ_WRITE_FILE_DUMMY( Agenda )
+TMPL_NC_READ_WRITE_FILE_DUMMY( GField1 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( GField2 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( GField3 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( GField4 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( GasAbsLookup )
+TMPL_NC_READ_WRITE_FILE_DUMMY( GridPos )
+TMPL_NC_READ_WRITE_FILE_DUMMY( IsotopeRecord )
+TMPL_NC_READ_WRITE_FILE_DUMMY( MCAntenna )
+TMPL_NC_READ_WRITE_FILE_DUMMY( Ppath )
+TMPL_NC_READ_WRITE_FILE_DUMMY( RetrievalQuantity )
+TMPL_NC_READ_WRITE_FILE_DUMMY( SLIData2 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( SingleScatteringData )
+TMPL_NC_READ_WRITE_FILE_DUMMY( SpeciesRecord )
+TMPL_NC_READ_WRITE_FILE_DUMMY( SpeciesTag )
+
+//=== Array Types ==========================================================
+
+TMPL_NC_READ_WRITE_FILE_DUMMY( Array<IsotopeRecord> )
+TMPL_NC_READ_WRITE_FILE_DUMMY( Array<SpeciesRecord> )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfArrayOfArrayOfGridPos )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfGField1 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfGField3 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfGridPos )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfArrayOfGridPos )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfIndex )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfLineRecord )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfMatrix )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfSpeciesTag )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfTensor3 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfArrayOfTensor6 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfGField1 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfGField2 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfGField3 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfGField4 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfGridPos )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfIndex )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfLineRecord )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfLineshapeSpec )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfMatrix )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfPpath )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfRetrievalQuantity )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfSingleScatteringData )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfSpeciesTag )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfString )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfTensor3 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfTensor4 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfTensor6 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfTensor7 )
+TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfVector )
+
+//==========================================================================
+
+// Undefine the macro to avoid it being used anywhere else
+#undef TMPL_NC_READ_WRITE_FILE_DUMMY
+
 
