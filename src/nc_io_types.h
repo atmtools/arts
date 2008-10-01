@@ -54,7 +54,8 @@
 
 
 #define TMPL_NC_READ_WRITE_FILE(what) \
-  void nc_write_to_file (NcFile&, const what&);
+  void nc_write_to_file (NcFile&, const what&); \
+  void nc_read_from_file (NcFile&, what&);
 
 
 ////////////////////////////////////////////////////////////////////////////

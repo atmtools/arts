@@ -34,7 +34,35 @@
 
 //=== Matrix ==========================================================
 
-//! Writes Matrix to NetCDF file
+//! Reads a Matrix from a NetCDF file
+/*!
+  \param ncf     NetCDF file discriptor
+  \param m       Matrix
+*/
+void
+nc_read_from_file (NcFile &ncf _U_,
+                   Matrix& m _U_)
+{
+  if (ncf.num_dims() != 2 || ncf.num_vars() != 1)
+    {
+      ostringstream os;
+      os << "Error reading NetCDF file." << endl;
+      throw runtime_error (os.str());
+    }
+
+  NcVar *data = ncf.get_var("Matrix");
+  NcDim *rows = data->get_dim(0);
+  NcDim *cols = data->get_dim(1);
+  m.resize (rows->size(), cols->size());
+
+  Index i = 0;
+  for (Index r = 0; r < m.nrows(); r++)
+    for (Index c = 0; c < m.ncols(); c++, i++)
+      m(r, c) = data->values()->as_double(i);
+}
+
+
+//! Writes a Matrix to a NetCDF file
 /*!
   \param ncf     NetCDF file discriptor
   \param m       Matrix
@@ -55,7 +83,30 @@ nc_write_to_file (NcFile &ncf,
 
 //=== Vector ==========================================================
 
-//! Writes Vector to NetCDF file
+//! Reads a Vector from a NetCDF file
+/*!
+  \param ncf     NetCDF file discriptor
+  \param v       Vector
+*/
+void
+nc_read_from_file (NcFile &ncf,
+                   Vector& v _U_)
+{
+  if (ncf.num_dims() != 1 || ncf.num_vars() != 1)
+    {
+      ostringstream os;
+      os << "Error reading NetCDF file." << endl;
+      throw runtime_error (os.str());
+    }
+
+  NcVar *data = ncf.get_var("Vector");
+  v.resize (data->values()->num());
+  for (Index i = 0; i < v.nelem(); i++)
+    v[i] = data->values()->as_double(i);
+}
+
+
+//! Writes a Vector to a NetCDF file
 /*!
   \param ncf     NetCDF file discriptor
   \param v       Vector
@@ -79,6 +130,10 @@ nc_write_to_file (NcFile &ncf,
 
 #define TMPL_NC_READ_WRITE_FILE_DUMMY(what) \
   void nc_write_to_file (NcFile&, const what&) \
+  { \
+    throw runtime_error ("NetCDF support not yet implemented for this type!"); \
+  } \
+  void nc_read_from_file (NcFile&, what&) \
   { \
     throw runtime_error ("NetCDF support not yet implemented for this type!"); \
   }

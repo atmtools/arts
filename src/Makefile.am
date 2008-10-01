@@ -11,7 +11,12 @@
 EXTRA_DIST = \
 	check-code-cheaders.pl \
 	check-code-tab-indent.sh \
-	check-code-header-consistency.sh
+	check-code-header-consistency.sh \
+	nc_io.h \
+	nc_io.cc \
+	nc_io_basic_types.cc \
+	nc_io_instantiation.h \
+	nc_io_types.h
 
 bin_PROGRAMS = arts
 
@@ -170,6 +175,7 @@ libarts_a_SOURCES += \
 	nc_io.h \
 	nc_io.cc \
 	nc_io_basic_types.cc \
+	nc_io_instantiation.h \
 	nc_io_types.h
 endif
 

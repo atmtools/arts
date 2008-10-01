@@ -44,8 +44,22 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
+ReadNetCDF (// WS Generic Input:
+            T&            v,
+            const String& v_name _U_,
+            const String& f,
+            // WS Generic Input Names:
+            const String& f_name _U_)
+
+{
+  cout << "in readnetcdf" << endl;
+  nc_read_from_file (f, v);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+template<typename T> void
 WriteNetCDF (// WS Generic Input:
-             const T&            v,
+             const T&      v,
              const String& f,
              // WS Generic Input Names:
              const String& v_name,
@@ -64,8 +78,21 @@ WriteNetCDF (// WS Generic Input:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void
+ReadNetCDF (// WS Generic Input:
+            T&            v _U_,
+            const String& v_name _U_,
+            const String& f _U_,
+            // WS Generic Input Names:
+            const String& f_name _U_)
+
+{
+  throw runtime_error("This version of arts was compiled without NetCDF support.");
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+template<typename T> void
 WriteNetCDF (// WS Generic Input:
-             const T&            v _U_,
+             const T&      v _U_,
              const String& f _U_,
              // WS Generic Input Names:
              const String& v_name _U_,
@@ -76,6 +103,20 @@ WriteNetCDF (// WS Generic Input:
 }
 
 #endif // ENABLE_NETCDF
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+template<typename T> void
+ReadNetCDF (Workspace& ws _U_,
+            // WS Generic Input:
+            T&            v,
+            const String& v_name,
+            const String& f,
+            // WS Generic Input Names:
+            const String& f_name)
+
+{
+  ReadNetCDF (v, f, v_name, f_name);
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void

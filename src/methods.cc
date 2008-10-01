@@ -6068,6 +6068,35 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("ReadNetCDF"),
+        DESCRIPTION
+        (
+         "Reads a workspace variable from a NetCDF file.\n"
+         "\n"
+         "This is a supergeneric method. It can read variables of any group.\n"
+         "\n"
+         "If the filename is omitted, the variable is read\n"
+         "from <basename>.<variable_name>.nc.\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(      "gout1"    ),
+        GOUT_TYPE( "Any" ),
+        GOUT_DESC("Variable to read."),
+        IN(),
+        GIN( "filename" ),
+        GIN_TYPE(    "String"   ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("Name of the NetCDF file."),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("ReadXML"),
         DESCRIPTION
         (
@@ -6077,28 +6106,17 @@ md_data_raw.push_back
          "\n"
          "If the filename is omitted, the variable is read\n"
          "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Usage example:\n"
-         "\n"
-         "ReadXML(f_grid){\"frequencies.xml\"}\n"
-         "Will read the frequency grid *f_grid* from the specified file.\n"
-         "\n"
-         "Supergeneric output:\n"
-         "   Any     : The variable to read.\n"
-         "\n"
-         "Keywords:\n"
-         "   filename : Name of the input file.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"    ),
         GOUT_TYPE( "Any" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC("Variable to read."),
         IN(),
         GIN( "filename" ),
         GIN_TYPE(    "String"   ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC("Name of the XML file."),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
@@ -8426,17 +8444,6 @@ md_data_raw.push_back
          "\n"
          "If the filename is omitted, the variable is written\n"
          "to <basename>.<variable_name>.nc.\n"
-         "\n"
-         "Usage example:\n"
-         "\n"
-         "WriteNetCDF(f_grid){\"\"}\n"
-         "Will write the frequency grid *f_grid* to the default file.\n"
-         "\n"
-         "Supergeneric input:\n"
-         "   Any     : The variable to write.\n"
-         "\n"
-         "Keywords:\n"
-         "   filename : Name of the output file.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -8446,12 +8453,9 @@ md_data_raw.push_back
         IN(),
         GIN(      "",
                   "filename" ),
-        GIN_TYPE(     "Any",
-                     "String"   ),
-        GIN_DEFAULT(  NODEF,
-                  "" ),
-        GIN_DESC("WSV to be saved.",
-                 "Filename"),
+        GIN_TYPE(     "Any", "String"   ),
+        GIN_DEFAULT(  NODEF, "" ),
+        GIN_DESC("Variable to be saved.", "Name of the NetCDF file."),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
@@ -8494,8 +8498,7 @@ md_data_raw.push_back
                      "String"   ),
         GIN_DEFAULT(  NODEF,
                   "" ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC"),
+        GIN_DESC("Variable to be saved.", "Name of the XML file."),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),

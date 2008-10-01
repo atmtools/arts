@@ -1,5 +1,31 @@
 2008-10-01  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-9-35
+
+	* src/methods.cc:
+
+	Added ReadNetCDF.
+
+	Updated docs of Read/Write functions.
+
+	* src/nc_io_basic_types.cc: Added reading routines for Vector/Matrix.
+
+	* src/nc_io_types.h, src/nc_io_instantiation.h:
+
+	Generate nc_read_from_file prototypes.
+
+	* src/m_nc.h: Added ReadNetCDF functions.
+
+	* src/nc_io.cc: Implement nc_read_from_file.
+
+	* src/Makefile.am:
+
+	Added netcdf sources to EXTRA_DIST. Otherwise the sources are missing
+	in the distribution file if the computer which was used to build it
+	didn't have NetCDF available.
+
+2008-10-01  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-9-34
 
 	* src/check-code-headers.sh:
