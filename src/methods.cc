@@ -2856,7 +2856,7 @@ void define_md_data_raw()
               "abs_scalar_gas_agenda", "spt_calc_agenda", 
               "pnd_field", "t_field", 
               "z_field", "p_grid", "vmr_field", "scat_data_raw", "f_grid", 
-              "scat_za_grid", "surface_emissivity_field" ),
+              "scat_za_grid", "surface_emissivity_DISORT" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -3909,6 +3909,90 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "GField1Create" ),
+        DESCRIPTION
+        (
+         "Creates an empty GField1.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "gfield"       ),
+        GOUT_TYPE( "GField1" ),
+        GOUT_DESC( "Gridded field to create." ),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "GField2Create" ),
+        DESCRIPTION
+        (
+         "Creates an empty GField2.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "gfield"       ),
+        GOUT_TYPE( "GField2" ),
+        GOUT_DESC( "Gridded field to create." ),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "GField3Create" ),
+        DESCRIPTION
+        (
+         "Creates an empty GField3.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "gfield"       ),
+        GOUT_TYPE( "GField3" ),
+        GOUT_DESC( "Gridded field to create." ),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "GField4Create" ),
+        DESCRIPTION
+        (
+         "Creates an empty GField4.\n"
+         "\n"
+         "If the variable already exists, it'll be reset.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "gfield"       ),
+        GOUT_TYPE( "GField4" ),
+        GOUT_DESC( "Gridded field to create." ),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("GriddedField4ExtractFromArrayOfGriddedField4"),
         DESCRIPTION
         (
@@ -4121,6 +4205,35 @@ md_data_raw.push_back
         GIN_DESC("FIXME DOC")
       ));
   
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("InterpSurfaceEmissivityFieldIncLatLon"),
+        DESCRIPTION
+        (
+         "Interpolation of surface emissivity specified as a function of\n"
+         "incidence angle, latitude and longitude.\n"
+         "\n"
+         "The surface emissivity field has here three dimension, with\n"
+         "incidence angle as first/column dimension, latitude as second/row\n"
+         "dimension and longitude as third/page dimension. Grid names must\n"
+         "be set exactly to \"Incidence angle\", \"Latitude\" and\n"
+         "\"Longitude\". No extrapolation is allowed.\n"
+         "\n"
+         "This method can be used togetehr with e.g.\n"
+         "*surfaceFlatSingleEmissivity*.\n" 
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "outvalue"        ),
+        GOUT_TYPE( "Numeric" ),
+        GOUT_DESC( "Value obtained by interpolation" ),
+        IN( "atmosphere_dim", "rte_pos", "rte_los" ),
+        GIN(      "gfield"       ),
+        GIN_TYPE( "GField3" ),
+        GIN_DEFAULT( NODEF    ),
+        GIN_DESC( "Gridded field to be interpolated." )
+      ));
+
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("InterpSurfaceFieldToRteGps"),

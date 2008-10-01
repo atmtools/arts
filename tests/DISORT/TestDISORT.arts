@@ -79,13 +79,6 @@ MatrixSetConstant( surface_emissivity_field){
     value = 1
 }
 
-# Properties of surface
-
-AgendaSet(surface_prop_agenda){
-           Ignore (rte_los)
-           InterpAtmFieldToRteGps( surface_skin_t, t_field )
-           surfaceBlackbody
-        }
 
 
 # Definition of sensor position and LOS
@@ -130,12 +123,6 @@ AgendaSet( ppath_step_agenda ) {
 
 # Agendas for clearsky radiative transfer calculation
 # ----------------------------------------------------
-AgendaSet( iy_space_agenda ){
-   Ignore( rte_pos )
-   Ignore( rte_los )
-   MatrixCBR( iy, f_grid )
-}
-
 AgendaSet( rte_agenda ){
    RteStd{}
 }

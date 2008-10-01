@@ -27,6 +27,7 @@
 #define special_interp_h
 
 #include "interpolation.h"
+#include "gridded_fields.h"
 
 
 
@@ -115,6 +116,17 @@ Numeric interp_atmsurface_by_gp(
         ConstMatrixView         x_field,
         const GridPos&          gp_lat,
         const GridPos&          gp_lon );
+
+void interp_gfield3( 
+                 Numeric&   value,
+           const GField3&   gfield3,
+           const Index&     effective_dim,
+           const Numeric&   x,
+           const Numeric&   y,
+           const Numeric&   z,
+           const String&    dim1,
+           const String&    dim2,
+           const String&    dim3 );
 
 void itw2p(
               VectorView       p_values,

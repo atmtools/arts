@@ -318,8 +318,9 @@ void MCGeneral(Workspace&            ws,
             {
               //decide whether we have reflection or emission
               surface_prop_agendaExecute( ws, local_surface_emission, 
-                local_surface_los, local_surface_rmatrix, ppath_step.gp_p[np-1],
-                ppath_step.gp_lat[np-1],ppath_step.gp_lon[np-1],local_rte_los,
+                local_surface_los, local_surface_rmatrix, 
+                local_rte_pos, local_rte_los, ppath_step.gp_p[np-1],
+                ppath_step.gp_lat[np-1],ppath_step.gp_lon[np-1],
                 surface_prop_agenda );
               //deal with blackbody case
               if (local_surface_los.nrows()==0)
@@ -599,8 +600,8 @@ void MCIPA(Workspace&            ws,
               //decide whether we have reflection or emission
               surface_prop_agendaExecute(ws,
                     local_surface_emission, local_surface_los, 
-                    local_surface_rmatrix, ppath.gp_p[np-1],
-                    latgp,longp,local_rte_los, surface_prop_agenda);
+                    local_surface_rmatrix, local_rte_pos, local_rte_los,
+                    ppath.gp_p[np-1],latgp,longp, surface_prop_agenda);
               //deal with blackbody case
               if (local_surface_los.nrows()==0)
                 {

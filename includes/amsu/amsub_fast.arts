@@ -37,6 +37,7 @@ StringSet( jacobian_unit, "RJBT" )
 # Surface
 NumericCreate( surface_emissivity )
 AgendaSet( surface_prop_agenda ){
+  Ignore(rte_pos)
   Ignore(rte_gp_p)
   InterpSurfaceFieldToRteGps( surface_skin_t, atmosphere_dim, lat_grid, 
                               lon_grid, rte_gp_lat, rte_gp_lon, t_surface )

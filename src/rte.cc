@@ -282,8 +282,9 @@ void get_radiative_background(
         Matrix    surface_emission;
         //
         surface_prop_agendaExecute( ws, surface_emission, surface_los, 
-                    surface_rmatrix, rte_gp_p, rte_gp_lat, rte_gp_lon, rte_los,
-                    surface_prop_agenda );
+                                    surface_rmatrix, rte_pos, rte_los, 
+                                    rte_gp_p, rte_gp_lat, rte_gp_lon,
+                                    surface_prop_agenda );
 
         // Check output of *surface_prop_agenda*
         //

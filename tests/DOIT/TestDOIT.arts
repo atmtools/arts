@@ -68,6 +68,7 @@ MatrixSetConstant( z_surface, nrows, ncols, 500 )
 # Properties of surface
 
 AgendaSet( surface_prop_agenda ){
+  Ignore( rte_pos )
   InterpAtmFieldToRteGps( surface_skin_t, atmosphere_dim, p_grid, lat_grid,
                           lon_grid, rte_gp_p, rte_gp_lat, rte_gp_lon, t_field )
   complex_nWaterLiebe93( complex_n, f_grid, surface_skin_t )
@@ -109,12 +110,6 @@ AgendaSet( ppath_step_agenda ){
 
 # Agendas for clearsky radiative transfer calculation
 # ----------------------------------------------------
-AgendaSet( iy_space_agenda ){
-  Ignore( rte_pos )
-  Ignore( rte_los )
-  MatrixCBR( iy, stokes_dim, f_grid )
-}
-
 AgendaSet( rte_agenda ){
    RteStd
 }

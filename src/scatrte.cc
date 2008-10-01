@@ -1032,6 +1032,10 @@ void cloud_RT_surface(Workspace& ws,
   
   Index np = ppath_step.np;
   
+  Vector rte_pos; 
+  rte_pos.resize( ppath_step.pos.ncols() );
+  rte_pos = ppath_step.pos(np-1,joker);
+
   Vector rte_los; 
   rte_los.resize( ppath_step.los.ncols() );
   rte_los = ppath_step.los(np-1,joker);
@@ -1043,10 +1047,9 @@ void cloud_RT_surface(Workspace& ws,
   //parameters.
   
   surface_prop_agendaExecute(ws, surface_emission, surface_los, 
-                             surface_rmatrix, ppath_step.gp_p[np-1],
-                             dummy_ppath_step_gp_lat, 
-                             dummy_ppath_step_gp_lon, rte_los,
-                             surface_prop_agenda);
+                             surface_rmatrix, rte_pos, rte_los, 
+                             ppath_step.gp_p[np-1], dummy_ppath_step_gp_lat, 
+                             dummy_ppath_step_gp_lon, surface_prop_agenda);
   
   iy = surface_emission;
 

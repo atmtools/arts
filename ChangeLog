@@ -1,3 +1,31 @@
+2008-10-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* src/m_surface.cc (InterpGriddedField3ToRteLosAndRtePos): Created.
+
+	*src/m_create.cc (GField1Create) (GField2Create) (GField3Create) 
+	(GField4Create): Created.
+
+	* src/special_interp.cc (interp_gfield3): Created.
+
+	* src/workspace.cc: Renamed surface_emissivity_field to
+	surface_emissivity_DISORT. This as the variable is not flexible
+	enough to merit the old name, and it is only used by DISORT.
+
+	* tests/XXX/TestXXX.arts: Removed definition of
+	surface_prop_agenda and iy_space_agenda where general.arts is used
+	and settings same as in general.arts. Elsewhere added
+	Ignore(rte_pos) in definition of surface_prop_agenda.
+
+	* src/m_montecarlo.cc (MCGeneral): As below.
+	(MCIPA): As below.
+
+	* src/scatrte.cc (cloud_RT_surface): As below.
+
+	* src/rte.cc (get_radiative_background): Adapted call of
+	surface_prop_agenda.
+
+	* src/agendas.cc: Added rte_pos as input to surface_prop_agenda. 
+
 2008-10-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-9-35
@@ -52,6 +80,7 @@
 
 	Added first version of storing matrices in NetCDF.
 
+>>>>>>> .r5886
 2008-09-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-9-32

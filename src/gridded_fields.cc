@@ -40,9 +40,11 @@
 
 #include <stdexcept>
 #include <iostream>
-#include "mystring.h"
 #include "exceptions.h"
+#include "mystring.h"
 #include "gridded_fields.h"
+
+
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -350,4 +352,9 @@ ostream& operator<<(ostream& os, const GField4& gf)
   os << (GField&)gf;
   return os << "Data:" << endl << (Tensor4&)gf;
 }
+
+
+
+
+
 

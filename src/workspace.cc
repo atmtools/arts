@@ -3597,39 +3597,17 @@ void Workspace::define_wsv_data()
 
    wsv_data.push_back
      (WsvRecord
-      ( NAME( "surface_emissivity_field" ),
+      ( NAME( "surface_emissivity_DISORT" ),
         DESCRIPTION
         ( "The surface emissivity specified on lat_grid and lon_grid.\n"
+          "\n"
+          "Remnant from a first solution for surface emissivity fields.\n"
+          "Should be replaced with more flexible solution allowing emissivity\n"
+          "to vary with incidence angle.\n"
           "\n"
           "Dimensions: [ lat_grid, lon_grid ]\n"
          ), 
         GROUP( "Matrix" )));
-
-   /* A first step towards a complete solution:
-   wsv_data.push_back
-     (WsvRecord
-      ( NAME( "surface_emissivity_field" ),
-        DESCRIPTION
-        ( "Surface emissivity.\n"
-          "\n"
-          "This variable describes the surface emissivity as a function of\n"
-          "incidence angle, frequency, latitude and longitude. An azimuthal\n"
-          "symmetry is assumed and relevant range of incidence angles (ia) is\n"
-          "[0,90].\n"
-          "\n"
-          "It is only totally correct to use this varaible for flat surfaces\n"
-          "and *stokes_dim* = 1.\n"
-          "\n"
-          "Dimensions: \n"
-          "   GField4:\n"
-          "      Vector ia_grid[N_ia]\n"
-          "      Vector f_grid[N_f]\n"
-          "      Vector lat_grid[N_latt]\n"
-          "      Vector lon_grid[N_lon]\n"
-          "      Tensor4 data[N_ia][N_f][N_lat][N_lon]\n"
-         ), 
-        GROUP( "GField4" )));
-   */
 
   wsv_data.push_back
     (WsvRecord

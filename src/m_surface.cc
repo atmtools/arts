@@ -54,6 +54,7 @@
 #include "absorption.h"
 #include "interpolation.h"
 #include "fastem.h"
+#include "gridded_fields.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -225,6 +226,35 @@ void InterpSurfaceFieldToRteGps(
   // Interpolate
   outvalue = interp_atmsurface_by_gp( atmosphere_dim, lat_grid, 
                 lon_grid, field, rte_gp_lat, rte_gp_lon );
+
+  out3 << "    Result = " << outvalue << "\n";
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void InterpSurfaceEmissivityFieldIncLatLon(
+                 Numeric&   outvalue,
+           const Index&     atmosphere_dim,
+           const Vector&    rte_pos,
+           const Vector&    rte_los,
+           const GField3&   gfield )
+{
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  if( rte_pos.nelem() != atmosphere_dim )
+    throw runtime_error( "Length of *rte_pos* must match *atmoshere_dim*." );
+    
+  // Interpolate
+  //
+  Numeric lat = 0, lon = 0;
+  if( atmosphere_dim >= 2 )
+    lat = rte_pos[1];
+  if( atmosphere_dim == 3 )
+    lon = rte_pos[2];
+  //
+  interp_gfield3( outvalue, gfield, atmosphere_dim, 180-abs(rte_los[0]), lat, 
+                  lon, "Incidence angle", "Latitude", "Longitude" );
 
   out3 << "    Result = " << outvalue << "\n";
 }

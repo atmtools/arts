@@ -62,8 +62,10 @@
 #include <iostream>
 #include <stdexcept>
 #include "check_input.h"
-#include "special_interp.h"
+#include "interpolation.h"
+#include "math_funcs.h"
 #include "messages.h"
+#include "special_interp.h"
 
 
 
@@ -72,7 +74,7 @@
   === Interpolation functions for atmospheric grids, fields and surfaces
   ===========================================================================*/
 
-//! fix_gridpos_at_boudary
+//! fix_gridpos_at_boundary
 /*!
   This function fixes grid positions on the boundaries of the grids, on which 
   one wants to interpolate. 
@@ -567,6 +569,181 @@ Numeric interp_atmsurface_by_gp(
 
   return x[0];
 }
+
+
+
+//! interp_gfield3
+/*!
+    Single point interpolation of a GField3.
+
+    Data where not all dimensions are effectively used can be
+    handled. For example, if the last dimension is not ysed,
+    *effective_dim* is set to 2.
+
+    \param   value           Output: Obtained value.
+    \param   gfield3         Field to interpolate
+    \param   effective_dim   Effective dimension of gfield. See above.
+    \param   x               First dimension position of interpolation point.
+    \param   y               Second dimension position of interpolation point.
+    \param   z               Third dimension position of interpolation point.
+    \param   dim1            Expected name of grid for first dimension
+    \param   dim2            Expected name of grid for second dimension
+    \param   dim3            Expected name of grid for third dimension
+
+    \author Patrick Eriksson 
+    \date   2008-10-01
+*/
+void interp_gfield3( 
+                 Numeric&   value,
+           const GField3&   gfield3,
+           const Index&     effective_dim,
+           const Numeric&   x,
+           const Numeric&   y,
+           const Numeric&   z,
+           const String&    dim1,
+           const String&    dim2,
+           const String&    dim3 )
+{
+  chk_if_in_range( "effective_dim", effective_dim, 1, 3 );
+
+  ArrayOfGridPos gp1(1), gp2(1), gp3(1);
+
+  // Check and grid position, dimension 1
+  //
+    {
+      const String gridname = gfield3.get_grid_name(0);
+      const ConstVectorView grid = gfield3.get_numeric_grid(0);
+      //
+      if( dim1 != gridname )
+        {
+          ostringstream os;
+          os << "Wrong quantity found for grid of first dimension:\n"
+             << "  expected quantity  : " << dim1 << "\n"
+             << "  quantity in gfield : " << gridname << "\n";
+          throw runtime_error( os.str() );
+          }
+      //
+      chk_if_increasing( "first grid of gfield3", grid );
+      //
+      if( x < grid[0]  ||  x > last(grid) )
+        {
+          ostringstream os;
+          os << "Interpolation outside covered range for first dimension:\n"
+             << "  interpolation point : " << x << "\n"
+             << "  gfield grid range   : [" << grid[0] << "," << last(grid) 
+             << "]\n";
+          throw runtime_error( os.str() );
+        }       
+      //
+      gridpos( gp1, grid, Vector(1,x) );
+    }
+
+  // Check and grid position, dimension 2
+  //
+  if( effective_dim >= 2 )
+    {
+      const String gridname = gfield3.get_grid_name(1);
+      const ConstVectorView grid = gfield3.get_numeric_grid(1);
+      //
+      if( dim2 != gridname )
+        {
+          ostringstream os;
+          os << "Wrong quantity found for grid of second dimension:\n"
+             << "  expected quantity  : " << dim2 << "\n"
+             << "  quantity in gfield : " << gridname << "\n";
+          throw runtime_error( os.str() );
+          }
+      //
+      chk_if_increasing( "second grid of gfield3", grid );
+      //
+      if( y < grid[0]  ||  y > last(grid) )
+        {
+          ostringstream os;
+          os << "Interpolation outside covered range for second dimension:\n"
+             << "  interpolation point : " << y << "\n"
+             << "  gfield grid range   : [" << grid[0] << "," << last(grid) 
+             << "]\n";
+          throw runtime_error( os.str() );
+        }       
+      //
+      gridpos( gp2, grid, Vector(1,y) );
+    }
+
+  // Check and grid position, dimension 2
+  //
+  if( effective_dim >= 3 )
+    {
+      const String gridname = gfield3.get_grid_name(2);
+      const ConstVectorView grid = gfield3.get_numeric_grid(2);
+      //
+      if( dim3 != gridname )
+        {
+          ostringstream os;
+          os << "Wrong quantity found for grid of third dimension:\n"
+             << "  expected quantity  : " << dim3 << "\n"
+             << "  quantity in gfield : " << gridname << "\n";
+          throw runtime_error( os.str() );
+          }
+      //
+      chk_if_increasing( "third grid of gfield3", grid );
+      //
+      if( z < grid[0]  ||  z > last(grid) )
+        {
+          ostringstream os;
+          os << "Interpolation outside covered range for second dimension:\n"
+             << "  interpolation point : " << z << "\n"
+             << "  gfield grid range   : [" << grid[0] << "," << last(grid) 
+             << "]\n";
+          throw runtime_error( os.str() );
+        }       
+      //
+      gridpos( gp3, grid, Vector(1,z) );
+    }
+
+  // Perform interpolation
+  //
+  Vector result( 1 );
+  //
+  if( effective_dim == 1 )
+    {
+      if( gfield3.nrows() > 1  ||  gfield3.npages() > 1 )
+        {
+          ostringstream os;
+          os << "A 1D interpolation requested, but the provided gridded field "
+             << "has an effective dimension of 2D or 3D.";
+          throw runtime_error( os.str() );
+        }       
+        
+      Matrix itw(1,2);
+      interpweights( itw, gp1 );
+      interp( result, itw, gfield3(0,0,joker), gp1 );
+    }
+  //
+  else if( effective_dim == 2 )
+    {
+      if( gfield3.npages() > 1 )
+        {
+          ostringstream os;
+          os << "A 2D interpolation requested, but the provided gridded field "
+             << "has an effective dimension of 3D.";
+          throw runtime_error( os.str() );
+        }       
+
+      Matrix itw(1,4);
+      interpweights( itw, gp2, gp1 );
+      interp( result, itw, gfield3(0,joker,joker), gp2, gp1 );
+    }
+  //
+  else if( effective_dim == 3 )
+    {
+      Matrix itw(1,8);
+      interpweights( itw, gp3, gp2, gp1 );
+      interp( result, itw, gfield3, gp3, gp2, gp1 );
+    }
+
+  value = result[0];
+}
+
 
 
 

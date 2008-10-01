@@ -116,6 +116,35 @@ void ArrayOfVectorCreate(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void GField1Create(// WS Generic Output:
+                 GField1& g )
+{
+  g = GField1();
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GField2Create(// WS Generic Output:
+                 GField2& g )
+{
+  g = GField2();
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GField3Create(// WS Generic Output:
+                 GField3& g )
+{
+  g = GField3();
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void GField4Create(// WS Generic Output:
+                 GField4& g )
+{
+  g = GField4();
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void IndexCreate(// WS Generic Output:
                  Index& i )
 {
