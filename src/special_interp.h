@@ -124,9 +124,9 @@ void interp_gfield3(
            const Numeric&   x,
            const Numeric&   y,
            const Numeric&   z,
+           const String&    dim0,
            const String&    dim1,
-           const String&    dim2,
-           const String&    dim3 );
+           const String&    dim2 );
 
 void itw2p(
               VectorView       p_values,

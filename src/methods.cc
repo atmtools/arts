@@ -4219,6 +4219,10 @@ md_data_raw.push_back
          "be set exactly to \"Incidence angle\", \"Latitude\" and\n"
          "\"Longitude\". No extrapolation is allowed.\n"
          "\n"
+         "For 1D cases it is expected that the latitude and longitude grids\n"
+         "have both a length of 1. For 2D the same apllies to the longitude\n"
+         "grid.\n"
+         "\n"
          "This method can be used togetehr with e.g.\n"
          "*surfaceFlatSingleEmissivity*.\n" 
         ),

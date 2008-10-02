@@ -1,3 +1,13 @@
+2008-10-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-9-38
+
+	* src/special_interp.cc (interp_gfield3): Fixed several
+	errors. Wrong storage order of grids was assumed.
+
+	* src/methods.cc: Impreved description for
+	InterpSurfaceEmissivityFieldIncLatLon.
+
 2008-10-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-9-37
