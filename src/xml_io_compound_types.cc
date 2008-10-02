@@ -237,6 +237,9 @@ xml_read_from_stream (istream& is_xml,
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/GriddedField1");
+
+  if (!gfield.checksize())
+    throw runtime_error ("Dimension mismatch between the grids and the data");
 }
 
 
@@ -302,6 +305,9 @@ xml_read_from_stream (istream& is_xml,
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/GriddedField3");
+
+  if (!gfield.checksize())
+    throw runtime_error ("Dimension mismatch between the grids and the data");
 }
 
 
@@ -367,6 +373,9 @@ xml_read_from_stream (istream& is_xml,
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/GriddedField3");
+
+  if (!gfield.checksize())
+    throw runtime_error ("Dimension mismatch between the grids and the data");
 }
 
 

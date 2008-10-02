@@ -1,4 +1,14 @@
+2008-10-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-9-37
+
+	* src/xml_io_compound_types.cc:
+
+	Add dimension check to GField reading routines.
+
 2008-10-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-9-36
 
 	* src/m_surface.cc (InterpGriddedField3ToRteLosAndRtePos): Created.
 
