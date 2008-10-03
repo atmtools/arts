@@ -1292,10 +1292,10 @@ void f_gridFromSensorHIRS(// WS Output:
 
       // We need to add a bit of extra margin at both sides,
       // otherwise there is a numerical problem in the sensor
-      // WSMs. We take 100% of the requested frequency grid spacing. 
+      // WSMs. We take 10% of the requested frequency grid spacing. 
       // FIXME: Patrick, set this to zero to check for the runtime
       // error in sensor_responseBackend.
-      const Numeric delta = 1.0 * spacing;
+      const Numeric delta = 0.1 * spacing;
 
       fmin_orig[i] = f_backend[i] + backend_f_grid[0] - delta;
       fmax_orig[i] = f_backend[i] + backend_f_grid[nf-1] + delta;

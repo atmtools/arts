@@ -1,3 +1,19 @@
+2008-10-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-10-3
+
+	* src/m_sensor.cc (f_gridFromSensorHIRS): Tested with delta = 0.0.
+	Failed due to numerical problems. Changed to delta = 0.1 (that
+	works for me).
+
+	* includes/hirs/hirs_reference.arts: Removed definition of
+	surface_prop_agenda.
+
+	* tests/HIRS/TestHIRS.arts: Added definition of
+	surface_prop_agenda, but is commented out. This to use the more
+	efficient definition for blackbody surface in general.arts, and to
+	have everything in one place of you want to use non-blackbody surface.
+
 2008-10-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-10-2
