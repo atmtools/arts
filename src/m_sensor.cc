@@ -526,7 +526,6 @@ void sensor_responseBackend(
           os << "Mismatch in size of grid and data in element " << i
              << "\nof *sideband_response*.\n"; 
           error_found = true;
-
         }
 
       if( !is_increasing( bchr_f_grid ) ) 
@@ -540,8 +539,8 @@ void sensor_responseBackend(
       // outside sensor_response_f_grid.
       //
       Numeric f1 = f_backend[i] + bchr_f_grid[0] - min(sensor_response_f_grid);
-      Numeric f2 = max(sensor_response_f_grid) - 
-                                          ( f_backend[i] + last(bchr_f_grid) );
+      Numeric f2 = (max(sensor_response_f_grid) - 
+                    f_backend[i]) - last(bchr_f_grid);
       //
       f_dlow  = min( f_dlow, f1 );
       f_dhigh = min( f_dhigh, f2 );
@@ -846,10 +845,6 @@ void sensor_responseMixer(
   }
   else if( df_low > 0 )
   {
-    cout << sensor_response_f_grid[0] << "\n";
-    cout << lo << "\n";
-    cout << sbresponse_f_grid[0] << "\n";
-
     os << "The *sensor_response_f* grid must be extended by at " << df_low
        << " Hz\nin the lower end to cover frequency range set by\n"
        << "*sideband_response* and *lo*. Or can the frequency grid of\n"
@@ -1137,14 +1132,11 @@ void f_gridFromSensorAMSU(// WS Output:
         const Numeric this_f_backend = f_backend[i][s];
 
         // We need to add a bit of extra margin at both sides,
-        // otherwise there is a numerical problem in the sensor
-        // WSMs. We take 0.1% of the requested frequency grid spacing. 
+        // otherwise there could be a numerical problem in the sensor WSMs. 
         // 
-        // 2008-8-21: This seems to be no longer necessary, the
-        // problem was that my sideband response function
-        // frequency grid was too wide. 
-        //        const Numeric delta = 0.001 * spacing;
-        const Numeric delta = 0;
+        // PE 081003: Selected 5 kHz. Scaled from value selected for HIRS. 
+        //      
+        const Numeric delta = 5e3;
 
         // Signal sideband:
         fabs_min[ifabs] = this_f_backend + this_grid[0] - delta;
@@ -1291,11 +1283,13 @@ void f_gridFromSensorHIRS(// WS Output:
       const Index nf = backend_f_grid.nelem();
 
       // We need to add a bit of extra margin at both sides,
-      // otherwise there is a numerical problem in the sensor
-      // WSMs. We take 10% of the requested frequency grid spacing. 
-      // FIXME: Patrick, set this to zero to check for the runtime
-      // error in sensor_responseBackend.
-      const Numeric delta = 0.1 * spacing;
+      // otherwise there is a numerical problem in the sensor WSMs.
+      //
+      // PE 081003: The accuracy for me (double on 64 bit machine) appears to
+      // be about 3 Hz. Select 1 MHz to have a clear margin. Hopefully OK
+      // for other machines.
+      //
+      const Numeric delta = 1e6; 
 
       fmin_orig[i] = f_backend[i] + backend_f_grid[0] - delta;
       fmax_orig[i] = f_backend[i] + backend_f_grid[nf-1] + delta;
@@ -1375,8 +1369,8 @@ void f_gridFromSensorHIRS(// WS Output:
   // Copy result to output vector:
   f_grid = f_grid_array;
 
-  //  cout << "f_grid: " << f_grid << "\n";
   out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
+
 }
 
 
