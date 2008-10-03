@@ -60,8 +60,8 @@
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfGriddedField1Create(// WS Generic Output:
-                                ArrayOfGField1& aogf1 )
+void ArrayOfGField1Create(// WS Generic Output:
+                          ArrayOfGField1& aogf1 )
 {
   aogf1 = ArrayOfGField1();
 }

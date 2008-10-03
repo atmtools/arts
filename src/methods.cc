@@ -1821,10 +1821,10 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ArrayOfGriddedField1Create" ),
+      ( NAME( "ArrayOfGField1Create" ),
         DESCRIPTION
         (
-         "Creates an empty ArrayOfGriddedField1.\n"
+         "Creates an empty ArrayOfGField1.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
         ),
@@ -1842,14 +1842,14 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ArrayOfGriddedField3ExtractFromArrayOfArrayOfGriddedField3"),
+      ( NAME("ArrayOfGField3ExtractFromArrayOfArrayOfGField3"),
         DESCRIPTION
         (
-         "Extract an ArrayOfGriddedField3 from an array of arrays of GriddedField3.\n"
+         "Extract an ArrayOfGField3 from an array of arrays of GField3.\n"
          "\n"
-         "Copies *ArrayOfGriddedField3* with given Index from input\n"
-         "*ArrayOfArrayOfGriddedField3* variable to create output\n"
-         "*ArrayOfGriddedField3*.\n"
+         "Copies *ArrayOfGField3* with given Index from input\n"
+         "*ArrayOfArrayOfGField3* variable to create output\n"
+         "*ArrayOfGField3*.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -3993,15 +3993,15 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("GriddedField4ExtractFromArrayOfGriddedField4"),
+      ( NAME("GField4ExtractFromArrayOfGField4"),
         DESCRIPTION
         (
-         "Extract a *GriddedField4* from an array of *GriddedField4*.\n"
+         "Extract a *GField4* from an array of *GField4*.\n"
          "This is useful for example for extracting *atm_fields_compact*\n"
          "from *batch_atm_fields_compact*.\n"
          "\n"
          "Copies element with given *Index* from input array\n"
-         "to create output *GriddedField4*.\n"
+         "to create output *GField4*.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),

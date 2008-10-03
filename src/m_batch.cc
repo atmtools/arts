@@ -85,7 +85,7 @@ void ForLoop(Workspace& ws,
    Implementation largely copied from Patrick's MatrixExtractFromTensor3 method. 
 
    2007-10-26 Oliver Lemke */
-void ArrayOfGriddedField3ExtractFromArrayOfArrayOfGriddedField3(
+void ArrayOfGField3ExtractFromArrayOfArrayOfGField3(
       // WS Generic Output:
       ArrayOfGField3&          agf,
       // WS Input:
@@ -97,7 +97,7 @@ void ArrayOfGriddedField3ExtractFromArrayOfArrayOfGriddedField3(
     {
       ostringstream os;
       os << "The index " << index 
-         << " is outside the range of the ArrayOfArrayOfGriddedField3.";
+         << " is outside the range of the ArrayOfArrayOfGField3.";
       throw runtime_error( os.str() );
 
     }
@@ -135,7 +135,7 @@ void ArrayOfIndexExtractFromArrayOfArrayOfIndex(
    Implementation largely copied from MatrixExtractFromArrayOfMatrix.
 
    2007-11-26 Stefan Buehler */
-void GriddedField4ExtractFromArrayOfGriddedField4(
+void GField4ExtractFromArrayOfGField4(
       // WS Generic Output:
       GField4&          m,
       // WS Input:
@@ -147,7 +147,7 @@ void GriddedField4ExtractFromArrayOfGriddedField4(
     {
       ostringstream os;
       os << "The index " << index 
-         << " is outside the range of The ArrayOfGriddedField4.";
+         << " is outside the range of The ArrayOfGField4.";
       throw runtime_error( os.str() );
 
     }

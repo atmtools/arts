@@ -118,7 +118,7 @@ AntennaOff
 # Spectrometer:
 #
 VectorCreate(f_backend_temp)
-ArrayOfGriddedField1Create(backend_channel_response_temp)
+ArrayOfGField1Create(backend_channel_response_temp)
 
 ReadXML( f_backend_temp, f_backend_file )
 ReadXML( backend_channel_response_temp,

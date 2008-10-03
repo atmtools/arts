@@ -212,84 +212,84 @@ extern const Numeric EARTH_GRAV_CONST = 3.98601E14;
 */
 extern const Numeric HZ2CM =  0.01 / SPEED_OF_LIGHT;
 
-/** Global constant, Index of the frequency grid in GriddedField1.
+/** Global constant, Index of the frequency grid in GField1.
 
     \author Patrick Eriksson
     \date   2008-07-02
 */
 extern const Index GFIELD1_F_GRID = 0;
 
-/** Global constant, Index of the pressure grid in GriddedField3.
+/** Global constant, Index of the pressure grid in GField3.
 
     \author Oliver Lemke
     \date   2008-06-24
 */
 extern const Index GFIELD3_P_GRID = 0;
 
-/** Global constant, Index of the latitude grid in GriddedField3.
+/** Global constant, Index of the latitude grid in GField3.
 
     \author Oliver Lemke
     \date   2008-06-24
 */
 extern const Index GFIELD3_LAT_GRID = 1;
 
-/** Global constant, Index of the longitude grid in GriddedField3.
+/** Global constant, Index of the longitude grid in GField3.
 
     \author Oliver Lemke
     \date   2008-06-24
 */
 extern const Index GFIELD3_LON_GRID = 2;
 
-/** Global constant, Index of the field names in GriddedField4.
+/** Global constant, Index of the field names in GField4.
 
     \author Oliver Lemke
     \date   2008-06-25
 */
 extern const Index GFIELD4_FIELD_NAMES = 0;
 
-/** Global constant, Index of incidence angles in GriddedField4.
+/** Global constant, Index of incidence angles in GField4.
 
     \author Patrick Eriksson
     \date   2008-09-20
 */
 extern const Index GFIELD4_IA_GRID = 0;
 
-/** Global constant, Index of the pressure grid in GriddedField4.
+/** Global constant, Index of the pressure grid in GField4.
 
     \author Oliver Lemke
     \date   2008-06-25
 */
 extern const Index GFIELD4_P_GRID = 1;
 
-/** Global constant, Index of the frequency grid in GriddedField4.
+/** Global constant, Index of the frequency grid in GField4.
 
     \author Patrick Eriksson
     \date   2008-07-01
 */
 extern const Index GFIELD4_F_GRID = 1;
 
-/** Global constant, Index of the latitude grid in GriddedField4.
+/** Global constant, Index of the latitude grid in GField4.
 
     \author Oliver Lemke
     \date   2008-06-25
 */
 extern const Index GFIELD4_LAT_GRID = 2;
 
-/** Global constant, Index of the zenith angle grid in GriddedField4.
+/** Global constant, Index of the zenith angle grid in GField4.
 
     \author Patrick Eriksson
     \date   2008-07-01
 */
 extern const Index GFIELD4_ZA_GRID = 2;
 
-/** Global constant, Index of the longitude grid in GriddedField4.
+/** Global constant, Index of the longitude grid in GField4.
 
     \author Oliver Lemke
     \date   2008-06-25
 */
 extern const Index GFIELD4_LON_GRID = 3;
 
-/** Global constant, Index of the azimuth angle grid in GriddedField4.
+/** Global constant, Index of the azimuth angle grid in GField4.
 
     \author Patrick Eriksson
     \date   2008-07-01

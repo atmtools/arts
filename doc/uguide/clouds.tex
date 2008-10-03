@@ -22,7 +22,7 @@ being a part of the modeled cloud field, a data file containing the
 single scattering properties ($\langle\ExtMat_i\rangle$,
 $\langle\AbsVec_i\rangle$, and $\langle\PhaMat_i\rangle$), and the
 appropriate particle number density field is required. The particle
-number density fields are stored as \typeindex{GriddedField3}, including the
+number density fields are stored as \typeindex{GField3}, including the
 field stored in a three-dimensional tensor and also the appropriate
 atmospheric grids (pressure, latitude and longitude grid). For each
 grid point in the cloud box the single scattering properties are
@@ -515,7 +515,7 @@ the filename of a datafile including scattering data (class
 \typeindex{SingleScatteringData}) in xml-format. The generic input
 \artsstyle{filename\_pnd\_field} must contain the filename of the
 corresponding particle number density field in xml-format (class
-\typeindex{GriddedField3}). If the cloud is composed of several
+\typeindex{GField3}). If the cloud is composed of several
 different particle types \wsmindex{ParticleTypeAdd} can be used
 repeatedly for all particle types, for instance one could add to the
 randomly oriented spherical particles above horizontally aligned

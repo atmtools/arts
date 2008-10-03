@@ -2,7 +2,7 @@
  \label{sec:atmosphere}
 
 \starthistory
- 050913 & Created by Claudia Emde. Included GriddedField3 description.\\ 
+ 050913 & Created by Claudia Emde. Included GField3 description.\\ 
 \stophistory
 
 \FIXME{Patrick: Move parts from chapter 3.1  here}
@@ -13,16 +13,16 @@
 \subsection{Gridded Fields} 
 
 In order to store three-dimensional atmospheric fields along with the
-atmospheric grids, the class \typeindex{GriddedField3} was
+atmospheric grids, the class \typeindex{GField3} was
 implemented. It resides in the files \fileindex{gridded\_fields.h} and
 \fileindex{gridded\_fields.cc}.  The reading routine
 \wsmindex{AtmRawRead} requires the volume mixing ratio profiles of all
 gas species and the altitude and temperature profiles in
-\typeindex{GriddedField3} format. The reading routines
+\typeindex{GField3} format. The reading routines
 \wsmindex{ParticleTypeAdd} and \wsmindex{ParticleTypeAddAll} require
-the particle number density fields in \typeindex{GriddedField3} format.
+the particle number density fields in \typeindex{GField3} format.
 
-The class \typeindex{GriddedField3} consists of the following fields:
+The \typeindex{GField3} consists of the following fields:
 \begin{itemize}
 \item {\sl Vector} \artsstyle{p\_grid}: Pressure grid [Unit: Pa].
 \item {\sl Vector} \artsstyle{lat\_grid}: Latitude grid [Unit:
