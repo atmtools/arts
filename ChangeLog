@@ -1,3 +1,10 @@
+2008-10-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-10-2
+
+	* configure.in: Forgot to change the version number in previous
+	commit.
+
 2008-10-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-10-1
