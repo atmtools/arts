@@ -1,3 +1,47 @@
+2008-10-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-10-5
+
+	* New feature: Supergeneric input / output can now be limited to
+	certain variable groups. See nrowsGet, ncolsGet as an example.
+	
+	For WSMs that have Supergeneric input AND output, the number of types
+	specified in GIN_TYPE and GOUT_TYPE for the supergeneric variable MUST
+	be the same.
+
+	* src/methods.cc:
+
+	Limit supergeneric input for nrowsGet, ncolsGet.... to types that
+	actually have these attributes.
+
+	* src/methods.h:
+
+	Added two ArrayOfArrayOfIndex to MdRecord that hold the valid variables
+	groups if the WSM is not completely supergeneric but only defined for
+	these types.
+
+	* src/methods_aux.cc:
+
+	Add support for specifying several types for GIN_TYPE and GOUT_TYPE.
+
+	(subst_any_with_specific_group): Added.
+
+	(expand_md_data_raw_to_md_data): Only partially expand supergeneric
+	methods that are limited to certain types.
+
+	* parser.cc (ArtsParser::parse_generic_input):
+
+	Throw a runtime error if a supergeneric method is called with an
+	unsupported type.
+
+	* src/arts.h, src/wsv_aux.h:
+
+	Moved function declarations for get_wsv_group_id from arts.h to
+	wsv_aux.h.
+
+	Added new function get_wsv_group_ids which parses a String with a list
+	of wsv group names and returns an ArrayOfIndex with the group ids.
+
 2008-10-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-10-4

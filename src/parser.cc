@@ -809,7 +809,14 @@ void ArtsParser::parse_generic_input(const MdRecord*&     mdd,
           // Find explicit method id in MdMap:
           const map<String, Index>::const_iterator mdit =
             MdMap.find(methodname);
-          assert ( mdit != MdMap.end() );
+          if (mdit == MdMap.end())
+            {
+              throw WrongWsvGroup( mdd->Name() + " is not defined for WSV group "
+                                   + wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+                                   msource.File(),
+                                   msource.Line(),
+                                   msource.Column());                        
+            }
           id = mdit->second;         
 
           mdd = &md_data[id];

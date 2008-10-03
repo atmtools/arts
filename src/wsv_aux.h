@@ -29,7 +29,12 @@
 #define wsv_aux_h
 
 #include "arts.h"
+#include "array.h"
 #include "exceptions.h"
+
+// Global functions
+void get_wsv_group_ids(ArrayOfIndex& ids, String name);
+Index get_wsv_group_id(const String& name);
 
 /** This class contains all static information for one workspace
     variable.

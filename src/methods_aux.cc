@@ -123,30 +123,63 @@ MdRecord::MdRecord(const char                   name[],
     }
 
   // Map the group names to groups' indexes
+  mgoutspectype.resize(gouttype.nelem());
   mgouttype.resize(gouttype.nelem());
   for ( Index j=0; j<gouttype.nelem(); ++j )
     {
-      mgouttype[j] = get_wsv_group_id (gouttype[j]);
-      if (mgouttype[j] == -1)
+      ArrayOfIndex types;
+      get_wsv_group_ids (types, gouttype[j]);
+
+      if (types.nelem() == 1)
+        {
+          mgouttype[j] = types[0];
+          mgoutspectype[j].resize(0);
+        }
+      else if (types.nelem() > 1)
+        {
+          mgouttype[j] = get_wsv_group_id ("Any");
+          mgoutspectype[j] = types;
+        }
+      else
         {
           ostringstream os;
           os << "Unknown WSV Group " << gouttype[j] << " for generic output "
             << "in WSM " << mname;
           throw runtime_error( os.str() );
         }
+
     }
 
+  mginspectype.resize(gintype.nelem());
   mgintype.resize(gintype.nelem());
   for ( Index j=0; j<gintype.nelem(); ++j )
     {
-      mgintype[j] = get_wsv_group_id (gintype[j]);
-      if (mgintype[j] == -1)
+      ArrayOfIndex types;
+      get_wsv_group_ids (types, gintype[j]);
+
+      if (types.nelem() == 1)
+        {
+          mgintype[j] = get_wsv_group_id (gintype[j]);
+          mginspectype[j].resize(0);
+        }
+      else if (types.nelem() > 1)
+        {
+          mgintype[j] = get_wsv_group_id ("Any");
+          mginspectype[j] = types;
+        }
+      else
         {
           ostringstream os;
           os << "Unknown WSV Group " << gintype[j] << " for generic input "
             << "in WSM " << mname;
           throw runtime_error( os.str() );
         }
+    }
+
+  if (mginspectype.nelem() && mgoutspectype.nelem())
+    {
+      assert(mginspectype[0].nelem()
+             == mgoutspectype[0].nelem());
     }
 
   // Find out if this method is supergeneric, and set the flag if
@@ -226,6 +259,53 @@ void MdRecord::subst_any_with_group( Index g )
 }
 
 
+//! Expand supergeneric record for given Index in GOutSpecType and GInSpecType.
+/*! 
+  This function will substitute any occurance of Any_ in the GOutType
+  and GInType list of MdRecord by group GOutSpecType[g] and GInSpecType[g]. 
+
+  It also adds the group to the name like this: Copy becomes
+  Copy_sg_Vector, Copy_sg_Matrix, etc..
+
+  \param g The SpecType index for which to expand.
+*/
+void MdRecord::subst_any_with_specific_group( Index g )
+{
+  const Index wsv_group_id_Any = get_wsv_group_id("Any");
+
+  // Make sure that g is in the allowed range, which means
+  // 0<=g<wsv_group_names.nelem() and g != Any_
+  assert( 0 <= g );
+
+  // Make sure that this really is a supergeneric method:
+  assert( Supergeneric() );
+
+  // Modify the name:
+//   {
+//     ostringstream os;
+//     os << mname << "_sg_" << wsv_group_names[g];
+//     mname = os.str();
+//   }
+  
+  for ( Index j=0; j<mgintype.nelem(); ++j )
+    if ( wsv_group_id_Any == mgintype[j] )
+      {
+        mgintype[j] = mginspectype[j][g];
+        // Set the field for the actual group:
+        mactual_group = mginspectype[j][g];
+      }
+
+  for ( Index j=0; j<mgouttype.nelem(); ++j )
+    if ( wsv_group_id_Any == mgouttype[j] )
+      {
+        mgouttype[j] = mgoutspectype[j][g];
+        // Set the field for the actual group:
+        mactual_group = mgoutspectype[j][g];
+      }
+
+}
+
+
 //! Expand supergeneric methods.
 /*!
   This creates md_data from md_data_raw, by explicitly expanding
@@ -264,23 +344,46 @@ void expand_md_data_raw_to_md_data()
         {
           // Special treatment for supergeneric methods:
 
-          // We have to create method records for all groups!
-          for ( Index j=0; j<wsv_group_names.nelem(); ++j )
+          // Check if the method is really supergeneric or just valid
+          // for certain types.
+
+          if ((mdd.GInSpecType().nelem() && mdd.GInSpecType()[0].nelem())
+               || (mdd.GOutSpecType().nelem() && mdd.GOutSpecType()[0].nelem()))
             {
-              // Any_ itself is also a group, but we don't want to
-              // create a record for Any_!
-              if ( wsv_group_id_Any != j )
+              Index max = 0;
+              if (mdd.GInSpecType().nelem())
+                max = mdd.GInSpecType()[0].nelem();
+              if (mdd.GOutSpecType().nelem()
+                  && mdd.GOutSpecType()[0].nelem() > max )
+                max =  mdd.GOutSpecType()[0].nelem();
+
+              for (Index k=0; k<max; k++)
                 {
-                  // Not a reference but a copy this time, since we
-                  // have to manipulate this.
                   MdRecord mdlocal = mdd;
-                      
-                  mdlocal.subst_any_with_group( j );
+
+                  mdlocal.subst_any_with_specific_group(k);
 
                   md_data.push_back(mdlocal);
                 }
             }
+          else
+            {
+              for ( Index j=0; j<wsv_group_names.nelem(); ++j )
+                {
+                  // Any_ itself is also a group, but we don't want to
+                  // create a record for Any_!
+                  if ( wsv_group_id_Any != j )
+                    {
+                      // Not a reference but a copy this time, since we
+                      // have to manipulate this.
+                      MdRecord mdlocal = mdd;
 
+                      mdlocal.subst_any_with_group( j );
+
+                      md_data.push_back(mdlocal);
+                    }
+                }
+            }
         }
     }
 }

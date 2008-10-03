@@ -32,6 +32,7 @@
 #include "arts.h"
 #include "array.h"
 #include "mystring.h"
+#include "wsv_aux.h"
 
 
 /*! The names associated with Wsv groups as Strings.
@@ -148,6 +149,44 @@ bool is_valid_keyword_group(const Index group)
     }
 
   return false;
+}
+
+void get_wsv_group_ids(ArrayOfIndex& ids, String name)
+{
+  ids.resize(0);
+  map<String, Index>::const_iterator it = WsvGroupMap.find (name);
+  
+  Index pos = 0;
+  while (pos < name.nelem())
+    {
+      switch (name[pos]) 
+        {
+        case ' ':
+        case '\r':
+        case '\t':
+        case '#':
+          name.erase(pos, 1);
+          break;
+        default:
+          pos++;
+        }
+    }
+
+  pos = 0;
+  Index prev = 0;
+  while (pos < name.nelem())
+    {
+      while (pos < name.nelem() && name[pos] != ',') pos ++;
+      Index id = get_wsv_group_id (name.substr(prev, pos-prev));
+      if (id == -1)
+        {
+          ids.resize(0);
+          return;
+        }
+      ids.push_back (id);
+      pos++;
+      prev = pos;
+    }
 }
 
 Index get_wsv_group_id(const String& name)

@@ -88,10 +88,12 @@ public:
   const ArrayOfIndex&      Out()            const { return moutput; }
   const ArrayOfString&     GOut()           const { return mgout; }
   const ArrayOfIndex&      GOutType()       const { return mgouttype; }
+  const ArrayOfArrayOfIndex& GOutSpecType() const { return mgoutspectype; }
   const Array<String>&     GOutDescription()const { return mgoutdesc; }
   const ArrayOfIndex&      In()             const { return minput; }
   const ArrayOfString&     GIn()            const { return mgin; }
   const ArrayOfIndex&      GInType()        const { return mgintype; }
+  const ArrayOfArrayOfIndex& GInSpecType()  const { return mginspectype; }
   const Array<String>&     GInDefault()     const { return mgindefault; }
   const Array<String>&     GInDescription() const { return mgindesc; }
   const ArrayOfIndex&      InOnly()         const { return minonly; }
@@ -108,6 +110,7 @@ public:
   // Expand supergeneric method record to an actual group
   // (documentation with implementation in method_aux.cc):
   void subst_any_with_group( Index g );
+  void subst_any_with_specific_group( Index g );
 
   //! Print method template for the control file. 
   /*!
@@ -153,6 +156,10 @@ private:
   //! Generic Workspace Output Type.
   ArrayOfIndex mgouttype;
 
+  //! Generic Workspace Output Types (Contains the valid types if the method
+  // is not completely supergeneric but only defined for these types).
+  ArrayOfArrayOfIndex mgoutspectype;
+
   //! Generic Workspace Output Description.
   ArrayOfString mgoutdesc;
 
@@ -164,6 +171,10 @@ private:
 
   //! Generic Workspace Input.
   ArrayOfIndex mgintype;
+
+  //! Generic Workspace Input Types (Contains the valid types if the method
+  // is not completely supergeneric but only defined for these types).
+  ArrayOfArrayOfIndex mginspectype;
 
   //! Generic Workspace Input Defaults.
   ArrayOfString mgindefault;
