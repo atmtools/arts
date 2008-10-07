@@ -37,30 +37,6 @@
 /* Workspace method: Doxygen documentation will be auto-generated */
 template< class T >
 void Select(// WS Generic Output:
-            T& needles _U_,
-            // WS Generic Input:
-            const T& haystack _U_,
-            const ArrayOfIndex& needleind _U_)
-{
-  throw runtime_error( "Select is not implemented for this type" );
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void Select(Workspace& ws _U_,
-            // WS Generic Output:
-            Agenda& out _U_,
-            // WS Generic Input:
-            const Agenda& in _U_,
-            const ArrayOfIndex& needleind _U_)
-{
-  throw runtime_error( "Select is not implemented for this type" );
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-template< class T >
-void Select(// WS Generic Output:
             Array<T>& needles,
             // WS Generic Input:
             const Array<T>& haystack,

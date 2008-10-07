@@ -37,33 +37,6 @@
 #include "workspace_ng.h"
 
 
-/* Throw runtime error for all unsupported types. */
-template< class T >
-void Append(Workspace& ws _U_,
-            // WS Generic Output:
-            T& out _U_,
-            // WS Generic Input:
-            const T& in _U_)
-{
-  ostringstream os;                                             \
-  os << "Appending is not (yet?) implemented for this variable group.";
-  throw runtime_error(os.str());                \
-}
-
-
-/* Throw runtime error for all unsupported types. */
-template< class T >
-void Append(// WS Generic Output:
-            T& out _U_,
-            // WS Generic Input:
-            const T& in _U_)
-{
-  ostringstream os;                                             \
-  os << "Appending is not (yet?) implemented for this variable group.";
-  throw runtime_error(os.str());                \
-}
-
-
 /* Implementations for supported types follow. */
 
 /* Implementation for array types */

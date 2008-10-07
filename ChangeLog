@@ -1,5 +1,17 @@
 2008-10-07  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-10-7
+
+	* src/m_append.h, src/m_select.h:
+
+	Remove obsolete catchall template functions.
+
+	* src/methods.cc:
+
+	Define Select and nelemGet for ArrayOf* and Vector only.
+
+2008-10-07  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-10-6
 
 	* src/methods_aux.cc (operator<<):
