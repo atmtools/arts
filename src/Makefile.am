@@ -68,7 +68,6 @@ libarts_a_SOURCES = \
 	globals_2.cc \
 	gridded_fields.cc\
 	gridded_fields.h\
-	groups.cc \
 	interpolation.cc \
 	interpolation.h \
 	interpolation_poly.cc \
@@ -151,7 +150,6 @@ libarts_a_SOURCES = \
 	workspace.cc \
 	workspace_ng.cc \
 	workspace_ng.h \
-	wsv_aux.h \
 	xml_io.h \
 	xml_io_instantiation.h \
 	xml_io_private.h \
@@ -214,11 +212,14 @@ libmatpack_a_SOURCES = \
 
 libmethods_a_CXXFLAGS = $(CXXFLAGS_NOOPT) $(WARNINGCFLAGS)
 libmethods_a_SOURCES = \
+	array.h \
 	arts.h \
-	methods.h \
 	auto_workspace.h \
 	make_array.h \
-	methods.cc
+	methods.h \
+	methods.cc \
+	wsv_aux.h \
+	groups.cc
 
 libspecies_data_a_CXXFLAGS = $(CXXFLAGS_NOOPT) $(WARNINGCFLAGS)
 libspecies_data_a_SOURCES = \
@@ -313,7 +314,6 @@ make_auto_md_h_SOURCES = \
 	file.h \
 	globals_2.cc \
 	gridded_fields.cc \
-	groups.cc \
 	make_auto_md_h.cc \
 	messages.cc \
 	messages.h \
@@ -325,8 +325,7 @@ make_auto_md_h_SOURCES = \
 	version.cc \
 	workspace.cc \
 	workspace_ng.cc \
-	workspace_ng.h \
-	wsv_aux.h
+	workspace_ng.h
 
 make_auto_md_cc_LDADD = libmethods.a libmatpack.a
 make_auto_md_cc_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
@@ -346,7 +345,6 @@ make_auto_md_cc_SOURCES = \
 	file.h \
 	globals_2.cc \
 	gridded_fields.cc \
-	groups.cc \
 	make_auto_md_cc.cc \
 	messages.cc \
 	messages.h \
@@ -358,8 +356,7 @@ make_auto_md_cc_SOURCES = \
 	version.cc \
 	workspace.cc \
 	workspace_ng.cc \
-	workspace_ng.h \
-	wsv_aux.h
+	workspace_ng.h
 
 auto_workspace.h: make_auto_workspace_h$(EXEEXT)
 	$(top_builddir)/src/make_auto_workspace_h$(EXEEXT)

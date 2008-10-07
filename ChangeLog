@@ -1,3 +1,39 @@
+2008-10-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-10-6
+
+	* src/methods_aux.cc (operator<<):
+
+	Show either Any or a list of the valid types in the online
+	documentation for supergeneric methods.
+
+	Finetune the automatic line breaking.
+
+	* src/methods.cc:
+
+	Define a constant string ARRAY_GROUPS which contains all array types.
+	It is quite common that a WSM takes all kinds of arrays as an input.
+
+	WSM Append: Use ARRAY_GROUPS for GOUT_TYPE/GIN_TYPE.
+
+	Include wsv_aux.h.
+
+	* src/wsv_aux.h, src/group.cc (get_array_groups_as_string):
+
+	Added function to return a string containing a comma-separated list of
+	all array types.
+
+	* src/Makefile.am:
+
+	Move groups.cc and wsv_aux.h from libarts to libmethods.
+
+	Add groups.cc to make_auto_md_h_SOURCES and make_auto_md_cc_SOURCES.
+
+	* src/main.cc:
+
+	Only output supergeneric methods that really can generate or use
+	variables of the given group for 'arts -m|-i'.
+
 2008-10-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-10-5

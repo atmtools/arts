@@ -452,34 +452,44 @@ void define_md_raw_map()
 }
 
 
-void format_paragraph (String &s, const String &indent, const size_t linelen)
+bool format_paragraph (String &s, const String &indent, const size_t linelen,
+                       const size_t offset = 0)
 {
-  String out = indent;
+  bool fit = true;
+  String out;
   String token;
   size_t lastreturn = 0;
+  size_t currentlinelength = offset;
   for (size_t i = 0; i < s.length(); i++)
     {
       if (s[i] == '\n') s[i] = ' ';
       token += s[i];
       if (s[i] == ' ')
         {
-          if (out.length() - lastreturn + token.length() > linelen)
+          if (currentlinelength + token.length() > linelen)
             {
               out += '\n' + indent;
               lastreturn = i;
+              currentlinelength = indent.length();
+              fit = false;
             }
           out += token;
+          currentlinelength += token.length();
           token = "";
         }
     }
 
   if (token.length())
     {
-      if (out.length() - lastreturn + token.length() > linelen)
-        out += '\n' + indent;
+      if (currentlinelength + token.length() > linelen)
+        {
+          out += '\n' + indent;
+          fit = false;
+        }
       out += token;
     }
   s = out;
+  return fit;
 }
 
 
@@ -599,6 +609,8 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   ostringstream param;
   String indent = "";
   const size_t linelen = 68;
+  bool fit;
+  size_t lastlen;
 
   os << "\n*-------------------------------------------------------------------*\n"
      << "Workspace method = " << mdr.Name() << 
@@ -686,7 +698,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
 
   // Out:
   first = true;
-  indent = "      ";
+  indent = String(6);
   String desc;
   for ( Index i=0; i<mdr.Out().nelem(); ++i )
     {
@@ -704,7 +716,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       if (buf.str().length() + desc.length() > linelen)
         {
           format_paragraph (desc, indent, linelen);
-          buf << endl << desc;
+          buf << endl << indent << desc;
         }
       else
         {
@@ -724,13 +736,37 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       else
         buf << "gout" << i;
       buf << " (";
-      buf << wsv_group_names[mdr.GOutType()[i]];
+      if (mdr.GOutType()[i] == get_wsv_group_id("Any")
+          && mdr.GOutSpecType()[i].nelem())
+        {
+          bool firstarg = true;
+          for (Index j = 0; j < mdr.GOutSpecType()[i].nelem(); j++)
+            {
+              if (!firstarg) buf << ", "; else firstarg = false;
+              buf << wsv_group_names[mdr.GOutSpecType()[i][j]];
+            }
+        }
+      else
+        {
+          buf << wsv_group_names[mdr.GOutType()[i]];
+        }
 
       buf << "): ";
+      desc = buf.str();
+      lastlen = desc.length();
+      fit = format_paragraph (desc, String(13), linelen);
+      buf.str("");
+      os << desc;
+
       desc = mdr.GOutDescription()[i];
-      if (buf.str().length() + desc.length() > linelen)
+      if (!fit)
         {
           format_paragraph (desc, indent, linelen);
+          buf << endl << indent << desc;
+        }
+      else if (lastlen + desc.length() > linelen)
+        {
+          format_paragraph (desc, indent, linelen, lastlen);
           buf << endl << desc;
         }
       else
@@ -757,7 +793,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       if (buf.str().length() + desc.length() > linelen)
         {
           format_paragraph (desc, indent, linelen);
-          buf << endl << desc;
+          buf << endl << indent << desc;
         }
       else
         {
@@ -777,7 +813,20 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       else
         buf << "gin" << i;
       buf << " (";
-      buf << wsv_group_names[mdr.GInType()[i]];
+      if (mdr.GInType()[i] == get_wsv_group_id("Any")
+          && mdr.GInSpecType()[i].nelem())
+        {
+          bool firstarg = true;
+          for (Index j = 0; j < mdr.GInSpecType()[i].nelem(); j++)
+            {
+              if (!firstarg) buf << ", "; else firstarg = false;
+              buf << wsv_group_names[mdr.GInSpecType()[i][j]];
+            }
+        }
+      else
+        {
+          buf << wsv_group_names[mdr.GInType()[i]];
+        }
 
       if (mdr.GInDefault()[i] != NODEF)
         {
@@ -794,10 +843,21 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
         }
 
       buf << "): ";
+      desc = buf.str();
+      lastlen = desc.length();
+      fit = format_paragraph (desc, String(12), linelen);
+      buf.str("");
+      os << desc;
+
       desc = mdr.GInDescription()[i];
-      if (buf.str().length() + desc.length() > linelen)
+      if (!fit)
         {
           format_paragraph (desc, indent, linelen);
+          buf << endl << indent << desc;
+        }
+      else if (lastlen + desc.length() > linelen)
+        {
+          format_paragraph (desc, indent, linelen, lastlen);
           buf << endl << desc;
         }
       else

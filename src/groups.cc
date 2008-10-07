@@ -198,3 +198,19 @@ Index get_wsv_group_id(const String& name)
     return it->second;
 }
 
+String get_array_groups_as_string()
+{
+  String arraygroups;
+
+  bool first = true;
+  for (Index i = 0; i < wsv_group_names.nelem(); i++)
+    {
+      if (wsv_group_names[i].substr(0, String("ArrayOf").length()) == "ArrayOf")
+        {
+          if (!first) arraygroups += ", "; else first = false;
+          arraygroups += wsv_group_names[i];
+        }
+    }
+  return arraygroups;
+}
+

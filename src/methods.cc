@@ -33,6 +33,7 @@
 #include "arts.h"
 #include "make_array.h"
 #include "methods.h"
+#include "wsv_aux.h"
 
 // Some #defines and typedefs to make the records better readable:
 #define NAME(x) x
@@ -101,6 +102,8 @@ void define_md_data_raw()
 
   // Initialize to zero, just in case:
   md_data_raw.resize(0);
+
+  const String ARRAY_GROUPS = get_array_groups_as_string();
 
   /////////////////////////////////////////////////////////////////////////////
   // Let's put in the functions in alphabetical order. This gives a clear rule
@@ -1807,11 +1810,11 @@ void define_md_data_raw()
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(      "gout1"    ),
-        GOUT_TYPE( "Any" ),
+        GOUT_TYPE( ARRAY_GROUPS + ", Vector" ),
         GOUT_DESC("FIXME DOC"),
         IN(),
         GIN(      "gin1"    ),
-        GIN_TYPE(    "Any" ),
+        GIN_TYPE( ARRAY_GROUPS + ", Vector" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC("FIXME DOC"),
         SETMETHOD(      false ),

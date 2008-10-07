@@ -35,6 +35,8 @@
 // Global functions
 void get_wsv_group_ids(ArrayOfIndex& ids, String name);
 Index get_wsv_group_id(const String& name);
+String get_array_groups_as_string();
+
 
 /** This class contains all static information for one workspace
     variable.

@@ -185,8 +185,27 @@ void option_methods(const String& methods)
                       mdd.GOutType().end(),
                       get_wsv_group_id("Any") ) )
             {
-              cout << "- " << mdd.Name() << "\n";
-              ++hitcount;
+              for (Index j = 0; j < mdd.GOutType().nelem(); j++)
+                {
+                  if (mdd.GOutType()[j] == get_wsv_group_id("Any"))
+                    {
+                      if (mdd.GOutSpecType()[j].nelem())
+                        {
+                          if (count( mdd.GOutSpecType()[j].begin(),
+                                     mdd.GOutSpecType()[j].end(),
+                                     Workspace::wsv_data[wsv_key].Group() ) )
+                            {
+                              cout << "- " << mdd.Name() << "\n";
+                              ++hitcount;
+                            }
+                        }
+                      else
+                        {
+                          cout << "- " << mdd.Name() << "\n";
+                          ++hitcount;
+                        }
+                    }
+                }
             }
         }
       if ( 0==hitcount )
@@ -265,8 +284,27 @@ void option_methods(const String& methods)
                       mdd.GOutType().end(),
                       get_wsv_group_id("Any") ) )
             {
-              cout << "- " << mdd.Name() << "\n";
-              ++hitcount;
+              for (Index j = 0; j < mdd.GOutType().nelem(); j++)
+                {
+                  if (mdd.GOutType()[j] == get_wsv_group_id("Any"))
+                    {
+                      if (mdd.GOutSpecType()[j].nelem())
+                        {
+                          if (count( mdd.GOutSpecType()[j].begin(),
+                                     mdd.GOutSpecType()[j].end(),
+                                     group_key ) )
+                            {
+                              cout << "- " << mdd.Name() << "\n";
+                              ++hitcount;
+                            }
+                        }
+                      else
+                        {
+                          cout << "- " << mdd.Name() << "\n";
+                          ++hitcount;
+                        }
+                    }
+                }
             }
         }
       if ( 0==hitcount )
@@ -341,8 +379,27 @@ void option_input(const String& input)
                       mdd.GInType().end(),
                       get_wsv_group_id("Any") ) )
             {
-              cout << "- " << mdd.Name() << "\n";
-              ++hitcount;
+              for (Index j = 0; j < mdd.GInType().nelem(); j++)
+                {
+                  if (mdd.GInType()[j] == get_wsv_group_id("Any"))
+                    {
+                      if (mdd.GInSpecType()[j].nelem())
+                        {
+                          if (count( mdd.GInSpecType()[j].begin(),
+                                     mdd.GInSpecType()[j].end(),
+                                     Workspace::wsv_data[wsv_key].Group() ) )
+                            {
+                              cout << "- " << mdd.Name() << "\n";
+                              ++hitcount;
+                            }
+                        }
+                      else
+                        {
+                          cout << "- " << mdd.Name() << "\n";
+                          ++hitcount;
+                        }
+                    }
+                }
             }
         }
       if ( 0==hitcount )
@@ -421,9 +478,29 @@ void option_input(const String& input)
                       mdd.GInType().end(),
                       get_wsv_group_id("Any") ) )
             {
-              cout << "- " << mdd.Name() << "\n";
-              ++hitcount;
-            }   }
+              for (Index j = 0; j < mdd.GInType().nelem(); j++)
+                {
+                  if (mdd.GInType()[j] == get_wsv_group_id("Any"))
+                    {
+                      if (mdd.GInSpecType()[j].nelem())
+                        {
+                          if (count( mdd.GInSpecType()[j].begin(),
+                                     mdd.GInSpecType()[j].end(),
+                                     group_key ) )
+                            {
+                              cout << "- " << mdd.Name() << "\n";
+                              ++hitcount;
+                            }
+                        }
+                      else
+                        {
+                          cout << "- " << mdd.Name() << "\n";
+                          ++hitcount;
+                        }
+                    }
+                }
+            }
+        }
       if ( 0==hitcount )
         cout << "none\n";
 
