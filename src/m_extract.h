@@ -32,8 +32,8 @@
 
 #include <array.h>
 #include <exceptions.h>
-#include <matpackI.h>
-#include <matpackIII.h>
+#include "matpackV.h"
+#include "gridded_fields.h"
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template <typename T>

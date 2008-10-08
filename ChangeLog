@@ -1,5 +1,11 @@
 2008-10-08  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-11-2
+
+	* src/m_extract.h: Include matpackV.h to pass checks.
+
+2008-10-08  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-11-1
 
 	* Increased minor version number because the following Workspace
