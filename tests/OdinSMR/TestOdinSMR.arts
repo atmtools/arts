@@ -44,7 +44,7 @@ AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "tropical" )
 AtmFieldsCalc
 
 # Get ground altitude (z_surface) from z_field
-MatrixExtractFromTensor3( z_surface, z_field, 0 )
+Extract( z_surface, z_field, 0 )
 
 
 

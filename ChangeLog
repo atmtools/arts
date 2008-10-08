@@ -1,3 +1,64 @@
+2008-10-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-11-1
+
+	* Increased minor version number because the following Workspace
+	methods have been merged into one:
+
+	ArrayOfGField3ExtractFromArrayOfArrayOfGField3
+	ArrayOfIndexExtractFromArrayOfArrayOfIndex
+	GField4ExtractFromArrayOfGField4
+	MatrixExtractFromArrayOfMatrix
+	MatrixExtractFromTensor3
+	NumericExtractFromVector
+	Tensor3ExtractFromTensor4
+	Tensor4ExtractFromTensor5
+	Tensor4ExtractFromArrayOfTensor4
+
+	all merged into supergeneric method 'Extract'
+
+	* src/methods.cc:
+
+	Removed the methods mentioned above and added Extract.
+
+	* src/methods.h, src/methods_aux.cc:
+
+	Changed MdRecord.ActualGroup from an Index to a String. The String
+	contains for each implementation of a supergeneric method the list of
+	groups passed to this instantiation of the method.
+
+	Before, one group was enough because supergeneric WSMs always had the
+	same input and output type. Now we have to make sure that the getaway
+	function names are unique even if a WSM has several implementations
+	with the same output type but different input types and vice versa.
+
+	More tweaking of the online docs formatting.
+
+	* src/src/make_auto_md_h.cc, src/make_auto_md_cc.cc:
+
+	Changed ActualGroup to ActualGroups.
+
+	* src/m_extract.h: Added.
+
+	Collect all Extract method implementations here.
+
+	* src/parser.cc:
+
+	Tweak the generic input and output parsing to take into account that
+	supergeneric inputs and outputs can have different types now.
+
+	* src/m_batch.cc: Moved Extract method implementations to m_extract.
+
+	* src/Makefile.am: Add m_extract.h to libarts_a_SOURCES.
+
+	* src/make_auto_md_cc.cc: Include m_extract.h in auto_md.cc.
+
+	* tests/AMSU/TestAMSU_generic.arts, tests/HIRS/TestHIRS.arts,
+	tests/OdinSMR/TestOdinSMR.arts, tests/OdinSMR/TestOdinSMR_119ghz.arts,
+	tests/OdinSMR/TestOdinSMR_1D.arts, tests/ClearSky/TestClearSky.arts:
+
+	Renamed Extract methods.
+
 2008-10-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-10-7

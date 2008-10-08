@@ -31,10 +31,7 @@
 
 #include "array.h"
 #include "exceptions.h"
-#include "messages.h"
-#include "mystring.h"
 #include "matpackI.h"
-#include "workspace_ng.h"
 
 
 /* Implementations for supported types follow. */

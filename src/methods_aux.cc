@@ -81,7 +81,7 @@ MdRecord::MdRecord(const char                   name[],
     msuppress_header( suppress_header     ),
     mpass_workspace(  pass_workspace      ),
     mpass_wsv_names(  pass_wsv_names      ),
-    mactual_group(    -1                  )
+    mactual_groups(   ""                  )
 { 
   // Initializing the various arrays with input data should now
   // work correctly.  
@@ -228,7 +228,7 @@ void MdRecord::subst_any_with_group( Index g )
 {
   const Index wsv_group_id_Any = get_wsv_group_id("Any");
   // The group names, we need them for the expansion:
-  DEBUG_ONLY (extern const ArrayOfString wsv_group_names);
+  extern const ArrayOfString wsv_group_names;
 
   // Make sure they are initialized:
   assert( 0 != wsv_group_names.nelem() );
@@ -255,7 +255,7 @@ void MdRecord::subst_any_with_group( Index g )
     if ( wsv_group_id_Any == mgintype[j] )           mgintype[j] = g;
 
   // Set the field for the actual group:
-  mactual_group = g;
+  mactual_groups = wsv_group_names[g];
 }
 
 
@@ -271,6 +271,9 @@ void MdRecord::subst_any_with_group( Index g )
 */
 void MdRecord::subst_any_with_specific_group( Index g )
 {
+  // The group names, we need them for the expansion:
+  extern const ArrayOfString wsv_group_names;
+
   const Index wsv_group_id_Any = get_wsv_group_id("Any");
 
   // Make sure that g is in the allowed range, which means
@@ -287,20 +290,21 @@ void MdRecord::subst_any_with_specific_group( Index g )
 //     mname = os.str();
 //   }
   
-  for ( Index j=0; j<mgintype.nelem(); ++j )
-    if ( wsv_group_id_Any == mgintype[j] )
-      {
-        mgintype[j] = mginspectype[j][g];
-        // Set the field for the actual group:
-        mactual_group = mginspectype[j][g];
-      }
-
+  mactual_groups = "";
   for ( Index j=0; j<mgouttype.nelem(); ++j )
     if ( wsv_group_id_Any == mgouttype[j] )
       {
         mgouttype[j] = mgoutspectype[j][g];
         // Set the field for the actual group:
-        mactual_group = mgoutspectype[j][g];
+        mactual_groups += wsv_group_names[mgoutspectype[j][g]];
+      }
+
+  for ( Index j=0; j<mgintype.nelem(); ++j )
+    if ( wsv_group_id_Any == mgintype[j] )
+      {
+        mgintype[j] = mginspectype[j][g];
+        // Set the field for the actual group:
+        mactual_groups += wsv_group_names[mginspectype[j][g]];
       }
 
 }
@@ -407,19 +411,13 @@ void define_md_map()
     {
       const MdRecord& mdd = md_data[i];
 
-//       cout << "mdd.ActualGroup() = "
-//         << mdd.ActualGroup() << "\n";
-
-//       cout << "wsv_group_names[mdd.ActualGroup()] = "
-//         << wsv_group_names[mdd.ActualGroup()] << "\n";
-
       // For supergeneric methods, add group to method name
       String methodname;
       ostringstream os;
       if ( mdd.Supergeneric() )
         {
           os << mdd.Name() << "_sg_"
-             << wsv_group_names[mdd.ActualGroup()];
+             << mdd.ActualGroups();
         }
       else
         {
@@ -729,13 +727,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   for ( Index i=0; i<mdr.GOut().nelem(); ++i )
     {
       buf.str("");
-      buf <<    "GOUT  ";
-
-      if (mdr.GOut()[i].length())
-        buf << mdr.GOut()[i];
-      else
-        buf << "gout" << i;
-      buf << " (";
+      buf <<    "GOUT  " << mdr.GOut()[i] << " (";
       if (mdr.GOutType()[i] == get_wsv_group_id("Any")
           && mdr.GOutSpecType()[i].nelem())
         {
@@ -754,7 +746,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       buf << "): ";
       desc = buf.str();
       lastlen = desc.length();
-      fit = format_paragraph (desc, String(13), linelen);
+      fit = format_paragraph (desc, indent, linelen);
       buf.str("");
       os << desc;
 
@@ -792,7 +784,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
 
       if (buf.str().length() + desc.length() > linelen)
         {
-          format_paragraph (desc, indent, linelen);
+          format_paragraph (desc, indent, linelen, indent.length());
           buf << endl << indent << desc;
         }
       else
@@ -806,13 +798,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   for ( Index i=0; i<mdr.GIn().nelem(); ++i )
     {
       buf.str("");
-      buf <<    "GIN   ";
-
-      if (mdr.GIn()[i].length())
-        buf << mdr.GIn()[i];
-      else
-        buf << "gin" << i;
-      buf << " (";
+      buf <<    "GIN   " << mdr.GIn()[i] << " (";
       if (mdr.GInType()[i] == get_wsv_group_id("Any")
           && mdr.GInSpecType()[i].nelem())
         {
@@ -845,7 +831,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
       buf << "): ";
       desc = buf.str();
       lastlen = desc.length();
-      fit = format_paragraph (desc, String(12), linelen);
+      fit = format_paragraph (desc, indent, linelen);
       buf.str("");
       os << desc;
 
@@ -857,8 +843,8 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
         }
       else if (lastlen + desc.length() > linelen)
         {
-          format_paragraph (desc, indent, linelen, lastlen);
-          buf << endl << desc;
+          format_paragraph (desc, indent, linelen, indent.length());
+          buf << endl << indent << desc;
         }
       else
         {

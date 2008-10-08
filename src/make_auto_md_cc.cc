@@ -82,6 +82,7 @@ int main()
           << "#include \"m_append.h\"\n"
           << "#include \"m_delete.h\"\n"
           << "#include \"m_copy.h\"\n"
+          << "#include \"m_extract.h\"\n"
           << "#include \"m_general.h\"\n"
           << "#include \"m_ignore.h\"\n"
           << "#include \"m_nc.h\"\n"
@@ -168,7 +169,7 @@ int main()
               if ( mdd.Supergeneric() )
                 {
                   ofs << "void " << mdd.Name()
-                    << "_sg_" << wsv_group_names[mdd.ActualGroup()]
+                    << "_sg_" << mdd.ActualGroups()
                     << "_g(Workspace&" << ws
                     << ", const MRecord&" << mr << ")\n"
                     << "{\n";
@@ -334,7 +335,7 @@ int main()
             if ( mdd.Supergeneric() )
               {
                 ofs << mdd.Name()
-                    << "_sg_" << wsv_group_names[mdd.ActualGroup()]
+                    << "_sg_" << mdd.ActualGroups()
                     << "_g";
               }
             else

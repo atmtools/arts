@@ -346,7 +346,7 @@ sensor_posAddRgeoid
 
 AtmFieldsCalc
 
-MatrixExtractFromTensor3( z_surface, z_field, 0 )
+Extract( z_surface, z_field, 0 )
 
 abs_lines_per_speciesCreateFromLines
 

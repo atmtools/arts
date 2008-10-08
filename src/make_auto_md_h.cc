@@ -575,7 +575,6 @@ int main()
       // Make the global data visible:
       extern Array<MdRecord> md_data_raw;
       extern Array<MdRecord> md_data;
-      extern const ArrayOfString wsv_group_names;
 
       // Initialize the wsv group name array:
       define_wsv_group_names();
@@ -671,7 +670,7 @@ int main()
           if ( mdd.Supergeneric() )
                 {
                   ofs << "void " << mdd.Name()
-                      << "_sg_" << wsv_group_names[mdd.ActualGroup()]
+                      << "_sg_" << mdd.ActualGroups()
                       << "_g(Workspace& ws, const MRecord& mr);\n";
                 }
               else

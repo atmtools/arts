@@ -58,7 +58,7 @@ public:
     msuppress_header(false),
     mpass_workspace(false),
     mpass_wsv_names(false),
-    mactual_group(-1)
+    mactual_groups("")
   {};
 
   // Initializing constructor. Implementation in methods_aux.cc.
@@ -104,7 +104,7 @@ public:
   bool                     SuppressHeader() const { return msuppress_header; }
   bool                     PassWorkspace()  const { return mpass_workspace; }
   bool                     PassWsvNames()   const { return mpass_wsv_names; }
-  Index                    ActualGroup()    const { return mactual_group; }
+  const String&            ActualGroups()   const { return mactual_groups; }
   void                     SetPassWorkspace()  { mpass_workspace = true; }
 
   // Expand supergeneric method record to an actual group
@@ -231,11 +231,11 @@ private:
   */ 
   bool mpass_wsv_names;
 
-  //! The actual group of a supergeneric method.
+  //! The actual groups of a supergeneric method.
   /*! 
-    This holds the actual group after expansion of a supergeneric method.
+    This holds the actual groups after expansion of a supergeneric method.
   */
-  Index mactual_group;
+  String mactual_groups;
 };
 
 void define_md_data_raw();

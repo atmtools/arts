@@ -55,7 +55,7 @@ AtmFieldsCalc
 
 
 # get ground altitude (z_surface) from z_field
-MatrixExtractFromTensor3( z_surface, z_field, 0 )
+Extract( z_surface, z_field, 0 )
 
 
 # Definition of sensor position and LOS

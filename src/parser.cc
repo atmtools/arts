@@ -631,6 +631,8 @@ void ArtsParser::parse_method_args(const MdRecord*&       mdd,
     {
       String wsvname;
       bool first = true;        // To skip the first comma.
+      String supergeneric_args;
+      Index supergeneric_index = -1;
 
       msource.AdvanceChar();
       eat_whitespace();
@@ -638,14 +640,17 @@ void ArtsParser::parse_method_args(const MdRecord*&       mdd,
       parse_specific_output(mdd, output, first);
 
       parse_generic_output(mdd, id, methodname, output,
-                           first, still_supergeneric);
+                           first, still_supergeneric, supergeneric_args,
+                           supergeneric_index);
 
       parse_specific_input(mdd, input, auto_vars, auto_vars_values, first);
 
       parse_generic_input(mdd, id, methodname, input,
                           auto_vars, auto_vars_values,
-                          first, still_supergeneric);
+                          first, still_supergeneric, supergeneric_args,
+                          supergeneric_index);
 
+      assert(!still_supergeneric);
       assertain_character(')');
     }
   else
@@ -736,7 +741,9 @@ void ArtsParser::parse_generic_input(const MdRecord*&     mdd,
                                            ArrayOfIndex&  auto_vars,
                                            Array<TokVal>& auto_vars_values,
                                            bool&          first,
-                                           bool&          still_supergeneric)
+                                           bool&          still_supergeneric,
+                                           String&        supergeneric_args,
+                                           Index&         supergeneric_index _U_)
 {
   String wsvname;
   Index wsvid;
@@ -802,26 +809,23 @@ void ArtsParser::parse_generic_input(const MdRecord*&     mdd,
       if ( still_supergeneric )
         {
           ostringstream os;
-          os << mdd->Name() << "_sg_"
-            << wsv_group_names[Workspace::wsv_data[wsvid].Group()];
+          if (wsv_group_names[mdd->GInType()[j]] == "Any")
+            supergeneric_args +=
+              wsv_group_names[Workspace::wsv_data[wsvid].Group()];
+          os << mdd->Name() << "_sg_" << supergeneric_args;
           methodname = os.str();
 
           // Find explicit method id in MdMap:
           const map<String, Index>::const_iterator mdit =
             MdMap.find(methodname);
-          if (mdit == MdMap.end())
+          if (mdit != MdMap.end())
             {
-              throw WrongWsvGroup( mdd->Name() + " is not defined for WSV group "
-                                   + wsv_group_names[Workspace::wsv_data[wsvid].Group()],
-                                   msource.File(),
-                                   msource.Line(),
-                                   msource.Column());                        
+              id = mdit->second;         
+
+              mdd = &md_data[id];
+
+              still_supergeneric = false;
             }
-          id = mdit->second;         
-
-          mdd = &md_data[id];
-
-          still_supergeneric = false;
         }
 
       // Now we have explicitly the method record for the right
@@ -829,13 +833,64 @@ void ArtsParser::parse_generic_input(const MdRecord*&     mdd,
       // methods should be necessary.
 
       // Check that this Wsv belongs to the correct group:
-      if ( Workspace::wsv_data[wsvid].Group() != mdd->GInType()[j] )
-        throw WrongWsvGroup( wsvname+" is not "+
-                             wsv_group_names[mdd->GInType()[j]]+", it is "+ 
-                             wsv_group_names[Workspace::wsv_data[wsvid].Group()],
-                             msource.File(),
-                             msource.Line(),
-                             msource.Column() );
+      if (mdd->GInType()[j] == get_wsv_group_id ("Any")
+          && mdd->GInSpecType()[j].nelem() )
+        {
+          if (supergeneric_index == -1)
+            {
+              bool wrong_group_id = true;
+              for (Index i = 0; wrong_group_id && i < mdd->GInSpecType()[j].nelem(); i++)
+                {
+                  if (Workspace::wsv_data[wsvid].Group()
+                      == mdd->GInSpecType()[j][i])
+                    {
+                      wrong_group_id = false;
+                      supergeneric_index = i;
+                    }
+                }
+
+              if (wrong_group_id)
+                {
+                  ostringstream os;
+                  bool firsttype = true;
+                  for (Index i = 0; i < mdd->GInSpecType()[j].nelem(); i++)
+                    {
+                      if (!firsttype) os << ", "; else firsttype = false;
+                      os << wsv_group_names[mdd->GInSpecType()[j][i]];
+                    }
+
+                  throw WrongWsvGroup( "*" + mdd->Name()+"* is not defined for "
+                                       +wsv_group_names[Workspace::wsv_data[wsvid].Group()]
+                                       +" input. Check the online docs.",
+                                       msource.File(),
+                                       msource.Line(),
+                                       msource.Column() );
+                }
+            }
+          else
+            {
+              if (Workspace::wsv_data[wsvid].Group()
+                  != mdd->GInSpecType()[j][supergeneric_index])
+                {
+                  throw WrongWsvGroup( wsvname+" is not "+
+                                       wsv_group_names[mdd->GInSpecType()[j][supergeneric_index]]
+                                       +", it is "+ 
+                                       wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+                                       msource.File(),
+                                       msource.Line(),
+                                       msource.Column());
+                }
+            }
+        }
+      else if (Workspace::wsv_data[wsvid].Group() != mdd->GInType()[j])
+        {
+          throw WrongWsvGroup( wsvname+" is not "+
+                               wsv_group_names[mdd->GInType()[j]]+", it is "+ 
+                               wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+                               msource.File(),
+                               msource.Line(),
+                               msource.Column() );
+        }
 
       // Add this one to the list of input variables:
       input.push_back(wsvid);
@@ -865,7 +920,9 @@ void ArtsParser::parse_generic_output(const MdRecord*&     mdd,
                                             String&        methodname,
                                             ArrayOfIndex&  output,
                                             bool&          first,
-                                            bool&          still_supergeneric)
+                                            bool&          still_supergeneric,
+                                            String&        supergeneric_args,
+                                            Index&         supergeneric_index)
 {
   String wsvname;
   Index wsvid;
@@ -941,21 +998,27 @@ void ArtsParser::parse_generic_output(const MdRecord*&     mdd,
 
       // If this is a supergeneric method, now is the time to find
       // out the actual group of the argument(s)!
+      // If the method also has supergeneric input arguments, we'll
+      // look for a match later again.
       if ( still_supergeneric )
         {
           ostringstream os;
-          os << mdd->Name() << "_sg_"
-            << wsv_group_names[Workspace::wsv_data[wsvid].Group()];
+          if (wsv_group_names[mdd->GOutType()[j]] == "Any")
+            supergeneric_args +=
+              wsv_group_names[Workspace::wsv_data[wsvid].Group()];
+          os << mdd->Name() << "_sg_" << supergeneric_args;
           methodname = os.str();
 
           // Find explicit method id in MdMap:
           const map<String, Index>::const_iterator mdit = MdMap.find(methodname);
-          assert ( mdit != MdMap.end() );
-          id = mdit->second;         
+          if (mdit != MdMap.end() )
+            {
+              id = mdit->second;         
 
-          mdd = &md_data[id];
+              mdd = &md_data[id];
 
-          still_supergeneric = false;
+              still_supergeneric = false;
+            }
         }
 
       // Now we have explicitly the method record for the right
@@ -963,7 +1026,56 @@ void ArtsParser::parse_generic_output(const MdRecord*&     mdd,
       // methods should be necessary.
 
       // Check that this Wsv belongs to the correct group:
-      if ( Workspace::wsv_data[wsvid].Group() != mdd->GOutType()[j] )
+      if (mdd->GOutType()[j] == get_wsv_group_id ("Any")
+          && mdd->GOutSpecType()[j].nelem() )
+        {
+          if (supergeneric_index == -1)
+            {
+              bool wrong_group_id = true;
+              for (Index i = 0; wrong_group_id && i < mdd->GOutSpecType()[j].nelem(); i++)
+                {
+                  if (Workspace::wsv_data[wsvid].Group()
+                      == mdd->GOutSpecType()[j][i])
+                    {
+                      wrong_group_id = false;
+                      supergeneric_index = i;
+                    }
+                }
+
+              if (wrong_group_id)
+                {
+                  ostringstream os;
+                  bool firsttype = true;
+                  for (Index i = 0; i < mdd->GOutSpecType()[j].nelem(); i++)
+                    {
+                      if (!firsttype) os << ", "; else firsttype = false;
+                      os << wsv_group_names[mdd->GOutSpecType()[j][i]];
+                    }
+
+                  throw WrongWsvGroup( "*" + mdd->Name() + "* is not defined for "
+                                       +wsv_group_names[Workspace::wsv_data[wsvid].Group()]
+                                       +" output. Check the online docs.",
+                                       msource.File(),
+                                       msource.Line(),
+                                       msource.Column() );
+                }
+            }
+          else
+            {
+              if (Workspace::wsv_data[wsvid].Group()
+                  != mdd->GOutSpecType()[j][supergeneric_index])
+                {
+                  throw WrongWsvGroup( wsvname+" is not "+
+                                       wsv_group_names[mdd->GOutSpecType()[j][supergeneric_index]]
+                                       +", it is "+ 
+                                       wsv_group_names[Workspace::wsv_data[wsvid].Group()],
+                                       msource.File(),
+                                       msource.Line(),
+                                       msource.Column());
+                }
+            }
+        }
+      else if ( Workspace::wsv_data[wsvid].Group() != mdd->GOutType()[j] )
         {
           throw WrongWsvGroup( wsvname+" is not "+
                                wsv_group_names[mdd->GOutType()[j]]+", it is "+ 

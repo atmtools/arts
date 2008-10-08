@@ -51,14 +51,18 @@ private:
                                  ArrayOfIndex&  auto_vars,
                                  Array<TokVal>& auto_vars_values,
                                  bool&          first,
-                                 bool&          still_supergeneric);
+                                 bool&          still_supergeneric,
+                                 String&        supergeneric_args,
+                                 Index&         supergeneric_index);
 
   void parse_generic_output(const MdRecord*&     mdd,
                                   Index&         id,
                                   String&        methodname,
                                   ArrayOfIndex&  output,
                                   bool&          first,
-                                  bool&          still_supergeneric);
+                                  bool&          still_supergeneric,
+                                  String&        supergeneric_args,
+                                  Index&         supergeneric_index);
 
   void parse_specific_input(const MdRecord*      mdd,
                                   ArrayOfIndex&  input,

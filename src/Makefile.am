@@ -106,6 +106,7 @@ libarts_a_SOURCES = \
 	m_sensor.cc \
 	m_xml.h \
 	m_batch.cc \
+	m_extract.h \
 	mc_antenna.cc \
 	mc_antenna.h \
 	mc_interp.cc \

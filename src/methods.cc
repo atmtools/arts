@@ -1845,30 +1845,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ArrayOfGField3ExtractFromArrayOfArrayOfGField3"),
-        DESCRIPTION
-        (
-         "Extract an ArrayOfGField3 from an array of arrays of GField3.\n"
-         "\n"
-         "Copies *ArrayOfGField3* with given Index from input\n"
-         "*ArrayOfArrayOfGField3* variable to create output\n"
-         "*ArrayOfGField3*.\n"
-        ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "gout1"               ),
-        GOUT_TYPE( "ArrayOfGField3" ),
-        GOUT_DESC("FIXME DOC"),
-        IN(),
-        GIN(       "gin1"                     , "gin2"      ),
-        GIN_TYPE(     "ArrayOfArrayOfGField3", "Index" ),
-        GIN_DEFAULT(  NODEF                  , NODEF   ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "ArrayOfIndexCreate" ),
         DESCRIPTION
         (
@@ -1906,26 +1882,6 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF ),
         GIN_DESC("FIXME DOC"),
         SETMETHOD( true )
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ArrayOfIndexExtractFromArrayOfArrayOfIndex"),
-        DESCRIPTION
-        (
-         "Extract an ArrayOfIndex from an array of arrays of Index.\n"
-        ),
-        AUTHORS( "Oliver Lemke" ),
-        OUT(),
-        GOUT(      "gout1"             ),
-        GOUT_TYPE( "ArrayOfIndex" ),
-        GOUT_DESC("FIXME DOC"),
-        IN(),
-        GIN(       "gin1"                   , "gin2"      ),
-        GIN_TYPE(     "ArrayOfArrayOfIndex", "Index" ),
-        GIN_DEFAULT(  NODEF                , NODEF   ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -3628,6 +3584,37 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("Extract"),
+        DESCRIPTION
+        (
+         "Extract an element from an array.\n"
+         "\n"
+         "Copies the element with the given Index from the input\n"
+         "variable to the output variable.\n"
+         "\n"
+         "For a Tensor3 as an input, it copies the page with the given\n"
+         "Index from the input Tensor3 variable to the output Matrix.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT( "needle" ),
+        GOUT_TYPE( "ArrayOfIndex,        Numeric, Matrix,        Matrix, Tensor3,  Tensor4,        Tensor4, ArrayOfGField3,        GField4" ),
+        GOUT_DESC("Extracted element."),
+        IN(),
+        GIN( "haystack", "index" ),
+        GIN_TYPE(  "ArrayOfArrayOfIndex, Vector,  ArrayOfMatrix, Tensor3, Tensor4, ArrayOfTensor4, Tensor5, ArrayOfArrayOfGField3, ArrayOfGField4",
+
+                   "Index" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC("Container.",
+                 "Position of the element which should be extracted."),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("ext_matAddGas"),
         DESCRIPTION
         (
@@ -3992,31 +3979,6 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("GField4ExtractFromArrayOfGField4"),
-        DESCRIPTION
-        (
-         "Extract a *GField4* from an array of *GField4*.\n"
-         "This is useful for example for extracting *atm_fields_compact*\n"
-         "from *batch_atm_fields_compact*.\n"
-         "\n"
-         "Copies element with given *Index* from input array\n"
-         "to create output *GField4*.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT(),
-        GOUT(      "gout1"        ),
-        GOUT_TYPE( "GField4" ),
-        GOUT_DESC("FIXME DOC"),
-        IN(),
-        GIN(       "gin1"              , "gin2"      ),
-        GIN_TYPE(     "ArrayOfGField4", "Index" ),
-        GIN_DEFAULT(  NODEF           , NODEF   ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -5029,52 +4991,6 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("MatrixExtractFromArrayOfMatrix"),
-        DESCRIPTION
-        (
-         "Extract a Matrix from an array of matrices.\n"
-         "\n"
-         "Copies *Matrix* with given Index from input *ArrayOfMatrix*\n"
-         "variable to create output *Matrix*.\n"
-        ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT(),
-        GOUT(      "gout1"       ),
-        GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
-        IN(),
-        GIN(       "gin1"             , "gin2"      ),
-        GIN_TYPE(     "ArrayOfMatrix", "Index" ),
-        GIN_DEFAULT(  NODEF          , NODEF   ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("MatrixExtractFromTensor3"),
-        DESCRIPTION
-        (
-         "Extract a Matrix from a Tensor3.\n"
-         "\n"
-         "Copies page with given Index from input Tensor3 variable to create \n"
-         "output Matrix.\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "gout1"       ),
-        GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
-        IN(),
-        GIN(       "gin1"       , "gin2"      ),
-        GIN_TYPE(     "Tensor3", "Index" ),
-        GIN_DEFAULT(  NODEF    , NODEF   ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("MatrixPlanck"),
         DESCRIPTION
         (
@@ -5614,29 +5530,6 @@ md_data_raw.push_back
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("NumericExtractFromVector"),
-        DESCRIPTION
-        (
-         "Extract a Numeric from a Vector.\n"
-         "\n"
-         "Copies element with given Index from input Vector variable to \n"
-         "create output Numeric.\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "gout1"        ),
-        GOUT_TYPE( "Numeric" ),
-        GOUT_DESC("FIXME DOC"),
-        IN(),
-        GIN(       "gin1"      , "gin2"      ),
-        GIN_TYPE(     "Vector", "Index" ),
-        GIN_DEFAULT(  NODEF   , NODEF   ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -7485,29 +7378,6 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor3ExtractFromTensor4"),
-        DESCRIPTION
-        (
-         "Extract a Tensor3 from a Tensor4.\n"
-         "\n"
-         "Copies book with given Index from input Tensor4 variable to create \n"
-         "output Tensor3.\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "gout1"        ),
-        GOUT_TYPE( "Tensor3" ),
-        GOUT_DESC("FIXME DOC"),
-        IN(),
-        GIN(       "gin1"       , "gin2"      ),
-        GIN_TYPE(     "Tensor4", "Index" ),
-        GIN_DEFAULT(  NODEF    , NODEF   ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("Tensor3FillWithVector"),
         DESCRIPTION
         (
@@ -7633,49 +7503,6 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("Tensor4ExtractFromTensor5"),
-        DESCRIPTION
-        (
-         "Extract a Tensor4 from a Tensor5.\n"
-         "\n"
-         "Copies shelf with given Index from input Tensor5 variable to \n"
-         "create output Tensor4.\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "gout1"        ),
-        GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC("FIXME DOC"),
-        IN(),
-        GIN(       "gin1"       , "gin2"      ),
-        GIN_TYPE(     "Tensor5", "Index" ),
-        GIN_DEFAULT(  NODEF    , NODEF   ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("Tensor4ExtractFromArrayOfTensor4"),
-        DESCRIPTION
-        (
-         "Extract a Tensor4 from an ArrayOfTensor4 .\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "gout1"        ),
-        GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC("FIXME DOC"),
-        IN(),
-        GIN(       "gin1"              , "gin2"      ),
-        GIN_TYPE(     "ArrayOfTensor4", "Index" ),
-        GIN_DEFAULT(  NODEF           , NODEF   ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -8696,7 +8523,7 @@ md_data_raw.push_back
          "could look like this:\n"
          "\n"
          "   AgendaSet(ybatch_calc_agenda){\n"
-         "      Tensor3ExtractFromTensor4(t_field,tensor4_1,ybatch_index){}\n"
+         "      Extract(t_field,tensor4_1,ybatch_index){}\n"
          "      RteCalc{}\n"
          "   }\n"
          "\n"

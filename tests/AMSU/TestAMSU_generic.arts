@@ -132,7 +132,7 @@ MatrixSetConstant( sensor_los, 1, 1, 180 )
 AgendaSet( ybatch_calc_agenda ){
   
   # Extract the atmospheric profiles for this case:
-  GField4ExtractFromArrayOfGField4(
+  Extract(
     atm_fields_compact, 
     batch_atm_fields_compact, 
     ybatch_index
@@ -155,8 +155,8 @@ AgendaSet( ybatch_calc_agenda ){
 #   jacobianClose
 
   # get some surface properties from corresponding atmospheric fields
-  MatrixExtractFromTensor3( z_surface, z_field, 0 )
-  MatrixExtractFromTensor3( t_surface, t_field, 0 )
+  Extract( z_surface, z_field, 0 )
+  Extract( t_surface, t_field, 0 )
 
   # Perform RT calculations
   # ---
