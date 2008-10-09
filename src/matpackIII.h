@@ -280,6 +280,7 @@ public:
     }
 
   // Conversion to a plain C-array
+  const Numeric *get_c_array() const;
   Numeric *get_c_array();
 
   // Functions returning const iterators:

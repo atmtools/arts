@@ -1,3 +1,35 @@
+2008-10-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-11-3
+
+	* NetCDF reading and writing of Vector, Matrix, and Tensor3 types
+	should be stable now.
+
+	* src/nc_io.{h,cc}:
+
+	Add function nc_read_var. It also checks for the right number of
+	dimenstions and that the variable name matches the type.
+
+	* src/nc_io_basic_types.cc: Use nc_read_var. Add Tensor3 support.
+
+	* src/nc_io_compound_types.cc, src/nc_io_array_types.cc:
+
+	Added. Only dummy functions.
+
+	* src/Makefile.am:
+
+	Added nc_io_compound_types.cc and nc_io_array_types.cc to
+	libarts_a_SOURCES and EXTRA_DIST.
+
+	* src/matpackIII.{h,cc}: Add get_c_array function for const objects.
+
+	* src/m_nc.h: Remove debug spew.
+
+	* configure.in:
+
+	Add AM_PROG_CC_C_O. Required because we're compiling getopt.c with
+	per-target flags.
+
 2008-10-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-11-2
@@ -262,6 +294,27 @@
 	surface_prop_agenda.
 
 	* src/agendas.cc: Added rte_pos as input to surface_prop_agenda. 
+
+2008-10-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* configure.in: Added AM_PROG_CC_C_O as recommended by automake.
+
+	* src/nc_io_array_types.cc, src/nc_io_compound_types.cc:
+
+	Added.
+
+	* src/Makefile.am:
+
+	Added nc_io_array_types.cc and nc_io_compound_types.cc.
+
+	* src/nc_io_basic_types.cc:
+
+	Moved macros for compound and array dummy functions to the
+	corresponding files.
+
+	Implement Tensor3 reading/writing.
+
+	* src/matpackIII.{h,cc}: Added get_c_array for const Tensor3.
 
 2008-10-01  Oliver Lemke  <olemke@core-dump.info>
 

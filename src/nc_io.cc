@@ -133,3 +133,37 @@ nc_write_to_file (const String&  filename,
 }
 
 
+void nc_read_var (const NcFile &ncf, NcVar **ncvar,
+                   const Index dims, const String& name)
+{
+  ostringstream os;
+  bool error = false;
+  if (ncf.num_dims() != dims)
+    {
+      error = true;
+      os << "Dimension mismatch: Expected " << dims << " dimensions, "
+        << "found " << ncf.num_dims() << "." << endl;
+    }
+  if (ncf.num_vars() != 1)
+    {
+      error = true;
+      os << "Expected one variable in the file, but found " << ncf.num_vars()
+        << endl;
+    }
+  else
+    {
+      *ncvar = ncf.get_var(0);
+      if ((*ncvar)->name() != name)
+        {
+          error = true;
+          os << "Expected variable of type " << name << ", but found "
+            << (*ncvar)->name() << "." << endl;
+        }
+    }
+
+  if (error)
+    throw runtime_error (os.str());
+}
+
+
+

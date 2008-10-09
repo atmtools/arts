@@ -64,4 +64,9 @@ template<typename T> void
 nc_write_to_file (const String&  filename,
                   const      T&  type);
 
+
+void nc_read_var (const NcFile &ncf, NcVar **ncvar,
+                  const Index dims, const String& name);
+
 #endif /* nc_io_h */
+

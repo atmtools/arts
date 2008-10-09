@@ -52,7 +52,6 @@ ReadNetCDF (// WS Generic Input:
             const String& f_name _U_)
 
 {
-  cout << "in readnetcdf" << endl;
   nc_read_from_file (f, v);
 }
 

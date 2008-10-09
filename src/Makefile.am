@@ -14,6 +14,8 @@ EXTRA_DIST = \
 	check-code-header-consistency.sh \
 	nc_io.h \
 	nc_io.cc \
+	nc_io_array_types.cc \
+	nc_io_compound_types.cc \
 	nc_io_basic_types.cc \
 	nc_io_instantiation.h \
 	nc_io_types.h
@@ -173,6 +175,8 @@ libarts_a_ldflags += -lnetcdf -lnetcdf_c++
 libarts_a_SOURCES += \
 	nc_io.h \
 	nc_io.cc \
+	nc_io_array_types.cc \
+	nc_io_compound_types.cc \
 	nc_io_basic_types.cc \
 	nc_io_instantiation.h \
 	nc_io_types.h
