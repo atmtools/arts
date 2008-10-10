@@ -1,3 +1,16 @@
+2008-10-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-11-4
+
+	* includes/odin/odinsmr_501_1D.arts:
+	* includes/odin/odinsmr_501.arts: 
+	* includes/odin/odinsmr_544.arts: Adapted to changes below.
+
+	* includes/odin/odinsmr_501_absorption.arts: Created. To have an include
+	file just specifying absorption. Needed for Bengts calculations.
+
+	* includes/odin/odinsmr_544_absorption.arts: As above.
+	
 2008-10-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-11-3
@@ -145,6 +158,7 @@
 	Only output supergeneric methods that really can generate or use
 	variables of the given group for 'arts -m|-i'.
 
+>>>>>>> .r5908
 2008-10-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-10-5

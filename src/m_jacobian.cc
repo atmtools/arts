@@ -125,7 +125,7 @@ void jacobianAddAbsSpecies(// WS Output:
                     const String&             species,
                     const String&             method,
                     const String&             mode,
-                    const Numeric&            dx)
+                    const Numeric&            dx )
 {
   // Check that the jacobian matrix is empty. Otherwise it is either
   // not initialised or it is closed.
@@ -141,12 +141,13 @@ void jacobianAddAbsSpecies(// WS Output:
   // vs. the atmosphere dimension
   ArrayOfVector grids(atmosphere_dim);
   {
-  ostringstream os;
-  if (!check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
-        rq_p_grid, rq_lat_grid, rq_lon_grid,
-        // FIXMEOLE: These strings have to replaced later with the proper
-        //           names from the WSM documentation in methods.cc
-        "rq_p_grid", "rq_lat_grid", "rq_lon_grid", atmosphere_dim))
+    ostringstream os;
+    if( !check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
+                                rq_p_grid, rq_lat_grid, rq_lon_grid,
+                                "retrieval pressure grid", 
+                                "retrieval latitude grid", 
+                                "retrievallongitude_grid", 
+                                atmosphere_dim ) )
     throw runtime_error(os.str());
   }
   
@@ -172,9 +173,9 @@ void jacobianAddAbsSpecies(// WS Output:
     }
 
   // Check that this species is not already included in the jacobian.
-  for (Index it=0; it<jq.nelem(); it++)
+  for( Index it=0; it<jq.nelem(); it++ )
   {
-    if (jq[it].MainTag()=="Abs. species" && jq[it].Subtag()==species)
+    if( jq[it].MainTag()=="Abs. species" && jq[it].Subtag()==species )
     {
       ostringstream os;
       os << "The gas species:\n" << species << "\nis already included in "
@@ -211,6 +212,7 @@ void jacobianAddAbsSpecies(// WS Output:
       jacobian_agenda.append (methodname, kwv);
     }
 }                    
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -562,6 +564,7 @@ void jacobianAddTemperature(// WS Output:
 }                    
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalc(      Workspace&                 ws,
                   // WS Output:
@@ -582,7 +585,7 @@ void jacobianCalc(      Workspace&                 ws,
 
   // Check that *jacobian_indices* and *jacobian* are consistent
   ArrayOfIndex last_ind = jacobian_indices[jacobian_indices.nelem()-1];
-  if (jacobian.ncols()-1!=last_ind[1])
+  if( jacobian.ncols()-1!=last_ind[1] )
   {
     ostringstream os;
     os << "There are more retrieval quantities in *jacobian_quantities*\n"
@@ -597,6 +600,7 @@ void jacobianCalc(      Workspace&                 ws,
   // Run jacobian_agenda
   jacobian_agendaExecute( ws, jacobian, jacobian_agenda );
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1357,19 +1361,19 @@ void jacobianClose(// WS Output:
                    // WS Input:
                    const ArrayOfRetrievalQuantity&  jacobian_quantities,
                    const Matrix&                    sensor_pos,
-                   const Sparse&                    sensor_response)
+                   const Sparse&                    sensor_response )
 {
   // Check that *jacobian* has been initialised
-  if (jacobian.nrows()!=0 && jacobian.ncols()!=0)
+  if( jacobian.nrows() != 0  &&  jacobian.ncols() != 0 )
     throw runtime_error("The Jacobian matrix has not been initialised.");
 
   // Make sure that the array is not empty
-  if (jacobian_quantities.nelem()==0)
+  if( jacobian_quantities.nelem() == 0 )
     throw runtime_error(
-      "No retrieval quantities has been added to *jacobian_quantities*");
+          "No retrieval quantities has been added to *jacobian_quantities*" );
 
   // Check that sensor_pol and sensor_response has been initialised
-  if (sensor_pos.nrows()==0)
+  if( sensor_pos.nrows() == 0 )
   {
     ostringstream os;
     os << "The number of rows in *sensor_pos* is zero, i.e. no measurement\n"
@@ -1377,7 +1381,7 @@ void jacobianClose(// WS Output:
        << "jacobianClose.";
     throw runtime_error(os.str());
   }
-  if (sensor_response.nrows()==0)
+  if( sensor_response.nrows() == 0 )
   {
     ostringstream os;
     os << "The sensor has either to be defined or turned off before calling\n"
@@ -1388,7 +1392,7 @@ void jacobianClose(// WS Output:
   // Loop over retrieval quantities, set JacobianIndices
   Index nrows = sensor_pos.nrows()*sensor_response.nrows();
   Index ncols = 0;
-  for (Index it=0; it<jacobian_quantities.nelem(); it++)
+  for( Index it=0; it<jacobian_quantities.nelem(); it++ )
   {
     // Store start jacobian index
     ArrayOfIndex indices(2);
@@ -1403,12 +1407,13 @@ void jacobianClose(// WS Output:
 
     // Store stop index
     indices[1] = ncols-1;
-    jacobian_indices.push_back(indices);
+    jacobian_indices.push_back( indices );
   }
   
   // Resize *jacobian*
-  jacobian.resize( nrows, ncols);
+  jacobian.resize( nrows, ncols );
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1421,6 +1426,7 @@ void jacobianInit(
   jacobian_quantities.resize(0);
   jacobian_indices.resize(0);
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
