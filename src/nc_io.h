@@ -31,7 +31,7 @@
 #ifndef nc_io_h
 #define nc_io_h
 
-#include <netcdfcpp.h>
+#include <netcdf.h>
 #include "mystring.h"
 #include "exceptions.h"
 #include "messages.h"
@@ -65,8 +65,19 @@ nc_write_to_file (const String&  filename,
                   const      T&  type);
 
 
-void nc_read_var (const NcFile &ncf, NcVar **ncvar,
-                  const Index dims, const String& name);
+/*void nc_read_var (const int ncf, const int **ncvar,
+                  const Index dims, const String& name);*/
+
+void nc_get_data_int (const int ncid, const String &name, int *data);
+
+void nc_get_data_double (const int ncid, const String &name, Numeric *data);
+
+void nc_get_dataa_double (const int ncid, const String &name,
+                          size_t start, size_t count, Numeric *data);
+
+Index nc_get_dim (const int ncid, const String &name);
+
+void ncerror (const int err, const String msg);
 
 #endif /* nc_io_h */
 

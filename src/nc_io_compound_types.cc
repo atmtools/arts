@@ -38,11 +38,11 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #define TMPL_NC_READ_WRITE_FILE_DUMMY(what) \
-  void nc_write_to_file (NcFile&, const what&) \
+  void nc_write_to_file (const int, const what&) \
   { \
     throw runtime_error ("NetCDF support not yet implemented for this type!"); \
   } \
-  void nc_read_from_file (NcFile&, what&) \
+  void nc_read_from_file (const int, what&) \
   { \
     throw runtime_error ("NetCDF support not yet implemented for this type!"); \
   }

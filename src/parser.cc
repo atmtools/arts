@@ -1310,6 +1310,7 @@ void ArtsParser::tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
       const Index auto_group = Workspace::wsv_data[auto_vars[i]].Group();
       if (auto_group != get_wsv_group_id("Index")
           && auto_group != get_wsv_group_id("Numeric")
+          && auto_group != get_wsv_group_id("ArrayOfIndex")
           && auto_group != get_wsv_group_id("ArrayOfString")
           && auto_group != get_wsv_group_id("String")
           && auto_group != get_wsv_group_id("Vector"))

@@ -176,10 +176,36 @@ MdRecord::MdRecord(const char                   name[],
         }
     }
 
+  // Check that the number of types for all supergeneric variables are
+  // consistent
   if (mginspectype.nelem() && mgoutspectype.nelem())
     {
-      assert(mginspectype[0].nelem()
-             == mgoutspectype[0].nelem());
+      bool consistent = true;
+      Index nspecs = 0;
+      for (Index i = 0; consistent && i < mginspectype.nelem(); i++)
+        {
+          if (mginspectype[0].nelem())
+            {
+              if (!nspecs) nspecs = mginspectype[0].nelem();
+              else if (nspecs != mginspectype[0].nelem()) consistent = false;
+            }
+        }
+
+      for (Index i = 0; consistent && i < mgoutspectype.nelem(); i++)
+        {
+          if (mgoutspectype[0].nelem())
+            {
+              if (!nspecs) nspecs = mgoutspectype[0].nelem();
+              else if (nspecs != mgoutspectype[0].nelem()) consistent = false;
+            }
+        }
+      if (!consistent)
+        {
+          ostringstream os;
+          os << "Inconsistent number of types given for supergeneric variables"
+           << endl << "in WSM " << mname << "." << endl;
+          throw runtime_error (os.str());
+        }
     }
 
   // Find out if this method is supergeneric, and set the flag if

@@ -32,6 +32,180 @@
 #include "nc_io.h"
 #include "nc_io_types.h"
 
+//=== ArrayOfMatrix ==========================================================
+
+//! Reads an ArrayOfMatrix from a NetCDF file
+/*!
+  \param ncf     NetCDF file discriptor
+  \param aom     ArrayOfMatrix
+*/
+void
+nc_read_from_file (const int ncid,
+                   ArrayOfMatrix& aom)
+{
+  Index nelem, nelem_total;
+  nelem = nc_get_dim (ncid, "nelem");
+  nelem_total = nc_get_dim (ncid, "nelem_total");
+
+  int *vnrows = new int[nelem];
+  int *vncols = new int[nelem];
+  aom.resize (nelem);
+  nc_get_data_int (ncid, "Matrix_nrows", vnrows);
+  nc_get_data_int (ncid, "Matrix_ncols", vncols);
+  size_t pos = 0;
+  for (Index i = 0; i < nelem; i++)
+    {
+      aom[i].resize (vnrows[i], vncols[i]);
+      nc_get_dataa_double (ncid, "ArrayOfMatrix", pos, vnrows[i] * vncols[i],
+                           aom[i].get_c_array());
+      pos += vnrows[i] * vncols[i];
+    }
+
+  delete [] vnrows;
+  delete [] vncols;
+}
+
+
+//! Writes an ArrayOfMatrix to a NetCDF file
+/*!
+  \param ncf     NetCDF file discriptor
+  \param aom     ArrayOfMatrix
+*/
+void
+nc_write_to_file (const int ncid,
+                  const ArrayOfMatrix& aom)
+{
+  int retval;
+  int ncdim, varid_nrows, varid_ncols;
+  int ncdim_total, varid;
+  int nelem_total = 0;
+  int *vncols = new int[aom.nelem()];
+  int *vnrows = new int[aom.nelem()];
+  for (Index i = 0; i < aom.nelem(); i++)
+    {
+      vnrows[i] = aom[i].nrows();
+      vncols[i] = aom[i].ncols();
+      nelem_total += vnrows[i] * vncols[i];
+    }
+
+  if ((retval = nc_def_dim (ncid, "nelem", aom.nelem(), &ncdim)))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_dim (ncid, "nelem_total", nelem_total, &ncdim_total)))
+    ncerror (retval, "nc_def_dim");
+
+  if ((retval = nc_def_var (ncid, "Matrix_nrows", NC_INT, 1,
+                            &ncdim, &varid_nrows)))
+    ncerror (retval, "nc_def_var");
+  if ((retval = nc_def_var (ncid, "Matrix_ncols", NC_INT, 1,
+                            &ncdim, &varid_ncols)))
+    ncerror (retval, "nc_def_var");
+  if ((retval = nc_def_var (ncid, "ArrayOfMatrix", NC_DOUBLE, 1,
+                            &ncdim_total, &varid)))
+    ncerror (retval, "nc_def_var");
+
+  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+
+  if ((retval = nc_put_var_int (ncid, varid_nrows, vnrows)))
+    ncerror (retval, "nc_put_var");
+  if ((retval = nc_put_var_int (ncid, varid_ncols, vncols)))
+    ncerror (retval, "nc_put_var");
+
+  size_t pos = 0;
+  for (Index i = 0; i < aom.nelem(); i++)
+    {
+      size_t count = aom[i].nrows() * aom[i].ncols();
+      if ((retval = nc_put_vara_double (ncid, varid, &pos, &count,
+                                        aom[i].get_c_array())))
+        ncerror (retval, "nc_put_var");
+      pos += count;
+    }
+
+  delete [] vnrows;
+  delete [] vncols;
+}
+
+
+//=== ArrayOfVector ==========================================================
+
+//! Reads an ArrayOfVector from a NetCDF file
+/*!
+  \param ncf     NetCDF file discriptor
+  \param aov     ArrayOfVector
+*/
+void
+nc_read_from_file (const int ncid,
+                   ArrayOfVector& aov)
+{
+  Index nelem, nelem_total;
+  nelem = nc_get_dim (ncid, "nelem");
+  nelem_total = nc_get_dim (ncid, "nelem_total");
+
+  int *vnelem = new int[nelem];
+  aov.resize (nelem);
+  nc_get_data_int (ncid, "Vector_nelem", vnelem);
+  size_t pos = 0;
+  for (Index i = 0; i < nelem; i++)
+    {
+      aov[i].resize (vnelem[i]);
+      nc_get_dataa_double (ncid, "ArrayOfVector", pos, vnelem[i],
+                           aov[i].get_c_array());
+      pos += vnelem[i];
+    }
+
+  delete [] vnelem;
+}
+
+
+//! Writes an ArrayOfVector to a NetCDF file
+/*!
+  \param ncf     NetCDF file discriptor
+  \param aov     ArrayOfVector
+*/
+void
+nc_write_to_file (const int ncid,
+                  const ArrayOfVector& aov)
+{
+  int retval;
+  int ncdim, varid_nelem;
+  int ncdim_total, varid;
+  int nelem_total = 0;
+  int *velems = new int[aov.nelem()];
+  for (Index i = 0; i < aov.nelem(); i++)
+    {
+      velems[i] = aov[i].nelem();
+      nelem_total += velems[i];
+    }
+
+  if ((retval = nc_def_dim (ncid, "nelem", aov.nelem(), &ncdim)))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_dim (ncid, "nelem_total", nelem_total, &ncdim_total)))
+    ncerror (retval, "nc_def_dim");
+
+  if ((retval = nc_def_var (ncid, "Vector_nelem", NC_INT, 1,
+                            &ncdim, &varid_nelem)))
+    ncerror (retval, "nc_def_var");
+  if ((retval = nc_def_var (ncid, "ArrayOfVector", NC_DOUBLE, 1,
+                            &ncdim_total, &varid)))
+    ncerror (retval, "nc_def_var");
+
+  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+
+  if ((retval = nc_put_var_int (ncid, varid_nelem, velems)))
+    ncerror (retval, "nc_put_var");
+
+  size_t pos = 0;
+  for (Index i = 0; i < aov.nelem(); i++)
+    {
+      size_t count = aov[i].nelem();
+      if ((retval = nc_put_vara_double (ncid, varid, &pos, &count,
+                                        aov[i].get_c_array())))
+        ncerror (retval, "nc_put_var");
+      pos += count;
+    }
+
+  delete [] velems;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which
@@ -39,11 +213,11 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #define TMPL_NC_READ_WRITE_FILE_DUMMY(what) \
-  void nc_write_to_file (NcFile&, const what&) \
+  void nc_write_to_file (const int, const what&) \
   { \
     throw runtime_error ("NetCDF support not yet implemented for this type!"); \
   } \
-  void nc_read_from_file (NcFile&, what&) \
+  void nc_read_from_file (const int, what&) \
   { \
     throw runtime_error ("NetCDF support not yet implemented for this type!"); \
   }
@@ -71,7 +245,6 @@ TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfGridPos )
 TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfIndex )
 TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfLineRecord )
 TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfLineshapeSpec )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfMatrix )
 TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfPpath )
 TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfRetrievalQuantity )
 TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfSingleScatteringData )
@@ -81,7 +254,6 @@ TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfTensor3 )
 TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfTensor4 )
 TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfTensor6 )
 TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfTensor7 )
-TMPL_NC_READ_WRITE_FILE_DUMMY( ArrayOfVector )
 
 //==========================================================================
 

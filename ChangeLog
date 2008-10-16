@@ -1,3 +1,37 @@
+2008-10-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-11-6
+
+	* configure.in, src/nc_io.{h,cc}, src/nc_io_compound_types.cc,
+	src/nc_io_basic_types.cc, src/nc_io_types.h, 
+
+	Get rid of the C++ NetCDF interface and use the much better maintained
+	C interface.
+
+	* src/nc_io_array_types.cc:
+
+	Implement support for ArrayOfVector and ArrayOfMatrix. The data is
+	stored as one big vector along with the dimensions of each element.
+	Not perfect but due to the non-existent support in NetCDF 3 for
+	arrays of variable-sized types (and NetCDF 4 not ready for prime time),
+	this is better than nothing.
+
+	* src/nc_io.{h,cc}: Added a couple of helper functions.
+
+	* src/parser.cc (ArtsParser::tasklist_insert_set_delete):
+
+	Allow ArrayOfIndex literals.
+
+	* src/methods_aux.cc (MdRecord::MdRecord):
+
+	Added a proper check that makes sure that all supergeneric variables
+	in one method are defined for the same number of types.
+
+	* src/methods.cc:
+
+	Define Read/WriteNetCDF only for supported types. There are not many
+	so far and the supported types are then shown in the online docs.
+
 2008-10-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-11-5

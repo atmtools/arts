@@ -28,7 +28,6 @@
 
 */
 
-#include <netcdfcpp.h>
 #include "arts.h"
 #include "nc_io.h"
 #include "nc_io_types.h"
@@ -101,16 +100,17 @@ nc_read_from_file (const String& filename,
 {
   out2 << "  Reading " << filename << '\n';
 
-  NcFile ncf(filename.c_str(), NcFile::ReadOnly);
-
-  if (!ncf.is_valid())
+  int ncid;
+  if (nc_open (filename.c_str(), NC_NOWRITE, &ncid))
     {
       ostringstream os;
       os << "Error reading file: " << filename << endl;
       throw runtime_error (os.str());
     }
 
-  nc_read_from_file (ncf, type);
+  nc_read_from_file (ncid, type);
+
+  nc_close (ncid);
 }
 
 
@@ -120,50 +120,68 @@ nc_write_to_file (const String&  filename,
 {
   out2 << "  Writing " << filename << '\n';
 
-  NcFile ncf(filename.c_str(), NcFile::Replace);
-
-  if (!ncf.is_valid())
+  int ncid;
+  if (nc_create (filename.c_str(), NC_CLOBBER | NC_FORMAT_NETCDF4, &ncid))
     {
       ostringstream os;
       os << "Error writing file: " << filename << endl;
       throw runtime_error (os.str());
     }
 
-  nc_write_to_file (ncf, type);
+  nc_write_to_file (ncid, type);
+
+  nc_close (ncid);
 }
 
 
-void nc_read_var (const NcFile &ncf, NcVar **ncvar,
-                   const Index dims, const String& name)
+void nc_get_data_int (const int ncid, const String &name, int *data)
+{
+  int retval, varid;
+  if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
+    ncerror (retval, "nc_inq_varid("+name+")");
+  if ((retval = nc_get_var_int (ncid, varid, data)))
+    ncerror (retval, "nc_get_var("+name+")");
+}
+
+
+void nc_get_data_double (const int ncid, const String &name, Numeric *data)
+{
+  int retval, varid;
+  if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
+    ncerror (retval, "nc_inq_varid("+name+")");
+  if ((retval = nc_get_var_double (ncid, varid, data)))
+    ncerror (retval, "nc_get_var("+name+")");
+}
+
+
+void nc_get_dataa_double (const int ncid, const String &name,
+                          size_t start, size_t count, Numeric *data)
+{
+  int retval, varid;
+  if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
+    ncerror (retval, "nc_inq_varid("+name+")");
+  if ((retval = nc_get_vara_double (ncid, varid, &start, &count, data)))
+    ncerror (retval, "nc_get_var("+name+")");
+}
+
+
+Index nc_get_dim (const int ncid, const String &name)
+{
+  int retval, dimid;
+  size_t ndim;
+  if ((retval = nc_inq_dimid (ncid, name.c_str(), &dimid)))
+    ncerror (retval, "nc_inq_ndims("+name+")");
+  if ((retval = nc_inq_dimlen (ncid, dimid, &ndim)))
+    ncerror (retval, "nc_inq_dimlen("+name+")");
+
+  return (Index)ndim;
+}
+
+
+void ncerror (const int e, const String s)
 {
   ostringstream os;
-  bool error = false;
-  if (ncf.num_dims() != dims)
-    {
-      error = true;
-      os << "Dimension mismatch: Expected " << dims << " dimensions, "
-        << "found " << ncf.num_dims() << "." << endl;
-    }
-  if (ncf.num_vars() != 1)
-    {
-      error = true;
-      os << "Expected one variable in the file, but found " << ncf.num_vars()
-        << endl;
-    }
-  else
-    {
-      *ncvar = ncf.get_var(0);
-      if ((*ncvar)->name() != name)
-        {
-          error = true;
-          os << "Expected variable of type " << name << ", but found "
-            << (*ncvar)->name() << "." << endl;
-        }
-    }
-
-  if (error)
-    throw runtime_error (os.str());
+  os << "NetCDF error: " << s << ", " << e;
+  throw runtime_error (os.str());
 }
-
-
 

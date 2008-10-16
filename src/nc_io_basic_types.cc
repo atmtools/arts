@@ -41,20 +41,15 @@
   \param m       Matrix
 */
 void
-nc_read_from_file (NcFile &ncf,
+nc_read_from_file (const int ncid,
                    Matrix& m)
 {
-  NcVar *data;
-  nc_read_var (ncf, &data, 2, "Matrix");
+  Index nrows, ncols;
+  nrows  = nc_get_dim (ncid, "nrows");
+  ncols  = nc_get_dim (ncid, "ncols");
 
-  NcDim *rows = data->get_dim(0);
-  NcDim *cols = data->get_dim(1);
-  m.resize (rows->size(), cols->size());
-
-  Index i = 0;
-  for (Index r = 0; r < m.nrows(); r++)
-    for (Index c = 0; c < m.ncols(); c++, i++)
-      m(r, c) = data->values()->as_double(i);
+  m.resize(nrows, ncols);
+  nc_get_data_double (ncid, "Matrix", m.get_c_array());
 }
 
 
@@ -64,17 +59,20 @@ nc_read_from_file (NcFile &ncf,
   \param m       Matrix
 */
 void
-nc_write_to_file (NcFile &ncf,
+nc_write_to_file (const int ncid,
                   const Matrix& m)
 {
-  NcDim *nrows = ncf.add_dim ("nrows", m.nrows());
-  NcDim *ncols = ncf.add_dim ("ncols", m.ncols());
-
-  NcVar *data = ncf.add_var ("Matrix", ncDouble, nrows, ncols);
-
-  const Numeric *np = m.get_c_array();
-  data->put (np, m.nrows(), m.ncols());
-
+  int retval;
+  int ncdims[2], varid;
+  if ((retval = nc_def_dim (ncid, "nrows", m.nrows(), &ncdims[0])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_dim (ncid, "ncols", m.ncols(), &ncdims[1])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_var (ncid, "Matrix", NC_DOUBLE, 2, &ncdims[0], &varid)))
+    ncerror (retval, "nc_def_var");
+  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+  if ((retval = nc_put_var_double (ncid, varid, m.get_c_array())))
+    ncerror (retval, "nc_put_var");
 }
 
 //=== Tensor3 ==========================================================
@@ -85,22 +83,16 @@ nc_write_to_file (NcFile &ncf,
   \param t       Tensor3
 */
 void
-nc_read_from_file (NcFile &ncf,
+nc_read_from_file (const int ncid,
                    Tensor3& t)
 {
-  NcVar *data;
-  nc_read_var (ncf, &data, 3, "Tensor3");
+  Index npages, nrows, ncols;
+  npages = nc_get_dim (ncid, "npages");
+  nrows  = nc_get_dim (ncid, "nrows");
+  ncols  = nc_get_dim (ncid, "ncols");
 
-  NcDim *npages = data->get_dim(0);
-  NcDim *nrows = data->get_dim(1);
-  NcDim *ncols = data->get_dim(2);
-  t.resize (npages->size(), nrows->size(), ncols->size());
-
-  Index i = 0;
-  for (Index p = 0; p < t.npages(); p++)
-    for (Index r = 0; r < t.nrows(); r++)
-      for (Index c = 0; c < t.ncols(); c++, i++)
-        t(p, r, c) = data->values()->as_double(i);
+  t.resize(npages, nrows, ncols);
+  nc_get_data_double (ncid, "Tensor3", t.get_c_array());
 }
 
 
@@ -110,17 +102,22 @@ nc_read_from_file (NcFile &ncf,
   \param t       Tensor3
 */
 void
-nc_write_to_file (NcFile &ncf,
+nc_write_to_file (const int ncid,
                   const Tensor3& t)
 {
-  NcDim *npages = ncf.add_dim ("npages", t.npages());
-  NcDim *nrows  = ncf.add_dim ("nrows", t.nrows());
-  NcDim *ncols  = ncf.add_dim ("ncols", t.ncols());
-
-  NcVar *data = ncf.add_var ("Tensor3", ncDouble, npages, nrows, ncols);
-
-  const Numeric *np = t.get_c_array();
-  data->put (np, t.npages(), t.nrows(), t.ncols());
+  int retval;
+  int ncdims[3], varid;
+  if ((retval = nc_def_dim (ncid, "npages", t.npages(), &ncdims[0])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_dim (ncid, "nrows", t.nrows(), &ncdims[1])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_dim (ncid, "ncols", t.ncols(), &ncdims[2])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_var (ncid, "Tensor3", NC_DOUBLE, 3, &ncdims[0], &varid)))
+    ncerror (retval, "nc_def_var");
+  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+  if ((retval = nc_put_var_double (ncid, varid, t.get_c_array())))
+    ncerror (retval, "nc_put_var");
 }
 
 //=== Vector ==========================================================
@@ -131,17 +128,14 @@ nc_write_to_file (NcFile &ncf,
   \param v       Vector
 */
 void
-nc_read_from_file (NcFile &ncf,
+nc_read_from_file (const int ncid,
                    Vector& v)
 {
-  NcVar *data;
-  nc_read_var (ncf, &data, 1, "Vector");
+  Index nelem;
+  nelem = nc_get_dim (ncid, "nelem");
 
-  NcDim *nelem = data->get_dim(0);
-  v.resize (nelem->size());
-
-  for (Index i = 0; i < v.nelem(); i++)
-    v[i] = data->values()->as_double(i);
+  v.resize(nelem);
+  nc_get_data_double (ncid, "Vector", v.get_c_array());
 }
 
 
@@ -151,15 +145,18 @@ nc_read_from_file (NcFile &ncf,
   \param v       Vector
 */
 void
-nc_write_to_file (NcFile &ncf,
+nc_write_to_file (const int ncid,
                   const Vector& v)
 {
-  NcDim *nelem = ncf.add_dim ("nelem", v.nelem());
-
-  NcVar *data = ncf.add_var ("Vector", ncDouble, nelem);
-
-  const Numeric *np = v.get_c_array();
-  data->put (np, v.nelem());
+  int retval;
+  int ncdim, varid;
+  if ((retval = nc_def_dim (ncid, "nelem", v.nelem(), &ncdim)))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_var (ncid, "Vector", NC_DOUBLE, 1, &ncdim, &varid)))
+    ncerror (retval, "nc_def_var");
+  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+  if ((retval = nc_put_var_double (ncid, varid, v.get_c_array())))
+    ncerror (retval, "nc_put_var");
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -168,11 +165,11 @@ nc_write_to_file (NcFile &ncf,
 ////////////////////////////////////////////////////////////////////////////
 
 #define TMPL_NC_READ_WRITE_FILE_DUMMY(what) \
-  void nc_write_to_file (NcFile&, const what&) \
+  void nc_write_to_file (const int, const what&) \
   { \
     throw runtime_error ("NetCDF support not yet implemented for this type!"); \
   } \
-  void nc_read_from_file (NcFile&, what&) \
+  void nc_read_from_file (const int, what&) \
   { \
     throw runtime_error ("NetCDF support not yet implemented for this type!"); \
   }
