@@ -1,3 +1,9 @@
+2008-10-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-11-9
+
+	* configure.in: Removed cruft from beginning of file.
+
 2008-10-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-11-8
