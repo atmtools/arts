@@ -1790,33 +1790,20 @@ void define_md_data_raw()
          "another Matrix.)\n"
          "\n"
          "This method is not implemented for all types, just for those where an\n"
-         "append makes sense. A runtime error is thrown if one attempts to use\n"
-         "it on types that are not implemented.\n"         
+         "append makes sense. (See variable list below.).\n"         
          "\n"
          "As allways, output comes first in the argument list!\n"
-         "\n"
-         "Usage example:\n"
-         "\n"
-         "Append(array_of_matrix_1,array_of_matrix_2){}\n"
-         "\n"
-         "Will append the matrix array 2 to matrix array 1.\n"
-         "\n"
-         "Supergeneric output:\n"
-         "   Any : The output variable.\n"
-         "\n"
-         "Supergeneric input:\n"
-         "   Any : The input variable.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
-        GOUT(      "gout1"    ),
-        GOUT_TYPE( ARRAY_GROUPS + ", Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT(      "out"    ),
+        GOUT_TYPE( ARRAY_GROUPS + ", Vector" + ", String"),
+        GOUT_DESC("The variable to append to."),
         IN(),
-        GIN(      "gin1"    ),
-        GIN_TYPE( ARRAY_GROUPS + ", Vector" ),
+        GIN(      "in"    ),
+        GIN_TYPE(  ARRAY_GROUPS + ", Vector" + ", String"),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC("The variable to append."),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -3594,6 +3581,8 @@ md_data_raw.push_back
          "\n"
          "For a Tensor3 as an input, it copies the page with the given\n"
          "Index from the input Tensor3 variable to the output Matrix.\n"
+         "\n"
+         "In other words, the selection is always done on the first dimension.\n"
         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -6795,19 +6784,33 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Method to select some elements from one array and copy them to\n"
-         "a new array.\n"
+         "a new array. (Works also for vectors.)\n"
+         "\n"
+         "This works also for higher dimensional objects, where the selection is\n"
+         "always performed in the first dimension.\n"
+         "\n"
+         "For example:\n"
+         "\n"
+         "Select(y,x,[0,3])\n"
+         "\n"
+         "will select the first and fourth row of matrix x and copy them to the\n"
+         "output matrix y.\n"
+         "\n"
+         "Note that it is even save to use this method if needles and haystack\n"
+         "are the same variable.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT( "needles" ),
-        GOUT_TYPE( ARRAY_GROUPS + ", Vector"),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_TYPE( ARRAY_GROUPS + ", Vector, Matrix"),
+        GOUT_DESC("Same object type as haystack, but only selected elements in first dimension."),
         IN(),
         GIN( "haystack", "needleindexes"),
-        GIN_TYPE( ARRAY_GROUPS + ", Vector", "ArrayOfIndex" ),
+        GIN_TYPE(  ARRAY_GROUPS + ", Vector, Matrix",
+                  "ArrayOfIndex" ),
         GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC"),
+        GIN_DESC("The object to select from. May be the same variable as needles.",
+                 "The elements to select (zero based indexing, as always.)"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )

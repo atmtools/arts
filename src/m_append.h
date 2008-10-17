@@ -69,4 +69,18 @@ void Append(// WS Generic Output:
   out[Range(dummy.nelem(),in.nelem())] = in;
 }
 
+/* Implementation for String */
+void Append(// WS Generic Output:
+            String& out,
+            // WS Generic Input:
+            const String& in)
+{
+  // String stream for easy string operations:
+  ostringstream os;
+   
+  os << out << in;
+
+  out = os.str();
+}
+
 #endif // m_append_h

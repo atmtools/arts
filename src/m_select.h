@@ -42,7 +42,11 @@ void Select(// WS Generic Output:
             const Array<T>& haystack,
             const ArrayOfIndex& needleind)
 {
-  needles.resize( needleind.nelem() );
+  // We construct the output in this dummy variable, so that the
+  // method also works properly if needles and haystack are the same
+  // variable.
+  Array<T> dummy( needleind.nelem() );
+
   for( Index i = 0; i < needleind.nelem(); i++)
     {
       if (haystack.nelem() <= needleind[i])
@@ -55,8 +59,10 @@ void Select(// WS Generic Output:
           throw runtime_error (os.str());
         }
       else
-        needles[i] = haystack[needleind[i]];
+        dummy[i] = haystack[needleind[i]];
     }
+
+  needles = dummy;
 }
 
 
@@ -67,7 +73,11 @@ void Select(// WS Generic Output:
             const Vector& haystack,
             const ArrayOfIndex& needleind)
 {
-  needles.resize( needleind.nelem() );
+  // We construct the output in this dummy variable, so that the
+  // method also works properly if needles and haystack are the same
+  // variable.
+  Vector dummy( needleind.nelem() );
+
   for( Index i = 0; i < needleind.nelem(); i++)
     {
       if (haystack.nelem() <= needleind[i])
@@ -80,8 +90,41 @@ void Select(// WS Generic Output:
           throw runtime_error (os.str());
         }
       else
-        needles[i] = haystack[needleind[i]];
+        dummy[i] = haystack[needleind[i]];
     }
+
+  needles = dummy;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Select(// WS Generic Output:
+            Matrix& needles,
+            // WS Generic Input:
+            const Matrix& haystack,
+            const ArrayOfIndex& needleind)
+{
+  // We construct the output in this dummy variable, so that the
+  // method also works properly if needles and haystack are the same
+  // variable.
+  Matrix dummy( needleind.nelem(), haystack.ncols() );
+
+  for( Index i = 0; i < needleind.nelem(); i++)
+    {
+      if (haystack.nrows() <= needleind[i])
+        {
+          ostringstream os;
+          os << "The input matrix only has " << haystack.nrows()
+            << " rows. But one of the needle indexes is "
+            << needleind[i] << "." << endl;
+          os << "The indexes must be between 0 and " << haystack.nrows() - 1;
+          throw runtime_error (os.str());
+        }
+      else
+        dummy(i, joker) = haystack(needleind[i], joker);
+    }
+
+  needles = dummy;
 }
 
 

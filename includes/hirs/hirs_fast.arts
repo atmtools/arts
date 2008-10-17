@@ -1,6 +1,17 @@
 #DEFINITIONS:  -*-sh-*-
 
-# ARTS setup file for AMSUB simulations
+# ARTS setup file for fast HIRS simulations.
+#
+# Use this if you want to do fast HIRS simulations.  It should be a
+# good approximation of the exact simulations.
+#
+# This expects a number of workspace variables to exist and to be set:
+# 
+# f_backend_file                (String) Nominal channel frequencies. 
+# backend_channel_response_file (String) Instrument response functions.
+# channels                      (ArrayOfIndex) Which channels you want.
+# hitran_file                   (String) Name of HITRAN catalogue file.
+
 
 Arts2 {
 
@@ -14,18 +25,6 @@ output_file_formatSetZippedAscii
 # ---
 StringSet( y_unit, "PlanckBT" )
 StringSet( jacobian_unit, "RJBT" )
-
-# Surface
-NumericCreate( surface_emissivity )
-AgendaSet( surface_prop_agenda ){
-  Ignore(rte_gp_p)
-  InterpSurfaceFieldToRteGps( surface_skin_t, atmosphere_dim, lat_grid, 
-                              lon_grid, rte_gp_lat, rte_gp_lon, t_surface )
-  surfaceFlatSingleEmissivity( surface_los, surface_rmatrix, surface_emission, 
-                               f_grid, stokes_dim, atmosphere_dim, rte_los, 
-                               surface_skin_t, surface_emissivity )
-} 
-
 
 
 # 2. Spectroscopy
@@ -63,9 +62,7 @@ abs_linesReadFromHitran2004( abs_lines,
                              hitran_file,
                              2.0022234e+12,
                              7.9855733e+14 )
-#WriteXML( "ascii", abs_lines, "amsu/amsub.hitran04_lines.xml" )
 
-#ReadXML( abs_lines, "amsu/amsub.hitran04_lines.xml" )
 abs_lines_per_speciesCreateFromLines
 
 # WARNING: If you redifine abs_species, and want to do a line-by-line
@@ -79,60 +76,46 @@ abs_lines_per_speciesCreateFromLines
 # Definition of sensor position and LOS
 # ---
 # FIXME: sensor_los probably has to be adjusted.
-ReadXML( sensor_los, "amsu/amsub.sensor_los.xml" )
+ReadXML( sensor_los, "hirs.sensor_los.xml" )
 nrowsGet( nrows, sensor_los )
 ncolsGet( ncols, sensor_los )
 MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
 sensor_posAddRgeoid
 
+# Instead of the rest of the sensor setup, we just read the optimize
+# frequency grid and weights.
 
-# Start sensor response setup
-# ---
-
-# Normalise the sensor response
-# ---
-IndexSet( sensor_norm, 1 )
-
-# Antenna
-# ---
-AntennaOff
-
-
-# See setup_input.m for details around other sensor variables 
-
+ReadXML( f_grid, "FIXME" )
+ReadXML( pseudo_k_weights, "FIXME" )
 
 
 # Spectrometer:
 #
 VectorCreate(f_backend_temp)
-ArrayOfGField1Create(backend_channel_response_temp)
-
 ReadXML( f_backend_temp, f_backend_file )
-ReadXML( backend_channel_response_temp,
-         sideband_response_file )
 
 # Select the desired channels:
 #
 Select(f_backend, f_backend_temp, channels)
-Select(backend_channel_response, backend_channel_response_temp, channels)
-
-
-# Frequency grid:
-#
-f_gridFromSensorHIRS( f_grid, f_backend, backend_channel_response, 5e9 )
-
-# FIXME: We might use an optimized frequency grid here. Then it is
-# important to kick out those frequencies that are not used by the
-# selected channels.
+# FIXME: Still to do: Kick out those frequencies that are not used by
+# the selected channels. This has to be done for f_grid and pseudo_k_weights.
 
 
 abs_lines_per_speciesCompact
+
+# If there was a method to convert abs_lines_per_species back to
+# abs_lines, then we could do that, and save that file. The only
+# problem is, though, that the lines to include are not exactly the same
+# for all the different versions of the HIRS sensor. Thus, one would
+# also have to perform a merge of all the different resulting line
+# lists. :-(
 
 
 # Construct sensor response from all these inputs:
 #
 sensor_responseInit
 sensor_responseBackend
+# FIXME: Now modify sensor_response, based on pseudo_k_weights.
 
 
 # End of sensor response setup
