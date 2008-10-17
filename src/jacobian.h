@@ -38,6 +38,8 @@
 #include "ppath.h"
 #include "agenda_class.h"
 
+
+
 /** Contains the data for one retrieval quantity.
     \author Mattias Ekstrom */
 class RetrievalQuantity {

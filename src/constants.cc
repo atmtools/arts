@@ -303,3 +303,11 @@ extern const Index GFIELD4_AA_GRID = 3;
 */
 Joker joker;
 
+
+
+/*===========================================================================
+  === Definition of retrieval quantity tag strings 
+  ===========================================================================*/
+
+extern const String ABSSPECIES_MAINTAG = "Absorption species";
+

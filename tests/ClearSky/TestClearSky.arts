@@ -2,7 +2,7 @@
 #
 # Demonstration of a ARTS clear sky calculation
 #
-# Author: Stefan Buehler, adapted from older test by Patrick Eriksson
+# Author: Stefan Buehle and Patrick Eriksson
 
 
 Arts2 {
@@ -82,17 +82,14 @@ StringSet( y_unit, "RJBT" )
 timerStart
 RteCalc
 timerStop
-    
-
-# Write out spectrum
-#WriteXML(y){"on_the_fly.y.xml.generated"}
 
 # Write the result for the python test script
 output_file_formatSetAscii
 WriteXML( output_file_format, y, "ClearSky.y1.xml.generated" )
 
-# Do the same calculation again with lookup table absorption.
 
+# Do the same calculation again, but with lookup table absorption
+# and Jacobian calculations.
 
 # Redefine abs_scalar_gas_agenda to use the lookup table
 # ---
@@ -110,7 +107,26 @@ abs_lookupSetup
 timerStart
 abs_lookupCreate
 timerStop
-#WriteXML( output_file_format, abs_lookup, "" )
+
+# Define Jacobian
+#---
+
+jacobianInit
+
+# Species
+#---
+# Atmospheric grids used here as retrieval grids
+
+StringCreate( calcmethod )
+StringSet( calcmethod, "analytical" )
+#StringSet( calcmethod, "perturbation" )
+
+jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda, jacobian, 
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    p_grid, lat_grid, lon_grid, 
+    "O3", calcmethod, "vmr", 0.1e-6 )
+
+jacobianClose
 
 
 # Redo RT calculation, Tb conversion and save
@@ -119,8 +135,17 @@ timerStart
 RteCalc
 timerStop
 
+jacobianCalc
+
 output_file_formatSetAscii
 WriteXML( output_file_format, y, "ClearSky.y2.xml.generated" )
+
+Print( jacobian, 1 )
+
+WriteXML( output_file_format, jacobian, "ClearSky.jacobian.xml.generated" )
+
+
+
 
 } # End of Main
  

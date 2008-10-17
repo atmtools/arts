@@ -4316,7 +4316,7 @@ md_data_raw.push_back
          "  unit    : Retrieval unit. See above.\n"
          "  dx      : Size of perturbation.\n"
         ),
-        AUTHORS( "Mattias Ekstrom" ),
+        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
@@ -4337,6 +4337,7 @@ md_data_raw.push_back
                  "FIXME DOC")
       ));
          
+  /*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "jacobianAddParticle" ),
@@ -4415,6 +4416,27 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("jacobianAddPolyfit"),
+        DESCRIPTION
+        (
+         "...\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian", "sensor_response_pol_grid", "sensor_response_za_grid", 
+            "sensor_pos" ),
+        GIN( "poly_order", "no_pol_variation", "no_za_variation", 
+             "no_mblock_variation" ),
+        GIN_TYPE( "Index", "Index", "Index", "Index" ),
+        GIN_DEFAULT( NODEF, "0", "0", "0" ),
+        GIN_DESC("FIXME DOC", "FIXME DOC", "FIXME DOC", "FIXME DOC")
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "jacobianAddTemperature" ),
         DESCRIPTION
         (
@@ -4463,6 +4485,7 @@ md_data_raw.push_back
                  "FIXME DOC",
                  "FIXME DOC")
       ));
+  */
   
   md_data_raw.push_back
     ( MdRecord
@@ -4486,7 +4509,7 @@ md_data_raw.push_back
         GIN_DEFAULT(),
         GIN_DESC()
       ));
-        
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME("jacobianCalcAbsSpecies"),
@@ -4518,6 +4541,7 @@ md_data_raw.push_back
         SETMETHOD( true )
       ));
 
+  /*        
   md_data_raw.push_back
     ( MdRecord
       ( NAME("jacobianCalcParticle"),
@@ -4580,6 +4604,30 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("jacobianCalcPolyfit"),
+        DESCRIPTION
+        (
+        "Calculates jacobians for polynomial baseline fit.\n"
+        "\n"
+        "This function is added to *jacobian_agenda* by jacobianAddPolyfit\n"
+        "and should normally not be called by the user.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_quantities", "jacobian_indices", 
+            "sensor_response_f_grid", "sensor_response_pol_grid",
+            "sensor_response_za_grid", "sensor_pos" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("jacobianCalcTemperature"),
         DESCRIPTION
         (
@@ -4606,6 +4654,7 @@ md_data_raw.push_back
         GIN_DEFAULT(),
         GIN_DESC()
       ));
+  */
 
   md_data_raw.push_back
     ( MdRecord
@@ -4640,12 +4689,12 @@ md_data_raw.push_back
       ( NAME("jacobianInit"),
         DESCRIPTION
         (
-         "Initialise the variables connected to the Jacobian matrix.\n"
+         "Initialises the variables connected to the Jacobian matrix.\n"
          "\n"
          "This function initialises the *jacobian_quantities* array so\n"
          "that retrieval quantities can be added to it, therefor it has\n"
          "to be called before any subsequent calls to jacobianAddGas\n"
-         "jacobianAddTemperature or jacobianAddPointing.\n"
+         "jacobianAddTemperature, jacobianAddPointing or similar methods.\n"
          "\n"
          "The Jacobian quantities are initialised to be empty.\n"
         ),
@@ -4674,7 +4723,7 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian", "jacobian_quantities", "jacobian_indices", 
-                "jacobian_unit" ),
+             "jacobian_unit" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -4685,7 +4734,6 @@ md_data_raw.push_back
         GIN_DESC()
       ));
 
-   /* Not yet updated
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "jacobianUnit" ),
@@ -4697,19 +4745,16 @@ md_data_raw.push_back
          "determined by *jacobian_unit*.\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT("jacobian" ),
+        OUT( "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian", "jacobian_unit", "y_unit", "sensor_pos", "sensor_los", 
-               "sensor_response_f", "sensor_response_za", "sensor_response_aa",
-               "sensor_response_pol" ),
+        IN( "jacobian", "jacobian_unit", "y_unit", "y_f" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-   */
 
   md_data_raw.push_back     
     ( MdRecord
@@ -8653,7 +8698,7 @@ md_data_raw.push_back
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "ybatch", "y_unit", "sensor_response_f" ),
+        IN( "ybatch", "y_unit", "y_f" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8672,16 +8717,13 @@ md_data_raw.push_back
          "radiative transfer function does not work. The WSV *y_unit* should\n"
          "then be set to \"1\" when performing the radiative transfer\n" 
          "calculations, and be changed before calling this method.\n"
-         "\n"
-         "Note that *sensor_response_f* provides the frequency for each\n"
-         "element in *y* (the variables has the same length).\n"
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "y", "y_unit", "sensor_response_f" ),
+        IN( "y", "y_unit", "y_f" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

@@ -656,15 +656,15 @@ void ybatchMetProfilesClear(
 void ybatchUnit(
               Matrix&   ybatch,
         const String&   y_unit,
-        const Vector&   sensor_response_f )
+        const Vector&   y_f )
 {
   const Index nrows = ybatch.nrows();
   const Index ncols = ybatch.ncols();
 
-  if( sensor_response_f.nelem() != nrows )
+  if( y_f.nelem() != nrows )
     {
       ostringstream os;
-      os << "The numberof rows in *ybatch* and the length *sensor_response_f*\n"
+      os << "The numberof rows in *ybatch* and the length *y_f*\n"
          << "must be equal.";
       throw runtime_error( os.str() );      
     }
@@ -681,7 +681,7 @@ void ybatchUnit(
 
       for( Index ir=0; ir<nrows; ir++ )
         {
-          const Numeric scfac = invrayjean( 1, sensor_response_f[ir] );
+          const Numeric scfac = invrayjean( 1, y_f[ir] );
 
           for( Index ic=0; ic<ncols; ic++ )
             {  
@@ -696,7 +696,7 @@ void ybatchUnit(
         {
           for( Index ic=0; ic<ncols; ic++ )
             {  
-              ybatch(ir,ic) = invplanck( ybatch(ir,ic), sensor_response_f[ir] );
+              ybatch(ir,ic) = invplanck( ybatch(ir,ic), y_f[ir] );
             }
         }
     }

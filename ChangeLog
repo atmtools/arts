@@ -1,3 +1,30 @@
+2008-10-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-11-8
+
+	* src/m_jacobian.cc: Started revision of jacobians. Some cleaning
+	of file and code. Add/calc methods for all quantities beside
+	absorption species commented out. Will be re-introduced after
+	update and testing. Right now something wrong in perturbation
+	calculations.
+
+	(jacobianAddPolyfit): Created but not tested. Non-active.
+	(jacobianCalcPolyfit): Started. Not finished. Non-active.
+
+	* src/m_rte.cc (RteCalc): Now using ABSSPECIES_MAINTAG.
+
+	* src/constants.cc: Added ABSSPECIES_MAINTAG, in order to have a
+	clear definition of jacobian tags.
+
+	* tests/ClearSky/TestClearSky.arts: Polished and added some first
+	jacobian calculations. 
+
+	* src/m_jacobian.cc (jacobianUnit): Was de-activated. Activated and 
+	changed as below.
+	* src/m_batch.cc (ybatchUnit): As below.
+	* src/m_rte.cc (yUnit): The function was not updated to use y_f
+	instead of sensor:_response_f.
+
 2008-10-17  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-11-7

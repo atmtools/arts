@@ -55,6 +55,11 @@
 #include "rte.h"
 #include "special_interp.h"
 
+extern const String ABSSPECIES_MAINTAG;
+
+
+
+
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -163,7 +168,7 @@ void RteCalc(
   //
   for( Index i=0; i<jacobian_quantities.nelem(); i++ )
     {
-      if ( jacobian_quantities[i].MainTag() == "Abs. species"  &&  
+      if ( jacobian_quantities[i].MainTag() == ABSSPECIES_MAINTAG  &&  
                                           jacobian_quantities[i].Analytical() )
         { 
           ppath_array_do = 1;
@@ -721,14 +726,14 @@ void RteStdWithTransmissions(
 void yUnit(
               Vector&   y,
         const String&   y_unit,
-        const Vector&   sensor_response_f )
+        const Vector&   y_f )
 {
   const Index n = y.nelem();
 
-  if( sensor_response_f.nelem() != n )
+  if( y_f.nelem() != n )
     {
       ostringstream os;
-      os << "The length of *y* and *sensor_response_f* must be the same";
+      os << "The length of *y* and *y_f* must be the same";
       throw runtime_error( os.str() );      
     }
 
@@ -739,7 +744,7 @@ void yUnit(
     {
       for( Index i=0; i<n; i++ )
         { 
-          y[i] = invrayjean( y[i], sensor_response_f[i] ); 
+          y[i] = invrayjean( y[i], y_f[i] ); 
         }
     }
 
@@ -747,7 +752,7 @@ void yUnit(
     {
       for( Index i=0; i<n; i++ )
         { 
-          y[i] = invplanck( y[i], sensor_response_f[i] ); 
+          y[i] = invplanck( y[i], y_f[i] ); 
         }
     }
   else
