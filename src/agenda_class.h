@@ -64,6 +64,7 @@ public:
   inline Index nelem() const;
   inline Agenda& operator=(const Agenda& x);
   const Array<MRecord>& Methods () const { return mml; }
+  void set_methods (const Array<MRecord>& ml) { mml = ml; };
   void set_outputs_to_push_and_dup ();
   bool is_input(Workspace& ws, Index var) const;
   bool is_output(Index var) const;

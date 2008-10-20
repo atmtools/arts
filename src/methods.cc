@@ -1670,6 +1670,41 @@ void define_md_data_raw()
       
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("AgendaAppend"),
+        DESCRIPTION
+        ( 
+         "Append methods to an agenda.\n"
+         "\n"
+         "An agenda is used to store a list of methods that are meant to be\n"
+         "executed sequentially.\n"
+         "\n"
+         "This method takes the methods given in the body (in the curly braces)\n"
+         "and appends them to the agenda given by the output argument (in the round\n"
+         "braces).\n"
+         "\n"
+         "It also uses the agenda lookup data (defined in file agendas.cc) to\n"
+         "check, whether the given methods use the right input WSVs and produce\n"
+         "the right output WSVs.\n"
+        ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(      "gout1"       ),
+        GOUT_TYPE( "Agenda" ),
+        GOUT_DESC("FIXME DOC"),
+        IN(),
+        GIN(      "gin1"       ),
+        GIN_TYPE( "Agenda" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Agenda to append to." ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   true  ),
+        SUPPRESSHEADER( false ),
+        PASSWORKSPACE(  false ),
+        PASSWSVNAMES(   true  )
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("AgendaSet"),
         DESCRIPTION
         ( 

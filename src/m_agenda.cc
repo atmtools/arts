@@ -118,6 +118,31 @@ void AgendaSet(Workspace& ws,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void AgendaAppend(Workspace& ws,
+                  // WS Generic Output:
+                  Agenda& output_agenda,
+                  // WS Generic Output Names:
+                  const String& output_agenda_name,
+                  // WS Generic Input:
+                  const Agenda& in_agenda _U_,
+                  // WS Generic Input Names:
+                  const String& in_agenda_name _U_,
+                  // Agenda from controlfile:
+                  const Agenda& input_agenda)
+{
+  Array<MRecord> methods = in_agenda.Methods();
+  for (Index i = 0; i < input_agenda.Methods().nelem(); i++)
+    methods.push_back(input_agenda.Methods()[i]);
+
+  Agenda new_agenda;
+  new_agenda.set_name(in_agenda.name());
+  new_agenda.set_methods (methods);
+
+  AgendaSet(ws, output_agenda, output_agenda_name, new_agenda);
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Arts(Workspace& ws,
           // Agenda from controlfile:
           const Agenda&    input_agenda)

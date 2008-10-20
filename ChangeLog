@@ -1,3 +1,20 @@
+2008-10-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-11-10
+
+	* src/agenda_class.cc (Agenda::append):
+
+	Properly add the inputs and outputs to the new MRecord. Attention:
+	Works ONLY for methods WITHOUT generic input and output. One generic
+	input parameter is allowed if the method is defined as a SETMETHOD in
+	methods.cc.
+	
+	* src/methods.cc, src/m_agenda.cc:
+
+	Added AgendaAppend. Can be used to append WSMs to an agenda.
+
+	* src/agenda_class.h: Add helper function set_methods.
+
 2008-10-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-11-9

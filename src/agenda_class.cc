@@ -66,14 +66,16 @@ void Agenda::append(const String& methodname,
                     const String& keywordvalue)
 {
   extern const map<String, Index> MdMap;
-  
-  // Find explicit method id in MdMap.
+
   const map<String, Index>::const_iterator i2 = MdMap.find(methodname);
   assert ( i2 != MdMap.end() );
   Index id = i2->second;            
           
-  ArrayOfIndex output(0);          
-  ArrayOfIndex input(0);
+  extern const Array<MdRecord> md_data;
+  ArrayOfIndex output = md_data[id].Out();
+
+  // Find explicit method id in MdMap.
+  ArrayOfIndex input = md_data[id].In();
   Agenda dummy;
   dummy.resize(0);
   
