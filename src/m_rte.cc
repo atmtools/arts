@@ -201,6 +201,7 @@ void RteCalc(
         }
     }
 
+
   // We have to make a local copy of the Workspace and the agendas because
   // only non-reference types can be declared firstprivate in OpenMP
   Workspace l_ws (ws);

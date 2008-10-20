@@ -140,11 +140,7 @@ jacobianCalc
 output_file_formatSetAscii
 WriteXML( output_file_format, y, "ClearSky.y2.xml.generated" )
 
-Print( jacobian, 1 )
-
 WriteXML( output_file_format, jacobian, "ClearSky.jacobian.xml.generated" )
-
-
 
 
 } # End of Main

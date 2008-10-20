@@ -97,7 +97,9 @@ void yCalc(
   const Vector         sensor_response_f(n);
   const ArrayOfIndex   sensor_response_pol(n);
   const Vector         sensor_response_za(n);
-  const Vector         sensor_response_aa(n);
+        Vector         sensor_response_aa(n);
+  if( atmosphere_dim < 3 )
+    sensor_response_aa.resize(0);
 
   RteCalcNoJacobian( ws, y, y_f, y_pol, y_pos, y_los, 
                      ppath_step_agenda, rte_agenda,
@@ -148,6 +150,9 @@ void jacobianCalc(
 
   // Output message
   out2 << "  Calculating *jacobian*.\n";
+
+  cout << "r1: " << jacobian.nrows() << "\n";
+  cout << "c1: " << jacobian.ncols() << "\n";
   
   // Run jacobian_agenda
   jacobian_agendaExecute( ws, jacobian, jacobian_agenda );
@@ -301,8 +306,6 @@ void jacobianAddAbsSpecies(
   const String&    mode,
   const Numeric&   dx )
 {
-  //
- 
   // Check that the jacobian matrix is empty. Otherwise it is either
   // not initialised or it is closed.
   if( J.nrows()!=0 && J.ncols()!=0 )
@@ -425,12 +428,15 @@ void jacobianCalcAbsSpecies(
   const Vector&                    mblock_aa_grid,
   const String&                    species )
 {
+  cout << "r2: " << J.nrows() << "\n";
+  cout << "c2: " << J.ncols() << "\n";
+
   // Set some useful (and needed) variables. 
   Index             n_rq = jq.nelem();
   RetrievalQuantity rq;
   ArrayOfIndex      ji;
   Index             it, pertmode;
-  
+
   // Find the retrieval quantity related to this method, i.e. Abs. species -
   // species. This works since the combined MainTag and Subtag is individual.
   bool found = false;
@@ -450,6 +456,7 @@ void jacobianCalcAbsSpecies(
          << species;
       throw runtime_error(os.str());
     }
+
   if( rq.Analytical() )
     {
       ostringstream os;
@@ -458,7 +465,6 @@ void jacobianCalcAbsSpecies(
          << "through *jacobianCalc*.";
       throw runtime_error(os.str());
     }
-   
   
   // Store the start JacobianIndices and the Grids for this quantity
   it = ji[0];
@@ -471,7 +477,7 @@ void jacobianCalcAbsSpecies(
     pertmode = 0;
   else 
     pertmode = 1;
-  
+
   // For each atmospheric dimension option calculate a ArrayOfGridPos, these
   // are the base functions for interpolating the perturbations into the
   // atmospheric grids.
@@ -591,7 +597,7 @@ void jacobianCalcAbsSpecies(
                      r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
                      sensor_response, sensor_pos, sensor_los, f_grid, 
                      stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
-    
+
               // Add dy/dx as column in jacobian
               for( Index y_it=0; y_it<y.nelem(); y_it++ )
                 {
@@ -1472,7 +1478,6 @@ void jacobianCalcAbsSpecies(
 //   Index iq;
 //   for( iq=0; iq<jq.nelem() && !found; iq++ )
 //     {
-//   cout << iq << "\n";  
 //       if( jq[iq].MainTag()=="Polyfit" )
 //         found = true;
 //     }
@@ -1481,9 +1486,7 @@ void jacobianCalcAbsSpecies(
 //     throw runtime_error(
 //       "There is no polynomial baseline fit retrieval quantities defined.\n");
 //   }
-
-//   cout << iq << "\n";  
-
+//
 //   // Get sizes and check
 //   //
 //   ArrayOfVector grids = jq[iq].Grids();
@@ -1515,8 +1518,6 @@ void jacobianCalcAbsSpecies(
 //         }
 //     }
 
-//   cout << jacobian_indices << "\n";
-//   cout << w << "\n";
 // }
 
 
