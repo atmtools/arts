@@ -1,5 +1,15 @@
 2008-10-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-11-12
+
+	* src/m_jacobian.cc (jacobianCalcAbsSpecies): Now using
+	jacobian_y_agenda.
+	(yCalc): Removed this temporary solution.
+
+	* src/agendas.cc: Added *jacobian_y_agenda*.
+
+2008-10-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-11-11
 	
 	* src/m_jacobian.cc (yCalc): Dummy vector for sensor_response_aa

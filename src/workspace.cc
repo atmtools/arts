@@ -1686,6 +1686,15 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
+    ( NAME( "jacobian_y_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+
+ wsv_data.push_back
+   (WsvRecord
     ( NAME( "lat_grid" ),
       DESCRIPTION
       (

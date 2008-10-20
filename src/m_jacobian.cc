@@ -60,61 +60,6 @@ extern const String ABSSPECIES_MAINTAG;
   ===========================================================================*/
 
 
-// Temporary solution
-
-void yCalc(
-         Workspace&                  ws,
-         Vector&                     y,
-   const Agenda&                     ppath_step_agenda,
-   const Agenda&                     rte_agenda,
-   const Agenda&                     iy_space_agenda,
-   const Agenda&                     surface_prop_agenda,
-   const Agenda&                     iy_cloudbox_agenda,
-   const Index&                      atmosphere_dim,
-   const Vector&                     p_grid,
-   const Vector&                     lat_grid,
-   const Vector&                     lon_grid,
-   const Tensor3&                    z_field,
-   const Tensor3&                    t_field,
-   const Tensor4&                    vmr_field,
-   const Matrix&                     r_geoid,
-   const Matrix&                     z_surface,
-   const Index&                      cloudbox_on, 
-   const ArrayOfIndex&               cloudbox_limits,
-   const Sparse&                     sensor_response,
-   const Matrix&                     sensor_pos,
-   const Matrix&                     sensor_los,
-   const Vector&                     f_grid,
-   const Index&                      stokes_dim,
-   const Index&                      antenna_dim,
-   const Vector&                     mblock_za_grid,
-   const Vector&                     mblock_aa_grid )
-{
-  Vector               y_f;
-  ArrayOfIndex         y_pol;
-  Matrix               y_pos, y_los;
-  const Index          n = sensor_response.nrows();
-  const Vector         sensor_response_f(n);
-  const ArrayOfIndex   sensor_response_pol(n);
-  const Vector         sensor_response_za(n);
-        Vector         sensor_response_aa(n);
-  if( atmosphere_dim < 3 )
-    sensor_response_aa.resize(0);
-
-  RteCalcNoJacobian( ws, y, y_f, y_pol, y_pos, y_los, 
-                     ppath_step_agenda, rte_agenda,
-                     iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
-                     atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
-                     t_field, vmr_field, 
-                     r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
-                     sensor_response, sensor_response_f,
-                     sensor_response_pol, sensor_response_za, sensor_response_aa,
-                     sensor_pos, sensor_los, f_grid, 
-                     stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid, 
-                     "1" );
-}
-
-
 //----------------------------------------------------------------------------
 // General methods:
 //----------------------------------------------------------------------------
@@ -151,9 +96,6 @@ void jacobianCalc(
   // Output message
   out2 << "  Calculating *jacobian*.\n";
 
-  cout << "r1: " << jacobian.nrows() << "\n";
-  cout << "c1: " << jacobian.ncols() << "\n";
-  
   // Run jacobian_agenda
   jacobian_agendaExecute( ws, jacobian, jacobian_agenda );
 }
@@ -398,39 +340,21 @@ void jacobianAddAbsSpecies(
 void jacobianCalcAbsSpecies(
         Workspace&                 ws,
         Matrix&                    J,
-  const Vector&                    y,
+  const Agenda&                    jacobian_y_agenda,
   const ArrayOfRetrievalQuantity&  jq,
   const ArrayOfArrayOfIndex&       jacobian_indices,
-  const ArrayOfArrayOfSpeciesTag&  abs_species,
-  const Agenda&                    ppath_step_agenda,
-  const Agenda&                    rte_agenda,
-  const Agenda&                    iy_space_agenda,
-  const Agenda&                    surface_prop_agenda,
-  const Agenda&                    iy_cloudbox_agenda,
   const Index&                     atmosphere_dim,
   const Vector&                    p_grid,
   const Vector&                    lat_grid,
   const Vector&                    lon_grid,
-  const Tensor3&                   z_field,
-  const Tensor3&                   t_field,
+  const ArrayOfArrayOfSpeciesTag&  abs_species,
   const Tensor4&                   vmr_field,
-  const Matrix&                    r_geoid,
-  const Matrix&                    z_surface,
-  const Index&                     cloudbox_on,
-  const ArrayOfIndex&              cloudbox_limits,
-  const Sparse&                    sensor_response,
-  const Matrix&                    sensor_pos,
+  const Tensor3&                   t_field,
+  const Tensor4&                   pnd_field,
   const Matrix&                    sensor_los,
-  const Vector&                    f_grid,
-  const Index&                     stokes_dim,
-  const Index&                     antenna_dim,
-  const Vector&                    mblock_za_grid,
-  const Vector&                    mblock_aa_grid,
+  const Vector&                    y,
   const String&                    species )
 {
-  cout << "r2: " << J.nrows() << "\n";
-  cout << "c2: " << J.ncols() << "\n";
-
   // Set some useful (and needed) variables. 
   Index             n_rq = jq.nelem();
   RetrievalQuantity rq;
@@ -514,7 +438,7 @@ void jacobianCalcAbsSpecies(
   
   // Vector for perturbed measurement vector
   Vector yp;
-    
+
   // Loop through the retrieval grid and calculate perturbation effect
   for( Index lon_it=0; lon_it<j_lon; lon_it++ )
     {
@@ -590,13 +514,9 @@ void jacobianCalcAbsSpecies(
               out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
                    << ji[1]+1 << "\n";
 
-              yCalc( ws, yp, ppath_step_agenda, rte_agenda,
-                     iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
-                     atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
-                     t_field, vmr_p,
-                     r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
-                     sensor_response, sensor_pos, sensor_los, f_grid, 
-                     stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
+              // Run jacobian_y_agenda
+              jacobian_y_agendaExecute( ws, yp, vmr_p, t_field, pnd_field, 
+                                        sensor_los, jacobian_y_agenda );
 
               // Add dy/dx as column in jacobian
               for( Index y_it=0; y_it<y.nelem(); y_it++ )

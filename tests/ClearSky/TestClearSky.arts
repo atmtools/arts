@@ -111,6 +111,11 @@ timerStop
 # Define Jacobian
 #---
 
+AgendaSet( jacobian_y_agenda ) {
+ Ignore(pnd_field)
+ RteCalcNoJacobian
+}
+ 
 jacobianInit
 
 # Species
@@ -124,7 +129,15 @@ StringSet( calcmethod, "analytical" )
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda, jacobian, 
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     p_grid, lat_grid, lon_grid, 
-    "O3", calcmethod, "vmr", 0.1e-6 )
+    "O3", calcmethod, "vmr", 1e-9 )
+
+#AgendaSet( jacobian_agenda ) {
+#  jacobianCalcAbsSpecies( jacobian, jacobian_y_agenda, 
+#                          jacobian_quantities, jacobian_indices,
+#                          atmosphere_dim, p_grid, lat_grid, lon_grid, 
+#                          abs_species, vmr_field, t_field, pnd_field, 
+#                          sensor_los, y, "O3" )
+#}
 
 jacobianClose
 
@@ -137,11 +150,13 @@ timerStop
 
 jacobianCalc
 
+#AgendaExecute(jacobian_agenda)
+
 output_file_formatSetAscii
 WriteXML( output_file_format, y, "ClearSky.y2.xml.generated" )
 
 WriteXML( output_file_format, jacobian, "ClearSky.jacobian.xml.generated" )
 
-
+#Print(jacobian,0)
 } # End of Main
  

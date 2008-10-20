@@ -320,7 +320,7 @@ void define_agenda_data()
         "Usage:   Called from *jacobianCalc*."
        ),
        OUTPUT( "jacobian" ),
-       INPUT())),
+       INPUT()));
        
   agenda_data.push_back
     (AgRecord
@@ -333,10 +333,27 @@ void define_agenda_data()
         "the calculations needed before a call to RteCalc.\n"
         "\n"
         "Usage:   Called from *jacobianCalcParticle*."
+        ),
+       OUTPUT( "pnd_field" ),
+       INPUT( "pnd_field" )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "jacobian_y_agenda" ),
+       DESCRIPTION
+       (
+        "Agenda providing recalculated *y* after some perturbation.\n"
+        "\n"
+        "The purpose of this agenda is to determine some jacobians through\n"
+        "perturbation calculations. Accordingly, the agenda shall return *y*\n"
+        "for the perturbed input (without doing any unnecessary operations,\n"
+        "for efficiency reasons). If unperturbed spectra (and analytical\n"
+        "jacobians are calculated with *RteCalc*, the standard choice for\n"
+        "this agenda should be 'RteCalcNoJacobians*."
        ),
-       OUTPUT( ),
-       INPUT( "pnd_field" ))),
-       
+       OUTPUT( "y" ),
+       INPUT( "vmr_field", "t_field", "pnd_field", "sensor_los" )));
+
   agenda_data.push_back
     (AgRecord
      ( NAME( "main_agenda" ),
@@ -609,6 +626,7 @@ void define_agenda_data()
         ),
        OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", "rte_gp_lon" )));
+
 
 
 //  agenda_data.push_back
