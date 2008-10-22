@@ -1224,6 +1224,85 @@ void f_gridFromSensorAMSU(// WS Output:
   // That's it, we're done!
 }
 
+//! Test if two instrument channels overlap, and if so, merge them. 
+/*!
+  The channels boundaries are specified in two separate vectors, fmin
+  and fmax. These vectors are both input and output. If merging has
+  happened, they will each be one element shorter. 
+
+  The positions of the channels to compare is given by the input
+  parameters i and j. It is assumed that the minimum frequency of i
+  is lower than or equal to that of j.
+
+  Furthermore, it is assumed that i itself is lower than j.
+
+  The range of the first channel (i) will have been extended to
+  accomodate the second channel (j). The second channel will have been
+  removed.
+
+  The function also handles the updating of index j: If the two
+  channels do not overlap, j is increased by one.
+
+  Function returns true if merging has happened.
+
+  \author Stefan Buehler
+  
+  \return True if channels were merged, otherwise false.
+  \retval fmin Lower channel boundaries.
+  \retval fmax Upper channel boundaries.
+  \param i Index of first channel.
+  \param j Index of second channel.
+*/
+bool test_and_merge_two_channels(Vector& fmin,
+                                 Vector& fmax,
+                                 Index i,
+                                 Index j)
+{
+  const Index  nf = fmin.nelem();
+  assert(fmax.nelem()==nf);
+  assert(i>=0 && i<nf);
+  assert(j>=0 && j<nf);
+  assert(fmin[i]<=fmin[j]);
+  assert(i<j);
+
+  // There are three cases to consider:
+  // a) The two channels are separate: fmax[i] <  fmin[j]
+  // b) They overlap:                  fmax[i] >= fmin[j]
+  // c) j is inside i:                 fmax[i] >  fmax[j]
+
+  // In the easiest case (a), we do not have to do anything.
+  if (fmax[i] >= fmin[j])
+    {
+      // We are in case (b) or (c), so we know that we have to combine
+      // the channels. The new minimum frequency is fmin[i]. The new
+      // maximum frequency is the larger one of the two channels we
+      // are combining:
+      if (fmax[j] > fmax[i])
+        fmax[i] = fmax[j];
+
+      // We now have to kick out element j from both vectors.
+
+      // Number of elements behind j:
+      Index n_behind = nf-1 - j;
+
+      Vector dummy = fmin;
+      fmin.resize(nf-1);
+      fmin[Range(0,j)] = dummy[Range(0,j)];
+      if (n_behind > 0)
+        fmin[Range(j,n_behind)] = dummy[Range(j+1,n_behind)];
+       
+      dummy = fmax;
+      fmax.resize(nf-1);
+      fmax[Range(0,j)] = dummy[Range(0,j)];
+      if (n_behind > 0)
+        fmax[Range(j,n_behind)] = dummy[Range(j+1,n_behind)];
+
+      return true;
+    }
+
+  return false;
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromSensorHIRS(// WS Output:
@@ -1234,10 +1313,6 @@ void f_gridFromSensorHIRS(// WS Output:
                           // Control Parameters:
                           const Numeric& spacing)
 {
-  // For various loop indices (in one case we need the value after the
-  // loop, so we define the variable here):
-  Index i;  
-  
   // How many channels in total:
   const Index n_chan = f_backend.nelem();
 
@@ -1262,7 +1337,7 @@ void f_gridFromSensorHIRS(// WS Output:
     }
 
   // Frequency grids for response functions must be strictly increasing.
-  for (i=0; i<n_chan; ++i)
+  for (Index i=0; i<n_chan; ++i)
     {
       // Frequency grid for this response function:
       const Vector& backend_f_grid = backend_channel_response[i].get_numeric_grid(0);
@@ -1280,15 +1355,36 @@ void f_gridFromSensorHIRS(// WS Output:
 
   // Start the actual work.
 
-  out2 << "  fmin/max orig:\n";
+  out2 << "  Original channel characteristics:\n"
+       << "  min         nominal      max (all in Hz):\n";
 
   // Get a list of original channel boundaries:
   Vector fmin_orig(n_chan);
   Vector fmax_orig(n_chan);  
-  for (i=0; i<n_chan; ++i)
+  for (Index i=0; i<n_chan; ++i)
     {
-      const Vector& backend_f_grid = backend_channel_response[i].get_numeric_grid(0);
-      const Index nf = backend_f_grid.nelem();
+      // Some handy shortcuts:
+      const Vector& backend_f_grid   = backend_channel_response[i].get_numeric_grid(0);
+      const Vector& backend_response = backend_channel_response[i];
+      const Index   nf               = backend_f_grid.nelem();
+
+
+      // We have to find the first and last frequency where the
+      // response is actually different from 0. (No point in making
+      // calculations for frequencies where the response is 0.)
+//       Index j=0;
+//       while (backend_response[j] <= 0) ++j;
+//       Numeric bf_min = backend_f_grid[j];
+
+//       j=nf-1;
+//       while (backend_response[j] <= 0) --j;
+//       Numeric bf_max = backend_f_grid[j];
+      //
+      // No, aparently the sensor part want values also where the
+      // response is zero. So we simply take the grid boundaries here.
+      Numeric bf_min = backend_f_grid[0];
+      Numeric bf_max = backend_f_grid[nf-1];
+
 
       // We need to add a bit of extra margin at both sides,
       // otherwise there is a numerical problem in the sensor WSMs.
@@ -1299,46 +1395,67 @@ void f_gridFromSensorHIRS(// WS Output:
       //
       const Numeric delta = 1e6; 
 
-      fmin_orig[i] = f_backend[i] + backend_f_grid[0] - delta;
-      fmax_orig[i] = f_backend[i] + backend_f_grid[nf-1] + delta;
+      fmin_orig[i] = f_backend[i] + bf_min - delta;
+      fmax_orig[i] = f_backend[i] + bf_max + delta;
 
-      out2 << "     " << fmin_orig[i] << " / " << fmax_orig[i] << "\n";
+      out2 << "  " << fmin_orig[i] 
+           << "  " << f_backend[i] 
+           << "  " << fmax_orig[i] << "\n";
     }
 
   // The problem is that channels may be overlapping. In that case, we
   // want to create a frequency grid that covers their entire range,
   // but we do not want to duplicate any frequencies.
 
+  // To make matters worse, one or even several channels may be
+  // completely inside another very broad channel.
+
   // Sort channels by frequency:
+  // Caveat: A channel may be higher in
+  // characteristic frequency f_backend, but also wider, so that it
+  // has a lower minimum frequency fmin_orig. (This is the case for
+  // some HIRS channels.) We sort by the minimum frequency here, not
+  // by f_backend. This is necessary for function
+  // test_and_merge_two_channels to work correctly. 
   ArrayOfIndex isorted;  
-  get_sorted_indexes (isorted, f_backend);
+  get_sorted_indexes (isorted, fmin_orig);
 
-  // Now we go through the original response functions, in sorted
-  // order, and see if we can combine any of them.
-
-  // Arrays of Numeric, that we can grow with push_back.
-  ArrayOfNumeric fmin, fmax;
-  for (i=0; i<n_chan-1; ++i)
+  Vector fmin(n_chan), fmax(n_chan);
+  for (Index i=0; i<n_chan; ++i)
     {
-      fmin.push_back(fmin_orig[isorted[i]]);
-
-      while ( i<n_chan-1 &&
-              fmin_orig[isorted[i+1]] <= fmax_orig[isorted[i]] )
-        ++i;
-
-      fmax.push_back(fmax_orig[isorted[i]]);
+      fmin[i] = fmin_orig[isorted[i]];
+      fmax[i] = fmax_orig[isorted[i]];
     }
 
-  // Add the last channel, if not already there:
-  if (i<n_chan)
+  // We will be testing pairs of channels, and combine them if
+  // possible. We have to test always only against the direct
+  // neighbour. If that has no overlap, higher channels can not have
+  // any either, due to the sorting by fmin.
+  //
+  // Note that fmin.nelem() changes, as the loop is
+  // iterated. Nevertheless this is the correct stop condition.
+  for (Index i=0; i<fmin.nelem()-1; ++i)
     {
-      fmin.push_back(fmin_orig[isorted[i]]);
-      fmax.push_back(fmax_orig[isorted[i]]);
+      bool continue_checking = true;
+      // The "i<fmin.nelem()" condition below is necessary, since
+      // fmin.nelem() can decrease while the loop is executed, due to
+      // merging. 
+      while (continue_checking && i<fmin.nelem()-1)
+        {
+          //          cout << "i " << i << "\n";
+          continue_checking =
+            test_and_merge_two_channels(fmin, fmax, i, i+1);
+
+          // Function returns true if merging has taken place.
+          // In this case, we have to check again.
+  
+        }
     }
 
-  out2 << "  fmin/max new:\n";
-  for (i=0; i<fmin.nelem(); ++i)
-    out2 << "  " << fmin[i] << " / " << fmax[i] << "\n";
+  out2 << "  New channel characteristics:\n"
+       << "  min                       max (all in Hz):\n";
+  for (Index i=0; i<fmin.nelem(); ++i)
+    out2 << "  " << fmin[i] << "               " << fmax[i] << "\n";
 
   
   // Ok, now we just have to create a frequency grid for each of the
@@ -1348,7 +1465,7 @@ void f_gridFromSensorHIRS(// WS Output:
   // can use the STL push_back function.
   ArrayOfNumeric f_grid_array;
 
-  for (i=0; i<fmin.nelem(); ++i)
+  for (Index i=0; i<fmin.nelem(); ++i)
     {
       // Band width:
       const Numeric bw = fmax[i] - fmin[i];

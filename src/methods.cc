@@ -3775,9 +3775,7 @@ md_data_raw.push_back
          "functions given by *backend_channel_response*.\n"
          "\n"
          "You have to specify the desired spacing in the keyword *spacing*, which\n"
-         "has a default value of 100 MHz. (The actual value is 0.1e9, since our\n"
-         "unit is Hz.) FIXME: This perhaps has to be adjusted to a suitable\n"
-         "default value for HIRS.\n"
+         "has a default value of 5e8 Hz.\n"
          "\n"
          "The produced grid will not have exactly the requested spacing, but\n"
          "will not be coarser than requested. The algorithm starts with the band\n"
@@ -3795,7 +3793,7 @@ md_data_raw.push_back
         IN( "f_backend", "backend_channel_response" ),
         GIN( "spacing" ),
         GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( ".1e11"),
+        GIN_DEFAULT( "5e8"),
         GIN_DESC("FIXME DOC")
       ));
 

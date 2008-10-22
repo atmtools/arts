@@ -1,3 +1,18 @@
+2008-10-22  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-11-16
+
+	* src/m_sensor.cc (f_gridFromSensorHIRS): Fixed bug. The case that
+	some channels may be completely inside other (broader) channels
+	was not handled correctly. Completely redesigned the channel
+	merging part to fix this. (Thanks Patrick, you were right about
+	this one.)
+	(test_and_merge_two_channels): Added this function, which does the
+	work of comparing two channels, and merging them if necessary.
+
+	* src/methods.cc (f_gridFromSensorHIRS): Changed default value for
+	spacing to a more reasonable value (5e8), and updated documentation.
+
 2008-10-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-11-15
