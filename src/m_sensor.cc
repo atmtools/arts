@@ -1365,7 +1365,7 @@ void f_gridFromSensorHIRS(// WS Output:
     {
       // Some handy shortcuts:
       const Vector& backend_f_grid   = backend_channel_response[i].get_numeric_grid(0);
-      const Vector& backend_response = backend_channel_response[i];
+//      const Vector& backend_response = backend_channel_response[i];
       const Index   nf               = backend_f_grid.nelem();
 
 
