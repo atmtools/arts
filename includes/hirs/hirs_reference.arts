@@ -162,8 +162,6 @@ f_gridFromSensorHIRS( f_grid,
                       f_backend, backend_channel_response,
 		      f_grid_spacing )
 
-
-
 abs_lines_per_speciesCompact
 
 # If there was a method to convert abs_lines_per_species back to

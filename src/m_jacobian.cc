@@ -51,7 +51,7 @@
 #include "physics_funcs.h"
 
 extern const String ABSSPECIES_MAINTAG;
-
+extern const String POLYFIT_MAINTAG;
 
 
 /*===========================================================================
@@ -96,8 +96,9 @@ void jacobianCalc(
   // Output message
   out2 << "  Calculating *jacobian*.\n";
 
-  // Run jacobian_agenda
-  jacobian_agendaExecute( ws, jacobian, jacobian_agenda );
+  // Run jacobian_agenda (can be empty)
+  if( jacobian_agenda.nelem() > 0 )
+    jacobian_agendaExecute( ws, jacobian, jacobian_agenda );
 }
 
 
@@ -174,11 +175,14 @@ void jacobianClose(
 void jacobianInit(
         Matrix&                    jacobian,
         ArrayOfRetrievalQuantity&  jacobian_quantities,
-        ArrayOfArrayOfIndex&       jacobian_indices )
+        ArrayOfArrayOfIndex&       jacobian_indices,
+        Agenda&                    jacobian_agenda )
 {
   jacobian.resize(0,0);
   jacobian_quantities.resize(0);
   jacobian_indices.resize(0);
+  jacobian_agenda.resize(0);
+  jacobian_agenda.set_name( "jacobian_agenda" );
 }
 
 
@@ -190,7 +194,9 @@ void jacobianOff(
         ArrayOfArrayOfIndex&       jacobian_indices,
         String&                    jacobian_unit )
 {
-  jacobianInit( jacobian, jacobian_quantities, jacobian_indices );
+  Agenda dummy;
+
+  jacobianInit( jacobian, jacobian_quantities, jacobian_indices, dummy );
   
   jacobian_unit = "-";
 }
@@ -230,24 +236,23 @@ void jacobianUnit(
 // Absorption species:
 //----------------------------------------------------------------------------
 
-
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddAbsSpecies(
-        Workspace& ws,
-        ArrayOfRetrievalQuantity& jq,
-        Agenda&    jacobian_agenda,
-  const Matrix&    J,
-  const Index&     atmosphere_dim,
-  const Vector&    p_grid,
-  const Vector&    lat_grid,
-  const Vector&    lon_grid,
-  const Vector&    rq_p_grid,
-  const Vector&    rq_lat_grid,
-  const Vector&    rq_lon_grid,
-  const String&    species,
-  const String&    method,
-  const String&    mode,
-  const Numeric&   dx )
+  Workspace&                  ws,
+  ArrayOfRetrievalQuantity&   jq,
+  Agenda&                     jacobian_agenda,
+  const Matrix&               J,
+  const Index&                atmosphere_dim,
+  const Vector&               p_grid,
+  const Vector&               lat_grid,
+  const Vector&               lon_grid,
+  const Vector&               rq_p_grid,
+  const Vector&               rq_lat_grid,
+  const Vector&               rq_lon_grid,
+  const String&               species,
+  const String&               method,
+  const String&               mode,
+  const Numeric&              dx )
 {
   // Check that the jacobian matrix is empty. Otherwise it is either
   // not initialised or it is closed.
@@ -329,11 +334,8 @@ void jacobianAddAbsSpecies(
            << " to *jacobian_quantities*\n" << "  and *jacobian_agenda*\n";
       out3 << "  Calculations done by perturbation, size " << dx 
            << " " << mode << ".\n"; 
-      String methodname = "jacobianCalcAbsSpecies";
-      String kwv = species;
-      if (jacobian_agenda.name() == "")
-        jacobian_agenda.set_name( "jacobian_agenda" );
-      jacobian_agenda.append( ws, methodname, kwv );
+
+      jacobian_agenda.append( ws, "jacobianCalcAbsSpecies", species );
     }
 }                    
 
@@ -358,7 +360,7 @@ void jacobianCalcAbsSpecies(
   const Vector&                    y,
   const String&                    species )
 {
-  // Set some useful (and needed) variables. 
+  // Set some useful variables. 
   Index             n_rq = jq.nelem();
   RetrievalQuantity rq;
   ArrayOfIndex      ji;
@@ -388,8 +390,8 @@ void jacobianCalcAbsSpecies(
     {
       ostringstream os;
       os << "This WSM handles only perturbation calculations.\n"
-         << "Are you using the method manually? This method should be used\n"
-         << "through *jacobianCalc*.";
+         << "Are you using the method manually? This method should normally be\n"
+         << "used through *jacobianCalc*.";
       throw runtime_error(os.str());
     }
   
@@ -400,7 +402,7 @@ void jacobianCalcAbsSpecies(
   // Check if a relative pertubation is used or not, this information is needed
   // by the methods 'perturbation_field_?d'.
   // Note: both 'vmr' and 'nd' are absolute perturbations
-  if (rq.Mode()=="rel")
+  if( rq.Mode()=="rel" )
     pertmode = 0;
   else 
     pertmode = 1;
@@ -437,7 +439,7 @@ void jacobianCalcAbsSpecies(
   // Variables for vmr field perturbation unit conversion
   Tensor3 nd_field( t_field.npages(), t_field.nrows(), t_field.ncols(), 1.0 );
   if( rq.Mode()=="nd" )
-    calc_nd_field(nd_field, p_grid, t_field);
+    calc_nd_field( nd_field, p_grid, t_field );
   
   // Vector for perturbed measurement vector
   Vector yp;
@@ -523,16 +525,178 @@ void jacobianCalcAbsSpecies(
 
               // Add dy/dx as column in jacobian
               for( Index y_it=0; y_it<y.nelem(); y_it++ )
-                {
-                  J(y_it,it) = ( yp[y_it] - y[y_it] ) / rq.Perturbation();
-                }
+                { J(y_it,it) = ( yp[y_it] - y[y_it] ) / rq.Perturbation(); }
 
+              // Result from next loop shall go into next column of J
               it++;
             }
         }
     }
 }
 
+
+
+
+
+//----------------------------------------------------------------------------
+// Polynomial baseline fits:
+//----------------------------------------------------------------------------
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddPolyfit(
+  Workspace&                 ws,
+  ArrayOfRetrievalQuantity&  jq,
+  Agenda&                    jacobian_agenda,
+  const Matrix&              J,
+  const ArrayOfIndex&        sensor_response_pol_grid,
+  const Vector&              sensor_response_za_grid,
+  const Matrix&              sensor_pos,
+  const Index&               poly_order,
+  const Index&               no_pol_variation,
+  const Index&               no_za_variation,
+  const Index&               no_mblock_variation )
+{
+  // Check that the jacobian matrix is empty. Otherwise it is either
+  // not initialised or it is closed.
+  if( J.nrows()!=0 && J.ncols()!=0 )
+    {
+      ostringstream os;
+      os << "The Jacobian matrix is not initialised correctly or closed.\n"
+         << "New retrieval quantities can not be added at this point.";
+      throw runtime_error(os.str());
+    }
+
+  // Check that poly_order is >= 0
+  if( poly_order < 0 )
+    throw runtime_error(
+      "The polynomial order has to be >= 0.");
+ 
+  // Check that this type of polyfit is not already included in the
+  // jacobian.
+  for( Index it=0; it<jq.nelem(); it++ )
+    {
+      if( jq[it].MainTag() == POLYFIT_MAINTAG )
+        {
+          ostringstream os;
+          os << "Polynomial baseline fit is already included in\n"
+             << "*jacobian_quantities*.";
+          throw runtime_error(os.str());
+        }
+    }
+
+  // "Grids"
+  //
+  // Grid dimensions correspond here to 
+  //   1: polynomial order
+  //   2: polarisation
+  //   3: viewing direction
+  //   4: measurement block
+  //
+  ArrayOfVector grids(4);
+  //
+  grids[0] = Vector(0,poly_order+1,1);
+  if( no_pol_variation )
+    grids[1] = Vector(1,1);
+  else
+    grids[1] = Vector(0,sensor_response_pol_grid.nelem(),1);
+  if( no_za_variation )
+    grids[2] = Vector(1,1);
+  else
+    grids[2] = Vector(0,sensor_response_za_grid.nelem(),1); 
+  if( no_mblock_variation )
+    grids[3] = Vector(1,1);
+  else
+    grids[3] = Vector(0,sensor_pos.nrows(),1);
+
+  // Create the new retrieval quantity
+  //
+  ostringstream sstr;
+  sstr << "Order: " << poly_order;
+  //
+  RetrievalQuantity rq = RetrievalQuantity();
+  rq.MainTag( POLYFIT_MAINTAG );
+  rq.Subtag( "" );
+  rq.Mode( sstr.str() );
+  rq.Analytical( 1 );
+  rq.Perturbation( 0 );
+  rq.Grids( grids );
+
+  // Add it to the *jacobian_quantities*
+  jq.push_back( rq );
+
+  // Add pointing method to the jacobian agenda
+  //  
+  out2 << "  Adding polynomial baseline fit to *jacobian_quantities*\n";
+  //
+  jacobian_agenda.append( ws, "jacobianCalcPolyfit", "" );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcPolyfit(
+        Matrix&                   J,
+  const ArrayOfRetrievalQuantity& jq,
+  const ArrayOfArrayOfIndex&      jacobian_indices,
+  const Vector&                   sensor_response_f_grid,
+  const ArrayOfIndex&             sensor_response_pol_grid,
+  const Vector&                   sensor_response_za_grid,
+  const Matrix&                   sensor_pos )
+{  
+  // Find the retrieval quantity related to this method
+  RetrievalQuantity rq;
+  ArrayOfIndex ji;
+  bool found = false;
+  Index iq;
+  for( iq=0; iq<jq.nelem() && !found; iq++ )
+    {
+      if( jq[iq].MainTag() == POLYFIT_MAINTAG )
+        {
+          found = true;
+          break;
+        }
+    }
+  if( !found )
+  {
+    throw runtime_error(
+      "There is no polynomial baseline fit retrieval quantities defined.\n");
+  }
+
+  // Get sizes and check
+  //
+  ArrayOfVector grids = jq[iq].Grids();
+  //
+  const Index nf     = sensor_response_f_grid.nelem();
+  const Index npol   = sensor_response_pol_grid.nelem();
+  const Index nza    = sensor_response_za_grid.nelem();
+  const Index nblock = sensor_pos.nrows();
+  //
+  if( nf*npol*nza*nblock != J.nrows() )
+    {
+      throw runtime_error( 
+         "Sensor grids have changed since *jacobianAddPolyfit* was called.\n");
+    }
+
+  // Make a matrix with values to distribute over *jacobian*
+  const Index nfit = grids[0].nelem();
+  Matrix w( sensor_response_f_grid.nelem(), nfit, 1.0 );
+  //
+  const Numeric fmin = min( sensor_response_f_grid );
+  const Numeric df = 0.5 * (max( sensor_response_f_grid ) - fmin );
+  //
+
+  for( Index o=1; o<nfit; o++ )
+    {
+      for( Index iv=1; iv<sensor_response_f_grid.nelem(); iv++ )
+        {
+          w(iv,o) = ( sensor_response_f_grid[iv] - fmin ) / df - 1;
+        }
+    }
+
+  out3 << w << "\n";
+  out3 << J << "\n";
+  out3 << jacobian_indices << "\n";
+}
 
 
 
@@ -782,92 +946,6 @@ void jacobianCalcAbsSpecies(
 
 
 
-// /* Workspace method: Doxygen documentation will be auto-generated */
-// void jacobianAddPolyfit(// WS Output:
-//                          ArrayOfRetrievalQuantity&  jq,
-//                          Agenda&                    jacobian_agenda,
-//                          // WS Input:
-//                          const Matrix&              jac,
-//                          const ArrayOfIndex&        sensor_response_pol_grid,
-//                          const Vector&              sensor_response_za_grid,
-//                          const Matrix&              sensor_pos,
-//                          // Control Parameters:
-//                          const Index&               poly_order,
-//                          const Index&               no_pol_variation,
-//                          const Index&               no_za_variation,
-//                          const Index&               no_mblock_variation )
-// {
-//   // Check that the jacobian matrix is empty. Otherwise it is either
-//   // not initialised or it is closed.
-//   if( jac.nrows()!=0 && jac.ncols()!=0 )
-//   {
-//     ostringstream os;
-//     os << "The Jacobian matrix is not initialised correctly or closed.\n"
-//        << "New retrieval quantities can not be added at this point.";
-//     throw runtime_error(os.str());
-//   }
-  
-//   // Check that poly_order is -1 or positive
-//   if( poly_order < 0 )
-//     throw runtime_error(
-//       "The polynomial order has to be >= 0.");
-    
-//   // Check that this type of pointing is not already included in the
-//   // jacobian.
-//   for( Index it=0; it<jq.nelem(); it++ )
-//   {
-//     if( jq[it].MainTag() == "Polyfit" )
-//     {
-//       ostringstream os;
-//       os << "Polynomial baseline fit is already included in\n"
-//          << "*jacobian_quantities*.";
-//       throw runtime_error(os.str());
-//     }
-//   }
-
-//   // "Grids"
-//   //
-//   // Grid dimensions correspond here to 
-//   //   1: polynomial order
-//   //   2: polarisation
-//   //   3: viewing direction
-//   //   4: measurement block
-//   //
-//   ArrayOfVector grids(4);
-//   //
-//   grids[0] = Vector(0,poly_order+1,1);
-//   if( no_pol_variation )
-//     grids[1] = Vector(1,1);
-//   else
-//     grids[1] = Vector(0,sensor_response_pol_grid.nelem(),1);
-//   if( no_za_variation )
-//     grids[2] = Vector(1,1);
-//   else
-//     grids[2] = Vector(0,sensor_response_za_grid.nelem(),1); 
-//   if( no_mblock_variation )
-//     grids[3] = Vector(1,1);
-//   else
-//     grids[3] = Vector(0,sensor_pos.nrows(),1);
-
-//   // Create the new retrieval quantity
-//   RetrievalQuantity rq = RetrievalQuantity();
-//   rq.MainTag( "Polyfit" );
-//   rq.Subtag( "" );
-//   rq.Mode( "" );
-//   rq.Analytical(1);
-//   rq.Perturbation(0);
-//   rq.Grids(grids);
-
-//   // Add it to the *jacobian_quantities*
-//   jq.push_back(rq);
-
-//   // Add pointing method to the jacobian agenda
-//   String methodname = "jacobianCalcPolyfit";
-//   String kwv = "";
-//   jacobian_agenda.append(methodname, kwv);
-  
-//   out2 << "  Adding polynomial baseline fit to *jacobian_quantities*\n";
-// }
 
 
 
@@ -1382,66 +1460,6 @@ void jacobianCalcAbsSpecies(
 
 
 
-// /* Workspace method: Doxygen documentation will be auto-generated */
-// void jacobianCalcPolyfit(
-//      // WS Output:
-//            Matrix&                   jacobian,
-//      // WS Input:
-//      const ArrayOfRetrievalQuantity& jq,
-//      const ArrayOfArrayOfIndex&      jacobian_indices,
-//      const Vector&                   sensor_response_f_grid,
-//      const ArrayOfIndex&             sensor_response_pol_grid,
-//      const Vector&                   sensor_response_za_grid,
-//      const Matrix&                   sensor_pos )
-// {  
-//   // Find the retrieval quantity related to this method
-//   RetrievalQuantity rq;
-//   ArrayOfIndex ji;
-//   bool found = false;
-//   Index iq;
-//   for( iq=0; iq<jq.nelem() && !found; iq++ )
-//     {
-//       if( jq[iq].MainTag()=="Polyfit" )
-//         found = true;
-//     }
-//   if( !found )
-//   {
-//     throw runtime_error(
-//       "There is no polynomial baseline fit retrieval quantities defined.\n");
-//   }
-//
-//   // Get sizes and check
-//   //
-//   ArrayOfVector grids = jq[iq].Grids();
-//   //
-//   const Index nf     = sensor_response_f_grid.nelem();
-//   const Index nfit   = grids[0].nelem();
-//   const Index npol   = sensor_response_pol_grid.nelem();
-//   const Index nza    = sensor_response_za_grid.nelem();
-//   const Index nblock = sensor_pos.nrows();
-//   //
-//   if( nf*npol*nza*nblock != jacobian.nrows() )
-//     {
-//       throw runtime_error( 
-//          "Sensor grids have changed since *jacobianAddPolyfit* was called.\n");
-//     }
-
-//   // Make a mtraix with values to distribute over *jacobian*
-//   //
-//   Matrix w( sensor_response_f_grid.nelem(), nfit, 1.0 );
-//   //
-//   const Numeric fmin = min( sensor_response_f_grid );
-//   const Numeric df = 0.5 * (max( sensor_response_f_grid ) - fmin );
-//   //
-//   for( Index o=1; o<nfit; o++ )
-//     {
-//       for( Index iv=1; iv<sensor_response_f_grid.nelem(); iv++ )
-//         {
-//           w(iv,o) = ( sensor_response_f_grid[iv] - fmin ) / df - 1;
-//         }
-//     }
-
-// }
 
 
 

@@ -310,4 +310,5 @@ Joker joker;
   ===========================================================================*/
 
 extern const String ABSSPECIES_MAINTAG = "Absorption species";
+extern const String POLYFIT_MAINTAG    = "Polynomial baseline fit";
 

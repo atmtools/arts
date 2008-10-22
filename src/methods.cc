@@ -4380,6 +4380,31 @@ md_data_raw.push_back
         PASSWORKSPACE(  true )
       ));
          
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("jacobianAddPolyfit"),
+        DESCRIPTION
+        (
+         "...\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian", "sensor_response_pol_grid", "sensor_response_za_grid", 
+            "sensor_pos" ),
+        GIN( "poly_order", "no_pol_variation", "no_za_variation", 
+             "no_mblock_variation" ),
+        GIN_TYPE( "Index", "Index", "Index", "Index" ),
+        GIN_DEFAULT( NODEF, "0", "0", "0" ),
+        GIN_DESC("FIXME DOC", "FIXME DOC", "FIXME DOC", "FIXME DOC"),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false  ),
+        SUPPRESSHEADER( false ),
+        PASSWORKSPACE(  true )
+      ));
+
   /*
   md_data_raw.push_back
     ( MdRecord
@@ -4455,27 +4480,6 @@ md_data_raw.push_back
         GIN_DEFAULT( NODEF,     NODEF ),
         GIN_DESC("FIXME DOC",
                  "FIXME DOC")
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("jacobianAddPolyfit"),
-        DESCRIPTION
-        (
-         "...\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "jacobian_quantities", "jacobian_agenda" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian", "sensor_response_pol_grid", "sensor_response_za_grid", 
-            "sensor_pos" ),
-        GIN( "poly_order", "no_pol_variation", "no_za_variation", 
-             "no_mblock_variation" ),
-        GIN_TYPE( "Index", "Index", "Index", "Index" ),
-        GIN_DEFAULT( NODEF, "0", "0", "0" ),
-        GIN_DESC("FIXME DOC", "FIXME DOC", "FIXME DOC", "FIXME DOC")
       ));
 
   md_data_raw.push_back
@@ -4578,6 +4582,30 @@ md_data_raw.push_back
         SETMETHOD( true )
       ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("jacobianCalcPolyfit"),
+        DESCRIPTION
+        (
+        "Calculates jacobians for polynomial baseline fit.\n"
+        "\n"
+        "This function is added to *jacobian_agenda* by jacobianAddPolyfit\n"
+        "and should normally not be called by the user.\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_quantities", "jacobian_indices", 
+            "sensor_response_f_grid", "sensor_response_pol_grid",
+            "sensor_response_za_grid", "sensor_pos" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+      ));
+
   /*        
   md_data_raw.push_back
     ( MdRecord
@@ -4633,30 +4661,6 @@ md_data_raw.push_back
                "cloudbox_limits", "sensor_response", "sensor_pos", "sensor_los", 
                "f_grid", "stokes_dim", "antenna_dim", "mblock_za_grid", 
                "mblock_aa_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("jacobianCalcPolyfit"),
-        DESCRIPTION
-        (
-        "Calculates jacobians for polynomial baseline fit.\n"
-        "\n"
-        "This function is added to *jacobian_agenda* by jacobianAddPolyfit\n"
-        "and should normally not be called by the user.\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_indices", 
-            "sensor_response_f_grid", "sensor_response_pol_grid",
-            "sensor_response_za_grid", "sensor_pos" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4736,7 +4740,8 @@ md_data_raw.push_back
          "The Jacobian quantities are initialised to be empty.\n"
         ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUT( "jacobian", "jacobian_quantities", "jacobian_indices" ),
+        OUT( "jacobian", "jacobian_quantities", "jacobian_indices", 
+             "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -6917,9 +6922,11 @@ md_data_raw.push_back
         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", 
-                "sensor_response_pol", "sensor_response_za",
-                "sensor_response_aa", 
-                "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
+             "sensor_response_pol", "sensor_response_za",
+             "sensor_response_aa", 
+             "sensor_response_f_grid", "sensor_response_pol_grid",
+             "sensor_response_za_grid", "sensor_response_aa_grid",
+             "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),

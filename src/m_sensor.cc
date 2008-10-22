@@ -128,6 +128,10 @@ void sensorOff(
    ArrayOfIndex&   sensor_response_pol,
          Vector&   sensor_response_za,
          Vector&   sensor_response_aa,
+         Vector&   sensor_response_f_grid,
+   ArrayOfIndex&   sensor_response_pol_grid,
+         Vector&   sensor_response_za_grid,
+         Vector&   sensor_response_aa_grid,
           Index&   antenna_dim,
          Vector&   mblock_za_grid,
          Vector&   mblock_aa_grid,
@@ -141,10 +145,6 @@ void sensorOff(
 
   // Dummy variables
   Index         sensor_norm = 1;
-  Vector        sensor_response_f_grid;
-  ArrayOfIndex  sensor_response_pol_grid;
-  Vector        sensor_response_za_grid;
-  Vector        sensor_response_aa_grid;
 
   sensor_responseInit( sensor_response, sensor_response_f, 
                   sensor_response_pol, sensor_response_za, sensor_response_aa, 
@@ -544,6 +544,14 @@ void sensor_responseBackend(
       //
       f_dlow  = min( f_dlow, f1 );
       f_dhigh = min( f_dhigh, f2 );
+      if( f_dlow < 0 ) 
+        {
+          cout << i << "\n";
+          cout << f1 << "\n";
+          cout << min(sensor_response_f_grid) << "\n";
+          cout << f_backend[i] << "\n";
+          cout << bchr_f_grid[0] << "\n";
+      }
     }
 
   if( f_dlow < 0 ) 
