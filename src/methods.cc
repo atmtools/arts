@@ -1381,7 +1381,11 @@ void define_md_data_raw()
                  "FIXME DOC",
                  "FIXME DOC",
                  "FIXME DOC",
-                 "FIXME DOC")
+                 "FIXME DOC"),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false  ),
+        SUPPRESSHEADER( false ),
+        PASSWORKSPACE(  true )
       ));
  
   md_data_raw.push_back
@@ -4369,7 +4373,11 @@ md_data_raw.push_back
                  "FIXME DOC",
                  "FIXME DOC",
                  "FIXME DOC",
-                 "FIXME DOC")
+                 "FIXME DOC"),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false  ),
+        SUPPRESSHEADER( false ),
+        PASSWORKSPACE(  true )
       ));
          
   /*

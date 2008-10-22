@@ -1,3 +1,29 @@
+2008-10-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-11-13
+
+	* src/m_jacobian.cc (jacobianAddAbsSpecies):
+
+	Make sure the jacobian_agenda is properly initialized, i.e. set its
+	name.
+
+	Add ws.
+
+	* src/agenda.{h,cc} (Agenda::append):
+
+	Utilize the AgendaAppend method to have proper in-/output checks.
+
+	* src/methods.cc:
+
+	Pass workspace to abs_speciesAdd2 and jacobianAddAbsSpecies.
+
+	* src/m_agenda.cc (AgendaAppend):
+
+	Refine the code to not mess up the string references to the agenda
+	name.
+
+	* src/m_abs_lookup.cc (abs_speciesAdd2): Add ws.
+
 2008-10-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-11-12

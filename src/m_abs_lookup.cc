@@ -1690,6 +1690,7 @@ void abs_speciesAdd(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void abs_speciesAdd2(// WS Output:
+                    Workspace&                ws,
                     ArrayOfArrayOfSpeciesTag& abs_species,
                     ArrayOfRetrievalQuantity& jq,
                     Agenda&                   jacobian_agenda,
@@ -1724,7 +1725,7 @@ void abs_speciesAdd2(// WS Output:
   out3 << '\n';
 
   // Do retrieval part
-  jacobianAddAbsSpecies( jq, jacobian_agenda, jac, atmosphere_dim, 
+  jacobianAddAbsSpecies( ws, jq, jacobian_agenda, jac, atmosphere_dim, 
                          p_grid, lat_grid, lon_grid, rq_p_grid, rq_lat_grid, 
                          rq_lon_grid, species, method, mode, dx);
 }

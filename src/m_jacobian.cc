@@ -233,6 +233,7 @@ void jacobianUnit(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianAddAbsSpecies(
+        Workspace& ws,
         ArrayOfRetrievalQuantity& jq,
         Agenda&    jacobian_agenda,
   const Matrix&    J,
@@ -330,7 +331,9 @@ void jacobianAddAbsSpecies(
            << " " << mode << ".\n"; 
       String methodname = "jacobianCalcAbsSpecies";
       String kwv = species;
-      jacobian_agenda.append( methodname, kwv );
+      if (jacobian_agenda.name() == "")
+        jacobian_agenda.set_name( "jacobian_agenda" );
+      jacobian_agenda.append( ws, methodname, kwv );
     }
 }                    
 

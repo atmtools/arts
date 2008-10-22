@@ -124,7 +124,7 @@ void AgendaAppend(Workspace& ws,
                   // WS Generic Output Names:
                   const String& output_agenda_name,
                   // WS Generic Input:
-                  const Agenda& in_agenda _U_,
+                  const Agenda& in_agenda,
                   // WS Generic Input Names:
                   const String& in_agenda_name _U_,
                   // Agenda from controlfile:
@@ -135,10 +135,10 @@ void AgendaAppend(Workspace& ws,
     methods.push_back(input_agenda.Methods()[i]);
 
   Agenda new_agenda;
-  new_agenda.set_name(in_agenda.name());
+  new_agenda.set_name(output_agenda_name);
   new_agenda.set_methods (methods);
 
-  AgendaSet(ws, output_agenda, output_agenda_name, new_agenda);
+  AgendaSet(ws, output_agenda, new_agenda.name(), new_agenda);
 }
 
 

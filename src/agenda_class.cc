@@ -37,6 +37,7 @@
 #include "messages.h"
 #include "workspace_ng.h"
 #include "arts_omp.h"
+#include "auto_md.h"
 
 
 /** Print the error message and exit. */
@@ -62,7 +63,8 @@ void give_up(const String& message)
   \author Mattias Ekstrom
   \date   2005-01-05
 */
-void Agenda::append(const String& methodname,
+void Agenda::append(Workspace& ws _U_,
+                    const String& methodname,
                     const String& keywordvalue)
 {
   extern const map<String, Index> MdMap;
@@ -80,8 +82,8 @@ void Agenda::append(const String& methodname,
   dummy.resize(0);
   
   // Append the method
-  push_back (MRecord(id,output,input,keywordvalue,dummy));
-  set_outputs_to_push_and_dup ();
+  dummy.push_back (MRecord(id,output,input,keywordvalue,dummy));
+  AgendaAppend(ws, *this, mname, *this, "", dummy);
 }
 
 
