@@ -102,6 +102,9 @@ void Agenda::execute(Workspace& ws) const
   bool original_in_main_agenda = in_main_agenda;
   in_main_agenda = is_main_agenda();
 
+  // An empty Agenda name indicates that something going wrong here
+  assert (mname != "");
+
   // The method description lookup table:
   extern const Array<MdRecord> md_data;
 
