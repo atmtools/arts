@@ -4358,7 +4358,8 @@ md_data_raw.push_back
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+        IN( "jacobian_quantities", "jacobian_agenda", "jacobian", 
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
         GIN(      "gin1"      , "gin2"      , "gin3"      ,
                   "species", "method", "unit",   "dx" ),
         GIN_TYPE(    "Vector", "Vector", "Vector",
@@ -4390,8 +4391,9 @@ md_data_raw.push_back
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian", "sensor_response_pol_grid", "sensor_response_za_grid", 
-            "sensor_pos" ),
+        IN( "jacobian_quantities", "jacobian_agenda", "jacobian", 
+            "sensor_response_pol_grid", "sensor_response_f_grid",
+            "sensor_response_za_grid", "sensor_pos" ),
         GIN( "poly_order", "no_pol_variation", "no_za_variation", 
              "no_mblock_variation" ),
         GIN_TYPE( "Index", "Index", "Index", "Index" ),
@@ -4596,12 +4598,13 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_indices", 
-            "sensor_response_f_grid", "sensor_response_pol_grid",
+            "sensor_response_pol_grid", "sensor_response_f_grid", 
             "sensor_response_za_grid", "sensor_pos" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "poly_coeff" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "FIXME DOC" ),
+        SETMETHOD( true )
       ));
 
   /*        

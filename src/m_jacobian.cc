@@ -156,12 +156,13 @@ void jacobianClose(
       Index cols = 1;
       ArrayOfVector grids = jacobian_quantities[it].Grids();
       for( Index jt=0; jt<grids.nelem(); jt++ )
-        cols *= grids[jt].nelem();
-      ncols += cols;
+        { cols *= grids[jt].nelem(); }
 
       // Store stop index
-      indices[1] = ncols-1;
+      indices[1] = ncols + cols - 1;
       jacobian_indices.push_back( indices );
+
+      ncols += cols;
     }
   
   // Resize *jacobian*
@@ -181,7 +182,7 @@ void jacobianInit(
   jacobian.resize(0,0);
   jacobian_quantities.resize(0);
   jacobian_indices.resize(0);
-  jacobian_agenda.resize(0);
+  jacobian_agenda = Agenda();
   jacobian_agenda.set_name( "jacobian_agenda" );
 }
 
@@ -549,6 +550,7 @@ void jacobianAddPolyfit(
   Agenda&                    jacobian_agenda,
   const Matrix&              J,
   const ArrayOfIndex&        sensor_response_pol_grid,
+  const Vector&              sensor_response_f_grid,
   const Vector&              sensor_response_za_grid,
   const Matrix&              sensor_pos,
   const Index&               poly_order,
@@ -570,6 +572,15 @@ void jacobianAddPolyfit(
   if( poly_order < 0 )
     throw runtime_error(
       "The polynomial order has to be >= 0.");
+
+  // Compare poly_order with number of frequency points
+  if( poly_order > sensor_response_f_grid.nelem() - 1 )
+    {
+      ostringstream os;
+      os << "The polynomial order can not exceed the length of\n"
+         << "*sensor_response_f_grid* -1.";
+      throw runtime_error(os.str());
+    }
  
   // Check that this type of polyfit is not already included in the
   // jacobian.
@@ -594,7 +605,6 @@ void jacobianAddPolyfit(
   //
   ArrayOfVector grids(4);
   //
-  grids[0] = Vector(0,poly_order+1,1);
   if( no_pol_variation )
     grids[1] = Vector(1,1);
   else
@@ -609,26 +619,30 @@ void jacobianAddPolyfit(
     grids[3] = Vector(0,sensor_pos.nrows(),1);
 
   // Create the new retrieval quantity
-  //
-  ostringstream sstr;
-  sstr << "Order: " << poly_order;
-  //
   RetrievalQuantity rq = RetrievalQuantity();
   rq.MainTag( POLYFIT_MAINTAG );
-  rq.Subtag( "" );
-  rq.Mode( sstr.str() );
+  rq.Mode( "" );
   rq.Analytical( 1 );
   rq.Perturbation( 0 );
-  rq.Grids( grids );
 
-  // Add it to the *jacobian_quantities*
-  jq.push_back( rq );
-
-  // Add pointing method to the jacobian agenda
-  //  
-  out2 << "  Adding polynomial baseline fit to *jacobian_quantities*\n";
+  // Each polynomial coeff. is treated as a retrieval quantity
   //
-  jacobian_agenda.append( ws, "jacobianCalcPolyfit", "" );
+  for( Index i=0; i<=poly_order; i++ )
+    {
+      ostringstream sstr;
+      sstr << "Coefficient " << i;
+      rq.Subtag( sstr.str() ); 
+
+      // Grid is a scalar, use polynomial coeff.
+      grids[0] = Vector(1,i);
+      rq.Grids( grids );
+
+      // Add it to the *jacobian_quantities*
+      jq.push_back( rq );
+
+      // Add pointing method to the jacobian agenda
+      jacobian_agenda.append( ws, "jacobianCalcPolyfit", i );
+    }
 }
 
 
@@ -638,10 +652,11 @@ void jacobianCalcPolyfit(
         Matrix&                   J,
   const ArrayOfRetrievalQuantity& jq,
   const ArrayOfArrayOfIndex&      jacobian_indices,
-  const Vector&                   sensor_response_f_grid,
   const ArrayOfIndex&             sensor_response_pol_grid,
+  const Vector&                   sensor_response_f_grid,
   const Vector&                   sensor_response_za_grid,
-  const Matrix&                   sensor_pos )
+  const Matrix&                   sensor_pos,
+  const Index&                    poly_coeff )
 {  
   // Find the retrieval quantity related to this method
   RetrievalQuantity rq;
@@ -664,7 +679,7 @@ void jacobianCalcPolyfit(
 
   // Get sizes and check
   //
-  ArrayOfVector grids = jq[iq].Grids();
+  //ArrayOfVector grids = jq[iq].Grids();
   //
   const Index nf     = sensor_response_f_grid.nelem();
   const Index npol   = sensor_response_pol_grid.nelem();
@@ -677,25 +692,56 @@ void jacobianCalcPolyfit(
          "Sensor grids have changed since *jacobianAddPolyfit* was called.\n");
     }
 
-  // Make a matrix with values to distribute over *jacobian*
-  const Index nfit = grids[0].nelem();
-  Matrix w( sensor_response_f_grid.nelem(), nfit, 1.0 );
+  // Make a vector with values to distribute over *jacobian*
+  Vector w( sensor_response_f_grid.nelem(), 1.0 );
   //
-  const Numeric fmin = min( sensor_response_f_grid );
-  const Numeric df = 0.5 * (max( sensor_response_f_grid ) - fmin );
-  //
-
-  for( Index o=1; o<nfit; o++ )
+  if( poly_coeff > 0 )
     {
-      for( Index iv=1; iv<sensor_response_f_grid.nelem(); iv++ )
+      const Numeric fmin = min( sensor_response_f_grid );
+      const Numeric df = 0.5 * (max( sensor_response_f_grid ) - fmin );
+      //
+      for( Index f=0; f<sensor_response_f_grid.nelem(); f++ )
         {
-          w(iv,o) = ( sensor_response_f_grid[iv] - fmin ) / df - 1;
+          w[f] = ( sensor_response_f_grid[f] - fmin ) / df - 1;
+          w[f] = pow( w[f], int(poly_coeff) );
         }
     }
 
-  out3 << w << "\n";
-  out3 << J << "\n";
-  out3 << jacobian_indices << "\n";
+  // Fill J
+  //
+  ArrayOfVector jg = jq[iq].Grids();
+  //
+  const Index n1 = jg[1].nelem();
+  const Index n2 = jg[2].nelem();
+  const Index n3 = jg[3].nelem();
+  //
+  for( Index b=0; b<nblock; b++ )  
+    {
+      const Index row0 = b*nf*npol*nza;
+            Index col0 = jacobian_indices[iq][0];
+      if( n3 > 1 )
+        { col0 += b*n2*n1; } 
+
+      for( Index v=0; v<jg[2].nelem(); v++ )
+        {
+          const Index row1 = row0 + v*nf*npol;
+                Index col1 = col0;
+          if( n2 > 1 )
+            { col1 += v*n1; } 
+
+          for( Index p=0; p<nza; p++ )
+            {
+              const Index row2 = row1 + p;
+                    Index col2 = col1;
+              if( n1 > 1 )
+                { col2 += p; } 
+              for( Index f=0; f<nf; f++ )
+                {
+                  J(row2+f*npol,col2) = w[f];
+                }             
+            }
+        }
+    }
 }
 
 

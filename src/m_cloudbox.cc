@@ -78,7 +78,8 @@ void cloudboxOff(
 {
   cloudbox_on = 0;
   cloudbox_limits.resize(0);
-  iy_cloudbox_agenda.resize(0);
+  iy_cloudbox_agenda = Agenda();
+  iy_cloudbox_agenda.set_name( "iy_cloudbox_agenda" );
 }
 
 
