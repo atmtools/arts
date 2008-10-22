@@ -58,7 +58,7 @@ public:
 
 
   void append(Workspace& ws,
-              const String& methodname, const String& keywordvalue);
+              const String& methodname, const TokVal& keywordvalue);
   void push_back(MRecord n);
   void execute(Workspace& ws) const;
   inline void resize(Index n);

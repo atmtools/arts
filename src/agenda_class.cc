@@ -65,7 +65,7 @@ void give_up(const String& message)
 */
 void Agenda::append(Workspace& ws _U_,
                     const String& methodname,
-                    const String& keywordvalue)
+                    const TokVal& keywordvalue)
 {
   extern const map<String, Index> MdMap;
 

@@ -1,5 +1,14 @@
 2008-10-22  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-11-18
+
+	* src/agenda_class.{h,cc} (Agenda::append):
+
+	Change type of keywordvalue from String to TokVal to be able to pass
+	other types instead of just strings.
+
+2008-10-22  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-11-17
 
 	* src/m_sensor.cc (f_gridFromSensorHIRS):
