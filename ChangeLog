@@ -1,3 +1,11 @@
+2008-10-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-11-20
+
+	* src/m_jacobian.cc (jacobianCalcPolyfit): Bug when identifying
+	polynomial coefficient to treat. Appears to work for single
+	spectra. No testing yet for more complex cases (code is in place).
+
 2008-10-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-11-19

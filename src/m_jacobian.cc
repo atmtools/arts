@@ -663,9 +663,12 @@ void jacobianCalcPolyfit(
   ArrayOfIndex ji;
   bool found = false;
   Index iq;
+  ostringstream sstr;
+  sstr << "Coefficient " << poly_coeff;
   for( iq=0; iq<jq.nelem() && !found; iq++ )
     {
-      if( jq[iq].MainTag() == POLYFIT_MAINTAG )
+      if( jq[iq].MainTag() == POLYFIT_MAINTAG  && 
+          jq[iq].Subtag() == sstr.str() )
         {
           found = true;
           break;
