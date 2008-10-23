@@ -43,7 +43,8 @@ class Workspace;
 class Agenda {
 public:
 
-  Agenda() : mname(), mml(), moutput_push(), moutput_dup(), main_agenda(false)
+  Agenda() : mname(), mml(), moutput_push(), moutput_dup(), main_agenda(false),
+             mchecked(false)
   { /* Nothing to do here */ }
 
   /*! 
@@ -53,19 +54,21 @@ public:
                             mml(x.mml),
                             moutput_push(x.moutput_push),
                             moutput_dup(x.moutput_dup),
-                            main_agenda(x.main_agenda)
+                            main_agenda(x.main_agenda),
+                            mchecked(x.mchecked)
   { /* Nothing to do here */ }
 
 
   void append(Workspace& ws,
               const String& methodname, const TokVal& keywordvalue);
+  void check(Workspace& ws);
   void push_back(MRecord n);
   void execute(Workspace& ws) const;
   inline void resize(Index n);
   inline Index nelem() const;
   inline Agenda& operator=(const Agenda& x);
   const Array<MRecord>& Methods () const { return mml; }
-  void set_methods (const Array<MRecord>& ml) { mml = ml; };
+  void set_methods (const Array<MRecord>& ml) { mml = ml; mchecked = false; };
   void set_outputs_to_push_and_dup ();
   bool is_input(Workspace& ws, Index var) const;
   bool is_output(Index var) const;
@@ -75,7 +78,7 @@ public:
   const ArrayOfIndex& get_output2dup() const { return moutput_dup; }
   void print( ostream& os,
               const String& indent ) const;
-  void set_main_agenda() {main_agenda = true;};
+  void set_main_agenda() {main_agenda = true; mchecked = true;};
   bool is_main_agenda() const {return main_agenda;};
 private:
   String         mname; /*!< Agenda name. */
@@ -87,6 +90,9 @@ private:
 
   //! Is set to true if this is the main agenda.
   bool main_agenda;
+
+  /** Flag indicating that the agenda was checked for consistency */
+  bool mchecked;
 };
 
 // Documentation with implementation.
@@ -247,6 +253,7 @@ inline Index Agenda::nelem() const
 inline void Agenda::push_back(MRecord n)
 {
   mml.push_back(n);
+  mchecked = false;
 }
 
 
@@ -260,6 +267,7 @@ inline Agenda& Agenda::operator=(const Agenda& x)
   mname = x.mname;
   moutput_push = x.moutput_push;
   moutput_dup = x.moutput_dup;
+  mchecked = x.mchecked;
   return *this;
 }
 

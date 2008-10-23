@@ -1,3 +1,32 @@
+2008-10-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-11-21
+
+	* src/agenda_class.{h,cc}:
+
+	Add new flag mchecked. It is set to false whenever the agenda is
+	modified.
+
+	(Agenda::check): Makes sure the methods in the agenda fulfill the
+	input/output requirements and sets the mchecked flag to true.
+
+	(Agenda::execute): Throw an error if the agenda hasn't been checked
+	for consistency.
+
+	(Agenda::append): Call AgendaAppend with proper input agenda name.
+
+	* src/m_agenda.cc (AgendaSet):
+
+	Use Agenda::check.
+
+	(AgendaAppend):
+
+	Make sure input and output agenda are the same.
+
+	Use Agenda::check.
+
+	* ChangeLog: Removed spurious config marker.
+
 2008-10-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-11-20
@@ -415,7 +444,6 @@
 	Only output supergeneric methods that really can generate or use
 	variables of the given group for 'arts -m|-i'.
 
->>>>>>> .r5908
 2008-10-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-10-5

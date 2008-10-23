@@ -50,70 +50,10 @@ void AgendaSet(Workspace& ws,
                // Agenda from controlfile:
                const Agenda& input_agenda)
 {
-  // Make external data visible
-  extern const Array<AgRecord>  agenda_data;
-  extern const map<String, Index> AgendaMap;
-
   output_agenda = input_agenda;
   output_agenda.set_name(agenda_name);
 
-  // First we have to find the lookup information for this agenda. We
-  // use AgendaMap for this.
-
-  map<String, Index>::const_iterator mi =
-    AgendaMap.find( output_agenda.name() );
-
-  // Find return end() if the string is not found. This means that the
-  // lookup data for this agenda is missing!
-  assert( mi != AgendaMap.end() );
-
-  const AgRecord& this_data = agenda_data[mi->second];
-
-  // Ok, we have the lookup data now.
-
-  // Check that the output produced by the actual methods in the
-  // agenda corresponds to what is desired in the lookup data:
-  for ( Index i=0; i<this_data.Out().nelem(); ++i )
-    {
-      // The WSV for which to check:
-      Index this_wsv = this_data.Out()[i];
-
-      if ( !output_agenda.is_output(this_wsv) )
-        {
-          ostringstream os;
-          os << "The agenda " << output_agenda.name()
-             << " must generate the output WSV "
-             << Workspace::wsv_data[this_wsv].Name() << ",\n"
-             << "but it does not. It only generates:\n";
-          for ( Index j=0; j<Workspace::wsv_data.nelem(); ++j )
-            if ( output_agenda.is_output(j) )
-              os << Workspace::wsv_data[j].Name() << "\n";
-          throw runtime_error (os.str());
-        }
-    }
-
-  // Check that the input used by the actual methods in the
-  // agenda corresponds to what is desired in the lookup data:
-  for ( Index i=0; i<this_data.In().nelem(); ++i )
-    {
-      // The WSV for which to check:
-      Index this_wsv = this_data.In()[i];
-
-      if ( !output_agenda.is_input(ws, this_wsv) )
-        {
-          ostringstream os;
-          os << "The agenda " << output_agenda.name()
-             << " must use the input WSV "
-             << Workspace::wsv_data[this_wsv].Name() << ",\n"
-             << "but it does not. It only uses:\n";
-          for ( Index j=0; j<Workspace::wsv_data.nelem(); ++j )
-            if ( output_agenda.is_input(ws, j) )
-              os << Workspace::wsv_data[j].Name() << "\n";
-          throw runtime_error (os.str());
-        }
-    }
-
-  output_agenda.set_outputs_to_push_and_dup ();
+  output_agenda.check(ws);
 }
 
 
@@ -124,21 +64,27 @@ void AgendaAppend(Workspace& ws,
                   // WS Generic Output Names:
                   const String& output_agenda_name,
                   // WS Generic Input:
-                  const Agenda& in_agenda,
+                  const Agenda& in_agenda _U_,
                   // WS Generic Input Names:
-                  const String& in_agenda_name _U_,
+                  const String& in_agenda_name,
                   // Agenda from controlfile:
                   const Agenda& input_agenda)
 {
-  Array<MRecord> methods = in_agenda.Methods();
+  if (output_agenda_name != in_agenda_name)
+    {
+      ostringstream os;
+      os << "Output and input agenda must be the same!" << endl
+        << "*" << output_agenda_name << "* and *" << in_agenda_name << "* "
+        << "are not.";
+      throw runtime_error (os.str());
+    }
+
+  Array<MRecord> methods = output_agenda.Methods();
   for (Index i = 0; i < input_agenda.Methods().nelem(); i++)
     methods.push_back(input_agenda.Methods()[i]);
 
-  Agenda new_agenda;
-  new_agenda.set_name(output_agenda_name);
-  new_agenda.set_methods (methods);
-
-  AgendaSet(ws, output_agenda, new_agenda.name(), new_agenda);
+  output_agenda.set_methods (methods);
+  output_agenda.check(ws);
 }
 
 

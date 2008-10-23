@@ -83,7 +83,80 @@ void Agenda::append(Workspace& ws _U_,
   
   // Append the method
   dummy.push_back (MRecord(id,output,input,keywordvalue,dummy));
-  AgendaAppend(ws, *this, mname, *this, "", dummy);
+  AgendaAppend(ws, *this, mname, *this, mname, dummy);
+}
+
+
+//! Checks consistency of an agenda.
+/*! 
+  Checks that the input used by the agenda and the output produced by the
+  actual methods corresponds to what is desired in the lookup data.
+*/
+void Agenda::check(Workspace& ws)
+{
+    // Make external data visible
+  extern const Array<AgRecord>  agenda_data;
+  extern const map<String, Index> AgendaMap;
+
+  // First we have to find the lookup information for this agenda. We
+  // use AgendaMap for this.
+
+  map<String, Index>::const_iterator mi =
+    AgendaMap.find( mname );
+
+  // Find return end() if the string is not found. This means that the
+  // lookup data for this agenda is missing!
+  assert( mi != AgendaMap.end() );
+
+  const AgRecord& this_data = agenda_data[mi->second];
+
+  // Ok, we have the lookup data now.
+
+  // Check that the output produced by the actual methods in the
+  // agenda corresponds to what is desired in the lookup data:
+  for ( Index i=0; i<this_data.Out().nelem(); ++i )
+    {
+      // The WSV for which to check:
+      Index this_wsv = this_data.Out()[i];
+
+      if ( !is_output(this_wsv) )
+        {
+          ostringstream os;
+          os << "The agenda " << mname
+             << " must generate the output WSV "
+             << Workspace::wsv_data[this_wsv].Name() << ",\n"
+             << "but it does not. It only generates:\n";
+          for ( Index j=0; j<Workspace::wsv_data.nelem(); ++j )
+            if ( is_output(j) )
+              os << Workspace::wsv_data[j].Name() << "\n";
+          throw runtime_error (os.str());
+        }
+    }
+
+  // Check that the input used by the actual methods in the
+  // agenda corresponds to what is desired in the lookup data:
+  for ( Index i=0; i<this_data.In().nelem(); ++i )
+    {
+      // The WSV for which to check:
+      Index this_wsv = this_data.In()[i];
+
+      if ( !is_input(ws, this_wsv) )
+        {
+          ostringstream os;
+          os << "The agenda " << mname
+             << " must use the input WSV "
+             << Workspace::wsv_data[this_wsv].Name() << ",\n"
+             << "but it does not. It only uses:\n";
+          for ( Index j=0; j<Workspace::wsv_data.nelem(); ++j )
+            if ( is_input(ws, j) )
+              os << Workspace::wsv_data[j].Name() << "\n";
+          throw runtime_error (os.str());
+        }
+    }
+
+  set_outputs_to_push_and_dup ();
+
+  mchecked = true;
 }
 
 
@@ -95,6 +168,22 @@ void Agenda::append(Workspace& ws _U_,
 */
 void Agenda::execute(Workspace& ws) const
 {
+  
+  if (!mchecked)
+    {
+      ostringstream os;
+      os << "Agenda *" << mname << "* hasn't been checked for consistency yet."
+        << endl
+        << "This check is usually done by AgendaSet or AgendaAppend."
+        << endl
+        << "However, if you have written code that modifies an Agenda directly"
+        << endl
+        << "(changing its name or altering its method list), it's up to you to"
+        << endl
+        << "call Agenda::check after your modifications.";
+      throw runtime_error(os.str());
+    }
+
   // If (and only if) this agenda is the main agenda, then we set the
   // thread local global variable in_main_agenda to true, otherwise to
   // false. The variable in_main_agenda is declared in messages.h and
@@ -504,6 +593,7 @@ bool Agenda::is_output(Index var) const
 void Agenda::set_name(const String& nname)
 {
   mname = nname;
+  mchecked = false;
 }
 
 //! Agenda name.
