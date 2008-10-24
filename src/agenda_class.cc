@@ -339,7 +339,7 @@ void Agenda::set_outputs_to_push_and_dup ()
                   insert_iterator< set<Index> >(outs2push,
                                                 outs2push.begin ()));
 
-  extern map<String, Index> AgendaMap;
+  extern const map<String, Index> AgendaMap;
   extern const Array<AgRecord> agenda_data;
 
   const AgRecord& agr = agenda_data[AgendaMap.find (name ())->second];
