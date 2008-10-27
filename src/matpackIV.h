@@ -310,6 +310,10 @@ public:
                 mcr.mstart + c * mcr.mstride );
     }
 
+  // Conversion to a plain C-array
+  const Numeric *get_c_array() const;
+  Numeric *get_c_array();
+
   // Functions returning const iterators:
   ConstIterator4D begin() const;
   ConstIterator4D end()   const;

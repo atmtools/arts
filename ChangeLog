@@ -1,3 +1,13 @@
+2008-10-27  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-11-23
+
+	* src/matpackIV.{h,cc}: Add get_c_array for Tensor4.
+
+	* src/methods.cc, nc_io_basic_types.cc:
+
+	Add Tensor4 read/write support.
+
 2008-10-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-11-22
@@ -241,6 +251,10 @@
 	String. Updated documentation.
 	(Select): Added implementation for type Matrix. Updated
 	documentation. 
+
+2008-10-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* 
 
 2008-10-16  Oliver Lemke  <olemke@core-dump.info>
 

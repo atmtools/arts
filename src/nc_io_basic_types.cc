@@ -120,6 +120,54 @@ nc_write_to_file (const int ncid,
     ncerror (retval, "nc_put_var");
 }
 
+//=== Tensor4 ==========================================================
+
+//! Reads a Tensor4 from a NetCDF file
+/*!
+  \param ncf     NetCDF file discriptor
+  \param t       Tensor4
+*/
+void
+nc_read_from_file (const int ncid,
+                   Tensor4& t)
+{
+  Index nbooks, npages, nrows, ncols;
+  nbooks = nc_get_dim (ncid, "nbooks");
+  npages = nc_get_dim (ncid, "npages");
+  nrows  = nc_get_dim (ncid, "nrows");
+  ncols  = nc_get_dim (ncid, "ncols");
+
+  t.resize(nbooks, npages, nrows, ncols);
+  nc_get_data_double (ncid, "Tensor4", t.get_c_array());
+}
+
+
+//! Writes a Tensor4 to a NetCDF file
+/*!
+  \param ncf     NetCDF file discriptor
+  \param t       Tensor4
+*/
+void
+nc_write_to_file (const int ncid,
+                  const Tensor4& t)
+{
+  int retval;
+  int ncdims[4], varid;
+  if ((retval = nc_def_dim (ncid, "nbooks", t.nbooks(), &ncdims[0])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_dim (ncid, "npages", t.npages(), &ncdims[0])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_dim (ncid, "nrows", t.nrows(), &ncdims[1])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_dim (ncid, "ncols", t.ncols(), &ncdims[2])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_var (ncid, "Tensor4", NC_DOUBLE, 4, &ncdims[0], &varid)))
+    ncerror (retval, "nc_def_var");
+  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+  if ((retval = nc_put_var_double (ncid, varid, t.get_c_array())))
+    ncerror (retval, "nc_put_var");
+}
+
 //=== Vector ==========================================================
 
 //! Reads a Vector from a NetCDF file
@@ -180,7 +228,6 @@ TMPL_NC_READ_WRITE_FILE_DUMMY( Index )
 TMPL_NC_READ_WRITE_FILE_DUMMY( Numeric )
 TMPL_NC_READ_WRITE_FILE_DUMMY( Sparse )
 TMPL_NC_READ_WRITE_FILE_DUMMY( String )
-TMPL_NC_READ_WRITE_FILE_DUMMY( Tensor4 )
 TMPL_NC_READ_WRITE_FILE_DUMMY( Tensor5 )
 TMPL_NC_READ_WRITE_FILE_DUMMY( Tensor6 )
 TMPL_NC_READ_WRITE_FILE_DUMMY( Tensor7 )
