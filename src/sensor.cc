@@ -15,7 +15,7 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*!a
+/*!
   \file   sensor.cc
   \author Mattias Ekström <ekstrom@rss.chalmers.se>
   \date   2003-02-27

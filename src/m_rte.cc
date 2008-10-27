@@ -293,9 +293,8 @@ void RteCalc(
                               if( ppath_array[ia].np > 1 )
                                 {
                                   for( Index ip=0; ip<ppath_array[ia].np; ip++ )
-                                    { diy_dvmr[ia](ig,ip,joker,joker) *= 
-                                    ppath_array[ia].vmr(rte_do_vmr_jacs[ig],ip);
-                                    }
+                                    diy_dvmr[ia](ig,ip,joker,joker) *= 
+                                     ppath_array[ia].vmr(rte_do_vmr_jacs[ig],ip);
                                 }
                             }
                         }
@@ -306,11 +305,9 @@ void RteCalc(
                               if( ppath_array[ia].np > 1 )
                                 {
                                   for( Index ip=0; ip<ppath_array[ia].np; ip++ )
-                                    { 
-                                      diy_dvmr[ia](ig,ip,joker,joker) /= 
+                                    diy_dvmr[ia](ig,ip,joker,joker) /= 
                                         number_density( ppath_array[ia].p[ip],
                                                         ppath_array[ia].t[ip] );
-                                    }
                                 }
                             }    
                         }              
@@ -323,7 +320,9 @@ void RteCalc(
                                      jacobian_quantities[jqi_vmr[ig]] );
 
                       //--- Unit conversions
-                      apply_y_unit( ib_vmr_jacs[ig], j_unit, f_grid );
+                      apply_y_unit( 
+                            ib_vmr_jacs[ig](Range(nbdone,nf*stokes_dim),joker), 
+                                                               j_unit, f_grid );
                     }
 
                   //--- Temperature ---
@@ -335,7 +334,8 @@ void RteCalc(
                                                  jacobian_quantities[jqi_t] );
 
                       //--- Unit conversions
-                      apply_y_unit( ib_t_jacs, j_unit, f_grid );
+                      apply_y_unit(ib_t_jacs(Range(nbdone,nf*stokes_dim),joker), 
+                                                               j_unit, f_grid );
                     }
 
                   //--- End of jacobian part -----------------------------------

@@ -70,7 +70,7 @@
     \date   2007-10-31
 */
 void apply_y_unit( 
-          Matrix&   iy, 
+       MatrixView   iy, 
     const String&   y_unit, 
     const Vector&   f_grid )
 {

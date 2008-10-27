@@ -53,7 +53,7 @@
   ===========================================================================*/
 
 void apply_y_unit( 
-          Matrix&   iy, 
+       MatrixView   iy, 
     const String&   y_unit, 
     const Vector&   f_grid );
 

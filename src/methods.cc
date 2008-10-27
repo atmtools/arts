@@ -7021,10 +7021,10 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-               "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
-               "sensor_response_pol_grid", "sensor_response_za_grid",
-               "sensor_response_aa_grid", "atmosphere_dim", "antenna_dim", 
-               "antenna_los", "antenna_response", "sensor_norm" ),
+            "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
+            "sensor_response_pol_grid", "sensor_response_za_grid",
+            "sensor_response_aa_grid", "atmosphere_dim", "antenna_dim", 
+            "antenna_los", "antenna_response", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -7060,6 +7060,39 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "sensor_responseBeamSwitching" ),
+        DESCRIPTION
+        (
+         "Calculates the difference spectrum: Beam switching\n"
+         "\n"
+         "The method allows to mimic beam switching. The measurement procedure\n"
+         "is basedon taking the difference of two spectra and the calculation\n"
+         "set-up must treat exactly two observation directions.\n"
+         "\n"
+         "The returned spectrum is y = w1*y + w2*y2, where y1 and w1 are the\n"
+         "spectrum and weight for the first direction, respectively (y2 and\n"
+         "(w2 defined corresponingly for second direction).\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_za_grid", "sensor_response_aa_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
+            "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
+            "sensor_response_pol_grid", "sensor_response_za_grid",
+            "sensor_response_aa_grid" ),
+        GIN( "w1", "w2" ),
+        GIN_TYPE( "Numeric", "Numeric" ),
+        GIN_DEFAULT( "-1", "1" ),
+        GIN_DESC( "Weight for values from first viewing direction.", 
+                  "Weight for values from second viewing direction." )
       ));
 
   md_data_raw.push_back

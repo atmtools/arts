@@ -486,7 +486,7 @@ void perturbation_field_3d(       Tensor3View     field,
 
 //! jacobian_from_path_to_rgrids
 /*!
-    Maps jacobian values valid for changes at a propogatio path step, to
+    Maps jacobian values valid for changes at a propogation path step, to
     values for the retrieval grids.
 
     See *rte_std* for usage of this function.
