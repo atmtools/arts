@@ -17,7 +17,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.11.25)
+AM_INIT_AUTOMAKE(arts,1.11.26)
 
 
 dnl Put the ACLOCAL flags in the Makefile
@@ -117,7 +117,15 @@ fi
 #
 # Check for netcdf library
 #
-AC_CHECK_LIB(netcdf, nc_open, ac_ncsupport=yes, ac_ncsupport=no )
+AC_MSG_CHECKING([whether NetCDF exists and contains nc_open])
+AC_COMPILE_IFELSE(
+                  [AC_LANG_PROGRAM([[ #include <netcdf.h> ]],
+                                   [[ int id; nc_open("", NC_NOWRITE, &id) ]])],ac_ncsupport=yes, ac_ncsupport=no, netcdf.h )
+AC_MSG_RESULT($ac_ncsupport)
+
+if test x$ac_ncsupport = xyes; then
+  AC_CHECK_LIB(netcdf, nc_open, ac_ncsupport=yes, ac_ncsupport=no )
+fi
 
 AM_CONDITIONAL(ENABLE_NETCDF, test x$ac_ncsupport = xyes)
 if test x$ac_ncsupport = xyes; then
