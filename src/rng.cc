@@ -210,7 +210,7 @@ mt_get (void *vstate)
 static double
 mt_get_double (void * vstate)
 {
-  return mt_get (vstate) / 4294967296.0 ;
+  return (double)mt_get (vstate) / 4294967296.0 ;
 }
 
 static void

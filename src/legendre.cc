@@ -96,14 +96,14 @@ legendre_poly (Index l, Index m, Numeric x)
     {
       Numeric pmmp1;
 
-      pmmp1 = x * (2*m + 1) * pmm;
+      pmmp1 = x * (Numeric)(2*m + 1) * pmm;
       if (l == (m+1))
         result = pmmp1;
       else
         {
           for (Index ll = m+2; ll <= l; ll++)
             {
-              result = (x * (2*ll - 1) * pmmp1 - (ll + m - 1) * pmm) / (ll - m);
+              result = (x * (Numeric)(2*ll - 1) * pmmp1 - (Numeric)(ll + m - 1) * pmm) / (Numeric)(ll - m);
               pmm = pmmp1;
               pmmp1 = result;
             }
@@ -205,8 +205,8 @@ legendre_poly_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-          result = ((l + m) * legendre_poly (l-1, m, x) - 
-                    l * x * legendre_poly (l, m, x)) /
+          result = ((Numeric)(l + m) * legendre_poly (l-1, m, x) - 
+                    (Numeric)l * x * legendre_poly (l, m, x)) /
             (1 - x * x);
         }
       catch (runtime_error e)
@@ -222,8 +222,8 @@ legendre_poly_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-          result = m * x * legendre_poly (l, m, x) / (1 - x * x)
-            + (l + m) * (l - m + 1) * legendre_poly (l, m - 1, x)
+          result = (Numeric)m * x * legendre_poly (l, m, x) / (1 - x * x)
+            + (Numeric)((l + m) * (l - m + 1)) * legendre_poly (l, m - 1, x)
             / sqrt (1 - x * x);
         }
       catch (runtime_error e)
@@ -291,8 +291,8 @@ legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-          result = ((l + m) * legendre_poly_norm_schmidt (l-1, m, x) - 
-                    l * x * legendre_poly_norm_schmidt (l, m, x)) /
+          result = ((Numeric)(l + m) * legendre_poly_norm_schmidt (l-1, m, x) - 
+                    (Numeric)l * x * legendre_poly_norm_schmidt (l, m, x)) /
             (1 - x * x);
         }
       catch (runtime_error e)
@@ -308,8 +308,8 @@ legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-          result = m * x * legendre_poly_norm_schmidt (l, m, x) / (1 - x * x)
-            + (l + m) * (l - m + 1) * legendre_poly_norm_schmidt (l, m - 1, x)
+          result = (Numeric)m * x * legendre_poly_norm_schmidt (l, m, x) / (1 - x * x)
+            + (Numeric)((l + m) * (l - m + 1)) * legendre_poly_norm_schmidt (l, m - 1, x)
             / sqrt (1 - x * x);
         }
       catch (runtime_error e)
@@ -379,14 +379,14 @@ g_legendre_poly (Index l, Index m, Numeric x)
     {
       Numeric pmmp1;
 
-      pmmp1 = x * (2*m + 1) * pmm;
+      pmmp1 = x * (Numeric)(2*m + 1) * pmm;
       if (l == (m+1))
         result = pmmp1;
       else
         {
           for (Index ll = m+2; ll <= l; ll++)
             {
-              result = (x * (2*ll - 1) * pmmp1 - (ll + m - 1) * pmm) / (ll - m);
+              result = (x * (Numeric)(2*ll - 1) * pmmp1 - (Numeric)(ll + m - 1) * pmm) / (Numeric)(ll - m);
               pmm = pmmp1;
               pmmp1 = result;
             }
@@ -490,8 +490,8 @@ g_legendre_poly_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-          result = ((l + m) * g_legendre_poly (l-1, m, x) - 
-                    l * x * g_legendre_poly (l, m, x)) /
+          result = ((Numeric)(l + m) * g_legendre_poly (l-1, m, x) - 
+                    (Numeric)l * x * g_legendre_poly (l, m, x)) /
             (1 - x * x);
         }
       catch (runtime_error e)
@@ -507,8 +507,8 @@ g_legendre_poly_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-          result = - m * x * g_legendre_poly (l, m, x) / (1 - x * x) + 
-            (l + m) * (l - m + 1) * g_legendre_poly (l, m - 1, x) / 
+          result = - (Numeric)m * x * g_legendre_poly (l, m, x) / (1 - x * x) + 
+            (Numeric)((l + m) * (l - m + 1)) * g_legendre_poly (l, m - 1, x) / 
             sqrt (1 - x * x);
         }
       catch (runtime_error e)
@@ -578,8 +578,8 @@ g_legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
       try
         {
           result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-            ((l + m) * g_legendre_poly(l-1, m, x) - 
-             l * x * g_legendre_poly (l, m, x)) / (1 - x * x);
+            ((Numeric)(l + m) * g_legendre_poly(l-1, m, x) - 
+             (Numeric)l * x * g_legendre_poly (l, m, x)) / (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -595,8 +595,8 @@ g_legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
       try
         {
           result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-            ( - m * x * g_legendre_poly (l, m, x) / (1 - x * x) + 
-              (l + m) * (l - m + 1) * g_legendre_poly (l, m - 1, x) / 
+            ( - (Numeric)m * x * g_legendre_poly (l, m, x) / (1 - x * x) + 
+              (Numeric)((l + m) * (l - m + 1)) * g_legendre_poly (l, m - 1, x) / 
               sqrt (1 - x * x));
         }
       catch (runtime_error e)
@@ -671,7 +671,7 @@ g_legendre_poly_norm_schmidt_deriv1 (Index l, Index m, Numeric x)
           //  / sqrt (1 - x * x);
 
           result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-            ( - m * x * g_legendre_poly (l, m, x) / (1 - x * x)  + 
+            ( - (Numeric)m * x * g_legendre_poly (l, m, x) / (1 - x * x)  + 
               g_legendre_poly (l, m + 1, x)
               / sqrt (1 - x * x));
         }
@@ -689,7 +689,7 @@ g_legendre_poly_norm_schmidt_deriv1 (Index l, Index m, Numeric x)
       try
         {
           result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-            m * x * g_legendre_poly (l, m, x) / (1 - x * x);
+            (Numeric)m * x * g_legendre_poly (l, m, x) / (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -759,8 +759,8 @@ g_legendre_poly_norm_schmidt_deriv2 (Index l, Index m, Numeric x)
       try
         {
           result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-            ((l + m) * g_legendre_poly (l-1, m, x) - 
-             l * x * g_legendre_poly (l, m, x)) /
+            ((Numeric)(l + m) * g_legendre_poly (l-1, m, x) - 
+             (Numeric)l * x * g_legendre_poly (l, m, x)) /
             (1 - x * x);
         }
       catch (runtime_error e)
@@ -776,7 +776,7 @@ g_legendre_poly_norm_schmidt_deriv2 (Index l, Index m, Numeric x)
     {
       try
         {
-          result = - m * x * g_legendre_poly_norm_schmidt (l, m, x) / (1 - x * x)
+          result = - (Numeric)m * x * g_legendre_poly_norm_schmidt (l, m, x) / (1 - x * x)
             ;
         }
       catch (runtime_error e)
@@ -847,8 +847,8 @@ g_legendre_poly_norm_schmidt_deriv3 (Index l, Index m, Numeric x)
       try
         {
           result = sqrt(2.0 * fac (l - m) / fac (l + m)) * 
-            (l * g_legendre_poly (l - 1, m, x) + 
-             (m - l) * x * g_legendre_poly (l, m, x)) /
+            ((Numeric)l * g_legendre_poly (l - 1, m, x) + 
+             (Numeric)(m - l) * x * g_legendre_poly (l, m, x)) /
             (1 - x * x);
         }
       catch (runtime_error e)
@@ -865,7 +865,7 @@ g_legendre_poly_norm_schmidt_deriv3 (Index l, Index m, Numeric x)
       try
         {
           result = - sqrt(2.0 * fac (l - m) / fac (l + m)) * 
-            m * x * g_legendre_poly (l, m, x) / (1 - x * x);
+            (Numeric)m * x * g_legendre_poly (l, m, x) / (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -935,9 +935,9 @@ g_legendre_poly_norm_schmidt_deriv4 (Index l, Index m, Numeric x)
       try
         {
           result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-            ((l + m) * (l + 1) * g_legendre_poly (l - 1, m, x)  - 
-             (l + 2 * m) * (l - m + 1) * g_legendre_poly (l + 1, m, x)
-             / ((2 * l + 1 ) * (1 - x * x)));
+            ((Numeric)((l + m) * (l + 1)) * g_legendre_poly (l - 1, m, x)  - 
+             (Numeric)((l + 2 * m) * (l - m + 1)) * g_legendre_poly (l + 1, m, x)
+             / ((Numeric)(2 * l + 1 ) * (1 - x * x)));
         }
       catch (runtime_error e)
         {
@@ -953,7 +953,7 @@ g_legendre_poly_norm_schmidt_deriv4 (Index l, Index m, Numeric x)
       try
         {
           result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-            m * x * g_legendre_poly (l, m, x) / (1 - x * x);
+            (Numeric)m * x * g_legendre_poly (l, m, x) / (1 - x * x);
         }
       catch (runtime_error e)
         {

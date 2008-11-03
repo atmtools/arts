@@ -654,7 +654,7 @@ void choose_abs_t_pert(Vector&         abs_t_pert,
   for (Index i=0; i<the_grid.nelem(); ++i)
     {
       GridPosPoly gp;
-      gridpos_poly(gp, the_grid, i, p_interp_order);
+      gridpos_poly(gp, the_grid, (Numeric)i, p_interp_order);
 
       for (Index j=0; j<gp.idx.nelem(); ++j)
         {
@@ -681,7 +681,7 @@ void choose_abs_t_pert(Vector&         abs_t_pert,
   Numeric effective_step;
   do
     {
-      effective_step = (maxdev-mindev)/div;
+      effective_step = (maxdev-mindev)/(Numeric)div;
       ++div;
     }
   while (effective_step > step);
@@ -738,7 +738,7 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
 //            << maxprof[i] << "\n";
   
       GridPosPoly gp;
-      gridpos_poly(gp, the_grid, i, p_interp_order);
+      gridpos_poly(gp, the_grid, (Numeric)i, p_interp_order);
 
       for (Index j=0; j<gp.idx.nelem(); ++j)
         {
@@ -785,7 +785,7 @@ void choose_abs_nls_pert(Vector&         abs_nls_pert,
   Numeric effective_step;
   do
     {
-      effective_step = (maxdev-mindev)/div;
+      effective_step = (maxdev-mindev)/(Numeric)div;
       ++div;
     }
   while (effective_step > step);
@@ -907,11 +907,11 @@ void abs_lookupSetup(// WS Output:
       // n-1. But we have to insert the original point as well.
       //          cout << n << "\n";
 
-      const Numeric ddp = dp/n;
+      const Numeric ddp = dp/(Numeric)n;
       //          cout << "ddp: " << ddp << "\n";
 
       for (Index j=1; j<=n; ++j)
-        log_abs_p_a.push_back(log_p_grid[i-1] - j*ddp);          
+        log_abs_p_a.push_back(log_p_grid[i-1] - (Numeric)j*ddp);          
     }
 
   // Copy to a proper vector, we need this also later for
@@ -1387,7 +1387,7 @@ void abs_lookupSetupBatch(// WS Output:
               {
                 smooth_datamean(fi,i) += datamean(fi,gp.idx[j]);
               }
-            smooth_datamean(fi,i) /= gp.idx.nelem();            
+            smooth_datamean(fi,i) /= (Numeric)gp.idx.nelem();            
           }
 //       cout << "H2O-raw / H2O-smooth: "
 //            << datamean(2,i) << " / "

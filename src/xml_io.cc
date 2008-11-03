@@ -814,7 +814,7 @@ xml_set_stream_precision (ostream& os)
 {
   // Determine the precision, depending on whether Numeric is double
   // or float:
-  Index precision;
+  int precision;
 #ifdef USE_FLOAT
   precision = FLT_DIG;
 #else

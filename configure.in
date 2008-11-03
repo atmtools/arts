@@ -17,7 +17,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.11.26)
+AM_INIT_AUTOMAKE(arts,1.11.27)
 
 
 dnl Put the ACLOCAL flags in the Makefile
@@ -339,11 +339,8 @@ case x$ax_cv_cxx_compiler_vendor in
     fi
 
     if test x$ac_more_warnings = xyes; then
-        if test "$GCC_MAJOR" = "4" -a "$GCC_MINOR" = "3"; then
-            AC_MSG_RESULT([Not turning on -Werror for gcc 4.3 yet, breaks build])
-        else
-            WARNINGCFLAGS="$WARNINGCFLAGS -Werror"
-        fi
+
+      WARNINGCFLAGS="$WARNINGCFLAGS -Werror"
 
       # gcc2 produces warnings in standard headers, therefore only
       # enable it with gcc3 and gcc4

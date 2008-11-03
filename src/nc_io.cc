@@ -144,6 +144,16 @@ void nc_get_data_int (const int ncid, const String &name, int *data)
 }
 
 
+void nc_get_data_long (const int ncid, const String &name, long *data)
+{
+  int retval, varid;
+  if ((retval = nc_inq_varid (ncid, name.c_str(), &varid)))
+    ncerror (retval, "nc_inq_varid("+name+")");
+  if ((retval = nc_get_var_long (ncid, varid, data)))
+    ncerror (retval, "nc_get_var("+name+")");
+}
+
+
 void nc_get_data_double (const int ncid, const String &name, Numeric *data)
 {
   int retval, varid;

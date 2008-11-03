@@ -172,7 +172,7 @@ void test02(Index n)
 
   Vector a(n);
   for (Index i=0; i<a.nelem(); ++i)
-    a[i] = i;
+    a[i] = (Numeric)i;
 }
 
 void test03(Index n)
@@ -186,7 +186,7 @@ void test03(Index n)
   const Iterator1D ae=a.end();
   Index i=0;
   for ( ; ai!=ae; ++ai, ++i )
-    *ai = i;
+    *ai = (Numeric)i;
 }
 
 // Result: Both are almost equally fast, with a slight advantage of
@@ -315,7 +315,7 @@ void test06()
     // Original field:
     Vector of(og.nelem(),0);
     for ( Index i=0; i<og.nelem(); ++i )
-      of[i] = 10*(i+1);                 // 10, 20, 30, 40, 50
+      of[i] = (Numeric)(10*(i+1));                 // 10, 20, 30, 40, 50
 
     cout << "of:\n" << of << "\n";
 

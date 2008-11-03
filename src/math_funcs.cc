@@ -236,7 +236,7 @@ void linspace(
     n=1;
   x.resize(n);
   for ( Index i=0; i<n; i++ )
-    x[i] = start + i*step;
+    x[i] = start + (double)i*step;
 }
 
 
@@ -266,9 +266,9 @@ void nlinspace(
 {
   assert( 1<n );                // Number of points must be greatere 1.
   x.resize(n);
-  Numeric step = (stop-start)/(n-1) ;
+  Numeric step = (stop-start)/((double)n-1) ;
   for ( Index i=0; i<n-1; i++ )
-    x[i] = start + i*step;
+    x[i] = start + (double)i*step;
   x[n-1] = stop;
 }
 
@@ -305,10 +305,10 @@ void nlogspace(
 
   x.resize(n);
   Numeric a = log(start);
-  Numeric step = (log(stop)-a)/(n-1);
+  Numeric step = (log(stop)-a)/((double)n-1);
   x[0] = start;
   for ( Index i=1; i<n-1; i++ )
-    x[i] = exp(a + i*step);
+    x[i] = exp(a + (double)i*step);
   x[n-1] = stop;
 }
 

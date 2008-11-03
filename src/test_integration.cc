@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 
   cout << "Uebergabewert von argv : " << argv[1] << endl;
 
-  int frequency = strtol(argv[1], NULL, 10);  // Zahl zur Basis 10
+  int frequency = (int)strtol(argv[1], NULL, 10);  // Zahl zur Basis 10
   cout << "Wert von frequency    : " << frequency << endl;
 
   //  test_x(1801, 0.1, frequency);
@@ -144,11 +144,11 @@ void init_x(int vsize, float stepsize, int frequency,
   //  Theta.resize(vsize);     // Theta values
 
   for (int i = 0; i < Integrand.nelem(); i++)
-    Integrand[i] = i * stepsize;
+    Integrand[i] = (float)i * stepsize;
 
   //Theta is between 0 and 180
   for (int i = 0; i < Theta.nelem(); i++)
-    Theta[i] = i * stepsize;
+    Theta[i] = (float)i * stepsize;
 
   cout << "function Y = X" << endl
        << "vsize = " << vsize << endl
@@ -180,11 +180,11 @@ void init_xy(float stepsize, int frequency,
 
   //za_grid (Theta) is between 0 and 180
   for (Index i = 0; i < n_za; i++)
-    za_grid[i] = i * stepsize;
+    za_grid[i] = (float)i * stepsize;
 
   //aa_grid (Phi) is between 0 and 360
   for (Index i = 0; i < n_aa; i++)
-    aa_grid[i] = i * stepsize;
+    aa_grid[i] = (float)i * stepsize;
 
   cout << "function x^2 + y^2 + z^2 = 1" << endl
        << "n_za = " << n_za << endl
@@ -522,8 +522,8 @@ Numeric test_xy(int z_size, int a_size,
 
   double error = result/(4*PI) - 1;
 
-  double diffs = (ende.tv_sec - start.tv_sec)
-    + (ende.tv_usec - start.tv_usec)/1000000.0;
+  double diffs = (double)(ende.tv_sec - start.tv_sec)
+    + (double)(ende.tv_usec - start.tv_usec)/1000000.0;
   cout.precision(15);
   cout << "stepsize is    : " << stepsize << endl
        << "z_size         : " << z_size << endl
@@ -576,8 +576,8 @@ Numeric test_xy_opt(int z_size, int a_size,
 
   double error = result/(4*PI) - 1;
 
-  double diffs = (ende.tv_sec - start.tv_sec)
-    + (ende.tv_usec - start.tv_usec)/1000000.0;
+  double diffs = (double)(ende.tv_sec - start.tv_sec)
+    + (double)(ende.tv_usec - start.tv_usec)/1000000.0;
   cout.precision(15);
   cout << "stepsize is    : " << stepsize << endl
        << "z_size         : " << z_size << endl
@@ -630,8 +630,8 @@ Numeric test_xy_fixedstep(int z_size, int a_size,
 
   double error = result/(4*PI) - 1;
 
-  double diffs = (ende.tv_sec - start.tv_sec)
-    + (ende.tv_usec - start.tv_usec)/1000000.0;
+  double diffs = (double)(ende.tv_sec - start.tv_sec)
+    + (double)(ende.tv_usec - start.tv_usec)/1000000.0;
   cout.precision(15);
   cout << diffs << endl;
   cout << "stepsize is    : " << stepsize << endl
@@ -685,8 +685,8 @@ Numeric test_xy_fixedstep_opt(int z_size, int a_size,
 
   double error = result/(4*PI) - 1;
 
-  double diffs = (ende.tv_sec - start.tv_sec)
-    + (ende.tv_usec - start.tv_usec)/1000000.0;
+  double diffs = (double)(ende.tv_sec - start.tv_sec)
+    + (double)(ende.tv_usec - start.tv_usec)/1000000.0;
   cout.precision(15);
   cout << diffs << endl;
   cout << "stepsize is    : " << stepsize << endl
@@ -740,8 +740,8 @@ Numeric test_xy_fixedstep_opt2(int z_size, int a_size,
 
   double error = result/(4*PI) - 1;
 
-  double diffs = (ende.tv_sec - start.tv_sec)
-    + (ende.tv_usec - start.tv_usec)/1000000.0;
+  double diffs = (double)(ende.tv_sec - start.tv_sec)
+    + (double)(ende.tv_usec - start.tv_usec)/1000000.0;
   cout.precision(15);
   cout << diffs << endl;
   cout << "stepsize is    : " << stepsize << endl
@@ -807,8 +807,8 @@ Numeric test_AngIntegrate_trapezoid_opti(int z_size, int a_size,
 
   double error = result/(4*PI) - 1;
 
-  double diffs = (ende.tv_sec - start.tv_sec)
-    + (ende.tv_usec - start.tv_usec)/1000000.0;
+  double diffs = (double)(ende.tv_sec - start.tv_sec)
+    + (double)(ende.tv_usec - start.tv_usec)/1000000.0;
   cout.precision(15);
   cout << diffs << endl;
   cout << "stepsize is    : " << stepsize << endl
@@ -867,8 +867,8 @@ Numeric test_x(int vsize,
 
 
 
-  double diffs = (ende.tv_sec - start.tv_sec)
-    + (ende.tv_usec - start.tv_usec)/1000000.0;
+  double diffs = (double)(ende.tv_sec - start.tv_sec)
+    + (double)(ende.tv_usec - start.tv_usec)/1000000.0;
   cout.precision(15);
   cout << diffs << endl;
   cout << "stepsize is    : " << stepsize << endl
@@ -901,7 +901,7 @@ Numeric test_x_fixedstep(int vsize,
   Vector Integrand(vsize); // function to be integrated
   Vector Theta(vsize);     // Theta values
 
-  float stepsize;
+  double stepsize;
   stepsize = 180.0 / (vsize - 1);  // attention this only works with eaqually spaced intervals
   cout << "Neue berechnete Stepsize: " << stepsize << endl;
 
@@ -938,8 +938,8 @@ Numeric test_x_fixedstep(int vsize,
 
 
 
-  double diffs = (ende.tv_sec - start.tv_sec)
-    + (ende.tv_usec - start.tv_usec)/1000000.0;
+  double diffs = (double)(ende.tv_sec - start.tv_sec)
+    + (double)(ende.tv_usec - start.tv_usec)/1000000.0;
   cout.precision(15);
   cout << diffs << endl;
   cout << "stepsize is    : " << stepsize << endl

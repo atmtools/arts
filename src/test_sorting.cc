@@ -94,7 +94,7 @@ profileVector (Index n)
 {
   cout << "Creating Vector with random numbers" << endl;
 
-  srandom (time (NULL));
+  srandom ((unsigned int)time (NULL));
   Vector v(n);
   for (Index i = 0; i < n; i++)
     v[i] = Numeric (random ());

@@ -137,13 +137,13 @@ void mc_IWP_cloud_opt_pathCalc(
           mc_cloud_opt_path+=cloud_opt_path;
           tau_squared+=cloud_opt_path*cloud_opt_path;
         }
-      mc_IWP/=mc_iteration_count;
-      mc_cloud_opt_path/=mc_iteration_count;
-      mc_IWP_error=sqrt((iwp_squared/mc_iteration_count-mc_IWP*mc_IWP)
-                        /mc_iteration_count);
-      mc_cloud_opt_path_error=sqrt((tau_squared/mc_iteration_count-
+      mc_IWP/=(Numeric)mc_iteration_count;
+      mc_cloud_opt_path/=(Numeric)mc_iteration_count;
+      mc_IWP_error=sqrt((iwp_squared/(Numeric)mc_iteration_count-mc_IWP*mc_IWP)
+                        /(Numeric)mc_iteration_count);
+      mc_cloud_opt_path_error=sqrt((tau_squared/(Numeric)mc_iteration_count-
                                     mc_cloud_opt_path*mc_cloud_opt_path)
-                                   /mc_iteration_count);
+                                   /(Numeric)mc_iteration_count);
       
     }
 
@@ -421,10 +421,10 @@ void MCGeneral(Workspace&            ws,
           Isquaredsum[j] += I_i[j]*I_i[j];
         }
       y=Isum;
-      y/=mc_iteration_count;
+      y/=(Numeric)mc_iteration_count;
       for(Index j=0; j<stokes_dim; j++) 
         {
-          mc_error[j]=sqrt((Isquaredsum[j]/mc_iteration_count-y[j]*y[j])/mc_iteration_count);
+          mc_error[j]=sqrt((Isquaredsum[j]/(Numeric)mc_iteration_count-y[j]*y[j])/(Numeric)mc_iteration_count);
         }
       if (std_err>0 && mc_iteration_count>=100 && mc_error[0]<std_err_i){break;}
       if (max_time>0 && (Index)(time(NULL)-start_time)>=max_time){break;}
@@ -701,10 +701,10 @@ void MCIPA(Workspace&            ws,
           Isquaredsum[j] += I_i[j]*I_i[j];
         }
       y=Isum;
-      y/=mc_iteration_count;
+      y/=(Numeric)mc_iteration_count;
       for(Index j=0; j<stokes_dim; j++) 
         {
-          mc_error[j]=sqrt((Isquaredsum[j]/mc_iteration_count-y[j]*y[j])/mc_iteration_count);
+          mc_error[j]=sqrt((Isquaredsum[j]/(Numeric)mc_iteration_count-y[j]*y[j])/(Numeric)mc_iteration_count);
         }
       if (std_err>0 && mc_iteration_count>=100 && mc_error[0]<std_err_i){break;}
       if (max_time>0 && (Index)(time(NULL)-start_time)>=max_time){break;}
@@ -1048,10 +1048,10 @@ void ScatteringMonteCarlo (Workspace&            ws,
           Isquaredsum[j] += I_i[j]*I_i[j];
         }
       I=Isum;
-      I/=mc_iteration_count;
+      I/=(Numeric)mc_iteration_count;
       for(Index j=0; j<stokes_dim; j++) 
         {
-          mc_error[j]=sqrt((Isquaredsum[j]/mc_iteration_count-I[j]*I[j])/mc_iteration_count);
+          mc_error[j]=sqrt((Isquaredsum[j]/(Numeric)mc_iteration_count-I[j]*I[j])/(Numeric)mc_iteration_count);
         }
       if (std_err>0 && mc_iteration_count>=100 && mc_error[0]<std_err_i){break;}
       if (max_time>0 && (Index)(time(NULL)-start_time)>=max_time){break;}

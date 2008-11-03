@@ -41,7 +41,7 @@ Tensor4 fill_tensor4(Index b, Index p, Index r, Index c, Index start = 1)
     for (Index j = 0; j < p; j++)
       for (Index k = 0; k < r; k++)
         for (Index l = 0; l < c; l++)
-          t(i, j, k, l) = fill++;
+          t(i, j, k, l) = (Numeric)(fill++);
 
   return t;
 }
@@ -57,7 +57,7 @@ Tensor5 fill_tensor5(Index s, Index b, Index p, Index r, Index c, Index start = 
       for (Index k = 0; k < p; k++)
         for (Index l = 0; l < r; l++)
           for (Index m = 0; m < c; m++)
-            t(i, j, k, l, m) = fill++;
+            t(i, j, k, l, m) = (Numeric)(fill++);
 
   return t;
 }
@@ -222,7 +222,7 @@ void fill_tensor6(Tensor6& x,
           for (Index ir = 0; ir < r; ir++)
             for (Index ic = 0; ic < c; ic++)
               x(iv, is, ib, ip, ir, ic)
-                = ic + ir*10 + ip*100 + ib*1000 + is*10000 + iv*100000;
+                = (Numeric)(ic + ir*10 + ip*100 + ib*1000 + is*10000 + iv*100000);
 }
 
 void test6()
@@ -273,7 +273,7 @@ void fill_tensor7(Tensor7& x,
             for (Index ir = 0; ir < r; ir++)
               for (Index ic = 0; ic < c; ic++)
                 x(il, iv, is, ib, ip, ir, ic)
-                  = ic + ir*10 + ip*100 + ib*1000 + is*10000 + iv*100000 + il*1000000;
+                  = (Numeric)(ic + ir*10 + ip*100 + ib*1000 + is*10000 + iv*100000 + il*1000000);
 }
 
 void test7()

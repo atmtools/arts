@@ -343,7 +343,7 @@ void ybatchMetProfiles(
     }
       
       lat_os.setf (ios::showpoint | ios::fixed);
-      lat_os << setprecision(lat_prec) << lat[i];
+      lat_os << setprecision((int)lat_prec) << lat[i];
       
       Index lon_prec = 4;
       if(lon[i] < 0) lon_prec--;
@@ -353,7 +353,7 @@ void ybatchMetProfiles(
       if(abs(lon[i])>=100 ) lon_prec--;
     }
       lon_os.setf (ios::showpoint | ios::fixed);
-      lon_os << setprecision(lon_prec) << lon[i];
+      lon_os << setprecision((int)lon_prec) << lon[i];
       
       sensor_los(0,0) = 
         180.0 - (asin(r_geoid(0,0) * sin(sat_za_from_data[i] * DEG2RAD) /sensor_pos(0,0)))* RAD2DEG;
@@ -553,7 +553,7 @@ void ybatchMetProfilesClear(
     }
 
       lat_os.setf (ios::showpoint | ios::fixed);
-      lat_os << setprecision(lat_prec) << lat[i];
+      lat_os << setprecision((int)lat_prec) << lat[i];
       
       Index lon_prec = 4;
       if(lon[i] < 0) lon_prec--;
@@ -563,7 +563,7 @@ void ybatchMetProfilesClear(
       if(abs(lon[i])>=100 ) lon_prec--;
     }
       lon_os.setf (ios::showpoint | ios::fixed);
-      lon_os << setprecision(lon_prec) << lon[i];
+      lon_os << setprecision((int)lon_prec) << lon[i];
       cout<<lat_os.str()<<endl;
       cout<<lon_os.str()<<endl;
 

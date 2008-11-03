@@ -211,7 +211,7 @@ void gridpos( ArrayOfGridPos& gp,
       // consequences. 
       
       // Initialize current_position: 
-      Index   current_position = (Index) rint(frac*(n_old-2));
+      Index   current_position = (Index) rint(frac*(Numeric)(n_old-2));
 
       // The above statement should satisfy
       // 0 <= current_position <= n_old-2
@@ -330,7 +330,7 @@ void gridpos( ArrayOfGridPos& gp,
       // because there is another assertion below to catch the
       // consequences. 
 
-      Index   current_position = (Index) rint(frac*(n_old-2));
+      Index   current_position = (Index) rint(frac*(Numeric)(n_old-2));
 
       // The above statement should satisfy
       // 0 <= current_position <= n_old-2

@@ -14607,7 +14607,7 @@ L2:
     s__1 = i1;
     for (i__ = i0; i__ <= s__1; ++i__) {
 /* L20: */
-  f = f * (double) i__ / (double) ((i__ << 1) + 1 << 1);
+  f = f * (double) i__ / (double) (((i__ << 1) + 1) << 1);
     }
 L22:
     s__1 = *lambda + *l - *lp;

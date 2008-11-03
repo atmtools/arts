@@ -634,7 +634,7 @@ void jacobianAddPolyfit(
       rq.Subtag( sstr.str() ); 
 
       // Grid is a scalar, use polynomial coeff.
-      grids[0] = Vector(1,i);
+      grids[0] = Vector(1,(Numeric)i);
       rq.Grids( grids );
 
       // Add it to the *jacobian_quantities*

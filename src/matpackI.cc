@@ -1853,7 +1853,7 @@ Numeric mean(const ConstVectorView& x)
 
   for ( ; xi!=xe ; ++xi ) mean += *xi;
 
-  mean /= x.nelem();
+  mean /= (Numeric)x.nelem();
   
   return mean;
 }
@@ -1875,7 +1875,7 @@ Numeric mean(const ConstMatrixView& x)
       for ( ; cx!=cxe ; ++cx ) mean += *cx;
     }
   
-  mean /= x.nrows()*x.ncols();
+  mean /= (Numeric)(x.nrows()*x.ncols());
 
   return mean;
 }

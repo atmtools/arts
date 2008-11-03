@@ -1,3 +1,51 @@
+2008-11-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-11-27
+
+	* Lots of casting fixes to make account for the stricter warning
+	policy in gcc 4.3. Warnings are now issued for all implicit conversions
+	that might lead to alteration of values. Like casting from Index to
+	Numeric. The fix is to insert explicit castings in the corresponding
+	places to show the compiler that we know what we're doing and are
+	aware of the problem.
+
+	* configure.in: Reenable -Werror for gcc 4.3.
+
+	* src/math_funcs.cc, src/lineshapes.cc, src/legendre.cc,
+	src/m_general.cc, src/m_scatrte.cc, src/m_abs_lookup.cc,
+	src/m_jacobian.cc, src/m_montecarlo.cc, src/m_batch.cc,
+	src/montecarlo.cc, src/ppath.cc, src/rng.cc, src/test_matpack.cc,
+	src/test_integration.cc, src/matpackI.cc, src/methods_aux.cc,
+	src/geomag_calc.cc, src/m_atmosphere.cc, src/interpolation.cc,
+	src/binio.cc, src/gzstream.cc, src/main.cc, src/test_sparse.cc,
+	src/test_tensor.cc, src/test_interpolation.cc, src/test_sorting.cc:
+
+	Introduce explicit casts in several places.
+
+	* src/lineshapes.cc:
+
+	Add parenthesis in several places to make clear that + has precedence
+	over the shift operator <<.
+
+	* src/xml_io.cc (xml_set_stream_precision), src/methods_aux.cc,
+	src/abs_species_tags.cc:
+
+	Make variable 'precision' int instead of Index.
+
+	* src/nc_io.{cc,h}: Add function nc_get_data_long.
+
+	* src/nc_io_array_types.cc:
+
+	Change dimension types from int to long to match the matpack
+	dimensions.
+
+	* src/absorption.cc: Changed type of nChar from Numeric to Index.
+
+	* src/jacobian.cc (get_perturbation_limit):
+
+	Make inc Numeric instead of Index as it's anyway only used if FP
+	multiplications.
+
 2008-10-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-11-26

@@ -284,23 +284,23 @@ timerStop (// WS Input
   cout.setf (ios::showpoint | ios::fixed);
 
   out1 << "  * CPU time  total: " << setprecision (2)
-    << ((endtime.cputime.tms_stime - starttime.cputime.tms_stime)
+    << (Numeric)((endtime.cputime.tms_stime - starttime.cputime.tms_stime)
         + (endtime.cputime.tms_utime - starttime.cputime.tms_utime))
     / (Numeric)clktck;
 
   out1 << "  user: " << setprecision (2)
-    << (endtime.cputime.tms_utime - starttime.cputime.tms_utime)
+    << (Numeric)(endtime.cputime.tms_utime - starttime.cputime.tms_utime)
     / (Numeric)clktck;
 
   out1 << "  system: " << setprecision (2)
-    << (endtime.cputime.tms_stime - starttime.cputime.tms_stime)
+    << (Numeric)(endtime.cputime.tms_stime - starttime.cputime.tms_stime)
     / (Numeric)clktck;
 
   out1 << "\n               real: " << setprecision (2)
-    << (endtime.realtime - starttime.realtime) / (Numeric)clktck;
+    << (Numeric)(endtime.realtime - starttime.realtime) / (Numeric)clktck;
 
   out1 << "  " << setprecision (2)
-    << ((endtime.cputime.tms_stime - starttime.cputime.tms_stime)
+    << (Numeric)((endtime.cputime.tms_stime - starttime.cputime.tms_stime)
         + (endtime.cputime.tms_utime - starttime.cputime.tms_utime))
     / (Numeric)(endtime.realtime - starttime.realtime) * 100.
     << "%CPU\n";

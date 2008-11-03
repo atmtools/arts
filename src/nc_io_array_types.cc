@@ -47,11 +47,11 @@ nc_read_from_file (const int ncid,
   nelem = nc_get_dim (ncid, "nelem");
   nelem_total = nc_get_dim (ncid, "nelem_total");
 
-  int *vnrows = new int[nelem];
-  int *vncols = new int[nelem];
+  long *vnrows = new long[nelem];
+  long *vncols = new long[nelem];
   aom.resize (nelem);
-  nc_get_data_int (ncid, "Matrix_nrows", vnrows);
-  nc_get_data_int (ncid, "Matrix_ncols", vncols);
+  nc_get_data_long (ncid, "Matrix_nrows", vnrows);
+  nc_get_data_long (ncid, "Matrix_ncols", vncols);
   size_t pos = 0;
   for (Index i = 0; i < nelem; i++)
     {
@@ -78,9 +78,9 @@ nc_write_to_file (const int ncid,
   int retval;
   int ncdim, varid_nrows, varid_ncols;
   int ncdim_total, varid;
-  int nelem_total = 0;
-  int *vncols = new int[aom.nelem()];
-  int *vnrows = new int[aom.nelem()];
+  long nelem_total = 0;
+  long *vncols = new long[aom.nelem()];
+  long *vnrows = new long[aom.nelem()];
   for (Index i = 0; i < aom.nelem(); i++)
     {
       vnrows[i] = aom[i].nrows();
@@ -93,10 +93,10 @@ nc_write_to_file (const int ncid,
   if ((retval = nc_def_dim (ncid, "nelem_total", nelem_total, &ncdim_total)))
     ncerror (retval, "nc_def_dim");
 
-  if ((retval = nc_def_var (ncid, "Matrix_nrows", NC_INT, 1,
+  if ((retval = nc_def_var (ncid, "Matrix_nrows", NC_LONG, 1,
                             &ncdim, &varid_nrows)))
     ncerror (retval, "nc_def_var");
-  if ((retval = nc_def_var (ncid, "Matrix_ncols", NC_INT, 1,
+  if ((retval = nc_def_var (ncid, "Matrix_ncols", NC_LONG, 1,
                             &ncdim, &varid_ncols)))
     ncerror (retval, "nc_def_var");
   if ((retval = nc_def_var (ncid, "ArrayOfMatrix", NC_DOUBLE, 1,
@@ -105,9 +105,9 @@ nc_write_to_file (const int ncid,
 
   if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
 
-  if ((retval = nc_put_var_int (ncid, varid_nrows, vnrows)))
+  if ((retval = nc_put_var_long (ncid, varid_nrows, vnrows)))
     ncerror (retval, "nc_put_var");
-  if ((retval = nc_put_var_int (ncid, varid_ncols, vncols)))
+  if ((retval = nc_put_var_long (ncid, varid_ncols, vncols)))
     ncerror (retval, "nc_put_var");
 
   size_t pos = 0;
@@ -140,9 +140,9 @@ nc_read_from_file (const int ncid,
   nelem = nc_get_dim (ncid, "nelem");
   nelem_total = nc_get_dim (ncid, "nelem_total");
 
-  int *vnelem = new int[nelem];
+  long *vnelem = new long[nelem];
   aov.resize (nelem);
-  nc_get_data_int (ncid, "Vector_nelem", vnelem);
+  nc_get_data_long (ncid, "Vector_nelem", vnelem);
   size_t pos = 0;
   for (Index i = 0; i < nelem; i++)
     {
@@ -168,8 +168,8 @@ nc_write_to_file (const int ncid,
   int retval;
   int ncdim, varid_nelem;
   int ncdim_total, varid;
-  int nelem_total = 0;
-  int *velems = new int[aov.nelem()];
+  long nelem_total = 0;
+  long *velems = new long[aov.nelem()];
   for (Index i = 0; i < aov.nelem(); i++)
     {
       velems[i] = aov[i].nelem();
@@ -181,7 +181,7 @@ nc_write_to_file (const int ncid,
   if ((retval = nc_def_dim (ncid, "nelem_total", nelem_total, &ncdim_total)))
     ncerror (retval, "nc_def_dim");
 
-  if ((retval = nc_def_var (ncid, "Vector_nelem", NC_INT, 1,
+  if ((retval = nc_def_var (ncid, "Vector_nelem", NC_LONG, 1,
                             &ncdim, &varid_nelem)))
     ncerror (retval, "nc_def_var");
   if ((retval = nc_def_var (ncid, "ArrayOfVector", NC_DOUBLE, 1,
@@ -190,7 +190,7 @@ nc_write_to_file (const int ncid,
 
   if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
 
-  if ((retval = nc_put_var_int (ncid, varid_nelem, velems)))
+  if ((retval = nc_put_var_long (ncid, varid_nelem, velems)))
     ncerror (retval, "nc_put_var");
 
   size_t pos = 0;

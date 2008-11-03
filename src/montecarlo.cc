@@ -1306,7 +1306,7 @@ void mcPathTraceGeneral(Workspace&            ws,
           
         }
       //else if ( is_gridpos_at_index_i( ppath_step.gp_p[np-1], p_grid.nelem() - 1 ) )
-      else if (fractional_gp(ppath_step.gp_p[np-1])>=(p_grid.nelem() - 1)-1e-3)
+      else if (fractional_gp(ppath_step.gp_p[np-1])>=(Numeric)(p_grid.nelem() - 1)-1e-3)
         {
           //we have left the top of the atmosphere
           termination_flag=1;

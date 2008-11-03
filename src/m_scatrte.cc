@@ -439,7 +439,7 @@ void doit_conv_flagLsq(//WS Output:
         } // End p_grid.
       
       lqs[i] = sqrt(lqs[i]);
-      lqs[i] /= (N_p*N_lat*N_lon*N_za*N_aa);
+      lqs[i] /= (Numeric)(N_p*N_lat*N_lon*N_za*N_aa);
 
       // Convert difference to Rayleigh Jeans BT
       lqs[i] = invrayjean(lqs[i], f_grid[f_index]);
@@ -1667,8 +1667,8 @@ doit_scat_fieldCalc(Workspace& ws,
   
   // Equidistant step size for integration
   Vector grid_stepsize(2);
-  grid_stepsize[0] = 180./(doit_za_grid_size - 1);
-  grid_stepsize[1] = 360./(Naa - 1);     
+  grid_stepsize[0] = 180./(Numeric)(doit_za_grid_size - 1);
+  grid_stepsize[1] = 360./(Numeric)(Naa - 1);     
   
   Tensor3 product_field(Nza, Naa, stokes_dim, 0);
  
@@ -1992,8 +1992,8 @@ doit_scat_fieldCalcLimb(Workspace& ws,
   //  Grid stepsize of zenith and azimuth angle grid, these are needed for the 
   // integration function. 
   Vector grid_stepsize(2);
-  grid_stepsize[0] = 180./(doit_za_grid_size - 1);
-  grid_stepsize[1] = 360./(Naa - 1);
+  grid_stepsize[0] = 180./(Numeric)(doit_za_grid_size - 1);
+  grid_stepsize[1] = 360./(Numeric)(Naa - 1);
     
   Tensor3 product_field(doit_za_grid_size, Naa, stokes_dim, 0);
 

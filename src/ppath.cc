@@ -373,7 +373,7 @@ void geompath_from_r1_to_r2(
     { n = 1; }
 
   // Length of path steps (note that lstep here can be negative)
-  lstep = ( l2 - l1 ) / n;
+  lstep = ( l2 - l1 ) / (double)n;
 
   // Allocate vectors and put in point 1
   r.resize(n+1);
@@ -386,7 +386,7 @@ void geompath_from_r1_to_r2(
   // Loop steps (beside last) and calculate radius and zenith angle
   for( Index i=1; i<n; i++ )
     {
-      r[i]   = geompath_r_at_l( ppc, l1 + lstep * i );
+      r[i]   = geompath_r_at_l( ppc, l1 + lstep * (double)i );
       za[i]  = geompath_za_at_r( ppc, za1, r[i] );
     }
 
@@ -2142,12 +2142,12 @@ void do_gridcell_3d(
   za_v[0]  = za_start;
   aa_v[0]  = aa_start;
   //
-  double  ldouble = l_end / n;
+  double  ldouble = l_end / (double)n;
   lstep = ldouble;
   // 
   for( Index j=1; j<=n; j++ )
     {
-      const double   l  = ldouble * j;
+      const double   l  = ldouble * (double)j;
 
       // We seperate here float/double to avoid unnecessary copying for
       // Numeric=double. A solution like this is needed to avoid compiler
@@ -5596,7 +5596,7 @@ void ppath_start_stepping(
                   if( dlat <= latstep )
                     {
                       ready = 1;
-                      ppath.pos(0,1) = lat0 + istep*dlat;
+                      ppath.pos(0,1) = lat0 + (double)istep*dlat;
                       ppath.pos(0,0) = rv1 + c * dlat;
                       ppath.los(0,0) = geompath_za_at_r( ppath.constant, 
                                                   rte_los[0], ppath.pos(0,0) );

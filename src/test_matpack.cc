@@ -56,7 +56,7 @@ int test1()
   cout << "v.nelem() = " << v.nelem() << "\n";
 
   for (Index i=0; i<v.nelem(); ++i )
-    v[i] = i;
+    v[i] = (Numeric)i;
 
   cout << "v.begin() = " << *v.begin() << "\n";
 
@@ -72,7 +72,7 @@ int test1()
   for (Index i=0 ; i<1000; ++i)
     {
       Vector v3(1000);
-      v3 = i;
+      v3 = (Numeric)i;
     }
 
   v2[Range(joker)] = 88;
@@ -155,8 +155,8 @@ void test4()
 
   for ( Index i=0; i<a.nelem(); ++i )
     {
-      a[i] = i+1;
-      b[i] = a.nelem()-i;
+      a[i] = (Numeric)(i+1);
+      b[i] = (Numeric)(a.nelem()-i);
     }
 
   cout << "a = \n" << a << "\n";
@@ -233,7 +233,7 @@ void test8()
 {
   Vector x(80000000);
   for ( Index i=0; i<x.nelem(); ++i )
-    x[i] = i;
+    x[i] = (Numeric)i;
   cout << "Done." << "\n";
 }
 
@@ -506,7 +506,7 @@ void test31()
   for ( Index i=0; i<a.npages(); ++i )
     for ( Index j=0; j<a.nrows(); ++j )
       for ( Index k=0; k<a.ncols(); ++k )
-        a(i,j,k) = ++fill;
+        a(i,j,k) = (Numeric)(++fill);
 
   cout << "a =\n" << a << "\n";
 
@@ -540,7 +540,7 @@ void test31()
 
   Index s = 200;
   cout << "Let's allocate a large tensor, "
-       << s*s*s*8/1024./1024.
+       << (Numeric)(s*s*s*8)/1024./1024.
        << " MB...\n";
 
   a.resize(s,s,s);
@@ -557,7 +557,7 @@ void test31()
   for ( Index i=0; i<a.npages(); ++i )
     for ( Index j=0; j<a.nrows(); ++j )
       for ( Index k=0; k<a.ncols(); ++k )
-        a(i,j,k) = ++fill;
+        a(i,j,k) = (Numeric)(++fill);
 
   cout << "Max(a) = ...\n";
 
@@ -574,7 +574,7 @@ void test32()
     for ( Index k=0; k<A.ncols(); ++k )
       {
         X(j,k) = 1;
-        A(j,k) = j+k;
+        A(j,k) = (Numeric)(j+k);
       }
   cout << "A:\n" << A << "\n";
   cout << "X:\n" << X << "\n";
@@ -716,8 +716,8 @@ void test37(const Index& i)
   Vector v2=v1;
   //  Index i = 10000000;
 
-  v1 /= i;
-  v2 /=(Numeric) i;
+  v1 /= (Numeric)i;
+  v2 /=(Numeric)i;
   cout.precision(12);
   //  cout.setf(ios_base::scientific,ios_base::floatfield);
   v1*=v1;

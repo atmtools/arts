@@ -760,11 +760,11 @@ void AtmFieldsRefinePgrid(// WS Output:
       // n-1. But we have to insert the original point as well.
       //          cout << n << "\n";
 
-      const Numeric ddp = dp/n;
+      const Numeric ddp = dp/(Numeric)n;
       //          cout << "ddp: " << ddp << "\n";
 
       for (Index j=1; j<=n; ++j)
-        log_abs_p_a.push_back(log_p_grid[i-1] - j*ddp);          
+        log_abs_p_a.push_back(log_p_grid[i-1] - (Numeric)j*ddp);          
     }
 
   // Copy to a proper vector, we need this also later for

@@ -82,7 +82,7 @@ ostream& operator << (ostream& os, const LineRecord& lr)
 {
   // Determine the precision, depending on whether Numeric is double
   // or float:  
-  Index precision;
+  int precision;
 #ifdef USE_FLOAT
   precision = FLT_DIG;
 #else
@@ -380,7 +380,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 
               // Check if data record has the right number of characters for the
               // in Hitran 1986-2001 format
-              Numeric nChar = line.nelem() + 2; // number of characters in data record;
+              Index nChar = line.nelem() + 2; // number of characters in data record;
               if ( nChar != 100 )
                 {
                   ostringstream os;
@@ -830,7 +830,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is)
               
               // Check if data record has the right number of characters for the
               // in Hitran 2004 format
-              Numeric nChar = line.nelem() + 2; // number of characters in data record;
+              Index nChar = line.nelem() + 2; // number of characters in data record;
               if ( nChar != 160 )
                 {
                   ostringstream os;

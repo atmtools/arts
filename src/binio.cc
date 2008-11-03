@@ -426,9 +426,9 @@ void binostream::writeInt(Int val, unsigned int size)
 
   for(i = 0; i < size; i++) {
     if(getFlag(BigEndian))
-      putByte((val >> (size - i - 1) * 8) & 0xff);
+      putByte((unsigned char)(val >> ((size - i - 1) * 8)) & 0xff);
     else {
-      putByte(val & 0xff);
+      putByte((unsigned char)val & 0xff);
       val >>= 8;
     }
   }
@@ -445,8 +445,8 @@ void binostream::writeFloat(Float f, FType ft)
 
     if(system_flags & FloatIEEE) {
       // compatible system, let the hardware do the conversion
-      float	outf = f;
-      double	outd = f;
+      float	outf = (float)f;
+      double	outd = (double)f;
 
       // Hardware could be big or little endian, convert appropriately
       swap = getFlag(BigEndian) ^ (system_flags & BigEndian);
@@ -582,7 +582,7 @@ void binostream::float2ieee_single(Float num, Byte *bytes)
           bits = sign;
         }
         else {			/* Nonzero denormalized number */
-          mantissa = (long)(fMant * (1L << shift));
+          mantissa = (long)(fMant * (double)(1L << shift));
           bits = sign | mantissa;
         }
       }
@@ -595,10 +595,10 @@ void binostream::float2ieee_single(Float num, Byte *bytes)
     }
   }
 
-  bytes[0] = bits >> 24;	/* Copy to byte string */
-  bytes[1] = bits >> 16;
-  bytes[2] = bits >> 8;
-  bytes[3] = bits;
+  bytes[0] = (unsigned char)(bits >> 24);	/* Copy to byte string */
+  bytes[1] = (unsigned char)(bits >> 16);
+  bytes[2] = (unsigned char)(bits >> 8);
+  bytes[3] = (unsigned char)bits;
 }
 
 #define DEXP_MAX	2047
@@ -652,7 +652,7 @@ void binostream::float2ieee_double(Float num, Byte *bytes)
           fsMant = ldexp(fMant, shift);
           mantissa = (long)floor(fsMant);
           first = sign | mantissa;
-          second = FloatToUnsigned(floor(ldexp(fsMant - mantissa, 32)));
+          second = FloatToUnsigned(floor(ldexp(fsMant - (double)mantissa, 32)));
         }
       }
 
@@ -662,19 +662,19 @@ void binostream::float2ieee_double(Float num, Byte *bytes)
         mantissa -= (1L << DEXP_POSITION);			/* Hide MSB */
         fsMant -= (1L << DEXP_POSITION);
         first = sign | ((long)((expon + DEXP_OFFSET - 1)) << DEXP_POSITION) | mantissa;
-        second = FloatToUnsigned(floor(ldexp(fsMant - mantissa, 32)));
+        second = FloatToUnsigned(floor(ldexp(fsMant - (double)mantissa, 32)));
       }
     }
   }
 
-  bytes[0] = first >> 24;
-  bytes[1] = first >> 16;
-  bytes[2] = first >> 8;
-  bytes[3] = first;
-  bytes[4] = second >> 24;
-  bytes[5] = second >> 16;
-  bytes[6] = second >> 8;
-  bytes[7] = second;
+  bytes[0] = (unsigned char)(first >> 24);
+  bytes[1] = (unsigned char)(first >> 16);
+  bytes[2] = (unsigned char)(first >> 8);
+  bytes[3] = (unsigned char)first;
+  bytes[4] = (unsigned char)(second >> 24);
+  bytes[5] = (unsigned char)(second >> 16);
+  bytes[6] = (unsigned char)(second >> 8);
+  bytes[7] = (unsigned char)second;
 }
 
 #endif // BINIO_WITH_MATH

@@ -41,7 +41,7 @@ void test3()
        << M.nrows() << ", " << M.ncols() << "\n";
   */
   for (Index i=3; i<10; ++i)
-    M.rw(i,i) = i+1;
+    M.rw(i,i) = (Numeric)i+1;
   M.rw(0,0) = 1;
   M.rw(0,1) = 2;
   M.rw(0,2) = 3;
@@ -213,7 +213,7 @@ void test41()
   Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
   Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for ( Index i=0; i<9; i++ )
-    B.rw(r[i],c[i]) = i+1;
+    B.rw(r[i],c[i]) = (Numeric)(i+1);
 
   cout << "B:\n" << B << "\n";
 
@@ -228,7 +228,7 @@ void test41()
   for ( Index ri=0; ri<4; ri++ )
     for ( Index ci=0; ci<5; ci++ )
       {
-        B.rw(ri,ci) = ri*10+ci;
+        B.rw(ri,ci) = (Numeric)(ri*10+ci);
       }
 
   cout << "B:\n" << B << "\n";
@@ -244,7 +244,7 @@ void test42()
   Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
   Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for ( Index i=0; i<9; i++ )
-    B.rw(r[i],c[i]) = i+1;
+    B.rw(r[i],c[i]) = (Numeric)(i+1);
 
   Sparse A(4,4), Bt(5,4);
   transpose(Bt,B);
@@ -261,7 +261,7 @@ void test43()
   Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
   Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for ( Index i=0; i<9; i++ )
-    B.rw(r[i],c[i]) = i+1;
+    B.rw(r[i],c[i]) = (Numeric)(i+1);
 
   cout << "B:\n" << B << "\n";
 
@@ -290,7 +290,7 @@ void test44()
   Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
   Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for ( Index i=0; i<9; i++ )
-    B.rw(r[i],c[i]) = i+1;
+    B.rw(r[i],c[i]) = (Numeric)(i+1);
 
   cout << "B["<<B.nrows()<<","<<B.ncols()<<"]:\n" << B << "\n";
   cout << "v:\n" << v << "\n";
@@ -383,7 +383,7 @@ void test48()
   Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
   Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
   for ( Index i=0; i<9; i++ )
-    B.rw(r[i],c[i]) = -i*0.5;
+    B.rw(r[i],c[i]) = -(Numeric)i*0.5;
   cout << "B:\n" << B << endl;
       
   Sparse A( B );

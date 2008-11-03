@@ -70,6 +70,8 @@ nc_write_to_file (const String&  filename,
 
 void nc_get_data_int (const int ncid, const String &name, int *data);
 
+void nc_get_data_long (const int ncid, const String &name, long *data);
+
 void nc_get_data_double (const int ncid, const String &name, Numeric *data);
 
 void nc_get_dataa_double (const int ncid, const String &name,

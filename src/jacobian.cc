@@ -287,7 +287,7 @@ void get_perturbation_limit(       ArrayOfIndex& limit,
   
   // If the field is ordered in decreasing order set the
   // increment factor to -1
-  Index inc = 1;
+  Numeric inc = 1;
   if (is_decreasing(pert_grid))
     inc = -1;
 

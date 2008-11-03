@@ -525,7 +525,7 @@ void get_short_wsv_description(String &s, const String &desc)
   // Find the end of the short WSV description
   pos = desc.find(".\n");
   pos2 = desc.find(". ");
-  if (pos == String::npos || pos2 != String::npos && pos2 < pos) pos = pos2;
+  if (pos == String::npos || (pos2 != String::npos && pos2 < pos)) pos = pos2;
   if (pos == String::npos) pos = desc.find("\n");
   if (pos != String::npos)
     s = desc.substr(0, pos+1);
@@ -592,7 +592,7 @@ ostream& MdRecord::PrintTemplate(ostream& os,
 
   for (Index i=0; i<GIn().nelem(); ++i)
     {
-      os << "\t" << setw(maxsize)
+      os << "\t" << setw((int)maxsize)
          << GIn()[i] << " = \n";
     }
 

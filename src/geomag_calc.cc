@@ -93,23 +93,23 @@ void magfield_nk(  // Output
 
 
           // Calculating the radial (upward) component of the magnetic field.
-          B_r += pow(l + 2, EARTH_RADIUS / r) * (l + 1) * 
-            ((M(j,0) + Ny * M(j,2)) * cos(m * Phi) 
-             + (M(j,1) + Ny * M(j,3)) * sin(m * Phi)) 
+          B_r += pow((Numeric)(l + 2), EARTH_RADIUS / r) * (Numeric)(l + 1) * 
+            ((M(j,0) + (Numeric)Ny * M(j,2)) * cos((Numeric)m * Phi) 
+             + (M(j,1) + (Numeric)Ny * M(j,3)) * sin((Numeric)m * Phi)) 
             * P_lm;
 
           // Calculating the latitudinal (southward) component of the magnetic field. 
           B_th += pow(l + 2, EARTH_RADIUS / r) * 
-            ((M(j,0) + Ny * M(j,2)) * cos(m * Phi) 
-             + (M(j,1) + Ny * M(j,3)) * sin(m * Phi)) *
+            ((M(j,0) + (Numeric)Ny * M(j,2)) * cos((Numeric)m * Phi) 
+             + (M(j,1) + (Numeric)Ny * M(j,3)) * sin((Numeric)m * Phi)) *
             dP_lm * sin(Theta);
 
 
 
           // Calculating the longitudinal (eastward) component of the magnetic field.
-          B_ph += pow(l + 2, EARTH_RADIUS / r) * m *
-            ((M(j,0) + Ny * M(j,2)) * sin(m * Phi) 
-             - (M(j,1) + Ny * M(j,3)) * cos(m * Phi)) *
+          B_ph += pow(l + 2, EARTH_RADIUS / r) * (Numeric)m *
+            ((M(j,0) + (Numeric)Ny * M(j,2)) * sin((Numeric)m * Phi) 
+             - (M(j,1) + (Numeric)Ny * M(j,3)) * cos((Numeric)m * Phi)) *
             P_lm / sin(Theta);
 
 
