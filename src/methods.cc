@@ -4360,12 +4360,10 @@ md_data_raw.push_back
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda", "jacobian", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN(      "gin1"      , "gin2"      , "gin3"      ,
-                  "species", "method", "unit",   "dx" ),
-        GIN_TYPE(    "Vector", "Vector", "Vector",
-                     "String",  "String", "String", "Numeric" ),
-        GIN_DEFAULT( NODEF   , NODEF   , NODEF   ,
-                  NODEF,     NODEF,    NODEF,    NODEF),
+        GIN( "gin1", "gin2", "gin3", "species", "method", "unit","dx" ),
+        GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "String", 
+                  "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "0.001" ),
         GIN_DESC("FIXME DOC",
                  "FIXME DOC",
                  "FIXME DOC",
@@ -4374,7 +4372,7 @@ md_data_raw.push_back
                  "FIXME DOC",
                  "FIXME DOC"),
         SETMETHOD(      false ),
-        AGENDAMETHOD(   false  ),
+        AGENDAMETHOD(   false ),
         SUPPRESSHEADER( false ),
         PASSWORKSPACE(  true )
       ));
@@ -4401,6 +4399,45 @@ md_data_raw.push_back
         GIN_DESC("FIXME DOC", "FIXME DOC", "FIXME DOC", "FIXME DOC"),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false  ),
+        SUPPRESSHEADER( false ),
+        PASSWORKSPACE(  true )
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianAddTemperature" ),
+        DESCRIPTION
+        (
+         "Adds atmospheric temperatures as a retrieval quantity.\n"
+         "\n"
+         "The calculations can be performed by (semi-)analytical expressions\n"
+         "or perturbations. Hydrostatic equilibrium can be included for\n"
+         "perturbation calculations. These choices are selected by\n"
+         "corresponding general input variables.\n"
+         "\n"
+         "For 1D or 2D calculations the latitude and/or longitude grid of\n"
+         "the retrieval field should be set to zero length.\n"
+         "The WSM *jacobianCalcTemperature* is automatically added to\n"
+         "*jacobian_agenda*.\n"
+        ),
+        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_quantities", "jacobian_agenda", "jacobian", 
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
+        GIN( "gin1", "gin2", "gin3", "hse", "method", "dx" ),
+        GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, "off", "analytical", "1" ),
+        GIN_DESC("FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC",
+                 "FIXME DOC"),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
         SUPPRESSHEADER( false ),
         PASSWORKSPACE(  true )
       ));
@@ -4482,56 +4519,6 @@ md_data_raw.push_back
                  "FIXME DOC")
       ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "jacobianAddTemperature" ),
-        DESCRIPTION
-        (
-         "Add the temperature as a retrieval quantity to the Jacobian.\n"
-         "\n"
-         "For 1D or 2D calculations the latitude and/or longitude grid of\n"
-         "the retrieval field should be set to zero length.\n"
-         "The WSM *jacobianCalcTemperature* is automatically added to\n"
-         "*jacobian_agenda*.\n"
-         "\n" 
-         "The perturbation can either be given as an absolute or a relative\n"
-         "perturbation, this perturbation is then applied to the temperature\n"
-         "field at each retrieval grid point.\n"
-         "\n"
-         "Unit of the Jacobian is the unit of *y* per Kelvin.\n"
-         "\n"
-         "NOTE: So far only \"perturbation\" method implemented without\n"
-         "hydrostatic equilibrium.\n"
-         "\n"
-         "Generic input:\n"
-         "  Vector : The pressure grid of the retrieval field.\n"
-         "  Vector : The latitude grid of the retrieval field.\n"
-         "  Vector : The longitude grid of the retrieval field.\n"
-         "\n"
-         "Keywords:\n"
-         "  hse     : \"on\" or \"off\".\n"
-         "  method  : \"analytic\" or \"perturbation\".\n"
-         "  dx      : Size of perturbation.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUT( "jacobian_quantities", "jacobian_agenda" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN(      "gin1"      , "gin2"      , "gin3"      ,
-                  "hse",    "method", "dx" ),
-        GIN_TYPE(    "Vector", "Vector", "Vector",
-                     "String", "String", "Numeric" ),
-        GIN_DEFAULT( NODEF   , NODEF   , NODEF   ,
-                  NODEF,    NODEF,    NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
   */
   
   md_data_raw.push_back
@@ -4607,6 +4594,30 @@ md_data_raw.push_back
         SETMETHOD( true )
       ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("jacobianCalcTemperature"),
+        DESCRIPTION
+        (
+        "Calculates atmospheric temperature jacobians by perturbations.\n"
+        "\n"
+        "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
+        "and should normally not be called by the user.\n"
+        ),
+        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_y_agenda", "jacobian_quantities", "jacobian_indices", 
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
+            "vmr_field", "t_field", "pnd_field", "sensor_los", "y" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+      ));
+
   /*        
   md_data_raw.push_back
     ( MdRecord
@@ -4668,34 +4679,6 @@ md_data_raw.push_back
         GIN_DESC()
       ));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("jacobianCalcTemperature"),
-        DESCRIPTION
-        (
-        "Calculates temperature jacobians by perturbations..\n"
-        "\n"
-        "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
-        "and should normally not be called by the user.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "y", "jacobian_quantities", "jacobian_indices", "ppath_step_agenda",
-               "rte_agenda", 
-               "iy_space_agenda", "surface_prop_agenda", "iy_cloudbox_agenda", 
-               "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
-               "t_field", "vmr_field", "r_geoid", "z_surface", 
-               "cloudbox_on", "cloudbox_limits", 
-               "sensor_response", "sensor_pos", "sensor_los", "f_grid", 
-               "stokes_dim", "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-      ));
   */
 
   md_data_raw.push_back

@@ -1,3 +1,13 @@
+2008-11-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-11-28
+
+	* tests/ClearSky/TestClearSky.arts: Added call of
+	jacobianAddTemperature.
+
+	* src/m_jacobian.cc (jacobianAddTemperature): Reintroduced and updated.
+	(jacobianCalcTemperature): As above.
+
 2008-11-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-11-27

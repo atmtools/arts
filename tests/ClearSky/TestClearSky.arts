@@ -126,10 +126,17 @@ StringCreate( calcmethod )
 StringSet( calcmethod, "analytical" )
 #StringSet( calcmethod, "perturbation" )
 
+Tensor4SetConstant( pnd_field, 0, 0, 0, 0, 0 )
+
 jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda, jacobian, 
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     p_grid, lat_grid, lon_grid, 
-    "O3", calcmethod, "vmr", 1e-9 )
+    "O3", calcmethod, "rel", 0.01 )
+
+jacobianAddTemperature( jacobian_quantities, jacobian_agenda, jacobian, 
+    atmosphere_dim, p_grid, lat_grid, lon_grid, 
+    p_grid, lat_grid, lon_grid, 
+    "off", "perturbation", 1 )
 
 jacobianAddPolyfit( jacobian_quantities, 
                     jacobian_agenda, jacobian, 
