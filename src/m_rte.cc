@@ -56,6 +56,7 @@
 #include "special_interp.h"
 
 extern const String ABSSPECIES_MAINTAG;
+extern const String TEMPERATURE_MAINTAG;
 
 
 
@@ -109,9 +110,10 @@ void RteCalc(
    const String&                     y_unit,
    const String&                     jacobian_unit )
 {
-  // Consistency checks of input. Also returning some basic sizes
+  // Consistency checks of input. 
+  // Also returning some basic sizes (nblock = length(y) for one mblock)
   //
-  Index nf=0, nmblock=0, nza=0, naa=0, nblock=0;
+  Index nf=0, nmblock=0, nza=0, naa=0, nblock=0;  
   //
   rtecalc_check_input( nf, nmblock, nza, naa, nblock, atmosphere_dim, p_grid, 
                   lat_grid, lon_grid, z_field, t_field, r_geoid, z_surface,
@@ -124,7 +126,6 @@ void RteCalc(
       nblock != sensor_response_za.nelem() )
     {
       throw runtime_error( "Sensor auxiliary variables have not correct size." );
-
     }
 
   // Agendas not checked elsewhere
@@ -148,17 +149,17 @@ void RteCalc(
 
   //--- Init Jacobian part ----------------------------------------------------
   //
-  ArrayOfIndex     rte_do_vmr_jacs (0);
+  ArrayOfIndex     rte_do_vmr_jacs(0);
   Index            rte_do_t_jacs = 0;
   //
-  ArrayOfIndex     jqi_vmr(0);        // Index in jacobian_quantities of VMRs
-  ArrayOfIndex     ji0_vmr(0);        // Start index in jacobian for anal. VMRs
-  ArrayOfIndex     jin_vmr(0);        // Length of x for anal. VMRs
-  Index            jqi_t = 0;         // As above, but for temperature
-  Index            ji0_t = 0;        
+  ArrayOfIndex     jqi_vmr(0);      // Index in jacobian_quantities of VMRs
+  ArrayOfIndex     ji0_vmr(0);      // Start index in jacobian for analyt. VMRs
+  ArrayOfIndex     jin_vmr(0);      // Length of x for anal. VMRs
+  Index            jqi_t = 0;       // As above, but for temperature
+  Index            ji0_t = 0;       
   Index            jin_t = 0;
-  ArrayOfMatrix    ib_vmr_jacs(0);    // Correspondance to *ib* for VMR jac.
-  Matrix           ib_t_jacs(0,0);    // Correspondance to *ib* for t jac.
+  ArrayOfMatrix    ib_vmr_jacs(0);  // Correspondance to *ib* for VMR jac.
+  Matrix           ib_t_jacs(0,0);  // Correspondance to *ib* for t jac.
   //
   Index            ppath_array_do = 0;
   //
@@ -186,7 +187,7 @@ void RteCalc(
           jin_vmr.push_back( nx );
           ib_vmr_jacs.push_back( Matrix(ib.nelem(),nx,0.0) );
         }
-      if ( jacobian_quantities[i].MainTag() == "Temperature"  &&  
+      if ( jacobian_quantities[i].MainTag() == TEMPERATURE_MAINTAG  &&  
                                           jacobian_quantities[i].Analytical() )
         { 
           ppath_array_do = 1;
@@ -201,7 +202,6 @@ void RteCalc(
         }
     }
 
-
   // We have to make a local copy of the Workspace and the agendas because
   // only non-reference types can be declared firstprivate in OpenMP
   Workspace l_ws (ws);
@@ -211,14 +211,17 @@ void RteCalc(
   Agenda l_surface_prop_agenda (surface_prop_agenda);
   Agenda l_iy_cloudbox_agenda (iy_cloudbox_agenda);
 
+
   //--- Loop:  measurement block / zenith angle / azimuthal angle
   //
   Index    nydone = 0;                 // Number of positions in y done
   //
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
+
 #pragma omp parallel firstprivate(l_ws,l_iy_space_agenda,l_ppath_step_agenda,l_rte_agenda,l_surface_prop_agenda,l_iy_cloudbox_agenda)
 #pragma omp for 
+
       for( Index iza=0; iza<nza; iza++ )
         {
           // The try block here is necessary to correctly handle
@@ -294,7 +297,7 @@ void RteCalc(
                                 {
                                   for( Index ip=0; ip<ppath_array[ia].np; ip++ )
                                     diy_dvmr[ia](ig,ip,joker,joker) *= 
-                                     ppath_array[ia].vmr(rte_do_vmr_jacs[ig],ip);
+                                    ppath_array[ia].vmr(rte_do_vmr_jacs[ig],ip);
                                 }
                             }
                         }

@@ -136,7 +136,7 @@ jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda, jacobian,
 jacobianAddTemperature( jacobian_quantities, jacobian_agenda, jacobian, 
     atmosphere_dim, p_grid, lat_grid, lon_grid, 
     p_grid, lat_grid, lon_grid, 
-    "off", "perturbation", 1 )
+    "off", calcmethod, 0.1 )
 
 jacobianAddPolyfit( jacobian_quantities, 
                     jacobian_agenda, jacobian, 

@@ -1,3 +1,26 @@
+2008-11-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-11-29
+
+	* tests/ClearSky/TestClearSky.arts: Now analytical calculations also
+	for temperature jacobians.
+
+	* src/rte.cc (rte_std): There was a smaller error for gas species
+	jacobians. The term for the transmission through the pstep of concern
+	was lacking. Was supposed to be included in include_cumtrans_in_diy_dq,
+	by turned out be better (for temperature jacobians) to include this
+	term in here. Added code for higher stokes components.
+
+	Derived expressions and included code for temperature jacobians. Works
+	fine for case in TestClearksy.arts.
+
+	Code for polarised absorption still lacking in both cases.
+
+	* src/rte.cc (include_cumtrans_in_diy_dq): Wrote header.
+
+	* src/m_rte.cc (RteCalc): Included some lacking code for
+	temperature jacobians.
+
 2008-11-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-11-28

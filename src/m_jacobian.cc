@@ -801,12 +801,7 @@ void jacobianAddTemperature(
   if( method == "perturbation" )
     { analytical = 0; }
   else if( method == "analytical" )
-    { analytical = 1; 
-      ostringstream os;
-      os << "The method for atmospheric temperature retrieval can only be "
-         << "\"perturbation\" so far.";
-      throw runtime_error(os.str());
-    }
+    { analytical = 1; }
   else
     {
       ostringstream os;

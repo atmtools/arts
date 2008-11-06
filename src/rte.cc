@@ -431,7 +431,27 @@ void get_radiative_background(
 
 
 
+//! include_cumtrans_in_diy_dq
+/*!
+    Multiplicates a diy-variable with the transmission to the path's end,
+    on the same time as the total transmission is calculated.
 
+    The function handles only a single frequency.
+
+    \param   diy_dq              Input/Output: Corresponds to diy_vmr or
+                                               diy_dt.
+    \param   trans               Output: The complete transmission of considered
+                                        path.
+    \param   iv                  Input: Frequency index.
+    \param   any_trans_polarised Input: Boolean to indicate if any transmission
+                                        matrix in *ppath_transmission* gives
+                                        any polarisation effect. If set to 
+                                        false, diagonal matrices are assumed.
+    \param   ppath_transmission  Input: As the WSV
+
+    \author Patrick Eriksson, 
+    \date   2005-06-10
+*/
 void include_cumtrans_in_diy_dq( 
            Tensor4&   diy_dq,
            Matrix&    trans,
@@ -483,7 +503,7 @@ void include_cumtrans_in_diy_dq(
 
 //! include_trans_in_diy_dq
 /*!
-    Includes a transmission operator in a diy-variable.
+    Multiplicates a diy-variable with a transmission matrix.
 
     The transmission is included for the propagation path part indicated by
     *ppath_array_index*, and backwards from this ppath part.
@@ -544,7 +564,7 @@ void include_trans_in_diy_dq(
   for( Index ia=0; ia<ppath_array[ppath_array_index].next_parts.nelem(); ia++ )
     {
       pai = ppath_array[ppath_array_index].next_parts[ia];
-      include_trans_in_diy_dq( diy_dq, iv, pol_trans, trans, ppath_array, pai);
+      include_trans_in_diy_dq( diy_dq, iv, pol_trans, trans, ppath_array, pai );
     }
 }
 
@@ -695,8 +715,6 @@ void iy_calc( Workspace&               ws,
         }
       if( rte_do_t_jacs )
         {
-          throw runtime_error(
-                          "Analytical temperature jacobians not yet handled.");
           diy_dt.push_back( Tensor4(1,n,f_grid.nelem(),stokes_dim,0.0) );
         }
     }
@@ -1071,7 +1089,7 @@ void rte_std(Workspace&               ws,
   const Index   np = ppath.np;
   const Index   ns = ppath.vmr.nrows();        // Number of species
   const Index   ng = rte_do_vmr_jacs.nelem();  // Number of jacobian species
-        Vector  rte_vmr_list (ns);
+        Vector  rte_vmr_list(ns);
 
   // Log of pressure
   Vector   logp_ppath(np);
@@ -1094,8 +1112,8 @@ void rte_std(Workspace&               ws,
 
   // Local declaration of corresponding WSVs
   //
-  Vector   emission;
-  Matrix   abs_scalar_gas;
+  Vector emission;
+  Matrix abs_scalar_gas;
 
   // Loop the propagation path steps
   //
@@ -1116,6 +1134,22 @@ void rte_std(Workspace&               ws,
       abs_scalar_gas_agendaExecute( ws, abs_scalar_gas, f_index,
           rte_pressure, rte_temperature, rte_vmr_list, abs_scalar_gas_agenda );
 
+      // Calculate "disturbed" emission and absorption if temperature 
+      // jacobians shall be calculated
+      //
+      Numeric dt = 0.1;
+      Vector emission2(0);
+      Matrix abs_scalar_gas2(0,0);
+      //
+      if( rte_do_t_jacs )
+        {
+          emission_agendaExecute( ws, emission2, rte_temperature+dt, 
+                                                              emission_agenda );
+          abs_scalar_gas_agendaExecute( ws, abs_scalar_gas2, f_index,
+                                        rte_pressure, rte_temperature+dt, 
+                                        rte_vmr_list, abs_scalar_gas_agenda );
+        }
+
       // Polarised absorption?
       // What check to do here?
       bool abs_polarised = false;
@@ -1127,34 +1161,66 @@ void rte_std(Workspace&               ws,
       for( Index iv=0; iv<nf; iv++ )
         {
           //--- Jacobians -----------------------------------------------------
-
-          //- Species
-          if( ng )  
+          if( ng  || rte_do_t_jacs )  
             {
               if( abs_polarised )
                 {}  // To be coded when format for polarised absorption is set
               else
                 {
-                  const Numeric   dd = -0.5 * ppath.l_step[ip-1] * 
-                                                   ( iy(iv,0) - emission[iv] );
-                  for( Index ig=0; ig<ng; ig++ )
-                    {
-                      const Index   is = rte_do_vmr_jacs[ig];
-                      const Numeric p  = dd * 
-                                      abs_scalar_gas(iv,is) / rte_vmr_list[is];
+                  const Numeric tau = abs_scalar_gas(iv,joker).sum() * 
+                                                             ppath.l_step[ip-1];
+                  const Numeric tr = exp( -tau );
 
-                      diy_dvmr[ppath_array_index](ig,ip,iv,0)   += p;
-                      diy_dvmr[ppath_array_index](ig,ip-1,iv,0) += p;
+                  // Gas species
+                  if( ng )
+                    {
+                      const Numeric cf  = 0.5 * ppath.l_step[ip-1] * tr;
+                      const Numeric cf0 = cf * ( emission[iv] - iy(iv,0) );
+
+                      for( Index ig=0; ig<ng; ig++ )
+                        {
+                          const Index   is = rte_do_vmr_jacs[ig];
+                          const Numeric k  = abs_scalar_gas(iv,is) / 
+                                                               rte_vmr_list[is];
+                          Numeric w  = cf0 * k;
+                          //         
+                          diy_dvmr[ppath_array_index](ig,ip,iv,0)   += w;
+                          diy_dvmr[ppath_array_index](ig,ip-1,iv,0) += w;
+                      
+                          // Higher Stokes components
+                          for( Index s=1; s<stokes_dim; s++ )
+                            {
+                              w = -cf * k * iy(iv,s);
+                              //
+                              diy_dvmr[ppath_array_index](ig,ip,iv,s)   += w;
+                              diy_dvmr[ppath_array_index](ig,ip-1,iv,s) += w;
+                            }
+                        }
+                    }
+
+                  //- Temperature
+                  if( rte_do_t_jacs )
+                    {
+                      const Numeric dtaudT = (abs_scalar_gas2(iv,joker).sum() *
+                                               ppath.l_step[ip-1] - tau ) / 
+                                                                   ( 2.0 * dt );
+                            Numeric w = ( 1.0 -tr ) *
+                               ( emission2[iv] - emission[iv] ) / ( 2.0 * dt ) +
+                                      tr * ( emission[iv] - iy(iv,0) ) * dtaudT;
+                      //         
+                      diy_dt[ppath_array_index](0,ip,iv,0)   += w;
+                      diy_dt[ppath_array_index](0,ip-1,iv,0) += w;
+
+                      // Higher Stokes components
+                      for( Index s=1; s<stokes_dim; s++ )
+                        {
+                          w = -tr * iy(iv,s) * dtaudT;
+                          //
+                          diy_dvmr[ppath_array_index](0,ip,iv,s)   += w;
+                          diy_dvmr[ppath_array_index](0,ip-1,iv,s) += w;
+                        }
                     }
                 }
-            }
-          
-          //- Temperature
-          if( rte_do_t_jacs )
-            {
-              throw runtime_error(
-                          "Analytical temperature jacobians not yet handled.");
-              diy_dt[0] = 0.0;
             }
           //--- End jacobians -------------------------------------------------
 
@@ -1170,20 +1236,29 @@ void rte_std(Workspace&               ws,
 
 
   //--- Postprocessing of Jacobians
-  if( ng )
+  if( ng  ||  rte_do_t_jacs )
     {
       for( Index iv=0; iv<nf; iv++ )
         {      
-          include_cumtrans_in_diy_dq( diy_dvmr[ppath_array_index], trans, 
-                                   iv, any_abs_polarised, 
-                                   ppath_transmissions(joker,iv,joker,joker) );
+          if( ng )
+            include_cumtrans_in_diy_dq( diy_dvmr[ppath_array_index], trans, 
+                                        iv, any_abs_polarised, 
+                                    ppath_transmissions(joker,iv,joker,joker) );
+          if( rte_do_t_jacs )
+            include_cumtrans_in_diy_dq( diy_dt[ppath_array_index], trans, 
+                                        iv, any_abs_polarised, 
+                                    ppath_transmissions(joker,iv,joker,joker) );
           
           for( Index ia=0; 
                    ia<ppath_array[ppath_array_index].next_parts.nelem(); ia++ )
             {
               const Index  pai = ppath_array[ppath_array_index].next_parts[ia];
-              include_trans_in_diy_dq( diy_dvmr, iv, any_abs_polarised,
-                                       trans, ppath_array, pai );
+              if( ng )
+                include_trans_in_diy_dq( diy_dvmr, iv, any_abs_polarised,
+                                         trans, ppath_array, pai );
+              if( rte_do_t_jacs )
+                include_trans_in_diy_dq( diy_dt, iv, any_abs_polarised,
+                                         trans, ppath_array, pai );
             }
         }
     }
