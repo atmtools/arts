@@ -54,45 +54,52 @@ void Workspace::define_wsv_data()
   // Initialize to empty, just in case.
   wsv_data.resize(0);
 
-  /* Template for description strings:
+/* Templace record entry:
 
-  ----------------------------------------------------------------------
-  Brief description of the variable (1 line).
-     
-  Detailed description of the variable. Don't be too short here,
-  this is the main place where your documentation should be. I
-  really recommend to edit this in a text buffer, so that you can
-  do some re-formatting until it looks nice. Only at the end put it
-  in quotes and add the line breaks.
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "workspace_variable_name" ),
+       DESCRIPTION
+       (
+        "Brief description of the variable (1 line).\n"
+        "\n"
+        "Detailed description of the variable. Don't be too short here,\n"
+        "this is the main place where your documentation should be. I\n"
+        "really recommend to edit this in a text buffer, so that you can\n"
+        "do some re-formatting until it looks nice. Only at the end put it\n"
+        "in quotes and add the line breaks.\n"
+        "\n"
+        "Use blank lines to separate paragraphs.  There really should be a\n"
+        "detailed descriptions of all component of your variable, if it\n"
+        "has a complicated type. Also some detailed discussion of the\n"
+        "dimensions if necessary. Also some detailed discussion of the\n"
+        "members if your variable is a structure.\n"
+        "\n"
+        "Usage:      Set by user (or "Method output.")\n"
+        "\n"
+        "Units:      E.g., kg/m\n"
+        "\n"
+        "Dimensions: [ first dimension, second dimension, ... ]\n"
+        "or\n"
+        "Size:       [ .., nrows, ncols ]\n"
+        "\n"
+        "Members:    Here you would list the members if your\n"
+        "            variable is a structure.\n"
+        "\n"
+        "Dimensions: [x, y]\n"
+        "\n"
+        "Unit: Which unit this variable uses\n"
+        "\n"
+        "Give the keywords above only if they apply, i.e., Members only\n"
+        "for a structure, Units only for a physical variable.\n"
+        "Use either Dimensions or Size, depending on what is most appropiate\n"
+        "for the variable.\n"
+        ),
+      GROUP( "VariableType" )));
 
-  Use blank lines to separate paragraphs.  There really should be a
-  detailed descriptions of all component of your variable, if it
-  has a complicated type. Also some detailed discussion of the
-  dimensions if necessary. Also some detailed discussion of the
-  members if your variable is a structure.
+*/
 
-  Usage:      Set by user (or "Method output.")
-
-  Units:      E.g., kg/m
-
-  Dimensions: [ first dimension, second dimension, ... ]
-  or
-  Size:       [ .., nrows, ncols ]
-
-  Members:    Here you would list the members if your
-              variable is a structure.
-  ----------------------------------------------------------------------
-
-  The dashed lines are not part of the template, they just show you
-  where it starts and ends. 
-
-  Give the keywords above only if they apply, i.e., Members only
-  for a structure, Units only for a physical variable. 
-  Use either Dimensions or Size, depending on what is most appropiate for
-  the variable.
-  */
-
-  
+ 
   /*----------------------------------------------------------------------
     Let's put in the variables in alphabetical order. This gives a clear
     rule for where to place a new variable and this gives a nicer

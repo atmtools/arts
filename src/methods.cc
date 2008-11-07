@@ -71,25 +71,20 @@
          "you add it to AUG!).\n"
          "\n"
          "You do not need to describe workspace variables used. That\n"
-         "information is found in workspace.cc. On the other hand, generic\n"
-         "output and input variables must be described. The example below\n"
-         "assumes that the method has one generic output variable named out1\n"
-         "and the two input variables named in1 and in2.\n"
-         "\n"
-         "Generic output and input variables: \n"
-         "  out1 : ...\n"
-         "  in1  : ...\n"
-         "  in2  : ...\n" ),
+         "information is found in workspace.cc. Generic\n"
+         "output and input variables must be described in GIN_DESC and\n"
+         "GOUT_DESC below.\n"
+        ),
         AUTHORS( "Your Name" ),
         OUT(),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN(         "descriptive_name_for_generic_input1"),
+        GIN_TYPE(    "GenericInput1Type"),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC(    "Description for Generic Input Variable 1)
       ));
 
 */
