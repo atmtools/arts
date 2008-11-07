@@ -81,13 +81,14 @@
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(         "descriptive_name_for_generic_input1"),
-        GIN_TYPE(    "GenericInput1Type"),
+        GIN(         "descriptive_name_for_generic_input1" ),
+        GIN_TYPE(    "GenericInput1Type" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC(    "Description for Generic Input Variable 1)
+        GIN_DESC(    "Description for Generic Input Variable 1" )
       ));
 
 */
+
 
 
 void define_md_data_raw()
@@ -4374,6 +4375,30 @@ md_data_raw.push_back
          
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("jacobianAddPointing"),
+        DESCRIPTION
+        (
+         "...\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_quantities", "jacobian_agenda", "jacobian", 
+            "sensor_pos", "sensor_time" ),
+        GIN( "dza", "poly_order" ),
+        GIN_TYPE( "Numeric", "Index" ),
+        GIN_DEFAULT( "0.01", "0" ),
+        GIN_DESC( "FIXME DOC", "FIXME DOC" ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( false ),
+        PASSWORKSPACE(  true )
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("jacobianAddPolyfit"),
         DESCRIPTION
         (
@@ -4474,46 +4499,6 @@ md_data_raw.push_back
                  "FIXME DOC",
                  "FIXME DOC")
       ));
-         
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("jacobianAddPointing"),
-        DESCRIPTION
-        (
-         "Add a pointing as a retrieval quantity to the Jacobian.\n"
-         "\n"
-         "This function adds a pointing offset described over time by a\n"
-         "polynomial or a gitter. By setting the polynomial order to -1,\n"
-         "each spectra is treated separately. The WSV *sensor_time* is\n"
-         "used to assign a timestamp for each sensor position.\n"
-         "\n"
-         "The WSM *jacobianCalcPointing is automatically added to\n"
-         "*jacobian_agenda*.\n"
-         "\n"
-         "The perturbation is defined as an absolute perturbation, this\n"
-         "perturbation is then applied to the sensor line-of-sight angles.\n"
-         "\n"
-         "The unit of the Jacobian is the unit of *y* per degree.\n"
-         "\n"
-         "NOTE: So far this function only treats zenith angle offsets.\n"
-         "\n"
-         "Keywords:\n"
-         "  dza                 : The size of the perturbation.\n"
-         "  poly_order          : Order of the polynomial.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUT( "jacobian_quantities", "jacobian_agenda" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian", "sensor_pos", "sensor_time" ),
-        GIN( "dza",     "poly_order" ),
-        GIN_TYPE(    "Numeric", "Index" ),
-        GIN_DEFAULT( NODEF,     NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
-
   */
   
   md_data_raw.push_back
@@ -4562,6 +4547,30 @@ md_data_raw.push_back
         GIN_DEFAULT( NODEF ),
         GIN_DESC("FIXME DOC"),
         SETMETHOD( true )
+      ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("jacobianCalcPointing"),
+        DESCRIPTION
+        (
+        "Calculates pointing deviation jacobians by perturnbations.\n"
+        "\n"
+        "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
+        "and should normally not be called by the user.\n"
+        ),
+        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_y_agenda", "jacobian_quantities", "jacobian_indices", 
+            "vmr_field", "t_field", "pnd_field", "sensor_los", "sensor_time",
+            "y" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
       ));
 
   md_data_raw.push_back
@@ -4644,36 +4653,6 @@ md_data_raw.push_back
         GIN_DESC()
       ));
         
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("jacobianCalcPointing"),
-        DESCRIPTION
-        (
-        "Calculates pointing deviation jacobians by perturnbations.\n"
-        "\n"
-        "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
-        "and should normally not be called by the user.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "y", "jacobian_quantities", "jacobian_indices", 
-               "sensor_time", "ppath_step_agenda", 
-               "rte_agenda", "iy_space_agenda", "surface_prop_agenda", 
-               "iy_cloudbox_agenda", "atmosphere_dim", "p_grid", "lat_grid", 
-               "lon_grid", "z_field", "t_field", "vmr_field",
-               "r_geoid", "z_surface", "cloudbox_on", 
-               "cloudbox_limits", "sensor_response", "sensor_pos", "sensor_los", 
-               "f_grid", "stokes_dim", "antenna_dim", "mblock_za_grid", 
-               "mblock_aa_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-      ));
-
   */
 
   md_data_raw.push_back

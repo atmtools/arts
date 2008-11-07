@@ -51,6 +51,7 @@
 #include "physics_funcs.h"
 
 extern const String ABSSPECIES_MAINTAG;
+extern const String POINTING_MAINTAG;
 extern const String POLYFIT_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 
@@ -168,7 +169,7 @@ void jacobianClose(
   
   // Resize *jacobian*
   jacobian.resize( nrows, ncols );
-  jacobian = -999.0;
+  jacobian = 0;
 }
 
 
@@ -538,6 +539,238 @@ void jacobianCalcAbsSpecies(
 
 
 
+//----------------------------------------------------------------------------
+// Pointing:
+//----------------------------------------------------------------------------
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddPointing(
+  Workspace&                 ws,
+  ArrayOfRetrievalQuantity&  jq,
+  Agenda&                    jacobian_agenda,
+  const Matrix&              J,
+  const Matrix&              sensor_pos,
+  const Vector&              sensor_time,
+  const Numeric&             dza,
+  const Index&               poly_order )
+{
+  // Check that the jacobian matrix is empty. Otherwise it is either
+  // not initialised or it is closed.
+  if( J.nrows()!=0 && J.ncols()!=0 )
+    {
+      ostringstream os;
+      os << "The Jacobian matrix is not initialised correctly or closed.\n"
+         << "New retrieval quantities can not be added at this point.";
+      throw runtime_error(os.str());
+    }
+
+  // Check that poly_order is -1 or positive
+  if( poly_order < -1 )
+    throw runtime_error(
+                  "The polynomial order has to be positive or -1 for gitter." );
+ 
+  // Define subtag here to easily expand function.
+  String subtag = "za offset";
+  String mode = "abs" ;
+
+  // Check that this type of polyfit is not already included in the
+  // jacobian.
+  for( Index it=0; it<jq.nelem(); it++ )
+    {
+      if( jq[it].MainTag() == POINTING_MAINTAG )
+        {
+          ostringstream os;
+          os << "Polynomial baseline fit is already included in\n"
+             << "*jacobian_quantities*.";
+          throw runtime_error(os.str());
+        }
+    }
+
+  // Check that this type of pointing is not already included in the
+  // jacobian.
+  for( Index it=0; it<jq.nelem(); it++ )
+    {
+      if (jq[it].MainTag()== POINTING_MAINTAG  &&  jq[it].Subtag() == subtag )
+        {
+          ostringstream os;
+          os << "A zenith angle pointing offset is already included in\n"
+             << "*jacobian_quantities*.";
+          throw runtime_error(os.str());
+        }
+    }
+
+  // Check that sensor_time is consistent with sensor_pos
+  if( sensor_time.nelem() != sensor_pos.nrows() )
+    {
+      ostringstream os;
+      os << "The WSV *sensor_time* must be defined for every "
+         << "measurement block.\n";
+      throw runtime_error(os.str());
+    }
+
+  // Do not allow that *poly_order* is not too large compared to *sensor_time*
+  if( poly_order > sensor_time.nelem()-1 )
+    { throw runtime_error( 
+             "The polynomial order can not be >= length of *sensor_time*." ); }
+
+  // Create the new retrieval quantity
+  RetrievalQuantity rq = RetrievalQuantity();
+  rq.MainTag( POINTING_MAINTAG );
+  rq.Subtag( subtag );
+  rq.Mode( mode );
+  rq.Analytical( 0 );
+  rq.Perturbation( dza );
+  // To store the value or the polynomial order, create a vector with length
+  // poly_order+1, in case of gitter set the size of the grid vector to be the
+  // number of measurement blocks, all elements set to -1.
+  Vector grid(0,poly_order+1,1);
+  if( poly_order == -1 )
+    {
+      grid.resize(sensor_pos.nrows());
+      grid = -1.0;
+    }
+  ArrayOfVector grids(1,grid);
+  rq.Grids(grids);
+
+  // Add it to the *jacobian_quantities*
+  jq.push_back( rq );
+
+  // Add pointing method to the jacobian agenda
+  jacobian_agenda.append( ws, "jacobianCalcPointing", "" );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcPointing(
+        Workspace&                 ws,
+        Matrix&                    J,
+  const Agenda&                    jacobian_y_agenda,
+  const ArrayOfRetrievalQuantity&  jq,
+  const ArrayOfArrayOfIndex&       jacobian_indices,
+  const Tensor4&                   vmr_field,
+  const Tensor3&                   t_field,
+  const Tensor4&                   pnd_field,
+  const Matrix&                    sensor_los,
+  const Vector&                    sensor_time,
+  const Vector&                    y )
+{
+  // Set some useful (and needed) variables.  
+  RetrievalQuantity rq;
+  ArrayOfIndex ji;
+
+  // Find the retrieval quantity related to this method, i.e. Pointing
+  // za offset. This works since the combined MainTag and Subtag is individual.
+  bool found = false;
+  for( Index n=0; n<jq.nelem() && !found; n++ )
+    {
+      if( jq[n].MainTag() == POINTING_MAINTAG && jq[n].Subtag() == "za offset" )
+        {
+          found = true;
+          rq = jq[n];
+          ji = jacobian_indices[n];
+        }
+    }
+  if( !found )
+  {
+    throw runtime_error(
+      "There is no pointing offset retrieval quantities defined.\n");
+  }
+
+  // Check that sensor_time is consistent with sensor_pos
+  //
+  chk_if_increasing( "sensor_time", sensor_time );
+  //
+  if( sensor_time.nelem() != sensor_los.nrows() )
+    {
+      ostringstream os;
+      os << "The WSV *sensor_time* must be defined for every "
+         << "measurement block.\n";
+      throw runtime_error(os.str());
+    }
+
+  // This method only handles absolute perturbations
+  assert( rq.Mode()=="abs" );
+
+
+  // Determine derivative by calculating spectra with *perturbed sensor_los* 
+  //
+  const Index ly = y.nelem(); 
+  Vector dydx(ly);
+  {
+    Vector yp;
+    Matrix sensor_los_pert = sensor_los;
+    sensor_los_pert(joker,0) += rq.Perturbation();
+    // 
+    jacobian_y_agendaExecute( ws, yp, vmr_field, t_field, pnd_field, 
+                            sensor_los_pert, jacobian_y_agenda );
+
+    // Calculate difference in spectrum and divide by perturbation,
+    // here we want the whole dy/dx vector so that we can use it later
+    for( Index i=0; i<ly; i++ )
+      {
+        dydx[i] = ( yp[i] - y[i] ) / rq.Perturbation();
+      }
+  }
+
+
+  //--- Create jacobians ---
+
+  Index nb = sensor_los.nrows();
+  Index lb = y.nelem() / nb;
+  Index lg = rq.Grids()[0].nelem();
+  Index it = ji[0];
+  
+  // Check that integer division worked
+  assert( nb*lb == y.nelem() );
+
+  // Handle gitter seperately
+  if( rq.Grids()[0][0] == -1 )
+    {
+      assert( lg == nb );
+      //
+      Index iy = 0;
+      //
+      for( Index b=0; b<nb; b++ )
+        {
+          assert( rq.Grids()[0][b] == -1 );
+          for( Index dummy=0; dummy<lb; dummy++ )
+            {
+              J(iy,it) = dydx[iy];     // Not all elements are filled here,
+              iy++;                    // but J is zeroed in jacobianClose
+            }
+          it++;
+        }
+    }
+
+  // Polynomial representation
+  else
+    {
+      Vector w;
+      for( Index c=0; c<lg; c++ )
+        {
+          assert( Numeric(c) == rq.Grids()[0][c] );
+          //
+          polynomial_basis_func( w, sensor_time, c );
+          //
+          Index iy = 0;
+          //
+          for( Index b=0; b<nb; b++ )
+            {
+              for( Index dummy=0; dummy<lb; dummy++ )
+                {
+                  J(iy,it) = w[b] * dydx[iy];
+                  iy++;
+                }
+            }
+          it++;
+        }
+    }
+}
+
+
+
+
 
 //----------------------------------------------------------------------------
 // Polynomial baseline fits:
@@ -696,20 +929,11 @@ void jacobianCalcPolyfit(
     }
 
   // Make a vector with values to distribute over *jacobian*
-  Vector w( sensor_response_f_grid.nelem(), 1.0 );
   //
-  if( poly_coeff > 0 )
-    {
-      const Numeric fmin = min( sensor_response_f_grid );
-      const Numeric df = 0.5 * (max( sensor_response_f_grid ) - fmin );
-      //
-      for( Index f=0; f<sensor_response_f_grid.nelem(); f++ )
-        {
-          w[f] = ( sensor_response_f_grid[f] - fmin ) / df - 1;
-          w[f] = pow( w[f], int(poly_coeff) );
-        }
-    }
-
+  Vector w; 
+  //
+  polynomial_basis_func( w, sensor_response_f_grid, poly_coeff );
+  
   // Fill J
   //
   ArrayOfVector jg = jq[iq].Grids();
@@ -732,15 +956,15 @@ void jacobianCalcPolyfit(
           if( n2 > 1 )
             { col1 += v*n1; } 
 
-          for( Index p=0; p<nza; p++ )
-            {
+          for( Index p=0; p<nza; p++ )      // Not all elements are filled here
+            {                               // but J is zeroed in jacobianClose
               const Index row2 = row1 + p;
                     Index col2 = col1;
               if( n1 > 1 )
                 { col2 += p; } 
               for( Index f=0; f<nf; f++ )
                 {
-                  J(row2+f*npol,col2) = w[f];
+                  J(row2+f*npol,col2) = w[f];  
                 }             
             }
         }
@@ -1186,94 +1410,6 @@ void jacobianCalcTemperature(
 
 
 
-// /* Workspace method: Doxygen documentation will be auto-generated */
-// void jacobianAddPointing(// WS Output:
-//                          ArrayOfRetrievalQuantity&  jq,
-//                          Agenda&                    jacobian_agenda,
-//                          // WS Input:
-//                          const Matrix&              jac,
-//                          const Matrix&              sensor_pos,
-//                          const Vector&              sensor_time,
-//                          // Control Parameters:
-//                          const Numeric&             dza,
-//                          const Index&               poly_order)
-// {
-//   // Check that the jacobian matrix is empty. Otherwise it is either
-//   // not initialised or it is closed.
-//   if (jac.nrows()!=0 && jac.ncols()!=0)
-//   {
-//     ostringstream os;
-//     os << "The Jacobian matrix is not initialised correctly or closed.\n"
-//        << "New retrieval quantities can not be added at this point.";
-//     throw runtime_error(os.str());
-//   }
-  
-//   // Check that poly_order is -1 or positive
-//   if (poly_order<-1)
-//     throw runtime_error(
-//       "The polynomial order has to be positive or -1 for gitter.");
-    
-//   // Define subtag here to easily expand function.
-//   String subtag="za offset";
-//   String mode="abs";
-
-//   // Check that this type of pointing is not already included in the
-//   // jacobian.
-//   for (Index it=0; it<jq.nelem(); it++)
-//   {
-//     if (jq[it].MainTag()=="Pointing" && jq[it].Subtag()==subtag)
-//     {
-//       ostringstream os;
-//       os << "A zenith angle pointing offset is already included in\n"
-//          << "*jacobian_quantities*.";
-//       throw runtime_error(os.str());
-//     }
-//   }
-
-//   // Check that sensor_time is consistent with sensor_pos
-//   if (sensor_time.nelem()!=sensor_pos.nrows())
-//   {
-//     ostringstream os;
-//     os << "The WSV *sensor_time* must be defined for every "
-//        << "measurement block.\n";
-//     throw runtime_error(os.str());
-//   }
-
-//   // Do not allow that *poly_order* is not too large compared to *sensor_time*
-//   if( poly_order > sensor_time.nelem()-1 )
-//     { throw runtime_error( 
-//              "The polynomial order can not be >= length of *sensor_time*." ); }
-
-//   // Create the new retrieval quantity
-//   RetrievalQuantity rq = RetrievalQuantity();
-//   rq.MainTag("Pointing");
-//   rq.Subtag(subtag);
-//   rq.Mode(mode);
-//   rq.Analytical(0);
-//   rq.Perturbation(dza);
-//   // To store the value or the polynomial order, create a vector with length
-//   // poly_order+1, in case of gitter set the size of the grid vector to be the
-//   // number of measurement blocks, all elements set to -1.
-//   Vector grid(0,poly_order+1,1);
-//   if (poly_order==-1)
-//   {
-//     grid.resize(sensor_pos.nrows());
-//     grid = -1.0;
-//   }
-//   ArrayOfVector grids(1, grid);
-//   rq.Grids(grids);
-
-//   // Add it to the *jacobian_quantities*
-//   jq.push_back(rq);
-
-//   // Add pointing method to the jacobian agenda
-//   String methodname = "jacobianCalcPointing";
-//   String kwv = "";
-//   jacobian_agenda.append (methodname, kwv);
-  
-//   out2 << "  Adding zenith angle pointing offset to *jacobian_quantities*\n"
-//        << "  and *jacobian_agenda* with perturbation size " << dza << "\n";
-// }
 
 
 
@@ -1515,148 +1651,6 @@ void jacobianCalcTemperature(
 
 
                      
-// /* Workspace method: Doxygen documentation will be auto-generated */
-// void jacobianCalcPointing(
-//            Workspace&                ws,
-//      // WS Output:
-//            Matrix&                   jacobian,
-//      // WS Input:
-//      const Vector&                   y,
-//      const ArrayOfRetrievalQuantity& jq,
-//      const ArrayOfArrayOfIndex&      jacobian_indices,
-//      const Vector&                   sensor_time,
-//      const Agenda&                   ppath_step_agenda,
-//      const Agenda&                   rte_agenda,
-//      const Agenda&                   iy_space_agenda,
-//      const Agenda&                   surface_prop_agenda,
-//      const Agenda&                   iy_cloudbox_agenda,
-//      const Index&                    atmosphere_dim,
-//      const Vector&                   p_grid,
-//      const Vector&                   lat_grid,
-//      const Vector&                   lon_grid,
-//      const Tensor3&                  z_field,
-//      const Tensor3&                  t_field,
-//      const Tensor4&                  vmr_field,
-//      const Matrix&                   r_geoid,
-//      const Matrix&                   z_surface,
-//      const Index&                    cloudbox_on,
-//      const ArrayOfIndex&             cloudbox_limits,
-//      const Sparse&                   sensor_response,
-//      const Matrix&                   sensor_pos,
-//      const Matrix&                   sensor_los,
-//      const Vector&                   f_grid,
-//      const Index&                    stokes_dim,
-//      const Index&                    antenna_dim,
-//      const Vector&                   mblock_za_grid,
-//      const Vector&                   mblock_aa_grid)
-// {
-//   // Set some useful (and needed) variables.  
-//   //  Index n_los = sensor_los.nrows();
-//   Matrix sensor_los_pert = sensor_los;
-//   RetrievalQuantity rq;
-//   ArrayOfIndex ji;
-//   bool gitter = false;
-  
-//   // Check that sensor_time is consistent with sensor_pos
-//   assert(sensor_time.nelem()==sensor_pos.nrows());
-
-//   // Find the retrieval quantity related to this method, i.e. Pointing
-//   // za offset. This works since the combined MainTag and Subtag is individual.
-//   bool check_rq = false;
-//   for (Index n=0; n<jq.nelem(); n++)
-//   {
-//     if (jq[n].MainTag()=="Pointing" && jq[n].Subtag()=="za offset")
-//     {
-//       check_rq = true;
-//       rq = jq[n];
-//       ji = jacobian_indices[n];
-//     }
-//   }
-//   if (!check_rq)
-//   {
-//     throw runtime_error(
-//       "There is no pointing offset retrieval quantities defined.\n");
-//   }
-
-//   // This method only handles absolute perturbations
-//   assert( rq.Mode()=="abs" );
-  
-//   // Check if pointing is of type gitter
-//   if (rq.Grids()[0][0]==-1)
-//   {
-//     gitter = true;
-//   }
-  
-//   // Calculate the weight vector. We set sensor_time[0] to correspond to
-//   // -1 and sensor_time[end] to 1.
-//   chk_if_increasing("sensor_time", sensor_time);
-//   Vector weight(sensor_time.nelem());
-//   Numeric t0 = sensor_time[0];
-//   Numeric t1 = sensor_time[sensor_time.nelem()-1];
-//   for (Index tt=0; tt<weight.nelem(); tt++)
-//   {
-//     weight[tt] = 2*(sensor_time[tt]-t0)/(t1-t0)-1;
-//   }
-
-//   // Give verbose output
-//   out2 << "  Calculating retrieval quantity " << rq << "\n";
-
-//   // Declare variables for perturbed and difference spectra
-//   Vector yp;
-//   Vector dydx(y.nelem());
-  
-//   // Add the pointing offset. 
-//   sensor_los_pert(joker,0) += rq.Perturbation();
-     
-//   // Calculate the perturbed spectrum for the zeroth order polynomial
-//   yCalc( ws, yp, ppath_step_agenda, rte_agenda,
-//          iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda, 
-//          atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
-//          vmr_field, r_geoid, 
-//          z_surface, cloudbox_on, cloudbox_limits, sensor_response, 
-//          sensor_pos, sensor_los_pert, f_grid, stokes_dim, antenna_dim, 
-//          mblock_za_grid, mblock_aa_grid);
-    
-//   // Calculate difference in spectrum and divide by perturbation,
-//   // here we want the whole dy/dx vector so that we can use it later
-//   dydx = yp;
-//   dydx -= y;
-//   dydx /= rq.Perturbation();
-    
-//   // Add the weighted dy/dx as column in jacobian
-//   Index ny = y.nelem()/sensor_pos.nrows();
-//   Index it = ji[0];
-//   Numeric exponent;
-//   while (it<=ji[1])
-//   {
-//     // For gitter the exponent is zero for all columns
-//     if (!gitter)
-//     {
-//       exponent = (Numeric) it-ji[0];
-//     }
-//     else
-//     {  
-//       exponent = 0.0;
-//     } 
-//     out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
-//          << ji[1]+1 << "\n";
-//     Index y_it = 0;
-//     for (Index ns=0; ns<sensor_pos.nrows(); ns++)
-//     {
-//       for (Index dummy=0; dummy<ny; dummy++)
-//       {
-//         jacobian(y_it,it) = dydx[y_it]*pow(weight[ns], exponent);
-//         y_it++;
-//       }
-//       // If gitter then change column for each row in sensor_pos
-//       if (gitter)
-//         it++;
-//     }
-//     // If not gitter then change column for each order of polynomial
-//     if (!gitter)
-//       it++;
-//   }
-// }
 
 
 

@@ -310,6 +310,7 @@ Joker joker;
   ===========================================================================*/
 
 extern const String ABSSPECIES_MAINTAG  = "Absorption species";
+extern const String POINTING_MAINTAG    = "Sensor pointing";
 extern const String POLYFIT_MAINTAG     = "Polynomial baseline fit";
 extern const String TEMPERATURE_MAINTAG = "Atmospheric temperatures";
 

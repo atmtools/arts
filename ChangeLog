@@ -1,3 +1,19 @@
+2008-11-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-11-30
+
+	* tests/ClearSky/TestClearSky.arts: Nowincluding multiple
+	frequencies and measurement blocks. To make tests of jacobians a
+	bit more demanding. Pointing jacobian included.
+
+	* src/m_jacobian.cc (jacobianAddPointing): Reintroduced and polished.
+
+	(jacobianCalcPointing): Reintroduced, polished and partly rewritten.
+
+	(jacobianCalcPolyfit): Now using polynomial_basis_func.
+
+	* src/jacobian.cc (polynomial_basis_func): Created.
+
 2008-11-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-11-30

@@ -72,6 +72,7 @@ void calc_nd_field(       Tensor3View& nd,
 }
 
 
+
 //! Check that the retrieval grids are defined for each atmosphere dim
 /*!
    This function checks for the given atmosphere dimension that 
@@ -199,6 +200,7 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
 }             
 
 
+
 //! Calculate array of GridPos for perturbation interpolation
 /*!
    This function constructs a perturbation grid which consists of the
@@ -251,6 +253,7 @@ void get_perturbation_gridpos(       ArrayOfGridPos& gp,
     gridpos( gp, pert, atm_grid);
   }
 }
+
 
 
 //! Get limits for perturbation of a box
@@ -312,6 +315,7 @@ void get_perturbation_limit(       ArrayOfIndex& limit,
   assert(limit[1]>limit[0]);
   
 }
+
                              
 
 //! Get range for perturbation 
@@ -340,147 +344,6 @@ void get_perturbation_range(       Range& range,
     range = Range(index+1,1);
 
 }
-
-
-//! Calculate the 1D perturbation for a relative perturbation.
-/*!
-   This is a helper function that interpolated the perturbation field for
-   a 1D relative perturbation onto the atmospheric field. 
-   
-   \param field     The interpolated perturbation field.
-   \param p_gp      The GridPos for interpolation.
-   \param p_pert_n  The number of perturbations.
-   \param p_range   The perturbation range in the perturbation grid.
-   \param size      The size of the perturbation.
-   \param method    Relative perturbation==0, absolute==1
-   
-   \author Mattias Ekstrom
-   \date   2005-05-11
-*/   
-void perturbation_field_1d(       VectorView      field,
-                            const ArrayOfGridPos& p_gp,
-                            const Index&          p_pert_n,
-                            const Range&          p_range,
-                            const Numeric&        size,
-                            const Index&          method)
-{
-  // Here we only perturb a vector
-  Vector pert(field.nelem());
-  Matrix itw(p_gp.nelem(),2);
-  interpweights(itw,p_gp);
-  // For relative pert_field should be 1.0 and for absolute 0.0
-  Vector pert_field(p_pert_n,1.0-(Numeric)method);
-  pert_field[p_range] += size;
-  interp( pert, itw, pert_field, p_gp);
-  if (method==0)
-  {
-    field *= pert;
-  }
-  else
-  {
-    field += pert;
-  }
-}            
-
-
-//! Calculate the 2D perturbation for a relative perturbation.
-/*!
-   This is a helper function that interpolated the perturbation field for
-   a 2D relative perturbation onto the atmospheric field. 
-   
-   \param field       The interpolated perturbation field.
-   \param p_gp        The GridPos for interpolation in the 1st dim.
-   \param lat_gp      The GridPos for interpolation in the 2nd dim.
-   \param p_pert_n    The number of perturbations in the 1st dim.
-   \param lat_pert_n  The number of perturbations in the 2nd dim.
-   \param p_range     The perturbation range in the 1st dim.
-   \param lat_range   The perturbation range in the 2nd dim.
-   \param size        The size of the perturbation.
-   \param method      Relative perturbation==0, absolute==1
-   
-   \author Mattias Ekstrom
-   \date   2005-05-11
-*/   
-void perturbation_field_2d(       MatrixView      field,
-                            const ArrayOfGridPos& p_gp,
-                            const ArrayOfGridPos& lat_gp,
-                            const Index&          p_pert_n,
-                            const Index&          lat_pert_n,
-                            const Range&          p_range,
-                            const Range&          lat_range,
-                            const Numeric&        size,
-                            const Index&          method)
-{
-  // Here we perturb a matrix
-  Matrix pert(field.nrows(),field.ncols());
-  Tensor3 itw(p_gp.nelem(),lat_gp.nelem(),4);
-  interpweights(itw,p_gp,lat_gp);
-  // Init pert_field to 1.0 for relative and 0.0 for absolute
-  Matrix pert_field(p_pert_n,lat_pert_n,1.0-(Numeric)method);
-  pert_field(p_range,lat_range) += size;
-  interp( pert, itw, pert_field, p_gp, lat_gp);
-  if (method==0)
-  {
-    field *= pert;
-  }
-  else
-  { 
-    field += pert;
-  }
-}            
-
-
-//! Calculate the 3D perturbation for a relative perturbation.
-/*!
-   This is a helper function that interpolated the perturbation field for
-   a 3D relative perturbation onto the atmospheric field. 
-   
-   \param field       The interpolated perturbation field.
-   \param p_gp        The GridPos for interpolation in the 1st dim.
-   \param lat_gp      The GridPos for interpolation in the 2nd dim.
-   \param lon_gp      The GridPos for interpolation in the 3rd dim.
-   \param p_pert_n    The number of perturbations in the 1st dim.
-   \param lat_pert_n  The number of perturbations in the 2nd dim.
-   \param lon_pert_n  The number of perturbations in the 3rd dim.
-   \param p_range     The perturbation range in the 1st dim.
-   \param lat_range   The perturbation range in the 2nd dim.
-   \param lon_range   The perturbation range in the 3rd dim.
-   \param size        The size of the perturbation.
-   \param method      Set to 0 for relative, and 1 for absolute.
-   
-   \author Mattias Ekstrom
-   \date   2005-05-11
-*/   
-void perturbation_field_3d(       Tensor3View     field,
-                            const ArrayOfGridPos& p_gp,
-                            const ArrayOfGridPos& lat_gp,
-                            const ArrayOfGridPos& lon_gp,
-                            const Index&          p_pert_n,
-                            const Index&          lat_pert_n,
-                            const Index&          lon_pert_n,
-                            const Range&          p_range,
-                            const Range&          lat_range,
-                            const Range&          lon_range,
-                            const Numeric&        size,
-                            const Index&          method)
-{
-  // Here we need to perturb a tensor3
-  Tensor3 pert(field.npages(),field.nrows(),field.ncols());
-  Tensor4 itw(p_gp.nelem(),lat_gp.nelem(),lon_gp.nelem(),8);
-  interpweights(itw,p_gp,lat_gp,lon_gp);
-  // Init pert_field to 1.0 for relative and 0.0 for absolute
-  Tensor3 pert_field(p_pert_n,lat_pert_n,lon_pert_n,1.0-(Numeric)method);
-  pert_field(p_range,lat_range,lon_range) += size;
-  interp( pert, itw, pert_field, p_gp, lat_gp, lon_gp);
-  if (method==0)
-  {
-    field *= pert;
-  }
-  else
-  {
-    field += pert;
-  }
-}            
 
 
 
@@ -697,6 +560,200 @@ void jacobian_from_path_to_rgrids(
             { ib_q_jacs(i0+is,joker) = diy_dx(joker,iv,is); }
         }
     }
+}
+
+
+
+//! Calculate the 1D perturbation for a relative perturbation.
+/*!
+   This is a helper function that interpolated the perturbation field for
+   a 1D relative perturbation onto the atmospheric field. 
+   
+   \param field     The interpolated perturbation field.
+   \param p_gp      The GridPos for interpolation.
+   \param p_pert_n  The number of perturbations.
+   \param p_range   The perturbation range in the perturbation grid.
+   \param size      The size of the perturbation.
+   \param method    Relative perturbation==0, absolute==1
+   
+   \author Mattias Ekstrom
+   \date   2005-05-11
+*/   
+void perturbation_field_1d(       VectorView      field,
+                            const ArrayOfGridPos& p_gp,
+                            const Index&          p_pert_n,
+                            const Range&          p_range,
+                            const Numeric&        size,
+                            const Index&          method)
+{
+  // Here we only perturb a vector
+  Vector pert(field.nelem());
+  Matrix itw(p_gp.nelem(),2);
+  interpweights(itw,p_gp);
+  // For relative pert_field should be 1.0 and for absolute 0.0
+  Vector pert_field(p_pert_n,1.0-(Numeric)method);
+  pert_field[p_range] += size;
+  interp( pert, itw, pert_field, p_gp);
+  if (method==0)
+  {
+    field *= pert;
+  }
+  else
+  {
+    field += pert;
+  }
+}            
+
+
+
+//! Calculate the 2D perturbation for a relative perturbation.
+/*!
+   This is a helper function that interpolated the perturbation field for
+   a 2D relative perturbation onto the atmospheric field. 
+   
+   \param field       The interpolated perturbation field.
+   \param p_gp        The GridPos for interpolation in the 1st dim.
+   \param lat_gp      The GridPos for interpolation in the 2nd dim.
+   \param p_pert_n    The number of perturbations in the 1st dim.
+   \param lat_pert_n  The number of perturbations in the 2nd dim.
+   \param p_range     The perturbation range in the 1st dim.
+   \param lat_range   The perturbation range in the 2nd dim.
+   \param size        The size of the perturbation.
+   \param method      Relative perturbation==0, absolute==1
+   
+   \author Mattias Ekstrom
+   \date   2005-05-11
+*/   
+void perturbation_field_2d(       MatrixView      field,
+                            const ArrayOfGridPos& p_gp,
+                            const ArrayOfGridPos& lat_gp,
+                            const Index&          p_pert_n,
+                            const Index&          lat_pert_n,
+                            const Range&          p_range,
+                            const Range&          lat_range,
+                            const Numeric&        size,
+                            const Index&          method)
+{
+  // Here we perturb a matrix
+  Matrix pert(field.nrows(),field.ncols());
+  Tensor3 itw(p_gp.nelem(),lat_gp.nelem(),4);
+  interpweights(itw,p_gp,lat_gp);
+  // Init pert_field to 1.0 for relative and 0.0 for absolute
+  Matrix pert_field(p_pert_n,lat_pert_n,1.0-(Numeric)method);
+  pert_field(p_range,lat_range) += size;
+  interp( pert, itw, pert_field, p_gp, lat_gp);
+  if (method==0)
+  {
+    field *= pert;
+  }
+  else
+  { 
+    field += pert;
+  }
+}            
+
+
+
+//! Calculate the 3D perturbation for a relative perturbation.
+/*!
+   This is a helper function that interpolated the perturbation field for
+   a 3D relative perturbation onto the atmospheric field. 
+   
+   \param field       The interpolated perturbation field.
+   \param p_gp        The GridPos for interpolation in the 1st dim.
+   \param lat_gp      The GridPos for interpolation in the 2nd dim.
+   \param lon_gp      The GridPos for interpolation in the 3rd dim.
+   \param p_pert_n    The number of perturbations in the 1st dim.
+   \param lat_pert_n  The number of perturbations in the 2nd dim.
+   \param lon_pert_n  The number of perturbations in the 3rd dim.
+   \param p_range     The perturbation range in the 1st dim.
+   \param lat_range   The perturbation range in the 2nd dim.
+   \param lon_range   The perturbation range in the 3rd dim.
+   \param size        The size of the perturbation.
+   \param method      Set to 0 for relative, and 1 for absolute.
+   
+   \author Mattias Ekstrom
+   \date   2005-05-11
+*/   
+void perturbation_field_3d(       Tensor3View     field,
+                            const ArrayOfGridPos& p_gp,
+                            const ArrayOfGridPos& lat_gp,
+                            const ArrayOfGridPos& lon_gp,
+                            const Index&          p_pert_n,
+                            const Index&          lat_pert_n,
+                            const Index&          lon_pert_n,
+                            const Range&          p_range,
+                            const Range&          lat_range,
+                            const Range&          lon_range,
+                            const Numeric&        size,
+                            const Index&          method)
+{
+  // Here we need to perturb a tensor3
+  Tensor3 pert(field.npages(),field.nrows(),field.ncols());
+  Tensor4 itw(p_gp.nelem(),lat_gp.nelem(),lon_gp.nelem(),8);
+  interpweights(itw,p_gp,lat_gp,lon_gp);
+  // Init pert_field to 1.0 for relative and 0.0 for absolute
+  Tensor3 pert_field(p_pert_n,lat_pert_n,lon_pert_n,1.0-(Numeric)method);
+  pert_field(p_range,lat_range,lon_range) += size;
+  interp( pert, itw, pert_field, p_gp, lat_gp, lon_gp);
+  if (method==0)
+  {
+    field *= pert;
+  }
+  else
+  {
+    field += pert;
+  }
+}            
+
+
+
+//! Calculates polynomial basis functions
+/*!
+   The basis function is b(x) = 1 for poly_coeff = 0. For higher
+   coefficients, x^poly_coeff - m, where first the range covered by
+   *x* is normalised to [-1,1] and m is selected in such way that
+   sum(b) = 0.
+   
+   \param b            Calculated basis function.
+   \param x            The grid over which the fit shall be performed.
+   \param poly_coeff   Polynomial coefficient.
+   
+   \author Patrick Eriksson
+   \date   2008-11-07
+*/   
+void polynomial_basis_func(
+        Vector&   b,
+  const Vector&   x,
+  const Index&    poly_coeff )
+{
+  const Index l = x.nelem();
+  
+  assert( l > poly_coeff );
+
+  if( b.nelem() != l )
+    b.resize( l );
+
+  if( poly_coeff == 0 )
+    {
+      for( Index i=0; i<l; i++ )
+        {
+          b[i] = 1.0;
+        }
+    }
+  else
+    {
+      const Numeric xmin = min( x );
+      const Numeric dx = 0.5 * ( max( x ) - xmin );
+      //
+      for( Index i=0; i<l; i++ )
+        {
+          b[i] = ( x[i] - xmin ) / dx - 1.0;
+          b[i] = pow( b[i], int(poly_coeff) );
+        }
+      //
+      b -= mean( b );
+    }  
 }
 
 

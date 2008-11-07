@@ -123,10 +123,6 @@ typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;
 //             Functions related to calculation of Jacobian
 //======================================================================
 
-void agenda_append(       Agenda& agenda,
-                    const String& methodname,
-                    const String& keywordvalue);
-
 void calc_nd_field(       Tensor3View& nd,
                     const VectorView&  p,
                     const Tensor3View& t);
@@ -157,6 +153,15 @@ void get_perturbation_range(       Range& range,
                              const Index& index,
                              const Index& length);
 
+void jacobian_from_path_to_rgrids(
+         MatrixView           ib_q_jacs,
+   const Index&               nbdone,
+   const ArrayOfTensor4&      diy_dq,
+   const Index&               iq,
+   const Index&               atmosphere_dim,
+   const ArrayOfPpath&        ppath_array,
+   const RetrievalQuantity&   jacobian_quantity );
+                           
 void perturbation_field_1d(       VectorView      field,
                             const ArrayOfGridPos& p_gp,
                             const Index&          p_pert_n,
@@ -186,14 +191,10 @@ void perturbation_field_3d(       Tensor3View     field,
                             const Range&          lon_range,
                             const Numeric&        size,
                             const Index&          method);
+
+void polynomial_basis_func(
+        Vector&   b,
+  const Vector&   x,
+  const Index&    poly_coeff );
                                 
-void jacobian_from_path_to_rgrids(
-         MatrixView           ib_q_jacs,
-   const Index&               nbdone,
-   const ArrayOfTensor4&      diy_dq,
-   const Index&               iq,
-   const Index&               atmosphere_dim,
-   const ArrayOfPpath&        ppath_array,
-   const RetrievalQuantity&   jacobian_quantity );
-                           
 #endif // jacobian_h

@@ -28,8 +28,8 @@ ReadXML( abs_lines, "abs_lines.xml" )
 # Frequency grid 
 # Note: Should be covered by line catalog.
 # ---
-VectorSet( f_grid, [320e9] )
-#VectorNLinSpace( f_grid, 10, 320e9, 330e9 )
+#VectorSet( f_grid, [320e9] )
+VectorNLinSpace( f_grid, 4, 320e9, 322e9 )
 
 # Pressure grid
 # ---
@@ -60,11 +60,11 @@ Extract( z_surface, z_field, 0 )
 
 # Definition of sensor position and LOS
 # ---
-MatrixSetConstant( sensor_pos, 1, 1, 600e3 )
+MatrixSetConstant( sensor_pos, 2, 1, 600e3 )
 #
 sensor_posAddRgeoid
 #
-MatrixSetConstant( sensor_los, 1, 1, 130 )
+MatrixSetConstant( sensor_los, 2, 1, 130 )
 
 
 # No sensor properties
@@ -138,11 +138,18 @@ jacobianAddTemperature( jacobian_quantities, jacobian_agenda, jacobian,
     p_grid, lat_grid, lon_grid, 
     "off", calcmethod, 0.1 )
 
-jacobianAddPolyfit( jacobian_quantities, 
-                    jacobian_agenda, jacobian, 
-                    sensor_response_pol_grid, 
-                    sensor_response_f_grid, 
-                    sensor_response_za_grid, sensor_pos, 0 )
+jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, jacobian, 
+                    sensor_response_pol_grid, sensor_response_f_grid, 
+                    sensor_response_za_grid, sensor_pos, 1 )
+
+
+#VectorSetConstant( sensor_time, 1, 1 )
+
+nrowsGet( nrows, sensor_pos )
+VectorNLinSpace( sensor_time, nrows, 0, 1 )
+
+jacobianAddPointing( jacobian_quantities, jacobian_agenda, jacobian, 
+                     sensor_pos, sensor_time, 0.1, 1 )
 
 jacobianClose
 
