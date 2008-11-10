@@ -232,7 +232,8 @@ void Agenda::execute(Workspace& ws) const
           { // Check if all input variables are initialized:
             const ArrayOfIndex& v(mrr.In());
             for (Index s=0; s<v.nelem(); ++s)
-              if (!ws.is_initialized(v[s]) && !mdd.SetMethod() )
+              if ((s != v.nelem()-1 || !mdd.SetMethod())
+                  && !ws.is_initialized(v[s])  )
                 give_up("Method "+mdd.Name()+" needs input variable: "+
                         Workspace::wsv_data[v[s]].Name());
           }
