@@ -690,11 +690,13 @@ void Workspace::define_wsv_data()
        "The dimensionality of the antenna pattern (1-2).\n"
        "\n"
        "A dimensionality of 1 means that only the respons variation in the\n"
-       "zenith direction is considered. The respons is then integrated in \n"
-       "the azimuth direction. For 2D, the respons of the antenna has both a\n"
-       "zenith and azimuth variation.\n"
+       "zenith direction is considered. The provided respons shall then be the\n"
+       "integrated in the azimuth direction. For 2D, the respons of the\n"
+       "antenna has both a zenith and azimuth variation.\n"
        "\n"
-       "Usage:      Set by the user.\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  Integer value.\n"
        ),
       GROUP( "Index" )));
 
@@ -703,18 +705,15 @@ void Workspace::define_wsv_data()
     ( NAME( "antenna_los" ),
       DESCRIPTION
       (
-       "The line-of-sight of individual antennae.\n"
+       "The relative line-of-sight of each antenna pattern.\n"
        "\n"
        "This variable describes the line-of-sight of the individual antennae\n"
        "relative to *sensor_los*. If only one antenna is present the matrix\n"
        "should contain a row of zero(s). The number of columns corresponds to\n"
        "the *antenna_dim*, with the first column containing zenith angles\n"
-       "and the second azimuth angles.\n"
-       "\n"
-       "The number of rows also describes the number of antennae to consider\n"
-       "and shall be consistent with the number of elements in *sensor_rot*.\n"
-       "A special case is when *sensor_rot* only has one element, see\n"
-       "*sensor_rot* for more details.\n"
+       "and the second azimuth angles. If each measurement block corresponds\n"
+       "to a single antenna pattern, the normal choice is to set the angle(s)\n"
+       "of this variable to zero.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
@@ -760,7 +759,7 @@ void Workspace::define_wsv_data()
        "must have size 1. A size >= 2 is otherwise required. The response\n"
        "outside covered grid range is treated as zero.\n"
        "\n"
-       "Usage:      Set by the user.\n"
+       "Usage: Set by the user.\n"
        "\n"
        "Dimensions: \n"
        "   GField4:\n"
@@ -787,12 +786,11 @@ void Workspace::define_wsv_data()
        "\n"
        "Methods adapt automatically to this variable. That is, it should\n"
        "not be needed to change any methods if the dimensionality is\n"
-       "changed. However, not all methods are working for higher dimesnions.\n"
+       "changed. However, not all methods are working for higher dimensions.\n"
        "\n"
-       "The atmospheric dimensionalities (1D, 2D and 3D) are defined in the\n"
-       "user guide (look for \"atmospheric dimensionality\" in the index).\n"
+       "Usage: Set by the user.\n"
        "\n"
-       "Usage:      Set by the user.\n"
+       "Unit: Integer value.\n"
        ),
       GROUP( "Index" )));
 
@@ -836,7 +834,7 @@ void Workspace::define_wsv_data()
        "\n"
        "The response is given as an ArrayOfGField1. The grid consists of\n"
        "relative frequencies. These relative frequencies are added to \n"
-       "*f_backend* to obtain the absolute frequency for each response values.\n"
+       "*f_backend* to obtain the absolute frequency for each response value.\n"
        "The actual data are the response at each frequency grid point.\n"
        "\n"
        "There are here two options. If the array has length 1, the same\n"
@@ -866,9 +864,7 @@ void Workspace::define_wsv_data()
         "See *f_backend_multi* for when to use this variable and size\n"
         "constraints.\n"
         "\n"
-        "Usage:      Set by the user.\n "
-        "\n"
-        "Unit:       Hz\n"
+        "Usage: Set by the user.\n "
         ),
       GROUP( "ArrayOfArrayOfGField1" )));
 
@@ -924,7 +920,9 @@ void Workspace::define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Set by the user.\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  Boolean.\n"
        ),
       GROUP( "Index" )));
 
@@ -951,8 +949,9 @@ void Workspace::define_wsv_data()
        "limit and an upper limit. The order of the dimensions is as usual \n"
        "pressure, latitude and longitude. The upper limit index must be \n"
        "greater then the lower limit index. For example, \n"
-       "*cloudbox_limits* = [0 5 4 11] means that cloud box extends between \n"
-       "pressure levels 0 and 5, and latitude points 4 and 11.\n"
+       "*cloudbox_limits* = [0 5 4 11 4 11] means that cloud box extends\n"
+       "between pressure levels 0 and 5, and latitude and longitude points 4\n"
+       "and 11.\n"
        "\n"
        "If *cloudbox_on* = 0, the content of this variable is neglected, but\n"
        "it must be initiated to some dummy values.\n"
@@ -985,7 +984,7 @@ void Workspace::define_wsv_data()
         "of n, and the second column the imaginary part. The number of rows\n"
         "should normally match *f_grid*."
         "\n"
-        "Unit:        -\n"
+        "Unit:       -\n"
         "\n"
         "Dimensions: [f_grid,2]\n"
         ),
@@ -1250,10 +1249,10 @@ void Workspace::define_wsv_data()
       (
        "Thermal emission source term.\n"
        "\n"
-       "This variable holds the emission at one position along\n"
-       "the propagation path. This source term is used for calculations\n"
-       "inside *rte_agenda*. Inside scattering methods, such as DOIT,\n"
-       "the calculation of the source term can be hard coded.\n"
+       "This variable holds the emission at one position along the propagation\n"
+       "path. This source term is used for calculations inside *rte_agenda*.\n"
+       "Inside scattering methods, such as DOIT, the calculation of the source\n"
+       "term can be hard coded.\n"
        "\n"
        "Usage:      Set by *emission_agenda.\n"
        "\n"
@@ -1360,11 +1359,11 @@ void Workspace::define_wsv_data()
      ( NAME( "f_backend" ),
        DESCRIPTION
        (
-        "The frequency position of each backend channel.\n"
+        "The frequency position of each backend (spectrometer) channel.\n"
         "\n"
-        "Usage:      Set by the user.\n "
+        "Usage: Set by the user.\n "
         "\n"
-        "Unit:       Hz\n"
+        "Unit:  Hz\n"
         ),
         GROUP( "Vector" )));
 
@@ -1384,9 +1383,9 @@ void Workspace::define_wsv_data()
         "length must match *backend_channel_response_multi*, and possibly\n"
         "also *lo_multi*.\n"
         "\n"
-        "Usage:      Set by the user.\n "
+        "Usage: Set by the user.\n "
         "\n"
-        "Unit:       Hz\n"
+        "Unit:  Hz\n"
         ),
         GROUP( "ArrayOfVector" )));
 
@@ -1397,9 +1396,9 @@ void Workspace::define_wsv_data()
        (
         "The frequency grid for monochromatic pencil beam calculations.\n"
         "\n"
-        "Usage:      Set by the user.\n "
+        "Usage: Set by the user.\n "
         "\n"
-        "Unit:       Hz\n"
+        "Unit:  Hz\n"
         ),
         GROUP( "Vector" )));
 
@@ -1410,59 +1409,37 @@ void Workspace::define_wsv_data()
       (
        "Frequency index. \n"
        "\n"
-       "The calculations inside the cloudbox are only done for one frequency\n"
-       "at a time. Some methods used for scattering calculation require the \n"
-       "frequency. *f_index* holds the information, for which frequency the \n"
-       "scattering calcultations are performed.\n"
+       "Not all methods handle all monochromatic frequencies (of *f_grid*) in\n"
+       "parellel and this variable is used for communication between methods,\n"
+       "holding the index of the frequency treated presently.\n"
        "\n"
-       "*f_index* is an input to *opt_prop_gas_agenda* and \n"
-       "*opt_prop_part_agenda*. In the clearsky case *opt_prop_gas_agenda* \n"
-       "has to calculate optical properties for all frequencies defined\n"
-       "in *f_grid*, in this case *f_index* has to be set to -1.\n "
-       "\n"
-       "Usage:      Input and output to *scat_mono_agenda*,\n"
-       "                     *opt_prop_gas_agenda\n"
-       "                     *opt_prop_part_agenda*.\n"
+       "Usage: Method output.\n"
        ),
       GROUP( "Index" )));
 
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "f_mixer" ),
-       DESCRIPTION
-       (
-        "The frequency grid of output from the mixer.\n"
-        "\n"
-        "Usage:      Input and output in *sensor_responseMixer*.\n "
-        "\n"
-        "Unit:       Hz\n"
-        ),
-        GROUP( "Vector" )));
-  
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "geomag_los_calc_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
+//  wsv_data.push_back
+//    (WsvRecord
+//     ( NAME( "geomag_los_calc_agenda" ),
+//       DESCRIPTION
+//       (
+//         "See agendas.cc.\n"
+//        ),
+//       GROUP( "Agenda" )));
 
-
-  wsv_data.push_back
-    (WsvRecord
-    ( NAME( "geomag_los" ),
-      DESCRIPTION
-      (
-       "Magnetic field along the line of sight\n"
-       "\n"
-       "more text by Nikolay \n"
-       "\n"
-       "Unit: ..."
-       "\n"
-       "Dimensions: [Magnetic field B, angle between B and los] \n"
-       ),
-      GROUP( "Matrix" )));
+//   wsv_data.push_back
+//     (WsvRecord
+//     ( NAME( "geomag_los" ),
+//       DESCRIPTION
+//       (
+//        "Magnetic field along the line of sight\n"
+//        "\n"
+//        "more text by Nikolay \n"
+//        "\n"
+//        "Unit: ..."
+//        "\n"
+//        "Dimensions: [Magnetic field B, angle between B and los] \n"
+//        ),
+//       GROUP( "Matrix" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1517,7 +1494,7 @@ void Workspace::define_wsv_data()
        "background radiation, but could also be radiation from the sun or \n"
        "a transmitting satellite.\n"
        "\n"
-       "Usage:      Input to *iy_space_agenda*.\n"
+       "Usage:      Output from *iy_space_agenda*.\n"
        "\n"
        "Unit:       W / (m^2 Hz sr) \n"
        "\n"
@@ -1537,12 +1514,12 @@ void Workspace::define_wsv_data()
         "columns in the matrix. The matrix has to be initialised before the\n"
         "quantities can be defined. Initialisation WSM is *jacobianInit*.\n"
         "Retrieval quantities are then added with *jacobianAdd...* methods.\n"
-        "See the online help. The calculation is controlled by an agenda,\n"
-        "and is performed by *jacobianCalc*.\n"
+        "See the online help. Pure numerical calculation is described by\n"
+        "*jacobian_calc_agenda* and are performed by *jacobianCalc*.\n"
         "\n"
         "Units:   See the different retrieval quantities.\n"
         "\n"
-        "Dimension:   [ y, number of retrieval quantities and grids ]\n"
+        "Dimension: [ y, number of retrieval quantities and grids ]\n"
       ),
       GROUP( "Matrix" )));
 
@@ -1569,92 +1546,14 @@ void Workspace::define_wsv_data()
       ),
       GROUP( "ArrayOfArrayOfIndex" )));
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "jacobian_particle_update_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "jacobian_lat_grid" ),
-      DESCRIPTION
-      (
-       "The latitude grid for the Jacobian matrix.\n"
-       "\n"
-       "The latitudes for which the Jacobian is determined. The jacobian\n"
-       "is undefined outside the range covered by the grid. The grid must\n"
-       "be sorted in increasing order, with no repetitions.\n"
-       "\n"
-       "Geocentric latitudes shall be used.\n"
-       "\n"
-       "The latitude grid can differ between retrieval quantities, and it\n"
-       "is the grid defined when the retrieval quantity is added that is\n"
-       "used.\n"
-       "For 1D calculations this vector shall be set to be empty, but the\n"
-       "number of latitudes shall be considered to be 1 when examining the\n"
-       "size of variables.\n"
-       "\n"
-       "In the case of 2D, the latitudes shall be interpreted as the angular\n"
-       "distance inside the orbit plane from an arbitrary zero point. Any\n"
-       "latitude values are accepted for 2D.\n"
-       "\n"
-       "For 3D, the valid latitude range is [-90,90].\n"
-       "\n"
-       "Usage:      Set by the user.\n"
-       "\n"
-       "Unit:       degrees\n"
-      ),
-      GROUP( "Vector" )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "jacobian_lon_grid" ),
-      DESCRIPTION
-      (
-       "The longitude grid for the Jacobian matrix.\n"
-       "\n"
-       "The longitudes for which the Jacobian is determined. The jacobian\n"
-       "is undefined outside the range covered by the grid. The grid must\n"
-       "be sorted in increasing order, with no repetitions.\n"
-       "\n"
-       "Geocentric latitudes shall be used.\n"
-       "\n"
-       "The latitude grid can differ between retrieval quantities, and it\n"
-       "is the grid defined when the retrieval quantity is added that is\n"
-       "used.\n"
-       "\n"
-       "For 1D and 2D calculations this vector shall be set to be empty, but\n"
-       "the number of latitudes shall be considered to be 1 when examining\n"
-       "the size of variables.\n"
-       "\n"
-       "Allowed values for 3D, is [-360,360].\n"
-       "\n"
-       "Usage:      Set by the user.\n"
-       "\n"
-       "Unit:       degrees\n"
-      ),
-      GROUP( "Vector" )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "jacobian_p_grid" ),
-      DESCRIPTION
-      (
-       "The pressure grid for the Jacobian matrix.\n"
-       "\n"
-       "The pressure surfaces on which the Jacobian matrix is determined.\n"
-       "This variable has to be defined when calculating the the Jacobian.\n"
-       "It must be sorted in decreasing order, with no repetitions.\n"
-       "\n"
-       "Usage:       Set by the user.\n"
-       "\n"
-       "Unit:        Pa\n"
-      ),
-      GROUP( "Vector" )));
+//  wsv_data.push_back
+//    (WsvRecord
+//     ( NAME( "jacobian_particle_update_agenda" ),
+//       DESCRIPTION
+//       (
+//         "See agendas.cc.\n"
+//        ),
+//       GROUP( "Agenda" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1685,10 +1584,7 @@ void Workspace::define_wsv_data()
        "An array of retrieval quantities for which the jacobians are\n"
        "calculated.\n"
        "\n"
-       "Usage: Quantities are added by specific WSM;\n"
-       "         jacobianAddGas,\n"
-       "         jacobianAddTemp,\n"
-       "         ...\n"
+       "Usage: Quantities are added by the jacobianAdd WSMs.\n"
       ),
       GROUP( "ArrayOfRetrievalQuantity" )));
 
@@ -1714,23 +1610,18 @@ void Workspace::define_wsv_data()
        "\n"
        "Geocentric latitudes shall be used.\n"
        "\n"
-       "For 1D calculations this vector shall be set to be empty, but the\n"
-       "number of latitudes shall be considered to be 1 when examining the\n"
-       "size of variables.\n"
-       "\n"
-       "In the case of 2D, the latitudes shall be interpreted as the angular\n"
-       "distance inside the orbit plane from an arbitrary zero point. Any\n"
-       "latitude values are accepted for 2D.\n"
-       "\n"
-       "For 3D, the valid latitude range is [-90,90].\n"
+       "For 1D calculations this vector shall be set to be empty. For 2D cases\n"
+       "the latitudes shall be interpreted as the angular distance inside the\n"
+       "orbit plane from an arbitrary zero point (values outside +-90 deg are\n"
+       "allowed). For 3D, the valid latitude range is [-90,90].\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Set by the user.\n"
+       "Usage: Set by the user.\n"
        "\n"
-       "Unit:       degrees\n"
+       "Unit:  degrees\n"
        ),
       GROUP( "Vector" )));
 
@@ -1769,7 +1660,7 @@ void Workspace::define_wsv_data()
        "the mixer folds the spectra from from radio frequencies (RF) to\n"
        "intermediate frequencies (IF).\n"
        "\n"
-       "Unit: Hz\n"
+       "Unit:  Hz\n"
        "\n"
        "Usage: Set by the user.\n"
        ),
@@ -1784,10 +1675,10 @@ void Workspace::define_wsv_data()
        "\n"
        "As *lo* but describes an instrument with multiple mixers. A vector\n"
        "element for each LO. The size of this variable and\n"
-       "*sideband_response_multi* shall match, and probably also.\n"
+       "*sideband_response_multi* shall match, and probably also\n"
        "*sideband_mode_multi*.\n"
        "\n"
-       "Unit: Hz\n"
+       "Unit:  Hz\n"
        "\n"
        "Usage: Set by the user.\n"
        ),
@@ -1804,10 +1695,7 @@ void Workspace::define_wsv_data()
        "atmosphere is undefined outside the range covered by the grid.\n"
        "The grid must be sorted in increasing order, with no repetitions.\n"
        "\n"
-       "For 1D and 2D calculations this vector shall be set to be empty, but\n"
-       "the number of longitudes shall be considered to be 1 when examining\n"
-       "the size of variables.\n"
-       "\n"
+       "For 1D and 2D calculations this vector shall be set to be empty\n"
        "Allowed values for longidudes is the range [-360,360].\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
@@ -1820,22 +1708,22 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "l_step" ),
-      DESCRIPTION
-      (
-       "The pathlegth through one grid cell/layer.\n"
-       "\n"
-       "The pathlength is required in the methods for RT step calculations,\n"
-       "which are *sto_vecGeneral* and *sto_vecScalar*.\n"
-       "It can be calculated using the *ppath_step_agenda*.\n"
-       "\n"
-       "Usage:      Used in *doit_i_fieldUpdateXXX.\n"
-       "\n"
-       "Unit:       m \n"
-       ),
-      GROUP( "Numeric" )));
+//  wsv_data.push_back
+//    (WsvRecord
+//     ( NAME( "l_step" ),
+//       DESCRIPTION
+//       (
+//        "The pathlegth through one grid cell/layer.\n"
+//        "\n"
+//        "The pathlength is required in the methods for RT step calculations,\n"
+//        "which are *sto_vecGeneral* and *sto_vecScalar*.\n"
+//        "It can be calculated using the *ppath_step_agenda*.\n"
+//        "\n"
+//        "Usage:      Used in *doit_i_fieldUpdateXXX.\n"
+//        "\n"
+//        "Unit:       m \n"
+//        ),
+//       GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1893,11 +1781,13 @@ void Workspace::define_wsv_data()
      ( NAME( "mc_antenna" ),
        DESCRIPTION
        (
-        "MCAntenna object used by MCGeneral to sample the field of view."
-        "Possible antenna types include Pencil Beam, Gaussian (2D), and"
-        "Antenna pattern lookup (yet to be implemented).\n"
+        "Antenna pattern description for dedicated MC calculaions.\n"
         "\n"
-        "Usage: Input to MCGeneral \n"
+        "MCAntenna object used by MCGeneral to sample the field of view."
+        "Possible antenna types are Pencil Beam and Gaussian (2D).\n"
+        "\n"
+        "Usage: Input to MCGeneral. Set by mc_antennaSetGaussian and similar\n"
+        "       methods.\n"
         ), 
        GROUP( "MCAntenna" )));
 
@@ -1906,7 +1796,7 @@ void Workspace::define_wsv_data()
      ( NAME( "mc_cloud_opt_path" ),
        DESCRIPTION
        (
-        "The cloud optical path integrated over the field of view\n"
+        "The cloud optical path integrated over the field of view.\n"
         "\n"
         "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
         ), 
@@ -1917,8 +1807,8 @@ void Workspace::define_wsv_data()
      ( NAME( "mc_cloud_opt_path_error" ),
        DESCRIPTION
        (
-        "standrad error in the cloud optical path integrated over the field of view\n"
-        
+        "Standrad error in the cloud optical path integrated over the field\n"
+        "of view.\n"
         "\n"
         "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
         ), 
@@ -1964,8 +1854,8 @@ void Workspace::define_wsv_data()
         "Counts the number of iterations (or photons) used in the MC\n "
         "scattering algorithm.\n"
         "\n"
-        "Usage: Set by ScatteringMonteCarlo.\n"
-        ),
+        "Usage: Set by MCGeneral and other MC methods.\n"
+       ),
        GROUP( "Index" )));
 
   wsv_data.push_back
@@ -1997,7 +1887,7 @@ void Workspace::define_wsv_data()
        (
         "Counts the number of MC endpoints in each grid cell.\n"
         "\n"
-        "Usage: Set by MCGeneral.\n"
+        "Usage: Set by MCGeneral and other MC methods.\n"
         ),
        GROUP( "Tensor3" )));
 
@@ -2007,7 +1897,7 @@ void Workspace::define_wsv_data()
        DESCRIPTION
        (
         "The integer seed for the random number generator used by\n"
-        "ScatteringMonteCarlo and MCGeneral.\n"
+        "Monte Carlos methods.\n"
         "\n"
         "Usage: Set by MCSetSeed.\n"
         ),
@@ -2093,7 +1983,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Set by the user.\n"
        "\n"
-       "Unit: degrees\n"
+       "Unit:  degrees\n"
        ),
       GROUP( "Numeric" )));
 
@@ -2235,9 +2125,9 @@ void Workspace::define_wsv_data()
      (NAME( "particle_masses" ),
       DESCRIPTION
       (
-       "Output file format.The mass of each particle type stored in a vector \n"
+       "The mass of each particle type stored in a vector \n"
        "\n"
-       "Usage: Set by the user\n"
+       "Usage: Set by the user.\n"
        ),
       GROUP( "Vector" )));
 
@@ -2342,32 +2232,32 @@ void Workspace::define_wsv_data()
         ),
       GROUP( "Tensor4" )));
 
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "pnd_field_perturb" ),
-      DESCRIPTION
-      (
-       "The field representing particle number density perturbations.\n"
-       "\n"
-       "This variable gives the perturbation of particle number density\n"
-       "of the chosen particle types as a function of p_grid, lat_grid,\n"
-       "lon_grid for each retrieval quantity. The variable has to be\n"
-       "prepared outside ARTS and it has to be setup prior to calling\n"
-       "*jacobianAddParticle*. Since it is added to *pnd_field* during\n"
-       "the calculation of the Jacobian, the perturbations are absolute\n"
-       "and as such should have the same unit as *pnd_field*\n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
-       "Usage:      Set by the user.\n"
-       "\n"
-       "Unit:       m^-3\n"
-       "\n"
-       "Dimensions: [N_retrieval_quantities, as *pnd_field* ]\n"
-        ),
-      GROUP( "Tensor5" )));
+//    wsv_data.push_back
+//    (WsvRecord
+//     ( NAME( "pnd_field_perturb" ),
+//       DESCRIPTION
+//       (
+//        "The field representing particle number density perturbations.\n"
+//        "\n"
+//        "This variable gives the perturbation of particle number density\n"
+//        "of the chosen particle types as a function of p_grid, lat_grid,\n"
+//        "lon_grid for each retrieval quantity. The variable has to be\n"
+//        "prepared outside ARTS and it has to be setup prior to calling\n"
+//        "*jacobianAddParticle*. Since it is added to *pnd_field* during\n"
+//        "the calculation of the Jacobian, the perturbations are absolute\n"
+//        "and as such should have the same unit as *pnd_field*\n"
+//        "\n"
+//        "See further the ARTS user guide (AUG). Use the index to find where\n"
+//        "this variable is discussed. The variable is listed as a subentry to\n"
+//        "\"workspace variables\".\n"
+//        "\n"
+//        "Usage:      Set by the user.\n"
+//        "\n"
+//        "Unit:       m^-3\n"
+//        "\n"
+//        "Dimensions: [N_retrieval_quantities, as *pnd_field* ]\n"
+//         ),
+//       GROUP( "Tensor5" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2450,12 +2340,11 @@ void Workspace::define_wsv_data()
       (
        "Flag to fill *ppath_array*.\n"
        "\n"
-       "Include FlagOn(ppath_array){} to fill *ppath_array* even if this is\n"
-       "not needed for internal purposes.\n"
+       "Set this variable to 1 to fill *ppath_array* even if this is not \n"
+       "needed for internal purposes. Note that this variable is set to 0 by\n"
+       "*jacobianOff/Init*.\n"
        "\n"
-       "Note that this variable is set to 0 by *jacobianOff/Init*.\n"
-       "\n"
-       "Usage: Set by *RteCalc*.\n"
+       "Usage: Set by user of jacobian methods.\n"
        ),
       GROUP( "Index" )));
 
@@ -2571,12 +2460,12 @@ void Workspace::define_wsv_data()
     ( NAME( "refr_index" ),
       DESCRIPTION
       (
-       "The total refractive index at some point in the atmosphere.\n"
+       "Refractive index of air (only real part).\n"
        "\n"
        "This variable contains the refractive index summed over all relevant\n"
        "constituents, at one position in the atmosphere. The standard set of\n"
        "functions assumes that all frequency components propagate along the\n"
-       "same path. That is, dispersion is neglected and this variable has\n"
+       "same path. That is, dispersion is neglected and this variable has no\n"
        "frequency dimension.\n"
        "\n"
        "Unit: 1\n"
@@ -2697,21 +2586,21 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "rte_planck_value" ),
-      DESCRIPTION
-      (
-       "A Planck function value for radiative transfer calculations.\n"
-       "\n"
-       "The Planck function is used in the methods for RT step calculations,\n"
-       "which are *sto_vecGeneral* and *sto_vecScalar*. \n"
-       "\n"
-       "Usage:      Calculated in *i_fieldUpdate1D*.\n"
-       "\n"
-       "Unit:       W / (m^2 Hz sr)\n "
-       ),
-      GROUP( "Numeric" )));
+//  wsv_data.push_back
+//    (WsvRecord
+//     ( NAME( "rte_planck_value" ),
+//       DESCRIPTION
+//       (
+//        "A Planck function value for radiative transfer calculations.\n"
+//        "\n"
+//        "The Planck function is used in the methods for RT step calculations,\n"
+//        "which are *sto_vecGeneral* and *sto_vecScalar*. \n"
+//        "\n"
+//        "Usage:      Calculated in *i_fieldUpdate1D*.\n"
+//        "\n"
+//        "Unit:       W / (m^2 Hz sr)\n "
+//        ),
+//       GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3093,14 +2982,15 @@ void Workspace::define_wsv_data()
        "Column 1 holds the zenith angle. This angle is simply the angle \n"
        "between the zenith and LOS directions. For 1D and 3D the valid\n"
        "range is [0 180], while for 2D angles down to -180 degrees are\n" 
-       "allowed. Negative angles signifie for 2D observations towards\n"
+       "allowed. Negative angles signifies for 2D observations towards\n"
        "lower latitudes, while positive angles means observations towards\n"
        "higher latitudes. Nadir corresponds throughout to 180 degrees.\n"
        "\n"
        "The azimuth angle is given with respect to the meridian plane. That\n"
        "is, the plane going through the north and south poles. The valid \n"
        "range is [-180,180] where angles are counted clockwise; 0 means\n"
-       "that the viewing or propagation direction is north-wise and +90 means\n"        "that the direction of concern goes eastward.\n"
+       "that the viewing or propagation direction is north-wise and +90 means\n"
+       "that the direction of concern goes eastward.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
@@ -3121,9 +3011,8 @@ void Workspace::define_wsv_data()
       (
        "Flag if sensor response should be normalised or not (0 or 1).\n"
        "\n"
-       "If the flag is set to 1 each sensor response block will be\n"
-       "normalised. If set to 0 the sensor responses are left as provided.\n"
-       "This with the exception of *sensor_pol*, that never is normalised.\n"
+       "If the flag is set to 1 each sensor response is normalised (where\n"
+       "applicable). If set to 0 the sensor responses are left as provided.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a sub-entry to\n"
@@ -3204,7 +3093,7 @@ void Workspace::define_wsv_data()
     ( NAME( "sensor_response" ),
       DESCRIPTION
       (
-        "The response matrix modelling the total sensor response.\n"
+        "The matrix modelling the total sensor response.\n"
         "\n"
         "This matrix describes the sensor respons for one measurement block\n"
         "The response is assumed to be identical for each such block.\n"
@@ -3214,12 +3103,11 @@ void Workspace::define_wsv_data()
         "configuration. The *sensor_response* has to initialised by the \n"
         "*sensor_responseInit* method.\n"
         "\n"
-        "Usage:   Output/input to the *sensor_response...* methods.\n"
+        "Usage: Output/input to the *sensor_response...* methods.\n"
         "\n"
-        "Units:   -\n"
+        "Units: -\n"
         "\n"
-        "Dimension:     See the individual *sensor_response...* method \n"
-        "               documentation.\n"
+        "Dimension: See the individual *sensor_response...* method. \n"
        ),
       GROUP( "Sparse" )));
 
@@ -3430,10 +3318,8 @@ void Workspace::define_wsv_data()
       (
        "The time for each measurement block.\n"
        "\n"
-       "This WSV is used when calculating pointing offset Jacobians.\n"
-       "It can either be used to store actual times, in any desired unit,\n"
-       "for real measurements or it can store a relative time series\n"
-       "for the measurement blocks.\n"
+       "This WSV is used when a time must be assigned to the measurements.\n"
+       "No specific time format has (yet) been specified.\n"
        "\n"
        "Usage: Set by the user.\n"
        "\n"
@@ -3484,9 +3370,9 @@ void Workspace::define_wsv_data()
        "\n"
        "This variable describes the response of each sideband of a heterodyne\n"
        "receiver. The response is given as a GField1, with frequency as the\n"
-       "grid. The actual describe the sideband filter function at each\n"
+       "grid. The actual data describe the sideband filter function at each\n"
        "frequency grid point. An interpolation is applied to obtain the\n"
-       "response for intermediate frequencies.\n"
+       "response for other frequencies.\n"
        "\n"
        "The frequency grid should be given in terms of IF, with end points\n"
        "symmetrically placed around zero. That is, the grid must contain\n"
@@ -3549,18 +3435,18 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "SingleScatteringData" )));
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "species_index" ),
-      DESCRIPTION
-      (
-       "This ArrayOfIndex yields the tag positions of key species like\n"
-       "N2 (=0), O2 (=1), H2O (=2), O3 (=3), CO2 (=4).\n"
-       "For example species_index[2] gives the first H2Otag position in the\n"
-       "controle file specified list of tags for which calculations should\n"
-       "be performed.\n"
-       ),
-      GROUP( "ArrayOfIndex" )));
+//  wsv_data.push_back
+//    (WsvRecord
+//     ( NAME( "species_index" ),
+//       DESCRIPTION
+//       (
+//        "This ArrayOfIndex yields the tag positions of key species like\n"
+//        "N2 (=0), O2 (=1), H2O (=2), O3 (=3), CO2 (=4).\n"
+//        "For example species_index[2] gives the first H2Otag position in the\n"
+//        "controle file specified list of tags for which calculations should\n"
+//        "be performed.\n"
+//        ),
+//       GROUP( "ArrayOfIndex" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3582,27 +3468,26 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
 
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "stokes_vec" ),
-      DESCRIPTION
-      (
-       "The Stokes vector.\n"
-       "\n"
-       "The Stokes Vector is a 4 dimensional vector which stores the \n"
-       "Stokes components during the RT calculation, for example in the \n"
-       "methods *sto_vecGeneral* and *sto_vecScalar*. \n"
-       "\n"
-       "Usage:      Calculated internally.\n"
-       ),
-      GROUP( "Vector" )));
+//    wsv_data.push_back
+//    (WsvRecord
+//     ( NAME( "stokes_vec" ),
+//       DESCRIPTION
+//       (
+//        "The Stokes vector.\n"
+//        "\n"
+//        "The Stokes Vector is a 4 dimensional vector which stores the \n"
+//        "Stokes components during the RT calculation, for example in the \n"
+//        "methods *sto_vecGeneral* and *sto_vecScalar*. \n"
+//        "\n"
+//        "Usage:      Calculated internally.\n"
+//        ),
+//       GROUP( "Vector" )));
  
    wsv_data.push_back
      (WsvRecord
       ( NAME( "surface_emission" ),
         DESCRIPTION
-        ( "The emission from the surface for a specified position and\n"
-          "direction.\n"
+        ( "The emission from the surface.\n"
           "\n"
           "See further *surfaceCalc* and the user guide.\n"
           "\n"
@@ -3662,11 +3547,7 @@ void Workspace::define_wsv_data()
         "The rows and columns of this tensor holds the reflection\n"
         "coefficient matrix for one frequency and one LOS. The reflection\n"
         "coefficients shall take into accound the angular weighting if the\n"
-        "downwelling radiation. For example, if the surface has isotropic\n"
-        "scattering, without absorbtion of incoming radiation, and the\n"
-        "downwelling radiation is calculated at ten angles (i.e. the length\n"
-        "of *surface_los* is ten), the surface reflection coefficients \n"
-        "are 0.1.\n"
+        "downwelling radiation.\n"
         "\n"
         "See further *surfaceCalc* and the user guide.\n"
         "\n"
@@ -3741,9 +3622,9 @@ void Workspace::define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Set by the user by choosing a climatology.\n"
+       "Usage: Set by the user by choosing a climatology.\n"
        "\n"
-       "Unit:       K\n"
+       "Unit:  K\n"
        "\n"
        "Size   GField3 \n "
        "       [N_p] \n"
@@ -3817,10 +3698,10 @@ void Workspace::define_wsv_data()
        "For the calculation the data is \n"
        "interpolated on *p_grid*, *lat_grid* and *lon_grid*\n"  
        "\n"
-       "Usage:      Output of *AtmRawRead*\n"
-       "            Input to *AtmFieldsCalc*.\n"
+       "Usage: Output of *AtmRawRead*\n"
+       "       Input to *AtmFieldsCalc*.\n"
        "\n"
-       "Unit:        absolute number\n"
+       "Unit:  absolute number\n"
        "\n"
        "Size:  Array[N_pt]\n"
        "       GField3 \n "
@@ -3837,13 +3718,14 @@ void Workspace::define_wsv_data()
     ( NAME( "xml_output_type" ),
       DESCRIPTION
       (
-       "Flag to determine whether XML output is binary or ascii\n"
+       "Flag to determine whether XML output shall be binary or ascii.\n"
        "\n"
-       "This flag has to be set using the workspace method *output_file_formatSetAscii*\n"
-       "or *output_file_formatSetBinary*. One of these methods MUST be called before\n"
-       "writing the first output file."
+       "This flag has to be set using the workspace method\n"
+       "*output_file_formatSetAscii* or *output_file_formatSetBinary*.\n"
+       "One of these methods MUST be called before writing the first\n"
+       "output file.\n"
        "\n"
-       "Usage:      Set by user.\n"
+       "Usage: Set by user.\n"
        ),
       GROUP( "Index" )));
 
@@ -4054,14 +3936,14 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Tensor3" )));
 
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "gfield3" ),
-      DESCRIPTION
-      (
-       "Variable for testing the new gridded fields implementation.\n"
-       ),
-      GROUP( "GField3" )));
+//    wsv_data.push_back
+//    (WsvRecord
+//     ( NAME( "gfield3" ),
+//       DESCRIPTION
+//       (
+//        "Variable for testing the new gridded fields implementation.\n"
+//        ),
+//       GROUP( "GField3" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -4077,9 +3959,9 @@ void Workspace::define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Set by the user by choosing a climatology.\n"
+       "Usage: Set by the user by choosing a climatology.\n"
        "\n"
-       "Unit:       K\n"
+       "Unit:  K\n"
        "\n"
        "Size   GField3 \n "
        "       [N_p] \n"

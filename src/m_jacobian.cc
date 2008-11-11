@@ -976,7 +976,7 @@ void jacobianCalcPolyfit(
 
 
 //----------------------------------------------------------------------------
-// Atmospheric temperatures:
+// Temperatures (atmospheric):
 //----------------------------------------------------------------------------
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1273,12 +1273,6 @@ void jacobianCalcTemperature(
 //----------------------------------------------------------------------------
 // Old:
 //----------------------------------------------------------------------------
-
-
-
-
-
-
 
 
 // /* Workspace method: Doxygen documentation will be auto-generated */

@@ -1,3 +1,12 @@
+2008-11-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-11-34
+
+	* src/agendas.cc: Revision of description of several agendas.
+
+	* src/workspace.cc: Revision of description of many variables. Several
+	variables "de-activated".
+
 2008-11-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-11-33

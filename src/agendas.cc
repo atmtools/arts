@@ -26,7 +26,9 @@
   and input.  
 */
 
+
 #include "agenda_record.h"
+
 
 // Some #defines and typedefs to make the records better readable:
 #define NAME(x) x 
@@ -36,6 +38,7 @@
 
 /*! The lookup information for the agendas. */
 Array<AgRecord> agenda_data;
+
 
 void define_agenda_data()
 {
@@ -48,20 +51,6 @@ void define_agenda_data()
     The sign "_" comes after all letters.
     ----------------------------------------------------------------------*/
 
-//   agenda_data.push_back
-//     (AgRecord
-//      ( NAME( "abs_coef_agenda" ),
-//        DESCRIPTION
-//        (
-//         "FIXME: This is just a placeholder for now."
-//         ),
-//        OUTPUT( "abs_coef" ),
-//        INPUT(  "abs_species",
-//                "abs_lines_per_species",
-//                "abs_lineshape",
-//                "abs_vmrs",
-//                "abs_t" )));
-  
   agenda_data.push_back
     (AgRecord
      ( NAME( "abs_scalar_gas_agenda" ),
@@ -88,18 +77,6 @@ void define_agenda_data()
        OUTPUT( "abs_scalar_gas" ),
        INPUT(  "f_index", "rte_pressure", "rte_temperature", "rte_vmr_list" )));
   
- agenda_data.push_back
-    (AgRecord
-     ( NAME( "ybatch_calc_agenda" ),
-       DESCRIPTION
-       (
-        "Calculations to perform for each batch case.\n"
-        "\n"
-        "Must produce a new spectrum vector (y). See further *ybatchCalc*."
-        ),
-       OUTPUT( "y" ),
-       INPUT( "ybatch_index" )));
-
  agenda_data.push_back
     (AgRecord
      ( NAME( "doit_conv_test_agenda" ),
@@ -217,15 +194,15 @@ void define_agenda_data()
      ( NAME( "emission_agenda" ),
        DESCRIPTION
        (
-        "Calculates the thermal emission source term.\n"
+        "Thermal emission source term.\n"
         "\n"
         "This agenda shall return the emission at one position along\n"
-        "the propagation path. This source term is used for calculations\n"
-        "inside *rte_agenda*. Inside scattering methods, such as DOIT,\n"
-        "the calculation of the source term can be hard coded.\n"
+        "the propagation path. The source term equals the Planck function as\n"
+        "long as thermodynamic equilibrium (LTE) can be assumed, while for\n"
+        "non-LTE conditions much more complex calculations are required.\n"
         "\n"
-        "By setting *emission* to zeros and *iy_space* to ones, the\n"
-        "obtained spectrum will be the transmission through the atmosphere."
+        "The transmission through the atmosphere can be obtained by setting\n"
+        "*emission* to zeros and *iy_space* to ones, ."
         ),
        OUTPUT( "emission" ),
        INPUT( "rte_temperature" )));
@@ -243,67 +220,67 @@ void define_agenda_data()
        OUTPUT(),
        INPUT( "forloop_index" )));
  
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "geomag_los_calc_agenda" ),
-       DESCRIPTION
-       (
-        "Calculates the magnetic field along a given propagation path.\n"
-        "\n"
-        "The agenda relates the vector of the geomagnetic field to \n"
-        "a specified propagation path. As a result the magnitude of \n"
-        "this vector is calculated in each point of the propagation \n"
-        "path, alongside with the corresponding angle between the \n"
-        "geomagnetic field vector and the propagation direction.  \n"
-        "The output is the WSV *geomag_los*, containing the two \n"
-        "quantities discussed above. \n"
-        "\n"
-        "Output:    \n"
-        "   geomag_los : Magnetic field along LOS plus angle  \n"
-        "\n"
-        "Input: ppath_   \n"
-        "       geomag_intensitities.xml \n"
-        "\n"
-          ),
-       OUTPUT( "geomag_los" ),
-       INPUT(  )));
+//   agenda_data.push_back
+//     (AgRecord
+//      ( NAME( "geomag_los_calc_agenda" ),
+//        DESCRIPTION
+//        (
+//         "Calculates the magnetic field along a given propagation path.\n"
+//         "\n"
+//         "The agenda relates the vector of the geomagnetic field to \n"
+//         "a specified propagation path. As a result the magnitude of \n"
+//         "this vector is calculated in each point of the propagation \n"
+//         "path, alongside with the corresponding angle between the \n"
+//         "geomagnetic field vector and the propagation direction.  \n"
+//         "The output is the WSV *geomag_los*, containing the two \n"
+//         "quantities discussed above. \n"
+//         "\n"
+//         "Output:    \n"
+//         "   geomag_los : Magnetic field along LOS plus angle  \n"
+//         "\n"
+//         "Input: ppath_   \n"
+//         "       geomag_intensitities.xml \n"
+//         "\n"
+//           ),
+//        OUTPUT( "geomag_los" ),
+//        INPUT(  )));
 
   agenda_data.push_back
     (AgRecord
      ( NAME( "iy_cloudbox_agenda" ),
        DESCRIPTION
        (
-        "Sets *iy* to scattered radiation for given position and LOS.\n"
+        "Intensity at cloudbox boundary or interior.\n"
         "\n"
-        "The calculations inside the agenda differ depending on scattering\n"
-        "solution method. If DOIT is used, an interpolate of the intensity\n"
-        "field shall be performed. Another option is to start backward Monte\n"
-        "Carlos calculations from this point.\n"
+        "The task of the agenda is to determine the intensity at some point\n"
+        "at the boundary of inside the cloudbox.  The actual calculations\n"
+        "inside the agenda differ depending on scattering solution method.\n"
+        "If DOIT is used, an interpolating of the intensity field should be\n"
+        "performed. Another option is to start backward Monte Carlos \n"
+        "calculations from this point.\n"
         "\n"
-        "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
-        "the position and line-of-sight for which the scattered radiation \n"
-        "shall be determined. \n"
-        "\n"
-        "Usage:   Called from *RteCalc*."
+        "A function calling this agenda shall set *rte_pos*, *rte_los* and\n"
+        "*rte_gp* variables to the position and line-of-sight for which the\n"
+        "scattered radiation shall be determined. \n"
         ),
        OUTPUT( "iy", "ppath", "rte_pos", "rte_los" ),
-       INPUT( "ppath", "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", "rte_gp_lon" )));
+       INPUT( "ppath", "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", 
+              "rte_gp_lon" )));
 
   agenda_data.push_back
     (AgRecord
      ( NAME( "iy_space_agenda" ),
        DESCRIPTION
        (
-        "Sets the workspace variable *iy* to match the assumptions \n"
-        "regarding the radiation entering the atmosphere at the start of the\n"
-        "propagation path. \n"
+        "Downwelling radiation at the top of the atmosphere.\n"
+        "\n"
+        "Possible terms to include in this agenda include cosmic background\n"
+        "radiation and solar radiation.\n"
         "\n"
         "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
         "the position and line-of-sight for which the entering radiation \n"
         "shall be determined. The position and line-of-sight must be known, \n"
         "for example, when radiation from the sun is considered. \n"
-        "\n"
-        "Usage:   Called from *RteCalc*."
         ),
        OUTPUT( "iy" ),
        INPUT( "rte_pos", "rte_los" )));
@@ -313,29 +290,33 @@ void define_agenda_data()
      ( NAME( "jacobian_agenda" ),
        DESCRIPTION
        (
-        "The agenda controlling the calculation of the Jacobian matrix.\n"
-        "This agenda is not supposed to be set by the user, it should be\n"
-        "automatically be constructed when defining the jacobian quantities.\n"
+        "Pure numerical Jacobian calculations.\n"
         "\n"
-        "Usage:   Called from *jacobianCalc*."
+        "Parts of the Jacobian matrix can be determined by (semi-)analytical\n"
+        "expressions, while other parts are calculated in apure numerical\n"
+        "manner (by perturbations). This agenda describes the calculations to\n"
+        "be performed in the later case.\n"
+        "\n"
+        "This agenda is normally not set directly by the user, but is created\n"
+        "by calling the the jacobianAdd set of methods.\n"
        ),
        OUTPUT( "jacobian" ),
        INPUT()));
        
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "jacobian_particle_update_agenda" ),
-       DESCRIPTION
-       (
-        "The agenda controlling the update of the scattered field due to\n"
-        "changes in *pnd_field* when calculating the particle Jacobian.\n"
-        "The agenda has to be specified by the user, and should contain\n"
-        "the calculations needed before a call to RteCalc.\n"
-        "\n"
-        "Usage:   Called from *jacobianCalcParticle*."
-        ),
-       OUTPUT( "pnd_field" ),
-       INPUT( "pnd_field" )));
+//   agenda_data.push_back
+//     (AgRecord
+//      ( NAME( "jacobian_particle_update_agenda" ),
+//        DESCRIPTION
+//        (
+//         "The agenda controlling the update of the scattered field due to\n"
+//         "changes in *pnd_field* when calculating the particle Jacobian.\n"
+//         "The agenda has to be specified by the user, and should contain\n"
+//         "the calculations needed before a call to RteCalc.\n"
+//         "\n"
+//         "Usage:   Called from *jacobianCalcParticle*."
+//         ),
+//        OUTPUT( "pnd_field" ),
+//        INPUT( "pnd_field" )));
 
   agenda_data.push_back
     (AgRecord
@@ -348,7 +329,7 @@ void define_agenda_data()
         "perturbation calculations. Accordingly, the agenda shall return *y*\n"
         "for the perturbed input (without doing any unnecessary operations,\n"
         "for efficiency reasons). If unperturbed spectra (and analytical\n"
-        "jacobians are calculated with *RteCalc*, the standard choice for\n"
+        "jacobians) are calculated with *RteCalc*, the standard choice for\n"
         "this agenda should be 'RteCalcNoJacobians*."
        ),
        OUTPUT( "y" ),
@@ -532,45 +513,26 @@ void define_agenda_data()
         "considered, or not, when the sensor is placed inside the\n" 
         "atmosphere.\n"
         "\n"
-        "The agenda performs only calculations to next crossing of a grid, \n"
-        "all other tasks must be performed by the calling method, with one \n"
-        "exception. If there is an intersection of a blackbody surface, the \n"
-        "calculations stop at this point. This is flagged by setting the \n" 
-        "background field of *ppath_step*. Beside this, the calling method \n" 
-        "must check if the starting point of the calculations is inside the \n"
-        "scattering box or below the surface level, and check if the last \n"
-        "point of the path has been reached. The starting point (the end \n"
-        "furthest away from the sensor) of a full propagation path can be \n"
-        "the top of the atmosphere, the surface and the cloud box.\n"
-        "\n"
         "The *ppath_step_agenda* put in points along the propagation path \n"
         "at all crossings with the grids, tangent points and points of \n"
         "surface reflection. It is also allowed to make agendas that put in \n"
         "additional points to fulfil some criterion, such as a maximum \n"
         "distance along the path between the points. Accordingly, the \n"
         "number of new points of each step can exceed one.\n"
-        "\n"
-        "For more information read the chapter on propagation paths in the\n"
-        "ARTS user guide.\n"
-        "\n"
-        "Usage: Called from *PpathCalc* and from functions doing scattering\n"
-        "       calculations."
         ),
-       OUTPUT("ppath_step"),
-       INPUT("ppath_step", "atmosphere_dim", "p_grid", "lat_grid",
-             "lon_grid", "z_field", "r_geoid", "z_surface")));
+       OUTPUT( "ppath_step" ),
+       INPUT( "ppath_step", "atmosphere_dim", "p_grid", "lat_grid",
+              "lon_grid", "z_field", "r_geoid", "z_surface" )));
   
   agenda_data.push_back
     (AgRecord
      ( NAME( "refr_index_agenda" ),
        DESCRIPTION
        (
-        "Calculates the refractive index.\n"
+        "Calculation of the refractive index of air.\n"
         "\n"
         "This agenda should calculate the summed refractive index for all\n"
-        "relevant constituients. The result is returned in *refr_index*, the\n"
-        "atmospheric state is speciefied by *rte_pressure*, \n"
-        "*rte_temperature* and *rte_vmr_list*."
+        "relevant atmospheric constituients."
         ),
        OUTPUT( "refr_index" ),
        INPUT(  "rte_pressure", "rte_temperature", "rte_vmr_list" )));
@@ -586,11 +548,17 @@ void define_agenda_data()
         "When calling the agenda, *iy* shall be set to the radiances, or\n"
         "optical thicknesses, at the start of the propagation path described\n"
         "by *ppath*. The agenda then solves the radiative transfer equation\n"
-        "along the propagation path and returns the result in *iy*."
+        "along the propagation path and returns the result in *iy*.\n"
+        "\n"
+        "The agenda can further provide the basis for analytical Jacobian\n"
+        "calculations, by also returning the diy-variables. See *diy_dt* and\n"
+        "diy_dvmr* and the user guide for details around analytical Jacobians\n"
+        "calculations.\n"
         ),
        OUTPUT( "iy", "diy_dvmr", "diy_dt" ),
-       INPUT( "iy", "diy_dvmr", "diy_dt", "ppath", "ppath_array", "ppath_array_index",
-              "rte_do_vmr_jacs", "rte_do_t_jacs", "stokes_dim", "f_grid" )));
+       INPUT( "iy", "diy_dvmr", "diy_dt", "ppath", "ppath_array", 
+              "ppath_array_index", "rte_do_vmr_jacs", "rte_do_t_jacs", 
+              "stokes_dim", "f_grid" )));
 
  agenda_data.push_back
     (AgRecord
@@ -618,7 +586,7 @@ void define_agenda_data()
      ( NAME( "surface_prop_agenda" ),
        DESCRIPTION
        (
-        "Returns RT properties of the surface. \n"
+        "Surface radiative properties. \n"
         "\n"
         "See the user guide for closer definitions of the variables \n"
         "that describe the surface properties. These variables are:\n"
@@ -626,6 +594,19 @@ void define_agenda_data()
         ),
        OUTPUT( "surface_emission", "surface_los", "surface_rmatrix" ),
        INPUT( "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", "rte_gp_lon" )));
+
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "ybatch_calc_agenda" ),
+       DESCRIPTION
+       (
+        "Calculations to perform for each batch case.\n"
+        "\n"
+        "Must produce a new spectrum vector (y). See further *ybatchCalc*."
+        ),
+       OUTPUT( "y" ),
+       INPUT( "ybatch_index" )));
+
 
 
 
