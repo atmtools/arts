@@ -37,7 +37,7 @@
 
 //! Reads a Matrix from a NetCDF file
 /*!
-  \param ncf     NetCDF file discriptor
+  \param ncdi    NetCDF file descriptor
   \param m       Matrix
 */
 void
@@ -55,7 +55,7 @@ nc_read_from_file (const int ncid,
 
 //! Writes a Matrix to a NetCDF file
 /*!
-  \param ncf     NetCDF file discriptor
+  \param ncf     NetCDF file descriptor
   \param m       Matrix
 */
 void
@@ -79,7 +79,7 @@ nc_write_to_file (const int ncid,
 
 //! Reads a Tensor3 from a NetCDF file
 /*!
-  \param ncf     NetCDF file discriptor
+  \param ncf     NetCDF file descriptor
   \param t       Tensor3
 */
 void
@@ -98,7 +98,7 @@ nc_read_from_file (const int ncid,
 
 //! Writes a Tensor3 to a NetCDF file
 /*!
-  \param ncf     NetCDF file discriptor
+  \param ncf     NetCDF file descriptor
   \param t       Tensor3
 */
 void
@@ -124,7 +124,7 @@ nc_write_to_file (const int ncid,
 
 //! Reads a Tensor4 from a NetCDF file
 /*!
-  \param ncf     NetCDF file discriptor
+  \param ncf     NetCDF file descriptor
   \param t       Tensor4
 */
 void
@@ -144,7 +144,7 @@ nc_read_from_file (const int ncid,
 
 //! Writes a Tensor4 to a NetCDF file
 /*!
-  \param ncf     NetCDF file discriptor
+  \param ncf     NetCDF file descriptor
   \param t       Tensor4
 */
 void
@@ -172,7 +172,7 @@ nc_write_to_file (const int ncid,
 
 //! Reads a Vector from a NetCDF file
 /*!
-  \param ncf     NetCDF file discriptor
+  \param ncf     NetCDF file descriptor
   \param v       Vector
 */
 void
@@ -189,7 +189,7 @@ nc_read_from_file (const int ncid,
 
 //! Writes a Vector to a NetCDF file
 /*!
-  \param ncf     NetCDF file discriptor
+  \param ncid    NetCDF file descriptor
   \param v       Vector
 */
 void

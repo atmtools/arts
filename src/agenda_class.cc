@@ -57,6 +57,7 @@ void give_up(const String& message)
   The keyword value has to be a string, which for no value should be of length
   zero.
    
+  \param ws            Workspace reference
   \param methodname    The name of the WSM
   \param keywordvalue  The value of the keyword
 

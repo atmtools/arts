@@ -36,7 +36,7 @@
 
 //! Reads an ArrayOfMatrix from a NetCDF file
 /*!
-  \param ncf     NetCDF file discriptor
+  \param ncid    NetCDF file descriptor
   \param aom     ArrayOfMatrix
 */
 void
@@ -68,7 +68,7 @@ nc_read_from_file (const int ncid,
 
 //! Writes an ArrayOfMatrix to a NetCDF file
 /*!
-  \param ncf     NetCDF file discriptor
+  \param ncf     NetCDF file descriptor
   \param aom     ArrayOfMatrix
 */
 void
@@ -129,7 +129,7 @@ nc_write_to_file (const int ncid,
 
 //! Reads an ArrayOfVector from a NetCDF file
 /*!
-  \param ncf     NetCDF file discriptor
+  \param ncid    NetCDF file descriptor
   \param aov     ArrayOfVector
 */
 void
@@ -158,7 +158,7 @@ nc_read_from_file (const int ncid,
 
 //! Writes an ArrayOfVector to a NetCDF file
 /*!
-  \param ncf     NetCDF file discriptor
+  \param ncid    NetCDF file descriptor
   \param aov     ArrayOfVector
 */
 void

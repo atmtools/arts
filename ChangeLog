@@ -1,3 +1,18 @@
+2008-11-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-11-36
+
+	* First commit from inside Eclipse, hope it doesn't break anything...
+
+	* src/nc_io_basic_types.cc, src/nc_io_array_types.cc,
+	src/agenda_class.cc, src/absorption.h (LineRecord):
+
+	Doxygen fixes.
+
+	* doc/doxygen/Doxyfile.in: Updated.
+
+	* .cproject, .project: Added Eclipse project files (only for testing).
+
 2008-11-12  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-11-35
@@ -6989,7 +7004,7 @@
 
 	* src/methods.cc:
 
-	s/Ekström/Ekstrom/ and s/Höfner/Hoefner/ to avoid encoding problems.
+	s/Ekstrï¿½m/Ekstrom/ and s/Hï¿½fner/Hoefner/ to avoid encoding problems.
 
 2007-07-25  Oliver Lemke  <olemke@core-dump.info>
 
@@ -7382,7 +7397,7 @@
 	* arts-1-1-1130
 
 	* src/ppath.cc (interpolate_raytracing_points): Included bug fix by
-	Mattias Ekström. It is now ensured that n >= 2. Numerical problems
+	Mattias Ekstrï¿½m. It is now ensured that n >= 2. Numerical problems
 	apprearently gave negative distances, resulting in n=1.
 
 	This happened in very few cases, but the bug fic could hopefully
@@ -12419,7 +12434,7 @@
 
         * doc/uguide/batch.tex: Finished the chapter. 
 
-2004-09-16  Mattias Ekström <ekstrom@rss.chalmers.se>
+2004-09-16  Mattias Ekstrï¿½m <ekstrom@rss.chalmers.se>
 
         * arts-1-1-873
 
@@ -12505,14 +12520,14 @@
         Added: ybatch, ybatch_index, ybatch_n, tensor3_2, tensor4_1, 
         tensor4_2, tensor5_2.
 
-2004-09-15  Mattias Ekström <ekstrom@rss.chalmers.se>
+2004-09-15  Mattias Ekstrï¿½m <ekstrom@rss.chalmers.se>
 
         * arts-1-1-867
 
         * src/Makefile.am: Added jacobian.h and jacobian.cc to 
         test_geomag_calc sources to remove compilation problem.
 
-2004-09-15  Mattias Ekström <ekstrom@rss.chalmers.se>
+2004-09-15  Mattias Ekstrï¿½m <ekstrom@rss.chalmers.se>
 
         * arts-1-1-866
 
@@ -12904,13 +12919,13 @@
         * src/m_montecarlo.cc (ScatteringMonteCarlo): altered calls to
         TArrayCalc and removed some parameters.
 
-2004-07-09  Mattias Ekström <ekstrom@rss.chalmers.se>
+2004-07-09  Mattias Ekstrï¿½m <ekstrom@rss.chalmers.se>
 
         * arts-1-1-845
 
         * Forgot to set the new version number.
 
-2004-07-09  Mattias Ekström <ekstrom@rss.chalmers.se>
+2004-07-09  Mattias Ekstrï¿½m <ekstrom@rss.chalmers.se>
 
         * src/methods.cc: Removed sensor_pol as input to RteCalc.
         Added sensor_responseMultiMixerBackend, which intended to
@@ -13141,7 +13156,7 @@
         * doc/uguide/uguide.tex: Moved around stuff to clean up and improve
         logic.
 
-2004-06-18  Mattias Ekström <ekstrom@rss.chalmers.se>
+2004-06-18  Mattias Ekstrï¿½m <ekstrom@rss.chalmers.se>
 
         * arts-1-1-833
 
@@ -13158,7 +13173,7 @@
         * src/rte.cc: Fixed bug found by Sreerekha. Now rte_calc should set
         *y* to the correct size.
 
-2004-06-17  Mattias Ekström <ekstrom@rss.chalmers.se>
+2004-06-17  Mattias Ekstrï¿½m <ekstrom@rss.chalmers.se>
 
         * arts-1-1-833
 
@@ -13167,7 +13182,7 @@
 
         * configure.in: Added above mentioned folder to compilation.
 
-2004-06-17  Mattias Ekström <ekstrom@rss.chalmers.se>
+2004-06-17  Mattias Ekstrï¿½m <ekstrom@rss.chalmers.se>
 
         * arts-1-1-832
 
@@ -13197,7 +13212,7 @@
         * doc/uguide/Figs/ppath/mkfigs_refraction.m: Small modification 
         following variable name changes in ARTS.
 
-2004-06-09  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2004-06-09  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-830
 
@@ -13210,7 +13225,7 @@
         * src/[m_cloudbox,montecarlo].cc: Removed sensor_pol_dummy
         declarations and from calls to rte_calc.
 
-2004-06-04  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2004-06-04  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-829
 
@@ -13221,7 +13236,7 @@
 
         * src/sensor.[cc,h]: Commented out merge_grids, since it is not used.
 
-2004-06-04  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2004-06-04  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-828
 
@@ -13245,7 +13260,7 @@
         the calling, block specific, methods (antenna_transfer_matrix,
         backend_transfer_matrix and mixer_transfer_matrix).
 
-2004-06-03  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2004-06-03  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-827
 
@@ -13884,7 +13899,7 @@
         partition_function_data.cc. Fixes compilation problem with enabled
         optimizations with certain g++ versions.
 
-2004-02-16  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2004-02-16  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-787
 
@@ -14147,7 +14162,7 @@
                 
         * src/m_scatrte.cc(i_fieldUpdateSeq1D) and (i_fieldUpdateSeq3D): Fixed 
         bug reported by Sreerekha. When cloudbox extends to ground level and 
-        the zenith propagation angle is above 90° (downlooking), 
+        the zenith propagation angle is above 90ï¿½ (downlooking), 
         ppath_step_agenda gives an error. Included a switch to avoid this case.
 
         * src/scatrte.cc: Replaced fabs with abs.
@@ -14208,7 +14223,7 @@
         
         * src/m_scatrte.cc (scat_fieldCalcLimb): Fixed small bug in 3D part. 
         The latitude and longitude indices where not right in the pha_matCalc.
-        Furthermore  changed loops, so that azimuth angle 0° (=360°) 
+        Furthermore  changed loops, so that azimuth angle 0ï¿½ (=360ï¿½) 
         is not calculated twice. Did the same in (i_fieldUpdateSeq3D).
         (scat_fieldCalc): Fixed the same bug. 
 
@@ -14284,7 +14299,7 @@
         sensible answers, but there is a dramatic increase in CPU time,
         which I will look into tomorrow.
 
-2003-12-09  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-12-09  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-756
 
@@ -14338,7 +14353,7 @@
         * src/m_montecarlo.cc (ScatteringMonteCarlo): Untabification and
         bug fixing stratified sampling.
 
-2003-12-08  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-12-08  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-750
 
@@ -14354,7 +14369,7 @@
         * src/m_abs_o2_models.cc (test_zeeman): Changed author. Patrick does
         not deserve it to be blamed for this. :-)
 
-2003-12-08  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-12-08  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-748
 
@@ -14556,7 +14571,7 @@
         for line mixing stuff (function PWRO2VoigtMixing, but not 
         working yet).
 
-2003-12-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-12-05  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-741
 
@@ -14622,7 +14637,7 @@
 
         * doc/examples/o2_can_zeeman_do.arts update to test Zeeman
 
-2003-12-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-12-05  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-739
 
@@ -14637,7 +14652,7 @@
 
         * src/m_ppath.cc Cosmetics to output strings.
 
-2003-12-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-12-05  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-738
 
@@ -14676,7 +14691,7 @@
         *montecarlo_p_from_belowCsca* by the propagation zenith angle, and
         sums over particle types.
         
-2003-12-04  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-12-04  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-736
 
@@ -14685,7 +14700,7 @@
 
         * src/m_sensor.cc: Finalised ConvertIFToRF. It's tested and it works.
 
-2003-12-02  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-12-02  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-735
 
@@ -14778,7 +14793,7 @@
         seperately.
         
 
-2003-12-01  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-12-01  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-729
 
@@ -14816,7 +14831,7 @@
         * src/scatrte.h : Added the function
         cloud_ppath_update1D_planeparallel.     
         
-2003-12-01  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-12-01  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-726
 
@@ -14875,7 +14890,7 @@
         * src/test_sparse.cc: Uncommented xml_read_from_file.
         Added try/catch block around calls to xml_read_from_file.
 
-2003-11-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-11-28  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-722
 
@@ -14990,11 +15005,11 @@
         requirements for the zenith angle discretisation are different for the 
         calculation of the scattering integral and for the radiative transfer
         part inside the cloudbox. For the radiative transfer part, it is very
-        important to have a fine discretisation about 90°. This is not so 
+        important to have a fine discretisation about 90ï¿½. This is not so 
         important for the scattering integral. Here we need the same 
         discretisation everywhere as the position of the peak of the 
         phase matrix depends on incoming and outgoing directions. 
-        Normally it is sufficient to take 10° steps to get sufficiently 
+        Normally it is sufficient to take 10ï¿½ steps to get sufficiently 
         high accuracy. 
         I included a new workspace variable *za_grid_size* (the name is
         not very good, I should probably change it) which is set by
@@ -15156,7 +15171,7 @@
         * src/matpackI.h: Made mult function friend of Range, ConstVectorView
         and ConstMatrixView.
 
-2003-10-21  Mattias Ekström  <ekstrom@rss.chalmers.se> 
+2003-10-21  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se> 
 
         * arts-1-1-706
 
@@ -15171,7 +15186,7 @@
         * src/methods.cc: Changed input/output arguments for
         CloudboxSetIncomingForTauCalc1D.
 
-2003-10-21  Mattias Ekström  <ekstrom@rss.chalmers.se> 
+2003-10-21  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se> 
 
         * arts-1-1-705
 
@@ -15188,7 +15203,7 @@
         
         * src/methods.cc: Included (CloudboxGetIncoming1DAtm).
 
-2003-10-20  Mattias Ekström  <ekstrom@rss.chalmers.se> 
+2003-10-20  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se> 
 
         * arts-1-1-703
 
@@ -15224,7 +15239,7 @@
         Replaced calls to ArrayOfGridPosPrint with Print(...).
         Removed some couts which should not have been there. :-(
 
-2003-10-15  Mattias Ekström  <ekstrom@rss.chalmers.se> 
+2003-10-15  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se> 
 
         * arts-1-1-700
 
@@ -15309,7 +15324,7 @@
         * src/m_montecarlo.cc (ScatteringMonteCarlo): Fixed a bug that occured
         in cases where there are multiple particle types.
 
-2003-10-01  Mattias Ekström  <ekstrom@rss.chalmers.se> 
+2003-10-01  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se> 
 
         * arts-1-1-692
 
@@ -15421,7 +15436,7 @@
         * src/m_cloudbox.cc (i_fieldSetConst): Slightly modified checks of input 
         variables.
 
-2003-09-04  Mattias Ekström  <ekstrom@chalmers.se>
+2003-09-04  Mattias Ekstrï¿½m  <ekstrom@chalmers.se>
 
         * arts-1-1-683
 
@@ -15465,7 +15480,7 @@
         * src/geomag_calc.cc: Changed the component definitions of the
         magnetic field.
 
-2003-08-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-08-28  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-679
 
@@ -15478,13 +15493,13 @@
         * src/test_sensor.cc (test1): Changed the test to a more 'realistic'
         scenario.
  
-2003-08-27  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-08-27  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-678
 
         * src/m_basic_types.cc: Changed behaviour of ArrayOfMatrixSet.
 
-2003-08-27  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-08-27  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-677
 
@@ -15504,7 +15519,7 @@
         header accidently pasted there before my last commit.
         Reindented the file.
 
-2003-08-26  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-08-26  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-675
 
@@ -15874,7 +15889,7 @@
 
         * src/math_funcs.cc (fac): Cosmetics.
 
-2003-08-15  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-08-15  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-649
 
@@ -15904,7 +15919,7 @@
         * src/Makefile.am: Added math_funcs.{cc,h} and dependencies to
         test_legendre target.
 
-2003-08-13  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-08-13  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-647
 
@@ -15949,13 +15964,13 @@
 
         * src/.cvsignore: Added test_legendre.
 
-2003-08-13  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-08-13  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-644
 
         * src/test_sparse.cc: Added test function for insert_row.
 
-2003-08-13  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-08-13  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-643
 
@@ -16023,7 +16038,7 @@
         * src/matpackVII.cc: Replaced delete by delete[] in destructor, to
         fix bug reported by valgrind. 
 
-2003-08-09  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-08-09  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-638
 
@@ -16084,7 +16099,7 @@
         because mrowind and mcolptr are themselves of type Index, so
         downcasting is ok here.
 
-2003-08-06  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-08-06  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-633
 
@@ -16108,7 +16123,7 @@
 
         * src/test_sparse.cc: Test transpose.
 
-2003-08-06  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-08-06  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-630
 
@@ -16674,7 +16689,7 @@
 
         * doc/doxygen/Doxyfile.in: Exclude old_absorption.cc.
 
-2003-06-23  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-06-23  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-583
 
@@ -16761,7 +16776,7 @@
 
         * src/math_funcs.cc: Modified comments
 
-2003-06-18  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-06-18  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-577
 
@@ -16808,7 +16823,7 @@
 
         * src/test_xml.cc: Adapted for testing of sparse reading writing.
 
-2003-06-16  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-06-16  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-574
 
@@ -16823,7 +16838,7 @@
 
         * src/workspace.cc: Added general WSV sparse_1.
 
-2003-06-11  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-06-11  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-573
 
@@ -17148,7 +17163,7 @@
 
         * src/math_funcs.cc: fixed integration routine
 
-2003-05-26  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-05-26  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-552
 
@@ -17206,14 +17221,14 @@
         Use log(2.) instead of log(2) because log is not overloaded for int
         and gcc cannot decide whether to cast to float or double.
 
-2003-05-21  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-05-21  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-549
         
         * src/m_sensor.cc: Added WSM GaussianResponse to set up a sensor
         response matrix with gaussian distribution.
 
-2003-05-20  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-05-20  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-548
 
@@ -17228,7 +17243,7 @@
         
         * src/m_cloudbox.cc: Final fix for ios::showpoint and ios::fixed.
 
-2003-05-19  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-05-19  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-546
         
@@ -17238,7 +17253,7 @@
         
         * src/refraction.{cc,h}: Added function refr_index_ir that
         calculates refraction index in the IR region, using formula from
-        Michael Höpfner, Forchungszentrum Karlsruhe.
+        Michael Hï¿½pfner, Forchungszentrum Karlsruhe.
         
         * src/m_refraction.cc: Added refr_indexIR to interface with
         refr_index_ir.
@@ -17499,7 +17514,7 @@
 
         * src/m_clonesize.cc: Included *ArrayOfSingleScatteringData*.
         
-2003-04-25  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-04-25  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-530
 
@@ -17597,7 +17612,7 @@
         reight place in the alphabetical list.
         (define_wsv_data): Added WSV met_profile_basenames.
 
-2003-04-11  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-04-11  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-523
 
@@ -17615,7 +17630,7 @@
         * src/matpackII.cc (transpose): Replaced Index* by
         std::vector<Index>::iterator to fix compilation error.
 
-2003-04-09  Mattias Ekström  <ekstrom@rss. chalmers.se>
+2003-04-09  Mattias Ekstrï¿½m  <ekstrom@rss. chalmers.se>
 
         * arts-1-1-521
 
@@ -17737,13 +17752,13 @@
         * src/ppath.cc (raytrace_2d_linear_euler): Same change as above (but 
         only for latitude).
 
-2003-03-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-03-28  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-512
 
         * src/matpackII.cc: Added file to repository
 
-2003-03-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-03-28  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-511
 
@@ -17768,7 +17783,7 @@
         * doc/uguide/absorption.tex: Documentation for
         abs_scalar_gas_FieldCalc extended after comment from Sreerekha.
 
-2003-03-27  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-03-27  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-509
 
@@ -17881,7 +17896,7 @@
         conversion-enabled routines when the data type size and endianness of
         the host machine matches the data file. Increases speed on pcs by 3.5.
 
-2003-03-17  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-03-17  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-498
 
@@ -18088,7 +18103,7 @@
 
         * doc/uguide/fm_definitions.tex: Improved text for ground reflections.
 
-2003-03-06  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-03-06  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-481
 
@@ -18301,7 +18316,7 @@
         (Extract): Fixed bug related to pressure interpolation for the
         variable T case.
 
-2003-02-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-02-28  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-464
 
@@ -18430,7 +18445,7 @@
         * doc/uguide/ppath.tex: Added some missing terms in some equations.
         Some small polishing of the text.
 
-2003-02-25  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-02-25  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-459
 
@@ -18480,7 +18495,7 @@
         * doc/uguide/ppath.tex: Modified existing text as a first step to
         finish this chapter in AUG.
 
-2003-02-11  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-02-11  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-453
 
@@ -18623,7 +18638,7 @@
         * m_scatrte.cc (i_fieldUpdate1D): Modified. The distinction between
         uplooking and downlooking cases is now done using the grid positions
         returned by the ppath_step_agenda instead of viewing directions (like
-        in i_fieldUpdata3D). Now, also viewing directions close to 90° can be
+        in i_fieldUpdata3D). Now, also viewing directions close to 90ï¿½ can be
         handled. Interpolation in altitude is done logarithmically (was linear
         before).
 
@@ -18751,7 +18766,7 @@
         test). It works, so we can be quite sure, that the 3D scattering 
         implementation is correct!
 
-2003-01-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2003-01-28  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-433
     
@@ -19527,8 +19542,8 @@
 
         * src/m_cloudbox.cc (CloudboxGetIncoming): Fixed a bug in the
         3D part of the function.
-        The sensor azimuth angle grid goes from -180° to + 180° whereas 
-        the scattering azimuth angle grid is defined from 0° to 360°. 
+        The sensor azimuth angle grid goes from -180ï¿½ to + 180ï¿½ whereas 
+        the scattering azimuth angle grid is defined from 0ï¿½ to 360ï¿½. 
         This caused a problem when calling RteCalc for all directions.
 
         * src/m_scatrte.cc (i_fieldUpdate3D): Minor modification.
@@ -20092,7 +20107,7 @@
         
         * src/test_complex.cc: Added some new test examples on complex numbers.
         
-2002-12-16  Mattias Ekström  <ekstrom@rss.chalmers.se>
+2002-12-16  Mattias Ekstrï¿½m  <ekstrom@rss.chalmers.se>
 
         * arts-1-1-336
 
@@ -21896,7 +21911,7 @@
         * arts-1-1-232
 
         * src/m_scatrte.cc (scat_fieldCalc): Bug fixed. The scattering
-        intergral was only calculated for 180° zenith angle, because 
+        intergral was only calculated for 180ï¿½ zenith angle, because 
         because *pha_mat_spt* was not calculated in this function.
         (i_fieldUpdate1D): Fixed another bug here. Insted of I_0 on the 
         gridpoints layer mean values were taken.
@@ -22090,7 +22105,7 @@
         boundary conditions right. Some loops are rearranged so that the 
         function is more efficient. The values of the zenith angles are taken 
         as criterion for upward or downward propagation.
-        The special case (zenith angle a bit higher than 90°) is still not 
+        The special case (zenith angle a bit higher than 90ï¿½) is still not 
         included. Here the first intersection point is at the same altitude
         as the initial point.
         
@@ -22700,7 +22715,7 @@
 
         * doc/uguide/scattering.tex: Recommitted changes (see
         arts-1-1-164), probably I forgot to save before committing
-        1-1-164·...
+        1-1-164ï¿½...
 
 2002-06-25  Sreerekha T.R.  <rekha@uni-bremen.de>
 
@@ -24694,7 +24709,7 @@
 
         * arts-1-1-42
 
-        * Please read, comment and/or correct what I have written in
+        *ï¿½Please read, comment and/or correct what I have written in
         Chapter 2 of AUG.
 
         * doc/uguide/main.tex: Included the epic and eepic packages for drawing

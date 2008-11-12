@@ -238,9 +238,9 @@ public:
   /** Mass of the isotope. (In unified atomic mass units u)
       If I understand this correctly this is the same as g/mol. */
   const Numeric&      Mass()         const { return mmass;    }
-  /** MYTRAN2 tag numers for all isotopes. -1 means not included. */
+  /** MYTRAN2 tag numbers for all isotopes. -1 means not included. */
   const Index&          MytranTag()    const { return mmytrantag;    }
-  /** HITRAN-96 tag numers for all isotopes. -1 means not included. */
+  /** HITRAN-96 tag numbers for all isotopes. -1 means not included. */
   const Index&          HitranTag()    const { return mhitrantag;    }
   /** JPL tag numbers for all isotopes. Empty array means not included. There
       can be more than one JPL tag for an isotopic species, because in
