@@ -7,10 +7,15 @@
 #
 # This expects a number of workspace variables to exist and to be set:
 # 
-# f_backend_file                (String) Nominal channel frequencies. 
-# backend_channel_response_file (String) Instrument response functions.
-# channels                      (ArrayOfIndex) Which channels you want.
-# hitran_file                   (String) Name of HITRAN catalogue file.
+# satellite   (String) 	     The name of the satellite. Is
+#                      	     used internally to construct
+#                      	     file names of the instrument
+#                      	     description files
+#                      	     f_backend_file and
+#                      	     backend_channel_response_file. 
+# channels    (ArrayOfIndex) Which channels you want.
+# views       (ArrayOfIndex) Which views you want.
+# hitran_file (String)       Name of HITRAN catalogue file.
 
 
 Arts2 {
@@ -65,6 +70,7 @@ abs_linesReadFromHitran2004( abs_lines,
 
 abs_lines_per_speciesCreateFromLines
 
+
 # WARNING: If you redifine abs_species, and want to do a line-by-line
 # calculation, you also have to call
 # abs_lines_per_speciesCreateFromLines again.
@@ -75,28 +81,91 @@ abs_lines_per_speciesCreateFromLines
 
 # Definition of sensor position and LOS
 # ---
-# FIXME: sensor_los probably has to be adjusted.
-ReadXML( sensor_los, "hirs.sensor_los.xml" )
+ReadXML( sensor_los, "hirs/hirs.sensor_los.xml" )
+
+# Select those views that are requested by the user
+Select( sensor_los, sensor_los, views )
+
 nrowsGet( nrows, sensor_los )
 ncolsGet( ncols, sensor_los )
 MatrixSetConstant( sensor_pos, nrows, ncols, 850e3 )
 sensor_posAddRgeoid
 
-# Instead of the rest of the sensor setup, we just read the optimize
-# frequency grid and weights.
 
-ReadXML( f_grid, "FIXME" )
-ReadXML( pseudo_k_weights, "FIXME" )
+# Start sensor response setup
+# ---
+
+# Normalise the sensor response
+# ---
+IndexSet( sensor_norm, 1 )
+
+# Antenna
+# ---
+AntennaOff
+
+
+# See setup_input.m for details around other sensor variables 
+
+
+# Construct names of sensor description files:
+ 
+# Nominal channel frequencies:
+StringCreate( f_backend_file)
+StringSet(    f_backend_file, "hirs/")
+Append(       f_backend_file, satellite)
+# FIXME: Remove this when using constant in Append works:
+StringCreate( dummy )
+StringSet(    dummy,          "_HIRS.f_backend.xml")
+#
+Append(       f_backend_file, dummy)
+
+# Channel response functions:
+StringCreate( backend_channel_response_file)
+StringSet(    backend_channel_response_file, "hirs/")
+Append(	      backend_channel_response_file, satellite)
+# FIXME: Remove this when using constant in Append works:
+StringSet(    dummy,          "_HIRS.backend_channel_response.xml")
+#
+Append(	      backend_channel_response_file, dummy)
+
+
+# Read also the specific input files for fast calculation, the
+# pseudo-K frequency grid and weights.
+ 
+# Frequency grid
+StringCreate( f_grid_file)
+StringSet(    f_grid_file, "hirs/")
+Append(       f_grid_file, satellite)
+# FIXME: Remove this when using constant in Append works:
+StringCreate( dummy )
+StringSet(    dummy,          "_HIRS.f_grid_fast.xml")
+#
+Append(       f_grid_file, dummy)
+
+# Weights associated with each frequency
+StringCreate( weights_file)
+StringSet(    weights_file, "hirs/")
+Append(	      weights_file, satellite)
+# FIXME: Remove this when using constant in Append works:
+StringSet(    dummy,          "_HIRS.W_fast.xml")
+#
+Append(	      weights_file, dummy)
+
+
+ReadXML( f_grid, f_grid_file )
+
+SparseCreate(pseudo_k_weights)
+ReadXML( pseudo_k_weights, weights_file )
 
 
 # Spectrometer:
 #
-VectorCreate(f_backend_temp)
-ReadXML( f_backend_temp, f_backend_file )
+#VectorCreate(f_backend_temp)
+#ReadXML( f_backend_temp, f_backend_file )
 
 # Select the desired channels:
 #
-Select(f_backend, f_backend_temp, channels)
+#Select(f_backend, f_backend_temp, channels)
 # FIXME: Still to do: Kick out those frequencies that are not used by
 # the selected channels. This has to be done for f_grid and pseudo_k_weights.
 
