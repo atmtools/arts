@@ -263,7 +263,7 @@ void define_agenda_data()
         "*rte_gp* variables to the position and line-of-sight for which the\n"
         "scattered radiation shall be determined. \n"
         ),
-       OUTPUT( "iy", "ppath", "rte_pos", "rte_los" ),
+       OUTPUT( "iy" ),
        INPUT( "ppath", "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", 
               "rte_gp_lon" )));
 
@@ -302,7 +302,9 @@ void define_agenda_data()
        ),
        OUTPUT( "jacobian" ),
        INPUT()));
-       
+
+//  Keep this (PE 081113)
+//       
 //   agenda_data.push_back
 //     (AgRecord
 //      ( NAME( "jacobian_particle_update_agenda" ),

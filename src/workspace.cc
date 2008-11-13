@@ -2273,10 +2273,10 @@ void Workspace::define_wsv_data()
        "GField3 for each particle type which contains the data and \n"
        "also the grids.\n"
        "\n"
-       "Usage:      Used in the methods *ParticleTypeAdd* and \n"
-       "                  *ParticleTypeAddAll*\n"
+       "Usage: Used in the methods *ParticleTypeAdd* and \n"
+       "       *ParticleTypeAddAll*\n"
        "\n"
-       "Unit:        m^-3\n"
+       "Unit:  m^-3\n"
        "\n"
        "Size:  Array[N_pt]\n"
        "       GField3 \n "
@@ -2426,7 +2426,17 @@ void Workspace::define_wsv_data()
     ( NAME( "ppath_transmissions" ),
       DESCRIPTION
       (
-        "?\n"
+        "Transmissions along the propagation path (ppath).\n"
+        "\n"
+        "The variable stores the transmission between neighbouring points\n"
+        "along the propagation path. The transmission is stored as a Muller\n"
+        "matrix and the case of polarised extinction is handled.\n"
+        "\n"
+        "Usage: Used by raditaive transfer functions.\n"
+        "\n"
+        "Size: [ np-1, nf, stokes_dim, stokes_dim ] where np is the number of\n"
+        "      of points of the propagation path and nf is the number of\n"
+        "      frequencies.\n"
        ),
       GROUP( "Tensor4" )));
 

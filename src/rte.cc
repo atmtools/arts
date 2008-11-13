@@ -1066,21 +1066,21 @@ void rte_step_std_clearsky(
   \author Patrick Eriksson
   \date   2005-05-19
 */
-void rte_std(Workspace&               ws,
-             Matrix&                  iy,
-             Tensor4&                 ppath_transmissions,
-             ArrayOfTensor4&          diy_dvmr,
-             ArrayOfTensor4&          diy_dt,
-       const Ppath&                   ppath,
-       const ArrayOfPpath&            ppath_array, 
-       const Index&                   ppath_array_index,
-       const Vector&                  f_grid,
-       const Index&                   stokes_dim,
-       const Agenda&                  emission_agenda,
-       const Agenda&                  abs_scalar_gas_agenda,
-       const ArrayOfIndex&            rte_do_vmr_jacs,
-       const Index&                   rte_do_t_jacs,
-       const bool&                    do_transmissions )
+void rte_std(Workspace&        ws,
+             Matrix&           iy,
+             Tensor4&          ppath_transmissions,
+             ArrayOfTensor4&   diy_dvmr,
+             ArrayOfTensor4&   diy_dt,
+       const Ppath&            ppath,
+       const ArrayOfPpath&     ppath_array, 
+       const Index&            ppath_array_index,
+       const Vector&           f_grid,
+       const Index&            stokes_dim,
+       const Agenda&           emission_agenda,
+       const Agenda&           abs_scalar_gas_agenda,
+       const ArrayOfIndex&     rte_do_vmr_jacs,
+       const Index&            rte_do_t_jacs,
+       const bool&             do_transmissions )
 {
   // Relevant checks are assumed to be done in RteCalc
 
