@@ -373,7 +373,7 @@
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>false</runAllBuilders>
 </target>
-<target name="arts-par" path="src" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<target name="arts-j10" path="src" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
 <buildArguments>-j10</buildArguments>
 <buildTarget>arts</buildTarget>
@@ -389,7 +389,23 @@
 <useDefaultCommand>true</useDefaultCommand>
 <runAllBuilders>false</runAllBuilders>
 </target>
+<target name="arts-j4" path="src" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<buildCommand>make</buildCommand>
+<buildArguments>-j4</buildArguments>
+<buildTarget>arts</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>false</useDefaultCommand>
+<runAllBuilders>false</runAllBuilders>
+</target>
 <target name="check" path="tests" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<buildCommand>make</buildCommand>
+<buildArguments/>
+<buildTarget>check</buildTarget>
+<stopOnError>true</stopOnError>
+<useDefaultCommand>false</useDefaultCommand>
+<runAllBuilders>false</runAllBuilders>
+</target>
+<target name="check-j10" path="tests" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
 <buildArguments>-j10</buildArguments>
 <buildTarget>check</buildTarget>
@@ -397,7 +413,7 @@
 <useDefaultCommand>false</useDefaultCommand>
 <runAllBuilders>false</runAllBuilders>
 </target>
-<target name="all-par" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+<target name="all-j10" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>
 <buildArguments>-j10</buildArguments>
 <buildTarget>all</buildTarget>
@@ -419,7 +435,7 @@
 <buildTarget>maintainer-clean</buildTarget>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>true</useDefaultCommand>
-<runAllBuilders>true</runAllBuilders>
+<runAllBuilders>false</runAllBuilders>
 </target>
 <target name="all" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>make</buildCommand>

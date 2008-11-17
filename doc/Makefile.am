@@ -11,6 +11,6 @@ SUBDIRS        = icons doxygen uguide
 
 artsdocdir = $(pkgdatadir)/doc
 
-EXTRA_DIST = index.html.in arts.css
+EXTRA_DIST = index.html index.html.in arts.css
 
 artsdoc_DATA = index.html arts.css
