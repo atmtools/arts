@@ -16,7 +16,12 @@
 # channels    (ArrayOfIndex) Which channels you want.
 # views       (ArrayOfIndex) Which views you want.
 # hitran_file (String)       Name of HITRAN catalogue file.
+# f_grid_spacing (Numeric)   Frequency grid spacing.
 
+# Actually the fast calculation uses a pre-defined f_grid, so that
+# f_grid_spacing would not be necessary. However, we first generate
+# a template sensor_response with the normal sensor_responseBackend
+# function, and for that we need it.
 
 Arts2 {
 
@@ -35,17 +40,6 @@ StringSet( jacobian_unit, "RJBT" )
 # 2. Spectroscopy
 #----------------
 
-# We take a smaller cutoff, since the line-by-line calculation is 
-# only for O3, where only the local lines matter.
-# Could be speed-optimized further by selecting only the relevant 
-# lines from the line list.
-ArrayOfLineshapeSpecCreate( abs_lineshapeDefine )
-
-#abs_lineshapeDefine( abs_lineshapeDefine, 
-#                     "Voigt_Kuntz6", 
-#                     "VVH", 
-#                     750e9 )
-
 SpeciesSet( abs_species, [ "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100", 
 	                   "O3", 
                            "CO2, CO2-CKDMT100", 
@@ -61,6 +55,8 @@ abs_lineshape_per_tgDefine( abs_lineshape,
 			     "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6"],
                             ["VVH", "VVH", "VVH", "VVH", "VVH", "VVH", "VVH", "VVH"],
                             [750e9, 750e7, 750e7, 750e7, 750e7, 750e7, 750e7, 750e7] )
+
+# FIXME: Cutoff values for all species except H2O should be checked/verified.
 
 # Read HITRAN catalog:
 abs_linesReadFromHitran2004( abs_lines,
@@ -129,6 +125,15 @@ StringSet(    dummy,          "_HIRS.backend_channel_response.xml")
 Append(	      backend_channel_response_file, dummy)
 
 
+
+# Spectrometer:
+#
+ReadXML( f_backend, f_backend_file )
+ReadXML( backend_channel_response,
+         backend_channel_response_file )
+
+
+
 # Read also the specific input files for fast calculation, the
 # pseudo-K frequency grid and weights.
  
@@ -152,24 +157,44 @@ StringSet(    dummy,          "_HIRS.W_fast.xml")
 Append(	      weights_file, dummy)
 
 
+# Frequency grid
+#
+# We need this here, so that sensor_responseBackend works
+# correctly. Afterwards, we replace it by the optimized frequency
+# grid. 
+f_gridFromSensorHIRS( f_grid,
+                      f_backend, backend_channel_response,
+		      f_grid_spacing  )
+
+
+# Construct sensor response from all these inputs:
+#
+sensor_responseInit
+sensor_responseBackend
+
+# Read in optimized frequency grid and pseudo-k weights:
+
 ReadXML( f_grid, f_grid_file )
 
 SparseCreate(pseudo_k_weights)
 ReadXML( pseudo_k_weights, weights_file )
 
 
-# Spectrometer:
-#
-#VectorCreate(f_backend_temp)
-#ReadXML( f_backend_temp, f_backend_file )
 
-# Select the desired channels:
-#
-#Select(f_backend, f_backend_temp, channels)
+# Now we have to replace the actual response matrix by the pseudo_k_weights:
+#WriteXML(output_file_format, sensor_response)
+Copy(sensor_response, pseudo_k_weights)
+
+
 # FIXME: Still to do: Kick out those frequencies that are not used by
 # the selected channels. This has to be done for f_grid and pseudo_k_weights.
 
 
+# End of sensor response setup
+
+
+# Compact line list, to kick out lines that are outside there 
+# cutoff range for all frequencies.
 abs_lines_per_speciesCompact
 
 # If there was a method to convert abs_lines_per_species back to
@@ -178,16 +203,5 @@ abs_lines_per_speciesCompact
 # for all the different versions of the HIRS sensor. Thus, one would
 # also have to perform a merge of all the different resulting line
 # lists. :-(
-
-
-# Construct sensor response from all these inputs:
-#
-sensor_responseInit
-sensor_responseBackend
-# FIXME: Now modify sensor_response, based on pseudo_k_weights.
-
-
-# End of sensor response setup
-
 
 }

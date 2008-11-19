@@ -17,7 +17,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.11.38)
+AM_INIT_AUTOMAKE(arts,1.11.39)
 
 
 dnl Put the ACLOCAL flags in the Makefile

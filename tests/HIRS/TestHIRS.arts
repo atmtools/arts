@@ -27,8 +27,8 @@ StringSet(satellite, "NOAA14")
 # ---
 # WATCH OUT! We use the usual zero-based ARTS indexing here, so index
 # 11 is actually channel 12, etc. 
-#ArrayOfIndexSet(channels, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18])
-ArrayOfIndexSet(channels, [11])
+ArrayOfIndexSet(channels, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18])
+#ArrayOfIndexSet(channels, [11])
 
 
 # Select here which views you want
@@ -51,9 +51,9 @@ StringSet(hitran_file,"/storage1/pool/lookup2/hitran2004/HITRAN04.par")
 # Set frequency grid spacing
 # (See comments in hirs_reference.arts concerning useful values here)
 # ---
-NumericSet(f_grid_spacing, 5e9)
+NumericSet(f_grid_spacing, 5e8)
 
-INCLUDE "hirs/hirs_reference.arts"
+INCLUDE "hirs/hirs_fast.arts"
 
 
 # Set up absorption

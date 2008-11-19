@@ -549,16 +549,32 @@ Sparse& Sparse::operator=(const Sparse& m)
   // The scalar delete operator is the correct one to use here, since
   // only one vector object has been allocated by new in each
   // case. (That the object itself is a vector does not matter.)
-  delete mdata;
-  delete mrowind;
-  delete mcolptr;
+  //
+  // Caveat: We should delete only if there really *is* previous
+  // content, otherwise we will generate a core dump.
+  if (mdata!=NULL)
+    {
+      assert (mrowind!=NULL);
+      assert (mcolptr!=NULL);
 
-  mdata   = new vector<Numeric>(*m.mdata);
-  mrowind = new vector<Index>(*m.mrowind);
-  mcolptr = new vector<Index>(*m.mcolptr);
+      delete mdata;
+      delete mrowind;
+      delete mcolptr;
 
-  mrr     = m.mrr;
-  mcr     = m.mcr;
+      mdata   = NULL;
+      mrowind = NULL;
+      mcolptr = NULL;
+    }
+
+  mrr = m.mrr;
+  mcr = m.mcr;
+
+  if (m.mdata!=NULL)
+    {
+      mdata   = new vector<Numeric>(*m.mdata);
+      mrowind = new vector<Index>(*m.mrowind);
+      mcolptr = new vector<Index>(*m.mcolptr);
+    }
 
   return *this;
 }
