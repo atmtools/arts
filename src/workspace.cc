@@ -2113,10 +2113,12 @@ void Workspace::define_wsv_data()
        "Output file format. \n"
        "\n"
        "This variable sets the format for output files. It could be set to\n"
-       "\"ascii\" or \"binary\".\n"
+       "\"ascii\" for plain xml files, \"zascii\" for zipped xml files, or\n"
+       "\"binary\".\n"
        "\n"
        "To change the value of this variable use the workspace methods\n"
-       "*output_file_formatSetAscii* and *output_file_formatSetBinary*\n"
+       "*output_file_formatSetAscii*, *output_file_formatSetZippedAscii*, and\n"
+       "*output_file_formatSetBinary*\n"
        ),
       GROUP( "String" )));
 

@@ -8505,17 +8505,6 @@ md_data_raw.push_back
          "\n"
          "If the filename is omitted, the variable is written\n"
          "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Usage example:\n"
-         "\n"
-         "WriteXML(f_grid){\"\"}\n"
-         "Will write the frequency grid *f_grid* to the default file.\n"
-         "\n"
-         "Supergeneric input:\n"
-         "   Any     : The variable to write.\n"
-         "\n"
-         "Keywords:\n"
-         "   filename : Name of the output file.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -8554,12 +8543,6 @@ md_data_raw.push_back
          "\n"
          "This means that *filename* shall here not include the .xml\n"
          "extension. Omitting filename works as for *WriteXML*.\n"
-         "\n"
-         "Supergeneric input:\n"
-         "   Any     : The variable to write.\n"
-         "\n"
-         "Keywords:\n"
-         "   filename : Name of the output file.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
