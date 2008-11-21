@@ -1254,11 +1254,17 @@ void abs_lookupSetupBatch(// WS Output:
       // There is a catch here: We can only use the part of abs_p that
       // is inside the current pressure grid p_grid, otherwise we
       // would have to extrapolate.
-      const Numeric eps = (log_p_grid[0]-log_p_grid[1])/2.1;
+      // The eps_bottom and eps_top account for the little bit of
+      // extrapolation that is allowed.  
+
+      const Numeric eps_bottom = (log_p_grid[0]-log_p_grid[1])/2.1;
       Index first_p=0;
-      while (log_abs_p[first_p] > log_p_grid[0]+eps) ++first_p;
+      while (log_abs_p[first_p] > log_p_grid[0]+eps_bottom) ++first_p;
+
+      const Numeric eps_top = (log_p_grid[log_p_grid.nelem()-2]-log_p_grid[log_p_grid.nelem()-1])/2.1;
       Index last_p=log_abs_p.nelem()-1;
-      while (log_abs_p[last_p] < log_p_grid[log_p_grid.nelem()-1]-eps) --last_p;
+      while (log_abs_p[last_p] < log_p_grid[log_p_grid.nelem()-1]-eps_top) --last_p;
+
       const Index extent_p = last_p - first_p + 1;
       
       // This was too complicated to get right:
