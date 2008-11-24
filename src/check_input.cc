@@ -326,6 +326,155 @@ void chk_if_decreasing(
 
 
 /*===========================================================================
+  === Functions for interpolation grids
+  ===========================================================================*/
+
+//! Check interpolation grids
+/*!
+  This function checks if old and new grid for an interpolation are
+  ok. If not, it throws a detailed runtime error message. This is
+  intended for workspace method input variable checking. 
+  
+  \param which_interpolation A string describing the interpolation for
+                             which the grids are intended. 
+  \param old_grid            The original grid.
+  \param new_grid            The new grid.
+  \param extpolfac           The extrapolation fraction. See gridpos function
+                             for details. Has a default value, which is
+                             consistent with gridpos.  
+  
+  \author Stefan Buehler
+  \date   2008-11-24 
+*/
+void chk_interpolation_grids(const String&   which_interpolation,
+                             ConstVectorView old_grid,
+                             ConstVectorView new_grid,
+                             const Numeric&  extpolfac )
+{
+  const Index n_old = old_grid.nelem();
+
+  ostringstream os;
+  os << "There is a problem with the grids for the\n"
+     << "following interpolation: " << which_interpolation << ".\n";
+
+  // Old grid must have at least 2 elements:
+  if (n_old < 2)
+    {
+      os << "The original grid must have at least 2 elements.";
+      throw runtime_error( os.str() );
+    }
+  
+  // Decide whether we have an ascending or descending grid:
+  bool ascending = ( old_grid[0] <= old_grid[1] );
+
+  // Minimum and maximum allowed value from old grid. (Will include
+  // extrapolation tolerance.)
+  Numeric og_min, og_max;
+
+  if (ascending)  
+    {
+      // Old grid must be strictly increasing (no duplicate values.)
+      if ( !is_increasing(old_grid) )
+        {
+          os << "The original grid must be strictly sorted\n"
+             << "(no duplicate values). Yours is:\n"
+             << old_grid << ".";
+          throw runtime_error( os.str() );
+        }
+
+      // Limits of extrapolation. 
+      og_min = old_grid[0] - 
+               extpolfac * ( old_grid[1] - old_grid[0] );
+      og_max = old_grid[n_old-1] + 
+               extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+    }
+  else
+    {
+      // Old grid must be strictly decreasing (no duplicate values.)
+      if ( !is_decreasing(old_grid) )
+        {
+          os << "The original grid must be strictly sorted\n"
+             << "(no duplicate values). Yours is:\n"
+             << old_grid << ".";
+          throw runtime_error( os.str() );
+        }
+
+      // The max is now the first point, the min the last point!
+      // I think the sign is right here...
+      og_max = old_grid[0] - 
+               extpolfac * ( old_grid[1] - old_grid[0] );
+      og_min = old_grid[n_old-1] + 
+               extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
+    }
+  
+  // Min and max of new grid:
+  const Numeric ng_min = min(new_grid);
+  const Numeric ng_max = max(new_grid);
+
+  // New grid must be inside old grid (plus extpolfac).
+  // (Values right on the edge (ng_min==og_min) are still allowed.)
+
+  if (ng_min < og_min)
+    {
+      os << "The minimum of the new grid must be inside\n"
+         << "the original grid. (We allow a bit of extrapolation,\n"
+         << "but not so much).\n"
+         << "Minimum of original grid:           " << min(old_grid) << "\n"
+         << "Minimum allowed value for new grid: " << og_min << "\n"
+         << "Actual minimum of new grid:         " << ng_min;
+      throw runtime_error( os.str() );
+    }
+
+  if (ng_max > og_max)
+    {
+      os << "The maximum of the new grid must be inside\n"
+         << "the original grid. (We allow a bit of extrapolation,\n"
+         << "but not so much).\n"
+         << "Maximum of original grid:           " << max(old_grid) << "\n"
+         << "Maximum allowed value for new grid: " << og_max << "\n"
+         << "Actual maximum of new grid:         " << ng_max;
+      throw runtime_error( os.str() );
+    }
+
+  // If we get here, than everything should be fine.
+}
+
+
+//! Check interpolation grids
+/*!
+  This function checks if old and new grid for an interpolation are
+  ok. If not, it throws a detailed runtime error message. This is
+  intended for workspace method input variable checking. 
+  
+  This is for the special case that the new grid is just a single
+  Numeric, instead of a Vector. ("Red" interpolation.)
+  It just calles the other more general chk_interpolation_grids
+  function for which both grid arguments are vectors.
+
+  \param which_interpolation A string describing the interpolation for
+                             which the grids are intended. 
+  \param old_grid            The original grid.
+  \param new_grid            The new grid.
+  \param extpolfac           The extrapolation fraction. See gridpos function
+                             for details. Has a default value, which is
+                             consistent with gridpos.  
+  
+  \author Stefan Buehler
+  \date   2008-11-24 
+*/
+void chk_interpolation_grids(const String&   which_interpolation,
+                             ConstVectorView old_grid,
+                             const Numeric&  new_grid,
+                             const Numeric&  extpolfac )
+{
+  Vector v(1, new_grid);
+  chk_interpolation_grids(which_interpolation,
+                          old_grid,
+                          v,
+                          extpolfac );
+}
+
+/*===========================================================================
   === Functions for Matrix
   ===========================================================================*/
 

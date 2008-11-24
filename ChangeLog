@@ -1,3 +1,12 @@
+2008-11-24  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* src/check_input.{cc,h} (chk_interpolation_grids): Added this
+	function. It checks if old and new grid for an interpolation are
+	ok. If not, it throws a detailed runtime error message. This is
+	intended for workspace method input variable checking. 
+	There is also a separate function that can be used in the case
+	that the new grid is just a scalar.
+
 2008-11-21  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-11-41

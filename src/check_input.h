@@ -95,6 +95,16 @@ void chk_if_decreasing(
         const String&      x_name,
         ConstVectorView    x );
 
+void chk_interpolation_grids(const String&   which_interpolation,
+                             ConstVectorView old_grid,
+                             ConstVectorView new_grid,
+                             const Numeric&  extpolfac=0.5 );
+
+void chk_interpolation_grids(const String&   which_interpolation,
+                             ConstVectorView old_grid,
+                             const Numeric&  new_grid,
+                             const Numeric&  extpolfac=0.5 );
+
 void chk_matrix_ncols( 
         const String&      x_name,
         ConstMatrixView    x,
