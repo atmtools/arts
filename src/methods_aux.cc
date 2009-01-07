@@ -427,7 +427,7 @@ void define_md_map()
   // md_data is constant here and should never be changed
   extern Array<MdRecord> md_data;
   extern map<String, Index> MdMap;
-  extern const ArrayOfString wsv_group_names;
+  DEBUG_ONLY( extern const ArrayOfString wsv_group_names; )
 
   // Check that md_data and wsv_group_names have already be defined:
   assert( 0 != md_data.nelem() );
