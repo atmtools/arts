@@ -426,11 +426,12 @@ void Cloudbox_ppathCalc(Workspace&      ws,
                                lat_grid, lon_grid, z_field, r_geoid, z_surface,
                                ppath_step_agenda );
 
-      // Before everything is tested carefully, we consider more than 1000
+      // Before everything is tested carefully, we consider more than 5000
       // path points to be an indication on that the calcululations have
       // got stuck in an infinite loop.
       if( istep > 5000 )
         {
+          WriteXML( "ascii", ppath_step, "", "Ppath", "bugreport_ppath.xml" );
           throw runtime_error(
              "5000 path points have been reached. Is this an infinite loop?" );
         }
@@ -1228,7 +1229,6 @@ void mcPathTraceGeneral(Workspace&            ws,
   Numeric r = rng.draw();
   while ((evol_op(0,0)>r)&(!termination_flag))
     {
-
       istep++;
       //we consider more than 5000
       // path points to be an indication on that the calcululations have

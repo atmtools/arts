@@ -835,7 +835,7 @@ void p2gridpos( ArrayOfGridPos& gp,
 
   transform( logold, log, old_pgrid );
   transform( lognew, log, new_pgrid );
-  
+
   gridpos( gp, logold, lognew, extpolfac );
 }
 

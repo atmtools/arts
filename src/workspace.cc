@@ -1546,6 +1546,8 @@ void Workspace::define_wsv_data()
       ),
       GROUP( "ArrayOfArrayOfIndex" )));
 
+//  Keep this (PE 081113)
+//
 //  wsv_data.push_back
 //    (WsvRecord
 //     ( NAME( "jacobian_particle_update_agenda" ),
@@ -2325,30 +2327,13 @@ void Workspace::define_wsv_data()
        "one part.\n"
        "\n"
        "This variable is not always filled. It used as part of analytical \n"
-       "jacobian calculations for gases and temperature. This variable can\n"
-       "also be used for making plots. To force this variable to be filled,\n"
-       "activate *ppath_array_do*.\n"
+       "jacobian calculations for gases and temperature.\n"
        "\n"
        "See the user guide for further details.\n"
        "\n"
        "Usage: See above.\n"
        ),
       GROUP( "ArrayOfPpath" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ppath_array_do" ),
-      DESCRIPTION
-      (
-       "Flag to fill *ppath_array*.\n"
-       "\n"
-       "Set this variable to 1 to fill *ppath_array* even if this is not \n"
-       "needed for internal purposes. Note that this variable is set to 0 by\n"
-       "*jacobianOff/Init*.\n"
-       "\n"
-       "Usage: Set by user of jacobian methods.\n"
-       ),
-      GROUP( "Index" )));
 
   wsv_data.push_back
    (WsvRecord

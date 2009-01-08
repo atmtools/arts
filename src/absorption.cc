@@ -848,7 +848,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is)
                                    warned_missing.end(),
                                    mo) )
                 {
-                  out0 << "Warning: HITRAN molecule number mo = " << mo << " is not "
+                  out1 << "Warning: HITRAN molecule number mo = " << mo << " is not "
                        << "known to ARTS.\n";
                   warned_missing.push_back(mo);
                }
