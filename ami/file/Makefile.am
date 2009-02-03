@@ -13,12 +13,4 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-EXTRA_DIST = \
-	combine_lines.m \
-	filedate.m \
-	filter_lines.m \
-	read_linefile.m \
-	read_verdandi.m \
-	vtag2arts.data \
-	vtag2arts.m \
-	write_linefile.m
+EXTRA_DIST = *.m
