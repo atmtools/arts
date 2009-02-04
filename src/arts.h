@@ -106,6 +106,7 @@
 #define arts_h
 
 #include <cstddef>
+#include <cstdlib>
 
 using namespace std;
 

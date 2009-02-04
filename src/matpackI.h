@@ -94,6 +94,7 @@
 #ifndef matpackI_h
 #define matpackI_h
 
+#include <iostream>
 #include <iomanip>
 #include "arts.h"
 

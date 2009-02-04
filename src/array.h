@@ -29,6 +29,8 @@
 
 #include <vector>
 #include <iomanip>
+#include <iostream>
+#include <climits>
 #include "arts.h"
 
 /** This can be used to make arrays out of anything. 

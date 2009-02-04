@@ -1,5 +1,17 @@
 2009-02-04  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-0-214
+
+	* Fix compilation with gcc 4.3:
+
+	* src/matpackI.h, src/array.h: Include iostream.
+
+	* src/array.h: Include climits.
+
+	* src/arts.h: Include cstdlib.
+
+2009-02-04  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-0-213
 
 	* ami/file/Makefile.am: Add missing vtag2arts.data to EXTRA_DIST.
