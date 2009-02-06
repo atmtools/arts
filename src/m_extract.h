@@ -30,8 +30,8 @@
 #ifndef m_extract_h
 #define m_extract_h
 
-#include <array.h>
-#include <exceptions.h>
+#include "array.h"
+#include "exceptions.h"
 #include "matpackV.h"
 #include "gridded_fields.h"
 

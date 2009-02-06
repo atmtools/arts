@@ -218,7 +218,6 @@ libmethods_a_CXXFLAGS = $(CXXFLAGS_NOOPT) $(WARNINGCFLAGS)
 libmethods_a_SOURCES = \
 	array.h \
 	arts.h \
-	auto_workspace.h \
 	make_array.h \
 	methods.h \
 	methods.cc \
