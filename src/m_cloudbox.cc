@@ -1101,9 +1101,6 @@ void pnd_fieldCalc(//WS Output:
       // Loop over the particle types:
       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
         {
-          cout << pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID) << "\n\n";
-          cout << p_grid_cloud << "\n\n";
-
           // Calculate grid positions:
           p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID), p_grid_cloud);
          
