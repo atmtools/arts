@@ -2368,9 +2368,9 @@ void ScatteringDoit(Workspace& ws,
   for (Index f_index = 0; f_index < nf; f_index ++)
     {
       out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
-      doit_mono_agendaExecute(ws, doit_i_field, scat_i_p, scat_i_lat,
+      doit_mono_agendaExecute(l_ws, doit_i_field, scat_i_p, scat_i_lat,
                               scat_i_lon, doit_i_field1D_spectrum,
-                              f_index, doit_mono_agenda);
+                              f_index, l_doit_mono_agenda);
     }
 }
 
