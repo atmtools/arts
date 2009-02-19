@@ -1,3 +1,14 @@
+2009-02-19  Oliver Lemke  <olemke@core-dump.info>
+
+        * arts-1-11-49
+
+	* src/xml_io.cc (xml_read_header_from_stream):
+
+	Ignore whitespace at the beginning of XML files (in front of the
+	'<?xml'). This makes the ARTS reading routine consistent with xmlLoad
+	in atmlab.
+	Bug reported by Ajil.
+
 2009-02-18  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-11-48
