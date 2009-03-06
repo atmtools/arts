@@ -22,14 +22,14 @@ EXTRA_DIST = \
 
 bin_PROGRAMS = arts
 
-arts_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd) $(netcdf_ldadd)
+arts_LDADD = libartscore.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd) $(netcdf_ldadd)
 arts_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 arts_SOURCES = main.cc
 
-libarts_a_CFLAGS = $(CFLAGS_OPT) $(WARNINGCFLAGS)
-libarts_a_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
-libarts_a_ldflags = 
-libarts_a_SOURCES = \
+libartscore_a_CFLAGS = $(CFLAGS_OPT) $(WARNINGCFLAGS)
+libartscore_a_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
+libartscore_a_ldflags = 
+libartscore_a_SOURCES = \
 	absorption.h \
 	absorption.cc \
 	abs_species_tags.h \
@@ -78,6 +78,8 @@ libarts_a_SOURCES = \
 	jacobian.h \
 	legendre.cc \
 	legendre.h \
+	math_funcs.h \
+	math_funcs.cc \
 	m_abs.cc \
 	m_agenda.cc \
 	m_append.h \
@@ -171,7 +173,7 @@ libarts_a_SOURCES = \
 
 if ENABLE_NETCDF
 netcdf_ldadd = -lnetcdf -lnetcdf_c++
-libarts_a_SOURCES += \
+libartscore_a_SOURCES += \
 	nc_io.h \
 	nc_io.cc \
 	nc_io_array_types.cc \
@@ -195,8 +197,6 @@ libmatpack_a_SOURCES = \
 	make_array.h \
 	make_vector.h \
 	make_vector.cc \
-	math_funcs.h \
-	math_funcs.cc \
 	matpack.h \
 	matpackI.h \
 	matpackI.cc \
@@ -239,7 +239,7 @@ libpartition_function_data_a_SOURCES = \
 	partition_function_data.cc
 
 noinst_LIBRARIES = \
-	libarts.a \
+	libartscore.a \
 	libcontinua.a \
 	libmatpack.a \
 	libmethods.a \
@@ -263,7 +263,7 @@ noinst_LIBRARIES += libdisort.a
 
 disort_a_ldadd = -lf2c libdisort.a
 
-libarts_a_SOURCES += disort_DISORT.h
+libartscore_a_SOURCES += disort_DISORT.h
 
 libdisort_a_CFLAGS = $(CFLAGS_OPT) $(subst -Werror,,$(WARNINGCFLAGS))
 libdisort_a_SOURCES = \
@@ -425,17 +425,17 @@ test_disort_SOURCES = \
 
 endif
 
-test_binaryio_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd) $(netcdf_ldadd)
-test_binaryio_LDFLAGS = $(libarts_a_ldflags)
+test_binaryio_LDADD = libartscore.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd) $(netcdf_ldadd)
+test_binaryio_LDFLAGS = $(libartscore_a_ldflags)
 test_binaryio_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_binaryio_SOURCES = test_binaryio.cc
 
-#test_geomag_calc_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd) $(netcdf_ldadd)
+#test_geomag_calc_LDADD = libartscore.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd) $(netcdf_ldadd)
 #test_geomag_calc_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 #test_geomag_calc_SOURCES = test_geomag_calc.cc
 
-test_interpolation_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd) $(netcdf_ldadd)
-test_interpolation_LDFLAGS = $(libarts_a_ldflags)
+test_interpolation_LDADD = libartscore.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd) $(netcdf_ldadd)
+test_interpolation_LDFLAGS = $(libartscore_a_ldflags)
 test_interpolation_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_interpolation_SOURCES = test_interpolation.cc
 
@@ -443,6 +443,8 @@ test_legendre_LDADD = libmatpack.a
 test_legendre_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_legendre_SOURCES = \
 	constants.cc \
+	math_funcs.h \
+	math_funcs.cc \
 	legendre.h \
 	legendre.cc \
 	test_legendre.cc
@@ -476,13 +478,13 @@ test_matpack_SOURCES = \
 	describe.cc \
 	test_matpack.cc
 
-test_sparse_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd) $(netcdf_ldadd)
-test_sparse_LDFLAGS = $(libarts_a_ldflags)
+test_sparse_LDADD = libartscore.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd) $(netcdf_ldadd)
+test_sparse_LDFLAGS = $(libartscore_a_ldflags)
 test_sparse_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_sparse_SOURCES = test_sparse.cc
 
-test_xml_LDADD = libarts.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd) $(netcdf_ldadd)
-test_xml_LDFLAGS =  $(libarts_a_ldflags)
+test_xml_LDADD = libartscore.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd) $(netcdf_ldadd)
+test_xml_LDFLAGS =  $(libartscore_a_ldflags)
 test_xml_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_xml_SOURCES = test_xml.cc
 
@@ -500,6 +502,8 @@ test_integration_LDADD = libmatpack.a
 test_integration_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 test_integration_SOURCES = \
 	constants.cc \
+	math_funcs.h \
+	math_funcs.cc \
 	test_integration.cc 
 
 test_readpp_LDADD = libmatpack.a
