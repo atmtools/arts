@@ -1,3 +1,21 @@
+2009-03-24  Stefan Buehler  <sbuehler(at)ltu.se>
+
+        * arts-1-11-51
+
+	* includes/hirs/hirs_reference.arts: Replaced
+	abs_lineshape_per_tgDefine by abs_lineshapeDefine, since we are
+	now setting identical shape parameters for all species.
+
+	* includes/hirs/hirs_fast.arts: Replaced
+	abs_lineshape_per_tgDefine by abs_lineshapeDefine, since we are
+	now setting identical shape parameters for all species. ATTENTION:
+	In this file the cutoff was still 750e7 for species other than
+	H2O, which was wrong!
+
+	* src/m_abs.cc (abs_lines_per_speciesCompact): Bug fix: The case
+	that abs_lineshape has only one element (which is then valid for
+	all species) was not handled.
+
 2009-03-06  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-11-50

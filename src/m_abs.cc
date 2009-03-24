@@ -733,13 +733,17 @@ void abs_lines_per_speciesCompact(// WS Output:
                          const ArrayOfLineshapeSpec& abs_lineshape,
                          const Vector& f_grid)
 {
-
-  // Make sure abs_lines_per_species and abs_lineshape have the same dimension:
-  if ( abs_lines_per_species.nelem() != abs_lineshape.nelem() ) 
+  // Make sure abs_lines_per_species and abs_lineshape have the same
+  // dimension. As a special case, abs_lineshape can have length 1, in
+  // which case it is valid for all species.
+  if ( (abs_lines_per_species.nelem() != abs_lineshape.nelem()) &&
+       (abs_lineshape.nelem()         != 1) ) 
     {
       ostringstream os;
       os << "Dimension of abs_lines_per_species does\n"
-         << "not match that of abs_lineshape.";
+         << "not match that of abs_lineshape.\n"
+         << "(Dimension of abs_lineshape must be 1 or\n"
+         << "equal to abs_lines_per_species.)";
       throw runtime_error(os.str());
     }
   
@@ -759,8 +763,14 @@ void abs_lines_per_speciesCompact(// WS Output:
   // Cycle through all tag groups:
   for ( Index i=0; i<abs_lines_per_species.nelem(); ++i )
     {
-      // Get cutoff frequency of this tag group:
-      Numeric cutoff = abs_lineshape[i].Cutoff();
+      // Get cutoff frequency of this tag group.
+      // We have to also handle the special case that there is only
+      // one lineshape for all species.
+      Numeric cutoff;
+      if (1==abs_lineshape.nelem())
+        cutoff = abs_lineshape[0].Cutoff();
+      else
+        cutoff = abs_lineshape[i].Cutoff();
 
       // Check whether cutoff is defined:
       if ( cutoff != -1)

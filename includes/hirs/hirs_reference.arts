@@ -58,12 +58,13 @@ SpeciesSet( abs_species, [ "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100",
                            "O2, O2-CIAfunCKDMT100", 
                            "N2, N2-CIAfunCKDMT100, N2-CIArotCKDMT100" ] )
 
-abs_lineshape_per_tgDefine( abs_lineshape, 
-                            abs_species,
-                            ["Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6", 
-			     "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6"],
-                            ["VVH", "VVH", "VVH", "VVH", "VVH", "VVH", "VVH", "VVH"],
-                            [750e9, 750e9, 750e9, 750e9, 750e9, 750e9, 750e9, 750e9] )
+# abs_lineshape_per_tgDefine( abs_lineshape, 
+#                             abs_species,
+#                             ["Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6", 
+# 			     "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6", "Voigt_Kuntz6"],
+#                             ["VVH", "VVH", "VVH", "VVH", "VVH", "VVH", "VVH", "VVH"],
+#                             [750e9, 750e9, 750e9, 750e9, 750e9, 750e9, 750e9, 750e9] )
+abs_lineshapeDefine( abs_lineshape, "Voigt_Kuntz6", "VVH", 750e9 )
 
 # Read HITRAN catalog:
 abs_linesReadFromHitran2004( abs_lines,
