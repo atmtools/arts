@@ -22,10 +22,6 @@
 #ifndef _GETOPT_H
 #define _GETOPT_H 1
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif          
-
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -103,13 +99,12 @@ struct option
 #define optional_argument       2
 
 #if defined (__STDC__) && __STDC__
-#if defined (__GNU_LIBRARY__) || defined (HPUX) || defined (SUNOS)
+#if defined (__GNU_LIBRARY__) || defined (HPUX) || defined (SUNOS) || defined (__DARWIN_UNIX03)
+
 /* Many other libraries have conflicting prototypes for getopt, with
    differences in the consts, in stdlib.h.  To avoid compilation
    errors, only prototype getopt for the GNU C library.  */
 extern int getopt (int argc, char *const *argv, const char *shortopts);
-#else /* not __GNU_LIBRARY__ */
-extern int getopt ();
 #endif /* __GNU_LIBRARY__ */
 extern int getopt_long (int argc, char *const *argv, const char *shortopts,
                         const struct option *longopts, int *longind);

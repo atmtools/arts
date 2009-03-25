@@ -43,7 +43,9 @@
 #endif
 
 #include <stdio.h>
-#include <string.h>             // SAB 08.03.2000
+
+/* SAB 08.03.2000 */
+#include <string.h>
 
 /* Comment out all this code if we are using the GNU C Library, and are not
    actually compiling the library itself.  This code is part of the GNU C
@@ -390,13 +392,18 @@ exchange (argv)
 /* Initialize the internal data when the first call is made.  */
 
 #if defined __STDC__ && __STDC__
+#ifdef _LIBC
 static const char *_getopt_initialize (int, char *const *, const char *);
+#else
+static const char *_getopt_initialize (const char *optstring);
+#endif
 #endif
 static const char *
-_getopt_initialize (argc, argv, optstring)
-     int argc;
-     char *const *argv;
-     const char *optstring;
+#ifdef _LIBC
+_getopt_initialize (int argc, char *const *argv, const char *optstring)
+#else
+_getopt_initialize (const char *optstring)
+#endif
 {
   /* Start processing options with ARGV-element 1 (since ARGV-element 0
      is the program name); the sequence of previously skipped
@@ -529,7 +536,11 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
     {
       if (optind == 0)
         optind = 1;     /* Don't scan ARGV[0], the program name.  */
+#ifdef _LIBC
       optstring = _getopt_initialize (argc, argv, optstring);
+#else
+      optstring = _getopt_initialize (optstring);
+#endif
       __getopt_initialized = 1;
     }
 
@@ -655,7 +666,7 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
       /* Test all long options for either exact match
          or abbreviated matches.  */
       for (p = longopts, option_index = 0; p->name; p++, option_index++)
-        if (!strncmp (p->name, nextchar, nameend - nextchar))
+        if (!strncmp (p->name, nextchar, (size_t)(nameend - nextchar)))
           {
             if ((unsigned int) (nameend - nextchar)
                 == (unsigned int) strlen (p->name))
@@ -844,7 +855,7 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
         /* Test all long options for either exact match
            or abbreviated matches.  */
         for (p = longopts, option_index = 0; p->name; p++, option_index++)
-          if (!strncmp (p->name, nextchar, nameend - nextchar))
+          if (!strncmp (p->name, nextchar, (size_t)(nameend - nextchar)))
             {
               if ((unsigned int) (nameend - nextchar) == strlen (p->name))
                 {
