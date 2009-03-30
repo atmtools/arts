@@ -1,3 +1,34 @@
+2009-03-30  Stefan Buehler  <sbuehler(at)ltu.se>
+
+        * arts-1-12-1
+
+	* New version number, due to controlfile changes.
+
+	* WSM ybatchCalc: Added input variable ybatch_start, which can be
+	used to start batch calculations somewhere in the middle of the
+	batch. This is handy for testing, or if you want to split up a
+	large batch into several calculations. Note that an alternative to
+	this approach is to use the Select method to split up the batch
+	cases themselves, before ybatchCalc is called.
+
+	* This change should not break controlfiles for most users, since
+	the newly introduced variable is set to a default in general.arts.
+
+	* src/methods.cc (ybatchCalc): Updated.
+	
+	* src/m_batch.cc (ybatchCalc): Updated.
+	
+	* src/workspace.cc (ybatch_start): Added.
+	
+	* tests/AMSU/TestAMSU_generic.arts: No significant change.
+	
+	* doc/uguide/batch.tex: Updated chapter on batch calculations.
+	
+	* includes/general.arts (ybatch_start): Set to default value 0.
+
+	* src/messages.h: Added flush to report file output, so that it is
+	directly visible.
+
 2009-03-24  Stefan Buehler  <sbuehler(at)ltu.se>
 
         * arts-1-11-51

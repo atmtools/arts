@@ -1,23 +1,22 @@
 \chapter{Batch calculations}
  \label{sec:batch}
 
-
-%
 % Document history, format:
 %  \starthistory
 %    date1 & text .... \\
 %    date2 & text .... \\
 %    ....
 %  \stophistory
-%
+
 \starthistory
+  090330 & Description of \artsstyle{ybatch\_start} added by Stefan Buehler.\\
   070726 & Copy-edited by Stefan Buehler.\\
   070618 & Updated by Oliver Lemke.\\
   040916 & Created by Patrick Eriksson.\\
 \stophistory
 
-In many occasions you want to repeat the calculations with only a few
-variables changed. Examples on such cases are to perform 1D
+Quite often one wants to repeat a large number of calculations with
+only a few variables changed. Examples of such cases are to perform 1D
 calculations for a number of atmospheric states taken from some
 atmospheric model, generate a set of spectra to create a training
 database for regression based inversions or perform a numeric
@@ -27,63 +26,48 @@ data must be imported for each call even if the data are identical
 between the cases. Cases such as the ones described above are here
 denoted commonly as batch calculations.
 
-It is impossible to put all possible types of batch calculations
-inside a simple framework and the task of organising, or creating, the
-input data is left to more flexible programming environments, such as
-Matlab (where you of course use Atmlab) and Python. Instead, a general
-core functionality has been created that is useful for a large range
-of tasks. 
+\section{Batch calculations of measurement vector y}
 
-
-\section{Workspace variables and methods}
-%
-The calculation flow is controlled be setting the
+Batch calculations of measurement vectors are done by the WSM
+\wsmindex{ybatchCalc}, which takes three inputs, the indices  
+\wsvindex{ybatch\_start} and \wsvindex{ybatch\_n}, and the agenda
 \wsaindex{ybatch\_calc\_agenda}.
-Beside this agenda, the user must set the variable
-\wsvindex{ybatch\_n}. This variable is the number of defined batch
-cases. Or in fact, how many batch cases that shall be considered. If
-the agenda can provide more than \artsstyle{ybatch\_n} cases, the
-remaining cases are just ignored. There are few formal requirements on
-the involved agenda. Execution of \artsstyle{ybatch\_calc\_agenda}
+
+The method \artsstyle{ybatchCalc} will do \artsstyle{ybatch\_n}
+calculations, starting at index \artsstyle{ybatch\_start}. It will run
+the agenda \artsstyle{ybatch\_calc\_agenda} for each case
+individually. The agenda gets an input \wsvindex{ybatch\_index}, which
+it should use to extract the right input data from one or more arrays
+or matrices of input. Execution of \artsstyle{ybatch\_calc\_agenda}
 must result in a new spectrum vector, \artsstyle{y}, most likely by a
 call of \artsstyle{RteCalc}.
 
-The actual calculations are made by calling \wsmindex{ybatchCalc}. The
-basic idea is simple, each loop inside this method shall produce a new
-spectrum vector, where each realisation is stored in
-\artsstyle{ybatch}. Variables are updated to a new batch case by
-\artsstyle{ybatch\_calc\_agenda}, where \wsvindex{ybatch\_index}, set
-by \artsstyle{ybatchCalc}, tells the agenda which case to select.
-More in detail, \artsstyle{ybatchCalc} makes the following operations:
+The WSV \artsstyle{ybatch\_start} is set to a default of 0 in
+\artsstyle{general.arts}, so you do not have to set this variable
+unless you want to start somewhere in the middle of your batch input
+data. 
 
-\begin{itemize}
-
-\item[1.] Performs a-c with \artsstyle{ybatch\_index} looped from 0
-to (\artsstyle{ybatch\_n}-1)
-
-\begin{itemize}
-\item[a.] Executes \artsstyle{ybatch\_calc\_agenda}.
-\item[b.] If \artsstyle{ybatch\_index} = 0, resizes
-\artsstyle{ybatch} based
-on \artsstyle{ybatch\_n} and length of \artsstyle{y} 
-\item[c.] Makes copy of \artsstyle{y} in column \artsstyle{ybatch\_index} of \artsstyle{ybatch}.
-\end{itemize}
-
-\end{itemize}
-
-You see it is simple! The question is only what to put inside the
-agenda?
-
+The next section gives some examples of what could be put inside
+the \artsstyle{ybatch\_calc\_agenda}.
 
 \section{Control file examples}
 %
-There exist some special workspace methods for the
-\artsstyle{ybatch\_calc\_agenda}, named as
-\wsmindex{XxxxxExtractFromXxxxx}.  The common idea of these functions is to
-store the batch cases in tensors with one dimension extra compared to
-corresponding workspace variables. For example, a set of
-\artsstyle{t\_field} (which is of type \artsstyle{Tensor3}) is stored
-as \artsstyle{Tensor4}.
+The WSV \wsmindex{Extract} can be used to extract an element from an
+\artsstyle{Array}, a row from a \artsstyle{Matrix}, a
+\artsstyle{Matrix} from a \artsstyle{Tensor3}, and so on. The
+selection is always done on the first dimension. So, for a
+\artsstyle{Tensor3} as input, it copies the page with the given index
+from the input \artsstyle{Tensor3} variable to the output
+\artsstyle{Matrix}.
+
+The idea here is to store the batch cases in tensors or arrays with
+one dimension extra compared to corresponding workspace variables. For
+example, a set of \artsstyle{t\_field} (which is of type
+\artsstyle{Tensor3}) is stored as \artsstyle{Tensor4}.
+
+If the dimension is the same for all batch cases, tensors are
+appropriate. If the dimensions vary (for example you have a different
+number of vertical levels for each case), then arrays are appropriate.
 
 In the following 1D example, five atmospheric scenarios
 have been put into the three first loaded files, and a random vector
@@ -99,18 +83,17 @@ IndexSet( ybatch_n, 5 )
 
 AgendaSet ( ybatch_calc_agenda ){
   Print( ybatch_index, 0 )
-  Tensor3ExtractFromTensor4( t_field,    tensor4_1, ybatch_index )
-  Tensor3ExtractFromTensor4( z_field,    tensor4_2, ybatch_index )
-  Tensor4ExtractFromTensor5( vmr_field,  tensor5_1, ybatch_index )
-  MatrixExtractFromTensor3(  sensor_los, tensor3_1, ybatch_index )
+  Extract( t_field,    tensor4_1, ybatch_index )
+  Extract( z_field,    tensor4_2, ybatch_index )
+  Extract( vmr_field,  tensor5_1, ybatch_index )
+  Extract( sensor_los, tensor3_1, ybatch_index )
 
   RteCalc
 }
 
 ybatchCalc
-MatrixToTbByRJ( ybatch, ybatch )
 
-WriteXML( "ascii", ybatch, "ybatch_run1.xml" )
+WriteXML( "ascii", ybatch )
 \end{verbatim}
 
 If you then want to repeat the calculations, for example with another
@@ -126,7 +109,6 @@ AgendaSet( ppath_step_agenda ){
 }
 
 ybatchCalc
-MatrixToTbByRJ( ybatch, ybatch )
 
 WriteXML( "ascii", ybatch, "ybatch_run2.xml" )
 \end{verbatim}

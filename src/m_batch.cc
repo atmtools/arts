@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2004-2008
    Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
@@ -134,30 +135,58 @@ void VectorExtractFromMatrix(
     }
 }
 
-/* Implementation of ybatchCalc (robust and not-robust version). The
-   idea is to make this a workspace method when optional keywords
-   work. */
-void ybatchCalc_implementation(Workspace&      ws,
-                               // WS Output:
-                               Matrix&         ybatch,
-                               // WS Input:
-                               const Index&    ybatch_n,
-                               const Agenda&   ybatch_calc_agenda,
-                               // Control parameters:
-                               const Index&    robust)
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ybatchCalc(Workspace&      ws, 
+                // WS Output:
+                Matrix&         ybatch,
+                // WS Input:
+                const Index&    ybatch_start,
+                const Index&    ybatch_n,
+                const Agenda&   ybatch_calc_agenda,
+                // Control Parameters:
+                const Index& robust)
 {
+  if (0==robust)
+    out2 << "  Robust option is off.\n";
+  else if (1==robust)
+    out2 << "  Robust option is on,\n"
+         << "  batch calc will continue, even if one job fails.\n";
+  else
+    throw runtime_error("Keyword *robust* must be either 0 or 1.");
+
+
   Vector y;
   bool is_first = true;
   Index first_ybatch_index = 0;
 
+  // We have to calculate the first y so that we can size the output
+  // matrix ybatch correctly. This is a bit complicated due to the
+  // robust option: We must handle the case that the first few jobs
+  // fail. 
+
+  out2 << "  If you are running on a multicore CPU, you will only see\n"
+       << "  jobs in the main thread in the list below. (So, you can\n"
+       << "  multiply the job number by the number of cores to estimate\n"
+       << "  when the job will be finished.)\n";
+
+  // We allow a start index ybatch_start that is different from 0. We
+  // will calculate ybatch_n jobs starting at the start
+  // index. Internally, we count from zero, which is the right
+  // counting for the output array ybatch. When we call
+  // ybatch_calc_agenda, we add ybatch_start to the internal index
+  // count. 
+
   while (is_first && first_ybatch_index < ybatch_n)
     {
-      out2 << "  Doing job " << first_ybatch_index+1 << " of " << ybatch_n << "\n";
+      out2 << "  Job " << first_ybatch_index+1 << " of " << ybatch_n 
+           << ": Index " << ybatch_start+first_ybatch_index << "\n";
       try
         {
-          ybatch_calc_agendaExecute( ws, y, first_ybatch_index, ybatch_calc_agenda );
-          // The false flag at the end means that agenda output is
-          // not suppressed.
+          ybatch_calc_agendaExecute( ws,
+                                     y,
+                                     ybatch_start+first_ybatch_index,
+                                     ybatch_calc_agenda );
 
           // The size of ybatch has to be set after the first job
           // has run successfully.
@@ -195,8 +224,8 @@ void ybatchCalc_implementation(Workspace&      ws,
 
   // We have to make a local copy of the Workspace and the agendas because
   // only non-reference types can be declared firstprivate in OpenMP
-  Workspace l_ws (ws);
-  Agenda l_ybatch_calc_agenda (ybatch_calc_agenda);
+  Workspace l_ws(ws);
+  Agenda l_ybatch_calc_agenda(ybatch_calc_agenda);
 
   // Go through the batch:
 
@@ -206,13 +235,14 @@ void ybatchCalc_implementation(Workspace&      ws,
       ybatch_index<ybatch_n;
       ybatch_index++ )
     {
-      out2 << "  Doing job " << ybatch_index+1 << " of " << ybatch_n << "\n";
+      out2 << "  Job " << first_ybatch_index+1 << " of " << ybatch_n 
+           << ": Index " << ybatch_start+first_ybatch_index << "\n";
       try
         {
-          ybatch_calc_agendaExecute( l_ws, y, ybatch_index,
+          ybatch_calc_agendaExecute( l_ws,
+                                     y,
+                                     ybatch_start+ybatch_index,
                                      l_ybatch_calc_agenda );
-          // We are surpressing agenda output here, since this is too
-          // much to be useful. (The true flag at the end does this.)          
  
           ybatch( joker, ybatch_index ) = y;
         }
@@ -235,32 +265,6 @@ void ybatchCalc_implementation(Workspace&      ws,
             }
         }
     }
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchCalc(Workspace&      ws, 
-                // WS Output:
-                Matrix&         ybatch,
-                // WS Input:
-                const Index&    ybatch_n,
-                const Agenda&   ybatch_calc_agenda,
-                // Control Parameters:
-                const Index& robust)
-{
-  if (0==robust)
-    out2 << "  Robust option is off.\n";
-  else if (1==robust)
-    out2 << "  Robust option is on,\n"
-         << "  batch calc will continue, even if one job fails.\n";
-  else
-    throw runtime_error("Keyword *robust* must be either 0 or 1.");
-
-  ybatchCalc_implementation( ws,
-                             ybatch,
-                             ybatch_n,
-                             ybatch_calc_agenda,
-                             robust );
 }
 
 

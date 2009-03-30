@@ -175,5 +175,11 @@ cloudboxOff
 #
 jacobianOff
 
+
+#
+# Batch calculations start at index 0 by default
+#
+IndexSet( ybatch_start, 0 )
+
 }
 

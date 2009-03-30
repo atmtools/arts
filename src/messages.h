@@ -104,8 +104,14 @@ public:
           os << t;
     
         if (sufficient_priority_file(priority))
-          //    if (report_file)              // Check if report file is good
-          report_file << t;
+          {
+            //    if (report_file)              // Check if report file is good
+            report_file << t << flush;
+            // The flush here is necessary to make the output really
+            // appear in the report file. We are not producing a huge
+            // amount of output to the report file, so I think the
+            // performance penalty here is acceptable.
+          }
       }
   }
   

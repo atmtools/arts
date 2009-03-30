@@ -3882,7 +3882,7 @@ void Workspace::define_wsv_data()
        "See further *ybatchCalc*.\n"
        "\n"
        "Usage: Set by *ybatchCalc*, for communication with\n"
-       "       *bach_update_agenda*.\n"
+       "       *ybatch_calc_agenda*.\n"
        ),
       GROUP( "Index" )));
 
@@ -3891,11 +3891,26 @@ void Workspace::define_wsv_data()
     ( NAME( "ybatch_n" ),
       DESCRIPTION
       (
-       "Number of batch cases defined.\n"
+       "Number of batch cases for *ybatchCalc*.\n"
        "\n"
        "See further *ybatchCalc*.\n"
        "\n"
-       "Usage: Output from *batch_pre_agenda*.\n"
+       "Usage: Input to *ybatchCalc*.\n"
+       ),
+      GROUP( "Index" )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ybatch_start" ),
+      DESCRIPTION
+      (
+       "Start index for *ybatchCalc*.\n"
+       "\n"
+       "This is set to a default of zero in *general.arts*.\n"
+       "\n"
+       "See further *ybatchCalc*.\n"
+       "\n"
+       "Usage: Input to *ybatchCalc*.\n"
        ),
       GROUP( "Index" )));
 

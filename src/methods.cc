@@ -8081,6 +8081,11 @@ md_data_raw.push_back
          "Copies row or column with given Index from input Matrix variable\n"
          "to create output Vector.\n"
          "\n"
+         "This method is largely redundant to the general Extract method,\n"
+         "its only advantage is that it can extract also column-vise.\n"
+         "Perhaps this should be unified one day, by making Extract even more\n"
+         "general.\n"
+         "\n"
          "Keywords:\n"
          "   direction : Must be either *row* or *column*.\n"
         ),
@@ -8570,21 +8575,32 @@ md_data_raw.push_back
       ( NAME( "ybatchCalc" ),
         DESCRIPTION
         (
-         "Performs batch calculations.\n"
+         "Performs batch calculations for the measurement vector y.\n"
+         "\n"
+         "We perform *ybatch_n* jobs, starting at index *ybatch_start*. (Zero\n"
+         "based indexing, as usual.) The output matrix *ybatch* will have\n"
+         "dimension (y.nelem(),ybatch_n). So, indices in the output matrix start\n"
+         "with zero, independent of *ybatch_start*.\n"
          "\n"
          "The method performs the following:\n"
-         "   1. Sets *ybatch_index* = 0.\n"
-         "   2. Performs a-d until *ybatch_index* = *ybatch_n*.\n"
-         "    a. Executes *ybatch_calc_agenda*.\n"
-         "    b. If *ybatch_index* = 0, resizes *ybatch* based\n"
-         "       on *ybatch_n* and length of *y*.\n"
-         "    c. Copies *y* to column *ybatch_index* of *ybatch*.\n"
-         "    d. Adds 1 to *ybatch_index*.\n"
+         "   1. Sets *ybatch_index* = *ybatch_start*.\n"
+         "   2. Performs a-d until \n"
+         "      *ybatch_index* = *ybatch_start* + *ybatch_n*.\n"
+         "      	 a. Executes *ybatch_calc_agenda*.\n"
+         "      	 b. If *ybatch_index* = *ybatch_start*, resizes *ybatch* \n"
+         "      	    based on *ybatch_n* and length of *y*.\n"
+         "      	 c. Copies *y* to column *ybatch_index* - *ybatch_start*\n"
+         "            of *ybatch*.\n"
+         "      	 d. Adds 1 to *ybatch_index*.\n"
          "\n"
-         "This means that, beside the *ybatch_calc_agenda*, the WSV\n"
-         "*ybatch_n* must be set before calling this method. Further,\n"
-         "*ybatch_calc_agenda* is expected to produce a spectrum and should\n"
-         "accordingly include a call of *RteCalc* (or a similar method). \n"
+         "Beside the *ybatch_calc_agenda*, the WSVs *ybatch_start* \n"
+         "and *ybatch_n* must be set before calling this method.\n"
+         "Further, *ybatch_calc_agenda* is expected to produce a\n"
+         "spectrum and should accordingly include a call of *RteCalc*\n"
+         "(or asimilar method).\n"
+         "\n"
+         "The input variable *ybatch_start* is set to a default of zero in\n"
+         "*general.arts*.\n"
          "\n"
          "An agenda that calculates spectra for different temperature profiles\n"
          "could look like this:\n"
@@ -8595,26 +8611,25 @@ md_data_raw.push_back
          "   }\n"
          "\n"
          "See the user guide for further practical examples.\n"
-         "\n"
-         "Keywords:\n"
-         "   robust : a flag with value 1 or 0. If set to one, the batch\n"
-         "            calculation will continue, even if individual jobs\n"
-         "            fail. In that case, a warning message is written to \n"
-         "            screen and file (out1 output stream), and ybatch for the\n"
-         "            failed job is set to -1. The robust behavior does only work\n"
-         "            properly if you have compiled the program without OpenMP!\n"
-         "            (Use the configure option \"--disable-vectorize\".)\n"
          ),
         AUTHORS( "Patrick Eriksson, Stefan Buehler" ),
         OUT( "ybatch" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "ybatch_n", "ybatch_calc_agenda" ), 
+        IN( "ybatch_start", "ybatch_n", "ybatch_calc_agenda" ), 
         GIN( "robust" ),
         GIN_TYPE(    "Index" ),
         GIN_DEFAULT( "0" ),
-        GIN_DESC("FIXME DOC")
+        GIN_DESC(
+                 "A flag with value 1 or 0. If set to one, the batch\n"
+                 "calculation will continue, even if individual jobs\n"
+                 "fail. In that case, a warning message is written to \n"
+                 "screen and file (out1 output stream), and ybatch for the\n"
+                 "failed job is set to -1. The robust behavior does only work\n"
+                 "properly if you have compiled the program without OpenMP!\n"
+                 "(Use the configure option \"--disable-vectorize\".)\n"
+                 )
       ));
 
   md_data_raw.push_back

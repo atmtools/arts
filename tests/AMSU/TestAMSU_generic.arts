@@ -170,7 +170,8 @@ AgendaSet( ybatch_calc_agenda ){
 
 # Set number of batch cases:
 nelemGet( ybatch_n, batch_atm_fields_compact )
-#IndexSet(ybatch_n){10}
+#IndexSet(ybatch_start, 2)
+#IndexSet(ybatch_n, 2)
 
 # Execute the batch calculations:
 # ---
