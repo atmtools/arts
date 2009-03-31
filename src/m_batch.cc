@@ -235,8 +235,8 @@ void ybatchCalc(Workspace&      ws,
       ybatch_index<ybatch_n;
       ybatch_index++ )
     {
-      out2 << "  Job " << first_ybatch_index+1 << " of " << ybatch_n 
-           << ": Index " << ybatch_start+first_ybatch_index << "\n";
+      out2 << "  Job " << ybatch_index+1 << " of " << ybatch_n 
+           << ": Index " << ybatch_start+ybatch_index << "\n";
       try
         {
           ybatch_calc_agendaExecute( l_ws,
