@@ -431,7 +431,7 @@ void Cloudbox_ppathCalc(Workspace&      ws,
       // got stuck in an infinite loop.
       if( istep > 5000 )
         {
-          WriteXML( "ascii", ppath_step, "", "Ppath", "bugreport_ppath.xml" );
+          //WriteXML( "ascii", ppath_step, "", "Ppath", "bugreport_ppath.xml" );
           throw runtime_error(
              "5000 path points have been reached. Is this an infinite loop?" );
         }

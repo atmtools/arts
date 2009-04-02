@@ -17,7 +17,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.12.2)
+AM_INIT_AUTOMAKE(arts,1.12.3)
 
 
 dnl Put the ACLOCAL flags in the Makefile
@@ -384,7 +384,7 @@ case x$ax_cv_cxx_compiler_vendor in
     #
     # Intel Compiler warning flags
     #
-    WARNINGCFLAGS="-Wall -Wshadow -w1 -diag-disable 383,981,1418,1419"
+    WARNINGCFLAGS="-Wall -Wshadow -w1 -diag-disable 383,980,981,1418,1419"
 
     if test x"$ax_openmp" != xyes; then
       WARNINGCFLAGS="$WARNINGCFLAGS -Wno-unknown-pragmas"

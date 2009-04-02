@@ -35,6 +35,7 @@
 
 
 void dtauc_ssalbCalc(
+                    Workspace &ws,
                     VectorView dtauc,
                     VectorView ssalb,
                     const Agenda& opt_prop_part_agenda,
