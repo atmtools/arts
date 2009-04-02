@@ -1,5 +1,11 @@
 2009-04-02  Oliver Lemke  <olemke@core-dump.info>
 
+        * arts-1-12-5
+
+	* src/CMakeLists.txt: And this one too....
+
+2009-04-02  Oliver Lemke  <olemke@core-dump.info>
+
         * arts-1-12-4
 
 	* config.h.cmake: Forgot this in my last commit.
