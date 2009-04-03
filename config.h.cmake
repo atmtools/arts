@@ -3,6 +3,9 @@
 /* Compile Flags */
 #cmakedefine COMPILE_FLAGS "${COMPILE_FLAGS}"
 
+/* Compiler */
+#cmakedefine COMPILER "${COMPILER}"
+
 /* Define to compile with disort support */
 #cmakedefine ENABLE_DISORT
 

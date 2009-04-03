@@ -1,3 +1,19 @@
+2009-04-03  Oliver Lemke  <olemke@core-dump.info>
+
+        * arts-1-12-6
+
+	* configure.in, config.h.cmake, CMakeLists.txt:
+
+	Add compiler name to config.h.
+
+	* src/main.cc:
+
+	Display the compiler in -v.
+
+	Display the output of -v also in out2.
+
+	* src/version.cc: Add compile timestamp to version number.
+
 2009-04-02  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-12-5

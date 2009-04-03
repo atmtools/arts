@@ -694,14 +694,11 @@ int main (int argc, char **argv)
       arts_exit (EXIT_SUCCESS);
     }
 
-  if (parameters.version)
+  ostringstream osfeatures;
     {
-      extern const String full_name;
-      // Just print version information and then exit.
-      cout << full_name
-        << " (compiled " << __DATE__ << " " << __TIME__
-        << " on " << OS_NAME << " " << OS_VERSION << ")" << endl
+      osfeatures
         << "Compile flags: " << COMPILE_FLAGS << endl
+        << "Compiler: " << String(COMPILER) << endl
         << "Features in this build: " << endl
         << "   Numeric precision:  "
         << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float") << endl
@@ -730,6 +727,13 @@ int main (int argc, char **argv)
         << "disabled" << endl
 #endif
         << "";
+    }
+
+  if (parameters.version)
+    {
+      extern const String full_name;
+      cout << full_name << endl;
+      cout << osfeatures.str();
       arts_exit (EXIT_SUCCESS);
     }
 
@@ -934,23 +938,17 @@ int main (int argc, char **argv)
   // one are general stuff like file opening errors.
   try
     {
-      {
-        // Output program name and version number: 
-        // The name (PACKAGE) and the major and minor version number
-        // (VERSION) are set in configure.in. The configuration tools
-        // place them in the file config.h, which is included in arts.h.
-  
-        extern const String full_name;
-        out1 << full_name << "\n";
-      }
+      extern String full_name;
+      out1 << full_name << "\n";
+      out2 << osfeatures.str();
 
       // Output some OpenMP specific information on output level 2:
 #ifdef _OPENMP
       out2 << "Running with OpenMP, "
            << "maximum number of threads = "
-           << arts_omp_get_max_threads() << ".\n";
+           << arts_omp_get_max_threads() << ".\n\n";
 #else
-      out2 << "Running without OpenMP.\n";        
+      out2 << "Running without OpenMP.\n\n";        
 #endif
 
       {

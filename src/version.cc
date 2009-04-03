@@ -31,5 +31,5 @@
 // to run `autogen.sh' after editing configure.in!
 
 String full_name  = static_cast<String>(PACKAGE)
-  + "-" + VERSION;
+  + "-" + VERSION + " (compiled " + __DATE__ + " " + __TIME__ + ")";
 
