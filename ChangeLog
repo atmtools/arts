@@ -1,5 +1,14 @@
 2009-04-03  Oliver Lemke  <olemke@core-dump.info>
 
+        * arts-1-12-10
+
+	* configure.in, CMakeLists.txt:
+
+	Also add the binary name to COMPILER. Helpful information while
+	testing compilation with different versions of the same compiler.
+
+2009-04-03  Oliver Lemke  <olemke@core-dump.info>
+
         * arts-1-12-9
 
 	* src/Makefile.am, src/CMakeLists.txt:

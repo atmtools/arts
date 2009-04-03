@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
 project (ARTS)
-set (VERSION "1.12.9")
+set (VERSION "1.12.10")
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -93,6 +93,8 @@ else (CMAKE_COMPILER_IS_INTELCXX)
     set (COMPILER "unknown")
   endif (CMAKE_COMPILER_IS_GNUCXX)
 endif (CMAKE_COMPILER_IS_INTELCXX)
+
+set (COMPILER "${COMPILER} (${CMAKE_CXX_COMPILER})")
 
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WARN_FLAGS}")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARN_FLAGS}")

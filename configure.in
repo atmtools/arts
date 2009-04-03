@@ -17,7 +17,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.12.9)
+AM_INIT_AUTOMAKE(arts,1.12.10)
 
 
 dnl Put the ACLOCAL flags in the Makefile
@@ -440,6 +440,8 @@ case x$ax_cv_cxx_compiler_vendor in
     CXXNOSTRICTALIASING=""
     echo "WARNING: UNKNOWN COMPILER VENDOR"
 esac
+
+COMPILER="$COMPILER (${CXX})"
 
 AC_SUBST(LDFLAGS)
 AC_SUBST(WARNINGCFLAGS)
