@@ -30,6 +30,14 @@
 
 #include <algorithm>
 #include <map>
+#if HAVE_UNISTD_H
+# include <sys/types.h>
+# include <unistd.h>
+#endif
+#ifdef _POSIX_VERSION
+#include <sys/times.h>
+#endif
+
 #include "arts.h"
 #include "parameters.h"
 #include "messages.h"
@@ -678,6 +686,13 @@ int main (int argc, char **argv)
   extern const Parameters parameters; // Global variable that holds
                                       // all command line parameters. 
 
+  //---------------< 0. Time the arts run if possible >---------------
+#ifdef _POSIX_VERSION
+  struct tms arts_cputime_start;
+  clock_t arts_realtime_start;
+  arts_realtime_start = times (&arts_cputime_start);
+#endif
+
   //---------------< 1. Get command line parameters >---------------
   if ( get_parameters(argc, argv) )
     {
@@ -990,6 +1005,28 @@ int main (int argc, char **argv)
     {
       arts_exit_with_error_message(x.what());
     }
+
+#ifdef _POSIX_VERSION
+  struct tms arts_cputime_end;
+  clock_t arts_realtime_end;
+  long clktck = 0;
+
+  clktck = sysconf (_SC_CLK_TCK);
+  arts_realtime_end = times (&arts_cputime_end);
+  if (clktck > 0
+      && arts_realtime_start != (clock_t)-1
+      && arts_realtime_end != (clock_t)-1)
+    {
+      out1 << "This run took " << setprecision (2)
+        << (Numeric)
+         (arts_realtime_end - arts_realtime_start)
+        / (Numeric)clktck
+        << "s (" << setprecision (2) << (Numeric)
+        ((arts_cputime_end.tms_stime - arts_cputime_start.tms_stime)
+         + (arts_cputime_end.tms_utime - arts_cputime_start.tms_utime))
+        / (Numeric)clktck << "s CPU time)\n";
+    }
+#endif
 
   out1 << "Goodbye.\n";
   arts_exit (EXIT_SUCCESS);
