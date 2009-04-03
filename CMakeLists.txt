@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
 project (ARTS)
-set (VERSION "1.12.7")
+set (VERSION "1.12.8")
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -58,10 +58,6 @@ if (NOT NO_OPENMP)
     set (CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
   endif (CXX_OPENMP_SUPPORTED)
 
-  if (NOT CXX_OPENMP_SUPPORTED)
-    set (WARN_FLAGS "${WARN_FLAGS} -Wno-unknown-pragmas")
-  endif (NOT CXX_OPENMP_SUPPORTED)
-
 endif (NOT NO_OPENMP)
 
 ########### Special flags for certain compilers ##########
@@ -80,6 +76,10 @@ endif (CMAKE_COMPILER_IS_GNUCXX)
 if (NOT NO_WERROR)
     set (WARN_FLAGS "${WARN_FLAGS} -Werror")
 endif (NOT NO_WERROR)
+
+if (NOT CXX_OPENMP_SUPPORTED)
+    set (WARN_FLAGS "${WARN_FLAGS} -Wno-unknown-pragmas")
+endif (NOT CXX_OPENMP_SUPPORTED)
 
 string (TOUPPER ${CMAKE_BUILD_TYPE} MY_BUILD_TYPE)
 set (COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${MY_BUILD_TYPE}}")
