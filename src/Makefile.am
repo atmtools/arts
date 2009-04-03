@@ -296,8 +296,7 @@ make_auto_workspace_h_SOURCES = \
 	messages.h \
 	messages.cc \
 	parameters.cc \
-	parameters.h \
-	version.cc
+	parameters.h
 
 make_auto_md_h_LDADD = libmethods.a libmatpack.a
 make_auto_md_h_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
@@ -325,7 +324,6 @@ make_auto_md_h_SOURCES = \
 	parameters.cc \
 	token.cc \
 	token.h \
-	version.cc \
 	workspace.cc \
 	workspace_ng.cc \
 	workspace_ng.h
@@ -356,7 +354,6 @@ make_auto_md_cc_SOURCES = \
 	parameters.cc \
 	token.cc \
 	token.h \
-	version.cc \
 	workspace.cc \
 	workspace_ng.cc \
 	workspace_ng.h

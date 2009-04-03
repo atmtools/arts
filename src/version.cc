@@ -30,6 +30,5 @@
 // in file configure.in in the top-level ARTS directory. Don't forget
 // to run `autogen.sh' after editing configure.in!
 
-String full_name  = static_cast<String>(PACKAGE)
-  + "-" + VERSION + " (compiled " + __DATE__ + " " + __TIME__ + ")";
+String full_name  = static_cast<String>(PACKAGE) + "-" + VERSION;
 

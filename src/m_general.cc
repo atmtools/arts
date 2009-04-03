@@ -308,7 +308,7 @@ timerStop (// WS Input
 #else
 void
 timerStop (// WS Input
-           const Timer& starttime)
+           const Timer&)
 {
   throw runtime_error ("Timer error: ARTS was compiled without POSIX support, thus timer\nfunctions are not available.");
 }

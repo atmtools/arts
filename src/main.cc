@@ -28,15 +28,24 @@
    \date   2001-07-24
 */
 
-#include <algorithm>
-#include <map>
+#if HAVE_CONFIG_H
+#include <config.h>
+#else
+#error "Please run ./configure in the top arts directory before compiling."
+#endif
+
 #if HAVE_UNISTD_H
 # include <sys/types.h>
 # include <unistd.h>
 #endif
 #ifdef _POSIX_VERSION
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <time.h>
 #include <sys/times.h>
 #endif
+#include <algorithm>
+#include <map>
 
 #include "arts.h"
 #include "parameters.h"
@@ -667,6 +676,30 @@ void option_describe(const String& describe)
 }
 
 
+/** This function returns the modification time of the arts executable
+    as a string.
+
+    \author Oliver Lemke */
+#ifdef _POSIX_VERSION
+String arts_mod_time (String filename)
+{
+  struct stat buf;
+  if (stat (filename.c_str(), &buf) != -1)
+    {
+      String ts = ctime (&buf.st_mtime);
+      return String(" (") + ts.substr (0, ts.length()-1) + ")";
+    }
+  else
+      return String("");
+}
+#else
+String arts_mod_time (String)
+{
+  return String("");
+}
+#endif
+
+
 /** This is the main function of ARTS. (You never guessed that, did you?)
     The getopt_long function is used to parse the command line parameters.
  
@@ -747,7 +780,7 @@ int main (int argc, char **argv)
   if (parameters.version)
     {
       extern const String full_name;
-      cout << full_name << endl;
+      cout << full_name << arts_mod_time (argv[0]) << endl;
       cout << osfeatures.str();
       arts_exit (EXIT_SUCCESS);
     }
@@ -954,7 +987,7 @@ int main (int argc, char **argv)
   try
     {
       extern String full_name;
-      out1 << full_name << "\n";
+      out1 << full_name << arts_mod_time (argv[0]) << "\n";
       out2 << osfeatures.str();
 
       // Output some OpenMP specific information on output level 2:

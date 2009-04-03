@@ -47,7 +47,6 @@ add_executable (make_auto_workspace_h
 	messages.cc
 	parameters.cc
 	parameters.h
-	version.cc
 	)
 
 target_link_libraries (make_auto_workspace_h matpack)
@@ -84,7 +83,6 @@ add_executable (make_auto_md_h
 	parameters.cc
 	token.cc
 	token.h
-	version.cc
 	workspace.cc
 	workspace_ng.cc
 	workspace_ng.h
@@ -124,7 +122,6 @@ add_executable (make_auto_md_cc
 	parameters.cc
 	token.cc
 	token.h
-	version.cc
 	workspace.cc
 	workspace_ng.cc
 	workspace_ng.h

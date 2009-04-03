@@ -1,5 +1,22 @@
 2009-04-03  Oliver Lemke  <olemke@core-dump.info>
 
+        * arts-1-12-9
+
+	* src/Makefile.am, src/CMakeLists.txt:
+
+	Don't link make_auto_md_h, make_auto_workspace_h, and make_auto_md_cc
+	against version.cc. It's not needed there and triggers unnecessary
+	rebuilds.
+
+	* src/main.cc, src/version.cc:
+
+	Display the modification time of the arts executable in -v instead of
+	the compile time of version.cc which can be very misleading.
+
+	* src/m_general.cc: Fix warning in non-POSIX compilation.
+
+2009-04-03  Oliver Lemke  <olemke@core-dump.info>
+
         * arts-1-12-8
 
 	* CMakeLists.txt:
