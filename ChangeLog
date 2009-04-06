@@ -1,3 +1,18 @@
+2009-04-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+        * arts-1-12-14
+	
+	* includes/odin/linefile.SM_AC1e.xml: The data for the 556 GHz H2O
+	line were not updated.
+
+	Note that for the 556 GHz line, the "gamma values" for pressure
+	broadening and the pressure shift variable are taken from
+	Golubiatnikov et al., JQRST, 109, 1828, 2008. For the water vapour
+	contimuum, the data are taken from Podobedov et al., JQSRT, 109,
+	458, 2008. Other data are as for SMR operational processing. This
+	including a 34% increase of nitrogen absorption following
+	Boissoles et al., JQSRT, 82, 505, 2003.
+	
 2009-04-06  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-12-13
