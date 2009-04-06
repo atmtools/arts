@@ -917,15 +917,13 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
                 // Initialize result to zero:
                 res = 0;
-                Vector res_dummy(f_extent);
                 Index iti = 0;
                 for ( Index r=0; r<t_interp_order+1; ++r )
                   for ( Index c=0; c<h2o_interp_order+1; ++c )
                     {
-                      res_dummy  = this_xsec( tgp.idx[r], vgp.idx[c], Range(joker) );
-                      res_dummy *= itw[iti];
-
-                      res += res_dummy;
+                      for ( Index f=0; f<f_extent; ++f )
+                        res[f] += itw[iti] * this_xsec( tgp.idx[r], vgp.idx[c], f );
+                      
                       ++iti;
                     }
               }
@@ -954,14 +952,12 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
                 // Initialize result to zero:
                 res = 0;
-                Vector res_dummy(f_extent);
                 Index iti = 0;
                 for ( Index r=0; r<t_interp_order+1; ++r )
                   {
-                    res_dummy  = this_xsec( tgp.idx[r], Range(joker) );
-                    res_dummy *= itw[iti];
-                    
-                    res += res_dummy;
+                    for ( Index f=0; f<f_extent; ++f )
+                      res[f] += itw[iti] * this_xsec( tgp.idx[r], f );
+
                     ++iti;
                   }
               }
@@ -991,14 +987,12 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
                 // Initialize result to zero:
                 res = 0;
-                Vector res_dummy(f_extent);
                 Index iti = 0;
                 for ( Index c=0; c<h2o_interp_order+1; ++c )
                   {
-                    res_dummy  = this_xsec( vgp.idx[c], Range(joker) );
-                    res_dummy *= itw[iti];
-                    
-                    res += res_dummy;
+                    for ( Index f=0; f<f_extent; ++f )                      
+                      res[f] += itw[iti] * this_xsec( vgp.idx[c], f );             
+                      
                     ++iti;
                   }
               }

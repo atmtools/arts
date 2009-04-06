@@ -2160,20 +2160,13 @@ void xsec_species( MatrixView               xsec,
 
   // Loop all pressures:
 
-#pragma omp parallel private(ls, fac, f_local, aux)
-#pragma omp for 
+#pragma omp parallel for                                            \
+  default(none)                                                     \
+  shared(np, abs_p, abs_t, vmr, nl, f_grid, nf,                     \
+         lineshape_norm_data, abs_h2o, cut, lineshape_data, xsec)   \
+  firstprivate(ls, fac, f_local, aux) 
   for ( Index i=0; i<np; ++i )
     {
-      // Private variables are not copied upon loop entry, but are
-      // uninitialized inside the loop. We have to make sure that they are
-      // initialized correctly! Resize does nothing if the size
-      // already fits, so this does not cost us much in the
-      // non-parallel case.
-      ls.resize(nf+1);
-      fac.resize(nf+1);
-      f_local.resize(nf+1); 
-      aux.resize(ii);
-
       // The try block here is necessary to correctly handle
       // exceptions inside the parallel region. 
       try

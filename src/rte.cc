@@ -992,7 +992,7 @@ void rte_step_std_clearsky(
                     VectorView   stokes_vec,
                     MatrixView   trans_mat,
               //Input
-              const Vector&      absorption,
+              ConstVectorView    absorption,
               const Numeric&     l_step,
               const Numeric&     emission )
 {

@@ -165,11 +165,6 @@ void ybatchCalc(Workspace&      ws,
   // robust option: We must handle the case that the first few jobs
   // fail. 
 
-  out2 << "  If you are running on a multicore CPU, you will only see\n"
-       << "  jobs in the main thread in the list below. (So, you can\n"
-       << "  multiply the job number by the number of cores to estimate\n"
-       << "  when the job will be finished.)\n";
-
   // We allow a start index ybatch_start that is different from 0. We
   // will calculate ybatch_n jobs starting at the start
   // index. Internally, we count from zero, which is the right
@@ -177,10 +172,18 @@ void ybatchCalc(Workspace&      ws,
   // ybatch_calc_agenda, we add ybatch_start to the internal index
   // count. 
 
+  // We create a counter, so that we can generate nice output about
+  // how many jobs are already done. (All parallel threads later will
+  // increment this, so that we really get an accurate total count!)
+  Index job_counter = 0;
+
   while (is_first && first_ybatch_index < ybatch_n)
     {
-      out2 << "  Job " << first_ybatch_index+1 << " of " << ybatch_n 
+      ++job_counter;
+
+      out2 << "  Job " << job_counter << " of " << ybatch_n 
            << ": Index " << ybatch_start+first_ybatch_index << "\n";
+
       try
         {
           ybatch_calc_agendaExecute( ws,
@@ -229,14 +232,30 @@ void ybatchCalc(Workspace&      ws,
 
   // Go through the batch:
 
-#pragma omp parallel private(y) firstprivate(l_ws,l_ybatch_calc_agenda)
-#pragma omp for 
+#pragma omp parallel for                                         \
+  default(none)                                                  \
+  shared(job_counter, first_ybatch_index, out2, joker, out0)     \
+  firstprivate(l_ws, l_ybatch_calc_agenda)       \
+  private(y) 
   for(Index ybatch_index = first_ybatch_index;
       ybatch_index<ybatch_n;
       ybatch_index++ )
     {
-      out2 << "  Job " << ybatch_index+1 << " of " << ybatch_n 
-           << ": Index " << ybatch_start+ybatch_index << "\n";
+      Index l_job_counter;      // Thread-local copy of job counter.
+      
+#pragma omp critical
+      {
+        l_job_counter = ++job_counter;
+      }
+
+      {
+        ostringstream os;
+        os << "  Job " << l_job_counter << " of " << ybatch_n 
+           << ", Index " << ybatch_start+ybatch_index << ", Thread-Id "
+           << arts_omp_get_thread_num() << "\n";
+        out2 << os.str();
+      }
+
       try
         {
           ybatch_calc_agendaExecute( l_ws,
@@ -250,9 +269,11 @@ void ybatchCalc(Workspace&      ws,
         {
           if (robust)
             {
-              out0 << "WARNING! Job failed. Output variable ybatch will be set\n"
-                   << "to -1 for this job. The runtime error produced was:\n"
-                   << e.what() << "\n";
+              ostringstream os;
+              os << "WARNING! Job failed. Output variable ybatch will be set\n"
+                 << "to -1 for this job. The runtime error produced was:\n"
+                 << e.what() << "\n";
+              out0 << os.str();
 
               // No need to set ybatch to -1 here, since it is initialized
               // with that value.

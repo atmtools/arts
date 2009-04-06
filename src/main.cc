@@ -716,12 +716,28 @@ int main (int argc, char **argv)
   extern const Parameters parameters; // Global variable that holds
                                       // all command line parameters. 
 
-  //---------------< 0. Time the arts run if possible >---------------
+
+  //---------------< -1. Time the arts run if possible >---------------
 #ifdef TIME_SUPPORT
   struct tms arts_cputime_start;
   clock_t arts_realtime_start;
   arts_realtime_start = times (&arts_cputime_start);
 #endif
+
+
+  //---------------< 0. Initialize in_main_agenda flag >---------------
+
+  /* in_main_agenda is a threadprivate flag used to control agenda
+     output to screen and report file. We have to initialize it
+     explicitly for each thread, since it is not automatically
+     initialized. */
+
+#pragma omp parallel \
+ default(none)
+  {
+    in_main_agenda = true;
+  }
+
 
   //---------------< 1. Get command line parameters >---------------
   if ( get_parameters(argc, argv) )
@@ -983,18 +999,37 @@ int main (int argc, char **argv)
   // one are general stuff like file opening errors.
   try
     {
+      // Output full program name (with version number):		
       extern String full_name;
       out1 << full_name << arts_mod_time (argv[0]) << "\n";
-      out2 << osfeatures.str();
+
+      // Output more details about the compilation:
+      out2 << osfeatures.str() << "\n";
 
       // Output some OpenMP specific information on output level 2:
 #ifdef _OPENMP
       out2 << "Running with OpenMP, "
            << "maximum number of threads = "
-           << arts_omp_get_max_threads() << ".\n\n";
+           << arts_omp_get_max_threads() << ".\n";
 #else
-      out2 << "Running without OpenMP.\n\n";        
+      out2 << "Running without OpenMP.\n";        
 #endif
+
+
+      // Output a short hello from each thread to out3:
+#ifdef _OPENMP
+#pragma omp parallel \
+  default(none) \
+  shared(out3)
+      {      
+        ostringstream os;
+        int tn = arts_omp_get_thread_num();
+        os << "   Thread " << tn << ": ready.\n";
+        out3 << os.str();
+      }
+#endif
+      out2 << "\n";
+
 
       {
         // Output verbosity settings. This is not too interesting, it
@@ -1058,6 +1093,6 @@ int main (int argc, char **argv)
     }
 #endif
 
-  out1 << "Goodbye.\n";
+  out1 << "Everything seems fine. Goodbye.\n";
   arts_exit (EXIT_SUCCESS);
 }

@@ -181,10 +181,15 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
   batch_atm_fields_compact.resize(amnelem);
 
   // Loop the batch cases:
-#pragma omp parallel
-#pragma omp for 
+#pragma omp parallel for \
+  default(none)
   for (Index i=0; i<amnelem; ++i)
     {
+      // All the input variables are visible here, despite the
+      // "default(none)". The reason is that they are return by
+      // reference arguments of this function, which are shared
+      // automatically. 
+
       // The try block here is necessary to correctly handle
       // exceptions inside the parallel region. 
       try

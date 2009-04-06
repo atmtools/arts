@@ -1999,9 +1999,11 @@ void abs_xsec_per_speciesInit(// WS Output:
       abs_xsec_per_species[i] = 0;       // Matpack can set all elements like this.
     }
 
-  out3 << "  Initialized abs_xsec_per_species.\n"
-       << "  Number of frequencies        : " << f_grid.nelem() << "\n"
-       << "  Number of pressure levels    : " << abs_p.nelem() << "\n";
+  ostringstream os;
+  os << "  Initialized abs_xsec_per_species.\n"
+     << "  Number of frequencies        : " << f_grid.nelem() << "\n"
+     << "  Number of pressure levels    : " << abs_p.nelem() << "\n";
+  out3 << os.str();
 }
 
 
@@ -2084,9 +2086,6 @@ void abs_xsec_per_speciesAddLines(// WS Output:
   // Call xsec_species for each tag group.
   for ( Index i=0; i<tgs.nelem(); ++i )
     {
-      out3 << "  Tag group " << i
-           << " (" << get_tag_group_name(tgs[i]) << "): ";
-      
       // Get a pointer to the line list for the current species. This
       // is just so that we don't have to type abs_lines_per_species[i] over
       // and over again.
@@ -2199,7 +2198,6 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                 }
             }
 
-          out3 << ll.nelem() << " transitions\n";
           xsec_species( abs_xsec_per_species[i],
                         f_grid,
                         abs_p,
@@ -2214,11 +2212,16 @@ void abs_xsec_per_speciesAddLines(// WS Output:
           // selected by the above Matpack expression. This is
           // possible, because xsec_species is using Views.
         }
-      else
-        {
-          out3 << ll.nelem() << " transitions, skipping\n";
-        }
-    }
+
+      {
+        ostringstream os;
+        os << "  Tag group " << i
+           << " (" << get_tag_group_name(tgs[i]) << "): "
+           << ll.nelem() << " transitions\n";
+        out3 << os.str();
+      }
+
+    } // End of species for loop.
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -2259,23 +2262,22 @@ void abs_xsec_per_speciesAddConts(// WS Output:
   if ( abs_cont_names.nelem() !=
        abs_cont_parameters.nelem() )
     {
-      for (Index i=0; i < abs_cont_names.nelem(); ++i) 
-        {
-          cout << "abs_xsec_per_speciesAddConts: " << i << " name : " << abs_cont_names[i] << "\n";
-        }
-      for (Index i=0; i < abs_cont_parameters.nelem(); ++i) 
-        {
-          cout << "abs_xsec_per_speciesAddConts: " << i << " param: " << abs_cont_parameters[i] << "\n";
-        }
-      for (Index i=0; i < abs_cont_models.nelem(); ++i) 
-        {
-          cout << "abs_xsec_per_speciesAddConts: " << i << " option: " << abs_cont_models[i] << "\n";
-        }
       ostringstream os;
-        os << "The following variables must have the same dimension:\n"
-           << "abs_cont_names:      " << abs_cont_names.nelem() << "\n"
-           << "abs_cont_parameters: " << abs_cont_parameters.nelem();
-        throw runtime_error(os.str());
+
+      for (Index i=0; i < abs_cont_names.nelem(); ++i) 
+        os << "abs_xsec_per_speciesAddConts: " << i << " name : " << abs_cont_names[i] << "\n";
+
+      for (Index i=0; i < abs_cont_parameters.nelem(); ++i) 
+        os << "abs_xsec_per_speciesAddConts: " << i << " param: " << abs_cont_parameters[i] << "\n";
+
+      for (Index i=0; i < abs_cont_models.nelem(); ++i) 
+        os << "abs_xsec_per_speciesAddConts: " << i << " option: " << abs_cont_models[i] << "\n";
+
+      os << "The following variables must have the same dimension:\n"
+         << "abs_cont_names:      " << abs_cont_names.nelem() << "\n"
+         << "abs_cont_parameters: " << abs_cont_parameters.nelem();
+
+      throw runtime_error(os.str());
     }
 
   // ...and that indeed the names match valid continuum models:
@@ -2389,8 +2391,12 @@ void abs_xsec_per_speciesAddConts(// WS Output:
                   // Ok, the tag specifies a valid continuum model and
                   // we have continuum parameters.
                   
-                  out3 << "  Adding " << name
+                  {
+                    ostringstream os;
+                    os << "  Adding " << name
                        << " to tag group " << i << ".\n";
+                    out3 << os.str();
+                  }
 
                   // find the options for this continuum tag from the input array
                   // of options. The actual field of the array is n:

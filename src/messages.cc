@@ -33,9 +33,14 @@
     or not. If we are not, then agenda output is suppressed or
     enabled, according to the verbosity setting.
 
-    We initialize it to true, so that we also get output from before
-    the execution of main.
-*/
+    I also tried to implement this functionality by making the flag an
+    array over the number of threads. However, that approach does not
+    work, since the thread number is only valid inside the same
+    parallel region. Outside it will always be zero, even if we are
+    not in the main thread.
+
+    Threadprivate variables are not initialized, so we have to
+    explicitly initialize this in main for all threads. */
 bool in_main_agenda=true;
 #pragma omp threadprivate(in_main_agenda)
 

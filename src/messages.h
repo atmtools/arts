@@ -100,17 +100,33 @@ public:
 
     if (in_main_agenda || sufficient_priority_agenda(priority))
       {
+        // We are marking the actual output operations as omp
+        // critical, to somewhat reduce the mess when several threads
+        // output simultaneously. 
+
+        // This works well if the output operations themselves are
+        // atomic, that is if a string is prepared beforehand and then
+        // put to outx with a single << operation.
+        
         if (sufficient_priority_screen(priority))
-          os << t;
-    
+          {
+#pragma omp critical
+            {
+              os << t;
+            }
+          }
+
         if (sufficient_priority_file(priority))
           {
-            //    if (report_file)              // Check if report file is good
-            report_file << t << flush;
-            // The flush here is necessary to make the output really
-            // appear in the report file. We are not producing a huge
-            // amount of output to the report file, so I think the
-            // performance penalty here is acceptable.
+#pragma omp critical
+            {
+              //    if (report_file)              // Check if report file is good
+              report_file << t << flush;
+              // The flush here is necessary to make the output really
+              // appear in the report file. We are not producing a huge
+              // amount of output to the report file, so I think the
+              // performance penalty here is acceptable.
+            }
           }
       }
   }

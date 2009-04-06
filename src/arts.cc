@@ -54,13 +54,13 @@ void arts_exit(int status)
 */
 void arts_exit_with_error_message(const String& m)
 {
-#ifdef _OPENMP
-#pragma omp critical
-#endif
   {
-    out0 << m << "\n"
-         << "Stopping ARTS execution.\n"
-         << "Goodbye.\n";
+    ostringstream os;
+    os << m << "\n"
+       << "Stopping ARTS execution.\n"
+       << "Goodbye.\n";
+    out0 << os.str();
+
     arts_exit();              // No argument means failure.
   }
 }

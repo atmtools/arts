@@ -41,15 +41,49 @@
 #include "interpolation.h"
 #include "logic.h"
 
-// These two macros here are from Numerical Receipes. They give the
-// maxium and minimum of two Index arguments.
-static Index imaxarg1, imaxarg2;
-#define IMAX(a,b) (imaxarg1=(a), imaxarg2=(b),(imaxarg1) > (imaxarg2) ?\
+//! Return the maximum of two integer numbers.
+/*! 
+  This function is based on a macro from Numerical Receipes. The
+  original macro:
+
+  static Index imaxarg1, imaxarg2;
+  #define IMAX(a,b) (imaxarg1=(a), imaxarg2=(b),(imaxarg1) > (imaxarg2) ? \
                    (imaxarg1) : (imaxarg2))
 
-static Index iminarg1, iminarg2;
-#define IMIN(a,b) (iminarg1=(a), iminarg2=(b),(iminarg1) < (iminarg2) ?\
+  The macro can cause trouble if used in parallel regions, so we use this
+  function instead.  
+                                      
+  \param a Input a.
+  \param b Input b.
+
+  \return The maximum of a and b.
+*/
+Index IMAX(Index a, Index b)
+{
+  return a>b ? a:b;
+}
+
+//! Return the minimum of two integer numbers.
+/*! 
+  This function is based on a macro from Numerical Receipes. The
+  original macro:
+
+  static Index iminarg1, iminarg2;
+  #define IMIN(a,b) (iminarg1=(a), iminarg2=(b),(iminarg1) < (iminarg2) ? \
                    (iminarg1) : (iminarg2))
+
+  The macro can cause trouble if used in parallel regions, so we use this
+  function instead.  
+                                      
+  \param a Input a.
+  \param b Input b.
+
+  \return The minimum of a and b.
+*/
+Index IMIN(Index a, Index b)
+{
+  return a<b ? a:b;
+}
 
 // File-global constants:
 
@@ -115,8 +149,9 @@ void gridpos_poly(ArrayOfGridPosPoly& gp,
   // we spend some time waiting for new memory being allocated by
   // resize. Dunno if the benefit is very large, though.
 
-#pragma omp parallel 
-#pragma omp for 
+#pragma omp parallel for                        \
+  default(none)                                 \
+  shared(m, gp_trad, new_grid, old_grid)  
   for (Index s=0; s<n_new; ++s)
     {
                    

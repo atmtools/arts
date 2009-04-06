@@ -187,8 +187,8 @@ void Agenda::execute(Workspace& ws) const
 
   // If (and only if) this agenda is the main agenda, then we set the
   // thread local global variable in_main_agenda to true, otherwise to
-  // false. The variable in_main_agenda is declared in messages.h and
-  // defined in messages.cc.
+  // false. The variable in_main_agenda is declared in messages.h,
+  // defined in messages.cc, and initialized in main.cc.
   bool original_in_main_agenda = in_main_agenda;
   in_main_agenda = is_main_agenda();
 
@@ -201,8 +201,12 @@ void Agenda::execute(Workspace& ws) const
   // The array holding the pointers to the getaway functions:
   extern void (*getaways[])(Workspace&, const MRecord&);
 
-  out1 << "Executing " << name() << "\n"
+  {
+    ostringstream os;
+    os << "Executing " << name() << "\n"
        << "{\n";
+    out1 << os.str();
+  }
 
   for (Index i=0; i<mml.nelem(); ++i)
     {
@@ -222,11 +226,15 @@ void Agenda::execute(Workspace& ws) const
                 && Workspace::wsv_data[mrr.In()[0]].Name().substr(0, 5)
                    == "auto_"))
               {
-                out3 << "- " << mdd.Name() << "\n";
+                ostringstream os;
+                os << "- " << mdd.Name() << "\n";
+                out3 << os.str();
               }
             else
               {
-                out1 << "- " << mdd.Name() << "\n";
+                ostringstream os;
+                os << "- " << mdd.Name() << "\n";
+                out1 << os.str();
               }
           }
         
@@ -254,9 +262,7 @@ void Agenda::execute(Workspace& ws) const
         }
       catch (runtime_error x)
         {
-          ostringstream os;
-          os << "Run-time error in method: " << mdd.Name() << '\n'
-               << x.what();
+          out1 << "}\n";
 
           // We have to restore the original content of
           // in_main_agenda, otherwise no output will be visible in
@@ -264,7 +270,9 @@ void Agenda::execute(Workspace& ws) const
           // continues.
           in_main_agenda = original_in_main_agenda;
 
-          out1 << "}\n";
+          ostringstream os;
+          os << "Run-time error in method: " << mdd.Name() << '\n'
+               << x.what();
 
           throw runtime_error(os.str());
         }

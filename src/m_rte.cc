@@ -219,9 +219,14 @@ void RteCalc(
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
 
-#pragma omp parallel firstprivate(l_ws,l_iy_space_agenda,l_ppath_step_agenda,l_rte_agenda,l_surface_prop_agenda,l_iy_cloudbox_agenda)
-#pragma omp for 
-
+#pragma omp parallel for                                        \
+  default(none)                                                 \
+  shared(nza, naa, nf, joker, mblock_index, rte_do_t_jacs,      \
+         rte_do_vmr_jacs, ppath_array_do, ib, jqi_vmr,          \
+         ib_vmr_jacs, j_unit, jqi_t, ib_t_jacs)                 \
+  firstprivate(l_ws, l_iy_space_agenda,         \
+               l_ppath_step_agenda, l_rte_agenda,               \
+               l_surface_prop_agenda, l_iy_cloudbox_agenda)
       for( Index iza=0; iza<nza; iza++ )
         {
           // The try block here is necessary to correctly handle
@@ -557,8 +562,13 @@ void RteCalcMC(
 
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
-#pragma omp parallel firstprivate(l_ws,l_iy_space_agenda,l_surface_prop_agenda,l_opt_prop_gas_agenda,l_abs_scalar_gas_agenda)
-#pragma omp for 
+#pragma omp parallel for                                        \
+  default(none)                                                 \
+  shared(nza, naa, joker, mblock_index, nf, mc_antenna,         \
+         mc_points, ib, ib_error)                               \
+  firstprivate(l_ws, l_iy_space_agenda,         \
+               l_surface_prop_agenda,l_opt_prop_gas_agenda,     \
+               l_abs_scalar_gas_agenda)
       for( Index iza=0; iza<nza; iza++ )
         {
           // The try block here is necessary to correctly handle

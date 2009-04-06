@@ -1,3 +1,71 @@
+2009-04-06  Stefan Buehler  <sbuehler(at)ltu.se>
+
+        * arts-1-12-12
+
+	* A cleanup of various more or less cosmetic bugs and issues
+	around OpenMP. Finally fixed the annoying "disappearing output"
+	bug. Also some slight performance improvements.  
+	
+	* OpenMP: Cleaned up all OMP loops. They now all have a clause
+	"default(none)", so that all used variables have to be declared
+	explicitly as either shared, firstprivate, or private. This should
+	help to avoid bugs in future.
+
+	* Report output: The << operators for outx now use a critical
+	section to avoid that output from different threads is
+	mixed. However, this works only for individual output operations,
+	not if you build up a long output chain with several <<
+	operators. In those cases, it is better to build up the output in
+	a string stream, then write it to outx with a single operation. 
+
+	* src/messages.h (Messages::Print): Use critical regions to avoid
+	output from different threads being mixed.
+
+	* src/m_batch.cc (ybatchCalc): OpenMP cleanup. Report output
+	cleanup. Level 2 output of this function is now really nice. I use
+	a job counter to see which fraction of the total job is already
+	done, and this is displayed, along with the current index in the
+	batch and the thread ID. Now you can really see what is going on! 
+
+	* src/arts.cc (arts_exit): Report output cleanup. 
+
+	* src/m_rte.cc (RteCalcMC, RteCalc): OpenMP cleanup.
+
+	* src/interpolation_poly.cc (IMIN, IMAX): Added these two
+	functions, which before were implemented as C pre-processor
+	macros. The macros were not thread-safe, a bug that I discovered
+	after rigorously using the "default(none)" clause on all parallel
+	regions and loops.
+	(gridpos_poly): OpenMP cleanup.
+
+	* src/main.cc (main): Initialize the threadprivate in_main_agenda
+	flag to true for all threads. This fixes the long-standing bug
+	that some output disappeared in multi-threaded calculations.
+
+	* src/m_scatrte.cc (ScatteringDoit): OpenMP cleanup.
+
+	* src/m_abs_lookup.cc: OpenMP cleanup. Report output cleanup. 
+
+	* src/agenda_class.cc (execute): Report output cleanup. 
+
+	* src/messages.cc: Improved some comments.
+
+	* src/absorption.cc (xsec_species): OpenMP cleanup.
+
+	* src/m_abs.cc: Report output cleanup.  
+
+	* src/m_atmosphere.cc (batch_atm_fields_compactFromArrayOfMatrix):
+	OpenMP cleanup.
+
+	* src/rte.cc (rte_step_std_clearsky): Changed type of input
+	argument absorption from "const Vector&" to
+	"ConstVectorView". This gives a 3% decrease in total runtime for
+	an arts job with many frequencies.
+
+	* src/gas_abs_lookup.cc (Extract): Some numerical
+	optimizations. (Doing an explicit for loop, instead of using a
+	temporary Vector.) Only a modest speed improvement (2%).
+
 2009-04-06  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-12-11

@@ -2363,11 +2363,16 @@ void ScatteringDoit(Workspace& ws,
   // OMP likes simple loop end conditions, so we make a local copy here: 
   const Index nf = f_grid.nelem();
 
-#pragma omp parallel firstprivate(l_ws, l_doit_mono_agenda)
-#pragma omp for 
+#pragma omp parallel for                                        \
+  default(none)                                                 \
+  shared(out2)                                                  \
+  firstprivate(l_ws, l_doit_mono_agenda)
   for (Index f_index = 0; f_index < nf; f_index ++)
     {
-      out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
+      ostringstream os;
+      os << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
+      out2 << os.str();
+
       doit_mono_agendaExecute(l_ws, doit_i_field, scat_i_p, scat_i_lat,
                               scat_i_lon, doit_i_field1D_spectrum,
                               f_index, l_doit_mono_agenda);
