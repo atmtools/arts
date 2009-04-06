@@ -17,7 +17,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.12.10)
+AM_INIT_AUTOMAKE(arts,1.12.11)
 
 
 dnl Put the ACLOCAL flags in the Makefile
@@ -93,6 +93,24 @@ AC_CHECK_SIZEOF(int, 4)
 AC_CHECK_SIZEOF(long, 8)
 AC_CHECK_SIZEOF(size_t, 8)
 
+AC_MSG_CHECKING([whether time support is available])
+AC_COMPILE_IFELSE(
+                  [AC_LANG_PROGRAM([[
+                   @%:@include <unistd.h>
+                   @%:@include <sys/types.h>
+                   @%:@include <sys/stat.h>
+                   @%:@include <time.h>
+                   @%:@include <sys/times.h>
+                   ]],
+                   [[ struct tms t; times (&t); sysconf (_SC_CLK_TCK); ]])],
+                   ac_timesupport=yes, ac_timesupport=no)
+AC_MSG_RESULT($ac_timesupport)
+AM_CONDITIONAL(TIME_SUPPORT, test x$ac_timesupport = xyes)
+if test x$ac_timesupport = xyes; then
+  AC_DEFINE([TIME_SUPPORT],[1],[Defined if timer support is available])
+fi
+
+
 
 # Special headers that we need:
 # AC_HAVE_HEADERS(getopt.h) (now included in the source)
@@ -119,7 +137,7 @@ fi
 #
 AC_MSG_CHECKING([whether NetCDF exists and contains nc_open])
 AC_COMPILE_IFELSE(
-                  [AC_LANG_PROGRAM([[ #include <netcdf.h> ]],
+                  [AC_LANG_PROGRAM([[ @%:@include <netcdf.h> ]],
                                    [[ int id; nc_open("", NC_NOWRITE, &id) ]])],ac_ncsupport=yes, ac_ncsupport=no, netcdf.h )
 AC_MSG_RESULT($ac_ncsupport)
 

@@ -12,6 +12,36 @@
 /* Define to compile with NetCDF support */
 #cmakedefine ENABLE_NETCDF
 
+/* define if the compiler supports ISO C++ standard library */
+#cmakedefine HAVE_STD 
+
+/* check existence of c header files */
+#cmakedefine HAVE_STDLIB_H 1
+#cmakedefine HAVE_STRINGS_H 1
+#cmakedefine HAVE_STRING_H 1
+#cmakedefine HAVE_SYS_STAT_H 1
+#cmakedefine HAVE_SYS_TIMES_H 1
+#cmakedefine HAVE_SYS_TYPES_H 1
+#cmakedefine HAVE_TIME_H 1
+#cmakedefine HAVE_UNISTD_H 1
+
+/* check existence of c++ header files */
+#cmakedefine HAVE_CSTDLIB 1
+#cmakedefine HAVE_CSTRING 1
+#cmakedefine HAVE_SSTREAM 1
+
+/* availability of timer support */
+#cmakedefine TIME_SUPPORT 1
+
+/* Default Index type */
+#cmakedefine INDEX ${INDEX}
+
+/* Default Numeric type */
+#cmakedefine NUMERIC ${NUMERIC}
+
+/* Operating system name */
+#cmakedefine OS_NAME "${OS_NAME}"
+
 /* Define to compile with zlib support */
 #define ENABLE_ZLIB 1
 
@@ -21,62 +51,17 @@
 /* define if the compiler supports const_cast<> */
 #define HAVE_CONST_CAST 
 
-/* Define to 1 if you have the <inttypes.h> header file. */
-#define HAVE_INTTYPES_H 1
-
-/* Define to 1 if you have the `m' library (-lm). */
-#define HAVE_LIBM 1
-
-/* Define to 1 if you have the <memory.h> header file. */
-#define HAVE_MEMORY_H 1
-
 /* define if the compiler implements namespaces */
 #define HAVE_NAMESPACES 
-
-/* define if the compiler has stringstream */
-#define HAVE_SSTREAM 
 
 /* define if the compiler supports static_cast<> */
 #define HAVE_STATIC_CAST 
 
-/* define if the compiler supports ISO C++ standard library */
-#define HAVE_STD 
-
-/* Define to 1 if you have the <stdint.h> header file. */
-#define HAVE_STDINT_H 1
-
-/* Define to 1 if you have the <stdlib.h> header file. */
-#define HAVE_STDLIB_H 1
-
-/* Define to 1 if you have the <strings.h> header file. */
-#define HAVE_STRINGS_H 1
-
-/* Define to 1 if you have the <string.h> header file. */
-#define HAVE_STRING_H 1
-
-/* Define to 1 if you have the <sys/stat.h> header file. */
-#define HAVE_SYS_STAT_H 1
-
-/* Define to 1 if you have the <sys/types.h> header file. */
-#define HAVE_SYS_TYPES_H 1
-
 /* define if the compiler supports basic templates */
 #define HAVE_TEMPLATES 
 
-/* Define to 1 if you have the <unistd.h> header file. */
-#define HAVE_UNISTD_H 1
-
-/* Default Index type */
-#cmakedefine INDEX ${INDEX}
-
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O
-
-/* Default Numeric type */
-#cmakedefine NUMERIC ${NUMERIC}
-
-/* Operating system name */
-#cmakedefine OS_NAME "${OS_NAME}"
 
 /* Operating system version */
 #define OS_VERSION ""

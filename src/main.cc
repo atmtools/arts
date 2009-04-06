@@ -34,12 +34,9 @@
 #error "Please run ./configure in the top arts directory before compiling."
 #endif
 
-#if HAVE_UNISTD_H
-# include <sys/types.h>
-# include <unistd.h>
-#endif
-#ifdef _POSIX_VERSION
+#ifdef TIME_SUPPORT
 #include <sys/types.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <sys/times.h>
@@ -680,7 +677,7 @@ void option_describe(const String& describe)
     as a string.
 
     \author Oliver Lemke */
-#ifdef _POSIX_VERSION
+#ifdef TIME_SUPPORT
 String arts_mod_time (String filename)
 {
   struct stat buf;
@@ -720,7 +717,7 @@ int main (int argc, char **argv)
                                       // all command line parameters. 
 
   //---------------< 0. Time the arts run if possible >---------------
-#ifdef _POSIX_VERSION
+#ifdef TIME_SUPPORT
   struct tms arts_cputime_start;
   clock_t arts_realtime_start;
   arts_realtime_start = times (&arts_cputime_start);
@@ -1039,7 +1036,7 @@ int main (int argc, char **argv)
       arts_exit_with_error_message(x.what());
     }
 
-#ifdef _POSIX_VERSION
+#ifdef TIME_SUPPORT
   struct tms arts_cputime_end;
   clock_t arts_realtime_end;
   long clktck = 0;
