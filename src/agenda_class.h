@@ -80,6 +80,8 @@ public:
               const String& indent ) const;
   void set_main_agenda() {main_agenda = true; mchecked = true;};
   bool is_main_agenda() const {return main_agenda;};
+  void find_unused_variables();
+
 private:
   String         mname; /*!< Agenda name. */
   Array<MRecord> mml;   /*!< The actual list of methods to execute. */

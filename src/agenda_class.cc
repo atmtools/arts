@@ -218,7 +218,6 @@ void Agenda::execute(Workspace& ws) const
       try
         {
           {
-            ostringstream os;
             if ((mdd.SetMethod() && mrr.Out().nelem()
                 && Workspace::wsv_data[mrr.Out()[0]].Name().substr(0, 5)
                    == "auto_")
@@ -616,6 +615,39 @@ String Agenda::name() const
 {
   return mname;
 }
+
+void Agenda::find_unused_variables()
+{
+  extern const Array<MdRecord>  md_data;
+
+  // Get a handle on the right record:
+  MdRecord tmd;
+
+  ArrayOfIndex in_vars;
+  ArrayOfIndex out_vars;
+  for (Array<MRecord>::iterator mr = --mml.end(); mr != mml.begin(); mr--)
+    {
+      cout << md_data[mr->Id()].Name() << ": ";
+      cout << mr->In() << endl;
+
+      for (ArrayOfIndex::const_iterator it = mr->In().begin();
+           it != mr->In().end(); it++)
+        {
+          if (find (in_vars.begin(), in_vars.end(), *it) == in_vars.end())
+            in_vars.push_back (*it);
+        }
+
+      for (ArrayOfIndex::const_iterator it = mr->Out().begin();
+           it != mr->Out().end(); it++)
+        if (find( out_vars.begin(), out_vars.end(), *it) == out_vars.end())
+          out_vars.push_back (*it);
+
+    }
+
+  cout << "In : " << in_vars << endl;
+  cout << "Out: " << out_vars << endl;
+}
+
 
 //! Print an agenda.
 /*!

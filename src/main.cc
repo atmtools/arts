@@ -1060,6 +1060,8 @@ int main (int argc, char **argv)
 
           tasklist.set_main_agenda();
 
+          //tasklist.find_unused_variables();
+
           workspace.initialize ();
 
           // Execute main agenda:

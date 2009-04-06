@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
 project (ARTS)
-set (VERSION "1.12.11")
+set (VERSION "1.12.13")
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -95,7 +95,7 @@ if (CMAKE_COMPILER_IS_INTELCXX)
   set (WARN_FLAGS "${WARN_FLAGS} -Wall -Wshadow -w1 -diag-disable 383,980,981,1418,1419")
 endif (CMAKE_COMPILER_IS_INTELCXX)
 if (CMAKE_COMPILER_IS_GNUCXX)
-  set (WARN_FLAGS "${WARN_FLAGS} -W -Wall -Wconversion")
+  set (WARN_FLAGS "${WARN_FLAGS} -W -Wall -Wconversion -Wshadow")
 endif (CMAKE_COMPILER_IS_GNUCXX)
 
 if (NOT NO_WERROR)
