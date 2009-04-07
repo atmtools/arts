@@ -1,5 +1,11 @@
 2009-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+        * arts-1-12-17
+
+	* src/methods.cc: Revision of method starting with D-I. 
+
+2009-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
         * arts-1-12-16
 
 	* src/methods.cc: Started revision. Tried to obtain a relatively

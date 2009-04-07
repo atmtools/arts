@@ -95,7 +95,7 @@ void define_md_data_raw()
   // The variable md_data is defined in file methods_aux.cc.
   extern Array<MdRecord> md_data_raw;
 
-  // Initialize to zero, just in case:
+  // Initialise to zero, just in case:
   md_data_raw.resize(0);
 
   const String ARRAY_GROUPS = get_array_groups_as_string();
@@ -114,7 +114,7 @@ void define_md_data_raw()
       ( NAME( "AbsInputFromAtmFields" ),
         DESCRIPTION
         (
-         "Initialize the WSVs *abs_p*, *abs_t* and *abs_vmrs* from\n"
+         "Initialises the WSVs *abs_p*, *abs_t* and *abs_vmrs* from\n"
          "*p_grid, *t_field* and *vmr_field*.\n"
          "\n"
          "This only works for a 1D atmosphere!\n"
@@ -1921,7 +1921,7 @@ void define_md_data_raw()
       ( NAME( "ArrayOfIndexSet" ),
         DESCRIPTION
         (
-         "Create an ArrayOfIndex from the given list of numbers.\n"
+         "Creates an ArrayOfIndex from the given list of numbers.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -2746,35 +2746,25 @@ void define_md_data_raw()
       ( NAME( "DoitAngularGridsSet" ),
         DESCRIPTION
         (
-         "Set angular grids for DOIT calculation."
+         "Sets the angular grids for DOIT calculation."
          "\n"
          "In this method the angular grids for a DOIT calculation are "
-         "specified.\n"
-         "For down-looking geometries it is sufficient to define\n"
-         "\n"  
-         "N_za_grid: number of grid points in zenith angle grid\n"
-         "           recommended value: 19\n"
-         "N_aa_grid: number of grid points in zenith angle grid\n"
-         "           recommended value: 37\n"
-         "\n"
-         "From these numbers equally spaced grids are created and stored in "
-         "the\n" 
-         "WSVs *scat_za_grid* and *scat_aa_grid*.\n" 
+         "specified. For down-looking geometries it is sufficient to define\n"
+         "*N_za_grid* and *N_aa_grid*. From these numbers equally spaced\n"
+         "grids are created and stored in the WSVs *scat_za_grid* and\n"
+         "*scat_aa_grid*.\n" 
          "\n"
          "For limb simulations it is important to use an optimized zenith "
-         "angle\n"
-         "grid with a very fine resolution about 90° for the "
-         "RT calculations.\n"
-         "Such a grid can be generated using *doit_za_grid_optCalc*.\n"
-         "The filename of the optimized zenith angle grid can be given\n"
-         "as a keyword. If a filename is given, the equidistant grid is\n"
-         "taken for the calculation of the scattering integrals and the\n"
-         "optimized grid is taken for the radiative transfer part.\n"
-         "Otherwise, if no filename is specified\n"
-         "( za_grid_opt_file = \"\" ) the equidistant grid is\n"
-         "taken for the calculation of the scattering integrals and for\n"
-         "the RT calculations. This option makes sense for down-looking\n"
-         "cases to speed up the calculation.\n"
+         "angle grid with a very fine resolution about 90° when performing\n"
+         "the actual radiative transfer calculations.. Such a grid can be\n"
+         "generated using *doit_za_grid_optCalc*. The filename of an optimized\n"
+         "zenith angle grid can be given as a keyword (*za_grid_opt_file*).\n" 
+         "If a filename is given, the equidistant grid is used for the\n"
+         "calculation of the scattering integrals and the optimized grid is\n"
+         "applied for the radiative transfer part. Otherwise, if no filename\n"
+         "is specified (za_grid_opt_file = \"\" ) the equidistant grid is\n"
+         "used throughout. This option makes sense for down-looking cases\n"
+         "to speed up the calculation.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_za_grid_size", "scat_aa_grid", "scat_za_grid" ),
@@ -2785,9 +2775,11 @@ void define_md_data_raw()
         GIN( "N_za_grid", "N_aa_grid", "za_grid_opt_file" ),
         GIN_TYPE(    "Index",     "Index",     "String" ),
         GIN_DEFAULT( NODEF,       NODEF,       NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Number of grid points in zenith angle grid. "
+                  "Recommended value is 19.",
+                  "Number of grid points in zenith angle grid. "
+                  "Recommended value is 37.",
+                  "Name of special grid for RT part." )
         ));
 
   md_data_raw.push_back
@@ -2795,7 +2787,7 @@ void define_md_data_raw()
       ( NAME( "DoitCloudboxFieldPut" ),
         DESCRIPTION
         (
-         "Method for the communication between cloudbox and clearsky.\n"
+         "Method for the DOIT communication between cloudbox and clearsky.\n"
          "\n"
          "This method puts the scattered radiation field into the interface\n"
          "variables between the cloudbox and the clearsky, which are\n"
@@ -2825,25 +2817,18 @@ void define_md_data_raw()
       ( NAME( "doit_conv_flagAbs" ),
         DESCRIPTION
         (
-         "Convergence test (maximum absolute difference).\n"
+         "DOIT convergence test (maximum absolute difference).\n"
          "\n"
-         "The function calculates the absolute differences for two " 
-         "successive\n"
+         "The function calculates the absolute differences for two successive\n"
          "iteration fields. It picks out the maximum values for each Stokes\n"
          "component separately. The convergence test is fullfilled under the\n"
          "following conditions:\n"
-         "|I(m+1) - I(m)| < epsilon_1     Intensity.\n"
-         "|Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n" 
-         "|U(m+1) - U(m)| < epsilon_3   \n"
-         "|V(m+1) - V(m)| < epsilon_4   \n" 
+         "   |I(m+1) - I(m)| < epsilon_1     Intensity.\n"
+         "   |Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n" 
+         "   |U(m+1) - U(m)| < epsilon_3   \n"
+         "   |V(m+1) - V(m)| < epsilon_4   \n" 
          "These conditions have to be valid for all positions in the\n"
          "cloudbox and for all directions.\n"  
-         "\n"
-         "The limits for convergence are set in the controlfile by\n"
-         "setting the vector *epsilon* to appropriate values.\n"
-         "The unit of *epsilon* is radiance [W / (m^2 Hz sr)].\n"
-         "\n"
-         "This method can be used in *doit_convergence_test_agenda*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_conv_flag", "doit_iteration_counter" ),
@@ -2853,9 +2838,11 @@ void define_md_data_raw()
         IN( "doit_conv_flag", "doit_iteration_counter",
             "doit_i_field", "doit_i_field_old" ),
         GIN( "epsilon" ),
-        GIN_TYPE(    "Vector" ),
+        GIN_TYPE( "Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Limits for convergence. A vector with length matching "
+                  "*stokes_dim* with unit [W / (m^2 Hz sr)]."
+                  )
         ));
 
   md_data_raw.push_back     
@@ -2863,14 +2850,10 @@ void define_md_data_raw()
       ( NAME( "doit_conv_flagLsq" ),
         DESCRIPTION
         (
-         "Convergence test (Least square).\n"
+         "DOIT convergence test (least squares).\n"
          "\n"
-         "This method performs a least square convergence test for two\n"
-         "successive iteration fields.\n"
-         "\n"
-         "The limits for convergence are set in the controlfile by\n"
-         "setting the vector *epsilon* to appropriate values.\n"
-         "The unit of *epsilon* is Rayleigh Jeans BT [K].\n"
+         "As *doit_conv_flagAbsBT* but applies a least squares convergence\n"
+         "test between two successive iteration fields.\n"
          "\n"
          "Warning: This method is not recommended because this kind of\n"
          "convergence test is not sufficiently strict, so that the\n"
@@ -2884,9 +2867,11 @@ void define_md_data_raw()
         IN( "doit_conv_flag", "doit_iteration_counter", 
             "doit_i_field", "doit_i_field_old", "f_grid", "f_index" ),
         GIN( "epsilon" ),
-        GIN_TYPE(    "Vector" ),
+        GIN_TYPE( "Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Limits for convergence. A vector with length matching "
+                  "*stokes_dim* with unit [K]."
+                  )
         ));
   
   md_data_raw.push_back     
@@ -2894,26 +2879,11 @@ void define_md_data_raw()
       ( NAME( "doit_conv_flagAbsBT" ),
         DESCRIPTION
         (
-         "Convergence test (maximum absolute difference in Rayleigh Jeans "
+         "DOIT convergence test (maximum absolute difference in Rayleigh Jeans "
          "BT)\n"
          "\n"
-         "The function calculates the absolute differences for two " 
-         "successive\n"
-         "iteration fields. It picks out the maximum values for each Stokes\n"
-         "component separately. The convergence test is fullfilled under the\n"
-         "following conditions:\n"
-         "|I(m+1) - I(m)| < epsilon_1     Intensity.\n"
-         "|Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n" 
-         "|U(m+1) - U(m)| < epsilon_3   \n"
-         "|V(m+1) - V(m)| < epsilon_4   \n" 
-         "These conditions have to be valid for all positions in the\n"
-         "cloudbox and for all directions.\n"  
-         "\n"
-         "The limits for convergence are set in the controlfile by\n"
-         "setting the vector *epsilon* to appropriate values.\n"
-         "The unit of *epsilon* is Rayleigh Jeans BT [K].\n"
-         "\n"
-         "This method can be used in *doit_convergence_test_agenda*.\n"
+         "As *doit_conv_flagAbs* but convergence limits are specified in\n"
+         "Rayleigh-Jeans brighntess temperatures.\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
         OUT( "doit_conv_flag", "doit_iteration_counter" ),
@@ -2925,7 +2895,9 @@ void define_md_data_raw()
         GIN( "epsilon" ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Limits for convergence. A vector with length matching "
+                  "*stokes_dim* with unit [K]."
+                  )
         ));
 
   md_data_raw.push_back
@@ -2933,10 +2905,7 @@ void define_md_data_raw()
       ( NAME( "DoitInit" ),
         DESCRIPTION
         (
-         "Initialize variables for DOIT scattering calculations.\n"
-         "\n"
-         "Before using the WSM *ScatteringDOIT*, please use this method\n"
-         "to initialize the required WSVs.\n"
+         "Initialises variables for DOIT scattering calculations.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_p_index", "scat_lat_index", "scat_lon_index", 
@@ -2962,11 +2931,10 @@ void define_md_data_raw()
          "\n"
          "A solution for the RTE with scattering is found using the\n"
          "DOIT method:\n"
-         "\n"
-         "1. Calculate scattering integral using *doit_scat_field_agenda*.\n"
-         "2. Calculate RT with fixed scattered field using\n"
-         "   *doit_rte_agenda*.\n"
-         "3. Convergence test using *doit_conv_test_agenda*.\n"
+         " 1. Calculate scattering integral using *doit_scat_field_agenda*.\n"
+         " 2. Calculate RT with fixed scattered field using\n"
+         "    *doit_rte_agenda*.\n"
+         " 3. Convergence test using *doit_conv_test_agenda*.\n"
          "\n"
          "Note: The atmospheric dimensionality *atmosphere_dim* can be\n"
          "      either 1 or 3. To these dimensions the method adapts\n"
@@ -2998,17 +2966,11 @@ void define_md_data_raw()
          "clear sky field on the cloud box boundary. This radiation field\n"
          "is taken as the first guess radiation field in the DOIT module.\n"
          "\n"
-         "The inputs to this method are *scat_i_p*, *scat_i_lat*\n"
-         "*scat_i_lon*. The method picks the\n"
-         "monochromatic radiation field out of these variables. The\n"
-         "output of the method is the first guess field stored in the\n"
-         "workspace variable *doit_i_field*.\n"
-         "\n"
-         "Set keyword *all_frequencies* to 1 if for each frequency the\n"
-         "clearsky field should be used as initial field. Set it to 0 if\n"
-         "only for the first frequency in *f_grid* the clearsky field should\n"
-         "be used and for the next frequencies *doit_i_field* of the\n"
-         "previous frequency should be used. Default is 1.\n"
+         "Set the *all_frequencies* to 1 if the clearsky field shall be used\n"
+         "as initial field for all frequencies. Set it to 0 if the clear sky\n"
+         "field shall be used only for the first frequency in *f_grid*. For\n"
+         "later frequencies, *doit_i_field* of the previous frequency is then\n"
+         "used.\n"
          ),
         AUTHORS( "Sreerekha T.R. and Claudia Emde" ),
         OUT( "doit_i_field" ),
@@ -3021,7 +2983,7 @@ void define_md_data_raw()
         GIN( "all_frequencies" ),
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( "1" ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "See above." )
         ));
 
   md_data_raw.push_back
@@ -3034,12 +2996,7 @@ void define_md_data_raw()
          "calculations (number of elements in f_grid=1).\n"
          "\n"
          "The user can specify a value for each Stokes dimension in the\n"
-         "control file by the variable doit_i_field_value, which is a\n"
-         "vector containing 4 elements, the value of the initial field\n"
-         "for each Stokes dimension.\n"
-         "\n"
-         "Output of the method is the first guess field stored in the\n"
-         "workspace variable *doit_i_field*.\n"
+         "control file by *value*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_i_field" ),
@@ -3052,7 +3009,9 @@ void define_md_data_raw()
         GIN( "value" ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "A vector containing 4 elements with the value of the "
+                  "initial field for each Stokes dimension."
+                  )
         ));
 
   md_data_raw.push_back
@@ -3062,7 +3021,7 @@ void define_md_data_raw()
         (
          "RT calculation in cloudbox with fixed scattering integral (1D).\n"
          "\n"
-         "Update the radiation field (DOIT method). The method loops\n"
+         "Updates the radiation field (DOIT method). The method loops\n"
          "through the cloudbox to update the radiation field for all\n"
          "positions and directions in the 1D cloudbox.\n"
          "\n"
@@ -3095,15 +3054,11 @@ void define_md_data_raw()
         (
          "RT calculation in cloudbox with fixed scattering integral.\n"
          "\n"
-         "Update radiation field (*doit_i_field*) in DOIT module.\n"
+         "Updates radiation field (*doit_i_field*) in DOIT module.\n"
          "This method loops through the cloudbox to update the\n"
          "radiation field for all positions and directions in the 1D\n"
          "cloudbox. The method applies the sequential update. For more\n"
          "information refer to AUG.\n"
-         "\n"
-         "Note: This is the commonly used WSM for the radiation field\n"
-         "update (can be used in *doit_rte_agenda*). It is recommended\n"
-         "because it is the most efficient and accurate method.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_i_field" ),
@@ -3170,10 +3125,6 @@ void define_md_data_raw()
          "information please refer to AUG.\n"
          "Surface reflections are not yet implemented in 3D scattering\n"
          "calculations.\n"
-         "\n"
-         "Note: DOIT calculations in 3D are computationally expensive.\n"
-         "For large 3D cloud fields it is recommended to use the Monte Carlo\n"
-         "module or an independent pixel approach applying DOIT-1D.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_i_field" ),
@@ -3199,14 +3150,11 @@ void define_md_data_raw()
       ( NAME( "doit_scat_fieldCalc" ),
         DESCRIPTION
         (
-         "This method calculates the scattering integral field in the DOIT module.\n"
+         "Calculates the scattering integral field in the DOIT module.\n"
          "\n"
          "The scattering integral field is generated by integrating\n"
          "the product of phase matrix and Stokes vector over all incident\n"
          "angles. For more information please refer to AUG.\n" 
-         "\n"
-         "The output of this method is *doit_scat_field*\n"
-         "which is used in the radiative transfer part (*doit_i_fieldUpdateXXX*).\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
         OUT( "doit_scat_field" ),
@@ -3228,17 +3176,13 @@ void define_md_data_raw()
       ( NAME( "doit_scat_fieldCalcLimb" ),
         DESCRIPTION
         (
-         "This method calculates the scattering integral field in the DOIT module (Limb).\n"
+         "Calculates the scattering integral field in the DOIT module (limb).\n"
          "\n"
          "The scattering integral field is the field generated by integrating\n"
          "the product of phase matrix and the Stokes vector over all incident\n"
          "angles.\n"
          "\n"
-         "The output of this method is the scattering integral field "
-         "*doit_scat_field*\n"
-         "which is used in the radiative transfer part (*doit_i_fieldUpdateXXX*).\n"
-         "For limb simulations it "
-         "makes sense to use different\n"
+         "For limb simulations it makes sense to use different\n"
          "zenith angle grids for the scattering integral part and the RT part,\n"
          "because the latter part requires a much finer resolution about\n"
          "90°. Taking an optimized grid for the RT part and an equidistant\n"
@@ -3269,21 +3213,14 @@ void define_md_data_raw()
       ( NAME( "DoitScatteringDataPrepare" ),
         DESCRIPTION
         (
-         "Prepare single scattering data for a DOIT scattering calculation.\n"
+         "Prepares single scattering data for a DOIT scattering calculation.\n"
          "\n"
-         "This function can be used for scattering calculations using the\n" 
-         "DOIT method.\n"
-         "\n"
-         "First the scattering data is interpolated on the frequency using\n"
+         "First the scattering data is interpolated in frequency using\n"
          "*scat_data_monoCalc*. Then the phase matrix data is\n"
          "transformed or interpolated from the raw data to the laboratory frame\n"
-         "for all possible combinations of the angles contained in the "
-         "angular\n"
-         "grids which are set in *doit_angulat_gridsSet*."
-         "The resultung phase matrices are\n"
-         "stored in *pha_mat_sptDOITOpt*, "
-         "which is used in the method\n"
-         "*pha_mat_sptFromDataDOITOpt*.\n"
+         "for all possible combinations of the angles contained in the angular\n"
+         "grids which are set in *doit_angulat_gridsSet*. The resulting phase\n"
+         "matrices are stored in *pha_mat_sptDOITOpt*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "pha_mat_sptDOITOpt", "scat_data_mono" ),
@@ -3303,24 +3240,18 @@ void define_md_data_raw()
       ( NAME( "DoitWriteIterationFields" ),
         DESCRIPTION
         (
-         "Write DOIT iteration fields.\n"
+         "Writes DOIT iteration fields.\n"
          "\n"
-         "This method writes intermediate iteration fields\n"
-         "to xml-files which is useful to check the DOIT method.\n"
-         "It can be interesting to look how the radiation fields\n"
-         "(*doit_i_field*) behave. The method can be used as a part of\n"
-         "*convergence_test_agenda*.\n"
+         "This method writes intermediate iteration fields to xml-files. The\n"
+         "method can be used as a part of *convergence_test_agenda*.\n"
          "\n"
-         "The keyword 'iterations' includes the numbers of the iterations\n"
-         "which should be stored, e.g.,\n"
-         "    'iterations = [3, 6, 9]'.\n"
-         "In this case the 3rd, 6th and 9th iterations are\n"
-         "stored in the files 'doit_iteration_3.xml',\n"
-         "'doit_iteration_6.xml' ...\n If a number is larger than the\n"
-         "total number of iterations, this number is ignored.\n"
-         "\n"
-         "If all iterations should be stored please set the keyword\n"
-         "   'iterations = [0]'.\n"
+         "The iterations to be stored are specified by *iterations*, e.g.:\n"
+         "    iterations = [3, 6, 9]\n"
+         "In this case the 3rd, 6th and 9th iterations are stored in the\n"
+         "files 'doit_iteration_3.xml', 'doit_iteration_6.xml' ...\n"
+         "If a number is larger than the total number of iterations, this\n" 
+         "number is ignored. If all iterations should be stored set\n"
+         "   iterations = [0]\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
@@ -3329,12 +3260,12 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "doit_iteration_counter", "doit_i_field" ),
         GIN( "iterations" ),
-        GIN_TYPE(    "ArrayOfIndex" ),
+        GIN_TYPE( "ArrayOfIndex" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "See above." )
         ));
 
-  md_data_raw.push_back
+   md_data_raw.push_back
     ( MdRecord
       ( NAME( "doit_za_grid_optCalc" ),
         DESCRIPTION
@@ -3348,8 +3279,7 @@ void define_md_data_raw()
          "difference between the radiation field represented on the very\n"
          "fine zenith angle grid and the radiation field represented on the\n"
          "optimized grid (*doit_za_grid_opt*) is less than the accuracy\n"
-         "(*acc*) provided as a keyword. The accuracy must be given in %.\n"
-         "Between the grid points theradiation field is interpolated\n"
+         "(*acc*). Between the grid points the radiation field is interpolated\n"
          "linearly or polynomially depending on *doit_za_interp*.\n"
          "\n"
          "Note: The method works only for a 1D atmosphere and for one\n"
@@ -3362,9 +3292,9 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "doit_i_field", "scat_za_grid", "doit_za_interp" ),
         GIN( "acc" ),
-        GIN_TYPE(    "Numeric" ),
+        GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Accuracy to achieve [%]." )
         ));
                                                                                
   md_data_raw.push_back
@@ -3376,10 +3306,6 @@ void define_md_data_raw()
          "\n"
          "You can use this method to choose the interpolation method for\n"
          "interpolations in the zenith angle dimension.\n"
-         "By default, linear interpolation is used.\n"
-         "\n"
-         "Keyword:\n"
-         "  interp_method - 'linear' or 'polynomial'\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_za_interp" ),
@@ -3388,9 +3314,9 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmosphere_dim" ),
         GIN( "interp_method" ),
-        GIN_TYPE(    "String" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_TYPE( "String" ),
+        GIN_DEFAULT( "linear" ),
+        GIN_DESC( "Interpolation method (\"linear\" or \"polynomial\")." )
         ));
  
   md_data_raw.push_back
@@ -3456,14 +3382,12 @@ void define_md_data_raw()
         (
          "Issues an error and exits ARTS.\n"
          "\n"
-         "This method can be placed in agendas that must be specified , but\n"
+         "This method can be placed in agendas that must be specified, but\n"
          "are expected not to be used for the particular case. An inclusion\n"
          "in *surface_prop_agenda* could look like:\n   "
          "Error{\"Surface interceptions of propagation path not expected.\"}\n"
-         "(ignore and other dummy method calls must still be included)\n"
          "\n"
-         "Keywords:\n"
-         "   msg : String describing the error.\n"
+         "Ignore and other dummy method calls must still be included.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
@@ -3472,9 +3396,9 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN(),
         GIN( "msg" ),
-        GIN_TYPE(    "String" ),
+        GIN_TYPE( "String" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "String describing the error." )
         ));
 
   md_data_raw.push_back
@@ -3724,9 +3648,9 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"      ),
+        GOUT( "i" ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Index variable to be set to 0." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -3743,9 +3667,9 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"      ),
+        GOUT( "i" ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Index variable to be set to 1." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -3763,7 +3687,7 @@ void define_md_data_raw()
          "Must be called between importing/creating raw absorption table and\n"
          "call of *abs_lookupAdapt*.\n"
          ),
-        AUTHORS( "Patrick Eriksson" ),
+        AUTHORS( "Stefan Buehler" ),
         OUT( "f_grid" ),
         GOUT(),
         GOUT_TYPE(),
@@ -4018,23 +3942,17 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Sets an index workspace variable to the given value.\n"
-         "\n"
-         "Generic output:\n"
-         "   Index : The index variable to be set.\n"
-         "\n"
-         "Keywords:\n"
-         "   value : A positive integer.\n" 
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"      ),
+        GOUT(      "i"     ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Index variable to be set to *value*." ),
         IN(),
-        GIN( "value" ),
-        GIN_TYPE(    "Index" ),
+        GIN(       "value" ),
+        GIN_TYPE(  "Index" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC( "Value." ),
         SETMETHOD( true )
         ));
 
@@ -4043,20 +3961,20 @@ void define_md_data_raw()
       ( NAME( "IndexStep" ),
         DESCRIPTION
         (
-         "Performs GOUT_TYPE = GIN_TYPE + 1\n"
+         "Performs i2 = i1 + 1\n"
          "\n"
          "Input and output can be same variable.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"      ),
+        GOUT(      "i2"    ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Output index variable." ),
         IN(),
-        GIN(      "gin1"      ),
-        GIN_TYPE(    "Index" ),
+        GIN(       "gin1"  ),
+        GIN_TYPE(  "Index" ),
         GIN_DEFAULT( NODEF   ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Input index variable." )
         ));
 
   md_data_raw.push_back     
@@ -4068,24 +3986,18 @@ void define_md_data_raw()
          "\n"
          "The position is specified by the combination of *rte_gp_p*,\n"
          "*rte_gp_lat* and *rte_gp_lon*.\n"
-         "\n"
-         "Generic output:\n"
-         "   Numeric : Value obtained by interpolation.\n"
-         "\n"
-         "Generic input:\n"
-         "   Tensor3 : Field to interpolate.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "x"       ),
         GOUT_TYPE( "Numeric" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Value obtained by the interpolation." ),
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
             "rte_gp_p", "rte_gp_lat", "rte_gp_lon" ),
-        GIN(      "gin1"        ),
-        GIN_TYPE(    "Tensor3" ),
+        GIN(      "field"   ),
+        GIN_TYPE( "Tensor3" ),
         GIN_DEFAULT( NODEF     ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Field to interpolate." )
         ));
   
   md_data_raw.push_back     
@@ -4106,18 +4018,18 @@ void define_md_data_raw()
          "have both a length of 1. For 2D the same apllies to the longitude\n"
          "grid.\n"
          "\n"
-         "This method can be used togetehr with e.g.\n"
+         "This method can be used together with e.g.\n"
          "*surfaceFlatSingleEmissivity*.\n" 
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "outvalue"        ),
-        GOUT_TYPE( "Numeric" ),
+        GOUT(      "outvalue" ),
+        GOUT_TYPE( "Numeric"  ),
         GOUT_DESC( "Value obtained by interpolation" ),
         IN( "atmosphere_dim", "rte_pos", "rte_los" ),
-        GIN(      "gfield"       ),
+        GIN(      "gfield"  ),
         GIN_TYPE( "GField3" ),
-        GIN_DEFAULT( NODEF    ),
+        GIN_DEFAULT( NODEF  ),
         GIN_DESC( "Gridded field to be interpolated." )
         ));
 
@@ -4130,24 +4042,18 @@ void define_md_data_raw()
          "\n"
          "The position is specified by the combination of *rte_gp_lat* and\n"
          "*rte_gp_lon*.\n"
-         "\n"
-         "Generic output:\n"
-         "   Numeric : Value obtained by interpolation.\n"
-         "\n"
-         "Generic input:\n"
-         "   Matrix : Field to interpolate.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "x"       ),
         GOUT_TYPE( "Numeric" ),
-        GOUT_DESC( "FIXME DOC" ),
-        IN( "atmosphere_dim", "lat_grid", "lon_grid", 
-            "rte_gp_lat", "rte_gp_lon" ),
-        GIN(      "gin1"       ),
-        GIN_TYPE(    "Matrix" ),
-        GIN_DEFAULT( NODEF    ),
-        GIN_DESC( "FIXME DOC" )
+        GOUT_DESC( "Value obtained by interpolation." ),
+        IN( "atmosphere_dim", "lat_grid", "lon_grid", "rte_gp_lat", 
+            "rte_gp_lon" ),
+        GIN(      "gin1"   ),
+        GIN_TYPE( "Matrix" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Field to interpolate." )
         ));
   
   md_data_raw.push_back
@@ -4165,7 +4071,7 @@ void define_md_data_raw()
          "all dimensions.\n"
          "\n"
          "The intensity field on the cloux box boundaries is provided by\n"
-         "*scat_i_p/lat/lon* and these variables are interpolated if the.\n"
+         "*scat_i_p/lat/lon* and these variables are interpolated if the\n"
          "given position is at any boundary.\n"
          "\n"
          "Interpolation of the internal field is not yet possible.\n"
