@@ -10,7 +10,7 @@
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
@@ -59,21 +59,21 @@
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("MethodName"),
+      ( NAME( "MethodName" ),
         DESCRIPTION
         (
-         "A concise summary of the method.\n"
-         "\n"
-         "A more detailed description of the method. Try to describe the\n"
-         "purpose of the method and important considerations. Try to avoid\n"
-         "references to other WSMs as they might change. Refer to the user\n"
-         "guide for more complex information (as long as it exists, or that\n"
-         "you add it to AUG!).\n"
-         "\n"
-         "You do not need to describe workspace variables used. That\n"
-         "information is found in workspace.cc. Generic\n"
-         "output and input variables must be described in GIN_DESC and\n"
-         "GOUT_DESC below.\n"
+        "A concise summary of the method.\n"
+        "\n"
+        "A more detailed description of the method. Try to describe the\n"
+        "purpose of the method and important considerations. Try to avoid\n"
+        "references to other WSMs as they might change. Refer to the user\n"
+        "guide for more complex information (as long as it exists, or that\n"
+        "you add it to AUG!).\n"
+        "\n"
+        "You do not need to describe workspace variables used. That\n"
+        "information is found in workspace.cc. Generic\n"
+        "output and input variables must be described in GIN_DESC and\n"
+        "GOUT_DESC below.\n"
         ),
         AUTHORS( "Your Name" ),
         OUT(),
@@ -85,8 +85,7 @@
         GIN_TYPE(    "GenericInput1Type" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC(    "Description for Generic Input Variable 1" )
-      ));
-
+        ));
 */
 
 
@@ -113,12 +112,13 @@ void define_md_data_raw()
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "AbsInputFromAtmFields" ),
-        DESCRIPTION(
-                    "Initialize the WSVs *abs_p*, *abs_t* and *abs_vmrs* from\n"
-                    "*p_grid, *t_field* and *vmr_field*.\n"
-                    "\n"
-                    "This only works for a 1D atmosphere!\n"
-                   ),
+        DESCRIPTION
+        (
+         "Initialize the WSVs *abs_p*, *abs_t* and *abs_vmrs* from\n"
+         "*p_grid, *t_field* and *vmr_field*.\n"
+         "\n"
+         "This only works for a 1D atmosphere!\n"
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_p", "abs_t", "abs_vmrs" ),
         GOUT(),
@@ -129,25 +129,26 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
-
+        ));
+  
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "AbsInputFromRteScalars" ),
-        DESCRIPTION(
-                    "Initialize absorption input WSVs from local atmospheric conditions.\n"
-                    "\n"
-                    "The purpose of this method is to allow an explicit line-by-line\n"
-                    "calculation, e.g., by *abs_coefCalc*, to be put inside the\n"
-                    "*abs_scalar_gas_agenda*. What the method does is to prepare absorption\n"
-                    "input parameters (pressure, temperature, VMRs, frequency grid), from\n"
-                    "the input parameters to *abs_scalar_gas_agenda*.\n"
-                    "There is a matching method to turn the output of *abs_coefCalc*\n"
-                    "into what the agenda expects (*abs_scalar_gasFromAbsCoef*).\n"
-                    "\n"
-                    "Note that the original *f_grid* is distroyed. (This is not a problem\n"
-                    "if the method is used inside an agenda.)\n"
-                   ),
+        DESCRIPTION
+        (
+         "Initialize absorption input WSVs from local atmospheric conditions.\n"
+         "\n"
+         "The purpose of this method is to allow an explicit line-by-line\n"
+         "calculation, e.g., by *abs_coefCalc*, to be put inside the\n"
+         "*abs_scalar_gas_agenda*. What the method does is to prepare absorption\n"
+         "input parameters (pressure, temperature, VMRs, frequency grid), from\n"
+         "the input parameters to *abs_scalar_gas_agenda*.\n"
+         "There is a matching method to turn the output of *abs_coefCalc*\n"
+         "into what the agenda expects (*abs_scalar_gasFromAbsCoef*).\n"
+         "\n"
+         "Note that the original *f_grid* is distroyed. (This is not a problem\n"
+         "if the method is used inside an agenda.)\n"
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_p", "abs_t", "abs_vmrs" ),
         GOUT(),
@@ -158,61 +159,63 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_coefCalc" ),
-        DESCRIPTION(
-                    "Calculate absorption coefficients. \n"
-                    "\n"
-                    "This function calculates both, the total absorption (*abs_coef*), and\n"
-                    "the absorption per species (*abs_coef_per_species*).\n"
-                    "\n"
-                    "The method calls four other  methods:\n"
-                    "\n"
-                    "1. *abs_xsec_per_speciesInit*:\n"
-                    "   Initialize *abs_xsec_per_species* \n"
-                    "\n"
-                    "2. *abs_xsec_per_speciesAddLines*:\n"
-                    "   Calculate cross sections per tag group for line spectra.\n"
-                    "\n"
-                    "3. *abs_xsec_per_speciesAddConts*:\n"
-                    "   Calculate cross sections per tag group for continua.\n"
-                    "\n"
-                    "4. *abs_coefCalcFromXsec*:\n"
-                    "   Calculate absorption coefficients from the cross sections by\n"
-                    "   multiplying each cross section by n*VMR.\n"
-                    "\n"
-                    "This is done once for each tag group (output *abs_coef_per_species*),\n"
-                    "and for the sum of all tag groups (output *abs_coef*).\n"
-                   ),
+        DESCRIPTION
+        (
+         "Calculate absorption coefficients.\n"
+         "\n"
+         "This function calculates both, the total absorption (*abs_coef*), and\n"
+         "the absorption per species (*abs_coef_per_species*).\n"
+         "\n"
+         "The method calls four other  methods:\n"
+         "\n"
+         "1. *abs_xsec_per_speciesInit*:\n"
+         "   Initialize *abs_xsec_per_species*\n"
+         "\n"
+         "2. *abs_xsec_per_speciesAddLines*:\n"
+         "   Calculate cross sections per tag group for line spectra.\n"
+         "\n"
+         "3. *abs_xsec_per_speciesAddConts*:\n"
+         "   Calculate cross sections per tag group for continua.\n"
+         "\n"
+         "4. *abs_coefCalcFromXsec*:\n"
+         "   Calculate absorption coefficients from the cross sections by\n"
+         "   multiplying each cross section by n*VMR.\n"
+         "\n"
+         "This is done once for each tag group (output *abs_coef_per_species*),\n"
+         "and for the sum of all tag groups (output *abs_coef*).\n"
+         ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUT( "abs_coef"  , "abs_coef_per_species" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
-               "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
-               "abs_cont_names", "abs_cont_models", 
-               "abs_cont_parameters" ),
+            "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
+            "abs_cont_names", "abs_cont_models", 
+            "abs_cont_parameters" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_coefCalcFromXsec"),
-        DESCRIPTION(
-                    "Calculate absorption coefficients from cross sections.\n"
-                    "\n"
-                    "This calculates both the total absorption and the\n"
-                    "absorption per tag group. \n"
-                    "\n"
-                    "Cross sections are multiplied by n*VMR.\n"
-                   ),
+      ( NAME( "abs_coefCalcFromXsec" ),
+        DESCRIPTION
+        (
+         "Calculate absorption coefficients from cross sections.\n"
+         "\n"
+         "This calculates both the total absorption and the\n"
+         "absorption per tag group.\n"
+         "\n"
+         "Cross sections are multiplied by n*VMR.\n"
+         ),
         AUTHORS( "Stefan Buehler", "Axel von Engeln" ),
         OUT( "abs_coef", "abs_coef_per_species" ),
         GOUT(),
@@ -223,40 +226,41 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_coefCalcSaveMemory" ),
-        DESCRIPTION(
-                    "Calculate absorption coefficients, trying to conserve memory. \n"
-                    "\n"
-                    "This function calculates only the total absorption (*abs_coef*),\n"
-                    "NOT the absorption per tag group (*abs_coef_per_species*).\n"
-                    "\n"
-                    "This means you cannot use it if you want to calculate Jacobians\n"
-                    "later.\n"
-                    "\n"
-                    "The implementation follows abs_coefCalc.\n"
-                   ),
+        DESCRIPTION
+        (
+         "Calculate absorption coefficients, trying to conserve memory.\n"
+         "\n"
+         "This function calculates only the total absorption (*abs_coef*),\n"
+         "NOT the absorption per tag group (*abs_coef_per_species*).\n"
+         "\n"
+         "This means you cannot use it if you want to calculate Jacobians\n"
+         "later.\n"
+         "\n"
+         "The implementation follows abs_coefCalc.\n"
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_coef" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
-               "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
-               "abs_cont_names", "abs_cont_models", 
-               "abs_cont_parameters" ),
+            "abs_vmrs", "abs_lines_per_species", "abs_lineshape",
+            "abs_cont_names", "abs_cont_models", 
+            "abs_cont_parameters" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_cont_descriptionAppend"),
+      ( NAME( "abs_cont_descriptionAppend" ),
         DESCRIPTION
         (
          "Appends the description of a continuum model or a complete absorption\n"
@@ -265,42 +269,42 @@ void define_md_data_raw()
          "See online documentation for *abs_cont_names* for a list of\n"
          "allowed models and for information what parameters they require. See\n"
          "file cont.arts in the doc/examples directory for usage examples and\n"
-         "default parameters for the various models. \n"
+         "default parameters for the various models.\n"
          "\n"
          "Keywords:\n"
          "   name       : The name of a continuum model. Must match one of the models\n"
-         "                implemented in ARTS. \n"
+         "                implemented in ARTS.\n"
          "   option     : give here the option of this continuum/full model.\n"
          "   parameters : A Vector containing the required number of parameters\n"
          "                for the model given. The meaning of the parameters and\n"
          "                how many parameters are required depends on the model.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_cont_names", 
-                "abs_cont_models",
-                "abs_cont_parameters" ),
+             "abs_cont_models",
+             "abs_cont_parameters" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "abs_cont_names", 
-                "abs_cont_models",
-                "abs_cont_parameters" ),
+        IN( "abs_cont_names", 
+            "abs_cont_models",
+            "abs_cont_parameters" ),
         GIN( "tagname", "model",  "userparameters" ),
         GIN_TYPE(    "String",  "String", "Vector" ),
         GIN_DEFAULT( NODEF,     NODEF,    NODEF),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_cont_descriptionInit"),
+      ( NAME( "abs_cont_descriptionInit" ),
         DESCRIPTION
         (
          "Initializes the two workspace variables for the continuum description,\n"
          "*abs_cont_names* and *abs_cont_parameters*.\n"
-         " \n"
+         "\n"
          "This method does not really do anything, except setting the two\n"
          "variables to empty Arrays. It is just necessary because the method\n"
          "*abs_cont_descriptionAppend* wants to append to the variables.\n"
@@ -308,11 +312,11 @@ void define_md_data_raw()
          "by the absorption calculation methods (e.g., *abs_coefCalc*). Therefore you\n"
          "always have to call at least *abs_cont_descriptionInit*, even if you do\n"
          "not want to use any continua.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_cont_names", 
-                "abs_cont_models",
-                "abs_cont_parameters" ),
+             "abs_cont_models",
+             "abs_cont_parameters" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -321,22 +325,23 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_h2oSet"),
-        DESCRIPTION(
-                    "Sets abs_h2o to the profile of the first tag group containing\n"
-                    "water.\n" 
-                    "\n"
-                    "This is necessary, because for example *abs_coefCalc* requires abs_h2o\n"
-                    "to contain the water vapour profile(the reason for this is the\n"
-                    "calculation of oxygen line brodening requires water vapour profile).\n"
-                    "Then this function can be used to copy the profile of the first tag\n"
-                    "group of water.\n"
-                   ),
-        AUTHORS( "Patrick Eriksson" ),
+      ( NAME( "abs_h2oSet" ),
+        DESCRIPTION
+        (
+         "Sets abs_h2o to the profile of the first tag group containing\n"
+         "water.\n" 
+         "\n"
+         "This is necessary, because for example *abs_coefCalc* requires abs_h2o\n"
+         "to contain the water vapour profile(the reason for this is the\n"
+         "calculation of oxygen line brodening requires water vapour profile).\n"
+         "Then this function can be used to copy the profile of the first tag\n"
+         "group of water.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
         OUT( "abs_h2o" ),
         GOUT(),
         GOUT_TYPE(),
@@ -346,63 +351,65 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_lineshapeDefine"),
-        DESCRIPTION(
-                    "Sets the lineshape for all calculated lines.\n"
-                    "\n"
-                    "   A general lineshape profile is specified, according to a given  \n"
-                    "approximation. Alongside a normalization factor is to be set - a \n"
-                    "multiplicative forefactor through which the profile can be \n"
-                    "modified. This factor is just the 0th or 1st, or 2nd power of the\n"
-                    "ratio between the frequency of calculation f and the center frequency\n"
-                    "for a specific line f0. A cutoff frequency must also be specified in\n"
-                    "order to restrict the calculation within a desired frequency region or\n"
-                    "not, when there's no such region.\n"
-                    "   The general lineshape profile is given by the keyword shape,\n"
-                    "while the normalization factor and the cutoff frequency by\n"
-                    "normalizationfactor and cutoff respectively.\n"
-                    "   We generate only 1 copy of the lineshape settings. Absorption\n"
-                    "routines check for this case and use it for all species.\n"
-                    "\n"
-                    "   The available values for these keywords are given below.\n"
-                    "shape - \"no_shape\" : no specified shape\n"
-                    "        \"Doppler\" : Doppler lineshape\n"
-                    "        \"Lorentz\" : Lorentz lineshape\n"
-                    "        \"Voigt_Kuntz3\" : Kuntz approximation to the Voigt profile,\n"
-                    "                         accuracy > 2x10^(-3)\n"
-                    "        \"Voigt_Kuntz4\" : Kuntz approximation to the Voigt profile,\n"
-                    "                         accuracy > 2x10^(-4)\n"
-                    "        \"Voigt_Kuntz6\" : Kuntz approximation to the Voigt profile,\n"
-                    "                         accuracy > 2x10^(-6)\n"   
-                    "        \"Voigt_Drayson\" : Drayson approximation to the Voigt profile \n"
-                    "        \"Rosenkranz_Voigt_Drayson\" : Rosenkrantz oxygen absortion with overlap correction\n" 
-                    "                                     on the basis of Drayson routine\n"                                    
-                    "        \"Rosenkranz_Voigt_Kuntz6\" : Rosenkrantz oxygen absortion with overlap correction\n"
-                    "                                    on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
-                    "        \"CO2_Lorentz\" : Lorentz multiplicated with Cousin's chi factors\n"
-                    "        \"CO2_Drayson\" : Drayson multiplicated with Cousin's chi factors\n"
-                    "\n"
-                    "normalizationfactor - \"no_norm\": 1\n"
-                    "                      \"linear\": f/f0\n" 
-                    "                      \"quadratic\": (f/f0)^2.\n"
-                    "                      \"VVH\": (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T))).\n"
-                    "\n"
-                    "cutoff - \" -1\" : no cutoff\n"
-                    "         \"Number\": positive cutoff frequency in Hz.\n"
-                    "\n"
-                    "Example usage:\n"
-                    "shape=[\"Lorentz\"]\n"
-                    "normalizationfactor=[\"linear\"]\n"
-                    "cutoff= [650e9]"
-                    "\n"
-                    "Keywords:\n"
-                    "   shape               : The general profile according to an approximation.\n"
-                    "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
-                    "   cutoff              : The frequency at which a cutoff can be made.\n" ),
+      ( NAME( "abs_lineshapeDefine" ),
+        DESCRIPTION
+        (
+         "Sets the lineshape for all calculated lines.\n"
+         "\n"
+         "   A general lineshape profile is specified, according to a given \n"
+         "approximation. Alongside a normalization factor is to be set - a\n"
+         "multiplicative forefactor through which the profile can be\n"
+         "modified. This factor is just the 0th or 1st, or 2nd power of the\n"
+         "ratio between the frequency of calculation f and the center frequency\n"
+         "for a specific line f0. A cutoff frequency must also be specified in\n"
+         "order to restrict the calculation within a desired frequency region or\n"
+         "not, when there's no such region.\n"
+         "   The general lineshape profile is given by the keyword shape,\n"
+         "while the normalization factor and the cutoff frequency by\n"
+         "normalizationfactor and cutoff respectively.\n"
+         "   We generate only 1 copy of the lineshape settings. Absorption\n"
+         "routines check for this case and use it for all species.\n"
+         "\n"
+         "   The available values for these keywords are given below.\n"
+         "shape - \"no_shape\" : no specified shape\n"
+         "        \"Doppler\" : Doppler lineshape\n"
+         "        \"Lorentz\" : Lorentz lineshape\n"
+         "        \"Voigt_Kuntz3\" : Kuntz approximation to the Voigt profile,\n"
+         "                         accuracy > 2x10^(-3)\n"
+         "        \"Voigt_Kuntz4\" : Kuntz approximation to the Voigt profile,\n"
+         "                         accuracy > 2x10^(-4)\n"
+         "        \"Voigt_Kuntz6\" : Kuntz approximation to the Voigt profile,\n"
+         "                         accuracy > 2x10^(-6)\n"   
+         "        \"Voigt_Drayson\" : Drayson approximation to the Voigt profile\n"
+         "        \"Rosenkranz_Voigt_Drayson\" : Rosenkrantz oxygen absortion with overlap correction\n" 
+         "                                     on the basis of Drayson routine\n"                                    
+         "        \"Rosenkranz_Voigt_Kuntz6\" : Rosenkrantz oxygen absortion with overlap correction\n"
+         "                                    on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
+         "        \"CO2_Lorentz\" : Lorentz multiplicated with Cousin's chi factors\n"
+         "        \"CO2_Drayson\" : Drayson multiplicated with Cousin's chi factors\n"
+         "\n"
+         "normalizationfactor - \"no_norm\": 1\n"
+         "                      \"linear\": f/f0\n" 
+         "                      \"quadratic\": (f/f0)^2.\n"
+         "                      \"VVH\": (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T))).\n"
+         "\n"
+         "cutoff - \" -1\" : no cutoff\n"
+         "         \"Number\": positive cutoff frequency in Hz.\n"
+         "\n"
+         "Example usage:\n"
+         "shape=[\"Lorentz\"]\n"
+         "normalizationfactor=[\"linear\"]\n"
+         "cutoff= [650e9]"
+         "\n"
+         "Keywords:\n"
+         "   shape               : The general profile according to an approximation.\n"
+         "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
+         "   cutoff              : The frequency at which a cutoff can be made.\n" 
+         ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUT( "abs_lineshape" ),
         GOUT(),
@@ -412,59 +419,61 @@ void define_md_data_raw()
         GIN( "shape",  "normalizationfactor", "cutoff" ),
         GIN_TYPE(    "String", "String",              "Numeric" ),
         GIN_DEFAULT( NODEF,    NODEF,                 NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_lineshape_per_tgDefine"),
-        DESCRIPTION(
-                    "Sets the lineshape per tag group for all calculated lines.\n\n"
-                    "\n" 
-                    "   A general lineshape profile is specified, according to a given  \n"
-                    "approximation for each tag group. Alongside a normalization factor\n" 
-                    "is to be set also for each tag group - a multiplicative forefactor through\n"
-                    "which the profile can be modified. This factor is just the 0th or 1st,\n"
-                    "or 2nd power of the ratio between the frequency of calculation f and\n"
-                    "the center frequency for a specific line f0. A cutoff frequency must also be\n"
-                    "specified for each of the tags in  order to restrict the calculation within\n" 
-                    "a desired region or not, when there's no such region.\n"
-                    "   The general lineshape profile is given by the keyword shape,\n"
-                    "while the normalization factor and the cutoff frequency by\n"
-                    "normalizationfactor and cutoff respectively.\n"
-                    "\n"
-                    "   The available values for these keywords are given below.\n"
-                    "shape - \"no_shape\" : no specified shape\n"
-                    "        \"Doppler\" : Doppler lineshape\n"
-                    "        \"Lorentz\" : Lorentz lineshape\n"
-                    "        \"Voigt_Kuntz3\" : Kuntz approximation to the Voigt profile,\n"
-                    "                        accuracy > 2x10^(-3)\n"
-                    "        \"Voigt_Kuntz4\" : Kuntz approximation to the Voigt profile,\n"
-                    "                         accuracy > 2x10^(-4)\n"
-                    "        \"Voigt_Kuntz6\" : Kuntz approximation to the Voigt profile,\n"
-                    "                         accuracy > 2x10^(-6)\n"   
-                    "        \"Voigt_Drayson\" : Drayson approximation to the Voigt profile \n"
-                    "        \"Rosenkranz_Voigt_Drayson\" : Rosenkrantz oxygen absortion with overlap correction\n" 
-                    "                                     on the basis of Drayson routine\n"                                    
-                    "        \"Rosenkranz_Voigt_Kuntz6\" : Rosenkrantz oxygen absortion with overlap correction\n"
-                    "                                    on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
-                    "normalizationfactor - \"no_norm\": 1\n"
-                    "                      \"linear\": f/f0\n" 
-                    "                      \"quadratic\": (f/f0)^2.\n"
-                    "cutoff - \" -1\" : no cutoff\n"
-                    "           \"Number\": positive cutoff frequency in Hz.\n"
-                    "\n"
-                    "Example usage:\n"
-                    "shape = [\"Lorentz\",\"Voigt_Kuntz6\"] \n"
-                    "normalizationfactor= [\"linear\", \"quadratic\"] \n"
-                    "cutoff = [ 650e9, -1 ]"
-                    "\n"
-                    "Keywords:\n"
-                    "   shape               : The general profile according to an approximation.\n"
-                    "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
-                    "   cutoff              : The frequency at which a cutoff can be made.\n" ),
+      ( NAME( "abs_lineshape_per_tgDefine" ),
+        DESCRIPTION
+        (
+         "Sets the lineshape per tag group for all calculated lines.\n\n"
+         "\n" 
+         "   A general lineshape profile is specified, according to a given \n"
+         "approximation for each tag group. Alongside a normalization factor\n" 
+         "is to be set also for each tag group - a multiplicative forefactor through\n"
+         "which the profile can be modified. This factor is just the 0th or 1st,\n"
+         "or 2nd power of the ratio between the frequency of calculation f and\n"
+         "the center frequency for a specific line f0. A cutoff frequency must also be\n"
+         "specified for each of the tags in  order to restrict the calculation within\n" 
+         "a desired region or not, when there's no such region.\n"
+         "   The general lineshape profile is given by the keyword shape,\n"
+         "while the normalization factor and the cutoff frequency by\n"
+         "normalizationfactor and cutoff respectively.\n"
+         "\n"
+         "   The available values for these keywords are given below.\n"
+         "shape - \"no_shape\" : no specified shape\n"
+         "        \"Doppler\" : Doppler lineshape\n"
+         "        \"Lorentz\" : Lorentz lineshape\n"
+         "        \"Voigt_Kuntz3\" : Kuntz approximation to the Voigt profile,\n"
+         "                        accuracy > 2x10^(-3)\n"
+         "        \"Voigt_Kuntz4\" : Kuntz approximation to the Voigt profile,\n"
+         "                         accuracy > 2x10^(-4)\n"
+         "        \"Voigt_Kuntz6\" : Kuntz approximation to the Voigt profile,\n"
+         "                         accuracy > 2x10^(-6)\n"   
+         "        \"Voigt_Drayson\" : Drayson approximation to the Voigt profile\n"
+         "        \"Rosenkranz_Voigt_Drayson\" : Rosenkrantz oxygen absortion with overlap correction\n" 
+         "                                     on the basis of Drayson routine\n"                                    
+         "        \"Rosenkranz_Voigt_Kuntz6\" : Rosenkrantz oxygen absortion with overlap correction\n"
+         "                                    on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
+         "normalizationfactor - \"no_norm\": 1\n"
+         "                      \"linear\": f/f0\n" 
+         "                      \"quadratic\": (f/f0)^2.\n"
+         "cutoff - \" -1\" : no cutoff\n"
+         "           \"Number\": positive cutoff frequency in Hz.\n"
+         "\n"
+         "Example usage:\n"
+         "shape = [\"Lorentz\",\"Voigt_Kuntz6\"]\n"
+         "normalizationfactor= [\"linear\", \"quadratic\"]\n"
+         "cutoff = [ 650e9, -1 ]"
+         "\n"
+         "Keywords:\n"
+         "   shape               : The general profile according to an approximation.\n"
+         "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
+         "   cutoff              : The frequency at which a cutoff can be made.\n" 
+         ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUT( "abs_lineshape" ),
         GOUT(),
@@ -474,26 +483,28 @@ void define_md_data_raw()
         GIN( "shape",        "normalizationfactor", "cutoff" ),
         GIN_TYPE(    "ArrayOfString", "ArrayOfString",        "Vector" ),
         GIN_DEFAULT( NODEF,          NODEF,                 NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_linesReadFromArts"),
-        DESCRIPTION(
-                    "Read all the lines from an Arts catalogue file in the \n"
-                    "given frequency range. Otherwise a runtime error will be\n"
-                    "thrown \n"
-                    "\n"
-                    "Please note that all lines must correspond\n"
-                    "to the legal species / isotope combinations\n"
-                    "\n"
-                    "Keywords: \n"
-                    "   filename : Name (and path) of the catalogue file.\n"
-                    "   fmin     : Minimum frequency for lines to read in Hz.\n"
-                    "   fmax     : Maximum frequency for lines to read in Hz.\n" ),
+      ( NAME( "abs_linesReadFromArts" ),
+        DESCRIPTION
+        (
+         "Read all the lines from an Arts catalogue file in the\n"
+         "given frequency range. Otherwise a runtime error will be\n"
+         "thrown\n"
+         "\n"
+         "Please note that all lines must correspond\n"
+         "to the legal species / isotope combinations\n"
+         "\n"
+         "Keywords:\n"
+         "   filename : Name (and path) of the catalogue file.\n"
+         "   fmin     : Minimum frequency for lines to read in Hz.\n"
+         "   fmax     : Maximum frequency for lines to read in Hz.\n" 
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lines" ),
         GOUT(),
@@ -503,26 +514,28 @@ void define_md_data_raw()
         GIN( "filename", "fmin",    "fmax" ),
         GIN_TYPE(    "String",   "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,      NODEF,     NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_linesReadFromArtsObsolete"),
-        DESCRIPTION(
-                    "Read all the lines from an Arts catalogue file in the \n"
-                    "given frequency range. Otherwise a runtime error will be\n"
-                    "thrown \n"
-                    "\n"
-                    "Please note that all lines must correspond\n"
-                    "to the legal species / isotope combinations\n"
-                    "\n"
-                    "Keywords: \n"
-                    "   filename : Name (and path) of the catalogue file.\n"
-                    "   fmin     : Minimum frequency for lines to read in Hz.\n"
-                    "   fmax     : Maximum frequency for lines to read in Hz.\n" ),
+      ( NAME( "abs_linesReadFromArtsObsolete" ),
+        DESCRIPTION
+        (
+         "Read all the lines from an Arts catalogue file in the\n"
+         "given frequency range. Otherwise a runtime error will be\n"
+         "thrown\n"
+         "\n"
+         "Please note that all lines must correspond\n"
+         "to the legal species / isotope combinations\n"
+         "\n"
+         "Keywords:\n"
+         "   filename : Name (and path) of the catalogue file.\n"
+         "   fmin     : Minimum frequency for lines to read in Hz.\n"
+         "   fmax     : Maximum frequency for lines to read in Hz.\n" 
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lines" ),
         GOUT(),
@@ -532,31 +545,32 @@ void define_md_data_raw()
         GIN( "filename", "fmin",    "fmax" ),
         GIN_TYPE(    "String",   "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,      NODEF,     NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_linesReadFromHitran"),
+      ( NAME( "abs_linesReadFromHitran" ),
         DESCRIPTION
         (
          "Read all the lines from a HITRAN 1986-2001 catalogue file in\n"
          "the given frequency range. Otherwise a runtime error will be\n"
-         "thrown. For HITRAN 2004 line data use the workspace method \n"
-         "abs_linesReadFromHitran. \n"
+         "thrown. For HITRAN 2004 line data use the workspace method\n"
+         "abs_linesReadFromHitran.\n"
          "\n"
          "Please note that all lines must correspond to the legal\n"
-         "species / isotope combinations and that the line data \n"
+         "species / isotope combinations and that the line data\n"
          "file must be sorted by increasing frequency\n"
          "\n"
          "WWW access of the HITRAN catalog: http://www.hitran.com/\n"
          "\n"
-         "Keywords: \n"
+         "Keywords:\n"
          "   filename : Name (and path) of the catalogue file.\n"
          "   fmin     : Minimum frequency for lines to read in Hz.\n"
-         "   fmax     : Maximum frequency for lines to read in Hz.\n" ),
+         "   fmax     : Maximum frequency for lines to read in Hz.\n" 
+         ),
         AUTHORS( "Thomas Kuhn" ),
         OUT( "abs_lines" ),
         GOUT(),
@@ -564,36 +578,38 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN(),
         GIN( "filename",  "fmin",    "fmax" ),
-        GIN_TYPE(    "String",    "Numeric", "Numeric"),
+        GIN_TYPE(    "String",    "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_linesReadFromHitran2004"),
-        DESCRIPTION(
-                    "Read all the lines from a HITRAN 2004 catalogue file in the \n"
-                    "given frequency range. Otherwise a runtime error is thrown. \n"
-                    "\n"
-                    "Records of molecules unknown to ARTS are ignored but a \n"
-                    "warning is issued. In particular this happens to CH3OH \n"
-                    "(HITRAN molecule number 39) because there is no total internal \n"
-                    "partition sum available. \n"
-                    "\n"
-                    "The database must be sorted by increasing frequency!\n"
-                    "\n"
-                    "WWW access of the HITRAN catalog: http://www.hitran.com/\n"
-                    "\n"
-                    "For data in the Hitran 1986-2001 format use the workspace \n"
-                    "method: abs_linesReadFromHitran\n"
-                    "\n"
-                    "Keywords: \n"
-                    "   filename : Name (and path) of the catalogue file.\n"
-                    "   fmin     : Minimum frequency for lines to read in Hz.\n"
-                    "   fmax     : Maximum frequency for lines to read in Hz.\n" ),
+      ( NAME( "abs_linesReadFromHitran2004" ),
+        DESCRIPTION
+        (
+         "Read all the lines from a HITRAN 2004 catalogue file in the\n"
+         "given frequency range. Otherwise a runtime error is thrown.\n"
+         "\n"
+         "Records of molecules unknown to ARTS are ignored but a\n"
+         "warning is issued. In particular this happens to CH3OH\n"
+         "(HITRAN molecule number 39) because there is no total internal\n"
+         "partition sum available.\n"
+         "\n"
+         "The database must be sorted by increasing frequency!\n"
+         "\n"
+         "WWW access of the HITRAN catalog: http://www.hitran.com/\n"
+         "\n"
+         "For data in the Hitran 1986-2001 format use the workspace\n"
+         "method: abs_linesReadFromHitran\n"
+         "\n"
+         "Keywords:\n"
+         "   filename : Name (and path) of the catalogue file.\n"
+         "   fmin     : Minimum frequency for lines to read in Hz.\n"
+         "   fmax     : Maximum frequency for lines to read in Hz.\n" 
+         ),
         AUTHORS( "Hermann Berg", "Thomas Kuhn" ),
         OUT( "abs_lines" ),
         GOUT(),
@@ -603,28 +619,30 @@ void define_md_data_raw()
         GIN( "filename",  "fmin",    "fmax" ),
         GIN_TYPE( "String", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
-
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
+  
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_linesReadFromJpl"),
-        DESCRIPTION(
-                    "Read all the lines from a JPL catalogue file in the \n"
-                    "given frequency range. Otherwise a runtime error will be\n"
-                    "thrown\n"
-                    "\n"
-                    "Please note that all lines must correspond\n"
-                    "to the legal species / isotope combinations.\n"
-                    "\n"
-                    "WWW access of the JPL catalog: http://spec.jpl.nasa.gov/\n"
-                    "\n"
-                    "Keywords: \n"
-                    "   filename : Name (and path) of the catalogue file.\n"
-                    "   fmin     : Minimum frequency for lines to read in Hz.\n"
-                    "   fmax     : Maximum frequency for lines to read in Hz.\n" ),
+      ( NAME( "abs_linesReadFromJpl" ),
+        DESCRIPTION
+        (
+         "Read all the lines from a JPL catalogue file in the\n"
+         "given frequency range. Otherwise a runtime error will be\n"
+         "thrown\n"
+         "\n"
+         "Please note that all lines must correspond\n"
+         "to the legal species / isotope combinations.\n"
+         "\n"
+         "WWW access of the JPL catalog: http://spec.jpl.nasa.gov/\n"
+         "\n"
+         "Keywords:\n"
+         "   filename : Name (and path) of the catalogue file.\n"
+         "   fmin     : Minimum frequency for lines to read in Hz.\n"
+         "   fmax     : Maximum frequency for lines to read in Hz.\n" 
+         ),
         AUTHORS( "Thomas Kuhn" ),
         OUT( "abs_lines" ),
         GOUT(),
@@ -634,26 +652,28 @@ void define_md_data_raw()
         GIN( "filename",  "fmin", "fmax" ),
         GIN_TYPE( "String", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_linesReadFromMytran2"),
-        DESCRIPTION(
-                    "Read all the lines from a MYTRAN2 catalogue file in the \n"
-                    "given frequency range. Otherwise a runtime error will be\n"
-                    "thrown\n"
-                    "\n"
-                    "Please note that all lines must correspond\n"
-                    "to the legal species / isotope combinations\n"
-                    "\n"
-                    "Keywords: \n"
-                    "   filename : Name (and path) of the catalogue file.\n"
-                    "   fmin     : Minimum frequency for lines to read in Hz.\n"
-                    "   fmax     : Maximum frequency for lines to read in Hz.\n" ),
+      ( NAME( "abs_linesReadFromMytran2" ),
+        DESCRIPTION
+        (
+         "Read all the lines from a MYTRAN2 catalogue file in the\n"
+         "given frequency range. Otherwise a runtime error will be\n"
+         "thrown\n"
+         "\n"
+         "Please note that all lines must correspond\n"
+         "to the legal species / isotope combinations\n"
+         "\n"
+         "Keywords:\n"
+         "   filename : Name (and path) of the catalogue file.\n"
+         "   fmin     : Minimum frequency for lines to read in Hz.\n"
+         "   fmax     : Maximum frequency for lines to read in Hz.\n" 
+         ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUT( "abs_lines" ),
         GOUT(),
@@ -663,20 +683,22 @@ void define_md_data_raw()
         GIN( "filename", "fmin", "fmax" ),
         GIN_TYPE( "String", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_lines_per_speciesAddMirrorLines"),
-        DESCRIPTION(
-                    "Adds mirror lines at negative frequencies to the *abs_lines_per_species*.\n"
-                    "\n"
-                    "For each line at frequency +f in *abs_lines_per_species* a corresponding\n"
-                    "entry at frequency -f is added to *abs_lines_per_species*.The mirror \n"
-                    "lines are appended to the line lists after the original lines.\n" ),
+      ( NAME( "abs_lines_per_speciesAddMirrorLines" ),
+        DESCRIPTION
+        (
+         "Adds mirror lines at negative frequencies to the *abs_lines_per_species*.\n"
+         "\n"
+         "For each line at frequency +f in *abs_lines_per_species* a corresponding\n"
+         "entry at frequency -f is added to *abs_lines_per_species*.The mirror\n"
+         "lines are appended to the line lists after the original lines.\n" 
+         ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUT( "abs_lines_per_species" ),
         GOUT(),
@@ -687,16 +709,18 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_lines_per_speciesCompact"),
-        DESCRIPTION(
-                    "Removes all lines outside the defined lineshape cutoff frequency\n"
-                    "from the *abs_lines_per_species*. This can save computation time.\n"
-                    "It should be particularly useful to call this method after\n"
-                    "*abs_lines_per_speciesAddMirrorLines*.\n" ),
+      ( NAME( "abs_lines_per_speciesCompact" ),
+        DESCRIPTION
+        (
+         "Removes all lines outside the defined lineshape cutoff frequency\n"
+         "from the *abs_lines_per_species*. This can save computation time.\n"
+         "It should be particularly useful to call this method after\n"
+         "*abs_lines_per_speciesAddMirrorLines*.\n" 
+         ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUT( "abs_lines_per_species" ),
         GOUT(),
@@ -707,19 +731,21 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_lines_per_speciesCreateFromLines"),
-        DESCRIPTION(
-                    "Split lines up into the different tag groups.\n"
-                    "\n"
-                    "The tag groups are tested in the order in which they are\n" 
-                    "specified in the controlfile. The lines are assigned to \n"
-                    "the tag groups in the order as the groups  are specified.\n"
-                    "That means if you do [\"O3-666\",\"O3\"],the last group O3 \n"
-                    "gets assigned all the O3 lines that do not fit in the first group.\n" ),
+      ( NAME( "abs_lines_per_speciesCreateFromLines" ),
+        DESCRIPTION
+        (
+         "Split lines up into the different tag groups.\n"
+         "\n"
+         "The tag groups are tested in the order in which they are\n" 
+         "specified in the controlfile. The lines are assigned to\n"
+         "the tag groups in the order as the groups  are specified.\n"
+         "That means if you do [\"O3-666\",\"O3\"],the last group O3\n"
+         "gets assigned all the O3 lines that do not fit in the first group.\n" 
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lines_per_species" ),
         GOUT(),
@@ -730,61 +756,63 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_lines_per_speciesReadFromCatalogues"),
-        DESCRIPTION(
-                    "This method can read lines from different line \n"
-                    "catalogues.\n"
-                    "\n"
-                    "For each tag group, you can specify which catalogue\n"
-                    "to use. Because the method creates abs_lines_per_species directly,\n"
-                    "it replaces for example thefollowing two method calls:\n"
-                    "  - abs_linesReadFromHitran\n"
-                    "  - abs_lines_per_speciesCreateFromLines\n"
-                    "   This method needs as input WSVs the list of tag \n"
-                    "groups. Keyword parameters must specify the names of\n"
-                    "the catalogue files to use and the matching formats.\n"
-                    "Names can be anything, formats can currently be \n"
-                    "HITRAN96 (for HITRAN 1986-2001 databases), HITRAN04 \n"
-                    "(for HITRAN 2004 database), MYTRAN2, JPL, or ARTS. \n"
-                    "Furthermore, keyword parameters have to specify minimum \n"
-                    "and maximum frequency for each tag group. To safe typing, \n"
-                    "if there are less elements in the keyword parameters than \n"
-                    "there are tag groups, the last parameters are applied to \n"
-                    "all following tag groups.\n"
-                    "\n"
-                    "Example usage:\n"
-                    "\n"
-                    "abs_lines_per_speciesReadFromCatalogues{\n"
-                    "  filenames = [ \"../data/cat1.dat\", \"../data/cat2.dat\" ]\n"
-                    "  formats   = [ \"MYTRAN2\",          \"HITRAN96\"         ]\n"
-                    "  fmin      = [ 0,                  0                  ]\n"
-                    "  fmax      = [ 2000e9,             100e9              ]\n"
-                    "}\n"
-                    "   In this example, lines for the first tag group will\n"
-                    "be taken from cat1, lines for all other tag groups \n"
-                    "will be taken from cat2.\n"
-                    "   This methods allows you for example to use a \n"
-                    "special line file just for water vapor lines. This\n"
-                    "could be the  improved water vapor line file \n"
-                    "generated by Thomas Kuhn.\n"
-                    "   Catalogues are only read once, even if several tag\n"
-                    "groups have the same catalogue. However, in that case\n"
-                    "the frequency ranges MUST be the same. (If you want \n"
-                    "to do fine-tuning of the frequency ranges, you can do \n"
-                    "this inside the tag definitions, e.g., \"H2O-*-0-2000e9\".)\n"
-                    "   This function uses the various reading routines\n"
-                    "(abs_linesReadFromHitran, etc.), as well as\n"
-                    "abs_lines_per_speciesCreateFromLines.\n"
-                    "\n"
-                    "Keywords: \n"
-                    "   filenames : Name (and path) of the catalogue files.\n"
-                    "   formats   : allowed formats are HITRAN96,MYTRAN2,JPL,ARTS \n"
-                    "   fmin      : Minimum frequency for lines to read in Hz.\n"
-                    "   fmax      : Maximum frequency for lines to read in Hz.\n" ),
+      ( NAME( "abs_lines_per_speciesReadFromCatalogues" ),
+        DESCRIPTION
+        (
+         "This method can read lines from different line\n"
+         "catalogues.\n"
+         "\n"
+         "For each tag group, you can specify which catalogue\n"
+         "to use. Because the method creates abs_lines_per_species directly,\n"
+         "it replaces for example thefollowing two method calls:\n"
+         "  - abs_linesReadFromHitran\n"
+         "  - abs_lines_per_speciesCreateFromLines\n"
+         "   This method needs as input WSVs the list of tag\n"
+         "groups. Keyword parameters must specify the names of\n"
+         "the catalogue files to use and the matching formats.\n"
+         "Names can be anything, formats can currently be\n"
+         "HITRAN96 (for HITRAN 1986-2001 databases), HITRAN04\n"
+         "(for HITRAN 2004 database), MYTRAN2, JPL, or ARTS.\n"
+         "Furthermore, keyword parameters have to specify minimum\n"
+         "and maximum frequency for each tag group. To safe typing,\n"
+         "if there are less elements in the keyword parameters than\n"
+         "there are tag groups, the last parameters are applied to\n"
+         "all following tag groups.\n"
+         "\n"
+         "Example usage:\n"
+         "\n"
+         "abs_lines_per_speciesReadFromCatalogues{\n"
+         "  filenames = [ \"../data/cat1.dat\", \"../data/cat2.dat\" ]\n"
+         "  formats   = [ \"MYTRAN2\",          \"HITRAN96\"         ]\n"
+         "  fmin      = [ 0,                  0                  ]\n"
+         "  fmax      = [ 2000e9,             100e9              ]\n"
+         "}\n"
+         "   In this example, lines for the first tag group will\n"
+         "be taken from cat1, lines for all other tag groups\n"
+         "will be taken from cat2.\n"
+         "   This methods allows you for example to use a\n"
+         "special line file just for water vapor lines. This\n"
+         "could be the  improved water vapor line file\n"
+         "generated by Thomas Kuhn.\n"
+         "   Catalogues are only read once, even if several tag\n"
+         "groups have the same catalogue. However, in that case\n"
+         "the frequency ranges MUST be the same. (If you want\n"
+         "to do fine-tuning of the frequency ranges, you can do\n"
+         "this inside the tag definitions, e.g., \"H2O-*-0-2000e9\".)\n"
+         "   This function uses the various reading routines\n"
+         "(abs_linesReadFromHitran, etc.), as well as\n"
+         "abs_lines_per_speciesCreateFromLines.\n"
+         "\n"
+         "Keywords:\n"
+         "   filenames : Name (and path) of the catalogue files.\n"
+         "   formats   : allowed formats are HITRAN96,MYTRAN2,JPL,ARTS\n"
+         "   fmin      : Minimum frequency for lines to read in Hz.\n"
+         "   fmax      : Maximum frequency for lines to read in Hz.\n" 
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lines_per_species" ),
         GOUT(),
@@ -794,15 +822,15 @@ void define_md_data_raw()
         GIN( "filenames",    "formats",      "fmin",   "fmax" ),
         GIN_TYPE(    "ArrayOfString", "ArrayOfString", "Vector", "Vector" ),
         GIN_DEFAULT( NODEF,          NODEF,          NODEF,    NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_lines_per_speciesSetEmpty"),
+      ( NAME( "abs_lines_per_speciesSetEmpty" ),
         DESCRIPTION
         (
          "Sets abs_lines_per_species to empty line lists.\n"
@@ -810,7 +838,7 @@ void define_md_data_raw()
          "You can use this method to set lines per tag if you do not reall want\n"
          "to compute line spectra. Formally, abs_coefCalc will still require\n"
          "abs_lines_per_species to be set.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lines_per_species" ),
         GOUT(),
@@ -821,12 +849,11 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
-  // New name: abs_lookupAdapt
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_lookupAdapt"),
+      ( NAME( "abs_lookupAdapt" ),
         DESCRIPTION
         (
          "Adapts a gas absorption lookup table to the current calculation.\n"
@@ -839,22 +866,22 @@ void define_md_data_raw()
          "\n"
          "Of course, the method also performs quite a lot of checks on the\n"
          "table. If something is not ok, a runtime error is thrown.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lookup", "abs_lookup_is_adapted" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "abs_lookup", "abs_species", "f_grid" ),
+        IN( "abs_lookup", "abs_species", "f_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_lookupCreate"),
+      ( NAME( "abs_lookupCreate" ),
         DESCRIPTION
         (
          "Creates a gas absorption lookup table.\n"
@@ -862,12 +889,12 @@ void define_md_data_raw()
          "The lookup table stores absorption cross-sections as a function of\n"
          "pressure. Additionally, absorption can be stored as a function of\n"
          "temperature for temperature perturbations from a reference\n"
-         "profile. \n"
+         "profile.\n"
          "\n"
          "Additionally, absorption can be stored as a function of water vapor\n"
          "VMR perturbations from a reference profile. The variable *abs_nls*\n"
          "specifies, for which species water vapor perturbations should be\n"
-         "generated. \n"
+         "generated.\n"
          "\n"
          "Note, that the absorbing gas can be any gas, but the perturbing gas is\n"
          "always H2O.\n"
@@ -883,37 +910,36 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", 
-               "abs_lines_per_species",
-               "abs_lineshape",
-               "abs_nls",
-               "f_grid",
-               "abs_p",
-               "abs_vmrs",
-               "abs_t", 
-               "abs_t_pert", 
-               "abs_nls_pert",
-               "abs_n2",
-               "abs_cont_names",
-               "abs_cont_models", 
-               "abs_cont_parameters"
-               ),
+            "abs_lines_per_species",
+            "abs_lineshape",
+            "abs_nls",
+            "f_grid",
+            "abs_p",
+            "abs_vmrs",
+            "abs_t", 
+            "abs_t_pert", 
+            "abs_nls_pert",
+            "abs_n2",
+            "abs_cont_names",
+            "abs_cont_models", 
+            "abs_cont_parameters"
+            ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
-  // New name: abs_lookupInit
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_lookupInit"),
+      ( NAME( "abs_lookupInit" ),
         DESCRIPTION
         (
          "Creates an empty gas absorption lookup table.\n"
          "\n"
          "This is mainly there to help developers. For example, you can write\n"
          "the empty table to an XML file, to see the file format.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lookup" ),
         GOUT(),
@@ -924,11 +950,11 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_lookupSetup"),
+      ( NAME( "abs_lookupSetup" ),
         DESCRIPTION
         (
          "Set up input parameters for abs_lookupCreate.\n"
@@ -956,40 +982,40 @@ void define_md_data_raw()
          "              and the atmospheric dimension). For a 1D atmosphere this parameter is\n"
          "              not used. Has a default value.\n"
          "\n"
-         "See also: \n"
+         "See also:\n"
          "   *abs_lookupSetupBatch*\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT(  "abs_p",
-                 "abs_t", 
-                 "abs_t_pert", 
-                 "abs_vmrs",
-                 "abs_nls",
-                 "abs_nls_pert" ),
+        OUT( "abs_p",
+             "abs_t", 
+             "abs_t_pert", 
+             "abs_vmrs",
+             "abs_nls",
+             "abs_nls_pert" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(   "atmosphere_dim",
-                 "p_grid",
-                 "lat_grid",
-                 "lon_grid",
-                 "t_field",
-                 "vmr_field",
-                 "abs_species",
-                 "abs_p_interp_order",
-                 "abs_t_interp_order",
-                 "abs_nls_interp_order" ),
+        IN( "atmosphere_dim",
+            "p_grid",
+            "lat_grid",
+            "lon_grid",
+            "t_field",
+            "vmr_field",
+            "abs_species",
+            "abs_p_interp_order",
+            "abs_t_interp_order",
+            "abs_nls_interp_order" ),
         GIN( "p_step",  "t_step",  "h2o_step" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
-        GIN_DEFAULT( "0.05",    "100",       "100" ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DEFAULT( "0.05",    "100",     "100" ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_lookupSetupBatch"),
+      ( NAME( "abs_lookupSetupBatch" ),
         DESCRIPTION
         (
          "Set up input parameters for abs_lookupCreate for batch calculations.\n"
@@ -1007,7 +1033,7 @@ void define_md_data_raw()
          "accordingly.\n"
          "\n"
          "If nonlinear species are present, *abs_nls* and *abs_nls_pert* are also\n"
-         "generated. \n"
+         "generated.\n"
          "\n"
          "Max and min values of H2O and temperature are adjusted to allow for\n"
          "numerical perturbations in Jacobian calculation.\n"
@@ -1031,36 +1057,36 @@ void define_md_data_raw()
          "   extremes : You can give here explicit extreme values to add to\n"
          "              abs_t_pert and abs_nls_pert. The order is [t_pert_min,\n"
          "              t_pert_max, nls_pert_min, nls_pert_max]. Has a default value of empty.\n"
-         "See also: \n"
+         "See also:\n"
          "   *abs_lookupSetup*\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT(  "abs_p",
-                 "abs_t", 
-                 "abs_t_pert", 
-                 "abs_vmrs",
-                 "abs_nls",
-                 "abs_nls_pert" ),
+        OUT( "abs_p",
+             "abs_t", 
+             "abs_t_pert", 
+             "abs_vmrs",
+             "abs_nls",
+             "abs_nls_pert" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(   "abs_species",
-                 "batch_atm_fields_compact",
-                 "abs_p_interp_order",
-                 "abs_t_interp_order",
-                 "abs_nls_interp_order" ),
+        IN( "abs_species",
+            "batch_atm_fields_compact",
+            "abs_p_interp_order",
+            "abs_t_interp_order",
+            "abs_nls_interp_order" ),
         GIN( "p_step",  "t_step",  "h2o_step", "extremes" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric",  "Vector" ),
         GIN_DEFAULT( "0.05",    "100",       "100",      "[]" ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_lookupSetupWide"),
+      ( NAME( "abs_lookupSetupWide" ),
         DESCRIPTION
         (
          "Set up input parameters for abs_lookupCalc for a wide range of\n"
@@ -1089,34 +1115,34 @@ void define_md_data_raw()
          "FIXME: Explicitly document keywords.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT(  "abs_p",
-              "abs_t", 
-              "abs_t_pert", 
-              "abs_vmrs",
-              "abs_nls",
-              "abs_nls_pert" ),
-        GOUT(      ),
-        GOUT_TYPE( ),
+        OUT( "abs_p",
+             "abs_t", 
+             "abs_t_pert", 
+             "abs_vmrs",
+             "abs_nls",
+             "abs_nls_pert" ),
+        GOUT(),
+        GOUT_TYPE(),
         GOUT_DESC(),
-        IN(      "abs_species",
-                 "abs_p_interp_order",
-                 "abs_t_interp_order",
-                 "abs_nls_interp_order" ),
+        IN( "abs_species",
+            "abs_p_interp_order",
+            "abs_t_interp_order",
+            "abs_nls_interp_order" ),
         GIN( "p_min",   "p_max",   "p_step",  "t_min",   "t_max",   "h2o_min", "h2o_max" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric" ),
         GIN_DEFAULT( "0.5",  "110000",  "0.05",    "100",     "400",     "0",       "0.1" ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
   
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_lookupTestAccuracy"),
+      ( NAME( "abs_lookupTestAccuracy" ),
         DESCRIPTION
         (
          "Test accuracy of absorption lookup table.\n"
@@ -1132,31 +1158,32 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(   "abs_lookup",
-              "abs_lookup_is_adapted",
-              "abs_p_interp_order",
-              "abs_t_interp_order",
-              "abs_nls_interp_order",
-              "abs_n2",
-              "abs_lines_per_species", 
-              "abs_lineshape", 
-              "abs_cont_names", 
-              "abs_cont_models", 
-              "abs_cont_parameters" ),
+        IN( "abs_lookup",
+            "abs_lookup_is_adapted",
+            "abs_p_interp_order",
+            "abs_t_interp_order",
+            "abs_nls_interp_order",
+            "abs_n2",
+            "abs_lines_per_species", 
+            "abs_lineshape", 
+            "abs_cont_names", 
+            "abs_cont_models", 
+            "abs_cont_parameters" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_n2Set"),
-        DESCRIPTION(
-                    "Sets abs_n2 to the profile of the first tag group containing\n"
-                    "molecular nitrogen. See *abs_h2oSet* for more details.\n"
-                   ),
-        AUTHORS( "Patrick Eriksson" ),
+      ( NAME( "abs_n2Set" ),
+        DESCRIPTION
+        (
+         "Sets abs_n2 to the profile of the first tag group containing\n"
+         "molecular nitrogen. See *abs_h2oSet* for more details.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
         OUT( "abs_n2" ),
         GOUT(),
         GOUT_TYPE(),
@@ -1166,11 +1193,11 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_scalar_gasCalcLBL"),
+      ( NAME( "abs_scalar_gasCalcLBL" ),
         DESCRIPTION
         (
          "Calculates scalar gas absorption coefficients line-by-line.\n"
@@ -1191,7 +1218,7 @@ void define_md_data_raw()
          "of pressure, temperature, and VMR values. It can be either for a\n"
          "single frequency (f_index>=0), or for all frequencies (f_index<0). The\n"
          "dimension of the output abs_scalar_gas is adjusted accordingly.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_scalar_gas" ),
         GOUT(),
@@ -1211,11 +1238,11 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_scalar_gasExtractFromLookup"),
+      ( NAME( "abs_scalar_gasExtractFromLookup" ),
         DESCRIPTION
         (
          "Extract scalar gas absorption coefficients from lookup table.\n"
@@ -1233,46 +1260,46 @@ void define_md_data_raw()
          "and *abs_nls_interp_order*, respectively.\n"
          "\n"
          "See also: *abs_scalar_gasCalcLBL*.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_scalar_gas" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "abs_lookup", "abs_lookup_is_adapted",
-                "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order", 
-                "f_index", 
-                "rte_pressure", "rte_temperature", "rte_vmr_list" ),
+        IN( "abs_lookup", "abs_lookup_is_adapted",
+            "abs_p_interp_order", "abs_t_interp_order", "abs_nls_interp_order", 
+            "f_index", 
+            "rte_pressure", "rte_temperature", "rte_vmr_list" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_scalar_gasFromAbsCoef"),
+      ( NAME( "abs_scalar_gasFromAbsCoef" ),
         DESCRIPTION
         (
          "Copy *abs_scalar_gas* from *abs_coef*. This is handy for putting an\n"
          "explicit line-by-line calculation into the\n"
          "*abs_scalar_gas_agenda*. See also method *AbsInputFromRteScalars*.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_scalar_gas" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "abs_coef_per_species" ),
+        IN( "abs_coef_per_species" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_fieldCalc"),
+      ( NAME( "abs_fieldCalc" ),
         DESCRIPTION
         (
          "Calculate scalar gas absorption for all points in the atmosphere.\n"
@@ -1293,27 +1320,27 @@ void define_md_data_raw()
          "\n"
          "The calculation itself is performed by the\n"
          "*abs_scalar_gas_agenda*.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "abs_scalar_gas_agenda",
-                "f_index",
-                "f_grid",
-                "atmosphere_dim",
-                "p_grid", "lat_grid", "lon_grid",
-                "t_field", "vmr_field" ),
+        IN( "abs_scalar_gas_agenda",
+            "f_index",
+            "f_grid",
+            "atmosphere_dim",
+            "p_grid", "lat_grid", "lon_grid",
+            "t_field", "vmr_field" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_speciesAdd"),
+      ( NAME( "abs_speciesAdd" ),
         DESCRIPTION
         (
          "Adds species tag groups to the list of absorption species.\n"
@@ -1335,27 +1362,27 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "abs_species" ),
+        IN( "abs_species" ),
         GIN( "species" ),
         GIN_TYPE(    "ArrayOfString"   ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
  
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_speciesAdd2"),
+      ( NAME( "abs_speciesAdd2" ),
         DESCRIPTION
         (
-         "Adds a species tag group to the list of absorption species and \n"
+         "Adds a species tag group to the list of absorption species and\n"
          "jacobian quantities.\n"
          "\n"
          "The method is basically a combined call of *abs_speciesAdd* and\n"
          "*jacobianAddAbsSpecies*. In this way it is not needed to specify a\n"
-         "tag group in two different places. \n"
+         "tag group in two different places.\n"
          "\n"
          "Arguments exactly as for *jacobianAddAbsSpecies*. Note that this\n"
-         "method only handles a single tag group, in contrast to \n"
+         "method only handles a single tag group, in contrast to\n"
          "*abs_speciesAdd*\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
@@ -1364,29 +1391,29 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", "jacobian", "atmosphere_dim", "p_grid", "lat_grid", 
-               "lon_grid" ),
-        GIN(      "gin1"      , "gin2"      , "gin3"      ,
-                  "species", "method", "unit", "dx" ),
+            "lon_grid" ),
+        GIN( "gin1"      , "gin2"      , "gin3"      ,
+             "species", "method", "unit", "dx" ),
         GIN_TYPE(    "Vector", "Vector", "Vector",
-                  "String", "String", "String", "Numeric" ),
+                     "String", "String", "String", "Numeric" ),
         GIN_DEFAULT( NODEF   , NODEF   , NODEF   ,
-                  NODEF,     NODEF,    NODEF,  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC"),
+                     NODEF,     NODEF,    NODEF,  NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false  ),
         SUPPRESSHEADER( false ),
         PASSWORKSPACE(  true )
-      ));
+        ));
  
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_speciesDefineAllInScenario"),
+      ( NAME( "abs_speciesDefineAllInScenario" ),
         DESCRIPTION
         (
          "Define one tag group for each species known to ARTS and included in an\n"
@@ -1400,7 +1427,7 @@ void define_md_data_raw()
          "Keywords:\n"
          "   basename : The name and path of a particular atmospheric scenario.\n"
          "              For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_species" ),
         GOUT(),
@@ -1410,12 +1437,12 @@ void define_md_data_raw()
         GIN( "basename" ),
         GIN_TYPE( "String" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_speciesInit"),
+      ( NAME( "abs_speciesInit" ),
         DESCRIPTION
         (
          "Sets  *abs_speciesSet* to be empty.\n"
@@ -1430,12 +1457,12 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   // This is duplicate with the 1-0 method tgsDefine. Merge!
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("SpeciesSet"),
+      ( NAME( "SpeciesSet" ),
         DESCRIPTION
         (
          "Set up a list of absorption species tag groups.\n"
@@ -1448,7 +1475,7 @@ void define_md_data_raw()
          "\n"
          "A tag is defined in terms of the name of the species, isotope, and a\n"
          "range of frequencies. Species are named after the standard chemical\n"
-         "names, e.g., \"O3\".  Isotopes are given by the last digit of the atomic\n"
+         "names, e.g., \"O3\". Isotopes are given by the last digit of the atomic\n"
          "weight, i.g., \"O3-668\" for the asymmetric ozone molecule including an\n"
          "oxygen 18 atom. Groups of transitions are specified by giving a lower\n"
          "and upper limit of a frequency range, e.g., \"O3-666-500e9-501e9\".\n"
@@ -1479,7 +1506,7 @@ void define_md_data_raw()
          "               \"H2O-PWR98\" ]\n"
          "\n"
          "   The first tag group selects all O3-666 lines between 500 and\n"
-         "   501 GHz plus all O3-686 lines.  \n"
+         "   501 GHz plus all O3-686 lines. \n"
          "\n"
          "   The second tag group selects all remaining O3 transitions.\n"
          "\n"
@@ -1490,18 +1517,18 @@ void define_md_data_raw()
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(       "gout1"                         ),
-        GOUT_TYPE(  "ArrayOfArrayOfSpeciesTag" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_TYPE( "ArrayOfArrayOfSpeciesTag" ),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN( "species" ),
         GIN_TYPE(    "ArrayOfString"   ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_vecAddGas"),
+      ( NAME( "abs_vecAddGas" ),
         DESCRIPTION
         (
          "Add gas absorption to first element of absorption vector.\n"
@@ -1511,52 +1538,52 @@ void define_md_data_raw()
          "absorption vector.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT("abs_vec"),
+        OUT( "abs_vec" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("abs_vec", "abs_scalar_gas"),
+        IN( "abs_vec", "abs_scalar_gas" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_vecAddPart"),
+      ( NAME( "abs_vecAddPart" ),
         DESCRIPTION
         (
-         "The particle absorption is added to *abs_vec* \n"
+         "The particle absorption is added to *abs_vec*\n"
          "\n"
-         "This function sums up the absorption vectors for all particle \n"
+         "This function sums up the absorption vectors for all particle\n"
          "types weighted with particle number density.\n"
-         "The resluling absorption vector is added to the workspace \n"
-         "variable *abs_vec* \n"
+         "The resluling absorption vector is added to the workspace\n"
+         "variable *abs_vec*\n"
          "Output and input of this method is *abs_vec* (stokes_dim).\n"
-         "The inputs are the absorption vector for the single particle type \n"
+         "The inputs are the absorption vector for the single particle type\n"
          "*abs_vec_spt* (part_types, stokes_dim) and the local particle\n"
-         " number densities for all particle types namely the \n"
-         "*pnd_field* (part_types, p_grid, lat_grid, lon_grid, ) for given \n"
-         "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
+         " number densities for all particle types namely the\n"
+         "*pnd_field* (part_types, p_grid, lat_grid, lon_grid, ) for given\n"
+         "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required\n"
          "are specified in the control file.\n"
          ),
         AUTHORS( "Sreerekha T.R." ),
-        OUT("abs_vec"),
+        OUT( "abs_vec" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("abs_vec", "abs_vec_spt", "pnd_field", "atmosphere_dim",
-              "scat_p_index",  "scat_lat_index", "scat_lon_index"),
+        IN( "abs_vec", "abs_vec_spt", "pnd_field", "atmosphere_dim",
+            "scat_p_index",  "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_vecInit"),
+      ( NAME( "abs_vecInit" ),
         DESCRIPTION
         (
          "Initialize absorption vector.\n"
@@ -1568,70 +1595,73 @@ void define_md_data_raw()
          "\n"
          "Note, that the vector is not really a vector, because it has a\n"
          "leading frequency dimension.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
-        OUT("abs_vec"),
+        OUT( "abs_vec" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("f_grid", "stokes_dim", "f_index"),
+        IN( "f_grid", "stokes_dim", "f_index" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_xsec_per_speciesAddConts"),
-        DESCRIPTION(
-                    "Calculate absorption cross sections per tag group for continua.\n"
-                   ),
+      ( NAME( "abs_xsec_per_speciesAddConts" ),
+        DESCRIPTION
+        (
+         "Calculate absorption cross sections per tag group for continua.\n"
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_xsec_per_species" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_n2", "abs_h2o",
-               "abs_vmrs", "abs_cont_names", "abs_cont_parameters",
-               "abs_cont_models" ),
+            "abs_vmrs", "abs_cont_names", "abs_cont_parameters",
+            "abs_cont_models" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_xsec_per_speciesAddLines"),
-        DESCRIPTION(
-                    "Calculates the line spectrum for each tag group and adds\n"
-                    "it to abs_xsec_per_species.\n"
-                   ),
+      ( NAME( "abs_xsec_per_speciesAddLines" ),
+        DESCRIPTION
+        (
+         "Calculates the line spectrum for each tag group and adds\n"
+         "it to abs_xsec_per_species.\n"
+         ),
         AUTHORS( "Stefan Buehler", "Axel von Engeln" ),
         OUT( "abs_xsec_per_species" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", "f_grid", "abs_p", "abs_t", "abs_h2o",
-               "abs_vmrs", "abs_lines_per_species", "abs_lineshape" ),
+            "abs_vmrs", "abs_lines_per_species", "abs_lineshape" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_xsec_per_speciesInit" ),
-        DESCRIPTION(
-                    "Initialize *abs_xsec_per_species*.\n"
-                    "\n"
-                    "The initialization is\n"
-                    "necessary, because methods *abs_xsec_per_speciesAddLines*\n"
-                    "and *abs_xsec_per_speciesAddConts* just add to *abs_xsec_per_species*.\n"
-                    "The size is determined from *tgs*.\n"
-                   ),
+        DESCRIPTION
+        (
+         "Initialize *abs_xsec_per_species*.\n"
+         "\n"
+         "The initialization is\n"
+         "necessary, because methods *abs_xsec_per_speciesAddLines*\n"
+         "and *abs_xsec_per_speciesAddConts* just add to *abs_xsec_per_species*.\n"
+         "The size is determined from *tgs*.\n"
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_xsec_per_species" ),
         GOUT(),
@@ -1642,35 +1672,35 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AgendaExecute"),
+      ( NAME( "AgendaExecute" ),
         DESCRIPTION
         ( 
          "Execute an agenda.\n"
          "\n"
          "Generic input:\n"
          "   Agenda : The agenda.\n"
-        ),
+          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(      "gin1"       ),
+        GIN( "gin1"       ),
         GIN_TYPE(    "Agenda" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD(    false ),
         AGENDAMETHOD( false )
-      ));
+        ));
       
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AgendaAppend"),
+      ( NAME( "AgendaAppend" ),
         DESCRIPTION
         ( 
          "Append methods to an agenda.\n"
@@ -1685,14 +1715,14 @@ void define_md_data_raw()
          "It also uses the agenda lookup data (defined in file agendas.cc) to\n"
          "check, whether the given methods use the right input WSVs and produce\n"
          "the right output WSVs.\n"
-        ),
+          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Agenda" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
-        GIN(      "gin1"       ),
+        GIN( "gin1"       ),
         GIN_TYPE( "Agenda" ),
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "Agenda to append to." ),
@@ -1701,11 +1731,11 @@ void define_md_data_raw()
         SUPPRESSHEADER( false ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AgendaSet"),
+      ( NAME( "AgendaSet" ),
         DESCRIPTION
         ( 
          "Set up an agenda.\n"
@@ -1720,18 +1750,18 @@ void define_md_data_raw()
          "It also uses the agenda lookup data (defined in file agendas.cc) to\n"
          "check, whether the given methods use the right input WSVs and produce\n"
          "the right output WSVs.\n"
-         " \n"
+         "\n"
          "Generic output:\n"
          "   Agenda : The new agenda.\n"
          "\n"
          "Keywords:\n"
          "   No keywords, but other methods can appear in the method body.\n"
-        ),
+          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Agenda" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -1742,11 +1772,11 @@ void define_md_data_raw()
         SUPPRESSHEADER( false ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AntennaOff"),
+      ( NAME( "AntennaOff" ),
         DESCRIPTION
         (
          "Sets some antenna related variables\n"
@@ -1755,7 +1785,7 @@ void define_md_data_raw()
          "*mblock_aa_grid* to suitable values (1, [0] and [], respectively)\n"
          "for cases when a sensor is included, but the antenna pattern is\n"
          "neglected.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
         GOUT(),
@@ -1766,17 +1796,17 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AntennaSet1D"),
+      ( NAME( "AntennaSet1D" ),
         DESCRIPTION
         (
          "Sets the antenna dimension to 1D.\n"
          "\n"
          "Sets *antenna_dim* to 1 and sets *mblock_aa_grid* to be empty.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "antenna_dim", "mblock_aa_grid" ),
         GOUT(),
@@ -1787,11 +1817,11 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AntennaSet2D"),
+      ( NAME( "AntennaSet2D" ),
         DESCRIPTION
         (
          "Sets the antenna dimension to 2D.\n"
@@ -1800,7 +1830,7 @@ void define_md_data_raw()
          "\n"
          "It is only allowed to set *antenna_dim* to 2 when *atmosphere_dim*\n"
          "equals 3.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "antenna_dim" ),
         GOUT(),
@@ -1811,11 +1841,11 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Append"),
+      ( NAME( "Append" ),
         DESCRIPTION
         (
          "Append a workspace variable to another workspace variable.\n"
@@ -1832,17 +1862,17 @@ void define_md_data_raw()
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(      "out"    ),
-        GOUT_TYPE( ARRAY_GROUPS + ", Vector" + ", String"),
-        GOUT_DESC("The variable to append to."),
+        GOUT_TYPE( ARRAY_GROUPS + ", Vector" + ", String" ),
+        GOUT_DESC( "The variable to append to." ),
         IN(),
-        GIN(      "in"    ),
-        GIN_TYPE(  ARRAY_GROUPS + ", Vector" + ", String"),
+        GIN(    "in"    ),
+        GIN_TYPE(  ARRAY_GROUPS + ", Vector" + ", String" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("The variable to append."),
+        GIN_DESC( "The variable to append." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1852,18 +1882,18 @@ void define_md_data_raw()
          "Creates an empty ArrayOfGField1.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "arrayofgfield1"       ),
         GOUT_TYPE( "ArrayOfGField1" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1873,38 +1903,38 @@ void define_md_data_raw()
          "Creates an empty ArrayOfIndex.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "arrayofindex"       ),
         GOUT_TYPE( "ArrayOfIndex" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ArrayOfIndexSet"),
+      ( NAME( "ArrayOfIndexSet" ),
         DESCRIPTION
         (
          "Create an ArrayOfIndex from the given list of numbers.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "arrayofindex"       ),
         GOUT_TYPE( "ArrayOfIndex" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(         "values" ),
         GIN_TYPE(    "ArrayOfIndex" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD( true )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1915,20 +1945,20 @@ void define_md_data_raw()
          "\n"
          "If the variable already exists, it will be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   ArrayOfLineRecord: New empty ArrayOfLineRecord.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"                  ),
         GOUT_TYPE( "ArrayOfLineRecord" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1939,20 +1969,20 @@ void define_md_data_raw()
          "\n"
          "If the variable already exists, it will be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   ArrayOfLineshapeSpec: New empty ArrayOfLineshapeSpec.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"                     ),
         GOUT_TYPE( "ArrayOfLineshapeSpec" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1963,57 +1993,20 @@ void define_md_data_raw()
          "\n"
          "If the variable already exists, it will be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   ArrayOfMatrix: New empty ArrayOfMatrix.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"              ),
         GOUT_TYPE( "ArrayOfMatrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ArrayOfMatrixInsert"),
-        DESCRIPTION
-        (
-         "Inserts a Matrix in an ArrayOfMatrix.\n"
-         "\n"
-         "The keyword can be used to chose which element will be set, If a\n"
-         "negative number is given, the matrix will be appended to the array.\n"
-         "Note that zero-based indexing is used.\n"
-         "\n"
-         "Generic output:\n"
-         "  ArrayOfMatrix : The new array.\n"
-         "\n"
-         "Generic input:\n"
-         "  ArrayOfMatrix : The original array.\n"
-         "         Matrix : The matrix to insert.\n"
-         "Keywords:\n"
-         "        element : The index to be set.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUT(),
-        GOUT(      "gout1"              ),
-        GOUT_TYPE( "ArrayOfMatrix" ),
-        GOUT_DESC("FIXME DOC"),
-        IN(),
-        GIN(      "gin1"             , "gin2"      ,
-                  "element" ),
-        GIN_TYPE(    "ArrayOfMatrix", "Matrix",
-                  "Index" ),
-        GIN_DEFAULT( NODEF          , NODEF   ,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2024,41 +2017,41 @@ void define_md_data_raw()
          "\n"
          "If the variable already exists, it'll be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   ArrayOfString: New empty ArrayOfString.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"              ),
         GOUT_TYPE( "ArrayOfString" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ArrayOfStringSet"),
+      ( NAME( "ArrayOfStringSet" ),
         DESCRIPTION
         (
          "Sets a String array according the given text.\n"
          "The format is text = [\"String1\",\"String2\",...]\n"
-        ),
-        AUTHORS( "Patrick Eriksson" ),
+         ),
+        AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"              ),
         GOUT_TYPE( "ArrayOfString" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN( "text" ),
         GIN_TYPE(    "ArrayOfString" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD( true )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2068,28 +2061,28 @@ void define_md_data_raw()
          "Creates an empty ArrayOfVector.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "arrayofvector"       ),
         GOUT_TYPE( "ArrayOfVector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Arts"),
+      ( NAME( "Arts" ),
         DESCRIPTION
         ( 
          "Run the agenda that is specified inside the curly braces. ARTS\n"
          "controlfiles must define this method. It is executed automatically\n"
          "when ARTS is run on the controlfile.\n" 
-        ),
+          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(),
@@ -2102,71 +2095,70 @@ void define_md_data_raw()
         GIN_DESC(),
         SETMETHOD(    false ),
         AGENDAMETHOD( true  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AtmFieldsCalc"),
+      ( NAME( "AtmFieldsCalc" ),
         DESCRIPTION
         (
-         "Interpolate the atmospheric fields.\n"
+         "Interpolation of raw atmospheric fields.\n"
          "\n"
-         "An atmospheric scenario includes the following data for each \n"
-         "position (pressure, latitude, longitude) in the atmosphere: \n"
-         "           1. temperature field \n"
-         "           2. the corresponding altitude field \n"
-         "           3. vmr fields for the gaseous species \n"
-         "This method interpolates the fields from the raw data\n"
-         "(*t_field_raw*, *z_field_raw*) which can be stored on \n"
-         "arbitrary grids on the grids for the calculation\n"
-         "(*p_grid*, *lat_grid*, *lon_grid*).\n"
-        ),
+         "An atmospheric scenario includes the following data for each\n"
+         "position (pressure, latitude, longitude) in the atmosphere:\n"
+         "   1. temperature field\n"
+         "   2. the corresponding altitude field\n"
+         "   3. vmr fields for the gaseous species\n"
+         "This method interpolates the fields of raw data (*t_field_raw*,\n"
+         "*z_field_raw* and *p_field_raw*) which can be stored on arbitrary\n"
+         "grids to the calculation grids (*p_grid*, *lat_grid*, *lon_grid*).\n"
+         ),
         AUTHORS( "Claudia Emde" ),
-        OUT("t_field", "z_field", "vmr_field"),
+        OUT( "t_field", "z_field", "vmr_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
-              "vmr_field_raw", "atmosphere_dim"),
+        IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
+            "vmr_field_raw", "atmosphere_dim" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AtmFieldsCalcExpand1D"),
+      ( NAME( "AtmFieldsCalcExpand1D" ),
         DESCRIPTION
         (
-         "Interpolate 1D raw atmospheric fields to create 2D or 3D \n"
+         "Interpolation of 1D raw atmospheric fields to create 2D or 3D\n"
          "homogeneous atmospheric fields.\n"
          "\n"
-         "The method works as *AtmFieldsCalc* but accepts only raw 1D\n"
-         "atmospheres. The raw atmosphere is interpolated to *p_grid* and \n"
-         "the obtained values are applied for all latitudes, and also \n"
-         "longitudes for 3D, to create a homogeneous atmosphere. \n"
+         "The method works as *AtmFieldsCalc*, but accepts only raw 1D\n"
+         "atmospheres. The raw atmosphere is interpolated to *p_grid* and\n"
+         "the obtained values are applied for all latitudes, and also\n"
+         "longitudes for 3D, to create a homogeneous atmosphere.\n"
          "\n"
          "The method deals only with the atmospheric fields, and to create\n"
          "a true 2D or 3D version of a 1D case, a demand is also that the\n"
          "geoid radius is set to be constant for all latitudes/longitudes.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson", "Claudia Emde" ),
         OUT( "t_field", "z_field", "vmr_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
-               "vmr_field_raw", "atmosphere_dim"),
+            "vmr_field_raw", "atmosphere_dim" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AtmFieldsRefinePgrid"),
+      ( NAME( "AtmFieldsRefinePgrid" ),
         DESCRIPTION
         (
          "Refine the pressure grid in the atmospheric fields.\n"
@@ -2187,30 +2179,30 @@ void define_md_data_raw()
          "   p_step   : Maximum step in log(p[Pa]) (natural logarithm, as always). If\n"
          "              the pressure grid is coarser than this, additional points\n"
          "              are added until each log step is smaller than this.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
-        OUT("p_grid",
-               "t_field", "z_field", "vmr_field"),
+        OUT( "p_grid",
+             "t_field", "z_field", "vmr_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid",
-               "t_field", "z_field", "vmr_field", "atmosphere_dim"),
+            "t_field", "z_field", "vmr_field", "atmosphere_dim" ),
         GIN( "p_step" ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("atm_fields_compactAddConstant"),
+      ( NAME( "atm_fields_compactAddConstant" ),
         DESCRIPTION
         (
-         "Adds a constant field to atm_fields_compact. \n"
+         "Adds a constant field to atm_fields_compact.\n"
          "\n"
          "This is handy for nitrogen or oxygen. The constant value is\n"
-         "appended at the end of the fields that are already there.  All\n"
+         "appended at the end of the fields that are already there. All\n"
          "dimensions (pressure, latitude, longitude) are filled up, so this\n"
          "works for 1D, 2D, or 3D atmospheres.\n"
          "\n"
@@ -2223,24 +2215,24 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "atm_fields_compact" ),
+        IN( "atm_fields_compact" ),
         GIN( "name",   "value" ),
         GIN_TYPE(    "String", "Numeric" ),
         GIN_DEFAULT( NODEF,    NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("atm_fields_compactFromMatrix"),
+      ( NAME( "atm_fields_compactFromMatrix" ),
         DESCRIPTION
         (
          "Set atm_fields_compact from 1D profiles in a matrix.\n"
          "\n"
          "For clear-sky batch calculations it is handy to store atmospheric\n"
          "profiles in an array of matrix. We take such a matrix, and create\n"
-         "*atm_fields_compact* from it. \n"
+         "*atm_fields_compact* from it.\n"
          "\n"
          "The matrix must contain one row for each pressure level. Recommended\n"
          "row format:\n"
@@ -2255,32 +2247,32 @@ void define_md_data_raw()
          "                 [\"T[K]\", \"z[m]\", \"vmr_h2o[1]\"]\n"
          "                 There must be one name less than matrix columns,\n"
          "                 because the first column must contain pressure.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "atm_fields_compact" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "atmosphere_dim" ),
+        IN( "atmosphere_dim" ),
         GIN(      "gin1"      ,
                   "field_names" ),
         GIN_TYPE(    "Matrix",
                      "ArrayOfString" ),
         GIN_DEFAULT( NODEF   ,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+                     NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("batch_atm_fields_compactFromArrayOfMatrix"),
+      ( NAME( "batch_atm_fields_compactFromArrayOfMatrix" ),
         DESCRIPTION
         (
          "Expand batch of 1D atmospheric states to a batch_atm_fields_compact.\n"
          "\n"
          "This is used to handle 1D batch cases, for example from the Chevallier\n"
-         "data set, stored in a matrix. \n"
+         "data set, stored in a matrix.\n"
          "\n"
          "The matrix must contain one row for each pressure level. Row format:\n"
          "\n"
@@ -2299,46 +2291,46 @@ void define_md_data_raw()
          "\n"
          "   extra_field_values : Give here the constant field value. Default:\n"
          "                        Empty. Dimension must match extra_field_names.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "batch_atm_fields_compact" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "atmosphere_dim" ),
+        IN( "atmosphere_dim" ),
         GIN(      "gin1"             ,
                   "field_names", "extra_field_names", "extra_field_values" ),
         GIN_TYPE(    "ArrayOfMatrix",
                      "ArrayOfString", "ArrayOfString",     "Vector" ),
         GIN_DEFAULT( NODEF          ,
-                  NODEF,         "[]",                "[]" ),
+                     NODEF,         "[]",                "[]" ),
         //KW_DEFAULT( NODEF,         NODEF,                NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AtmFieldsFromCompact"),
+      ( NAME( "AtmFieldsFromCompact" ),
         DESCRIPTION
         (
          "Extract pressure grid and atmospheric fields from\n"
          "*atm_fields_compact*.\n"
          "\n"
-         "An atmospheric scenario includes the following data for each \n"
-         "position (pressure, latitude, longitude) in the atmosphere: \n"
-         "           1. temperature field \n"
-         "           2. the corresponding altitude field \n"
-         "           3. vmr fields for the gaseous species \n"
+         "An atmospheric scenario includes the following data for each\n"
+         "position (pressure, latitude, longitude) in the atmosphere:\n"
+         "           1. temperature field\n"
+         "           2. the corresponding altitude field\n"
+         "           3. vmr fields for the gaseous species\n"
          "\n"
          "This method just splits up the data found in *atm_fields_compact* to\n"
          "p_grid, lat_grid, lon_grid, and the various fields. No interpolation.\n"
          "See documentation of *atm_fields_compact* for a definition of the data.\n"
          "\n"
          "There are some safety checks on the names of the fields: The first\n"
-         "field must be called *T*, the second *z*.  Remaining fields must be\n"
+         "field must be called *T*, the second *z*. Remaining fields must be\n"
          "trace gas species volume mixing ratios, named for example \"H2O\", \"O3\",\n"
          "and so on. The species names must fit the species in *abs_species*.\n"
          "(Same species in same order.) Only the species name must fit, not the\n"
@@ -2353,16 +2345,16 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "abs_species", "atm_fields_compact", "atmosphere_dim" ),
+        IN( "abs_species", "atm_fields_compact", "atmosphere_dim" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AtmosphereSet1D"),
+      ( NAME( "AtmosphereSet1D" ),
         DESCRIPTION
         (
          "Sets the atmospheric dimension to 1D.\n"
@@ -2370,7 +2362,7 @@ void define_md_data_raw()
          "Sets *atmosphere_dim* to 1 and gives some variables dummy values.\n"
          "\n"
          "The latitude and longitude grids are set to be empty.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "atmosphere_dim", "lat_grid", "lon_grid" ),
         GOUT(),
@@ -2381,11 +2373,11 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AtmosphereSet2D"),
+      ( NAME( "AtmosphereSet2D" ),
         DESCRIPTION
         (
          "Sets the atmospheric dimension to be 2D.\n"
@@ -2395,9 +2387,9 @@ void define_md_data_raw()
          "The longitude grid is set to be empty. The variables *lat_1d*\n"
          "and *meridian_angle_1d* are given values that cause an error\n"
          "message if used.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "atmosphere_dim", "lon_grid", "lat_1d", "meridian_angle_1d"),
+        OUT( "atmosphere_dim", "lon_grid", "lat_1d", "meridian_angle_1d" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -2406,20 +2398,18 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AtmosphereSet3D"),
+      ( NAME( "AtmosphereSet3D" ),
         DESCRIPTION
         (
          "Sets the atmospheric dimension to 3D.\n"
          "\n"
-         "Sets *atmosphere_dim* to 3 and gives some variables dummy values.\n"
-         "\n"
          "The variables *lat_1d* and *meridian_angle_1d* are given\n"
          "values that cause an error message if used.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "atmosphere_dim", "lat_1d", "meridian_angle_1d" ),
         GOUT(),
@@ -2430,58 +2420,52 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AtmRawRead"),
+      ( NAME( "AtmRawRead" ),
         DESCRIPTION
         (
          "Reads atmospheric data from a scenario.\n"
          "\n"
-         "An atmospheric scenario includes the following data for each \n"
-         "position (pressure, latitude, longitude) in the atmosphere: \n"
-         "           1. temperature field \n"
-         "           2. the corresponding altitude field \n"
-         "           3. vmr fields for the gaseous species \n"
-         "The data is stored in different files. This methods reads all \n"
-         "files and creates the variables *t_field_raw*, *z_field_raw* \n"
+         "An atmospheric scenario includes the following data for each\n"
+         "position (pressure, latitude, longitude) in the atmosphere:\n"
+         "   1. temperature field\n"
+         "   2. the corresponding altitude field\n"
+         "   3. vmr fields for the gaseous species\n"
+         "The data is stored in different files. This methods reads all\n"
+         "files and creates the variables *t_field_raw*, *z_field_raw* and\n"
+         "*vmr_field_raw*.\n"
          "\n"
-         "Different atmospheric scenarios are available in arts data:\n"
-         "For example tropical and midlatitude-summer. 3D scenarios are \n"
-         "not available yet.\n"
+         "Files in a scenarios should be named matching the pattern of:\n"
+         "tropical.H2O.xml\n"
          "\n"
-         "Files in the scenarios look like this: tropical.H2O.xml \n"
-         "\n"
-         "The basename must include the path, i.e., the files can be \n"
-         "anywhere, but they must be all in the same directory.\n"
-         "The profile is chosen by the species name. If you have more than \n"
-         "one tag group for the same species, the same profile will be \n"
-         "used.\n"
-         "\n"
-         "Keywords: \n"
-         "basename :The name and path of a particular atmospheric scenario.\n"
-         "For example:\n"
-         "/smiles_local/arts-data/atmosphere/fascod/tropical \n"
-        ),
+         "The files can be anywhere, but they must be all in the same\n"
+         "directory, selected by *Basename*. The files are chosen by the\n"
+         "species name. If you have more than one tag group for the same\n"
+         "species, the same profile will be used.\n"
+         ),
         AUTHORS( "Claudia Emde" ),
-        OUT("t_field_raw", "z_field_raw", "vmr_field_raw"),
+        OUT( "t_field_raw", "z_field_raw", "vmr_field_raw" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("abs_species"),
+        IN( "abs_species" ),
         GIN( "basename" ),
-        GIN_TYPE(    "String" ),
+        GIN_TYPE( "String" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "Name of scenario, probably including the full path. For "
+                  "example: \"/smiles_local/arts-data/atmosphere/fascod/"
+                  "tropical\"" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "CloudboxGetIncoming" ),
         DESCRIPTION
         (
-         "Calculates incoming radiation field of cloudbox by repeated\n"
+         "Calculates incoming radiation field of the cloudbox by repeated\n"
          "radiative transfer calculations.\n"
          "\n"
          "The method performs monochromatic pencil beam calculations for\n"
@@ -2492,21 +2476,21 @@ void define_md_data_raw()
          "DOIT method.\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "cloudbox_on"),
+        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "cloudbox_on" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
-               "surface_prop_agenda", "iy_cloudbox_agenda",
-               "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
-               "t_field", "vmr_field", "r_geoid", "z_surface", 
-               "cloudbox_limits", "f_grid", "stokes_dim", 
-               "scat_za_grid", "scat_aa_grid" ),
+            "surface_prop_agenda", "iy_cloudbox_agenda",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
+            "t_field", "vmr_field", "r_geoid", "z_surface", 
+            "cloudbox_limits", "f_grid", "stokes_dim", 
+            "scat_za_grid", "scat_aa_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2523,32 +2507,33 @@ void define_md_data_raw()
          "This method can only be used for 3D cases.\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "cloudbox_on"),
+        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "cloudbox_on" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
-               "surface_prop_agenda", "iy_cloudbox_agenda",
-               "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
-               "t_field", "vmr_field", "r_geoid", "z_surface", 
-               "cloudbox_limits", "f_grid", "stokes_dim", 
-               "scat_za_grid", "scat_aa_grid" ),
+            "surface_prop_agenda", "iy_cloudbox_agenda",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
+            "t_field", "vmr_field", "r_geoid", "z_surface", 
+            "cloudbox_limits", "f_grid", "stokes_dim", 
+            "scat_za_grid", "scat_aa_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("cloudboxOff"),
+      ( NAME( "cloudboxOff" ),
         DESCRIPTION
         (
-         "Deactivates the cloud box. \n"
+         "Deactivates the cloud box.\n"
          "\n"
+         "Use this method if no scattering calculations shall be performed.\n"
          "The function sets *cloudbox_on* to 0, *cloudbox_limits* to be an\n"
          "empty vector and *iy_cloudbox_agenda* to an empty agenda.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda" ),
         GOUT(),
@@ -2559,58 +2544,29 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
   
-   md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "cloudboxSetDisort" ),
         DESCRIPTION
         (
-         "For Disort calculation the cloudbox must be extended to \n"
+         "For Disort calculation the cloudbox must be extended to\n"
          "cover the full atmosphere.\n"
-         "This method sets *cloudbox_limits* accordingly. \n"
+         "This method sets *cloudbox_limits* accordingly.\n"
          ), 
         AUTHORS( "Claudia Emde" ),
-        OUT("cloudbox_on", "cloudbox_limits"),
+        OUT( "cloudbox_on", "cloudbox_limits" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("p_grid"),
+        IN( "p_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "cloudboxSetEmpty" ),
-        DESCRIPTION
-        (
-         "Sets the cloudbox empty for clearsky DOIT calculations. \n"
-         "\n"
-         "Scattering calculations using the DOIT method include \n"
-         "interpolation errors. If one is interested in the cloud effect, \n"
-         "should compare the DOIT result with a clearsky calculation using \n"
-         "an empty cloudbox. That means that the iterative method is \n"
-         "performed for a cloudbox including no particles. This method sets \n"
-         "the particle number density field to zero and creates a \n"
-         "dummy *scat_data_raw* structure. For a cleasky calculation, \n"
-         "the methods *ParticleTypeAdd(All)* and *pnd_fieldCalc* can be \n"
-         "replaced by this method. \n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT( "pnd_field", "scat_data_raw"),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "p_grid", "lat_grid", "lon_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-      ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2622,10 +2578,10 @@ void define_md_data_raw()
          "The function sets *cloudbox_on* to 1 and sets *cloudbox_limits*\n"
          "following the given pressure, latitude and longitude positions.\n"
          "The index limits in *cloudbox_limits* are selected to give the\n" 
-         "smallest possible cloud box that encompass the given points. \n"
+         "smallest possible cloud box that encompass the given points.\n"
          "\n"
          "The points must be given in the same order as used in\n"
-         "*cloudbox_limits*. That means that the first keyword argument \n"
+         "*cloudbox_limits*. That means that the first keyword argument\n"
          "shall be a higher pressure than argument two, while the latitude\n"
          "and longitude points are given in increasing order. Positions\n"
          "given for dimensions not used by the selected atmospheric\n"
@@ -2638,34 +2594,26 @@ void define_md_data_raw()
          "points cannot be inside the outermost grid ranges as the latitude\n"
          "and longitude limits in *cloudbox_limits* are not allowed to be\n"
          "grid end points.\n"
-         "\n"
-         "Keywords: \n"
-         "   p1   : Upper pressure point.\n"
-         "   p2   : Lower pressure point.\n"
-         "   lat1 : Lower latitude point.\n"
-         "   lat2 : Upper latitude point.\n"
-         "   lon1 : Lower longitude point.\n"
-         "   lon2 : Upper longitude point.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "cloudbox_on", "cloudbox_limits"),
+        OUT( "cloudbox_on", "cloudbox_limits" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
         GIN( "p1",      "p2",      "lat1",    "lat2",    "lon1",
-                  "lon2" ),
+             "lon2" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", 
-                  "Numeric" ),
+                     "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF,     NODEF,     NODEF,     NODEF,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+                     NODEF ),
+        GIN_DESC( "Upper pressure point.",
+                  "Lower pressure point.",
+                  "Lower latitude point.",
+                  "Upper latitude point.",
+                  "Lower longitude point.",
+                  "Upper longitude point." )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2674,56 +2622,33 @@ void define_md_data_raw()
         (
          "Sets the cloud box to encompass the given positions.\n"
          "\n"
-         "The function sets *cloudbox_on* to 1 and sets *cloudbox_limits*\n"
-         "following the given altitude, latitude and longitude positions.\n"
-         "The index limits in *cloudbox_limits* are selected to give the\n" 
-         "smallest possible cloud box that encompass the given points. \n"
-         "\n"
-         "The points must be given in the same order as used in\n"
-         "*cloudbox_limits*. That means that altitude, latitude\n"
-         "and longitude points are given in increasing order. Positions\n"
-         "given for dimensions not used by the selected atmospheric\n"
-         "dimensionality are ignored.\n"
-         "\n"
+         "As *cloudboxSetManually* but uses altitudes instead of pressure.\n"
          "The given altitude points can be outside the range of *z_field*.\n"
          "The altitude limit is then set to the end point of *p_grid*.\n"
-         "The given latitude and longitude points must be inside the range\n"
-         "of the corresponding grid. In addition, the latitude and longitude\n"
-         "points cannot be inside the outermost grid ranges as the latitude\n"
-         "and longitude limits in *cloudbox_limits* are not allowed to be\n"
-         "grid end points.\n"
-         "\n"
-         "Keywords: \n"
-         "   z1   : Lower altitude point.\n"
-         "   z2   : Upper altitude point.\n"
-         "   lat1 : Lower latitude point.\n"
-         "   lat2 : Upper latitude point.\n"
-         "   lon1 : Lower longitude point.\n"
-         "   lon2 : Upper longitude point.\n"
-        ),
+         ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "cloudbox_on", "cloudbox_limits"),
+        OUT( "cloudbox_on", "cloudbox_limits" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "z_field", "lat_grid", "lon_grid" ),
         GIN( "z1",      "z2",      "lat1",    "lat2",    "lon1",
-                  "lon2" ),
+             "lon2" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", 
-                  "Numeric" ),
+                     "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF,     NODEF,     NODEF,     NODEF,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+                     NODEF ),
+        GIN_DESC( "Upper altitude point.",
+                  "Lower altitude point.",
+                  "Lower latitude point.",
+                  "Upper latitude point.",
+                  "Lower longitude point.",
+                  "Upper longitude point." )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("complex_nWaterLiebe93"),
+      ( NAME( "complex_nWaterLiebe93" ),
         DESCRIPTION
         (
          "Complex refractive index of liquid water according to Liebe 1993.\n"
@@ -2734,10 +2659,7 @@ void define_md_data_raw()
          "which refer to Liebe 1993 without closer specifications.\n"
          "\n"
          "Temperature must be between 0 and 100 degrees Celsius.\n"
-         "\n"
-         "Global input:\n"
-         "   t : Temperature [K].\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "complex_n" ),
         GOUT(),
@@ -2747,12 +2669,12 @@ void define_md_data_raw()
         GIN( "t" ),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "Temperature [K]." )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Copy"),
+      ( NAME( "Copy" ),
         DESCRIPTION
         (
          "Copy a workspace variable.\n"
@@ -2781,20 +2703,20 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "gout1"    ),
         GOUT_TYPE( "Any" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Delete"),
+      ( NAME( "Delete" ),
         DESCRIPTION
         (
          "Deletes a workspace variable.\n"
@@ -2811,43 +2733,17 @@ void define_md_data_raw()
         GIN(       "gin1"    ),
         GIN_TYPE(     "Any" ),
         GIN_DEFAULT(  NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE(  true  ),
         PASSWSVNAMES(   true  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ScatteringDisort"),
-        DESCRIPTION
-        (
-         "Calls DISORT RT solver from ARTS.\n"
-         "Detailed documentation to be added.\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT("scat_i_p", "scat_i_lat", "scat_i_lon", 
-               "f_index", "scat_data_mono", "doit_i_field1D_spectrum"),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN("cloudbox_limits", "stokes_dim", "opt_prop_part_agenda", 
-              "abs_scalar_gas_agenda", "spt_calc_agenda", 
-              "pnd_field", "t_field", 
-              "z_field", "p_grid", "vmr_field", "scat_data_raw", "f_grid", 
-              "scat_za_grid", "surface_emissivity_DISORT" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-      ));
-
-
-   md_data_raw.push_back
-    ( MdRecord
-      ( NAME("DoitAngularGridsSet"),
+      ( NAME( "DoitAngularGridsSet" ),
         DESCRIPTION
         (
          "Set angular grids for DOIT calculation."
@@ -2866,33 +2762,33 @@ void define_md_data_raw()
          "WSVs *scat_za_grid* and *scat_aa_grid*.\n" 
          "\n"
          "For limb simulations it is important to use an optimized zenith "
-         "angle \n"
+         "angle\n"
          "grid with a very fine resolution about 90° for the "
          "RT calculations.\n"
-         "Such a grid can be generated using *doit_za_grid_optCalc*. \n"
-         "The filename of the optimized zenith angle grid can be given \n"
-         "as a keyword. If a filename is given, the equidistant grid is \n"
+         "Such a grid can be generated using *doit_za_grid_optCalc*.\n"
+         "The filename of the optimized zenith angle grid can be given\n"
+         "as a keyword. If a filename is given, the equidistant grid is\n"
          "taken for the calculation of the scattering integrals and the\n"
          "optimized grid is taken for the radiative transfer part.\n"
-         "Otherwise, if no filename is specified \n"
-         "( za_grid_opt_file = \"\" ) the equidistant grid is \n"
-         "taken for the calculation of the scattering integrals and for \n"
-         "the RT calculations. This option makes sense for down-looking \n"
-         "cases to speed up the calculation. \n"
+         "Otherwise, if no filename is specified\n"
+         "( za_grid_opt_file = \"\" ) the equidistant grid is\n"
+         "taken for the calculation of the scattering integrals and for\n"
+         "the RT calculations. This option makes sense for down-looking\n"
+         "cases to speed up the calculation.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "doit_za_grid_size", "scat_aa_grid", "scat_za_grid"),
+        OUT( "doit_za_grid_size", "scat_aa_grid", "scat_za_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN( "N_za_grid", "N_aa_grid", "za_grid_opt_file"),
-        GIN_TYPE(    "Index",     "Index",     "String"),
+        GIN( "N_za_grid", "N_aa_grid", "za_grid_opt_file" ),
+        GIN_TYPE(    "Index",     "Index",     "String" ),
         GIN_DEFAULT( NODEF,       NODEF,       NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2902,100 +2798,100 @@ void define_md_data_raw()
          "Method for the communication between cloudbox and clearsky.\n"
          "\n"
          "This method puts the scattered radiation field into the interface\n"
-         "variables between the cloudbox and the clearsky, which are \n"
+         "variables between the cloudbox and the clearsky, which are\n"
          "*scat_i_p*, *scat_i_lat* and *scat_i_lon*.\n"
          "\n"
          "The best way to calculate spectra including the influence of\n" 
-         "scattering is to set up the *scat_mono_agenda* where this method \n"
+         "scattering is to set up the *scat_mono_agenda* where this method\n"
          "can be included.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_i_p", "scat_i_lat", "scat_i_lon",
-                "doit_i_field1D_spectrum" ),
+             "doit_i_field1D_spectrum" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field", "f_grid", "f_index",   "p_grid", "lat_grid", 
-               "lon_grid", "scat_za_grid", "scat_aa_grid", "stokes_dim",
-               "atmosphere_dim", "cloudbox_limits", "sensor_pos", "z_field" ),
+            "lon_grid", "scat_za_grid", "scat_aa_grid", "stokes_dim",
+            "atmosphere_dim", "cloudbox_limits", "sensor_pos", "z_field" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
-md_data_raw.push_back     
+  md_data_raw.push_back     
     ( MdRecord
-      ( NAME("doit_conv_flagAbs"),
+      ( NAME( "doit_conv_flagAbs" ),
         DESCRIPTION
         (
          "Convergence test (maximum absolute difference).\n"
          "\n"
          "The function calculates the absolute differences for two " 
          "successive\n"
-         "iteration fields. It picks out the maximum values for each Stokes \n"
+         "iteration fields. It picks out the maximum values for each Stokes\n"
          "component separately. The convergence test is fullfilled under the\n"
-         "following conditions: \n"
+         "following conditions:\n"
          "|I(m+1) - I(m)| < epsilon_1     Intensity.\n"
          "|Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n" 
-         "|U(m+1) - U(m)| < epsilon_3    \n"
-         "|V(m+1) - V(m)| < epsilon_4    \n" 
-         "These conditions have to be valid for all positions in the \n"
+         "|U(m+1) - U(m)| < epsilon_3   \n"
+         "|V(m+1) - V(m)| < epsilon_4   \n" 
+         "These conditions have to be valid for all positions in the\n"
          "cloudbox and for all directions.\n"  
          "\n"
-         "The limits for convergence are set in the controlfile by \n"
+         "The limits for convergence are set in the controlfile by\n"
          "setting the vector *epsilon* to appropriate values.\n"
          "The unit of *epsilon* is radiance [W / (m^2 Hz sr)].\n"
          "\n"
          "This method can be used in *doit_convergence_test_agenda*.\n"
-        ),
+         ),
         AUTHORS( "Claudia Emde" ),
-        OUT("doit_conv_flag", "doit_iteration_counter"),
+        OUT( "doit_conv_flag", "doit_iteration_counter" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("doit_conv_flag", "doit_iteration_counter",
-              "doit_i_field", "doit_i_field_old"),
+        IN( "doit_conv_flag", "doit_iteration_counter",
+            "doit_i_field", "doit_i_field_old" ),
         GIN( "epsilon" ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("doit_conv_flagLsq"),
+      ( NAME( "doit_conv_flagLsq" ),
         DESCRIPTION
         (
          "Convergence test (Least square).\n"
          "\n"
-         "This method performs a least square convergence test for two \n"
+         "This method performs a least square convergence test for two\n"
          "successive iteration fields.\n"
          "\n"
-         "The limits for convergence are set in the controlfile by \n"
+         "The limits for convergence are set in the controlfile by\n"
          "setting the vector *epsilon* to appropriate values.\n"
          "The unit of *epsilon* is Rayleigh Jeans BT [K].\n"
          "\n"
-         "Warning: This method is not recommended because this kind of \n"
-         "convergence test is not sufficiently strict, so that the \n"
-         "DOIT result might be wrong. \n" 
-        ),
+         "Warning: This method is not recommended because this kind of\n"
+         "convergence test is not sufficiently strict, so that the\n"
+         "DOIT result might be wrong.\n" 
+         ),
         AUTHORS( "Claudia Emde" ),
-        OUT("doit_conv_flag", "doit_iteration_counter"),
+        OUT( "doit_conv_flag", "doit_iteration_counter" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("doit_conv_flag", "doit_iteration_counter", 
-              "doit_i_field", "doit_i_field_old", "f_grid", "f_index"),
+        IN( "doit_conv_flag", "doit_iteration_counter", 
+            "doit_i_field", "doit_i_field_old", "f_grid", "f_index" ),
         GIN( "epsilon" ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
   
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("doit_conv_flagAbsBT"),
+      ( NAME( "doit_conv_flagAbsBT" ),
         DESCRIPTION
         (
          "Convergence test (maximum absolute difference in Rayleigh Jeans "
@@ -3003,59 +2899,59 @@ md_data_raw.push_back
          "\n"
          "The function calculates the absolute differences for two " 
          "successive\n"
-         "iteration fields. It picks out the maximum values for each Stokes \n"
+         "iteration fields. It picks out the maximum values for each Stokes\n"
          "component separately. The convergence test is fullfilled under the\n"
-         "following conditions: \n"
+         "following conditions:\n"
          "|I(m+1) - I(m)| < epsilon_1     Intensity.\n"
          "|Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n" 
-         "|U(m+1) - U(m)| < epsilon_3    \n"
-         "|V(m+1) - V(m)| < epsilon_4    \n" 
-         "These conditions have to be valid for all positions in the \n"
+         "|U(m+1) - U(m)| < epsilon_3   \n"
+         "|V(m+1) - V(m)| < epsilon_4   \n" 
+         "These conditions have to be valid for all positions in the\n"
          "cloudbox and for all directions.\n"  
          "\n"
-         "The limits for convergence are set in the controlfile by \n"
+         "The limits for convergence are set in the controlfile by\n"
          "setting the vector *epsilon* to appropriate values.\n"
          "The unit of *epsilon* is Rayleigh Jeans BT [K].\n"
          "\n"
          "This method can be used in *doit_convergence_test_agenda*.\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUT("doit_conv_flag", "doit_iteration_counter"),
+        OUT( "doit_conv_flag", "doit_iteration_counter" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("doit_conv_flag", "doit_iteration_counter",
-              "doit_i_field", "doit_i_field_old", "f_grid", "f_index"),
+        IN( "doit_conv_flag", "doit_iteration_counter",
+            "doit_i_field", "doit_i_field_old", "f_grid", "f_index" ),
         GIN( "epsilon" ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "DoitInit" ),
         DESCRIPTION
         (
-         "Initialize variables for DOIT scattering calculations. \n"
+         "Initialize variables for DOIT scattering calculations.\n"
          "\n"
-         "Before using the WSM *ScatteringDOIT*, please use this method \n"
-         "to initialize the required WSVs. \n"
+         "Before using the WSM *ScatteringDOIT*, please use this method\n"
+         "to initialize the required WSVs.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_p_index", "scat_lat_index", "scat_lon_index", 
-                "scat_za_index", "scat_aa_index", "doit_scat_field",
-                "doit_i_field", "doit_za_interp", "doit_is_initialized" ),
+             "scat_za_index", "scat_aa_index", "doit_scat_field",
+             "doit_i_field", "doit_za_interp", "doit_is_initialized" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "stokes_dim", "atmosphere_dim", "scat_za_grid", "scat_aa_grid",
-               "doit_za_grid_size", "cloudbox_limits", "scat_data_raw" ),
+            "doit_za_grid_size", "cloudbox_limits", "scat_data_raw" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3068,65 +2964,65 @@ md_data_raw.push_back
          "DOIT method:\n"
          "\n"
          "1. Calculate scattering integral using *doit_scat_field_agenda*.\n"
-         "2. Calculate RT with fixed scattered field using \n"
+         "2. Calculate RT with fixed scattered field using\n"
          "   *doit_rte_agenda*.\n"
          "3. Convergence test using *doit_conv_test_agenda*.\n"
          "\n"
-         "Note: The atmospheric dimensionality *atmosphere_dim* can be \n"
-         "      either 1 or 3. To these dimensions the method adapts \n"
-         "      automatically. 2D scattering calculations are not \n"
+         "Note: The atmospheric dimensionality *atmosphere_dim* can be\n"
+         "      either 1 or 3. To these dimensions the method adapts\n"
+         "      automatically. 2D scattering calculations are not\n"
          "      supported.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT("doit_i_field"),
+        OUT( "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_i_field", "doit_scat_field_agenda", "doit_rte_agenda", 
-               "doit_conv_test_agenda"),
+            "doit_conv_test_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "doit_i_fieldSetClearsky" ),
         DESCRIPTION
         (
-         "Interpolate clearsky field on all gridpoints in cloudbox. \n"
+         "Interpolate clearsky field on all gridpoints in cloudbox.\n"
          "\n"
          "This method uses a linear 1D/3D interpolation scheme to obtain the\n"
          "radiation field on all grid points inside the cloud box from the\n"
          "clear sky field on the cloud box boundary. This radiation field\n"
-         "is taken as the first guess radiation field in the DOIT module. \n"
+         "is taken as the first guess radiation field in the DOIT module.\n"
          "\n"
          "The inputs to this method are *scat_i_p*, *scat_i_lat*\n"
-         "*scat_i_lon*.  The method picks the \n"
-         "monochromatic radiation field out of these variables.  The \n"
-         "output of the method is the first guess field stored in the \n"
+         "*scat_i_lon*. The method picks the\n"
+         "monochromatic radiation field out of these variables. The\n"
+         "output of the method is the first guess field stored in the\n"
          "workspace variable *doit_i_field*.\n"
          "\n"
-         "Set keyword *all_frequencies* to 1 if for each frequency the \n"
-         "clearsky field should be used as initial field. Set it to 0 if \n"
+         "Set keyword *all_frequencies* to 1 if for each frequency the\n"
+         "clearsky field should be used as initial field. Set it to 0 if\n"
          "only for the first frequency in *f_grid* the clearsky field should\n"
-         "be used and for the next frequencies *doit_i_field* of the \n"
-         "previous frequency should be used. Default is 1. \n"
+         "be used and for the next frequencies *doit_i_field* of the\n"
+         "previous frequency should be used. Default is 1.\n"
          ),
         AUTHORS( "Sreerekha T.R. and Claudia Emde" ),
-        OUT("doit_i_field"),
+        OUT( "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "f_grid", 
-               "f_index", "p_grid", "lat_grid", "lon_grid", 
-               "cloudbox_limits", "atmosphere_dim"),
-        GIN("all_frequencies"),
-        GIN_TYPE("Index"),
+            "f_index", "p_grid", "lat_grid", "lon_grid", 
+            "cloudbox_limits", "atmosphere_dim" ),
+        GIN( "all_frequencies" ),
+        GIN_TYPE( "Index" ),
         GIN_DEFAULT( "1" ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3142,161 +3038,161 @@ md_data_raw.push_back
          "vector containing 4 elements, the value of the initial field\n"
          "for each Stokes dimension.\n"
          "\n"
-         "Output of the method is the first guess field stored in the \n"
+         "Output of the method is the first guess field stored in the\n"
          "workspace variable *doit_i_field*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT("doit_i_field"),
+        OUT( "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "p_grid", "lat_grid", 
-               "lon_grid", 
-               "cloudbox_limits", "atmosphere_dim", "stokes_dim"),
+            "lon_grid", 
+            "cloudbox_limits", "atmosphere_dim", "stokes_dim" ),
         GIN( "value" ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "doit_i_fieldUpdate1D" ),
         DESCRIPTION
         (
-         "RT calculation in cloudbox with fixed scattering integral (1D). \n"
+         "RT calculation in cloudbox with fixed scattering integral (1D).\n"
          "\n"
          "Update the radiation field (DOIT method). The method loops\n"
-         "through the cloudbox to update the radiation field for all \n"
+         "through the cloudbox to update the radiation field for all\n"
          "positions and directions in the 1D cloudbox.\n"
          "\n"
-         "Note: This method is very inefficient, because the number of \n"
+         "Note: This method is very inefficient, because the number of\n"
          "iterations scales with the number of cloudbox pressure levels.\n"
          "It is recommended to use *doit_i_fieldUpdateSeq1D*.\n"
-        ),
+         ),
         AUTHORS( "Claudia Emde" ),
-        OUT("doit_i_field"),
+        OUT( "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("doit_i_field_old", "doit_scat_field", "cloudbox_limits", 
-              "abs_scalar_gas_agenda",
-              "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
-              "opt_prop_part_agenda", "opt_prop_gas_agenda",
-              "ppath_step_agenda", "p_grid", "z_field", "r_geoid", "z_surface",
-              "t_field", "f_grid", "f_index", "surface_prop_agenda",
-              "doit_za_interp"),
+        IN( "doit_i_field_old", "doit_scat_field", "cloudbox_limits", 
+            "abs_scalar_gas_agenda",
+            "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
+            "opt_prop_part_agenda", "opt_prop_gas_agenda",
+            "ppath_step_agenda", "p_grid", "z_field", "r_geoid", "z_surface",
+            "t_field", "f_grid", "f_index", "surface_prop_agenda",
+            "doit_za_interp" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "doit_i_fieldUpdateSeq1D" ),
         DESCRIPTION
         (
-         "RT calculation in cloudbox with fixed scattering integral. \n"
+         "RT calculation in cloudbox with fixed scattering integral.\n"
          "\n"
          "Update radiation field (*doit_i_field*) in DOIT module.\n"
-         "This method loops through the cloudbox to update the \n"
-         "radiation field for all positions and directions in the 1D \n"
-         "cloudbox. The method applies the sequential update. For more \n"
+         "This method loops through the cloudbox to update the\n"
+         "radiation field for all positions and directions in the 1D\n"
+         "cloudbox. The method applies the sequential update. For more\n"
          "information refer to AUG.\n"
          "\n"
-         "Note: This is the commonly used WSM for the radiation field \n"
-         "update (can be used in *doit_rte_agenda*). It is recommended \n"
+         "Note: This is the commonly used WSM for the radiation field\n"
+         "update (can be used in *doit_rte_agenda*). It is recommended\n"
          "because it is the most efficient and accurate method.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT("doit_i_field"),
+        OUT( "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("doit_i_field", "doit_scat_field", "cloudbox_limits", 
-              "abs_scalar_gas_agenda",
-              "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field",
-              "opt_prop_part_agenda", "opt_prop_gas_agenda",
-              "ppath_step_agenda", "p_grid", "z_field", "r_geoid", "z_surface",
-              "t_field", "f_grid", "f_index", "surface_prop_agenda",
-              "doit_za_interp"),
+        IN( "doit_i_field", "doit_scat_field", "cloudbox_limits", 
+            "abs_scalar_gas_agenda",
+            "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field",
+            "opt_prop_part_agenda", "opt_prop_gas_agenda",
+            "ppath_step_agenda", "p_grid", "z_field", "r_geoid", "z_surface",
+            "t_field", "f_grid", "f_index", "surface_prop_agenda",
+            "doit_za_interp" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "doit_i_fieldUpdateSeq1DPP" ),
         DESCRIPTION
         (
-         "RT calculation in cloudbox with fixed scattering integral. \n"
+         "RT calculation in cloudbox with fixed scattering integral.\n"
          "\n " 
          "Update radiation field (*doit_i_field*) in DOIT module.\n"
-         "This method loops through the cloudbox to update the \n"
-         "radiation field for all \n"
+         "This method loops through the cloudbox to update the\n"
+         "radiation field for all\n"
          "positions and directions in the 1D cloudbox. The method applies\n"
          "the sequential update and the plane parallel approximation.\n"
-         "This method is only slightly faster than \n"
-         "*doit_i_fieldUpdateSeq1D* and it is less accurate. It can not \n"
-         "be used for limb simulations. \n"
+         "This method is only slightly faster than\n"
+         "*doit_i_fieldUpdateSeq1D* and it is less accurate. It can not\n"
+         "be used for limb simulations.\n"
          ),
         AUTHORS( "Sreerekha T.R." ),
-        OUT("doit_i_field", "scat_za_index"),
+        OUT( "doit_i_field", "scat_za_index" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("doit_scat_field", "cloudbox_limits", 
-              "abs_scalar_gas_agenda",
-              "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
-              "opt_prop_part_agenda", "opt_prop_gas_agenda",
-              "ppath_step_agenda", "p_grid", "z_field", "r_geoid", "t_field",
-              "f_grid", "f_index"),
+        IN( "doit_scat_field", "cloudbox_limits", 
+            "abs_scalar_gas_agenda",
+            "vmr_field", "spt_calc_agenda", "scat_za_grid", "pnd_field", 
+            "opt_prop_part_agenda", "opt_prop_gas_agenda",
+            "ppath_step_agenda", "p_grid", "z_field", "r_geoid", "t_field",
+            "f_grid", "f_index" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "doit_i_fieldUpdateSeq3D" ),
         DESCRIPTION
         (
-         "RT calculation in cloudbox with fixed scattering integral. \n"
+         "RT calculation in cloudbox with fixed scattering integral.\n"
          "\n"
          "Update radiation field (*doit_i_field*) in DOIT module.\n"
-         "This method loops through the cloudbox to update the \n"
-         "radiation field for all positions and directions in the 3D \n"
-         "cloudbox. The method applies the sequential update. For more \n"
+         "This method loops through the cloudbox to update the\n"
+         "radiation field for all positions and directions in the 3D\n"
+         "cloudbox. The method applies the sequential update. For more\n"
          "information please refer to AUG.\n"
-         "Surface reflections are not yet implemented in 3D scattering \n"
+         "Surface reflections are not yet implemented in 3D scattering\n"
          "calculations.\n"
          "\n"
-         "Note: DOIT calculations in 3D are computationally expensive. \n"
-         "For large 3D cloud fields it is recommended to use the Monte Carlo \n"
-         "module or an independent pixel approach applying DOIT-1D. \n"
+         "Note: DOIT calculations in 3D are computationally expensive.\n"
+         "For large 3D cloud fields it is recommended to use the Monte Carlo\n"
+         "module or an independent pixel approach applying DOIT-1D.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT("doit_i_field"),
+        OUT( "doit_i_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN("doit_i_field", "doit_scat_field", "cloudbox_limits", 
-              "abs_scalar_gas_agenda",
-              "vmr_field", "spt_calc_agenda", "scat_za_grid", "scat_aa_grid",
-              "pnd_field",
-              "opt_prop_part_agenda", "opt_prop_gas_agenda",
-              "ppath_step_agenda", "p_grid", "lat_grid", "lon_grid", "z_field",
-              "r_geoid", "z_surface", "t_field",
-              "f_grid", "f_index", "doit_za_interp"),
+        IN( "doit_i_field", "doit_scat_field", "cloudbox_limits", 
+            "abs_scalar_gas_agenda",
+            "vmr_field", "spt_calc_agenda", "scat_za_grid", "scat_aa_grid",
+            "pnd_field",
+            "opt_prop_part_agenda", "opt_prop_gas_agenda",
+            "ppath_step_agenda", "p_grid", "lat_grid", "lon_grid", "z_field",
+            "r_geoid", "z_surface", "t_field",
+            "f_grid", "f_index", "doit_za_interp" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
   
   md_data_raw.push_back
     ( MdRecord
@@ -3318,14 +3214,14 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_scat_field", "pha_mat_spt_agenda",
-               "doit_i_field", "pnd_field", "t_field", "atmosphere_dim", 
-               "cloudbox_limits", "scat_za_grid", "scat_aa_grid",  
-               "doit_za_grid_size"),
+            "doit_i_field", "pnd_field", "t_field", "atmosphere_dim", 
+            "cloudbox_limits", "scat_za_grid", "scat_aa_grid",  
+            "doit_za_grid_size" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3335,95 +3231,95 @@ md_data_raw.push_back
          "This method calculates the scattering integral field in the DOIT module (Limb).\n"
          "\n"
          "The scattering integral field is the field generated by integrating\n"
-         "the product of phase matrix and the Stokes vector over all incident \n"
+         "the product of phase matrix and the Stokes vector over all incident\n"
          "angles.\n"
          "\n"
          "The output of this method is the scattering integral field "
          "*doit_scat_field*\n"
-         "which is used in the radiative transfer part (*doit_i_fieldUpdateXXX*). \n"
+         "which is used in the radiative transfer part (*doit_i_fieldUpdateXXX*).\n"
          "For limb simulations it "
-         "makes sense to use different \n"
-         "zenith angle grids for the scattering integral part and the RT part, \n"
-         "because the latter part requires a much finer resolution about \n"
-         "90°. Taking an optimized grid for the RT part and an equidistant \n"
+         "makes sense to use different\n"
+         "zenith angle grids for the scattering integral part and the RT part,\n"
+         "because the latter part requires a much finer resolution about\n"
+         "90°. Taking an optimized grid for the RT part and an equidistant\n"
          "grid for the scattering integral part saves very much CPU time.\n"
-         "This method uses the equidistant za_grid defined in \n"
-         "*doit_angular_gridsSet* and it should always be used for limb \n"
+         "This method uses the equidistant za_grid defined in\n"
+         "*doit_angular_gridsSet* and it should always be used for limb\n"
          "simulations.\n"
          "\n"
          "For more information please refer to AUG.\n"
          ),
         AUTHORS( "Claudia Emde" ),
-        OUT( "doit_scat_field"),
+        OUT( "doit_scat_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_scat_field", "pha_mat_spt_agenda",
-               "doit_i_field", "pnd_field", "t_field", "atmosphere_dim", 
-               "cloudbox_limits", "scat_za_grid", "scat_aa_grid",  
-               "doit_za_grid_size", "doit_za_interp" ),
+            "doit_i_field", "pnd_field", "t_field", "atmosphere_dim", 
+            "cloudbox_limits", "scat_za_grid", "scat_aa_grid",  
+            "doit_za_grid_size", "doit_za_interp" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("DoitScatteringDataPrepare"),
+      ( NAME( "DoitScatteringDataPrepare" ),
         DESCRIPTION
         (
          "Prepare single scattering data for a DOIT scattering calculation.\n"
          "\n"
-         "This function can be used for scattering calculations using the \n" 
-         "DOIT method. \n"
+         "This function can be used for scattering calculations using the\n" 
+         "DOIT method.\n"
          "\n"
          "First the scattering data is interpolated on the frequency using\n"
-         "*scat_data_monoCalc*. Then the phase matrix data is \n"
-         "transformed or interpolated from the raw data to the laboratory frame \n"
+         "*scat_data_monoCalc*. Then the phase matrix data is\n"
+         "transformed or interpolated from the raw data to the laboratory frame\n"
          "for all possible combinations of the angles contained in the "
          "angular\n"
          "grids which are set in *doit_angulat_gridsSet*."
-         "The resultung phase matrices are \n"
+         "The resultung phase matrices are\n"
          "stored in *pha_mat_sptDOITOpt*, "
          "which is used in the method\n"
-         "*pha_mat_sptFromDataDOITOpt*. \n"
-          ),
+         "*pha_mat_sptFromDataDOITOpt*.\n"
+         ),
         AUTHORS( "Claudia Emde" ),
         OUT( "pha_mat_sptDOITOpt", "scat_data_mono" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "doit_za_grid_size", "scat_aa_grid", "scat_data_raw", "f_grid", 
-               "f_index", "atmosphere_dim", "stokes_dim" ),
+            "f_index", "atmosphere_dim", "stokes_dim" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("DoitWriteIterationFields"),
+      ( NAME( "DoitWriteIterationFields" ),
         DESCRIPTION
         (
          "Write DOIT iteration fields.\n"
          "\n"
-         "This method writes intermediate iteration fields \n"
-         "to xml-files which is useful to check the DOIT method. \n"
-         "It can be interesting to look how the radiation fields \n"
-         "(*doit_i_field*) behave. The method can be used as a part of \n"
+         "This method writes intermediate iteration fields\n"
+         "to xml-files which is useful to check the DOIT method.\n"
+         "It can be interesting to look how the radiation fields\n"
+         "(*doit_i_field*) behave. The method can be used as a part of\n"
          "*convergence_test_agenda*.\n"
          "\n"
          "The keyword 'iterations' includes the numbers of the iterations\n"
          "which should be stored, e.g.,\n"
-         "    'iterations = [3, 6, 9]'. \n"
-         "In this case the 3rd, 6th and 9th iterations are \n"
-         "stored in the files 'doit_iteration_3.xml', \n"
-         "'doit_iteration_6.xml' ...\n If a number is larger than the \n"
-         "total number of iterations, this number is ignored. \n"
+         "    'iterations = [3, 6, 9]'.\n"
+         "In this case the 3rd, 6th and 9th iterations are\n"
+         "stored in the files 'doit_iteration_3.xml',\n"
+         "'doit_iteration_6.xml' ...\n If a number is larger than the\n"
+         "total number of iterations, this number is ignored.\n"
          "\n"
-         "If all iterations should be stored please set the keyword \n"
+         "If all iterations should be stored please set the keyword\n"
          "   'iterations = [0]'.\n"
          ),
         AUTHORS( "Claudia Emde" ),
@@ -3435,8 +3331,8 @@ md_data_raw.push_back
         GIN( "iterations" ),
         GIN_TYPE(    "ArrayOfIndex" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3445,18 +3341,18 @@ md_data_raw.push_back
         (
          "Zenith angle grid optimization for scattering calculation.\n"
          "\n"
-         "This method optimizes the zenith angle grid. As input it requires \n"
-         "a radiation field (*doit_i_field*) which is calculated on a very \n"
-         "fine zenith angle grid (*scat_za_grid*).  Based on this field \n"
+         "This method optimizes the zenith angle grid. As input it requires\n"
+         "a radiation field (*doit_i_field*) which is calculated on a very\n"
+         "fine zenith angle grid (*scat_za_grid*). Based on this field\n"
          "zenith angle grid points are selected, such that the maximum\n"
-         "difference between the radiation field represented on the very \n"
+         "difference between the radiation field represented on the very\n"
          "fine zenith angle grid and the radiation field represented on the\n"
-         "optimized grid (*doit_za_grid_opt*) is less than the accuracy \n"
+         "optimized grid (*doit_za_grid_opt*) is less than the accuracy\n"
          "(*acc*) provided as a keyword. The accuracy must be given in %.\n"
-         "Between the grid points theradiation field is interpolated \n"
+         "Between the grid points theradiation field is interpolated\n"
          "linearly or polynomially depending on *doit_za_interp*.\n"
          "\n"
-         "Note: The method works only for a 1D atmosphere and for one \n"
+         "Note: The method works only for a 1D atmosphere and for one\n"
          "frequency.\n"
          ),
         AUTHORS( "Claudia Emde" ),
@@ -3468,8 +3364,8 @@ md_data_raw.push_back
         GIN( "acc" ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
                                                                                
   md_data_raw.push_back
     ( MdRecord
@@ -3478,12 +3374,12 @@ md_data_raw.push_back
         (
          "Define interpolation method for zenith angle dimension.\n"
          "\n"
-         "You can use this method to choose the interpolation method for \n"
-         "interpolations in the zenith angle dimension. \n"
+         "You can use this method to choose the interpolation method for\n"
+         "interpolations in the zenith angle dimension.\n"
          "By default, linear interpolation is used.\n"
          "\n"
          "Keyword:\n"
-         "  interp_method - 'linear' or 'polynomial' \n"
+         "  interp_method - 'linear' or 'polynomial'\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_za_interp" ),
@@ -3494,12 +3390,12 @@ md_data_raw.push_back
         GIN( "interp_method" ),
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
  
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("DoNothing"),
+      ( NAME( "DoNothing" ),
         DESCRIPTION
         (
          "As *Ignore* but for agenda output.\n"
@@ -3508,7 +3404,7 @@ md_data_raw.push_back
          "warnings about unused output workspace variables. What it does is:\n"
          "Nothing!\n"
          "\n"
-         "To ensure that the variable is already set, the variable must be \n"
+         "To ensure that the variable is already set, the variable must be\n"
          "given is both global input and output. An example:\n"
          "   DoNothing(emission,emission){}\n"
          "Input and output MUST be identical.\n"
@@ -3520,27 +3416,27 @@ md_data_raw.push_back
         OUT(),
         GOUT(      "gout1"    ),
         GOUT_TYPE( "Any" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("emissionPlanck"),
+      ( NAME( "emissionPlanck" ),
         DESCRIPTION
         (
          "Emission source term for LTE.\n"
          "\n"
          "Sets *emission* for cases when emission is considered and local\n"
          "thermodynamic equilibrium is valid.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "emission" ),
         GOUT(),
@@ -3551,11 +3447,11 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Error"),
+      ( NAME( "Error" ),
         DESCRIPTION
         (
          "Issues an error and exits ARTS.\n"
@@ -3566,9 +3462,9 @@ md_data_raw.push_back
          "Error{\"Surface interceptions of propagation path not expected.\"}\n"
          "(ignore and other dummy method calls must still be included)\n"
          "\n"
-         "Keywords: \n"
+         "Keywords:\n"
          "   msg : String describing the error.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(),
@@ -3578,12 +3474,12 @@ md_data_raw.push_back
         GIN( "msg" ),
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Exit"),
+      ( NAME( "Exit" ),
         DESCRIPTION
         (
          "Stops the execution and exits ARTS.\n"
@@ -3591,7 +3487,7 @@ md_data_raw.push_back
          "This method is handy if you want to debug one of your control\n"
          "files. You can insert it anywhere in the control file. When\n"
          "it is reached, it will terminate the program.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(),
@@ -3602,11 +3498,11 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Extract"),
+      ( NAME( "Extract" ),
         DESCRIPTION
         (
          "Extract an element from an array.\n"
@@ -3618,32 +3514,32 @@ md_data_raw.push_back
          "Index from the input Tensor3 variable to the output Matrix.\n"
          "\n"
          "In other words, the selection is always done on the first dimension.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT( "needle" ),
         GOUT_TYPE( "ArrayOfIndex,        Numeric, Matrix,        Matrix, Tensor3,  Tensor4,        Tensor4, ArrayOfGField3,        GField4" ),
-        GOUT_DESC("Extracted element."),
+        GOUT_DESC( "Extracted element." ),
         IN(),
         GIN( "haystack", "index" ),
-        GIN_TYPE(  "ArrayOfArrayOfIndex, Vector,  ArrayOfMatrix, Tensor3, Tensor4, ArrayOfTensor4, Tensor5, ArrayOfArrayOfGField3, ArrayOfGField4",
+        GIN_TYPE( "ArrayOfArrayOfIndex, Vector,  ArrayOfMatrix, Tensor3, Tensor4, ArrayOfTensor4, Tensor5, ArrayOfArrayOfGField3, ArrayOfGField4",
 
-                   "Index" ),
+                  "Index" ),
         GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC("Container.",
-                 "Position of the element which should be extracted."),
+        GIN_DESC( "Container.",
+                  "Position of the element which should be extracted." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ext_matAddGas"),
+      ( NAME( "ext_matAddGas" ),
         DESCRIPTION
         (
          "Add gas absorption to all diagonal elements of extinction matrix.\n"
-         " \n"
+         "\n"
          "The task of this method is to sum up the gas absorption of the\n"
          "different gas species and add the result to the extinction matrix.\n"
          ),
@@ -3657,25 +3553,25 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ext_matAddPart"),
+      ( NAME( "ext_matAddPart" ),
         DESCRIPTION
         (
-         "The particle extinction is added to *ext_mat* \n"
+         "The particle extinction is added to *ext_mat*\n"
          "\n"
-         "This function sums up the extinction matrices for all particle \n"
+         "This function sums up the extinction matrices for all particle\n"
          "types weighted with particle number density.\n"
-         "The resulting extinction matrix is added to the workspace \n"
-         "variable *ext_mat* \n"
+         "The resulting extinction matrix is added to the workspace\n"
+         "variable *ext_mat*\n"
          "The output of this method is *ext_mat* (stokes_dim, stokes_dim).\n"
-         "The inputs are the extinction matrix for the single particle type \n"
-         "*ext_mat_spt* (part_types, stokes_dim, stokes_dim) and the local \n"
-         "particle number densities for all particle types namely the \n"
-         "*pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given \n"
-         "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
+         "The inputs are the extinction matrix for the single particle type\n"
+         "*ext_mat_spt* (part_types, stokes_dim, stokes_dim) and the local\n"
+         "particle number densities for all particle types namely the\n"
+         "*pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given\n"
+         "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required\n"
          "are specified in the control file.\n"
          ),
         AUTHORS( "Sreerekha T.R." ),
@@ -3684,22 +3580,22 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "ext_mat", "ext_mat_spt", "pnd_field", "atmosphere_dim", 
-               "scat_p_index", "scat_lat_index", "scat_lon_index" ),
+            "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
  
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ext_matInit"),
+      ( NAME( "ext_matInit" ),
         DESCRIPTION
         (
          "Initialize extinction matrix.\n"
          "\n"
          "This method is necessary, because all other extinction methods just\n"
-         "add to the existing extinction matrix. \n"
+         "add to the existing extinction matrix.\n"
          "\n"
          "So, here we have to make it the right size and fill it with 0.\n"
          "\n"
@@ -3716,11 +3612,11 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("f_gridFromSensorAMSU"),
+      ( NAME( "f_gridFromSensorAMSU" ),
         DESCRIPTION
         (
          "Automatically calculate f_grid to match the sensor.\n"
@@ -3753,12 +3649,12 @@ md_data_raw.push_back
         GIN( "spacing" ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( ".1e9" ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("f_gridFromSensorHIRS"),
+      ( NAME( "f_gridFromSensorHIRS" ),
         DESCRIPTION
         (
          "Automatically calculate f_grid to match the sensor.\n"
@@ -3789,13 +3685,13 @@ md_data_raw.push_back
         IN( "f_backend", "backend_channel_response" ),
         GIN( "spacing" ),
         GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( "5e8"),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DEFAULT( "5e8" ),
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("f_gridSelectFIndex"),
+      ( NAME( "f_gridSelectFIndex" ),
         DESCRIPTION
         (
          "Reduce f_grid to the frequency given by f_index.\n"
@@ -3817,71 +3713,71 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("FlagOff"),
+      ( NAME( "FlagOff" ),
         DESCRIPTION
         (
          "Sets an index variable that acts as an on/off flag to 0.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"      ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("FlagOn"),
+      ( NAME( "FlagOn" ),
         DESCRIPTION
         (
          "Sets an index variable that acts as an on/off flag to 1.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"      ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("f_gridFromGasAbsLookup"),
+      ( NAME( "f_gridFromGasAbsLookup" ),
         DESCRIPTION
         (
          "Sets *f_grid* to the frequency grid of *abs_lookup*.\n"
          "\n"
          "Must be called between importing/creating raw absorption table and\n"
          "call of *abs_lookupAdapt*.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "f_grid"  ),
+        OUT( "f_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "abs_lookup" ),
+        IN( "abs_lookup" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("ForLoop"),
+      ( NAME( "ForLoop" ),
         DESCRIPTION
         (
          "A simple for loop.\n"
@@ -3892,32 +3788,32 @@ md_data_raw.push_back
          "It does a for loop from start to stop in steps of step. (Who would\n"
          "have guessed that.) For each iteration, the agenda *forloop_agenda* is\n"
          "executed. Inside the agenda, the variable *forloop_index* is available\n"
-         "as index counter. \n"
+         "as index counter.\n"
          "\n"
          "There are no other inputs to *forloop_agenda*, and also no outputs. That\n"
          "means, if you want to get any results out of this loop, you have to\n"
          "save it to files (for example with *WriteXMLIndexed*), since\n"
          "variables used inside the agenda will only be local.\n"
          "\n"
-         "Note that this kind of for loop is not parallel. \n"
+         "Note that this kind of for loop is not parallel.\n"
          "\n"
          "The method is intended for simple testing, not as a replacement of\n"
          "*ybatchCalc*. However, it is compatible with *ybatchCalc*, in the sense\n"
          "that *ybatchCalc* may occur inside *forloop_agenda*.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "forloop_agenda" ),
+        IN( "forloop_agenda" ),
         GIN( "start", "stop",  "step" ),
         GIN_TYPE(    "Index", "Index", "Index" ),
         GIN_DEFAULT( NODEF,   NODEF,   NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3927,7 +3823,7 @@ md_data_raw.push_back
          "Creates an empty GField1.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gfield"       ),
@@ -3938,7 +3834,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3948,7 +3844,7 @@ md_data_raw.push_back
          "Creates an empty GField2.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gfield"       ),
@@ -3959,7 +3855,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3969,7 +3865,7 @@ md_data_raw.push_back
          "Creates an empty GField3.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gfield"       ),
@@ -3980,7 +3876,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3990,7 +3886,7 @@ md_data_raw.push_back
          "Creates an empty GField4.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gfield"       ),
@@ -4001,11 +3897,11 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Ignore"),
+      ( NAME( "Ignore" ),
         DESCRIPTION
         (
          "Ignore a workspace variable.\n"
@@ -4040,15 +3936,15 @@ md_data_raw.push_back
         GIN(       "gin1"    ),
         GIN_TYPE(     "Any" ),
         GIN_DEFAULT(  NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("INCLUDE"),
+      ( NAME( "INCLUDE" ),
         DESCRIPTION
         (
          "Includes the contents of another controlfile.\n"
@@ -4079,7 +3975,7 @@ md_data_raw.push_back
          "that should apply to all calculations, you only have to make a\n"
          "single change in the include file instead of modifying all your\n"
          "controlfiles.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(),
@@ -4090,7 +3986,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4101,100 +3997,100 @@ md_data_raw.push_back
          "\n"
          "If the variable already exists, it'll be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   Index: New Index variable.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"      ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("IndexSet"),
+      ( NAME( "IndexSet" ),
         DESCRIPTION
         (
-         "Sets an index workspace variable to the given value. \n"
+         "Sets an index workspace variable to the given value.\n"
          "\n"
-         "Generic output: \n"
-         "   Index : The index variable to be set. \n"
+         "Generic output:\n"
+         "   Index : The index variable to be set.\n"
          "\n"
          "Keywords:\n"
          "   value : A positive integer.\n" 
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"      ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN( "value" ),
         GIN_TYPE(    "Index" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD( true )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("IndexStep"),
+      ( NAME( "IndexStep" ),
         DESCRIPTION
         (
          "Performs GOUT_TYPE = GIN_TYPE + 1\n"
          "\n"
          "Input and output can be same variable.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"      ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"      ),
         GIN_TYPE(    "Index" ),
         GIN_DEFAULT( NODEF   ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("InterpAtmFieldToRteGps"),
+      ( NAME( "InterpAtmFieldToRteGps" ),
         DESCRIPTION
         (
          "Scalar interpolation of atmospheric fields.\n" 
          "\n"
-         "The position is specified by the combination of *rte_gp_p*, \n"
+         "The position is specified by the combination of *rte_gp_p*,\n"
          "*rte_gp_lat* and *rte_gp_lon*.\n"
          "\n"
-         "Generic output: \n"
-         "   Numeric : Value obtained by interpolation. \n"
+         "Generic output:\n"
+         "   Numeric : Value obtained by interpolation.\n"
          "\n"
          "Generic input:\n"
          "   Tensor3 : Field to interpolate.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Numeric" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
-               "rte_gp_p", "rte_gp_lat", "rte_gp_lon" ),
+            "rte_gp_p", "rte_gp_lat", "rte_gp_lon" ),
         GIN(      "gin1"        ),
         GIN_TYPE(    "Tensor3" ),
         GIN_DEFAULT( NODEF     ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
   
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("InterpSurfaceEmissivityFieldIncLatLon"),
+      ( NAME( "InterpSurfaceEmissivityFieldIncLatLon" ),
         DESCRIPTION
         (
          "Interpolation of surface emissivity specified as a function of\n"
@@ -4212,7 +4108,7 @@ md_data_raw.push_back
          "\n"
          "This method can be used togetehr with e.g.\n"
          "*surfaceFlatSingleEmissivity*.\n" 
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "outvalue"        ),
@@ -4223,36 +4119,36 @@ md_data_raw.push_back
         GIN_TYPE( "GField3" ),
         GIN_DEFAULT( NODEF    ),
         GIN_DESC( "Gridded field to be interpolated." )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("InterpSurfaceFieldToRteGps"),
+      ( NAME( "InterpSurfaceFieldToRteGps" ),
         DESCRIPTION
         (
          "Scalar interpolation of surface fields.\n" 
          "\n"
-         "The position is specified by the combination of *rte_gp_lat* and \n"
+         "The position is specified by the combination of *rte_gp_lat* and\n"
          "*rte_gp_lon*.\n"
          "\n"
-         "Generic output: \n"
-         "   Numeric : Value obtained by interpolation. \n"
+         "Generic output:\n"
+         "   Numeric : Value obtained by interpolation.\n"
          "\n"
          "Generic input:\n"
          "   Matrix : Field to interpolate.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Numeric" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "atmosphere_dim", "lat_grid", "lon_grid", 
-               "rte_gp_lat", "rte_gp_lon" ),
+            "rte_gp_lat", "rte_gp_lon" ),
         GIN(      "gin1"       ),
         GIN_TYPE(    "Matrix" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
   
   md_data_raw.push_back
     ( MdRecord
@@ -4280,14 +4176,14 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
-               "rte_gp_p", "rte_gp_lat", "rte_gp_lon", "rte_los",  "cloudbox_on",
-               "cloudbox_limits", "atmosphere_dim", "stokes_dim", "scat_za_grid",
-               "scat_aa_grid", "f_grid" ),
+            "rte_gp_p", "rte_gp_lat", "rte_gp_lon", "rte_los",  "cloudbox_on",
+            "cloudbox_limits", "atmosphere_dim", "stokes_dim", "scat_za_grid",
+            "scat_aa_grid", "f_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4305,15 +4201,15 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "scat_i_p", "scat_i_lat", "scat_i_lon", "doit_i_field1D_spectrum",
-               "rte_gp_p", "rte_gp_lat",
-               "rte_gp_lon", "rte_los",  "cloudbox_on", "cloudbox_limits",
-               "atmosphere_dim", "stokes_dim", "scat_za_grid", "scat_aa_grid", 
-               "f_grid" ),
+            "rte_gp_p", "rte_gp_lat",
+            "rte_gp_lon", "rte_los",  "cloudbox_on", "cloudbox_limits",
+            "atmosphere_dim", "stokes_dim", "scat_za_grid", "scat_aa_grid", 
+            "f_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4330,12 +4226,12 @@ md_data_raw.push_back
          "   \"perturbation\" : pure numerical perturbations are used\n"
          "\n"
          "The retrieval unit can be:\n"
-         "   \"vmr\" : volume mixing ratio \n"
-         "   \"nd\"  : number density \n"
-         "   \"rel\" : relative unit (e.g. 1.1 means 10% more of the gas) \n"
+         "   \"vmr\" : volume mixing ratio\n"
+         "   \"nd\"  : number density\n"
+         "   \"rel\" : relative unit (e.g. 1.1 means 10% more of the gas)\n"
          "\n"
          "For perturbation calculations the size of the perturbation is set\n"
-         "by the user. The unit of the perturbation size is identical to \n"
+         "by the user. The unit of the perturbation size is identical to\n"
          "the retrieval unit.\n"
          "\n"
          "Generic input:\n"
@@ -4348,7 +4244,7 @@ md_data_raw.push_back
          "  method  : Calculation method. See above.\n"
          "  unit    : Retrieval unit. See above.\n"
          "  dx      : Size of perturbation.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
@@ -4360,26 +4256,26 @@ md_data_raw.push_back
         GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "String", 
                   "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "0.001" ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC"),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( false ),
         PASSWORKSPACE(  true )
-      ));
+        ));
          
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("jacobianAddPointing"),
+      ( NAME( "jacobianAddPointing" ),
         DESCRIPTION
         (
          "...\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
@@ -4395,15 +4291,15 @@ md_data_raw.push_back
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( false ),
         PASSWORKSPACE(  true )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("jacobianAddPolyfit"),
+      ( NAME( "jacobianAddPolyfit" ),
         DESCRIPTION
         (
          "...\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
@@ -4416,12 +4312,12 @@ md_data_raw.push_back
              "no_mblock_variation" ),
         GIN_TYPE( "Index", "Index", "Index", "Index" ),
         GIN_DEFAULT( NODEF, "0", "0", "0" ),
-        GIN_DESC("FIXME DOC", "FIXME DOC", "FIXME DOC", "FIXME DOC"),
+        GIN_DESC( "FIXME DOC", "FIXME DOC", "FIXME DOC", "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false  ),
         SUPPRESSHEADER( false ),
         PASSWORKSPACE(  true )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4439,7 +4335,7 @@ md_data_raw.push_back
          "the retrieval field should be set to zero length.\n"
          "The WSM *jacobianCalcTemperature* is automatically added to\n"
          "*jacobian_agenda*.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
@@ -4450,55 +4346,55 @@ md_data_raw.push_back
         GIN( "gin1", "gin2", "gin3", "hse", "method", "dx" ),
         GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF, "off", "analytical", "1" ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC"),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( false ),
         PASSWORKSPACE(  true )
-      ));
+        ));
 
   /*
-  md_data_raw.push_back
+    md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianAddParticle" ),
-        DESCRIPTION
-        (
-         "Add particle number density as retrieval quantity to the Jacobian.\n"
-         "\n"
-         "The Jacobian is done by perturbation calculation by adding elements\n"
-         "of *pnd_field_perturb* to *pnd_field*. Only 1D and 3D atmospheres\n"
-         "can be handled by this method.\n"
-         "\n"
-         "The perturbation field and the unit of it are defined outside ARTS.\n"
-         "This method only returns the difference between the reference and\n"
-         "perturbed spectra. The division by the size of the perturbation\n"
-         "also has to be done outside ARTS.\n"
-         "The unit of the particle jacobian is the same as for *y*.\n"
-         "\n"
-         "Generic input:\n"
-         "  Vector : The pressure grid of the retrieval field.\n"
-         "  Vector : The latitude grid of the retrieval field.\n"
-         "  Vector : The longitude grid of the retrieval field.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUT( "jacobian_quantities", "jacobian_agenda" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
-               "pnd_field", "pnd_field_perturb", "cloudbox_limits" ),
-        GIN(      "gin1"      , "gin2"      , "gin3"       ),
-        GIN_TYPE(    "Vector", "Vector", "Vector" ),
-        GIN_DEFAULT( NODEF   , NODEF   , NODEF    ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+    ( NAME( "jacobianAddParticle" ),
+    DESCRIPTION
+    (
+    "Add particle number density as retrieval quantity to the Jacobian.\n"
+    "\n"
+    "The Jacobian is done by perturbation calculation by adding elements\n"
+    "of *pnd_field_perturb* to *pnd_field*. Only 1D and 3D atmospheres\n"
+    "can be handled by this method.\n"
+    "\n"
+    "The perturbation field and the unit of it are defined outside ARTS.\n"
+    "This method only returns the difference between the reference and\n"
+    "perturbed spectra. The division by the size of the perturbation\n"
+    "also has to be done outside ARTS.\n"
+    "The unit of the particle jacobian is the same as for *y*.\n"
+    "\n"
+    "Generic input:\n"
+    "  Vector : The pressure grid of the retrieval field.\n"
+    "  Vector : The latitude grid of the retrieval field.\n"
+    "  Vector : The longitude grid of the retrieval field.\n"
+    ),
+    AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
+    OUT( "jacobian_quantities", "jacobian_agenda" ),
+    GOUT(),
+    GOUT_TYPE(),
+    GOUT_DESC(),
+    IN( "jacobian", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
+    "pnd_field", "pnd_field_perturb", "cloudbox_limits" ),
+    GIN(      "gin1"      , "gin2"      , "gin3"       ),
+    GIN_TYPE(    "Vector", "Vector", "Vector" ),
+    GIN_DEFAULT( NODEF   , NODEF   , NODEF    ),
+    GIN_DESC( "FIXME DOC",
+    "FIXME DOC",
+    "FIXME DOC" )
+    ));
   */
   
   md_data_raw.push_back
@@ -4511,7 +4407,7 @@ md_data_raw.push_back
          "It is important that *y* holds the original output of *RteCalc*\n"
          "as the methods called performs perturbations to obtain cahnges in\n"
          "*y*.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT( "jacobian" ),
         GOUT(),
@@ -4522,18 +4418,18 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("jacobianCalcAbsSpecies"),
+      ( NAME( "jacobianCalcAbsSpecies" ),
         DESCRIPTION
         (
-        "Calculates absorption species jacobians by perturbations.\n"
-        "\n"
-        "This function is added to *jacobian_agenda* by jacobianAddAbsSpecies\n"
-        "and should normally not be called by the user.\n"
-        ),
+         "Calculates absorption species jacobians by perturbations.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by jacobianAddAbsSpecies\n"
+         "and should normally not be called by the user.\n"
+         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian" ),
         GOUT(),
@@ -4545,20 +4441,20 @@ md_data_raw.push_back
         GIN( "species" ),
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD( true )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("jacobianCalcPointing"),
+      ( NAME( "jacobianCalcPointing" ),
         DESCRIPTION
         (
-        "Calculates pointing deviation jacobians by perturnbations.\n"
-        "\n"
-        "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
-        "and should normally not be called by the user.\n"
-        ),
+         "Calculates pointing deviation jacobians by perturnbations.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
+         "and should normally not be called by the user.\n"
+         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian" ),
         GOUT(),
@@ -4571,18 +4467,18 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("jacobianCalcPolyfit"),
+      ( NAME( "jacobianCalcPolyfit" ),
         DESCRIPTION
         (
-        "Calculates jacobians for polynomial baseline fit.\n"
-        "\n"
-        "This function is added to *jacobian_agenda* by jacobianAddPolyfit\n"
-        "and should normally not be called by the user.\n"
-        ),
+         "Calculates jacobians for polynomial baseline fit.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by jacobianAddPolyfit\n"
+         "and should normally not be called by the user.\n"
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian" ),
         GOUT(),
@@ -4596,18 +4492,18 @@ md_data_raw.push_back
         GIN_DEFAULT( NODEF ),
         GIN_DESC( "FIXME DOC" ),
         SETMETHOD( true )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("jacobianCalcTemperature"),
+      ( NAME( "jacobianCalcTemperature" ),
         DESCRIPTION
         (
-        "Calculates atmospheric temperature jacobians by perturbations.\n"
-        "\n"
-        "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
-        "and should normally not be called by the user.\n"
-        ),
+         "Calculates atmospheric temperature jacobians by perturbations.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
+         "and should normally not be called by the user.\n"
+         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian" ),
         GOUT(),
@@ -4620,44 +4516,44 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   /*        
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("jacobianCalcParticle"),
-        DESCRIPTION
-        (
-        "Calculates particle number densities jacobians by perturbations\n"
-        "\n"
-        "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
-        "and should normally not be called by the user.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "y", "jacobian_quantities", "jacobian_indices", "pnd_field_perturb",
-               "jacobian_particle_update_agenda",
-               "ppath_step_agenda", "rte_agenda", "iy_space_agenda", 
-               "surface_prop_agenda", "iy_cloudbox_agenda", "atmosphere_dim", 
-               "p_grid", "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
-               "r_geoid", "z_surface", 
-               "cloudbox_on", "cloudbox_limits", "pnd_field",
-               "sensor_response", "sensor_pos", "sensor_los", "f_grid", 
-               "stokes_dim", "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-      ));
+            md_data_raw.push_back
+            ( MdRecord
+            ( NAME( "jacobianCalcParticle" ),
+            DESCRIPTION
+            (
+            "Calculates particle number densities jacobians by perturbations\n"
+            "\n"
+            "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
+            "and should normally not be called by the user.\n"
+            ),
+            AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
+            OUT( "jacobian" ),
+            GOUT(),
+            GOUT_TYPE(),
+            GOUT_DESC(),
+            IN( "y", "jacobian_quantities", "jacobian_indices", "pnd_field_perturb",
+            "jacobian_particle_update_agenda",
+            "ppath_step_agenda", "rte_agenda", "iy_space_agenda", 
+            "surface_prop_agenda", "iy_cloudbox_agenda", "atmosphere_dim", 
+            "p_grid", "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field",
+            "r_geoid", "z_surface", 
+            "cloudbox_on", "cloudbox_limits", "pnd_field",
+            "sensor_response", "sensor_pos", "sensor_los", "f_grid", 
+            "stokes_dim", "antenna_dim", "mblock_za_grid", "mblock_aa_grid" ),
+            GIN(),
+            GIN_TYPE(),
+            GIN_DEFAULT(),
+            GIN_DESC()
+            ));
         
   */
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("jacobianClose"),
+      ( NAME( "jacobianClose" ),
         DESCRIPTION
         (
          "Close the array of retrieval quantities and prepare for calculation\n"
@@ -4670,7 +4566,7 @@ md_data_raw.push_back
          "To define the final *jacobian* the number of spectra is needed.\n"
          "Therefor the number of measurement blocks, taken from *sensor_pos*\n"
          "and the size of *sensor_response* has to be defined.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT( "jacobian", "jacobian_indices" ),
         GOUT(),
@@ -4681,11 +4577,11 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("jacobianInit"),
+      ( NAME( "jacobianInit" ),
         DESCRIPTION
         (
          "Initialises the variables connected to the Jacobian matrix.\n"
@@ -4696,7 +4592,7 @@ md_data_raw.push_back
          "jacobianAddTemperature, jacobianAddPointing or similar methods.\n"
          "\n"
          "The Jacobian quantities are initialised to be empty.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT( "jacobian", "jacobian_quantities", "jacobian_indices", 
              "jacobian_agenda" ),
@@ -4708,11 +4604,11 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("jacobianOff"),
+      ( NAME( "jacobianOff" ),
         DESCRIPTION
         (
          "Makes mandatory initialisation of some jacobian variables.\n"
@@ -4720,7 +4616,7 @@ md_data_raw.push_back
          "Some jacobian WSVs must be initilised even if no such calculations\n"
          "will be performed and this is handled with this method. That is,\n"
          "this method must be called when no jacobians will be calculated.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian", "jacobian_quantities", "jacobian_indices", 
              "jacobian_unit" ),
@@ -4732,7 +4628,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4743,7 +4639,7 @@ md_data_raw.push_back
          "\n"
          "Works as *yUnit* but operates on *jacobian* and conversion\n "
          "determined by *jacobian_unit*.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian" ),
         GOUT(),
@@ -4758,40 +4654,40 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("MatrixCBR"),
+      ( NAME( "MatrixCBR" ),
         DESCRIPTION
         (
          "Sets a matrix to hold cosmic background radiation (CBR).\n"
          "\n"
          "The CBR is assumed to be un-polarized and Stokes components 2-4\n"
-         "are zero. Number of Stokes components, that equals the number \n"
-         "of columns in the created matrix, is determined by *stokes_dim. \n"
-         "The number of rows in the created matrix equals the length of the \n"
-         "given frequency vector. \n"
+         "are zero. Number of Stokes components, that equals the number\n"
+         "of columns in the created matrix, is determined by *stokes_dim.\n"
+         "The number of rows in the created matrix equals the length of the\n"
+         "given frequency vector.\n"
          "\n"
-         "The cosmic radiation is modelled as blackbody radiation for the \n"
-         "temperature given by the global constant COSMIC_BG_TEMP, set in \n"
-         "the file constants.cc. The frequencies are taken from the generic \n"
+         "The cosmic radiation is modelled as blackbody radiation for the\n"
+         "temperature given by the global constant COSMIC_BG_TEMP, set in\n"
+         "the file constants.cc. The frequencies are taken from the generic\n"
          "input vector:\n"
-         "   MatrixCBR(iy_space,f_grid){} \n"
+         "   MatrixCBR(iy_space,f_grid){}\n"
          "\n"
-         "Generic output: \n"
-         "   Matrix : Matrix with cosmic background radiation. \n"
+         "Generic output:\n"
+         "   Matrix : Matrix with cosmic background radiation.\n"
          "\n"
-         "Generic input: \n"
+         "Generic input:\n"
          "   Vector : A set of frequencies.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "stokes_dim" ),
         GIN(      "gin1"       ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4802,24 +4698,24 @@ md_data_raw.push_back
          "\n"
          "If the variable already exists, it'll be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   Matrix: New empty Matrix.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("MatrixMatrixMultiply"),
+      ( NAME( "MatrixMatrixMultiply" ),
         DESCRIPTION
         (
          "Multiply a Matrix with another Matrix and store the result in the result\n"
@@ -4835,48 +4731,48 @@ md_data_raw.push_back
          "Generic input:\n"
          "   Matrix : The Matrix to multiply (dimension mxn).\n"
          "   Matrix : The original Matrix (dimension nxc).\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"      , "gin2"       ),
         GIN_TYPE(    "Matrix", "Matrix" ),
         GIN_DEFAULT( NODEF   , NODEF    ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Matrix1ColFromVector"),
+      ( NAME( "Matrix1ColFromVector" ),
         DESCRIPTION
         (
          "Forms a matrix containing 1 column from a vector.\n"
          "\n"
-         "Generic output: \n"
-         "   Matrix : The matrix to be created. \n"
+         "Generic output:\n"
+         "   Matrix : The matrix to be created.\n"
          "\n"
-         "Generic input: \n"
+         "Generic input:\n"
          "   Vector : The vector to be copied.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"       ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Matrix2ColFromVectors"),
+      ( NAME( "Matrix2ColFromVectors" ),
         DESCRIPTION
         (
          "Forms a matrix containing 2 columns from two vectors.\n"
@@ -4884,29 +4780,29 @@ md_data_raw.push_back
          "The vectors are put as columns in the matrix in the same order\n"
          "as they are given.\n"
          "\n"
-         "Generic output: \n"
-         "   Matrix : The matrix to be created. \n"
+         "Generic output:\n"
+         "   Matrix : The matrix to be created.\n"
          "\n"
-         "Generic input: \n"
-         "   Vector : The vector to be copied into the first column. \n"
+         "Generic input:\n"
+         "   Vector : The vector to be copied into the first column.\n"
          "   Vector : The vector to be copied into the second column.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"      , "gin2"       ),
         GIN_TYPE(    "Vector", "Vector" ),
         GIN_DEFAULT( NODEF   , NODEF    ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Matrix3ColFromVectors"),
+      ( NAME( "Matrix3ColFromVectors" ),
         DESCRIPTION
         (
          "Forms a matrix containing 3 columns from three vectors.\n"
@@ -4914,56 +4810,56 @@ md_data_raw.push_back
          "The vectors are put as columns in the matrix in the same order\n"
          "as they are given.\n"
          "\n"
-         "Generic output: \n"
-         "   Matrix : The matrix to be created. \n"
+         "Generic output:\n"
+         "   Matrix : The matrix to be created.\n"
          "\n"
-         "Generic input: \n"
-         "   Vector : The vector to be copied into the first column. \n"
-         "   Vector : The vector to be copied into the second column. \n"
+         "Generic input:\n"
+         "   Vector : The vector to be copied into the first column.\n"
+         "   Vector : The vector to be copied into the second column.\n"
          "   Vector : The vector to be copied into the third column.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"      , "gin2"      , "gin3"       ),
         GIN_TYPE(    "Vector", "Vector", "Vector" ),
         GIN_DEFAULT( NODEF   , NODEF   , NODEF    ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Matrix1RowFromVector"),
+      ( NAME( "Matrix1RowFromVector" ),
         DESCRIPTION
         (
          "Forms a matrix containing 1 row from a vector.\n"
          "\n"
-         "Generic output: \n"
-         "   Matrix : The matrix to be created. \n"
+         "Generic output:\n"
+         "   Matrix : The matrix to be created.\n"
          "\n"
-         "Generic input: \n"
+         "Generic input:\n"
          "   Vector : The vector to be copied.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"       ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Matrix2RowFromVectors"),
+      ( NAME( "Matrix2RowFromVectors" ),
         DESCRIPTION
         (
          "Forms a matrix containing 2 rows from two vectors.\n"
@@ -4971,29 +4867,29 @@ md_data_raw.push_back
          "The vectors are put as rows in the matrix in the same order\n"
          "as they are given.\n"
          "\n"
-         "Generic output: \n"
-         "   Matrix : The matrix to be created. \n"
+         "Generic output:\n"
+         "   Matrix : The matrix to be created.\n"
          "\n"
-         "Generic input: \n"
-         "   Vector : The vector to be copied into the first row. \n"
+         "Generic input:\n"
+         "   Vector : The vector to be copied into the first row.\n"
          "   Vector : The vector to be copied into the second row.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"      , "gin2"       ),
         GIN_TYPE(    "Vector", "Vector" ),
         GIN_DEFAULT( NODEF   , NODEF    ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Matrix3RowFromVectors"),
+      ( NAME( "Matrix3RowFromVectors" ),
         DESCRIPTION
         (
          "Forms a matrix containing 3 rows from three vectors.\n"
@@ -5001,143 +4897,143 @@ md_data_raw.push_back
          "The vectors are put as rows in the matrix in the same order\n"
          "as they are given.\n"
          "\n"
-         "Generic output: \n"
-         "   Matrix : The matrix to be created. \n"
+         "Generic output:\n"
+         "   Matrix : The matrix to be created.\n"
          "\n"
-         "Generic input: \n"
-         "   Vector : The vector to be copied into the first row. \n"
-         "   Vector : The vector to be copied into the second row. \n"
+         "Generic input:\n"
+         "   Vector : The vector to be copied into the first row.\n"
+         "   Vector : The vector to be copied into the second row.\n"
          "   Vector : The vector to be copied into the third row.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"      , "gin2"      , "gin3"       ),
         GIN_TYPE(    "Vector", "Vector", "Vector" ),
         GIN_DEFAULT( NODEF   , NODEF   , NODEF    ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("MatrixPlanck"),
+      ( NAME( "MatrixPlanck" ),
         DESCRIPTION
         (
          "Sets a matrix to hold blackbody radiation.\n"
          "\n"
-         "Generic output: \n"
-         "   Matrix : Matrix with blackbody radiation. \n"
+         "Generic output:\n"
+         "   Matrix : Matrix with blackbody radiation.\n"
          "\n"
-         "Generic input: \n"
-         "   Vector  : A set of frequencies. \n"
-         "   Numeric : Blackbody temperature. \n"
-        ),
+         "Generic input:\n"
+         "   Vector  : A set of frequencies.\n"
+         "   Numeric : Blackbody temperature.\n"
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "stokes_dim" ),
         GIN(      "gin1"      , "gin2"        ),
         GIN_TYPE(    "Vector", "Numeric" ),
         GIN_DEFAULT( NODEF   , NODEF     ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("MatrixScale"),
+      ( NAME( "MatrixScale" ),
         DESCRIPTION
         (
-         "Scales all elements of a matrix with the same value. \n"
+         "Scales all elements of a matrix with the same value.\n"
          "\n"
-         "The result can either be stored in the same or another matrix. \n"
+         "The result can either be stored in the same or another matrix.\n"
          "\n"
-         "Generic output: \n"
-         "   Matrix : Return matrix. \n"
+         "Generic output:\n"
+         "   Matrix : Return matrix.\n"
          "\n"
-         "Generic input: \n"
-         "   Matrix : Original matrix. \n"
+         "Generic input:\n"
+         "   Matrix : Original matrix.\n"
          "\n"
-         "Keywords: \n"
+         "Keywords:\n"
          "   value : The value to be multiplied with the matrix.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"      ,
                   "value" ),
         GIN_TYPE(    "Matrix",
                      "Numeric"   ),
         GIN_DEFAULT( NODEF   ,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+                     NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
-   md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
-      ( NAME("MatrixSetConstant"),
+      ( NAME( "MatrixSetConstant" ),
         DESCRIPTION
         (
          "Creates a matrix and sets all elements to the specified value.\n"
          "The size is determined by the variables *ncols* and *nrows*.\n"
          "\n"
-         "Generic output: \n"
-         "   Matrix : The matrix to be created. \n"
+         "Generic output:\n"
+         "   Matrix : The matrix to be created.\n"
          "\n"
          "Keywords:\n"
          "   value : The value of the matrix elements.\n" 
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "nrows", "ncols" ),
         GIN( "value"   ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("MatrixUnitIntensity"),
+      ( NAME( "MatrixUnitIntensity" ),
         DESCRIPTION
         (
          "Sets a matrix to hold unpolarised radiation with unit intensity.\n"
          "\n"
-         "Generic output: \n"
-         "   Matrix : Matrix with unit radiation. \n"
+         "Generic output:\n"
+         "   Matrix : Matrix with unit radiation.\n"
          "\n"
-         "Generic input: \n"
+         "Generic input:\n"
          "   Vector  : A set of frequencies.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "stokes_dim" ),
         GIN(      "gin1"       ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("mc_antennaSetGaussian"),
+      ( NAME( "mc_antennaSetGaussian" ),
         DESCRIPTION
         (
          "Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.\n"
@@ -5145,7 +5041,7 @@ md_data_raw.push_back
          "The gaussian antenna pattern is determined by the keyword parameters\n"
          "za_sigma, and aa_sigma, which represent the standard deviations in the\n"
          "uncorrelated bivariate normal distribution\n"
-        ),
+         ),
         AUTHORS( "Cory Davis" ),
         OUT( "mc_antenna" ),
         GOUT(),
@@ -5153,15 +5049,15 @@ md_data_raw.push_back
         GOUT_DESC(),
         IN(),
         GIN( "za_sigma", "aa_sigma" ),
-        GIN_TYPE(    "Numeric",  "Numeric"),
+        GIN_TYPE(    "Numeric",  "Numeric" ),
         GIN_DEFAULT( NODEF,      NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("mc_antennaSetGaussianByFWHM"),
+      ( NAME( "mc_antennaSetGaussianByFWHM" ),
         DESCRIPTION
         (
          "Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.\n"
@@ -5169,7 +5065,7 @@ md_data_raw.push_back
          "The gaussian antenna pattern is determined by the keyword parameters\n"
          "za_fwhm, and aa_fwhm, which represent the full width half maximum (FWHM)\n"
          "of the antenna response, in the zenith and azimuthal planes.\n"
-        ),
+         ),
         AUTHORS( "Cory Davis" ),
         OUT( "mc_antenna" ),
         GOUT(),
@@ -5177,133 +5073,24 @@ md_data_raw.push_back
         GOUT_DESC(),
         IN(),
         GIN( "za_fwhm", "aa_fwhm" ),
-        GIN_TYPE(    "Numeric", "Numeric"),
+        GIN_TYPE(    "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("mc_antennaSetPencilBeam"),
+      ( NAME( "mc_antennaSetPencilBeam" ),
         DESCRIPTION
         (
          "Makes mc_antenna (used by MCGeneral) a pencil beam.\n"
          "\n"
          "This WSM makes the subsequent MCGeneral WSM perform pencil beam\n"
          "RT calculations.\n" 
-        ),
+         ),
         AUTHORS( "Cory Davis" ),
         OUT( "mc_antenna" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-      ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("mc_IWP_cloud_opt_pathCalc"),
-        DESCRIPTION
-        (
-         "Calculates the FOV averaged ice water path and cloud optical path\n"
-         "for a given viewing direction\n"
-        ),
-        AUTHORS( "Cory Davis" ),
-        OUT( "mc_IWP", "mc_cloud_opt_path", "mc_IWP_error", "mc_cloud_opt_path_error", 
-                "mc_iteration_count"),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "mc_antenna", "sensor_pos", "sensor_los", "ppath_step_agenda", "p_grid", 
-               "lat_grid", "lon_grid", "r_geoid", "z_surface", "z_field", "t_field", "vmr_field", 
-               "cloudbox_limits", "pnd_field", "scat_data_mono", "particle_masses", "mc_seed"),
-        GIN( "max_iter" ),
-        GIN_TYPE(    "Index" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
-  
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("MCGeneral"),
-        DESCRIPTION
-        ("A generalised 3D reversed Monte Carlo radiative algorithm, that \n"
-         "allows for 2D antenna patterns, surface reflection and arbitrary\n"
-         "sensor positions.\n"
-         "\n"
-         "The main output variables *y* and *mc_error* represent the \n"
-         "Stokes vector integrated over the antenna function, and the \n"
-         "estimated error in this vector respectively.\n"
-         "\n"
-         "The WSV *mc_max_iter* describes the number of `photons\'\n"
-         "used in the simulation (more photons means smaller *mc_error*).\n"
-         "*mc_std_err* is the desired value of mc_error, and *mc_max_time* is\n"
-         "the maximum allowed number of seconds for MCGeneral. MCGeneral will\n"
-         "terminate once any of the max_iter, std_err, max_time criteria are\n"
-         "met. If negative values are given for these parameters then it is\n"
-         "ignored.\n"
-         "\n"
-         "Negative values of mc_seed seed the random number generator \n"
-         "according to system time, positive rng_seed values are taken\n"
-         "literally.\n"),
-        AUTHORS( "Cory Davis" ),
-        OUT( "y", "mc_iteration_count", "mc_error", "mc_points" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
-               "stokes_dim", "iy_space_agenda", "surface_prop_agenda", 
-               "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "p_grid", "lat_grid", 
-               "lon_grid", "z_field", "r_geoid", "z_surface", "t_field", "vmr_field", 
-               "cloudbox_limits", "pnd_field", "scat_data_mono", 
-               "mc_seed", "y_unit", 
-               "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-      ));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("MCIPA"),
-        DESCRIPTION
-        ("A specialised 3D reversed Monte Carlo radiative algorithm, that \n"
-         "mimics independent pixel appoximation simulations.\n"
-         "Probably temporary.\n"),
-        AUTHORS( "Cory Davis" ),
-        OUT( "y", "mc_iteration_count", "mc_error", "mc_points"),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
-               "stokes_dim", "iy_space_agenda", "surface_prop_agenda", 
-               "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "ppath_step_agenda",
-               "p_grid", "lat_grid", "lon_grid", "z_field", "r_geoid", "z_surface", 
-               "t_field", "vmr_field", "cloudbox_limits", "pnd_field", 
-               "scat_data_mono", "mc_seed", "y_unit",
-               "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-      ));
-
-  /* Removed as ScatteringMonteCarlo is not working
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("MCSetIncomingEmpty"),
-        DESCRIPTION
-        ("Sets mc_incoming to be empty.  \n"
-         "This is needed when using ScatteringMonteCarlo with incoming_lookup=0\n"
-        ),
-        AUTHORS( "Cory Davis" ),
-        OUT( "mc_incoming" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -5313,13 +5100,122 @@ md_data_raw.push_back
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "mc_IWP_cloud_opt_pathCalc" ),
+        DESCRIPTION
+        (
+         "Calculates the FOV averaged ice water path and cloud optical path\n"
+         "for a given viewing direction\n"
+         ),
+        AUTHORS( "Cory Davis" ),
+        OUT( "mc_IWP", "mc_cloud_opt_path", "mc_IWP_error", "mc_cloud_opt_path_error", 
+             "mc_iteration_count" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "mc_antenna", "sensor_pos", "sensor_los", "ppath_step_agenda", "p_grid", 
+            "lat_grid", "lon_grid", "r_geoid", "z_surface", "z_field", "t_field", "vmr_field", 
+            "cloudbox_limits", "pnd_field", "scat_data_mono", "particle_masses", "mc_seed" ),
+        GIN( "max_iter" ),
+        GIN_TYPE(    "Index" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "FIXME DOC" )
+        ));
+  
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "MCGeneral" ),
+        DESCRIPTION
+        ( "A generalised 3D reversed Monte Carlo radiative algorithm, that\n"
+          "allows for 2D antenna patterns, surface reflection and arbitrary\n"
+          "sensor positions.\n"
+          "\n"
+          "The main output variables *y* and *mc_error* represent the\n"
+          "Stokes vector integrated over the antenna function, and the\n"
+          "estimated error in this vector respectively.\n"
+          "\n"
+          "The WSV *mc_max_iter* describes the number of `photons\'\n"
+          "used in the simulation (more photons means smaller *mc_error*).\n"
+          "*mc_std_err* is the desired value of mc_error, and *mc_max_time* is\n"
+          "the maximum allowed number of seconds for MCGeneral. MCGeneral will\n"
+          "terminate once any of the max_iter, std_err, max_time criteria are\n"
+          "met. If negative values are given for these parameters then it is\n"
+          "ignored.\n"
+          "\n"
+          "Negative values of mc_seed seed the random number generator\n"
+          "according to system time, positive rng_seed values are taken\n"
+          "literally.\n" ),
+        AUTHORS( "Cory Davis" ),
+        OUT( "y", "mc_iteration_count", "mc_error", "mc_points" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
+            "stokes_dim", "iy_space_agenda", "surface_prop_agenda", 
+            "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "p_grid", "lat_grid", 
+            "lon_grid", "z_field", "r_geoid", "z_surface", "t_field", "vmr_field", 
+            "cloudbox_limits", "pnd_field", "scat_data_mono", 
+            "mc_seed", "y_unit", 
+            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "MCIPA" ),
+        DESCRIPTION
+        ( "A specialised 3D reversed Monte Carlo radiative algorithm, that\n"
+          "mimics independent pixel appoximation simulations.\n"
+          "Probably temporary.\n" ),
+        AUTHORS( "Cory Davis" ),
+        OUT( "y", "mc_iteration_count", "mc_error", "mc_points" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
+            "stokes_dim", "iy_space_agenda", "surface_prop_agenda", 
+            "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "ppath_step_agenda",
+            "p_grid", "lat_grid", "lon_grid", "z_field", "r_geoid", "z_surface", 
+            "t_field", "vmr_field", "cloudbox_limits", "pnd_field", 
+            "scat_data_mono", "mc_seed", "y_unit",
+            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  /* Removed as ScatteringMonteCarlo is not working
+     md_data_raw.push_back     
+     ( MdRecord
+     ( NAME( "MCSetIncomingEmpty" ),
+     DESCRIPTION
+     ( "Sets mc_incoming to be empty. \n"
+     "This is needed when using ScatteringMonteCarlo with incoming_lookup=0\n"
+     ),
+     AUTHORS( "Cory Davis" ),
+     OUT( "mc_incoming" ),
+     GOUT(),
+     GOUT_TYPE(),
+     GOUT_DESC(),
+     IN(),
+     GIN(),
+     GIN_TYPE(),
+     GIN_DEFAULT(),
+     GIN_DESC()
+     ));
   */
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("MCSetSeedFromTime"),
+      ( NAME( "MCSetSeedFromTime" ),
         DESCRIPTION
-        ("Sets the value of mc_seed from system time\n"),
+        ( "Sets the value of mc_seed from system time\n" ),
         AUTHORS( "Cory Davis" ),
         OUT( "mc_seed" ),
         GOUT(),
@@ -5330,7 +5226,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5341,55 +5237,55 @@ md_data_raw.push_back
          "\n"
          "If the variable already exists, it'll be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   Numeric: New Numeric variable.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Numeric" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("NumericSet"),
+      ( NAME( "NumericSet" ),
         DESCRIPTION
         (
-         "Sets a numeric workspace variable to the given value. \n"
+         "Sets a numeric workspace variable to the given value.\n"
          "\n"
-         "Generic output: \n"
-         "   Numeric : The numeric variable to be set. \n"
+         "Generic output:\n"
+         "   Numeric : The numeric variable to be set.\n"
          "\n"
          "Keywords:\n"
          "   value : The value.\n" 
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Numeric" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN( "value"   ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD( true )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("nelemGet"),
+      ( NAME( "nelemGet" ),
         DESCRIPTION
         (
-         "Retrieve nelem from given variable and store the value in the \n"
+         "Retrieve nelem from given variable and store the value in the\n"
          "workspace variable *nelem*\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "nelem" ),
         GOUT(),
@@ -5399,20 +5295,20 @@ md_data_raw.push_back
         GIN(      "gin1"    ),
         GIN_TYPE(    ARRAY_GROUPS + ", Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("ncolsGet"),
+      ( NAME( "ncolsGet" ),
         DESCRIPTION
         (
-         "Retrieve ncols from given variable and store the value in the \n"
+         "Retrieve ncols from given variable and store the value in the\n"
          "workspace variable *ncols*\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "ncols" ),
         GOUT(),
@@ -5422,20 +5318,20 @@ md_data_raw.push_back
         GIN(      "gin1"    ),
         GIN_TYPE( "Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("nrowsGet"),
+      ( NAME( "nrowsGet" ),
         DESCRIPTION
         (
-         "Retrieve nrows from given variable and store the value in the \n"
+         "Retrieve nrows from given variable and store the value in the\n"
          "workspace variable *nrows*\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "nrows" ),
         GOUT(),
@@ -5445,20 +5341,20 @@ md_data_raw.push_back
         GIN(      "gin1"    ),
         GIN_TYPE( "Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("npagesGet"),
+      ( NAME( "npagesGet" ),
         DESCRIPTION
         (
-         "Retrieve npages from given variable and store the value in the \n"
+         "Retrieve npages from given variable and store the value in the\n"
          "workspace variable *npages*\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "npages" ),
         GOUT(),
@@ -5468,20 +5364,20 @@ md_data_raw.push_back
         GIN(      "gin1"    ),
         GIN_TYPE( "Tensor3, Tensor4, Tensor5, Tensor6, Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("nbooksGet"),
+      ( NAME( "nbooksGet" ),
         DESCRIPTION
         (
-         "Retrieve nbooks from given variable and store the value in the \n"
+         "Retrieve nbooks from given variable and store the value in the\n"
          "workspace variable *nbooks*\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "nbooks" ),
         GOUT(),
@@ -5491,20 +5387,20 @@ md_data_raw.push_back
         GIN(      "gin1"    ),
         GIN_TYPE( "Tensor4, Tensor5, Tensor6, Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("nshelvesGet"),
+      ( NAME( "nshelvesGet" ),
         DESCRIPTION
         (
-         "Retrieve nshelves from given variable and store the value in the \n"
+         "Retrieve nshelves from given variable and store the value in the\n"
          "workspace variable *nshelves*\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "nshelves" ),
         GOUT(),
@@ -5514,20 +5410,20 @@ md_data_raw.push_back
         GIN(      "gin1"    ),
         GIN_TYPE( "Tensor5, Tensor6, Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("nvitrinesGet"),
+      ( NAME( "nvitrinesGet" ),
         DESCRIPTION
         (
-         "Retrieve nvitrines from given variable and store the value in the \n"
+         "Retrieve nvitrines from given variable and store the value in the\n"
          "workspace variable *nvitrines*\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "nvitrines" ),
         GOUT(),
@@ -5537,20 +5433,20 @@ md_data_raw.push_back
         GIN(      "gin1"    ),
         GIN_TYPE( "Tensor6, Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("nlibrariesGet"),
+      ( NAME( "nlibrariesGet" ),
         DESCRIPTION
         (
-         "Retrieve nlibraries from given variable and store the value in the \n"
+         "Retrieve nlibraries from given variable and store the value in the\n"
          "workspace variable *nlibraries*\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "nlibraries" ),
         GOUT(),
@@ -5560,58 +5456,58 @@ md_data_raw.push_back
         GIN(      "gin1"    ),
         GIN_TYPE( "Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("opt_prop_sptFromData"),
+      ( NAME( "opt_prop_sptFromData" ),
         DESCRIPTION
         (
          "Calculates opticle properties for the single particle types.\n"
          "\n"
-         "In this function extinction matrix and absorption vector are \n"
+         "In this function extinction matrix and absorption vector are\n"
          "calculated in the laboratory frame. These properties are required\n"
-         "for the RT calculation, inside the the i_fieldUpdateXXX \n"
+         "for the RT calculation, inside the the i_fieldUpdateXXX\n"
          "functions.\n" 
          "\n"
-         "The interpolation of the data on the actual frequency is the \n"
-         "first step in this function. \n"
+         "The interpolation of the data on the actual frequency is the\n"
+         "first step in this function.\n"
          "\n"
-         "Then the transformation from the database coordinate system to to \n"
+         "Then the transformation from the database coordinate system to to\n"
          "laboratory coordinate system is done.\n"
          "\n"
          "Output of the function are *ext_mat_spt*, and *abs_vec_spt* which\n"
          "hold the optical properties for a specified propagation direction\n"
-         "for each particle type. \n"
-        ),
+         "for each particle type.\n"
+         ),
         AUTHORS( "Claudia Emde" ),
         OUT( "ext_mat_spt", "abs_vec_spt" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "ext_mat_spt", "abs_vec_spt", "scat_data_raw",
-                "scat_za_grid", 
-                "scat_aa_grid", "scat_za_index", "scat_aa_index", 
-                "f_index", "f_grid", "rte_temperature",
-                "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
+        IN( "ext_mat_spt", "abs_vec_spt", "scat_data_raw",
+            "scat_za_grid", 
+            "scat_aa_grid", "scat_za_index", "scat_aa_index", 
+            "f_index", "f_grid", "rte_temperature",
+            "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("opt_prop_sptFromMonoData"),
+      ( NAME( "opt_prop_sptFromMonoData" ),
         DESCRIPTION
         (
          "Calculates optical properties for the single particle types.\n"
          "\n"
-         "In this function extinction matrix and absorption vector are \n"
+         "In this function extinction matrix and absorption vector are\n"
          "calculated in the laboratory frame. "
          "\n"
          "The single scattering data is obtained from scat_data_mono, so\n"
@@ -5619,30 +5515,30 @@ md_data_raw.push_back
          "\n"
          "Output of the function are *ext_mat_spt*, and *abs_vec_spt* which\n"
          "hold the optical properties for a specified propagation direction\n"
-         "for each particle type. \n"
-        ),
+         "for each particle type.\n"
+         ),
         AUTHORS( "Cory Davis" ),
         OUT( "ext_mat_spt", "abs_vec_spt" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "ext_mat_spt", "abs_vec_spt", "scat_data_mono",
-                "scat_za_grid", 
-                "scat_aa_grid", "scat_za_index", "scat_aa_index", "rte_temperature",
-                "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
+        IN( "ext_mat_spt", "abs_vec_spt", "scat_data_mono",
+            "scat_za_grid", 
+            "scat_aa_grid", "scat_za_index", "scat_aa_index", "rte_temperature",
+            "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
  
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("output_file_formatSetAscii"),
+      ( NAME( "output_file_formatSetAscii" ),
         DESCRIPTION
         (
          "Sets the output file format to ASCII.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "output_file_format" ),
         GOUT(),
@@ -5653,15 +5549,15 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("output_file_formatSetBinary"),
+      ( NAME( "output_file_formatSetBinary" ),
         DESCRIPTION
         (
          "Sets the output file format to binary.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "output_file_format" ),
         GOUT(),
@@ -5672,15 +5568,15 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("output_file_formatSetZippedAscii"),
+      ( NAME( "output_file_formatSetZippedAscii" ),
         DESCRIPTION
         (
          "Sets the output file format to zipped ASCII.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "output_file_format" ),
         GOUT(),
@@ -5691,7 +5587,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5700,21 +5596,21 @@ md_data_raw.push_back
         (
          "Read single scattering data and particle number densities.\n"
          "\n"
-         "The WSV *pnd_field_raw* containing particle number densities for all \n"
+         "The WSV *pnd_field_raw* containing particle number densities for all\n"
          "hydrometeor species can be generated outside ARTS, for example by using\n"
-         "PyARTS. This method needs as input a file containing filenames of \n"
-         "single scattering data and a file containing the corresponding \n"
+         "PyARTS. This method needs as input a file containing filenames of\n"
+         "single scattering data and a file containing the corresponding\n"
          "*pnd_field_raw*.\n"
          "\n"
-         "Very important note: \n"
+         "Very important note:\n"
          "The order of the filenames for the scattering data files has to\n"
-         "correspond to the order of the particle types in the file \n"
+         "correspond to the order of the particle types in the file\n"
          "including the variable *pnd_field_raw*!\n" 
          "\n"
          "Keywords:\n"
-         "   filename_scat_data : File containing an \n" 
-         "                        ArrayOfString of filenames of single scattering data files \n"
-         "                        corresponding the the particle number densities in \n"
+         "   filename_scat_data : File containing an\n" 
+         "                        ArrayOfString of filenames of single scattering data files\n"
+         "                        corresponding the the particle number densities in\n"
          "                        *pnd_field_raw*.\n"
          "   filename_pnd_field : File including  the WSV *pnd_field_raw*.\n"
          ),
@@ -5724,13 +5620,13 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", 
-               "cloudbox_limits" ),
+            "cloudbox_limits" ),
         GIN( "filename_scat_data", "filename_pnd_field" ),
         GIN_TYPE(    "String",             "String" ),
         GIN_DEFAULT( NODEF,                NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
  
   md_data_raw.push_back
     ( MdRecord
@@ -5738,13 +5634,13 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "This method reads single scattering data and the corresonding\n"
-         "particle number density fields. \n"
+         "particle number density fields.\n"
          "\n"
-         "The methods reads the  specified files \n"
-         "and appends the variables *scat_data_raw* and *pnd_field_raw*. \n"
+         "The methods reads the  specified files\n"
+         "and appends the variables *scat_data_raw* and *pnd_field_raw*.\n"
          "\n"
          "Keywords:\n"
-         "   filename_scat_data : Filename of single scattering data. \n"
+         "   filename_scat_data : Filename of single scattering data.\n"
          "   filename_pnd_field : Filename of the corresponding pnd_field\n"
          "                        (format here is GField3).\n"
          ),
@@ -5754,26 +5650,26 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", 
-               "cloudbox_limits" ),
+            "cloudbox_limits" ),
         GIN( "filename_scat_data", "filename_pnd_field" ),
         GIN_TYPE(    "String",             "String" ),
         GIN_DEFAULT( NODEF,                NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "ParticleTypeInit" ),
         DESCRIPTION
         (
-         "This method initializes variables containing data about the \n"
-         "optical properties of particles (*scat_data_raw*) and about the \n"
+         "This method initializes variables containing data about the\n"
+         "optical properties of particles (*scat_data_raw*) and about the\n"
          "particle number distribution (*pnd_field_raw*)\n"
          "\n"
-         "*ParticleTypeInit* has to be executed before executing \n"
+         "*ParticleTypeInit* has to be executed before executing\n"
          "*ParticleTypeAdd(All)*.\n"
-        ),
+         ),
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_data_raw", "pnd_field_raw" ),
         GOUT(),
@@ -5784,9 +5680,9 @@ md_data_raw.push_back
         GIN_TYPE(), 
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
-   md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "pha_matCalc" ),
         DESCRIPTION
@@ -5797,9 +5693,9 @@ md_data_raw.push_back
          "The output of this method is *pha_mat* (Nza, Naa, stokes_dim,\n"
          "stokes_dim). The inputs are the phase matrix for the single particle\n"
          "type *pha_mat_spt* (part_types, Nza, Naa, stokes_dim, stokes_dim)\n"
-         "and the local particle  number densities for all particle types namely \n"
+         "and the local particle  number densities for all particle types namely\n"
          "the *pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given\n"
-         "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
+         "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required\n"
          "are specified in the control file.\n"
          ),
         AUTHORS( "Sreerekha T.R." ),
@@ -5808,12 +5704,12 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "pha_mat_spt", "pnd_field", "atmosphere_dim", "scat_p_index",
-               "scat_lat_index", "scat_lon_index" ),
+            "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(), 
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5822,14 +5718,14 @@ md_data_raw.push_back
         (
          "Calculation of the phase matrix for the single particle types.\n"
          "\n"
-         "This function can be used in *pha_mat_spt_agenda* as part of \n"
+         "This function can be used in *pha_mat_spt_agenda* as part of\n"
          "the calculation\n"
          "of the scattering integral.\n"
          "\n"
          "The interpolation of the data on the actual frequency is the first\n"
-         "step in this function. \n"
+         "step in this function.\n"
          "\n"
-         "Then the transformation from the database coordinate system to to \n"
+         "Then the transformation from the database coordinate system to to\n"
          "laboratory coordinate system is done.\n"
          ),
         AUTHORS( "Claudia Emde" ),
@@ -5838,16 +5734,16 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "pha_mat_spt", "scat_data_raw", "scat_za_grid", "scat_aa_grid", 
-               "scat_za_index", "scat_aa_index", "f_index", "f_grid",
-               "rte_temperature", "pnd_field", "scat_p_index", "scat_lat_index",
-               "scat_lon_index" ),
+            "scat_za_index", "scat_aa_index", "f_index", "f_grid",
+            "rte_temperature", "pnd_field", "scat_p_index", "scat_lat_index",
+            "scat_lon_index" ),
         GIN(),
         GIN_TYPE(), 
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
-   md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "pha_mat_sptFromMonoData" ),
         DESCRIPTION
@@ -5862,25 +5758,25 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "pha_mat_spt", "scat_data_mono", "doit_za_grid_size",
-               "scat_aa_grid", "scat_za_index", "scat_aa_index", "rte_temperature",
-               "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
+            "scat_aa_grid", "scat_za_index", "scat_aa_index", "rte_temperature",
+            "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(), 
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
-   md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "pha_mat_sptFromDataDOITOpt" ),
         DESCRIPTION
         (
          "Calculation of the phase matrix for the single particle types.\n"
          "\n"
-         "In this function the phase matrix is extracted from \n"
+         "In this function the phase matrix is extracted from\n"
          "*pha_mat_sptDOITOpt*. It can be used in the agenda\n"
          "*pha_mat_spt_agenda*. This method must be used in \n "
-         "conbination with *ScatteringDataPrepareDOITOpt*. \n"
+         "conbination with *ScatteringDataPrepareDOITOpt*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "pha_mat_spt" ),
@@ -5888,43 +5784,70 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "pha_mat_spt", "pha_mat_sptDOITOpt", "scat_data_mono", 
-               "doit_za_grid_size",
-               "scat_aa_grid", 
-               "scat_za_index", "scat_aa_index", "rte_temperature",
-               "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
+            "doit_za_grid_size",
+            "scat_aa_grid", 
+            "scat_za_index", "scat_aa_index", "rte_temperature",
+            "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
         GIN_TYPE(), 
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "pnd_fieldCalc" ),
         DESCRIPTION
-        ("Interpolate the particle number density fields.\n"
-         "\n"
-         "This methods interpolates the particle number density field\n"
-         "from the raw data *pnd_field_raw* to pnd_field* which is definded \n"
-         "on sub-grids of *p_grid*, *lat_grid*, *lon_grid*, exactly on the \n"
-         "part of the atmosphere where the cloudbox is defined. \n"
-         "\n"
-         "The method takes as input the *pnd_field_raw* \n"
-         "which contains the particle number density for each\n"
-         "particle type. \n"
-         ),
+        ( "Interpolate the particle number density fields.\n"
+          "\n"
+          "This methods interpolates the particle number density field\n"
+          "from the raw data *pnd_field_raw* to pnd_field* which is definded\n"
+          "on sub-grids of *p_grid*, *lat_grid*, *lon_grid*, exactly on the\n"
+          "part of the atmosphere where the cloudbox is defined.\n"
+          "\n"
+          "The method takes as input the *pnd_field_raw*\n"
+          "which contains the particle number density for each\n"
+          "particle type.\n"
+          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
         OUT( "pnd_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "pnd_field_raw", "atmosphere_dim",
-               "cloudbox_limits" ),
+            "cloudbox_limits" ),
         GIN(),
         GIN_TYPE(), 
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "pnd_fieldZero" ),
+        DESCRIPTION
+        (
+         "Sets *pnd_field* to hoold only zeros.\n"
+         "\n"
+         "Scattering calculations using the DOIT method include\n"
+         "interpolation errors. If one is interested in this effect, one\n"
+         "should compare the DOIT result with a clearsky calculation using\n"
+         "an empty cloudbox. That means that the iterative method is\n"
+         "performed for a cloudbox including no particles. This method sets\n"
+         "the particle number density field to zero and creates a\n"
+         "dummy *scat_data_raw* structure. \n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT( "pnd_field", "scat_data_raw" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "p_grid", "lat_grid", "lon_grid" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5942,21 +5865,21 @@ md_data_raw.push_back
          "The definition of a propgation path cannot be accomodated here.\n"
          "For more information read the chapter on propagation paths in the\n"
          "ARTS user guide and read the  on-line information for\n"
-         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\").\n"
-        ),
+         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\" ).\n"
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "ppath" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "ppath_step_agenda", "atmosphere_dim", "p_grid", "lat_grid", 
-               "lon_grid", "z_field", "r_geoid", "z_surface", 
-               "cloudbox_on", "cloudbox_limits", "rte_pos", "rte_los" ),
+            "lon_grid", "z_field", "r_geoid", "z_surface", 
+            "cloudbox_on", "cloudbox_limits", "rte_pos", "rte_los" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
 
   md_data_raw.push_back
@@ -5969,9 +5892,9 @@ md_data_raw.push_back
          "This function determines a propagation path step by pure\n"
          "geometrical calculations. That is, refraction is neglected. Path\n"
          "points are always included for crossings with the grids, tangent\n"
-         "points and points of surface intersections. The WSV *ppath_lmax* \n"
+         "points and points of surface intersections. The WSV *ppath_lmax*\n"
          "gives the option to include additional points to ensure that the\n"
-         "distance along the path between the points does not exceed the \n"
+         "distance along the path between the points does not exceed the\n"
          "selected maximum length. No additional points are included if\n"
          "*ppath_lmax* is set to <= 0.\n"
          "\n"
@@ -5981,20 +5904,20 @@ md_data_raw.push_back
          "detailed error messages, but asserts are performed (if turned on).\n"
          "\n"
          "For further information, type see the on-line information for\n"
-         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\").\n"
-        ),
+         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\" ).\n"
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "ppath_step" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "ppath_step", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", 
-               "z_field", "r_geoid", "z_surface", "ppath_lmax" ),
+            "z_field", "r_geoid", "z_surface", "ppath_lmax" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6005,49 +5928,49 @@ md_data_raw.push_back
          "straightforward Euler approach.\n"
          "\n"
          "Refraction is taken into account by probably the simplest approach\n"
-         "possible. The path is treated to consist of piece-wise geometric \n"
-         "steps. A geometric path step is calculated from each point by \n"
+         "possible. The path is treated to consist of piece-wise geometric\n"
+         "steps. A geometric path step is calculated from each point by\n"
          "using the local line-of-sight. Except for 1D zenith angles, the\n"
-         "path quantities are propagated by solving the differential \n"
+         "path quantities are propagated by solving the differential\n"
          "equations by the Euler method. Snell's law for spherical symmetry\n"
-         "is used for 1D to update the zenith angles. \n"
+         "is used for 1D to update the zenith angles.\n"
          "\n"
          "See further the on-line information for *ppath_stepGeometric*\n"
-         "(type \"arts -d ppath_stepGeometric\") and the user guide for more\n"
+         "(type \"arts -d ppath_stepGeometric\" ) and the user guide for more\n"
          "details on the algorithms used.\n"
          "\n"
          "The maximum length of each ray tracing step is given by the WSV\n"
-         "*ppath_lraytrace*. The length will never exceed the \n" 
+         "*ppath_lraytrace*. The length will never exceed the\n" 
          "given maximum value, but can be smaller. The ray tracing steps are\n"
-         "only used to determine the path. Points to describe the path for \n" 
+         "only used to determine the path. Points to describe the path for\n" 
          "*RteCalc* are included as for *ppath_stepGeometric*, this\n"
          "including the functionality of *ppath_lmax*.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "ppath_step", "rte_pressure", "rte_temperature", "rte_vmr_list", 
-                "refr_index" ),
+             "refr_index" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "refr_index_agenda", "ppath_step", "atmosphere_dim", "p_grid", 
-               "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
-               "z_surface", "ppath_lmax", "ppath_lraytrace" ),
+            "lat_grid", "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
+            "z_surface", "ppath_lmax", "ppath_lraytrace" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("Print"),
+      ( NAME( "Print" ),
         DESCRIPTION
         (
          "Prints a variable on the screen.\n"
          "\n"
          "Keywords:\n"
-         "   level : Output level to use. \n"
-        ),
+         "   level : Output level to use.\n"
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(),
@@ -6059,24 +5982,24 @@ md_data_raw.push_back
         GIN_TYPE(    "Any",
                      "Index" ),
         GIN_DEFAULT( NODEF,
-                  "1" ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC"),
+                     "1" ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("PrintWorkspace"),
+      ( NAME( "PrintWorkspace" ),
         DESCRIPTION
         (
          "Prints a list of initialized workspace variables.\n"
          "\n"
          "Keywords:\n"
-         "   level : Output level to use. \n"
-        ),
+         "   level : Output level to use.\n"
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(),
@@ -6086,36 +6009,36 @@ md_data_raw.push_back
         GIN( "only_allocated", "level" ),
         GIN_TYPE(    "Index",          "Index" ),
         GIN_DEFAULT( "1",              "1" ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC"),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE( true  )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("p_gridFromGasAbsLookup"),
+      ( NAME( "p_gridFromGasAbsLookup" ),
         DESCRIPTION
         (
          "Sets *p_grid* to the frequency grid of *abs_lookup*.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "p_grid"  ),
+        OUT( "p_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "abs_lookup" ),
+        IN( "abs_lookup" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ReadNetCDF"),
+      ( NAME( "ReadNetCDF" ),
         DESCRIPTION
         (
          "Reads a workspace variable from a NetCDF file.\n"
@@ -6129,22 +6052,22 @@ md_data_raw.push_back
         OUT(),
         GOUT(      "gout1"    ),
         GOUT_TYPE( "Vector, Matrix, Tensor3, Tensor4, ArrayOfVector, ArrayOfMatrix" ),
-        GOUT_DESC("Variable to read."),
+        GOUT_DESC( "Variable to read." ),
         IN(),
         GIN( "filename" ),
         GIN_TYPE(    "String"   ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("Name of the NetCDF file."),
+        GIN_DESC( "Name of the NetCDF file." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ReadXML"),
+      ( NAME( "ReadXML" ),
         DESCRIPTION
         (
          "Reads a workspace variable from an XML file.\n"
@@ -6158,72 +6081,72 @@ md_data_raw.push_back
         OUT(),
         GOUT(      "gout1"    ),
         GOUT_TYPE( "Any" ),
-        GOUT_DESC("Variable to read."),
+        GOUT_DESC( "Variable to read." ),
         IN(),
         GIN( "filename" ),
         GIN_TYPE(    "String"   ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("Name of the XML file."),
+        GIN_DESC( "Name of the XML file." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
-      ));
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("refr_indexFieldAndGradients"),
+      ( NAME( "refr_indexFieldAndGradients" ),
         DESCRIPTION
         (
          "Calculates the field and gradients of the refractive index.\n"
          "\n"
          "This function calculates the refractive index and its gradients\n"
-         "for a rectangular grid. \n"
+         "for a rectangular grid.\n"
          "\n"
-         "Calculations are performed for all combinations of the given \n"
+         "Calculations are performed for all combinations of the given\n"
          "vectors, where the first vector shall contain pressure values, the\n"
-         "second latitude values, and the last longitude values. For \n"
+         "second latitude values, and the last longitude values. For\n"
          "dimensions not used, the corresponding position vector is ignored.\n"
          "\n"
          "The calculated values form a Tensor4, with size:\n"
-         "   [atmosphere_dim+1, np, nlat, nlon] \n"
+         "   [atmosphere_dim+1, np, nlat, nlon]\n"
          "where np is the number of pressures given etc. The book of the\n"
          "tensor with the following index holds:\n"
-         "   0: the refractive index \n"
-         "   1: radial gradient of the refractive index \n"
-         "   2: latitude gradient of the refractive index \n"
-         "   3: longitude gradient of the refractive index \n"
+         "   0: the refractive index\n"
+         "   1: radial gradient of the refractive index\n"
+         "   2: latitude gradient of the refractive index\n"
+         "   3: longitude gradient of the refractive index\n"
          "\n"
          "To calculate these quantities for the atmsopheric mesh, execute:\n"
          "   RefrIndexFieldAndGradients(tensor4_1,p_grid,lat_grid,lon_grid)\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "refr_index", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "refr_index_agenda", "atmosphere_dim", "p_grid", "lat_grid", 
-               "lon_grid", "r_geoid", "z_field", "t_field", "vmr_field" ),
+            "lon_grid", "r_geoid", "z_field", "t_field", "vmr_field" ),
         GIN(      "gin1"      , "gin2"      , "gin3"        ),
-        GIN_TYPE(    "Vector", "Vector", "Vector"  ),
+        GIN_TYPE(    "Vector", "Vector", "Vector" ),
         GIN_DEFAULT( NODEF   , NODEF   , NODEF     ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("refr_indexIR"),
+      ( NAME( "refr_indexIR" ),
         DESCRIPTION
         (
          "Calculates the IR refractive index due to gases in the\n"
-         "Earth's atmosphere. \n"
+         "Earth's atmosphere.\n"
          "\n"
          "Only refractivity of dry air is considered. The formula used is\n"
          "contributed by Michael Hoefner,bForschungszentrum Karlsruhe.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT( "refr_index" ),
         GOUT(),
@@ -6234,23 +6157,23 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("refr_indexThayer"),
+      ( NAME( "refr_indexThayer" ),
         DESCRIPTION
         (
          "Calculates the microwave refractive index due to gases in the\n"
-         "Earth's atmosphere. \n"
+         "Earth's atmosphere.\n"
          "\n"
          "The refractivity of dry air and water vapour is summed. All\n"
-         "other gases are assumed ti have a negligible contribution.  \n"
+         "other gases are assumed ti have a negligible contribution. \n"
          "\n"
          "The parameterisation of Thayer (Radio Science, 9, 803-807, 1974)\n"
-         "is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104, \n"
-         "pp. 9664). \n"
-        ),
+         "is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104,\n"
+         "pp. 9664).\n"
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "refr_index" ),
         GOUT(),
@@ -6261,11 +6184,11 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("refr_indexUnit"),
+      ( NAME( "refr_indexUnit" ),
         DESCRIPTION
         (
          "Sets the refractive index to 1.\n"
@@ -6276,7 +6199,7 @@ md_data_raw.push_back
          "As this function does not need any input, you have to include call\n"
          "of *Ignore* for all variables expected to be used by\n"
          "*refr_index_agenda*.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "refr_index" ),
         GOUT(),
@@ -6287,7 +6210,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6312,32 +6235,32 @@ md_data_raw.push_back
          "transfer equation is solved to the end point of the propagation\n"
          "path. Finally, the response of the sensor is applied.\n"
          "\n"
-         "Analytical jacobians for gas species and temperature can be \n"
+         "Analytical jacobians for gas species and temperature can be\n"
          "calcultaed along with the spectrum.\n"
          "\n"        
          "See further the user guide.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
-               "surface_prop_agenda", "iy_cloudbox_agenda",
-               "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
-               "t_field", "vmr_field", "abs_species", "r_geoid", "z_surface", 
-               "cloudbox_on", "cloudbox_limits", "sensor_response", 
-               "sensor_response_f", "sensor_response_pol", 
-               "sensor_response_za", "sensor_response_aa", 
-               "sensor_pos", "sensor_los", "f_grid", "stokes_dim", 
-               "antenna_dim", "mblock_za_grid", "mblock_aa_grid", 
-               "jacobian", "jacobian_quantities", "jacobian_indices",
-               "y_unit", "jacobian_unit" ),
+            "surface_prop_agenda", "iy_cloudbox_agenda",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
+            "t_field", "vmr_field", "abs_species", "r_geoid", "z_surface", 
+            "cloudbox_on", "cloudbox_limits", "sensor_response", 
+            "sensor_response_f", "sensor_response_pol", 
+            "sensor_response_za", "sensor_response_aa", 
+            "sensor_pos", "sensor_los", "f_grid", "stokes_dim", 
+            "antenna_dim", "mblock_za_grid", "mblock_aa_grid", 
+            "jacobian", "jacobian_quantities", "jacobian_indices",
+            "y_unit", "jacobian_unit" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6347,7 +6270,7 @@ md_data_raw.push_back
          "As *RteCalc* but using *MCGeneral* for doing monochromatic pencil\n"
          "beam calculations.\n"
          "\n"
-         "This functions allows Monte Carlo (MC) calculations for sets of \n"
+         "This functions allows Monte Carlo (MC) calculations for sets of\n"
          "frequencies and sensor pos/los in a single run. Sensor responses\n"
          "can be included in the standard manner (as in *RteCalc*).\n"
          "\n"
@@ -6366,27 +6289,27 @@ md_data_raw.push_back
          "MC control arguments (mc_std_err, mc_max_time, mc_max_iter and\n"
          "mc_z_field_is_1D) as for *MCGeneral*. The arguments are applied\n"
          "for each monochromatic pencil beam calculation individually.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "mc_error" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_space_agenda", "surface_prop_agenda", "opt_prop_gas_agenda",
-               "abs_scalar_gas_agenda", "atmosphere_dim",
-               "p_grid", "lat_grid", "lon_grid", "z_field", 
-               "t_field", "vmr_field", "r_geoid", "z_surface", 
-               "cloudbox_on", "cloudbox_limits", "pnd_field", "scat_data_raw",
-               "sensor_response", "sensor_response_f", "sensor_response_pol", 
-               "sensor_response_za", "sensor_response_aa", 
-               "sensor_pos", "sensor_los", "f_grid", "stokes_dim", 
-               "antenna_dim", "mblock_za_grid", "mblock_aa_grid", "y_unit", 
-               "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
+            "abs_scalar_gas_agenda", "atmosphere_dim",
+            "p_grid", "lat_grid", "lon_grid", "z_field", 
+            "t_field", "vmr_field", "r_geoid", "z_surface", 
+            "cloudbox_on", "cloudbox_limits", "pnd_field", "scat_data_raw",
+            "sensor_response", "sensor_response_f", "sensor_response_pol", 
+            "sensor_response_za", "sensor_response_aa", 
+            "sensor_pos", "sensor_los", "f_grid", "stokes_dim", 
+            "antenna_dim", "mblock_za_grid", "mblock_aa_grid", "y_unit", 
+            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6394,26 +6317,26 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "As *RteCalc* but throughout ignores jacobians.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
-               "surface_prop_agenda", "iy_cloudbox_agenda",
-               "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
-               "t_field", "vmr_field", "r_geoid", "z_surface", 
-               "cloudbox_on", "cloudbox_limits", "sensor_response", 
-               "sensor_response_f", "sensor_response_pol", 
-               "sensor_response_za", "sensor_response_aa", 
-               "sensor_pos", "sensor_los", "f_grid", "stokes_dim", 
-               "antenna_dim", "mblock_za_grid", "mblock_aa_grid", "y_unit" ),
+            "surface_prop_agenda", "iy_cloudbox_agenda",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
+            "t_field", "vmr_field", "r_geoid", "z_surface", 
+            "cloudbox_on", "cloudbox_limits", "sensor_response", 
+            "sensor_response_f", "sensor_response_pol", 
+            "sensor_response_za", "sensor_response_aa", 
+            "sensor_pos", "sensor_los", "f_grid", "stokes_dim", 
+            "antenna_dim", "mblock_za_grid", "mblock_aa_grid", "y_unit" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6426,26 +6349,26 @@ md_data_raw.push_back
          "a given propagation path. Designed to be part of *rte_agenda*.\n"
          "\n"
          "The overall strategy is to average basic atmospheric quantities\n"
-         "(such as temperature) between the end points of each step of \n"
+         "(such as temperature) between the end points of each step of\n"
          "the propagation path, and to calculate source term and absorption\n"
          "for these averaged values.\n" 
          "\n"
          "See further the user guide.\n"
-        ),
+         ),
         AUTHORS( "Claudia Emde", "Patrick Eriksson" ),
         OUT( "iy", "diy_dvmr", "diy_dt" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy", "diy_dvmr", "diy_dt", "ppath", "ppath_array",
-               "ppath_array_index", "f_grid", "stokes_dim", "emission_agenda",
-               "abs_scalar_gas_agenda", "rte_do_vmr_jacs",
-               "rte_do_t_jacs" ),
+            "ppath_array_index", "f_grid", "stokes_dim", "emission_agenda",
+            "abs_scalar_gas_agenda", "rte_do_vmr_jacs",
+            "rte_do_t_jacs" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6456,21 +6379,21 @@ md_data_raw.push_back
          "\n"
          "The transmission to each point of the propagation path is returned\n"
          "in *ppath_transmissions*.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "ppath_transmissions", "diy_dvmr", "diy_dt" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy", "diy_dvmr", "diy_dt", "ppath", "ppath_array",
-               "ppath_array_index", "f_grid", "stokes_dim",
-               "emission_agenda", "abs_scalar_gas_agenda",
-               "rte_do_vmr_jacs", "rte_do_t_jacs" ),
+            "ppath_array_index", "f_grid", "stokes_dim",
+            "emission_agenda", "abs_scalar_gas_agenda",
+            "rte_do_vmr_jacs", "rte_do_t_jacs" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6484,10 +6407,10 @@ md_data_raw.push_back
          "set to 1D or 2D, the length of *rte_los* is set to 1 and only the\n"
          "given zenith angle is considered.\n"
          "\n"
-         "Keywords: \n"
+         "Keywords:\n"
          "   za : Zenith angle of sensor line-of-sight.\n"
          "   aa : Azimuth angle of sensor line-of-sight.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "rte_los" ),
         GOUT(),
@@ -6497,9 +6420,9 @@ md_data_raw.push_back
         GIN( "za",      "aa"      ),
         GIN_TYPE(    "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6509,18 +6432,18 @@ md_data_raw.push_back
          "Adds a geoid radius according to WGS-84 to a geometric altitude.\n"
          "\n"
          "This function assumes that the first element of *rte_pos* is set\n"
-         "to the geometric altitude for the position of the sensor. \n"
+         "to the geometric altitude for the position of the sensor.\n"
          "The variable *rte_pos* shall contain the radius instead of the\n"
          "altitude and that can be achieved by this function. The function\n"
          "adds a geoid radius to the given altitude. The geoid radius is\n"
          "taken from the WGS-84 reference ellipsoid.\n"
          "\n"
          "For 1D, the geoid radius is set to the radius of curvature of the\n"
-         "WGS-84 ellipsoid for the position and observation direction \n"
+         "WGS-84 ellipsoid for the position and observation direction\n"
          "described with *lat_1d* and *meridian_angle_1d*.\n"
          "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
          "ellipsoid for the latitude value in *rte_pos*.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "rte_pos" ),
         GOUT(),
@@ -6531,7 +6454,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6541,13 +6464,13 @@ md_data_raw.push_back
          "Adds a geoid radius by interpolating *r_geoid*.\n"
          "\n"
          "This function assumes that the first element of *rte_pos* is set\n"
-         "to the geometric altitude for the position of the sensor. \n"
+         "to the geometric altitude for the position of the sensor.\n"
          "The variable *rte_pos* shall contain the radius instead of the\n"
          "altitude and that can be achieved by this function. The function\n"
          "adds a geoid radius to the given altitude. The geoid radius is\n"
          "obtained by interpolation of *r_geoid*. There is an error if the\n"
          "given position is outside the latitude and longitude grids.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "rte_pos" ),
         GOUT(),
@@ -6558,7 +6481,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6577,11 +6500,11 @@ md_data_raw.push_back
          "*rte_posAddGeoidWGS84* could be called to obtain a radius as\n"
          "first element of *rte_pos*.\n"
          "\n"
-         "Keywords: \n"
+         "Keywords:\n"
          "   r_or_z : Radius or geometrical altitude of sensor position.\n"
          "   lat : Latitude of sensor position.\n"
          "   lon : Longitude of sensor position.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "rte_pos" ),
         GOUT(),
@@ -6591,10 +6514,10 @@ md_data_raw.push_back
         GIN( "r_or_z",  "lat",     "lon"     ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF,     NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6602,7 +6525,7 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Shifts rte_pos and rte_los, and rte_gp_XXX to the end of ppath.\n"
-        ),
+         ),
         AUTHORS( "Cory Davis" ),
         OUT( "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", "rte_gp_lon" ),
         GOUT(),
@@ -6613,7 +6536,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6626,19 +6549,19 @@ md_data_raw.push_back
          "and rte_pos to the apropriate position on the edge of the modelled\n"
          "atmosphere\n\n"
          "This function is a work in progress. Only 1D is currently supported\n"
-        ),
+         ),
         AUTHORS( "Cory Davis" ),
         OUT( "rte_pos", "rte_los", "ppath" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "p_grid", "z_field", "lat_grid", "lon_grid",
-               "ppath_step_agenda", "r_geoid", "z_surface" ),
+            "ppath_step_agenda", "r_geoid", "z_surface" ),
         GIN( "tan_p" ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6653,7 +6576,7 @@ md_data_raw.push_back
          "\n"
          "Keywords:\n"
          "   r : Radius of geoid sphere. See further above.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "r_geoid" ),
         GOUT(),
@@ -6663,8 +6586,8 @@ md_data_raw.push_back
         GIN( "r" ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6674,7 +6597,7 @@ md_data_raw.push_back
          "Sets the geoid radius to match the WGS-84 reference ellipsoid.\n"
          "\n"
          "For 1D, the geoid radius is set to the radius of curvature of the\n"
-         "WGS-84 ellipsoid for the position and observation direction \n"
+         "WGS-84 ellipsoid for the position and observation direction\n"
          "described with *lat_1d* and *meridian_angle_1d*.\n"
          "For 2D and 3D, *r_geoid* is set to the radius of the WGS-84\n"
          "ellipsoid for the crossing points of the latitude and longitude\n"
@@ -6683,94 +6606,118 @@ md_data_raw.push_back
          "Please note that the latitude grid must contain true latitudes\n"
          "if the function shall give correct result, and not just arbitrary\n"
          "orbit angles which is allowed for 2D cases.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "r_geoid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "lat_grid", "lon_grid", "lat_1d",
-               "meridian_angle_1d" ),
+            "meridian_angle_1d" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ScatteringDisort" ),
+        DESCRIPTION
+        (
+         "Calls DISORT RT solver from ARTS.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", 
+             "f_index", "scat_data_mono", "doit_i_field1D_spectrum" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "cloudbox_limits", "stokes_dim", "opt_prop_part_agenda", 
+            "abs_scalar_gas_agenda", "spt_calc_agenda", 
+            "pnd_field", "t_field", 
+            "z_field", "p_grid", "vmr_field", "scat_data_raw", "f_grid", 
+            "scat_za_grid", "surface_emissivity_DISORT" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "ScatteringDoit" ),
         DESCRIPTION
         (
-         "This method executes *doit_mono_agenda* for each frequency \n"
+         "This method executes *doit_mono_agenda* for each frequency\n"
          "in *f_grid*. The output is the radiation field inside the cloudbox\n"
-         "(*doit_i_field*) and on the cloudbox boundary (*scat_i_p* (1D), \n"
+         "(*doit_i_field*) and on the cloudbox boundary (*scat_i_p* (1D),\n"
          "*scat_i_lat* and *scat_i_lon* (3D)).\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_i_field", "scat_i_p", "scat_i_lat", "scat_i_lon",
-                "doit_i_field1D_spectrum" ),
+             "doit_i_field1D_spectrum" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "scat_i_p", "scat_i_lat", "scat_i_lon",
-               "doit_mono_agenda", "doit_is_initialized" ),
+            "doit_mono_agenda", "doit_is_initialized" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
  
   /* Has been found to not work. Probably caused by changes in agenda 
      functionality.
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ScatteringMonteCarlo" ),
-        DESCRIPTION
-        (
-         "This method performs a single pencil beam monochromatic scattering\n"
-         "calculation using a Monte Carlo algorithm \n"
-         "\n"
-         "The main output variables *iy* and *mc_error* represent the \n"
-         "Stokes vector leaving the cloudbox, and the estimated error in the \n"
-         "Stokes vector (at the sensor!- not the cloudbox exit) respectively.\n"
-         "The keyword parameter `maxiter\' describes the number of `photons\'\n"
-         "used in the simulation (more photons means smaller *mc_error*).\n"
-         "std_err is the desired value of mc_error, and max_time is the maximum\n"
-         "allowed number of seconds for ScatteringMonteCarlo.  ScatteringMonteCarlo\n"
-         "will terminate once any of the max_iter, std_err, max_time criteria are\n"
-         "met.  If negative values are given for these parameters then it is ignored.\n"
-         " Negative values of rng_seed seed the random number generator \n "
-         "according to system time, positive rng_seed values are taken literally.\n"
-         "The incoming_lookup keyword determines if incoming radiance is obtained from\n"
-         "a precalculated grid (mc_incoming) or calculated on the fly\n"
-          ),
-        AUTHORS( "Cory Davis" ),
-        OUT( "ppath", "ppath_step", 
-                "mc_error", "mc_iteration_count", "rte_pos", "rte_los", "iy", 
-                "rte_pressure", "rte_temperature", 
-                "rte_vmr_list", "ext_mat", "abs_vec" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "ppath", "rte_pos", "rte_los", "ppath_step_agenda", "atmosphere_dim",
-               "p_grid", "lat_grid", "lon_grid", "z_field", "r_geoid", "z_surface",
-               "cloudbox_limits", "stokes_dim", "rte_agenda", "iy_space_agenda",
-               "surface_prop_agenda", "t_field", "f_grid", "opt_prop_gas_agenda",
-               "abs_scalar_gas_agenda", "vmr_field",
-               "scat_data_mono", "pnd_field", "mc_seed", "f_index" , "mc_incoming"),
-        GIN( "std_err", "max_time", "max_iter", "incoming_lookup",
-                  "z_field_is_1D"),
-        GIN_TYPE(    "Numeric", "Index",    "Index",    "Index",
-                  "Index" ),
-        GIN_DEFAULT( NODEF,     NODEF,      NODEF,      NODEF,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-                  ));
+     md_data_raw.push_back
+     ( MdRecord
+     ( NAME( "ScatteringMonteCarlo" ),
+     DESCRIPTION
+     (
+     "This method performs a single pencil beam monochromatic scattering\n"
+     "calculation using a Monte Carlo algorithm\n"
+     "\n"
+     "The main output variables *iy* and *mc_error* represent the\n"
+     "Stokes vector leaving the cloudbox, and the estimated error in the\n"
+     "Stokes vector (at the sensor!- not the cloudbox exit) respectively.\n"
+     "The keyword parameter `maxiter\' describes the number of `photons\'\n"
+     "used in the simulation (more photons means smaller *mc_error*).\n"
+     "std_err is the desired value of mc_error, and max_time is the maximum\n"
+     "allowed number of seconds for ScatteringMonteCarlo. ScatteringMonteCarlo\n"
+     "will terminate once any of the max_iter, std_err, max_time criteria are\n"
+     "met. If negative values are given for these parameters then it is ignored.\n"
+     " Negative values of rng_seed seed the random number generator \n "
+     "according to system time, positive rng_seed values are taken literally.\n"
+     "The incoming_lookup keyword determines if incoming radiance is obtained from\n"
+     "a precalculated grid (mc_incoming) or calculated on the fly\n"
+     ),
+     AUTHORS( "Cory Davis" ),
+     OUT( "ppath", "ppath_step", 
+     "mc_error", "mc_iteration_count", "rte_pos", "rte_los", "iy", 
+     "rte_pressure", "rte_temperature", 
+     "rte_vmr_list", "ext_mat", "abs_vec" ),
+     GOUT(),
+     GOUT_TYPE(),
+     GOUT_DESC(),
+     IN( "ppath", "rte_pos", "rte_los", "ppath_step_agenda", "atmosphere_dim",
+     "p_grid", "lat_grid", "lon_grid", "z_field", "r_geoid", "z_surface",
+     "cloudbox_limits", "stokes_dim", "rte_agenda", "iy_space_agenda",
+     "surface_prop_agenda", "t_field", "f_grid", "opt_prop_gas_agenda",
+     "abs_scalar_gas_agenda", "vmr_field",
+     "scat_data_mono", "pnd_field", "mc_seed", "f_index" , "mc_incoming" ),
+     GIN( "std_err", "max_time", "max_iter", "incoming_lookup",
+     "z_field_is_1D" ),
+     GIN_TYPE(    "Numeric", "Index",    "Index",    "Index",
+     "Index" ),
+     GIN_DEFAULT( NODEF,     NODEF,      NODEF,      NODEF,
+     NODEF ),
+     GIN_DESC( "FIXME DOC",
+     "FIXME DOC",
+     "FIXME DOC",
+     "FIXME DOC",
+     "FIXME DOC" )
+     ));
   */
 
   md_data_raw.push_back
@@ -6790,7 +6737,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6798,12 +6745,12 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Method for checking the consistency of the optical properties\n"
-         "in the database. \n"
+         "in the database.\n"
          "\n"
-         "This function can be used to check datafiles containing data for \n"
+         "This function can be used to check datafiles containing data for\n"
          "randomly oriented scattering media.\n"
-         "It is checked whether the data is consistent. The integral over \n"
-         "the phase matrix should result the scattering cross section \n"
+         "It is checked whether the data is consistent. The integral over\n"
+         "the phase matrix should result the scattering cross section\n"
          "<C_sca>.\n"
          "\n"
          "The check is if:\n"
@@ -6821,9 +6768,9 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
-   md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "Select" ),
         DESCRIPTION
@@ -6847,19 +6794,19 @@ md_data_raw.push_back
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT( "needles" ),
-        GOUT_TYPE( ARRAY_GROUPS + ", Vector, Matrix"),
-        GOUT_DESC("Same object type as haystack, but only selected elements in first dimension."),
+        GOUT_TYPE( ARRAY_GROUPS + ", Vector, Matrix" ),
+        GOUT_DESC( "Same object type as haystack, but only selected elements in first dimension." ),
         IN(),
-        GIN( "haystack", "needleindexes"),
+        GIN( "haystack", "needleindexes" ),
         GIN_TYPE(  ARRAY_GROUPS + ", Vector, Matrix",
-                  "ArrayOfIndex" ),
+                   "ArrayOfIndex" ),
         GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC("The object to select from. May be the same variable as needles.",
-                 "The elements to select (zero based indexing, as always.)"),
+        GIN_DESC( "The object to select from. May be the same variable as needles.",
+                  "The elements to select (zero based indexing, as always.)" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
-      ));
+        ));
  
   md_data_raw.push_back
     ( MdRecord
@@ -6877,7 +6824,7 @@ md_data_raw.push_back
          "   sensor_response_pol     : As returned by *sensor_responseInit*.\n"
          "   sensor_response_za      : As returned by *sensor_responseInit*.\n"
          "   sensor_response_aa      : As returned by *sensor_responseInit*.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", 
              "sensor_response_pol", "sensor_response_za",
@@ -6893,7 +6840,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6903,18 +6850,18 @@ md_data_raw.push_back
          "Adds a geoid radius according to WGS-84 to a geometric altitude.\n"
          "\n"
          "This function assumes that the first element of *sensor_pos* is\n"
-         "set to the geometric altitude for the positions of the sensor. \n"
+         "set to the geometric altitude for the positions of the sensor.\n"
          "The variable *sensor_pos* shall contain the radius instead of the\n"
          "altitude and that can be achieved by this function. The function\n"
          "adds a geoid radius to the given altitude. The geoid radius is\n"
          "taken from the WGS-84 reference ellipsoid.\n"
          "\n"
          "For 1D, the geoid radius is set to the radius of curvature of the\n"
-         "WGS-84 ellipsoid for the position and observation direction \n"
+         "WGS-84 ellipsoid for the position and observation direction\n"
          "described with *lat_1d* and *meridian_angle_1d*.\n"
          "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
          "ellipsoid for the latitude values in *sensor_pos*.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_pos" ),
         GOUT(),
@@ -6925,7 +6872,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -6935,13 +6882,13 @@ md_data_raw.push_back
          "Adds a geoid radius by interpolating *r_geoid*.\n"
          "\n"
          "This function assumes that the first element of *rte_pos* is set\n"
-         "to the geometric altitude for the position of the sensor. \n"
+         "to the geometric altitude for the position of the sensor.\n"
          "The variable *rte_pos* shall contain the radius instead of the\n"
          "altitude and that can be achieved by this function. The function\n"
          "adds a geoid radius to the given altitude. The geoid radius is\n"
          "obtained by interpolation of *r_geoid*. There is an error if the\n"
          "given position is outside the latitude and longitude grids.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_pos" ),
         GOUT(),
@@ -6952,11 +6899,11 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("sensor_responseAntenna"),
+      ( NAME( "sensor_responseAntenna" ),
         DESCRIPTION
         (
          "Adds response of the antenna.\n"
@@ -6969,11 +6916,11 @@ md_data_raw.push_back
          "\n"         
          "See *antenna_dim*, *antenna_los* and *antenna_response* for\n"
          "details on how to specify the antenna response.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-                "sensor_response_za", "sensor_response_aa", 
-                "sensor_response_za_grid", "sensor_response_aa_grid" ),
+             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_za_grid", "sensor_response_aa_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -6986,11 +6933,11 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("sensor_responseBackend"),
+      ( NAME( "sensor_responseBackend" ),
         DESCRIPTION
         (
          "Adds response of the backend (spectrometer).\n"
@@ -7000,24 +6947,24 @@ md_data_raw.push_back
          "\n"
          "See *f_backend*, *backend_channel_response* and *sensor_norm* for\n"
          "details on how to specify the backend response.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-                "sensor_response_za", "sensor_response_aa", 
-                "sensor_response_f_grid" ),
+             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_f_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-               "sensor_response_za", "sensor_response_aa", 
-               "sensor_response_f_grid", "sensor_response_pol_grid", 
-               "sensor_response_za_grid", "sensor_response_aa_grid",
-               "f_backend", "backend_channel_response", "sensor_norm" ),
+            "sensor_response_za", "sensor_response_aa", 
+            "sensor_response_f_grid", "sensor_response_pol_grid", 
+            "sensor_response_za_grid", "sensor_response_aa_grid",
+            "f_backend", "backend_channel_response", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7033,7 +6980,7 @@ md_data_raw.push_back
          "The returned spectrum is y = w1*y + w2*y2, where y1 and w1 are the\n"
          "spectrum and weight for the first direction, respectively (y2 and\n"
          "(w2 defined corresponingly for second direction).\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
              "sensor_response_za", "sensor_response_aa", 
@@ -7050,11 +6997,11 @@ md_data_raw.push_back
         GIN_DEFAULT( "-1", "1" ),
         GIN_DESC( "Weight for values from first viewing direction.", 
                   "Weight for values from second viewing direction." )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("sensor_responseIF2RF"),
+      ( NAME( "sensor_responseIF2RF" ),
         DESCRIPTION
         (
          "Converts sensor response variables from IF to RF.\n"
@@ -7074,16 +7021,16 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response_f", "sensor_response_f_grid", 
-               "lo", "sideband_mode" ),
+            "lo", "sideband_mode" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("sensor_responseInit"),
+      ( NAME( "sensor_responseInit" ),
         DESCRIPTION
         (
          "Initialises the variables summarising the sensor response.\n"
@@ -7115,26 +7062,26 @@ md_data_raw.push_back
          "   sensor_responseBackend\n"
          "It is not necessary to include a method for all sensor responses.\n"
          "There exist several method versions for some responses.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol", 
-                "sensor_response_za", "sensor_response_aa", 
-                "sensor_response_f_grid", "sensor_response_pol_grid",
-                "sensor_response_za_grid", "sensor_response_aa_grid" ),
+             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_f_grid", "sensor_response_pol_grid",
+             "sensor_response_za_grid", "sensor_response_aa_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "f_grid", "mblock_za_grid", "mblock_aa_grid", "antenna_dim",
-               "atmosphere_dim", "stokes_dim", "sensor_norm" ),
+            "atmosphere_dim", "stokes_dim", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("sensor_responseMixer"),
+      ( NAME( "sensor_responseMixer" ),
         DESCRIPTION
         (
          "Adds response of the mixer of a heterodyne system.\n"
@@ -7145,27 +7092,27 @@ md_data_raw.push_back
          "\n"
          "See *lo* and *sideband_response* for details on how to specify the\n"
          "mixer response\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-                "sensor_response_za", "sensor_response_aa", 
-                "sensor_response_f_grid" ),
+             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_f_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-               "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
-               "sensor_response_pol_grid", "sensor_response_za_grid",
-               "sensor_response_aa_grid", "lo", "sideband_response", "sensor_norm" ),
+            "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
+            "sensor_response_pol_grid", "sensor_response_za_grid",
+            "sensor_response_aa_grid", "lo", "sideband_response", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("sensor_responseMultiMixerBackend"),
+      ( NAME( "sensor_responseMultiMixerBackend" ),
         DESCRIPTION
         (
          "Handles mixer and backend parts for an instrument having multiple\n"
@@ -7180,78 +7127,78 @@ md_data_raw.push_back
          "(vector or array) length. As *sensor_responseIF2RF* is called,\n"
          "*f_backend_multi* must hold RF (not IF) and output frequencies\n"
          "will be in absolute frequency (RF).\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
-                "sensor_response_za", "sensor_response_aa", 
-                "sensor_response_f_grid" ),
+             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_f_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-               "sensor_response_za", "sensor_response_aa", 
-               "sensor_response_f_grid", "sensor_response_pol_grid", 
-               "sensor_response_za_grid", "sensor_response_aa_grid",
-               "lo_multi", "sideband_response_multi", 
-               "sideband_mode_multi", "f_backend_multi",
-               "backend_channel_response_multi", "sensor_norm" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-      ));
-  
-  /* Not yet updated
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("sensor_responsePolarisation"),
-        DESCRIPTION
-        (
-         "Adds polarisation to the response matrix.\n"
-         "\n"
-         "The output polarisations are given by matrix *sensor_pol*.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUT( "sensor_response", "sensor_response_pol" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "sensor_pol", "sensor_response_za", "sensor_response_aa",
-               "sensor_response_f", "stokes_dim"),
+            "sensor_response_za", "sensor_response_aa", 
+            "sensor_response_f_grid", "sensor_response_pol_grid", 
+            "sensor_response_za_grid", "sensor_response_aa_grid",
+            "lo_multi", "sideband_response_multi", 
+            "sideband_mode_multi", "f_backend_multi",
+            "backend_channel_response_multi", "sensor_norm" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+  
+  /* Not yet updated
+     md_data_raw.push_back
+     ( MdRecord
+     ( NAME( "sensor_responsePolarisation" ),
+     DESCRIPTION
+     (
+     "Adds polarisation to the response matrix.\n"
+     "\n"
+     "The output polarisations are given by matrix *sensor_pol*.\n"
+     ),
+     AUTHORS( "Mattias Ekstrom" ),
+     OUT( "sensor_response", "sensor_response_pol" ),
+     GOUT(),
+     GOUT_TYPE(),
+     GOUT_DESC(),
+     IN( "sensor_pol", "sensor_response_za", "sensor_response_aa",
+     "sensor_response_f", "stokes_dim" ),
+     GIN(),
+     GIN_TYPE(),
+     GIN_DEFAULT(),
+     GIN_DESC()
+     ));
   */
 
   /* Not yet updated
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("sensor_responseRotation"),
-        DESCRIPTION
-        (
-         "Adds rotation to the response matrix.\n"
-         "\n"
-         "The rotations are given by *sensor_rot* combined with *antenna_los*.\n"
-         "The rotations are performed within each measurement block for the\n"
-         "individual antennae.\n"
-         "\n"
-         "If used this method has to be run after the antenna response\n"
-         "function and prior to sensor_responsePolarisation.\n"
-        ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUT( "sensor_response" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "sensor_rot", "antenna_los", "antenna_dim", "stokes_dim",
-               "sensor_response_f", "sensor_response_za"),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
+     md_data_raw.push_back
+     ( MdRecord
+     ( NAME( "sensor_responseRotation" ),
+     DESCRIPTION
+     (
+     "Adds rotation to the response matrix.\n"
+     "\n"
+     "The rotations are given by *sensor_rot* combined with *antenna_los*.\n"
+     "The rotations are performed within each measurement block for the\n"
+     "individual antennae.\n"
+     "\n"
+     "If used this method has to be run after the antenna response\n"
+     "function and prior to sensor_responsePolarisation.\n"
+     ),
+     AUTHORS( "Mattias Ekstrom" ),
+     OUT( "sensor_response" ),
+     GOUT(),
+     GOUT_TYPE(),
+     GOUT_DESC(),
+     IN( "sensor_rot", "antenna_los", "antenna_dim", "stokes_dim",
+     "sensor_response_f", "sensor_response_za" ),
+     GIN(),
+     GIN_TYPE(),
+     GIN_DEFAULT(),
+     GIN_DESC()
+     ));
   */
 
   md_data_raw.push_back
@@ -7263,20 +7210,20 @@ md_data_raw.push_back
          "\n"
          "If the variable already exists, it'll be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   Sparse: New empty Sparse matrix.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Sparse" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7287,40 +7234,40 @@ md_data_raw.push_back
          "\n"
          "If the variable already exists, it'll be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   String: New empty String.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "String" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("StringSet"),
+      ( NAME( "StringSet" ),
         DESCRIPTION
         (
          "Sets a String to the given text string.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "String" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN( "text"   ),
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD( true )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7333,7 +7280,7 @@ md_data_raw.push_back
          "*surface_emission* for *surfaceCalc*. In this case, *surface_los*\n"
          "and *surface_rmatrix* are set to be empty, and *surface_emission*\n"
          "to hold blackbody radiation for a temperature of *surface_skin_t*.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
@@ -7344,7 +7291,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7355,14 +7302,14 @@ md_data_raw.push_back
          "where the refracive index is specified.\n"
          "\n"
          "The dielectric properties of the surface are described by\n"
-         "*complex_n*. The Fresnel eqiuations are used to calculate \n"
+         "*complex_n*. The Fresnel eqiuations are used to calculate\n"
          "amplitude reflection coefficients. The method can thus result\n"
          "in that the reflection properties differ between frequencies\n"
          "and polarizations.\n"
          "\n"
          "Local thermodynamic equilibrium is assumed, which corresponds to\n"
          "that the reflection and emission coefficients add up to 1.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
@@ -7374,7 +7321,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7389,7 +7336,7 @@ md_data_raw.push_back
          "\n"
          "Generic output and input:\n"
          "  surface_emissivity : The emissivity, a value between 0 and 1.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
@@ -7400,8 +7347,8 @@ md_data_raw.push_back
         GIN( "surface_emissivity" ),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7421,7 +7368,7 @@ md_data_raw.push_back
          "Generic output and input:\n"
          "  surface_emissivity : The emissivity, for each frequency in\n"
          "                       *f_grid*. Values between 0 and 1.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
         GOUT(),
@@ -7432,8 +7379,8 @@ md_data_raw.push_back
         GIN( "surface_emissivity" ),
         GIN_TYPE( "Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7444,125 +7391,125 @@ md_data_raw.push_back
          "\n"
          "If the variable already exists, it'll be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   Tensor3: New empty Tensor3.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor3" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor3FillWithVector"),
+      ( NAME( "Tensor3FillWithVector" ),
         DESCRIPTION
         (
          "Forms a tensor of order 3 by repeating a vector.\n"
          "\n"
          "The direction of the vector inside the tensor is selected by\n"
-         "setting the size determined by the vector length to 0. For \n"
+         "setting the size determined by the vector length to 0. For\n"
          "example, if the keyword *ncols* is set to 0, the vector will be\n"
-         "put in as rows on every page. The remaining sizes are taken from \n"
-         "the keyword arguments. \n"
+         "put in as rows on every page. The remaining sizes are taken from\n"
+         "the keyword arguments.\n"
          "\n"
          "One, but only one, keyword argument must be 0.\n"
          "\n"
-         "Generic output: \n"
-         "   Tensor3 : The tensor to be created. \n"
+         "Generic output:\n"
+         "   Tensor3 : The tensor to be created.\n"
          "\n"
-         "Generic input: \n"
-         "   Vector : The vector to be copied. \n"
-         "Keyword: \n"
+         "Generic input:\n"
+         "   Vector : The vector to be copied.\n"
+         "Keyword:\n"
          "   npages : Number of pages in the tensor.\n"
          "   nrows  : Number of rows in the tensor.\n"
          "   ncols  : Number of columns in the tensor.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor3" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"      ,
                   "npages", "nrows", "ncols"   ),
         GIN_TYPE(    "Vector",
                      "Index",  "Index", "Index" ),
         GIN_DEFAULT( NODEF   ,
-                  NODEF,    NODEF,   NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+                     NODEF,    NODEF,   NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor3Scale"),
+      ( NAME( "Tensor3Scale" ),
         DESCRIPTION
         (
-         "Scales a workspace tensor3 with the specified value. \n"
+         "Scales a workspace tensor3 with the specified value.\n"
          "\n"
          "The result can either be stored in the input tensor3 or\n"
          "in a new tensor3.\n"
          "\n"
-         "Generic output: \n"
-         "   Tensor3 : The scaled tensor3. \n"
+         "Generic output:\n"
+         "   Tensor3 : The scaled tensor3.\n"
          "\n"
-         "Generic input: \n"
+         "Generic input:\n"
          "   Tensor3 : The tensor3 to be scaled.\n"
          "\n"
          "Keywords:\n"
          "   value  : The scale factor.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor3" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"       ,
                   "value"   ),
         GIN_TYPE(    "Tensor3",
-                  "Numeric" ),
+                     "Numeric" ),
         GIN_DEFAULT( NODEF    ,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+                     NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor3SetConstant"),
+      ( NAME( "Tensor3SetConstant" ),
         DESCRIPTION
         (
-         "Creates a workspace tensor3 and sets all elements of the \n"
-         "tensor3 to the specified value. The size is determined by \n"
-         "the variables *ncols*, *nrows*, and *npages* \n"
+         "Creates a workspace tensor3 and sets all elements of the\n"
+         "tensor3 to the specified value. The size is determined by\n"
+         "the variables *ncols*, *nrows*, and *npages*\n"
          "\n"
-         "Generic output: \n"
-         "   Tensor3 : The tensor3 to be created. \n"
+         "Generic output:\n"
+         "   Tensor3 : The tensor3 to be created.\n"
          "\n"
          "Keywords:\n"
          "   value  : The value of the tensor3 elements.\n"
-        ),
+         ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor3" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "npages", "nrows", "ncols" ),
         GIN( "value"   ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7573,82 +7520,82 @@ md_data_raw.push_back
          "\n"
          "If the variable already exists, it'll be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   Tensor4: New empty Tensor4.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor4Scale"),
+      ( NAME( "Tensor4Scale" ),
         DESCRIPTION
         (
-         "Scales a workspace tensor4 with the specified value. \n"
+         "Scales a workspace tensor4 with the specified value.\n"
          "\n"
          "The result can either be stored in the input tensor4 or\n"
          "in a new tensor4.\n"
          "\n"
-         "Generic output: \n"
-         "   Tensor4 : The scaled tensor4. \n"
+         "Generic output:\n"
+         "   Tensor4 : The scaled tensor4.\n"
          "\n"
-         "Generic input: \n"
+         "Generic input:\n"
          "   Tensor4 : The tensor4 to be scaled.\n"
          "\n"
          "Keywords:\n"
          "   value  : The scale factor.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"       ,
                   "value"   ),
         GIN_TYPE(    "Tensor4",
-                  "Numeric" ),
+                     "Numeric" ),
         GIN_DEFAULT( NODEF    ,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+                     NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor4SetConstant"),
+      ( NAME( "Tensor4SetConstant" ),
         DESCRIPTION
         (
-         "Creates a workspace tensor4 and sets all elements of the \n"
-         "tensor4 to the specified value. The size is determined by \n"
-         "the variables *ncols*, *nrows*, *npages*, and *nbooks*. \n"
+         "Creates a workspace tensor4 and sets all elements of the\n"
+         "tensor4 to the specified value. The size is determined by\n"
+         "the variables *ncols*, *nrows*, *npages*, and *nbooks*.\n"
          "\n"
-         "Generic output: \n"
-         "   Tensor4 : The tensor4 to be created. \n"
+         "Generic output:\n"
+         "   Tensor4 : The tensor4 to be created.\n"
          "\n"
          "Keywords:\n"
          "   value  : The value of the tensor4 elements.\n"
-        ),
+         ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "nbooks", "npages", "nrows", "ncols" ),
         GIN( "value"   ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7659,82 +7606,82 @@ md_data_raw.push_back
          "\n"
          "If the variable already exists, it'll be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   Tensor5: New empty Tensor5.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor5" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor5Scale"),
+      ( NAME( "Tensor5Scale" ),
         DESCRIPTION
         (
-         "Scales a workspace tensor5 with the specified value. \n"
+         "Scales a workspace tensor5 with the specified value.\n"
          "\n"
          "The result can either be stored in the input tensor5 or\n"
          "in a new tensor5.\n"
          "\n"
-         "Generic output: \n"
-         "   Tensor5 : The scaled tensor5. \n"
+         "Generic output:\n"
+         "   Tensor5 : The scaled tensor5.\n"
          "\n"
-         "Generic input: \n"
+         "Generic input:\n"
          "   Tensor5 : The tensor5 to be scaled.\n"
          "\n"
          "Keywords:\n"
          "   value  : The scale factor.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor5" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"       ,
                   "value"   ),
         GIN_TYPE(    "Tensor5",
                      "Numeric" ),
         GIN_DEFAULT( NODEF    ,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+                     NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor5SetConstant"),
+      ( NAME( "Tensor5SetConstant" ),
         DESCRIPTION
         (
-         "Creates a workspace tensor5 and sets all elements of the \n"
-         "tensor5 to the specified value. The size is determined by the \n"
-         "variables *ncols*, *nrows*, *npages*, *nbooks*, and *nshelves*. \n"
+         "Creates a workspace tensor5 and sets all elements of the\n"
+         "tensor5 to the specified value. The size is determined by the\n"
+         "variables *ncols*, *nrows*, *npages*, *nbooks*, and *nshelves*.\n"
          "\n"
-         "Generic output: \n"
-         "   Tensor5 : The tensor5 to be created. \n"
+         "Generic output:\n"
+         "   Tensor5 : The tensor5 to be created.\n"
          "\n"
          "Keywords:\n"
          "   value   : The value of the tensor5 elements.\n"
-        ),
+         ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor5" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "nshelves", "nbooks", "npages", "nrows", "ncols" ),
         GIN( "value" ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7745,109 +7692,109 @@ md_data_raw.push_back
          "\n"
          "If the variable already exists, it'll be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   Tensor6: New empty Tensor6.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor6" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor6Scale"),
+      ( NAME( "Tensor6Scale" ),
         DESCRIPTION
         (
-         "Scales a workspace tensor6 with the specified value. \n"
+         "Scales a workspace tensor6 with the specified value.\n"
          "\n"
          "The result can either be stored in the input tensor6 or\n"
          "in a new tensor6.\n"
          "\n"
-         "Generic output: \n"
-         "   Tensor6 : The scaled tensor6. \n"
+         "Generic output:\n"
+         "   Tensor6 : The scaled tensor6.\n"
          "\n"
-         "Generic input: \n"
+         "Generic input:\n"
          "   Tensor6 : The tensor6 to be scaled.\n"
          "\n"
          "Keywords:\n"
          "   value  : The scale factor.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor6" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"       ,
                   "value"   ),
         GIN_TYPE(    "Tensor6",
                      "Numeric" ),
         GIN_DEFAULT( NODEF    ,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+                     NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor6SetConstant"),
+      ( NAME( "Tensor6SetConstant" ),
         DESCRIPTION
         (
-         "Creates a workspace tensor6 and sets all elements of the \n"
-         "tensor6 to the specified value. The size is determined by the \n"
-         "variables *ncols*, *nrows*, *npages*, *nbooks*, *nshelves*, \n"
-         "and *nvitrines*. \n"
+         "Creates a workspace tensor6 and sets all elements of the\n"
+         "tensor6 to the specified value. The size is determined by the\n"
+         "variables *ncols*, *nrows*, *npages*, *nbooks*, *nshelves*,\n"
+         "and *nvitrines*.\n"
          "\n"
-         "Generic output: \n"
-         "   Tensor6 : The tensor6 to be created. \n"
+         "Generic output:\n"
+         "   Tensor6 : The tensor6 to be created.\n"
          "\n"
          "Keywords:\n"
          "   value     : The value of the tensor6 elements.\n"
-        ),
+         ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor6" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "nvitrines", "nshelves", "nbooks", "npages", "nrows", "ncols" ),
         GIN( "value" ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "Tensor6ToPlanckBT" ),
         DESCRIPTION
         (
-         "Converts a Tensor6 of radiances to brightness temperatures by \n"
-         "inverting the Planck function. \n"
+         "Converts a Tensor6 of radiances to brightness temperatures by\n"
+         "inverting the Planck function.\n"
          "\n"
-         "Generic output: \n"
-         "   Tensor6 : A Tensor6 with brightness temperature values. \n"
+         "Generic output:\n"
+         "   Tensor6 : A Tensor6 with brightness temperature values.\n"
          "\n"
-         "Generic input: \n"
-         "   Tenosr6 : A Tensor6 with radiance values. \n"
+         "Generic input:\n"
+         "   Tenosr6 : A Tensor6 with radiance values.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor6" ),
-        GOUT_DESC("FIXME DOC"),
-        IN("f_index", "f_grid"),
+        GOUT_DESC( "FIXME DOC" ),
+        IN( "f_index", "f_grid" ),
         GIN(      "gin1"        ),
         GIN_TYPE(    "Tensor6" ),
         GIN_DEFAULT( NODEF     ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -7858,97 +7805,97 @@ md_data_raw.push_back
          "\n"
          "If the variable already exists, it'll be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   Tensor7: New empty Tensor7.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor7" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor7Scale"),
+      ( NAME( "Tensor7Scale" ),
         DESCRIPTION
         (
-         "Scales a workspace tensor7 with the specified value. \n"
+         "Scales a workspace tensor7 with the specified value.\n"
          "\n"
          "The result can either be stored in the input tensor7 or\n"
          "in a new tensor7.\n"
          "\n"
-         "Generic output: \n"
-         "   Tensor7 : The scaled tensor7. \n"
+         "Generic output:\n"
+         "   Tensor7 : The scaled tensor7.\n"
          "\n"
-         "Generic input: \n"
+         "Generic input:\n"
          "   Tensor7 : The tensor7 to be scaled.\n"
          "\n"
          "Keywords:\n"
          "   value  : The scale factor.\n"
-        ),
+         ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor7" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"       ,
                   "value" ),
         GIN_TYPE(    "Tensor7",
-                  "Numeric" ),
+                     "Numeric" ),
         GIN_DEFAULT( NODEF    ,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+                     NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor7SetConstant"),
+      ( NAME( "Tensor7SetConstant" ),
         DESCRIPTION
         (
-         "Creates a workspace tensor7 and sets all elements of the \n"
-         "tensor7 to the specified value. The size is determined by the \n"
-         "variables *ncols*, *nrows*, *npages*, *nbooks*, *nshelves*, \n"
-         "*nvitrines*, and *nlibraries*. \n"
+         "Creates a workspace tensor7 and sets all elements of the\n"
+         "tensor7 to the specified value. The size is determined by the\n"
+         "variables *ncols*, *nrows*, *npages*, *nbooks*, *nshelves*,\n"
+         "*nvitrines*, and *nlibraries*.\n"
          "\n"
-         "Generic output: \n"
-         "   Tensor7 : The tensor7 to be created. \n"
+         "Generic output:\n"
+         "   Tensor7 : The tensor7 to be created.\n"
          "\n"
          "Keywords:\n"
          "   value      : The value of the tensor7 elements.\n"
-        ),
+         ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
         GOUT(      "gout1"        ),
         GOUT_TYPE( "Tensor7" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "nlibraries", "nvitrines", "nshelves", "nbooks", "npages", "nrows",
-               "ncols" ),
+            "ncols" ),
         GIN( "value" ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Test"),
+      ( NAME( "Test" ),
         DESCRIPTION
         (
          "A dummy method that can be used for test purposes.\n"
          "\n"
          "This method can be used by ARTS developers to quickly test stuff.\n"
-         "The implementation is in file m_general.cc. This just saves you the \n"
-         "trouble of adding a dummy method everytime you want to try \n"
+         "The implementation is in file m_general.cc. This just saves you the\n"
+         "trouble of adding a dummy method everytime you want to try\n"
          "something out quickly.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(),
@@ -7959,11 +7906,11 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("timerStart"),
+      ( NAME( "timerStart" ),
         DESCRIPTION
         (
          "Initializes the CPU timer."
@@ -7988,12 +7935,12 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("timerStop"),
+      ( NAME( "timerStop" ),
         DESCRIPTION
         (
          "Stops the CPU timer."
@@ -8011,41 +7958,41 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorAddScalar"),
+      ( NAME( "VectorAddScalar" ),
         DESCRIPTION
         (
-         "Adds a scalar to all elements of a vector. \n"
+         "Adds a scalar to all elements of a vector.\n"
          "\n"
-         "The result can either be stored in the same or another vector. \n"
+         "The result can either be stored in the same or another vector.\n"
          "\n"
-         "Generic output: \n"
-         "   Vector : Return vector. \n"
+         "Generic output:\n"
+         "   Vector : Return vector.\n"
          "\n"
-         "Generic input: \n"
-         "   Vector : Original vector. \n"
+         "Generic input:\n"
+         "   Vector : Original vector.\n"
          "\n"
          "Keywords:\n"
          "   value : The value to be added to the vector.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"      ,
                   "value" ),
         GIN_TYPE(    "Vector",
                      "Numeric" ),
         GIN_DEFAULT( NODEF   ,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+                     NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -8056,24 +8003,24 @@ md_data_raw.push_back
          "\n"
          "If the variable already exists, it'll be reset.\n"
          "\n"
-         "Generic output: \n"
+         "Generic output:\n"
          "   Vector: New empty Vector.\n"
-        ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorExtractFromMatrix"),
+      ( NAME( "VectorExtractFromMatrix" ),
         DESCRIPTION
         (
          "Extract a Vector from a Matrix.\n"
@@ -8088,27 +8035,27 @@ md_data_raw.push_back
          "\n"
          "Keywords:\n"
          "   direction : Must be either *row* or *column*.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson, Oliver Lemke, Stefan Buehler" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(       "gin1"      , "gin2"     ,
-                  "direction" ),
+                   "direction" ),
         GIN_TYPE(     "Matrix", "Index",
-                     "String" ),
+                      "String" ),
         GIN_DEFAULT(  NODEF   , NODEF  ,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+                      NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorInsertGridPoints"),
+      ( NAME( "VectorInsertGridPoints" ),
         DESCRIPTION
         (
          "Insert some additional points into a grid.\n"
@@ -8135,18 +8082,18 @@ md_data_raw.push_back
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(       "gin1"      , "gin2"       ),
         GIN_TYPE(     "Vector", "Vector" ),
         GIN_DEFAULT(  NODEF   , NODEF    ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorLinSpace"),
+      ( NAME( "VectorLinSpace" ),
         DESCRIPTION
         (
          "Creates a vector with linear spacing.\n"
@@ -8158,37 +8105,37 @@ md_data_raw.push_back
          "\n"
          "The vector is [start, start+step, start+2*step, ...]\n "
          "\n"
-         "Generic output: \n"
-         "   Vector : The vector to be created. \n"
+         "Generic output:\n"
+         "   Vector : The vector to be created.\n"
          "\n"
          "Keywords:\n"
-         "   start : The start value. \n"
-         "    stop : The maximum value of the end value. \n"
+         "   start : The start value.\n"
+         "    stop : The maximum value of the end value.\n"
          "    step : The spacing of the vector.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN( "start",   "stop",    "step"    ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF,     NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorLogSpace"),
+      ( NAME( "VectorLogSpace" ),
         DESCRIPTION
         (
          "Creates a vector with logarithmic spacing.\n"
          "\n"
          "The first element equals always the start value, and the spacing\n"
-         "equals always the step value, but note that the last value can  \n"
+         "equals always the step value, but note that the last value can \n"
          "deviate from the stop value. The keyword step can be both positive\n"
          "and negative.\n"
          "\n"
@@ -8198,31 +8145,31 @@ md_data_raw.push_back
          "Explicitly, the vector is:\n"
          " exp([ln(start), ln(start)+step, ln(start)+2*step, ...])\n "
          "\n"
-         "Generic output: \n"
-         "   Vector : The vector to be created. \n"
+         "Generic output:\n"
+         "   Vector : The vector to be created.\n"
          "\n"
          "Keywords:\n"
          "   start : The start value. (Direct coordinates!)\n"
          "    stop : The maximum value of the end value. (Direct coordinates!)\n"
          "    step : The spacing of the vector. (Log coordinates!)\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN( "start",   "stop",    "step"    ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF,     NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorMatrixMultiply"),
+      ( NAME( "VectorMatrixMultiply" ),
         DESCRIPTION
         (
          "Multiply a Vector with a Matrix and store the result in another\n"
@@ -8238,145 +8185,145 @@ md_data_raw.push_back
          "Generic input:\n"
          "   Matrix : The Matrix to multiply (dimension mxn).\n"
          "   Vector : The original Vector (dimension n).\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(       "gin1"      , "gin2"       ),
         GIN_TYPE(     "Matrix", "Vector" ),
         GIN_DEFAULT(  NODEF   , NODEF    ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorNLinSpace"),
+      ( NAME( "VectorNLinSpace" ),
         DESCRIPTION
         (
-         "Creates a vector with length *nelem*, equally spaced between the \n"
-         "given end values. \n"
+         "Creates a vector with length *nelem*, equally spaced between the\n"
+         "given end values.\n"
          "\n"
-         "The length must be larger than 1. \n"
+         "The length must be larger than 1.\n"
          "\n"
-         "Generic output: \n"
-         "   Vector : The vector to be created. \n"
+         "Generic output:\n"
+         "   Vector : The vector to be created.\n"
          "\n"
          "Keywords:\n"
-         "   start : The start value. \n"
-         "    stop : The end value. \n"  
-        ),
+         "   start : The start value.\n"
+         "    stop : The end value.\n"  
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(     "gout1"      ),
-        GOUT_TYPE("Vector"),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "nelem" ),
         GIN( "start",   "stop"    ),
         GIN_TYPE(    "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF     ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorNLogSpace"),
+      ( NAME( "VectorNLogSpace" ),
         DESCRIPTION
         (
-         "Creates a vector with length *nelem*, equally logarithmically \n"
-         "spaced between the given end values. \n"
+         "Creates a vector with length *nelem*, equally logarithmically\n"
+         "spaced between the given end values.\n"
          "\n"
-         "The length must be larger than 1. \n"
+         "The length must be larger than 1.\n"
          "\n"
-         "Generic output: \n"
-         "   Vector : The vector to be created. \n"
+         "Generic output:\n"
+         "   Vector : The vector to be created.\n"
          "\n"
          "Keywords:\n"
-         "   start : The start value. \n"
-         "    stop : The end value. \n"  
+         "   start : The start value.\n"
+         "    stop : The end value.\n"  
          "       n : Number of elements of the vector.\n" 
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(     "gout1"      ),
-        GOUT_TYPE("Vector"),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "nelem" ),
         GIN( "start",   "stop"    ),
         GIN_TYPE(    "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF     ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorScale"),
+      ( NAME( "VectorScale" ),
         DESCRIPTION
         (
-         "Scales all elements of a vector with the same value. \n"
+         "Scales all elements of a vector with the same value.\n"
          "\n"
-         "The result can either be stored in the same or another vector. \n"
+         "The result can either be stored in the same or another vector.\n"
          "\n"
-         "Generic output: \n"
-         "   Vector : Return vector. \n"
+         "Generic output:\n"
+         "   Vector : Return vector.\n"
          "\n"
-         "Generic input: \n"
-         "   Vector : Original vector. \n"
+         "Generic input:\n"
+         "   Vector : Original vector.\n"
          "\n"
          "Keywords:\n"
          "   value : The value to be multiplicated with the vector.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN(      "gin1"      ,
                   "value" ),
         GIN_TYPE(    "Vector",
                      "Numeric" ),
         GIN_DEFAULT( NODEF   ,
-                  NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+                     NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorSetConstant"),
+      ( NAME( "VectorSetConstant" ),
         DESCRIPTION
         (
-         "Creates a workspace vector and sets all elements of the \n"
-         "vector to the specified value. The length of the vector is \n"
-         "determined by the variable *nelem*. \n"
+         "Creates a workspace vector and sets all elements of the\n"
+         "vector to the specified value. The length of the vector is\n"
+         "determined by the variable *nelem*.\n"
          "\n"
-         "Generic output: \n"
-         "   Vector : The vector to be created. \n"
+         "Generic output:\n"
+         "   Vector : The vector to be created.\n"
          "\n"
          "Keywords:\n"
          "   value  : The value of the vector elements.\n" 
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "nelem" ),
         GIN( "value"   ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorSet"),
+      ( NAME( "VectorSet" ),
         DESCRIPTION
         (
          "Create a vector from the given list of numbers.\n"
@@ -8390,19 +8337,19 @@ md_data_raw.push_back
          "Usage:\n"
          "   VectorSet(p_grid){[1000, 100, 10]}\n"
          "   Will create a p_grid vector with these three elements.\n"
-        ),
+         ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN(),
         GIN( "values"   ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC"),
+        GIN_DESC( "FIXME DOC" ),
         SETMETHOD( true )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -8417,24 +8364,24 @@ md_data_raw.push_back
          "only for 1D. The zenith angles are always set to be positive.\n"
          "The tangent altitudes are given as the altitude above the geoid.\n"
          "\n"
-         "Generic output: \n"
-         "   Vector : A vector with zenith angles. \n"
+         "Generic output:\n"
+         "   Vector : A vector with zenith angles.\n"
          "\n"
-         "Generic input: \n"
+         "Generic input:\n"
          "   Vector : A vector with true tangent altitudes\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUT( "refr_index", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "refr_index_agenda", "sensor_pos", "p_grid", "t_field", "z_field",
-                           "vmr_field", "r_geoid", "atmosphere_dim" ),
+            "vmr_field", "r_geoid", "atmosphere_dim" ),
         GIN(      "gin1"       ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -8450,27 +8397,27 @@ md_data_raw.push_back
          "zenith angles are always set to be positive. The tangent altitudes\n"
          "are given as the altitude above the geoid.\n"
          "\n"
-         "Generic output: \n"
-         "   Vector : A vector with zenith angles. \n"
+         "Generic output:\n"
+         "   Vector : A vector with zenith angles.\n"
          "\n"
-         "Generic input: \n"
+         "Generic input:\n"
          "   Vector : A vector with geometric tangent altitudes\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "sensor_pos", "r_geoid", "atmosphere_dim" ),
         GIN(      "gin1"       ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC("FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("WriteNetCDF"),
+      ( NAME( "WriteNetCDF" ),
         DESCRIPTION
         (
          "Writes a workspace variable to a NetCDF file.\n"
@@ -8491,17 +8438,17 @@ md_data_raw.push_back
         GIN_TYPE( "Vector, Matrix, Tensor3, Tensor4, ArrayOfVector, ArrayOfMatrix",
                   "String" ),
         GIN_DEFAULT(  NODEF, "" ),
-        GIN_DESC("Variable to be saved.", "Name of the NetCDF file."),
+        GIN_DESC( "Variable to be saved.", "Name of the NetCDF file." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("WriteXML"),
+      ( NAME( "WriteXML" ),
         DESCRIPTION
         (
          "Writes a workspace variable to an XML file.\n"
@@ -8518,22 +8465,22 @@ md_data_raw.push_back
         GOUT_DESC(),
         IN( "output_file_format" ),
         GIN(       "gin1"   ,
-                  "filename" ),
+                   "filename" ),
         GIN_TYPE(     "Any",
-                     "String"   ),
+                      "String"   ),
         GIN_DEFAULT(  NODEF,
-                  "" ),
-        GIN_DESC("Variable to be saved.", "Name of the XML file."),
+                      "" ),
+        GIN_DESC( "Variable to be saved.", "Name of the XML file." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("WriteXMLIndexed"),
+      ( NAME( "WriteXMLIndexed" ),
         DESCRIPTION
         (
          "As *WriteXML*, but creates indexed file names.\n"
@@ -8541,8 +8488,8 @@ md_data_raw.push_back
          "The variable is written to a file with name:\n"
          "   <filename>.<file_index>.xml.\n"
          "where <file_index> is the value of *file_index*. This:\n"
-         "  IndexSet(file_index){0} \n"
-         "  IndexStep(file_index){} \n"
+         "  IndexSet(file_index){0}\n"
+         "  IndexStep(file_index){}\n"
          "  WriteXML(ppath){\"ppath\"}\n"
          "will create the file ppath.1.xml.\n"
          "\n"
@@ -8556,19 +8503,19 @@ md_data_raw.push_back
         GOUT_DESC(),
         IN( "output_file_format", "file_index" ),
         GIN(       "gin1"   ,
-                  "filename" ),
+                   "filename" ),
         GIN_TYPE(     "Any",
-                     "String"   ),
+                      "String"   ),
         GIN_DEFAULT(  NODEF,
-                  "" ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC"),
+                      "" ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
         PASSWORKSPACE(  false ),
         PASSWSVNAMES(   true  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -8584,16 +8531,16 @@ md_data_raw.push_back
          "\n"
          "The method performs the following:\n"
          "   1. Sets *ybatch_index* = *ybatch_start*.\n"
-         "   2. Performs a-d until \n"
+         "   2. Performs a-d until\n"
          "      *ybatch_index* = *ybatch_start* + *ybatch_n*.\n"
          "      	 a. Executes *ybatch_calc_agenda*.\n"
-         "      	 b. If *ybatch_index* = *ybatch_start*, resizes *ybatch* \n"
+         "      	 b. If *ybatch_index* = *ybatch_start*, resizes *ybatch*\n"
          "      	    based on *ybatch_n* and length of *y*.\n"
          "      	 c. Copies *y* to column *ybatch_index* - *ybatch_start*\n"
          "            of *ybatch*.\n"
          "      	 d. Adds 1 to *ybatch_index*.\n"
          "\n"
-         "Beside the *ybatch_calc_agenda*, the WSVs *ybatch_start* \n"
+         "Beside the *ybatch_calc_agenda*, the WSVs *ybatch_start*\n"
          "and *ybatch_n* must be set before calling this method.\n"
          "Further, *ybatch_calc_agenda* is expected to produce a\n"
          "spectrum and should accordingly include a call of *RteCalc*\n"
@@ -8624,13 +8571,13 @@ md_data_raw.push_back
         GIN_DESC(
                  "A flag with value 1 or 0. If set to one, the batch\n"
                  "calculation will continue, even if individual jobs\n"
-                 "fail. In that case, a warning message is written to \n"
+                 "fail. In that case, a warning message is written to\n"
                  "screen and file (out1 output stream), and ybatch for the\n"
                  "failed job is set to -1. The robust behavior does only work\n"
                  "properly if you have compiled the program without OpenMP!\n"
                  "(Use the configure option \"--disable-vectorize\".)\n"
                  )
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -8640,23 +8587,23 @@ md_data_raw.push_back
          "This method is used for simulating ARTS for metoffice model fields"
          "\n"
          "This method reads in *met_amsu_data* which contains the\n"
-         "lat-lon of the metoffice profile files as a Matrix. It then \n"
-         "loops over the number of profiles and corresponding to each \n"
-         "longitude create the appropriate profile basename. Then, \n"
+         "lat-lon of the metoffice profile files as a Matrix. It then\n"
+         "loops over the number of profiles and corresponding to each\n"
+         "longitude create the appropriate profile basename. Then,\n"
          "Corresponding to each basename we have temperature field, altitude\n"
-         "field, humidity field and particle number density field.  The\n"
+         "field, humidity field and particle number density field. The\n"
          "temperature field and altitude field are stored in the same dimensions\n"
-         "as *t_field_raw* and *z_field_raw*.  The oxygen and nitrogen VMRs are\n"
+         "as *t_field_raw* and *z_field_raw*. The oxygen and nitrogen VMRs are\n"
          "set to constant values of 0.209 and 0.782, respectively and are used\n"
-         "along with humidity field to generate *vmr_field_raw*.  \n"
+         "along with humidity field to generate *vmr_field_raw*. \n"
          "\n"
          "The three fields *t_field_raw*, *z_field_raw*, and *vmr_field_raw* are\n"
          "given as input to *met_profile_calc_agenda* which is called in this\n"
-         "method.  See documentation of WSM *met_profile_calc_agenda* for more\n"
-         "information on this agenda.  \n"
+         "method. See documentation of WSM *met_profile_calc_agenda* for more\n"
+         "information on this agenda. \n"
          "\n"
-         "The method also converts satellite zenith angle to appropriate \n"
-         "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
+         "The method also converts satellite zenith angle to appropriate\n"
+         "*sensor_los*. It also sets the *p_grid* and *cloudbox_limits*\n"
          "from the profiles inside the function\n"
          ),
         AUTHORS( "Sreerekha T.R." ),
@@ -8665,15 +8612,15 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", "met_profile_calc_agenda", "f_grid", "met_amsu_data",
-               "sensor_pos", "r_geoid", "lat_grid", "lon_grid", "atmosphere_dim",
-               "scat_data_raw" ),
+            "sensor_pos", "r_geoid", "lat_grid", "lon_grid", "atmosphere_dim",
+            "scat_data_raw" ),
         GIN( "nelem_p_grid", "met_profile_path", "met_profile_pnd_path" ),
         GIN_TYPE(    "Index",        "String",           "String" ),
         GIN_DEFAULT( NODEF,          NODEF,              NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -8684,23 +8631,23 @@ md_data_raw.push_back
          "for clear sky conditions.\n"
          "\n"
          "This method reads in *met_amsu_data* which contains the\n"
-         "lat-lon of the metoffice profile files as a Matrix. It then \n"
-         "loops over the number of profiles and corresponding to each \n"
-         "longitude create the appropriate profile basename. Then, \n"
+         "lat-lon of the metoffice profile files as a Matrix. It then\n"
+         "loops over the number of profiles and corresponding to each\n"
+         "longitude create the appropriate profile basename. Then,\n"
          "Corresponding to each basename we have temperature field, altitude\n"
-         "field, humidity field and particle number density field.  The\n"
+         "field, humidity field and particle number density field. The\n"
          "temperature field and altitude field are stored in the same dimensions\n"
-         "as *t_field_raw* and *z_field_raw*.  The oxygen and nitrogen VMRs are\n"
+         "as *t_field_raw* and *z_field_raw*. The oxygen and nitrogen VMRs are\n"
          "set to constant values of 0.209 and 0.782, respectively and are used\n"
-         "along with humidity field to generate *vmr_field_raw*.  \n"
+         "along with humidity field to generate *vmr_field_raw*. \n"
          "\n"
          "The three fields *t_field_raw*, *z_field_raw*, and *vmr_field_raw* are\n"
          "given as input to *met_profile_calc_agenda* which is called in this\n"
-         "method.  See documentation of WSM *met_profile_calc_agenda* for more\n"
-         "information on this agenda.  \n"
+         "method. See documentation of WSM *met_profile_calc_agenda* for more\n"
+         "information on this agenda. \n"
          "\n"
-         "The method also converts satellite zenith angle to appropriate \n"
-         "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
+         "The method also converts satellite zenith angle to appropriate\n"
+         "*sensor_los*. It also sets the *p_grid* and *cloudbox_limits*\n"
          "from the profiles inside the function\n"
          ),
         AUTHORS( "Seerekha T.R." ),
@@ -8709,13 +8656,13 @@ md_data_raw.push_back
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species", "met_profile_calc_agenda", 
-               "f_grid", "met_amsu_data", "sensor_pos", "r_geoid" ),
+            "f_grid", "met_amsu_data", "sensor_pos", "r_geoid" ),
         GIN( "nelem_p_grid", "met_profile_path" ),
-        GIN_TYPE(    "Index",        "String"),
+        GIN_TYPE(    "Index",        "String" ),
         GIN_DEFAULT( NODEF,          NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC")
-      ));
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -8725,7 +8672,7 @@ md_data_raw.push_back
          "Conversion of *ybatch* to other spectral units.\n"
          "\n"
          "As *yUnit* but operates on *ybatch*.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "ybatch" ),
         GOUT(),
@@ -8736,7 +8683,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -8750,7 +8697,7 @@ md_data_raw.push_back
          "radiative transfer function does not work. The WSV *y_unit* should\n"
          "then be set to \"1\" when performing the radiative transfer\n" 
          "calculations, and be changed before calling this method.\n"
-        ),
+         ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y" ),
         GOUT(),
@@ -8761,7 +8708,7 @@ md_data_raw.push_back
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-      ));
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -8775,27 +8722,26 @@ md_data_raw.push_back
          "and the transmitting satellite at height *z_send*.\n"
          "The zenith angles are restricted by the two tangent altitudes\n"
          "*z_scan_low* and *z_scan_high*.\n"
-        ),
+         ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC("FIXME DOC"),
+        GOUT_DESC( "FIXME DOC" ),
         IN( "ppath_step_agenda", "atmosphere_dim", "p_grid", "lat_grid",
-               "lon_grid", "z_field", "r_geoid", "z_surface" ),
+            "lon_grid", "z_field", "r_geoid", "z_surface" ),
         GIN( "z_recieve", "z_send",  "t_sample", 
-                  "z_scan_low", "z_scan_high" ),
+             "z_scan_low", "z_scan_high" ),
         GIN_TYPE(    "Numeric",   "Numeric", "Numeric",
-                  "Numeric",    "Numeric" ),
+                     "Numeric",    "Numeric" ),
         GIN_DEFAULT( NODEF,       NODEF,     NODEF,
-                  NODEF,        NODEF ),
-        GIN_DESC("FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC",
-                 "FIXME DOC")
-      ));
-
+                     NODEF,        NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
 }
 

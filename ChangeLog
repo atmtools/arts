@@ -1,3 +1,19 @@
+2009-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+        * arts-1-12-16
+
+	* src/methods.cc: Started revision. Tried to obtain a relatively
+	uniform style for the text (inside the file). Some different "patterns"
+	were used. 
+	
+	I am presently looking at methods with me, Claudia or Cory as author.
+	Revision of A-C ready.
+	
+	* src/m_cloudbox.cc (cloudboxSetEmpty): Renamed.
+	(pnd_fieldZero): New name.
+
+	* src/m_basic_types.cc (ArrayOfMatrixInsert): Removed.
+
 2009-04-06  Stefan Buehler  <sbuehler(at)ltu.se>
 
         * arts-1-12-15
