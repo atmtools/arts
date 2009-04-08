@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
 project (ARTS)
-set (VERSION "1.12.15")
+set (VERSION "1.12.18")
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -48,22 +48,22 @@ check_include_file (strings.h   HAVE_STRINGS_H)
 check_include_file (sys/stat.h  HAVE_SYS_STAT_H)
 check_include_file (sys/times.h HAVE_SYS_TIMES_H)
 check_include_file (sys/types.h HAVE_SYS_TYPES_H)
-check_include_file (time.h      HAVE_TIME_H)
 check_include_file (unistd.h    HAVE_UNISTD_H)
-
-########### Enable timer support, if we have all ##########
-########### necessary header files               ##########
-if (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_TIME_H
-    AND HAVE_SYS_TIMES_H)
-  set (TIME_SUPPORT 1)
-endif (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_TIME_H
-  AND HAVE_SYS_TIMES_H)
-
 
 ########### Check C++ header files ##########
 check_include_file_cxx (cstdlib HAVE_CSTDLIB)
 check_include_file_cxx (cstring HAVE_CSTRING)
 check_include_file_cxx (sstream HAVE_SSTREAM)
+check_include_file_cxx (ctime   HAVE_CTIME)
+
+########### Enable timer support, if we have all ##########
+########### necessary header files               ##########
+if (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
+    AND HAVE_SYS_TIMES_H)
+  set (TIME_SUPPORT 1)
+endif (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
+  AND HAVE_SYS_TIMES_H)
+
 
 ########### OpenMP support ##########
 if (NOT NO_OPENMP)

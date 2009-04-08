@@ -22,13 +22,13 @@
 #cmakedefine HAVE_SYS_STAT_H 1
 #cmakedefine HAVE_SYS_TIMES_H 1
 #cmakedefine HAVE_SYS_TYPES_H 1
-#cmakedefine HAVE_TIME_H 1
 #cmakedefine HAVE_UNISTD_H 1
 
 /* check existence of c++ header files */
 #cmakedefine HAVE_CSTDLIB 1
 #cmakedefine HAVE_CSTRING 1
 #cmakedefine HAVE_SSTREAM 1
+#cmakedefine HAVE_CTIME 1
 
 /* availability of timer support */
 #cmakedefine TIME_SUPPORT 1

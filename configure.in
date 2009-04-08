@@ -17,7 +17,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.12.17)
+AM_INIT_AUTOMAKE(arts,1.12.18)
 
 
 dnl Put the ACLOCAL flags in the Makefile
@@ -94,16 +94,18 @@ AC_CHECK_SIZEOF(long, 8)
 AC_CHECK_SIZEOF(size_t, 8)
 
 AC_MSG_CHECKING([whether time support is available])
+AC_LANG_PUSH([C++])
 AC_COMPILE_IFELSE(
                   [AC_LANG_PROGRAM([[
                    @%:@include <unistd.h>
                    @%:@include <sys/types.h>
                    @%:@include <sys/stat.h>
-                   @%:@include <time.h>
+                   @%:@include <ctime>
                    @%:@include <sys/times.h>
                    ]],
                    [[ struct tms t; times (&t); sysconf (_SC_CLK_TCK); ]])],
                    ac_timesupport=yes, ac_timesupport=no)
+AC_LANG_POP([C++])
 AC_MSG_RESULT($ac_timesupport)
 AM_CONDITIONAL(TIME_SUPPORT, test x$ac_timesupport = xyes)
 if test x$ac_timesupport = xyes; then
