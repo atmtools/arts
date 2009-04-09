@@ -1,3 +1,33 @@
+2009-04-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+        * arts-1-12-19
+
+	* src/methods.cc: Revision of descroption for all methods
+	with Patrick, Claudia, Cory or Mattias as author done.
+	All *Scale and *SetConstant methods also revised.
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo): Removed.  
+	Has been deactivated for a long time.
+	(MCSetIncomingEmpty): Removed.
+
+	* src/m_ppath.cc (ZaSatOccultation): Removed.
+	(VectorZtanToZaRefr1D): Variables for refraction now
+	internal varaibles and not method output.
+
+	* src/m_physics.cc (Tensor6ToPlanckBT): Removed. If needed,
+	a new method using y_unit should be created.
+
+	* src/m_basic_types.cc (Tensor3FillWithVector): Removed. A method now 
+	not used.
+
+	* src/m_ppath.cc (rte_pos_and_losFromTangentPressure): 
+	Removed (Should be replaced by a general function. Worked
+	only for 1D and no refraction, where the task can be solved
+	in a more simpler way.).
+
+	* src/m_refraction.cc (refr_indexFieldAndGradients): Removed.
+	As not very useful!
+
 2009-04-06  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-12-18

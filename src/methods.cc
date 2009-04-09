@@ -4122,10 +4122,12 @@ void define_md_data_raw()
       ( NAME( "jacobianAddAbsSpecies" ),
         DESCRIPTION
         (
-         "Adds a absorption species as a retrieval quantity to the Jacobian.\n"
+         "Includes an absorption species in the Jacobian.\n"
          "\n"
+         "Details are given in the user guide.\n"
+         "\n"         
          "For 1D or 2D calculations the latitude and/or longitude grid of\n"
-         "the retrieval field should be set to zero length.\n"
+         "the retrieval field should set to have zero length.\n"
          "\n"
          "There are two possible calculation methods:\n"
          "   \"analytical\"   : (semi-)analytical expressions are used\n"
@@ -4139,17 +4141,6 @@ void define_md_data_raw()
          "For perturbation calculations the size of the perturbation is set\n"
          "by the user. The unit of the perturbation size is identical to\n"
          "the retrieval unit.\n"
-         "\n"
-         "Generic input:\n"
-         "  Vector : The pressure grid of the retrieval field.\n"
-         "  Vector : The latitude grid of the retrieval field.\n"
-         "  Vector : The longitude grid of the retrieval field.\n"
-         "\n"
-         "Keywords:\n"
-         "  species : The SpeciesTag of the retrieval quantity.\n"
-         "  method  : Calculation method. See above.\n"
-         "  unit    : Retrieval unit. See above.\n"
-         "  dx      : Size of perturbation.\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -4158,21 +4149,22 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda", "jacobian", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN( "gin1", "gin2", "gin3", "species", "method", "unit","dx" ),
+        GIN( "g1", "g2", "g3", "species", "method", "unit","dx" ),
         GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "String", 
                   "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF, "analytical", "rel", "0.001" ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" ),
+        GIN_DESC( "Pressure retrieval grid.",
+                  "Latitude retrieval grid.",
+                  "Longitude retreival grid.",
+                  "The species tag of the retrieval quantity.",
+                  "Calculation method. See above.",
+                  "Retrieval unit. See above.",
+                  "Size of perturbation." 
+                  ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( false ),
-        PASSWORKSPACE(  true )
+        PASSWORKSPACE(  true  )
         ));
          
   md_data_raw.push_back
@@ -4180,7 +4172,15 @@ void define_md_data_raw()
       ( NAME( "jacobianAddPointing" ),
         DESCRIPTION
         (
-         "...\n"
+         "Includes sensor pointing in the Jacobian.\n"
+         "\n"
+         "Retrieval of deviations between nominal and actual pointing of the\n"
+         "sensor can be included by this method. The weighing functions are\n"
+         "calculated by perturbations. This requires one additional forward\n"
+         "model run, independently of polynomial order selected.\n"
+         "\n"
+         "The pointing off-set can be modelled to be time varying. The time\n"
+         "variation is then described by a polynomial.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -4192,11 +4192,14 @@ void define_md_data_raw()
         GIN( "dza", "poly_order" ),
         GIN_TYPE( "Numeric", "Index" ),
         GIN_DEFAULT( "0.01", "0" ),
-        GIN_DESC( "FIXME DOC", "FIXME DOC" ),
+        GIN_DESC( "Size of perturbation to apply.", 
+                  "Order of polynomial to describe the time variation of "
+                  "pointing off-sets."
+                  ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( false ),
-        PASSWORKSPACE(  true )
+        PASSWORKSPACE(  true  )
         ));
 
   md_data_raw.push_back
@@ -4204,7 +4207,17 @@ void define_md_data_raw()
       ( NAME( "jacobianAddPolyfit" ),
         DESCRIPTION
         (
-         "...\n"
+         "Includes polynomial baseline fit in the Jacobian.\n"
+         "\n"
+         "This method deals with retrieval of disturbances of the spectra\n"
+         "that can be described by an addidative term, a baseline off-set.\n"
+         "\n"
+         "The baseline off-set is here modelled as a polynomial. The\n"
+         "polynomial spans the complete frequency range spanned by\n"
+         "*sensor_response_f_grid* and the method should only of interest for\n"
+         "cases with no frequency gap in the spectra. The default assumption\n"
+         "is that the off-set differs between all spectra, but it can also be\n"
+         "assumed that the off-set is constant for all e.g. zenith angles.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -4218,11 +4231,18 @@ void define_md_data_raw()
              "no_mblock_variation" ),
         GIN_TYPE( "Index", "Index", "Index", "Index" ),
         GIN_DEFAULT( NODEF, "0", "0", "0" ),
-        GIN_DESC( "FIXME DOC", "FIXME DOC", "FIXME DOC", "FIXME DOC" ),
+        GIN_DESC( "Polynomial order to use for the fit.", 
+                  "Set to 1 if the baseline off-set is the same for all "
+                  "Stokes components.", 
+                  "Set to 1 if the baseline off-set is the same for all "
+                  "zenith angles.", 
+                  "Set to 1 if the baseline off-set is the same for all "
+                  "azimuth angles." 
+                  ),
         SETMETHOD(      false ),
-        AGENDAMETHOD(   false  ),
+        AGENDAMETHOD(   false ),
         SUPPRESSHEADER( false ),
-        PASSWORKSPACE(  true )
+        PASSWORKSPACE(  true  )
         ));
 
   md_data_raw.push_back
@@ -4230,17 +4250,19 @@ void define_md_data_raw()
       ( NAME( "jacobianAddTemperature" ),
         DESCRIPTION
         (
-         "Adds atmospheric temperatures as a retrieval quantity.\n"
+         "Includes atmospheric temperatures in the Jacobian.\n"
          "\n"
          "The calculations can be performed by (semi-)analytical expressions\n"
-         "or perturbations. Hydrostatic equilibrium can be included for\n"
+         "or perturbations. Hydrostatic equilibrium (HSE) can be included for\n"
          "perturbation calculations. These choices are selected by\n"
          "corresponding general input variables.\n"
          "\n"
          "For 1D or 2D calculations the latitude and/or longitude grid of\n"
          "the retrieval field should be set to zero length.\n"
-         "The WSM *jacobianCalcTemperature* is automatically added to\n"
-         "*jacobian_agenda*.\n"
+         "\n"
+         "There are choices for *method*:\n"
+         "   \"analytical\"   : (semi-)analytical expressions are used\n"
+         "   \"perturbation\" : pure numerical perturbations are used\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -4249,19 +4271,20 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda", "jacobian", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
-        GIN( "gin1", "gin2", "gin3", "hse", "method", "dx" ),
+        GIN( "g1", "g2", "g3", "hse", "method", "dt" ),
         GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF, NODEF, "off", "analytical", "1" ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" ),
+        GIN_DESC( "Pressure retrieval grid.",
+                  "Latitude retrieval grid.",
+                  "Longitude retreival grid.",
+                  "Flag to assume HSE or not.",
+                  "Calculation method. See above.",
+                  "Size of perturbation [K]." 
+                  ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( false ),
-        PASSWORKSPACE(  true )
+        PASSWORKSPACE(  true  )
         ));
 
   /*
@@ -4311,7 +4334,7 @@ void define_md_data_raw()
          "Executes *jacobian_agenda* to calculate (parts of) *jacobian*."
          "\n"
          "It is important that *y* holds the original output of *RteCalc*\n"
-         "as the methods called performs perturbations to obtain cahnges in\n"
+         "as the methods called performs perturbations to obtain changes in\n"
          "*y*.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
@@ -4333,8 +4356,9 @@ void define_md_data_raw()
         (
          "Calculates absorption species jacobians by perturbations.\n"
          "\n"
-         "This function is added to *jacobian_agenda* by jacobianAddAbsSpecies\n"
-         "and should normally not be called by the user.\n"
+         "This function is added to *jacobian_agenda* by\n"
+         "jacobianAddAbsSpecies and should normally not be called\n"
+         "by the user.\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian" ),
@@ -4407,8 +4431,9 @@ void define_md_data_raw()
         (
          "Calculates atmospheric temperature jacobians by perturbations.\n"
          "\n"
-         "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
-         "and should normally not be called by the user.\n"
+         "This function is added to *jacobian_agenda* by\n"
+         "jacobianAddTemperature and should normally not be called\n"
+         "by the user.\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian" ),
@@ -4424,8 +4449,8 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  /*        
-            md_data_raw.push_back
+ /*        
+           md_data_raw.push_back
             ( MdRecord
             ( NAME( "jacobianCalcParticle" ),
             DESCRIPTION
@@ -4455,23 +4480,22 @@ void define_md_data_raw()
             GIN_DESC()
             ));
         
-  */
+ */
 
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "jacobianClose" ),
         DESCRIPTION
         (
-         "Close the array of retrieval quantities and prepare for calculation\n"
-         "of the Jacobian matrix.\n"
+         "Closes the array of retrieval quantities and prepares for\n" 
+         "calculation of the Jacobian matrix.\n"
          "\n"
          "This function closes the *jacobian_quantities* array and sets the\n"
          "correct size of *jacobian*. Retrieval quantities should not be\n"
          "added after a call to this WSM.\n"
          "\n"
-         "To define the final *jacobian* the number of spectra is needed.\n"
-         "Therefor the number of measurement blocks, taken from *sensor_pos*\n"
-         "and the size of *sensor_response* has to be defined.\n"
+         "No calculations are performed. Analytical calculations are done in\n"
+         "*RteCalc* and perturbations by *jacobianCalc*.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT( "jacobian", "jacobian_indices" ),
@@ -4493,9 +4517,9 @@ void define_md_data_raw()
          "Initialises the variables connected to the Jacobian matrix.\n"
          "\n"
          "This function initialises the *jacobian_quantities* array so\n"
-         "that retrieval quantities can be added to it, therefor it has\n"
-         "to be called before any subsequent calls to jacobianAddGas\n"
-         "jacobianAddTemperature, jacobianAddPointing or similar methods.\n"
+         "that retrieval quantities can be added to it. Accordingly, it has\n"
+         "to be called before any calls to jacobianAddTemperature or\n"
+         "similar methods.\n"
          "\n"
          "The Jacobian quantities are initialised to be empty.\n"
          ),
@@ -4567,32 +4591,26 @@ void define_md_data_raw()
          "\n"
          "The CBR is assumed to be un-polarized and Stokes components 2-4\n"
          "are zero. Number of Stokes components, that equals the number\n"
-         "of columns in the created matrix, is determined by *stokes_dim.\n"
+         "of columns in the created matrix, is determined by *stokes_dim*.\n"
          "The number of rows in the created matrix equals the length of the\n"
          "given frequency vector.\n"
          "\n"
          "The cosmic radiation is modelled as blackbody radiation for the\n"
          "temperature given by the global constant COSMIC_BG_TEMP, set in\n"
          "the file constants.cc. The frequencies are taken from the generic\n"
-         "input vector:\n"
-         "   MatrixCBR(iy_space,f_grid){}\n"
-         "\n"
-         "Generic output:\n"
-         "   Matrix : Matrix with cosmic background radiation.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector : A set of frequencies.\n"
+         "input vector. The standard usage should be:\n"
+         "   MatrixCBR( iy, stokes_dim, f_grid )\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "m"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Matrix to be created." ),
         IN( "stokes_dim" ),
-        GIN(      "gin1"       ),
+        GIN(         "f"      ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Frequency vector." )
         ));
 
   md_data_raw.push_back
@@ -4656,24 +4674,18 @@ void define_md_data_raw()
       ( NAME( "Matrix1ColFromVector" ),
         DESCRIPTION
         (
-         "Forms a matrix containing 1 column from a vector.\n"
-         "\n"
-         "Generic output:\n"
-         "   Matrix : The matrix to be created.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector : The vector to be copied.\n"
+         "Forms a matrix containing one column from a vector.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The matrix to be created." ),
         IN(),
-        GIN(      "gin1"       ),
+        GIN(         "v"       ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "The vector to be copied." )
         ));
 
   md_data_raw.push_back
@@ -4681,29 +4693,23 @@ void define_md_data_raw()
       ( NAME( "Matrix2ColFromVectors" ),
         DESCRIPTION
         (
-         "Forms a matrix containing 2 columns from two vectors.\n"
+         "Forms a matrix containing two columns from two vectors.\n"
          "\n"
-         "The vectors are put as columns in the matrix in the same order\n"
+         "The vectors are included as columns in the matrix in the same order\n"
          "as they are given.\n"
-         "\n"
-         "Generic output:\n"
-         "   Matrix : The matrix to be created.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector : The vector to be copied into the first column.\n"
-         "   Vector : The vector to be copied into the second column.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The matrix to be created." ),
         IN(),
-        GIN(      "gin1"      , "gin2"       ),
+        GIN(         "v1"    , "v2"     ),
         GIN_TYPE(    "Vector", "Vector" ),
         GIN_DEFAULT( NODEF   , NODEF    ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "The vector to be copied into the first column.",
+                  "The vector to be copied into the second column." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -4711,31 +4717,24 @@ void define_md_data_raw()
       ( NAME( "Matrix3ColFromVectors" ),
         DESCRIPTION
         (
-         "Forms a matrix containing 3 columns from three vectors.\n"
+         "Forms a matrix containing three columns from three vectors.\n"
          "\n"
-         "The vectors are put as columns in the matrix in the same order\n"
+         "The vectors are included as columns in the matrix in the same order\n"
          "as they are given.\n"
-         "\n"
-         "Generic output:\n"
-         "   Matrix : The matrix to be created.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector : The vector to be copied into the first column.\n"
-         "   Vector : The vector to be copied into the second column.\n"
-         "   Vector : The vector to be copied into the third column.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The matrix to be created." ),
         IN(),
-        GIN(      "gin1"      , "gin2"      , "gin3"       ),
+        GIN(         "v1"    , "v2"    , "v3"     ),
         GIN_TYPE(    "Vector", "Vector", "Vector" ),
         GIN_DEFAULT( NODEF   , NODEF   , NODEF    ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "The vector to be copied into the first column.",
+                  "The vector to be copied into the second column.",
+                  "The vector to be copied into the third column." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -4743,24 +4742,18 @@ void define_md_data_raw()
       ( NAME( "Matrix1RowFromVector" ),
         DESCRIPTION
         (
-         "Forms a matrix containing 1 row from a vector.\n"
-         "\n"
-         "Generic output:\n"
-         "   Matrix : The matrix to be created.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector : The vector to be copied.\n"
+         "Forms a matrix containing one row from a vector.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The matrix to be created." ),
         IN(),
-        GIN(      "gin1"       ),
+        GIN(         "v"       ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "The vector to be copied." )
         ));
 
   md_data_raw.push_back
@@ -4768,29 +4761,23 @@ void define_md_data_raw()
       ( NAME( "Matrix2RowFromVectors" ),
         DESCRIPTION
         (
-         "Forms a matrix containing 2 rows from two vectors.\n"
+         "Forms a matrix containing two rows from two vectors.\n"
          "\n"
-         "The vectors are put as rows in the matrix in the same order\n"
+         "The vectors are included as rows in the matrix in the same order\n"
          "as they are given.\n"
-         "\n"
-         "Generic output:\n"
-         "   Matrix : The matrix to be created.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector : The vector to be copied into the first row.\n"
-         "   Vector : The vector to be copied into the second row.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The matrix to be created." ),
         IN(),
-        GIN(      "gin1"      , "gin2"       ),
+        GIN(         "v1"    , "v2"     ),
         GIN_TYPE(    "Vector", "Vector" ),
         GIN_DEFAULT( NODEF   , NODEF    ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "The vector to be copied into the first row.",
+                  "The vector to be copied into the second row." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -4798,58 +4785,48 @@ void define_md_data_raw()
       ( NAME( "Matrix3RowFromVectors" ),
         DESCRIPTION
         (
-         "Forms a matrix containing 3 rows from three vectors.\n"
+         "Forms a matrix containing three rows from three vectors.\n"
          "\n"
-         "The vectors are put as rows in the matrix in the same order\n"
+         "The vectors are included as rows in the matrix in the same order\n"
          "as they are given.\n"
-         "\n"
-         "Generic output:\n"
-         "   Matrix : The matrix to be created.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector : The vector to be copied into the first row.\n"
-         "   Vector : The vector to be copied into the second row.\n"
-         "   Vector : The vector to be copied into the third row.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The matrix to be created." ),
         IN(),
-        GIN(      "gin1"      , "gin2"      , "gin3"       ),
+        GIN(         "v1"    , "v2"    , "v3"     ),
         GIN_TYPE(    "Vector", "Vector", "Vector" ),
         GIN_DEFAULT( NODEF   , NODEF   , NODEF    ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "The vector to be copied into the first row.",
+                  "The vector to be copied into the second row.",
+                  "The vector to be copied into the third row." 
+                  )
         ));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "MatrixPlanck" ),
         DESCRIPTION
         (
          "Sets a matrix to hold blackbody radiation.\n"
-         "\n"
-         "Generic output:\n"
-         "   Matrix : Matrix with blackbody radiation.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector  : A set of frequencies.\n"
-         "   Numeric : Blackbody temperature.\n"
+         "The radiation is assumed to be un-polarized and Stokes components\n"
+         "2-4 are zero. Number of Stokes components, that equals the number\n"
+         "of columns in the created matrix, is determined by *stokes_dim*.\n"
+         "The number of rows in the created matrix equals the length of the\n"
+         "given frequency vector.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Matrix to be created." ),
         IN( "stokes_dim" ),
-        GIN(      "gin1"      , "gin2"        ),
-        GIN_TYPE(    "Vector", "Numeric" ),
-        GIN_DEFAULT( NODEF   , NODEF     ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN(        "gin1"  , "gin2"    ),
+        GIN_TYPE(   "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF   , NODEF    ),
+        GIN_DESC( "Frequency vector.",
+                  "Temperature [K]." )
         ));
 
   md_data_raw.push_back
@@ -4857,33 +4834,23 @@ void define_md_data_raw()
       ( NAME( "MatrixScale" ),
         DESCRIPTION
         (
-         "Scales all elements of a matrix with the same value.\n"
+         "Scales all elements of a matrix with the specified value.\n"
          "\n"
-         "The result can either be stored in the same or another matrix.\n"
-         "\n"
-         "Generic output:\n"
-         "   Matrix : Return matrix.\n"
-         "\n"
-         "Generic input:\n"
-         "   Matrix : Original matrix.\n"
-         "\n"
-         "Keywords:\n"
-         "   value : The value to be multiplied with the matrix.\n"
+         "The result can either be stored in the same or another\n"
+         "variable.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "mout"   ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Output matrix" ),
         IN(),
-        GIN(      "gin1"      ,
-                  "value" ),
-        GIN_TYPE(    "Matrix",
-                     "Numeric"   ),
-        GIN_DEFAULT( NODEF   ,
-                     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN(         "min"   , "value"   ),
+        GIN_TYPE(    "Matrix", "Numeric" ),
+        GIN_DEFAULT( NODEF   , NODEF     ),
+        GIN_DESC( "Input matrix.",
+                  "The value to be multiplied with the matrix." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -4892,24 +4859,19 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Creates a matrix and sets all elements to the specified value.\n"
-         "The size is determined by the variables *ncols* and *nrows*.\n"
          "\n"
-         "Generic output:\n"
-         "   Matrix : The matrix to be created.\n"
-         "\n"
-         "Keywords:\n"
-         "   value : The value of the matrix elements.\n" 
+         "The size is determined by *ncols* and *nrows*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The matrix to be created." ),
         IN( "nrows", "ncols" ),
-        GIN( "value"   ),
+        GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DEFAULT( NODEF     ),
+        GIN_DESC( "Matrix value." )
         ));
 
   md_data_raw.push_back
@@ -4919,22 +4881,18 @@ void define_md_data_raw()
         (
          "Sets a matrix to hold unpolarised radiation with unit intensity.\n"
          "\n"
-         "Generic output:\n"
-         "   Matrix : Matrix with unit radiation.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector  : A set of frequencies.\n"
+         "Works as MatrixPlanck where the radiation is set to 1.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "m"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The matrix to be created." ),
         IN( "stokes_dim" ),
-        GIN(      "gin1"       ),
+        GIN(         "f"      ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Frequency vector." )
         ));
 
   md_data_raw.push_back
@@ -4944,9 +4902,9 @@ void define_md_data_raw()
         (
          "Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.\n"
          "\n"
-         "The gaussian antenna pattern is determined by the keyword parameters\n"
-         "za_sigma, and aa_sigma, which represent the standard deviations in the\n"
-         "uncorrelated bivariate normal distribution\n"
+         "The gaussian antenna pattern is determined by *za_sigma* and\n"
+         "*aa_sigma*, which represent the standard deviations in the\n"
+         "uncorrelated bivariate normal distribution.\n"
          ),
         AUTHORS( "Cory Davis" ),
         OUT( "mc_antenna" ),
@@ -4954,11 +4912,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN( "za_sigma", "aa_sigma" ),
+        GIN(         "za_sigma", "aa_sigma" ),
         GIN_TYPE(    "Numeric",  "Numeric" ),
         GIN_DEFAULT( NODEF,      NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Width in the zenith angle dimension as described above.",
+                  "Width in the azimuth angle dimension as described above." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -4968,8 +4927,8 @@ void define_md_data_raw()
         (
          "Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.\n"
          "\n"
-         "The gaussian antenna pattern is determined by the keyword parameters\n"
-         "za_fwhm, and aa_fwhm, which represent the full width half maximum (FWHM)\n"
+         "The gaussian antenna pattern is determined by *za_fwhm* and\n"
+         "*aa_fwhm*, which represent the full width half maximum (FWHM)\n"
          "of the antenna response, in the zenith and azimuthal planes.\n"
          ),
         AUTHORS( "Cory Davis" ),
@@ -4978,11 +4937,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN( "za_fwhm", "aa_fwhm" ),
+        GIN(         "za_fwhm", "aa_fwhm" ),
         GIN_TYPE(    "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Width in the zenith angle dimension as described above.",
+                  "Width in the azimuth angle dimension as described above." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -5016,18 +4976,19 @@ void define_md_data_raw()
          "for a given viewing direction\n"
          ),
         AUTHORS( "Cory Davis" ),
-        OUT( "mc_IWP", "mc_cloud_opt_path", "mc_IWP_error", "mc_cloud_opt_path_error", 
-             "mc_iteration_count" ),
+        OUT( "mc_IWP", "mc_cloud_opt_path", "mc_IWP_error", 
+             "mc_cloud_opt_path_error", "mc_iteration_count" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "mc_antenna", "sensor_pos", "sensor_los", "ppath_step_agenda", "p_grid", 
-            "lat_grid", "lon_grid", "r_geoid", "z_surface", "z_field", "t_field", "vmr_field", 
-            "cloudbox_limits", "pnd_field", "scat_data_mono", "particle_masses", "mc_seed" ),
+        IN( "mc_antenna", "sensor_pos", "sensor_los", "ppath_step_agenda", 
+            "p_grid", "lat_grid", "lon_grid", "r_geoid", "z_surface", 
+            "z_field", "t_field", "vmr_field", "cloudbox_limits", "pnd_field", 
+            "scat_data_mono", "particle_masses", "mc_seed" ),
         GIN( "max_iter" ),
         GIN_TYPE(    "Index" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Maximum number of iterations." )
         ));
   
   md_data_raw.push_back     
@@ -5044,14 +5005,14 @@ void define_md_data_raw()
           "\n"
           "The WSV *mc_max_iter* describes the number of `photons\'\n"
           "used in the simulation (more photons means smaller *mc_error*).\n"
-          "*mc_std_err* is the desired value of mc_error, and *mc_max_time* is\n"
-          "the maximum allowed number of seconds for MCGeneral. MCGeneral will\n"
-          "terminate once any of the max_iter, std_err, max_time criteria are\n"
-          "met. If negative values are given for these parameters then it is\n"
-          "ignored.\n"
+          "*mc_std_err* is the desired value of mc_error. *mc_max_time* is\n"
+          "the maximum allowed number of seconds for MCGeneral. The method\n"
+          "will terminate once any of the max_iter, std_err, max_time\n"
+          "criteria are met. If negative values are given for these\n"
+          " parameters then it isignored.\n"
           "\n"
-          "Negative values of mc_seed seed the random number generator\n"
-          "according to system time, positive rng_seed values are taken\n"
+          "Negative values of *mc_seed* seed the random number generator\n"
+          "according to system time, positive *mc_seed* values are taken\n"
           "literally.\n" ),
         AUTHORS( "Cory Davis" ),
         OUT( "y", "mc_iteration_count", "mc_error", "mc_points" ),
@@ -5060,10 +5021,10 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "mc_antenna", "f_grid", "f_index", "sensor_pos", "sensor_los", 
             "stokes_dim", "iy_space_agenda", "surface_prop_agenda", 
-            "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "p_grid", "lat_grid", 
-            "lon_grid", "z_field", "r_geoid", "z_surface", "t_field", "vmr_field", 
-            "cloudbox_limits", "pnd_field", "scat_data_mono", 
-            "mc_seed", "y_unit", 
+            "opt_prop_gas_agenda", "abs_scalar_gas_agenda", "p_grid", 
+            "lat_grid", "lon_grid", "z_field", "r_geoid", "z_surface", 
+            "t_field", "vmr_field", "cloudbox_limits", "pnd_field", 
+            "scat_data_mono", "mc_seed", "y_unit", 
             "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
         GIN(),
         GIN_TYPE(),
@@ -5077,7 +5038,7 @@ void define_md_data_raw()
         DESCRIPTION
         ( "A specialised 3D reversed Monte Carlo radiative algorithm, that\n"
           "mimics independent pixel appoximation simulations.\n"
-          "Probably temporary.\n" ),
+          ),
         AUTHORS( "Cory Davis" ),
         OUT( "y", "mc_iteration_count", "mc_error", "mc_points" ),
         GOUT(),
@@ -5095,27 +5056,6 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
-  /* Removed as ScatteringMonteCarlo is not working
-     md_data_raw.push_back     
-     ( MdRecord
-     ( NAME( "MCSetIncomingEmpty" ),
-     DESCRIPTION
-     ( "Sets mc_incoming to be empty. \n"
-     "This is needed when using ScatteringMonteCarlo with incoming_lookup=0\n"
-     ),
-     AUTHORS( "Cory Davis" ),
-     OUT( "mc_incoming" ),
-     GOUT(),
-     GOUT_TYPE(),
-     GOUT_DESC(),
-     IN(),
-     GIN(),
-     GIN_TYPE(),
-     GIN_DEFAULT(),
-     GIN_DESC()
-     ));
-  */
 
   md_data_raw.push_back     
     ( MdRecord
@@ -5164,23 +5104,17 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Sets a numeric workspace variable to the given value.\n"
-         "\n"
-         "Generic output:\n"
-         "   Numeric : The numeric variable to be set.\n"
-         "\n"
-         "Keywords:\n"
-         "   value : The value.\n" 
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "n"        ),
         GOUT_TYPE( "Numeric" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The numeric variable to set." ),
         IN(),
-        GIN( "value"   ),
+        GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC( "The value." ),
         SETMETHOD( true )
         ));
 
@@ -5375,18 +5309,13 @@ void define_md_data_raw()
         (
          "Calculates opticle properties for the single particle types.\n"
          "\n"
-         "In this function extinction matrix and absorption vector are\n"
-         "calculated in the laboratory frame. These properties are required\n"
-         "for the RT calculation, inside the the i_fieldUpdateXXX\n"
-         "functions.\n" 
+         "In this function the extinction matrix and the absorption vector\n"
+         "are calculated in the laboratory frame. An interpolation of the\n"
+         "data on the actual frequency is the first step in this function.\n"
+         "The next step is a transformation from the database coordinate\n"
+         "system to the laboratory coordinate system.\n"
          "\n"
-         "The interpolation of the data on the actual frequency is the\n"
-         "first step in this function.\n"
-         "\n"
-         "Then the transformation from the database coordinate system to to\n"
-         "laboratory coordinate system is done.\n"
-         "\n"
-         "Output of the function are *ext_mat_spt*, and *abs_vec_spt* which\n"
+         "Output of the function are *ext_mat_spt* and *abs_vec_spt* which\n"
          "hold the optical properties for a specified propagation direction\n"
          "for each particle type.\n"
          ),
@@ -5395,8 +5324,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "ext_mat_spt", "abs_vec_spt", "scat_data_raw",
-            "scat_za_grid", 
+        IN( "ext_mat_spt", "abs_vec_spt", "scat_data_raw", "scat_za_grid", 
             "scat_aa_grid", "scat_za_index", "scat_aa_index", 
             "f_index", "f_grid", "rte_temperature",
             "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
@@ -5413,23 +5341,16 @@ void define_md_data_raw()
         (
          "Calculates optical properties for the single particle types.\n"
          "\n"
-         "In this function extinction matrix and absorption vector are\n"
-         "calculated in the laboratory frame. "
-         "\n"
-         "The single scattering data is obtained from scat_data_mono, so\n"
-         "frequency interpolation is not required\n"
-         "\n"
-         "Output of the function are *ext_mat_spt*, and *abs_vec_spt* which\n"
-         "hold the optical properties for a specified propagation direction\n"
-         "for each particle type.\n"
+         "As *opt_prop_sptFromData* but no frequency interpolation is\n"
+         "performed. The single scattering data is here obtained from\n"
+         "*scat_data_mono*, instead of *scat_data_raw*.\n"
          ),
         AUTHORS( "Cory Davis" ),
         OUT( "ext_mat_spt", "abs_vec_spt" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "ext_mat_spt", "abs_vec_spt", "scat_data_mono",
-            "scat_za_grid", 
+        IN( "ext_mat_spt", "abs_vec_spt", "scat_data_mono", "scat_za_grid", 
             "scat_aa_grid", "scat_za_index", "scat_aa_index", "rte_temperature",
             "pnd_field", "scat_p_index", "scat_lat_index", "scat_lon_index" ),
         GIN(),
@@ -5500,7 +5421,7 @@ void define_md_data_raw()
       ( NAME( "ParticleTypeAddAll" ),
         DESCRIPTION
         (
-         "Read single scattering data and particle number densities.\n"
+         "Reads single scattering data and particle number densities.\n"
          "\n"
          "The WSV *pnd_field_raw* containing particle number densities for all\n"
          "hydrometeor species can be generated outside ARTS, for example by using\n"
@@ -5511,14 +5432,7 @@ void define_md_data_raw()
          "Very important note:\n"
          "The order of the filenames for the scattering data files has to\n"
          "correspond to the order of the particle types in the file\n"
-         "including the variable *pnd_field_raw*!\n" 
-         "\n"
-         "Keywords:\n"
-         "   filename_scat_data : File containing an\n" 
-         "                        ArrayOfString of filenames of single scattering data files\n"
-         "                        corresponding the the particle number densities in\n"
-         "                        *pnd_field_raw*.\n"
-         "   filename_pnd_field : File including  the WSV *pnd_field_raw*.\n"
+         "including the variable *pnd_field_raw*.\n" 
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_data_raw", "pnd_field_raw" ),
@@ -5527,11 +5441,12 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", 
             "cloudbox_limits" ),
-        GIN( "filename_scat_data", "filename_pnd_field" ),
-        GIN_TYPE(    "String",             "String" ),
-        GIN_DEFAULT( NODEF,                NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN(         "filename_scat_data", "filename_pnd_field" ),
+        GIN_TYPE(    "String",             "String"             ),
+        GIN_DEFAULT( NODEF,                NODEF                ),
+        GIN_DESC( "File containing single scattering data.",
+                  "File including *pnd_field_raw*." 
+                  )
         ));
  
   md_data_raw.push_back
@@ -5542,13 +5457,8 @@ void define_md_data_raw()
          "This method reads single scattering data and the corresonding\n"
          "particle number density fields.\n"
          "\n"
-         "The methods reads the  specified files\n"
-         "and appends the variables *scat_data_raw* and *pnd_field_raw*.\n"
-         "\n"
-         "Keywords:\n"
-         "   filename_scat_data : Filename of single scattering data.\n"
-         "   filename_pnd_field : Filename of the corresponding pnd_field\n"
-         "                        (format here is GField3).\n"
+         "The methods reads the  specified files and appends the obtained data\n"
+         "to *scat_data_raw* and *pnd_field_raw*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_data_raw", "pnd_field_raw" ),
@@ -5557,11 +5467,12 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", 
             "cloudbox_limits" ),
-        GIN( "filename_scat_data", "filename_pnd_field" ),
-        GIN_TYPE(    "String",             "String" ),
-        GIN_DEFAULT( NODEF,                NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN(         "filename_scat_data", "filename_pnd_field" ),
+        GIN_TYPE(    "String",             "String"             ),
+        GIN_DEFAULT( NODEF,                NODEF                ),
+        GIN_DESC( "Filename of single scattering data.",
+                  "Filename of the corresponding pnd_field." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -5569,12 +5480,14 @@ void define_md_data_raw()
       ( NAME( "ParticleTypeInit" ),
         DESCRIPTION
         (
+         "Initializes *scat_data_raw* and *pnd_field_raw*.\n"
+         "\n"
          "This method initializes variables containing data about the\n"
          "optical properties of particles (*scat_data_raw*) and about the\n"
          "particle number distribution (*pnd_field_raw*)\n"
          "\n"
-         "*ParticleTypeInit* has to be executed before executing\n"
-         "*ParticleTypeAdd(All)*.\n"
+         "This method has to be executed before executing e.g.\n"
+         "*ParticleTypeAdd*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_data_raw", "pnd_field_raw" ),
@@ -5595,14 +5508,6 @@ void define_md_data_raw()
         (
          "This function sums up the phase matrices for all particle\n"
          "types weighted with particle number density.\n"
-         "\n"
-         "The output of this method is *pha_mat* (Nza, Naa, stokes_dim,\n"
-         "stokes_dim). The inputs are the phase matrix for the single particle\n"
-         "type *pha_mat_spt* (part_types, Nza, Naa, stokes_dim, stokes_dim)\n"
-         "and the local particle  number densities for all particle types namely\n"
-         "the *pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given\n"
-         "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required\n"
-         "are specified in the control file.\n"
          ),
         AUTHORS( "Sreerekha T.R." ),
         OUT( "pha_mat" ),
@@ -5625,14 +5530,11 @@ void define_md_data_raw()
          "Calculation of the phase matrix for the single particle types.\n"
          "\n"
          "This function can be used in *pha_mat_spt_agenda* as part of\n"
-         "the calculation\n"
-         "of the scattering integral.\n"
+         "the calculation of the scattering integral.\n"
          "\n"
          "The interpolation of the data on the actual frequency is the first\n"
-         "step in this function.\n"
-         "\n"
-         "Then the transformation from the database coordinate system to to\n"
-         "laboratory coordinate system is done.\n"
+         "step in this function. This is followed by a transformation from the\n"
+         "database coordinate system to the laboratory coordinate system.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "pha_mat_spt" ),
@@ -5704,16 +5606,10 @@ void define_md_data_raw()
     ( MdRecord
       ( NAME( "pnd_fieldCalc" ),
         DESCRIPTION
-        ( "Interpolate the particle number density fields.\n"
+        ( "Interpolates the particle number density fields.\n"
           "\n"
           "This methods interpolates the particle number density field\n"
-          "from the raw data *pnd_field_raw* to pnd_field* which is definded\n"
-          "on sub-grids of *p_grid*, *lat_grid*, *lon_grid*, exactly on the\n"
-          "part of the atmosphere where the cloudbox is defined.\n"
-          "\n"
-          "The method takes as input the *pnd_field_raw*\n"
-          "which contains the particle number density for each\n"
-          "particle type.\n"
+          "from the raw data *pnd_field_raw* to obtain *pnd_field*.\n"
           ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
         OUT( "pnd_field" ),
@@ -5733,7 +5629,7 @@ void define_md_data_raw()
       ( NAME( "pnd_fieldZero" ),
         DESCRIPTION
         (
-         "Sets *pnd_field* to hoold only zeros.\n"
+         "Sets *pnd_field* to hold only zeros.\n"
          "\n"
          "Scattering calculations using the DOIT method include\n"
          "interpolation errors. If one is interested in this effect, one\n"
@@ -5760,7 +5656,7 @@ void define_md_data_raw()
       ( NAME( "ppathCalc" ),
         DESCRIPTION
         (
-         "Main function for calculation of propagation paths.\n"
+         "Main method for calculation of propagation paths.\n"
          "\n"
          "There exists only one function to calculate total propagation\n"
          "paths and this is that function. The function is normally not\n"
@@ -5803,11 +5699,6 @@ void define_md_data_raw()
          "distance along the path between the points does not exceed the\n"
          "selected maximum length. No additional points are included if\n"
          "*ppath_lmax* is set to <= 0.\n"
-         "\n"
-         "As functions of this kind should very seldom be called directly,\n"
-         "and that the functions can be called a high number of times, these\n"
-         "functions do not perform any checks of the input that give\n" 
-         "detailed error messages, but asserts are performed (if turned on).\n"
          "\n"
          "For further information, type see the on-line information for\n"
          "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\" ).\n"
@@ -6000,48 +5891,6 @@ void define_md_data_raw()
         PASSWSVNAMES(   true  )
         ));
 
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME( "refr_indexFieldAndGradients" ),
-        DESCRIPTION
-        (
-         "Calculates the field and gradients of the refractive index.\n"
-         "\n"
-         "This function calculates the refractive index and its gradients\n"
-         "for a rectangular grid.\n"
-         "\n"
-         "Calculations are performed for all combinations of the given\n"
-         "vectors, where the first vector shall contain pressure values, the\n"
-         "second latitude values, and the last longitude values. For\n"
-         "dimensions not used, the corresponding position vector is ignored.\n"
-         "\n"
-         "The calculated values form a Tensor4, with size:\n"
-         "   [atmosphere_dim+1, np, nlat, nlon]\n"
-         "where np is the number of pressures given etc. The book of the\n"
-         "tensor with the following index holds:\n"
-         "   0: the refractive index\n"
-         "   1: radial gradient of the refractive index\n"
-         "   2: latitude gradient of the refractive index\n"
-         "   3: longitude gradient of the refractive index\n"
-         "\n"
-         "To calculate these quantities for the atmsopheric mesh, execute:\n"
-         "   RefrIndexFieldAndGradients(tensor4_1,p_grid,lat_grid,lon_grid)\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "refr_index", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
-        GOUT(      "gout1"        ),
-        GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC( "FIXME DOC" ),
-        IN( "refr_index_agenda", "atmosphere_dim", "p_grid", "lat_grid", 
-            "lon_grid", "r_geoid", "z_field", "t_field", "vmr_field" ),
-        GIN(      "gin1"      , "gin2"      , "gin3"        ),
-        GIN_TYPE(    "Vector", "Vector", "Vector" ),
-        GIN_DEFAULT( NODEF   , NODEF   , NODEF     ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
-        ));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "refr_indexIR" ),
@@ -6051,7 +5900,7 @@ void define_md_data_raw()
          "Earth's atmosphere.\n"
          "\n"
          "Only refractivity of dry air is considered. The formula used is\n"
-         "contributed by Michael Hoefner,bForschungszentrum Karlsruhe.\n"
+         "contributed by Michael Hoefner, Forschungszentrum Karlsruhe.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT( "refr_index" ),
@@ -6074,7 +5923,7 @@ void define_md_data_raw()
          "Earth's atmosphere.\n"
          "\n"
          "The refractivity of dry air and water vapour is summed. All\n"
-         "other gases are assumed ti have a negligible contribution. \n"
+         "other gases are assumed to have a negligible contribution. \n"
          "\n"
          "The parameterisation of Thayer (Radio Science, 9, 803-807, 1974)\n"
          "is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104,\n"
@@ -6101,10 +5950,6 @@ void define_md_data_raw()
          "\n"
          "If this method is used, the obtained path should be identical to\n"
          "the geomtrical path.\n"
-         "\n"
-         "As this function does not need any input, you have to include call\n"
-         "of *Ignore* for all variables expected to be used by\n"
-         "*refr_index_agenda*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "refr_index" ),
@@ -6180,12 +6025,12 @@ void define_md_data_raw()
          "frequencies and sensor pos/los in a single run. Sensor responses\n"
          "can be included in the standard manner (as in *RteCalc*).\n"
          "\n"
-         "MC unit is set as for *MCGeneral*.No antenna pattern is included.\n"
+         "MC unit is set as for *MCGeneral*. No antenna pattern is included.\n"
          "\n"
          "This function does not apply the MC approach when it comes\n"
          "to sensor properties. These properties are not considered when\n"
-         "tracking photons, which is done in *MCGeneral* (but only for the\n"
-         "antenna pattern).\n"
+         "tracking photons, which is done in *MCGeneral* (but then only for\n"
+         "the antenna pattern).\n"
          "\n"
          "The MC calculation errors are all assumed be uncorrelated and each\n"
          "have a normal distribution. These properties are of relevance when\n"
@@ -6308,14 +6153,7 @@ void define_md_data_raw()
         (
          "Sets *rte_los* to the given angles.\n"
          "\n"
-         "The keyword argument *za* is put in as first element of *rte_los*\n"
-         "and *aa* as the second element. However, when *atmosphere_dim* is\n"
-         "set to 1D or 2D, the length of *rte_los* is set to 1 and only the\n"
-         "given zenith angle is considered.\n"
-         "\n"
-         "Keywords:\n"
-         "   za : Zenith angle of sensor line-of-sight.\n"
-         "   aa : Azimuth angle of sensor line-of-sight.\n"
+         "The azimuth angle is ignored for 1D and 2D.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "rte_los" ),
@@ -6326,8 +6164,9 @@ void define_md_data_raw()
         GIN( "za",      "aa"      ),
         GIN_TYPE(    "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Zenith angle of sensor line-of-sight.",
+                  "Azimuth angle of sensor line-of-sight." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -6396,20 +6235,13 @@ void define_md_data_raw()
         (
          "Sets *rte_pos* to the given co-ordinates.\n"
          "\n"
-         "The keyword argument *r_or_z* is put in as first element of\n"
-         "*rte_pos*, *lat* as the second element and *lon* as third element.\n"
-         "However, the length of *rte_pos* is set to *atmosphere_dim* and\n"
-         "keyword arguments for dimensions not used are ignored.\n"
+         "The longitude is ignored for 1D and 2D, and the latitude is also \n"
+         "ignored for 1D.\n"
          "\n"
-         "The first keyword argument can either be a radius, or an altitude\n"
+         "The argument *r_or_z* can either be a radius, or an altitude\n"
          "above the geoid. In the latter case, a function such as\n"
          "*rte_posAddGeoidWGS84* could be called to obtain a radius as\n"
          "first element of *rte_pos*.\n"
-         "\n"
-         "Keywords:\n"
-         "   r_or_z : Radius or geometrical altitude of sensor position.\n"
-         "   lat : Latitude of sensor position.\n"
-         "   lon : Longitude of sensor position.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "rte_pos" ),
@@ -6420,9 +6252,10 @@ void define_md_data_raw()
         GIN( "r_or_z",  "lat",     "lon"     ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF,     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Radius or geometrical altitude of sensor position.",
+                  "Latitude of sensor position.",
+                  "Longitude of sensor position." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -6446,31 +6279,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "rte_pos_and_losFromTangentPressure" ),
-        DESCRIPTION
-        (
-         "If you are doing limb calculations it can be useful to specify\n"
-         "viewing direction and sensor position by the tangent pressure.\n"
-         "This function takes tan_p as a keyword argument and sets rte_los\n"
-         "and rte_pos to the apropriate position on the edge of the modelled\n"
-         "atmosphere\n\n"
-         "This function is a work in progress. Only 1D is currently supported\n"
-         ),
-        AUTHORS( "Cory Davis" ),
-        OUT( "rte_pos", "rte_los", "ppath" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim", "p_grid", "z_field", "lat_grid", "lon_grid",
-            "ppath_step_agenda", "r_geoid", "z_surface" ),
-        GIN( "tan_p" ),
-        GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "r_geoidSpherical" ),
         DESCRIPTION
         (
@@ -6479,9 +6287,6 @@ void define_md_data_raw()
          "The radius of the sphere is selected by the keyword argument *r*.\n"
          "If the keyword is set to be negative, the radius is set to the\n"
          "global internal variable *EARTH_RADIUS*, defined in constants.cc.\n"
-         "\n"
-         "Keywords:\n"
-         "   r : Radius of geoid sphere. See further above.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "r_geoid" ),
@@ -6491,8 +6296,8 @@ void define_md_data_raw()
         IN( "atmosphere_dim", "lat_grid", "lon_grid" ),
         GIN( "r" ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DEFAULT( NODEF     ),
+        GIN_DESC( "Radius of geoid sphere. See further above." )
         ));
 
   md_data_raw.push_back
@@ -6511,7 +6316,7 @@ void define_md_data_raw()
          "\n"
          "Please note that the latitude grid must contain true latitudes\n"
          "if the function shall give correct result, and not just arbitrary\n"
-         "orbit angles which is allowed for 2D cases.\n"
+         "orbit angles which is allowed elsewhere for 2D cases.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "r_geoid" ),
@@ -6540,8 +6345,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "cloudbox_limits", "stokes_dim", "opt_prop_part_agenda", 
-            "abs_scalar_gas_agenda", "spt_calc_agenda", 
-            "pnd_field", "t_field", 
+            "abs_scalar_gas_agenda", "spt_calc_agenda", "pnd_field", "t_field", 
             "z_field", "p_grid", "vmr_field", "scat_data_raw", "f_grid", 
             "scat_za_grid", "surface_emissivity_DISORT" ),
         GIN(),
@@ -6555,6 +6359,8 @@ void define_md_data_raw()
       ( NAME( "ScatteringDoit" ),
         DESCRIPTION
         (
+         "Main DOIT method.\n"
+         "\n"
          "This method executes *doit_mono_agenda* for each frequency\n"
          "in *f_grid*. The output is the radiation field inside the cloudbox\n"
          "(*doit_i_field*) and on the cloudbox boundary (*scat_i_p* (1D),\n"
@@ -6574,64 +6380,12 @@ void define_md_data_raw()
         GIN_DESC()
         ));
  
-  /* Has been found to not work. Probably caused by changes in agenda 
-     functionality.
-     md_data_raw.push_back
-     ( MdRecord
-     ( NAME( "ScatteringMonteCarlo" ),
-     DESCRIPTION
-     (
-     "This method performs a single pencil beam monochromatic scattering\n"
-     "calculation using a Monte Carlo algorithm\n"
-     "\n"
-     "The main output variables *iy* and *mc_error* represent the\n"
-     "Stokes vector leaving the cloudbox, and the estimated error in the\n"
-     "Stokes vector (at the sensor!- not the cloudbox exit) respectively.\n"
-     "The keyword parameter `maxiter\' describes the number of `photons\'\n"
-     "used in the simulation (more photons means smaller *mc_error*).\n"
-     "std_err is the desired value of mc_error, and max_time is the maximum\n"
-     "allowed number of seconds for ScatteringMonteCarlo. ScatteringMonteCarlo\n"
-     "will terminate once any of the max_iter, std_err, max_time criteria are\n"
-     "met. If negative values are given for these parameters then it is ignored.\n"
-     " Negative values of rng_seed seed the random number generator \n "
-     "according to system time, positive rng_seed values are taken literally.\n"
-     "The incoming_lookup keyword determines if incoming radiance is obtained from\n"
-     "a precalculated grid (mc_incoming) or calculated on the fly\n"
-     ),
-     AUTHORS( "Cory Davis" ),
-     OUT( "ppath", "ppath_step", 
-     "mc_error", "mc_iteration_count", "rte_pos", "rte_los", "iy", 
-     "rte_pressure", "rte_temperature", 
-     "rte_vmr_list", "ext_mat", "abs_vec" ),
-     GOUT(),
-     GOUT_TYPE(),
-     GOUT_DESC(),
-     IN( "ppath", "rte_pos", "rte_los", "ppath_step_agenda", "atmosphere_dim",
-     "p_grid", "lat_grid", "lon_grid", "z_field", "r_geoid", "z_surface",
-     "cloudbox_limits", "stokes_dim", "rte_agenda", "iy_space_agenda",
-     "surface_prop_agenda", "t_field", "f_grid", "opt_prop_gas_agenda",
-     "abs_scalar_gas_agenda", "vmr_field",
-     "scat_data_mono", "pnd_field", "mc_seed", "f_index" , "mc_incoming" ),
-     GIN( "std_err", "max_time", "max_iter", "incoming_lookup",
-     "z_field_is_1D" ),
-     GIN_TYPE(    "Numeric", "Index",    "Index",    "Index",
-     "Index" ),
-     GIN_DEFAULT( NODEF,     NODEF,      NODEF,      NODEF,
-     NODEF ),
-     GIN_DESC( "FIXME DOC",
-     "FIXME DOC",
-     "FIXME DOC",
-     "FIXME DOC",
-     "FIXME DOC" )
-     ));
-  */
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "scat_data_monoCalc" ),
         DESCRIPTION
         (
-         "Interpolates scat_data_raw by frequency to give scat_data_mono\n"
+         "Interpolates scat_data_raw by frequency to give scat_data_mono.\n"
          ),
         AUTHORS( "Cory Davis" ),
         OUT( "scat_data_mono" ),
@@ -6721,15 +6475,11 @@ void define_md_data_raw()
         (
          "Sets sensor WSVs to obtain monochromatic pencil beam values.\n"
          "\n"
-         "The variables are set as follows:\n"
+         "A 1D antenna pattern is assumed. The variables are set as follows:\n"
          "   antenna_dim             : 1.\n"
          "   mblock_za_grid          : Length 1, value 0.\n"
          "   mblock_aa_grid          : Empty.\n"
-         "   sensor_response         : As returned by *sensor_responseInit*.\n"
-         "   sensor_response_f       : As returned by *sensor_responseInit*.\n"
-         "   sensor_response_pol     : As returned by *sensor_responseInit*.\n"
-         "   sensor_response_za      : As returned by *sensor_responseInit*.\n"
-         "   sensor_response_aa      : As returned by *sensor_responseInit*.\n"
+         "   sensor_response*        : As returned by *sensor_responseInit*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", 
@@ -6787,7 +6537,7 @@ void define_md_data_raw()
         (
          "Adds a geoid radius by interpolating *r_geoid*.\n"
          "\n"
-         "This function assumes that the first element of *rte_pos* is set\n"
+         "This function assumes that the first element of *sensor_pos* is set\n"
          "to the geometric altitude for the position of the sensor.\n"
          "The variable *rte_pos* shall contain the radius instead of the\n"
          "altitude and that can be achieved by this function. The function\n"
@@ -6812,7 +6562,7 @@ void define_md_data_raw()
       ( NAME( "sensor_responseAntenna" ),
         DESCRIPTION
         (
-         "Adds response of the antenna.\n"
+         "Includes response of the antenna.\n"
          "\n"
          "The function returns the sensor response matrix after the antenna\n" 
          "characteristics have been included.\n"
@@ -6846,7 +6596,7 @@ void define_md_data_raw()
       ( NAME( "sensor_responseBackend" ),
         DESCRIPTION
         (
-         "Adds response of the backend (spectrometer).\n"
+         "Includes response of the backend (spectrometer).\n"
          "\n"
          "The function returns the sensor response matrix after the backend\n" 
          "characteristics have been included.\n"
@@ -6880,12 +6630,12 @@ void define_md_data_raw()
          "Calculates the difference spectrum: Beam switching\n"
          "\n"
          "The method allows to mimic beam switching. The measurement procedure\n"
-         "is basedon taking the difference of two spectra and the calculation\n"
+         "is based on taking the difference of two spectra and the calculation\n"
          "set-up must treat exactly two observation directions.\n"
          "\n"
          "The returned spectrum is y = w1*y + w2*y2, where y1 and w1 are the\n"
          "spectrum and weight for the first direction, respectively (y2 and\n"
-         "(w2 defined corresponingly for second direction).\n"
+         "(w2 defined correspondingly for the second direction).\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
@@ -6902,7 +6652,8 @@ void define_md_data_raw()
         GIN_TYPE( "Numeric", "Numeric" ),
         GIN_DEFAULT( "-1", "1" ),
         GIN_DESC( "Weight for values from first viewing direction.", 
-                  "Weight for values from second viewing direction." )
+                  "Weight for values from second viewing direction." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -6926,8 +6677,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "sensor_response_f", "sensor_response_f_grid", 
-            "lo", "sideband_mode" ),
+        IN( "sensor_response_f", "sensor_response_f_grid", "lo", 
+            "sideband_mode" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6943,8 +6694,8 @@ void define_md_data_raw()
          "\n"
          "This method sets the variables to match monochromatic pencil beam\n"
          "calculations, to be further modified by inclusion of sensor\n"
-         "characteristics. If pure monochromatic pencil beam calculations\n"
-         "shall be performed use *sensorOff*.\n"
+         "characteristics. Use *sensorOff* if pure monochromatic pencil\n"
+         "beam calculations shall be performed.\n"
          "\n"
          "The variables are set as follows:\n"
          "   sensor_response : Identity matrix, with size matching *f_grid*,\n"
@@ -6961,8 +6712,8 @@ void define_md_data_raw()
          "\n"
          "The standard order of WSM calls for creating *sensor_response* is:\n"
          "   sensor_responseInit\n"
-         "   sensor_responseAntenna1D\n"
          "   sensor_responseRotation\n"
+         "   sensor_responseAntenna1D\n"
          "   sensor_responsePolarisation\n"
          "   sensor_responseMixer\n"
          "   sensor_responseBackend\n"
@@ -6990,7 +6741,7 @@ void define_md_data_raw()
       ( NAME( "sensor_responseMixer" ),
         DESCRIPTION
         (
-         "Adds response of the mixer of a heterodyne system.\n"
+         "Includes response of the mixer of a heterodyne system.\n"
          "\n"
          "The function returns the sensor response matrix after the mixer\n" 
          "characteristics have been included. Frequency variables are\n"
@@ -7030,7 +6781,7 @@ void define_md_data_raw()
          "are described by *lo_multi*, *sideband_response_multi*,\n"
          "*sideband_mode_multi*, *f_backend_multi* and\n"
          "*backend_channel_response_multi*. All these WSVs must have same\n"
-         "(vector or array) length. As *sensor_responseIF2RF* is called,\n"
+         "vector or array length. As *sensor_responseIF2RF* is called,\n"
          "*f_backend_multi* must hold RF (not IF) and output frequencies\n"
          "will be in absolute frequency (RF).\n"
          ),
@@ -7164,14 +6915,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "s"      ),
         GOUT_TYPE( "String" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "String variable to set." ),
         IN(),
-        GIN( "text"   ),
+        GIN(         "text"   ),
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC( "Input text string." ),
         SETMETHOD( true )
         ));
 
@@ -7183,7 +6934,7 @@ void define_md_data_raw()
          "Creates variables to mimic a blackbody surface.\n"
          "\n"
          "This method sets up *surface_los*, *surface_rmatrix* and\n"
-         "*surface_emission* for *surfaceCalc*. In this case, *surface_los*\n"
+         "*surface_emission* for *surface_prop_agenda*. Here, *surface_los*\n"
          "and *surface_rmatrix* are set to be empty, and *surface_emission*\n"
          "to hold blackbody radiation for a temperature of *surface_skin_t*.\n"
          ),
@@ -7241,7 +6992,7 @@ void define_md_data_raw()
          "does not vary with frequency.\n"
          "\n"
          "Generic output and input:\n"
-         "  surface_emissivity : The emissivity, a value between 0 and 1.\n"
+         "  surface_emissivity : \n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
@@ -7250,10 +7001,10 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
             "surface_skin_t" ),
-        GIN( "surface_emissivity" ),
-        GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN(         "surface_emissivity" ),
+        GIN_TYPE(    "Numeric"            ),
+        GIN_DEFAULT( NODEF                ),
+        GIN_DESC( "The emissivity, a value between 0 and 1." )
         ));
 
   md_data_raw.push_back
@@ -7270,10 +7021,6 @@ void define_md_data_raw()
          "\n"
          "Local thermodynamic equilibrium is assumed, which corresponds to\n"
          "that the reflection and emission coefficients add up to 1.\n"
-         "\n"
-         "Generic output and input:\n"
-         "  surface_emissivity : The emissivity, for each frequency in\n"
-         "                       *f_grid*. Values between 0 and 1.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
@@ -7282,10 +7029,12 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
             "surface_skin_t" ),
-        GIN( "surface_emissivity" ),
-        GIN_TYPE( "Vector" ),
+        GIN(      "surface_emissivity" ),
+        GIN_TYPE( "Vector"             ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "The emissivity, for each frequency in *f_grid*. Values "
+                  "between 0 and 1." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -7296,15 +7045,12 @@ void define_md_data_raw()
          "Creates an empty Tensor3.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   Tensor3: New empty Tensor3.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"        ),
-        GOUT_TYPE( "Tensor3" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT(      "t"        ),
+        GOUT_TYPE( "Tensor3"  ),
+        GOUT_DESC( "Created tensor" ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7314,80 +7060,25 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "Tensor3FillWithVector" ),
-        DESCRIPTION
-        (
-         "Forms a tensor of order 3 by repeating a vector.\n"
-         "\n"
-         "The direction of the vector inside the tensor is selected by\n"
-         "setting the size determined by the vector length to 0. For\n"
-         "example, if the keyword *ncols* is set to 0, the vector will be\n"
-         "put in as rows on every page. The remaining sizes are taken from\n"
-         "the keyword arguments.\n"
-         "\n"
-         "One, but only one, keyword argument must be 0.\n"
-         "\n"
-         "Generic output:\n"
-         "   Tensor3 : The tensor to be created.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector : The vector to be copied.\n"
-         "Keyword:\n"
-         "   npages : Number of pages in the tensor.\n"
-         "   nrows  : Number of rows in the tensor.\n"
-         "   ncols  : Number of columns in the tensor.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "gout1"        ),
-        GOUT_TYPE( "Tensor3" ),
-        GOUT_DESC( "FIXME DOC" ),
-        IN(),
-        GIN(      "gin1"      ,
-                  "npages", "nrows", "ncols"   ),
-        GIN_TYPE(    "Vector",
-                     "Index",  "Index", "Index" ),
-        GIN_DEFAULT( NODEF   ,
-                     NODEF,    NODEF,   NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "Tensor3Scale" ),
         DESCRIPTION
         (
-         "Scales a workspace tensor3 with the specified value.\n"
+         "Scales all elements of a tensor with the specified value.\n"
          "\n"
-         "The result can either be stored in the input tensor3 or\n"
-         "in a new tensor3.\n"
-         "\n"
-         "Generic output:\n"
-         "   Tensor3 : The scaled tensor3.\n"
-         "\n"
-         "Generic input:\n"
-         "   Tensor3 : The tensor3 to be scaled.\n"
-         "\n"
-         "Keywords:\n"
-         "   value  : The scale factor.\n"
+         "The result can either be stored in the same or another\n"
+         "variable.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "tout"    ),
         GOUT_TYPE( "Tensor3" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Output tensor." ),
         IN(),
-        GIN(      "gin1"       ,
-                  "value"   ),
-        GIN_TYPE(    "Tensor3",
-                     "Numeric" ),
-        GIN_DEFAULT( NODEF    ,
-                     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN(         "tin",     "value"   ),
+        GIN_TYPE(    "Tensor3", "Numeric" ),
+        GIN_DEFAULT( NODEF    , NODEF     ),
+        GIN_DESC( "Input tensor.",
+                  "The value to be multiplied with the tensor." )
         ));
 
   md_data_raw.push_back
@@ -7395,26 +7086,20 @@ void define_md_data_raw()
       ( NAME( "Tensor3SetConstant" ),
         DESCRIPTION
         (
-         "Creates a workspace tensor3 and sets all elements of the\n"
-         "tensor3 to the specified value. The size is determined by\n"
-         "the variables *ncols*, *nrows*, and *npages*\n"
+         "Creates a tensor and sets all elements to the specified value.\n"
          "\n"
-         "Generic output:\n"
-         "   Tensor3 : The tensor3 to be created.\n"
-         "\n"
-         "Keywords:\n"
-         "   value  : The value of the tensor3 elements.\n"
+         "The size is determined by *ncols*, *nrows* etc.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "t"   ),
         GOUT_TYPE( "Tensor3" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The tensor to be created." ),
         IN( "npages", "nrows", "ncols" ),
-        GIN( "value"   ),
+        GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DEFAULT( NODEF     ),
+        GIN_DESC( "Tensor value." )
         ));
 
   md_data_raw.push_back
@@ -7446,34 +7131,22 @@ void define_md_data_raw()
       ( NAME( "Tensor4Scale" ),
         DESCRIPTION
         (
-         "Scales a workspace tensor4 with the specified value.\n"
+         "Scales all elements of a tensor with the specified value.\n"
          "\n"
-         "The result can either be stored in the input tensor4 or\n"
-         "in a new tensor4.\n"
-         "\n"
-         "Generic output:\n"
-         "   Tensor4 : The scaled tensor4.\n"
-         "\n"
-         "Generic input:\n"
-         "   Tensor4 : The tensor4 to be scaled.\n"
-         "\n"
-         "Keywords:\n"
-         "   value  : The scale factor.\n"
+         "The result can either be stored in the same or another\n"
+         "variable.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "tout"    ),
         GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Output tensor." ),
         IN(),
-        GIN(      "gin1"       ,
-                  "value"   ),
-        GIN_TYPE(    "Tensor4",
-                     "Numeric" ),
-        GIN_DEFAULT( NODEF    ,
-                     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN(         "tin",     "value"   ),
+        GIN_TYPE(    "Tensor4", "Numeric" ),
+        GIN_DEFAULT( NODEF    , NODEF     ),
+        GIN_DESC( "Input tensor.",
+                  "The value to be multiplied with the tensor." )
         ));
 
   md_data_raw.push_back
@@ -7481,26 +7154,20 @@ void define_md_data_raw()
       ( NAME( "Tensor4SetConstant" ),
         DESCRIPTION
         (
-         "Creates a workspace tensor4 and sets all elements of the\n"
-         "tensor4 to the specified value. The size is determined by\n"
-         "the variables *ncols*, *nrows*, *npages*, and *nbooks*.\n"
+         "Creates a tensor and sets all elements to the specified value.\n"
          "\n"
-         "Generic output:\n"
-         "   Tensor4 : The tensor4 to be created.\n"
-         "\n"
-         "Keywords:\n"
-         "   value  : The value of the tensor4 elements.\n"
+         "The size is determined by *ncols*, *nrows* etc.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "t"       ),
         GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The tensor to be created." ),
         IN( "nbooks", "npages", "nrows", "ncols" ),
-        GIN( "value"   ),
+        GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DEFAULT( NODEF     ),
+        GIN_DESC( "Tensor value." )
         ));
 
   md_data_raw.push_back
@@ -7532,34 +7199,22 @@ void define_md_data_raw()
       ( NAME( "Tensor5Scale" ),
         DESCRIPTION
         (
-         "Scales a workspace tensor5 with the specified value.\n"
+         "Scales all elements of a tensor with the specified value.\n"
          "\n"
-         "The result can either be stored in the input tensor5 or\n"
-         "in a new tensor5.\n"
-         "\n"
-         "Generic output:\n"
-         "   Tensor5 : The scaled tensor5.\n"
-         "\n"
-         "Generic input:\n"
-         "   Tensor5 : The tensor5 to be scaled.\n"
-         "\n"
-         "Keywords:\n"
-         "   value  : The scale factor.\n"
+         "The result can either be stored in the same or another\n"
+         "variable.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "tout"    ),
         GOUT_TYPE( "Tensor5" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Output tensor." ),
         IN(),
-        GIN(      "gin1"       ,
-                  "value"   ),
-        GIN_TYPE(    "Tensor5",
-                     "Numeric" ),
-        GIN_DEFAULT( NODEF    ,
-                     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN(         "tin",     "value"   ),
+        GIN_TYPE(    "Tensor5", "Numeric" ),
+        GIN_DEFAULT( NODEF    , NODEF     ),
+        GIN_DESC( "Input tensor.",
+                  "The value to be multiplied with the tensor." )
         ));
 
   md_data_raw.push_back
@@ -7567,26 +7222,20 @@ void define_md_data_raw()
       ( NAME( "Tensor5SetConstant" ),
         DESCRIPTION
         (
-         "Creates a workspace tensor5 and sets all elements of the\n"
-         "tensor5 to the specified value. The size is determined by the\n"
-         "variables *ncols*, *nrows*, *npages*, *nbooks*, and *nshelves*.\n"
+         "Creates a tensor and sets all elements to the specified value.\n"
          "\n"
-         "Generic output:\n"
-         "   Tensor5 : The tensor5 to be created.\n"
-         "\n"
-         "Keywords:\n"
-         "   value   : The value of the tensor5 elements.\n"
+         "The size is determined by *ncols*, *nrows* etc.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "t"       ),
         GOUT_TYPE( "Tensor5" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Tensor to be created." ),
         IN( "nshelves", "nbooks", "npages", "nrows", "ncols" ),
-        GIN( "value" ),
+        GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DEFAULT( NODEF     ),
+        GIN_DESC( "Tensor value." )
         ));
 
   md_data_raw.push_back
@@ -7618,34 +7267,22 @@ void define_md_data_raw()
       ( NAME( "Tensor6Scale" ),
         DESCRIPTION
         (
-         "Scales a workspace tensor6 with the specified value.\n"
+         "Scales all elements of a tensor with the specified value.\n"
          "\n"
-         "The result can either be stored in the input tensor6 or\n"
-         "in a new tensor6.\n"
-         "\n"
-         "Generic output:\n"
-         "   Tensor6 : The scaled tensor6.\n"
-         "\n"
-         "Generic input:\n"
-         "   Tensor6 : The tensor6 to be scaled.\n"
-         "\n"
-         "Keywords:\n"
-         "   value  : The scale factor.\n"
+         "The result can either be stored in the same or another\n"
+         "variable.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "tout"    ),
         GOUT_TYPE( "Tensor6" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Output tensor." ),
         IN(),
-        GIN(      "gin1"       ,
-                  "value"   ),
-        GIN_TYPE(    "Tensor6",
-                     "Numeric" ),
-        GIN_DEFAULT( NODEF    ,
-                     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN(         "tin",     "value"   ),
+        GIN_TYPE(    "Tensor6", "Numeric" ),
+        GIN_DEFAULT( NODEF    , NODEF     ),
+        GIN_DESC( "Input tensor.",
+                  "The value to be multiplied with the tensor." )
         ));
 
   md_data_raw.push_back
@@ -7653,53 +7290,20 @@ void define_md_data_raw()
       ( NAME( "Tensor6SetConstant" ),
         DESCRIPTION
         (
-         "Creates a workspace tensor6 and sets all elements of the\n"
-         "tensor6 to the specified value. The size is determined by the\n"
-         "variables *ncols*, *nrows*, *npages*, *nbooks*, *nshelves*,\n"
-         "and *nvitrines*.\n"
+         "Creates a tensor and sets all elements to the specified value.\n"
          "\n"
-         "Generic output:\n"
-         "   Tensor6 : The tensor6 to be created.\n"
-         "\n"
-         "Keywords:\n"
-         "   value     : The value of the tensor6 elements.\n"
+         "The size is determined by *ncols*, *nrows* etc.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "t"       ),
         GOUT_TYPE( "Tensor6" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The tensor to be created." ),
         IN( "nvitrines", "nshelves", "nbooks", "npages", "nrows", "ncols" ),
-        GIN( "value" ),
+        GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "Tensor6ToPlanckBT" ),
-        DESCRIPTION
-        (
-         "Converts a Tensor6 of radiances to brightness temperatures by\n"
-         "inverting the Planck function.\n"
-         "\n"
-         "Generic output:\n"
-         "   Tensor6 : A Tensor6 with brightness temperature values.\n"
-         "\n"
-         "Generic input:\n"
-         "   Tenosr6 : A Tensor6 with radiance values.\n"
-         ),
-        AUTHORS( "Claudia Emde" ),
-        OUT(),
-        GOUT(      "gout1"        ),
-        GOUT_TYPE( "Tensor6" ),
-        GOUT_DESC( "FIXME DOC" ),
-        IN( "f_index", "f_grid" ),
-        GIN(      "gin1"        ),
-        GIN_TYPE(    "Tensor6" ),
         GIN_DEFAULT( NODEF     ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Tensor value." )
         ));
 
   md_data_raw.push_back
@@ -7731,34 +7335,22 @@ void define_md_data_raw()
       ( NAME( "Tensor7Scale" ),
         DESCRIPTION
         (
-         "Scales a workspace tensor7 with the specified value.\n"
+         "Scales all elements of a tensor with the specified value.\n"
          "\n"
-         "The result can either be stored in the input tensor7 or\n"
-         "in a new tensor7.\n"
-         "\n"
-         "Generic output:\n"
-         "   Tensor7 : The scaled tensor7.\n"
-         "\n"
-         "Generic input:\n"
-         "   Tensor7 : The tensor7 to be scaled.\n"
-         "\n"
-         "Keywords:\n"
-         "   value  : The scale factor.\n"
+         "The result can either be stored in the same or another\n"
+         "variable.\n"
          ),
-        AUTHORS( "Claudia Emde" ),
+        AUTHORS( "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "tout"    ),
         GOUT_TYPE( "Tensor7" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Output tensor." ),
         IN(),
-        GIN(      "gin1"       ,
-                  "value" ),
-        GIN_TYPE(    "Tensor7",
-                     "Numeric" ),
-        GIN_DEFAULT( NODEF    ,
-                     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN(         "tin",     "value"   ),
+        GIN_TYPE(    "Tensor7", "Numeric" ),
+        GIN_DEFAULT( NODEF    , NODEF     ),
+        GIN_DESC( "Input tensor.",
+                  "The value to be multiplied with the tensor." )
         ));
 
   md_data_raw.push_back
@@ -7766,28 +7358,21 @@ void define_md_data_raw()
       ( NAME( "Tensor7SetConstant" ),
         DESCRIPTION
         (
-         "Creates a workspace tensor7 and sets all elements of the\n"
-         "tensor7 to the specified value. The size is determined by the\n"
-         "variables *ncols*, *nrows*, *npages*, *nbooks*, *nshelves*,\n"
-         "*nvitrines*, and *nlibraries*.\n"
+         "Creates a tensor and sets all elements to the specified value.\n"
          "\n"
-         "Generic output:\n"
-         "   Tensor7 : The tensor7 to be created.\n"
-         "\n"
-         "Keywords:\n"
-         "   value      : The value of the tensor7 elements.\n"
+         "The size is determined by *ncols*, *nrows* etc.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "t"       ),
         GOUT_TYPE( "Tensor7" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The tensor to be created." ),
         IN( "nlibraries", "nvitrines", "nshelves", "nbooks", "npages", "nrows",
             "ncols" ),
-        GIN( "value" ),
+        GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DEFAULT( NODEF     ),
+        GIN_DESC( "Tensor value." )
         ));
 
   md_data_raw.push_back
@@ -7821,15 +7406,12 @@ void define_md_data_raw()
         (
          "Initializes the CPU timer."
          "\n"
-         "Use *timerStop* to output the consumed cpu time\n"
-         "since *timerStart*.\n"
+         "Use *timerStop* to output the consumed cpu time since *timerStart*.\n"
          "\n"
          "Usage example:\n"
-         "\n"
-         "timerStart()\n"
-         "ReadXML(f_grid){\"frequencies.xml\"}\n"
-         "timerStop()\n"
-         "Prints the CPU time spent for reading the XML file\n"
+         "   timerStart()\n"
+         "   ReadXML(f_grid){\"frequencies.xml\"}\n"
+         "   timerStop()\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT( "timer" ),
@@ -7851,8 +7433,8 @@ void define_md_data_raw()
         (
          "Stops the CPU timer."
          "\n"
-         "Use *timerStop* to output the consumed cpu time\n"
-         "since *timerStart*. See *timerStart* for example\n"
+         "Use *timerStop* to output the consumed cpu time since *timerStart*.\n"
+         "See *timerStart* for example usage.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -7874,30 +7456,17 @@ void define_md_data_raw()
          "Adds a scalar to all elements of a vector.\n"
          "\n"
          "The result can either be stored in the same or another vector.\n"
-         "\n"
-         "Generic output:\n"
-         "   Vector : Return vector.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector : Original vector.\n"
-         "\n"
-         "Keywords:\n"
-         "   value : The value to be added to the vector.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "v1"     ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Input vector" ),
         IN(),
-        GIN(      "gin1"      ,
-                  "value" ),
-        GIN_TYPE(    "Vector",
-                     "Numeric" ),
-        GIN_DEFAULT( NODEF   ,
-                     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN(         "v2"    , "value"   ),
+        GIN_TYPE(    "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF   , NODEF     ),
+        GIN_DESC( "Output vector", "The value to be added to the vector." )
         ));
 
   md_data_raw.push_back
@@ -7933,30 +7502,20 @@ void define_md_data_raw()
          "\n"
          "Copies row or column with given Index from input Matrix variable\n"
          "to create output Vector.\n"
-         "\n"
-         "This method is largely redundant to the general Extract method,\n"
-         "its only advantage is that it can extract also column-vise.\n"
-         "Perhaps this should be unified one day, by making Extract even more\n"
-         "general.\n"
-         "\n"
-         "Keywords:\n"
-         "   direction : Must be either *row* or *column*.\n"
          ),
         AUTHORS( "Patrick Eriksson, Oliver Lemke, Stefan Buehler" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "v"      ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Extracted vector." ),
         IN(),
-        GIN(       "gin1"      , "gin2"     ,
-                   "direction" ),
-        GIN_TYPE(     "Matrix", "Index",
-                      "String" ),
-        GIN_DEFAULT(  NODEF   , NODEF  ,
-                      NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN(          "m"     , "i"    , "direction" ),
+        GIN_TYPE(     "Matrix", "Index", "String"    ),
+        GIN_DEFAULT(  NODEF   , NODEF  , NODEF       ),
+        GIN_DESC( "Input matrix.",
+                  "Index of row or column.",
+                  "Direction. \"row\" or \"column\"." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -8006,31 +7565,23 @@ void define_md_data_raw()
          "\n"
          "The first element equals always the start value, and the spacing\n"
          "equals always the step value, but the last value can deviate from\n"
-         "the stop value. The keyword step can be both positive and\n"
-         "negative.\n"
+         "the stop value. *step* can be both positive and negative.\n"
          "\n"
-         "The vector is [start, start+step, start+2*step, ...]\n "
-         "\n"
-         "Generic output:\n"
-         "   Vector : The vector to be created.\n"
-         "\n"
-         "Keywords:\n"
-         "   start : The start value.\n"
-         "    stop : The maximum value of the end value.\n"
-         "    step : The spacing of the vector.\n"
+         "The created vector is [start, start+step, start+2*step, ...]\n "
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "v"      ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Output vector." ),
         IN(),
-        GIN( "start",   "stop",    "step"    ),
+        GIN(         "start",   "stop",    "step"    ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,     NODEF,     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DEFAULT( NODEF,     NODEF,     NODEF     ),
+        GIN_DESC( "Start value.",
+                  "Maximum/minimum value of the end value",
+                  "Spacing of the vector." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -8113,26 +7664,20 @@ void define_md_data_raw()
          "Creates a vector with length *nelem*, equally spaced between the\n"
          "given end values.\n"
          "\n"
-         "The length must be larger than 1.\n"
-         "\n"
-         "Generic output:\n"
-         "   Vector : The vector to be created.\n"
-         "\n"
-         "Keywords:\n"
-         "   start : The start value.\n"
-         "    stop : The end value.\n"  
+         "The length (*nelem*) must be larger than 1.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(     "gout1"      ),
+        GOUT(      "v"      ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The vector to created." ),
         IN( "nelem" ),
-        GIN( "start",   "stop"    ),
+        GIN(         "start",   "stop"    ),
         GIN_TYPE(    "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF     ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Start value.",
+                  "End value." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -8143,27 +7688,20 @@ void define_md_data_raw()
          "Creates a vector with length *nelem*, equally logarithmically\n"
          "spaced between the given end values.\n"
          "\n"
-         "The length must be larger than 1.\n"
-         "\n"
-         "Generic output:\n"
-         "   Vector : The vector to be created.\n"
-         "\n"
-         "Keywords:\n"
-         "   start : The start value.\n"
-         "    stop : The end value.\n"  
-         "       n : Number of elements of the vector.\n" 
+         "The length (*nelem*) must be larger than 1.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(     "gout1"      ),
+        GOUT(      "v"      ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The vector to created." ),
         IN( "nelem" ),
-        GIN( "start",   "stop"    ),
+        GIN(         "start",   "stop"    ),
         GIN_TYPE(    "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF     ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Start value.",
+                  "End value." 
+                  )
         ));
 
   md_data_raw.push_back
@@ -8205,26 +7743,20 @@ void define_md_data_raw()
       ( NAME( "VectorSetConstant" ),
         DESCRIPTION
         (
-         "Creates a workspace vector and sets all elements of the\n"
-         "vector to the specified value. The length of the vector is\n"
-         "determined by the variable *nelem*.\n"
+         "Creates a vector and sets all elements to the specified value.\n"
          "\n"
-         "Generic output:\n"
-         "   Vector : The vector to be created.\n"
-         "\n"
-         "Keywords:\n"
-         "   value  : The value of the vector elements.\n" 
+         "The vector length is determined by *nelem*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "v"      ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The vector to be created." ),
         IN( "nelem" ),
-        GIN( "value"   ),
+        GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DEFAULT( NODEF     ),
+        GIN_DESC( "Vector value." )
         ));
 
   md_data_raw.push_back
@@ -8269,24 +7801,18 @@ void define_md_data_raw()
          "the sensor is given by the WSV *sensor_pos*. The function works\n"
          "only for 1D. The zenith angles are always set to be positive.\n"
          "The tangent altitudes are given as the altitude above the geoid.\n"
-         "\n"
-         "Generic output:\n"
-         "   Vector : A vector with zenith angles.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector : A vector with true tangent altitudes\n"
          ),
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
-        OUT( "refr_index", "rte_pressure", "rte_temperature", "rte_vmr_list" ),
-        GOUT(      "gout1"       ),
+        OUT(),
+        GOUT(      "v_za"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Vector with zenith angles." ),
         IN( "refr_index_agenda", "sensor_pos", "p_grid", "t_field", "z_field",
             "vmr_field", "r_geoid", "atmosphere_dim" ),
-        GIN(      "gin1"       ),
+        GIN(         "v_ztan" ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Vector with tangent altitudes." )
         ));
 
   md_data_raw.push_back
@@ -8302,23 +7828,17 @@ void define_md_data_raw()
          "only for 1D, where the geoid radius is taken from *r_geoid*. The\n"
          "zenith angles are always set to be positive. The tangent altitudes\n"
          "are given as the altitude above the geoid.\n"
-         "\n"
-         "Generic output:\n"
-         "   Vector : A vector with zenith angles.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector : A vector with geometric tangent altitudes\n"
          ),
         AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "v_za"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Vector with zenith angles." ),
         IN( "sensor_pos", "r_geoid", "atmosphere_dim" ),
-        GIN(      "gin1"       ),
+        GIN(         "v_ztan" ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF    ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Vector with tangent altitudes." )
         ));
 
   md_data_raw.push_back
@@ -8393,11 +7913,7 @@ void define_md_data_raw()
          "\n"
          "The variable is written to a file with name:\n"
          "   <filename>.<file_index>.xml.\n"
-         "where <file_index> is the value of *file_index*. This:\n"
-         "  IndexSet(file_index){0}\n"
-         "  IndexStep(file_index){}\n"
-         "  WriteXML(ppath){\"ppath\"}\n"
-         "will create the file ppath.1.xml.\n"
+         "where <file_index> is the value of *file_index*.\n"
          "\n"
          "This means that *filename* shall here not include the .xml\n"
          "extension. Omitting filename works as for *WriteXML*.\n"
@@ -8408,14 +7924,12 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "output_file_format", "file_index" ),
-        GIN(       "gin1"   ,
-                   "filename" ),
-        GIN_TYPE(     "Any",
-                      "String"   ),
-        GIN_DEFAULT(  NODEF,
-                      "" ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" ),
+        GIN(          "wsv", "filename" ),
+        GIN_TYPE(     "Any", "String"   ),
+        GIN_DEFAULT(  NODEF, ""         ),
+        GIN_DESC( "Workspace variable to be saved.",
+                  "File name. See above." 
+                  ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
@@ -8465,7 +7979,7 @@ void define_md_data_raw()
          "\n"
          "See the user guide for further practical examples.\n"
          ),
-        AUTHORS( "Patrick Eriksson, Stefan Buehler" ),
+        AUTHORS( "Stefan Buehler" ),
         OUT( "ybatch" ),
         GOUT(),
         GOUT_TYPE(),
@@ -8615,39 +8129,5 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ZaSatOccultation" ),
-        DESCRIPTION
-        (
-         "Calculates zenith angles for satellite occultations.\n"
-         "\n"
-         "The zenith angles are calculated with an interval of *t_sample\n"
-         "with the recieving satellite at height *z_recieve* above the geoid\n"
-         "and the transmitting satellite at height *z_send*.\n"
-         "The zenith angles are restricted by the two tangent altitudes\n"
-         "*z_scan_low* and *z_scan_high*.\n"
-         ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUT(),
-        GOUT(      "gout1"       ),
-        GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
-        IN( "ppath_step_agenda", "atmosphere_dim", "p_grid", "lat_grid",
-            "lon_grid", "z_field", "r_geoid", "z_surface" ),
-        GIN( "z_recieve", "z_send",  "t_sample", 
-             "z_scan_low", "z_scan_high" ),
-        GIN_TYPE(    "Numeric",   "Numeric", "Numeric",
-                     "Numeric",    "Numeric" ),
-        GIN_DEFAULT( NODEF,       NODEF,     NODEF,
-                     NODEF,        NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
-        ));
-
 }
 
