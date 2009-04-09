@@ -696,7 +696,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Set by the user.\n"
        "\n"
-       "Unit:  Integer value.\n"
+       "Unit:  Integer value [1-2].\n"
        ),
       GROUP( "Index" )));
 
@@ -1106,7 +1106,7 @@ void Workspace::define_wsv_data()
        "\n"
        "This variable is used to store the intensity field inside the\n"
        "cloudbox while performing the iteration. One has to store the\n"
-       "intensity field of the previos iteration to be able to do the \n"
+       "intensity field of the previous iteration to be able to do the \n"
        "convergence test after each iteration.\n"
        "Refer to AUG for more information.\n"
        "\n"
@@ -1179,9 +1179,8 @@ void Workspace::define_wsv_data()
       (
        "Scattered field field inside the cloudbox.\n"
        "\n"
-       "This variable holds the value of the scattering integral.\n"
-       "for all points inside the cloudbox. \n"
-       "For more information refer to AUG.\n"
+       "This variable holds the value of the scattering integral for all\n"
+       "points inside the cloudbox. For more information refer to AUG.\n"
        "\n"
        "Usage: Input to *doit_i_fieldUpdateXXX*. \n"    
        "\n"
@@ -1201,10 +1200,7 @@ void Workspace::define_wsv_data()
        (
         "Optimized zenith angle grid.\n"
         "\n"
-        "Output of the method *DoitGridOptimization*. For limb simulations \n"
-        "with scattering it is very \n"
-        "important to use optimized grids for both, accuracy and speed of \n"
-        "the calculations.\n"
+        "Output of the method *DoitGridOptimization*.\n"
         "\n"
         "Usage:   Output of *DoitGridOptimization*   \n"
         "\n"
@@ -1236,7 +1232,6 @@ void Workspace::define_wsv_data()
        "\n"
        "0 - linear interpolation \n"
        "1 - cubic interpolation \n"
-       "Default is linear interpolation. \n"
        "\n"
        "Usage: Set by user in *doit_za_interpSet*. \n"
        ),
@@ -1254,7 +1249,7 @@ void Workspace::define_wsv_data()
        "Inside scattering methods, such as DOIT, the calculation of the source\n"
        "term can be hard coded.\n"
        "\n"
-       "Usage:      Set by *emission_agenda.\n"
+       "Usage:      Set by *emission_agenda*.\n"
        "\n"
        "Unit:       W / (m^2 Hz sr) or optical thickness \n"
        "\n"
@@ -1278,15 +1273,10 @@ void Workspace::define_wsv_data()
       (
        "Total extinction matrix.\n"
        "\n"
-       "This variable contains the extinction coefficient matrix which \n"
-       "is used in the RT calculation in the cloudbox . It is \n"
-       "the physical extinction matrix which includes particles extinction \n"
-       "for all chosen particle types and gaseous extinction for all chosen \n"
-       "gaseous species.\n" 
-       "The matrix is calculated by the agendas *opt_prop_gas_agenda* \n"
-       "and, if scattering calculations are performed, \n"
-       "*opt_prop_part_agenda* \n"
-       "The dimensision of the variable adapts to *stokes_dim*.\n"
+       "This variable contains the extinction coefficient matrix which\n"
+       "is used in the RT calculation in the cloudbox . It is the physical\n"
+       "extinction matrix which includes particles extinction for all chosen\n"
+       "particle types and gaseous extinction for all chosen gaseous species.\n" 
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
@@ -1347,7 +1337,7 @@ void Workspace::define_wsv_data()
      ( NAME( "forloop_index" ),
        DESCRIPTION
        (
-        "The index for for loops.\n"
+        "The index for for-loops.\n"
         "\n"
         "This is the index that is used by method *ForLoop* to loop over\n"
         "*forloop_agenda*. \n"
@@ -1710,23 +1700,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
 
-//  wsv_data.push_back
-//    (WsvRecord
-//     ( NAME( "l_step" ),
-//       DESCRIPTION
-//       (
-//        "The pathlegth through one grid cell/layer.\n"
-//        "\n"
-//        "The pathlength is required in the methods for RT step calculations,\n"
-//        "which are *sto_vecGeneral* and *sto_vecScalar*.\n"
-//        "It can be calculated using the *ppath_step_agenda*.\n"
-//        "\n"
-//        "Usage:      Used in *doit_i_fieldUpdateXXX.\n"
-//        "\n"
-//        "Unit:       m \n"
-//        ),
-//       GROUP( "Numeric" )));
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "main_agenda" ),
@@ -1785,10 +1758,7 @@ void Workspace::define_wsv_data()
        (
         "Antenna pattern description for dedicated MC calculaions.\n"
         "\n"
-        "MCAntenna object used by MCGeneral to sample the field of view."
-        "Possible antenna types are Pencil Beam and Gaussian (2D).\n"
-        "\n"
-        "Usage: Input to MCGeneral. Set by mc_antennaSetGaussian and similar\n"
+        "Usage: Input to MCGeneral. Set by *mc_antennaSetGaussian* and similar\n"
         "       methods.\n"
         ), 
        GROUP( "MCAntenna" )));
@@ -1809,7 +1779,7 @@ void Workspace::define_wsv_data()
      ( NAME( "mc_cloud_opt_path_error" ),
        DESCRIPTION
        (
-        "Standrad error in the cloud optical path integrated over the field\n"
+        "Standad error in the cloud optical path integrated over the field\n"
         "of view.\n"
         "\n"
         "Usage: Output from mc_IWP_cloud_opt_pathCalc \n"
@@ -1830,23 +1800,6 @@ void Workspace::define_wsv_data()
         "Size:  [ stokes_dim ]\n"
         ), 
        GROUP( "Vector" )));
-
-  /* Removed as ScatteringMonteCarlo is not working
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "mc_incoming" ),
-       DESCRIPTION
-       (
-        "Incoming radiance lookup table for Monte Carlo calculations\n"
-        "\n"
-        "SLIData2 object with x1=r (in m), x2=LOS zentiah angle, and\n"
-        "y=incoming radiance in W / (m^2 Hz sr)]\n"
-        "Usage: Input for ScatteringMonteCarlo.. \n"
-        "\n"
-        "Units: [m,degrees,W / (m^2 Hz sr)]\n"
-        ), 
-       GROUP( "SLIData2" )));
-  */
 
   wsv_data.push_back
     (WsvRecord
@@ -1954,20 +1907,6 @@ void Workspace::define_wsv_data()
         "Usage: Set by the user.\n"
         ),
        GROUP( "Index" )));
-
-  /*  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "mc_unit" ),
-       DESCRIPTION
-       (
-        "Determines the unit used for the radiance returned by MCGeneral\n"
-        "Possible values are \"RJBT\", which returns the Rayleigh Jeans\n" 
-        "Brightness temperature in Kelvin, and \"radiance\", which returns\n"
-        "the radiance in (Watts per meter squared per steradian)\n"
-        "\n"
-        "Usage: Set by the user.\n"
-        ),
-        GROUP( "String" )));*/
 
   wsv_data.push_back
    (WsvRecord
@@ -2582,22 +2521,6 @@ void Workspace::define_wsv_data()
        "Size:  [ 1 or 2 ]\n"
        ),
       GROUP( "Vector" )));
-
-//  wsv_data.push_back
-//    (WsvRecord
-//     ( NAME( "rte_planck_value" ),
-//       DESCRIPTION
-//       (
-//        "A Planck function value for radiative transfer calculations.\n"
-//        "\n"
-//        "The Planck function is used in the methods for RT step calculations,\n"
-//        "which are *sto_vecGeneral* and *sto_vecScalar*. \n"
-//        "\n"
-//        "Usage:      Calculated in *i_fieldUpdate1D*.\n"
-//        "\n"
-//        "Unit:       W / (m^2 Hz sr)\n "
-//        ),
-//       GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3432,19 +3355,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "SingleScatteringData" )));
 
-//  wsv_data.push_back
-//    (WsvRecord
-//     ( NAME( "species_index" ),
-//       DESCRIPTION
-//       (
-//        "This ArrayOfIndex yields the tag positions of key species like\n"
-//        "N2 (=0), O2 (=1), H2O (=2), O3 (=3), CO2 (=4).\n"
-//        "For example species_index[2] gives the first H2Otag position in the\n"
-//        "controle file specified list of tags for which calculations should\n"
-//        "be performed.\n"
-//        ),
-//       GROUP( "ArrayOfIndex" )));
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "stokes_dim" ),
@@ -3465,21 +3375,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Agenda" )));
 
-//    wsv_data.push_back
-//    (WsvRecord
-//     ( NAME( "stokes_vec" ),
-//       DESCRIPTION
-//       (
-//        "The Stokes vector.\n"
-//        "\n"
-//        "The Stokes Vector is a 4 dimensional vector which stores the \n"
-//        "Stokes components during the RT calculation, for example in the \n"
-//        "methods *sto_vecGeneral* and *sto_vecScalar*. \n"
-//        "\n"
-//        "Usage:      Calculated internally.\n"
-//        ),
-//       GROUP( "Vector" )));
- 
    wsv_data.push_back
      (WsvRecord
       ( NAME( "surface_emission" ),
@@ -4013,104 +3908,6 @@ void Workspace::define_wsv_data()
        "Dimensions: [ lat_grid, lon_grid ]\n"
        ),
       GROUP( "Matrix" )));
- 
-
-  //--------------------------------------------------------------------------------
-  // Zeeman WSVs, commented out after back-porting absorption from arts-1-0.
-
-//  wsv_data.push_back
-//     (WsvRecord
-//     ( NAME( "abs_vec_zee" ),
-//       DESCRIPTION
-//       (
-//        "Zeeman absorption vector.\n"
-//        "\n"
-//        "This variable contains the total absorption coefficient vector \n"
-//        "used in the RTE calculation for user specified O2 (currently) lines, \n"
-//        "affected by the Zeeman effect. The physical absorption includes  \n"
-//        "O2 absorption from all 3 polarization components of the absorbed radiation. \n"
-//        "\n"
-//        "The vector is calculated by the agenda *zeeman_prop_agenda* \n"
-//        "\n"
-//        "The dimensision of the variable adapts to *stokes_dim*.\n"
-//        "\n"
-//        "See further the ARTS user guide (AUG). Use the index to find where\n"
-//        "this variable is discussed. The variable is listed as a subentry to\n"
-//        "\"workspace variables\".\n"
-//        "\n"
-//        "Usage:      Output of the agenda *zeeman_prop_agenda* \n"
-//        "\n"
-//        "Unit:        [Hz, m^2]\n"
-//        "\n"
-//        "Dimensions: [f_grid, stokes_dim]\n"
-//         ),
-//        GROUP( "Matrix" )));
-
-// wsv_data.push_back
-//     (WsvRecord
-//      ( NAME( "ext_mat_zee" ),
-//        DESCRIPTION
-//       (
-//        "Zeeman extinction matrix.\n"
-//        "\n"
-//        "This variable contains the total extinction matrix used \n"
-//        "in the RTE calculation for user specified O2 (currently) lines, \n"
-//        "affected by the Zeeman effect. It is the physical extinction matrix  \n"
-//        "of all 3 polarization components of the radiation. \n"
-//        "\n"
-//        "Usage:      Output of the agendas *zeeman_prop_agenda* \n"
-//        "\n"
-//        "Unit:       [Hz, m^2, m^2] "
-//        "\n"
-//        "Dimensions: [f_grid, stokes_dim, stokes_dim]\n"
-//        ),
-//        GROUP( "Tensor3" )));
-
-//  wsv_data.push_back
-//    (WsvRecord
-//     ( NAME( "zeeman_prop_agenda" ),
-//       DESCRIPTION
-//       (
-//         "See agendas.cc.\n"
-//        ),
-//       GROUP( "Agenda" )));
-
-//   wsv_data.push_back
-//     (WsvRecord
-//      (NAME( "zeeman_o2_onoff" ),
-//       DESCRIPTION
-//       (
-//        "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
-//        "splitting for the microwave range (1-1000 GHz).\n"
-//        "If zeeman_o2_onoff=1 the Zeeman effect is considered,\n"
-//        "and if zeeman_o2_onoff=0 the Zeeman effect is omitted.\n"
-//        ),
-//       GROUP( "Index" )));
- 
-//   wsv_data.push_back
-//     (WsvRecord
-//      (NAME( "zeeman_o2_pressure_limit" ),
-//       DESCRIPTION
-//       (
-//        "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
-//        "splitting for the microwave range (1-1000 GHz).\n"
-//        "This variable sets the upper pressure limit [Pa] at which the\n"
-//        " Zeeman splitting is taken into account\n"
-//        ),
-//       GROUP( "Numeric" )));
-
-//   wsv_data.push_back
-//     (WsvRecord
-//      (NAME( "zeeman_o2_line" ),
-//       DESCRIPTION
-//       (
-//        "Calculate this line with Zeeman splitting, lines are\n"
-//        "identified by their upper rotational angular momentum quantum\n"
-//        "number N, postive values of zeeman_o2_line are N+ transitions,\n"
-//        "negative are N-.\n"
-//        ),
-//       GROUP( "Index" )));
-
 }
 
 Index get_wsv_id(const String& name)

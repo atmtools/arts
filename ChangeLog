@@ -1,5 +1,12 @@
 2009-04-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+        * arts-1-12-20
+
+	* src/workspace.cc: Polishing for some variables. Removed some variables
+	that have been commented out for a long time, such as zeeman variables.
+
+2009-04-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
         * arts-1-12-19
 
 	* src/methods.cc: Revision of descroption for all methods
