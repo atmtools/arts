@@ -1680,20 +1680,17 @@ void define_md_data_raw()
         DESCRIPTION
         ( 
          "Execute an agenda.\n"
-         "\n"
-         "Generic input:\n"
-         "   Agenda : The agenda.\n"
-          ),
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN( "gin1"       ),
+        GIN(         "a" ),
         GIN_TYPE(    "Agenda" ),
-        GIN_DEFAULT( NODEF    ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC(    "Agenda to be executed." ),
         SETMETHOD(    false ),
         AGENDAMETHOD( false )
         ));
@@ -1718,14 +1715,14 @@ void define_md_data_raw()
           ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"       ),
-        GOUT_TYPE( "Agenda" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT(        "aout" ),
+        GOUT_TYPE(   "Agenda" ),
+        GOUT_DESC(   "Target agenda." ),
         IN(),
-        GIN( "gin1"       ),
-        GIN_TYPE( "Agenda" ),
+        GIN(         "ain" ),
+        GIN_TYPE(    "Agenda" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Agenda to append to." ),
+        GIN_DESC(    "Source agenda." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   true  ),
         SUPPRESSHEADER( false ),
@@ -1748,20 +1745,14 @@ void define_md_data_raw()
          "braces).\n"
          "\n"
          "It also uses the agenda lookup data (defined in file agendas.cc) to\n"
-         "check, whether the given methods use the right input WSVs and produce\n"
-         "the right output WSVs.\n"
-         "\n"
-         "Generic output:\n"
-         "   Agenda : The new agenda.\n"
-         "\n"
-         "Keywords:\n"
-         "   No keywords, but other methods can appear in the method body.\n"
-          ),
+         "check, whether the given methods use the right input WSVs and\n"
+         "produce the right output WSVs.\n"
+         ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "a"       ),
         GOUT_TYPE( "Agenda" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The new agenda." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -1885,9 +1876,9 @@ void define_md_data_raw()
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "arrayofgfield1"       ),
+        GOUT(      "agf" ),
         GOUT_TYPE( "ArrayOfGField1" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "GriddedField to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -1906,9 +1897,9 @@ void define_md_data_raw()
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "arrayofindex"       ),
+        GOUT(      "ai" ),
         GOUT_TYPE( "ArrayOfIndex" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Index array to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -1925,14 +1916,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "arrayofindex"       ),
+        GOUT(      "ai"       ),
         GOUT_TYPE( "ArrayOfIndex" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Index array to be created and set." ),
         IN(),
         GIN(         "values" ),
         GIN_TYPE(    "ArrayOfIndex" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC( "Indexes for initializiation." ),
         SETMETHOD( true )
         ));
 
@@ -1944,15 +1935,12 @@ void define_md_data_raw()
          "Creates an empty ArrayOfLineRecord.\n"
          "\n"
          "If the variable already exists, it will be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   ArrayOfLineRecord: New empty ArrayOfLineRecord.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"                  ),
+        GOUT(      "alr" ),
         GOUT_TYPE( "ArrayOfLineRecord" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "LineRecord array to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -1968,15 +1956,12 @@ void define_md_data_raw()
          "Creates an empty ArrayOfLineshapeSpec.\n"
          "\n"
          "If the variable already exists, it will be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   ArrayOfLineshapeSpec: New empty ArrayOfLineshapeSpec.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"                     ),
+        GOUT(      "als" ),
         GOUT_TYPE( "ArrayOfLineshapeSpec" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "LineshapeSpec array to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -1992,15 +1977,12 @@ void define_md_data_raw()
          "Creates an empty ArrayOfMatrix.\n"
          "\n"
          "If the variable already exists, it will be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   ArrayOfMatrix: New empty ArrayOfMatrix.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"              ),
+        GOUT(      "am" ),
         GOUT_TYPE( "ArrayOfMatrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Matrix array to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -2016,15 +1998,12 @@ void define_md_data_raw()
          "Creates an empty ArrayOfString.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   ArrayOfString: New empty ArrayOfString.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"              ),
+        GOUT(      "as" ),
         GOUT_TYPE( "ArrayOfString" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "String array to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -2042,14 +2021,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"              ),
+        GOUT(      "as" ),
         GOUT_TYPE( "ArrayOfString" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "String array to be created and set." ),
         IN(),
         GIN( "text" ),
         GIN_TYPE(    "ArrayOfString" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC( "Strings for initialization." ),
         SETMETHOD( true )
         ));
 
@@ -2064,9 +2043,9 @@ void define_md_data_raw()
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "arrayofvector"       ),
+        GOUT(      "av" ),
         GOUT_TYPE( "ArrayOfVector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Vector array to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -2720,9 +2699,6 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Deletes a workspace variable.\n"
-         "\n"
-         "Supergeneric input:\n"
-         "   Any     : The variable to delete.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -2730,10 +2706,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(       "gin1"    ),
-        GIN_TYPE(     "Any" ),
-        GIN_DEFAULT(  NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN(         "v" ),
+        GIN_TYPE(    "Any" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC(    "Variable to be deleted." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
@@ -3442,15 +3418,17 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT( "needle" ),
-        GOUT_TYPE( "ArrayOfIndex,        Numeric, Matrix,        Matrix, Tensor3,  Tensor4,        Tensor4, ArrayOfGField3,        GField4" ),
+        GOUT_TYPE( "ArrayOfIndex, Numeric, Matrix, Matrix, Tensor3, Tensor4,"
+                   "Tensor4, ArrayOfGField3, GField4" ),
         GOUT_DESC( "Extracted element." ),
         IN(),
         GIN( "haystack", "index" ),
-        GIN_TYPE( "ArrayOfArrayOfIndex, Vector,  ArrayOfMatrix, Tensor3, Tensor4, ArrayOfTensor4, Tensor5, ArrayOfArrayOfGField3, ArrayOfGField4",
-
+        GIN_TYPE( "ArrayOfArrayOfIndex, Vector, ArrayOfMatrix, Tensor3,"
+                  "Tensor4, ArrayOfTensor4, Tensor5, ArrayOfArrayOfGField3,"
+                  "ArrayOfGField4",
                   "Index" ),
         GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC( "Container.",
+        GIN_DESC( "Variable to extract from.",
                   "Position of the element which should be extracted." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -3920,15 +3898,12 @@ void define_md_data_raw()
          "Creates an Index variable.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   Index: New Index variable.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"      ),
+        GOUT(      "i" ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Index to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -4621,15 +4596,12 @@ void define_md_data_raw()
          "Creates an empty Matrix.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   Matrix: New empty Matrix.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "m"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Matrix to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -5088,9 +5060,9 @@ void define_md_data_raw()
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "n" ),
         GOUT_TYPE( "Numeric" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Numeric to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -5109,7 +5081,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "n"        ),
         GOUT_TYPE( "Numeric" ),
-        GOUT_DESC( "The numeric variable to set." ),
+        GOUT_DESC( "Variable to be set." ),
         IN(),
         GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
@@ -5132,10 +5104,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(      "gin1"    ),
+        GIN(         "v"    ),
         GIN_TYPE(    ARRAY_GROUPS + ", Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC(    "Variable to get the number of elements from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5155,10 +5127,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(      "gin1"    ),
-        GIN_TYPE( "Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7" ),
+        GIN(         "v" ),
+        GIN_TYPE(    "Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC(    "Variable to get the number of columns from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5178,10 +5150,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(      "gin1"    ),
-        GIN_TYPE( "Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7" ),
+        GIN(         "v" ),
+        GIN_TYPE(    "Matrix, Tensor3, Tensor4, Tensor5, Tensor6, Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC(    "Variable to get the number of rows from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5201,10 +5173,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(      "gin1"    ),
-        GIN_TYPE( "Tensor3, Tensor4, Tensor5, Tensor6, Tensor7" ),
+        GIN(         "v" ),
+        GIN_TYPE(    "Tensor3, Tensor4, Tensor5, Tensor6, Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC(    "Variable to get the number of pages from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5224,10 +5196,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(      "gin1"    ),
-        GIN_TYPE( "Tensor4, Tensor5, Tensor6, Tensor7" ),
+        GIN(         "v" ),
+        GIN_TYPE(    "Tensor4, Tensor5, Tensor6, Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC(    "Variable to get the number of books from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5247,10 +5219,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(      "gin1"    ),
-        GIN_TYPE( "Tensor5, Tensor6, Tensor7" ),
+        GIN(         "v" ),
+        GIN_TYPE(    "Tensor5, Tensor6, Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC(    "Variable to get the number of shelves from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5270,10 +5242,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(      "gin1"    ),
-        GIN_TYPE( "Tensor6, Tensor7" ),
+        GIN(         "v" ),
+        GIN_TYPE(    "Tensor6, Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC(    "Variable to get the number of vitrines from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5293,10 +5265,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(      "gin1"    ),
-        GIN_TYPE( "Tensor7" ),
+        GIN(         "v" ),
+        GIN_TYPE(    "Tensor7" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC(    "Variable to get the number of libraries from." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5764,9 +5736,6 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Prints a variable on the screen.\n"
-         "\n"
-         "Keywords:\n"
-         "   level : Output level to use.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -5774,14 +5743,14 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(      "gin1"   ,
-                  "level" ),
+        GIN(         "v"   ,
+                     "level" ),
         GIN_TYPE(    "Any",
                      "Index" ),
         GIN_DEFAULT( NODEF,
                      "1" ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" ),
+        GIN_DESC(    "Variable to be printed.",
+                     "Output level to use." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -5792,10 +5761,7 @@ void define_md_data_raw()
       ( NAME( "PrintWorkspace" ),
         DESCRIPTION
         (
-         "Prints a list of initialized workspace variables.\n"
-         "\n"
-         "Keywords:\n"
-         "   level : Output level to use.\n"
+         "Prints a list of the workspace variables.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
@@ -5806,8 +5772,9 @@ void define_md_data_raw()
         GIN( "only_allocated", "level" ),
         GIN_TYPE(    "Index",          "Index" ),
         GIN_DEFAULT( "1",              "1" ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" ),
+        GIN_DESC( "Flag for printing either all variables (0) or only "
+                  "allocated ones (1).",
+                  "Output level to use." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
@@ -5847,14 +5814,15 @@ void define_md_data_raw()
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"    ),
-        GOUT_TYPE( "Vector, Matrix, Tensor3, Tensor4, ArrayOfVector, ArrayOfMatrix" ),
-        GOUT_DESC( "Variable to read." ),
+        GOUT(      "v"    ),
+        GOUT_TYPE( "Vector, Matrix, Tensor3, Tensor4, ArrayOfVector,"
+                   "ArrayOfMatrix" ),
+        GOUT_DESC( "Variable to be read." ),
         IN(),
-        GIN( "filename" ),
+        GIN(         "filename" ),
         GIN_TYPE(    "String"   ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Name of the NetCDF file." ),
+        GIN_DESC(    "Name of the NetCDF file." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
@@ -5876,14 +5844,14 @@ void define_md_data_raw()
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"    ),
+        GOUT(      "v"    ),
         GOUT_TYPE( "Any" ),
-        GOUT_DESC( "Variable to read." ),
+        GOUT_DESC( "Variable to be read." ),
         IN(),
-        GIN( "filename" ),
+        GIN(         "filename" ),
         GIN_TYPE(    "String"   ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "Name of the XML file." ),
+        GIN_DESC(    "Name of the XML file." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
@@ -6453,15 +6421,16 @@ void define_md_data_raw()
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT( "needles" ),
+        GOUT(      "needles" ),
         GOUT_TYPE( ARRAY_GROUPS + ", Vector, Matrix" ),
-        GOUT_DESC( "Same object type as haystack, but only selected elements in first dimension." ),
+        GOUT_DESC( "Selected elements. Must have the same variable type as "
+                   "haystack." ),
         IN(),
-        GIN( "haystack", "needleindexes" ),
+        GIN(       "haystack", "needleindexes" ),
         GIN_TYPE(  ARRAY_GROUPS + ", Vector, Matrix",
                    "ArrayOfIndex" ),
         GIN_DEFAULT( NODEF, NODEF ),
-        GIN_DESC( "The object to select from. May be the same variable as needles.",
+        GIN_DESC( "Variable to select from. May be the same variable as needles.",
                   "The elements to select (zero based indexing, as always.)" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -6866,15 +6835,12 @@ void define_md_data_raw()
          "Creates an empty Sparse matrix.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   Sparse: New empty Sparse matrix.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "sm" ),
         GOUT_TYPE( "Sparse" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Sparse matrix to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -6890,15 +6856,12 @@ void define_md_data_raw()
          "Creates an empty String.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   String: New empty String.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "s" ),
         GOUT_TYPE( "String" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "String to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7048,9 +7011,9 @@ void define_md_data_raw()
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "t"        ),
-        GOUT_TYPE( "Tensor3"  ),
-        GOUT_DESC( "Created tensor" ),
+        GOUT(      "t" ),
+        GOUT_TYPE( "Tensor3" ),
+        GOUT_DESC( "Tensor to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7110,15 +7073,12 @@ void define_md_data_raw()
          "Creates an empty Tensor4.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   Tensor4: New empty Tensor4.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "t" ),
         GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Tensor to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7178,15 +7138,12 @@ void define_md_data_raw()
          "Creates an empty Tensor5.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   Tensor5: New empty Tensor5.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "t" ),
         GOUT_TYPE( "Tensor5" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Tensor to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7246,15 +7203,12 @@ void define_md_data_raw()
          "Creates an empty Tensor6.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   Tensor6: New empty Tensor6.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "t" ),
         GOUT_TYPE( "Tensor6" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Tensor to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7314,15 +7268,12 @@ void define_md_data_raw()
          "Creates an empty Tensor7.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   Tensor7: New empty Tensor7.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"        ),
+        GOUT(      "t" ),
         GOUT_TYPE( "Tensor7" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Tensor to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7477,15 +7428,12 @@ void define_md_data_raw()
          "Creates an empty Vector.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
-         "\n"
-         "Generic output:\n"
-         "   Vector: New empty Vector.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
-        GOUT(      "gout1"       ),
+        GOUT(      "v"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Vector to be created." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7859,12 +7807,15 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(      "",
-                  "filename" ),
-        GIN_TYPE( "Vector, Matrix, Tensor3, Tensor4, ArrayOfVector, ArrayOfMatrix",
-                  "String" ),
-        GIN_DEFAULT(  NODEF, "" ),
-        GIN_DESC( "Variable to be saved.", "Name of the NetCDF file." ),
+        GIN(          "v",
+                      "filename" ),
+        GIN_TYPE(     "Vector, Matrix, Tensor3, Tensor4, ArrayOfVector,"
+                      "ArrayOfMatrix",
+                      "String" ),
+        GIN_DEFAULT(  NODEF,
+                      "" ),
+        GIN_DESC(     "Variable to be saved.",
+                      "Name of the NetCDF file." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
@@ -7890,13 +7841,14 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "output_file_format" ),
-        GIN(       "gin1"   ,
-                   "filename" ),
-        GIN_TYPE(     "Any",
-                      "String"   ),
-        GIN_DEFAULT(  NODEF,
-                      "" ),
-        GIN_DESC( "Variable to be saved.", "Name of the XML file." ),
+        GIN(         "v",
+                     "filename" ),
+        GIN_TYPE(    "Any",
+                     "String" ),
+        GIN_DEFAULT( NODEF,
+                     "" ),
+        GIN_DESC(    "Variable to be saved.",
+                     "Name of the XML file." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  ),
