@@ -33,8 +33,8 @@ output_file_formatSetZippedAscii
 
 # AMSU uses Planck brightness temperatures
 # ---
-StringSet( y_unit, "PlanckBT" )
-StringSet( jacobian_unit, "RJBT" )
+StringSet( y_unit, "1" )
+StringSet( jacobian_unit, "1" )
 
 
 # 2. Spectroscopy

@@ -1,3 +1,20 @@
+2009-04-17  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-22
+
+	* Fixed bug in HIRS setup. Sensor responses are now applied in
+	radiance units, conversion to Tb is done afterwards, outside of
+	RteCalc. 
+
+	* includes/hirs/hirs_reference.arts: Set y_unit and jacobian_unit
+	to 1.
+
+	* includes/hirs/hirs_fast.arts: Set y_unit and jacobian_unit
+	to 1.
+
+	* tests/HIRS/TestHIRS.arts: Apply conversion from radiance to
+	Planck Tb in ybatch_calc_agenda, after execution of RteCalc.
+
 2009-04-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
         * arts-1-12-20
@@ -9,7 +26,7 @@
 
         * arts-1-12-19
 
-	* src/methods.cc: Revision of descroption for all methods
+	* src/methods.cc: Revision of description for all methods
 	with Patrick, Claudia, Cory or Mattias as author done.
 	All *Scale and *SetConstant methods also revised.
 
