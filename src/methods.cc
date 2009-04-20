@@ -141,13 +141,10 @@ void define_md_data_raw()
          "The purpose of this method is to allow an explicit line-by-line\n"
          "calculation, e.g., by *abs_coefCalc*, to be put inside the\n"
          "*abs_scalar_gas_agenda*. What the method does is to prepare absorption\n"
-         "input parameters (pressure, temperature, VMRs, frequency grid), from\n"
-         "the input parameters to *abs_scalar_gas_agenda*.\n"
-         "There is a matching method to turn the output of *abs_coefCalc*\n"
-         "into what the agenda expects (*abs_scalar_gasFromAbsCoef*).\n"
-         "\n"
-         "Note that the original *f_grid* is distroyed. (This is not a problem\n"
-         "if the method is used inside an agenda.)\n"
+         "input parameters (pressure, temperature, VMRs), from the input\n"
+         "parameters to *abs_scalar_gas_agenda*.  There is a matching method to\n"
+         "turn the output of *abs_coefCalc* into what the agenda expects\n"
+         "(*abs_scalar_gasFromAbsCoef*).\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_p", "abs_t", "abs_vmrs" ),
@@ -168,7 +165,7 @@ void define_md_data_raw()
         (
          "Calculate absorption coefficients.\n"
          "\n"
-         "This function calculates both, the total absorption (*abs_coef*), and\n"
+         "This function calculates both the total absorption (*abs_coef*), and\n"
          "the absorption per species (*abs_coef_per_species*).\n"
          "\n"
          "The method calls four other  methods:\n"
@@ -212,7 +209,7 @@ void define_md_data_raw()
          "Calculate absorption coefficients from cross sections.\n"
          "\n"
          "This calculates both the total absorption and the\n"
-         "absorption per tag group.\n"
+         "absorption per species.\n"
          "\n"
          "Cross sections are multiplied by n*VMR.\n"
          ),
@@ -268,18 +265,9 @@ void define_md_data_raw()
          "\n"
          "See online documentation for *abs_cont_names* for a list of\n"
          "allowed models and for information what parameters they require. See\n"
-         "file cont.arts in the doc/examples directory for usage examples and\n"
-         "default parameters for the various models.\n"
-         "\n"
-         "Keywords:\n"
-         "   name       : The name of a continuum model. Must match one of the models\n"
-         "                implemented in ARTS.\n"
-         "   option     : give here the option of this continuum/full model.\n"
-         "   parameters : A Vector containing the required number of parameters\n"
-         "                for the model given. The meaning of the parameters and\n"
-         "                how many parameters are required depends on the model.\n"
+         "file includes/continua.arts for default parameters for the various models.\n"
          ),
-        AUTHORS( "Stefan Buehler" ),
+        AUTHORS( "Thomas Kuhn", "Stefan Buehler" ),
         OUT( "abs_cont_names", 
              "abs_cont_models",
              "abs_cont_parameters" ),
@@ -292,9 +280,14 @@ void define_md_data_raw()
         GIN( "tagname", "model",  "userparameters" ),
         GIN_TYPE(    "String",  "String", "Vector" ),
         GIN_DEFAULT( NODEF,     NODEF,    NODEF),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC(
+         "The name (species tag) of a continuum model. Must match one\n"
+         "of the models implemented in ARTS.\n",
+         "A string selecting a particular continuum/full model under this\n"
+         "species tag.\n",
+         "A Vector containing the required parameters for the selected model.\n"
+         "The meaning of the parameters and how many parameters are required\n"
+         "depends on the model.\n" )
         ));
 
   md_data_raw.push_back
@@ -308,12 +301,13 @@ void define_md_data_raw()
          "This method does not really do anything, except setting the two\n"
          "variables to empty Arrays. It is just necessary because the method\n"
          "*abs_cont_descriptionAppend* wants to append to the variables.\n"
-         "   Formally, the continuum description workspace variables are required\n"
+         "\n"
+         "Formally, the continuum description workspace variables are required\n"
          "by the absorption calculation methods (e.g., *abs_coefCalc*). Therefore you\n"
          "always have to call at least *abs_cont_descriptionInit*, even if you do\n"
          "not want to use any continua.\n"
          ),
-        AUTHORS( "Stefan Buehler" ),
+        AUTHORS( "Thomas Kuhn", "Stefan Buehler" ),
         OUT( "abs_cont_names", 
              "abs_cont_models",
              "abs_cont_parameters" ),
@@ -358,57 +352,50 @@ void define_md_data_raw()
       ( NAME( "abs_lineshapeDefine" ),
         DESCRIPTION
         (
-         "Sets the lineshape for all calculated lines.\n"
+         "Set the lineshape for all calculated lines.\n"
          "\n"
-         "   A general lineshape profile is specified, according to a given \n"
-         "approximation. Alongside a normalization factor is to be set - a\n"
-         "multiplicative forefactor through which the profile can be\n"
-         "modified. This factor is just the 0th or 1st, or 2nd power of the\n"
-         "ratio between the frequency of calculation f and the center frequency\n"
-         "for a specific line f0. A cutoff frequency must also be specified in\n"
-         "order to restrict the calculation within a desired frequency region or\n"
-         "not, when there's no such region.\n"
-         "   The general lineshape profile is given by the keyword shape,\n"
-         "while the normalization factor and the cutoff frequency by\n"
-         "normalizationfactor and cutoff respectively.\n"
-         "   We generate only 1 copy of the lineshape settings. Absorption\n"
+         "Sets the lineshape function. Beside the lineshape function itself, you\n"
+         "also have so select a forefactor and a frequency cutoff. The\n"
+         "forefactor is later multiplied with the lineshape function.\n"
+         "\n"
+         "The cutoff frequency is used to make lineshapes finite in frequency,\n"
+         "the response outside the cutoff is set to zero, and the lineshape\n"
+         "value at the cutoff frequency is subtracted from the overall lineshape\n"
+         "as a constant offset. This ensures that the lineshape goes to zero at\n"
+         "the cutoff frequency without a discontinuity.\n"
+         "\n"
+         "We generate only one copy of the lineshape settings. Absorption\n"
          "routines check for this case and use it for all species.\n"
          "\n"
-         "   The available values for these keywords are given below.\n"
-         "shape - \"no_shape\" : no specified shape\n"
-         "        \"Doppler\" : Doppler lineshape\n"
-         "        \"Lorentz\" : Lorentz lineshape\n"
-         "        \"Voigt_Kuntz3\" : Kuntz approximation to the Voigt profile,\n"
-         "                         accuracy > 2x10^(-3)\n"
-         "        \"Voigt_Kuntz4\" : Kuntz approximation to the Voigt profile,\n"
-         "                         accuracy > 2x10^(-4)\n"
-         "        \"Voigt_Kuntz6\" : Kuntz approximation to the Voigt profile,\n"
-         "                         accuracy > 2x10^(-6)\n"   
-         "        \"Voigt_Drayson\" : Drayson approximation to the Voigt profile\n"
-         "        \"Rosenkranz_Voigt_Drayson\" : Rosenkrantz oxygen absortion with overlap correction\n" 
-         "                                     on the basis of Drayson routine\n"                                    
-         "        \"Rosenkranz_Voigt_Kuntz6\" : Rosenkrantz oxygen absortion with overlap correction\n"
-         "                                    on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
-         "        \"CO2_Lorentz\" : Lorentz multiplicated with Cousin's chi factors\n"
-         "        \"CO2_Drayson\" : Drayson multiplicated with Cousin's chi factors\n"
+         "The allowed values for the input parameters are:\n"
          "\n"
-         "normalizationfactor - \"no_norm\": 1\n"
-         "                      \"linear\": f/f0\n" 
-         "                      \"quadratic\": (f/f0)^2.\n"
-         "                      \"VVH\": (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T))).\n"
+         "shape:\n"
+         "   no_shape:                 no specified shape\n"
+         "   Doppler:                  Doppler lineshape\n"
+         "   Lorentz:                  Lorentz lineshape\n"
+         "   Voigt_Kuntz3:             Kuntz approximation to the Voigt lineshape,\n"
+         "                             accuracy > 2x10^(-3)\n"
+         "   Voigt_Kuntz4:             Kuntz approximation to the Voigt lineshape,\n"
+         "                             accuracy > 2x10^(-4)\n"
+         "   Voigt_Kuntz6:             Kuntz approximation to the Voigt lineshape,\n"
+         "                             accuracy > 2x10^(-6)\n"
+         "   Voigt_Drayson:            Drayson approximation to the Voigt lineshape\n"
+         "   Rosenkranz_Voigt_Drayson: Rosenkrantz oxygen absortion with overlap correction\n"
+         "                             on the basis of Drayson routine\n"
+         "   Rosenkranz_Voigt_Kuntz6 : Rosenkrantz oxygen absortion with overlap correction\n"
+         "                             on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
+         "   CO2_Lorentz:              Lorentz multiplied with Cousin's chi factors\n"
+         "   CO2_Drayson:              Drayson multiplied with Cousin's chi factors\n"
          "\n"
-         "cutoff - \" -1\" : no cutoff\n"
-         "         \"Number\": positive cutoff frequency in Hz.\n"
+         "normalizationfactor:\n"
+         "   no_norm:                  1\n"
+         "   linear:                   f/f0\n"
+         "   quadratic:                (f/f0)^2\n"
+         "   VVH:                      (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T)))\n"
          "\n"
-         "Example usage:\n"
-         "shape=[\"Lorentz\"]\n"
-         "normalizationfactor=[\"linear\"]\n"
-         "cutoff= [650e9]"
-         "\n"
-         "Keywords:\n"
-         "   shape               : The general profile according to an approximation.\n"
-         "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
-         "   cutoff              : The frequency at which a cutoff can be made.\n" 
+         "cutoff:\n"
+         "    -1:                      no cutoff\n"
+         "   <Number>:                 positive cutoff frequency in Hz\n"
          ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUT( "abs_lineshape" ),
@@ -419,9 +406,9 @@ void define_md_data_raw()
         GIN( "shape",  "normalizationfactor", "cutoff" ),
         GIN_TYPE(    "String", "String",              "Numeric" ),
         GIN_DEFAULT( NODEF,    NODEF,                 NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Line shape function.",
+                  "Normalization factor.",
+                  "Cutoff frequency [Hz]." )
         ));
 
   md_data_raw.push_back
@@ -429,50 +416,15 @@ void define_md_data_raw()
       ( NAME( "abs_lineshape_per_tgDefine" ),
         DESCRIPTION
         (
-         "Sets the lineshape per tag group for all calculated lines.\n\n"
-         "\n" 
-         "   A general lineshape profile is specified, according to a given \n"
-         "approximation for each tag group. Alongside a normalization factor\n" 
-         "is to be set also for each tag group - a multiplicative forefactor through\n"
-         "which the profile can be modified. This factor is just the 0th or 1st,\n"
-         "or 2nd power of the ratio between the frequency of calculation f and\n"
-         "the center frequency for a specific line f0. A cutoff frequency must also be\n"
-         "specified for each of the tags in  order to restrict the calculation within\n" 
-         "a desired region or not, when there's no such region.\n"
-         "   The general lineshape profile is given by the keyword shape,\n"
-         "while the normalization factor and the cutoff frequency by\n"
-         "normalizationfactor and cutoff respectively.\n"
+         "Set the lineshape, separately for each absorption species.\n"
          "\n"
-         "   The available values for these keywords are given below.\n"
-         "shape - \"no_shape\" : no specified shape\n"
-         "        \"Doppler\" : Doppler lineshape\n"
-         "        \"Lorentz\" : Lorentz lineshape\n"
-         "        \"Voigt_Kuntz3\" : Kuntz approximation to the Voigt profile,\n"
-         "                        accuracy > 2x10^(-3)\n"
-         "        \"Voigt_Kuntz4\" : Kuntz approximation to the Voigt profile,\n"
-         "                         accuracy > 2x10^(-4)\n"
-         "        \"Voigt_Kuntz6\" : Kuntz approximation to the Voigt profile,\n"
-         "                         accuracy > 2x10^(-6)\n"   
-         "        \"Voigt_Drayson\" : Drayson approximation to the Voigt profile\n"
-         "        \"Rosenkranz_Voigt_Drayson\" : Rosenkrantz oxygen absortion with overlap correction\n" 
-         "                                     on the basis of Drayson routine\n"                                    
-         "        \"Rosenkranz_Voigt_Kuntz6\" : Rosenkrantz oxygen absortion with overlap correction\n"
-         "                                    on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
-         "normalizationfactor - \"no_norm\": 1\n"
-         "                      \"linear\": f/f0\n" 
-         "                      \"quadratic\": (f/f0)^2.\n"
-         "cutoff - \" -1\" : no cutoff\n"
-         "           \"Number\": positive cutoff frequency in Hz.\n"
+         "This method is similar to *abs_lineshapeDefine*, except that a\n"
+         "different lineshape can be set for each absorption species (see\n"
+         "*abs_species*). For example, you might want to use different values of\n"
+         "the cutoff frequency for different species.\n"
          "\n"
-         "Example usage:\n"
-         "shape = [\"Lorentz\",\"Voigt_Kuntz6\"]\n"
-         "normalizationfactor= [\"linear\", \"quadratic\"]\n"
-         "cutoff = [ 650e9, -1 ]"
-         "\n"
-         "Keywords:\n"
-         "   shape               : The general profile according to an approximation.\n"
-         "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
-         "   cutoff              : The frequency at which a cutoff can be made.\n" 
+         "For detailed documentation on the available options for the input\n"
+         "parameters see documentation of method *abs_lineshapeDefine*.\n"
          ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUT( "abs_lineshape" ),
@@ -483,9 +435,9 @@ void define_md_data_raw()
         GIN( "shape",        "normalizationfactor", "cutoff" ),
         GIN_TYPE(    "ArrayOfString", "ArrayOfString",        "Vector" ),
         GIN_DEFAULT( NODEF,          NODEF,                 NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Line shape function for each species.",
+                  "Normalization factor for each species.",
+                  "Cutoff frequency [Hz] for each species." )
         ));
 
   md_data_raw.push_back
