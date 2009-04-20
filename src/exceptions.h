@@ -109,6 +109,15 @@ public:
     ParseError(s,f,l,c) { /* Nothing to do here. */ }
 };
 
+class WsvAlreadyExists : public ParseError {
+public:
+  WsvAlreadyExists( const String& s="",
+                    const String& f="",
+                    Index l = 0,
+                    Index c = 0 ) :
+    ParseError(s,f,l,c) { /* Nothing to do here. */ }
+};
+
 class WrongWsvGroup : public ParseError {
 public:
   WrongWsvGroup( const String& s="",

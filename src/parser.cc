@@ -139,6 +139,16 @@ void ArtsParser::parse_main()
       out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
+  catch (const WsvAlreadyExists x)
+    {
+      // Trying to create the same variable twice:
+      out0 << "Attempt to create a workspace variable that already exists:\n";
+      out0 << x.what()   << '\n';
+      out0 << "File: "   << x.file() << '\n';
+      out0 << "Line: "   << x.line() << '\n';
+      out0 << "Column: " << x.column() << '\n';
+      arts_exit ();
+    }
   catch (const WrongWsvGroup x)
     {
       // Workspace variable unknown:
@@ -993,7 +1003,18 @@ void ArtsParser::parse_generic_output(const MdRecord*&     mdd,
             }
 
           if (wsvid == -1)
-            wsvid = wsvit->second;
+            {
+              if (mdd->Name().find ("Create") == mdd->Name().length() - 6)
+                {
+                  ostringstream os;
+                  os << wsvname << " already exists. A variable can only be created once.\n";
+                  throw WsvAlreadyExists( os.str(),
+                                          msource.File(),
+                                          msource.Line(),
+                                          msource.Column() );
+                }
+              wsvid = wsvit->second;
+            }
         }
 
       // If this is a supergeneric method, now is the time to find

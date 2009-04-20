@@ -1,3 +1,15 @@
+2009-04-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-12-25
+
+	* src/parser.cc (ArtsParser::parse_generic_output):
+
+	Throw exception if a variable is created twice.
+
+	* src/exceptions.h: Added WsvAlreadyExists exception.
+
+	* ChangeLog: Added missing entry for arts-1-12-21.
+
 2009-04-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-24
@@ -28,6 +40,12 @@
 
 	* tests/HIRS/TestHIRS.arts: Apply conversion from radiance to
 	Planck Tb in ybatch_calc_agenda, after execution of RteCalc.
+
+2009-04-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-12-21
+
+	* src/methods.cc: Polish my share of workspace methods.
 
 2009-04-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
