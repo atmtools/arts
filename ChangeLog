@@ -1,5 +1,12 @@
 2009-04-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-12-24
+
+	* src/methods.cc: Extended the text for surfaceFlatSingleEmissivity
+	and surfaceFlatVaryingEmissivity, after a suggestion from Stefan.
+
+2009-04-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-12-23
 
 	* src/methods.cc: Added to text to surfaceFlatRefractiveIndex, to

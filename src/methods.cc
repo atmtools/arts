@@ -3990,7 +3990,7 @@ void define_md_data_raw()
          "\"Longitude\". No extrapolation is allowed.\n"
          "\n"
          "For 1D cases it is expected that the latitude and longitude grids\n"
-         "have both a length of 1. For 2D the same apllies to the longitude\n"
+         "have both a length of 1. For 2D the same applies to the longitude\n"
          "grid.\n"
          "\n"
          "This method can be used together with e.g.\n"
@@ -6953,10 +6953,10 @@ void define_md_data_raw()
          "where the emissivity is specified.\n"
          "\n"
          "As *surfaceFlatVaryingEmissivity*, but assumes that the emissivity\n"
-         "does not vary with frequency.\n"
-         "\n"
-         "Generic output and input:\n"
-         "  surface_emissivity : \n"
+         "does not vary with frequency. The emissivity can be defined with a\n"
+         "a varying degree of complexity and there is no specific workspace\n"
+         "variable defined to hold the emissivity. You have to define the\n"
+         "*sufrface_emissivity* to match your needs.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
@@ -6985,6 +6985,12 @@ void define_md_data_raw()
          "\n"
          "Local thermodynamic equilibrium is assumed, which corresponds to\n"
          "that the reflection and emission coefficients add up to 1.\n"
+         "\n"
+         "As *surfaceFlatSingleEmissivity*, but assumes that the emissivity\n"
+         "varies with frequency. The emissivity can be defined with a\n"
+         "a varying degree of complexity and there is no specific workspace\n"
+         "variable defined to hold the emissivity. You have to define the\n"
+         "*sufrface_emissivity* to match your needs.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
