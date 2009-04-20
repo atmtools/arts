@@ -1,3 +1,10 @@
+2009-04-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-23
+
+	* src/methods.cc: Added to text to surfaceFlatRefractiveIndex, to
+	make clear that complex_n must match f_grid.
+
 2009-04-17  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-22
