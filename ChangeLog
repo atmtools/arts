@@ -1,5 +1,11 @@
 2009-04-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-12-28
+
+	* configure.in: Not updated for last commit.
+
+2009-04-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-12-27
 
 	* src/sensor.cc (mixer_matrix): Changed the lower IF limit for
