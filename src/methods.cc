@@ -6667,6 +6667,8 @@ void define_md_data_raw()
          "The function returns the sensor response matrix after the mixer\n" 
          "characteristics have been included. Frequency variables are\n"
          "converted from radio frequency (RF) to intermediate frequency (IF).\n"
+         "The returned frequency grid covers the range [0,max_if], where\n"
+         "max_if is the highest IF covered by the sideband response grid.\n" 
          "\n"
          "See *lo* and *sideband_response* for details on how to specify the\n"
          "mixer response\n"

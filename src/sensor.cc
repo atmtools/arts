@@ -246,6 +246,7 @@ void mixer_matrix(
 
   // Find indices in f_grid where f_grid is just below and above the
   // lo frequency.
+  /*
   Index i_low = 0, i_high = f_grid.nelem()-1, i_mean;
   while( i_high-i_low > 1 )
     {
@@ -263,9 +264,11 @@ void mixer_matrix(
     {
       i_high++;
     }
+  const Numeric lim_low  = max( lo-f_grid[i_low], f_grid[i_high]-lo );
+  */
 
   // Determine IF limits for new frequency grid
-  const Numeric lim_low  = max( lo-f_grid[i_low], f_grid[i_high]-lo );
+  const Numeric lim_low  = 0;
   const Numeric lim_high = -filter_grid[0];
 
   // Convert sidebands to IF and use list to make a unique sorted

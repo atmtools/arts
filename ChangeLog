@@ -1,3 +1,15 @@
+2009-04-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-27
+
+	* src/sensor.cc (mixer_matrix): Changed the lower IF limit for
+	created frequency grid. The point is now always 0 (corresponding to
+	LO in RF). This makes it simpler to set up f_grid, especially for
+	cases with an IF band starting at 0. 
+
+	This should not cause any problems for existing sensor set-ups (tell
+	me if I am wrong here!).
+
 2009-04-20  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-26
