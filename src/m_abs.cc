@@ -264,7 +264,17 @@ void abs_linesReadFromArts(// WS Output:
 }
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
+//! Obsolete old ARTS catalogue reading function
+/*!
+  This function is for the old ARTS catalogue format without XML
+  header. It is no longer used, but left here for historical reasons. 
+  
+  \author Stefan Buehler
+
+  \param abs_lines Line data.
+  \param filename Name of catalogue file.
+  \param fmin Minimum frequency.
+  \param fmax Maximum frequency. */
 void abs_linesReadFromArtsObsolete(// WS Output:
                        ArrayOfLineRecord& abs_lines,
                        // Control Parameters:

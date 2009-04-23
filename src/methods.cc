@@ -450,12 +450,7 @@ void define_md_data_raw()
          "thrown\n"
          "\n"
          "Please note that all lines must correspond\n"
-         "to the legal species / isotope combinations\n"
-         "\n"
-         "Keywords:\n"
-         "   filename : Name (and path) of the catalogue file.\n"
-         "   fmin     : Minimum frequency for lines to read in Hz.\n"
-         "   fmax     : Maximum frequency for lines to read in Hz.\n" 
+         "to legal species / isotope combinations\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lines" ),
@@ -466,40 +461,9 @@ void define_md_data_raw()
         GIN( "filename", "fmin",    "fmax" ),
         GIN_TYPE(    "String",   "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,      NODEF,     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "abs_linesReadFromArtsObsolete" ),
-        DESCRIPTION
-        (
-         "Read all the lines from an Arts catalogue file in the\n"
-         "given frequency range. Otherwise a runtime error will be\n"
-         "thrown\n"
-         "\n"
-         "Please note that all lines must correspond\n"
-         "to the legal species / isotope combinations\n"
-         "\n"
-         "Keywords:\n"
-         "   filename : Name (and path) of the catalogue file.\n"
-         "   fmin     : Minimum frequency for lines to read in Hz.\n"
-         "   fmax     : Maximum frequency for lines to read in Hz.\n" 
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "abs_lines" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN(),
-        GIN( "filename", "fmin",    "fmax" ),
-        GIN_TYPE(    "String",   "Numeric", "Numeric" ),
-        GIN_DEFAULT( NODEF,      NODEF,     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Name (and path) of the catalogue file.",
+                  "Minimum frequency for lines to read [Hz].",
+                  "Maximum frequency for lines to read [Hz]." )
         ));
 
   md_data_raw.push_back
@@ -510,18 +474,13 @@ void define_md_data_raw()
          "Read all the lines from a HITRAN 1986-2001 catalogue file in\n"
          "the given frequency range. Otherwise a runtime error will be\n"
          "thrown. For HITRAN 2004 line data use the workspace method\n"
-         "abs_linesReadFromHitran.\n"
+         "*abs_linesReadFromHitran2004*.\n"
          "\n"
-         "Please note that all lines must correspond to the legal\n"
+         "Please note that all lines must correspond to legal\n"
          "species / isotope combinations and that the line data\n"
          "file must be sorted by increasing frequency\n"
          "\n"
-         "WWW access of the HITRAN catalog: http://www.hitran.com/\n"
-         "\n"
-         "Keywords:\n"
-         "   filename : Name (and path) of the catalogue file.\n"
-         "   fmin     : Minimum frequency for lines to read in Hz.\n"
-         "   fmax     : Maximum frequency for lines to read in Hz.\n" 
+         "WWW access of the HITRAN catalogue: http://www.hitran.com/\n"
          ),
         AUTHORS( "Thomas Kuhn" ),
         OUT( "abs_lines" ),
@@ -532,9 +491,9 @@ void define_md_data_raw()
         GIN( "filename",  "fmin",    "fmax" ),
         GIN_TYPE(    "String",    "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Name (and path) of the catalogue file.",
+                  "Minimum frequency for lines to read [Hz].",
+                  "Maximum frequency for lines to read [Hz]." )
         ));
 
   md_data_raw.push_back
@@ -546,21 +505,16 @@ void define_md_data_raw()
          "given frequency range. Otherwise a runtime error is thrown.\n"
          "\n"
          "Records of molecules unknown to ARTS are ignored but a\n"
-         "warning is issued. In particular this happens to CH3OH\n"
+         "warning is issued. In particular this happens for CH3OH\n"
          "(HITRAN molecule number 39) because there is no total internal\n"
          "partition sum available.\n"
          "\n"
          "The database must be sorted by increasing frequency!\n"
          "\n"
-         "WWW access of the HITRAN catalog: http://www.hitran.com/\n"
+         "WWW access of the HITRAN catalogue: http://www.hitran.com/\n"
          "\n"
          "For data in the Hitran 1986-2001 format use the workspace\n"
          "method: abs_linesReadFromHitran\n"
-         "\n"
-         "Keywords:\n"
-         "   filename : Name (and path) of the catalogue file.\n"
-         "   fmin     : Minimum frequency for lines to read in Hz.\n"
-         "   fmax     : Maximum frequency for lines to read in Hz.\n" 
          ),
         AUTHORS( "Hermann Berg", "Thomas Kuhn" ),
         OUT( "abs_lines" ),
@@ -571,9 +525,9 @@ void define_md_data_raw()
         GIN( "filename",  "fmin",    "fmax" ),
         GIN_TYPE( "String", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Name (and path) of the catalogue file.",
+                  "Minimum frequency for lines to read [Hz].",
+                  "Maximum frequency for lines to read [Hz]." )
         ));
   
   md_data_raw.push_back
@@ -586,14 +540,9 @@ void define_md_data_raw()
          "thrown\n"
          "\n"
          "Please note that all lines must correspond\n"
-         "to the legal species / isotope combinations.\n"
+         "to legal species / isotope combinations.\n"
          "\n"
-         "WWW access of the JPL catalog: http://spec.jpl.nasa.gov/\n"
-         "\n"
-         "Keywords:\n"
-         "   filename : Name (and path) of the catalogue file.\n"
-         "   fmin     : Minimum frequency for lines to read in Hz.\n"
-         "   fmax     : Maximum frequency for lines to read in Hz.\n" 
+         "WWW access of the JPL catalogue: http://spec.jpl.nasa.gov/\n"
          ),
         AUTHORS( "Thomas Kuhn" ),
         OUT( "abs_lines" ),
@@ -604,9 +553,9 @@ void define_md_data_raw()
         GIN( "filename",  "fmin", "fmax" ),
         GIN_TYPE( "String", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Name (and path) of the catalogue file.",
+                  "Minimum frequency for lines to read [Hz].",
+                  "Maximum frequency for lines to read [Hz]." )
         ));
 
   md_data_raw.push_back
@@ -619,12 +568,7 @@ void define_md_data_raw()
          "thrown\n"
          "\n"
          "Please note that all lines must correspond\n"
-         "to the legal species / isotope combinations\n"
-         "\n"
-         "Keywords:\n"
-         "   filename : Name (and path) of the catalogue file.\n"
-         "   fmin     : Minimum frequency for lines to read in Hz.\n"
-         "   fmax     : Maximum frequency for lines to read in Hz.\n" 
+         "to legal species / isotope combinations\n"
          ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUT( "abs_lines" ),
@@ -635,9 +579,9 @@ void define_md_data_raw()
         GIN( "filename", "fmin", "fmax" ),
         GIN_TYPE( "String", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,       NODEF,     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Name (and path) of the catalogue file.",
+                  "Minimum frequency for lines to read [Hz].",
+                  "Maximum frequency for lines to read [Hz]." )
         ));
 
   md_data_raw.push_back
@@ -645,11 +589,11 @@ void define_md_data_raw()
       ( NAME( "abs_lines_per_speciesAddMirrorLines" ),
         DESCRIPTION
         (
-         "Adds mirror lines at negative frequencies to the *abs_lines_per_species*.\n"
+         "Adds mirror lines at negative frequencies to *abs_lines_per_species*.\n"
          "\n"
          "For each line at frequency +f in *abs_lines_per_species* a corresponding\n"
-         "entry at frequency -f is added to *abs_lines_per_species*.The mirror\n"
-         "lines are appended to the line lists after the original lines.\n" 
+         "entry at frequency -f is added to *abs_lines_per_species*. The mirror\n"
+         "lines are appended to the line list after the original lines.\n" 
          ),
         AUTHORS( "Axel von Engeln", "Stefan Buehler" ),
         OUT( "abs_lines_per_species" ),
@@ -668,8 +612,8 @@ void define_md_data_raw()
       ( NAME( "abs_lines_per_speciesCompact" ),
         DESCRIPTION
         (
-         "Removes all lines outside the defined lineshape cutoff frequency\n"
-         "from the *abs_lines_per_species*. This can save computation time.\n"
+         "Removes all lines outside the defined lineshape cutoff frequencies\n"
+         "from *abs_lines_per_species*. This can save computation time.\n"
          "It should be particularly useful to call this method after\n"
          "*abs_lines_per_speciesAddMirrorLines*.\n" 
          ),
@@ -690,13 +634,13 @@ void define_md_data_raw()
       ( NAME( "abs_lines_per_speciesCreateFromLines" ),
         DESCRIPTION
         (
-         "Split lines up into the different tag groups.\n"
+         "Split lines up into the different species.\n"
          "\n"
-         "The tag groups are tested in the order in which they are\n" 
-         "specified in the controlfile. The lines are assigned to\n"
-         "the tag groups in the order as the groups  are specified.\n"
-         "That means if you do [\"O3-666\",\"O3\"],the last group O3\n"
-         "gets assigned all the O3 lines that do not fit in the first group.\n" 
+         "The species are tested in the order in which they are specified in the\n"
+         "controlfile. Lines are assigned to the first species that\n"
+         "matches. That means if the list of species is [\"O3-666\",\"O3\"], then\n"
+         "the last group O3 gets assigned all the O3 lines that do not fit in\n"
+         "the first group (all other isotopes than the main isotope).\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lines_per_species" ),
@@ -715,55 +659,46 @@ void define_md_data_raw()
       ( NAME( "abs_lines_per_speciesReadFromCatalogues" ),
         DESCRIPTION
         (
-         "This method can read lines from different line\n"
-         "catalogues.\n"
+         "Read spectral line data from different line catalogues.\n"
          "\n"
-         "For each tag group, you can specify which catalogue\n"
-         "to use. Because the method creates abs_lines_per_species directly,\n"
-         "it replaces for example thefollowing two method calls:\n"
+         "For each absorption species, you can specify which catalogue to\n"
+         "use. Because the method creates *abs_lines_per_species* directly, it\n"
+         "replaces for example the following two method calls:\n"
+         "\n"
          "  - abs_linesReadFromHitran\n"
          "  - abs_lines_per_speciesCreateFromLines\n"
-         "   This method needs as input WSVs the list of tag\n"
-         "groups. Keyword parameters must specify the names of\n"
-         "the catalogue files to use and the matching formats.\n"
-         "Names can be anything, formats can currently be\n"
-         "HITRAN96 (for HITRAN 1986-2001 databases), HITRAN04\n"
-         "(for HITRAN 2004 database), MYTRAN2, JPL, or ARTS.\n"
-         "Furthermore, keyword parameters have to specify minimum\n"
-         "and maximum frequency for each tag group. To safe typing,\n"
-         "if there are less elements in the keyword parameters than\n"
-         "there are tag groups, the last parameters are applied to\n"
-         "all following tag groups.\n"
+         "\n"
+         "This method needs as input WSVs the list of species\n"
+         "*abs_species*. Generic input parameters must specify the names of the\n"
+         "catalogue files to use and the matching formats.  Names can be\n"
+         "anything, formats can currently be HITRAN96 (for HITRAN 1986-2001\n"
+         "databases), HITRAN04 (for HITRAN 2004 database), MYTRAN2, JPL, or\n"
+         "ARTS.  Furthermore, you have to specify minimum and maximum frequency\n"
+         "for each species. To safe typing, if there are less elements in the\n"
+         "keyword parameters than there are species, the last parameters are\n"
+         "applied to all following species.\n"
          "\n"
          "Example usage:\n"
          "\n"
-         "abs_lines_per_speciesReadFromCatalogues{\n"
-         "  filenames = [ \"../data/cat1.dat\", \"../data/cat2.dat\" ]\n"
-         "  formats   = [ \"MYTRAN2\",          \"HITRAN96\"         ]\n"
-         "  fmin      = [ 0,                  0                  ]\n"
-         "  fmax      = [ 2000e9,             100e9              ]\n"
-         "}\n"
-         "   In this example, lines for the first tag group will\n"
-         "be taken from cat1, lines for all other tag groups\n"
-         "will be taken from cat2.\n"
-         "   This methods allows you for example to use a\n"
-         "special line file just for water vapor lines. This\n"
-         "could be the  improved water vapor line file\n"
-         "generated by Thomas Kuhn.\n"
-         "   Catalogues are only read once, even if several tag\n"
-         "groups have the same catalogue. However, in that case\n"
-         "the frequency ranges MUST be the same. (If you want\n"
-         "to do fine-tuning of the frequency ranges, you can do\n"
-         "this inside the tag definitions, e.g., \"H2O-*-0-2000e9\".)\n"
-         "   This function uses the various reading routines\n"
-         "(abs_linesReadFromHitran, etc.), as well as\n"
-         "abs_lines_per_speciesCreateFromLines.\n"
+         "abs_lines_per_speciesReadFromCatalogues(\n"
+         "   [ \"../data/cat1.dat\", \"../data/cat2.dat\" ]\n"
+         "   [ \"MYTRAN2\",          \"HITRAN96\"         ]\n"
+         "   [ 0,                  0                  ]\n"
+         "   [ 2000e9,             100e9              ]\n"
+         ")\n"
          "\n"
-         "Keywords:\n"
-         "   filenames : Name (and path) of the catalogue files.\n"
-         "   formats   : allowed formats are HITRAN96,MYTRAN2,JPL,ARTS\n"
-         "   fmin      : Minimum frequency for lines to read in Hz.\n"
-         "   fmax      : Maximum frequency for lines to read in Hz.\n" 
+         "In this example, lines for the first species will be taken from cat1,\n"
+         "lines for all other species will be taken from cat2. This allows you\n"
+         "for example to use a special line file just for water vapor lines.\n"
+         "\n"
+         "Catalogues are only read once, even if several tag groups have the\n"
+         "same catalogue. However, in that case the frequency ranges MUST be the\n"
+         "same. (If you want to do fine-tuning of the frequency ranges, you can\n"
+         "do this inside the tag definitions, e.g., \"H2O-*-0-2000e9\".)\n"
+         "\n"
+         "This function uses the various reading routines\n"
+         "(*abs_linesReadFromHitran*, etc.), as well as\n"
+         "*abs_lines_per_speciesCreateFromLines*.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lines_per_species" ),
@@ -771,13 +706,14 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "abs_species" ),
-        GIN( "filenames",    "formats",      "fmin",   "fmax" ),
+        GIN(         "filenames",     "formats",       "fmin",   "fmax" ),
         GIN_TYPE(    "ArrayOfString", "ArrayOfString", "Vector", "Vector" ),
-        GIN_DEFAULT( NODEF,          NODEF,          NODEF,    NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DEFAULT( NODEF,           NODEF,           NODEF,    NODEF ),
+        GIN_DESC( "Name (and path) of the catalogue files.",
+                  "Format of each file. (Allowed formats are\n"
+                  "HITRAN96, HITRAN04, MYTRAN2, JPL, ARTS.",
+                  "Minimum frequency for lines to read [Hz].",
+                  "Maximum frequency for lines to read [Hz]." )
         ));
 
   md_data_raw.push_back
@@ -787,9 +723,9 @@ void define_md_data_raw()
         (
          "Sets abs_lines_per_species to empty line lists.\n"
          "\n"
-         "You can use this method to set lines per tag if you do not reall want\n"
-         "to compute line spectra. Formally, abs_coefCalc will still require\n"
-         "abs_lines_per_species to be set.\n"
+         "You can use this method to set *abs_lines_per_species* if you do not\n"
+         "really want to compute line spectra. Formally, abs_coefCalc will still\n"
+         "require *abs_lines_per_species* to be set.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lines_per_species" ),
@@ -818,6 +754,10 @@ void define_md_data_raw()
          "\n"
          "Of course, the method also performs quite a lot of checks on the\n"
          "table. If something is not ok, a runtime error is thrown.\n"
+         "\n"
+         "The method sets a flag *abs_lookup_is_adapted* to indicate that the\n"
+         "table has been checked and that it is ok. Never set this by hand,\n"
+         "always use this method to set it!\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_lookup", "abs_lookup_is_adapted" ),

@@ -1,3 +1,14 @@
+2009-04-23  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-29
+
+	* src/m_abs.cc (abs_linesReadFromArtsObsolete): Added
+	documentation header, stating that the function is obsolete. It is
+	no longer included in methods.cc.
+
+	* src/methods.cc: Continued documentation spring cleaning. Now
+	done down to including method abs_lookupAdapt.
+
 2009-04-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-28
