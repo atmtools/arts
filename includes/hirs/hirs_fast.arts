@@ -140,19 +140,17 @@ ReadXML( backend_channel_response,
 StringCreate( f_grid_file)
 StringSet(    f_grid_file, "hirs/")
 Append(       f_grid_file, satellite)
-# FIXME: Remove this when using constant in Append works:
-StringCreate( dummy )
+# A string variable dummy to hold the file name already 
+# exists, we can re-use it here. Using the constant string directly in
+# Append does not work, since Append is supergeneric.
 StringSet(    dummy,          "_HIRS.f_grid_fast.xml")
-#
 Append(       f_grid_file, dummy)
 
 # Weights associated with each frequency
 StringCreate( weights_file)
 StringSet(    weights_file, "hirs/")
 Append(	      weights_file, satellite)
-# FIXME: Remove this when using constant in Append works:
 StringSet(    dummy,          "_HIRS.W_fast.xml")
-#
 Append(	      weights_file, dummy)
 
 
