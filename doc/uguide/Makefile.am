@@ -24,6 +24,7 @@ artsexecutable = $(top_builddir)/src/arts
 
 texfiles = \
 	absorption.tex \
+	atmosphere.tex \
 	agendas.tex \
 	agu.bst \
 	app_units.tex \
@@ -35,12 +36,9 @@ texfiles = \
 	clouds.tex \
 	concept.tex \
 	development.tex \
-	fm_definitions.tex \
 	formalism.tex \
-	formats.tex \
 	integration.tex \
 	interpolation.tex \
-	introduction.tex \
 	lin_alg.tex \
 	main.tex \
 	matrix_vector.tex \
@@ -58,7 +56,6 @@ texfiles = \
 	surface.tex \
 	symbol_defs.tex \
 	uguide.tex \
-	utilities.tex \
 	wfuns_atm.tex \
 	wfuns_sensor.tex
 

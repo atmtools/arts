@@ -1,8 +1,6 @@
 \documentclass[11pt,twoside,a4paper,fleqn]{book} 
 %\documentclass[11pt,twoside,a4paper,fleqn,draft]{book} 
 
-%\includeonly{development,agendas,app_groups}
-
 
 %--- Packages to use
 %
@@ -20,7 +18,6 @@
 \usepackage{ifthen}
 
 
-
 %--- Detect if we're running PDFLaTeX or good 'ol vanilla LaTeX
 \newif\ifpdf
   \ifx\pdfoutput\undefined
@@ -29,7 +26,6 @@
   \pdfoutput=1
   \pdftrue
 \fi
-
 
 
 %--- Margins
@@ -41,7 +37,6 @@
 \hoffset-1.3cm
 \oddsidemargin2.2cm
 \textwidth14.0cm
-
 
 
 %--- Headings
@@ -61,7 +56,6 @@
 }  
 
 
-
 %--- Some layout commands
 %
 \sloppy
@@ -69,7 +63,6 @@
 \hbadness=10000
 \makeindex
 \bibliographystyle{agu}
-
 
 
 %--- Some fixes
@@ -84,14 +77,13 @@
 \renewcommand{\algorithmiccomment}[1]{(#1)}
 
 
-
 %--- Symbol definitions
 %
 \input{symbol_defs.tex}
 
 
 
-%--- BEGIN PDF/LaTeX specific options
+%--- PDF/LaTeX specific options
 \ifpdf
   \usepackage[pdftex]{graphicx}    % includegraphics
   \DeclareGraphicsExtensions{.pdf}
@@ -121,9 +113,7 @@
 \fi
 
 
-
 %--- Command definitions -----------------------------------------------------
-
 
 %- Document history
 \newcommand{\starthistory} {\begin{table}[b]  \begin{tabular}{l p{11cm}} 
@@ -185,7 +175,6 @@
 \newcommand{\FIXME}[1]{{\bfseries FIXME: #1}}
 
 %------------------------------------------------------------------------------
-
 
 
 

@@ -33,6 +33,43 @@ variables should then be set as follows:
  \artsstyle{stokes\_dim}
 
 
+\section{The geoid and the surface}
+%===================
+\label{sec:fm_defs:geoid}
+
+The \textindex{geoid} is an imaginary surface used as a
+reference when specifying the surface altitude and the altitude
+of pressure levels. Any shape of the geoid is allowed but a smoothly
+varying geoid is the natural choice, with the enters of the geoid and
+the coordinate system coinciding. The geoid should normally be set to
+the reference ellipsoid for some global geodetic datum, such as
+WGS-84. For further reading on geoid ellipsoids and WGS-84, see
+Section~\ref{sec:ppath:geoid}.
+
+Inside ARTS, the geoid is represented as a matrix
+(\wsvindex{r\_geoid}), holding the geoid radius, \aRds{\odot}, for
+each crossing of the latitude and longitude grids,
+$\aRds{\odot}=\aRds{\odot}(\Lat,\Lon)$. The geoid is not defined
+outside the ranges covered by the latitude and longitude grids, with
+the exception for 1D where the geoid by definition is a full sphere.
+The surface altitude, \aAlt{g}, is given as the geometrical altitude
+above the geoid. The radius for the surface is accordingly
+\begin{equation}
+  \aRds{g} = \aRds{\odot} + \aAlt{g}
+ \label{eq:fm_defs:zsurface}
+\end{equation}
+As already mentioned, a gap between the surface and the 
+lowermost pressure level is not allowed.
+
+The ARTS variable for the \textindex{surface altitude}
+(\wsvindex{z\_surface}) is a matrix of the same size as the geoid
+matrix. For 1D, the surface is a sphere by definition (as the geoid),
+while for 2D and 3D any shape is allowed and a rough model of the
+surface topography can be made. The treatment of surface emission
+and reflectivity is discussed in Section~\ref{sec:fm_defs:surface}.
+
+
+
 
 \section{The dielectric constant and the refractive index}
  

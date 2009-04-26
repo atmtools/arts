@@ -36,6 +36,7 @@ class.  The consequent section describes how to realize different
 kinds of size distributions in the ARTS frame by defining appropriate
 particle number density fields. 
 
+
 \section{\textindex{Single scattering properties}}
 \label{sec:clouds:ssp}
 
@@ -45,26 +46,26 @@ particle number density fields.
 
 For radiative transfer calculations we need a coordinate system to
 describe the direction of propagation. For this purpose we use the
-laboratory frame, which has been introduced in
-\secref{sec:fm_defs} and which is also shown in \figref{fig:RT_theory_coordinates}.
-The z-axis corresponds to the local zenith direction and the x-axis
-points towards the north-pole. The propagation direction is described
-by the local zenith angle $\theta$ and the local azimuth angle $\phi$.
-This coordinate system is the most appropriate frame to describe the
-propagation direction and the polarization state of the radiation.
-However, in order to describe scattering of radiation by a particle or
-a particle ensemble, it makes sense to define another coordinate
-system taking into consideration the symmetries of the particle or the
-scattering medium, as one gets much simpler expressions for the single
-scattering properties.  For macroscopically isotropic and
-mirror-symmetric scattering media it is convenient to use the
-scattering frame, in which the incidence direction is parallel to the
-z-axis and the x-axis coincides with the scattering plane, that is,
-the plane through the unit vectors \VctStl{\hat{n}^{\inc}}\ and
-\VctStl{\hat{n}^{\sca}}. The scattering frame is illustrated in
-\figref{fig:scattering:part_frame}. For symmetry reasons the single scattering
-properties defined with respect to the scattering frame can only
-depend on the scattering angle $\Theta$,
+laboratory frame, which is also shown in
+\figref{fig:RT_theory_coordinates}.  The z-axis corresponds to the
+local zenith direction and the x-axis points towards the
+north-pole. The propagation direction is described by the local zenith
+angle $\theta$ and the local azimuth angle $\phi$.  This coordinate
+system is the most appropriate frame to describe the propagation
+direction and the polarization state of the radiation.  However, in
+order to describe scattering of radiation by a particle or a particle
+ensemble, it makes sense to define another coordinate system taking
+into consideration the symmetries of the particle or the scattering
+medium, as one gets much simpler expressions for the single scattering
+properties.  For macroscopically isotropic and mirror-symmetric
+scattering media it is convenient to use the scattering frame, in
+which the incidence direction is parallel to the z-axis and the x-axis
+coincides with the scattering plane, that is, the plane through the
+unit vectors \VctStl{\hat{n}^{\inc}}\ and \VctStl{\hat{n}^{\sca}}. The
+scattering frame is illustrated in
+\figref{fig:scattering:part_frame}. For symmetry reasons the single
+scattering properties defined with respect to the scattering frame can
+only depend on the scattering angle $\Theta$,
 \begin{equation}
   \label{eq:scat_angle}
   \Theta=\arccos(\hat{\PDir}^{\inc} \cdot {\hat{\PDir}^{\sca}}),

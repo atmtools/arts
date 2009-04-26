@@ -1,3 +1,40 @@
+2009-04-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-31
+
+	* doc/uguide/fm_definitions.tex:
+	* doc/uguide/introduction.tex:
+	* doc/uguide/formats.tex:
+	* doc/uguide/utilities.tex: All removed.
+
+	* doc/uguide/Figs/fm_definitions: Removed. Figures moved to the
+	two new folders below.
+
+	* doc/uguide/Figs/atmosphere:
+        * doc/uguide/Figs/rte: Created.
+	
+	* doc/uguide/rte.tex: Included text from fm_definitions and started
+	revision.
+
+	* doc/uguide/atmosphere.tex: Created, based on text from old
+	fm_definitions.tex.
+
+	* doc/uguide/concept.tex: New text for introduction, What is ARTS?,
+	Documentation guide and Environmental variables. Fixed some smaller
+	things on other parts.
+
+	* doc/uguide/main.tex: Updated addresses and some layout
+	improvements. Moved Formalism section to theoretical background
+	part.
+	
+	* doc/uguide/uguide.tex: Some cleaning of the file.
+
+	* doc/uguide/references.bib: Added some of the newer ARTS
+	publications. Added missing title for a reference used in MC
+	section.
+
+	* doc/uguide/symbol_defs.tex: Cleaned up sorting of definitions.
+
 2009-04-23  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-30

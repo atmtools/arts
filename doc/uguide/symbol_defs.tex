@@ -113,7 +113,6 @@
 
 % Ensemble average
 \newcommand{\EnsAvr}[1]        {\ensuremath{\left\langle #1 \right\rangle}}
-%--- Powers, degrees and other special units, etc.
 
 % Absolute Value
 \newcommand{\Abs}[1]          {\ensuremath{\left| #1 \right| }}   
@@ -128,24 +127,6 @@
 \newcommand{\half} {\ensuremath{\textstyle\frac{1}{2}}}
 
 
-
-
-%--- Plotting line styles ----------------------------------------------------
-
-\def \lsolid     {\mbox{------}}
-\def \ldashed    {\mbox{--~--~--}}
-\def \ldashdot   {\mbox{--~$\cdot$~--}}
-\def \ldotted    {\mbox{$\cdot~\cdot~\cdot$}}
-
-% --- References ------------------------------------------------------------
-
-\newcommand{\secref}[1]    {Section \ref{#1}} 
-\newcommand{\eqref}[1]     {(\ref{#1})}
-\newcommand{\eqnref}[1]    {Equation (\ref{#1})}
-\newcommand{\figref}[1]    {Figure \ref{#1}}
-\newcommand{\tabref}[1]    {Table \ref{#1}}
-\newcommand{\charef}[1]    {Chapter \ref{#1}}
-
 %--- Physical constants ------------------------------------------------------
 
 % Speed of light in vaccum [m/s]
@@ -159,7 +140,6 @@
 
 % Avogadro's number [molec/kg]
 \newcommand{\avogadrosCns}   {\ensuremath{N_a}}  
-
 
 
 %--- The Rodgers formalism ---------------------------------------------------
@@ -267,12 +247,10 @@
 \newcommand{\aCvrMtrTrp}[1]    {\CvrMtr\ensuremath{_{#1}\Inv}}
 
 
-
 % --- Special functions ------------------------------------------------------
-%
+
 % The Planck function
 \newcommand{\Planck}     {\ensuremath{B}}  
-
 
 
 % --- General scalar quantities ----------------------------------------------
@@ -337,7 +315,6 @@
 
 
 % --- Quantities concerning scattering  -------------------
-%
 
 % Total extinction matrix
 \newcommand{\ExtMat}    {\ensuremath{{\bf K}}}
@@ -370,6 +347,7 @@
 
 % Scattered field
 \newcommand{\SFld}      {\ensuremath{{\mathcal S}}}
+
 % Scattered field index
 \newcommand{\aSFld}[1]  {\ensuremath{{\mathcal S}^{(#1)}}}
 
@@ -378,6 +356,7 @@
 
 % Amplitude matrix
 \newcommand{\AmpMat}    {\ensuremath{{\bf S}}}
+
 % Amplitude matrix index
 \newcommand{\IAmp}      {\ensuremath{i_{amp}}}
 
@@ -425,7 +404,6 @@
 
 
 % --- Quantities concerning scalar gas absorption  -------------------
-%
 
 % Absorption coefficient
 \newcommand{\AbsCoef}    {\ensuremath{{\alpha}}}
@@ -443,6 +421,22 @@
 \newcommand{\aDen}[1]{\ensuremath{{n}_{#1}}}
 
 
+%--- Plotting line styles ----------------------------------------------------
+
+\def \lsolid     {\mbox{------}}
+\def \ldashed    {\mbox{--~--~--}}
+\def \ldashdot   {\mbox{--~$\cdot$~--}}
+\def \ldotted    {\mbox{$\cdot~\cdot~\cdot$}}
+
+
+% --- References ------------------------------------------------------------
+
+\newcommand{\secref}[1]    {Section \ref{#1}} 
+\newcommand{\eqref}[1]     {(\ref{#1})}
+\newcommand{\eqnref}[1]    {Equation (\ref{#1})}
+\newcommand{\figref}[1]    {Figure \ref{#1}}
+\newcommand{\tabref}[1]    {Table \ref{#1}}
+\newcommand{\charef}[1]    {Chapter \ref{#1}}
 
 
 %%% Local Variables: 
