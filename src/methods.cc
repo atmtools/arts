@@ -3956,7 +3956,7 @@ md_data.push_back
          "\n"
          "calc_abs: Flag for storing the absorption coefficients.\n"
          "\n"
-         "calc_abs: Flag for calculating Jacobian(only for H2O).\n"),
+         "calc_jac: Flag for calculating Jacobian(only for H2O).\n"),
 	OUTPUT( ybatch_, absbatch_, jacbatch_ ),
 	INPUT( // Variables needed for absCalc
                radiosonde_data_, f_mono_, lines_per_tg_, lineshape_, 

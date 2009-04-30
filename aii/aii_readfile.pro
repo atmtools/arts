@@ -42,6 +42,7 @@ PRO aii_readfile,filename,output
 ;; do we have to uncompress?
 com=-1
 
+print, 'aii_readfile: ', filename 
 ;; uncompressed
 if aii_file_exists(filename) then begin
     filename = filename
