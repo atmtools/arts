@@ -1,3 +1,23 @@
+2009-05-04  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-32
+
+	* No change in arts source code, but setup files for new HIRS
+	instruments in includes.
+
+	* includes/hirs/find_freq_h.pro
+	* includes/hirs/wavnum2freq.pro: IDL programs used by Viju to
+	create the files.
+
+	* includes/hirs/METOPA_HIRS.backend_channel_response.xml
+	* includes/hirs/METOPA_HIRS.f_backend.xml
+	* includes/hirs/NOAA18_HIRS.backend_channel_response.xml
+	* includes/hirs/NOAA18_HIRS.f_backend.xml
+	* includes/hirs/NOAA19_HIRS.backend_channel_response.xml
+	* includes/hirs/NOAA19_HIRS.f_backend.xml: New setup files for
+	N18, N19, and Metop A. Content and format similar to the files for
+	the older sensors.
+
 2009-04-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-31
