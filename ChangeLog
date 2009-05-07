@@ -1,3 +1,17 @@
+2009-05-07  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-33
+
+	* doc/uguide/concept.tex: Section on control files and workspace
+	moved and rewritten. Figures removed, since they were not very
+	illuminating. 
+
+	* doc/uguide/Figs/concept/generic_method.pdf,
+	  doc/uguide/Figs/concept/method.pdf: Removed.
+
+	* doc/uguide/Figs/concept/README: Added, explains that there are
+	no figures in this Chapter.	
+
 2009-05-04  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-32

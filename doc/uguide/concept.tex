@@ -2,6 +2,8 @@
 \label{sec:concept}
 
 \starthistory
+090507 & Section on control files and workspace moved 
+         and rewritten by Stefan Buehler.\\
 090424 & Complete revision and new text by Patrick Eriksson.\\
 080729 & Section on command line parameters updated by Stefan Buehler.\\
 020613 & Updated and extended by Stefan Buehler.\\
@@ -19,7 +21,8 @@ used efficiently.
 
 
 \section{What is ARTS?}
-%
+%==============================
+
 The Atmospheric Radiative Transfer Simulator, ARTS, is an atmospheric
 forward model. That is, a software for performing simulations of
 atmospheric radiative transfer. ARTS is a relatively general and
@@ -46,7 +49,7 @@ There exist two versions of ARTS. This user guide deals with the later
 of the two versions, here denoted as just ARTS. ARTS-1, the first
 version of ARTS \citep{buehler:artst:05} can only handle 1D
 atmospheres with unpolarised radiation and situations where scattering
-can be neglected. These restrictions have been removed to this
+can be neglected. These restrictions have been removed in this
 version. A short summary of ARTS's main features:
 \begin{description}
 \item[The atmosphere] can be 1D, 2D or 3D. That is, atmospheric
@@ -76,8 +79,8 @@ contents and the index for navigating through the user guide.
 
 
 
-\section{Documentation guide}
-%====================
+\section{Documentation}
+%========================================
 \label{sec:concept:doc}
 
 If you are totally new to ARTS and look for an introduction, we can
@@ -111,9 +114,143 @@ appreciated. For some parts of ARTS we refer to journal articles:
 \end{itemize}
 
 
+\section{Control files and workspace}
+%=========================================================
+
+ARTS performs calculations by executing a series of commands (called
+workspace methods) that are listed in one or more files, called
+\textindex{control files}. You can think of a control file as something like a
+program code file, written in a special programming language (the ARTS
+control file syntax).
+
+\subsection{Test control files}
+
+The sub-directory \fileindex{tests} contains some example control files.
+You should study them to learn more about how the program works. You
+can run these control files like this:
+\begin{quote}
+\begin{verbatim}
+  arts TestAbs.arts
+\end{verbatim}
+\end{quote}
+This assumes that you have entered the directory where the control
+file selected is found, and that the \artsstyle{arts} executable is in
+your path. You can also run all of the examples (from the \verb|tests|
+directory), by saying
+\begin{quote}
+\begin{verbatim}
+  make check
+\end{verbatim}
+\end{quote}
+
+
+\subsection{The workspace}
+
+The most important notion in ARTS is the \textindex{workspace}. All
+physical quantities (for example radiances) are stored in
+\textindex{workspace variables}. But workspace variables can also be
+of a more technical nature, for example various grids.
+
+The program performs a calculation by executing a list of
+\textindex{workspace methods}, which are specified in a control file.
+These workspace methods take workspace variables as input, and
+generate workspace variables as output.
+
+It is important to note that the control file has a fixed and
+well-defined syntax. This syntax is understood by the ARTS parser.
+The great advantage of this concept is that it is very easy to add new
+workspace variables and new workspace methods. The program has an
+internal look-up table which lists all workspace methods, as well as
+their input and output variables. To add a new method, one just has to
+add an entry to this look-up table, and write the code for the method
+itself. No further changes to the program are necessary. In
+particular, no changes to the program logic or to the parser. How such
+an extension can be made practically is described in Section
+\ref{sec:development}.
+
+
+
+\subsection{Different types of workspace method arguments}
+
+Workspace methods can have three different types of input and output
+arguments: 
+
+\emph{\textindex{Specific arguments}} refer to a particular workspace
+variable. For example, an output of the method
+\artsstyle{abs\_coefCalc} is the variable \artsstyle{abs\_coef}, which
+contains absorption coefficients.
+
+\emph{\textindex{Generic arguments}} refer to any variable of a given
+type (the type is called \textindex{workspace variable group}
+internally).  A method with a generic output argument is for example
+\artsstyle{MatrixSetConstant}, which can be used to set any workspace
+variable which is a matrix. For example
+\begin{quote}
+  \artsstyle{MatrixSetConstant( z\_surface, 10, 10, 0.0 )}
+\end{quote}
+will set the size of \artsstyle{z\_surface} to 10 x 10 and all
+elements to 0.
+
+\emph{\textindex{Supergeneric arguments}} refer to any workspace
+variable.  The most commonly used methods with supergeneric arguments
+are the XML file methods. A workspace variable is read from a file in
+this way
+\begin{quote}
+  \artsstyle{ReadXML(f\_grid,"frequency\_grid")}
+\end{quote}
+
+It is important to realize that the above discussion refers to the way
+the methods are defined, not to the way they are used. Methods are
+used by putting them in a control file. Input and output arguments are
+given in round brackets, as in C or Fortran. You are free to list any
+variables you like as input and output. (But you may get a runtime
+error if the type does not fit.) For inputs you can also put literals
+(e.g., put 7 where a variable of type integer is expected). 
+
+In summary, the methods in the control file behave pretty much like C
+functions in a C program. As a special case, if a method has only
+specific arguments, then the entire argument list (including the
+brackets) may be omitted.
+
+
+\subsection{Agendas}
+
+\textindex{Agendas} are a way to implement something similar to
+functions inside the control file. They are pre-defined, with certain
+input and output arguments. But inside the agenda you can list
+arbitrary methods. On invocation, the agenda executes its methods one
+after the other. The inputs and outputs defined for the agenda must be
+satisfied by the invoked workspace methods. E.g., if an agenda has
+\artsstyle{f\_grid} in its list of output workspace variables, a
+workspace method which generates \artsstyle{f\_grid} must be added to
+the agenda in the control file.
+
+Even though it is possible to execute agendas directly from the
+control file with the \artsstyle{AgendaExecute} method, the more
+common and intended use case is the internal invocation by other
+workspace methods. This adds considerable flexibility to ARTS. The
+\artsstyle{RteStd} method for example calculates (besides other
+components) the emission term. Without the means of an agenda, it
+would only be possible to use always the same method for the emission
+calculation. By the use of an agenda the user can choose between
+different methods to calculate the emission and plug them into the
+emission agenda in the control file:
+
+\begin{quote}
+\begin{verbatim}
+AgendaSet( emission_agenda ){
+  emissionPlanck
+}
+\end{verbatim}
+\end{quote}
+
+\noindent
+\artsstyle{RteStd} internally calls the \artsstyle{emission\_agenda} and
+uses the user selected method for calculating the emission term.
+
 
 \section{Command line parameters}
-%=================================
+%==============================================
 \label{sec:concept:comline}
 
 ARTS offers a number of useful \textindex{command line parameters}. In
@@ -122,7 +259,7 @@ short form consists of a minus sign and a single letter, whereas the
 long form consists of two minus signs and a descriptive name.
 
 \subsection*{Help}
-%
+
 To get a full list of available command line parameters, type
 \begin{quote}
 \begin{verbatim}
@@ -138,12 +275,12 @@ or
 
 
 \subsection*{Include files}
-%
+
 See Section~\ref{sec:concept:envvars}.
 
 
 \subsection*{Online documentation}
-%
+
 Most useful at the beginning should be the \artsstyle{-d}
 (\artsstyle{--describe}), \artsstyle{-m} (\artsstyle{--methods}), \artsstyle{-w}
 (\artsstyle{--workspacevariables}), and \artsstyle{-i} (\artsstyle{--input}) flags.
@@ -193,24 +330,10 @@ those that produce \artsstyle{f\_grid} as output. Finally,
 will give you all variables required by the method \artsstyle{abs\_coefCalc}
 (the variable \artsstyle{f\_grid} happens to be one of them).
 
-Using these command line parameters, it is easy to build up a
-control file. The trick is, to start at the end. Say you want to
-compute absorption coefficients. First of all, you have to find out in
-which workspace variable these are stored. Look at the list produced
-by \artsstyle{arts -w all}. You can use \artsstyle{arts -d} to look at
-some candidates a bit more closely. This way, you will find out that
-\artsstyle{abs\_coef} is the variable you are looking for.
-
-In the next step, you can use \artsstyle{arts -m abs\_coef} to find
-all methods that can calculate \artsstyle{abs\_coef}. So, you will
-find the method \artsstyle{abs\_coefCalc}. Now you can use
-\artsstyle{arts -w abs\_coefCalc} to find out the required input
-variables of that method. Then you can use the \artsstyle{-m} flag
-again, to find the methods producing these variables, and so on.
 
 
 \subsection*{Verbosity levels}
-%
+
 The command line parameter 
 \begin{quote}
 \begin{verbatim}
@@ -257,11 +380,11 @@ the report file, and no sub-agenda output.
 
 
 \section{Environment variables}
-%=================================
+%=========================================
 \label{sec:concept:envvars}
 
 \subsection*{\texttt{ARTS\_INCLUDE\_PATH}}
-%
+
 The description of ARTS calculations can be separated into several
 control files. Another control file is included as
 \begin{quote}
@@ -276,138 +399,6 @@ the \textindex{environment variable} \texttt{ARTS\_INCLUDE\_PATH}. The control
 files can be placed in sub-folders to path given.
 
 
-\section{ARTS workspace and control files}
-%----------------------
-
-
-\subsection{Test control files}
-%
-The sub-directory \fileindex{tests} contains some example control files.
-You should study them to learn more about how the program works. You
-can run these control files like this:
-\begin{quote}
-\begin{verbatim}
-  arts TestAbs.arts
-\end{verbatim}
-\end{quote}
-This assumes that you have entered the directory where the control
-file selected is found, and that the \artsstyle{arts} executable is in
-your path. You can also run all of the examples (from the \verb|tests|
-directory), by saying
-\begin{quote}
-\begin{verbatim}
-  make check
-\end{verbatim}
-\end{quote}
-
-
-\subsection{The workspace}
-%
-The most important notion in ARTS is the \textindex{workspace}. All
-physical quantities (for example absorption coefficients) are
-\textindex{workspace variables}. But workspace variables can also be of
-a more technical nature, for example various grids. 
-
-The program performs a calculation by executing a list of
-\textindex{workspace methods}, which are specified in a control
-file. These workspace methods take workspace variables as input, and
-generate workspace variables as output (Figure~\ref{fig:method}).
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\hsize,draft=false]{method}
-    \caption{\textindex{Specific workspace methods} act on specific
-      workspace variables to generate other specific workspace
-      variables. Additional input parameters can be specified as
-      generic input and output parameters in the control file.}
-    \label{fig:method}
-  \end{center}
-\end{figure}
-
-It is important to note that the control file has a fixed and
-well-defined syntax. This syntax is understood by the ARTS parser.
-The great advantage of this concept is that it is very easy to add
-new workspace variables and new workspace methods. The program has
-an internal look-up table which lists all workspace methods, as well
-as their input variables, output variables, and generic input/output
-parameters. To add a new method, one just has to add an entry to
-this look-up table, and write the code for the method itself. No
-further changes to the program are necessary. In particular, no
-changes to the program logic or to the parser. How such an extension
-can be made practically is described in Section \ref{sec:development}.
-
-
-
-\subsection{Generic workspace methods}
-%=================================
-
-Generic methods (Figure \ref{fig:generic_method}) allow the user of
-the program even more freedom than specific methods. A generic method
-is for example \artsstyle{MatrixSetConstant}, which can be used to set any
-workspace variable which is a matrix. For example
-\begin{quote}
-  \artsstyle{MatrixSetConstant( z\_surface, 10, 10, 0.0 )}
-\end{quote}
-will set the size of \artsstyle{z\_surface} to 10 x 10 where all
-elements equal 0.
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=\hsize,draft=false]{generic_method}
-    \caption{For \textindex{generic workspace methods} the workspace
-      variables to act on are specified in the control file.}
-    \label{fig:generic_method}
-  \end{center}
-\end{figure}
-
-Some methods are even more flexible, the are super generic. This means
-that they can take any workspace variable as input. The most commonly
-used such methods are the XML file methods. A workspace variable is
-read from a file in this way
-\begin{quote}
-  \artsstyle{ReadXML(f\_grid,"frequency\_grid")}
-\end{quote}
-Generic methods are particularly useful for IO operations like in the
-example above. No new IO methods are necessary for new workspace
-variables, as long as they are of standard types already known to the
-program (for example vectors or matrices). 
-
-
-
-\subsection{Agendas}
-%=================================
-
-Agendas are a special incarnation of a workspace method. In the
-control file an arbitrary number of workspace methods can be added to
-an agenda. On invocation, the agenda executes its methods one
-after the other. The inputs and outputs defined for the agenda must
-be satisfied by the invoked workspace methods. E.g., if an agenda
-has \artsstyle{f\_grid} in its list of output workspace variables, a
-workspace method which generates \artsstyle{f\_grid} must be added to
-the agenda in the control file.
-
-Even though it is possible to execute agendas directly from the
-control file with the \artsstyle{AgendaExecute} method, the more common
-and intended use case is the internal invocation by other workspace
-methods. This adds a grave amount of flexibility to ARTS. The
-\artsstyle{RteStd} method for example calculates (besides other
-components) the emission term. Without the means of an agenda, it
-would only be possible to use always the same method for the emission
-calculation. By the use of an agenda the user can choose between
-different methods to calculate the emission and plug them into the
-emission agenda in the control file:
-
-\begin{quote}
-\begin{verbatim}
-AgendaSet( emission_agenda ){
-  emissionPlanck
-}
-\end{verbatim}
-\end{quote}
-
-\noindent
-\artsstyle{RteStd} internally calls the \artsstyle{emission\_agenda} and
-uses the user selected method for calculating the emission term.
 
 
 %%% Local Variables: 
