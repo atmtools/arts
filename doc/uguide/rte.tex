@@ -80,15 +80,15 @@ function (a scalar). If local thermodynamic equilibrium applies, $B$
 equals the Planck function describing blackbody radiation. See further
 Chapter~\ref{sec:rte_theory}.
 
-As scattering here is neglected, the elements of \ExtMat\ and \AbsVec\ 
-are linked to each other, and we have that\footnote{This equation is
-  for sure valid for unpolarised absorption. We have not confirmed
-  generally for polarised absorption, but appears to be valid for
-  Zeeman splitting.}:
-\begin{eqnarray*}
-  \ExtMat^{-1}\AbsVec &=& \left[\begin{array}{c} \alpha\\0\\0\\0 \end{array}\right],
-\end{eqnarray*}
-where $\alpha$ is the total gas absorption coefficient. 
+% As scattering here is neglected, the elements of \ExtMat\ and \AbsVec\ 
+% are linked to each other, and we have that\footnote{This equation is
+%   for sure valid for unpolarised absorption. We have not confirmed
+%   generally for polarised absorption, but appears to be valid for
+%   Zeeman splitting.}:
+% \begin{eqnarray*}
+%   \ExtMat^{-1}\AbsVec &=& \left[\begin{array}{c} \alpha\\0\\0\\0 \end{array}\right],
+% \end{eqnarray*}
+% where $\alpha$ is the total gas absorption coefficient. 
 
 
 
@@ -106,10 +106,9 @@ variables for the sensor that always must be specified are
 \artsstyle{sensor\_response}, \artsstyle{sensor\_pos},
 \artsstyle{sensor\_los}, \artsstyle{antenna\_dim},
 \artsstyle{mblock\_za\_grid} and \artsstyle{mblock\_aa\_grid}. These
-variables are presented separately below. The discussion of sensor
-workspace variables is continued in Section~\ref{sec:sensor}.
-Section~\ref{sec:fm_defs:rte} gives further insights in how the sensor
-is treated in ARTS.
+variables are presented separately
+below. Section~\ref{sec:fm_defs:rte} gives further insights in how the
+sensor is treated in ARTS.
 
 
 \subsection{Sensor position\index{sensor position}}
@@ -241,9 +240,8 @@ common data reduction techniques is binning and Hotelling
 transformation by an eigenvector expansion.
 
 In ARTS, the influence of sensor characteristics and data reduction is
-incorporated by transfer matrices\index{sensor transfer matrix}, as
-described in Section~\ref{sec:formalism:sensor} and \ref{sec:sensor}.
-The application of these transfer matrices assumes that each step is a
+incorporated by transfer matrices\index{sensor transfer matrix}. The
+application of these transfer matrices assumes that each step is a
 linear operation, which should be the case for the response of the
 parts of a well designed instrument. Non-linear data reduction could
 be handled by special workspace methods.
@@ -412,8 +410,7 @@ transfer equations are solved practically in ARTS. The general
 presentation assumes that the simulations deal with an emission
 measurement. Focus is put on emission measurements as ARTS is intended
 primarily for such observations. However, simulations of transmission
-measurements are also possible, which is discussed especially in
-\FIXME{make this section}.
+measurements are also possible.
 
 
 \subsection{Calculation procedure}

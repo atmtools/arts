@@ -47,7 +47,7 @@ studies of atmospheric radiations
 
 There exist two versions of ARTS. This user guide deals with the later
 of the two versions, here denoted as just ARTS. ARTS-1, the first
-version of ARTS \citep{buehler:artst:05} can only handle 1D
+version of ARTS \citep{buehler:artst:05}, can only handle 1D
 atmospheres with unpolarised radiation and situations where scattering
 can be neglected. These restrictions have been removed in this
 version. A short summary of ARTS's main features:
@@ -95,9 +95,9 @@ and control file examples. The on-line documentation is described in
 Section ~\ref{sec:concept:comline}. ARTS comes with a set of control
 files that have two purposes: (1) To allow testing of the code at each
 commit, (2) To act as practical examples for new users. These control
-files are found in the \verb|tests/| sub-folder. Please, note that the
+files are found in the \verb|tests/| sub-directory. Please, note that the
 include mechanism (Section~\ref{sec:concept:envvars}) is used heavily,
-where files from the \verb|includes/| sub-folder are selected.
+where files from the \verb|includes/| sub-directory are selected.
 
 Algorithms and details of the calculations are described by this user
 guide. The user guide is fairly extensive, but due to a lack of direct
@@ -393,10 +393,10 @@ control files. Another control file is included as
 \end{verbatim}
 \end{quote}
 You can here give full paths for files to include, or specify the
-folders where files to include are stored. This can be done in two
+directories where files to include are stored. This can be done in two
 ways. Either by using the command line flag \verb|-I|, or by setting
 the \textindex{environment variable} \texttt{ARTS\_INCLUDE\_PATH}. The control
-files can be placed in sub-folders to path given.
+files can be placed in sub-directories to path given.
 
 
 

@@ -1545,67 +1545,6 @@ of the reference ellipsoid for the geodetic datums handled by ARTS.
 
 
 
-\section{Control file examples}
-%===================
-\label{sec:ppath:cfile}
-
-
-Some examples on how the geoid radius and the surface altitude can be set:
-\begin{verbatim}
-
-# Set the geoid to model WGS84 for 2D and 3D.
-r_geoidWGS84
-
-# For 1D, *lat_1d* and *meridian_angle_1d* must be specified 
-# to define the position and direction for which the curvature 
-# radius shall be extracted.
-NumericSet( lat_1d, 45 )
-NumericSet( meridian_angle_1d, 0 )
-r_geoidWGS84
-
-# Set the geoid to be spherical, with a radius of 6370 km
-r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid,
-                  6370e3 )
-
-# Set the geoid to be spherical, with standard radius (defined 
-# in arts.h)
-r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
-
-# Set a constant surface altitude of 1 km
-ncolsGet( ncols, r_geoid )
-nrowsGet( nrows, r_geoid )
-MatrixSetConstant( z_surface, nrows, ncols, 1e3 )
-\end{verbatim}
-
-\noindent
-Different possibilities for the \artsstyle{ppath\_step\_agenda}:
-\begin{verbatim}
-
-# Select geometric calculations, with no length criterion 
-# for path points.
-AgendaSet( ppath_step_agenda ) {
-  ppath_stepGeometric( ppath_step, atmosphere_dim, p_grid, lat_grid,
-                       lon_grid, z_field, r_geoid, z_surface, -1 )
-}
-
-# Consider refraction. The ray tracing step length is 2 km 
-# and the length criterion for path points is 10 km.
-AgendaSet( refr_index_agenda ) {
-  refr_indexThayer
-}
-AgendaSet( ppath_step_agenda ) {
-  ppath_stepRefractionEuler( ppath_step, rte_pressure,
-                             rte_temperature, rte_vmr_list,
-                             refr_index, refr_index_agenda, 
-                             atmosphere_dim, p_grid, lat_grid,
-                             lon_grid, z_field, t_field,
-                             vmr_field, r_geoid, z_surface,
-                             10e3,
-                             2e3 )
-}
-\end{verbatim}
-
-
 
 
 

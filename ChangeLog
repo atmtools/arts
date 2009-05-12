@@ -1,3 +1,14 @@
+2009-05-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-34
+
+	* doc/uguide/main.tex: Commented out the sensor section.
+
+	* doc/uguide/ppath.tex: Fixed some smaller things and removed control
+	* doc/uguide/rte.tex:   file examples in these sections.
+	* doc/uguide/atmosphere.tex: 
+	* doc/uguide/concept.tex:  
+
 2009-05-07  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-33

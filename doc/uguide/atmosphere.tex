@@ -21,11 +21,9 @@ cases of 3D. The significance of these different atmospheric
 dimensionalities and the coordinate systems used are described below
 in this section. The atmospheric dimensionality is selected by setting
 the workspace variable \wsvindex{atmosphere\_dim} to a value between 1
-and 3. Variables for which the size depends on the atmospheric
-dimensionality are checked, when used, to have a size consistent with
-\artsstyle{atmosphere\_dim}. The atmospheric dimensionality is most
-easily set by the functions \wsmindex{AtmosphereSet1D},
-\wsmindex{AtmosphereSet2D} and \wsmindex{AtmosphereSet3D}.
+and 3. The atmospheric dimensionality is most easily set by the
+functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
+\wsmindex{AtmosphereSet3D}.
 
 \begin{figure}[!t]
  \begin{center}
@@ -87,22 +85,21 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
   used here for simplicity and historical reasons, not because it is a
   true 1D case (a strictly 1D atmosphere would just extend along a
   line). A spherical symmetry means that atmospheric fields and the
-  surface extend in all three dimensions, but they have no latitude and
-  longitude variation. This means that, for example, atmospheric
+  surface extend in all three dimensions, but they have no latitude
+  and longitude variation. This means that, for example, atmospheric
   fields vary only as a function of altitude and the surface
   constitutes the surface of a sphere. The radial coordinate is
   accordingly sufficient when dealing with atmospheric quantities, but
   the angular distance between the sensor and a point along the
   propagation path can be of interest, for example when determining
-  the cross-link between two satellites (a fact that shows that this
-  is not a true 1D case). A polar coordinate system is for this reason
-  used when describing propagation paths, where the coordinate
-  additional to the radius gives the angular distance inside the
-  viewing plane between the sensor and the point of interest (see also
-  Section~\ref{sec:ppath:Ppath}). This latter coordinate system
-  coincides with the one used for 2D if the sensor position is set to
-  be the zero point for the latitudes. A 1D atmosphere is shown in
-  Figure~\ref{fig:fm_defs:1d}.
+  the cross-link between two satellites. A polar coordinate system is
+  for this reason used when describing propagation paths, where the
+  coordinate additional to the radius gives the angular distance
+  inside the viewing plane between the sensor and the point of
+  interest (see also Section~\ref{sec:ppath:Ppath}). This latter
+  coordinate system coincides with the one used for 2D if the sensor
+  position is set to be the zero point for the latitudes. A 1D
+  atmosphere is shown in Figure~\ref{fig:fm_defs:1d}.
   
 \item[\textindex{2D}\,\,\,] In contrast to the 1D and 3D cases, a 2D
   atmosphere extends only inside a plane
@@ -147,7 +144,7 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
     The vertical extension
     of the cloud box is defined identical for 1D and 3D. The horizontal 
     extension of the cloud box is between two latitude and longitude grid
-    positions, where only one of the dimensions are visible in this figure.}
+    positions, where only one of the dimensions is visible in this figure.}
   \label{fig:fm_defs:3dcross}
  \end{center}
 \end{figure}
