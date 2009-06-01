@@ -43,7 +43,7 @@ void bofstream::seek(long spos, Offset offs)
   }
 }
 
-long bofstream::pos()
+streampos bofstream::pos()
 {
   if(!in) { err = NotOpen; return 0; }
   return streamoff (this->tellp ());

@@ -58,7 +58,7 @@ public:
 
   virtual ~bofstream () {}
   void seek(long spos, Offset offs);
-  long pos();
+  streampos pos();
 
   void putByte (bofstream::Byte b);
   void putRaw (const char *c, streamsize n) { this->write (c, n); }

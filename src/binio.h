@@ -95,7 +95,7 @@ public:
   bool eof();
 
   virtual void seek(long, Offset = Set) = 0;
-  virtual long pos() = 0;
+  virtual streampos pos() = 0;
 
 protected:
   typedef long	Int;

@@ -1,3 +1,12 @@
+2009-06-01  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-35
+
+	* src/binio.h, src/bifstream.{cc,h}, src/bofstream.{cc,h}:
+
+	Change return type of pos function to streampos to fix a warning on
+	32-bit compilation.
+
 2009-05-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-34

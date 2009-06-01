@@ -59,7 +59,7 @@ public:
 
   virtual ~bifstream () {}
   void seek(long spos, Offset offs);
-  long pos();
+  streampos pos();
 
   bifstream::Byte getByte();
   void getRaw (char *c, streamsize n) { this->read (c, n); }
