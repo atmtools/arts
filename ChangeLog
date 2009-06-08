@@ -1,3 +1,13 @@
+2009-06-08  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-36
+
+	* includes/hirs/*.f_grid_fast.xml, includes/hirs/*.W_fast.xml:
+	Added updated setup files for fast HIRS calculation. These were
+	computed for the new HIRS reference setup that was introduced in
+	arts-1-12-22. WARNING: The setup files for NOAA11 are still
+	missing, I will add them as soon as the calculation is finished. 
+
 2009-06-01  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-35
