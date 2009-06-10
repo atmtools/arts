@@ -303,16 +303,20 @@ void define_basic_species_data()
   //       - CH4 is in official mytran list (6), but does not 
   //         seem to be included for calculation, as given
   //         by table tag_table in file glob_def.c
+  // 2009-6-10 SAB Added Isotope 312, which is new in HITRAN08.
+  //           Parameters from HITRAN file molparam.txt.
+  //           Still commented out, due to missing partition function data.
   species_data.push_back
     ( SpeciesRecord
       ( NAME("CH4"),
         DEGFR(3),
         ISOTOPES
-        (//  Name,      Isotopic Ratio, Mass,   MY-tag, HI-tag, JPL-tag
-         //             |               |       |       |       |
+        (//  Name,       Isotopic Ratio,  Mass,         MY-tag, HI-tag, JPL-tag
+         //              |                |             |       |       |
          REC("211"      ,.988274E+00     ,16.031300    ,-1     ,61     ,TAGS()),
          REC("311"      ,1.11031E-02     ,17.034655    ,-1     ,62     ,TAGS()),
          REC("212"      ,6.15751E-04     ,17.037475    ,-1     ,63     ,TAGS(17003))
+//         REC("312"      ,6.91785E-06     ,18.040830      ,-1     ,64     ,TAGS())
          ) ) );
 
   // O2

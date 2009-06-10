@@ -823,7 +823,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is)
       // If mo == 0 this is just a comment line:
       if ( 0 != mo )
         {
-          // See if we know this species. Exit with an error if the species is unknown.
+          // See if we know this species. 
           if ( missing != hspec[mo] )
             {
               comment = false;
