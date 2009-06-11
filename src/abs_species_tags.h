@@ -141,7 +141,9 @@ typedef  Array<ArrayOfSpeciesTag> ArrayOfArrayOfSpeciesTag;
 //             Functions related to species and tags
 //======================================================================
 
-String get_tag_group_name( const Array<SpeciesTag>& tg );
+String get_tag_group_name( const ArrayOfSpeciesTag& tg );
+
+String get_species_name( const ArrayOfSpeciesTag& tg );
 
 Index species_index_from_species_name( String name );
 

@@ -325,6 +325,55 @@ String get_tag_group_name( const ArrayOfSpeciesTag& tg )
   return name;
 }
 
+//! Return the species of a tag group as a string
+/*!
+   A tag group consists of several elementary SpeciesTags, which must
+   all belong to the same molecular species. This function
+   returns a string with the name of the species. This is
+   nice for informational output messages, for example in the
+   absorption routines.
+
+   E.g., if the tag group is: "H2O-161, H2O-181", then the function
+   will return "H2O".
+
+   It also does a safety check that really all tags belong to the same
+   species.
+
+   \param  tg  The tag group in question.
+   \return The name of the species, as it should be used in gridded
+           atmospheric fields, for example.
+
+   \author Stefan Buehler
+   \date   2009-06-11
+*/
+String get_species_name( const ArrayOfSpeciesTag& tg )
+{
+  // Species lookup data:
+  extern const Array<SpeciesRecord> species_data;
+
+  // Get species index of first tag:
+  Index spec_ind = tg[0].Species();
+
+  // As a safety check, make sure that all other species indices are
+  // the same:
+  for (Index i=1; i<tg.nelem(); ++i)
+    {
+      //      out1 << spec_ind << " " << tg[i].Species() << "\n";
+      if (tg[i].Species() != spec_ind)
+        {
+          ostringstream os;
+          os << "All tags in a tag group must belong to the same species!\n"
+             << "The offending tag group is: " << get_tag_group_name(tg);
+          throw runtime_error( os.str() );
+        }
+    }
+  
+  // A reference to the relevant record of the species data:
+  const  SpeciesRecord& spr = species_data[spec_ind];
+
+  return spr.Name();
+}
+
 //! Find first occurrence of species in tag groups.
 /*! 
   The species to look for must be specified by its species index, not

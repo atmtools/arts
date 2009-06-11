@@ -1,3 +1,18 @@
+2009-06-11  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-38
+
+	* src/m_abs_lookup.cc (abs_lookupSetupBatch): Do a number of
+	safety checks on the field names in the input atmospheric states
+	and abs_species. Basicallly, we check that the input field names
+	match the names of the absorption species.
+
+	* src/abs_species_tags.{cc,h} (get_species_name): Added this
+	function, which returns the species name for a tag group.  A tag
+	group consists of several elementary SpeciesTags, which must all
+	belong to the same molecular species. This function returns a
+	string with the name of the species.
+
 2009-06-10  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-37

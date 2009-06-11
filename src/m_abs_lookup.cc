@@ -1125,9 +1125,71 @@ void abs_lookupSetupBatch(// WS Output:
   // convert it here to the natural log:
   const Numeric p_step = log(pow(10.0, p_step10));
 
-  // FIXME: Some runtime input variable checks here, e.g.:
-  // Field names for first batch case, is T, z, in the right place? Do
-  // the species match?
+  // Check that the field names in batch_fields are good. (We check
+  // only the first field in the batch.)  
+  {
+    ostringstream os;
+    bool bail = false;
+
+    const ArrayOfString field_names = batch_fields[0].get_string_grid(0);
+
+    ArrayOfString species_names(abs_species.nelem());
+    for (Index i=0; i<abs_species.nelem(); ++i)
+      species_names[i] = get_species_name(abs_species[i]);
+
+    // First simply check dimensions of abs_species and field_names
+    if (field_names.nelem() < 3)
+      {
+        os << "Atmospheric states in batch_fields must have at\n"
+           << "least three fields: T, z, and at least one species.";
+        throw runtime_error( os.str() );
+      }
+
+    if (abs_species.nelem() != field_names.nelem()-2)
+      {
+        os << "Dimension of fields in batch_fields does not match that of abs_species.\n"
+           << "(First two fields must be T and z, rest must match absorption species.)\n"
+           << "Field names:        " << field_names << "\n"
+           << "Absorption species: " << species_names; 
+        throw runtime_error( os.str() );
+      }
+
+    os << "The consistency check of the first compact atmospheric state in\n"
+       << "batch_fields has shown one or more errors:\n";
+
+    // First field must be T:
+    if ("T" != field_names[0])
+      {
+        os << "The first field name must be T.\n";
+        bail = true;
+      }
+
+    // Second field must be z:
+    if ("z" != field_names[1])
+      {
+        os << "The second field name must be z.\n";
+        bail = true;
+      }
+
+    // The other fields must match abs_species:
+    bool wrong_species = false;
+    for (Index i=0; i<abs_species.nelem(); ++i)
+      if (field_names[2+i] != species_names[i])
+        wrong_species = true;
+
+    if (wrong_species)
+      {
+        os << "The third to last field name must match the absorption species in\n"
+           << "abs_species, which are:\n"
+           << species_names << "\n";
+        bail = true;
+      }
+
+    os << "Your field names are:\n"
+       << field_names;
+
+    if (bail) throw runtime_error( os.str() );
+  }
 
   // FIXME: Adjustment of min/max values for Jacobian perturbations is still missing. 
 
