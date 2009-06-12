@@ -1,3 +1,14 @@
+2009-06-12  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-39
+
+	* includes/hirs/NOAA11_HIRS.f_grid_fast.xml,
+	includes/hirs/NOAA11_HIRS.W_fast.xml: Added these two missing
+	files. Note: There still is a bug in the fast HIRS setup, I am
+	regenerating it right now. Error is below 0.5 K for most channels,
+	but will be much smaller with the corrected version. Use with
+	caution.   
+
 2009-06-11  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-38
