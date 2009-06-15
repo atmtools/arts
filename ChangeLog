@@ -1,3 +1,13 @@
+2009-06-15  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-40
+
+	* includes/hirs/*_HIRS.f_grid_fast.xml,
+	includes/hirs/*_HIRS.W_fast.xml: These are the new fast setup
+	files. Two sensors still have the old files, because the
+	calculations are not finished: NOAA12 and TIROSN. Will update
+	these as soon as the results are available. 
+
 2009-06-12  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-39
