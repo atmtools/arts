@@ -14,6 +14,11 @@
 #                      	     f_backend_file and
 #                      	     backend_channel_response_file. 
 # channels    (ArrayOfIndex) Which channels you want.
+#                            HIRS Channels 13-19 are shortwave
+#                            channels. Simulating them with  
+#                            ARTS for thermal radiation only is
+#                            pointless. So you probably want 0 to 11
+#                            (zero based ARTS indexing)
 # views       (ArrayOfIndex) Which views you want.
 # hitran_file (String)       Name of HITRAN catalogue file.
 # f_grid_spacing (Numeric)   Frequency grid spacing.
@@ -75,7 +80,7 @@ abs_linesReadFromHitran2004( abs_lines,
 abs_lines_per_speciesCreateFromLines
 
 
-# WARNING: If you redifine abs_species, and want to do a line-by-line
+# WARNING: If you redefine abs_species, and want to do a line-by-line
 # calculation, you also have to call
 # abs_lines_per_speciesCreateFromLines again.
 

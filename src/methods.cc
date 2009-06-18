@@ -3485,6 +3485,31 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME( "f_gridPurgeUnnecessaryFreqs" ),
+        DESCRIPTION
+        (
+         "Remove frequencies that are not inside the response of any instrument\n"
+         "channel.\n"
+         "\n"
+         "The HIRS fast setup consists of a precalculated frequency grid\n"
+         "covering all HIRS channels. If not all channels are requested for\n"
+         "simulation, then this method can be used to remove the frequency grid\n"
+         "points for those channels.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT( "f_grid" ),
+        GOUT(      ),
+        GOUT_TYPE( ),
+        GOUT_DESC(),
+        IN( "f_grid", "f_backend", "backend_channel_response" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME( "f_gridSelectFIndex" ),
         DESCRIPTION
         (
@@ -6314,12 +6339,12 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "needles" ),
-        GOUT_TYPE( ARRAY_GROUPS + ", Vector, Matrix" ),
+        GOUT_TYPE( ARRAY_GROUPS + ", Vector, Matrix, Sparse" ),
         GOUT_DESC( "Selected elements. Must have the same variable type as "
                    "haystack." ),
         IN(),
         GIN(       "haystack", "needleindexes" ),
-        GIN_TYPE(  ARRAY_GROUPS + ", Vector, Matrix",
+        GIN_TYPE(  ARRAY_GROUPS + ", Vector, Matrix, Sparse",
                    "ArrayOfIndex" ),
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Variable to select from. May be the same variable as needles.",

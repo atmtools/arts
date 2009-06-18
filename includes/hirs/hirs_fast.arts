@@ -14,6 +14,11 @@
 #                      	     f_backend_file and
 #                      	     backend_channel_response_file. 
 # channels    (ArrayOfIndex) Which channels you want.
+#                            HIRS Channels 13-19 are shortwave
+#                            channels. Simulating them with  
+#                            ARTS for thermal radiation only is
+#                            pointless. So you probably want 0 to 11
+#                            (zero based ARTS indexing)
 # views       (ArrayOfIndex) Which views you want.
 # hitran_file (String)       Name of HITRAN catalogue file.
 # f_grid_spacing (Numeric)   Frequency grid spacing.
@@ -31,7 +36,7 @@ Arts2 {
 
 output_file_formatSetZippedAscii
 
-# AMSU uses Planck brightness temperatures
+# HIRS spectral response functions assume radiance.
 # ---
 StringSet( y_unit, "1" )
 StringSet( jacobian_unit, "1" )
@@ -66,7 +71,7 @@ abs_linesReadFromHitran2004( abs_lines,
 abs_lines_per_speciesCreateFromLines
 
 
-# WARNING: If you redifine abs_species, and want to do a line-by-line
+# WARNING: If you redefine abs_species, and want to do a line-by-line
 # calculation, you also have to call
 # abs_lines_per_speciesCreateFromLines again.
 
@@ -131,11 +136,31 @@ ReadXML( f_backend, f_backend_file )
 ReadXML( backend_channel_response,
          backend_channel_response_file )
 
+# Select the desired channels:
+#
+Select(f_backend, f_backend, channels)
+Select(backend_channel_response, backend_channel_response, channels)
 
 
-# Read also the specific input files for fast calculation, the
-# pseudo-K frequency grid and weights.
- 
+# Frequency grid
+#
+# We need this here, so that sensor_responseBackend works
+# correctly. Afterwards, we replace it by the optimized frequency
+# grid. 
+f_gridFromSensorHIRS( f_grid,
+                      f_backend, backend_channel_response,
+		      f_grid_spacing  )
+
+
+# Construct sensor response from all these inputs:
+#
+sensor_responseInit
+sensor_responseBackend
+
+
+# Construct file names for specific input files for fast calculation,
+# the pseudo-K frequency grid and weights.
+
 # Frequency grid
 StringCreate( f_grid_file)
 StringSet(    f_grid_file, "hirs/")
@@ -154,21 +179,6 @@ StringSet(    dummy,          "_HIRS.W_fast.xml")
 Append(	      weights_file, dummy)
 
 
-# Frequency grid
-#
-# We need this here, so that sensor_responseBackend works
-# correctly. Afterwards, we replace it by the optimized frequency
-# grid. 
-f_gridFromSensorHIRS( f_grid,
-                      f_backend, backend_channel_response,
-		      f_grid_spacing  )
-
-
-# Construct sensor response from all these inputs:
-#
-sensor_responseInit
-sensor_responseBackend
-
 # Read in optimized frequency grid and pseudo-k weights:
 
 ReadXML( f_grid, f_grid_file )
@@ -176,16 +186,14 @@ ReadXML( f_grid, f_grid_file )
 SparseCreate(pseudo_k_weights)
 ReadXML( pseudo_k_weights, weights_file )
 
-
+# Kick out those frequencies that are not used by the selected
+# channels. This has to be done for f_grid and pseudo_k_weights.
+f_gridPurgeUnnecessaryFreqs
+Select( pseudo_k_weights, pseudo_k_weights, channels )
 
 # Now we have to replace the actual response matrix by the pseudo_k_weights:
 #WriteXML(output_file_format, sensor_response)
 Copy(sensor_response, pseudo_k_weights)
-
-
-# FIXME: Still to do: Kick out those frequencies that are not used by
-# the selected channels. This has to be done for f_grid and pseudo_k_weights.
-
 
 # End of sensor response setup
 

@@ -101,4 +101,11 @@ void spectrometer_matrix(
       const Index&         n_sp,
       const Index&         do_norm );
 
+void find_effective_channel_boundaries(// Output:
+                                       Vector& fmin,
+                                       Vector& fmax,
+                                       // Input:
+                                       const Vector& f_backend,
+                                       const ArrayOfGField1& backend_channel_response);
+
 #endif  // sensor_h

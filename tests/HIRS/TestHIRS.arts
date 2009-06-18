@@ -25,9 +25,13 @@ StringSet(satellite, "NOAA14")
 
 # Select here which channels you want
 # ---
+#
+# HIRS Channels 13-19 are shortwave channels. Simulating them with
+# ARTS for thermal radiation only is pointless.
+#
 # WATCH OUT! We use the usual zero-based ARTS indexing here, so index
 # 11 is actually channel 12, etc. 
-ArrayOfIndexSet(channels, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18])
+ArrayOfIndexSet(channels, [0,1,2,3,4,5,6,7,8,9,10,11])
 #ArrayOfIndexSet(channels, [11])
 
 

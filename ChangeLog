@@ -1,7 +1,35 @@
+2009-06-18  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-41
+
+	* Commit to save work state. Fast HIRS setup does not run right
+	now, don't update if you need it. I'm working on allowing to
+	select only a subset of channels for calculation.
+	
+	* src/methods.cc (f_gridPurgeUnnecessaryFreqs): Added.
+	(Select): Added implementation for Sparse.
+
+	* src/m_sensor.cc (f_gridFromSensorHIRS): Moved all the
+	preparatory work of sorting and merging channels out to a separate
+	function find_effective_channel_boundaries in file sensor.cc.
+	(f_gridPurgeUnnecessaryFreqs): Added this new method, which
+	removes frequencies from f_grid that are not in any instrument
+	channel. Also uses the new find_effective_channel_boundaries
+	subfunction.
+
+	* src/sensor.{h,cc} (test_and_merge_two_channels): Moved here
+	from m_sensor.cc.
+	(find_effective_channel_boundaries): Added.
+
+	* src/m_select.h (Select): Added implementation for Sparse.
+
+	* src/m_rte.cc (RteCalcMC): English correction of error message.
+	(RteCalc): English correction of error message.
+
 2009-06-15  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-40
-
+	
 	* includes/hirs/*_HIRS.f_grid_fast.xml,
 	includes/hirs/*_HIRS.W_fast.xml: These are the new fast setup
 	files. Two sensors still have the old files, because the

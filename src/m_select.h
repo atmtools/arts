@@ -128,4 +128,57 @@ void Select(// WS Generic Output:
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void Select(// WS Generic Output:
+            Sparse& needles,
+            // WS Generic Input:
+            const Sparse& haystack,
+            const ArrayOfIndex& needleind)
+{
+  // We construct the output in this dummy variable, so that the
+  // method also works properly if needles and haystack are the same
+  // variable.
+  Sparse dummy( needleind.nelem(), haystack.ncols() );
+
+  for( Index i = 0; i < needleind.nelem(); i++)
+    {
+      if (haystack.nrows() <= needleind[i])
+        {
+          ostringstream os;
+          os << "The input matrix only has " << haystack.nrows()
+            << " rows. But one of the needle indexes is "
+            << needleind[i] << "." << endl;
+          os << "The indexes must be between 0 and " << haystack.nrows() - 1;
+          throw runtime_error (os.str());
+        }
+      else
+        {
+          // Copy this row of the sparse matrix.
+          // This code is inefficient for Sparse, but I leave it like
+          // this to be consistent with the other data types for which
+          // Select is implemented.
+          for ( Index j=0; j<haystack.ncols(); ++j)
+            {
+              Numeric value = haystack(i,j);
+              if (0 != value)
+                dummy.rw(i,j) = value;
+            }
+        }
+    }
+
+  if (dummy.nnz()==haystack.nnz())
+    {
+      // No data was actually removed.
+      out2 << "  Number of nonzero elements has stayed the same.\n";
+    }
+  else
+    {
+      out2 << "  Number of nonzero elements reduced from "
+           << haystack.nnz() << " to " << dummy.nnz() << ".\n";
+    }
+
+  needles = dummy;
+}
+
+
 #endif // m_select_h
