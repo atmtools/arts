@@ -125,7 +125,14 @@ void RteCalc(
       nblock != sensor_response_pol.nelem() ||
       nblock != sensor_response_za.nelem() )
     {
-      throw runtime_error( "Sensor auxiliary variables do not have the correct size." );
+      ostringstream os;
+      os << "Sensor auxiliary variables do not have the correct size.\n"
+         << "The following variables should all have same size:\n"
+         << "nblock (length(y) for one block): " << nblock << "\n"
+         << "sensor_response_f.nelem():        " << sensor_response_f.nelem() << "\n"
+         << "sensor_response_pol.nelem():      " << sensor_response_pol.nelem() << "\n"
+         << "sensor_response_za.nelem():       " << sensor_response_za.nelem() << "\n";
+      throw runtime_error( os.str() );
     }
 
   // Agendas not checked elsewhere

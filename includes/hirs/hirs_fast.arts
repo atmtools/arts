@@ -21,12 +21,7 @@
 #                            (zero based ARTS indexing)
 # views       (ArrayOfIndex) Which views you want.
 # hitran_file (String)       Name of HITRAN catalogue file.
-# f_grid_spacing (Numeric)   Frequency grid spacing.
 
-# Actually the fast calculation uses a pre-defined f_grid, so that
-# f_grid_spacing would not be necessary. However, we first generate
-# a template sensor_response with the normal sensor_responseBackend
-# function, and for that we need it.
 
 Arts2 {
 
@@ -63,6 +58,10 @@ SpeciesSet( abs_species, [ "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100",
 abs_lineshapeDefine( abs_lineshape, "Voigt_Kuntz6", "VVH", 750e9 )
 
 # Read HITRAN catalog:
+#abs_linesReadFromHitran2004( abs_lines,
+#                             hitran_file,
+#                             2.0022234e+12,
+#                             2.01e+12 )
 abs_linesReadFromHitran2004( abs_lines,
                              hitran_file,
                              2.0022234e+12,
@@ -113,61 +112,21 @@ AntennaOff
 StringCreate( f_backend_file)
 StringSet(    f_backend_file, "hirs/")
 Append(       f_backend_file, satellite)
-# FIXME: Remove this when using constant in Append works:
 StringCreate( dummy )
 StringSet(    dummy,          "_HIRS.f_backend.xml")
-#
 Append(       f_backend_file, dummy)
 
 # Channel response functions:
 StringCreate( backend_channel_response_file)
 StringSet(    backend_channel_response_file, "hirs/")
 Append(	      backend_channel_response_file, satellite)
-# FIXME: Remove this when using constant in Append works:
 StringSet(    dummy,          "_HIRS.backend_channel_response.xml")
-#
 Append(	      backend_channel_response_file, dummy)
 
-
-
-# Spectrometer:
-#
-ReadXML( f_backend, f_backend_file )
-ReadXML( backend_channel_response,
-         backend_channel_response_file )
-
-# Select the desired channels:
-#
-Select(f_backend, f_backend, channels)
-Select(backend_channel_response, backend_channel_response, channels)
-
-
-# Frequency grid
-#
-# We need this here, so that sensor_responseBackend works
-# correctly. Afterwards, we replace it by the optimized frequency
-# grid. 
-f_gridFromSensorHIRS( f_grid,
-                      f_backend, backend_channel_response,
-		      f_grid_spacing  )
-
-
-# Construct sensor response from all these inputs:
-#
-sensor_responseInit
-sensor_responseBackend
-
-
-# Construct file names for specific input files for fast calculation,
-# the pseudo-K frequency grid and weights.
-
-# Frequency grid
+# Fast frequency grid
 StringCreate( f_grid_file)
 StringSet(    f_grid_file, "hirs/")
 Append(       f_grid_file, satellite)
-# A string variable dummy to hold the file name already 
-# exists, we can re-use it here. Using the constant string directly in
-# Append does not work, since Append is supergeneric.
 StringSet(    dummy,          "_HIRS.f_grid_fast.xml")
 Append(       f_grid_file, dummy)
 
@@ -179,21 +138,30 @@ StringSet(    dummy,          "_HIRS.W_fast.xml")
 Append(	      weights_file, dummy)
 
 
-# Read in optimized frequency grid and pseudo-k weights:
 
+# Spectrometer:
+#
+ReadXML( f_backend, f_backend_file )
+ReadXML( backend_channel_response,
+         backend_channel_response_file )
+
+# Read in optimized frequency grid 
 ReadXML( f_grid, f_grid_file )
 
-SparseCreate(pseudo_k_weights)
-ReadXML( pseudo_k_weights, weights_file )
+# Read in and WMRF weights:
+ReadXML( wmrf_weights, weights_file )
 
-# Kick out those frequencies that are not used by the selected
-# channels. This has to be done for f_grid and pseudo_k_weights.
-f_gridPurgeUnnecessaryFreqs
-Select( pseudo_k_weights, pseudo_k_weights, channels )
+# Select only the active channels:
+Copy(wmrf_channels, channels)
+# The method akts on several variables:
+# f_grid, wmrf_weights, f_backend, and backend_channel_response
+WMRFSelectChannels
 
-# Now we have to replace the actual response matrix by the pseudo_k_weights:
-#WriteXML(output_file_format, sensor_response)
-Copy(sensor_response, pseudo_k_weights)
+# Initialize sensor variables.
+sensor_responseInit
+
+# Add WMRF weigths to sensor response:
+sensor_responseWMRF
 
 # End of sensor response setup
 

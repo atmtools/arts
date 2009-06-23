@@ -1,6 +1,7 @@
-/* Copyright (C) 2003-2008
-   Mattias Ekström <ekstrom@rss.chalmers.se>
+/* Copyright (C) 2003-2009
+   Mattias Ekström  <ekstrom@rss.chalmers.se>
    Patrick Eriksson <Patrick.Eriksson@chalmers.se>
+   Stefan Buehler   <sbuehler(at)ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -44,7 +45,6 @@
 #include <stdexcept>
 #include <string>
 #include "arts.h"
-#include "auto_md.h"
 #include "check_input.h"
 #include "math_funcs.h"
 #include "messages.h"
@@ -54,6 +54,7 @@
 #include "sensor.h"
 #include "make_vector.h"
 #include "sorting.h"
+#include "auto_md.h"
 
 extern const Numeric PI;
 extern const Index GFIELD1_F_GRID;
@@ -322,99 +323,6 @@ void f_gridFromSensorHIRS(// WS Output:
   out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
 
 }
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void f_gridPurgeUnnecessaryFreqs(// WS Output:
-                                 Vector& f_grid,
-                                 // WS Input:
-                                 const Vector& f_backend,
-                                 const ArrayOfGField1& backend_channel_response)
-{
-  // Call subfunction to get channel boundaries. Also does input
-  // consistency checking for us.
-  Vector fmin, fmax;
-  find_effective_channel_boundaries(fmin,
-                                    fmax,
-                                    f_backend,
-                                    backend_channel_response);
-
-  // Create f_grid_array. This is an array of Numeric, so that we
-  // can use the STL push_back function.
-  ArrayOfNumeric f_grid_array;
-  // Make sure that f_grid_array does not have to be reallocated along
-  // the way. (This is purely to improve performance a bit.)
-  f_grid_array.reserve(f_grid.nelem());
-
-
-  // Go through f_grid, and check for each frequency whether it is in
-  // any of the [fmin[i], fmax[i]] ranges. If yes, add it to
-  // f_grid_array. 
-  assert(fmin.nelem()==fmax.nelem());
-  for (Index fi=0; fi<f_grid.nelem(); ++fi)
-    {
-      const Numeric f = f_grid[fi];
-      for (Index i=0; i<fmin.nelem(); ++i)
-        {
-          if ( (fmin[i] <= f      ) &&
-               (f       <= fmax[i]) )
-            {
-              f_grid_array.push_back(f);
-              break;
-            }
-        }
-    }
-
-  if (f_grid_array.nelem()==f_grid.nelem())
-    {
-      // No frequencies were removed, I can return the original grid.
-      out2 << "  No unnecessary frequencies, leaving f_grid untouched.\n";
-    }
-  else
-    {
-      out2 << "  Reducing number of frequency grid points from "
-           << f_grid.nelem() << " to " << f_grid_array.nelem() << ".\n";
-     
-      // Copy the new grid back to f_grid:
-      f_grid = f_grid_array;
-    }
-}
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sensorOff(
-   // WS Output:
-         Sparse&   sensor_response,
-         Vector&   sensor_response_f,
-   ArrayOfIndex&   sensor_response_pol,
-         Vector&   sensor_response_za,
-         Vector&   sensor_response_aa,
-         Vector&   sensor_response_f_grid,
-   ArrayOfIndex&   sensor_response_pol_grid,
-         Vector&   sensor_response_za_grid,
-         Vector&   sensor_response_aa_grid,
-          Index&   antenna_dim,
-         Vector&   mblock_za_grid,
-         Vector&   mblock_aa_grid,
-    const Index&   atmosphere_dim,
-    const Index&   stokes_dim,
-   const Vector&   f_grid )
-{
-  // Checks are done in sensor_responseInit.
-
-  AntennaOff( antenna_dim, mblock_za_grid, mblock_aa_grid );
-
-  // Dummy variables
-  Index         sensor_norm = 1;
-
-  sensor_responseInit( sensor_response, sensor_response_f, 
-                  sensor_response_pol, sensor_response_za, sensor_response_aa, 
-                  sensor_response_f_grid, sensor_response_pol_grid, 
-                  sensor_response_za_grid, sensor_response_aa_grid, f_grid, 
-                  mblock_za_grid, mblock_aa_grid, antenna_dim, atmosphere_dim, 
-                  stokes_dim, sensor_norm );
-}
-
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -1077,6 +985,40 @@ void sensor_responseInit(
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensorOff(
+   // WS Output:
+         Sparse&   sensor_response,
+         Vector&   sensor_response_f,
+   ArrayOfIndex&   sensor_response_pol,
+         Vector&   sensor_response_za,
+         Vector&   sensor_response_aa,
+         Vector&   sensor_response_f_grid,
+   ArrayOfIndex&   sensor_response_pol_grid,
+         Vector&   sensor_response_za_grid,
+         Vector&   sensor_response_aa_grid,
+          Index&   antenna_dim,
+         Vector&   mblock_za_grid,
+         Vector&   mblock_aa_grid,
+    const Index&   atmosphere_dim,
+    const Index&   stokes_dim,
+   const Vector&   f_grid )
+{
+  // Checks are done in sensor_responseInit.
+
+  AntennaOff( antenna_dim, mblock_za_grid, mblock_aa_grid );
+
+  // Dummy variables
+  Index         sensor_norm = 1;
+
+  sensor_responseInit( sensor_response, sensor_response_f, 
+                  sensor_response_pol, sensor_response_za, sensor_response_aa, 
+                  sensor_response_f_grid, sensor_response_pol_grid, 
+                  sensor_response_za_grid, sensor_response_aa_grid, f_grid, 
+                  mblock_za_grid, mblock_aa_grid, antenna_dim, atmosphere_dim, 
+                  stokes_dim, sensor_norm );
+}
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseMixer(
@@ -1406,8 +1348,285 @@ void sensor_responseMultiMixerBackend(
                       sensor_response_za_grid, sensor_response_aa_grid );
 }
 
+// Declare select functions needed by WMRFSelectChannels:
+
+void Select(// WS Generic Output:
+            Vector& needles,
+            // WS Generic Input:
+            const Vector& haystack,
+            const ArrayOfIndex& needleind);
+
+template< class T >
+void Select(// WS Generic Output:
+            Array<T>& needles,
+            // WS Generic Input:
+            const Array<T>& haystack,
+            const ArrayOfIndex& needleind);
+
+void Select(// WS Generic Output:
+            Sparse& needles,
+            // WS Generic Input:
+            const Sparse& haystack,
+            const ArrayOfIndex& needleind);
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void WMRFSelectChannels(// WS Output:
+                        Vector& f_grid,
+                        Sparse& wmrf_weights,
+                        Vector& f_backend,
+                        ArrayOfGField1& backend_channel_response,
+                        // WS Input:
+                        const ArrayOfIndex& wmrf_channels)
+{
+  // For error messages:
+  ostringstream os;
+
+  // Some checks of input parameters:
+
+  // wmrf_weights must have same number of rows as f_backend, and same
+  // number of columns as f_grid.
+  if ( (wmrf_weights.nrows() != f_backend.nelem()) ||
+       (wmrf_weights.ncols() != f_grid.nelem()) )
+    {
+      os << "The WSV *wmrf_weights* must have same number of rows as\n"
+         << "*f_backend*, and same number of columns as *f_grid*.\n"
+         << "wmrf_weights.nrows() = " << wmrf_weights.nrows() << "\n"
+         << "f_backend.nelem()    = " << f_backend.nelem()    << "\n"
+         << "wmrf_weights.ncols() = " << wmrf_weights.ncols() << "\n"
+         << "f_grid.nelem()       = " << f_grid.nelem();
+      throw runtime_error(os.str());
+    }
+
+  // wmrf_channels must be strictly increasing (no repetitions).
+  chk_if_increasing("wmrf_channels", wmrf_channels);
+
+  // All selected channels must be within the original set of
+  // channels.
+  if ( min(wmrf_channels)<0 )
+    {
+      os << "Min(wmrf_channels) must be >= 0, but it is "
+         << min(wmrf_channels) << ".";
+    }
+  if ( max(wmrf_channels)>=f_backend.nelem() )
+    {
+      os << "Max(wmrf_channels) must be less than the total number of channels.\n"
+         << "(We use zero-based indexing!)\n"
+         << "The actual value you have is "
+         << max(wmrf_channels) << ".";
+    }
+
+  if (wmrf_channels.nelem()==f_backend.nelem())
+    {
+      // No channels to be removed, I can return the original grid.
+      out2 << "  Retaining all channels.\n";
+    }
+  else
+    {
+      out2 << "  Reducing number of channels from "
+           << f_backend.nelem() << " to " << wmrf_channels.nelem() << ".\n";
+    }
 
 
+  // Now the real work starts:
+
+  //  1. Remove unwanted channels from f_backend and
+  //  backend_channel_response:  
+  Select(f_backend, f_backend, wmrf_channels);
+  Select(backend_channel_response, backend_channel_response, wmrf_channels);
+
+  // 2. Remove unwanted channels from wmrf_weights. (We also have to
+  // do something about the frequency dimension of wmrf_weights, but
+  // we'll do that later.)
+  Select( wmrf_weights, wmrf_weights, wmrf_channels );
+
+  // 3. Identify, which frequencies are still needed, and which are
+  // now obsolete. We store the still needed frequencies in an
+  // ArrayOfIndex. 
+
+  // Call subfunction to get channel boundaries. Also does input
+  // consistency checking for us.
+  Vector fmin, fmax;
+  find_effective_channel_boundaries(fmin,
+                                    fmax,
+                                    f_backend,
+                                    backend_channel_response);
+
+  // FIXME: Actually, it would be a cleaner solution to use
+  // wmrf_weights itself to decide which frequencies can be
+  // removed. (Those frequencies that no longer have any non-zero
+  // weights associated with them.) But I'm happy that the present
+  // solution works and too tired to change it.
+
+  // Create f_grid_array. We do not store the frequencies themselves,
+  // but the indices of the frequencies to use.
+  ArrayOfIndex selection;
+  // Make sure that selection does not have to be reallocated along
+  // the way. (This is purely to improve performance a bit.)
+  selection.reserve(f_grid.nelem());
+
+
+  // Go through f_grid, and check for each frequency whether it is in
+  // any of the [fmin[i], fmax[i]] ranges. If yes, add it to
+  // selection. 
+  assert(fmin.nelem()==fmax.nelem());
+  for (Index fi=0; fi<f_grid.nelem(); ++fi)
+    {
+      const Numeric f = f_grid[fi];
+      for (Index i=0; i<fmin.nelem(); ++i)
+        {
+          if ( (fmin[i] <= f      ) &&
+               (f       <= fmax[i]) )
+            {
+              selection.push_back(fi);
+              break;
+            }
+        }
+    }
+
+  if (selection.nelem()==f_grid.nelem())
+    {
+      // No frequencies were removed, I can return the original grid.
+      out2 << "  No unnecessary frequencies, leaving f_grid untouched.\n";
+    }
+  else
+    {
+      out2 << "  Reducing number of frequency grid points from "
+           << f_grid.nelem() << " to " << selection.nelem() << ".\n";
+    }
+
+  // 4. Select the right frequencies in f_grid:
+  Select(f_grid, f_grid, selection);
+
+  // 5. Select the right frequencies in wmrf_weights. This is a bit
+  // tricky, since Select works on the row dimension. So we have to
+  // take the transpose.
+  Sparse wt(wmrf_weights.ncols(), wmrf_weights.nrows());
+  transpose(wt, wmrf_weights);
+  Select(wt, wt, selection);
+  wmrf_weights.resize(wt.ncols(), wt.nrows());
+  transpose(wmrf_weights, wt);
+
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responseWMRF(// WS Output:
+                         Sparse& sensor_response,
+                         Vector& sensor_response_f,
+                         ArrayOfIndex& sensor_response_pol,
+                         Vector& sensor_response_za,
+                         Vector& sensor_response_aa,
+                         Vector& sensor_response_f_grid,
+                         // WS Input:
+                         const ArrayOfIndex& sensor_response_pol_grid,
+                         const Vector& sensor_response_za_grid,
+                         const Vector& sensor_response_aa_grid,
+                         const Sparse& wmrf_weights,
+                         const Vector& f_backend)
+{
+  // Some sizes
+  const Index nf   = sensor_response_f_grid.nelem();
+  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nza  = sensor_response_za_grid.nelem();
+  const Index naa  = sensor_response_aa_grid.nelem();
+  const Index nin  = nf * npol * nza;
+  // Note that there is no distinction between za and aa grids after the antenna
+
+  // Initialise output stream for runtime errors and a flag for errors
+  ostringstream os;
+  bool          error_found = false;
+
+  // Check that sensor_response variables are consistent in size
+  if( sensor_response_f.nelem() != nin )
+  {
+    os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
+       << "grid variables (sensor_response_f_grid etc.).\n";
+    error_found = true;
+  }
+  if( naa  &&  naa != nza )
+  {
+    os << "Incorrect size of *sensor_response_aa_grid*.\n";
+    error_found = true;
+  }
+  if( sensor_response.nrows() != nin )
+  {
+    os << "The sensor block response matrix *sensor_response* does not have\n"
+       << "right size compared to the sensor grid variables\n"
+       << "(sensor_response_f_grid etc.).\n";
+    error_found = true;
+  }
+
+  // We allow f_backend to be unsorted, but must be inside sensor_response_f_grid
+  if( min(f_backend) < min(sensor_response_f_grid) )
+    {
+      os << "At least one value in *f_backend* (" << min(f_backend) 
+         << ") below range\ncovered by *sensor_response_f_grid* ("
+         << min(sensor_response_f_grid) << ").\n";
+      error_found = true;
+    }
+  if( max(f_backend) > max(sensor_response_f_grid) )
+    {
+      os << "At least one value in *f_backend* (" << max(f_backend) 
+         << ") above range\ncovered by *sensor_response_f_grid* ("
+         << max(sensor_response_f_grid) << ").\n";
+      error_found = true;
+    }
+
+  // Check number of rows in WMRF weight matrix
+  //
+  const Index nrw = wmrf_weights.nrows();
+  //
+  if( nrw != f_backend.nelem() ) 
+    {
+      os << "The WSV *wmrf_weights* must have as many rows\n"
+         << "as *f_backend* has elements.\n"
+         << "wmrf_weights.nrows() = " << nrw << "\n"
+         << "f_backend.nelem()    = " << f_backend.nelem() << "\n";
+      error_found = true;
+    }
+
+  // Check number of columns in WMRF weight matrix
+  //
+  const Index ncw = wmrf_weights.ncols();
+  //
+  if( ncw != sensor_response_f_grid.nelem() ) 
+    {
+      os << "The WSV *wmrf_weights* must have as many columns\n"
+         << "as *sensor_response_f_grid* has elements.\n"
+         << "wmrf_weights.ncols()           = " << ncw << "\n"
+         << "sensor_response_f_grid.nelem() = " << sensor_response_f_grid.nelem() << "\n";
+      error_found = true;
+    }
+
+  // If errors where found throw runtime_error with the collected error
+  // message (before error message gets too long).
+  if( error_found )
+    throw runtime_error(os.str());
+
+
+  // Ok, now the actual work.
+
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse htmp = sensor_response;
+  sensor_response.resize( wmrf_weights.nrows(), htmp.ncols());
+  mult( sensor_response, wmrf_weights, htmp );
+
+  // Some extra output.
+  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
+       << "x" << sensor_response.ncols() << "\n";
+
+  // Update sensor_response_f_grid
+  sensor_response_f_grid = f_backend;
+
+  // Set aux variables
+  sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
+                      sensor_response_za,      sensor_response_aa, 
+                      sensor_response_f_grid,  sensor_response_pol_grid, 
+                      sensor_response_za_grid, sensor_response_aa_grid );
+  
+}
 
 
 //--- Stuff to be updated ----------------------------------------------------

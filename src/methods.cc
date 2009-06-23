@@ -3485,23 +3485,37 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME( "f_gridPurgeUnnecessaryFreqs" ),
+      ( NAME( "WMRFSelectChannels" ),
         DESCRIPTION
         (
-         "Remove frequencies that are not inside the response of any instrument\n"
-         "channel.\n"
+         "Select some channels for WMRF calculation.\n"
          "\n"
          "The HIRS fast setup consists of a precalculated frequency grid\n"
-         "covering all HIRS channels. If not all channels are requested for\n"
-         "simulation, then this method can be used to remove the frequency grid\n"
-         "points for those channels.\n"
+         "covering all HIRS channels, and associated weights for each channel,\n"
+         "stored in a weight matrix. (A sensor_response matrix.)\n"
+         "\n"
+         "If not all channels are requested for\n"
+         "simulation, then this method can be used to remove the unwanted\n"
+         "channels. It changes a number of variables in consistent fashion:\n"
+         "\n"
+         "- Unwanted channels are removed from f_backend and\n"
+         "  backend_channel_response. \n"
+         "- Unwanted channels are removed from wmrf_weights.\n"
+         "- Unnecessary frequencies are removed from f_grid.\n"
+         "- Unnecessary frequencies are removed from wmrf_weights.\n"
+         "\n"
+         "The variable backend_channel_response is not needed by other WMRF\n"
+         "fucntions, but we change it also, so that it remains consistent with\n"
+         "f_backend.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT( "f_grid" ),
+        OUT( "f_grid", "wmrf_weights",
+             "f_backend", "backend_channel_response" ),
         GOUT(      ),
         GOUT_TYPE( ),
         GOUT_DESC(),
-        IN( "f_grid", "f_backend", "backend_channel_response" ),
+        IN( "f_grid", "f_backend", "backend_channel_response",
+            "wmrf_weights", "wmrf_channels"  ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -6745,6 +6759,39 @@ void define_md_data_raw()
      GIN_DESC()
      ));
   */
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "sensor_responseWMRF" ),
+        DESCRIPTION
+        (
+         "Adds WMRF weights to sensor response.\n"
+         "\n"
+         "This method adds a spectrometer response that has been calculated\n"
+         "with the weighted mean of representative frequencies (WMRF) method. It\n"
+         "consists of a set of selected frequencies, and associated weights.\n"
+         ),
+        AUTHORS( "Stefan Buehler, based on Patrick Erikssons sensor_responseBackend" ),
+        OUT( "sensor_response",
+             "sensor_response_f",
+             "sensor_response_pol",
+             "sensor_response_za",
+             "sensor_response_aa", 
+             "sensor_response_f_grid"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
+            "sensor_response_za", "sensor_response_aa", 
+            "sensor_response_f_grid", "sensor_response_pol_grid", 
+            "sensor_response_za_grid", "sensor_response_aa_grid",
+            "wmrf_weights",
+            "f_backend" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
 
   md_data_raw.push_back
     ( MdRecord

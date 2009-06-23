@@ -2889,8 +2889,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Index" )));
 
- 
- 
   wsv_data.push_back
    (WsvRecord
     ( NAME( "sensor_los" ),
@@ -3604,6 +3602,30 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "ArrayOfGField3" )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "wmrf_channels" ),
+      DESCRIPTION
+      (
+       "Channel selection for WMRF fast calculation.\n"
+       "\n"
+       "This variable can be used to select one or several instrument channels\n"
+       "from the list of all possible channels. Zero-based indexing is used, so\n"
+       "Channel 0 is the first instrument channel!\n"
+       ),
+      GROUP( "ArrayOfIndex" ))); 
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "wmrf_weights" ),
+      DESCRIPTION
+      (
+       "The weights for a WMRF fast calculation.\n"
+       "\n"
+       "Weights are stored in a sparse matrix. This can be used as a\n"
+       "sensor_response matrix.\n"
+       ),
+      GROUP( "Sparse" ))); 
 
   wsv_data.push_back
    (WsvRecord

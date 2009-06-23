@@ -1,3 +1,28 @@
+2009-06-23  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-42
+
+	* includes/hirs/hirs_fast.arts: The work-over of this setup file
+	is now completed. It does no longer do a full sensor setup first,
+	but directly loads the WMRF weight matrix. I had to implement some
+	new WSVs and WSMs to for this purpose. Also, selection of only
+	some channels now works correctly. 
+
+	* src/workspace.cc (wmrf_channels): Added.
+	(wmrf_weights): Added.
+
+	* src/m_sensor.cc (f_gridPurgeUnnecessaryFreqs): Removed.  
+	(WMRFSelectChannels): Added.
+	(sensor_responseWMRF): Added.
+	See arts online documentation for description of the new methods.
+
+	* src/methods.cc (f_gridPurgeUnnecessaryFreqs): Removed.  
+	(WMRFSelectChannels): Added.
+	(sensor_responseWMRF): Added.
+
+	* src/m_rte.cc (RteCalc): Give more explicit error message for
+	sensor variable mismatch.
+
 2009-06-18  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-41
