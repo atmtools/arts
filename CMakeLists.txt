@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
 project (ARTS)
-set (VERSION "1.12.42")
+set (VERSION "1.12.43")
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")

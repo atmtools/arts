@@ -1,3 +1,14 @@
+2009-06-29  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-43
+
+	* includes/hirs/NOAA12_HIRS.W_fast.xml,
+	includes/hirs/TIROSN_HIRS.f_grid_fast.xml,
+	includes/hirs/NOAA12_HIRS.f_grid_fast.xml,
+	includes/hirs/TIROSN_HIRS.W_fast.xml: Updated these files, the
+	last remaining satellites. Fast setup is now the new revision for
+	all satellites.
+
 2009-06-23  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-42
