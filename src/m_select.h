@@ -159,7 +159,7 @@ void Select(// WS Generic Output:
           // Select is implemented.
           for ( Index j=0; j<haystack.ncols(); ++j)
             {
-              Numeric value = haystack(i,j);
+              Numeric value = haystack(needleind[i],j);
               if (0 != value)
                 dummy.rw(i,j) = value;
             }
@@ -169,11 +169,11 @@ void Select(// WS Generic Output:
   if (dummy.nnz()==haystack.nnz())
     {
       // No data was actually removed.
-      out2 << "  Number of nonzero elements has stayed the same.\n";
+      out3 << "  Number of nonzero elements has stayed the same.\n";
     }
   else
     {
-      out2 << "  Number of nonzero elements reduced from "
+      out3 << "  Number of nonzero elements reduced from "
            << haystack.nnz() << " to " << dummy.nnz() << ".\n";
     }
 

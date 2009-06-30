@@ -1374,7 +1374,6 @@ void WMRFSelectChannels(// WS Output:
                         Vector& f_grid,
                         Sparse& wmrf_weights,
                         Vector& f_backend,
-                        ArrayOfGField1& backend_channel_response,
                         // WS Input:
                         const ArrayOfIndex& wmrf_channels)
 {
@@ -1429,10 +1428,8 @@ void WMRFSelectChannels(// WS Output:
 
   // Now the real work starts:
 
-  //  1. Remove unwanted channels from f_backend and
-  //  backend_channel_response:  
+  //  1. Remove unwanted channels from f_backend:  
   Select(f_backend, f_backend, wmrf_channels);
-  Select(backend_channel_response, backend_channel_response, wmrf_channels);
 
   // 2. Remove unwanted channels from wmrf_weights. (We also have to
   // do something about the frequency dimension of wmrf_weights, but
@@ -1443,20 +1440,6 @@ void WMRFSelectChannels(// WS Output:
   // now obsolete. We store the still needed frequencies in an
   // ArrayOfIndex. 
 
-  // Call subfunction to get channel boundaries. Also does input
-  // consistency checking for us.
-  Vector fmin, fmax;
-  find_effective_channel_boundaries(fmin,
-                                    fmax,
-                                    f_backend,
-                                    backend_channel_response);
-
-  // FIXME: Actually, it would be a cleaner solution to use
-  // wmrf_weights itself to decide which frequencies can be
-  // removed. (Those frequencies that no longer have any non-zero
-  // weights associated with them.) But I'm happy that the present
-  // solution works and too tired to change it.
-
   // Create f_grid_array. We do not store the frequencies themselves,
   // but the indices of the frequencies to use.
   ArrayOfIndex selection;
@@ -1464,22 +1447,25 @@ void WMRFSelectChannels(// WS Output:
   // the way. (This is purely to improve performance a bit.)
   selection.reserve(f_grid.nelem());
 
-
   // Go through f_grid, and check for each frequency whether it is in
-  // any of the [fmin[i], fmax[i]] ranges. If yes, add it to
-  // selection. 
-  assert(fmin.nelem()==fmax.nelem());
-  for (Index fi=0; fi<f_grid.nelem(); ++fi)
+  // the set of WMRF frequencies for any of the channels. 
+  assert( wmrf_weights.nrows() == f_backend.nelem() ); 
+  assert( wmrf_weights.ncols() == f_grid.nelem() );
+  for (Index fi=0; fi<wmrf_weights.ncols(); ++fi)
     {
-      const Numeric f = f_grid[fi];
-      for (Index i=0; i<fmin.nelem(); ++i)
+      Index i;
+      for (i=0; i<wmrf_weights.nrows(); ++i)
         {
-          if ( (fmin[i] <= f      ) &&
-               (f       <= fmax[i]) )
+          if ( wmrf_weights(i,fi) != 0 )
             {
               selection.push_back(fi);
               break;
             }
+        }
+      if (i==wmrf_weights.nrows())
+        {
+          out3 << "  The frequency with index " << fi
+               << " is not used by any channel.\n";
         }
     }
 
@@ -1505,7 +1491,6 @@ void WMRFSelectChannels(// WS Output:
   Select(wt, wt, selection);
   wmrf_weights.resize(wt.ncols(), wt.nrows());
   transpose(wmrf_weights, wt);
-
 }
 
 

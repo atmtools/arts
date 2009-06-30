@@ -3498,23 +3498,18 @@ void define_md_data_raw()
          "simulation, then this method can be used to remove the unwanted\n"
          "channels. It changes a number of variables in consistent fashion:\n"
          "\n"
-         "- Unwanted channels are removed from f_backend and\n"
-         "  backend_channel_response. \n"
+         "- Unwanted channels are removed from f_backend. \n"
          "- Unwanted channels are removed from wmrf_weights.\n"
          "- Unnecessary frequencies are removed from f_grid.\n"
          "- Unnecessary frequencies are removed from wmrf_weights.\n"
-         "\n"
-         "The variable backend_channel_response is not needed by other WMRF\n"
-         "fucntions, but we change it also, so that it remains consistent with\n"
-         "f_backend.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "f_grid", "wmrf_weights",
-             "f_backend", "backend_channel_response" ),
+             "f_backend" ),
         GOUT(      ),
         GOUT_TYPE( ),
         GOUT_DESC(),
-        IN( "f_grid", "f_backend", "backend_channel_response",
+        IN( "f_grid", "f_backend", 
             "wmrf_weights", "wmrf_channels"  ),
         GIN(),
         GIN_TYPE(),

@@ -1,3 +1,22 @@
+2009-06-30  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-44
+
+	* src/methods.c, src/m_sensor.cc (WMRFSelectChannels): This method
+	now no longer requires backend_channel_response as input. The
+	weight matrix itself contains all information we need.
+
+	* includes/hirs/hirs_fast.arts: Removed backend_channel_response,
+	we do no longer need this here.
+
+	* src/workspace.cc (wmrf_weights): Added matrix dimensions in
+	online documentation.
+
+	* src/m_select.h (Select): Fixed serious bug in the implementation
+	of this method for Sparse.
+
+	* tests/HIRS/TestHIRS.arts: Only comment changes.
+
 2009-06-29  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-43

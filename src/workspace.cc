@@ -3624,6 +3624,10 @@ void Workspace::define_wsv_data()
        "\n"
        "Weights are stored in a sparse matrix. This can be used as a\n"
        "sensor_response matrix.\n"
+       "\n"
+       "The dimension of the matrix is (nchan, nfreq), where nchan\n"
+       "is the number of instrument channels and nfreq is the number\n"
+       "of monochromatic frequencies.\n"
        ),
       GROUP( "Sparse" ))); 
 

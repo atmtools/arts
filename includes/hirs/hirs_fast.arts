@@ -10,9 +10,7 @@
 # satellite   (String) 	     The name of the satellite. Is
 #                      	     used internally to construct
 #                      	     file names of the instrument
-#                      	     description files
-#                      	     f_backend_file and
-#                      	     backend_channel_response_file. 
+#                      	     description files. 
 # channels    (ArrayOfIndex) Which channels you want.
 #                            HIRS Channels 13-19 are shortwave
 #                            channels. Simulating them with  
@@ -116,13 +114,6 @@ StringCreate( dummy )
 StringSet(    dummy,          "_HIRS.f_backend.xml")
 Append(       f_backend_file, dummy)
 
-# Channel response functions:
-StringCreate( backend_channel_response_file)
-StringSet(    backend_channel_response_file, "hirs/")
-Append(	      backend_channel_response_file, satellite)
-StringSet(    dummy,          "_HIRS.backend_channel_response.xml")
-Append(	      backend_channel_response_file, dummy)
-
 # Fast frequency grid
 StringCreate( f_grid_file)
 StringSet(    f_grid_file, "hirs/")
@@ -142,8 +133,6 @@ Append(	      weights_file, dummy)
 # Spectrometer:
 #
 ReadXML( f_backend, f_backend_file )
-ReadXML( backend_channel_response,
-         backend_channel_response_file )
 
 # Read in optimized frequency grid 
 ReadXML( f_grid, f_grid_file )
@@ -153,8 +142,8 @@ ReadXML( wmrf_weights, weights_file )
 
 # Select only the active channels:
 Copy(wmrf_channels, channels)
-# The method akts on several variables:
-# f_grid, wmrf_weights, f_backend, and backend_channel_response
+# The method acts on several variables:
+# f_grid, wmrf_weights, and f_backend
 WMRFSelectChannels
 
 # Initialize sensor variables.
