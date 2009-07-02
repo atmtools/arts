@@ -12,9 +12,13 @@ class ArtsRun:
     def run(self):
         """Run the control file"""
         print self.subdir;
+        if os.environ['TOPSRCDIR'][0] == '/':
+            includeprefix=""
+        else:
+            includeprefix="../"
         w,r,e=os.popen3('cd ' + self.subdir + '; '
                 + '../../src/arts '
-                + '-I' + "../" + os.environ['TOPSRCDIR'] + '/includes '
+                + '-I' + includeprefix + os.environ['TOPSRCDIR'] + '/includes '
                 + self.control_file)
         self.output=r.read()
         self.error=e.read()

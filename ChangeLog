@@ -1,3 +1,15 @@
+2009-07-02  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-46
+
+	* tests/CMakeLists.txt: Implement tests in cmake.
+
+	* tests/testall.py: Handle absolute TOPSRCDIR correctly.
+
+	* CMakeLists.txt: Add subdir tests.
+
+	* cmake/modules/ArtsTestcases.cmake: cmake macros for testcases.
+
 2009-07-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-45

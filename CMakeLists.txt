@@ -1,7 +1,9 @@
 cmake_minimum_required (VERSION 2.6)
 
 project (ARTS)
-set (VERSION "1.12.44")
+set (VERSION "1.12.46")
+
+ENABLE_TESTING()
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -10,15 +12,11 @@ endif (NOT CMAKE_BUILD_TYPE)
 include (CheckIncludeFile)
 include (CheckIncludeFileCXX)
 
-#set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
-
-#include (MacroLibrary)
-
-#include (ConvenienceLibs.cmake)
-
-#include (ManualStuff.cmake)
-
 include (CheckCXXCompilerFlag)
+
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+
+include (ArtsTestcases)
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel")
   set (CMAKE_COMPILER_IS_INTELCXX 1)
@@ -142,6 +140,6 @@ add_subdirectory (src)
 #add_subdirectory (aii)
 #add_subdirectory (includes)
 #add_subdirectory (doc)
-#add_subdirectory (tests)
+add_subdirectory (tests)
 #add_subdirectory (3rdparty)
 
