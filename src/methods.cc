@@ -6531,6 +6531,9 @@ void define_md_data_raw()
          "The returned spectrum is y = w1*y + w2*y2, where y1 and w1 are the\n"
          "spectrum and weight for the first direction, respectively (y2 and\n"
          "(w2 defined correspondingly for the second direction).\n"
+         "\n"
+         "Zenith and azimuth angles after beam switching are set to the values\n"
+         "of the second direction.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",

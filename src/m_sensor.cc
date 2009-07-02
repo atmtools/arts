@@ -803,7 +803,7 @@ void sensor_responseBeamSwitching(
   const Index n = sensor_response_f_grid.nelem();
 
   // Form H matrix representing beam switching
-  Sparse Hbswitch(n,2*n);
+  Sparse Hbswitch( n, 2*n );
   Vector hrow( 2*n, 0.0 );
   //
   for( Index i=0; i<n; i++ )
@@ -820,7 +820,7 @@ void sensor_responseBeamSwitching(
   // sparse matrix. We need it since the multiplication function can not
   // take the same object as both input and output.
   Sparse Htmp = sensor_response;
-  sensor_response.resize( Hbswitch.nrows(), Htmp.ncols());
+  sensor_response.resize( Hbswitch.nrows(), Htmp.ncols() );
   mult( sensor_response, Hbswitch, Htmp );
 
   // Some extra output.
@@ -837,7 +837,7 @@ void sensor_responseBeamSwitching(
     {
       const Numeric aa = sensor_response_aa_grid[1];
       sensor_response_aa_grid.resize(1);
-      sensor_response_za_grid[0] = aa;
+      sensor_response_aa_grid[0] = aa;
     }
 
   // Set aux variables
