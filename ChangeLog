@@ -1,3 +1,17 @@
+2009-07-03  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-47
+
+	* autogen.sh:
+
+	Set srcdir to "dirname $0" so autogen.sh can also be called from a
+	separate build dir, not only from the toplevel source directory.
+
+	* tests/Makefile.am:
+
+	Use -p option for mkdir to avoid warning when trying to create an
+	already existing directory.
+
 2009-07-02  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-46

@@ -63,7 +63,7 @@ clean-local:
 Test%:
 	@if [ "$(top_builddir)" != "$(top_srcdir)" ]; then \
 		for i in $(TESTDIRS); do \
-			test ! -e "$$i" && mkdir "$$i"; \
+			test ! -e "$$i" && mkdir -p "$$i"; \
 		done; \
 		for i in  $(EXTRA_DIST); do \
 			TESTDIR=$$(basename $$(dirname $$i)); \
