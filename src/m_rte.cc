@@ -227,6 +227,7 @@ void RteCalc(
     {
 
 #pragma omp parallel for                                        \
+  if(!arts_omp_in_parallel() && nza>1)                          \
   default(none)                                                 \
   shared(nza, naa, nf, joker, mblock_index, rte_do_t_jacs,      \
          rte_do_vmr_jacs, ppath_array_do, ib, jqi_vmr,          \
@@ -570,6 +571,7 @@ void RteCalcMC(
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
 #pragma omp parallel for                                        \
+  if(!arts_omp_in_parallel() && nza>1)                          \
   default(none)                                                 \
   shared(nza, naa, joker, mblock_index, nf, mc_antenna,         \
          mc_points, ib, ib_error)                               \

@@ -2364,6 +2364,7 @@ void ScatteringDoit(Workspace& ws,
   const Index nf = f_grid.nelem();
 
 #pragma omp parallel for                                        \
+  if(!arts_omp_in_parallel() && nf>1)                           \
   default(none)                                                 \
   shared(out2)                                                  \
   firstprivate(l_ws, l_doit_mono_agenda)

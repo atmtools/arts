@@ -233,6 +233,7 @@ void ybatchCalc(Workspace&      ws,
   // Go through the batch:
 
 #pragma omp parallel for                                         \
+  if(!arts_omp_in_parallel())                                    \
   default(none)                                                  \
   shared(job_counter, first_ybatch_index, out2, joker, out0)     \
   firstprivate(l_ws, l_ybatch_calc_agenda)                       \

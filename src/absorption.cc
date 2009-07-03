@@ -2028,11 +2028,11 @@ void xsec_species( MatrixView               xsec,
                                       AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
 
   // dimension of f_grid, abs_lines
-  Index nf = f_grid.nelem();
-  Index nl = abs_lines.nelem();
+  const Index nf = f_grid.nelem();
+  const Index nl = abs_lines.nelem();
 
   // number of pressure levels:
-  Index np = abs_p.nelem();
+  const Index np = abs_p.nelem();
 
   // Define the vector for the line shape function and the
   // normalization factor of the lineshape here, so that we don't need
@@ -2041,7 +2041,7 @@ void xsec_species( MatrixView               xsec,
   Vector ls(nf+1);
   Vector fac(nf+1);
 
-  bool cut = (cutoff != -1) ? true : false;
+  const bool cut = (cutoff != -1) ? true : false;
 
   // Check that the frequency grid is sorted in the case of lineshape
   // with cutoff. Duplicate frequency values are allowed.
@@ -2158,50 +2158,83 @@ void xsec_species( MatrixView               xsec,
       throw runtime_error(os.str());
     }
 
+
   // Loop all pressures:
 
-#pragma omp parallel for                                            \
-  default(none)                                                     \
-  shared(np, abs_p, abs_t, vmr, nl, f_grid, nf,                     \
-         lineshape_norm_data, abs_h2o, cut, lineshape_data, xsec)   \
+#pragma omp parallel for                                        \
+  if(!arts_omp_in_parallel() && np>=arts_omp_get_max_threads()) \
+  default(none)                                                 \
+  shared(joker, abs_p, abs_t, vmr, f_grid,                      \
+         lineshape_norm_data, abs_h2o, lineshape_data, xsec)    \
   firstprivate(ls, fac, f_local, aux) 
   for ( Index i=0; i<np; ++i )
     {
-      // The try block here is necessary to correctly handle
-      // exceptions inside the parallel region. 
-      try
-        {
-
-          // store variables abs_p[i] and abs_t[i],
-          // this is slightly faster
-          Numeric p_i = abs_p[i];
-          Numeric t_i = abs_t[i];
-
+      // Store input profile variables, this is perhaps slightly faster.
+      const Numeric p_i       = abs_p[i];
+      const Numeric t_i       = abs_t[i];
+      const Numeric vmr_i     = vmr[i];
+      const Numeric abs_h2o_i = abs_h2o[i];
     
-          //out3 << "  p = " << p_i << " Pa\n";
+      //out3 << "  p = " << p_i << " Pa\n";
 
-          // Calculate total number density from pressure and temperature.
-          // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
-          //      const Numeric n = p_i / BOLTZMAN_CONST / t_i;
-          // This is not needed anymore, since we now calculate true cross
-          // sections, which do not contain the n.
+      // Calculate total number density from pressure and temperature.
+      // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
+      //      const Numeric n = p_i / BOLTZMAN_CONST / t_i;
+      // This is not needed anymore, since we now calculate true cross
+      // sections, which do not contain the n.
 
-          // For the pressure broadening, we also need the partial pressure:
-          const Numeric p_partial = p_i * vmr[i];
+      // For the pressure broadening, we also need the partial pressure:
+      const Numeric p_partial = p_i * vmr_i;
 
-// FIXME: Perhaps one day we could have a parallel LBL calculation here.
-//        But this makes sense only if parallel loops on higher levels
-//        are executed serially in case they actually run over only
-//        one iteration.
-//
+      // Get handle on xsec for this pressure level i.
+      // Watch out! This is output, we have to be careful not to
+      // introduce race conditions when writing to it.
+      VectorView xsec_i = xsec(Range(joker),i);
+
+      
+//       if (omp_in_parallel())
+//         cout << "omp_in_parallel: true\n";
+//       else
+//         cout << "omp_in_parallel: false\n";
+
+
+      // Prepare a variable that can be used by the individual LBL
+      // threads to add up absorption:
+      Index n_lbl_threads;
+      if (arts_omp_in_parallel())
+        {
+          // If we already are running parallel, then the LBL loop
+          // will not be parallelized.
+          n_lbl_threads = 1;
+        }
+      else
+        {
+          n_lbl_threads = arts_omp_get_max_threads();
+        }
+      Matrix xsec_accum(n_lbl_threads, xsec_i.nelem(), 0);
+
+
+      // Loop all lines:
+
+#pragma omp parallel for                                           \
+  if(!arts_omp_in_parallel())                                      \
+  default(none)                                                    \
+  shared(abs_p, abs_t, vmr, f_grid,                                \
+         lineshape_norm_data, abs_h2o, lineshape_data, xsec_accum) \
+  firstprivate(ls, fac, f_local, aux) 
+      for ( Index l=0; l< nl; ++l )
+        {
 //           if (omp_in_parallel())
-//             cout << "omp_in_parallel: true\n";
+//             cout << "LBL: omp_in_parallel: true\n";
 //           else
-//             cout << "omp_in_parallel: false\n";
+//             cout << "LBL: omp_in_parallel: false\n";
 
-          // Loop all lines:
-          for ( Index l=0; l< nl; ++l )
+
+          // The try block here is necessary to correctly handle
+          // exceptions inside the parallel region. 
+          try
             {
+
               // Copy f_grid to the beginning of f_local. There is one
               // element left at the end of f_local.  
               // THIS HAS TO BE INSIDE THE LINE LOOP, BECAUSE THE CUTOFF
@@ -2309,8 +2342,8 @@ void xsec_species( MatrixView               xsec,
               aux[0] = theta;
               aux[1] = theta_Nair;
               aux[2] = p_i;
-              aux[3] = vmr[i];
-              aux[4] = abs_h2o[i];
+              aux[3] = vmr_i;
+              aux[4] = abs_h2o_i;
               aux[5] = l_l.Agam();
               aux[6] = l_l.Nair();
               // is overlap available, otherwise pass zero
@@ -2401,7 +2434,7 @@ void xsec_species( MatrixView               xsec,
 
                   // Get a handle on the range of xsec that we want to change.
                   // We use nfl here, which could be one less than nfls.
-                  VectorView this_xsec = xsec(Range(i_f_min,nfl),i);
+                  VectorView this_xsec = xsec_accum(arts_omp_get_thread_num(), Range(i_f_min,nfl));
 
                   // Get handles on the range of ls and fac that we need.
                   VectorView this_ls  = ls[Range(0,nfl)];
@@ -2435,26 +2468,34 @@ void xsec_species( MatrixView               xsec,
                     const Numeric factors = intensity * l_l.IsotopeData().Abundance();
 
                     // We have to do:
-                    // xsec(j,i) += factors * ls[j1] * fac[j1];
+                    // xsec(j,i) += factors * ls[j] * fac[j];
                     //
                     // We use ls as a dummy to compute the product, then add it
                     // to this_xsec.
 
-                    // FIXME: Maybe try if this is faster with a good
-                    // old-fashioned simple loop.
-
                     this_ls *= this_fac;
                     this_ls *= factors;
+
                     this_xsec += this_ls;
+
                   }
                 }
+
+            } // end of try block
+          catch (runtime_error e)
+            {
+              exit_or_rethrow(e.what());
             }
-        } // end of try block
-      catch (runtime_error e)
+
+        } // end of parallel LBL loop
+
+      // Now we just have to add up all the rows of xsec_accum:
+      for (Index j=0; j<xsec_accum.nrows(); ++j)
         {
-          exit_or_rethrow(e.what());
+          xsec_i += xsec_accum(j, Range(joker));
         }
-    } // end of parallel for loop
+
+    } // end of parallel pressure loop
 }
 
 

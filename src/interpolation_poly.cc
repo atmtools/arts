@@ -40,6 +40,7 @@
 #include "interpolation_poly.h"
 #include "interpolation.h"
 #include "logic.h"
+#include "arts_omp.h"
 
 //! Return the maximum of two integer numbers.
 /*! 
@@ -150,6 +151,7 @@ void gridpos_poly(ArrayOfGridPosPoly& gp,
   // resize. Dunno if the benefit is very large, though.
 
 #pragma omp parallel for                        \
+  if(!arts_omp_in_parallel())                   \
   default(none)                                 \
   shared(m, gp_trad, new_grid, old_grid)  
   for (Index s=0; s<n_new; ++s)

@@ -713,6 +713,11 @@ String arts_mod_time (String)
     \author    Stefan Buehler */
 int main (int argc, char **argv)
 {
+
+  // Enable nested parallelism:
+  arts_omp_set_nested(1);
+
+
   extern const Parameters parameters; // Global variable that holds
                                       // all command line parameters. 
 

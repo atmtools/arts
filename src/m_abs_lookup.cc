@@ -376,11 +376,12 @@ void abs_lookupCreate(// WS Output:
           // function. Anyway, shared is the correct setting for
           // abs_lookup, so there is no problem.
 
-#pragma omp parallel for                                   \
-  default(none)                                            \
-  shared(these_t_pert, out3, this_species,                 \
-         this_lineshape, these_lines, this_vmr, abs_h2o,   \
-         joker, spec)                                      \
+#pragma omp parallel for                                                        \
+  if(!arts_omp_in_parallel() && these_t_pert_nelem>=arts_omp_get_max_threads()) \
+  default(none)                                                                 \
+  shared(these_t_pert, out3, this_species,                                      \
+         this_lineshape, these_lines, this_vmr, abs_h2o,                        \
+         joker, spec)                                                           \
   private(this_t, abs_xsec_per_species)
           for ( Index j=0; j<these_t_pert_nelem; ++j )
             {
@@ -1994,10 +1995,11 @@ void abs_fieldCalc(Workspace& ws,
 
 
   // Now we have to loop all points in the atmosphere:
-#pragma omp parallel for                                        \
-  default(none)                                                 \
-  shared(out3, joker, f_extent)                                 \
-  firstprivate(l_ws, l_sga_agenda)              \
+#pragma omp parallel for                                                 \
+  if(!arts_omp_in_parallel() && n_pressures>=arts_omp_get_max_threads()) \
+  default(none)                                                          \
+  shared(out3, joker, f_extent)                                          \
+  firstprivate(l_ws, l_sga_agenda)                                       \
   private(asg, a_vmr_list) 
   for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
     {
@@ -2291,6 +2293,7 @@ void abs_lookupTestAccuracy(// WS Input:
   Numeric err_t = -999;
 
 #pragma omp parallel for                        \
+  if(!arts_omp_in_parallel())                   \
   default(none)                                 \
   shared(inbet_t_pert, joker, h2o_index, err_t)
   for (Index pi=0; pi<n_p; ++pi)
@@ -2357,6 +2360,7 @@ void abs_lookupTestAccuracy(// WS Input:
   Numeric err_nls = -999;
 
 #pragma omp parallel for                                \
+  if(!arts_omp_in_parallel())                           \
   default(none)                                         \
   shared(inbet_nls_pert, joker, h2o_index, err_nls)
   for (Index pi=0; pi<n_p; ++pi)
@@ -2434,6 +2438,7 @@ void abs_lookupTestAccuracy(// WS Input:
   Numeric err_p = -999;
 
 #pragma omp parallel for                   \
+  if(!arts_omp_in_parallel())              \
   default(none)                            \
   shared(inbet_p_grid, inbet_t_ref, joker, \
          inbet_vmrs_ref, h2o_index, err_p)
@@ -2497,6 +2502,7 @@ void abs_lookupTestAccuracy(// WS Input:
   Numeric err_tot = -999;
 
 #pragma omp parallel for                                                \
+  if(!arts_omp_in_parallel())                                           \
   default(none)                                                         \
   shared(inbet_t_pert, inbet_nls_pert, inbet_p_grid,                    \
          inbet_t_ref, joker, inbet_vmrs_ref, h2o_index, err_tot)
