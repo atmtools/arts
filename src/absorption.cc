@@ -2189,6 +2189,15 @@ void xsec_species( MatrixView               xsec,
           // For the pressure broadening, we also need the partial pressure:
           const Numeric p_partial = p_i * vmr[i];
 
+// FIXME: Perhaps one day we could have a parallel LBL calculation here.
+//        But this makes sense only if parallel loops on higher levels
+//        are executed serially in case they actually run over only
+//        one iteration.
+//
+//           if (omp_in_parallel())
+//             cout << "omp_in_parallel: true\n";
+//           else
+//             cout << "omp_in_parallel: false\n";
 
           // Loop all lines:
           for ( Index l=0; l< nl; ++l )

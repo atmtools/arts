@@ -141,3 +141,25 @@ void arts_omp_set_nested(int i _U_)
 
 }
 
+
+//! Wrapper for omp_set_dynamic
+/*! 
+  This wrapper works with and without OMP support.
+
+  \param i Turn on dynamic parallelism with 1, turn off with 0.
+*/
+#ifdef _OPENMP
+void arts_omp_set_dynamic(int i)
+#else
+void arts_omp_set_dynamic(int i _U_)
+#endif
+{
+
+#ifdef _OPENMP
+  omp_set_dynamic(i);
+#else
+  // Nothing to do here.
+#endif
+
+}
+
