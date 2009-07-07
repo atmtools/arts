@@ -1,6 +1,6 @@
 
 add_custom_command(
-  OUTPUT PrepareTests
+  OUTPUT PrepareTestScripts
   COMMAND cmake -E
     ARGS copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/artsXML.py
                            ${CMAKE_CURRENT_BINARY_DIR}/artsXML.py
@@ -9,49 +9,54 @@ add_custom_command(
                            ${CMAKE_CURRENT_BINARY_DIR}/testall.py
 )
 
-arts_add_prepare_testcases (TARGETS
-                            Abs
-                            AMSU
-                            ClearSky
-                            DISORT
-                            DOIT
-                            MonteCarlo
-                            OdinSMR
-)
-set (PREPARETESTTARGETS PrepareTests ${TARGETS})
+set(TESTSLOWTARGETS "")
+set(TESTFASTTARGETS "")
 
-arts_add_testcases (TARGETS ""
-                    MonteCarloDataPrepare
-                    OdinSMR
-                    DOIT
-                    ClearSky
-                    Abs
-                    AMSUB_fast
-)
-set(TESTFASTTARGETS ${TARGETS})
+arts_add_prepare_testcases (PREPTARGETS OdinSMR)
+arts_add_testcases (TARGETS "${PREPTARGETS}" OdinSMR)
+set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
 
-arts_add_testcases (TARGETS TestMonteCarloDataPrepare
+arts_add_prepare_testcases (PREPTARGETS MonteCarlo)
+arts_add_testcases (TARGETS "${PREPTARGETS}" MonteCarloDataPrepare)
+set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
+
+set (PREPTARGETS ${PREPTARGETS} TestMonteCarloDataPrepare)
+arts_add_testcases (TARGETS "${PREPTARGETS}"
                     MonteCarloGeneral
                     MonteCarloGeneralGaussian
                     RteCalcMC
 )
 set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
 
-arts_add_testcases (TARGETS TestAMSUB_fast
-                    AMSUB
-)
-set(TESTTARGETS ${TARGETS})
+arts_add_prepare_testcases (PREPTARGETS DOIT)
+arts_add_testcases (TARGETS "${PREPTARGETS}" DOIT)
+set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
+
+arts_add_prepare_testcases (PREPTARGETS ClearSky)
+arts_add_testcases (TARGETS "${PREPTARGETS}" ClearSky)
+set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
+
+arts_add_prepare_testcases (PREPTARGETS Abs)
+arts_add_testcases (TARGETS "${PREPTARGETS}" Abs)
+set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
+
+arts_add_prepare_testcases (PREPTARGETS AMSU)
+arts_add_testcases (TARGETS "${PREPTARGETS}" AMSUB_fast)
+set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
+
+set (PREPTARGETS ${PREPTARGETS} TestAMSUB_fast)
+arts_add_testcases (TARGETS "${PREPTARGETS}" AMSUB)
+set(TESTSLOWTARGETS ${TESTFASTTARGETS} ${TARGETS})
+
 
 add_custom_target (check-fast
                    DEPENDS
-                     ${PREPARETESTTARGETS}
                      ${TESTFASTTARGETS}
 )
 
 add_custom_target (check
                    DEPENDS
-                     ${PREPARETESTTARGETS}
                      ${TESTFASTTARGETS}
-                     ${TESTTARGETS}
+                     ${TESTSLOWTARGETS}
 )
 
