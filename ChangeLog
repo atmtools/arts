@@ -1,3 +1,17 @@
+2009-07-08  Isaac Moradi  <imoradi(at)www.sat.ltu.se>
+
+	* arts-1-12-51
+
+	* src/m_atmosphere.cc
+	Modified the method 'atm_fields_compactFromMatrix' to handle
+	additional columns which are not directly used by ARTS.
+	Now, the matrix can contain some additional columns, for e.g. 
+	wind speed, but they must be flagged by 'ignore', small or large 
+	letters, in the field name. The method will remove these additional 
+	fields and will resize both the matrix and the field names.
+	* src/methods.cc
+	Updated the documentation of the mentioned method
+
 2009-07-07  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-50

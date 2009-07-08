@@ -42,6 +42,7 @@
   ===========================================================================*/
 
 #include <cmath>
+#include <algorithm>
 #include "agenda_class.h"
 #include "arts.h"
 #include "check_input.h"
@@ -88,7 +89,10 @@ void atm_fields_compactFromMatrix(// WS Output:
     }
 
   const Index np = im.nrows();   // Number of pressure levels.
-  const Index nf = im.ncols()-1; // Number of fields.
+  const Index nf = im.ncols()-1; // Total number of fields. 
+  Index nf_1; // Number of required fields. 
+                  // All fields called "ignore" are ignored.
+  String fn_upper; // Temporary variable to hold upper case field_names.
 
   if (field_names.nelem()!=nf)
     {
@@ -99,17 +103,34 @@ void atm_fields_compactFromMatrix(// WS Output:
       throw runtime_error( os.str() );
     }
 
+
+  // Remove additional fields from the field_names. All fields that
+  // are flagged by 'ignore' in the field names, small or large letters,
+  // are removed.
+  nf_1 = 0;
+  for(Index f = 0; f < field_names.nelem(); f++)
+    {
+      fn_upper = field_names[f];
+      std::transform ( fn_upper.begin(),  fn_upper.end(), fn_upper.begin(), ::toupper);
+      if(fn_upper != "IGNORE") nf_1++;
+    }
+
+  // Copy required field_names to a new variable called field_names_1
+  ArrayOfString field_names_1(nf_1);
+  for (Index f=0; f< nf_1; f++) field_names_1[f] = field_names[f];
+
+
   //  out3 << "Copying *" << im_name << "* to *atm_fields_compact*.\n";
   
-  af.set_grid(GFIELD4_FIELD_NAMES, field_names);
+  af.set_grid(GFIELD4_FIELD_NAMES, field_names_1);
 
   af.set_grid(GFIELD4_P_GRID, im(Range(joker),0));
   
   af.set_grid(GFIELD4_LAT_GRID, Vector());
   af.set_grid(GFIELD4_LON_GRID, Vector());
   
-  af.resize(nf,np,1,1);
-  af(Range(joker),Range(joker),0,0) = transpose(im(Range(joker),Range(1,nf)));
+  af.resize(nf_1,np,1,1); // Resize it according to the required fields
+  af(Range(joker),Range(joker),0,0) = transpose(im(Range(joker),Range(1,nf_1)));
 }
 
 
