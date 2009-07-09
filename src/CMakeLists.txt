@@ -95,7 +95,7 @@ add_custom_command (
 	OUTPUT auto_md.h
 	COMMAND make_auto_md_h
 	DEPENDS make_auto_md_h
-	)
+)
 
 ########### next target ###############
 

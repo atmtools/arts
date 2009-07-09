@@ -1,5 +1,18 @@
 2009-07-09  Oliver Lemke  <olemke(at)core-dump.info>
 
+	* arts-1-12-53
+
+	* CMakeLists.txt, doc/CMakeLists.txt, doc/doxygen/CMakeLists.txt:
+
+	Build the doxygen documentation with cmake.
+
+	* cmake/modules/CheckOpenMP.cmake, cmake/modules/FindNetCDF.cmake,
+	cmake/modules/COPYING-CMAKE-SCRIPTS:
+
+	As usual, forgot to 'svn add'...
+
+2009-07-09  Oliver Lemke  <olemke(at)core-dump.info>
+
 	* arts-1-12-52
 
 	* CMakeLists.txt, config.h.cmake:

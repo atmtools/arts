@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
 project (ARTS)
-set (VERSION "1.12.52")
+set (VERSION "1.12.53")
 
 ENABLE_TESTING()
 
@@ -136,7 +136,7 @@ configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
 add_subdirectory (src)
 #add_subdirectory (aii)
 #add_subdirectory (includes)
-#add_subdirectory (doc)
+add_subdirectory (doc)
 add_subdirectory (tests)
 #add_subdirectory (3rdparty)
 
