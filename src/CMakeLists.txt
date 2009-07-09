@@ -1,4 +1,5 @@
-include_directories (${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories (${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
+  ${ZLIB_INCLUDE_DIR} ${NETCDF_INCLUDE_DIR})
 
 set (ALL_ARTS_LIBRARIES
   artscore
@@ -228,6 +229,13 @@ add_library (artscore STATIC
 	methods_aux.cc
 	montecarlo.cc
 	montecarlo.h
+  nc_io.h
+  nc_io.cc
+  nc_io_array_types.cc
+	nc_io_compound_types.cc
+	nc_io_basic_types.cc
+	nc_io_instantiation.h
+	nc_io_types.h
 	optproperties.cc
 	optproperties.h
 	parameters.cc
@@ -279,6 +287,8 @@ add_library (artscore STATIC
 	lin_alg.cc
 	supergeneric.h
 	)
+
+target_link_libraries (artscore ${NETCDF_LIBRARIES})
 
 ########### next target ###############
 
@@ -346,7 +356,7 @@ add_library (partition_function_data STATIC
 ########### next target ###############
 
 add_library (gzstream STATIC gzstream.cc gzstream.h)
-target_link_libraries (gzstream z)
+target_link_libraries (gzstream ${ZLIB_LIBRARIES})
 
 ########### next target ###############
 

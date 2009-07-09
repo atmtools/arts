@@ -29,6 +29,14 @@
 
 */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#else
+#error "Please run ./configure in the top arts directory before compiling."
+#endif
+
+#ifdef ENABLE_NETCDF
+
 #ifndef nc_io_types_h
 #define nc_io_types_h
 
@@ -146,3 +154,6 @@ void
 xml_parse_from_stream (istream&, ArrayOfString&, bifstream *, ArtsXMLTag&);*/
 
 #endif  /* nc_io_types_h */
+
+#endif /* ENABLE_NETCDF */
+

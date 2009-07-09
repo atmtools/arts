@@ -27,6 +27,13 @@
   \brief This file contains basic functions to handle NetCDF data files.
 */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#else
+#error "Please run ./configure in the top arts directory before compiling."
+#endif
+
+#ifdef ENABLE_NETCDF
 
 #ifndef nc_io_h
 #define nc_io_h
@@ -82,4 +89,6 @@ Index nc_get_dim (const int ncid, const String &name);
 void ncerror (const int err, const String msg);
 
 #endif /* nc_io_h */
+
+#endif /* ENABLE_NETCDF */
 

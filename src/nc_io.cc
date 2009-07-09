@@ -28,6 +28,14 @@
 
 */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#else
+#error "Please run ./configure in the top arts directory before compiling."
+#endif
+
+#ifdef ENABLE_NETCDF
+
 #include "arts.h"
 #include "nc_io.h"
 #include "nc_io_types.h"
@@ -194,4 +202,6 @@ void ncerror (const int e, const String s)
   os << "NetCDF error: " << s << ", " << e;
   throw runtime_error (os.str());
 }
+
+#endif /* ENABLE_NETCDF */
 

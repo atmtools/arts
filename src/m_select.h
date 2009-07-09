@@ -32,6 +32,7 @@
 #include "mystring.h"
 #include "workspace_ng.h"
 #include "agenda_class.h"
+#include "matpackII.h"
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

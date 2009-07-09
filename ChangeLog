@@ -1,3 +1,33 @@
+2009-07-09  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-52
+
+	* CMakeLists.txt, config.h.cmake:
+
+	Add type size checks.
+
+	Detect zlib and netcdf libraries.
+
+	Move OpenMP check into a module.
+
+	* cmake/modules/CheckOpenMP.cmake, cmake/modules/FindNetCDF.cmake,
+	cmake/modules/COPYING-CMAKE-SCRIPTS:
+
+	Added.
+
+	* cmake/modules/ArtsTestcases.cmake: Remove extraneous variable.
+
+	* README.cmake: Updated.
+
+	* src/nc_io_compound_types.cc, src/nc_io_types.h, src/nc_io.h,
+	src/nc_io_basic_types.cc, src/nc_io_array_types.cc, src/nc_io.cc:
+
+	Put a '#ifdef ENABLE_NETCDF' around these.
+
+	* src/m_select.h: Include matpackII.h for Sparse.
+	
+	* src/methods.cc: Replace tabs with spaces.
+
 2009-07-08  Isaac Moradi  <imoradi(at)www.sat.ltu.se>
 
 	* arts-1-12-51

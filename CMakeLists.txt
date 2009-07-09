@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 
 project (ARTS)
-set (VERSION "1.12.50")
+set (VERSION "1.12.52")
 
 ENABLE_TESTING()
 
@@ -13,6 +13,7 @@ include (CheckIncludeFile)
 include (CheckIncludeFileCXX)
 
 include (CheckCXXCompilerFlag)
+include (CheckTypeSize)
 
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
@@ -54,6 +55,13 @@ check_include_file_cxx (cstring HAVE_CSTRING)
 check_include_file_cxx (sstream HAVE_SSTREAM)
 check_include_file_cxx (ctime   HAVE_CTIME)
 
+########### Check type sizes ##########
+check_type_size("int"    SIZEOF_INT)
+check_type_size("long"   SIZEOF_LONG)
+check_type_size("size_t" SIZEOF_SIZE_T)
+check_type_size("float"  SIZEOF_FLOAT)
+check_type_size("double" SIZEOF_DOUBLE)
+
 ########### Enable timer support, if we have all ##########
 ########### necessary header files               ##########
 if (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
@@ -62,26 +70,15 @@ if (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
 endif (HAVE_SYS_TYPES_H AND HAVE_UNISTD_H AND HAVE_SYS_STAT_H AND HAVE_CTIME
   AND HAVE_SYS_TIMES_H)
 
+########### Zlib support ##########
+include (FindZLIB)
+set (ENABLE_ZLIB ${ZLIB_FOUND})
+
+########### NetCDF support ##########
+include (FindNetCDF)
 
 ########### OpenMP support ##########
-if (NOT NO_OPENMP)
-  check_cxx_compiler_flag (-fopenmp CXX_OPENMP_SUPPORTED)
-  if (CXX_OPENMP_SUPPORTED)
-    if (CMAKE_COMPILER_IS_GNUCXX)
-      set (OPENMP_FLAGS "-fopenmp")
-    endif (CMAKE_COMPILER_IS_GNUCXX)
-
-    if (CMAKE_COMPILER_IS_INTELCXX)
-      set (OPENMP_FLAGS "-openmp")
-    endif (CMAKE_COMPILER_IS_INTELCXX)
-
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OPENMP_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPENMP_FLAGS}")
-    set (CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
-    set (CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
-  endif (CXX_OPENMP_SUPPORTED)
-
-endif (NOT NO_OPENMP)
+include (CheckOpenMP)
 
 ########### Special flags for certain compilers ##########
 if (CMAKE_COMPILER_IS_GNUCXX)

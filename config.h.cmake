@@ -9,8 +9,11 @@
 /* Define to compile with disort support */
 #cmakedefine ENABLE_DISORT
 
+/* Define to compile with zlib support */
+#cmakedefine ENABLE_ZLIB
+
 /* Define to compile with NetCDF support */
-#cmakedefine ENABLE_NETCDF
+#cmakedefine ENABLE_NETCDF ${NETCDF_FOUND}
 
 /* define if the compiler supports ISO C++ standard library */
 #cmakedefine HAVE_STD 
@@ -41,9 +44,6 @@
 
 /* Operating system name */
 #cmakedefine OS_NAME "${OS_NAME}"
-
-/* Define to compile with zlib support */
-#define ENABLE_ZLIB 1
 
 /* define if bool is a built-in type */
 #define HAVE_BOOL 
@@ -84,20 +84,20 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* The size of `double', as computed by sizeof. */
-#undef SIZEOF_DOUBLE
-
-/* The size of `float', as computed by sizeof. */
-#undef SIZEOF_FLOAT
-
 /* The size of `int', as computed by sizeof. */
-#undef SIZEOF_INT
+#cmakedefine SIZEOF_INT ${SIZEOF_INT}
 
 /* The size of `long', as computed by sizeof. */
-#undef SIZEOF_LONG
+#cmakedefine SIZEOF_LONG ${SIZEOF_LONG}
 
 /* The size of `size_t', as computed by sizeof. */
-#undef SIZEOF_SIZE_T
+#cmakedefine SIZEOF_SIZE_T ${SIZEOF_SIZE_T}
+
+/* The size of `double', as computed by sizeof. */
+#cmakedefine SIZEOF_DOUBLE ${SIZEOF_DOUBLE}
+
+/* The size of `float', as computed by sizeof. */
+#cmakedefine SIZEOF_FLOAT ${SIZEOF_FLOAT}
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS

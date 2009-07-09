@@ -37,7 +37,7 @@ macro (ARTS_ADD_TESTCASES TARGETS DEPENDENCIES)
     set (TARGET Test${TESTCASE})
     add_custom_command(
       OUTPUT ${TARGET}
-      COMMAND ${CMAKE_TEST_COMMAND} if TOPSRCDIR=${CMAKE_SOURCE_DIR} python
+      COMMAND if TOPSRCDIR=${CMAKE_SOURCE_DIR} python
               testall.py ${TARGET} > ${TARGET}.log 2>&1\; then
               echo "${TARGET} ok."\; else
               echo "${TARGET} failed. Find details in ${TARGET}.log"\; exit 1\;
