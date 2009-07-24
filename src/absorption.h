@@ -412,7 +412,7 @@ private:
      1   name                         NAME        -    e.g. O3-666
      2   center frequency                F       Hz    e.g. 501.12345e9 
      3   pressure shift of F           PSF    Hz/Pa    
-     4   line intensity                 I0   m^2/Hz    per isotope, not per species
+     4   line intensity                 I0    Hz*m^2   per isotope, not per species
      5   reference temp. for I0       T_I0        K
      6   lower state energy           ELOW        J    
      7   air broadened width          AGAM    Hz/Pa    values around 20000 Hz/Pa

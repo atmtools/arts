@@ -1,3 +1,11 @@
+2009-07-24  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-54
+
+	* src/absorption.h: Fixed typo in documentation header for class
+	LineRecord. The unit of the line strength I0 is m^2*Hz (not
+	m^2/Hz, as it was erroneously written).
+
 2009-07-09  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-53
