@@ -21,7 +21,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER)
             && TEXINPUTS=.:${CMAKE_CURRENT_SOURCE_DIR}: save_size=15000
               ${PDFLATEX_COMPILER} uguide
             || rm -f uguide.pdf
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/uguide.tex
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.tex ${CMAKE_CURRENT_BINARY_DIR}/auto_version.tex
   )
 
   add_custom_target (uguide ALL echo DEPENDS
