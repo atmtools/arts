@@ -19,7 +19,7 @@ if (NOT NO_NETCDF)
                                      NETCDF_LIBRARIES
                                      NETCDF_INCLUDE_DIR)
 
-  mark_as_advanced (NETCDF_INCLUDE_DIR NETCDF_LIBRARY)
+  mark_as_advanced (NETCDF_INCLUDE_DIR NETCDF_LIBRARY NETCDFXX_LIBRARY)
 
   if (NETCDF_FOUND)
     set (ENABLE_NETCDF 1)

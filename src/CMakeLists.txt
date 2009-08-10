@@ -1,5 +1,9 @@
 include_directories (${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
-  ${ZLIB_INCLUDE_DIR} ${NETCDF_INCLUDE_DIR})
+                     ${ZLIB_INCLUDE_DIR})
+
+if (NETCDF_FOUND)
+  include_directories (${NETCDF_INCLUDE_DIR})
+endif (NETCDF_FOUND)
 
 set (ALL_ARTS_LIBRARIES
   artscore
@@ -288,7 +292,9 @@ add_library (artscore STATIC
 	supergeneric.h
 	)
 
-target_link_libraries (artscore ${NETCDF_LIBRARIES})
+if (NETCDF_FOUND)
+  target_link_libraries (artscore ${NETCDF_LIBRARIES})
+endif (NETCDF_FOUND)
 
 ########### next target ###############
 
