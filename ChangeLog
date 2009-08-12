@@ -1,3 +1,12 @@
+2009-08-12  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-57
+
+	* includes/hirs/*.f_grid_fast.xml, includes/hirs/*.W_fast.xml:
+	Updated. These are the latest optimized grids, resulting from
+	separate annealing runs for each channel. Accuracy should be
+	better than 0.05 K for all channels except Channel 1.
+
 2009-08-10  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-56
