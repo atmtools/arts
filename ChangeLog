@@ -1,3 +1,15 @@
+2009-07-08  Isaac Moradi  <imoradi(at)www.sat.ltu.se>
+
+	* arts-1-12-58
+
+	* src/methods.cc
+	Updated the documentation of the method "batch_atm_fields_compactFromArrayOfMatrix"
+	The method can handle additional columns which are not directly used by ARTS.
+	the input matrix can contain some additional columns, for e.g. 
+	wind speed, but they must be flagged by 'ignore', small or large 
+	letters, in the field name. The method will remove these additional 
+	fields and will resize both the matrix and the field names.
+
 2009-08-12  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-57
