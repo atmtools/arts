@@ -146,13 +146,6 @@ JAVADOC_AUTOBRIEF = YES
 
 MULTILINE_CPP_IS_BRIEF = NO
 
-# If the DETAILS_AT_TOP tag is set to YES then Doxygen 
-# will output the detailed description near the top, like JavaDoc.
-# If set to NO, the detailed description appears after the member 
-# documentation.
-
-DETAILS_AT_TOP = NO
-
 # If the INHERIT_DOCS tag is set to YES (the default) then an undocumented 
 # member inherits the documentation from any documented member that it 
 # re-implements.
@@ -451,7 +444,7 @@ WARN_FORMAT = "$file:$line: $text"
 # and error messages should be written. If left blank the output is written 
 # to stderr.
 
-WARN_LOGFILE = 
+WARN_LOGFILE = doxygen.warn
 
 #---------------------------------------------------------------------------
 # configuration options related to the input files

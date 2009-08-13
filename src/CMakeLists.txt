@@ -62,6 +62,9 @@ add_custom_command (
 	DEPENDS make_auto_workspace_h
 	)
 
+add_custom_target (BuildAutoSources DEPENDS auto_workspace.h auto_md.h
+                   auto_md.cc)
+
 ########### next target ###############
 
 add_executable (make_auto_md_h
@@ -73,7 +76,7 @@ add_executable (make_auto_md_h
 	arts.h
 	arts_omp.cc
 	arts_omp.h
-	${CMAKE_CURRENT_BINARY_DIR}/auto_workspace.h
+	auto_workspace.h
 	binio.cc
 	binio.h
 	file.cc
@@ -112,7 +115,7 @@ add_executable (make_auto_md_cc
 	arts.h
 	arts_omp.cc
 	arts_omp.h
-	${CMAKE_CURRENT_BINARY_DIR}/auto_workspace.h
+	auto_workspace.h
 	binio.cc
 	binio.h
 	file.cc
@@ -154,9 +157,9 @@ add_library (artscore STATIC
 	lineshapes.cc
 	arts.cc
 	arts.h
-	${CMAKE_CURRENT_BINARY_DIR}/auto_md.cc
-	${CMAKE_CURRENT_BINARY_DIR}/auto_md.h
-	${CMAKE_CURRENT_BINARY_DIR}/auto_workspace.h
+	auto_md.cc
+	auto_md.h
+	auto_workspace.h
 	bifstream.h
 	bifstream.cc
 	bofstream.h

@@ -61,7 +61,7 @@
     <h2> Example ARTS control files</h2>
 
     <p><font color="#ff0000"><b>--- Under construction ---</b></font>
-    <p> Have a look at <a href="examples">arts/doc/examples/*.arts</a>.
+    <p> Have a look at the control files in the subdirectories in <a href="../tests/">arts/tests/</a>.
     <!--    <p>
     The package contains everything that you need to run these
     examples. Currently they are:

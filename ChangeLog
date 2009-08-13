@@ -1,3 +1,52 @@
+2009-08-10  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-59
+
+	* CMake build system is almost ready for prime time.  Building the
+	user guide and Doxygen documentation works properly now.
+
+	Output is now much cleaner than before. The Latex compilation is run
+	in non-interactive batchmode and completely silent if no error occurs.
+	Endless clutter of doxygen warnings is written to a log file
+	(doxygen.warn).
+
+	* configure.in, doc/Makefile.am, doc/icons: Remove icons directory.
+
+	* doc/arts.css: Remove bluemark.gif.
+
+	* doc/index.html.in:
+
+	Refer to tests directory for control file examples.
+
+	* doc/CMakeLists.txt:
+
+	Generate index.html in build dir.
+
+	Copy arts.css to build dir.
+
+	* doc/uguide/CMakeLists.txt:
+
+	Properly define ADDITIONAL_MAKE_CLEAN_FILES.
+
+	Also depend on all pdf files in the Figs directory.
+
+	* src/CMakeLists.txt:
+
+	Remove unnecessary binary path from auto_* dependencies.
+
+	* doc/doxygen/Doxyfile.in:
+
+	Remove obsolete DETAILS_AT_TOP.
+
+	Write warnings to doxygen.warn instead of stderr.
+
+	* src/CMakeLists.txt: Add target BuildAutoSources for doxygen.
+
+	* doc/doxygen/CMakeLists.txt:
+
+	Remove matpack and artscore dependency from apidoc. Depend on
+	BuildAutoSources instead.
+
 2009-07-08  Isaac Moradi  <imoradi(at)www.sat.ltu.se>
 
 	* arts-1-12-58
