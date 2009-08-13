@@ -51,6 +51,7 @@
 #include "physics_funcs.h"
 
 extern const String ABSSPECIES_MAINTAG;
+extern const String FREQUENCY_MAINTAG;
 extern const String POINTING_MAINTAG;
 extern const String POLYFIT_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
@@ -356,6 +357,7 @@ void jacobianCalcAbsSpecies(
   const Vector&                    lat_grid,
   const Vector&                    lon_grid,
   const ArrayOfArrayOfSpeciesTag&  abs_species,
+  const Vector&                    f_grid,
   const Tensor4&                   vmr_field,
   const Tensor3&                   t_field,
   const Tensor4&                   pnd_field,
@@ -522,8 +524,9 @@ void jacobianCalcAbsSpecies(
                    << ji[1]+1 << "\n";
 
               // Run jacobian_y_agenda
-              jacobian_y_agendaExecute( ws, yp, vmr_p, t_field, pnd_field, 
-                                        sensor_los, jacobian_y_agenda );
+              jacobian_y_agendaExecute( ws, yp, f_grid, vmr_p, t_field, 
+                                        pnd_field, sensor_los, 
+                                        jacobian_y_agenda );
 
               // Add dy/dx as column in jacobian
               for( Index y_it=0; y_it<y.nelem(); y_it++ )
@@ -536,6 +539,176 @@ void jacobianCalcAbsSpecies(
     }
 }
 
+
+
+
+//----------------------------------------------------------------------------
+// Frequency:
+//----------------------------------------------------------------------------
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddFreqShiftAndStretch(
+  Workspace&                 ws,
+  ArrayOfRetrievalQuantity&  jq,
+  Agenda&                    jacobian_agenda,
+  const Matrix&              J,
+  const Numeric&             df,
+  const Index&               do_stretch )
+{
+  // Check that the jacobian matrix is empty. Otherwise it is either
+  // not initialised or it is closed.
+  if( J.nrows()!=0 && J.ncols()!=0 )
+    {
+      ostringstream os;
+      os << "The Jacobian matrix is not initialised correctly or closed.\n"
+         << "New retrieval quantities can not be added at this point.";
+      throw runtime_error(os.str());
+    }
+
+  // Define subtag here to easily expand function.
+  String subtag = "shift+stretch";
+  String mode = "abs" ;
+
+  // Check that this type of polyfit is not already included in the
+  // jacobian.
+  for( Index it=0; it<jq.nelem(); it++ )
+    {
+      if( jq[it].MainTag() == FREQUENCY_MAINTAG )
+        {
+          throw runtime_error( 
+                "Frequency fit is already included in *jacobian_quantities*." );
+        }
+    }
+
+  // Check that this type of pointing is not already included in the
+  // jacobian.
+  for( Index it=0; it<jq.nelem(); it++ )
+    {
+      if (jq[it].MainTag()== FREQUENCY_MAINTAG  &&  jq[it].Subtag() == subtag )
+        {
+          ostringstream os;
+          os << "This type of frequency fit is already included in\n"
+             << "*jacobian_quantities*.";
+          throw runtime_error(os.str());
+        }
+    }
+
+  // Check that do_stretch is 0 or 1
+  if( do_stretch!=0 && do_stretch!=1 )
+    throw runtime_error( "The argument *do_stretch* must be 0 or 1." );
+
+
+  // Create the new retrieval quantity
+  RetrievalQuantity rq = RetrievalQuantity();
+  rq.MainTag( FREQUENCY_MAINTAG );
+  rq.Subtag( subtag );
+  rq.Mode( mode );
+  rq.Analytical( 0 );
+  rq.Perturbation( df );
+  // To store the value or the polynomial order, create a vector with length
+  // poly_order+1, in case of gitter set the size of the grid vector to be the
+  // number of measurement blocks, all elements set to -1.
+  Vector grid(0,1+do_stretch,1);
+  ArrayOfVector grids(1,grid);
+  rq.Grids(grids);
+
+  // Add it to the *jacobian_quantities*
+  jq.push_back( rq );
+
+  // Add pointing method to the jacobian agenda
+  jacobian_agenda.append( ws, "jacobianCalcFreqShiftAndStretch", "" );
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianCalcFreqShiftAndStretch(
+        Workspace&                 ws,
+        Matrix&                    J,
+  const Agenda&                    jacobian_y_agenda,
+  const ArrayOfRetrievalQuantity&  jq,
+  const ArrayOfArrayOfIndex&       jacobian_indices,
+  const Vector&                    f_grid,
+  const Tensor4&                   vmr_field,
+  const Tensor3&                   t_field,
+  const Tensor4&                   pnd_field,
+  const Matrix&                    sensor_los,
+  const Vector&                    sensor_response_f,
+  const Vector&                    y )
+{
+  // Set some useful (and needed) variables.  
+  RetrievalQuantity rq;
+  ArrayOfIndex ji;
+
+  // Find the retrieval quantity related to this method, i.e. Pointing
+  // za offset. This works since the combined MainTag and Subtag is individual.
+  bool found = false;
+  for( Index n=0; n<jq.nelem() && !found; n++ )
+    {
+      if( jq[n].MainTag() == FREQUENCY_MAINTAG && 
+          jq[n].Subtag() == "shift+stretch" )
+        {
+          found = true;
+          rq = jq[n];
+          ji = jacobian_indices[n];
+        }
+    }
+  if( !found )
+  {
+    throw runtime_error(
+      "There is no frequency retrieval quantity defined.\n");
+  }
+
+  // Check that sensor_reponse_f is consistent with y
+  //
+  if( sensor_response_f.nelem() != y.nelem() )
+    {
+      throw runtime_error( 
+                 "Mismatch in length between *sensor_response_f* and *y*." );
+    }
+
+  // This method only handles absolute perturbations
+  assert( rq.Mode()=="abs" );
+
+
+  // Determine derivative by calculating spectra with perturbed f_grid
+  //
+  const Index ly = y.nelem(); 
+  Vector dydx(ly);
+  {
+    Vector yp;
+    Vector f_grid_pert  = f_grid;
+    f_grid_pert[joker] += rq.Perturbation();
+    // 
+    jacobian_y_agendaExecute( ws, yp, f_grid, vmr_field, t_field, pnd_field, 
+                            sensor_los, jacobian_y_agenda );
+
+    // Calculate difference in spectrum and divide by perturbation,
+    // here we want the whole dy/dx vector so that we can use it later
+    for( Index i=0; i<ly; i++ )
+      {
+        dydx[i] = ( yp[i] - y[i] ) / rq.Perturbation();
+      }
+  }
+
+  //--- Create jacobians ---
+
+  Index lg = rq.Grids()[0].nelem();
+  Index it = ji[0];
+  Vector w;
+
+  for( Index c=0; c<lg; c++ )
+    {
+      assert( Numeric(c) == rq.Grids()[0][c] );
+      //
+      polynomial_basis_func( w, sensor_response_f, c );
+      //
+      for( Index iy=0; iy<ly; iy++ )
+        {
+          J(iy,it) = w[iy] * dydx[iy];
+        }
+      it++;
+    }
+}
 
 
 
@@ -648,6 +821,7 @@ void jacobianCalcPointing(
   const Agenda&                    jacobian_y_agenda,
   const ArrayOfRetrievalQuantity&  jq,
   const ArrayOfArrayOfIndex&       jacobian_indices,
+  const Vector&                    f_grid,
   const Tensor4&                   vmr_field,
   const Tensor3&                   t_field,
   const Tensor4&                   pnd_field,
@@ -702,7 +876,7 @@ void jacobianCalcPointing(
     Matrix sensor_los_pert = sensor_los;
     sensor_los_pert(joker,0) += rq.Perturbation();
     // 
-    jacobian_y_agendaExecute( ws, yp, vmr_field, t_field, pnd_field, 
+    jacobian_y_agendaExecute( ws, yp, f_grid, vmr_field, t_field, pnd_field, 
                             sensor_los_pert, jacobian_y_agenda );
 
     // Calculate difference in spectrum and divide by perturbation,
@@ -1114,6 +1288,7 @@ void jacobianCalcTemperature(
   const Vector&                    p_grid,
   const Vector&                    lat_grid,
   const Vector&                    lon_grid,
+  const Vector&                    f_grid,
   const Tensor4&                   vmr_field,
   const Tensor3&                   t_field,
   const Tensor4&                   pnd_field,
@@ -1246,8 +1421,9 @@ void jacobianCalcTemperature(
                    << ji[1]+1 << "\n";
 
               // Run jacobian_y_agenda
-              jacobian_y_agendaExecute( ws, yp, vmr_field, t_p, pnd_field, 
-                                        sensor_los, jacobian_y_agenda );
+              jacobian_y_agendaExecute( ws, yp, f_grid, vmr_field, t_p, 
+                                        pnd_field, sensor_los, 
+                                        jacobian_y_agenda );
  
               // Add dy/dx as column in jacobian
               for( Index y_it=0; y_it<y.nelem(); y_it++ )

@@ -335,7 +335,7 @@ void define_agenda_data()
         "this agenda should be 'RteCalcNoJacobians*."
        ),
        OUTPUT( "y" ),
-       INPUT( "vmr_field", "t_field", "pnd_field", "sensor_los" )));
+       INPUT( "f_grid", "vmr_field", "t_field", "pnd_field", "sensor_los" )));
 
   agenda_data.push_back
     (AgRecord
