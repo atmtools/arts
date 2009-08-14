@@ -360,7 +360,6 @@ void jacobianCalcAbsSpecies(
   const Vector&                    f_grid,
   const Tensor4&                   vmr_field,
   const Tensor3&                   t_field,
-  const Tensor4&                   pnd_field,
   const Matrix&                    sensor_los,
   const Vector&                    y,
   const String&                    species )
@@ -525,8 +524,7 @@ void jacobianCalcAbsSpecies(
 
               // Run jacobian_y_agenda
               jacobian_y_agendaExecute( ws, yp, f_grid, vmr_p, t_field, 
-                                        pnd_field, sensor_los, 
-                                        jacobian_y_agenda );
+                                        sensor_los, jacobian_y_agenda );
 
               // Add dy/dx as column in jacobian
               for( Index y_it=0; y_it<y.nelem(); y_it++ )
@@ -630,7 +628,6 @@ void jacobianCalcFreqShiftAndStretch(
   const Vector&                    f_grid,
   const Tensor4&                   vmr_field,
   const Tensor3&                   t_field,
-  const Tensor4&                   pnd_field,
   const Matrix&                    sensor_los,
   const Vector&                    sensor_response_f,
   const Vector&                    y )
@@ -679,7 +676,7 @@ void jacobianCalcFreqShiftAndStretch(
     Vector f_grid_pert  = f_grid;
     f_grid_pert[joker] += rq.Perturbation();
     // 
-    jacobian_y_agendaExecute( ws, yp, f_grid, vmr_field, t_field, pnd_field, 
+    jacobian_y_agendaExecute( ws, yp, f_grid_pert, vmr_field, t_field, 
                             sensor_los, jacobian_y_agenda );
 
     // Calculate difference in spectrum and divide by perturbation,
@@ -824,7 +821,6 @@ void jacobianCalcPointing(
   const Vector&                    f_grid,
   const Tensor4&                   vmr_field,
   const Tensor3&                   t_field,
-  const Tensor4&                   pnd_field,
   const Matrix&                    sensor_los,
   const Vector&                    sensor_time,
   const Vector&                    y )
@@ -876,7 +872,7 @@ void jacobianCalcPointing(
     Matrix sensor_los_pert = sensor_los;
     sensor_los_pert(joker,0) += rq.Perturbation();
     // 
-    jacobian_y_agendaExecute( ws, yp, f_grid, vmr_field, t_field, pnd_field, 
+    jacobian_y_agendaExecute( ws, yp, f_grid, vmr_field, t_field, 
                             sensor_los_pert, jacobian_y_agenda );
 
     // Calculate difference in spectrum and divide by perturbation,
@@ -1291,7 +1287,6 @@ void jacobianCalcTemperature(
   const Vector&                    f_grid,
   const Tensor4&                   vmr_field,
   const Tensor3&                   t_field,
-  const Tensor4&                   pnd_field,
   const Matrix&                    sensor_los,
   const Vector&                    y )
 {
@@ -1422,8 +1417,7 @@ void jacobianCalcTemperature(
 
               // Run jacobian_y_agenda
               jacobian_y_agendaExecute( ws, yp, f_grid, vmr_field, t_p, 
-                                        pnd_field, sensor_los, 
-                                        jacobian_y_agenda );
+                                        sensor_los, jacobian_y_agenda );
  
               // Add dy/dx as column in jacobian
               for( Index y_it=0; y_it<y.nelem(); y_it++ )

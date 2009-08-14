@@ -332,10 +332,10 @@ void define_agenda_data()
         "for the perturbed input (without doing any unnecessary operations,\n"
         "for efficiency reasons). If unperturbed spectra (and analytical\n"
         "jacobians) are calculated with *RteCalc*, the standard choice for\n"
-        "this agenda should be 'RteCalcNoJacobians*."
+        "this agenda should be *RteCalcNoJacobians*."
        ),
        OUTPUT( "y" ),
-       INPUT( "f_grid", "vmr_field", "t_field", "pnd_field", "sensor_los" )));
+       INPUT( "f_grid", "vmr_field", "t_field", "sensor_los" )));
 
   agenda_data.push_back
     (AgRecord

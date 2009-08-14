@@ -4051,8 +4051,8 @@ void define_md_data_raw()
          "   \"rel\" : relative unit (e.g. 1.1 means 10% more of the gas)\n"
          "\n"
          "For perturbation calculations the size of the perturbation is set\n"
-         "by the user. The unit of the perturbation size is identical to\n"
-         "the retrieval unit.\n"
+         "by the user. The unit for the perturbation is the same as for the\n"
+         "retrieval unit.\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -4081,10 +4081,47 @@ void define_md_data_raw()
          
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "jacobianAddFreqShiftAndStretch" ),
+        DESCRIPTION
+        (
+         "Includes a frequency fit in the Jacobian.\n"
+         "\n"
+         "Retrieval of deviations between nominal and actual backend\n"
+         "frequencies can be included by this method. The weighing functions\n"
+         "are calculated by perturbations. This requires one additional\n"
+         "forward model run.\n"
+         "\n"
+         "The frequencies can be fitted with 1 or 2 variables. The first one\n"
+         "is a \"shift\". That is, an off-set common for all backend channels.\n"
+         "The second variable is \"stretch\", that is included only if\n"
+         "*do_stretch* is set to 1. The stretch is a frequency shift that goes\n"
+         "from -x at the first channel and increases linearly to reach x at\n"
+         "the last channel, where x is the retrieved value.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian_quantities", "jacobian_agenda" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_quantities", "jacobian_agenda", "jacobian" ),
+        GIN( "df", "do_stretch" ),
+        GIN_TYPE( "Numeric", "Index" ),
+        GIN_DEFAULT( "100e3", "0" ),
+        GIN_DESC( "Size of perturbation to apply.", 
+                  "Flag to also include frequency stretch."
+                  ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( false ),
+        PASSWORKSPACE(  true  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "jacobianAddPointing" ),
         DESCRIPTION
         (
-         "Includes sensor pointing in the Jacobian.\n"
+         "Includes fit of sensor pointing in the Jacobian.\n"
          "\n"
          "Retrieval of deviations between nominal and actual pointing of the\n"
          "sensor can be included by this method. The weighing functions are\n"
@@ -4092,9 +4129,10 @@ void define_md_data_raw()
          "model run, independently of polynomial order selected.\n"
          "\n"
          "The pointing off-set can be modelled to be time varying. The time\n"
-         "variation is then described by a polynomial.\n"
+         "variation is then described by a polynomial (with standard base\n"
+         "functions).\n"
          ),
-        AUTHORS( "Patrick Eriksson" ),
+        AUTHORS( "Patrick Eriksson", "Mattias Ekstrom" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
         GOUT(),
         GOUT_TYPE(),
@@ -4279,12 +4317,37 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian_y_agenda", "jacobian_quantities", "jacobian_indices", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species", 
-            "f_grid", "vmr_field", "t_field", "pnd_field", "sensor_los", "y" ),
+            "f_grid", "vmr_field", "t_field", "sensor_los", "y" ),
         GIN( "species" ),
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC( "Species of interest." ),
         SETMETHOD( true )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianCalcFreqShiftAndStretch" ),
+        DESCRIPTION
+        (
+         "Calculates frequency deviation jacobians by perturnbations.\n"
+         "\n"
+         "This function is added to *jacobian_agenda* by\n"
+         "jacobianAddFreqShiftAndStretch and should normally\n"
+         "not be called by the user.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_y_agenda", "jacobian_quantities", "jacobian_indices", 
+            "f_grid", "vmr_field", "t_field", "sensor_los", 
+            "sensor_response_f", "y" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
@@ -4292,7 +4355,7 @@ void define_md_data_raw()
       ( NAME( "jacobianCalcPointing" ),
         DESCRIPTION
         (
-         "Calculates pointing deviation jacobians by perturnbations.\n"
+         "Calculates pointing deviation jacobians by perturbations.\n"
          "\n"
          "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
          "and should normally not be called by the user.\n"
@@ -4303,7 +4366,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian_y_agenda", "jacobian_quantities", "jacobian_indices", 
-            "f_grid", "vmr_field", "t_field", "pnd_field", "sensor_los", 
+            "f_grid", "vmr_field", "t_field", "sensor_los", 
             "sensor_time", "y" ),
         GIN(),
         GIN_TYPE(),
@@ -4332,7 +4395,7 @@ void define_md_data_raw()
         GIN( "poly_coeff" ),
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC( "Polynomial coefficient to handle." ),
         SETMETHOD( true )
         ));
 
@@ -4354,7 +4417,7 @@ void define_md_data_raw()
         GOUT_DESC(),
         IN( "jacobian_y_agenda", "jacobian_quantities", "jacobian_indices", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "f_grid",
-            "vmr_field", "t_field", "pnd_field", "sensor_los", "y" ),
+            "vmr_field", "t_field", "sensor_los", "y" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

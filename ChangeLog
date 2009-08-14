@@ -1,9 +1,21 @@
+2009-08-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-61
+
+	* src/m_jacobian.cc: Adopted change below. 
+
+	* src/agendas.cc: Removed pnd_field as input to jacobian_y_agenda
+	(this part not used).
+
+	* src/methods.cc: Added jacobianFreqShiftAndStretch and
+	jacobianCalcFreqShiftAndStretch. And made some corrections and
+	polishing of text for other jacobian methods.
+	
 2009-08-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-60
 
-	* src/agendas.cc (define_agenda_data): Added f_grid as input to
-	jacobian_y_agenda.
+	* src/agendas.cc: Added f_grid as input to jacobian_y_agenda.
 
 	* src/m_jacobian.cc: Adopted change above.
 	(jacobianFreqShiftAndStretch): Created (but not tested).
