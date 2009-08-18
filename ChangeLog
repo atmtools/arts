@@ -1,3 +1,11 @@
+2009-08-18  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-62
+
+	* build:
+
+	Added empty default build directory. Set ignore to *.
+
 2009-08-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-61
