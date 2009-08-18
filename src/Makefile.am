@@ -24,7 +24,7 @@ bin_PROGRAMS = arts
 
 arts_LDADD = libartscore.a libmethods.a libspecies_data.a libpartition_function_data.a libcontinua.a libmatpack.a $(libgzstream_a_ldadd) $(disort_a_ldadd) $(netcdf_ldadd)
 arts_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
-arts_SOURCES = main.cc
+arts_SOURCES = auto_version.h main.cc
 
 libartscore_a_CFLAGS = $(CFLAGS_OPT) $(WARNINGCFLAGS)
 libartscore_a_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
@@ -150,7 +150,6 @@ libartscore_a_SOURCES = \
 	sstream.h \
 	token.cc \
 	token.h \
-	version.cc \
 	workspace.cc \
 	workspace_ng.cc \
 	workspace_ng.h \

@@ -1,3 +1,6 @@
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/auto_version.h.in
+                ${CMAKE_CURRENT_BINARY_DIR}/auto_version.h @ONLY)
+
 include_directories (${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
                      ${ZLIB_INCLUDE_DIR})
 
@@ -21,7 +24,7 @@ endif (ENABLE_DISORT)
 
 ########### next target ###############
 
-add_executable (arts main.cc)
+add_executable (arts auto_version.h main.cc)
 
 target_link_libraries (arts ${ALL_ARTS_LIBRARIES})
 
@@ -273,7 +276,6 @@ add_library (artscore STATIC
 	sstream.h
 	token.cc
 	token.h
-	version.cc
 	workspace.cc
 	workspace_ng.cc
 	workspace_ng.h

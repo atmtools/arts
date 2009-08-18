@@ -44,6 +44,7 @@
 #include <algorithm>
 #include <map>
 
+#include "auto_version.h"
 #include "arts.h"
 #include "parameters.h"
 #include "messages.h"
@@ -797,8 +798,7 @@ int main (int argc, char **argv)
 
   if (parameters.version)
     {
-      extern const String full_name;
-      cout << full_name << arts_mod_time (argv[0]) << endl;
+      cout << ARTS_FULL_VERSION << arts_mod_time (argv[0]) << endl;
       cout << osfeatures.str();
       arts_exit (EXIT_SUCCESS);
     }
@@ -1005,8 +1005,7 @@ int main (int argc, char **argv)
   try
     {
       // Output full program name (with version number):		
-      extern String full_name;
-      out1 << full_name << arts_mod_time (argv[0]) << "\n";
+      out1 << ARTS_FULL_VERSION << arts_mod_time (argv[0]) << "\n";
 
       // Output more details about the compilation:
       out2 << osfeatures.str() << "\n";

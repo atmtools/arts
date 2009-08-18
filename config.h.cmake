@@ -108,9 +108,6 @@
 /* Whether float precision is in use */
 /* #undef USE_FLOAT */
 
-/* Version number of package */
-#cmakedefine VERSION "${VERSION}"
-
 /* Macro to ignore unused function parameters */
 #define _U_ __attribute((unused))
 

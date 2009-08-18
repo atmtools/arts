@@ -1,6 +1,5 @@
-/* Copyright (C) 2000-2008
-   Stefan Buehler <sbuehler@ltu.se>
-   Patrick Eriksson <patrick@rss.chalmers.se>
+/* Copyright (C) 2009
+   Oliver Lemke <olemke@core-dump.info>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -18,17 +17,8 @@
    USA. */
 
 /**
-   The ARTS running version number.
-   Please always increase this before you do a `cvs
-   commit', however minor your change may be.
+   The full ARTS version name.
  */
 
-#include "arts.h"
-#include "mystring.h"
-
-// You now have to set the full version number (including subversion)
-// in file configure.in in the top-level ARTS directory. Don't forget
-// to run `autogen.sh' after editing configure.in!
-
-String full_name  = static_cast<String>(PACKAGE) + "-" + VERSION;
+#define ARTS_FULL_VERSION "arts-@VERSION@"
 
