@@ -94,6 +94,8 @@ public:
   friend void mult (VectorView y, const Sparse& M, ConstVectorView x );
   friend void mult (MatrixView A, const Sparse& B, ConstMatrixView C );
   friend void mult (Sparse& A, const Sparse& B, const Sparse& C );
+  friend void add (Sparse& A, const Sparse& B, const Sparse& C );
+  friend void sub (Sparse& A, const Sparse& B, const Sparse& C );
   friend void transpose (Sparse& A, const Sparse& B );
 
 private:
@@ -125,6 +127,14 @@ void mult( MatrixView A,
 void mult( Sparse& A,
            const Sparse& B,
            const Sparse& C );
+
+void add( Sparse& A,
+          const Sparse& B,
+          const Sparse& C );
+
+void sub( Sparse& A,
+          const Sparse& B,
+          const Sparse& C );
 
 void transpose( Sparse& A,
                 const Sparse& B );

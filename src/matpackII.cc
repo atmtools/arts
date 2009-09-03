@@ -947,3 +947,88 @@ void mult( Sparse& A,
     }
 }
 
+
+//! Sparse - Sparse addition.
+/*!
+  Calculates A = B+C, where result A is sparse, and B and C are also sparse.
+
+  Output comes first!
+
+  Dimensions of B, and C must match.  A will be resized.
+
+  \param A Output: Result matrix.
+  \param B First summand matrix.
+  \param C Second summand matrix.
+
+  \author Oliver Lemke
+  \date   2009-09-03
+*/
+void add( Sparse& A,
+          const Sparse& B,
+          const Sparse& C )
+{
+  // Check dimensions
+  assert( B.ncols() == C.ncols() );
+  assert( B.nrows() == C.nrows() );
+
+  // We copy the smaller matrix of B or C to A. This way we can
+  // loop over the matrix with the fewer number of elements to perform
+  // the actual addition later. 
+  const Sparse* D;
+  if (B.data()->size() < C.data()->size())
+    {
+      A=C;
+      D=&B;
+    }
+  else
+    {
+      A=B;
+      D=&C;
+    }
+
+  for (size_t c = 0; c < D->mcolptr->size()-1; ++c)
+    {
+      // Loop through the elements in this column:
+      for (Index i = (*D->mcolptr)[c]; i < (*D->mcolptr)[c+1]; ++i)
+        {
+          A.rw((*D->mrowind)[i], c) += (*D->mdata)[i];
+        }
+    }
+}
+
+
+//! Sparse - Sparse subtraction.
+/*!
+  Calculates A = B-C, where result A is sparse, and B and C are also sparse.
+
+  Output comes first!
+
+  Dimensions of B, and C must match.  A will be resized.
+
+  \param A Output: Result matrix.
+  \param B First subtrahend matrix.
+  \param C Second subtrahend matrix.
+
+  \author Oliver Lemke
+  \date   2009-09-03
+*/
+void sub( Sparse& A,
+          const Sparse& B,
+          const Sparse& C )
+{
+  // Check dimensions
+  assert( B.ncols() == C.ncols() );
+  assert( B.nrows() == C.nrows() );
+
+  A=B;
+
+  for (size_t c = 0; c < C.mcolptr->size()-1; ++c)
+    {
+      // Loop through the elements in this column:
+      for (Index i = (*C.mcolptr)[c]; i < (*C.mcolptr)[c+1]; ++i)
+        {
+          A.rw((*C.mrowind)[i], c) -= (*C.mdata)[i];
+        }
+    }
+}
+

@@ -393,6 +393,33 @@ void test48()
   
 }
     
+void test49()
+{
+  cout << "Testing sparse adding:\n";
+
+  Sparse B(4,5);
+  Index rb[] = {1, 3};
+  Index cb[] = {1, 3};
+  for ( Index i=0; i<2; i++ )
+    B.rw(rb[i],cb[i]) = (Numeric)(i+1);
+
+  Sparse C(4,5);
+  Index rc[] = {0, 1, 2};
+  Index cc[] = {0, 1, 2};
+  for ( Index i=0; i<3; i++ )
+    C.rw(rc[i],cc[i]) = (Numeric)(i+1);
+
+  cout << "B:\n" << B << "\n";
+  cout << "C:\n" << C << "\n";
+
+  Sparse A;
+  add (A, B, C);
+  cout << "A=B+C:\n" << A << "\n";
+  Sparse D;
+  sub (D, B, C);
+  cout << "D=B-C:\n" << D << "\n";
+}
+
 int main()
 {
   //  test3();
@@ -405,8 +432,9 @@ int main()
   //  test44();
   //  test45();
   //  test46();
-//   test47();
-  test48();
+  //  test47();
+  //  test48();
+  test49();
   
   return 0;
 }

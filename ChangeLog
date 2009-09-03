@@ -1,3 +1,13 @@
+2009-09-03  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-64
+
+	* src/matpackII.{cc,h}:
+
+	Implement add() and sub() for sparse matrices.
+
+	* src/test_sparse.cc: Add test49 for add+sub.
+
 2009-08-18  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-63
