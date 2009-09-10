@@ -1275,6 +1275,8 @@ void rte_std(Workspace&        ws,
    \param[out] nza       Number of zenith angles / measurement block.
    \param[out] naa       Number of azimuth angles / measurement block.
    \param[out] nblock    Length of for one measurement block.
+   \param[in]  stokes_dim
+   \param[in]  f_grid
    \param[in]  atmosphere_dim
    \param[in]  p_grid
    \param[in]  lat_grid
@@ -1283,16 +1285,18 @@ void rte_std(Workspace&        ws,
    \param[in]  t_field
    \param[in]  r_geoid
    \param[in]  z_surface
-   \param[in]  cloudbox_on
-   \param[in]  cloudbox_limits
    \param[in]  sensor_response
+   \param[in]  sensor_response_f
+   \param[in]  sensor_response_pol
+   \param[in]  sensor_response_za
+   \param[in]  sensor_response_aa
    \param[in]  sensor_pos
    \param[in]  sensor_los
-   \param[in]  f_grid
-   \param[in]  stokes_dim
    \param[in]  antenna_dim
    \param[in]  mblock_za_grid
    \param[in]  mblock_aa_grid
+   \param[in]  cloudbox_on
+   \param[in]  cloudbox_limits
    \param[in]  y_unit
    \param[in]  jacobian_unit
 
@@ -1305,6 +1309,8 @@ void rtecalc_check_input(
          Index&                      nza,
          Index&                      naa,
          Index&                      nblock,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,
    const Index&                      atmosphere_dim,
    const Vector&                     p_grid,
    const Vector&                     lat_grid,
@@ -1313,16 +1319,17 @@ void rtecalc_check_input(
    const Tensor3&                    t_field,
    const Matrix&                     r_geoid,
    const Matrix&                     z_surface,
-   const Index&                      cloudbox_on, 
-   const ArrayOfIndex&               cloudbox_limits,
    const Sparse&                     sensor_response,
+   const Vector&                     sensor_response_f,
+   const ArrayOfIndex&               sensor_response_pol,
+   const Vector&                     sensor_response_za,
    const Matrix&                     sensor_pos,
    const Matrix&                     sensor_los,
-   const Vector&                     f_grid,
-   const Index&                      stokes_dim,
    const Index&                      antenna_dim,
    const Vector&                     mblock_za_grid,
    const Vector&                     mblock_aa_grid,
+   const Index&                      cloudbox_on, 
+   const ArrayOfIndex&               cloudbox_limits,
    const String&                     y_unit,
    const String&                     jacobian_unit )
 {
@@ -1439,6 +1446,23 @@ void rtecalc_check_input(
       throw runtime_error( os.str() );
     }
 
+  // Sensor aux variables
+  //
+  if( nblock != sensor_response_f.nelem()   ||  
+      nblock != sensor_response_pol.nelem() ||
+      nblock != sensor_response_za.nelem() )
+    {
+      ostringstream os;
+      os << "Sensor auxiliary variables do not have the correct size.\n"
+         << "The following variables should all have same size:\n"
+         << "nblock (length(y) for one block): " << nblock << "\n"
+         << "sensor_response_f.nelem():        " << sensor_response_f.nelem()
+         << "\nsensor_response_pol.nelem():      " << sensor_response_pol.nelem()
+         << "\nsensor_response_za.nelem():       " << sensor_response_za.nelem() 
+         << "\n";
+      throw runtime_error( os.str() );
+    }
+
   // Sensor position and LOS.
   //
   // That the angles are inside OK ranges are checked inside ppathCalc.
@@ -1536,9 +1560,4 @@ void surface_calc(
         }
     }
 }
-
-
-
-
-
 

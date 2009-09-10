@@ -626,7 +626,7 @@ void sensor_responseBackend(
   const Index nin  = nf * npol * nza;
   // Note that there is no distinction between za and aa grids after the antenna
 
-  // Initialise a output stream for runtime errors and a flag for errors
+  // Initialise an output stream for runtime errors and a flag for errors
   ostringstream os;
   bool          error_found = false;
 

@@ -202,7 +202,7 @@ void define_agenda_data()
         "non-LTE conditions much more complex calculations are required.\n"
         "\n"
         "The transmission through the atmosphere can be obtained by setting\n"
-        "*emission* to zeros and *iy_space* to ones, ."
+        "*emission* to zeros and *iy_space* to ones."
         ),
        OUTPUT( "emission" ),
        INPUT( "rte_temperature" )));

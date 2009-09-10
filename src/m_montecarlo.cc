@@ -222,6 +222,18 @@ void MCGeneral(Workspace&            ws,
   if (max_time<0 && max_iter<0 && std_err<0){
     throw runtime_error( "At least one of std_err, max_time, and max_iter must be positive" );
   }
+
+  if( f_index < 0 )
+    {
+      throw runtime_error( 
+                   "The option of f_index < 0 is not handled by this method." );
+    }
+  if( f_index >= f_grid.nelem() )
+    {
+      throw runtime_error( 
+                   "*f_index* is outside the range of *f_grid*." );
+    }
+
   Ppath ppath_step;
   Rng rng;                      //Random Number generator
   time_t start_time=time(NULL);
@@ -262,8 +274,8 @@ void MCGeneral(Workspace&            ws,
   bool convert_to_rjbt=false;
   if ( y_unit == "RJBT" )
     { 
-      std_err_i=f_grid[0]*f_grid[0]*2*BOLTZMAN_CONST/SPEED_OF_LIGHT/SPEED_OF_LIGHT*
-        std_err;
+      std_err_i=f_grid[f_index]*f_grid[f_index]*2*BOLTZMAN_CONST/
+                                          SPEED_OF_LIGHT/SPEED_OF_LIGHT*std_err;
       convert_to_rjbt=true;
     }
   else if ( y_unit == "1" )
@@ -309,7 +321,7 @@ void MCGeneral(Workspace&            ws,
             {
               iy_space_agendaExecute(ws, local_iy,local_rte_pos,local_rte_los,
                                      iy_space_agenda);
-              mult(vector1,evol_op,local_iy(0,joker));
+              mult(vector1,evol_op,local_iy(f_index,joker));
               mult(I_i,Q,vector1);
               I_i/=g;
               keepgoing=false; //stop here. New photon.
@@ -322,10 +334,17 @@ void MCGeneral(Workspace&            ws,
                 local_rte_pos, local_rte_los, ppath_step.gp_p[np-1],
                 ppath_step.gp_lat[np-1],ppath_step.gp_lon[np-1],
                 surface_prop_agenda );
+
+              if( local_surface_los.nrows() > 1 )
+                {
+                  throw runtime_error( 
+                              "The method handles only specular reflections." );
+                }
+
               //deal with blackbody case
               if (local_surface_los.nrows()==0)
                 {
-                  mult(vector1,evol_op,local_surface_emission(0,joker));
+                  mult(vector1,evol_op,local_surface_emission(f_index,joker));
                   mult(I_i,Q,vector1);
                   I_i/=g;
                   keepgoing=false;
@@ -333,7 +352,7 @@ void MCGeneral(Workspace&            ws,
               else
                 //decide between reflection and emission
                 {
-                  Numeric R11=local_surface_rmatrix(0,0,0,0);
+                  Numeric R11=local_surface_rmatrix(0,f_index,0,0);
                   if (rng.draw()>R11)
                     {
                       //then we have emission
@@ -342,7 +361,7 @@ void MCGeneral(Workspace&            ws,
                       //oneminusR-=local_surface_rmatrix(0,0,joker,joker);
                       //oneminusR/=1-R11;
                       //mult(vector1,oneminusR,local_surface_emission(0,joker));
-                      mult(vector1,evol_op,local_surface_emission(0,joker));
+                      mult(vector1,evol_op,local_surface_emission(f_index,joker));
                       mult(I_i,Q,vector1);
                       I_i/=g*(1-R11);
                       keepgoing=false;
@@ -352,7 +371,7 @@ void MCGeneral(Workspace&            ws,
                       //we have reflection
                       local_rte_los=local_surface_los(0,joker);
                       
-                      mult(q,evol_op,local_surface_rmatrix(0,0,joker,joker));
+                      mult(q,evol_op,local_surface_rmatrix(0,f_index,joker,joker));
                       mult(newQ,Q,q);
                       Q=newQ;
                       Q/=g*R11;
@@ -369,7 +388,7 @@ void MCGeneral(Workspace&            ws,
               if (rng.draw()>albedo)
                 {
                   //Calculate emission
-                  Numeric planck_value = planck( f_grid[0], temperature );
+                  Numeric planck_value = planck( f_grid[f_index], temperature );
                   Vector emission=abs_vec_mono;
                   emission*=planck_value;
                   Vector emissioncontri(stokes_dim);
@@ -403,7 +422,7 @@ void MCGeneral(Workspace&            ws,
             {
               //Must be clear sky emission point
               //Calculate emission
-              Numeric planck_value = planck( f_grid[0], temperature );
+              Numeric planck_value = planck( f_grid[f_index], temperature );
               Vector emission=abs_vec_mono;
               emission*=planck_value;
               Vector emissioncontri(stokes_dim);
@@ -434,8 +453,8 @@ void MCGeneral(Workspace&            ws,
     {
       for(Index j=0; j<stokes_dim; j++) 
         {
-          y[j]=invrayjean(y[j],f_grid[0]);
-          mc_error[j]=invrayjean(mc_error[j],f_grid[0]);
+          y[j]=invrayjean(y[j],f_grid[f_index]);
+          mc_error[j]=invrayjean(mc_error[j],f_grid[f_index]);
         }
     }
 }

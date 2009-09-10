@@ -1,3 +1,27 @@
+2009-09-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-65
+
+	* src/m_montecarlo.cc (MCGeneral): Emission terms and conversion
+	from i to RJ-Tb had "f_index" hard-coded to 0, and the usage of
+	the function through RteCalcMC did not work. Calculations made by
+	Bengt revealed the problem.  There was a bias between clear-sky
+	simulations and MC calculations with zero IWC for frequencies
+	after the first one. That bias is now removed. ARTS tests work and
+	the atmlab MC demo runs fine.
+
+	Added some runtime checks around f_index and the surface part. The
+	first checks should ensure that the function is not used
+	incorrectly even after the last changes
+
+	* src/m_rte.cc (RteCalc): Adopted to change in rtecalc_check_input.
+	(RteCalcMC): As above.
+
+	* src/rte.cc (rtecalc_check_input): Added checks of
+	sensor_response_f, sensor_response_pol, and sensor_response_za.
+
+	* src/agendas.cc: Fixed a spelling error.
+
 2009-09-03  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-64

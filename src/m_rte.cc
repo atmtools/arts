@@ -115,25 +115,13 @@ void RteCalc(
   //
   Index nf=0, nmblock=0, nza=0, naa=0, nblock=0;  
   //
-  rtecalc_check_input( nf, nmblock, nza, naa, nblock, atmosphere_dim, p_grid, 
-                  lat_grid, lon_grid, z_field, t_field, r_geoid, z_surface,
-                  cloudbox_on,  cloudbox_limits, sensor_response, 
-                  sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, 
-                  mblock_za_grid, mblock_aa_grid, y_unit, jacobian_unit );
-
-  if( nblock != sensor_response_f.nelem()   ||  
-      nblock != sensor_response_pol.nelem() ||
-      nblock != sensor_response_za.nelem() )
-    {
-      ostringstream os;
-      os << "Sensor auxiliary variables do not have the correct size.\n"
-         << "The following variables should all have same size:\n"
-         << "nblock (length(y) for one block): " << nblock << "\n"
-         << "sensor_response_f.nelem():        " << sensor_response_f.nelem() << "\n"
-         << "sensor_response_pol.nelem():      " << sensor_response_pol.nelem() << "\n"
-         << "sensor_response_za.nelem():       " << sensor_response_za.nelem() << "\n";
-      throw runtime_error( os.str() );
-    }
+  rtecalc_check_input( nf, nmblock, nza, naa, nblock, stokes_dim, f_grid, 
+                       atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                       t_field, r_geoid, z_surface, sensor_response, 
+                       sensor_response_f, sensor_response_pol,
+                       sensor_response_za, sensor_pos, sensor_los, antenna_dim, 
+                       mblock_za_grid, mblock_aa_grid, cloudbox_on, 
+                       cloudbox_limits, y_unit, jacobian_unit );
 
   // Agendas not checked elsewhere
   //
@@ -518,19 +506,13 @@ void RteCalcMC(
         throw runtime_error( 
           "Monte Carlos calculations require that *atmosphere_dim* is 3." );
   //
-  rtecalc_check_input( nf, nmblock, nza, naa, nblock, atmosphere_dim, p_grid, 
-                    lat_grid, lon_grid, z_field, t_field, r_geoid, z_surface,
-                    cloudbox_on,  cloudbox_limits, sensor_response, 
-                    sensor_pos, sensor_los, f_grid, stokes_dim, antenna_dim, 
-                    mblock_za_grid, mblock_aa_grid, y_unit, "-" );
-
-  if( nblock != sensor_response_f.nelem()   ||  
-      nblock != sensor_response_pol.nelem() ||
-      nblock != sensor_response_za.nelem() )
-    {
-      throw runtime_error( "Sensor auxiliary variables do not have the correct size." );
-
-    }
+  rtecalc_check_input( nf, nmblock, nza, naa, nblock, stokes_dim, f_grid, 
+                       atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                       t_field, r_geoid, z_surface, sensor_response, 
+                       sensor_response_f, sensor_response_pol,
+                       sensor_response_za, sensor_pos, sensor_los, antenna_dim, 
+                       mblock_za_grid, mblock_aa_grid, cloudbox_on, 
+                       cloudbox_limits, y_unit, "-" );
 
   // Some MC variables are only local here
   Tensor3  mc_points;
@@ -715,6 +697,7 @@ void RteStd( Workspace&               ws,
            emission_agenda, abs_scalar_gas_agenda,
            rte_do_gas_jacs, rte_do_t_jacs, false );
 }
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
