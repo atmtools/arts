@@ -570,7 +570,9 @@ void sensor_responseAntenna(
                       sensor_response_za_grid, sensor_response_f_grid, 
                       npol, sensor_norm );
   else
-    throw runtime_error( "2D antenna cases are not yet handled." );
+    antenna2d_simplified( hantenna, antenna_dim, antenna_los, antenna_response,
+                          sensor_response_za_grid, sensor_response_aa_grid, 
+                          sensor_response_f_grid, npol, sensor_norm ); 
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not

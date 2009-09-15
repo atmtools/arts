@@ -54,6 +54,26 @@ extern const Index GFIELD4_AA_GRID;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+//! antenna1d_matrix
+/*!
+  Core function for setting up the response matrix for 1D antenna cases.
+  
+  Main task is to extract correct antenna pattern, including frequency 
+  interpolation. Actual weights are calculated in *sensor_integration_vector*.
+
+
+   \param   H            The antenna transfer matrix
+   \param   antenna_dim  As the WSV with the same name
+   \param   antenna_los  As the WSV with the same name
+   \param   antenna_response  As the WSV with the same name
+   \param   za_grid      Zenith angle grid for pencil beam calculations
+   \param   f_grid       Frequency grid for monochromatic calculations
+   \param   n_pol        Number of polarisation states
+   \param   do_norm      Flag whether response should be normalised
+
+   \author Mattias Ekström / Patrick Eriksson
+   \date   2003-05-27 / 2008-06-17
+*/
 void antenna1d_matrix(      
            Sparse&   H,
 #ifndef NDEBUG
@@ -127,7 +147,6 @@ void antenna1d_matrix(
       Vector shifted_aresponse_za_grid  = aresponse_za_grid;
              shifted_aresponse_za_grid += antenna_los(ia,0);
 
-
       // Order of loops assumes that the antenna response more often
       // changes with frequency than for polarisation
 
@@ -193,6 +212,156 @@ void antenna1d_matrix(
               hrow = 0;
             }
         }
+    }
+}
+
+
+
+//! antenna2d_simplified
+/*!
+  A first function for setting up the response matrix for 2D antenna cases.
+  
+  Following the ARTS definitions, a bi-linear variation (in za and aa
+  dimensions) for both antenna pattern and pencil beam radiances
+  should be assumed here. This function does not handle this. It
+  performs instead a series of 1D antenna calculations and "sums up"
+  the results. In this summation, both antenna pattern and radiances
+  are assumed to constant in the azimuthal direction around each point
+  in aa_grid (corresponding to mblock_aa_grid). That is, for azimuth,
+  a step-wise function is used instead of a piecewise linear one.
+
+   \param   H            The antenna transfer matrix
+   \param   antenna_dim  As the WSV with the same name
+   \param   antenna_los  As the WSV with the same name
+   \param   antenna_response  As the WSV with the same name
+   \param   za_grid      Zenith angle grid for pencil beam calculations
+   \param   aa_grid      Azimuth angle grid for pencil beam calculations
+   \param   f_grid       Frequency grid for monochromatic calculations
+   \param   n_pol        Number of polarisation states
+   \param   do_norm      Flag whether response should be normalised
+
+   \author Mattias Ekström / Patrick Eriksson
+   \date   2003-05-27 / 2008-06-17
+*/
+void antenna2d_simplified(      
+           Sparse&   H,
+#ifndef NDEBUG
+      const Index&   antenna_dim,
+#else
+      const Index&   antenna_dim _U_,
+#endif
+   ConstMatrixView   antenna_los,
+    const GField4&   antenna_response,
+   ConstVectorView   za_grid,
+   ConstVectorView   aa_grid,
+   ConstVectorView   f_grid,
+       const Index   n_pol,
+       const Index   do_norm )
+{
+  // Number of input za and frequency angles
+  const Index n_aa = aa_grid.nelem();
+
+  // Asserts for variables beside antenna_response (not done in antenna1d_matrix)
+  assert( antenna_dim == 2 );
+  assert( n_aa >= 2 );
+  assert( do_norm >= 0  &&  do_norm <= 1 );
+
+  // Make copy of antenna response suitable as input to antenna1d_matrix
+  //
+  GField4 aresponse = antenna_response;
+  //
+  const Index n4 = antenna_response.nbooks();
+  const Index n3 = antenna_response.npages();
+  const Index n2 = antenna_response.nrows();
+  aresponse.resize( n4, n3, n2, 1 );
+  aresponse.set_grid( GFIELD4_AA_GRID, Vector(0) );
+  
+  ConstVectorView response_aa_grid = 
+                  antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
+
+  Sparse Hza;
+  ArrayOfVector hrows;
+  Index nrows=0, ncols=0, allocated=0;
+  Numeric sum = 0;
+ 
+  // Loop azimuth angles
+  for( Index ia=0; ia<n_aa; ia++ )
+    {
+      if( aa_grid[ia] >= response_aa_grid[0]  &  
+                                        aa_grid[ia] >= last(response_aa_grid) ) 
+        {
+          // Interpolate antenna patterns to aa_grid[ia] 
+          // Use grid position function to find weights 
+          //
+          ArrayOfGridPos gp( 1 );
+          gridpos( gp, response_aa_grid, Vector(1,aa_grid[ia]) );
+          //
+          for( Index i4=0; i4<n4; i4++ )
+            {
+              for( Index i3=0; i3<n3; i3++ )
+                {
+                  for( Index i2=0; i2<n2; i2++ )
+                    {
+                      aresponse(i4,i3,i2,0) = 
+                        gp[0].fd[1] * antenna_response(i4,i3,i2,gp[0].idx) +
+                        gp[0].fd[0] * antenna_response(i4,i3,i2,gp[0].idx+1);
+
+             }  }   }
+ 
+          // Find the aa width for present angle 
+          //
+          // Lower and upper end of "coverage" for present aa angle
+          Numeric aa_low = response_aa_grid[0];
+          if( ia > 0 ) 
+            { 
+              const Numeric aam = ( aa_grid[ia] - aa_grid[ia-1] ) / 2.0;
+              if( aam > aa_low )
+                { aa_low = aam; };
+            }
+          Numeric aa_high = last(response_aa_grid);
+          if( ia < n_aa-1 )
+            { 
+              const Numeric aam = ( aa_grid[ia+1] - aa_grid[ia] ) / 2.0;
+              if( aam < aa_high )
+                { aa_high = aam; };
+            }
+          //
+          const Numeric aa_width = aa_high - aa_low;
+
+          antenna1d_matrix( Hza, 1, antenna_los, aresponse, za_grid, f_grid, 
+                                                                     n_pol, 0 );
+          if( !allocated )
+            {
+              allocated = 1;
+              nrows = Hza.nrows();
+              ncols = Hza.ncols();
+              hrows.resize(nrows);
+              for( Index row=0; row<nrows; row++ )
+                {
+                  hrows[row].resize(ncols*n_aa);
+                  hrows[row] = 0;   // To get correct value for aa_grid points
+                }                   // outside response aa grid
+            }
+
+          for( Index row=0; row<nrows; row++ )
+            { 
+              for( Index col=0; col<ncols; col++ )
+                {
+                  const Numeric v            = aa_width * Hza(row,col);
+                  hrows[row][ia+col*n_aa]  = v;
+                  sum                       += v;
+                }
+            }
+        }
+    }
+
+  // Move result to H
+  H.resize(nrows,ncols*n_aa);
+  for( Index row=0; row<nrows; row++ )
+    {
+      if( do_norm )
+        hrows[row] /= sum;
+      H.insert_row( row, hrows[row] ); 
     }
 }
 

@@ -1,3 +1,16 @@
+2009-09-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-66
+
+	* src/sensor.cc (antenna2d_simplified): Created. Complete code,
+	but not a single test run made yet. Handles 2D antenna pattern
+	with a slight simplification with respect to "arts definitions".
+
+	* src/sensor.cc (antenna1d_matrix): Wrote doxygen header.
+
+	* src/m_sensor.cc (sensor_responseAntenna): Added call of 
+	antenna2d_simplified.
+
 2009-09-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-65

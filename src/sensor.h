@@ -58,6 +58,17 @@ void antenna1d_matrix(
        const Index   n_pol,
        const Index   do_norm );
 
+void antenna2d_simplified(      
+           Sparse&   H,
+      const Index&   antenna_dim,
+   ConstMatrixView   antenna_los,
+    const GField4&   antenna_response,
+   ConstVectorView   za_grid,
+   ConstVectorView   aa_grid,
+   ConstVectorView   f_grid,
+       const Index   n_pol,
+       const Index   do_norm );
+
 void mixer_matrix(
            Sparse&   H,
            Vector&   f_mixer,
