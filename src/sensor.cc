@@ -287,7 +287,7 @@ void antenna2d_simplified(
   // Loop azimuth angles
   for( Index ia=0; ia<n_aa; ia++ )
     {
-      if( aa_grid[ia] >= response_aa_grid[0]  &  
+      if( aa_grid[ia] >= response_aa_grid[0]  &&  
                                         aa_grid[ia] >= last(response_aa_grid) ) 
         {
           // Interpolate antenna patterns to aa_grid[ia] 

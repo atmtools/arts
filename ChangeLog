@@ -1,3 +1,11 @@
+2009-09-16  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-67
+
+	* src/sensor.cc (antenna2d_simplified):
+
+	Insert missing & in if statement.
+
 2009-09-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-66
