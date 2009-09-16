@@ -16,6 +16,33 @@ ind = 16:20;
 %
 i0 = 15;
 
+
+
+%--- Antenna response
+%
+% The nominal width is the same for all channels (1.1 deg).
+% Grids spanning [-1,1] degrees cover 95% of the response.
+% No normalisation of R performed here. Fixed by arts (with sensor_norm=1)
+%
+width   = 1.1;
+za_grid = -1.0 : 0.1 : 1.0;
+aa_grid = za_grid;
+%
+si    = fwhm2si( width );
+[A,Z] = meshgrid( aa_grid, za_grid );
+R     = mvnpdf( [Z(:) A(:)], [0 0], (si*si)*eye(2) );
+R     = reshape( R, length(za_grid), length(aa_grid) );
+%
+G.name      = 'Antenna response function';
+G.gridnames = { 'Polarisation', 'Frequency', 'Zenith angle', 'Azimuth angle' };
+G.grids     = { {'1'}, 150e9, za_grid, aa_grid };
+G.dataname  = 'Response';
+G.data(1,1,:,:) = R;
+%
+%xmlStore( 'amsub.antenna.xml', G, 'GriddedField4' );
+  
+
+
 %--- LO frequencies
 %
 lo = [ 89e9, 150e9, 183.31e9, 183.31e9, 183.31e9 ];

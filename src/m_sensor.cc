@@ -544,7 +544,7 @@ void sensor_responseAntenna(
          << "should be probably applied to *mblock_aa_grid*.\n";
       error_found = true;
     }
-    if( f_dhigh < 0 ) 
+    if( aa_dhigh < 0 ) 
     {
       os << "The WSV *sensor_response_aa_grid* is too narrow. It should be\n"
          << "expanded with "<<-aa_dhigh<<" deg in the higher end. This change\n"

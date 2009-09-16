@@ -126,7 +126,6 @@ void antenna1d_matrix(
   // If response data extend outside za_grid is checked in 
   // sensor_integration_vector
   
-
   // Some size(s)
   const Index nfpol = n_f * n_pol;  
 
@@ -240,8 +239,8 @@ void antenna1d_matrix(
    \param   n_pol        Number of polarisation states
    \param   do_norm      Flag whether response should be normalised
 
-   \author Mattias Ekström / Patrick Eriksson
-   \date   2003-05-27 / 2008-06-17
+   \author Patrick Eriksson
+   \date   2009-09-16
 */
 void antenna2d_simplified(      
            Sparse&   H,
@@ -258,8 +257,15 @@ void antenna2d_simplified(
        const Index   n_pol,
        const Index   do_norm )
 {
-  // Number of input za and frequency angles
-  const Index n_aa = aa_grid.nelem();
+  // Sizes
+  const Index n_f      = f_grid.nelem();
+  const Index nfpol    = n_f * n_pol;  
+  const Index n_aa     = aa_grid.nelem();
+  const Index n_za     = za_grid.nelem();
+  const Index n_ant    = antenna_los.nrows();
+  const Index n_ar_pol = antenna_response.nbooks();
+  const Index n_ar_f   = antenna_response.npages();
+  const Index n_ar_za  = antenna_response.nrows();
 
   // Asserts for variables beside antenna_response (not done in antenna1d_matrix)
   assert( antenna_dim == 2 );
@@ -270,99 +276,110 @@ void antenna2d_simplified(
   //
   GField4 aresponse = antenna_response;
   //
-  const Index n4 = antenna_response.nbooks();
-  const Index n3 = antenna_response.npages();
-  const Index n2 = antenna_response.nrows();
-  aresponse.resize( n4, n3, n2, 1 );
-  aresponse.set_grid( GFIELD4_AA_GRID, Vector(0) );
-  
   ConstVectorView response_aa_grid = 
                   antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
+  //
+  aresponse.resize( n_ar_pol, n_ar_f, n_ar_za, 1 );
+  aresponse.set_grid( GFIELD4_AA_GRID, Vector(1,0) );
 
-  Sparse Hza;
-  ArrayOfVector hrows;
-  Index nrows=0, ncols=0, allocated=0;
-  Numeric sum = 0;
- 
-  // Loop azimuth angles
-  for( Index ia=0; ia<n_aa; ia++ )
+  // Resize H
+  H.resize( n_ant*nfpol, n_aa*n_za*nfpol );
+
+  // Loop antenna_los
+  for( Index il=0; il<n_ant; il++ )
     {
-      if( aa_grid[ia] >= response_aa_grid[0]  &&  
-                                        aa_grid[ia] >= last(response_aa_grid) ) 
+
+      // Set up an ArrayOfVector that can hold all data for one antenna_los
+      ArrayOfVector hrows(nfpol);
+      for( Index row=0; row<nfpol; row++ )
         {
-          // Interpolate antenna patterns to aa_grid[ia] 
-          // Use grid position function to find weights 
-          //
-          ArrayOfGridPos gp( 1 );
-          gridpos( gp, response_aa_grid, Vector(1,aa_grid[ia]) );
-          //
-          for( Index i4=0; i4<n4; i4++ )
-            {
-              for( Index i3=0; i3<n3; i3++ )
-                {
-                  for( Index i2=0; i2<n2; i2++ )
-                    {
-                      aresponse(i4,i3,i2,0) = 
-                        gp[0].fd[1] * antenna_response(i4,i3,i2,gp[0].idx) +
-                        gp[0].fd[0] * antenna_response(i4,i3,i2,gp[0].idx+1);
-
-             }  }   }
+          hrows[row].resize(n_aa*n_za*nfpol);
+          hrows[row] = 0;     // To get correct value for aa_grid 
+        }                     // points outside response aa grid
  
-          // Find the aa width for present angle 
-          //
-          // Lower and upper end of "coverage" for present aa angle
-          Numeric aa_low = response_aa_grid[0];
-          if( ia > 0 ) 
-            { 
-              const Numeric aam = ( aa_grid[ia] - aa_grid[ia-1] ) / 2.0;
-              if( aam > aa_low )
-                { aa_low = aam; };
-            }
-          Numeric aa_high = last(response_aa_grid);
-          if( ia < n_aa-1 )
-            { 
-              const Numeric aam = ( aa_grid[ia+1] - aa_grid[ia] ) / 2.0;
-              if( aam < aa_high )
-                { aa_high = aam; };
-            }
-          //
-          const Numeric aa_width = aa_high - aa_low;
+      // Loop azimuth angles
+      for( Index ia=0; ia<n_aa; ia++ )
+        {
+          const Numeric aa_point = antenna_los(il,1) + aa_grid[ia];
 
-          antenna1d_matrix( Hza, 1, antenna_los, aresponse, za_grid, f_grid, 
-                                                                     n_pol, 0 );
-          if( !allocated )
+          if( aa_point >= response_aa_grid[0]  &&  
+                                            aa_point <= last(response_aa_grid) )
             {
-              allocated = 1;
-              nrows = Hza.nrows();
-              ncols = Hza.ncols();
-              hrows.resize(nrows);
-              for( Index row=0; row<nrows; row++ )
+              // Interpolate antenna patterns to aa_grid[ia] 
+              // Use grid position function to find weights 
+              //
+              ArrayOfGridPos gp( 1 );
+              gridpos( gp, response_aa_grid, Vector(1,aa_point) );
+              //
+              for( Index i4=0; i4<n_ar_pol; i4++ )
                 {
-                  hrows[row].resize(ncols*n_aa);
-                  hrows[row] = 0;   // To get correct value for aa_grid points
-                }                   // outside response aa grid
-            }
-
-          for( Index row=0; row<nrows; row++ )
-            { 
-              for( Index col=0; col<ncols; col++ )
-                {
-                  const Numeric v            = aa_width * Hza(row,col);
-                  hrows[row][ia+col*n_aa]  = v;
-                  sum                       += v;
+                  for( Index i3=0; i3<n_ar_f; i3++ )
+                    {
+                      for( Index i2=0; i2<n_ar_za; i2++ )
+                        {
+                          aresponse(i4,i3,i2,0) = 
+                            gp[0].fd[1] * antenna_response(i4,i3,i2,gp[0].idx) +
+                            gp[0].fd[0] * antenna_response(i4,i3,i2,gp[0].idx+1);
+                        }  
+                    }   
                 }
-            }
-        }
-    }
+ 
+              // Find the aa width for present angle 
+              //
+              // Lower and upper end of "coverage" for present aa angle
+              Numeric aa_low = response_aa_grid[0];
+              if( ia > 0 ) 
+                { 
+                  const Numeric aam = antenna_los(il,1) + 
+                                          ( aa_grid[ia] + aa_grid[ia-1] ) / 2.0;
+                  if( aam > aa_low )
+                    { aa_low = aam; };
+                }
+              Numeric aa_high = last(response_aa_grid);
+              if( ia < n_aa-1 )
+                { 
+                  const Numeric aam = antenna_los(il,1) + 
+                                          ( aa_grid[ia+1] + aa_grid[ia] ) / 2.0;
+                  if( aam < aa_high )
+                    { aa_high = aam; };
+                }
+              //
+              const Numeric aa_width = aa_high - aa_low;
 
-  // Move result to H
-  H.resize(nrows,ncols*n_aa);
-  for( Index row=0; row<nrows; row++ )
-    {
-      if( do_norm )
-        hrows[row] /= sum;
-      H.insert_row( row, hrows[row] ); 
-    }
+              cout << aa_low << " " << aa_high << " " << aa_width << "\n";
+
+              // Do 1D calculations
+              //
+              Sparse Hza;
+              //
+              antenna1d_matrix( Hza, 1, Matrix(1,1,antenna_los(il,0)), 
+                                         aresponse, za_grid, f_grid, n_pol, 0 );
+
+              for( Index row=0; row<nfpol; row++ )
+                { 
+                  for( Index iz=0; iz<n_za; iz++ )
+                    {
+                      for( Index i=0; i<nfpol; i++ )
+                        {
+                          hrows[row][(iz*n_aa+ia)*nfpol+i] = 
+                                                 aa_width * Hza(row,iz*nfpol+i);
+                        }
+                    }
+                }   
+            }  // if-statement
+        }  // aa loop
+
+      // Move results to H
+      for( Index row=0; row<nfpol; row++ )
+        {
+          if( do_norm )
+            { 
+              hrows[row] /= hrows[row].sum(); 
+            }
+          H.insert_row( il*nfpol+row, hrows[row] ); 
+        }
+
+    } // antenna_los loop
 }
 
 
