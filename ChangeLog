@@ -1,3 +1,13 @@
+2009-09-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-69
+
+	* src/sensor.cc (antenna2d_simplified): Added some output to find
+	the bottleneck for larger calculations.
+
+	* includes/amsu/setup_input.m (setup_input): Generates now also
+	an antenna pattern file.
+
 2009-09-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-68

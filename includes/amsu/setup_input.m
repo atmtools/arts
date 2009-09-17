@@ -40,7 +40,8 @@ G.dataname  = 'Response';
 G.data(1,1,:,:) = R;
 %
 %xmlStore( 'amsub.antenna.xml', G, 'GriddedField4' );
-  
+%
+clear G
 
 
 %--- LO frequencies

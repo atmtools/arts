@@ -300,6 +300,9 @@ void antenna2d_simplified(
       // Loop azimuth angles
       for( Index ia=0; ia<n_aa; ia++ )
         {
+
+          cout << il << "/" << ia << endl;
+
           const Numeric aa_point = antenna_los(il,1) + aa_grid[ia];
 
           if( aa_point >= response_aa_grid[0]  &&  
@@ -346,8 +349,6 @@ void antenna2d_simplified(
               //
               const Numeric aa_width = aa_high - aa_low;
 
-              cout << aa_low << " " << aa_high << " " << aa_width << "\n";
-
               // Do 1D calculations
               //
               Sparse Hza;
@@ -372,6 +373,7 @@ void antenna2d_simplified(
       // Move results to H
       for( Index row=0; row<nfpol; row++ )
         {
+          cout << "Filling row " << il*nfpol+row << " of H\n";
           if( do_norm )
             { 
               hrows[row] /= hrows[row].sum(); 

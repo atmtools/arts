@@ -52,7 +52,7 @@ G.dataname  = 'Response';
 G.data(1,1,:,1) = A(:,2);
 %
 name = sprintf( 'antenna.SM_AC2ab.%.0fms.xml', 1e3*t );
-xmlStore( name, G, 'GriddedField4' );
+%xmlStore( name, G, 'GriddedField4' );
 %
 A = read_datafile( fullfile(inpath,'Antenna','Lab','antenna.SM_AC1e.aa'),...
                                                                     'Matrix' ); 
@@ -65,9 +65,7 @@ G.dataname  = 'Response';
 G.data(1,1,:,1) = A(:,2);
 %
 name = sprintf( 'antenna.SM_AC1e.%.0fms.xml', 1e3*t );
-xmlStore( name, G, 'GriddedField4' );
-
-return
+%xmlStore( name, G, 'GriddedField4' );
 
 
 
