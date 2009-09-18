@@ -1,3 +1,12 @@
+2009-09-18  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-71
+
+	* configure.in, includes/Makefile.am, includes/hirs/Makefile.am,
+	includes/mhs/Makefile.am:
+
+	Updated.
+
 2009-09-18  Mathias Milz  <mathias.milz@ltu.se>
 
 	* arts-1-12-70

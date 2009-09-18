@@ -8,7 +8,7 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 
-includesdir        = $(pkgdatadir)/includes/amsu
+includesdir        = $(pkgdatadir)/includes/mhs
 
 includes_DATA = \
 	$(wildcard *.arts) \
