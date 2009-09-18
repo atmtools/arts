@@ -1,3 +1,10 @@
+2009-09-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-73
+
+	* tests/GroundBased/TestGbased.arts: Started this test. To have a
+	test case for beam and frequency switching.  
+
 2009-09-18  Mathias Milz  <mathias.milz@ltu.se>
 
 	* includes/mhs/
