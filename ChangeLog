@@ -4,7 +4,7 @@
 
 	* 2D antennas appear to work. Tests for various configurations
 	have been performed. Note that the 2D weighting is handled in a
-	somewhat simplified way. And that set-up sesnor response is slow for 
+	somewhat simplified way. And that set-up sensor response is slow for 
 	large cases.
 
 	* src/m_sensor.cc (sensor_responseMultiMixerBackend): Data were
