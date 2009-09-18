@@ -41,6 +41,8 @@
 #include "sorting.h"
 #include "sensor.h"
 
+#include "auto_md.h"
+
 extern const Numeric PI;
 extern const Index GFIELD1_F_GRID;
 extern const Index GFIELD4_FIELD_NAMES;
@@ -300,10 +302,7 @@ void antenna2d_simplified(
       // Loop azimuth angles
       for( Index ia=0; ia<n_aa; ia++ )
         {
-
-          cout << il << "/" << ia << endl;
-
-          const Numeric aa_point = antenna_los(il,1) + aa_grid[ia];
+          const Numeric aa_point = aa_grid[ia] - antenna_los(il,1);
 
           if( aa_point >= response_aa_grid[0]  &&  
                                             aa_point <= last(response_aa_grid) )
@@ -356,6 +355,9 @@ void antenna2d_simplified(
               antenna1d_matrix( Hza, 1, Matrix(1,1,antenna_los(il,0)), 
                                          aresponse, za_grid, f_grid, n_pol, 0 );
 
+              //if( il == 0 )
+                WriteXMLIndexed( "ascii", ia, Hza, "", "sensor_response", "" );
+
               for( Index row=0; row<nfpol; row++ )
                 { 
                   for( Index iz=0; iz<n_za; iz++ )
@@ -373,7 +375,6 @@ void antenna2d_simplified(
       // Move results to H
       for( Index row=0; row<nfpol; row++ )
         {
-          cout << "Filling row " << il*nfpol+row << " of H\n";
           if( do_norm )
             { 
               hrows[row] /= hrows[row].sum(); 
@@ -526,7 +527,7 @@ void mixer_matrix(
    Sets up the the auxiliary vectors for sensor_response.
 
    The function assumes that all grids are common, and the aux vectors
-   are just the grids repeated
+   are just the grids repeated.
 
    \param   sensor_response_f          As the WSV with same name
    \param   sensor_response_pol        As the WSV with same name
@@ -536,7 +537,10 @@ void mixer_matrix(
    \param   sensor_response_pol_grid   As the WSV with same name
    \param   sensor_response_za_grid    As the WSV with same name
    \param   sensor_response_aa_grid    As the WSV with same name
-
+   \param   za_aa_independent          Flag to indicate that za and aa
+                                       dimensions are "perpendicular".  
+                                       This is only valid before the antenna 
+                                       response has been considered.
    \author Patrick Eriksson
    \date   2008-06-09
 */
@@ -548,7 +552,8 @@ void sensor_aux_vectors(
        ConstVectorView   sensor_response_f_grid,
    const ArrayOfIndex&   sensor_response_pol_grid,
        ConstVectorView   sensor_response_za_grid,
-       ConstVectorView   sensor_response_aa_grid )
+       ConstVectorView   sensor_response_aa_grid,
+           const Index   za_aa_independent )
 {
   // Sizes
   const Index nf       = sensor_response_f_grid.nelem();
@@ -562,6 +567,8 @@ void sensor_aux_vectors(
       empty_aa = 1;
       naa      = 1; 
     }
+  if( !za_aa_independent )
+    { naa = 1; }
   //
   const Index n = nf * npol * nza * naa;
 
@@ -595,7 +602,12 @@ void sensor_aux_vectors(
                   sensor_response_pol[i] = sensor_response_pol_grid[ip];
                   sensor_response_za[i]  = sensor_response_za_grid[iza];
                   if( !empty_aa )
-                    { sensor_response_aa[i] = sensor_response_aa_grid[iaa]; }
+                    { 
+                      if( za_aa_independent )
+                        sensor_response_aa[i] = sensor_response_aa_grid[iaa]; 
+                      else
+                        sensor_response_aa[i] = sensor_response_aa_grid[iza]; 
+                    }
                 }
             }
         }
@@ -1155,7 +1167,6 @@ void find_effective_channel_boundaries(// Output:
       // merging. 
       while (continue_checking && i<fmin.nelem()-1)
         {
-          //          cout << "i " << i << "\n";
           continue_checking =
             test_and_merge_two_channels(fmin, fmax, i, i+1);
 

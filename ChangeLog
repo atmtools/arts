@@ -1,3 +1,20 @@
+2009-09-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-72
+
+	* 2D antennas appear to work. Tests for various configurations
+	have been performed. Note that the 2D weighting is handled in a
+	somewhat simplified way. And that set-up sesnor response is slow for 
+	large cases.
+
+	* src/m_sensor.cc (sensor_responseMultiMixerBackend): Data were
+	sorted incorrectly for multi beam cases. 
+
+	(AntennaMultiBeamsToPencilBeams): New WSM.
+
+	* src/sensor.cc (antenna2d_simplified): Did not work correctly for
+	multi beam cases.
+	
 2009-09-18  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-71

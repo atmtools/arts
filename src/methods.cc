@@ -1659,6 +1659,38 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "AntennaMultiBeamsToPencilBeams" ),
+        DESCRIPTION
+        (
+         "Maps a muli-beam case to matching pencil beam case.\n"
+         "\n"
+         "Cases with overlapping beams are most efficiently handled by\n"
+         "by letting *antenna_los* have several rows. That is there are\n"
+         "multiple beams for each measurement block. The drawback is that\n"
+         "may varibles must be adjusted if the corresponding pencil beam\n"
+         "spectra shall be calculated. This method makes this adjustment.\n"
+         "That is, if you have a control file for a multiple beam case and\n"
+         "for some reason want to avoud the antenna weighting, you add this\n"
+         "method before *sensorInit*, and remove the call of\n"
+         "*sensor_responseAntenna* and you will get the matching pencil beam\n"
+         "spectra.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "sensor_pos", "sensor_los", "antenna_los", "antenna_dim", 
+             "mblock_za_grid", "mblock_aa_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "sensor_pos", "sensor_los", "antenna_los", "antenna_dim", 
+            "mblock_za_grid", "mblock_aa_grid", "atmosphere_dim" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "AntennaOff" ),
         DESCRIPTION
         (

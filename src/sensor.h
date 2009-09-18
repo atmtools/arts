@@ -87,7 +87,8 @@ void sensor_aux_vectors(
        ConstVectorView   sensor_response_f_grid,
    const ArrayOfIndex&   sensor_response_pol_grid,
        ConstVectorView   sensor_response_za_grid,
-       ConstVectorView   sensor_response_aa_grid );
+       ConstVectorView   sensor_response_aa_grid,
+           const Index   za_aa_independent );
 
 void sensor_integration_vector(
         VectorView   h,

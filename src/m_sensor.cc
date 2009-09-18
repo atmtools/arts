@@ -70,6 +70,82 @@ extern const Index GFIELD4_AA_GRID;
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void AntennaMultiBeamsToPencilBeams(
+       Matrix&   sensor_pos,
+       Matrix&   sensor_los,
+       Matrix&   antenna_los,
+        Index&   antenna_dim,
+       Vector&   mblock_za_grid,
+       Vector&   mblock_aa_grid,
+  const Index&   atmosphere_dim )
+{
+  // Sizes
+  const Index nmblock = sensor_pos.nrows();
+  const Index nant    = antenna_los.nrows();
+
+  // Input checks
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
+  //
+  if( sensor_pos.ncols() != atmosphere_dim )
+    throw runtime_error( "The number of columns of sensor_pos must be "
+                              "equal to the atmospheric dimensionality." );
+  if( atmosphere_dim <= 2  &&  sensor_los.ncols() != 1 )
+    throw runtime_error( 
+                      "For 1D and 2D, sensor_los shall have one column." );
+  if( atmosphere_dim == 3  &&  sensor_los.ncols() != 2 )
+    throw runtime_error( "For 3D, sensor_los shall have two columns." );
+  if( sensor_los.nrows() != nmblock )
+    {
+      ostringstream os;
+      os << "The number of rows of sensor_pos and sensor_los must be "
+         << "identical, but sensor_pos has " << nmblock << " rows,\n"
+         << "while sensor_los has " << sensor_los.nrows() << " rows.";
+      throw runtime_error( os.str() );
+    }
+  if( antenna_dim == 2  &&  atmosphere_dim < 3 )
+    {
+      throw runtime_error(
+                          "If *antenna_dim* is 2, *atmosphere_dim* must be 3." );
+    }
+  if( antenna_dim != antenna_los.ncols() ) 
+    {
+      throw runtime_error(
+             "The number of columns of *antenna_los* must be *antenna_dim*.\n" );
+    }
+
+  // Claculate new sensor_pos and sensor_los
+  const Matrix pos_copy = sensor_pos;
+  const Matrix los_copy = sensor_los;
+  //
+  sensor_pos.resize( nmblock*nant, pos_copy.ncols() );
+  sensor_los.resize( nmblock*nant, los_copy.ncols() );
+  //
+  for( Index ib=0; ib<nmblock; ib++ )
+    {
+      for( Index ia=0; ia<nant; ia++ )
+        {
+          const Index i = ib*nant + ia;
+
+          sensor_pos(i,joker) = pos_copy(ib,joker);
+          sensor_los(i,joker) = los_copy(ib,joker);
+          
+          sensor_los(i,0) += antenna_los(ia,0);
+          if( antenna_dim == 2 )
+            sensor_los(i,1) += antenna_los(ia,1);
+        }
+    }
+
+  // Set other variables
+  AntennaOff( antenna_dim, mblock_za_grid, mblock_aa_grid );
+  //
+  antenna_los.resize( 1, 1 );
+  antenna_los = 0;
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AntennaOff(
    // WS Output:
     Index&   antenna_dim,
@@ -764,7 +840,7 @@ void sensor_responseAntenna(
   sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
                       sensor_response_za,      sensor_response_aa, 
                       sensor_response_f_grid,  sensor_response_pol_grid, 
-                      sensor_response_za_grid, sensor_response_aa_grid );
+                      sensor_response_za_grid, sensor_response_aa_grid, 0 );
 }
 
 
@@ -883,14 +959,6 @@ void sensor_responseBackend(
       //
       f_dlow  = min( f_dlow, f1 );
       f_dhigh = min( f_dhigh, f2 );
-      if( f_dlow < 0 ) 
-        {
-          cout << i << "\n";
-          cout << f1 << "\n";
-          cout << min(sensor_response_f_grid) << "\n";
-          cout << f_backend[i] << "\n";
-          cout << bchr_f_grid[0] << "\n";
-      }
     }
 
   if( f_dlow < 0 ) 
@@ -941,7 +1009,7 @@ void sensor_responseBackend(
   sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
                       sensor_response_za,      sensor_response_aa, 
                       sensor_response_f_grid,  sensor_response_pol_grid, 
-                      sensor_response_za_grid, sensor_response_aa_grid );
+                      sensor_response_za_grid, sensor_response_aa_grid, 0 );
 }
 
 
@@ -1014,7 +1082,7 @@ void sensor_responseBeamSwitching(
   sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
                       sensor_response_za,      sensor_response_aa, 
                       sensor_response_f_grid,  sensor_response_pol_grid, 
-                      sensor_response_za_grid, sensor_response_aa_grid );
+                      sensor_response_za_grid, sensor_response_aa_grid, 0 );
 }
 
 
@@ -1142,7 +1210,7 @@ void sensor_responseInit(
   sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
                       sensor_response_za,      sensor_response_aa, 
                       sensor_response_f_grid,  sensor_response_pol_grid, 
-                      sensor_response_za_grid, sensor_response_aa_grid );
+                      sensor_response_za_grid, sensor_response_aa_grid, 1 );
 
   //Set response matrix to identity matrix
   //
@@ -1338,7 +1406,7 @@ void sensor_responseMixer(
   sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
                       sensor_response_za,      sensor_response_aa, 
                       sensor_response_f_grid,  sensor_response_pol_grid, 
-                      sensor_response_za_grid, sensor_response_aa_grid );
+                      sensor_response_za_grid, sensor_response_aa_grid, 0 );
 }
 
 
@@ -1431,7 +1499,7 @@ void sensor_responseMultiMixerBackend(
   // Variables for data to be appended
   Array<Sparse> sr;
   ArrayOfVector srfgrid;
-  Index         ntot = 0, nftot = 0; 
+  ArrayOfIndex  cumsumf(nlo+1,0);
 
   for( Index ilo=0; ilo<nlo; ilo++ )
     {
@@ -1479,44 +1547,61 @@ void sensor_responseMultiMixerBackend(
       sr.push_back( sr1 );
       srfgrid.push_back( srfgrid1 );
       //
-      ntot        += sr1.nrows();
-      nftot       += srfgrid1.nelem();
+      cumsumf[ilo+1] = cumsumf[ilo] + srfgrid1.nelem();
     }
 
-  // Append data to create total sensor_response and sensor_response_f_grid
+  // Append data to create sensor_response_f_grid
   //
-  const Index ncols = sr[0].ncols();
-  Index row0 = 0, if0 = 0;
-  Vector dummy( ncols, 0.0 );
-  //
-  sensor_response.resize( ntot, ncols );
-  sensor_response_f_grid.resize( nftot );
+  const Index  nfnew = cumsumf[nlo];
+  sensor_response_f_grid.resize( nfnew );
   //
   for( Index ilo=0; ilo<nlo; ilo++ )
     {
-      for( Index row=0; row<sr[ilo].nrows(); row++ )
-        {
-          // "Poor mans" transfer of a row from one sparse to another 
-          for( Index ic=0; ic<ncols; ic++ )
-            { dummy[ic] = sr[ilo](row,ic); }
-
-          sensor_response.insert_row( row0+row, dummy );
-        }
-      row0 += sr[ilo].nrows();
-      
       for( Index i=0; i<srfgrid[ilo].nelem(); i++ )
         {
-          sensor_response_f_grid[if0+i] = srfgrid[ilo][i];
+          sensor_response_f_grid[cumsumf[ilo]+i] = srfgrid[ilo][i];
         }
-      if0 += srfgrid[ilo].nelem();
+    }
+
+  // Append data to create total sensor_response
+  //
+  const Index  ncols   = sr[0].ncols();
+  const Index  npolnew = sensor_response_pol_grid.nelem();
+  const Index  nfpolnew = nfnew * npolnew;
+  //
+  sensor_response.resize( nza*nfpolnew, ncols );
+  //
+  Vector dummy( ncols, 0.0 );
+  //
+  for( Index ilo=0; ilo<nlo; ilo++ )
+    {
+      const Index nfpolthis = (cumsumf[ilo+1]-cumsumf[ilo]) * npolnew;
+
+      assert( sr[ilo].nrows() == nza*nfpolthis );
+      assert( sr[ilo].ncols() == ncols );
+
+      for( Index iz=0; iz<nza; iz++ )
+        {
+          for( Index i=0; i<nfpolthis; i++ )
+            {
+              // "Poor mans" transfer of a row from one sparse to another 
+              for( Index ic=0; ic<ncols; ic++ )
+                { dummy[ic] = sr[ilo](iz*nfpolthis+i,ic); }
+
+              sensor_response.insert_row( iz*nfpolnew+cumsumf[ilo]*npolnew+i, 
+                                                                       dummy );
+            }
+        }
     }  
 
   // Set aux variables
   sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
                       sensor_response_za,      sensor_response_aa, 
                       sensor_response_f_grid,  sensor_response_pol_grid, 
-                      sensor_response_za_grid, sensor_response_aa_grid );
+                      sensor_response_za_grid, sensor_response_aa_grid, 0 );
 }
+
+
 
 // Declare select functions needed by WMRFSelectChannels:
 
@@ -1779,7 +1864,7 @@ void sensor_responseWMRF(// WS Output:
   sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
                       sensor_response_za,      sensor_response_aa, 
                       sensor_response_f_grid,  sensor_response_pol_grid, 
-                      sensor_response_za_grid, sensor_response_aa_grid );
+                      sensor_response_za_grid, sensor_response_aa_grid, 0 );
   
 }
 
