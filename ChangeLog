@@ -1,3 +1,23 @@
+2009-09-18  Mathias Milz  <mathias.milz@ltu.se>
+
+	* arts-1-12-70
+
+	* includes/amsu/amsub.arts: 
+	  the maximum propagation step(ppath_lmax), is set from the 
+	  default(10.e3)to 250 m for higher accuracy in forward 
+	  calculation
+	
+	* includes/amsu/amsub_fast.arts:	
+	  the maximum propagation step(ppath_lmax), is set from the 
+	  default(10.e3)to 250 m for higher accuracy in forward 
+	  calculation
+
+	* includes/mhs/:
+	  introduced include-files for MHS-setup.
+
+	* test/mhs/:
+	  build test case for MHS setup.
+
 2009-09-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-69

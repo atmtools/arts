@@ -1,0 +1,15 @@
+#DEFINITIONS:  -*-sh-*-
+
+Arts2 {
+
+INCLUDE "general.arts"
+INCLUDE "continua.arts"
+INCLUDE "mhs/mhs.arts"
+
+INCLUDE "TestMHS_generic.arts"
+
+# Store result matrix:
+# ---
+WriteXML( "ascii", ybatch, "MHS.ybatch.xml.generated" )
+
+}

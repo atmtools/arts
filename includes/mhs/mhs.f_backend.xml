@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<Array type="Vector" nelem="5">
+<Vector nelem="1">
+8.9700000e+10
+</Vector>
+<Vector nelem="1">
+1.577000e+11
+</Vector>
+<Vector nelem="1">
+1.8431100e+11
+</Vector>
+<Vector nelem="1">
+1.8631100e+11
+</Vector>
+<Vector nelem="1">
+1.9086100e+11
+</Vector>
+</Array>
+</arts>

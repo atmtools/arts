@@ -122,6 +122,175 @@ void AntennaSet2D(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void f_gridFromSensorMHS(// WS Output:
+                      Vector& f_grid,
+                      // WS Input:
+                      const Vector& lo,
+                      const ArrayOfVector& f_backend,
+                      const ArrayOfArrayOfGField1& backend_channel_response,
+                      // Control Parameters:
+                      const Numeric& spacing)
+{
+  // Find out how many channels we have in total:
+  // f_backend is an array of vectors, containing the band frequencies for each Mixer.
+  Index n_chan = 0;
+  for (Index i=0; i<f_backend.nelem(); ++i)
+    for (Index s=0; s<f_backend[i].nelem(); ++s)
+      ++n_chan;
+
+  // Checks on input quantities:
+
+  // There must be at least one channel:
+  if (n_chan < 1)
+    {
+      ostringstream os;
+      os << "There must be at least one channel.\n"
+         << "(The vector *lo* must have at least one element.)";
+      throw runtime_error(os.str());
+    }
+
+  // Is number of LOs consistent in all input variables?
+  if ( (f_backend.nelem()                != lo.nelem()) ||
+       (backend_channel_response.nelem() != lo.nelem()) )
+    {
+      ostringstream os;
+      os << "Variables *lo_multi*, *f_backend_multi* and *backend_channel_response_multi*\n"
+         << "must have same number of elements (number of LOs).";
+      throw runtime_error(os.str());
+    }
+
+  // Is number of bands consistent for each LO?
+  for (Index i=0; i<f_backend.nelem(); ++i)
+    if (f_backend[i].nelem() != backend_channel_response[i].nelem())
+    {
+      ostringstream os;
+      os << "Variables *f_backend_multi* and *backend_channel_response_multi*\n"
+         << "must have same number of bands for each LO.";
+      throw runtime_error(os.str());
+    }
+
+  // Start the actual work.
+
+  // We build up a total list of absolute frequency ranges for
+  // both signal and image sidebands:
+  Vector fabs_min(2*n_chan), fabs_max(2*n_chan);
+  Index ifabs=0;
+
+  // We need to add a bit of extra margin at both sides,
+  // otherwise there could be a numerical problem in the sensor WSMs. 
+  // 
+  // PE 081003: Selected 5 kHz. Scaled from value selected for HIRS. 
+  //      
+  const Numeric delta = 5e3;
+
+  for (Index i=0; i<f_backend.nelem(); ++i)
+    for (Index s=0; s<f_backend[i].nelem(); ++s)
+      {
+        ConstVectorView this_grid = backend_channel_response[i][s].get_numeric_grid(0);
+        const Numeric this_f_backend = f_backend[i][s];
+
+        // Signal sideband:
+        fabs_min[ifabs] = this_f_backend + this_grid[0] - delta;
+        fabs_max[ifabs] = this_f_backend + this_grid[this_grid.nelem()-1] + delta;
+	++ifabs;
+        
+        // Image sideband:
+        Numeric offset  = this_f_backend - lo[i];
+        Numeric f_image = lo[i] - offset;
+
+        fabs_min[ifabs] = f_image + this_grid[0] - delta;                  
+        fabs_max[ifabs] = f_image + this_grid[this_grid.nelem()-1] + delta;
+        ++ifabs;
+      }
+
+  //  cout << "fabs_min: " << fabs_min << "\n";
+  //  cout << "fabs_max: " << fabs_max << "\n";
+
+
+  // Check for overlap:
+  for (Index i=1; i<fabs_min.nelem(); ++i)
+    {
+      for (Index s=0; s<i; ++s)
+        {
+          // We check if either fabs_min[i] or fabs_max[i] are inside
+          // the interval of any fabs with a smaller index.
+
+          /* in case the connecting boundaries of two adjacent channels are supposed to be identical (max(1)==min(2))
+	     the boundaries are set equal to avoid overlapping of grid points
+	  */
+
+	  if (abs(fabs_max[i] - fabs_min[s]) < 2.01 * delta )
+	    {
+	      fabs_max[i] = (fabs_max[i] + fabs_min[s]) / 2;
+	      fabs_min[s] = fabs_max[i];
+	      cout << "Channel boundaries adapted to avoid overlapping due to delta-expansion: ";
+	      cout << fabs_max[i] << " ==  " << fabs_min[s] << "\n";
+} 
+	  if (abs(fabs_min[i] - fabs_max[s]) < 2.01 * delta)
+	    {
+	      //	      cout << fabs_min[i] << "  == " << fabs_max[s] << " diff(1-2): " << fabs_min[i] - fabs_max[s] 
+	      //		   << " -- " << (fabs_min[i] - fabs_max[s])/fabs_max[s]  << "\n";
+	      fabs_min[i] = (fabs_min[i] + fabs_max[s]) / 2;
+	      fabs_max[s] = fabs_min[i];
+	      cout << "Channel boundaries adapted to avoid overlapping due to delta-expansion: ";
+	      cout << fabs_max[s] << " == " << fabs_min[i] << "\n";
+	    } 	  
+	  
+	  //          if (((fabs_min[i]>=fabs_min[s]) && (fabs_min[i]<=fabs_max[s])) ||
+          //    ((fabs_max[i]>=fabs_min[s]) && (fabs_max[i]<=fabs_max[s])) )
+          if (((fabs_min[i] >= fabs_min[s]) && (fabs_min[i]< fabs_max[s])) ||
+              ((fabs_max[i] > fabs_min[s]) && (fabs_max[i] <= fabs_max[s])) )
+            {
+              ostringstream os;
+              os << "Your instrument bands overlap. This case it not (yet) handled.";
+              throw runtime_error(os.str());
+            }
+        }
+    }  
+
+  // Create f_grid_unsorted. This is an array of Numeric, so that we
+  // can use the STL push_back function.
+  ArrayOfNumeric f_grid_unsorted;
+
+  for (Index i=0; i<fabs_min.nelem(); ++i)
+    {
+      // Band width:
+      const Numeric bw = fabs_max[i] - fabs_min[i];
+
+      // How many grid intervals do I need?
+      const Numeric npf = ceil(bw/spacing);
+
+      // How many grid points to store? - Number of grid intervals
+      // plus 1.
+      const Index   npi = (Index) npf + 1;
+
+      // What is the actual grid spacing inside the band?
+      const Numeric gs = bw/npf;
+      
+      // Create the grid for this band:
+      Vector grid(fabs_min[i], npi, gs);
+
+      out3 << "  Band range " << i << ": " << grid << "\n";
+
+      // Append to f_grid_unsorted:
+      f_grid_unsorted.reserve(f_grid_unsorted.nelem()+npi);
+      for (Index s=0; s<npi; ++s)
+        f_grid_unsorted.push_back(grid[s]);
+    }
+
+  // Sort the entire f_grid by increasing frequency:
+  f_grid.resize(f_grid_unsorted.nelem());
+  ArrayOfIndex si;
+  get_sorted_indexes(si, f_grid_unsorted);
+
+  for (Index i=0; i<f_grid_unsorted.nelem(); ++i)
+    {
+      f_grid[i] = f_grid_unsorted[si[i]] ;
+    }
+  // That's it, we're done!
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromSensorAMSU(// WS Output:
                       Vector& f_grid,
                       // WS Input:
@@ -180,7 +349,6 @@ void f_gridFromSensorAMSU(// WS Output:
       {
         ConstVectorView this_grid = backend_channel_response[i][s].get_numeric_grid(0);
         const Numeric this_f_backend = f_backend[i][s];
-
         // We need to add a bit of extra margin at both sides,
         // otherwise there could be a numerical problem in the sensor WSMs. 
         // 

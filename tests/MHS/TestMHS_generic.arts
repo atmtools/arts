@@ -1,64 +1,13 @@
 #DEFINITIONS:  -*-sh-*-
 
 # --------------------------------------------------------------------
-# Test batch calculations for HIRS.
-# Viju Oommen John and Stefan Buehler, August to October 2008.
+# This is the part of the TestMHS control files that is the same for
+# MHS and MHS.
+# 
+# DO NOT RUN THIS FILE DIRECTLY, RUN TestMHS.arts!
 # --------------------------------------------------------------------
 
-
 Arts2 {
-
-INCLUDE "general.arts"
-INCLUDE "continua.arts"
-
-StringCreate(satellite)
-ArrayOfIndexCreate(channels)
-ArrayOfIndexCreate(views)
-StringCreate(hitran_file)
-NumericCreate(f_grid_spacing)
-
-
-# Select here which satellite you want
-# ---
-StringSet(satellite, "NOAA14")
-
-
-# Select here which channels you want
-# ---
-#
-# HIRS Channels 13-19 are shortwave channels. Simulating them with
-# ARTS for thermal radiation only is pointless.
-#
-# WATCH OUT! We use the usual zero-based ARTS indexing here, so index
-# 11 is actually channel 12, etc. 
-#ArrayOfIndexSet(channels, [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18])
-ArrayOfIndexSet(channels, [0,1,2,3,4,5,6,7,8,9,10,11])
-#ArrayOfIndexSet(channels, [11])
-
-# Select here which views you want
-# ---
-ArrayOfIndexSet(views, [0, 7, 14, 21, 27])
-
-
-# You have to give here the location of the HITRAN catalogue
-# ---
-# FIXME: This has to be replaced by a little piece of the catalog
-# explicitly included here, or?
-# We have to discuss with Oliver (and perhaps Patrick) how to handle
-# this.
-# We can also include a pre-calculated absorption table for HIRS with
-# ARTS. 
-StringSet(hitran_file,"/storage1/pool/lookup2/hitran2004/HITRAN04.par")
-#StringSet(hitran_file,"/home/patrick/Data/HITRAN_2004/HITRAN04.par")
-
-
-# Set frequency grid spacing
-# (See comments in hirs_reference.arts concerning useful values here)
-# ---
-NumericSet(f_grid_spacing, 5e8)
-
-INCLUDE "hirs/hirs_fast.arts"
-
 
 # Set up absorption
 # =================
@@ -74,11 +23,9 @@ INCLUDE "hirs/hirs_fast.arts"
 ArrayOfMatrixCreate( arrayofmatrix_1 )
 #ReadXML( arrayofmatrix_1,
 #         "/storage2/home/sbuehler/checkouts/arts-xml-data/atmosphere/chevallier_91L/chevallierl91_clear_q.xml" )
-#ReadXML( arrayofmatrix_1, "../AMSU/chevallierl91_clear_q_extract.xml" )
+ReadXML( arrayofmatrix_1, "chevallierl91_clear_q_extract.xml" )
 
-ReadXML( arrayofmatrix_1, "garand_profiles.xml" )
-
-# Storage in an array of matrix is handy for profile data, because
+# Storage in an array of matrix is handy for Chevallier data, because
 # it is very compact. However, the more general internal
 # representation of the data is in batch_atm_fields_compact.
 
@@ -89,7 +36,7 @@ batch_atm_fields_compactFromArrayOfMatrix(
    batch_atm_fields_compact,
    atmosphere_dim,
    arrayofmatrix_1,
-   ["T", "z", "H2O", "O3", "CO2", "N2O", "CO", "CH4"],
+   ["T", "z", "H2O", "O3"],
    ["O2", "N2"],
    [0.2095, 0.7808]
 )
@@ -101,6 +48,7 @@ Delete( arrayofmatrix_1 )
 # Set parameters for lookup table
 # ---
 # Arguments omitted for better maintainability of this test file.
+#abs_lookupSetupWide
 abs_lookupSetupBatch
 # abs_lookupSetupBatch( abs_p, 
 #                       abs_t, 
@@ -135,8 +83,6 @@ abs_lookupSetupBatch
 # ---
 abs_lookupCreate
 
-#WriteXML("binary", abs_lookup)
-
 # Test (and print) lookup table accuracy
 # ---
 # This method is not necessary, it just tests and prints the lookup
@@ -155,22 +101,10 @@ AgendaSet( abs_scalar_gas_agenda ){
 # Set up RT calculation
 # =====================
 
-# If you do not want to use a blackbody surface, uncomment this
+# Set surface emissivity
 # ---
-#NumericCreate( surface_emissivity )
-#NumericSet( surface_emissivity, 0.99 )
-#AgendaSet( surface_prop_agenda ){
-#  Ignore( rte_pos )
-#  Ignore( rte_gp_p )
-#  InterpSurfaceFieldToRteGps( surface_skin_t, atmosphere_dim, lat_grid, 
-#                              lon_grid, rte_gp_lat, rte_gp_lon, t_surface )
-#  surfaceFlatSingleEmissivity( surface_los, surface_rmatrix, surface_emission, 
-#                               f_grid, stokes_dim, atmosphere_dim, rte_los, 
-#                               surface_skin_t, surface_emissivity )
-#} 
-
-
-
+# Here we take a value representative for the sea surface.
+NumericSet( surface_emissivity, 0.6 )
 
 
 # Definition of sensor position and LOS
@@ -178,11 +112,19 @@ AgendaSet( abs_scalar_gas_agenda ){
 
 # Optionally set sensor_pos
 # ---
-# The sensor altitude is predefined in amsu.arts to 850 km above the geoid. 
+# The sensor altitude is predefined in mhs.arts to 850 km above the geoid. 
 # Comment out the next two lines if you want to set it to something else.
-#MatrixSetConstant( sensor_pos, 1, 1, 850e3 )
-#sensor_posAddRgeoid
+MatrixSetConstant( sensor_pos, 1, 1, 850e3 )
+sensor_posAddRgeoid
 
+
+# Optionally set sensor_los
+# ---
+# The sensor viewing directions for MHS are predefined in mhs.arts. 
+# There are 45 different angles, corresponding to one side of the MHS
+# Scan. You can instead set it here to a single value if you want to 
+# calculate only for one viewing angle.
+MatrixSetConstant( sensor_los, 1, 1, 180 )
 
 # Set the agenda for batch calculations:
 # ---
@@ -201,13 +143,12 @@ AgendaSet( ybatch_calc_agenda ){
   AtmFieldsFromCompact
 
   # Optionally set jacobian parameters:
-#
 #   jacobianInit
 #   jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda, jacobian, 
 #                          atmosphere_dim,
 #                          p_grid, lat_grid, lon_grid, 
 #                          p_grid, lat_grid, lon_grid,
-#                          "H2O, H2O-SelfContCKDMT100, H2O-ForeignContCKDMT100",
+#                          "H2O-PWR98",
 #                          "analytical",
 #                          "rel",
 #                          0.01 )
@@ -224,23 +165,16 @@ AgendaSet( ybatch_calc_agenda ){
   # Optionally write out jacobian:
 #  WriteXMLIndexed( output_file_format, ybatch_index, jacobian, "" )
 
-  # Convert the measurement from radiance units to Planck Tb:
-  yUnit( y, "PlanckBT", y_f )
 }
 
 
 # Set number of batch cases:
 nelemGet( ybatch_n, batch_atm_fields_compact )
-#IndexSet(ybatch_n, 1)
+#IndexSet(ybatch_start, 2)
+#IndexSet(ybatch_n, 2)
 
 # Execute the batch calculations:
 # ---
 ybatchCalc
-
-
-# Store result matrix:
-# ---
-WriteXML( "ascii", ybatch )
-
 
 }

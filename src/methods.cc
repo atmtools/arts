@@ -3459,6 +3459,48 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME( "f_gridFromSensorMHS" ),
+        DESCRIPTION
+        (
+         "Automatically calculate f_grid to match the sensor.\n"
+         "\n"
+         "This method is handy if you are simulating an AMSU-type instrument,\n"
+         "consisting of a few discrete channels which might \n"
+	 "have overlapping or touching sidebands, such as MHS.\n"
+         "\n"
+         "It calculates f_grid to match the instrument, as given by the local\n"
+         "oscillator frequencies *lo_multi*, the backend frequencies *f_backend_multi*, and\n"
+         "the backend channel responses *backend_channel_response_multi*.\n"
+         "\n"
+         "You have to specify the desired spacing in the keyword *spacing*, which\n"
+         "has a default value of 100 MHz. (The actual value is 0.1e9, since our\n"
+         "unit is Hz.)\n"
+         "\n"
+         "The produced grid will not have exactly the requested spacing, but\n"
+         "will not be coarser than requested. The algorithm starts with the band\n"
+         "edges, then adds additional points until the spacing is at least as\n"
+         "fine as requested.\n"
+         "\n"
+         "This method is based on the function\n"
+         "*f_gridFromSensorAMSU*.\n"
+         "\n"
+         "There is a similar method for HIRS-type instruments, see\n"
+         "*f_gridFromSensorHIRS*.\n"
+         ),
+        AUTHORS( "Stefan Buehler, Mathisa Milz" ),
+        OUT( "f_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "lo_multi", "f_backend_multi", "backend_channel_response_multi" ),
+        GIN( "spacing" ),
+        GIN_TYPE(    "Numeric" ),
+        GIN_DEFAULT( ".1e9" ),
+        GIN_DESC( "FIXME DOC" )
+        ));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME( "f_gridFromSensorHIRS" ),
         DESCRIPTION
         (

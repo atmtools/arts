@@ -15,6 +15,12 @@ output_file_formatSetZippedAscii
 StringSet( y_unit, "PlanckBT" )
 StringSet( jacobian_unit, "RJBT" )
 
+#
+# modifiy the maximum propagation step, from the default(10.e3)
+# to 250 m :
+#
+NumericSet( ppath_lmax, 250 )
+
 # Surface
 NumericCreate( surface_emissivity )
 AgendaSet( surface_prop_agenda ){
