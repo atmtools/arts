@@ -150,16 +150,16 @@ class TestAMSUB(unittest.TestCase):
     def test2(self):
         """Total radiance should be close to the reference values"""
         Iref=array([
-            [206.888195065204, 216.462060070912, 234.626781338542, 219.085528920088, 243.954550457357, 246.871759690388, 237.843204848381, 227.615777965081, 233.192749675628, 233.867209948054],
-            [244.797923499535, 256.505899525287, 272.583291905995, 258.751964413882, 281.040958601395, 280.440424378103, 274.000752302743, 267.455682175985, 271.088772792904, 273.163703634007],
-            [247.152151353834, 242.481089143301, 244.086775607671, 247.5396643017, 246.46425722026, 246.429927479463, 243.07055096207, 242.379181106515, 245.154786731044, 246.546725006306],
-            [261.743067325013, 258.609394695298, 257.91255048814, 260.568290959895, 263.888636064822, 263.916059116122, 257.488527385271, 261.483777874329, 260.261769401592, 263.254857017258],
-            [271.817840128734, 270.812918098056, 271.063906506059, 273.418959145645, 276.509355790478, 275.826213431893, 270.030302532401, 275.638530712342, 271.830632022535, 276.135580633224]]);
+            [206.897618904659, 216.47387362302, 234.64520477951, 219.093119113362, 243.969665770344, 246.894385994402, 237.867433595862, 227.637861424372, 233.214971660216, 233.882397697028],
+            [244.811073688972, 256.519306829158, 272.594136288584, 258.760221042019, 281.048246301787, 280.447656441305, 274.01002184789, 267.475743403907, 271.103162041974, 273.173835052923],
+            [247.149127875864, 242.476702766452, 244.079860706327, 247.537084583882, 246.45306692743, 246.423582608802, 243.066949633924, 242.374920190197, 245.150083641124, 246.540825427669],
+            [261.745350437585, 258.609286489753, 257.907114868754, 260.564250958801, 263.882120068143, 263.902087078759, 257.48100749554, 261.480570299508, 260.256896848913, 263.247342836763],
+            [271.820077454283, 270.816540678842, 271.059618617288, 273.418003059435, 276.507011327624, 275.819728169072, 270.0220106208, 275.639956647712, 271.828843342715, 276.130368937293]]);
 
         I = artsXML.load("AMSU/AMSUB.ybatch.xml.generated")
         for j in range (5):
             for k in range (10):
-                assert abs(I[j,k]-Iref[j,k]) < 0.02,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
+                assert abs(I[j,k]-Iref[j,k]) < 0.001,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
     def test3(self):
         """Total radiance should be close to the values of TestAMSUB_fast"""
         Iref = artsXML.load("AMSU/AMSUB.ybatch.xml.generated")
@@ -175,6 +175,42 @@ class TestAMSUB_fast(unittest.TestCase):
         """AMSU-B fast test should run with no errors"""
         self.Amsurun.run()
         assert self.Amsurun.error=='','Error running TestAMSUB_fast.arts: '+self.Amsurun.error
+
+class TestMHS(unittest.TestCase):
+    """Testing MHS calculations"""
+    Mhsrun=ArtsRun('MHS', 'TestMHS.arts')
+    def test1(self):
+        """MHS test should run with no errors"""
+        self.Mhsrun.run()
+        assert self.Mhsrun.error=='','Error running TestMHS.arts: '+self.Mhsrun.error
+    def test2(self):
+        """Total radiance should be close to the reference values"""
+        Iref=array([
+            [206.894832935168, 216.471182368942, 234.641949521969, 219.090069731122, 243.967344377959, 246.892454682215, 237.864634862335, 227.633971497743, 233.211657388844, 233.878926288279],
+            [250.947444539452, 261.802482498593, 276.017678600914, 264.221062083092, 283.539389489153, 282.200135012974, 276.65739434716, 272.242938923943, 274.586387908822, 277.244746975628],
+            [247.149686195992, 242.476870536288, 244.080010612482, 247.538046474088, 246.453991185512, 246.424435928646, 243.066933324228, 242.374801173937, 245.150197418964, 246.541029917116],
+            [261.745254770484, 258.609171336295, 257.906981980146, 260.564095428528, 263.882002209582, 263.901973114413, 257.480894063622, 261.480447122568, 260.256790525422, 263.247228300712],
+            [271.435354184594, 270.218863959384, 270.270489481309, 272.74452733781, 275.805101210536, 275.26144214164, 269.310000617579, 274.98290753595, 271.206020686257, 275.430506383982]]);
+
+        I = artsXML.load("MHS/MHS.ybatch.xml.generated")
+        for j in range (5):
+            for k in range (10):
+                assert abs(I[j,k]-Iref[j,k]) < 0.001,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
+    def test3(self):
+        """Total radiance should be close to the values of TestMHS_fast"""
+        Iref = artsXML.load("MHS/MHS.ybatch.xml.generated")
+        I    = artsXML.load("MHS/MHS_fast.ybatch.xml.generated")
+        for j in range (5):
+            for k in range (10):
+                assert abs(I[j,k]-Iref[j,k]) < 0.2,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
+
+class TestMHS_fast(unittest.TestCase):
+    """Testing MHS fast calculation (reduced frequency set)"""
+    Mhsrun=ArtsRun('MHS', 'TestMHS_fast.arts')
+    def test1(self):
+        """MHS fast test should run with no errors"""
+        self.Mhsrun.run()
+        assert self.Mhsrun.error=='','Error running TestMHS_fast.arts: '+self.Mhsrun.error
 
 class TestAbs(unittest.TestCase):
     """Testing the ARTS Absorption module"""

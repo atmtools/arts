@@ -48,6 +48,13 @@ set (PREPTARGETS ${PREPTARGETS} TestAMSUB_fast)
 arts_add_testcases (TARGETS "${PREPTARGETS}" AMSUB)
 set(TESTSLOWTARGETS ${TESTFASTTARGETS} ${TARGETS})
 
+arts_add_prepare_testcases (PREPTARGETS MHS)
+arts_add_testcases (TARGETS "${PREPTARGETS}" MHS_fast)
+set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
+
+set (PREPTARGETS ${PREPTARGETS} TestMHS_fast)
+arts_add_testcases (TARGETS "${PREPTARGETS}" MHS)
+set(TESTSLOWTARGETS ${TESTFASTTARGETS} ${TARGETS})
 
 add_custom_target (check-fast
                    DEPENDS

@@ -1,3 +1,20 @@
+2009-09-18  Mathias Milz  <mathias.milz@ltu.se>
+
+	* includes/mhs/
+	  added include files for MHS fast setup:
+
+	* tests/MHS/TestMHS_fast.arts
+	  added testcase for MHS_fast 
+
+	* tests/CMakeLists.txt
+	  included MHS testcases
+
+	* tests/testall.py
+          Modified testall.py:
+	  - Updated reference values for the test of AMSU-B to the new setup
+	  - decreased acceptance limit for AMSU from 0.02 to 0.001.
+	  - included testcases for MHS and MHS_fast.
+
 2009-09-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-72
