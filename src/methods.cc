@@ -2174,59 +2174,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "batch_atm_fields_compactFromArrayOfMatrix" ),
-        DESCRIPTION
-        (
-         "Expand batch of 1D atmospheric states to a batch_atm_fields_compact.\n"
-         "\n"
-         "This is used to handle 1D batch cases, for example from the Chevallier\n"
-         "data set, stored in a matrix.\n"
-         "\n"
-         "The matrix must contain one row for each pressure level.\n"
-	 "The matrix can contain some additional fiels which are not directly used\n"
-         "by ARTS for calculations but can be required for further processing,\n"
-         "for e.g. wind speed and direction. In this case, additional fields must\n"
-         "be put at the end of the matrix and they must be flagged by 'ignore',\n"
-         "large or small letters, in the field names.\n"
-	 "Row format:\n"
-         "\n" 
-         "p[Pa] T[K] z[m] VMR_1[1] ... VMR[2] IGNORE[1] ... IGNORE[2]\n"
-         "\n"
-         "Keywords:\n"
-         "   field_names : Field names to store in atm_fields_compact.\n"
-         "                 This should be, e.g.:\n"
-         "                 [\"T\", \"z\", \"H2O\", \"O3\", \"ignore[]\"]\n"
-         "                 There must be one name less than matrix columns,\n"
-         "                 because the first column must contain pressure.\n"
-         "\n"
-         "   extra_field_names : You can add additional constant VMR fields,\n"
-         "                       which is handy for O2 and N2. Give here the\n"
-         "                       field name, e.g., \"O2\". Default: Empty.\n"
-         "\n"
-         "   extra_field_values : Give here the constant field value. Default:\n"
-         "                        Empty. Dimension must match extra_field_names.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT( "batch_atm_fields_compact" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "atmosphere_dim" ),
-        GIN(      "gin1"             ,
-                  "field_names", "extra_field_names", "extra_field_values" ),
-        GIN_TYPE(    "ArrayOfMatrix",
-                     "ArrayOfString", "ArrayOfString",     "Vector" ),
-        GIN_DEFAULT( NODEF          ,
-                     NODEF,         "[]",                "[]" ),
-        //KW_DEFAULT( NODEF,         NODEF,                NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "AtmFieldsFromCompact" ),
         DESCRIPTION
         (
@@ -2372,6 +2319,91 @@ void define_md_data_raw()
         GIN_DESC( "Name of scenario, probably including the full path. For "
                   "example: \"/smiles_local/arts-data/atmosphere/fascod/"
                   "tropical\"" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "backend_channel_responseGaussian" ),
+        DESCRIPTION
+        (
+         "Sets up a gaussian backend channel response.\n"
+         "\n"
+         "The method assumes that all channels have the same response, and\n"
+         "that it can be modelled as gaussian.\n"
+         "\n"
+         "The grid generated can be written as\n"
+         "   si * [-xwidth_si:dx_si:xwidth_si]\n"
+         "where si is the standard deviation corresponding to the FWHM.\n"
+         "That is, width and spacing of the grid is specified in terms of\n"
+         "number of standard deviations. If xwidth_si is set to 2, the\n"
+         "response will cover about 95% the complete response. For\n"
+         "xwidth_si=3, about 99% is covered.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "backend_channel_response" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( ),
+        GIN( "fwhm", "xwidth_si", "dx_si" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, "3", "0.1" ),
+        GIN_DESC( "Full width at half-maximum", 
+                  "Half-width of response, in terms of std. dev.", 
+                  "Grid spacing, in terms of std. dev." )
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "batch_atm_fields_compactFromArrayOfMatrix" ),
+        DESCRIPTION
+        (
+         "Expand batch of 1D atmospheric states to a batch_atm_fields_compact.\n"
+         "\n"
+         "This is used to handle 1D batch cases, for example from the Chevallier\n"
+         "data set, stored in a matrix.\n"
+         "\n"
+         "The matrix must contain one row for each pressure level.\n"
+	 "The matrix can contain some additional fiels which are not directly used\n"
+         "by ARTS for calculations but can be required for further processing,\n"
+         "for e.g. wind speed and direction. In this case, additional fields must\n"
+         "be put at the end of the matrix and they must be flagged by 'ignore',\n"
+         "large or small letters, in the field names.\n"
+	 "Row format:\n"
+         "\n" 
+         "p[Pa] T[K] z[m] VMR_1[1] ... VMR[2] IGNORE[1] ... IGNORE[2]\n"
+         "\n"
+         "Keywords:\n"
+         "   field_names : Field names to store in atm_fields_compact.\n"
+         "                 This should be, e.g.:\n"
+         "                 [\"T\", \"z\", \"H2O\", \"O3\", \"ignore[]\"]\n"
+         "                 There must be one name less than matrix columns,\n"
+         "                 because the first column must contain pressure.\n"
+         "\n"
+         "   extra_field_names : You can add additional constant VMR fields,\n"
+         "                       which is handy for O2 and N2. Give here the\n"
+         "                       field name, e.g., \"O2\". Default: Empty.\n"
+         "\n"
+         "   extra_field_values : Give here the constant field value. Default:\n"
+         "                        Empty. Dimension must match extra_field_names.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT( "batch_atm_fields_compact" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim" ),
+        GIN(      "gin1"             ,
+                  "field_names", "extra_field_names", "extra_field_values" ),
+        GIN_TYPE(    "ArrayOfMatrix",
+                     "ArrayOfString", "ArrayOfString",     "Vector" ),
+        GIN_DEFAULT( NODEF          ,
+                     NODEF,         "[]",                "[]" ),
+        //KW_DEFAULT( NODEF,         NODEF,                NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
         ));
 
   md_data_raw.push_back
@@ -5122,6 +5154,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "NumericAdd" ),
+        DESCRIPTION
+        (
+         "Adds a numeric and a value (b = a+v).\n"
+         "\n"
+         "The result can either be stored in the same or another numeric.\n"
+         "(a and b can be the same varible, but not b and v)\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "b"       ),
+        GOUT_TYPE( "Numeric" ),
+        GOUT_DESC( "Output numeric." ),
+        IN(),
+        GIN(      "a"      ,
+                  "v" ),
+        GIN_TYPE(    "Numeric",
+                     "Numeric" ),
+        GIN_DEFAULT( NODEF   ,
+                     NODEF ),
+        GIN_DESC( "Input numeric.",
+                  "Value to add." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "NumericCreate" ),
         DESCRIPTION
         (
@@ -5142,6 +5200,32 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "NumericScale" ),
+        DESCRIPTION
+        (
+         "Scales/multiplies a numeric with a value (b = a*v).\n"
+         "\n"
+         "The result can either be stored in the same or another numeric.\n"
+         "(a and b can be the same varible, but not b and v)\n" 
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "b"       ),
+        GOUT_TYPE( "Numeric" ),
+        GOUT_DESC( "Output numeric." ),
+        IN(),
+        GIN(      "a"      ,
+                  "v" ),
+        GIN_TYPE(    "Numeric",
+                     "Numeric" ),
+        GIN_DEFAULT( NODEF   ,
+                     NODEF ),
+        GIN_DESC( "Input numeric.",
+                  "Scaling value." )
         ));
 
   md_data_raw.push_back
@@ -7587,6 +7671,28 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "VectorFlip" ),
+        DESCRIPTION
+        (
+         "Flips a vector.\n"
+         "\n"
+         "The output is the input vector in reversed order. The result can\n"
+         "either be stored in the same or another vector.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "gout1"       ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "Output vector." ),
+        IN(),
+        GIN(      "gin1"     ),
+        GIN_TYPE( "Vector" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "Input vector." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "VectorInsertGridPoints" ),
         DESCRIPTION
         (
@@ -7779,21 +7885,12 @@ void define_md_data_raw()
          "Scales all elements of a vector with the same value.\n"
          "\n"
          "The result can either be stored in the same or another vector.\n"
-         "\n"
-         "Generic output:\n"
-         "   Vector : Return vector.\n"
-         "\n"
-         "Generic input:\n"
-         "   Vector : Original vector.\n"
-         "\n"
-         "Keywords:\n"
-         "   value : The value to be multiplicated with the vector.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Output vector." ),
         IN(),
         GIN(      "gin1"      ,
                   "value" ),
@@ -7801,8 +7898,8 @@ void define_md_data_raw()
                      "Numeric" ),
         GIN_DEFAULT( NODEF   ,
                      NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Input vector.",
+                  "Scaling value." )
         ));
 
   md_data_raw.push_back

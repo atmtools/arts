@@ -303,6 +303,26 @@ void MatrixSetConstant(      Matrix&    x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void NumericAdd(
+                    Numeric&   out,
+              const Numeric&   in,
+              const Numeric&   value )
+{
+  out = value + in;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void NumericScale(
+                    Numeric&   out,
+              const Numeric&   in,
+              const Numeric&   value )
+{
+  out = value * in;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void NumericSet(      Numeric&   x,
                 const Numeric&   value )
 {
@@ -538,6 +558,30 @@ void VectorAddScalar(
     }
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void VectorFlip(
+                    Vector&   out,
+              const Vector&   in )
+{
+  const Index n = in.nelem();
+
+  // Note that in and out can be the same vector
+  if (&out==&in)
+    {
+      // Out and in are the same. A copy is needed
+      const Vector v = in;
+      for( Index i=0; i<n; i++ )
+        out[i] = v[n-1-i];
+    }
+  else
+    {
+      // Out and in are different. 
+      out.resize( n );
+      for( Index i=0; i<n; i++ )
+        out[i] = in[n-1-i];
+    }
+}
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void VectorInsertGridPoints(// WS Generic Output:

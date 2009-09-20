@@ -1,5 +1,5 @@
 # Simple simulations of ground-based measurements of ozone at 110.8 GHz,
-# mainly to test different sensor response functions.
+# mainly to test different sensor response methods.
 #
 # Author: Patrick Eriksson
 
@@ -8,17 +8,49 @@ Arts2 {
 
 INCLUDE "general.arts"
 
-# ---- Main grids -----------------------------------------------------------
+
+# ---- f_grid ----------------------------------------------------------------
+
+# The grid is here created inside the control file, to exmplify how
+# user specified variables make arts more flexible
 
 NumericCreate( v0 )
+NumericCreate( fw )
+IndexCreate( nlogpart )
+NumericCreate( fw_fine )
+NumericCreate( df_fine )
+
 NumericSet( v0, 1.108360400e+11 )
+NumericSet( fw, 330e6 )
+IndexSet( nlogpart, 25 )
+NumericSet( fw_fine, 500e3 )
+NumericSet( df_fine, 50e3 )
 
-# A pressure grid rougly matching 0 to 80 km in 1 km steps.
-VectorNLogSpace( p_grid, 81, 1.013e5, 1 )
+# A logarithmically spaced grid between [fw_fine,fw]
+NumericCreate( f1 )
+NumericCreate( f2 )
+VectorCreate( flog )
+Copy( f1, fw_fine )
+Copy( f2, fw )
+VectorNLogSpace( flog, nlogpart, f1, f2 )
 
-# A dense grid centered at v0
-#
-VectorLinSpace( f_grid, -50e6, 50e6, 100e3 )
+# First part of f_grid is flog "mirrored"
+VectorFlip( f_grid, flog )
+VectorScale( f_grid, f_grid, -1 )
+
+# Append an equidistand grid between [-fw_fine+df_fine,fw_fine-df_fine]
+VectorCreate( feqd )
+Copy( f1, fw_fine )
+NumericScale( f1, f1, -1 )
+NumericAdd( f1, f1, df_fine )
+NumericScale( f2, f1, -1 )
+VectorLinSpace( feqd, f1, f2, df_fine )
+Append( f_grid, feqd )
+
+# Append flog
+Append( f_grid, flog )
+
+# Add v0
 VectorAddScalar( f_grid, f_grid, v0 )
 
 
@@ -29,6 +61,9 @@ SpeciesSet( abs_species, [ "O3" ] )
 
 # ---- Atmospheric scenario --------------------------------------------------
 
+# A pressure grid rougly matching 0 to 80 km in 1 km steps.
+VectorNLogSpace( p_grid, 81, 1.013e5, 1 )
+
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
                                                         "midlatitude-winter" )
 AtmFieldsCalc
@@ -36,10 +71,23 @@ AtmFieldsCalc
 
 # ---- Absorption ------------------------------------------------------------
 
-ReadXML( abs_lines, "amsu/amsub.hitran04_lines.xml" )
+ReadXML( abs_lines, "ozone_line.xml" )
 abs_lines_per_speciesCreateFromLines
 
+WriteXML( output_file_format, abs_lines_per_species, "lines.xml.generated" )
+
+
 abs_cont_descriptionInit
+
+AbsInputFromAtmFields
+SpeciesSet( abs_nls, [] )
+VectorSet( abs_nls_pert, [] )
+VectorSet( abs_t_pert, [] )
+abs_lookupCreate
+
+AgendaSet( abs_scalar_gas_agenda ){
+  abs_scalar_gasExtractFromLookup
+}
 
 
 # ---- Observation geometry --------------------------------------------------
@@ -51,7 +99,7 @@ NumericCreate( za )
 NumericSet( z_platform, 50 )
 
 # Zenith angle
-NumericSet( z_platform, 65 )
+NumericSet( za, 60 )
 
 MatrixSetConstant( sensor_pos, 1, 1, z_platform )
 Copy( z_surface, sensor_pos )
@@ -60,10 +108,70 @@ MatrixSetConstant( sensor_los, 1, 1, za )
 
 
 
+# ---- Turn off cosmic background radiation  ---------------------------------
 
-sensorOff
-#sensor_responseInit
+# This to faciliate comparison of spectra from the different observation modes
+
+AgendaSet( iy_space_agenda ){
+  Ignore( rte_pos )
+  Ignore( rte_los )
+  nelemGet( nelem, f_grid )
+  MatrixSetConstant( iy, nelem, stokes_dim, 0 )
+}
+
+
+
+# --- Common sensor settings -------------------------------------------------
+
+FlagOn( sensor_norm )
+
+StringSet( y_unit, "RJBT" )
+
+# Backend
+NumericCreate( f_resolution )
+
+NumericSet( f_resolution, 500e3 )
+
+backend_channel_responseGaussian( backend_channel_response, f_resolution, 2 )
+
+#Print( backend_channel_response )
+#WriteXML( output_file_format, backend_channel_response, "r.xml.generated" )
+
+Copy( f1, fw )
+NumericScale( f1, f1, -1 )
+NumericAdd( f1, f1, f_resolution )
+Copy( f2, f1 )
+NumericScale( f2, f2, -1 )
+
+VectorLinSpace( f_backend, f1, f2, f_resolution )
+VectorAddScalar( f_backend, f_backend, v0 )
+
+
+# --- Spectrum for "direct" observation (load switching) ---------------------
+
+AntennaOff
+sensor_responseInit
+sensor_responseBackend
+
 
 RteCalc
+WriteXML( output_file_format, y, "TestGbased.y1.xml.generated" )
+WriteXML( output_file_format, y_f, "TestGbased.f1.xml.generated" )
+
+
+# --- Beam switching ---------------------------------------------------------
+
+NumericCreate( za_negative )
+Copy( za_negative, za )
+NumericScale( za_negative, za_negative, -1 )
+
+VectorNLinSpace( mblock_za_grid, 2, za_negative, 0 )
+sensor_responseInit
+sensor_responseBeamSwitching
+sensor_responseBackend
+
+RteCalc
+WriteXML( output_file_format, y, "TestGbased.y2.xml.generated" )
+
 
 }

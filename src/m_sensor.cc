@@ -198,6 +198,31 @@ void AntennaSet2D(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void backend_channel_responseGaussian(
+   ArrayOfGField1&   r,
+    const Numeric&   fwhm,
+    const Numeric&   xwidth_si,
+    const Numeric&   dx_si )
+{
+  r.resize( 1 );
+  Vector x, y;
+
+  gaussian_response( x, y, 0, fwhm, xwidth_si, dx_si );
+
+  r[0].set_name( "Backend channel response function" );
+
+  r[0].set_gridname( 0, "Frequency" );
+  r[0].set_grid( 0, x );
+
+  const Index n = y.nelem();
+  r[0].resize( n );
+  for( Index i=0; i<n; i++ )
+    r[0][i] = y[i];
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void f_gridFromSensorMHS(// WS Output:
                       Vector& f_grid,
                       // WS Input:

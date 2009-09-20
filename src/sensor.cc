@@ -41,9 +41,8 @@
 #include "sorting.h"
 #include "sensor.h"
 
-#include "auto_md.h"
-
 extern const Numeric PI;
+extern const Numeric NAT_LOG_2;
 extern const Index GFIELD1_F_GRID;
 extern const Index GFIELD4_FIELD_NAMES;
 extern const Index GFIELD4_F_GRID;
@@ -355,9 +354,6 @@ void antenna2d_simplified(
               antenna1d_matrix( Hza, 1, Matrix(1,1,antenna_los(il,0)), 
                                          aresponse, za_grid, f_grid, n_pol, 0 );
 
-              //if( il == 0 )
-                WriteXMLIndexed( "ascii", ia, Hza, "", "sensor_response", "" );
-
               for( Index row=0; row<nfpol; row++ )
                 { 
                   for( Index iz=0; iz<n_za; iz++ )
@@ -383,6 +379,49 @@ void antenna2d_simplified(
         }
 
     } // antenna_los loop
+}
+
+
+
+//! gaussian_response
+/*!
+   Returns a 1D gaussian response
+
+   First a grid is generated. The grid is si*[-xwidth_si:dx_si:xwidth_si],
+   where si is the "standard deviation" corresponding to the FWHM.
+   That is, width and spacing of the grid is specified in terms of number of 
+   standard deviations. If xwidth_si is set to 2, the response will cover
+   about 95% the complete response. For xwidth_si=3, about 99% is covered.
+
+   y is the response matching x.
+
+   \param   x           Grid generated.
+   \param   y           Calculated response.
+   \param   x0          The x-position of response centre/max.
+   \param   fwhm        The full width at half-maximum of the response
+   \param   xwidth_si   The one-sided width of x. See above.
+   \param   dx_si       The grid step size of x. See above.
+
+   \author Patrick Eriksson
+   \date   2009-09-20
+*/
+void gaussian_response(
+           Vector&   x,
+           Vector&   y,
+    const Numeric&   x0,
+    const Numeric&   fwhm,
+    const Numeric&   xwidth_si,
+    const Numeric&   dx_si )
+{
+  const Numeric si = fwhm / ( 2 * sqrt( 2 * NAT_LOG_2 ) );
+  const Numeric a = 1 / ( si * sqrt( 2 * PI ) );
+
+  linspace( x, -si*xwidth_si, si*xwidth_si, si*dx_si );
+  const Index n = x.nelem();
+  y.resize( n );
+
+  for( Index i=0; i<n; i++ )
+    y[i] = a * exp( -0.5 * pow((x[i]-x0)/si,2.0) );
 }
 
 
