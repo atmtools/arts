@@ -1,5 +1,17 @@
 2009-09-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-12-76
+
+	* tests/Makefile.am: Added GroundBased.
+
+	* tests/testall.py (TestGroundBased): Added.
+
+	* src/m_sensor.cc (sensor_responseBackendFrequencySwitch): Created.
+
+	* tests/GroundBased/TestGbased.arts: Finished.
+
+2009-09-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-12-75
 
 	* src/m_sensor.cc (antenna_responseGaussian): Created. Not sure if

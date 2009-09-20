@@ -6808,6 +6808,41 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "sensor_responseBackendFrequencySwitch" ),
+        DESCRIPTION
+        (
+         "Includes response of a frequency switching backend (spectrometer).\n"
+         "\n"
+         "The method has the same basic functionality as, and can replace,\n"
+         "*sensor_responseBackend*.\n"
+         "\n"
+         "A strightforward frequency switching is modelled (no folding)\n"
+         "The channel positions for the first measurement cycle are\n"
+         "f_backend+df1, and for the second f_backend+df2. The first\n"
+         "measurement cycle is given the negive weight. That is, the output\n"
+         "is the spectrum for cycle2 minus the spectrum for cycle1.\n"
+         "Output frequency grids are set to *f_backend*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_f_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
+            "sensor_response_za", "sensor_response_aa", 
+            "sensor_response_f_grid", "sensor_response_pol_grid", 
+            "sensor_response_za_grid", "sensor_response_aa_grid",
+            "f_backend", "backend_channel_response", "sensor_norm" ),
+        GIN(    "df_1", "fdf2" ),
+        GIN_TYPE(   "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF ),
+        GIN_DESC( "Frequency throw for cycle1.", "Frequency throw for cycle2.")
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "sensor_responseBeamSwitching" ),
         DESCRIPTION
         (

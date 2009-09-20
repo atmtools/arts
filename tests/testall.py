@@ -139,6 +139,13 @@ class TestClearSky(unittest.TestCase):
         I2=artsXML.load("ClearSky/ClearSky.y2.xml.generated")[0]
         assert abs(I2-I1) < 0.02, 'Discrepancy (=%.3f K) is too large' % I2-I1
 
+class TestGroundBased(unittest.TestCase):
+    """Testing GroundBased calculation"""
+    GBrun=ArtsRun('GroundBased', 'TestGbased.arts')
+    def test1(self):
+        """TestGbased.arts should run with no errors"""
+        self.GBrun.run()
+        assert self.GBrun.error=='','Error running TestGbased.arts: '+self.GBrun.error
 
 class TestAMSUB(unittest.TestCase):
     """Testing AMSU-B calculations"""

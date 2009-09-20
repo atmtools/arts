@@ -21,6 +21,7 @@ check-fast: \
 	TestOdinSMR \
 	TestDOIT \
 	TestClearSky \
+	TestGroundBased \
 	TestAbs \
 	TestAMSUB_fast
 

@@ -1095,6 +1095,74 @@ void sensor_responseBackend(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responseBackendFrequencySwitch(
+                 Sparse&   sensor_response,
+                 Vector&   sensor_response_f,
+           ArrayOfIndex&   sensor_response_pol,
+                 Vector&   sensor_response_za,
+                 Vector&   sensor_response_aa,
+                 Vector&   sensor_response_f_grid,
+     const ArrayOfIndex&   sensor_response_pol_grid,
+           const Vector&   sensor_response_za_grid,
+           const Vector&   sensor_response_aa_grid,
+           const Vector&   f_backend,
+   const ArrayOfGField1&   backend_channel_response,
+            const Index&   sensor_norm,
+          const Numeric&   df1,
+          const Numeric&   df2 )
+{
+  // All needed checks are done in sensor_responseBackend
+
+  // Make two identity matrices of same size as sensor_response
+  //
+  const Index n = sensor_response.nrows();
+  //
+  Sparse H1(n,n), H2(n,n);
+  //
+  H1.make_I( n, n );
+  H2.make_I( n, n );
+
+  // Some needed vectors
+  Vector f_backend_shifted;
+  Vector fdummy=sensor_response_f, fdummy_grid=sensor_response_f_grid;
+
+  // Cycle 1
+  f_backend_shifted  = f_backend;
+  f_backend_shifted += df1;
+  //
+  sensor_responseBackend( H1, fdummy, sensor_response_pol, 
+                          sensor_response_za, sensor_response_aa, 
+                          fdummy_grid, sensor_response_pol_grid, 
+                          sensor_response_za_grid, sensor_response_aa_grid, 
+                          f_backend_shifted, backend_channel_response, 
+                          sensor_norm );
+  // Cycle 2
+  f_backend_shifted  = f_backend;
+  f_backend_shifted += df2;
+  //
+  sensor_responseBackend( H2, sensor_response_f, sensor_response_pol, 
+                          sensor_response_za, sensor_response_aa, 
+                          sensor_response_f_grid, sensor_response_pol_grid, 
+                          sensor_response_za_grid, sensor_response_aa_grid, 
+                          f_backend_shifted, backend_channel_response, 
+                          sensor_norm );
+
+  // Total response
+  sub( sensor_response, H2, H1 );
+
+  // sensor_response_f_grid shall be f_backend
+  sensor_response_f_grid = f_backend;
+
+  // Set aux variables
+  sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
+                      sensor_response_za,      sensor_response_aa, 
+                      sensor_response_f_grid,  sensor_response_pol_grid, 
+                      sensor_response_za_grid, sensor_response_aa_grid, 0 );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseBeamSwitching(
    // WS Output:
                Sparse&   sensor_response,
