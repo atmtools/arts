@@ -1,5 +1,14 @@
 2009-09-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-12-75
+
+	* src/m_sensor.cc (antenna_responseGaussian): Created. Not sure if
+	works yet.
+
+	(backend_channel_responseFlat): Created.
+
+2009-09-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-12-74
 
 	* src/methods.cc: batch_atm_fields_compactFromArrayOfMatrix was 

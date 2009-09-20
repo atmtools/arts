@@ -133,8 +133,9 @@ NumericCreate( f_resolution )
 NumericSet( f_resolution, 500e3 )
 
 backend_channel_responseGaussian( backend_channel_response, f_resolution, 2 )
+#backend_channel_responseFlat( backend_channel_response, f_resolution )
 
-#Print( backend_channel_response )
+Print( backend_channel_response )
 #WriteXML( output_file_format, backend_channel_response, "r.xml.generated" )
 
 Copy( f1, fw )

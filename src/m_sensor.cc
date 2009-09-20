@@ -198,6 +198,61 @@ void AntennaSet2D(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void antenna_responseGaussian(
+          GField4&   r,
+    const Numeric&   fwhm,
+    const Numeric&   xwidth_si,
+    const Numeric&   dx_si )
+{
+  Vector x, y;
+  gaussian_response( x, y, 0, fwhm, xwidth_si, dx_si );
+
+  r.set_name( "Antenna response" );
+
+  r.set_gridname( 0, "Polarisation" );
+  ArrayOfString a(1);
+  a[0] = "1";
+  r.set_grid( 0, a );
+
+  r.set_gridname( 1, "Frequency" );
+  r.set_grid( 0, Vector(1,1) );
+
+  r.set_gridname( 2, "Zenith angle" );
+  r.set_grid( 0, x );
+
+  r.set_gridname( 3, "Azimuth angle" );
+  r.set_grid( 0, Vector(1,0) );
+
+  const Index n = y.nelem();
+  r.resize( 1, 1, n, 1 );
+  r(0,0,joker,0) = y;
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void backend_channel_responseFlat(
+   ArrayOfGField1&   r,
+    const Numeric&   resolution )
+{
+  r.resize( 1 );
+  r[0].set_name( "Backend channel response function" );
+
+  Vector x(2);
+
+  r[0].set_gridname( 0, "Frequency" );
+  x[1] = resolution / 2.0;
+  x[0] = -x[1];
+  r[0].set_grid( 0, x );
+
+  r[0].resize( 2 );
+  r[0][0] = 1/ resolution;
+  r[0][1] = r[0][0];
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void backend_channel_responseGaussian(
    ArrayOfGField1&   r,
     const Numeric&   fwhm,

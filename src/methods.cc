@@ -1760,6 +1760,39 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "antenna_responseGaussian" ),
+        DESCRIPTION
+        (
+         "Sets up a gaussian antenna response.\n"
+         "\n"
+         "The method assumes that the response is the same for all\n"
+         "frequencies and polarisations, and that it can be modelled as\n"
+         "gaussian.\n"
+         "\n"
+         "The grid generated can be written as\n"
+         "   si * [-xwidth_si:dx_si:xwidth_si]\n"
+         "where si is the standard deviation corresponding to the FWHM.\n"
+         "That is, width and spacing of the grid is specified in terms of\n"
+         "number of standard deviations. If xwidth_si is set to 2, the\n"
+         "response will cover about 95% the complete response. For\n"
+         "xwidth_si=3, about 99% is covered.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "antenna_response" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( ),
+        GIN( "fwhm", "xwidth_si", "dx_si" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, "3", "0.1" ),
+        GIN_DESC( "Full width at half-maximum", 
+                  "Half-width of response, in terms of std. dev.", 
+                  "Grid spacing, in terms of std. dev." )
+        ));
+ 
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Append" ),
         DESCRIPTION
         (
@@ -2319,6 +2352,30 @@ void define_md_data_raw()
         GIN_DESC( "Name of scenario, probably including the full path. For "
                   "example: \"/smiles_local/arts-data/atmosphere/fascod/"
                   "tropical\"" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "backend_channel_responseFlat" ),
+        DESCRIPTION
+        (
+         "Sets up a rectangular channel response.\n"
+         "\n"
+         "The response of the backend channels is hee assumed to be constant\n"
+         "inside the resolution width, and zero outside.\n"
+         "\n"
+         "The method assumes that all channels have the same response.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "backend_channel_response" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( ),
+        GIN( "resolution" ),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "The spectrometer resolution." )
         ));
 
   md_data_raw.push_back
