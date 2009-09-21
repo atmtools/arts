@@ -1,3 +1,10 @@
+2009-09-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-78
+
+	* src/m_sensor.cc (antenna_responseGaussian): Fixed bugs found by
+	Oliver. Thanks.
+ 
 2009-09-21  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-77

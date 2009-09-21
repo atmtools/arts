@@ -210,18 +210,17 @@ void antenna_responseGaussian(
   r.set_name( "Antenna response" );
 
   r.set_gridname( 0, "Polarisation" );
-  ArrayOfString a(1);
-  a[0] = "1";
-  r.set_grid( 0, a );
+  r.set_gridname( 0, "Polarisation" );
+  r.set_grid( 0, MakeArray<String>( "1" ) ); 
 
   r.set_gridname( 1, "Frequency" );
-  r.set_grid( 0, Vector(1,1) );
+  r.set_grid( 1, Vector(1,1) );
 
   r.set_gridname( 2, "Zenith angle" );
-  r.set_grid( 0, x );
+  r.set_grid( 2, x );
 
   r.set_gridname( 3, "Azimuth angle" );
-  r.set_grid( 0, Vector(1,0) );
+  r.set_grid( 3, Vector(1,0) );
 
   const Index n = y.nelem();
   r.resize( 1, 1, n, 1 );
