@@ -45,9 +45,7 @@ MatrixSetConstant( antenna_los, 1, 1, 0 )
 # The folder contains antenna pattern for different integration times.
 # The pattern for smallest integration time is selected here.
 ReadXML( antenna_response, "odin/antenna.SM_AC2ab.875ms.xml" )
-antenna_responseGaussian( antenna_response, 0.05, 2 )
 
-Print( antenna_response )
 
 # Mixer:
 #

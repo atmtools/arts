@@ -1,5 +1,12 @@
 2009-09-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-12-80
+
+	* includes/odin/odinsmr_501.arts: Last commit included some
+	temporary test lines. Now removed.
+
+2009-09-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-12-79
 
 	* src/m_sensor.cc (antenna_responseGaussian): Polarisation and
