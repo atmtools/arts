@@ -1,5 +1,16 @@
 2009-09-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-12-79
+
+	* src/m_sensor.cc (antenna_responseGaussian): Polarisation and
+	frequency grid values are now "NaN" and -999. To flag that the
+	values are not defined.
+	(sensor_responseAntenna): Removed demand that for response
+	patterns having a single frequency that this frequency is inside
+	sensor_response_f_grid. Not needed as no interpolation is performed.
+
+2009-09-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-12-78
 
 	* src/m_sensor.cc (antenna_responseGaussian): Fixed bugs found by

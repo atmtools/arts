@@ -147,9 +147,6 @@ NumericSet( f_switch, 3e6 )
 
 backend_channel_responseGaussian( backend_channel_response, f_resolution, 2 )
 
-#Print( backend_channel_response )
-#WriteXML( output_file_format, backend_channel_response, "r.xml.generated" )
-
 # Calculate where first channel can start (considering f_switch and 
 # channel widths)
 Copy( f1, fw )
@@ -173,6 +170,7 @@ sensor_responseBackend
 RteCalc
 WriteXML( output_file_format, y, "TestGbased.y1.xml.generated" )
 WriteXML( output_file_format, y_f, "TestGbased.f.xml.generated" )
+
 
 
 # --- Beam switching ---------------------------------------------------------

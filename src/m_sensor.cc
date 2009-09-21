@@ -211,10 +211,10 @@ void antenna_responseGaussian(
 
   r.set_gridname( 0, "Polarisation" );
   r.set_gridname( 0, "Polarisation" );
-  r.set_grid( 0, MakeArray<String>( "1" ) ); 
+  r.set_grid( 0, MakeArray<String>( "NaN" ) ); 
 
   r.set_gridname( 1, "Frequency" );
-  r.set_grid( 1, Vector(1,1) );
+  r.set_grid( 1, Vector(1,-999) );
 
   r.set_gridname( 2, "Zenith angle" );
   r.set_grid( 2, x );
@@ -752,19 +752,8 @@ void sensor_responseAntenna(
   f_dlow  = min(sensor_response_f_grid) - aresponse_f_grid[0];
   f_dhigh = last(aresponse_f_grid) - max(sensor_response_f_grid);
   //
-  if( aresponse_f_grid.nelem() == 1 )
+  if( aresponse_f_grid.nelem() > 1 )
   {
-    if( f_dlow > 0  ||  f_dhigh > 0 )
-    {
-      os << "The frequency grid of *antenna_response has a single value. In \n"
-         << "this case, the grid frequency point must be inside the range\n"
-         << "of considered frequencies (*f_grid*).\n";
-      error_found = true;
-    } 
-  }
-  else
-  {
-    //
     if( f_dlow < 0 ) 
     {
       os << "The frequency grid of *antenna_response is too narrow. It must\n"
