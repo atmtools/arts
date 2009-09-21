@@ -9,7 +9,7 @@
 
 SUBDIRS = 
 
-TESTDIRS = Abs AMSU ClearSky DISORT DOIT MonteCarlo OdinSMR
+TESTDIRS = Abs AMSU ClearSky DISORT DOIT MonteCarlo OdinSMR GroundBased
 
 TESTFILES = .arts .ac .xml .xml.gz .xml.bin
 

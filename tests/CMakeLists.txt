@@ -40,6 +40,10 @@ arts_add_prepare_testcases (PREPTARGETS Abs)
 arts_add_testcases (TARGETS "${PREPTARGETS}" Abs)
 set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
 
+arts_add_prepare_testcases (PREPTARGETS GroundBased)
+arts_add_testcases (TARGETS "${PREPTARGETS}" GroundBased)
+set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
+
 arts_add_prepare_testcases (PREPTARGETS AMSU)
 arts_add_testcases (TARGETS "${PREPTARGETS}" AMSUB_fast)
 set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
