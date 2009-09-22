@@ -1,3 +1,11 @@
+2009-09-22  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-81
+
+	* src/check-code-tab-indent.sh: Fix paths for non-sourcedir build.
+
+	* src/m_sensors.cc, src/methods.cc: Remove tabs.
+
 2009-09-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-80

@@ -347,7 +347,7 @@ void f_gridFromSensorMHS(// WS Output:
         // Signal sideband:
         fabs_min[ifabs] = this_f_backend + this_grid[0] - delta;
         fabs_max[ifabs] = this_f_backend + this_grid[this_grid.nelem()-1] + delta;
-	++ifabs;
+        ++ifabs;
         
         // Image sideband:
         Numeric offset  = this_f_backend - lo[i];
@@ -371,27 +371,27 @@ void f_gridFromSensorMHS(// WS Output:
           // the interval of any fabs with a smaller index.
 
           /* in case the connecting boundaries of two adjacent channels are supposed to be identical (max(1)==min(2))
-	     the boundaries are set equal to avoid overlapping of grid points
-	  */
+             the boundaries are set equal to avoid overlapping of grid points
+          */
 
-	  if (abs(fabs_max[i] - fabs_min[s]) < 2.01 * delta )
-	    {
-	      fabs_max[i] = (fabs_max[i] + fabs_min[s]) / 2;
-	      fabs_min[s] = fabs_max[i];
-	      cout << "Channel boundaries adapted to avoid overlapping due to delta-expansion: ";
-	      cout << fabs_max[i] << " ==  " << fabs_min[s] << "\n";
-} 
-	  if (abs(fabs_min[i] - fabs_max[s]) < 2.01 * delta)
-	    {
-	      //	      cout << fabs_min[i] << "  == " << fabs_max[s] << " diff(1-2): " << fabs_min[i] - fabs_max[s] 
-	      //		   << " -- " << (fabs_min[i] - fabs_max[s])/fabs_max[s]  << "\n";
-	      fabs_min[i] = (fabs_min[i] + fabs_max[s]) / 2;
-	      fabs_max[s] = fabs_min[i];
-	      cout << "Channel boundaries adapted to avoid overlapping due to delta-expansion: ";
-	      cout << fabs_max[s] << " == " << fabs_min[i] << "\n";
-	    } 	  
-	  
-	  //          if (((fabs_min[i]>=fabs_min[s]) && (fabs_min[i]<=fabs_max[s])) ||
+          if (abs(fabs_max[i] - fabs_min[s]) < 2.01 * delta )
+            {
+              fabs_max[i] = (fabs_max[i] + fabs_min[s]) / 2;
+              fabs_min[s] = fabs_max[i];
+              cout << "Channel boundaries adapted to avoid overlapping due to delta-expansion: ";
+              cout << fabs_max[i] << " ==  " << fabs_min[s] << "\n";
+            } 
+          if (abs(fabs_min[i] - fabs_max[s]) < 2.01 * delta)
+            {
+              //      cout << fabs_min[i] << "  == " << fabs_max[s] << " diff(1-2): " << fabs_min[i] - fabs_max[s] 
+              //   << " -- " << (fabs_min[i] - fabs_max[s])/fabs_max[s]  << "\n";
+              fabs_min[i] = (fabs_min[i] + fabs_max[s]) / 2;
+              fabs_max[s] = fabs_min[i];
+              cout << "Channel boundaries adapted to avoid overlapping due to delta-expansion: ";
+              cout << fabs_max[s] << " == " << fabs_min[i] << "\n";
+            }
+
+          //          if (((fabs_min[i]>=fabs_min[s]) && (fabs_min[i]<=fabs_max[s])) ||
           //    ((fabs_max[i]>=fabs_min[s]) && (fabs_max[i]<=fabs_max[s])) )
           if (((fabs_min[i] >= fabs_min[s]) && (fabs_min[i]< fabs_max[s])) ||
               ((fabs_max[i] > fabs_min[s]) && (fabs_max[i] <= fabs_max[s])) )

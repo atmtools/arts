@@ -3,7 +3,7 @@
 STATE=0
 LIST=
 
-for i in *.h *.cc; do
+for i in $SRCDIR/*.h $SRCDIR/*.cc; do
     if grep '^ *		* *.*$' $i > /dev/null; then
         STATE=1
         LIST="${LIST}$i "
