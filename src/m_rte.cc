@@ -250,7 +250,11 @@ void RteCalc(
                   los[0] += mblock_za_grid[iza];
                   //
                   if( antenna_dim == 2 )
-                    { los[1] += mblock_aa_grid[iaa]; }
+                    {
+                      throw runtime_error(
+    '2D antennas are not yet correctly handled. Contact Patrick for details. ' );
+                      los[1] += mblock_aa_grid[iaa]; 
+                    }
 
                   //--- Set *ppath_array* and *diy_dX*-variables to be empty
                   //

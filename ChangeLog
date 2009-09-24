@@ -1,3 +1,18 @@
+2009-09-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-82
+
+	* Bengt and I have realised that azimuth angles in sensor_los and
+	mblock_aa_grid can not just be added. This distorts the
+	rectangular grid made up by mblock_za_grid and mblock_aa_grid.
+	The problem originates in the fact that 1 degree in azimuth
+	correponds to a smaller distance when going towards zenith angles
+	of 0 and 180 deg. I have tested out a solution in matlab. This
+	will be added to arts later when revising the rt part.
+	
+	* src/m_rte.cc (RteCalc): Usage of 2D antennas will now cause a
+	runtime error.
+
 2009-09-22  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-81
