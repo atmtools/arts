@@ -1,3 +1,12 @@
+2009-09-25  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-83
+
+	* m_rte.cc (RteCalc):
+
+	Fix string quotes to make it compile again.
+	C++ uses double quotes for Strings, not single quotes like matlab. :-)
+
 2009-09-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-82

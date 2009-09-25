@@ -252,7 +252,7 @@ void RteCalc(
                   if( antenna_dim == 2 )
                     {
                       throw runtime_error(
-    '2D antennas are not yet correctly handled. Contact Patrick for details. ' );
+    "2D antennas are not yet correctly handled. Contact Patrick for details." );
                       los[1] += mblock_aa_grid[iaa]; 
                     }
 
