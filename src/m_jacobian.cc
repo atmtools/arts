@@ -282,7 +282,7 @@ void jacobianAddAbsSpecies(
     throw runtime_error(os.str());
   }
   
-  // Check that method is either "analytic" or "perturbation"
+  // Check that method is either "analytical" or "perturbation"
   bool analytical;
   if( method == "perturbation" )
     { analytical = 0; }

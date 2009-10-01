@@ -247,6 +247,16 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "iy_agenda" ),
+       DESCRIPTION
+       (
+        "To be completed ... \n"
+        ),
+       OUTPUT( "iy", "iy_aux", "diy_dx" ),
+       INPUT( "rte_pos", "rte_los"   )));
+
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "iy_cloudbox_agenda" ),
        DESCRIPTION
        (

@@ -742,9 +742,7 @@ void yUnit(
 
   if( y_f.nelem() != n )
     {
-      ostringstream os;
-      os << "The length of *y* and *y_f* must be the same";
-      throw runtime_error( os.str() );      
+      throw runtime_error( "The length of *y* and *y_f* must be the same" );
     }
 
   if( y_unit == "1" )
@@ -773,3 +771,426 @@ void yUnit(
       throw runtime_error( os.str() );      
     }
 }
+
+
+
+
+// jacobian now sized here.
+// Fixes for non-debug
+// n_max_aux. No unit conversion for y_aux, but sensor_response applied
+
+void yCalc(
+         Workspace&                  ws,
+         Vector&                     y,
+         Vector&                     y_f,
+         ArrayOfIndex&               y_pol,
+         Matrix&                     y_pos,
+         Matrix&                     y_los,
+         Matrix&                     y_aux,
+         Matrix&                     jacobian,
+         //   const Agenda&                     iy_agenda,
+   const Agenda&                     jacobian_agenda,
+   const Index&                      stokes_dim,
+   const Vector&                     f_grid,
+   const Index&                      atmosphere_dim,
+   const Vector&                     p_grid,
+   const Vector&                     lat_grid,
+   const Vector&                     lon_grid,
+   const Tensor3&                    z_field,
+   const Tensor3&                    t_field,
+   const Matrix&                     r_geoid,
+   const Matrix&                     z_surface,
+   const Index&                      cloudbox_on, 
+   const ArrayOfIndex&               cloudbox_limits,
+   const Matrix&                     sensor_pos,
+   const Matrix&                     sensor_los,
+   const Vector&                     mblock_za_grid,
+   const Vector&                     mblock_aa_grid,
+   const Index&                      antenna_dim,
+   const Sparse&                     sensor_response,
+   const Vector&                     sensor_response_f,
+   const ArrayOfIndex&               sensor_response_pol,
+   const Vector&                     sensor_response_za,
+   const Vector&                     sensor_response_aa,
+   const String&                     y_unit,
+   const Index&                      jacobian_do,
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfArrayOfIndex&        jacobian_indices,
+   const String&                     jacobian_unit )
+{
+  // Some sizes
+  const Index   nf      = f_grid.nelem();
+  const Index   nza     = mblock_za_grid.nelem();
+        Index   naa     = mblock_aa_grid.nelem();   // Can be set to 1 below
+  const Index   n1y     = sensor_response.nrows();
+  const Index   nmblock = sensor_pos.nrows();
+  const Index   nib     = nf * nza * naa * stokes_dim;
+
+
+  //---------------------------------------------------------------------------
+  // Input checks
+  //---------------------------------------------------------------------------
+
+  // Basic dimensionalities
+  //
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
+
+  // Atmospheric fields and surfaces
+  //
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                    lon_grid );
+  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                    lon_grid );
+  // vmr_field excluded, could maybe be empty 
+  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, 
+                                                                    lon_grid );
+  chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, 
+                                                                    lon_grid );
+  //
+  // Check that z_field has strictly increasing pages.
+  for( Index row=0; row<z_field.nrows(); row++ )
+    {
+      for( Index col=0; col<z_field.ncols(); col++ )
+        {
+          ostringstream os;
+          os << "z_field (for latitude nr " << row << " and longitude nr " 
+             << col << ")";
+          chk_if_increasing( os.str(), z_field(joker,row,col) ); 
+        }
+    }
+  //
+  // Check that there is no gap between the surface and lowest pressure 
+  // surface
+  for( Index row=0; row<z_surface.nrows(); row++ )
+    {
+      for( Index col=0; col<z_surface.ncols(); col++ )
+        {
+          if( z_surface(row,col)<z_field(0,row,col) ||
+                   z_surface(row,col)>=z_field(z_field.npages()-1,row,col) )
+            {
+              ostringstream os;
+              os << "The surface altitude (*z_surface*) cannot be outside "
+                 << "of the altitudes in *z_field*.";
+              if( atmosphere_dim > 1 )
+                os << "\nThis was found to be the case for:\n"
+                   << "latitude " << lat_grid[row];
+              if( atmosphere_dim > 2 )
+                os << "\nlongitude " << lon_grid[col];
+              throw runtime_error( os.str() );
+            }
+        }
+    }
+
+  // Cloud box
+  //  
+  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid,
+                                                cloudbox_on, cloudbox_limits );
+
+  // Sensor position and LOS.
+  //
+  // That the angles are inside OK ranges are checked inside ppathCalc.
+  //
+  if( sensor_pos.ncols() != atmosphere_dim )
+    throw runtime_error( "The number of columns of sensor_pos must be "
+                              "equal to the atmospheric dimensionality." );
+  if( atmosphere_dim <= 2  &&  sensor_los.ncols() != 1 )
+    throw runtime_error( 
+                      "For 1D and 2D, sensor_los shall have one column." );
+  if( atmosphere_dim == 3  &&  sensor_los.ncols() != 2 )
+    throw runtime_error( "For 3D, sensor_los shall have two columns." );
+  if( sensor_los.nrows() != nmblock )
+    {
+      ostringstream os;
+      os << "The number of rows of sensor_pos and sensor_los must be "
+         << "identical, but sensor_pos has " << nmblock << " rows,\n"
+         << "while sensor_los has " << sensor_los.nrows() << " rows.";
+      throw runtime_error( os.str() );
+    }
+
+  // Antenna
+  //
+  if( nza == 0 )
+    throw runtime_error( "The measurement block zenith angle grid is empty." );
+  chk_if_increasing( "mblock_za_grid", mblock_za_grid );
+  //
+  if( antenna_dim == 1 )
+    {
+      if( naa != 0 )
+        throw runtime_error( 
+          "For antenna_dim = 1, the azimuthal angle grid must be empty." );
+    }
+  else
+    {
+      if( atmosphere_dim < 3 )
+        throw runtime_error( "2D antennas (antenna_dim=2) can only be "
+                                                 "used with 3D atmospheres." );
+      if( mblock_aa_grid.nelem() == 0 )
+        throw runtime_error(
+                      "The measurement block azimuthal angle grid is empty." );
+      chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
+    }
+
+  // Sensor
+  //
+  if( sensor_response.ncols() != nib ) 
+    {
+      ostringstream os;
+      os << "The *sensor_response* matrix does not have the right size,\n"
+         << "either the method *sensor_responseInit* has not been run or some\n"
+         << "of the other sensor response methods has not been correctly\n"
+         << "configured.";
+      throw runtime_error( os.str() );
+    }
+
+  // Sensor aux variables
+  //
+  if( n1y != sensor_response_f.nelem()  || n1y != sensor_response_pol.nelem() ||
+      n1y != sensor_response_za.nelem() || n1y != sensor_response_za.nelem() )
+    {
+      ostringstream os;
+      os << "Sensor auxiliary variables do not have the correct size.\n"
+         << "The following variables should all have same size:\n"
+         << "length(y) for one block      : " << n1y << "\n"
+         << "sensor_response_f.nelem()    : " << sensor_response_f.nelem()
+         << "\nsensor_response_pol.nelem(): " << sensor_response_pol.nelem()
+         << "\nsensor_response_za.nelem() : " << sensor_response_za.nelem() 
+         << "\nsensor_response_aa.nelem() : " << sensor_response_za.nelem() 
+         << "\n";
+      throw runtime_error( os.str() );
+    }
+
+  // *y_unit*
+  //
+  if( !( y_unit=="1"  ||  y_unit=="RJBT"  ||  y_unit=="PlanckBT" ) )
+    {
+      ostringstream os;
+      os << "Allowed options for *y_unit* are: ""1"", ""RJBT"", and "
+         << """PlanckBT"".";
+      throw runtime_error( os.str() );
+    }
+
+  // *jacobian_unit*
+  //
+  if( !( jacobian_unit=="1"  ||  jacobian_unit=="RJBT"  ||  
+         jacobian_unit=="-" ) )
+    {
+      ostringstream os;
+      os << "Allowed options for *jacobian_unit* are: ""1"", ""RJBT"", and "
+         << """-"".";
+      throw runtime_error( os.str() );
+    }
+
+
+
+  //---------------------------------------------------------------------------
+  // Allocations and resizing
+  //---------------------------------------------------------------------------
+
+  // Effective length of mblock_aa_grid
+  //
+  if( antenna_dim == 1 )
+    { naa = 1; }
+
+  // Resize *y* and *y_XXX*
+  //
+  y.resize( nmblock*n1y );
+  y_f.resize( nmblock*n1y );
+  y_pol.resize( nmblock*n1y );
+  y_pos.resize( nmblock*n1y, sensor_pos.ncols() );
+  y_los.resize( nmblock*n1y, sensor_los.ncols() );
+  y_aux.resize( 0, 0 );        // Size can only be determined later
+
+  // Create containers for daya of 1 measurement block.
+  //
+  // We do not know the number of aux variables. The parallelisation makes it
+  // unsafe to do the allocation of ib_aux inside the for-loops. We must use a 
+  // hard-coded maximum number.
+  //
+  const Index n_aux_max = 3;
+        Index n_aux     = -1;
+  //
+  Vector ib( nib );
+  Matrix ib_aux( nib, n_aux_max );
+
+  // Jacobian variables
+  //
+  Index  j_analytical_do = 0;
+  Matrix jib( 0, 0 );
+  //
+  if( jacobian_do )
+    {
+      jacobian.resize( nmblock*n1y, 
+                              jacobian_indices[jacobian_indices.nelem()-1][1] );
+      //
+      Index nx_analytical = 0;
+      //
+      for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+        {
+          if( jacobian_quantities[i].Analytical() )
+            { 
+              j_analytical_do  = 1; 
+                nx_analytical += jacobian_indices[i][1]-jacobian_indices[i][0];
+            }
+        }
+      //
+      if( j_analytical_do )
+        { jib.resize( nib, nx_analytical ); }
+    }
+
+
+
+  //---------------------------------------------------------------------------
+  // The calculations
+  //---------------------------------------------------------------------------
+
+  for( Index imblock=0; imblock<nmblock; imblock++ )
+    {
+
+// #pragma ...
+
+      for( Index iza=0; iza<nza; iza++ )
+        {
+          // The try block here is necessary to correctly handle
+          // exceptions inside the parallel region. 
+          try
+            {
+              for( Index iaa=0; iaa<naa; iaa++ )
+                {
+
+                  //--- LOS of interest
+                  //
+                  Vector los( sensor_los.ncols() );
+                  //
+                  los     = sensor_los( imblock, joker );
+                  los[0] += mblock_za_grid[iza];
+                  //
+                  if( antenna_dim == 2 )
+                    {
+                      throw runtime_error( "2D antennas are not ready" );
+                      // Add mapping
+                    }
+
+                  // Calculate iy
+                  //
+                  Matrix         iy;
+                  Tensor3        iy_aux;
+                  ArrayOfTensor3 diy_dx;
+                  //
+                  if( 1 )  // Dummy code
+                    {
+                      iy.resize( stokes_dim, nf );
+                      iy_aux.resize( 2, stokes_dim, nf );
+                    }
+                  else
+                    { 
+                      // iy_agenda
+                    }
+
+                  // Check sizes
+                  //
+                  assert( iy.ncols() == nf );
+                  assert( iy.nrows() == stokes_dim );
+                  //
+                  if( n_aux < 0 )
+                    { 
+                      n_aux = iy_aux.npages(); 
+                      if( n_aux > n_aux_max )
+                        {
+                          ostringstream os;
+                          os << "The number of auxilary variables (columns of "
+                             << "iy_aux) is hard coded.\nIt is presently set to "
+                             << n_aux_max << " variables.";
+                          throw runtime_error( os.str() );      
+                        }
+                    }
+                  //
+                  assert( iy_aux.ncols() == nf );
+                  assert( iy_aux.nrows() == stokes_dim );
+                  assert( iy_aux.npages() == n_aux );
+                  //
+                  for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+                    {
+                      if( jacobian_quantities[i].Analytical() )
+                        { 
+                          assert( diy_dx[i].ncols() == nf );
+                          assert( diy_dx[i].nrows() == stokes_dim );
+                          assert( diy_dx[i].npages() == jacobian_indices[i][1] -
+                                                        jacobian_indices[i][0] );
+                        }
+                      else
+                        { 
+                          assert( diy_dx[i].ncols() == 0 );
+                        }
+                    }
+
+                  
+                  // Unit conversions
+                  //
+                  apply_y_unit( iy, y_unit, f_grid );
+
+                  // Put results into ib-variables
+                  //
+                  const Index row0 =( iza*naa + iaa ) * nf * stokes_dim;
+                  //
+                  //
+                  for( Index is=0; is<stokes_dim; is++ )
+                    { 
+                      ib[Range(row0+is,nf,stokes_dim)] = iy(is,joker); 
+                      //
+                      for( Index iaux=0; iaux<iy_aux.ncols(); iaux++ )
+                        { 
+                          ib_aux(Range(row0+is,nf,stokes_dim),iaux) = 
+                                                          iy_aux(iaux,is,joker);
+                        }
+                    }
+
+                }  // End aa loop
+            }  // End try
+
+          catch (runtime_error e)
+            {
+              exit_or_rethrow(e.what());
+            }
+        }  // End za loop
+
+      // Apply sensor response matrix on ib
+      //
+      const Index row0 = imblock * nib;
+      //
+      mult( y[Range(row0,nib)], sensor_response, ib );
+
+      // Information and auxilary variables
+      //
+      for( Index i=0; i<nib; i++ )
+        { 
+          y_f[row0+i]         = sensor_response_f[i];
+          y_pol[row0+i]       = sensor_response_pol[i]; 
+          y_pos(row0+i,joker) = sensor_pos(imblock,joker);
+          y_los(row0+i,0)     = sensor_los(imblock,0) + sensor_response_za[i];
+          if( sensor_response_aa.nelem() )
+            { 
+              y_los(row0+i,1) = sensor_los(imblock,0) + sensor_response_aa[i]; 
+            }
+        }
+
+      // Auxiliary variables
+      //
+      if( n_aux > 0 )
+        {
+          if( y_aux.nrows() == 0 )
+            { y_aux.resize( nmblock*n1y, n_aux ); }
+          //
+          mult( y_aux(Range(row0,nib),joker), sensor_response, 
+                                                 ib_aux(joker,Range(0,n_aux)) );
+        }
+
+      // Run jacobian_agenda (can be empty)
+      if( jacobian_do  &&  jacobian_agenda.nelem() > 0 )
+        jacobian_agendaExecute( ws, jacobian, jacobian_agenda );
+
+    }  // End mblock loop
+}
+

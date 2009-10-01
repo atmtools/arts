@@ -1028,6 +1028,22 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "ArrayOfTensor4" )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "diy_dx" ),
+      DESCRIPTION
+      (
+       "Derivative of *iy* with respect to retrieval quantities.\n"
+       "\n"
+       "To be written ...\n"
+       "\n"
+       "Usage:      Output of *iy_agenda*.\n"
+       "\n"
+       "Dimensions: \n"
+       "     [n_quantities][ ppath.np, stokes_dim, f_grid ]\n"
+       ),
+      GROUP( "ArrayOfTensor3" )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "doit_conv_flag" ),
@@ -1453,6 +1469,36 @@ void Workspace::define_wsv_data()
        "Dimensions: [ f_grid, stokes_dim ]\n"
        ),
       GROUP( "Matrix" )));
+
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "iy_aux" ),
+      DESCRIPTION
+      (
+       "Data auxilary to *iy*.\n"
+       "\n"
+       "This variable makes it possible to provide auxilary information for\n"
+       "each value in *iy*. Each page of the tensor corresponds to a\n"
+       "variable. The number of auxilary variables and can be of any kind.\n"
+       "Examples on quantities that could be of interest here are calculation\n"
+       "error, transmission and cloud interference flags.\n"
+       "\n"
+       "Usage:      Used by radiative transfer methods.\n"
+       "\n"
+       "Unit:       Any, can be mixed.\n"
+       "\n"
+       "Dimensions: [ number_of_aux_vars, stokes_dim, f_grid ]\n"
+       ),
+      GROUP( "Tensor3" )));
 
  wsv_data.push_back
     (WsvRecord
