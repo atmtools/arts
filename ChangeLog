@@ -1,5 +1,11 @@
 2009-10-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-12-85
+
+	* src/m_rte.cc (yCalc): A few lines of more code.
+
+2009-10-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-12-84
 
 	Started on revised version of RteCalc: yCalc

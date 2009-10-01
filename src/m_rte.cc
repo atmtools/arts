@@ -1039,6 +1039,10 @@ void yCalc(
       if( j_analytical_do )
         { jib.resize( nib, nx_analytical ); }
     }
+  //
+  String j_unit = jacobian_unit;
+  if ( jacobian_unit == "-" )
+    { j_unit = y_unit; }
 
 
 
@@ -1081,8 +1085,8 @@ void yCalc(
                   //
                   if( 1 )  // Dummy code
                     {
-                      iy.resize( stokes_dim, nf );
-                      iy_aux.resize( 2, stokes_dim, nf );
+                      iy.resize( nf, stokes_dim );
+                      iy_aux.resize( 2, nf, stokes_dim );
                     }
                   else
                     { 
@@ -1091,8 +1095,8 @@ void yCalc(
 
                   // Check sizes
                   //
-                  assert( iy.ncols() == nf );
-                  assert( iy.nrows() == stokes_dim );
+                  assert( iy.ncols() == stokes_dim );
+                  assert( iy.nrows() == nf );
                   //
                   if( n_aux < 0 )
                     { 
@@ -1107,45 +1111,57 @@ void yCalc(
                         }
                     }
                   //
-                  assert( iy_aux.ncols() == nf );
-                  assert( iy_aux.nrows() == stokes_dim );
+                  assert( iy_aux.ncols() == stokes_dim );
+                  assert( iy_aux.nrows() == nf );
                   assert( iy_aux.npages() == n_aux );
                   //
-                  for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+                  if( j_analytical_do )
                     {
-                      if( jacobian_quantities[i].Analytical() )
-                        { 
-                          assert( diy_dx[i].ncols() == nf );
-                          assert( diy_dx[i].nrows() == stokes_dim );
-                          assert( diy_dx[i].npages() == jacobian_indices[i][1] -
+                      for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+                        {
+                          if( jacobian_quantities[i].Analytical() )
+                            { 
+                              assert( diy_dx[i].ncols() == stokes_dim );
+                              assert( diy_dx[i].nrows() == nf );
+                              assert( diy_dx[i].npages() == 
+                                                        jacobian_indices[i][1] -
                                                         jacobian_indices[i][0] );
-                        }
-                      else
-                        { 
-                          assert( diy_dx[i].ncols() == 0 );
+                            }
+                          else
+                            { assert( diy_dx[i].ncols() == 0 ); }
                         }
                     }
-
                   
-                  // Unit conversions
+                  // iy    : unit conversion and copy to ib
+                  // iy_aux: copy to ib_aux
                   //
                   apply_y_unit( iy, y_unit, f_grid );
-
-                  // Put results into ib-variables
                   //
                   const Index row0 =( iza*naa + iaa ) * nf * stokes_dim;
                   //
-                  //
                   for( Index is=0; is<stokes_dim; is++ )
                     { 
-                      ib[Range(row0+is,nf,stokes_dim)] = iy(is,joker); 
+                      ib[Range(row0+is,nf,stokes_dim)] = iy(joker,is); 
                       //
                       for( Index iaux=0; iaux<iy_aux.ncols(); iaux++ )
                         { 
                           ib_aux(Range(row0+is,nf,stokes_dim),iaux) = 
-                                                          iy_aux(iaux,is,joker);
+                                                           iy_aux(iaux,joker,is);
                         }
                     }
+
+                  // diy_dx : unit conversion and copy to dib_dx
+                  if( j_analytical_do )
+                    {
+                      for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+                        {
+                          if( jacobian_quantities[i].Analytical() )
+                            {
+                              //
+                            }
+                        }
+                    }                  
+                  
 
                 }  // End aa loop
             }  // End try
