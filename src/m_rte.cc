@@ -441,8 +441,10 @@ void RteCalcNoJacobian(
   String                     jacobian_unit;
   ArrayOfArrayOfSpeciesTag   abs_species(0);
 
+  Index dummy;
 
-  jacobianOff( jacobian, jacobian_quantities, jacobian_indices, jacobian_unit );
+  jacobianOff( dummy, jacobian, jacobian_quantities, jacobian_indices, 
+                                                               jacobian_unit );
 
   RteCalc( ws, y, y_f, y_pol, y_pos, y_los, jacobian, 
            ppath_step_agenda, rte_agenda, iy_space_agenda, surface_prop_agenda,
@@ -1179,7 +1181,7 @@ void yCalc(
          Matrix&                     y_los,
          Matrix&                     y_aux,
          Matrix&                     jacobian,
-         //   const Agenda&                     iy_agenda,
+   //   const Agenda&                     iy_agenda,
    const Agenda&                     jacobian_agenda,
    const Index&                      atmosphere_dim,
    const Index&                      stokes_dim,
@@ -1450,7 +1452,7 @@ void yCalc(
                       for( Index iaux=0; iaux<iy_aux.ncols(); iaux++ )
                         { 
                           ib_aux(Range(row0+is,nf,stokes_dim),iaux) = 
-                                                           iy_aux(iaux,is,joker);
+                                                         iy_aux(iaux,is,joker);
                         }
                     }
 
@@ -1459,9 +1461,7 @@ void yCalc(
                     {
                       // Dummy code !!!!!
                       apply_y_unit( diy_dx[0], jacobian_unit, f_grid );
-
                     }                  
-                  
 
                 }  // End aa loop
             }  // End try

@@ -108,6 +108,7 @@ void jacobianCalc(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianClose(
+        Index&                     jacobian_do,
         Matrix&                    jacobian,
         ArrayOfArrayOfIndex&       jacobian_indices,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
@@ -171,6 +172,8 @@ void jacobianClose(
   // Resize *jacobian*
   jacobian.resize( nrows, ncols );
   jacobian = 0;
+
+  jacobian_do = 1;
 }
 
 
@@ -193,6 +196,7 @@ void jacobianInit(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianOff(
+        Index&                     jacobian_do,
         Matrix&                    jacobian,
         ArrayOfRetrievalQuantity&  jacobian_quantities,
         ArrayOfArrayOfIndex&       jacobian_indices,
@@ -202,6 +206,7 @@ void jacobianOff(
 
   jacobianInit( jacobian, jacobian_quantities, jacobian_indices, dummy );
   
+  jacobian_do   = 0;
   jacobian_unit = "-";
 }
 

@@ -1,11 +1,11 @@
 # Right now used more for notes, than TODO
 
 2009-10-02, Patrick
-jacobian now sized in yCalc. Change jacobianClose
+jacobian now sized in yCalc. Change jacobianClose.
 yCalc assumes "transposed" iy
 yCalc on-line doc: No unit conversion for y_aux, but sensor_response 
                    applied. Mention n_aux_max.
-
+AUG: New and old sparse features: insert_row, + and - 
 
 
 

@@ -1,5 +1,16 @@
 2009-10-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-12-87
+
+	* src/methods.cc: yCalc now here as well. 
+
+	* src/m_jacobian.cc (jacobianClose): Added jacobian_do.
+	(jacobianOff): As above.
+
+	* src/workspace.cc: Added y_aux and jacobian_do.
+
+2009-10-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-12-86
 
 	* TODO: There were no To do's since 2003-03-31! All I could see

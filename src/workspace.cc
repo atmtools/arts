@@ -1545,6 +1545,49 @@ void Workspace::define_wsv_data()
       (
        "The Jacobian matrix.\n"
        "\n"
+       "The matrix holding the Jacobians of the retrieval quantities. Each\n"
+       "quantity, and its subdivision into atmospheric grids, are stored as\n"
+       "columns in the matrix. The matrix has to be initialised before the\n"
+       "quantities can be defined. Initialisation WSM is *jacobianInit*.\n"
+       "Retrieval quantities are then added with *jacobianAdd...* methods.\n"
+       "See the online help. Pure numerical calculation is described by\n"
+       "*jacobian_calc_agenda* and are performed by *jacobianCalc*.\n"
+       "\n"
+       "Units:   See the different retrieval quantities.\n"
+       "\n"
+       "Dimension: [ y, number of retrieval quantities and grids ]\n"
+      ),
+      GROUP( "Matrix" )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "jacobian_do" ),
+      DESCRIPTION
+      (
+       "Flag to activate jacobian calculations.\n"
+       "\n"
+       "If this variable is set to 0, no jacobian calculations will be\n"
+       "even if such calculations have been set-up (through the jacobianAddXxx\n"
+       "methods).\n"
+      ),
+      GROUP( "Index" )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "jacobian_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "jacobian" ),
+      DESCRIPTION
+      (
+       "The Jacobian matrix.\n"
+       "\n"
         "The matrix holding the Jacobians of the retrieval quantities. Each\n"
         "quantity, and its subdivision into atmospheric grids, are stored as\n"
         "columns in the matrix. The matrix has to be initialised before the\n"
@@ -1558,15 +1601,6 @@ void Workspace::define_wsv_data()
         "Dimension: [ y, number of retrieval quantities and grids ]\n"
       ),
       GROUP( "Matrix" )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "jacobian_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3710,6 +3744,22 @@ void Workspace::define_wsv_data()
        "       optical thickness.\n"
        ),
       GROUP( "Vector" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "y_aux" ),
+      DESCRIPTION
+      (
+       "Data auxilary to *y*\n"
+       "\n"
+       "A general variable to provide auxilary y-data. The rows of this matrix\n"
+       "correpond to the elements of y. Each column of the matrix holds an\n"
+       "auxilary variable. The number of columns is free (but there could be\n"
+       "hard-coded restrictions on maximum number of columns). Variables\n"
+       "of different types can be mixed. If created through *yCalc*, the\n"
+       "weighting with *sensor_response* should be considered.\n"
+       ),
+      GROUP( "Matrix" )));
 
   wsv_data.push_back
    (WsvRecord

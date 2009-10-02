@@ -4628,19 +4628,19 @@ void define_md_data_raw()
          "Closes the array of retrieval quantities and prepares for\n" 
          "calculation of the Jacobian matrix.\n"
          "\n"
-         "This function closes the *jacobian_quantities* array and sets the\n"
-         "correct size of *jacobian*. Retrieval quantities should not be\n"
-         "added after a call to this WSM.\n"
+         "This function closes the *jacobian_quantities* array, sets the\n"
+         "correct size of *jacobian* and sets *jacobian_do* to 1.\n"
          "\n"
-         "No calculations are performed. Analytical calculations are done in\n"
-         "*RteCalc* and perturbations by *jacobianCalc*.\n"
+         "Retrieval quantities should not be added after a call to this WSM.\n"
+         "No calculations are performed here.\n"
          ),
         AUTHORS( "Mattias Ekstrom" ),
-        OUT( "jacobian", "jacobian_indices" ),
+        OUT( "jacobian_do", "jacobian", "jacobian_indices" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "sensor_pos", "sensor_response" ),
+        IN( "jacobian_quantities", "sensor_pos", 
+            "sensor_response" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4684,10 +4684,11 @@ void define_md_data_raw()
          "Some jacobian WSVs must be initilised even if no such calculations\n"
          "will be performed and this is handled with this method. That is,\n"
          "this method must be called when no jacobians will be calculated.\n"
+         "Sets *jacobian_on* to 0.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "jacobian", "jacobian_quantities", "jacobian_indices", 
-             "jacobian_unit" ),
+        OUT( "jacobian_do", "jacobian", "jacobian_quantities", 
+             "jacobian_indices", "jacobian_unit" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -8359,6 +8360,30 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "ybatch", "y_unit", "y_f" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "yCalc" ),
+        DESCRIPTION
+        (
+         "...\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "jacobian" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "jacobian_agenda", "atmosphere_dim", "stokes_dim", "f_grid",
+            "sensor_pos", "sensor_los", "mblock_za_grid", "mblock_aa_grid",
+            "antenna_dim", "sensor_response", "sensor_response_f",
+            "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
+            "y_unit", "jacobian_do", "jacobian_quantities",
+            "jacobian_indices", "jacobian_unit" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
