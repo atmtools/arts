@@ -774,10 +774,401 @@ void yUnit(
 
 
 
+// --------
+// New stuff
+// --------
+
+extern const Numeric DEG2RAD;
+extern const Numeric RAD2DEG;
+
+//! zaaa2cart
+/*! 
+   Converts zenith and azimuth angles to a cartesian unit vector.
+
+   This function and the sister function cart2zaaa handles
+   transformation of line-of-sights. This in contrast to the sph/poslos
+   functions that handles positions, or combinations of positions and
+   line-of-sight.
+
+   The cartesian coordinate system used for these two functions can 
+   be defined as
+    z : za = 0
+    x : za=90, aa=0
+    y : za=90, aa=90
+
+   \param   dx    Out: x-part of LOS unit vector.
+   \param   dy    Out: y-part of LOS unit vector.
+   \param   dz    Out: z-part of LOS unit vector.
+   \param   za    LOS zenith angle at observation position.
+   \param   aa    LOS azimuth angle at observation position.
+
+   \author Patrick Eriksson
+   \date   2009-10-02
+*/
+void zaaa2cart(
+             double&   dx,
+             double&   dy,
+             double&   dz,
+       const double&   za,
+       const double&   aa )
+{
+  const double   zarad  = DEG2RAD * za;
+  const double   aarad  = DEG2RAD * aa;
+
+  dz = cos( zarad );
+  dx = sin( zarad );
+  dy = sin( aarad ) * dx;
+  dx = cos( aarad ) * dx;
+}
+
+
+
+//! cart2zaaa
+/*! 
+   Converts a cartesian directional vector to zenith and azimuth
+
+   This function and the sister function cart2zaaa handles
+   transformation of line-of-sights. This in contrast to the sph/poslos
+   functions that handles positions, or combinations of positions and
+   line-of-sight.
+
+   The cartesian coordinate system used for these two functions can 
+   be defined as
+    z : za = 0
+    x : za=90, aa=0
+    y : za=90, aa=90
+
+   \param   za    Out: LOS zenith angle at observation position.
+   \param   aa    Out: LOS azimuth angle at observation position.
+   \param   dx    x-part of LOS unit vector.
+   \param   dy    y-part of LOS unit vector.
+   \param   dz    z-part of LOS unit vector.
+
+   \author Patrick Eriksson
+   \date   2009-10-02
+*/
+void cart2zaaa(
+             double&   za,
+             double&   aa,
+       const double&   dx,
+       const double&   dy,
+       const double&   dz )
+{
+  const double r = sqrt( dx*dx + dy*dy + dz*dz );
+
+  assert( r > 0 );
+
+  za = RAD2DEG * acos( dz / r );
+  aa = RAD2DEG * atan2( dy, dx );
+}
+
+
+
+//! rotationmat3D
+/*! 
+   Creates a 3D rotation matrix
+
+   Creates a rotation matrix such that R * x, operates on x by rotating 
+   x around the origin a radians around line connecting the origin to the 
+   point vrot.
+
+   The function is based on rotationmat3D.m, by Belechi (the function 
+   is added to atmlab).
+
+   \param   R     Out: Rotation matrix
+   \param   vrot  Rotation axis
+   \param   a     Rotation angle
+
+   \author Bileschi and Patrick Eriksson
+   \date   2009-10-02
+*/
+void rotationmat3D( 
+           Matrix&   R, 
+   ConstVectorView   vrot, 
+    const Numeric&   a )
+{
+  assert( R.ncols() == 3 );
+  assert( R.nrows() == 3 );
+  assert( vrot.nelem() == 3 );
+
+  const double u = vrot[0];
+  const double v = vrot[1];
+  const double w = vrot[2];
+
+  const double u2 = u * u;
+  const double v2 = v * v;
+  const double w2 = w * w;
+
+  assert( sqrt( u2 + v2 + w2 ) );
+
+  const double c = cos( DEG2RAD * a );
+  const double s = sin( DEG2RAD * a );
+  
+  // Fill R
+  R(1,1) = u2 + (v2 + w2)*c;
+  R(1,2) = u*v*(1-c) - w*s;
+  R(1,3) = u*w*(1-c) + v*s;
+  R(2,1) = u*v*(1-c) + w*s;
+  R(2,2) = v2 + (u2+w2)*c;
+  R(2,3) = v*w*(1-c) - u*s;
+  R(3,1) = u*w*(1-c) - v*s;
+  R(3,2) = v*w*(1-c)+u*s;
+  R(3,3) = w2 + (u2+v2)*c;
+}
+
+
+
+/*! 
+   Maps MBLOCK_AA_GRID values to correct ZA and AA
+
+   Sensor LOS azimuth angles and mblock_aa_grid values can not be added in a
+   straightforward way due to properties of the polar coordinate system used to
+   define line-of-sights. This function performs a "mapping" ensuring that the
+   pencil beam directions specified by mblock_za_grid and mblock_aa_grid form
+   a rectangular grid (on the unit sphere) for any za.
+
+   za0 and aa0 match the angles of the ARTS WSV sensor_los.
+   aa_grid shall hold values "close" to 0. The limit is here set to 5 degrees.
+
+   \param   za         Out: Zenith angle matching aa0+aa_grid
+   \param   aa         Out: Azimuth angles matching aa0+aa_grid
+   \param   za0        Zenith angle
+   \param   aa0        Centre azimuth angle
+   \param   aa_grid    MBLOCK_AA_GRID values
+
+   \author Patrick Eriksson
+   \date   2009-10-02
+*/
+void map_daa(
+             double&   za,
+             double&   aa,
+       const double&   za0,
+       const double&   aa0,
+       const double&   aa_grid )
+{
+  assert( abs( aa_grid ) <= 5 );
+
+  Vector  xyz(3);
+  Vector  vrot(3);
+  Vector  u(3);
+
+  // Unit vector towards aa0 at za=90
+  //
+  zaaa2cart( xyz[0], xyz[1], xyz[2], 90, aa0 );
+    
+  // Find vector around which rotation shall be performed
+  // 
+  // We can write this as cross([0 0 1],xyz). It turns out that the result 
+  // of this operation is just [-y,x,0].
+  //
+  vrot[0] = -xyz[1];
+  vrot[1] = xyz[0];
+  vrot[2] = 0;
+
+  // Unit vector towards aa0+aa at za=90
+  //
+  zaaa2cart( xyz[0], xyz[1], xyz[2], 90, aa0+aa_grid );
+
+  // Apply rotation
+  //
+  Matrix R(3,3);
+  rotationmat3D( R, vrot, za0-90 );
+  mult( u, R, xyz );
+
+  // Calculate za and aa for rotated u
+  //
+  cart2zaaa( za, aa, u[0], u[1], u[2] );
+}
+
+
+
+void atm_checkedCalc(
+         Index&          atm_checked,
+   const Index&          atmosphere_dim,
+   const Vector&         p_grid,
+   const Vector&         lat_grid,
+   const Vector&         lon_grid,
+   const Tensor3&        z_field,
+   const Tensor3&        t_field,
+   const Matrix&         r_geoid,
+   const Matrix&         z_surface,
+   const Index&          cloudbox_on, 
+   const ArrayOfIndex&   cloudbox_limits )
+{
+  atm_checked = 1;
+
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+
+  // Consistency between dim girds and tmospheric fields/surfaces
+  //
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                     lon_grid );
+  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                     lon_grid );
+  // vmr_field excluded, could maybe be empty 
+  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
+  chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, lon_grid );
+
+  // Check that z_field has strictly increasing pages.
+  for( Index row=0; row<z_field.nrows(); row++ )
+    {
+      for( Index col=0; col<z_field.ncols(); col++ )
+        {
+          ostringstream os;
+          os << "z_field (for latitude nr " << row << " and longitude nr " 
+             << col << ")";
+          chk_if_increasing( os.str(), z_field(joker,row,col) ); 
+        }
+    }
+
+  // Check that there is no gap between the surface and lowest pressure 
+  // surface
+  for( Index row=0; row<z_surface.nrows(); row++ )
+    {
+      for( Index col=0; col<z_surface.ncols(); col++ )
+        {
+          if( z_surface(row,col)<z_field(0,row,col) ||
+                   z_surface(row,col)>=z_field(z_field.npages()-1,row,col) )
+            {
+              ostringstream os;
+              os << "The surface altitude (*z_surface*) cannot be outside "
+                 << "of the altitudes in *z_field*.";
+              if( atmosphere_dim > 1 )
+                os << "\nThis was found to be the case for:\n"
+                   << "latitude " << lat_grid[row];
+              if( atmosphere_dim > 2 )
+                os << "\nlongitude " << lon_grid[col];
+              throw runtime_error( os.str() );
+            }
+        }
+    }
+
+  // Cloud box
+  //  
+  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid,
+                                                cloudbox_on, cloudbox_limits );
+}
+
+
+
+//! apply_y_unit
+/*!
+    Performs conversion from radiance to other units.
+
+    The function takes radiances in the form of a Tensor3, to cover
+    all needs for standard RT calculations. Tensor3 is needed for
+    handling conversion of jacobians. Though, conversion of jacobian
+    data shall go be made through apply_j_unit (that is mainly an interface
+    to this function).
+
+    If the radiance data come as a matrix or a vector, use "telescoping" 
+    (see further AUG):
+    
+      Matrix r
+      apply_y_unit( Tensor3View(r), y_unit, f_grid )
+
+    \param   iy       In/Out: Tensor3 with data to be converted, where each 
+                      column corresponds to a frequency.
+    \param   y_unit   As the WSV.
+    \param   f_grid   As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2007-10-31
+*/
+void apply_y_unit( 
+      Tensor3View   iy, 
+    const String&   y_unit, 
+    const Vector&   f_grid )
+{
+  assert( f_grid.nelem() == iy.ncols() );
+
+  if( y_unit == "1" )
+    {}
+
+  else if( y_unit == "RJBT" )
+    {
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          const Numeric scfac = invrayjean( 1, f_grid[iv] );
+          for( Index irow=0; irow<iy.nrows(); irow++ )
+            {
+              for( Index ipage=0; ipage<iy.npages(); ipage++ )
+                {
+                  iy(ipage,irow,iv) *= scfac;
+                }
+            }
+        }
+    }
+
+  else if( y_unit == "PlanckBT" )
+    {
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          for( Index irow=0; irow<iy.nrows(); irow++ )
+            {
+              for( Index ipage=0; ipage<iy.npages(); ipage++ )
+                {
+                  iy(ipage,irow,iv) = invplanck( iy(ipage,irow,iv), f_grid[iv] );
+                }
+            }
+        }
+
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          for( Index icol=0; icol<iy.ncols(); icol++ )
+            {
+            }
+        }
+    }
+  else
+    {
+      ostringstream os;
+      os << "Unknown option: y_unit = \"" << y_unit << "\"\n" 
+         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
+      throw runtime_error( os.str() );      
+    }
+
+  // If adding more options here, also add in yUnit and jacobianUnit.
+}
+
+
+
+//! apply_j_unit
+/*!
+    As apply_y_unit but takes jacobian_unit as input.
+
+    \param   iy       In/Out: Tensor3 with data to be converted, where each 
+                      column corresponds to a frequency.
+    \param   j_unit   As the WSV.
+    \param   f_grid   As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2007-10-31
+*/
+void apply_j_unit( 
+      Tensor3View   iy, 
+    const String&   jacobian_unit, 
+    const Vector&   f_grid )
+{
+  if( !( jacobian_unit=="1"  ||  jacobian_unit=="RJBT"  ||  
+         jacobian_unit=="-" ) )
+    {
+      ostringstream os;
+      os << "Allowed options for *jacobian_unit* are: ""1"", ""RJBT"", and "
+         << """-"".";
+      throw runtime_error( os.str() );
+    }
+
+  apply_y_unit( iy, jacobian_unit, f_grid );
+}
+
+
+
 
 // jacobian now sized here.
-// Fixes for non-debug
 // n_max_aux. No unit conversion for y_aux, but sensor_response applied
+// iy is now "transposed"
 
 void yCalc(
          Workspace&                  ws,
@@ -790,18 +1181,9 @@ void yCalc(
          Matrix&                     jacobian,
          //   const Agenda&                     iy_agenda,
    const Agenda&                     jacobian_agenda,
+   const Index&                      atmosphere_dim,
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
-   const Index&                      atmosphere_dim,
-   const Vector&                     p_grid,
-   const Vector&                     lat_grid,
-   const Vector&                     lon_grid,
-   const Tensor3&                    z_field,
-   const Tensor3&                    t_field,
-   const Matrix&                     r_geoid,
-   const Matrix&                     z_surface,
-   const Index&                      cloudbox_on, 
-   const ArrayOfIndex&               cloudbox_limits,
    const Matrix&                     sensor_pos,
    const Matrix&                     sensor_los,
    const Vector&                     mblock_za_grid,
@@ -833,61 +1215,8 @@ void yCalc(
 
   // Basic dimensionalities
   //
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
-
-  // Atmospheric fields and surfaces
-  //
-  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-  chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid, 
-                                                                    lon_grid );
-  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
-                                                                    lon_grid );
-  // vmr_field excluded, could maybe be empty 
-  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, 
-                                                                    lon_grid );
-  chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, 
-                                                                    lon_grid );
-  //
-  // Check that z_field has strictly increasing pages.
-  for( Index row=0; row<z_field.nrows(); row++ )
-    {
-      for( Index col=0; col<z_field.ncols(); col++ )
-        {
-          ostringstream os;
-          os << "z_field (for latitude nr " << row << " and longitude nr " 
-             << col << ")";
-          chk_if_increasing( os.str(), z_field(joker,row,col) ); 
-        }
-    }
-  //
-  // Check that there is no gap between the surface and lowest pressure 
-  // surface
-  for( Index row=0; row<z_surface.nrows(); row++ )
-    {
-      for( Index col=0; col<z_surface.ncols(); col++ )
-        {
-          if( z_surface(row,col)<z_field(0,row,col) ||
-                   z_surface(row,col)>=z_field(z_field.npages()-1,row,col) )
-            {
-              ostringstream os;
-              os << "The surface altitude (*z_surface*) cannot be outside "
-                 << "of the altitudes in *z_field*.";
-              if( atmosphere_dim > 1 )
-                os << "\nThis was found to be the case for:\n"
-                   << "latitude " << lat_grid[row];
-              if( atmosphere_dim > 2 )
-                os << "\nlongitude " << lon_grid[col];
-              throw runtime_error( os.str() );
-            }
-        }
-    }
-
-  // Cloud box
-  //  
-  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid,
-                                                cloudbox_on, cloudbox_limits );
 
   // Sensor position and LOS.
   //
@@ -962,27 +1291,6 @@ void yCalc(
       throw runtime_error( os.str() );
     }
 
-  // *y_unit*
-  //
-  if( !( y_unit=="1"  ||  y_unit=="RJBT"  ||  y_unit=="PlanckBT" ) )
-    {
-      ostringstream os;
-      os << "Allowed options for *y_unit* are: ""1"", ""RJBT"", and "
-         << """PlanckBT"".";
-      throw runtime_error( os.str() );
-    }
-
-  // *jacobian_unit*
-  //
-  if( !( jacobian_unit=="1"  ||  jacobian_unit=="RJBT"  ||  
-         jacobian_unit=="-" ) )
-    {
-      ostringstream os;
-      os << "Allowed options for *jacobian_unit* are: ""1"", ""RJBT"", and "
-         << """-"".";
-      throw runtime_error( os.str() );
-    }
-
 
 
   //---------------------------------------------------------------------------
@@ -1003,7 +1311,7 @@ void yCalc(
   y_los.resize( nmblock*n1y, sensor_los.ncols() );
   y_aux.resize( 0, 0 );        // Size can only be determined later
 
-  // Create containers for daya of 1 measurement block.
+  // Create containers for data of 1 measurement block.
   //
   // We do not know the number of aux variables. The parallelisation makes it
   // unsafe to do the allocation of ib_aux inside the for-loops. We must use a 
@@ -1039,10 +1347,6 @@ void yCalc(
       if( j_analytical_do )
         { jib.resize( nib, nx_analytical ); }
     }
-  //
-  String j_unit = jacobian_unit;
-  if ( jacobian_unit == "-" )
-    { j_unit = y_unit; }
 
 
 
@@ -1073,8 +1377,8 @@ void yCalc(
                   //
                   if( antenna_dim == 2 )
                     {
-                      throw runtime_error( "2D antennas are not ready" );
-                      // Add mapping
+                      map_daa( los[0], los[1], los[0], los[1], 
+                                                          mblock_aa_grid[iaa] );
                     }
 
                   // Calculate iy
@@ -1085,8 +1389,8 @@ void yCalc(
                   //
                   if( 1 )  // Dummy code
                     {
-                      iy.resize( nf, stokes_dim );
-                      iy_aux.resize( 2, nf, stokes_dim );
+                      iy.resize( stokes_dim, nf );
+                      iy_aux.resize( 2, stokes_dim, nf );
                     }
                   else
                     { 
@@ -1095,8 +1399,8 @@ void yCalc(
 
                   // Check sizes
                   //
-                  assert( iy.ncols() == stokes_dim );
-                  assert( iy.nrows() == nf );
+                  assert( iy.ncols() == nf );
+                  assert( iy.nrows() == stokes_dim );
                   //
                   if( n_aux < 0 )
                     { 
@@ -1111,8 +1415,8 @@ void yCalc(
                         }
                     }
                   //
-                  assert( iy_aux.ncols() == stokes_dim );
-                  assert( iy_aux.nrows() == nf );
+                  assert( iy_aux.ncols() == nf );
+                  assert( iy_aux.nrows() == stokes_dim );
                   assert( iy_aux.npages() == n_aux );
                   //
                   if( j_analytical_do )
@@ -1135,31 +1439,27 @@ void yCalc(
                   // iy    : unit conversion and copy to ib
                   // iy_aux: copy to ib_aux
                   //
-                  apply_y_unit( iy, y_unit, f_grid );
+                  apply_y_unit( Tensor3View(iy), y_unit, f_grid );
                   //
                   const Index row0 =( iza*naa + iaa ) * nf * stokes_dim;
                   //
                   for( Index is=0; is<stokes_dim; is++ )
                     { 
-                      ib[Range(row0+is,nf,stokes_dim)] = iy(joker,is); 
+                      ib[Range(row0+is,nf,stokes_dim)] = iy(is,joker); 
                       //
                       for( Index iaux=0; iaux<iy_aux.ncols(); iaux++ )
                         { 
                           ib_aux(Range(row0+is,nf,stokes_dim),iaux) = 
-                                                           iy_aux(iaux,joker,is);
+                                                           iy_aux(iaux,is,joker);
                         }
                     }
 
                   // diy_dx : unit conversion and copy to dib_dx
                   if( j_analytical_do )
                     {
-                      for( Index i=0; i<jacobian_quantities.nelem(); i++ )
-                        {
-                          if( jacobian_quantities[i].Analytical() )
-                            {
-                              //
-                            }
-                        }
+                      // Dummy code !!!!!
+                      apply_y_unit( diy_dx[0], jacobian_unit, f_grid );
+
                     }                  
                   
 

@@ -1,3 +1,15 @@
+2009-10-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-86
+
+	* TODO: There were no To do's since 2003-03-31! All I could see
+	was outdated. Just removed the old text, to initialise a "re-start"
+	of the file. I will also use it for notes during the present
+	revision work.
+
+	* src/m_rte.cc: More new/revised code. No details here before the
+	code starts to replace existing functions.
+
 2009-10-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-85
