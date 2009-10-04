@@ -2035,6 +2035,37 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "atm_checkedCalc" ),
+        DESCRIPTION
+        (
+         "Performs a consistency check of the atmosphere.\n"
+         "\n"
+         "The tests include:\n"
+         " 1. If atmospheric grids (p/lat/lon_grid) are OK with respect to\n"
+         "    *atmosphere_dim*.\n"
+         " 2. If atmospheric fields, *r_geoid* and *z_surface* have sizes\n"
+         "    consistent with the atmospheric grids.\n"
+         " 3. There is no gap between *z_surface* and *z_field*.\n"
+         " 4. The cloudbox is defined properly (if cloudbox_on).\n"
+         "\n"
+         "If any test fails, there is an error. Otherwise, *atm_checked* is set\n"
+         "to 1.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "atm_checked" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
+            "t_field", "r_geoid", "z_surface", "cloudbox_on", "cloudbox_limits" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "AtmFieldsCalc" ),
         DESCRIPTION
         (
@@ -4687,7 +4718,7 @@ void define_md_data_raw()
          "Sets *jacobian_on* to 0.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "jacobian_do", "jacobian", "jacobian_quantities", 
+        OUT( "jacobian_do", "jacobian_agenda", "jacobian", "jacobian_quantities", 
              "jacobian_indices", "jacobian_unit" ),
         GOUT(),
         GOUT_TYPE(),
@@ -8378,11 +8409,13 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_agenda", "atmosphere_dim", "stokes_dim", "f_grid",
+        IN( "atm_checked", "atmosphere_dim", "t_field", "vmr_field",
+            "cloudbox_on", "stokes_dim", "f_grid",
             "sensor_pos", "sensor_los", "mblock_za_grid", "mblock_aa_grid",
             "antenna_dim", "sensor_response", "sensor_response_f",
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
-            "y_unit", "jacobian_do", "jacobian_quantities",
+            "iy_agenda", "y_unit", 
+            "jacobian_agenda", "jacobian_do", "jacobian_quantities",
             "jacobian_indices", "jacobian_unit" ),
         GIN(),
         GIN_TYPE(),

@@ -442,8 +442,9 @@ void RteCalcNoJacobian(
   ArrayOfArrayOfSpeciesTag   abs_species(0);
 
   Index dummy;
+  Agenda adummy;
 
-  jacobianOff( dummy, jacobian, jacobian_quantities, jacobian_indices, 
+  jacobianOff( dummy, adummy, jacobian, jacobian_quantities, jacobian_indices, 
                                                                jacobian_unit );
 
   RteCalc( ws, y, y_f, y_pol, y_pos, y_los, jacobian, 
@@ -907,15 +908,15 @@ void rotationmat3D(
   const double s = sin( DEG2RAD * a );
   
   // Fill R
-  R(1,1) = u2 + (v2 + w2)*c;
-  R(1,2) = u*v*(1-c) - w*s;
-  R(1,3) = u*w*(1-c) + v*s;
-  R(2,1) = u*v*(1-c) + w*s;
-  R(2,2) = v2 + (u2+w2)*c;
-  R(2,3) = v*w*(1-c) - u*s;
-  R(3,1) = u*w*(1-c) - v*s;
-  R(3,2) = v*w*(1-c)+u*s;
-  R(3,3) = w2 + (u2+v2)*c;
+  R(0,0) = u2 + (v2 + w2)*c;
+  R(0,1) = u*v*(1-c) - w*s;
+  R(0,2) = u*w*(1-c) + v*s;
+  R(1,0) = u*v*(1-c) + w*s;
+  R(1,1) = v2 + (u2+w2)*c;
+  R(1,2) = v*w*(1-c) - u*s;
+  R(2,0) = u*w*(1-c) - v*s;
+  R(2,1) = v*w*(1-c)+u*s;
+  R(2,2) = w2 + (u2+v2)*c;
 }
 
 
@@ -1181,9 +1182,11 @@ void yCalc(
          Matrix&                     y_los,
          Matrix&                     y_aux,
          Matrix&                     jacobian,
-   //   const Agenda&                     iy_agenda,
-   const Agenda&                     jacobian_agenda,
+   const Index&                      atm_checked,
    const Index&                      atmosphere_dim,
+   const Tensor3&                    t_field,
+   const Tensor4&                    vmr_field,
+   const Index&                      cloudbox_on,
    const Index&                      stokes_dim,
    const Vector&                     f_grid,
    const Matrix&                     sensor_pos,
@@ -1196,7 +1199,9 @@ void yCalc(
    const ArrayOfIndex&               sensor_response_pol,
    const Vector&                     sensor_response_za,
    const Vector&                     sensor_response_aa,
+   const Agenda&                     iy_agenda,
    const String&                     y_unit,
+   const Agenda&                     jacobian_agenda,
    const Index&                      jacobian_do,
    const ArrayOfRetrievalQuantity&   jacobian_quantities,
    const ArrayOfArrayOfIndex&        jacobian_indices,
@@ -1215,6 +1220,12 @@ void yCalc(
   // Input checks
   //---------------------------------------------------------------------------
 
+  // Atmosphere OK?
+  //
+  if( !atm_checked )
+    throw runtime_error( "The atmosphere must be flagged to have passed a "
+                         "consistency check (atm_checked=1)." );
+
   // Basic dimensionalities
   //
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
@@ -1222,14 +1233,11 @@ void yCalc(
 
   // Sensor position and LOS.
   //
-  // That the angles are inside OK ranges are checked inside ppathCalc.
-  //
   if( sensor_pos.ncols() != atmosphere_dim )
     throw runtime_error( "The number of columns of sensor_pos must be "
                               "equal to the atmospheric dimensionality." );
   if( atmosphere_dim <= 2  &&  sensor_los.ncols() != 1 )
-    throw runtime_error( 
-                      "For 1D and 2D, sensor_los shall have one column." );
+    throw runtime_error( "For 1D and 2D, sensor_los shall have one column." );
   if( atmosphere_dim == 3  &&  sensor_los.ncols() != 2 )
     throw runtime_error( "For 3D, sensor_los shall have two columns." );
   if( sensor_los.nrows() != nmblock )
@@ -1240,6 +1248,24 @@ void yCalc(
          << "while sensor_los has " << sensor_los.nrows() << " rows.";
       throw runtime_error( os.str() );
     }
+  if( max( sensor_los(joker,0) ) > 180 )
+    throw runtime_error( 
+       "First column of *sensor_los* is not allowed to have values above 180." );
+  if( atmosphere_dim == 2 )
+    {
+      if( min( sensor_los(joker,0) ) < -180 )
+          throw runtime_error( "For atmosphere_dim = 2, first column of "
+                      "*sensor_los* is not allowed to have values below -180." );
+    }     
+  else
+    {
+      if( min( sensor_los(joker,0)  ) < 0 )
+          throw runtime_error( "For atmosphere_dim != 2, first column of "
+                         "*sensor_los* is not allowed to have values below 0." );
+    }    
+  if( atmosphere_dim == 3  &&  max( sensor_los(joker,1) ) > 180 )
+    throw runtime_error( 
+      "Second column of *sensor_los* is not allowed to have values above 180." );
 
   // Antenna
   //
@@ -1376,12 +1402,29 @@ void yCalc(
                   //
                   los     = sensor_los( imblock, joker );
                   los[0] += mblock_za_grid[iza];
+
+                  // Handle za/aa_grid "out-of-bounds" and mapping effects
                   //
                   if( antenna_dim == 2 )
                     {
                       map_daa( los[0], los[1], los[0], los[1], 
                                                           mblock_aa_grid[iaa] );
                     }
+                  else if( atmosphere_dim == 1  && abs(los[0]-90) > 90 )
+                    {
+                      if( los[0] < 0 )          { los[0] = -los[0]; }
+                      else if( los[0] > 180 )   { los[0] = 360 - los[0]; }
+                    }
+                  else if( atmosphere_dim == 2  && abs(los[0]) > 180 )
+                    {
+                      los[0] = -sign(los[0])*360 + los[0];
+                    }
+                  else if( atmosphere_dim == 3  &&  abs(los[0]-90) > 90 )
+                    {
+                      map_daa( los[0], los[1], los[0], los[1], 0 );
+                    }
+
+                  cout << los[0] << " " << los[1] << endl;
 
                   // Calculate iy
                   //
@@ -1389,15 +1432,10 @@ void yCalc(
                   Tensor3        iy_aux;
                   ArrayOfTensor3 diy_dx;
                   //
-                  if( 1 )  // Dummy code
-                    {
-                      iy.resize( stokes_dim, nf );
-                      iy_aux.resize( 2, stokes_dim, nf );
-                    }
-                  else
-                    { 
-                      // iy_agenda
-                    }
+                  iy_agendaExecute( ws, iy, iy_aux, diy_dx,
+                                    sensor_pos(imblock,joker), los, cloudbox_on, 
+                                    jacobian_do, f_grid, t_field, vmr_field,
+                                    iy_agenda );
 
                   // Check sizes
                   //
@@ -1449,7 +1487,7 @@ void yCalc(
                     { 
                       ib[Range(row0+is,nf,stokes_dim)] = iy(is,joker); 
                       //
-                      for( Index iaux=0; iaux<iy_aux.ncols(); iaux++ )
+                      for( Index iaux=0; iaux<n_aux; iaux++ )
                         { 
                           ib_aux(Range(row0+is,nf,stokes_dim),iaux) = 
                                                          iy_aux(iaux,is,joker);
@@ -1474,13 +1512,13 @@ void yCalc(
 
       // Apply sensor response matrix on ib
       //
-      const Index row0 = imblock * nib;
+      const Index row0 = imblock * n1y;
       //
-      mult( y[Range(row0,nib)], sensor_response, ib );
+      mult( y[Range(row0,n1y)], sensor_response, ib );
 
       // Information and auxilary variables
       //
-      for( Index i=0; i<nib; i++ )
+      for( Index i=0; i<n1y; i++ )
         { 
           y_f[row0+i]         = sensor_response_f[i];
           y_pol[row0+i]       = sensor_response_pol[i]; 
@@ -1499,13 +1537,13 @@ void yCalc(
           if( y_aux.nrows() == 0 )
             { y_aux.resize( nmblock*n1y, n_aux ); }
           //
-          mult( y_aux(Range(row0,nib),joker), sensor_response, 
+          mult( y_aux(Range(row0,n1y),joker), sensor_response, 
                                                  ib_aux(joker,Range(0,n_aux)) );
         }
 
       // Run jacobian_agenda (can be empty)
       if( jacobian_do  &&  jacobian_agenda.nelem() > 0 )
-        jacobian_agendaExecute( ws, jacobian, jacobian_agenda );
+        { jacobian_agendaExecute( ws, jacobian, jacobian_agenda ); }
 
     }  // End mblock loop
 }

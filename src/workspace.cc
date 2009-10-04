@@ -796,6 +796,21 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "atm_checked" ),
+      DESCRIPTION
+      (
+       "OK flag for atmospheric fields, surfaces and the cloudbox.\n"
+       "\n"
+       "This variable flags that the atmosphere is defined in a formally\n"
+       "correct way. For example, that the sizes of atmospheric fields match\n"
+       "the atmospheric grids.\n"
+       "\n"
+       "Relavant checks are performed by *atm_checkedCalc.\n"
+       ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "atm_fields_compact" ),
       DESCRIPTION
       (
@@ -1520,23 +1535,24 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "i_space" ),
+    ( NAME( "iy_transmission" ),
       DESCRIPTION
       (
-       "Monochromatic intensities at the top of the atmosphere.\n"
+       "Transmission to be included in *iy*.\n"
        "\n"
-       "The matrix holds the intensity entering the atmosphere from above\n"
-       "along a propagation path. This should normally correspond to cosmic\n"
-       "background radiation, but could also be radiation from the sun or \n"
-       "a transmitting satellite.\n"
+       "The calculation of *iy* can be performed over several propation path\n"
+       "branches. This variable gives the transmission from the end point of\n"
+       "the present branch and the sensor. That is, the variable shall contain\n"
+       "nf identity matrices when calling *iy_agenda* for the first branch \n"
+       "(where nf is the length of *f_grid*).\n"
        "\n"
-       "Usage:      Output from *iy_space_agenda*.\n"
+       "Usage:      Used by radiative transfer methods.\n"
        "\n"
-       "Unit:       W / (m^2 Hz sr) \n"
+       "Unit:       1\n"
        "\n"
-       "Dimensions: [ f_grid, stokes_dim ]\n"
+       "Dimensions: [ stokes_dim, stokes_dim, f_grid ]\n"
        ),
-      GROUP( "Matrix" )));
+      GROUP( "Tensor3" )));
 
  wsv_data.push_back
    (WsvRecord

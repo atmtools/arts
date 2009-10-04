@@ -197,15 +197,14 @@ void jacobianInit(
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianOff(
         Index&                     jacobian_do,
+        Agenda&                    jacobian_agenda,
         Matrix&                    jacobian,
         ArrayOfRetrievalQuantity&  jacobian_quantities,
         ArrayOfArrayOfIndex&       jacobian_indices,
         String&                    jacobian_unit )
 {
-  Agenda dummy;
-
-  jacobianInit( jacobian, jacobian_quantities, jacobian_indices, dummy );
-  
+  jacobianInit( jacobian, jacobian_quantities, jacobian_indices, 
+                                                               jacobian_agenda );
   jacobian_do   = 0;
   jacobian_unit = "-";
 }

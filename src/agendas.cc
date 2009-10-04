@@ -250,10 +250,16 @@ void define_agenda_data()
      ( NAME( "iy_agenda" ),
        DESCRIPTION
        (
-        "To be completed ... \n"
+        "Calculation of a single monochromatic pencil beam spectrum.\n"
+        "\n"
+        "The task of the agenda is to calculate the monochromatic pencil beam\n"
+        "spectrum for the position specified by *rte_pos* and the viewing\n"
+        "direction specified by *rte_los*. This includes cases when the\n"
+        "propagation path intersects with the surface or the cloudbox.\n"
         ),
        OUTPUT( "iy", "iy_aux", "diy_dx" ),
-       INPUT( "rte_pos", "rte_los"   )));
+       INPUT( "rte_pos", "rte_los", "cloudbox_on", "jacobian_do", "f_grid",
+              "t_field", "vmr_field" )));
 
   agenda_data.push_back
     (AgRecord
@@ -266,7 +272,7 @@ void define_agenda_data()
         "at the boundary of inside the cloudbox.  The actual calculations\n"
         "inside the agenda differ depending on scattering solution method.\n"
         "If DOIT is used, an interpolating of the intensity field should be\n"
-        "performed. Another option is to start backward Monte Carlos \n"
+        "performed. Another option is to start backward Monte Carlo \n"
         "calculations from this point.\n"
         "\n"
         "A function calling this agenda shall set *rte_pos*, *rte_los* and\n"

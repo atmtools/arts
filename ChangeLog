@@ -1,3 +1,19 @@
+2009-10-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-88
+
+	* src/m_rte.cc (yCalc): The summation of sensor_los, mblock_za_grid and
+	mblock_aa_grid is now handled OK (which is not the case for RteCalc).
+	iy_agenda is in place.
+
+	* src/methods.cc: Added text for atm_checkedCalc. 
+
+	* src/workspace.cc: Removed i_space. Added iy_transmission and
+	atm_checked.
+
+	* src/m_jacobian.cc (jacobianClose): Added jacobian_do.
+	(jacobianOff): As above.
+
 2009-10-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-87
