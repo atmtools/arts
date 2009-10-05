@@ -1274,6 +1274,8 @@ void iyClearskyStandard(
   const Index&                      stokes_dim,
   const Vector&                     f_grid,
   const Agenda&                     ppath_step_agenda,
+  const Agenda&                     emission_agenda,
+  const Agenda&                     abs_scalar_agenda,
   const Index&                      jacobian_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices )
@@ -1318,26 +1320,76 @@ void iyClearskyStandard(
   else
     { diy_dx.resize( 0 ); }
 
+
+  // Get quantities required for each ppath point, and update iy_transmission
+  //
+  // If np = 1, we only need to determine the radiative background
+  //
+  const Index     np  = ppath.np;
+        Index     nabs = 0;
+        Vector    ppath_p, ppath_t, tau(nf,0);
+        Matrix    ppath_vmr, ppath_emission;
+        Tensor3   ppath_abs_scalar;
+  //
+  if( np > 1 )
+    {
+      // Get pressure, temperature and VMRs
+      //
+      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
+                           p_grid, lat_grid, lon_grid, t_field, vmr_field );
+
+      // Derived quantities
+      //
+      Vector ppath_logp( np );
+      transform( ppath_logp, log, ppath_p  );
+      //
+      nabs = ppath_vmr.nrows();
+      //
+      Vector   vmr_mean( nabs );
+      ppath_emission.resize( np-1, nf );
+      ppath_abs_scalar.resize( np-1, nf, nabs );
+
+      // Get emission, scalar absorption and total tau
+      //
+      Vector   evector;
+      Matrix   sgmatrix;
+      //
+      for( Index i=0; i<np-1; i++ )
+        {
+          const Numeric   p_mean = exp( 0.5*( ppath_logp[i+1]+ppath_logp[i] ) );
+          const Numeric   t_mean = ( ppath_t[i+1] + ppath_t[i] ) / 2.0;
+          for( Index ia=0; ia<nabs; ia++ )
+            { vmr_mean[ia] = 0.5 * ( ppath_vmr(ia,i+1) + ppath_vmr(ia,i) ); }
+
+          // Calculate emission and absorption terms
+          //
+          // We must use temporary vectors as the agenda input must be
+          // free to be resized
+          //
+          emission_agendaExecute( ws, evector, t_mean, emission_agenda );
+          ppath_emission(i,joker) = evector;
+          //
+          abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, p_mean, t_mean, 
+                                                  vmr_mean, abs_scalar_agenda );
+          ppath_abs_scalar(i,joker,joker) = sgmatrix;
+
+          // Increase tau
+          //
+          for( Index j=0; j<nf; j++ )
+            { tau[j] += ppath.l_step[j] * sgmatrix(j,joker).sum(); }
+        }
+
+      // 
+    }
+
+
+
   // Radiative background
   //
   // get_radiative_background( ...
   //
   iy = 0;
 
-  // If np=1 we are ready
-  //
-  const Index   np  = ppath.np;
-  //
-  if( np > 1 )
-    {
-      // Get p, t and VMR for each ppath point
-      //
-      Vector ppath_p, ppath_t;
-      Matrix ppath_vmr;
-      //
-      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
-                           p_grid, lat_grid, lon_grid, t_field, vmr_field );
-    }
 }
 
 

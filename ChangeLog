@@ -1,10 +1,17 @@
 2009-10-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-12-90
+
+	* src/m_rte.cc: Some further work on iyClearskyStandard and
+	sub-functions.
+
+2009-10-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-12-89
 
 	* src/m_rte.cc: Complete code for y_unit now at place (not
 	tested), beside parallelisation. Started in iyClearskyStandard and
-	where as much as possible will be placved in general sub-functions.
+	where as much as possible will be placed in general sub-functions.
 
 	* src/agendas.cc: Added iy_aux_do as input to iy_agenda.
 
