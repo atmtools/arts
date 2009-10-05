@@ -1050,7 +1050,11 @@ void Workspace::define_wsv_data()
       (
        "Derivative of *iy* with respect to retrieval quantities.\n"
        "\n"
-       "To be written ...\n"
+       "The variable gives the derivative if *iy* with respect to some\n"
+       "variables (but not all jacobian variables). Handled are only variables\n"
+       "affecting monochromatic pencil beam radiances where an (semi-)\n"
+       "analytical expression can be applied (and that this calculation way\n"
+       "has been selected when the jacobian has been set-up).\n"
        "\n"
        "Usage:      Output of *iy_agenda*.\n"
        "\n"
@@ -1514,6 +1518,21 @@ void Workspace::define_wsv_data()
        "Dimensions: [ number_of_aux_vars, stokes_dim, f_grid ]\n"
        ),
       GROUP( "Tensor3" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "iy_aux_do" ),
+      DESCRIPTION
+      (
+       "Flag to control calculation of *iy_aux*.\n"
+       "\n"
+       "This variable is mainly for internal purposes, to allow methods\n"
+       "calling *iy_agenda* to turn off the calculation of *iy_aux*. This in\n"
+       "order to save time if the method is only interested in *iy*. Note that\n"
+       "setting *iy_aux_do* to 1 does not necessarily create any auxilary data\n"
+       "the agenda methods must also be set to produce a filled *iy_aux*.\n"
+       ),
+      GROUP( "Index" )));
 
  wsv_data.push_back
     (WsvRecord

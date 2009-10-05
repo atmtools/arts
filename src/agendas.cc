@@ -258,8 +258,8 @@ void define_agenda_data()
         "propagation path intersects with the surface or the cloudbox.\n"
         ),
        OUTPUT( "iy", "iy_aux", "diy_dx" ),
-       INPUT( "rte_pos", "rte_los", "cloudbox_on", "jacobian_do", "f_grid",
-              "t_field", "vmr_field" )));
+       INPUT( "rte_pos", "rte_los", "iy_transmission", "cloudbox_on", 
+              "jacobian_do", "iy_aux_do", "f_grid", "t_field", "vmr_field" )));
 
   agenda_data.push_back
     (AgRecord

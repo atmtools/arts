@@ -985,6 +985,7 @@ void map_daa(
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
 void atm_checkedCalc(
          Index&          atm_checked,
    const Index&          atmosphere_dim,
@@ -1168,11 +1169,180 @@ void apply_j_unit(
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iy_transmissionUnit( 
+        Tensor3   iy_transmission,
+  const Index&    stokes_dim,
+  const Vector&   f_grid )
+{
+  iy_transmission.resize( stokes_dim, stokes_dim, f_grid.nelem() );
+  iy_transmission = 0;
+  for( Index i=0; i<f_grid.nelem(); i++ )
+    { 
+      for( Index is=0; is<stokes_dim; is++ )
+        { 
+          iy_transmission(is,is,i) = 1;
+        }
+    }
+}
 
-// jacobian now sized here.
-// n_max_aux. No unit conversion for y_aux, but sensor_response applied
-// iy is now "transposed"
 
+
+//! get_ptvmr_for_ppath
+/*!
+    Determines pressure, temperature and VMR for each propgataion path point.
+
+    The output variables are sized inside the function. For VMR the
+    dimensions are [ species, propagation path point ].
+
+    \param   ppath_p     Out: Pressure for each ppath point.
+    \param   ppath_t     Out: Temperature for each ppath point.
+    \param   ppath_vmr   Out: VMR values for each ppath point.
+    \param   ppath             As the WSV.
+    \param   atmosphere_dim    As the WSV.
+    \param   p_grid            As the WSV.
+    \param   lat_grid          As the WSV.
+    \param   lon_grid          As the WSV.
+    \param   t_field           As the WSV.
+    \param   vmr_field         As the WSV.
+    \param   f_grid            As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2009-10-05
+*/
+void get_ptvmr_for_ppath( 
+        Vector&    ppath_p, 
+        Vector&    ppath_t, 
+        Matrix&    ppath_vmr, 
+  const Ppath&     ppath,
+  const Index&     atmosphere_dim,
+  const Vector&    p_grid,
+  const Vector&    lat_grid,
+  const Vector&    lon_grid,
+  const Tensor3&   t_field,
+  const Tensor4&   vmr_field )
+{
+  const Index   np  = ppath.np;
+
+  // Pressure:
+  ppath_p.resize(np);
+  Matrix itw_p(np,2);
+  interpweights( itw_p, ppath.gp_p );      
+  itw2p( ppath_p, p_grid, ppath.gp_p, itw_p );
+  
+  // Temperature:
+  ppath_t.resize(np);
+  Matrix   itw_field;
+  interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
+                        lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
+  interp_atmfield_by_itw( ppath_t,  atmosphere_dim, p_grid, lat_grid, 
+                          lon_grid, t_field, ppath.gp_p, 
+                          ppath.gp_lat, ppath.gp_lon, itw_field );
+
+  //  VMR fields:
+  const Index ns = vmr_field.nbooks();
+  ppath_vmr.resize(ns,np);
+  for( Index is=0; is<ns; is++ )
+    {
+      interp_atmfield_by_itw( ppath_vmr(is, joker), atmosphere_dim,
+        p_grid, lat_grid, lon_grid, vmr_field( is, joker, joker,  joker ), 
+        ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyClearskyStandard(
+        Workspace&                  ws,
+        Matrix&                     iy,
+        Tensor3&                    iy_aux,
+        ArrayOfTensor3&             diy_dx,
+  const Vector&                     rte_pos,      
+  const Vector&                     rte_los,      
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    z_field,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Matrix&                     r_geoid,
+  const Matrix&                     z_surface,
+  const Index&                      cloudbox_on,
+  const ArrayOfIndex&               cloudbox_limits,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Agenda&                     ppath_step_agenda,
+  const Index&                      jacobian_do,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&        jacobian_indices )
+{
+  // A minimal amount of checks, for efficiency reasons
+  assert( rte_pos.nelem() == atmosphere_dim );
+  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 ) ||
+          ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
+
+  //- Determine propagation path
+  //
+       Ppath  ppath;
+  const bool  outside_cloudbox = true;
+  //
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
+              lat_grid, lon_grid, z_field, r_geoid, z_surface,
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 
+              outside_cloudbox );
+  
+  // Some sizes
+  const Index   nf  = f_grid.nelem();
+  const Index   njq = jacobian_indices.nelem();
+
+  // Initilise output variables
+  //
+  iy.resize( stokes_dim, nf );
+  iy_aux.resize( 0, 0, 0 );
+  //
+  if( jacobian_do )
+    {
+      diy_dx.resize( njq );
+      //
+      for( Index i=0; i<njq; i++ )
+        {
+          if( jacobian_quantities[i].Analytical() )
+            {
+              diy_dx[i].resize( jacobian_indices[i][1]-jacobian_indices[i][0],
+                                                               stokes_dim, nf );
+            }
+        }
+    }
+  else
+    { diy_dx.resize( 0 ); }
+
+  // Radiative background
+  //
+  // get_radiative_background( ...
+  //
+  iy = 0;
+
+  // If np=1 we are ready
+  //
+  const Index   np  = ppath.np;
+  //
+  if( np > 1 )
+    {
+      // Get p, t and VMR for each ppath point
+      //
+      Vector ppath_p, ppath_t;
+      Matrix ppath_vmr;
+      //
+      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
+                           p_grid, lat_grid, lon_grid, t_field, vmr_field );
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void yCalc(
          Workspace&                  ws,
          Vector&                     y,
@@ -1353,29 +1523,34 @@ void yCalc(
 
   // Jacobian variables
   //
+  // As start, set everything set to be empty
   Index  j_analytical_do = 0;
   Matrix jib( 0, 0 );
+  ArrayOfMatrix dib_dx(0);
+  const Index njq = jacobian_indices.nelem();
   //
   if( jacobian_do )
     {
-      jacobian.resize( nmblock*n1y, 
-                              jacobian_indices[jacobian_indices.nelem()-1][1] );
+      jacobian.resize( nmblock*n1y, jacobian_indices[njq-1][1] );
       //
-      Index nx_analytical = 0;
-      //
-      for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+      for( Index i=0; i<njq; i++ )
         {
           if( jacobian_quantities[i].Analytical() )
             { 
+              if( j_analytical_do == 0 )
+                { dib_dx.resize(njq); }
               j_analytical_do  = 1; 
-                nx_analytical += jacobian_indices[i][1]-jacobian_indices[i][0];
+              dib_dx[i].resize( nib, jacobian_indices[i][1] - 
+                                     jacobian_indices[i][0] );
             }
         }
-      //
-      if( j_analytical_do )
-        { jib.resize( nib, nx_analytical ); }
     }
 
+  // Unit iy_transmission
+  //
+  Tensor3 iy_transmission;
+  //
+  iy_transmissionUnit( iy_transmission, stokes_dim, f_grid );
 
 
   //---------------------------------------------------------------------------
@@ -1406,25 +1581,17 @@ void yCalc(
                   // Handle za/aa_grid "out-of-bounds" and mapping effects
                   //
                   if( antenna_dim == 2 )
-                    {
-                      map_daa( los[0], los[1], los[0], los[1], 
-                                                          mblock_aa_grid[iaa] );
-                    }
+                    { map_daa( los[0], los[1], los[0], los[1], 
+                                                        mblock_aa_grid[iaa] ); }
                   else if( atmosphere_dim == 1  && abs(los[0]-90) > 90 )
-                    {
-                      if( los[0] < 0 )          { los[0] = -los[0]; }
-                      else if( los[0] > 180 )   { los[0] = 360 - los[0]; }
-                    }
+                    { if( los[0] < 0 )          { los[0] = -los[0]; }
+                      else if( los[0] > 180 )   { los[0] = 360 - los[0]; } }
                   else if( atmosphere_dim == 2  && abs(los[0]) > 180 )
-                    {
-                      los[0] = -sign(los[0])*360 + los[0];
-                    }
+                    { los[0] = -sign(los[0])*360 + los[0]; }
                   else if( atmosphere_dim == 3  &&  abs(los[0]-90) > 90 )
-                    {
-                      map_daa( los[0], los[1], los[0], los[1], 0 );
-                    }
+                    { map_daa( los[0], los[1], los[0], los[1], 0 ); }
 
-                  cout << los[0] << " " << los[1] << endl;
+                  // cout << los[0] << " " << los[1] << endl;
 
                   // Calculate iy
                   //
@@ -1433,9 +1600,9 @@ void yCalc(
                   ArrayOfTensor3 diy_dx;
                   //
                   iy_agendaExecute( ws, iy, iy_aux, diy_dx,
-                                    sensor_pos(imblock,joker), los, cloudbox_on, 
-                                    jacobian_do, f_grid, t_field, vmr_field,
-                                    iy_agenda );
+                            sensor_pos(imblock,joker), los, iy_transmission, 
+                            cloudbox_on, j_analytical_do, 1, f_grid, t_field, 
+                            vmr_field, iy_agenda );
 
                   // Check sizes
                   //
@@ -1465,8 +1632,8 @@ void yCalc(
                         {
                           if( jacobian_quantities[i].Analytical() )
                             { 
-                              assert( diy_dx[i].ncols() == stokes_dim );
-                              assert( diy_dx[i].nrows() == nf );
+                              assert( diy_dx[i].ncols() == nf );
+                              assert( diy_dx[i].nrows() == stokes_dim );
                               assert( diy_dx[i].npages() == 
                                                         jacobian_indices[i][1] -
                                                         jacobian_indices[i][0] );
@@ -1494,12 +1661,29 @@ void yCalc(
                         }
                     }
 
-                  // diy_dx : unit conversion and copy to dib_dx
+                  // Jacobian part
                   if( j_analytical_do )
                     {
-                      // Dummy code !!!!!
-                      apply_y_unit( diy_dx[0], jacobian_unit, f_grid );
-                    }                  
+                      for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+                        {
+                          if( jacobian_quantities[i].Analytical() )
+                            { 
+                              // Basically copy calculations for *iy*
+                              //
+                              apply_y_unit( diy_dx[i], jacobian_unit, f_grid );
+                              //
+                              for( Index ip=0; ip<jacobian_indices[i][1] -
+                                                  jacobian_indices[i][0]; ip++ )
+                                {
+                                  for( Index is=0; is<stokes_dim; is++ )
+                                    { 
+                                      dib_dx[i](Range(row0+is,nf,stokes_dim),ip)=
+                                        diy_dx[i](ip,is,joker); 
+                                    }
+                                }                              
+                            }                  
+                        }
+                    }
 
                 }  // End aa loop
             }  // End try
@@ -1541,7 +1725,23 @@ void yCalc(
                                                  ib_aux(joker,Range(0,n_aux)) );
         }
 
-      // Run jacobian_agenda (can be empty)
+      // diy_dx part of *jacobian*
+      //
+      if( j_analytical_do )
+        {
+          for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+            {
+              if( jacobian_quantities[i].Analytical() )
+                { 
+                  mult( jacobian(Range(row0,n1y), Range(jacobian_indices[i][0],
+                                 jacobian_indices[i][1]-jacobian_indices[i][0])),
+                                                    sensor_response, dib_dx[i] );
+                }
+            }
+        }
+
+      // Rest of *jacobian*: run jacobian_agenda (can be empty)
+      //
       if( jacobian_do  &&  jacobian_agenda.nelem() > 0 )
         { jacobian_agendaExecute( ws, jacobian, jacobian_agenda ); }
 
