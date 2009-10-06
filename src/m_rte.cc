@@ -1171,7 +1171,7 @@ void apply_j_unit(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iy_transmissionUnit( 
-        Tensor3   iy_transmission,
+        Tensor3&  iy_transmission,
   const Index&    stokes_dim,
   const Vector&   f_grid )
 {
@@ -1184,6 +1184,60 @@ void iy_transmissionUnit(
           iy_transmission(is,is,i) = 1;
         }
     }
+}
+
+
+
+//! iy_transmission_mult_scalar_tau
+/*!
+    Multiplicates iy_transmission with scalar optical thicknesses.
+
+    The functions can incorporate the transmission of a clear-sky
+    path. This is, the transmission can be described by a single value
+    The transmission of this path is gives as the optical depth for
+    each frequency.
+
+    The "new path" is assumed to be further away from the sensor than 
+    the propagtion path already included in iy_transmission. That is,
+    the operation can be written as:
+    
+       Ttotal = Told * Tnew
+
+    where Told is the transmission corresponding to *iy_transmission*
+    and Tnew corresponds to *tau*.
+
+    *iy_trans_new* is sized by the function.
+
+    \param   iy_trans_new      Out: Updated version of *iy_transmission*
+    \param   iy_transmission   As the WSV.
+    \param   tau               Vector with the optical thickness for each 
+                               frequency.
+
+    \author Patrick Eriksson 
+    \date   2009-10-06
+*/
+void iy_transmission_mult_scalar_tau( 
+        Tensor3&    iy_trans_new,
+  const Tensor3&    iy_transmission,
+  ConstVectorView   tau )
+{
+  const Index nf = iy_transmission.ncols();
+  const Index ns = iy_transmission.nrows();
+
+  assert( ns == iy_transmission.npages() );
+  assert( nf == tau.nelem() );
+
+  iy_trans_new.resize( ns, ns, nf );
+
+  Matrix  tm( ns, ns, 0.0 );
+
+  for( Index iv=0; iv<nf; iv++ )
+    {
+      const Numeric t = exp( -tau[iv] );
+      for( Index is=0; is<ns; is++ )
+        { tm(is,is) = t; }
+      mult( iy_trans_new(joker,joker,iv), iy_transmission(joker,joker,iv), tm );
+    } 
 }
 
 
@@ -1326,6 +1380,8 @@ void get_iy_of_background(
     }
 }
 
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyClearskyStandard(
         Workspace&                  ws,
@@ -1362,7 +1418,6 @@ void iyClearskyStandard(
   assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 ) ||
           ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
 
-
   // Determine if there are any jacobians to handle
   //
   Index j_analytical_do = 0;
@@ -1376,7 +1431,6 @@ void iyClearskyStandard(
         }
     }
 
-
   //- Determine propagation path
   //
        Ppath  ppath;
@@ -1386,7 +1440,6 @@ void iyClearskyStandard(
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 
               outside_cloudbox );
-  
 
   // Get quantities required for each ppath point, and update iy_transmission
   //
@@ -1397,7 +1450,7 @@ void iyClearskyStandard(
         Index     nabs = 0;
         Vector    ppath_p, ppath_t, total_tau(nf,0.0);
         Matrix    ppath_vmr, ppath_emission, ppath_tau;
-        Tensor3   ppath_abs_scalar;
+        Tensor3   ppath_abs_scalar, iy_trans_new;
   //
   if( np > 1 )
     {
@@ -1450,12 +1503,17 @@ void iyClearskyStandard(
               total_tau[iv]   += ppath_tau(i,iv);
             }
         }
+
+      // New iy_transmission
+      iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, total_tau);
+
     }
-
-
-  // !!!!!
-  Tensor3 iy_transmission2(iy_transmission);
-
+  else
+    {
+      // If np=1, *iy_trans_new* canb e identical to *iy_transmission*
+      //
+      iy_trans_new = iy_transmission;   // How to avoid copying of values?
+    }
 
   // Radiative background
   //
@@ -1465,28 +1523,47 @@ void iyClearskyStandard(
                         ppath, atmosphere_dim, 
                         stokes_dim, f_grid, iy_space_agenda );
   
-
-  // Set iy_aux and diy_dx if not already done
+  // Set iy_aux and diy_dx, if needed and not already done
   //
-  if( iy_aux_do  &&  iy_aux.nrows() == 0 )
+  if( iy_aux.nrows() == 0 )
     { 
-      iy_aux.resize( 2, stokes_dim, nf ); 
-      //
-      iy_aux( 1, joker, joker ) = (Numeric)i_background;
+      if( !iy_aux_do )
+        { iy_aux.resize( 0, 0, 0 ); }
+      else
+        {
+          iy_aux.resize( 3, stokes_dim, nf ); 
+          //
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+              for( Index is=0; is<stokes_dim; is++ )
+                { iy_aux( 0, is, iv ) = iy_trans_new( is, is, iv );}
+            }
+          //
+          iy_aux( 1, joker, joker ) = (Numeric)i_background;
+          //
+          if( i_background < 3 ) 
+            { iy_aux( 2, joker, joker ) = 0.0; }
+          else
+            { iy_aux( 2, joker, joker ) = 1.0; }
+        }
     }    
   //
-  if( j_analytical_do  &&  diy_dx.nelem() == 0 )
+  if( diy_dx.nelem() == 0 )
     { 
-      diy_dx.resize( jacobian_indices.nelem() ); 
-      //
-      for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+      if( !j_analytical_do )
+        { diy_dx.resize( 0 ); }
+      else
         {
-          if( jacobian_quantities[i].Analytical() )
-            { diy_dx[i].resize( jacobian_indices[i][1] - jacobian_indices[i][0], 
-                                                              stokes_dim, nf ); }
+          diy_dx.resize( jacobian_indices.nelem() ); 
+          //
+          for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+            {
+              if( jacobian_quantities[i].Analytical() )
+                { diy_dx[i].resize( jacobian_indices[i][1] - 
+                                    jacobian_indices[i][0], stokes_dim, nf ); }
+            }
         }
     }
-
 
   // Do RT calculations
   //
@@ -1537,6 +1614,7 @@ void yCalc(
    const Vector&                     sensor_response_za,
    const Vector&                     sensor_response_aa,
    const Agenda&                     iy_agenda,
+   const Index&                      iy_aux_do,
    const String&                     y_unit,
    const Agenda&                     jacobian_agenda,
    const Index&                      jacobian_do,
@@ -1765,8 +1843,8 @@ void yCalc(
                   //
                   iy_agendaExecute( ws, iy, iy_aux, diy_dx,
                             sensor_pos(imblock,joker), los, iy_transmission, 
-                            cloudbox_on, j_analytical_do, 1, f_grid, t_field, 
-                            vmr_field, iy_agenda );
+                            cloudbox_on, j_analytical_do, iy_aux_do, 
+                            f_grid, t_field, vmr_field, iy_agenda );
 
                   // Check sizes
                   //

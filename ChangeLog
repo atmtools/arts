@@ -1,3 +1,10 @@
+2009-10-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-93
+
+	* src/m_rte.cc (iyClearskyStandard): Got a free hour. Some more work on
+	iyClearskyStandard. 
+
 2009-10-06  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-92

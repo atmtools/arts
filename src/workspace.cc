@@ -1526,11 +1526,13 @@ void Workspace::define_wsv_data()
       (
        "Flag to control calculation of *iy_aux*.\n"
        "\n"
-       "This variable is mainly for internal purposes, to allow methods\n"
-       "calling *iy_agenda* to turn off the calculation of *iy_aux*. This in\n"
-       "order to save time if the method is only interested in *iy*. Note that\n"
-       "setting *iy_aux_do* to 1 does not necessarily create any auxilary data\n"
-       "the agenda methods must also be set to produce a filled *iy_aux*.\n"
+       "This is a flag for methods intended for *iy_agenda*. If the flag is\n"
+       "set to 0 the methods are told that is OK to skip the calculation of\n"
+       "*iy_aux*. The result should then be that *iy_aux* is empty.\n"
+       "\n"
+       "Note that setting *iy_aux_do* to 1 does not necessarily create any\n"
+       "auxilary data, also the agenda must also include a method that\n"
+       "fill *iy_aux* in some way.\n"
        ),
       GROUP( "Index" )));
 

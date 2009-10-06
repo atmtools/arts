@@ -8528,7 +8528,7 @@ void define_md_data_raw()
             "sensor_pos", "sensor_los", "mblock_za_grid", "mblock_aa_grid",
             "antenna_dim", "sensor_response", "sensor_response_f",
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
-            "iy_agenda", "y_unit", 
+            "iy_agenda", "iy_aux_do", "y_unit", 
             "jacobian_agenda", "jacobian_do", "jacobian_quantities",
             "jacobian_indices", "jacobian_unit" ),
         GIN(),
