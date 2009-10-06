@@ -4164,6 +4164,42 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyClearskyStandard" ),
+        DESCRIPTION
+        (
+         "Standard method for radiative transfer calculations with emission.\n"
+         "\n"
+         "Designed to be part of *iy_agenda*. That is, is only valid outside\n"
+         "the cloudbox (no scattering or polarised absorption). Assumes local\n"
+         "thermodynamic equilibrium for emission.\n"
+         "\n"
+         "The overall strategy is to average basic atmospheric quantities\n"
+         "(such as temperature) between the end points of each step of\n"
+         "the propagation path, and to calculate emission and absorption\n"
+         "for these averaged values.\n" 
+         "\n"
+         "See further the user guide.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "rte_pos", "rte_los", "iy_aux_do", "jacobian_do", 
+            "atmosphere_dim", "p_grid", "lat_grid",
+            "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid", "z_surface",
+            "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
+            "ppath_step_agenda", "emission_agenda", "abs_scalar_gas_agenda",
+            "iy_space_agenda", 
+            "iy_transmission", "jacobian_quantities", "jacobian_indices" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyInterpCloudboxField" ),
         DESCRIPTION
         (
@@ -4783,6 +4819,37 @@ void define_md_data_raw()
         GIN_DESC( "Frequency vector." )
         ));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "MatrixCBR2" ),
+        DESCRIPTION
+        (
+         "Sets a matrix to hold cosmic background radiation (CBR).\n"
+         "\n"
+         "The CBR is assumed to be un-polarized and Stokes components 2-4\n"
+         "are zero. Number of Stokes components, that equals the number\n"
+         "of columns in the created matrix, is determined by *stokes_dim*.\n"
+         "The number of rows in the created matrix equals the length of the\n"
+         "given frequency vector.\n"
+         "\n"
+         "The cosmic radiation is modelled as blackbody radiation for the\n"
+         "temperature given by the global constant COSMIC_BG_TEMP, set in\n"
+         "the file constants.cc. The frequencies are taken from the generic\n"
+         "input vector. The standard usage should be:\n"
+         "   MatrixCBR( iy, stokes_dim, f_grid )\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "m"       ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "Matrix to be created." ),
+        IN( "stokes_dim" ),
+        GIN(         "f"      ),
+        GIN_TYPE(    "Vector" ),
+        GIN_DEFAULT( NODEF    ),
+        GIN_DESC( "Frequency vector." )
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "MatrixCreate" ),
@@ -4834,6 +4901,143 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF   , NODEF    ),
         GIN_DESC( "FIXME DOC",
                   "FIXME DOC" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MatrixPlanck" ),
+        DESCRIPTION
+        (
+         "Sets a matrix to hold blackbody radiation.\n"
+         "The radiation is assumed to be un-polarized and Stokes components\n"
+         "2-4 are zero. Number of Stokes components, that equals the number\n"
+         "of columns in the created matrix, is determined by *stokes_dim*.\n"
+         "The number of rows in the created matrix equals the length of the\n"
+         "given frequency vector.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "m"      ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "Matrix to be created." ),
+        IN( "stokes_dim" ),
+        GIN(        "gin1"  , "gin2"    ),
+        GIN_TYPE(   "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF   , NODEF    ),
+        GIN_DESC( "Frequency vector.",
+                  "Temperature [K]." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MatrixPlanck2" ),
+        DESCRIPTION
+        (
+         "Sets a matrix to hold blackbody radiation.\n"
+         "The radiation is assumed to be un-polarized and Stokes components\n"
+         "2-4 are zero. Number of Stokes components, that equals the number\n"
+         "of columns in the created matrix, is determined by *stokes_dim*.\n"
+         "The number of rows in the created matrix equals the length of the\n"
+         "given frequency vector.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "m"      ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "Matrix to be created." ),
+        IN( "stokes_dim" ),
+        GIN(        "gin1"  , "gin2"    ),
+        GIN_TYPE(   "Vector", "Numeric" ),
+        GIN_DEFAULT( NODEF   , NODEF    ),
+        GIN_DESC( "Frequency vector.",
+                  "Temperature [K]." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MatrixScale" ),
+        DESCRIPTION
+        (
+         "Scales all elements of a matrix with the specified value.\n"
+         "\n"
+         "The result can either be stored in the same or another\n"
+         "variable.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "mout"   ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "Output matrix" ),
+        IN(),
+        GIN(         "min"   , "value"   ),
+        GIN_TYPE(    "Matrix", "Numeric" ),
+        GIN_DEFAULT( NODEF   , NODEF     ),
+        GIN_DESC( "Input matrix.",
+                  "The value to be multiplied with the matrix." 
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MatrixSetConstant" ),
+        DESCRIPTION
+        (
+         "Creates a matrix and sets all elements to the specified value.\n"
+         "\n"
+         "The size is determined by *ncols* and *nrows*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "m"      ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "The matrix to be created." ),
+        IN( "nrows", "ncols" ),
+        GIN(         "value"   ),
+        GIN_TYPE(    "Numeric" ),
+        GIN_DEFAULT( NODEF     ),
+        GIN_DESC( "Matrix value." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MatrixUnitIntensity" ),
+        DESCRIPTION
+        (
+         "Sets a matrix to hold unpolarised radiation with unit intensity.\n"
+         "\n"
+         "Works as MatrixPlanck where the radiation is set to 1.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "m"       ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "The matrix to be created." ),
+        IN( "stokes_dim" ),
+        GIN(         "f"      ),
+        GIN_TYPE(    "Vector" ),
+        GIN_DEFAULT( NODEF    ),
+        GIN_DESC( "Frequency vector." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MatrixUnitIntensity2" ),
+        DESCRIPTION
+        (
+         "Sets a matrix to hold unpolarised radiation with unit intensity.\n"
+         "\n"
+         "Works as MatrixPlanck where the radiation is set to 1.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "m"       ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "The matrix to be created." ),
+        IN( "stokes_dim" ),
+        GIN(         "f"      ),
+        GIN_TYPE(    "Vector" ),
+        GIN_DEFAULT( NODEF    ),
+        GIN_DESC( "Frequency vector." )
         ));
 
   md_data_raw.push_back
@@ -4970,96 +5174,6 @@ void define_md_data_raw()
                   "The vector to be copied into the second row.",
                   "The vector to be copied into the third row." 
                   )
-        ));
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "MatrixPlanck" ),
-        DESCRIPTION
-        (
-         "Sets a matrix to hold blackbody radiation.\n"
-         "The radiation is assumed to be un-polarized and Stokes components\n"
-         "2-4 are zero. Number of Stokes components, that equals the number\n"
-         "of columns in the created matrix, is determined by *stokes_dim*.\n"
-         "The number of rows in the created matrix equals the length of the\n"
-         "given frequency vector.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "m"      ),
-        GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "Matrix to be created." ),
-        IN( "stokes_dim" ),
-        GIN(        "gin1"  , "gin2"    ),
-        GIN_TYPE(   "Vector", "Numeric" ),
-        GIN_DEFAULT( NODEF   , NODEF    ),
-        GIN_DESC( "Frequency vector.",
-                  "Temperature [K]." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "MatrixScale" ),
-        DESCRIPTION
-        (
-         "Scales all elements of a matrix with the specified value.\n"
-         "\n"
-         "The result can either be stored in the same or another\n"
-         "variable.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "mout"   ),
-        GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "Output matrix" ),
-        IN(),
-        GIN(         "min"   , "value"   ),
-        GIN_TYPE(    "Matrix", "Numeric" ),
-        GIN_DEFAULT( NODEF   , NODEF     ),
-        GIN_DESC( "Input matrix.",
-                  "The value to be multiplied with the matrix." 
-                  )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "MatrixSetConstant" ),
-        DESCRIPTION
-        (
-         "Creates a matrix and sets all elements to the specified value.\n"
-         "\n"
-         "The size is determined by *ncols* and *nrows*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "m"      ),
-        GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "The matrix to be created." ),
-        IN( "nrows", "ncols" ),
-        GIN(         "value"   ),
-        GIN_TYPE(    "Numeric" ),
-        GIN_DEFAULT( NODEF     ),
-        GIN_DESC( "Matrix value." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "MatrixUnitIntensity" ),
-        DESCRIPTION
-        (
-         "Sets a matrix to hold unpolarised radiation with unit intensity.\n"
-         "\n"
-         "Works as MatrixPlanck where the radiation is set to 1.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "m"       ),
-        GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "The matrix to be created." ),
-        IN( "stokes_dim" ),
-        GIN(         "f"      ),
-        GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF    ),
-        GIN_DESC( "Frequency vector." )
         ));
 
   md_data_raw.push_back

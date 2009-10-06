@@ -1252,6 +1252,80 @@ void get_ptvmr_for_ppath(
 
 
 
+void get_iy_of_background(
+        Workspace&               ws,
+        Matrix&                  iy,
+        Tensor3&                 iy_aux,
+        ArrayOfTensor3&          diy_dx,
+        Index&                   i_background,
+  const Ppath&                   ppath,
+  const Index&                   atmosphere_dim,
+  const Index&                   stokes_dim,
+  const Vector&                  f_grid,
+  const Agenda&                  iy_space_agenda )
+{
+  // Some sizes
+  const Index nf      = f_grid.nelem();
+  const Index np      = ppath.np;
+
+  // Set rte_pos, rte_gp_XXX and rte_los to match the last point in ppath.
+  // The agendas below use different combinations of these variables.
+  //
+  // Note that the Ppath positions (ppath.pos) for 1D have one column more
+  // than expected by most functions. Only the first atmosphere_dim values
+  // shall be copied.
+  //
+  Vector rte_pos;
+  Vector rte_los;
+  GridPos rte_gp_p;
+  GridPos rte_gp_lat;
+  GridPos rte_gp_lon;
+  rte_pos.resize( atmosphere_dim );
+  rte_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
+  rte_los.resize( ppath.los.ncols() );
+  rte_los = ppath.los(np-1,joker);
+  gridpos_copy( rte_gp_p, ppath.gp_p[np-1] );
+  if( atmosphere_dim > 1 )
+    { gridpos_copy( rte_gp_lat, ppath.gp_lat[np-1] ); }
+  if( atmosphere_dim > 2 )
+    { gridpos_copy( rte_gp_lon, ppath.gp_lon[np-1] ); }
+
+  out3 << "Radiative background: " << ppath.background << "\n";
+
+  // Init iy_aux and diy_dx to be empty
+  //
+  iy_aux.resize( 0, 0, 0 );
+  diy_dx.resize( 0 ); 
+
+  // Handle the different background cases
+  //
+  i_background = ppath_what_background( ppath );
+  //
+  switch ( i_background )
+    {
+
+    case 1:   //--- Space ---------------------------------------------------- 
+      {
+        iy_space_agendaExecute( ws, iy, rte_pos, rte_los, iy_space_agenda );
+     
+        if( iy.nrows() != stokes_dim  ||  iy.ncols() != nf )
+          {
+            ostringstream os;
+            os << "expected size = [" << stokes_dim << "," << nf << "]\n"
+               << "size of iy    = [" << iy.nrows() << "," << iy.ncols()<< "]\n"
+               << "The size of *iy* returned from *iy_space_agenda* is "
+               << "not correct.";
+            throw runtime_error( os.str() );      
+          }
+      }
+      break;
+
+    default:  //--- ????? ----------------------------------------------------
+      // Are we here, the coding is wrong somewhere
+      assert( false );
+    }
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void iyClearskyStandard(
         Workspace&                  ws,
@@ -1260,6 +1334,8 @@ void iyClearskyStandard(
         ArrayOfTensor3&             diy_dx,
   const Vector&                     rte_pos,      
   const Vector&                     rte_los,      
+  const Index&                      iy_aux_do,
+  const Index&                      jacobian_do,
   const Index&                      atmosphere_dim,
   const Vector&                     p_grid,
   const Vector&                     lat_grid,
@@ -1276,7 +1352,8 @@ void iyClearskyStandard(
   const Agenda&                     ppath_step_agenda,
   const Agenda&                     emission_agenda,
   const Agenda&                     abs_scalar_agenda,
-  const Index&                      jacobian_do,
+  const Agenda&                     iy_space_agenda,
+  const Tensor3&                    iy_transmission,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices )
 {
@@ -1284,6 +1361,21 @@ void iyClearskyStandard(
   assert( rte_pos.nelem() == atmosphere_dim );
   assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 ) ||
           ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
+
+
+  // Determine if there are any jacobians to handle
+  //
+  Index j_analytical_do = 0;
+  //
+  if( jacobian_do )
+    {
+      for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+        {
+          if( jacobian_quantities[i].Analytical() )
+            { j_analytical_do = 1; }
+        }
+    }
+
 
   //- Determine propagation path
   //
@@ -1295,40 +1387,16 @@ void iyClearskyStandard(
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 
               outside_cloudbox );
   
-  // Some sizes
-  const Index   nf  = f_grid.nelem();
-  const Index   njq = jacobian_indices.nelem();
-
-  // Initilise output variables
-  //
-  iy.resize( stokes_dim, nf );
-  iy_aux.resize( 0, 0, 0 );
-  //
-  if( jacobian_do )
-    {
-      diy_dx.resize( njq );
-      //
-      for( Index i=0; i<njq; i++ )
-        {
-          if( jacobian_quantities[i].Analytical() )
-            {
-              diy_dx[i].resize( jacobian_indices[i][1]-jacobian_indices[i][0],
-                                                               stokes_dim, nf );
-            }
-        }
-    }
-  else
-    { diy_dx.resize( 0 ); }
-
 
   // Get quantities required for each ppath point, and update iy_transmission
   //
   // If np = 1, we only need to determine the radiative background
   //
+  const Index     nf  = f_grid.nelem();
   const Index     np  = ppath.np;
         Index     nabs = 0;
-        Vector    ppath_p, ppath_t, tau(nf,0);
-        Matrix    ppath_vmr, ppath_emission;
+        Vector    ppath_p, ppath_t, total_tau(nf,0.0);
+        Matrix    ppath_vmr, ppath_emission, ppath_tau;
         Tensor3   ppath_abs_scalar;
   //
   if( np > 1 )
@@ -1348,8 +1416,9 @@ void iyClearskyStandard(
       Vector   vmr_mean( nabs );
       ppath_emission.resize( np-1, nf );
       ppath_abs_scalar.resize( np-1, nf, nabs );
+      ppath_tau.resize( np-1, nf );
 
-      // Get emission, scalar absorption and total tau
+      // Get emission, scalar absorption and tau
       //
       Vector   evector;
       Matrix   sgmatrix;
@@ -1373,23 +1442,69 @@ void iyClearskyStandard(
                                                   vmr_mean, abs_scalar_agenda );
           ppath_abs_scalar(i,joker,joker) = sgmatrix;
 
-          // Increase tau
+          // Partial and total tau
           //
-          for( Index j=0; j<nf; j++ )
-            { tau[j] += ppath.l_step[j] * sgmatrix(j,joker).sum(); }
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+              ppath_tau(i,iv)  = ppath.l_step[i] * sgmatrix(iv,joker).sum(); 
+              total_tau[iv]   += ppath_tau(i,iv);
+            }
         }
-
-      // 
     }
 
+
+  // !!!!!
+  Tensor3 iy_transmission2(iy_transmission);
 
 
   // Radiative background
   //
-  // get_radiative_background( ...
+  Index i_background;
   //
-  iy = 0;
+  get_iy_of_background( ws, iy, iy_aux, diy_dx, i_background, 
+                        ppath, atmosphere_dim, 
+                        stokes_dim, f_grid, iy_space_agenda );
+  
 
+  // Set iy_aux and diy_dx if not already done
+  //
+  if( iy_aux_do  &&  iy_aux.nrows() == 0 )
+    { 
+      iy_aux.resize( 2, stokes_dim, nf ); 
+      //
+      iy_aux( 1, joker, joker ) = i_background;
+    }    
+  //
+  if( j_analytical_do  &&  diy_dx.nelem() == 0 )
+    { 
+      diy_dx.resize( jacobian_indices.nelem() ); 
+      //
+      for( Index i=0; i<jacobian_quantities.nelem(); i++ )
+        {
+          if( jacobian_quantities[i].Analytical() )
+            { diy_dx[i].resize( jacobian_indices[i][1] - jacobian_indices[i][0], 
+                                                              stokes_dim, nf ); }
+        }
+    }
+
+
+  // Do RT calculations
+  //
+  if( np > 1 )
+    {
+      for( Index i=np-2; i>=0; i-- )
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+              const Numeric step_tr = exp( -ppath_tau(i,iv) );
+              //
+              iy(0,iv)  = iy(0,iv)*step_tr + ppath_emission(i,iv)*(1-step_tr); 
+              //
+              for( Index is=1; is<stokes_dim; is++ )
+                { iy(is,iv) *= step_tr; }
+            }
+        }      
+    }
 }
 
 
@@ -1432,7 +1547,9 @@ void yCalc(
   // Some sizes
   const Index   nf      = f_grid.nelem();
   const Index   nza     = mblock_za_grid.nelem();
-        Index   naa     = mblock_aa_grid.nelem();   // Can be set to 1 below
+        Index   naa     = mblock_aa_grid.nelem();   
+  if( antenna_dim == 1 )  
+    { naa = 1; }
   const Index   n1y     = sensor_response.nrows();
   const Index   nmblock = sensor_pos.nrows();
   const Index   nib     = nf * nza * naa * stokes_dim;
@@ -1497,7 +1614,7 @@ void yCalc(
   //
   if( antenna_dim == 1 )
     {
-      if( naa != 0 )
+      if( mblock_aa_grid.nelem() != 0 )
         throw runtime_error( 
           "For antenna_dim = 1, the azimuthal angle grid must be empty." );
     }
@@ -1546,11 +1663,6 @@ void yCalc(
   //---------------------------------------------------------------------------
   // Allocations and resizing
   //---------------------------------------------------------------------------
-
-  // Effective length of mblock_aa_grid
-  //
-  if( antenna_dim == 1 )
-    { naa = 1; }
 
   // Resize *y* and *y_XXX*
   //
@@ -1674,9 +1786,12 @@ void yCalc(
                         }
                     }
                   //
-                  assert( iy_aux.ncols() == nf );
-                  assert( iy_aux.nrows() == stokes_dim );
-                  assert( iy_aux.npages() == n_aux );
+                  if( n_aux )
+                    { 
+                      assert( iy_aux.ncols() == nf );
+                      assert( iy_aux.nrows() == stokes_dim );
+                      assert( iy_aux.npages() == n_aux );
+                    }
                   //
                   if( j_analytical_do )
                     {
