@@ -784,6 +784,16 @@ void yUnit(
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 
+
+#define FOR_ANALYTICAL_JACOBIANS_DO(what_to_do) \
+  for( Index i=0; i<jacobian_quantities.nelem(); i++ ) \
+    { \
+      if( jacobian_quantities[i].Analytical() ) \
+        { what_to_do } \
+    } 
+
+
+
 //! zaaa2cart
 /*! 
    Converts zenith and azimuth angles to a cartesian unit vector.
@@ -1306,6 +1316,99 @@ void get_ptvmr_for_ppath(
 
 
 
+//! get_step_vars_for_standardRT
+/*!
+    Determines variables for each step of "standard" RT integration
+
+    The output variables are sized inside the function. The dimension order is 
+       [ ppath point, frequency, absorption species ]
+
+    \param   ws                Out: The workspace
+    \param   ppath_abs_sclar   Out: Mean absorption coefficient 
+    \param   ppath_emission    Out: Mean emission
+    \param   ppath_tau         Out: Optical thickness of each ppath step 
+    \param   total_tau         Out: Total optical thickness of path
+    \param   abs_scalar_agenda As the WSV.    
+    \param   emission_agenda   As the WSV.    
+    \param   ppath_p           Pressure for each ppath point.
+    \param   ppath_t           Temperature for each ppath point.
+    \param   ppath_vmr         VMR values for each ppath point.
+    \param   nf                Number of frequencies, length of f_grid
+    \param   emission_do       Flag for calculation of emission. Should be
+                               set to 0 for pure transmission calculations.
+
+    \author Patrick Eriksson 
+    \date   2009-10-06
+*/
+void get_step_vars_for_standardRT( 
+        Workspace&   ws,
+        Tensor3&     ppath_abs_scalar, 
+        Matrix&      ppath_emission, 
+        Matrix&      ppath_tau,
+        Vector&      total_tau,
+  const Agenda&      abs_scalar_agenda,
+  const Agenda&      emission_agenda,
+  const Ppath&       ppath,
+  const Vector&      ppath_p, 
+  const Vector&      ppath_t, 
+  const Matrix&      ppath_vmr, 
+  const Index&       nf,
+  const Index&       emission_do )
+{
+  // Sizes
+  const Index   np   = ppath.np;
+  const Index   nabs = ppath_vmr.nrows();
+
+  // Init variables
+  ppath_abs_scalar.resize( np-1, nf, nabs );
+  ppath_tau.resize( np-1, nf );
+  total_tau.resize( nf );
+  total_tau = 0;
+  if( emission_do )
+    { ppath_emission.resize( np-1, nf ); }
+
+  // Log of the pressure
+  Vector ppath_logp( np );
+  transform( ppath_logp, log, ppath_p  );
+
+  for( Index i=0; i<np-1; i++ )
+    {
+      // Mean of p, t and VMRs for the step
+      const Numeric   p_mean = exp( 0.5*( ppath_logp[i+1]+ppath_logp[i] ) );
+      const Numeric   t_mean = ( ppath_t[i+1] + ppath_t[i] ) / 2.0;
+            Vector   vmr_mean( nabs );
+      for( Index ia=0; ia<nabs; ia++ )
+        { vmr_mean[ia] = 0.5 * ( ppath_vmr(ia,i+1) + ppath_vmr(ia,i) ); }
+
+      // Calculate emission and absorption terms
+      //
+      // We must use temporary vectors as the agenda input must be
+      // free to be resized
+      Vector   evector;
+      Matrix   sgmatrix;
+      //
+      abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, p_mean, t_mean, 
+                                              vmr_mean, abs_scalar_agenda );
+      ppath_abs_scalar(i,joker,joker) = sgmatrix;
+      //
+      if( emission_do )
+        {
+          emission_agendaExecute( ws, evector, t_mean, emission_agenda );
+          ppath_emission(i,joker) = evector;
+        }
+
+      // Partial and total tau
+      //
+      for( Index iv=0; iv<nf; iv++ )
+        { 
+          ppath_tau(i,iv)  = ppath.l_step[i] * sgmatrix(iv,joker).sum(); 
+          total_tau[iv]   += ppath_tau(i,iv);
+        }
+    }
+}
+
+
+
 void get_iy_of_background(
         Workspace&               ws,
         Matrix&                  iy,
@@ -1383,7 +1486,7 @@ void get_iy_of_background(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void iyClearskyStandard(
+void iyEmissionStandardClearsky(
         Workspace&                  ws,
         Matrix&                     iy,
         Tensor3&                    iy_aux,
@@ -1415,31 +1518,22 @@ void iyClearskyStandard(
 {
   // A minimal amount of checks, for efficiency reasons
   assert( rte_pos.nelem() == atmosphere_dim );
-  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 ) ||
+  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
           ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
 
   // Determine if there are any jacobians to handle
   //
   Index j_analytical_do = 0;
   //
-  if( jacobian_do )
-    {
-      for( Index i=0; i<jacobian_quantities.nelem(); i++ )
-        {
-          if( jacobian_quantities[i].Analytical() )
-            { j_analytical_do = 1; }
-        }
-    }
+  if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
 
   //- Determine propagation path
   //
-       Ppath  ppath;
-  const bool  outside_cloudbox = true;
+  Ppath  ppath;
   //
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
-              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 
-              outside_cloudbox );
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
 
   // Get quantities required for each ppath point, and update iy_transmission
   //
@@ -1447,8 +1541,7 @@ void iyClearskyStandard(
   //
   const Index     nf  = f_grid.nelem();
   const Index     np  = ppath.np;
-        Index     nabs = 0;
-        Vector    ppath_p, ppath_t, total_tau(nf,0.0);
+        Vector    ppath_p, ppath_t, total_tau;
         Matrix    ppath_vmr, ppath_emission, ppath_tau;
         Tensor3   ppath_abs_scalar, iy_trans_new;
   //
@@ -1459,58 +1552,20 @@ void iyClearskyStandard(
       get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
                            p_grid, lat_grid, lon_grid, t_field, vmr_field );
 
-      // Derived quantities
+      // Get emission, absorption, optical thickness for each step, and total
+      // optical thickness
       //
-      Vector ppath_logp( np );
-      transform( ppath_logp, log, ppath_p  );
-      //
-      nabs = ppath_vmr.nrows();
-      //
-      Vector   vmr_mean( nabs );
-      ppath_emission.resize( np-1, nf );
-      ppath_abs_scalar.resize( np-1, nf, nabs );
-      ppath_tau.resize( np-1, nf );
-
-      // Get emission, scalar absorption and tau
-      //
-      Vector   evector;
-      Matrix   sgmatrix;
-      //
-      for( Index i=0; i<np-1; i++ )
-        {
-          const Numeric   p_mean = exp( 0.5*( ppath_logp[i+1]+ppath_logp[i] ) );
-          const Numeric   t_mean = ( ppath_t[i+1] + ppath_t[i] ) / 2.0;
-          for( Index ia=0; ia<nabs; ia++ )
-            { vmr_mean[ia] = 0.5 * ( ppath_vmr(ia,i+1) + ppath_vmr(ia,i) ); }
-
-          // Calculate emission and absorption terms
-          //
-          // We must use temporary vectors as the agenda input must be
-          // free to be resized
-          //
-          emission_agendaExecute( ws, evector, t_mean, emission_agenda );
-          ppath_emission(i,joker) = evector;
-          //
-          abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, p_mean, t_mean, 
-                                                  vmr_mean, abs_scalar_agenda );
-          ppath_abs_scalar(i,joker,joker) = sgmatrix;
-
-          // Partial and total tau
-          //
-          for( Index iv=0; iv<nf; iv++ )
-            { 
-              ppath_tau(i,iv)  = ppath.l_step[i] * sgmatrix(iv,joker).sum(); 
-              total_tau[iv]   += ppath_tau(i,iv);
-            }
-        }
+      get_step_vars_for_standardRT( ws, ppath_abs_scalar, ppath_emission, 
+                                    ppath_tau, total_tau, 
+                                    abs_scalar_agenda, emission_agenda,
+                                    ppath, ppath_p, ppath_t, ppath_vmr, nf, 1 );
 
       // New iy_transmission
       iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, total_tau);
-
     }
   else
     {
-      // If np=1, *iy_trans_new* canb e identical to *iy_transmission*
+      // If np=1, *iy_trans_new* can be identical to *iy_transmission*
       //
       iy_trans_new = iy_transmission;   // How to avoid copying of values?
     }
@@ -1527,8 +1582,7 @@ void iyClearskyStandard(
   //
   if( iy_aux.nrows() == 0 )
     { 
-      if( !iy_aux_do )
-        { iy_aux.resize( 0, 0, 0 ); }
+      if( !iy_aux_do ) { iy_aux.resize( 0, 0, 0 ); }
       else
         {
           iy_aux.resize( 3, stokes_dim, nf ); 
@@ -1536,32 +1590,28 @@ void iyClearskyStandard(
           for( Index iv=0; iv<nf; iv++ )
             { 
               for( Index is=0; is<stokes_dim; is++ )
-                { iy_aux( 0, is, iv ) = iy_trans_new( is, is, iv );}
+                { iy_aux( 0, is, iv ) = iy_trans_new( is, is, iv ); }
             }
           //
           iy_aux( 1, joker, joker ) = (Numeric)i_background;
           //
-          if( i_background < 3 ) 
-            { iy_aux( 2, joker, joker ) = 0.0; }
-          else
-            { iy_aux( 2, joker, joker ) = 1.0; }
+          if( i_background < 3 ) { iy_aux( 2, joker, joker ) = 0.0; }
+          else                   { iy_aux( 2, joker, joker ) = 1.0; }
         }
     }    
   //
   if( diy_dx.nelem() == 0 )
     { 
-      if( !j_analytical_do )
-        { diy_dx.resize( 0 ); }
+      if( !j_analytical_do ) { diy_dx.resize( 0 ); }
       else
         {
           diy_dx.resize( jacobian_indices.nelem() ); 
           //
-          for( Index i=0; i<jacobian_quantities.nelem(); i++ )
-            {
-              if( jacobian_quantities[i].Analytical() )
-                { diy_dx[i].resize( jacobian_indices[i][1] - 
-                                    jacobian_indices[i][0], stokes_dim, nf ); }
-            }
+          FOR_ANALYTICAL_JACOBIANS_DO( 
+            diy_dx[i].resize( jacobian_indices[i][1]-jacobian_indices[i][0], 
+                                                              stokes_dim, nf ); 
+            diy_dx[i] = 0.0;
+          ) 
         }
     }
 
@@ -1580,6 +1630,145 @@ void iyClearskyStandard(
               for( Index is=1; is<stokes_dim; is++ )
                 { iy(is,iv) *= step_tr; }
             }
+        }      
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyTransmissionStandardClearsky(
+        Workspace&                  ws,
+        Matrix&                     iy,
+        Tensor3&                    iy_aux,
+        ArrayOfTensor3&             diy_dx,
+  const Vector&                     rte_pos,      
+  const Vector&                     rte_los,      
+  const Index&                      iy_aux_do,
+  const Index&                      jacobian_do,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    z_field,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Matrix&                     r_geoid,
+  const Matrix&                     z_surface,
+  const Index&                      cloudbox_on,
+  const ArrayOfIndex&               cloudbox_limits,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Agenda&                     ppath_step_agenda,
+  const Agenda&                     abs_scalar_agenda,
+  const Agenda&                     iy_space_agenda,
+  const Tensor3&                    iy_transmission,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&        jacobian_indices )
+{
+  // A minimal amount of checks, for efficiency reasons
+  assert( rte_pos.nelem() == atmosphere_dim );
+  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
+          ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
+
+  // Determine if there are any jacobians to handle
+  //
+  Index j_analytical_do = 0;
+  //
+  if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
+
+  //- Determine propagation path
+  //
+  Ppath  ppath;
+  //
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
+              lat_grid, lon_grid, z_field, r_geoid, z_surface,
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
+
+  // Get quantities required for each ppath point, and update iy_transmission
+  //
+  // If np = 1, we only need to determine the radiative background
+  //
+  const Index     nf  = f_grid.nelem();
+  const Index     np  = ppath.np;
+        Vector    ppath_p, ppath_t, total_tau;
+        Matrix    ppath_vmr, dummy, ppath_tau;
+        Tensor3   ppath_abs_scalar, iy_trans_new;
+  //
+  if( np > 1 )
+    {
+      // Get pressure, temperature and VMRs
+      //
+      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
+                           p_grid, lat_grid, lon_grid, t_field, vmr_field );
+
+      // Get absorption, optical thickness for each step, and total
+      // optical thickness 
+      //
+      get_step_vars_for_standardRT( ws, ppath_abs_scalar, dummy, 
+                                    ppath_tau, total_tau, 
+                                    abs_scalar_agenda, Agenda(),
+                                    ppath, ppath_p, ppath_t, ppath_vmr, nf, 0 );
+
+      // New iy_transmission
+      iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, total_tau);
+    }
+  else
+    {
+      // If np=1, *iy_trans_new* can be identical to *iy_transmission*
+      //
+      iy_trans_new = iy_transmission;   // How to avoid copying of values?
+    }
+
+  // Radiative background
+  //
+  Index i_background;
+  //
+  get_iy_of_background( ws, iy, iy_aux, diy_dx, i_background, 
+                        ppath, atmosphere_dim, 
+                        stokes_dim, f_grid, iy_space_agenda );
+  
+  // Set iy_aux and diy_dx, if needed and not already done
+  //
+  if( iy_aux.nrows() == 0 )
+    { 
+      if( !iy_aux_do ) { iy_aux.resize( 0, 0, 0 ); }
+      else
+        {
+          iy_aux.resize( 2, stokes_dim, nf ); 
+          //
+          iy_aux( 0, joker, joker ) = (Numeric)i_background;
+          //
+          if( i_background < 3 ) { iy_aux( 1, joker, joker ) = 0.0; }
+          else                   { iy_aux( 1, joker, joker ) = 1.0; }
+        }
+    }    
+  //
+  if( diy_dx.nelem() == 0 )
+    { 
+      if( !j_analytical_do ) { diy_dx.resize( 0 ); }
+      else
+        {
+          diy_dx.resize( jacobian_indices.nelem() ); 
+          //
+          FOR_ANALYTICAL_JACOBIANS_DO( 
+            diy_dx[i].resize( jacobian_indices[i][1]-jacobian_indices[i][0], 
+                                                              stokes_dim, nf ); 
+            diy_dx[i] = 0.0;
+          ) 
+        }
+    }
+
+  // Do RT calculations
+  //
+  if( np > 1 )
+    {
+      for( Index iv=0; iv<nf; iv++ )
+        { 
+          const Numeric path_tr = exp( -total_tau[iv] );
+          //
+          for( Index is=0; is<stokes_dim; is++ )
+            { iy(is,iv) *= path_tr; }
         }      
     }
 }
@@ -1737,7 +1926,6 @@ void yCalc(
     }
 
 
-
   //---------------------------------------------------------------------------
   // Allocations and resizing
   //---------------------------------------------------------------------------
@@ -1775,17 +1963,11 @@ void yCalc(
     {
       jacobian.resize( nmblock*n1y, jacobian_indices[njq-1][1] );
       //
-      for( Index i=0; i<njq; i++ )
-        {
-          if( jacobian_quantities[i].Analytical() )
-            { 
-              if( j_analytical_do == 0 )
-                { dib_dx.resize(njq); }
-              j_analytical_do  = 1; 
-              dib_dx[i].resize( nib, jacobian_indices[i][1] - 
-                                     jacobian_indices[i][0] );
-            }
-        }
+      FOR_ANALYTICAL_JACOBIANS_DO(
+        if( j_analytical_do == 0 ) { dib_dx.resize(njq); }
+        j_analytical_do  = 1; 
+        dib_dx[i].resize( nib, jacobian_indices[i][1] - jacobian_indices[i][0] );
+      )
     }
 
   // Unit iy_transmission
@@ -1873,19 +2055,12 @@ void yCalc(
                   //
                   if( j_analytical_do )
                     {
-                      for( Index i=0; i<jacobian_quantities.nelem(); i++ )
-                        {
-                          if( jacobian_quantities[i].Analytical() )
-                            { 
-                              assert( diy_dx[i].ncols() == nf );
-                              assert( diy_dx[i].nrows() == stokes_dim );
-                              assert( diy_dx[i].npages() == 
-                                                        jacobian_indices[i][1] -
-                                                        jacobian_indices[i][0] );
-                            }
-                          else
-                            { assert( diy_dx[i].ncols() == 0 ); }
-                        }
+                      FOR_ANALYTICAL_JACOBIANS_DO(
+                        assert( diy_dx[i].ncols() == nf );
+                        assert( diy_dx[i].nrows() == stokes_dim );
+                        assert( diy_dx[i].npages() == jacobian_indices[i][1] -
+                                                      jacobian_indices[i][0] );
+                      )
                     }
                   
                   // iy    : unit conversion and copy to ib
@@ -1909,27 +2084,22 @@ void yCalc(
                   // Jacobian part
                   if( j_analytical_do )
                     {
-                      for( Index i=0; i<jacobian_quantities.nelem(); i++ )
-                        {
-                          if( jacobian_quantities[i].Analytical() )
-                            { 
-                              // Basically copy calculations for *iy*
-                              //
-                              apply_y_unit( diy_dx[i], jacobian_unit, f_grid );
-                              //
-                              for( Index ip=0; ip<jacobian_indices[i][1] -
-                                                  jacobian_indices[i][0]; ip++ )
-                                {
-                                  for( Index is=0; is<stokes_dim; is++ )
-                                    { 
-                                      dib_dx[i](Range(row0+is,nf,stokes_dim),ip)=
-                                        diy_dx[i](ip,is,joker); 
-                                    }
-                                }                              
-                            }                  
-                        }
+                      // Basically copy calculations for *iy*
+                      FOR_ANALYTICAL_JACOBIANS_DO(
+                        //
+                        apply_y_unit( diy_dx[i], jacobian_unit, f_grid );
+                        //
+                        for( Index ip=0; ip<jacobian_indices[i][1] -
+                                            jacobian_indices[i][0]; ip++ )
+                          {
+                            for( Index is=0; is<stokes_dim; is++ )
+                              { 
+                                dib_dx[i](Range(row0+is,nf,stokes_dim),ip)=
+                                  diy_dx[i](ip,is,joker); 
+                              }
+                          }                              
+                      )
                     }
-
                 }  // End aa loop
             }  // End try
 
@@ -1974,15 +2144,11 @@ void yCalc(
       //
       if( j_analytical_do )
         {
-          for( Index i=0; i<jacobian_quantities.nelem(); i++ )
-            {
-              if( jacobian_quantities[i].Analytical() )
-                { 
-                  mult( jacobian(Range(row0,n1y), Range(jacobian_indices[i][0],
-                                 jacobian_indices[i][1]-jacobian_indices[i][0])),
+          FOR_ANALYTICAL_JACOBIANS_DO(
+            mult( jacobian(Range(row0,n1y), Range(jacobian_indices[i][0],
+                           jacobian_indices[i][1]-jacobian_indices[i][0])),
                                                     sensor_response, dib_dx[i] );
-                }
-            }
+          )
         }
 
       // Rest of *jacobian*: run jacobian_agenda (can be empty)

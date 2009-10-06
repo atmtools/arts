@@ -4164,7 +4164,7 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iyClearskyStandard" ),
+      ( NAME( "iyEmissionStandardClearsky" ),
         DESCRIPTION
         (
          "Standard method for radiative transfer calculations with emission.\n"
@@ -4176,9 +4176,15 @@ void define_md_data_raw()
          "The overall strategy is to average basic atmospheric quantities\n"
          "(such as temperature) between the end points of each step of\n"
          "the propagation path, and to calculate emission and absorption\n"
-         "for these averaged values.\n" 
+         "for these averaged values. See further the user guide.\n" 
          "\n"
-         "See further the user guide.\n"
+         "If *iy_aux_do* is set, the columns of *iy_aux* are as follow:\n"
+         " 1. Total transmission along the propagation path. The attenuation\n"
+         "    due to surface reflection and particle scattering is included.\n"
+         " 2. Radiative background index (for main ppath branch), where 1 is\n"
+         "    space, 2 the surface, 3 cloudbox surface and 4 cloudbox interior.\n"
+         " 3. Intersection with cloudbox flag, with 1 for interestion and 0\n"
+         "    for other propagation paths.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "diy_dx" ),
@@ -4191,6 +4197,34 @@ void define_md_data_raw()
             "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
             "ppath_step_agenda", "emission_agenda", "abs_scalar_gas_agenda",
             "iy_space_agenda", 
+            "iy_transmission", "jacobian_quantities", "jacobian_indices" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iyTransmissionStandardClearsky" ),
+        DESCRIPTION
+        (
+         "Standard method for pure transmission RT calculations.\n"
+         "\n"
+         "As *iyEmissionStandardClearsky* beside that emission is here totally\n"
+         "neglected and the transmission column of *iy_aux* is here not\n"
+         "included\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "rte_pos", "rte_los", "iy_aux_do", "jacobian_do", 
+            "atmosphere_dim", "p_grid", "lat_grid",
+            "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid", "z_surface",
+            "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
+            "ppath_step_agenda", "abs_scalar_gas_agenda", "iy_space_agenda", 
             "iy_transmission", "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),

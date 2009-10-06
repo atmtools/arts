@@ -1,5 +1,13 @@
 2009-10-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-12-94
+
+	* src/m_rte.cc: Changed name to iyEmissionStandardClearsky. More
+	sub-functions and a macro to ake code more compact. 
+	Made the sister method: iyTransmissionStandardClearsky
+
+2009-10-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-12-93
 
 	* src/m_rte.cc (iyClearskyStandard): Got a free hour. Some more work on
