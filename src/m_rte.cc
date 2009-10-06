@@ -1472,7 +1472,7 @@ void iyClearskyStandard(
     { 
       iy_aux.resize( 2, stokes_dim, nf ); 
       //
-      iy_aux( 1, joker, joker ) = i_background;
+      iy_aux( 1, joker, joker ) = (Numeric)i_background;
     }    
   //
   if( j_analytical_do  &&  diy_dx.nelem() == 0 )
