@@ -1127,14 +1127,8 @@ void apply_y_unit(
                 }
             }
         }
-
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
-        {
-          for( Index icol=0; icol<iy.ncols(); icol++ )
-            {
-            }
-        }
     }
+
   else
     {
       ostringstream os;
@@ -1409,6 +1403,55 @@ void get_step_vars_for_standardRT(
 
 
 
+//! Help function for analytical jacobian claculations
+/*!
+    The function determines which terms in jacobian_quantities that are 
+    analytical absorption species and temperature jacobians. 
+
+    *abs_species_i* and *is_t* shall be sized to have the same length
+    as *jacobian_quantities*. For analytical absorption species
+    jacobians, *abs_species_i* is set to the matching index in
+    *abs_species*. Otherwise, to -1. For analytical temperature
+    jacobians, *is_t* is set to 1. Otherwise to 0.
+
+    \param   abs_species_i         Out: Matching index in abs_species 
+    \param   is_t                  Out: Flag for: Is a temperature jacobian?
+    \param   jacobian_quantities   As the WSV.
+    \param   abs_species           As the WSV.
+
+
+    \author Patrick Eriksson 
+    \date   2009-10-07
+*/
+void get_pointers_for_analytical_jacobians( 
+        ArrayOfIndex&               abs_species_i, 
+        ArrayOfIndex&               is_t,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfSpeciesTag&   abs_species )
+{
+  FOR_ANALYTICAL_JACOBIANS_DO( 
+    //
+    if( jacobian_quantities[i].MainTag() == TEMPERATURE_MAINTAG )
+      { is_t[i] = 1; }
+    else
+      {
+        is_t[i] = 0;
+        //
+        if( jacobian_quantities[i].MainTag() == ABSSPECIES_MAINTAG )
+          {
+            ArrayOfSpeciesTag  atag;
+            array_species_tag_from_string( atag, 
+                                               jacobian_quantities[i].Subtag() );
+            abs_species_i[i] = chk_contains( "abs_species", abs_species, atag );
+          }
+        else
+          { abs_species_i[i] = -1; }
+      }
+   )
+}
+
+
+
 void get_iy_of_background(
         Workspace&               ws,
         Matrix&                  iy,
@@ -1491,6 +1534,7 @@ void iyEmissionStandardClearsky(
         Matrix&                     iy,
         Tensor3&                    iy_aux,
         ArrayOfTensor3&             diy_dx,
+  const Index&                      iy_agenda_call1,
   const Vector&                     rte_pos,      
   const Vector&                     rte_los,      
   const Index&                      iy_aux_do,
@@ -1508,6 +1552,7 @@ void iyEmissionStandardClearsky(
   const ArrayOfIndex&               cloudbox_limits,
   const Index&                      stokes_dim,
   const Vector&                     f_grid,
+  const ArrayOfArrayOfSpeciesTag&   abs_species,
   const Agenda&                     ppath_step_agenda,
   const Agenda&                     emission_agenda,
   const Agenda&                     abs_scalar_agenda,
@@ -1527,6 +1572,31 @@ void iyEmissionStandardClearsky(
   //
   if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
 
+  // If primary call, initilise iy_aux and diy_dx
+  //
+  const Index     nf  = f_grid.nelem();
+  //
+  if( iy_aux.nrows() == 0 )
+    { 
+      if( !iy_aux_do ) { iy_aux.resize( 0, 0, 0 ); }
+      else             { iy_aux.resize( 3, stokes_dim, nf ); iy_aux = 0; }
+    }
+  //
+  if( iy_agenda_call1 )
+    { 
+      if( !j_analytical_do ) { diy_dx.resize( 0 ); }
+      else
+        {
+          diy_dx.resize( jacobian_indices.nelem() ); 
+          //
+          FOR_ANALYTICAL_JACOBIANS_DO( 
+            diy_dx[i].resize( jacobian_indices[i][1]-jacobian_indices[i][0], 
+                                                              stokes_dim, nf ); 
+            diy_dx[i] = 0.0;
+          ) 
+        }
+    }
+
   //- Determine propagation path
   //
   Ppath  ppath;
@@ -1539,7 +1609,6 @@ void iyEmissionStandardClearsky(
   //
   // If np = 1, we only need to determine the radiative background
   //
-  const Index     nf  = f_grid.nelem();
   const Index     np  = ppath.np;
         Vector    ppath_p, ppath_t, total_tau;
         Matrix    ppath_vmr, ppath_emission, ppath_tau;
@@ -1578,59 +1647,96 @@ void iyEmissionStandardClearsky(
                         ppath, atmosphere_dim, 
                         stokes_dim, f_grid, iy_space_agenda );
   
-  // Set iy_aux and diy_dx, if needed and not already done
+  // Set iy_aux 
   //
-  if( iy_aux.nrows() == 0 )
-    { 
-      if( !iy_aux_do ) { iy_aux.resize( 0, 0, 0 ); }
-      else
+  if( iy_aux_do ) 
+    {
+      // Fill transmission if background is TOA or surface
+      if( i_background <= 2 )
         {
-          iy_aux.resize( 3, stokes_dim, nf ); 
-          //
           for( Index iv=0; iv<nf; iv++ )
             { 
               for( Index is=0; is<stokes_dim; is++ )
                 { iy_aux( 0, is, iv ) = iy_trans_new( is, is, iv ); }
             }
-          //
-          iy_aux( 1, joker, joker ) = (Numeric)i_background;
-          //
-          if( i_background < 3 ) { iy_aux( 2, joker, joker ) = 0.0; }
-          else                   { iy_aux( 2, joker, joker ) = 1.0; }
         }
+      //
+      // Set background if primary call
+      if( iy_agenda_call1 )
+        { iy_aux( 1, joker, joker ) = (Numeric)i_background; }
+      // 
+      // Flag intersection with cloudbox
+      if( i_background >= 3 )
+        { iy_aux( 2, joker, joker ) = 1.0; }
     }    
-  //
-  if( diy_dx.nelem() == 0 )
-    { 
-      if( !j_analytical_do ) { diy_dx.resize( 0 ); }
-      else
-        {
-          diy_dx.resize( jacobian_indices.nelem() ); 
-          //
-          FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dx[i].resize( jacobian_indices[i][1]-jacobian_indices[i][0], 
-                                                              stokes_dim, nf ); 
-            diy_dx[i] = 0.0;
-          ) 
-        }
-    }
 
   // Do RT calculations
   //
   if( np > 1 )
     {
-      for( Index i=np-2; i>=0; i-- )
+      // Create container for the derivatives with respect to changes
+      // at each ppath point. And find matching abs_species-index and 
+      // "temperature flag" (for analytical jacobians).
+      //
+      ArrayOfTensor3  diy_dpath( jacobian_indices.nelem() ); 
+      ArrayOfIndex    abs_species_i( jacobian_indices.nelem() ); 
+      ArrayOfIndex    is_t( jacobian_indices.nelem() ); 
+      //
+      if( j_analytical_do )
+        { 
+          FOR_ANALYTICAL_JACOBIANS_DO( 
+            diy_dpath[i].resize( np, stokes_dim, nf ); )
+
+            get_pointers_for_analytical_jacobians( abs_species_i, is_t, 
+                                              jacobian_quantities, abs_species );
+        }
+
+      // Loop ppath steps
+      for( Index ip=np-2; ip>=0; ip-- )
         {
+          // Loop frequencies
           for( Index iv=0; iv<nf; iv++ )
             { 
-              const Numeric step_tr = exp( -ppath_tau(i,iv) );
+              const Numeric step_tr = exp( -ppath_tau(ip,iv) );
+
+              // Jacobian quantities
+              if( j_analytical_do )
+                {
+                  const Numeric A = ppath.l_step[ip] * exp( -total_tau[iv] );
+                  const Numeric B = 0.5 * A * ( ppath_emission(ip,iv)-iy(0,iv) );
+                  
+                  for( Index i=0; i<jacobian_quantities.nelem(); i++ ) 
+                    {
+                      // Absorbing species
+                      if( abs_species_i[i] >= 0 )
+                        {
+                          Numeric w = B*ppath_abs_scalar(i,iv,abs_species_i[ip]);
+                          diy_dpath[i](i,0,iv) = w;
+                          diy_dpath[i](i+1,0,iv) = w;
+                        }
+
+                      // Temperature
+                      else if( is_t[i] )
+                        {
+                        }
+                    }
+                }
+
+              // Spectrum
               //
-              iy(0,iv)  = iy(0,iv)*step_tr + ppath_emission(i,iv)*(1-step_tr); 
+              iy(0,iv)  = iy(0,iv)*step_tr + ppath_emission(ip,iv)*(1-step_tr); 
               //
               for( Index is=1; is<stokes_dim; is++ )
                 { iy(is,iv) *= step_tr; }
             }
-        }      
+        } 
+      
+      // Map jacobians from ppath to retrieval grids
+      if( j_analytical_do )
+        { 
+          // ...
+        }
+
     }
 }
 
@@ -1642,6 +1748,7 @@ void iyTransmissionStandardClearsky(
         Matrix&                     iy,
         Tensor3&                    iy_aux,
         ArrayOfTensor3&             diy_dx,
+  const Index&                      iy_agenda_call1,
   const Vector&                     rte_pos,      
   const Vector&                     rte_los,      
   const Index&                      iy_aux_do,
@@ -1677,6 +1784,31 @@ void iyTransmissionStandardClearsky(
   //
   if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
 
+  // If primary call, initilise iy_aux and diy_dx
+  //
+  const Index     nf  = f_grid.nelem();
+  //
+  if( iy_aux.nrows() == 0 )
+    { 
+      if( !iy_aux_do ) { iy_aux.resize( 0, 0, 0 ); }
+      else             { iy_aux.resize( 3, stokes_dim, nf ); iy_aux = 0; }
+    }
+  //
+  if( iy_agenda_call1 )
+    { 
+      if( !j_analytical_do ) { diy_dx.resize( 0 ); }
+      else
+        {
+          diy_dx.resize( jacobian_indices.nelem() ); 
+          //
+          FOR_ANALYTICAL_JACOBIANS_DO( 
+            diy_dx[i].resize( jacobian_indices[i][1]-jacobian_indices[i][0], 
+                                                              stokes_dim, nf ); 
+            diy_dx[i] = 0.0;
+          ) 
+        }
+    }
+
   //- Determine propagation path
   //
   Ppath  ppath;
@@ -1689,7 +1821,6 @@ void iyTransmissionStandardClearsky(
   //
   // If np = 1, we only need to determine the radiative background
   //
-  const Index     nf  = f_grid.nelem();
   const Index     np  = ppath.np;
         Vector    ppath_p, ppath_t, total_tau;
         Matrix    ppath_vmr, dummy, ppath_tau;
@@ -1728,36 +1859,18 @@ void iyTransmissionStandardClearsky(
                         ppath, atmosphere_dim, 
                         stokes_dim, f_grid, iy_space_agenda );
   
-  // Set iy_aux and diy_dx, if needed and not already done
+  // Set iy_aux 
   //
-  if( iy_aux.nrows() == 0 )
-    { 
-      if( !iy_aux_do ) { iy_aux.resize( 0, 0, 0 ); }
-      else
-        {
-          iy_aux.resize( 2, stokes_dim, nf ); 
-          //
-          iy_aux( 0, joker, joker ) = (Numeric)i_background;
-          //
-          if( i_background < 3 ) { iy_aux( 1, joker, joker ) = 0.0; }
-          else                   { iy_aux( 1, joker, joker ) = 1.0; }
-        }
+  if( iy_aux_do ) 
+    {
+      // Set background if primary call
+      if( iy_agenda_call1 )
+        { iy_aux( 0, joker, joker ) = (Numeric)i_background; }
+      // 
+      // Flag intersection with cloudbox
+      if( i_background >= 3 )
+        { iy_aux( 1, joker, joker ) = 1.0; }
     }    
-  //
-  if( diy_dx.nelem() == 0 )
-    { 
-      if( !j_analytical_do ) { diy_dx.resize( 0 ); }
-      else
-        {
-          diy_dx.resize( jacobian_indices.nelem() ); 
-          //
-          FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dx[i].resize( jacobian_indices[i][1]-jacobian_indices[i][0], 
-                                                              stokes_dim, nf ); 
-            diy_dx[i] = 0.0;
-          ) 
-        }
-    }
 
   // Do RT calculations
   //
@@ -2024,7 +2137,7 @@ void yCalc(
                   ArrayOfTensor3 diy_dx;
                   //
                   iy_agendaExecute( ws, iy, iy_aux, diy_dx,
-                            sensor_pos(imblock,joker), los, iy_transmission, 
+                            1, sensor_pos(imblock,joker), los, iy_transmission, 
                             cloudbox_on, j_analytical_do, iy_aux_do, 
                             f_grid, t_field, vmr_field, iy_agenda );
 

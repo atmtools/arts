@@ -1498,6 +1498,21 @@ void Workspace::define_wsv_data()
         ),
        GROUP( "Agenda" )));
 
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_agenda_call1" ),
+       DESCRIPTION
+       (
+        "Flag to handle recursive calls of *iy_agenda*\n"
+        "\n"
+        "The agenda *iy_agenda* can be used recursevily and this flag is used\n"
+        "to tell the methods inside the agenda which is the primary call.\n"
+        "This is handled automaticcly for methods using *iy_agenda*, such as\n"
+        "*yCalc*, but the user must set this variable to 1 if the agenda is\n"
+        "called directly inside the control file (which should be a rare case).\n"
+        ),
+       GROUP( "Index" )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "iy_aux" ),

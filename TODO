@@ -11,7 +11,6 @@ AUG: New and old sparse features: insert_row, + and -
 Remove rte_step_std_clearsky ?
 Replace MatrixCBR, MatrixPlanck, MatrixUnitIntensity
 
-2009-10-05, Patrick
-For column 1 of iy_aux in header of iyEmissionStandardClearsky, 
-describe what ppath that is used for scattering cases (non-specular surface).
+2009-10-07, Patrick
+How to avoid copying for iy_trans_new = iy_transmission;
 

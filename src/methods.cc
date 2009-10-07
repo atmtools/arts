@@ -4179,24 +4179,29 @@ void define_md_data_raw()
          "for these averaged values. See further the user guide.\n" 
          "\n"
          "If *iy_aux_do* is set, the columns of *iy_aux* are as follow:\n"
-         " 1. Total transmission along the propagation path. The attenuation\n"
-         "    due to surface reflection and particle scattering is included.\n"
-         " 2. Radiative background index (for main ppath branch), where 1 is\n"
-         "    space, 2 the surface, 3 cloudbox surface and 4 cloudbox interior.\n"
+         " 1. The transmission between the observation point and the top of the\n"
+         "    atmosphere (TOA) or to the surface, depending on which of the two\n"
+         "    \"backgrounds\" that is closest. The transmission is valid for\n"
+         "    the unscattered path through the tamosphere, but attenuation due\n"
+         "    particle scattering is included.\n"
+         " 2. Radiative background index, for primary propagation path branch,\n"
+         "    where 1 is TOA, 2 the surface, 3 cloudbox surface and 4 cloudbox\n"
+         "    interior.\n"
          " 3. Intersection with cloudbox flag, with 1 for interestion and 0\n"
-         "    for other propagation paths.\n"
+         "    for other propagation paths. Also intersection after surface\n"
+         "    reflections are flagged.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rte_pos", "rte_los", "iy_aux_do", "jacobian_do", 
+        IN( "iy_agenda_call1", "rte_pos", "rte_los", "iy_aux_do", "jacobian_do", 
             "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid", "z_surface",
             "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
-            "ppath_step_agenda", "emission_agenda", "abs_scalar_gas_agenda",
-            "iy_space_agenda", 
+            "abs_species", "ppath_step_agenda", "emission_agenda", 
+            "abs_scalar_gas_agenda", "iy_space_agenda", 
             "iy_transmission", "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
@@ -4220,7 +4225,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rte_pos", "rte_los", "iy_aux_do", "jacobian_do", 
+        IN( "iy_agenda_call1", "rte_pos", "rte_los", "iy_aux_do", "jacobian_do", 
             "atmosphere_dim", "p_grid", "lat_grid",
             "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid", "z_surface",
             "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",

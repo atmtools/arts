@@ -1,3 +1,4 @@
+
 # vim: expandtab sw=2
 # Copyright (C) 2000-2008
 # Stefan Buehler   <sbuehler@ltu.se>
@@ -17,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.12.94)
+AM_INIT_AUTOMAKE(arts,1.12.95)
 
 
 dnl Put the ACLOCAL flags in the Makefile
