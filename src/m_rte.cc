@@ -786,9 +786,9 @@ extern const Numeric RAD2DEG;
 
 
 #define FOR_ANALYTICAL_JACOBIANS_DO(what_to_do) \
-  for( Index i=0; i<jacobian_quantities.nelem(); i++ ) \
+  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) \
     { \
-      if( jacobian_quantities[i].Analytical() ) \
+      if( jacobian_quantities[iq].Analytical() ) \
         { what_to_do } \
     } 
 
@@ -931,8 +931,7 @@ void rotationmat3D(
 
 
 
-/*! 
-   Maps MBLOCK_AA_GRID values to correct ZA and AA
+/*! Maps MBLOCK_AA_GRID values to correct ZA and AA
 
    Sensor LOS azimuth angles and mblock_aa_grid values can not be added in a
    straightforward way due to properties of the polar coordinate system used to
@@ -1066,32 +1065,24 @@ void atm_checkedCalc(
 
 
 
-//! apply_y_unit
+//! apply_y_unit, Matrix version
 /*!
-    Performs conversion from radiance to other units.
+    Performs conversion from radiance to other units. This function
+    comes for efficiency in two versions, Matrix/Tensor3 (telescoping
+    can not be used in all cases).
 
-    The function takes radiances in the form of a Tensor3, to cover
-    all needs for standard RT calculations. Tensor3 is needed for
-    handling conversion of jacobians. Though, conversion of jacobian
-    data shall go be made through apply_j_unit (that is mainly an interface
-    to this function).
+    The function takes radiances in the form of a Matrix.
 
-    If the radiance data come as a matrix or a vector, use "telescoping" 
-    (see further AUG):
-    
-      Matrix r
-      apply_y_unit( Tensor3View(r), y_unit, f_grid )
-
-    \param   iy       In/Out: Tensor3 with data to be converted, where each 
-                      column corresponds to a frequency.
+    \param   iy       In/Out: Tensor3 with data to be converted, where frequency 
+                      is expected to be the column dimension
     \param   y_unit   As the WSV.
     \param   f_grid   As the WSV.
 
     \author Patrick Eriksson 
     \date   2007-10-31
 */
-void apply_y_unit( 
-      Tensor3View   iy, 
+void apply_y_unit2( 
+       MatrixView   iy, 
     const String&   y_unit, 
     const Vector&   f_grid )
 {
@@ -1107,10 +1098,7 @@ void apply_y_unit(
           const Numeric scfac = invrayjean( 1, f_grid[iv] );
           for( Index irow=0; irow<iy.nrows(); irow++ )
             {
-              for( Index ipage=0; ipage<iy.npages(); ipage++ )
-                {
-                  iy(ipage,irow,iv) *= scfac;
-                }
+              iy(irow,iv) *= scfac;
             }
         }
     }
@@ -1121,9 +1109,79 @@ void apply_y_unit(
         {
           for( Index irow=0; irow<iy.nrows(); irow++ )
             {
+              iy(irow,iv) = invplanck( iy(irow,iv), f_grid[iv] );
+            }
+        }
+    }
+
+  else
+    {
+      ostringstream os;
+      os << "Unknown option: y_unit = \"" << y_unit << "\"\n" 
+         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
+      throw runtime_error( os.str() );      
+    }
+
+  // If adding more options here, also add in second version of this function.
+}
+
+
+
+//! apply_y_unit, Tensor3 version
+/*!
+    Performs conversion from radiance to other units.
+
+    Performs conversion from radiance to other units. This function
+    comes for efficiency in two versions, Matrix/Tensor3 (telescoping
+    can not be used in all cases).
+
+    The function takes radiances in the form of a Tensor3. Tensor3 is
+    needed for handling conversion of jacobians. Though, conversion of
+    jacobian data shall go be made through apply_j_unit (that is
+    mainly an interface to this function).
+
+    \param   iy       In/Out: Tensor3 with data to be converted, where frequency 
+                      is expected to be the row dimension
+    \param   y_unit   As the WSV.
+    \param   f_grid   As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2007-10-31
+*/
+void apply_y_unit( 
+      Tensor3View   iy, 
+    const String&   y_unit, 
+    const Vector&   f_grid )
+{
+  assert( f_grid.nelem() == iy.nrows() );
+
+  if( y_unit == "1" )
+    {}
+
+  else if( y_unit == "RJBT" )
+    {
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          const Numeric scfac = invrayjean( 1, f_grid[iv] );
+          for( Index icol=0; icol<iy.ncols(); icol++ )
+            {
               for( Index ipage=0; ipage<iy.npages(); ipage++ )
                 {
-                  iy(ipage,irow,iv) = invplanck( iy(ipage,irow,iv), f_grid[iv] );
+                  iy(ipage,iv,icol) *= scfac;
+                }
+            }
+        }
+    }
+
+  else if( y_unit == "PlanckBT" )
+    {
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          for( Index icol=0; icol<iy.ncols(); icol++ )
+            {
+              for( Index ipage=0; ipage<iy.npages(); ipage++ )
+                {
+                  iy(ipage,iv,icol) = invplanck( iy(ipage,iv,icol), f_grid[iv] );
                 }
             }
         }
@@ -1137,14 +1195,15 @@ void apply_y_unit(
       throw runtime_error( os.str() );      
     }
 
-  // If adding more options here, also add in yUnit and jacobianUnit.
+  // If adding more options here, also add in second version of this function
+  // and in apply_j_unit.
 }
 
 
 
 //! apply_j_unit
 /*!
-    As apply_y_unit but takes jacobian_unit as input.
+    As Tensor3 version of apply_y_unit but takes jacobian_unit as input.
 
     \param   iy       In/Out: Tensor3 with data to be converted, where each 
                       column corresponds to a frequency.
@@ -1173,19 +1232,33 @@ void apply_j_unit(
 
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void iy_transmissionUnit( 
-        Tensor3&  iy_transmission,
-  const Index&    stokes_dim,
-  const Vector&   f_grid )
+//! iy_transmission_for_scalar_tau
+/*!
+    Sets *iy_transmission* to match scalar optical thicknesses.
+
+    *iy_transmission* is sized by the function.
+
+    \param   iy_transmission   Out: As the WSV.
+    \param   stokes_dim        As the WSV.
+    \param   tau               Vector with the optical thickness for each 
+                               frequency.
+
+    \author Patrick Eriksson 
+    \date   2009-10-06
+*/
+void iy_transmission_for_scalar_tau( 
+        Tensor3&    iy_transmission,
+  const Index&      stokes_dim,
+  ConstVectorView   tau )
 {
-  iy_transmission.resize( stokes_dim, stokes_dim, f_grid.nelem() );
+  iy_transmission.resize( stokes_dim, stokes_dim, tau.nelem() );
   iy_transmission = 0;
-  for( Index i=0; i<f_grid.nelem(); i++ )
+  for( Index i=0; i<tau.nelem(); i++ )
     { 
+      const Numeric t = exp( -tau[i] );
       for( Index is=0; is<stokes_dim; is++ )
         { 
-          iy_transmission(is,is,i) = 1;
+          iy_transmission(is,is,i) = t;
         }
     }
 }
@@ -1292,7 +1365,7 @@ void get_ptvmr_for_ppath(
   ppath_t.resize(np);
   Matrix   itw_field;
   interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
-                        lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
+                          lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
   interp_atmfield_by_itw( ppath_t,  atmosphere_dim, p_grid, lat_grid, 
                           lon_grid, t_field, ppath.gp_p, 
                           ppath.gp_lat, ppath.gp_lon, itw_field );
@@ -1303,8 +1376,8 @@ void get_ptvmr_for_ppath(
   for( Index is=0; is<ns; is++ )
     {
       interp_atmfield_by_itw( ppath_vmr(is, joker), atmosphere_dim,
-        p_grid, lat_grid, lon_grid, vmr_field( is, joker, joker,  joker ), 
-        ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+             p_grid, lat_grid, lon_grid, vmr_field( is, joker, joker,  joker ), 
+             ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
     }
 }
 
@@ -1315,7 +1388,7 @@ void get_ptvmr_for_ppath(
     Determines variables for each step of "standard" RT integration
 
     The output variables are sized inside the function. The dimension order is 
-       [ ppath point, frequency, absorption species ]
+       [ frequency, absorption species, ppath point ]
 
     \param   ws                Out: The workspace
     \param   ppath_abs_sclar   Out: Mean absorption coefficient 
@@ -1354,25 +1427,25 @@ void get_step_vars_for_standardRT(
   const Index   nabs = ppath_vmr.nrows();
 
   // Init variables
-  ppath_abs_scalar.resize( np-1, nf, nabs );
-  ppath_tau.resize( np-1, nf );
+  ppath_abs_scalar.resize( nf, nabs, np-1 );
+  ppath_tau.resize( nf, np-1 );
   total_tau.resize( nf );
   total_tau = 0;
   if( emission_do )
-    { ppath_emission.resize( np-1, nf ); }
+    { ppath_emission.resize( nf, np-1 ); }
 
   // Log of the pressure
   Vector ppath_logp( np );
   transform( ppath_logp, log, ppath_p  );
 
-  for( Index i=0; i<np-1; i++ )
+  for( Index ip=0; ip<np-1; ip++ )
     {
       // Mean of p, t and VMRs for the step
-      const Numeric   p_mean = exp( 0.5*( ppath_logp[i+1]+ppath_logp[i] ) );
-      const Numeric   t_mean = ( ppath_t[i+1] + ppath_t[i] ) / 2.0;
-            Vector   vmr_mean( nabs );
+      const Numeric   p_mean = exp( 0.5*( ppath_logp[ip+1]+ppath_logp[ip] ) );
+      const Numeric   t_mean = ( ppath_t[ip+1] + ppath_t[ip] ) / 2.0;
+            Vector    vmr_mean( nabs );
       for( Index ia=0; ia<nabs; ia++ )
-        { vmr_mean[ia] = 0.5 * ( ppath_vmr(ia,i+1) + ppath_vmr(ia,i) ); }
+        { vmr_mean[ia] = 0.5 * ( ppath_vmr(ia,ip+1) + ppath_vmr(ia,ip) ); }
 
       // Calculate emission and absorption terms
       //
@@ -1383,27 +1456,27 @@ void get_step_vars_for_standardRT(
       //
       abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, p_mean, t_mean, 
                                               vmr_mean, abs_scalar_agenda );
-      ppath_abs_scalar(i,joker,joker) = sgmatrix;
+      ppath_abs_scalar(joker,joker,ip) = sgmatrix;
       //
       if( emission_do )
         {
           emission_agendaExecute( ws, evector, t_mean, emission_agenda );
-          ppath_emission(i,joker) = evector;
+          ppath_emission(joker,ip) = evector;
         }
 
       // Partial and total tau
       //
       for( Index iv=0; iv<nf; iv++ )
         { 
-          ppath_tau(i,iv)  = ppath.l_step[i] * sgmatrix(iv,joker).sum(); 
-          total_tau[iv]   += ppath_tau(i,iv);
+          ppath_tau(iv,ip)  = ppath.l_step[ip] * sgmatrix(iv,joker).sum(); 
+          total_tau[iv]    += ppath_tau(iv,ip);
         }
     }
 }
 
 
 
-//! Help function for analytical jacobian claculations
+//! Help function for analytical jacobian calculations
 /*!
     The function determines which terms in jacobian_quantities that are 
     analytical absorption species and temperature jacobians. 
@@ -1431,23 +1504,240 @@ void get_pointers_for_analytical_jacobians(
 {
   FOR_ANALYTICAL_JACOBIANS_DO( 
     //
-    if( jacobian_quantities[i].MainTag() == TEMPERATURE_MAINTAG )
-      { is_t[i] = 1; }
+    if( jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG )
+      { is_t[iq] = 1; }
     else
       {
-        is_t[i] = 0;
+        is_t[iq] = 0;
         //
-        if( jacobian_quantities[i].MainTag() == ABSSPECIES_MAINTAG )
+        if( jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG )
           {
             ArrayOfSpeciesTag  atag;
             array_species_tag_from_string( atag, 
-                                               jacobian_quantities[i].Subtag() );
-            abs_species_i[i] = chk_contains( "abs_species", abs_species, atag );
+                                             jacobian_quantities[iq].Subtag() );
+            abs_species_i[iq] = chk_contains( "abs_species", abs_species, atag );
           }
         else
-          { abs_species_i[i] = -1; }
+          { abs_species_i[iq] = -1; }
       }
    )
+}
+
+
+
+//! diy_from_path_to_rgrids
+/*!
+    Maps jacobian data for points along the propagation path, to
+    jacobian retrieval grid data.
+
+    \param   diy_dx              Out: Jacobians for selected retrieval grids.
+    \param   jacobian_quantity   As the WSV.
+    \param   diy_dpath           Jacobians along the propagation path.
+    \param   atmosphere_dim      As the WSV.
+    \param   ppath               As the WSV.
+    \param   ppath_p             The pressure at each ppath point.
+
+    \author Patrick Eriksson 
+    \date   2009-10-08
+*/
+// A small help function, to make the code below cleaner
+void from_dpath_to_dx(
+         MatrixView   diy_dx,
+    ConstMatrixView   diy_dq,
+    const Numeric&    w )
+{
+  for( Index irow=0; irow<diy_dx.nrows(); irow++ )
+    { 
+      for( Index icol=0; icol<diy_dx.ncols(); icol++ )
+        { diy_dx(irow,icol) += w * diy_dq(irow,icol); }
+    }
+}
+//
+void diy_from_path_to_rgrids(
+         Tensor3View          diy_dx,
+   const RetrievalQuantity&   jacobian_quantity,
+   ConstTensor3View           diy_dpath,
+   const Index&               atmosphere_dim,
+   const Ppath&               ppath,
+   ConstVectorView            ppath_p )
+{
+  // We want here an extrapolation to infinity -> 
+  //                                        extremly high extrapolation factor
+  const Numeric   extpolfac = 1.0e99;
+
+  // Retrieval grid of interest
+  Vector r_grid;
+
+  // Variable to hold diy_dq summed and mapped to retrieval grid positions
+  // Sized and set to 0 below, when length of retrieval grids are known
+  //Tensor3   diy_dx;
+  //bool      diydx_unset = true;  
+
+  if( ppath.np > 1 )  // Otherwise nothing to do here
+    {
+      // Pressure
+      r_grid = jacobian_quantity.Grids()[0];
+      Index            nr1 = r_grid.nelem();
+      ArrayOfGridPos   gp_p(ppath.np);
+      p2gridpos( gp_p, r_grid, ppath_p, extpolfac );
+
+      // Latitude
+      Index            nr2 = 1;
+      ArrayOfGridPos   gp_lat;
+      if( atmosphere_dim > 1 )
+        {
+          gp_lat.resize(ppath.np);
+          r_grid = jacobian_quantity.Grids()[1];
+          nr2    = r_grid.nelem();
+          gridpos( gp_lat, r_grid, ppath.pos(joker,1), extpolfac );
+        }
+
+      // Longitude
+      Index            nr3 = 1;
+      ArrayOfGridPos   gp_lon;
+      if( atmosphere_dim > 2 )
+        {
+          gp_lon.resize(ppath.np);
+          r_grid = jacobian_quantity.Grids()[2];
+          nr3    = r_grid.nelem();
+          gridpos( gp_lon, r_grid, ppath.pos(joker,2), extpolfac );
+        }
+      
+      //- 1D
+      if( atmosphere_dim == 1 )
+        {
+          for( Index ip=0; ip<ppath.np; ip++ )
+            {
+              if( gp_p[ip].fd[0] < 1 )
+                {
+                  from_dpath_to_dx( diy_dx(joker,joker,gp_p[ip].idx),
+                                 diy_dpath(joker,joker,ip), gp_p[ip].fd[1] );
+                }
+              if( gp_p[ip].fd[0] > 0 )
+                {
+                  cout<<diy_dx.npages()<<" "<<diy_dx.nrows()<<" "<<diy_dx.ncols()<<endl;
+                  cout << gp_p[ip].idx+1 << endl;
+                  cout << gp_p[ip] << endl;
+
+                  cout<<diy_dpath.npages()<<" "<<diy_dpath.nrows()<<" "<<diy_dpath.ncols()<<endl;
+                  cout << ip << endl;
+                  from_dpath_to_dx( diy_dx(joker,joker,gp_p[ip].idx+1),
+                                 diy_dpath(joker,joker,ip), gp_p[ip].fd[0] );
+                }
+            }
+        }
+
+
+      //- 2D
+      else if( atmosphere_dim == 2 )
+        {
+          for( Index ip=0; ip<ppath.np; ip++ )
+            {
+              Index   ix = nr1*gp_lat[ip].idx + gp_p[ip].idx;
+              // Low lat, low p
+              from_dpath_to_dx( diy_dx(joker,joker,ix),
+                             diy_dpath(joker,joker,ip), 
+                             gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
+              // Low lat, high p
+              from_dpath_to_dx( diy_dx(joker,joker,ix+1),
+                             diy_dpath(joker,joker,ip), 
+                             gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
+              // High lat, low p
+              from_dpath_to_dx( diy_dx(joker,joker,ix+nr1),
+                             diy_dpath(joker,joker,ip), 
+                             gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
+              // High lat, high p
+              from_dpath_to_dx( diy_dx(joker,joker,ix+nr1+1),
+                             diy_dpath(joker,joker,ip), 
+                             gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
+            }
+        }
+
+      //- 3D
+      else if( atmosphere_dim == 3 )
+        {
+          for( Index ip=0; ip<ppath.np; ip++ )
+            {
+              Index   ix = nr2*nr1*gp_lon[ip].idx +
+                           nr1*gp_lat[ip].idx + gp_p[ip].idx;
+              // Low lon, low lat, low p
+              from_dpath_to_dx( diy_dx(joker,joker,ix),
+                             diy_dpath(joker,joker,ip), 
+                             gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
+              // Low lon, low lat, high p
+              from_dpath_to_dx( diy_dx(joker,joker,ix+1),
+                             diy_dpath(joker,joker,ip), 
+                             gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
+              // Low lon, high lat, low p
+              from_dpath_to_dx( diy_dx(joker,joker,ix+nr1),
+                             diy_dpath(joker,joker,ip), 
+                             gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
+              // Low lon, high lat, high p
+              from_dpath_to_dx( diy_dx(joker,joker,ix+nr1+1),
+                             diy_dpath(joker,joker,ip), 
+                             gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
+
+              // Increase *ix* (to be valid for high lon level)
+              ix += nr2*nr1;
+
+              // High lon, low lat, low p
+              from_dpath_to_dx( diy_dx(joker,joker,ix),
+                             diy_dpath(joker,joker,ip), 
+                             gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
+              // High lon, low lat, high p
+              from_dpath_to_dx( diy_dx(joker,joker,ix+1),
+                             diy_dpath(joker,joker,ip), 
+                             gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
+              // High lon, high lat, low p
+              from_dpath_to_dx( diy_dx(joker,joker,ix+nr1),
+                             diy_dpath(joker,joker,ip), 
+                             gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
+              // High lon, high lat, high p
+              from_dpath_to_dx( diy_dx(joker,joker,ix+nr1+1),
+                             diy_dpath(joker,joker,ip), 
+                             gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
+            }
+        }
+    }
+}
+
+
+
+//! vmrunitscf
+/*!
+    Scale factor for conversion between gas species units.
+
+    The function finds the factor with which the total absorption of a
+    gas species shall be multiplicated to match the selected
+    (jacobian) unit. 
+
+    \param   x      Out: scale factor
+    \param   unit   Unit selected.
+    \param   vmr    VMR value.
+    \param   p      Pressure
+    \param   t      Temperature.
+
+    \author Patrick Eriksson 
+    \date   2009-10-08
+*/
+void vmrunitscf(  
+        Numeric&   x, 
+  const String&    unit, 
+  const Numeric&   vmr,
+  const Numeric&   p,
+  const Numeric&   t )
+{
+  if( unit == "rel" )
+    { x = 1; }
+  else if( unit == "vmr" )
+    { x = 1 / vmr; }
+  else if( unit == "nd" )
+    { x = 1 / ( vmr * number_density( p, t ) ); }
+  else
+    {
+      throw runtime_error( "Allowed options for gas species jacobians are "
+                           "\"rel\", \"vmr\" and \"nd\"." );
+    }
 }
 
 
@@ -1457,7 +1747,6 @@ void get_iy_of_background(
         Matrix&                  iy,
         Tensor3&                 iy_aux,
         ArrayOfTensor3&          diy_dx,
-        Index&                   i_background,
   const Ppath&                   ppath,
   const Index&                   atmosphere_dim,
   const Index&                   stokes_dim,
@@ -1492,16 +1781,13 @@ void get_iy_of_background(
 
   out3 << "Radiative background: " << ppath.background << "\n";
 
-  // Init iy_aux and diy_dx to be empty
-  //
-  iy_aux.resize( 0, 0, 0 );
-  diy_dx.resize( 0 ); 
+
+  out3 << iy_aux;
+  out3 << diy_dx;
 
   // Handle the different background cases
   //
-  i_background = ppath_what_background( ppath );
-  //
-  switch ( i_background )
+  switch( ppath_what_background( ppath ) )
     {
 
     case 1:   //--- Space ---------------------------------------------------- 
@@ -1574,27 +1860,24 @@ void iyEmissionStandardClearsky(
 
   // If primary call, initilise iy_aux and diy_dx
   //
-  const Index     nf  = f_grid.nelem();
-  //
-  if( iy_aux.nrows() == 0 )
-    { 
-      if( !iy_aux_do ) { iy_aux.resize( 0, 0, 0 ); }
-      else             { iy_aux.resize( 3, stokes_dim, nf ); iy_aux = 0; }
-    }
+  const Index   nf  = f_grid.nelem();
   //
   if( iy_agenda_call1 )
-    { 
-      if( !j_analytical_do ) { diy_dx.resize( 0 ); }
-      else
+    {
+      if( iy_aux_do ) { iy_aux.resize( 3, stokes_dim, nf ); iy_aux = 0; }
+      else            { iy_aux.resize( 0, 0, 0 ); }
+      //
+      if( j_analytical_do ) 
         {
           diy_dx.resize( jacobian_indices.nelem() ); 
           //
           FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dx[i].resize( jacobian_indices[i][1]-jacobian_indices[i][0], 
-                                                              stokes_dim, nf ); 
-            diy_dx[i] = 0.0;
+            diy_dx[iq].resize( stokes_dim, nf, jacobian_indices[iq][1] - 
+                                               jacobian_indices[iq][0] ); 
+            diy_dx[iq] = 0.0;
           ) 
         }
+      else { diy_dx.resize( 0 ); }
     }
 
   //- Determine propagation path
@@ -1604,6 +1887,9 @@ void iyEmissionStandardClearsky(
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
+  //
+  const Index   i_background = ppath_what_background( ppath );
+
 
   // Get quantities required for each ppath point, and update iy_transmission
   //
@@ -1628,22 +1914,23 @@ void iyEmissionStandardClearsky(
                                     ppath_tau, total_tau, 
                                     abs_scalar_agenda, emission_agenda,
                                     ppath, ppath_p, ppath_t, ppath_vmr, nf, 1 );
-
-      // New iy_transmission
-      iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, total_tau);
     }
-  else
+
+  // Handle iy_transmission (the variable not needed when background is space)
+  //
+  if( i_background > 1 || iy_aux_do )
     {
-      // If np=1, *iy_trans_new* can be identical to *iy_transmission*
-      //
-      iy_trans_new = iy_transmission;   // How to avoid copying of values?
+      if( iy_agenda_call1 )
+        { iy_transmission_for_scalar_tau( iy_trans_new, stokes_dim, 
+                                                                  total_tau ); }
+      else
+        { iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, 
+                                                                  total_tau ); }
     }
 
   // Radiative background
   //
-  Index i_background;
-  //
-  get_iy_of_background( ws, iy, iy_aux, diy_dx, i_background, 
+  get_iy_of_background( ws, iy, iy_aux, diy_dx, 
                         ppath, atmosphere_dim, 
                         stokes_dim, f_grid, iy_space_agenda );
   
@@ -1678,16 +1965,20 @@ void iyEmissionStandardClearsky(
       // at each ppath point. And find matching abs_species-index and 
       // "temperature flag" (for analytical jacobians).
       //
-      ArrayOfTensor3  diy_dpath( jacobian_indices.nelem() ); 
-      ArrayOfIndex    abs_species_i( jacobian_indices.nelem() ); 
-      ArrayOfIndex    is_t( jacobian_indices.nelem() ); 
+      ArrayOfTensor3  diy_dpath; 
+      ArrayOfIndex    abs_species_i, is_t; 
       //
       if( j_analytical_do )
         { 
+          diy_dpath.resize( jacobian_indices.nelem() ); 
+          abs_species_i.resize( jacobian_indices.nelem() ); 
+          is_t.resize( jacobian_indices.nelem() ); 
+          //
           FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dpath[i].resize( np, stokes_dim, nf ); )
-
-            get_pointers_for_analytical_jacobians( abs_species_i, is_t, 
+            diy_dpath[iq].resize( stokes_dim, nf, np ); 
+            diy_dpath[iq] = 0.0;
+          )
+          get_pointers_for_analytical_jacobians( abs_species_i, is_t, 
                                               jacobian_quantities, abs_species );
         }
 
@@ -1697,34 +1988,55 @@ void iyEmissionStandardClearsky(
           // Loop frequencies
           for( Index iv=0; iv<nf; iv++ )
             { 
-              const Numeric step_tr = exp( -ppath_tau(ip,iv) );
+              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
 
               // Jacobian quantities
               if( j_analytical_do )
                 {
                   const Numeric A = ppath.l_step[ip] * exp( -total_tau[iv] );
-                  const Numeric B = 0.5 * A * ( ppath_emission(ip,iv)-iy(0,iv) );
+                  const Numeric B = 0.5 * A * ( ppath_emission(iv,ip)-iy(0,iv) );
                   
-                  for( Index i=0; i<jacobian_quantities.nelem(); i++ ) 
+                  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) 
                     {
                       // Absorbing species
-                      if( abs_species_i[i] >= 0 )
+                      const Index isp = abs_species_i[iq]; 
+                      if( isp >= 0 )
                         {
-                          Numeric w = B*ppath_abs_scalar(i,iv,abs_species_i[ip]);
-                          diy_dpath[i](i,0,iv) = w;
-                          diy_dpath[i](i+1,0,iv) = w;
+                          // Scaling factors to handle retrieval unit
+                          Numeric unitscf1=1, unitscf2=1;
+                          vmrunitscf( unitscf1, jacobian_quantities[iq].Mode(), 
+                                   ppath_vmr(isp,ip), ppath_p[ip], ppath_t[ip] );
+                          vmrunitscf( unitscf1, jacobian_quantities[iq].Mode(), 
+                             ppath_vmr(isp,ip+1), ppath_p[ip+1], ppath_t[ip+1] );
+                          //
+                          // Stokes component 1
+                          const Numeric w0 = B * ppath_abs_scalar(iv,isp,ip);
+                          diy_dpath[iq](0,iv,ip)   += unitscf1 * w0;
+                          diy_dpath[iq](0,iv,ip+1) += unitscf2 * w0;
+                          //
+                          // Higher stokes components
+                          for( Index is=1; is<stokes_dim; is++ )
+                            { 
+                              const Numeric wi = -0.5 * A * iy(is,iv) *
+                                                    ppath_abs_scalar(iv,isp,ip);
+                              diy_dpath[iq](is,iv,ip  ) += unitscf1 * wi;
+                              diy_dpath[iq](is,iv,ip+1) += unitscf2 * wi;
+                            }
                         }
 
                       // Temperature
-                      else if( is_t[i] )
+                      else if( is_t[iq] )
                         {
                         }
                     }
+                  
+                  // Update total_tau (not used for spectrum calculation)
+                  total_tau[iv] -= total_tau[iv];
                 }
 
               // Spectrum
               //
-              iy(0,iv)  = iy(0,iv)*step_tr + ppath_emission(ip,iv)*(1-step_tr); 
+              iy(0,iv)  = iy(0,iv)*step_tr + ppath_emission(iv,ip)*(1-step_tr); 
               //
               for( Index is=1; is<stokes_dim; is++ )
                 { iy(is,iv) *= step_tr; }
@@ -1734,9 +2046,26 @@ void iyEmissionStandardClearsky(
       // Map jacobians from ppath to retrieval grids
       if( j_analytical_do )
         { 
-          // ...
-        }
+          // Weight with iy_transmission
+          if( !iy_agenda_call1 )
+            {
+              FOR_ANALYTICAL_JACOBIANS_DO( 
+                for( Index iv=0; iv<nf; iv++ )
+                  { 
+                    Matrix X;
+                    X = diy_dpath[iq](joker,iv,joker);
+                    mult( diy_dpath[iq](joker,iv,joker), 
+                                           iy_transmission(joker,joker,iv), X );
+                  }
+               )
+            }
 
+          // Map to retrieval grids
+          FOR_ANALYTICAL_JACOBIANS_DO( 
+            diy_from_path_to_rgrids( diy_dx[iq], jacobian_quantities[iq], 
+                                diy_dpath[iq], atmosphere_dim, ppath, ppath_p );
+          )
+        }
     }
 }
 
@@ -1802,9 +2131,9 @@ void iyTransmissionStandardClearsky(
           diy_dx.resize( jacobian_indices.nelem() ); 
           //
           FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dx[i].resize( jacobian_indices[i][1]-jacobian_indices[i][0], 
+            diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0], 
                                                               stokes_dim, nf ); 
-            diy_dx[i] = 0.0;
+            diy_dx[iq] = 0.0;
           ) 
         }
     }
@@ -1853,9 +2182,9 @@ void iyTransmissionStandardClearsky(
 
   // Radiative background
   //
-  Index i_background;
+  Index i_background = 1;
   //
-  get_iy_of_background( ws, iy, iy_aux, diy_dx, i_background, 
+  get_iy_of_background( ws, iy, iy_aux, diy_dx, 
                         ppath, atmosphere_dim, 
                         stokes_dim, f_grid, iy_space_agenda );
   
@@ -2079,15 +2408,9 @@ void yCalc(
       FOR_ANALYTICAL_JACOBIANS_DO(
         if( j_analytical_do == 0 ) { dib_dx.resize(njq); }
         j_analytical_do  = 1; 
-        dib_dx[i].resize( nib, jacobian_indices[i][1] - jacobian_indices[i][0] );
+        dib_dx[iq].resize( nib, jacobian_indices[iq][1]-jacobian_indices[iq][0]);
       )
     }
-
-  // Unit iy_transmission
-  //
-  Tensor3 iy_transmission;
-  //
-  iy_transmissionUnit( iy_transmission, stokes_dim, f_grid );
 
 
   //---------------------------------------------------------------------------
@@ -2133,8 +2456,8 @@ void yCalc(
                   // Calculate iy
                   //
                   Matrix         iy;
-                  Tensor3        iy_aux;
-                  ArrayOfTensor3 diy_dx;
+                  Tensor3        iy_aux, iy_transmission;
+                  ArrayOfTensor3 diy_dx; 
                   //
                   iy_agendaExecute( ws, iy, iy_aux, diy_dx,
                             1, sensor_pos(imblock,joker), los, iy_transmission, 
@@ -2169,17 +2492,17 @@ void yCalc(
                   if( j_analytical_do )
                     {
                       FOR_ANALYTICAL_JACOBIANS_DO(
-                        assert( diy_dx[i].ncols() == nf );
-                        assert( diy_dx[i].nrows() == stokes_dim );
-                        assert( diy_dx[i].npages() == jacobian_indices[i][1] -
-                                                      jacobian_indices[i][0] );
+                        assert( diy_dx[iq].ncols() == jacobian_indices[iq][1] -
+                                                      jacobian_indices[iq][0] );
+                        assert( diy_dx[iq].nrows() == nf );
+                        assert( diy_dx[iq].ncols() == stokes_dim );
                       )
                     }
                   
                   // iy    : unit conversion and copy to ib
                   // iy_aux: copy to ib_aux
                   //
-                  apply_y_unit( Tensor3View(iy), y_unit, f_grid );
+                  apply_y_unit2( iy, y_unit, f_grid );
                   //
                   const Index row0 =( iza*naa + iaa ) * nf * stokes_dim;
                   //
@@ -2190,7 +2513,7 @@ void yCalc(
                       for( Index iaux=0; iaux<n_aux; iaux++ )
                         { 
                           ib_aux(Range(row0+is,nf,stokes_dim),iaux) = 
-                                                         iy_aux(iaux,is,joker);
+                                                          iy_aux(iaux,is,joker);
                         }
                     }
 
@@ -2200,15 +2523,15 @@ void yCalc(
                       // Basically copy calculations for *iy*
                       FOR_ANALYTICAL_JACOBIANS_DO(
                         //
-                        apply_y_unit( diy_dx[i], jacobian_unit, f_grid );
+                        apply_y_unit( diy_dx[iq], jacobian_unit, f_grid );
                         //
-                        for( Index ip=0; ip<jacobian_indices[i][1] -
-                                            jacobian_indices[i][0]; ip++ )
+                        for( Index ip=0; ip<jacobian_indices[iq][1] -
+                                            jacobian_indices[iq][0]; ip++ )
                           {
                             for( Index is=0; is<stokes_dim; is++ )
                               { 
-                                dib_dx[i](Range(row0+is,nf,stokes_dim),ip)=
-                                  diy_dx[i](ip,is,joker); 
+                                dib_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
+                                                        diy_dx[iq](is,joker,ip); 
                               }
                           }                              
                       )
@@ -2258,9 +2581,9 @@ void yCalc(
       if( j_analytical_do )
         {
           FOR_ANALYTICAL_JACOBIANS_DO(
-            mult( jacobian(Range(row0,n1y), Range(jacobian_indices[i][0],
-                           jacobian_indices[i][1]-jacobian_indices[i][0])),
-                                                    sensor_response, dib_dx[i] );
+            mult( jacobian(Range(row0,n1y), Range(jacobian_indices[iq][0],
+                          jacobian_indices[iq][1]-jacobian_indices[iq][0])),
+                                                  sensor_response, dib_dx[iq] );
           )
         }
 

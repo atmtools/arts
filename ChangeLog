@@ -1,3 +1,10 @@
+2009-10-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-96
+
+	* src/m_rte.cc: Did some rearrangements of new part and added code
+	for jacobians. Debugging needed ...
+
 2009-10-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-95
