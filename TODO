@@ -11,9 +11,10 @@ AUG: New and old sparse features: insert_row, + and -
 Remove rte_step_std_clearsky ?
 Replace MatrixCBR, MatrixPlanck, MatrixUnitIntensity
 
-2009-10-07, Patrick
-How to avoid copying for iy_trans_new = iy_transmission;
-
 2009-10-08, Patrick
 How to comment out for-blocks of assert commands
 Use new apply_y_unit for WSMs.
+
+2009-10-11, Patrick 
+Confirm which t-jacobian implementation that works with perturbation 
+calculations.

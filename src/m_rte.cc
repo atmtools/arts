@@ -1216,6 +1216,7 @@ void apply_y_unit(
 void apply_j_unit( 
       Tensor3View   iy, 
     const String&   jacobian_unit, 
+    const String&   y_unit, 
     const Vector&   f_grid )
 {
   if( !( jacobian_unit=="1"  ||  jacobian_unit=="RJBT"  ||  
@@ -1227,7 +1228,10 @@ void apply_j_unit(
       throw runtime_error( os.str() );
     }
 
-  apply_y_unit( iy, jacobian_unit, f_grid );
+  if( jacobian_unit == "-" )
+    { apply_y_unit( iy, y_unit, f_grid ); }
+  else
+    { apply_y_unit( iy, jacobian_unit, f_grid ); }
 }
 
 
@@ -1455,7 +1459,7 @@ void get_step_vars_for_standardRT(
       Matrix   sgmatrix;
       //
       abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, p_mean, t_mean, 
-                                              vmr_mean, abs_scalar_agenda );
+                                                  vmr_mean, abs_scalar_agenda );
       ppath_abs_scalar(joker,joker,ip) = sgmatrix;
       //
       if( emission_do )
@@ -1507,20 +1511,17 @@ void get_pointers_for_analytical_jacobians(
     if( jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG )
       { is_t[iq] = 1; }
     else
+      { is_t[iq] = 0; }
+    //
+    if( jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG )
       {
-        is_t[iq] = 0;
-        //
-        if( jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG )
-          {
-            ArrayOfSpeciesTag  atag;
-            array_species_tag_from_string( atag, 
-                                             jacobian_quantities[iq].Subtag() );
-            abs_species_i[iq] = chk_contains( "abs_species", abs_species, atag );
-          }
-        else
-          { abs_species_i[iq] = -1; }
+        ArrayOfSpeciesTag  atag;
+        array_species_tag_from_string( atag, jacobian_quantities[iq].Subtag() );
+        abs_species_i[iq] = chk_contains( "abs_species", abs_species, atag );
       }
-   )
+    else
+      { abs_species_i[iq] = -1; }
+  )
 }
 
 
@@ -1615,18 +1616,11 @@ void diy_from_path_to_rgrids(
                 }
               if( gp_p[ip].fd[0] > 0 )
                 {
-                  cout<<diy_dx.npages()<<" "<<diy_dx.nrows()<<" "<<diy_dx.ncols()<<endl;
-                  cout << gp_p[ip].idx+1 << endl;
-                  cout << gp_p[ip] << endl;
-
-                  cout<<diy_dpath.npages()<<" "<<diy_dpath.nrows()<<" "<<diy_dpath.ncols()<<endl;
-                  cout << ip << endl;
                   from_dpath_to_dx( diy_dx(joker,joker,gp_p[ip].idx+1),
                                  diy_dpath(joker,joker,ip), gp_p[ip].fd[0] );
                 }
             }
         }
-
 
       //- 2D
       else if( atmosphere_dim == 2 )
@@ -1873,7 +1867,7 @@ void iyEmissionStandardClearsky(
           //
           FOR_ANALYTICAL_JACOBIANS_DO( 
             diy_dx[iq].resize( stokes_dim, nf, jacobian_indices[iq][1] - 
-                                               jacobian_indices[iq][0] ); 
+                                               jacobian_indices[iq][0] + 1 ); 
             diy_dx[iq] = 0.0;
           ) 
         }
@@ -1968,6 +1962,10 @@ void iyEmissionStandardClearsky(
       ArrayOfTensor3  diy_dpath; 
       ArrayOfIndex    abs_species_i, is_t; 
       //
+      const Numeric   dt = 0.1;
+            Matrix    ppath_e2;
+            Tensor3   ppath_as2;
+      //
       if( j_analytical_do )
         { 
           diy_dpath.resize( jacobian_indices.nelem() ); 
@@ -1980,6 +1978,19 @@ void iyEmissionStandardClearsky(
           )
           get_pointers_for_analytical_jacobians( abs_species_i, is_t, 
                                               jacobian_quantities, abs_species );
+          //
+          // Get emission and absorption for disturbed temperature
+          Index do_t=0;
+          for( Index iq=0; iq<is_t.nelem() && do_t==0; iq++ )
+            { if( is_t[iq] ) { do_t = 1; } }
+          if( do_t )
+            {
+              Matrix mdummy; Vector vdummy, t2=ppath_t;
+              for( Index i=0; i<t2.nelem(); i++ ) { t2[i] += dt; }
+              get_step_vars_for_standardRT( ws, ppath_as2, ppath_e2, mdummy, 
+                                   vdummy, abs_scalar_agenda, emission_agenda,
+                                   ppath, ppath_p, t2, ppath_vmr, nf, 1 );
+            }
         }
 
       // Loop ppath steps
@@ -1988,8 +1999,6 @@ void iyEmissionStandardClearsky(
           // Loop frequencies
           for( Index iv=0; iv<nf; iv++ )
             { 
-              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
-
               // Jacobian quantities
               if( j_analytical_do )
                 {
@@ -2003,10 +2012,10 @@ void iyEmissionStandardClearsky(
                       if( isp >= 0 )
                         {
                           // Scaling factors to handle retrieval unit
-                          Numeric unitscf1=1, unitscf2=1;
+                          Numeric unitscf1, unitscf2;
                           vmrunitscf( unitscf1, jacobian_quantities[iq].Mode(), 
                                    ppath_vmr(isp,ip), ppath_p[ip], ppath_t[ip] );
-                          vmrunitscf( unitscf1, jacobian_quantities[iq].Mode(), 
+                          vmrunitscf( unitscf2, jacobian_quantities[iq].Mode(), 
                              ppath_vmr(isp,ip+1), ppath_p[ip+1], ppath_t[ip+1] );
                           //
                           // Stokes component 1
@@ -2027,14 +2036,35 @@ void iyEmissionStandardClearsky(
                       // Temperature
                       else if( is_t[iq] )
                         {
+                          const Numeric dkdt = ( ppath_as2(iv,joker,ip).sum() -
+                                      ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
+                          const Numeric dbdt = ( ppath_e2(iv,ip) -
+                                                    ppath_emission(iv,ip) ) / dt;
+                          //
+                          // Stokes component 1
+                          const Numeric w0 = B * dkdt + ( 
+                                        exp(-(total_tau[iv]-ppath_tau(iv,ip))) - 
+                                        exp( -total_tau[iv]) ) * dbdt;
+                          diy_dpath[iq](0,iv,ip)   += w0;
+                          diy_dpath[iq](0,iv,ip+1) += w0;
+                          //
+                          // Higher stokes components
+                          for( Index is=1; is<stokes_dim; is++ )
+                            { 
+                              const Numeric wi = -0.5 * A * iy(is,iv) * dkdt;
+                              diy_dpath[iq](is,iv,ip  ) += wi;
+                              diy_dpath[iq](is,iv,ip+1) += wi;
+                            }
                         }
                     }
                   
                   // Update total_tau (not used for spectrum calculation)
-                  total_tau[iv] -= total_tau[iv];
+                  total_tau[iv] -= ppath_tau(iv,ip);
                 }
 
               // Spectrum
+              //
+              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
               //
               iy(0,iv)  = iy(0,iv)*step_tr + ppath_emission(iv,ip)*(1-step_tr); 
               //
@@ -2042,7 +2072,7 @@ void iyEmissionStandardClearsky(
                 { iy(is,iv) *= step_tr; }
             }
         } 
-      
+
       // Map jacobians from ppath to retrieval grids
       if( j_analytical_do )
         { 
@@ -2403,12 +2433,13 @@ void yCalc(
   //
   if( jacobian_do )
     {
-      jacobian.resize( nmblock*n1y, jacobian_indices[njq-1][1] );
+      jacobian.resize( nmblock*n1y, jacobian_indices[njq-1][1]+1 );
       //
       FOR_ANALYTICAL_JACOBIANS_DO(
         if( j_analytical_do == 0 ) { dib_dx.resize(njq); }
         j_analytical_do  = 1; 
-        dib_dx[iq].resize( nib, jacobian_indices[iq][1]-jacobian_indices[iq][0]);
+        dib_dx[iq].resize( nib, jacobian_indices[iq][1] -
+                                jacobian_indices[iq][0] + 1 );
       )
     }
 
@@ -2451,7 +2482,6 @@ void yCalc(
                   else if( atmosphere_dim == 3  &&  abs(los[0]-90) > 90 )
                     { map_daa( los[0], los[1], los[0], los[1], 0 ); }
 
-                  // cout << los[0] << " " << los[1] << endl;
 
                   // Calculate iy
                   //
@@ -2493,9 +2523,9 @@ void yCalc(
                     {
                       FOR_ANALYTICAL_JACOBIANS_DO(
                         assert( diy_dx[iq].ncols() == jacobian_indices[iq][1] -
-                                                      jacobian_indices[iq][0] );
+                                                      jacobian_indices[iq][0]+1 );
                         assert( diy_dx[iq].nrows() == nf );
-                        assert( diy_dx[iq].ncols() == stokes_dim );
+                        assert( diy_dx[iq].npages() == stokes_dim );
                       )
                     }
                   
@@ -2523,10 +2553,10 @@ void yCalc(
                       // Basically copy calculations for *iy*
                       FOR_ANALYTICAL_JACOBIANS_DO(
                         //
-                        apply_y_unit( diy_dx[iq], jacobian_unit, f_grid );
+                        apply_j_unit( diy_dx[iq], jacobian_unit, y_unit, f_grid );
                         //
                         for( Index ip=0; ip<jacobian_indices[iq][1] -
-                                            jacobian_indices[iq][0]; ip++ )
+                                            jacobian_indices[iq][0]+1; ip++ )
                           {
                             for( Index is=0; is<stokes_dim; is++ )
                               { 
@@ -2582,8 +2612,8 @@ void yCalc(
         {
           FOR_ANALYTICAL_JACOBIANS_DO(
             mult( jacobian(Range(row0,n1y), Range(jacobian_indices[iq][0],
-                          jacobian_indices[iq][1]-jacobian_indices[iq][0])),
-                                                  sensor_response, dib_dx[iq] );
+                          jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
+                                                   sensor_response, dib_dx[iq] );
           )
         }
 

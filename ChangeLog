@@ -1,3 +1,16 @@
+2009-10-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-97
+
+	* src/m_rte.cc: Found that old analytical jacobians crashed for
+	stokes_dim > 1 (simple bug to fix) and that there is some very
+	small calculation error for old absorption species jacobians. Not
+	getting consistent results for t-jacobians. Will later test compare
+	with perturbation calculations.
+	
+	* src/m_rte.cc (iyEmissionStandardClearsky): Now complete code in place. 
+	Seems to work, but confirmation for t-jacobians needed. 
+
 2009-10-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-96
