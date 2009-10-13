@@ -1741,11 +1741,20 @@ void get_iy_of_background(
         Matrix&                  iy,
         Tensor3&                 iy_aux,
         ArrayOfTensor3&          diy_dx,
+  const Tensor3&                 iy_transmission,
+  const Index&                   iy_aux_do,
+  const Index&                   jacobian_do,
   const Ppath&                   ppath,
   const Index&                   atmosphere_dim,
+  const Tensor3&                 t_field,
+  const Tensor4&                 vmr_field,
+  const Index&                   cloudbox_on,
   const Index&                   stokes_dim,
   const Vector&                  f_grid,
-  const Agenda&                  iy_space_agenda )
+  const Agenda&                  iy_agenda,
+  const Agenda&                  iy_space_agenda,
+  const Agenda&                  surface_prop_agenda,
+  const Agenda&                  iy_cloudbox_agenda )
 {
   // Some sizes
   const Index nf      = f_grid.nelem();
@@ -1776,18 +1785,18 @@ void get_iy_of_background(
   out3 << "Radiative background: " << ppath.background << "\n";
 
 
-  out3 << iy_aux;
-  out3 << diy_dx;
-
   // Handle the different background cases
   //
   switch( ppath_what_background( ppath ) )
     {
+      // All "interfaces" still work with transposed iy !!!
 
     case 1:   //--- Space ---------------------------------------------------- 
       {
-        iy_space_agendaExecute( ws, iy, rte_pos, rte_los, iy_space_agenda );
-     
+        Matrix iy_local;
+        iy_space_agendaExecute( ws, iy_local, rte_pos, rte_los, iy_space_agenda );
+        iy =transpose( iy_local );
+        
         if( iy.nrows() != stokes_dim  ||  iy.ncols() != nf )
           {
             ostringstream os;
@@ -1796,6 +1805,111 @@ void get_iy_of_background(
                << "The size of *iy* returned from *iy_space_agenda* is "
                << "not correct.";
             throw runtime_error( os.str() );      
+          }
+      }
+      break;
+
+    case 2:   //--- The surface -----------------------------------------------
+      {
+        // Call *surface_prop_agenda*
+        //
+        Matrix    surface_los;
+        Tensor4   surface_rmatrix;
+        Matrix    surface_emission;
+        //
+        surface_prop_agendaExecute( ws, surface_emission, surface_los, 
+                                    surface_rmatrix, rte_pos, rte_los, 
+                                    rte_gp_p, rte_gp_lat, rte_gp_lon,
+                                    surface_prop_agenda );
+
+        // Check output of *surface_prop_agenda*
+        //
+        const Index   nlos = surface_los.nrows();
+        if( nlos )   // if 0, blackbody ground and some checks are not needed
+          {
+            if( surface_los.ncols() != rte_los.nelem() )
+              throw runtime_error( 
+                        "Number of columns in *surface_los* is not correct." );
+            if( nlos != surface_rmatrix.nbooks() )
+              throw runtime_error( 
+                  "Mismatch in size of *surface_los* and *surface_rmatrix*." );
+            if( surface_rmatrix.npages() != nf )
+              throw runtime_error( 
+                       "Mismatch in size of *surface_rmatrix* and *f_grid*." );
+            if( surface_rmatrix.nrows() != stokes_dim  ||  
+                surface_rmatrix.ncols() != stokes_dim ) 
+              throw runtime_error( 
+              "Mismatch between size of *surface_rmatrix* and *stokes_dim*." );
+          }
+        if( surface_emission.ncols() != stokes_dim )
+          throw runtime_error( 
+             "Mismatch between size of *surface_emission* and *stokes_dim*." );
+        if( surface_emission.nrows() != nf )
+          throw runtime_error( 
+                       "Mismatch in size of *surface_emission* and f_grid*." );
+        //---------------------------------------------------------------------
+
+        // Variable to hold down-welling radiation
+        // (the surface part has stokes_dim and f_grid in "transposed order")
+        Tensor3   I( nlos, nf, stokes_dim );
+ 
+        // Loop *surface_los*-es. If no such LOS, we are ready.
+        if( nlos > 0 )
+          {
+            for( Index ilos=0; ilos<nlos; ilos++ )
+              {
+                // Include surface reflection matrix in *iy_transmission*
+                Tensor3 iy_trans_new( stokes_dim, stokes_dim, nf );
+
+                for( Index iv=0; iv<nf; iv++ )
+                  {
+                    mult( iy_trans_new(joker,joker,iv), 
+                          iy_transmission(joker,joker,iv), 
+                          surface_rmatrix(ilos,iv,joker,joker) );
+                  } // Make a function out of this?
+
+                // Calculate downwelling radiation for LOS ilos 
+                iy_agendaExecute( ws, iy, iy_aux, diy_dx,
+                             0, rte_pos, surface_los(ilos,joker), iy_trans_new, 
+                             cloudbox_on, jacobian_do, iy_aux_do, 
+                             f_grid, t_field, vmr_field, iy_agenda );
+
+                I(ilos,joker,joker) = transpose( iy );
+              }
+          }
+
+        // Add up
+        Matrix iy_local;
+        surface_calc( iy_local, I, surface_los, surface_rmatrix, surface_emission );
+        iy =transpose( iy_local );
+      }
+      break;
+
+
+    case 3:   //--- Cloudbox surface or interior --------------------------------
+    case 4:
+      {
+        // Pass a local copy of ppath to the cloudbox agenda
+        Ppath   ppath_local;
+        ppath_init_structure( ppath_local, atmosphere_dim, ppath.np );
+        ppath_copy( ppath_local, ppath );
+
+        // The cloudbox agenda is not yet handling iy_aux and iy_transmission.
+        // And is returning *iy* transposed
+        //
+        Matrix iy_local;
+        iy_cloudbox_agendaExecute( ws, iy_local, ppath_local,
+                                   rte_pos, rte_los, rte_gp_p,
+                                   rte_gp_lat, rte_gp_lon,
+                                   iy_cloudbox_agenda );
+        iy = transpose( iy_local );
+
+        if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
+          {
+            out1 << "expected size = [" << nf << "," << stokes_dim << "]\n";
+            out1 << "iy size = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
+            throw runtime_error( "The size of *iy* returned from "
+                                      "*iy_cloudbox_agenda* is not correct." );
           }
       }
       break;
@@ -1836,7 +1950,10 @@ void iyEmissionStandardClearsky(
   const Agenda&                     ppath_step_agenda,
   const Agenda&                     emission_agenda,
   const Agenda&                     abs_scalar_agenda,
+  const Agenda&                     iy_agenda,
   const Agenda&                     iy_space_agenda,
+  const Agenda&                     surface_prop_agenda,
+  const Agenda&                     iy_cloudbox_agenda,
   const Tensor3&                    iy_transmission,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices )
@@ -1912,6 +2029,7 @@ void iyEmissionStandardClearsky(
 
   // Handle iy_transmission (the variable not needed when background is space)
   //
+
   if( i_background > 1 || iy_aux_do )
     {
       if( iy_agenda_call1 )
@@ -1924,9 +2042,10 @@ void iyEmissionStandardClearsky(
 
   // Radiative background
   //
-  get_iy_of_background( ws, iy, iy_aux, diy_dx, 
-                        ppath, atmosphere_dim, 
-                        stokes_dim, f_grid, iy_space_agenda );
+  get_iy_of_background( ws, iy, iy_aux, diy_dx, iy_trans_new,  
+                      iy_aux_do, jacobian_do, ppath, atmosphere_dim, t_field,
+                      vmr_field, cloudbox_on, stokes_dim, f_grid, iy_agenda,
+                      iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
   
   // Set iy_aux 
   //
@@ -2102,6 +2221,8 @@ void iyEmissionStandardClearsky(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+
+/*
 void iyTransmissionStandardClearsky(
         Workspace&                  ws,
         Matrix&                     iy,
@@ -2127,7 +2248,10 @@ void iyTransmissionStandardClearsky(
   const Vector&                     f_grid,
   const Agenda&                     ppath_step_agenda,
   const Agenda&                     abs_scalar_agenda,
+  const Agenda&                     iy_agenda,
   const Agenda&                     iy_space_agenda,
+  const Agenda&                     surface_prop_agenda,
+  const Agenda&                     iy_cloudbox_agenda,
   const Tensor3&                    iy_transmission,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices )
@@ -2214,9 +2338,10 @@ void iyTransmissionStandardClearsky(
   //
   Index i_background = 1;
   //
-  get_iy_of_background( ws, iy, iy_aux, diy_dx, 
-                        ppath, atmosphere_dim, 
-                        stokes_dim, f_grid, iy_space_agenda );
+  get_iy_of_background( ws, iy, iy_aux, iy_transmission, diy_dx, 
+                      iy_aux_do, jacobian_do, ppath, atmosphere_dim, t_field,
+                      vmr_field, cloudbox_on, stokes_dim, f_grid, iy_agenda,
+                      iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
   
   // Set iy_aux 
   //
@@ -2244,44 +2369,44 @@ void iyTransmissionStandardClearsky(
         }      
     }
 }
-
+*/
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void yCalc(
-         Workspace&                  ws,
-         Vector&                     y,
-         Vector&                     y_f,
-         ArrayOfIndex&               y_pol,
-         Matrix&                     y_pos,
-         Matrix&                     y_los,
-         Matrix&                     y_aux,
-         Matrix&                     jacobian,
-   const Index&                      atm_checked,
-   const Index&                      atmosphere_dim,
-   const Tensor3&                    t_field,
-   const Tensor4&                    vmr_field,
-   const Index&                      cloudbox_on,
-   const Index&                      stokes_dim,
-   const Vector&                     f_grid,
-   const Matrix&                     sensor_pos,
-   const Matrix&                     sensor_los,
-   const Vector&                     mblock_za_grid,
-   const Vector&                     mblock_aa_grid,
-   const Index&                      antenna_dim,
-   const Sparse&                     sensor_response,
-   const Vector&                     sensor_response_f,
-   const ArrayOfIndex&               sensor_response_pol,
-   const Vector&                     sensor_response_za,
-   const Vector&                     sensor_response_aa,
-   const Agenda&                     iy_agenda,
-   const Index&                      iy_aux_do,
-   const String&                     y_unit,
-   const Agenda&                     jacobian_agenda,
-   const Index&                      jacobian_do,
-   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-   const ArrayOfArrayOfIndex&        jacobian_indices,
-   const String&                     jacobian_unit )
+        Workspace&                  ws,
+        Vector&                     y,
+        Vector&                     y_f,
+        ArrayOfIndex&               y_pol,
+        Matrix&                     y_pos,
+        Matrix&                     y_los,
+        Matrix&                     y_aux,
+        Matrix&                     jacobian,
+  const Index&                      atm_checked,
+  const Index&                      atmosphere_dim,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Index&                      cloudbox_on,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Matrix&                     sensor_pos,
+  const Matrix&                     sensor_los,
+  const Vector&                     mblock_za_grid,
+  const Vector&                     mblock_aa_grid,
+  const Index&                      antenna_dim,
+  const Sparse&                     sensor_response,
+  const Vector&                     sensor_response_f,
+  const ArrayOfIndex&               sensor_response_pol,
+  const Vector&                     sensor_response_za,
+  const Vector&                     sensor_response_aa,
+  const Agenda&                     iy_agenda,
+  const Index&                      iy_aux_do,
+  const String&                     y_unit,
+  const Agenda&                     jacobian_agenda,
+  const Index&                      jacobian_do,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&        jacobian_indices,
+  const String&                     jacobian_unit )
 {
   // Some sizes
   const Index   nf      = f_grid.nelem();

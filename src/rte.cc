@@ -1517,7 +1517,7 @@ void rtecalc_check_input(
                                         the WSV with the same name.
     \param   I                  Input: Downwelling radiation, with dimensions
                                        matching: 
-                                       (surface_los, f_grid, sokes_dim)
+                                       (surface_los, f_grid, stokes_dim)
     \param   surface_los        Input: As the WSV with the same name.
     \param   surface_rmatrix    Input: As the WSV with the same name.
     \param   surface_emission   Input: As the WSV with the same name.

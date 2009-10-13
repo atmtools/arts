@@ -4197,18 +4197,19 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "iy_agenda_call1", "rte_pos", "rte_los", "iy_aux_do", "jacobian_do", 
-            "atmosphere_dim", "p_grid", "lat_grid",
-            "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid", "z_surface",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
+            "t_field", "vmr_field", "r_geoid", "z_surface",
             "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
             "abs_species", "ppath_step_agenda", "emission_agenda", 
-            "abs_scalar_gas_agenda", "iy_space_agenda", 
+            "abs_scalar_gas_agenda", "iy_agenda", "iy_space_agenda", 
+            "surface_prop_agenda", "iy_cloudbox_agenda",
             "iy_transmission", "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
+  /*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyTransmissionStandardClearsky" ),
@@ -4236,6 +4237,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+  */
 
   md_data_raw.push_back
     ( MdRecord
@@ -4858,37 +4860,6 @@ void define_md_data_raw()
         GIN_DESC( "Frequency vector." )
         ));
 
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME( "MatrixCBR2" ),
-        DESCRIPTION
-        (
-         "Sets a matrix to hold cosmic background radiation (CBR).\n"
-         "\n"
-         "The CBR is assumed to be un-polarized and Stokes components 2-4\n"
-         "are zero. Number of Stokes components, that equals the number\n"
-         "of columns in the created matrix, is determined by *stokes_dim*.\n"
-         "The number of rows in the created matrix equals the length of the\n"
-         "given frequency vector.\n"
-         "\n"
-         "The cosmic radiation is modelled as blackbody radiation for the\n"
-         "temperature given by the global constant COSMIC_BG_TEMP, set in\n"
-         "the file constants.cc. The frequencies are taken from the generic\n"
-         "input vector. The standard usage should be:\n"
-         "   MatrixCBR( iy, stokes_dim, f_grid )\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "m"       ),
-        GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "Matrix to be created." ),
-        IN( "stokes_dim" ),
-        GIN(         "f"      ),
-        GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF    ),
-        GIN_DESC( "Frequency vector." )
-        ));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "MatrixCreate" ),
@@ -4969,31 +4940,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "MatrixPlanck2" ),
-        DESCRIPTION
-        (
-         "Sets a matrix to hold blackbody radiation.\n"
-         "The radiation is assumed to be un-polarized and Stokes components\n"
-         "2-4 are zero. Number of Stokes components, that equals the number\n"
-         "of columns in the created matrix, is determined by *stokes_dim*.\n"
-         "The number of rows in the created matrix equals the length of the\n"
-         "given frequency vector.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "m"      ),
-        GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "Matrix to be created." ),
-        IN( "stokes_dim" ),
-        GIN(        "gin1"  , "gin2"    ),
-        GIN_TYPE(   "Vector", "Numeric" ),
-        GIN_DEFAULT( NODEF   , NODEF    ),
-        GIN_DESC( "Frequency vector.",
-                  "Temperature [K]." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "MatrixScale" ),
         DESCRIPTION
         (
@@ -5040,27 +4986,6 @@ void define_md_data_raw()
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "MatrixUnitIntensity" ),
-        DESCRIPTION
-        (
-         "Sets a matrix to hold unpolarised radiation with unit intensity.\n"
-         "\n"
-         "Works as MatrixPlanck where the radiation is set to 1.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT(      "m"       ),
-        GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "The matrix to be created." ),
-        IN( "stokes_dim" ),
-        GIN(         "f"      ),
-        GIN_TYPE(    "Vector" ),
-        GIN_DEFAULT( NODEF    ),
-        GIN_DESC( "Frequency vector." )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "MatrixUnitIntensity2" ),
         DESCRIPTION
         (
          "Sets a matrix to hold unpolarised radiation with unit intensity.\n"

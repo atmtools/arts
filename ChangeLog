@@ -1,3 +1,10 @@
+2009-10-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-98
+
+	* src/m_rte.cc (get_iy_of_background): Code now for all cases.
+	Surface case tested.
+
 2009-10-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-97
