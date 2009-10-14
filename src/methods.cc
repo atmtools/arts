@@ -4169,9 +4169,9 @@ void define_md_data_raw()
         (
          "Standard method for radiative transfer calculations with emission.\n"
          "\n"
-         "Designed to be part of *iy_agenda*. That is, is only valid outside\n"
-         "the cloudbox (no scattering or polarised absorption). Assumes local\n"
-         "thermodynamic equilibrium for emission.\n"
+         "Designed to be part of *iy_clearsky_agenda*. That is, is only valid\n"
+         "outside the cloudbox (no scattering or polarised absorption).\n"
+         "Assumes local thermodynamic equilibrium for emission.\n"
          "\n"
          "The overall strategy is to average basic atmospheric quantities\n"
          "(such as temperature) between the end points of each step of\n"
@@ -4201,7 +4201,7 @@ void define_md_data_raw()
             "t_field", "vmr_field", "r_geoid", "z_surface",
             "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
             "abs_species", "ppath_step_agenda", "emission_agenda", 
-            "abs_scalar_gas_agenda", "iy_agenda", "iy_space_agenda", 
+            "abs_scalar_gas_agenda", "iy_clearsky_agenda", "iy_space_agenda", 
             "surface_prop_agenda", "iy_cloudbox_agenda",
             "iy_transmission", "jacobian_quantities", "jacobian_indices" ),
         GIN(),
@@ -8480,7 +8480,24 @@ void define_md_data_raw()
       ( NAME( "yCalc" ),
         DESCRIPTION
         (
-         "...\n"
+         "Calculation of complete measurement vectors (y).\n"
+         "\n"
+         "The method performs radiative transfer calculations from a sensor\n"
+         "perspective. Radiative transfer calculations are performed for\n"
+         "monochromatic pencil beams, following *iy_clearsky_agenda* and\n"
+         "associated agendas. Obtained radiances are weighted together by\n"
+         "*sensor_response*, to include the characteristics of the sensor. The\n"
+         "measurement vector obtained can contain anything from a single\n"
+         "frequency value to a series of measurement scans (each consisting\n"
+         "of a series of spectra), all depending on the settings. Spectra\n"
+         "and jacobians are calculated in parallel.\n"
+         "\n"
+         "The unit of radiances and jacobians follow *y_unit* and\n"
+         "*jacobian_unit*. The frequency, polarisation etc. for each\n"
+         "measurement value is given by *y_f*, *y_pol* etc. No unit\n" 
+         "conversion is applied for *y_aux*. There is a hard-coded limit\n"
+         "on the number of auxilary variables (columns of *y_aux*) that\n"
+         "can be handled.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "jacobian" ),
@@ -8492,7 +8509,7 @@ void define_md_data_raw()
             "sensor_pos", "sensor_los", "mblock_za_grid", "mblock_aa_grid",
             "antenna_dim", "sensor_response", "sensor_response_f",
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
-            "iy_agenda", "iy_aux_do", "y_unit", 
+            "iy_clearsky_agenda", "iy_aux_do", "y_unit", 
             "jacobian_agenda", "jacobian_do", "jacobian_quantities",
             "jacobian_indices", "jacobian_unit" ),
         GIN(),

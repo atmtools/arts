@@ -58,21 +58,28 @@
 
 //! apply_y_unit
 /*!
-    Performs conversion from radiance to other units, following the keyword
-    argument *y_unit* used in the set of RteCalc functions.
+    Performs conversion from radiance to other units.
 
-    \param   iy       In/Out: Matrix with data to be converted, where each 
-                      row corresponds to a frequency.
-    \param   y_unit   As the keyword argument for *RteCalc*.
-    \param   f_grid   Frequency grid.
+    The function takes radiances in the form of a Tensor3. Tensor3 is
+    needed for handling conversion of jacobians. Though, conversion of
+    jacobian data shall go be made through apply_j_unit (that is
+    mainly an interface to this function).
+
+    Use "telescoping" to handle cases when the data comes as a Matrix
+    or a Vector.
+
+    \param   iy       In/Out: Tensor3 with data to be converted, where frequency 
+                      is expected to be the row dimension
+    \param   y_unit   As the WSV.
+    \param   f_grid   As the WSV.
 
     \author Patrick Eriksson 
     \date   2007-10-31
 */
 void apply_y_unit( 
-       MatrixView   iy, 
-    const String&   y_unit, 
-    const Vector&   f_grid )
+      Tensor3View     iy, 
+    const String&     y_unit, 
+    ConstVectorView   f_grid )
 {
   assert( f_grid.nelem() == iy.nrows() );
 
@@ -86,7 +93,10 @@ void apply_y_unit(
           const Numeric scfac = invrayjean( 1, f_grid[iv] );
           for( Index icol=0; icol<iy.ncols(); icol++ )
             {
-              iy(iv,icol) *= scfac;
+              for( Index ipage=0; ipage<iy.npages(); ipage++ )
+                {
+                  iy(ipage,iv,icol) *= scfac;
+                }
             }
         }
     }
@@ -97,10 +107,14 @@ void apply_y_unit(
         {
           for( Index icol=0; icol<iy.ncols(); icol++ )
             {
-              iy(iv,icol) = invplanck( iy(iv,icol), f_grid[iv] );
+              for( Index ipage=0; ipage<iy.npages(); ipage++ )
+                {
+                  iy(ipage,iv,icol) = invplanck( iy(ipage,iv,icol), f_grid[iv] );
+                }
             }
         }
     }
+
   else
     {
       ostringstream os;
@@ -108,40 +122,41 @@ void apply_y_unit(
          << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
       throw runtime_error( os.str() );      
     }
-
-  // If adding more options here, also add in yUnit and jacobianUnit.
 }
 
 
 
-//! apply_y_unit_single
+//! apply_j_unit
 /*!
-    A version of apply_y_unit handle monochormatic input. Just an interface
-    to apply_y_unit
+    As apply_y_unit but takes jacobian_unit as input.
 
-    \param   i        In/Out: Vector with data to be converted, where each 
-                      position corresponds to a Stokes dimension.
-    \param   y_unit   As the keyword argument for *RteCalc*.
-    \param   f        Frequency value.
+    \param   iy       In/Out: Tensor3 with data to be converted, where each 
+                      column corresponds to a frequency.
+    \param   j_unit   As the WSV.
+    \param   f_grid   As the WSV.
 
     \author Patrick Eriksson 
     \date   2007-10-31
 */
-void apply_y_unit_single( 
-          Vector&   i, 
-    const String&   y_unit, 
-    const Numeric&  f )
+void apply_j_unit( 
+      Tensor3View     iy, 
+    const String&     jacobian_unit, 
+    const String&     y_unit, 
+    ConstVectorView   f_grid )
 {
-  // Create frequency grid vector
-  Vector f_grid(1,f);
+  if( !( jacobian_unit=="1"  ||  jacobian_unit=="RJBT"  ||  
+         jacobian_unit=="-" ) )
+    {
+      ostringstream os;
+      os << "Allowed options for *jacobian_unit* are: ""1"", ""RJBT"", and "
+         << """-"".";
+      throw runtime_error( os.str() );
+    }
 
-  // Create matrix matching WSV iy
-  Matrix iy(1,i.nelem());
-  iy(0,joker) = i;
-
-  apply_y_unit( iy, y_unit, f_grid );
-
-  i = iy(0,joker);
+  if( jacobian_unit == "-" )
+    { apply_y_unit( iy, y_unit, f_grid ); }
+  else
+    { apply_y_unit( iy, jacobian_unit, f_grid ); }
 }
 
 

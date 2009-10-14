@@ -53,14 +53,15 @@
   ===========================================================================*/
 
 void apply_y_unit( 
-       MatrixView   iy, 
-    const String&   y_unit, 
-    const Vector&   f_grid );
+      Tensor3View     iy, 
+    const String&     y_unit, 
+    ConstVectorView   f_grid );
 
-void apply_y_unit_single( 
-          Vector&   i, 
-    const String&   y_unit, 
-    const Numeric&  f );
+void apply_j_unit( 
+      Tensor3View     iy, 
+    const String&     jacobian_unit, 
+    const String&     y_unit, 
+    ConstVectorView   f_grid );
 
 void include_trans_in_diy_dq( 
             ArrayOfTensor4&   diy_dq,  

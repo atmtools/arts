@@ -247,7 +247,7 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "iy_agenda" ),
+     ( NAME( "iy_clearsky_agenda" ),
        DESCRIPTION
        (
         "Calculation of a single monochromatic pencil beam spectrum.\n"

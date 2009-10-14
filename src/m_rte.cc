@@ -277,7 +277,7 @@ void RteCalc(
                            rte_do_t_jacs );
 
                   //--- Unit conversions
-                  apply_y_unit( iy, y_unit, f_grid );
+                  apply_y_unit( Tensor3View(iy), y_unit, f_grid );
 
                   //--- Copy *iy* to *ib*
                   for( Index is=0; is<stokes_dim; is++ )
@@ -328,9 +328,9 @@ void RteCalc(
                                      jacobian_quantities[jqi_vmr[ig]] );
 
                       //--- Unit conversions
-                      apply_y_unit( 
+                      apply_j_unit( 
                             ib_vmr_jacs[ig](Range(nbdone,nf*stokes_dim),joker), 
-                                                               j_unit, f_grid );
+                                                        j_unit, y_unit, f_grid );
                     }
 
                   //--- Temperature ---
@@ -342,8 +342,8 @@ void RteCalc(
                                                  jacobian_quantities[jqi_t] );
 
                       //--- Unit conversions
-                      apply_y_unit(ib_t_jacs(Range(nbdone,nf*stokes_dim),joker), 
-                                                               j_unit, f_grid );
+                      apply_j_unit(ib_t_jacs(Range(nbdone,nf*stokes_dim),joker), 
+                                                        j_unit, y_unit, f_grid );
                     }
 
                   //--- End of jacobian part -----------------------------------
@@ -744,35 +744,9 @@ void yUnit(
   const Index n = y.nelem();
 
   if( y_f.nelem() != n )
-    {
-      throw runtime_error( "The length of *y* and *y_f* must be the same" );
-    }
+    { throw runtime_error( "The length of *y* and *y_f* must be the same" ); }
 
-  if( y_unit == "1" )
-    {}
-
-  else if( y_unit == "RJBT" )
-    {
-      for( Index i=0; i<n; i++ )
-        { 
-          y[i] = invrayjean( y[i], y_f[i] ); 
-        }
-    }
-
-  else if( y_unit == "PlanckBT" )
-    {
-      for( Index i=0; i<n; i++ )
-        { 
-          y[i] = invplanck( y[i], y_f[i] ); 
-        }
-    }
-  else
-    {
-      ostringstream os;
-      os << "Unknown option: y_unit = \"" << y_unit << "\"\n"
-         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
-      throw runtime_error( os.str() );      
-    }
+  apply_y_unit( Tensor3View( MatrixView( y ) ), y_unit, y_f );
 }
 
 
@@ -1065,177 +1039,6 @@ void atm_checkedCalc(
 
 
 
-//! apply_y_unit, Matrix version
-/*!
-    Performs conversion from radiance to other units. This function
-    comes for efficiency in two versions, Matrix/Tensor3 (telescoping
-    can not be used in all cases).
-
-    The function takes radiances in the form of a Matrix.
-
-    \param   iy       In/Out: Tensor3 with data to be converted, where frequency 
-                      is expected to be the column dimension
-    \param   y_unit   As the WSV.
-    \param   f_grid   As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2007-10-31
-*/
-void apply_y_unit2( 
-       MatrixView   iy, 
-    const String&   y_unit, 
-    const Vector&   f_grid )
-{
-  assert( f_grid.nelem() == iy.ncols() );
-
-  if( y_unit == "1" )
-    {}
-
-  else if( y_unit == "RJBT" )
-    {
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
-        {
-          const Numeric scfac = invrayjean( 1, f_grid[iv] );
-          for( Index irow=0; irow<iy.nrows(); irow++ )
-            {
-              iy(irow,iv) *= scfac;
-            }
-        }
-    }
-
-  else if( y_unit == "PlanckBT" )
-    {
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
-        {
-          for( Index irow=0; irow<iy.nrows(); irow++ )
-            {
-              iy(irow,iv) = invplanck( iy(irow,iv), f_grid[iv] );
-            }
-        }
-    }
-
-  else
-    {
-      ostringstream os;
-      os << "Unknown option: y_unit = \"" << y_unit << "\"\n" 
-         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
-      throw runtime_error( os.str() );      
-    }
-
-  // If adding more options here, also add in second version of this function.
-}
-
-
-
-//! apply_y_unit, Tensor3 version
-/*!
-    Performs conversion from radiance to other units.
-
-    Performs conversion from radiance to other units. This function
-    comes for efficiency in two versions, Matrix/Tensor3 (telescoping
-    can not be used in all cases).
-
-    The function takes radiances in the form of a Tensor3. Tensor3 is
-    needed for handling conversion of jacobians. Though, conversion of
-    jacobian data shall go be made through apply_j_unit (that is
-    mainly an interface to this function).
-
-    \param   iy       In/Out: Tensor3 with data to be converted, where frequency 
-                      is expected to be the row dimension
-    \param   y_unit   As the WSV.
-    \param   f_grid   As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2007-10-31
-*/
-void apply_y_unit( 
-      Tensor3View   iy, 
-    const String&   y_unit, 
-    const Vector&   f_grid )
-{
-  assert( f_grid.nelem() == iy.nrows() );
-
-  if( y_unit == "1" )
-    {}
-
-  else if( y_unit == "RJBT" )
-    {
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
-        {
-          const Numeric scfac = invrayjean( 1, f_grid[iv] );
-          for( Index icol=0; icol<iy.ncols(); icol++ )
-            {
-              for( Index ipage=0; ipage<iy.npages(); ipage++ )
-                {
-                  iy(ipage,iv,icol) *= scfac;
-                }
-            }
-        }
-    }
-
-  else if( y_unit == "PlanckBT" )
-    {
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
-        {
-          for( Index icol=0; icol<iy.ncols(); icol++ )
-            {
-              for( Index ipage=0; ipage<iy.npages(); ipage++ )
-                {
-                  iy(ipage,iv,icol) = invplanck( iy(ipage,iv,icol), f_grid[iv] );
-                }
-            }
-        }
-    }
-
-  else
-    {
-      ostringstream os;
-      os << "Unknown option: y_unit = \"" << y_unit << "\"\n" 
-         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
-      throw runtime_error( os.str() );      
-    }
-
-  // If adding more options here, also add in second version of this function
-  // and in apply_j_unit.
-}
-
-
-
-//! apply_j_unit
-/*!
-    As Tensor3 version of apply_y_unit but takes jacobian_unit as input.
-
-    \param   iy       In/Out: Tensor3 with data to be converted, where each 
-                      column corresponds to a frequency.
-    \param   j_unit   As the WSV.
-    \param   f_grid   As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2007-10-31
-*/
-void apply_j_unit( 
-      Tensor3View   iy, 
-    const String&   jacobian_unit, 
-    const String&   y_unit, 
-    const Vector&   f_grid )
-{
-  if( !( jacobian_unit=="1"  ||  jacobian_unit=="RJBT"  ||  
-         jacobian_unit=="-" ) )
-    {
-      ostringstream os;
-      os << "Allowed options for *jacobian_unit* are: ""1"", ""RJBT"", and "
-         << """-"".";
-      throw runtime_error( os.str() );
-    }
-
-  if( jacobian_unit == "-" )
-    { apply_y_unit( iy, y_unit, f_grid ); }
-  else
-    { apply_y_unit( iy, jacobian_unit, f_grid ); }
-}
-
-
-
 //! iy_transmission_for_scalar_tau
 /*!
     Sets *iy_transmission* to match scalar optical thicknesses.
@@ -1251,18 +1054,18 @@ void apply_j_unit(
     \date   2009-10-06
 */
 void iy_transmission_for_scalar_tau( 
-        Tensor3&    iy_transmission,
+       Tensor3&     iy_transmission,
   const Index&      stokes_dim,
   ConstVectorView   tau )
 {
-  iy_transmission.resize( stokes_dim, stokes_dim, tau.nelem() );
+  iy_transmission.resize( tau.nelem(), stokes_dim, stokes_dim );
   iy_transmission = 0;
   for( Index i=0; i<tau.nelem(); i++ )
     { 
       const Numeric t = exp( -tau[i] );
       for( Index is=0; is<stokes_dim; is++ )
         { 
-          iy_transmission(is,is,i) = t;
+          iy_transmission(i,is,is) = t;
         }
     }
 }
@@ -1274,7 +1077,7 @@ void iy_transmission_for_scalar_tau(
     Multiplicates iy_transmission with scalar optical thicknesses.
 
     The functions can incorporate the transmission of a clear-sky
-    path. This is, the transmission can be described by a single value
+    path. That is, the transmission can be described by a single value
     The transmission of this path is gives as the optical depth for
     each frequency.
 
@@ -1298,17 +1101,17 @@ void iy_transmission_for_scalar_tau(
     \date   2009-10-06
 */
 void iy_transmission_mult_scalar_tau( 
-        Tensor3&    iy_trans_new,
-  const Tensor3&    iy_transmission,
-  ConstVectorView   tau )
+       Tensor3&      iy_trans_new,
+  ConstTensor3View   iy_transmission,
+  ConstVectorView    tau )
 {
-  const Index nf = iy_transmission.ncols();
-  const Index ns = iy_transmission.nrows();
+  const Index nf = iy_transmission.npages();
+  const Index ns = iy_transmission.ncols();
 
-  assert( ns == iy_transmission.npages() );
+  assert( ns == iy_transmission.nrows() );
   assert( nf == tau.nelem() );
 
-  iy_trans_new.resize( ns, ns, nf );
+  iy_trans_new.resize( nf, ns, ns );
 
   Matrix  tm( ns, ns, 0.0 );
 
@@ -1317,7 +1120,56 @@ void iy_transmission_mult_scalar_tau(
       const Numeric t = exp( -tau[iv] );
       for( Index is=0; is<ns; is++ )
         { tm(is,is) = t; }
-      mult( iy_trans_new(joker,joker,iv), iy_transmission(joker,joker,iv), tm );
+      mult( iy_trans_new(iv,joker,joker), iy_transmission(iv,joker,joker), tm );
+    } 
+}
+
+
+
+//! iy_transmission_mult
+/*!
+    Multiplicates iy_transmission with (vector) transmissions.
+
+    That is, a multiplication of *iy_transmission* with another
+    variable having same structure and holding transmission values.
+
+    The "new path" is assumed to be further away from the sensor than 
+    the propagtion path already included in iy_transmission. That is,
+    the operation can be written as:
+    
+       Ttotal = Told * Tnew
+
+    where Told is the transmission corresponding to *iy_transmission*
+    and Tnew corresponds to *tau*.
+
+    *iy_trans_new* is sized by the function.
+
+    \param   iy_trans_new      Out: Updated version of *iy_transmission*
+    \param   iy_transmission   As the WSV.
+    \param   trans             A variable matching *iy_transmission.
+
+    \author Patrick Eriksson 
+    \date   2009-10-06
+*/
+void iy_transmission_mult( 
+       Tensor3&      iy_trans_new,
+  ConstTensor3View   iy_transmission,
+  ConstTensor3View   trans )
+{
+  const Index nf = iy_transmission.npages();
+  const Index ns = iy_transmission.ncols();
+
+  assert( ns == iy_transmission.nrows() );
+  assert( nf == trans.npages() );
+  assert( ns == trans.nrows() );
+  assert( ns == trans.ncols() );
+
+  iy_trans_new.resize( nf, ns, ns );
+
+  for( Index iv=0; iv<nf; iv++ )
+    {
+      mult( iy_trans_new(iv,joker,joker), iy_transmission(iv,joker,joker), 
+                                                    trans(iv,joker,joker) );
     } 
 }
 
@@ -1346,16 +1198,16 @@ void iy_transmission_mult_scalar_tau(
     \date   2009-10-05
 */
 void get_ptvmr_for_ppath( 
-        Vector&    ppath_p, 
-        Vector&    ppath_t, 
-        Matrix&    ppath_vmr, 
-  const Ppath&     ppath,
-  const Index&     atmosphere_dim,
-  const Vector&    p_grid,
-  const Vector&    lat_grid,
-  const Vector&    lon_grid,
-  const Tensor3&   t_field,
-  const Tensor4&   vmr_field )
+        Vector&      ppath_p, 
+        Vector&      ppath_t, 
+        Matrix&      ppath_vmr, 
+  const Ppath&       ppath,
+  const Index&       atmosphere_dim,
+  ConstVectorView    p_grid,
+  ConstVectorView    lat_grid,
+  ConstVectorView    lon_grid,
+  ConstTensor3View   t_field,
+  ConstTensor4View   vmr_field )
 {
   const Index   np  = ppath.np;
 
@@ -1420,9 +1272,9 @@ void get_step_vars_for_standardRT(
   const Agenda&      abs_scalar_agenda,
   const Agenda&      emission_agenda,
   const Ppath&       ppath,
-  const Vector&      ppath_p, 
-  const Vector&      ppath_t, 
-  const Matrix&      ppath_vmr, 
+  ConstVectorView    ppath_p, 
+  ConstVectorView    ppath_t, 
+  ConstMatrixView    ppath_vmr, 
   const Index&       nf,
   const Index&       emission_do )
 {
@@ -1431,7 +1283,7 @@ void get_step_vars_for_standardRT(
   const Index   nabs = ppath_vmr.nrows();
 
   // Init variables
-  ppath_abs_scalar.resize( nf, nabs, np-1 );
+  ppath_abs_scalar.resize( nf, nabs, np );
   ppath_tau.resize( nf, np-1 );
   total_tau.resize( nf );
   total_tau = 0;
@@ -1569,11 +1421,6 @@ void diy_from_path_to_rgrids(
   // Retrieval grid of interest
   Vector r_grid;
 
-  // Variable to hold diy_dq summed and mapped to retrieval grid positions
-  // Sized and set to 0 below, when length of retrieval grids are known
-  //Tensor3   diy_dx;
-  //bool      diydx_unset = true;  
-
   if( ppath.np > 1 )  // Otherwise nothing to do here
     {
       // Pressure
@@ -1611,13 +1458,13 @@ void diy_from_path_to_rgrids(
             {
               if( gp_p[ip].fd[0] < 1 )
                 {
-                  from_dpath_to_dx( diy_dx(joker,joker,gp_p[ip].idx),
-                                 diy_dpath(joker,joker,ip), gp_p[ip].fd[1] );
+                  from_dpath_to_dx( diy_dx(gp_p[ip].idx,joker,joker),
+                                    diy_dpath(ip,joker,joker), gp_p[ip].fd[1] );
                 }
               if( gp_p[ip].fd[0] > 0 )
                 {
-                  from_dpath_to_dx( diy_dx(joker,joker,gp_p[ip].idx+1),
-                                 diy_dpath(joker,joker,ip), gp_p[ip].fd[0] );
+                  from_dpath_to_dx( diy_dx(gp_p[ip].idx+1,joker,joker),
+                                    diy_dpath(ip,joker,joker), gp_p[ip].fd[0] );
                 }
             }
         }
@@ -1629,21 +1476,21 @@ void diy_from_path_to_rgrids(
             {
               Index   ix = nr1*gp_lat[ip].idx + gp_p[ip].idx;
               // Low lat, low p
-              from_dpath_to_dx( diy_dx(joker,joker,ix),
-                             diy_dpath(joker,joker,ip), 
-                             gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
+              from_dpath_to_dx( diy_dx(ix,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                                gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
               // Low lat, high p
-              from_dpath_to_dx( diy_dx(joker,joker,ix+1),
-                             diy_dpath(joker,joker,ip), 
-                             gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
+              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                                gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
               // High lat, low p
-              from_dpath_to_dx( diy_dx(joker,joker,ix+nr1),
-                             diy_dpath(joker,joker,ip), 
-                             gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
+              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                                gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
               // High lat, high p
-              from_dpath_to_dx( diy_dx(joker,joker,ix+nr1+1),
-                             diy_dpath(joker,joker,ip), 
-                             gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
+              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                                gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
             }
         }
 
@@ -1655,40 +1502,40 @@ void diy_from_path_to_rgrids(
               Index   ix = nr2*nr1*gp_lon[ip].idx +
                            nr1*gp_lat[ip].idx + gp_p[ip].idx;
               // Low lon, low lat, low p
-              from_dpath_to_dx( diy_dx(joker,joker,ix),
-                             diy_dpath(joker,joker,ip), 
+              from_dpath_to_dx( diy_dx(ix,joker,joker),
+                                diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
               // Low lon, low lat, high p
-              from_dpath_to_dx( diy_dx(joker,joker,ix+1),
-                             diy_dpath(joker,joker,ip), 
+              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
               // Low lon, high lat, low p
-              from_dpath_to_dx( diy_dx(joker,joker,ix+nr1),
-                             diy_dpath(joker,joker,ip), 
+              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
               // Low lon, high lat, high p
-              from_dpath_to_dx( diy_dx(joker,joker,ix+nr1+1),
-                             diy_dpath(joker,joker,ip), 
+              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
 
               // Increase *ix* (to be valid for high lon level)
               ix += nr2*nr1;
 
               // High lon, low lat, low p
-              from_dpath_to_dx( diy_dx(joker,joker,ix),
-                             diy_dpath(joker,joker,ip), 
+              from_dpath_to_dx( diy_dx(ix,joker,joker),
+                                diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
               // High lon, low lat, high p
-              from_dpath_to_dx( diy_dx(joker,joker,ix+1),
-                             diy_dpath(joker,joker,ip), 
+              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
               // High lon, high lat, low p
-              from_dpath_to_dx( diy_dx(joker,joker,ix+nr1),
-                             diy_dpath(joker,joker,ip), 
+              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
               // High lon, high lat, high p
-              from_dpath_to_dx( diy_dx(joker,joker,ix+nr1+1),
-                             diy_dpath(joker,joker,ip), 
+              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
                              gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
             }
         }
@@ -1736,25 +1583,59 @@ void vmrunitscf(
 
 
 
+//! get_iy_of_background
+/*!
+    Determines iy of the "background" of a propgation path.
+
+    The task is to determine *iy* and related variables for the
+    background, or to continue the raditiave calculations
+    "backwards". The details here depends on the method selected for
+    *iy_agenda*. 
+
+    Each background is handled by an agenda. Several of these agandes
+    can involve recursive calls of *iy_agenda*.
+
+    \param   ws                    Out: The workspace
+    \param   iy                    Out: As the WSV.
+    \param   iy_aux                Out: As the WSV.
+    \param   diy_aux               Out: As the WSV.
+    \param   iy_transmission       As the WSV.
+    \param   iy_aux_do             As the WSV.
+    \param   jacobian_do           As the WSV.
+    \param   ppath                 As the WSV.
+    \param   atmosphere_dim        As the WSV.
+    \param   t_field               As the WSV.
+    \param   vmr_field             As the WSV.
+    \param   cloudbox_on           As the WSV.
+    \param   stokes_dim            As the WSV.
+    \param   f_grid                As the WSV.
+    \param   iy_agenda             As the WSV.
+    \param   iy_space_agenda       As the WSV.
+    \param   surface_prop_agenda   As the WSV.
+    \param   iy_cloudbox_agenda    As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2009-10-08
+*/
 void get_iy_of_background(
-        Workspace&               ws,
-        Matrix&                  iy,
-        Tensor3&                 iy_aux,
-        ArrayOfTensor3&          diy_dx,
-  const Tensor3&                 iy_transmission,
-  const Index&                   iy_aux_do,
-  const Index&                   jacobian_do,
-  const Ppath&                   ppath,
-  const Index&                   atmosphere_dim,
-  const Tensor3&                 t_field,
-  const Tensor4&                 vmr_field,
-  const Index&                   cloudbox_on,
-  const Index&                   stokes_dim,
-  const Vector&                  f_grid,
-  const Agenda&                  iy_agenda,
-  const Agenda&                  iy_space_agenda,
-  const Agenda&                  surface_prop_agenda,
-  const Agenda&                  iy_cloudbox_agenda )
+        Workspace&        ws,
+        Matrix&           iy,
+        Tensor3&          iy_aux,
+        ArrayOfTensor3&   diy_dx,
+  ConstTensor3View        iy_transmission,
+  const Index&            iy_aux_do,
+  const Index&            jacobian_do,
+  const Ppath&            ppath,
+  const Index&            atmosphere_dim,
+  ConstTensor3View        t_field,
+  ConstTensor4View        vmr_field,
+  const Index&            cloudbox_on,
+  const Index&            stokes_dim,
+  ConstVectorView         f_grid,
+  const Agenda&           iy_agenda,
+  const Agenda&           iy_space_agenda,
+  const Agenda&           surface_prop_agenda,
+  const Agenda&           iy_cloudbox_agenda )
 {
   // Some sizes
   const Index nf      = f_grid.nelem();
@@ -1793,11 +1674,9 @@ void get_iy_of_background(
 
     case 1:   //--- Space ---------------------------------------------------- 
       {
-        Matrix iy_local;
-        iy_space_agendaExecute( ws, iy_local, rte_pos, rte_los, iy_space_agenda );
-        iy =transpose( iy_local );
+        iy_space_agendaExecute( ws, iy, rte_pos, rte_los, iy_space_agenda );
         
-        if( iy.nrows() != stokes_dim  ||  iy.ncols() != nf )
+        if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
           {
             ostringstream os;
             os << "expected size = [" << stokes_dim << "," << nf << "]\n"
@@ -1850,7 +1729,6 @@ void get_iy_of_background(
         //---------------------------------------------------------------------
 
         // Variable to hold down-welling radiation
-        // (the surface part has stokes_dim and f_grid in "transposed order")
         Tensor3   I( nlos, nf, stokes_dim );
  
         // Loop *surface_los*-es. If no such LOS, we are ready.
@@ -1859,29 +1737,23 @@ void get_iy_of_background(
             for( Index ilos=0; ilos<nlos; ilos++ )
               {
                 // Include surface reflection matrix in *iy_transmission*
-                Tensor3 iy_trans_new( stokes_dim, stokes_dim, nf );
-
-                for( Index iv=0; iv<nf; iv++ )
-                  {
-                    mult( iy_trans_new(joker,joker,iv), 
-                          iy_transmission(joker,joker,iv), 
-                          surface_rmatrix(ilos,iv,joker,joker) );
-                  } // Make a function out of this?
+                Tensor3 iy_trans_new;
+                //
+                iy_transmission_mult(  iy_trans_new, iy_transmission, 
+                                       surface_rmatrix(ilos,joker,joker,joker) );
 
                 // Calculate downwelling radiation for LOS ilos 
-                iy_agendaExecute( ws, iy, iy_aux, diy_dx,
+                iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx,
                              0, rte_pos, surface_los(ilos,joker), iy_trans_new, 
                              cloudbox_on, jacobian_do, iy_aux_do, 
                              f_grid, t_field, vmr_field, iy_agenda );
 
-                I(ilos,joker,joker) = transpose( iy );
+                I(ilos,joker,joker) = iy;
               }
           }
 
         // Add up
-        Matrix iy_local;
-        surface_calc( iy_local, I, surface_los, surface_rmatrix, surface_emission );
-        iy =transpose( iy_local );
+        surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
       }
       break;
 
@@ -1897,12 +1769,10 @@ void get_iy_of_background(
         // The cloudbox agenda is not yet handling iy_aux and iy_transmission.
         // And is returning *iy* transposed
         //
-        Matrix iy_local;
-        iy_cloudbox_agendaExecute( ws, iy_local, ppath_local,
+        iy_cloudbox_agendaExecute( ws, iy, ppath_local,
                                    rte_pos, rte_los, rte_gp_p,
                                    rte_gp_lat, rte_gp_lon,
                                    iy_cloudbox_agenda );
-        iy = transpose( iy_local );
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
           {
@@ -1975,7 +1845,7 @@ void iyEmissionStandardClearsky(
   //
   if( iy_agenda_call1 )
     {
-      if( iy_aux_do ) { iy_aux.resize( 3, stokes_dim, nf ); iy_aux = 0; }
+      if( iy_aux_do ) { iy_aux.resize( 3, nf, stokes_dim ); iy_aux = 0; }
       else            { iy_aux.resize( 0, 0, 0 ); }
       //
       if( j_analytical_do ) 
@@ -1983,8 +1853,8 @@ void iyEmissionStandardClearsky(
           diy_dx.resize( jacobian_indices.nelem() ); 
           //
           FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dx[iq].resize( stokes_dim, nf, jacobian_indices[iq][1] - 
-                                               jacobian_indices[iq][0] + 1 ); 
+            diy_dx[iq].resize( jacobian_indices[iq][1] - 
+                               jacobian_indices[iq][0] + 1, nf, stokes_dim ); 
             diy_dx[iq] = 0.0;
           ) 
         }
@@ -2057,7 +1927,7 @@ void iyEmissionStandardClearsky(
           for( Index iv=0; iv<nf; iv++ )
             { 
               for( Index is=0; is<stokes_dim; is++ )
-                { iy_aux( 0, is, iv ) = iy_trans_new( is, is, iv ); }
+                { iy_aux( 0, iv, is ) = iy_trans_new( iv, is, is ); }
             }
         }
       //
@@ -2092,7 +1962,7 @@ void iyEmissionStandardClearsky(
           is_t.resize( jacobian_indices.nelem() ); 
           //
           FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dpath[iq].resize( stokes_dim, nf, np ); 
+            diy_dpath[iq].resize( np, nf, stokes_dim ); 
             diy_dpath[iq] = 0.0;
           )
           get_pointers_for_analytical_jacobians( abs_species_i, is_t, 
@@ -2122,7 +1992,7 @@ void iyEmissionStandardClearsky(
               if( j_analytical_do )
                 {
                   const Numeric A = ppath.l_step[ip] * exp( -total_tau[iv] );
-                  const Numeric B = 0.5 * A * ( ppath_emission(iv,ip)-iy(0,iv) );
+                  const Numeric B = 0.5 * A * ( ppath_emission(iv,ip)-iy(iv,0) );
                   
                   for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) 
                     {
@@ -2139,16 +2009,16 @@ void iyEmissionStandardClearsky(
                           //
                           // Stokes component 1
                           const Numeric w0 = B * ppath_abs_scalar(iv,isp,ip);
-                          diy_dpath[iq](0,iv,ip)   += unitscf1 * w0;
-                          diy_dpath[iq](0,iv,ip+1) += unitscf2 * w0;
+                          diy_dpath[iq](ip  ,iv,0) += unitscf1 * w0;
+                          diy_dpath[iq](ip+1,iv,0) += unitscf2 * w0;
                           //
                           // Higher stokes components
                           for( Index is=1; is<stokes_dim; is++ )
                             { 
-                              const Numeric wi = -0.5 * A * iy(is,iv) *
-                                                    ppath_abs_scalar(iv,isp,ip);
-                              diy_dpath[iq](is,iv,ip  ) += unitscf1 * wi;
-                              diy_dpath[iq](is,iv,ip+1) += unitscf2 * wi;
+                              const Numeric wi = -0.5 * A * iy(iv,is) *
+                                                     ppath_abs_scalar(iv,isp,ip);
+                              diy_dpath[iq](ip  ,iv,is) += unitscf1 * wi;
+                              diy_dpath[iq](ip+1,iv,is) += unitscf2 * wi;
                             }
                         }
 
@@ -2164,15 +2034,15 @@ void iyEmissionStandardClearsky(
                           const Numeric w0 = B * dkdt + ( 
                                         exp(-(total_tau[iv]-ppath_tau(iv,ip))) - 
                                         exp( -total_tau[iv]) ) * dbdt;
-                          diy_dpath[iq](0,iv,ip)   += w0;
-                          diy_dpath[iq](0,iv,ip+1) += w0;
+                          diy_dpath[iq](ip  ,iv,0) += w0;
+                          diy_dpath[iq](ip+1,iv,0) += w0;
                           //
                           // Higher stokes components
                           for( Index is=1; is<stokes_dim; is++ )
                             { 
-                              const Numeric wi = -0.5 * A * iy(is,iv) * dkdt;
-                              diy_dpath[iq](is,iv,ip  ) += wi;
-                              diy_dpath[iq](is,iv,ip+1) += wi;
+                              const Numeric wi = -0.5 * A * iy(iv,is) * dkdt;
+                              diy_dpath[iq](ip  ,iv,is) += wi;
+                              diy_dpath[iq](ip+1,iv,is) += wi;
                             }
                         }
                     }
@@ -2185,10 +2055,10 @@ void iyEmissionStandardClearsky(
               //
               const Numeric step_tr = exp( -ppath_tau(iv,ip) );
               //
-              iy(0,iv)  = iy(0,iv)*step_tr + ppath_emission(iv,ip)*(1-step_tr); 
+              iy(iv,0)  = iy(iv,0)*step_tr + ppath_emission(iv,ip)*(1-step_tr); 
               //
               for( Index is=1; is<stokes_dim; is++ )
-                { iy(is,iv) *= step_tr; }
+                { iy(iv,is) *= step_tr; }
             }
         } 
 
@@ -2204,7 +2074,7 @@ void iyEmissionStandardClearsky(
                     Matrix X;
                     X = diy_dpath[iq](joker,iv,joker);
                     mult( diy_dpath[iq](joker,iv,joker), 
-                                           iy_transmission(joker,joker,iv), X );
+                                            iy_transmission(iv,joker,joker), X );
                   }
                )
             }
@@ -2614,15 +2484,15 @@ void yCalc(
                   Tensor3        iy_aux, iy_transmission;
                   ArrayOfTensor3 diy_dx; 
                   //
-                  iy_agendaExecute( ws, iy, iy_aux, diy_dx,
+                  iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx,
                             1, sensor_pos(imblock,joker), los, iy_transmission, 
                             cloudbox_on, j_analytical_do, iy_aux_do, 
                             f_grid, t_field, vmr_field, iy_agenda );
 
                   // Check sizes
                   //
-                  assert( iy.ncols() == nf );
-                  assert( iy.nrows() == stokes_dim );
+                  assert( iy.ncols() == stokes_dim );
+                  assert( iy.nrows() == nf );
                   //
                   if( n_aux < 0 )
                     { 
@@ -2639,36 +2509,36 @@ void yCalc(
                   //
                   if( n_aux )
                     { 
-                      assert( iy_aux.ncols() == nf );
-                      assert( iy_aux.nrows() == stokes_dim );
+                      assert( iy_aux.ncols() == stokes_dim );
+                      assert( iy_aux.nrows() == nf );
                       assert( iy_aux.npages() == n_aux );
                     }
                   //
                   if( j_analytical_do )
                     {
                       FOR_ANALYTICAL_JACOBIANS_DO(
-                        assert( diy_dx[iq].ncols() == jacobian_indices[iq][1] -
-                                                      jacobian_indices[iq][0]+1 );
+                        assert( diy_dx[iq].ncols() == stokes_dim );
                         assert( diy_dx[iq].nrows() == nf );
-                        assert( diy_dx[iq].npages() == stokes_dim );
+                        assert( diy_dx[iq].npages() == jacobian_indices[iq][1] -
+                                                   jacobian_indices[iq][0] + 1 );
                       )
                     }
                   
                   // iy    : unit conversion and copy to ib
                   // iy_aux: copy to ib_aux
                   //
-                  apply_y_unit2( iy, y_unit, f_grid );
+                  apply_y_unit( Tensor3View(iy), y_unit, f_grid );
                   //
                   const Index row0 =( iza*naa + iaa ) * nf * stokes_dim;
                   //
                   for( Index is=0; is<stokes_dim; is++ )
                     { 
-                      ib[Range(row0+is,nf,stokes_dim)] = iy(is,joker); 
+                      ib[Range(row0+is,nf,stokes_dim)] = iy(joker,is); 
                       //
                       for( Index iaux=0; iaux<n_aux; iaux++ )
                         { 
                           ib_aux(Range(row0+is,nf,stokes_dim),iaux) = 
-                                                          iy_aux(iaux,is,joker);
+                                                           iy_aux(iaux,joker,is);
                         }
                     }
 
@@ -2686,7 +2556,7 @@ void yCalc(
                             for( Index is=0; is<stokes_dim; is++ )
                               { 
                                 dib_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
-                                                        diy_dx[iq](is,joker,ip); 
+                                                         diy_dx[iq](ip,joker,is); 
                               }
                           }                              
                       )

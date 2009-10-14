@@ -1,3 +1,26 @@
+2009-10-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-99
+
+	* Wanted a single iy to be a column vector, to match RT
+	expression. Turned out to cause practical problems. Changed back
+	to old solution of having this as a row vector. Allowed some
+	cleaning of the code. Functionality of yCalc as for last commit.
+
+	A first step to activate the new code:
+	
+	* src/m_jacobian.cc (jacobianUnit): Now using apply_y_unit.
+
+	* src/m_batch.cc (ybatchUnit): Now using apply_y_unit.
+
+	* src/m_rte.cc (yUnit): Now using apply_y_unit.
+
+	* src/rte.cc (apply_y_unit): Now takes radiance data as a Tensor3, 
+	and only a single conversion method is needed.
+	(apply_j_unit): Created. Actual calculation done by apply_y_unit.
+
+	(apply_y_unit_single): Removed.
+
 2009-10-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-98

@@ -49,6 +49,7 @@ using namespace std;
 #include "auto_md.h"
 #include "math_funcs.h"
 #include "physics_funcs.h"
+#include "rte.h"
 #include "xml_io.h"
 
 extern const Numeric PI;
@@ -685,55 +686,15 @@ void ybatchUnit(
         const Vector&   y_f )
 {
   const Index nrows = ybatch.nrows();
-  const Index ncols = ybatch.ncols();
 
   if( y_f.nelem() != nrows )
     {
       ostringstream os;
-      os << "The numberof rows in *ybatch* and the length *y_f*\n"
+      os << "The number of rows in *ybatch* and the length *y_f*\n"
          << "must be equal.";
       throw runtime_error( os.str() );      
     }
 
-  if( y_unit == "1" )
-    {}
-
-  else if( y_unit == "RJBT" )
-    {
-      // Here we try to save time by determining the scaling from radiances
-      // to brightness temperature for each frequency, and applying this
-      // scaling on each repition for that frequency. Note that relationship
-      // between radiance and Tb is linear for a given frequency.
-
-      for( Index ir=0; ir<nrows; ir++ )
-        {
-          const Numeric scfac = invrayjean( 1, y_f[ir] );
-
-          for( Index ic=0; ic<ncols; ic++ )
-            {  
-              ybatch(ir,ic) = scfac * ybatch(ir,ic);
-            }
-        }
-    }
-
-  else if( y_unit == "PlanckBT" )
-    {
-      for( Index ir=0; ir<nrows; ir++ )
-        {
-          for( Index ic=0; ic<ncols; ic++ )
-            {  
-              ybatch(ir,ic) = invplanck( ybatch(ir,ic), y_f[ir] );
-            }
-        }
-    }
-
-  else
-    {
-      ostringstream os;
-      os << "Unknown option: y_unit = \"" << y_unit << "\"\n"
-         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
-      throw runtime_error( os.str() );      
-    }
-
+  apply_y_unit( Tensor3View(ybatch), y_unit, y_f );
 }
 

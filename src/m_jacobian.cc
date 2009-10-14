@@ -218,22 +218,7 @@ void jacobianUnit(
   const String&   y_unit,
   const Vector&   y_f )
 {
-  String j_unit = jacobian_unit;
-  //
-  if ( jacobian_unit == "-" )
-    { j_unit = y_unit; }
-  
-  try
-    {
-      ybatchUnit( jacobian, j_unit, y_f );
-    }
-  catch( runtime_error ) 
-    {
-      ostringstream os;
-      os << "Unknown option: jacobian_unit = \"" << j_unit << "\"\n" 
-         << "Recognised choices are: \"-\", \"1\", \"RJBT\" and \"PlanckBT\"";
-      throw runtime_error( os.str() );      
-    }
+  apply_j_unit( Tensor3View(jacobian), jacobian_unit, y_unit, y_f );
 }
 
 

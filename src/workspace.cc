@@ -1056,7 +1056,7 @@ void Workspace::define_wsv_data()
        "analytical expression can be applied (and that this calculation way\n"
        "has been selected when the jacobian has been set-up).\n"
        "\n"
-       "Usage:      Output of *iy_agenda*.\n"
+       "Usage:      Output of *iy_clearsky_agenda*.\n"
        "\n"
        "Dimensions: \n"
        "     [n_quantities][ ppath.np, stokes_dim, f_grid ]\n"
@@ -1491,7 +1491,7 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
     (WsvRecord
-     ( NAME( "iy_agenda" ),
+     ( NAME( "iy_clearsky_agenda" ),
        DESCRIPTION
        (
         "See agendas.cc.\n"
@@ -1503,13 +1503,14 @@ void Workspace::define_wsv_data()
      ( NAME( "iy_agenda_call1" ),
        DESCRIPTION
        (
-        "Flag to handle recursive calls of *iy_agenda*\n"
+        "Flag to handle recursive calls of *iy_clearsky_agenda*\n"
         "\n"
-        "The agenda *iy_agenda* can be used recursevily and this flag is used\n"
-        "to tell the methods inside the agenda which is the primary call.\n"
-        "This is handled automaticcly for methods using *iy_agenda*, such as\n"
-        "*yCalc*, but the user must set this variable to 1 if the agenda is\n"
-        "called directly inside the control file (which should be a rare case).\n"
+        "The agenda *iy_clearsky_agenda* can be used recursevily and this flag\n"
+        "is used to tell the methods inside the agenda which is the primary\n"
+        " call. This is handled automaticcly for methods using\n"
+        "*iy_clearsky_agenda*, such as *yCalc*, but the user must set this\n"
+        "variable to 1 if the agenda is called directly inside the control\n"
+        "file (which should be a rare case).\n"
         ),
        GROUP( "Index" )));
 
@@ -1541,7 +1542,7 @@ void Workspace::define_wsv_data()
       (
        "Flag to control calculation of *iy_aux*.\n"
        "\n"
-       "This is a flag for methods intended for *iy_agenda*. If the flag is\n"
+       "This is a flag for methods intended for *iy_clearsky_agenda*. If the flag is\n"
        "set to 0 the methods are told that is OK to skip the calculation of\n"
        "*iy_aux*. The result should then be that *iy_aux* is empty.\n"
        "\n"
@@ -1577,14 +1578,14 @@ void Workspace::define_wsv_data()
        "Transmission to be included in *iy*.\n"
        "\n"
        "The calculation of *iy* can be performed over several propation path\n"
-       "branches, and there can be recursive calls of *iy_agenda*. This \n"
-       "variable gives the transmission from the end point of the present\n"
+       "branches, and there can be recursive calls of *iy_clearsky_agenda*.\n"
+       "This variable gives the transmission from the end point of the present\n"
        "branch and the sensor for such recursive cases.\n"
        "\n"
        "This variable is used purely internally. The exact usage can vary\n"
        "between different RT integration schemes.\n"
        "\n"
-       "Usage:      Internally inside iy_agenda.\n"
+       "Usage:      Internally inside iy_clearsky_agenda.\n"
        "\n"
        "Unit:       1\n"
        "\n"
