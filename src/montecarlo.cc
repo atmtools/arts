@@ -638,7 +638,7 @@ void Cloudbox_ppathCalc(Workspace&      ws,
    \author Cory Davis
    \date   2003-06-20
 */
-
+/* Not used anymore
 void Cloudbox_ppath_rteCalc( Workspace&            ws,
                              Ppath&                ppathcloud,
                              Ppath&                ppath,
@@ -769,6 +769,7 @@ void Cloudbox_ppath_rteCalc( Workspace&            ws,
     }
   
 }
+*/
 
 
 /*
@@ -1945,7 +1946,7 @@ Used in ScatteringMonteCarlo.
    \author Cory Davis
    \date   2003-11-28
 */
-
+/* Not used anymore
 void montecarloGetIncoming(Workspace&            ws,
                            Matrix&               iy,
                            Vector&               rte_pos,
@@ -1999,6 +2000,7 @@ void montecarloGetIncoming(Workspace&            ws,
   
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(iy(0,i)));}
 }
+*/
 
 //! opt_depth_calc  
 

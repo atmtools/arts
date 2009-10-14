@@ -2528,6 +2528,35 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "CloudboxGetIncoming2" ),
+        DESCRIPTION
+        (
+         "Calculates incoming radiation field of the cloudbox by repeated\n"
+         "radiative transfer calculations.\n"
+         "\n"
+         "The method performs monochromatic pencil beam calculations for\n"
+         "all grid positions on the cloudbox boundary, and all directions\n"
+         "given by scattering angle grids (*scat_za/aa_grid*). Found radiances\n"
+         "are stored in *scat_i_p/lat/lon* which can be used as boundary\n"
+         "conditions when scattering inside the cloud box is solved by the\n"
+         "DOIT method.\n"
+         ),
+        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
+        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy_clearsky_agenda", "atmosphere_dim", "lat_grid", "lon_grid", 
+            "z_field", "t_field", "vmr_field", "r_geoid", "cloudbox_limits", 
+            "f_grid", "stokes_dim", "scat_za_grid", "scat_aa_grid" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "CloudboxGetIncoming1DAtm" ),
         DESCRIPTION
         (
@@ -4209,6 +4238,32 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iyMC" ),
+        DESCRIPTION
+        (
+         "...\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_aux", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "iy_agenda_call1", "rte_pos", "rte_los", "iy_aux_do", "jacobian_do", 
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
+            "t_field", "vmr_field", "r_geoid", "z_surface", "cloudbox_on", 
+            "cloudbox_limits", "stokes_dim", "f_grid", "scat_data_raw", 
+            "iy_space_agenda", "surface_prop_agenda", "abs_scalar_gas_agenda", 
+            "opt_prop_gas_agenda", "pnd_field", "iy_transmission", "y_unit",
+            "mc_std_err", "mc_max_time", "mc_max_iter", "mc_z_field_is_1D" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
   /*
   md_data_raw.push_back
     ( MdRecord

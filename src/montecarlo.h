@@ -93,7 +93,7 @@ void Cloudbox_ppathCalc(Workspace&      ws,
                         const Vector&         rte_los,
                         const Index& z_field_is_1D);
 
-
+/* Not used anymore
 void Cloudbox_ppath_rteCalc( Workspace&            ws,
                              Ppath&                ppathcloud,
                              Ppath&                ppath,
@@ -149,7 +149,7 @@ void Cloudbox_ppath_rteCalc( Workspace&            ws,
                              const ArrayOfSingleScatteringData& scat_data_mono,
                              const Index& z_field_is_1D
 );
-
+*/
 
 void cloudbox_ppath_start_stepping(
                                    Ppath&          ppath,
@@ -316,6 +316,7 @@ void mcPathTraceIPA(Workspace&            ws,
                     const Index&          z_field_is_1D,
                     const Ppath&          ppath);
 
+/* Not used anymore
 void montecarloGetIncoming(Workspace&            ws,
                            Matrix&               iy,
                            Vector&               rte_pos,
@@ -342,6 +343,7 @@ void montecarloGetIncoming(Workspace&            ws,
                            const Vector&         f_grid,
                            const Index&          stokes_dim
                            );
+*/
 
 Numeric opt_depth_calc(Workspace& ws,
                        Tensor3& ext_mat,

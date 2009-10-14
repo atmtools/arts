@@ -1059,7 +1059,7 @@ void Workspace::define_wsv_data()
        "Usage:      Output of *iy_clearsky_agenda*.\n"
        "\n"
        "Dimensions: \n"
-       "     [n_quantities][ ppath.np, stokes_dim, f_grid ]\n"
+       "     [n_quantities][ ppath.np, f_grid, stokes_dim ]\n"
        ),
       GROUP( "ArrayOfTensor3" )));
 
@@ -1479,7 +1479,8 @@ void Workspace::define_wsv_data()
        "The variable is used to represent spectra at all positions of the\n"
        "propagation path and can e.g. temporarily hold radiation entering\n"
        "the atmpophere from space. The unit depends on if emission is \n"
-       "considered or not.\n"
+       "considered or not (no conversion to e.g. brightness temperature shall\n"
+       "be applied).\n"
        "\n"
        "Usage:      Used by radiative transfer methods.\n"
        "\n"
@@ -1531,7 +1532,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       Any, can be mixed.\n"
        "\n"
-       "Dimensions: [ number_of_aux_vars, stokes_dim, f_grid ]\n"
+       "Dimensions: [ number_of_aux_vars, f_grid, stokes_dim ]\n"
        ),
       GROUP( "Tensor3" )));
 
@@ -1589,7 +1590,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:       1\n"
        "\n"
-       "Dimensions: [ stokes_dim, stokes_dim, f_grid ]\n"
+       "Dimensions: [ f_grid, stokes_dim, stokes_dim ]\n"
        ),
       GROUP( "Tensor3" )));
 

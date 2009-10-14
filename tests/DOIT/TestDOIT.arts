@@ -257,6 +257,12 @@ AgendaSet( iy_cloudbox_agenda ){
 #==================start==========================
 
 # Perform scattering calculation 
+#AgendaSet( iy_clearsky_agenda ){
+#  iyEmissionStandardClearsky
+#}
+#atm_checkedCalc
+#IndexSet( iy_aux_do, 0 )
+#CloudboxGetIncoming2
 CloudboxGetIncoming
 # Initialize Doit variables
 DoitInit
@@ -268,8 +274,10 @@ ScatteringDoit
 StringSet( y_unit, "RJBT" )
 #
 RteCalc
-
 WriteXML( "ascii", y, "DOIT.y.xml.generated" )
+
+#yCalc
+#WriteXML( "ascii", y, "y.xml" )
 
 #==================stop==========================
 

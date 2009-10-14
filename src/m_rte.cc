@@ -1590,10 +1590,10 @@ void vmrunitscf(
     The task is to determine *iy* and related variables for the
     background, or to continue the raditiave calculations
     "backwards". The details here depends on the method selected for
-    *iy_agenda*. 
+    *iy_clearsky_agenda*. 
 
     Each background is handled by an agenda. Several of these agandes
-    can involve recursive calls of *iy_agenda*.
+    can involve recursive calls of *iy_clearsky_agenda*.
 
     \param   ws                    Out: The workspace
     \param   iy                    Out: As the WSV.
@@ -1609,7 +1609,7 @@ void vmrunitscf(
     \param   cloudbox_on           As the WSV.
     \param   stokes_dim            As the WSV.
     \param   f_grid                As the WSV.
-    \param   iy_agenda             As the WSV.
+    \param   iy_clearsky_agenda    As the WSV.
     \param   iy_space_agenda       As the WSV.
     \param   surface_prop_agenda   As the WSV.
     \param   iy_cloudbox_agenda    As the WSV.
@@ -1632,7 +1632,7 @@ void get_iy_of_background(
   const Index&            cloudbox_on,
   const Index&            stokes_dim,
   ConstVectorView         f_grid,
-  const Agenda&           iy_agenda,
+  const Agenda&           iy_clearsky_agenda,
   const Agenda&           iy_space_agenda,
   const Agenda&           surface_prop_agenda,
   const Agenda&           iy_cloudbox_agenda )
@@ -1746,7 +1746,7 @@ void get_iy_of_background(
                 iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx,
                              0, rte_pos, surface_los(ilos,joker), iy_trans_new, 
                              cloudbox_on, jacobian_do, iy_aux_do, 
-                             f_grid, t_field, vmr_field, iy_agenda );
+                             f_grid, t_field, vmr_field, iy_clearsky_agenda );
 
                 I(ilos,joker,joker) = iy;
               }
@@ -1793,6 +1793,121 @@ void get_iy_of_background(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void iyMC(
+        Workspace&                  ws,
+        Matrix&                     iy,
+        Tensor3&                    iy_aux,
+        ArrayOfTensor3&             diy_dx,
+  const Index&                      iy_agenda_call1,
+  const Vector&                     rte_pos,      
+  const Vector&                     rte_los,      
+  const Index&                      iy_aux_do,
+  const Index&                      jacobian_do,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    z_field,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Matrix&                     r_geoid,
+  const Matrix&                     z_surface,
+  const Index&                      cloudbox_on,
+  const ArrayOfIndex&               cloudbox_limits,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const ArrayOfSingleScatteringData&   scat_data_raw,
+  const Agenda&                     iy_space_agenda,
+  const Agenda&                     surface_prop_agenda,
+  const Agenda&                     abs_scalar_gas_agenda, 
+  const Agenda&                     opt_prop_gas_agenda,
+  const Tensor4&                    pnd_field,
+  const Tensor3&                    iy_transmission,
+  const String&                     y_unit,
+  const Numeric&                    mc_std_err,
+  const Index&                      mc_max_time,
+  const Index&                      mc_max_iter,
+  const Index&                      mc_z_field_is_1D )
+{
+  // Throw error if unsupported features are requested
+  if( atmosphere_dim != 3 )
+    throw runtime_error( 
+                  "Only 3D atmospheres are allowed (atmosphere_dim must be 3)" );
+  if( !cloudbox_on )
+    throw runtime_error( 
+                      "The cloudbox must be activated (cloudbox_on must be 1)" );
+  if( iy_aux_do )
+    throw runtime_error( 
+        "This method does not provide any auxilary data (iy_aux_do must be 0)" );
+  if( jacobian_do )
+    throw runtime_error( 
+          "This method does not provide any jacobians (jacobian_do must be 0)" );
+  if( !iy_agenda_call1 )
+    throw runtime_error( 
+                    "Recursive usage not possible (iy_agenda_call1 must be 1)" );
+  if( iy_transmission.ncols() )
+    throw runtime_error( "*iy_transmission* must be empty" );
+
+  // Size output variables
+  //
+  const Index   nf  = f_grid.nelem();
+  //
+  iy.resize( nf, stokes_dim );
+  //
+  iy_aux.resize( 0, 0, 0 );
+  diy_dx.resize(0);
+
+  // Some MC variables are only local here
+  Tensor3  mc_points;
+  Index    mc_iteration_count, mc_seed;
+  Vector   mc_error;
+  //
+  MCAntenna mc_antenna;
+  mc_antenna.set_pencil_beam();
+
+  // Pos and los must be matrices 
+  Matrix pos(1,3), los(1,2);
+  //
+  pos(0,joker) = rte_pos;
+  los(0,joker) = rte_los;
+
+  for( Index f_index=0; f_index<nf; f_index++ )
+    {
+      ArrayOfSingleScatteringData   scat_data_mono;
+      
+      scat_data_monoCalc( scat_data_mono, scat_data_raw, 
+                                          f_grid, f_index );
+
+      // Seed reset for each loop. If not done, the errors 
+      // appear to be highly correlated.
+      MCSetSeedFromTime( mc_seed );
+
+      Vector y;
+                  
+      MCGeneral( ws, y, mc_iteration_count, mc_error, mc_points, 
+                 mc_antenna, f_grid, f_index, pos, los, stokes_dim, 
+                 iy_space_agenda, surface_prop_agenda, opt_prop_gas_agenda,
+                 abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, z_field, 
+                 r_geoid, z_surface, t_field, vmr_field, cloudbox_limits, 
+                 pnd_field, scat_data_mono, mc_seed, y_unit, mc_std_err, 
+                 mc_max_time, mc_max_iter, mc_z_field_is_1D ); 
+
+      assert( y.nelem() == stokes_dim );
+ 
+      // Data returned can not be in Tb
+      if ( y_unit == "RJBT" )
+        { 
+          const Numeric scfac = invrayjean( 1, f_grid[f_index] );
+          y /= scfac;
+        }
+     
+      iy(f_index,joker) = y;
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void iyEmissionStandardClearsky(
         Workspace&                  ws,
         Matrix&                     iy,
@@ -1820,7 +1935,7 @@ void iyEmissionStandardClearsky(
   const Agenda&                     ppath_step_agenda,
   const Agenda&                     emission_agenda,
   const Agenda&                     abs_scalar_agenda,
-  const Agenda&                     iy_agenda,
+  const Agenda&                     iy_clearsky_agenda,
   const Agenda&                     iy_space_agenda,
   const Agenda&                     surface_prop_agenda,
   const Agenda&                     iy_cloudbox_agenda,
@@ -1914,7 +2029,7 @@ void iyEmissionStandardClearsky(
   //
   get_iy_of_background( ws, iy, iy_aux, diy_dx, iy_trans_new,  
                       iy_aux_do, jacobian_do, ppath, atmosphere_dim, t_field,
-                      vmr_field, cloudbox_on, stokes_dim, f_grid, iy_agenda,
+                      vmr_field, cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda,
                       iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
   
   // Set iy_aux 
@@ -2118,7 +2233,7 @@ void iyTransmissionStandardClearsky(
   const Vector&                     f_grid,
   const Agenda&                     ppath_step_agenda,
   const Agenda&                     abs_scalar_agenda,
-  const Agenda&                     iy_agenda,
+  const Agenda&                     iy_clearsky_agenda,
   const Agenda&                     iy_space_agenda,
   const Agenda&                     surface_prop_agenda,
   const Agenda&                     iy_cloudbox_agenda,
@@ -2210,7 +2325,7 @@ void iyTransmissionStandardClearsky(
   //
   get_iy_of_background( ws, iy, iy_aux, iy_transmission, diy_dx, 
                       iy_aux_do, jacobian_do, ppath, atmosphere_dim, t_field,
-                      vmr_field, cloudbox_on, stokes_dim, f_grid, iy_agenda,
+                      vmr_field, cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda,
                       iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
   
   // Set iy_aux 
@@ -2269,7 +2384,7 @@ void yCalc(
   const ArrayOfIndex&               sensor_response_pol,
   const Vector&                     sensor_response_za,
   const Vector&                     sensor_response_aa,
-  const Agenda&                     iy_agenda,
+  const Agenda&                     iy_clearsky_agenda,
   const Index&                      iy_aux_do,
   const String&                     y_unit,
   const Agenda&                     jacobian_agenda,
@@ -2487,7 +2602,7 @@ void yCalc(
                   iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx,
                             1, sensor_pos(imblock,joker), los, iy_transmission, 
                             cloudbox_on, j_analytical_do, iy_aux_do, 
-                            f_grid, t_field, vmr_field, iy_agenda );
+                            f_grid, t_field, vmr_field, iy_clearsky_agenda );
 
                   // Check sizes
                   //
