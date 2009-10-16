@@ -89,7 +89,7 @@ public:
   /** Subtag. Eg. for gas species: O3, ClO. */
   const String& Subtag() const { return msubtag; }
   void Subtag( const String& st ) { msubtag = st; }
-  /** Mode of retrieval quantity. Eg. "abs", "rel", "vmr" and "nd". */
+  /** Calculation mode. Eg. "abs", "rel", "vmr" and "nd". */
   const String& Mode() const { return mmode; }
   void Mode( const String& m ) { mmode = m; }
   /** Boolean to make analytical calculations (if possible). */

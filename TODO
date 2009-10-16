@@ -1,9 +1,8 @@
 # Right now used more for notes, than TODO
 
 2009-10-02, Patrick
-jacobian now sized in yCalc. Change jacobianClose.
-yCalc on-line doc: No unit conversion for y_aux, but sensor_response 
-                   applied. Mention n_aux_max.
+jacobian now sized in yCalc. Change jacobianClose. jacobianCalc shall
+be removed.
 AUG: New and old sparse features: insert_row, + and - 
 
 2009-10-05, Patrick
@@ -16,3 +15,6 @@ How to comment out for-blocks of assert commands
 Confirm which t-jacobian implementation that works with perturbation 
 calculations.
 
+2009-10-16, Patrick 
+Remove jacobian tag string definitions in constants.cc.
+Make function that returns range for mblock

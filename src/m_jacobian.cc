@@ -52,9 +52,12 @@
 
 extern const String ABSSPECIES_MAINTAG;
 extern const String FREQUENCY_MAINTAG;
-extern const String POINTING_MAINTAG;
 extern const String POLYFIT_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
+
+extern const String POINTING_MAINTAG;
+extern const String POINTING_SUBTAG_A;
+extern const String POINTING_CALCMODE_A;
 
 
 /*===========================================================================
@@ -115,15 +118,6 @@ void jacobianClose(
   const Matrix&                    sensor_pos,
   const Sparse&                    sensor_response )
 {
-  // Check that *jacobian* has been initialised
-  if( jacobian.nrows() != 0  &&  jacobian.ncols() != 0 )
-    {
-      ostringstream os;
-      os << "The Jacobian matrix has not been initialised, or calculations\n"
-         << "have alread been performed.";
-      throw runtime_error(os.str());
-    }
-
   // Make sure that the array is not empty
   if( jacobian_quantities.nelem() == 0 )
     throw runtime_error(
@@ -180,14 +174,10 @@ void jacobianClose(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianInit(
-        Matrix&                    jacobian,
         ArrayOfRetrievalQuantity&  jacobian_quantities,
-        ArrayOfArrayOfIndex&       jacobian_indices,
         Agenda&                    jacobian_agenda )
 {
-  jacobian.resize(0,0);
   jacobian_quantities.resize(0);
-  jacobian_indices.resize(0);
   jacobian_agenda = Agenda();
   jacobian_agenda.set_name( "jacobian_agenda" );
 }
@@ -198,14 +188,13 @@ void jacobianInit(
 void jacobianOff(
         Index&                     jacobian_do,
         Agenda&                    jacobian_agenda,
-        Matrix&                    jacobian,
         ArrayOfRetrievalQuantity&  jacobian_quantities,
         ArrayOfArrayOfIndex&       jacobian_indices,
         String&                    jacobian_unit )
 {
-  jacobianInit( jacobian, jacobian_quantities, jacobian_indices, 
-                                                               jacobian_agenda );
+  jacobianInit( jacobian_quantities, jacobian_agenda );
   jacobian_do   = 0;
+  jacobian_indices.resize(0);
   jacobian_unit = "-";
 }
 
@@ -927,6 +916,213 @@ void jacobianCalcPointing(
     }
 }
 
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void jacobianAddPointingZa(
+  Workspace&                 ws,
+  ArrayOfRetrievalQuantity&  jq,
+  Agenda&                    jacobian_agenda,
+  const Matrix&              sensor_pos,
+  const Vector&              sensor_time,
+  const Numeric&             dza,
+  const Index&               poly_order )
+{
+  // Check that poly_order is -1 or positive
+  if( poly_order < -1 )
+    throw runtime_error(
+                  "The polynomial order has to be positive or -1 for gitter." );
+ 
+  // Check that this jacobian type is not already included.
+  for( Index it=0; it<jq.nelem(); it++ )
+    {
+      if (jq[it].MainTag()== POINTING_MAINTAG  &&  
+          jq[it].Subtag() == POINTING_SUBTAG_A )
+        {
+          ostringstream os;
+          os << "Fit of zenith angle pointing off-set is already included in\n"
+             << "*jacobian_quantities*.";
+          throw runtime_error(os.str());
+        }
+    }
+
+  // Check that sensor_time is consistent with sensor_pos
+  if( sensor_time.nelem() != sensor_pos.nrows() )
+    {
+      ostringstream os;
+      os << "The WSV *sensor_time* must be defined for every "
+         << "measurement block.\n";
+      throw runtime_error(os.str());
+    }
+
+  // Do not allow that *poly_order* is not too large compared to *sensor_time*
+  if( poly_order > sensor_time.nelem()-1 )
+    { throw runtime_error( 
+             "The polynomial order can not be >= length of *sensor_time*." ); }
+
+  // Create the new retrieval quantity
+  RetrievalQuantity rq = RetrievalQuantity();
+  rq.MainTag( POINTING_MAINTAG );
+  rq.Subtag( POINTING_SUBTAG_A );
+  rq.Mode( POINTING_CALCMODE_A );
+  rq.Analytical( 0 );
+  rq.Perturbation( dza );
+  // To store the value or the polynomial order, create a vector with length
+  // poly_order+1, in case of gitter set the size of the grid vector to be the
+  // number of measurement blocks, all elements set to -1.
+  Vector grid(0,poly_order+1,1);
+  if( poly_order == -1 )
+    {
+      grid.resize(sensor_pos.nrows());
+      grid = -1.0;
+    }
+  ArrayOfVector grids(1,grid);
+  rq.Grids(grids);
+
+  // Add it to the *jacobian_quantities*
+  jq.push_back( rq );
+
+  // Add pointing method to the jacobian agenda
+  jacobian_agenda.append( ws, "jacobianCalcPointingZa", "" );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+/*
+void jacobianCalcPointingZa(
+        Workspace&                 ws,
+        Matrix&                    J,
+  const Agenda&                    jacobian_y_agenda,
+  const ArrayOfRetrievalQuantity&  jq,
+  const ArrayOfArrayOfIndex&       jacobian_indices,
+  const Vector&                    f_grid,
+  const Tensor4&                   vmr_field,
+  const Tensor3&                   t_field,
+  const Matrix&                    sensor_los,
+  const Vector&                    sensor_time,
+  const Vector&                    y )
+{
+  // Set some useful (and needed) variables.  
+  RetrievalQuantity rq;
+  ArrayOfIndex ji;
+
+  // Find the retrieval quantity related to this method.
+  // This works since the combined MainTag and Subtag is individual.
+  bool found = false;
+  for( Index n=0; n<jq.nelem() && !found; n++ )
+    {
+      if( jq[n].MainTag() == POINTING_MAINTAG && 
+          jq[n].Subtag() == POINTING_SUBTAG_A )
+        {
+          found = true;
+          rq = jq[n];
+          ji = jacobian_indices[n];
+        }
+    }
+  if( !found )
+    { throw runtime_error(
+                "There is no such pointing retrieval quantities defined.\n" );
+    }
+
+  // Check that sensor_time is consistent with sensor_pos
+  //
+  chk_if_increasing( "sensor_time", sensor_time );
+  //
+  if( sensor_time.nelem() != sensor_los.nrows() )
+    {
+      ostringstream os;
+      os << "The WSV *sensor_time* must be defined for every "
+         << "measurement block.\n";
+      throw runtime_error(os.str());
+    }
+
+  // Get disturbed (part of) y, depending on calculation option
+  //
+  const Index    n1y = sensor_response.nrows(); 
+        Vector   dy( n1y );
+  //
+  if( jq[n].Mode() == POINTING_CALCMODE_A )
+    {
+      // "Disturbed" results:
+      Vector          ibtmp;
+      Matrix          ib_aux;
+      Index           n_aux;
+      ArrayOfMatrix   dib_dx;      
+
+      Matrix los = sensor_los;
+
+      los(joker,0) += rq.Perturbation();
+
+      ib_calc( ws, ibtmp, ib_aux, n_aux, dib_dx, imblock, atmosphere_dim, 
+               t_field, vmr_field, cloudbox_on, stokes_dim, f_grid, 
+               sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
+               antenna_dim, iy_clearsky_agenda, 0, y_unit, 
+               0, ArrayOfRetrievalQuantity, ArrayOfArrayOfIndex(), String() );
+      mult( dy, sensor_response, ib2 );
+      
+      for( Index i=0; i<n1y; i++ )
+        { dy[i] = dy[i]- y_mblock[i]; }
+      
+    }
+  else
+    { assert( 0 ); }
+
+
+
+  //--- Create jacobians ---
+
+  Index nb = sensor_los.nrows();
+  Index lb = y.nelem() / nb;
+  Index lg = rq.Grids()[0].nelem();
+  Index it = ji[0];
+  
+  // Check that integer division worked
+  assert( nb*lb == y.nelem() );
+
+  // Handle gitter seperately
+  if( rq.Grids()[0][0] == -1 )
+    {
+      assert( lg == nb );
+      //
+      Index iy = 0;
+      //
+      for( Index b=0; b<nb; b++ )
+        {
+          assert( rq.Grids()[0][b] == -1 );
+          for( Index dummy=0; dummy<lb; dummy++ )
+            {
+              J(iy,it) = dydx[iy];     // Not all elements are filled here,
+              iy++;                    // but J is zeroed in jacobianClose
+            }
+          it++;
+        }
+    }
+
+  // Polynomial representation
+  else
+    {
+      Vector w;
+      for( Index c=0; c<lg; c++ )
+        {
+          assert( Numeric(c) == rq.Grids()[0][c] );
+          //
+          polynomial_basis_func( w, sensor_time, c );
+          //
+          Index iy = 0;
+          //
+          for( Index b=0; b<nb; b++ )
+            {
+              for( Index dummy=0; dummy<lb; dummy++ )
+                {
+                  J(iy,it) = w[b] * dydx[iy];
+                  iy++;
+                }
+            }
+          it++;
+        }
+    }
+}
+*/
 
 
 

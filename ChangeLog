@@ -1,3 +1,13 @@
+2009-10-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-101
+
+	* src/m_rte.cc (ib_calc): Part of yCalc extracted. Direct access
+	to this part needed for jacobian calculations.
+
+	* src/m_jacobian.cc (jacobianAddPointingZa): Started on new version
+	of jacobian perturbation methods.
+	
 2009-10-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-100

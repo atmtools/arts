@@ -444,7 +444,7 @@ void RteCalcNoJacobian(
   Index dummy;
   Agenda adummy;
 
-  jacobianOff( dummy, adummy, jacobian, jacobian_quantities, jacobian_indices, 
+  jacobianOff( dummy, adummy, jacobian_quantities, jacobian_indices, 
                                                                jacobian_unit );
 
   RteCalc( ws, y, y_f, y_pol, y_pos, y_los, jacobian, 
@@ -2357,6 +2357,200 @@ void iyTransmissionStandardClearsky(
 */
 
 
+
+//! ib_calc
+/*!
+    ...
+
+
+    \author Patrick Eriksson 
+    \date   2009-10-16
+*/
+void ib_calc(
+        Workspace&                  ws,
+        Vector&                     ib,
+        Matrix&                     ib_aux,
+        Index&                      n_aux,
+        ArrayOfMatrix&              dib_dx,
+  const Index&                      imblock,
+  const Index&                      atmosphere_dim,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Index&                      cloudbox_on,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Matrix&                     sensor_pos,
+  const Matrix&                     sensor_los,
+  const Vector&                     mblock_za_grid,
+  const Vector&                     mblock_aa_grid,
+  const Index&                      antenna_dim,
+  const Agenda&                     iy_clearsky_agenda,
+  const Index&                      iy_aux_do,
+  const String&                     y_unit,
+  const Index&                      j_analytical_do,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&        jacobian_indices,
+  const String&                     jacobian_unit )
+{
+  // Sizes
+  const Index   nf      = f_grid.nelem();
+  const Index   nza     = mblock_za_grid.nelem();
+        Index   naa     = mblock_aa_grid.nelem();   
+  if( antenna_dim == 1 )  
+    { naa = 1; }
+  const Index   nib     = nf * nza * naa * stokes_dim;
+
+  // Create containers for data of 1 measurement block.
+  //
+  // We do not know the number of aux variables. The parallelisation makes it
+  // unsafe to do the allocation of ib_aux inside the for-loops. We must use a 
+  // hard-coded maximum number.
+  //
+  const Index n_aux_max = 3;
+  n_aux     = -1;   // -1 flags value yet unknown
+  //
+  ib.resize( nib );
+  ib_aux.resize( nib, n_aux_max );
+  //
+  if( j_analytical_do )
+    {
+      dib_dx.resize( jacobian_indices.nelem() );
+      FOR_ANALYTICAL_JACOBIANS_DO(
+        dib_dx[iq].resize( nib, jacobian_indices[iq][1] -
+                                jacobian_indices[iq][0] + 1 );
+      )
+    }
+  else
+    { dib_dx.resize( 0 ); }
+
+
+  // Start of actual calculations
+
+  for( Index iza=0; iza<nza; iza++ )
+    {
+      // The try block here is necessary to correctly handle
+      // exceptions inside the parallel region. 
+      try
+        {
+          for( Index iaa=0; iaa<naa; iaa++ )
+            {
+              //--- LOS of interest
+              //
+              Vector los( sensor_los.ncols() );
+              //
+              los     = sensor_los( imblock, joker );
+              los[0] += mblock_za_grid[iza];
+
+              // Handle za/aa_grid "out-of-bounds" and mapping effects
+              //
+              if( antenna_dim == 2 )
+                { map_daa( los[0], los[1], los[0], los[1], 
+                                                    mblock_aa_grid[iaa] ); }
+              else if( atmosphere_dim == 1  && abs(los[0]-90) > 90 )
+                { if( los[0] < 0 )          { los[0] = -los[0]; }
+                  else if( los[0] > 180 )   { los[0] = 360 - los[0]; } }
+              else if( atmosphere_dim == 2  && abs(los[0]) > 180 )
+                { los[0] = -sign(los[0])*360 + los[0]; }
+              else if( atmosphere_dim == 3  &&  abs(los[0]-90) > 90 )
+                { map_daa( los[0], los[1], los[0], los[1], 0 ); }
+
+
+              // Calculate iy
+              //
+              Matrix         iy;
+              Tensor3        iy_aux, iy_transmission;
+              ArrayOfTensor3 diy_dx; 
+              //
+              iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx,
+                        1, sensor_pos(imblock,joker), los, iy_transmission, 
+                        cloudbox_on, j_analytical_do, iy_aux_do, 
+                        f_grid, t_field, vmr_field, iy_clearsky_agenda );
+
+              // Check sizes
+              //
+              assert( iy.ncols() == stokes_dim );
+              assert( iy.nrows() == nf );
+              //
+              if( n_aux < 0 )
+                { 
+                  n_aux = iy_aux.npages(); 
+                  if( n_aux > n_aux_max )
+                    {
+                      ostringstream os;
+                      os << "The number of auxilary variables (columns of "
+                         << "iy_aux) is hard coded.\nIt is presently set to "
+                         << n_aux_max << " variables.";
+                      throw runtime_error( os.str() );      
+                    }
+                }
+              //
+              if( n_aux )
+                { 
+                  assert( iy_aux.ncols() == stokes_dim );
+                  assert( iy_aux.nrows() == nf );
+                  assert( iy_aux.npages() == n_aux );
+                }
+              //
+              if( j_analytical_do )
+                {
+                  FOR_ANALYTICAL_JACOBIANS_DO(
+                    assert( diy_dx[iq].ncols() == stokes_dim );
+                    assert( diy_dx[iq].nrows() == nf );
+                    assert( diy_dx[iq].npages() == jacobian_indices[iq][1] -
+                                               jacobian_indices[iq][0] + 1 );
+                  )
+                }
+              
+              // iy    : unit conversion and copy to ib
+              // iy_aux: copy to ib_aux
+              //
+              apply_y_unit( Tensor3View(iy), y_unit, f_grid );
+              //
+              const Index row0 =( iza*naa + iaa ) * nf * stokes_dim;
+              //
+              for( Index is=0; is<stokes_dim; is++ )
+                { 
+                  ib[Range(row0+is,nf,stokes_dim)] = iy(joker,is); 
+                  //
+                  for( Index iaux=0; iaux<n_aux; iaux++ )
+                    { 
+                      ib_aux(Range(row0+is,nf,stokes_dim),iaux) = 
+                                                       iy_aux(iaux,joker,is);
+                    }
+                }
+
+              // Jacobian part
+              if( j_analytical_do )
+                {
+                  // Basically copy calculations for *iy*
+                  FOR_ANALYTICAL_JACOBIANS_DO(
+                    //
+                    apply_j_unit( diy_dx[iq], jacobian_unit, y_unit, f_grid );
+                    //
+                    for( Index ip=0; ip<jacobian_indices[iq][1] -
+                                        jacobian_indices[iq][0]+1; ip++ )
+                      {
+                        for( Index is=0; is<stokes_dim; is++ )
+                          { 
+                            dib_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
+                                                     diy_dx[iq](ip,joker,is); 
+                          }
+                      }                              
+                  )
+                }
+            }  // End aa loop
+        }  // End try
+
+      catch (runtime_error e)
+        {
+          exit_or_rethrow(e.what());
+        }
+    }  // End za loop
+
+
+ 
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void yCalc(
         Workspace&                  ws,
@@ -2521,35 +2715,17 @@ void yCalc(
   y_los.resize( nmblock*n1y, sensor_los.ncols() );
   y_aux.resize( 0, 0 );        // Size can only be determined later
 
-  // Create containers for data of 1 measurement block.
-  //
-  // We do not know the number of aux variables. The parallelisation makes it
-  // unsafe to do the allocation of ib_aux inside the for-loops. We must use a 
-  // hard-coded maximum number.
-  //
-  const Index n_aux_max = 3;
-        Index n_aux     = -1;
-  //
-  Vector ib( nib );
-  Matrix ib_aux( nib, n_aux_max );
-
   // Jacobian variables
   //
-  // As start, set everything set to be empty
   Index  j_analytical_do = 0;
-  Matrix jib( 0, 0 );
-  ArrayOfMatrix dib_dx(0);
-  const Index njq = jacobian_indices.nelem();
   //
   if( jacobian_do )
     {
-      jacobian.resize( nmblock*n1y, jacobian_indices[njq-1][1]+1 );
+      jacobian.resize( nmblock*n1y, 
+                            jacobian_indices[jacobian_indices.nelem()-1][1]+1 );
       //
       FOR_ANALYTICAL_JACOBIANS_DO(
-        if( j_analytical_do == 0 ) { dib_dx.resize(njq); }
         j_analytical_do  = 1; 
-        dib_dx[iq].resize( nib, jacobian_indices[iq][1] -
-                                jacobian_indices[iq][0] + 1 );
       )
     }
 
@@ -2560,136 +2736,27 @@ void yCalc(
 
   for( Index imblock=0; imblock<nmblock; imblock++ )
     {
-
-// #pragma ...
-
-      for( Index iza=0; iza<nza; iza++ )
-        {
-          // The try block here is necessary to correctly handle
-          // exceptions inside the parallel region. 
-          try
-            {
-              for( Index iaa=0; iaa<naa; iaa++ )
-                {
-
-                  //--- LOS of interest
-                  //
-                  Vector los( sensor_los.ncols() );
-                  //
-                  los     = sensor_los( imblock, joker );
-                  los[0] += mblock_za_grid[iza];
-
-                  // Handle za/aa_grid "out-of-bounds" and mapping effects
-                  //
-                  if( antenna_dim == 2 )
-                    { map_daa( los[0], los[1], los[0], los[1], 
-                                                        mblock_aa_grid[iaa] ); }
-                  else if( atmosphere_dim == 1  && abs(los[0]-90) > 90 )
-                    { if( los[0] < 0 )          { los[0] = -los[0]; }
-                      else if( los[0] > 180 )   { los[0] = 360 - los[0]; } }
-                  else if( atmosphere_dim == 2  && abs(los[0]) > 180 )
-                    { los[0] = -sign(los[0])*360 + los[0]; }
-                  else if( atmosphere_dim == 3  &&  abs(los[0]-90) > 90 )
-                    { map_daa( los[0], los[1], los[0], los[1], 0 ); }
-
-
-                  // Calculate iy
-                  //
-                  Matrix         iy;
-                  Tensor3        iy_aux, iy_transmission;
-                  ArrayOfTensor3 diy_dx; 
-                  //
-                  iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx,
-                            1, sensor_pos(imblock,joker), los, iy_transmission, 
-                            cloudbox_on, j_analytical_do, iy_aux_do, 
-                            f_grid, t_field, vmr_field, iy_clearsky_agenda );
-
-                  // Check sizes
-                  //
-                  assert( iy.ncols() == stokes_dim );
-                  assert( iy.nrows() == nf );
-                  //
-                  if( n_aux < 0 )
-                    { 
-                      n_aux = iy_aux.npages(); 
-                      if( n_aux > n_aux_max )
-                        {
-                          ostringstream os;
-                          os << "The number of auxilary variables (columns of "
-                             << "iy_aux) is hard coded.\nIt is presently set to "
-                             << n_aux_max << " variables.";
-                          throw runtime_error( os.str() );      
-                        }
-                    }
-                  //
-                  if( n_aux )
-                    { 
-                      assert( iy_aux.ncols() == stokes_dim );
-                      assert( iy_aux.nrows() == nf );
-                      assert( iy_aux.npages() == n_aux );
-                    }
-                  //
-                  if( j_analytical_do )
-                    {
-                      FOR_ANALYTICAL_JACOBIANS_DO(
-                        assert( diy_dx[iq].ncols() == stokes_dim );
-                        assert( diy_dx[iq].nrows() == nf );
-                        assert( diy_dx[iq].npages() == jacobian_indices[iq][1] -
-                                                   jacobian_indices[iq][0] + 1 );
-                      )
-                    }
-                  
-                  // iy    : unit conversion and copy to ib
-                  // iy_aux: copy to ib_aux
-                  //
-                  apply_y_unit( Tensor3View(iy), y_unit, f_grid );
-                  //
-                  const Index row0 =( iza*naa + iaa ) * nf * stokes_dim;
-                  //
-                  for( Index is=0; is<stokes_dim; is++ )
-                    { 
-                      ib[Range(row0+is,nf,stokes_dim)] = iy(joker,is); 
-                      //
-                      for( Index iaux=0; iaux<n_aux; iaux++ )
-                        { 
-                          ib_aux(Range(row0+is,nf,stokes_dim),iaux) = 
-                                                           iy_aux(iaux,joker,is);
-                        }
-                    }
-
-                  // Jacobian part
-                  if( j_analytical_do )
-                    {
-                      // Basically copy calculations for *iy*
-                      FOR_ANALYTICAL_JACOBIANS_DO(
-                        //
-                        apply_j_unit( diy_dx[iq], jacobian_unit, y_unit, f_grid );
-                        //
-                        for( Index ip=0; ip<jacobian_indices[iq][1] -
-                                            jacobian_indices[iq][0]+1; ip++ )
-                          {
-                            for( Index is=0; is<stokes_dim; is++ )
-                              { 
-                                dib_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
-                                                         diy_dx[iq](ip,joker,is); 
-                              }
-                          }                              
-                      )
-                    }
-                }  // End aa loop
-            }  // End try
-
-          catch (runtime_error e)
-            {
-              exit_or_rethrow(e.what());
-            }
-        }  // End za loop
+      // Calculate monochromatic pencil beam data for 1 measurement block
+      //
+      Vector          ib, yb(n1y);
+      Matrix          ib_aux;
+      Index           n_aux;
+      ArrayOfMatrix   dib_dx;      
+      //
+      ib_calc( ws, ib, ib_aux, n_aux, dib_dx, imblock, atmosphere_dim, 
+               t_field, vmr_field, cloudbox_on, stokes_dim, f_grid, 
+               sensor_pos, sensor_los, mblock_za_grid, mblock_aa_grid, 
+               antenna_dim, iy_clearsky_agenda, iy_aux_do, y_unit, 
+               j_analytical_do, jacobian_quantities, jacobian_indices, 
+               jacobian_unit );
 
       // Apply sensor response matrix on ib
       //
+      mult( yb, sensor_response, ib );
+      //
       const Index row0 = imblock * n1y;
       //
-      mult( y[Range(row0,n1y)], sensor_response, ib );
+      y[Range(row0,n1y)] = yb;
 
       // Information and auxilary variables
       //
@@ -2716,7 +2783,7 @@ void yCalc(
                                                  ib_aux(joker,Range(0,n_aux)) );
         }
 
-      // diy_dx part of *jacobian*
+      // dib_dx part of *jacobian*
       //
       if( j_analytical_do )
         {
