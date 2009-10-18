@@ -43,7 +43,9 @@
 #include "agenda_class.h"
 #include "arts.h"
 #include "complex.h"          
+#include "jacobian.h"
 #include "ppath.h"
+#include "matpackI.h"
 #include "matpackII.h"
 #include "matpackIII.h"
 
@@ -63,6 +65,10 @@ void apply_j_unit(
     const String&     y_unit, 
     ConstVectorView   f_grid );
 
+Range get_rowindex_for_mblock( 
+  const Sparse&   sensor_response, 
+  const Index&    imblock );
+
 void include_trans_in_diy_dq( 
             ArrayOfTensor4&   diy_dq,  
       const Index&            iv,
@@ -70,6 +76,32 @@ void include_trans_in_diy_dq(
       ConstMatrixView         trans,
       const ArrayOfPpath&     ppath_array, 
       const Index&            ppath_array_index );
+
+void iyb_calc(
+        Workspace&                  ws,
+        Vector&                     iyb,
+        Matrix&                     iyb_aux,
+        Index&                      n_aux,
+        ArrayOfMatrix&              diyb_dx,
+  const Index&                      imblock,
+  const Index&                      atmosphere_dim,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Index&                      cloudbox_on,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Matrix&                     sensor_pos,
+  const Matrix&                     sensor_los,
+  const Vector&                     mblock_za_grid,
+  const Vector&                     mblock_aa_grid,
+  const Index&                      antenna_dim,
+  const Agenda&                     iy_clearsky_agenda,
+  const Index&                      iy_aux_do,
+  const String&                     y_unit,
+  const Index&                      j_analytical_do,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&        jacobian_indices,
+  const String&                     jacobian_unit );
 
 void iy_calc( Workspace&               ws,
               Matrix&                  iy,

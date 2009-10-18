@@ -318,24 +318,7 @@ void define_agenda_data()
         "by calling the the jacobianAdd set of methods.\n"
        ),
        OUTPUT( "jacobian" ),
-       INPUT()));
-
-//  Keep this (PE 081113)
-//       
-//   agenda_data.push_back
-//     (AgRecord
-//      ( NAME( "jacobian_particle_update_agenda" ),
-//        DESCRIPTION
-//        (
-//         "The agenda controlling the update of the scattered field due to\n"
-//         "changes in *pnd_field* when calculating the particle Jacobian.\n"
-//         "The agenda has to be specified by the user, and should contain\n"
-//         "the calculations needed before a call to RteCalc.\n"
-//         "\n"
-//         "Usage:   Called from *jacobianCalcParticle*."
-//         ),
-//        OUTPUT( "pnd_field" ),
-//        INPUT( "pnd_field" )));
+       INPUT( "imblock", "iyb", "yb" )));
 
   agenda_data.push_back
     (AgRecord

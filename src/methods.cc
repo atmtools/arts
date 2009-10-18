@@ -4444,15 +4444,16 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianAddPointing" ),
+      ( NAME( "jacobianAddPointingZa" ),
         DESCRIPTION
         (
-         "Includes fit of sensor pointing in the Jacobian.\n"
+         "Includes fit of sensor pointing zenith angle off-set in the Jacobian.\n"
          "\n"
-         "Retrieval of deviations between nominal and actual pointing of the\n"
-         "sensor can be included by this method. The weighing functions are\n"
-         "calculated by perturbations. This requires one additional forward\n"
-         "model run, independently of polynomial order selected.\n"
+         "Retrieval of deviations between nominal and actual zenith angle of the\n"
+         "sensor can be included by this method. The weighing functions can be\n"
+         "calculated in several ways:\n"
+         "   calcmode = \"iyrecalc|\": Recalculation of pencil beam spectra, \n"
+         "      shifted with *dza* from nominal values.\n"
          "\n"
          "The pointing off-set can be modelled to be time varying. The time\n"
          "variation is then described by a polynomial (with standard base\n"
@@ -4463,14 +4464,14 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_agenda", "jacobian", 
-            "sensor_pos", "sensor_time" ),
-        GIN( "dza", "poly_order" ),
-        GIN_TYPE( "Numeric", "Index" ),
-        GIN_DEFAULT( "0.01", "0" ),
-        GIN_DESC( "Size of perturbation to apply.", 
-                  "Order of polynomial to describe the time variation of "
-                  "pointing off-sets."
+        IN( "jacobian_quantities", "jacobian_agenda", "sensor_pos", "sensor_time" ),
+        GIN( "poly_order", "calcmode", "dza" ),
+        GIN_TYPE( "Index", "String", "Numeric" ),
+        GIN_DEFAULT( "0", "iyrecalc", "0.01" ),
+        GIN_DESC( "Order of polynomial to describe the time variation of "
+                  "pointing off-sets.",
+                  "Calculation method. See above",
+                  "Size of perturbation to apply (when applicable)."
                   ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -4604,29 +4605,6 @@ void define_md_data_raw()
   
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianCalc" ),
-        DESCRIPTION
-        (
-         "Executes *jacobian_agenda* to calculate (parts of) *jacobian*."
-         "\n"
-         "It is important that *y* holds the original output of *RteCalc*\n"
-         "as the methods called performs perturbations to obtain changes in\n"
-         "*y*.\n"
-         ),
-        AUTHORS( "Mattias Ekstrom" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian_agenda", "jacobian_indices" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "jacobianCalcAbsSpecies" ),
         DESCRIPTION
         (
@@ -4678,12 +4656,12 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianCalcPointing" ),
+      ( NAME( "jacobianCalcPointingZa" ),
         DESCRIPTION
         (
-         "Calculates pointing deviation jacobians by perturbations.\n"
+         "Calculates zenith angle pointing deviation jacobians.\n"
          "\n"
-         "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
+         "This function is added to *jacobian_agenda* by jacobianAddPointingZa\n"
          "and should normally not be called by the user.\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
@@ -4691,9 +4669,11 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_y_agenda", "jacobian_quantities", "jacobian_indices", 
-            "f_grid", "vmr_field", "t_field", "sensor_los", 
-            "sensor_time", "y" ),
+        IN( "imblock", "iyb", "yb", "atmosphere_dim", "t_field", "vmr_field", 
+            "cloudbox_on", "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
+            "mblock_za_grid", "mblock_aa_grid", "antenna_dim", "sensor_response",
+            "sensor_time", "iy_clearsky_agenda", "y_unit", "jacobian_quantities",
+            "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

@@ -1467,6 +1467,19 @@ void Workspace::define_wsv_data()
 //       GROUP( "Matrix" )));
 
   wsv_data.push_back
+    (WsvRecord
+     (NAME( "imblock" ),
+      DESCRIPTION
+      (
+       "Measurement block index. \n"
+       "\n"
+       "Used to tell agendas the index of present measurement block.\n"
+       "\n"
+       "Usage: Used internally.\n"
+       ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "iy" ),
       DESCRIPTION
@@ -1489,15 +1502,6 @@ void Workspace::define_wsv_data()
        "Dimensions: [ f_grid, stokes_dim ]\n"
        ),
       GROUP( "Matrix" )));
-
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "iy_clearsky_agenda" ),
-       DESCRIPTION
-       (
-        "See agendas.cc.\n"
-        ),
-       GROUP( "Agenda" )));
 
  wsv_data.push_back
     (WsvRecord
@@ -1555,6 +1559,15 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
     (WsvRecord
+     ( NAME( "iy_clearsky_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+
+ wsv_data.push_back
+    (WsvRecord
      ( NAME( "iy_cloudbox_agenda" ),
        DESCRIPTION
        (
@@ -1593,6 +1606,26 @@ void Workspace::define_wsv_data()
        "Dimensions: [ f_grid, stokes_dim, stokes_dim ]\n"
        ),
       GROUP( "Tensor3" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "iyb" ),
+      DESCRIPTION
+      (
+       "Monochromatic pencil beam data for one measurement block.\n"
+       "\n"
+       "The data for all *iy* of a measurement block appended to a vector,\n"
+       "following the sorting order used for *y*.\n"
+       "\n"
+       "Usage:      Used internally.\n"
+       "\n"
+       "Unit:       W / (m^2 Hz sr) or transmission.\n"
+       "\n"
+       "Dimensions: [ naa*nza*nf*stokes_dim ] where naa is length of\n"
+       "            mblock_aa_grid, za length of mblock_za_grid and nf is\n"
+       "            length of f_grid.\n"
+       ),
+      GROUP( "Vector" )));
 
  wsv_data.push_back
    (WsvRecord
@@ -3919,6 +3952,19 @@ void Workspace::define_wsv_data()
   //   2. yUnit in m_rte.cc
   //   2. jacobianUnit in m_rte.cc
   
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "yb" ),
+      DESCRIPTION
+      (
+       "The measurement vector for a single measurement block.\n"
+       "\n"
+       "Exactly as *y*, but holds data only for a single measurement block.\n"
+       "\n"
+       "Usage: Used internally.\n"
+       ),
+      GROUP( "Vector" )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "ybatch" ),

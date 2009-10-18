@@ -1358,6 +1358,7 @@ void get_pointers_for_analytical_jacobians(
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfSpeciesTag&   abs_species )
 {
+
   FOR_ANALYTICAL_JACOBIANS_DO( 
     //
     if( jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG )
@@ -2111,53 +2112,60 @@ void iyEmissionStandardClearsky(
                   
                   for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) 
                     {
-                      // Absorbing species
-                      const Index isp = abs_species_i[iq]; 
-                      if( isp >= 0 )
+                      if( jacobian_quantities[iq].Analytical() )
                         {
-                          // Scaling factors to handle retrieval unit
-                          Numeric unitscf1, unitscf2;
-                          vmrunitscf( unitscf1, jacobian_quantities[iq].Mode(), 
-                                   ppath_vmr(isp,ip), ppath_p[ip], ppath_t[ip] );
-                          vmrunitscf( unitscf2, jacobian_quantities[iq].Mode(), 
-                             ppath_vmr(isp,ip+1), ppath_p[ip+1], ppath_t[ip+1] );
-                          //
-                          // Stokes component 1
-                          const Numeric w0 = B * ppath_abs_scalar(iv,isp,ip);
-                          diy_dpath[iq](ip  ,iv,0) += unitscf1 * w0;
-                          diy_dpath[iq](ip+1,iv,0) += unitscf2 * w0;
-                          //
-                          // Higher stokes components
-                          for( Index is=1; is<stokes_dim; is++ )
-                            { 
-                              const Numeric wi = -0.5 * A * iy(iv,is) *
+                          // Absorbing species
+                          const Index isp = abs_species_i[iq]; 
+                          if( isp >= 0 )
+                            {
+                              // Scaling factors to handle retrieval unit
+                              Numeric unitscf1, unitscf2;
+                              vmrunitscf( unitscf1, 
+                                          jacobian_quantities[iq].Mode(), 
+                                          ppath_vmr(isp,ip), ppath_p[ip], 
+                                          ppath_t[ip] );
+                              vmrunitscf( unitscf2, 
+                                          jacobian_quantities[iq].Mode(), 
+                                          ppath_vmr(isp,ip+1), ppath_p[ip+1], 
+                                          ppath_t[ip+1] );
+                              //
+                              // Stokes component 1
+                              const Numeric w0 = B * ppath_abs_scalar(iv,isp,ip);
+                              diy_dpath[iq](ip  ,iv,0) += unitscf1 * w0;
+                              diy_dpath[iq](ip+1,iv,0) += unitscf2 * w0;
+                              //
+                              // Higher stokes components
+                              for( Index is=1; is<stokes_dim; is++ )
+                                { 
+                                  const Numeric wi = -0.5 * A * iy(iv,is) *
                                                      ppath_abs_scalar(iv,isp,ip);
-                              diy_dpath[iq](ip  ,iv,is) += unitscf1 * wi;
-                              diy_dpath[iq](ip+1,iv,is) += unitscf2 * wi;
+                                  diy_dpath[iq](ip  ,iv,is) += unitscf1 * wi;
+                                  diy_dpath[iq](ip+1,iv,is) += unitscf2 * wi;
+                                }
                             }
-                        }
 
-                      // Temperature
-                      else if( is_t[iq] )
-                        {
-                          const Numeric dkdt = ( ppath_as2(iv,joker,ip).sum() -
-                                      ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
-                          const Numeric dbdt = ( ppath_e2(iv,ip) -
-                                                    ppath_emission(iv,ip) ) / dt;
-                          //
-                          // Stokes component 1
-                          const Numeric w0 = B * dkdt + ( 
-                                        exp(-(total_tau[iv]-ppath_tau(iv,ip))) - 
-                                        exp( -total_tau[iv]) ) * dbdt;
-                          diy_dpath[iq](ip  ,iv,0) += w0;
-                          diy_dpath[iq](ip+1,iv,0) += w0;
-                          //
-                          // Higher stokes components
-                          for( Index is=1; is<stokes_dim; is++ )
-                            { 
-                              const Numeric wi = -0.5 * A * iy(iv,is) * dkdt;
-                              diy_dpath[iq](ip  ,iv,is) += wi;
-                              diy_dpath[iq](ip+1,iv,is) += wi;
+                          // Temperature
+                          else if( is_t[iq] )
+                            {
+                              const Numeric dkdt = ( ppath_as2(iv,joker,ip).sum() -
+                                       ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
+                              const Numeric dbdt = ( ppath_e2(iv,ip) -
+                                                     ppath_emission(iv,ip) ) / dt;
+                              //
+                              // Stokes component 1
+                              const Numeric w0 = B * dkdt + ( 
+                                            exp(-(total_tau[iv]-ppath_tau(iv,ip))) -
+                                            exp( -total_tau[iv]) ) * dbdt;
+                              diy_dpath[iq](ip  ,iv,0) += w0;
+                              diy_dpath[iq](ip+1,iv,0) += w0;
+                              //
+                              // Higher stokes components
+                              for( Index is=1; is<stokes_dim; is++ )
+                                { 
+                                  const Numeric wi = -0.5 * A * iy(iv,is) * dkdt;
+                                  diy_dpath[iq](ip  ,iv,is) += wi;
+                                  diy_dpath[iq](ip+1,iv,is) += wi;
+                                }
                             }
                         }
                     }
@@ -2358,7 +2366,28 @@ void iyTransmissionStandardClearsky(
 
 
 
-//! ib_calc
+//! get_rowindex_for_mblock
+/*!
+    Returns the "range" of *y* corresponding to a measurement block
+
+    \return  The range.
+    \param   sensor_response    As the WSV.
+    \param   imblock            Index of the measurement block.
+
+    \author Patrick Eriksson 
+    \date   2009-10-16
+*/
+Range get_rowindex_for_mblock( 
+  const Sparse&   sensor_response, 
+  const Index&    imblock )
+{
+  const Index   n1y = sensor_response.nrows();
+  return Range( n1y*imblock, n1y );
+}
+
+
+
+//! iyb_calc
 /*!
     ...
 
@@ -2366,12 +2395,12 @@ void iyTransmissionStandardClearsky(
     \author Patrick Eriksson 
     \date   2009-10-16
 */
-void ib_calc(
+void iyb_calc(
         Workspace&                  ws,
-        Vector&                     ib,
-        Matrix&                     ib_aux,
+        Vector&                     iyb,
+        Matrix&                     iyb_aux,
         Index&                      n_aux,
-        ArrayOfMatrix&              dib_dx,
+        ArrayOfMatrix&              diyb_dx,
   const Index&                      imblock,
   const Index&                      atmosphere_dim,
   const Tensor3&                    t_field,
@@ -2398,30 +2427,30 @@ void ib_calc(
         Index   naa     = mblock_aa_grid.nelem();   
   if( antenna_dim == 1 )  
     { naa = 1; }
-  const Index   nib     = nf * nza * naa * stokes_dim;
+  const Index   niyb     = nf * nza * naa * stokes_dim;
 
   // Create containers for data of 1 measurement block.
   //
   // We do not know the number of aux variables. The parallelisation makes it
-  // unsafe to do the allocation of ib_aux inside the for-loops. We must use a 
+  // unsafe to do the allocation of iyb_aux inside the for-loops. We must use a 
   // hard-coded maximum number.
   //
   const Index n_aux_max = 3;
   n_aux     = -1;   // -1 flags value yet unknown
   //
-  ib.resize( nib );
-  ib_aux.resize( nib, n_aux_max );
+  iyb.resize( niyb );
+  iyb_aux.resize( niyb, n_aux_max );
   //
   if( j_analytical_do )
     {
-      dib_dx.resize( jacobian_indices.nelem() );
+      diyb_dx.resize( jacobian_indices.nelem() );
       FOR_ANALYTICAL_JACOBIANS_DO(
-        dib_dx[iq].resize( nib, jacobian_indices[iq][1] -
+        diyb_dx[iq].resize( niyb, jacobian_indices[iq][1] -
                                 jacobian_indices[iq][0] + 1 );
       )
     }
   else
-    { dib_dx.resize( 0 ); }
+    { diyb_dx.resize( 0 ); }
 
 
   // Start of actual calculations
@@ -2497,12 +2526,12 @@ void ib_calc(
                     assert( diy_dx[iq].ncols() == stokes_dim );
                     assert( diy_dx[iq].nrows() == nf );
                     assert( diy_dx[iq].npages() == jacobian_indices[iq][1] -
-                                               jacobian_indices[iq][0] + 1 );
+                                                   jacobian_indices[iq][0] + 1 );
                   )
                 }
               
-              // iy    : unit conversion and copy to ib
-              // iy_aux: copy to ib_aux
+              // iy    : unit conversion and copy to iyb
+              // iy_aux: copy to iyb_aux
               //
               apply_y_unit( Tensor3View(iy), y_unit, f_grid );
               //
@@ -2510,11 +2539,11 @@ void ib_calc(
               //
               for( Index is=0; is<stokes_dim; is++ )
                 { 
-                  ib[Range(row0+is,nf,stokes_dim)] = iy(joker,is); 
+                  iyb[Range(row0+is,nf,stokes_dim)] = iy(joker,is); 
                   //
                   for( Index iaux=0; iaux<n_aux; iaux++ )
                     { 
-                      ib_aux(Range(row0+is,nf,stokes_dim),iaux) = 
+                      iyb_aux(Range(row0+is,nf,stokes_dim),iaux) = 
                                                        iy_aux(iaux,joker,is);
                     }
                 }
@@ -2532,7 +2561,7 @@ void ib_calc(
                       {
                         for( Index is=0; is<stokes_dim; is++ )
                           { 
-                            dib_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
+                            diyb_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
                                                      diy_dx[iq](ip,joker,is); 
                           }
                       }                              
@@ -2595,7 +2624,7 @@ void yCalc(
     { naa = 1; }
   const Index   n1y     = sensor_response.nrows();
   const Index   nmblock = sensor_pos.nrows();
-  const Index   nib     = nf * nza * naa * stokes_dim;
+  const Index   niyb     = nf * nza * naa * stokes_dim;
 
 
   //---------------------------------------------------------------------------
@@ -2617,7 +2646,7 @@ void yCalc(
   //
   if( sensor_pos.ncols() != atmosphere_dim )
     throw runtime_error( "The number of columns of sensor_pos must be "
-                              "equal to the atmospheric dimensionality." );
+                         "equal to the atmospheric dimensionality." );
   if( atmosphere_dim <= 2  &&  sensor_los.ncols() != 1 )
     throw runtime_error( "For 1D and 2D, sensor_los shall have one column." );
   if( atmosphere_dim == 3  &&  sensor_los.ncols() != 2 )
@@ -2674,7 +2703,7 @@ void yCalc(
 
   // Sensor
   //
-  if( sensor_response.ncols() != nib ) 
+  if( sensor_response.ncols() != niyb ) 
     {
       ostringstream os;
       os << "The *sensor_response* matrix does not have the right size,\n"
@@ -2738,25 +2767,26 @@ void yCalc(
     {
       // Calculate monochromatic pencil beam data for 1 measurement block
       //
-      Vector          ib, yb(n1y);
-      Matrix          ib_aux;
+      Vector          iyb, yb(n1y);
+      Matrix          iyb_aux;
       Index           n_aux;
-      ArrayOfMatrix   dib_dx;      
+      ArrayOfMatrix   diyb_dx;      
       //
-      ib_calc( ws, ib, ib_aux, n_aux, dib_dx, imblock, atmosphere_dim, 
-               t_field, vmr_field, cloudbox_on, stokes_dim, f_grid, 
-               sensor_pos, sensor_los, mblock_za_grid, mblock_aa_grid, 
-               antenna_dim, iy_clearsky_agenda, iy_aux_do, y_unit, 
-               j_analytical_do, jacobian_quantities, jacobian_indices, 
-               jacobian_unit );
+      iyb_calc( ws, iyb, iyb_aux, n_aux, diyb_dx, imblock, atmosphere_dim, 
+                t_field, vmr_field, cloudbox_on, stokes_dim, f_grid, 
+                sensor_pos, sensor_los, mblock_za_grid, mblock_aa_grid, 
+                antenna_dim, iy_clearsky_agenda, iy_aux_do, y_unit, 
+                j_analytical_do, jacobian_quantities, jacobian_indices, 
+                jacobian_unit );
 
-      // Apply sensor response matrix on ib
+      // Apply sensor response matrix on iyb
       //
-      mult( yb, sensor_response, ib );
+      mult( yb, sensor_response, iyb );
       //
-      const Index row0 = imblock * n1y;
+      const Range rowind = get_rowindex_for_mblock( sensor_response, imblock );
+      const Index row0 = rowind.get_start();
       //
-      y[Range(row0,n1y)] = yb;
+      y[rowind] = yb;
 
       // Information and auxilary variables
       //
@@ -2779,25 +2809,26 @@ void yCalc(
           if( y_aux.nrows() == 0 )
             { y_aux.resize( nmblock*n1y, n_aux ); }
           //
-          mult( y_aux(Range(row0,n1y),joker), sensor_response, 
-                                                 ib_aux(joker,Range(0,n_aux)) );
+          mult( y_aux(rowind,joker), sensor_response, 
+                                                 iyb_aux(joker,Range(0,n_aux)) );
         }
 
-      // dib_dx part of *jacobian*
+      // diyb_dx part of *jacobian*
       //
       if( j_analytical_do )
         {
           FOR_ANALYTICAL_JACOBIANS_DO(
-            mult( jacobian(Range(row0,n1y), Range(jacobian_indices[iq][0],
+            mult( jacobian(rowind, Range(jacobian_indices[iq][0],
                           jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
-                                                   sensor_response, dib_dx[iq] );
+                                                  sensor_response, diyb_dx[iq] );
           )
         }
 
       // Rest of *jacobian*: run jacobian_agenda (can be empty)
       //
       if( jacobian_do  &&  jacobian_agenda.nelem() > 0 )
-        { jacobian_agendaExecute( ws, jacobian, jacobian_agenda ); }
+        { jacobian_agendaExecute( ws, jacobian, imblock, iyb, yb, jacobian_agenda ); }
+        // { jacobian_agendaExecute( ws, jacobian, jacobian_agenda ); }
 
     }  // End mblock loop
 }

@@ -1,3 +1,25 @@
+2009-10-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-102
+
+	* Perturbation jacobians can now only be calculated through
+	yCalc (jacobianCalc removed). Too messy to keep both systems alive
+	and think that I am the only one using such jacobians
+	presently. Tell me if I am wrong.
+
+	* src/workspace.cc: New variables imblock, iyb and yb.
+
+	* src/agendas.cc: jacobian_agenda now taking imblock, iyb and yb
+	as input.
+
+	* src/m_rte.cc (iyMC): Tested. Seems to work.
+
+	* src/m_jacobian.cc (jacobianCalc): Removed.
+	(jacobianAddPointing): Removed.
+	(jacobianCalcPointing): Removed.
+	(jacobianAddPointingZa): Finished.
+	(jacobianCalcPointingZa): Created. Will later have more options.
+
 2009-10-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-101
