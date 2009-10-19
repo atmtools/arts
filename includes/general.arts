@@ -156,6 +156,10 @@ AgendaSet( iy_space_agenda ){
 AgendaSet( rte_agenda ){
   RteStd
 }
+#
+AgendaSet( iy_clearsky_agenda ){
+  iyEmissionStandardClearsky
+}
 
 
 #
@@ -163,6 +167,11 @@ AgendaSet( rte_agenda ){
 #
 StringSet( y_unit, "1" )
 
+
+#
+# Select that data auxilary to iy are not calculated
+#
+FlagOff( iy_aux_do )
 
 #
 # No scattering

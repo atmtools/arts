@@ -35,6 +35,7 @@ SpeciesSet( abs_species, ["O2-PWR93","N2-SelfContStandardType","H2O-PWR98"] )
 
 abs_lookupAdapt
 
+FlagOn( cloudbox_on )
 ReadXML( cloudbox_limits, "cloudbox_limits.xml.generated" )
 
 ReadXML( pnd_field, "pnd_field.xml.generated" )
@@ -92,7 +93,13 @@ IndexSet(   mc_max_time,      -1 )
 IndexSet(   mc_max_iter,      100 )
 IndexSet(   mc_z_field_is_1D, 1 )
 
-RteCalcMC
+AgendaSet( iy_clearsky_agenda ){
+  iyMC
+}
+
+atm_checkedCalc
+
+yCalc
 
 
 
@@ -102,7 +109,7 @@ output_file_formatSetAscii
 
 WriteXML( output_file_format, y, "RteCalcMC.y.xml.generated" )
 
-WriteXML( output_file_format, mc_error, "RteCalcMC.mc_error.xml.generated" )
+WriteXML( output_file_format, y_error, "RteCalcMC.mc_error.xml.generated" )
 
 }
 

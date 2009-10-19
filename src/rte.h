@@ -80,6 +80,8 @@ void include_trans_in_diy_dq(
 void iyb_calc(
         Workspace&                  ws,
         Vector&                     iyb,
+        Vector&                     iyb_error,
+        Index&                      iy_error_type,
         Matrix&                     iyb_aux,
         Index&                      n_aux,
         ArrayOfMatrix&              diyb_dx,

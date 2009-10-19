@@ -1282,7 +1282,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_species", "jacobian", "atmosphere_dim", "p_grid", "lat_grid", 
+        IN( "abs_species", "atmosphere_dim", "p_grid", "lat_grid", 
             "lon_grid" ),
         GIN( "gin1"      , "gin2"      , "gin3"      ,
              "species", "method", "unit", "dx" ),
@@ -4205,14 +4205,15 @@ void define_md_data_raw()
          "The overall strategy is to average basic atmospheric quantities\n"
          "(such as temperature) between the end points of each step of\n"
          "the propagation path, and to calculate emission and absorption\n"
-         "for these averaged values. See further the user guide.\n" 
+         "for these averaged values. See further the user guide. *iy_error* is\n"
+         "considered to be 0. \n" 
          "\n"
          "If *iy_aux_do* is set, the columns of *iy_aux* are as follow:\n"
-         " 1. The transmission between the observation point and the top of the\n"
-         "    atmosphere (TOA) or to the surface, depending on which of the two\n"
-         "    \"backgrounds\" that is closest. The transmission is valid for\n"
-         "    the unscattered path through the tamosphere, but attenuation due\n"
-         "    particle scattering is included.\n"
+         " 1. The transmission between the observation point and the top of\n"
+         "    the atmosphere (TOA) or to the surface, depending on which of\n"
+         "    the two \"backgrounds\" that is closest. The transmission is\n"
+         "    valid for the unscattered path through the atmosphere, but\n" 
+         "    attenuation due particle scattering is included.\n"
          " 2. Radiative background index, for primary propagation path branch,\n"
          "    where 1 is TOA, 2 the surface, 3 cloudbox surface and 4 cloudbox\n"
          "    interior.\n"
@@ -4221,7 +4222,7 @@ void define_md_data_raw()
          "    reflections are flagged.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -4244,10 +4245,32 @@ void define_md_data_raw()
       ( NAME( "iyMC" ),
         DESCRIPTION
         (
-         "...\n"
+         "Interface to Monte Carlo part for *iy_clearsky_agenda*.\n"
+         "\n"
+         "Basically an interface to *MCGeneral* for doing monochromatic pencil\n"
+         "beam calculations. This functions allows Monte Carlo (MC)\n"
+         "calculations for sets of frequencies and sensor pos/los in a single\n"
+         "run. Sensor responses can be included in the standard manner\n" 
+         "(through *yCalc*).\n"
+         "\n"
+         "MC unit is set as for *MCGeneral*. No antenna pattern is included.\n"
+         "\n"
+         "This function does not apply the MC approach when it comes\n"
+         "to sensor properties. These properties are not considered when\n"
+         "tracking photons, which is done in *MCGeneral* (but then only for\n"
+         "the antenna pattern).\n"
+         "\n"
+         "The MC calculation errors are all assumed be uncorrelated and each\n"
+         "have a normal distribution. These properties are of relevance when\n"
+         "weighting the errors with the sensor repsonse matrix. The seed is\n"
+         "reset for each call of *MCGeneral* to obtain uncorrelated errors.\n"
+         "\n"
+         "MC control arguments (mc_std_err, mc_max_time, mc_max_iter and\n"
+         "mc_z_field_is_1D) as for *MCGeneral*. The arguments are applied\n"
+         "for each monochromatic pencil beam calculation individually.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -4385,7 +4408,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_agenda", "jacobian", 
+        IN( "jacobian_quantities", "jacobian_agenda",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
         GIN( "g1", "g2", "g3", "species", "method", "unit","dx" ),
         GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "String", 
@@ -4429,7 +4452,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_agenda", "jacobian" ),
+        IN( "jacobian_quantities", "jacobian_agenda" ),
         GIN( "df", "do_stretch" ),
         GIN_TYPE( "Numeric", "Index" ),
         GIN_DEFAULT( "100e3", "0" ),
@@ -4464,7 +4487,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_agenda", "sensor_pos", "sensor_time" ),
+        IN( "jacobian_quantities", "jacobian_agenda", "sensor_pos", 
+            "sensor_time" ),
         GIN( "poly_order", "calcmode", "dza" ),
         GIN_TYPE( "Index", "String", "Numeric" ),
         GIN_DEFAULT( "0", "iyrecalc", "0.01" ),
@@ -4501,7 +4525,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_agenda", "jacobian", 
+        IN( "jacobian_quantities", "jacobian_agenda", 
             "sensor_response_pol_grid", "sensor_response_f_grid",
             "sensor_response_za_grid", "sensor_pos" ),
         GIN( "poly_order", "no_pol_variation", "no_za_variation", 
@@ -4546,7 +4570,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_agenda", "jacobian", 
+        IN( "jacobian_quantities", "jacobian_agenda", 
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid" ),
         GIN( "g1", "g2", "g3", "hse", "method", "dt" ),
         GIN_TYPE( "Vector", "Vector", "Vector", "String", "String", "Numeric" ),
@@ -8533,7 +8557,8 @@ void define_md_data_raw()
          "can be handled.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_aux", "jacobian" ),
+        OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_error", "y_aux", 
+             "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),

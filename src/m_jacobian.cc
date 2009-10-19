@@ -185,7 +185,6 @@ void jacobianAddAbsSpecies(
   Workspace&                  ws,
   ArrayOfRetrievalQuantity&   jq,
   Agenda&                     jacobian_agenda,
-  const Matrix&               J,
   const Index&                atmosphere_dim,
   const Vector&               p_grid,
   const Vector&               lat_grid,
@@ -198,16 +197,6 @@ void jacobianAddAbsSpecies(
   const String&               mode,
   const Numeric&              dx )
 {
-  // Check that the jacobian matrix is empty. Otherwise it is either
-  // not initialised or it is closed.
-  if( J.nrows()!=0 && J.ncols()!=0 )
-    {
-      ostringstream os;
-      os << "The Jacobian matrix is not initialised correctly or closed.\n"
-         << "New retrieval quantities can not be added at this point.";
-      throw runtime_error(os.str());
-    }
-  
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
   ArrayOfVector grids(atmosphere_dim);
@@ -489,20 +478,9 @@ void jacobianAddFreqShiftAndStretch(
   Workspace&                 ws,
   ArrayOfRetrievalQuantity&  jq,
   Agenda&                    jacobian_agenda,
-  const Matrix&              J,
   const Numeric&             df,
   const Index&               do_stretch )
 {
-  // Check that the jacobian matrix is empty. Otherwise it is either
-  // not initialised or it is closed.
-  if( J.nrows()!=0 && J.ncols()!=0 )
-    {
-      ostringstream os;
-      os << "The Jacobian matrix is not initialised correctly or closed.\n"
-         << "New retrieval quantities can not be added at this point.";
-      throw runtime_error(os.str());
-    }
-
   // Define subtag here to easily expand function.
   String subtag = "shift+stretch";
   String mode = "abs" ;
@@ -796,18 +774,18 @@ void jacobianCalcPointingZa(
   if( rq.Mode() == POINTING_CALCMODE_A )
     {
       // "Disturbed" results:
-      Vector          iyb2;
+      Vector          iyb2, iye;
       Matrix          iyb_aux;
-      Index           n_aux;
+      Index           iyet, n_aux;
       ArrayOfMatrix   diyb_dx;      
 
       Matrix los = sensor_los;
 
       los(joker,0) += rq.Perturbation();
 
-      iyb_calc( ws, iyb2, iyb_aux, n_aux, diyb_dx, imblock, atmosphere_dim, 
-                t_field, vmr_field, cloudbox_on, stokes_dim, f_grid, 
-                sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
+      iyb_calc( ws, iyb2, iye, iyet, iyb_aux, n_aux, diyb_dx, imblock, 
+                atmosphere_dim, t_field, vmr_field, cloudbox_on, stokes_dim, 
+                f_grid, sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
                 antenna_dim, iy_clearsky_agenda, 0, y_unit, 
                 0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex(), String() );
 
@@ -867,7 +845,6 @@ void jacobianAddPolyfit(
   Workspace&                 ws,
   ArrayOfRetrievalQuantity&  jq,
   Agenda&                    jacobian_agenda,
-  const Matrix&              J,
   const ArrayOfIndex&        sensor_response_pol_grid,
   const Vector&              sensor_response_f_grid,
   const Vector&              sensor_response_za_grid,
@@ -877,16 +854,6 @@ void jacobianAddPolyfit(
   const Index&               no_za_variation,
   const Index&               no_mblock_variation )
 {
-  // Check that the jacobian matrix is empty. Otherwise it is either
-  // not initialised or it is closed.
-  if( J.nrows()!=0 && J.ncols()!=0 )
-    {
-      ostringstream os;
-      os << "The Jacobian matrix is not initialised correctly or closed.\n"
-         << "New retrieval quantities can not be added at this point.";
-      throw runtime_error(os.str());
-    }
-
   // Check that poly_order is >= 0
   if( poly_order < 0 )
     throw runtime_error(
@@ -1070,7 +1037,6 @@ void jacobianAddTemperature(
   Workspace&                  ws,
   ArrayOfRetrievalQuantity&   jq,
   Agenda&                     jacobian_agenda,
-  const Matrix&               J,
   const Index&                atmosphere_dim,
   const Vector&               p_grid,
   const Vector&               lat_grid,
@@ -1082,16 +1048,6 @@ void jacobianAddTemperature(
   const String&               method,
   const Numeric&              dx )
 {
-  // Check that the jacobian matrix is empty. Otherwise it is either
-  // not initialised or it is closed.
-  if( J.nrows()!=0 && J.ncols()!=0 )
-    {
-      ostringstream os;
-      os << "The Jacobian matrix is not initialised correctly or closed.\n"
-         << "New retrieval quantities can not be added at this point.";
-      throw runtime_error(os.str());
-    }
-  
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
   ArrayOfVector grids(atmosphere_dim);

@@ -1,3 +1,33 @@
+2009-10-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-103
+
+	* Added a last new feature for rt-part, a general handling of
+	providing an estimation of calculation error. 
+	
+	* tests/MonteCarlo/TestRteCalcMC.arts: As below.
+
+	* tests/DOIT/TestDOIT.arts: As below.
+
+	* tests/ClearSky/TestClearSky.arts: Now using yCalc, instead of
+	RteCalc.
+
+	* src/m_rte.cc: Added handling of iy_error, iy_error_type and y_error
+	(for all affected methods).
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming2): As above.
+
+	* src/m_jacobian.cc: As above, and removed jacobian as input to the
+	Add-methods.
+
+	* src/agendas.cc: Added iy_error, iy_error_type as output for
+	iy_clearsky_agenda.
+
+	* src/workspace.cc: Added iy_error, iy_error_type and y_error. 
+
+	* includes/general.arts: Added definition of iy_aux_do and
+	iyEmissionStandardClearsky.
+
 2009-10-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-102

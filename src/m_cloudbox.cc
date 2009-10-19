@@ -1699,7 +1699,8 @@ void CloudboxGetIncoming2(
   Index  Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index  Nza      = scat_za_grid.nelem();
   Index  Ni       = stokes_dim;
-  Matrix iy;
+  Index  iyet;
+  Matrix iy, iye;
   Ppath  ppath;
   Tensor3        iy_aux, iy_transmission;
   ArrayOfTensor3 diy_dx; 
@@ -1735,7 +1736,7 @@ void CloudboxGetIncoming2(
             {
               los[0] =  scat_za_grid[scat_za_index];
 
-              iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx,
+              iy_clearsky_agendaExecute( ws, iy, iye, iyet, iy_aux, diy_dx,
                             1, pos, los, iy_transmission, 0, 0, 0, 
                             f_grid, t_field, vmr_field, iy_clearsky_agenda );
 
@@ -1804,7 +1805,8 @@ void CloudboxGetIncoming2(
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx,
+                              iy_clearsky_agendaExecute( ws, iy, iye, iyet,
+                                                         iy_aux, diy_dx,
                                           1, pos, los, iy_transmission, 0, 0, 0, 
                                           f_grid, t_field, vmr_field, 
                                           iy_clearsky_agenda );
@@ -1848,7 +1850,8 @@ void CloudboxGetIncoming2(
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx,
+                              iy_clearsky_agendaExecute( ws, iy, iye, iyet,
+                                                         iy_aux, diy_dx,
                                           1, pos, los, iy_transmission, 0, 0, 0, 
                                           f_grid, t_field, vmr_field, 
                                           iy_clearsky_agenda );
@@ -1892,7 +1895,8 @@ void CloudboxGetIncoming2(
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_clearsky_agendaExecute( ws, iy, iy_aux, diy_dx,
+                              iy_clearsky_agendaExecute( ws, iy, iye, iyet,
+                                                         iy_aux, diy_dx,
                                           1, pos, los, iy_transmission, 0, 0, 0, 
                                           f_grid, t_field, vmr_field, 
                                           iy_clearsky_agenda );

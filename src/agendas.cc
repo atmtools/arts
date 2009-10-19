@@ -257,7 +257,7 @@ void define_agenda_data()
         "direction specified by *rte_los*. This includes cases when the\n"
         "propagation path intersects with the surface or the cloudbox.\n"
         ),
-       OUTPUT( "iy", "iy_aux", "diy_dx" ),
+       OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
        INPUT( "iy_agenda_call1", "rte_pos", "rte_los", "iy_transmission", 
               "cloudbox_on", "jacobian_do", "iy_aux_do", "f_grid", "t_field", 
               "vmr_field" )));

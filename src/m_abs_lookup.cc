@@ -1769,7 +1769,6 @@ void abs_speciesAdd2(// WS Output:
                     ArrayOfRetrievalQuantity& jq,
                     Agenda&                   jacobian_agenda,
                     // WS Input:
-                    const Matrix&             jac,
                     const Index&              atmosphere_dim,
                     const Vector&             p_grid,
                     const Vector&             lat_grid,
@@ -1799,7 +1798,7 @@ void abs_speciesAdd2(// WS Output:
   out3 << '\n';
 
   // Do retrieval part
-  jacobianAddAbsSpecies( ws, jq, jacobian_agenda, jac, atmosphere_dim, 
+  jacobianAddAbsSpecies( ws, jq, jacobian_agenda, atmosphere_dim, 
                          p_grid, lat_grid, lon_grid, rq_p_grid, rq_lat_grid, 
                          rq_lon_grid, species, method, mode, dx);
 }

@@ -1,8 +1,8 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# Demonstration of a ARTS clear sky calculation
+# Demonstration of a simple ARTS clear sky calculation
 #
-# Author: Stefan Buehle and Patrick Eriksson
+# Author: Stefan Buehler and Patrick Eriksson
 
 
 Arts2 {
@@ -79,9 +79,8 @@ StringSet( y_unit, "RJBT" )
 
 # Perform RT calculations
 # ---
-timerStart
-RteCalc
-timerStop
+atm_checkedCalc
+yCalc
 
 # Write the result for the python test script
 output_file_formatSetAscii
@@ -104,17 +103,11 @@ abs_lookupSetup
 
 # Generate absorption lookup table
 # ---
-timerStart
 abs_lookupCreate
-timerStop
+
 
 # Define Jacobian
 #---
-
-AgendaSet( jacobian_y_agenda ) {
- Ignore(pnd_field)
- RteCalcNoJacobian
-}
  
 jacobianInit
 
@@ -126,44 +119,35 @@ StringCreate( calcmethod )
 StringSet( calcmethod, "analytical" )
 #StringSet( calcmethod, "perturbation" )
 
-Tensor4SetConstant( pnd_field, 0, 0, 0, 0, 0 )
-
-jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda, jacobian, 
-    atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    p_grid, lat_grid, lon_grid, 
+jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, p_grid, lat_grid, lon_grid, 
     "O3", calcmethod, "rel", 0.01 )
 
-jacobianAddTemperature( jacobian_quantities, jacobian_agenda, jacobian, 
-    atmosphere_dim, p_grid, lat_grid, lon_grid, 
-    p_grid, lat_grid, lon_grid, 
+jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, p_grid, lat_grid, lon_grid, 
     "off", calcmethod, 0.1 )
 
-#jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, jacobian, 
+#jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
 #                    sensor_response_pol_grid, sensor_response_f_grid, 
 #                    sensor_response_za_grid, sensor_pos, 1 )
 
 nrowsGet( nrows, sensor_pos )
 VectorNLinSpace( sensor_time, nrows, 0, 1 )
 
-#jacobianAddPointing( jacobian_quantities, jacobian_agenda, jacobian, 
-#                     sensor_pos, sensor_time, 0.1, 1 )
+jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
+                       sensor_pos, sensor_time, 0 )
 
 jacobianClose
 
 
 # Redo RT calculation, Tb conversion and save
 # ---
-timerStart
-RteCalc
-timerStop
-
-#jacobianCalc
+yCalc
 
 output_file_formatSetAscii
 WriteXML( output_file_format, y, "ClearSky.y2.xml.generated" )
 
 WriteXML( output_file_format, jacobian, "ClearSky.jacobian.xml.generated" )
 
-#Print(jacobian,0)
 } # End of Main
  
