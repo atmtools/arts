@@ -310,11 +310,16 @@ Joker joker;
   ===========================================================================*/
 
 extern const String ABSSPECIES_MAINTAG  = "Absorption species";
-extern const String FREQUENCY_MAINTAG   = "Frequency";
 
-extern const String POLYFIT_MAINTAG     = "Polynomial baseline fit";
-extern const String TEMPERATURE_MAINTAG = "Atmospheric temperatures";
+extern const String FREQUENCY_MAINTAG   = "Frequency";
+extern const String FREQUENCY_SUBTAG_A  = "Shift + Stretch";
+extern const String FREQUENCY_CALCMODE_A= "Interpolate iyb";
 
 extern const String POINTING_MAINTAG    = "Sensor pointing";
 extern const String POINTING_SUBTAG_A   = "Zenith angle off-set";
-extern const String POINTING_CALCMODE_A = "Recalculate ib";
+extern const String POINTING_CALCMODE_A = "Recalculate iyb";
+
+extern const String POLYFIT_MAINTAG     = "Polynomial baseline fit";
+
+extern const String TEMPERATURE_MAINTAG = "Atmospheric temperatures";
+

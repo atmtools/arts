@@ -2781,6 +2781,7 @@ void yCalc(
     {
       jacobian.resize( nmblock*n1y, 
                             jacobian_indices[jacobian_indices.nelem()-1][1]+1 );
+      jacobian = 0;
       //
       FOR_ANALYTICAL_JACOBIANS_DO(
         j_analytical_do  = 1; 

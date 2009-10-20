@@ -16,3 +16,10 @@ calculations.
 
 2009-10-19, Patrick
 On-line doc of abs_speciesAdd2
+
+2009-10-20, Patrick
+Revise:
+jacobianAddAbsSpecies (update perturbation part and add a comparison test)
+jacobianAddFreqShiftAndStretch  
+jacobianAddTemperature (update perturbation part and add a comparison test)
+jacobianAddPointingZa (add interp option)

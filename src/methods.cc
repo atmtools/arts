@@ -4436,9 +4436,7 @@ void define_md_data_raw()
          "Includes a frequency fit in the Jacobian.\n"
          "\n"
          "Retrieval of deviations between nominal and actual backend\n"
-         "frequencies can be included by this method. The weighing functions\n"
-         "are calculated by perturbations. This requires one additional\n"
-         "forward model run.\n"
+         "frequencies can be included by this method. \n"
          "\n"
          "The frequencies can be fitted with 1 or 2 variables. The first one\n"
          "is a \"shift\". That is, an off-set common for all backend channels.\n"
@@ -4518,7 +4516,7 @@ void define_md_data_raw()
          "*sensor_response_f_grid* and the method should only of interest for\n"
          "cases with no frequency gap in the spectra. The default assumption\n"
          "is that the off-set differs between all spectra, but it can also be\n"
-         "assumed that the off-set is constant for all e.g. zenith angles.\n"
+         "assumed that the off-set is common for all e.g. line-of-sights.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_quantities", "jacobian_agenda" ),
@@ -4528,7 +4526,7 @@ void define_md_data_raw()
         IN( "jacobian_quantities", "jacobian_agenda", 
             "sensor_response_pol_grid", "sensor_response_f_grid",
             "sensor_response_za_grid", "sensor_pos" ),
-        GIN( "poly_order", "no_pol_variation", "no_za_variation", 
+        GIN( "poly_order", "no_pol_variation", "no_los_variation", 
              "no_mblock_variation" ),
         GIN_TYPE( "Index", "Index", "Index", "Index" ),
         GIN_DEFAULT( NODEF, "0", "0", "0" ),
@@ -4536,9 +4534,9 @@ void define_md_data_raw()
                   "Set to 1 if the baseline off-set is the same for all "
                   "Stokes components.", 
                   "Set to 1 if the baseline off-set is the same for all "
-                  "zenith angles.", 
+                  "line-of-sights (inside each measurement block).", 
                   "Set to 1 if the baseline off-set is the same for all "
-                  "azimuth angles." 
+                  "measurement blocks." 
                   ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
@@ -4669,9 +4667,8 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_y_agenda", "jacobian_quantities", "jacobian_indices", 
-            "f_grid", "vmr_field", "t_field", "sensor_los", 
-            "sensor_response_f", "y" ),
+        IN( "imblock", "iyb", "yb", "f_grid",
+            "sensor_response", "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4719,9 +4716,10 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_quantities", "jacobian_indices", 
+        IN( "imblock", "iyb", "yb", "sensor_response",
             "sensor_response_pol_grid", "sensor_response_f_grid", 
-            "sensor_response_za_grid", "sensor_pos" ),
+            "sensor_response_za_grid", 
+            "jacobian_quantities", "jacobian_indices" ),
         GIN( "poly_coeff" ),
         GIN_TYPE( "Index" ),
         GIN_DEFAULT( NODEF ),

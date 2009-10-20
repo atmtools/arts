@@ -1,3 +1,28 @@
+2009-10-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-104
+
+	* src/m_jacobian.cc (jacobianCalcFreqShiftAndStretch): Unfinished
+	revision.
+
+	* tests/ClearSky/TestClearSky.arts: 
+
+	* tests/GroundBased/TestGbased.arts: Updated.
+
+	* src/m_rte.cc (yCalc): jacobian now initialised to zero. Should be
+	more effecient, than making extra loops in jacobianCalc methods.
+	
+	* tests/testall.py (TestClearSky.test3): Adopted to changes below.
+
+	* tests/ClearSky/TestClearSky.arts: Now completely updated. And
+	now using two different, and more inetresting, angles.
+
+	* src/m_jacobian.cc (jacobianCalcPolyfit): Updated 
+	(no_pol_variation was not correctly handled). Dummy code
+	to avoid warnings for iyb and yb.
+	
+	(jacobianAddPolyfit): Updated.
+
 2009-10-19  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-103

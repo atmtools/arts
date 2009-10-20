@@ -130,14 +130,14 @@ class TestClearSky(unittest.TestCase):
         self.CSrun.run()
         assert self.CSrun.error=='','Error running TestClearSky.arts: '+self.CSrun.error
     def test2(self):
-        """Total radiance should be close to 249.68 K"""
+        """Total radiance should be close to 112.15 K"""
         I=artsXML.load("ClearSky/ClearSky.y1.xml.generated")[0]
-        assert abs(I-249.68) < 0.01, 'I (='+str(I)+'K) is too far away from 249.68 K'
+        assert abs(I-112.15) < 0.01, 'I (='+str(I)+'K) is too far away from 249.68 K'
     def test3(self):
         """Difference between on-the-fly and lookup table should be below 0.01 K"""
         I1=artsXML.load("ClearSky/ClearSky.y1.xml.generated")[0]
         I2=artsXML.load("ClearSky/ClearSky.y2.xml.generated")[0]
-        assert abs(I2-I1) < 0.02, 'Discrepancy (=%.3f K) is too large' % I2-I1
+        assert abs(I2-I1) < 0.01, 'Discrepancy (=%.3f K) is too large' % I2-I1
 
 class TestGroundBased(unittest.TestCase):
     """Testing GroundBased calculation"""

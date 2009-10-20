@@ -47,7 +47,7 @@ VectorNLogSpace( flog, nlogpart, f1, f2 )
 VectorFlip( f_grid, flog )
 VectorScale( f_grid, f_grid, -1 )
 
-# Append an equidistand grid between [-fw_fine+df_fine,fw_fine-df_fine]
+# Append an equidistant grid between [-fw_fine+df_fine,fw_fine-df_fine]
 VectorCreate( feqd )
 Copy( f1, fw_fine )
 NumericScale( f1, f1, -1 )
@@ -143,7 +143,7 @@ NumericCreate( f_switch )
 NumericSet( f_resolution, 500e3 )
 
 # Size of frequency throw
-NumericSet( f_switch, 3e6 )
+NumericSet( f_switch, 10e6 )
 
 backend_channel_responseGaussian( backend_channel_response, f_resolution, 2 )
 
@@ -167,7 +167,9 @@ AntennaOff
 sensor_responseInit
 sensor_responseBackend
 
-RteCalc
+atm_checkedCalc
+
+yCalc
 WriteXML( output_file_format, y, "TestGbased.y1.xml.generated" )
 WriteXML( output_file_format, y_f, "TestGbased.f.xml.generated" )
 
@@ -184,7 +186,7 @@ sensor_responseInit
 sensor_responseBeamSwitching
 sensor_responseBackend
 
-RteCalc
+yCalc
 WriteXML( output_file_format, y, "TestGbased.y2.xml.generated" )
 
 
@@ -202,7 +204,7 @@ sensor_responseBackendFrequencySwitch( sensor_response, sensor_response_f,
      sensor_response_aa_grid, f_backend, backend_channel_response, sensor_norm,
      f1, f_switch )
 
-RteCalc
+yCalc
 WriteXML( output_file_format, y, "TestGbased.y3.xml.generated" )
 
 }

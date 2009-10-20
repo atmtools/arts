@@ -64,7 +64,11 @@ MatrixSetConstant( sensor_pos, 2, 1, 600e3 )
 #
 sensor_posAddRgeoid
 #
-MatrixSetConstant( sensor_los, 2, 1, 130 )
+VectorCreate( los )
+VectorNLinSpace( los, 2, 113, 113.5 )
+Matrix1ColFromVector( sensor_los, los )
+
+#IndexSet( stokes_dim, 2 )
 
 
 # No sensor properties
@@ -127,17 +131,20 @@ jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, p_grid, lat_grid, lon_grid, 
     "off", calcmethod, 0.1 )
 
-#jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
-#                    sensor_response_pol_grid, sensor_response_f_grid, 
-#                    sensor_response_za_grid, sensor_pos, 1 )
+jacobianAddPolyfit( jacobian_quantities, jacobian_agenda, 
+    sensor_response_pol_grid, sensor_response_f_grid, 
+    sensor_response_za_grid, sensor_pos, 1, 0, 0, 0 )
 
 nrowsGet( nrows, sensor_pos )
 VectorNLinSpace( sensor_time, nrows, 0, 1 )
 
 jacobianAddPointingZa( jacobian_quantities, jacobian_agenda, 
-                       sensor_pos, sensor_time, 0 )
+                       sensor_pos, sensor_time, 0, "iyrecalc", 0.01 )
 
 jacobianClose
+
+WriteXML( output_file_format, jacobian_quantities, "jq.xml" )
+
 
 
 # Redo RT calculation, Tb conversion and save
