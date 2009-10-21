@@ -4436,7 +4436,10 @@ void define_md_data_raw()
          "Includes a frequency fit in the Jacobian.\n"
          "\n"
          "Retrieval of deviations between nominal and actual backend\n"
-         "frequencies can be included by this method. \n"
+         "frequencies can be included by this method. The calculations can be\n"
+         "performed in the following ways:\n"
+         "   calcmode = \"iybinterp\": Interpolation of monochromatic spectra,\n"
+         "      shifted with *df* from nominal values.\n"
          "\n"
          "The frequencies can be fitted with 1 or 2 variables. The first one\n"
          "is a \"shift\". That is, an off-set common for all backend channels.\n"
@@ -4451,10 +4454,11 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "jacobian_quantities", "jacobian_agenda" ),
-        GIN( "df", "do_stretch" ),
-        GIN_TYPE( "Numeric", "Index" ),
-        GIN_DEFAULT( "100e3", "0" ),
-        GIN_DESC( "Size of perturbation to apply.", 
+        GIN( "calcmode", "df", "do_stretch" ),
+        GIN_TYPE( "String", "Numeric", "Index" ),
+        GIN_DEFAULT( "iybinterp", "100e3", "0" ),
+        GIN_DESC( "Calculation method. See above",
+                  "Size of perturbation to apply.", 
                   "Flag to also include frequency stretch."
                   ),
         SETMETHOD(      false ),
@@ -4468,12 +4472,12 @@ void define_md_data_raw()
       ( NAME( "jacobianAddPointingZa" ),
         DESCRIPTION
         (
-         "Includes fit of sensor pointing zenith angle off-set in the Jacobian.\n"
+         "Adds sensor pointing zenith angle off-set jacobian.\n"
          "\n"
-         "Retrieval of deviations between nominal and actual zenith angle of the\n"
-         "sensor can be included by this method. The weighing functions can be\n"
-         "calculated in several ways:\n"
-         "   calcmode = \"iyrecalc|\": Recalculation of pencil beam spectra, \n"
+         "Retrieval of deviations between nominal and actual zenith angle of\n"
+         "the sensor can be included by this method. The weighing functions\n"
+         "can be calculated in several ways:\n"
+         "   calcmode = \"iybrecalc\": Recalculation of pencil beam spectra, \n"
          "      shifted with *dza* from nominal values.\n"
          "\n"
          "The pointing off-set can be modelled to be time varying. The time\n"
@@ -4489,7 +4493,7 @@ void define_md_data_raw()
             "sensor_time" ),
         GIN( "poly_order", "calcmode", "dza" ),
         GIN_TYPE( "Index", "String", "Numeric" ),
-        GIN_DEFAULT( "0", "iyrecalc", "0.01" ),
+        GIN_DEFAULT( "0", "iybrecalc", "0.01" ),
         GIN_DESC( "Order of polynomial to describe the time variation of "
                   "pointing off-sets.",
                   "Calculation method. See above",
@@ -4653,10 +4657,11 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianCalcFreqShiftAndStretch" ),
+      ( NAME( "jacobianCalcFreqShiftAndStretchIybinterp" ),
         DESCRIPTION
         (
-         "Calculates frequency deviation jacobians by perturnbations.\n"
+         "Calculates frequency shift and stretch jacobians by interpolation\n"
+         "of *iyb*.\n"
          "\n"
          "This function is added to *jacobian_agenda* by\n"
          "jacobianAddFreqShiftAndStretch and should normally\n"
@@ -4667,8 +4672,11 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "imblock", "iyb", "yb", "f_grid",
-            "sensor_response", "jacobian_quantities", "jacobian_indices" ),
+        IN( "imblock", "iyb", "yb", "stokes_dim", "f_grid", "mblock_za_grid",
+            "mblock_aa_grid", "antenna_dim", 
+            "sensor_response", "sensor_response_pol_grid", 
+            "sensor_response_f_grid", "sensor_response_za_grid", 
+            "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -4677,10 +4685,11 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "jacobianCalcPointingZa" ),
+      ( NAME( "jacobianCalcPointingZaIybrecalc" ),
         DESCRIPTION
         (
-         "Calculates zenith angle pointing deviation jacobians.\n"
+         "Calculates zenith angle pointing deviation jacobians by recalulation\n"
+         "of *iy*.\n"
          "\n"
          "This function is added to *jacobian_agenda* by jacobianAddPointingZa\n"
          "and should normally not be called by the user.\n"

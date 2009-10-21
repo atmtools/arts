@@ -1,3 +1,24 @@
+2009-10-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-105
+
+	* tests/ClearSky/TestClearSky.arts: As below.
+
+	* tests/GroundBased/TestGbased.arts: Added test of
+	jacobianAddFreqShiftAndStretch.
+
+	* src/m_jacobian.cc: Polishing and changes in the Add methods matching
+	the methods below.
+
+	(jacobianCalcPointingZaIybrecalc): The different 
+	calculation options will be handled by separete methods. Like this 
+	one. jacobianCalcPointingZa renamed, and with more checks.
+
+	(jacobianCalcFreqShiftAndStretchIybinterp): Renamed. Completed. 
+	Initial tests OK.
+
+	(jacobianCalcPolyfit): More checks.
+
 2009-10-20  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-104

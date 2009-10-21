@@ -40,15 +40,16 @@
 
 #include <cmath>
 #include <string>
+#include "absorption.h"
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
 #include "math_funcs.h"
 #include "messages.h"
+#include "interpolation_poly.h"
 #include "jacobian.h"
-#include "rte.h"
-#include "absorption.h"
 #include "physics_funcs.h"
+#include "rte.h"
 
 extern const String ABSSPECIES_MAINTAG;
 extern const String FREQUENCY_MAINTAG;
@@ -480,6 +481,7 @@ void jacobianAddFreqShiftAndStretch(
   Workspace&                 ws,
   ArrayOfRetrievalQuantity&  jacobian_quantities,
   Agenda&                    jacobian_agenda,
+  const String&              calcmode,
   const Numeric&             df,
   const Index&               do_stretch )
 {
@@ -505,7 +507,6 @@ void jacobianAddFreqShiftAndStretch(
   RetrievalQuantity rq = RetrievalQuantity();
   rq.MainTag( FREQUENCY_MAINTAG );
   rq.Subtag( FREQUENCY_SUBTAG_A );
-  rq.Mode( FREQUENCY_CALCMODE_A );
   rq.Analytical( 0 );
   rq.Perturbation( df );
   // Shift and stretch are treated as order 0 and 1
@@ -513,23 +514,37 @@ void jacobianAddFreqShiftAndStretch(
   ArrayOfVector grids(1,grid);
   rq.Grids(grids);
 
+  // Add pointing method to the jacobian agenda
+  if( calcmode == "iybinterp" )
+    { 
+      rq.Mode( FREQUENCY_CALCMODE_A );
+      jacobian_agenda.append( ws, "jacobianCalcFreqShiftAndStretchIybinterp", 
+                                                                           "" );
+   }
+  else
+    throw runtime_error( "Possible choices for *calcmode* are \"iybinterp\"." ); 
+
   // Add it to the *jacobian_quantities*
   jacobian_quantities.push_back( rq );
-
-  // Add pointing method to the jacobian agenda
-  jacobian_agenda.append( ws, "jacobianCalcFreqShiftAndStretch", "" );
 }
 
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcFreqShiftAndStretch(
+void jacobianCalcFreqShiftAndStretchIybinterp(
         Matrix&                    jacobian,
   const Index&                     imblock,
   const Vector&                    iyb,
   const Vector&                    yb,
+  const Index&                     stokes_dim,
   const Vector&                    f_grid,
+  const Vector&                    mblock_za_grid,
+  const Vector&                    mblock_aa_grid,
+  const Index&                     antenna_dim,
   const Sparse&                    sensor_response,
+  const ArrayOfIndex&              sensor_response_pol_grid,
+  const Vector&                    sensor_response_f_grid,
+  const Vector&                    sensor_response_za_grid,
   const ArrayOfRetrievalQuantity&  jacobian_quantities,
   const ArrayOfArrayOfIndex&       jacobian_indices )
 {
@@ -542,8 +557,9 @@ void jacobianCalcFreqShiftAndStretch(
   bool found = false;
   for( Index n=0; n<jacobian_quantities.nelem() && !found; n++ )
     {
-      if( jacobian_quantities[n].MainTag() == FREQUENCY_MAINTAG && 
-          jacobian_quantities[n].Subtag()  == FREQUENCY_SUBTAG_A )
+      if( jacobian_quantities[n].MainTag() == FREQUENCY_MAINTAG   && 
+          jacobian_quantities[n].Subtag()  == FREQUENCY_SUBTAG_A  &&
+          jacobian_quantities[n].Mode()    == FREQUENCY_CALCMODE_A )
         {
           found = true;
           rq = jacobian_quantities[n];
@@ -553,67 +569,113 @@ void jacobianCalcFreqShiftAndStretch(
   if( !found )
     {
       throw runtime_error(
-                    "There is no such frequency retrieval quantity defined.\n");
+                   "There is no such frequency retrieval quantity defined.\n" );
     }
 
-  jacobian.resize(0,0);
-  cout << imblock;
-  cout << iyb;
-  cout << yb;
-  cout << f_grid;
-  cout << sensor_response;
+  // Check that sensor_response is consistent with yb and iyb
+  //
+  if( sensor_response.nrows() != yb.nelem() )
+    throw runtime_error( 
+                       "Mismatch in size between *sensor_response* and *yb*." );
+  if( sensor_response.ncols() != iyb.nelem() )
+    throw runtime_error( 
+                      "Mismatch in size between *sensor_response* and *iyb*." );
 
 
-  /*
-  if( sensor_response_f.nelem() != iyb.nrows() )
-    {
-      throw runtime_error( "Mismatch between length of *sensor_response_f* and "
-                           "number of rows of *iyb*." );
-    }
+  // Size and another check of sensor_response
+  //
+  const Index nf     = sensor_response_f_grid.nelem();
+  const Index npol   = sensor_response_pol_grid.nelem();
+  const Index nza    = sensor_response_za_grid.nelem();
+  //
+  if( sensor_response.nrows() != nza*nf*npol )
+    throw runtime_error( "Mismatch in size between *sensor_response* and the "
+                         "associated grids (*sensor_response_f* etc.)." );
 
-  // This method only handles absolute perturbations
-  assert( rq.Mode()=="abs" );
-
-  // Get disturbed (part of) y, depending on calculation option
+  // Get disturbed (part of) y
   //
   const Index    n1y = sensor_response.nrows(); 
         Vector   dy( n1y );
-  //
-  if( rq.Mode() == FREQUENCY_CALCMODE_A )
-    {
-      Vector iyb2;
+  {
+    const Index   nf2      = f_grid.nelem();
+    const Index   nza2     = mblock_za_grid.nelem();
+          Index   naa2     = mblock_aa_grid.nelem();   
+    if( antenna_dim == 1 )  
+      { naa2 = 1; }
+    const Index   niyb    = nf2 * nza2 * naa2 * stokes_dim;
 
-      mult( dy, sensor_response, iyb2 );
+    if( iyb.nelem() != niyb )
+      {
+        throw runtime_error( 
+                       "Mismatch between length of *iyb* and relevant grids." );
+      }
 
-      for( Index i=0; i<n1y; i++ )
-        { dy[i] = ( dy[i]- yb[i] ) / rq.Perturbation(); }
-      
-    }
-  else
-    { assert( 0 ); }
+    // Interpolation weights
+    //
+    const Index   porder = 3;
+    //
+    ArrayOfGridPosPoly   gp( nf2 );
+                Matrix   itw( nf2, porder+1) ;
+                Vector   fg_new = f_grid, iyb2(niyb);
+    //
+    fg_new += rq.Perturbation();
+    gridpos_poly( gp, f_grid, fg_new, porder );
+    interpweights( itw, gp );
 
-  cout << imblock;
+    // Do interpolation
+    for( Index iza=0; iza<nza2; iza++ )
+      {
+        for( Index iaa=0; iaa<naa2; iaa++ )
+          {
+            const Index row0 =( iza*naa2 + iaa ) * nf2 * stokes_dim;
+            
+            for( Index is=0; is<stokes_dim; is++ )
+              { 
+                interp( iyb2[Range(row0+is,nf2,stokes_dim)], itw, 
+                         iyb[Range(row0+is,nf2,stokes_dim)], gp );
+              }
+          }
+      }
+
+    // Determine differnce
+    //
+    mult( dy, sensor_response, iyb2 );
+    //
+    for( Index i=0; i<n1y; i++ )
+      { dy[i] = ( dy[i]- yb[i] ) / rq.Perturbation(); }
+  }
 
   //--- Create jacobians ---
+  //
+  const Range rowind = get_rowindex_for_mblock( sensor_response, imblock );
+  const Index lg = rq.Grids()[0].nelem();
+        Index it = ji[0];
 
-  Index lg = rq.Grids()[0].nelem();
-  Index it = ji[0];
-  Vector w;
+  // Shift jacobian
+  jacobian(rowind,it) = dy;
 
-  for( Index c=0; c<lg; c++ )
+  // Stretch jacobian
+  if( lg > 1 )
     {
-      assert( Numeric(c) == rq.Grids()[0][c] );
+      const Index  row0 = rowind.get_start();
+            Vector w;
+           
+      assert( Numeric(1) == rq.Grids()[0][1] );
       //
-      polynomial_basis_func( w, sensor_response_f, c );
+      polynomial_basis_func( w, sensor_response_f_grid, 1 );
       //
-      for( Index iy=0; iy<ly; iy++ )
+      it += 1;
+      //
+      for( Index l=0; l<nza; l++ )
         {
-          J(iy,it) = w[iy] * dydx[iy];
+          for( Index f=0; f<nf; f++ )
+            {
+              const Index row1 = (l*nf + f)*npol;
+              for( Index p=0; p<npol; p++ )
+                { jacobian(row0+row1+p,it) = w[f] * dy[row1+p]; }
+            }
         }
-      it++;
     }
-  */
-
 }
 
 
@@ -672,10 +734,6 @@ void jacobianAddPointingZa(
   rq.Analytical( 0 );
   rq.Perturbation( dza );
 
-  if( calcmode == "iyrecalc" )
-    { rq.Mode( POINTING_CALCMODE_A ); }
-  else
-    throw runtime_error( "Possible choices for *calcmode* are \"iyrecalc\"." ); 
 
   // To store the value or the polynomial order, create a vector with length
   // poly_order+1, in case of gitter set the size of the grid vector to be the
@@ -689,21 +747,26 @@ void jacobianAddPointingZa(
   ArrayOfVector grids(1,grid);
   rq.Grids(grids);
 
+  if( calcmode == "iybrecalc" )
+    { 
+      rq.Mode( POINTING_CALCMODE_A );  
+      jacobian_agenda.append( ws, "jacobianCalcPointingZaIybrecalc", "" );
+   }
+  else
+    throw runtime_error( "Possible choices for *calcmode* are \"iybrecalc\"." ); 
+
   // Add it to the *jacobian_quantities*
   jacobian_quantities.push_back( rq );
-
-  // Add pointing method to the jacobian agenda
-  jacobian_agenda.append( ws, "jacobianCalcPointingZa", "" );
 }
 
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianCalcPointingZa(
+void jacobianCalcPointingZaIybrecalc(
         Workspace&                  ws,
         Matrix&                     jacobian,
   const Index&                      imblock,
-  const Vector&                     iyb,
+  const Vector&                     iyb _U_,
   const Vector&                     yb,
   const Index&                      atmosphere_dim,
   const Tensor3&                    t_field,
@@ -732,8 +795,9 @@ void jacobianCalcPointingZa(
   bool found = false;
   for( Index n=0; n<jacobian_quantities.nelem() && !found; n++ )
     {
-      if( jacobian_quantities[n].MainTag() == POINTING_MAINTAG && 
-          jacobian_quantities[n].Subtag() == POINTING_SUBTAG_A )
+      if( jacobian_quantities[n].MainTag() == POINTING_MAINTAG    && 
+          jacobian_quantities[n].Subtag()  == POINTING_SUBTAG_A   &&
+          jacobian_quantities[n].Mode()    == POINTING_CALCMODE_A )
         {
           found = true;
           rq = jacobian_quantities[n];
@@ -742,7 +806,7 @@ void jacobianCalcPointingZa(
     }
   if( !found )
     { throw runtime_error(
-                "There is no such pointing retrieval quantities defined.\n" );
+                "There is no such pointing retrieval quantity defined.\n" );
     }
 
   // Check that sensor_time is consistent with sensor_pos
@@ -757,40 +821,35 @@ void jacobianCalcPointingZa(
       throw runtime_error(os.str());
     }
 
-  // Get disturbed (part of) y, depending on calculation option
+  // Check that sensor_response is consistent with yb
   //
-  const Index    n1y = sensor_response.nrows(); 
+  if( sensor_response.nrows() != yb.nelem() )
+    throw runtime_error( 
+                       "Mismatch in size between *sensor_response* and *yb*." );
+
+  // Get disturbed (part of) y
+  //
+  const Index    n1y = sensor_response.nrows();
         Vector   dy( n1y );
-  //
-  if( rq.Mode() == POINTING_CALCMODE_A )
-    {
-      // "Disturbed" results:
-      Vector          iyb2, iye;
-      Matrix          iyb_aux;
-      Index           iyet, n_aux;
-      ArrayOfMatrix   diyb_dx;      
+  {
+        Index         iyet, n_aux;
+        Vector        iyb2, iye;
+        Matrix        iyb_aux, los = sensor_los;
+        ArrayOfMatrix diyb_dx;      
 
-      Matrix los = sensor_los;
+    los(joker,0) += rq.Perturbation();
 
-      los(joker,0) += rq.Perturbation();
+    iyb_calc( ws, iyb2, iye, iyet, iyb_aux, n_aux, diyb_dx, imblock, 
+              atmosphere_dim, t_field, vmr_field, cloudbox_on, stokes_dim, 
+              f_grid, sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
+              antenna_dim, iy_clearsky_agenda, 0, y_unit, 
+              0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex(), String() );
 
-      iyb_calc( ws, iyb2, iye, iyet, iyb_aux, n_aux, diyb_dx, imblock, 
-                atmosphere_dim, t_field, vmr_field, cloudbox_on, stokes_dim, 
-                f_grid, sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
-                antenna_dim, iy_clearsky_agenda, 0, y_unit, 
-                0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex(), String() );
+    mult( dy, sensor_response, iyb2 );
 
-      mult( dy, sensor_response, iyb2 );
-
-      for( Index i=0; i<n1y; i++ )
-        { dy[i] = ( dy[i]- yb[i] ) / rq.Perturbation(); }
-      
-    }
-  else
-    { assert( 0 ); }
-
-  // Dummy code
-  out3 << iyb;
+    for( Index i=0; i<n1y; i++ )
+      { dy[i] = ( dy[i]- yb[i] ) / rq.Perturbation(); }
+  }
 
   //--- Create jacobians ---
 
@@ -927,8 +986,8 @@ void jacobianAddPolyfit(
 void jacobianCalcPolyfit(
         Matrix&                   jacobian,
   const Index&                    imblock,
-  const Vector&                   iyb,
-  const Vector&                   yb,
+  const Vector&                   iyb _U_,
+  const Vector&                   yb _U_,
   const Sparse&                   sensor_response,
   const ArrayOfIndex&             sensor_response_pol_grid,
   const Vector&                   sensor_response_f_grid,
@@ -954,14 +1013,20 @@ void jacobianCalcPolyfit(
         }
     }
   if( !found )
-  {
-    throw runtime_error( "There is no such polynomial baseline fit retrieval " 
-                         "quantities defined.\n");
-  }
+    {
+      throw runtime_error( "There is no such polynomial baseline fit retrieval " 
+                           "quantity defined.\n");
+    }
 
-  // Dummy code
-  out3 << iyb;
-  out3 << yb;
+  // Size and check of sensor_response
+  //
+  const Index nf     = sensor_response_f_grid.nelem();
+  const Index npol   = sensor_response_pol_grid.nelem();
+  const Index nza    = sensor_response_za_grid.nelem();
+  //
+  if( sensor_response.nrows() != nza*nf*npol )
+    throw runtime_error( "Mismatch in size between *sensor_response* and the "
+                         "associated grids (*sensor_response_f* etc.)." );
 
   // Make a vector with values to distribute over *jacobian*
   //
@@ -972,9 +1037,6 @@ void jacobianCalcPolyfit(
   // Fill J
   //
   ArrayOfVector jg   = jacobian_quantities[iq].Grids();
-  const Index nf     = sensor_response_f_grid.nelem();
-  const Index npol   = sensor_response_pol_grid.nelem();
-  const Index nza    = sensor_response_za_grid.nelem();
   const Index n1     = jg[1].nelem();
   const Index n2     = jg[2].nelem();
   const Index n3     = jg[3].nelem();

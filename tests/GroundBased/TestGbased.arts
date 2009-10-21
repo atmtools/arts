@@ -167,11 +167,23 @@ AntennaOff
 sensor_responseInit
 sensor_responseBackend
 
+
+# --- Define jacobian -------------------------------------------------------
+#
+# Jacobians are tested/demonstrated mainly in "Clearsky", but some jacobians 
+# are better tested here 
+#
+jacobianInit
+jacobianAddFreqShiftAndStretch( jacobian_quantities, jacobian_agenda, 
+                                "iybinterp", 50e3, 1 )
+jacobianClose
+
 atm_checkedCalc
 
 yCalc
 WriteXML( output_file_format, y, "TestGbased.y1.xml.generated" )
 WriteXML( output_file_format, y_f, "TestGbased.f.xml.generated" )
+WriteXML( output_file_format, jacobian, "TestGbased.J1.xml.generated" )
 
 
 

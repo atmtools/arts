@@ -2517,40 +2517,42 @@ void iyb_calc(
 
               // Check sizes
               //
-              assert( iy.ncols() == stokes_dim );
-              assert( iy.nrows() == nf );
-              assert( iy_error_type >= 0  &&  iy_error_type <= 2 );
-              //
-              if( n_aux < 0 )
-                { 
-                  n_aux = iy_aux.npages(); 
-                  if( n_aux > n_aux_max )
-                    {
-                      ostringstream os;
-                      os << "The number of auxilary variables (columns of "
-                         << "iy_aux) is hard coded.\nIt is presently set to "
-                         << n_aux_max << " variables.";
-                      throw runtime_error( os.str() );      
-                    }
-                }
-              //
-              if( n_aux )
-                { 
-                  assert( iy_aux.ncols() == stokes_dim );
-                  assert( iy_aux.nrows() == nf );
-                  assert( iy_aux.npages() == n_aux );
-                }
-              //
-              if( j_analytical_do )
-                {
-                  FOR_ANALYTICAL_JACOBIANS_DO(
-                    assert( diy_dx[iq].ncols() == stokes_dim );
-                    assert( diy_dx[iq].nrows() == nf );
-                    assert( diy_dx[iq].npages() == jacobian_indices[iq][1] -
-                                                   jacobian_indices[iq][0] + 1 );
-                  )
-                }
-              
+              DEBUG_ONLY(
+                assert( iy.ncols() == stokes_dim );
+                assert( iy.nrows() == nf );
+                assert( iy_error_type >= 0  &&  iy_error_type <= 2 );
+                //
+                if( n_aux < 0 )
+                  { 
+                    n_aux = iy_aux.npages(); 
+                    if( n_aux > n_aux_max )
+                      {
+                        ostringstream os;
+                        os << "The number of auxilary variables (columns of "
+                           << "iy_aux) is hard coded.\nIt is presently set to "
+                           << n_aux_max << " variables.";
+                        throw runtime_error( os.str() );      
+                      }
+                  }
+                //
+                if( n_aux )
+                  { 
+                    assert( iy_aux.ncols() == stokes_dim );
+                    assert( iy_aux.nrows() == nf );
+                    assert( iy_aux.npages() == n_aux );
+                  }
+                //
+                if( j_analytical_do )
+                  {
+                    FOR_ANALYTICAL_JACOBIANS_DO(
+                      assert( diy_dx[iq].ncols() == stokes_dim );
+                      assert( diy_dx[iq].nrows() == nf );
+                      assert( diy_dx[iq].npages() == jacobian_indices[iq][1] -
+                                                  jacobian_indices[iq][0] + 1 );
+                    )
+                  }
+              )
+       
               // iy    : unit conversion and copy to iyb
               // iy_aux: copy to iyb_aux
               //
