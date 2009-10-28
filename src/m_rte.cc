@@ -1569,7 +1569,8 @@ void vmrunitscf(
   const Numeric&   p,
   const Numeric&   t )
 {
-  if( unit == "rel" )
+  if( unit == "rel"  |  unit == "logvmr"  |  unit == "lognd"  |  
+           unit == "logrel" )
     { x = 1; }
   else if( unit == "vmr" )
     { x = 1 / vmr; }
@@ -1578,7 +1579,7 @@ void vmrunitscf(
   else
     {
       throw runtime_error( "Allowed options for gas species jacobians are "
-                           "\"rel\", \"vmr\" and \"nd\"." );
+         "\"rel\", \"vmr\", \"nd\", \"logrel\", \"logvmr\" and \"lognd\"." );
     }
 }
 

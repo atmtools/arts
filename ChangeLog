@@ -1,3 +1,23 @@
+2009-10-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-106
+
+	* Started testing if simple and good idea to allow jacobians for
+	the logarithm of absoprtion species.
+	
+	* src/m_rte.cc (vmrunitscf): Added options logvmr, lognd or
+	logrel.
+
+	* src/m_jacobian.cc (jacobianAddAbsSpecies): Added options logvmr,
+	lognd or logrel.
+	(jacobianCalcAbsSpecies): Now a runtime error if started: "This
+	method needs to be updated."
+	(jacobianCalcAbsTemperature): Now a runtime error if started: "This
+	method needs to be updated."
+
+	* src/jacobian.cc (polynomial_basis_func): Replaced a for-loop with
+	vector functionality.
+
 2009-10-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-105

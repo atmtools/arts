@@ -737,12 +737,7 @@ void polynomial_basis_func(
     b.resize( l );
 
   if( poly_coeff == 0 )
-    {
-      for( Index i=0; i<l; i++ )
-        {
-          b[i] = 1.0;
-        }
-    }
+    { b = 1.0; }
   else
     {
       const Numeric xmin = min( x );

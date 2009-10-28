@@ -228,11 +228,12 @@ void jacobianAddAbsSpecies(
       throw runtime_error(os.str());
     }
   
-  // Check that mode is either "vmr", "nd" or "rel"
-  if( mode != "vmr"  &&  mode != "nd"  &&  mode != "rel" )
+  // Check that mode is either "vmr", "nd" or "rel" with or without prefix log
+  if( mode != "vmr"     &&  mode != "nd"     &&  mode != "rel"  &&
+      mode != "logvmr"  &&  mode != "lognd"  &&  mode != "logrel" )
     {
-      throw runtime_error(
-                "The retrieval mode can only be \"vmr\", \"nd\" or \"rel\"." );
+      throw runtime_error( "The retrieval mode can only be \"vmr\", \"nd\" "
+                             "\"rel\", \"logvmr\", \"lognd\" or \"logrel\"." );
     }
 
   // Check that this species is not already included in the jacobian.
@@ -296,6 +297,8 @@ void jacobianCalcAbsSpecies(
   const Vector&                    y,
   const String&                    species )
 {
+  throw runtime_error( "This method needs to be updated." );
+
   // Set some useful variables. 
   RetrievalQuantity rq;
   ArrayOfIndex      ji;
@@ -1204,6 +1207,8 @@ void jacobianCalcTemperature(
   const Matrix&                    sensor_los,
   const Vector&                    y )
 {
+  throw runtime_error( "This method needs to be updated." );
+
   // Set some useful (and needed) variables. 
   RetrievalQuantity rq;
   ArrayOfIndex      ji;
