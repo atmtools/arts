@@ -229,11 +229,10 @@ void jacobianAddAbsSpecies(
     }
   
   // Check that mode is either "vmr", "nd" or "rel" with or without prefix log
-  if( mode != "vmr"     &&  mode != "nd"     &&  mode != "rel"  &&
-      mode != "logvmr"  &&  mode != "lognd"  &&  mode != "logrel" )
+  if( mode != "vmr" && mode != "nd" && mode != "rel" && mode != "logrel" )
     {
       throw runtime_error( "The retrieval mode can only be \"vmr\", \"nd\" "
-                             "\"rel\", \"logvmr\", \"lognd\" or \"logrel\"." );
+                                                    "\"rel\" or \"logrel\"." );
     }
 
   // Check that this species is not already included in the jacobian.

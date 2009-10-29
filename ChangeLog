@@ -1,3 +1,14 @@
+2009-10-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-107
+
+	* src/m_jacobian.cc (jacobianAddAbsSpecies): Removed logvmr and
+	lognd. These options can hardly be used in practice as a priori
+	uncertainties must here be specified in a relative manner, and
+	only logrel is kept.
+	
+	* src/m_rte.cc (vmrunitscf): As above.
+
 2009-10-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-106
