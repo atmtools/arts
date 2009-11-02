@@ -1569,7 +1569,7 @@ void vmrunitscf(
   const Numeric&   p,
   const Numeric&   t )
 {
-  if( unit == "rel"  |  unit == "logrel" )
+  if( unit == "rel" || unit == "logrel" )
     { x = 1; }
   else if( unit == "vmr" )
     { x = 1 / vmr; }

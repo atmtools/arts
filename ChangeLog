@@ -1,3 +1,28 @@
+2009-11-02  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-108
+
+	* src/interpolation_poly.cc (gridpos_poly):
+
+	Removed parallelization. The parallelizing of the allocation loop had
+	a severe negative impact on performance. The calculation time
+	increased proportional to the number of cores used. Here an example
+	for the calculation time of TestRteCalcMC.arts:
+
+	8 Cores: user	0m57s
+	4 Cores: user	0m27s
+	1 Core:  user	0m6s
+
+	The rationale behind the parallelization was that most of the time in
+	the loop is spent on allocating memory for gp. Unfortunately, the
+	memory allocations get serialized again by the kernel. So, nothing
+	gained by the vectorization. And to make things worse, doing it in
+	parallel seems to screw up the kernel's memory handler.
+
+	* src/m_rte.cc (vmrunitscf):
+
+	Changed bitwise OR (|) in if statement to logical OR (||).
+
 2009-10-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-107
