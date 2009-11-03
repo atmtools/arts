@@ -214,14 +214,24 @@ void RteCalc(
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
 
-#pragma omp parallel for                                        \
-  if(!arts_omp_in_parallel() && nza>1)                          \
-  default(none)                                                 \
-  shared(nza, naa, nf, joker, mblock_index, rte_do_t_jacs,      \
-         rte_do_vmr_jacs, ppath_array_do, ib, jqi_vmr,          \
-         ib_vmr_jacs, j_unit, jqi_t, ib_t_jacs)                 \
-  firstprivate(l_ws, l_iy_space_agenda,         \
-               l_ppath_step_agenda, l_rte_agenda,               \
+/*#pragma omp parallel for                                          \
+  if(!arts_omp_in_parallel() && nza>1)                            \
+  default(shared)                                                 \
+  shared(nza, naa, nf, joker, mblock_index, rte_do_t_jacs,        \
+         rte_do_vmr_jacs, ppath_array_do, ib, jqi_vmr,            \
+         ib_vmr_jacs, j_unit, jqi_t, ib_t_jacs, stokes_dim,       \
+         sensor_los, mblock_za_grid, antenna_dim, mblock_aa_grid, \
+         f_grid, sensor_pos, cloudbox_limits, cloudbox_on,        \
+         z_surface, r_geoid, vmr_field, t_field, z_field,         \
+         lon_grid, lat_grid, p_grid, atmosphere_dim, y_unit,      \
+         jacobian_quantities)                                     \
+  firstprivate(l_ws, l_iy_space_agenda,                           \
+               l_ppath_step_agenda, l_rte_agenda,                 \
+               l_surface_prop_agenda, l_iy_cloudbox_agenda) */
+#pragma omp parallel for                                          \
+  if(!arts_omp_in_parallel() && nza>1)                            \
+  firstprivate(l_ws, l_iy_space_agenda,                           \
+               l_ppath_step_agenda, l_rte_agenda,                 \
                l_surface_prop_agenda, l_iy_cloudbox_agenda)
       for( Index iza=0; iza<nza; iza++ )
         {
@@ -559,13 +569,22 @@ void RteCalcMC(
 
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
-#pragma omp parallel for                                        \
-  if(!arts_omp_in_parallel() && nza>1)                          \
-  default(none)                                                 \
-  shared(nza, naa, joker, mblock_index, nf, mc_antenna,         \
-         mc_points, ib, ib_error)                               \
-  firstprivate(l_ws, l_iy_space_agenda,         \
-               l_surface_prop_agenda,l_opt_prop_gas_agenda,     \
+/*#pragma omp parallel for                                               \
+  if(!arts_omp_in_parallel() && nza>1)                                 \
+  default(none)                                                        \
+  shared(nza, naa, joker, mblock_index, nf, mc_antenna, mc_points, ib, \
+         ib_error, sensor_los, sensor_pos, mblock_za_grid, f_grid,     \
+         scat_data_raw, mc_z_field_is_1D, mc_max_iter, mc_max_time,    \
+         mc_std_err, y_unit, pnd_field, cloudbox_limits, vmr_field,    \
+         t_field, z_surface, r_geoid, z_field, lon_grid, lat_grid,     \
+         p_grid, stokes_dim, antenna_dim, mblock_aa_grid)              \
+  firstprivate(l_ws, l_iy_space_agenda,                                \
+               l_surface_prop_agenda,l_opt_prop_gas_agenda,            \
+               l_abs_scalar_gas_agenda) */
+#pragma omp parallel for                                               \
+  if(!arts_omp_in_parallel() && nza>1)                                 \
+  firstprivate(l_ws, l_iy_space_agenda,                                \
+               l_surface_prop_agenda,l_opt_prop_gas_agenda,            \
                l_abs_scalar_gas_agenda)
       for( Index iza=0; iza<nza; iza++ )
         {

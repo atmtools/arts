@@ -1,3 +1,31 @@
+2009-11-03  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-109
+
+	* Compilation fixes for GCC 4.4.1 (default compiler on Ubuntu 9.10).
+
+	* src/parameters.cc: Include cstdio for EOF constant.
+
+	* src/binio.cc: Add -fno-strict-aliasing to COMPILE_FLAGS.
+
+	* src/m_atmosphere.cc, src/absorption.cc, src/m_abs_lookup.cc,
+	src/m_scatrte.cc, src/m_rte.cc, src/m_batch.cc:
+
+	There's a dilemma how shared variables in omp loops are handled in GCC
+	4.4 compared to previous versions if default(none) is used: In GCC
+	4.4 function parameters used as shared variables in parallel loops
+	have to be explicitly specified in the list of shared variables.
+	Before, function parameters were predetermined 'shared' and listing
+	them in the shared statement led to an error. So, we have a deadlock
+	here... :-( Solution for now is to keep the original omp pragma
+	definition as a comment and remove the default(none) and shared(...)
+	directives from the definition of the omp loops. Not ideal, because
+	with the previous solution every variable used inside the loop had to
+	be declared and the programmer was forced to think if it should be
+	shared or private. Now all variables can be used as shared variables
+	without explicit definition. Unfortunately, this is the only clean way
+	of having the same code compile on newer and older GCC versions.
+
 2009-11-02  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-108

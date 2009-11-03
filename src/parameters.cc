@@ -27,6 +27,7 @@
 
 #include <iostream>
 #include <getopt.h>
+#include <cstdio>
 #include <cstdlib>
 #include "arts.h"
 #include "parameters.h"

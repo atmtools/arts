@@ -376,12 +376,19 @@ void abs_lookupCreate(// WS Output:
           // function. Anyway, shared is the correct setting for
           // abs_lookup, so there is no problem.
 
-#pragma omp parallel for                                                        \
-  if(!arts_omp_in_parallel() && these_t_pert_nelem>=arts_omp_get_max_threads()) \
-  default(none)                                                                 \
-  shared(these_t_pert, out3, this_species,                                      \
-         this_lineshape, these_lines, this_vmr, abs_h2o,                        \
-         joker, spec)                                                           \
+/*#pragma omp parallel for                                       \
+  if(!arts_omp_in_parallel()                                   \
+     && these_t_pert_nelem>=arts_omp_get_max_threads())        \
+  default(none)                                                \
+  shared(these_t_pert, out3, this_species,                     \
+         this_lineshape, these_lines, this_vmr, abs_h2o,       \
+         joker, spec, abs_lookup, abs_p, f_grid,               \
+         abs_cont_models, abs_cont_parameters, abs_cont_names, \
+         abs_n2)                                               \
+  private(this_t, abs_xsec_per_species) */
+#pragma omp parallel for                                       \
+  if(!arts_omp_in_parallel()                                   \
+     && these_t_pert_nelem>=arts_omp_get_max_threads())        \
   private(this_t, abs_xsec_per_species)
           for ( Index j=0; j<these_t_pert_nelem; ++j )
             {
@@ -1994,10 +2001,15 @@ void abs_fieldCalc(Workspace& ws,
 
 
   // Now we have to loop all points in the atmosphere:
-#pragma omp parallel for                                                 \
+/*#pragma omp parallel for                                                 \
   if(!arts_omp_in_parallel() && n_pressures>=arts_omp_get_max_threads()) \
   default(none)                                                          \
-  shared(out3, joker, f_extent)                                          \
+  shared(out3, joker, f_extent, p_grid, t_field, vmr_field, f_index,     \
+         asg_field)                                                      \
+  firstprivate(l_ws, l_sga_agenda)                                       \
+  private(asg, a_vmr_list) */
+#pragma omp parallel for                                                 \
+  if(!arts_omp_in_parallel() && n_pressures>=arts_omp_get_max_threads()) \
   firstprivate(l_ws, l_sga_agenda)                                       \
   private(asg, a_vmr_list) 
   for ( Index ipr=0; ipr<n_pressures; ++ipr )         // Pressure:  ipr
@@ -2291,10 +2303,15 @@ void abs_lookupTestAccuracy(// WS Input:
   // lookup table, in percent.
   Numeric err_t = -999;
 
-#pragma omp parallel for                        \
+/*#pragma omp parallel for                        \
   if(!arts_omp_in_parallel())                   \
   default(none)                                 \
-  shared(inbet_t_pert, joker, h2o_index, err_t)
+  shared(inbet_t_pert, joker, h2o_index, err_t, al, abs_cont_parameters, \
+         abs_cont_models, abs_cont_names, abs_lineshape,                 \
+         abs_lines_per_species, abs_n2, abs_nls_interp_order,            \
+         abs_t_interp_order, abs_p_interp_order) */
+#pragma omp parallel for                        \
+  if(!arts_omp_in_parallel())
   for (Index pi=0; pi<n_p; ++pi)
     for (Index ti=0; ti<inbet_t_pert.nelem(); ++ti)
       {
@@ -2358,10 +2375,15 @@ void abs_lookupTestAccuracy(// WS Input:
   // lookup table, in percent.
   Numeric err_nls = -999;
 
-#pragma omp parallel for                                \
-  if(!arts_omp_in_parallel())                           \
-  default(none)                                         \
-  shared(inbet_nls_pert, joker, h2o_index, err_nls)
+/*#pragma omp parallel for                                               \
+  if(!arts_omp_in_parallel())                                          \
+  default(none)                                                        \
+  shared(inbet_nls_pert, joker, h2o_index, err_nls, al,                \
+         abs_cont_parameters, abs_cont_models, abs_cont_names,         \
+         abs_lineshape, abs_lines_per_species, abs_n2,                 \
+         abs_nls_interp_order, abs_t_interp_order, abs_p_interp_order) */
+#pragma omp parallel for                                               \
+  if(!arts_omp_in_parallel())
   for (Index pi=0; pi<n_p; ++pi)
     for (Index ni=0; ni<inbet_nls_pert.nelem(); ++ni)
       {
@@ -2436,11 +2458,15 @@ void abs_lookupTestAccuracy(// WS Input:
   // lookup table, in percent.
   Numeric err_p = -999;
 
-#pragma omp parallel for                   \
-  if(!arts_omp_in_parallel())              \
-  default(none)                            \
-  shared(inbet_p_grid, inbet_t_ref, joker, \
-         inbet_vmrs_ref, h2o_index, err_p)
+/*#pragma omp parallel for                                               \
+  if(!arts_omp_in_parallel())                                          \
+  default(none)                                                        \
+  shared(inbet_p_grid, inbet_t_ref, joker, inbet_vmrs_ref, h2o_index,  \
+         err_p, al, abs_cont_parameters, abs_cont_models,              \
+         abs_cont_names, abs_lineshape, abs_lines_per_species, abs_n2, \
+         abs_nls_interp_order, abs_t_interp_order, abs_p_interp_order) */
+#pragma omp parallel for                                               \
+  if(!arts_omp_in_parallel())
   for (Index pi=0; pi<n_p-1; ++pi)
     {
       // Find local conditions:
@@ -2500,11 +2526,17 @@ void abs_lookupTestAccuracy(// WS Input:
   // lookup table, in percent.
   Numeric err_tot = -999;
 
-#pragma omp parallel for                                                \
-  if(!arts_omp_in_parallel())                                           \
-  default(none)                                                         \
-  shared(inbet_t_pert, inbet_nls_pert, inbet_p_grid,                    \
-         inbet_t_ref, joker, inbet_vmrs_ref, h2o_index, err_tot)
+/*#pragma omp parallel for                                               \
+  if(!arts_omp_in_parallel())                                          \
+  default(none)                                                        \
+  shared(inbet_t_pert, inbet_nls_pert, inbet_p_grid,                   \
+         inbet_t_ref, joker, inbet_vmrs_ref, h2o_index, err_tot,       \
+         abs_cont_parameters, abs_cont_models, abs_cont_names,         \
+         abs_lineshape, abs_lines_per_species, abs_n2,                 \
+         abs_nls_interp_order, abs_t_interp_order, abs_p_interp_order, \
+         al) */
+#pragma omp parallel for                                               \
+  if(!arts_omp_in_parallel())
   for (Index pi=0; pi<n_p-1; ++pi)
     for (Index ti=0; ti<inbet_t_pert.nelem(); ++ti)
       for (Index ni=0; ni<inbet_nls_pert.nelem(); ++ni)

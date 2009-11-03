@@ -2363,10 +2363,14 @@ void ScatteringDoit(Workspace& ws,
   // OMP likes simple loop end conditions, so we make a local copy here: 
   const Index nf = f_grid.nelem();
 
-#pragma omp parallel for                                        \
-  if(!arts_omp_in_parallel() && nf>1)                           \
-  default(none)                                                 \
-  shared(out2)                                                  \
+/*#pragma omp parallel for                                    \
+  if(!arts_omp_in_parallel() && nf>1)                       \
+  default(none)                                             \
+  shared(out2, f_grid, doit_i_field1D_spectrum, scat_i_lon, \
+         scat_i_lat, scat_i_p, doit_i_field)                \
+  firstprivate(l_ws, l_doit_mono_agenda) */
+#pragma omp parallel for                                    \
+  if(!arts_omp_in_parallel() && nf>1)                       \
   firstprivate(l_ws, l_doit_mono_agenda)
   for (Index f_index = 0; f_index < nf; f_index ++)
     {
