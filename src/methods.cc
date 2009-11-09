@@ -8609,5 +8609,24 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "InterpTest" ),
+        DESCRIPTION
+        (
+         "xxx\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT("y2" ),
+        GOUT_TYPE( "Vector" ),
+        GOUT_DESC( "" ),
+        IN(),
+        GIN( "x1", "y1", "x2", "polyorder" ),
+        GIN_TYPE( "Vector", "Vector", "Vector", "Index" ),
+        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
+        GIN_DESC( "", "", "", "" )
+        ));
 }
 

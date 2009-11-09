@@ -69,6 +69,65 @@ extern const Index GFIELD4_AA_GRID;
   ===========================================================================*/
 
 
+#include "interpolation_poly.h"
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void InterpTest(
+        Vector&  y2,
+  const Vector&  x1,
+  const Vector&  y1,
+  const Vector&  x2,
+  const Index&   polyorder )
+{
+  const Index n1 = x1.nelem();
+  const Index n2 = x2.nelem();
+  
+  if( y1.nelem() != n1 )
+    throw runtime_error( "*x1* and *y1* must have the same length." ); 
+
+  ArrayOfGridPosPoly   gp( n2 );
+  Matrix               itw( n2, polyorder+1 );
+
+  gridpos_poly( gp, x1, x2, polyorder );
+  interpweights( itw, gp );
+
+  //cout << gp << endl;
+  //cout << itw << endl;
+
+  Sparse H( n2, n1 );
+  Vector hrow( n1, 0.0 );
+  //
+  for( Index row=0; row<n2; row++ )
+    {
+      for( Index i=0; i<gp[row].idx.nelem(); i++ )
+        { 
+          const Numeric w = gp[row].w[i];
+          if( abs(w) > 1e-5 )
+            { hrow[gp[row].idx[i]] = w; }
+        }
+      H.insert_row( row, hrow );
+
+      hrow = 0.0;
+    }
+
+  y2.resize( n2 );
+  mult( y2, H, y1 );
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AntennaMultiBeamsToPencilBeams(
        Matrix&   sensor_pos,

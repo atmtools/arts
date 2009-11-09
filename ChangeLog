@@ -1,3 +1,21 @@
+2009-11-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-110
+
+	* src/m_sensor.cc (InterpTest): A small, and temporary, method to
+	test of polynomial interpolation "filling" of spectra could work.
+	That is, to make a polynomial interpolation of spectra to a more
+	dense grid before the sensor characteristics are applied (that
+	treat the spectra to be piecewise linear). The "filling" would be
+	part of H (and thus very quick). Tests so far look very good.
+
+	* tests/GroundBased/TestFgrid.m: Created.
+
+	* tests/GroundBased/TestFgrid.arts: Created.
+
+	* tests/GroundBased/TestGbased.arts: Changed settings for centre
+	part of f_grid.
+
 2009-11-03  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-109

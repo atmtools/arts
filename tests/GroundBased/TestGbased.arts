@@ -27,13 +27,13 @@ NumericSet( v0, 1.108360400e+11 )
 NumericSet( fw, 330e6 )
 
 # Numer of points (on each side) of logarithmic part
-IndexSet( nlogpart, 25 )
+IndexSet( nlogpart, 35 )
 
 # One sided width of fine grid at centre of f_grid
-NumericSet( fw_fine, 500e3 )
+NumericSet( fw_fine, 240e3 )
 
 # Spacing of this fine grid
-NumericSet( df_fine, 50e3 )
+NumericSet( df_fine, 40e3 )
 
 # A logarithmically spaced grid between [fw_fine,fw]
 NumericCreate( f1 )
@@ -82,9 +82,6 @@ AtmFieldsCalc
 
 ReadXML( abs_lines, "ozone_line.xml" )
 abs_lines_per_speciesCreateFromLines
-
-WriteXML( output_file_format, abs_lines_per_species, "lines.xml.generated" )
-
 
 abs_cont_descriptionInit
 
