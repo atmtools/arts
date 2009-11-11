@@ -1,3 +1,12 @@
+2009-11-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-111
+	
+	* src/m_sensor.cc (InterpTest): Removed.
+	(sensor_responseBackendFrequencySwitch): Created.
+
+	* tests/GroundBased/TestFgrid.arts: Now using sensor_responseFillFgrid.
+
 2009-11-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-110

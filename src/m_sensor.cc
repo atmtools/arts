@@ -1,5 +1,4 @@
 /* Copyright (C) 2003-2009
-   Mattias Ekström  <ekstrom@rss.chalmers.se>
    Patrick Eriksson <Patrick.Eriksson@chalmers.se>
    Stefan Buehler   <sbuehler(at)ltu.se>
 
@@ -26,7 +25,7 @@
 
 /*!
   \file   m_sensor.cc
-  \author Mattias Ekström <ekstrom@rss.chalmers.se>
+  \author Mattias Ekström/Patrick Eriksson <patrick.eriksson@chalmers.se>
   \date   2003-02-13
 
   \brief  Workspace functions related to sensor modelling variables.
@@ -46,6 +45,7 @@
 #include <string>
 #include "arts.h"
 #include "check_input.h"
+#include "interpolation_poly.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "ppath.h"
@@ -67,66 +67,6 @@ extern const Index GFIELD4_AA_GRID;
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
-
-
-#include "interpolation_poly.h"
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void InterpTest(
-        Vector&  y2,
-  const Vector&  x1,
-  const Vector&  y1,
-  const Vector&  x2,
-  const Index&   polyorder )
-{
-  const Index n1 = x1.nelem();
-  const Index n2 = x2.nelem();
-  
-  if( y1.nelem() != n1 )
-    throw runtime_error( "*x1* and *y1* must have the same length." ); 
-
-  ArrayOfGridPosPoly   gp( n2 );
-  Matrix               itw( n2, polyorder+1 );
-
-  gridpos_poly( gp, x1, x2, polyorder );
-  interpweights( itw, gp );
-
-  //cout << gp << endl;
-  //cout << itw << endl;
-
-  Sparse H( n2, n1 );
-  Vector hrow( n1, 0.0 );
-  //
-  for( Index row=0; row<n2; row++ )
-    {
-      for( Index i=0; i<gp[row].idx.nelem(); i++ )
-        { 
-          const Numeric w = gp[row].w[i];
-          if( abs(w) > 1e-5 )
-            { hrow[gp[row].idx[i]] = w; }
-        }
-      H.insert_row( row, hrow );
-
-      hrow = 0.0;
-    }
-
-  y2.resize( n2 );
-  mult( y2, H, y1 );
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AntennaMultiBeamsToPencilBeams(
@@ -1137,6 +1077,144 @@ void sensor_responseBackend(
                       sensor_response_za,      sensor_response_aa, 
                       sensor_response_f_grid,  sensor_response_pol_grid, 
                       sensor_response_za_grid, sensor_response_aa_grid, 0 );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responseFillFgrid(
+     // WS Output:
+                 Sparse&   sensor_response,
+                 Vector&   sensor_response_f,
+           ArrayOfIndex&   sensor_response_pol,
+                 Vector&   sensor_response_za,
+                 Vector&   sensor_response_aa,
+                 Vector&   sensor_response_f_grid,
+     // WS Input:
+     const ArrayOfIndex&   sensor_response_pol_grid,
+           const Vector&   sensor_response_za_grid,
+           const Vector&   sensor_response_aa_grid,
+            const Index&   polyorder,
+            const Index&   nfill )
+{
+  // Some sizes
+  const Index nf   = sensor_response_f_grid.nelem();
+  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nza  = sensor_response_za_grid.nelem();
+  const Index naa  = max( Index(1), sensor_response_aa_grid.nelem() );
+  const Index nin  = nf * npol * nza * naa;
+
+  // Initialise a output stream for runtime errors and a flag for errors
+  ostringstream os;
+  bool          error_found = false;
+
+  // Check that sensor_response variables are consistent in size
+  if( sensor_response_f.nelem() != nin )
+  {
+    os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
+       << "grid variables (sensor_response_f_grid etc.).\n";
+    error_found = true;
+  }
+  if( sensor_response.nrows() != nin )
+  {
+    os << "The sensor block response matrix *sensor_response* does not have\n"
+       << "right size compared to the sensor grid variables\n"
+       << "(sensor_response_f_grid etc.).\n";
+    error_found = true;
+  }
+
+  // Check polyorder and nfill
+  if( polyorder < 2  ||  polyorder > 7 )
+  {
+    os << "Accepted range for *polyorder* is [3,7].\n";
+    error_found = true;
+  }
+  if( nfill < 1 )
+  {
+    os << "The argument *nfill* must be > 1.\n";
+    error_found = true;
+  }
+
+  // If errors where found throw runtime_error with the collected error
+  // message.
+  if (error_found)
+    throw runtime_error(os.str());
+
+
+  // New frequency grid
+  //
+  const Index n1   = nfill+1;
+  const Index n2   = nfill+2;
+  const Index nnew = (nf-1)*n1 + 1;
+  //
+  Vector fnew( nnew );
+  //
+  for( Index i=0; i<nf-1; i++ )
+    {
+      Vector fp(n2);
+      nlinspace( fp, sensor_response_f_grid[i], sensor_response_f_grid[i+1], n2 );
+      fnew[Range(i*n1,n2)] = fp;
+    }
+  
+  // Find interpolation weights
+  //
+  ArrayOfGridPosPoly   gp( nnew );
+  Matrix               itw( nnew, polyorder+1 );
+  //
+  gridpos_poly( gp, sensor_response_f_grid, fnew, polyorder );
+  interpweights( itw, gp );
+
+  // Set up H for this part
+  //
+  Sparse hpoly( nnew * npol * nza * naa, nin );
+  Vector hrow( nin, 0.0 );
+  Index  row = 0;
+  //
+  for( Index iza=0; iza<nza; iza++ )
+    {
+      for( Index iaa=0; iaa<naa; iaa++ )
+        { 
+          for( Index iv=0; iv<nnew; iv++ )
+            { 
+              for( Index ip=0; ip<npol; ip++ )
+                {  
+                  const Index col0 = (iza*naa+iaa)*nf*npol;
+                  for( Index i=0; i<gp[iv].idx.nelem(); i++ )
+                    { 
+                      const Numeric w = gp[iv].w[i];
+                      if( abs(w) > 1e-5 )
+                        { 
+                          hrow[col0+gp[iv].idx[i]*npol+ip] = w; 
+                        }
+                    }
+                  hpoly.insert_row( row, hrow );
+                  for( Index i=0; i<gp[iv].idx.nelem(); i++ )
+                    { hrow[col0+gp[iv].idx[i]*npol+ip] = 0; }
+                  row += 1;
+                }
+            }
+        }
+    }
+
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse htmp = sensor_response;
+  sensor_response.resize( hpoly.nrows(), htmp.ncols());
+  mult( sensor_response, hpoly, htmp );
+
+  // Some extra output.
+  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
+       << "x" << sensor_response.ncols() << "\n";
+
+  // Update sensor_response_za_grid
+  sensor_response_f_grid = fnew;
+
+  // Set aux variables
+  sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
+                      sensor_response_za,      sensor_response_aa, 
+                      sensor_response_f_grid,  sensor_response_pol_grid, 
+                      sensor_response_za_grid, sensor_response_aa_grid, 1 );
 }
 
 

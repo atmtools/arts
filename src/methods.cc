@@ -6984,6 +6984,53 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "sensor_responseFillFgrid" ),
+        DESCRIPTION
+        (
+         "Polynomial frequency interpolation of spectra.\n"
+         "z\n"
+         "The sensor response methods treat the spectra to be piece-wise linear\n"
+         "functions. This method is a workaround for making methods handling\n"
+         "the spectra in a more elaborate way: it generates spectra on a more\n"
+         "dense grid by polynomial interpolation. The interpolation is not\n"
+         "done explicitly, it is incorporated into *sensor_response*.\n"
+         "\n"
+         "This method should in general increase the calculation accuracy for\n"
+         "a given *f_grid*. However, the selection of (original) grid points\n"
+         "becomes more sensitive when using this method. A poor choice of grid\n"
+         "points can result in a decreased accuracy, or generation of negative\n"
+         "radiances. Test calculations indicated that the error easily can\n"
+         "increase with this method close the edge of *f_grid*, and it could\n"
+         "be wise to make *f_grid* a bit wider than actually necessary to avoid\n"
+         "this effect\n"
+         "\n"
+         "The method shall be inserted before the antenna stage. That is, this\n"
+         "method shall normally be called directly after *sensor_responseInit*.\n"
+         "\n"
+         "Between each neighbouring points of *f_grid*, this method adds\n"
+         "*nfill* grid points. The polynomial order of the interpolation is\n"
+         "*polyorder*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_f_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
+            "sensor_response_za", "sensor_response_aa", 
+            "sensor_response_f_grid", "sensor_response_pol_grid", 
+            "sensor_response_za_grid", "sensor_response_aa_grid" ),
+        GIN( "polyorder", "nfill" ),
+        GIN_TYPE( "Index", "Index" ),
+        GIN_DEFAULT( "3", "2" ),
+        GIN_DESC( "Polynomial order of interpolation", 
+                  "Number of points to insert in each gap of f_grid" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "sensor_responseBackendFrequencySwitch" ),
         DESCRIPTION
         (
@@ -8608,25 +8655,6 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "InterpTest" ),
-        DESCRIPTION
-        (
-         "xxx\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT(),
-        GOUT("y2" ),
-        GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "" ),
-        IN(),
-        GIN( "x1", "y1", "x2", "polyorder" ),
-        GIN_TYPE( "Vector", "Vector", "Vector", "Index" ),
-        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
-        GIN_DESC( "", "", "", "" )
         ));
 }
 

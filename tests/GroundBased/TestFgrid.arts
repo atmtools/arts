@@ -104,7 +104,7 @@ Append( f_grid, flog )
 VectorAddScalar( f_grid, f_grid, v0 )
 
 
-#-- Calculate spectrum and store as y1(x1)
+#-- Calculate spectrum for monochromatic grid and store as y1(x1)
 
 sensorOff
 yCalc
@@ -127,7 +127,7 @@ VectorLinSpace( f_grid, f1, fw, 30e3 )
 VectorAddScalar( f_grid, f_grid, v0 )
 
 
-#-- Calculate spectrum and store as ye(x2)
+#-- Calculate spectrum for reference grid and store as ye(x2)
 
 sensorOff
 yCalc
@@ -141,14 +141,29 @@ WriteXML( output_file_format, x2, "TestFgrid.x2.xml.generated" )
 WriteXML( output_file_format, ye, "TestFgrid.ye.xml.generated" )
 
 
-# ---- Create interpolated spectra --------------------------------------------
+# ---- Create spectra with polynomial filling ---------------------------------
 
-VectorCreate( y3 )
-InterpTest( y3, x1, y1, x2, 3 )
-WriteXML( output_file_format, y3, "TestFgrid.y3.xml.generated" )
+Copy( f_grid, x1 )
 
-VectorCreate( y5 )
-InterpTest( y5, x1, y1, x2, 5 )
-WriteXML( output_file_format, y5, "TestFgrid.y5.xml.generated" )
+FlagOn( sensor_norm )
+sensor_responseInit
+sensor_responseFillFgrid( sensor_response, sensor_response_f, 
+   sensor_response_pol, sensor_response_za, sensor_response_aa, 
+   sensor_response_f_grid, sensor_response_pol_grid, sensor_response_za_grid, 
+   sensor_response_aa_grid, 3, 2 )
+yCalc
+WriteXML( output_file_format, sensor_response_f_grid, 
+                                 "TestFgrid.x3.xml.generated" )
+WriteXML( output_file_format, y, "TestFgrid.y3.xml.generated" )
+
+sensor_responseInit
+sensor_responseFillFgrid( sensor_response, sensor_response_f, 
+   sensor_response_pol, sensor_response_za, sensor_response_aa, 
+   sensor_response_f_grid, sensor_response_pol_grid, sensor_response_za_grid, 
+   sensor_response_aa_grid, 5, 4 )
+yCalc
+WriteXML( output_file_format, sensor_response_f_grid, 
+                                 "TestFgrid.x5.xml.generated" )
+WriteXML( output_file_format, y, "TestFgrid.y5.xml.generated" )
 
 }
