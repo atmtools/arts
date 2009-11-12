@@ -1,3 +1,15 @@
+2009-11-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-112
+
+	* src/m_sensor.cc (sensor_responseBackendFrequencySwitch): H1 and
+	H2 were not correctly initialised for cases where more than
+	backend is included.
+
+	* src/methods.cc: 
+	* src/m_basic_types.h: Fixed so nrowsGet and ncolsGet work also 
+	for Sparse.
+
 2009-11-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-111

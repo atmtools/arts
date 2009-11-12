@@ -1082,144 +1082,6 @@ void sensor_responseBackend(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseFillFgrid(
-     // WS Output:
-                 Sparse&   sensor_response,
-                 Vector&   sensor_response_f,
-           ArrayOfIndex&   sensor_response_pol,
-                 Vector&   sensor_response_za,
-                 Vector&   sensor_response_aa,
-                 Vector&   sensor_response_f_grid,
-     // WS Input:
-     const ArrayOfIndex&   sensor_response_pol_grid,
-           const Vector&   sensor_response_za_grid,
-           const Vector&   sensor_response_aa_grid,
-            const Index&   polyorder,
-            const Index&   nfill )
-{
-  // Some sizes
-  const Index nf   = sensor_response_f_grid.nelem();
-  const Index npol = sensor_response_pol_grid.nelem();
-  const Index nza  = sensor_response_za_grid.nelem();
-  const Index naa  = max( Index(1), sensor_response_aa_grid.nelem() );
-  const Index nin  = nf * npol * nza * naa;
-
-  // Initialise a output stream for runtime errors and a flag for errors
-  ostringstream os;
-  bool          error_found = false;
-
-  // Check that sensor_response variables are consistent in size
-  if( sensor_response_f.nelem() != nin )
-  {
-    os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
-       << "grid variables (sensor_response_f_grid etc.).\n";
-    error_found = true;
-  }
-  if( sensor_response.nrows() != nin )
-  {
-    os << "The sensor block response matrix *sensor_response* does not have\n"
-       << "right size compared to the sensor grid variables\n"
-       << "(sensor_response_f_grid etc.).\n";
-    error_found = true;
-  }
-
-  // Check polyorder and nfill
-  if( polyorder < 2  ||  polyorder > 7 )
-  {
-    os << "Accepted range for *polyorder* is [3,7].\n";
-    error_found = true;
-  }
-  if( nfill < 1 )
-  {
-    os << "The argument *nfill* must be > 1.\n";
-    error_found = true;
-  }
-
-  // If errors where found throw runtime_error with the collected error
-  // message.
-  if (error_found)
-    throw runtime_error(os.str());
-
-
-  // New frequency grid
-  //
-  const Index n1   = nfill+1;
-  const Index n2   = nfill+2;
-  const Index nnew = (nf-1)*n1 + 1;
-  //
-  Vector fnew( nnew );
-  //
-  for( Index i=0; i<nf-1; i++ )
-    {
-      Vector fp(n2);
-      nlinspace( fp, sensor_response_f_grid[i], sensor_response_f_grid[i+1], n2 );
-      fnew[Range(i*n1,n2)] = fp;
-    }
-  
-  // Find interpolation weights
-  //
-  ArrayOfGridPosPoly   gp( nnew );
-  Matrix               itw( nnew, polyorder+1 );
-  //
-  gridpos_poly( gp, sensor_response_f_grid, fnew, polyorder );
-  interpweights( itw, gp );
-
-  // Set up H for this part
-  //
-  Sparse hpoly( nnew * npol * nza * naa, nin );
-  Vector hrow( nin, 0.0 );
-  Index  row = 0;
-  //
-  for( Index iza=0; iza<nza; iza++ )
-    {
-      for( Index iaa=0; iaa<naa; iaa++ )
-        { 
-          for( Index iv=0; iv<nnew; iv++ )
-            { 
-              for( Index ip=0; ip<npol; ip++ )
-                {  
-                  const Index col0 = (iza*naa+iaa)*nf*npol;
-                  for( Index i=0; i<gp[iv].idx.nelem(); i++ )
-                    { 
-                      const Numeric w = gp[iv].w[i];
-                      if( abs(w) > 1e-5 )
-                        { 
-                          hrow[col0+gp[iv].idx[i]*npol+ip] = w; 
-                        }
-                    }
-                  hpoly.insert_row( row, hrow );
-                  for( Index i=0; i<gp[iv].idx.nelem(); i++ )
-                    { hrow[col0+gp[iv].idx[i]*npol+ip] = 0; }
-                  row += 1;
-                }
-            }
-        }
-    }
-
-  // Here we need a temporary sparse that is copy of the sensor_response
-  // sparse matrix. We need it since the multiplication function can not
-  // take the same object as both input and output.
-  Sparse htmp = sensor_response;
-  sensor_response.resize( hpoly.nrows(), htmp.ncols());
-  mult( sensor_response, hpoly, htmp );
-
-  // Some extra output.
-  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
-       << "x" << sensor_response.ncols() << "\n";
-
-  // Update sensor_response_za_grid
-  sensor_response_f_grid = fnew;
-
-  // Set aux variables
-  sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
-                      sensor_response_za,      sensor_response_aa, 
-                      sensor_response_f_grid,  sensor_response_pol_grid, 
-                      sensor_response_za_grid, sensor_response_aa_grid, 1 );
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseBackendFrequencySwitch(
                  Sparse&   sensor_response,
                  Vector&   sensor_response_f,
@@ -1238,14 +1100,7 @@ void sensor_responseBackendFrequencySwitch(
 {
   // All needed checks are done in sensor_responseBackend
 
-  // Make two identity matrices of same size as sensor_response
-  //
-  const Index n = sensor_response.nrows();
-  //
-  Sparse H1(n,n), H2(n,n);
-  //
-  H1.make_I( n, n );
-  H2.make_I( n, n );
+  Sparse H1=sensor_response, H2=sensor_response;
 
   // Some needed vectors
   Vector f_backend_shifted;
@@ -1398,6 +1253,144 @@ void sensor_responseIF2RF(
       throw runtime_error(
       "Only allowed options for *sideband _mode* are \"lower\" and \"upper\"." );
     }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responseFillFgrid(
+     // WS Output:
+                 Sparse&   sensor_response,
+                 Vector&   sensor_response_f,
+           ArrayOfIndex&   sensor_response_pol,
+                 Vector&   sensor_response_za,
+                 Vector&   sensor_response_aa,
+                 Vector&   sensor_response_f_grid,
+     // WS Input:
+     const ArrayOfIndex&   sensor_response_pol_grid,
+           const Vector&   sensor_response_za_grid,
+           const Vector&   sensor_response_aa_grid,
+            const Index&   polyorder,
+            const Index&   nfill )
+{
+  // Some sizes
+  const Index nf   = sensor_response_f_grid.nelem();
+  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nza  = sensor_response_za_grid.nelem();
+  const Index naa  = max( Index(1), sensor_response_aa_grid.nelem() );
+  const Index nin  = nf * npol * nza * naa;
+
+  // Initialise a output stream for runtime errors and a flag for errors
+  ostringstream os;
+  bool          error_found = false;
+
+  // Check that sensor_response variables are consistent in size
+  if( sensor_response_f.nelem() != nin )
+  {
+    os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
+       << "grid variables (sensor_response_f_grid etc.).\n";
+    error_found = true;
+  }
+  if( sensor_response.nrows() != nin )
+  {
+    os << "The sensor block response matrix *sensor_response* does not have\n"
+       << "right size compared to the sensor grid variables\n"
+       << "(sensor_response_f_grid etc.).\n";
+    error_found = true;
+  }
+
+  // Check polyorder and nfill
+  if( polyorder < 2  ||  polyorder > 7 )
+  {
+    os << "Accepted range for *polyorder* is [3,7].\n";
+    error_found = true;
+  }
+  if( nfill < 1 )
+  {
+    os << "The argument *nfill* must be > 1.\n";
+    error_found = true;
+  }
+
+  // If errors where found throw runtime_error with the collected error
+  // message.
+  if (error_found)
+    throw runtime_error(os.str());
+
+
+  // New frequency grid
+  //
+  const Index n1   = nfill+1;
+  const Index n2   = nfill+2;
+  const Index nnew = (nf-1)*n1 + 1;
+  //
+  Vector fnew( nnew );
+  //
+  for( Index i=0; i<nf-1; i++ )
+    {
+      Vector fp(n2);
+      nlinspace( fp, sensor_response_f_grid[i], sensor_response_f_grid[i+1], n2 );
+      fnew[Range(i*n1,n2)] = fp;
+    }
+  
+  // Find interpolation weights
+  //
+  ArrayOfGridPosPoly   gp( nnew );
+  Matrix               itw( nnew, polyorder+1 );
+  //
+  gridpos_poly( gp, sensor_response_f_grid, fnew, polyorder );
+  interpweights( itw, gp );
+
+  // Set up H for this part
+  //
+  Sparse hpoly( nnew * npol * nza * naa, nin );
+  Vector hrow( nin, 0.0 );
+  Index  row = 0;
+  //
+  for( Index iza=0; iza<nza; iza++ )
+    {
+      for( Index iaa=0; iaa<naa; iaa++ )
+        { 
+          for( Index iv=0; iv<nnew; iv++ )
+            { 
+              for( Index ip=0; ip<npol; ip++ )
+                {  
+                  const Index col0 = (iza*naa+iaa)*nf*npol;
+                  for( Index i=0; i<gp[iv].idx.nelem(); i++ )
+                    { 
+                      const Numeric w = gp[iv].w[i];
+                      if( abs(w) > 1e-5 )
+                        { 
+                          hrow[col0+gp[iv].idx[i]*npol+ip] = w; 
+                        }
+                    }
+                  hpoly.insert_row( row, hrow );
+                  for( Index i=0; i<gp[iv].idx.nelem(); i++ )
+                    { hrow[col0+gp[iv].idx[i]*npol+ip] = 0; }
+                  row += 1;
+                }
+            }
+        }
+    }
+
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse htmp = sensor_response;
+  sensor_response.resize( hpoly.nrows(), htmp.ncols());
+  mult( sensor_response, hpoly, htmp );
+
+  // Some extra output.
+  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
+       << "x" << sensor_response.ncols() << "\n";
+
+  // Update sensor_response_za_grid
+  sensor_response_f_grid = fnew;
+
+  // Set aux variables
+  sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
+                      sensor_response_za,      sensor_response_aa, 
+                      sensor_response_f_grid,  sensor_response_pol_grid, 
+                      sensor_response_za_grid, sensor_response_aa_grid, 1 );
 }
 
 
