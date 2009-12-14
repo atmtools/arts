@@ -51,11 +51,11 @@ AC_STDC_HEADERS
 AC_C_INLINE
 AC_C_CONST
 AC_TYPE_SIZE_T
-AC_CHECK_SIZEOF(float, 8)
-AC_CHECK_SIZEOF(double, 16)
-AC_CHECK_SIZEOF(int, 4)
-AC_CHECK_SIZEOF(long, 8)
-AC_CHECK_SIZEOF(size_t, 8)
+AC_CHECK_SIZEOF(float)
+AC_CHECK_SIZEOF(double)
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(size_t)
 
 # Special headers that we need:
 # AC_HAVE_HEADERS(getopt.h) (now included in the source)
@@ -140,6 +140,9 @@ fi
 #
 # Default index type
 #
+default_index_type=long
+if test x$ac_cv_sizeof_long = x8; then default_index_type=int; fi
+
 AC_ARG_WITH(index-type,
 [  --with-index-type=ARG    Set index type (default=long)],
 [case "${withval}" in
@@ -148,7 +151,7 @@ AC_ARG_WITH(index-type,
   long)  ac_index_type=long ;;
   size_t)  ac_index_type=size_t ;;
     *) AC_MSG_ERROR(bad value ${withval} for --with-index-type) ;;
-esac],[ ac_index_type=long ])
+esac],[ ac_index_type=$default_index_type ])
 
 AC_MSG_RESULT(Setting Index type to $ac_index_type)
 AC_DEFINE_UNQUOTED(INDEX, $ac_index_type, Default index type)

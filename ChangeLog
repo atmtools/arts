@@ -1,9 +1,19 @@
+2009-12-14  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-0-217
+
+	* configure.in:
+
+	If size of long is 8, switch to int for Index. Fixes saving of HDF
+	files on 64-bit OS.
+
 2009-04-30  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
 	* arts-1-0-216
 
-	* src/methods.cc: Corrected typo in documentation of ybatchFromRadiosonde (cakc_jac is 
-	for calculating Jacobians, not calc_abs)
+	* src/methods.cc: Corrected typo in documentation of
+	ybatchFromRadiosonde (cakc_jac is for calculating Jacobians, not
+	calc_abs)
 		
 2009-03-25  Oliver Lemke  <olemke@core-dump.info>
 
