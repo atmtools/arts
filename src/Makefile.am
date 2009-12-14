@@ -27,7 +27,7 @@ arts_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
 arts_SOURCES = auto_version.h main.cc
 
 libartscore_a_CFLAGS = $(CFLAGS_OPT) $(WARNINGCFLAGS)
-libartscore_a_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
+libartscore_a_CXXFLAGS = $(CXXFLAGS_OPT) $(CXXNOSTRICTALIASING) $(WARNINGCFLAGS)
 libartscore_a_ldflags = 
 libartscore_a_SOURCES = \
 	absorption.h \
@@ -298,7 +298,7 @@ make_auto_workspace_h_SOURCES = \
 	parameters.h
 
 make_auto_md_h_LDADD = libmethods.a libmatpack.a
-make_auto_md_h_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
+make_auto_md_h_CXXFLAGS = $(CXXFLAGS_OPT) $(CXXNOSTRICTALIASING) $(WARNINGCFLAGS)
 make_auto_md_h_SOURCES = \
 	agenda_class.h \
 	agenda_record.cc \
@@ -328,7 +328,7 @@ make_auto_md_h_SOURCES = \
 	workspace_ng.h
 
 make_auto_md_cc_LDADD = libmethods.a libmatpack.a
-make_auto_md_cc_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
+make_auto_md_cc_CXXFLAGS = $(CXXFLAGS_OPT) $(CXXNOSTRICTALIASING) $(WARNINGCFLAGS)
 make_auto_md_cc_SOURCES = \
 	agenda_class.h \
 	agenda_record.cc \
@@ -503,7 +503,7 @@ test_integration_SOURCES = \
 	test_integration.cc 
 
 test_readpp_LDADD = libmatpack.a
-test_readpp_CXXFLAGS = $(CXXFLAGS_OPT) $(WARNINGCFLAGS)
+test_readpp_CXXFLAGS = $(CXXFLAGS_OPT) $(CXXNOSTRICTALIASING) $(WARNINGCFLAGS)
 test_readpp_SOURCES = \
 	bifstream.cc \
 	bifstream.h \

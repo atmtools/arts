@@ -30,6 +30,7 @@
 #include "array.h"
 #include "arts.h"
 #include "exceptions.h"
+#include "matpackII.h"
 #include "matpackVII.h"
 #include "gridded_fields.h"
 #include "mystring.h"
