@@ -236,9 +236,10 @@ AgendaSet( emission_agenda ){
 
 # Standard method for RT 
 #
-AgendaSet( rte_agenda ){
-  RteStd
+AgendaSet( iy_clearsky_agenda ){
+  iyEmissionStandardClearsky
 }
+FlagOff( iy_aux_do )
 
 # No scattering
 #
@@ -348,6 +349,8 @@ AtmFieldsCalc
 
 Extract( z_surface, z_field, 0 )
 
+atm_checkedCalc
+
 abs_lines_per_speciesCreateFromLines
 
 sensor_responseInit
@@ -356,7 +359,8 @@ sensor_responseBackend
 
 # Calculate spectra and save
 #
-RteCalcNoJacobian
+jacobianOff
+yCalc
 #
 WriteXML( output_file_format, y,     "TestOdinSMR_119ghz.y.xml.generated" )
 WriteXML( output_file_format, ztan,  "TestOdinSMR_119ghz.ztan.xml.generated" )

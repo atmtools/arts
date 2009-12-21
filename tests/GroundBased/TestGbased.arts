@@ -112,6 +112,8 @@ Copy( z_surface, sensor_pos )
 sensor_posAddRgeoid
 MatrixSetConstant( sensor_los, 1, 1, za )
 
+atm_checkedCalc
+
 
 
 # ---- Turn off cosmic background radiation  ---------------------------------
@@ -175,9 +177,8 @@ jacobianAddFreqShiftAndStretch( jacobian_quantities, jacobian_agenda,
                                 "iybinterp", 50e3, 1 )
 jacobianClose
 
-atm_checkedCalc
-
 yCalc
+#
 WriteXML( output_file_format, y, "TestGbased.y1.xml.generated" )
 WriteXML( output_file_format, y_f, "TestGbased.f.xml.generated" )
 WriteXML( output_file_format, jacobian, "TestGbased.J1.xml.generated" )
@@ -196,6 +197,7 @@ sensor_responseBeamSwitching
 sensor_responseBackend
 
 yCalc
+#
 WriteXML( output_file_format, y, "TestGbased.y2.xml.generated" )
 
 
@@ -214,6 +216,7 @@ sensor_responseBackendFrequencySwitch( sensor_response, sensor_response_f,
      f1, f_switch )
 
 yCalc
+#
 WriteXML( output_file_format, y, "TestGbased.y3.xml.generated" )
 
 }

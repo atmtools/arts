@@ -1,3 +1,15 @@
+2009-12-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-114
+
+	* tests/: All tests previously using a version of RteCalc have
+	been changed to use yCalc.
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming): There was a temporay 
+	CloudboxGetIncoming2. This one has now replaced CloudboxGetIncoming.
+	This means that DOIT can now only be run with yCalc and associated
+	variables.
+
 2009-12-14  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-113

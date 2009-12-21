@@ -79,6 +79,8 @@ MatrixSetConstant( surface_emissivity_field){
     value = 1
 }
 
+atm_checkedCalc
+
 
 
 # Definition of sensor position and LOS
@@ -191,7 +193,7 @@ ScatteringDisort
 #
 StringSet( y_unit ){ "RJBT" }
 #
-RteCalc
+yCalc
 
 
 Print(y){

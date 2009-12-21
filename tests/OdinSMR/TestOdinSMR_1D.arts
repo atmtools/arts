@@ -40,6 +40,8 @@ AtmFieldsCalc
 # Get ground altitude (z_surface) from z_field
 Extract( z_surface, z_field, 0 )
 
+atm_checkedCalc
+
 
 
 # ---- Create absorption table -----------------------------------------------
@@ -68,7 +70,7 @@ AgendaSet( abs_scalar_gas_agenda ){
 
 # ---- Calculate and save
 
-RteCalc
+yCalc
 
 
 WriteXML( output_file_format, y,     "TestOdinSMR.y.xml.generated" )

@@ -160,7 +160,8 @@ AgendaSet( ybatch_calc_agenda ){
 
   # Perform RT calculations
   # ---
-  RteCalc
+  atm_checkedCalc
+  yCalc
 
   # Optionally write out jacobian:
 #  WriteXMLIndexed( output_file_format, ybatch_index, jacobian, "" )

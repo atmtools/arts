@@ -1,6 +1,6 @@
 #DEFINITIONS:  -*-sh-*-
 #This control file performs an ARTS-MC radiative transfer simulation
-#through the WSM RteCalcMC
+#through yCalc
 
 
 Arts2 {
@@ -41,6 +41,8 @@ ReadXML( cloudbox_limits, "cloudbox_limits.xml.generated" )
 ReadXML( pnd_field, "pnd_field.xml.generated" )
 
 ReadXML( scat_data_raw, "scat_data_raw.xml.generated" )
+
+atm_checkedCalc
 
 
 #### Define Agendas #################################################
@@ -96,8 +98,6 @@ IndexSet(   mc_z_field_is_1D, 1 )
 AgendaSet( iy_clearsky_agenda ){
   iyMC
 }
-
-atm_checkedCalc
 
 yCalc
 

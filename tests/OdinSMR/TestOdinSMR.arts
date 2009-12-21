@@ -46,6 +46,8 @@ AtmFieldsCalc
 # Get ground altitude (z_surface) from z_field
 Extract( z_surface, z_field, 0 )
 
+atm_checkedCalc
+
 
 
 # ---- Create absorption table -----------------------------------------------
@@ -87,7 +89,7 @@ Matrix1ColFromVector( sensor_los, za )
 
 # ---- Calculate spectra and save
 
-RteCalc
+yCalc
 
 
 WriteXML( output_file_format, y,     "TestOdinSMR.y.xml.generated" )

@@ -2510,38 +2510,6 @@ void define_md_data_raw()
          "DOIT method.\n"
          ),
         AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
-        OUT( "scat_i_p", "scat_i_lat", "scat_i_lon", "cloudbox_on" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "ppath_step_agenda", "rte_agenda", "iy_space_agenda",
-            "surface_prop_agenda", "iy_cloudbox_agenda",
-            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
-            "t_field", "vmr_field", "r_geoid", "z_surface", 
-            "cloudbox_limits", "f_grid", "stokes_dim", 
-            "scat_za_grid", "scat_aa_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "CloudboxGetIncoming2" ),
-        DESCRIPTION
-        (
-         "Calculates incoming radiation field of the cloudbox by repeated\n"
-         "radiative transfer calculations.\n"
-         "\n"
-         "The method performs monochromatic pencil beam calculations for\n"
-         "all grid positions on the cloudbox boundary, and all directions\n"
-         "given by scattering angle grids (*scat_za/aa_grid*). Found radiances\n"
-         "are stored in *scat_i_p/lat/lon* which can be used as boundary\n"
-         "conditions when scattering inside the cloud box is solved by the\n"
-         "DOIT method.\n"
-         ),
-        AUTHORS( "Sreerekha T.R.", "Claudia Emde" ),
         OUT( "scat_i_p", "scat_i_lat", "scat_i_lon" ),
         GOUT(),
         GOUT_TYPE(),
