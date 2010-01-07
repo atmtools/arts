@@ -1,3 +1,10 @@
+2010-01-07  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-115
+
+	* src/m_abs.cc (abs_xsec_per_speciesAddLines): Added a runtime
+	error check for negative (Kelvin) temperatures.
+
 2009-12-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-114

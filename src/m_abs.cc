@@ -2030,6 +2030,16 @@ void abs_xsec_per_speciesAddLines(// WS Output:
                          const ArrayOfArrayOfLineRecord&  abs_lines_per_species,
                          const ArrayOfLineshapeSpec&      abs_lineshape)
 {
+  // Check that all temperatures are at least 0 K. (Negative Kelvin
+  // temperatures are unphysical.)  
+  if ( min(abs_t) < 0 )
+    {
+      ostringstream os;
+      os << "Temperature must be at least 0 K. But you request an absorption\n"
+         << "calculation at " << min(abs_t) << " K!"; 
+      throw runtime_error(os.str());
+    }
+
   // Check that all paramters that should have the number of tag
   // groups as a dimension are consistent.
   {
