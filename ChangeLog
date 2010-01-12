@@ -1,3 +1,17 @@
+2010-01-12  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-12-116
+
+	* includes/amsu/CMakeLists.txt, includes/hirs/CMakeLists.txt,
+	includes/mhs/CMakeLists.txt, includes/odin/CMakeLists.txt,
+	includes/CMakeLists.txt:
+
+	Added. Install include files into share/arts/includes.
+
+	* doc/uguide/CMakeLists.txt: Install uguide.pdf into share/doc/arts.
+
+	* CMakeLists.txt: Traverse into includes subdirectory.
+
 2010-01-07  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-12-115

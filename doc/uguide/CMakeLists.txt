@@ -44,5 +44,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER)
   set_directory_properties (PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
                             "${TEXCLEANFILES}")
 
+  install (FILES ${CMAKE_CURRENT_BINARY_DIR}/uguide.pdf DESTINATION share/doc/arts)
+
 endif (PDFLATEX_COMPILER AND BIBTEX_COMPILER)
 
