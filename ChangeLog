@@ -1,3 +1,32 @@
+2010-01-14  Oliver Lemke  <olemke(at)core-dump.info>
+
+	* arts-1-0-218
+
+	* Fix warnings by newer GCCs.
+
+	* src/m_wfs.cc, src/test_matpack.cc, src/array.h, src/main.cc,
+	src/matpackI.h, src/parameters.cc, src/m_los.cc, src/m_hdf.cc,
+	src/continua.cc, src/m_abs.cc, src/math_funcs.cc, src/wsv_aux.h,
+	src/make_auto_wsv_h.cc, src/matpackIII.h, src/mystring.h,
+	src/absorption.cc, src/lineshapes.cc, src/parser.cc, src/file.cc,
+	src/methods_aux.cc:
+
+	Add a whole bunch of explicit casts letting gcc know that we know what
+	we're doing. Avoids warnings about possibly altered values by implicit
+	conversions.
+
+	* src/matpackI.h, src/matpackIII.h, src/wsv_aux.h, src/mystring.h:
+
+	Remove spurious const from return type.
+
+	* src/parameters.cc: Include cstdio for EOF.
+
+	* src/continua.cc, src/lineshapes.cc:
+
+	Add () around + used inside <<. (e.g. (x+y)<<1)
+
+	* src/parser.cc: Add block around if.
+
 2009-12-14  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-0-217

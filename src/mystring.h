@@ -80,7 +80,7 @@ public:
 //   Index find(const my_basic_string<charT>&  c);
 
   // Index operators:
-  const char operator[](Index n) const;
+  char operator[](Index n) const;
   char& operator[](Index n);
 
   /** Define npos: */
@@ -186,7 +186,7 @@ inline Index my_basic_string<charT>::nelem() const
 { 
   size_t s = this->size();
   assert(s<LONG_MAX);
-  return static_cast<long>(s);
+  return static_cast<INDEX>(s);
 }
 
 // /** Find function for char.
@@ -233,7 +233,7 @@ inline Index my_basic_string<charT>::nelem() const
 /** Constant index operator. We redifine this here so that we can have
     range checking by assert. */
 template<class charT>
-inline const char my_basic_string<charT>::operator[](Index n) const
+inline char my_basic_string<charT>::operator[](Index n) const
 {
   assert(0<=n);
   assert(n<nelem());

@@ -238,7 +238,7 @@ void los_refraction(
   Vector   zv(np), pv(np); 
 
   // Double is used here instead of Numeric to avoid nuerical problems
-  const double l = l_step / refr_lfac;   // Step length of ray tracing
+  const double l = l_step / (double)refr_lfac;   // Step length of ray tracing
   Index    i = refr_lfac;                // Ray tracing step counter
   double   z1;                           // Old altitude of the LOS
   double   z2 = z_plat;                  // New altitude of the LOS
@@ -545,7 +545,7 @@ void los_1za(
       {
         // Calculate a first LOS from the tangent point and up to the sensor
         // using l_step/refr_lfac as step length
-        Numeric   l = l_step / refr_lfac;
+        Numeric   l = l_step / (Numeric)refr_lfac;
         los_refraction( z, psi, l, z_tan, 90.0, z_plat+l, r_geoid, 
                                         p_abs, z_abs, refr, 1, refr_index, c );
 
@@ -553,7 +553,7 @@ void los_1za(
         // the sensor by an interpolation
         {
           Vector ls;
-          linspace( ls, 0, l*(z.nelem()-1) , l );
+          linspace( ls, 0, l*(Numeric)(z.nelem()-1) , l );
           l1 = interp_lin( z, ls, z_plat );
         }
 
@@ -624,7 +624,7 @@ void los_1za(
         za_g = RAD2DEG * asin( c / ( (r_geoid+z_ground) * 
                   n_for_z( z_ground, p_abs, z_abs, refr_index, atm_limit ) ) );
 
-        Numeric   l = l_step / refr_lfac;
+        Numeric   l = l_step / (Numeric)refr_lfac;
         los_refraction( z, psi, l, z_ground, za_g, z_plat+l, r_geoid, 
                                         p_abs, z_abs, refr, 1, refr_index, c );
 
@@ -632,7 +632,7 @@ void los_1za(
         // the sensor by an interpolation
         {
           Vector ls;
-          linspace( ls, 0, l*(z.nelem()-1) , l );
+          linspace( ls, 0, l*(Numeric)(z.nelem()-1) , l );
           l1 = interp_lin( z, ls, z_plat );
         }
 
@@ -1249,7 +1249,7 @@ void zaFromDeltat(
 
     za.resize(n);
     for ( Index j=0;j<n;j++ )
-      za[j] = 90 + phi[0] - (j * ang_step);
+      za[j] = 90 + phi[0] - ((Numeric)j * ang_step);
   }
 
   // Refraction
@@ -1264,7 +1264,7 @@ void zaFromDeltat(
 
     // ztan altitudes for later doing the interpolation
     for ( Index j=0;j<n;j++ )
-      z_tan_1[j]=z_tan_lim[0]+j*ztanstep;
+      z_tan_1[j]=z_tan_lim[0]+(Numeric)j*ztanstep;
     
     // corresponding zenith angles
     String za_str = "za";
@@ -1294,7 +1294,7 @@ void zaFromDeltat(
     // corresponding psi (in that z_tan_lim[1]-z_tan_lim[0])
     Vector psit(np);
     for ( Index j=0;j<np;j++ )
-      psit[j]=psibot-j*ang_step;
+      psit[j]=psibot-(Numeric)j*ang_step;
  
 
     // ztan for psi for deltat from  psi and ztan for interpolation        

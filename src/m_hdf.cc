@@ -1249,7 +1249,7 @@ void binfile_write_String(
         const String&   s,
         const String&   dataname )
 {
-  const Index  n = s.length();
+  const Index  n = (Index)s.length();
 
   binfile_write( fid,  filename, dataname, "STRING", "CHAR", n, 1, 
                                                            (uint8*)s.c_str() );

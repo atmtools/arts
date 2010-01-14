@@ -147,7 +147,7 @@ void linspace(
     n=1;
   x.resize(n);
   for ( Index i=0; i<n; i++ )
-    x[i] = start + i*step;
+    x[i] = start + (Numeric)i*step;
 }
 
 /** Linearly spaced vector with specified length. 
@@ -173,9 +173,9 @@ void nlinspace(
 {
   assert( 1<n );                // Number of points must be greatere 1.
   x.resize(n);
-  Numeric step = (stop-start)/(n-1) ;
+  Numeric step = (stop-start)/(Numeric)(n-1) ;
   for ( Index i=0; i<n; i++ )
-    x[i] = start + i*step;
+    x[i] = start + (Numeric)i*step;
 }
 
 //// nlogspace /////////////////////////////////////////////////////////////
@@ -209,10 +209,10 @@ void nlogspace(
 
   x.resize(n);
   Numeric a = log(start);
-  Numeric step = (log(stop)-a)/(n-1);
+  Numeric step = (log(stop)-a)/(Numeric)(n-1);
   x[0] = start;
   for ( Index i=1; i<n-1; i++ )
-    x[i] = exp(a + i*step);
+    x[i] = exp(a + (Numeric)i*step);
   x[n-1] = stop;
 }
 
@@ -279,7 +279,8 @@ Index interp_check( ConstVectorView  x,
   const Numeric lower_bound = x[0]   - 0.5*(x[1]-x[0]);
   const Numeric upper_bound = x[n-1] + 0.5*(x[n-1]-x[n-2]);
 
-  if ( (order*xi[0]<order*lower_bound) || (order*xi[ni-1]>order*upper_bound) ) 
+  if ( ((Numeric)order*xi[0]<(Numeric)order*lower_bound)
+       || ((Numeric)order*xi[ni-1]>(Numeric)order*upper_bound) ) 
     {
       ostringstream os;
       os << "Interpolation points must be not more than\n"
@@ -291,13 +292,13 @@ Index interp_check( ConstVectorView  x,
 
   for ( Index i=0; i<n-1; i++ )
   {
-    if ( order*x[i+1] < order*x[i] ) 
+    if ( (Numeric)order*x[i+1] < (Numeric)order*x[i] ) 
       throw runtime_error("Original interpolation grid must be ordered");
   }
 
   for ( Index i=0; i<ni-1; i++ )
   {
-    if ( order*xi[i+1] < order*xi[i] ) 
+    if ( (Numeric)order*xi[i+1] < (Numeric)order*xi[i] ) 
       throw runtime_error("Interpolation points must be ordered");
   }
 
@@ -344,7 +345,7 @@ void interp_lin_vector( VectorView       yi,
   for ( i=0; i<n; i++ )
   {
     // Find right place:
-    while ( j<nx-2 && order*x[j+1]<order*xi[i] )
+    while ( j<nx-2 && (Numeric)order*x[j+1]<(Numeric)order*xi[i] )
       {
         ++j;
       }
@@ -398,7 +399,7 @@ void interp_lin_matrix(
   for (Index i=0; i<n; i++ )
   {
     // Find right place:
-    while ( j<nx-2 && order*x[j+1]<order*xi[i] )
+    while ( j<nx-2 && (Numeric)order*x[j+1]<(Numeric)order*xi[i] )
       {
         ++j;
       }

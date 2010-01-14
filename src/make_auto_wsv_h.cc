@@ -110,7 +110,7 @@ int main()
             // to include the beginning of the verbatim
             // environment. Not earlier, because the first sentence
             // has a special meaning.
-            Index full_stop = s.find('.');
+            Index full_stop = (Index)s.find('.');
 
             // We have to check against the case that the point was
             // not found. In that case we set full_stop to the length

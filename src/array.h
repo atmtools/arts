@@ -116,7 +116,7 @@ inline Index Array<base>::nelem() const
 { 
   size_t s = this->size();
   assert(s<LONG_MAX);
-  return static_cast<long>(s);
+  return static_cast<INDEX>(s);
 }
 
 /** Constant index operator. We redifine this here so that we can have

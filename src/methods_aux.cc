@@ -98,7 +98,7 @@ ostream& MdRecord::PrintTemplate(ostream& os,
 
   for (Index i=0; i<Keywords().nelem(); ++i)
     {
-      os << "\t" << setw(maxsize)
+      os << "\t" << setw((int)maxsize)
          << Keywords()[i] << " = \n";
     }
 

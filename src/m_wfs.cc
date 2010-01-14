@@ -2590,7 +2590,7 @@ void wfs_tgsDefine(// WS Output:
       String these_tags = tags[i];
       while (go_on)
 	{
-	  Index n = these_tags.find(',');
+	  Index n = (Index)these_tags.find(',');
 	  if ( n == these_tags.npos ) // npos indicates `not found'
 	    {
 	      // There are no more commas.
@@ -2666,7 +2666,7 @@ void wfss_tgsDefine(// WS Output:
       String these_tags = tags[i];
       while (go_on)
 	{
-	  Index n = these_tags.find(',');
+	  Index n = (Index)these_tags.find(',');
 	  if ( n == these_tags.npos ) // npos indicates `not found'
 	    {
 	      // There are no more commas.

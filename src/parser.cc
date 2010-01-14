@@ -432,19 +432,21 @@ void read_numeric(String& res, SourceText& text)
       res += ".";
       text.AdvanceChar();
       if ( text.LineBreak() )
-        if (found_digit)
-          {
-            // Line break ends scanning immediately, if we have
-            // already found at least one digit.
-            return;
-          }
-        else
-          {
-            throw IllegalLinebreak("Expected at least one digit.",
-                                   text.File(),
-                                   text.Line(),
-                                   text.Column());
-          }
+        {
+          if (found_digit)
+            {
+              // Line break ends scanning immediately, if we have
+              // already found at least one digit.
+              return;
+            }
+          else
+            {
+              throw IllegalLinebreak("Expected at least one digit.",
+                                     text.File(),
+                                     text.Line(),
+                                     text.Column());
+            }
+        }
 
       // ... followed by optional more digits
       stop = false;

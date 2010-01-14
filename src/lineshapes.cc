@@ -296,7 +296,7 @@ void lineshape_voigt_kuntz6(Vector&       ls,
   // frequency in units of Doppler 
   for (i1=0; i1< (int) nf; i1++)
     {
-      x[i1] = (f_mono[i1] - f0) / sigma;
+      x[(Index)i1] = (f_mono[(Index)i1] - f0) / sigma;
     }
 
   /* Parameter adjustments */
@@ -331,7 +331,7 @@ void lineshape_voigt_kuntz6(Vector&       ls,
   bmin = stack[stackp + 39];
   bmax = stack[stackp + 59];
   if (bmin == bmax) {
-    if (x[imax-1] < 0.f) {
+    if (x[(Index)imax-1] < 0.f) {
       /* Computing MIN */
       i__1 = imin, i__2 = lauf[bmin - 1];
       lauf[bmin - 1] = min(i__1,i__2);
@@ -340,7 +340,7 @@ void lineshape_voigt_kuntz6(Vector&       ls,
       lauf[bmax + 3] = max(i__1,i__2);
       --stackp;
       goto L3;
-    } else if (x[imin-1] >= 0.f) {
+    } else if (x[(Index)imin-1] >= 0.f) {
       /* Computing MIN */
       i__1 = imin, i__2 = lauf[bmin + 7];
       lauf[bmin + 7] = min(i__1,i__2);
@@ -354,13 +354,13 @@ void lineshape_voigt_kuntz6(Vector&       ls,
   imitte = (imax + imin) / 2;
   stack[stackp - 1] = imitte + 1;
   stack[stackp + 19] = imax;
-  stack[stackp + 39] = bfun6_(y, x[imitte]);
+  stack[stackp + 39] = bfun6_(y, x[(Index)imitte]);
   stack[stackp + 59] = bmax;
   ++stackp;
   stack[stackp - 1] = imin;
   stack[stackp + 19] = imitte;
   stack[stackp + 39] = bmin;
-  stack[stackp + 59] = bfun6_(y, x[imitte-1]);
+  stack[stackp + 59] = bfun6_(y, x[(Index)imitte-1]);
  L3:
   if (stackp > 0) {
     goto L2;
@@ -455,10 +455,10 @@ void lineshape_voigt_kuntz6(Vector&       ls,
     }
     ym2 = y * 2;
     for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1 << 2) - 1];
+      i__1 = lauf[((i2 + 1) << 2) - 1];
       for (i1 = lauf[(i2 << 2) - 1]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
+        x2 = x[(Index)i1-1] * x[(Index)i1-1];
+        ls[(Index)i1-1] = fac * (exp(y2 - x2) * cos(x[(Index)i1-1] * ym2) - (a7 + x2 *
                          (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
                         * (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
                         x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
@@ -498,10 +498,10 @@ void lineshape_voigt_kuntz6(Vector&       ls,
       e6 = y * (y * 5.f + 13.3988f) + 1.49645f;
     }
     for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1 << 2) - 2];
+      i__1 = lauf[((i2 + 1) << 2) - 2];
       for (i1 = lauf[(i2 << 2) - 2]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
+        x2 = x[(Index)i1-1] * x[(Index)i1-1];
+        ls[(Index)i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
                         e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
                         e6 + x2)))));
         /* L5: */
@@ -524,10 +524,10 @@ void lineshape_voigt_kuntz6(Vector&       ls,
       d4 = y2 * 4.f - 6.f;
     }
     for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1 << 2) - 3];
+      i__1 = lauf[((i2 + 1) << 2) - 3];
       for (i1 = lauf[(i2 << 2) - 3]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
+        x2 = x[(Index)i1-1] * x[(Index)i1-1];
+        ls[(Index)i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
                         + x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
         /* L6: */
       }
@@ -546,11 +546,11 @@ void lineshape_voigt_kuntz6(Vector&       ls,
 
     c1 = fac * a1;
     for (i2 = 1; i2 <= 3; i2 += 2) {
-      i__1 = lauf[(i2 + 1 << 2) - 4];
+      i__1 = lauf[((i2 + 1) << 2) - 4];
       for (i1 = lauf[(i2 << 2) - 4]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
+        x2 = x[(Index)i1-1] * x[(Index)i1-1];
         b2 = b1 - x2;
-        ls[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
+        ls[(Index)i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
         /* L8: */
       }
     }
@@ -710,7 +710,7 @@ void lineshape_voigt_kuntz3(Vector&       ls,
   // frequency in units of Doppler 
   for (i1=0; i1< (int) nf; i1++)
     {
-      x[i1] = (f_mono[i1] - f0) / sigma;
+      x[(Index)i1] = (f_mono[(Index)i1] - f0) / sigma;
     }
 
 
@@ -746,7 +746,7 @@ void lineshape_voigt_kuntz3(Vector&       ls,
   bmin = stack[stackp + 39];
   bmax = stack[stackp + 59];
   if (bmin == bmax) {
-    if (x[imax-1] < 0.f) {
+    if (x[(Index)imax-1] < 0.f) {
       /* Computing MIN */
       i__1 = imin, i__2 = lauf[bmin];
       lauf[bmin] = min(i__1,i__2);
@@ -755,7 +755,7 @@ void lineshape_voigt_kuntz3(Vector&       ls,
       lauf[bmax + 5] = max(i__1,i__2);
       --stackp;
       goto L3;
-    } else if (x[imin-1] >= 0.f) {
+    } else if (x[(Index)imin-1] >= 0.f) {
       /* Computing MIN */
       i__1 = imin, i__2 = lauf[bmin + 10];
       lauf[bmin + 10] = min(i__1,i__2);
@@ -769,13 +769,13 @@ void lineshape_voigt_kuntz3(Vector&       ls,
   imitte = (imax + imin) / 2;
   stack[stackp - 1] = imitte + 1;
   stack[stackp + 19] = imax;
-  stack[stackp + 39] = bfun3_(y, x[imitte]);
+  stack[stackp + 39] = bfun3_(y, x[(Index)imitte]);
   stack[stackp + 59] = bmax;
   ++stackp;
   stack[stackp - 1] = imin;
   stack[stackp + 19] = imitte;
   stack[stackp + 39] = bmin;
-  stack[stackp + 59] = bfun3_(y, x[imitte-1]);
+  stack[stackp + 59] = bfun3_(y, x[(Index)imitte-1]);
  L3:
   if (stackp > 0) {
     goto L2;
@@ -818,8 +818,8 @@ void lineshape_voigt_kuntz3(Vector&       ls,
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 1];
       for (i1 = lauf[i2 * 5 - 1]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
+        x2 = x[(Index)i1-1] * x[(Index)i1-1];
+        ls[(Index)i1-1] = fac * (exp(y2 - x2) * cos(x[(Index)i1-1] * ym2) - (a7 + x2 *
                          (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
                         * (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
                         x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
@@ -861,8 +861,8 @@ void lineshape_voigt_kuntz3(Vector&       ls,
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 2];
       for (i1 = lauf[i2 * 5 - 2]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
+        x2 = x[(Index)i1-1] * x[(Index)i1-1];
+        ls[(Index)i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
                         e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
                         e6 + x2)))));
         /* L5: */
@@ -887,8 +887,8 @@ void lineshape_voigt_kuntz3(Vector&       ls,
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 3];
       for (i1 = lauf[i2 * 5 - 3]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
+        x2 = x[(Index)i1-1] * x[(Index)i1-1];
+        ls[(Index)i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
                         + x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
         /* L6: */
       }
@@ -908,9 +908,9 @@ void lineshape_voigt_kuntz3(Vector&       ls,
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 4];
       for (i1 = lauf[i2 * 5 - 4]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
+        x2 = x[(Index)i1-1] * x[(Index)i1-1];
         b2 = b1 - x2;
-        ls[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
+        ls[(Index)i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
         /* L7: */
       }
     }
@@ -928,7 +928,7 @@ L8:
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 5];
       for (i1 = lauf[i2 * 5 - 5]; i1 <= i__1; ++i1) {
-        ls[i1-1] = b0 / (x[i1-1] * x[i1-1] + y2);
+        ls[(Index)i1-1] = b0 / (x[(Index)i1-1] * x[(Index)i1-1] + y2);
         /* L9: */
       }
     }
@@ -1084,7 +1084,7 @@ void lineshape_voigt_kuntz4(Vector&       ls,
   // frequency in units of Doppler 
   for (i1=0; i1< (int) nf; i1++)
     {
-      x[i1] = (f_mono[i1] - f0) / sigma;
+      x[(Index)i1] = (f_mono[(Index)i1] - f0) / sigma;
     }
 
 
@@ -1120,7 +1120,7 @@ void lineshape_voigt_kuntz4(Vector&       ls,
   bmin = stack[stackp + 39];
   bmax = stack[stackp + 59];
   if (bmin == bmax) {
-    if (x[imax-1] < 0.f) {
+    if (x[(Index)imax-1] < 0.f) {
       /* Computing MIN */
       i__1 = imin, i__2 = lauf[bmin];
       lauf[bmin] = min(i__1,i__2);
@@ -1129,7 +1129,7 @@ void lineshape_voigt_kuntz4(Vector&       ls,
       lauf[bmax + 5] = max(i__1,i__2);
       --stackp;
       goto L3;
-    } else if (x[imin-1] >= 0.f) {
+    } else if (x[(Index)imin-1] >= 0.f) {
       /* Computing MIN */
       i__1 = imin, i__2 = lauf[bmin + 10];
       lauf[bmin + 10] = min(i__1,i__2);
@@ -1143,13 +1143,13 @@ void lineshape_voigt_kuntz4(Vector&       ls,
   imitte = (imax + imin) / 2;
   stack[stackp - 1] = imitte + 1;
   stack[stackp + 19] = imax;
-  stack[stackp + 39] = bfun4_(y, x[imitte]);
+  stack[stackp + 39] = bfun4_(y, x[(Index)imitte]);
   stack[stackp + 59] = bmax;
   ++stackp;
   stack[stackp - 1] = imin;
   stack[stackp + 19] = imitte;
   stack[stackp + 39] = bmin;
-  stack[stackp + 59] = bfun4_(y, x[imitte-1]);
+  stack[stackp + 59] = bfun4_(y, x[(Index)imitte-1]);
  L3:
   if (stackp > 0) {
     goto L2;
@@ -1157,8 +1157,8 @@ void lineshape_voigt_kuntz4(Vector&       ls,
   /* ---- Region 4 */
   /* -------------------------------------------------------------------- */
   if (lauf[9] >= lauf[4] || lauf[19] >= lauf[14]) {
-    if ((r__1 = y - yps4, fabs(r__1)) > 1e-8f) {
-      yps4 = y;
+    if ((r__1 = (float)y - yps4, fabs(r__1)) > 1e-8f) {
+      yps4 = (float)y;
       a7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
                     y2 * (y2 * (y2 * (2.35944f - y2 * .56419f) - 72.9359f) + 
                     571.687f) - 5860.68f) + 40649.2f) - 320772.f) + 1684100.f)
@@ -1246,8 +1246,8 @@ void lineshape_voigt_kuntz4(Vector&       ls,
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 1];
       for (i1 = lauf[i2 * 5 - 1]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
+        x2 = x[(Index)i1-1] * x[(Index)i1-1];
+        ls[(Index)i1-1] = fac * (exp(y2 - x2) * cos(x[(Index)i1-1] * ym2) - (a7 + x2 *
                          (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
                         * (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
                         x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
@@ -1261,8 +1261,8 @@ void lineshape_voigt_kuntz4(Vector&       ls,
   /* ---- Region 3 */
   /* -------------------------------------------------------------------- */
   if (lauf[8] >= lauf[3] || lauf[18] >= lauf[13]) {
-    if ((r__1 = y - yps3, fabs(r__1)) > 1e-8f) {
-      yps3 = y;
+    if ((r__1 = (float)y - yps3, fabs(r__1)) > 1e-8f) {
+      yps3 = (float)y;
       a5 = y * (y * (y * (y * (y * (y * (y * (y * (y * 
                     .564224f + 7.55895f) + 49.5213f) + 204.501f) + 581.746f) 
                     + 1174.8f) + 1678.33f) + 1629.76f) + 973.778f) + 272.102f;
@@ -1289,8 +1289,8 @@ void lineshape_voigt_kuntz4(Vector&       ls,
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 2];
       for (i1 = lauf[i2 * 5 - 2]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
+        x2 = x[(Index)i1-1] * x[(Index)i1-1];
+        ls[(Index)i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
                         e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
                         e6 + x2)))));
         /* L5: */
@@ -1300,8 +1300,8 @@ void lineshape_voigt_kuntz4(Vector&       ls,
   /* ---- Region 2 */
   /* -------------------------------------------------------------------- */
   if (lauf[7] >= lauf[2] || lauf[17] >= lauf[12]) {
-    if ((r__1 = y - yps2, fabs(r__1)) > 1e-8f) {
-      yps2 = y;
+    if ((r__1 = (float)y - yps2, fabs(r__1)) > 1e-8f) {
+      yps2 = (float)y;
       a3 = y * (y2 * (y2 * (y2 * .56419f + 3.10304f) + 4.65456f) + 
                     1.05786f);
       b3 = y * (y2 * (y2 * 1.69257f + .56419f) + 2.962f);
@@ -1315,8 +1315,8 @@ void lineshape_voigt_kuntz4(Vector&       ls,
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 3];
       for (i1 = lauf[i2 * 5 - 3]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
-        ls[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
+        x2 = x[(Index)i1-1] * x[(Index)i1-1];
+        ls[(Index)i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
                         + x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
         /* L6: */
       }
@@ -1325,8 +1325,8 @@ void lineshape_voigt_kuntz4(Vector&       ls,
   /* ---- Region 1 */
   /* -------------------------------------------------------------------- */
   if (lauf[6] >= lauf[1] || lauf[16] >= lauf[11]) {
-    if ((r__1 = y - yps1, fabs(r__1)) > 1e-8f) {
-      yps1 = y;
+    if ((r__1 = (float)y - yps1, fabs(r__1)) > 1e-8f) {
+      yps1 = (float)y;
       a1 = y * .5641896f;
       b1 = y2 + .5f;
       a2 = y2 * 4;
@@ -1336,9 +1336,9 @@ void lineshape_voigt_kuntz4(Vector&       ls,
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 4];
       for (i1 = lauf[i2 * 5 - 4]; i1 <= i__1; ++i1) {
-        x2 = x[i1-1] * x[i1-1];
+        x2 = x[(Index)i1-1] * x[(Index)i1-1];
         b2 = b1 - x2;
-        ls[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
+        ls[(Index)i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
         /* L7: */
       }
     }
@@ -1347,8 +1347,8 @@ void lineshape_voigt_kuntz4(Vector&       ls,
   /* -------------------------------------------------------------------- */
  L8:
   if (lauf[5] >= lauf[0] || lauf[15] >= lauf[10]) {
-    if ((r__1 = y - yps0, fabs(r__1)) > 1e-8f) {
-      yps0 = y;
+    if ((r__1 = (float)y - yps0, fabs(r__1)) > 1e-8f) {
+      yps0 = (float)y;
       a0 = y * .5641896f;
     }
 
@@ -1356,7 +1356,7 @@ void lineshape_voigt_kuntz4(Vector&       ls,
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 5];
       for (i1 = lauf[i2 * 5 - 5]; i1 <= i__1; ++i1) {
-        ls[i1-1] = b0 / (x[i1-1] * x[i1-1] + y2);
+        ls[(Index)i1-1] = b0 / (x[(Index)i1-1] * x[(Index)i1-1] + y2);
         /* L9: */
       }
     }

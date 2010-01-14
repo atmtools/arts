@@ -42,7 +42,7 @@ public:
   // Operators:
   Iterator3D& operator++();
   bool operator!=(const Iterator3D& other) const;
-  MatrixView* const operator->();
+  MatrixView* operator->();
   MatrixView& operator*();
   
 private:
@@ -314,7 +314,7 @@ inline bool Iterator3D::operator!=(const Iterator3D& other) const
 
 /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
-inline MatrixView* const Iterator3D::operator->()
+inline MatrixView* Iterator3D::operator->()
 {
   return &msv;
 }

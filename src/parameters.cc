@@ -27,6 +27,7 @@
 
 #include "arts.h"
 #include <getopt.h>
+#include <cstdio>
 #include "parameters.h"
 
 /// Holds the command line parameters.
@@ -145,8 +146,7 @@ bool get_parameters(int argc, char **argv)
     int i=0;
     while (NULL != longopts[i].name )
       {
-        // FIXME: Should there be a cast here? The real type of val is int.
-        char c = longopts[i].val;
+        char c = (char)longopts[i].val;
         shortopts += c;
         //      cout << "name = " << longopts[i].name << "\n";
         //      cout << "val  = " << longopts[i].val << "\n";

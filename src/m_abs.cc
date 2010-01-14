@@ -457,9 +457,10 @@ void lines_per_tgReadFromCatalogues(// WS Output:
           // name in the real_catalogues. Find returns an iterator, so
           // to get an index we have to take the difference to
           // .begin(). 
-          const Index that_cat = find( real_filenames.begin(),
-                                        real_filenames.end(),
-                                        filenames[i] ) - real_filenames.begin();
+          const Index that_cat =
+            (Index)(find( real_filenames.begin(),
+                          real_filenames.end(),
+                          filenames[i] ) - real_filenames.begin());
           if ( that_cat < real_filenames.nelem() )
             {
               // Yes, it has been specified before
@@ -918,7 +919,7 @@ void tgsDefine(// WS Output:
       String these_tags = tags[i];
       while (go_on)
         {
-          Index n = these_tags.find(',');
+          Index n = (Index)these_tags.find(',');
           if ( n == these_tags.npos ) // npos indicates `not found'
             {
               // There are no more commas.
@@ -1659,7 +1660,7 @@ void hseSetFromLatitudeIndex(
 {
 
   /* check index range */
-  check_if_in_range( 0, p_abs.nelem()-1, index, "index" );
+  check_if_in_range( 0, (Numeric)p_abs.nelem()-1, (Numeric)index, "index" );
 
   hse.resize( 5 );
   
@@ -2609,9 +2610,9 @@ void xsec_per_tgAddConts(// WS Output:
                   // this, the model name must be listed in
                   // cont_description_names.
                   const Index n =
-                    find( cont_description_names.begin(),
-                          cont_description_names.end(),
-                          name ) - cont_description_names.begin();
+                    (Index)(find( cont_description_names.begin(),
+                                  cont_description_names.end(),
+                                  name ) - cont_description_names.begin());
 
                   // n==cont_description_names.nelem() indicates that
                   // the name was not found.

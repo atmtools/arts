@@ -241,11 +241,11 @@ void read_text_from_file(ArrayOfString& text, const String& name)
     @author Stefan Buehler */
 void replace_all(String& s, const String& what, const String& with)
 {
-  Index j = s.find(what);
+  Index j = (Index)s.find(what);
   while ( j != s.npos )
     {
       s.replace(j,1,with);
-      j = s.find(what,j+with.size());
+      j = (Index)s.find(what,j+with.size());
     }
 }
 
@@ -293,7 +293,7 @@ void write_array_of_matrix_to_stream(ostream& os,
       // Number of elements:
       os << am[i].nrows() << ' ' << am[i].ncols() << '\n';
 
-      os << setprecision(precision);
+      os << setprecision((int)precision);
       // Write the elements:
       for (Index r=0; r<am[i].nrows(); ++r)
         {

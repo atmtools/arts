@@ -342,7 +342,7 @@ public:
   // Operators:
   Iterator2D& operator++();
   bool operator!=(const Iterator2D& other) const;
-  VectorView* const operator->();
+  VectorView* operator->();
   VectorView& operator*();
   
 private:
@@ -857,7 +857,7 @@ inline bool Iterator2D::operator!=(const Iterator2D& other) const
 
 /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
-inline VectorView* const Iterator2D::operator->()
+inline VectorView* Iterator2D::operator->()
 {
   return &msv;
 }

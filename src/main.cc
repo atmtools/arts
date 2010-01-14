@@ -79,7 +79,7 @@ void executor(WorkSpace& workspace, const Array<MRecord>& tasklist)
   extern const Array<WsvRecord> wsv_data;
   
   // The array holding the pointers to the getaway functions:
-  extern const void (*getaways[])(WorkSpace&, const MRecord&);
+  extern void (*getaways[])(WorkSpace&, const MRecord&);
 
   // We need a place to remember which workspace variables are
   // occupied and which aren't.
@@ -319,9 +319,9 @@ void option_methods(const String& methods)
   // returns an iterator, so to get the index we take the
   // difference to the begin() iterator.
   Index group_key =
-    find( wsv_group_names.begin(),
+    (Index)(find( wsv_group_names.begin(),
           wsv_group_names.end(),
-          methods ) - wsv_group_names.begin();
+          methods ) - wsv_group_names.begin());
 
   // group_key == wsv_goup_names.nelem() indicates that a
   // group with this name was not found.
@@ -452,9 +452,9 @@ void option_input(const String& input)
   // returns an iterator, so to get the index we take the
   // difference to the begin() iterator.
   Index group_key =
-    find( wsv_group_names.begin(),
+    (Index)(find( wsv_group_names.begin(),
           wsv_group_names.end(),
-          input ) - wsv_group_names.begin();
+          input ) - wsv_group_names.begin());
 
   // group_key == wsv_goup_names.nelem() indicates that a
   // group with this name was not found.

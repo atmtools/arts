@@ -87,7 +87,7 @@ ostream& operator << (ostream& os, const LineRecord& lr)
   os << "@"
      << " " << lr.Name  ()
      << " "
-     << setprecision(precision)
+     << setprecision((int)precision)
      <<        lr.F     ()
      << " " << lr.Psf   ()
      << " " << lr.I0    ()
@@ -327,7 +327,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 
               // Check if data record has the right number of characters for the
               // in Hitran 1986-2001 format
-              Numeric nChar = line.nelem() + 2; // number of characters in data record;
+              Index nChar = line.nelem() + 2; // number of characters in data record;
               if ( nChar != 100 )
                 {
                   ostringstream os;
@@ -777,7 +777,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is)
               
               // Check if data record has the right number of characters for the
               // in Hitran 2004 format
-              Numeric nChar = line.nelem() + 2; // number of characters in data record;
+              Index nChar = line.nelem() + 2; // number of characters in data record;
               if ( nChar != 160 )
                 {
                   ostringstream os;
@@ -1930,7 +1930,7 @@ OneTag::OneTag(String def)
     
 
   // Extract the species name:
-  n    = def.find('-');    // find the '-'
+  n    = (Index)def.find('-');    // find the '-'
   if (n != def.npos )
     {
       name = def.substr(0,n);      // Extract before '-'
@@ -1977,7 +1977,7 @@ OneTag::OneTag(String def)
     }
     
   // Extract the isotope name:
-  n    = def.find('-');    // find the '-'
+  n    = (Index)def.find('-');    // find the '-'
   if (n != def.npos )
     {
       isoname = def.substr(0,n);          // Extract before '-'
@@ -2008,9 +2008,9 @@ OneTag::OneTag(String def)
       // Use the find algorithm from the STL to find the isotope ID. It
       // returns an iterator, so to get the index we take the
       // difference to the begin() iterator.
-      misotope = find( ins.begin(),
+      misotope = (Index)(find( ins.begin(),
                        ins.end(),
-                       isoname ) - ins.begin();
+                       isoname ) - ins.begin());
 
       // Check if we found a matching isotope:
       if ( misotope >= ins.nelem() ) 
@@ -2038,7 +2038,7 @@ OneTag::OneTag(String def)
   // Look for the two frequency limits:
   
   // Extract first frequency
-  n    = def.find('-');    // find the '-'
+  n    = (Index)def.find('-');    // find the '-'
   if (n != def.npos )
     {
       // Frequency as a String:
@@ -2126,7 +2126,7 @@ String OneTag::Name() const
     }
   else
     {
-      os << setprecision(precision);
+      os << setprecision((int)precision);
       os << mlf << "-";
     }
 
@@ -2137,7 +2137,7 @@ String OneTag::Name() const
     }
   else
     {
-      os << setprecision(precision);
+      os << setprecision((int)precision);
       os << muf;
     }
 
