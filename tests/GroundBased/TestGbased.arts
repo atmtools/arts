@@ -209,7 +209,7 @@ NumericScale( f1, f1, -1 )
 
 AntennaOff
 sensor_responseInit
-sensor_responseBackendFrequencySwitch( sensor_response, sensor_response_f,
+sensor_responseBackendFrequencySwitching( sensor_response, sensor_response_f,
      sensor_response_pol, sensor_response_za, sensor_response_aa, 
      sensor_response_f_grid, sensor_response_pol_grid, sensor_response_za_grid,
      sensor_response_aa_grid, f_backend, backend_channel_response, sensor_norm,

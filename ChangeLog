@@ -1,3 +1,18 @@
+2010-02-01  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-117
+
+	* src/m_sensor.cc (sensor_responseBackendFrequencySwitching): 
+	Changed end of name from Switch to Switching, to be consistent
+	with BeamSwitching. Improved text for on-line doc.
+
+	(sensor_responseFrequencySwitching): Created. To complement the
+	WSM above, to also handle DSB observations (as now done at
+	Onsala). Can be seen as a "backend" to
+	sensor_responseMultiMixerBackend.
+
+	(sensor_responseBeamSwitching): Polishing of text for on-line doc.
+
 2010-01-12  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-116

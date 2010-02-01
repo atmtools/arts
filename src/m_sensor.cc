@@ -1082,7 +1082,7 @@ void sensor_responseBackend(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_responseBackendFrequencySwitch(
+void sensor_responseBackendFrequencySwitching(
                  Sparse&   sensor_response,
                  Vector&   sensor_response_f,
            ArrayOfIndex&   sensor_response_pol,
@@ -1198,13 +1198,88 @@ void sensor_responseBeamSwitching(
   sensor_response_za_grid.resize(1);
   sensor_response_za_grid[0] = za;
 
-  // Update sensor_response_za_grid
+  // Update sensor_response_aa_grid
   if( sensor_response_aa_grid.nelem() > 0 )
     {
       const Numeric aa = sensor_response_aa_grid[1];
       sensor_response_aa_grid.resize(1);
       sensor_response_aa_grid[0] = aa;
     }
+
+  // Set aux variables
+  sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
+                      sensor_response_za,      sensor_response_aa, 
+                      sensor_response_f_grid,  sensor_response_pol_grid, 
+                      sensor_response_za_grid, sensor_response_aa_grid, 0 );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responseFrequencySwitching(
+   // WS Output:
+               Sparse&   sensor_response,
+               Vector&   sensor_response_f,
+         ArrayOfIndex&   sensor_response_pol,
+               Vector&   sensor_response_za,
+               Vector&   sensor_response_aa,
+               Vector&   sensor_response_f_grid,
+   // WS Input:
+   const ArrayOfIndex&   sensor_response_pol_grid,
+         const Vector&   sensor_response_za_grid,
+         const Vector&   sensor_response_aa_grid )
+{
+  if( sensor_response_za_grid.nelem() != 1 )
+    throw runtime_error( 
+       "This method requires that the number of observation directions is 1." );
+
+  if( sensor_response_pol_grid.nelem() != 1 )
+    throw runtime_error( 
+               "This method handles (so far) only single polarisation cases." );
+
+  const Index n  = sensor_response_f_grid.nelem();
+  const Index n2 = n/2;
+
+  if( sensor_response.nrows() != n )
+    throw runtime_error( "Assumptions of method are not fulfilled, "
+                         "considering number of rows in *sensor_response* "
+                         "and length of *sensor_response_f_grid*." );
+
+  if( !is_multiple(n,2) )
+    throw runtime_error( "There is an odd number of total frequencies, "
+                         "which is not consistent with the assumptions of "
+                         "the method." );
+
+
+  // Form H matrix representing frequency switching
+  Sparse Hbswitch( n2, n );
+  Vector hrow( n, 0.0 );
+  //
+  for( Index i=0; i<n2; i++ )
+    {
+      hrow[i]    = -1;
+      hrow[i+n2] = 1;
+      //
+      Hbswitch.insert_row( i, hrow );
+      //
+      hrow = 0;
+    }
+
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse Htmp = sensor_response;
+  sensor_response.resize( Hbswitch.nrows(), Htmp.ncols() );
+  mult( sensor_response, Hbswitch, Htmp );
+
+  // Some extra output.
+  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
+       << "x" << sensor_response.ncols() << "\n";
+
+  // Update sensor_response_f_grid
+  const Vector f = sensor_response_f_grid;
+  sensor_response_f_grid.resize(n2);
+  sensor_response_f_grid = f[Range(n2,n2)];
 
   // Set aux variables
   sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 

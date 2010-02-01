@@ -6999,13 +6999,16 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "sensor_responseBackendFrequencySwitch" ),
+      ( NAME( "sensor_responseBackendFrequencySwitching" ),
         DESCRIPTION
         (
-         "Includes response of a frequency switching backend (spectrometer).\n"
+         "Frequency switching for a pure SSB reciever.\n"
          "\n"
-         "The method has the same basic functionality as, and can replace,\n"
-         "*sensor_responseBackend*.\n"
+         "This function can be used for simulation of frequency switching.\n"
+         "That is, when the final spectrum is the difference of two spectra\n"
+         "shifted in frequency. The switching is performed by the LO, but\n" 
+         "for a pure singel sideband reciever this is most easily simulated\n"
+         "by instead shifting the backend, as done here.\n"
          "\n"
          "A strightforward frequency switching is modelled (no folding)\n"
          "The channel positions for the first measurement cycle are\n"
@@ -7013,6 +7016,11 @@ void define_md_data_raw()
          "measurement cycle is given the negive weight. That is, the output\n"
          "is the spectrum for cycle2 minus the spectrum for cycle1.\n"
          "Output frequency grids are set to *f_backend*.\n"
+         "\n"
+         "Use *sensor_responseFrequencySwitching* for double sideband cases.\n"
+         "\n"
+         "The method has the same general functionality as, and can replace,\n"
+         "*sensor_responseBackend*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
@@ -7026,7 +7034,7 @@ void define_md_data_raw()
             "sensor_response_f_grid", "sensor_response_pol_grid", 
             "sensor_response_za_grid", "sensor_response_aa_grid",
             "f_backend", "backend_channel_response", "sensor_norm" ),
-        GIN(    "df_1", "fdf2" ),
+        GIN(    "df_1", "df2" ),
         GIN_TYPE(   "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Frequency throw for cycle1.", "Frequency throw for cycle2.")
@@ -7037,18 +7045,18 @@ void define_md_data_raw()
       ( NAME( "sensor_responseBeamSwitching" ),
         DESCRIPTION
         (
-         "Calculates the difference spectrum: Beam switching\n"
+         "Simulation of \"beam switching\".\n"
          "\n"
-         "The method allows to mimic beam switching. The measurement procedure\n"
-         "is based on taking the difference of two spectra and the calculation\n"
+         "The measurement procedure is based on taking the difference between\n"
+         "two spectra measured in different directions, and the calculation\n"
          "set-up must treat exactly two observation directions.\n"
          "\n"
          "The returned spectrum is y = w1*y + w2*y2, where y1 and w1 are the\n"
          "spectrum and weight for the first direction, respectively (y2 and\n"
          "(w2 defined correspondingly for the second direction).\n"
          "\n"
-         "Zenith and azimuth angles after beam switching are set to the values\n"
-         "of the second direction.\n"
+         "Zenith and azimuth angles after beam switching are set to the\n"
+         "values of the second direction.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
@@ -7058,15 +7066,52 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
-            "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
-            "sensor_response_pol_grid", "sensor_response_za_grid",
-            "sensor_response_aa_grid" ),
+            "sensor_response_za", "sensor_response_aa",
+            "sensor_response_f_grid", "sensor_response_pol_grid", 
+            "sensor_response_za_grid", "sensor_response_aa_grid" ),
         GIN( "w1", "w2" ),
         GIN_TYPE( "Numeric", "Numeric" ),
         GIN_DEFAULT( "-1", "1" ),
         GIN_DESC( "Weight for values from first viewing direction.", 
                   "Weight for values from second viewing direction." 
                   )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "sensor_responseFrequencySwitching" ),
+        DESCRIPTION
+        (
+         "Simulation of \"frequency switching\".\n"
+         "\n"
+         "A general method for frequency switching. The WSM\n"
+         "*sensor_responseBackendFrequencySwitching* gives a description of\n"
+         "this observation technique, and is also a more straightforward\n"
+         " method for pure singel sideband cases.\n"
+         "\n"
+         "It is here assume that *sensor_responseMultiMixerBackend* has been\n"
+         "used to calculate the spectrum for two LO positions. This method\n"
+         "calculates the difference between these two spectra, where the\n" 
+         "second spectrum gets weight 1 and the first weight -1 (as in\n"
+         "*sensor_responseBackendFrequencySwitching*).\n"
+         "\n"
+         "Output frequency grids are taken from the second spectrum..\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_f_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
+            "sensor_response_za", "sensor_response_aa", 
+            "sensor_response_f_grid", "sensor_response_pol_grid", 
+            "sensor_response_za_grid", "sensor_response_aa_grid" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
         ));
 
   md_data_raw.push_back
