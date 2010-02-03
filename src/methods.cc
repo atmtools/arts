@@ -7374,6 +7374,28 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "SparseSparseMultiply" ),
+        DESCRIPTION
+        (
+         "Multiplies a Sparse with another Sparse, result stored in Sparse.\n"
+         "\n"
+         "Makes the calculation gout: = gin1 * gin2\n"
+        ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "gout"       ),
+        GOUT_TYPE( "Sparse" ),
+        GOUT_DESC( "Product, can be same variable as any of the inputs." ),
+        IN(),
+        GIN(      "gin1"      , "gin2"       ),
+        GIN_TYPE(    "Sparse", "Sparse" ),
+        GIN_DEFAULT( NODEF   , NODEF    ),
+        GIN_DESC( "Left sparse matrix.",
+                  "Right sparse matrix." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "StringCreate" ),
         DESCRIPTION
         (

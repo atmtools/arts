@@ -331,6 +331,33 @@ void NumericSet(      Numeric&   x,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void SparseSparseMultiply(// WS Generic Output:
+                          Sparse& Y,
+                          // WS Generic Input:
+                          const Sparse& M,
+                          const Sparse& X)
+{
+  // Check that dimensions are right, M.ncols() must match X.nrows():
+  if (M.ncols()!=X.nrows())
+    {
+      ostringstream os;
+      os << "Matrix dimensions must be consistent!\n"
+         << "Matrix1.ncols() = " << M.ncols() << "\n"
+         << "Matrix2.nrows() = " << X.nrows();
+      throw runtime_error( os.str() );
+    }
+
+  // Temporary for the result:
+  Sparse dummy( M.nrows(), X.ncols() );
+
+  mult( dummy, M, X );
+
+  // Copy result to Y:
+  Y = dummy;
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void StringSet(           String&  s, 
                     const String&  s2 )
 {
