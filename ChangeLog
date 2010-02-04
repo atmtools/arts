@@ -1,3 +1,16 @@
+2010-02-04  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-12-119
+
+	* src/m_atmosphere.cc (AtmFieldsCalc): Added nice runtime error
+	checks, using the chk_interpolation_grids. Now gives runtime error
+	with detailed information on what is wrong, instead of an
+	assertion failure.
+
+	* doc/uguide/interpolation.tex (section{Grid checking functions}):
+	Added this new section with documentation on the
+	chk_interpolation_grids function.
+
 2010-02-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-118

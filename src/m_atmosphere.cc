@@ -453,12 +453,17 @@ void AtmFieldsCalc(//WS Output:
       z_field.resize(p_grid.nelem(), 1, 1);
       vmr_field.resize(vmr_field_raw.nelem(), p_grid.nelem(), 1, 1);
 
- 
       // Gridpositions:
       ArrayOfGridPos gp_p(p_grid.nelem());
   
       // Interpolate t_field:
       
+      // Check that interpolation grids are ok (and throw a detailed
+      // error message if not):
+      chk_interpolation_grids("Raw temperature to p_grid, 1D case",
+                              tfr_p_grid,
+                              p_grid);
+ 
       // Calculate grid positions:
       p2gridpos( gp_p, tfr_p_grid, p_grid );
 
@@ -474,6 +479,12 @@ void AtmFieldsCalc(//WS Output:
   
       // Interpolate z_field:
       
+      // Check that interpolation grids are ok (and throw a detailed
+      // error message if not):
+      chk_interpolation_grids("Raw z to p_grid, 1D case",
+                              zfr_p_grid,
+                              p_grid);
+
       // Calculate grid positions:
       p2gridpos( gp_p, zfr_p_grid, p_grid );
      
@@ -489,15 +500,23 @@ void AtmFieldsCalc(//WS Output:
       // Loop over the gaseous species:
       for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
         {
+          ostringstream os; 
+
           if( !( vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() == 1 &&
                  vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() == 1 ))
             {
-              ostringstream os; 
               os << "VMR data of the " << gas_i << "th species has "
                  << "wrong dimension (2D or 3D). \n";
               throw runtime_error( os.str() );
             }
           
+          // Check that interpolation grids are ok (and throw a detailed
+          // error message if not):
+          os << "Raw VMR[" << gas_i << "] to p_grid, 1D case";
+          chk_interpolation_grids(os.str(),
+                                  vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
+                                  p_grid);
+
           // Calculate grid positions:
           p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), p_grid);
           
@@ -535,6 +554,15 @@ void AtmFieldsCalc(//WS Output:
       
       // Interpolate t_field:
       
+      // Check that interpolation grids are ok (and throw a detailed
+      // error message if not):
+      chk_interpolation_grids("Raw temperature to p_grid, 2D case",
+                              tfr_p_grid,
+                              p_grid);
+      chk_interpolation_grids("Raw temperature to lat_grid, 2D case",
+                              tfr_lat_grid,
+                              lat_grid);
+
       // Calculate grid positions:
       p2gridpos( gp_p, tfr_p_grid, p_grid );
       gridpos( gp_lat, tfr_lat_grid, lat_grid );
@@ -550,6 +578,16 @@ void AtmFieldsCalc(//WS Output:
       
       
       // Interpolate z_field:
+
+      // Check that interpolation grids are ok (and throw a detailed
+      // error message if not):
+      chk_interpolation_grids("Raw z to p_grid, 2D case",
+                              zfr_p_grid,
+                              p_grid);
+      chk_interpolation_grids("Raw z to lat_grid, 2D case",
+                              zfr_lat_grid,
+                              lat_grid);
+
       // Calculate grid positions:
       p2gridpos( gp_p, zfr_p_grid, p_grid );
       gridpos( gp_lat, zfr_lat_grid, lat_grid );
@@ -566,6 +604,28 @@ void AtmFieldsCalc(//WS Output:
       // Loop over the gaseous species:
       for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
         {
+          ostringstream os; 
+
+          if( !( vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() != 1 &&
+                 vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() == 1 ))
+            {
+              os << "VMR data of the " << gas_i << "th species has "
+                 << "wrong dimension (1D or 3D). \n";
+              throw runtime_error( os.str() );
+            }
+
+          // Check that interpolation grids are ok (and throw a detailed
+          // error message if not):
+          os << "Raw VMR[" << gas_i << "] to p_grid, 2D case";
+          chk_interpolation_grids(os.str(),
+                                  vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
+                                  p_grid);
+          os.str("");
+          os << "Raw VMR[" << gas_i << "] to lat_grid, 2D case";
+          chk_interpolation_grids(os.str(),
+                                  vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID),
+                                  lat_grid);
+
           // Calculate grid positions:
           p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), p_grid);
           gridpos(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), lat_grid);
@@ -606,6 +666,18 @@ void AtmFieldsCalc(//WS Output:
       
       // Interpolate t_field:
       
+      // Check that interpolation grids are ok (and throw a detailed
+      // error message if not):
+      chk_interpolation_grids("Raw temperature to p_grid, 3D case",
+                              tfr_p_grid,
+                              p_grid);
+      chk_interpolation_grids("Raw temperature to lat_grid, 3D case",
+                              tfr_lat_grid,
+                              lat_grid);
+      chk_interpolation_grids("Raw temperature to lon_grid, 3D case",
+                              tfr_lon_grid,
+                              lon_grid);
+
       // Calculate grid positions:
       p2gridpos( gp_p, tfr_p_grid, p_grid );
       gridpos( gp_lat, tfr_lat_grid, lat_grid );
@@ -622,6 +694,18 @@ void AtmFieldsCalc(//WS Output:
       
       // Interpolate z_field:
       
+      // Check that interpolation grids are ok (and throw a detailed
+      // error message if not):
+      chk_interpolation_grids("Raw z to p_grid, 3D case",
+                              zfr_p_grid,
+                              p_grid);
+      chk_interpolation_grids("Raw z to lat_grid, 3D case",
+                              zfr_lat_grid,
+                              lat_grid);
+      chk_interpolation_grids("Raw z to lon_grid, 3D case",
+                              zfr_lon_grid,
+                              lon_grid);
+
       // Calculate grid positions:
       p2gridpos( gp_p, zfr_p_grid, p_grid );
       gridpos( gp_lat, zfr_lat_grid, lat_grid );
@@ -638,6 +722,33 @@ void AtmFieldsCalc(//WS Output:
       // Loop over the gaseous species:
       for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
         {
+          ostringstream os; 
+
+          if( !( vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID).nelem() != 1 &&
+                 vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID).nelem() != 1 ))
+            {
+              os << "VMR data of the " << gas_i << "th species has "
+                 << "wrong dimension (1D or 2D). \n";
+              throw runtime_error( os.str() );
+            }
+
+          // Check that interpolation grids are ok (and throw a detailed
+          // error message if not):
+          os << "Raw VMR[" << gas_i << "] to p_grid, 3D case";
+          chk_interpolation_grids(os.str(),
+                                  vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
+                                  p_grid);
+          os.str("");
+          os << "Raw VMR[" << gas_i << "] to lat_grid, 3D case";
+          chk_interpolation_grids(os.str(),
+                                  vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID),
+                                  lat_grid);
+          os.str("");
+          os << "Raw VMR[" << gas_i << "] to lon_grid, 3D case";
+          chk_interpolation_grids(os.str(),
+                                  vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID),
+                                  lon_grid);
+
           // Calculate grid positions:
           p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), p_grid);
           gridpos(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), lat_grid);
