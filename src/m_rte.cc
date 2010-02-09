@@ -2907,3 +2907,110 @@ void yCalc(
     }  // End mblock loop
 }
 
+
+
+void iyFOS(
+        Workspace&                  ws,
+        Matrix&                     iy,
+  const Vector&                     rte_pos,
+  const Vector&                     rte_los,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    z_field,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Matrix&                     r_geoid,
+  const Matrix&                     z_surface,
+  const Index&                      cloudbox_on,
+  const ArrayOfIndex&               cloudbox_limits,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Agenda&                     ppath_step_agenda,
+  const Agenda&                     emission_agenda,
+  const Agenda&                     abs_scalar_agenda,
+  const Agenda&                     iy_clearsky_agenda )
+{
+  cout << "*** FOS ***\n";
+
+  // Cloudbox on?
+  if( !cloudbox_on )
+    throw runtime_error( "The cloudbox must be defined to use this method." );
+
+  // Determine ppath through the cloudbox
+  //
+  Ppath  ppath;
+  //
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
+              lat_grid, lon_grid, z_field, r_geoid, z_surface,
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 0 );
+  
+  // Check radiative background
+  const Index bkgr = ppath_what_background( ppath );
+  if( bkgr == 2 )
+    throw runtime_error(
+                     "The surface is not allowed to be inside the cloudbox." );
+  assert( bkgr == 3 );
+
+  // Get iy for unscattered direction
+  //
+  // Dummy variables:
+  Matrix           iy_error;
+  Index            iy_error_type;
+  Tensor3          iy_aux, iy_transmission;
+  ArrayOfTensor3   diy_dx;
+  //
+  // Note that the Ppath positions (ppath.pos) for 1D have one column more
+  // than expected by most functions. Only the first atmosphere_dim values
+  // shall be copied.
+  //
+  Vector rte_pos2, rte_los2;
+  rte_pos2 = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
+  rte_los2 = ppath.los(ppath.np-1,joker);
+  //
+  iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, 
+                             0, rte_pos2, rte_los2, iy_transmission, 0, 0, 0,
+                             f_grid, t_field, vmr_field, iy_clearsky_agenda );
+
+
+  // RT for part inside cloudbox
+  //
+  const Index     np  = ppath.np;
+  //
+  if( np > 1 )
+    {
+      const Index     nf  = f_grid.nelem();
+            Vector    ppath_p, ppath_t, total_tau;
+            Matrix    ppath_vmr, ppath_emission, ppath_tau;
+            Tensor3   ppath_abs_scalar;
+
+      // Get pressure, temperature and VMRs
+      //
+      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
+                           p_grid, lat_grid, lon_grid, t_field, vmr_field );
+
+      // Get emission, absorption, optical thickness for each step, and total
+      // optical thickness
+      //
+      get_step_vars_for_standardRT( ws, ppath_abs_scalar, ppath_emission, 
+                                    ppath_tau, total_tau, 
+                                    abs_scalar_agenda, emission_agenda,
+                                    ppath, ppath_p, ppath_t, ppath_vmr, nf, 1 );
+
+      // Loop ppath steps
+      for( Index ip=np-2; ip>=0; ip-- )
+        {
+          // Loop frequencies
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
+              //
+              iy(iv,0)  = iy(iv,0)*step_tr + ppath_emission(iv,ip)*(1-step_tr); 
+              //
+              for( Index is=1; is<stokes_dim; is++ )
+                { iy(iv,is) *= step_tr; }
+            }
+        } 
+    }
+}

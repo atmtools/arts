@@ -4210,6 +4210,30 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "iyFOS" ),
+        DESCRIPTION
+        (
+         "So far just a test of a fixed order of scattering scheme.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "rte_pos", "rte_los", 
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
+            "t_field", "vmr_field", "r_geoid", "z_surface",
+            "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
+            "ppath_step_agenda", "emission_agenda", 
+            "abs_scalar_gas_agenda", "iy_clearsky_agenda" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "iyMC" ),
         DESCRIPTION
         (
