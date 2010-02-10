@@ -2910,29 +2910,33 @@ void yCalc(
 
 
 
+extern const Numeric PI;
+
 void iyFOS(
-        Workspace&                  ws,
-        Matrix&                     iy,
-  const Vector&                     rte_pos,
-  const Vector&                     rte_los,
-  const Index&                      atmosphere_dim,
-  const Vector&                     p_grid,
-  const Vector&                     lat_grid,
-  const Vector&                     lon_grid,
-  const Tensor3&                    z_field,
-  const Tensor3&                    t_field,
-  const Tensor4&                    vmr_field,
-  const Tensor4&                    pnd_field,
-  const Matrix&                     r_geoid,
-  const Matrix&                     z_surface,
-  const Index&                      cloudbox_on,
-  const ArrayOfIndex&               cloudbox_limits,
-  const Index&                      stokes_dim,
-  const Vector&                     f_grid,
-  const Agenda&                     ppath_step_agenda,
-  const Agenda&                     emission_agenda,
-  const Agenda&                     abs_scalar_agenda,
-  const Agenda&                     iy_clearsky_agenda )
+        Workspace&                     ws,
+        Matrix&                        iy,
+  const Vector&                        rte_pos,
+  const Vector&                        rte_los,
+  const Index&                         atmosphere_dim,
+  const Vector&                        p_grid,
+  const Vector&                        lat_grid,
+  const Vector&                        lon_grid,
+  const Tensor3&                       z_field,
+  const Tensor3&                       t_field,
+  const Tensor4&                       vmr_field,
+  const Matrix&                        r_geoid,
+  const Matrix&                        z_surface,
+  const Index&                         cloudbox_on,
+  const ArrayOfIndex&                  cloudbox_limits,
+  const Index&                         stokes_dim,
+  const Vector&                        f_grid,
+  const Agenda&                        ppath_step_agenda,
+  const Agenda&                        emission_agenda,
+  const Agenda&                        abs_scalar_agenda,
+  const Agenda&                        iy_clearsky_agenda,
+  const Tensor4&                       pnd_field,
+  const ArrayOfSingleScatteringData&   scat_data_mono,
+  const Agenda&                        opt_prop_gas_agenda )
 {
   cout << "*** FOS ***\n";
 
@@ -2975,6 +2979,14 @@ void iyFOS(
                              0, rte_pos2, rte_los2, iy_transmission, 0, 0, 0,
                              f_grid, t_field, vmr_field, iy_clearsky_agenda );
 
+
+  // FOS angles for spherical integration
+  Matrix  fos_angles( 2, 2, 0.0 );
+  fos_angles(0,0) = 45;
+  fos_angles(1,0) = 135;
+  //
+  const Index   nfosa = fos_angles.nrows();
+  const Numeric fos_angles_weight = 4*PI/nfosa;
 
   // RT for part inside cloudbox
   //
@@ -3043,7 +3055,6 @@ void iyFOS(
           
           cout << pnd_mean[0] << endl;
 
-          pnd_mean[0] = 0;
 
           // Gas absorption and blackbody radiation
           Matrix   abs_scalar_gas;
@@ -3071,7 +3082,86 @@ void iyFOS(
           // RT step with scattering
           else
             {
-              cout << "Scattering" << endl;
+              // Determine incoming iy and phase matrix for fov_angles
+              //
+              Tensor3  Y(nfosa,f_grid.nelem(),stokes_dim);
+              Tensor3  P(nfosa,stokes_dim,stokes_dim);
+              //
+              for( Index ia=0; ia<atmosphere_dim; ia++ )
+                { 
+                  rte_pos2[ia] = ( ppath.pos(ip+1,ia)+ppath.pos(ip,ia) ) / 2.0;
+                }
+              rte_los2.resize(2);
+              rte_los2[0] = ( ppath.pos(ip+1,0)+ppath.pos(ip,0) ) / 2.0;
+              if( atmosphere_dim < 3 )
+                { rte_los2[1] = 0; }
+              else
+                { rte_los2[1] = ( ppath.pos(ip+1,1)+ppath.pos(ip,1) ) / 2.0; }
+              //
+              for( Index ia=0; ia<nfosa; ia++ )
+                { 
+                  Matrix tmp;
+                  iy_clearsky_agendaExecute( ws, tmp, 
+                                     iy_error, iy_error_type, iy_aux, diy_dx, 
+                                     0, rte_pos2, fos_angles(ia,joker), 
+                                     iy_transmission, 0, 0, 0, f_grid, t_field, 
+                                     vmr_field, iy_clearsky_agenda );
+                  Y(ia,joker,joker) = tmp;
+                  //
+                  pha_mat_singleCalc( tmp, rte_los2[0], rte_los[1],
+                                      fos_angles(ia,0), fos_angles(ia,1),
+                                      scat_data_mono, stokes_dim, pnd_mean,
+                                      t_mean );
+                  P(ia,joker,joker) = tmp;
+                }
+
+              // Extinction matrix and absorption vector for gases
+              //
+              Tensor3  ext_mat_gas;
+              Matrix   abs_vec_gas;
+              //
+              opt_prop_gas_agendaExecute( ws, ext_mat_gas, abs_vec_gas, -1,
+                                         abs_scalar_gas, opt_prop_gas_agenda );
+
+              // Particle properties for mean frequency
+              //
+              Matrix ext_mat_par( stokes_dim, stokes_dim );
+              Vector abs_vec_par( stokes_dim );
+              //
+              const Numeric   za_mean( ppath.los(ip+1,0) +  ppath.los(ip,0) );
+              const Numeric   aa_mean( ppath.los(ip+1,1) +  ppath.los(ip,1) );
+              //
+              opt_propCalc( ext_mat_par, abs_vec_par, za_mean, aa_mean,
+                            scat_data_mono, stokes_dim, pnd_mean, t_mean );
+
+              // Loop frequencies
+              //
+              for( Index iv=0; iv<nf; iv++ )
+                { 
+                  // Scattering source part
+                  Vector S(stokes_dim,0.0), Sp(stokes_dim);
+                  for( Index ia=0; ia<nfosa; ia++ )
+                    { 
+                      mult( Sp, P(ia,joker,joker), Y(ia,iv,joker) );
+                      Sp *= fos_angles_weight;
+                      S  += Sp;
+                    }
+
+                  // Total extinction and absorption
+                  //
+                  Matrix ext_mat_tot = ext_mat_par;
+                  Vector abs_vec_tot = abs_vec_par;
+                  //
+                  ext_mat_tot += ext_mat_gas(iv,joker,joker);
+                  abs_vec_tot += abs_vec_gas(iv,joker);
+
+                  // RT for step
+                  //
+                  Matrix trans_mat(stokes_dim,stokes_dim); 
+                  //
+                  rte_step_std( iy(iv,joker), trans_mat, ext_mat_tot,
+                            abs_vec_tot, S, ppath.l_step[ip], bbemission[iv] );
+                }
             }
         } 
     }
