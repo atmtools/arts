@@ -50,6 +50,7 @@
 #include "logic.h"
 #include "math_funcs.h"
 #include "messages.h"
+#include "montecarlo.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "rte.h"
@@ -2921,6 +2922,7 @@ void iyFOS(
   const Tensor3&                    z_field,
   const Tensor3&                    t_field,
   const Tensor4&                    vmr_field,
+  const Tensor4&                    pnd_field,
   const Matrix&                     r_geoid,
   const Matrix&                     z_surface,
   const Index&                      cloudbox_on,
@@ -2976,10 +2978,11 @@ void iyFOS(
 
   // RT for part inside cloudbox
   //
-  const Index     np  = ppath.np;
+  const Index   np  = ppath.np;
   //
   if( np > 1 )
     {
+      /*
       const Index     nf  = f_grid.nelem();
             Vector    ppath_p, ppath_t, total_tau;
             Matrix    ppath_vmr, ppath_emission, ppath_tau;
@@ -2997,19 +3000,78 @@ void iyFOS(
                                     ppath_tau, total_tau, 
                                     abs_scalar_agenda, emission_agenda,
                                     ppath, ppath_p, ppath_t, ppath_vmr, nf, 1 );
+      */
+
+      const Index   nf  = f_grid.nelem();
+      const Index   nabs = vmr_field.nbooks();
+      const Index   npar = pnd_field.nbooks();
+
+      Range p_range(   cloudbox_limits[0],
+                       cloudbox_limits[1] - cloudbox_limits[0] + 1 );
+      Range lat_range( cloudbox_limits[2], 
+                       cloudbox_limits[3] - cloudbox_limits[2] + 1 );
+      Range lon_range( cloudbox_limits[4], 
+                       cloudbox_limits[5] - cloudbox_limits[4] + 1 );
+      Vector   ppath_t(np), ppath_p(np);
+      Matrix   ppath_vmr(nabs,np);
+      Matrix   ppath_pnd(npar,np);
+
+      cloud_atm_vars_by_gp( ppath_p, ppath_t, ppath_vmr, ppath_pnd,
+                            ppath.gp_p, ppath.gp_lat, ppath.gp_lon,
+                            cloudbox_limits, p_grid[p_range],
+                            lat_grid[lat_range], lon_grid[lon_range],
+                            t_field(p_range,lat_range,lon_range),
+                            vmr_field(joker,p_range,lat_range,lon_range),
+                            pnd_field );
+
+      // Log of the pressure
+      Vector ppath_logp( np );
+      transform( ppath_logp, log, ppath_p  );
 
       // Loop ppath steps
       for( Index ip=np-2; ip>=0; ip-- )
         {
-          // Loop frequencies
-          for( Index iv=0; iv<nf; iv++ )
-            { 
-              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
-              //
-              iy(iv,0)  = iy(iv,0)*step_tr + ppath_emission(iv,ip)*(1-step_tr); 
-              //
-              for( Index is=1; is<stokes_dim; is++ )
-                { iy(iv,is) *= step_tr; }
+          // Mean pressure, temperature, VMR and PND
+          const Numeric   p_mean = exp( 0.5*(ppath_logp[ip+1]+ppath_logp[ip] ));
+          const Numeric   t_mean = ( ppath_t[ip+1] + ppath_t[ip] ) / 2.0;
+                Vector    vmr_mean( nabs );
+          for( Index ia=0; ia<nabs; ia++ )
+            { vmr_mean[ia] = 0.5 * ( ppath_vmr(ia,ip+1) + ppath_vmr(ia,ip) ); }
+                Vector    pnd_mean( npar );
+          for( Index ia=0; ia<npar; ia++ )
+            { pnd_mean[ia] = 0.5 * ( ppath_pnd(ia,ip+1) + ppath_pnd(ia,ip) ); }
+          
+          cout << pnd_mean[0] << endl;
+
+          pnd_mean[0] = 0;
+
+          // Gas absorption and blackbody radiation
+          Matrix   abs_scalar_gas;
+          Vector   bbemission;
+          abs_scalar_gas_agendaExecute( ws, abs_scalar_gas, -1, p_mean, t_mean, 
+                                                  vmr_mean, abs_scalar_agenda );
+          emission_agendaExecute( ws, bbemission, t_mean, emission_agenda );
+
+          // Clearsky step
+          if( max(pnd_mean) < 0.5 )
+            {
+              // Loop frequencies
+              for( Index iv=0; iv<nf; iv++ )
+                { 
+                  const Numeric step_tr = exp( -ppath.l_step[ip] * 
+                                              abs_scalar_gas(iv,joker).sum() );
+                  //
+                  iy(iv,0)  = iy(iv,0)*step_tr + bbemission[iv]*(1-step_tr); 
+                  //
+                  for( Index is=1; is<stokes_dim; is++ )
+                    { iy(iv,is) *= step_tr; }
+                }
+            }
+          
+          // RT step with scattering
+          else
+            {
+              cout << "Scattering" << endl;
             }
         } 
     }
