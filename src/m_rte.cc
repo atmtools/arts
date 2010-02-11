@@ -2895,16 +2895,17 @@ void yCalc(
           FOR_ANALYTICAL_JACOBIANS_DO(
             mult( jacobian(rowind, Range(jacobian_indices[iq][0],
                           jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
-                                                  sensor_response, diyb_dx[iq] );
+                                                sensor_response, diyb_dx[iq] );
           )
         }
 
       // Rest of *jacobian*: run jacobian_agenda (can be empty)
       //
       if( jacobian_do  &&  jacobian_agenda.nelem() > 0 )
-        { jacobian_agendaExecute( ws, jacobian, imblock, iyb, yb, jacobian_agenda ); }
-        // { jacobian_agendaExecute( ws, jacobian, jacobian_agenda ); }
-
+        { 
+          jacobian_agendaExecute( ws, jacobian, imblock, iyb, yb, 
+                                                             jacobian_agenda ); 
+        }
     }  // End mblock loop
 }
 
@@ -2936,11 +2937,23 @@ void iyFOS(
   const Agenda&                        iy_clearsky_agenda,
   const Tensor4&                       pnd_field,
   const ArrayOfSingleScatteringData&   scat_data_raw,
-  const Agenda&                        opt_prop_gas_agenda )
+  const Agenda&                        opt_prop_gas_agenda,
+  const Matrix&                        fos_angles )
 {
-  // Cloudbox on?
+  // Input checks
   if( !cloudbox_on )
     throw runtime_error( "The cloudbox must be defined to use this method." );
+  if( fos_angles.ncols() != 2 )
+    throw runtime_error( "The WSV *fos_angles* must have two columns." );
+  if( max(fos_angles) <= PI )
+    throw runtime_error( 
+                  "The WSV *fos_angles* shall be in degrees (not radians)." );
+  if( min(fos_angles(joker,0))<0 || max(fos_angles(joker,0))>180 )
+    throw runtime_error( 
+               "The zenith angles in *fos_angles* shall be inside [0,180]." );
+  if( min(fos_angles(joker,1))<-180 || max(fos_angles(joker,1))>180 )
+    throw runtime_error( 
+           "The azimuth angles in *fos_angles* shall be inside [-180,180]." );
 
   // Determine ppath through the cloudbox
   //
@@ -2985,11 +2998,6 @@ void iyFOS(
   if( np > 1 )
     {
       // FOS angles for spherical integration
-      Matrix  fos_angles( 2, 2, 0.0 );
-      fos_angles(0,0) = 45;
-      fos_angles(1,0) = 135;
-      fos_angles(1,1) = 180;
-      //
       const Index   nfosa = fos_angles.nrows();
       const Numeric fos_angles_weight = 4*PI/nfosa;
 

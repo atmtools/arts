@@ -1,5 +1,13 @@
 2010-02-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-12-124
+
+	* src/workspace.cc: Added fos_angles. No doc yet.
+
+	* src/m_rte.cc (iyFOS): The scattering angle set is now input.
+
+2010-02-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-12-123
 	
 	* src/m_rte.cc (iyFOS): Debugged. Runs without crashing, for a

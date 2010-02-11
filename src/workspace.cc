@@ -1442,6 +1442,15 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Index" )));
 
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "fos_angles" ),
+      DESCRIPTION
+      (
+       "So far just a test.\n"
+       ),
+      GROUP( "Matrix" )));
+
 //  wsv_data.push_back
 //    (WsvRecord
 //     ( NAME( "geomag_los_calc_agenda" ),
