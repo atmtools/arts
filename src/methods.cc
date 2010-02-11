@@ -4226,7 +4226,7 @@ void define_md_data_raw()
             "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
             "ppath_step_agenda", "emission_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", "pnd_field", 
-            "scat_data_mono", "opt_prop_gas_agenda" ),
+            "scat_data_raw", "opt_prop_gas_agenda" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

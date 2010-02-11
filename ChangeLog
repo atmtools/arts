@@ -1,3 +1,10 @@
+2010-02-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-123
+	
+	* src/m_rte.cc (iyFOS): Debugged. Runs without crashing, for a
+	simple test case.
+
 2010-02-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-122
