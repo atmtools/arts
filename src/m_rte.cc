@@ -1793,7 +1793,6 @@ void get_iy_of_background(
         ppath_copy( ppath_local, ppath );
 
         // The cloudbox agenda is not yet handling iy_aux and iy_transmission.
-        // And is returning *iy* transposed
         //
         iy_cloudbox_agendaExecute( ws, iy, ppath_local,
                                    rte_pos, rte_los, rte_gp_p,
@@ -2245,6 +2244,112 @@ void iyEmissionStandardClearsky(
                                 diy_dpath[iq], atmosphere_dim, ppath, ppath_p );
           )
         }
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyEmissionStandardClearskyBasic(
+        Workspace&                  ws,
+        Matrix&                     iy,
+  const Vector&                     rte_pos,      
+  const Vector&                     rte_los,      
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    z_field,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Matrix&                     r_geoid,
+  const Matrix&                     z_surface,
+  const Index&                      cloudbox_on,
+  const ArrayOfIndex&               cloudbox_limits,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Agenda&                     ppath_step_agenda,
+  const Agenda&                     emission_agenda,
+  const Agenda&                     abs_scalar_agenda,
+  const Agenda&                     iy_clearsky_basic_agenda,
+  const Agenda&                     iy_space_agenda,
+  const Agenda&                     surface_prop_agenda,
+  const Agenda&                     iy_cloudbox_agenda )
+{
+  // A minimal amount of checks, for efficiency reasons
+  assert( rte_pos.nelem() == atmosphere_dim );
+  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
+          ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
+
+
+  //- Determine propagation path
+  //
+  Ppath  ppath;
+  //
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
+              lat_grid, lon_grid, z_field, r_geoid, z_surface,
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
+
+
+  // Get quantities required for each ppath point
+  //
+  // If np = 1, we only need to determine the radiative background
+  //
+  const Index     nf  = f_grid.nelem();
+  const Index     np  = ppath.np;
+        Vector    ppath_p, ppath_t, total_tau;
+        Matrix    ppath_vmr, ppath_emission, ppath_tau;
+        Tensor3   ppath_abs_scalar, iy_trans_new;
+  //
+  if( np > 1 )
+    {
+      // Get pressure, temperature and VMRs
+      //
+      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
+                           p_grid, lat_grid, lon_grid, t_field, vmr_field );
+
+      // Get emission, absorption and optical thickness for each step
+      //
+      get_step_vars_for_standardRT( ws, ppath_abs_scalar, ppath_emission, 
+                                    ppath_tau, total_tau, 
+                                    abs_scalar_agenda, emission_agenda,
+                                    ppath, ppath_p, ppath_t, ppath_vmr, nf, 1 );
+    }
+
+
+  // Radiative background
+  //
+  Matrix          dummy1;
+  Index           dummy2;
+  Tensor3         dummy3, dummy5;
+  ArrayOfTensor3  dummy4;
+  //  
+  get_iy_of_background( 
+                ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
+                0, 0, ppath, atmosphere_dim, t_field, vmr_field,
+                cloudbox_on, stokes_dim, f_grid, iy_clearsky_basic_agenda,
+                iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
+  
+
+  // Do RT calculations
+  //
+  if( np > 1 )
+    {
+      // Loop ppath steps
+      for( Index ip=np-2; ip>=0; ip-- )
+        {
+          // Loop frequencies
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+
+              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
+              //
+              iy(iv,0)  = iy(iv,0)*step_tr + ppath_emission(iv,ip)*(1-step_tr); 
+              //
+              for( Index is=1; is<stokes_dim; is++ )
+                { iy(iv,is) *= step_tr; }
+            }
+        } 
     }
 }
 
@@ -2934,28 +3039,38 @@ void iyFOS(
   const Agenda&                        ppath_step_agenda,
   const Agenda&                        emission_agenda,
   const Agenda&                        abs_scalar_agenda,
-  const Agenda&                        iy_clearsky_agenda,
+  const Agenda&                        iy_clearsky_basic_agenda,
   const Tensor4&                       pnd_field,
   const ArrayOfSingleScatteringData&   scat_data_raw,
   const Agenda&                        opt_prop_gas_agenda,
-  const Matrix&                        fos_angles )
+  const Matrix&                        fos_angles,
+  const Index&                         fos_n,
+  const Index&                         fos_i )
 {
   // Input checks
   if( !cloudbox_on )
     throw runtime_error( "The cloudbox must be defined to use this method." );
-  if( fos_angles.ncols() != 2 )
-    throw runtime_error( "The WSV *fos_angles* must have two columns." );
+  if( fos_angles.ncols() != 3 )
+    throw runtime_error( "The WSV *fos_angles* must have three columns." );
   if( max(fos_angles) <= PI )
     throw runtime_error( 
                   "The WSV *fos_angles* shall be in degrees (not radians)." );
   if( min(fos_angles(joker,0))<0 || max(fos_angles(joker,0))>180 )
     throw runtime_error( 
-               "The zenith angles in *fos_angles* shall be inside [0,180]." );
+                 "The zenith angles in *fos_angles* shall be inside [0,180]." );
   if( min(fos_angles(joker,1))<-180 || max(fos_angles(joker,1))>180 )
     throw runtime_error( 
-           "The azimuth angles in *fos_angles* shall be inside [-180,180]." );
+             "The azimuth angles in *fos_angles* shall be inside [-180,180]." );
+  if( fos_angles(joker,2).sum() < 6 || fos_angles(joker,2).sum() > 20 )
+    throw runtime_error( 
+     "The sum of integration weights in *fos_angles* shall be inside [2,20]." );
+  if( fos_n < 0 )
+    throw runtime_error( "The WSV *fos_n* must be >= 0." );
+  if( fos_i < 0 )
+    throw runtime_error( "The WSV *fos_i* must be >= 0." );
 
-  // Determine ppath through the cloudbox
+
+  // Determine ppath through the cloudbox if first call
   //
   Ppath  ppath;
   //
@@ -2967,16 +3082,10 @@ void iyFOS(
   const Index bkgr = ppath_what_background( ppath );
   if( bkgr == 2 )
     throw runtime_error(
-                     "The surface is not allowed to be inside the cloudbox." );
+                  "The surface is not allowed to be inside the cloudbox." );
   assert( bkgr == 3 );
 
   // Get iy for unscattered direction
-  //
-  // Dummy variables:
-  Matrix           iy_error;
-  Index            iy_error_type;
-  Tensor3          iy_aux, iy_transmission;
-  ArrayOfTensor3   diy_dx;
   //
   // Note that the Ppath positions (ppath.pos) for 1D have one column more
   // than expected by most functions. Only the first atmosphere_dim values
@@ -2986,9 +3095,8 @@ void iyFOS(
   rte_pos2 = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
   rte_los2 = ppath.los(ppath.np-1,joker);
   //
-  iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, 
-                             1, rte_pos2, rte_los2, iy_transmission, 0, 0, 0,
-                             f_grid, t_field, vmr_field, iy_clearsky_agenda );
+  iy_clearsky_basic_agendaExecute( ws, iy, rte_pos2, rte_los2, 0,
+                                                     iy_clearsky_basic_agenda );
 
 
   // RT for part inside cloudbox
@@ -2999,7 +3107,6 @@ void iyFOS(
     {
       // FOS angles for spherical integration
       const Index   nfosa = fos_angles.nrows();
-      const Numeric fos_angles_weight = 4*PI/nfosa;
 
       // Some sizes
       const Index   nf  = f_grid.nelem();
@@ -3031,8 +3138,7 @@ void iyFOS(
 
       // So far we use scat_data_mono below
       ArrayOfSingleScatteringData   scat_data_mono;
-      scat_data_monoCalc( scat_data_mono, scat_data_raw, f_grid, 
-                          Index(round(nf/2)) );
+      scat_data_monoCalc( scat_data_mono, scat_data_raw, f_grid, nf/2 );
 
       // Loop ppath steps
       for( Index ip=np-2; ip>=0; ip-- )
@@ -3055,7 +3161,7 @@ void iyFOS(
 
           
           // Clearsky step
-          if( max(pnd_mean) < 0.5 )
+          if( max(pnd_mean) < 0.5  || fos_n == 0 )
             {
               // Loop frequencies
               for( Index iv=0; iv<nf; iv++ )
@@ -3104,11 +3210,23 @@ void iyFOS(
               for( Index ia=0; ia<nfosa; ia++ )
                 { 
                   Matrix tmp;
-                  iy_clearsky_agendaExecute( ws, tmp, 
-                                     iy_error, iy_error_type, iy_aux, diy_dx, 
-                                     1, rte_pos2, fos_angles(ia,joker), 
-                                     iy_transmission, 0, 0, 0, f_grid, t_field, 
-                                     vmr_field, iy_clearsky_agenda );
+                  //cout << ip << " " << fos_i+1 << " " << ia << endl; 
+                  if( fos_i == fos_n-1  ||  ip==0  ||  ip==np-2 )
+                    {
+                      iy_clearsky_basic_agendaExecute( ws, tmp, rte_pos2, 
+                       fos_angles(ia,Range(0,2)), 0, iy_clearsky_basic_agenda );
+                    }
+                  else
+                    {
+                      iyFOS( ws, tmp, rte_pos2, fos_angles(ia,Range(0,2)), 
+                             atmosphere_dim, p_grid, lat_grid, lon_grid, 
+                             z_field, t_field, vmr_field, r_geoid, z_surface, 
+                             cloudbox_on, cloudbox_limits, stokes_dim, f_grid, 
+                             ppath_step_agenda, emission_agenda, 
+                             abs_scalar_agenda, iy_clearsky_basic_agenda, 
+                             pnd_field, scat_data_raw, opt_prop_gas_agenda, 
+                             fos_angles, fos_n, fos_i+1 );
+                    }
                   Y(ia,joker,joker) = tmp;
                   //
                   tmp.resize(stokes_dim, stokes_dim);
@@ -3144,9 +3262,9 @@ void iyFOS(
                   for( Index ia=0; ia<nfosa; ia++ )
                     { 
                       mult( Sp, P(ia,joker,joker), Y(ia,iv,joker) );
+                      Sp *= fos_angles(ia,2);
                       S  += Sp;
                     }
-                  S *= fos_angles_weight;
 
                   // Total extinction and absorption
                   //

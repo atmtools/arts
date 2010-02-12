@@ -4179,9 +4179,12 @@ void define_md_data_raw()
          "If *iy_aux_do* is set, the columns of *iy_aux* are as follow:\n"
          " 1. The transmission between the observation point and the top of\n"
          "    the atmosphere (TOA) or to the surface, depending on which of\n"
-         "    the two \"backgrounds\" that is closest. The transmission is\n"
-         "    valid for the unscattered path through the atmosphere, but\n" 
-         "    attenuation due particle scattering is included.\n"
+         "    the two \"backgrounds\" that is closest. With the cloud box\n"
+         "    activated, the transmission returned depends on scattering\n"
+         "    used. For DOIT and MC, only the transmission to the cloud box\n"
+         "    is calculated. For FOS the transmission is valid for the total\n"
+         "    unscattered path through the atmosphere, with attenuation due\n" 
+         "    particle scattering is included.\n"
          " 2. Radiative background index, for primary propagation path branch,\n"
          "    where 1 is TOA, 2 the surface, 3 cloudbox surface and 4 cloudbox\n"
          "    interior.\n"
@@ -4210,23 +4213,59 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iyFOS" ),
+      ( NAME( "iyEmissionStandardClearskyBasic" ),
         DESCRIPTION
         (
-         "So far just a test of a fixed order of scattering scheme.\n"
+         "As *iyEmissionStandardClearsky*, but lacking support for auxilary\n"
+         "variables and jacobian calculations.\n"
+         "\n"
+         "Designed to be part of *iy_clearsky__basic_agenda*. Otherwise, see\n"
+         "*iyEmissionStandardClearsky*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "rte_pos", "rte_los", 
-            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
-            "t_field", "vmr_field", "r_geoid", "z_surface",
-            "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
-            "ppath_step_agenda", "emission_agenda", 
-            "abs_scalar_gas_agenda", "iy_clearsky_agenda", "pnd_field", 
-            "scat_data_raw", "opt_prop_gas_agenda", "fos_angles" ),
+        IN( "rte_pos", "rte_los", "atmosphere_dim", "p_grid", "lat_grid", 
+            "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid", 
+            "z_surface", "cloudbox_on", "cloudbox_limits", "stokes_dim", 
+            "f_grid", "ppath_step_agenda", "emission_agenda", 
+            "abs_scalar_gas_agenda", "iy_clearsky_basic_agenda", 
+            "iy_space_agenda", "surface_prop_agenda", "iy_cloudbox_agenda" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iyFOS" ),
+        DESCRIPTION
+        (
+         "So far just a test of a fixed order of scattering scheme.\n"
+         "\n"
+         "The scattering integral is here solved by calculating the incoming\n"
+         "radiation and phase matrix for a set of directions, that can be\n"
+         "distributed freely over the sphere of integration. These directions\n"
+         "are specified by a combination of zenith angd azimuth angles for\n"
+         "each integration point. The product of incoming radiation and phase\n"
+         "matrix is summed up, with a weight specified for each product. The\n"
+         "angles and integration weights are packed into the WSV *fos_angles*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "rte_pos", "rte_los", "atmosphere_dim", "p_grid", "lat_grid", 
+            "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid", 
+            "z_surface", "cloudbox_on", "cloudbox_limits", "stokes_dim", 
+            "f_grid", "ppath_step_agenda", "emission_agenda", 
+            "abs_scalar_gas_agenda", "iy_clearsky_basic_agenda", "pnd_field", 
+            "scat_data_raw", "opt_prop_gas_agenda", 
+            "fos_angles", "fos_n", "fos_i" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

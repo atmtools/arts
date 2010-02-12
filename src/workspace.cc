@@ -1447,9 +1447,65 @@ void Workspace::define_wsv_data()
      (NAME( "fos_angles" ),
       DESCRIPTION
       (
-       "So far just a test.\n"
-       ),
+       "Angles and weights for calculation of the scattering integral.\n"
+       "\n"
+       "The approach for calculating the scattering integral is described\n"
+       "in *iyFOS*. This variable gives the angles and weights to apply.\n"
+       "\n"
+       "This is a matrix with three columns. The first column holds the\n"
+       "zenith angles. These are normally in the range [0,180], but values\n"
+       "down to -180 are accepted for 2D calculations. Azimuth angles are\n"
+       "found in the second column, that shall be in the range [-180,180].\n"
+       "The third columns holds the wieght to apply for each direction. The\n"
+       "sum of these weights shall theoretically be 4*pi, the solid angle\n"
+       "of the integration sphere. However, for increased flexibility this\n"
+       "sum is allowed to deviate with about 50\% from that value.\n" ),
       GROUP( "Matrix" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "fos_angles" ),
+      DESCRIPTION
+      (
+       "Angles and weights for calculation of the scattering integral.\n"
+       "\n"
+       "The approach for calculating the scattering integral is described\n"
+       "in *iyFOS*. This variable gives the angles and weights to apply.\n"
+       "\n"
+       "This is a matrix with three columns. The first column holds the\n"
+       "zenith angles. These are normally in the range [0,180], but values\n"
+       "down to -180 are accepted for 2D calculations. Azimuth angles are\n"
+       "found in the second column, that shall be in the range [-180,180].\n"
+       "The third columns holds the wieght to apply for each direction. The\n"
+       "sum of these weights shall theoretically be 4*pi, the solid angle\n"
+       "of the integration sphere. However, for increased flexibility this\n"
+       "sum is allowed to deviate with about 50\% from that value.\n" ),
+      GROUP( "Matrix" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "fos_i" ),
+      DESCRIPTION
+      (
+       "Scattering order handled presently.\n"
+       "\n"
+       "This variable must be set to 0 by the user. This variable is later\n"
+       "used internally by the FOS methods to handle recursive calls, to know\n" 
+       "when *fos_n* has been reached.\n" ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "fos_n" ),
+      DESCRIPTION
+      (
+       "The number scattering order to apply.\n"
+       "\n"
+       "This variable determines the maximum scattering order that will be\n"
+       "considered in the FOS scheme. For example, 1 corresponds to that only\n"
+       "single scattering is considered. The value 0 is accepted and results\n"
+       "in \"pure clearsky\" calculations.\n" ),
+      GROUP( "Index" )));
 
 //  wsv_data.push_back
 //    (WsvRecord
@@ -1538,8 +1594,8 @@ void Workspace::define_wsv_data()
        "This variable makes it possible to provide auxilary information for\n"
        "each value in *iy*. Each page of the tensor corresponds to a\n"
        "variable. The number of auxilary variables and can be of any kind.\n"
-       "Examples on quantities that could be of interest here are calculation\n"
-       "error, transmission and cloud interference flags.\n"
+       "Examples on quantities that could be of interest here are transmission\n"
+       "and cloud interference flags.\n"
        "\n"
        "Usage:      Used by radiative transfer methods.\n"
        "\n"
@@ -1569,6 +1625,15 @@ void Workspace::define_wsv_data()
  wsv_data.push_back
     (WsvRecord
      ( NAME( "iy_clearsky_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc.\n"
+        ),
+       GROUP( "Agenda" )));
+
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_clearsky_basic_agenda" ),
        DESCRIPTION
        (
         "See agendas.cc.\n"

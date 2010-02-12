@@ -160,6 +160,9 @@ AgendaSet( rte_agenda ){
 AgendaSet( iy_clearsky_agenda ){
   iyEmissionStandardClearsky
 }
+AgendaSet( iy_clearsky_basic_agenda ){
+  iyEmissionStandardClearskyBasic
+}
 
 
 #
@@ -189,6 +192,12 @@ jacobianOff
 # Batch calculations start at index 0 by default
 #
 IndexSet( ybatch_start, 0 )
+
+
+#
+# FOS 
+#
+IndexSet( fos_i, 0 )
 
 }
 

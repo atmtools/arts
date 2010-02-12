@@ -1,3 +1,29 @@
+2010-02-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-125
+	
+	* src/m_rte.cc (iyFOS): Adopted to new variables. And added
+	recursive calls to handle higher orders of scattering. 
+
+	* src/workspace.cc: Added fos_i and fos_n. Wrote description for
+	fos_angles.
+
+	* src/methods.cc: Corrected errors in the description of
+	iyEmissionStandardClearsky.
+	
+	* src/m_rte.cc (iyEmissionStandardClearskyBasic): A version of
+	iyEmissionStandardClearsky with everything around jacobians and
+	aux variables removed (a test with a temporary FOS method seems
+	now to be 3-5% faster when using this version). 
+	Intended to be used inside iy_clearsky_basic_agenda.
+
+	* src/agendas.cc: Added iy_clearsky_basic_agenda. This to get
+	simplest possible interface to the calculation of pure
+	monochromatic pencil beam calculations. Input is just rte_pos,
+	rte_los and cloudbox_on. The DOIT and MC parts can use this
+	agenda. And it should be possible to decrease drastically the
+	number of input variables for those methods.
+
 2010-02-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-124
