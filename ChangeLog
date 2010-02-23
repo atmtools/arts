@@ -1,3 +1,24 @@
+2010-02-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-126
+
+	* src/ppath.cc (ppath_calc): Changed check for finding when TOA is
+	reached (from below). The old check demanded that the fractional
+	distance (of the grid position) to be exactly 1 or 0. The new
+	check should be more stable. First of all, it is now tested that
+	the propagation direction upwards. The fractional distance can now
+	deviate up to 0.01. This is of no practical concern, but should
+	help avoiding problems due numerical inaccuracy. This is primarily
+	a problem for 3D cases where the radius of a pressure surface is
+	changing inside the grid box, and points can easily slip from one
+	side of a pressure surface to the other.
+	
+	Found this by tracking a failing FOS calculation. This could also
+	have been the reason to problems for MC, reported by Cory years ago.
+
+	* src/interpolation.cc (is_gridpos_at_index_i): Corrected header
+	text (it said that FD_TOL is used, which has been removed).
+
 2010-02-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-125

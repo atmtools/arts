@@ -565,8 +565,6 @@ void gridpos_force_end_fd( GridPos&   gp )
 /*!
    Determines if a grid position is at a given grid index.
 
-   A fractional deviation < FD_TOL to i will be treated as a match.
-
    \return         True if at index i, else false.
    \param   gp     Grid position structure.
    \param   i      The grid index of interest.

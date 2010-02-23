@@ -3908,7 +3908,7 @@ void ppath_step_geom_3d(
                   r_start, lat_start, lon_start, za_start, aa_start, ppc, lmax,
                   lat1, lat3, lon5, lon6, 
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
-                                  rsurface15, rsurface35, rsurface36, rsurface16 );
+                  rsurface15, rsurface35, rsurface36, rsurface16 );
 
   // Fill *ppath*
   //
@@ -6235,7 +6235,11 @@ void ppath_calc(
         {
 
           // Check if the top of the atmosphere is reached
-          if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) )
+          // Older version of test, that failed in a few cases for 3D:
+          //if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) )
+          // New version:
+          if( ppath_step.los(n-1,0) <= 90  &&  imax_p <= 
+              ppath_step.gp_p[n-1].idx + ppath_step.gp_p[n-1].fd[0] + 0.01 )
             { ppath_set_background( ppath_step, 1 ); }
 
           // Check that path does not exit at a latitude or longitude end face
