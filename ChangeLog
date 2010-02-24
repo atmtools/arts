@@ -1,3 +1,16 @@
+2010-02-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-127
+	
+	* A fix similar to previous commit, but for the lower atmospheric
+	limit, the surface. Got stuck in a case where the surface was 1 cm 
+	above the lowest pressure level. 
+	
+	* src/ppath.cc: Changed RTOL to 0.02;
+
+	(do_gridcell_3d): Added RTOL in if-statement where do_surface is
+	set.
+
 2010-02-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-126

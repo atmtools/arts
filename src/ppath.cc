@@ -70,7 +70,7 @@ extern const Numeric RAD2DEG;
 // consistent with the specified grid cell.
 //
 #ifdef USE_DOUBLE
-const double   RTOL = 1e-2;
+const double   RTOL = 2e-2;
 #else
 const double   RTOL = 10;
 #endif
@@ -1978,8 +1978,8 @@ void do_gridcell_3d(
         { l_tan = sqrt( r_start*r_start - ppc*ppc ); }
 
       bool   do_surface = false;
-      if( rsurface15 >= r15a  ||  rsurface35 >= r35a  ||  
-                                  rsurface36 >= r36a  ||  rsurface16 >= r16a )
+      if( rsurface15+RTOL >= r15a  ||  rsurface35+RTOL >= r35a  ||  
+          rsurface36+RTOL >= r36a  ||  rsurface16+RTOL >= r16a )
         { do_surface = true; }
 
 
