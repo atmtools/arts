@@ -1,3 +1,18 @@
+2010-02-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-12-128
+
+	* src/ppath.cc: A new try to fix ppaths passing the surface. A
+	closer investigation showed that the problem appears to occur when
+	the propagation path hits a point where the surface, a pressure
+	level and a lat or lon grid points at at the same location!
+
+	Changed RTOL back to 1 cm.
+
+	(do_gridcell_3d): The surface was checked last of all possible
+	"surfaces". Now put first. This fixed at least two cases that
+	crashed before. More tests running ... 	
+
 2010-02-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-127

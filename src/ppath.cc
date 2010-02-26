@@ -70,7 +70,7 @@ extern const Numeric RAD2DEG;
 // consistent with the specified grid cell.
 //
 #ifdef USE_DOUBLE
-const double   RTOL = 2e-2;
+const double   RTOL = 1e-2;
 #else
 const double   RTOL = 10;
 #endif
@@ -2011,37 +2011,36 @@ void do_gridcell_3d(
 
           bool   inside = true;
 
-          if( lat_end < lat1 )
-            { inside = false;   endface = 1; }
-          else if( lat_end > lat3 )
-            { inside = false;   endface = 3; }
-          else if( lon_end < lon5 )
-            { inside = false;   endface = 5; }
-          else if( lon_end > lon6 )
-            { inside = false;   endface = 6; }
+          rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15a, r35a, r36a, r16a, lat_end, lon_end );
+          rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15b, r35b, r36b, r16b, lat_end, lon_end );
+          
+          if( do_surface )
+            {
+              const double   r_surface = 
+                           rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                           rsurface15, rsurface35, rsurface36, rsurface16, 
+                                                        lat_end, lon_end );
+
+              if( r_surface+RTOL >= rlow  &&  r_end <= r_surface+RTOL )
+                { inside = false;   endface = 7; }
+            }
 
           if( inside ) 
             {
-              rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                    r15a, r35a, r36a, r16a, lat_end, lon_end );
-              rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                    r15b, r35b, r36b, r16b, lat_end, lon_end );
-              
-              if( r_end < rlow )
+              if( lat_end < lat1 )
+                { inside = false;   endface = 1; }
+              else if( lat_end > lat3 )
+                { inside = false;   endface = 3; }
+              else if( lon_end < lon5 )
+                { inside = false;   endface = 5; }
+              else if( lon_end > lon6 )
+                { inside = false;   endface = 6; }
+              else if( r_end < rlow )
                 { inside = false;   endface = 2; }
               else if( r_end > rupp )
                 { inside = false;   endface = 4; }
-
-              if( do_surface )
-                {
-                  const double   r_surface = 
-                               rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                               rsurface15, rsurface35, rsurface36, rsurface16, 
-                                                            lat_end, lon_end );
-
-                  if( r_surface+RTOL >= rlow  &&  r_end <= r_surface+RTOL )
-                    { inside = false;   endface = 7; }
-                }
             }              
 
           if( startup )
