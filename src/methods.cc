@@ -5083,6 +5083,29 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "MatrixSet" ),
+        DESCRIPTION
+        (
+         "Create a Matrix from the given list of numbers.\n"
+         "\n"
+         "Usage:\n"
+         "   MatrixSet(m1, [1, 2, 3; 4, 5, 6])\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(      "gout1"       ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( "FIXME DOC" ),
+        IN(),
+        GIN( "values"   ),
+        GIN_TYPE(    "Matrix" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "FIXME DOC" ),
+        SETMETHOD( true )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "MatrixUnitIntensity" ),
         DESCRIPTION
         (

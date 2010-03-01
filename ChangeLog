@@ -1,3 +1,15 @@
+2010-03-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-12-129
+
+	* src/methods.cc: Add MatrixSet.
+
+	* src/token.{cc,h}: Add Matrix support.
+
+	* src/parser.{cc,h}:
+
+	Add support for setting matrices directly in the controlfile.
+
 2010-02-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-128

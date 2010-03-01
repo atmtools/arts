@@ -23,9 +23,9 @@
     has to be the name exactly as it appears in declarations of these
     variables in the program, because it is used by make_md_h.cc to
     automatically generate declarations for method functions. */
-String TokValTypeName[7] = {"String", "Index", "Numeric",
-                            "ArrayOfString", "ArrayOfIndex", "Vector",
-                            "undefined"};
+String TokValTypeName[8] = {"String", "Index", "Numeric",
+                            "ArrayOfString", "ArrayOfIndex",
+                            "Vector", "Matrix", "undefined"};
 
 
 // Conversion functions to read TokVal for the 6 different types: 
@@ -61,6 +61,10 @@ TokVal::operator Vector() const {
   return mxv;
 }
 
+TokVal::operator Matrix() const {
+  assert (mtype == Matrix_t);
+  return mm;
+}
 
 ostream& operator<<(ostream& os, const TokVal& a)
 {
@@ -107,6 +111,25 @@ ostream& operator<<(ostream& os, const TokVal& a)
           else os << ",";
 
           os << a.mxv[i];
+        }
+      os << "]";
+      break;
+    case Matrix_t:
+      os << "[";
+      for ( Index i=0; i<a.mm.nrows(); ++i )
+        {
+          for ( Index j=0; i<a.mm.ncols(); ++j )
+            {
+              if (first) first=false;
+              else {
+                if (j == 0)
+                  os << ";";
+                else
+                  os << ",";
+              }
+
+              os << a.mm(i, j);
+            }
         }
       os << "]";
       break;

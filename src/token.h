@@ -25,7 +25,7 @@
 /** The different token value types. These are the types that keyword
     parameters in the controlfile can have. */
 enum TokValType { String_t,    Index_t,    Numeric_t,
-                  Array_String_t, Array_Index_t, Vector_t,
+                  Array_String_t, Array_Index_t, Vector_t, Matrix_t,
                   undefined_t };
 
 /** This stores arbitrary token values and remembers the type. Only
@@ -34,35 +34,40 @@ class TokVal {
 public:
 
   /** Default Constructor. (Sets type to undefined_t) */
-  TokVal() : mtype(undefined_t), ms(), mn(-1), mx(0.), msv(), mnv(), mxv() { }
+  TokVal() : mtype(undefined_t), ms(), mn(-1), mx(0.), msv(), mnv(),
+             mxv(), mm() { }
 
   /** To set TokVal from String (C - style). */
   TokVal(const char s[]) : mtype(String_t), ms(s), mn(-1), mx(0.),
-                           msv(), mnv(), mxv() { }
+                           msv(), mnv(), mxv(), mm() { }
 
   /** To set TokVal from String (C++ - style). */
   TokVal(const String& s) : mtype(String_t), ms(s), mn(-1), mx(0.),
-                           msv(), mnv(), mxv() { }
+                           msv(), mnv(), mxv(), mm() { }
 
   /** To set TokVal from an integer. */
   TokVal(Index n) : mtype(Index_t), ms(), mn(n), mx(0.),
-                           msv(), mnv(), mxv() { }
+                           msv(), mnv(), mxv(), mm() { }
 
   /** To set TokVal from a Numeric. */
   TokVal(Numeric x) : mtype(Numeric_t), ms(), mn(-1), mx(x),
-                           msv(), mnv(), mxv() { }
+                           msv(), mnv(), mxv(), mm() { }
 
   /** To set TokVal from an array of Strings. */
   TokVal(ArrayOfString sv) : mtype(Array_String_t), ms(), mn(-1), mx(0.),
-                           msv(sv), mnv(), mxv() { }
+                           msv(sv), mnv(), mxv(), mm() { }
 
   /** To set TokVal from an array of integers. */
   TokVal(ArrayOfIndex nv) : mtype(Array_Index_t), ms(), mn(-1), mx(0.),
-                           msv(), mnv(nv), mxv() { }
+                           msv(), mnv(nv), mxv(), mm() { }
 
   /** To set TokVal from a Vector. */
   TokVal(Vector xv) : mtype(Vector_t), ms(), mn(-1), mx(0.),
-                           msv(), mnv(), mxv(xv) { }
+                           msv(), mnv(), mxv(xv), mm() { }
+
+  /** To set TokVal from a Matrix. */
+  TokVal(Matrix m) : mtype(Matrix_t), ms(), mn(-1), mx(0.),
+                           msv(), mnv(), mxv(), mm(m) { }
 
   // Conversion functions to return TokVal for the 6 different types: 
   
@@ -79,6 +84,8 @@ public:
   operator ArrayOfIndex() const;
   /** Return Vector. */
   operator Vector() const;
+  /** Return Matrix. */
+  operator Matrix() const;
 
   /** Output operator. */
   friend ostream& operator<<(ostream& os, const TokVal& a);
@@ -91,6 +98,7 @@ private:
   ArrayOfString msv;
   ArrayOfIndex  mnv;
   Vector        mxv;
+  Matrix        mm;
 };
 
 

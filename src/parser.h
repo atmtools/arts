@@ -125,6 +125,8 @@ private:
 
   void parse_numvector(Vector& res);
 
+  void parse_matrix(Matrix& res);
+
   bool parse_numvector_from_string (Vector& res, String& str);
 
   bool parse_stringarray_from_string (ArrayOfString& res, String& str);

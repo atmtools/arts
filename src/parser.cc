@@ -314,6 +314,7 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
   \see parse_Stringvector
   \see parse_intvector
   \see parse_numvector
+  \see parse_matrix
    
   \exception UnknownMethod
   \exception UnknownWsv
@@ -1334,7 +1335,8 @@ void ArtsParser::tasklist_insert_set_delete(const ArrayOfIndex&  auto_vars,
           && auto_group != get_wsv_group_id("ArrayOfIndex")
           && auto_group != get_wsv_group_id("ArrayOfString")
           && auto_group != get_wsv_group_id("String")
-          && auto_group != get_wsv_group_id("Vector"))
+          && auto_group != get_wsv_group_id("Vector")
+          && auto_group != get_wsv_group_id("Matrix"))
         {
           ostringstream os;
           os << "Passing a "
@@ -1566,7 +1568,7 @@ Index ArtsParser::read_name_or_value(      String&        name,
   auto_vars.push_back(wsvid);
 
   // Now parse the value. This can be:
-  // String_, Index_, Numeric_, Array_String_, Array_Index_, Vector_
+  // String_, Index_, Numeric_, Array_String_, Array_Index_, Vector_, Matrix_
   if (group == get_wsv_group_id("String"))
     {
       String dummy;
@@ -1601,6 +1603,12 @@ Index ArtsParser::read_name_or_value(      String&        name,
     {
       Vector dummy;
       parse_numvector(dummy);
+      auto_vars_values.push_back(dummy);
+    }
+  else if (group == get_wsv_group_id("Matrix"))
+    {
+      Matrix dummy;
+      parse_matrix(dummy);
       auto_vars_values.push_back(dummy);
     }
   else
@@ -2038,6 +2046,118 @@ void ArtsParser::parse_numvector(Vector& res)
     {
       res[i] = tres[i];
     }
+
+  msource.AdvanceChar();
+}
+
+
+/** Read a Matrix. This looks as follows in the control
+    file: [1, 2, 3; 4, 5, 6]
+    Whitespace has to have been eaten before, that is, the current
+    character must be `['.
+  
+    The empty matrix is allowed.
+  
+    Line breaks are allowed before and after each number. Line breaks
+    inside numbers are not allowed. 
+   
+    \see parse_numeric */
+void ArtsParser::parse_matrix(Matrix& res)
+{
+  bool first = true;            // To skip the first comma.
+
+  // We need a temporary Array<Numeric>, so that we can use push_back
+  // to store the values. FIXME: Need also constructor for Vector from
+  // Array<Numeric>.
+  Array<Numeric> tres;
+
+  // Make sure that the current character really is `[' and proceed.
+  assertain_character('[');
+  // There might have occured a linebreak, which is fine.
+  
+  eat_whitespace();
+
+  Index ncols = -1;
+  Index cur_ncols = 1;
+  // Read the elements of the vector (`]' means that we have
+  // reached the end):
+  while ( ']' != msource.Current() )
+    {
+      Numeric dummy;
+
+      if (first)
+        first = false;
+      else
+        {
+          if (',' == msource.Current())
+            {
+              cur_ncols++;
+              if (ncols != -1 && cur_ncols > ncols)
+                {
+                  ostringstream os;
+                  os << "Expected ';', but got '" << msource.Current() << "'. Check Matrix dimensions.";
+                  throw UnexpectedChar( os.str(),
+                                        msource.File(),
+                                        msource.Line(),
+                                        msource.Column() );
+                }
+              msource.AdvanceChar();
+              eat_whitespace();
+            }
+          else if (';' == msource.Current())
+            {
+              if (ncols == -1)
+                {
+                  ncols = cur_ncols;
+                }
+              else if (ncols != cur_ncols)
+                {
+                  ostringstream os;
+                  os << "Expected ',', but got '" << msource.Current() << "'. Check Matrix dimensions.";
+                  throw UnexpectedChar( os.str(),
+                                        msource.File(),
+                                        msource.Line(),
+                                        msource.Column() );
+                }
+              cur_ncols = 1;
+              msource.AdvanceChar();
+              eat_whitespace();
+            }
+          else
+            {
+              char c = ';';
+              if (ncols > cur_ncols)
+                c = ',';
+              ostringstream os;
+              os << "Expected '" << c << "', but got '" << msource.Current() << "'. Check Matrix dimensions.";
+              throw UnexpectedChar( os.str(),
+                                    msource.File(),
+                                    msource.Line(),
+                                    msource.Column() );
+            }
+        }
+
+      parse_numeric(dummy);
+      tres.push_back(dummy);
+      eat_whitespace();
+    }
+
+  if (ncols == -1) ncols = cur_ncols;
+  if (ncols != cur_ncols)
+    {
+      throw ParseError("Missing element(s) in last row of matrix",
+                       msource.File(),
+                       msource.Line(),
+                       msource.Column());
+    }
+
+
+  // Copy tres to res:
+  Index nrows = tres.nelem() / ncols;
+  res.resize(nrows, ncols);
+  for (Index i = 0; i < nrows; i++)
+    for (Index j = 0; j < ncols; j++)
+      res(i, j) = tres[i*ncols+j];
 
   msource.AdvanceChar();
 }
