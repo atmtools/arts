@@ -6238,7 +6238,7 @@ void ppath_calc(
           //if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) )
           // New version:
           if( ppath_step.los(n-1,0) <= 90  &&  imax_p <= 
-              ppath_step.gp_p[n-1].idx + ppath_step.gp_p[n-1].fd[0] + 0.01 )
+              (Numeric)ppath_step.gp_p[n-1].idx + ppath_step.gp_p[n-1].fd[0] + 0.01 )
             { ppath_set_background( ppath_step, 1 ); }
 
           // Check that path does not exit at a latitude or longitude end face
