@@ -1,3 +1,30 @@
+2010-03-05  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-13-0 (New minor version number, due to important include
+	file changes for AMSU.)
+
+	* src/m_sensor.cc (sensor_responseSimpleAMSU): Added. Does a
+	complete sensor setup for an AMSU-type instrument (should also
+	work for MHS).
+
+	* src/methods.cc: (sensor_responseSimpleAMSU): Added. 
+
+	* src/workspace.cc: (sensor_description_amsu): Added. Input for
+	sensor_responseSimpleAMSU.  
+
+	* includes/amsu/amsub.arts,
+	includes/amsu/amsub_fast.arts: Modified to use the new function.
+
+	* includes/amsu/README: Added. Describes antenna file and matlab
+	script, which I left there, although they are not used by the
+	current standard setups.
+
+	* includes/amsu/amsub.lo.xml,
+       	includes/amsu/amsub.sideband_mode.xml,
+       	includes/amsu/amsub.sideband_response.xml,
+       	includes/amsu/amsub.f_backend.xml,
+       	includes/amsu/amsub.backend_channel_response.xml: Removed.
+
 2010-03-01  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-12-130

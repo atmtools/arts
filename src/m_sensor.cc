@@ -1942,7 +1942,134 @@ void sensor_responseMultiMixerBackend(
                       sensor_response_za_grid, sensor_response_aa_grid, 0 );
 }
 
+void sensor_responseSimpleAMSU(// WS Output:
+                               Vector& f_grid,
+                               Index& antenna_dim,
+                               Vector& mblock_za_grid,
+                               Vector& mblock_aa_grid,
+                               Sparse& sensor_response,
+                               Vector& sensor_response_f,
+                               ArrayOfIndex& sensor_response_pol,
+                               Vector& sensor_response_za,
+                               Vector& sensor_response_aa,
+                               Vector& sensor_response_f_grid,
+                               ArrayOfIndex& sensor_response_pol_grid,
+                               Vector& sensor_response_za_grid,
+                               Vector& sensor_response_aa_grid,
+                               Index& sensor_norm,
+                               // WS Input:
+                               const Index& atmosphere_dim,
+                               const Index& stokes_dim,
+                               const Matrix& sensor_description_amsu,
+                               // WS Generic Input:
+                               const Numeric& spacing)
+{
+  // Check that sensor_description_amsu has the right dimension:
+  if ( 3 != sensor_description_amsu.ncols() )
+  {
+    ostringstream os;
+    os << "Input variable sensor_description_amsu must have three columns, but it has "
+       << sensor_description_amsu.ncols() << ".";
+    throw runtime_error( os.str() );
+  }
+  
+  // Number of instrument channels:
+  const Index n = sensor_description_amsu.nrows(); 
 
+  // The meaning of the columns in sensor_description_amsu is:
+  // LO frequency, channel center offset from LO, channel width.
+  // (All in Hz.)
+  ConstVectorView lo_multi = sensor_description_amsu(Range(joker),0);
+  ConstVectorView offset   = sensor_description_amsu(Range(joker),1);
+  ConstVectorView width    = sensor_description_amsu(Range(joker),2);
+
+  // Channel frequencies:
+  ArrayOfVector f_backend_multi(n);
+  for (Index i=0; i<n; ++i) {
+    Vector& f = f_backend_multi[i];
+    f.resize(1);
+    f[0] = lo_multi[i] + offset[i];
+  }  
+  
+  // Construct channel response
+  ArrayOfArrayOfGField1 backend_channel_response_multi(n);
+  for (Index i=0; i<n; ++i) {
+    backend_channel_response_multi[i].resize(1);
+    GField1& r = backend_channel_response_multi[i][0];
+    r.set_name("Backend channel response function");
+    r.resize(2);
+    
+    // Frequency range:
+    Vector f(2);
+    f[0] = - 0.5 * width[i];
+    f[1] = + 0.5 * width[i];
+    r.set_gridname(0, "Frequency");
+    r.set_grid(0,f);
+    
+    // Response:
+    r[0] = 1;
+    r[1] = 1;
+  }
+  
+  // Construct sideband response:
+  ArrayOfGField1 sideband_response_multi(n);
+  for (Index i=0; i<n; ++i) {
+    GField1& r = sideband_response_multi[i];
+    r.set_name("Sideband response function");
+    r.resize(2);
+    
+    // Frequency range:
+    Vector f(2);
+    f[0] = - (offset[i] + 0.5*width[i]);
+    f[1] = + (offset[i] + 0.5*width[i]);
+    r.set_gridname(0, "Frequency");
+    r.set_grid(0,f);
+    
+    // Response:
+    r[0] = 0.5;
+    r[1] = 0.5;
+  }
+
+  // Set sideband mode:
+  ArrayOfString sideband_mode_multi(n,"upper");
+  
+  // We want to automatically normalize the sensor response data, so set sensor_norm to 1:
+  sensor_norm = 1;
+   
+  // Now the rest is just to use some workspace methods:
+  // ---------------------------------------------------
+
+  f_gridFromSensorMHS(f_grid, lo_multi, 
+                      f_backend_multi, backend_channel_response_multi, 
+                      spacing);
+  
+  AntennaOff( antenna_dim, mblock_za_grid, mblock_aa_grid );
+  
+  sensor_responseInit(sensor_response, 
+                      sensor_response_f, sensor_response_pol, 
+                      sensor_response_za, sensor_response_aa, 
+                      sensor_response_f_grid, 
+                      sensor_response_pol_grid, 
+                      sensor_response_za_grid, 
+                      sensor_response_aa_grid, f_grid, mblock_za_grid, 
+                      mblock_aa_grid, antenna_dim, atmosphere_dim, 
+                      stokes_dim, sensor_norm );  
+  
+  sensor_responseMultiMixerBackend(sensor_response, sensor_response_f, 
+                                   sensor_response_pol, 
+                                   sensor_response_za, 
+                                   sensor_response_aa, 
+                                   sensor_response_f_grid, 
+                                   sensor_response_pol_grid, 
+                                   sensor_response_za_grid, 
+                                   sensor_response_aa_grid, lo_multi, 
+                                   sideband_response_multi, 
+                                   sideband_mode_multi, 
+                                   f_backend_multi, 
+                                   backend_channel_response_multi, 
+                                   sensor_norm );
+  
+}
 
 // Declare select functions needed by WMRFSelectChannels:
 

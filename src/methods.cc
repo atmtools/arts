@@ -3603,7 +3603,7 @@ void define_md_data_raw()
         GIN( "spacing" ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( ".1e9" ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Desired grid spacing in Hz." )
         ));
 
   md_data_raw.push_back     
@@ -3645,7 +3645,7 @@ void define_md_data_raw()
         GIN( "spacing" ),
         GIN_TYPE(    "Numeric" ),
         GIN_DEFAULT( ".1e9" ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Desired grid spacing in Hz." )
         ));
 
   md_data_raw.push_back     
@@ -3682,7 +3682,7 @@ void define_md_data_raw()
         GIN( "spacing" ),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( "5e8" ),
-        GIN_DESC( "FIXME DOC" )
+        GIN_DESC( "Desired grid spacing in Hz." )
         ));
 
   md_data_raw.push_back     
@@ -7352,7 +7352,54 @@ void define_md_data_raw()
         GIN_DESC()
         ));
   
-  /* Not yet updated
+  md_data_raw.push_back
+  ( MdRecord
+   ( NAME( "sensor_responseSimpleAMSU" ),
+	DESCRIPTION
+	(
+	 "Simplified sensor setup for an AMSU-type instrument.\n"
+	 "\n"
+	 "This method allows quick and simple definition of AMSU-type\n"
+	 "sensors. Assumptions:\n"
+	 "\n"
+     "1. Pencil beam antenna.\n"
+	 "2. Douple sideband receivers.\n"
+	 "3. Sideband mode \"upper\"\n"
+	 "4. The channel response is rectangular.\n"
+	 "\n"
+	 "Under these assumptions the only inputs needed are the LO positions,\n"
+	 "the offsets from the LO, and the IF bandwidths. They are provieded\n"
+	 "in sensor_description_amsu.\n"
+	 ),
+	AUTHORS( "Stefan Buehler" ),
+	OUT( "f_grid", 
+         "antenna_dim", 
+         "mblock_za_grid", 
+         "mblock_aa_grid",
+         "sensor_response", 
+         "sensor_response_f", 
+         "sensor_response_pol", 
+         "sensor_response_za", 
+         "sensor_response_aa", 
+         "sensor_response_f_grid", 
+         "sensor_response_pol_grid", 
+         "sensor_response_za_grid", 
+         "sensor_response_aa_grid", 
+         "sensor_norm"
+        ),
+	GOUT(),
+	GOUT_TYPE(),
+	GOUT_DESC(),
+	IN( "atmosphere_dim",
+        "stokes_dim", 
+        "sensor_description_amsu" ),
+    GIN( "spacing" ),
+    GIN_TYPE(    "Numeric" ),
+    GIN_DEFAULT( ".1e9" ),
+    GIN_DESC( "Desired grid spacing in Hz." )
+	));
+
+	/* Not yet updated
      md_data_raw.push_back
      ( MdRecord
      ( NAME( "sensor_responsePolarisation" ),

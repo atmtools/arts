@@ -3170,7 +3170,27 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "sensor_los" ),
+    ( NAME( "sensor_description_amsu" ),
+      DESCRIPTION
+      (
+	   "Sensor description for simple AMSU setup.\n"
+	   "\n"
+	   "This is a compact description of an AMSU-type sensor. The matrix\n"
+	   "contains one row for each instrument channel. Each row contains three\n"
+	   "elements: LO position [Hz], offset of the channel center from the LO\n"
+	   "[Hz], and channel width [Hz].\n"
+	   "\n"
+	   "Usage: Set by the user.\n"
+	   "\n"
+	   "Unit: All entries in Hz.\n"
+	   "\n"
+	   "Size: [number of channels, 3]\n"
+       ),
+      GROUP( "Matrix" )));
+
+	wsv_data.push_back
+	(WsvRecord
+	 ( NAME( "sensor_los" ),
       DESCRIPTION
       (
        "The sensor line-of-sight (LOS) for each measurement block.\n"
@@ -3200,7 +3220,7 @@ void Workspace::define_wsv_data()
        "Size:  [ number of measurement blocks, 1 or 2 ]\n"
        ),
       GROUP( "Matrix" )));
-
+	
   wsv_data.push_back
    (WsvRecord
     ( NAME( "sensor_norm" ),
