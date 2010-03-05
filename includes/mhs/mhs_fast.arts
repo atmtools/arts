@@ -130,7 +130,7 @@ ReadXML( backend_channel_response_multi,
 
 # Frequency grid:
 #
-f_gridFromSensorMHS
+f_gridFromSensorAMSU
 
 
 # Construct sensor response from all these inputs:
