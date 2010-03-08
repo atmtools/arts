@@ -80,47 +80,15 @@ MatrixSetConstant( sensor_pos, nrows, ncols, 817e3 )
 sensor_posAddRgeoid
 
 
-# Start sensor response setup
+# Sensor response setup
 # ---
 
-# Normalise the sensor response
-# ---
-IndexSet( sensor_norm, 1 )
+MatrixSet( sensor_description_amsu,
+           [  89.00e9,  0.70e9, 1400e6 ;
+      	     157.00e9,  0.70e9, 1400e6 ;
+      	     183.311e9, 1.00e9,  500e6 ;
+      	     183.311e9, 3.00e9, 1000e6 ;
+      	     190.311e9, 5.50e8, 1100e6 ] )
 
-# Antenna
-# ---
-AntennaOff
-
-
-# See setup_input.m for details around other sensor variables 
-
-
-# Mixer:
-#
-ReadXML( lo_multi, "mhs/mhs.lo.xml" )
-ReadXML( sideband_response_multi, "mhs/mhs.sideband_response.xml" )
-ReadXML( sideband_mode_multi, "mhs/mhs.sideband_mode.xml" )
-
-
-# Spectrometer:
-#
-ReadXML( f_backend_multi, "mhs/mhs.f_backend.xml" )
-ReadXML( backend_channel_response_multi,
-         "mhs/mhs.backend_channel_response.xml" )
-
-
-# Frequency grid:
-#
-f_gridFromSensorAMSU
-
-
-# Construct sensor response from all these inputs:
-#
-sensor_responseInit
-sensor_responseMultiMixerBackend
-
-
-# End of sensor response setup
-
-
+sensor_responseSimpleAMSU
 }
