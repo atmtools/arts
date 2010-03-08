@@ -1248,3 +1248,14 @@ DOT_CLEANUP = YES
 # used. If set to NO the values of all tags below this one will be ignored.
 
 SEARCHENGINE = NO
+
+#---------------------------------------------------------------------------
+# Docset: Documentation for Xcode integration
+#---------------------------------------------------------------------------
+
+GENERATE_DOCSET = YES
+
+DOCSET_FEEDNAME = "The Atmospheric Radiative Transfer System"
+
+DOCSET_BUNDLE_ID = se.ltu.sat.arts
+

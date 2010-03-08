@@ -320,6 +320,7 @@ add_library (matpack STATIC
 	make_vector.h
 	make_vector.cc
 	matpack.h
+	matpackI.h
 	matpackI.cc
 	matpackII.h
 	matpackII.cc

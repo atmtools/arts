@@ -1,7 +1,7 @@
 project (uguide)
 find_package (LATEX)
 
-if (PDFLATEX_COMPILER AND BIBTEX_COMPILER)
+if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
 
   configure_file (${CMAKE_CURRENT_SOURCE_DIR}/auto_version.tex.in
                   ${CMAKE_CURRENT_BINARY_DIR}/auto_version.tex @ONLY)
@@ -19,7 +19,7 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER)
     OUTPUT uguide.pdf
     COMMAND ${CMAKE_COMMAND} -E remove -f uguide.log
     COMMAND ${PDFLATEX_COMMAND}
-            && makeindex -q uguide.idx ${PDFLATEX_LOGGING}
+            && ${MAKEINDEX_COMPILER} -q uguide.idx ${PDFLATEX_LOGGING}
             && BSTINPUTS=.:${CMAKE_CURRENT_SOURCE_DIR}: BIBINPUTS=.:${CMAKE_CURRENT_SOURCE_DIR}: save_size=15000
               ${BIBTEX_COMPILER} uguide ${PDFLATEX_LOGGING}
             && ${PDFLATEX_COMMAND}
@@ -46,5 +46,5 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER)
 
   install (FILES ${CMAKE_CURRENT_BINARY_DIR}/uguide.pdf DESTINATION share/doc/arts)
 
-endif (PDFLATEX_COMPILER AND BIBTEX_COMPILER)
+endif (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
 
