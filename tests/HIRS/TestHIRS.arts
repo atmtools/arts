@@ -203,7 +203,7 @@ AgendaSet( ybatch_calc_agenda ){
   # Optionally set jacobian parameters:
 #
 #   jacobianInit
-#   jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda, jacobian, 
+#   jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
 #                          atmosphere_dim,
 #                          p_grid, lat_grid, lon_grid, 
 #                          p_grid, lat_grid, lon_grid,

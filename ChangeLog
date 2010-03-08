@@ -1,5 +1,16 @@
 2010-03-08  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-13-3
+
+	* tests/MHS/TestMHS_generic.arts, tests/HIRS/TestHIRS.arts,
+	tests/AMSU/TestAMSU_generic.arts:
+
+	Remove jacobian variable from jacobianAddAbsSpecies call. Didn't turn
+	up during 'make check' because the jacobians are commented out in
+	those control files.
+
+2010-03-08  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-13-2
 
 	* src/CMakelists.txt: Add missing matpackI.h to matpack library sources.
