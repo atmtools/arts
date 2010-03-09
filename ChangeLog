@@ -1,5 +1,23 @@
 2010-03-09  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-13-7
+
+	* doc/doxygen/html/: Removed from SVN.
+
+	* doc/doxygen/Makefile.am:
+
+	Create clean-local target to remove directory html.
+
+	Add doxygen.warn to CLEANFILES.
+
+	Remove SUBDIRS.
+
+	* src/configure.in: Removed doc/doxygen/html.
+
+	* CMakeLists.txt: Require cmake 2.6.2.
+
+2010-03-09  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-13-6
 
 	* doc/uguide/CMakeLists.txt:

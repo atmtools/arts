@@ -7,8 +7,6 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-SUBDIRS        = . html
-
 # The latex docuement is huge, and seems not to be too useful.
 
 EXTRA_DIST  = doxyfied
@@ -32,7 +30,10 @@ doxyfied: Doxyfile $(toexamine)
 	cp $(srcdir)/../arts-splash.gif html/
 	touch doxyfied
 
-CLEANFILES = doxyfied
+CLEANFILES = doxyfied doxygen.warn
+
+clean-local:
+	rm -rf html
 
 MAINTAINERCLEANFILES = arts.tag
 
