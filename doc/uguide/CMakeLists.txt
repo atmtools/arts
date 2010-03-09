@@ -15,11 +15,13 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
     "save_size=15000" ${PDFLATEX_COMPILER} ${PDFLATEX_OPTIONS} uguide
     ${PDFLATEX_LOGGING})
 
+  get_filename_component(MAKEINDEX_PATH "${MAKEINDEX_COMPILER}" PATH)
+
   add_custom_command (
     OUTPUT uguide.pdf
     COMMAND ${CMAKE_COMMAND} -E remove -f uguide.log
     COMMAND ${PDFLATEX_COMMAND}
-            && ${MAKEINDEX_COMPILER} -q uguide.idx ${PDFLATEX_LOGGING}
+            && PATH=$PATH:${MAKEINDEX_PATH} ${MAKEINDEX_COMPILER} -q uguide.idx ${PDFLATEX_LOGGING}
             && BSTINPUTS=.:${CMAKE_CURRENT_SOURCE_DIR}: BIBINPUTS=.:${CMAKE_CURRENT_SOURCE_DIR}: save_size=15000
               ${BIBTEX_COMPILER} uguide ${PDFLATEX_LOGGING}
             && ${PDFLATEX_COMMAND}

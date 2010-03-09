@@ -1,5 +1,13 @@
 2010-03-09  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-13-6
+
+	* doc/uguide/CMakeLists.txt:
+
+	Make makeindex self-aware. Fixes user guide build in Xcode.
+
+2010-03-09  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-13-5
 
 	* tests/testall.py:
