@@ -1,10 +1,10 @@
 
 add_custom_command(
   OUTPUT PrepareTestScripts
-  COMMAND cmake -E
+  COMMAND ${CMAKE_COMMAND} -E
     ARGS copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/artsXML.py
                            ${CMAKE_CURRENT_BINARY_DIR}/artsXML.py
-  COMMAND cmake -E
+  COMMAND ${CMAKE_COMMAND} -E
     ARGS copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/testall.py
                            ${CMAKE_CURRENT_BINARY_DIR}/testall.py
 )

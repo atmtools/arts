@@ -13,11 +13,16 @@ class ArtsRun:
         """Run the control file"""
         print self.subdir;
         if os.environ['TOPSRCDIR'][0] == '/':
-            includeprefix=""
+            includeprefix=''
         else:
-            includeprefix="../"
+            includeprefix='../'
+
+        artsbin='../../src/arts'
+        if os.environ['CMAKE_GENERATOR'] == 'Xcode':
+            artsbin='../../src/' + os.environ['BUILD_STYLE'] + '/arts'
+
         w,r,e=os.popen3('cd ' + self.subdir + '; '
-                + '../../src/arts '
+                + artsbin + ' '
                 + '-I' + includeprefix + os.environ['TOPSRCDIR'] + '/includes '
                 + self.control_file)
         self.output=r.read()

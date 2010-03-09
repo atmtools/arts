@@ -4,7 +4,7 @@ macro (ARTS_ADD_PREPARE_TESTCASES TARGETS)
     set (TARGET PrepareTest${TESTCASE}Directory)
     add_custom_command(
       OUTPUT ${TARGET}
-      COMMAND cmake -E
+      COMMAND ${CMAKE_COMMAND} -E
         ARGS make_directory ${CMAKE_CURRENT_BINARY_DIR}/${TESTCASE}
     )
     set (ADD_TARGETS ${ADD_TARGETS} ${TARGET})
@@ -20,7 +20,7 @@ macro (ARTS_ADD_PREPARE_TESTCASES TARGETS)
       set (TARGET PrepareTest${TESTCASE}File${BASECOPYFILE})
       add_custom_command(
         OUTPUT ${TARGET}
-        COMMAND cmake -E
+        COMMAND ${CMAKE_COMMAND} -E
           ARGS copy_if_different ${COPYFILE}
                "${CMAKE_CURRENT_BINARY_DIR}/${TESTCASE}/"
         DEPENDS PrepareTest${TESTCASE}Directory
@@ -37,10 +37,13 @@ macro (ARTS_ADD_TESTCASES TARGETS DEPENDENCIES)
     set (TARGET Test${TESTCASE})
     add_custom_command(
       OUTPUT ${TARGET}
-      COMMAND if TOPSRCDIR=${CMAKE_SOURCE_DIR} python
+      COMMAND if CMAKE_GENERATOR=${CMAKE_GENERATOR} 
+              TOPSRCDIR=${CMAKE_SOURCE_DIR} python
               testall.py ${TARGET} > ${TARGET}.log 2>&1\; then
-              echo "${TARGET} ok."\; else
-              echo "${TARGET} failed. Find details in ${TARGET}.log"\; exit 1\;
+                  echo "${TARGET} ok."\;
+	      else
+                  echo "${TARGET} failed. Find details in ${TARGET}.log"\;
+	          exit 1\;
               fi
       DEPENDS ../src/arts PrepareTestScripts ${DEPENDENCIES}
     )
