@@ -1,5 +1,11 @@
 2010-03-10  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-13-10
+
+	* src/main.cc: Show include path in 'arts -v' output.
+
+2010-03-10  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-13-9
 
 	* src/xml_io_basic_types.cc, src/xml_io.cc, src/main.cc (option_input),

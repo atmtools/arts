@@ -795,7 +795,14 @@ int main (int argc, char **argv)
 #else
         << "disabled" << endl
 #endif
-        << "";
+        << ""
+        << "Include search paths: " << endl;
+      
+      for (ArrayOfString::const_iterator it = parameters.includepath.begin();
+           it != parameters.includepath.end(); it++)
+      {
+        osfeatures <<  "   " << (*it) << endl;
+      }
     }
 
   if (parameters.version)
