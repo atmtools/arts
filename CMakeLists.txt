@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6.2)
 
 project (ARTS)
-set (VERSION "1.13.7")
+set (VERSION "1.13.9")
 
 ENABLE_TESTING()
 

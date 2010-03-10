@@ -51,9 +51,8 @@ streampos bifstream::pos()
 
 bifstream::Byte bifstream::getByte()
 {
-  int iread;
-
   if(this->good ()) {
+        int iread;
         iread = this->get ();
         if(iread == EOF) err |= Eof;
         return (Byte)iread;

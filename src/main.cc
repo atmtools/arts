@@ -353,10 +353,6 @@ void option_input(const String& input)
   //  extern const map<String, Index> MdMap;
   extern const ArrayOfString wsv_group_names;
 
-  // This is used to count the number of matches to a query, so
-  // that `none' can be output if necessary
-  Index hitcount;
-
   // Ok, so the user has probably specified a workspace variable or
   // workspace variable group.
 
@@ -365,11 +361,14 @@ void option_input(const String& input)
     Workspace::WsvMap.find(input);
   if ( mi != Workspace::WsvMap.end() )
     {
+      // This is used to count the number of matches to a query, so
+      // that `none' can be output if necessary
+      Index hitcount = 0;
+      
       // If we are here, then the given name matches a variable.
       Index wsv_key = mi->second;
 
       // List generic methods:
-      hitcount = 0;
       cout 
       << "\n*-------------------------------------------------------------------*\n"
       << "Generic and supergeneric methods that can use " << Workspace::wsv_data[wsv_key].Name() << ":\n"
@@ -466,8 +465,11 @@ void option_input(const String& input)
   // group with this name was not found.
   if ( group_key != wsv_group_names.nelem() )
     {
+      // This is used to count the number of matches to a query, so
+      // that `none' can be output if necessary
+      Index hitcount = 0;
+      
       // List generic methods:
-      hitcount = 0;
       cout
       << "\n*-------------------------------------------------------------------*\n"
       << "Generic and supergeneric methods that require a variable of group " 

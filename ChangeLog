@@ -1,3 +1,22 @@
+2010-03-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-13-9
+
+	* src/xml_io_basic_types.cc, src/xml_io.cc, src/main.cc (option_input),
+	src/parser.cc, src/bifstream (bifstream::getByte):
+
+	Cleaning up variable scopes.
+
+	* src/parser.cc (parse_main):
+
+	Use references for exception in catch blocks.
+
+	(parse_method, ArtsParser::parse_method_args):
+
+	Removed unused variables.
+
+	* src/sourcetext.h: Initialize member mLineBreak in constructor.
+
 2010-03-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-13-8

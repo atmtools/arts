@@ -506,7 +506,6 @@ xml_read_from_stream (istream& is_xml,
                       bifstream * /* pbifs */)
 {
   ArtsXMLTag tag;
-  stringbuf  strbuf;
   char dummy;
 
   tag.read_from_stream (is_xml);
@@ -544,6 +543,8 @@ xml_read_from_stream (istream& is_xml,
     }
   else
     {
+      stringbuf  strbuf;
+
       is_xml.get (strbuf, '"');
       if (is_xml.fail ())
         {

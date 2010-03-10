@@ -848,9 +848,6 @@ xml_read_from_file (const String& filename,
                     T&            type)
 {
   istream* ifs;
-  FileType ftype;
-  NumericType ntype;
-  EndianType etype;
 
   out2 << "  Reading " << filename << '\n';
 
@@ -889,6 +886,10 @@ xml_read_from_file (const String& filename,
   // filename.
   try
     {
+      FileType ftype;
+      NumericType ntype;
+      EndianType etype;
+
       xml_read_header_from_stream (*ifs, ftype, ntype, etype);
       if (ftype == FILE_TYPE_ASCII)
         {
@@ -922,9 +923,6 @@ xml_read_arts_catalogue_from_file (const String&      filename,
                                    const Numeric&     fmax)
 {
   istream* ifs;
-  FileType ftype;
-  NumericType ntype;
-  EndianType etype;
 
   out2 << "  Reading " << filename << '\n';
 
@@ -963,6 +961,10 @@ xml_read_arts_catalogue_from_file (const String&      filename,
   // filename.
   try
     {
+      FileType ftype;
+      NumericType ntype;
+      EndianType etype;
+
       xml_read_header_from_stream (*ifs, ftype, ntype, etype);
       if (ftype == FILE_TYPE_ASCII)
         {

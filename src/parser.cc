@@ -88,7 +88,7 @@ void ArtsParser::parse_main()
           arts_exit ();
         }
     }
-  catch (const Eot x)
+  catch (const Eot& x)
     {
       // Unexpected end of the source text:
       out0 << "Unexpected end of control script.\n";
@@ -96,7 +96,7 @@ void ArtsParser::parse_main()
       out0 << "Line: " << x.line() << '\n';
       arts_exit ();
     }
-  catch (const UnexpectedChar x)
+  catch (const UnexpectedChar& x)
     {
       // Unexpected Character:
       out0 << "Unexpected character:\n";
@@ -106,7 +106,7 @@ void ArtsParser::parse_main()
       out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
-  catch (const IllegalLinebreak x)
+  catch (const IllegalLinebreak& x)
     {
       // A line break in an illegal position:
       out0 << "Illegal Line break:\n";
@@ -115,7 +115,7 @@ void ArtsParser::parse_main()
       out0 << "Line: "   << x.line() << '\n';
       arts_exit ();
     }
-  catch (const UnknownMethod x)
+  catch (const UnknownMethod& x)
     {
       // Method unknown:
       // [**This should give a hint on how to obtain a list of allowed 
@@ -127,7 +127,7 @@ void ArtsParser::parse_main()
       out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
-  catch (const UnknownWsv x)
+  catch (const UnknownWsv& x)
     {
       // Workspace variable unknown:
       // [**This should give a hint on how to obtain a list of allowed 
@@ -139,7 +139,7 @@ void ArtsParser::parse_main()
       out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
-  catch (const WsvAlreadyExists x)
+  catch (const WsvAlreadyExists& x)
     {
       // Trying to create the same variable twice:
       out0 << "Attempt to create a workspace variable that already exists:\n";
@@ -149,7 +149,7 @@ void ArtsParser::parse_main()
       out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
-  catch (const WrongWsvGroup x)
+  catch (const WrongWsvGroup& x)
     {
       // Workspace variable unknown:
       // [**This should give a hint on how to obtain a list of Wsvs in 
@@ -161,7 +161,7 @@ void ArtsParser::parse_main()
       out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
-  catch (const ParseError x)
+  catch (const ParseError& x)
     {
       // General Parse Error (parent of all the above):
       out0 << "Parse error:\n";
@@ -352,7 +352,6 @@ void ArtsParser::parse_method(Index&         id,
 
   if (methodname == "INCLUDE")
     {
-      String s;
       eat_whitespace ();
       parse_String (include_file);
 
@@ -602,9 +601,6 @@ void ArtsParser::parse_method_args(const MdRecord*&       mdd,
   extern const Array<MdRecord> md_data_raw;
   extern const map<String, Index> MdMap;
 
-  Index wsvid;                  // Workspace variable id, is used to
-                                // access data in wsv_data.
-
   bool still_supergeneric=true; // Flag that our MdRecord still is
                                 // from md_data_raw, not from
                                 // md_data. 
@@ -640,7 +636,6 @@ void ArtsParser::parse_method_args(const MdRecord*&       mdd,
 
   if (msource.Current() == '(')
     {
-      String wsvname;
       bool first = true;        // To skip the first comma.
       String supergeneric_args;
       Index supergeneric_index = -1;
@@ -689,6 +684,9 @@ void ArtsParser::parse_method_args(const MdRecord*&       mdd,
                all_gin_have_defaults && gin < mdd->GIn().nelem();
                ++gin)
             {
+              Index wsvid; // Workspace variable id, is used to
+                           // access data in wsv_data.
+                            
               if (mdd->GInDefault()[gin] == NODEF)
                 all_gin_have_defaults = false;
               else
