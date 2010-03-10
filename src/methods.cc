@@ -4205,15 +4205,28 @@ void define_md_data_raw()
       ( NAME( "iyFOS" ),
         DESCRIPTION
         (
-         "So far just a test of a fixed order of scattering scheme.\n"
+         "A discrete ordinate fixed order of scattering scheme.\n"
          "\n"
          "The scattering integral is here solved by calculating the incoming\n"
          "radiation and phase matrix for a set of directions, that can be\n"
          "distributed freely over the sphere of integration. These directions\n"
          "are specified by a combination of zenith angd azimuth angles for\n"
          "each integration point. The product of incoming radiation and phase\n"
-         "matrix is summed up, with a weight specified for each product. The\n"
-         "angles and integration weights are packed into the WSV *fos_angles*.\n"
+         "matrix is summed up, with a weight specified for each product.\n"
+         "These angles and integration weights are packed into the WSV\n" 
+         "*fos_angles*.\n"
+         "\n"
+         "So far it is assumed that the scattering properties are constant\n"
+         "over the frequency range considered. The scattering properties are\n"
+         "for the middle point between min and max frequency.\n"
+         "\n"
+         "The propagation path step closest to the cloudbox boundary is\n"
+         "always treated as clear-sky. Accordingly, there should be some\n"
+         "between positions with cloud particles and the cloudbox boundary.\n"
+         "For regions of no scattering there is a marginal difference between\n"
+         "running this method and the corresponding pure clear-sky agenda,\n"
+         "and there is not critical to set the cloudbox limits in a \"tight\"\n"
+         "manner.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "iy" ),

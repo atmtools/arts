@@ -1,3 +1,12 @@
+2010-03-10  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-13-8
+
+	* src/agendas.cc (define_agenda_data): Added fos_y_agenda.
+
+	* src/workspace.cc: Added fos_y. Polished text for other fos
+	variables.
+
 2010-03-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-13-7
@@ -137,6 +146,7 @@
 
 	Add support for setting matrices directly in the controlfile.
 
+>>>>>>> .r6270
 2010-02-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-128

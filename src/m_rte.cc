@@ -3136,9 +3136,10 @@ void iyFOS(
       Vector ppath_logp( np );
       transform( ppath_logp, log, ppath_p  );
 
-      // So far we use scat_data_mono below
+      // So far we use constant scattering properties
       ArrayOfSingleScatteringData   scat_data_mono;
-      scat_data_monoCalc( scat_data_mono, scat_data_raw, f_grid, nf/2 );
+      Vector f_dummy( 1, (f_grid[0]+f_grid[nf-1])/2.0 );
+      scat_data_monoCalc( scat_data_mono, scat_data_raw, f_dummy, 0 );
 
       // Loop ppath steps
       for( Index ip=np-2; ip>=0; ip-- )
@@ -3161,7 +3162,7 @@ void iyFOS(
 
           
           // Clearsky step
-          if( max(pnd_mean) < 0.5  || fos_n == 0 )
+          if( max(pnd_mean) < 1e-3  || fos_n == 0 )
             {
               // Loop frequencies
               for( Index iv=0; iv<nf; iv++ )
@@ -3210,7 +3211,7 @@ void iyFOS(
               for( Index ia=0; ia<nfosa; ia++ )
                 { 
                   Matrix tmp;
-                  //cout << ip << " " << fos_i+1 << " " << ia << endl; 
+
                   if( fos_i == fos_n-1  ||  ip==0  ||  ip==np-2 )
                     {
                       iy_clearsky_basic_agendaExecute( ws, tmp, rte_pos2, 
@@ -3285,3 +3286,5 @@ void iyFOS(
         } 
     }
 }
+
+

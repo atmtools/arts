@@ -1464,34 +1464,14 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     (NAME( "fos_angles" ),
-      DESCRIPTION
-      (
-       "Angles and weights for calculation of the scattering integral.\n"
-       "\n"
-       "The approach for calculating the scattering integral is described\n"
-       "in *iyFOS*. This variable gives the angles and weights to apply.\n"
-       "\n"
-       "This is a matrix with three columns. The first column holds the\n"
-       "zenith angles. These are normally in the range [0,180], but values\n"
-       "down to -180 are accepted for 2D calculations. Azimuth angles are\n"
-       "found in the second column, that shall be in the range [-180,180].\n"
-       "The third columns holds the wieght to apply for each direction. The\n"
-       "sum of these weights shall theoretically be 4*pi, the solid angle\n"
-       "of the integration sphere. However, for increased flexibility this\n"
-       "sum is allowed to deviate with about 50\% from that value.\n" ),
-      GROUP( "Matrix" )));
-
-  wsv_data.push_back
-    (WsvRecord
      (NAME( "fos_i" ),
       DESCRIPTION
       (
        "Scattering order handled presently.\n"
        "\n"
        "This variable must be set to 0 by the user. This variable is later\n"
-       "used internally by the FOS methods to handle recursive calls, to know\n" 
-       "when *fos_n* has been reached.\n" ),
+       "used internally by the FOS methods to handle recursive calls, to\n" 
+       "know when *fos_n* has been reached.\n" ),
       GROUP( "Index" )));
 
   wsv_data.push_back
@@ -1499,7 +1479,7 @@ void Workspace::define_wsv_data()
      (NAME( "fos_n" ),
       DESCRIPTION
       (
-       "The number scattering order to apply.\n"
+       "The scattering order to apply.\n"
        "\n"
        "This variable determines the maximum scattering order that will be\n"
        "considered in the FOS scheme. For example, 1 corresponds to that only\n"
@@ -1507,6 +1487,27 @@ void Workspace::define_wsv_data()
        "in \"pure clearsky\" calculations.\n" ),
       GROUP( "Index" )));
 
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "fos_y" ),
+      DESCRIPTION
+      (
+       "Incoming radiation, for estimating the scattering integral.\n"
+       "\n"
+       "Output of *iy_fos_agenda*. See further that agenda.\n"
+       "\n"
+       "Dimensions: [fos_angles, f_grid, stokes_dim]\n" ),
+      GROUP( "Tensor3" )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "fos_y_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc.\n"
+       ),
+      GROUP( "Agenda" )));
+  
 //  wsv_data.push_back
 //    (WsvRecord
 //     ( NAME( "geomag_los_calc_agenda" ),
