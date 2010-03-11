@@ -1,3 +1,9 @@
+2010-03-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-13-12
+
+	* src/m_rte.cc: FOS part not working right now. Work in progress!
+
 2010-03-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-13-11

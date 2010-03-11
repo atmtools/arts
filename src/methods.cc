@@ -3808,6 +3808,31 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "fos_yStandard" ),
+        DESCRIPTION
+        (
+         "FIXME\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "fos_y" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "rte_pos", "atmosphere_dim", "p_grid", "lat_grid",
+            "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
+            "z_surface", "cloudbox_on", "cloudbox_limits", "stokes_dim",
+            "f_grid", "ppath_step_agenda", "emission_agenda",
+            "abs_scalar_gas_agenda", "iy_clearsky_basic_agenda", "pnd_field",
+            "scat_data_raw", "opt_prop_gas_agenda", 
+            "fos_y_agenda", "fos_angles", "fos_n", "fos_i" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "GField1Create" ),
         DESCRIPTION
         (
@@ -4239,7 +4264,7 @@ void define_md_data_raw()
             "f_grid", "ppath_step_agenda", "emission_agenda", 
             "abs_scalar_gas_agenda", "iy_clearsky_basic_agenda", "pnd_field", 
             "scat_data_raw", "opt_prop_gas_agenda", 
-            "fos_angles", "fos_n", "fos_i" ),
+            "fos_y_agenda", "fos_angles", "fos_n", "fos_i" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

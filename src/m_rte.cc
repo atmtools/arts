@@ -3038,15 +3038,18 @@ void iyFOS(
   const Vector&                        f_grid,
   const Agenda&                        ppath_step_agenda,
   const Agenda&                        emission_agenda,
-  const Agenda&                        abs_scalar_agenda,
+  const Agenda&                        abs_scalar_gas_agenda,
   const Agenda&                        iy_clearsky_basic_agenda,
   const Tensor4&                       pnd_field,
   const ArrayOfSingleScatteringData&   scat_data_raw,
   const Agenda&                        opt_prop_gas_agenda,
+  const Agenda&                        fos_y_agenda,
   const Matrix&                        fos_angles,
   const Index&                         fos_n,
   const Index&                         fos_i )
 {
+  cout << "Entering iyFOS\n";
+
   // Input checks
   if( !cloudbox_on )
     throw runtime_error( "The cloudbox must be defined to use this method." );
@@ -3069,6 +3072,7 @@ void iyFOS(
   if( fos_i < 0 )
     throw runtime_error( "The WSV *fos_i* must be >= 0." );
 
+  cout << "1\n";
 
   // Determine ppath through the cloudbox if first call
   //
@@ -3077,6 +3081,7 @@ void iyFOS(
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 0 );
+  cout << "2\n";
   
   // Check radiative background
   const Index bkgr = ppath_what_background( ppath );
@@ -3095,9 +3100,12 @@ void iyFOS(
   rte_pos2 = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
   rte_los2 = ppath.los(ppath.np-1,joker);
   //
+  cout << "3\n";
+
   iy_clearsky_basic_agendaExecute( ws, iy, rte_pos2, rte_los2, 0,
                                                      iy_clearsky_basic_agenda );
 
+  cout << "4\n";
 
   // RT for part inside cloudbox
   //
@@ -3105,45 +3113,77 @@ void iyFOS(
   //
   if( np > 1 )
     {
-      // FOS angles for spherical integration
-      const Index   nfosa = fos_angles.nrows();
-
       // Some sizes
       const Index   nf  = f_grid.nelem();
       const Index   nabs = vmr_field.nbooks();
       const Index   npar = pnd_field.nbooks();
 
-      // Get atmospheric data along the LOS 
-      Range p_range(   cloudbox_limits[0],
-                       cloudbox_limits[1] - cloudbox_limits[0] + 1 );
-      Range lat_range( cloudbox_limits[2], 
-                       cloudbox_limits[3] - cloudbox_limits[2] + 1 );
-      Range lon_range( cloudbox_limits[4], 
-                       cloudbox_limits[5] - cloudbox_limits[4] + 1 );
-      Vector   ppath_t(np), ppath_p(np);
+      // Containers for atmospheric data along the LOS
+      //
+      Vector   ppath_t(np), ppath_logp(np);
       Matrix   ppath_vmr(nabs,np);
       Matrix   ppath_pnd(npar,np);
-      //
-      cloud_atm_vars_by_gp( ppath_p, ppath_t, ppath_vmr, ppath_pnd,
-                            ppath.gp_p, ppath.gp_lat, ppath.gp_lon,
-                            cloudbox_limits, p_grid[p_range],
-                            lat_grid[lat_range], lon_grid[lon_range],
-                            t_field(p_range,lat_range,lon_range),
-                            vmr_field(joker,p_range,lat_range,lon_range),
-                            pnd_field );
 
-      // Log of the pressure
-      Vector ppath_logp( np );
-      transform( ppath_logp, log, ppath_p  );
+      // Determine log of the pressure
+      {
+        Vector   ppath_p( np );
+        Matrix   itw_p(np,2);
+        interpweights( itw_p, ppath.gp_p );
+        itw2p( ppath_p, p_grid, ppath.gp_p, itw_p );
+        transform( ppath_logp, log, ppath_p  );
+      }
+      
+      // Temperature and VMR
+      {
+        Matrix   itw_field;
+        //
+        interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
+                                lon_grid, ppath.gp_p, ppath.gp_lat,
+                                ppath.gp_lon );
+        interp_atmfield_by_itw( ppath_t,  atmosphere_dim, p_grid, lat_grid, 
+                                lon_grid, t_field, ppath.gp_p, 
+                                ppath.gp_lat, ppath.gp_lon, itw_field );
+        for( Index is=0; is<nabs; is++ )
+          {
+            interp_atmfield_by_itw( ppath_vmr(is,joker), atmosphere_dim, 
+                                    p_grid, lat_grid, lon_grid, 
+                                    vmr_field(is,joker,joker,joker), 
+                                    ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
+                                    itw_field );
+          }
+      }
+
+      // PND
+      {
+        // So far only dummy code:
+        Matrix   itw_field;
+        //
+        interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
+                                lon_grid, ppath.gp_p, ppath.gp_lat,
+                                ppath.gp_lon );
+        for( Index ip=0; ip<npar; ip++ )
+          {
+            interp_atmfield_by_itw( ppath_pnd(ip,joker), atmosphere_dim,
+                                    p_grid, lat_grid, lon_grid, 
+                                    pnd_field(ip,joker,joker,joker), 
+                                    ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
+                                    itw_field );
+          }
+      }      
 
       // So far we use constant scattering properties
       ArrayOfSingleScatteringData   scat_data_mono;
       Vector f_dummy( 1, (f_grid[0]+f_grid[nf-1])/2.0 );
       scat_data_monoCalc( scat_data_mono, scat_data_raw, f_dummy, 0 );
 
+      // Number of FOS angles
+      const Index   nfosa = fos_angles.nrows();
+
       // Loop ppath steps
       for( Index ip=np-2; ip>=0; ip-- )
         {
+  cout << "a\n";
+
           // Mean pressure, temperature, VMR and PND
           const Numeric   p_mean = exp( 0.5*(ppath_logp[ip+1]+ppath_logp[ip] ));
           const Numeric   t_mean = 0.5*( ppath_t[ip+1] + ppath_t[ip] );
@@ -3157,8 +3197,9 @@ void iyFOS(
           Matrix   abs_scalar_gas;
           Vector   bbemission;
           abs_scalar_gas_agendaExecute( ws, abs_scalar_gas, -1, p_mean, t_mean, 
-                                                  vmr_mean, abs_scalar_agenda );
+                                              vmr_mean, abs_scalar_gas_agenda );
           emission_agendaExecute( ws, bbemission, t_mean, emission_agenda );
+  cout << "b\n";
 
           
           // Clearsky step
@@ -3181,61 +3222,63 @@ void iyFOS(
           // RT step with scattering
           else
             {
+  cout << "c\n";
               // Mean position of step
               for( Index ia=0; ia<atmosphere_dim; ia++ )
                 { rte_pos2[ia] = 0.5*( ppath.pos(ip+1,ia)+ppath.pos(ip,ia) ); }
 
               // Direction of outgoing scattered radiation
+              // Note that rte_los2 is only used for extracting scattering
+              // properties. 
+              // A viewing direction of aa=0 is assumed for 1D. This
+              // corresponds to positive za for 2D.
+              //
               Numeric za_mean = 0.5*( ppath.los(ip+1,0)+ppath.los(ip,0) );
-              Numeric aa_mean = 0.5*( ppath.los(ip+1,1)+ppath.los(ip,1) );
+              //
               rte_los2.resize(2);
-              rte_los2[0] = 180 - fabs( za_mean );  // For 2D za<0 OK
-              rte_los2[1] = 0;
-              if( atmosphere_dim == 2 )
+              //
+              if( atmosphere_dim == 1 )
+                { 
+                  rte_los2[0] = 180 - za_mean; 
+                  rte_los2[1] = 180; 
+                }
+              else if( atmosphere_dim == 2 )
                 {
-                  if( za_mean < 0 )
+                  rte_los2[0] = 180 - fabs( za_mean ); 
+                  if( za_mean >= 0 )
                     { rte_los2[1] = 180; }
+                  else
+                    { rte_los2[1] = 0; }
                 }
               else if( atmosphere_dim == 3 )
                 { 
+                  Numeric aa_mean = 0.5*( ppath.los(ip+1,1)+ppath.los(ip,1) );
                   rte_los2[1] = aa_mean + 180; 
                   if( rte_los2[1] > 180 )
                     { rte_los2[1] -= 360; }
                 }
+  cout << "d\n";
 
-              // Determine incoming iy and phase matrix for fov_angles
+              // Determine incoming radiation (here Y, WSV is fos_y)
               //
-              Tensor3  Y(nfosa,f_grid.nelem(),stokes_dim);
+              Tensor3  Y;
+              //
+              cout << "Calling agenda\n";
+              fos_y_agendaExecute( ws, Y, rte_pos2, fos_angles, fos_n, fos_i, 
+                                   fos_y_agenda );
+
+              // Determine incoming iy phase matrix for fov_angles
+              //
               Tensor3  P(nfosa,stokes_dim,stokes_dim);
+              Matrix   P1(stokes_dim, stokes_dim);
               //
               for( Index ia=0; ia<nfosa; ia++ )
                 { 
-                  Matrix tmp;
-
-                  if( fos_i == fos_n-1  ||  ip==0  ||  ip==np-2 )
-                    {
-                      iy_clearsky_basic_agendaExecute( ws, tmp, rte_pos2, 
-                       fos_angles(ia,Range(0,2)), 0, iy_clearsky_basic_agenda );
-                    }
-                  else
-                    {
-                      iyFOS( ws, tmp, rte_pos2, fos_angles(ia,Range(0,2)), 
-                             atmosphere_dim, p_grid, lat_grid, lon_grid, 
-                             z_field, t_field, vmr_field, r_geoid, z_surface, 
-                             cloudbox_on, cloudbox_limits, stokes_dim, f_grid, 
-                             ppath_step_agenda, emission_agenda, 
-                             abs_scalar_agenda, iy_clearsky_basic_agenda, 
-                             pnd_field, scat_data_raw, opt_prop_gas_agenda, 
-                             fos_angles, fos_n, fos_i+1 );
-                    }
-                  Y(ia,joker,joker) = tmp;
-                  //
-                  tmp.resize(stokes_dim, stokes_dim);
-                  pha_mat_singleCalc( tmp, rte_los2[0], rte_los2[1],
+                  pha_mat_singleCalc( P1, rte_los2[0], rte_los2[1],
                                       fos_angles(ia,0), fos_angles(ia,1),
                                       scat_data_mono, stokes_dim, pnd_mean,
                                       t_mean );
-                  P(ia,joker,joker) = tmp;
+                  P(ia,joker,joker) = P1;
                 }
 
               // Extinction matrix and absorption vector for gases
@@ -3288,3 +3331,72 @@ void iyFOS(
 }
 
 
+
+
+
+void fos_yStandard(
+        Workspace&                     ws,
+        Tensor3&                       fos_y,
+  const Vector&                        rte_pos,
+  const Index&                         atmosphere_dim,
+  const Vector&                        p_grid,
+  const Vector&                        lat_grid,
+  const Vector&                        lon_grid,
+  const Tensor3&                       z_field,
+  const Tensor3&                       t_field,
+  const Tensor4&                       vmr_field,
+  const Matrix&                        r_geoid,
+  const Matrix&                        z_surface,
+  const Index&                         cloudbox_on,
+  const ArrayOfIndex&                  cloudbox_limits,
+  const Index&                         stokes_dim,
+  const Vector&                        f_grid,
+  const Agenda&                        ppath_step_agenda,
+  const Agenda&                        emission_agenda,
+  const Agenda&                        abs_scalar_gas_agenda,
+  const Agenda&                        iy_clearsky_basic_agenda,
+  const Tensor4&                       pnd_field,
+  const ArrayOfSingleScatteringData&   scat_data_raw,
+  const Agenda&                        opt_prop_gas_agenda,
+  const Agenda&                        fos_y_agenda,
+  const Matrix&                        fos_angles,
+  const Index&                         fos_n,
+  const Index&                         fos_i )
+{
+              cout << "Entering fos_yStandard\n";
+  const Index   nfosa = fos_angles.nrows();
+        Matrix  tmp;
+
+  fos_y.resize(nfosa,f_grid.nelem(),stokes_dim);
+
+  if( fos_i == fos_n-1 )
+    {
+      Index nlos = 1;
+      if( atmosphere_dim == 3 )
+        { nlos = 2; }
+      for( Index ia=0; ia<nfosa; ia++ )
+        { 
+          iy_clearsky_basic_agendaExecute( ws, tmp, rte_pos, 
+            fos_angles(ia,Range(0,nlos)), 0, iy_clearsky_basic_agenda );
+
+          fos_y(ia,joker,joker) = tmp;
+        }
+    }
+  else
+    {
+      for( Index ia=0; ia<nfosa; ia++ )
+        { 
+          iyFOS( ws, tmp, rte_pos, fos_angles(ia,Range(0,2)), 
+                 atmosphere_dim, p_grid, lat_grid, lon_grid, 
+                 z_field, t_field, vmr_field, r_geoid, z_surface, 
+                 cloudbox_on, cloudbox_limits, stokes_dim, f_grid, 
+                 ppath_step_agenda, emission_agenda, 
+                 abs_scalar_gas_agenda, iy_clearsky_basic_agenda, 
+                 pnd_field, scat_data_raw, opt_prop_gas_agenda, 
+                 fos_y_agenda, fos_angles, fos_n, fos_i+1 );
+
+          fos_y(ia,joker,joker) = tmp;
+        }
+    }
+              cout << "Leaving fos_yStandard\n";
+}
