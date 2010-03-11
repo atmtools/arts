@@ -1,3 +1,18 @@
+2010-03-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-13-13
+
+	* cmake/modules/CheckOpenMP.cmake:
+
+	Readded a modified version of this. FindOpenMP breaks compatibility
+	with cmake 2.6.2.
+
+	* cmake/modules/CheckOpenMPThreadprivate.cmake:
+	
+	Use CheckOpenMP instead of FindOpenMP.
+
+	* CMakeLists.txt: OpenMP_C_FLAGS and OpenMP_CXX_FLAGS -> OPENMP_FLAGS.
+
 2010-03-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-13-12

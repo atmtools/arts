@@ -3,7 +3,7 @@
 # Copyright (c) 2010, Oliver Lemke, <olemke@core-dump.info>
 
 include (CheckCSourceCompiles)
-include (FindOpenMP)
+include (CheckOpenMP)
 
 if (OPENMP_FOUND)
 
@@ -19,7 +19,7 @@ int main() {
 }
 ")
 
-set (CMAKE_REQUIRED_FLAGS "${OpenMP_C_FLAGS}")
+set (CMAKE_REQUIRED_FLAGS "${OPENMP_FLAGS}")
 check_c_source_compiles ("${THREADPRIVATE_C_TEST_SOURCE}" THREADPRIVATE_DETECTED)
 
 if (NOT THREADPRIVATE_DETECTED)
