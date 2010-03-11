@@ -1,3 +1,15 @@
+2010-03-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-13-11
+
+	* CMakeLists.txt: Use CheckOpenMPThreadprivate.
+
+	* cmake/modules/CheckOpenMPThreadprivate.cmake:
+
+	Check for OpenMP with threadprivate support.
+
+	* cmake/modules/CheckOpenMP.cmake: Removed.
+
 2010-03-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-13-10

@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6.2)
 
 project (ARTS)
-set (VERSION "1.13.10")
+set (VERSION "1.13.11")
 
 ENABLE_TESTING()
 
@@ -78,7 +78,9 @@ set (ENABLE_ZLIB ${ZLIB_FOUND})
 include (FindNetCDF)
 
 ########### OpenMP support ##########
-include (CheckOpenMP)
+if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
+  include (CheckOpenMPThreadprivate)
+endif (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
 
 ########### Special flags for certain compilers ##########
 if (CMAKE_COMPILER_IS_GNUCXX)
@@ -97,9 +99,14 @@ if (NOT NO_WERROR)
   set (WARN_FLAGS "${WARN_FLAGS} -Werror")
 endif (NOT NO_WERROR)
 
-if (NOT CXX_OPENMP_SUPPORTED)
+if (OPENMP_FOUND)
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set (CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
+  set (CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
+else (OPENMP_FOUND)
   set (WARN_FLAGS "${WARN_FLAGS} -Wno-unknown-pragmas")
-endif (NOT CXX_OPENMP_SUPPORTED)
+endif (OPENMP_FOUND)
 
 string (TOUPPER ${CMAKE_BUILD_TYPE} MY_BUILD_TYPE)
 set (COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${MY_BUILD_TYPE}}")
