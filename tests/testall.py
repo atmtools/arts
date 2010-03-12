@@ -18,8 +18,11 @@ class ArtsRun:
             includeprefix='../'
 
         artsbin='../../src/arts'
-        if os.environ['CMAKE_GENERATOR'] == 'Xcode':
-            artsbin='../../src/' + os.environ['BUILD_STYLE'] + '/arts'
+        try:
+            if os.environ['CMAKE_GENERATOR'] == 'Xcode':
+                artsbin='../../src/' + os.environ['BUILD_STYLE'] + '/arts'
+        except KeyError:
+            pass
 
         w,r,e=os.popen3('cd ' + self.subdir + '; '
                 + artsbin + ' '
