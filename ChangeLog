@@ -1,3 +1,16 @@
+2010-03-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-13-14
+
+	* cmake/modules/, CMakeLists.txt:
+
+	Revert back to new OpenMP check from arts-1-13-11 and bump the
+	cmake version requirement to 2.6.3.
+
+	* README.cmake: Updated.
+
+	* ChangeLog: Remove conflict marker.
+
 2010-03-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-13-13
@@ -204,7 +217,6 @@
 
 	Add support for setting matrices directly in the controlfile.
 
->>>>>>> .r6270
 2010-02-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-12-128
