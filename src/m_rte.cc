@@ -3048,8 +3048,6 @@ void iyFOS(
   const Index&                         fos_n,
   const Index&                         fos_i )
 {
-  cout << "Entering iyFOS\n";
-
   // Input checks
   if( !cloudbox_on )
     throw runtime_error( "The cloudbox must be defined to use this method." );
@@ -3072,8 +3070,6 @@ void iyFOS(
   if( fos_i < 0 )
     throw runtime_error( "The WSV *fos_i* must be >= 0." );
 
-  cout << "1\n";
-
   // Determine ppath through the cloudbox if first call
   //
   Ppath  ppath;
@@ -3081,7 +3077,6 @@ void iyFOS(
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 0 );
-  cout << "2\n";
   
   // Check radiative background
   const Index bkgr = ppath_what_background( ppath );
@@ -3100,12 +3095,9 @@ void iyFOS(
   rte_pos2 = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
   rte_los2 = ppath.los(ppath.np-1,joker);
   //
-  cout << "3\n";
-
   iy_clearsky_basic_agendaExecute( ws, iy, rte_pos2, rte_los2, 0,
                                                      iy_clearsky_basic_agenda );
 
-  cout << "4\n";
 
   // RT for part inside cloudbox
   //
@@ -3155,21 +3147,20 @@ void iyFOS(
 
       // PND
       {
-        // So far only dummy code:
         Matrix   itw_field;
+        ArrayOfGridPos gp_p   = ppath.gp_p;
+        ArrayOfGridPos gp_lat = ppath.gp_lat;
+        ArrayOfGridPos gp_lon = ppath.gp_lon;
         //
-        interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
-                                lon_grid, ppath.gp_p, ppath.gp_lat,
-                                ppath.gp_lon );
+        interp_cloudfield_gp2itw( itw_field, gp_p, gp_lat, gp_lon, 
+                                  atmosphere_dim, cloudbox_limits );
         for( Index ip=0; ip<npar; ip++ )
           {
-            interp_atmfield_by_itw( ppath_pnd(ip,joker), atmosphere_dim,
-                                    p_grid, lat_grid, lon_grid, 
-                                    pnd_field(ip,joker,joker,joker), 
-                                    ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
-                                    itw_field );
+            interp_cloudfield_by_itw( ppath_pnd(ip,joker), atmosphere_dim,
+                                      pnd_field(ip,joker,joker,joker), 
+                                      gp_p, gp_lat, gp_lon, itw_field );
           }
-      }      
+      }
 
       // So far we use constant scattering properties
       ArrayOfSingleScatteringData   scat_data_mono;
@@ -3182,8 +3173,6 @@ void iyFOS(
       // Loop ppath steps
       for( Index ip=np-2; ip>=0; ip-- )
         {
-  cout << "a\n";
-
           // Mean pressure, temperature, VMR and PND
           const Numeric   p_mean = exp( 0.5*(ppath_logp[ip+1]+ppath_logp[ip] ));
           const Numeric   t_mean = 0.5*( ppath_t[ip+1] + ppath_t[ip] );
@@ -3199,7 +3188,6 @@ void iyFOS(
           abs_scalar_gas_agendaExecute( ws, abs_scalar_gas, -1, p_mean, t_mean, 
                                               vmr_mean, abs_scalar_gas_agenda );
           emission_agendaExecute( ws, bbemission, t_mean, emission_agenda );
-  cout << "b\n";
 
           
           // Clearsky step
@@ -3222,7 +3210,6 @@ void iyFOS(
           // RT step with scattering
           else
             {
-  cout << "c\n";
               // Mean position of step
               for( Index ia=0; ia<atmosphere_dim; ia++ )
                 { rte_pos2[ia] = 0.5*( ppath.pos(ip+1,ia)+ppath.pos(ip,ia) ); }
@@ -3257,13 +3244,11 @@ void iyFOS(
                   if( rte_los2[1] > 180 )
                     { rte_los2[1] -= 360; }
                 }
-  cout << "d\n";
 
               // Determine incoming radiation (here Y, WSV is fos_y)
               //
               Tensor3  Y;
               //
-              cout << "Calling agenda\n";
               fos_y_agendaExecute( ws, Y, rte_pos2, fos_angles, fos_n, fos_i, 
                                    fos_y_agenda );
 
@@ -3363,7 +3348,10 @@ void fos_yStandard(
   const Index&                         fos_n,
   const Index&                         fos_i )
 {
-              cout << "Entering fos_yStandard\n";
+  // Angles inside these ranges are considered to be equal for 1D and 2D
+  const Numeric dza = 0.01;
+  const Numeric daa = 1;
+
   const Index   nfosa = fos_angles.nrows();
         Matrix  tmp;
 
@@ -3371,15 +3359,77 @@ void fos_yStandard(
 
   if( fos_i == fos_n-1 )
     {
-      Index nlos = 1;
-      if( atmosphere_dim == 3 )
-        { nlos = 2; }
-      for( Index ia=0; ia<nfosa; ia++ )
+      if( atmosphere_dim == 1 )
         { 
-          iy_clearsky_basic_agendaExecute( ws, tmp, rte_pos, 
-            fos_angles(ia,Range(0,nlos)), 0, iy_clearsky_basic_agenda );
+          for( Index ia=0; ia<nfosa; ia++ )
+            { 
+              // Test if any za done is inside dza
+              Index ihit = -1;
+              //
+              for( Index it=ia-1; it>=0 && ihit<0; it-- )
+                {
+                   if( fabs( fos_angles(ia,0) - fos_angles(it,0) ) < dza )
+                     { ihit = it; }
+                } 
+              
+              if( ihit >= 0 )
+                { 
+                  fos_y(ia,joker,joker) = fos_y(ihit,joker,joker); 
+                }
+              else
+                {
+                  iy_clearsky_basic_agendaExecute( ws, tmp, rte_pos, 
+                      fos_angles(ia,Range(0,1)), 0, iy_clearsky_basic_agenda );
+                  fos_y(ia,joker,joker) = tmp;
+                }
+            }
+          
+        }
+      else if( atmosphere_dim == 2 )
+        { 
+          Vector rte_los(1);
+          for( Index ia=0; ia<nfosa; ia++ )
+            { 
+              // Test if any za/aa done is inside dza/daa
+              Index ihit = -1;
+              //
+              for( Index it=ia-1; it>=0 && ihit<0; it-- )
+                {
+                   if( fabs( fos_angles(ia,0) - fos_angles(it,0) ) < dza )
+                     { 
+                       // Check if aa(ia) is a mirror aa-angle
+                       if( fabs( fos_angles(ia,1) + fos_angles(it,1) ) < daa )
+                         { ihit = it; }
+                     }
 
-          fos_y(ia,joker,joker) = tmp;
+                } 
+              
+              if( ihit >= 0 )
+                { 
+                  fos_y(ia,joker,joker) = fos_y(ihit,joker,joker); 
+                }
+              else
+                {
+                  rte_los[0] = fos_angles(ia,0);
+                  if( fabs(fos_angles(ia,0)) >= 90 )
+                    { rte_los[0] = fos_angles(ia,0); }
+                  else
+                    { rte_los[0] = -fos_angles(ia,0); }
+                  iy_clearsky_basic_agendaExecute( ws, tmp, rte_pos, 
+                                        rte_los, 0, iy_clearsky_basic_agenda );
+                  fos_y(ia,joker,joker) = tmp;
+                }
+            }
+          
+        }
+      else if( atmosphere_dim == 3 )
+        {
+          for( Index ia=0; ia<nfosa; ia++ )
+            { 
+              iy_clearsky_basic_agendaExecute( ws, tmp, rte_pos, 
+                      fos_angles(ia,Range(0,2)), 0, iy_clearsky_basic_agenda );
+              fos_y(ia,joker,joker) = tmp;
+            }
         }
     }
   else
@@ -3398,5 +3448,4 @@ void fos_yStandard(
           fos_y(ia,joker,joker) = tmp;
         }
     }
-              cout << "Leaving fos_yStandard\n";
 }

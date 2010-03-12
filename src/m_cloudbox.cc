@@ -106,9 +106,6 @@ void cloudboxSetManually(
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
 
-  if( atmosphere_dim == 2 )
-    { throw runtime_error( "The cloud box is not defined for 2D." ); }
-
   // Check keyword arguments
   if( p1 <= p2 )
     throw runtime_error( 
@@ -211,9 +208,6 @@ void cloudboxSetManuallyAltitude(
   // Check existing WSV
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   
-  if( atmosphere_dim == 2 )
-    { throw runtime_error( "The cloud box is not defined for 2D." ); }
-
   // Check keyword arguments
   if( z1 >= z2 )
     throw runtime_error( 
@@ -1026,14 +1020,6 @@ void pnd_fieldCalc(//WS Output:
                         "data.\n"
                         );
   
-  // Atmosphere
-  if (!((atmosphere_dim == 1) || (atmosphere_dim == 3)))
-    throw runtime_error(
-                        "*atmosphere_dim* must be 1 or 3, because \n"
-                        "scattering is only implemented for 1D and 3D.\n"
-                        "DOIT works in 1D and 3D, Monte Carlo only in 3D.\n"
-                        );
-      
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
     throw runtime_error(
@@ -1050,7 +1036,7 @@ void pnd_fieldCalc(//WS Output:
   if ( atmosphere_dim == 1)
     {
       //Resize variables
-      pnd_field.resize(pnd_field_raw.nelem(), Np_cloud, 1, 1);
+      pnd_field.resize(pnd_field_raw.nelem(), Np_cloud, 1, 1 );
       
       // Gridpositions:
       ArrayOfGridPos gp_p(Np_cloud);
@@ -1060,97 +1046,90 @@ void pnd_fieldCalc(//WS Output:
       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
         {
           // Calculate grid positions:
-          p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID), p_grid_cloud);
-         
+          p2gridpos( gp_p, pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID), 
+                     p_grid_cloud );
+
           // Interpolation weights:
           Matrix itw(Np_cloud, 2);
-          // (2 interpolation weights are required for 1D interpolation)
+
           interpweights( itw, gp_p);
           // Interpolate:
-          interp( pnd_field(i, joker, 0, 0),
-                  itw, pnd_field_raw[i](joker, 0, 0), gp_p);
+          interp( pnd_field(i,joker,0,0), itw, 
+                  pnd_field_raw[i](joker,0,0), gp_p );
         }
-      
     }
-  //=========================================================================
-  // (CE: Commented atmosphere_dim = 2, becaue scattering is only implemented 
-  // in 1D and 3D
-  //  else if(atmosphere_dim == 2)
-  //     {
-  //       //Resize variables
-  //       pnd_field.resize(pnd_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),
-  //                        1);
-      
-      
-  //       // Gridpositions:
-  //       ArrayOfGridPos gp_p(p_grid.nelem());
-  //       ArrayOfGridPos gp_lat(lat_grid.nelem());
-                  
-  //       // Interpolate pnd_field. 
-  //       // Loop over the particle types:
-  //       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
-  //         {
-  //           // Calculate grid positions:
-  //           p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID), p_grid);
-  //           gridpos(gp_lat, pnd_field_raw[i](0, joker, 0), 
-  //                   lat_grid);
-      
-  //           // Interpolation weights:
-  //       Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), 4);
-  //       // (8 interpolation weights are required for 3D interpolation)
-  //           interpweights( itw, gp_p, gp_lat);
-          
-  //           // Interpolate:
-  //           interp( pnd_field(i, joker, joker, 0),
-  //                   itw, pnd_field_raw[i](joker, joker, 0),
-  //                   gp_p, gp_lat);
-  //         }
-  //     }
 
-  //================================================================
-  // atmosphere_dim = 3    
-  //
+  else if(atmosphere_dim == 2)
+    {
+      const Index Nlat_cloud = cloudbox_limits[3]-cloudbox_limits[2]+1;
+
+      ConstVectorView lat_grid_cloud = 
+        lat_grid[Range(cloudbox_limits[2],Nlat_cloud)];           
+      
+      //Resize variables
+      pnd_field.resize( pnd_field_raw.nelem(), Np_cloud, Nlat_cloud, 1 );
+      
+      // Gridpositions:
+      ArrayOfGridPos gp_p(Np_cloud);
+      ArrayOfGridPos gp_lat(Nlat_cloud);
+      
+      // Interpolate pnd_field. 
+      // Loop over the particle types:
+      for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
+        {
+          // Calculate grid positions:
+          p2gridpos( gp_p, pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID),
+                     p_grid_cloud);
+          gridpos( gp_lat, pnd_field_raw[i].get_numeric_grid(GFIELD3_LAT_GRID),
+                   lat_grid_cloud);
+          
+          // Interpolation weights:
+          Tensor3 itw( Np_cloud, Nlat_cloud, 4 );
+          interpweights( itw, gp_p, gp_lat );
+          
+          // Interpolate:
+          interp( pnd_field(i,joker,joker,0), itw, 
+                  pnd_field_raw[i](joker,joker,0), gp_p, gp_lat );
+        }
+    }
   else
     {
       const Index Nlat_cloud = cloudbox_limits[3]-cloudbox_limits[2]+1;
       const Index Nlon_cloud = cloudbox_limits[5]-cloudbox_limits[4]+1;
 
       ConstVectorView lat_grid_cloud = 
-        lat_grid[Range(cloudbox_limits[2], Nlat_cloud)];           
+        lat_grid[Range(cloudbox_limits[2],Nlat_cloud)];           
       ConstVectorView lon_grid_cloud = 
-        lon_grid[Range(cloudbox_limits[4], Nlon_cloud)];
+        lon_grid[Range(cloudbox_limits[4],Nlon_cloud)];
       
       //Resize variables
-      pnd_field.resize(pnd_field_raw.nelem(), Np_cloud, Nlat_cloud, 
-                       Nlon_cloud);
-      
+      pnd_field.resize( pnd_field_raw.nelem(), Np_cloud, Nlat_cloud, 
+                        Nlon_cloud );
       
       // Gridpositions:
       ArrayOfGridPos gp_p(Np_cloud);
       ArrayOfGridPos gp_lat(Nlat_cloud);
       ArrayOfGridPos gp_lon(Nlon_cloud);
       
-      
       // Interpolate pnd_field. 
       // Loop over the particle types:
       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
         {
           // Calculate grid positions:
-          p2gridpos(gp_p, pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID),
-                    p_grid_cloud);
-          gridpos(gp_lat, pnd_field_raw[i].get_numeric_grid(GFIELD3_LAT_GRID),
-                  lat_grid_cloud);
-          gridpos(gp_lon, pnd_field_raw[i].get_numeric_grid(GFIELD3_LON_GRID),
-                  lon_grid_cloud);
+          p2gridpos( gp_p, pnd_field_raw[i].get_numeric_grid(GFIELD3_P_GRID),
+                     p_grid_cloud);
+          gridpos( gp_lat, pnd_field_raw[i].get_numeric_grid(GFIELD3_LAT_GRID),
+                   lat_grid_cloud);
+          gridpos( gp_lon, pnd_field_raw[i].get_numeric_grid(GFIELD3_LON_GRID),
+                   lon_grid_cloud);
           
           // Interpolation weights:
-          Tensor4 itw(Np_cloud, Nlat_cloud, Nlon_cloud, 8);
-          // (8 interpolation weights are required for 3D interpolation)
+          Tensor4 itw( Np_cloud, Nlat_cloud, Nlon_cloud, 8 );
           interpweights( itw, gp_p, gp_lat, gp_lon );
           
           // Interpolate:
-          interp( pnd_field(i, joker, joker, joker),
-                  itw, pnd_field_raw[i], gp_p, gp_lat, gp_lon);
+          interp( pnd_field(i,joker,joker,joker), itw, 
+                  pnd_field_raw[i], gp_p, gp_lat, gp_lon );
         }
     }
 }

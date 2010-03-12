@@ -1,3 +1,26 @@
+2010-03-12  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-13-15
+
+	* src/ppath.cc (ppath_calc): Removed runtime_error for 2D and 
+	cloudbox. Added some code for handling 2D and cloudbox. Not yet 
+	working.
+
+	* src/m_cloudbox.cc 
+
+	* src/m_rte.cc (iyFOS): Now using interp_atmfield_gp2itw and
+	interp_cloudfield_gp2itw for setting up the interpolation. The
+	method shall now handle 1-3D.
+	(fos_yStandard): Extended with code for 1D and 2D.
+
+	* src/special_interp.cc (interp_cloudfield_gp2itw): Created.
+	(interp_cloudfield_by_itw): Temporary function.
+
+	* src/m_cloudbox.cc (cloudboxSetManuallyAltitude): Removed
+	runtime_error for 2D and cloudbox. 
+	(cloudboxSetManually): As above.
+	(pnd_fieldCalc): As above + added code for 2D.
+
 2010-03-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-13-14

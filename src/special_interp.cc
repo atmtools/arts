@@ -373,6 +373,121 @@ Numeric interp_atmfield_by_gp(
 
 
 
+//! interp_cloudfield_gp2itw
+/*!
+    Converts atmospheric grid positions to weights for interpolation of a
+    field defined ONLY inside the cloudbox.
+
+    That is, as interp_atmfield_gp2itw, but for cloudbox only variables.
+
+    The input grid positions shall be with respect to total grids. If grid
+    positions already refer to grid parts inside the cloudbox, you can use 
+    interp_atmfield_gp2itw.
+
+    The grid poistions are modified by the function, to match the cloudbox
+    field, and can be used for later calls of e.g. interp_atmfield_by_itw
+
+    \param   itw                Output: Interpolation weights.
+    \param   gp_p               In/out: Pressure grid positions.
+    \param   gp_lat             In/out: Latitude grid positions.
+    \param   gp_lon             In/out: Longitude grid positions.
+    \param   atmosphere_dim     As the WSV with the same name.
+    \param   cloudbiox_limits   As the WSV with the same name.
+
+    \author Patrick Eriksson 
+    \date   2010-02-12
+*/
+void interp_cloudfield_gp2itw( 
+              Matrix&           itw, 
+              ArrayOfGridPos&   gp_p,
+              ArrayOfGridPos&   gp_lat,
+              ArrayOfGridPos&   gp_lon,
+        const Index&            atmosphere_dim,
+        const ArrayOfIndex&     cloudbox_limits )
+{
+  const Index n = gp_p.nelem();
+
+  // Shift grid positions to cloud box grids
+  //
+  for (Index i = 0; i < n; i++ ) 
+    {
+      gp_p[i].idx -= cloudbox_limits[0];
+      assert( gp_p[i].idx >= 0 );
+      if( atmosphere_dim > 1 )
+        { 
+          gp_lat[i].idx -= cloudbox_limits[2]; 
+          assert( gp_lat[i].idx >= 0 );
+          if( atmosphere_dim > 2 )
+            {       
+              gp_lon[i].idx -= cloudbox_limits[4];
+              assert( gp_lon[i].idx >= 0 );
+            }
+        }
+    }      
+
+  if( atmosphere_dim == 1 )
+    {
+      itw.resize(n,2);
+      interpweights( itw, gp_p );
+    }
+
+  else if( atmosphere_dim == 2 )
+    {
+      assert( gp_lat.nelem() == n );
+      itw.resize(n,4);
+      interpweights( itw, gp_p, gp_lat );
+    }
+
+  else if( atmosphere_dim == 3 )
+    {
+      assert( gp_lat.nelem() == n );
+      assert( gp_lon.nelem() == n );
+      itw.resize(n,8);
+      interpweights( itw, gp_p, gp_lat, gp_lon );
+    }
+}
+
+
+
+//! interp_cloudfield_by_itw
+/*!
+    Only temporary. Can be removed when interp_atmfield_by_itw is updated.
+
+    \author Patrick Eriksson 
+    \date   2010-02-12
+*/
+void interp_cloudfield_by_itw( 
+              VectorView        x, 
+        const Index&            atmosphere_dim,
+        ConstTensor3View        x_field,
+        const ArrayOfGridPos&   gp_p,
+        const ArrayOfGridPos&   gp_lat,
+        const ArrayOfGridPos&   gp_lon,
+        ConstMatrixView         itw )
+{
+  assert( x.nelem() == gp_p.nelem() );
+
+  if( atmosphere_dim == 1 )
+    { 
+      assert( itw.ncols() == 2 );
+      interp( x, itw, x_field(Range(joker),0,0), gp_p ); 
+    }
+
+  else if( atmosphere_dim == 2 )
+    { 
+      assert( itw.ncols() == 4 );
+      interp( x, itw, x_field(Range(joker),Range(joker),0), gp_p, gp_lat ); 
+    }
+
+  else if( atmosphere_dim == 3 )
+    {       
+      assert( itw.ncols() == 8 );
+      interp( x, itw, x_field, gp_p, gp_lat, gp_lon ); 
+    }
+}
+
+
+
 //! interp_atmsurface_gp2itw
 /*!
     Converts atmospheric grid positions to weights for interpolation of an

@@ -2273,9 +2273,9 @@ void ppath_init_structure(
    The case numbers are:                    <br>
       0. Not yet set.                       <br>
       1. Space.                             <br>
-      2. The surface.                        <br>
-      3. The level of the cloud box.      <br>
-      4. The interior of the cloud box.     
+      2. The surface.                       <br>
+      3. The level of the cloud box.        <br>
+      4. The interior of the cloud box.       
 
    \param   ppath            Output: A Ppath structure.
    \param   case_nr          Case number (see above)
@@ -6147,8 +6147,6 @@ void ppath_calc(
     {
       chk_vector_length( "rte_los", rte_los, 1 );
       chk_if_in_range( "sensor zenith angle", rte_los[0], -180., 180. );
-      if( cloudbox_on )
-        { throw runtime_error( "The cloud box is not defined for 2D." ); }
     }
   else
     {
@@ -6238,7 +6236,7 @@ void ppath_calc(
           //if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) )
           // New version:
           if( ppath_step.los(n-1,0) <= 90  &&  imax_p <= 
-              (Numeric)ppath_step.gp_p[n-1].idx + ppath_step.gp_p[n-1].fd[0] + 0.01 )
+         (Numeric)ppath_step.gp_p[n-1].idx + ppath_step.gp_p[n-1].fd[0] + 0.01 )
             { ppath_set_background( ppath_step, 1 ); }
 
           // Check that path does not exit at a latitude or longitude end face
@@ -6335,8 +6333,7 @@ void ppath_calc(
           if( cloudbox_on )
             {
               double ipos = fractional_gp( ppath_step.gp_p[n-1] );
-              //double ipos = double( ppath_step.gp_p[n-1].idx ) + 
-              //                                    ppath_step.gp_p[n-1].fd[0];
+
               if( ipos >= double( cloudbox_limits[0] )  && 
                   ipos <= double( cloudbox_limits[1] ) )
                 {
@@ -6345,17 +6342,21 @@ void ppath_calc(
                   else
                     {
                       ipos = fractional_gp( ppath_step.gp_lat[n-1] );
-                      //double( ppath_step.gp_lat[n-1].idx ) + 
-                      //                          ppath_step.gp_lat[n-1].fd[0];
+
                       if( ipos >= double( cloudbox_limits[2] )  && 
                           ipos <= double( cloudbox_limits[3] ) )
                         {
-                          ipos = fractional_gp( ppath_step.gp_lon[n-1] );
-                          //ipos = double( ppath_step.gp_lon[n-1].idx ) + 
-                          //                      ppath_step.gp_lon[n-1].fd[0];
-                          if( ipos >= double( cloudbox_limits[4] )  && 
-                              ipos <= double( cloudbox_limits[5] ) )
-                            { ppath_set_background( ppath_step, 3 ); } 
+                          if( atmosphere_dim == 2 )
+                            { ppath_set_background( ppath_step, 3 ); }
+                          else
+                            {
+                          
+                              ipos = fractional_gp( ppath_step.gp_lon[n-1] );
+
+                              if( ipos >= double( cloudbox_limits[4] )  && 
+                                  ipos <= double( cloudbox_limits[5] ) )
+                                { ppath_set_background( ppath_step, 3 ); } 
+                            }
                         }
                     }
                 }
@@ -6383,7 +6384,7 @@ void ppath_calc(
                   ipos >= double( cloudbox_limits[3] ) )
                 { ppath_set_background( ppath_step, 3 ); }
 
-              else
+              else if ( atmosphere_dim > 2 )
                 {
                   // Longitude dimension
                   ipos = fractional_gp( ppath_step.gp_lon[n-1] );

@@ -84,6 +84,23 @@ Numeric interp_atmfield_by_gp(
         const GridPos&          gp_lat,
         const GridPos&          gp_lon );
 
+void interp_cloudfield_gp2itw( 
+              Matrix&           itw, 
+              ArrayOfGridPos&   gp_p,
+              ArrayOfGridPos&   gp_lat,
+              ArrayOfGridPos&   gp_lon,
+        const Index&            atmosphere_dim,
+        const ArrayOfIndex&     cloudbox_limits );
+
+void interp_cloudfield_by_itw( 
+              VectorView        x, 
+        const Index&            atmosphere_dim,
+        ConstTensor3View        x_field,
+        const ArrayOfGridPos&   gp_p,
+        const ArrayOfGridPos&   gp_lat,
+        const ArrayOfGridPos&   gp_lon,
+        ConstMatrixView         itw );
+
 void interp_atmsurface_gp2itw( 
               Matrix&           itw, 
         const Index&            atmosphere_dim,
