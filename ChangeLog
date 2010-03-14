@@ -1,5 +1,25 @@
 2010-03-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-13-18
+	
+	* src/m_rte.cc: Some general polishing on comments and header text.
+
+	(iy_transmission_mult_scalar_tau): No Mueller matrix formed now.
+	Now just scalar multiplication with transmission. Should give
+	faster calculations.
+	
+	(get_iy_of_background): The input to
+	iy_clearsky_agenda can now also be iy_clearsky_basic_agenda. There
+	is now a switch when calculating the downwelling radiation for
+	surface reflections. This fixes the DOIT problem in last commit.
+
+	(fos_yStandard): Now working for all 3 dimensions (only spectra,
+	not aux and jacobians yet). A strect of the latitude grid is used
+	for creating a "3D view" for 2D cases, when radiation coming in
+	from the side is calculated. 
+
+2010-03-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-13-17
 
 	* DOIT test case is NOT RUNNING. Do not why yet. I commit to test 

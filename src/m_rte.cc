@@ -1126,22 +1126,14 @@ void iy_transmission_mult_scalar_tau(
   ConstVectorView    tau )
 {
   const Index nf = iy_transmission.npages();
-  const Index ns = iy_transmission.ncols();
 
-  assert( ns == iy_transmission.nrows() );
+  assert( iy_transmission.ncols() == iy_transmission.nrows() );
   assert( nf == tau.nelem() );
 
-  iy_trans_new.resize( nf, ns, ns );
-
-  Matrix  tm( ns, ns, 0.0 );
+  iy_trans_new = iy_transmission;
 
   for( Index iv=0; iv<nf; iv++ )
-    {
-      const Numeric t = exp( -tau[iv] );
-      for( Index is=0; is<ns; is++ )
-        { tm(is,is) = t; }
-      mult( iy_trans_new(iv,joker,joker), iy_transmission(iv,joker,joker), tm );
-    } 
+    { iy_trans_new(iv,joker,joker) *= exp( -tau[iv] ); } 
 }
 
 
@@ -1611,10 +1603,12 @@ void vmrunitscf(
     The task is to determine *iy* and related variables for the
     background, or to continue the raditiave calculations
     "backwards". The details here depends on the method selected for
-    *iy_clearsky_agenda*. 
+    the agendas.
 
     Each background is handled by an agenda. Several of these agandes
-    can involve recursive calls of *iy_clearsky_agenda*.
+    can involve recursive calls of *iy_clearsky_agenda*. It is also
+    allowed to input *iy_clearsky_basic_agenda* instead of
+    *iy_clearsky_agenda*.
 
     \param   ws                    Out: The workspace
     \param   iy                    Out: As the WSV.
@@ -1635,7 +1629,7 @@ void vmrunitscf(
     \param   cloudbox_on           As the WSV.
     \param   stokes_dim            As the WSV.
     \param   f_grid                As the WSV.
-    \param   iy_clearsky_agenda    As the WSV.
+    \param   iy_clearsky_agenda    As the WSV or iy_clearsky_basic_agenda.
     \param   iy_space_agenda       As the WSV.
     \param   surface_prop_agenda   As the WSV.
     \param   iy_cloudbox_agenda    As the WSV.
@@ -1780,11 +1774,24 @@ void get_iy_of_background(
                   }
 
                 // Calculate downwelling radiation for LOS ilos 
-                iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
+                //
+                // The variable iy_clearsky_agenda can in fact be 
+                // iy_clearsky_BASIC_agenda
+                //
+                if( iy_clearsky_agenda.name() == "iy_clearsky_basic_agenda" )
+                  {
+                    iy_clearsky_basic_agendaExecute (ws, iy, rte_pos, 
+                                         surface_los(ilos,joker), cloudbox_on, 
+                                                           iy_clearsky_agenda);
+                  }
+                else
+                  {
+                    iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
                             iy_aux, diy_dx, 0, rte_pos, surface_los(ilos,joker),
                             iy_trans_new, cloudbox_on, jacobian_do, iy_aux_do, 
                             f_grid, p_grid, lat_grid, lon_grid, t_field, 
                             vmr_field, iy_clearsky_agenda );
+                  }
 
                 I(ilos,joker,joker) = iy;
               }
@@ -1796,7 +1803,7 @@ void get_iy_of_background(
       break;
 
 
-    case 3:   //--- Cloudbox surface or interior --------------------------------
+    case 3:   //--- Cloudbox surface or interior ------------------------------
     case 4:
       {
         // Pass a local copy of ppath to the cloudbox agenda
@@ -1992,15 +1999,17 @@ void iyEmissionStandardClearsky(
   assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
           ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
 
-  // Determine if there are any jacobians to handle
+  // Some sizes
+  //
+  const Index   nf  = f_grid.nelem();
+
+  // Determine if there are any analytical jacobians to handle
   //
   Index j_analytical_do = 0;
   //
   if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
 
   // If primary call, initilise iy_aux and diy_dx
-  //
-  const Index   nf  = f_grid.nelem();
   //
   if( iy_agenda_call1 )
     {
@@ -2055,9 +2064,9 @@ void iyEmissionStandardClearsky(
       // optical thickness
       //
       get_step_vars_for_standardRT( ws, ppath_abs_scalar, ppath_emission, 
-                                    ppath_tau, total_tau, 
-                                    abs_scalar_agenda, emission_agenda,
-                                    ppath, ppath_p, ppath_t, ppath_vmr, nf, 1 );
+                                    ppath_tau, total_tau, abs_scalar_agenda, 
+                                    emission_agenda, ppath, ppath_p, ppath_t, 
+                                    ppath_vmr, nf, 1 );
     }
 
   // Handle iy_transmission (the variable not needed when background is
@@ -2077,10 +2086,10 @@ void iyEmissionStandardClearsky(
   //
   get_iy_of_background( 
                 ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
-                iy_aux_do, jacobian_do, ppath, atmosphere_dim, 
-                p_grid, lat_grid, lon_grid, t_field,
-                vmr_field, cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda,
-                iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
+                iy_aux_do, jacobian_do, ppath, atmosphere_dim, p_grid, 
+                lat_grid, lon_grid, t_field, vmr_field, cloudbox_on, 
+                stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda, 
+                surface_prop_agenda, iy_cloudbox_agenda );
   
   // Set iy_aux 
   //
@@ -2131,7 +2140,7 @@ void iyEmissionStandardClearsky(
             diy_dpath[iq] = 0.0;
           )
           get_pointers_for_analytical_jacobians( abs_species_i, is_t, 
-                                              jacobian_quantities, abs_species );
+                                            jacobian_quantities, abs_species );
           //
           // Get emission and absorption for disturbed temperature
           Index do_t=0;
@@ -2157,7 +2166,7 @@ void iyEmissionStandardClearsky(
               if( j_analytical_do )
                 {
                   const Numeric A = ppath.l_step[ip] * exp( -total_tau[iv] );
-                  const Numeric B = 0.5 * A * ( ppath_emission(iv,ip)-iy(iv,0) );
+                  const Numeric B = 0.5 * A * (ppath_emission(iv,ip)-iy(iv,0));
                   
                   for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) 
                     {
@@ -2179,7 +2188,7 @@ void iyEmissionStandardClearsky(
                                           ppath_t[ip+1] );
                               //
                               // Stokes component 1
-                              const Numeric w0 = B * ppath_abs_scalar(iv,isp,ip);
+                              const Numeric w0 = B*ppath_abs_scalar(iv,isp,ip);
                               diy_dpath[iq](ip  ,iv,0) += unitscf1 * w0;
                               diy_dpath[iq](ip+1,iv,0) += unitscf2 * w0;
                               //
@@ -2187,7 +2196,7 @@ void iyEmissionStandardClearsky(
                               for( Index is=1; is<stokes_dim; is++ )
                                 { 
                                   const Numeric wi = -0.5 * A * iy(iv,is) *
-                                                     ppath_abs_scalar(iv,isp,ip);
+                                                   ppath_abs_scalar(iv,isp,ip);
                                   diy_dpath[iq](ip  ,iv,is) += unitscf1 * wi;
                                   diy_dpath[iq](ip+1,iv,is) += unitscf2 * wi;
                                 }
@@ -2196,22 +2205,23 @@ void iyEmissionStandardClearsky(
                           // Temperature
                           else if( is_t[iq] )
                             {
-                              const Numeric dkdt = ( ppath_as2(iv,joker,ip).sum()
-                                    - ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
+                              const Numeric dkdt = 
+                                  ( ppath_as2(iv,joker,ip).sum()
+                                  - ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
                               const Numeric dbdt = ( ppath_e2(iv,ip) -
-                                                    ppath_emission(iv,ip) ) / dt;
+                                                  ppath_emission(iv,ip) ) / dt;
                               //
                               // Stokes component 1
                               const Numeric w0 = B * dkdt + ( 
-                                         exp(-(total_tau[iv]-ppath_tau(iv,ip))) -
-                                         exp( -total_tau[iv]) ) * dbdt;
+                                       exp(-(total_tau[iv]-ppath_tau(iv,ip))) -
+                                       exp( -total_tau[iv]) ) * dbdt;
                               diy_dpath[iq](ip  ,iv,0) += w0;
                               diy_dpath[iq](ip+1,iv,0) += w0;
                               //
                               // Higher stokes components
                               for( Index is=1; is<stokes_dim; is++ )
                                 { 
-                                  const Numeric wi = -0.5 * A * iy(iv,is) * dkdt;
+                                  const Numeric wi = -0.5 * A * iy(iv,is)*dkdt;
                                   diy_dpath[iq](ip  ,iv,is) += wi;
                                   diy_dpath[iq](ip+1,iv,is) += wi;
                                 }
@@ -2246,7 +2256,7 @@ void iyEmissionStandardClearsky(
                     Matrix X;
                     X = diy_dpath[iq](joker,iv,joker);
                     mult( diy_dpath[iq](joker,iv,joker), 
-                                            iy_transmission(iv,joker,joker), X );
+                                          iy_transmission(iv,joker,joker), X );
                   }
                )
             }
@@ -2254,7 +2264,7 @@ void iyEmissionStandardClearsky(
           // Map to retrieval grids
           FOR_ANALYTICAL_JACOBIANS_DO( 
             diy_from_path_to_rgrids( diy_dx[iq], jacobian_quantities[iq], 
-                                diy_dpath[iq], atmosphere_dim, ppath, ppath_p );
+                               diy_dpath[iq], atmosphere_dim, ppath, ppath_p );
           )
         }
     }
@@ -2544,8 +2554,9 @@ Range get_rowindex_for_mblock(
 
 //! iyb_calc
 /*!
-    ...
+    Calculation of pencil beam monochromatic spectra for 1 measurement block.
 
+    All in- and output variables as the WSV with the same name.
 
     \author Patrick Eriksson 
     \date   2009-10-16
@@ -2592,8 +2603,8 @@ void iyb_calc(
   // Size containers for data of 1 measurement block.
   //
   // We do not know the number of aux variables. The parallelisation makes it
-  // unsafe to do the allocation of iyb_aux inside the for-loops. We must use a 
-  // hard-coded maximum number.
+  // unsafe to do the allocation of iyb_aux inside the for-loops. We must use 
+  // a hard-coded maximum number.
   //
   const Index n_aux_max = 3;
   n_aux     = -1;   // -1 flags value yet unknown
@@ -2607,7 +2618,7 @@ void iyb_calc(
       diyb_dx.resize( jacobian_indices.nelem() );
       FOR_ANALYTICAL_JACOBIANS_DO(
         diyb_dx[iq].resize( niyb, jacobian_indices[iq][1] -
-                                jacobian_indices[iq][0] + 1 );
+                                  jacobian_indices[iq][0] + 1 );
       )
     }
   else
@@ -2652,10 +2663,10 @@ void iyb_calc(
               ArrayOfTensor3 diy_dx; 
               //
               iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type, 
-                       iy_aux, diy_dx, 1, sensor_pos(imblock,joker), los, 
-                       iy_transmission, cloudbox_on, j_analytical_do, iy_aux_do,
-                       f_grid, p_grid, lat_grid, lon_grid, t_field,
-                       vmr_field, iy_clearsky_agenda );
+                             iy_aux, diy_dx, 1, sensor_pos(imblock,joker), los, 
+                             iy_transmission, cloudbox_on, j_analytical_do, 
+                             iy_aux_do, f_grid, p_grid, lat_grid, lon_grid, 
+                             t_field, vmr_field, iy_clearsky_agenda );
 
               // Check sizes
               //
@@ -2690,7 +2701,7 @@ void iyb_calc(
                       assert( diy_dx[iq].ncols() == stokes_dim );
                       assert( diy_dx[iq].nrows() == nf );
                       assert( diy_dx[iq].npages() == jacobian_indices[iq][1] -
-                                                  jacobian_indices[iq][0] + 1 );
+                                                 jacobian_indices[iq][0] + 1 );
                     )
                   }
               )
@@ -2715,7 +2726,7 @@ void iyb_calc(
                   for( Index iaux=0; iaux<n_aux; iaux++ )
                     { 
                       iyb_aux(Range(row0+is,nf,stokes_dim),iaux) = 
-                                                       iy_aux(iaux,joker,is);
+                                                         iy_aux(iaux,joker,is);
                     }
                 }
 
@@ -2927,7 +2938,7 @@ void yCalc(
   if( jacobian_do )
     {
       jacobian.resize( nmblock*n1y, 
-                            jacobian_indices[jacobian_indices.nelem()-1][1]+1 );
+                           jacobian_indices[jacobian_indices.nelem()-1][1]+1 );
       jacobian = 0;
       //
       FOR_ANALYTICAL_JACOBIANS_DO(
@@ -2950,14 +2961,13 @@ void yCalc(
       ArrayOfMatrix   diyb_dx;      
       //
       iyb_calc( ws, iyb, iyb_error, iy_error_type, iyb_aux, n_aux, diyb_dx, 
-                imblock, atmosphere_dim, p_grid, lat_grid, lon_grid,
-                t_field, vmr_field, cloudbox_on, 
-                stokes_dim, f_grid, sensor_pos, sensor_los, mblock_za_grid, 
-                mblock_aa_grid, antenna_dim, iy_clearsky_agenda, iy_aux_do, 
-                y_unit, j_analytical_do, jacobian_quantities, jacobian_indices, 
-                jacobian_unit );
+                imblock, atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
+                vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos, 
+                sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
+                iy_clearsky_agenda, iy_aux_do, y_unit, j_analytical_do, 
+                jacobian_quantities, jacobian_indices, jacobian_unit );
 
-      // Apply sensor response matrix on iyb
+      // Apply sensor response matrix on iyb, and put into y
       //
       mult( yb, sensor_response, iyb );
       //
@@ -3011,7 +3021,7 @@ void yCalc(
             { y_aux.resize( nmblock*n1y, n_aux ); }
           //
           mult( y_aux(rowind,joker), sensor_response, 
-                                                 iyb_aux(joker,Range(0,n_aux)) );
+                                               iyb_aux(joker,Range(0,n_aux)) );
         }
 
       // diyb_dx part of *jacobian*
@@ -3036,6 +3046,12 @@ void yCalc(
 }
 
 
+
+
+
+//---------------------------------------------------------------------------
+// FOS   (shall be moved to special file)
+//---------------------------------------------------------------------------
 
 extern const Numeric PI;
 
@@ -3418,10 +3434,6 @@ void fos_yStandard(
                 }
               else
                 {
-                  cout << "Here" << endl;
-                  cout << ia << endl;
-                  cout << fos_angles.nrows() << endl;
-                  cout << fos_angles.ncols() << endl;
                   iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
                                              iy_aux, diy_dx, 0, 
                                              rte_pos, fos_angles(ia,Range(0,1)),
@@ -3429,7 +3441,6 @@ void fos_yStandard(
                                              iy_aux_do, f_grid, p_grid, 
                                              lat_grid, lon_grid, t_field, 
                                              vmr_field, iy_clearsky_agenda );
-                  cout << "Back" << endl;
                   fos_y(ia,joker,joker) = tmp;
                 }
             }
@@ -3438,7 +3449,6 @@ void fos_yStandard(
       else if( atmosphere_dim == 2 )
         { 
           Vector rte_los(1);
-          Vector lat_stretched;
 
           for( Index ia=0; ia<nfosa; ia++ )
             { 
@@ -3464,25 +3474,37 @@ void fos_yStandard(
               else
                 {
                   // LOS
-                  rte_los[0] = fos_angles(ia,0);
-                  if( fabs(fos_angles(ia,1)) >= 90 )
+                  if( fabs(fos_angles(ia,1)) <= 90 )
                     { rte_los[0] = fos_angles(ia,0); }
                   else
                     { rte_los[0] = -fos_angles(ia,0); }
 
-                  //Latitude stretch
-                  lat_stretched = lat_grid;
-                  lat_stretched *= 1.0 / cos( DEG2RAD*fos_angles(ia,1) );
+                  // Create stretched latitude grid
+                  //
+                  Vector lat_stretched( lat_grid.nelem() );
+                  //
+                  // No strect needed for zenith, nadir and aa= 0 or +-180
+                  if( fos_angles(ia,0) > 0  &&  fabs(fos_angles(ia,0)) < 180 &&
+                      fos_angles(ia,1) != 0  && fabs(fos_angles(ia,1)) < 180 )
+                    {
+                      // Stretch factor (a max of 100 is applied)
+                      const Numeric stretch = 1.0 / max( 0.01, 
+                                         fabs(cos(DEG2RAD*fos_angles(ia,1))) );
+                      const Numeric lat0 = rte_pos[1];
+                      for( Index i=0; i<lat_grid.nelem(); i++ )
+                        { 
+                          lat_stretched[i] = lat0 + stretch*(lat_grid[i]-lat0); 
+                        }
+                    }
+                  else
+                    { lat_stretched = lat_grid; }
                   
-                  cout << fos_angles(ia,0) << " " << rte_los[0] << endl;
-                  cout << fos_angles(ia,1) << " " << 1.0 / cos( DEG2RAD*fos_angles(ia,1) ) << endl;
-
                   iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
                                              iy_aux, diy_dx, 0, 
                                              rte_pos, rte_los,
                                              iy_transmission, 0, jacobian_do, 
                                              iy_aux_do, f_grid, p_grid, 
-                                             lat_grid, lon_grid, t_field, 
+                                             lat_stretched, lon_grid, t_field, 
                                              vmr_field, iy_clearsky_agenda );
                   fos_y(ia,joker,joker) = tmp;
                 }

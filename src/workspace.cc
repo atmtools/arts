@@ -3977,7 +3977,7 @@ void Workspace::define_wsv_data()
        "auxilary variable. The number of columns is free (but there could be\n"
        "hard-coded restrictions on maximum number of columns). Variables\n"
        "of different types can be mixed. If created through *yCalc*, the\n"
-       "weighting with *sensor_response* should be considered.\n"
+       "weighting with *sensor_response* is included.\n"
        ),
       GROUP( "Matrix" )));
 

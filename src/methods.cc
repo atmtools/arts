@@ -3819,7 +3819,7 @@ void define_md_data_raw()
             "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid",
             "z_surface", "cloudbox_on", "cloudbox_limits", "stokes_dim",
             "f_grid", "ppath_step_agenda", "emission_agenda",
-            "abs_scalar_gas_agenda", "iy_clearsky_basic_agenda", 
+            "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
             "iy_transmission", "pnd_field", "scat_data_raw", 
             "opt_prop_gas_agenda", 
             "fos_y_agenda", "fos_angles", "fos_n", "fos_i" ),
@@ -4150,28 +4150,28 @@ void define_md_data_raw()
         (
          "Standard method for radiative transfer calculations with emission.\n"
          "\n"
-         "Designed to be part of *iy_clearsky_agenda*. That is, is only valid\n"
+         "Designed to be part of *iy_clearsky_agenda*. That is, only valid\n"
          "outside the cloudbox (no scattering or polarised absorption).\n"
          "Assumes local thermodynamic equilibrium for emission.\n"
          "\n"
          "The overall strategy is to average basic atmospheric quantities\n"
          "(such as temperature) between the end points of each step of\n"
          "the propagation path, and to calculate emission and absorption\n"
-         "for these averaged values. See further the user guide. *iy_error* is\n"
-         "considered to be 0. \n" 
+         "for these averaged values. See further the user guide. *iy_error*\n"
+         "is considered to be 0. \n" 
          "\n"
          "If *iy_aux_do* is set, the columns of *iy_aux* are as follow:\n"
          " 1. The transmission between the observation point and the top of\n"
          "    the atmosphere (TOA) or to the surface, depending on which of\n"
          "    the two \"backgrounds\" that is closest. With the cloud box\n"
          "    activated, the transmission returned depends on scattering\n"
-         "    used. For DOIT and MC, only the transmission to the cloud box\n"
-         "    is calculated. For FOS the transmission is valid for the total\n"
-         "    unscattered path through the atmosphere, with attenuation due\n" 
-         "    particle scattering is included.\n"
-         " 2. Radiative background index, for primary propagation path branch,\n"
-         "    where 1 is TOA, 2 the surface, 3 cloudbox surface and 4 cloudbox\n"
-         "    interior.\n"
+         "    method used. For DOIT and MC, only the transmission to the\n"
+         "    cloud box is calculated. For FOS the transmission is valid for\n"
+         "    the total unscattered path through the atmosphere, with\n" 
+         "    attenuation due particle scattering is included.\n"
+         " 2. Radiative background index, for primary propagation path\n"
+         "    branch, where 1 is TOA, 2 the surface, 3 cloudbox surface and\n"
+         "    4 cloudbox interior.\n"
          " 3. Intersection with cloudbox flag, with 1 for interestion and 0\n"
          "    for other propagation paths. Also intersection after surface\n"
          "    reflections are flagged.\n"
@@ -4181,7 +4181,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_agenda_call1", "rte_pos", "rte_los", "iy_aux_do", "jacobian_do", 
+        IN( "iy_agenda_call1", "rte_pos", "rte_los", "iy_aux_do", "jacobian_do",
             "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
             "t_field", "vmr_field", "r_geoid", "z_surface",
             "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
@@ -4203,7 +4203,7 @@ void define_md_data_raw()
          "As *iyEmissionStandardClearsky*, but lacking support for auxilary\n"
          "variables and jacobian calculations.\n"
          "\n"
-         "Designed to be part of *iy_clearsky_basic_agenda*. Otherwise, see\n"
+         "Designed to be part of *iy_clearsky_basic_agenda*. See further\n"
          "*iyEmissionStandardClearsky*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
