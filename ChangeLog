@@ -1,3 +1,31 @@
+2010-03-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-13-17
+
+	* DOIT test case is NOT RUNNING. Do not why yet. I commit to test 
+	compiling on other machine. 
+	
+	* src/m_rte.cc: Adopted to change of iy_clearsky_agenda, in
+	several functions.
+	(fos_yStandard): Now code for 1D, 2D and 3D. Not yet working.
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming1DAtm): Now using
+	iy_clearsky_basic_agenda instead of iy_calc_no_jacobian.
+	(CloudboxGetIncoming): Now using iy_clearsky_basic_agenda instead
+	of iy_clearsky_agenda.
+
+	* src/m_jacobian.cc (jacobianCalcPointingZaIybrecalc): Adopted to
+	change of iy_clearsky_agenda.
+
+	* src/agendas.cc: FOS-2D requires the lat_grid. To handle this
+	lat_grid was added as input to iy_clearsky_agenda. Added also
+	p_grid and lon_grid for consistency.
+
+	* src/ppath.cc (rsurf_at_lat): New internal function.
+	(ppath_start_2d): Added code piece to handle start positions
+	exactly on top of a pressure surface (following sister 3D
+	function). A call of gridpos_force_end_fd is the needed.
+
 2010-03-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-13-16

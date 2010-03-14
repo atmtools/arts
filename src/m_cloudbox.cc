@@ -1384,13 +1384,11 @@ void CloudboxGetIncoming(
               Tensor7&        scat_i_p,
               Tensor7&        scat_i_lat,
               Tensor7&        scat_i_lon,
-        const Agenda&         iy_clearsky_agenda,
+        const Agenda&         iy_clearsky_basic_agenda,
         const Index&          atmosphere_dim,
         const Vector&         lat_grid,
         const Vector&         lon_grid,
         const Tensor3&        z_field,
-        const Tensor3&        t_field,
-        const Tensor4&        vmr_field,
         const Matrix&         r_geoid,
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         f_grid,
@@ -1402,17 +1400,12 @@ void CloudboxGetIncoming(
   Index  Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index  Nza      = scat_za_grid.nelem();
   Index  Ni       = stokes_dim;
-  Index  iyet;
-  Matrix iy, iye;
+  Matrix iy;
   Ppath  ppath;
-  Tensor3        iy_aux, iy_transmission;
-  ArrayOfTensor3 diy_dx; 
 
   //--- Check input ----------------------------------------------------------
   if( !(atmosphere_dim == 1  ||  atmosphere_dim == 3) )
     throw runtime_error( "The atmospheric dimensionality must be 1 or 3.");
-  //if( cloudbox_on == 0  ||  cloudbox_limits.nelem() == 0 )
-  // throw runtime_error( "The cloudbox must be activated, and it is not.");
   if( scat_za_grid[0] != 0. || scat_za_grid[Nza-1] != 180. )
         throw runtime_error(
                  "*scat_za_grid* must include 0 and 180 degrees as endpoints." );
@@ -1439,9 +1432,8 @@ void CloudboxGetIncoming(
             {
               los[0] =  scat_za_grid[scat_za_index];
 
-              iy_clearsky_agendaExecute( ws, iy, iye, iyet, iy_aux, diy_dx,
-                            1, pos, los, iy_transmission, 0, 0, 0, 
-                            f_grid, t_field, vmr_field, iy_clearsky_agenda );
+              iy_clearsky_basic_agendaExecute( ws, iy, pos, los, 0, 
+                                               iy_clearsky_basic_agenda );
 
               scat_i_p( joker, boundary, 0, 0, scat_za_index, 0, joker ) = iy;
             }
@@ -1456,13 +1448,13 @@ void CloudboxGetIncoming(
 
       if( scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360. )
         throw runtime_error(
-                     "*scat_aa_grid* must include 0 and 360 degrees as endpoints." );
+                 "*scat_aa_grid* must include 0 and 360 degrees as endpoints." );
 
       Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
       Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
       
-       // Convert scat_za_grid to "sensor coordinates"
-      //(-180° < azimuth angle < 180°)
+      // Convert scat_za_grid to "sensor coordinates"
+      // (-180° < azimuth angle < 180°)
       //
       Vector aa_grid(Naa);
       for(Index i = 0; i<Naa; i++)
@@ -1508,11 +1500,8 @@ void CloudboxGetIncoming(
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_clearsky_agendaExecute( ws, iy, iye, iyet,
-                                                         iy_aux, diy_dx,
-                                          1, pos, los, iy_transmission, 0, 0, 0, 
-                                          f_grid, t_field, vmr_field, 
-                                          iy_clearsky_agenda );
+                              iy_clearsky_basic_agendaExecute( ws, iy, pos, los, 
+                                                  0, iy_clearsky_basic_agenda );
                             }
 
                           scat_i_p( joker, boundary, lat_index, lon_index, 
@@ -1553,11 +1542,8 @@ void CloudboxGetIncoming(
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_clearsky_agendaExecute( ws, iy, iye, iyet,
-                                                         iy_aux, diy_dx,
-                                          1, pos, los, iy_transmission, 0, 0, 0, 
-                                          f_grid, t_field, vmr_field, 
-                                          iy_clearsky_agenda );
+                              iy_clearsky_basic_agendaExecute( ws, iy, pos, los, 
+                                                  0, iy_clearsky_basic_agenda );
                             }
 
                           scat_i_lat( joker, p_index, boundary, lon_index, 
@@ -1598,11 +1584,8 @@ void CloudboxGetIncoming(
                                    scat_za_index == (Nza-1) )  &&  
                                  scat_aa_index == 0 ) )
                             {
-                              iy_clearsky_agendaExecute( ws, iy, iye, iyet,
-                                                         iy_aux, diy_dx,
-                                          1, pos, los, iy_transmission, 0, 0, 0, 
-                                          f_grid, t_field, vmr_field, 
-                                          iy_clearsky_agenda );
+                              iy_clearsky_basic_agendaExecute( ws, iy, pos, los, 
+                                                  0, iy_clearsky_basic_agenda );
                             }
 
                           scat_i_lon( joker, p_index, lat_index, boundary, 
@@ -1623,20 +1606,12 @@ void CloudboxGetIncoming1DAtm(
               Tensor7&        scat_i_lat,
               Tensor7&        scat_i_lon,
               Index&          cloudbox_on,
-        const Agenda&         ppath_step_agenda,
-        const Agenda&         rte_agenda,
-        const Agenda&         iy_space_agenda,
-        const Agenda&         surface_prop_agenda,
-        const Agenda&         iy_cloudbox_agenda,
+        const Agenda&         iy_clearsky_basic_agenda,
         const Index&          atmosphere_dim,
-        const Vector&         p_grid,
         const Vector&         lat_grid,
         const Vector&         lon_grid,
         const Tensor3&        z_field,
-        const Tensor3&        t_field,
-        const Tensor4&        vmr_field,
         const Matrix&         r_geoid,
-        const Matrix&         z_surface,
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         f_grid,
         const Index&          stokes_dim,
@@ -1706,14 +1681,9 @@ void CloudboxGetIncoming1DAtm(
       for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index++ )
         {
           los[0] = scat_za_grid[scat_za_index];
-          
-          iy_calc_no_jacobian(ws, iy, ppath, ppath_step_agenda,
-                              rte_agenda, iy_space_agenda, surface_prop_agenda, 
-                              iy_cloudbox_agenda, atmosphere_dim, p_grid,
-                              lat_grid, lon_grid, z_field, t_field, vmr_field,
-                              r_geoid, z_surface,
-                              cloudbox_on, cloudbox_limits, pos, 
-                              los, f_grid, stokes_dim );
+
+          iy_clearsky_basic_agendaExecute( ws, iy, pos, los, 0, 
+                                               iy_clearsky_basic_agenda );
           
           for (Index aa = 0; aa < Naa; aa ++)
             {

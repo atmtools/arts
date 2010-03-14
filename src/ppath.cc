@@ -892,6 +892,32 @@ double plevel_slope_2d(
 
 
 
+//! rsurf_at_lat
+/*!
+   Determines the radius of a pressure level or the surface given the
+   radius at the corners of a 2D grid cell.
+
+   \return         Radius at the given latitude and longitude.
+   \param   lat1   Lower latitude of grid cell.
+   \param   lat3   Upper latitude of grid cell.
+   \param   r1     Radius at *lat1*
+   \param   r3     Radius at *lat3*
+   \param   lat    Latitude for which radius shall be determined.
+
+   \author Patrick Eriksson
+   \date   2010-03-12
+*/
+double rsurf_at_lat(
+       const double&   lat1,
+       const double&   lat3,
+       const double&   r1,
+       const double&   r3,
+       const double&   lat )
+{
+  return   r1 + ( lat - lat1 ) * ( r3 - r1 ) / ( lat3 - lat1 );
+}
+
+
 //! rsurf_at_latlon
 /*!
    Determines the radius of a pressure level or the surface given the
@@ -1668,7 +1694,6 @@ void do_gridcell_2d(
           endface  = 4;
         }
     }
-
 
   // Left or right end face
   if( abs(dlat2end) > abs(dlat_endface) )
@@ -2871,8 +2896,6 @@ void ppath_start_1d(
   // grid range of interest.
   //
   ip = gridpos2gridrange( ppath.gp_p[imax], za_start<=90 );
-
-  out3 << "  pressure grid range  : " << ip << "\n";
 }
 
 
@@ -2970,7 +2993,7 @@ void ppath_start_2d(
               double&     r1b,
               double&     rsurface1,
               double&     rsurface3,
-        const Ppath&      ppath,
+              Ppath&      ppath,
         ConstVectorView   DEBUG_ONLY (p_grid),
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
@@ -3036,6 +3059,16 @@ void ppath_start_2d(
   r3a = r_geoid[ilat+1] + z_field(ip,ilat+1);    // lower-right
   r3b = r_geoid[ilat+1] + z_field(ip+1,ilat+1);  // upper-right
   r1b = r_geoid[ilat] + z_field(ip+1,ilat);      // upper-left
+
+  // This part is a fix to catch start postions on top of a pressure level
+  // that does not have an end fractional distance for the first step.
+  {
+    // Radius of lower and upper pressure level at the start position
+    const double   rlow = rsurf_at_lat( lat1, lat3, r1a, r3a, lat_start );
+    const double   rupp = rsurf_at_lat( lat1, lat3, r1b, r3b, lat_start );
+    if( abs(r_start-rlow) < RTOL || abs(r_start-rupp) < RTOL )
+      { gridpos_force_end_fd( ppath.gp_p[imax] ); }
+  }
   
   // Slopes of pressure levels
   double   c2 = plevel_slope_2d( lat1, lat3, r1a, r3a );
@@ -3072,9 +3105,6 @@ void ppath_start_2d(
           c4 = plevel_slope_2d( lat1, lat3, r1b, r3b );
         }
     }
-
-  out3 << "  pressure grid range  : " << ip << "\n";
-  out3 << "  latitude grid range  : " << ilat << "\n";
 
   // Surface radius at latitude end points
   rsurface1 = r_geoid[ilat] + z_surface[ilat];
@@ -3307,7 +3337,7 @@ void ppath_start_3d(
                 r15a, r35a, r36a, r16a, lat_start, lon_start );
     const double   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                     r15b, r35b, r36b, r16b, lat_start, lon_start );
-    if (abs(r_start-rlow) < RTOL || abs(r_start-rupp) < RTOL)
+    if( abs(r_start-rlow) < RTOL || abs(r_start-rupp) < RTOL )
       { gridpos_force_end_fd( ppath.gp_p[imax] ); }
   }
 
@@ -3350,10 +3380,6 @@ void ppath_start_3d(
           r16b = r_geoid(ilat,ilon+1) + z_field(ip+1,ilat,ilon+1);
         }
     }
-
-  out3 << "  pressure grid range  : " << ip << "\n";
-  out3 << "  latitude grid range  : " << ilat << "\n";
-  out3 << "  longitude grid range : " << ilon << "\n";
 
   // Surface radius at latitude/longitude corner points
   rsurface15 = r_geoid(ilat,ilon) + z_surface(ilat,ilon);
@@ -3802,8 +3828,7 @@ void ppath_step_geom_2d(
 
   do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, tanpoint,
                   r_start, lat_start, za_start, ppc, lmax, lat1, lat3, 
-                                      r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
-
+                                    r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
 
   // Fill *ppath*
   //
@@ -5408,7 +5433,7 @@ void ppath_start_stepping(
           z_at_lat_2d( z_grid, p_grid, lat_grid, 
                                               z_field(joker,joker,0), gp_lat );
           gridpos( ppath.gp_p, z_grid, ppath.z );
-
+          
           // Is the sensor on the surface looking down?
           if( ppath.pos(0,0) == rv_surface )
             {

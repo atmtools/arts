@@ -596,7 +596,7 @@ bool is_gridpos_at_index_i(
    Determines which grid range that is of interest for a given grid position.
 
    The purpose of the function is to determine which two grid values that
-   sorround the given point. The index of the lower grid value is returned.
+   surround the given point. The index of the lower grid value is returned.
 
    For a point exactly on a grid value it is not clear if it is the range 
    below or above that is of interest. The input argument upward is used to 

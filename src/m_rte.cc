@@ -1627,6 +1627,9 @@ void vmrunitscf(
     \param   jacobian_do           As the WSV.
     \param   ppath                 As the WSV.
     \param   atmosphere_dim        As the WSV.
+    \param   p_grid                As the WSV.
+    \param   lat_grid              As the WSV.
+    \param   lon_grid              As the WSV.
     \param   t_field               As the WSV.
     \param   vmr_field             As the WSV.
     \param   cloudbox_on           As the WSV.
@@ -1652,6 +1655,9 @@ void get_iy_of_background(
   const Index&            jacobian_do,
   const Ppath&            ppath,
   const Index&            atmosphere_dim,
+  ConstVectorView         p_grid,
+  ConstVectorView         lat_grid,
+  ConstVectorView         lon_grid,
   ConstTensor3View        t_field,
   ConstTensor4View        vmr_field,
   const Index&            cloudbox_on,
@@ -1762,17 +1768,23 @@ void get_iy_of_background(
             for( Index ilos=0; ilos<nlos; ilos++ )
               {
                 // Include surface reflection matrix in *iy_transmission*
+                // If iy_transmission is empty, this is interpreted as the
+                // variable is not needed.
+                //
                 Tensor3 iy_trans_new;
                 //
-                iy_transmission_mult(  iy_trans_new, iy_transmission, 
-                                       surface_rmatrix(ilos,joker,joker,joker) );
+                if( iy_transmission.npages() )
+                  {
+                    iy_transmission_mult(  iy_trans_new, iy_transmission, 
+                                     surface_rmatrix(ilos,joker,joker,joker) );
+                  }
 
                 // Calculate downwelling radiation for LOS ilos 
                 iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
-                                           iy_aux, diy_dx,
-                             0, rte_pos, surface_los(ilos,joker), iy_trans_new, 
-                             cloudbox_on, jacobian_do, iy_aux_do, 
-                             f_grid, t_field, vmr_field, iy_clearsky_agenda );
+                            iy_aux, diy_dx, 0, rte_pos, surface_los(ilos,joker),
+                            iy_trans_new, cloudbox_on, jacobian_do, iy_aux_do, 
+                            f_grid, p_grid, lat_grid, lon_grid, t_field, 
+                            vmr_field, iy_clearsky_agenda );
 
                 I(ilos,joker,joker) = iy;
               }
@@ -2048,24 +2060,25 @@ void iyEmissionStandardClearsky(
                                     ppath, ppath_p, ppath_t, ppath_vmr, nf, 1 );
     }
 
-  // Handle iy_transmission (the variable not needed when background is space)
+  // Handle iy_transmission (the variable not needed when background is
+  // space or no analytical jacobians will be calculated)
   //
-
-  if( i_background > 1 || iy_aux_do )
+  if( ( i_background > 1 && j_analytical_do )  ||  iy_aux_do )
     {
       if( iy_agenda_call1 )
         { iy_transmission_for_scalar_tau( iy_trans_new, stokes_dim, 
-                                                                  total_tau ); }
+                                                                 total_tau ); }
       else
         { iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, 
-                                                                  total_tau ); }
+                                                                 total_tau ); }
     }
 
   // Radiative background
   //
   get_iy_of_background( 
                 ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
-                iy_aux_do, jacobian_do, ppath, atmosphere_dim, t_field,
+                iy_aux_do, jacobian_do, ppath, atmosphere_dim, 
+                p_grid, lat_grid, lon_grid, t_field,
                 vmr_field, cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda,
                 iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
   
@@ -2324,12 +2337,12 @@ void iyEmissionStandardClearskyBasic(
   Tensor3         dummy3, dummy5;
   ArrayOfTensor3  dummy4;
   //  
-  get_iy_of_background( 
-                ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
-                0, 0, ppath, atmosphere_dim, t_field, vmr_field,
-                cloudbox_on, stokes_dim, f_grid, iy_clearsky_basic_agenda,
-                iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
-  
+  get_iy_of_background( ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
+                        0, 0, ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
+                        t_field, vmr_field, cloudbox_on, stokes_dim,
+                        f_grid, iy_clearsky_basic_agenda, iy_space_agenda, 
+                        surface_prop_agenda, iy_cloudbox_agenda );
+
 
   // Do RT calculations
   //
@@ -2547,15 +2560,18 @@ void iyb_calc(
         ArrayOfMatrix&              diyb_dx,
   const Index&                      imblock,
   const Index&                      atmosphere_dim,
-  const Tensor3&                    t_field,
-  const Tensor4&                    vmr_field,
+  ConstVectorView                   p_grid,
+  ConstVectorView                   lat_grid,
+  ConstVectorView                   lon_grid,
+  ConstTensor3View                  t_field,
+  ConstTensor4View                  vmr_field,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,
-  const Vector&                     f_grid,
-  const Matrix&                     sensor_pos,
-  const Matrix&                     sensor_los,
-  const Vector&                     mblock_za_grid,
-  const Vector&                     mblock_aa_grid,
+  ConstVectorView                   f_grid,
+  ConstMatrixView                   sensor_pos,
+  ConstMatrixView                   sensor_los,
+  ConstVectorView                   mblock_za_grid,
+  ConstVectorView                   mblock_aa_grid,
   const Index&                      antenna_dim,
   const Agenda&                     iy_clearsky_agenda,
   const Index&                      iy_aux_do,
@@ -2638,7 +2654,8 @@ void iyb_calc(
               iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type, 
                        iy_aux, diy_dx, 1, sensor_pos(imblock,joker), los, 
                        iy_transmission, cloudbox_on, j_analytical_do, iy_aux_do,
-                       f_grid, t_field, vmr_field, iy_clearsky_agenda );
+                       f_grid, p_grid, lat_grid, lon_grid, t_field,
+                       vmr_field, iy_clearsky_agenda );
 
               // Check sizes
               //
@@ -2747,6 +2764,9 @@ void yCalc(
         Matrix&                     jacobian,
   const Index&                      atm_checked,
   const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
   const Tensor3&                    t_field,
   const Tensor4&                    vmr_field,
   const Index&                      cloudbox_on,
@@ -2816,22 +2836,22 @@ void yCalc(
     }
   if( max( sensor_los(joker,0) ) > 180 )
     throw runtime_error( 
-       "First column of *sensor_los* is not allowed to have values above 180." );
+     "First column of *sensor_los* is not allowed to have values above 180." );
   if( atmosphere_dim == 2 )
     {
       if( min( sensor_los(joker,0) ) < -180 )
           throw runtime_error( "For atmosphere_dim = 2, first column of "
-                      "*sensor_los* is not allowed to have values below -180." );
+                    "*sensor_los* is not allowed to have values below -180." );
     }     
   else
     {
       if( min( sensor_los(joker,0)  ) < 0 )
           throw runtime_error( "For atmosphere_dim != 2, first column of "
-                         "*sensor_los* is not allowed to have values below 0." );
+                       "*sensor_los* is not allowed to have values below 0." );
     }    
   if( atmosphere_dim == 3  &&  max( sensor_los(joker,1) ) > 180 )
     throw runtime_error( 
-      "Second column of *sensor_los* is not allowed to have values above 180." );
+    "Second column of *sensor_los* is not allowed to have values above 180." );
 
   // Antenna
   //
@@ -2930,7 +2950,8 @@ void yCalc(
       ArrayOfMatrix   diyb_dx;      
       //
       iyb_calc( ws, iyb, iyb_error, iy_error_type, iyb_aux, n_aux, diyb_dx, 
-                imblock, atmosphere_dim, t_field, vmr_field, cloudbox_on, 
+                imblock, atmosphere_dim, p_grid, lat_grid, lon_grid,
+                t_field, vmr_field, cloudbox_on, 
                 stokes_dim, f_grid, sensor_pos, sensor_los, mblock_za_grid, 
                 mblock_aa_grid, antenna_dim, iy_clearsky_agenda, iy_aux_do, 
                 y_unit, j_analytical_do, jacobian_quantities, jacobian_indices, 
@@ -3021,8 +3042,14 @@ extern const Numeric PI;
 void iyFOS(
         Workspace&                     ws,
         Matrix&                        iy,
+        Matrix&                        iy_error,
+        Index&                         iy_error_type,
+        Tensor3&                       iy_aux,
+        ArrayOfTensor3&                diy_dx,
   const Vector&                        rte_pos,
   const Vector&                        rte_los,
+  const Index&                         iy_aux_do,
+  const Index&                         jacobian_do,
   const Index&                         atmosphere_dim,
   const Vector&                        p_grid,
   const Vector&                        lat_grid,
@@ -3039,7 +3066,8 @@ void iyFOS(
   const Agenda&                        ppath_step_agenda,
   const Agenda&                        emission_agenda,
   const Agenda&                        abs_scalar_gas_agenda,
-  const Agenda&                        iy_clearsky_basic_agenda,
+  const Agenda&                        iy_clearsky_agenda,
+  const Tensor3&                       iy_transmission,
   const Tensor4&                       pnd_field,
   const ArrayOfSingleScatteringData&   scat_data_raw,
   const Agenda&                        opt_prop_gas_agenda,
@@ -3077,7 +3105,7 @@ void iyFOS(
   ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
               cloudbox_on, cloudbox_limits, rte_pos, rte_los, 0 );
-  
+
   // Check radiative background
   const Index bkgr = ppath_what_background( ppath );
   if( bkgr == 2 )
@@ -3095,9 +3123,12 @@ void iyFOS(
   rte_pos2 = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
   rte_los2 = ppath.los(ppath.np-1,joker);
   //
-  iy_clearsky_basic_agendaExecute( ws, iy, rte_pos2, rte_los2, 0,
-                                                     iy_clearsky_basic_agenda );
-
+  //
+  iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
+                             iy_aux, diy_dx, 0, rte_pos2, rte_los2,
+                             iy_transmission, 0, jacobian_do, iy_aux_do, 
+                             f_grid, p_grid, lat_grid, lon_grid, t_field, 
+                             vmr_field, iy_clearsky_agenda );
 
   // RT for part inside cloudbox
   //
@@ -3186,7 +3217,7 @@ void iyFOS(
           Matrix   abs_scalar_gas;
           Vector   bbemission;
           abs_scalar_gas_agendaExecute( ws, abs_scalar_gas, -1, p_mean, t_mean, 
-                                              vmr_mean, abs_scalar_gas_agenda );
+                                        vmr_mean, abs_scalar_gas_agenda );
           emission_agendaExecute( ws, bbemission, t_mean, emission_agenda );
 
           
@@ -3322,7 +3353,12 @@ void iyFOS(
 void fos_yStandard(
         Workspace&                     ws,
         Tensor3&                       fos_y,
+        Matrix&                        iy_error,
+        Index&                         iy_error_type,
+        Tensor3&                       iy_aux,
+        ArrayOfTensor3&                diy_dx,
   const Vector&                        rte_pos,
+  const Index&                         iy_aux_do,
   const Index&                         atmosphere_dim,
   const Vector&                        p_grid,
   const Vector&                        lat_grid,
@@ -3339,7 +3375,8 @@ void fos_yStandard(
   const Agenda&                        ppath_step_agenda,
   const Agenda&                        emission_agenda,
   const Agenda&                        abs_scalar_gas_agenda,
-  const Agenda&                        iy_clearsky_basic_agenda,
+  const Agenda&                        iy_clearsky_agenda,
+  const Tensor3&                       iy_transmission,
   const Tensor4&                       pnd_field,
   const ArrayOfSingleScatteringData&   scat_data_raw,
   const Agenda&                        opt_prop_gas_agenda,
@@ -3352,6 +3389,8 @@ void fos_yStandard(
   const Numeric dza = 0.01;
   const Numeric daa = 1;
 
+  const Index jacobian_do = 0;
+
   const Index   nfosa = fos_angles.nrows();
         Matrix  tmp;
 
@@ -3363,7 +3402,8 @@ void fos_yStandard(
         { 
           for( Index ia=0; ia<nfosa; ia++ )
             { 
-              // Test if any za done is inside dza
+              // To use already calculated data we demand that difference
+              // in za is < dza
               Index ihit = -1;
               //
               for( Index it=ia-1; it>=0 && ihit<0; it-- )
@@ -3378,8 +3418,18 @@ void fos_yStandard(
                 }
               else
                 {
-                  iy_clearsky_basic_agendaExecute( ws, tmp, rte_pos, 
-                      fos_angles(ia,Range(0,1)), 0, iy_clearsky_basic_agenda );
+                  cout << "Here" << endl;
+                  cout << ia << endl;
+                  cout << fos_angles.nrows() << endl;
+                  cout << fos_angles.ncols() << endl;
+                  iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
+                                             iy_aux, diy_dx, 0, 
+                                             rte_pos, fos_angles(ia,Range(0,1)),
+                                             iy_transmission, 0, jacobian_do, 
+                                             iy_aux_do, f_grid, p_grid, 
+                                             lat_grid, lon_grid, t_field, 
+                                             vmr_field, iy_clearsky_agenda );
+                  cout << "Back" << endl;
                   fos_y(ia,joker,joker) = tmp;
                 }
             }
@@ -3388,16 +3438,19 @@ void fos_yStandard(
       else if( atmosphere_dim == 2 )
         { 
           Vector rte_los(1);
+          Vector lat_stretched;
+
           for( Index ia=0; ia<nfosa; ia++ )
             { 
-              // Test if any za/aa done is inside dza/daa
+              // To use already calculated data we demand that difference
+              // in za is < dza, and aa is mirrored with respect to the
+              // orbit plane (aa(it) = -aa(ia).
               Index ihit = -1;
               //
               for( Index it=ia-1; it>=0 && ihit<0; it-- )
                 {
                    if( fabs( fos_angles(ia,0) - fos_angles(it,0) ) < dza )
                      { 
-                       // Check if aa(ia) is a mirror aa-angle
                        if( fabs( fos_angles(ia,1) + fos_angles(it,1) ) < daa )
                          { ihit = it; }
                      }
@@ -3410,13 +3463,27 @@ void fos_yStandard(
                 }
               else
                 {
+                  // LOS
                   rte_los[0] = fos_angles(ia,0);
-                  if( fabs(fos_angles(ia,0)) >= 90 )
+                  if( fabs(fos_angles(ia,1)) >= 90 )
                     { rte_los[0] = fos_angles(ia,0); }
                   else
                     { rte_los[0] = -fos_angles(ia,0); }
-                  iy_clearsky_basic_agendaExecute( ws, tmp, rte_pos, 
-                                        rte_los, 0, iy_clearsky_basic_agenda );
+
+                  //Latitude stretch
+                  lat_stretched = lat_grid;
+                  lat_stretched *= 1.0 / cos( DEG2RAD*fos_angles(ia,1) );
+                  
+                  cout << fos_angles(ia,0) << " " << rte_los[0] << endl;
+                  cout << fos_angles(ia,1) << " " << 1.0 / cos( DEG2RAD*fos_angles(ia,1) ) << endl;
+
+                  iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
+                                             iy_aux, diy_dx, 0, 
+                                             rte_pos, rte_los,
+                                             iy_transmission, 0, jacobian_do, 
+                                             iy_aux_do, f_grid, p_grid, 
+                                             lat_grid, lon_grid, t_field, 
+                                             vmr_field, iy_clearsky_agenda );
                   fos_y(ia,joker,joker) = tmp;
                 }
             }
@@ -3426,8 +3493,13 @@ void fos_yStandard(
         {
           for( Index ia=0; ia<nfosa; ia++ )
             { 
-              iy_clearsky_basic_agendaExecute( ws, tmp, rte_pos, 
-                      fos_angles(ia,Range(0,2)), 0, iy_clearsky_basic_agenda );
+              iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
+                                         iy_aux, diy_dx, 0, 
+                                         rte_pos, fos_angles(ia,Range(0,2)),
+                                         iy_transmission, 0, jacobian_do, 
+                                         iy_aux_do, f_grid, p_grid, 
+                                         lat_grid, lon_grid, t_field, 
+                                         vmr_field, iy_clearsky_agenda );
               fos_y(ia,joker,joker) = tmp;
             }
         }
@@ -3436,12 +3508,13 @@ void fos_yStandard(
     {
       for( Index ia=0; ia<nfosa; ia++ )
         { 
-          iyFOS( ws, tmp, rte_pos, fos_angles(ia,Range(0,2)), 
+          iyFOS( ws, tmp, iy_error, iy_error_type, iy_aux, diy_dx,
+                 rte_pos, fos_angles(ia,Range(0,2)), iy_aux_do, jacobian_do,
                  atmosphere_dim, p_grid, lat_grid, lon_grid, 
                  z_field, t_field, vmr_field, r_geoid, z_surface, 
                  cloudbox_on, cloudbox_limits, stokes_dim, f_grid, 
                  ppath_step_agenda, emission_agenda, 
-                 abs_scalar_gas_agenda, iy_clearsky_basic_agenda, 
+                 abs_scalar_gas_agenda, iy_clearsky_agenda, iy_transmission, 
                  pnd_field, scat_data_raw, opt_prop_gas_agenda, 
                  fos_y_agenda, fos_angles, fos_n, fos_i+1 );
 

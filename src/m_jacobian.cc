@@ -771,6 +771,9 @@ void jacobianCalcPointingZaIybrecalc(
   const Vector&                     iyb _U_,
   const Vector&                     yb,
   const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
   const Tensor3&                    t_field,
   const Tensor4&                    vmr_field,
   const Index&                      cloudbox_on,
@@ -842,7 +845,8 @@ void jacobianCalcPointingZaIybrecalc(
     los(joker,0) += rq.Perturbation();
 
     iyb_calc( ws, iyb2, iye, iyet, iyb_aux, n_aux, diyb_dx, imblock, 
-              atmosphere_dim, t_field, vmr_field, cloudbox_on, stokes_dim, 
+              atmosphere_dim, p_grid, lat_grid, lon_grid, 
+              t_field, vmr_field, cloudbox_on, stokes_dim, 
               f_grid, sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
               antenna_dim, iy_clearsky_agenda, 0, y_unit, 
               0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex(), String() );

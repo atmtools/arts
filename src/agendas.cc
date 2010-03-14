@@ -280,8 +280,8 @@ void define_agenda_data()
         ),
        OUTPUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
        INPUT( "iy_agenda_call1", "rte_pos", "rte_los", "iy_transmission", 
-              "cloudbox_on", "jacobian_do", "iy_aux_do", "f_grid", "t_field", 
-              "vmr_field" )));
+              "cloudbox_on", "jacobian_do", "iy_aux_do", "f_grid", 
+              "p_grid", "lat_grid", "lon_grid", "t_field", "vmr_field" )));
 
   agenda_data.push_back
     (AgRecord
