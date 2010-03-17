@@ -1,3 +1,9 @@
+2010-03-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-13-19
+
+	* src/m_surface.cc (surfaceFlatVaryingRvRh): Created. 
+
 2010-03-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-13-18

@@ -566,6 +566,80 @@ void surfaceFlatSingleEmissivity(
 
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surfaceFlatVaryingRvRh(
+              Matrix&    surface_los,
+              Tensor4&   surface_rmatrix,
+              Matrix&    surface_emission,
+        const Vector&    f_grid,
+        const Index&     stokes_dim,
+        const Index&     atmosphere_dim,
+        const Vector&    rte_los,
+        const Numeric&   surface_skin_t,
+        const Matrix&    r )
+{
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 2 );
+  chk_if_over_0( "surface_skin_t", surface_skin_t );
+
+  const Index   nf = f_grid.nelem();
+
+  if( r.nrows() != nf )
+    {
+      ostringstream os;
+      os << "The number of rows in *r* should match\n"
+         << "length of *f_grid*."
+         << "\n length of *f_grid* : " << nf 
+         << "\n length of *r*      : " << r.nrows() << "\n";
+      throw runtime_error( os.str() );
+    }
+  if( r.ncols() != 2 )
+    {
+      throw runtime_error( "The number of columns in *r* must be 2." );
+    }
+
+  if( min(r(joker,0)) < 0  ||  max(r(joker,0)) > 1  || 
+      min(r(joker,1)) < 0  ||  max(r(joker,1)) > 1 )
+    {
+      throw runtime_error( "All values in *r* must be inside [0,1]." );
+    }
+
+  out2 << "  Sets variables to model a flat surface\n";
+  out3 << "     surface temperature: " << surface_skin_t << " K.\n";
+
+  surface_los.resize( 1, rte_los.nelem() );
+  surface_los(0,joker) = rte_los;
+  surface_specular_los( surface_los(0,joker) , atmosphere_dim );
+
+  surface_emission.resize( nf, stokes_dim );
+  surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
+  surface_rmatrix = 0.0;
+  surface_emission = 0.0;
+
+  for( Index iv=0; iv<nf; iv++ )
+    { 
+      // Stokes dim 1
+      //
+      const Numeric rmean = ( r(iv,0) + r(iv,1) ) / 2;
+      const Numeric B = planck( f_grid[iv], surface_skin_t );
+      //
+      surface_emission(iv,0) = B * (1-rmean);
+      for( Index is=0; is<stokes_dim; is++ )
+        { surface_rmatrix(0,iv,is,is) = rmean; }
+
+      // Stokes dim 2
+      if( stokes_dim > 1 )
+        {
+          const Numeric rdiff = ( r(iv,0) - r(iv,1) ) / 2;
+          surface_emission(iv,1) = B * rdiff;
+          surface_rmatrix(0,iv,1,0) = rdiff;
+          surface_rmatrix(0,iv,0,1) = rdiff;          
+        }
+    }
+}
+
+
+
 
 
 

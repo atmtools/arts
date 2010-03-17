@@ -7688,6 +7688,44 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "surfaceFlatVaryingRvRh" ),
+        DESCRIPTION
+        (
+         "Creates variables to mimic specular reflection by a (flat) surface\n"
+         "where the power reflection coefficients for V and H polarisation.\n"
+         "are given.\n"
+         "\n"
+         "The power reflection coefficient for vertical and horisontal\n"
+         "polarisation is here denoted as rv and rh, respectively. These\n" 
+         "coefficients are packed into the matrix *r*. The first column of\n"
+         "this matrix holds rv, and the second column rh. Each row\n"
+         "corresponds to a frequency in *f_grid*.\n"
+         "\n"
+         "The usage of rv and rh does not provide any information for\n"
+         "Stokes components 3 and 4, and *stokes_dim* is only allowed to\n"
+         "be 1 or 2.\n"
+         "\n"
+         "\n"
+         "Local thermodynamic equilibrium is assumed, which corresponds to\n"
+         "that the reflection and emission coefficients \"add up to 1\".\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
+            "surface_skin_t" ),
+        GIN(      "r" ),
+        GIN_TYPE( "Matrix"             ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "rv and rh for each frequency in *f_grid*. Values "
+                  "between 0 and 1. Matrix with 2 columns." 
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Tensor3Create" ),
         DESCRIPTION
         (
