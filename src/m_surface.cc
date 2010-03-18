@@ -631,7 +631,7 @@ void surfaceFlatVaryingRvRh(
       if( stokes_dim > 1 )
         {
           const Numeric rdiff = ( r(iv,0) - r(iv,1) ) / 2;
-          surface_emission(iv,1) = B * rdiff;
+          surface_emission(iv,1) = B * -rdiff;
           surface_rmatrix(0,iv,1,0) = rdiff;
           surface_rmatrix(0,iv,0,1) = rdiff;          
         }
