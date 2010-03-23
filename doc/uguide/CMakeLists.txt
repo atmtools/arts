@@ -48,5 +48,22 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
 
   install (FILES ${CMAKE_CURRENT_BINARY_DIR}/uguide.pdf DESTINATION share/doc/arts)
 
+else (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
+
+  if (NOT PDFLATEX_COMPILER)
+    message(STATUS "User guide disabled due to missing pdflatex")
+  endif (NOT PDFLATEX_COMPILER)
+
+  if (NOT BIBTEX_COMPILER)
+    message(STATUS "User guide disabled due to missing bibtex")
+  endif (NOT BIBTEX_COMPILER)
+
+  if (NOT MAKEINDEX_COMPILER)
+    message(STATUS "User guide disabled due to missing makeindex")
+  endif (NOT MAKEINDEX_COMPILER)
+
+  set (ARTS_FEATURE_WARN true)
+
+  mark_as_advanced (ARTS_FEATURE_WARN)
 endif (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
 

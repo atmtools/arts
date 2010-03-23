@@ -14,56 +14,74 @@ Prerequisites for building arts:
 
 gcc (or icc)
 g++ (or icc)
-automake
+cmake (>=2.6.3)
 zlib
+netcdf (optional)
 
-To build from subversion you additionally need:
+To build the documentation you also need:
 
-pdflatex
-doxygen
-graphviz
+pdflatex (optional)
+doxygen (optional)
+graphviz (optional)
 
-On ubuntu you have to install the following packages:
+Here are the steps to use cmake to build arts.
 
-build-essential
-automake
-zlib1g-dev
-texlive
-doxygen
-graphviz
+Go into the build directory in the arts directory and run:
 
-It is likely that you want to install ARTS under your home directory
-as a normal user. In this case, if your homedirectory is /home/myself,
-you should run the configure script like this:
+cd build
+cmake ..
+make
 
-./configure --prefix=/home/myself/local
+If you only want to build the arts executable you can just run 'make arts'
+instead of 'make'.
 
-This will install the executable to /home/myself/local/bin and the
-documentation to /home/myself/local/artsdoc. Of course, you should
-make sure that /home/myself/local/bin is in your $PATH.
+If you have a multi-core processor or multiprocessor machine, don't forget
+to use the -j option to speed up the compilation:
 
-If you do not specify a prefix in this manner, ARTS will be installed
-to /usr/local. See INSTALL file for more details. For some reason,
-using the `~' to specify the home directory seems not to work in the
-configure option.
+make -jX
 
-There are some ARTS specific configure options:
+Where X is the number of parallel build processes.
+X=(Number of Cores)+1 gives you usually the fastest compilation time.
 
---with-numeric-type=ARG : ARG could be double or float. Double is the
-default. At the moment, there is no guaranty that ARTS works correctly
-with float.
+To build a release version without assertions or debugging symbols use:
 
---with-integer-type=ARG : ARG could be short, int, long or size_t. The
-default is long. Again, ARTS could fail if you choose a non-default
-type here.
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make clean
+make
 
---disable-disort : Don't compile the DISORT scattering module.
+To switch back to the debug version use:
 
---enable-more-warnings : Makes gcc complain about everything.
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+make clean
+make
 
---enable-debug : Debug mode is turned on by default. To compile
-without debugging information call configure with --disable-debug.
+This is also the default configuration if you run cmake without
+options in an empty build directory.
 
---enable-maintainer-mode : Call this if you want to modify the sources
-or documentation. This mode requires the following tools: doxygen,
-latex, pdflatex.
+You can also disable certain features:
+
+Disable assertions:
+cmake -DNO_ASSERT=1 ..
+
+Disable OpenMP:
+cmake -DNO_OPENMP=1 ..
+
+Disable NetCDF:
+cmake -DNO_NETCDF=1 ..
+
+Disable warnings being treated as errors:
+cmake -DNO_WERROR=1 ..
+
+
+If you want to compile with the Intel compiler, start with an empty build
+directory and run:
+
+CC=icc CXX=icpc cmake ..
+
+
+If you're on a Mac and have the Apple Xcode development environment installed,
+you can generate a project file and use Xcode to build arts:
+
+cmake -G Xcode ..
+open ARTS.xcodeproj
+

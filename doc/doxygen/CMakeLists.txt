@@ -1,6 +1,7 @@
 find_package (Doxygen)
+find_package (LATEX)
 
-if (DOXYGEN_FOUND)
+if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 
 set (DOXYGEN_INPUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 set (DOXYGEN_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doxified)
@@ -36,5 +37,19 @@ add_custom_target (apidoc_forced
 
 set_directory_properties (PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "html")
 
-endif (DOXYGEN_FOUND)
+else (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
+
+  if (NOT DOXYGEN_FOUND)
+    message(STATUS "Doxygen documentation disabled due to missing doxygen")
+  endif (NOT DOXYGEN_FOUND)
+
+  if (NOT LATEX_COMPILER)
+    message(STATUS "Doxygen documentation disabled due to missing latex")
+  endif (NOT LATEX_COMPILER)
+
+  if (NOT DVIPS_CONVERTER)
+    message(STATUS "Doxygen documentation disabled due to missing dvips")
+  endif (NOT DVIPS_CONVERTER)
+
+endif (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 

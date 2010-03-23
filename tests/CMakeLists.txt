@@ -1,3 +1,6 @@
+find_package(PythonInterp)
+
+if (PYTHONINTERP_FOUND)
 
 add_custom_command(
   OUTPUT PrepareTestScripts
@@ -70,4 +73,8 @@ add_custom_target (check
                      ${TESTFASTTARGETS}
                      ${TESTSLOWTARGETS}
 )
+
+else (PYTHONINTERP_FOUND)
+  message(STATUS "Test cases disabled due to missing Python interpreter")
+endif (PYTHONINTERP_FOUND)
 
