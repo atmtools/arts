@@ -1,5 +1,24 @@
 2010-03-25  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-13-23
+
+	* m4/.cvsignore, src/.cvsignore, tests/.cvsignore, aii/.cvsignore,
+	doc/uguide/.cvsignore, doc/uguide/Figs/montecarlo/.cvsignore,
+	doc/uguide/Figs/scattering/.cvsignore,
+	doc/uguide/Figs/rte_theory/.cvsignore,
+	doc/uguide/Figs/interpolation/.cvsignore,
+	doc/uguide/Figs/sensor/.cvsignore, doc/uguide/Figs/concept/.cvsignore,
+	doc/uguide/Figs/polarization/.cvsignore,
+	doc/uguide/Figs/ppath/.cvsignore, doc/uguide/Figs/.cvsignore,
+	doc/doxygen/.cvsignore, doc/.cvsignore, 3rdparty/disort1.2/.cvsignore,
+	3rdparty/.cvsignore, .cvsignore:
+
+	We really don't need those anymore.
+
+	* configure.in: Remove arts.spec from AC_OUTPUT.
+
+2010-03-25  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-13-22
 
 	* ChangeLog:
