@@ -1,3 +1,12 @@
+2010-03-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-13-24
+
+	* src/m_rte.cc (fos_yStandard): Higher scattering orders than
+	single caused error for 1D and 2D. Fixed. But realised that these
+	cases are anyhow not handled correctly. Now a runtime error for
+	these combinations (but single scattering works for 1D and 2D). 
+
 2010-03-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-13-23
