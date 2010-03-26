@@ -3365,7 +3365,6 @@ void iyFOS(
 
 
 
-
 void fos_yStandard(
         Workspace&                     ws,
         Tensor3&                       fos_y,
@@ -3528,10 +3527,17 @@ void fos_yStandard(
     }
   else
     {
+      // How to pass on aa part of fos_angles for 1D and 2D?
+      if( atmosphere_dim < 3 )
+        throw runtime_error( 
+             "For atmospher_dim 1 and 2, only single scattering work so far." );
+
+      Index nlos = 1 + (atmosphere_dim==3);
+
       for( Index ia=0; ia<nfosa; ia++ )
         { 
           iyFOS( ws, tmp, iy_error, iy_error_type, iy_aux, diy_dx,
-                 rte_pos, fos_angles(ia,Range(0,2)), iy_aux_do, jacobian_do,
+                 rte_pos, fos_angles(ia,Range(0,nlos)), iy_aux_do, jacobian_do,
                  atmosphere_dim, p_grid, lat_grid, lon_grid, 
                  z_field, t_field, vmr_field, r_geoid, z_surface, 
                  cloudbox_on, cloudbox_limits, stokes_dim, f_grid, 
