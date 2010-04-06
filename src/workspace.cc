@@ -1676,7 +1676,7 @@ void Workspace::define_wsv_data()
        "Characteristics of error values in *iy_error*.\n"
        "\n"
        "These options are defined:\n"
-       "   0: The error is zero. *iy_error* ca then be left undefined or\n"
+       "   0: The error is zero. *iy_error* can then be left undefined or\n"
        "      empty.\n"
        "   1: The error values are totally uncorrelated.\n"
        "   2: The error values are totally correlated.\n"

@@ -1,5 +1,5 @@
-/* Copyright (C) 2002-2008
-   Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+/* Copyright (C) 2002-2010
+   Patrick Eriksson <patrick.eriksson@chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
                             
    This program is free software; you can redistribute it and/or modify it
@@ -61,11 +61,1941 @@ extern const String TEMPERATURE_MAINTAG;
 
 
 
+// A maqcro to loop analytical jacobian quantities
+#define FOR_ANALYTICAL_JACOBIANS_DO(what_to_do) \
+  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) \
+    { \
+      if( jacobian_quantities[iq].Analytical() ) \
+        { what_to_do } \
+    } 
+
+
 
 
 /*===========================================================================
-  === The functions (in alphabetical order)
+  === Smaller help functions (in alphabetical order)
+  === (Main sub-functions get_iy_of_background and iyb_calc placed separately)
   ===========================================================================*/
+
+
+//! diy_from_path_to_rgrids
+/*!
+    Maps jacobian data for points along the propagation path, to
+    jacobian retrieval grid data.
+
+    \param   diy_dx              Out: Jacobians for selected retrieval grids.
+    \param   jacobian_quantity   As the WSV.
+    \param   diy_dpath           Jacobians along the propagation path.
+    \param   atmosphere_dim      As the WSV.
+    \param   ppath               As the WSV.
+    \param   ppath_p             The pressure at each ppath point.
+
+    \author Patrick Eriksson 
+    \date   2009-10-08
+*/
+// A small help function, to make the code below cleaner
+void from_dpath_to_dx(
+         MatrixView   diy_dx,
+    ConstMatrixView   diy_dq,
+    const Numeric&    w )
+{
+  for( Index irow=0; irow<diy_dx.nrows(); irow++ )
+    { 
+      for( Index icol=0; icol<diy_dx.ncols(); icol++ )
+        { diy_dx(irow,icol) += w * diy_dq(irow,icol); }
+    }
+}
+//
+void diy_from_path_to_rgrids(
+         Tensor3View          diy_dx,
+   const RetrievalQuantity&   jacobian_quantity,
+   ConstTensor3View           diy_dpath,
+   const Index&               atmosphere_dim,
+   const Ppath&               ppath,
+   ConstVectorView            ppath_p )
+{
+  // We want here an extrapolation to infinity -> 
+  //                                        extremly high extrapolation factor
+  const Numeric   extpolfac = 1.0e99;
+
+  // Retrieval grid of interest
+  Vector r_grid;
+
+  if( ppath.np > 1 )  // Otherwise nothing to do here
+    {
+      // Pressure
+      r_grid = jacobian_quantity.Grids()[0];
+      Index            nr1 = r_grid.nelem();
+      ArrayOfGridPos   gp_p(ppath.np);
+      p2gridpos( gp_p, r_grid, ppath_p, extpolfac );
+
+      // Latitude
+      Index            nr2 = 1;
+      ArrayOfGridPos   gp_lat;
+      if( atmosphere_dim > 1 )
+        {
+          gp_lat.resize(ppath.np);
+          r_grid = jacobian_quantity.Grids()[1];
+          nr2    = r_grid.nelem();
+          gridpos( gp_lat, r_grid, ppath.pos(joker,1), extpolfac );
+        }
+
+      // Longitude
+      Index            nr3 = 1;
+      ArrayOfGridPos   gp_lon;
+      if( atmosphere_dim > 2 )
+        {
+          gp_lon.resize(ppath.np);
+          r_grid = jacobian_quantity.Grids()[2];
+          nr3    = r_grid.nelem();
+          gridpos( gp_lon, r_grid, ppath.pos(joker,2), extpolfac );
+        }
+      
+      //- 1D
+      if( atmosphere_dim == 1 )
+        {
+          for( Index ip=0; ip<ppath.np; ip++ )
+            {
+              if( gp_p[ip].fd[0] < 1 )
+                {
+                  from_dpath_to_dx( diy_dx(gp_p[ip].idx,joker,joker),
+                                    diy_dpath(ip,joker,joker), gp_p[ip].fd[1] );
+                }
+              if( gp_p[ip].fd[0] > 0 )
+                {
+                  from_dpath_to_dx( diy_dx(gp_p[ip].idx+1,joker,joker),
+                                    diy_dpath(ip,joker,joker), gp_p[ip].fd[0] );
+                }
+            }
+        }
+
+      //- 2D
+      else if( atmosphere_dim == 2 )
+        {
+          for( Index ip=0; ip<ppath.np; ip++ )
+            {
+              Index   ix = nr1*gp_lat[ip].idx + gp_p[ip].idx;
+              // Low lat, low p
+              from_dpath_to_dx( diy_dx(ix,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                                gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
+              // Low lat, high p
+              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                                gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
+              // High lat, low p
+              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                                gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
+              // High lat, high p
+              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                                gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
+            }
+        }
+
+      //- 3D
+      else if( atmosphere_dim == 3 )
+        {
+          for( Index ip=0; ip<ppath.np; ip++ )
+            {
+              Index   ix = nr2*nr1*gp_lon[ip].idx +
+                           nr1*gp_lat[ip].idx + gp_p[ip].idx;
+              // Low lon, low lat, low p
+              from_dpath_to_dx( diy_dx(ix,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
+              // Low lon, low lat, high p
+              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
+              // Low lon, high lat, low p
+              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
+              // Low lon, high lat, high p
+              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
+
+              // Increase *ix* (to be valid for high lon level)
+              ix += nr2*nr1;
+
+              // High lon, low lat, low p
+              from_dpath_to_dx( diy_dx(ix,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
+              // High lon, low lat, high p
+              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
+              // High lon, high lat, low p
+              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
+              // High lon, high lat, high p
+              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
+                                diy_dpath(ip,joker,joker), 
+                             gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
+            }
+        }
+    }
+}
+
+
+
+//! Help function for analytical jacobian calculations
+/*!
+    The function determines which terms in jacobian_quantities that are 
+    analytical absorption species and temperature jacobians. 
+
+    *abs_species_i* and *is_t* shall be sized to have the same length
+    as *jacobian_quantities*. For analytical absorption species
+    jacobians, *abs_species_i* is set to the matching index in
+    *abs_species*. Otherwise, to -1. For analytical temperature
+    jacobians, *is_t* is set to 1. Otherwise to 0.
+
+    \param   abs_species_i         Out: Matching index in abs_species 
+    \param   is_t                  Out: Flag for: Is a temperature jacobian?
+    \param   jacobian_quantities   As the WSV.
+    \param   abs_species           As the WSV.
+
+
+    \author Patrick Eriksson 
+    \date   2009-10-07
+*/
+void get_pointers_for_analytical_jacobians( 
+        ArrayOfIndex&               abs_species_i, 
+        ArrayOfIndex&               is_t,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfSpeciesTag&   abs_species )
+{
+
+  FOR_ANALYTICAL_JACOBIANS_DO( 
+    //
+    if( jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG )
+      { is_t[iq] = 1; }
+    else
+      { is_t[iq] = 0; }
+    //
+    if( jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG )
+      {
+        ArrayOfSpeciesTag  atag;
+        array_species_tag_from_string( atag, jacobian_quantities[iq].Subtag() );
+        abs_species_i[iq] = chk_contains( "abs_species", abs_species, atag );
+      }
+    else
+      { abs_species_i[iq] = -1; }
+  )
+}
+
+
+
+//! get_ptvmr_for_ppath
+/*!
+    Determines pressure, temperature and VMR for each propgataion path point.
+
+    The output variables are sized inside the function. For VMR the
+    dimensions are [ species, propagation path point ].
+
+    \param   ppath_p     Out: Pressure for each ppath point.
+    \param   ppath_t     Out: Temperature for each ppath point.
+    \param   ppath_vmr   Out: VMR values for each ppath point.
+    \param   ppath             As the WSV.
+    \param   atmosphere_dim    As the WSV.
+    \param   p_grid            As the WSV.
+    \param   lat_grid          As the WSV.
+    \param   lon_grid          As the WSV.
+    \param   t_field           As the WSV.
+    \param   vmr_field         As the WSV.
+    \param   f_grid            As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2009-10-05
+*/
+void get_ptvmr_for_ppath( 
+        Vector&      ppath_p, 
+        Vector&      ppath_t, 
+        Matrix&      ppath_vmr, 
+  const Ppath&       ppath,
+  const Index&       atmosphere_dim,
+  ConstVectorView    p_grid,
+  ConstVectorView    lat_grid,
+  ConstVectorView    lon_grid,
+  ConstTensor3View   t_field,
+  ConstTensor4View   vmr_field )
+{
+  const Index   np  = ppath.np;
+
+  // Pressure:
+  ppath_p.resize(np);
+  Matrix itw_p(np,2);
+  interpweights( itw_p, ppath.gp_p );      
+  itw2p( ppath_p, p_grid, ppath.gp_p, itw_p );
+  
+  // Temperature:
+  ppath_t.resize(np);
+  Matrix   itw_field;
+  interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
+                          lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
+  interp_atmfield_by_itw( ppath_t,  atmosphere_dim, p_grid, lat_grid, 
+                          lon_grid, t_field, ppath.gp_p, 
+                          ppath.gp_lat, ppath.gp_lon, itw_field );
+
+  //  VMR fields:
+  const Index ns = vmr_field.nbooks();
+  ppath_vmr.resize(ns,np);
+  for( Index is=0; is<ns; is++ )
+    {
+      interp_atmfield_by_itw( ppath_vmr(is, joker), atmosphere_dim,
+             p_grid, lat_grid, lon_grid, vmr_field( is, joker, joker,  joker ), 
+             ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+    }
+}
+
+
+
+//! get_rowindex_for_mblock
+/*!
+    Returns the "range" of *y* corresponding to a measurement block
+
+    \return  The range.
+    \param   sensor_response    As the WSV.
+    \param   imblock            Index of the measurement block.
+
+    \author Patrick Eriksson 
+    \date   2009-10-16
+*/
+Range get_rowindex_for_mblock( 
+  const Sparse&   sensor_response, 
+  const Index&    imblock )
+{
+  const Index   n1y = sensor_response.nrows();
+  return Range( n1y*imblock, n1y );
+}
+
+
+
+//! get_step_vars_for_standardRT
+/*!
+    Determines variables for each step of "standard" RT integration
+
+    The output variables are sized inside the function. The dimension order is 
+       [ frequency, absorption species, ppath point ]
+
+    \param   ws                Out: The workspace
+    \param   ppath_abs_sclar   Out: Mean absorption coefficient 
+    \param   ppath_emission    Out: Mean emission
+    \param   ppath_tau         Out: Optical thickness of each ppath step 
+    \param   total_tau         Out: Total optical thickness of path
+    \param   abs_scalar_agenda As the WSV.    
+    \param   emission_agenda   As the WSV.    
+    \param   ppath_p           Pressure for each ppath point.
+    \param   ppath_t           Temperature for each ppath point.
+    \param   ppath_vmr         VMR values for each ppath point.
+    \param   nf                Number of frequencies, length of f_grid
+    \param   emission_do       Flag for calculation of emission. Should be
+                               set to 0 for pure transmission calculations.
+
+    \author Patrick Eriksson 
+    \date   2009-10-06
+*/
+void get_step_vars_for_standardRT( 
+        Workspace&   ws,
+        Tensor3&     ppath_abs_scalar, 
+        Matrix&      ppath_emission, 
+        Matrix&      ppath_tau,
+        Vector&      total_tau,
+  const Agenda&      abs_scalar_agenda,
+  const Agenda&      emission_agenda,
+  const Ppath&       ppath,
+  ConstVectorView    ppath_p, 
+  ConstVectorView    ppath_t, 
+  ConstMatrixView    ppath_vmr, 
+  const Index&       nf,
+  const Index&       emission_do )
+{
+  // Sizes
+  const Index   np   = ppath.np;
+  const Index   nabs = ppath_vmr.nrows();
+
+  // Init variables
+  ppath_abs_scalar.resize( nf, nabs, np );
+  ppath_tau.resize( nf, np-1 );
+  total_tau.resize( nf );
+  total_tau = 0;
+  if( emission_do )
+    { ppath_emission.resize( nf, np-1 ); }
+
+  // Log of the pressure
+  Vector ppath_logp( np );
+  transform( ppath_logp, log, ppath_p  );
+
+  for( Index ip=0; ip<np-1; ip++ )
+    {
+      // Mean of p, t and VMRs for the step
+      const Numeric   p_mean = exp( 0.5*( ppath_logp[ip+1]+ppath_logp[ip] ) );
+      const Numeric   t_mean = ( ppath_t[ip+1] + ppath_t[ip] ) / 2.0;
+            Vector    vmr_mean( nabs );
+      for( Index ia=0; ia<nabs; ia++ )
+        { vmr_mean[ia] = 0.5 * ( ppath_vmr(ia,ip+1) + ppath_vmr(ia,ip) ); }
+
+      // Calculate emission and absorption terms
+      //
+      // We must use temporary vectors as the agenda input must be
+      // free to be resized
+      Vector   evector;
+      Matrix   sgmatrix;
+      //
+      abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, p_mean, t_mean, 
+                                                  vmr_mean, abs_scalar_agenda );
+      ppath_abs_scalar(joker,joker,ip) = sgmatrix;
+      //
+      if( emission_do )
+        {
+          emission_agendaExecute( ws, evector, t_mean, emission_agenda );
+          ppath_emission(joker,ip) = evector;
+        }
+
+      // Partial and total tau
+      //
+      for( Index iv=0; iv<nf; iv++ )
+        { 
+          ppath_tau(iv,ip)  = ppath.l_step[ip] * sgmatrix(iv,joker).sum(); 
+          total_tau[iv]    += ppath_tau(iv,ip);
+        }
+    }
+}
+
+
+
+//! iy_transmission_for_scalar_tau
+/*!
+    Sets *iy_transmission* to match scalar optical thicknesses.
+
+    *iy_transmission* is sized by the function.
+
+    \param   iy_transmission   Out: As the WSV.
+    \param   stokes_dim        As the WSV.
+    \param   tau               Vector with the optical thickness for each 
+                               frequency.
+
+    \author Patrick Eriksson 
+    \date   2009-10-06
+*/
+void iy_transmission_for_scalar_tau( 
+       Tensor3&     iy_transmission,
+  const Index&      stokes_dim,
+  ConstVectorView   tau )
+{
+  iy_transmission.resize( tau.nelem(), stokes_dim, stokes_dim );
+  iy_transmission = 0;
+  for( Index i=0; i<tau.nelem(); i++ )
+    { 
+      const Numeric t = exp( -tau[i] );
+      for( Index is=0; is<stokes_dim; is++ )
+        { 
+          iy_transmission(i,is,is) = t;
+        }
+    }
+}
+
+
+
+//! iy_transmission_mult
+/*!
+    Multiplicates iy_transmission with (vector) transmissions.
+
+    That is, a multiplication of *iy_transmission* with another
+    variable having same structure and holding transmission values.
+
+    The "new path" is assumed to be further away from the sensor than 
+    the propagtion path already included in iy_transmission. That is,
+    the operation can be written as:
+    
+       Ttotal = Told * Tnew
+
+    where Told is the transmission corresponding to *iy_transmission*
+    and Tnew corresponds to *tau*.
+
+    *iy_trans_new* is sized by the function.
+
+    \param   iy_trans_new      Out: Updated version of *iy_transmission*
+    \param   iy_transmission   As the WSV.
+    \param   trans             A variable matching *iy_transmission.
+
+    \author Patrick Eriksson 
+    \date   2009-10-06
+*/
+void iy_transmission_mult( 
+       Tensor3&      iy_trans_new,
+  ConstTensor3View   iy_transmission,
+  ConstTensor3View   trans )
+{
+  const Index nf = iy_transmission.npages();
+  const Index ns = iy_transmission.ncols();
+
+  assert( ns == iy_transmission.nrows() );
+  assert( nf == trans.npages() );
+  assert( ns == trans.nrows() );
+  assert( ns == trans.ncols() );
+
+  iy_trans_new.resize( nf, ns, ns );
+
+  for( Index iv=0; iv<nf; iv++ )
+    {
+      mult( iy_trans_new(iv,joker,joker), iy_transmission(iv,joker,joker), 
+                                                    trans(iv,joker,joker) );
+    } 
+}
+
+
+
+//! iy_transmission_mult_scalar_tau
+/*!
+    Multiplicates iy_transmission with scalar optical thicknesses.
+
+    The functions can incorporate the transmission of a clear-sky
+    path. That is, the transmission can be described by a single value
+    The transmission of this path is gives as the optical depth for
+    each frequency.
+
+    The "new path" is assumed to be further away from the sensor than 
+    the propagtion path already included in iy_transmission. That is,
+    the operation can be written as:
+    
+       Ttotal = Told * Tnew
+
+    where Told is the transmission corresponding to *iy_transmission*
+    and Tnew corresponds to *tau*.
+
+    *iy_trans_new* is sized by the function.
+
+    \param   iy_trans_new      Out: Updated version of *iy_transmission*
+    \param   iy_transmission   As the WSV.
+    \param   tau               Vector with the optical thickness for each 
+                               frequency.
+
+    \author Patrick Eriksson 
+    \date   2009-10-06
+*/
+void iy_transmission_mult_scalar_tau( 
+       Tensor3&      iy_trans_new,
+  ConstTensor3View   iy_transmission,
+  ConstVectorView    tau )
+{
+  const Index nf = iy_transmission.npages();
+
+  assert( iy_transmission.ncols() == iy_transmission.nrows() );
+  assert( nf == tau.nelem() );
+
+  iy_trans_new = iy_transmission;
+
+  for( Index iv=0; iv<nf; iv++ )
+    { iy_trans_new(iv,joker,joker) *= exp( -tau[iv] ); } 
+}
+
+
+
+//! vmrunitscf
+/*!
+    Scale factor for conversion between gas species units.
+
+    The function finds the factor with which the total absorption of a
+    gas species shall be multiplicated to match the selected
+    (jacobian) unit. 
+
+    \param   x      Out: scale factor
+    \param   unit   Unit selected.
+    \param   vmr    VMR value.
+    \param   p      Pressure
+    \param   t      Temperature.
+
+    \author Patrick Eriksson 
+    \date   2009-10-08
+*/
+void vmrunitscf(  
+        Numeric&   x, 
+  const String&    unit, 
+  const Numeric&   vmr,
+  const Numeric&   p,
+  const Numeric&   t )
+{
+  if( unit == "rel" || unit == "logrel" )
+    { x = 1; }
+  else if( unit == "vmr" )
+    { x = 1 / vmr; }
+  else if( unit == "nd" )
+    { x = 1 / ( vmr * number_density( p, t ) ); }
+  else
+    {
+      throw runtime_error( "Allowed options for gas species jacobians are "
+                                 "\"rel\", \"vmr\", \"nd\" and \"logrel\"." );
+    }
+}
+
+
+
+
+
+
+
+
+
+
+/*===========================================================================
+  === Main help functions (get_iy_of_background and iyb_calc)
+  ===========================================================================*/
+
+
+//! get_iy_of_background
+/*!
+    Determines iy of the "background" of a propgation path.
+
+    The task is to determine *iy* and related variables for the
+    background, or to continue the raditiave calculations
+    "backwards". The details here depends on the method selected for
+    the agendas.
+
+    Each background is handled by an agenda. Several of these agandes
+    can involve recursive calls of *iy_clearsky_agenda*. It is also
+    allowed to input *iy_clearsky_basic_agenda* instead of
+    *iy_clearsky_agenda*.
+
+    \param   ws                    Out: The workspace
+    \param   iy                    Out: As the WSV.
+    \param   iy_error              Out: As the WSV.
+    \param   iy_error_type         Out: As the WSV.
+    \param   iy_aux                Out: As the WSV.
+    \param   diy_aux               Out: As the WSV.
+    \param   iy_transmission       As the WSV.
+    \param   iy_aux_do             As the WSV.
+    \param   jacobian_do           As the WSV.
+    \param   ppath                 As the WSV.
+    \param   atmosphere_dim        As the WSV.
+    \param   p_grid                As the WSV.
+    \param   lat_grid              As the WSV.
+    \param   lon_grid              As the WSV.
+    \param   t_field               As the WSV.
+    \param   vmr_field             As the WSV.
+    \param   cloudbox_on           As the WSV.
+    \param   stokes_dim            As the WSV.
+    \param   f_grid                As the WSV.
+    \param   iy_clearsky_agenda    As the WSV or iy_clearsky_basic_agenda.
+    \param   iy_space_agenda       As the WSV.
+    \param   surface_prop_agenda   As the WSV.
+    \param   iy_cloudbox_agenda    As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2009-10-08
+*/
+void get_iy_of_background(
+        Workspace&        ws,
+        Matrix&           iy,
+        Matrix&           iy_error,
+        Index&            iy_error_type,
+        Tensor3&          iy_aux,
+        ArrayOfTensor3&   diy_dx,
+  ConstTensor3View        iy_transmission,
+  const Index&            iy_aux_do,
+  const Index&            jacobian_do,
+  const Ppath&            ppath,
+  const Index&            atmosphere_dim,
+  ConstVectorView         p_grid,
+  ConstVectorView         lat_grid,
+  ConstVectorView         lon_grid,
+  ConstTensor3View        t_field,
+  ConstTensor4View        vmr_field,
+  const Index&            cloudbox_on,
+  const Index&            stokes_dim,
+  ConstVectorView         f_grid,
+  const Agenda&           iy_clearsky_agenda,
+  const Agenda&           iy_space_agenda,
+  const Agenda&           surface_prop_agenda,
+  const Agenda&           iy_cloudbox_agenda )
+{
+  // Some sizes
+  const Index nf      = f_grid.nelem();
+  const Index np      = ppath.np;
+
+  // Set rte_pos, rte_gp_XXX and rte_los to match the last point in ppath.
+  // The agendas below use different combinations of these variables.
+  //
+  // Note that the Ppath positions (ppath.pos) for 1D have one column more
+  // than expected by most functions. Only the first atmosphere_dim values
+  // shall be copied.
+  //
+  Vector rte_pos;
+  Vector rte_los;
+  GridPos rte_gp_p;
+  GridPos rte_gp_lat;
+  GridPos rte_gp_lon;
+  rte_pos.resize( atmosphere_dim );
+  rte_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
+  rte_los.resize( ppath.los.ncols() );
+  rte_los = ppath.los(np-1,joker);
+  gridpos_copy( rte_gp_p, ppath.gp_p[np-1] );
+  if( atmosphere_dim > 1 )
+    { gridpos_copy( rte_gp_lat, ppath.gp_lat[np-1] ); }
+  if( atmosphere_dim > 2 )
+    { gridpos_copy( rte_gp_lon, ppath.gp_lon[np-1] ); }
+
+  out3 << "Radiative background: " << ppath.background << "\n";
+
+
+  // Handle the different background cases
+  //
+  switch( ppath_what_background( ppath ) )
+    {
+      // All "interfaces" still work with transposed iy !!!
+
+    case 1:   //--- Space ---------------------------------------------------- 
+      {
+        iy_space_agendaExecute( ws, iy, rte_pos, rte_los, iy_space_agenda );
+        
+        if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
+          {
+            ostringstream os;
+            os << "expected size = [" << stokes_dim << "," << nf << "]\n"
+               << "size of iy    = [" << iy.nrows() << "," << iy.ncols()<< "]\n"
+               << "The size of *iy* returned from *iy_space_agenda* is "
+               << "not correct.";
+            throw runtime_error( os.str() );      
+          }
+      }
+      break;
+
+    case 2:   //--- The surface -----------------------------------------------
+      {
+        // Call *surface_prop_agenda*
+        //
+        Matrix    surface_los;
+        Tensor4   surface_rmatrix;
+        Matrix    surface_emission;
+        //
+        surface_prop_agendaExecute( ws, surface_emission, surface_los, 
+                                    surface_rmatrix, rte_pos, rte_los, 
+                                    rte_gp_p, rte_gp_lat, rte_gp_lon,
+                                    surface_prop_agenda );
+
+        // Check output of *surface_prop_agenda*
+        //
+        const Index   nlos = surface_los.nrows();
+        if( nlos )   // if 0, blackbody ground and some checks are not needed
+          {
+            if( surface_los.ncols() != rte_los.nelem() )
+              throw runtime_error( 
+                        "Number of columns in *surface_los* is not correct." );
+            if( nlos != surface_rmatrix.nbooks() )
+              throw runtime_error( 
+                  "Mismatch in size of *surface_los* and *surface_rmatrix*." );
+            if( surface_rmatrix.npages() != nf )
+              throw runtime_error( 
+                       "Mismatch in size of *surface_rmatrix* and *f_grid*." );
+            if( surface_rmatrix.nrows() != stokes_dim  ||  
+                surface_rmatrix.ncols() != stokes_dim ) 
+              throw runtime_error( 
+              "Mismatch between size of *surface_rmatrix* and *stokes_dim*." );
+          }
+        if( surface_emission.ncols() != stokes_dim )
+          throw runtime_error( 
+             "Mismatch between size of *surface_emission* and *stokes_dim*." );
+        if( surface_emission.nrows() != nf )
+          throw runtime_error( 
+                       "Mismatch in size of *surface_emission* and f_grid*." );
+        //---------------------------------------------------------------------
+
+        // Variable to hold down-welling radiation
+        Tensor3   I( nlos, nf, stokes_dim );
+ 
+        // Loop *surface_los*-es. If no such LOS, we are ready.
+        if( nlos > 0 )
+          {
+            for( Index ilos=0; ilos<nlos; ilos++ )
+              {
+                // Include surface reflection matrix in *iy_transmission*
+                // If iy_transmission is empty, this is interpreted as the
+                // variable is not needed.
+                //
+                Tensor3 iy_trans_new;
+                //
+                if( iy_transmission.npages() )
+                  {
+                    iy_transmission_mult(  iy_trans_new, iy_transmission, 
+                                     surface_rmatrix(ilos,joker,joker,joker) );
+                  }
+
+                // Calculate downwelling radiation for LOS ilos 
+                //
+                // The variable iy_clearsky_agenda can in fact be 
+                // iy_clearsky_BASIC_agenda
+                //
+                if( iy_clearsky_agenda.name() == "iy_clearsky_basic_agenda" )
+                  {
+                    iy_clearsky_basic_agendaExecute (ws, iy, rte_pos, 
+                                         surface_los(ilos,joker), cloudbox_on, 
+                                                           iy_clearsky_agenda);
+                  }
+                else
+                  {
+                    iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
+                            iy_aux, diy_dx, 0, rte_pos, surface_los(ilos,joker),
+                            iy_trans_new, cloudbox_on, jacobian_do, iy_aux_do, 
+                            f_grid, p_grid, lat_grid, lon_grid, t_field, 
+                            vmr_field, iy_clearsky_agenda );
+                  }
+
+                I(ilos,joker,joker) = iy;
+              }
+          }
+
+        // Add up
+        surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
+      }
+      break;
+
+
+    case 3:   //--- Cloudbox surface or interior ------------------------------
+    case 4:
+      {
+        // Pass a local copy of ppath to the cloudbox agenda
+        Ppath   ppath_local;
+        ppath_init_structure( ppath_local, atmosphere_dim, ppath.np );
+        ppath_copy( ppath_local, ppath );
+
+        // The cloudbox agenda is not yet handling iy_aux and iy_transmission.
+        //
+        iy_cloudbox_agendaExecute( ws, iy, ppath_local,
+                                   rte_pos, rte_los, rte_gp_p,
+                                   rte_gp_lat, rte_gp_lon,
+                                   iy_cloudbox_agenda );
+
+        if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
+          {
+            out1 << "expected size = [" << nf << "," << stokes_dim << "]\n";
+            out1 << "iy size = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
+            throw runtime_error( "The size of *iy* returned from "
+                                      "*iy_cloudbox_agenda* is not correct." );
+          }
+      }
+      break;
+
+    default:  //--- ????? ----------------------------------------------------
+      // Are we here, the coding is wrong somewhere
+      assert( false );
+    }
+}
+
+
+
+//! iyb_calc
+/*!
+    Calculation of pencil beam monochromatic spectra for 1 measurement block.
+
+    All in- and output variables as the WSV with the same name.
+
+    \author Patrick Eriksson 
+    \date   2009-10-16
+*/
+void iyb_calc(
+        Workspace&                  ws,
+        Vector&                     iyb,
+        Vector&                     iyb_error,
+        Index&                      iy_error_type,
+        Matrix&                     iyb_aux,
+        Index&                      n_aux,
+        ArrayOfMatrix&              diyb_dx,
+  const Index&                      imblock,
+  const Index&                      atmosphere_dim,
+  ConstVectorView                   p_grid,
+  ConstVectorView                   lat_grid,
+  ConstVectorView                   lon_grid,
+  ConstTensor3View                  t_field,
+  ConstTensor4View                  vmr_field,
+  const Index&                      cloudbox_on,
+  const Index&                      stokes_dim,
+  ConstVectorView                   f_grid,
+  ConstMatrixView                   sensor_pos,
+  ConstMatrixView                   sensor_los,
+  ConstVectorView                   mblock_za_grid,
+  ConstVectorView                   mblock_aa_grid,
+  const Index&                      antenna_dim,
+  const Agenda&                     iy_clearsky_agenda,
+  const Index&                      iy_aux_do,
+  const String&                     y_unit,
+  const Index&                      j_analytical_do,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&        jacobian_indices,
+  const String&                     jacobian_unit )
+{
+  // Sizes
+  const Index   nf      = f_grid.nelem();
+  const Index   nza     = mblock_za_grid.nelem();
+        Index   naa     = mblock_aa_grid.nelem();   
+  if( antenna_dim == 1 )  
+    { naa = 1; }
+  const Index   niyb     = nf * nza * naa * stokes_dim;
+
+  // Set up size of containers for data of 1 measurement block.
+  //
+  // We do not know the number of aux variables. The parallelisation makes it
+  // unsafe to do the allocation of iyb_aux inside the for-loops. We must use 
+  // a hard-coded maximum number.
+  //
+  const Index n_aux_max = 3;
+  n_aux     = -1;   // -1 flags value yet unknown
+  //
+  iyb.resize( niyb );
+  iyb_error.resize( niyb );
+  iyb_aux.resize( niyb, n_aux_max );
+  //
+  if( j_analytical_do )
+    {
+      diyb_dx.resize( jacobian_indices.nelem() );
+      FOR_ANALYTICAL_JACOBIANS_DO(
+        diyb_dx[iq].resize( niyb, jacobian_indices[iq][1] -
+                                  jacobian_indices[iq][0] + 1 );
+      )
+    }
+  else
+    { diyb_dx.resize( 0 ); }
+
+
+  // Start of actual calculations
+
+  for( Index iza=0; iza<nza; iza++ )
+    {
+      // The try block here is necessary to correctly handle
+      // exceptions inside the parallel region. 
+      try
+        {
+          for( Index iaa=0; iaa<naa; iaa++ )
+            {
+              //--- LOS of interest
+              //
+              Vector los( sensor_los.ncols() );
+              //
+              los     = sensor_los( imblock, joker );
+              los[0] += mblock_za_grid[iza];
+
+              // Handle za/aa_grid "out-of-bounds" and mapping effects
+              //
+              if( antenna_dim == 2 )
+                { map_daa( los[0], los[1], los[0], los[1], 
+                                                    mblock_aa_grid[iaa] ); }
+              else if( atmosphere_dim == 1  && abs(los[0]-90) > 90 )
+                { if( los[0] < 0 )          { los[0] = -los[0]; }
+                  else if( los[0] > 180 )   { los[0] = 360 - los[0]; } }
+              else if( atmosphere_dim == 2  && abs(los[0]) > 180 )
+                { los[0] = -sign(los[0])*360 + los[0]; }
+              else if( atmosphere_dim == 3  &&  abs(los[0]-90) > 90 )
+                { map_daa( los[0], los[1], los[0], los[1], 0 ); }
+
+
+              // Calculate iy and associated variables
+              //
+              Matrix         iy, iy_error;
+              Tensor3        iy_aux, iy_transmission;
+              ArrayOfTensor3 diy_dx; 
+              //
+              iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type, 
+                             iy_aux, diy_dx, 1, sensor_pos(imblock,joker), los, 
+                             iy_transmission, cloudbox_on, j_analytical_do, 
+                             iy_aux_do, f_grid, p_grid, lat_grid, lon_grid, 
+                             t_field, vmr_field, iy_clearsky_agenda );
+
+              // Check sizes
+              //
+              DEBUG_ONLY(
+                assert( iy.ncols() == stokes_dim );
+                assert( iy.nrows() == nf );
+                assert( iy_error_type >= 0  &&  iy_error_type <= 2 );
+                //
+                if( n_aux < 0 )
+                  { 
+                    n_aux = iy_aux.npages(); 
+                    if( n_aux > n_aux_max )
+                      {
+                        ostringstream os;
+                        os << "The number of auxilary variables (columns of "
+                           << "iy_aux) is hard coded.\nIt is presently set to "
+                           << n_aux_max << " variables.";
+                        throw runtime_error( os.str() );      
+                      }
+                  }
+                //
+                if( n_aux )
+                  { 
+                    assert( iy_aux.ncols() == stokes_dim );
+                    assert( iy_aux.nrows() == nf );
+                    assert( iy_aux.npages() == n_aux );
+                  }
+                //
+                if( j_analytical_do )
+                  {
+                    FOR_ANALYTICAL_JACOBIANS_DO(
+                      assert( diy_dx[iq].ncols() == stokes_dim );
+                      assert( diy_dx[iq].nrows() == nf );
+                      assert( diy_dx[iq].npages() == jacobian_indices[iq][1] -
+                                                 jacobian_indices[iq][0] + 1 );
+                    )
+                  }
+              )
+       
+              // iy       : unit conversion and copy to iyb
+              // iy_error : unit conversion and copy to iyb_error
+              // iy_aux   : copy to iyb_aux
+              //
+              apply_y_unit( Tensor3View(iy), y_unit, f_grid );
+              if( iy_error_type > 0 )
+                { apply_y_unit( Tensor3View(iy_error), y_unit, f_grid ); }
+              //
+              const Index row0 =( iza*naa + iaa ) * nf * stokes_dim;
+              //
+              for( Index is=0; is<stokes_dim; is++ )
+                { 
+                  iyb[Range(row0+is,nf,stokes_dim)] = iy(joker,is); 
+                  if( iy_error_type > 0 )
+                    { iyb_error[Range(row0+is,nf,stokes_dim)] = 
+                                                            iy_error(joker,is); 
+                    }
+                  //
+                  for( Index iaux=0; iaux<n_aux; iaux++ )
+                    { 
+                      iyb_aux(Range(row0+is,nf,stokes_dim),iaux) = 
+                                                         iy_aux(iaux,joker,is);
+                    }
+                }
+
+              // Jacobian part
+              if( j_analytical_do )
+                {
+                  // Basically copy calculations for *iy*
+                  FOR_ANALYTICAL_JACOBIANS_DO(
+                    //
+                    apply_j_unit( diy_dx[iq], jacobian_unit, y_unit, f_grid );
+                    //
+                    for( Index ip=0; ip<jacobian_indices[iq][1] -
+                                        jacobian_indices[iq][0]+1; ip++ )
+                      {
+                        for( Index is=0; is<stokes_dim; is++ )
+                          { 
+                            diyb_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
+                                                     diy_dx[iq](ip,joker,is); 
+                          }
+                      }                              
+                  )
+                }
+            }  // End aa loop
+        }  // End try
+
+      catch (runtime_error e)
+        {
+          exit_or_rethrow(e.what());
+        }
+    }  // End za loop
+}
+
+
+
+
+
+
+
+
+
+
+/*===========================================================================
+  === The workspace methods (in alphabetical order)
+  ===========================================================================*/
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyEmissionStandardClearsky(
+        Workspace&                  ws,
+        Matrix&                     iy,
+        Matrix&                     iy_error,
+        Index&                      iy_error_type,
+        Tensor3&                    iy_aux,
+        ArrayOfTensor3&             diy_dx,
+  const Index&                      iy_agenda_call1,
+  const Vector&                     rte_pos,      
+  const Vector&                     rte_los,      
+  const Index&                      iy_aux_do,
+  const Index&                      jacobian_do,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    z_field,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Matrix&                     r_geoid,
+  const Matrix&                     z_surface,
+  const Index&                      cloudbox_on,
+  const ArrayOfIndex&               cloudbox_limits,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const ArrayOfArrayOfSpeciesTag&   abs_species,
+  const Agenda&                     ppath_step_agenda,
+  const Agenda&                     emission_agenda,
+  const Agenda&                     abs_scalar_agenda,
+  const Agenda&                     iy_clearsky_agenda,
+  const Agenda&                     iy_space_agenda,
+  const Agenda&                     surface_prop_agenda,
+  const Agenda&                     iy_cloudbox_agenda,
+  const Tensor3&                    iy_transmission,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&        jacobian_indices )
+{
+  // A minimal amount of checks, for efficiency reasons
+  assert( rte_pos.nelem() == atmosphere_dim );
+  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
+          ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
+
+  // Some sizes
+  //
+  const Index   nf  = f_grid.nelem();
+
+  // Determine if there are any analytical jacobians to handle
+  //
+  Index j_analytical_do = 0;
+  //
+  if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
+
+  // If primary call, initilise iy_aux and diy_dx
+  //
+  if( iy_agenda_call1 )
+    {
+      // Error are considered to be zero
+      iy_error.resize( 0, 0 );
+      iy_error_type = 0;
+      //
+      if( iy_aux_do ) { iy_aux.resize( 3, nf, stokes_dim ); iy_aux = 0; }
+      else            { iy_aux.resize( 0, 0, 0 ); }
+      //
+      if( j_analytical_do ) 
+        {
+          diy_dx.resize( jacobian_indices.nelem() ); 
+          //
+          FOR_ANALYTICAL_JACOBIANS_DO( 
+            diy_dx[iq].resize( jacobian_indices[iq][1] - 
+                               jacobian_indices[iq][0] + 1, nf, stokes_dim ); 
+            diy_dx[iq] = 0.0;
+          ) 
+        }
+      else { diy_dx.resize( 0 ); }
+    }
+
+  //- Determine propagation path
+  //
+  Ppath  ppath;
+  //
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
+              lat_grid, lon_grid, z_field, r_geoid, z_surface,
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
+  //
+  const Index   i_background = ppath_what_background( ppath );
+
+
+  // Get quantities required for each ppath point, and update iy_transmission
+  //
+  // If np = 1, we only need to determine the radiative background
+  //
+  const Index     np  = ppath.np;
+        Vector    ppath_p, ppath_t, total_tau;
+        Matrix    ppath_vmr, ppath_emission, ppath_tau;
+        Tensor3   ppath_abs_scalar, iy_trans_new;
+  //
+  if( np > 1 )
+    {
+      // Get pressure, temperature and VMRs
+      //
+      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
+                           p_grid, lat_grid, lon_grid, t_field, vmr_field );
+
+      // Get emission, absorption, optical thickness for each step, and total
+      // optical thickness
+      //
+      get_step_vars_for_standardRT( ws, ppath_abs_scalar, ppath_emission, 
+                                    ppath_tau, total_tau, abs_scalar_agenda, 
+                                    emission_agenda, ppath, ppath_p, ppath_t, 
+                                    ppath_vmr, nf, 1 );
+    }
+
+  // Handle iy_transmission (the variable not needed when background is
+  // space or no analytical jacobians will be calculated)
+  //
+  if( ( i_background > 1 && j_analytical_do )  ||  iy_aux_do )
+    {
+      if( iy_agenda_call1 )
+        { iy_transmission_for_scalar_tau( iy_trans_new, stokes_dim, 
+                                                                 total_tau ); }
+      else
+        { iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, 
+                                                                 total_tau ); }
+    }
+
+  // Radiative background
+  //
+  get_iy_of_background( 
+                ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
+                iy_aux_do, jacobian_do, ppath, atmosphere_dim, p_grid, 
+                lat_grid, lon_grid, t_field, vmr_field, cloudbox_on, 
+                stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda, 
+                surface_prop_agenda, iy_cloudbox_agenda );
+  
+  // Set iy_aux 
+  //
+  if( iy_aux_do ) 
+    {
+      // Fill transmission if background is TOA or surface
+      if( i_background <= 2 )
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+              for( Index is=0; is<stokes_dim; is++ )
+                { iy_aux( 0, iv, is ) = iy_trans_new( iv, is, is ); }
+            }
+        }
+      //
+      // Set background if primary call
+      if( iy_agenda_call1 )
+        { iy_aux( 1, joker, joker ) = (Numeric)i_background; }
+      // 
+      // Flag intersection with cloudbox
+      if( i_background >= 3 )
+        { iy_aux( 2, joker, joker ) = 1.0; }
+    }    
+
+  // Do RT calculations
+  //
+  if( np > 1 )
+    {
+      // Create container for the derivatives with respect to changes
+      // at each ppath point. And find matching abs_species-index and 
+      // "temperature flag" (for analytical jacobians).
+      //
+      ArrayOfTensor3  diy_dpath; 
+      ArrayOfIndex    abs_species_i, is_t; 
+      //
+      const Numeric   dt = 0.1;
+            Matrix    ppath_e2;
+            Tensor3   ppath_as2;
+      //
+      if( j_analytical_do )
+        { 
+          diy_dpath.resize( jacobian_indices.nelem() ); 
+          abs_species_i.resize( jacobian_indices.nelem() ); 
+          is_t.resize( jacobian_indices.nelem() ); 
+          //
+          FOR_ANALYTICAL_JACOBIANS_DO( 
+            diy_dpath[iq].resize( np, nf, stokes_dim ); 
+            diy_dpath[iq] = 0.0;
+          )
+          get_pointers_for_analytical_jacobians( abs_species_i, is_t, 
+                                            jacobian_quantities, abs_species );
+          //
+          // Get emission and absorption for disturbed temperature
+          Index do_t=0;
+          for( Index iq=0; iq<is_t.nelem() && do_t==0; iq++ )
+            { if( is_t[iq] ) { do_t = 1; } }
+          if( do_t )
+            {
+              Matrix mdummy; Vector vdummy, t2=ppath_t;
+              for( Index i=0; i<t2.nelem(); i++ ) { t2[i] += dt; }
+              get_step_vars_for_standardRT( ws, ppath_as2, ppath_e2, mdummy, 
+                                   vdummy, abs_scalar_agenda, emission_agenda,
+                                   ppath, ppath_p, t2, ppath_vmr, nf, 1 );
+            }
+        }
+
+      // Loop ppath steps
+      for( Index ip=np-2; ip>=0; ip-- )
+        {
+          // Loop frequencies
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+              // Jacobian quantities
+              if( j_analytical_do )
+                {
+                  const Numeric A = ppath.l_step[ip] * exp( -total_tau[iv] );
+                  const Numeric B = 0.5 * A * (ppath_emission(iv,ip)-iy(iv,0));
+                  
+                  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) 
+                    {
+                      if( jacobian_quantities[iq].Analytical() )
+                        {
+                          // Absorbing species
+                          const Index isp = abs_species_i[iq]; 
+                          if( isp >= 0 )
+                            {
+                              // Scaling factors to handle retrieval unit
+                              Numeric unitscf1, unitscf2;
+                              vmrunitscf( unitscf1, 
+                                          jacobian_quantities[iq].Mode(), 
+                                          ppath_vmr(isp,ip), ppath_p[ip], 
+                                          ppath_t[ip] );
+                              vmrunitscf( unitscf2, 
+                                          jacobian_quantities[iq].Mode(), 
+                                          ppath_vmr(isp,ip+1), ppath_p[ip+1], 
+                                          ppath_t[ip+1] );
+                              //
+                              // Stokes component 1
+                              const Numeric w0 = B*ppath_abs_scalar(iv,isp,ip);
+                              diy_dpath[iq](ip  ,iv,0) += unitscf1 * w0;
+                              diy_dpath[iq](ip+1,iv,0) += unitscf2 * w0;
+                              //
+                              // Higher stokes components
+                              for( Index is=1; is<stokes_dim; is++ )
+                                { 
+                                  const Numeric wi = -0.5 * A * iy(iv,is) *
+                                                   ppath_abs_scalar(iv,isp,ip);
+                                  diy_dpath[iq](ip  ,iv,is) += unitscf1 * wi;
+                                  diy_dpath[iq](ip+1,iv,is) += unitscf2 * wi;
+                                }
+                            }
+
+                          // Temperature
+                          else if( is_t[iq] )
+                            {
+                              const Numeric dkdt = 
+                                  ( ppath_as2(iv,joker,ip).sum()
+                                  - ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
+                              const Numeric dbdt = ( ppath_e2(iv,ip) -
+                                                  ppath_emission(iv,ip) ) / dt;
+                              //
+                              // Stokes component 1
+                              const Numeric w0 = B * dkdt + ( 
+                                       exp(-(total_tau[iv]-ppath_tau(iv,ip))) -
+                                       exp( -total_tau[iv]) ) * dbdt;
+                              diy_dpath[iq](ip  ,iv,0) += w0;
+                              diy_dpath[iq](ip+1,iv,0) += w0;
+                              //
+                              // Higher stokes components
+                              for( Index is=1; is<stokes_dim; is++ )
+                                { 
+                                  const Numeric wi = -0.5 * A * iy(iv,is)*dkdt;
+                                  diy_dpath[iq](ip  ,iv,is) += wi;
+                                  diy_dpath[iq](ip+1,iv,is) += wi;
+                                }
+                            }
+                        }
+                    }
+                  
+                  // Update total_tau (not used for spectrum calculation)
+                  total_tau[iv] -= ppath_tau(iv,ip);
+                }
+
+              // Spectrum
+              //
+              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
+              //
+              iy(iv,0)  = iy(iv,0)*step_tr + ppath_emission(iv,ip)*(1-step_tr); 
+              //
+              for( Index is=1; is<stokes_dim; is++ )
+                { iy(iv,is) *= step_tr; }
+            }
+        } 
+
+      // Map jacobians from ppath to retrieval grids
+      if( j_analytical_do )
+        { 
+          // Weight with iy_transmission
+          if( !iy_agenda_call1 )
+            {
+              FOR_ANALYTICAL_JACOBIANS_DO( 
+                for( Index iv=0; iv<nf; iv++ )
+                  { 
+                    Matrix X;
+                    X = diy_dpath[iq](joker,iv,joker);
+                    mult( diy_dpath[iq](joker,iv,joker), 
+                                          iy_transmission(iv,joker,joker), X );
+                  }
+               )
+            }
+
+          // Map to retrieval grids
+          FOR_ANALYTICAL_JACOBIANS_DO( 
+            diy_from_path_to_rgrids( diy_dx[iq], jacobian_quantities[iq], 
+                               diy_dpath[iq], atmosphere_dim, ppath, ppath_p );
+          )
+        }
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyEmissionStandardClearskyBasic(
+        Workspace&                  ws,
+        Matrix&                     iy,
+  const Vector&                     rte_pos,      
+  const Vector&                     rte_los,      
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    z_field,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Matrix&                     r_geoid,
+  const Matrix&                     z_surface,
+  const Index&                      cloudbox_on,
+  const ArrayOfIndex&               cloudbox_limits,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Agenda&                     ppath_step_agenda,
+  const Agenda&                     emission_agenda,
+  const Agenda&                     abs_scalar_agenda,
+  const Agenda&                     iy_clearsky_basic_agenda,
+  const Agenda&                     iy_space_agenda,
+  const Agenda&                     surface_prop_agenda,
+  const Agenda&                     iy_cloudbox_agenda )
+{
+  // A minimal amount of checks, for efficiency reasons
+  assert( rte_pos.nelem() == atmosphere_dim );
+  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
+          ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
+
+
+  //- Determine propagation path
+  //
+  Ppath  ppath;
+  //
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
+              lat_grid, lon_grid, z_field, r_geoid, z_surface,
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
+
+
+  // Get quantities required for each ppath point
+  //
+  // If np = 1, we only need to determine the radiative background
+  //
+  const Index     nf  = f_grid.nelem();
+  const Index     np  = ppath.np;
+        Vector    ppath_p, ppath_t, total_tau;
+        Matrix    ppath_vmr, ppath_emission, ppath_tau;
+        Tensor3   ppath_abs_scalar, iy_trans_new;
+  //
+  if( np > 1 )
+    {
+      // Get pressure, temperature and VMRs
+      //
+      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
+                           p_grid, lat_grid, lon_grid, t_field, vmr_field );
+
+      // Get emission, absorption and optical thickness for each step
+      //
+      get_step_vars_for_standardRT( ws, ppath_abs_scalar, ppath_emission, 
+                                    ppath_tau, total_tau, 
+                                    abs_scalar_agenda, emission_agenda,
+                                    ppath, ppath_p, ppath_t, ppath_vmr, nf, 1 );
+    }
+
+
+  // Radiative background
+  //
+  Matrix          dummy1;
+  Index           dummy2;
+  Tensor3         dummy3, dummy5;
+  ArrayOfTensor3  dummy4;
+  //  
+  get_iy_of_background( ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
+                        0, 0, ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
+                        t_field, vmr_field, cloudbox_on, stokes_dim,
+                        f_grid, iy_clearsky_basic_agenda, iy_space_agenda, 
+                        surface_prop_agenda, iy_cloudbox_agenda );
+
+
+  // Do RT calculations
+  //
+  if( np > 1 )
+    {
+      // Loop ppath steps
+      for( Index ip=np-2; ip>=0; ip-- )
+        {
+          // Loop frequencies
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+
+              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
+              //
+              iy(iv,0)  = iy(iv,0)*step_tr + ppath_emission(iv,ip)*(1-step_tr); 
+              //
+              for( Index is=1; is<stokes_dim; is++ )
+                { iy(iv,is) *= step_tr; }
+            }
+        } 
+    }
+}
+
+
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void iyMC(
+        Workspace&                  ws,
+        Matrix&                     iy,
+        Matrix&                     iy_error,
+        Index&                      iy_error_type,
+        Tensor3&                    iy_aux,
+        ArrayOfTensor3&             diy_dx,
+  const Index&                      iy_agenda_call1,
+  const Vector&                     rte_pos,      
+  const Vector&                     rte_los,      
+  const Index&                      iy_aux_do,
+  const Index&                      jacobian_do,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    z_field,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Matrix&                     r_geoid,
+  const Matrix&                     z_surface,
+  const Index&                      cloudbox_on,
+  const ArrayOfIndex&               cloudbox_limits,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const ArrayOfSingleScatteringData&   scat_data_raw,
+  const Agenda&                     iy_space_agenda,
+  const Agenda&                     surface_prop_agenda,
+  const Agenda&                     abs_scalar_gas_agenda, 
+  const Agenda&                     opt_prop_gas_agenda,
+  const Tensor4&                    pnd_field,
+  const Tensor3&                    iy_transmission,
+  const String&                     y_unit,
+  const Numeric&                    mc_std_err,
+  const Index&                      mc_max_time,
+  const Index&                      mc_max_iter,
+  const Index&                      mc_z_field_is_1D )
+{
+  // Throw error if unsupported features are requested
+  if( atmosphere_dim != 3 )
+    throw runtime_error( 
+                "Only 3D atmospheres are allowed (atmosphere_dim must be 3)" );
+  if( !cloudbox_on )
+    throw runtime_error( 
+                    "The cloudbox must be activated (cloudbox_on must be 1)" );
+  if( iy_aux_do )
+    throw runtime_error( 
+      "This method does not provide any auxilary data (iy_aux_do must be 0)" );
+  if( jacobian_do )
+    throw runtime_error( 
+        "This method does not provide any jacobians (jacobian_do must be 0)" );
+  if( !iy_agenda_call1 )
+    throw runtime_error( 
+                  "Recursive usage not possible (iy_agenda_call1 must be 1)" );
+  if( iy_transmission.ncols() )
+    throw runtime_error( "*iy_transmission* must be empty" );
+
+  // Size output variables
+  //
+  const Index   nf  = f_grid.nelem();
+  //
+  iy.resize( nf, stokes_dim );
+  iy_error.resize( nf, stokes_dim );
+  iy_error_type = 1;
+  //
+  iy_aux.resize( 0, 0, 0 );
+  diy_dx.resize(0);
+
+  // Some MC variables are only local here
+  Tensor3  mc_points;
+  Index    mc_iteration_count, mc_seed;
+  //
+  MCAntenna mc_antenna;
+  mc_antenna.set_pencil_beam();
+
+  // Pos and los must be matrices 
+  Matrix pos(1,3), los(1,2);
+  //
+  pos(0,joker) = rte_pos;
+  los(0,joker) = rte_los;
+
+  for( Index f_index=0; f_index<nf; f_index++ )
+    {
+      ArrayOfSingleScatteringData   scat_data_mono;
+      
+      scat_data_monoCalc( scat_data_mono, scat_data_raw, 
+                                          f_grid, f_index );
+
+      // Seed reset for each loop. If not done, the errors 
+      // appear to be highly correlated.
+      MCSetSeedFromTime( mc_seed );
+
+      Vector y, mc_error;
+                  
+      MCGeneral( ws, y, mc_iteration_count, mc_error, mc_points, 
+                 mc_antenna, f_grid, f_index, pos, los, stokes_dim, 
+                 iy_space_agenda, surface_prop_agenda, opt_prop_gas_agenda,
+                 abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, z_field, 
+                 r_geoid, z_surface, t_field, vmr_field, cloudbox_limits, 
+                 pnd_field, scat_data_mono, mc_seed, y_unit, mc_std_err, 
+                 mc_max_time, mc_max_iter, mc_z_field_is_1D ); 
+
+      assert( y.nelem() == stokes_dim );
+ 
+      // Data returned can not be in Tb
+      if ( y_unit == "RJBT" )
+        { 
+          const Numeric scfac = invrayjean( 1, f_grid[f_index] );
+          y /= scfac;
+          mc_error /= scfac;
+        }
+     
+      iy(f_index,joker) = y;
+      iy_error(f_index,joker) = mc_error;
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void yCalc(
+        Workspace&                  ws,
+        Vector&                     y,
+        Vector&                     y_f,
+        ArrayOfIndex&               y_pol,
+        Matrix&                     y_pos,
+        Matrix&                     y_los,
+        Vector&                     y_error,
+        Matrix&                     y_aux,
+        Matrix&                     jacobian,
+  const Index&                      atm_checked,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Index&                      cloudbox_on,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Matrix&                     sensor_pos,
+  const Matrix&                     sensor_los,
+  const Vector&                     mblock_za_grid,
+  const Vector&                     mblock_aa_grid,
+  const Index&                      antenna_dim,
+  const Sparse&                     sensor_response,
+  const Vector&                     sensor_response_f,
+  const ArrayOfIndex&               sensor_response_pol,
+  const Vector&                     sensor_response_za,
+  const Vector&                     sensor_response_aa,
+  const Agenda&                     iy_clearsky_agenda,
+  const Index&                      iy_aux_do,
+  const String&                     y_unit,
+  const Agenda&                     jacobian_agenda,
+  const Index&                      jacobian_do,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&        jacobian_indices,
+  const String&                     jacobian_unit )
+{
+  // Some sizes
+  const Index   nf      = f_grid.nelem();
+  const Index   nza     = mblock_za_grid.nelem();
+        Index   naa     = mblock_aa_grid.nelem();   
+  if( antenna_dim == 1 )  
+    { naa = 1; }
+  const Index   n1y     = sensor_response.nrows();
+  const Index   nmblock = sensor_pos.nrows();
+  const Index   niyb    = nf * nza * naa * stokes_dim;
+
+
+  //---------------------------------------------------------------------------
+  // Input checks
+  //---------------------------------------------------------------------------
+
+  // Atmosphere OK?
+  //
+  if( !atm_checked )
+    throw runtime_error( "The atmosphere must be flagged to have passed a "
+                         "consistency check (atm_checked=1)." );
+
+  // Basic dimensionalities
+  //
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
+
+  // Sensor position and LOS.
+  //
+  if( sensor_pos.ncols() != atmosphere_dim )
+    throw runtime_error( "The number of columns of sensor_pos must be "
+                         "equal to the atmospheric dimensionality." );
+  if( atmosphere_dim <= 2  &&  sensor_los.ncols() != 1 )
+    throw runtime_error( "For 1D and 2D, sensor_los shall have one column." );
+  if( atmosphere_dim == 3  &&  sensor_los.ncols() != 2 )
+    throw runtime_error( "For 3D, sensor_los shall have two columns." );
+  if( sensor_los.nrows() != nmblock )
+    {
+      ostringstream os;
+      os << "The number of rows of sensor_pos and sensor_los must be "
+         << "identical, but sensor_pos has " << nmblock << " rows,\n"
+         << "while sensor_los has " << sensor_los.nrows() << " rows.";
+      throw runtime_error( os.str() );
+    }
+  if( max( sensor_los(joker,0) ) > 180 )
+    throw runtime_error( 
+     "First column of *sensor_los* is not allowed to have values above 180." );
+  if( atmosphere_dim == 2 )
+    {
+      if( min( sensor_los(joker,0) ) < -180 )
+          throw runtime_error( "For atmosphere_dim = 2, first column of "
+                    "*sensor_los* is not allowed to have values below -180." );
+    }     
+  else
+    {
+      if( min( sensor_los(joker,0)  ) < 0 )
+          throw runtime_error( "For atmosphere_dim != 2, first column of "
+                       "*sensor_los* is not allowed to have values below 0." );
+    }    
+  if( atmosphere_dim == 3  &&  max( sensor_los(joker,1) ) > 180 )
+    throw runtime_error( 
+    "Second column of *sensor_los* is not allowed to have values above 180." );
+
+  // Antenna
+  //
+  if( nza == 0 )
+    throw runtime_error( "The measurement block zenith angle grid is empty." );
+  chk_if_increasing( "mblock_za_grid", mblock_za_grid );
+  //
+  if( antenna_dim == 1 )
+    {
+      if( mblock_aa_grid.nelem() != 0 )
+        throw runtime_error( 
+          "For antenna_dim = 1, the azimuthal angle grid must be empty." );
+    }
+  else
+    {
+      if( atmosphere_dim < 3 )
+        throw runtime_error( "2D antennas (antenna_dim=2) can only be "
+                                                 "used with 3D atmospheres." );
+      if( mblock_aa_grid.nelem() == 0 )
+        throw runtime_error(
+                      "The measurement block azimuthal angle grid is empty." );
+      chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
+    }
+
+  // Sensor
+  //
+  if( sensor_response.ncols() != niyb ) 
+    {
+      ostringstream os;
+      os << "The *sensor_response* matrix does not have the right size,\n"
+         << "either the method *sensor_responseInit* has not been run or some\n"
+         << "of the other sensor response methods has not been correctly\n"
+         << "configured.";
+      throw runtime_error( os.str() );
+    }
+
+  // Sensor aux variables
+  //
+  if( n1y != sensor_response_f.nelem()  || n1y != sensor_response_pol.nelem() ||
+      n1y != sensor_response_za.nelem() || n1y != sensor_response_za.nelem() )
+    {
+      ostringstream os;
+      os << "Sensor auxiliary variables do not have the correct size.\n"
+         << "The following variables should all have same size:\n"
+         << "length(y) for one block      : " << n1y << "\n"
+         << "sensor_response_f.nelem()    : " << sensor_response_f.nelem()
+         << "\nsensor_response_pol.nelem(): " << sensor_response_pol.nelem()
+         << "\nsensor_response_za.nelem() : " << sensor_response_za.nelem() 
+         << "\nsensor_response_aa.nelem() : " << sensor_response_za.nelem() 
+         << "\n";
+      throw runtime_error( os.str() );
+    }
+
+
+  //---------------------------------------------------------------------------
+  // Allocations and resizing
+  //---------------------------------------------------------------------------
+
+  // Resize *y* and *y_XXX*
+  //
+  y.resize( nmblock*n1y );
+  y_f.resize( nmblock*n1y );
+  y_pol.resize( nmblock*n1y );
+  y_pos.resize( nmblock*n1y, sensor_pos.ncols() );
+  y_los.resize( nmblock*n1y, sensor_los.ncols() );
+  y_error.resize( nmblock*n1y );
+  y_aux.resize( 0, 0 );        // Size can only be determined later
+
+  // Jacobian variables
+  //
+  Index  j_analytical_do = 0;
+  //
+  if( jacobian_do )
+    {
+      jacobian.resize( nmblock*n1y, 
+                           jacobian_indices[jacobian_indices.nelem()-1][1]+1 );
+      jacobian = 0;
+      //
+      FOR_ANALYTICAL_JACOBIANS_DO(
+        j_analytical_do  = 1; 
+      )
+    }
+
+
+  //---------------------------------------------------------------------------
+  // The calculations
+  //---------------------------------------------------------------------------
+
+  for( Index imblock=0; imblock<nmblock; imblock++ )
+    {
+      // Calculate monochromatic pencil beam data for 1 measurement block
+      //
+      Vector          iyb, iyb_error, yb(n1y);
+      Matrix          iyb_aux;
+      Index           iy_error_type, n_aux;
+      ArrayOfMatrix   diyb_dx;      
+      //
+      iyb_calc( ws, iyb, iyb_error, iy_error_type, iyb_aux, n_aux, diyb_dx, 
+                imblock, atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
+                vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos, 
+                sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
+                iy_clearsky_agenda, iy_aux_do, y_unit, j_analytical_do, 
+                jacobian_quantities, jacobian_indices, jacobian_unit );
+
+
+      // Apply sensor response matrix on iyb, and put into y
+      //
+      const Range rowind = get_rowindex_for_mblock( sensor_response, imblock );
+      const Index row0   = rowind.get_start();
+      //
+      mult( yb, sensor_response, iyb );
+      //
+      y[rowind] = yb;  // *yb* also used below, as input to jacobian_agenda
+
+      // Apply sensor response matrix on iyb_error, and put into y_error
+      //
+      if( iy_error_type == 0 )
+        { y_error[rowind] = 0; }
+      else if( iy_error_type == 1 )
+        { 
+          for( Index i=0; i<n1y; i++ )
+            {
+              const Index ithis = row0+i;
+              y_error[ithis] = 0;
+              for( Index icol=0; icol<niyb; icol++ )
+                { 
+                  y_error[ithis] += pow( 
+                       sensor_response(i,icol)*iyb_error[icol], (Numeric)2.0 ); 
+                }
+              y_error[ithis] = sqrt( y_error[ithis] );              
+            }
+        }
+      else if( iy_error_type == 2 )
+        { mult( y_error[rowind], sensor_response, iyb ); }
+      else
+        { assert( 0 ); }
+
+      // Apply sensor response matrix on iyb_aux, and put into y_aux
+      //
+      if( n_aux > 0 )
+        {
+          if( y_aux.nrows() == 0 )
+            { y_aux.resize( nmblock*n1y, n_aux ); }
+          //
+          mult( y_aux(rowind,joker), sensor_response, 
+                                               iyb_aux(joker,Range(0,n_aux)) );
+        }
+
+      // Fill information variables
+      //
+      for( Index i=0; i<n1y; i++ )
+        { 
+          y_f[row0+i]         = sensor_response_f[i];
+          y_pol[row0+i]       = sensor_response_pol[i]; 
+          y_pos(row0+i,joker) = sensor_pos(imblock,joker);
+          y_los(row0+i,0)     = sensor_los(imblock,0) + sensor_response_za[i];
+          if( sensor_response_aa.nelem() )
+            { 
+              y_los(row0+i,1) = sensor_los(imblock,0) + sensor_response_aa[i]; 
+            }
+        }
+
+      // Apply sensor response matrix on diyb_dx, and put into jacobian
+      // (that is, analytical jacobian part)
+      //
+      if( j_analytical_do )
+        {
+          FOR_ANALYTICAL_JACOBIANS_DO(
+            mult( jacobian(rowind, Range(jacobian_indices[iq][0],
+                          jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
+                                                sensor_response, diyb_dx[iq] );
+          )
+        }
+
+      // Rest of *jacobian*: run jacobian_agenda (can be empty)
+      //
+      if( jacobian_do  &&  jacobian_agenda.nelem() > 0 )
+        { 
+          jacobian_agendaExecute( ws, jacobian, imblock, iyb, yb, 
+                                                             jacobian_agenda ); 
+        }
+    }  // End mblock loop
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Things to be removed:
+
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -767,2786 +2697,4 @@ void yUnit(
     { throw runtime_error( "The length of *y* and *y_f* must be the same" ); }
 
   apply_y_unit( Tensor3View( MatrixView( y ) ), y_unit, y_f );
-}
-
-
-
-// --------
-// New stuff
-// --------
-
-extern const Numeric DEG2RAD;
-extern const Numeric RAD2DEG;
-
-
-#define FOR_ANALYTICAL_JACOBIANS_DO(what_to_do) \
-  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) \
-    { \
-      if( jacobian_quantities[iq].Analytical() ) \
-        { what_to_do } \
-    } 
-
-
-
-//! zaaa2cart
-/*! 
-   Converts zenith and azimuth angles to a cartesian unit vector.
-
-   This function and the sister function cart2zaaa handles
-   transformation of line-of-sights. This in contrast to the sph/poslos
-   functions that handles positions, or combinations of positions and
-   line-of-sight.
-
-   The cartesian coordinate system used for these two functions can 
-   be defined as
-    z : za = 0
-    x : za=90, aa=0
-    y : za=90, aa=90
-
-   \param   dx    Out: x-part of LOS unit vector.
-   \param   dy    Out: y-part of LOS unit vector.
-   \param   dz    Out: z-part of LOS unit vector.
-   \param   za    LOS zenith angle at observation position.
-   \param   aa    LOS azimuth angle at observation position.
-
-   \author Patrick Eriksson
-   \date   2009-10-02
-*/
-void zaaa2cart(
-             double&   dx,
-             double&   dy,
-             double&   dz,
-       const double&   za,
-       const double&   aa )
-{
-  const double   zarad  = DEG2RAD * za;
-  const double   aarad  = DEG2RAD * aa;
-
-  dz = cos( zarad );
-  dx = sin( zarad );
-  dy = sin( aarad ) * dx;
-  dx = cos( aarad ) * dx;
-}
-
-
-
-//! cart2zaaa
-/*! 
-   Converts a cartesian directional vector to zenith and azimuth
-
-   This function and the sister function cart2zaaa handles
-   transformation of line-of-sights. This in contrast to the sph/poslos
-   functions that handles positions, or combinations of positions and
-   line-of-sight.
-
-   The cartesian coordinate system used for these two functions can 
-   be defined as
-    z : za = 0
-    x : za=90, aa=0
-    y : za=90, aa=90
-
-   \param   za    Out: LOS zenith angle at observation position.
-   \param   aa    Out: LOS azimuth angle at observation position.
-   \param   dx    x-part of LOS unit vector.
-   \param   dy    y-part of LOS unit vector.
-   \param   dz    z-part of LOS unit vector.
-
-   \author Patrick Eriksson
-   \date   2009-10-02
-*/
-void cart2zaaa(
-             double&   za,
-             double&   aa,
-       const double&   dx,
-       const double&   dy,
-       const double&   dz )
-{
-  const double r = sqrt( dx*dx + dy*dy + dz*dz );
-
-  assert( r > 0 );
-
-  za = RAD2DEG * acos( dz / r );
-  aa = RAD2DEG * atan2( dy, dx );
-}
-
-
-
-//! rotationmat3D
-/*! 
-   Creates a 3D rotation matrix
-
-   Creates a rotation matrix such that R * x, operates on x by rotating 
-   x around the origin a radians around line connecting the origin to the 
-   point vrot.
-
-   The function is based on rotationmat3D.m, by Belechi (the function 
-   is added to atmlab).
-
-   \param   R     Out: Rotation matrix
-   \param   vrot  Rotation axis
-   \param   a     Rotation angle
-
-   \author Bileschi and Patrick Eriksson
-   \date   2009-10-02
-*/
-void rotationmat3D( 
-           Matrix&   R, 
-   ConstVectorView   vrot, 
-    const Numeric&   a )
-{
-  assert( R.ncols() == 3 );
-  assert( R.nrows() == 3 );
-  assert( vrot.nelem() == 3 );
-
-  const double u = vrot[0];
-  const double v = vrot[1];
-  const double w = vrot[2];
-
-  const double u2 = u * u;
-  const double v2 = v * v;
-  const double w2 = w * w;
-
-  assert( sqrt( u2 + v2 + w2 ) );
-
-  const double c = cos( DEG2RAD * a );
-  const double s = sin( DEG2RAD * a );
-  
-  // Fill R
-  R(0,0) = u2 + (v2 + w2)*c;
-  R(0,1) = u*v*(1-c) - w*s;
-  R(0,2) = u*w*(1-c) + v*s;
-  R(1,0) = u*v*(1-c) + w*s;
-  R(1,1) = v2 + (u2+w2)*c;
-  R(1,2) = v*w*(1-c) - u*s;
-  R(2,0) = u*w*(1-c) - v*s;
-  R(2,1) = v*w*(1-c)+u*s;
-  R(2,2) = w2 + (u2+v2)*c;
-}
-
-
-
-/*! Maps MBLOCK_AA_GRID values to correct ZA and AA
-
-   Sensor LOS azimuth angles and mblock_aa_grid values can not be added in a
-   straightforward way due to properties of the polar coordinate system used to
-   define line-of-sights. This function performs a "mapping" ensuring that the
-   pencil beam directions specified by mblock_za_grid and mblock_aa_grid form
-   a rectangular grid (on the unit sphere) for any za.
-
-   za0 and aa0 match the angles of the ARTS WSV sensor_los.
-   aa_grid shall hold values "close" to 0. The limit is here set to 5 degrees.
-
-   \param   za         Out: Zenith angle matching aa0+aa_grid
-   \param   aa         Out: Azimuth angles matching aa0+aa_grid
-   \param   za0        Zenith angle
-   \param   aa0        Centre azimuth angle
-   \param   aa_grid    MBLOCK_AA_GRID values
-
-   \author Patrick Eriksson
-   \date   2009-10-02
-*/
-void map_daa(
-             double&   za,
-             double&   aa,
-       const double&   za0,
-       const double&   aa0,
-       const double&   aa_grid )
-{
-  assert( abs( aa_grid ) <= 5 );
-
-  Vector  xyz(3);
-  Vector  vrot(3);
-  Vector  u(3);
-
-  // Unit vector towards aa0 at za=90
-  //
-  zaaa2cart( xyz[0], xyz[1], xyz[2], 90, aa0 );
-    
-  // Find vector around which rotation shall be performed
-  // 
-  // We can write this as cross([0 0 1],xyz). It turns out that the result 
-  // of this operation is just [-y,x,0].
-  //
-  vrot[0] = -xyz[1];
-  vrot[1] = xyz[0];
-  vrot[2] = 0;
-
-  // Unit vector towards aa0+aa at za=90
-  //
-  zaaa2cart( xyz[0], xyz[1], xyz[2], 90, aa0+aa_grid );
-
-  // Apply rotation
-  //
-  Matrix R(3,3);
-  rotationmat3D( R, vrot, za0-90 );
-  mult( u, R, xyz );
-
-  // Calculate za and aa for rotated u
-  //
-  cart2zaaa( za, aa, u[0], u[1], u[2] );
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void atm_checkedCalc(
-         Index&          atm_checked,
-   const Index&          atmosphere_dim,
-   const Vector&         p_grid,
-   const Vector&         lat_grid,
-   const Vector&         lon_grid,
-   const Tensor3&        z_field,
-   const Tensor3&        t_field,
-   const Matrix&         r_geoid,
-   const Matrix&         z_surface,
-   const Index&          cloudbox_on, 
-   const ArrayOfIndex&   cloudbox_limits )
-{
-  atm_checked = 1;
-
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-
-  // Consistency between dim girds and tmospheric fields/surfaces
-  //
-  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-  chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid, 
-                                                                     lon_grid );
-  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
-                                                                     lon_grid );
-  // vmr_field excluded, could maybe be empty 
-  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
-  chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, lon_grid );
-
-  // Check that z_field has strictly increasing pages.
-  for( Index row=0; row<z_field.nrows(); row++ )
-    {
-      for( Index col=0; col<z_field.ncols(); col++ )
-        {
-          ostringstream os;
-          os << "z_field (for latitude nr " << row << " and longitude nr " 
-             << col << ")";
-          chk_if_increasing( os.str(), z_field(joker,row,col) ); 
-        }
-    }
-
-  // Check that there is no gap between the surface and lowest pressure 
-  // surface
-  for( Index row=0; row<z_surface.nrows(); row++ )
-    {
-      for( Index col=0; col<z_surface.ncols(); col++ )
-        {
-          if( z_surface(row,col)<z_field(0,row,col) ||
-                   z_surface(row,col)>=z_field(z_field.npages()-1,row,col) )
-            {
-              ostringstream os;
-              os << "The surface altitude (*z_surface*) cannot be outside "
-                 << "of the altitudes in *z_field*.";
-              if( atmosphere_dim > 1 )
-                os << "\nThis was found to be the case for:\n"
-                   << "latitude " << lat_grid[row];
-              if( atmosphere_dim > 2 )
-                os << "\nlongitude " << lon_grid[col];
-              throw runtime_error( os.str() );
-            }
-        }
-    }
-
-  // Cloud box
-  //  
-  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid,
-                                                cloudbox_on, cloudbox_limits );
-}
-
-
-
-//! iy_transmission_for_scalar_tau
-/*!
-    Sets *iy_transmission* to match scalar optical thicknesses.
-
-    *iy_transmission* is sized by the function.
-
-    \param   iy_transmission   Out: As the WSV.
-    \param   stokes_dim        As the WSV.
-    \param   tau               Vector with the optical thickness for each 
-                               frequency.
-
-    \author Patrick Eriksson 
-    \date   2009-10-06
-*/
-void iy_transmission_for_scalar_tau( 
-       Tensor3&     iy_transmission,
-  const Index&      stokes_dim,
-  ConstVectorView   tau )
-{
-  iy_transmission.resize( tau.nelem(), stokes_dim, stokes_dim );
-  iy_transmission = 0;
-  for( Index i=0; i<tau.nelem(); i++ )
-    { 
-      const Numeric t = exp( -tau[i] );
-      for( Index is=0; is<stokes_dim; is++ )
-        { 
-          iy_transmission(i,is,is) = t;
-        }
-    }
-}
-
-
-
-//! iy_transmission_mult_scalar_tau
-/*!
-    Multiplicates iy_transmission with scalar optical thicknesses.
-
-    The functions can incorporate the transmission of a clear-sky
-    path. That is, the transmission can be described by a single value
-    The transmission of this path is gives as the optical depth for
-    each frequency.
-
-    The "new path" is assumed to be further away from the sensor than 
-    the propagtion path already included in iy_transmission. That is,
-    the operation can be written as:
-    
-       Ttotal = Told * Tnew
-
-    where Told is the transmission corresponding to *iy_transmission*
-    and Tnew corresponds to *tau*.
-
-    *iy_trans_new* is sized by the function.
-
-    \param   iy_trans_new      Out: Updated version of *iy_transmission*
-    \param   iy_transmission   As the WSV.
-    \param   tau               Vector with the optical thickness for each 
-                               frequency.
-
-    \author Patrick Eriksson 
-    \date   2009-10-06
-*/
-void iy_transmission_mult_scalar_tau( 
-       Tensor3&      iy_trans_new,
-  ConstTensor3View   iy_transmission,
-  ConstVectorView    tau )
-{
-  const Index nf = iy_transmission.npages();
-
-  assert( iy_transmission.ncols() == iy_transmission.nrows() );
-  assert( nf == tau.nelem() );
-
-  iy_trans_new = iy_transmission;
-
-  for( Index iv=0; iv<nf; iv++ )
-    { iy_trans_new(iv,joker,joker) *= exp( -tau[iv] ); } 
-}
-
-
-
-//! iy_transmission_mult
-/*!
-    Multiplicates iy_transmission with (vector) transmissions.
-
-    That is, a multiplication of *iy_transmission* with another
-    variable having same structure and holding transmission values.
-
-    The "new path" is assumed to be further away from the sensor than 
-    the propagtion path already included in iy_transmission. That is,
-    the operation can be written as:
-    
-       Ttotal = Told * Tnew
-
-    where Told is the transmission corresponding to *iy_transmission*
-    and Tnew corresponds to *tau*.
-
-    *iy_trans_new* is sized by the function.
-
-    \param   iy_trans_new      Out: Updated version of *iy_transmission*
-    \param   iy_transmission   As the WSV.
-    \param   trans             A variable matching *iy_transmission.
-
-    \author Patrick Eriksson 
-    \date   2009-10-06
-*/
-void iy_transmission_mult( 
-       Tensor3&      iy_trans_new,
-  ConstTensor3View   iy_transmission,
-  ConstTensor3View   trans )
-{
-  const Index nf = iy_transmission.npages();
-  const Index ns = iy_transmission.ncols();
-
-  assert( ns == iy_transmission.nrows() );
-  assert( nf == trans.npages() );
-  assert( ns == trans.nrows() );
-  assert( ns == trans.ncols() );
-
-  iy_trans_new.resize( nf, ns, ns );
-
-  for( Index iv=0; iv<nf; iv++ )
-    {
-      mult( iy_trans_new(iv,joker,joker), iy_transmission(iv,joker,joker), 
-                                                    trans(iv,joker,joker) );
-    } 
-}
-
-
-
-//! get_ptvmr_for_ppath
-/*!
-    Determines pressure, temperature and VMR for each propgataion path point.
-
-    The output variables are sized inside the function. For VMR the
-    dimensions are [ species, propagation path point ].
-
-    \param   ppath_p     Out: Pressure for each ppath point.
-    \param   ppath_t     Out: Temperature for each ppath point.
-    \param   ppath_vmr   Out: VMR values for each ppath point.
-    \param   ppath             As the WSV.
-    \param   atmosphere_dim    As the WSV.
-    \param   p_grid            As the WSV.
-    \param   lat_grid          As the WSV.
-    \param   lon_grid          As the WSV.
-    \param   t_field           As the WSV.
-    \param   vmr_field         As the WSV.
-    \param   f_grid            As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2009-10-05
-*/
-void get_ptvmr_for_ppath( 
-        Vector&      ppath_p, 
-        Vector&      ppath_t, 
-        Matrix&      ppath_vmr, 
-  const Ppath&       ppath,
-  const Index&       atmosphere_dim,
-  ConstVectorView    p_grid,
-  ConstVectorView    lat_grid,
-  ConstVectorView    lon_grid,
-  ConstTensor3View   t_field,
-  ConstTensor4View   vmr_field )
-{
-  const Index   np  = ppath.np;
-
-  // Pressure:
-  ppath_p.resize(np);
-  Matrix itw_p(np,2);
-  interpweights( itw_p, ppath.gp_p );      
-  itw2p( ppath_p, p_grid, ppath.gp_p, itw_p );
-  
-  // Temperature:
-  ppath_t.resize(np);
-  Matrix   itw_field;
-  interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
-                          lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
-  interp_atmfield_by_itw( ppath_t,  atmosphere_dim, p_grid, lat_grid, 
-                          lon_grid, t_field, ppath.gp_p, 
-                          ppath.gp_lat, ppath.gp_lon, itw_field );
-
-  //  VMR fields:
-  const Index ns = vmr_field.nbooks();
-  ppath_vmr.resize(ns,np);
-  for( Index is=0; is<ns; is++ )
-    {
-      interp_atmfield_by_itw( ppath_vmr(is, joker), atmosphere_dim,
-             p_grid, lat_grid, lon_grid, vmr_field( is, joker, joker,  joker ), 
-             ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
-    }
-}
-
-
-
-//! get_step_vars_for_standardRT
-/*!
-    Determines variables for each step of "standard" RT integration
-
-    The output variables are sized inside the function. The dimension order is 
-       [ frequency, absorption species, ppath point ]
-
-    \param   ws                Out: The workspace
-    \param   ppath_abs_sclar   Out: Mean absorption coefficient 
-    \param   ppath_emission    Out: Mean emission
-    \param   ppath_tau         Out: Optical thickness of each ppath step 
-    \param   total_tau         Out: Total optical thickness of path
-    \param   abs_scalar_agenda As the WSV.    
-    \param   emission_agenda   As the WSV.    
-    \param   ppath_p           Pressure for each ppath point.
-    \param   ppath_t           Temperature for each ppath point.
-    \param   ppath_vmr         VMR values for each ppath point.
-    \param   nf                Number of frequencies, length of f_grid
-    \param   emission_do       Flag for calculation of emission. Should be
-                               set to 0 for pure transmission calculations.
-
-    \author Patrick Eriksson 
-    \date   2009-10-06
-*/
-void get_step_vars_for_standardRT( 
-        Workspace&   ws,
-        Tensor3&     ppath_abs_scalar, 
-        Matrix&      ppath_emission, 
-        Matrix&      ppath_tau,
-        Vector&      total_tau,
-  const Agenda&      abs_scalar_agenda,
-  const Agenda&      emission_agenda,
-  const Ppath&       ppath,
-  ConstVectorView    ppath_p, 
-  ConstVectorView    ppath_t, 
-  ConstMatrixView    ppath_vmr, 
-  const Index&       nf,
-  const Index&       emission_do )
-{
-  // Sizes
-  const Index   np   = ppath.np;
-  const Index   nabs = ppath_vmr.nrows();
-
-  // Init variables
-  ppath_abs_scalar.resize( nf, nabs, np );
-  ppath_tau.resize( nf, np-1 );
-  total_tau.resize( nf );
-  total_tau = 0;
-  if( emission_do )
-    { ppath_emission.resize( nf, np-1 ); }
-
-  // Log of the pressure
-  Vector ppath_logp( np );
-  transform( ppath_logp, log, ppath_p  );
-
-  for( Index ip=0; ip<np-1; ip++ )
-    {
-      // Mean of p, t and VMRs for the step
-      const Numeric   p_mean = exp( 0.5*( ppath_logp[ip+1]+ppath_logp[ip] ) );
-      const Numeric   t_mean = ( ppath_t[ip+1] + ppath_t[ip] ) / 2.0;
-            Vector    vmr_mean( nabs );
-      for( Index ia=0; ia<nabs; ia++ )
-        { vmr_mean[ia] = 0.5 * ( ppath_vmr(ia,ip+1) + ppath_vmr(ia,ip) ); }
-
-      // Calculate emission and absorption terms
-      //
-      // We must use temporary vectors as the agenda input must be
-      // free to be resized
-      Vector   evector;
-      Matrix   sgmatrix;
-      //
-      abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, p_mean, t_mean, 
-                                                  vmr_mean, abs_scalar_agenda );
-      ppath_abs_scalar(joker,joker,ip) = sgmatrix;
-      //
-      if( emission_do )
-        {
-          emission_agendaExecute( ws, evector, t_mean, emission_agenda );
-          ppath_emission(joker,ip) = evector;
-        }
-
-      // Partial and total tau
-      //
-      for( Index iv=0; iv<nf; iv++ )
-        { 
-          ppath_tau(iv,ip)  = ppath.l_step[ip] * sgmatrix(iv,joker).sum(); 
-          total_tau[iv]    += ppath_tau(iv,ip);
-        }
-    }
-}
-
-
-
-//! Help function for analytical jacobian calculations
-/*!
-    The function determines which terms in jacobian_quantities that are 
-    analytical absorption species and temperature jacobians. 
-
-    *abs_species_i* and *is_t* shall be sized to have the same length
-    as *jacobian_quantities*. For analytical absorption species
-    jacobians, *abs_species_i* is set to the matching index in
-    *abs_species*. Otherwise, to -1. For analytical temperature
-    jacobians, *is_t* is set to 1. Otherwise to 0.
-
-    \param   abs_species_i         Out: Matching index in abs_species 
-    \param   is_t                  Out: Flag for: Is a temperature jacobian?
-    \param   jacobian_quantities   As the WSV.
-    \param   abs_species           As the WSV.
-
-
-    \author Patrick Eriksson 
-    \date   2009-10-07
-*/
-void get_pointers_for_analytical_jacobians( 
-        ArrayOfIndex&               abs_species_i, 
-        ArrayOfIndex&               is_t,
-  const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfSpeciesTag&   abs_species )
-{
-
-  FOR_ANALYTICAL_JACOBIANS_DO( 
-    //
-    if( jacobian_quantities[iq].MainTag() == TEMPERATURE_MAINTAG )
-      { is_t[iq] = 1; }
-    else
-      { is_t[iq] = 0; }
-    //
-    if( jacobian_quantities[iq].MainTag() == ABSSPECIES_MAINTAG )
-      {
-        ArrayOfSpeciesTag  atag;
-        array_species_tag_from_string( atag, jacobian_quantities[iq].Subtag() );
-        abs_species_i[iq] = chk_contains( "abs_species", abs_species, atag );
-      }
-    else
-      { abs_species_i[iq] = -1; }
-  )
-}
-
-
-
-//! diy_from_path_to_rgrids
-/*!
-    Maps jacobian data for points along the propagation path, to
-    jacobian retrieval grid data.
-
-    \param   diy_dx              Out: Jacobians for selected retrieval grids.
-    \param   jacobian_quantity   As the WSV.
-    \param   diy_dpath           Jacobians along the propagation path.
-    \param   atmosphere_dim      As the WSV.
-    \param   ppath               As the WSV.
-    \param   ppath_p             The pressure at each ppath point.
-
-    \author Patrick Eriksson 
-    \date   2009-10-08
-*/
-// A small help function, to make the code below cleaner
-void from_dpath_to_dx(
-         MatrixView   diy_dx,
-    ConstMatrixView   diy_dq,
-    const Numeric&    w )
-{
-  for( Index irow=0; irow<diy_dx.nrows(); irow++ )
-    { 
-      for( Index icol=0; icol<diy_dx.ncols(); icol++ )
-        { diy_dx(irow,icol) += w * diy_dq(irow,icol); }
-    }
-}
-//
-void diy_from_path_to_rgrids(
-         Tensor3View          diy_dx,
-   const RetrievalQuantity&   jacobian_quantity,
-   ConstTensor3View           diy_dpath,
-   const Index&               atmosphere_dim,
-   const Ppath&               ppath,
-   ConstVectorView            ppath_p )
-{
-  // We want here an extrapolation to infinity -> 
-  //                                        extremly high extrapolation factor
-  const Numeric   extpolfac = 1.0e99;
-
-  // Retrieval grid of interest
-  Vector r_grid;
-
-  if( ppath.np > 1 )  // Otherwise nothing to do here
-    {
-      // Pressure
-      r_grid = jacobian_quantity.Grids()[0];
-      Index            nr1 = r_grid.nelem();
-      ArrayOfGridPos   gp_p(ppath.np);
-      p2gridpos( gp_p, r_grid, ppath_p, extpolfac );
-
-      // Latitude
-      Index            nr2 = 1;
-      ArrayOfGridPos   gp_lat;
-      if( atmosphere_dim > 1 )
-        {
-          gp_lat.resize(ppath.np);
-          r_grid = jacobian_quantity.Grids()[1];
-          nr2    = r_grid.nelem();
-          gridpos( gp_lat, r_grid, ppath.pos(joker,1), extpolfac );
-        }
-
-      // Longitude
-      Index            nr3 = 1;
-      ArrayOfGridPos   gp_lon;
-      if( atmosphere_dim > 2 )
-        {
-          gp_lon.resize(ppath.np);
-          r_grid = jacobian_quantity.Grids()[2];
-          nr3    = r_grid.nelem();
-          gridpos( gp_lon, r_grid, ppath.pos(joker,2), extpolfac );
-        }
-      
-      //- 1D
-      if( atmosphere_dim == 1 )
-        {
-          for( Index ip=0; ip<ppath.np; ip++ )
-            {
-              if( gp_p[ip].fd[0] < 1 )
-                {
-                  from_dpath_to_dx( diy_dx(gp_p[ip].idx,joker,joker),
-                                    diy_dpath(ip,joker,joker), gp_p[ip].fd[1] );
-                }
-              if( gp_p[ip].fd[0] > 0 )
-                {
-                  from_dpath_to_dx( diy_dx(gp_p[ip].idx+1,joker,joker),
-                                    diy_dpath(ip,joker,joker), gp_p[ip].fd[0] );
-                }
-            }
-        }
-
-      //- 2D
-      else if( atmosphere_dim == 2 )
-        {
-          for( Index ip=0; ip<ppath.np; ip++ )
-            {
-              Index   ix = nr1*gp_lat[ip].idx + gp_p[ip].idx;
-              // Low lat, low p
-              from_dpath_to_dx( diy_dx(ix,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                                gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
-              // Low lat, high p
-              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                                gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
-              // High lat, low p
-              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                                gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
-              // High lat, high p
-              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                                gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
-            }
-        }
-
-      //- 3D
-      else if( atmosphere_dim == 3 )
-        {
-          for( Index ip=0; ip<ppath.np; ip++ )
-            {
-              Index   ix = nr2*nr1*gp_lon[ip].idx +
-                           nr1*gp_lat[ip].idx + gp_p[ip].idx;
-              // Low lon, low lat, low p
-              from_dpath_to_dx( diy_dx(ix,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
-              // Low lon, low lat, high p
-              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
-              // Low lon, high lat, low p
-              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
-              // Low lon, high lat, high p
-              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
-
-              // Increase *ix* (to be valid for high lon level)
-              ix += nr2*nr1;
-
-              // High lon, low lat, low p
-              from_dpath_to_dx( diy_dx(ix,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
-              // High lon, low lat, high p
-              from_dpath_to_dx( diy_dx(ix+1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
-              // High lon, high lat, low p
-              from_dpath_to_dx( diy_dx(ix+nr1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
-              // High lon, high lat, high p
-              from_dpath_to_dx( diy_dx(ix+nr1+1,joker,joker),
-                                diy_dpath(ip,joker,joker), 
-                             gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
-            }
-        }
-    }
-}
-
-
-
-//! vmrunitscf
-/*!
-    Scale factor for conversion between gas species units.
-
-    The function finds the factor with which the total absorption of a
-    gas species shall be multiplicated to match the selected
-    (jacobian) unit. 
-
-    \param   x      Out: scale factor
-    \param   unit   Unit selected.
-    \param   vmr    VMR value.
-    \param   p      Pressure
-    \param   t      Temperature.
-
-    \author Patrick Eriksson 
-    \date   2009-10-08
-*/
-void vmrunitscf(  
-        Numeric&   x, 
-  const String&    unit, 
-  const Numeric&   vmr,
-  const Numeric&   p,
-  const Numeric&   t )
-{
-  if( unit == "rel" || unit == "logrel" )
-    { x = 1; }
-  else if( unit == "vmr" )
-    { x = 1 / vmr; }
-  else if( unit == "nd" )
-    { x = 1 / ( vmr * number_density( p, t ) ); }
-  else
-    {
-      throw runtime_error( "Allowed options for gas species jacobians are "
-                                 "\"rel\", \"vmr\", \"nd\" and \"logrel\"." );
-    }
-}
-
-
-
-//! get_iy_of_background
-/*!
-    Determines iy of the "background" of a propgation path.
-
-    The task is to determine *iy* and related variables for the
-    background, or to continue the raditiave calculations
-    "backwards". The details here depends on the method selected for
-    the agendas.
-
-    Each background is handled by an agenda. Several of these agandes
-    can involve recursive calls of *iy_clearsky_agenda*. It is also
-    allowed to input *iy_clearsky_basic_agenda* instead of
-    *iy_clearsky_agenda*.
-
-    \param   ws                    Out: The workspace
-    \param   iy                    Out: As the WSV.
-    \param   iy_error              Out: As the WSV.
-    \param   iy_error_type         Out: As the WSV.
-    \param   iy_aux                Out: As the WSV.
-    \param   diy_aux               Out: As the WSV.
-    \param   iy_transmission       As the WSV.
-    \param   iy_aux_do             As the WSV.
-    \param   jacobian_do           As the WSV.
-    \param   ppath                 As the WSV.
-    \param   atmosphere_dim        As the WSV.
-    \param   p_grid                As the WSV.
-    \param   lat_grid              As the WSV.
-    \param   lon_grid              As the WSV.
-    \param   t_field               As the WSV.
-    \param   vmr_field             As the WSV.
-    \param   cloudbox_on           As the WSV.
-    \param   stokes_dim            As the WSV.
-    \param   f_grid                As the WSV.
-    \param   iy_clearsky_agenda    As the WSV or iy_clearsky_basic_agenda.
-    \param   iy_space_agenda       As the WSV.
-    \param   surface_prop_agenda   As the WSV.
-    \param   iy_cloudbox_agenda    As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2009-10-08
-*/
-void get_iy_of_background(
-        Workspace&        ws,
-        Matrix&           iy,
-        Matrix&           iy_error,
-        Index&            iy_error_type,
-        Tensor3&          iy_aux,
-        ArrayOfTensor3&   diy_dx,
-  ConstTensor3View        iy_transmission,
-  const Index&            iy_aux_do,
-  const Index&            jacobian_do,
-  const Ppath&            ppath,
-  const Index&            atmosphere_dim,
-  ConstVectorView         p_grid,
-  ConstVectorView         lat_grid,
-  ConstVectorView         lon_grid,
-  ConstTensor3View        t_field,
-  ConstTensor4View        vmr_field,
-  const Index&            cloudbox_on,
-  const Index&            stokes_dim,
-  ConstVectorView         f_grid,
-  const Agenda&           iy_clearsky_agenda,
-  const Agenda&           iy_space_agenda,
-  const Agenda&           surface_prop_agenda,
-  const Agenda&           iy_cloudbox_agenda )
-{
-  // Some sizes
-  const Index nf      = f_grid.nelem();
-  const Index np      = ppath.np;
-
-  // Set rte_pos, rte_gp_XXX and rte_los to match the last point in ppath.
-  // The agendas below use different combinations of these variables.
-  //
-  // Note that the Ppath positions (ppath.pos) for 1D have one column more
-  // than expected by most functions. Only the first atmosphere_dim values
-  // shall be copied.
-  //
-  Vector rte_pos;
-  Vector rte_los;
-  GridPos rte_gp_p;
-  GridPos rte_gp_lat;
-  GridPos rte_gp_lon;
-  rte_pos.resize( atmosphere_dim );
-  rte_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
-  rte_los.resize( ppath.los.ncols() );
-  rte_los = ppath.los(np-1,joker);
-  gridpos_copy( rte_gp_p, ppath.gp_p[np-1] );
-  if( atmosphere_dim > 1 )
-    { gridpos_copy( rte_gp_lat, ppath.gp_lat[np-1] ); }
-  if( atmosphere_dim > 2 )
-    { gridpos_copy( rte_gp_lon, ppath.gp_lon[np-1] ); }
-
-  out3 << "Radiative background: " << ppath.background << "\n";
-
-
-  // Handle the different background cases
-  //
-  switch( ppath_what_background( ppath ) )
-    {
-      // All "interfaces" still work with transposed iy !!!
-
-    case 1:   //--- Space ---------------------------------------------------- 
-      {
-        iy_space_agendaExecute( ws, iy, rte_pos, rte_los, iy_space_agenda );
-        
-        if( iy.ncols() != stokes_dim  ||  iy.nrows() != nf )
-          {
-            ostringstream os;
-            os << "expected size = [" << stokes_dim << "," << nf << "]\n"
-               << "size of iy    = [" << iy.nrows() << "," << iy.ncols()<< "]\n"
-               << "The size of *iy* returned from *iy_space_agenda* is "
-               << "not correct.";
-            throw runtime_error( os.str() );      
-          }
-      }
-      break;
-
-    case 2:   //--- The surface -----------------------------------------------
-      {
-        // Call *surface_prop_agenda*
-        //
-        Matrix    surface_los;
-        Tensor4   surface_rmatrix;
-        Matrix    surface_emission;
-        //
-        surface_prop_agendaExecute( ws, surface_emission, surface_los, 
-                                    surface_rmatrix, rte_pos, rte_los, 
-                                    rte_gp_p, rte_gp_lat, rte_gp_lon,
-                                    surface_prop_agenda );
-
-        // Check output of *surface_prop_agenda*
-        //
-        const Index   nlos = surface_los.nrows();
-        if( nlos )   // if 0, blackbody ground and some checks are not needed
-          {
-            if( surface_los.ncols() != rte_los.nelem() )
-              throw runtime_error( 
-                        "Number of columns in *surface_los* is not correct." );
-            if( nlos != surface_rmatrix.nbooks() )
-              throw runtime_error( 
-                  "Mismatch in size of *surface_los* and *surface_rmatrix*." );
-            if( surface_rmatrix.npages() != nf )
-              throw runtime_error( 
-                       "Mismatch in size of *surface_rmatrix* and *f_grid*." );
-            if( surface_rmatrix.nrows() != stokes_dim  ||  
-                surface_rmatrix.ncols() != stokes_dim ) 
-              throw runtime_error( 
-              "Mismatch between size of *surface_rmatrix* and *stokes_dim*." );
-          }
-        if( surface_emission.ncols() != stokes_dim )
-          throw runtime_error( 
-             "Mismatch between size of *surface_emission* and *stokes_dim*." );
-        if( surface_emission.nrows() != nf )
-          throw runtime_error( 
-                       "Mismatch in size of *surface_emission* and f_grid*." );
-        //---------------------------------------------------------------------
-
-        // Variable to hold down-welling radiation
-        Tensor3   I( nlos, nf, stokes_dim );
- 
-        // Loop *surface_los*-es. If no such LOS, we are ready.
-        if( nlos > 0 )
-          {
-            for( Index ilos=0; ilos<nlos; ilos++ )
-              {
-                // Include surface reflection matrix in *iy_transmission*
-                // If iy_transmission is empty, this is interpreted as the
-                // variable is not needed.
-                //
-                Tensor3 iy_trans_new;
-                //
-                if( iy_transmission.npages() )
-                  {
-                    iy_transmission_mult(  iy_trans_new, iy_transmission, 
-                                     surface_rmatrix(ilos,joker,joker,joker) );
-                  }
-
-                // Calculate downwelling radiation for LOS ilos 
-                //
-                // The variable iy_clearsky_agenda can in fact be 
-                // iy_clearsky_BASIC_agenda
-                //
-                if( iy_clearsky_agenda.name() == "iy_clearsky_basic_agenda" )
-                  {
-                    iy_clearsky_basic_agendaExecute (ws, iy, rte_pos, 
-                                         surface_los(ilos,joker), cloudbox_on, 
-                                                           iy_clearsky_agenda);
-                  }
-                else
-                  {
-                    iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
-                            iy_aux, diy_dx, 0, rte_pos, surface_los(ilos,joker),
-                            iy_trans_new, cloudbox_on, jacobian_do, iy_aux_do, 
-                            f_grid, p_grid, lat_grid, lon_grid, t_field, 
-                            vmr_field, iy_clearsky_agenda );
-                  }
-
-                I(ilos,joker,joker) = iy;
-              }
-          }
-
-        // Add up
-        surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
-      }
-      break;
-
-
-    case 3:   //--- Cloudbox surface or interior ------------------------------
-    case 4:
-      {
-        // Pass a local copy of ppath to the cloudbox agenda
-        Ppath   ppath_local;
-        ppath_init_structure( ppath_local, atmosphere_dim, ppath.np );
-        ppath_copy( ppath_local, ppath );
-
-        // The cloudbox agenda is not yet handling iy_aux and iy_transmission.
-        //
-        iy_cloudbox_agendaExecute( ws, iy, ppath_local,
-                                   rte_pos, rte_los, rte_gp_p,
-                                   rte_gp_lat, rte_gp_lon,
-                                   iy_cloudbox_agenda );
-
-        if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
-          {
-            out1 << "expected size = [" << nf << "," << stokes_dim << "]\n";
-            out1 << "iy size = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
-            throw runtime_error( "The size of *iy* returned from "
-                                      "*iy_cloudbox_agenda* is not correct." );
-          }
-      }
-      break;
-
-    default:  //--- ????? ----------------------------------------------------
-      // Are we here, the coding is wrong somewhere
-      assert( false );
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void iyMC(
-        Workspace&                  ws,
-        Matrix&                     iy,
-        Matrix&                     iy_error,
-        Index&                      iy_error_type,
-        Tensor3&                    iy_aux,
-        ArrayOfTensor3&             diy_dx,
-  const Index&                      iy_agenda_call1,
-  const Vector&                     rte_pos,      
-  const Vector&                     rte_los,      
-  const Index&                      iy_aux_do,
-  const Index&                      jacobian_do,
-  const Index&                      atmosphere_dim,
-  const Vector&                     p_grid,
-  const Vector&                     lat_grid,
-  const Vector&                     lon_grid,
-  const Tensor3&                    z_field,
-  const Tensor3&                    t_field,
-  const Tensor4&                    vmr_field,
-  const Matrix&                     r_geoid,
-  const Matrix&                     z_surface,
-  const Index&                      cloudbox_on,
-  const ArrayOfIndex&               cloudbox_limits,
-  const Index&                      stokes_dim,
-  const Vector&                     f_grid,
-  const ArrayOfSingleScatteringData&   scat_data_raw,
-  const Agenda&                     iy_space_agenda,
-  const Agenda&                     surface_prop_agenda,
-  const Agenda&                     abs_scalar_gas_agenda, 
-  const Agenda&                     opt_prop_gas_agenda,
-  const Tensor4&                    pnd_field,
-  const Tensor3&                    iy_transmission,
-  const String&                     y_unit,
-  const Numeric&                    mc_std_err,
-  const Index&                      mc_max_time,
-  const Index&                      mc_max_iter,
-  const Index&                      mc_z_field_is_1D )
-{
-  // Throw error if unsupported features are requested
-  if( atmosphere_dim != 3 )
-    throw runtime_error( 
-                "Only 3D atmospheres are allowed (atmosphere_dim must be 3)" );
-  if( !cloudbox_on )
-    throw runtime_error( 
-                    "The cloudbox must be activated (cloudbox_on must be 1)" );
-  if( iy_aux_do )
-    throw runtime_error( 
-      "This method does not provide any auxilary data (iy_aux_do must be 0)" );
-  if( jacobian_do )
-    throw runtime_error( 
-        "This method does not provide any jacobians (jacobian_do must be 0)" );
-  if( !iy_agenda_call1 )
-    throw runtime_error( 
-                  "Recursive usage not possible (iy_agenda_call1 must be 1)" );
-  if( iy_transmission.ncols() )
-    throw runtime_error( "*iy_transmission* must be empty" );
-
-  // Size output variables
-  //
-  const Index   nf  = f_grid.nelem();
-  //
-  iy.resize( nf, stokes_dim );
-  iy_error.resize( nf, stokes_dim );
-  iy_error_type = 1;
-  //
-  iy_aux.resize( 0, 0, 0 );
-  diy_dx.resize(0);
-
-  // Some MC variables are only local here
-  Tensor3  mc_points;
-  Index    mc_iteration_count, mc_seed;
-  //
-  MCAntenna mc_antenna;
-  mc_antenna.set_pencil_beam();
-
-  // Pos and los must be matrices 
-  Matrix pos(1,3), los(1,2);
-  //
-  pos(0,joker) = rte_pos;
-  los(0,joker) = rte_los;
-
-  for( Index f_index=0; f_index<nf; f_index++ )
-    {
-      ArrayOfSingleScatteringData   scat_data_mono;
-      
-      scat_data_monoCalc( scat_data_mono, scat_data_raw, 
-                                          f_grid, f_index );
-
-      // Seed reset for each loop. If not done, the errors 
-      // appear to be highly correlated.
-      MCSetSeedFromTime( mc_seed );
-
-      Vector y, mc_error;
-                  
-      MCGeneral( ws, y, mc_iteration_count, mc_error, mc_points, 
-                 mc_antenna, f_grid, f_index, pos, los, stokes_dim, 
-                 iy_space_agenda, surface_prop_agenda, opt_prop_gas_agenda,
-                 abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, z_field, 
-                 r_geoid, z_surface, t_field, vmr_field, cloudbox_limits, 
-                 pnd_field, scat_data_mono, mc_seed, y_unit, mc_std_err, 
-                 mc_max_time, mc_max_iter, mc_z_field_is_1D ); 
-
-      assert( y.nelem() == stokes_dim );
- 
-      // Data returned can not be in Tb
-      if ( y_unit == "RJBT" )
-        { 
-          const Numeric scfac = invrayjean( 1, f_grid[f_index] );
-          y /= scfac;
-          mc_error /= scfac;
-        }
-     
-      iy(f_index,joker) = y;
-      iy_error(f_index,joker) = mc_error;
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionStandardClearsky(
-        Workspace&                  ws,
-        Matrix&                     iy,
-        Matrix&                     iy_error,
-        Index&                      iy_error_type,
-        Tensor3&                    iy_aux,
-        ArrayOfTensor3&             diy_dx,
-  const Index&                      iy_agenda_call1,
-  const Vector&                     rte_pos,      
-  const Vector&                     rte_los,      
-  const Index&                      iy_aux_do,
-  const Index&                      jacobian_do,
-  const Index&                      atmosphere_dim,
-  const Vector&                     p_grid,
-  const Vector&                     lat_grid,
-  const Vector&                     lon_grid,
-  const Tensor3&                    z_field,
-  const Tensor3&                    t_field,
-  const Tensor4&                    vmr_field,
-  const Matrix&                     r_geoid,
-  const Matrix&                     z_surface,
-  const Index&                      cloudbox_on,
-  const ArrayOfIndex&               cloudbox_limits,
-  const Index&                      stokes_dim,
-  const Vector&                     f_grid,
-  const ArrayOfArrayOfSpeciesTag&   abs_species,
-  const Agenda&                     ppath_step_agenda,
-  const Agenda&                     emission_agenda,
-  const Agenda&                     abs_scalar_agenda,
-  const Agenda&                     iy_clearsky_agenda,
-  const Agenda&                     iy_space_agenda,
-  const Agenda&                     surface_prop_agenda,
-  const Agenda&                     iy_cloudbox_agenda,
-  const Tensor3&                    iy_transmission,
-  const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices )
-{
-  // A minimal amount of checks, for efficiency reasons
-  assert( rte_pos.nelem() == atmosphere_dim );
-  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
-          ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
-
-  // Some sizes
-  //
-  const Index   nf  = f_grid.nelem();
-
-  // Determine if there are any analytical jacobians to handle
-  //
-  Index j_analytical_do = 0;
-  //
-  if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
-
-  // If primary call, initilise iy_aux and diy_dx
-  //
-  if( iy_agenda_call1 )
-    {
-      // Error are considered to be zero
-      iy_error.resize( 0, 0 );
-      iy_error_type = 0;
-      //
-      if( iy_aux_do ) { iy_aux.resize( 3, nf, stokes_dim ); iy_aux = 0; }
-      else            { iy_aux.resize( 0, 0, 0 ); }
-      //
-      if( j_analytical_do ) 
-        {
-          diy_dx.resize( jacobian_indices.nelem() ); 
-          //
-          FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dx[iq].resize( jacobian_indices[iq][1] - 
-                               jacobian_indices[iq][0] + 1, nf, stokes_dim ); 
-            diy_dx[iq] = 0.0;
-          ) 
-        }
-      else { diy_dx.resize( 0 ); }
-    }
-
-  //- Determine propagation path
-  //
-  Ppath  ppath;
-  //
-  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
-              lat_grid, lon_grid, z_field, r_geoid, z_surface,
-              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
-  //
-  const Index   i_background = ppath_what_background( ppath );
-
-
-  // Get quantities required for each ppath point, and update iy_transmission
-  //
-  // If np = 1, we only need to determine the radiative background
-  //
-  const Index     np  = ppath.np;
-        Vector    ppath_p, ppath_t, total_tau;
-        Matrix    ppath_vmr, ppath_emission, ppath_tau;
-        Tensor3   ppath_abs_scalar, iy_trans_new;
-  //
-  if( np > 1 )
-    {
-      // Get pressure, temperature and VMRs
-      //
-      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
-                           p_grid, lat_grid, lon_grid, t_field, vmr_field );
-
-      // Get emission, absorption, optical thickness for each step, and total
-      // optical thickness
-      //
-      get_step_vars_for_standardRT( ws, ppath_abs_scalar, ppath_emission, 
-                                    ppath_tau, total_tau, abs_scalar_agenda, 
-                                    emission_agenda, ppath, ppath_p, ppath_t, 
-                                    ppath_vmr, nf, 1 );
-    }
-
-  // Handle iy_transmission (the variable not needed when background is
-  // space or no analytical jacobians will be calculated)
-  //
-  if( ( i_background > 1 && j_analytical_do )  ||  iy_aux_do )
-    {
-      if( iy_agenda_call1 )
-        { iy_transmission_for_scalar_tau( iy_trans_new, stokes_dim, 
-                                                                 total_tau ); }
-      else
-        { iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, 
-                                                                 total_tau ); }
-    }
-
-  // Radiative background
-  //
-  get_iy_of_background( 
-                ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
-                iy_aux_do, jacobian_do, ppath, atmosphere_dim, p_grid, 
-                lat_grid, lon_grid, t_field, vmr_field, cloudbox_on, 
-                stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda, 
-                surface_prop_agenda, iy_cloudbox_agenda );
-  
-  // Set iy_aux 
-  //
-  if( iy_aux_do ) 
-    {
-      // Fill transmission if background is TOA or surface
-      if( i_background <= 2 )
-        {
-          for( Index iv=0; iv<nf; iv++ )
-            { 
-              for( Index is=0; is<stokes_dim; is++ )
-                { iy_aux( 0, iv, is ) = iy_trans_new( iv, is, is ); }
-            }
-        }
-      //
-      // Set background if primary call
-      if( iy_agenda_call1 )
-        { iy_aux( 1, joker, joker ) = (Numeric)i_background; }
-      // 
-      // Flag intersection with cloudbox
-      if( i_background >= 3 )
-        { iy_aux( 2, joker, joker ) = 1.0; }
-    }    
-
-  // Do RT calculations
-  //
-  if( np > 1 )
-    {
-      // Create container for the derivatives with respect to changes
-      // at each ppath point. And find matching abs_species-index and 
-      // "temperature flag" (for analytical jacobians).
-      //
-      ArrayOfTensor3  diy_dpath; 
-      ArrayOfIndex    abs_species_i, is_t; 
-      //
-      const Numeric   dt = 0.1;
-            Matrix    ppath_e2;
-            Tensor3   ppath_as2;
-      //
-      if( j_analytical_do )
-        { 
-          diy_dpath.resize( jacobian_indices.nelem() ); 
-          abs_species_i.resize( jacobian_indices.nelem() ); 
-          is_t.resize( jacobian_indices.nelem() ); 
-          //
-          FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dpath[iq].resize( np, nf, stokes_dim ); 
-            diy_dpath[iq] = 0.0;
-          )
-          get_pointers_for_analytical_jacobians( abs_species_i, is_t, 
-                                            jacobian_quantities, abs_species );
-          //
-          // Get emission and absorption for disturbed temperature
-          Index do_t=0;
-          for( Index iq=0; iq<is_t.nelem() && do_t==0; iq++ )
-            { if( is_t[iq] ) { do_t = 1; } }
-          if( do_t )
-            {
-              Matrix mdummy; Vector vdummy, t2=ppath_t;
-              for( Index i=0; i<t2.nelem(); i++ ) { t2[i] += dt; }
-              get_step_vars_for_standardRT( ws, ppath_as2, ppath_e2, mdummy, 
-                                   vdummy, abs_scalar_agenda, emission_agenda,
-                                   ppath, ppath_p, t2, ppath_vmr, nf, 1 );
-            }
-        }
-
-      // Loop ppath steps
-      for( Index ip=np-2; ip>=0; ip-- )
-        {
-          // Loop frequencies
-          for( Index iv=0; iv<nf; iv++ )
-            { 
-              // Jacobian quantities
-              if( j_analytical_do )
-                {
-                  const Numeric A = ppath.l_step[ip] * exp( -total_tau[iv] );
-                  const Numeric B = 0.5 * A * (ppath_emission(iv,ip)-iy(iv,0));
-                  
-                  for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) 
-                    {
-                      if( jacobian_quantities[iq].Analytical() )
-                        {
-                          // Absorbing species
-                          const Index isp = abs_species_i[iq]; 
-                          if( isp >= 0 )
-                            {
-                              // Scaling factors to handle retrieval unit
-                              Numeric unitscf1, unitscf2;
-                              vmrunitscf( unitscf1, 
-                                          jacobian_quantities[iq].Mode(), 
-                                          ppath_vmr(isp,ip), ppath_p[ip], 
-                                          ppath_t[ip] );
-                              vmrunitscf( unitscf2, 
-                                          jacobian_quantities[iq].Mode(), 
-                                          ppath_vmr(isp,ip+1), ppath_p[ip+1], 
-                                          ppath_t[ip+1] );
-                              //
-                              // Stokes component 1
-                              const Numeric w0 = B*ppath_abs_scalar(iv,isp,ip);
-                              diy_dpath[iq](ip  ,iv,0) += unitscf1 * w0;
-                              diy_dpath[iq](ip+1,iv,0) += unitscf2 * w0;
-                              //
-                              // Higher stokes components
-                              for( Index is=1; is<stokes_dim; is++ )
-                                { 
-                                  const Numeric wi = -0.5 * A * iy(iv,is) *
-                                                   ppath_abs_scalar(iv,isp,ip);
-                                  diy_dpath[iq](ip  ,iv,is) += unitscf1 * wi;
-                                  diy_dpath[iq](ip+1,iv,is) += unitscf2 * wi;
-                                }
-                            }
-
-                          // Temperature
-                          else if( is_t[iq] )
-                            {
-                              const Numeric dkdt = 
-                                  ( ppath_as2(iv,joker,ip).sum()
-                                  - ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
-                              const Numeric dbdt = ( ppath_e2(iv,ip) -
-                                                  ppath_emission(iv,ip) ) / dt;
-                              //
-                              // Stokes component 1
-                              const Numeric w0 = B * dkdt + ( 
-                                       exp(-(total_tau[iv]-ppath_tau(iv,ip))) -
-                                       exp( -total_tau[iv]) ) * dbdt;
-                              diy_dpath[iq](ip  ,iv,0) += w0;
-                              diy_dpath[iq](ip+1,iv,0) += w0;
-                              //
-                              // Higher stokes components
-                              for( Index is=1; is<stokes_dim; is++ )
-                                { 
-                                  const Numeric wi = -0.5 * A * iy(iv,is)*dkdt;
-                                  diy_dpath[iq](ip  ,iv,is) += wi;
-                                  diy_dpath[iq](ip+1,iv,is) += wi;
-                                }
-                            }
-                        }
-                    }
-                  
-                  // Update total_tau (not used for spectrum calculation)
-                  total_tau[iv] -= ppath_tau(iv,ip);
-                }
-
-              // Spectrum
-              //
-              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
-              //
-              iy(iv,0)  = iy(iv,0)*step_tr + ppath_emission(iv,ip)*(1-step_tr); 
-              //
-              for( Index is=1; is<stokes_dim; is++ )
-                { iy(iv,is) *= step_tr; }
-            }
-        } 
-
-      // Map jacobians from ppath to retrieval grids
-      if( j_analytical_do )
-        { 
-          // Weight with iy_transmission
-          if( !iy_agenda_call1 )
-            {
-              FOR_ANALYTICAL_JACOBIANS_DO( 
-                for( Index iv=0; iv<nf; iv++ )
-                  { 
-                    Matrix X;
-                    X = diy_dpath[iq](joker,iv,joker);
-                    mult( diy_dpath[iq](joker,iv,joker), 
-                                          iy_transmission(iv,joker,joker), X );
-                  }
-               )
-            }
-
-          // Map to retrieval grids
-          FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_from_path_to_rgrids( diy_dx[iq], jacobian_quantities[iq], 
-                               diy_dpath[iq], atmosphere_dim, ppath, ppath_p );
-          )
-        }
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void iyEmissionStandardClearskyBasic(
-        Workspace&                  ws,
-        Matrix&                     iy,
-  const Vector&                     rte_pos,      
-  const Vector&                     rte_los,      
-  const Index&                      atmosphere_dim,
-  const Vector&                     p_grid,
-  const Vector&                     lat_grid,
-  const Vector&                     lon_grid,
-  const Tensor3&                    z_field,
-  const Tensor3&                    t_field,
-  const Tensor4&                    vmr_field,
-  const Matrix&                     r_geoid,
-  const Matrix&                     z_surface,
-  const Index&                      cloudbox_on,
-  const ArrayOfIndex&               cloudbox_limits,
-  const Index&                      stokes_dim,
-  const Vector&                     f_grid,
-  const Agenda&                     ppath_step_agenda,
-  const Agenda&                     emission_agenda,
-  const Agenda&                     abs_scalar_agenda,
-  const Agenda&                     iy_clearsky_basic_agenda,
-  const Agenda&                     iy_space_agenda,
-  const Agenda&                     surface_prop_agenda,
-  const Agenda&                     iy_cloudbox_agenda )
-{
-  // A minimal amount of checks, for efficiency reasons
-  assert( rte_pos.nelem() == atmosphere_dim );
-  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
-          ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
-
-
-  //- Determine propagation path
-  //
-  Ppath  ppath;
-  //
-  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
-              lat_grid, lon_grid, z_field, r_geoid, z_surface,
-              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
-
-
-  // Get quantities required for each ppath point
-  //
-  // If np = 1, we only need to determine the radiative background
-  //
-  const Index     nf  = f_grid.nelem();
-  const Index     np  = ppath.np;
-        Vector    ppath_p, ppath_t, total_tau;
-        Matrix    ppath_vmr, ppath_emission, ppath_tau;
-        Tensor3   ppath_abs_scalar, iy_trans_new;
-  //
-  if( np > 1 )
-    {
-      // Get pressure, temperature and VMRs
-      //
-      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
-                           p_grid, lat_grid, lon_grid, t_field, vmr_field );
-
-      // Get emission, absorption and optical thickness for each step
-      //
-      get_step_vars_for_standardRT( ws, ppath_abs_scalar, ppath_emission, 
-                                    ppath_tau, total_tau, 
-                                    abs_scalar_agenda, emission_agenda,
-                                    ppath, ppath_p, ppath_t, ppath_vmr, nf, 1 );
-    }
-
-
-  // Radiative background
-  //
-  Matrix          dummy1;
-  Index           dummy2;
-  Tensor3         dummy3, dummy5;
-  ArrayOfTensor3  dummy4;
-  //  
-  get_iy_of_background( ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
-                        0, 0, ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
-                        t_field, vmr_field, cloudbox_on, stokes_dim,
-                        f_grid, iy_clearsky_basic_agenda, iy_space_agenda, 
-                        surface_prop_agenda, iy_cloudbox_agenda );
-
-
-  // Do RT calculations
-  //
-  if( np > 1 )
-    {
-      // Loop ppath steps
-      for( Index ip=np-2; ip>=0; ip-- )
-        {
-          // Loop frequencies
-          for( Index iv=0; iv<nf; iv++ )
-            { 
-
-              const Numeric step_tr = exp( -ppath_tau(iv,ip) );
-              //
-              iy(iv,0)  = iy(iv,0)*step_tr + ppath_emission(iv,ip)*(1-step_tr); 
-              //
-              for( Index is=1; is<stokes_dim; is++ )
-                { iy(iv,is) *= step_tr; }
-            }
-        } 
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-
-/*
-void iyTransmissionStandardClearsky(
-        Workspace&                  ws,
-        Matrix&                     iy,
-        Tensor3&                    iy_aux,
-        ArrayOfTensor3&             diy_dx,
-  const Index&                      iy_agenda_call1,
-  const Vector&                     rte_pos,      
-  const Vector&                     rte_los,      
-  const Index&                      iy_aux_do,
-  const Index&                      jacobian_do,
-  const Index&                      atmosphere_dim,
-  const Vector&                     p_grid,
-  const Vector&                     lat_grid,
-  const Vector&                     lon_grid,
-  const Tensor3&                    z_field,
-  const Tensor3&                    t_field,
-  const Tensor4&                    vmr_field,
-  const Matrix&                     r_geoid,
-  const Matrix&                     z_surface,
-  const Index&                      cloudbox_on,
-  const ArrayOfIndex&               cloudbox_limits,
-  const Index&                      stokes_dim,
-  const Vector&                     f_grid,
-  const Agenda&                     ppath_step_agenda,
-  const Agenda&                     abs_scalar_agenda,
-  const Agenda&                     iy_clearsky_agenda,
-  const Agenda&                     iy_space_agenda,
-  const Agenda&                     surface_prop_agenda,
-  const Agenda&                     iy_cloudbox_agenda,
-  const Tensor3&                    iy_transmission,
-  const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices )
-{
-  // A minimal amount of checks, for efficiency reasons
-  assert( rte_pos.nelem() == atmosphere_dim );
-  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
-          ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
-
-  // Determine if there are any jacobians to handle
-  //
-  Index j_analytical_do = 0;
-  //
-  if( jacobian_do ) { FOR_ANALYTICAL_JACOBIANS_DO( j_analytical_do = 1; ) }
-
-  // If primary call, initilise iy_aux and diy_dx
-  //
-  const Index     nf  = f_grid.nelem();
-  //
-  if( iy_aux.nrows() == 0 )
-    { 
-      if( !iy_aux_do ) { iy_aux.resize( 0, 0, 0 ); }
-      else             { iy_aux.resize( 3, stokes_dim, nf ); iy_aux = 0; }
-    }
-  //
-  if( iy_agenda_call1 )
-    { 
-      if( !j_analytical_do ) { diy_dx.resize( 0 ); }
-      else
-        {
-          diy_dx.resize( jacobian_indices.nelem() ); 
-          //
-          FOR_ANALYTICAL_JACOBIANS_DO( 
-            diy_dx[iq].resize( jacobian_indices[iq][1]-jacobian_indices[iq][0], 
-                                                              stokes_dim, nf ); 
-            diy_dx[iq] = 0.0;
-          ) 
-        }
-    }
-
-  //- Determine propagation path
-  //
-  Ppath  ppath;
-  //
-  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
-              lat_grid, lon_grid, z_field, r_geoid, z_surface,
-              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
-
-  // Get quantities required for each ppath point, and update iy_transmission
-  //
-  // If np = 1, we only need to determine the radiative background
-  //
-  const Index     np  = ppath.np;
-        Vector    ppath_p, ppath_t, total_tau;
-        Matrix    ppath_vmr, dummy, ppath_tau;
-        Tensor3   ppath_abs_scalar, iy_trans_new;
-  //
-  if( np > 1 )
-    {
-      // Get pressure, temperature and VMRs
-      //
-      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
-                           p_grid, lat_grid, lon_grid, t_field, vmr_field );
-
-      // Get absorption, optical thickness for each step, and total
-      // optical thickness 
-      //
-      get_step_vars_for_standardRT( ws, ppath_abs_scalar, dummy, 
-                                    ppath_tau, total_tau, 
-                                    abs_scalar_agenda, Agenda(),
-                                    ppath, ppath_p, ppath_t, ppath_vmr, nf, 0 );
-
-      // New iy_transmission
-      iy_transmission_mult_scalar_tau( iy_trans_new, iy_transmission, total_tau);
-    }
-  else
-    {
-      // If np=1, *iy_trans_new* can be identical to *iy_transmission*
-      //
-      iy_trans_new = iy_transmission;   // How to avoid copying of values?
-    }
-
-  // Radiative background
-  //
-  Index i_background = 1;
-  //
-  get_iy_of_background( ws, iy, iy_aux, iy_transmission, diy_dx, 
-                      iy_aux_do, jacobian_do, ppath, atmosphere_dim, t_field,
-                      vmr_field, cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda,
-                      iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
-  
-  // Set iy_aux 
-  //
-  if( iy_aux_do ) 
-    {
-      // Set background if primary call
-      if( iy_agenda_call1 )
-        { iy_aux( 0, joker, joker ) = (Numeric)i_background; }
-      // 
-      // Flag intersection with cloudbox
-      if( i_background >= 3 )
-        { iy_aux( 1, joker, joker ) = 1.0; }
-    }    
-
-  // Do RT calculations
-  //
-  if( np > 1 )
-    {
-      for( Index iv=0; iv<nf; iv++ )
-        { 
-          const Numeric path_tr = exp( -total_tau[iv] );
-          //
-          for( Index is=0; is<stokes_dim; is++ )
-            { iy(is,iv) *= path_tr; }
-        }      
-    }
-}
-*/
-
-
-
-//! get_rowindex_for_mblock
-/*!
-    Returns the "range" of *y* corresponding to a measurement block
-
-    \return  The range.
-    \param   sensor_response    As the WSV.
-    \param   imblock            Index of the measurement block.
-
-    \author Patrick Eriksson 
-    \date   2009-10-16
-*/
-Range get_rowindex_for_mblock( 
-  const Sparse&   sensor_response, 
-  const Index&    imblock )
-{
-  const Index   n1y = sensor_response.nrows();
-  return Range( n1y*imblock, n1y );
-}
-
-
-
-//! iyb_calc
-/*!
-    Calculation of pencil beam monochromatic spectra for 1 measurement block.
-
-    All in- and output variables as the WSV with the same name.
-
-    \author Patrick Eriksson 
-    \date   2009-10-16
-*/
-void iyb_calc(
-        Workspace&                  ws,
-        Vector&                     iyb,
-        Vector&                     iyb_error,
-        Index&                      iy_error_type,
-        Matrix&                     iyb_aux,
-        Index&                      n_aux,
-        ArrayOfMatrix&              diyb_dx,
-  const Index&                      imblock,
-  const Index&                      atmosphere_dim,
-  ConstVectorView                   p_grid,
-  ConstVectorView                   lat_grid,
-  ConstVectorView                   lon_grid,
-  ConstTensor3View                  t_field,
-  ConstTensor4View                  vmr_field,
-  const Index&                      cloudbox_on,
-  const Index&                      stokes_dim,
-  ConstVectorView                   f_grid,
-  ConstMatrixView                   sensor_pos,
-  ConstMatrixView                   sensor_los,
-  ConstVectorView                   mblock_za_grid,
-  ConstVectorView                   mblock_aa_grid,
-  const Index&                      antenna_dim,
-  const Agenda&                     iy_clearsky_agenda,
-  const Index&                      iy_aux_do,
-  const String&                     y_unit,
-  const Index&                      j_analytical_do,
-  const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices,
-  const String&                     jacobian_unit )
-{
-  // Sizes
-  const Index   nf      = f_grid.nelem();
-  const Index   nza     = mblock_za_grid.nelem();
-        Index   naa     = mblock_aa_grid.nelem();   
-  if( antenna_dim == 1 )  
-    { naa = 1; }
-  const Index   niyb     = nf * nza * naa * stokes_dim;
-
-  // Size containers for data of 1 measurement block.
-  //
-  // We do not know the number of aux variables. The parallelisation makes it
-  // unsafe to do the allocation of iyb_aux inside the for-loops. We must use 
-  // a hard-coded maximum number.
-  //
-  const Index n_aux_max = 3;
-  n_aux     = -1;   // -1 flags value yet unknown
-  //
-  iyb.resize( niyb );
-  iyb_error.resize( niyb );
-  iyb_aux.resize( niyb, n_aux_max );
-  //
-  if( j_analytical_do )
-    {
-      diyb_dx.resize( jacobian_indices.nelem() );
-      FOR_ANALYTICAL_JACOBIANS_DO(
-        diyb_dx[iq].resize( niyb, jacobian_indices[iq][1] -
-                                  jacobian_indices[iq][0] + 1 );
-      )
-    }
-  else
-    { diyb_dx.resize( 0 ); }
-
-
-  // Start of actual calculations
-
-  for( Index iza=0; iza<nza; iza++ )
-    {
-      // The try block here is necessary to correctly handle
-      // exceptions inside the parallel region. 
-      try
-        {
-          for( Index iaa=0; iaa<naa; iaa++ )
-            {
-              //--- LOS of interest
-              //
-              Vector los( sensor_los.ncols() );
-              //
-              los     = sensor_los( imblock, joker );
-              los[0] += mblock_za_grid[iza];
-
-              // Handle za/aa_grid "out-of-bounds" and mapping effects
-              //
-              if( antenna_dim == 2 )
-                { map_daa( los[0], los[1], los[0], los[1], 
-                                                    mblock_aa_grid[iaa] ); }
-              else if( atmosphere_dim == 1  && abs(los[0]-90) > 90 )
-                { if( los[0] < 0 )          { los[0] = -los[0]; }
-                  else if( los[0] > 180 )   { los[0] = 360 - los[0]; } }
-              else if( atmosphere_dim == 2  && abs(los[0]) > 180 )
-                { los[0] = -sign(los[0])*360 + los[0]; }
-              else if( atmosphere_dim == 3  &&  abs(los[0]-90) > 90 )
-                { map_daa( los[0], los[1], los[0], los[1], 0 ); }
-
-
-              // Calculate iy
-              //
-              Matrix         iy, iy_error;
-              Tensor3        iy_aux, iy_transmission;
-              ArrayOfTensor3 diy_dx; 
-              //
-              iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type, 
-                             iy_aux, diy_dx, 1, sensor_pos(imblock,joker), los, 
-                             iy_transmission, cloudbox_on, j_analytical_do, 
-                             iy_aux_do, f_grid, p_grid, lat_grid, lon_grid, 
-                             t_field, vmr_field, iy_clearsky_agenda );
-
-              // Check sizes
-              //
-              DEBUG_ONLY(
-                assert( iy.ncols() == stokes_dim );
-                assert( iy.nrows() == nf );
-                assert( iy_error_type >= 0  &&  iy_error_type <= 2 );
-                //
-                if( n_aux < 0 )
-                  { 
-                    n_aux = iy_aux.npages(); 
-                    if( n_aux > n_aux_max )
-                      {
-                        ostringstream os;
-                        os << "The number of auxilary variables (columns of "
-                           << "iy_aux) is hard coded.\nIt is presently set to "
-                           << n_aux_max << " variables.";
-                        throw runtime_error( os.str() );      
-                      }
-                  }
-                //
-                if( n_aux )
-                  { 
-                    assert( iy_aux.ncols() == stokes_dim );
-                    assert( iy_aux.nrows() == nf );
-                    assert( iy_aux.npages() == n_aux );
-                  }
-                //
-                if( j_analytical_do )
-                  {
-                    FOR_ANALYTICAL_JACOBIANS_DO(
-                      assert( diy_dx[iq].ncols() == stokes_dim );
-                      assert( diy_dx[iq].nrows() == nf );
-                      assert( diy_dx[iq].npages() == jacobian_indices[iq][1] -
-                                                 jacobian_indices[iq][0] + 1 );
-                    )
-                  }
-              )
-       
-              // iy    : unit conversion and copy to iyb
-              // iy_aux: copy to iyb_aux
-              //
-              apply_y_unit( Tensor3View(iy), y_unit, f_grid );
-              if( iy_error_type > 0 )
-                { apply_y_unit( Tensor3View(iy_error), y_unit, f_grid ); }
-              //
-              const Index row0 =( iza*naa + iaa ) * nf * stokes_dim;
-              //
-              for( Index is=0; is<stokes_dim; is++ )
-                { 
-                  iyb[Range(row0+is,nf,stokes_dim)] = iy(joker,is); 
-                  if( iy_error_type > 0 )
-                    { iyb_error[Range(row0+is,nf,stokes_dim)] = 
-                                                            iy_error(joker,is); 
-                    }
-                  //
-                  for( Index iaux=0; iaux<n_aux; iaux++ )
-                    { 
-                      iyb_aux(Range(row0+is,nf,stokes_dim),iaux) = 
-                                                         iy_aux(iaux,joker,is);
-                    }
-                }
-
-              // Jacobian part
-              if( j_analytical_do )
-                {
-                  // Basically copy calculations for *iy*
-                  FOR_ANALYTICAL_JACOBIANS_DO(
-                    //
-                    apply_j_unit( diy_dx[iq], jacobian_unit, y_unit, f_grid );
-                    //
-                    for( Index ip=0; ip<jacobian_indices[iq][1] -
-                                        jacobian_indices[iq][0]+1; ip++ )
-                      {
-                        for( Index is=0; is<stokes_dim; is++ )
-                          { 
-                            diyb_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
-                                                     diy_dx[iq](ip,joker,is); 
-                          }
-                      }                              
-                  )
-                }
-            }  // End aa loop
-        }  // End try
-
-      catch (runtime_error e)
-        {
-          exit_or_rethrow(e.what());
-        }
-    }  // End za loop
-
-
- 
-}
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void yCalc(
-        Workspace&                  ws,
-        Vector&                     y,
-        Vector&                     y_f,
-        ArrayOfIndex&               y_pol,
-        Matrix&                     y_pos,
-        Matrix&                     y_los,
-        Vector&                     y_error,
-        Matrix&                     y_aux,
-        Matrix&                     jacobian,
-  const Index&                      atm_checked,
-  const Index&                      atmosphere_dim,
-  const Vector&                     p_grid,
-  const Vector&                     lat_grid,
-  const Vector&                     lon_grid,
-  const Tensor3&                    t_field,
-  const Tensor4&                    vmr_field,
-  const Index&                      cloudbox_on,
-  const Index&                      stokes_dim,
-  const Vector&                     f_grid,
-  const Matrix&                     sensor_pos,
-  const Matrix&                     sensor_los,
-  const Vector&                     mblock_za_grid,
-  const Vector&                     mblock_aa_grid,
-  const Index&                      antenna_dim,
-  const Sparse&                     sensor_response,
-  const Vector&                     sensor_response_f,
-  const ArrayOfIndex&               sensor_response_pol,
-  const Vector&                     sensor_response_za,
-  const Vector&                     sensor_response_aa,
-  const Agenda&                     iy_clearsky_agenda,
-  const Index&                      iy_aux_do,
-  const String&                     y_unit,
-  const Agenda&                     jacobian_agenda,
-  const Index&                      jacobian_do,
-  const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices,
-  const String&                     jacobian_unit )
-{
-  // Some sizes
-  const Index   nf      = f_grid.nelem();
-  const Index   nza     = mblock_za_grid.nelem();
-        Index   naa     = mblock_aa_grid.nelem();   
-  if( antenna_dim == 1 )  
-    { naa = 1; }
-  const Index   n1y     = sensor_response.nrows();
-  const Index   nmblock = sensor_pos.nrows();
-  const Index   niyb    = nf * nza * naa * stokes_dim;
-
-
-  //---------------------------------------------------------------------------
-  // Input checks
-  //---------------------------------------------------------------------------
-
-  // Atmosphere OK?
-  //
-  if( !atm_checked )
-    throw runtime_error( "The atmosphere must be flagged to have passed a "
-                         "consistency check (atm_checked=1)." );
-
-  // Basic dimensionalities
-  //
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
-
-  // Sensor position and LOS.
-  //
-  if( sensor_pos.ncols() != atmosphere_dim )
-    throw runtime_error( "The number of columns of sensor_pos must be "
-                         "equal to the atmospheric dimensionality." );
-  if( atmosphere_dim <= 2  &&  sensor_los.ncols() != 1 )
-    throw runtime_error( "For 1D and 2D, sensor_los shall have one column." );
-  if( atmosphere_dim == 3  &&  sensor_los.ncols() != 2 )
-    throw runtime_error( "For 3D, sensor_los shall have two columns." );
-  if( sensor_los.nrows() != nmblock )
-    {
-      ostringstream os;
-      os << "The number of rows of sensor_pos and sensor_los must be "
-         << "identical, but sensor_pos has " << nmblock << " rows,\n"
-         << "while sensor_los has " << sensor_los.nrows() << " rows.";
-      throw runtime_error( os.str() );
-    }
-  if( max( sensor_los(joker,0) ) > 180 )
-    throw runtime_error( 
-     "First column of *sensor_los* is not allowed to have values above 180." );
-  if( atmosphere_dim == 2 )
-    {
-      if( min( sensor_los(joker,0) ) < -180 )
-          throw runtime_error( "For atmosphere_dim = 2, first column of "
-                    "*sensor_los* is not allowed to have values below -180." );
-    }     
-  else
-    {
-      if( min( sensor_los(joker,0)  ) < 0 )
-          throw runtime_error( "For atmosphere_dim != 2, first column of "
-                       "*sensor_los* is not allowed to have values below 0." );
-    }    
-  if( atmosphere_dim == 3  &&  max( sensor_los(joker,1) ) > 180 )
-    throw runtime_error( 
-    "Second column of *sensor_los* is not allowed to have values above 180." );
-
-  // Antenna
-  //
-  if( nza == 0 )
-    throw runtime_error( "The measurement block zenith angle grid is empty." );
-  chk_if_increasing( "mblock_za_grid", mblock_za_grid );
-  //
-  if( antenna_dim == 1 )
-    {
-      if( mblock_aa_grid.nelem() != 0 )
-        throw runtime_error( 
-          "For antenna_dim = 1, the azimuthal angle grid must be empty." );
-    }
-  else
-    {
-      if( atmosphere_dim < 3 )
-        throw runtime_error( "2D antennas (antenna_dim=2) can only be "
-                                                 "used with 3D atmospheres." );
-      if( mblock_aa_grid.nelem() == 0 )
-        throw runtime_error(
-                      "The measurement block azimuthal angle grid is empty." );
-      chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
-    }
-
-  // Sensor
-  //
-  if( sensor_response.ncols() != niyb ) 
-    {
-      ostringstream os;
-      os << "The *sensor_response* matrix does not have the right size,\n"
-         << "either the method *sensor_responseInit* has not been run or some\n"
-         << "of the other sensor response methods has not been correctly\n"
-         << "configured.";
-      throw runtime_error( os.str() );
-    }
-
-  // Sensor aux variables
-  //
-  if( n1y != sensor_response_f.nelem()  || n1y != sensor_response_pol.nelem() ||
-      n1y != sensor_response_za.nelem() || n1y != sensor_response_za.nelem() )
-    {
-      ostringstream os;
-      os << "Sensor auxiliary variables do not have the correct size.\n"
-         << "The following variables should all have same size:\n"
-         << "length(y) for one block      : " << n1y << "\n"
-         << "sensor_response_f.nelem()    : " << sensor_response_f.nelem()
-         << "\nsensor_response_pol.nelem(): " << sensor_response_pol.nelem()
-         << "\nsensor_response_za.nelem() : " << sensor_response_za.nelem() 
-         << "\nsensor_response_aa.nelem() : " << sensor_response_za.nelem() 
-         << "\n";
-      throw runtime_error( os.str() );
-    }
-
-
-  //---------------------------------------------------------------------------
-  // Allocations and resizing
-  //---------------------------------------------------------------------------
-
-  // Resize *y* and *y_XXX*
-  //
-  y.resize( nmblock*n1y );
-  y_f.resize( nmblock*n1y );
-  y_pol.resize( nmblock*n1y );
-  y_pos.resize( nmblock*n1y, sensor_pos.ncols() );
-  y_los.resize( nmblock*n1y, sensor_los.ncols() );
-  y_error.resize( nmblock*n1y );
-  y_aux.resize( 0, 0 );        // Size can only be determined later
-
-  // Jacobian variables
-  //
-  Index  j_analytical_do = 0;
-  //
-  if( jacobian_do )
-    {
-      jacobian.resize( nmblock*n1y, 
-                           jacobian_indices[jacobian_indices.nelem()-1][1]+1 );
-      jacobian = 0;
-      //
-      FOR_ANALYTICAL_JACOBIANS_DO(
-        j_analytical_do  = 1; 
-      )
-    }
-
-
-  //---------------------------------------------------------------------------
-  // The calculations
-  //---------------------------------------------------------------------------
-
-  for( Index imblock=0; imblock<nmblock; imblock++ )
-    {
-      // Calculate monochromatic pencil beam data for 1 measurement block
-      //
-      Vector          iyb, iyb_error, yb(n1y);
-      Matrix          iyb_aux;
-      Index           iy_error_type, n_aux;
-      ArrayOfMatrix   diyb_dx;      
-      //
-      iyb_calc( ws, iyb, iyb_error, iy_error_type, iyb_aux, n_aux, diyb_dx, 
-                imblock, atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
-                vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos, 
-                sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
-                iy_clearsky_agenda, iy_aux_do, y_unit, j_analytical_do, 
-                jacobian_quantities, jacobian_indices, jacobian_unit );
-
-      // Apply sensor response matrix on iyb, and put into y
-      //
-      mult( yb, sensor_response, iyb );
-      //
-      const Range rowind = get_rowindex_for_mblock( sensor_response, imblock );
-      const Index row0 = rowind.get_start();
-      //
-      y[rowind] = yb;
-
-      // *y_error*
-      //
-      if( iy_error_type == 0 )
-        { y_error[rowind] = 0; }
-      else if( iy_error_type == 1 )
-        { 
-          for( Index i=0; i<n1y; i++ )
-            {
-              const Index ithis = row0+i;
-              y_error[ithis] = 0;
-              for( Index icol=0; icol<niyb; icol++ )
-                { 
-                  y_error[ithis] += pow( 
-                       sensor_response(i,icol)*iyb_error[icol], (Numeric)2.0 ); 
-                }
-              y_error[ithis] = sqrt( y_error[ithis] );              
-            }
-        }
-      else if( iy_error_type == 2 )
-        { mult( y_error[rowind], sensor_response, iyb ); }
-      else
-        { assert( 0 ); }
-
-      // Information and auxilary variables
-      //
-      for( Index i=0; i<n1y; i++ )
-        { 
-          y_f[row0+i]         = sensor_response_f[i];
-          y_pol[row0+i]       = sensor_response_pol[i]; 
-          y_pos(row0+i,joker) = sensor_pos(imblock,joker);
-          y_los(row0+i,0)     = sensor_los(imblock,0) + sensor_response_za[i];
-          if( sensor_response_aa.nelem() )
-            { 
-              y_los(row0+i,1) = sensor_los(imblock,0) + sensor_response_aa[i]; 
-            }
-        }
-
-      // Auxiliary variables
-      //
-      if( n_aux > 0 )
-        {
-          if( y_aux.nrows() == 0 )
-            { y_aux.resize( nmblock*n1y, n_aux ); }
-          //
-          mult( y_aux(rowind,joker), sensor_response, 
-                                               iyb_aux(joker,Range(0,n_aux)) );
-        }
-
-      // diyb_dx part of *jacobian*
-      //
-      if( j_analytical_do )
-        {
-          FOR_ANALYTICAL_JACOBIANS_DO(
-            mult( jacobian(rowind, Range(jacobian_indices[iq][0],
-                          jacobian_indices[iq][1]-jacobian_indices[iq][0]+1)),
-                                                sensor_response, diyb_dx[iq] );
-          )
-        }
-
-      // Rest of *jacobian*: run jacobian_agenda (can be empty)
-      //
-      if( jacobian_do  &&  jacobian_agenda.nelem() > 0 )
-        { 
-          jacobian_agendaExecute( ws, jacobian, imblock, iyb, yb, 
-                                                             jacobian_agenda ); 
-        }
-    }  // End mblock loop
-}
-
-
-
-
-
-//---------------------------------------------------------------------------
-// FOS   (shall be moved to special file)
-//---------------------------------------------------------------------------
-
-extern const Numeric PI;
-
-void iyFOS(
-        Workspace&                     ws,
-        Matrix&                        iy,
-        Matrix&                        iy_error,
-        Index&                         iy_error_type,
-        Tensor3&                       iy_aux,
-        ArrayOfTensor3&                diy_dx,
-  const Vector&                        rte_pos,
-  const Vector&                        rte_los,
-  const Index&                         iy_aux_do,
-  const Index&                         jacobian_do,
-  const Index&                         atmosphere_dim,
-  const Vector&                        p_grid,
-  const Vector&                        lat_grid,
-  const Vector&                        lon_grid,
-  const Tensor3&                       z_field,
-  const Tensor3&                       t_field,
-  const Tensor4&                       vmr_field,
-  const Matrix&                        r_geoid,
-  const Matrix&                        z_surface,
-  const Index&                         cloudbox_on,
-  const ArrayOfIndex&                  cloudbox_limits,
-  const Index&                         stokes_dim,
-  const Vector&                        f_grid,
-  const Agenda&                        ppath_step_agenda,
-  const Agenda&                        emission_agenda,
-  const Agenda&                        abs_scalar_gas_agenda,
-  const Agenda&                        iy_clearsky_agenda,
-  const Tensor3&                       iy_transmission,
-  const Tensor4&                       pnd_field,
-  const ArrayOfSingleScatteringData&   scat_data_raw,
-  const Agenda&                        opt_prop_gas_agenda,
-  const Agenda&                        fos_y_agenda,
-  const Matrix&                        fos_angles,
-  const Index&                         fos_n,
-  const Index&                         fos_i )
-{
-  // Input checks
-  if( !cloudbox_on )
-    throw runtime_error( "The cloudbox must be defined to use this method." );
-  if( fos_angles.ncols() != 3 )
-    throw runtime_error( "The WSV *fos_angles* must have three columns." );
-  if( max(fos_angles) <= PI )
-    throw runtime_error( 
-                  "The WSV *fos_angles* shall be in degrees (not radians)." );
-  if( min(fos_angles(joker,0))<0 || max(fos_angles(joker,0))>180 )
-    throw runtime_error( 
-                 "The zenith angles in *fos_angles* shall be inside [0,180]." );
-  if( min(fos_angles(joker,1))<-180 || max(fos_angles(joker,1))>180 )
-    throw runtime_error( 
-             "The azimuth angles in *fos_angles* shall be inside [-180,180]." );
-  if( fos_angles(joker,2).sum() < 6 || fos_angles(joker,2).sum() > 20 )
-    throw runtime_error( 
-     "The sum of integration weights in *fos_angles* shall be inside [2,20]." );
-  if( fos_n < 0 )
-    throw runtime_error( "The WSV *fos_n* must be >= 0." );
-  if( fos_i < 0 )
-    throw runtime_error( "The WSV *fos_i* must be >= 0." );
-
-  // Determine ppath through the cloudbox if first call
-  //
-  Ppath  ppath;
-  //
-  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
-              lat_grid, lon_grid, z_field, r_geoid, z_surface,
-              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 0 );
-
-  // Check radiative background
-  const Index bkgr = ppath_what_background( ppath );
-  if( bkgr == 2 )
-    throw runtime_error(
-                  "The surface is not allowed to be inside the cloudbox." );
-  assert( bkgr == 3 );
-
-  // Get iy for unscattered direction
-  //
-  // Note that the Ppath positions (ppath.pos) for 1D have one column more
-  // than expected by most functions. Only the first atmosphere_dim values
-  // shall be copied.
-  //
-  Vector rte_pos2, rte_los2;
-  rte_pos2 = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
-  rte_los2 = ppath.los(ppath.np-1,joker);
-  //
-  //
-  iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
-                             iy_aux, diy_dx, 0, rte_pos2, rte_los2,
-                             iy_transmission, 0, jacobian_do, iy_aux_do, 
-                             f_grid, p_grid, lat_grid, lon_grid, t_field, 
-                             vmr_field, iy_clearsky_agenda );
-
-  // RT for part inside cloudbox
-  //
-  const Index   np  = ppath.np;
-  //
-  if( np > 1 )
-    {
-      // Some sizes
-      const Index   nf  = f_grid.nelem();
-      const Index   nabs = vmr_field.nbooks();
-      const Index   npar = pnd_field.nbooks();
-
-      // Containers for atmospheric data along the LOS
-      //
-      Vector   ppath_t(np), ppath_logp(np);
-      Matrix   ppath_vmr(nabs,np);
-      Matrix   ppath_pnd(npar,np);
-
-      // Determine log of the pressure
-      {
-        Vector   ppath_p( np );
-        Matrix   itw_p(np,2);
-        interpweights( itw_p, ppath.gp_p );
-        itw2p( ppath_p, p_grid, ppath.gp_p, itw_p );
-        transform( ppath_logp, log, ppath_p  );
-      }
-      
-      // Temperature and VMR
-      {
-        Matrix   itw_field;
-        //
-        interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
-                                lon_grid, ppath.gp_p, ppath.gp_lat,
-                                ppath.gp_lon );
-        interp_atmfield_by_itw( ppath_t,  atmosphere_dim, p_grid, lat_grid, 
-                                lon_grid, t_field, ppath.gp_p, 
-                                ppath.gp_lat, ppath.gp_lon, itw_field );
-        for( Index is=0; is<nabs; is++ )
-          {
-            interp_atmfield_by_itw( ppath_vmr(is,joker), atmosphere_dim, 
-                                    p_grid, lat_grid, lon_grid, 
-                                    vmr_field(is,joker,joker,joker), 
-                                    ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
-                                    itw_field );
-          }
-      }
-
-      // PND
-      {
-        Matrix   itw_field;
-        ArrayOfGridPos gp_p   = ppath.gp_p;
-        ArrayOfGridPos gp_lat = ppath.gp_lat;
-        ArrayOfGridPos gp_lon = ppath.gp_lon;
-        //
-        interp_cloudfield_gp2itw( itw_field, gp_p, gp_lat, gp_lon, 
-                                  atmosphere_dim, cloudbox_limits );
-        for( Index ip=0; ip<npar; ip++ )
-          {
-            interp_cloudfield_by_itw( ppath_pnd(ip,joker), atmosphere_dim,
-                                      pnd_field(ip,joker,joker,joker), 
-                                      gp_p, gp_lat, gp_lon, itw_field );
-          }
-      }
-
-      // So far we use constant scattering properties
-      ArrayOfSingleScatteringData   scat_data_mono;
-      Vector f_dummy( 1, (f_grid[0]+f_grid[nf-1])/2.0 );
-      scat_data_monoCalc( scat_data_mono, scat_data_raw, f_dummy, 0 );
-
-      // Number of FOS angles
-      const Index   nfosa = fos_angles.nrows();
-
-      // Loop ppath steps
-      for( Index ip=np-2; ip>=0; ip-- )
-        {
-          // Mean pressure, temperature, VMR and PND
-          const Numeric   p_mean = exp( 0.5*(ppath_logp[ip+1]+ppath_logp[ip] ));
-          const Numeric   t_mean = 0.5*( ppath_t[ip+1] + ppath_t[ip] );
-          Vector    vmr_mean( nabs ), pnd_mean( npar );
-          for( Index ia=0; ia<nabs; ia++ )
-            { vmr_mean[ia] = 0.5 * ( ppath_vmr(ia,ip+1) + ppath_vmr(ia,ip) ); }
-          for( Index ia=0; ia<npar; ia++ )
-            { pnd_mean[ia] = 0.5 * ( ppath_pnd(ia,ip+1) + ppath_pnd(ia,ip) ); }
-
-          // Gas absorption and blackbody radiation
-          Matrix   abs_scalar_gas;
-          Vector   bbemission;
-          abs_scalar_gas_agendaExecute( ws, abs_scalar_gas, -1, p_mean, t_mean, 
-                                        vmr_mean, abs_scalar_gas_agenda );
-          emission_agendaExecute( ws, bbemission, t_mean, emission_agenda );
-
-          
-          // Clearsky step
-          if( max(pnd_mean) < 1e-3  || fos_n == 0 )
-            {
-              // Loop frequencies
-              for( Index iv=0; iv<nf; iv++ )
-                { 
-                  const Numeric step_tr = exp( -ppath.l_step[ip] * 
-                                              abs_scalar_gas(iv,joker).sum() );
-                  //
-                  iy(iv,0)  = iy(iv,0)*step_tr + bbemission[iv]*(1-step_tr); 
-                  //
-                  for( Index is=1; is<stokes_dim; is++ )
-                    { iy(iv,is) *= step_tr; }
-                }
-            }
-
-          
-          // RT step with scattering
-          else
-            {
-              // Mean position of step
-              for( Index ia=0; ia<atmosphere_dim; ia++ )
-                { rte_pos2[ia] = 0.5*( ppath.pos(ip+1,ia)+ppath.pos(ip,ia) ); }
-
-              // Direction of outgoing scattered radiation
-              // Note that rte_los2 is only used for extracting scattering
-              // properties. 
-              // A viewing direction of aa=0 is assumed for 1D. This
-              // corresponds to positive za for 2D.
-              //
-              Numeric za_mean = 0.5*( ppath.los(ip+1,0)+ppath.los(ip,0) );
-              //
-              rte_los2.resize(2);
-              //
-              if( atmosphere_dim == 1 )
-                { 
-                  rte_los2[0] = 180 - za_mean; 
-                  rte_los2[1] = 180; 
-                }
-              else if( atmosphere_dim == 2 )
-                {
-                  rte_los2[0] = 180 - fabs( za_mean ); 
-                  if( za_mean >= 0 )
-                    { rte_los2[1] = 180; }
-                  else
-                    { rte_los2[1] = 0; }
-                }
-              else if( atmosphere_dim == 3 )
-                { 
-                  Numeric aa_mean = 0.5*( ppath.los(ip+1,1)+ppath.los(ip,1) );
-                  rte_los2[1] = aa_mean + 180; 
-                  if( rte_los2[1] > 180 )
-                    { rte_los2[1] -= 360; }
-                }
-
-              // Determine incoming radiation (here Y, WSV is fos_y)
-              //
-              Tensor3  Y;
-              //
-              fos_y_agendaExecute( ws, Y, rte_pos2, fos_angles, fos_n, fos_i, 
-                                   fos_y_agenda );
-
-              // Determine incoming iy phase matrix for fov_angles
-              //
-              Tensor3  P(nfosa,stokes_dim,stokes_dim);
-              Matrix   P1(stokes_dim, stokes_dim);
-              //
-              for( Index ia=0; ia<nfosa; ia++ )
-                { 
-                  pha_mat_singleCalc( P1, rte_los2[0], rte_los2[1],
-                                      fos_angles(ia,0), fos_angles(ia,1),
-                                      scat_data_mono, stokes_dim, pnd_mean,
-                                      t_mean );
-                  P(ia,joker,joker) = P1;
-                }
-
-              // Extinction matrix and absorption vector for gases
-              //
-              Tensor3  ext_mat_gas;
-              Matrix   abs_vec_gas;
-              //
-              opt_prop_gas_agendaExecute( ws, ext_mat_gas, abs_vec_gas, -1,
-                                         abs_scalar_gas, opt_prop_gas_agenda );
-
-              // Particle properties
-              //
-              Matrix ext_mat_par( stokes_dim, stokes_dim );
-              Vector abs_vec_par( stokes_dim );
-              //
-              opt_propCalc( ext_mat_par, abs_vec_par, rte_los2[0], rte_los2[1],
-                            scat_data_mono, stokes_dim, pnd_mean, t_mean );
-
-              // Loop frequencies
-              //
-              for( Index iv=0; iv<nf; iv++ )
-                { 
-                  // Scattering source part
-                  Vector S(stokes_dim,0.0), Sp(stokes_dim);
-                  for( Index ia=0; ia<nfosa; ia++ )
-                    { 
-                      mult( Sp, P(ia,joker,joker), Y(ia,iv,joker) );
-                      Sp *= fos_angles(ia,2);
-                      S  += Sp;
-                    }
-
-                  // Total extinction and absorption
-                  //
-                  Matrix ext_mat_tot = ext_mat_par;
-                  Vector abs_vec_tot = abs_vec_par;
-                  //
-                  ext_mat_tot += ext_mat_gas(iv,joker,joker);
-                  abs_vec_tot += abs_vec_gas(iv,joker);
-
-                  // RT for step
-                  //
-                  Matrix trans_mat(stokes_dim,stokes_dim); 
-                  //
-                  rte_step_std( iy(iv,joker), trans_mat, ext_mat_tot,
-                            abs_vec_tot, S, ppath.l_step[ip], bbemission[iv] );
-                }
-            }
-        } 
-    }
-}
-
-
-
-
-void fos_yStandard(
-        Workspace&                     ws,
-        Tensor3&                       fos_y,
-        Matrix&                        iy_error,
-        Index&                         iy_error_type,
-        Tensor3&                       iy_aux,
-        ArrayOfTensor3&                diy_dx,
-  const Vector&                        rte_pos,
-  const Index&                         iy_aux_do,
-  const Index&                         atmosphere_dim,
-  const Vector&                        p_grid,
-  const Vector&                        lat_grid,
-  const Vector&                        lon_grid,
-  const Tensor3&                       z_field,
-  const Tensor3&                       t_field,
-  const Tensor4&                       vmr_field,
-  const Matrix&                        r_geoid,
-  const Matrix&                        z_surface,
-  const Index&                         cloudbox_on,
-  const ArrayOfIndex&                  cloudbox_limits,
-  const Index&                         stokes_dim,
-  const Vector&                        f_grid,
-  const Agenda&                        ppath_step_agenda,
-  const Agenda&                        emission_agenda,
-  const Agenda&                        abs_scalar_gas_agenda,
-  const Agenda&                        iy_clearsky_agenda,
-  const Tensor3&                       iy_transmission,
-  const Tensor4&                       pnd_field,
-  const ArrayOfSingleScatteringData&   scat_data_raw,
-  const Agenda&                        opt_prop_gas_agenda,
-  const Agenda&                        fos_y_agenda,
-  const Matrix&                        fos_angles,
-  const Index&                         fos_n,
-  const Index&                         fos_i )
-{
-  // Angles inside these ranges are considered to be equal for 1D and 2D
-  const Numeric dza = 0.01;
-  const Numeric daa = 1;
-
-  const Index jacobian_do = 0;
-
-  const Index   nfosa = fos_angles.nrows();
-        Matrix  tmp;
-
-  fos_y.resize(nfosa,f_grid.nelem(),stokes_dim);
-
-  if( fos_i == fos_n-1 )
-    {
-      if( atmosphere_dim == 1 )
-        { 
-          for( Index ia=0; ia<nfosa; ia++ )
-            { 
-              // To use already calculated data we demand that difference
-              // in za is < dza
-              Index ihit = -1;
-              //
-              for( Index it=ia-1; it>=0 && ihit<0; it-- )
-                {
-                   if( fabs( fos_angles(ia,0) - fos_angles(it,0) ) < dza )
-                     { ihit = it; }
-                } 
-              
-              if( ihit >= 0 )
-                { 
-                  fos_y(ia,joker,joker) = fos_y(ihit,joker,joker); 
-                }
-              else
-                {
-                  iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
-                                             iy_aux, diy_dx, 0, 
-                                             rte_pos, fos_angles(ia,Range(0,1)),
-                                             iy_transmission, 0, jacobian_do, 
-                                             iy_aux_do, f_grid, p_grid, 
-                                             lat_grid, lon_grid, t_field, 
-                                             vmr_field, iy_clearsky_agenda );
-                  fos_y(ia,joker,joker) = tmp;
-                }
-            }
-          
-        }
-      else if( atmosphere_dim == 2 )
-        { 
-          Vector rte_los(1);
-
-          for( Index ia=0; ia<nfosa; ia++ )
-            { 
-              // To use already calculated data we demand that difference
-              // in za is < dza, and aa is mirrored with respect to the
-              // orbit plane (aa(it) = -aa(ia).
-              Index ihit = -1;
-              //
-              for( Index it=ia-1; it>=0 && ihit<0; it-- )
-                {
-                   if( fabs( fos_angles(ia,0) - fos_angles(it,0) ) < dza )
-                     { 
-                       if( fabs( fos_angles(ia,1) + fos_angles(it,1) ) < daa )
-                         { ihit = it; }
-                     }
-
-                } 
-              
-              if( ihit >= 0 )
-                { 
-                  fos_y(ia,joker,joker) = fos_y(ihit,joker,joker); 
-                }
-              else
-                {
-                  // LOS
-                  if( fabs(fos_angles(ia,1)) <= 90 )
-                    { rte_los[0] = fos_angles(ia,0); }
-                  else
-                    { rte_los[0] = -fos_angles(ia,0); }
-
-                  // Create stretched latitude grid
-                  //
-                  Vector lat_stretched( lat_grid.nelem() );
-                  //
-                  // No strect needed for zenith, nadir and aa= 0 or +-180
-                  if( fos_angles(ia,0) > 0  &&  fabs(fos_angles(ia,0)) < 180 &&
-                      fos_angles(ia,1) != 0  && fabs(fos_angles(ia,1)) < 180 )
-                    {
-                      // Stretch factor (a max of 100 is applied)
-                      const Numeric stretch = 1.0 / max( 0.01, 
-                                         fabs(cos(DEG2RAD*fos_angles(ia,1))) );
-                      const Numeric lat0 = rte_pos[1];
-                      for( Index i=0; i<lat_grid.nelem(); i++ )
-                        { 
-                          lat_stretched[i] = lat0 + stretch*(lat_grid[i]-lat0); 
-                        }
-                    }
-                  else
-                    { lat_stretched = lat_grid; }
-                  
-                  iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
-                                             iy_aux, diy_dx, 0, 
-                                             rte_pos, rte_los,
-                                             iy_transmission, 0, jacobian_do, 
-                                             iy_aux_do, f_grid, p_grid, 
-                                             lat_stretched, lon_grid, t_field, 
-                                             vmr_field, iy_clearsky_agenda );
-                  fos_y(ia,joker,joker) = tmp;
-                }
-            }
-          
-        }
-      else if( atmosphere_dim == 3 )
-        {
-          for( Index ia=0; ia<nfosa; ia++ )
-            { 
-              iy_clearsky_agendaExecute( ws, tmp, iy_error, iy_error_type,
-                                         iy_aux, diy_dx, 0, 
-                                         rte_pos, fos_angles(ia,Range(0,2)),
-                                         iy_transmission, 0, jacobian_do, 
-                                         iy_aux_do, f_grid, p_grid, 
-                                         lat_grid, lon_grid, t_field, 
-                                         vmr_field, iy_clearsky_agenda );
-              fos_y(ia,joker,joker) = tmp;
-            }
-        }
-    }
-  else
-    {
-      // How to pass on aa part of fos_angles for 1D and 2D?
-      if( atmosphere_dim < 3 )
-        throw runtime_error( 
-             "For atmospher_dim 1 and 2, only single scattering work so far." );
-
-      Index nlos = 1 + (atmosphere_dim==3);
-
-      for( Index ia=0; ia<nfosa; ia++ )
-        { 
-          iyFOS( ws, tmp, iy_error, iy_error_type, iy_aux, diy_dx,
-                 rte_pos, fos_angles(ia,Range(0,nlos)), iy_aux_do, jacobian_do,
-                 atmosphere_dim, p_grid, lat_grid, lon_grid, 
-                 z_field, t_field, vmr_field, r_geoid, z_surface, 
-                 cloudbox_on, cloudbox_limits, stokes_dim, f_grid, 
-                 ppath_step_agenda, emission_agenda, 
-                 abs_scalar_gas_agenda, iy_clearsky_agenda, iy_transmission, 
-                 pnd_field, scat_data_raw, opt_prop_gas_agenda, 
-                 fos_y_agenda, fos_angles, fos_n, fos_i+1 );
-
-          fos_y(ia,joker,joker) = tmp;
-        }
-    }
 }

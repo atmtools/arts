@@ -3803,6 +3803,7 @@ void define_md_data_raw()
                   "FIXME DOC" )
         ));
 
+  /* De-activated temporarily during cleaning week:
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "fos_yStandard" ),
@@ -3828,6 +3829,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+  */
 
   md_data_raw.push_back
     ( MdRecord
@@ -4223,6 +4225,7 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+  /* De-activated temporarily during cleaning week:
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyFOS" ),
@@ -4269,6 +4272,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+  */
 
   md_data_raw.push_back
     ( MdRecord

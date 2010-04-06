@@ -101,6 +101,13 @@ void cart2poslos(
        const double&   dy,
              const double&   dz );
 
+void map_daa(
+             double&   za,
+             double&   aa,
+       const double&   za0,
+       const double&   aa0,
+       const double&   aa_grid );
+
 double geometrical_ppc( const double& r, const double& za );
 
 double geompath_za_at_r(

@@ -816,6 +816,207 @@ void geompath_tanpos_3d(
 
 
 
+//! zaaa2cart
+/*! 
+   Converts zenith and azimuth angles to a cartesian unit vector.
+
+   This function and the sister function cart2zaaa handles
+   transformation of line-of-sights. This in contrast to the sph/poslos
+   functions that handles positions, or combinations of positions and
+   line-of-sight.
+
+   The cartesian coordinate system used for these two functions can 
+   be defined as
+    z : za = 0
+    x : za=90, aa=0
+    y : za=90, aa=90
+
+   \param   dx    Out: x-part of LOS unit vector.
+   \param   dy    Out: y-part of LOS unit vector.
+   \param   dz    Out: z-part of LOS unit vector.
+   \param   za    LOS zenith angle at observation position.
+   \param   aa    LOS azimuth angle at observation position.
+
+   \author Patrick Eriksson
+   \date   2009-10-02
+*/
+void zaaa2cart(
+             double&   dx,
+             double&   dy,
+             double&   dz,
+       const double&   za,
+       const double&   aa )
+{
+  const double   zarad  = DEG2RAD * za;
+  const double   aarad  = DEG2RAD * aa;
+
+  dz = cos( zarad );
+  dx = sin( zarad );
+  dy = sin( aarad ) * dx;
+  dx = cos( aarad ) * dx;
+}
+
+
+
+//! cart2zaaa
+/*! 
+   Converts a cartesian directional vector to zenith and azimuth
+
+   This function and the sister function cart2zaaa handles
+   transformation of line-of-sights. This in contrast to the sph/poslos
+   functions that handles positions, or combinations of positions and
+   line-of-sight.
+
+   The cartesian coordinate system used for these two functions can 
+   be defined as
+    z : za = 0
+    x : za=90, aa=0
+    y : za=90, aa=90
+
+   \param   za    Out: LOS zenith angle at observation position.
+   \param   aa    Out: LOS azimuth angle at observation position.
+   \param   dx    x-part of LOS unit vector.
+   \param   dy    y-part of LOS unit vector.
+   \param   dz    z-part of LOS unit vector.
+
+   \author Patrick Eriksson
+   \date   2009-10-02
+*/
+void cart2zaaa(
+             double&   za,
+             double&   aa,
+       const double&   dx,
+       const double&   dy,
+       const double&   dz )
+{
+  const double r = sqrt( dx*dx + dy*dy + dz*dz );
+
+  assert( r > 0 );
+
+  za = RAD2DEG * acos( dz / r );
+  aa = RAD2DEG * atan2( dy, dx );
+}
+
+
+
+//! rotationmat3D
+/*! 
+   Creates a 3D rotation matrix
+
+   Creates a rotation matrix such that R * x, operates on x by rotating 
+   x around the origin a radians around line connecting the origin to the 
+   point vrot.
+
+   The function is based on rotationmat3D.m, by Belechi (the function 
+   is found in atmlab).
+
+   \param   R     Out: Rotation matrix
+   \param   vrot  Rotation axis
+   \param   a     Rotation angle
+
+   \author Bileschi and Patrick Eriksson
+   \date   2009-10-02
+*/
+void rotationmat3D( 
+           Matrix&   R, 
+   ConstVectorView   vrot, 
+    const Numeric&   a )
+{
+  assert( R.ncols() == 3 );
+  assert( R.nrows() == 3 );
+  assert( vrot.nelem() == 3 );
+
+  const double u = vrot[0];
+  const double v = vrot[1];
+  const double w = vrot[2];
+
+  const double u2 = u * u;
+  const double v2 = v * v;
+  const double w2 = w * w;
+
+  assert( sqrt( u2 + v2 + w2 ) );
+
+  const double c = cos( DEG2RAD * a );
+  const double s = sin( DEG2RAD * a );
+  
+  // Fill R
+  R(0,0) = u2 + (v2 + w2)*c;
+  R(0,1) = u*v*(1-c) - w*s;
+  R(0,2) = u*w*(1-c) + v*s;
+  R(1,0) = u*v*(1-c) + w*s;
+  R(1,1) = v2 + (u2+w2)*c;
+  R(1,2) = v*w*(1-c) - u*s;
+  R(2,0) = u*w*(1-c) - v*s;
+  R(2,1) = v*w*(1-c)+u*s;
+  R(2,2) = w2 + (u2+v2)*c;
+}
+
+
+
+/*! Maps MBLOCK_AA_GRID values to correct ZA and AA
+
+   Sensor LOS azimuth angles and mblock_aa_grid values can not be added in a
+   straightforward way due to properties of the polar coordinate system used to
+   define line-of-sights. This function performs a "mapping" ensuring that the
+   pencil beam directions specified by mblock_za_grid and mblock_aa_grid form
+   a rectangular grid (on the unit sphere) for any za.
+
+   za0 and aa0 match the angles of the ARTS WSV sensor_los.
+   aa_grid shall hold values "close" to 0. The limit is here set to 5 degrees.
+
+   \param   za         Out: Zenith angle matching aa0+aa_grid
+   \param   aa         Out: Azimuth angles matching aa0+aa_grid
+   \param   za0        Zenith angle
+   \param   aa0        Centre azimuth angle
+   \param   aa_grid    MBLOCK_AA_GRID values
+
+   \author Patrick Eriksson
+   \date   2009-10-02
+*/
+void map_daa(
+             double&   za,
+             double&   aa,
+       const double&   za0,
+       const double&   aa0,
+       const double&   aa_grid )
+{
+  assert( abs( aa_grid ) <= 5 );
+
+  Vector  xyz(3);
+  Vector  vrot(3);
+  Vector  u(3);
+
+  // Unit vector towards aa0 at za=90
+  //
+  zaaa2cart( xyz[0], xyz[1], xyz[2], 90, aa0 );
+    
+  // Find vector around which rotation shall be performed
+  // 
+  // We can write this as cross([0 0 1],xyz). It turns out that the result 
+  // of this operation is just [-y,x,0].
+  //
+  vrot[0] = -xyz[1];
+  vrot[1] = xyz[0];
+  vrot[2] = 0;
+
+  // Unit vector towards aa0+aa at za=90
+  //
+  zaaa2cart( xyz[0], xyz[1], xyz[2], 90, aa0+aa_grid );
+
+  // Apply rotation
+  //
+  Matrix R(3,3);
+  rotationmat3D( R, vrot, za0-90 );
+  mult( u, R, xyz );
+
+  // Calculate za and aa for rotated u
+  //
+  cart2zaaa( za, aa, u[0], u[1], u[2] );
+}
+
+
+
+
 
 
 /*===========================================================================
