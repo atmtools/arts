@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6.3)
 
 project (ARTS)
-set (VERSION "1.13.25")
+set (VERSION "1.13.27")
 
 ENABLE_TESTING()
 
@@ -85,6 +85,22 @@ if (OPENMP_FOUND OR CMAKE_GENERATOR STREQUAL "Xcode")
   include (CheckOpenMPThreadprivate)
 endif (OPENMP_FOUND OR CMAKE_GENERATOR STREQUAL "Xcode")
 
+########### Disort support ##########
+if (ENABLE_DISORT)
+  string (TOUPPER ${INDEX} INDEX_UPPER)
+  if (NOT SIZEOF_${INDEX_UPPER} EQUAL 4)
+    message (STATUS "Forcing Index type to int for compatibility with the f2c library")
+    set (INDEX int)
+  endif (NOT SIZEOF_${INDEX_UPPER} EQUAL 4)
+
+  check_include_file (f2c.h HAVE_F2C_H)
+  if (NOT HAVE_F2C_H)
+    message (FATAL_ERROR "cannot find f2c.h which is required for disort")
+  endif (NOT HAVE_F2C_H)
+
+  set (NO_WERROR 1)
+endif (ENABLE_DISORT)
+
 ########### Special flags for certain compilers ##########
 if (CMAKE_COMPILER_IS_GNUCXX)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-60")
@@ -110,6 +126,11 @@ if (OPENMP_FOUND)
 else (OPENMP_FOUND)
   set (WARN_FLAGS "${WARN_FLAGS} -Wno-unknown-pragmas")
 endif (OPENMP_FOUND)
+
+# Workaround for f2c library in Debian/Ubuntu
+if (ENABLE_DISORT AND CMAKE_COMPILER_IS_GNUCXX AND UNIX)
+  set (CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "${CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS} -u MAIN__")
+endif (ENABLE_DISORT AND CMAKE_COMPILER_IS_GNUCXX AND UNIX)
 
 string (TOUPPER ${CMAKE_BUILD_TYPE} MY_BUILD_TYPE)
 set (COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${MY_BUILD_TYPE}}")

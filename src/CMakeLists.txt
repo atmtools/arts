@@ -384,16 +384,15 @@ if (ENABLE_DISORT)
     disort_R1MACH.c
     )
   target_link_libraries (disort f2c)
-endif (ENABLE_DISORT)
 
-########### testcases ###############
+  ########### testcase ###############
 
-if (ENABLE_DISORT)
   add_executable (test_disort disort_DISOTEST.c)
+
   target_link_libraries (test_disort disort)
 endif (ENABLE_DISORT)
 
-########### next testcase ###############
+########### testcases ###############
 
 add_executable (test_binaryio test_binaryio.cc)
 

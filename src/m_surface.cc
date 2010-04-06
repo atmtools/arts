@@ -555,7 +555,7 @@ void surfaceFlatSingleEmissivity(
         const Numeric&   surface_skin_t,
         const Numeric&   surface_emissivity )
 {
-  chk_if_in_range( "surface_emissivity", surface_emissivity, 0, 1 );
+  chk_if_in_range( "surface_emissivity", surface_emissivity, 0., 1. );
 
   Vector a_vector( f_grid.nelem(), surface_emissivity );
 

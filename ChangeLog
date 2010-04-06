@@ -1,3 +1,35 @@
+2010-04-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-13-27
+
+	* CMakeLists.txt:
+
+	Revive disort support. ** highly experimental ** This can be enabled
+	by passing -DENABLE_DISORT=1 to cmake. Very experimental and only
+	working on Linux at the moment (hopefully at least there).
+
+	On a 64-bit compiler the type of Index is automatically changed from
+	long to int the moment Disort is enabled. This is necessary because we
+	need to make it compatible with the f2c integer type, which is fixed
+	to int. We are using pointers to exchange Index arrays with integer
+	arrays between ARTS and the Disort code. This will break badly if the
+	types don't match and we just brutally cast Index* to integer*.
+
+	In the same way, -Werror is automatically disabled because compiling
+	with Index=int throws lots of warnings. (With gcc 4.2 only in the
+	disort code, but with 4.4 also in heaps of other places).
+
+	Add workaround for unresolved MAIN__ in libf2c.
+
+	* src/CMakeLists.txt: Merge the two 'if ENABLE_DISORT' blocks into one.
+
+	* src/m_surface.cc (surfaceFlatSingleEmissivity):
+
+	Make sure the constants passed to chk_if_in_range are Numeric
+	otherwise the compiler gets confused if we compile with Index=int.
+
+	* README: Carefully mention Disort as an experimental feature.
+
 2010-04-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-13-26

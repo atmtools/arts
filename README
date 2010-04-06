@@ -85,3 +85,11 @@ you can generate a project file and use Xcode to build arts:
 cmake -G Xcode ..
 open ARTS.xcodeproj
 
+
+Experimental features (only use if you know what you're doing)
+==============================================================
+
+Enable the disort code:
+
+cmake -DENABLE_DISORT=1 ..
+
