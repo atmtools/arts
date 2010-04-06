@@ -42,7 +42,9 @@
     Threadprivate variables are not initialized, so we have to
     explicitly initialize this in main for all threads. */
 bool in_main_agenda=true;
+#ifdef THREADPRIVATE_SUPPORTED
 #pragma omp threadprivate(in_main_agenda)
+#endif
 
 #include "messages.h"
 

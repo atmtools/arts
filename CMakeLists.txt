@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6.3)
 
 project (ARTS)
-set (VERSION "1.13.23")
+set (VERSION "1.13.25")
 
 ENABLE_TESTING()
 
@@ -79,8 +79,11 @@ include (FindNetCDF)
 
 ########### OpenMP support ##########
 if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
-  include (CheckOpenMPThreadprivate)
+  include (FindOpenMP)
 endif (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
+if (OPENMP_FOUND OR CMAKE_GENERATOR STREQUAL "Xcode")
+  include (CheckOpenMPThreadprivate)
+endif (OPENMP_FOUND OR CMAKE_GENERATOR STREQUAL "Xcode")
 
 ########### Special flags for certain compilers ##########
 if (CMAKE_COMPILER_IS_GNUCXX)

@@ -6,6 +6,9 @@
 /* Compiler */
 #cmakedefine COMPILER "${COMPILER}"
 
+/* Threadprivate support */
+#cmakedefine THREADPRIVATE_SUPPORTED
+
 /* Define to compile with disort support */
 #cmakedefine ENABLE_DISORT
 

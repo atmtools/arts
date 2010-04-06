@@ -740,8 +740,14 @@ int main (int argc, char **argv)
      explicitly for each thread, since it is not automatically
      initialized. */
 
+#ifdef THREADPRIVATE_SUPPORTED
 #pragma omp parallel \
  default(none)
+#else
+#pragma omp parallel \
+ default(none) \
+ shared(in_main_agenda)
+#endif
   {
     in_main_agenda = true;
   }
