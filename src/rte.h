@@ -59,11 +59,18 @@ void apply_y_unit(
     const String&     y_unit, 
     ConstVectorView   f_grid );
 
+void apply_y_unit2( 
+    Tensor3View       J,
+    ConstTensor3View  iy, 
+    const String&     y_unit, 
+    ConstVectorView   f_grid );
+
 void apply_j_unit( 
       Tensor3View     iy, 
     const String&     jacobian_unit, 
     const String&     y_unit, 
-    ConstVectorView   f_grid );
+      ConstVectorView   f_grid );
+
 
 void get_ptvmr_for_ppath( 
         Vector&      ppath_p, 

@@ -686,6 +686,33 @@ void iyb_calc(
                     }
                 }
        
+              // Start row in iyb etc. for present LOS
+              //
+              const Index row0 =( iza*naa + iaa ) * nf * stokes_dim;
+
+              // Jacobian part (must be converted to Tb before iy for PlanckBT)
+              // 
+              if( j_analytical_do )
+                {
+                  FOR_ANALYTICAL_JACOBIANS_DO(
+                    //
+                    if( 0 )
+                    apply_y_unit2( diy_dx[iq], Tensor3View(iy), y_unit, f_grid);
+                    else
+                      apply_j_unit( diy_dx[iq], jacobian_unit, y_unit, f_grid);
+                    //
+                    for( Index ip=0; ip<jacobian_indices[iq][1] -
+                                        jacobian_indices[iq][0]+1; ip++ )
+                      {
+                        for( Index is=0; is<stokes_dim; is++ )
+                          { 
+                            diyb_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
+                                                     diy_dx[iq](ip,joker,is); 
+                          }
+                      }                              
+                  )
+                }
+
               // iy       : unit conversion and copy to iyb
               // iy_error : unit conversion and copy to iyb_error
               // iy_aux   : copy to iyb_aux
@@ -693,8 +720,6 @@ void iyb_calc(
               apply_y_unit( Tensor3View(iy), y_unit, f_grid );
               if( iy_error_type > 0 )
                 { apply_y_unit( Tensor3View(iy_error), y_unit, f_grid ); }
-              //
-              const Index row0 =( iza*naa + iaa ) * nf * stokes_dim;
               //
               for( Index is=0; is<stokes_dim; is++ )
                 { 
@@ -709,26 +734,6 @@ void iyb_calc(
                       iyb_aux(Range(row0+is,nf,stokes_dim),iaux) = 
                                                          iy_aux(iaux,joker,is);
                     }
-                }
-
-              // Jacobian part
-              if( j_analytical_do )
-                {
-                  // Basically copy of calculations for *iy*
-                  FOR_ANALYTICAL_JACOBIANS_DO(
-                    //
-                    apply_j_unit( diy_dx[iq], jacobian_unit, y_unit, f_grid );
-                    //
-                    for( Index ip=0; ip<jacobian_indices[iq][1] -
-                                        jacobian_indices[iq][0]+1; ip++ )
-                      {
-                        for( Index is=0; is<stokes_dim; is++ )
-                          { 
-                            diyb_dx[iq](Range(row0+is,nf,stokes_dim),ip)=
-                                                     diy_dx[iq](ip,joker,is); 
-                          }
-                      }                              
-                  )
                 }
             }  // End aa loop
         }  // End try

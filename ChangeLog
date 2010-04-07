@@ -1,3 +1,9 @@
+2010-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-13-38
+
+	* src/rte.cc: Work to fix conversion for PlanckBT started. 
+
 2010-04-07  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-13-37

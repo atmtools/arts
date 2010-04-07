@@ -49,12 +49,194 @@
 #include "special_interp.h"
 #include "lin_alg.h"
 
+extern const Numeric BOLTZMAN_CONST;
+extern const Numeric PLANCK_CONST;
+extern const Numeric SPEED_OF_LIGHT;
 
 
 
 /*===========================================================================
   === The functions in alphabetical order
   ===========================================================================*/
+
+//! apply_y_unit
+/*!
+    Performs conversion from radiance to other units.
+
+    The function takes radiances in the form of a Tensor3. Tensor3 is
+    needed for handling conversion of *ybatch*. 
+
+    Use *apply_y_unit_jac* for conversion of jacobian data.
+
+    Use "telescoping" to handle cases when the data comes as a Matrix
+    or a Vector.
+
+    \param   iy       In/Out: Tensor3 with data to be converted, where 
+                      column dimension corresponds to Stokes dimensionality
+                      and row dimension corresponds to frequency.
+    \param   y_unit   As the WSV.
+    \param   f_grid   As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2010-04-07
+*/
+void apply_y_unit( 
+      Tensor3View     iy, 
+    const String&     y_unit, 
+    ConstVectorView   f_grid )
+{
+  assert( f_grid.nelem() == iy.nrows() );
+
+  // The code is largely identical between the two apply_y_unit functions.
+  // If any change here, remember to update the other function.
+
+  if( y_unit == "1" )
+    {}
+
+  else if( y_unit == "RJBT" )
+    {
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          const Numeric scfac = invrayjean( 1, f_grid[iv] );
+          for( Index is=0; is<iy.ncols(); is++ )
+            {
+              for( Index ip=0; ip<iy.npages(); ip++ )
+                {
+                  iy(ip,iv,is) *= scfac;
+                }
+            }
+        }
+    }
+
+  else if( y_unit == "PlanckBT" )
+    {
+      // Use always double to avoid numerical problem (see invrayjean)
+      static const double a = PLANCK_CONST / BOLTZMAN_CONST;
+      static const double b = 2*PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+
+      const Index ns = iy.ncols();
+
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          static const double c = a * f_grid[iv]; 
+          static const double d = b * pow(f_grid[iv],3); 
+
+          for( Index ip=0; ip<iy.npages(); ip++ )
+            {
+              if( ns == 0 )
+                {
+                  iy(ip,iv,0) = c / log(d/iy(ip,iv,0)+1); 
+                }
+              else
+                {
+                  const Numeric i = iy(ip,iv,0);
+                  iy(ip,iv,0) = c / log(d/iy(ip,iv,0)+1); 
+                  static const double e = pow(iy(ip,iv,0),2)/(c*i*(1+i/d));
+                  for( Index is=1; is<ns; is++ )
+                    {
+                      iy(ip,iv,is) *= e;
+                    }
+                }
+            }
+        }
+    }
+
+  else
+    {
+      ostringstream os;
+      os << "Unknown option: y_unit = \"" << y_unit << "\"\n" 
+         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
+      throw runtime_error( os.str() );      
+    }
+}
+
+
+
+//! apply_y_unit2
+/*!
+    Largely as *apply_y_unit* but operates on jacobian data.
+
+    The associated spectrum data *iy* must be in radiance. That is, the
+    spectrum can only be converted to Tb after the jacobian data. 
+
+    \param   J        In/Out: Tensor3 with data to be converted, where 
+                      column dimension corresponds to Stokes dimensionality
+                      and row dimension corresponds to frequency.
+    \param       iy   Associated radiance data.
+    \param   y_unit   As the WSV.
+    \param   f_grid   As the WSV.
+
+    \author Patrick Eriksson 
+    \date   2010-04-10
+*/
+void apply_y_unit2( 
+    Tensor3View       J,
+    ConstTensor3View  iy, 
+    const String&     y_unit, 
+    ConstVectorView   f_grid )
+{
+  assert( J.ncols() == iy.ncols() );
+  assert( f_grid.nelem() == iy.nrows() );
+  assert( f_grid.nelem() == J.nrows() );
+  assert( max(iy) < 0.1 );   // If fails, iy is already in Tb
+
+  // The code is largely identical between the two apply_y_unit functions.
+  // If any change here, remember to update the other function.
+
+  if( y_unit == "1" )
+    {}
+
+  else if( y_unit == "RJBT" )
+    {
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          const Numeric scfac = invrayjean( 1, f_grid[iv] );
+          for( Index is=0; is<J.ncols(); is++ )
+            {
+              for( Index ip=0; ip<J.npages(); ip++ )
+                {
+                  J(ip,iv,is) *= scfac;
+                }
+            }
+        }
+    }
+
+  else if( y_unit == "PlanckBT" )
+    {
+      // Use always double to avoid numerical problem (see invrayjean)
+      static const double a = PLANCK_CONST / BOLTZMAN_CONST;
+      static const double b = 2*PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+
+      const Index ns = J.ncols();
+
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          static const double c = a * f_grid[iv]; 
+          static const double d = b * pow(f_grid[iv],3); 
+
+          for( Index ip=0; ip<J.npages(); ip++ )
+            {
+              const Numeric i = iy(ip,iv,0);
+              const Numeric y = c / log(d/iy(ip,iv,0)+1); 
+              static const double e = pow(y,2)/(c*i*(1+i/d));
+              for( Index is=0; is<ns; is++ )
+                {
+                  J(ip,iv,is) *= e;
+                }
+            }
+        }
+    }
+
+  else
+    {
+      ostringstream os;
+      os << "Unknown option: y_unit = \"" << y_unit << "\"\n" 
+         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
+      throw runtime_error( os.str() );      
+    }
+}
+
+
 
 //! apply_y_unit
 /*!
@@ -76,7 +258,7 @@
     \author Patrick Eriksson 
     \date   2007-10-31
 */
-void apply_y_unit( 
+void apply_y_unit_old( 
       Tensor3View     iy, 
     const String&     y_unit, 
     ConstVectorView   f_grid )
