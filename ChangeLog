@@ -1,5 +1,17 @@
 2010-04-07  Cory Davis  <cory@sundog>
 
+	* arts-1-13-29
+
+	* src/m_montecarlo.cc (rte_posShift): removed (not used), also
+	removed from methods.cc.
+
+	* src/montecarlo.{cc,h) (Cloudbox_ppathCalc): removed (not used)
+	(mcPathTrace): removed (not used)
+	(opt_depth_calc): removed (not used)
+	(Sample_ppathlengthLOS): removed (not used)
+	(TArrayCalc): removed (not used)
+	(cloudbox_ppath_start_stepping): removed (not used)
+
 	* arts-1-13-28
 
 	* src/montecarlo.cc (Cloudbox_ppath_rteCalc): removed (was already

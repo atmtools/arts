@@ -6677,25 +6677,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "rte_posShift" ),
-        DESCRIPTION
-        (
-         "Shifts rte_pos and rte_los, and rte_gp_XXX to the end of ppath.\n"
-         ),
-        AUTHORS( "Cory Davis" ),
-        OUT( "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", "rte_gp_lon" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "ppath", "atmosphere_dim" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "r_geoidSpherical" ),
         DESCRIPTION
         (

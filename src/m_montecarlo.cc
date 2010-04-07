@@ -748,27 +748,3 @@ void MCSetSeedFromTime(
   mc_seed=(Index)time(NULL);
 }
 
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_posShift(
-                  Vector&         rte_pos,
-                  Vector&         rte_los,
-                  GridPos&        rte_gp_p,
-                  GridPos&        rte_gp_lat,
-                  GridPos&        rte_gp_lon,
-                  const Ppath&    ppath,
-                  const Index&    atmosphere_dim)
-{
-  const Index np      = ppath.np;
-  
-  rte_pos.resize( atmosphere_dim );
-  rte_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
-  rte_los.resize( ppath.los.ncols() );
-  rte_los = ppath.los(np-1,joker);
-  gridpos_copy( rte_gp_p, ppath.gp_p[np-1] );
-  if( atmosphere_dim > 1 )
-    { gridpos_copy( rte_gp_lat, ppath.gp_lat[np-1] ); }
-  if( atmosphere_dim > 2 )
-    { gridpos_copy( rte_gp_lon, ppath.gp_lon[np-1] ); }
-}  
-

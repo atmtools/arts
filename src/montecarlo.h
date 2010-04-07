@@ -58,6 +58,30 @@ void clear_rt_vars_at_gp(Workspace&              ws,
                          const ConstTensor3View  t_field,
                          const ConstTensor4View  vmr_field);
 
+void cloudy_rt_vars_at_gp(
+                       Workspace&            ws,
+                       MatrixView&           ext_mat_mono,
+                       VectorView&           abs_vec_mono,
+                       VectorView&           pnd_vec,
+                       Numeric&              temperature,
+                       const Agenda&         opt_prop_gas_agenda,
+                       const Agenda&         abs_scalar_gas_agenda,
+                       const Index&          stokes_dim,
+                       const Index&          f_index,
+                       const GridPos         gp_p,
+                       const GridPos         gp_lat,
+                       const GridPos         gp_lon,
+                       const ConstVectorView    p_grid_cloud,
+                       const ConstVectorView    lat_grid_cloud,
+                       const ConstVectorView    lon_grid_cloud,
+                       const ConstTensor3View   t_field_cloud,
+                       const ConstTensor4View   vmr_field_cloud,
+                       const Tensor4&           pnd_field,
+                       const ArrayOfSingleScatteringData& scat_data_mono,
+                       const ArrayOfIndex&                cloudbox_limits,
+                       const Vector&            rte_los
+                       );
+
 void cloud_atm_vars_by_gp(
                           VectorView pressure,
                           VectorView temperature,
@@ -93,101 +117,6 @@ void Cloudbox_ppathCalc(Workspace&      ws,
                         const Vector&         rte_los,
                         const Index& z_field_is_1D);
 
-/* Not used anymore
-void Cloudbox_ppath_rteCalc( Workspace&            ws,
-                             Ppath&                ppathcloud,
-                             Ppath&                ppath,
-                             Ppath&                ppath_step,
-                             //Vector&               ppath_p,
-                             //Vector&               ppath_t,
-                             //Matrix&               ppath_vmr,
-                             Vector&               rte_pos,
-                             Vector&               rte_los,
-                             Vector&               cum_l_step,
-                             ArrayOfMatrix&        TArray,
-                             ArrayOfMatrix&        ext_matArray,
-                             ArrayOfVector&        abs_vecArray,
-                             Vector&               t_ppath,
-                             //Vector&               scat_za_grid,
-                             //Vector&               scat_aa_grid,
-                             Tensor3&              ext_mat,
-                             Matrix&               abs_vec,
-                             Numeric&              rte_pressure,
-                             Numeric&              rte_temperature,
-                             Vector&               rte_vmr_list,
-                             Matrix&               iy,
-                             //Matrix&               i_space,
-                             //Matrix&               ground_emission,
-                             //Matrix&               ground_los, 
-                             //Tensor4&              ground_refl_coeffs,
-                             Matrix&               pnd_ppath,
-                             const Agenda&         ppath_step_agenda,
-                             const Index&          atmosphere_dim,
-                             const Vector&         p_grid,
-                             const Vector&         lat_grid,
-                             const Vector&         lon_grid,
-                             const Tensor3&        z_field,
-                             const Matrix&         r_geoid,
-                             const Matrix&         z_surface,
-                             const ArrayOfIndex&   cloudbox_limits,
-                             const Index&          record_ppathcloud,
-                             const Index&          record_ppath,
-                             const Agenda&         opt_prop_gas_agenda,
-                             const Agenda&         abs_scalar_gas_agenda,
-                             const Index&          f_index,
-                             const Index&          stokes_dim,
-                             const Tensor3&        t_field,
-                             const Tensor4&        vmr_field,
-                             const Agenda&         rte_agenda,
-                             const Agenda&         iy_space_agenda,
-                             const Agenda&         surface_prop_agenda,
-                             const Agenda&         iy_cloudbox_agenda,
-                             const Vector&         f_grid,
-                             const Index&          photon_number,
-                             const Index&          scattering_order,
-                             const Tensor4&        pnd_field,
-                             const ArrayOfSingleScatteringData& scat_data_mono,
-                             const Index& z_field_is_1D
-);
-*/
-
-void cloudbox_ppath_start_stepping(
-                                   Ppath&          ppath,
-                                   const Index&          atmosphere_dim,
-                                   ConstVectorView       p_grid,
-                                   ConstVectorView       lat_grid,
-                                   ConstVectorView       lon_grid,
-                                   ConstTensor3View      z_field,
-                                   ConstMatrixView       r_geoid,
-                                   ConstMatrixView       z_surface,
-                                   ConstVectorView       rte_pos,
-                                   ConstVectorView       rte_los,
-                                   const Index& z_field_is_1D );
-          
-
-void cloudy_rt_vars_at_gp(
-                       Workspace&            ws,
-                       MatrixView&           ext_mat_mono,
-                       VectorView&           abs_vec_mono,
-                       VectorView&           pnd_vec,
-                       Numeric&              temperature,
-                       const Agenda&         opt_prop_gas_agenda,
-                       const Agenda&         abs_scalar_gas_agenda,
-                       const Index&          stokes_dim,
-                       const Index&          f_index,
-                       const GridPos         gp_p,
-                       const GridPos         gp_lat,
-                       const GridPos         gp_lon,
-                       const ConstVectorView    p_grid_cloud,
-                       const ConstVectorView    lat_grid_cloud,
-                       const ConstVectorView    lon_grid_cloud,
-                       const ConstTensor3View   t_field_cloud,
-                       const ConstTensor4View   vmr_field_cloud,
-                       const Tensor4&           pnd_field,
-                       const ArrayOfSingleScatteringData& scat_data_mono,
-                       const ArrayOfIndex&                cloudbox_limits,
-                       const Vector&            rte_los
-                       );
 
 void cum_l_stepCalc(
                       Vector& cum_l_step,
@@ -223,34 +152,6 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
 
 void matrix_exp_p30(MatrixView& M,
                     ConstMatrixView& A);
-
-void mcPathTrace(Workspace& ws,
-                 MatrixView&           evol_op,
-                 VectorView& abs_vec_mono,
-                 Numeric& temperature,
-                 MatrixView& ext_mat_mono,
-                 Rng&                  rng,
-                 Vector&               rte_pos,
-                 Vector&               rte_los,
-                 Vector& pnd_vec,
-                 Numeric&    g,
-                 bool&                 left_cloudbox,
-                 const Agenda&         opt_prop_gas_agenda,
-                 const Agenda&         abs_scalar_gas_agenda,
-                 const Index&          stokes_dim,
-                 const Index&          f_index,
-                 const Vector&         p_grid,
-                 const Vector&         lat_grid,
-                 const Vector&         lon_grid,
-                 const Tensor3&        z_field,
-                 const Matrix&         r_geoid,
-                 const Matrix&         z_surface,
-                 const Tensor3&   t_field,
-                 const Tensor4&   vmr_field,
-                 const ArrayOfIndex&   cloudbox_limits,
-                 const Tensor4&   pnd_field,
-                 const ArrayOfSingleScatteringData& scat_data_mono,
-                 const Index& z_field_is_1D);
 
 void mcPathTraceGeneral(Workspace&            ws,
                         MatrixView&           evol_op,
@@ -316,52 +217,6 @@ void mcPathTraceIPA(Workspace&            ws,
                     const Index&          z_field_is_1D,
                     const Ppath&          ppath);
 
-/* Not used anymore
-void montecarloGetIncoming(Workspace&            ws,
-                           Matrix&               iy,
-                           Vector&               rte_pos,
-                           Vector&               rte_los,
-                           Ppath&                ppath,
-                           //Vector&               ppath_p,
-                           //Vector&               ppath_t,
-                           //Matrix&               ppath_vmr,
-                           const Agenda&         ppath_step_agenda,
-                           const Agenda&         rte_agenda,
-                           const Agenda&         iy_space_agenda,
-                           const Agenda&         surface_prop_agenda,
-                           const Agenda&         iy_cloudbox_agenda,
-                           const Vector&         p_grid,
-                           const Vector&         lat_grid,
-                           const Vector&         lon_grid,
-                           const Tensor3&        z_field,
-                           const Tensor3&        t_field,
-                           const Tensor4&        vmr_field,
-                           const Matrix&         r_geoid,
-                           const Matrix&         z_surface,
-                           const ArrayOfIndex&   cloudbox_limits,
-                           const Index&          atmosphere_dim,
-                           const Vector&         f_grid,
-                           const Index&          stokes_dim
-                           );
-*/
-
-Numeric opt_depth_calc(Workspace& ws,
-                       Tensor3& ext_mat,
-                       Matrix&  abs_vec,
-                       Numeric&   rte_pressure,
-                       Numeric&   rte_temperature,
-                       Vector&    rte_vmr_list,
-                       const Ppath&     ppath,
-                       const Agenda& opt_prop_gas_agenda,
-                       const Agenda& abs_scalar_gas_agenda,
-                       const Index&     f_index,
-                       const Vector&    p_grid,
-                       const Vector&    lat_grid,
-                       const Vector&    lon_grid,
-                       const Tensor3&   t_field,
-                       const Tensor4&   vmr_field,
-                       const Index&     atmosphere_dim);
-
 void opt_propCalc(
                   MatrixView& K,
                   VectorView& K_abs,
@@ -422,41 +277,5 @@ void Sample_los (
                    const Numeric& rte_temperature
                    );
 
-void Sample_ppathlengthLOS (
-                         Numeric& pathlength, 
-                         Numeric& g,
-                         Rng& rng,
-                         const ArrayOfMatrix& TArray,
-                         const ConstVectorView& cum_l_step
-                         );
-
-
-void TArrayCalc(Workspace& ws,
-                //output
-                ArrayOfMatrix& TArray,
-                ArrayOfMatrix& ext_matArray,
-                ArrayOfVector& abs_vecArray,
-                Vector& t_ppath,
-                Tensor3& ext_mat,
-                Matrix& abs_vec,
-                Numeric&   rte_pressure,
-                Numeric&   rte_temperature,
-                Vector&    rte_vmr_list,
-                Matrix&  pnd_ppath,
-                //input
-                const Ppath& ppath,
-                const Agenda& opt_prop_gas_agenda,
-                const Agenda& abs_scalar_gas_agenda,
-                const Index& f_index,
-                const Index& stokes_dim,
-                const ConstVectorView&    p_grid_cloud,
-                const ConstVectorView&    lat_grid_cloud,
-                const ConstVectorView&    lon_grid_cloud,
-                const ConstTensor3View&   t_field_cloud,
-                const ConstTensor4View&   vmr_field_cloud,
-                const Tensor4&   pnd_field,
-                const ArrayOfSingleScatteringData& scat_data_mono,
-                const ArrayOfIndex& cloudbox_limits
-                );
 
 #endif  // montecarlo_h
