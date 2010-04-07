@@ -218,7 +218,7 @@ add_library (artscore STATIC
 	m_ppath.cc
 	m_refraction.cc
 	m_rte.cc
-	m_scatrte.cc
+	m_doit.cc
 	m_surface.cc
 	m_abs_lookup.cc
 	m_copy.h
@@ -268,8 +268,8 @@ add_library (artscore STATIC
 	rte.h
 	sensor.cc
 	sensor.h
-	scatrte.cc
-	scatrte.h
+	doit.cc
+	doit.h
 	sorting.h
 	sourcetext.cc
 	sourcetext.h

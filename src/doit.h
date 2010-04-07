@@ -22,19 +22,19 @@
   ===========================================================================*/
 
 /*!
-  \file   scatrte.h
+  \file   doit.h
   \author Claudia Emde <claudia.emde@dlr.de>
   \date   2003-06-03
   
   \brief  Radiative transfer in cloudbox.
   
   This file contains functions related to the radiative transfer in the 
-  cloudbox.
+  cloudbox using the DOIT method.
 */
 
 
-#ifndef scatrte_h
-#define scatrte_h
+#ifndef doit_h
+#define doit_h
 
 #include "agenda_class.h"
 #include "matpackVI.h"
@@ -259,16 +259,6 @@ void interp_cloud_coeff1D(//Output
                           ConstVectorView scat_za_grid,
                           const Index& scat_za_interp);
 
-bool is_gp_inside_cloudbox(const GridPos& gp_p,
-                           const GridPos& gp_lat,
-                           const GridPos& gp_lon,
-                           const ArrayOfIndex& cloudbox_limits,
-                           const bool include_boundaries);
-
-bool is_inside_cloudbox(const Ppath& ppath_step,
-                        const ArrayOfIndex& cloudbox_limits,
-                        const bool include_boundaries);
-
 void za_gridOpt(//Output:
                 Vector& za_grid_opt,
                 Matrix& i_field_opt,
@@ -279,4 +269,4 @@ void za_gridOpt(//Output:
                 const Index& scat_za_interp);
 
 
-#endif //scatrte_h
+#endif //doit_h

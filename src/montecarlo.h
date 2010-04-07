@@ -36,7 +36,7 @@
 #include "physics_funcs.h"
 #include "xml_io.h"
 #include "rng.h"
-#include "scatrte.h"
+#include "cloudbox.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;

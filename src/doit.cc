@@ -17,12 +17,12 @@
 */
   
 /*!
-  \file   scatrte.cc
+  \file   doit.cc
   \author Claudia Emde <claudia.emde@dlr.de>
   \date   Wed Jun 04 11:03:57 2003
   
   \brief  This file contains functions to calculate the radiative transfer
-  inside the cloudbox.
+  inside the cloudbox using the DOIT method.
   
 */
 
@@ -48,10 +48,11 @@
 #include "xml_io.h"
 #include "rte.h"
 #include "special_interp.h"
-#include "scatrte.h"
+#include "doit.h"
 #include "logic.h"
 #include "check_input.h"
 #include "sorting.h"
+#include "cloudbox.h"
 
 extern const Numeric PI;
 extern const Numeric RAD2DEG;
@@ -1318,108 +1319,6 @@ void interp_cloud_coeff1D(//Output
   itw2p( p_int, p_grid, ppath_step.gp_p, itw);
 }
 
-/*! Checks, whether a gridpoint is inside the cloudbox.
-
-    \return true is returned if the point is inside the 
-          cloudbox.
-          
-  \param gp_p  pressure GridPos
-  \param gp_lat latitude GridPos
-  \param gp_lon longitude GridPos
-  \param cloudbox_limits The limits of the cloudbox.
-  \param include_boundaries boolean: determines whther or not points on the 
-  boundary are considered to be inside the cloudbox.
-
-  \author Claudia Emde (rewritten by Cory Davis 2005-07-03)
-  \date 2003-06-06
-
-*/
-bool is_gp_inside_cloudbox(const GridPos& gp_p,
-                           const GridPos& gp_lat,
-                           const GridPos& gp_lon,
-                           const ArrayOfIndex& cloudbox_limits,
-                           const bool include_boundaries)
-                        
-{
-  bool result=true;
-  // Pressure dimension
-  double ipos = fractional_gp( gp_p );
-  if (include_boundaries){
-    if( ipos < double( cloudbox_limits[0] )  ||
-        ipos > double( cloudbox_limits[1] ) )
-      { result=false; }
-    
-    else {
-      // Latitude dimension
-      ipos = fractional_gp( gp_lat );
-      if( ipos < double( cloudbox_limits[2] )  || 
-          ipos > double( cloudbox_limits[3] ) )
-        { result=false; }
-      
-      else
-        {
-          // Longitude dimension
-          ipos = fractional_gp( gp_lon );
-          if( ipos < double( cloudbox_limits[4] )  || 
-              ipos > double( cloudbox_limits[5] ) )
-            { result=false; } 
-        }
-    }
-  }
-  else
-    {
-      if( ipos <= double( cloudbox_limits[0] )  ||
-          ipos >= double( cloudbox_limits[1] ) )
-        { result=false; }
-      
-      else {
-        // Latitude dimension
-        ipos = fractional_gp( gp_lat );
-        if( ipos <= double( cloudbox_limits[2] )  || 
-            ipos >= double( cloudbox_limits[3] ) )
-          { result=false; }
-        
-        else
-          {
-            // Longitude dimension
-            ipos = fractional_gp( gp_lon );
-            if( ipos <= double( cloudbox_limits[4] )  || 
-                ipos >= double( cloudbox_limits[5] ) )
-              { result=false; }           
-          }
-      }
-    }
-  return result;
-  
-}
-
-
-/*! Checks, whether the last point of a propagation path 
-  is inside the cloudbox.
-
-    \return true is returned if the point is inside the 
-          cloudbox.
-          
-  \param ppath_step Propagation path step.
-  \param cloudbox_limits The limits of the cloudbox.
-  \param include_boundaries boolean: determines whther or not points on the 
-  boundary are considered to be inside the cloudbox.
-
-  \author Claudia Emde (rewritten by Cory Davis 2005-07-03)
-  \date 2003-06-06
-
-*/
-bool is_inside_cloudbox(const Ppath& ppath_step,
-                        const ArrayOfIndex& cloudbox_limits,
-                        const bool include_boundaries)
-                        
-{
-  const Index np=ppath_step.np;
-  
-  return is_gp_inside_cloudbox(ppath_step.gp_p[np-1],ppath_step.gp_lat[np-1],
-                               ppath_step.gp_lon[np-1],cloudbox_limits,include_boundaries);
-  
-}
 
 
 //! Radiative transfer calculation inside cloudbox for planeparallel case.

@@ -97,7 +97,7 @@ libartscore_a_SOURCES = \
 	m_ppath.cc \
 	m_refraction.cc \
 	m_rte.cc \
-	m_scatrte.cc \
+	m_doit.cc \
 	m_surface.cc \
 	m_abs_lookup.cc \
 	m_copy.h \
@@ -140,8 +140,8 @@ libartscore_a_SOURCES = \
 	rte.h \
 	sensor.cc \
 	sensor.h \
-	scatrte.cc \
-	scatrte.h \
+	doit.cc \
+	doit.h \
 	sorting.h \
 	sourcetext.cc \
 	sourcetext.h \

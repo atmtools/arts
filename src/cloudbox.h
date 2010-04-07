@@ -33,6 +33,7 @@
 #include "optproperties.h"
 #include "array.h"
 #include "gridded_fields.h"
+#include "ppath.h"
 
 void chk_if_pnd_zero_p(
                        const Index& i_p,
@@ -90,6 +91,17 @@ void iy_interp_cloudbox_field(
       const Vector&         scat_aa_grid,
       const Vector&         f_grid,
       const String&         interpmeth );
+
+bool is_gp_inside_cloudbox(const GridPos& gp_p,
+                           const GridPos& gp_lat,
+                           const GridPos& gp_lon,
+                           const ArrayOfIndex& cloudbox_limits,
+                           const bool include_boundaries);
+
+bool is_inside_cloudbox(const Ppath& ppath_step,
+                        const ArrayOfIndex& cloudbox_limits,
+                        const bool include_boundaries);
+
 
 #endif //cloudbox_h
 

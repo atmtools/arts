@@ -19,13 +19,13 @@
 */
   
 /*!
-  \file   m_scatrte.cc
+  \file   m_doit.cc
   \author Claudia Emde <claudia.emde@dlr.de>
   \author Sreerekha T.R. <rekha@uni-bremen.de>
   \date   Wed Jun 19 11:03:57 2002
   
   \brief  This file contains functions to calculate the radiative transfer
-  inside the cloudbox.
+  inside the cloudbox using the DOIT method.
   
   These functions are listed in the doxygen documentation as entries of the
   file auto_md.h
@@ -55,7 +55,7 @@
 #include "xml_io.h"
 #include "rte.h"
 #include "special_interp.h"
-#include "scatrte.h"
+#include "doit.h"
 #include "m_general.h"
 #include "wsv_aux.h"
 
@@ -811,7 +811,7 @@ doit_i_fieldUpdateSeq1D(
                         stokes_dim, 0.);
   
      
-  // If theta is between 90° and the limiting value, the intersection point
+  // If theta is between 90Â° and the limiting value, the intersection point
   // is exactly at the same level as the starting point (cp. AUG)
   Numeric theta_lim = 180. - asin((r_geoid(0,0)+
                                    z_field(cloudbox_limits[0],0,0))/
