@@ -1,3 +1,22 @@
+2010-04-07  Claudia Emde  <claudia.emde@lmu.de>
+
+	* arts-1-13-33
+
+	* src/scatrtc.{cc,h}: Renamed, now they are called doit.{cc,h}
+          Moved the functions is_gp_inside_cloudbox, is_inside_cloudbox to
+	  cloudbox.{cc,h}.
+
+	* src/cloudbox.{cc,h}: Included functions is_gp_inside_cloudbox,
+	is_inside_cloudbox.
+
+	* src/m_scatrtc.cc: Renamed to m_doit.cc.
+
+	* src/CMakeLists.txt: Renamed scatrte -> doit
+
+	* src/Makefile.in: Renamed scatrte -> doit
+
+	* src/methods.cc: Improved documentation of DoitAngularGridsSet.
+
 2010-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-13-32
