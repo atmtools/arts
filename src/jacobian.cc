@@ -349,223 +349,6 @@ void get_perturbation_range(       Range& range,
 
 
 
-//! jacobian_from_path_to_rgrids
-/*!
-    Maps jacobian values valid for changes at a propogation path step, to
-    values for the retrieval grids.
-
-    See *rte_std* for usage of this function.
-
-    See AUG for derivation of used expressions.
-
-    \param[in,out] diy_dx A matrix corresponding to *iy*
-    \param[in]     diy_dq Corresponds to diy_dt
-    \param[in]     w      FIXME: DOC
-
-    \author Patrick Eriksson, 
-    \date   2005-06-02
-*/
-//
-// To make code below a bit clearer
-//
-void from_dq_to_dx(
-         MatrixView   diy_dx,
-    ConstMatrixView   diy_dq,
-    const Numeric&    w )
-{
-  for( Index iv=0; iv<diy_dx.nrows(); iv++ )
-    { 
-      for( Index is=0; is<diy_dx.ncols(); is++ )
-        { diy_dx(iv,is) += w * diy_dq(iv,is); }
-    }
-}
-//
-void jacobian_from_path_to_rgrids(
-         MatrixView           ib_q_jacs,
-   const Index&               nbdone,
-   const ArrayOfTensor4&      diy_dq,
-   const Index&               iq,
-   const Index&               atmosphere_dim,
-   const ArrayOfPpath&        ppath_array,
-   const RetrievalQuantity&   jacobian_quantity )
-{
-  assert( diy_dq.nelem() );
-  assert( ppath_array.nelem() == diy_dq.nelem() );
-
-  const Index   stokes_dim = diy_dq[0].ncols(); 
-  const Index   nf         = diy_dq[0].nrows();
-
-  // We want here an extrapolation to infinity -> 
-  //                                        extremly high extrapolation factor
-  const Numeric   extpolfac = 1.0e99;
-
-  // Retrieval grid of interest
-  Vector r_grid;
-
-  // Variable to hold diy_dq summed and mapped to retrieval grid positions
-  // Sized and set to 0 below, when length of retrieval grids are known
-  Tensor3   diy_dx;
-  bool      diydx_unset = true;  
-
-  // Loop ppath parts
-  for( Index ia=0; ia<ppath_array.nelem(); ia++ )
-    {
-      if( ppath_array[ia].np > 1 )  // Otherwise nothing to do here
-        {
-          // Pressure
-          r_grid = jacobian_quantity.Grids()[0];
-          Index            nr1 = r_grid.nelem();
-          ArrayOfGridPos   gp_p(ppath_array[ia].np);
-          p2gridpos( gp_p, r_grid, ppath_array[ia].p, extpolfac );
-
-          // Latitude
-          Index            nr2 = 1;
-          ArrayOfGridPos   gp_lat;
-          if( atmosphere_dim > 1 )
-            {
-              gp_lat.resize(ppath_array[ia].np);
-              r_grid = jacobian_quantity.Grids()[1];
-              nr2    = r_grid.nelem();
-              gridpos( gp_lat, r_grid, ppath_array[ia].pos(joker,1), 
-                                                                   extpolfac );
-            }
-
-          // Longitude
-          Index            nr3 = 1;
-          ArrayOfGridPos   gp_lon;
-          if( atmosphere_dim > 2 )
-            {
-              gp_lon.resize(ppath_array[ia].np);
-              r_grid = jacobian_quantity.Grids()[2];
-              nr3    = r_grid.nelem();
-              gridpos( gp_lon, r_grid, ppath_array[ia].pos(joker,2), 
-                                                                   extpolfac );
-            }
-          
-          // In first loop, init *diy_dx*
-          if( diydx_unset )
-            {
-              diy_dx.resize(nr1*nr2*nr3,nf,stokes_dim);
-              diy_dx = 0.0;
-              diydx_unset = false;
-            }
-
-          //- 1D
-          if( atmosphere_dim == 1 )
-            {
-              for( Index ip=0; ip<ppath_array[ia].np; ip++ )
-                {
-                  if( gp_p[ip].fd[0] < 1 )
-                    {
-                      from_dq_to_dx( diy_dx(gp_p[ip].idx,joker,joker),
-                                     diy_dq[ia](iq,ip,joker,joker), 
-                                     gp_p[ip].fd[1] );
-                    }
-                  if( gp_p[ip].fd[0] > 0 )
-                    {
-                      from_dq_to_dx( diy_dx(gp_p[ip].idx+1,joker,joker),
-                                     diy_dq[ia](iq,ip,joker,joker), 
-                                     gp_p[ip].fd[0] );
-                    }
-                }
-            }
-
-          //- 2D
-          else if( atmosphere_dim == 2 )
-            {
-              for( Index ip=0; ip<ppath_array[ia].np; ip++ )
-                {
-                  Index   ix = nr1*gp_lat[ip].idx + gp_p[ip].idx;
-                  // Low lat, low p
-                  from_dq_to_dx( diy_dx(ix,joker,joker),
-                                 diy_dq[ia](iq,ip,joker,joker), 
-                                 gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
-                  // Low lat, high p
-                  from_dq_to_dx( diy_dx(ix+1,joker,joker),
-                                 diy_dq[ia](iq,ip,joker,joker), 
-                                 gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
-                  // High lat, low p
-                  from_dq_to_dx( diy_dx(ix+nr1,joker,joker),
-                                 diy_dq[ia](iq,ip,joker,joker), 
-                                 gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
-                  // High lat, high p
-                  from_dq_to_dx( diy_dx(ix+nr1+1,joker,joker),
-                                 diy_dq[ia](iq,ip,joker,joker), 
-                                 gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
-                }
-            }
-
-          //- 3D
-          else if( atmosphere_dim == 3 )
-            {
-              for( Index ip=0; ip<ppath_array[ia].np; ip++ )
-                {
-                  Index   ix = nr2*nr1*gp_lon[ip].idx +
-                                 nr1*gp_lat[ip].idx + gp_p[ip].idx;
-                  // Low lon, low lat, low p
-                  from_dq_to_dx( diy_dx(ix,joker,joker),
-                             diy_dq[ia](iq,ip,joker,joker), 
-                             gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
-                  // Low lon, low lat, high p
-                  from_dq_to_dx( diy_dx(ix+1,joker,joker),
-                             diy_dq[ia](iq,ip,joker,joker), 
-                             gp_lon[ip].fd[1]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
-                  // Low lon, high lat, low p
-                  from_dq_to_dx( diy_dx(ix+nr1,joker,joker),
-                             diy_dq[ia](iq,ip,joker,joker), 
-                             gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
-                  // Low lon, high lat, high p
-                  from_dq_to_dx( diy_dx(ix+nr1+1,joker,joker),
-                             diy_dq[ia](iq,ip,joker,joker), 
-                             gp_lon[ip].fd[1]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
-
-                  // Increase *ix* (to be valid for high lon level)
-                  ix += nr2*nr1;
-
-                  // High lon, low lat, low p
-                  from_dq_to_dx( diy_dx(ix,joker,joker),
-                             diy_dq[ia](iq,ip,joker,joker), 
-                             gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[1]);
-                  // High lon, low lat, high p
-                  from_dq_to_dx( diy_dx(ix+1,joker,joker),
-                             diy_dq[ia](iq,ip,joker,joker), 
-                             gp_lon[ip].fd[0]*gp_lat[ip].fd[1]*gp_p[ip].fd[0]);
-                  // High lon, high lat, low p
-                  from_dq_to_dx( diy_dx(ix+nr1,joker,joker),
-                             diy_dq[ia](iq,ip,joker,joker), 
-                             gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[1]);
-                  // High lon, high lat, high p
-                  from_dq_to_dx( diy_dx(ix+nr1+1,joker,joker),
-                             diy_dq[ia](iq,ip,joker,joker), 
-                             gp_lon[ip].fd[0]*gp_lat[ip].fd[0]*gp_p[ip].fd[0]);
-                }
-            }
-        }
-    }
-
-  //- Copy obtained values to *ib_q_jacs*
-  if( diydx_unset )
-    {
-      for( Index iv=0; iv<nf; iv++ )
-        { 
-          const Index   i0 = nbdone + iv*stokes_dim;
-          for( Index is=0; is<stokes_dim; is++ )
-            { ib_q_jacs(i0+is,joker) = 0.0; }
-        }
-    }
-  else
-    {
-      for( Index iv=0; iv<nf; iv++ )
-        { 
-          const Index   i0 = nbdone + iv*stokes_dim;
-          for( Index is=0; is<stokes_dim; is++ )
-            { ib_q_jacs(i0+is,joker) = diy_dx(joker,iv,is); }
-        }
-    }
-}
-
-
-
 //! Calculate the 1D perturbation for a relative perturbation.
 /*!
    This is a helper function that interpolated the perturbation field for
@@ -751,6 +534,45 @@ void polynomial_basis_func(
       //
       b -= mean( b );
     }  
+}
+
+
+
+//! vmrunitscf
+/*!
+    Scale factor for conversion between gas species units.
+
+    The function finds the factor with which the total absorption of a
+    gas species shall be multiplicated to match the selected
+    (jacobian) unit. 
+
+    \param   x      Out: scale factor
+    \param   unit   Unit selected.
+    \param   vmr    VMR value.
+    \param   p      Pressure
+    \param   t      Temperature.
+
+    \author Patrick Eriksson 
+    \date   2009-10-08
+*/
+void vmrunitscf(  
+        Numeric&   x, 
+  const String&    unit, 
+  const Numeric&   vmr,
+  const Numeric&   p,
+  const Numeric&   t )
+{
+  if( unit == "rel" || unit == "logrel" )
+    { x = 1; }
+  else if( unit == "vmr" )
+    { x = 1 / vmr; }
+  else if( unit == "nd" )
+    { x = 1 / ( vmr * number_density( p, t ) ); }
+  else
+    {
+      throw runtime_error( "Allowed options for gas species jacobians are "
+                                 "\"rel\", \"vmr\", \"nd\" and \"logrel\"." );
+    }
 }
 
 

@@ -1007,44 +1007,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "diy_dt" ),
-      DESCRIPTION
-      (
-       "Derivative of *iy* with respect to temperature along the ppaths.\n"
-       "\n"
-       "This variable holds the derivative of monochromatic pencil beam\n"
-       "radiances with respect to the temperature at each point along each \n"
-       "propagation path part.\n"
-       "\n"
-       "The number of books is here always 1. This extra dimension is\n"
-       "included in order to have the same data type for all diy-variables.\n"
-       "\n"
-       "Usage:      Set by *iy_calc* and *rte_agenda*.\n"
-       "\n"
-       "Dimensions: [ppath_array][ 1 ppath.np, f_grid, stokes_dim ]\n"
-       ),
-      GROUP( "ArrayOfTensor4" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "diy_dvmr" ),
-      DESCRIPTION
-      (
-       "Derivative of *iy* with respect to VMR along the propagation path.\n"
-       "\n"
-       "This variable holds the derivative of monochromatic pencil beam\n"
-       "radiances with respect to the VMR of each species at each point\n"
-       "along each propagation path part.\n"
-       "\n"
-       "Usage:      Set by *iy_calc* and *rte_agenda*.\n"
-       "\n"
-       "Dimensions: \n"
-       "     [ppath_array][ rte_do_vmr_species, ppath.np, f_grid, stokes_dim ]\n"
-       ),
-      GROUP( "ArrayOfTensor4" )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "diy_dx" ),
       DESCRIPTION
       (
@@ -1279,10 +1241,9 @@ void Workspace::define_wsv_data()
       (
        "Thermal emission source term.\n"
        "\n"
-       "This variable holds the emission at one position along the propagation\n"
-       "path. This source term is used for calculations inside *rte_agenda*.\n"
-       "Inside scattering methods, such as DOIT, the calculation of the source\n"
-       "term can be hard coded.\n"
+       "This variable holds the emission at one position along the\n"
+       " propagation path. Inside scattering methods, such as DOIT, the\n"
+       "calculation of this source term can be hard coded.\n"
        "\n"
        "Usage:      Set by *emission_agenda*.\n"
        "\n"
@@ -1576,9 +1537,9 @@ void Workspace::define_wsv_data()
        (
         "Flag to handle recursive calls of *iy_clearsky_agenda*\n"
         "\n"
-        "The agenda *iy_clearsky_agenda* can be used recursevily and this flag\n"
+        "The agenda *iy_clearsky_agenda* can be used recursively and this flag\n"
         "is used to tell the methods inside the agenda which is the primary\n"
-        " call. This is handled automaticcly for methods using\n"
+        " call. This is handled automatically for methods using\n"
         "*iy_clearsky_agenda*, such as *yCalc*, but the user must set this\n"
         "variable to 1 if the agenda is called directly inside the control\n"
         "file (which should be a rare case).\n"
@@ -2556,22 +2517,6 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "ppath_array_index" ),
-      DESCRIPTION
-      (
-       "Index in *ppath_array* of present propagation path part.\n"
-       "\n"
-       "This variable shall point to correct position in *ppath_array* when\n"
-       "*iy_calc* is called. A negative value means that there is no\n"
-       "previous path part. The variable is then modified by *iy_calc* as\n"
-       "soon as a new propagation path is calculated.\n"
-       "\n"
-       "Usage: Communication with *iy_calc*.\n"
-       ),
-      GROUP( "Index" )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "ppath_lmax" ),
       DESCRIPTION
       (
@@ -2691,15 +2636,6 @@ void Workspace::define_wsv_data()
   wsv_data.push_back
    (WsvRecord
     ( NAME( "refr_index_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc.\n"
-       ),
-      GROUP( "Agenda" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "rte_agenda" ),
       DESCRIPTION
       (
         "See agendas.cc.\n"

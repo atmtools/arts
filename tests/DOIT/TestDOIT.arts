@@ -108,12 +108,6 @@ AgendaSet( ppath_step_agenda ){
                        z_field, r_geoid, z_surface, -1 )
 }
 
-# Agendas for clearsky radiative transfer calculation
-# ----------------------------------------------------
-AgendaSet( rte_agenda ){
-   RteStd
-}
-
 # Set the cloudbox limits (pressure units)
 # Alternative: cloudboxSetManuallyAltitude (specification in [km])
 # ----------------------------------------------------------------

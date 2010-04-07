@@ -577,29 +577,6 @@ void define_agenda_data()
        OUTPUT( "refr_index" ),
        INPUT(  "rte_pressure", "rte_temperature", "rte_vmr_list" )));
 
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "rte_agenda" ),
-       DESCRIPTION
-       (
-        "Performs monochromatic pencil beam calculations for a single\n"
-        "propagation path.\n"
-        "\n"
-        "When calling the agenda, *iy* shall be set to the radiances, or\n"
-        "optical thicknesses, at the start of the propagation path described\n"
-        "by *ppath*. The agenda then solves the radiative transfer equation\n"
-        "along the propagation path and returns the result in *iy*.\n"
-        "\n"
-        "The agenda can further provide the basis for analytical Jacobian\n"
-        "calculations, by also returning the diy-variables. See *diy_dt* and\n"
-        "diy_dvmr* and the user guide for details around analytical Jacobians\n"
-        "calculations.\n"
-        ),
-       OUTPUT( "iy", "diy_dvmr", "diy_dt" ),
-       INPUT( "iy", "diy_dvmr", "diy_dt", "ppath", "ppath_array", 
-              "ppath_array_index", "rte_do_vmr_jacs", "rte_do_t_jacs", 
-              "stokes_dim", "f_grid" )));
-
  agenda_data.push_back
     (AgRecord
      ( NAME( "spt_calc_agenda" ),

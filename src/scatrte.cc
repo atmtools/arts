@@ -346,7 +346,7 @@ void cloud_ppath_update1D(Workspace& ws,
           
       // ppath_what_background(ppath_step) tells the 
       // radiative background.  More information in the 
-      // function get_radiative_background.
+      // function get_iy_of_background.
       // if there is no background we proceed the RT
       Index bkgr = ppath_what_background(ppath_step);
 
@@ -492,7 +492,7 @@ void cloud_ppath_update1D_noseq(
       
       // ppath_what_background(ppath_step) tells the 
       // radiative background.  More information in the 
-      // function get_radiative_background.
+      // function get_iy_of_background.
       // if there is no background we proceed the RT
       Index bkgr = ppath_what_background(ppath_step);
       

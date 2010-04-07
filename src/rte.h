@@ -65,17 +65,51 @@ void apply_j_unit(
     const String&     y_unit, 
     ConstVectorView   f_grid );
 
+void get_ptvmr_for_ppath( 
+        Vector&      ppath_p, 
+        Vector&      ppath_t, 
+        Matrix&      ppath_vmr, 
+  const Ppath&       ppath,
+  const Index&       atmosphere_dim,
+  ConstVectorView    p_grid,
+  ConstVectorView    lat_grid,
+  ConstVectorView    lon_grid,
+  ConstTensor3View   t_field,
+  ConstTensor4View   vmr_field );
+
 Range get_rowindex_for_mblock( 
   const Sparse&   sensor_response, 
   const Index&    imblock );
 
-void include_trans_in_diy_dq( 
-            ArrayOfTensor4&   diy_dq,  
-      const Index&            iv,
-            bool              pol_trans,
-      ConstMatrixView         trans,
-      const ArrayOfPpath&     ppath_array, 
-      const Index&            ppath_array_index );
+void get_step_vars_for_standardRT( 
+        Workspace&   ws,
+        Tensor3&     ppath_abs_scalar, 
+        Matrix&      ppath_emission, 
+        Matrix&      ppath_tau,
+        Vector&      total_tau,
+  const Agenda&      abs_scalar_agenda,
+  const Agenda&      emission_agenda,
+  const Ppath&       ppath,
+  ConstVectorView    ppath_p, 
+  ConstVectorView    ppath_t, 
+  ConstMatrixView    ppath_vmr, 
+  const Index&       nf,
+  const Index&       emission_do );
+
+void iy_transmission_for_scalar_tau( 
+       Tensor3&     iy_transmission,
+  const Index&      stokes_dim,
+  ConstVectorView   tau );
+
+void iy_transmission_mult( 
+       Tensor3&      iy_trans_new,
+  ConstTensor3View   iy_transmission,
+  ConstTensor3View   trans );
+
+void iy_transmission_mult_scalar_tau( 
+       Tensor3&      iy_trans_new,
+  ConstTensor3View   iy_transmission,
+  ConstVectorView    tau );
 
 void iyb_calc(
         Workspace&                  ws,
@@ -108,62 +142,6 @@ void iyb_calc(
   const ArrayOfArrayOfIndex&        jacobian_indices,
   const String&                     jacobian_unit );
 
-void iy_calc( Workspace&               ws,
-              Matrix&                  iy,
-              Ppath&                   ppath,
-              Index&                   ppath_array_index,
-              ArrayOfPpath&            ppath_array,
-              ArrayOfTensor4&          diy_dvmr,
-              ArrayOfTensor4&          diy_dt,
-        const Agenda&                  ppath_step_agenda,
-        const Agenda&                  rte_agenda,
-        const Agenda&                  iy_space_agenda,
-        const Agenda&                  surface_prop_agenda,
-        const Agenda&                  iy_cloudbox_agenda,
-        const Index&                   atmosphere_dim,
-        const Vector&                  p_grid,
-        const Vector&                  lat_grid,
-        const Vector&                  lon_grid,
-        const Tensor3&                 z_field,
-        const Tensor3&                 t_field,
-        const Tensor4&                 vmr_field,
-        const Matrix&                  r_geoid,
-        const Matrix&                  z_surface,
-        const Index&                   cloudbox_on, 
-        const ArrayOfIndex&            cloudbox_limits,
-        const Vector&                  pos,
-        const Vector&                  los,
-        const Vector&                  f_grid,
-        const Index&                   stokes_dim,
-        const Index&                   ppath_array_do,
-        const ArrayOfIndex&            rte_do_vmr_jacs,
-        const Index&                   rte_do_t_jacs );
-
-void iy_calc_no_jacobian(
-              Workspace&      ws,
-              Matrix&         iy,
-              Ppath&          ppath,
-        const Agenda&         ppath_step_agenda,
-        const Agenda&         rte_agenda,
-        const Agenda&         iy_space_agenda,
-        const Agenda&         surface_prop_agenda,
-        const Agenda&         iy_cloudbox_agenda,
-        const Index&          atmosphere_dim,
-        const Vector&         p_grid,
-        const Vector&         lat_grid,
-        const Vector&         lon_grid,
-        const Tensor3&        z_field,
-        const Tensor3&        t_field,
-        const Tensor4&        vmr_field,
-        const Matrix&         r_geoid,
-        const Matrix&         z_surface,
-        const Index&          cloudbox_on, 
-        const ArrayOfIndex&   cloudbox_limits,
-        const Vector&         pos,
-        const Vector&         los,
-        const Vector&         f_grid,
-        const Index&          stokes_dim );
-
 void rte_step_std(
          //Output and Input:
          VectorView stokes_vec,
@@ -174,52 +152,6 @@ void rte_step_std(
          ConstVectorView sca_vec_av, 
          const Numeric& l_step,
          const Numeric& rte_planck_value );
-
-void rte_std(Workspace&               ws,
-             Matrix&                  iy,
-             Tensor4&                 ppath_transmissions,
-             ArrayOfTensor4&          diy_dvmr,
-             ArrayOfTensor4&          diy_dt,
-       const Ppath&                   ppath,
-       const ArrayOfPpath&            ppath_array, 
-       const Index&                   ppath_array_index,
-       const Vector&                  f_grid,
-       const Index&                   stokes_dim,
-       const Agenda&                  emission_agenda,
-       const Agenda&                  abs_scalar_gas_agenda,
-       const ArrayOfIndex&            rte_do_gas_jacs,
-       const Index&                   rte_do_t_jacs,
-       const bool&                    do_transmissions );
-
-void rtecalc_check_input(
-         Index&                      nf,
-         Index&                      nmblock,
-         Index&                      nza,
-         Index&                      naa,
-         Index&                      nblock,
-   const Index&                      stokes_dim,
-   const Vector&                     f_grid,
-   const Index&                      atmosphere_dim,
-   const Vector&                     p_grid,
-   const Vector&                     lat_grid,
-   const Vector&                     lon_grid,
-   const Tensor3&                    z_field,
-   const Tensor3&                    t_field,
-   const Matrix&                     r_geoid,
-   const Matrix&                     z_surface,
-   const Sparse&                     sensor_response,
-   const Vector&                     sensor_response_f,
-   const ArrayOfIndex&               sensor_response_pol,
-   const Vector&                     sensor_response_za,
-   const Matrix&                     sensor_pos,
-   const Matrix&                     sensor_los,
-   const Index&                      antenna_dim,
-   const Vector&                     mblock_za_grid,
-   const Vector&                     mblock_aa_grid,
-   const Index&                      cloudbox_on, 
-   const ArrayOfIndex&               cloudbox_limits,
-   const String&                     y_unit,
-   const String&                     jacobian_unit );
 
 void surface_calc(
               Matrix&         iy,

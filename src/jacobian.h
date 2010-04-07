@@ -153,15 +153,6 @@ void get_perturbation_range(       Range& range,
                              const Index& index,
                              const Index& length);
 
-void jacobian_from_path_to_rgrids(
-         MatrixView           ib_q_jacs,
-   const Index&               nbdone,
-   const ArrayOfTensor4&      diy_dq,
-   const Index&               iq,
-   const Index&               atmosphere_dim,
-   const ArrayOfPpath&        ppath_array,
-   const RetrievalQuantity&   jacobian_quantity );
-                           
 void perturbation_field_1d(       VectorView      field,
                             const ArrayOfGridPos& p_gp,
                             const Index&          p_pert_n,
@@ -196,5 +187,12 @@ void polynomial_basis_func(
         Vector&   b,
   const Vector&   x,
   const Index&    poly_coeff );
-                                
+
+void vmrunitscf(  
+        Numeric&   x, 
+  const String&    unit, 
+  const Numeric&   vmr,
+  const Numeric&   p,
+  const Numeric&   t );                                
+
 #endif // jacobian_h

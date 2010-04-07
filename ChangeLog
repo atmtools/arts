@@ -1,3 +1,31 @@
+2010-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-13-31
+
+	* tests/DOIT/TestDOIT.arts: Removed defintion of rte_agenda.
+
+	* includes/general.arts: Removed defintion of rte_agenda.
+
+	* src/m_rte.cc: Big cleaning. Everything around the old RT system
+	(with RteCalc as main method) removed. A lot of stuff moved to
+	other files. See below.
+	
+	* src/rte.cc: A number of obselete or replaced (functions with
+	newer version) removed. Several new functions coming from m_rte.cc.
+
+	* src/jacobian.cc (vmrunitscf): Moved from m_rte.cc.
+	(jacobian_from_path_to_rgrids): Removed.
+
+	* src/agendas.cc: Removed rte_agenda. 
+
+	* src/workspace.cc: Removed diy_dt, diy_dvmr and ppath_array_index. 
+
+	* src/scatrte.cc: Updated comment referring to
+	get_radiative_background.
+
+	* src/m_surface.cc: Removed non-active code, marked as old since
+	long time.
+
 2010-04-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-13-30
