@@ -28,8 +28,8 @@
   perform an interpolation: 
 
   -# gridpos_poly (one for each interpolation dimension)
-  -# interpweights_poly
-  -# interp_poly
+  -# interpweights
+  -# interp
   
   Not only is the philosophy the same, these higher order functions
   also make direct use of the linear functions in some important
