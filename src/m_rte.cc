@@ -614,9 +614,22 @@ void iyb_calc(
   else
     { diyb_dx.resize( 0 ); }
 
-
+  // We have to make a local copy of the Workspace and the agendas because
+  // only non-reference types can be declared firstprivate in OpenMP
+  Workspace l_ws (ws);
+  Agenda l_iy_clearsky_agenda (iy_clearsky_agenda);
+  
   // Start of actual calculations
-
+/*#pragma omp parallel for                                          \
+  if(!arts_omp_in_parallel() && nza>1)                            \
+  default(none)                                                   \
+  firstprivate(l_ws, l_iy_clearsky_agenda)                        \
+  shared(sensor_los, mblock_za_grid, mblock_aa_grid, vmr_field,   \
+         t_field, lon_grid, lat_grid, p_grid, f_grid, sensor_pos, \
+         joker, naa) */
+#pragma omp parallel for                                          \
+  if(!arts_omp_in_parallel() && nza>1)                            \
+  firstprivate(l_ws, l_iy_clearsky_agenda)
   for( Index iza=0; iza<nza; iza++ )
     {
       // The try block here is necessary to correctly handle
@@ -652,11 +665,11 @@ void iyb_calc(
               Tensor3        iy_aux, iy_transmission;
               ArrayOfTensor3 diy_dx; 
               //
-              iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type, 
+              iy_clearsky_agendaExecute( l_ws, iy, iy_error, iy_error_type, 
                              iy_aux, diy_dx, 1, sensor_pos(imblock,joker), los, 
                              iy_transmission, cloudbox_on, j_analytical_do, 
                              iy_aux_do, f_grid, p_grid, lat_grid, lon_grid, 
-                             t_field, vmr_field, iy_clearsky_agenda );
+                             t_field, vmr_field, l_iy_clearsky_agenda );
 
               // Check of iy_aux
               //
