@@ -1,5 +1,13 @@
 2010-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-13-35
+
+	* includes/mhs/mhs.arts: 
+	* includes/mhs/mhs_fast.arts: Updated following
+	changes in special_interp.cc.
+
+2010-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-13-34
 	
 	* src/special_interp.cc (interp_atmfield_by_gp): Fixed ticket 14.
