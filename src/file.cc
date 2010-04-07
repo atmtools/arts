@@ -37,6 +37,7 @@
 #include <stdexcept>
 #include <cmath>
 #include <cfloat>
+#include <cstdio>
 #include "arts.h"
 #include "matpackI.h"
 #include "array.h"
@@ -115,6 +116,28 @@ void open_output_file(ofstream& file, const String& name)
       throw runtime_error(os.str());
     }
 }
+
+
+//// cleanup_output_file //////////////////////////////////////////////////////
+/**
+ Closes the file. If it is empty, the file is deleted.
+ @param     file File pointer 
+ @author    Oliver Lemke
+ @exception ios_base::failure Could for example mean that the
+ directory is read only. */
+#ifdef HAVE_REMOVE
+void cleanup_output_file(ofstream& file, const String& name)
+{
+  if (file.is_open())
+  {
+    streampos fpos = file.tellp();
+    file.close();
+    if (!fpos) remove(name.c_str());
+  } 
+}
+#else
+void cleanup_output_file(ofstream&, const String&) {}
+#endif
 
 
 

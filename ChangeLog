@@ -1,3 +1,19 @@
+2010-04-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-13-30
+
+	* Fix ticket #16.
+
+	* src/file.{cc,h} (cleanup_output_file): Added. Remove empty rep file.
+
+	* src/arts.cc (arts_exit): Call cleanup_output_file on exit.
+
+	* CMakeLists.txt: Check for remove function.
+
+	* config.h.cmake: Add HAVE_REMOVE.
+
+	* src/main.cc: Display runtime in fixed point notation.
+
 2010-04-07  Cory Davis  <cory@sundog>
 
 	* arts-1-13-29

@@ -36,6 +36,9 @@
 #cmakedefine HAVE_SSTREAM 1
 #cmakedefine HAVE_CTIME 1
 
+/* check existence of functions */
+#cmakedefine HAVE_REMOVE
+
 /* availability of timer support */
 #cmakedefine TIME_SUPPORT 1
 

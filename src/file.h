@@ -56,6 +56,8 @@ void filename_bin(
 
 void open_output_file(ofstream& file, const String& name);
 
+void cleanup_output_file(ofstream& file, const String& name);
+
 void open_input_file(ifstream& file, const String& name);
 
 void read_text_from_stream(ArrayOfString& text, istream& is);

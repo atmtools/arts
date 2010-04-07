@@ -27,6 +27,7 @@
 #include <cstdlib>
 #include <stdexcept>
 #include "arts.h"
+#include "file.h"
 #include "messages.h"
 
 
@@ -40,6 +41,13 @@
 */
 void arts_exit(int status)
 {
+  extern ofstream report_file;
+  extern String out_basename;       // Basis for file name
+  ostringstream report_file_ext;
+  
+  report_file_ext << ".rep";
+  cleanup_output_file(report_file, out_basename + report_file_ext.str());
+  
   exit (status);
 }
 

@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6.3)
 
 project (ARTS)
-set (VERSION "1.13.27")
+set (VERSION "1.13.30")
 
 ENABLE_TESTING()
 
@@ -14,6 +14,7 @@ include (CheckIncludeFileCXX)
 
 include (CheckCXXCompilerFlag)
 include (CheckTypeSize)
+include (CheckFunctionExists)
 
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
@@ -61,6 +62,9 @@ check_type_size("long"   SIZEOF_LONG)
 check_type_size("size_t" SIZEOF_SIZE_T)
 check_type_size("float"  SIZEOF_FLOAT)
 check_type_size("double" SIZEOF_DOUBLE)
+
+########### Check functions ##########
+check_function_exists(remove HAVE_REMOVE)
 
 ########### Enable timer support, if we have all ##########
 ########### necessary header files               ##########

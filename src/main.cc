@@ -1103,11 +1103,11 @@ int main (int argc, char **argv)
       && arts_realtime_start != (clock_t)-1
       && arts_realtime_end != (clock_t)-1)
     {
-      out1 << "This run took " << setprecision (2)
+      out1 << "This run took " << fixed << setprecision(2)
         << (Numeric)
          (arts_realtime_end - arts_realtime_start)
         / (Numeric)clktck
-        << "s (" << setprecision (2) << (Numeric)
+        << "s (" << fixed << setprecision(2) << (Numeric)
         ((arts_cputime_end.tms_stime - arts_cputime_start.tms_stime)
          + (arts_cputime_end.tms_utime - arts_cputime_start.tms_utime))
         / (Numeric)clktck << "s CPU time)\n";
