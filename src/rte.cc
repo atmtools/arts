@@ -190,8 +190,6 @@ void get_ptvmr_for_ppath(
   const Ppath&       ppath,
   const Index&       atmosphere_dim,
   ConstVectorView    p_grid,
-  ConstVectorView    lat_grid,
-  ConstVectorView    lon_grid,
   ConstTensor3View   t_field,
   ConstTensor4View   vmr_field )
 {
@@ -206,11 +204,10 @@ void get_ptvmr_for_ppath(
   // Temperature:
   ppath_t.resize(np);
   Matrix   itw_field;
-  interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
-                          lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
-  interp_atmfield_by_itw( ppath_t,  atmosphere_dim, p_grid, lat_grid, 
-                          lon_grid, t_field, ppath.gp_p, 
-                          ppath.gp_lat, ppath.gp_lon, itw_field );
+  interp_atmfield_gp2itw( itw_field, atmosphere_dim, 
+                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
+  interp_atmfield_by_itw( ppath_t,  atmosphere_dim, t_field, 
+                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
 
   //  VMR fields:
   const Index ns = vmr_field.nbooks();
@@ -218,8 +215,9 @@ void get_ptvmr_for_ppath(
   for( Index is=0; is<ns; is++ )
     {
       interp_atmfield_by_itw( ppath_vmr(is, joker), atmosphere_dim,
-             p_grid, lat_grid, lon_grid, vmr_field( is, joker, joker,  joker ), 
-             ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+                              vmr_field( is, joker, joker,  joker ), 
+                              ppath.gp_p, ppath.gp_lat, ppath.gp_lon, 
+                              itw_field );
     }
 }
 

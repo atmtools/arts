@@ -165,9 +165,6 @@ void fix_gridpos_at_boundary(//Input and Output
 
     \param   itw                Output: Interpolation weights.
     \param   atmosphere_dim     As the WSV with the same name.
-    \param   p_grid             As the WSV with the same name.
-    \param   lat_grid           As the WSV with the same name.
-    \param   lon_grid           As the WSV with the same name.
     \param   gp_p               Pressure grid positions.
     \param   gp_lat             Latitude grid positions.
     \param   gp_lon             Longitude grid positions.
@@ -178,15 +175,10 @@ void fix_gridpos_at_boundary(//Input and Output
 void interp_atmfield_gp2itw( 
               Matrix&           itw, 
         const Index&            atmosphere_dim,
-        ConstVectorView         p_grid,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
         const ArrayOfGridPos&   gp_lon )
 {
-  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-
   const Index n = gp_p.nelem();
 
   if( atmosphere_dim == 1 )
@@ -230,9 +222,6 @@ void interp_atmfield_gp2itw(
 
     \param   x                  Output: Values obtained by the interpolation.
     \param   atmosphere_dim     As the WSV with the same name.
-    \param   p_grid             As the WSV with the same name.
-    \param   lat_grid           As the WSV with the same name.
-    \param   lon_grid           As the WSV with the same name.
     \param   x_field            The atmospheric field to be interpolated.
     \param   gp_p               Pressure grid positions.
     \param   gp_lat             Latitude grid positions.
@@ -246,18 +235,12 @@ void interp_atmfield_gp2itw(
 void interp_atmfield_by_itw( 
               VectorView        x, 
         const Index&            atmosphere_dim,
-        ConstVectorView         p_grid,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         ConstTensor3View        x_field,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
         const ArrayOfGridPos&   gp_lon,
         ConstMatrixView         itw )
 {
-  // Check consistency between field and grids
-  chk_atm_field( "", x_field, atmosphere_dim, p_grid, lat_grid, 
-                                                                    lon_grid );
   assert( x.nelem() == gp_p.nelem() );
 
   if( atmosphere_dim == 1 )
@@ -297,9 +280,6 @@ void interp_atmfield_by_itw(
 
     \param   x                  Output: Values obtained by the interpolation.
     \param   atmosphere_dim     As the WSV with the same name.
-    \param   p_grid             As the WSV with the same name.
-    \param   lat_grid           As the WSV with the same name.
-    \param   lon_grid           As the WSV with the same name.
     \param   x_field            The atmospheric field to be interpolated.
     \param   gp_p               Pressure grid positions.
     \param   gp_lat             Latitude grid positions.
@@ -311,9 +291,6 @@ void interp_atmfield_by_itw(
 void interp_atmfield_by_gp( 
               VectorView        x, 
         const Index&            atmosphere_dim,
-        ConstVectorView         p_grid,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         ConstTensor3View        x_field,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
@@ -321,11 +298,10 @@ void interp_atmfield_by_gp(
 {
   Matrix itw;
 
-  interp_atmfield_gp2itw( itw, atmosphere_dim, p_grid, lat_grid, 
-                                              lon_grid, gp_p, gp_lat, gp_lon );
+  interp_atmfield_gp2itw( itw, atmosphere_dim, gp_p, gp_lat, gp_lon );
 
-  interp_atmfield_by_itw( x, atmosphere_dim, p_grid, lat_grid, lon_grid,
-                            x_field, gp_p, gp_lat, gp_lon, itw );
+  interp_atmfield_by_itw( x, atmosphere_dim, x_field, gp_p, gp_lat, gp_lon, 
+                                                                         itw );
 }
 
 
@@ -339,9 +315,6 @@ void interp_atmfield_by_gp(
 */
 Numeric interp_atmfield_by_gp( 
         const Index&            atmosphere_dim,
-        ConstVectorView         p_grid,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         ConstTensor3View        x_field,
         const GridPos&          gp_p,
         const GridPos&          gp_lat,
@@ -365,8 +338,7 @@ Numeric interp_atmfield_by_gp(
 
   Vector x(1);
 
-  interp_atmfield_by_gp( x, atmosphere_dim, p_grid, lat_grid, lon_grid,
-                              x_field, agp_p, agp_lat, agp_lon );
+  interp_atmfield_by_gp( x, atmosphere_dim, x_field, agp_p, agp_lat, agp_lon );
 
   return x[0];
 }
@@ -384,7 +356,7 @@ Numeric interp_atmfield_by_gp(
     positions already refer to grid parts inside the cloudbox, you can use 
     interp_atmfield_gp2itw.
 
-    The grid poistions are modified by the function, to match the cloudbox
+    The grid positions are modified by the function, to match the cloudbox
     field, and can be used for later calls of e.g. interp_atmfield_by_itw
 
     \param   itw                Output: Interpolation weights.
@@ -444,45 +416,6 @@ void interp_cloudfield_gp2itw(
       assert( gp_lon.nelem() == n );
       itw.resize(n,8);
       interpweights( itw, gp_p, gp_lat, gp_lon );
-    }
-}
-
-
-
-//! interp_cloudfield_by_itw
-/*!
-    Only temporary. Can be removed when interp_atmfield_by_itw is updated.
-
-    \author Patrick Eriksson 
-    \date   2010-02-12
-*/
-void interp_cloudfield_by_itw( 
-              VectorView        x, 
-        const Index&            atmosphere_dim,
-        ConstTensor3View        x_field,
-        const ArrayOfGridPos&   gp_p,
-        const ArrayOfGridPos&   gp_lat,
-        const ArrayOfGridPos&   gp_lon,
-        ConstMatrixView         itw )
-{
-  assert( x.nelem() == gp_p.nelem() );
-
-  if( atmosphere_dim == 1 )
-    { 
-      assert( itw.ncols() == 2 );
-      interp( x, itw, x_field(Range(joker),0,0), gp_p ); 
-    }
-
-  else if( atmosphere_dim == 2 )
-    { 
-      assert( itw.ncols() == 4 );
-      interp( x, itw, x_field(Range(joker),Range(joker),0), gp_p, gp_lat ); 
-    }
-
-  else if( atmosphere_dim == 3 )
-    {       
-      assert( itw.ncols() == 8 );
-      interp( x, itw, x_field, gp_p, gp_lat, gp_lon ); 
     }
 }
 
@@ -556,8 +489,6 @@ void interp_atmsurface_gp2itw(
 
     \param   x                  Output: Values obtained by the interpolation.
     \param   atmosphere_dim     As the WSV with the same name.
-    \param   lat_grid           As the WSV with the same name.
-    \param   lon_grid           As the WSV with the same name.
     \param   x_surface          The atmospheric field to be interpolated.
     \param   gp_lat             Latitude grid positions.
     \param   gp_lon             Longitude grid positions.
@@ -570,17 +501,11 @@ void interp_atmsurface_gp2itw(
 void interp_atmsurface_by_itw( 
               VectorView        x, 
         const Index&            atmosphere_dim,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         ConstMatrixView         x_surface,
         const ArrayOfGridPos&   gp_lat,
         const ArrayOfGridPos&   gp_lon,
         ConstMatrixView         itw )
 {
-  // Check consistency between field and grids
-  chk_atm_surface( "", x_surface, atmosphere_dim, lat_grid, 
-                   lon_grid );
-
   if( atmosphere_dim == 1 )
     { 
       assert( itw.ncols() == 1 );
@@ -620,8 +545,6 @@ void interp_atmsurface_by_itw(
 
     \param   x                  Output: Values obtained by the interpolation.
     \param   atmosphere_dim     As the WSV with the same name.
-    \param   lat_grid           As the WSV with the same name.
-    \param   lon_grid           As the WSV with the same name.
     \param   x_surface          The atmospheric field to be interpolated.
     \param   gp_lat             Latitude grid positions.
     \param   gp_lon             Longitude grid positions.
@@ -632,8 +555,6 @@ void interp_atmsurface_by_itw(
 void interp_atmsurface_by_gp( 
               VectorView        x, 
         const Index&            atmosphere_dim,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         ConstMatrixView         x_surface,
         const ArrayOfGridPos&   gp_lat,
         const ArrayOfGridPos&   gp_lon )
@@ -642,8 +563,7 @@ void interp_atmsurface_by_gp(
 
   interp_atmsurface_gp2itw( itw, atmosphere_dim, gp_lat, gp_lon );
 
-  interp_atmsurface_by_itw( x, atmosphere_dim, lat_grid, lon_grid, 
-                              x_surface, gp_lat, gp_lon, itw );
+  interp_atmsurface_by_itw( x, atmosphere_dim, x_surface, gp_lat, gp_lon, itw );
 }
 
 
@@ -657,8 +577,6 @@ void interp_atmsurface_by_gp(
 */
 Numeric interp_atmsurface_by_gp( 
         const Index&       atmosphere_dim,
-        ConstVectorView    lat_grid,
-        ConstVectorView    lon_grid,
         ConstMatrixView    x_surface,
         const GridPos&     gp_lat,
         const GridPos&     gp_lon )
@@ -679,8 +597,7 @@ Numeric interp_atmsurface_by_gp(
 
   Vector x(1);
 
-  interp_atmsurface_by_gp( x, atmosphere_dim, lat_grid, lon_grid, x_surface,
-                           agp_lat, agp_lon );
+  interp_atmsurface_by_gp( x, atmosphere_dim, x_surface, agp_lat, agp_lon );
 
   return x[0];
 }

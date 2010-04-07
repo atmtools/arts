@@ -44,9 +44,6 @@ void fix_gridpos_at_boundary(
 void interp_atmfield_gp2itw( 
               Matrix&           itw, 
         const Index&            atmosphere_dim,
-        ConstVectorView         p_grid,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
         const ArrayOfGridPos&   gp_lon );
@@ -54,9 +51,6 @@ void interp_atmfield_gp2itw(
 void interp_atmfield_by_itw( 
               VectorView        x, 
         const Index&            atmosphere_dim,
-        ConstVectorView         p_grid,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         ConstTensor3View        x_field,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
@@ -66,9 +60,6 @@ void interp_atmfield_by_itw(
 void interp_atmfield_by_gp( 
               VectorView        x, 
         const Index&            atmosphere_dim,
-        ConstVectorView         p_grid,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         ConstTensor3View        x_field,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
@@ -76,9 +67,6 @@ void interp_atmfield_by_gp(
 
 Numeric interp_atmfield_by_gp( 
         const Index&            atmosphere_dim,
-        ConstVectorView         p_grid,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         ConstTensor3View        x_field,
         const GridPos&          gp_p,
         const GridPos&          gp_lat,
@@ -92,15 +80,6 @@ void interp_cloudfield_gp2itw(
         const Index&            atmosphere_dim,
         const ArrayOfIndex&     cloudbox_limits );
 
-void interp_cloudfield_by_itw( 
-              VectorView        x, 
-        const Index&            atmosphere_dim,
-        ConstTensor3View        x_field,
-        const ArrayOfGridPos&   gp_p,
-        const ArrayOfGridPos&   gp_lat,
-        const ArrayOfGridPos&   gp_lon,
-        ConstMatrixView         itw );
-
 void interp_atmsurface_gp2itw( 
               Matrix&           itw, 
         const Index&            atmosphere_dim,
@@ -110,8 +89,6 @@ void interp_atmsurface_gp2itw(
 void interp_atmsurface_by_itw(
               VectorView        x, 
         const Index&            atmosphere_dim,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         ConstMatrixView         x_surface,
         const ArrayOfGridPos&   gp_lat,
         const ArrayOfGridPos&   gp_lon,
@@ -120,16 +97,12 @@ void interp_atmsurface_by_itw(
 void interp_atmsurface_by_gp( 
               VectorView        x, 
         const Index&            atmosphere_dim,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         ConstMatrixView         x_field,
         const ArrayOfGridPos&   gp_lat,
         const ArrayOfGridPos&   gp_lon );
 
 Numeric interp_atmsurface_by_gp( 
         const Index&            atmosphere_dim,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         ConstMatrixView         x_field,
         const GridPos&          gp_lat,
         const GridPos&          gp_lon );

@@ -95,11 +95,8 @@ r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
 AgendaSet( surface_prop_agenda ){
    Ignore( rte_pos )
    Ignore( rte_los )
-   InterpAtmFieldToRteGps( surface_skin_t,
-                           atmosphere_dim, 
-                           p_grid, lat_grid, lon_grid, 
-                           rte_gp_p, rte_gp_lat, rte_gp_lon,
-                           t_field )
+   InterpAtmFieldToRteGps( surface_skin_t, atmosphere_dim, 
+                            rte_gp_p, rte_gp_lat, rte_gp_lon, t_field )
    surfaceBlackbody
 } 
 

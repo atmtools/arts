@@ -53,8 +53,6 @@ void clear_rt_vars_at_gp(Workspace&              ws,
                          const GridPos&          gp_lat,
                          const GridPos&          gp_lon,
                          const ConstVectorView   p_grid,
-                         const ConstVectorView   lat_grid,
-                         const ConstVectorView   lon_grid,
                          const ConstTensor3View  t_field,
                          const ConstTensor4View  vmr_field);
 

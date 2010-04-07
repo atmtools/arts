@@ -65,8 +65,6 @@ void clear_rt_vars_at_gp(Workspace&              ws,
                          const GridPos&          gp_lat,
                          const GridPos&          gp_lon,
                          const ConstVectorView   p_grid,
-                         const ConstVectorView   lat_grid,
-                         const ConstVectorView   lon_grid,
                          const ConstTensor3View  t_field,
                          const ConstTensor4View  vmr_field)
 {
@@ -90,21 +88,15 @@ void clear_rt_vars_at_gp(Workspace&              ws,
   itw2p( p_vec, p_grid, ao_gp_p, itw_p );
   
   // Determine the atmospheric temperature and species VMR 
-
-
-  interp_atmfield_gp2itw( itw_field, 3, p_grid, 
-                          lat_grid, lon_grid, 
-                          ao_gp_p, ao_gp_lat, ao_gp_lon );
   //
-  interp_atmfield_by_itw( t_vec,  3, p_grid, 
-                          lat_grid, lon_grid, t_field, 
-                          ao_gp_p, ao_gp_lat, ao_gp_lon, 
+  interp_atmfield_gp2itw( itw_field, 3, ao_gp_p, ao_gp_lat, ao_gp_lon );
+  //
+  interp_atmfield_by_itw( t_vec,  3, t_field, ao_gp_p, ao_gp_lat, ao_gp_lon, 
                           itw_field );
   // 
   for( Index is=0; is<ns; is++ )
     {
-      interp_atmfield_by_itw( vmr_mat(is, joker), 3, p_grid, 
-                              lat_grid, lon_grid, 
+      interp_atmfield_by_itw( vmr_mat(is, joker), 3, 
                               vmr_field(is, joker, joker, joker), 
                               ao_gp_p, ao_gp_lat, 
                               ao_gp_lon, itw_field );
@@ -289,19 +281,16 @@ void cloud_atm_vars_by_gp(
   // each propagation path point
   Matrix   itw_field;
   //
-  interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid_cloud, 
-                          lat_grid_cloud, lon_grid_cloud, 
+  interp_atmfield_gp2itw( itw_field, atmosphere_dim, 
                           gp_p_cloud, gp_lat_cloud, gp_lon_cloud );
   //
-  interp_atmfield_by_itw( temperature,  atmosphere_dim, p_grid_cloud, 
-                          lat_grid_cloud, lon_grid_cloud, t_field_cloud, 
+  interp_atmfield_by_itw( temperature,  atmosphere_dim, t_field_cloud, 
                           gp_p_cloud, gp_lat_cloud, gp_lon_cloud, 
                           itw_field );
   // 
   for( Index is=0; is<ns; is++ )
     {
-      interp_atmfield_by_itw( vmr(is, joker), atmosphere_dim, p_grid_cloud, 
-                              lat_grid_cloud, lon_grid_cloud, 
+      interp_atmfield_by_itw( vmr(is, joker), atmosphere_dim,  
                               vmr_field_cloud(is, joker, joker, joker), 
                               gp_p_cloud, gp_lat_cloud, 
                               gp_lon_cloud, itw_field );
@@ -314,7 +303,6 @@ void cloud_atm_vars_by_gp(
       // if grid positions still outside the range the propagation path step 
       // must be outside the cloudbox and pnd is set to zero
       interp_atmfield_by_itw( pnd(ip, joker), atmosphere_dim,
-                              p_grid_cloud, lat_grid_cloud, lon_grid_cloud, 
                               pnd_field(ip, joker, joker,  joker), 
                               gp_p_cloud, gp_lat_cloud, 
                               gp_lon_cloud, itw_field );
@@ -648,7 +636,7 @@ void mcPathTraceGeneral(Workspace&            ws,
       clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
             opt_prop_gas_agenda, abs_scalar_gas_agenda, f_index, 
             ppath_step.gp_p[0], ppath_step.gp_lat[0], ppath_step.gp_lon[0],
-            p_grid, lat_grid, lon_grid, t_field, vmr_field );
+            p_grid, t_field, vmr_field );
       pnd_vec=0.0;
     }
   ext_matArray[1]=ext_mat_mono;
@@ -696,8 +684,7 @@ void mcPathTraceGeneral(Workspace&            ws,
           clear_rt_vars_at_gp(ws, ext_mat_mono,abs_vec_mono,temperature, 
                opt_prop_gas_agenda, abs_scalar_gas_agenda, f_index, 
                ppath_step.gp_p[np-1], ppath_step.gp_lat[np-1],
-               ppath_step.gp_lon[np-1], p_grid, lat_grid, lon_grid, t_field, 
-               vmr_field);
+               ppath_step.gp_lon[np-1], p_grid, t_field, vmr_field);
           pnd_vec=0.0;
         }
       ext_matArray[1]=ext_mat_mono;
@@ -930,8 +917,7 @@ void mcPathTraceIPA(Workspace&            ws,
     {
       clear_rt_vars_at_gp( ws, ext_mat_mono,abs_vec_mono,temperature, 
                            opt_prop_gas_agenda, abs_scalar_gas_agenda, f_index,
-                           gp_p, gp_lat, gp_lon,
-                           p_grid, lat_grid, lon_grid, t_field, vmr_field);
+                           gp_p, gp_lat, gp_lon, p_grid, t_field, vmr_field);
       pnd_vec=0.0;
     }
   ext_matArray[1]=ext_mat_mono;
@@ -1049,7 +1035,7 @@ void mcPathTraceIPA(Workspace&            ws,
           interpweights( itw, gp_lat, gp_lon );
           rv_geoid  = interp( itw, r_geoid, gp_lat, gp_lon );          
         }
-      rte_pos[0]=rv_geoid+interp_atmfield_by_gp(3,p_grid,lat_grid,lon_grid,z_field,
+      rte_pos[0]=rv_geoid+interp_atmfield_by_gp(3,z_field,
                                                 gp_p,gp_lat,gp_lon);
       rte_pos[1]=interp(lat_iw, lat_grid,gp_lat);
       rte_pos[2]=interp(lon_iw, lon_grid,gp_lon);
@@ -1073,8 +1059,7 @@ void mcPathTraceIPA(Workspace&            ws,
         {
           clear_rt_vars_at_gp( ws, ext_mat_mono, abs_vec_mono, temperature, 
                       opt_prop_gas_agenda, abs_scalar_gas_agenda, f_index,
-                      gp_p, gp_lat, gp_lon, p_grid, lat_grid, lon_grid, t_field, 
-                                                                     vmr_field);
+                      gp_p, gp_lat, gp_lon, p_grid, t_field, vmr_field);
           pnd_vec=0.0;
         }
       //put these variables in the last Array slot

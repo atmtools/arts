@@ -1102,17 +1102,14 @@ void AtmRawRead(//WS Output:
 void InterpAtmFieldToRteGps(
                  Numeric&   outvalue,
            const Index&     atmosphere_dim,
-           const Vector&    p_grid,
-           const Vector&    lat_grid,
-           const Vector&    lon_grid,
            const GridPos&   rte_gp_p,
            const GridPos&   rte_gp_lat,
            const GridPos&   rte_gp_lon,
-           const Tensor3&   field)
+           const Tensor3&   field )
 {
   // Interpolate
-  outvalue = interp_atmfield_by_gp( atmosphere_dim, p_grid, lat_grid, 
-                lon_grid, field, rte_gp_p, rte_gp_lat, rte_gp_lon );
+  outvalue = interp_atmfield_by_gp( atmosphere_dim, field, 
+                                    rte_gp_p, rte_gp_lat, rte_gp_lon );
 
   out3 << "    Result = " << outvalue << "\n";
 }

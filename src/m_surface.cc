@@ -217,15 +217,13 @@ void surface_specular_R_and_b(
 void InterpSurfaceFieldToRteGps(
                  Numeric&   outvalue,
            const Index&     atmosphere_dim,
-           const Vector&    lat_grid,
-           const Vector&    lon_grid,
            const GridPos&   rte_gp_lat,
            const GridPos&   rte_gp_lon,
-           const Matrix&    field)
+           const Matrix&    field )
 {
   // Interpolate
-  outvalue = interp_atmsurface_by_gp( atmosphere_dim, lat_grid, 
-                lon_grid, field, rte_gp_lat, rte_gp_lon );
+  outvalue = interp_atmsurface_by_gp( atmosphere_dim, field, 
+                                      rte_gp_lat, rte_gp_lon );
 
   out3 << "    Result = " << outvalue << "\n";
 }

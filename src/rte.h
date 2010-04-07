@@ -72,8 +72,6 @@ void get_ptvmr_for_ppath(
   const Ppath&       ppath,
   const Index&       atmosphere_dim,
   ConstVectorView    p_grid,
-  ConstVectorView    lat_grid,
-  ConstVectorView    lon_grid,
   ConstTensor3View   t_field,
   ConstTensor4View   vmr_field );
 

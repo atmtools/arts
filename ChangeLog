@@ -1,3 +1,21 @@
+2010-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-13-34
+	
+	* src/special_interp.cc (interp_atmfield_by_gp): Fixed ticket 14.
+	Remove checks of the type chk_atm_field. 
+
+	* tests/OdinSMR/TestOdinSMR_119ghz.arts: 
+	* tests/HIRS/TestHIRS.arts: 
+	* includes/general.arts: 
+	* src/montecarlo.cc: 
+	* src/rte.cc (get_ptvmr_for_ppath): 
+	* src/m_rte.cc (iyEmissionStandardClearskyBasic): 
+	* src/m_rte.cc (iyEmissionStandardClearsky): 
+	* src/m_surface.cc (InterpSurfaceFieldToRteGps): 
+	* src/m_atmosphere.cc (InterpAtmFieldToRteGps): All updated following
+	changes in special_interp.cc.
+
 2010-04-07  Claudia Emde  <claudia.emde@lmu.de>
 
 	* arts-1-13-33

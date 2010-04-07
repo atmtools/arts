@@ -394,6 +394,7 @@ void iyFOS(
                                   atmosphere_dim, cloudbox_limits );
         for( Index ip=0; ip<npar; ip++ )
           {
+            // Should be replaced with corresponding atmfield function?
             interp_cloudfield_by_itw( ppath_pnd(ip,joker), atmosphere_dim,
                                       pnd_field(ip,joker,joker,joker), 
                                       gp_p, gp_lat, gp_lon, itw_field );

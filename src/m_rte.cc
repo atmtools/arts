@@ -843,7 +843,7 @@ void iyEmissionStandardClearsky(
       // Get pressure, temperature and VMRs
       //
       get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
-                           p_grid, lat_grid, lon_grid, t_field, vmr_field );
+                           p_grid, t_field, vmr_field );
 
       // Get emission, absorption, optical thickness for each step, and total
       // optical thickness
@@ -1116,7 +1116,7 @@ void iyEmissionStandardClearskyBasic(
       // Get pressure, temperature and VMRs
       //
       get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
-                           p_grid, lat_grid, lon_grid, t_field, vmr_field );
+                           p_grid, t_field, vmr_field );
 
       // Get emission, absorption and optical thickness for each step
       //
