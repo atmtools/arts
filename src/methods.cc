@@ -2779,17 +2779,16 @@ void define_md_data_raw()
          "grids are created and stored in the WSVs *scat_za_grid* and\n"
          "*scat_aa_grid*.\n" 
          "\n"
-         "For limb simulations it is important to use an optimized zenith "
-         "angle grid with a very fine resolution about 90° when performing\n"
-         "the actual radiative transfer calculations.. Such a grid can be\n"
+         "For limb simulations it is important to use an optimized zenith \n"
+         "angle grid with a very fine resolution about 90°. Such a grid can be\n"
          "generated using *doit_za_grid_optCalc*. The filename of an optimized\n"
          "zenith angle grid can be given as a keyword (*za_grid_opt_file*).\n" 
          "If a filename is given, the equidistant grid is used for the\n"
          "calculation of the scattering integrals and the optimized grid is\n"
-         "applied for the radiative transfer part. Otherwise, if no filename\n"
-         "is specified (za_grid_opt_file = \"\" ) the equidistant grid is\n"
-         "used throughout. This option makes sense for down-looking cases\n"
-         "to speed up the calculation.\n"
+         "applied for integration of the radiative transfer equation. \n"
+         "Otherwise, if no filename is specified (za_grid_opt_file = \"\" ) \n"
+         "the equidistant grid is used throughout. This option makes sense \n"
+         "for down-looking cases to speed up the calculation.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_za_grid_size", "scat_aa_grid", "scat_za_grid" ),
@@ -2802,7 +2801,7 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF,       NODEF,       NODEF ),
         GIN_DESC( "Number of grid points in zenith angle grid. "
                   "Recommended value is 19.",
-                  "Number of grid points in zenith angle grid. "
+                  "Number of grid points in azimuth angle grid. "
                   "Recommended value is 37.",
                   "Name of special grid for RT part." )
         ));
