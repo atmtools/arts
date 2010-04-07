@@ -1,3 +1,12 @@
+2010-04-07  Cory Davis  <cory@sundog>
+
+	* arts-1-13-28
+
+	* src/montecarlo.cc (Cloudbox_ppath_rteCalc): removed (was already
+	commented out
+	(montecarloGetIncoming):  removed (was already commented out)  The
+	above two functions were used by ScatteringMonteCarlo.
+
 2010-04-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-13-27
