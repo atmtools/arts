@@ -1,5 +1,23 @@
 2010-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-13-40
+
+	* src/rte.cc (apply_y_unit): Changed type of iy from Tensor3View
+	to MatrixView. Changed all calls of this function.
+
+	(apply_y_unit2): Created this function for conversion of jacobian.
+
+	* src/m_rte.cc (yCalc,iyb_calc): Removed jacobian_unit. 
+
+	* includes/*/*: Removed jacobian_unit from 6 .arts files. 
+
+	* src/m_jacobian.cc (jacobianOff): Removed jacobian_unit. 
+	And the WSV jacobianUnit.
+
+	* src/workspace.cc: Removed jacobian_unit. 
+
+2010-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-13-39
 
 	* src/rte.cc (apply_y_unit): Fixed bug causing MHS test to fail.

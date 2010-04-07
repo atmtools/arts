@@ -4894,33 +4894,11 @@ void define_md_data_raw()
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "jacobian_do", "jacobian_agenda", "jacobian_quantities", 
-             "jacobian_indices", "jacobian_unit" ),
+             "jacobian_indices" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "jacobianUnit" ),
-        DESCRIPTION
-        (
-         "Conversion of *jacobian* to other spectral units.\n"
-         "\n"
-         "Works as *yUnit* but operates on *jacobian* and conversion\n "
-         "determined by *jacobian_unit*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "jacobian" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "jacobian", "jacobian_unit", "y_unit", "y_f" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8604,18 +8582,17 @@ void define_md_data_raw()
          "perspective. Radiative transfer calculations are performed for\n"
          "monochromatic pencil beams, following *iy_clearsky_agenda* and\n"
          "associated agendas. Obtained radiances are weighted together by\n"
-         "*sensor_response*, to include the characteristics of the sensor. The\n"
-         "measurement vector obtained can contain anything from a single\n"
+         "*sensor_response*, to include the characteristics of the sensor.\n"
+         "The measurement vector obtained can contain anything from a single\n"
          "frequency value to a series of measurement scans (each consisting\n"
          "of a series of spectra), all depending on the settings. Spectra\n"
          "and jacobians are calculated in parallel.\n"
          "\n"
-         "The unit of radiances and jacobians follow *y_unit* and\n"
-         "*jacobian_unit*. The frequency, polarisation etc. for each\n"
-         "measurement value is given by *y_f*, *y_pol* etc. No unit\n" 
-         "conversion is applied for *y_aux*. There is a hard-coded limit\n"
-         "on the number of auxilary variables (columns of *y_aux*) that\n"
-         "can be handled.\n"
+         "The unit of radiances and jacobians follow *y_unit*. The\n"
+         "frequency, polarisation etc. for each measurement value is given\n" 
+         "by *y_f*, *y_pol* etc. No unit conversion is applied for *y_aux*.\n"
+         "There is a hard-coded limit on the number of auxilary variables\n"
+         "(columns of *y_aux*) that can be handled.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_error", "y_aux", 
@@ -8630,7 +8607,7 @@ void define_md_data_raw()
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
             "iy_clearsky_agenda", "iy_aux_do", "y_unit", 
             "jacobian_agenda", "jacobian_do", "jacobian_quantities",
-            "jacobian_indices", "jacobian_unit" ),
+            "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

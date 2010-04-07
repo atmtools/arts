@@ -154,25 +154,11 @@ void jacobianOff(
         Index&                     jacobian_do,
         Agenda&                    jacobian_agenda,
         ArrayOfRetrievalQuantity&  jacobian_quantities,
-        ArrayOfArrayOfIndex&       jacobian_indices,
-        String&                    jacobian_unit )
+        ArrayOfArrayOfIndex&       jacobian_indices )
 {
   jacobianInit( jacobian_quantities, jacobian_agenda );
   jacobian_do   = 0;
   jacobian_indices.resize(0);
-  jacobian_unit = "-";
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void jacobianUnit(
-        Matrix&   jacobian,
-  const String&   jacobian_unit,
-  const String&   y_unit,
-  const Vector&   y_f )
-{
-  apply_j_unit( Tensor3View(jacobian), jacobian_unit, y_unit, y_f );
 }
 
 
@@ -849,7 +835,7 @@ void jacobianCalcPointingZaIybrecalc(
               t_field, vmr_field, cloudbox_on, stokes_dim, 
               f_grid, sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
               antenna_dim, iy_clearsky_agenda, 0, y_unit, 
-              0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex(), String() );
+              0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex() );
 
     mult( dy, sensor_response, iyb2 );
 

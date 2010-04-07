@@ -63,13 +63,7 @@ extern const Numeric SPEED_OF_LIGHT;
 /*!
     Performs conversion from radiance to other units.
 
-    The function takes radiances in the form of a Tensor3. Tensor3 is
-    needed for handling conversion of *ybatch*. 
-
     Use *apply_y_unit_jac* for conversion of jacobian data.
-
-    Use "telescoping" to handle cases when the data comes as a Matrix
-    or a Vector.
 
     \param   iy       In/Out: Tensor3 with data to be converted, where 
                       column dimension corresponds to Stokes dimensionality
@@ -81,7 +75,7 @@ extern const Numeric SPEED_OF_LIGHT;
     \date   2010-04-07
 */
 void apply_y_unit( 
-      Tensor3View     iy, 
+      MatrixView      iy, 
     const String&     y_unit, 
     ConstVectorView   f_grid )
 {
@@ -100,10 +94,7 @@ void apply_y_unit(
           const Numeric scfac = invrayjean( 1, f_grid[iv] );
           for( Index is=0; is<iy.ncols(); is++ )
             {
-              for( Index ip=0; ip<iy.npages(); ip++ )
-                {
-                  iy(ip,iv,is) *= scfac;
-                }
+              iy(iv,is) *= scfac;
             }
         }
     }
@@ -121,21 +112,18 @@ void apply_y_unit(
           const double c = a * f_grid[iv]; 
           const double d = b * pow(f_grid[iv],3); 
 
-          for( Index ip=0; ip<iy.npages(); ip++ )
+          if( ns == 1 )
             {
-              if( ns == 1 )
+              iy(iv,0) = c / log( d/iy(iv,0) + 1.0 ); 
+            }
+          else
+            {
+              const Numeric i = iy(iv,0);
+              iy(iv,0) = c / log( d / i + 1.0 ); 
+              static const double e = pow(iy(iv,0),2)/(c*i*(1+i/d));
+              for( Index is=1; is<ns; is++ )
                 {
-                  iy(ip,iv,0) = c / log( d/iy(ip,iv,0) + 1.0 ); 
-                }
-              else
-                {
-                  const Numeric i = iy(ip,iv,0);
-                  iy(ip,iv,0) = c / log( d / i + 1.0 ); 
-                  static const double e = pow(iy(ip,iv,0),2)/(c*i*(1+i/d));
-                  for( Index is=1; is<ns; is++ )
-                    {
-                      iy(ip,iv,is) *= e;
-                    }
+                  iy(iv,is) *= e;
                 }
             }
         }
@@ -159,10 +147,13 @@ void apply_y_unit(
     The associated spectrum data *iy* must be in radiance. That is, the
     spectrum can only be converted to Tb after the jacobian data. 
 
+    *iy* must be a single spectrum, and is accordingly here a matrix (and not a
+    *Tensor3 as for apply_y_unit).
+
     \param   J        In/Out: Tensor3 with data to be converted, where 
                       column dimension corresponds to Stokes dimensionality
                       and row dimension corresponds to frequency.
-    \param       iy   Associated radiance data.
+    \param   iy       Associated radiance data.
     \param   y_unit   As the WSV.
     \param   f_grid   As the WSV.
 
@@ -171,7 +162,7 @@ void apply_y_unit(
 */
 void apply_y_unit2( 
     Tensor3View       J,
-    ConstTensor3View  iy, 
+    ConstMatrixView   iy, 
     const String&     y_unit, 
     ConstVectorView   f_grid )
 {
@@ -211,14 +202,14 @@ void apply_y_unit2(
 
       for( Index iv=0; iv<f_grid.nelem(); iv++ )
         {
-          static const double c = a * f_grid[iv]; 
-          static const double d = b * pow(f_grid[iv],3); 
+          const double  c = a * f_grid[iv]; 
+          const double  d = b * pow(f_grid[iv],3); 
+          const Numeric i = iy(iv,0);
+          const Numeric y = c / log( d / i + 1.0 ); 
+          const Numeric e = pow(y,2) / ( c * i * ( 1.0 + i/d ) );
 
           for( Index ip=0; ip<J.npages(); ip++ )
             {
-              const Numeric i = iy(ip,iv,0);
-              const Numeric y = c / log(d/iy(ip,iv,0)+1); 
-              static const double e = pow(y,2)/(c*i*(1+i/d));
               for( Index is=0; is<ns; is++ )
                 {
                   J(ip,iv,is) *= e;
@@ -234,111 +225,6 @@ void apply_y_unit2(
          << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
       throw runtime_error( os.str() );      
     }
-}
-
-
-
-//! apply_y_unit
-/*!
-    Performs conversion from radiance to other units.
-
-    The function takes radiances in the form of a Tensor3. Tensor3 is
-    needed for handling conversion of jacobians. Though, conversion of
-    jacobian data shall go be made through apply_j_unit (that is
-    mainly an interface to this function).
-
-    Use "telescoping" to handle cases when the data comes as a Matrix
-    or a Vector.
-
-    \param   iy       In/Out: Tensor3 with data to be converted, where frequency 
-                      is expected to be the row dimension
-    \param   y_unit   As the WSV.
-    \param   f_grid   As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2007-10-31
-*/
-void apply_y_unit_old( 
-      Tensor3View     iy, 
-    const String&     y_unit, 
-    ConstVectorView   f_grid )
-{
-  assert( f_grid.nelem() == iy.nrows() );
-
-  if( y_unit == "1" )
-    {}
-
-  else if( y_unit == "RJBT" )
-    {
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
-        {
-          const Numeric scfac = invrayjean( 1, f_grid[iv] );
-          for( Index icol=0; icol<iy.ncols(); icol++ )
-            {
-              for( Index ipage=0; ipage<iy.npages(); ipage++ )
-                {
-                  iy(ipage,iv,icol) *= scfac;
-                }
-            }
-        }
-    }
-
-  else if( y_unit == "PlanckBT" )
-    {
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
-        {
-          for( Index icol=0; icol<iy.ncols(); icol++ )
-            {
-              for( Index ipage=0; ipage<iy.npages(); ipage++ )
-                {
-                  iy(ipage,iv,icol) = invplanck( iy(ipage,iv,icol), f_grid[iv] );
-                }
-            }
-        }
-    }
-
-  else
-    {
-      ostringstream os;
-      os << "Unknown option: y_unit = \"" << y_unit << "\"\n" 
-         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
-      throw runtime_error( os.str() );      
-    }
-}
-
-
-
-//! apply_j_unit
-/*!
-    As apply_y_unit but takes jacobian_unit as input.
-
-    \param   iy       In/Out: Tensor3 with data to be converted, where each 
-                      column corresponds to a frequency.
-    \param   j_unit   As the WSV.
-    \param   f_grid   As the WSV.
-
-    \author Patrick Eriksson 
-    \date   2007-10-31
-*/
-void apply_j_unit( 
-      Tensor3View     iy, 
-    const String&     jacobian_unit, 
-    const String&     y_unit, 
-    ConstVectorView   f_grid )
-{
-  if( !( jacobian_unit=="1"  ||  jacobian_unit=="RJBT"  ||  
-         jacobian_unit=="-" ) )
-    {
-      ostringstream os;
-      os << "Allowed options for *jacobian_unit* are: ""1"", ""RJBT"", and "
-         << """-"".";
-      throw runtime_error( os.str() );
-    }
-
-  if( jacobian_unit == "-" )
-    { apply_y_unit( iy, y_unit, f_grid ); }
-  else
-    { apply_y_unit( iy, jacobian_unit, f_grid ); }
 }
 
 

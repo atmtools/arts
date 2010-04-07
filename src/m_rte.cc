@@ -579,8 +579,7 @@ void iyb_calc(
   const String&                     y_unit,
   const Index&                      j_analytical_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices,
-  const String&                     jacobian_unit )
+  const ArrayOfArrayOfIndex&        jacobian_indices )
 {
   // Sizes
   const Index   nf      = f_grid.nelem();
@@ -696,10 +695,7 @@ void iyb_calc(
                 {
                   FOR_ANALYTICAL_JACOBIANS_DO(
                     //
-                    if( 0 )
-                    apply_y_unit2( diy_dx[iq], Tensor3View(iy), y_unit, f_grid);
-                    else
-                      apply_j_unit( diy_dx[iq], jacobian_unit, y_unit, f_grid);
+                    apply_y_unit2( diy_dx[iq], iy, y_unit, f_grid);
                     //
                     for( Index ip=0; ip<jacobian_indices[iq][1] -
                                         jacobian_indices[iq][0]+1; ip++ )
@@ -717,9 +713,9 @@ void iyb_calc(
               // iy_error : unit conversion and copy to iyb_error
               // iy_aux   : copy to iyb_aux
               //
-              apply_y_unit( Tensor3View(iy), y_unit, f_grid );
+              apply_y_unit( iy, y_unit, f_grid );
               if( iy_error_type > 0 )
-                { apply_y_unit( Tensor3View(iy_error), y_unit, f_grid ); }
+                { apply_y_unit( iy_error, y_unit, f_grid ); }
               //
               for( Index is=0; is<stokes_dim; is++ )
                 { 
@@ -1344,8 +1340,7 @@ void yCalc(
   const Agenda&                     jacobian_agenda,
   const Index&                      jacobian_do,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
-  const ArrayOfArrayOfIndex&        jacobian_indices,
-  const String&                     jacobian_unit )
+  const ArrayOfArrayOfIndex&        jacobian_indices )
 {
   // Some sizes
   const Index   nf      = f_grid.nelem();
@@ -1510,7 +1505,7 @@ void yCalc(
                 vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos, 
                 sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
                 iy_clearsky_agenda, iy_aux_do, y_unit, j_analytical_do, 
-                jacobian_quantities, jacobian_indices, jacobian_unit );
+                jacobian_quantities, jacobian_indices );
 
 
       // Apply sensor response matrix on iyb, and put into y
@@ -1605,5 +1600,5 @@ void yUnit(
   if( y_f.nelem() != n )
     { throw runtime_error( "The length of *y* and *y_f* must be the same" ); }
 
-  apply_y_unit( Tensor3View( MatrixView( y ) ), y_unit, y_f );
+  apply_y_unit( MatrixView( y ), y_unit, y_f );
 }

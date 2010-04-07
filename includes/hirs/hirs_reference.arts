@@ -48,7 +48,6 @@ output_file_formatSetZippedAscii
 # HIRS spectral response functions assume radiance.
 # ---
 StringSet( y_unit, "1" )
-StringSet( jacobian_unit, "1" )
 
 
 # 2. Spectroscopy

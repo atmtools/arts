@@ -700,6 +700,6 @@ void ybatchUnit(
       throw runtime_error( os.str() );      
     }
 
-  apply_y_unit( Tensor3View(ybatch), y_unit, y_f );
+  apply_y_unit( ybatch, y_unit, y_f );
 }
 

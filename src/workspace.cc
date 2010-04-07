@@ -1788,25 +1788,6 @@ void Workspace::define_wsv_data()
 //        ),
 //       GROUP( "Agenda" )));
 
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "jacobian_unit" ),
-       DESCRIPTION
-       (
-        "Unit for jacobians calculated in an analytical manner.\n"
-        "\n"
-        "As *y_unit* but applies to analytical jacobians. The unit for\n"
-        "jacobians calculated by perturbations is determined by *y_unit*.\n"
-        "\n"
-        "Units defined as for *y_unit* with two exceptions.\n"
-        " 1. The choice \"PlanckBT\" is not allowed here. \n"
-        " 2. One additional choice exists:\n"
-        " \"-\": Use unit defined by *y_unit*.\n"
-        "\n"
-        "Usage: Set by the user.\n"
-        ),
-       GROUP( "String" )));
-
  wsv_data.push_back
    (WsvRecord
     ( NAME( "jacobian_quantities" ),
