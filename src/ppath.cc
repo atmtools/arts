@@ -2480,10 +2480,6 @@ void ppath_init_structure(
   ppath_set_background( ppath, 0 );
   ppath.tan_pos.resize(0);
   ppath.geom_tan_pos.resize(0);
-  ppath.p.resize(0);
-  ppath.t.resize(0);
-  ppath.vmr.resize(0,0);
-  ppath.next_parts.resize(0);
 }
 
 
@@ -2627,24 +2623,6 @@ void ppath_copy(
     { ppath1.tan_pos = ppath2.tan_pos; }
   if( ppath2.geom_tan_pos.nelem() )
     { ppath1.geom_tan_pos = ppath2.geom_tan_pos; }
-
-  if( ppath2.p.nelem() )
-    {
-      ppath1.p.resize(ppath1.np);
-      ppath1.p[Range(0,ppath2.np)] = ppath2.p;
-    }
-  if( ppath2.t.nelem() )
-    {
-      ppath1.t.resize(ppath1.np);
-      ppath1.t[Range(0,ppath2.np)] = ppath2.t;
-    }
-  if( ppath2.vmr.nrows() )
-    {
-      ppath1.vmr.resize(ppath2.vmr.nrows(),ppath1.np);
-      ppath1.vmr(joker,Range(0,ppath2.np)) = ppath2.vmr;
-    }
-  if( ppath2.next_parts.nelem() )
-    { ppath1.next_parts = ppath2.next_parts; }
 }
 
 
@@ -2704,23 +2682,10 @@ void ppath_append(
         }
       
       ppath1.l_step[i1-1] = ppath2.l_step[i-1];
-
-      // Assume that p, t and VMR fileds are set in parallel
-      if( ppath1.p.nelem() )
-        {
-          ppath1.p[i1]          = ppath2.p[i];
-          ppath1.t[i1]          = ppath2.t[i];
-          ppath1.vmr(joker,i1)  = ppath2.vmr(joker,i);
-          
-        }
     }
 
   if( ppath_what_background( ppath2 ) )
     { ppath1.background = ppath2.background; }
-
-  // There should only be "next parts" for *ppath2* 
-  if( ppath2.next_parts.nelem() )
-    { ppath1.next_parts = ppath2.next_parts; }
 }
 
 

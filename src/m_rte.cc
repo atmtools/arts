@@ -658,43 +658,20 @@ void iyb_calc(
                              iy_aux_do, f_grid, p_grid, lat_grid, lon_grid, 
                              t_field, vmr_field, iy_clearsky_agenda );
 
-              // Check sizes
+              // Check of iy_aux
               //
-              DEBUG_ONLY(
-                assert( iy.ncols() == stokes_dim );
-                assert( iy.nrows() == nf );
-                assert( iy_error_type >= 0  &&  iy_error_type <= 2 );
-                //
-                if( n_aux < 0 )
-                  { 
-                    n_aux = iy_aux.npages(); 
-                    if( n_aux > n_aux_max )
-                      {
-                        ostringstream os;
-                        os << "The number of auxilary variables (columns of "
-                           << "iy_aux) is hard coded.\nIt is presently set to "
-                           << n_aux_max << " variables.";
-                        throw runtime_error( os.str() );      
-                      }
-                  }
-                //
-                if( n_aux )
-                  { 
-                    assert( iy_aux.ncols() == stokes_dim );
-                    assert( iy_aux.nrows() == nf );
-                    assert( iy_aux.npages() == n_aux );
-                  }
-                //
-                if( j_analytical_do )
-                  {
-                    FOR_ANALYTICAL_JACOBIANS_DO(
-                      assert( diy_dx[iq].ncols() == stokes_dim );
-                      assert( diy_dx[iq].nrows() == nf );
-                      assert( diy_dx[iq].npages() == jacobian_indices[iq][1] -
-                                                 jacobian_indices[iq][0] + 1 );
-                    )
-                  }
-              )
+              if( n_aux < 0 )
+                { 
+                  n_aux = iy_aux.npages(); 
+                  if( n_aux > n_aux_max )
+                    {
+                      ostringstream os;
+                      os << "The number of auxilary variables (columns of "
+                         << "iy_aux) is hard coded.\nIt is presently set to "
+                         << n_aux_max << " variables.";
+                      throw runtime_error( os.str() );      
+                    }
+                }
        
               // iy       : unit conversion and copy to iyb
               // iy_error : unit conversion and copy to iyb_error
@@ -724,7 +701,7 @@ void iyb_calc(
               // Jacobian part
               if( j_analytical_do )
                 {
-                  // Basically copy calculations for *iy*
+                  // Basically copy of calculations for *iy*
                   FOR_ANALYTICAL_JACOBIANS_DO(
                     //
                     apply_j_unit( diy_dx[iq], jacobian_unit, y_unit, f_grid );

@@ -1,5 +1,18 @@
 2010-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-13-32
+
+	* src/ppath.h (struct Ppath): Removed fields p, t, vmr and
+	next_parts from Ppath structure definition.
+
+	* src/ppath.cc: Removed all code related to the removed Ppath fields. 
+
+	* src/m_rte.cc: Removed a bunch of asserts that were repeated for
+	each pencil beam calculation. Will anyhow be catched by more basic
+	asserts.
+	
+2010-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-13-31
 
 	* tests/DOIT/TestDOIT.arts: Removed defintion of rte_agenda.
