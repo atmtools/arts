@@ -71,6 +71,10 @@ void apply_j_unit(
     const String&     y_unit, 
       ConstVectorView   f_grid );
 
+void apply_y_unit_old( 
+      Tensor3View     iy, 
+    const String&     y_unit, 
+      ConstVectorView   f_grid );
 
 void get_ptvmr_for_ppath( 
         Vector&      ppath_p, 

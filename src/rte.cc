@@ -118,19 +118,19 @@ void apply_y_unit(
 
       for( Index iv=0; iv<f_grid.nelem(); iv++ )
         {
-          static const double c = a * f_grid[iv]; 
-          static const double d = b * pow(f_grid[iv],3); 
+          const double c = a * f_grid[iv]; 
+          const double d = b * pow(f_grid[iv],3); 
 
           for( Index ip=0; ip<iy.npages(); ip++ )
             {
-              if( ns == 0 )
+              if( ns == 1 )
                 {
-                  iy(ip,iv,0) = c / log(d/iy(ip,iv,0)+1); 
+                  iy(ip,iv,0) = c / log( d/iy(ip,iv,0) + 1.0 ); 
                 }
               else
                 {
                   const Numeric i = iy(ip,iv,0);
-                  iy(ip,iv,0) = c / log(d/iy(ip,iv,0)+1); 
+                  iy(ip,iv,0) = c / log( d / i + 1.0 ); 
                   static const double e = pow(iy(ip,iv,0),2)/(c*i*(1+i/d));
                   for( Index is=1; is<ns; is++ )
                     {

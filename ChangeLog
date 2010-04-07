@@ -1,5 +1,11 @@
 2010-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-13-39
+
+	* src/rte.cc (apply_y_unit): Fixed bug causing MHS test to fail.
+
+2010-04-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-13-38
 
 	* src/rte.cc: Work to fix conversion for PlanckBT started. 
