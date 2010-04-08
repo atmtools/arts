@@ -1,3 +1,29 @@
+2010-04-08  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-14-4
+
+	* doc/uguide/: A first suggestion for the split in three documents
+	arts_user, arts_developer, and arts_theory. I think this comes out
+	quite well. Still a bug in the cross document references (will fix
+	this somehow in the next days). If other like the new structure, I
+	propose to also sort the included files into different directories
+	for the different documents.
+	
+	* doc/uguide/uguide.tex: Removed.
+	
+	* doc/uguide/main.tex: Removed.
+
+	* doc/uguide/common.tex: Created. Page layout, etc, which is
+	common to all three documents.
+	
+	* doc/uguide/arts_user.tex: Created.
+
+	* doc/uguide/arts_developer.tex: Created.
+
+	* doc/uguide/arts_theory.tex: Created.
+
+	* doc/uguide/CMakeLists.txt: Activated the new targets.
+
 2010-04-08  Claudia Emde  <claudia.emde@lmu.de>
 
 	* arts-1-14-3

@@ -1,3 +1,11 @@
+\documentclass[11pt,twoside,a4paper,fleqn]{book} 
+%\documentclass[11pt,twoside,a4paper,fleqn,draft]{book} 
+
+\input{common}
+
+% External documents for cross references:
+\externaldocument{arts_user}
+\externaldocument{arts_theory}
 
 %===   Start of report   ===================================================
 \begin{document}
@@ -11,11 +19,11 @@
 \thispagestyle{plain}
 \begin{center}
   \vspace*{1cm}
-  {\Huge \verb|ARTS User Guide|\\}
+  {\Huge \bf ARTS Developer Guide\\}
   \vspace*{1cm}
   {\large edited by \\}
   \vspace*{1cm}
-  {\Large \bf Patrick Eriksson and Stefan B\"uhler }\\
+  {\Large \bf Stefan Buehler and Patrick Eriksson}\\
    \vspace*{2cm}
    {\large \today\\
     ARTS Version \input{auto_version}
@@ -81,7 +89,7 @@ Boston, MA 02111-1307, USA.
   \hline
   {\bf Author/email} & & {\bf Main contribution(s)} \\
   \hline
-  Stefan B\"uhler$^a$ & & Editor, Sections \ref{sec:concept},  
+  Stefan Buehler$^a$ & & Editor, Sections \ref{sec:concept},  
   \ref{sec:absorption}, \ref{sec:development}, \ref{sec:workspace},
   \ref{sec:matpack} and \ref{sec:interpolation}.\\
   sbuehler (at) ltu.se & &        \\
@@ -143,42 +151,14 @@ Edinburgh, EH93JZ Edinburgh, Scotland, UK. \\
 % === The chapters
 %============================================================================
 
-\include{concept}
 
-\part{Algorithm Descriptions}
-%
-\include{atmosphere}
-\include{absorption}
-\include{rte}
-\include{ppath}
-\include{surface}
-%\include{sensor}
-\include{batch}
-\include{clouds}
-\include{scattering}
-\include{montecarlo}
-%\include{reduction}
-%\include{wfuns_atm}
-%\include{measerr}
-%\include{wfuns_sensor} 
-
-\part{Implementation Issues}
-%
 \include{development}
 \include{agendas}
 \include{matrix_vector}
-
-\part{Mathematical functions}
-%
 \include{interpolation}
 \include{integration}
 \include{lin_alg}
 
-\part{Theoretical background}
-%
-\include{formalism}
-\include{rte_theory}
-\include{polarization}
 
 
 
@@ -196,8 +176,7 @@ Edinburgh, EH93JZ Edinburgh, Scotland, UK. \\
 \end{document}
 
 
-
 %%% Local Variables: 
-%%% mode: latex 
-%%% TeX-master: "uguide" 
-%%% End:
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
