@@ -60,10 +60,10 @@
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ArrayOfGField1Create(// WS Generic Output:
-                          ArrayOfGField1& aogf1 )
+void ArrayOfGriddedField1Create(// WS Generic Output:
+                          ArrayOfGriddedField1& aogf1 )
 {
-  aogf1 = ArrayOfGField1();
+  aogf1 = ArrayOfGriddedField1();
 }
 
 
@@ -116,31 +116,31 @@ void ArrayOfVectorCreate(// WS Generic Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void GField1Create(// WS Generic Output:
-                 GField1& g )
+void GriddedField1Create(// WS Generic Output:
+                 GriddedField1& g )
 {
-  g = GField1();
+  g = GriddedField1();
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void GField2Create(// WS Generic Output:
-                 GField2& g )
+void GriddedField2Create(// WS Generic Output:
+                 GriddedField2& g )
 {
-  g = GField2();
+  g = GriddedField2();
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void GField3Create(// WS Generic Output:
-                 GField3& g )
+void GriddedField3Create(// WS Generic Output:
+                 GriddedField3& g )
 {
-  g = GField3();
+  g = GriddedField3();
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void GField4Create(// WS Generic Output:
-                 GField4& g )
+void GriddedField4Create(// WS Generic Output:
+                 GriddedField4& g )
 {
-  g = GField4();
+  g = GriddedField4();
 }
 
 

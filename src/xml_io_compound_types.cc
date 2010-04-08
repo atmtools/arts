@@ -118,17 +118,17 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
-//=== GField ===========================================================
+//=== GriddedField ===========================================================
 
 //! Reads the grids for gridded fields from XML input stream
 /*!
   \param is_xml  XML Input stream
-  \param gfield  GField return value
+  \param gfield  GriddedField return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      GField& gfield,
+                      GriddedField& gfield,
                       bifstream *pbifs)
 {
   ArtsXMLTag tag;
@@ -184,12 +184,12 @@ xml_read_from_stream (istream& is_xml,
 //! Writes the grids for gridded fields to an XML input stream
 /*!
   \param os_xml  XML output stream
-  \param gfield  GField with the grids
+  \param gfield  GriddedField with the grids
   \param pbofs   Pointer to binary output stream. NULL in case of ASCII file.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const GField& gfield,
+                     const GriddedField& gfield,
                      bofstream *pbofs)
 {
   for (Index i = 0; i < gfield.get_dim(); i++)
@@ -209,17 +209,17 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
-//=== GField1 ===========================================================
+//=== GriddedField1 ===========================================================
 
-//! Reads GField1 from XML input stream
+//! Reads GriddedField1 from XML input stream
 /*!
   \param is_xml  XML Input stream
-  \param gfield  GField1 return value
+  \param gfield  GriddedField1 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      GField1& gfield,
+                      GriddedField1& gfield,
                       bifstream *pbifs)
 {
   ArtsXMLTag tag;
@@ -232,7 +232,7 @@ xml_read_from_stream (istream& is_xml,
   if (s.length())
     gfield.set_name (s);
 
-  xml_read_from_stream (is_xml, (GField&)gfield, pbifs);
+  xml_read_from_stream (is_xml, (GriddedField&)gfield, pbifs);
   xml_read_from_stream (is_xml, (Vector&)gfield, pbifs);
 
   tag.read_from_stream (is_xml);
@@ -243,7 +243,7 @@ xml_read_from_stream (istream& is_xml,
 }
 
 
-//! Writes GField1 to XML output stream
+//! Writes GriddedField1 to XML output stream
 /*!
   \param os_xml  XML Output stream
   \param gfield  GriddedField1
@@ -252,7 +252,7 @@ xml_read_from_stream (istream& is_xml,
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const GField1& gfield,
+                     const GriddedField1& gfield,
                      bofstream *pbofs,
                      const String& name)
 {
@@ -268,7 +268,7 @@ xml_write_to_stream (ostream& os_xml,
   open_tag.write_to_stream (os_xml);
   os_xml << '\n';
 
-  xml_write_to_stream (os_xml, (GField&)gfield, pbofs);
+  xml_write_to_stream (os_xml, (GriddedField&)gfield, pbofs);
   xml_write_to_stream (os_xml, (Vector&)gfield, pbofs, "Data");
 
   close_tag.set_name ("/GriddedField1");
@@ -277,17 +277,17 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
-//=== GField2 ===========================================================
+//=== GriddedField2 ===========================================================
 
-//! Reads GField2 from XML input stream
+//! Reads GriddedField2 from XML input stream
 /*!
   \param is_xml  XML Input stream
-  \param gfield  GField2 return value
+  \param gfield  GriddedField2 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      GField2& gfield,
+                      GriddedField2& gfield,
                       bifstream *pbifs)
 {
   ArtsXMLTag tag;
@@ -300,7 +300,7 @@ xml_read_from_stream (istream& is_xml,
   if (s.length())
     gfield.set_name (s);
 
-  xml_read_from_stream (is_xml, (GField&)gfield, pbifs);
+  xml_read_from_stream (is_xml, (GriddedField&)gfield, pbifs);
   xml_read_from_stream (is_xml, (Matrix&)gfield, pbifs);
 
   tag.read_from_stream (is_xml);
@@ -311,7 +311,7 @@ xml_read_from_stream (istream& is_xml,
 }
 
 
-//! Writes GField2 to XML output stream
+//! Writes GriddedField2 to XML output stream
 /*!
   \param os_xml  XML Output stream
   \param gfield  GriddedField3
@@ -320,7 +320,7 @@ xml_read_from_stream (istream& is_xml,
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const GField2& gfield,
+                     const GriddedField2& gfield,
                      bofstream *pbofs,
                      const String& name)
 {
@@ -336,7 +336,7 @@ xml_write_to_stream (ostream& os_xml,
   open_tag.write_to_stream (os_xml);
   os_xml << '\n';
 
-  xml_write_to_stream (os_xml, (GField&)gfield, pbofs);
+  xml_write_to_stream (os_xml, (GriddedField&)gfield, pbofs);
   xml_write_to_stream (os_xml, (Matrix&)gfield, pbofs, "Data");
 
   close_tag.set_name ("/GriddedField2");
@@ -345,17 +345,17 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
-//=== GField3 ===========================================================
+//=== GriddedField3 ===========================================================
 
-//! Reads GField3 from XML input stream
+//! Reads GriddedField3 from XML input stream
 /*!
   \param is_xml  XML Input stream
-  \param gfield  GField3 return value
+  \param gfield  GriddedField3 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      GField3& gfield,
+                      GriddedField3& gfield,
                       bifstream *pbifs)
 {
   ArtsXMLTag tag;
@@ -368,7 +368,7 @@ xml_read_from_stream (istream& is_xml,
   if (s.length())
     gfield.set_name (s);
 
-  xml_read_from_stream (is_xml, (GField&)gfield, pbifs);
+  xml_read_from_stream (is_xml, (GriddedField&)gfield, pbifs);
   xml_read_from_stream (is_xml, (Tensor3&)gfield, pbifs);
 
   tag.read_from_stream (is_xml);
@@ -379,7 +379,7 @@ xml_read_from_stream (istream& is_xml,
 }
 
 
-//! Writes GField3 to XML output stream
+//! Writes GriddedField3 to XML output stream
 /*!
   \param os_xml  XML Output stream
   \param gfield  GriddedField3
@@ -388,7 +388,7 @@ xml_read_from_stream (istream& is_xml,
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const GField3& gfield,
+                     const GriddedField3& gfield,
                      bofstream *pbofs,
                      const String& name)
 {
@@ -404,7 +404,7 @@ xml_write_to_stream (ostream& os_xml,
   open_tag.write_to_stream (os_xml);
   os_xml << '\n';
 
-  xml_write_to_stream (os_xml, (GField&)gfield, pbofs);
+  xml_write_to_stream (os_xml, (GriddedField&)gfield, pbofs);
   xml_write_to_stream (os_xml, (Tensor3&)gfield, pbofs, "Data");
 
   close_tag.set_name ("/GriddedField3");
@@ -413,17 +413,17 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
-//=== GField4 ===========================================================
+//=== GriddedField4 ===========================================================
 
-//! Reads GField4 from XML input stream
+//! Reads GriddedField4 from XML input stream
 /*!
   \param is_xml  XML Input stream
-  \param gfield  GField4 return value
+  \param gfield  GriddedField4 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      GField4& gfield,
+                      GriddedField4& gfield,
                       bifstream *pbifs)
 {
   ArtsXMLTag tag;
@@ -436,7 +436,7 @@ xml_read_from_stream (istream& is_xml,
   if (s.length())
     gfield.set_name (s);
 
-  xml_read_from_stream (is_xml, (GField&)gfield, pbifs);
+  xml_read_from_stream (is_xml, (GriddedField&)gfield, pbifs);
   xml_read_from_stream (is_xml, (Tensor4&)gfield, pbifs);
 
   tag.read_from_stream (is_xml);
@@ -444,7 +444,7 @@ xml_read_from_stream (istream& is_xml,
 }
 
 
-//! Writes GField4 to XML output stream
+//! Writes GriddedField4 to XML output stream
 /*!
   \param os_xml  XML Output stream
   \param gfield  GriddedField3
@@ -453,7 +453,7 @@ xml_read_from_stream (istream& is_xml,
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const GField4& gfield,
+                     const GriddedField4& gfield,
                      bofstream *pbofs,
                      const String& name)
 {
@@ -469,7 +469,7 @@ xml_write_to_stream (ostream& os_xml,
   open_tag.write_to_stream (os_xml);
   os_xml << '\n';
 
-  xml_write_to_stream(os_xml, (GField&)gfield, pbofs);
+  xml_write_to_stream(os_xml, (GriddedField&)gfield, pbofs);
   xml_write_to_stream (os_xml, (Tensor4&)gfield, pbofs, "Data");
 
   close_tag.set_name ("/GriddedField3");

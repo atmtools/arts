@@ -37,21 +37,21 @@
 
 void chk_if_pnd_zero_p(
                        const Index& i_p,
-                       const GField3& pnd_field_raw,
+                       const GriddedField3& pnd_field_raw,
                        const String& pnd_field_file);
 
 void chk_if_pnd_zero_lat(
                        const Index& i_lat,
-                       const GField3& pnd_field_raw,
+                       const GriddedField3& pnd_field_raw,
                        const String& pnd_field_file);
 
 void chk_if_pnd_zero_lon(
                        const Index& i_lon,
-                       const GField3& pnd_field_raw,
+                       const GriddedField3& pnd_field_raw,
                        const String& pnd_field_file);
 
 void chk_pnd_data(
-                  const GField3& pnd_field_raw,
+                  const GriddedField3& pnd_field_raw,
                   const String& pnd_field_file,
                   const Index& atmosphere_dim,
                   ConstVectorView p_grid,
@@ -60,7 +60,7 @@ void chk_pnd_data(
                   const ArrayOfIndex& cloudbox_limits);
 
 void chk_pnd_raw_data(
-                      const ArrayOfGField3& pnd_field_raw,
+                      const ArrayOfGriddedField3& pnd_field_raw,
                       const String& pnd_field_file,
                       const Index& atmosphere_dim,
                       ConstVectorView p_grid,

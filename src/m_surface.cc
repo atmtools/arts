@@ -236,7 +236,7 @@ void InterpSurfaceEmissivityFieldIncLatLon(
            const Index&     atmosphere_dim,
            const Vector&    rte_pos,
            const Vector&    rte_los,
-           const GField3&   gfield )
+           const GriddedField3&   gfield )
 {
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );

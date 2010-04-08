@@ -1849,17 +1849,17 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ArrayOfGField1Create" ),
+      ( NAME( "ArrayOfGriddedField1Create" ),
         DESCRIPTION
         (
-         "Creates an empty ArrayOfGField1.\n"
+         "Creates an empty ArrayOfGriddedField1.\n"
          "\n"
          "If the variable already exists, it will be reset.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "agf" ),
-        GOUT_TYPE( "ArrayOfGField1" ),
+        GOUT_TYPE( "ArrayOfGriddedField1" ),
         GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
@@ -3484,13 +3484,13 @@ void define_md_data_raw()
         OUT(),
         GOUT( "needle" ),
         GOUT_TYPE( "ArrayOfIndex, Numeric, Matrix, Matrix, Tensor3, Tensor4,"
-                   "Tensor4, ArrayOfGField3, GField4" ),
+                   "Tensor4, ArrayOfGriddedField3, GriddedField4" ),
         GOUT_DESC( "Extracted element." ),
         IN(),
         GIN( "haystack", "index" ),
         GIN_TYPE( "ArrayOfArrayOfIndex, Vector, ArrayOfMatrix, Tensor3,"
-                  "Tensor4, ArrayOfTensor4, Tensor5, ArrayOfArrayOfGField3,"
-                  "ArrayOfGField4",
+                  "Tensor4, ArrayOfTensor4, Tensor5, ArrayOfArrayOfGriddedField3,"
+                  "ArrayOfGriddedField4",
                   "Index" ),
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Variable to extract from.",
@@ -3849,17 +3849,17 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "GField1Create" ),
+      ( NAME( "GriddedField1Create" ),
         DESCRIPTION
         (
-         "Creates an empty GField1.\n"
+         "Creates an empty GriddedField1.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gfield"       ),
-        GOUT_TYPE( "GField1" ),
+        GOUT_TYPE( "GriddedField1" ),
         GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
@@ -3870,17 +3870,17 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "GField2Create" ),
+      ( NAME( "GriddedField2Create" ),
         DESCRIPTION
         (
-         "Creates an empty GField2.\n"
+         "Creates an empty GriddedField2.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gfield"       ),
-        GOUT_TYPE( "GField2" ),
+        GOUT_TYPE( "GriddedField2" ),
         GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
@@ -3891,17 +3891,17 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "GField3Create" ),
+      ( NAME( "GriddedField3Create" ),
         DESCRIPTION
         (
-         "Creates an empty GField3.\n"
+         "Creates an empty GriddedField3.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gfield"       ),
-        GOUT_TYPE( "GField3" ),
+        GOUT_TYPE( "GriddedField3" ),
         GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
@@ -3912,17 +3912,17 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "GField4Create" ),
+      ( NAME( "GriddedField4Create" ),
         DESCRIPTION
         (
-         "Creates an empty GField4.\n"
+         "Creates an empty GriddedField4.\n"
          "\n"
          "If the variable already exists, it'll be reset.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT(),
         GOUT(      "gfield"       ),
-        GOUT_TYPE( "GField4" ),
+        GOUT_TYPE( "GriddedField4" ),
         GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
@@ -4132,7 +4132,7 @@ void define_md_data_raw()
         GOUT_DESC( "Value obtained by interpolation" ),
         IN( "atmosphere_dim", "rte_pos", "rte_los" ),
         GIN(      "gfield"  ),
-        GIN_TYPE( "GField3" ),
+        GIN_TYPE( "GriddedField3" ),
         GIN_DEFAULT( NODEF  ),
         GIN_DESC( "Gridded field to be interpolated." )
         ));

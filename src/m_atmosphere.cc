@@ -144,7 +144,7 @@ void atm_checkedCalc(
 // Workspace method, doxygen header will be auto-generated.
 // 2007-07-25 Stefan Buehler
 void atm_fields_compactFromMatrix(// WS Output:
-                                  GField4& af, // atm_fields_compact
+                                  GriddedField4& af, // atm_fields_compact
                                   // WS Input:
                                   const Index& atmosphere_dim,
                                   // WS Generic Input:
@@ -209,7 +209,7 @@ void atm_fields_compactFromMatrix(// WS Output:
 // Workspace method, doxygen header is auto-generated.
 // 2007-07-31 Stefan Buehler
 void atm_fields_compactAddConstant(// WS Output:
-                                   GField4& af,
+                                   GriddedField4& af,
                                    // Control Parameters:
                                    const String& name,
                                    const Numeric& value)
@@ -245,7 +245,7 @@ void atm_fields_compactAddConstant(// WS Output:
 
 // Workspace method, doxygen header is auto-generated.
 void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
-                                               ArrayOfGField4& batch_atm_fields_compact,
+                                               ArrayOfGriddedField4& batch_atm_fields_compact,
                                                // WS Input:
                                                const Index& atmosphere_dim,
                                                // WS Generic Input:
@@ -321,11 +321,11 @@ void AtmFieldsFromCompact(// WS Output:
                           Tensor4& vmr_field,
                           // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
-                          const GField4& atm_fields_compact,
+                          const GriddedField4& atm_fields_compact,
                           const Index&  atmosphere_dim )
 {
   // Make a handle on atm_fields_compact to save typing:
-  const GField4& c = atm_fields_compact;
+  const GriddedField4& c = atm_fields_compact;
   
   // Check if the grids in our data match atmosphere_dim
   // (throws an error if the dimensionality is not correct):
@@ -477,9 +477,9 @@ void AtmFieldsCalc(//WS Output:
                    const Vector&         p_grid,
                    const Vector&         lat_grid,
                    const Vector&         lon_grid,
-                   const GField3&        t_field_raw,
-                   const GField3&        z_field_raw,
-                   const ArrayOfGField3& vmr_field_raw,
+                   const GriddedField3&        t_field_raw,
+                   const GriddedField3&        z_field_raw,
+                   const ArrayOfGriddedField3& vmr_field_raw,
                    const Index&          atmosphere_dim
                    )
 {
@@ -845,9 +845,9 @@ void AtmFieldsCalcExpand1D(
       const Vector&         p_grid,
       const Vector&         lat_grid,
       const Vector&         lon_grid,
-      const GField3&        t_field_raw,
-      const GField3&        z_field_raw,
-      const ArrayOfGField3& vmr_field_raw,
+      const GriddedField3&        t_field_raw,
+      const GriddedField3&        z_field_raw,
+      const ArrayOfGriddedField3& vmr_field_raw,
       const Index&          atmosphere_dim )
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -1050,9 +1050,9 @@ void AtmFieldsRefinePgrid(// WS Output:
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmRawRead(//WS Output:
-                GField3&        t_field_raw,
-                GField3&        z_field_raw,
-                ArrayOfGField3& vmr_field_raw,
+                GriddedField3&        t_field_raw,
+                GriddedField3&        z_field_raw,
+                ArrayOfGriddedField3& vmr_field_raw,
                 //WS Input:
                 const ArrayOfArrayOfSpeciesTag& abs_species,
                 //Keyword:
@@ -1084,7 +1084,7 @@ void AtmRawRead(//WS Output:
         species_data[abs_species[i][0].Species()].Name() + ".xml";
       
       // Add an element for this tag group to the vmr profiles:
-      GField3 vmr_field_data;
+      GriddedField3 vmr_field_data;
       vmr_field_raw.push_back(vmr_field_data);
       
       // Read the VMR:

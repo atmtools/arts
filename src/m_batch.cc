@@ -317,10 +317,10 @@ void ybatchMetProfiles(
                const String& met_profile_path,
                const String& met_profile_pnd_path)
 {
-  GField3        t_field_raw;
-  GField3        z_field_raw;
-  ArrayOfGField3 vmr_field_raw;
-  ArrayOfGField3 pnd_field_raw;
+  GriddedField3        t_field_raw;
+  GriddedField3        z_field_raw;
+  ArrayOfGriddedField3 vmr_field_raw;
+  ArrayOfGriddedField3 pnd_field_raw;
   Vector         p_grid;
   Matrix         sensor_los;
   Index          cloudbox_on;
@@ -537,10 +537,10 @@ void ybatchMetProfilesClear(
                 const Index& nelem_p_grid,
                 const String& met_profile_path)
 {
-  GField3        t_field_raw;
-  GField3        z_field_raw;
-  ArrayOfGField3 vmr_field_raw;
-  ArrayOfGField3 pnd_field_raw;
+  GriddedField3        t_field_raw;
+  GriddedField3        z_field_raw;
+  ArrayOfGriddedField3 vmr_field_raw;
+  ArrayOfGriddedField3 pnd_field_raw;
   Vector         p_grid;
   Matrix         sensor_los;
   Index          cloudbox_on = 0;
@@ -551,7 +551,7 @@ void ybatchMetProfilesClear(
   //Index no_profiles = met_profile_basenames.nelem();
   // The humidity data is stored as  an ArrayOfTensor3 whereas
   // vmr_field_raw is an ArrayOfArrayOfTensor3
-  GField3 vmr_field_raw_h2o;
+  GriddedField3 vmr_field_raw_h2o;
   
   vmr_field_raw.resize(abs_species.nelem());
   

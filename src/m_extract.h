@@ -178,17 +178,17 @@ void Extract(
    2007-10-26 Oliver Lemke */
 void Extract(
       // WS Generic Output:
-      ArrayOfGField3&          agf,
+      ArrayOfGriddedField3&          agf,
       // WS Input:
       // WS Generic Input:
-      const ArrayOfArrayOfGField3&   aagf,
+      const ArrayOfArrayOfGriddedField3&   aagf,
       const Index&     index)
 {
   if( index >= aagf.nelem() )
     {
       ostringstream os;
       os << "The index " << index 
-         << " is outside the range of the ArrayOfArrayOfGField3.";
+         << " is outside the range of the ArrayOfArrayOfGriddedField3.";
       throw runtime_error( os.str() );
 
     }
@@ -205,17 +205,17 @@ void Extract(
    2007-11-26 Stefan Buehler */
 void Extract(
       // WS Generic Output:
-      GField4&          m,
+      GriddedField4&          m,
       // WS Input:
       // WS Generic Input:
-      const ArrayOfGField4&   agf4,
+      const ArrayOfGriddedField4&   agf4,
       const Index&     index)
 {
   if( index >= agf4.nelem() )
     {
       ostringstream os;
       os << "The index " << index 
-         << " is outside the range of The ArrayOfGField4.";
+         << " is outside the range of The ArrayOfGriddedField4.";
       throw runtime_error( os.str() );
 
     }

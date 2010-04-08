@@ -863,7 +863,7 @@ void doit_i_fieldSetConst(//WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleTypeInit( //WS Output:
                       ArrayOfSingleScatteringData& scat_data_raw,
-                      ArrayOfGField3& pnd_field_raw
+                      ArrayOfGriddedField3& pnd_field_raw
                       )
 {
   scat_data_raw.reserve(20);
@@ -874,7 +874,7 @@ void ParticleTypeInit( //WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleTypeAddAll( //WS Output:
                  ArrayOfSingleScatteringData& scat_data_raw,
-                 ArrayOfGField3&  pnd_field_raw,
+                 ArrayOfGriddedField3&  pnd_field_raw,
                  // WS Input(needed for checking the datafiles):
                  const Index& atmosphere_dim,
                  const Vector& f_grid,
@@ -934,7 +934,7 @@ void ParticleTypeAddAll( //WS Output:
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ParticleTypeAdd( //WS Output:
                  ArrayOfSingleScatteringData& scat_data_raw,
-                 ArrayOfGField3&  pnd_field_raw,
+                 ArrayOfGriddedField3&  pnd_field_raw,
                  // WS Input (needed for checking the datafiles):
                  const Index& atmosphere_dim,
                  const Vector& f_grid,
@@ -972,7 +972,7 @@ void ParticleTypeAdd( //WS Output:
   SingleScatteringData scat_data;
   scat_data_raw.push_back(scat_data);
   
-  GField3 pnd_field_data;
+  GriddedField3 pnd_field_data;
   pnd_field_raw.push_back(pnd_field_data);
   
   out2 << "  Read single scattering data\n";
@@ -1003,7 +1003,7 @@ void pnd_fieldCalc(//WS Output:
                    const Vector& p_grid,
                    const Vector& lat_grid,
                    const Vector& lon_grid,
-                   const ArrayOfGField3& pnd_field_raw,
+                   const ArrayOfGriddedField3& pnd_field_raw,
                    const Index& atmosphere_dim,
                    const ArrayOfIndex& cloudbox_limits
                    )

@@ -1118,7 +1118,7 @@ void abs_lookupSetupBatch(// WS Output:
                           Vector& abs_nls_pert,
                           // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
-                          const ArrayOfGField4& batch_fields,
+                          const ArrayOfGriddedField4& batch_fields,
                           const Index& abs_p_interp_order,
                           const Index& abs_t_interp_order,
                           const Index& abs_nls_interp_order,

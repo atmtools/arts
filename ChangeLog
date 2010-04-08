@@ -1,5 +1,30 @@
 2010-04-08  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-1
+
+	* Fix ticket #34.
+
+	* src/cloudbox.cc, src/cloudbox.h, src/constants.cc,
+	src/gridded_fields.cc, src/gridded_fields.h, src/groups.cc,
+	src/m_abs_lookup.cc, src/m_atmosphere.cc, src/m_basic_types.h,
+	src/m_batch.cc, src/m_cloudbox.cc, src/m_create.cc, src/m_extract.h,
+	src/m_sensor.cc, src/m_surface.cc, src/methods.cc,
+	src/nc_io_array_types.cc, src/nc_io_compound_types.cc,
+	src/nc_io_instantiation.h, src/nc_io_types.h, src/sensor.cc,
+	src/sensor.h, src/special_interp.cc, src/special_interp.h,
+	src/workspace.cc, src/xml_io_array_types.cc,
+	src/xml_io_compound_types.cc, src/xml_io_instantiation.h,
+	src/xml_io_types.h:
+
+	Replace GField with GriddedField everywhere for consistency.
+
+	Also increased minor version number because this breaks controlfile
+	backwards compatibility. Luckily, GField workspace methods are not
+	widely used in controlfiles. Nothing in includes or tests referred to
+	any of them.
+
+2010-04-08  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-13-41
 
 	* src/methods.cc:

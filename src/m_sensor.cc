@@ -198,7 +198,7 @@ void AntennaSet2D(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void antenna_responseGaussian(
-          GField4&   r,
+          GriddedField4&   r,
     const Numeric&   fwhm,
     const Numeric&   xwidth_si,
     const Numeric&   dx_si )
@@ -230,7 +230,7 @@ void antenna_responseGaussian(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void backend_channel_responseFlat(
-   ArrayOfGField1&   r,
+   ArrayOfGriddedField1&   r,
     const Numeric&   resolution )
 {
   r.resize( 1 );
@@ -252,7 +252,7 @@ void backend_channel_responseFlat(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void backend_channel_responseGaussian(
-   ArrayOfGField1&   r,
+   ArrayOfGriddedField1&   r,
     const Numeric&   fwhm,
     const Numeric&   xwidth_si,
     const Numeric&   dx_si )
@@ -281,7 +281,7 @@ void f_gridFromSensorAMSU(// WS Output:
                       // WS Input:
                       const Vector& lo,
                       const ArrayOfVector& f_backend,
-                      const ArrayOfArrayOfGField1& backend_channel_response,
+                      const ArrayOfArrayOfGriddedField1& backend_channel_response,
                       // Control Parameters:
                       const Numeric& spacing)
 {
@@ -449,7 +449,7 @@ void f_gridFromSensorHIRS(// WS Output:
                           Vector& f_grid,
                           // WS Input:
                           const Vector& f_backend,
-                          const ArrayOfGField1& backend_channel_response,
+                          const ArrayOfGriddedField1& backend_channel_response,
                           // Control Parameters:
                           const Numeric& spacing)
 {
@@ -518,7 +518,7 @@ void sensor_responseAntenna(
           const Index&   atmosphere_dim,
           const Index&   antenna_dim,
          const Matrix&   antenna_los,
-        const GField4&   antenna_response,
+        const GriddedField4&   antenna_response,
           const Index&   sensor_norm )
 {
   // Basic checks
@@ -783,7 +783,7 @@ void sensor_responseBackend(
            const Vector&   sensor_response_za_grid,
            const Vector&   sensor_response_aa_grid,
            const Vector&   f_backend,
-   const ArrayOfGField1&   backend_channel_response,
+   const ArrayOfGriddedField1&   backend_channel_response,
             const Index&   sensor_norm )
 {
   // Some sizes
@@ -948,7 +948,7 @@ void sensor_responseBackendFrequencySwitching(
            const Vector&   sensor_response_za_grid,
            const Vector&   sensor_response_aa_grid,
            const Vector&   f_backend,
-   const ArrayOfGField1&   backend_channel_response,
+   const ArrayOfGriddedField1&   backend_channel_response,
             const Index&   sensor_norm,
           const Numeric&   df1,
           const Numeric&   df2 )
@@ -1468,7 +1468,7 @@ void sensor_responseMixer(
           const Vector&   sensor_response_za_grid,
           const Vector&   sensor_response_aa_grid,
          const Numeric&   lo,
-         const GField1&   sideband_response,
+         const GriddedField1&   sideband_response,
            const Index&   sensor_norm )
 {
   // Some sizes
@@ -1620,10 +1620,10 @@ void sensor_responseMultiMixerBackend(
                   const Vector&   sensor_response_za_grid,
                   const Vector&   sensor_response_aa_grid,
                   const Vector&   lo_multi,
-          const ArrayOfGField1&   sideband_response_multi,
+          const ArrayOfGriddedField1&   sideband_response_multi,
            const ArrayOfString&   sideband_mode_multi,
            const ArrayOfVector&   f_backend_multi,
-   const ArrayOfArrayOfGField1&   backend_channel_response_multi,
+   const ArrayOfArrayOfGriddedField1&   backend_channel_response_multi,
                    const Index&   sensor_norm )
 {
   // Some sizes
@@ -1847,10 +1847,10 @@ void sensor_responseSimpleAMSU(// WS Output:
   }  
   
   // Construct channel response
-  ArrayOfArrayOfGField1 backend_channel_response_multi(n);
+  ArrayOfArrayOfGriddedField1 backend_channel_response_multi(n);
   for (Index i=0; i<n; ++i) {
     backend_channel_response_multi[i].resize(1);
-    GField1& r = backend_channel_response_multi[i][0];
+    GriddedField1& r = backend_channel_response_multi[i][0];
     r.set_name("Backend channel response function");
     r.resize(2);
     
@@ -1867,9 +1867,9 @@ void sensor_responseSimpleAMSU(// WS Output:
   }
   
   // Construct sideband response:
-  ArrayOfGField1 sideband_response_multi(n);
+  ArrayOfGriddedField1 sideband_response_multi(n);
   for (Index i=0; i<n; ++i) {
-    GField1& r = sideband_response_multi[i];
+    GriddedField1& r = sideband_response_multi[i];
     r.set_name("Sideband response function");
     r.resize(2);
     

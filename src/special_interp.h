@@ -109,7 +109,7 @@ Numeric interp_atmsurface_by_gp(
 
 void interp_gfield3( 
                  Numeric&   value,
-           const GField3&   gfield3,
+           const GriddedField3&   gfield3,
            const Index&     effective_dim,
            const Numeric&   x,
            const Numeric&   y,

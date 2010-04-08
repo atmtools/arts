@@ -1429,17 +1429,17 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
-//=== ArrayOfGField1 ===========================================
+//=== ArrayOfGriddedField1 ===========================================
 
-//! Reads ArrayOfGField1 from XML input stream
+//! Reads ArrayOfGriddedField1 from XML input stream
 /*!
   \param is_xml   XML Input stream
-  \param agfield  ArrayOfGField1 return value
+  \param agfield  ArrayOfGriddedField1 return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      ArrayOfGField1& agfield,
+                      ArrayOfGriddedField1& agfield,
                       bifstream *pbifs)
 {
   ArtsXMLTag tag;
@@ -1461,7 +1461,7 @@ xml_read_from_stream (istream& is_xml,
         }
     } catch (runtime_error e) {
       ostringstream os;
-      os << "Error reading ArrayOfGField1: "
+      os << "Error reading ArrayOfGriddedField1: "
          << "\n Element: " << n
          << "\n" << e.what();
       throw runtime_error(os.str());
@@ -1472,16 +1472,16 @@ xml_read_from_stream (istream& is_xml,
 }
 
 
-//! Writes ArrayOfGField1 to XML output stream
+//! Writes ArrayOfGriddedField1 to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param agfield  ArrayOfGField1
+  \param agfield  ArrayOfGriddedField1
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const ArrayOfGField1& agfield,
+                     const ArrayOfGriddedField1& agfield,
                      bofstream *pbofs,
                      const String& name)
 {
@@ -1510,17 +1510,17 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
-//=== ArrayOfGField2 ===========================================
+//=== ArrayOfGriddedField2 ===========================================
 
-//! Reads ArrayOfGField2 from XML input stream
+//! Reads ArrayOfGriddedField2 from XML input stream
 /*!
   \param is_xml   XML Input stream
-  \param agfield  ArrayOfGField2 return value
+  \param agfield  ArrayOfGriddedField2 return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      ArrayOfGField2& agfield,
+                      ArrayOfGriddedField2& agfield,
                       bifstream *pbifs)
 {
   ArtsXMLTag tag;
@@ -1542,7 +1542,7 @@ xml_read_from_stream (istream& is_xml,
         }
     } catch (runtime_error e) {
       ostringstream os;
-      os << "Error reading ArrayOfGField2: "
+      os << "Error reading ArrayOfGriddedField2: "
          << "\n Element: " << n
          << "\n" << e.what();
       throw runtime_error(os.str());
@@ -1553,16 +1553,16 @@ xml_read_from_stream (istream& is_xml,
 }
 
 
-//! Writes ArrayOfGField2 to XML output stream
+//! Writes ArrayOfGriddedField2 to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param agfield  ArrayOfGField2
+  \param agfield  ArrayOfGriddedField2
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const ArrayOfGField2& agfield,
+                     const ArrayOfGriddedField2& agfield,
                      bofstream *pbofs,
                      const String& name)
 {
@@ -1591,17 +1591,17 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
-//=== ArrayOfGField3 ===========================================
+//=== ArrayOfGriddedField3 ===========================================
 
-//! Reads ArrayOfGField3 from XML input stream
+//! Reads ArrayOfGriddedField3 from XML input stream
 /*!
   \param is_xml   XML Input stream
-  \param agfield  ArrayOfGField3 return value
+  \param agfield  ArrayOfGriddedField3 return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      ArrayOfGField3& agfield,
+                      ArrayOfGriddedField3& agfield,
                       bifstream *pbifs)
 {
   ArtsXMLTag tag;
@@ -1623,7 +1623,7 @@ xml_read_from_stream (istream& is_xml,
         }
     } catch (runtime_error e) {
       ostringstream os;
-      os << "Error reading ArrayOfGField3: "
+      os << "Error reading ArrayOfGriddedField3: "
          << "\n Element: " << n
          << "\n" << e.what();
       throw runtime_error(os.str());
@@ -1634,16 +1634,16 @@ xml_read_from_stream (istream& is_xml,
 }
 
 
-//! Writes ArrayOfGField3 to XML output stream
+//! Writes ArrayOfGriddedField3 to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param agfield  ArrayOfGField3
+  \param agfield  ArrayOfGriddedField3
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const ArrayOfGField3& agfield,
+                     const ArrayOfGriddedField3& agfield,
                      bofstream *pbofs,
                      const String& name)
 {
@@ -1672,17 +1672,17 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
-//=== ArrayOfArrayOfGField1 ===========================================
+//=== ArrayOfArrayOfGriddedField1 ===========================================
 
-//! Reads ArrayOfArrayOfGField1 from XML input stream
+//! Reads ArrayOfArrayOfGriddedField1 from XML input stream
 /*!
   \param is_xml    XML Input stream
-  \param aagfield  ArrayOfArrayOfGField1 return value
+  \param aagfield  ArrayOfArrayOfGriddedField1 return value
   \param pbifs     Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      ArrayOfArrayOfGField1& aagfield,
+                      ArrayOfArrayOfGriddedField1& aagfield,
                       bifstream *pbifs)
 {
   ArtsXMLTag tag;
@@ -1704,7 +1704,7 @@ xml_read_from_stream (istream& is_xml,
         }
     } catch (runtime_error e) {
       ostringstream os;
-      os << "Error reading ArrayOfArrayOfGField1: "
+      os << "Error reading ArrayOfArrayOfGriddedField1: "
          << "\n Element: " << n
          << "\n" << e.what();
       throw runtime_error(os.str());
@@ -1715,16 +1715,16 @@ xml_read_from_stream (istream& is_xml,
 }
 
 
-//! Writes ArrayOfArrayOfGField1 to XML output stream
+//! Writes ArrayOfArrayOfGriddedField1 to XML output stream
 /*!
   \param os_xml    XML Output stream
-  \param aagfield  ArrayOfArrayOfGField1
+  \param aagfield  ArrayOfArrayOfGriddedField1
   \param pbofs     Pointer to binary file stream. NULL for ASCII output.
   \param name      Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const ArrayOfArrayOfGField1& aagfield,
+                     const ArrayOfArrayOfGriddedField1& aagfield,
                      bofstream *pbofs,
                      const String& name)
 {
@@ -1753,17 +1753,17 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
-//=== ArrayOfArrayOfGField3 ===========================================
+//=== ArrayOfArrayOfGriddedField3 ===========================================
 
-//! Reads ArrayOfArrayOfGField3 from XML input stream
+//! Reads ArrayOfArrayOfGriddedField3 from XML input stream
 /*!
   \param is_xml    XML Input stream
-  \param aagfield  ArrayOfArrayOfGField3 return value
+  \param aagfield  ArrayOfArrayOfGriddedField3 return value
   \param pbifs     Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      ArrayOfArrayOfGField3& aagfield,
+                      ArrayOfArrayOfGriddedField3& aagfield,
                       bifstream *pbifs)
 {
   ArtsXMLTag tag;
@@ -1785,7 +1785,7 @@ xml_read_from_stream (istream& is_xml,
         }
     } catch (runtime_error e) {
       ostringstream os;
-      os << "Error reading ArrayOfArrayOfGField3: "
+      os << "Error reading ArrayOfArrayOfGriddedField3: "
          << "\n Element: " << n
          << "\n" << e.what();
       throw runtime_error(os.str());
@@ -1796,16 +1796,16 @@ xml_read_from_stream (istream& is_xml,
 }
 
 
-//! Writes ArrayOfArrayOfGField3 to XML output stream
+//! Writes ArrayOfArrayOfGriddedField3 to XML output stream
 /*!
   \param os_xml    XML Output stream
-  \param aagfield  ArrayOfArrayOfGField3
+  \param aagfield  ArrayOfArrayOfGriddedField3
   \param pbofs     Pointer to binary file stream. NULL for ASCII output.
   \param name      Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const ArrayOfArrayOfGField3& aagfield,
+                     const ArrayOfArrayOfGriddedField3& aagfield,
                      bofstream *pbofs,
                      const String& name)
 {
@@ -1834,17 +1834,17 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
-//=== ArrayOfGField4 ===========================================
+//=== ArrayOfGriddedField4 ===========================================
 
-//! Reads ArrayOfGField4 from XML input stream
+//! Reads ArrayOfGriddedField4 from XML input stream
 /*!
   \param is_xml   XML Input stream
-  \param agfield  ArrayOfGField4 return value
+  \param agfield  ArrayOfGriddedField4 return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      ArrayOfGField4& agfield,
+                      ArrayOfGriddedField4& agfield,
                       bifstream *pbifs)
 {
   ArtsXMLTag tag;
@@ -1866,7 +1866,7 @@ xml_read_from_stream (istream& is_xml,
         }
     } catch (runtime_error e) {
       ostringstream os;
-      os << "Error reading ArrayOfGField4: "
+      os << "Error reading ArrayOfGriddedField4: "
          << "\n Element: " << n
          << "\n" << e.what();
       throw runtime_error(os.str());
@@ -1877,16 +1877,16 @@ xml_read_from_stream (istream& is_xml,
 }
 
 
-//! Writes ArrayOfGField4 to XML output stream
+//! Writes ArrayOfGriddedField4 to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param agfield  ArrayOfGField4
+  \param agfield  ArrayOfGriddedField4
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
   \param name     Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const ArrayOfGField4& agfield,
+                     const ArrayOfGriddedField4& agfield,
                      bofstream *pbofs,
                      const String& name)
 {

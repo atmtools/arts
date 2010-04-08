@@ -606,7 +606,7 @@ Numeric interp_atmsurface_by_gp(
 
 //! interp_gfield3
 /*!
-    Single point interpolation of a GField3.
+    Single point interpolation of a GriddedField3.
 
     Data where not all dimensions are effectively used can be
     handled. For example, if the last dimension is not ysed,
@@ -629,7 +629,7 @@ Numeric interp_atmsurface_by_gp(
 */
 void interp_gfield3( 
                  Numeric&   value,
-           const GField3&   gfield3,
+           const GriddedField3&   gfield3,
            const Index&     effective_dim,
            const Numeric&   x,
            const Numeric&   y,

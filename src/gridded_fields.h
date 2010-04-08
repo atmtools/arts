@@ -48,7 +48,7 @@ typedef enum {
 typedef Array<GridType> ArrayOfGridType;
 
 /*! Abstract base class for gridded fields. */
-class GField
+class GriddedField
 {
 private:
   Index dim;
@@ -59,12 +59,12 @@ private:
   ArrayOfVector mnumericgrids;
 
 protected:
-  //! Construct an empty GField
+  //! Construct an empty GriddedField
   /*!
-    The constructor for GField is protected because it is only used internally
+    The constructor for GriddedField is protected because it is only used internally
     by the derived classed.
   */
-  GField() : dim(0),
+  GriddedField() : dim(0),
              mname(),
              mgridtypes(),
              mgridnames(),
@@ -72,17 +72,17 @@ protected:
              mnumericgrids()
   { /* Nothing to do here */ };
 
-  //! Construct a GField
+  //! Construct a GriddedField
   /*!
-    Constructs a GField with the given dimension and name.
+    Constructs a GriddedField with the given dimension and name.
 
-    The constructor for GField is protected because it is only used internally
+    The constructor for GriddedField is protected because it is only used internally
     by the derived classed.
 
     \param[in] d Dimension.
     \param[in] s Name.
   */
-  GField(const Index d, const String s) : dim(d),
+  GriddedField(const Index d, const String s) : dim(d),
                                           mname(s),
                                           mgridtypes(d, GRIDTYPE_NUMERIC),
                                           mgridnames(d),
@@ -96,7 +96,7 @@ public:
   /*! \return Dimension. */
   Index get_dim () const { return dim; }
 
-  void copy_grids (const GField& gf);
+  void copy_grids (const GriddedField& gf);
 
   //! Get grid name.
   /*!
@@ -161,21 +161,21 @@ public:
   */
   virtual bool checksize() const { return false; };
 
-  //! GField destructor
-  virtual ~GField() { }
+  //! GriddedField destructor
+  virtual ~GriddedField() { }
 
-  friend ostream& operator<<(ostream& os, const GField& gf);
+  friend ostream& operator<<(ostream& os, const GriddedField& gf);
 };
 
 
-class GField1: public GField, public Vector
+class GriddedField1: public GriddedField, public Vector
 {
 public:
-  //! Construct an empty GField1
-  GField1() : GField(1, "") {};
-  //! Construct an empty GField1 with the given name
+  //! Construct an empty GriddedField1
+  GriddedField1() : GriddedField(1, "") {};
+  //! Construct an empty GriddedField1 with the given name
   /*! \param[in] s Name. */
-  GField1(const String s) : GField(1, s) {};
+  GriddedField1(const String s) : GriddedField(1, s) {};
 
   //! Consistency check.
   /*!
@@ -188,9 +188,9 @@ public:
       return (nelem() == get_grid_size(0));
     }
 
-  //! Make this GField1 the same size as the given one.
+  //! Make this GriddedField1 the same size as the given one.
   /*! \param[in] gf Source gridded field. */
-  void resize(const GField1& gf)
+  void resize(const GriddedField1& gf)
     {
       Vector::resize(gf.get_grid_size(0));
     }
@@ -202,18 +202,18 @@ public:
       Vector::resize(n);
     }
 
-  friend ostream& operator<<(ostream& os, const GField1& gf);
+  friend ostream& operator<<(ostream& os, const GriddedField1& gf);
 };
 
 
-class GField2: public GField, public Matrix
+class GriddedField2: public GriddedField, public Matrix
 {
 public:
-  //! Construct an empty GField2
-  GField2() : GField(2, "") {};
-  //! Construct an empty GField2 with the given name
+  //! Construct an empty GriddedField2
+  GriddedField2() : GriddedField(2, "") {};
+  //! Construct an empty GriddedField2 with the given name
   /*! \param[in] s Name. */
-  GField2(const String s) : GField(2, s) {};
+  GriddedField2(const String s) : GriddedField(2, s) {};
 
   //! Consistency check.
   /*!
@@ -227,9 +227,9 @@ public:
               && nrows() == get_grid_size(0));
     }
 
-  //! Make this GField2 the same size as the given one.
+  //! Make this GriddedField2 the same size as the given one.
   /*! \param[in] gf Source gridded field. */
-  void resize(const GField2& gf)
+  void resize(const GriddedField2& gf)
     {
       Matrix::resize(gf.get_grid_size(0),
                      gf.get_grid_size(1));
@@ -242,20 +242,20 @@ public:
       Matrix::resize(r, c);
     }
 
-  friend ostream& operator<<(ostream& os, const GField2& gf);
+  friend ostream& operator<<(ostream& os, const GriddedField2& gf);
 };
 
 
-class GField3: public GField, public Tensor3
+class GriddedField3: public GriddedField, public Tensor3
 {
 public:
-  //! Construct an empty GField3
-  GField3() : GField(3, "") {};
-  //! Construct an empty GField3 with the given name
+  //! Construct an empty GriddedField3
+  GriddedField3() : GriddedField(3, "") {};
+  //! Construct an empty GriddedField3 with the given name
   /*! \param[in] s Name. */
-  GField3(const String s) : GField(3, s) {};
+  GriddedField3(const String s) : GriddedField(3, s) {};
 
-  GField3& operator=(Numeric n)
+  GriddedField3& operator=(Numeric n)
     {
       Tensor3::operator=(n);
 
@@ -275,9 +275,9 @@ public:
               && npages() == get_grid_size(0));
     }
 
-  //! Make this GField3 the same size as the given one.
+  //! Make this GriddedField3 the same size as the given one.
   /*! \param[in] gf Source gridded field. */
-  void resize(const GField3& gf)
+  void resize(const GriddedField3& gf)
     {
       Tensor3::resize(gf.get_grid_size(0),
                       gf.get_grid_size(1),
@@ -291,18 +291,18 @@ public:
       Tensor3::resize(p, r, c);
     }
 
-  friend ostream& operator<<(ostream& os, const GField3& gf);
+  friend ostream& operator<<(ostream& os, const GriddedField3& gf);
 };
 
 
-class GField4: public GField, public Tensor4
+class GriddedField4: public GriddedField, public Tensor4
 {
 public:
-  //! Construct an empty GField4
-  GField4() : GField(4, "") {};
-  //! Construct an empty GField4 with the given name
+  //! Construct an empty GriddedField4
+  GriddedField4() : GriddedField(4, "") {};
+  //! Construct an empty GriddedField4 with the given name
   /*! \param[in] s Name. */
-  GField4(const String s) : GField(4, s) {};
+  GriddedField4(const String s) : GriddedField(4, s) {};
 
   //! Consistency check.
   /*!
@@ -318,9 +318,9 @@ public:
               && nbooks() == get_grid_size(0));
     }
 
-  //! Make this GField4 the same size as the given one.
+  //! Make this GriddedField4 the same size as the given one.
   /*! \param[in] gf Source gridded field. */
-  void resize(const GField4& gf)
+  void resize(const GriddedField4& gf)
     {
       Tensor4::resize(gf.get_grid_size(0),
                       gf.get_grid_size(1),
@@ -335,27 +335,27 @@ public:
       Tensor4::resize(b, p, r, c);
     }
 
-  friend ostream& operator<<(ostream& os, const GField4& gf);
+  friend ostream& operator<<(ostream& os, const GriddedField4& gf);
 };
 
 
 /********** Output operators **********/
 
-ostream& operator<<(ostream& os, const GField& gf);
-ostream& operator<<(ostream& os, const GField1& gf);
-ostream& operator<<(ostream& os, const GField2& gf);
-ostream& operator<<(ostream& os, const GField3& gf);
-ostream& operator<<(ostream& os, const GField4& gf);
+ostream& operator<<(ostream& os, const GriddedField& gf);
+ostream& operator<<(ostream& os, const GriddedField1& gf);
+ostream& operator<<(ostream& os, const GriddedField2& gf);
+ostream& operator<<(ostream& os, const GriddedField3& gf);
+ostream& operator<<(ostream& os, const GriddedField4& gf);
 
 /**************************************/
 
 
-typedef Array<GField1> ArrayOfGField1;
-typedef Array<GField2> ArrayOfGField2;
-typedef Array<GField3> ArrayOfGField3;
-typedef Array<GField4> ArrayOfGField4;
-typedef Array< Array<GField1> > ArrayOfArrayOfGField1;
-typedef Array< Array<GField3> > ArrayOfArrayOfGField3;
+typedef Array<GriddedField1> ArrayOfGriddedField1;
+typedef Array<GriddedField2> ArrayOfGriddedField2;
+typedef Array<GriddedField3> ArrayOfGriddedField3;
+typedef Array<GriddedField4> ArrayOfGriddedField4;
+typedef Array< Array<GriddedField1> > ArrayOfArrayOfGriddedField1;
+typedef Array< Array<GriddedField3> > ArrayOfArrayOfGriddedField3;
 
 #endif
 

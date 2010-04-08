@@ -52,11 +52,11 @@
 
 //! Copy grids
 /*!
-  Copies the grids from the given GField to the current one.
+  Copies the grids from the given GriddedField to the current one.
 
   \param[in] gf Source gridded field
 */
-void GField::copy_grids (const GField& gf)
+void GriddedField::copy_grids (const GriddedField& gf)
 {
   assert(gf.get_dim() == dim);
 
@@ -86,7 +86,7 @@ void GField::copy_grids (const GField& gf)
   \param[in]  i  Grid index.
   \return        Grid size.
 */
-Index GField::get_grid_size (Index i) const
+Index GriddedField::get_grid_size (Index i) const
 {
   Index ret = 0;
   assert (i < dim);
@@ -109,7 +109,7 @@ Index GField::get_grid_size (Index i) const
   \param[in]  i  Grid index.
   \return        Numeric grid.
 */
-ConstVectorView GField::get_numeric_grid (Index i) const
+ConstVectorView GriddedField::get_numeric_grid (Index i) const
 {
   assert (i < dim);
   if (mgridtypes[i] != GRIDTYPE_NUMERIC)
@@ -142,7 +142,7 @@ ConstVectorView GField::get_numeric_grid (Index i) const
   \param[in]  i  Grid index.
   \return        Numeric grid.
 */
-VectorView GField::get_numeric_grid (Index i)
+VectorView GriddedField::get_numeric_grid (Index i)
 {
   assert (i < dim);
   if (mgridtypes[i] != GRIDTYPE_NUMERIC)
@@ -175,7 +175,7 @@ VectorView GField::get_numeric_grid (Index i)
   \param[in]  i  Grid index.
   \return        String grid.
 */
-const ArrayOfString& GField::get_string_grid (Index i) const
+const ArrayOfString& GriddedField::get_string_grid (Index i) const
 {
   assert (i < dim);
   if (mgridtypes[i] != GRIDTYPE_STRING)
@@ -209,7 +209,7 @@ const ArrayOfString& GField::get_string_grid (Index i) const
   \param[in]  i  Grid index.
   \return        String grid.
 */
-ArrayOfString& GField::get_string_grid (Index i)
+ArrayOfString& GriddedField::get_string_grid (Index i)
 {
   assert (i < dim);
   if (mgridtypes[i] != GRIDTYPE_STRING)
@@ -241,7 +241,7 @@ ArrayOfString& GField::get_string_grid (Index i)
   \param[in]  i  Grid index.
   \param[in]  g  New grid.
 */
-void GField::set_grid (Index i, const Vector& g)
+void GriddedField::set_grid (Index i, const Vector& g)
 {
   assert (i < dim);
   mgridtypes[i] = GRIDTYPE_NUMERIC;
@@ -257,7 +257,7 @@ void GField::set_grid (Index i, const Vector& g)
   \param[in] i Grid index.
   \param[in] g New grid.
 */
-void GField::set_grid (Index i, const ArrayOfString& g)
+void GriddedField::set_grid (Index i, const ArrayOfString& g)
 {
   assert (i < dim);
   mgridtypes[i] = GRIDTYPE_STRING;
@@ -266,14 +266,14 @@ void GField::set_grid (Index i, const ArrayOfString& g)
 }
 
 
-//! Output operator for GField
+//! Output operator for GriddedField
 /*!
-  Outputs the grids for the given GField.
+  Outputs the grids for the given GriddedField.
 
   \param[in,out]  os  Output stream.
-  \param[in]      gf  GField.
+  \param[in]      gf  GriddedField.
 */
-ostream& operator<<(ostream& os, const GField& gf)
+ostream& operator<<(ostream& os, const GriddedField& gf)
 {
   if (gf.mname.size()) os << gf.mname << ":" << endl;
 
@@ -298,58 +298,58 @@ ostream& operator<<(ostream& os, const GField& gf)
 }
 
 
-//! Output operator for GField1
+//! Output operator for GriddedField1
 /*!
-  Outputs the given GField1.
+  Outputs the given GriddedField1.
 
   \param[in,out]  os  Output stream.
-  \param[in]      gf  GField1.
+  \param[in]      gf  GriddedField1.
 */
-ostream& operator<<(ostream& os, const GField1& gf)
+ostream& operator<<(ostream& os, const GriddedField1& gf)
 {
-  os << (GField&)gf;
+  os << (GriddedField&)gf;
   return os << "Data:" << endl << (Vector&)gf << endl;
 }
 
 
-//! Output operator for GField2
+//! Output operator for GriddedField2
 /*!
-  Outputs the given GField2.
+  Outputs the given GriddedField2.
 
   \param[in,out]  os  Output stream.
-  \param[in]      gf  GField2.
+  \param[in]      gf  GriddedField2.
 */
-ostream& operator<<(ostream& os, const GField2& gf)
+ostream& operator<<(ostream& os, const GriddedField2& gf)
 {
-  os << (GField&)gf;
+  os << (GriddedField&)gf;
   return os << "Data:" << endl << (Matrix&)gf;
 }
 
 
-//! Output operator for GField3
+//! Output operator for GriddedField3
 /*!
-  Outputs the given GField3.
+  Outputs the given GriddedField3.
 
   \param[in,out]  os  Output stream.
-  \param[in]      gf  GField3.
+  \param[in]      gf  GriddedField3.
 */
-ostream& operator<<(ostream& os, const GField3& gf)
+ostream& operator<<(ostream& os, const GriddedField3& gf)
 {
-  os << (GField&)gf;
+  os << (GriddedField&)gf;
   return os << "Data:" << endl << (Tensor3&)gf;
 }
 
 
-//! Output operator for GField4
+//! Output operator for GriddedField4
 /*!
-  Outputs the given GField4.
+  Outputs the given GriddedField4.
 
   \param[in,out]  os  Output stream.
-  \param[in]      gf  GField4.
+  \param[in]      gf  GriddedField4.
 */
-ostream& operator<<(ostream& os, const GField4& gf)
+ostream& operator<<(ostream& os, const GriddedField4& gf)
 {
-  os << (GField&)gf;
+  os << (GriddedField&)gf;
   return os << "Data:" << endl << (Tensor4&)gf;
 }
 

@@ -83,7 +83,7 @@ void antenna1d_matrix(
       const Index&   antenna_dim _U_,
 #endif
    ConstMatrixView   antenna_los,
-    const GField4&   antenna_response,
+    const GriddedField4&   antenna_response,
    ConstVectorView   za_grid,
    ConstVectorView   f_grid,
        const Index   n_pol,
@@ -251,7 +251,7 @@ void antenna2d_simplified(
       const Index&   antenna_dim _U_,
 #endif
    ConstMatrixView   antenna_los,
-    const GField4&   antenna_response,
+    const GriddedField4&   antenna_response,
    ConstVectorView   za_grid,
    ConstVectorView   aa_grid,
    ConstVectorView   f_grid,
@@ -275,7 +275,7 @@ void antenna2d_simplified(
 
   // Make copy of antenna response suitable as input to antenna1d_matrix
   //
-  GField4 aresponse = antenna_response;
+  GriddedField4 aresponse = antenna_response;
   //
   ConstVectorView response_aa_grid = 
                   antenna_response.get_numeric_grid(GFIELD4_AA_GRID);
@@ -456,7 +456,7 @@ void mixer_matrix(
            Sparse&   H,
            Vector&   f_mixer,
     const Numeric&   lo,
-    const GField1&   filter,
+    const GriddedField1&   filter,
    ConstVectorView   f_grid,
       const Index&   n_pol,
       const Index&   n_sp,
@@ -897,7 +897,7 @@ void sensor_summation_vector(
 void spectrometer_matrix( 
            Sparse&         H,
    ConstVectorView         ch_f,
-   const ArrayOfGField1&   ch_response,
+   const ArrayOfGriddedField1&   ch_response,
    ConstVectorView         sensor_f,
       const Index&         n_pol,
       const Index&         n_sp,
@@ -1074,7 +1074,7 @@ void find_effective_channel_boundaries(// Output:
                                        Vector& fmax,
                                        // Input:
                                        const Vector& f_backend,
-                                       const ArrayOfGField1& backend_channel_response)
+                                       const ArrayOfGriddedField1& backend_channel_response)
 {
   // How many channels in total:
   const Index n_chan = f_backend.nelem();

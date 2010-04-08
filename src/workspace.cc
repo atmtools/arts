@@ -762,14 +762,14 @@ void Workspace::define_wsv_data()
        "Usage: Set by the user.\n"
        "\n"
        "Dimensions: \n"
-       "   GField4:\n"
+       "   GriddedField4:\n"
        "      ArrayOfString field_names[N_pol]\n"
        "      Vector f_grid[N_f]\n"
        "      Vector za_grid[N_za]\n"
        "      Vector aa_grid[N_aa]\n"
        "      Tensor4 data[N_pol][N_f][N_za][N_aa]\n"
        ),
-      GROUP( "GField4" )));
+      GROUP( "GriddedField4" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -819,26 +819,26 @@ void Workspace::define_wsv_data()
        "\n"
        "This concerns temperature, altitude, and gas VMRs.\n"
        "\n"
-       "The data is stored in a GField4.\n"
+       "The data is stored in a GriddedField4.\n"
        "\n"
        "The order of the fields must be:\n"
        "T[K] z[m] VMR_1[1] ... VMR[2]\n"
        "\n"
        "Usage: Used inside batch calculations, to hold successive atmospheric\n"
-       "       states from an ArrayOfGField4.\n"
+       "       states from an ArrayOfGriddedField4.\n"
        "\n"
        "Possible future extensions: Add a similar variable\n"
        "particle_fields_compact for hydrometeors?\n"
        "\n"
        "Dimensions: \n"
-       "   GField4:\n"
+       "   GriddedField4:\n"
        "      ArrayOfString field_names[N_fields]\n"
        "      Vector p_grid[N_p]\n"
        "      Vector lat_grid[N_lat]\n"
        "      Vector lon_grid[N_lon]\n"
        "      Tensor4 data[N_fields][N_p][N_lat][N_lon]\n"
        ),
-      GROUP( "GField4" )));
+      GROUP( "GriddedField4" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -847,7 +847,7 @@ void Workspace::define_wsv_data()
       (
        "The response of each backend channel.\n"
        "\n"
-       "The response is given as an ArrayOfGField1. The grid consists of\n"
+       "The response is given as an ArrayOfGriddedField1. The grid consists of\n"
        "relative frequencies. These relative frequencies are added to \n"
        "*f_backend* to obtain the absolute frequency for each response value.\n"
        "The actual data are the response at each frequency grid point.\n"
@@ -862,11 +862,11 @@ void Workspace::define_wsv_data()
        "Usage: Set by the user.\n"
        "\n"
        "Size:  Array[N_ch]\n"
-       "       GField1 \n "
+       "       GriddedField1 \n "
        "       [N_f] \n"
        "       [N_f] \n"
        ),
-      GROUP( "ArrayOfGField1" )));
+      GROUP( "ArrayOfGriddedField1" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -881,7 +881,7 @@ void Workspace::define_wsv_data()
         "\n"
         "Usage: Set by the user.\n "
         ),
-      GROUP( "ArrayOfArrayOfGField1" )));
+      GROUP( "ArrayOfArrayOfGriddedField1" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -893,7 +893,7 @@ void Workspace::define_wsv_data()
        "This is used to hold a set of *atm_fields_compact* for batch\n"
        "calculations. \n"
        ),
-      GROUP( "ArrayOfGField4" )));
+      GROUP( "ArrayOfGriddedField4" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2434,8 +2434,8 @@ void Workspace::define_wsv_data()
        "This variable contains the particle number density data for all \n"
        "chosen particle types. It includes the grids corresponding to the \n"
        "grids in the database. \n"
-       "*pnd_field_raw* is an Array of GField3. It includes a\n"
-       "GField3 for each particle type which contains the data and \n"
+       "*pnd_field_raw* is an Array of GriddedField3. It includes a\n"
+       "GriddedField3 for each particle type which contains the data and \n"
        "also the grids.\n"
        "\n"
        "Usage: Used in the methods *ParticleTypeAdd* and \n"
@@ -2444,13 +2444,13 @@ void Workspace::define_wsv_data()
        "Unit:  m^-3\n"
        "\n"
        "Size:  Array[N_pt]\n"
-       "       GField3 \n "
+       "       GriddedField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        ),
-      GROUP( "ArrayOfGField3" )));
+      GROUP( "ArrayOfGriddedField3" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3504,7 +3504,7 @@ void Workspace::define_wsv_data()
        "Description of (mixer) sideband response.\n"
        "\n"
        "This variable describes the response of each sideband of a heterodyne\n"
-       "receiver. The response is given as a GField1, with frequency as the\n"
+       "receiver. The response is given as a GriddedField1, with frequency as the\n"
        "grid. The actual data describe the sideband filter function at each\n"
        "frequency grid point. An interpolation is applied to obtain the\n"
        "response for other frequencies.\n"
@@ -3518,11 +3518,11 @@ void Workspace::define_wsv_data()
        "Usage: Set by the user.\n"
        "\n"
        "Dimensions: \n"
-       "   GField1:\n"
+       "   GriddedField1:\n"
        "      Vector f_grid[N_f]\n"
        "      Vector data[N_f]\n"
        ),
-      GROUP( "GField1" )));
+      GROUP( "GriddedField1" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3539,7 +3539,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Usage: Set by the user.\n"
        ),
-      GROUP( "ArrayOfGField1" )));
+      GROUP( "ArrayOfGriddedField1" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3733,13 +3733,13 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  K\n"
        "\n"
-       "Size   GField3 \n "
+       "Size   GriddedField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        ),
-      GROUP( "GField3" )));
+      GROUP( "GriddedField3" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3811,13 +3811,13 @@ void Workspace::define_wsv_data()
        "Unit:  absolute number\n"
        "\n"
        "Size:  Array[N_pt]\n"
-       "       GField3 \n "
+       "       GriddedField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        ),
-      GROUP( "ArrayOfGField3" )));
+      GROUP( "ArrayOfGriddedField3" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -4139,7 +4139,7 @@ void Workspace::define_wsv_data()
 //       (
 //        "Variable for testing the new gridded fields implementation.\n"
 //        ),
-//       GROUP( "GField3" )));
+//       GROUP( "GriddedField3" )));
 
    wsv_data.push_back
    (WsvRecord
@@ -4159,13 +4159,13 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  K\n"
        "\n"
-       "Size   GField3 \n "
+       "Size   GriddedField3 \n "
        "       [N_p] \n"
        "       [N_lat] \n"
        "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        ),
-      GROUP( "GField3" )));
+      GROUP( "GriddedField3" )));
 
   wsv_data.push_back
    (WsvRecord
