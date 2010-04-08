@@ -401,7 +401,6 @@ void get_iy_of_background(
   //
   switch( ppath_what_background( ppath ) )
     {
-      // All "interfaces" still work with transposed iy !!!
 
     case 1:   //--- Space ---------------------------------------------------- 
       {
@@ -487,8 +486,9 @@ void get_iy_of_background(
                 if( iy_clearsky_agenda.name() == "iy_clearsky_basic_agenda" )
                   {
                     iy_clearsky_basic_agendaExecute (ws, iy, rte_pos, 
-                                         surface_los(ilos,joker), cloudbox_on, 
-                                                           iy_clearsky_agenda);
+                                                     surface_los(ilos,joker), 
+                                                     cloudbox_on, 
+                                                     iy_clearsky_agenda);
                   }
                 else
                   {
@@ -587,7 +587,7 @@ void iyb_calc(
         Index   naa     = mblock_aa_grid.nelem();   
   if( antenna_dim == 1 )  
     { naa = 1; }
-  const Index   niyb     = nf * nza * naa * stokes_dim;
+  const Index   niyb    = nf * nza * naa * stokes_dim;
 
   // Set up size of containers for data of 1 measurement block.
   //
@@ -843,7 +843,7 @@ void iyEmissionStandardClearsky(
   const Index   i_background = ppath_what_background( ppath );
 
 
-  // Get quantities required for each ppath point, and update iy_transmission
+  // Get quantities required for each ppath point
   //
   // If np = 1, we only need to determine the radiative background
   //
@@ -869,7 +869,8 @@ void iyEmissionStandardClearsky(
     }
 
   // Handle iy_transmission (the variable not needed when background is
-  // space or no analytical jacobians will be calculated)
+  // space or no analytical jacobians will be calculated, but always with
+  // iy_aux_do set to true)
   //
   if( ( i_background > 1 && j_analytical_do )  ||  iy_aux_do )
     {
@@ -890,29 +891,6 @@ void iyEmissionStandardClearsky(
                 stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda, 
                 surface_prop_agenda, iy_cloudbox_agenda );
   
-  // Set iy_aux 
-  //
-  if( iy_aux_do ) 
-    {
-      // Fill transmission if background is TOA or surface
-      if( i_background <= 2 )
-        {
-          for( Index iv=0; iv<nf; iv++ )
-            { 
-              for( Index is=0; is<stokes_dim; is++ )
-                { iy_aux( 0, iv, is ) = iy_trans_new( iv, is, is ); }
-            }
-        }
-      //
-      // Set background if primary call
-      if( iy_agenda_call1 )
-        { iy_aux( 1, joker, joker ) = (Numeric)i_background; }
-      // 
-      // Flag intersection with cloudbox
-      if( i_background >= 3 )
-        { iy_aux( 2, joker, joker ) = 1.0; }
-    }    
-
   // Do RT calculations
   //
   if( np > 1 )
@@ -941,7 +919,8 @@ void iyEmissionStandardClearsky(
           get_pointers_for_analytical_jacobians( abs_species_i, is_t, 
                                             jacobian_quantities, abs_species );
           //
-          // Get emission and absorption for disturbed temperature
+          // Determine if temperature is among the analytical jac. quantities.
+          // If yes, get emission and absorption for disturbed temperature
           Index do_t=0;
           for( Index iq=0; iq<is_t.nelem() && do_t==0; iq++ )
             { if( is_t[iq] ) { do_t = 1; } }
@@ -1067,6 +1046,29 @@ void iyEmissionStandardClearsky(
           )
         }
     }
+
+  // Set iy_aux 
+  //
+  if( iy_aux_do ) 
+    {
+      // Fill transmission if background is TOA or surface
+      if( i_background <= 2 )
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+              for( Index is=0; is<stokes_dim; is++ )
+                { iy_aux( 0, iv, is ) = iy_trans_new( iv, is, is ); }
+            }
+        }
+      //
+      // Set background if primary call
+      if( iy_agenda_call1 )
+        { iy_aux( 1, joker, joker ) = (Numeric)i_background; }
+      // 
+      // Flag intersection with cloudbox
+      if( i_background >= 3 )
+        { iy_aux( 2, joker, joker ) = 1.0; }
+    }    
 }
 
 

@@ -1,3 +1,9 @@
+2010-04-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-5
+
+	* src/m_rte.cc: Added some code comments.
+
 2010-04-08  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-4
