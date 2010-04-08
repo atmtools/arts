@@ -1,3 +1,12 @@
+2010-04-08  Claudia Emde  <claudia.emde@lmu.de>
+
+	* arts-1-14-3
+
+	* src/cloudbox.cc, src/cloudbox.h, src/doit.cc, src/doit.h,
+	src/m_cloudbox.cc, src/m_doit.cc: Moved
+	DOIT specific functions from (m_)cloudbox.cc to (m_)doit.cc. This
+	fixes ticket #28.
+
 2010-04-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-2

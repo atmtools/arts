@@ -73,25 +73,6 @@ void chk_single_scattering_data(
                                 const String& scat_data_file,
                                 ConstVectorView f_grid);
 
-void iy_interp_cloudbox_field(
-            Matrix&         iy,
-      const Tensor7&        scat_i_p,
-      const Tensor7&        scat_i_lat,
-      const Tensor7&        scat_i_lon,
-      const Tensor4&        doit_i_field1D_spectrum, 
-      const GridPos&        rte_gp_p,
-      const GridPos&        rte_gp_lat,
-      const GridPos&        rte_gp_lon,
-      const Vector&         rte_los,
-      const Index&          cloudbox_on,
-      const ArrayOfIndex&   cloudbox_limits,
-      const Index&          atmosphere_dim,
-      const Index&          stokes_dim,
-      const Vector&         scat_za_grid,
-      const Vector&         scat_aa_grid,
-      const Vector&         f_grid,
-      const String&         interpmeth );
-
 bool is_gp_inside_cloudbox(const GridPos& gp_p,
                            const GridPos& gp_lat,
                            const GridPos& gp_lon,
