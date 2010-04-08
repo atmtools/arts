@@ -1,5 +1,15 @@
 2010-04-08  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-2
+
+	* doc/uguide/CMakelists.txt: Prepare for the documentation split.
+
+	* cmake/modules/ArtsBuildTexDoc.cmake:
+
+	Create macros for building our latex docs.
+
+2010-04-08  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-1
 
 	* Fix ticket #34.
