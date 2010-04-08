@@ -86,6 +86,34 @@
         GIN_DEFAULT( NODEF ),
         GIN_DESC(    "Description for Generic Input Variable 1" )
         ));
+ 
+ For variable descriptions longer than one line, use the following format.
+ Don't forget to remove the space in '/ *' and '* /' if you copy this template.
+ I had to put it in there because C++ doesn't allow nested comments.
+ 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MethodName" ),
+        ...
+        ...
+        ...
+        GIN( gin_var1, gin_var2, gin_var3 )
+        GIN_TYPE( "GInput1Type", "GInput2Type", "GInput3Type" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( / * gin_var1 * /
+                  "Long description for Generic Input Variable 1 "
+                  "which can span multiple lines like for example "
+                  "this one. Don't put any \n in the variable descriptions.",
+                  / * gin_var2 * /
+                  "Long description for Generic Input Variable 2 "
+                  "which can span multiple lines like for example "
+                  "this one. Don't put any \n in the variable descriptions.",
+                  / * gin_var3 * /
+                  "Long description for Generic Input Variable 3 "
+                  "which can span multiple lines like for example "
+                  "this one. Don't put any \n in the variable descriptions."
+                  )
+
 */
 
 
@@ -861,19 +889,6 @@ void define_md_data_raw()
          "are used to make sure that there are enough points in *abs_nls_pert*\n"
          "and *abs_t_pert* for the chosen interpolation order.\n"
          "\n"
-         "Keywords:\n"
-         "   p_step   : Maximum step in log10(p[Pa]) (base 10 logarithm). If\n"
-         "              the pressure grid is coarser than this, additional points\n"
-         "              are added until each log step is smaller than this.\n"
-         "              Has a default value.\n"
-         "   t_step   : The temperature variation grid step in Kelvin, for a 2D\n"
-         "              or 3D atmosphere. For a 1D atmosphere this parameter is\n"
-         "              not used. Has a default value.\n"
-         "   h2o_step : The H2O variation grid step [fractional], if H2O variations are done\n"
-         "              (which is determined automatically, based on abs_species\n"
-         "              and the atmospheric dimension). For a 1D atmosphere this parameter is\n"
-         "              not used. Has a default value.\n"
-         "\n"
          "See also:\n"
          "   *abs_lookupSetupBatch*\n"
          ),
@@ -900,9 +915,20 @@ void define_md_data_raw()
         GIN( "p_step",  "t_step",  "h2o_step" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
         GIN_DEFAULT( "0.05",    "100",     "100" ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( /* p_step */
+                  "Maximum step in log10(p[Pa]) (base 10 logarithm)."
+                  "If the pressure grid is coarser than this, additional "
+                  "points are added until each log step is smaller than this.",
+                  /* t_step */
+                  "The temperature variation grid step in Kelvin, "
+                  "for a 2D or 3D atmosphere. For a 1D atmosphere this "
+                  "parameter is not used.",
+                  /* h2o_step */
+                  "The H2O variation grid step [fractional], if "
+                  "H2O variations are done (which is determined automatically, "
+                  "based on abs_species and the atmospheric dimension). For a "
+                  "1D atmosphere this parameter is not used."
+                  )
         ));
 
   md_data_raw.push_back     
@@ -934,21 +960,6 @@ void define_md_data_raw()
          "are used to make sure that there are enough points in *abs_nls_pert*\n"
          "and *abs_t_pert* for the chosen interpolation order.\n"
          "\n"
-         "Keywords:\n"
-         "   p_step   : Maximum step in log10(p[Pa]) (base 10 logarithm). If\n"
-         "              the pressure grid is coarser than this, additional points\n"
-         "              are added until each log step is smaller than this.\n"
-         "              Has a default value.\n"
-         "   t_step   : The temperature variation grid step in Kelvin, for a 2D\n"
-         "              or 3D atmosphere. For a 1D atmosphere this parameter is\n"
-         "              not used. Has a default value.\n"
-         "   h2o_step : The H2O variation grid step [fractional], if H2O variations are done\n"
-         "              (which is determined automatically, based on abs_species\n"
-         "                and the atmospheric dimension). For a 1D atmosphere this parameter is\n"
-         "              not used. Has a default value.\n"
-         "   extremes : You can give here explicit extreme values to add to\n"
-         "              abs_t_pert and abs_nls_pert. The order is [t_pert_min,\n"
-         "              t_pert_max, nls_pert_min, nls_pert_max]. Has a default value of empty.\n"
          "See also:\n"
          "   *abs_lookupSetup*\n"
          ),
@@ -970,10 +981,24 @@ void define_md_data_raw()
         GIN( "p_step",  "t_step",  "h2o_step", "extremes" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric",  "Vector" ),
         GIN_DEFAULT( "0.05",    "100",       "100",      "[]" ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( /* p_step */ 
+                  "Maximum step in log10(p[Pa]) (base 10 logarithm). If "
+                  "the pressure grid is coarser than this, additional points "
+                  "are added until each log step is smaller than this.",
+                  /* t_step */
+                  "The temperature variation grid step in Kelvin, for a 2D "
+                  "or 3D atmosphere. For a 1D atmosphere this parameter is "
+                  "not used.",
+                  /* h2o_step */
+                  "The H2O variation grid step [fractional], if H2O variations "
+                  "are done (which is determined automatically, based on "
+                  "abs_species and the atmospheric dimension). For a 1D "
+                  "atmosphere this parameter is not used.",
+                  /* extremes */
+                  "You can give here explicit extreme values to add to "
+                  "abs_t_pert and abs_nls_pert. The order is [t_pert_min, "
+                  "t_pert_max, nls_pert_min, nls_pert_max]."
+                  )
         ));
 
   md_data_raw.push_back     
@@ -1829,13 +1854,13 @@ void define_md_data_raw()
         (
          "Creates an empty ArrayOfGField1.\n"
          "\n"
-         "If the variable already exists, it'll be reset.\n"
+         "If the variable already exists, it will be reset.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "agf" ),
         GOUT_TYPE( "ArrayOfGField1" ),
-        GOUT_DESC( "GriddedField to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -1850,13 +1875,13 @@ void define_md_data_raw()
         (
          "Creates an empty ArrayOfIndex.\n"
          "\n"
-         "If the variable already exists, it'll be reset.\n"
+         "If the variable already exists, it will be reset.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "ai" ),
         GOUT_TYPE( "ArrayOfIndex" ),
-        GOUT_DESC( "Index array to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -1875,7 +1900,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "ai"       ),
         GOUT_TYPE( "ArrayOfIndex" ),
-        GOUT_DESC( "Index array to be created and set." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN(),
         GIN(         "values" ),
         GIN_TYPE(    "ArrayOfIndex" ),
@@ -1897,7 +1922,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "alr" ),
         GOUT_TYPE( "ArrayOfLineRecord" ),
-        GOUT_DESC( "LineRecord array to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -1918,7 +1943,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "als" ),
         GOUT_TYPE( "ArrayOfLineshapeSpec" ),
-        GOUT_DESC( "LineshapeSpec array to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -1939,7 +1964,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "am" ),
         GOUT_TYPE( "ArrayOfMatrix" ),
-        GOUT_DESC( "Matrix array to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -1960,7 +1985,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "as" ),
         GOUT_TYPE( "ArrayOfString" ),
-        GOUT_DESC( "String array to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -1980,7 +2005,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "as" ),
         GOUT_TYPE( "ArrayOfString" ),
-        GOUT_DESC( "String array to be created and set." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN(),
         GIN( "text" ),
         GIN_TYPE(    "ArrayOfString" ),
@@ -2002,7 +2027,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "av" ),
         GOUT_TYPE( "ArrayOfVector" ),
-        GOUT_DESC( "Vector array to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -2720,23 +2745,17 @@ void define_md_data_raw()
          "Will copy the content of *p_grid* to *f_grid*. The size of *f_grid*\n"
          "is adjusted automatically (the normal behaviour for workspace\n"
          "methods).\n"
-         "\n"
-         "Supergeneric output:\n"
-         "   Any : The output variable.\n"
-         "\n"
-         "Supergeneric input:\n"
-         "   Any : The input variable.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(      "gout1"    ),
         GOUT_TYPE( "Any" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Destination variable." ),
         IN(),
         GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC( "Source variable." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -3357,21 +3376,19 @@ void define_md_data_raw()
          "To ensure that the variable is already set, the variable must be\n"
          "given is both global input and output. An example:\n"
          "   DoNothing(emission,emission){}\n"
-         "Input and output MUST be identical.\n"
          "\n"
-         "Supergeneric output:\n"
-         "   Any : The input variable.\n"
+         "Input and output MUST be identical.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(      "gout1"    ),
         GOUT_TYPE( "Any" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Variable to do nothing with." ),
         IN(),
         GIN(      "gin1"    ),
         GIN_TYPE(    "Any" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC( "Variable to do nothing with." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -3713,7 +3730,7 @@ void define_md_data_raw()
         OUT(),
         GOUT( "i" ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC( "Index variable to be set to 0." ),
+        GOUT_DESC( "Variable to set to 0." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -3732,7 +3749,7 @@ void define_md_data_raw()
         OUT(),
         GOUT( "i" ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC( "Index variable to be set to 1." ),
+        GOUT_DESC( "Variable to set to 1." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -3797,9 +3814,9 @@ void define_md_data_raw()
         GIN( "start", "stop",  "step" ),
         GIN_TYPE(    "Index", "Index", "Index" ),
         GIN_DEFAULT( NODEF,   NODEF,   NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Start value.",
+                  "End value.",
+                  "Step size." )
         ));
 
   /* De-activated temporarily during cleaning week:
@@ -3843,7 +3860,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "gfield"       ),
         GOUT_TYPE( "GField1" ),
-        GOUT_DESC( "Gridded field to create." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -3864,7 +3881,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "gfield"       ),
         GOUT_TYPE( "GField2" ),
-        GOUT_DESC( "Gridded field to create." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -3885,7 +3902,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "gfield"       ),
         GOUT_TYPE( "GField3" ),
-        GOUT_DESC( "Gridded field to create." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -3906,7 +3923,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "gfield"       ),
         GOUT_TYPE( "GField4" ),
-        GOUT_DESC( "Gridded field to create." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -3951,7 +3968,7 @@ void define_md_data_raw()
         GIN(       "gin1"    ),
         GIN_TYPE(     "Any" ),
         GIN_DEFAULT(  NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC( "Variable to be ignored." ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )
@@ -4010,13 +4027,13 @@ void define_md_data_raw()
         (
          "Creates an Index variable.\n"
          "\n"
-         "If the variable already exists, it'll be reset.\n"
+         "If the variable already exists, it will be reset.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "i" ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC( "Index to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -4035,7 +4052,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "i"     ),
         GOUT_TYPE( "Index" ),
-        GOUT_DESC( "Index variable to be set to *value*." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN(),
         GIN(       "value" ),
         GIN_TYPE(  "Index" ),
@@ -4928,7 +4945,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "m"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "Matrix to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN( "stokes_dim" ),
         GIN(         "f"      ),
         GIN_TYPE(    "Vector" ),
@@ -4943,13 +4960,13 @@ void define_md_data_raw()
         (
          "Creates an empty Matrix.\n"
          "\n"
-         "If the variable already exists, it'll be reset.\n"
+         "If the variable already exists, it will be reset.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "m"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "Matrix to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -5005,7 +5022,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "Matrix to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN( "stokes_dim" ),
         GIN(        "gin1"  , "gin2"    ),
         GIN_TYPE(   "Vector", "Numeric" ),
@@ -5051,7 +5068,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "The matrix to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN( "nrows", "ncols" ),
         GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
@@ -5095,7 +5112,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "m"       ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "The matrix to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN( "stokes_dim" ),
         GIN(         "f"      ),
         GIN_TYPE(    "Vector" ),
@@ -5114,7 +5131,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "The matrix to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN(),
         GIN(         "v"       ),
         GIN_TYPE(    "Vector" ),
@@ -5136,7 +5153,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "The matrix to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN(),
         GIN(         "v1"    , "v2"     ),
         GIN_TYPE(    "Vector", "Vector" ),
@@ -5160,7 +5177,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "The matrix to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN(),
         GIN(         "v1"    , "v2"    , "v3"     ),
         GIN_TYPE(    "Vector", "Vector", "Vector" ),
@@ -5182,7 +5199,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "The matrix to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN(),
         GIN(         "v"       ),
         GIN_TYPE(    "Vector" ),
@@ -5204,7 +5221,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "The matrix to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN(),
         GIN(         "v1"    , "v2"     ),
         GIN_TYPE(    "Vector", "Vector" ),
@@ -5228,7 +5245,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "m"      ),
         GOUT_TYPE( "Matrix" ),
-        GOUT_DESC( "The matrix to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN(),
         GIN(         "v1"    , "v2"    , "v3"     ),
         GIN_TYPE(    "Vector", "Vector", "Vector" ),
@@ -5451,7 +5468,7 @@ void define_md_data_raw()
         (
          "Creates a Numeric variable.\n"
          "\n"
-         "If the variable already exists, it'll be reset.\n"
+         "If the variable already exists, it will be reset.\n"
          "\n"
          "Generic output:\n"
          "   Numeric: New Numeric variable.\n"
@@ -5460,7 +5477,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "n" ),
         GOUT_TYPE( "Numeric" ),
-        GOUT_DESC( "Numeric to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -5505,7 +5522,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "n"        ),
         GOUT_TYPE( "Numeric" ),
-        GOUT_DESC( "Variable to be set." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN(),
         GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
@@ -7268,13 +7285,13 @@ void define_md_data_raw()
         (
          "Creates an empty Sparse matrix.\n"
          "\n"
-         "If the variable already exists, it'll be reset.\n"
+         "If the variable already exists, it will be reset.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "sm" ),
         GOUT_TYPE( "Sparse" ),
-        GOUT_DESC( "Sparse matrix to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7311,13 +7328,13 @@ void define_md_data_raw()
         (
          "Creates an empty String.\n"
          "\n"
-         "If the variable already exists, it'll be reset.\n"
+         "If the variable already exists, it will be reset.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "s" ),
         GOUT_TYPE( "String" ),
-        GOUT_DESC( "String to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7336,7 +7353,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "s"      ),
         GOUT_TYPE( "String" ),
-        GOUT_DESC( "String variable to set." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN(),
         GIN(         "text"   ),
         GIN_TYPE(    "String" ),
@@ -7508,13 +7525,13 @@ void define_md_data_raw()
         (
          "Creates an empty Tensor3.\n"
          "\n"
-         "If the variable already exists, it'll be reset.\n"
+         "If the variable already exists, it will be reset.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "t" ),
         GOUT_TYPE( "Tensor3" ),
-        GOUT_DESC( "Tensor to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7558,7 +7575,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "t"   ),
         GOUT_TYPE( "Tensor3" ),
-        GOUT_DESC( "The tensor to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN( "npages", "nrows", "ncols" ),
         GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
@@ -7573,13 +7590,13 @@ void define_md_data_raw()
         (
          "Creates an empty Tensor4.\n"
          "\n"
-         "If the variable already exists, it'll be reset.\n"
+         "If the variable already exists, it will be reset.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "t" ),
         GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC( "Tensor to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7623,7 +7640,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "t"       ),
         GOUT_TYPE( "Tensor4" ),
-        GOUT_DESC( "The tensor to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN( "nbooks", "npages", "nrows", "ncols" ),
         GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
@@ -7638,13 +7655,13 @@ void define_md_data_raw()
         (
          "Creates an empty Tensor5.\n"
          "\n"
-         "If the variable already exists, it'll be reset.\n"
+         "If the variable already exists, it will be reset.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "t" ),
         GOUT_TYPE( "Tensor5" ),
-        GOUT_DESC( "Tensor to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7688,7 +7705,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "t"       ),
         GOUT_TYPE( "Tensor5" ),
-        GOUT_DESC( "Tensor to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN( "nshelves", "nbooks", "npages", "nrows", "ncols" ),
         GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
@@ -7703,13 +7720,13 @@ void define_md_data_raw()
         (
          "Creates an empty Tensor6.\n"
          "\n"
-         "If the variable already exists, it'll be reset.\n"
+         "If the variable already exists, it will be reset.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "t" ),
         GOUT_TYPE( "Tensor6" ),
-        GOUT_DESC( "Tensor to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7753,7 +7770,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "t"       ),
         GOUT_TYPE( "Tensor6" ),
-        GOUT_DESC( "The tensor to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN( "nvitrines", "nshelves", "nbooks", "npages", "nrows", "ncols" ),
         GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
@@ -7768,13 +7785,13 @@ void define_md_data_raw()
         (
          "Creates an empty Tensor7.\n"
          "\n"
-         "If the variable already exists, it'll be reset.\n"
+         "If the variable already exists, it will be reset.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "t" ),
         GOUT_TYPE( "Tensor7" ),
-        GOUT_DESC( "Tensor to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -7818,7 +7835,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "t"       ),
         GOUT_TYPE( "Tensor7" ),
-        GOUT_DESC( "The tensor to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN( "nlibraries", "nvitrines", "nshelves", "nbooks", "npages", "nrows",
             "ncols" ),
         GIN(         "value"   ),
@@ -7928,13 +7945,13 @@ void define_md_data_raw()
         (
          "Creates an empty Vector.\n"
          "\n"
-         "If the variable already exists, it'll be reset.\n"
+         "If the variable already exists, it will be reset.\n"
          ),
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "v"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "Vector to be created." ),
+        GOUT_DESC( "Variable to create." ),
         IN(),
         GIN(),
         GIN_TYPE(),
@@ -8071,28 +8088,20 @@ void define_md_data_raw()
          "step has to be given in log coordinates.\n"
          "\n"
          "Explicitly, the vector is:\n"
-         " exp([ln(start), ln(start)+step, ln(start)+2*step, ...])\n "
-         "\n"
-         "Generic output:\n"
-         "   Vector : The vector to be created.\n"
-         "\n"
-         "Keywords:\n"
-         "   start : The start value. (Direct coordinates!)\n"
-         "    stop : The maximum value of the end value. (Direct coordinates!)\n"
-         "    step : The spacing of the vector. (Log coordinates!)\n"
+         " exp([ln(start), ln(start)+step, ln(start)+2*step, ...])\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Variable to initialize." ),
         IN(),
         GIN( "start",   "stop",    "step"    ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF,     NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "The start value. (Direct coordinates!)",
+                  "The maximum value of the end value. (Direct coordinates!)",
+                  "The spacing of the vector. (Log coordinates!)" )
         ));
 
   md_data_raw.push_back
@@ -8106,25 +8115,18 @@ void define_md_data_raw()
          "This just computes the normal Matrix-Vector product, y=M*x. It is ok\n"
          "if input and output Vector are the same. This function is handy for\n"
          "multiplying the H Matrix to spectra.\n"
-         "\n"
-         "Generic output:\n"
-         "   Vector : The result of the multiplication (dimension m).\n"
-         "\n"
-         "Generic input:\n"
-         "   Matrix : The Matrix to multiply (dimension mxn).\n"
-         "   Vector : The original Vector (dimension n).\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "The result of the multiplication (dimension m)." ),
         IN(),
         GIN(       "gin1"      , "gin2"       ),
         GIN_TYPE(     "Matrix", "Vector" ),
         GIN_DEFAULT(  NODEF   , NODEF    ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "The Matrix to multiply (dimension mxn).",
+                  "The original Vector (dimension n)." )
         ));
 
   md_data_raw.push_back
@@ -8141,7 +8143,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "v"      ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "The vector to created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN( "nelem" ),
         GIN(         "start",   "stop"    ),
         GIN_TYPE(    "Numeric", "Numeric" ),
@@ -8165,7 +8167,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "v"      ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "The vector to created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN( "nelem" ),
         GIN(         "start",   "stop"    ),
         GIN_TYPE(    "Numeric", "Numeric" ),
@@ -8213,7 +8215,7 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "v"      ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "The vector to be created." ),
+        GOUT_DESC( "Variable to initialize." ),
         IN( "nelem" ),
         GIN(         "value"   ),
         GIN_TYPE(    "Numeric" ),
@@ -8228,13 +8230,6 @@ void define_md_data_raw()
         (
          "Create a vector from the given list of numbers.\n"
          "\n"
-         "Generic output:\n"
-         "   Vector : The vector to be created.\n"
-         "\n"
-         "Keywords:\n"
-         "   values  : The vector elements.\n"
-         "\n"
-         "Usage:\n"
          "   VectorSet(p_grid){[1000, 100, 10]}\n"
          "   Will create a p_grid vector with these three elements.\n"
          ),
@@ -8242,12 +8237,12 @@ void define_md_data_raw()
         OUT(),
         GOUT(      "gout1"       ),
         GOUT_TYPE( "Vector" ),
-        GOUT_DESC( "FIXME DOC" ),
+        GOUT_DESC( "Variable to initialize." ),
         IN(),
         GIN( "values"   ),
         GIN_TYPE(    "Vector" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" ),
+        GIN_DESC( "The vector elements." ),
         SETMETHOD( true )
         ));
 
