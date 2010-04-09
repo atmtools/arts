@@ -1,7 +1,7 @@
 
 \chapter{The workspace}
 %-------------------------------
-\label{sec:workspace}
+\zlabel{sec:workspace}
 
 \starthistory
   020605 & Created by Stefan Buehler.\\
@@ -28,7 +28,7 @@ group of WSVs.
 
 \section{Implementation files}
 %----------------------------
-\label{sec:agendas:files}
+\zlabel{sec:agendas:files}
 
 The two most important files are:
 \begin{itemize}
@@ -107,7 +107,7 @@ Normally, you only have to modify \artsstyle{workspace.cc},
 
 \section{Workspace Variables or WSVs}
 %--------------------------
-\label{sec:agendas:wsvs}
+\zlabel{sec:agendas:wsvs}
 
 All important variables in ARTS are WSVs. This means that they can be
 manipulated by a list of WSMs, which is specified in the ARTS
@@ -156,12 +156,12 @@ All WSV definitions have the same three elements:
 \end{enumerate}
 
 \noindent
-See Section \ref{sec:development:extending} for explicit
+See Section \zref{sec:development:extending} for explicit
 instructions how to add a new WSV to ARTS.
 
 \section{Workspace Methods or WSMs}
 %---------------------------------
-\label{sec:agendas:wsms}
+\zlabel{sec:agendas:wsms}
 
 WSMs manipulate WSVs to produce other WSVs. There are three kinds of
 WSMs:
@@ -296,7 +296,7 @@ VectorSetConstant(myvector, nelem, 0)
 This would create the WSV \artsstyle{myvector} and then fill it with 10
 elements set to 1. Note that output arguments always come first, input
 arguments last. Try \artsstyle{arts -d VectorSetConstant} to
-get more information on this method. (See section \ref{sec:concept:comline}
+get more information on this method. (See section \zref{sec:concept:comline}
 for information on command line switches.)
 
 \noindent
@@ -316,7 +316,7 @@ VectorSetConstant(myvector, 10, 0)
 
 \section{Agendas}
 %--------------------------
-\label{sec:agendas:agendas}
+\zlabel{sec:agendas:agendas}
 
 \subsection{Introduction}
 Agendas are a special incarnation of a WSM. At runtime an arbitrary
@@ -354,7 +354,7 @@ AgendaSet( emission_agenda ){
 
 %\section{ARTS online documentation}
 %%---------------------------------
-%\label{sec:online-docu}
+%\zlabel{sec:online-docu}
 
 
 %%% Local Variables: 

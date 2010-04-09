@@ -8,7 +8,7 @@
 %  \subsection{...}
 %
 \chapter{Reversed Monte Carlo Scattering Module : ARTS-MC}
- \label{sec:montecarlo}
+ \zlabel{sec:montecarlo}
 
 
 %
@@ -42,7 +42,7 @@
 
 
 \section{Introduction}
- \label{sec:montecarlo:intro}
+ \zlabel{sec:montecarlo:intro}
 
 \emph{Much of the following has been taken from an article submitted to IEEE
 TGARS \citep{davisetal:04}, although here there is a more detailed description of how the
@@ -93,14 +93,14 @@ applicable to cases where the extinction matrix is diagonal - that is,
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 \section{Model}
- \label{sec:montecarlo:model}
+ \zlabel{sec:montecarlo:model}
 The radiative transfer model solves the vector
 radiative transfer equation (VRTE):
 \begin{eqnarray}
 \frac{d\mathbf{I(n)}}{ds}=-\mathbf{K(n)I(n)} +
 \mathbf{K_a(n)}I_b(T) +\nonumber\\
 \int_{4\pi}\mathbf{Z(n,n')I(n')}d\mathbf{n'}
-\label{vrte}
+\zlabel{vrte}
 \end{eqnarray}
 where $\mathbf{I}$ is the 4 element column vector of radiances
 $\mathbf{I}=\left[I,Q,U,V\right]^T$ with units
@@ -123,7 +123,7 @@ To apply Monte Carlo integration to the problem, the VRTE needs to be expressed 
 & \int_{u_0}^{s_0}\mathbf{O(s',s_0)}\left(\mathbf{K_a(n)}I_b(T) +\int_{4\pi}\mathbf{Z(n,n')}\mathbf{I(n')}d\mathbf{n'}\right)ds'\nonumber
 \end{eqnarray}
 \begin{equation}
-\label{intVRTE}
+\zlabel{intVRTE}
 \end{equation}
 , where $\mathbf{O(s',s)}$ is the evolution operator defined by
 \cite{landi:85}. $\mathbf{u_0}$ is the point where the line of sight intersects
@@ -134,7 +134,7 @@ However, in cases where the extinction matrix is constant along a
 propagation path
 \begin{equation}
 \mathbf{O(s',s)}=\exp\left(-\mathbf{K}\Delta s\right)
-\label{OconstK}
+\zlabel{OconstK}
 \end{equation}
 In ARTS a propagation path consists of a set of coordinates
 indicating where the path intersects with grid surfaces.  If the
@@ -148,18 +148,18 @@ $\mathbf{s}_N$ is
 \mathbf{O}(\mathbf{s}_{N-2},\mathbf{s}_{N-1}) \dots \nonumber\\
 \mathbf{O}(\mathbf{s}_1,\mathbf{s}_2)\mathbf{O}(\mathbf{s}_0,\mathbf{s}_1),
 \end{eqnarray}
-, where $\mathbf{O(s_i,s_{i+1})}$ is given by Eq. \ref{OconstK}.
+, where $\mathbf{O(s_i,s_{i+1})}$ is given by Eq. \zref{OconstK}.
 
 The numerical task is then to perform Monte Carlo
 integration on the integral on the right hand side of
-Eq. \ref{intVRTE}.
+Eq. \zref{intVRTE}.
 The aim in importance sampling is to choose probability density functions
 (PDFs) for the independent variables that are
 as close as possible to being proportional to the integrand
 \cite{liu:01}. This concentrates computational effort on regions where
 the integrand is most significant and also reduces the variance in the contributions of each photon, thus reducing
 the number of photons and hence CPU time required to give a
-prescribed accuracy.  Eq. \ref{intVRTE} suggests that the PDF for
+prescribed accuracy.  Eq. \zref{intVRTE} suggests that the PDF for
 sampling path length, where path length is the distance traced backwards
 from the sensor, $\Delta s=\left|\mathbf{s}-\mathbf{s'}\right|$, should be proportional in some way to the evolution
 operator $\mathbf{O(s',s)}$. Likewise, new incident directions
@@ -171,7 +171,7 @@ Stokes vector most important, we choose PDFs that are proportional to the
 (1,1) element of $\mathbf{O(s',s)}$ and $\mathbf{Z}(\theta_{scat},\phi_{scat},\theta_{inc},\phi_{inc})$. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Algorithm}
- \label{sec:montecarlo:alg}
+ \zlabel{sec:montecarlo:alg}
 The model algorithm proceeds as follows:
 
 \begin{enumerate}
@@ -181,7 +181,7 @@ Begin at the cloud box exit point with a new photon. Sample a
 \begin{equation}
 g_0(\Delta s)=\frac{\tilde{k}\tilde{O_{11}}(\Delta s)}
 {1-O_{11}(\mathbf{u_0,s_0})}.
-\label{g0Deltas}
+\zlabel{g0Deltas}
 \end{equation}
 , where $\tilde{O_{11}}(\Delta s)$, is the piecewise exponential
 function that includes $O_{11}(\mathbf{s',s})$ values at points
@@ -191,7 +191,7 @@ $\tilde{O_{11}}(\Delta s)$ is given by
 \begin{equation}
 \tilde{O_{11}}(\Delta s)=O_{11}(\Delta s_A)\exp\left(-\tilde{k}\left(\Delta s-\Delta
 s_A\right)\right)
-\label{O11}
+\zlabel{O11}
 \end{equation}
 , and
 \begin{equation}
@@ -199,13 +199,13 @@ s_A\right)\right)
 \ln\left(\frac{O_{11}^A}{O_{11}^B}\right)
 \end{equation}
 , which, for cases where the extinction matrix is diagonal, is equal to $K_{11}=(K_{11}^A+K_{11}^B)/2$.
-The denominator in Eq. \ref{g0Deltas} ensures an emission or scattering
+The denominator in Eq. \zref{g0Deltas} ensures an emission or scattering
 event for each photon in the initial line of sight.
-Eq. \ref{g0Deltas} is sampled by taking a random number (from the
+Eq. \zref{g0Deltas} is sampled by taking a random number (from the
 uniform distribution [0,1]), $r$, and solving 
 \begin{equation}
 \frac{1-\tilde{O_{11}}(\Delta s)}{1-O_{11}(\mathbf{u_0,s_0})}=r.
-%\label{solvefor0}
+%\zlabel{solvefor0}
 \end{equation}
 for $\Delta s$.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -221,7 +221,7 @@ contribution of the $i$th photon is
 \begin{equation}
 \mathbf{I^i(n,s_0)}=\frac{\mathbf{O(s_1,s_0)}\mathbf{K_a(n_0,s_1)}
   I_b(T,\mathbf{s_i})}{g_0(\Delta s) \left(1-\tilde{\omega}\right)}
-\label{Iemission2}
+\zlabel{Iemission2}
 \end{equation}
 , where the index $i$ signifies photon number. Return to step 1.
 
@@ -235,7 +235,7 @@ At the scattering point sample a new incident direction
 g(\theta_{inc},\phi_{inc})=\frac{Z_{11}(\theta_{scat},\phi_{scat},
 \theta_{inc},\phi_{inc})\sin(\theta_{inc})}{K_{11}(\theta_{scat},\phi_{scat})
   - K_{a1}(\theta_{scat},\phi_{scat})}
-\label{gdir}
+\zlabel{gdir}
 \end{equation}
 , which is
 sampled by the rejection method as described in \cite{liu:01}.
@@ -243,14 +243,14 @@ sampled by the rejection method as described in \cite{liu:01}.
 Calculate the matrix
 \begin{equation}
 \mathbf{Q_k}=\mathbf{Q_{k-1}q_k}
-\label{Q}
+\zlabel{Q}
 \end{equation}
 , where
 \begin{equation}
 \mathbf{q_k}=\frac{\sin(\theta_{inc})_k
   \mathbf{O(s_k,s_{k-1})}\mathbf{Z(n_{k-1},n_k)}}
   {g\left(\Delta s\right)g(\theta_{inc},\phi_{inc}) \tilde{\omega}} ,
-\label{q}
+\zlabel{q}
 \end{equation}
 and $\mathbf{Q_0}={1}$. The index $k$ represents the
 scattering order.
@@ -259,12 +259,12 @@ scattering order.
 Choose a path length along the new direction according to
 \begin{equation}
 g(\Delta s)=\tilde{k}\tilde{O_{11}}(\Delta s)
-\label{gDeltas}
+\zlabel{gDeltas}
 \end{equation}
 This is sampled by taking a random number and solving 
 \begin{equation}
 \tilde{O_{11}}(\Delta s)=r.
-%\label{solvefor0}
+%\zlabel{solvefor0}
 \end{equation}
 for $\Delta s$.
 If $r<O_{11}(\mathbf{u_{k},s_k})$, where $\mathbf{u}_{k}$ is the
@@ -272,7 +272,7 @@ If $r<O_{11}(\mathbf{u_{k},s_k})$, where $\mathbf{u}_{k}$ is the
   photon leaves the scattering domain, and the contribution for photon $i$ is
 \begin{equation}
 \mathbf{I^i(n,s_0)}=\frac{\mathbf{Q_k}\mathbf{O(u_k,s_k)I(n_k,u_k)}}{O_{11}(\mathbf{u_{k},s_k})}
-\label{Ikmax2_1}
+\zlabel{Ikmax2_1}
 \end{equation}
 , where 
 $\mathbf{I(n_k,u_k)}$ is the incoming radiance at $\mathbf{u}_{k}$.  This is calculated with the standard ARTS clear-sky
@@ -292,7 +292,7 @@ the reversed ray tracing is terminated, the Stokes vector contribution is
 \mathbf{I^i(n,s_0)}=\frac{\mathbf{Q_k O(s_{k+1},s_k)}
   \mathbf{K_a(n_k,s_{k+1})} I_b(T,\mathbf{s_{k+1}})}
   {g\left(\Delta s\right)\left(1-\tilde{\omega}\right)}
-\label{Iemission3}
+\zlabel{Iemission3}
 \end{equation}
 , and we return to step 1.
 
@@ -304,30 +304,30 @@ $\mathbf{I^i(n,s_0)}$, have been calculated, the cloud box exit Stokes
 vector is given by
 \begin{equation}
 \mathbf{I(n,s_0)}=\mathbf{O(u_0,s_0)I(n,u_0)}+\langle\mathbf{I^i(n,s_0)}\rangle.
-\label{cbexit}
+\zlabel{cbexit}
 \end{equation}
 , with an estimated error for each Stokes index, $j$,  of
 \begin{equation}
 \delta I_j=\sqrt{\frac{\langle I_j^2\rangle-\langle I_j\rangle^2}{N}}.
-\label{error}
+\zlabel{error}
 \end{equation}
 \end{enumerate}
 When simulating an MLS measurement, an extra clear sky RT calculation
 is performed from the cloud box exit to the sensor, with the Monte
-Carlo result from Eq. \ref{cbexit} taken as the radiative background.
+Carlo result from Eq. \zref{cbexit} taken as the radiative background.
 
 \begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=\vsize,angle=90]{flowchart}
 \caption{Flowchart illustrating ScatteringMonteCarlo algorithm}
 \end{center}
-\label{fig:montecarlo:flowchart}
+\zlabel{fig:montecarlo:flowchart}
 \end{figure}
 \section{Implementation in ARTS: ScatteringMonteCarlo}
- \label{sec:montecarlo:implementation}
+ \zlabel{sec:montecarlo:implementation}
 
 \section{Future Plans}
- \label{sec:montecarlo:plans}
+ \zlabel{sec:montecarlo:plans}
  
 %%% Local Variables: 
 %%% mode: latex 

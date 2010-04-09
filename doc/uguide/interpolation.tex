@@ -8,7 +8,7 @@
 %
 \chapter{\textindex{Interpolation}}
 %-------------------------------------------------------------------------
-\label{sec:interpolation}
+\zlabel{sec:interpolation}
 
 
 %
@@ -70,7 +70,7 @@ last file some usage examples.
     Interpolation to a new grid, output has same dimension as input,
     in this case 2D. Blue (dashed): Interpolation to a sequence of
     points, output is always 1D.}
-  \label{fig:interpolation:types}
+  \zlabel{fig:interpolation:types}
 \end{figure}
 
 There are two different types of interpolation in ARTS:
@@ -80,7 +80,7 @@ There are two different types of interpolation in ARTS:
 \item[\textindex{Blue Interpolation}:] Interpolation of a gridded field to a
   sequence of positions.
 \end{description}
-Figure \ref{fig:interpolation:types} illustrates the different types
+Figure \zref{fig:interpolation:types} illustrates the different types
 for a 2D example. 
 
 The first step of an interpolation always consists in determining
@@ -90,7 +90,7 @@ somehow, which is described in the next section.
 
 \section{Grid checking functions}
 %-------------------------------------------------------------------------
-\label{sec:interpolation:gridchecking}
+\zlabel{sec:interpolation:gridchecking}
 
 Before you do an interpolation, you should check that the new grid is
 inside the old grid. (Or only slightly outside.) You can use the
@@ -134,7 +134,7 @@ quite a lot of detail what is actually wrong with the grids.
 
 \section{Grid positions}
 %-------------------------------------------------------------------------
-\label{sec:interpolation:gridpos}
+\zlabel{sec:interpolation:gridpos}
 
 A grid position specifies where an interpolation point is, relative
 to the original grid. It consists of three parts, an \artsstyle{Index} giving the
@@ -221,7 +221,7 @@ void gridpos( ArrayOfGridPos& gp,
 
 \item   Finally, note that parameter \artsstyle{extpolfac} plays the
   same role as explained above in Section
-  \ref{sec:interpolation:gridchecking}. 
+  \zref{sec:interpolation:gridchecking}. 
 \end{itemize}
 
 \section{\textindex{Interpolation weights}}
@@ -233,7 +233,7 @@ the interpolated value is a weighted average of the original field at
 the four corner points of the grid square in which the interpolation
 point is located. For simplicity, we label the four corner points
 counterclockwise, starting from the lower left point (Figure
-\ref{fig:interpolation:square}).  Then the interpolated value is given
+\zref{fig:interpolation:square}).  Then the interpolated value is given
 by:
 \begin{eqnarray}
   y(t,u)
@@ -242,7 +242,7 @@ by:
   & & \mbox{} + t*u*y_3 \nonumber \\
   & & \mbox{} + (1-t)*u*y_4 \nonumber \\
   &=& w_1*y_1 + w_2*y_2 + w_3*y_3 + w_4*y_4
-\label{eq:interpolation:weights}
+\zlabel{eq:interpolation:weights}
 \end{eqnarray}
 where $t$ and $u$ are the fractional distances between the
 corner points in the two dimensions, $y_i$ are the field values
@@ -254,7 +254,7 @@ at the corner points, and $w_i$ are the interpolation weights.
   \caption{The grid square for 2D interpolation. The numbers 1\ldots 4
     mark the corner points, IP is the interpolation point, $t$ and $u$
     are the fractional distances in the two dimensions.}
-  \label{fig:interpolation:square}
+  \zlabel{fig:interpolation:square}
 \end{figure}
 
 (By the way, I have discovered that this is exactly the result that
@@ -369,7 +369,7 @@ For this final step we need the grid positions, the
 interpolation weights, and the actual fields. For each interpolated
 value, the weights are applied to the appropriate original field values
 and the sum is taken (see Equation
-\ref{eq:interpolation:weights}). The \funcindex{interp} family of functions
+\zref{eq:interpolation:weights}). The \funcindex{interp} family of functions
 performs this step.
 
 \subsection{Blue interpolation}

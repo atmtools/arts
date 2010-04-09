@@ -1,7 +1,7 @@
 \graphicspath{{Figs/clouds/}}
 
 \chapter{Description of clouds}
- \label{sec:clouds}
+ \zlabel{sec:clouds}
 
 \starthistory
  050913 & Created and written by Claudia Emde\\ 
@@ -38,11 +38,11 @@ particle number density fields.
 
 
 \section{\textindex{Single scattering properties}}
-\label{sec:clouds:ssp}
+\zlabel{sec:clouds:ssp}
 
 \subsection[Coordinate systems]{\textindex{Coordinate systems}: The
   \textindex{laboratory frame} and the \textindex{scattering frame} }
-\label{sec:clouds:coordinate_sytems}
+\zlabel{sec:clouds:coordinate_sytems}
 
 For radiative transfer calculations we need a coordinate system to
 describe the direction of propagation. For this purpose we use the
@@ -67,7 +67,7 @@ scattering frame is illustrated in
 scattering properties defined with respect to the scattering frame can
 only depend on the scattering angle $\Theta$,
 \begin{equation}
-  \label{eq:scat_angle}
+  \zlabel{eq:scat_angle}
   \Theta=\arccos(\hat{\PDir}^{\inc} \cdot {\hat{\PDir}^{\sca}}),
 \end{equation}
 between the incident and the scattering direction.
@@ -76,12 +76,12 @@ between the incident and the scattering direction.
  \begin{center}
    \includegraphics*[width=0.4\hsize]{part_frame}
    \caption{Illustration of the scattering frame. The z-axis coincides with the incident direction $\hat{\PDir}^{\inc}$. The scattering angle $\Theta$ is the angle between  $\hat{\PDir}^{\inc}$ and $\hat{\PDir}^{\sca}$.}
-   \label{fig:scattering:part_frame}  
+   \zlabel{fig:scattering:part_frame}  
  \end{center}
 \end{figure}
 
 \subsection{Scattering datafile structure}
-\label{sec:clouds:ARTS_SSP_structure}
+\zlabel{sec:clouds:ARTS_SSP_structure}
  
 The single scattering properties are pre-calculated, for example by
 using the T-matrix 
@@ -181,7 +181,7 @@ fields (compare also \tabref{tab:scattering:datastructure}):
 \end{itemize}
 
 \begin{table}
-\label{tab:scattering:datastructure}
+\zlabel{tab:scattering:datastructure}
 \caption{Structure of single scattering data files}
 \begin{flushleft}
 \begin{tabular}{llll}
@@ -204,7 +204,7 @@ $\ZntAng'$, $\AzmAng'$, $i$ )  & phase matrix \\
 \end{table}
 
 \subsection{Definition of \textindex{particle types}}
-\label{sec:clouds:particle_types}
+\zlabel{sec:clouds:particle_types}
 
 \subsubsection{Macroscopically isotropic and mirror-symmetric scattering
   media (p20)}
@@ -319,7 +319,7 @@ properties for spherical particles (Mie-Theory).
 
 
 \section[Particle size distributions]{Representation of the \textindex{particle size distribution}}
-\label{sec:clouds:size_distr}
+\zlabel{sec:clouds:size_distr}
 
 The particle size has an important impact on the scattering and
 absorption properties of cloud particles as shown for instance in 
@@ -349,7 +349,7 @@ cubic meter at each grid point, for ARTS scattering simulations.  For
 a given \imc\ and mono-disperse particles the particle number density
 $n^p$ is simply
 \begin{equation}
-\label{eq:pnd_mono}
+\zlabel{eq:pnd_mono}
   n^p (\imc, r) =\frac{\imc}{m} = \frac{\imc}{V\rho}
     =\frac{3}{4\pi}\frac{\imc}{\rho r^3},  
 \end{equation}
@@ -357,13 +357,13 @@ where $m$ is the mass of a particle, $r$ is its equal volume sphere
 radius, $\rho$ is its density, and $V$ is its volume.
      
 \subsection{Gamma size distribution}
-\label{sec:clouds:gamma_distr}
+\zlabel{sec:clouds:gamma_distr}
 
 A commonly used distribution for radiative transfer modeling in cirrus
 clouds is the \emph{gamma distribution}
 \begin{equation}
   n(r) = a  r^\alpha \exp(-br).
-\label{eq:gamma_distr}
+\zlabel{eq:gamma_distr}
 \end{equation}
 The dimensionless parameter $\alpha$ describes the width of the
 distribution. The other two parameters can be linked to the effective
@@ -371,7 +371,7 @@ radius \Reff\ and the ice mass content \imc\ as follows:
 \begin{eqnarray}
   b &= \frac{\alpha+3}{\Reff},\\
   a &= \frac{\imc}{4/3\pi\rho b^{-(\alpha+4)}\Gamma[\alpha+4]},
-\label{eq:gamma_coeff}
+\zlabel{eq:gamma_coeff}
 \end{eqnarray}
 where $\rho$ is the density of the scattering medium and $\Gamma$ is
 the gamma function. For cirrus clouds $\rho$ corresponds to the bulk
@@ -380,7 +380,7 @@ density of ice, which is approximately 917 kg/m$^3$.
 Generally, the effective radius \Reff\ is defined as the average
 radius weighted by the particle cross-section
 \begin{equation}
-  \label{eq:Reff}
+  \zlabel{eq:Reff}
   \Reff= \frac{1}{\EnsAvr{A}} \int_{r_{min}}^{r_{max}} {A(r) r n(r) \DiffD r},
 \end{equation}
 where $A$ is the area of the geometric projection of a particle. The
@@ -414,7 +414,7 @@ integration of the distribution function over all sizes:
 After setting $\alpha$ = 1, inserting \eqnref{eq:gamma_coeff} and
 some simple algebra we obtain
 \begin{equation}
-  \label{eq:pnd_gamma}
+  \zlabel{eq:pnd_gamma}
   n^p(\imc, \Reff) = \frac{2}{\pi} \frac{\imc}{\rho \Reff^3}.
 \end{equation}
 Comparing \eqnref{eq:pnd_mono} and \eqref{eq:pnd_gamma}, we see
@@ -424,7 +424,7 @@ gamma distributed particles with $\Reff=R$. The reason is that in the
 gamma distribution most particles are smaller than~\Reff.
 
 \subsection[McFarquhar and Heymsfield parametrization]{Ice particle size parameterization by McFarquhar and Heymsfield}
-\label{sec:McFHey_distr}
+\zlabel{sec:McFHey_distr}
 
 A more realistic parameterization of tropical cirrus ice crystal size
 distributions was derived by
@@ -435,7 +435,7 @@ Equatorial Pacific Experiment (CEPEX). Smaller ice crystals with an
 equal volume sphere radius of less than 50\,\mum\ are parametrized
 as a sum of first-order gamma functions:
 \begin{equation}
-  \label{eq:MH_gamma}
+  \zlabel{eq:MH_gamma}
   n(r) = \frac{12\cdot \imc_{<50}\alpha^5_{<50} r}{\pi \rho
     \Gamma(5)} \exp(-2 \alpha_{<50} r), 
 \end{equation}
@@ -444,7 +444,7 @@ $\imc_{<50}$ is the mass of all crystals smaller than 50\,\mum\ in
 the observed size distribution.  Large ice crystals are represented
 better by a log-normal function
 \begin{eqnarray}
-  \label{eq:MH_lognorm}
+  \zlabel{eq:MH_lognorm}
   n(r) = \frac{3\cdot\imc_{>50}}{\pi^{3/2}\rho \sqrt{2}
     \exp(3\mu_{>50}+(9/2)\sigma^2_{>50}) r \sigma_{>50} r_0^3}
   \nonumber \\

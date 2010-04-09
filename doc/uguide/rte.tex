@@ -1,5 +1,5 @@
 \chapter{General radiative transfer parts}
- \label{sec:rte}
+ \zlabel{sec:rte}
 
 
  \starthistory
@@ -28,13 +28,13 @@ the work has not yet been finished.
 
 \section{Stokes dimensionality}
 %==============================================================================
-\label{sec:fm_defs:polarisation}
+\zlabel{sec:fm_defs:polarisation}
 
 To full polarisation state of radiation can be described by the Stokes
 vector. The vector can be defined in different ways, but it has always
 four elements. The Stokes vector, \StoVec, is here written as
 \begin{equation}
-  \label{eq:fm_defs:stokevec}
+  \zlabel{eq:fm_defs:stokevec}
   \StoVec = \left[
   \begin{array}{c}
    I\\Q\\U\\V
@@ -47,7 +47,7 @@ vertical and horizontal polarisation, the third component ($U$) is the
 difference for $\pm$45$^\circ$ polarisation and the last component
 ($Q$) is the difference between left and right circular polarisation.
 Further details on polarisation and definition of the Stokes vector
-are found in Section~\ref{sec:polarization}.
+are found in Section~\zref{sec:polarization}.
 
 ARTS is a fully polarised forward model, but can be run with a smaller
 number of Stokes components. The selection is made with the workspace
@@ -64,13 +64,13 @@ only the first Stokes component is considered.
 
 \section{The vector radiative transfer equation}
 %---
-\label{sec:rte:vrte}
+\zlabel{sec:rte:vrte}
 
 The complete vector radiative transfer, including scattering, is given
-by Equation~\ref{eq:rtetheory:VRTE}. If scattering can be neglected,
+by Equation~\zref{eq:rtetheory:VRTE}. If scattering can be neglected,
 the equation can be written as
 \begin{equation}
-  \label{eq:rte:vrte}
+  \zlabel{eq:rte:vrte}
   \frac {\DiffD\StoVec}{\DiffD s} = -\ExtMat\StoVec + \AbsVec B,
 \end{equation}
 where \StoVec\ is the intensity vector (the Stokes vector), $s$ is the
@@ -78,7 +78,7 @@ distance along the propagation path, \ExtMat\ is the extinction
 matrix, \AbsVec\ is the absorption vector and $B$ is the source
 function (a scalar). If local thermodynamic equilibrium applies, $B$
 equals the Planck function describing blackbody radiation. See further
-Chapter~\ref{sec:rte_theory}.
+Chapter~\zref{sec:rte_theory}.
 
 % As scattering here is neglected, the elements of \ExtMat\ and \AbsVec\ 
 % are linked to each other, and we have that\footnote{This equation is
@@ -94,7 +94,7 @@ Chapter~\ref{sec:rte_theory}.
 
 \section{Compulsory sensor and data reduction variables}
 %==============================================================================
-\label{sec:fm_defs:sensor1}
+\zlabel{sec:fm_defs:sensor1}
 
 The instrument that detects the simulated radiation is denoted as the
 sensor\index{sensor, the}. The forward model is constructed in such
@@ -107,13 +107,13 @@ variables for the sensor that always must be specified are
 \artsstyle{sensor\_los}, \artsstyle{antenna\_dim},
 \artsstyle{mblock\_za\_grid} and \artsstyle{mblock\_aa\_grid}. These
 variables are presented separately
-below. Section~\ref{sec:fm_defs:rte} gives further insights in how the
+below. Section~\zref{sec:fm_defs:rte} gives further insights in how the
 sensor is treated in ARTS.
 
 
 \subsection{Sensor position\index{sensor position}}
 %===================
-\label{sec:fm_defs:sensorpos}
+\zlabel{sec:fm_defs:sensorpos}
 
 The observation positions of the sensor are stored in
 \wsvindex{sensor\_pos}. This is a matrix where each row corresponds to
@@ -124,7 +124,7 @@ Accordingly, row $i$ of \artsstyle{sensor\_pos} for a 3D case is
 $(\aRds{i},\aLat{i},\aLon{i})$. The sensor position can be set to any
 value, but the resulting propagation paths (also dependent on
 \artsstyle{sensor\_los}) must be valid with respect to the model
-atmosphere (see Section~\ref{sec:fm_defs:ppaths}). An obviously
+atmosphere (see Section~\zref{sec:fm_defs:ppaths}). An obviously
 incorrect choice is to place the senor below the surface altitude. If
 the sensor is placed inside the model atmosphere, any sensor
 line-of-sight is allowed, this including the cases that the sensor is
@@ -142,12 +142,12 @@ undefined.
 The sensor is treated to be motionless when calculating the spectrum,
 or spectra, for each given observation position. One or several
 spectra can be calculated for each position as described in
-Section~\ref{sec:fm_defs:seqsandblocks}.
+Section~\zref{sec:fm_defs:seqsandblocks}.
 
 
 \subsection{Line-of-sight\index{line-of-sight}}
 %===================
-\label{sec:fm_defs:los}
+\zlabel{sec:fm_defs:los}
 
 The viewing direction of the sensor, the line-of-sight, is described
 by two angles, the zenith angle (\ZntAng) and the azimuth angle
@@ -156,7 +156,7 @@ dimensionalities, while the azimuth angle is defined only for 3D.
 The term line-of-sight is not only used in connection with the sensor,
 it is also used to describe the local propagation direction along the
 path taken by the observed radiation
-(Section~\ref{sec:fm_defs:ppaths}).  The zenith and azimuthal angles
+(Section~\zref{sec:fm_defs:ppaths}).  The zenith and azimuthal angles
 are defined in an identical way in both of these contexts (sensor
 pointing direction; local propagation direction). This is expected as
 the position of the sensor is the end point of the propagation path.
@@ -182,13 +182,13 @@ the centre of the antenna pattern is directed.
    \caption{Definition of zenith angle, \ZntAng, and azimuth angle, 
        \AzmAng, for a line-of-sight. The figure shows a line-of-sight
        with a negative azimuth angle.}
-   \label{fig:fm_defs:los}
+   \zlabel{fig:fm_defs:los}
   \end{minipage}
  \end{center}
 \end{figure}           
  
 The \textindex{zenith angle}, \ZntAng, is simply the angle between the
-line-of-sight and the zenith direction (Figure~\ref{fig:fm_defs:los}).
+line-of-sight and the zenith direction (Figure~\zref{fig:fm_defs:los}).
 The valid range for 1D and 3D cases is $[0,180\degree]$. In the case
 of 2D, zenith angles down to -180\degree\ are also allowed, where the
 distinction is that positive angles mean a viewing direction towards
@@ -196,7 +196,7 @@ higher latitudes, and negative angles mean a viewing direction towards
 lower latitudes. It should be mentioned that the zenith and nadir
 directions are here defined to be along the line passing the centre of
 the coordinate system and the point of concern
-(Section~\ref{sec:ppath:geoid}). A nadir observation,
+(Section~\zref{sec:ppath:geoid}). A nadir observation,
 $\ZntAng=180\degree$, is thus a measurement towards the centre of the
 coordinate system.
 
@@ -224,7 +224,7 @@ $(\aZntAng{i},\aAzmAng{i})$. The number of rows for
 
 \subsection{Sensor characteristics and data reduction}
 %===================
-\label{sec:fm_defs:sensorchar}
+\zlabel{sec:fm_defs:sensorchar}
 
 The term ``sensor characteristics''\index{sensor characteristics} is
 used here as a comprehensive term for the response of all sensor parts
@@ -272,7 +272,7 @@ angles (\artsstyle{sensor\_los}) for the position and the values of
 example, pencil beam zenith angle $i$ is calculated as
 \begin{equation}
   \aZntAng{i} = \aZntAng{0} + \Delta\aZntAng{i}
-  \label{eq:fm_defs:psi_grid}
+  \zlabel{eq:fm_defs:psi_grid}
 \end{equation}
 where \aZntAng{0} is the sensor line-of-sight for the position of
 concern and $\Delta\aZntAng{i}$ is value $i$ of
@@ -284,7 +284,7 @@ the intensity field that will be weighted with the antenna response.
 
 \subsection{Measurement sequences and blocks}
 %===================
-\label{sec:fm_defs:seqsandblocks}
+\zlabel{sec:fm_defs:seqsandblocks}
 
 The series of observations modelled by the simulations is denoted as
 the \textindex{measurement sequence}. That is, a measurement sequence
@@ -329,13 +329,13 @@ hoped to be achieved. If this intermediate solution shall be an
 option, the difference in zenith and azimuth angles between the
 spectra must be the same for all blocks, otherwise
 \artsstyle{sensor\_response} cannot be applied for all blocks as done
-below in Equation~\ref{eq:fm_defs:measseq}.
+below in Equation~\zref{eq:fm_defs:measseq}.
 
 For each block, pencil beam spectra are calculated for the
 line-of-sights obtained when summing \wsvindex{sensor\_los} and
 \wsvindex{mblock\_za\_grid} (and possibly
 \wsvindex{mblock\_aa\_grid}), as described in
-Section~\ref{sec:fm_defs:sensorchar}. The pencil beam spectra for each
+Section~\zref{sec:fm_defs:sensorchar}. The pencil beam spectra for each
 line-of-sight are appended vertically to form a common vector,
 \aMpiVct{b}. Values are put in following the order in
 \artsstyle{f\_grid}. Hence, the frequencies for this vector are
@@ -350,7 +350,7 @@ line-of-sight are appended vertically to form a common vector,
           \begin{array}{c} \aFrq{1}\\\vdots\\\aFrq{n} \end{array} 
      \right]
      \end{array} \right]
-  \label{eq:fm_defs:freqs_of_ib}
+  \zlabel{eq:fm_defs:freqs_of_ib}
 \end{equation}
 where \aFrq{i} is element $i$ of \artsstyle{f\_grid} and $n$ the length of
 the same vector. The order of the angles inside \artsstyle{mblock\_za\_grid}
@@ -369,7 +369,7 @@ appended vertically, following the order of the positions in
                                     \vdots                     \\
                                     \aSnsMtr{b}\aMpiVct{{b,n}} 
             \end{array} \right]
-  \label{eq:fm_defs:measseq}
+  \zlabel{eq:fm_defs:measseq}
 \end{equation}
 where $1$ indicates the first sensor position etc. This equation shows
 that \wsvindex{sensor\_response} shall contain at least a description
@@ -402,10 +402,10 @@ physical meaning.
 
 \section{Clear sky radiative transfer}
 %==============================================================================
-\label{sec:fm_defs:rte}
+\zlabel{sec:fm_defs:rte}
 
 An introduction to radiative transfer theory is given in
-Section~\ref{sec:rte_theory}. This section describes how the radiative
+Section~\zref{sec:rte_theory}. This section describes how the radiative
 transfer equations are solved practically in ARTS. The general
 presentation assumes that the simulations deal with an emission
 measurement. Focus is put on emission measurements as ARTS is intended
@@ -415,33 +415,33 @@ measurements are also possible.
 
 \subsection{Calculation procedure}
 %===================
-\label{sec:fm_defs:calcproc}
+\zlabel{sec:fm_defs:calcproc}
 
 The overall structure of the part solving the radiative transfer
 equation is fixed. The corresponding workspace method is
 \wsmindex{RteCalc}. The calculation procedure of \artsstyle{RteCalc} is
-outlined in Algorithm~\ref{alg:fm_defs:RteCalc}. For further details
+outlined in Algorithm~\zref{alg:fm_defs:RteCalc}. For further details
 of each calculation step, see the indicated equation or section.
 
 The primary unit for emission spectra, the unit of \aMpiVct{b} in
-Equation~\ref{eq:fm_defs:measseq}, is [W/(Hz$\cdot$m$^2\cdot$sr)].
+Equation~\zref{eq:fm_defs:measseq}, is [W/(Hz$\cdot$m$^2\cdot$sr)].
 The emission intensity corresponds directly with the definition of the
-Planck function in Equation~\ref{eq:rtetheory:planck}, no scaling
+Planck function in Equation~\zref{eq:rtetheory:planck}, no scaling
 terms are applied.  
 
 \begin{algorithm}[!t]
  \begin{algorithmic}
   \STATE{allocate memory for the matrix $\MsrVct$}
-  \COMMENT{Equation \ref{eq:fm_defs:measseq}}
+  \COMMENT{Equation \zref{eq:fm_defs:measseq}}
   \STATE{allocate memory for the matrix \aMpiVct{b}}
-  \COMMENT{Equation \ref{eq:fm_defs:freqs_of_ib}}
+  \COMMENT{Equation \zref{eq:fm_defs:freqs_of_ib}}
   \FORALL{sensor positions}
-   \FORALL[Section \ref{sec:fm_defs:seqsandblocks}]
+   \FORALL[Section \zref{sec:fm_defs:seqsandblocks}]
                                     {pencil beam directions of the block}
     \STATE{determine the propagation path by \artsstyle{ppathCalc}}
-    \COMMENT{Section \ref{sec:fm_defs:ppaths}}
+    \COMMENT{Section \zref{sec:fm_defs:ppaths}}
     \STATE{determine the radiation at the start of the propagation path}
-    \COMMENT{Section \ref{sec:fm_defs:rad_bkgr}}
+    \COMMENT{Section \zref{sec:fm_defs:rad_bkgr}}
     \STATE{call \artsstyle{rte\_agenda}}
     \STATE{copy \artsstyle{iy} to correct part of \aMpiVct{b}}
    \ENDFOR
@@ -451,20 +451,20 @@ terms are applied.
  \end{algorithmic}
  \caption{Outline of the overall clear sky radiative transfer calculations
    (\artsstyle{RteCalc}).}
- \label{alg:fm_defs:RteCalc}
+ \zlabel{alg:fm_defs:RteCalc}
 \end{algorithm}
 
 
 \subsection{Propagation paths}
 %===================
-\label{sec:fm_defs:ppaths}
+\zlabel{sec:fm_defs:ppaths}
 
 A pencil beam path through the atmosphere to reach a position along a
 specific line-of-sight is denoted as the \textindex{propagation path}.
 Propagation paths are described by a set of points on the path, and
 the distance along the path between the points. These quantities, and
 a number of auxiliary variables, are stored together in a structure
-described in Section~\ref{sec:ppath:Ppath}. The path points are
+described in Section~\zref{sec:ppath:Ppath}. The path points are
 primarily placed at the crossings of the path with the atmospheric
 grids (\artsstyle{p\_grid}, \artsstyle{lat\_grid} and
 \artsstyle{lon\_grid}). A path point is also placed at the sensor if
@@ -477,7 +477,7 @@ limit for the distance along the path between the points.
  \begin{center}
   \includegraphics*[width=0.95\hsize]{ppath_cases2}
   \caption{Examples on allowed propagation paths for a 2D atmosphere. 
-    The atmosphere is plotted as in Figure~\ref{fig:fm_defs:2d} beside
+    The atmosphere is plotted as in Figure~\zref{fig:fm_defs:2d} beside
     that the points for the atmospheric fields are not emphasised.
     The position of the sensor is indicated by an asterix $(\ast)$,
     the points defining the paths are plotted as circles $(\circ)$,
@@ -489,7 +489,7 @@ limit for the distance along the path between the points.
     possibility to add points inside the grid cells, for example, to
     ensure that the distance between the path points does not exceed
     a specified limit.}
-  \label{fig:fm_defs:ppath_cases2}
+  \zlabel{fig:fm_defs:ppath_cases2}
  \end{center}
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_ppath_cases.
@@ -499,11 +499,11 @@ limit for the distance along the path between the points.
   \includegraphics*[width=0.95\hsize]{ppath_cases1}
   \caption{Examples on allowed propagation paths for a 1D atmosphere
     with an activated cloud box. Plotting symbols as in
-    Figure~\ref{fig:fm_defs:ppath_cases2}. When the sensor is placed 
+    Figure~\zref{fig:fm_defs:ppath_cases2}. When the sensor is placed 
     inside the cloud box, the path is defined with a single point, 
     to know for which position and line-of-sight the intensity field of
     the cloud box shall be interpolated. }
-  \label{fig:fm_defs:ppath_cases1}
+  \zlabel{fig:fm_defs:ppath_cases1}
  \end{center}
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_ppath_cases.
@@ -514,7 +514,7 @@ limit for the distance along the path between the points.
   \caption{Examples on \emph{not} allowed propagation paths for a 2D 
     atmosphere. The constraints for allowed paths are discussed in the
     text.}
-  \label{fig:fm_defs:ppath_badcases}
+  \zlabel{fig:fm_defs:ppath_badcases}
  \end{center}
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_ppath_cases.
@@ -530,15 +530,15 @@ backwards until the top of the atmosphere is reached, or there is an
 intersection with the cloud box or the surface. The propagation path
 (or paths) before a surface reflection is calculated when determining
 the up-welling radiation from the surface
-(Section~\ref{sec:fm_defs:surface}). Example on propagation
-paths are shown in Figures~\ref{fig:fm_defs:ppath_cases2} and 
-\ref{fig:fm_defs:ppath_cases1}.
+(Section~\zref{sec:fm_defs:surface}). Example on propagation
+paths are shown in Figures~\zref{fig:fm_defs:ppath_cases2} and 
+\zref{fig:fm_defs:ppath_cases1}.
  
 Not all propagation paths are allowed for 2D and 3D. The paths can
 only enter and leave the model atmosphere at the top of the
 atmosphere, as the atmospheric fields are treated to be undefined
 outside the covered latitude and longitude ranges
-(Figure~\ref{fig:fm_defs:ppath_badcases}). In addition, if the sensor
+(Figure~\zref{fig:fm_defs:ppath_badcases}). In addition, if the sensor
 is placed outside the model atmosphere, the line-of-sight zenith angle
 must be $\geq90\degree$, and the tangent point position of the
 propagation paths must be inside the end points of the latitude and
@@ -562,7 +562,7 @@ include \wsmindex{ppath\_stepGeometric} and
 
 \subsection{The radiative background}
 %===================
-\label{sec:fm_defs:rad_bkgr}
+\zlabel{sec:fm_defs:rad_bkgr}
 
 The radiative intensity at the starting point of the path, and in the
 direction of the line-of-sight at that point, is denoted as the
@@ -577,13 +577,13 @@ exist:
   atmosphere is determined by \wsaindex{iy\_space\_agenda}. If a
   propagation path is totally outside the model atmosphere, the
   observed monochromatic pencil beam intensity (\aMpiVct{b}\ in
-  Algorithm~\ref{alg:fm_defs:RteCalc}) equals the output of
+  Algorithm~\zref{alg:fm_defs:RteCalc}) equals the output of
   \artsstyle{iy\_space\_agenda}.
 \item[The surface] The sum of surface emission and radiation reflected
   by the surface is the radiative background when the propagation path
   intersects with the surface. The calculation of the up-welling
   radiation from the surface is described in
-  Section~\ref{sec:fm_defs:surface}.
+  Section~\zref{sec:fm_defs:surface}.
 \item[Surface of cloud box] For cases when the propagation path enters
   the cloud box the radiative background is the intensities leaving
   the cloud box. This radiation is obtained by
@@ -611,13 +611,13 @@ such cases, the propagation path effectively starts at the surface.
 
 \subsection{The agenda for clear sky radiative transfer, \artsstyle{rte\_agenda}}
 %===================
-\label{sec:fm_defs:rte_agenda}
+\zlabel{sec:fm_defs:rte_agenda}
 
 The task of \wsmindex{rte\_agenda} is to perform the clear sky
 radiative transfer calculation along the given propagation path. The
 determination of the radiative background is not part of the task of
 \artsstyle{rte\_agenda}, it is in the standard case done by
-\artsstyle{RteCalc} (see Algorithm~\ref{alg:fm_defs:RteCalc}). In
+\artsstyle{RteCalc} (see Algorithm~\zref{alg:fm_defs:RteCalc}). In
 fact, methods for \artsstyle{rte\_agenda} just assumes that
 \wsvindex{iy} contains spectral values that make sense and uses
 these values as start values for the calculations. This means that it
@@ -629,10 +629,10 @@ The radiative transfer equation can be solved in many ways, and with
 different level of refinement. The standard approach in ARTS is to
 solve the radiative transfer from one point of the propagation path to
 next. The simplest expression, for scalar radiative transfer, that can
-be used in this way is (cf.  Equation~\ref{eq:rtetheory:layer})
+be used in this way is (cf.  Equation~\zref{eq:rtetheory:layer})
 \begin{equation}
   \Mpi_{i+1}(\Frq) = \Mpi_i(\Frq)e^{-\aOth{i}} + B(\Frq,\aTmp{i})(1-e^{-\aOth{i}})
-  \label{eq:fm_defs:rte_step}
+  \zlabel{eq:fm_defs:rte_step}
 \end{equation}
 where $\Mpi(\Frq)$ is the monochromatic (and unpolarised) intensity,
 $i$ is path step index, \Oth\ is the optical thickness along the path
@@ -642,13 +642,13 @@ the corresponding ones for vector radiative transfer, are implemented
 in the method \wsmindex{RteEmissionStd}. All methods for
 \artsstyle{rte\_agenda} adapt automatically to the value of
 \wsvindex{stokes\_dim} (see also
-Section~\ref{sec:fm_defs:polarisation}).
+Section~\zref{sec:fm_defs:polarisation}).
 
 
 
 \subsection{Surface effects}
 %===================
-\label{sec:fm_defs:surface}
+\zlabel{sec:fm_defs:surface}
 
 If there is an interception of the propagation path by the surface,
 the agenda \wsaindex{iy\_surface\_agenda} is supposed to provide the
@@ -660,10 +660,10 @@ the workspace variables \wsvindex{surface\_emission},
 \wsvindex{surface\_los} and \wsvindex{surface\_rmatrix}. These three
 variables define together the properties of the surface, where the
 expression used to model surface emission and reflections is
-(Figure~\ref{fig:fm_defs:surface_refl})
+(Figure~\zref{fig:fm_defs:surface_refl})
 \begin{equation}
   \MpiVct_s^u = \MpiVct_e + \sum_l^{} \mathbf{R}_l \MpiVct_l^d
-  \label{eq:fm_defs:surfacerefl}
+  \zlabel{eq:fm_defs:surfacerefl}
 \end{equation}
 where \MpiVct\ is the Stokes vector for one frequency, $\MpiVct_s^u$
 is the total upward travelling intensity from the surface along the
@@ -676,13 +676,13 @@ The emission from the surface $(\MpiVct_e)$ is stored in
 travelling intensities are given by \artsstyle{surface\_los}, and the
 reflection coefficients $(\mathbf{R})$ are stored in
 \artsstyle{surface\_rmatrix}. Surface reflections and emission are
-discussed further in Section~\ref{sec:surface}.
+discussed further in Section~\zref{sec:surface}.
 
 \begin{figure}[!tb]
  \begin{center}
   \includegraphics*[width=0.95\hsize]{ground_refl}
-  \caption{Schematic of Equation \ref{eq:fm_defs:surfacerefl}.}
-  \label{fig:fm_defs:surface_refl}
+  \caption{Schematic of Equation \zref{eq:fm_defs:surfacerefl}.}
+  \zlabel{fig:fm_defs:surface_refl}
  \end{center}
 \end{figure}
 
@@ -696,7 +696,7 @@ discussed further in Section~\ref{sec:surface}.
 %    surface slope. The maximum path step length is here set to be a value
 %    equaling half the vertical distance between the two shown pressure
 %    surfaces.}
-%  \label{fig:fm_defs:ppath_surface}
+%  \zlabel{fig:fm_defs:ppath_surface}
 % \end{center}
 %\end{figure}
 %% This figure was produced by the Matlab function mkfigs_ppath_cases.
@@ -705,7 +705,7 @@ discussed further in Section~\ref{sec:surface}.
 
 \subsection{Calculation accuracy}
 %===================
-\label{sec:fm_defs:accuracy}
+\zlabel{sec:fm_defs:accuracy}
 
 The accuracy of the calculations depends on many factors. For many
 factors, such as spectroscopic parameters, there is nothing else to do
@@ -732,7 +732,7 @@ smooth.
 The accuracy when performing the actual radiative transfer
 calculations depends on the refinement of the expressions used and the
 discretisation of the propagation path. If
-Equation~\ref{eq:fm_defs:rte_step} is used, the underlaying
+Equation~\zref{eq:fm_defs:rte_step} is used, the underlaying
 assumptions are that the temperature is constant, and that the
 absorption varies linearly, along the propagation path step. These
 assumptions are of course less violated if the path step length is

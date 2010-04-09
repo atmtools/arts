@@ -6,7 +6,7 @@
 %  \subsection{...}
 %
 \chapter{Theoretical formalism}
- \label{sec:formalism}
+ \zlabel{sec:formalism}
 
 %
 % Document history, format:
@@ -39,7 +39,7 @@ of the sensor is here included for completeness.
 
 
 \section{The forward model}
- \label{sec:formalism:fm}
+ \zlabel{sec:formalism:fm}
  
  The radiative intensity, \Mpi, at a point in the atmosphere, \Rds, for
  frequency \Frq\ and traversing in the direction, \ZntAng, depends
@@ -58,7 +58,7 @@ of the sensor is here included for completeness.
  \begin{equation}
    \MsrVct = \FrwMdl(\aSttVct{\FrwMdl},\aFrwMdlVct{\FrwMdl}) + 
                       \MsrErrVct(\aSttVct{\MsrErrVct},\FrwMdlVct{\MsrErrVct})
-  \label{eq:formalism:fm}
+  \zlabel{eq:formalism:fm}
  \end{equation}
  where \aSttVct{\FrwMdl}, \aFrwMdlVct{\FrwMdl}, \aSttVct{\MsrErrVct}\ 
  and \aFrwMdlVct{\MsrErrVct} together give a total description of both
@@ -91,13 +91,13 @@ of the sensor is here included for completeness.
  \citep{eriksson:99},
  \begin{equation}
    \MpiVct = \FrwMdl_r(\aSttVct{r},\aFrwMdlVct{r})
-  \label{eq:formalism:fma}
+  \zlabel{eq:formalism:fma}
  \end{equation}
  and a second part modelling sensor characteristics,
  \begin{equation}
    \MsrVct = \FrwMdl_s(\MpiVct,\aSttVct{s},\aFrwMdlVct{s}) + 
                        \MsrErrVct(\aSttVct{\MsrErrVct},\aFrwMdlVct{\MsrErrVct})
-  \label{eq:formalism:fms}
+  \zlabel{eq:formalism:fms}
  \end{equation}
  where \MpiVct\ is the vector holding the spectral values for the
  considered set of frequencies and viewing angles
@@ -122,7 +122,7 @@ of the sensor is here included for completeness.
 
 
 \section{The sensor transfer matrix} 
- \label{sec:formalism:sensor}
+ \zlabel{sec:formalism:sensor}
   
  The modelling of the different sensor parts can be described by a
  number of of analytical expressions (see \citet{eriksson:97a}) that
@@ -132,20 +132,20 @@ of the sensor is here included for completeness.
  straightforward matrix multiplication:
  \begin{equation}
    \MsrVct = \SnsMtr \MpiVct + \MsrErrVct
-  \label{eq:formalism:H}
+  \zlabel{eq:formalism:H}
  \end{equation}
  where \SnsMtr\ is here denoted as the \textindex{sensor transfer
    matrix}.  The matrix \SnsMtr\ can further incorporate effects of a
  \textindex{data reduction} and the total transfer matrix is then
  \begin{equation}
    \SnsMtr = \aSnsMtr{d} \aSnsMtr{s}
-  \label{eq:formalism:Hs}
+  \zlabel{eq:formalism:Hs}
  \end{equation}
  as
  \begin{equation}
    \MsrVct = \aSnsMtr{d} \MsrVct' = \aSnsMtr{d} (\aSnsMtr{s} \MpiVct + 
                                     \MsrErrVct') = \SnsMtr \MpiVct + \MsrErrVct
-  \label{eq:formalism:datared}
+  \zlabel{eq:formalism:datared}
  \end{equation}
  where \aSnsMtr{d}\ is the \textindex{data reduction matrix},
  \aSnsMtr{s}\ the sensor matrix, and $\MsrVct'$ and $\MsrErrVct'$ are
@@ -155,7 +155,7 @@ of the sensor is here included for completeness.
 
 
 \section{Weighting functions} 
- \label{sec:formalism:wfuns}
+ \zlabel{sec:formalism:wfuns}
  
  \subsection{Basics} 
  
@@ -167,12 +167,12 @@ of the sensor is here included for completeness.
  matrix
  \begin{equation}
    \aWfnMtr{\SttVct} = \frac{\partial \MsrVct}{\partial \SttVct}
-  \label{eq:formalism:kx}
+  \zlabel{eq:formalism:kx}
  \end{equation}
  and the model parameter weighting function matrix
  \begin{equation}
    \aWfnMtr{\FrwMdlVct} = \frac{\partial \MsrVct}{\partial \FrwMdlVct}
-  \label{eq:formalism:kb}
+  \zlabel{eq:formalism:kb}
  \end{equation}
  For the practical calculations of the weighting functions, it is
  important to note that the atmospheric and sensor parts can be
@@ -182,14 +182,14 @@ of the sensor is here included for completeness.
    \aWfnMtr{\SttVct} = \frac{\partial \MsrVct}{\partial \MpiVct}
                  \frac{\partial \MpiVct}{\partial \SttVct} =
          \SnsMtr \frac{\partial \MpiVct}{\partial \SttVct}
-  \label{eq:formalism:kx2}
+  \zlabel{eq:formalism:kx2}
  \end{equation}
  This equation shows that the new parts needed to calculate
  atmospheric weighting functions, are functions giving $\partial\MpiVct /
  \partial \SttVct$ where \SttVct\ can represent the vertical profile of a
  species, atmospheric temperatures, spectroscopic data etc.
 % The practical calculation of weighting functions is discussed in
-% detail in Sections \ref{sec:wfuns} and \ref{sec:wfuns_sens}.
+% detail in Sections \zref{sec:wfuns} and \zref{sec:wfuns_sens}.
 
 
  \subsection{Transformation between \textindex{vector space}s}
@@ -215,7 +215,7 @@ of the sensor is here included for completeness.
     \aWfnMtr{\SttVct'} = \frac{\partial \MsrVct}{\partial \SttVct'}
   \end{equation}
   This matrix is related to the weighting function matrix of \SttVct\ (Eq.
-  \ref{eq:formalism:kx}) as
+  \zref{eq:formalism:kx}) as
   \begin{equation}
     \aWfnMtr{\SttVct'} = \frac{\partial \MsrVct}{\partial \SttVct} 
                          \frac{\partial \SttVct}{\partial \SttVct'}

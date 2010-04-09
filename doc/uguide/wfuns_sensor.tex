@@ -6,7 +6,7 @@
 %  \subsection{...}
 %
 \chapter{Sensor variables weighting functions}
- \label{sec:wfuns_sens}
+ \zlabel{sec:wfuns_sens}
 
 
 %
@@ -33,7 +33,7 @@
 %
 %\startsymbols
 %  -- & -- & -- \\
-% \label{symtable:wfuns_sens}     
+% \zlabel{symtable:wfuns_sens}     
 %\stopsymbols
 
 
@@ -48,7 +48,7 @@ ones treated as measurement errors. The only covered feature so far is calibrati
 
 
 \section{Calibration weighting functions}
- \label{sec:wfuns_sens:cal}
+ \zlabel{sec:wfuns_sens:cal}
  
  \subsection{Proportional calibration errors} 
  This section gives the WF for situations where a calibration
@@ -64,7 +64,7 @@ ones treated as measurement errors. The only covered feature so far is calibrati
  \begin{equation}
    \y = \Hd\left( (1+x_{cal})\Hs\iv+\merr' \right)
  \end{equation}
- See Equation \ref{eq:formalism:datared} for definition of the variables.
+ See Equation \zref{eq:formalism:datared} for definition of the variables.
  The WF for this case is easily obtained
  \begin{equation}
    \K_{\xt} = \Hd\Hs\iv = \Hm\iv = \y - \merr
@@ -79,7 +79,7 @@ ones treated as measurement errors. The only covered feature so far is calibrati
  then (neglecting data reduction)
  \begin{equation}
    \y^i =  I_1^i + (I_2^i-I_1^i)\frac{V_{atm}^i-V_1^i}{V_2^i-V_1^i} 
-  \label{sec:wfuns_sens:loadcal}
+  \zlabel{sec:wfuns_sens:loadcal}
  \end{equation}
  where $\y^i$ is the calibrated value for channel $i$, $I_1$ and $I_2$
  are the assumed intensities of the two loads, $V_{atm}$, $V_1$ and
@@ -87,7 +87,7 @@ ones treated as measurement errors. The only covered feature so far is calibrati
  and load 2, respectively.
  
  The load temperature WFs are obatined by differenting Equation
- \ref{sec:wfuns_sens:loadcal}. For example, we have that \citep{eriksson:97a}
+ \zref{sec:wfuns_sens:loadcal}. For example, we have that \citep{eriksson:97a}
  \begin{equation}
    \frac{\partial \y^i}{\partial I_1^i} = 1 - 
      \frac{V_{atm}^i-V_1^i}{V_2^i-V_1^i} = \frac{I_2^i-\y^i}{I_2^i-I_1^i} 
@@ -110,14 +110,14 @@ ones treated as measurement errors. The only covered feature so far is calibrati
 
 
 %\section{Pointing weighting functions}
-% \label{sec:wfuns_sens:point}
+% \zlabel{sec:wfuns_sens:point}
 % 
 % No suitable analytical expression for the pointing WFs has been
 % found.  The pointing is a sensor variable and the first choice for a
 % perturbatation calculation would be to recalculate the sensor
 % transfer matrix for a slightly changed pointing pattern. However, to
 % set-up the sensor matrix can be a time consuming task, and Equation
-% \ref{eq:wfuns:Hpert} was instead selected for the calculation of the
+% \zref{eq:wfuns:Hpert} was instead selected for the calculation of the
 % pointing WFs.
 %
 % Think and check with practical calculations deciding calculation approach!!
@@ -133,7 +133,7 @@ ones treated as measurement errors. The only covered feature so far is calibrati
 %
 %
 %\section{Frequency weighting functions}
-% \label{sec:wfuns_sens:freq}
+% \zlabel{sec:wfuns_sens:freq}
 
 
 

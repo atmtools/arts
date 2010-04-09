@@ -6,7 +6,7 @@
 %  \subsection{...}
 %
 \chapter{Data reduction}
- \label{sec:red}
+ \zlabel{sec:red}
 
 
 %
@@ -33,7 +33,7 @@
 %
 %\startsymbols
 %  -- & -- & -- \\
-% \label{symtable:red}     
+% \zlabel{symtable:red}     
 %\stopsymbols
 
 
@@ -46,7 +46,7 @@ vectors, larger than can be handled practically during the inversions,
 and some kind of reduction of the data size is needed. This data
 reduction can be made part of the sensor transfer matrix. In fact, the
 data reduction can be viewed upon as an imaginary second spectrometer.
-The transfer matrix to use is then (Eq. \ref{eq:formalism:Hs})
+The transfer matrix to use is then (Eq. \zref{eq:formalism:Hs})
 \begin{eqnarray}
   \Hm = \Hd \Hs  \nonumber
 \end{eqnarray}
@@ -55,7 +55,7 @@ where \Hd\ is the data reduction matrix and \Hs\ the sensor matrix.
 
 
 \section{Averaging of viewing angles}
- \label{sec:red:view}
+ \zlabel{sec:red:view}
  
  In some cases the spectra from different viewing angles are combined,
  either as a pure data reduction or internally in the spectrometer.
@@ -67,7 +67,7 @@ where \Hd\ is the data reduction matrix and \Hs\ the sensor matrix.
 
 
 \section{Data binning}
- \label{sec:red:binning}
+ \zlabel{sec:red:binning}
  
  Data binning means that neighboring channels are combined by
  weighted averaging. If channels $i_1$ to $i_2$ of $\y'$ are combined to
@@ -86,7 +86,7 @@ where \Hd\ is the data reduction matrix and \Hs\ the sensor matrix.
 
 
 \section{Reduction by eigenvectors}
- \label{sec:red:eig}
+ \zlabel{sec:red:eig}
  
  A commonly used approach for reducing data sizes is to base the
  reduction of the eigenvectors of the covariance matrix expressing the

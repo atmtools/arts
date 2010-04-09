@@ -1,3 +1,10 @@
+2010-04-09  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-14-7
+
+	* doc/uguide/: Replace all \label by \zlabel and \ref by
+	\zref. But cross-references are still not working properly.
+
 2010-04-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-6

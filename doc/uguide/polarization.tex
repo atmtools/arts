@@ -7,7 +7,7 @@
 %  \subsection{...}
 %
 \chapter{Polarization and Stokes parameters}
- \label{sec:polarization}
+ \zlabel{sec:polarization}
 
 %
 % Document history, format:
@@ -70,7 +70,7 @@ the Stokes parameters, and the definition of antenna polarization.
 
 \section{Polarization directions}
 %=====================================================================
-\label{sec:polarization:directions}
+\zlabel{sec:polarization:directions}
 Electromagnetic waves in homogeneous, isotropic media are transverse
 waves, i.e., their oscillating electric and magnetic fields are in a
 plane perpendicular to the propagation direction. The choice of two
@@ -92,7 +92,7 @@ $\VctStl{n}$ and the $z$-axis, and the azimuth angle $\phi$, i.e., the
 angle between the projection of $\VctStl{n}$ into the $xy$-plane and
 the $x$-axis:
 \begin{equation}
-  \label{eq:polarization:propdir}
+  \zlabel{eq:polarization:propdir}
    \VctStl{n} = \ColVct{\cos\phi \sin\theta}%
                        {\sin\phi \sin\theta}%
                        { \cos\theta}                    
@@ -101,7 +101,7 @@ Then we define the polarization directions by the partial derivatives
 of  $\VctStl{n}$ with respect to $\theta$ and $\phi$. We shall call
 them $\theta$-direction (also: vertical) and $\phi$-direction (also:
 horizontal), respectively, see
-Figure~\ref{fig:polarization:directions}. 
+Figure~\zref{fig:polarization:directions}. 
 \begin{figure}[!ht]
  \begin{center}
   \begin{minipage}[c]{0.9\textwidth}
@@ -112,14 +112,14 @@ Figure~\ref{fig:polarization:directions}.
   \begin{minipage}[c]{0.9\textwidth}
    \caption{The definition of the polarization directions, adapted
      from Mishchenko FIXME: reference}
-   \label{fig:polarization:directions}
+   \zlabel{fig:polarization:directions}
   \end{minipage}
  \end{center}
 \end{figure}   
 %
 Their unit basis vectors are
 \begin{equation}
-  \label{eq:polarization:etheta}
+  \zlabel{eq:polarization:etheta}
    \VctStl{e}_\theta = \eVrt =
     \PrtDrv{\VctStl{n}}{\theta} \left/ 
      \left\| \PrtDrv{\VctStl{n}}{\theta}\right\| \right.  
@@ -130,7 +130,7 @@ Their unit basis vectors are
 \end{equation}
 %
 \begin{equation}
-  \label{eq:polarization:ephi}
+  \zlabel{eq:polarization:ephi}
    \VctStl{e}_\phi = \eHor = 
     \PrtDrv{\VctStl{n}}{\phi} \left/ 
           \left\|\PrtDrv{\VctStl{n}}{\phi}\right\| \right.  
@@ -149,11 +149,11 @@ $\left(\VctStl{n}\times \VctStl{e}_\theta\right) \cdot
 
 \section{Plane monochromatic waves}
 %=====================================================================
-\label{sec:polarization:monochrom}
+\zlabel{sec:polarization:monochrom}
 
 Plane monochromatic electromagnetic waves are commonly written in the form
 \begin{equation} 
-  \label{eq:polarization:e_field}
+  \zlabel{eq:polarization:e_field}
   \VctStl{E}(\VctStl{x},t) 
    = \left[E_v \atop E_h\right] e^{i(\VctStl{k}\VctStl{x} - \omega t)}
    = \left(E_v \eVrt +  E_h \eHor \right) 
@@ -170,13 +170,13 @@ real part of the above expression. Rewriting the complex amplitudes
 $E_v$ and $E_h$ using real, non-negative amplitudes $a_v$ and $a_h$, and
 phases $\delta_v$ and $\delta_h$,
 \begin{equation}
-  \label{eq:polarization:compl_ampl}
+  \zlabel{eq:polarization:compl_ampl}
   E_v=a_v e^{i\delta_v}\mbox{ , }
   E_h=a_h e^{i\delta_h}
 \end{equation}
 the actual electric field vector $\VctStl{\tilde{E}}$ is
 \begin{equation}
-  \label{eq:polarization:actual_efield}
+  \zlabel{eq:polarization:actual_efield}
   \VctStl{\tilde{E}}(\VctStl{x},t) = \Re[\VctStl{E}(\VctStl{x},t)] 
     = \left[a_v\cdot \cos(\VctStl{k}\VctStl{x} - \omega t + \delta_v) 
                        \atop 
@@ -199,14 +199,14 @@ field), thus:
     a_v^2\overline{\cos^2(\VctStl{k}\VctStl{x} - \omega t + \delta_v)}
     + a_h^2\overline{\cos^2(\VctStl{k}\VctStl{x} - \omega t + \delta_h)}
    \right)
-  \label{eq:polarization:intensity}
+  \zlabel{eq:polarization:intensity}
 \end{eqnarray}
 The overline denotes the time average
 %, which is taken over one oscillation period $T$ ($T=2\pi\omega$). 
 %Since the time average of
 which for cosine squares is 1/2, thus:
 \begin{equation}
-  \label{eq:polarization:intensity2}
+  \zlabel{eq:polarization:intensity2}
  F = 
   \half\sqrt{\frac{\epsilon}{\mu}}(
     a_v^2 + a_h^2)  
@@ -215,9 +215,9 @@ Taking into account that for plane, monochromatic waves
 the time average always results in a factor
 $\frac{1}{2}$, we can also directly write the intensity using the
 electric field vector in complex notation
-(Eq.~\ref{eq:polarization:e_field}).
+(Eq.~\zref{eq:polarization:e_field}).
 \begin{eqnarray}
-  \label{eq:polarization:intensity_from_complex}
+  \zlabel{eq:polarization:intensity_from_complex}
   F &=&  \half\sqrt{\frac{\epsilon}{\mu}} \VctStl{E} (\VctStl{x},t) 
           \cdot \VctStl{E}^\ast (\VctStl{x},t)\\ \nonumber
     &=&   \half\sqrt{\frac{\epsilon}{\mu}}
@@ -232,29 +232,29 @@ In addition to the flux, three more intensity quantities
 are defined as in the following equations. They are called 
 \emph{Stokes parameters}:
 \begin{eqnarray}
-  \label{eq:polarization:stokesparam_I}
+  \zlabel{eq:polarization:stokesparam_I}
   I &=& \half\InvImp ( E_v E_v^\ast + E_h E_h^\ast ) \\
-  \label{eq:polarization:stokesparam_Q}
+  \zlabel{eq:polarization:stokesparam_Q}
   Q &=&  \half\InvImp (  E_v E_v^\ast - E_h E_h^\ast ) \\
-  \label{eq:polarization:stokesparam_U}
+  \zlabel{eq:polarization:stokesparam_U}
   U &=& - \half\InvImp (  E_v E_h^\ast + E_h E_v^\ast ) \\
-  \label{eq:polarization:stokesparam_V}
+  \zlabel{eq:polarization:stokesparam_V}
   V &=& i \half\InvImp (E_h E_v^\ast - E_v E_h^\ast )
 \end{eqnarray}
 Written as a row or column vector, $(I,Q,U,V)$ is called
 \emph{Stokes vector}. Note that sometimes, $S_0$, $S_1$, $S_2$, $S_3$
 is used instead of $I$, $Q$, $U$, $V$.
 Using the amplitude/phase notation from
-Eq.~(\ref{eq:polarization:compl_ampl}),
+Eq.~(\zref{eq:polarization:compl_ampl}),
 we can rewrite the Stokes parameters as 
 \begin{eqnarray}
-  \label{eq:polarization:stokesparam_alt_I}
+  \zlabel{eq:polarization:stokesparam_alt_I}
  I &=&  \half\InvImp (a_v^2 + a_h^2)\\
-  \label{eq:polarization:stokesparam_alt_Q}
+  \zlabel{eq:polarization:stokesparam_alt_Q}
  Q &=& \half\InvImp (a_v^2 - a_h^2)\\
-  \label{eq:polarization:stokesparam_alt_U}
+  \zlabel{eq:polarization:stokesparam_alt_U}
  U &=&  - \InvImp a_v a_h \cos(\delta_v-\delta_h)\\
-  \label{eq:polarization:stokesparam_alt_V}
+  \zlabel{eq:polarization:stokesparam_alt_V}
  V &=&   - \InvImp  a_v a_h \sin(\delta_v-\delta_h)
 \end{eqnarray}
 The Stokes parameters fully characterize the electromagnetic wave and
@@ -284,10 +284,10 @@ where $\Delta_{v,h} = \VctStl{k}\VctStl{x_0} + \delta_{v,h}$.
 To see that this is an ellipse, we first split the cosines using
 the addition theorem:
 \begin{eqnarray}
-  \label{eq:polarization:tip_of_fieldvec1}
+  \zlabel{eq:polarization:tip_of_fieldvec1}
   \tilde{E}_v (t) &=&   a_v \cos\Delta_v \cos(\omega t)
                       + a_v \sin\Delta_v \sin(\omega t)\\
-  \label{eq:polarization:tip_of_fieldvec2}
+  \zlabel{eq:polarization:tip_of_fieldvec2}
   \tilde{E}_h (t) &=&   a_h \cos\Delta_h \cos(\omega t)
                       + a_h \sin\Delta_h \sin(\omega t)
 \end{eqnarray}
@@ -297,7 +297,7 @@ and
 semi-minor axis $a_0 \sin\beta$, where $a_0^2 = a_v^2 + a_h^2$, 
 it should have the following form
 \begin{eqnarray}
-  \label{eq:polarization:ellipse_parallel}
+  \zlabel{eq:polarization:ellipse_parallel}
  \tilde{E}_v (t) &=&   a_0 \sin\beta \cos(\omega t)\\
  \tilde{E}_h (t) &=&   a_0 \cos\beta \sin(\omega t)
 \end{eqnarray}
@@ -305,7 +305,7 @@ Here $\beta$ must be between $-45\degree$ and $45\degree$: the tip of
 the vector $\VctStl{\tilde{E}}$ describes a circle for $\beta = \pm
 45\degree$ (circular polarization), oscillates along the $h$-axis for
 $\beta = 0$ (linear polarization) and else describes an ellipse (cf.
-Figure~\ref{fig:polarization:ellipse_aligned}). The sense of rotation
+Figure~\zref{fig:polarization:ellipse_aligned}). The sense of rotation
 is counterclockwise for positive $\beta$ (corresponding to left-circular
 or left-elliptic polarization) and clockwise for negative
 $\beta$ (corresponding to right-circular
@@ -313,7 +313,7 @@ or right-elliptic polarization).
 %which corresponds to left-handed
 Since $|\tan\beta|$ is the ratio of the semi-minor and semi-major axes
 of the ellipse (the ellipticity), $\beta$ is called the ellipticity
-angle.\label{def:ellipticity-angle}
+angle.\zlabel{def:ellipticity-angle}
 \begin{figure}[!ht]
  \begin{center}
   \begin{minipage}[c]{0.9\textwidth}
@@ -324,7 +324,7 @@ angle.\label{def:ellipticity-angle}
   \begin{minipage}[c]{0.9\textwidth}
    \caption{The ellipse that the electric field vector describes with
      time, with the major axis oriented along the $h$-axis.}
-   \label{fig:polarization:ellipse_aligned}
+   \zlabel{fig:polarization:ellipse_aligned}
   \end{minipage}
  \end{center}
 \end{figure}   
@@ -333,12 +333,12 @@ To have the major axis of the ellipse enclose an arbitrary angle
 $\zeta$ ($0 \leq \zeta < 180\degree$) with the $h$-axis, we apply a
 rotation matrix and get the equation for an ellipse with arbitrary
 shape (ellipticity) and orientation (cf.\
-Figure~\ref{fig:polarization:ellipse_arbitrary})\label{def:orientation-angle}:
+Figure~\zref{fig:polarization:ellipse_arbitrary})\zlabel{def:orientation-angle}:
 \begin{eqnarray}
-  \label{eq:polarization:ellipse_rotated1}
+  \zlabel{eq:polarization:ellipse_rotated1}
  \tilde{E}_v (t) &=&  a_0(  \sin\beta \cos(\omega t) \cos\zeta
                            +\cos\beta \sin(\omega t) \sin\zeta )\\
-  \label{eq:polarization:ellipse_rotated2}
+  \zlabel{eq:polarization:ellipse_rotated2}
  \tilde{E}_h (t) &=&  a_0( -\sin\beta \cos(\omega t) \sin\zeta
                            +\cos\beta \sin(\omega t) \cos\zeta )
 \end{eqnarray}
@@ -353,7 +353,7 @@ Figure~\ref{fig:polarization:ellipse_arbitrary})\label{def:orientation-angle}:
   \begin{minipage}[c]{0.9\textwidth}
    \caption{The ellipse that the electric field vector describes with
      time, with the major axis oriented arbitrarily.}
-   \label{fig:polarization:ellipse_arbitrary}
+   \zlabel{fig:polarization:ellipse_arbitrary}
   \end{minipage}
  \end{center}
 \end{figure}   
@@ -369,27 +369,27 @@ of the polarization ellipse on the one hand, and the amplitudes $a_v$
 and $a_h$ and phases $\delta_v$ and $\delta_h$ of the components of
 the electric field vector on the other hand.  Comparing the
 $\sin(\omega t)$ and $\cos(\omega t)$ terms in
-Eqs.~(\ref{eq:polarization:ellipse_rotated1})%
--(\ref{eq:polarization:ellipse_rotated2}) with the corresponding terms
-in Eqs.~(\ref{eq:polarization:tip_of_fieldvec1})%
--(\ref{eq:polarization:tip_of_fieldvec2}), we get:
+Eqs.~(\zref{eq:polarization:ellipse_rotated1})%
+-(\zref{eq:polarization:ellipse_rotated2}) with the corresponding terms
+in Eqs.~(\zref{eq:polarization:tip_of_fieldvec1})%
+-(\zref{eq:polarization:tip_of_fieldvec2}), we get:
 \begin{eqnarray}
-  \label{eq:polarization:corresp1a}
+  \zlabel{eq:polarization:corresp1a}
  a_v \cos\Delta_v &=& a_0 \sin\beta \cos\zeta\\
-  \label{eq:polarization:corresp1b}
+  \zlabel{eq:polarization:corresp1b}
  a_v \sin\Delta_v &=& a_0 \cos\beta \sin\zeta
 \end{eqnarray}
 and 
 \begin{eqnarray}
-  \label{eq:polarization:corresp2a}
+  \zlabel{eq:polarization:corresp2a}
  a_h \cos\Delta_h &=& -a_0 \sin\beta \sin\zeta\\
-  \label{eq:polarization:corresp2b}
+  \zlabel{eq:polarization:corresp2b}
  a_h \sin\Delta_h &=&  a_0 \cos\beta \cos\zeta
 \end{eqnarray}
-Multiplying Eq.~(\ref{eq:polarization:corresp1a}) with
-Eq.~(\ref{eq:polarization:corresp2a}), and
-Eq.~(\ref{eq:polarization:corresp1b}) with
-Eq.~(\ref{eq:polarization:corresp2b}) and adding up the results, we get
+Multiplying Eq.~(\zref{eq:polarization:corresp1a}) with
+Eq.~(\zref{eq:polarization:corresp2a}), and
+Eq.~(\zref{eq:polarization:corresp1b}) with
+Eq.~(\zref{eq:polarization:corresp2b}) and adding up the results, we get
 \begin{equation}
   a_v a_h (\cos\Delta_v\cos\Delta_h + \sin\Delta_v\sin\Delta_h)
   = a_0^2 \sin\zeta\cos\zeta (\cos^2\beta - \sin^2\beta) 
@@ -398,17 +398,17 @@ Using the addition theorems for sinusoidals and taking into account
 that
 $\Delta_v-\Delta_h = \delta_v-\delta_h$:
 \begin{equation}
-  \label{eq:polarization:sinzetacosbeta}
+  \zlabel{eq:polarization:sinzetacosbeta}
   \frac{a_v a_h}{a_0^2} \cos(\delta_v-\delta_h)
   = \half\sin(2\zeta)\cos(2\beta)
 \end{equation}
 In a similar way, subtracting the product of
-Eq.~(\ref{eq:polarization:corresp1b}) with
-Eq.~(\ref{eq:polarization:corresp2a}) from the product of
-Eq.~(\ref{eq:polarization:corresp1a}) with
-Eq.~(\ref{eq:polarization:corresp2b}) and adding up the results, we get
+Eq.~(\zref{eq:polarization:corresp1b}) with
+Eq.~(\zref{eq:polarization:corresp2a}) from the product of
+Eq.~(\zref{eq:polarization:corresp1a}) with
+Eq.~(\zref{eq:polarization:corresp2b}) and adding up the results, we get
 \begin{equation}
-  \label{eq:polarization:sinbeta}
+  \zlabel{eq:polarization:sinbeta}
   -\frac{a_v a_h}{a_0^2} \sin(\delta_v-\delta_h)
   = \half\sin(2\beta)
 \end{equation}
@@ -417,29 +417,29 @@ The above two equations tell us how to translate the amplitudes
 horizontal component of the electric field into the orientation and
 shape of the ellipse that the tip of the electric field vector describes with
 time.  We can obtain one further relation by subtracting the sum of
-the squares of Eq.~(\ref{eq:polarization:corresp2a}) and
-Eq.~(\ref{eq:polarization:corresp2b}) from the sum of the squares of
-Eq.~(\ref{eq:polarization:corresp1a}) and
-Eq.~(\ref{eq:polarization:corresp1b}):
+the squares of Eq.~(\zref{eq:polarization:corresp2a}) and
+Eq.~(\zref{eq:polarization:corresp2b}) from the sum of the squares of
+Eq.~(\zref{eq:polarization:corresp1a}) and
+Eq.~(\zref{eq:polarization:corresp1b}):
 \begin{equation}
-  \label{eq:polarization:cosbetazeta}
+  \zlabel{eq:polarization:cosbetazeta}
  a_v^2 - a_h^2 =  -a_0^2 \cos(2\zeta)\cos(2\beta)
 \end{equation}
 Finally, we use the above 3 equations
-(\ref{eq:polarization:sinzetacosbeta}), 
-(\ref{eq:polarization:sinbeta}) and 
-(\ref{eq:polarization:cosbetazeta}) to rewrite the Stokes parameters
-(Eqs.~\ref{eq:polarization:stokesparam_alt_I}%
--\ref{eq:polarization:stokesparam_alt_V}) 
+(\zref{eq:polarization:sinzetacosbeta}), 
+(\zref{eq:polarization:sinbeta}) and 
+(\zref{eq:polarization:cosbetazeta}) to rewrite the Stokes parameters
+(Eqs.~\zref{eq:polarization:stokesparam_alt_I}%
+-\zref{eq:polarization:stokesparam_alt_V}) 
 as
 \begin{eqnarray}
-  \label{eq:polarization:stokesparam_alt2_I}
+  \zlabel{eq:polarization:stokesparam_alt2_I}
  I &=&  \half\InvImp a_0^2\\
-  \label{eq:polarization:stokesparam_alt2_Q}
+  \zlabel{eq:polarization:stokesparam_alt2_Q}
  Q &=&  - \half\InvImp a_0^2 \cos(2\zeta)\cos(2\beta)\\ 
-  \label{eq:polarization:stokesparam_alt2_U}
+  \zlabel{eq:polarization:stokesparam_alt2_U}
  U &=& -\half\InvImp a_0^2 \sin(2\zeta)\cos(2\beta)\\
-  \label{eq:polarization:stokesparam_alt2_V}
+  \zlabel{eq:polarization:stokesparam_alt2_V}
  V &=& -\half\InvImp a_0^2 \sin(2\beta)
 \end{eqnarray}
 FIXME: $\beta<0$ is right-handed pol. (see above, consistent with
@@ -449,62 +449,62 @@ Jackson and others); thus $V>0$. This conflicts with Mishchenko's book
 
 Thus, we can get the orientation angle $\zeta$ of the ellipse from
 \begin{equation}
-  \label{eq:polarization:tan2zeta}
+  \zlabel{eq:polarization:tan2zeta}
  \tan(2\zeta) = \frac{U}{Q}
 \end{equation}
 Since $0 \leq 2\zeta < 360\degree$, there are 2 solutions for $\zeta$ for a
 given pair $U,Q$. This ambiguity is resolved by looking at
-Eq.~\ref{eq:polarization:stokesparam_alt2_Q}, taking into account that
+Eq.~\zref{eq:polarization:stokesparam_alt2_Q}, taking into account that
 $|\beta| \leq 45\degree$ and thus $\cos(2\beta) \geq 0$:
 The sign of $\cos(2\zeta)$ must be the same as the sign of $-Q$.
 
 We get the ellipticity angle $\beta$  from
 \begin{equation}
-  \label{eq:polarization:tan2beta}
+  \zlabel{eq:polarization:tan2beta}
  \tan(2\beta) = - \frac{V}{(Q^2 + U^2)^{1/2}}  
 \end{equation}
 
 $I$ is the total intensity of the radiation, 
 $Q$ is the difference in the intensity of the vertically and
 horizontally polarized components
-(cf. section~\ref{sec:polarization:measuring}, i.e., next section).
+(cf. section~\zref{sec:polarization:measuring}, i.e., next section).
 $I$ is always non-negative, and $Q$, $U$, and $V$ are between $+I$ and $-I$,
 since they can be expressed as a product of $I$ with sines and/or
 cosines
-(Eqs. \ref{eq:polarization:stokesparam_alt2_Q}-%
-\ref{eq:polarization:stokesparam_alt2_V}). 
+(Eqs. \zref{eq:polarization:stokesparam_alt2_Q}-%
+\zref{eq:polarization:stokesparam_alt2_V}). 
 Note also that the 4 Stokes parameters are not independent, since the
 following equality applies:
 \begin{equation}
-  \label{eq:polarization:Isquare}
+  \zlabel{eq:polarization:Isquare}
   I^2 = Q^2 + U^2 + V^2
 \end{equation}
 Some examples of Stokes parameters for specific polarizations are given
 at the end of the next section (p.~\pageref{stokes-examples})
 \section{Measuring Stokes parameters}
 %=====================================================================
-\label{sec:polarization:measuring}
+\zlabel{sec:polarization:measuring}
 The three different ways given so far to write the Stokes parameters
-(Eqs.~\ref{eq:polarization:stokesparam_I}ff.,
-Eqs.~\ref{eq:polarization:stokesparam_alt_I}ff.,
-Eqs.~\ref{eq:polarization:stokesparam_alt2_I}ff.)  are not very
+(Eqs.~\zref{eq:polarization:stokesparam_I}ff.,
+Eqs.~\zref{eq:polarization:stokesparam_alt_I}ff.,
+Eqs.~\zref{eq:polarization:stokesparam_alt2_I}ff.)  are not very
 helpful if we actually want to measure the Stokes parameters. So here
 we are going to rewrite them while keeping in mind that most
 instruments can just measure intensities of radiation.
 
 We have seen above that the Stokes parameter $Q$ is the difference in
 the intensity of the vertically and horizontally polarized components 
-(Eq.~\ref{eq:polarization:stokesparam_Q},
-or~\ref{eq:polarization:stokesparam_alt_Q})
+(Eq.~\zref{eq:polarization:stokesparam_Q},
+or~\zref{eq:polarization:stokesparam_alt_Q})
 \begin{equation}
-  \label{eq:polarization:Q_Idiff}
+  \zlabel{eq:polarization:Q_Idiff}
   Q = I_v - I_h
 \end{equation}
 where
 \begin{eqnarray}
-  \label{eq:polarization:Iv}
+  \zlabel{eq:polarization:Iv}
   I_v &=&  \half\InvImp E_v E_v^\ast\\
-  \label{eq:polarization:Ih}
+  \zlabel{eq:polarization:Ih}
   I_h &=&  \half\InvImp E_h E_h^\ast
 \end{eqnarray}
   
@@ -517,25 +517,25 @@ difference.
 $U$ and $V$ can likewise be expressed as differences of intensities, but not
 with respect to the linear base \eVrt and \eHor:
 
-We recall Eq.~(\ref{eq:polarization:e_field}), omitting the
+We recall Eq.~(\zref{eq:polarization:e_field}), omitting the
 oscillatory term:
 \begin{equation}
-  \label{eq:polarization:E_linbase}
+  \zlabel{eq:polarization:E_linbase}
   \VctStl{E}= \left(E_v \eVrt +  E_h \eHor \right) 
 \end{equation}
 
 Now we want to write \VctStl{E} by two components along polarization axes at
 $\pm 45\degree$ with respect to the $h$-axes. The basis vectors are
-thus (cf.\ Figure~\ref{fig:polarization:e45})
+thus (cf.\ Figure~\zref{fig:polarization:e45})
 \begin{eqnarray}
-  \label{eq:polarization:e_p45}
+  \zlabel{eq:polarization:e_p45}
   \ePls &=& \sqrt{\half} \left( \eHor - \eVrt \right) \\
-  \label{eq:polarization:e_m45}
+  \zlabel{eq:polarization:e_m45}
   \eMin &=& \sqrt{\half} \left( \eHor + \eVrt \right) 
 \end{eqnarray}
 and we get the field vector in this modified linear basis:
 \begin{equation}
-  \label{eq:polarization:E_lin45base}
+  \zlabel{eq:polarization:E_lin45base}
   \VctStl{E} = \underbrace{
                \sqrt{\half}\left(E_v +  E_h \right)}_{E_{-45\degree}} 
                \eMin 
@@ -553,7 +553,7 @@ and we get the field vector in this modified linear basis:
   \end{minipage}
   \begin{minipage}[c]{0.9\textwidth}
    \caption{Two sets of basis vectors for the linear basis.}
-   \label{fig:polarization:e45}
+   \zlabel{fig:polarization:e45}
   \end{minipage}
  \end{center}
 \end{figure}   
@@ -562,9 +562,9 @@ and we get the field vector in this modified linear basis:
 %
 With the definitions of intensities of the components,
 \begin{eqnarray}
-  \label{eq:polarization:Im45}
+  \zlabel{eq:polarization:Im45}
   I_{-45\degree} &=& \half\InvImp E_{-45\degree} E_{-45\degree}^\ast\\
-  \label{eq:polarization:Ip45}
+  \zlabel{eq:polarization:Ip45}
   I_{+45\degree} &=& \half\InvImp E_{+45\degree} E_{+45\degree}^\ast
 \end{eqnarray}
 we get for their difference:
@@ -576,11 +576,11 @@ we get for their difference:
        - \half (-E_v + E_h) (-E_v^\ast + E_h^\ast)\right]\\ \nonumber
    &=&
    \half\InvImp(E_v E_h^\ast + E_h E_v^\ast)
-  \label{eq:polarization:Idiff_lin45base}
+  \zlabel{eq:polarization:Idiff_lin45base}
 \end{eqnarray}
-Therefore (cf. Eq.~\ref{eq:polarization:stokesparam_U})
+Therefore (cf. Eq.~\zref{eq:polarization:stokesparam_U})
 \begin{equation}
-  \label{eq:polarization:U_Idiff}
+  \zlabel{eq:polarization:U_Idiff}
   U =   I_{+45\degree} -  I_{-45\degree}
 \end{equation}
 Thus if we measure $I_{+45\degree}$ and $I_{-45\degree}$ using -- for
@@ -596,16 +596,16 @@ relevant equations:
 
 Basis vectors
 \begin{eqnarray}
-  \label{eq:polarization:e_Lh}
+  \zlabel{eq:polarization:e_Lh}
   \eLh &=& \sqrt{\half} \left( \eVrt + i\eHor \right) \\
-  \label{eq:polarization:e_Rh}
+  \zlabel{eq:polarization:e_Rh}
   \eRh &=& \sqrt{\half} \left( \eVrt - i\eHor \right) 
 \end{eqnarray}
 %
 %FIXME: \eRh{} and \eLh{} have been  swapped one...\\
 Field vector in circular base
 \begin{equation}
-  \label{eq:polarization:E_circbase}
+  \zlabel{eq:polarization:E_circbase}
   \VctStl{E} = \underbrace{
                \sqrt{\half}\left(E_v -  i E_h \right)}_{E_{LH}} 
                \eLh 
@@ -616,9 +616,9 @@ Field vector in circular base
 %
 Intensity of the components
 \begin{eqnarray}
-  \label{eq:polarization:ILH}
+  \zlabel{eq:polarization:ILH}
   I_{LH} &=& \half\InvImp E_{LH} E_{LH}^\ast\\
-  \label{eq:polarization:IRH}
+  \zlabel{eq:polarization:IRH}
   I_{RH} &=& \half\InvImp E_{RH} E_{RH}^\ast
 \end{eqnarray}
 %
@@ -631,11 +631,11 @@ Their difference
     - \half (E_v + i E_h) (E_v^\ast - i E_h^\ast)\right]\\ \nonumber
    &=&
    i \half\InvImp (E_v E_h^\ast -  E_h E_v^\ast)
-  \label{eq:polarization:Idiff_circbase}
+  \zlabel{eq:polarization:Idiff_circbase}
 \end{eqnarray}
-Therefore (cf. Eq.~\ref{eq:polarization:stokesparam_V}):
+Therefore (cf. Eq.~\zref{eq:polarization:stokesparam_V}):
 \begin{equation}
-  \label{eq:polarization:V_Idiff}
+  \zlabel{eq:polarization:V_Idiff}
   V =   I_{RH} -  I_{LH}
 \end{equation}
 %
@@ -657,14 +657,14 @@ A phase delay by 90\degree can be expressed as a multiplication of the
 horizontal component by $i$, so the resulting
 electric field vector $\VctStl{E}^\prime$ is
 \begin{equation}
-  \label{eq:polarization:E_retarded}
+  \zlabel{eq:polarization:E_retarded}
   \VctStl{E}^\prime = \left(E_v \eVrt +   i E_h \eHor \right) 
 \end{equation}
 The light then passes through a polarizer that is  aligned at
 $-45\degree$ with respect to the $h$-axis. This means we have to
 project $\VctStl{E}^\prime$ onto $\eMin$, resulting in
 \begin{equation}
-  \label{eq:polarization:E_retarded_polarized}
+  \zlabel{eq:polarization:E_retarded_polarized}
   \VctStl{E}^{\prime\prime} 
    = (\VctStl{E}^\prime \cdot \eMin)\eMin 
    = \sqrt{\half}\left(E_v  +  i E_h  \right) \eMin 
@@ -678,20 +678,20 @@ Measuring the intensity now, we get
    &=& \half \left( |E_v|^2 + |E_h|^2 - 
         i (E_v E_h^\ast -  E_h E_v^\ast )\right) \\ \nonumber
    &=& \half ( I + V )
-  \label{eq:polarization:I_retarded_polarized}
+  \zlabel{eq:polarization:I_retarded_polarized}
 \end{eqnarray}
 
 
 Here is a summary of the Stokes parameters in terms of intensities of
 orthogonal components:
 \begin{eqnarray}
-  \label{eq:polarization:stokesparam_Idiff_I}
+  \zlabel{eq:polarization:stokesparam_Idiff_I}
   I &=& I_v + I_h = I_{-45\degree} + I_{+45\degree} = I_{RH} + I_{LH}\\
-  \label{eq:polarization:stokesparam_Idiff_Q}
+  \zlabel{eq:polarization:stokesparam_Idiff_Q}
   Q &=&   I_v - I_h \\
-  \label{eq:polarization:stokesparam_Idiff_U}
+  \zlabel{eq:polarization:stokesparam_Idiff_U}
   U &=&  I_{+45\degree} - I_{-45\degree} \\
-  \label{eq:polarization:stokesparam_Idiff_V}
+  \zlabel{eq:polarization:stokesparam_Idiff_V}
   V &=&  I_{RH} - I_{LH}
 \end{eqnarray}
 We see that $Q$ and $U$ are both related to linear polarization, while
@@ -699,7 +699,7 @@ $V$ is related to circular polarization.
 
 Here are the Stokes parameters for some standard polarizations:
 \begin{center}
-\label{stokes-examples}
+\zlabel{stokes-examples}
 \begin{tabular}{r@{\hspace{2em}(}r@{,}r@{,}r@{,}r@{)}}
 \hline
 polarization & $I$ &   $Q$   &   $U$  &   $V$ \\ \hline
@@ -716,10 +716,10 @@ left-circular& $I$ &   0     &    0   &  $-I$ \\ \hline
 
 \section{Partial polarization}
 %=====================================================================
-\label{sec:polarization:part_pol}
+\zlabel{sec:polarization:part_pol}
 The equality   $I^2 = Q^2 + U^2 + V^2$
-(Eq.~\ref{eq:polarization:Isquare}) 
-%and in fact all of section~\ref{sec:polarization:monochrom} 
+(Eq.~\zref{eq:polarization:Isquare}) 
+%and in fact all of section~\zref{sec:polarization:monochrom} 
 is valid for the ideal case of a 
 monochromatic plane wave that is completely polarized, i.e., where the
 amplitudes $a_v$ and
@@ -764,7 +764,7 @@ $Q_i$, $U_i$, $V_i$.  Since the different sources and/or emission events are
 incoherent, the Stokes parameters -- which are intensity, not
 amplitude quantities -- can simply be added up:
 \begin{equation}
-  \label{eq:polarization:summed_stokes}
+  \zlabel{eq:polarization:summed_stokes}
   I = \sum_i I_i \: \mbox{, }\; 
   Q = \sum_i Q_i \: \mbox{, }\; 
   U = \sum_i U_i \: \mbox{, }\; 
@@ -777,11 +777,11 @@ $Q$, $U$, and $V$
 each cancel out.
 
 The equality $I_i^2 = Q_i^2 + U_i^2 + V_i^2$
-(cf.~Eq.~\ref{eq:polarization:Isquare}) still holds for each
+(cf.~Eq.~\zref{eq:polarization:Isquare}) still holds for each
 contribution $i$, but for the resulting $I,Q,U,V$, we have in general the
 inequality
 \begin{equation}
- \label{eq:polarization:stokes_inequality}
+ \zlabel{eq:polarization:stokes_inequality}
   I^2 \geq Q^2 + U^2 + V^2
 \end{equation}
 %Thus, we get for partially polarized radiation:
@@ -790,13 +790,13 @@ inequality
 %  I^2 &=& \left(\sum_i I_i\right)^2\\ \nonumber
 %      &\geq& \sum_i I_i^2 = \sum_i (Q_i^2  + U_i^2 + V_i^2)\\ \nonumber
 %      &=& Q^2 + U^2 + V^2
-%  \label{eq:polarization:stokes_inequality}
+%  \zlabel{eq:polarization:stokes_inequality}
 %\end{eqnarray}
 %The inequality follows from  the mathematical fact that the square of
 %a sum of non-negative numbers is greater or equal than the sum of the
 %squares. 
 To prove it, we must once again go back to the amplitude/phase
-notation (Eqs.~\ref{eq:polarization:stokesparam_alt_I}ff.), also
+notation (Eqs.~\zref{eq:polarization:stokesparam_alt_I}ff.), also
 cf.~\citet[][chap.~I.15]{chandrasekhar:60}, but we shall omit the
 factor \half\InvImp{} on the right-hand sides, for the sake of better readability:
 %, with the additional
@@ -812,7 +812,7 @@ U &=& \sum_i U_i = - 2 \sum_i a_v^{(i)} a_h^{(i)} \cos\delta^{(i)} \\
 where $\delta^{(i)} = \delta_v^{(i)} - \delta_h^{(i)}$. 
 We get
 \begin{eqnarray}
-\label{eq:polarization:square-difference}  
+\zlabel{eq:polarization:square-difference}  
 I^2 - Q^2 - U^2 - V^2 &=& 
   4 \sum_i \left(a_v^{(i)}\right)^2
                      \sum_i \left(a_h^{(i)}\right)^2 \\ \nonumber
@@ -833,10 +833,10 @@ The other two terms can be rearranged similarly to yield:
     \left[\cos\delta^{(i)}\cos\delta^{(j)}  
           + \sin\delta^{(i)}\sin\delta^{(j)} \right] 
 \end{eqnarray}
-Putting this into Eq.~\ref{eq:polarization:square-difference} (and
+Putting this into Eq.~\zref{eq:polarization:square-difference} (and
 dividing by 4), the sums over just $i$ cancel and we get:
 \begin{eqnarray}
-\label{eq:polarization:square-difference2}  
+\zlabel{eq:polarization:square-difference2}  
 (I^2 - Q^2 - U^2 - V^2)/4 &=&
   \sum_{{i,j}\atop{i\not=j}} \left(a_v^{(i)}a_h^{(j)}\right)^2\\ \nonumber
  &&- \sum_{{i,j}\atop{i\not=j}} a_v^{(i)} a_h^{(i)} a_v^{(j)} a_h^{(j)} 
@@ -847,7 +847,7 @@ change from $i \not= j$ to $i<j$, so we have to symmetrize the first
 term (the second term is already symmetric with respect to $i$ and $j$ and
 therefore just gets a factor 2):
 \begin{eqnarray}
-\label{eq:polarization:square-difference3}  
+\zlabel{eq:polarization:square-difference3}  
 (I^2 - Q^2 - U^2 - V^2)/4 &=&
   \sum_{{i,j}\atop{i<j}}\left[ 
    \left(a_v^{(i)}a_h^{(j)}\right)^2
@@ -872,25 +872,25 @@ case of partially polarized and unpolarized radiation).
 Instead of summing over the individual emission events, we use
 ensemble averages, denoted by angular brackets:
 \begin{eqnarray}
-  \label{eq:polarization:stokesparam_I_general}
+  \zlabel{eq:polarization:stokesparam_I_general}
   I &=& \half\InvImp  \EnsAvr{E_v E_v^\ast + E_h E_h^\ast} \\
-  \label{eq:polarization:stokesparam_Q_general}
+  \zlabel{eq:polarization:stokesparam_Q_general}
   Q &=&  \half\InvImp \EnsAvr{  E_v E_v^\ast - E_h E_h^\ast} \\
-  \label{eq:polarization:stokesparam_U_general}
+  \zlabel{eq:polarization:stokesparam_U_general}
   U &=& - \half\InvImp \EnsAvr{  E_v E_h^\ast - E_h E_v^\ast} \\
-  \label{eq:polarization:stokesparam_V_general}
+  \zlabel{eq:polarization:stokesparam_V_general}
   V &=& i \half\InvImp \EnsAvr{E_h E_v^\ast - E_v E_h^\ast}
 \end{eqnarray}
 Except for the ensemble average \EnsAvr{..}, the definition is
 identical to the one for monochromatic, plane waves
-(Eqs.~\ref{eq:polarization:stokesparam_I}
-to~\ref{eq:polarization:stokesparam_V}).The same applies to the second
-and third definitions of the Stokes parameters (Eqs.~\ref{eq:polarization:stokesparam_alt_I}
-to~\ref{eq:polarization:stokesparam_alt_V} and  
-Eqs.~\ref{eq:polarization:stokesparam_alt2_I}
-to~\ref{eq:polarization:stokesparam_alt2_V}, respectively).
-Note that the fourth definition (Eqs.~\ref{eq:polarization:stokesparam_Idiff_I}
-to~\ref{eq:polarization:stokesparam_Idiff_V}) which uses sums and
+(Eqs.~\zref{eq:polarization:stokesparam_I}
+to~\zref{eq:polarization:stokesparam_V}).The same applies to the second
+and third definitions of the Stokes parameters (Eqs.~\zref{eq:polarization:stokesparam_alt_I}
+to~\zref{eq:polarization:stokesparam_alt_V} and  
+Eqs.~\zref{eq:polarization:stokesparam_alt2_I}
+to~\zref{eq:polarization:stokesparam_alt2_V}, respectively).
+Note that the fourth definition (Eqs.~\zref{eq:polarization:stokesparam_Idiff_I}
+to~\zref{eq:polarization:stokesparam_Idiff_V}) which uses sums and
 differences of intensities, is equally valid for fully polarized,
 partially polarized and unpolarized radiation. The definition of
 intensities, however, has to include the ensemble average: $I_h =
@@ -899,7 +899,7 @@ intensities, however, has to include the ensemble average: $I_h =
 Now we can define a measure for
 the degree of polarization, $p$, as:
 \begin{equation}
-  \label{eq:polarization:pol_degree}
+  \zlabel{eq:polarization:pol_degree}
   p = \frac{\sqrt{Q^2 + U^2 + V^2}}{I}
 \end{equation}
 For completely polarized radiation, $Q^2 + U^2 + V^2 = I^2$, so $p =
@@ -908,12 +908,12 @@ For completely polarized radiation, $Q^2 + U^2 + V^2 = I^2$, so $p =
 Furthermore, it can be convenient to define the the polarized
 component of radiation by
 \begin{equation}
-  \label{eq:polarization:pol_component}
+  \zlabel{eq:polarization:pol_component}
   I_p^2 = Q^2 + U^2 + V^2
 \end{equation}
 and the unpolarized component as
 \begin{equation}
-  \label{eq:polarization:unpol_component}
+  \zlabel{eq:polarization:unpol_component}
   I_u = I - I_p
 \end{equation}
 Thus, partially polarized radiation, described by a Stokes vector $(I,
@@ -927,23 +927,23 @@ phase).
 
 In addition to the degree of polarization, $p$, we can define measures
 for the circularity and the linearity of the polarization.
-Recalling Eqs.~(\ref{eq:polarization:stokesparam_Idiff_U})%
-~and~(\ref{eq:polarization:stokesparam_Idiff_V}),
+Recalling Eqs.~(\zref{eq:polarization:stokesparam_Idiff_U})%
+~and~(\zref{eq:polarization:stokesparam_Idiff_V}),
 we can define the degree of linear polarization, $p_{lin}$, as
 \begin{equation}
-  \label{eq:polarization:p_lin}
+  \zlabel{eq:polarization:p_lin}
  p_{lin} = \frac{\sqrt{Q^2 + U^2}}{I} 
 \end{equation}
 and the the degree of circular polarization, $p_{circ}$, as
 \begin{equation}
-  \label{eq:polarization:p_circ}
+  \zlabel{eq:polarization:p_circ}
  p_{circ} = \frac{V}{I} 
 \end{equation}
 %(Stephens p.61)
 
 
 \subsection{Polarization of Radiation in the Atmosphere}
-\label{sec:polarization:atmosphere}
+\zlabel{sec:polarization:atmosphere}
 The radiation encountered in atmospheric sounding (for which ARTS is
 intended) is natural radiation, coming from the sun, space (cosmic
 background), and/or the atmosphere and the Earth surface (thermal
@@ -967,7 +967,7 @@ for realistic radiation in relevant cases ($I \gg Q \gg U,V$ when?)
 
 
 \subsection{Antenna polarization}
-\label{sec:polarization:antenna}
+\zlabel{sec:polarization:antenna}
 Finally we want to know what an antenna of arbitrary polarization
 response (antenna polarization)
 measures if radiation of some other arbitrary polarization is incident
@@ -1013,7 +1013,7 @@ vector, or
 (where $Q^2 + U^2 + V^2 = 1$), or 
 \item the orientation angle $\zeta$
 and the ellipticity angle $\beta$ (see
-Eq.~\ref{eq:polarization:tan2zeta} to \ref{eq:polarization:tan2beta}).
+Eq.~\zref{eq:polarization:tan2zeta} to \zref{eq:polarization:tan2beta}).
 \end{enumerate}
 
 In the same way, the polarization of the antenna can be described in
@@ -1035,14 +1035,14 @@ has to be complex-conjugated.)
  
 \item the
   two angles $\zeta$ and $\beta$.  According to
-  Eq.~\ref{eq:polarization:stokesparam_alt2_I}
-  to~\ref{eq:polarization:stokesparam_alt2_V}, we have:
+  Eq.~\zref{eq:polarization:stokesparam_alt2_I}
+  to~\zref{eq:polarization:stokesparam_alt2_V}, we have:
 \begin{eqnarray}
-  \label{eq:polarization:antenna-q}
+  \zlabel{eq:polarization:antenna-q}
  q &=&  - \cos(2\zeta)\cos(2\beta)\\ 
-  \label{eq:polarization:antenna-u}
+  \zlabel{eq:polarization:antenna-u}
  u &=& - \sin(2\zeta)\cos(2\beta)\\
-  \label{eq:polarization:antenna-v}
+  \zlabel{eq:polarization:antenna-v}
  v &=& - \sin(2\beta)
 \end{eqnarray}
 \end{enumerate}
@@ -1053,13 +1053,13 @@ i.e., Jones vectors,  we just have to
 project the Jones vector \VctStl{E} of the incident radiation onto the
 normalized Jones vector \VctStl{e} of the antenna,
 \begin{equation}
-  \label{eq:polarization:antenna-projection}
+  \zlabel{eq:polarization:antenna-projection}
    \VctStl{E}^\prime =  (\VctStl{E}\cdot\VctStl{e}^\ast) \VctStl{e}
 \end{equation}
 (this is in effect like passing through a polarizer) and then take its
 absolute square
 \begin{equation}
-  \label{eq:polarization:antenna:intensity-jones}
+  \zlabel{eq:polarization:antenna:intensity-jones}
   I^\prime =  \half\InvImp\left| \VctStl{E}^{\prime} \right| ^2 
    = \half\InvImp\left|(\VctStl{E}\cdot\VctStl{e}^\ast) \right| ^2 
 \end{equation}
@@ -1067,13 +1067,13 @@ absolute square
 With some elementary algebra (mainly using that $\half\InvImp E_v
 E_v^\ast = (I+Q)/2$, $\half\InvImp E_h E_h^\ast = (I-Q)/2$,
 $\half\InvImp E_v E_h^\ast = -(U - \mi V)/2$ which follow immediately
-from Eq.~\ref{eq:polarization:stokesparam_I}
-to~\ref{eq:polarization:stokesparam_V} ) this can be rewritten in
+from Eq.~\zref{eq:polarization:stokesparam_I}
+to~\zref{eq:polarization:stokesparam_V} ) this can be rewritten in
 terms of the of the Stokes vector \VctStl{I} of the incident radiation
 and the Stokes vector \VctStl{i} of the antenna.  It turns out to be
 just a scalar product:
 \begin{equation}
-  \label{eq:polarization:antenna:intensity-stokes}
+  \zlabel{eq:polarization:antenna:intensity-stokes}
   I^\prime = \frac{1}{2}\VctStl{i}\cdot\VctStl{I}
 \end{equation}
 
@@ -1087,12 +1087,12 @@ just a scalar product:
 
 \section{The scattering amplitude matrix}
 %=====================================================================
-\label{sec:polarization:ampmatrix}
+\zlabel{sec:polarization:ampmatrix}
 The electric field, $[E_v,E_h]^T$, originating from a single
 scattering event of an incident electric field $[E_v^0,E_h^0]^T$ may
-in the far field be written as (c.f.\ Eq.~\ref{eq:rtetheory:amplitude_matrix})
+in the far field be written as (c.f.\ Eq.~\zref{eq:rtetheory:amplitude_matrix})
 \begin{equation}
-  \label{eq:polarisation:ampmatrix1}
+  \zlabel{eq:polarisation:ampmatrix1}
    \left[ \begin{array}{c} E_v \\ E_h \end{array} \right] =
    f(r)
    \left[ \begin{array}{cc} S_2 & S_3 \\ S_4 & S_1 \end{array} \right]
@@ -1102,7 +1102,7 @@ where $S_j$ are the scattering amplitude functions and all distance
 effects are put into the function $f(r)$. Using Stokes based
 nomenclature, the equation above becomes
 \begin{equation}
-  \label{eq:polarisation:ampmatrix2}
+  \zlabel{eq:polarisation:ampmatrix2}
    \left[ \begin{array}{c} I\\Q\\U\\V \end{array} \right] =
    g(r)\MtrStl{F}
    \left[ \begin{array}{c} I^0\\Q^0\\U^0\\V^0 \end{array} \right],
@@ -1110,7 +1110,7 @@ nomenclature, the equation above becomes
 where all distance effects are put into the function $g(r)$ and the
 transformation matrix \MtrStl{F} can be expressed as \citep[Sec.\ 5.4.3]{liou:02}.
 \begin{equation}
-  \label{eq:polarisation:Fmatrix}
+  \zlabel{eq:polarisation:Fmatrix}
   \MtrStl{F} = \left[ \begin{array}{cccc} 
     \scriptstyle \frac{1}{2}(M_2+M_3+M_4+M_1) & 
     \scriptstyle \frac{1}{2}(M_2-M_3+M_4-M_1) & 
@@ -1134,7 +1134,7 @@ expressions:
 Depending on the properties of the scattering event, the structure of
 the matrix \MtrStl{F} differs. Two special cases are:
 \begin{eqnarray}
-  \label{eq:Fcase1}
+  \zlabel{eq:Fcase1}
   S_1=S2,\quad S_3=S_4=0 &\to&    \MtrStl{F} =
       \left[\begin{array}{cccc}
         x&0&0&0\\
@@ -1143,7 +1143,7 @@ the matrix \MtrStl{F} differs. Two special cases are:
         0&0&0&x
       \end{array}
       \right], \\
-  \label{eq:Fcase2}
+  \zlabel{eq:Fcase2}
   S_3=S_4=0 &\to&    \MtrStl{F} =
       \left[\begin{array}{cccc}
         x&x&0&0\\

@@ -1,6 +1,6 @@
 \chapter{Linear algebra functions}
 %--------------------------------------------------------------------------
-\label{sec:lin_alg}
+\zlabel{sec:lin_alg}
 
 \starthistory
   020502 & Created and written by Claudia Emde.\\
@@ -18,7 +18,7 @@ for other purposes than the radiative transfer calculations.
 
 \section{Implementation files}
 %-------------------------------------------------------------------------
-\label{sec:lin_alg:files}
+\zlabel{sec:lin_alg:files}
 
 All the functions described below can be found in the files:
 \begin{itemize}
@@ -46,12 +46,12 @@ are used to check the dimensions of input matrices for various functions.
 
 \section{Linear Equation Systems}
 %------------------------------------------------------------------------
-\label{sec:lin_alg:lineqsys}
+\zlabel{sec:lin_alg:lineqsys}
 
 
 For solving a set of linear equations 
 \begin{eqnarray}
-\label{eq:lin_equ_sys}
+\zlabel{eq:lin_equ_sys}
 {\bf A} {\bf x} = {\bf b}
 \end{eqnarray}
 the LU decomposition method is implemented.A slightly modified version
@@ -66,7 +66,7 @@ which will be decribed below.
 The following example for a three dimensional equation sytem 
 demonstrates how to solve a linear
 equation sytem of the type
-(\ref{eq:lin_equ_sys}):
+(\zref{eq:lin_equ_sys}):
 \begin{itemize}
 \item Create matrix A, vector b: \\
   \artsstyle{A = Matrix(3,3);} \\
@@ -81,9 +81,9 @@ equation sytem of the type
   \artsstyle{x = Vector(3);}\\
   \artsstyle{LU = Matrix(3,3);}\\
   \artsstyle{indx = ArrayOfIndex(3);}
-\item Call LU decomposition function (see Section \ref{sec:lin_alg:lu_decomp}): \\
+\item Call LU decomposition function (see Section \zref{sec:lin_alg:lu_decomp}): \\
   \artsstyle{ludcmp(LU, indx, A);}
-\item Call LU backsubstitution function (see Section \ref{sec:lin_alg:backsub}): \\
+\item Call LU backsubstitution function (see Section \zref{sec:lin_alg:backsub}): \\
   \artsstyle{lubacksub(x, LU, b, indx);}
 \item Print the solution vector:\\
   \artsstyle{cout << x;}
@@ -91,7 +91,7 @@ equation sytem of the type
 
 \subsection{LU Decomposition}
 %------------------------------------------------------------------------
-\label{sec:lin_alg:lu_decomp}
+\zlabel{sec:lin_alg:lu_decomp}
 
 A LU decomposition is a procedure for decomposing a square matrix {\bf
   A} with
@@ -100,10 +100,10 @@ elements only on the diagonal elements and below) and
 an upper triangular matrix {\bf U} (has elements only on the diagonal
 and above):
 \begin{equation}
-  \label{eq:lu_decomp}
+  \zlabel{eq:lu_decomp}
   {\bf L}\cdot{\bf U} ={\bf A} 
 \end{equation}
-For a 3 x 3 matrix equation \ref{eq:lu_decomp} would look like this: 
+For a 3 x 3 matrix equation \zref{eq:lu_decomp} would look like this: 
 \[ \left(
   \begin{array}{ccc}
     l_{11} & 0 & 0 \\
@@ -126,7 +126,7 @@ For a 3 x 3 matrix equation \ref{eq:lu_decomp} would look like this:
     \end{array} \right)
 \]
 The decomposition can be used to rewrite the linear set of equations
-(\ref{eq:lin_equ_sys}) in the following way:
+(\zref{eq:lin_equ_sys}) in the following way:
 \begin{eqnarray}
   {\bf A}\cdot{\bf x} = ({\bf L}\cdot{\bf U})\cdot{\bf x} = {\bf
     L}\cdot({\bf U}\cdot{\bf x}) = {\bf b}
@@ -136,7 +136,7 @@ First
   {\bf L} \cdot{\bf y} = {\bf b}
 \end{equation}
 is solved for the vector ${\bf y}$ which can be done by
-forward substitution (see section \ref{sec:lin_alg:backsub}). Then 
+forward substitution (see section \zref{sec:lin_alg:backsub}). Then 
 \begin{equation}
   {\bf U} \cdot{\bf x} = {\bf y}
 \end{equation}
@@ -177,7 +177,7 @@ the last row of a three dimensional matrix would be exchanged.
 
 \subsection{Forward- and Backsubstitution}
 %---------------------------------------------------------------
-\label{sec:lin_alg:backsub}
+\zlabel{sec:lin_alg:backsub}
 An equation system of the form
 \[ 
 \left(
@@ -211,7 +211,7 @@ lower triangular matrix is named forward substitution.
 
 The function \artsstyle{lubacksub} does forward and backward
 substitution to solve the equation system described in
-\ref{sec:lin_alg:lu_decomp}. As input it requires the output variables of
+\zref{sec:lin_alg:lu_decomp}. As input it requires the output variables of
 \artsstyle{ludcmp} which are the {\sl Crout matrix} and the index
 vector. Output of the function is the solution vector ${\bf x}$ to the
 equation system.
@@ -219,15 +219,15 @@ equation system.
 
 \subsection{More Applications of the LU Decomposition}
 %-------------------------------------------------------------------
-\label{lu_applications}
+\zlabel{lu_applications}
 
 \begin{itemize}
 \item Inverse of a matrix:\\
   To compute $(\bf K)^{-1}\cdot{\bf b}$, which is a part of the
-solution to the vector radiative transfer equation (\ref{eq:scattering:VRTE_sol}) the LU
+solution to the vector radiative transfer equation (\zref{eq:scattering:VRTE_sol}) the LU
 decomposition method can be used. The following equations show, that
 the problem is equivalent to  solving a linear equation system of the type
-\ref{eq:lin_equ_sys}.
+\zref{eq:lin_equ_sys}.
 \begin{eqnarray}
   {\bf K}^{-1}\cdot{\bf b} &=& {\bf x}\\
 \Leftrightarrow \qquad  {\bf K}\cdot{\bf x} &=& {\bf b}
@@ -249,12 +249,12 @@ backsubstitute with the columns of B and you get the columns of {\bf
 
 \section{Matrix Exponential Function}
 %----------------------------------------------------------------
-\label{sec:lin_alg:mat_exp}
+\zlabel{sec:lin_alg:mat_exp}
 
 A very important function for solving differential equations is the
 matrix exponential:
 \begin{eqnarray}
-  \label{eq:mat_exp}
+  \zlabel{eq:mat_exp}
   e^{{\bf A}s} = \sum_{k=0}^\infty{\frac{({\bf A} s)^k}{k!}}
 \end{eqnarray}
 In principle it could be computed using the Taylor power series but 
@@ -272,7 +272,7 @@ result due to rounding errors.
 
 \subsection{Pad\'e Approximation}
 %----------------------------------------------------------------------
-\label{sec:pade_approximation}
+\zlabel{sec:pade_approximation}
 
 One of the better algorithms for computing the matrix exponential is
 the Pad\'e approximation which is also shortly described in

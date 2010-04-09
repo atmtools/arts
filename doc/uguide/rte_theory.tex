@@ -10,7 +10,7 @@
     \end{array} \right] }
 
 \chapter{Basic radiative transfer theory}
- \label{sec:rte_theory}
+ \zlabel{sec:rte_theory}
 
 
 \starthistory
@@ -66,7 +66,7 @@
  outline of the traditional phenomenological approach is given.
  
  \section{Basic definitions}
- \label{sec:rtetheory:theory_basics}
+ \zlabel{sec:rtetheory:theory_basics}
  
  From the Maxwell equations one can derive the formula for the
 electromagnetic field vector $\VctStl{E}$ of a plane electromagnetic
@@ -102,7 +102,7 @@ where $\VctStl{H}$ is the magnetic field vector and the $*$ denotes the
 complex conjugate. The Poynting vector for a homogeneous wave is given
 by
 \begin{equation}
-\label{eq:rtetheory:Poynting_vec}
+\zlabel{eq:rtetheory:Poynting_vec}
   \EnsAvr{\VctStl{P}(\VctStl{r})} =
    \frac{1}{2}\Re \left( \sqrt{\frac{\epsilon}{\mu}} \right)
    \Abs{\VctStl{E}_0}^2
@@ -131,7 +131,7 @@ Intensity has the dimension of monochromatic flux
   
 
 \section[The Stokes parameters]{The Stokes parameters}
-\label{sec:rtetheory:Stokes_components}
+\zlabel{sec:rtetheory:Stokes_components}
   
 
 Sensors usually do not measure directly the electric and the magnetic
@@ -146,7 +146,7 @@ polarization state of a plane electromagnetic wave.
  \begin{center}
    \includegraphics*[width=0.6\hsize]{coordinate_system}
    \caption{Coordinate system to describe the direction of propagation and the polarization state of a plane electromagnetic wave (adapted from Mishchenko).}
-  \label{fig:RT_theory_coordinates}  
+  \zlabel{fig:RT_theory_coordinates}  
  \end{center}
 \end{figure}
 The unit vector $\hat{\PDir}$ can equivalently be described by a
@@ -170,10 +170,10 @@ and the phase difference.  The first Stokes parameter $I$ is the
 intensity and the other components $Q$, $U$ and $V$ describe the
 polarization state of the wave. For a detailed definition of the
 Stokes parameters and how they can be measured refer to
-Section~\ref{sec:polarization}.
+Section~\zref{sec:polarization}.
 
 \section[Single particle scattering]{Scattering, absorption and thermal emission by a single particle}
-\label{sec:rtetheory:theory_single_part}
+\zlabel{sec:rtetheory:theory_single_part}
 
 A parallel monochromatic beam of electromagnetic radiation propagates
 in vacuum without any change in its intensity or polarization state. A
@@ -213,7 +213,7 @@ size relative to the wavelength and its shape, composition and
 orientation.
 
 \subsection{Definition of the amplitude matrix}
-\label{sec:rtetheory:amp_mat}
+\zlabel{sec:rtetheory:amp_mat}
 
 For the derivation of a relation between the incident and the
 scattered electric field we consider a finite scattering object in the
@@ -231,7 +231,7 @@ gives a relation between incident and scattered field, which is that
 of a spherical wave.  The amplitude matrix
 $\MtrStl{S}(\hat{\PDir}^{\sca},\hat{\PDir}^{\inc})$ includes this relation:
 \begin{equation}
-  \label{eq:rtetheory:amplitude_matrix}
+  \zlabel{eq:rtetheory:amplitude_matrix}
   \ColVctTwo{E_\ZntAng^{\sca}(r\hat{\PDir}^{\sca})}%
          {E_\AzmAng^{\sca}(r\hat{\PDir}^{\sca})}
          = \frac{e^{ikr}}{r}\MtrStl{S}(\hat{\PDir}^{\sca},\hat{\PDir}^{\inc}) 
@@ -251,14 +251,14 @@ on $\AzmAng^{\inc}$ and $\AzmAng^{\sca}$ even when $\ZntAng^{\inc}$ and/or
 $\ZntAng^{\sca}$ equal 0 or~$\pi$.
 
 \subsection{Phase matrix}
-\label{sec:rtetheory:pha_mat}
+\zlabel{sec:rtetheory:pha_mat}
 
 The phase matrix \PhaMat\ describes the transformation of the Stokes
 vector of the incident wave into that of the scattered wave for
 scattering directions away from the incidence direction
 $(\hat{\PDir}^{\sca}\neq\hat{\PDir}^{\inc})$,
 \begin{equation}
-  \label{eq:rtetheory:phase_matrix}
+  \zlabel{eq:rtetheory:phase_matrix}
   \StoVec^{\sca}(r \hat{\PDir}^{\sca}) =
     \frac{1}{r^2}\PhaMat(\hat{\PDir}^{\sca},\hat{\PDir}^{\inc}) \StoVec^{\inc}.
 \end{equation}
@@ -289,7 +289,7 @@ can be written in terms of the phase matrix elements
 
 
 \subsection{Extinction matrix}
-\label{sec:rtetheory:ext_mat}
+\zlabel{sec:rtetheory:ext_mat}
 In the special case of the exact forward direction
 $(\hat{\PDir}^{\sca}=\hat{\PDir}^{\inc})$ the attenuation of the
 incoming radiation is described by the extinction matrix~\ExtMat. In
@@ -306,7 +306,7 @@ $\AzmAng^{\sca}$ even when the incident wave propagates along the
 $z$-axis.
 
 \subsection{Absorption vector}
-\label{sec:rtetheory:abs_vec}
+\zlabel{sec:rtetheory:abs_vec}
 The particle also emits radiation if its temperature~$T$ is above zero
 Kelvin. According to Kirchhoff's law of radiation the emissivity
 equals the absorptivity of a medium under thermodynamic equilibrium.
@@ -332,7 +332,7 @@ represent this radiation as a collection of quasi-monochromatic,
 unpolarized, incoherent beams propagating in all directions
 characterized by the Planck blackbody radiation
 \begin{equation}
-  \label{eq:rtetheory:Planck}
+  \zlabel{eq:rtetheory:Planck}
   \Planck(T,\omega)\Delta S \Delta\Omega =
     \frac{\hbar\omega^3}{2\pi^2 c^2\left[\exp\left(\frac{\hbar\omega}{k_B T}\right) -1\right]}
      \Delta S \, \Delta\Omega,
@@ -346,7 +346,7 @@ Boltzmann constant. The blackbody Stokes vector is
 For the Stokes emission vector, which we also call particle absorption
 vector, we can derive
 \begin{equation}
-  \label{eq:rtetheory:abs_vec}
+  \zlabel{eq:rtetheory:abs_vec}
   a_i^p(\hat{\VctStl{r}}, T, \omega) =
   K_{i1}(\hat{\VctStl{r}},\omega) - \int_{4\pi} \DiffD\hat{\VctStl{r}}' Z_{i1}(\hat{\VctStl{r}}, \hat{\VctStl{r}}', \omega) ,
  \quad i = 1,\ldots,4. 
@@ -356,7 +356,7 @@ any particle, in thermodynamic equilibrium or non-equilibrium.
 
 
 \subsection{Optical cross sections}
-\label{sec:rtetheory:cross_sects}
+\zlabel{sec:rtetheory:cross_sects}
 
 The optical cross-sections are defined as follows: The product of the
 scattering cross section $C_{\sca}$ and the incident monochromatic
@@ -367,7 +367,7 @@ monochromatic energy flux gives the power which is removed from the
 incident wave by absorption. The extinction cross section $C_{\mathrm{ext}}$ is
 the sum of scattering and absorption cross section.  One can express
 the extinction cross sections in terms of extinction matrix elements
-\begin{eqnarray}\label{eq:rtetheory:ext_cross_sec}
+\begin{eqnarray}\zlabel{eq:rtetheory:ext_cross_sec}
     C_{\mathrm{ext}} =
       \frac{1}{I^{\inc}} \, \bigl( &
                 K_{11}(\hat{\VctStl{n}}^{\inc})I^{\inc}
@@ -376,7 +376,7 @@ the extinction cross sections in terms of extinction matrix elements
              +  K_{14}(\hat{\VctStl{n}}^{\inc})V^{\inc} \bigr),  
 \end{eqnarray}
 and the scattering cross section in terms of phase matrix elements
-\begin{eqnarray}\label{eq:rtetheory:sca_cross_sec}
+\begin{eqnarray}\zlabel{eq:rtetheory:sca_cross_sec}
   C_{\sca} =
       \frac{1}{I^{\inc}} \int_{4\pi} \DiffD\hat{\VctStl{r}}
     \bigl(&
@@ -388,7 +388,7 @@ and the scattering cross section in terms of phase matrix elements
 The absorption cross section is the difference between extinction and
 scattering cross section:
 \begin{equation}
-  \label{eq:rtetheory:abs_cross_sec}
+  \zlabel{eq:rtetheory:abs_cross_sec}
   C_{\mathrm{abs}} = C_{\mathrm{ext}} - C_{\sca}. 
 \end{equation}
 The single scattering albedo $\omega_0$, which is a commonly used
@@ -401,7 +401,7 @@ All cross sections are real-valued positive quantities and have the
 dimension of area.
 
 The phase function is generally defined as
-\begin{eqnarray}\label{eq:rtetheory:phase_function}
+\begin{eqnarray}\zlabel{eq:rtetheory:phase_function}
   p(\hat{\VctStl{r}}, \hat{\VctStl{n}}^{\inc}) =
     \frac{4\pi}{C_{\sca} I^{\inc}} \, \bigl( &
          Z_{11}(\hat{\VctStl{r}}, \hat{\VctStl{n}}^{\inc})I^{\inc}
@@ -418,7 +418,7 @@ The phase function is dimensionless and normalized:
 
 
 \section[Particle Ensembles]{Scattering, absorption and emission by~ensembles of independent particles}
-\label{sec:rtetheory:part_ensembles}
+\zlabel{sec:rtetheory:part_ensembles}
 
 The formalism described in the previous chapter applies only for
 radiation scattered by a single body or a fixed cluster consisting of
@@ -496,13 +496,13 @@ direction and the individual extinction matrices can be written in
 terms of the individual amplitude matrix elements, the total
 extinction matrix is given by
 \begin{equation}
-  \label{eq:rtetheory:ext_mat_tot}
+  \zlabel{eq:rtetheory:ext_mat_tot}
   \ExtMat = \sum_{n=1}^N  \MtrStl{K}_n = N \EnsAvr{\ExtMat},
 \end{equation}
 where $\EnsAvr{\ExtMat}$ is the average extinction matrix per
 particle. One can derive the analog equation for the phase matrix
  \begin{equation}
-  \label{eq:rtetheory:pha_mat_tot}
+  \zlabel{eq:rtetheory:pha_mat_tot}
   \PhaMat = \sum_{n=1}^N  \MtrStl{Z}_n = N \EnsAvr{\PhaMat},
 \end{equation}
 where $\EnsAvr{\PhaMat}$ is the average phase matrix per particle.  In
@@ -519,7 +519,7 @@ hold for particle ensembles.
  \begin{center}
    \includegraphics*[width=0.6\hsize]{part_ensemble}
    \caption{A volume element of a scattering medium conststing of a particle ensemble. $O$ is the origin of the volume element, $r_{O1}$ connects the origin with particle $1$ and $r_{O2}$ with particle $2$. The observation point is assumed to be in the far-field zone of the volume element.}
-  \label{fig:part_ensembles}  
+  \zlabel{fig:part_ensembles}  
  \end{center}
 \end{figure}
 
@@ -527,7 +527,7 @@ hold for particle ensembles.
 \clearpage
 
 \section[Radiative transfer equation]{Phenomenological derivation of the radiative transfer equation}
-\label{sec:rtetheory:theory_rte}
+\zlabel{sec:rtetheory:theory_rte}
 
 When the scattering medium contains a very large number of particles
 the single scattering approximation is no longer valid. In this case
@@ -567,7 +567,7 @@ The vector radiative transfer equation (VRTE) is
     &{}-\EnsAvr{\ExtMat(\PDir, \nu, T)} \StoVec(\PDir, \nu, T) +
     \EnsAvr{\AbsVec(\PDir, \nu, T)} \rlap{$B(\nu, T)$} \nonumber \\
     &{}+ \int_{4\pi} \DiffD\PDir' \EnsAvr{\PhaMat(\PDir, \PDir', \nu, T)} \StoVec(\PDir', \nu, T),
-  \label{eq:rtetheory:VRTE}
+  \zlabel{eq:rtetheory:VRTE}
   \end{eqnarray}
 where $\StoVec$ is the specific intensity vector, $\EnsAvr\ExtMat$ is the ensemble-averaged extinction matrix, $\EnsAvr\AbsVec$ is the ensemble-averaged absorption vector, $B$ is the
 Planck function and $\EnsAvr\PhaMat$ is the ensemble-averaged
@@ -612,7 +612,7 @@ weighted by their particle number densities $n^p_i$:
 \begin{equation}
   \EnsAvr{\ExtMat^{p}(\PDir, \nu, T)} =
   \sum_{i=1}^N n^p_i \EnsAvr{\ExtMat_i^p (\PDir, \nu, T)}.
-\label{eq:rtetheory:ext_mat_p}
+\zlabel{eq:rtetheory:ext_mat_p}
 \end{equation}
 A particle distribution, which can include various particle sizes,
 shapes and orientations, can be represented by a single particle type,
@@ -656,7 +656,7 @@ individual absorption vectors $\EnsAvr{ \AbsVec_i^p } $, again
 weighted with $n^p_i$:
 \begin{equation}
   \EnsAvr{\AbsVec^{p}(\PDir, \nu, T)} = \sum_{i=1}^N n^p_i \EnsAvr{\AbsVec_i^p (\PDir, \nu, T)}.
-\label{eq:rtetheory:abs_vec_p}
+\zlabel{eq:rtetheory:abs_vec_p}
 \end{equation}
 The gas absorption vector is simply
 \begin{equation}
@@ -671,12 +671,12 @@ phase matrices \EnsAvr{\PhaMat_i} weighted with $n^p_i$:
   \EnsAvr{\PhaMat(\PDir, \PDir', \nu, T)} = 
   \sum_{i=1}^N {n^p_i\EnsAvr{\PhaMat_i(\PDir,
     \PDir', \nu, T)}}.
-  \label{eq:rtetheory:pha_mat}
+  \zlabel{eq:rtetheory:pha_mat}
 \end{equation}
 
 The scalar radiative transfer equation (SRTE)
 \begin{eqnarray}
-  \label{eq:rtetheory:SRTE}
+  \zlabel{eq:rtetheory:SRTE}
   \frac{\DiffD I}{\DiffD s} (\PDir, \nu, T)& = 
   -\EnsAvr{ K_{11}(\PDir, \nu, T)} I(\PDir, \nu, T) +
   \EnsAvr{ a_1(\PDir, \nu, T)} B(\nu, T)   \nonumber\\
@@ -692,7 +692,7 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
 
  
 \section{Blackbody radiation}
- \label{sec:rtetheory:rtetheory:planck}
+ \zlabel{sec:rtetheory:rtetheory:planck}
  
  All natural bodies with a temperature $>$ 0 K emit thermal radiation.
  The thermal motion in the matter is translated by collisions to
@@ -704,34 +704,34 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
 
  \begin{equation}
    B(\lambda,T) = \frac{2\pi hc^2}{\lambda^5} \frac{1}{e^{hc/\lambda k_bT}-1}
-  \label{eq:rtetheory:planck}
+  \zlabel{eq:rtetheory:planck}
  \end{equation}
  where $B$ is the emitted radiation, $\lambda$ the wavelength, $T$ the 
  temperature, $h$ the Planck constant, $c$ the speed of light and $k_b$
- the Boltzmann constant. Equation~\ref{eq:rtetheory:planck} is shown in Figure 
- \ref{fig:rtetheory:planck} for some temperatures.
+ the Boltzmann constant. Equation~\zref{eq:rtetheory:planck} is shown in Figure 
+ \zref{fig:rtetheory:planck} for some temperatures.
 
  \begin{figure}
   \begin{center}
    \includegraphics*[width=0.8\hsize]{fig_planck}
     \caption{The blackbody radiation as a function of wavelength for
              some temperatures.}
-    \label{fig:rtetheory:planck}
+    \zlabel{fig:rtetheory:planck}
   \end{center}
  \end{figure}   
                                        
  The maximum of the Planck formula is a function temperature and is
  given by the Wien's displacement law. The maximum of
- Equation~\ref{eq:rtetheory:planck} is found at: 
+ Equation~\zref{eq:rtetheory:planck} is found at: 
 
  \begin{equation}
    \lambda_{max} = \frac{K}{T}
-  \label{eq:rtetheory:wien}
+  \zlabel{eq:rtetheory:wien}
  \end{equation}
  where is $\lambda_{max}$ the wavelength of maximum emittance and $K
  =$~2.898\topowerten{-3} Km. Consequently the maximum is encountered
  at a shorter wavelength for a higher temperature as can be seen in
- Figure \ref{fig:rtetheory:planck}.
+ Figure \zref{fig:rtetheory:planck}.
                                      
  No natural object can be said to be a perfect blackbody but the Sun
  and the Earth can approximately be treated as blackbodies with
@@ -770,7 +770,7 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
  direction is
  \begin{equation}
    \frac{dI(\nu)}{dl} = -k(l,\nu)I(\nu) + S(l,\nu)
-  \label{eq:rtetheory:chand}
+  \zlabel{eq:rtetheory:chand}
  \end{equation} 
  where $I$ is the intensity per unit area, $\nu$ the frequency, $l$
  the distance along the propagation path, $k$ the total absorption
@@ -791,17 +791,17 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
 
  \begin{equation}
    S = k(l,\nu)B(T(l),\nu)
-  \label{eq:rtetheory:kirch}
+  \zlabel{eq:rtetheory:kirch}
  \end{equation}  
  For the conditions given, no scattering and local thermodynamic
  equilibrium, the radiative transfer equation is obtained by combining
- Equations \ref{eq:rtetheory:chand} and \ref{eq:rtetheory:kirch}. The resulting
+ Equations \zref{eq:rtetheory:chand} and \zref{eq:rtetheory:kirch}. The resulting
  differential equation can be solved to give
 
  \begin{equation}
    I(\nu) = I_0(\nu)e^{-\int^h_0{k(l',\nu)dl'}} + 
      \int^h_0{k(l,\nu)B(T(l),\nu) e^{-\int^l_0{k(l',\nu)dl'}} dl}
-  \label{eq:rtetheory:rte}
+  \zlabel{eq:rtetheory:rte}
  \end{equation}  
  where the receiver is assumed to be placed at $l$~=~0 and $h$ is the
  distance along the path to the limit of the media. $I_0$ is the
@@ -813,14 +813,14 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
 
  \begin{equation}
    \tau(l,\nu) = \int^l_0{k(l',\nu)dl'} 
-  \label{eq:rtetheory:tau}
+  \zlabel{eq:rtetheory:tau}
  \end{equation}  
- and Equation \ref{eq:rtetheory:rte} can be written as
+ and Equation \zref{eq:rtetheory:rte} can be written as
  
  \begin{equation}
    I(\nu) = I_0(\nu)e^{-\tau(h,\nu)dl'} + 
      \int^h_0{k(l,\nu)B(T(l),\nu) e^{-\tau(l',\nu)} dl}
-  \label{eq:rtetheory:rte2}
+  \zlabel{eq:rtetheory:rte2}
  \end{equation}  
  The terms inside the integral found in this equation have a simple
  physical meaning, the radiation emitted at one point is $kBdl$ and this
@@ -829,7 +829,7 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
 
 
 \section{Special solutions}
- \label{sec:rtetheory:special}
+ \zlabel{sec:rtetheory:special}
  
  If the total emission along the propagation path can be neglected
  compared to the transmitted part of the incoming radiation, the
@@ -837,13 +837,13 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
  
  \begin{equation}
    I(\nu) = I_0(\nu)e^{-\tau(h,\nu)}
-  \label{eq:rtetheory:beer}
+  \zlabel{eq:rtetheory:beer}
  \end{equation}  
  This equation can for example be used when evaluating solar
  occultation observations.  
  
  If the temperature is constant through the medium studied (Fig.
- \ref{fig:rtetheory:layer}) the integral in Equation \ref{eq:rtetheory:rte} can be solved
+ \zref{fig:rtetheory:layer}) the integral in Equation \zref{eq:rtetheory:rte} can be solved
  analytically:
 
  \begin{figure}
@@ -852,7 +852,7 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
     \centering
     \caption{Schematic picture of the radiative transfer through a medium with
              constant temperature.}
-    \label{fig:rtetheory:layer}
+    \zlabel{fig:rtetheory:layer}
    \end{minipage}%
    \hspace{0.05\textwidth}%
    \begin{minipage}[c]{0.50\textwidth}
@@ -864,13 +864,13 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
   
  \begin{equation}
    I^{out} = I^{in}e^{-\tau} + B(T,\nu)(1-e^{-\tau})
-  \label{eq:rtetheory:layer}
+  \zlabel{eq:rtetheory:layer}
  \end{equation}  
  where is $\tau$ the total optical thickness of the medium. Two
  special cases can be distinguished. If the layer is totally optically
  thick ($\tau \to \infty$) then $I^{in}$ is totally absorbed and
  $I^{out} = B$, the medium emits as a blackbody. If the layer has no
- absorption ($\tau=0$) then Equation \ref{eq:rtetheory:layer} gives
+ absorption ($\tau=0$) then Equation \zref{eq:rtetheory:layer} gives
  $I^{out} = I^{in}$ as expected.
  
  In microwave radiometry the measured intensity is normally presented
@@ -879,33 +879,33 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
 
  \begin{equation}
    B(T,\nu) \approx \frac{2\nu^2k_bT}{c^2} = \frac{2k_bT}{\lambda^2}
-  \label{eq:rtetheory:rayjean}
+  \zlabel{eq:rtetheory:rayjean}
  \end{equation}  
  This equation is valid when $h\nu \ll kT$ which is the case in the
  microwave region due to the relatively low frequencies. If the
  temperature is 50 K, $hv$ equals $kT$ at 1.04 THz. The important
- aspect of Equation \ref{eq:rtetheory:rayjean} is the linear relationship
+ aspect of Equation \zref{eq:rtetheory:rayjean} is the linear relationship
  between the intensity and the physical temperature. The natural
  definition of brightness temperature, $T_b$, is then
 
  \begin{equation}
    T_b(\nu) = \frac{\lambda^2}{2k_bT} I(\nu)
-  \label{eq:rtetheory:tb}
+  \zlabel{eq:rtetheory:tb}
  \end{equation}  
  The difference between the brightness temperature and the physical
  temperature (corresponding to the actual intensity) increases with
- frequency which is exemplified in Figure \ref{fig:rtetheory:rayjean}. The
+ frequency which is exemplified in Figure \zref{fig:rtetheory:rayjean}. The
  differences for higher frequencies are certainly not negligible and
  the brightness temperature shall not be mistaken for the physical
  temperature. The important fact is that the brightness temperature
  has a linear relationship to the intensity and gives a more intuitive
  understanding of the magnitude of the emission. In the Rayleigh-Jeans
- limit Equation \ref{eq:rtetheory:rte} can be written as
+ limit Equation \zref{eq:rtetheory:rte} can be written as
 
  \begin{equation}
    T_b(\nu) = T_{b0}(\nu)e^{-\tau(h,\nu)dl'} + 
      \int^h_0{k(l,\nu)T(l) e^{-\tau(l',\nu)} dl}
-  \label{eq:rtetheory:rte_tb}
+  \zlabel{eq:rtetheory:rte_tb}
  \end{equation}  
 
  \begin{figure}
@@ -914,7 +914,7 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
     \caption{The difference between the physical temperarature of a 
              blackbody and the equivalent brightness temperature
              calculated using the Rayleight-Jeans approximation.}
-    \label{fig:rtetheory:rayjean}
+    \zlabel{fig:rtetheory:rayjean}
   \end{center}
  \end{figure} 
   

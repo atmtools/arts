@@ -1,6 +1,6 @@
 \chapter{Integration functions}
 %--------------------------------------------------------------------------
-\label{sec:integration}
+\zlabel{sec:integration}
 
 \starthistory
   220802 & Created and written by Sreerekha T.R.\\
@@ -24,7 +24,7 @@ implemented in ARTS is the trapezoidal integration method.
 
 \section{Implementation files}
 %-------------------------------------------------------------------------
-\label{sec:integration:files}
+\zlabel{sec:integration:files}
 
 The integration functions can be found in the files:
 \begin{itemize}
@@ -36,7 +36,7 @@ discussed in the second file.
 
 \section{Trapezoidal Integration}
 %------------------------------------------------------------------------
-\label{sec:integration:trapezoidal}
+\zlabel{sec:integration:trapezoidal}
 
 Trapezoidal Integration method comes under the Newton-Cotes formulas
 where integration of a function is approximated by the area under the
@@ -45,21 +45,21 @@ the area under the curve is trapezoid.
 
 Trapezoidal rule : 
 \begin{eqnarray}
-\label{eq:trapezoidal_rule}
+\zlabel{eq:trapezoidal_rule}
 {\int_{x_1}^{x_2} f(x)dx}  = \frac{1}{2} h (f_1 + f_2) + O(h^3 f^{''})
 \end{eqnarray}
 This is a two-point formula ($x_1$ and $x_2$).  It is exact for
 polynomials upto and including degree 1, i.e., f(x) = x. $O(h^3
 f^{''})$ signifies how far is the true answer from the estimate. 
 
-If we use eq. \ref{eq:trapezoidal_rule} $N - 1$ times, to do the
+If we use eq. \zref{eq:trapezoidal_rule} $N - 1$ times, to do the
 integration in the intervals $(x_1, x_2)$,  $(x_2, x_3)$, ...,
 $(x_{N-1}, x_N)$, and then add the results, we obtain extended formula
 for the integral from $x_1$ to $x_N$.
 
 Extended Trapezoidal rule :
 \begin{eqnarray}
-\label{eq:ext_trapezoidal_rule}
+\zlabel{eq:ext_trapezoidal_rule}
 {\int_{x_1}^{x_N} f(x)dx}  = \frac{1}{2} h \left [f_1 + 2(f_2 + f_3 +
 ... +f_{N-1})+f_N \right] + O\left [ \frac {(b-a)^3 f^{''}}{N^2} \right]
 \end{eqnarray}
@@ -69,10 +69,10 @@ more number of steps.
 
 \section{Solid Angle Integration}
 %------------------------------------------------------------------------
-\label{sec:integration:solid_angle}
+\zlabel{sec:integration:solid_angle}
 In our scattering problem, we are often encountered with a double integration
 of functions over zenith and azimuth angles (see Chapter
-\ref{sec:scattering}).  One way to achieve
+\zref{sec:scattering}).  One way to achieve
 double integration is to use repeated
 one-dimensional trapezoidal integration.  This is effective of course
 only if the boundary is simple and the function is very smooth.  If
@@ -86,12 +86,12 @@ need to do only integration over zenith directions.
 
 The general form of a solid angle integration is
 \begin{equation}
-  \label{eq:solid_int}
+  \zlabel{eq:solid_int}
 S = \int_{4\pi} f(\omega) \DiffD\omega
 \end{equation}
 In spherical coordinates we can write:
 \begin{equation}
-  \label{eq:sol_int_sph}
+  \zlabel{eq:sol_int_sph}
  S = \int_0^\pi \int_0^{2\pi} f(\theta,\phi) \sin\theta \quad\DiffD\theta\DiffD\phi
 \end{equation}
 A double integration can be splitted into two single integrations:
