@@ -1,3 +1,16 @@
+2010-04-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-6
+
+	* autogen.sh: Add support for automake-1.11.
+
+	* doc/uguide/Makefile.am:
+
+	Build arts_user, arts_developer and arts_theory.
+
+	Currently all docs depend on all tex files. Will be changed in the
+	future.
+
 2010-04-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-5

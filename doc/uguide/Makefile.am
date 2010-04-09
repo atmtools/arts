@@ -14,56 +14,23 @@ artsdocdir = $(pkgdatadir)/doc
 
 uguidedocdir = $(artsdocdir)/uguide
 
-uguidedoc_DATA = uguide.pdf
+uguidedoc_DATA = arts_user.pdf arts_developer.pdf arts_theory.pdf
 
-artsexecutable = $(top_builddir)/src/arts
+usertexfiles = $(wildcard *.tex)
 
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# 	Don't forget to add new tex files to $(texfiles)
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+developertexfiles = $(wildcard *.tex)
 
-texfiles = \
-	absorption.tex \
-	atmosphere.tex \
-	agendas.tex \
-	agu.bst \
-	app_units.tex \
-	app_wsv.tex \
-	atmosphere.tex \
-	auto_version.tex \
-	batch.tex \
-	chapter_template.tex \
-	clouds.tex \
-	concept.tex \
-	development.tex \
-	formalism.tex \
-	integration.tex \
-	interpolation.tex \
-	lin_alg.tex \
-	main.tex \
-	matrix_vector.tex \
-	measerr.tex \
-	montecarlo.tex \
-	old_absorption.tex \
-	polarization.tex \
-	ppath.tex \
-	reduction.tex \
-	references.bib \
-	rte.tex \
-	rte_theory.tex \
-	scattering.tex \
-	sensor.tex \
-	surface.tex \
-	symbol_defs.tex \
-	uguide.tex \
-	wfuns_atm.tex \
-	wfuns_sensor.tex
+theorytexfiles = $(wildcard *.tex)
 
 autotexfiles = 
 
 EXTRA_DIST = \
-	$(texfiles) \
-	uguide.pdf
+	$(usertexfiles) \
+	$(developertexfiles) \
+	$(theorytexfiles) \
+	arts_user.pdf \
+	arts_developer.pdf \
+	arts_theory.pdf
 
 
 if MAINTAINER_MODE
@@ -71,34 +38,54 @@ if MAINTAINER_MODE
 # version.tex.in does not show up explicitly in EXTRA_DIST, since this is
 # distributed automatically.
 
-uguide.pdf: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex uguide && \
-	makeindex uguide.idx && \
-	BSTINPUTS=.:$(srcdir):${BSTINPUTS}: BIBINPUTS=.:$(srcdir):${BIBINPUTS}: save_size=15000 bibtex uguide && \
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex uguide && \
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex uguide && \
-	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex uguide | tee make.log || \
-	(echo "Errors encountered while building user guide."; rm -f uguide.pdf)
+arts_user.pdf: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex arts_user && \
+	makeindex arts_user.idx && \
+	BSTINPUTS=.:$(srcdir):${BSTINPUTS}: BIBINPUTS=.:$(srcdir):${BIBINPUTS}: save_size=15000 bibtex arts_user && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex arts_user && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex arts_user && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex arts_user | tee make.log || \
+	(echo "Errors encountered while building user guide."; rm -f arts_user.pdf)
+
+arts_developer.pdf: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex arts_developer && \
+	makeindex arts_developer.idx && \
+	BSTINPUTS=.:$(srcdir):${BSTINPUTS}: BIBINPUTS=.:$(srcdir):${BIBINPUTS}: save_size=15000 bibtex arts_developer && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex arts_developer && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex arts_developer && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex arts_developer | tee make.log || \
+	(echo "Errors encountered while building developer guide."; rm -f arts_developer.pdf)
+
+arts_theory.pdf: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex arts_theory && \
+	makeindex arts_theory.idx && \
+	BSTINPUTS=.:$(srcdir):${BSTINPUTS}: BIBINPUTS=.:$(srcdir):${BIBINPUTS}: save_size=15000 bibtex arts_theory && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex arts_theory && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex arts_theory && \
+	TEXINPUTS=.:$(srcdir):${TEXINPUTS}: save_size=15000 pdflatex arts_theory | tee make.log || \
+	(echo "Errors encountered while building theory guide."; rm -f arts_theory.pdf)
 
 
 CLEANFILES = $(wildcard *.aux) \
 	     $(wildcard *.log) \
 	     make.log \
-	     uguide.bbl \
-	     uguide.blg \
-	     uguide.idx \
-	     uguide.ilg \
-	     uguide.ind \
-	     uguide.out \
-	     uguide.pdf \
-	     uguide.toc
+	     $(wildcard *.bbl) \
+	     $(wildcard *.blg) \
+	     $(wildcard *.idx) \
+	     $(wildcard *.ilg) \
+	     $(wildcard *.ind) \
+	     $(wildcard *.out) \
+	     $(wildcard *.pdf) \
+	     $(wildcard *.toc)
 
 MAINTAINERCLEANFILES = \
 	auto_version.tex
 
 else
 
-uguide.pdf:
+arts_user.pdf:
+arts_developer.pdf:
+arts_theory.pdf:
 	@echo
 	@echo "=========================================================="
 	@echo
