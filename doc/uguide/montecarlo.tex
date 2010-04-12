@@ -7,7 +7,7 @@
 %  \section{...}
 %  \subsection{...}
 %
-\chapter{Reversed Monte Carlo Scattering Module : ARTS-MC}
+\chapter{Reversed Monte Carlo Scattering: ARTS-MC}
  \zlabel{sec:montecarlo}
 
 
@@ -20,6 +20,7 @@
 %  \stophistory
 %
 \starthistory
+  120410 & Moved from user guide to theory document.\\
   300504 & Created and written by Cory Davis.\\
 \stophistory
 
@@ -44,55 +45,8 @@
 \section{Introduction}
  \zlabel{sec:montecarlo:intro}
 
-\emph{Much of the following has been taken from an article submitted to IEEE
-TGARS \citep{davisetal:04}, although here there is a more detailed description of how the
-algorithm is implemented in ARTS, and how to use it.} 
-
-Discrete ordinates (DOM) type methods are attractive
-when simulating the whole radiation field, but in the limb sounding -
-and other remote sensing cases, only a very limited subset of outward
-propagation paths are required. Also, for limb sounding simulations
-there is a strong variation in incoming radiance with zenith angles
-close to 90$^\circ$.
-In DOM type models, this necessitates a very fine angular grid, which can be expensive.
-
-A reversed Monte Carlo method was chosen for this study.  A strong
-consideration here was that the simplicity of the Monte
-Carlo radiative transfer concept should translate to reduced
-development time.  Also, reversed Monte Carlo methods allow
-all computational effort to be concentrated on calculating radiances
-for the desired line of sight, and the nature of Monte Carlo
-algorithms makes parallel computing trivial.     
-
-Among the available Backward Monte Carlo RT models, several do not
-allow a thermal source, or do not consider polarization fully (i.e.
-allowing a non-diagonal extinction matrix) (e.g. \cite{liuetal:96}), and
-some consider neither (e.g. \cite{oikarenenetal:99}, \cite{ishimoto:02}).
-
-A useful reference for model development in this study, is the
-Backward-Forward Monte Carlo (BFMC) model described by \cite{liuetal:96}.  
-In BMFC photon paths are traced backwards
-from the sensor, with scattering angles and path lengths randomly
-chosen from probability density functions (PDF) determined by the scattering
-phase function, and a scalar extinction coefficient respectively.  The
-phase matrices for every scattering event and scalar extinction are
-then sequentially applied to the source Stokes vector to give the Stokes
-vector contribution for each photon.  As presented in \cite{liuetal:96}, the model is only
-applicable to cases where the extinction matrix is diagonal - that is,
- where there is macroscopically isotropic and mirror-symmetric
- scattering media.  This prompted Roberti and Kummerow
- \cite{roberti:99} to abandon the Backward-Forward Monte Carlo method and
- choose a modified Forward Monte Carlo model. However, in this study the
- attractive features of Liu's Backward-Forward model are retained by
- utilizing importance sampling, a well known technique in Monte Carlo
- integration. Importance sampling allows independent variables, in
- this case scattering angles and path lengths, to be sampled from any
- distribution as long as each contribution to the final integral is
- properly weighted.
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-\section{Model}
+\section{Model[FIXME: needs updating to MCGeneral]}
  \zlabel{sec:montecarlo:model}
 The radiative transfer model solves the vector
 radiative transfer equation (VRTE):
@@ -170,7 +124,7 @@ Since PDFs are scalar functions, and that we consider the first element of the
 Stokes vector most important, we choose PDFs that are proportional to the
 (1,1) element of $\mathbf{O(s',s)}$ and $\mathbf{Z}(\theta_{scat},\phi_{scat},\theta_{inc},\phi_{inc})$. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Algorithm}
+\subsection{Algorithm [FIXME:Needs updating to MCGeneral]}
  \zlabel{sec:montecarlo:alg}
 The model algorithm proceeds as follows:
 
@@ -318,16 +272,12 @@ Carlo result from Eq. \zref{cbexit} taken as the radiative background.
 
 \begin{figure}[!ht]
 \begin{center}
-\includegraphics[width=\vsize,angle=90]{flowchart}
-\caption{Flowchart illustrating ScatteringMonteCarlo algorithm}
+\includegraphics[width=\vsize,angle=90]{flowchart2}
+\caption{Flowchart illustrating MCGeneral algorithm}
 \end{center}
 \zlabel{fig:montecarlo:flowchart}
 \end{figure}
-\section{Implementation in ARTS: ScatteringMonteCarlo}
- \zlabel{sec:montecarlo:implementation}
 
-\section{Future Plans}
- \zlabel{sec:montecarlo:plans}
  
 %%% Local Variables: 
 %%% mode: latex 
