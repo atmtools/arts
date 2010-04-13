@@ -400,6 +400,15 @@ target_link_libraries (test_binaryio ${ALL_ARTS_LIBRARIES})
 
 ########### next testcase ###############
 
+add_executable (test_gridded_fields
+  gridded_fields.h
+  gridded_fields.cc
+  test_gridded_fields.cc)
+
+target_link_libraries (test_gridded_fields matpack)
+
+########### next testcase ###############
+
 add_executable (test_interpolation test_interpolation.cc)
 target_link_libraries (test_interpolation ${ALL_ARTS_LIBRARIES})
 

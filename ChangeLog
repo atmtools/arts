@@ -1,3 +1,22 @@
+2010-04-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-10
+
+	* doc/uguide/gridded_fields.tex: Start documenting gridded fields.
+
+	* doc/uguide/arts_developer.tex: Include gridded_fields.tex.
+
+	* doc/uguide/Figs/development/griddedfields_inheritance.pdf,
+	doc/uguide/Figs/development/griddedfields_objects.pdf: Added.
+
+	* src/gridded_fields.h: Update docs.
+
+	* src/gridded_fields.h, src/m_sensor.cc, src/xml_io_compound_types.cc:
+
+	Changed GriddedField::set_gridname to GriddedField::set_grid_name
+
+	* src/CMakeLists.txt, src/test_gridded_fields.cc: Add test/example.
+
 2010-04-12  Cory  <cory@pheonix>
 
 	* arts-1-14-9

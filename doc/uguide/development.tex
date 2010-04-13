@@ -49,15 +49,14 @@ want to use ARTS, you should not need to read it. \textbf{But if you
 %====================
 \zlabel{sec:development:org}
  
-ARTS is written in C++ with the help of the GNU development tools
-(Autoconf, Automake, etc.). It is organized in a similar manner as
-most GNU packages. The top-level ARTS directory is either called
-\artsstyle{arts} or \artsstyle{arts-x.y}, where x.y is the release number.
-It contains various sub-directories, notably \artsstyle{doc} for
-documentation, \artsstyle{src} for the C++ source code, \artsstyle{ami} for the
-MATLAB interface, and \artsstyle{aii} for the IDL interface. The document
-that you are reading right now, the ARTS User Guide, is located in
-\artsstyle{doc/uguide}.
+ARTS is written in C++ and uses the cross-platform, open-source build system
+CMake (\artsstyle{http://www.cmake.org/}). It is organized in a similar
+manner as most GNU packages. The top-level ARTS directory is either called
+\artsstyle{arts} or \artsstyle{arts-x.y}, where x.y is the release number. It
+contains various sub-directories, notably \artsstyle{doc} for documentation,
+\artsstyle{src} for the C++ source code, and \artsstyle{aii} for the IDL
+interface. The document that you are reading right now, the ARTS Developer
+Guide, is located in \artsstyle{doc/uguide}.
 
 There are two different versions of the ARTS package: The developers
 version and the end-user version. Both contain the complete source
@@ -65,12 +64,12 @@ code, the only difference is that the developers version also includes
 the CVS housekeeping data. If you want to join in the ARTS development
 (which we of course encourage you to do), you should write an email to
 the authors to obtain access to the developers version, which makes it
-easier to merge your changes with the `official' ARTS program.
+easier to merge your changes with the 'official' ARTS program.
 Furthermore, for serious development work you need a computer running
-Unix, the GNU development tools, LaTeX, and the Doxygen program.  All
+Unix, CMake, LaTeX, and the Doxygen program.  All
 this is freely and easily available on the Internet, and, what is
-more, all these tools are included in the standard linux
-distributions like Suse and Redhat.
+more, all these tools are included in the standard Linux
+distributions like SuSE and Redhat.
 
 The end-user version contains everything that you need in order to
 compile and install ARTS in a fairly automatic manner. The only
@@ -83,11 +82,11 @@ far.
 \section{The ARTS build system}
 %============================
 
-As mentioned above, GNU tools are used to construct the ARTS
-build system. A good introduction to the GNU build system can be found in:
+As mentioned above, CMake is used to construct the ARTS
+build system. A good introduction to the CMake system can be found in:
 \begin{quote}
   \footnotesize
-  \artsstyle{http://www.amath.washington.edu/~lf/tutorials/autoconf/}
+  \artsstyle{http://www.cmake.org/cmake/project/about.html}
 \end{quote}
 Using these tools makes a lot of things very easy, but also some
 things slightly more complicated.
@@ -108,7 +107,7 @@ should.
 \subsection{Configure options}
 %========================================
 
-Here are some interesting options for \artsstyle{configure}/\artsstyle{autogen.sh}:
+Here are some interesting options for CMake:
 
 \begin{description}
 \item[\artsstyle{--disable-debug}:] Removes '-g' from the compiler flags and includes \artsstyle{\#define NDEBUG 1} in

@@ -208,17 +208,17 @@ void antenna_responseGaussian(
 
   r.set_name( "Antenna response" );
 
-  r.set_gridname( 0, "Polarisation" );
-  r.set_gridname( 0, "Polarisation" );
+  r.set_grid_name( 0, "Polarisation" );
+  r.set_grid_name( 0, "Polarisation" );
   r.set_grid( 0, MakeArray<String>( "NaN" ) ); 
 
-  r.set_gridname( 1, "Frequency" );
+  r.set_grid_name( 1, "Frequency" );
   r.set_grid( 1, Vector(1,-999) );
 
-  r.set_gridname( 2, "Zenith angle" );
+  r.set_grid_name( 2, "Zenith angle" );
   r.set_grid( 2, x );
 
-  r.set_gridname( 3, "Azimuth angle" );
+  r.set_grid_name( 3, "Azimuth angle" );
   r.set_grid( 3, Vector(1,0) );
 
   const Index n = y.nelem();
@@ -238,7 +238,7 @@ void backend_channel_responseFlat(
 
   Vector x(2);
 
-  r[0].set_gridname( 0, "Frequency" );
+  r[0].set_grid_name( 0, "Frequency" );
   x[1] = resolution / 2.0;
   x[0] = -x[1];
   r[0].set_grid( 0, x );
@@ -264,7 +264,7 @@ void backend_channel_responseGaussian(
 
   r[0].set_name( "Backend channel response function" );
 
-  r[0].set_gridname( 0, "Frequency" );
+  r[0].set_grid_name( 0, "Frequency" );
   r[0].set_grid( 0, x );
 
   const Index n = y.nelem();
@@ -1858,7 +1858,7 @@ void sensor_responseSimpleAMSU(// WS Output:
     Vector f(2);
     f[0] = - 0.5 * width[i];
     f[1] = + 0.5 * width[i];
-    r.set_gridname(0, "Frequency");
+    r.set_grid_name(0, "Frequency");
     r.set_grid(0,f);
     
     // Response:
@@ -1877,7 +1877,7 @@ void sensor_responseSimpleAMSU(// WS Output:
     Vector f(2);
     f[0] = - (offset[i] + 0.5*width[i]);
     f[1] = + (offset[i] + 0.5*width[i]);
-    r.set_gridname(0, "Frequency");
+    r.set_grid_name(0, "Frequency");
     r.set_grid(0,f);
     
     // Response:

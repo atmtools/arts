@@ -18,17 +18,16 @@
 
 /*!
   \file   gridded_fields.h
-  \author Claudia Emde <claudia.emde@dlr.de>
-  \date   Wed Jun 26 17:48:29 2002
+  \author Oliver Lemke <olemke@core-dump.info>
+  \date   2008-06-24
+ 
+  \brief  Implementation of gridded fields.
 
-  \brief  Reading routines for gridded fields.
-
-  This file contains reading routines for gridded fields. Gridded fields are
+  This file contains the implementation for gridded fields. Gridded fields are
   needed to store moredimesional data together with the corresponding grids
-  in the same variable. The datatype og a gridded field is always an array
-  of tensors.
-
-  For further description see AUG.
+  in the same variable.
+ 
+  For further description see ARTS Developer Guide.
 
 */
 
@@ -141,7 +140,7 @@ public:
     \param[in] i Grid index.
     \param[in] s Grid name.
   */
-  void set_gridname (Index i, const String& s)
+  void set_grid_name (Index i, const String& s)
     {
       assert (i < dim);
       mgridnames[i] = s;
@@ -194,14 +193,14 @@ public:
     {
       Vector::resize(gf.get_grid_size(0));
     }
-
+  
   //! Resize the data vector.
   /*! \see Vector::resize */
   void resize(Index n)
     {
       Vector::resize(n);
     }
-
+  
   friend ostream& operator<<(ostream& os, const GriddedField1& gf);
 };
 

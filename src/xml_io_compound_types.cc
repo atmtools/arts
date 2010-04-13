@@ -141,7 +141,7 @@ xml_read_from_stream (istream& is_xml,
           String s;
           tag.get_attribute_value ("name", s);
           if (s.length())
-            gfield.set_gridname (i, s);
+            gfield.set_grid_name (i, s);
 
           Vector v;
           xml_parse_from_stream (is_xml, v, pbifs, tag);
@@ -154,7 +154,7 @@ xml_read_from_stream (istream& is_xml,
           String s;
           tag.get_attribute_value ("name", s);
           if (s.length())
-            gfield.set_gridname (i, s);
+            gfield.set_grid_name (i, s);
 
           tag.get_attribute_value ("type", s);
           if (s == "String")
