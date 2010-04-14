@@ -210,7 +210,7 @@ class TestMHS(unittest.TestCase):
         I = artsXML.load("MHS/MHS.ybatch.xml.generated")
         for j in range (5):
             for k in range (10):
-                assert abs(I[j,k]-Iref[j,k]) < 0.001,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
+                assert abs(I[j,k]-Iref[j,k]) < 0.005,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
     def test3(self):
         """Total radiance should be close to the values of TestMHS_fast"""
         Iref = artsXML.load("MHS/MHS.ybatch.xml.generated")

@@ -1,3 +1,32 @@
+2010-04-14  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-14-12
+
+	* src/m_sensor.cc (f_gridFromSensorAMSU): Fixed the function to
+	work also with touching and overlapping channels. Now uses the
+	same backend function for the actual work as
+	f_gridFromSensorHIRS. This closes trac ticket #35.  Also changed
+	the treatment of the required delta at the channel eges. Now we
+	use one full grid spacing on each side.
+	(f_gridFromSensorHIRS): Changed the treatment of the required
+	delta at the channel eges. Now we use one full grid spacing on
+	each side.
+
+	* src/sensor.cc (find_effective_channel_boundaries): No more delta
+	in this function. This is now done at the level of the calling
+	function. 
+
+	* src/workspace.cc (backend_channel_response_multi): Fixed typo in
+	documentation. 
+
+	* tests/testall.py (TestMHS): Increased tolerance for deviation
+	from reference case from 0.001 K to 0.005 K. The radiance is now
+	different from the reference case, due to the different delta. I
+	suspect that the new version is theoretically better, since we now
+	have grid points directly on the nominal band edges. But decided
+	not to change the reference values, since the tolerance is still
+	quite small.
+
 2010-04-14  Cory Davis  <cory@sundog>
 
 	* arts-1-14-11

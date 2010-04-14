@@ -1061,6 +1061,8 @@ bool test_and_merge_two_channels(Vector& fmin,
 
   The function also does consistency checking on the two input
   variables.
+ 
+  The output vectors fmin and fmax will be monotonically increasing.
 
   \author Stefan Buehler
   
@@ -1156,7 +1158,12 @@ void find_effective_channel_boundaries(// Output:
       // be about 3 Hz. Select 1 MHz to have a clear margin. Hopefully OK
       // for other machines.
       //
-      const Numeric delta = 1e6; 
+      // SAB 2010-04-14: The approach with a constant delta does not seem to work 
+      // well in practice. What I do now is that I add a delta corresponding to a 
+      // fraction of the grid spacing. But that is done outside of this function. 
+      // So we set delta = 0 here.
+      
+      const Numeric delta = 0; 
 
       fmin_orig[i] = f_backend[i] + bf_min - delta;
       fmax_orig[i] = f_backend[i] + bf_max + delta;

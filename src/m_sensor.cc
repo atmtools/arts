@@ -324,92 +324,62 @@ void f_gridFromSensorAMSU(// WS Output:
     }
 
   // Start the actual work.
+  
+  // We construct the necessary input for function find_effective_channel_boundaries, 
+  // which will identify channel boundaries, taking care of overlaping channels.
 
-  // We build up a total list of absolute frequency ranges for
-  // both signal and image sidebands:
-  Vector fabs_min(2*n_chan), fabs_max(2*n_chan);
-  Index ifabs=0;
+  // A "flat" vector of nominal band frequencies (two for each AMSU channel):
+  Vector f_backend_flat(2*n_chan);
 
-  // We need to add a bit of extra margin at both sides,
-  // otherwise there could be a numerical problem in the sensor WSMs. 
-  // 
-  // PE 081003: Selected 5 kHz. Scaled from value selected for HIRS. 
-  //      
-  const Numeric delta = 5e3;
-
+  // A "flat" list of channel response functions (two for each AMSU channel)
+  ArrayOfGriddedField1 backend_channel_response_flat(2*n_chan);
+  
+  // Counts position inside the flat arrays during construction:
+  Index j=0;
+  
   for (Index i=0; i<f_backend.nelem(); ++i)
     for (Index s=0; s<f_backend[i].nelem(); ++s)
-      {
-        ConstVectorView this_grid = backend_channel_response[i][s].get_numeric_grid(0);
-        const Numeric this_f_backend = f_backend[i][s];
+    {      
+      const GriddedField1& this_grid = backend_channel_response[i][s];
+      const Numeric this_f_backend = f_backend[i][s];
 
-        // Signal sideband:
-        fabs_min[ifabs] = this_f_backend + this_grid[0] - delta;
-        fabs_max[ifabs] = this_f_backend + this_grid[this_grid.nelem()-1] + delta;
-        ++ifabs;
-        
-        // Image sideband:
-        Numeric offset  = this_f_backend - lo[i];
-        Numeric f_image = lo[i] - offset;
-
-        fabs_min[ifabs] = f_image + this_grid[0] - delta;                  
-        fabs_max[ifabs] = f_image + this_grid[this_grid.nelem()-1] + delta;
-        ++ifabs;
-      }
-
-  //  cout << "fabs_min: " << fabs_min << "\n";
-  //  cout << "fabs_max: " << fabs_max << "\n";
-
-
-  // Check for touching or overlapping channels:
-  for (Index i=1; i<fabs_min.nelem(); ++i)
-    {
-      for (Index s=0; s<i; ++s)
-        {
-          // We check if either fabs_min[i] or fabs_max[i] are inside
-          // the interval of any fabs with a smaller index.
-
-          /* in case the connecting boundaries of two adjacent channels are supposed to be identical (max(1)==min(2))
-             the boundaries are set equal to avoid overlapping of grid points
-          */
-
-          if (abs(fabs_max[i] - fabs_min[s]) < 2.01 * delta )
-            {
-              fabs_max[i] = (fabs_max[i] + fabs_min[s]) / 2;
-              fabs_min[s] = fabs_max[i];
-              cout << "Channel boundaries adapted to avoid overlapping due to delta-expansion: ";
-              cout << fabs_max[i] << " ==  " << fabs_min[s] << "\n";
-            } 
-          if (abs(fabs_min[i] - fabs_max[s]) < 2.01 * delta)
-            {
-              //      cout << fabs_min[i] << "  == " << fabs_max[s] << " diff(1-2): " << fabs_min[i] - fabs_max[s] 
-              //   << " -- " << (fabs_min[i] - fabs_max[s])/fabs_max[s]  << "\n";
-              fabs_min[i] = (fabs_min[i] + fabs_max[s]) / 2;
-              fabs_max[s] = fabs_min[i];
-              cout << "Channel boundaries adapted to avoid overlapping due to delta-expansion: ";
-              cout << fabs_max[s] << " == " << fabs_min[i] << "\n";
-            }
-
-          //          if (((fabs_min[i]>=fabs_min[s]) && (fabs_min[i]<=fabs_max[s])) ||
-          //    ((fabs_max[i]>=fabs_min[s]) && (fabs_max[i]<=fabs_max[s])) )
-          if (((fabs_min[i] >= fabs_min[s]) && (fabs_min[i]< fabs_max[s])) ||
-              ((fabs_max[i] > fabs_min[s]) && (fabs_max[i] <= fabs_max[s])) )
-            {
-              ostringstream os;
-              os << "Your instrument bands overlap. This case it not (yet) handled.";
-              throw runtime_error(os.str());
-            }
-        }
+      // Signal sideband:
+      f_backend_flat[j] = this_f_backend;
+      backend_channel_response_flat[j] = this_grid;
+      j++;
+      
+      // Image sideband:
+      Numeric offset  = this_f_backend - lo[i];
+      Numeric f_image = lo[i] - offset;
+      f_backend_flat[j] = f_image;
+      backend_channel_response_flat[j] = this_grid;      
+      j++;
     }  
+  
+  // We build up a total list of absolute frequency ranges for
+  // both signal and image sidebands:
+  Vector fmin(2*n_chan), fmax(2*n_chan);
 
-  // Create f_grid_unsorted. This is an array of Numeric, so that we
+  // Call subfunction to do the actual work of merging overlapping 
+  // channels and identifying channel boundaries:
+  find_effective_channel_boundaries(fmin,
+                                    fmax,
+                                    f_backend_flat,
+                                    backend_channel_response_flat);
+  
+  // Create f_grid_array. This is an array of Numeric, so that we
   // can use the STL push_back function.
-  ArrayOfNumeric f_grid_unsorted;
+  ArrayOfNumeric f_grid_array;
 
-  for (Index i=0; i<fabs_min.nelem(); ++i)
+  // We have to add some additional margin at the band edges, 
+  // otherwise the instrument functions are not happy. Define 
+  // this in terms of the grid spacing:
+  Numeric delta = 1*spacing;
+  
+  for (Index i=0; i<fmin.nelem(); ++i)
     {
       // Band width:
-      const Numeric bw = fabs_max[i] - fabs_min[i];
+      const Numeric bw = fmax[i] - fmin[i] + 2*delta;
 
       // How many grid intervals do I need?
       const Numeric npf = ceil(bw/spacing);
@@ -422,26 +392,21 @@ void f_gridFromSensorAMSU(// WS Output:
       const Numeric gs = bw/npf;
       
       // Create the grid for this band:
-      Vector grid(fabs_min[i], npi, gs);
+      Vector grid(fmin[i]-delta, npi, gs);
 
       out3 << "  Band range " << i << ": " << grid << "\n";
 
-      // Append to f_grid_unsorted:
-      f_grid_unsorted.reserve(f_grid_unsorted.nelem()+npi);
+      // Append to f_grid_array:
+      f_grid_array.reserve(f_grid_array.nelem()+npi);
       for (Index s=0; s<npi; ++s)
-        f_grid_unsorted.push_back(grid[s]);
+        f_grid_array.push_back(grid[s]);
     }
 
-  // Sort the entire f_grid by increasing frequency:
-  f_grid.resize(f_grid_unsorted.nelem());
-  ArrayOfIndex si;
-  get_sorted_indexes(si, f_grid_unsorted);
-
-  for (Index i=0; i<f_grid_unsorted.nelem(); ++i)
-    {
-      f_grid[i] = f_grid_unsorted[si[i]] ;
-    }
-  // That's it, we're done!
+  // Copy result to output vector:
+  f_grid = f_grid_array;
+  
+  out2 << "  Total number of frequencies in f_grid: " << f_grid.nelem() << "\n";
+  //  cout << "f_grid: " << f_grid << "\n";
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -468,10 +433,15 @@ void f_gridFromSensorHIRS(// WS Output:
   // can use the STL push_back function.
   ArrayOfNumeric f_grid_array;
 
+  // We have to add some additional margin at the band edges, 
+  // otherwise the instrument functions are not happy. Define 
+  // this in terms of the grid spacing:
+  Numeric delta = 1*spacing;
+  
   for (Index i=0; i<fmin.nelem(); ++i)
     {
       // Band width:
-      const Numeric bw = fmax[i] - fmin[i];
+      const Numeric bw = fmax[i] - fmin[i] + 2*delta;
 
       // How many grid intervals do I need?
       const Numeric npf = ceil(bw/spacing);
@@ -484,7 +454,7 @@ void f_gridFromSensorHIRS(// WS Output:
       const Numeric gs = bw/npf;
 
       // Create the grid for this band:
-      Vector grid(fmin[i], npi, gs);
+      Vector grid(fmin[i]-delta, npi, gs);
 
       out3 << "  Band range " << i << ": " << grid << "\n";
 

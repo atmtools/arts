@@ -873,7 +873,7 @@ void Workspace::define_wsv_data()
      ( NAME( "backend_channel_response_multi" ),
        DESCRIPTION
        (
-        "As *backend_channel_response_multi* but describes an instrument with\n"
+        "As *backend_channel_response* but describes an instrument with\n"
         "muliple mixer/reciever chains.\n"
         "\n"
         "See *f_backend_multi* for when to use this variable and size\n"
