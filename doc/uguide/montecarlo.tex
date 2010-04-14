@@ -83,6 +83,39 @@ To apply Monte Carlo integration to the problem, the VRTE needs to be expressed 
 \cite{landi:85}. $\mathbf{u_0}$ is the point where the line of sight intersects
 the far boundary of the scattering domain, and $\mathbf{s_0}$ is the
 exit point where the outgoing Stokes vector is calculated.
+
+If we consider a scalar antenna response function,
+$\psi=\psi(\theta,\phi)=\psi(\mathbf{n})$, where $\psi(\mathbf{n})$ is
+normalised such that $\int_{4\pi}\psi(\mathbf{n})dn=1$, then the
+observed Stokes vector will $\mathbf{I_{ant.}(n,s_0)}$ will be
+
+\begin{equation}
+\mathbf{I_{ant.}(n,s_0)}=\int_{4\pi}\psi(\mathbf{n'})\mathbf{I(n',s_0)}d\mathbf{n'}
+\zlabel{antInt}
+\end{equation}
+
+If we apply Monte Carlo integration with importance samping to
+Eq. \ref{antInt} and sample $\mathbf{n'}$ according to a probability
+density function (PDF) equal to $\psi(\mathbf{n'})$ then an unbiased
+estimate of Eq. \ref{antInt} is given by (e.g. \cite{press:1992:numerical})
+
+\begin{eqnarray}
+\mathbf{I_{ant.}(n,s_0)}&=&\int_{4\pi}\mathbf{I(n',s_0)}\psi(\mathbf{n'})d\mathbf{n'}\\
+&=&\langle \mathbf{I(n',s_0)} \rangle_\psi
+\zlabel{antIntMC}
+\end{eqnarray}
+
+We now require a Monte Carlo estimate of the integrand in
+Eq. \ref{antIntMC}, which is given by Eq. \ref{intVRTE}.  First, we
+re-express \ref{intVRTE} as a single integral, for simplicity dropping
+the prime on $\mathbf{n'}$,
+
+\begin{equation}
+\mathbf{I(n,s_0)}=\int
+\end{equation}
+
+
+
 In general there is no closed form expression for $\mathbf{O(s',s)}$.
 However, in cases where the extinction matrix is constant along a
 propagation path
