@@ -15,26 +15,26 @@ int main (void)
   // Initializing the grids
   //////////////////////////////////////////////////////////////////////////////
   Vector gfonegrid(1,5,1);        // gfonegrid = [1,2,3,4,5]
-  gfone.set_grid(0, gfonegrid);   // Set the grid for the first dimension.
+  gfone.set_grid(0, gfonegrid);   // Set grid for the vector elements.
   
-  MakeArray<String> gftwogrid0("Channel 1", "Channel2", "Channel3");
-  Vector gftwogrid1(1,5,1);       // gftwogrid1 = [1,2,3,4,5]
+  Vector gftwogrid0(1,5,1);       // gftwogrid0 = [1,2,3,4,5]
+  MakeArray<String> gftwogrid1("Chan1", "Chan2", "Chan3");
   
-  gftwo.set_grid(0, gftwogrid0);  // Set grid for the first dimension
-  gftwo.set_grid(1, gftwogrid1);  // Set grid for the second dimension
+  gftwo.set_grid(0, gftwogrid0);  // Set grid for the matrix rows.
+  gftwo.set_grid(1, gftwogrid1);  // Set grid for the matrix columns.
 
   gfone.set_grid_name (0, "Pressure");
   
-  gftwo.set_grid_name (0, "Instrument channel");
-  gftwo.set_grid_name (1, "Pressure");
+  gftwo.set_grid_name (0, "Pressure");
+  gftwo.set_grid_name (1, "Channel");
 
   // Initializing the data
   //////////////////////////////////////////////////////////////////////////////
-  Vector avector(1,5,0.5);    // avector = [1,1.5,2,2.5,3]
+  Vector avector(1,4,0.5);    // avector = [1,1.5,2,2.5]
   
   (Vector&)gfone = avector;
   
-  Matrix amatrix(2,3,4.);     // amatrix = [[4,4,4],[4,4,4]]
+  Matrix amatrix(5,3,4.);     // amatrix = [[4,4,4],[4,4,4],...]
   
   (Matrix&)gftwo = amatrix;
   
@@ -53,6 +53,7 @@ int main (void)
   
   cout << "GriddedField1: " << gfone << endl;
   cout << "GriddedField2: " << gftwo << endl;
+  
   return 0;
 }
 

@@ -1,3 +1,11 @@
+2010-04-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-13
+
+	* doc/uguide/gridded_fields.tex: Minor changes.
+
+	* src/test_gridded_fields.cc: Updated.
+
 2010-04-14  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-12
