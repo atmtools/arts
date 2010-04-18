@@ -95,9 +95,9 @@ observed Stokes vector will $\mathbf{I_{ant.}(n,s_0)}$ will be
 \end{equation}
 
 If we apply Monte Carlo integration with importance samping to
-Eq. \ref{antInt} and sample $\mathbf{n'}$ according to a probability
+Eq. \zref{antInt} and sample $\mathbf{n'}$ according to a probability
 density function (PDF) equal to $\psi(\mathbf{n'})$ then an unbiased
-estimate of Eq. \ref{antInt} is given by (e.g. \cite{press:1992:numerical})
+estimate of Eq. \zref{antInt} is given by (e.g. \cite{press:1992:numerical})
 
 \begin{eqnarray}
 \mathbf{I_{ant.}(n,s_0)}&=&\int_{4\pi}\mathbf{I(n',s_0)}\psi(\mathbf{n'})d\mathbf{n'}\\
@@ -106,15 +106,40 @@ estimate of Eq. \ref{antInt} is given by (e.g. \cite{press:1992:numerical})
 \end{eqnarray}
 
 We now require a Monte Carlo estimate of the integrand in
-Eq. \ref{antIntMC}, which is given by Eq. \ref{intVRTE}.  First, we
-re-express \ref{intVRTE} as a single integral, for simplicity dropping
+Eq. \zref{antIntMC}, which is given by Eq. \zref{intVRTE}.  First, we
+re-express \zref{intVRTE} as a single integral, for simplicity dropping
 the prime on $\mathbf{n'}$,
 
 \begin{equation}
-\mathbf{I(n,s_0)}=\int
+\mathbf{I(n,s_0)}=\int^{s_0}_\infty\left\{\begin{array}{rl}
+\mathbf{O(s',s_0)}\left(\mathbf{K_a(n)}I_b(T)
++\int_{4\pi}\mathbf{Z(n,n')}\mathbf{I(n')}d\mathbf{n'}\right) & s'< s'_{boundary} \\
+\frac{\mathbf{O(u_0,s_0)I(n,u_0)}g}{\int^\infty_{u_0}gds} & s'\ge s'_{boundary}
+\end{array}ds'\right.
+\zlabel{inorouteq}
 \end{equation}
-
-
+, where $g$ is the PDF we will eventually use to sample pathlength,
+$\Delta s$. $s'_{boundary}$ represents the pathlenght corresponding to
+the boundary of the domain opposite the line of sight.
+The integrand Eq. \zref{inorouteq} is a piecewise function of the
+path distance, where path distances corresponding to positions outside
+the modelled domain give a boundary radiance attenuated by evolution
+operator over the length of the path within the model domain, and path
+distances corresponding to points within the modelled atmosphere give
+a sum of emission and scattering attenuated by the evolution operator
+over the distance between the point and the atmosphere exit. 
+The reader
+could easily verify that evaluating Eq. \zref{inorouteq} gives
+Eq. \zref{intVRTE}. The aim in importance sampling is to choose probability density functions
+(PDFs) for the independent variables that are
+as close as possible to being proportional to the integrand
+\cite{liu:01}. This concentrates computational effort on regions where
+the integrand is most significant and also reduces the variance in the contributions of each photon, thus reducing
+the number of photons and hence CPU time required to give a
+prescribed accuracy.  Eq. \zref{intVRTE} suggests that the PDF for
+sampling path length, where path length is the distance traced backwards
+from the sensor, $\Delta s=\left|\mathbf{s}-\mathbf{s'}\right|$, should be proportional in some way to the evolution
+operator $\mathbf{O(s',s)}$. 
 
 In general there is no closed form expression for $\mathbf{O(s',s)}$.
 However, in cases where the extinction matrix is constant along a
@@ -137,19 +162,10 @@ $\mathbf{s}_N$ is
 \end{eqnarray}
 , where $\mathbf{O(s_i,s_{i+1})}$ is given by Eq. \zref{OconstK}.
 
-The numerical task is then to perform Monte Carlo
-integration on the integral on the right hand side of
-Eq. \zref{intVRTE}.
-The aim in importance sampling is to choose probability density functions
-(PDFs) for the independent variables that are
-as close as possible to being proportional to the integrand
-\cite{liu:01}. This concentrates computational effort on regions where
-the integrand is most significant and also reduces the variance in the contributions of each photon, thus reducing
-the number of photons and hence CPU time required to give a
-prescribed accuracy.  Eq. \zref{intVRTE} suggests that the PDF for
-sampling path length, where path length is the distance traced backwards
-from the sensor, $\Delta s=\left|\mathbf{s}-\mathbf{s'}\right|$, should be proportional in some way to the evolution
-operator $\mathbf{O(s',s)}$. Likewise, new incident directions
+
+
+
+Likewise, new incident directions
 ($\theta_{inc},\phi_{inc}$) should be sampled from a PDF proportional
 to
 $\mathbf{Z}(\theta_{scat},\phi_{scat},\theta_{inc},\phi_{inc})$.
