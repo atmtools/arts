@@ -1,5 +1,5 @@
 \chapter{Basics}
-\zlabel{sec:concept}
+\label{sec:concept}
 
 \starthistory
 090507 & Section on control files and workspace moved 
@@ -60,8 +60,8 @@ version. A short summary of ARTS's main features:
   there are no limitations to a flat or spherical surface.
 \item[Polarisation] is fully described by using the Stokes formalism.
 \item[Scattering] can be considered by two modules, DOIT
-  (Section~\zref{sec:scattering}) and MC
-  (Section~\zref{sec:montecarlo}). The scattering calculations are for
+  (Section~\ref{sec:scattering}) and MC
+  (Section~\ref{sec:montecarlo}). The scattering calculations are for
   efficiency reasons confined to a region of the atmosphere denoted as
   the cloud box.
 \item[Observation geometry] is free. That is, the forward model can be
@@ -81,7 +81,7 @@ contents and the index for navigating through the user guide.
 
 \section{Documentation}
 %========================================
-\zlabel{sec:concept:doc}
+\label{sec:concept:doc}
 
 If you are totally new to ARTS and look for an introduction, we can
 not yet offer any dedicated reading beside this section. The ambition
@@ -92,11 +92,11 @@ be worthwhile reading.
 
 The main documentation sources for ARTS are the on-line documentation
 and control file examples. The on-line documentation is described in
-Section ~\zref{sec:concept:comline}. ARTS comes with a set of control
+Section ~\ref{sec:concept:comline}. ARTS comes with a set of control
 files that have two purposes: (1) To allow testing of the code at each
 commit, (2) To act as practical examples for new users. These control
 files are found in the \verb|tests/| sub-directory. Please, note that the
-include mechanism (Section~\zref{sec:concept:envvars}) is used heavily,
+include mechanism (Section~\ref{sec:concept:envvars}) is used heavily,
 where files from the \verb|includes/| sub-directory are selected.
 
 Algorithms and details of the calculations are described by this user
@@ -166,7 +166,7 @@ add an entry to this look-up table, and write the code for the method
 itself. No further changes to the program are necessary. In
 particular, no changes to the program logic or to the parser. How such
 an extension can be made practically is described in Section
-\zref{sec:development}.
+\ref{sec:development}.
 
 
 
@@ -251,7 +251,7 @@ uses the user selected method for calculating the emission term.
 
 \section{Command line parameters}
 %==============================================
-\zlabel{sec:concept:comline}
+\label{sec:concept:comline}
 
 ARTS offers a number of useful \textindex{command line parameters}. In
 general, there is a short form and a long form for each parameter. The
@@ -276,7 +276,7 @@ or
 
 \subsection*{Include files}
 
-See Section~\zref{sec:concept:envvars}.
+See Section~\ref{sec:concept:envvars}.
 
 
 \subsection*{Online documentation}
@@ -381,7 +381,7 @@ the report file, and no sub-agenda output.
 
 \section{Environment variables}
 %=========================================
-\zlabel{sec:concept:envvars}
+\label{sec:concept:envvars}
 
 \subsection*{\texttt{ARTS\_INCLUDE\_PATH}}
 

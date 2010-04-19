@@ -7,7 +7,7 @@
 %
 \chapter{Vectors, matrices, tensors, and arrays}
 %-------------------------------------------------------------------------
-\zlabel{sec:matpack}
+\label{sec:matpack}
 
 
 %
@@ -39,7 +39,7 @@ arbitrary type can be constructed and used.
 
 \section{Implementation files}
 %-------------------------------------------------------------------------
-\zlabel{sec:matpack:files}
+\label{sec:matpack:files}
 
 The \artsstyle{Matrix} and \artsstyle{Vector} classes described below reside in the files:
 \begin{itemize}
@@ -76,7 +76,7 @@ examples. For Sparse there is a separate test file,
 
 \section{Vectors}
 %-------------------------------------------------------------------------
-\zlabel{sec:matpack:vectors}
+\label{sec:matpack:vectors}
 
 The class \typeindex{Vector} implements the mathematical concept of a
 vector. (Surprise, surprise.) This means that:
@@ -129,7 +129,7 @@ Vectors.
 
 \subsection{VectorViews}
 %-------------------------------------------------------------------------
-\zlabel{sec:vector_views}
+\label{sec:vector_views}
 
 An object of class \typeindex{VectorView} is, like the name says, just
 another view on an existing Vector. It does not have its own
@@ -325,7 +325,7 @@ order of the arguments is swapped compared to the old function
 
 \section{Matrices}
 %-------------------------------------------------------------------------
-\zlabel{sec:matpack:matrices}
+\label{sec:matpack:matrices}
 
 The class \typeindex{Matrix} implements the mathematical concept of a
 matrix. (Who would have guessed this?) This means that:
@@ -436,7 +436,7 @@ Vector y = a(joker,a.ncols()-1); // Last column.
 Technically, expressions of this kind return the type
 \artsstyle{VectorView}. This means, they can be used in all cases
 where an object of that type is expected, for example with the
-function defined in Section \zref{sec:vector_views}:
+function defined in Section \ref{sec:vector_views}:
 
 \begin{verbatim}
 silly_function(a(0,Range(joker)),
@@ -500,7 +500,7 @@ Note that in this case the dimensions must match exactly, as explained
 in the Section about Vector.
 
 If you do not understand the use of Range here, refer to Section
-\zref{sec:vector_views}. 
+\ref{sec:vector_views}. 
 
 \subsubsection{Assigning a scalar:}
 \begin{verbatim}
@@ -582,7 +582,7 @@ mult(transpose(c),transpose(b),a);           // c' = b' * a
 
 \section{Tensors}
 %-------------------------------------------------------------------------
-\zlabel{sec:matpack:tensors}
+\label{sec:matpack:tensors}
 
 ARTS has tensors with rank 3 to 7. They are called
 \typeindex{Tensor3}, \typeindex{Tensor4}, \typeindex{Tensor5},
@@ -646,7 +646,7 @@ tensor that picks out an object of lower dimension. Note that you can
 use either an \artsstyle{Index} or a \artsstyle{Range}
 argument\footnote{Using just \artsstyle{joker} is equivalent to using
   \artsstyle{Range(joker)}, as explained in Section
-  \zref{sec:matpack:matrices}.} for any of the dimensions. The
+  \ref{sec:matpack:matrices}.} for any of the dimensions. The
 dimensionality of the result will adjust accordingly, as in the
 example above.
 
@@ -789,12 +789,12 @@ This is all. In particular, we have no tensor products, since they
 are not needed. So, tensors are mostly used to store things, notably
 atmospheric field and so on.  There is a set of sophisticated
 interpolation routines, though, which are described separately in
-Chapter \zref{sec:interpolation}.
+Chapter \ref{sec:interpolation}.
 
 
 \section{Arrays}
 %-------------------------------------------------------------------------
-\zlabel{sec:matpack:arrays}
+\label{sec:matpack:arrays}
 
 The template class \typeindex{Array} can be used to make arrays out of
 anything. I do not know a good definition for `array', but I guess
@@ -912,7 +912,7 @@ dedicated STL textbooks.
 
 \section{Sparse matrices}
 %-------------------------------------------------------------------------
-\zlabel{sec:matpack:sparse}
+\label{sec:matpack:sparse}
 
 The class \typeindex{Sparse} implements the mathematical concept of a
 matrix, same as Matrix does, but the data is stored in a

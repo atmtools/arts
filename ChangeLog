@@ -1,3 +1,19 @@
+2010-04-19  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-14-15
+
+	* doc/uguide/*.tex: Replaced \zlabel and \zref again by \label and
+	\ref. References to other files still do not work correctly, but
+	at least I know how they can work. To cite a section from the
+	theory document in the user guide, write: "See \theory, Section
+	\ref{T-sec:xxx}." In other words:
+	- One has to manually state which document
+	- The reference itself has to start with a special letter, if it
+	is to another document (U- for user, D- for developer, T- for
+	theory).
+	So, the road is clear, but quite a lot of editing required,
+	unfortunately. 
+
 2010-04-18  Cory Davis  <cory@sundog>
 
 	* arts-1-14-14

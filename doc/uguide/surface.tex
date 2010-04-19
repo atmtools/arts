@@ -1,5 +1,5 @@
 \chapter{Surface emission and reflections}
- \zlabel{sec:surface}
+ \label{sec:surface}
 
 
 \starthistory
@@ -7,7 +7,7 @@
 \stophistory
 
 An introduction to the treatment of surface emission and reflections
-is given in Section~\zref{sec:fm_defs:surface}. The methods developed
+is given in Section~\ref{sec:fm_defs:surface}. The methods developed
 to handle different surface properties all set the variables
 \wsvindex{surface\_emission}, \wsvindex{surface\_los} and
 \wsvindex{surface\_rmatrix}.
@@ -35,7 +35,7 @@ variables should then be set as follows:
 
 \section{The geoid and the surface}
 %===================
-\zlabel{sec:fm_defs:geoid}
+\label{sec:fm_defs:geoid}
 
 The \textindex{geoid} is an imaginary surface used as a
 reference when specifying the surface altitude and the altitude
@@ -44,7 +44,7 @@ varying geoid is the natural choice, with the enters of the geoid and
 the coordinate system coinciding. The geoid should normally be set to
 the reference ellipsoid for some global geodetic datum, such as
 WGS-84. For further reading on geoid ellipsoids and WGS-84, see
-Section~\zref{sec:ppath:geoid}.
+Section~\ref{sec:ppath:geoid}.
 
 Inside ARTS, the geoid is represented as a matrix
 (\wsvindex{r\_geoid}), holding the geoid radius, \aRds{\odot}, for
@@ -56,7 +56,7 @@ The surface altitude, \aAlt{g}, is given as the geometrical altitude
 above the geoid. The radius for the surface is accordingly
 \begin{equation}
   \aRds{g} = \aRds{\odot} + \aAlt{g}
- \zlabel{eq:fm_defs:zsurface}
+ \label{eq:fm_defs:zsurface}
 \end{equation}
 As already mentioned, a gap between the surface and the 
 lowermost pressure level is not allowed.
@@ -66,7 +66,7 @@ The ARTS variable for the \textindex{surface altitude}
 matrix. For 1D, the surface is a sphere by definition (as the geoid),
 while for 2D and 3D any shape is allowed and a rough model of the
 surface topography can be made. The treatment of surface emission
-and reflectivity is discussed in Section~\zref{sec:fm_defs:surface}.
+and reflectivity is discussed in Section~\ref{sec:fm_defs:surface}.
 
 
 
@@ -77,13 +77,13 @@ and reflectivity is discussed in Section~\zref{sec:fm_defs:surface}.
  dielectric constant, $\epsilon$, or the refractive index, $n$. Both
  these quantities can be complex and are related as
  \begin{equation}
-   \zlabel{eq:surface_eps2n}
+   \label{eq:surface_eps2n}
    n = \sqrt{\epsilon}.
  \end{equation}
 
 
 \section{Relating reflectivity and emissivity}
- \zlabel{sec:surface:surface:ref2emi}
+ \label{sec:surface:surface:ref2emi}
  
  Kirchoff's law applied to thermodynamics states that under conditions
  of local thermodynamic equilibrium, thermal emission has to be equal
@@ -101,11 +101,11 @@ and reflectivity is discussed in Section~\zref{sec:fm_defs:surface}.
  reflections (defined below) and scalar radiative transfer
  calculations, the emissivity $e$ is
  \begin{equation}
-  \zlabel{eq:e=1-r}
+  \label{eq:e=1-r}
    e = 1 - r,
  \end{equation}
  where $r$ is the reflective (power reflection coefficient) of the
- surface.  Equation \zref{eq:e=1-r} is valid for each polarisation state
+ surface.  Equation \ref{eq:e=1-r} is valid for each polarisation state
  individually \citep[Eq.\ 4.190a]{ulaby:81}.
 
  We have then that
@@ -127,7 +127,7 @@ and reflectivity is discussed in Section~\zref{sec:fm_defs:surface}.
  reflection. The vector \VctStl{b} is the surface emission, that
  can be expressed as
  \begin{equation}
-  \zlabel{eq:surface:bvector} 
+  \label{eq:surface:bvector} 
   \VctStl{b} = (\MtrStl{1}-\MtrStl{R})
       \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right],
  \end{equation}
@@ -135,14 +135,14 @@ and reflectivity is discussed in Section~\zref{sec:fm_defs:surface}.
 
 
 \section{Specular reflections}
- \zlabel{sec:surface:surface:specular}
+ \label{sec:surface:surface:specular}
  
  If the surface is sufficiently smooth, radiation will be
  reflected/scattered only in the complementary angle, specular
  reflection. Required smoothness for assuming specular reflection is
  normally estimated by the Rayleigh criterion:
  \begin{equation}
-   \zlabel{eq:surface:rayleigh}
+   \label{eq:surface:rayleigh}
    \Delta h < \frac{\Wvl}{8\cos\theta_1}
  \end{equation}
  where $\Delta h$ is the root mean square variation of the surface
@@ -156,7 +156,7 @@ and reflectivity is discussed in Section~\zref{sec:fm_defs:surface}.
  polarisation is for a flat surface (if the relative magnetic
  permeability ($\mu_r$) of both media is 1) given by the Fresnel equations:
  \begin{eqnarray}
-   \zlabel{eq:surface_fresnel}
+   \label{eq:surface_fresnel}
    R_v &=& \frac{n_2\cos\theta_1-n_1\cos\theta_2}
                                            {n_2\cos\theta_1+n_1\cos\theta_2} \\
    R_h &=& \frac{n_1\cos\theta_1-n_2\cos\theta_2}
@@ -168,7 +168,7 @@ and reflectivity is discussed in Section~\zref{sec:fm_defs:surface}.
  the reflecting medium. The angle $\theta_2$ is the propagation
  direction for the transmitted part, and is given by Snell's law:
  \begin{equation}
-   \zlabel{eq:surface:snell}
+   \label{eq:surface:snell}
    \Re(n_1)\sin\theta_1 = \Re(n_2)\sin\theta_2.
  \end{equation}
  where $\Re(\cdot)$ denotes the complex real part.
@@ -177,16 +177,16 @@ and reflectivity is discussed in Section~\zref{sec:fm_defs:surface}.
  The power reflection coefficients are converted to an intensity
  reflection coefficient as
  \begin{equation}
-   \zlabel{eq:surface:R2r}
+   \label{eq:surface:R2r}
    r = |R|^2,
  \end{equation}
  where $|\!\cdot\!|$ denotes the absolute value. Note that $R$ can be
  complex, while $r$ is always real.
 
 The surface reflection can be seen as a scattering event and
-Section~\zref{sec:polarization:ampmatrix} can be used to derive the
+Section~\ref{sec:polarization:ampmatrix} can be used to derive the
 reflection matrix values. The scattering amplitude functions of
-Equation~\zref{eq:polarisation:ampmatrix1} are simply
+Equation~\ref{eq:polarisation:ampmatrix1} are simply
 \begin{eqnarray}
   S_2 &=& R_v, \\
   S_1 &=& R_h, \\
@@ -195,7 +195,7 @@ Equation~\zref{eq:polarisation:ampmatrix1} are simply
 This leads to that the transformation matrix for a specular surface
 reflection is (compare to \citet[Sec.\ 5.4.3]{liou:02})
 \begin{equation}
-  \zlabel{eq:surface:specular_matrix}
+  \label{eq:surface:specular_matrix}
   \MtrStl{R} =
      \left[\begin{array}{cccc}
        \frac{r_v+r_h}{2}&\frac{r_v-r_h}{2}&0&0\\
@@ -216,10 +216,10 @@ upwelling radiation is
 as expected.
 
 
-If \MtrStl{R} is given by Equation~\zref{eq:surface:specular_matrix},
-Equation \zref{eq:surface:bvector} gives that the surface emission  is
+If \MtrStl{R} is given by Equation~\ref{eq:surface:specular_matrix},
+Equation \ref{eq:surface:bvector} gives that the surface emission  is
 \begin{equation}
-  \zlabel{eq:surface:specular_emission}
+  \label{eq:surface:specular_emission}
    \left[\begin{array}{c}
      B\left(1-\frac{r_v+r_h}{2}\right) \\
      B\frac{r_h-r_v}{2} \\
@@ -234,8 +234,8 @@ calculated by the internal function
   any need to consider surface tilt, almost complete code for this
   task existed in \artsstyle{surface\_specular\_los} but was removed
   in version 1-1-876. The code can be obtained by e.g.\ checking out
-  version 1-1-875.}.  Equations \zref{eq:surface:specular_matrix} and
-\zref{eq:surface:specular_emission} give the values to put into
+  version 1-1-875.}.  Equations \ref{eq:surface:specular_matrix} and
+\ref{eq:surface:specular_emission} give the values to put into
 \artsstyle{surface\_rmatrix} and \artsstyle{surface\_emission}.
 
 

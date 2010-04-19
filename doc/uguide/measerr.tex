@@ -7,7 +7,7 @@
 %  \subsection{...}
 %
 \chapter{Measurement errors}
- \zlabel{sec:measerr}
+ \label{sec:measerr}
 
 
 %
@@ -34,7 +34,7 @@
 %
 %\startsymbols
 %  -- & -- & -- \\
-% \zlabel{symtable:measerr}     
+% \label{symtable:measerr}     
 %\stopsymbols
 
 
@@ -42,7 +42,7 @@
 %
 % Introduction
 %
-Following Equation \zref{eq:formalism:fm},
+Following Equation \ref{eq:formalism:fm},
 \begin{eqnarray}
    \y = \fm + \merr, \nonumber
 \end{eqnarray}
@@ -62,12 +62,12 @@ to the spectrum.
 
 
 \section{General}
- \zlabel{sec:measerr:general}
+ \label{sec:measerr:general}
  
  The sensor transfer matrix can be neglected when treating measurement
  errors as these errors are assumed to be additive to the spectra. On
  the other hand, a possible data reduction must be considered. This
- fact can also be understood by Equation \zref{eq:formalism:datared}:
+ fact can also be understood by Equation \ref{eq:formalism:datared}:
  \begin{eqnarray}
    \y = \Hd \y' = \Hd (\Hs \iv + \merr') = \Hm \iv + \merr \nonumber
  \end{eqnarray}
@@ -77,17 +77,17 @@ to the spectrum.
     \K_{\xt}^p = \frac{\partial \y}{\partial \xt^p} 
                = \frac{\partial \merr}{\partial \xt^p}
                =  \Hd \frac{\partial \merr'}{\partial \xt^p}
-  \zlabel{eq:measerr:kx}
+  \label{eq:measerr:kx}
  \end{equation}
  Accordingly, quantities connected with the measurement errors shall be
  multiplicated with the data reduction matrix \Hd, this in contrast to
  the atmospheric WFs where the total reduction sensor matrix must be applied
- (Eq. \zref{eq:formalism:kx2}).
+ (Eq. \ref{eq:formalism:kx2}).
 
 
 
 \section{Thermal noise}
- \zlabel{sec:measerr:tn}
+ \label{sec:measerr:tn}
  
  The nature of the thermal noise differs from all other variables and
  error sources. The most distinct feature of the thermal noise is the
@@ -117,14 +117,14 @@ to the spectrum.
  
 
  \subsection{Measurement thermal noise}
- \zlabel{sec:measerr:mtn}
+ \label{sec:measerr:mtn}
  
  The thermal noise is often assumed to be uncorrelated between the
  measurement channels, and the corresponding covariance matrix,
  $\mat{S}$ is then diagonal, where the diagonal elements are
  \begin{equation}
    \mat{S}_{tn}^{ii} = \left( \sigma_{tn}^i \right)^2
-  \zlabel{eq:measerr:Stn_diag}
+  \label{eq:measerr:Stn_diag}
  \end{equation}
  where $\mat{S}^{ii}$ is element $(i,i)$ of the matrix.
  
@@ -148,7 +148,7 @@ to the spectrum.
  \end{eqnarray}
  where $\f_c$ is the frequency distance where the correlation has
  declined to $e^{-1}$, the frequency correlation length, and $\f_i$
- the middle frequency of channel $i$ (Fig. \zref{fig:measerr:cfuns}).
+ the middle frequency of channel $i$ (Fig. \ref{fig:measerr:cfuns}).
  The numbers given above are used to select the correlation function
  when specifying the the covariance matrix for thermal noise. A
  diagonal matrix is flagged as correlation function 0. It is also
@@ -166,7 +166,7 @@ to the spectrum.
     \centering
     \caption{The frequency correlation functions. The frequency is scaled to
              the correlation length as $(\f_i-\f_j)/\f_c$.}
-    \zlabel{fig:measerr:cfuns}
+    \label{fig:measerr:cfuns}
    \end{minipage}
   \end{center}
  \end{figure}           
@@ -175,7 +175,7 @@ to the spectrum.
  correlation is
  \begin{equation}
    \mat{S}_{tn}^{ij} = c^{ij} \sigma_{tn}^i \sigma_{tn}^j
-  \zlabel{eq:measerr:Stn}
+  \label{eq:measerr:Stn}
  \end{equation}
  The correlation between different viewing angles is set to 0.
 
@@ -183,13 +183,13 @@ to the spectrum.
  multiplicated with \Hd\ as
  \begin{equation}
    \mat{S}_{tn} = \Hd \mat{S}_{tn}' \Hm_d^T 
-   \zlabel{eq:measerr:HSH}
+   \label{eq:measerr:HSH}
  \end{equation}
  where $\mat{S}_{tn}'$ is the covariance matrix before data reduction.
 
 
  \subsection{Calibration thermal noise}
- \zlabel{sec:measerr:ctn}
+ \label{sec:measerr:ctn}
  
  In contrast to the measurement thermal noise, the calibration thermal
  noise is assumed to be totally correlated between the different
@@ -197,12 +197,12 @@ to the spectrum.
  channels.
  The correlation functions used for the measurement thermal noise can
  also be applied for the calibration thermal noise.  
- Data reduction is considered by Equation \zref{eq:measerr:HSH}.
+ Data reduction is considered by Equation \ref{eq:measerr:HSH}.
  
 
 
 %\section{Sinusoidal baseline ripple}
-% \zlabel{sec:measerr:sin}
+% \label{sec:measerr:sin}
 % 
 % Reflections inside the receiver give theoretically rise to a
 % sinusoidal baseline ripple. The relationship between the period
@@ -220,16 +220,16 @@ to the spectrum.
 %   \merr_{sin} = \sum_{i=1}^n \left( 
 %          x_i sin\left(2\pi\frac{\f-\bar{\f}}{\Delta \f_{2\pi}^i}\right) +
 %          x_{i+n} cos\left(2\pi\frac{\f-\bar{\f}}{\Delta \f_{2\pi}^i}\right) \right)
-%  \zlabel{eq:measerr:sines}
+%  \label{eq:measerr:sines}
 % \end{equation}
 % where $n$ is the number of ripple terms, $\bar{\f}$ the mean
 % frequency, $\f_{2\pi}^i$ the period length of ripple $i$ and $x_i$
 % are the amplitude of the sine and cosine functions to be determined.
 % The length of the part of \xt\ used to fit sinusoidal baseline
 % ripples is accordingly $2n$. The mean frequency is defined below by
-% Equation \zref{eq:measerr:fmean}.
+% Equation \ref{eq:measerr:fmean}.
 % 
-% Using Equation \zref{eq:measerr:kx}, the
+% Using Equation \ref{eq:measerr:kx}, the
 % WFs for the sine and cosine terms can be determined to be
 % \begin{equation}
 %   \K_{\xt}^p = \Hd \mat{a}_p
@@ -250,7 +250,7 @@ to the spectrum.
 % where $\f^i$ is the frequency for channel $i$.
 % 
 % It should be noted that the treatment of baseline ripple neglects the
-% effect of the spectrometer and Equation \zref{eq:measerr:sines} assumes
+% effect of the spectrometer and Equation \ref{eq:measerr:sines} assumes
 % that the widths of the spectrometer channels are much smaller than
 % the period length of the ripple. However, this should be the
 % situation found for most practical situations.
@@ -258,7 +258,7 @@ to the spectrum.
 
 
 \section{Polynomial baseline ripple}
- \zlabel{sec:measerr:pol}
+ \label{sec:measerr:pol}
  
  \begin{figure}
   \begin{center}
@@ -271,7 +271,7 @@ to the spectrum.
     \centering
     \caption{Polynomial WFs of order 0, 1 and 2. The scaled frequency is 
              $f'=(\f-\bar{\f})/\Delta \f$.}
-    \zlabel{fig:measerr:kpol}
+    \label{fig:measerr:kpol}
    \end{minipage}
   \end{center}
  \end{figure}           
@@ -302,7 +302,7 @@ to the spectrum.
  deviate too strongly. The factors are calculated as
  \begin{eqnarray}
    \bar{\f} &=& \frac{\f_{min}+\f_{max}}{2} \\
-   \zlabel{eq:measerr:fmean}
+   \label{eq:measerr:fmean}
    \Delta \f &=& \frac{\f_{max}-\f_{min}}{2}
  \end{eqnarray}
  where $\f_{min}$ and $\f_{max}$ are the minimum and maximum value,
@@ -317,27 +317,27 @@ to the spectrum.
  where the elements of $\mat{a}_p$ are
  \begin{equation}
    \mat{a}_p^i = \left( \frac{\f^i-\bar{\f}}{\Delta \f} \right)^p
-  \zlabel{eq:measerr:kpol}
+  \label{eq:measerr:kpol}
  \end{equation}
  Note that for $p=0$, $\mat{a}_p=1$. 
  
  Examples on polynomial weighting functions are shown is Figure 
- \zref{fig:measerr:kpol}.
+ \ref{fig:measerr:kpol}.
 
 
 
 \section{Piecewise polynomial baseline ripple}
- \zlabel{sec:measerr:ppol}
+ \label{sec:measerr:ppol}
  
  If the spectrum is recorded with a number of spectrometers (or
  individual spectrometer parts) there could be a difference in the
  level between the different parts of the spectrum. Figure
- \zref{fig:wfuns:baselinefit} shows an example on such a spectrum.
+ \ref{fig:wfuns:baselinefit} shows an example on such a spectrum.
  
  The baseline for such cases can be retrieved by piecewise polynomials
  where an individual polynomial is applied for each part of the
  spectrum. For frequencies inside the part of concern the WFs are
- given by Equation \zref{eq:measerr:kpol}, while for remaining
+ given by Equation \ref{eq:measerr:kpol}, while for remaining
  frequencies the WFs are 0.  
 
  \begin{figure}[t]
@@ -355,7 +355,7 @@ to the spectrum.
      frequency range, and a 2:nd oder polynomial inside each 20 MHz
      range. The lower figure shows the difference between the spectra
      in the middle figure, the residual.}
-   \zlabel{fig:wfuns:baselinefit}
+   \label{fig:wfuns:baselinefit}
   \end{center}
  \end{figure}
 

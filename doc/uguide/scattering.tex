@@ -1,7 +1,7 @@
 \graphicspath{{Figs/scattering/}}
 
 \chapter{Scattering - DOIT module}
- \zlabel{sec:scattering}
+ \label{sec:scattering}
 
 \starthistory
  020601 & Created and written by Claudia Emde\\ 
@@ -31,10 +31,10 @@ chapter, has been published in \citet{emde04:_doit_jgr} and in
 
 
 \section{The discrete ordinate iterative method}
-\zlabel{sec:scattering:doit}
+\label{sec:scattering:doit}
 
 \subsection{Radiation field}
-\zlabel{sec:scattering:rad_field}
+\label{sec:scattering:rad_field}
 The Stokes vector depends on the
 position in the cloud box and on the propagation direction specified
 by the zenith angle ($\ZntAng$) and the azimuth angle ($\AzmAng$). All
@@ -71,7 +71,7 @@ In the following we will use the notation
 \end{eqnarray}
 
 \subsection{Vector radiative transfer equation solution} 
-\zlabel{sec:scattering:VRTE_sol}
+\label{sec:scattering:VRTE_sol}
 
 \figref{fig:scattering:iteration_scheme} shows a schematic of the iterative
 method, which is applied to solve the \textindex{vector radiative transfer
@@ -97,7 +97,7 @@ equation} \eqref{eq:rtetheory:VRTE}
   \fbox{
   \includegraphics[width=.95\hsize]{iteration_scheme}}
   \caption{Schematic of the iterative method to solve the VRTE in the cloud box.}
-  \zlabel{fig:scattering:iteration_scheme}
+  \label{fig:scattering:iteration_scheme}
 \end{figure}
 
 The \emph{first guess field}
@@ -114,7 +114,7 @@ The next step is to solve the scattering integrals
 \begin{equation}
   \EnsAvr{\AmpMat^{(0)}_{ijklm}} = \int_{4\pi} \DiffD \PDir'
   \EnsAvr{\PhaMat_{ijklm}} \StoVec_{ijklm}^{(0)},
-  \zlabel{eq:scattering:scat-int}
+  \label{eq:scattering:scat-int}
 \end{equation}
 using the first guess field, which is now stored in a variable
 reserved for the \emph{old radiation field}. For the integration we
@@ -141,7 +141,7 @@ differential equation:
   \frac{\DiffD \StoVec^{(1)}}{\DiffD s} =
   -\overline{\EnsAvr\ExtMat}  \StoVec^{(1)} + \overline{\EnsAvr\AbsVec}\,  \bar{B}
   +\overline{\EnsAvr{\SVec^{(0)}}},
-  \zlabel{eq:scattering:vrte-fs-av}
+  \label{eq:scattering:vrte-fs-av}
 \end{equation}
 where $\overline{\EnsAvr\ExtMat}$, $\overline{\EnsAvr\AbsVec}$, $\bar{B}$ and $\overline{\EnsAvr{\SVec^{(0)}}} $ are \emph{averaged quantities}.  This equation
 can be solved analytically for constant coefficients. Multi-linear
@@ -153,7 +153,7 @@ averaged Planck function $\bar{B}$.
 \begin{figure}[t!]
   \centering\includegraphics[width=.8\hsize]{average}
   \caption{Path from a grid point ($(\Prs_i, \Lat_j, \Lon_k)$~-~($\times$)) to the intersection point ($(\Prs_i', \Lat_j', \Lon_k')$~-~($\circ$)) with the next grid cell boundary. Viewing direction is specified by $(\ZntAng_l, \AzmAng_m)$ at ($\times$) or $(\ZntAng_l', \AzmAng_m')$ at ($\circ$).}
-  \zlabel{fig:scattering:average}
+  \label{fig:scattering:average}
 \end{figure}
 
 The solution of \eqnref{eq:scattering:vrte-fs-av} is found analytically using
@@ -164,7 +164,7 @@ a matrix exponential approach: % \FIXME  (see \appref{app:A}):
   \left( \IdnMtr -  e^{-\overline{\EnsAvr\ExtMat} s} \right)
   \overline{\EnsAvr\ExtMat}^{\,-1} \left(\overline{\EnsAvr\AbsVec}\,
     \bar{B} + \overline{\EnsAvr{\SVec^{(0)}}} \right),
-  \zlabel{eq:scattering:VRTE_sol}
+  \label{eq:scattering:VRTE_sol}
 \end{equation}
 where \IdnMtr\ denotes the identity matrix and $\StoVec^{(0)}$ the
 initial Stokes vector.  The \emph{radiative transfer step} from $\VctStl{P}'$ to $\VctStl{P}$ is calculated, therefore $\StoVec^{(0)}$ is
@@ -243,7 +243,7 @@ grids.
 If the convergence test
 \begin{equation}
   \Abs{\StoVec^{(N)}_{ijklm} \left( \Prs_i, \Lat_j, \Lon_k, \ZntAng_l, \AzmAng_m\right)  -  \StoVec^{(N-1)}_{ijklm} \left( \Prs_i, \Lat_j, \Lon_k, \ZntAng_l, \AzmAng_m\right)} < \VctStl{\epsilon},
-  \zlabel{eq:scattering:conv_test}
+  \label{eq:scattering:conv_test}
 \end{equation}
 is fulfilled,
  a solution to the vector radiative transfer equation \eqref{eq:rtetheory:VRTE}
@@ -255,7 +255,7 @@ has been found:
 
 
 \subsection{Scalar radiative transfer equation solution}
-\zlabel{sec:scattering:scattering:solution_rte_scalar}
+\label{sec:scattering:scattering:solution_rte_scalar}
 
 In analogy to the \emph{scattering integral} vector field the scalar
 scattering integral field is obtained:
@@ -265,7 +265,7 @@ scattering integral field is obtained:
 The \emph{\textindex{scalar radiative transfer}} equation \eqref{eq:rtetheory:SRTE} with a
 fixed scattering integral is
 \begin{equation}
-  \zlabel{eq:scattering:SRTE-Int}
+  \label{eq:scattering:SRTE-Int}
   \frac{\DiffD I^{(1)}}{\DiffD s} = -\EnsAvr{ K_{11}} I^{(1)}
   + \EnsAvr{a_1} B +\EnsAvr{S^{(0)}}.
 \end{equation}
@@ -275,7 +275,7 @@ scattering vectors and the temperature. The averaging procedure is done
 analogously to the procedure described for solving the VRTE.  The
 solution of the averaged differential equation is
 \begin{equation}
-\zlabel{eq:scattering:SRTE_sol}
+\label{eq:scattering:SRTE_sol}
   I^{(1)} = I^{(0)} e^{-\overline{\EnsAvr{K_{11}}} s} +
   \frac{\overline{\EnsAvr{a_1}}\, 
     \bar{B} + \overline{\EnsAvr{ S^{(0)}}} }
@@ -299,7 +299,7 @@ compares the values of the calculated intensities of two successive
 iteration fields.
 
 \subsection{Single scattering approximation}
-\zlabel{sec:scattering:ss_approx}
+\label{sec:scattering:ss_approx}
 
 The DOIT method uses the \textindex{single scattering approximation},
 which means 
@@ -325,8 +325,8 @@ is done along the propagation path through one grid cell.  All
 coefficients of the VRTE are interpolated linearly on the propagation
 path points.
 
-\section{\textindex{Sequential update}}\zlabel{chap:numerical_methods}
-\zlabel{sec:scattering:sequential_update}
+\section{\textindex{Sequential update}}\label{chap:numerical_methods}
+\label{sec:scattering:sequential_update}
 
 In the previous \secref{sec:scattering:doit} the iterative solution method
 for the VRTE  
@@ -371,7 +371,7 @@ depend upon the position and direction:
 \centering
   \includegraphics[width=.8\hsize]{seq_update_bw}
  \caption{Schematic of the sequential update (1D) showing the three different parts:  ``up-looking'' corresponds to zenith angles $\ZntAng_\mathrm{up}$, ``limb-looking'' corresponds to $\ZntAng_\mathrm{limb}$ ``down-looking'' corresponds to $\ZntAng_\mathrm{down}$.}
-  \zlabel{fig:scattering:seq_update}  
+  \label{fig:scattering:seq_update}  
 \end{figure}
 
 The \emph{boundary condition} for the calculation is the incoming
@@ -490,11 +490,11 @@ number of pressure levels.
 
 
 \section{Numerical Issues}
-\zlabel{sec:scattering:implementation_DOIT}
+\label{sec:scattering:implementation_DOIT}
 
 
 \subsection{Grid optimization and interpolation}
-\zlabel{sec:scattering:grid_opt_interp}
+\label{sec:scattering:grid_opt_interp}
 
 The accuracy of the DOIT method depends very much on the
 discretization of the zenith angle. The reason is that the intensity
@@ -538,7 +538,7 @@ extent, because much less grid points are required.
 \centering
   \includegraphics[width=0.8\hsize]{i_field}
   \caption{Intensity field for different pressure levels.}
-  \zlabel{fig:scattering:i_field}  
+  \label{fig:scattering:i_field}  
 \end{figure}
 
 
@@ -581,7 +581,7 @@ solution.
     Bottom left: Grid optimization accuracy for limb directions.
     Bottom right: Grid optimization accuracy for down-looking
     directions.}
-  \zlabel{fig:scattering:grid_acc}  
+  \label{fig:scattering:grid_acc}  
 \end{figure}
 
 The interpolation error is the relative difference between the exact
@@ -635,7 +635,7 @@ than the linear interpolation method.
   \includegraphics[width=.9\hsize]{interp}
   \caption{Interpolation errors for polynomial and linear interpolation.
   }
-  \zlabel{fig:scattering:interp}  
+  \label{fig:scattering:interp}  
 \end{figure}
 
 \subsubsection{Error estimates}
@@ -671,7 +671,7 @@ interpolation error is below~0.2\%.
     Left panels: Interpolation errors for limb directions.
     Right panels: Interpolation errors for down-looking directions.
     Top: Intensity~$I$, Bottom: Polarization difference~$Q$}
-  \zlabel{fig:scattering:interp_err}  
+  \label{fig:scattering:interp_err}  
 \end{figure}
 
 \section{Implementation}
@@ -689,7 +689,7 @@ workspace methods and variables please refer also to the online help
 (\artsstyle{arts -d ...}).
  
 \subsection{DOIT frame}
-\zlabel{sec:scattering:frame}
+\label{sec:scattering:frame}
 
 As a first step for a DOIT calculation we have to calculate the
 incoming field on the boundary of the cloudbox. This is done using the
@@ -747,7 +747,7 @@ ScatteringDoit
 \end{verbatim}
 
 \subsubsection{The DOIT main agenda}
-\zlabel{sec:scattering:doit_main_agenda}
+\label{sec:scattering:doit_main_agenda}
 
 The agenda \wsaindex{doit\_main\_agenda} requires the incoming
 clearsky field on the cloudbox boundary as an input and gives as

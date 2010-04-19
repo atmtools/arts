@@ -7,7 +7,7 @@
 %
 \chapter{Gridded Fields}
 %-------------------------------------------------------------------------
-\zlabel{sec:griddedfields}
+\label{sec:griddedfields}
 
 
 %
@@ -40,7 +40,7 @@ or strings, like channel names.
 
 \section{Implementation files}
 %-------------------------------------------------------------------------
-\zlabel{sec:griddedfields:files}
+\label{sec:griddedfields:files}
 
 The \artsstyle{GriddedField1}, \artsstyle{GriddedField2},
 \artsstyle{GriddedField3}, \artsstyle{GriddedField4} classes and their common
@@ -53,7 +53,7 @@ base class \artsstyle{GriddedField} described below reside in the files:
 
 \section{Design}
 %-------------------------------------------------------------------------
-\zlabel{sec:griddedfields:design}
+\label{sec:griddedfields:design}
 
 
 
@@ -70,25 +70,25 @@ directly.
 %-------------------------------------------------------------------------
 
 The \artsstyle{GriddedFieldX} classes use multiple inheritance to combine a
-data object with the grids, see Figure \zref{fig:griddedfields:uml}.
+data object with the grids, see Figure \ref{fig:griddedfields:uml}.
 
 \begin{figure}[ht!]
 \begin{center}
 \includegraphics{Figs/development/griddedfields_inheritance}
 \caption{UML diagram of gridded field inheritance.}
-\zlabel{fig:griddedfields:uml}
+\label{fig:griddedfields:uml}
 \end{center}
 \end{figure}
 
 
 \section{Constructing Gridded Fields}
 %-------------------------------------------------------------------------
-\zlabel{sec:griddedfields:construct}
+\label{sec:griddedfields:construct}
 
 
 \subsection{Creation}
 %-------------------------------------------------------------------------
-\zlabel{sec:griddedfields:create}
+\label{sec:griddedfields:create}
 
 Each \artsstyle{GriddedFieldX} offers two constructors. One default
 constructor that creates an unnamed gridded field and a second constructor
@@ -104,7 +104,7 @@ gftwo.set_name ("I'm a GriddedField2");
 
 \subsection{Initializing the grids}
 %-------------------------------------------------------------------------
-\zlabel{sec:griddedfields:initgrids}
+\label{sec:griddedfields:initgrids}
 
 Once a gridded field has been created, we can start setting up the
 grids. There are two different types of grids, a numeric grid and a
@@ -131,17 +131,17 @@ gftwo.set_grid_name (1, "Channel");
 
 \subsection{Initializing the data}
 %-------------------------------------------------------------------------
-\zlabel{sec:griddedfields:initdata}
+\label{sec:griddedfields:initdata}
 
 Because gridded fields do not only inherit from \artsstyle{GriddedField} but
 also from the class of the data they contain, it is possible to treat them in
-exactly the same way. See Figure \zref{fig:griddedfields:objects}.
+exactly the same way. See Figure \ref{fig:griddedfields:objects}.
 
 \begin{figure}[ht!]
 \begin{center}
 \includegraphics{Figs/development/griddedfields_objects}
 \caption{Visualization of gridded field objects.}
-\zlabel{fig:griddedfields:objects}
+\label{fig:griddedfields:objects}
 \end{center}
 \end{figure}
 
@@ -164,7 +164,7 @@ Matrix amatrix(5,3,4.);     // amatrix = [[4,4,4],[4,4,4],...]
 
 \subsection{Consistency check}
 %-------------------------------------------------------------------------
-\zlabel{sec:griddedfields:consistency}
+\label{sec:griddedfields:consistency}
 
 After initializing or changing either the grids or the data, it can happen
 that the size of the grids does not match the size of the data anymore. Each
