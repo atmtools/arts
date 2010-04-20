@@ -1,12 +1,18 @@
 macro (ARTS_ADD_TEX_DOC TARGET TEXFILES FIGFILES)
 
+  set (PDFLATEX_OUTPUTDIR "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}")
   set (PDFLATEX_OPTIONS "-interaction;batchmode;-halt-on-error")
-  set (PDFLATEX_LOGGING ">>;${TARGET}.log")
-  set (PDFLATEX_COMMAND "TEXINPUTS=.:${CMAKE_CURRENT_SOURCE_DIR}:"
+  set (PDFLATEX_LOGGING ">>;${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.log")
+  set (PDFLATEX_COMMAND "TEXINPUTS=.:..:${CMAKE_CURRENT_SOURCE_DIR}:"
     "save_size=15000" ${PDFLATEX_COMPILER} ${PDFLATEX_OPTIONS} ${TARGET}
     ${PDFLATEX_LOGGING})
 
   get_filename_component(MAKEINDEX_PATH "${MAKEINDEX_COMPILER}" PATH)
+
+  add_custom_command (
+    OUTPUT ${PDFLATEX_OUTPUTDIR}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PDFLATEX_OUTPUTDIR}
+  )
 
   add_custom_command (
     OUTPUT ${TARGET}.pdf
@@ -18,7 +24,9 @@ macro (ARTS_ADD_TEX_DOC TARGET TEXFILES FIGFILES)
             && ${PDFLATEX_COMMAND}
             && ${PDFLATEX_COMMAND}
             && ${PDFLATEX_COMMAND} || \(cat ${TARGET}.log && exit 1\)
-    DEPENDS ${TEXFILES} ${FIGFILES} ${CMAKE_CURRENT_BINARY_DIR}/auto_version.tex
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${PDFLATEX_OUTPUTDIR}/${TARGET}.pdf" "${CMAKE_CURRENT_BINARY_DIR}"
+    WORKING_DIRECTORY ${PDFLATEX_OUTPUTDIR}
+    DEPENDS ${TEXFILES} ${FIGFILES} ${CMAKE_CURRENT_BINARY_DIR}/auto_version.tex ${PDFLATEX_OUTPUTDIR}
   )
 
   add_custom_target (${TARGET} ALL DEPENDS
@@ -27,17 +35,21 @@ macro (ARTS_ADD_TEX_DOC TARGET TEXFILES FIGFILES)
   install (FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.pdf
            DESTINATION share/doc/arts)
 
-  set (TEXCLEANFILES "")
+         #  set (TEXCLEANFILES "")
+         #get_directory_property (TEXCLEANFILES ADDITIONAL_MAKE_CLEAN_FILES)
+         #foreach (TEXFILE ${TEXFILES})
+         #get_filename_component (BASETEXFILE ${TEXFILE} NAME_WE)
+         #set (TEXCLEANFILES ${TEXCLEANFILES} ${PDFLATEX_OUTPUTDIR}/${BASETEXFILE}.aux)
+         #endforeach (TEXFILE)
+
+  #  set (TEXCLEANFILES ${TEXCLEANFILES}
+  #     ${PDFLATEX_OUTPUTDIR}/${TARGET}.bbl ${PDFLATEX_OUTPUTDIR}/${TARGET}.blg
+  #     ${PDFLATEX_OUTPUTDIR}/${TARGET}.idx ${PDFLATEX_OUTPUTDIR}/${TARGET}.ilg
+  #     ${PDFLATEX_OUTPUTDIR}/${TARGET}.ind ${PDFLATEX_OUTPUTDIR}/${TARGET}.log
+  #     ${PDFLATEX_OUTPUTDIR}/${TARGET}.out ${PDFLATEX_OUTPUTDIR}/${TARGET}.toc)
+
   get_directory_property (TEXCLEANFILES ADDITIONAL_MAKE_CLEAN_FILES)
-  foreach (TEXFILE ${TEXFILES})
-    get_filename_component (BASETEXFILE ${TEXFILE} NAME_WE)
-    set (TEXCLEANFILES ${TEXCLEANFILES} ${BASETEXFILE}.aux)
-  endforeach (TEXFILE)
-
-  set (TEXCLEANFILES ${TEXCLEANFILES}
-       ${TARGET}.bbl ${TARGET}.blg ${TARGET}.idx ${TARGET}.ilg
-       ${TARGET}.ind ${TARGET}.log ${TARGET}.out ${TARGET}.toc)
-
+  set (TEXCLEANFILES ${TEXCLEANFILES} ${TARGET}.log)
   set_directory_properties (PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
                             "${TEXCLEANFILES}")
 

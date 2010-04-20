@@ -8,20 +8,41 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
   configure_file (${CMAKE_CURRENT_SOURCE_DIR}/auto_version.tex.in
                   ${CMAKE_CURRENT_BINARY_DIR}/auto_version.tex @ONLY)
 
-  file (GLOB TEXFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.tex")
+  file (GLOB TEXFILES "${CMAKE_CURRENT_SOURCE_DIR}/arts_user.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/concept.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/atmosphere.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/rte.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/ppath.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/surface.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/sensor.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/batch.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/clouds.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/scattering.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/reduction.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/wfuns_atm.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/measerr.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/wfuns_sensor.tex")
   file (GLOB FIGFILES "${CMAKE_CURRENT_SOURCE_DIR}/Figs/*/*.pdf")
   ARTS_ADD_TEX_DOC ("arts_user" "${TEXFILES}" "${FIGFILES}")
   
-  file (GLOB TEXFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.tex")
+  file (GLOB TEXFILES "${CMAKE_CURRENT_SOURCE_DIR}/arts_developer.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/development.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/agendas.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/matrix_vector.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/gridded_fields.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/interpolation.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/lin_alg.tex")
   file (GLOB FIGFILES "${CMAKE_CURRENT_SOURCE_DIR}/Figs/*/*.pdf")
   ARTS_ADD_TEX_DOC ("arts_developer" "${TEXFILES}" "${FIGFILES}")
   
-  file (GLOB TEXFILES "${CMAKE_CURRENT_SOURCE_DIR}/*.tex")
+  file (GLOB TEXFILES "${CMAKE_CURRENT_SOURCE_DIR}/arts_theory.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/formalismn.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/rte_theoryn.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/polarization.tex"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/montecarlo.tex")
   file (GLOB FIGFILES "${CMAKE_CURRENT_SOURCE_DIR}/Figs/*/*.pdf")
   ARTS_ADD_TEX_DOC ("arts_theory" "${TEXFILES}" "${FIGFILES}")
   
-  add_custom_target (arts_docs ALL DEPENDS arts_user.pdf arts_developer.pdf arts_theory.pdf)
-
 else (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
 
   if (NOT PDFLATEX_COMPILER)
