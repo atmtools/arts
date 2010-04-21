@@ -1,3 +1,11 @@
+2010-04-21  Cory Davis  <cory@sundog>
+
+	* arts-1-14-16
+
+	* doc/uguide/montecarlo.tex: a bit more.  I couldn't test the
+	changes because there seems to be something wrong with the
+	doc build.
+
 2010-04-19  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-15

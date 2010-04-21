@@ -119,7 +119,7 @@ the prime on $\mathbf{n'}$,
 \label{inorouteq}
 \end{equation}
 , where $g$ is the PDF we will eventually use to sample pathlength,
-$\Delta s$. $s'_{boundary}$ represents the pathlenght corresponding to
+$\Delta s$. $s'_{boundary}$ represents the pathlength corresponding to
 the boundary of the domain opposite the line of sight.
 The integrand Eq. \ref{inorouteq} is a piecewise function of the
 path distance, where path distances corresponding to positions outside
@@ -130,7 +130,9 @@ a sum of emission and scattering attenuated by the evolution operator
 over the distance between the point and the atmosphere exit. 
 The reader
 could easily verify that evaluating Eq. \ref{inorouteq} gives
-Eq. \ref{intVRTE}. The aim in importance sampling is to choose probability density functions
+Eq. \ref{intVRTE}. 
+
+The aim in importance sampling is to choose probability density functions
 (PDFs) for the independent variables that are
 as close as possible to being proportional to the integrand
 \cite{liu:01}. This concentrates computational effort on regions where
@@ -162,16 +164,48 @@ $\mathbf{s}_N$ is
 \end{eqnarray}
 , where $\mathbf{O(s_i,s_{i+1})}$ is given by Eq. \ref{OconstK}.
 
+Since PDFs are scalar functions, and that we consider the first element of the
+Stokes vector most important, we choose the pathlength PDF to be proportional to the
+(1,1) element of $\mathbf{O(s',s)}$,
+
+\begin{equation}
+g(\Delta s)=\tilde{k}\tilde{O_{11}}(\Delta s)
+\label{gDeltas}
+\end{equation}
+This is sampled by taking a random number and solving 
+\begin{equation}
+\tilde{O_{11}}(\Delta s)=r.
+\label{solvefor0}
+\end{equation}
+for $\Delta s$.  Here, 
+\begin{equation}
+\tilde{k}=\frac{1}{\left(\Delta s_B-\Delta s_A\right)}
+\ln\left(\frac{O_{11}^A}{O_{11}^B}\right)
+\end{equation}
+, which, for cases where the extinction matrix is diagonal, is equal to $K_{11}=(K_{11}^A+K_{11}^B)/2$.
+
+With pathlength sampled according to Eq. \ref{solvefor0}, the Monte
+Carlo estimate for Eq. \ref{inorouteq} becomes
+\begin{eqnarray}
+\mathbf{I(n,s_0)}&=&\int^{s_0}_\infty\left\{\begin{array}{rl}
+\frac{\mathbf{O(s',s_0)}}{g(\Delta s)}\left(\mathbf{K_a(n)}I_b(T)
++\int_{4\pi}\mathbf{Z(n,n')}\mathbf{I(n')}d\mathbf{n'}\right) & s'< s'_{boundary} \\
+\frac{\mathbf{O(u_0,s_0)I(n,u_0)}}{1-\tilde{O_{11}}(\Delta s)} & s'\ge s'_{boundary}
+\end{array}g(\Delta s)ds'\right.\\
+&\approx&\left\langle\left\{\begin{array}{rl}
+\frac{\mathbf{O(s',s_0)}}{g(\Delta s)}\left(\mathbf{K_a(n)}I_b(T)
++\int_{4\pi}\mathbf{Z(n,n')}\mathbf{I(n')}d\mathbf{n'}\right) & s'< s'_{boundary} \\
+\frac{\mathbf{O(u_0,s_0)I(n,u_0)}}{1-\tilde{O_{11}}(\Delta s)} & s'\ge s'_{boundary}
+\end{array}\right.\right\rangle
 
 
+\end{eqnarray} 
 
 Likewise, new incident directions
 ($\theta_{inc},\phi_{inc}$) should be sampled from a PDF proportional
 to
 $\mathbf{Z}(\theta_{scat},\phi_{scat},\theta_{inc},\phi_{inc})$.
-Since PDFs are scalar functions, and that we consider the first element of the
-Stokes vector most important, we choose PDFs that are proportional to the
-(1,1) element of $\mathbf{O(s',s)}$ and $\mathbf{Z}(\theta_{scat},\phi_{scat},\theta_{inc},\phi_{inc})$. 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Algorithm [FIXME:Needs updating to MCGeneral]}
  \label{sec:montecarlo:alg}
@@ -260,16 +294,6 @@ scattering order.
 %4%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \item
 Choose a path length along the new direction according to
-\begin{equation}
-g(\Delta s)=\tilde{k}\tilde{O_{11}}(\Delta s)
-\label{gDeltas}
-\end{equation}
-This is sampled by taking a random number and solving 
-\begin{equation}
-\tilde{O_{11}}(\Delta s)=r.
-%\label{solvefor0}
-\end{equation}
-for $\Delta s$.
 If $r<O_{11}(\mathbf{u_{k},s_k})$, where $\mathbf{u}_{k}$ is the
   boundary of the scattering domain in the current line of sight, the
   photon leaves the scattering domain, and the contribution for photon $i$ is
