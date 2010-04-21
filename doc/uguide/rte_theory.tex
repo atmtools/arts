@@ -109,11 +109,11 @@ by
    \exp\left(-2\frac{\omega}{c} m_{\mathrm{I}} \hat{\PDir} \cdot
      \VctStl{r}\right) \hat{\PDir}.
 \end{equation}
-\eqnref{eq:rtetheory:Poynting_vec} shows that the energy flows in the
+Equation \ref{eq:rtetheory:Poynting_vec} shows that the energy flows in the
 direction of propagation and its absolute value $I(\VctStl{r}) =
 \Abs{\EnsAvr{\VctStl{P}(\VctStl{r})}}$, which is usually called
 intensity (or irradiance), is exponentially attenuated. Rewriting
-\eqnref{eq:rtetheory:Poynting_vec} gives
+Equation \ref{eq:rtetheory:Poynting_vec} gives
 \begin{equation}
   I(\VctStl{r}) = I_0 \exp(-\alpha^p \hat{\PDir} \cdot \VctStl{r}),
 \end{equation}
@@ -139,7 +139,7 @@ fields associated with a beam of radiation. They measure quantities
 that are time averages of real-valued linear combinations of products
 of field vector components and have the dimension of intensity.
 Examples of such observable quantities are the Stokes parameters.
-\figref{fig:RT_theory_coordinates} shows the coordinate system used
+Figure \ref{fig:RT_theory_coordinates} shows the coordinate system used
 to describe the direction of propagation $\hat{\PDir}$ and the
 polarization state of a plane electromagnetic wave.
 \begin{figure}[t]
@@ -281,7 +281,7 @@ non-zero Stokes parameter other than intensity:
   V^{\sca} &= Z_{41}I^{\inc}.
 \end{eqnarray}
 This is the phenomena is traditionally called ``polarization''. The
-non-zero degree of polarization \eqnref{eq:polarization:pol_degree}
+non-zero degree of polarization Equation \ref{eq:polarization:pol_degree}
 can be written in terms of the phase matrix elements
 \begin{equation}
   p = \frac{\sqrt{Z_{21}^2+Z_{31}^2+Z_{41}^2}}{Z_{11}}.
@@ -472,7 +472,7 @@ particles:
   \VctStl{E}^{\sca}(\VctStl{r}) = \sum_{n=1}^{N}\VctStl{E_n}^{\sca}(\VctStl{r}).
 \end{equation}
 As we assume single scattering the partial scattered fields are given
-according to \eqnref{eq:rtetheory:amplitude_matrix}:
+according to Equation \ref{eq:rtetheory:amplitude_matrix}:
 \begin{equation}
   \ColVctTwo{\left[ E_n^{\sca}(\VctStl{r}) \right]_\ZntAng}%
          {\left[ E_n^{\sca}(\VctStl{r})\right]_\AzmAng}
@@ -491,7 +491,7 @@ matrices and the phase $\Delta_n$ is given by
 \end{equation}
 where the vector $\VctStl{r}_\mathrm{On}$ connects the origin of the volume
 element $O$ with the $n$th particle origin (see
-\figref{fig:part_ensembles}).  Since $\Delta_n$ vanishes in forward
+Figure \ref{fig:part_ensembles}).  Since $\Delta_n$ vanishes in forward
 direction and the individual extinction matrices can be written in
 terms of the individual amplitude matrix elements, the total
 extinction matrix is given by
@@ -574,7 +574,7 @@ Planck function and $\EnsAvr\PhaMat$ is the ensemble-averaged
 phase matrix.  Furthermore $\nu$ is the frequency of the radiation,
 $T$ is the temperature, $\DiffD s$ is a path-length-element of the
 propagation path and $\PDir$ the propagation direction.
-\eqnref{eq:rtetheory:VRTE} is valid for monochromatic or quasi-monochromatic
+Equation \ref{eq:rtetheory:VRTE} is valid for monochromatic or quasi-monochromatic
 radiative transfer. We can use this equation for simulating microwave
 radiative transfer through the atmosphere, as the scattering events do
 not change the frequency of the radiation.
@@ -583,13 +583,13 @@ The four-component specific intensity vector~$\StoVec = (I,Q,U,V)^T$
 fully describes the radiation and it can directly be associated with
 the measurements carried out by a radiometer used for remote sensing.
 For the definition of the components of the specific intensity vector
-refer to \secref{sec:polarization}, where the Stokes
+refer to Section \ref{sec:polarization}, where the Stokes
 components are described. Since the specific intensity vector is a
 superposition of Stokes vectors, the polarization state of the
 specific intensity vector can be analysed in the same way as the
 polarization state of the Stokes vector.
 
-The three terms on the right hand side of \eqnref{eq:rtetheory:VRTE} describe
+The three terms on the right hand side of Equation \ref{eq:rtetheory:VRTE} describe
 physical processes in an atmosphere containing different particle
 types and different trace gases. The first term represents the
 extinction of radiation traveling through the scattering medium. It is
@@ -641,7 +641,7 @@ $n^g_i$ as:
 \begin{equation}
    \EnsAvr{ \alpha^g(\nu, T) } =  \sum_{i=1}^M  n^g_i \alpha_i^g(\nu, T).
 \end{equation}
-The second term in \eqnref{eq:rtetheory:VRTE} is the thermal source term. It
+The second term in Equation \ref{eq:rtetheory:VRTE} is the thermal source term. It
 describes thermal emission by gases and particles in the atmosphere.
 The ensemble averaged absorption vector $\EnsAvr{\AbsVec}$ is
 \begin{equation}
@@ -662,7 +662,7 @@ The gas absorption vector is simply
 \begin{equation}
  \EnsAvr{ \AbsVec^{g}(\nu, T) }  = (\EnsAvr{\alpha^p(\nu, T)}, 0, 0, 0)^T.
 \end{equation}
-The last term in \eqnref{eq:rtetheory:VRTE} is the scattering source term.
+The last term in Equation \ref{eq:rtetheory:VRTE} is the scattering source term.
 It adds the amount of radiation which is scattered from all directions
 \PDir$'$ into the propagation direction \PDir.  The ensemble
 averaged phase matrix \EnsAvr\PhaMat\ is the sum of the individual

@@ -1,3 +1,22 @@
+2010-04-21  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-14-19
+
+	* doc/uguide/concept.tex (section{Documentation}): Rewritten.
+
+	* doc/uguide/arts_user.tex,
+	doc/uguide/arts_developer.tex,
+	doc/uguide/arts_theory.tex: Reduced contributer table to
+	contributions only in the respective document
+
+	* doc/uguide/sensor.tex: Added line breaks. (This file used
+	windows-style single line paragraphs.)
+
+	* doc/uguide/*.tex: Removed the macros:
+	\secref, \eqref, \eqnref, \figref, \tabref, \charef.
+	Reason, it gets too complicated to make macros for all cases
+	(considering the reference could be to another document).
+	
 2010-04-21  Cory Davis  <cory@sundog>
 
 	* arts-1-14-16

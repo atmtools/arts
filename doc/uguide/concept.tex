@@ -2,6 +2,7 @@
 \label{sec:concept}
 
 \starthistory
+100421 & Section \ref{sec:concept:doc} rewritten by Stefan Buehler.\\
 090507 & Section on control files and workspace moved 
          and rewritten by Stefan Buehler.\\
 090424 & Complete revision and new text by Patrick Eriksson.\\
@@ -14,7 +15,7 @@
 
 
 This section introduces and describes the basic ideas underlying the
-ARTS programme. It also presents some terminology. You should read
+ARTS program. It also presents some terminology. You should read
 it if you want to understand how the program works and how it can be
 used efficiently.
 
@@ -61,7 +62,7 @@ version. A short summary of ARTS's main features:
 \item[Polarisation] is fully described by using the Stokes formalism.
 \item[Scattering] can be considered by two modules, DOIT
   (Section~\ref{sec:scattering}) and MC
-  (Section~\ref{sec:montecarlo}). The scattering calculations are for
+  (\theory, Section~\ref{T-sec:montecarlo}). The scattering calculations are for
   efficiency reasons confined to a region of the atmosphere denoted as
   the cloud box.
 \item[Observation geometry] is free. That is, the forward model can be
@@ -83,35 +84,52 @@ contents and the index for navigating through the user guide.
 %========================================
 \label{sec:concept:doc}
 
-If you are totally new to ARTS and look for an introduction, we can
-not yet offer any dedicated reading beside this section. The ambition
-is to write an ARTS journal article during 2009. Many basic features
-are common between ARTS-1 and ARTS, and \citet{buehler:artst:05}
-introducing ARTS-1 is relevant also for this ARTS version and should
-be worthwhile reading.
+The following documentation is available for ARTS:
 
-The main documentation sources for ARTS are the on-line documentation
-and control file examples. The on-line documentation is described in
-Section ~\ref{sec:concept:comline}. ARTS comes with a set of control
+\paragraph{Books}
+\begin{description}
+\item[ARTS User Guide:] This document.
+\item[ARTS Developer Guide:] Guide for ARTS developers.
+\item[ARTS Theory:] Describes the theoretical basis of many ARTS algorithms.
+\end{description}
+
+\paragraph{Articles}
+\begin{description}
+\item[\citet{buehler:artst:05}:] General description of the old ARTS
+  version without scattering. Many basic features are still the same,
+  so this article is relevant also for the current ARTS version.
+\item[\citet{eriksson:06}:] Describes the calculation approach for the
+  incorporation of sensor characteristics.
+\item[\citet{emde04:_doit_jgr}:] Describes the Discrete Ordinate Iterative method (DOIT) for handling scattering.
+\item[\citet{davisetal:04}:] Describes the Monte Carlo scattering method.
+\end{description}
+
+\paragraph{Built in}
+\begin{description}
+\item[arts -d xxx:] Prints built in documentation on function or
+  variable xxx. (There are other command line options that allow you
+  to explore how the different functions and variables hang together,
+  which makes the command line help a very powerful tool.)
+\item[Test control files:] Directory \fileindex{test} of the ARTS distribution
+  contains control files for various standard cases. You can use them
+  as starting point for your own control files. 
+\end{description}
+
+Important documentation sources for ARTS are the built in documentation
+and the control file examples. The built in documentation is described in
+Section \ref{sec:concept:comline}. ARTS comes with a set of control
 files that have two purposes: (1) To allow testing of the code at each
 commit, (2) To act as practical examples for new users. These control
 files are found in the \verb|tests/| sub-directory. Please, note that the
-include mechanism (Section~\ref{sec:concept:envvars}) is used heavily,
+include mechanism (Section \ref{sec:concept:envvars}) is used heavily,
 where files from the \verb|includes/| sub-directory are selected.
 
-Algorithms and details of the calculations are described by this user
-guide. The user guide is fairly extensive, but due to a lack of direct
-funding for this work it is not possible for us to reach a complete
-coverage. All help to make this user guide more complete is highly
-appreciated. For some parts of ARTS we refer to journal articles:
-\begin{itemize}
-\item The calculation approach for incorporation of sensor
-  characteristics is described by \citet{eriksson:06}.
-\item The Discrete Ordinate Iterative method (DOIT) for handling scattering
-  is presented in \citet{emde04:_doit_jgr}.
-\item \citet{davisetal:04} describe the Monte Carlo scattering method
-  implemented in ARTS.
-\end{itemize}
+We know that the ARTS documentation is far from perfect. It is quite
+complete in some areas, but patchy in others. It also contains bugs
+and more serious errors. We are struggling to make it as good as
+possible, but it is ongoing work, and we do not have any direct
+funding for it. All help from users to extend or correct the
+documentation is highly appreciated!
 
 
 \section{Control files and workspace}
@@ -279,12 +297,12 @@ or
 See Section~\ref{sec:concept:envvars}.
 
 
-\subsection*{Online documentation}
+\subsection*{Built In documentation}
 
 Most useful at the beginning should be the \artsstyle{-d}
 (\artsstyle{--describe}), \artsstyle{-m} (\artsstyle{--methods}), \artsstyle{-w}
 (\artsstyle{--workspacevariables}), and \artsstyle{-i} (\artsstyle{--input}) flags.
-For instance, the \artsstyle{-d} (\artsstyle{--describe}) flag gives you online
+For instance, the \artsstyle{-d} (\artsstyle{--describe}) flag gives you built in
 documentation for any workspace method or workspace variable. Usage:
 \begin{quote}
 \begin{verbatim}

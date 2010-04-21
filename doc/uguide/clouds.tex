@@ -47,7 +47,7 @@ particle number density fields.
 For radiative transfer calculations we need a coordinate system to
 describe the direction of propagation. For this purpose we use the
 laboratory frame, which is also shown in
-\figref{fig:RT_theory_coordinates}.  The z-axis corresponds to the
+Figure \ref{fig:RT_theory_coordinates}.  The z-axis corresponds to the
 local zenith direction and the x-axis points towards the
 north-pole. The propagation direction is described by the local zenith
 angle $\theta$ and the local azimuth angle $\phi$.  This coordinate
@@ -63,7 +63,7 @@ which the incidence direction is parallel to the z-axis and the x-axis
 coincides with the scattering plane, that is, the plane through the
 unit vectors \VctStl{\hat{n}^{\inc}}\ and \VctStl{\hat{n}^{\sca}}. The
 scattering frame is illustrated in
-\figref{fig:scattering:part_frame}. For symmetry reasons the single
+Figure \ref{fig:scattering:part_frame}. For symmetry reasons the single
 scattering properties defined with respect to the scattering frame can
 only depend on the scattering angle $\Theta$,
 \begin{equation}
@@ -95,7 +95,7 @@ horizontal alignment. The file format is XML. The data is stored in a
 class called \typeindex{SingleScatteringData}, which resides in
 the files \fileindex{optproperties.h}. The class consists of the
 following 
-fields (compare also \tabref{tab:scattering:datastructure}):
+fields (compare also Table \ref{tab:scattering:datastructure}):
 
 \begin{itemize}
 \item  {\sl enum} \artsstyle{ptype}: An attribute which contains
@@ -211,7 +211,7 @@ $\ZntAng'$, $\AzmAng'$, $i$ )  & phase matrix \\
 For macroscopically isotropic and mirror-symmetric scattering media
 (totally randomly oriented particles) the optical properties are
 calculated in the so-called scattering frame as shown in
-\figref{fig:scattering:part_frame}. In this coordinate 
+Figure \ref{fig:scattering:part_frame}. In this coordinate 
 system the z-axis corresponds to the incident direction and the
 xz-plane coincides with the scattering plane. Using this frame only
 the scattering angle, which is the angle between incident and
@@ -313,7 +313,7 @@ module can be used to generate single scattering properties for
 horizontally aligned as well as for randomly oriented particles in the
 ARTS data-file-format. PyARTS has been developed by C. Davis, who has
 implemented the Monte Carlo scattering algorithm in ARTS (see
-\secref{sec:montecarlo}).
+Section \ref{sec:montecarlo}).
 The ATMLAB package includes functions to generate single scattering
 properties for spherical particles (Mie-Theory). 
 
@@ -411,13 +411,13 @@ integration of the distribution function over all sizes:
     \DiffD r} = a \frac{\Gamma(\alpha+1)}{b^{\alpha+1}}.
 \end{eqnarray}
 
-After setting $\alpha$ = 1, inserting \eqnref{eq:gamma_coeff} and
+After setting $\alpha$ = 1, inserting Equation \ref{eq:gamma_coeff} and
 some simple algebra we obtain
 \begin{equation}
   \label{eq:pnd_gamma}
   n^p(\imc, \Reff) = \frac{2}{\pi} \frac{\imc}{\rho \Reff^3}.
 \end{equation}
-Comparing \eqnref{eq:pnd_mono} and \eqref{eq:pnd_gamma}, we see
+Comparing Equation \ref{eq:pnd_mono} and \ref{eq:pnd_gamma}, we see
 that the particle number density for mono-disperse particles with a
 particle size of $R$ is smaller than the particle number density for
 gamma distributed particles with $\Reff=R$. The reason is that in the
@@ -462,7 +462,7 @@ distribution can be looked up in the article by
 number density field is obtained by numerical integration over a
 discrete set of size bins. This parameterization of particle size has
 been implemented in the PyARTS package, which was introduced in
-\secref{sec:clouds:ARTS_SSP_structure}. Using PyARTS one can calculate the size
+Section \ref{sec:clouds:ARTS_SSP_structure}. Using PyARTS one can calculate the size
 distributions, the corresponding single scattering properties and the
 particle number density fields for given \imc\ and temperature.
 \section{Implementation}
@@ -551,8 +551,8 @@ pnd_fieldCalc
 The definition of the single scattering data along with the
 corresponding particle number density fields is common in both
 scattering modules, the DOIT module described in 
-\charef{sec:scattering} and the Monte Carlo module described in
-\charef{sec:montecarlo}.
+Chapter \ref{sec:scattering} and the Monte Carlo module described in
+Chapter \ref{sec:montecarlo}.
 
 
 %%% Local Variables: 
