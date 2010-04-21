@@ -1028,13 +1028,14 @@ void iyEmissionStandardClearsky(
           // Weight with iy_transmission
           if( !iy_agenda_call1 )
             {
+              Matrix X, Y(stokes_dim,diy_dpath[0].npages()); 
+              //
               FOR_ANALYTICAL_JACOBIANS_DO( 
                 for( Index iv=0; iv<nf; iv++ )
                   { 
-                    Matrix X;
-                    X = diy_dpath[iq](joker,iv,joker);
-                    mult( diy_dpath[iq](joker,iv,joker), 
-                                          iy_transmission(iv,joker,joker), X );
+                    X = transpose( diy_dpath[iq](joker,iv,joker) );
+                    mult( Y, iy_transmission(iv,joker,joker), X );
+                    diy_dpath[iq](joker,iv,joker) = transpose( Y );
                   }
                )
             }

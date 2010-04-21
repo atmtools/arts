@@ -1,3 +1,16 @@
+2010-04-21  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-20
+
+	* src/m_rte.cc (iyEmissionStandardClearsky): The multiplication of
+	iy_transmission and diy_dpath was wrong. The diy_dpath part had to
+	be transposed. This part only of concern for part of ppath "after"
+	surface reflections.
+
+	* tests/AMSU/TestAMSU_generic.arts: Calculation of jacobians is
+	now active. But now saving. This to include calculation of
+	jacobians with surface reflections among the standard test cases. 
+
 2010-04-21  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-19

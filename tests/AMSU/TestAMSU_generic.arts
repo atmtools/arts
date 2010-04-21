@@ -143,16 +143,16 @@ AgendaSet( ybatch_calc_agenda ){
   AtmFieldsFromCompact
 
   # Optionally set jacobian parameters:
-#   jacobianInit
-#   jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
-#                          atmosphere_dim,
-#                          p_grid, lat_grid, lon_grid, 
-#                          p_grid, lat_grid, lon_grid,
-#                          "H2O-PWR98",
-#                          "analytical",
-#                          "rel",
-#                          0.01 )
-#   jacobianClose
+  jacobianInit
+  jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
+                         atmosphere_dim,
+                         p_grid, lat_grid, lon_grid, 
+                         p_grid, lat_grid, lon_grid,
+                         "H2O-PWR98",
+                         "analytical",
+                         "rel",
+                         0.01 )
+  jacobianClose
 
   # get some surface properties from corresponding atmospheric fields
   Extract( z_surface, z_field, 0 )
@@ -164,7 +164,7 @@ AgendaSet( ybatch_calc_agenda ){
   yCalc
 
   # Optionally write out jacobian:
-#  WriteXMLIndexed( output_file_format, ybatch_index, jacobian, "" )
+  #WriteXMLIndexed( output_file_format, ybatch_index, jacobian, "" )
 
 }
 
