@@ -226,7 +226,8 @@ AgendaSet( ybatch_calc_agenda ){
   #  WriteXMLIndexed( output_file_format, ybatch_index, jacobian, "" )
 
   # Convert the measurement from radiance units to Planck Tb:
-  yUnit( y, "PlanckBT", y_f )
+  StringSet( y_unit, "PlanckBT" )
+  yUnit
 }
 
 

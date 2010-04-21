@@ -3910,8 +3910,7 @@ void Workspace::define_wsv_data()
        "spectroscopic data or represenation errors due to coarse grids are not\n"
        "considered. This means that the error should normally be zero for\n"
        "clear-sky cases where calculations are performed for the complete\n"
-       "propgation path. On the hand, Monte Carlo simulations are always\n"
-       "associated with a pure calculation error.\n"
+       "propgation path.\n"
        ),
       GROUP( "Vector" )));
 
@@ -4012,10 +4011,6 @@ void Workspace::define_wsv_data()
         "Usage: Set by the user.\n"
         ),
        GROUP( "String" )));
-  // If adding more options for *y_unit*, these needs to be implemented in:
-  //   1. apply_y_unit in rte.cc
-  //   2. yUnit in m_rte.cc
-  //   2. jacobianUnit in m_rte.cc
   
   wsv_data.push_back
    (WsvRecord

@@ -148,7 +148,6 @@ jacobianAddPolyfit( jacobian_quantities, jacobian_agenda,
 jacobianClose
 
 
-
 # Redo RT calculation and save
 # ---
 yCalc

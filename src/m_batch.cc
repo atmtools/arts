@@ -684,22 +684,3 @@ void ybatchMetProfilesClear(
 
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void ybatchUnit(
-              Matrix&   ybatch,
-        const String&   y_unit,
-        const Vector&   y_f )
-{
-  const Index nrows = ybatch.nrows();
-
-  if( y_f.nelem() != nrows )
-    {
-      ostringstream os;
-      os << "The number of rows in *ybatch* and the length *y_f*\n"
-         << "must be equal.";
-      throw runtime_error( os.str() );      
-    }
-
-  apply_y_unit( ybatch, y_unit, y_f );
-}
-

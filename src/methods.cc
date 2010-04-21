@@ -8547,27 +8547,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ybatchUnit" ),
-        DESCRIPTION
-        (
-         "Conversion of *ybatch* to other spectral units.\n"
-         "\n"
-         "As *yUnit* but operates on *ybatch*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "ybatch" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "ybatch", "y_unit", "y_f" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "yCalc" ),
         DESCRIPTION
         (
@@ -8623,11 +8602,11 @@ void define_md_data_raw()
          "calculations, and be changed before calling this method.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "y" ),
+        OUT( "y", "y_error", "jacobian" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "y", "y_unit", "y_f" ),
+        IN( "y", "y_error", "jacobian", "y_f", "y_pol", "y_unit" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

@@ -169,7 +169,7 @@ void apply_y_unit2(
   assert( J.ncols() == iy.ncols() );
   assert( f_grid.nelem() == iy.nrows() );
   assert( f_grid.nelem() == J.nrows() );
-  assert( max(iy) < 0.1 );   // If fails, iy is already in Tb
+  assert( max(iy) < 1e-3 );   // If fails, iy is already in Tb
 
   // The code is largely identical between the two apply_y_unit functions.
   // If any change here, remember to update the other function.

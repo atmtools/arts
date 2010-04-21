@@ -713,9 +713,9 @@ void iyb_calc(
               // iy_error : unit conversion and copy to iyb_error
               // iy_aux   : copy to iyb_aux
               //
-              apply_y_unit( iy, y_unit, f_grid );
               if( iy_error_type > 0 )
-                { apply_y_unit( iy_error, y_unit, f_grid ); }
+                { apply_y_unit2( iy_error, iy, y_unit, f_grid ); }
+              apply_y_unit( iy, y_unit, f_grid );
               //
               for( Index is=0; is<stokes_dim; is++ )
                 { 
@@ -1594,14 +1594,66 @@ void yCalc(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void yUnit(
-              Vector&   y,
-        const String&   y_unit,
-        const Vector&   y_f )
+        Vector&         y,
+        Vector&         y_error,
+        Matrix&         jacobian,
+  const Vector&         y_f,
+  const ArrayOfIndex&   y_pol,
+  const String&         y_unit )
 {
-  const Index n = y.nelem();
+  if( max(y) > 1e-3 )
+    {
+      throw runtime_error( "It appears that a unit conversion has already "
+                           "been made (too large value in *y*)." ); 
+    }
 
-  if( y_f.nelem() != n )
-    { throw runtime_error( "The length of *y* and *y_f* must be the same" ); }
+  // Are jacobian and y_error set?
+  const bool do_j = jacobian.ncols();
+  const bool do_e = y_error.nelem();
 
-  apply_y_unit( MatrixView( y ), y_unit, y_f );
+  // Loop frequencies
+  //
+  const Index ny = y.nelem();
+  Index i = 0;                 // Index of first element for present freq.
+  //
+  while( i < ny )
+    { 
+      // Find number of polarisation elements
+      Index n = 1;
+      //
+      while( i+n<ny && y_pol[i+n] > 1 )
+        { n++; }
+
+      // Index of elements to convert
+      Range ii( i, n );
+
+      // Several container variables needed here. Partly as I could not get
+      // telescoping to work for vector ranges.
+ 
+      // Call apply_y_unit(2) for the different variables
+      //
+      Matrix ym(1,n);
+      ym(0,joker) = y[ii];
+      //
+      if( do_e )
+        {
+          Tensor3 e(1,1,n);
+          e(0,0,joker) = y_error[ii];
+          apply_y_unit2( e, ym, y_unit, y_f[i] ); 
+          y_error[ii] = e(0,0,joker);
+        }
+      //
+      if( do_j )
+        { 
+          Tensor3 J(jacobian.ncols(),1,n);
+          J(joker,0,joker) = transpose( jacobian(ii,joker) );
+          apply_y_unit2( J, ym, y_unit, y_f[i] ); 
+          jacobian(ii,joker) = transpose( J(joker,0,joker) );
+        }
+      //
+      apply_y_unit( ym, y_unit, y_f[i] );
+      y[ii] = ym(0,joker);
+
+      i += n;
+    }  
 }
