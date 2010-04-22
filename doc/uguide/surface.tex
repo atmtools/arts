@@ -7,7 +7,7 @@
 \stophistory
 
 An introduction to the treatment of surface emission and reflections
-is given in Section~\ref{sec:fm_defs:surface}. The methods developed
+is given in Section \ref{sec:fm_defs:surface}. The methods developed
 to handle different surface properties all set the variables
 \wsvindex{surface\_emission}, \wsvindex{surface\_los} and
 \wsvindex{surface\_rmatrix}.
@@ -44,7 +44,7 @@ varying geoid is the natural choice, with the enters of the geoid and
 the coordinate system coinciding. The geoid should normally be set to
 the reference ellipsoid for some global geodetic datum, such as
 WGS-84. For further reading on geoid ellipsoids and WGS-84, see
-Section~\ref{sec:ppath:geoid}.
+Section \ref{sec:ppath:geoid}.
 
 Inside ARTS, the geoid is represented as a matrix
 (\wsvindex{r\_geoid}), holding the geoid radius, \aRds{\odot}, for
@@ -66,7 +66,7 @@ The ARTS variable for the \textindex{surface altitude}
 matrix. For 1D, the surface is a sphere by definition (as the geoid),
 while for 2D and 3D any shape is allowed and a rough model of the
 surface topography can be made. The treatment of surface emission
-and reflectivity is discussed in Section~\ref{sec:fm_defs:surface}.
+and reflectivity is discussed in Section \ref{sec:fm_defs:surface}.
 
 
 
@@ -184,9 +184,9 @@ and reflectivity is discussed in Section~\ref{sec:fm_defs:surface}.
  complex, while $r$ is always real.
 
 The surface reflection can be seen as a scattering event and
-Section~\ref{sec:polarization:ampmatrix} can be used to derive the
+Section \ref{T-sec:polarization:ampmatrix} in \theory\ can be used to derive the
 reflection matrix values. The scattering amplitude functions of
-Equation~\ref{eq:polarisation:ampmatrix1} are simply
+Equation \ref{T-eq:polarisation:ampmatrix1} in \theory\ are simply
 \begin{eqnarray}
   S_2 &=& R_v, \\
   S_1 &=& R_h, \\
@@ -216,7 +216,7 @@ upwelling radiation is
 as expected.
 
 
-If \MtrStl{R} is given by Equation~\ref{eq:surface:specular_matrix},
+If \MtrStl{R} is given by Equation \ref{eq:surface:specular_matrix},
 Equation \ref{eq:surface:bvector} gives that the surface emission  is
 \begin{equation}
   \label{eq:surface:specular_emission}

@@ -47,7 +47,7 @@ vertical and horizontal polarisation, the third component ($U$) is the
 difference for $\pm$45$^\circ$ polarisation and the last component
 ($Q$) is the difference between left and right circular polarisation.
 Further details on polarisation and definition of the Stokes vector
-are found in Section~\ref{sec:polarization}.
+are found in \theory, Section~\ref{T-sec:polarization}.
 
 ARTS is a fully polarised forward model, but can be run with a smaller
 number of Stokes components. The selection is made with the workspace
@@ -67,7 +67,7 @@ only the first Stokes component is considered.
 \label{sec:rte:vrte}
 
 The complete vector radiative transfer, including scattering, is given
-by Equation~\ref{eq:rtetheory:VRTE}. If scattering can be neglected,
+by Equation \ref{T-eq:rtetheory:VRTE} in \theory. If scattering can be neglected,
 the equation can be written as
 \begin{equation}
   \label{eq:rte:vrte}
@@ -78,7 +78,7 @@ distance along the propagation path, \ExtMat\ is the extinction
 matrix, \AbsVec\ is the absorption vector and $B$ is the source
 function (a scalar). If local thermodynamic equilibrium applies, $B$
 equals the Planck function describing blackbody radiation. See further
-Chapter~\ref{sec:rte_theory}.
+\theory, Chapter~\ref{T-sec:rte_theory}.
 
 % As scattering here is neglected, the elements of \ExtMat\ and \AbsVec\ 
 % are linked to each other, and we have that\footnote{This equation is
@@ -173,7 +173,7 @@ for a discrete set of directions. If a sensor line-of-sight is
 mentioned without any comments, it refers to the direction in which
 the centre of the antenna pattern is directed.
 
-\begin{figure}[!t]
+\begin{figure}
  \begin{center}
   \begin{minipage}[c]{0.6\textwidth}
    \includegraphics*[width=0.99\hsize]{za_and_aa_angles}
@@ -404,13 +404,13 @@ physical meaning.
 %==============================================================================
 \label{sec:fm_defs:rte}
 
-An introduction to radiative transfer theory is given in
-Section~\ref{sec:rte_theory}. This section describes how the radiative
-transfer equations are solved practically in ARTS. The general
-presentation assumes that the simulations deal with an emission
-measurement. Focus is put on emission measurements as ARTS is intended
-primarily for such observations. However, simulations of transmission
-measurements are also possible.
+An introduction to radiative transfer theory is given in \theory,
+Section \ref{T-sec:rte_theory}. This section describes how the
+radiative transfer equations are solved practically in ARTS. The
+general presentation assumes that the simulations deal with an
+emission measurement. Focus is put on emission measurements as ARTS is
+intended primarily for such observations. However, simulations of
+transmission measurements are also possible.
 
 
 \subsection{Calculation procedure}
@@ -426,10 +426,10 @@ of each calculation step, see the indicated equation or section.
 The primary unit for emission spectra, the unit of \aMpiVct{b} in
 Equation~\ref{eq:fm_defs:measseq}, is [W/(Hz$\cdot$m$^2\cdot$sr)].
 The emission intensity corresponds directly with the definition of the
-Planck function in Equation~\ref{eq:rtetheory:planck}, no scaling
+Planck function in \theory, Equation~\ref{T-eq:rtetheory:planck}, no scaling
 terms are applied.  
 
-\begin{algorithm}[!t]
+\begin{algorithm}
  \begin{algorithmic}
   \STATE{allocate memory for the matrix $\MsrVct$}
   \COMMENT{Equation \ref{eq:fm_defs:measseq}}
@@ -473,7 +473,7 @@ tangent points are also included if such exist. More points can also
 be added to the propagation path, for example, by setting an upper
 limit for the distance along the path between the points.
 
-\begin{figure}[!p]
+\begin{figure}
  \begin{center}
   \includegraphics*[width=0.95\hsize]{ppath_cases2}
   \caption{Examples on allowed propagation paths for a 2D atmosphere. 
@@ -494,7 +494,7 @@ limit for the distance along the path between the points.
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_ppath_cases.
 
-\begin{figure}[!p]
+\begin{figure}
  \begin{center}
   \includegraphics*[width=0.95\hsize]{ppath_cases1}
   \caption{Examples on allowed propagation paths for a 1D atmosphere
@@ -508,7 +508,7 @@ limit for the distance along the path between the points.
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_ppath_cases.
 
-\begin{figure}[!t]
+\begin{figure}
  \begin{center}
   \includegraphics*[width=0.95\hsize]{ppath_badcases}
   \caption{Examples on \emph{not} allowed propagation paths for a 2D 
@@ -629,7 +629,7 @@ The radiative transfer equation can be solved in many ways, and with
 different level of refinement. The standard approach in ARTS is to
 solve the radiative transfer from one point of the propagation path to
 next. The simplest expression, for scalar radiative transfer, that can
-be used in this way is (cf.  Equation~\ref{eq:rtetheory:layer})
+be used in this way is (compare \theory, Equation~\ref{T-eq:rtetheory:layer})
 \begin{equation}
   \Mpi_{i+1}(\Frq) = \Mpi_i(\Frq)e^{-\aOth{i}} + B(\Frq,\aTmp{i})(1-e^{-\aOth{i}})
   \label{eq:fm_defs:rte_step}
@@ -678,7 +678,7 @@ reflection coefficients $(\mathbf{R})$ are stored in
 \artsstyle{surface\_rmatrix}. Surface reflections and emission are
 discussed further in Section~\ref{sec:surface}.
 
-\begin{figure}[!tb]
+\begin{figure}
  \begin{center}
   \includegraphics*[width=0.95\hsize]{ground_refl}
   \caption{Schematic of Equation \ref{eq:fm_defs:surfacerefl}.}
@@ -686,7 +686,7 @@ discussed further in Section~\ref{sec:surface}.
  \end{center}
 \end{figure}
 
-%\begin{figure}[!p]
+%\begin{figure}
 % \begin{center}
 %  \includegraphics*[width=0.95\hsize]{ppath_ground}
 %  \caption{The influence of a surface slope on the propagation path. The zenith
@@ -732,7 +732,7 @@ smooth.
 The accuracy when performing the actual radiative transfer
 calculations depends on the refinement of the expressions used and the
 discretisation of the propagation path. If
-Equation~\ref{eq:fm_defs:rte_step} is used, the underlaying
+Equation \ref{eq:fm_defs:rte_step} is used, the underlaying
 assumptions are that the temperature is constant, and that the
 absorption varies linearly, along the propagation path step. These
 assumptions are of course less violated if the path step length is

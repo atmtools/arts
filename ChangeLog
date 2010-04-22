@@ -1,3 +1,12 @@
+2010-04-22  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-14-24
+
+	* doc/uguide/*.tex: Fixed all cross references between the
+	different guide documents, closing trac ticket #39.
+	Also removed a lot of tildes in cases like "Figure~\ref{}", which
+	now is "Figure \ref{}".
+
 2010-04-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-23

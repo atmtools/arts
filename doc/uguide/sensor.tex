@@ -201,7 +201,7 @@ The vector $\mathbf{h}$ is initiated to hold zeros and the
 calculation procedure is iterated over $k$. To ensure energy
 conservation this vector should be normalised such that the sum of
 the elements equals one.
-\begin{figure}[!ht]
+\begin{figure}
 \begin{center}
   \includegraphics{integration.pdf}
   \caption{Schematic of antenna and backend calculations. The dashed 
@@ -256,7 +256,7 @@ sidebands, but will normally fall between RF grid points in the
 other band, as illustrated in Figure~\ref{fig:sensor:folding}, 
 if not the RF grid is perfectly symmetric around the LO frequency.
 
-\begin{figure}[!ht]
+\begin{figure}
 \begin{center}
   \includegraphics*{folding.pdf}
   \caption{Visualisation of how the RF sidebands are folded around $\nu_\mathrm{LO}$ down to the IF. 
@@ -446,7 +446,7 @@ a full set of columns, matrices or arrays of matrices. E.g.~for the
 most simple case where the antenna has the same pattern for all
 directions and frequencies $w_\mathrm{a}$ consists of a single array
 of matrix with a single two column matrix.
-\begin{figure}[!ht]
+\begin{figure}
 \label{fig:sensor:ant_diag}
 \begin{center}
   \includegraphics*{ant_diag}
@@ -470,7 +470,7 @@ rows on the other hand describes the number of antennas or beams, and
 in the common case of only one antenna present the matrix should
 therefor contain a row of zero.  This variable is important when
 dealing with rotating sensors as is described in
-Section~\ref{sec:sensor:pol:rotation}.
+Section \ref{sec:sensor:pol:rotation}.
 
 \subsection{1D antenna}
 Here it will be assumed that the variation of \Mpi\ in one angular
@@ -508,9 +508,9 @@ where $\mathbf{s}$ is the Stokes components of the incoming radiation
 and $\mathbf{p}$ is a row vector of the same length as $\mathbf{s}$
 describing the sensor polarisation response. For a rotating sensor a
 transformation matrix \MtrStl{L}$(\chi)$, see
-Section~\ref{sec:sensor:pol:rotation}, is applied to obtain consistent
+Section \ref{sec:sensor:pol:rotation}, is applied to obtain consistent
 definition between the polarisation directions for atmospheric
-radiation and sensor response, Equation~\ref{eq:sensor:pol:response}
+radiation and sensor response, Equation \ref{eq:sensor:pol:response}
 then becomes
 \begin{equation}
 \label{eq:sensor:pol:rotpolrespons}
@@ -527,7 +527,7 @@ Several sensor parts can have a polarisation varying response, but
 there is normally a single part that dominates the polarisation
 response. The normal case for the instrument type considered here is
 that the mixer is only sensitive to a single polarisation, and the
-natural time to apply Equation~\ref{eq:sensor:pol:response} or
+natural time to apply Equation \ref{eq:sensor:pol:response} or
 \ref{eq:sensor:pol:rotpolrespons} is then after the antenna, but
 before the sideband folding and the backend.
 
@@ -576,7 +576,7 @@ In ARTS the rotation angles $\chi$ is stored in the vector
 \artsstyle{sensor\_rot}, and is used to assign a rotation angle for
 each antenna line-of-sight. If the rotation is constant the
 \artsstyle{sensor\_rot} vector can contain a single element describing
-that rotation angle. From Equation~\ref{eq:sensor:pol:rotpolrespons}
+that rotation angle. From Equation \ref{eq:sensor:pol:rotpolrespons}
 it can be seen that the rotation should be applied to the incoming
 intensities before the polarisation, therefor the call to
 \artsstyle{sensor\_responseRotation} must precede the call to the
@@ -587,13 +587,13 @@ the antenna function.
 
 %------------------------------------------
 \section{Mixer and sideband filter response}
-As described in Section~\ref{sec:sensor:sum} the mixer folds the two
+As described in Section \ref{sec:sensor:sum} the mixer folds the two
 RF sidebands together into the IF band. At the same time the sideband
 ratio can be altered by the mixer itself and a sideband filter, these
 two effects are grouped together to what we refer to as the sideband
 filter. In ARTS there are methods both for a single mixer
 configuration and for multiple mixer configurations. From
-Equation~\ref{eq:sensor:sum:I_IF} it can be seen that the summation is
+Equation \ref{eq:sensor:sum:I_IF} it can be seen that the summation is
 by its definition normalised, so even if \artsstyle{sensor\_norm} is
 set to one the rows of \aSnsMtr{\mathrm{mixer}} will be normalised.
 
@@ -633,12 +633,12 @@ The WSV that hold these variables are \artsstyle{sensor\_pol},
 the same number of rows/length.  For each channel the specified
 polarisation state is constructed from the Stokes vector, and a
 \aFrq{\mathrm{LO}} is specified folding the spectra as in
-Equation~\ref{eq:sensor:sum:I_IF}. The $w_\mathrm{sb}$ can be given
+Equation \ref{eq:sensor:sum:I_IF}. The $w_\mathrm{sb}$ can be given
 different weights for the different channels, these have to be given
 for the same relative grid and should be stored as subsequent columns
 in the generic input matrix.  This method also applies the backend
 response to the spectra, this means a weighting over frequencies see
-Equation~\ref{eq:sensor:weight:spectrometer}, with the possibility of
+Equation \ref{eq:sensor:weight:spectrometer}, with the possibility of
 using different backend responses for the different channels. Formally
 we can write the resulting sensor response as the product of the mixer
 and backend responses,
@@ -653,7 +653,7 @@ also set the new sensor response frequency grid to be in RF. An
 important difference to the \artsstyle{sensor\_responseBackend} method
 is that the backend response is given as a single matrix instead of an
 array of matrices. For more information about the backend response see
-Section~\ref{sec:sensor:backend}.
+Section \ref{sec:sensor:backend}.
 
 \subsection{Conversion of IF to RF}
 Since the mixer methods change the sensor response grid into IF, it
@@ -680,7 +680,7 @@ channel frequency radiances. In the case of a radiometer, this can be
 a spectrometer. Like the antenna weights the monochromatic pencil
 beams over angles, the backend spectrometer performs a similar
 weighting over frequencies as described by
-Equation~\ref{eq:sensor:weight:spectrometer}. The spectra goes from
+Equation \ref{eq:sensor:weight:spectrometer}. The spectra goes from
 being monochromatic to include intensities from the neighbouring
 frequencies.  In ARTS the weighting is controlled by two variables;
 the channel centre frequencies \aFrq{\mathrm{ch}} and the spectrometer
@@ -807,7 +807,7 @@ updated to be equal the \aFrq{\mathrm{ch}} grid.
 % \label{sec:sensor:integr:lins}
  
 % In this section the problem of
-% Equation~\ref{eq:sensor:integral_problem} is solved analytically when
+% Equation \ref{eq:sensor:integral_problem} is solved analytically when
 % both functions are piecewise linear. The practical solution used
 % Qpack is discussed in next section.
   
@@ -894,7 +894,7 @@ updated to be equal the \aFrq{\mathrm{ch}} grid.
 % ranges, a quadratic polynomial is used as there exists only a single
 % point on one of the sides. 
  
-% Accordingly, Equation~\ref{eq:sensor:integral_problem} must be
+% Accordingly, Equation \ref{eq:sensor:integral_problem} must be
 % handled in Qpack for combinations of piecewise linear, quadratic and
 % cubic functions. Instead of repeating the calculations in Section
 % \ref{sec:sensor:integr:lins} for all possible polynomial

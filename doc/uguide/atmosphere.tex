@@ -25,7 +25,7 @@ and 3. The atmospheric dimensionality is most easily set by the
 functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
 \wsmindex{AtmosphereSet3D}.
 
-\begin{figure}[!t]
+\begin{figure}
  \begin{center}
   \includegraphics*[width=0.98\hsize]{atm_dim_1d}
   \caption{Schematic of a 1D atmosphere. The atmosphere is 
@@ -42,7 +42,7 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_atm_dims.
 
-\begin{figure}[!t]
+\begin{figure}
  \begin{center}
   \includegraphics*[width=0.98\hsize]{atm_dim_2d}
   \caption{Schematic of a 2D atmosphere. The radii (for the geoid, the surface
@@ -60,14 +60,14 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
   
 \item[\textindex{3D}\,\,\,] In this, the most general, case, the
   atmospheric fields vary in all three spatial coordinates, as in a
-  true atmosphere (Figures~\ref{fig:fm_defs:3d} and
+  true atmosphere (Figures \ref{fig:fm_defs:3d} and
   \ref{fig:fm_defs:3dcross}). A \textindex{spherical coordinate
     system} is used where the dimensions are radius (\Rds), latitude
   (\Lat) and longitude (\Lon), and a position is given as
   $(\Rds,\Lat,\Lon)$. With other words, the standard way to specify a
   geographical position is followed.  However, the way to specify the
   radial position differs depending on the context, which is described
-  in Section~\ref{sec:fm_defs:altitudes}. The valid range for
+  in Section \ref{sec:fm_defs:altitudes}. The valid range for
   latitudes is $[-90\degree,+90\degree]$, where +90\degree corresponds
   to the North pole etc. Longitudes are counted from the Greenwich
   meridian with positive values towards the east. Longitudes can have
@@ -81,7 +81,7 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
   360\degree\ in the relevant direction.
   
 \item[\textindex{1D}\,\,\,] A 1D atmosphere can be described as being
-  spherically symmetric (Figure~\ref{fig:fm_defs:1d}). The term 1D is
+  spherically symmetric (Figure \ref{fig:fm_defs:1d}). The term 1D is
   used here for simplicity and historical reasons, not because it is a
   true 1D case (a strictly 1D atmosphere would just extend along a
   line). A spherical symmetry means that atmospheric fields and the
@@ -96,14 +96,14 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
   for this reason used when describing propagation paths, where the
   coordinate additional to the radius gives the angular distance
   inside the viewing plane between the sensor and the point of
-  interest (see also Section~\ref{sec:ppath:Ppath}). This latter
+  interest (see also Section \ref{sec:ppath:Ppath}). This latter
   coordinate system coincides with the one used for 2D if the sensor
   position is set to be the zero point for the latitudes. A 1D
-  atmosphere is shown in Figure~\ref{fig:fm_defs:1d}.
+  atmosphere is shown in Figure \ref{fig:fm_defs:1d}.
   
 \item[\textindex{2D}\,\,\,] In contrast to the 1D and 3D cases, a 2D
   atmosphere extends only inside a plane
-  (Figure~\ref{fig:fm_defs:2d}). A spherical coordinate system is
+  (Figure \ref{fig:fm_defs:2d}). A spherical coordinate system is
   accordingly not needed and a polar system\index{polar coordinate
     system}, consisting of a radial and an angular coordinate, is
   used. The 2D case is most likely used for satellite measurements
@@ -115,16 +115,16 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
   measurements from several subsequent orbits can be simulated as one
   unit. The atmosphere is treated to be undefined outside the
   considered plane. A 2D atmosphere is shown in
-  Figure~\ref{fig:fm_defs:2d}.
+  Figure \ref{fig:fm_defs:2d}.
 
 \end{description}
 
-\begin{figure}[!p]
+\begin{figure}
  \begin{center}
   \includegraphics*[angle=-90,width=0.98\hsize]{atm_dim_3d}
   \vspace*{-15mm}
   \caption{Schematic of a 3D atmosphere. Plotting symbols as in 
-    Figure~\ref{fig:fm_defs:2d}. Radii and fields are here defined to
+    Figure \ref{fig:fm_defs:2d}. Radii and fields are here defined to
     vary linearly along the latitude and longitude grid points. This
     means that surfaces (such as the radius of the surface) have a
     bi-linear variation inside the area limited by two latitude and
@@ -135,11 +135,11 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_atm_dims.
 
-\begin{figure}[!p]
+\begin{figure}
  \begin{center}
   \includegraphics*[width=0.98\hsize]{atm_dim_3dcross}
   \caption{A latitudinal, or longitudinal, cross section of a 3D atmosphere. 
-    Plotting symbols as in Figure~\ref{fig:fm_defs:1d}. Radii and
+    Plotting symbols as in Figure \ref{fig:fm_defs:1d}. Radii and
     fields inside the cross section match the definitions for 2D.
     The vertical extension
     of the cloud box is defined identical for 1D and 3D. The horizontal 
@@ -185,7 +185,7 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
 %  correspondence is achieved if the two parameters are treated as a
 %  fixed scale height (for decreases of the pressure by a factor of
 %  10) and the surface pressure, respectively. Values around
-%  $\aPrsAlt{s}=15.5$~km and $\aPrs{0}=1013$~hPa are suitable for
+%  $\aPrsAlt{s}=15.5$\,km and $\aPrs{0}=1013$\,hPa are suitable for
 %  simulations dealing with the Earth's atmosphere.
   
 \item[Radius\index{radius}] Geometrical altitudes are
@@ -194,14 +194,14 @@ functions \wsmindex{AtmosphereSet1D}, \wsmindex{AtmosphereSet2D} and
   centre of the coordinate system used, the radius. This is a natural
   consequence of using a spherical or polar coordinate system. The
   radius is used inside ARTS for all geometrical calculations and to
-  store the position of the sensor (Section~
+  store the position of the sensor (Section 
   \ref{sec:fm_defs:sensor1}).
   
 \item[Geometrical altitude\index{geometrical altitude}] The term
   geometrical altitude signifies here the difference in radius between
-  a point and the geoid (Section~\ref{sec:fm_defs:geoid}) along the
+  a point and the geoid (Section \ref{sec:fm_defs:geoid}) along the
   vector to the centre of the coordinate system
-  (Equation~\ref{eq:fm_defs:zsurface}). Hence, the geometrical altitude
+  (Equation \ref{eq:fm_defs:zsurface}). Hence, the geometrical altitude
   is not measured along the local zenith direction (the normal to the
   reference geoid). Geometrical altitudes are mainly used to
   facilitate the input of the surface altitude, the altitude of the
@@ -233,15 +233,15 @@ level.
 A \textindex{latitude} grid (\wsvindex{lat\_grid}) must be specified
 for 2D and 3D.  For 2D, the latitudes shall be treated as the angular
 distance along the orbit track, as described above in
-Section~\ref{sec:fm_defs:atmdim}.  The latitude angle is throughout
+Section \ref{sec:fm_defs:atmdim}.  The latitude angle is throughout
 calculated for the vector going from the centre of the coordinate
 system to the point of concern. Hence, the latitudes here correspond
 to the definition of the geocentric latitude, and not geodetic
-latitudes (see Section~\ref{sec:ppath:geoid}). This is in accordance
+latitudes (see Section \ref{sec:ppath:geoid}). This is in accordance
 to the definition of geometric altitudes found above.  For 3D, a
 \textindex{longitude} grid (\wsvindex{lon\_grid}) must also be specified.
 Valid ranges for latitude and longitude values are given in
-Section~\ref{sec:fm_defs:atmdim}.
+Section \ref{sec:fm_defs:atmdim}.
 
 The atmosphere is treated to be undefined outside the latitude and
 longitude ranges covered by the grids, if not the whole globe is
@@ -249,7 +249,7 @@ covered. This results in that a propagation path is not allowed to
 cross a latitude or longitude end face of the atmosphere, if such
 exists, it can only enter or leave the atmosphere through the top of
 the atmosphere (the uppermost pressure level). See further
-Section~\ref{sec:fm_defs:ppaths}. The volume (or area for 2D) covered
+Section \ref{sec:fm_defs:ppaths}. The volume (or area for 2D) covered
 by the grids is denoted as the \textindex{model atmosphere}.
 
 If the longitude and latitude grids are not used for the selected
@@ -257,19 +257,19 @@ atmospheric dimensionality, then the longitude grid (for 1D and 2D)
 and the latitude grid (for 1D) must be set to be empty, but when
 dealing with the size of variables the grid length shall be treated to
 be one. For example, the matrix describing the geoid (see
-Section~\ref{sec:fm_defs:geoid}) has for 1D the size $[1,1]$.
+Section \ref{sec:fm_defs:geoid}) has for 1D the size $[1,1]$.
 
 The basic atmospheric quantities are represented by their values at
 each crossing of the involved grids (indicated by thick dots in
-Figures~\ref{fig:fm_defs:1d}~-~\ref{fig:fm_defs:3dcross}), or for 1D
-at each pressure level (thick dots in Figure~\ref{fig:fm_defs:1d}).
+Figures \ref{fig:fm_defs:1d}--\ref{fig:fm_defs:3dcross}), or for 1D
+at each pressure level (thick dots in Figure \ref{fig:fm_defs:1d}).
 This representation is denoted as the field\index{atmospheric field}
 of the quantity. The field must, at least, be specified for the
 geometric altitude of the pressure levels (\wsvindex{z\_field}), the
 temperature (\wsvindex{t\_field}) and considered atmospheric species
 (\artsstyle{vmr\_field}).  The fields are assumed to be piece-wise
 linear functions vertically (with pressure altitude as the vertical
-coordinate, Section~\ref{sec:fm_defs:altitudes}), and along the
+coordinate, Section \ref{sec:fm_defs:altitudes}), and along the
 latitude and longitude edges of 2D and 3D grid boxes. For points
 inside 2D and 3D grid boxes, multidimensional linear interpolation is
 applied (that is, bilinear interpolation for 2D etc.). Note especially
@@ -293,7 +293,7 @@ clouds and other scattering objects. The atmospheric region in which
 scattering shall be considered is denoted as the \textindex{cloud
   box}, and it is discussed here as it acts as an additional
 atmospheric limit when calculating propagation paths (see
-Section~\ref{sec:fm_defs:rte}). Cloud box calculations can be
+Section \ref{sec:fm_defs:rte}). Cloud box calculations can be
 performed in 1D and 3D mode, but not for 2D.
 
 The cloud box is defined to be rectangular in the used coordinate
@@ -301,7 +301,7 @@ system, with limits exactly at points of the involved grids. This
 means, for example, that the vertical limits of the cloud box are two
 pressure levels. For 3D, the horizontal extension of the cloud box
 is between two points of the latitude grid and likewise in the
-longitude direction (Figure~\ref{fig:fm_defs:3dcross}). The latitude
+longitude direction (Figure \ref{fig:fm_defs:3dcross}). The latitude
 and longitude limits for the cloud box cannot be placed at the end
 points of the corresponding grid as it must be possible to calculate
 the incoming intensity field. The cloud box is activated by setting

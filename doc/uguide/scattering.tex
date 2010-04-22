@@ -12,12 +12,12 @@
 
 The \textindex{Discrete Ordinate ITerative (DOIT) method} is one of the scattering
 algorithms in ARTS. Besides the DOIT method a backward Monte Carlo
-scheme has been implemented (see Section \ref{sec:montecarlo}). The DOIT
+scheme has been implemented (see \theory, Section \ref{T-sec:montecarlo}). The DOIT
 method is unique because a discrete ordinate iterative method is used to solve the
 scattering problem in a spherical atmosphere. Although the DOIT module
 is implemented for 1D and 3D atmospheres, it is strongly recommended to
 use it only for 1D, because the Monte Carlo module
-(Chapter \ref{sec:montecarlo}) is much more appropriate for 3D
+(\theory, Chapter \ref{T-sec:montecarlo}) is much more appropriate for 3D
 calulations. More appropriate in the sense that it is much more
 efficient. A literature review
 about scattering models for the microwave region, which is presented
@@ -75,22 +75,22 @@ In the following we will use the notation
 
 Figure \ref{fig:scattering:iteration_scheme} shows a schematic of the iterative
 method, which is applied to solve the \textindex{vector radiative transfer
-equation} \ref{eq:rtetheory:VRTE}
+equation} (compare \theory, Equation \ref{T-eq:rtetheory:VRTE})
 \begin{eqnarray}
   \frac {\DiffD\StoVec(\PDir, \nu, T)}{\DiffD s} =
     &{}-\EnsAvr{\ExtMat(\PDir, \nu, T)} \StoVec(\PDir, \nu, T) +
     \EnsAvr{\AbsVec(\PDir, \nu, T)} \rlap{$B(\nu, T)$} \\
     &{}+ \int_{4\pi} \DiffD\PDir' \EnsAvr{\PhaMat(\PDir, \PDir', \nu, T)} \StoVec(\PDir', \nu, T),
-  \end{eqnarray}
-  where $\StoVec$ is the specific intensity vector, $\EnsAvr\ExtMat$
-  is the ensemble-averaged extinction matrix, $\EnsAvr\AbsVec$ is the
-  ensemble-averaged absorption vector, $B$ is the 
-  Planck function and $\EnsAvr\PhaMat$ is the ensemble-averaged
-  phase matrix.  Furthermore $\nu$ is the frequency of the radiation,
-  $T$ is the temperature, $\DiffD s$ is a path-length-element of the
-  propagation path and $\PDir$ the propagation direction.
-  Equation \ref{eq:rtetheory:VRTE} is explained more detailed in
-  Section \ref{sec:rtetheory:theory_rte}. 
+\end{eqnarray}
+where $\StoVec$ is the specific intensity vector, $\EnsAvr\ExtMat$
+is the ensemble-averaged extinction matrix, $\EnsAvr\AbsVec$ is the
+ensemble-averaged absorption vector, $B$ is the 
+Planck function and $\EnsAvr\PhaMat$ is the ensemble-averaged
+phase matrix.  Furthermore $\nu$ is the frequency of the radiation,
+$T$ is the temperature, $\DiffD s$ is a path-length-element of the
+propagation path and $\PDir$ the propagation direction.
+The vector radiative transfer equation is explained in more detail in
+\theory, Section \ref{T-sec:rtetheory:theory_rte}. 
 
 
 \begin{figure}[t!]
@@ -246,7 +246,7 @@ If the convergence test
   \label{eq:scattering:conv_test}
 \end{equation}
 is fulfilled,
- a solution to the vector radiative transfer equation \ref{eq:rtetheory:VRTE}
+ a solution to the vector radiative transfer equation 
 has been found:
 \begin{equation}
   \IFld^{(N)} = \left\{ \StoVec^{(N)}_{ijklm} \right\}. 
@@ -262,7 +262,7 @@ scattering integral field is obtained:
 \begin{equation}
   \EnsAvr{S^{(0)}_{ijklm}}  = \int_{4\pi} \DiffD \PDir' \EnsAvr{ Z_{11}} I^{(0)}_{ijklm}.
 \end{equation}
-The \emph{\textindex{scalar radiative transfer}} equation \ref{eq:rtetheory:SRTE} with a
+The \emph{\textindex{scalar radiative transfer}} equation (compare \theory, \ref{T-eq:rtetheory:SRTE}) with a
 fixed scattering integral is
 \begin{equation}
   \label{eq:scattering:SRTE-Int}

@@ -81,7 +81,7 @@ where $\VctStl{E}_0$ is the amplitude of the electromagnetic wave in
 vacuum, $c$ is the speed of light in vacuum, $\omega$ is the angular
 frequency, $\VctStl{r}$ is the position vector and $\hat{\PDir}$
 is a real unit vector in the direction of propagation. The complex
-refractive index~$m$ is
+refractive index $m$ is
 \begin{equation}
   m = m_{\mathrm{R}}+ i m_{\mathrm{I}} = c \sqrt{\epsilon \mu},
 \end{equation}
@@ -170,7 +170,7 @@ and the phase difference.  The first Stokes parameter $I$ is the
 intensity and the other components $Q$, $U$ and $V$ describe the
 polarization state of the wave. For a detailed definition of the
 Stokes parameters and how they can be measured refer to
-Section~\ref{sec:polarization}.
+Section \ref{sec:polarization}.
 
 \section[Single particle scattering]{Scattering, absorption and thermal emission by a single particle}
 \label{sec:rtetheory:theory_single_part}
@@ -243,12 +243,12 @@ $\hat{\PDir}^{\inc}$ and scattering $\hat{\PDir}^{\sca}$ as well as on size,
 morphology, composition, and orientation of the scattering object with
 respect to the coordinate system. The distance between the origin and
 the observation point is denoted by $r$ and the wave number of the
-external volume is denoted by~$k$.
+external volume is denoted by $k$.
 
 The amplitude matrix provides a complete description of the scattering
 pattern in the far field zone. The amplitude matrix explicitly depends
 on $\AzmAng^{\inc}$ and $\AzmAng^{\sca}$ even when $\ZntAng^{\inc}$ and/or
-$\ZntAng^{\sca}$ equal 0 or~$\pi$.
+$\ZntAng^{\sca}$ equal 0 or $\pi$.
 
 \subsection{Phase matrix}
 \label{sec:rtetheory:pha_mat}
@@ -267,10 +267,10 @@ matrix elements for single particles \citep{Mishchenko:02}. All
 elements of the phase matrix have the dimension of area and are real.
 As the amplitude matrix, the phase matrix depends on $\AzmAng^{\inc}$
 and $\AzmAng^{\sca}$ even when $\ZntAng^{\inc}$ and/or $\ZntAng^{\sca}$ equal
-0 or~$\pi$.  In general, all 16 elements of the phase matrix are
+0 or $\pi$.  In general, all 16 elements of the phase matrix are
 non-zero, but they can be expressed in terms of only seven independent
 real numbers. Four elements result from the moduli $\Abs{S_{ij}}$ ($i,j =
-1,2$) and three from the phase-differences between~$S_{ij}$.  If the
+1,2$) and three from the phase-differences between $S_{ij}$.  If the
 incident beam is unpolarized, i.e., $\StoVec^{\inc} = (I^{\inc},
 0, 0, 0)^T$, the scattered light generally has at least one
 non-zero Stokes parameter other than intensity:
@@ -292,7 +292,7 @@ can be written in terms of the phase matrix elements
 \label{sec:rtetheory:ext_mat}
 In the special case of the exact forward direction
 $(\hat{\PDir}^{\sca}=\hat{\PDir}^{\inc})$ the attenuation of the
-incoming radiation is described by the extinction matrix~\ExtMat. In
+incoming radiation is described by the extinction matrix \ExtMat. In
 terms of the Stokes vector we get
 \begin{equation}
   \StoVec(r \hat{\PDir}^{\inc}) \Delta S =
@@ -307,7 +307,7 @@ $z$-axis.
 
 \subsection{Absorption vector}
 \label{sec:rtetheory:abs_vec}
-The particle also emits radiation if its temperature~$T$ is above zero
+The particle also emits radiation if its temperature $T$ is above zero
 Kelvin. According to Kirchhoff's law of radiation the emissivity
 equals the absorptivity of a medium under thermodynamic equilibrium.
 The energetic and polarization characteristics of the emitted
@@ -315,18 +315,18 @@ radiation are described by a four-component Stokes emission column
 vector $\AbsVec(\hat{\VctStl{r}}, T, \omega)$. The emission vector is
 defined in such a way that the net rate, at which the emitted energy
 crosses a surface element $\Delta S$ normal to $\hat{\VctStl{r}}$ at
-distance~$r$ from the particle at frequencies from $\omega$ to $\omega
+distance $r$ from the particle at frequencies from $\omega$ to $\omega
 + \Delta\omega$, is
 \begin{equation}
   W^e = \frac{1}{r^2}\AbsVec(\hat{\VctStl{r}}, T, \omega)
   \Planck(T,\omega) \Delta S \Delta\omega,
 \end{equation}
 where $W^e$ is the power of the emitted radiation and \Planck\ is the
-Planck function.  In order to calculate~\AbsVec\ we assume that the
+Planck function.  In order to calculate \AbsVec\ we assume that the
 particle is placed inside an opaque cavity of dimensions large
 compared to the particle and any wavelengths under consideration. We
 have thermodynamic equilibrium if the cavity and the particle are
-maintained at the constant temperature~$T$. The emitted radiation
+maintained at the constant temperature $T$. The emitted radiation
 inside the cavity is isotropic, homogeneous, and unpolarized. We can
 represent this radiation as a collection of quasi-monochromatic,
 unpolarized, incoherent beams propagating in all directions
@@ -417,7 +417,7 @@ The phase function is dimensionless and normalized:
 
 
 
-\section[Particle Ensembles]{Scattering, absorption and emission by~ensembles of independent particles}
+\section[Particle Ensembles]{Scattering, absorption and emission by ensembles of independent particles}
 \label{sec:rtetheory:part_ensembles}
 
 The formalism described in the previous chapter applies only for
@@ -579,7 +579,7 @@ radiative transfer. We can use this equation for simulating microwave
 radiative transfer through the atmosphere, as the scattering events do
 not change the frequency of the radiation.
 
-The four-component specific intensity vector~$\StoVec = (I,Q,U,V)^T$
+The four-component specific intensity vector $\StoVec = (I,Q,U,V)^T$
 fully describes the radiation and it can directly be associated with
 the measurements carried out by a radiometer used for remote sensing.
 For the definition of the components of the specific intensity vector
@@ -708,7 +708,7 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
  \end{equation}
  where $B$ is the emitted radiation, $\lambda$ the wavelength, $T$ the 
  temperature, $h$ the Planck constant, $c$ the speed of light and $k_b$
- the Boltzmann constant. Equation~\ref{eq:rtetheory:planck} is shown in Figure 
+ the Boltzmann constant. Equation \ref{eq:rtetheory:planck} is shown in Figure 
  \ref{fig:rtetheory:planck} for some temperatures.
 
  \begin{figure}
@@ -722,7 +722,7 @@ spherical or completely randomly oriented particles, where $\EnsAvr{
                                        
  The maximum of the Planck formula is a function temperature and is
  given by the Wien's displacement law. The maximum of
- Equation~\ref{eq:rtetheory:planck} is found at: 
+ Equation \ref{eq:rtetheory:planck} is found at: 
 
  \begin{equation}
    \lambda_{max} = \frac{K}{T}
