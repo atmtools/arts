@@ -40,14 +40,38 @@
 	\secref, \eqref, \eqnref, \figref, \tabref, \charef.
 	Reason, it gets too complicated to make macros for all cases
 	(considering the reference could be to another document).
-	
+
+2010-04-21  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-18
+
+	* doc/uguide/montecarlo.tex: Remove empty lines 200/201 to fix build.
+
 2010-04-21  Cory Davis  <cory@sundog>
 
-	* arts-1-14-16
+	* arts-1-14-17
 
 	* doc/uguide/montecarlo.tex: a bit more.  I couldn't test the
 	changes because there seems to be something wrong with the
 	doc build.
+
+2010-04-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-16
+
+	* doc/uguide/CMakeLists.txt:
+
+	List tex file dependencies for each target.
+
+	Remove explicit target arts_docs.
+
+	* cmake/modules/ArtsBuildTexDoc.cmake:
+
+	Put the output files for each document in a separate subdirectory. The
+	pdf is copied one level up after a successful build.
+
+	Fixes parallel build of docs but more work is needed to get xrefs
+	right.
 
 2010-04-19  Stefan Buehler  <sbuehler(at)ltu.se>
 
