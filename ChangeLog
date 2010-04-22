@@ -1,3 +1,13 @@
+2010-04-22  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-23
+
+	* src/m_rte.cc (y_unitApply): This is a renamed version of yUnit.
+	Added runtime checks, trying to catch incorrect usage of the
+	method. Wrote on-line documentation. This closes ticket 26.
+
+	* tests/HIRS/TestHIRS.arts: Changed yUnit to y_unitApply.
+
 2010-04-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-22

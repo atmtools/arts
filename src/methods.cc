@@ -8590,16 +8590,26 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "yUnit" ),
+      ( NAME( "y_unitApply" ),
         DESCRIPTION
         (
-         "Conversion of *y* to other spectral units.\n"
+         "Conversion to other spectral units.\n"
          "\n"
-         "The conversion specified by *y_unit* is applied. This function can\n"
-         "be used if the standard way of making the conversion inside the\n"
-         "radiative transfer function does not work. The WSV *y_unit* should\n"
-         "then be set to \"1\" when performing the radiative transfer\n" 
-         "calculations, and be changed before calling this method.\n"
+         "Any conversion to brightness temperature is normally made inside\n"
+         "*yCalc*. This method makes it possible to also make this conversion\n"
+         "after *yCalc*, but with restrictions for *jacobian*.\n"
+         "\n"
+         "The method handles *y*, *y_error* and *jacobian* in parallel, where\n"
+         "the two last variables are only considered if they are set. The\n"
+         "input data must be in original radiance units. A completely\n"
+         "stringent check of this can not be performed.\n"
+         "\n"
+         "The method can not be used with jacobian quantities that are not\n"
+         "obtained through radiative transfer calculations. One example on\n"
+         "quantity that can not be handled is *jacobianAddPolyfit*.\n"
+         "\n"         
+         "If you are using this method, *y_unit* should be set to \"1\" when\n"
+         "calling *yCalc*, and be changed before calling this method.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_error", "jacobian" ),

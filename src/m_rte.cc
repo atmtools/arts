@@ -687,7 +687,7 @@ void iyb_calc(
        
               // Start row in iyb etc. for present LOS
               //
-              const Index row0 =( iza*naa + iaa ) * nf * stokes_dim;
+              const Index row0 = ( iza*naa + iaa ) * nf * stokes_dim;
 
               // Jacobian part (must be converted to Tb before iy for PlanckBT)
               // 
@@ -1593,7 +1593,7 @@ void yCalc(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void yUnit(
+void y_unitApply(
         Vector&         y,
         Vector&         y_error,
         Matrix&         jacobian,
@@ -1601,19 +1601,40 @@ void yUnit(
   const ArrayOfIndex&   y_pol,
   const String&         y_unit )
 {
+  if( y_unit == "1" )
+    { throw runtime_error(
+        "No need to use this method with *y_unit* = \"1\"." ); }
+
   if( max(y) > 1e-3 )
     {
-      throw runtime_error( "It appears that a unit conversion has already "
-                           "been made (too large value in *y*)." ); 
+      ostringstream os;
+      os << "The spectrum vector *y* is required to have original radiance\n"
+         << "unit, but this seems not to be the case. This as a value above\n"
+         << "1e-3 is found in *y*.";
+      throw runtime_error( os.str() );      
     }
 
   // Are jacobian and y_error set?
-  const bool do_j = jacobian.ncols();
-  const bool do_e = y_error.nelem();
+  //
+  const Index ny = y.nelem();
+  //
+  const bool do_j = jacobian.nrows() == ny;
+  const bool do_e = y_error.nelem() == ny;
+
+  // Some jacobian quantities can not be handled
+  if( do_j  &&  max(jacobian) > 1e-3 )
+    {
+      ostringstream os;
+      os << "The method can not be used with jacobian quantities that are not\n"
+         << "obtained through radiative transfer calculations. One example on\n"
+         << "quantity that can not be handled is *jacobianAddPolyfit*.\n"
+         << "The maximum value of *jacobian* indicates that one or several\n"
+         << "such jacobian quantities are included.";
+      throw runtime_error( os.str() );      
+    }
 
   // Loop frequencies
   //
-  const Index ny = y.nelem();
   Index i = 0;                 // Index of first element for present freq.
   //
   while( i < ny )
