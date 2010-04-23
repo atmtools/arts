@@ -1,3 +1,15 @@
+2010-04-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-25
+
+	* cmake/modules/ArtsBuildTexDoc.cmake:
+
+	Split building of each document into two stages. The first stage runs
+	latex, makeindex, bibtex, and latex. After that the aux files are
+	copied to the build directories of the other documents. The second
+	stage is another latex run for each document. Now it's possible to
+	parallel build the docs and get the cross references right.
+
 2010-04-22  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-24
