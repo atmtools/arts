@@ -508,15 +508,15 @@ void gridpos_check_fd( GridPos&   gp )
   assert( gp.fd[1] > -FD_TOL );
   assert( gp.fd[1] < 1.0 + FD_TOL );
 
-  if( gp.fd[0] < 0 )
-    { gp.fd[0] = 0; }
-  else if( gp.fd[0] > 1 )
-    { gp.fd[0] = 1; }
+  if( gp.fd[0] < 0.0 )
+    { gp.fd[0] = 0.0; gp.fd[1] = 1.0; }
+  else if( gp.fd[0] > 1.0 )
+    { gp.fd[0] = 1.0; gp.fd[1] = 0.0; }
 
-  if( gp.fd[1] < 0 )
-    { gp.fd[1] = 0; }
-  else if( gp.fd[1] > 1 )
-    { gp.fd[1] = 1; }
+  if( gp.fd[1] < 0.0 )
+    { gp.fd[1] = 0.0; gp.fd[0] = 1.0; }
+  else if( gp.fd[1] > 1.0 )
+    { gp.fd[1] = 1.0; gp.fd[0] = 0.0; }
 }
 
 

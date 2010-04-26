@@ -3819,13 +3819,14 @@ void define_md_data_raw()
                   "Step size." )
         ));
 
-  /* De-activated temporarily during cleaning week:
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "fos_yStandard" ),
         DESCRIPTION
         (
-         "FIXME\n"
+         "DO NOT USE!\n"
+         "\n"
+         "This method is used by Patrick for testing a new scattering scheme.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "fos_y", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
@@ -3838,14 +3839,13 @@ void define_md_data_raw()
             "f_grid", "ppath_step_agenda", "emission_agenda",
             "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
             "iy_transmission", "pnd_field", "scat_data_raw", 
-            "opt_prop_gas_agenda", 
-            "fos_y_agenda", "fos_angles", "fos_n", "fos_i" ),
+            "opt_prop_gas_agenda", "fos_y_agenda", "fos_angles", 
+            "fos_use_mean_scat_data", "fos_n", "fos_i" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-  */
 
   md_data_raw.push_back
     ( MdRecord
@@ -4239,12 +4239,13 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  /* De-activated temporarily during cleaning week:
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyFOS" ),
         DESCRIPTION
         (
+         "DO NOT USE! So far just used for testing.\n"
+         "\n"
          "A discrete ordinate fixed order of scattering scheme.\n"
          "\n"
          "The scattering integral is here solved by calculating the incoming\n"
@@ -4279,14 +4280,13 @@ void define_md_data_raw()
             "cloudbox_limits", "stokes_dim", "f_grid", "ppath_step_agenda", 
             "emission_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
             "iy_transmission", "pnd_field", "scat_data_raw", 
-            "opt_prop_gas_agenda", 
-            "fos_y_agenda", "fos_angles", "fos_n", "fos_i" ),
+            "opt_prop_gas_agenda", "fos_y_agenda", "fos_angles", 
+            "fos_use_mean_scat_data","fos_n", "fos_i" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-  */
 
   md_data_raw.push_back
     ( MdRecord

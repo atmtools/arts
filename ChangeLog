@@ -1,3 +1,18 @@
+2010-04-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-28
+
+	* src/special_interp.cc (interp_cloudfield_gp2itw): Added handling
+	of cases where a grid position is at lower boundary of cloudbox
+	with fd[0] = 1. This results in an idx of -1. A jump to upper grid
+	end points now added.
+
+	* src/workspace.cc: Added fos_use_mean_scat_data. 
+
+	* FOS part reactivated and updated to last changes. Treatment of
+	single scattering properties fixed, including handling of
+	fos_use_mean_scat_data. That was the last missing "physics". 
+
 2010-04-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-27

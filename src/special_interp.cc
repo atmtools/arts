@@ -381,18 +381,45 @@ void interp_cloudfield_gp2itw(
 
   // Shift grid positions to cloud box grids
   //
+  // If a point at the lower end of the cloudbox, in any dimension, has
+  // fd[0]=1, this results in an idx of -1. The input is OK, and the negative
+  // must be fixed.
+  //
   for (Index i = 0; i < n; i++ ) 
     {
       gp_p[i].idx -= cloudbox_limits[0];
-      assert( gp_p[i].idx >= 0 );
+      if( gp_p[i].idx < 0 )
+        { 
+          assert( gp_p[i].idx == -1 );
+          assert( gp_p[i].fd[0] > 0.995 );  // To capture obviously bad cases
+          gp_p[i].idx += 1; 
+          gp_p[i].fd[0] = 0.0; 
+          gp_p[i].fd[0] = 1.0; 
+        }
+      //
       if( atmosphere_dim > 1 )
         { 
           gp_lat[i].idx -= cloudbox_limits[2]; 
-          assert( gp_lat[i].idx >= 0 );
+          if( gp_lat[i].idx < 0 )
+            { 
+              assert( gp_lat[i].idx == -1 );
+              assert( gp_lat[i].fd[0] < 0.995 );
+              gp_lat[i].idx += 1; 
+              gp_lat[i].fd[0] = 0.0; 
+              gp_lat[i].fd[0] = 1.0; 
+            }
+          //
           if( atmosphere_dim > 2 )
             {       
               gp_lon[i].idx -= cloudbox_limits[4];
-              assert( gp_lon[i].idx >= 0 );
+              if( gp_lon[i].idx < 0 )
+                { 
+                  assert( gp_lon[i].idx == -1 );
+                  assert( gp_lon[i].fd[0] > 0.995 );
+                  gp_lon[i].idx += 1; 
+                  gp_lon[i].fd[0] = 0.0; 
+                  gp_lon[i].fd[0] = 1.0; 
+                }
             }
         }
     }      

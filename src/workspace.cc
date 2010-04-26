@@ -1450,6 +1450,19 @@ void Workspace::define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     (NAME( "fos_use_mean_scat_data" ),
+      DESCRIPTION
+      (
+       "Flag for FOS to use same scattering properties for all frequencies.\n"
+       "\n"
+       "For calculations covering a narrow frequency range, calcuölation time\n"
+       "can be saved by setting this variable to 1. The single scattering\n"
+       "scattering data is then calculated for the mean of the frequency end\n"
+       "points, and are applied for all frequencies.\n" ),
+      GROUP( "Index" )));
+
+  wsv_data.push_back
+    (WsvRecord
      (NAME( "fos_y" ),
       DESCRIPTION
       (
