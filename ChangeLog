@@ -1,3 +1,9 @@
+2010-04-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-31
+
+	* src/CMakeLists.txt: Add m_fos.cc to artscore.
+
 2010-04-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-30

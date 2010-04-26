@@ -210,6 +210,7 @@ add_library (artscore STATIC
 	m_basic_types.h
 	m_cloudbox.cc
 	m_disort.cc
+	m_fos.cc
 	m_general.cc
 	m_general.h
 	m_nc.h
