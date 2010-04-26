@@ -37,6 +37,9 @@ add_custom_target (apidoc_forced
 
 set_directory_properties (PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "html")
 
+install (DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html
+         DESTINATION share/doc/arts/doxygen)
+
 else (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 
   if (NOT DOXYGEN_FOUND)

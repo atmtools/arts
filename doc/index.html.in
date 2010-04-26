@@ -5,85 +5,43 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
   <head>
-<meta name="generator" content="S. A. Buehler">
-<meta name="description" content="A summary of the documentation that is distributed together with the ARTS package">
-<meta name="keywords" content="Bremen, limb sounding, microwave, millimeter, sub-millimeter, radiative transfer, ARTS, ESTEC studies, MAS, millimeterwave atmospheric sounder, SMILES, JEM SMILES, GRAS, retrieval, inversion, spectroscopy, satellite, ozone">
-
+    <meta name="generator" content="S. A. Buehler">
+    <meta name="description" content="A summary of the documentation that is distributed together with the ARTS package">
+    <meta name="keywords" content="Bremen, limb sounding, microwave, millimeter, sub-millimeter, radiative transfer, ARTS, ESTEC studies, MAS, millimeterwave atmospheric sounder, SMILES, JEM SMILES, GRAS, retrieval, inversion, spectroscopy, satellite, ozone">
     <title>ARTS Documentation</title>
-    <link rel=stylesheet href="arts.css" type="text/css"
-      title="ARTS Style">
+    <link rel="stylesheet" href="arts.css" type="text/css" title="ARTS Style">
   </head>
 
   <body>
-    <h1> Documentation
-     for ARTS version @VERSION@</h1>
+    <h1>Documentation for ARTS version @VERSION@</h1>
 
-    <p>
-      This page gives an overview of the documentation that comes
-      inside the ARTS package.
+    <p>This page gives an overview of the documentation that comes
+    inside the ARTS package.</p>
 
-    <h2> ARTS User Guide (AUG)</h2>
+    <h2>ARTS Documentation for users and developers</h2>
 
-    <p>
-      This should become the comprehensive manual for ARTS, both for
-      users and developers. Should it become too large we will split
-      it at some point in the future. Here you can:
+    <p>This should become the comprehensive manual for ARTS, both for
+    users and developers. The following documents are available in PDF format:</p>
 
     <ul>
-      <li>
-	Look at the <a href="uguide/uguide.pdf"> Pdf version</a>.
+      <li><a href="uguide/arts_user.pdf">ARTS User Guide</a></li>
+      <li><a href="uguide/arts_theory.pdf">ARTS Theory</a></li>
+      <li><a href="uguide/arts_developer.pdf">ARTS Developer Guide</a></li>
     </ul>
 
-    <p>
-      I also tried to convert the document to html using latex2html,
-      but this did not yield satisfactory results. Figures and
-      equations did not show up at all. Also, the redifined sectioning
-      commands (levela, etc.) seem to confuse the translator. Should
-      anybody want to work on this, please go ahead! Otherwise, for
-      now we are stuck with the printable version.
+    <h2>Automatic source code documentation with Doxygen</h2>
 
-
-    <h2> Automatic source code documentation with Doxygen</h2>
-
-    <p>
-      We use the doxygen program to extract documentation from comments
-      inside the source code. See the development section in the user
-      guide for information on how this is done. Here is the result as:
+    <p>We use the doxygen program to extract documentation from comments
+    inside the source code. See the documentation section in the ARTS Developer
+    Guide for information on how this is done. Here is the result:</p>
 
     <ul>
-      <li>
-	<a href="doxygen/html/index.html"> HTML document</a>.
-<!--  <li> -->
-<!-- 	<a href="doxygen/latex/refman.ps"> Postscript file</a> (generated -->
-<!-- 	from a LaTeX source). -->
+      <li><a href="doxygen/html/index.html">ARTS Doxygen documentation</a></li>
     </ul>
 
-    <h2> Example ARTS control files</h2>
+    <h2>Example ARTS control files</h2>
 
-    <p><font color="#ff0000"><b>--- Under construction ---</b></font>
-    <p> Have a look at the control files in the subdirectories in <a href="../tests/">arts/tests/</a>.
-    <!--    <p>
-    The package contains everything that you need to run these
-    examples. Currently they are:
+    <p> Have a look at the control files in the subdirectories in <code>arts/tests/</code>.
 
-    <ul>
-      <li>
-      <a href="examples/auto_example1.arts"> auto_example1.arts</a> (calculates
-      absorption coefficients).
-      <li>
-      <a href="examples/cont.arts"> cont.arts</a> (shows how to use continua).
-      <li>
-      <a href="examples/auto_full.arts"> auto_full.arts</a> (an end-to-end
-      job).
-    </ul>
-    -->
-
-    <hr noshade  size="3" color="#990099">
-
-    <address><a href="mailto:sbuehler@ltu.se">Stefan Buehler</a></address>
-<!-- Created: Thu Jul 27 15:28:01 MEST 2000 -->
-<!-- hhmts start -->
-Last modified: Thu Sep 14 13:02:48 MEST 2000
-<!-- hhmts end -->
   </body>
 </html>
