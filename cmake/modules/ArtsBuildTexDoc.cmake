@@ -71,7 +71,7 @@ macro (ARTS_ADD_TEX_DOC TARGET TEXFILES FIGFILES)
                     ${TARGET}-stage1 ${OTHER_DOC1}-stage1 ${OTHER_DOC2}-stage1)
 
   install (FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.pdf
-           DESTINATION share/doc/arts)
+           DESTINATION share/doc/arts/uguide)
 
   get_directory_property (TEXCLEANFILES ADDITIONAL_MAKE_CLEAN_FILES)
   set (TEXCLEANFILES ${TEXCLEANFILES} ${TARGET}.log ${PDFLATEX_OUTPUTDIR})

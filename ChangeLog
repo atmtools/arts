@@ -1,5 +1,15 @@
 2010-04-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-32
+
+	* doc/uguide/concept.tex: 'built in' -> 'built-in'.
+
+	* cmake/modules/ArtsBuildTexDoc.cmake:
+
+	Install PDFs into uguide sub-directory in share/doc/arts.
+
+2010-04-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-31
 
 	* src/CMakeLists.txt: Add m_fos.cc to artscore.
