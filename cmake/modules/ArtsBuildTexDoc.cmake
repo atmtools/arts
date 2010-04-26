@@ -47,7 +47,7 @@ macro (ARTS_ADD_TEX_DOC TARGET TEXFILES FIGFILES)
     WORKING_DIRECTORY ${PDFLATEX_OUTPUTDIR}
     DEPENDS ${TEXFILES} ${FIGFILES}
             ${CMAKE_CURRENT_BINARY_DIR}/auto_version.tex
-            ${TARGET}.stamp
+            ${TARGET}.stamp ${OTHER_DOC1}.stamp ${OTHER_DOC2}.stamp
   )
 
   add_custom_command (

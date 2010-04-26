@@ -43,6 +43,9 @@ if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
   file (GLOB FIGFILES "${CMAKE_CURRENT_SOURCE_DIR}/Figs/*/*.pdf")
   ARTS_ADD_TEX_DOC ("arts_theory" "${TEXFILES}" "${FIGFILES}")
   
+  add_custom_target (arts_docs
+    DEPENDS arts_user.pdf arts_developer.pdf arts_theory.pdf)
+
 else (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
 
   if (NOT PDFLATEX_COMPILER)

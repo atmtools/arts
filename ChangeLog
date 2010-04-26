@@ -1,3 +1,20 @@
+2010-04-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-27
+
+	* cmake/modules/ArtsBuildTexDoc.cmake:
+
+	Add missing dependencies. ${TARGET}.stage1 should depend on all
+	*.stamp targets.
+
+	* doc/uguide/CMakeLists.txt: Add target arts_docs.
+
+2010-04-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-26
+
+	* cmake/modules/ArtsBuildTexDoc.cmake: Cleaning up.
+
 2010-04-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-25
