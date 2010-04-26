@@ -4244,9 +4244,9 @@ void define_md_data_raw()
       ( NAME( "iyFOS" ),
         DESCRIPTION
         (
-         "DO NOT USE! So far just used for testing.\n"
+         "DO NOT USE! So far just used for testing by Patrick.\n"
          "\n"
-         "A discrete ordinate fixed order of scattering scheme.\n"
+         "A fixed order of scattering (FOS) scheme.\n"
          "\n"
          "The scattering integral is here solved by calculating the incoming\n"
          "radiation and phase matrix for a set of directions, that can be\n"
@@ -4257,9 +4257,11 @@ void define_md_data_raw()
          "These angles and integration weights are packed into the WSV\n" 
          "*fos_angles*.\n"
          "\n"
-         "So far it is assumed that the scattering properties are constant\n"
-         "over the frequency range considered. The scattering properties are\n"
-         "for the middle point between min and max frequency.\n"
+         "If *fos_n* equals 1, the incoming radiation is calculated without\n"
+         "scattering. This is thus a singel scattering scheme.\n"
+         "For *fos_n* = n, the incoming radiation for a point at the\n"
+         "unscattered propgation path is calculated as for fos_n = n-1. This\n"
+         "gives a scheme where n scattering events are considered.\n"
          "\n"
          "The propagation path step closest to the cloudbox boundary is\n"
          "always treated as clear-sky. Accordingly, there should be some\n"
