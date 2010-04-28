@@ -115,7 +115,6 @@ void iyb_calc(
         Vector&                     iyb_error,
         Index&                      iy_error_type,
         Matrix&                     iyb_aux,
-        Index&                      n_aux,
         ArrayOfMatrix&              diyb_dx,
   const Index&                      imblock,
   const Index&                      atmosphere_dim,

@@ -59,6 +59,8 @@
 extern const String ABSSPECIES_MAINTAG;
 extern const String TEMPERATURE_MAINTAG;
 
+// Number of auxilary variables, in y_aux
+const Index N_AUX = 3;
 
 
 // A maqcro to loop analytical jacobian quantities
@@ -557,7 +559,6 @@ void iyb_calc(
         Vector&                     iyb_error,
         Index&                      iy_error_type,
         Matrix&                     iyb_aux,
-        Index&                      n_aux,
         ArrayOfMatrix&              diyb_dx,
   const Index&                      imblock,
   const Index&                      atmosphere_dim,
@@ -595,12 +596,12 @@ void iyb_calc(
   // unsafe to do the allocation of iyb_aux inside the for-loops. We must use 
   // a hard-coded maximum number.
   //
-  const Index n_aux_max = 3;
-  n_aux     = -1;   // -1 flags value yet unknown
-  //
   iyb.resize( niyb );
   iyb_error.resize( niyb );
-  iyb_aux.resize( niyb, n_aux_max );
+  if( iy_aux_do )
+    iyb_aux.resize( niyb, N_AUX );
+  else
+    iyb_aux.resize( 0, 0 );
   //
   if( j_analytical_do )
     {
@@ -670,21 +671,6 @@ void iyb_calc(
                              iy_aux_do, f_grid, p_grid, lat_grid, lon_grid, 
                              t_field, vmr_field, l_iy_clearsky_agenda );
 
-              // Check of iy_aux
-              //
-              if( n_aux < 0 )
-                { 
-                  n_aux = iy_aux.npages(); 
-                  if( n_aux > n_aux_max )
-                    {
-                      ostringstream os;
-                      os << "The number of auxilary variables (columns of "
-                         << "iy_aux) is hard coded.\nIt is presently set to "
-                         << n_aux_max << " variables.";
-                      throw runtime_error( os.str() );      
-                    }
-                }
-       
               // Start row in iyb etc. for present LOS
               //
               const Index row0 = ( iza*naa + iaa ) * nf * stokes_dim;
@@ -725,10 +711,13 @@ void iyb_calc(
                                                             iy_error(joker,is); 
                     }
                   //
-                  for( Index iaux=0; iaux<n_aux; iaux++ )
-                    { 
-                      iyb_aux(Range(row0+is,nf,stokes_dim),iaux) = 
+                  if( iy_aux_do )
+                    {
+                      for( Index iaux=0; iaux<N_AUX; iaux++ )
+                        { 
+                          iyb_aux(Range(row0+is,nf,stokes_dim),iaux) = 
                                                          iy_aux(iaux,joker,is);
+                        }
                     }
                 }
             }  // End aa loop
@@ -816,7 +805,7 @@ void iyEmissionStandardClearsky(
       iy_error.resize( 0, 0 );
       iy_error_type = 0;
       //
-      if( iy_aux_do ) { iy_aux.resize( 3, nf, stokes_dim ); iy_aux = 0; }
+      if( iy_aux_do ) { iy_aux.resize( N_AUX, nf, stokes_dim ); iy_aux = 0; }
       else            { iy_aux.resize( 0, 0, 0 ); }
       //
       if( j_analytical_do ) 
@@ -1472,7 +1461,10 @@ void yCalc(
   y_pos.resize( nmblock*n1y, sensor_pos.ncols() );
   y_los.resize( nmblock*n1y, sensor_los.ncols() );
   y_error.resize( nmblock*n1y );
-  y_aux.resize( 0, 0 );        // Size can only be determined later
+  if( iy_aux_do )
+    y_aux.resize( nmblock*n1y, N_AUX );
+  else 
+    y_aux.resize( 0, 0 );
 
   // Jacobian variables
   //
@@ -1500,10 +1492,10 @@ void yCalc(
       //
       Vector          iyb, iyb_error, yb(n1y);
       Matrix          iyb_aux;
-      Index           iy_error_type, n_aux;
+      Index           iy_error_type;
       ArrayOfMatrix   diyb_dx;      
       //
-      iyb_calc( ws, iyb, iyb_error, iy_error_type, iyb_aux, n_aux, diyb_dx, 
+      iyb_calc( ws, iyb, iyb_error, iy_error_type, iyb_aux, diyb_dx, 
                 imblock, atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
                 vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos, 
                 sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
@@ -1545,14 +1537,8 @@ void yCalc(
 
       // Apply sensor response matrix on iyb_aux, and put into y_aux
       //
-      if( n_aux > 0 )
-        {
-          if( y_aux.nrows() == 0 )
-            { y_aux.resize( nmblock*n1y, n_aux ); }
-          //
-          mult( y_aux(rowind,joker), sensor_response, 
-                                               iyb_aux(joker,Range(0,n_aux)) );
-        }
+      if( iy_aux_do )
+        { mult( y_aux(rowind,joker), sensor_response, iyb_aux ); }
 
       // Fill information variables
       //

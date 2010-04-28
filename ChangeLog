@@ -1,3 +1,14 @@
+2010-04-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-33
+
+	* src/m_rte.cc: The number of possible auxilary variables in y_aux
+	(and iy_aux) is now hard-coded to 3. This to allow parallisation
+	of yCalc.
+
+	* src/m_jacobian.cc (jacobianCalcPointingZaIybrecalc): Adopted to
+	change above.
+	
 2010-04-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-32

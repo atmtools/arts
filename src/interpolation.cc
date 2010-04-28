@@ -533,9 +533,6 @@ void gridpos_check_fd( GridPos&   gp )
    function is only applicable for end points, while the other function can
    be called for every point.
 
-   The input fractional distances are not allowed to deviate freom 0 and 1
-   with more than FD_TOL.
-
    \retval   gp     Grid position structure.
 
    \author Patrick Eriksson
@@ -545,15 +542,11 @@ void gridpos_force_end_fd( GridPos&   gp )
 {
   if( gp.fd[0] < 0.5 )
     {
-      //      assert( fabs( gp.fd[0] ) <= FD_TOL );
-      //assert( fabs( gp.fd[1] -1 ) <= FD_TOL );
       gp.fd[0] = 0;
       gp.fd[1] = 1;
     }
   else
     {
-      //assert( fabs( gp.fd[1] ) <= FD_TOL );
-      //assert( fabs(gp.fd[0] -1 ) <= FD_TOL );
       gp.fd[0] = 1;
       gp.fd[1] = 0;
     }

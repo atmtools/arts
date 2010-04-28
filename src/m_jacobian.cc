@@ -823,14 +823,14 @@ void jacobianCalcPointingZaIybrecalc(
   const Index    n1y = sensor_response.nrows();
         Vector   dy( n1y );
   {
-        Index         iyet, n_aux;
+        Index         iyet;
         Vector        iyb2, iye;
         Matrix        iyb_aux, los = sensor_los;
         ArrayOfMatrix diyb_dx;      
 
     los(joker,0) += rq.Perturbation();
 
-    iyb_calc( ws, iyb2, iye, iyet, iyb_aux, n_aux, diyb_dx, imblock, 
+    iyb_calc( ws, iyb2, iye, iyet, iyb_aux, diyb_dx, imblock, 
               atmosphere_dim, p_grid, lat_grid, lon_grid, 
               t_field, vmr_field, cloudbox_on, stokes_dim, 
               f_grid, sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
