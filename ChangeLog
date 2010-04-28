@@ -1,3 +1,12 @@
+2010-04-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-36
+
+	* src/special_interp.cc (interp_cloudfield_gp2itw): Changed to
+	more efficient order of for-loops and if-statements. Now checking
+	the index of shifted grid positions, both for first and last
+	element. To ensure that index are inside expected range. 
+
 2010-04-28  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-35
