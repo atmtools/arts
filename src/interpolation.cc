@@ -140,7 +140,18 @@ ostream& operator<<(ostream& os, const GridPos& gp)
  0.5 is the default value for extpolfac. Normally, you should just use
  the function with 3 arguments, which means that the default value
  will be used.
-
+ 
+ If a new grid point is exactly on top of an original grid point, then 
+ the returned gp.idx is guaranteed to point exactly at this point, so 
+ that gp.fd[0] = 0. The only exception from this rule is if the point 
+ happens to be the last point in the original grid. In that case gp.idx 
+ will point to the original grid point below. 
+ 
+ Furthermore, you are guaranteed that for the ascending old grid case:
+      old_grid[tgp.idx]<=tng || tgp.idx==0
+ And for the descending old grid case: 
+      old_grid[tgp.idx]>=tng || tgp.idx==0
+ 
  \retval gp        Grid position Array.
  \param old_grid   The original grid.
  \param new_grid   The new grid where we want to have the interpolated values. 
@@ -267,14 +278,14 @@ void gridpos( ArrayOfGridPos& gp,
               // Is it too low? 
               // (The current_position<n_old condition is there so
               // that uppers stays n_old-1 for extrapolation.)
-              if ( tng > upper && current_position < n_old-2 )
+              if ( tng >= upper && current_position < n_old-2 )
                 {
                   do
                     {
                       ++current_position;
                       upper = old_grid[current_position+1];
                     }
-                  while ( tng > upper && current_position < n_old-2 );
+                  while ( tng >= upper && current_position < n_old-2 );
 
                   lower = old_grid[current_position];
 
@@ -285,23 +296,23 @@ void gridpos( ArrayOfGridPos& gp,
               else
                 {
                   // None of the other two conditions were true. That means:
-                  // lower <= tng <= upper. The current_position is still
+                  // lower <= tng < upper. The current_position is still
                   // valid.
-                  //
-                  // Note that it is not uniquely determined, which
-                  // current position we use if a new grid point is
-                  // exactly on top of an old grid point. 
-                  //
-                  // As it is, we safe an extra treatment for the case
-                  // that the coincident point is exactly at the upper boundary
-                  // of the old grid. (In this case current_position must
-                  // be the second to last point, otherwise interpolation
-                  // will fail later!)
+                  
+                  // SAB 2010-04-28: Note that if a new grid point is exactly on 
+                  // top of an old grid point, then you are now guaranteed to get
+                  // fd[0] = 0 and fd[1] = 1. (Except at the upper grid end.)
+
                   tgp.idx = current_position;
                   tgp.fd[0] = (tng-lower)/(upper-lower);
                   tgp.fd[1] = 1.0 - tgp.fd[0];
                 }
             }      
+        
+//          cout << tgp.idx << " " << tgp.fd[0] << " " << tgp.fd[1] << endl;
+          
+          // Safety check to ensure the above promise:
+          assert(old_grid[tgp.idx]<=tng || tgp.idx==0);
         }
     }
   else                          //   if (ascending)  
@@ -381,14 +392,14 @@ void gridpos( ArrayOfGridPos& gp,
             {
               // Is it too low? (Sign of comparison changed
               // compared to ascending case!)
-              if ( tng < upper && current_position < n_old-2 )
+              if ( tng <= upper && current_position < n_old-2 )
                 {
                   do
                     {
                       ++current_position;
                       upper = old_grid[current_position+1];
                     }
-                  while ( tng < upper && current_position < n_old-2 );
+                  while ( tng <= upper && current_position < n_old-2 );
 
                   lower = old_grid[current_position];
 
@@ -399,15 +410,22 @@ void gridpos( ArrayOfGridPos& gp,
               else
                 {
                   // None of the other two conditions were true. That means:
-                  // upper <= tng <= lower. The current_position is still
+                  // lower >= tng > upper. The current_position is still
                   // valid. (Note that upper and lower have switched
                   // place compared to the ascending case.)
 
+                  // SAB 2010-04-28: Note that if a new grid point is exactly on 
+                  // top of an old grid point, then you are now guaranteed to get
+                  // fd[0] = 0 and fd[1] = 1. (Except at the upper grid end.)     
+                  
                   tgp.idx = current_position;
                   tgp.fd[0] = (tng-lower)/(upper-lower);
                   tgp.fd[1] = 1.0 - tgp.fd[0];
                 }
             }      
+          
+          // Safety check to ensure the above promise:
+          assert(old_grid[tgp.idx]>=tng || tgp.idx==0);
         }      
     }
 }

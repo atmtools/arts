@@ -1,3 +1,34 @@
+2010-04-28  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-14-35
+
+	* src/interpolation.cc (gridpos):  
+	If a new grid point is exactly on top of an original grid point, then 
+ 	the returned gp.idx is now guaranteed to point exactly at this point, so 
+ 	that gp.fd[0] = 0. The only exception from this rule is if the point 
+ 	happens to be the last point in the original grid. In that case gp.idx 
+ 	will point to the original grid point below. 
+ 
+ 	Furthermore, you are now guaranteed that for the ascending old grid case:
+ 	     old_grid[tgp.idx]<=tng || tgp.idx==0
+ 	And for the descending old grid case: 
+ 	     old_grid[tgp.idx]>=tng || tgp.idx==0
+
+	* src/optproperties.cc (pha_matTransform): Fixed a hidden bug
+	here, that got activated by the gridpos disambiguation. In the
+	PTYPE_HORIZ_AL case, optical properties are stored only for
+	incoming angles up to 90 degrees. But the full grid up to 180
+	degrees was used for the call to gridpos. Due to this, it could
+	happen that incoming angles at exactly 90 degrees were treated
+	incorrectly, since they are actually on the edge of the original
+	grid, but gridpos was foolded to think they were inside. This may
+	have been responsible for some previously unexplained program
+	crashes.
+
+	* doc/uguide/interpolation.tex 
+	(section{Setting up grid position arrays}): 
+	Updated documentation to point out the new guarantee.
+
 2010-04-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-34

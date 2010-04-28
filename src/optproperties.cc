@@ -385,9 +385,15 @@ void pha_matTransform(//Output
     //Data is already stored in the laboratory frame, but it is compressed
     //a little.  Details elsewhere
     {
+      // SAB 2010-04-28: For the incoming angle, not the whole of za_datagrid 
+      // is used in this case, only the range [0,90] degrees. 
+      // (Inclusive interval at both ends.)
+      // How much is needed can be seen from pha_mat_data.npages().
+      ConstVectorView this_za_datagrid = za_datagrid[Range(0,pha_mat_data.npages())];
+      
       assert (pha_mat_data.ncols()==16);
       Numeric delta_aa=aa_sca-aa_inc+(aa_sca-aa_inc<-180)*360-
-        (aa_sca-aa_inc>180)*360;//delta_aa corresponds to the "pages" 
+        (aa_sca-aa_inc>180)*360;//delta_aa corresponds to the "books" 
                                 //dimension of pha_mat_data
       GridPos za_sca_gp;
       GridPos delta_aa_gp;
@@ -397,12 +403,12 @@ void pha_matTransform(//Output
       gridpos(delta_aa_gp,aa_datagrid,abs(delta_aa));
       if (za_inc>90)
         {
-          gridpos(za_inc_gp,za_datagrid,180-za_inc);
+          gridpos(za_inc_gp,this_za_datagrid,180-za_inc);
           gridpos(za_sca_gp,za_datagrid,180-za_sca);
         }
       else
         {
-          gridpos(za_inc_gp,za_datagrid,za_inc);
+          gridpos(za_inc_gp,this_za_datagrid,za_inc);
           gridpos(za_sca_gp,za_datagrid,za_sca);
         }
 

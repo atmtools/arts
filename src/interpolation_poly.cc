@@ -165,7 +165,7 @@ void gridpos_poly(ArrayOfGridPosPoly& gp,
       
       // Calculate w for each interpolation point. In the linear case
       // these are just the fractional distances to each interpolation
-      // point. The w here correspond exactly to the terms in fron of
+      // point. The w here correspond exactly to the terms in front of
       // the yi in Numerical Recipes, 2nd edition, section 3.1,
       // eq. 3.1.1.
       for (Index i=0; i<m; ++i)
