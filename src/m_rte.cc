@@ -1486,6 +1486,22 @@ void yCalc(
   // The calculations
   //---------------------------------------------------------------------------
 
+  // We have to make a local copy of the Workspace and the agendas because
+  // only non-reference types can be declared firstprivate in OpenMP
+  Workspace l_ws (ws);
+  Agenda l_jacobian_agenda (jacobian_agenda);
+  Agenda l_iy_clearsky_agenda (iy_clearsky_agenda);
+
+/*#pragma omp parallel for                                           \
+  if(!arts_omp_in_parallel() && nmblock>1 && nmblock>=nza)        \
+    default(none)                                                   \
+    firstprivate(l_ws, l_jacobian_agenda, l_iy_clearsky_agenda)     \
+    shared(j_analytical_do, sensor_los, mblock_za_grid, mblock_aa_grid, \
+           vmr_field, t_field, lon_grid, lat_grid, p_grid, f_grid,      \
+           sensor_pos, joker, naa)*/
+#pragma omp parallel for                                          \
+  if(!arts_omp_in_parallel() && nmblock>1 && nmblock>=nza)        \
+  firstprivate(l_ws, l_jacobian_agenda, l_iy_clearsky_agenda)
   for( Index imblock=0; imblock<nmblock; imblock++ )
     {
       // Calculate monochromatic pencil beam data for 1 measurement block
@@ -1495,11 +1511,11 @@ void yCalc(
       Index           iy_error_type;
       ArrayOfMatrix   diyb_dx;      
       //
-      iyb_calc( ws, iyb, iyb_error, iy_error_type, iyb_aux, diyb_dx, 
+      iyb_calc( l_ws, iyb, iyb_error, iy_error_type, iyb_aux, diyb_dx, 
                 imblock, atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
                 vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos, 
                 sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
-                iy_clearsky_agenda, iy_aux_do, y_unit, j_analytical_do, 
+                l_iy_clearsky_agenda, iy_aux_do, y_unit, j_analytical_do, 
                 jacobian_quantities, jacobian_indices );
 
 
@@ -1570,8 +1586,8 @@ void yCalc(
       //
       if( jacobian_do  &&  jacobian_agenda.nelem() > 0 )
         { 
-          jacobian_agendaExecute( ws, jacobian, imblock, iyb, yb, 
-                                                             jacobian_agenda ); 
+          jacobian_agendaExecute( l_ws, jacobian, imblock, iyb, yb, 
+                                                             l_jacobian_agenda ); 
         }
     }  // End mblock loop
 }
