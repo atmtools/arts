@@ -1,5 +1,13 @@
 2010-04-30  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-38
+
+	* src/file.cc (expand_path):
+
+	gcc is scared by my if logic... use parenthesis to unscare him.
+
+2010-04-30  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-37
 
 	* src/file.{cc,h} (expand_path):

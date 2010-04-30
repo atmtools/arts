@@ -267,8 +267,8 @@ void read_text_from_file(ArrayOfString& text, const String& name)
  */
 String expand_path(const String& path)
 {
-  if (path.nelem() == 1 && path[0] == '~'
-      || path.nelem() > 1 && path[0] == '~' && path[1] == '/')
+  if ((path.nelem() == 1 && path[0] == '~')
+      || (path.nelem() > 1 && path[0] == '~' && path[1] == '/'))
   {
     return String(getenv ("HOME")) + String(path, 1);
   }
