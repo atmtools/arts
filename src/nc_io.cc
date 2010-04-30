@@ -106,13 +106,15 @@ template<typename T> void
 nc_read_from_file (const String& filename,
                          T&      type)
 {
-  out2 << "  Reading " << filename << '\n';
+  String efilename = expand_path(filename);
+  
+  out2 << "  Reading " << efilename << '\n';
 
   int ncid;
-  if (nc_open (filename.c_str(), NC_NOWRITE, &ncid))
+  if (nc_open (efilename.c_str(), NC_NOWRITE, &ncid))
     {
       ostringstream os;
-      os << "Error reading file: " << filename << endl;
+      os << "Error reading file: " << efilename << endl;
       throw runtime_error (os.str());
     }
 
@@ -126,13 +128,15 @@ template<typename T> void
 nc_write_to_file (const String&  filename,
                   const      T&  type)
 {
-  out2 << "  Writing " << filename << '\n';
+  String efilename = expand_path(filename);
+  
+  out2 << "  Writing " << efilename << '\n';
 
   int ncid;
-  if (nc_create (filename.c_str(), NC_CLOBBER | NC_FORMAT_NETCDF4, &ncid))
+  if (nc_create (efilename.c_str(), NC_CLOBBER | NC_FORMAT_NETCDF4, &ncid))
     {
       ostringstream os;
-      os << "Error writing file: " << filename << endl;
+      os << "Error writing file: " << efilename << endl;
       throw runtime_error (os.str());
     }
 

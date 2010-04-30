@@ -847,11 +847,13 @@ template<typename T> void
 xml_read_from_file (const String& filename,
                     T&            type)
 {
+  String efilename = expand_path(filename);
+  
   istream* ifs;
 
-  out2 << "  Reading " << filename << '\n';
+  out2 << "  Reading " << efilename << '\n';
 
-  String xml_file = filename;
+  String xml_file = efilename;
   bool found_file;
 
   found_file = find_file (xml_file, ".xml");
@@ -897,7 +899,7 @@ xml_read_from_file (const String& filename,
         }
       else
         {
-          String bfilename = filename + ".bin";
+          String bfilename = efilename + ".bin";
           bifstream bifs (bfilename.c_str ());
           xml_read_from_stream (*ifs, type, &bifs);
         }
@@ -907,7 +909,7 @@ xml_read_from_file (const String& filename,
     {
       delete ifs;
       ostringstream os;
-      os << "Error reading file: " << filename << '\n'
+      os << "Error reading file: " << efilename << '\n'
          << e.what ();
       throw runtime_error (os.str ());
     }
@@ -922,11 +924,13 @@ xml_read_arts_catalogue_from_file (const String&      filename,
                                    const Numeric&     fmin,
                                    const Numeric&     fmax)
 {
+  String efilename = expand_path(filename);
+  
   istream* ifs;
 
-  out2 << "  Reading " << filename << '\n';
+  out2 << "  Reading " << efilename << '\n';
 
-  String xml_file = filename;
+  String xml_file = efilename;
   bool found_file;
 
   found_file = find_file (xml_file, ".xml");
@@ -972,7 +976,7 @@ xml_read_arts_catalogue_from_file (const String&      filename,
         }
       else
         {
-          String bfilename = filename + ".bin";
+          String bfilename = efilename + ".bin";
           bifstream bifs (bfilename.c_str ());
           xml_read_from_stream (*ifs, type, fmin, fmax, &bifs);
         }
@@ -982,7 +986,7 @@ xml_read_arts_catalogue_from_file (const String&      filename,
     {
       delete ifs;
       ostringstream os;
-      os << "Error reading file: " << filename << '\n'
+      os << "Error reading file: " << efilename << '\n'
          << e.what ();
       throw runtime_error (os.str ());
     }
@@ -1005,14 +1009,16 @@ xml_write_to_file (const String&  filename,
                    const T&       type,
                    const FileType ftype)
 {
+  String efilename = expand_path(filename);
+  
   ostream* ofs;
  
-  out2 << "  Writing " << filename << '\n';
+  out2 << "  Writing " << efilename << '\n';
   if (ftype == FILE_TYPE_ZIPPED_ASCII)
 #ifdef ENABLE_ZLIB
     {
       ofs = new ogzstream();
-      xml_open_output_file(*(ogzstream *)ofs, filename);
+      xml_open_output_file(*(ogzstream *)ofs, efilename);
     }
 #else
     {
@@ -1024,7 +1030,7 @@ xml_write_to_file (const String&  filename,
   else
     {
       ofs = new ofstream();
-      xml_open_output_file(*(ofstream *)ofs, filename);
+      xml_open_output_file(*(ofstream *)ofs, efilename);
     }
 
 
@@ -1037,7 +1043,7 @@ xml_write_to_file (const String&  filename,
         }
       else
         {
-          String bfilename = filename + ".bin";
+          String bfilename = efilename + ".bin";
           bofstream bofs (bfilename.c_str ());
           xml_write_to_stream (*ofs, type, &bofs);
         }
@@ -1048,7 +1054,7 @@ xml_write_to_file (const String&  filename,
     {
       delete ofs;
       ostringstream os;
-      os << "Error writing file: " << filename << '\n'
+      os << "Error writing file: " << efilename << '\n'
          << e.what ();
       throw runtime_error (os.str ());
     }

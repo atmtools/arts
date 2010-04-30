@@ -74,7 +74,6 @@ void filename_ascii(
 }
 
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   Functions to open and read ASCII files
 ////////////////////////////////////////////////////////////////////////////
@@ -91,6 +90,8 @@ void filename_ascii(
                       directory is read only. */
 void open_output_file(ofstream& file, const String& name)
 {
+  String ename = expand_path(name);
+
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted, failbit means
   // that the last operation has failed, but the stream is still
@@ -100,7 +101,7 @@ void open_output_file(ofstream& file, const String& name)
                   ios::failbit);
   
   // c_str explicitly converts to c String.
-  file.open(name.c_str() );
+  file.open(ename.c_str() );
 
   // See if the file is ok.
   // FIXME: This should not be necessary anymore in the future, when
@@ -110,7 +111,7 @@ void open_output_file(ofstream& file, const String& name)
   if (!file)
     {
       ostringstream os;
-      os << "Cannot open output file: " << name << '\n'
+      os << "Cannot open output file: " << ename << '\n'
          << "Maybe you don't have write access "
          << "to the directory or the file?";
       throw runtime_error(os.str());
@@ -132,7 +133,7 @@ void cleanup_output_file(ofstream& file, const String& name)
   {
     streampos fpos = file.tellp();
     file.close();
-    if (!fpos) remove(name.c_str());
+    if (!fpos) unlink(expand_path(name).c_str());
   } 
 }
 #else
@@ -152,6 +153,8 @@ void cleanup_output_file(ofstream&, const String&) {}
    @exception ios_base::failure Somehow the file cannot be opened. */
 void open_input_file(ifstream& file, const String& name)
 {
+  String ename = expand_path(name);
+  
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you
@@ -159,7 +162,7 @@ void open_input_file(ifstream& file, const String& name)
   file.exceptions(ios::badbit);
 
   // c_str explicitly converts to c String.
-  file.open(name.c_str() );
+  file.open(ename.c_str() );
 
   // See if the file is ok.
   // FIXME: This should not be necessary anymore in the future, when
@@ -167,7 +170,7 @@ void open_input_file(ifstream& file, const String& name)
   if (!file)
     {
       ostringstream os;
-      os << "Cannot open input file: " << name << '\n'
+      os << "Cannot open input file: " << ename << '\n'
          << "Maybe the file does not exist?";
       throw runtime_error(os.str());
     }
@@ -251,6 +254,29 @@ void read_text_from_file(ArrayOfString& text, const String& name)
     }
 }
 
+//// expand_path ///////////////////////////////////////////////////////////
+/*!
+ Expands the ~ to home directory location in given path.
+ 
+ \param[in] path  String with path
+ 
+ \return Expanded path.
+ 
+ \author Oliver Lemke              
+ \date   2010-04-30
+ */
+String expand_path(const String& path)
+{
+  if (path.nelem() == 1 && path[0] == '~'
+      || path.nelem() > 1 && path[0] == '~' && path[1] == '/')
+  {
+    return String(getenv ("HOME")) + String(path, 1);
+  }
+  else
+  {
+    return path;
+  }
+}
 
 //// replace_all //////////////////////////////////////////////////////////
 /**

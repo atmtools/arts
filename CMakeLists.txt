@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6.3)
 
 project (ARTS)
-set (VERSION "1.14.35")
+set (VERSION "1.14.37")
 
 ENABLE_TESTING()
 
@@ -64,7 +64,7 @@ check_type_size("float"  SIZEOF_FLOAT)
 check_type_size("double" SIZEOF_DOUBLE)
 
 ########### Check functions ##########
-check_function_exists(remove HAVE_REMOVE)
+check_function_exists(unlink HAVE_REMOVE)
 
 ########### Enable timer support, if we have all ##########
 ########### necessary header files               ##########
