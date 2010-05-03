@@ -22,6 +22,7 @@
    \date   2001-09-15
 */
 
+#include <cstring>
 #include "matpackI.h"
 #include "exceptions.h"
 

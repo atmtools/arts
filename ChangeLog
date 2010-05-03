@@ -1,5 +1,11 @@
 2010-05-03  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-41
+
+	* src/matpackI.cc: Include cstring for memcpy.
+
+2010-05-03  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-40
 
 	* config.h.cmake: Removed spurious quotes.
