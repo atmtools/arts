@@ -1,3 +1,29 @@
+2010-05-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-39
+
+	* src/matpack*.h, src/workspace_ng.h:
+
+	Make destructors non-virtual if OpenMP is enabled and gcc < 4.3.
+	Workaround for gcc bug where virtual destructors are not called for
+	variable defined as firstprivate in parallel regions.
+
+	http://gcc.gnu.org/bugzilla/show_bug.cgi?id=36308
+
+	Non-virtual destructor itself can lead to memory leaks but are safe in
+	these cases because we don't allocate memory in any superclass.
+
+	* configure.in, CMakeLists.txt:
+
+	Set CXX_VIRTUAL_WORKAROUND to 'virtual' or empty for gcc < 4.3.
+
+	* config.h.cmake: Add code to handle CXX_VIRTUAL_WORKAROUND.
+
+	* src/matpackI.{h,cc}:
+
+	Optimize Iterator1D copy() function. If target and source stride is 1,
+	use memcpy instead of a loop for copying.
+
 2010-04-30  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-38

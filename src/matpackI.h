@@ -118,6 +118,9 @@ class Joker {
 // Declare existence of the global joker object:
 extern Joker joker;
 
+// Declare the existence of class ConstMatrixView:
+class ConstIterator1D;
+
 // Declare the existence of class VectorView:
 class VectorView;
 
@@ -234,6 +237,9 @@ public:
   bool operator!=(const Iterator1D& other) const
     { if (mx != other.mx) return true; else return false; }
 
+  friend void copy(ConstIterator1D origin,
+                   const ConstIterator1D& end,
+                   Iterator1D target);
 
 private:
   /** Current position. */
@@ -270,6 +276,9 @@ public:
   bool operator!=(const ConstIterator1D& other) const
     { if (mx != other.mx) return true; else return false; }
 
+  friend void copy(ConstIterator1D origin,
+                   const ConstIterator1D& end,
+                   Iterator1D target);
 private:
   /** Current position. */
   const Numeric *mx;
@@ -318,7 +327,7 @@ public:
   operator ConstMatrixView() const;
 
   //! Destructor
-  virtual ~ConstVectorView() {};
+  ~ConstVectorView() {};
 
   // Friends:
   friend class VectorView;
@@ -421,7 +430,7 @@ public:
   Numeric *get_c_array();
 
   //! Destructor
-  virtual ~VectorView() {};
+  CXX_VIRTUAL_WORKAROUND ~VectorView() {};
 
   // Friends:
   friend class ConstIterator2D;
@@ -562,7 +571,7 @@ public:
   void resize(Index n);
 
   // Destructor:
-  virtual ~Vector();
+  ~Vector();
 };
 
 // Declare class Matrix:
@@ -613,7 +622,7 @@ public:
   ConstIterator2D end() const;
 
   //! Destructor
-  virtual ~ConstMatrixView() {};
+  CXX_VIRTUAL_WORKAROUND ~ConstMatrixView() {};
 
   // Friends:
   friend class MatrixView;
@@ -725,7 +734,7 @@ public:
   Numeric *get_c_array();
 
   //! Destructor
-  virtual ~MatrixView() {};
+  CXX_VIRTUAL_WORKAROUND ~MatrixView() {};
 
   // Friends:
   friend class VectorView;
@@ -773,7 +782,7 @@ public:
   void resize(Index r, Index c);
 
   // Destructor:
-  virtual ~Matrix();
+  CXX_VIRTUAL_WORKAROUND ~Matrix();
 
   Numeric *get_raw_data() { return mdata; };
 };

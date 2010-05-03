@@ -188,7 +188,7 @@ public:
   ConstIterator3D end() const;
   
   //! Destructor
-  virtual ~ConstTensor3View() {};
+  CXX_VIRTUAL_WORKAROUND ~ConstTensor3View() {};
 
   // Friends:
   friend class Tensor3View;
@@ -308,7 +308,7 @@ public:
   Tensor3View& operator-=(const ConstTensor3View& x);
 
   //! Destructor
-  virtual ~Tensor3View() {};
+  CXX_VIRTUAL_WORKAROUND ~Tensor3View() {};
 
   // Friends:
   friend class Iterator4D;
@@ -354,7 +354,7 @@ public:
   void resize(Index p, Index r, Index c);
 
   // Destructor:
-  virtual ~Tensor3();
+  CXX_VIRTUAL_WORKAROUND ~Tensor3();
 };
 
 

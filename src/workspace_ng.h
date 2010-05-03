@@ -61,7 +61,7 @@ public:
 
   Workspace ();
   Workspace (const Workspace& workspace);
-  virtual ~Workspace ();
+  CXX_VIRTUAL_WORKAROUND ~Workspace ();
 
   static void  define_wsv_data();
   static void  define_wsv_map();

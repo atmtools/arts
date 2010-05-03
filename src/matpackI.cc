@@ -593,14 +593,19 @@ void copy(ConstIterator1D origin,
                  const ConstIterator1D& end,
                  Iterator1D target)
 {
-  for ( ; origin!=end ; ++origin,++target )
-    *target = *origin;
+  if (origin.mstride == 1 && target.mstride == 1)
+    memcpy((void *)target.mx,
+           (void *)origin.mx,
+           sizeof(Numeric) * (end.mx - origin.mx));
+  else
+    for ( ; origin!=end ; ++origin,++target )
+      *target = *origin;
 }
 
 /** Copy a scalar to all elements. */
 void copy(Numeric x,
-                 Iterator1D target,
-                 const Iterator1D& end)
+          Iterator1D target,
+          const Iterator1D& end)
 {
   for ( ; target!=end ; ++target )
     *target = x;
@@ -707,7 +712,6 @@ Vector::Vector(const Vector& v) :
 */
 Vector& Vector::operator=(const Vector& v)
 {
-  //  resize( v.mrange.mextent ); 
   resize( v.nelem() ); 
   copy( v.begin(), v.end(), begin() );
   return *this;

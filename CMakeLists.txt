@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6.3)
 
 project (ARTS)
-set (VERSION "1.14.38")
+set (VERSION "1.14.39")
 
 ENABLE_TESTING()
 
@@ -139,11 +139,29 @@ endif (ENABLE_DISORT AND CMAKE_COMPILER_IS_GNUCXX AND UNIX)
 string (TOUPPER ${CMAKE_BUILD_TYPE} MY_BUILD_TYPE)
 set (COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${MY_BUILD_TYPE}}")
 
+set (CXX_VIRTUAL_WORKAROUND "virtual")
 if (CMAKE_COMPILER_IS_INTELCXX)
   set (COMPILER "Intel C++")
 else (CMAKE_COMPILER_IS_INTELCXX)
   if (CMAKE_COMPILER_IS_GNUCXX)
     set (COMPILER "GNU C++")
+    # get the gcc version
+    exec_program(${CMAKE_C_COMPILER} ARGS --version OUTPUT_VARIABLE _gcc_version_info)
+
+    string (REGEX MATCH " [34]\\.[0-9]\\.[0-9]" _gcc_version "${_gcc_version_info}")
+
+    # gcc on mac just reports: "gcc (GCC) 3.3 20030304 ..." without the patch level, handle this here:
+    if (NOT _gcc_version)
+      string (REGEX REPLACE ".*\\(GCC\\).* ([34]\\.[0-9]) .*" "\\1.0" _gcc_version "${_gcc_version_info}")
+    endif (NOT _gcc_version)
+    string (REGEX REPLACE "([34])\\.[0-9].*" "\\1" _gcc_version_major "${_gcc_version}")
+    string (REGEX REPLACE "[34]\\.([0-9]).*" "\\1" _gcc_version_minor "${_gcc_version}")
+
+    # Workaround for OpenMP bug in gcc < 4.3, see ChangeLog for arts-1-14-39
+    if (_gcc_version_major LESS 4 OR
+      (_gcc_version_major EQUAL 4 AND _gcc_version_minor LESS 3))
+      set (CXX_VIRTUAL_WORKAROUND "")
+    endif ()
   else (CMAKE_COMPILER_IS_GNUCXX)
     set (COMPILER "unknown")
   endif (CMAKE_COMPILER_IS_GNUCXX)

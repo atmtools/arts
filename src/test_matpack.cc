@@ -766,6 +766,15 @@ void test39 ()
 
 }
 
+void test40()
+{
+  Vector v(100);
+  
+  v = 5;
+  
+  cout << v << endl;
+}
+
 int main()
 {
 //   test1();
@@ -807,7 +816,8 @@ int main()
 //  Index i = 10000000;
 //  test37(i);
 //  test38();
-  test39();
+//  test39();
+  test40();
 
   return 0;
 }

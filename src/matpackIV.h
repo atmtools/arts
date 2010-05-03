@@ -198,7 +198,7 @@ public:
   ConstIterator4D end()   const;
 
   //! Destructor
-  virtual ~ConstTensor4View() {};
+  CXX_VIRTUAL_WORKAROUND ~ConstTensor4View() {};
 
   // Friends:
   friend class Tensor4View;
@@ -339,7 +339,7 @@ public:
   Tensor4View& operator-=(const ConstTensor4View& x);
 
   //! Destructor
-  virtual ~Tensor4View() {};
+  CXX_VIRTUAL_WORKAROUND ~Tensor4View() {};
 
   // Friends:
   // friend class VectorView;
@@ -389,7 +389,7 @@ public:
   void resize(Index b, Index p, Index r, Index c);
 
   // Destructor:
-  virtual ~Tensor4();
+  CXX_VIRTUAL_WORKAROUND ~Tensor4();
 };
 
 
