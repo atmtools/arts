@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.14.41)
+AM_INIT_AUTOMAKE(arts,1.14.42)
 
 
 dnl Put the ACLOCAL flags in the Makefile
@@ -340,8 +340,6 @@ if test x$ac_docgen = xyes; then
 
 fi
 
-AC_DEFINE_UNQUOTED(CXX_VIRTUAL_WORKAROUND, [virtual], Define or undefine virtual for OpenMP workaround)
-
 #
 # Set warning flags
 #
@@ -371,12 +369,6 @@ case x$ax_cv_cxx_compiler_vendor in
       if test x$GCC_MAJOR = x3 -o x$GCC_MAJOR = x4; then
         WARNINGCFLAGS="$WARNINGCFLAGS -Wshadow"
       fi
-    fi
-
-    if test x"$ax_openmp" = xyes; then
-        if test x$GCC_MAJOR = x3 -o $GCC_MAJOR -eq 4 -a $GCC_MINOR -lt 3; then
-            AC_DEFINE_UNQUOTED(CXX_VIRTUAL_WORKAROUND, [], Define or undefine virtual for OpenMP workaround)
-        fi
     fi
 
     #

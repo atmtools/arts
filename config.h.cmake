@@ -6,16 +6,6 @@
 /* Compiler */
 #cmakedefine COMPILER "${COMPILER}"
 
-/* OpenMP bug workaround */
-#ifdef _OPENMP
-#cmakedefine CXX_VIRTUAL_WORKAROUND ${CXX_VIRTUAL_WORKAROUND}
-#ifndef CXX_VIRTUAL_WORKAROUND
-#define CXX_VIRTUAL_WORKAROUND
-#endif
-#else
-#define CXX_VIRTUAL_WORKAROUND virtual
-#endif
-
 /* Threadprivate support */
 #cmakedefine THREADPRIVATE_SUPPORTED
 

@@ -398,7 +398,7 @@ public:
   ConstIterator6D end() const;
 
   // Destructor:
-  CXX_VIRTUAL_WORKAROUND ~ConstTensor6View() {};
+  virtual ~ConstTensor6View() {};
   
   // Friends:
   friend class ConstIterator7D;
@@ -903,7 +903,7 @@ public:
   Tensor6View& operator-=(const ConstTensor6View& x);
 
   // Destructor:
-  CXX_VIRTUAL_WORKAROUND ~Tensor6View() {};
+  virtual ~Tensor6View() {};
   
   // Friends:
   friend class Iterator7D;
@@ -954,7 +954,7 @@ public:
               Index        p, Index        r, Index        c);
 
   // Destructor:
-  CXX_VIRTUAL_WORKAROUND ~Tensor6();
+  virtual ~Tensor6();
 };
 
 

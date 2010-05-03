@@ -1,0 +1,11 @@
+
+* gcc < 4.3 and OpenMP memory leak
+
+The OpenMP implementation in gcc before version 4.3 fails to call
+virtual destructors of variables declared as firstprivate. This leads
+to a small memory leak in those configurations.
+
+http://gcc.gnu.org/bugzilla/show_bug.cgi?id=36308
+
+We recommend to use gcc 4.4 or later for ARTS.
+

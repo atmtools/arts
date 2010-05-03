@@ -327,7 +327,7 @@ public:
   operator ConstMatrixView() const;
 
   //! Destructor
-  ~ConstVectorView() {};
+  virtual ~ConstVectorView() {};
 
   // Friends:
   friend class VectorView;
@@ -430,7 +430,7 @@ public:
   Numeric *get_c_array();
 
   //! Destructor
-  CXX_VIRTUAL_WORKAROUND ~VectorView() {};
+  virtual ~VectorView() {};
 
   // Friends:
   friend class ConstIterator2D;
@@ -571,7 +571,7 @@ public:
   void resize(Index n);
 
   // Destructor:
-  ~Vector();
+  virtual ~Vector();
 };
 
 // Declare class Matrix:
@@ -622,7 +622,7 @@ public:
   ConstIterator2D end() const;
 
   //! Destructor
-  CXX_VIRTUAL_WORKAROUND ~ConstMatrixView() {};
+  virtual ~ConstMatrixView() {};
 
   // Friends:
   friend class MatrixView;
@@ -734,7 +734,7 @@ public:
   Numeric *get_c_array();
 
   //! Destructor
-  CXX_VIRTUAL_WORKAROUND ~MatrixView() {};
+  virtual ~MatrixView() {};
 
   // Friends:
   friend class VectorView;
@@ -782,7 +782,7 @@ public:
   void resize(Index r, Index c);
 
   // Destructor:
-  CXX_VIRTUAL_WORKAROUND ~Matrix();
+  virtual ~Matrix();
 
   Numeric *get_raw_data() { return mdata; };
 };

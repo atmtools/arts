@@ -724,7 +724,7 @@ public:
   ConstIterator7D end() const;
   
   //! Destructor.
-  CXX_VIRTUAL_WORKAROUND ~ConstTensor7View() {};
+  virtual ~ConstTensor7View() {};
 
   // Friends:
   friend class Tensor7View;
@@ -1878,7 +1878,7 @@ public:
   Tensor7View& operator-=(const ConstTensor7View& x);
 
   //! Destructor.
-  CXX_VIRTUAL_WORKAROUND ~Tensor7View() {};
+  virtual ~Tensor7View() {};
 
   // Friends:
 
@@ -1933,7 +1933,7 @@ public:
               Index        p, Index        r, Index        c);
 
   // Destructor:
-  CXX_VIRTUAL_WORKAROUND ~Tensor7();
+  virtual ~Tensor7();
 };
 
 

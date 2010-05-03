@@ -230,7 +230,7 @@ public:
   ConstIterator5D end()   const;
 
   //! Destructor
-  CXX_VIRTUAL_WORKAROUND ~ConstTensor5View() {};
+  virtual ~ConstTensor5View() {};
 
   // Friends:
   friend class Tensor5View;
@@ -405,7 +405,7 @@ public:
   Tensor5View& operator-=(const ConstTensor5View& x);
 
   //! Destructor
-  CXX_VIRTUAL_WORKAROUND ~Tensor5View() {};
+  virtual ~Tensor5View() {};
 
   // Friends:
   // friend class VectorView;
@@ -453,7 +453,7 @@ public:
   void resize(Index s, Index b, Index p, Index r, Index c);
 
   // Destructor:
-  CXX_VIRTUAL_WORKAROUND ~Tensor5();
+  virtual ~Tensor5();
 };
 
 
