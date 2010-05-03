@@ -1066,17 +1066,20 @@ bool test_and_merge_two_channels(Vector& fmin,
 
   \author Stefan Buehler
   
-  \param[out] fmin Vector of lower boundaries of instrument channels.
-  \param[out] fmax Vector of upper boundaries of instrument channels.
-  \param[in]  f_backend Nominal backend frequencies.
-  \param[in]  backend_channel_response Channel response, relative to nominal frequencies.
+  \param[out] fmin                      Vector of lower boundaries of instrument channels.
+  \param[out] fmax                      Vector of upper boundaries of instrument channels.
+  \param[in]  f_backend                 Nominal backend frequencies.
+  \param[in]  backend_channel_response  Channel response, relative to nominal frequencies.
+  \param[in]  delta                     Extra margin on both sides of each band. Has a 
+                                        default value of 0.
 */
 void find_effective_channel_boundaries(// Output:
                                        Vector& fmin,
                                        Vector& fmax,
                                        // Input:
                                        const Vector& f_backend,
-                                       const ArrayOfGriddedField1& backend_channel_response)
+                                       const ArrayOfGriddedField1& backend_channel_response,
+                                       const Numeric& delta)
 {
   // How many channels in total:
   const Index n_chan = f_backend.nelem();
@@ -1162,8 +1165,8 @@ void find_effective_channel_boundaries(// Output:
       // well in practice. What I do now is that I add a delta corresponding to a 
       // fraction of the grid spacing. But that is done outside of this function. 
       // So we set delta = 0 here.
-      
-      const Numeric delta = 0; 
+      //
+      // SAB 2010-05-03: Now we pass delta as a parameter (with a default value of 0).
 
       fmin_orig[i] = f_backend[i] + bf_min - delta;
       fmax_orig[i] = f_backend[i] + bf_max + delta;

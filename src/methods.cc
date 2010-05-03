@@ -2104,18 +2104,21 @@ void define_md_data_raw()
          "This method interpolates the fields of raw data (*t_field_raw*,\n"
          "*z_field_raw* and *p_field_raw*) which can be stored on arbitrary\n"
          "grids to the calculation grids (*p_grid*, *lat_grid*, *lon_grid*).\n"
+         "\n"
+         "With parameter interp_order you can control the order of \n"
+         "interpolation. The default is 1 (linear interpolation).\n"
          ),
-        AUTHORS( "Claudia Emde" ),
+        AUTHORS( "Claudia Emde", "Stefan Buehler" ),
         OUT( "t_field", "z_field", "vmr_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
             "vmr_field_raw", "atmosphere_dim" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "interp_order" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Interpolation order." )
         ));
 
   md_data_raw.push_back
@@ -2134,18 +2137,21 @@ void define_md_data_raw()
          "The method deals only with the atmospheric fields, and to create\n"
          "a true 2D or 3D version of a 1D case, a demand is also that the\n"
          "geoid radius is set to be constant for all latitudes/longitudes.\n"
+         "\n"
+         "With parameter interp_order you can control the order of \n"
+         "interpolation. The default is 1 (linear interpolation).\n"
          ),
-        AUTHORS( "Patrick Eriksson", "Claudia Emde" ),
+        AUTHORS( "Patrick Eriksson", "Claudia Emde", "Stefan Buehler" ),
         OUT( "t_field", "z_field", "vmr_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "p_grid", "lat_grid", "lon_grid", "t_field_raw", "z_field_raw", 
             "vmr_field_raw", "atmosphere_dim" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
+        GIN( "interp_order" ),
+        GIN_TYPE( "Index" ),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Interpolation order." )
         ));
 
   md_data_raw.push_back
@@ -2799,7 +2805,7 @@ void define_md_data_raw()
          "*scat_aa_grid*.\n" 
          "\n"
          "For limb simulations it is important to use an optimized zenith \n"
-         "angle grid with a very fine resolution about 90°. Such a grid can be\n"
+         "angle grid with a very fine resolution about 90 degrees. Such a grid can be\n"
          "generated using *doit_za_grid_optCalc*. The filename of an optimized\n"
          "zenith angle grid can be given as a keyword (*za_grid_opt_file*).\n" 
          "If a filename is given, the equidistant grid is used for the\n"
@@ -3227,8 +3233,8 @@ void define_md_data_raw()
          "\n"
          "For limb simulations it makes sense to use different\n"
          "zenith angle grids for the scattering integral part and the RT part,\n"
-         "because the latter part requires a much finer resolution about\n"
-         "90°. Taking an optimized grid for the RT part and an equidistant\n"
+         "because the latter part requires a much finer resolution near\n"
+         "90 degrees. Taking an optimized grid for the RT part and an equidistant\n"
          "grid for the scattering integral part saves very much CPU time.\n"
          "This method uses the equidistant za_grid defined in\n"
          "*doit_angular_gridsSet* and it should always be used for limb\n"

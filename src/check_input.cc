@@ -335,13 +335,14 @@ void chk_if_decreasing(
   ok. If not, it throws a detailed runtime error message. This is
   intended for workspace method input variable checking. 
   
-  \param which_interpolation A string describing the interpolation for
-                             which the grids are intended. 
-  \param old_grid            The original grid.
-  \param new_grid            The new grid.
-  \param extpolfac           The extrapolation fraction. See gridpos function
-                             for details. Has a default value, which is
-                             consistent with gridpos.  
+  \param[in] which_interpolation A string describing the interpolation for
+                                 which the grids are intended. 
+  \param[in] old_grid            The original grid.
+  \param[in] new_grid            The new grid.
+  \param[in] order               Interpolation order. (Default value is 1.)
+  \param[in] extpolfac           The extrapolation fraction. See gridpos function
+                                 for details. Has a default value, which is
+                                 consistent with gridpos.  
   
   \author Stefan Buehler
   \date   2008-11-24 
@@ -349,6 +350,7 @@ void chk_if_decreasing(
 void chk_interpolation_grids(const String&   which_interpolation,
                              ConstVectorView old_grid,
                              ConstVectorView new_grid,
+                             const Index     order,
                              const Numeric&  extpolfac )
 {
   const Index n_old = old_grid.nelem();
@@ -357,10 +359,10 @@ void chk_interpolation_grids(const String&   which_interpolation,
   os << "There is a problem with the grids for the\n"
      << "following interpolation: " << which_interpolation << ".\n";
 
-  // Old grid must have at least 2 elements:
-  if (n_old < 2)
+  // Old grid must have at least order+1 elements:
+  if (n_old < order+1)
     {
-      os << "The original grid must have at least 2 elements.";
+      os << "The original grid must have at least " << order+1 << " elements.";
       throw runtime_error( os.str() );
     }
   
@@ -451,13 +453,14 @@ void chk_interpolation_grids(const String&   which_interpolation,
   It just calles the other more general chk_interpolation_grids
   function for which both grid arguments are vectors.
 
-  \param which_interpolation A string describing the interpolation for
-                             which the grids are intended. 
-  \param old_grid            The original grid.
-  \param new_grid            The new grid.
-  \param extpolfac           The extrapolation fraction. See gridpos function
-                             for details. Has a default value, which is
-                             consistent with gridpos.  
+  \param[in] which_interpolation A string describing the interpolation for
+                                 which the grids are intended. 
+  \param[in] old_grid            The original grid.
+  \param[in] new_grid            The new grid.
+  \param[in] order               Interpolation order. (Default value is 1.)
+  \param[in] extpolfac           The extrapolation fraction. See gridpos function
+                                 for details. Has a default value, which is
+                                 consistent with gridpos.  
   
   \author Stefan Buehler
   \date   2008-11-24 
@@ -465,12 +468,14 @@ void chk_interpolation_grids(const String&   which_interpolation,
 void chk_interpolation_grids(const String&   which_interpolation,
                              ConstVectorView old_grid,
                              const Numeric&  new_grid,
+                             const Index     order,
                              const Numeric&  extpolfac )
 {
   Vector v(1, new_grid);
   chk_interpolation_grids(which_interpolation,
                           old_grid,
                           v,
+                          order,
                           extpolfac );
 }
 

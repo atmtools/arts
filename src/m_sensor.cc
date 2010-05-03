@@ -360,26 +360,27 @@ void f_gridFromSensorAMSU(// WS Output:
   // both signal and image sidebands:
   Vector fmin(2*n_chan), fmax(2*n_chan);
 
-  // Call subfunction to do the actual work of merging overlapping 
-  // channels and identifying channel boundaries:
-  find_effective_channel_boundaries(fmin,
-                                    fmax,
-                                    f_backend_flat,
-                                    backend_channel_response_flat);
-  
-  // Create f_grid_array. This is an array of Numeric, so that we
-  // can use the STL push_back function.
-  ArrayOfNumeric f_grid_array;
-
   // We have to add some additional margin at the band edges, 
   // otherwise the instrument functions are not happy. Define 
   // this in terms of the grid spacing:
   Numeric delta = 1*spacing;
   
+  // Call subfunction to do the actual work of merging overlapping 
+  // channels and identifying channel boundaries:
+  find_effective_channel_boundaries(fmin,
+                                    fmax,
+                                    f_backend_flat,
+                                    backend_channel_response_flat,
+                                    delta);
+  
+  // Create f_grid_array. This is an array of Numeric, so that we
+  // can use the STL push_back function.
+  ArrayOfNumeric f_grid_array;
+
   for (Index i=0; i<fmin.nelem(); ++i)
     {
       // Band width:
-      const Numeric bw = fmax[i] - fmin[i] + 2*delta;
+      const Numeric bw = fmax[i] - fmin[i];
 
       // How many grid intervals do I need?
       const Numeric npf = ceil(bw/spacing);
@@ -392,7 +393,7 @@ void f_gridFromSensorAMSU(// WS Output:
       const Numeric gs = bw/npf;
       
       // Create the grid for this band:
-      Vector grid(fmin[i]-delta, npi, gs);
+      Vector grid(fmin[i], npi, gs);
 
       out3 << "  Band range " << i << ": " << grid << "\n";
 
@@ -421,10 +422,17 @@ void f_gridFromSensorHIRS(// WS Output:
   // Call subfunction to get channel boundaries. Also does input
   // consistency checking for us.
   Vector fmin, fmax;
+
+  // We have to add some additional margin at the band edges, 
+  // otherwise the instrument functions are not happy. Define 
+  // this in terms of the grid spacing:
+  Numeric delta = 1*spacing;
+  
   find_effective_channel_boundaries(fmin,
                                     fmax,
                                     f_backend,
-                                    backend_channel_response);
+                                    backend_channel_response,
+                                    delta);
 
   // Ok, now we just have to create a frequency grid for each of the
   // fmin/fmax ranges.
@@ -433,15 +441,10 @@ void f_gridFromSensorHIRS(// WS Output:
   // can use the STL push_back function.
   ArrayOfNumeric f_grid_array;
 
-  // We have to add some additional margin at the band edges, 
-  // otherwise the instrument functions are not happy. Define 
-  // this in terms of the grid spacing:
-  Numeric delta = 1*spacing;
-  
   for (Index i=0; i<fmin.nelem(); ++i)
     {
       // Band width:
-      const Numeric bw = fmax[i] - fmin[i] + 2*delta;
+      const Numeric bw = fmax[i] - fmin[i];
 
       // How many grid intervals do I need?
       const Numeric npf = ceil(bw/spacing);
@@ -454,7 +457,7 @@ void f_gridFromSensorHIRS(// WS Output:
       const Numeric gs = bw/npf;
 
       // Create the grid for this band:
-      Vector grid(fmin[i]-delta, npi, gs);
+      Vector grid(fmin[i], npi, gs);
 
       out3 << "  Band range " << i << ": " << grid << "\n";
 

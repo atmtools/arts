@@ -53,6 +53,7 @@
 #include "abs_species_tags.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
+#include "interpolation_poly.h"
 #include "xml_io.h"
 
 extern const Index GFIELD3_P_GRID;
@@ -480,16 +481,20 @@ void AtmFieldsCalc(//WS Output:
                    const GriddedField3&        t_field_raw,
                    const GriddedField3&        z_field_raw,
                    const ArrayOfGriddedField3& vmr_field_raw,
-                   const Index&          atmosphere_dim
+                   const Index&          atmosphere_dim,
+                   // WS Generic Input:
+                   const Index& interp_order
                    )
 {
-  const ConstVectorView tfr_p_grid = t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const ConstVectorView tfr_p_grid   = t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
   const ConstVectorView tfr_lat_grid = t_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
   const ConstVectorView tfr_lon_grid = t_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
-  const ConstVectorView zfr_p_grid = z_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  const ConstVectorView zfr_p_grid   = z_field_raw.get_numeric_grid(GFIELD3_P_GRID);
   const ConstVectorView zfr_lat_grid = z_field_raw.get_numeric_grid(GFIELD3_LAT_GRID);
   const ConstVectorView zfr_lon_grid = z_field_raw.get_numeric_grid(GFIELD3_LON_GRID);
 
+  out2 << "  Interpolation order: " << interp_order << "\n";
+  
   // Basic checks of input variables
   //
   // Atmosphere
@@ -497,9 +502,9 @@ void AtmFieldsCalc(//WS Output:
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   
 
-  // Note that we are using the special function p2gridpos below for
+  // Note that we are using the special function p2gridpos_poly below for
   // all pressure interpolations. This does the usual ARTS pressure
-  // interpolation: Linear in log(p). We don't have to take logs here
+  // interpolation in log(p). We don't have to take logs here
   // explicitly, since it is done by p2gridpos.
 
 
@@ -526,7 +531,7 @@ void AtmFieldsCalc(//WS Output:
       vmr_field.resize(vmr_field_raw.nelem(), p_grid.nelem(), 1, 1);
 
       // Gridpositions:
-      ArrayOfGridPos gp_p(p_grid.nelem());
+      ArrayOfGridPosPoly gp_p(p_grid.nelem());
   
       // Interpolate t_field:
       
@@ -534,13 +539,14 @@ void AtmFieldsCalc(//WS Output:
       // error message if not):
       chk_interpolation_grids("Raw temperature to p_grid, 1D case",
                               tfr_p_grid,
-                              p_grid);
+                              p_grid,
+                              interp_order);
  
       // Calculate grid positions:
-      p2gridpos( gp_p, tfr_p_grid, p_grid );
+      p2gridpos_poly( gp_p, tfr_p_grid, p_grid, interp_order );
 
       // Interpolation weights:
-      Matrix itw(p_grid.nelem(), 2);
+      Matrix itw(p_grid.nelem(), interp_order+1);
       // (2 interpolation weights are required for 1D interpolation)
       interpweights( itw, gp_p);
   
@@ -555,10 +561,11 @@ void AtmFieldsCalc(//WS Output:
       // error message if not):
       chk_interpolation_grids("Raw z to p_grid, 1D case",
                               zfr_p_grid,
-                              p_grid);
+                              p_grid,
+                              interp_order);
 
       // Calculate grid positions:
-      p2gridpos( gp_p, zfr_p_grid, p_grid );
+      p2gridpos_poly( gp_p, zfr_p_grid, p_grid, interp_order );
      
       // Interpolation weights:
       interpweights( itw, gp_p );
@@ -587,10 +594,14 @@ void AtmFieldsCalc(//WS Output:
           os << "Raw VMR[" << gas_i << "] to p_grid, 1D case";
           chk_interpolation_grids(os.str(),
                                   vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
-                                  p_grid);
+                                  p_grid,
+                                  interp_order);
 
           // Calculate grid positions:
-          p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), p_grid);
+          p2gridpos_poly(gp_p, 
+                         vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), 
+                         p_grid, 
+                         interp_order);
           
           // Interpolation weights:
           interpweights( itw, gp_p);
@@ -621,8 +632,8 @@ void AtmFieldsCalc(//WS Output:
       
       
       // Gridpositions:
-      ArrayOfGridPos gp_p(p_grid.nelem());
-      ArrayOfGridPos gp_lat(lat_grid.nelem());
+      ArrayOfGridPosPoly gp_p(p_grid.nelem());
+      ArrayOfGridPosPoly gp_lat(lat_grid.nelem());
       
       // Interpolate t_field:
       
@@ -630,18 +641,20 @@ void AtmFieldsCalc(//WS Output:
       // error message if not):
       chk_interpolation_grids("Raw temperature to p_grid, 2D case",
                               tfr_p_grid,
-                              p_grid);
+                              p_grid,
+                              interp_order);
       chk_interpolation_grids("Raw temperature to lat_grid, 2D case",
                               tfr_lat_grid,
-                              lat_grid);
+                              lat_grid,
+                              interp_order);
 
       // Calculate grid positions:
-      p2gridpos( gp_p, tfr_p_grid, p_grid );
-      gridpos( gp_lat, tfr_lat_grid, lat_grid );
+      p2gridpos_poly( gp_p, tfr_p_grid, p_grid, interp_order );
+      gridpos_poly( gp_lat, tfr_lat_grid, lat_grid, interp_order );
             
       // Interpolation weights:
-      Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), 4);
-      // (8 interpolation weights are required for 3D interpolation)
+      Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), (interp_order+1)^2);
+      // (4 interpolation weights are required for example for linear 2D interpolation)
       interpweights( itw, gp_p, gp_lat);
       
       // Interpolate:
@@ -655,14 +668,16 @@ void AtmFieldsCalc(//WS Output:
       // error message if not):
       chk_interpolation_grids("Raw z to p_grid, 2D case",
                               zfr_p_grid,
-                              p_grid);
+                              p_grid,
+                              interp_order);
       chk_interpolation_grids("Raw z to lat_grid, 2D case",
                               zfr_lat_grid,
-                              lat_grid);
+                              lat_grid,
+                              interp_order);
 
       // Calculate grid positions:
-      p2gridpos( gp_p, zfr_p_grid, p_grid );
-      gridpos( gp_lat, zfr_lat_grid, lat_grid );
+      p2gridpos_poly( gp_p, zfr_p_grid, p_grid, interp_order );
+      gridpos_poly( gp_lat, zfr_lat_grid, lat_grid, interp_order );
             
       // Interpolation weights:
       interpweights( itw, gp_p, gp_lat);
@@ -691,16 +706,20 @@ void AtmFieldsCalc(//WS Output:
           os << "Raw VMR[" << gas_i << "] to p_grid, 2D case";
           chk_interpolation_grids(os.str(),
                                   vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
-                                  p_grid);
+                                  p_grid,
+                                  interp_order);
           os.str("");
           os << "Raw VMR[" << gas_i << "] to lat_grid, 2D case";
           chk_interpolation_grids(os.str(),
                                   vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID),
-                                  lat_grid);
+                                  lat_grid,
+                                  interp_order);
 
           // Calculate grid positions:
-          p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), p_grid);
-          gridpos(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), lat_grid);
+          p2gridpos_poly(gp_p, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), 
+                         p_grid, interp_order);
+          gridpos_poly(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), 
+                       lat_grid, interp_order);
                   
           // Interpolation weights:
           interpweights( itw, gp_p, gp_lat);
@@ -714,7 +733,7 @@ void AtmFieldsCalc(//WS Output:
 
   //================================================================
   // atmosphere_dim = 3    
-  else
+  else if(atmosphere_dim == 3)
     {
       if( tfr_lat_grid.nelem() == 1 &&
           tfr_lon_grid.nelem() == 1 )
@@ -731,9 +750,9 @@ void AtmFieldsCalc(//WS Output:
       
       
       // Gridpositions:
-      ArrayOfGridPos gp_p(p_grid.nelem());
-      ArrayOfGridPos gp_lat(lat_grid.nelem());
-      ArrayOfGridPos gp_lon(lon_grid.nelem());
+      ArrayOfGridPosPoly gp_p(p_grid.nelem());
+      ArrayOfGridPosPoly gp_lat(lat_grid.nelem());
+      ArrayOfGridPosPoly gp_lon(lon_grid.nelem());
       
       
       // Interpolate t_field:
@@ -742,22 +761,25 @@ void AtmFieldsCalc(//WS Output:
       // error message if not):
       chk_interpolation_grids("Raw temperature to p_grid, 3D case",
                               tfr_p_grid,
-                              p_grid);
+                              p_grid,
+                              interp_order);
       chk_interpolation_grids("Raw temperature to lat_grid, 3D case",
                               tfr_lat_grid,
-                              lat_grid);
+                              lat_grid,
+                              interp_order);
       chk_interpolation_grids("Raw temperature to lon_grid, 3D case",
                               tfr_lon_grid,
-                              lon_grid);
+                              lon_grid,
+                              interp_order);
 
       // Calculate grid positions:
-      p2gridpos( gp_p, tfr_p_grid, p_grid );
-      gridpos( gp_lat, tfr_lat_grid, lat_grid );
-      gridpos( gp_lon, tfr_lon_grid, lon_grid );
+      p2gridpos_poly( gp_p, tfr_p_grid, p_grid, interp_order );
+      gridpos_poly( gp_lat, tfr_lat_grid, lat_grid, interp_order );
+      gridpos_poly( gp_lon, tfr_lon_grid, lon_grid, interp_order );
       
       // Interpolation weights:
-      Tensor4 itw(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem(), 8);
-      // (8 interpolation weights are required for 3D interpolation)
+      Tensor4 itw(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem(), (interp_order+1)^3);
+      // (8 interpolation weights are required for example for linear 3D interpolation)
       interpweights( itw, gp_p, gp_lat, gp_lon );
       
       // Interpolate:
@@ -770,18 +792,21 @@ void AtmFieldsCalc(//WS Output:
       // error message if not):
       chk_interpolation_grids("Raw z to p_grid, 3D case",
                               zfr_p_grid,
-                              p_grid);
+                              p_grid,
+                              interp_order);
       chk_interpolation_grids("Raw z to lat_grid, 3D case",
                               zfr_lat_grid,
-                              lat_grid);
+                              lat_grid,
+                              interp_order);
       chk_interpolation_grids("Raw z to lon_grid, 3D case",
                               zfr_lon_grid,
-                              lon_grid);
+                              lon_grid,
+                              interp_order);
 
       // Calculate grid positions:
-      p2gridpos( gp_p, zfr_p_grid, p_grid );
-      gridpos( gp_lat, zfr_lat_grid, lat_grid );
-      gridpos( gp_lon, zfr_lon_grid, lon_grid );
+      p2gridpos_poly( gp_p, zfr_p_grid, p_grid, interp_order );
+      gridpos_poly( gp_lat, zfr_lat_grid, lat_grid, interp_order );
+      gridpos_poly( gp_lon, zfr_lon_grid, lon_grid, interp_order );
       
       // Interpolation weights:
       interpweights( itw, gp_p, gp_lat, gp_lon );
@@ -809,22 +834,28 @@ void AtmFieldsCalc(//WS Output:
           os << "Raw VMR[" << gas_i << "] to p_grid, 3D case";
           chk_interpolation_grids(os.str(),
                                   vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID),
-                                  p_grid);
+                                  p_grid,
+                                  interp_order);
           os.str("");
           os << "Raw VMR[" << gas_i << "] to lat_grid, 3D case";
           chk_interpolation_grids(os.str(),
                                   vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID),
-                                  lat_grid);
+                                  lat_grid,
+                                  interp_order);
           os.str("");
           os << "Raw VMR[" << gas_i << "] to lon_grid, 3D case";
           chk_interpolation_grids(os.str(),
                                   vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID),
-                                  lon_grid);
+                                  lon_grid,
+                                  interp_order);
 
           // Calculate grid positions:
-          p2gridpos(gp_p, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), p_grid);
-          gridpos(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), lat_grid);
-          gridpos(gp_lon, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID), lon_grid);
+          p2gridpos_poly(gp_p, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_P_GRID), 
+                         p_grid, interp_order);
+          gridpos_poly(gp_lat, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LAT_GRID), 
+                       lat_grid, interp_order);
+          gridpos_poly(gp_lon, vmr_field_raw[gas_i].get_numeric_grid(GFIELD3_LON_GRID), 
+                       lon_grid, interp_order);
           
           // Interpolation weights:
           interpweights( itw, gp_p, gp_lat, gp_lon );
@@ -834,21 +865,28 @@ void AtmFieldsCalc(//WS Output:
                   itw, vmr_field_raw[gas_i], gp_p, gp_lat, gp_lon);
         }
     }
+  else
+  {
+    // We can never get here, since there was a runtime 
+    // error check for atmosphere_dim at the beginning.
+    assert(false);
+  }
 }
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldsCalcExpand1D(
-            Tensor3&        t_field,
-            Tensor3&        z_field,
-            Tensor4&        vmr_field,
-      const Vector&         p_grid,
-      const Vector&         lat_grid,
-      const Vector&         lon_grid,
+            Tensor3&              t_field,
+            Tensor3&              z_field,
+            Tensor4&              vmr_field,
+      const Vector&               p_grid,
+      const Vector&               lat_grid,
+      const Vector&               lon_grid,
       const GriddedField3&        t_field_raw,
       const GriddedField3&        z_field_raw,
       const ArrayOfGriddedField3& vmr_field_raw,
-      const Index&          atmosphere_dim )
+      const Index&                atmosphere_dim,
+      const Index&                interp_order )
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
@@ -862,7 +900,7 @@ void AtmFieldsCalcExpand1D(
   Tensor3   t_temp, z_temp;
   Tensor4   vmr_temp;
   AtmFieldsCalc( t_temp, z_temp, vmr_temp, p_grid, vempty, vempty, 
-                                  t_field_raw, z_field_raw, vmr_field_raw, 1 );
+                 t_field_raw, z_field_raw, vmr_field_raw, 1, interp_order );
 
   // Move values from the temporary tensors to the return arguments
   const Index   np = p_grid.nelem();

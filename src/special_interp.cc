@@ -62,7 +62,6 @@
 #include <iostream>
 #include <stdexcept>
 #include "check_input.h"
-#include "interpolation.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "special_interp.h"
@@ -890,13 +889,13 @@ void itw2p(
    calculated with this function. The interpolation can then be
    performed as usual.
 
-   \param   gp          Output: Grid position Array.
-   \param   old_pgrid   The original pressure grid.
-   \param   new_pgrid   The new pressure grid.
-   \param   extpolfac   Extrapolation factor. Default value is 0.5,
-                        which means that extrapolation of half of the
-                        last grid distance is allowed.
-                        You don't have to specify this.
+   \param[out]  gp          Output: Grid position Array.
+   \param[in]   old_pgrid   The original pressure grid.
+   \param[in]   new_pgrid   The new pressure grid.
+   \param[in]   extpolfac   Extrapolation factor. Default value is 0.5,
+                            which means that extrapolation of half of the
+                            last grid distance is allowed.
+                            You don't have to specify this.
 
    \author Patrick Eriksson
    \date   2003-01-20
@@ -919,6 +918,39 @@ void p2gridpos( ArrayOfGridPos& gp,
   gridpos( gp, logold, lognew, extpolfac );
 }
 
+//! p2gridpos_poly
+/*!
+ Calculates grid positions for pressure values - higher order interpolation.
+ 
+ This function is similar to p2gridpos, but for higher order interpolation.
+ 
+ \param[out]  gp          Output: Grid position Array.
+ \param[in]   old_pgrid   The original pressure grid.
+ \param[in]   new_pgrid   The new pressure grid.
+ \param[in]   order       Interpolation order (1=linear, 2=quadratic, etc.)
+ \param[in]   extpolfac   Extrapolation factor. Default value is 0.5,
+                          which means that extrapolation of half of the
+                          last grid distance is allowed.
+                          You don't have to specify this.
+ 
+ \author Stefan Buehler
+ \date   2010-05-03
+ */
+void p2gridpos_poly( ArrayOfGridPosPoly& gp,
+                     ConstVectorView old_pgrid,
+                     ConstVectorView new_pgrid,
+                     const Index     order,
+                     const Numeric&  extpolfac )
+{
+  // Local variable to store log of the pressure grids
+  Vector logold( old_pgrid.nelem() );
+  Vector lognew( new_pgrid.nelem() );
+  
+  transform( logold, log, old_pgrid );
+  transform( lognew, log, new_pgrid );
+  
+  gridpos_poly( gp, logold, lognew, order, extpolfac );
+}
 
 
 /*===========================================================================

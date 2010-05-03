@@ -27,6 +27,7 @@
 #define special_interp_h
 
 #include "interpolation.h"
+#include "interpolation_poly.h"
 #include "gridded_fields.h"
 
 
@@ -126,9 +127,16 @@ void itw2p(
 
 void p2gridpos(
              ArrayOfGridPos&   gp,
-      ConstVectorView          old_pgrid,
-      ConstVectorView          new_pgrid,   
-      const Numeric&           extpolfac=0.5 );
+             ConstVectorView   old_pgrid,
+             ConstVectorView   new_pgrid,   
+             const Numeric&    extpolfac=0.5 );
+
+void p2gridpos_poly(
+               ArrayOfGridPosPoly&   gp,
+               ConstVectorView       old_pgrid,
+               ConstVectorView       new_pgrid,   
+               const Index           order,
+               const Numeric&        extpolfac=0.5 );
 
 void z_at_lat_2d(
              VectorView   z,
