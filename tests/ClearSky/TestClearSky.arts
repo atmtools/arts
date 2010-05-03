@@ -129,7 +129,7 @@ jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
 
 jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, p_grid, lat_grid, lon_grid, 
-    "off", calcmethod, 0.1 )
+    "off", calcmethod, 1 )
 
 nrowsGet( nrows, sensor_pos )
 VectorNLinSpace( sensor_time, nrows, 0, 1 )

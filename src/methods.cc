@@ -4703,9 +4703,13 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_y_agenda", "jacobian_quantities", "jacobian_indices", 
-            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species", 
-            "f_grid", "vmr_field", "t_field", "sensor_los", "y" ),
+        IN( "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
+            "lon_grid","t_field", "vmr_field", "abs_species", 
+            "cloudbox_on", "stokes_dim", 
+            "f_grid", "sensor_pos", "sensor_los", "mblock_za_grid", 
+            "mblock_aa_grid", "antenna_dim", "sensor_response",
+            "iy_clearsky_agenda", "y_unit", "jacobian_quantities",
+            "jacobian_indices" ),
         GIN( "species" ),
         GIN_TYPE(    "String" ),
         GIN_DEFAULT( NODEF ),
@@ -4746,11 +4750,12 @@ void define_md_data_raw()
       ( NAME( "jacobianCalcPointingZaIybrecalc" ),
         DESCRIPTION
         (
-         "Calculates zenith angle pointing deviation jacobians by recalulation\n"
-         "of *iy*.\n"
+         "Calculates zenith angle pointing deviation jacobians by\n"
+         "recalulation of *iy*.\n"
          "\n"
-         "This function is added to *jacobian_agenda* by jacobianAddPointingZa\n"
-         "and should normally not be called by the user.\n"
+         "This function is added to *jacobian_agenda* by\n"
+         "jacobianAddPointingZa and should normally not be\n"
+         "called by the user.\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "jacobian" ),
@@ -4758,10 +4763,10 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
-            "lon_grid","t_field", "vmr_field", 
-            "cloudbox_on", "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
-            "mblock_za_grid", "mblock_aa_grid", "antenna_dim", "sensor_response",
-            "sensor_time", "iy_clearsky_agenda", "y_unit", "jacobian_quantities",
+            "lon_grid","t_field", "vmr_field", "cloudbox_on", "stokes_dim", 
+            "f_grid", "sensor_pos", "sensor_los", "mblock_za_grid", 
+            "mblock_aa_grid", "antenna_dim", "sensor_response", "sensor_time", 
+            "iy_clearsky_agenda", "y_unit", "jacobian_quantities",
             "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
@@ -4811,9 +4816,12 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "jacobian_y_agenda", "jacobian_quantities", "jacobian_indices", 
-            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "f_grid",
-            "vmr_field", "t_field", "sensor_los", "y" ),
+        IN( "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
+            "lon_grid","t_field", "vmr_field", "cloudbox_on", "stokes_dim", 
+            "f_grid", "sensor_pos", "sensor_los", "mblock_za_grid", 
+            "mblock_aa_grid", "antenna_dim", "sensor_response",
+            "iy_clearsky_agenda", "y_unit", "jacobian_quantities",
+            "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

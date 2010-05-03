@@ -1,3 +1,15 @@
+2010-05-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-44
+
+	* src/m_jacobian.cc (jacobianCalcAbsSpecies): The method was not
+	adopted to new way to handle perturbation jacobians. 
+	(This was properly flagged by an error, but more likely discovered
+	by problems in setting up jacobian_agenda.)
+
+	(jacobianCalcTemperature): As above. Runs. But deviates from the
+	analytical results (could be a bug in the analytical expressions).
+
 2010-05-03  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-43

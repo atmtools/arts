@@ -265,25 +265,33 @@ void jacobianAddAbsSpecies(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcAbsSpecies(
-        Workspace&                 ws,
-        Matrix&                    J,
-  const Agenda&                    jacobian_y_agenda,
-  const ArrayOfRetrievalQuantity&  jq,
-  const ArrayOfArrayOfIndex&       jacobian_indices,
-  const Index&                     atmosphere_dim,
-  const Vector&                    p_grid,
-  const Vector&                    lat_grid,
-  const Vector&                    lon_grid,
-  const ArrayOfArrayOfSpeciesTag&  abs_species,
-  const Vector&                    f_grid,
-  const Tensor4&                   vmr_field,
-  const Tensor3&                   t_field,
-  const Matrix&                    sensor_los,
-  const Vector&                    y,
-  const String&                    species )
+        Workspace&                  ws,
+        Matrix&                     jacobian,
+  const Index&                      imblock,
+  const Vector&                     iyb _U_,
+  const Vector&                     yb,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const ArrayOfArrayOfSpeciesTag&   abs_species,
+  const Index&                      cloudbox_on,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Matrix&                     sensor_pos,
+  const Matrix&                     sensor_los,
+  const Vector&                     mblock_za_grid,
+  const Vector&                     mblock_aa_grid,
+  const Index&                      antenna_dim,
+  const Sparse&                     sensor_response,
+  const Agenda&                     iy_clearsky_agenda,
+  const String&                     y_unit,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&        jacobian_indices,
+  const String&                     species )
 {
-  throw runtime_error( "This method needs to be updated." );
-
   // Set some useful variables. 
   RetrievalQuantity rq;
   ArrayOfIndex      ji;
@@ -292,12 +300,13 @@ void jacobianCalcAbsSpecies(
   // Find the retrieval quantity related to this method, i.e. Abs. species -
   // species. This works since the combined MainTag and Subtag is individual.
   bool found = false;
-  for( Index n=0; n<jq.nelem() && !found; n++ )
+  for( Index n=0; n<jacobian_quantities.nelem() && !found; n++ )
     {
-      if( jq[n].MainTag() == ABSSPECIES_MAINTAG  &&  jq[n].Subtag() == species )
+      if( jacobian_quantities[n].MainTag() == ABSSPECIES_MAINTAG  &&  
+          jacobian_quantities[n].Subtag()  == species )
         {
           found = true;
-          rq    = jq[n];
+          rq    = jacobian_quantities[n];
           ji    = jacobian_indices[n];
         }
     }
@@ -313,8 +322,7 @@ void jacobianCalcAbsSpecies(
     {
       ostringstream os;
       os << "This WSM handles only perturbation calculations.\n"
-         << "Are you using the method manually? This method should normally be\n"
-         << "used through *jacobianCalc*.";
+         << "Are you using the method manually?";
       throw runtime_error(os.str());
     }
   
@@ -351,23 +359,26 @@ void jacobianCalcAbsSpecies(
         }
     }
 
-  // Give verbose output
-  out2 << "  Calculating retrieval quantity " << rq << "\n";
-  
-  // Find VMR field for these species. 
+  // Find VMR field for this species. 
   ArrayOfSpeciesTag tags;
   array_species_tag_from_string( tags, species );
   Index si = chk_contains( "species", abs_species, tags );
 
   // Variables for vmr field perturbation unit conversion
-  Tensor3 nd_field( t_field.npages(), t_field.nrows(), t_field.ncols(), 1.0 );
+  Tensor3 nd_field(0,0,0);
   if( rq.Mode()=="nd" )
-    calc_nd_field( nd_field, p_grid, t_field );
-  
-  // Vector for perturbed measurement vector
-  Vector yp;
+    {
+      nd_field.resize( t_field.npages(), t_field.nrows(), t_field.ncols() );
+      calc_nd_field( nd_field, p_grid, t_field );
+    }
+
 
   // Loop through the retrieval grid and calculate perturbation effect
+  //
+  const Index    n1y = sensor_response.nrows();
+        Vector   dy( n1y ); 
+  const Range    rowind = get_rowindex_for_mblock( sensor_response, imblock ); 
+  //
   for( Index lon_it=0; lon_it<j_lon; lon_it++ )
     {
       for( Index lat_it=0; lat_it<j_lat; lat_it++ )
@@ -381,14 +392,14 @@ void jacobianCalcAbsSpecies(
               Range lat_range = Range(0,0);
               Range lon_range = Range(0,0);
 
-              get_perturbation_range( p_range, p_it, j_p);
+              get_perturbation_range( p_range, p_it, j_p );
 
               if( atmosphere_dim>=2 )
                 {
                   get_perturbation_range( lat_range, lat_it, j_lat );
                   if( atmosphere_dim == 3 )
                     {
-                      get_perturbation_range( lon_range, lon_it, j_lon);
+                      get_perturbation_range( lon_range, lon_it, j_lon );
                     }
                 }
 
@@ -426,7 +437,8 @@ void jacobianCalcAbsSpecies(
                   {  
                     // Here we need to perturb a tensor3
                     perturbation_field_3d( vmr_p(si,joker,joker,joker), 
-                                           p_gp, lat_gp, lon_gp, jg[0].nelem()+2,
+                                           p_gp, lat_gp, lon_gp, 
+                                           jg[0].nelem()+2,
                                            jg[1].nelem()+2, jg[2].nelem()+2, 
                                            p_range, lat_range, lon_range, 
                                            rq.Perturbation(), pertmode );
@@ -439,16 +451,28 @@ void jacobianCalcAbsSpecies(
                 vmr_p(si,joker,joker,joker) /= nd_field;
         
               // Calculate the perturbed spectrum  
-              out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
-                   << ji[1]+1 << "\n";
+              //
+              Index         dummy2;
+              Vector        iybp, dummy1;
+              Matrix        dummy3;
+              ArrayOfMatrix dummy4;      
+              //
+              iyb_calc( ws, iybp, dummy1, dummy2, dummy3, dummy4, imblock, 
+                        atmosphere_dim, p_grid, lat_grid, lon_grid, 
+                        t_field, vmr_p, cloudbox_on, stokes_dim, 
+                        f_grid, sensor_pos, sensor_los, mblock_za_grid, 
+                        mblock_aa_grid, antenna_dim, iy_clearsky_agenda, 0, 
+                        y_unit, 0, ArrayOfRetrievalQuantity(), 
+                        ArrayOfArrayOfIndex() );
+              //
+              mult( dy, sensor_response, iybp );
 
-              // Run jacobian_y_agenda
-              jacobian_y_agendaExecute( ws, yp, f_grid, vmr_p, t_field, 
-                                        sensor_los, jacobian_y_agenda );
+              // Difference spectrum
+              for( Index i=0; i<n1y; i++ )
+                { dy[i] = ( dy[i]- yb[i] ) / rq.Perturbation(); }
 
-              // Add dy/dx as column in jacobian
-              for( Index y_it=0; y_it<y.nelem(); y_it++ )
-                { J(y_it,it) = ( yp[y_it] - y[y_it] ) / rq.Perturbation(); }
+              // Put into jacobian
+              jacobian(rowind,it) = dy;     
 
               // Result from next loop shall go into next column of J
               it++;
@@ -456,6 +480,7 @@ void jacobianCalcAbsSpecies(
         }
     }
 }
+
 
 
 
@@ -575,10 +600,7 @@ void jacobianCalcFreqShiftAndStretchIybinterp(
   const Index nf     = sensor_response_f_grid.nelem();
   const Index npol   = sensor_response_pol_grid.nelem();
   const Index nza    = sensor_response_za_grid.nelem();
-  //
-  if( sensor_response.nrows() != nza*nf*npol )
-    throw runtime_error( "Mismatch in size between *sensor_response* and the "
-                         "associated grids (*sensor_response_f* etc.)." );
+
 
   // Get disturbed (part of) y
   //
@@ -591,12 +613,6 @@ void jacobianCalcFreqShiftAndStretchIybinterp(
     if( antenna_dim == 1 )  
       { naa2 = 1; }
     const Index   niyb    = nf2 * nza2 * naa2 * stokes_dim;
-
-    if( iyb.nelem() != niyb )
-      {
-        throw runtime_error( 
-                       "Mismatch between length of *iyb* and relevant grids." );
-      }
 
     // Interpolation weights
     //
@@ -777,7 +793,7 @@ void jacobianCalcPointingZaIybrecalc(
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices )
 {
-  // Set some useful (and needed) variables.  
+  // Set some useful variables.  
   RetrievalQuantity rq;
   ArrayOfIndex ji;
 
@@ -800,23 +816,6 @@ void jacobianCalcPointingZaIybrecalc(
                 "There is no such pointing retrieval quantity defined.\n" );
     }
 
-  // Check that sensor_time is consistent with sensor_pos
-  //
-  chk_if_increasing( "sensor_time", sensor_time );
-  //
-  if( sensor_time.nelem() != sensor_los.nrows() )
-    {
-      ostringstream os;
-      os << "The WSV *sensor_time* must be defined for every "
-         << "measurement block.\n";
-      throw runtime_error(os.str());
-    }
-
-  // Check that sensor_response is consistent with yb
-  //
-  if( sensor_response.nrows() != yb.nelem() )
-    throw runtime_error( 
-                       "Mismatch in size between *sensor_response* and *yb*." );
 
   // Get disturbed (part of) y
   //
@@ -1015,10 +1014,6 @@ void jacobianCalcPolyfit(
   const Index nf     = sensor_response_f_grid.nelem();
   const Index npol   = sensor_response_pol_grid.nelem();
   const Index nza    = sensor_response_za_grid.nelem();
-  //
-  if( sensor_response.nrows() != nza*nf*npol )
-    throw runtime_error( "Mismatch in size between *sensor_response* and the "
-                         "associated grids (*sensor_response_f* etc.)." );
 
   // Make a vector with values to distribute over *jacobian*
   //
@@ -1181,24 +1176,32 @@ void jacobianAddTemperature(
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void jacobianCalcTemperature(
-        Workspace&                 ws,
-        Matrix&                    J,
-  const Agenda&                    jacobian_y_agenda,
-  const ArrayOfRetrievalQuantity&  jq,
-  const ArrayOfArrayOfIndex&       jacobian_indices,
-  const Index&                     atmosphere_dim,
-  const Vector&                    p_grid,
-  const Vector&                    lat_grid,
-  const Vector&                    lon_grid,
-  const Vector&                    f_grid,
-  const Tensor4&                   vmr_field,
-  const Tensor3&                   t_field,
-  const Matrix&                    sensor_los,
-  const Vector&                    y )
+        Workspace&                  ws,
+        Matrix&                     jacobian,
+  const Index&                      imblock,
+  const Vector&                     iyb _U_,
+  const Vector&                     yb,
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Index&                      cloudbox_on,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Matrix&                     sensor_pos,
+  const Matrix&                     sensor_los,
+  const Vector&                     mblock_za_grid,
+  const Vector&                     mblock_aa_grid,
+  const Index&                      antenna_dim,
+  const Sparse&                     sensor_response,
+  const Agenda&                     iy_clearsky_agenda,
+  const String&                     y_unit,
+  const ArrayOfRetrievalQuantity&   jacobian_quantities,
+  const ArrayOfArrayOfIndex&        jacobian_indices )
 {
-  throw runtime_error( "This method needs to be updated." );
-
-  // Set some useful (and needed) variables. 
+  // Set some useful variables. 
   RetrievalQuantity rq;
   ArrayOfIndex      ji;
   Index             it;
@@ -1206,12 +1209,12 @@ void jacobianCalcTemperature(
   // Find the retrieval quantity related to this method, i.e. Temperature.
   // For temperature only the main tag is checked.
   bool found = false;
-  for( Index n=0; n<jq.nelem() && !found; n++ )
+  for( Index n=0; n<jacobian_quantities.nelem() && !found; n++ )
     {
-      if( jq[n].MainTag() == TEMPERATURE_MAINTAG )
+      if( jacobian_quantities[n].MainTag() == TEMPERATURE_MAINTAG )
         {
           found = true;
-          rq = jq[n];
+          rq = jacobian_quantities[n];
           ji = jacobian_indices[n];
         }
     }
@@ -1222,8 +1225,17 @@ void jacobianCalcTemperature(
       throw runtime_error(os.str());
     }
 
+  if( rq.Analytical() )
+    {
+      ostringstream os;
+      os << "This WSM handles only perturbation calculations.\n"
+         << "Are you using the method manually?";
+      throw runtime_error(os.str());
+    }
+  
   // FIXME: Only HSE off is implemented
-  assert( rq.Subtag()=="HSE off" );
+  if( rq.Subtag() == "HSE on" )
+      throw runtime_error( "HSE is so far not handled. Sorry!" );
 
   // Store the start JacobianIndices and the Grids for this quantity
   it = ji[0];
@@ -1253,13 +1265,13 @@ void jacobianCalcTemperature(
         }
     }
 
-  // Give verbose output
-  out2 << "  Calculating retrieval quantity " << rq << "\n";
-
-  // Vector for perturbed measurement vector
-  Vector yp;
 
   // Loop through the retrieval grid and calculate perturbation effect
+  //
+  const Index    n1y = sensor_response.nrows();
+        Vector   dy( n1y ); 
+  const Range    rowind = get_rowindex_for_mblock( sensor_response, imblock ); 
+  //
   for( Index lon_it=0; lon_it<j_lon; lon_it++ )
     {
       for( Index lat_it=0; lat_it<j_lat; lat_it++ )
@@ -1320,16 +1332,28 @@ void jacobianCalcTemperature(
                 }
        
               // Calculate the perturbed spectrum  
-              out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
-                   << ji[1]+1 << "\n";
+              //
+              Index         dummy2;
+              Vector        iybp, dummy1;
+              Matrix        dummy3;
+              ArrayOfMatrix dummy4;      
+              //
+              iyb_calc( ws, iybp, dummy1, dummy2, dummy3, dummy4, imblock, 
+                        atmosphere_dim, p_grid, lat_grid, lon_grid, 
+                        t_p, vmr_field, cloudbox_on, stokes_dim, 
+                        f_grid, sensor_pos, sensor_los, mblock_za_grid, 
+                        mblock_aa_grid, antenna_dim, iy_clearsky_agenda, 0, 
+                        y_unit, 0, ArrayOfRetrievalQuantity(), 
+                        ArrayOfArrayOfIndex() );
+              //
+              mult( dy, sensor_response, iybp );
 
-              // Run jacobian_y_agenda
-              jacobian_y_agendaExecute( ws, yp, f_grid, vmr_field, t_p, 
-                                        sensor_los, jacobian_y_agenda );
- 
-              // Add dy/dx as column in jacobian
-              for( Index y_it=0; y_it<y.nelem(); y_it++ )
-                { J(y_it,it) = ( yp[y_it] - y[y_it] ) / rq.Perturbation(); }
+              // Difference spectrum
+              for( Index i=0; i<n1y; i++ )
+                { dy[i] = ( dy[i]- yb[i] ) / rq.Perturbation(); }
+
+              // Put into jacobian
+              jacobian(rowind,it) = dy;     
 
               // Result from next loop shall go into next column of J
               it++;

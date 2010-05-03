@@ -980,8 +980,8 @@ void iyEmissionStandardClearsky(
                               //
                               // Stokes component 1
                               const Numeric w0 = B * dkdt + ( 
-                                       exp(-(total_tau[iv]-ppath_tau(iv,ip))) -
-                                       exp( -total_tau[iv]) ) * dbdt;
+                                      exp(-(total_tau[iv]-ppath_tau(iv,ip))) -
+                                      exp( -total_tau[iv]) ) * dbdt;
                               diy_dpath[iq](ip  ,iv,0) += w0;
                               diy_dpath[iq](ip+1,iv,0) += w0;
                               //
@@ -1591,6 +1591,8 @@ void yCalc(
         }
     }  // End mblock loop
 }
+
+
 
 
 
