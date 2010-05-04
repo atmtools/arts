@@ -7557,6 +7557,29 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "Tensor3AddScalar" ),
+        DESCRIPTION
+        (
+         "Adds a scalar value to all elements of a tensor3.\n"
+         "\n"
+         "The result can either be stored in the same or another\n"
+         "variable.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT(),
+        GOUT(      "tout"    ),
+        GOUT_TYPE( "Tensor3" ),
+        GOUT_DESC( "Output tensor." ),
+        IN(),
+        GIN(         "tin",     "value"   ),
+        GIN_TYPE(    "Tensor3", "Numeric" ),
+        GIN_DEFAULT( NODEF    , NODEF     ),
+        GIN_DESC( "Input tensor.",
+                  "The value to be added to the tensor." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Tensor3Scale" ),
         DESCRIPTION
         (

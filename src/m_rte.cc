@@ -915,8 +915,10 @@ void iyEmissionStandardClearsky(
             { if( is_t[iq] ) { do_t = 1; } }
           if( do_t )
             {
-              Matrix mdummy; Vector vdummy, t2=ppath_t;
-              for( Index i=0; i<t2.nelem(); i++ ) { t2[i] += dt; }
+              Matrix mdummy; 
+              Vector vdummy, t2 = ppath_t;
+              t2 += dt;
+              //for( Index i=0; i<t2.nelem(); i++ ) { t2[i] += dt; }
               get_step_vars_for_standardRT( ws, ppath_as2, ppath_e2, mdummy, 
                                    vdummy, abs_scalar_agenda, emission_agenda,
                                    ppath, ppath_p, t2, ppath_vmr, nf, 1 );
@@ -979,9 +981,9 @@ void iyEmissionStandardClearsky(
                                                   ppath_emission(iv,ip) ) / dt;
                               //
                               // Stokes component 1
-                              const Numeric w0 = B * dkdt + ( 
-                                      exp(-(total_tau[iv]-ppath_tau(iv,ip))) -
-                                      exp( -total_tau[iv]) ) * dbdt;
+                              const Numeric w0 = B * dkdt + 0.5 * dbdt *
+                                       exp(-(total_tau[iv]-ppath_tau(iv,ip))) *
+                                              ( 1.0 - exp(-ppath_tau(iv,ip)) );
                               diy_dpath[iq](ip  ,iv,0) += w0;
                               diy_dpath[iq](ip+1,iv,0) += w0;
                               //

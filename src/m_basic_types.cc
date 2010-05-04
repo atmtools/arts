@@ -366,6 +366,25 @@ void StringSet(           String&  s,
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void Tensor3AddScalar(        Tensor3&  out,
+                    const Tensor3&  in,
+                    const Numeric&  value )
+{
+  // Note that in and out can be the same vector
+  if (&out==&in) {
+    // Out and in are the same. Just multiply by the scalar value.
+    out += value;
+  } else {
+    // Out and in are different. We first have to copy in to out,
+    // then multiply by the scalar value.
+    out.resize( in.npages(), in.nrows(), in.ncols() );
+    out = in;
+    out += value;
+  }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void Tensor3Scale(        Tensor3&  out,
                     const Tensor3&  in,
                     const Numeric&  value )

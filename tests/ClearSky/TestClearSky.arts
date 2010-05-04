@@ -80,7 +80,6 @@ sensorOff
 # ---
 StringSet( y_unit, "RJBT" )
 
-
 # Perform RT calculations
 # ---
 atm_checkedCalc

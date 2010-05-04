@@ -1,3 +1,12 @@
+2010-05-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-45
+
+	* src/m_rte.cc (iyEmissionStandardClearsky): A factor of 0.5 was
+	missing for the dB/dT term of the temperature jacobian.
+
+	* src/m_basic_types.cc (Tensor3AddScalar): Created.
+
 2010-05-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-44
