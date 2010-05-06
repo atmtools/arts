@@ -1,5 +1,7 @@
 2010-05-06  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-46
+
 	* src/gas_abs_lookup.cc (GasAbsLookup::Extract):
 
 	Change the local GridPosPoly variables to ArrayOfGridPosPoly with just
