@@ -228,8 +228,7 @@ void gridpos_poly( GridPosPoly&    gp,
                    const Numeric&  extpolfac )
 {
   ArrayOfGridPosPoly  agp(1);
-  Vector          v( 1, new_grid );
-  gridpos_poly( agp, old_grid, v, order, extpolfac );
+  gridpos_poly( agp, old_grid, new_grid, order, extpolfac );
   gp = agp[0];  
 }
 

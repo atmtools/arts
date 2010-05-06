@@ -716,15 +716,16 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // For sure, we need to store the pressure grid position. 
   // We do the interpolation in log(p). Test have shown that this
   // gives slightly better accuracy than interpolating in p directly. 
-  GridPosPoly pgp;
+  ArrayOfGridPosPoly pgp(1);
   gridpos_poly( pgp,
                 log_p_grid,
                 log(p),
                 p_interp_order );
 
   // Pressure interpolation weights:
-  Vector pitw(p_interp_order+1);
-  interpweights(pitw,pgp);
+  Vector pitw;
+  pitw.resize(p_interp_order+1);
+  interpweights(pitw,pgp[0]);
 
 
   // 6. We do the T and VMR interpolation for the pressure levels
@@ -733,12 +734,13 @@ void GasAbsLookup::Extract( Matrix&         sga,
   
   // To store the interpolated result for the p_interp_order+1
   // pressure levels:
-  Tensor3 xsec_pre_interpolated( p_interp_order+1, f_extent, n_species );
+  Tensor3 xsec_pre_interpolated;
+  xsec_pre_interpolated.resize( p_interp_order+1, f_extent, n_species );
 
   for ( Index pi=0; pi<p_interp_order+1; ++pi )
     {
       // Index into p_grid:
-      const Index this_p_grid_index = pgp.idx[pi];
+      const Index this_p_grid_index = pgp[0].idx[pi];
 
       // Flag for temperature interpolation, if this is not 0 we want
       // to do T interpolation: 
@@ -747,7 +749,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
       // Determine temperature grid position. This is only done if we
       // want temperature interpolation, but the variable tgp has to
       // be visible also outside for later use:
-      GridPosPoly tgp;       // only a scalar
+      ArrayOfGridPosPoly tgp(1);       // only a scalar
       if (do_T)
         {
             
@@ -812,7 +814,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
       // once, since the only species who's VMR is interpolated is
       // H2O. We do this only if there are nonlinear species, but the
       // variable has to be visible later.
-      GridPosPoly vgp;       // only a scalar
+      ArrayOfGridPosPoly vgp(1);       // only a scalar
       if (n_nls>0)
         {
           // Similar to the T case, we first interpolate the reference
@@ -897,10 +899,11 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
                 // This is a "red" 2D interpolation case.
 
-                Vector itw( (t_interp_order+1)*
+                Vector itw;
+                itw.resize( (t_interp_order+1)*
                             (h2o_interp_order+1) );
                 
-                interpweights(itw,tgp,vgp);
+                interpweights(itw,tgp[0],vgp[0]);
 
                 // Get the right view on xsec:
                 ConstTensor3View this_xsec
@@ -922,7 +925,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
                   for ( Index c=0; c<h2o_interp_order+1; ++c )
                     {
                       for ( Index f=0; f<f_extent; ++f )
-                        res[f] += itw[iti] * this_xsec( tgp.idx[r], vgp.idx[c], f );
+                        res[f] += itw[iti] * this_xsec( tgp[0].idx[r], vgp[0].idx[c], f );
                       
                       ++iti;
                     }
@@ -933,9 +936,10 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
                 // This is a "red" 1D interpolation case.
 
-                Vector itw(t_interp_order+1);
+                Vector itw;
+                itw.resize(t_interp_order+1);
                 
-                interpweights(itw,tgp);
+                interpweights(itw,tgp[0]);
 
                 // Get the right view on xsec:
                 ConstMatrixView this_xsec
@@ -956,7 +960,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
                 for ( Index r=0; r<t_interp_order+1; ++r )
                   {
                     for ( Index f=0; f<f_extent; ++f )
-                      res[f] += itw[iti] * this_xsec( tgp.idx[r], f );
+                      res[f] += itw[iti] * this_xsec( tgp[0].idx[r], f );
 
                     ++iti;
                   }
@@ -968,9 +972,10 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
                 // This is a "red" 1D interpolation case.
 
-                Vector itw(h2o_interp_order+1);
+                Vector itw;
+                itw.resize(h2o_interp_order+1);
                 
-                interpweights(itw,vgp);
+                interpweights(itw,vgp[0]);
 
                 // Get the right view on xsec:
                 ConstMatrixView this_xsec
@@ -991,7 +996,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
                 for ( Index c=0; c<h2o_interp_order+1; ++c )
                   {
                     for ( Index f=0; f<f_extent; ++f )                      
-                      res[f] += itw[iti] * this_xsec( vgp.idx[c], f );             
+                      res[f] += itw[iti] * this_xsec( vgp[0].idx[c], f );             
                       
                     ++iti;
                   }

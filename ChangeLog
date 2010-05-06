@@ -1,3 +1,17 @@
+2010-05-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* src/gas_abs_lookup.cc (GasAbsLookup::Extract):
+
+	Change the local GridPosPoly variables to ArrayOfGridPosPoly with just
+	one element. That avoids the creation of a temporary array on every
+	call of gridpos_poly. Depending on the control file this speeds up
+	absorption calculation by up to 10%.
+
+	* src/interpolation_poly.cc (gridpos_poly):
+
+	Pass the Numeric new_grid directly to other gridpos_poly function
+	instead of creating a temporary vector.
+
 2010-05-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-45
@@ -57,7 +71,7 @@
 	the destructors non-virtual leads to an internal compiler error in
 	files with a parallel region.
 
-	* KNOWN_ISSUES: Added and documentated the OpenMP memory leak.
+	* KNOWN_ISSUES: Added and documented the OpenMP memory leak.
 
 2010-05-03  Oliver Lemke  <olemke@core-dump.info>
 
