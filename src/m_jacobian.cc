@@ -844,7 +844,6 @@ void jacobianCalcPointingZaIybrecalc(
 
   //--- Create jacobians ---
 
-  const Index nb = sensor_los.nrows();
   const Index lg = rq.Grids()[0].nelem();
   const Index it = ji[0];
   const Range rowind = get_rowindex_for_mblock( sensor_response, imblock );
@@ -853,7 +852,7 @@ void jacobianCalcPointingZaIybrecalc(
   // Handle gitter seperately
   if( rq.Grids()[0][0] == -1 )                  // Not all values are set here,
     {                                           // but should already have been 
-      assert( lg == nb );                       // set to 0
+      assert( lg == sensor_los.nrows() );       // set to 0
       assert( rq.Grids()[0][imblock] == -1 );
       jacobian(rowind,it+imblock) = dy;     
     }                                
