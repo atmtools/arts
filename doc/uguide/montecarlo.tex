@@ -45,6 +45,9 @@
 \section{Introduction}
  \label{sec:montecarlo:intro}
 
+PDFS are chosen to be well suited to calculating the 1st component of
+the Stokes vector.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 \section{Model[FIXME: needs updating to MCGeneral]}
  \label{sec:montecarlo:model}
@@ -161,6 +164,7 @@ $\mathbf{s}_N$ is
 \mathbf{O}(\mathbf{s}_{N-1},\mathbf{s}_N)
 \mathbf{O}(\mathbf{s}_{N-2},\mathbf{s}_{N-1}) \dots \nonumber\\
 \mathbf{O}(\mathbf{s}_1,\mathbf{s}_2)\mathbf{O}(\mathbf{s}_0,\mathbf{s}_1),
+\label{Ogeneral}
 \end{eqnarray}
 , where $\mathbf{O(s_i,s_{i+1})}$ is given by Eq. \ref{OconstK}.
 
@@ -191,18 +195,110 @@ Carlo estimate for Eq. \ref{inorouteq} becomes
 \frac{\mathbf{O(s',s_0)}}{g(\Delta s)}\left(\mathbf{K_a(n)}I_b(T)
 +\int_{4\pi}\mathbf{Z(n,n')}\mathbf{I(n')}d\mathbf{n'}\right) & s'< s'_{boundary} \\
 \frac{\mathbf{O(u_0,s_0)I(n,u_0)}}{1-\tilde{O_{11}}(\Delta s)} & s'\ge s'_{boundary}
-\end{array}g(\Delta s)ds'\right.\\
+\end{array}g(\Delta s)ds'\right.\nonumber\\
 &\approx&\left\langle\left\{\begin{array}{rl}
 \frac{\mathbf{O(s',s_0)}}{g(\Delta s)}\left(\mathbf{K_a(n)}I_b(T)
 +\int_{4\pi}\mathbf{Z(n,n')}\mathbf{I(n')}d\mathbf{n'}\right) & s'< s'_{boundary} \\
 \frac{\mathbf{O(u_0,s_0)I(n,u_0)}}{1-\tilde{O_{11}}(\Delta s)} & s'\ge s'_{boundary}
-\end{array}\right.\right\rangle
+\end{array}\right.\right\rangle_{g(\Delta s)}
+\label{pathlengthint}
 \end{eqnarray} 
 
-Likewise, new incident directions
-($\theta_{inc},\phi_{inc}$) should be sampled from a PDF proportional
-to
-$\mathbf{Z}(\theta_{scat},\phi_{scat},\theta_{inc},\phi_{inc})$.
+So if the sampled pathlength corresponds to a point outside the
+atmosphere, or below the earth' surface, the Monte Carlo estimator (is this
+the right word) is given by
+$\frac{\mathbf{O(u_0,s_0)I(n,u_0)}}{1-\tilde{O_{11}}(\Delta s)}$. In the
+top of atmopshere cases, this can be immediately calculated:
+$\mathbf{O(u_0,s_0)}$ from Eq. \ref{Ogeneral}, and $\mathbf{I(n,u_0)}$ from
+  the background radiation from space.  As shown in Figure
+  \ref{fig:montecarlo:flowchart}, in this event, we have our Monte
+  Carlo contribution and we can begin the calculation for the next
+  one.  If however the reversed traced path passes the surface, the
+  calculation of $\mathbf{I(n,u_0)}$ requires more steps.
+If however the sampled pathlength corresponds to a point within the
+atmosphere then the emission and scattering terms in the top term in
+Eq. \ref{pathlengthint}, must be calculated.  We also treat this as
+Monte Carlo integration:
+\begin{eqnarray}
+\mathbf{K_a(n)}I_b(T)
++\int_{4\pi}\mathbf{Z(n,n')}\mathbf{I(n')}d\mathbf{n'}&=&\int_0^1\left\{\begin{array}{rl}\frac{1}{\tilde{\omega}}\int_{4\pi}\mathbf{Z(n,n')}\mathbf{I(n')}d\mathbf{n'}
+& r \le \tilde{\omega}\\
+\frac{\mathbf{K_a(n)}I_b(T)}{1-\tilde{\omega}}& r >
+\tilde{\omega}\end{array}dr\right.\nonumber\\
+&\approx&\left\langle\left\{\begin{array}{rl}\frac{1}{\tilde{\omega}}\int_{4\pi}\mathbf{Z(n,n')}\mathbf{I(n')}d\mathbf{n'}
+& r \le \tilde{\omega}\\
+\frac{\mathbf{K_a(n)}I_b(T)}{1-\tilde{\omega}}& r >
+\tilde{\omega}\end{array}\right.\right\rangle_r
+\label{emiss-or-scatter}
+\end{eqnarray}.
+Here we are using a uniform random deviate $r$, and an
+albedo-like quantity,
+\begin{equation}
+\tilde{\omega}=1-\frac{K_{a1}(\mathbf{n_{0},s_{1}})}{K_{11}(\mathbf{n_{0},s_{1}})}
+\end{equation}
+, to choose between emission and scattering contributions.
+Note: we can't use the actual single-scattering albedo as this depends
+on the polarization state of the incident radiation.  If
+$r>\tilde{\omega}$, then the event is considered to be emission.  In
+this case we have all the information required to calculate the Monte
+Carlo estimator,
+\begin{equation}
+\mathbf{I^i(n,s_0)}=\frac{\mathbf{Q_k O(s_{k+1},s_k)}
+  \mathbf{K_a(n_k,s_{k+1})} I_b(T,\mathbf{s_{k+1}})}
+  {g\left(\Delta s\right)\left(1-\tilde{\omega}\right)}
+\end{equation}
+, where $\mathbf{O(s_{k+1},s_k)}$ is the evolutaion operator
+pertaining to the preceding pathlength sample, and $g\left(\Delta
+s\right)$, the corresponding importance sampling weight, as indicated
+in Eq. \ref{pathlengthint}.  The matrix $\mathbf{Q_k}$, whose
+calculation will be described below, holds the
+multiplicative effect of previous evolution operators, phase matrices,
+surface reflection matrices, and importance sampling weighting
+factors, acting on the reversed traced multiply scattered propogation
+path. 
+
+If, in Eq. \ref{emiss-or-scatter} our sampled $r\le\tilde{\omega}$
+, we have a scattering event.  In this case we need to evaluate the scattering
+integral $\int_{4\pi}\mathbf{Z(n,n')}\mathbf{I(n')}d\mathbf{n'}$.
+Again we apply Monte Carlo integration with importance sampling to
+this integral.
+\begin{eqnarray}
+\int_{4\pi}\mathbf{Z(n,n')}\mathbf{I(n')}d\mathbf{n'}&=&\int_0^{2\pi}\int_0^\pi\frac{\mathbf{Z(n,n')}\mathbf{I(n')}}{g(\theta_{inc},\phi_{inc})}g(\theta_{inc},\phi_{inc})\sin{\theta_{inc}}d\theta_{inc}d\phi_{inc}\\
+&\approx&\left\langle\frac{\sin{\theta_{inc}}\mathbf{Z(n,n')}\mathbf{I(n')}}{g(\theta_{inc},\phi_{inc})}\right\rangle_{g(\theta_{inc},\phi_{inc})}
+\end{eqnarray}
+Given the desire to use a PDF porporational to the integrand, we
+choose to sample incoming directions,
+$\mathbf{n'}=(\theta_{inc},\phi_{inc})$ from a PDF proportional
+to $\sin{\theta_{inc}}\mathbf{Z}(\theta_{scat},\phi_{scat},\theta_{inc},\phi_{inc})$.
+At the scattering point sample a new incident direction
+  $(\theta_{inc},\phi_{inc})$ according to 
+\begin{equation}
+g(\theta_{inc},\phi_{inc})=\frac{Z_{11}(\theta_{scat},\phi_{scat},
+\theta_{inc},\phi_{inc})\sin(\theta_{inc})}{K_{11}(\theta_{scat},\phi_{scat})
+  - K_{a1}(\theta_{scat},\phi_{scat})}
+\label{gdir}
+\end{equation}
+, which is
+sampled by the rejection method as described in \cite{liu:01}. 
+UP TO HERE: EXPLAIN THAT THIS LEAVES AN I THAT WE HAVE TO CALCULATE BY
+GOING BACK AND SAMPLING A NEW PATHLENGTH.  HENCE THE NEED FOR Q WHICH
+I DESCRIBE BELOW
+
+We then calculate the matrix
+\begin{equation}
+\mathbf{Q_k}=\mathbf{Q_{k-1}q_k}
+\label{Q}
+\end{equation}
+, where
+\begin{equation}
+\mathbf{q_k}=\frac{\sin(\theta_{inc})_k
+  \mathbf{O(s_k,s_{k-1})}\mathbf{Z(n_{k-1},n_k)}}
+  {g\left(\Delta s\right)g(\theta_{inc},\phi_{inc}) \tilde{\omega}} ,
+\label{q}
+\end{equation}
+and $\mathbf{Q_0}={1}$. The index $k$ represents the
+scattering order. 
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Algorithm [FIXME:Needs updating to MCGeneral]}
@@ -246,49 +342,12 @@ for $\Delta s$.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \item
 Another random number, $r$, is drawn to choose between emission and scattering.  We first define an albedo-like quantity
-\begin{equation}
-\tilde{\omega}=1-\frac{K_{a1}(\mathbf{n_{0},s_{1}})}{K_{11}(\mathbf{n_{0},s_{1}})}
-\end{equation}
-Note: we can't use the actual single-scattering albedo as this depends
-on the polarization state of the incident radiation.  If $r>\tilde{\omega}$, then the event is considered to be emission,
-the reversed ray tracing is terminated, and the Stokes vector
-contribution of the $i$th photon is
-\begin{equation}
-\mathbf{I^i(n,s_0)}=\frac{\mathbf{O(s_1,s_0)}\mathbf{K_a(n_0,s_1)}
-  I_b(T,\mathbf{s_i})}{g_0(\Delta s) \left(1-\tilde{\omega}\right)}
-\label{Iemission2}
-\end{equation}
+
 , where the index $i$ signifies photon number. Return to step 1.
 
-Otherwise, if $r\le\tilde{\omega}$
-we have a scattering event.
 %3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \item
-At the scattering point sample a new incident direction
-  $(\theta_{inc},\phi_{inc})$ according to 
-\begin{equation}
-g(\theta_{inc},\phi_{inc})=\frac{Z_{11}(\theta_{scat},\phi_{scat},
-\theta_{inc},\phi_{inc})\sin(\theta_{inc})}{K_{11}(\theta_{scat},\phi_{scat})
-  - K_{a1}(\theta_{scat},\phi_{scat})}
-\label{gdir}
-\end{equation}
-, which is
-sampled by the rejection method as described in \cite{liu:01}.
 
-Calculate the matrix
-\begin{equation}
-\mathbf{Q_k}=\mathbf{Q_{k-1}q_k}
-\label{Q}
-\end{equation}
-, where
-\begin{equation}
-\mathbf{q_k}=\frac{\sin(\theta_{inc})_k
-  \mathbf{O(s_k,s_{k-1})}\mathbf{Z(n_{k-1},n_k)}}
-  {g\left(\Delta s\right)g(\theta_{inc},\phi_{inc}) \tilde{\omega}} ,
-\label{q}
-\end{equation}
-and $\mathbf{Q_0}={1}$. The index $k$ represents the
-scattering order.
 %4%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \item
 Choose a path length along the new direction according to

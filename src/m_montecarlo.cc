@@ -328,7 +328,7 @@ void MCGeneral(Workspace&            ws,
             }
           else if (termination_flag==2)
             {
-              //decide whether we have reflection or emission
+              //Calculate surface properties
               surface_prop_agendaExecute( ws, local_surface_emission, 
                 local_surface_los, local_surface_rmatrix, 
                 local_rte_pos, local_rte_los, ppath_step.gp_p[np-1],
