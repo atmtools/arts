@@ -1,3 +1,10 @@
+2010-06-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-48
+
+	* sync version numbers between configure.in and CMakeLists.txt before
+	putting this snapshot on the webpage for the workshop.
+
 2010-05-30  Cory Davis  <cory@sundog>
 
 	* arts-1-14-47
