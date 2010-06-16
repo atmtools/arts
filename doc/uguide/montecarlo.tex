@@ -49,7 +49,7 @@ PDFS are chosen to be well suited to calculating the 1st component of
 the Stokes vector.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-\section{Model[FIXME: needs updating to MCGeneral]}
+\section{Model}
  \label{sec:montecarlo:model}
 The radiative transfer model solves the vector
 radiative transfer equation (VRTE):
@@ -87,10 +87,12 @@ To apply Monte Carlo integration to the problem, the VRTE needs to be expressed 
 the far boundary of the scattering domain, and $\mathbf{s_0}$ is the
 exit point where the outgoing Stokes vector is calculated.
 
+\subsection{Integration over the antenna response function}
+
 If we consider a scalar antenna response function,
 $\psi=\psi(\theta,\phi)=\psi(\mathbf{n})$, where $\psi(\mathbf{n})$ is
 normalised such that $\int_{4\pi}\psi(\mathbf{n})dn=1$, then the
-observed Stokes vector will $\mathbf{I_{ant.}(n,s_0)}$ will be
+observed Stokes vector $\mathbf{I_{ant.}(n,s_0)}$ will be
 
 \begin{equation}
 \mathbf{I_{ant.}(n,s_0)}=\int_{4\pi}\psi(\mathbf{n'})\mathbf{I(n',s_0)}d\mathbf{n'}
@@ -99,7 +101,7 @@ observed Stokes vector will $\mathbf{I_{ant.}(n,s_0)}$ will be
 
 If we apply Monte Carlo integration with importance samping to
 Eq. \ref{antInt} and sample $\mathbf{n'}$ according to a probability
-density function (PDF) equal to $\psi(\mathbf{n'})$ then an unbiased
+density function (PDF) equal to $\psi(\mathbf{n'})$, an unbiased
 estimate of Eq. \ref{antInt} is given by (e.g. \cite{press:1992:numerical})
 
 \begin{eqnarray}
@@ -107,6 +109,12 @@ estimate of Eq. \ref{antInt} is given by (e.g. \cite{press:1992:numerical})
 &=&\langle \mathbf{I(n',s_0)} \rangle_\psi
 \label{antIntMC}
 \end{eqnarray}
+, with an estimated error for each Stokes index, $j$,  of
+\begin{equation}
+\delta I_j=\sqrt{\frac{\langle I_j^2\rangle-\langle I_j\rangle^2}{N}}.
+\label{error}
+\end{equation}
+\subsection{The path integral}
 
 We now require a Monte Carlo estimate of the integrand in
 Eq. \ref{antIntMC}, which is given by Eq. \ref{intVRTE}.  First, we
@@ -132,7 +140,7 @@ distances corresponding to points within the modelled atmosphere give
 a sum of emission and scattering attenuated by the evolution operator
 over the distance between the point and the atmosphere exit. 
 The reader
-could easily verify that evaluating Eq. \ref{inorouteq} gives
+could easily verify that evaluating Eq. \ref{inorouteq} is equivalent
 Eq. \ref{intVRTE}. 
 
 The aim in importance sampling is to choose probability density functions
@@ -215,7 +223,10 @@ $\mathbf{O(u_0,s_0)}$ from Eq. \ref{Ogeneral}, and $\mathbf{I(n,u_0)}$ from
   Carlo contribution and we can begin the calculation for the next
   one.  If however the reversed traced path passes the surface, the
   calculation of $\mathbf{I(n,u_0)}$ requires more steps.
-If however the sampled pathlength corresponds to a point within the
+
+\subsection{Emission and scattering}
+
+If the sampled pathlength corresponds to a point within the
 atmosphere then the emission and scattering terms in the top term in
 Eq. \ref{pathlengthint}, must be calculated.  We also treat this as
 Monte Carlo integration:
@@ -246,6 +257,7 @@ Carlo estimator,
 \mathbf{I^i(n,s_0)}=\frac{\mathbf{Q_k O(s_{k+1},s_k)}
   \mathbf{K_a(n_k,s_{k+1})} I_b(T,\mathbf{s_{k+1}})}
   {g\left(\Delta s\right)\left(1-\tilde{\omega}\right)}
+\label{Iemission}
 \end{equation}
 , where $\mathbf{O(s_{k+1},s_k)}$ is the evolutaion operator
 pertaining to the preceding pathlength sample, and $g\left(\Delta
@@ -254,8 +266,10 @@ in Eq. \ref{pathlengthint}.  The matrix $\mathbf{Q_k}$, whose
 calculation will be described below, holds the
 multiplicative effect of previous evolution operators, phase matrices,
 surface reflection matrices, and importance sampling weighting
-factors, acting on the reversed traced multiply scattered propogation
+factors, acting on the reversed traced multiply scattered propagation
 path. 
+
+\subsection {The scattering integral}
 
 If, in Eq. \ref{emiss-or-scatter} our sampled $r\le\tilde{\omega}$
 , we have a scattering event.  In this case we need to evaluate the scattering
@@ -265,8 +279,9 @@ this integral.
 \begin{eqnarray}
 \int_{4\pi}\mathbf{Z(n,n')}\mathbf{I(n')}d\mathbf{n'}&=&\int_0^{2\pi}\int_0^\pi\frac{\mathbf{Z(n,n')}\mathbf{I(n')}}{g(\theta_{inc},\phi_{inc})}g(\theta_{inc},\phi_{inc})\sin{\theta_{inc}}d\theta_{inc}d\phi_{inc}\\
 &\approx&\left\langle\frac{\sin{\theta_{inc}}\mathbf{Z(n,n')}\mathbf{I(n')}}{g(\theta_{inc},\phi_{inc})}\right\rangle_{g(\theta_{inc},\phi_{inc})}
+\label{scattering_int}
 \end{eqnarray}
-Given the desire to use a PDF porporational to the integrand, we
+Given the desire to use a PDF proportional to the integrand, we
 choose to sample incoming directions,
 $\mathbf{n'}=(\theta_{inc},\phi_{inc})$ from a PDF proportional
 to $\sin{\theta_{inc}}\mathbf{Z}(\theta_{scat},\phi_{scat},\theta_{inc},\phi_{inc})$.
@@ -279,12 +294,11 @@ g(\theta_{inc},\phi_{inc})=\frac{Z_{11}(\theta_{scat},\phi_{scat},
 \label{gdir}
 \end{equation}
 , which is
-sampled by the rejection method as described in \cite{liu:01}. 
-UP TO HERE: EXPLAIN THAT THIS LEAVES AN I THAT WE HAVE TO CALCULATE BY
-GOING BACK AND SAMPLING A NEW PATHLENGTH.  HENCE THE NEED FOR Q WHICH
-I DESCRIBE BELOW
+sampled by the rejection method as described in \cite{liu:01}.  This sampling of the new incoming direction for the evaluation of Eq. \ref{scattering_int} leads to the calculation of the incoming stokes vector $\mathbf{I(n',s)}$ at the point of scattering $\mathbf{s}$ in the new incident direction $\mathbf{n'}$. We thus return to pathlength sampling and evaluation of Eq. \ref{pathlength_int}.  
 
-We then calculate the matrix
+\subsection{Applying the Mueller matrices}
+
+The influence of the phase matrix and the preceding evolution operator, along with the importance samping weights, are stored by calculating the matrix
 \begin{equation}
 \mathbf{Q_k}=\mathbf{Q_{k-1}q_k}
 \label{Q}
@@ -297,108 +311,19 @@ We then calculate the matrix
 \label{q}
 \end{equation}
 and $\mathbf{Q_0}={1}$. The index $k$ represents the
-scattering order. 
+scattering order.  The $\mathbf{Q_k}$ is updated through subsequent scattering events and finally applied to an emission contribution (Eq. \ref{Iemission}) if an emission event is sampled in Eq. \ref{emiss-or-scatter}.  
 
+\subsection {Boundary contributions}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Algorithm [FIXME:Needs updating to MCGeneral]}
- \label{sec:montecarlo:alg}
-The model algorithm proceeds as follows:
-
-\begin{enumerate}
-\item
-Begin at the cloud box exit point with a new photon. Sample a
-  path length, $\Delta s$ along the first line of sight using the PDF
-\begin{equation}
-g_0(\Delta s)=\frac{\tilde{k}\tilde{O_{11}}(\Delta s)}
-{1-O_{11}(\mathbf{u_0,s_0})}.
-\label{g0Deltas}
-\end{equation}
-, where $\tilde{O_{11}}(\Delta s)$, is the piecewise exponential
-function that includes $O_{11}(\mathbf{s',s})$ values at points
-where the line of sight intersects with grid surfaces.
-Between two such adjacent intersections, $A$ and $B$, the function
-$\tilde{O_{11}}(\Delta s)$ is given by
-\begin{equation}
-\tilde{O_{11}}(\Delta s)=O_{11}(\Delta s_A)\exp\left(-\tilde{k}\left(\Delta s-\Delta
-s_A\right)\right)
-\label{O11}
-\end{equation}
-, and
-\begin{equation}
-\tilde{k}=\frac{1}{\left(\Delta s_B-\Delta s_A\right)}
-\ln\left(\frac{O_{11}^A}{O_{11}^B}\right)
-\end{equation}
-, which, for cases where the extinction matrix is diagonal, is equal to $K_{11}=(K_{11}^A+K_{11}^B)/2$.
-The denominator in Eq. \ref{g0Deltas} ensures an emission or scattering
-event for each photon in the initial line of sight.
-Eq. \ref{g0Deltas} is sampled by taking a random number (from the
-uniform distribution [0,1]), $r$, and solving 
-\begin{equation}
-\frac{1-\tilde{O_{11}}(\Delta s)}{1-O_{11}(\mathbf{u_0,s_0})}=r.
-%\label{solvefor0}
-\end{equation}
-for $\Delta s$.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\item
-Another random number, $r$, is drawn to choose between emission and scattering.  We first define an albedo-like quantity
-
-, where the index $i$ signifies photon number. Return to step 1.
-
-%3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\item
-
-%4%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\item
-Choose a path length along the new direction according to
-If $r<O_{11}(\mathbf{u_{k},s_k})$, where $\mathbf{u}_{k}$ is the
-  boundary of the scattering domain in the current line of sight, the
-  photon leaves the scattering domain, and the contribution for photon $i$ is
+Similarly, if the kth pathlength sampled in Eq. \ref{pathlengthint} is beyond the top of the atmosphere or below the earth surface, $\mathbf{Q_k}$ is applied in 
 \begin{equation}
 \mathbf{I^i(n,s_0)}=\frac{\mathbf{Q_k}\mathbf{O(u_k,s_k)I(n_k,u_k)}}{O_{11}(\mathbf{u_{k},s_k})}
 \label{Ikmax2_1}
 \end{equation}
 , where 
-$\mathbf{I(n_k,u_k)}$ is the incoming radiance at $\mathbf{u}_{k}$.  This is calculated with the standard ARTS clear-sky
-routine. Return to step 1.
+$\mathbf{I(n_k,u_k)}$ is the incoming radiance at boundary point $\mathbf{u}_{k}$.  For the top of atmosphere case, $\mathbf{I(n_k,u_k)}=I_{space}$.  SAY SOMETHING ABOUT ARTS ISPACE OPTIONS.  THEN BLACKBODY SURFACE CASE.
 
-Otherwise, if the sampled path length keeps the path within the
-scattering domain...
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\item
-As in step 2, calculate 
-$\tilde{\omega}$ at the new point, $\mathbf{s_{k+1}}$, and draw a uniform
-  random deviate, $r$.
-
-If $r>\tilde{\omega}$, then the event is considered to be emission,
-the reversed ray tracing is terminated, the Stokes vector contribution is
-\begin{equation}
-\mathbf{I^i(n,s_0)}=\frac{\mathbf{Q_k O(s_{k+1},s_k)}
-  \mathbf{K_a(n_k,s_{k+1})} I_b(T,\mathbf{s_{k+1}})}
-  {g\left(\Delta s\right)\left(1-\tilde{\omega}\right)}
-\label{Iemission3}
-\end{equation}
-, and we return to step 1.
-
-Otherwise, if $r\le\tilde{\omega}$
-we have a scattering event and we return to step 3.
-\item
-Once the prescribed number, $N$,  of photon contributions,
-$\mathbf{I^i(n,s_0)}$, have been calculated, the cloud box exit Stokes
-vector is given by
-\begin{equation}
-\mathbf{I(n,s_0)}=\mathbf{O(u_0,s_0)I(n,u_0)}+\langle\mathbf{I^i(n,s_0)}\rangle.
-\label{cbexit}
-\end{equation}
-, with an estimated error for each Stokes index, $j$,  of
-\begin{equation}
-\delta I_j=\sqrt{\frac{\langle I_j^2\rangle-\langle I_j\rangle^2}{N}}.
-\label{error}
-\end{equation}
-\end{enumerate}
-When simulating an MLS measurement, an extra clear sky RT calculation
-is performed from the cloud box exit to the sensor, with the Monte
-Carlo result from Eq. \ref{cbexit} taken as the radiative background.
+\subsection{Surface reflection} 
 
 \begin{figure}
 \begin{center}
