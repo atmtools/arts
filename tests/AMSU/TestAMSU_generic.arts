@@ -142,7 +142,9 @@ AgendaSet( ybatch_calc_agenda ){
   # generate p_grid, t_field, z_field, vmr_field:
   AtmFieldsFromCompact
 
-  # Optionally set jacobian parameters:
+  # Optionally set Jacobian parameters. You can comment out this block 
+  # if you do not want Jacobians in order to speed up the calculation. 
+  # Also, you can add other Jacobians here, for example for temperature.
   jacobianInit
   jacobianAddAbsSpecies( jacobian_quantities, jacobian_agenda,
                          atmosphere_dim,
@@ -162,10 +164,6 @@ AgendaSet( ybatch_calc_agenda ){
   # ---
   atm_checkedCalc
   yCalc
-
-  # Optionally write out jacobian:
-  #WriteXMLIndexed( output_file_format, ybatch_index, jacobian, "" )
-
 }
 
 

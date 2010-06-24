@@ -12,4 +12,6 @@ INCLUDE "TestAMSU_generic.arts"
 # ---
 WriteXML( "ascii", ybatch, "AMSUB.ybatch.xml.generated" )
 
+WriteXML( "ascii", ybatch_jacobians, "AMSUB.ybatch_jacobians.xml.generated" )
+
 }
