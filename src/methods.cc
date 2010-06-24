@@ -8477,10 +8477,13 @@ void define_md_data_raw()
          "      RteCalc{}\n"
          "   }\n"
          "\n"
+         "Jacobians are also collected, and stored in output variable *ybatch_jacobians*. \n"
+         "(This will be empty if yCalc produces empty Jacobians.)\n"
+         "\n"
          "See the user guide for further practical examples.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
-        OUT( "ybatch" ),
+        OUT( "ybatch", "ybatch_jacobians" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),

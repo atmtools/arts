@@ -619,9 +619,10 @@ void define_agenda_data()
        (
         "Calculations to perform for each batch case.\n"
         "\n"
-        "Must produce a new spectrum vector (y). See further *ybatchCalc*."
+        "Must produce a new spectrum vector (*y*) and Jacobi matrix (*jacobian*).\n"
+        "See further *ybatchCalc*."
         ),
-       OUTPUT( "y" ),
+       OUTPUT( "y", "jacobian" ),
        INPUT( "ybatch_index" )));
 
 

@@ -1455,7 +1455,7 @@ void Workspace::define_wsv_data()
       (
        "Flag for FOS to use same scattering properties for all frequencies.\n"
        "\n"
-       "For calculations covering a narrow frequency range, calcuölation time\n"
+       "For calculations covering a narrow frequency range, calculation time\n"
        "can be saved by setting this variable to 1. The single scattering\n"
        "scattering data is then calculated for the mean of the frequency end\n"
        "points, and are applied for all frequencies.\n" ),
@@ -4052,6 +4052,8 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
        "       optical thickness.\n"
+       "\n"
+       "Dimensions: (length(y), number of batch cases)\n"
        ),
       GROUP( "Matrix" )));
 
@@ -4078,7 +4080,27 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Index" )));
 
- wsv_data.push_back
+  wsv_data.push_back
+  (WsvRecord
+   ( NAME( "ybatch_jacobians" ),
+    DESCRIPTION
+    (
+     "All the Jacobians associated with ybatch.\n"
+     "\n"
+     "Note that the batch index here is the first dimension,\n"
+     "whereas for ybatch it is the last dimension\n"
+     "\n"
+     "Usage: Most commonly produced by *ybatch*.\n"
+     "\n"
+     "Unit:  Depends on unit of y and on Jacobian type.\n"
+     "\n"
+     "Dimensions: (number of batch cases, \n"
+     "             length(y), \n"
+     "             number of retrieval quantities and grids)\n" 
+     ),
+    GROUP( "Tensor3" )));
+  
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "ybatch_n" ),
       DESCRIPTION

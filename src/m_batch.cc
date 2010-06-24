@@ -141,6 +141,7 @@ void VectorExtractFromMatrix(
 void ybatchCalc(Workspace&      ws, 
                 // WS Output:
                 Matrix&         ybatch,
+                Tensor3&        ybatch_jacobians,
                 // WS Input:
                 const Index&    ybatch_start,
                 const Index&    ybatch_n,
@@ -158,6 +159,7 @@ void ybatchCalc(Workspace&      ws,
 
 
   Vector y;
+  Matrix jacobian;
   bool is_first = true;
   Index first_ybatch_index = 0;
 
@@ -178,6 +180,11 @@ void ybatchCalc(Workspace&      ws,
   // increment this, so that we really get an accurate total count!)
   Index job_counter = 0;
 
+  // A flag to indicate whether we are calculating (and storing) 
+  // Jacobians. Default is that we don't. But this is set to true 
+  // if the first batch job does return a non-empty Jacobian.
+  bool store_jacobians = false;
+  
   while (is_first && first_ybatch_index < ybatch_n)
     {
       ++job_counter;
@@ -187,10 +194,11 @@ void ybatchCalc(Workspace&      ws,
 
       try
         {
-          ybatch_calc_agendaExecute( ws,
-                                     y,
-                                     ybatch_start+first_ybatch_index,
-                                     ybatch_calc_agenda );
+          ybatch_calc_agendaExecute(ws,
+                                    y,
+                                    jacobian,
+                                    ybatch_start+first_ybatch_index,
+                                    ybatch_calc_agenda);
 
           // The size of ybatch has to be set after the first job
           // has run successfully.
@@ -200,10 +208,42 @@ void ybatchCalc(Workspace&      ws,
           // care of the case that there were some unsuccessful
           // jobs before the first successful one.
           ybatch = -1;
+          
+          // Now resize also the container for all the Jacobians, ybatch_jacobians.
 
+          // Dimensions of Jacobian:
+          const Index Knr = jacobian.nrows();
+          const Index Knc = jacobian.ncols();
+          
+          if (Knr!=0 || Knc!=0) 
+            {
+              store_jacobians = true;
+
+              if (Knr!=y.nelem())
+                {
+                  out0 << "First dimension of Jacobian must have same length as the measurement *y*.\n"
+                       << "Length of *y*: " << y.nelem() << "\n"
+                       << "Dimensions of *jacobian*: (" << Knr << ", " << Knc << ")\n";
+                  arts_exit();
+                  // We jump to exit here directly, since runtime errors are ignored 
+                  // if the robust option is on. But mismatch of the Jacobian 
+                  // dimension is a fatal error and should result in program termination.
+                }
+              
+              // Resize the container for all the Jacobians:
+              ybatch_jacobians.resize(ybatch_n, Knr, Knc);
+              
+              // For safety's sake, initialize to zero, so that we have clean content 
+              // in case some of the calculations fail (with the robust option).
+              ybatch_jacobians = 0;
+            }
+          
           is_first = false;
 
-          ybatch( joker, first_ybatch_index ) = y;
+          ybatch(joker, first_ybatch_index) = y;
+          
+          if(store_jacobians)
+              ybatch_jacobians(first_ybatch_index, joker, joker) = jacobian;
         }
       catch (runtime_error e)
         {
@@ -267,10 +307,14 @@ void ybatchCalc(Workspace&      ws,
         {
           ybatch_calc_agendaExecute( l_ws,
                                      y,
+                                     jacobian,
                                      ybatch_start+ybatch_index,
                                      l_ybatch_calc_agenda );
  
           ybatch( joker, ybatch_index ) = y;
+
+          if(store_jacobians)
+              ybatch_jacobians(first_ybatch_index, joker, joker) = jacobian;          
         }
       catch (runtime_error e)
         {

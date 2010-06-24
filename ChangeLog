@@ -1,3 +1,21 @@
+2010-06-24  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-14-50
+
+	* build_mac/tests/AMSU/TestAMSU_generic.arts: Added some
+	documentation with Jacobian definition.
+	
+	* src/methods.cc (ybatchCalc): Added output *ybatch_jacobians*.
+
+	* src/m_batch.cc (ybatchCalc): Now also stores all Jacobians in
+	output variable *ybatch_jacobians*. 
+	
+	* src/agendas.cc (ybatch_calc_agenda): Included *jacobian* as
+	output variable.
+	
+	* src/workspace.cc (ybatch_jacobians): Added this new variable,
+	which stores all Jacobians in ybatchCalc calculations.
+
 2010-06-16  Cory  <corzneffect@gmail.com>
 
 	* arts-1-14-49
