@@ -141,7 +141,7 @@ void VectorExtractFromMatrix(
 void ybatchCalc(Workspace&      ws, 
                 // WS Output:
                 Matrix&         ybatch,
-                Tensor3&        ybatch_jacobians,
+                ArrayOfMatrix&  ybatch_jacobians,
                 // WS Input:
                 const Index&    ybatch_start,
                 const Index&    ybatch_n,
@@ -231,11 +231,10 @@ void ybatchCalc(Workspace&      ws,
                 }
               
               // Resize the container for all the Jacobians:
-              ybatch_jacobians.resize(ybatch_n, Knr, Knc);
-              
-              // For safety's sake, initialize to zero, so that we have clean content 
-              // in case some of the calculations fail (with the robust option).
-              ybatch_jacobians = 0;
+              ybatch_jacobians.resize(ybatch_n);
+
+              // After creation, all individual Jacobi matrices in the array will be 
+              // empty (size zero). No need for explicit initialization.
             }
           
           is_first = false;
@@ -243,7 +242,7 @@ void ybatchCalc(Workspace&      ws,
           ybatch(joker, first_ybatch_index) = y;
           
           if(store_jacobians)
-              ybatch_jacobians(first_ybatch_index, joker, joker) = jacobian;
+              ybatch_jacobians[first_ybatch_index] = jacobian;
         }
       catch (runtime_error e)
         {
@@ -283,7 +282,7 @@ void ybatchCalc(Workspace&      ws,
 #pragma omp parallel for                                     \
   if(!arts_omp_in_parallel())                                \
   firstprivate(l_ws, l_ybatch_calc_agenda)                   \
-  private(y)
+  private(y, jacobian)
   for(Index ybatch_index = first_ybatch_index;
       ybatch_index<ybatch_n;
       ybatch_index++ )
@@ -314,7 +313,7 @@ void ybatchCalc(Workspace&      ws,
           ybatch( joker, ybatch_index ) = y;
 
           if(store_jacobians)
-              ybatch_jacobians(first_ybatch_index, joker, joker) = jacobian;          
+              ybatch_jacobians[ybatch_index] = jacobian;          
         }
       catch (runtime_error e)
         {

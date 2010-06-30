@@ -4087,18 +4087,17 @@ void Workspace::define_wsv_data()
     (
      "All the Jacobians associated with ybatch.\n"
      "\n"
-     "Note that the batch index here is the first dimension,\n"
-     "whereas for ybatch it is the last dimension\n"
+     "The batch index here is the array dimension.\n"
      "\n"
      "Usage: Most commonly produced by *ybatch*.\n"
      "\n"
      "Unit:  Depends on unit of y and on Jacobian type.\n"
      "\n"
-     "Dimensions: (number of batch cases, \n"
-     "             length(y), \n"
+     "Dimensions: [number of batch cases] \n"
+     "             (length(y), \n"
      "             number of retrieval quantities and grids)\n" 
      ),
-    GROUP( "Tensor3" )));
+    GROUP( "ArrayOfMatrix" )));
   
   wsv_data.push_back
    (WsvRecord

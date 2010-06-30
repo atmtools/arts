@@ -1,3 +1,21 @@
+2010-06-30  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-14-52
+
+        * src/m_batch.cc (ybatchCalc): Fixed an Issue reported by
+	Isaac. The user may want the different Jacobians to have different
+	number of x gridpoints (e.g., different number of vertical levels
+	for different radiosonde profiles). This works now. Also fixed one
+	OpenMP bug pointed out by Oliver, and another bug I discovered
+	myself. Hope it works correctly now!
+
+        * src/workspace.cc (ybatch_jacobians): Changed type of this
+	variable from Tensor3 to ArrayOfMatrix, to allow for different
+	size of different Jacobians.
+
+	* src/methods.cc (ybatchCalc): Changed argument type of
+	ybatch_jacobian and updated builtin documentation.
+
 2010-06-24  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-51
