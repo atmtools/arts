@@ -3,7 +3,7 @@ find_package (LATEX)
 
 if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
 
-  include ("ArtsBuildTexDoc")
+  include (ArtsBuildTexDoc)
 
   configure_file (${CMAKE_CURRENT_SOURCE_DIR}/auto_version.tex.in
                   ${CMAKE_CURRENT_BINARY_DIR}/auto_version.tex @ONLY)
