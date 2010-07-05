@@ -9,7 +9,7 @@ INCLUDE "general.arts"
 
 #### LOAD DATA: these files were created with MCDataPrepare.arts ######
 
-ReadXML( f_grid, "f_grid.xml.generated" )
+ReadXML( f_grid, "TestMonteCarloDataPrepare.f_grid.xml" )
 
 IndexSet( f_index, 0 )
 
@@ -21,28 +21,28 @@ ReadXML( lat_grid, "lat_grid.xml" )
 
 ReadXML( lon_grid, "lon_grid.xml" )
 
-ReadXML( t_field, "t_field.xml.generated" )
+ReadXML( t_field, "TestMonteCarloDataPrepare.t_field.xml" )
 
-ReadXML( z_field, "z_field.xml.generated" )
+ReadXML( z_field, "TestMonteCarloDataPrepare.z_field.xml" )
 
-ReadXML( vmr_field, "vmr_field.xml.generated" )
+ReadXML( vmr_field, "TestMonteCarloDataPrepare.vmr_field.xml" )
 
 r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
 
-ReadXML( z_surface, "z_surface.xml.generated" )
+ReadXML( z_surface, "TestMonteCarloDataPrepare.z_surface.xml" )
 
-ReadXML( abs_lookup, "abs_lookup.xml.generated" )
+ReadXML( abs_lookup, "TestMonteCarloDataPrepare.abs_lookup.xml" )
 
 SpeciesSet( abs_species,
             [ "O2-PWR93", "N2-SelfContStandardType", "H2O-PWR98" ] )
 
 abs_lookupAdapt
 
-ReadXML( cloudbox_limits, "cloudbox_limits.xml.generated" )
+ReadXML( cloudbox_limits, "TestMonteCarloDataPrepare.cloudbox_limits.xml" )
 
-ReadXML( pnd_field, "pnd_field.xml.generated" )
+ReadXML( pnd_field, "TestMonteCarloDataPrepare.pnd_field.xml" )
 
-ReadXML( scat_data_mono, "scat_data_mono.xml.generated" )
+ReadXML( scat_data_mono, "TestMonteCarloDataPrepare.scat_data_mono.xml" )
 
 
 #### Define Agendas #################################################
@@ -92,10 +92,9 @@ MCGeneral
 #### Save calculated Stokes vector and std. err.#########################
 
 output_file_formatSetAscii
-WriteXML( output_file_format, y, "MonteCarloGeneral.y.xml.generated" )
+WriteXML( output_file_format, y )
 
-WriteXML( output_file_format, mc_error,
-          "MonteCarloGeneral.mc_error.xml.generated" )
+WriteXML( output_file_format, mc_error )
 
 #### Print number of photons and radiance units ########################
 

@@ -36,10 +36,10 @@ SpeciesSet( abs_species, [ "H2O-PWR98",
                            "N2-SelfContStandardType" ] )
 
 # Alternatively select all species that we can find in the scenario:
-#abs_speciesDefineAllInScenario( abs_species, "tropical" )
+#abs_speciesDefineAllInScenario( abs_species, "../atmosphere_data/tropical" )
 
 # Atmospheric profiles
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "tropical" )
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "../atmosphere_data/tropical" )
 
 # This separates the lines into the different tag groups and creates
 # the workspace variable `abs_lines_per_species':
@@ -74,17 +74,15 @@ VectorSet( abs_nls_pert, [] )
 abs_lookupCreate
 
 # Optionally write these to files:
-#WriteXML( output_file_format, abs_t, "simpleAbs.abs_t.xml.generated" )
-#WriteXML( output_file_format, vmrs, "simpleAbs.vmrs.xml.generated" )
+#WriteXML( output_file_format, abs_t )
+#WriteXML( output_file_format, vmrs )
 
 # Write absorption coefficients to files:
-#WriteXML( output_file_format, abs_coef, "simpleAbs.abs_coef.xml.generated" )
-#WriteXML( output_file_format, abs_coef_per_species,
-#          "simpleAbs.abs_coef_per_species.xml.generated" )
+#WriteXML( output_file_format, abs_coef )
+#WriteXML( output_file_format, abs_coef_per_species )
 
 # Write absorption lookup table to file:
-WriteXML ( output_file_format, abs_lookup,
-           "simpleAbs.abs_lookup.xml.generated" )
+WriteXML ( output_file_format, abs_lookup )
 
 }
 

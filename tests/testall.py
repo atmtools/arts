@@ -59,13 +59,13 @@ class TestMonteCarloGeneral(unittest.TestCase):
         assert self.MCrun.error=='','Error running TestMonteCarloSimple.arts: '+self.MCrun.error
     def test2(self):
         """Total radiance should be close to 201.8 K"""
-        I=artsXML.load("MonteCarlo/MonteCarloGeneral.y.xml.generated")[0]
-        dI=artsXML.load("MonteCarlo/MonteCarloGeneral.mc_error.xml.generated")[0]
+        I=artsXML.load("MonteCarlo/TestMonteCarloGeneral.y.xml")[0]
+        dI=artsXML.load("MonteCarlo/TestMonteCarloGeneral.mc_error.xml")[0]
         assert abs(I-201.8) < 4*dI, 'I (= %.2f K) is too far away from 201.8 K' % I
     def test3(self):
         """Polarization difference should be close to 7.6 K"""
-        Q=artsXML.load("MonteCarlo/MonteCarloGeneral.y.xml.generated")[1]
-        dQ=artsXML.load("MonteCarlo/MonteCarloGeneral.mc_error.xml.generated")[1]
+        Q=artsXML.load("MonteCarlo/TestMonteCarloGeneral.y.xml")[1]
+        dQ=artsXML.load("MonteCarlo/TestMonteCarloGeneral.mc_error.xml")[1]
         assert abs(Q-7.6) < 4*dQ, 'Q (= %.2f K) is too far away from 7.6 K' % Q
         
 class TestMonteCarloGeneralGaussian(unittest.TestCase):
@@ -77,13 +77,13 @@ class TestMonteCarloGeneralGaussian(unittest.TestCase):
         assert self.MCrun.error=='','Error running TestMonteCarloGeneralGaussian.arts: '+self.MCrun.error
     def test2(self):
         """Total radiance should be close to 201 K"""
-        I=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.y.xml.generated")[0]
-        dI=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.mc_error.xml.generated")[0]
+        I=artsXML.load("MonteCarlo/TestMonteCarloGeneralGaussian.y.xml")[0]
+        dI=artsXML.load("MonteCarlo/TestMonteCarloGeneralGaussian.mc_error.xml")[0]
         assert abs(I-201) < 4*dI, 'I (= %.2f K) is too far away from 201 K' % I
     def test3(self):
         """Polarization difference should be close to 7.7 K"""
-        Q=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.y.xml.generated")[1]
-        dQ=artsXML.load("MonteCarlo/MonteCarloGeneralGaussian.mc_error.xml.generated")[1]
+        Q=artsXML.load("MonteCarlo/TestMonteCarloGeneralGaussian.y.xml")[1]
+        dQ=artsXML.load("MonteCarlo/TestMonteCarloGeneralGaussian.mc_error.xml")[1]
         assert abs(Q-7.6) < 4*dQ, 'Q (= %.2f K) is too far away from 7.6 K' % Q
 
 class TestRteCalcMC(unittest.TestCase):
@@ -95,8 +95,8 @@ class TestRteCalcMC(unittest.TestCase):
         assert self.MCrun.error=='','Error running RteCalcMC.arts: '+self.MCrun.error
     def test2(self):
         """Total radiance should be close to 199.5 K"""
-        I=artsXML.load("MonteCarlo/RteCalcMC.y.xml.generated")[0]
-        dI=artsXML.load("MonteCarlo/RteCalcMC.mc_error.xml.generated")[0]
+        I=artsXML.load("MonteCarlo/TestRteCalcMC.y.xml")[0]
+        dI=artsXML.load("MonteCarlo/TestRteCalcMC.y_error.xml")[0]
         assert abs(I-199.5) < 4*dI, 'I (=%.2f K) is too far away from 199.5 K' % I
 
 
@@ -109,7 +109,7 @@ class TestOdinSMR(unittest.TestCase):
         assert self.ODINrun.error=='','Error running TestOdinSMR.arts: '+self.ODINrun.error
     def test2(self):
         """Max radiance should be close to 113.2 K"""
-        I=artsXML.load("OdinSMR/TestOdinSMR.y.xml.generated")
+        I=artsXML.load("OdinSMR/TestOdinSMR.y.xml")
 #        assert abs( max(I)-113.2 ) < 0.1, 'I (=%.2f K) is too far away from 113.2 K' % (max(I))
 
 
@@ -122,11 +122,11 @@ class TestDOIT(unittest.TestCase):
         assert self.DOITrun.error=='','Error running TestDOIT.arts: '+self.DOITrun.error
     def test2(self):
         """Total radiance should be close to 204.5 K"""
-        I=artsXML.load("DOIT/DOIT.y.xml.generated")[0]
+        I=artsXML.load("DOIT/TestDOIT.y.xml")[0]
         assert abs(I-204.5) < 1., 'I (='+str(I)+'K) is too far away from 204.5 K'
     def test3(self):
         """Polarization difference should be close to 7.2 K"""
-        Q=artsXML.load("DOIT/DOIT.y.xml.generated")[1]
+        Q=artsXML.load("DOIT/TestDOIT.y.xml")[1]
         assert abs(Q-7.2) < 1., 'Q (=%.2f K) is too far away from 7.2 K' % Q
         
 
@@ -139,12 +139,12 @@ class TestClearSky(unittest.TestCase):
         assert self.CSrun.error=='','Error running TestClearSky.arts: '+self.CSrun.error
     def test2(self):
         """Total radiance should be close to 112.15 K"""
-        I=artsXML.load("ClearSky/ClearSky.y1.xml.generated")[0]
+        I=artsXML.load("ClearSky/TestClearSky.y1.xml")[0]
         assert abs(I-112.15) < 0.01, 'I (='+str(I)+'K) is too far away from 249.68 K'
     def test3(self):
         """Difference between on-the-fly and lookup table should be below 0.01 K"""
-        I1=artsXML.load("ClearSky/ClearSky.y1.xml.generated")[0]
-        I2=artsXML.load("ClearSky/ClearSky.y2.xml.generated")[0]
+        I1=artsXML.load("ClearSky/TestClearSky.y1.xml")[0]
+        I2=artsXML.load("ClearSky/TestClearSky.y2.xml")[0]
         assert abs(I2-I1) < 0.01, 'Discrepancy (=%.3f K) is too large' % I2-I1
 
 class TestGroundBased(unittest.TestCase):
@@ -171,14 +171,14 @@ class TestAMSUB(unittest.TestCase):
             [261.745350437585, 258.609286489753, 257.907114868754, 260.564250958801, 263.882120068143, 263.902087078759, 257.48100749554, 261.480570299508, 260.256896848913, 263.247342836763],
             [271.820077454283, 270.816540678842, 271.059618617288, 273.418003059435, 276.507011327624, 275.819728169072, 270.0220106208, 275.639956647712, 271.828843342715, 276.130368937293]]);
 
-        I = artsXML.load("AMSU/AMSUB.ybatch.xml.generated")
+        I = artsXML.load("AMSU/TestAMSUB.ybatch.xml")
         for j in range (5):
             for k in range (10):
-                assert abs(I[j,k]-Iref[j,k]) < 0.001,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
+                assert abs(I[j,k]-Iref[j,k]) < 0.01,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
     def test3(self):
         """Total radiance should be close to the values of TestAMSUB_fast"""
-        Iref = artsXML.load("AMSU/AMSUB.ybatch.xml.generated")
-        I    = artsXML.load("AMSU/AMSUB_fast.ybatch.xml.generated")
+        Iref = artsXML.load("AMSU/TestAMSUB.ybatch.xml")
+        I    = artsXML.load("AMSU/TestAMSUB_fast.ybatch.xml")
         for j in range (5):
             for k in range (10):
                 assert abs(I[j,k]-Iref[j,k]) < 0.2,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
@@ -207,14 +207,14 @@ class TestMHS(unittest.TestCase):
             [261.745254770484, 258.609171336295, 257.906981980146, 260.564095428528, 263.882002209582, 263.901973114413, 257.480894063622, 261.480447122568, 260.256790525422, 263.247228300712],
             [271.435354184594, 270.218863959384, 270.270489481309, 272.74452733781, 275.805101210536, 275.26144214164, 269.310000617579, 274.98290753595, 271.206020686257, 275.430506383982]]);
 
-        I = artsXML.load("MHS/MHS.ybatch.xml.generated")
+        I = artsXML.load("MHS/TestMHS.ybatch.xml")
         for j in range (5):
             for k in range (10):
                 assert abs(I[j,k]-Iref[j,k]) < 0.005,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
     def test3(self):
         """Total radiance should be close to the values of TestMHS_fast"""
-        Iref = artsXML.load("MHS/MHS.ybatch.xml.generated")
-        I    = artsXML.load("MHS/MHS_fast.ybatch.xml.generated")
+        Iref = artsXML.load("MHS/TestMHS.ybatch.xml")
+        I    = artsXML.load("MHS/TestMHS_fast.ybatch.xml")
         for j in range (5):
             for k in range (10):
                 assert abs(I[j,k]-Iref[j,k]) < 0.2,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])

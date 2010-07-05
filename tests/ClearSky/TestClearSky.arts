@@ -17,7 +17,7 @@ INCLUDE "continua.arts"
 #                             "/storage1/pool/lookup2/hitran2004/HITRAN04.par",
 #                             310e9,
 #                             340e9 )
-#WriteXML( output_file_format, abs_lines, "abs_lines.xml" )
+#WriteXML( output_file_format, abs_lines )
 
 
 # Read line file
@@ -49,7 +49,7 @@ abs_lines_per_speciesCreateFromLines
 
 # Atmospheric profiles
 # ---
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "tropical" )
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "../atmosphere_data/tropical" )
 #
 AtmFieldsCalc
 
@@ -87,7 +87,7 @@ yCalc
 
 # Write the result for the python test script
 output_file_formatSetAscii
-WriteXML( output_file_format, y, "ClearSky.y1.xml.generated" )
+WriteXML( output_file_format, y, "TestClearSky.y1.xml" )
 
 
 # Do the same calculation again, but with lookup table absorption
@@ -152,9 +152,9 @@ jacobianClose
 yCalc
 
 output_file_formatSetAscii
-WriteXML( output_file_format, y, "ClearSky.y2.xml.generated" )
+WriteXML( output_file_format, y, "TestClearSky.y2.xml" )
 
-WriteXML( output_file_format, jacobian, "ClearSky.jacobian.xml.generated" )
+WriteXML( output_file_format, jacobian )
 
 } # End of Main
  

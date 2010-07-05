@@ -13,7 +13,7 @@ output_file_formatSetBinary
 
 VectorSet( f_grid, [ 230e9 ] )
 
-WriteXML( output_file_format, f_grid,  "f_grid.xml.generated" )
+WriteXML( output_file_format, f_grid )
 
 IndexSet( f_index, 0 )
 
@@ -32,15 +32,15 @@ SpeciesSet( abs_species,
 
 abs_lines_per_speciesSetEmpty
 
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "tropical" )
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "../atmosphere_data/tropical" )
 
 AtmFieldsCalcExpand1D
 
-WriteXML( output_file_format, t_field, "t_field.xml.generated" )
+WriteXML( output_file_format, t_field )
 
-WriteXML( output_file_format, z_field, "z_field.xml.generated" )
+WriteXML( output_file_format, z_field )
 
-WriteXML( output_file_format, vmr_field, "vmr_field.xml.generated" )
+WriteXML( output_file_format, vmr_field )
 
 r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
 
@@ -50,11 +50,11 @@ ncolsGet( ncols, r_geoid )
 
 MatrixSetConstant( z_surface, nrows, ncols, 500.0 )
 
-WriteXML( output_file_format, z_surface, "z_surface.xml.generated" )
+WriteXML( output_file_format, z_surface )
 
 abs_lookupSetup
 abs_lookupCreate
-WriteXML( output_file_format, abs_lookup, "abs_lookup.xml.generated" )
+WriteXML( output_file_format, abs_lookup )
 
 
 cloudboxSetManually( cloudbox_on, cloudbox_limits, 
@@ -78,17 +78,17 @@ ReadXML( pnd_field_raw, "pnd_field_raw.xml" )
 
 pnd_fieldCalc
 
-WriteXML( output_file_format, pnd_field, "pnd_field.xml.generated" )
+WriteXML( output_file_format, pnd_field )
 
 scat_data_monoCalc
 
 #For some reason SingleScatteringData binary files can't be loaded 
 output_file_formatSetAscii
 
-WriteXML( output_file_format, scat_data_raw, "scat_data_raw.xml.generated" )
+WriteXML( output_file_format, scat_data_raw )
 
-WriteXML( output_file_format, scat_data_mono, "scat_data_mono.xml.generated" )
+WriteXML( output_file_format, scat_data_mono )
 
-WriteXML( output_file_format, cloudbox_limits, "cloudbox_limits.xml.generated" )
+WriteXML( output_file_format, cloudbox_limits )
 
 }

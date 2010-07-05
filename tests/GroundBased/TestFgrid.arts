@@ -16,7 +16,7 @@ SpeciesSet( abs_species, [ "O3", "H2O" ] )
 VectorNLogSpace( p_grid, 81, 1.013e5, 1 )
 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-                                                        "midlatitude-winter" )
+                                  "../atmosphere_data/tropical" )
 AtmFieldsCalc
 
 
@@ -114,8 +114,8 @@ VectorCreate( y1 )
 Copy( x1, f_grid )
 Copy( y1, y )
 #
-WriteXML( output_file_format, x1, "TestFgrid.x1.xml.generated" )
-WriteXML( output_file_format, y1, "TestFgrid.y1.xml.generated" )
+WriteXML( output_file_format, x1 )
+WriteXML( output_file_format, y1 )
 
 
 
@@ -137,8 +137,8 @@ VectorCreate( ye )
 Copy( x2, f_grid )
 Copy( ye, y )
 #
-WriteXML( output_file_format, x2, "TestFgrid.x2.xml.generated" )
-WriteXML( output_file_format, ye, "TestFgrid.ye.xml.generated" )
+WriteXML( output_file_format, x2 )
+WriteXML( output_file_format, ye )
 
 
 # ---- Create spectra with polynomial filling ---------------------------------
@@ -152,9 +152,8 @@ sensor_responseFillFgrid( sensor_response, sensor_response_f,
    sensor_response_f_grid, sensor_response_pol_grid, sensor_response_za_grid, 
    sensor_response_aa_grid, 3, 2 )
 yCalc
-WriteXML( output_file_format, sensor_response_f_grid, 
-                                 "TestFgrid.x3.xml.generated" )
-WriteXML( output_file_format, y, "TestFgrid.y3.xml.generated" )
+WriteXML( output_file_format, sensor_response_f_grid, "TestFgrid.x3.xml" )
+WriteXML( output_file_format, y, "TestFgrid.y3.xml" )
 
 sensor_responseInit
 sensor_responseFillFgrid( sensor_response, sensor_response_f, 
@@ -163,7 +162,7 @@ sensor_responseFillFgrid( sensor_response, sensor_response_f,
    sensor_response_aa_grid, 5, 4 )
 yCalc
 WriteXML( output_file_format, sensor_response_f_grid, 
-                                 "TestFgrid.x5.xml.generated" )
-WriteXML( output_file_format, y, "TestFgrid.y5.xml.generated" )
+                                 "TestFgrid.x5.xml" )
+WriteXML( output_file_format, y, "TestFgrid.y5.xml" )
 
 }

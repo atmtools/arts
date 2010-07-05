@@ -69,7 +69,7 @@ Test%:
 		for i in  $(EXTRA_DIST); do \
 			TESTDIR=$$(basename $$(dirname $$i)); \
 			test "$$TESTDIR" = "tests" && TESTDIR=.; \
-			cp -u "$$i" "$$TESTDIR/"; \
+			cp "$$i" "$$TESTDIR/"; \
 		done; \
 	fi
 

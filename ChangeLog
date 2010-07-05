@@ -1,3 +1,42 @@
+2010-07-05  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-55
+
+	* You have to re-run 'cmake ..' in your build directory after updating
+	to this version.
+
+	* tests/CMakeLists.txt, cmake/modules/ArtsTestcases.cmake:
+
+	Introduce a proper clean target.
+
+	* tests/CMakeLists.txt:
+
+	Fix a bug that prevented all but one test from the slow test from
+	running.
+
+	Change the allowed BT deviation from 0.001 K to 0.01 K.
+
+	* tests/*/tropical*.xml: Move atmosphere data into shared directory.
+
+	* tests/atmosphere_data/tropical*.xml:
+
+	Add directory with atmosphere data used by several test cases.
+
+	* tests/Makefile.am: remove -u option from cp for Mac compatibility.
+
+	* tests/*/*.arts:
+
+	Remove the .generated postfix from output files and use the default
+	ARTS filename instead where possible.
+
+	Read tropical*.xml files from ../atmosphere_data where applicable.
+
+	* tests/GroundBased/*.arts:
+
+	Use tropical scenario instead of midlatitude-winter.
+
+	* tests/GroundBased/midlatitude-winter*.xml: Removed.
+
 2010-07-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-54

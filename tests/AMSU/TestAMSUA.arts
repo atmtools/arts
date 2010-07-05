@@ -8,8 +8,8 @@ INCLUDE "TestAMSU_generic.arts"
 
 # Store result matrix:
 # ---
-WriteXML( "ascii", ybatch, "AMSUA.ybatch.xml.generated"}
+WriteXML( "ascii", ybatch }
 
-WriteXML( "ascii", ybatch_jacobians, "AMSUA.ybatch_jacobians.xml.generated" )
+WriteXML( "ascii", ybatch_jacobians )
 
 }

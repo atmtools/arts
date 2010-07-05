@@ -48,6 +48,11 @@ macro (ARTS_ADD_TESTCASES TARGETS DEPENDENCIES)
       DEPENDS ../src/arts PrepareTestScripts ${DEPENDENCIES}
     )
     set(ADD_TARGETS ${ADD_TARGETS} ${TARGET})
+
+    get_directory_property (TESTCLEANFILES ADDITIONAL_MAKE_CLEAN_FILES)
+    set (TESTCLEANFILES ${TESTCLEANFILES} ${TARGET}.log)
+    set_directory_properties (PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
+                              "${TESTCLEANFILES}")
   endforeach(TESTCASE)
   set(${TARGETS} ${ADD_TARGETS})
 endmacro (ARTS_ADD_TESTCASES)

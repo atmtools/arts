@@ -74,7 +74,7 @@ SpeciesSet( abs_species, [ "O3" ] )
 VectorNLogSpace( p_grid, 81, 1.013e5, 1 )
 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
-                                                        "midlatitude-winter" )
+                                  "../atmosphere_data/tropical" )
 AtmFieldsCalc
 
 
@@ -180,9 +180,9 @@ jacobianClose
 
 yCalc
 #
-WriteXML( output_file_format, y, "TestGbased.y1.xml.generated" )
-WriteXML( output_file_format, y_f, "TestGbased.f.xml.generated" )
-WriteXML( output_file_format, jacobian, "TestGbased.J1.xml.generated" )
+WriteXML( output_file_format, y, "TestGbased.y1.xml" )
+WriteXML( output_file_format, y_f, "TestGbased.f.xml" )
+WriteXML( output_file_format, jacobian, "TestGbased.J1.xml" )
 
 
 
@@ -199,7 +199,7 @@ sensor_responseBackend
 
 yCalc
 #
-WriteXML( output_file_format, y, "TestGbased.y2.xml.generated" )
+WriteXML( output_file_format, y, "TestGbased.y2.xml" )
 
 
 
@@ -218,6 +218,6 @@ sensor_responseBackendFrequencySwitching( sensor_response, sensor_response_f,
 
 yCalc
 #
-WriteXML( output_file_format, y, "TestGbased.y3.xml.generated" )
+WriteXML( output_file_format, y, "TestGbased.y3.xml" )
 
 }

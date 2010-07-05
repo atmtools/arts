@@ -39,7 +39,7 @@ VectorNLogSpace( p_grid, 321, 1000e2, 1 )
 AtmosphereSet1D
 
 # Atmospheric profiles here taken from Fascod
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "tropical" )
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "../atmosphere_data/tropical" )
 #
 AtmFieldsCalc
 
@@ -92,16 +92,15 @@ Matrix1ColFromVector( sensor_los, za )
 yCalc
 
 
-WriteXML( output_file_format, y,     "TestOdinSMR.y.xml.generated" )
+WriteXML( output_file_format, y )
 
-WriteXML( output_file_format, z_tan, "TestOdinSMR.ztan.xml.generated" )
+WriteXML( output_file_format, z_tan )
 
-WriteXML( output_file_format, sensor_response_f_grid, 
-                           "TestOdinSMR.sensor_response_f_grid.xml.generated" )
+WriteXML( output_file_format, sensor_response_f_grid )
 
-WriteXML( output_file_format, y_f,   "TestOdinSMR.y_f.xml.generated"   )
-WriteXML( output_file_format, y_pol, "TestOdinSMR.y_pol.xml.generated" )
-WriteXML( output_file_format, y_pos, "TestOdinSMR.y_pos.xml.generated" )
-WriteXML( output_file_format, y_los, "TestOdinSMR.y_los.xml.generated" )
+WriteXML( output_file_format, y_f )
+WriteXML( output_file_format, y_pol )
+WriteXML( output_file_format, y_pos )
+WriteXML( output_file_format, y_los )
 
 }

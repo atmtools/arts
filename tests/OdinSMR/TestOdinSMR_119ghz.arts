@@ -142,7 +142,7 @@ abs_linesReadFromArts( abs_lines, "odin/linefile.119ghz.xml", 0, 2e12 )
 
 # Atmospheric scenario
 #
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "tropical" )
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "../atmosphere_data/tropical" )
 
 
 
@@ -362,9 +362,8 @@ sensor_responseBackend
 jacobianOff
 yCalc
 #
-WriteXML( output_file_format, y,     "TestOdinSMR_119ghz.y.xml.generated" )
-WriteXML( output_file_format, ztan,  "TestOdinSMR_119ghz.ztan.xml.generated" )
-WriteXML( output_file_format, sensor_response_f_grid, 
-                                     "TestOdinSMR_119ghz.f.xml.generated" )
+WriteXML( output_file_format, y )
+WriteXML( output_file_format, ztan )
+WriteXML( output_file_format, sensor_response_f_grid )
 
 }

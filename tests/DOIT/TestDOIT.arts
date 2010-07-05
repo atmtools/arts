@@ -38,7 +38,7 @@ ReadXML( p_grid, "p_grid.xml" )
 SpeciesSet( abs_species, [ "H2O", "N2", "O2"] )
 
 # Atmospheric profiles
-AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "tropical" )
+AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "../atmosphere_data/tropical" )
 
 # Gas absorption from lookup table 
 # ---------------------------------
@@ -166,7 +166,7 @@ AgendaSet( doit_mono_agenda ){
   # Put solution into interface for clearsky calculation   
   DoitCloudboxFieldPut
   # Write the radiation field inside the cloudbox:
-  WriteXML( output_file_format, doit_i_field, "doit_i_field.xml.generated" )
+  WriteXML( output_file_format, doit_i_field )
 }
 
 # Definitions for methods used in *i_fieldIterate*:
@@ -269,7 +269,7 @@ StringSet( y_unit, "RJBT" )
 #
 yCalc
 
-WriteXML( "ascii", y, "DOIT.y.xml.generated" )
+WriteXML( "ascii", y )
 
 
 
