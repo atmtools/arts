@@ -163,11 +163,11 @@ nc_write_to_file (const int ncid,
   int ncdims[4], varid;
   if ((retval = nc_def_dim (ncid, "nbooks", t.nbooks(), &ncdims[0])))
     ncerror (retval, "nc_def_dim");
-  if ((retval = nc_def_dim (ncid, "npages", t.npages(), &ncdims[0])))
+  if ((retval = nc_def_dim (ncid, "npages", t.npages(), &ncdims[1])))
     ncerror (retval, "nc_def_dim");
-  if ((retval = nc_def_dim (ncid, "nrows", t.nrows(), &ncdims[1])))
+  if ((retval = nc_def_dim (ncid, "nrows", t.nrows(), &ncdims[2])))
     ncerror (retval, "nc_def_dim");
-  if ((retval = nc_def_dim (ncid, "ncols", t.ncols(), &ncdims[2])))
+  if ((retval = nc_def_dim (ncid, "ncols", t.ncols(), &ncdims[3])))
     ncerror (retval, "nc_def_dim");
   if ((retval = nc_def_var (ncid, "Tensor4", NC_DOUBLE, 4, &ncdims[0], &varid)))
     ncerror (retval, "nc_def_var");
@@ -175,6 +175,58 @@ nc_write_to_file (const int ncid,
   if ((retval = nc_put_var_double (ncid, varid, t.get_c_array())))
     ncerror (retval, "nc_put_var");
 }
+
+//=== Tensor5 ==========================================================
+
+//! Reads a Tensor5 from a NetCDF file
+/*!
+  \param ncf     NetCDF file descriptor
+  \param t       Tensor5
+*/
+void
+nc_read_from_file (const int ncid,
+                   Tensor5& t)
+{
+  Index nshelves, nbooks, npages, nrows, ncols;
+  nshelves = nc_get_dim (ncid, "nshelves");
+  nbooks = nc_get_dim (ncid, "nbooks");
+  npages = nc_get_dim (ncid, "npages");
+  nrows  = nc_get_dim (ncid, "nrows");
+  ncols  = nc_get_dim (ncid, "ncols");
+
+  t.resize(nshelves, nbooks, npages, nrows, ncols);
+  nc_get_data_double (ncid, "Tensor5", t.get_c_array());
+}
+
+
+//! Writes a Tensor5 to a NetCDF file
+/*!
+  \param ncf     NetCDF file descriptor
+  \param t       Tensor5
+*/
+void
+nc_write_to_file (const int ncid,
+                  const Tensor5& t)
+{
+  int retval;
+  int ncdims[5], varid;
+  if ((retval = nc_def_dim (ncid, "nshelves", t.nshelves(), &ncdims[0])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_dim (ncid, "nbooks", t.nbooks(), &ncdims[1])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_dim (ncid, "npages", t.npages(), &ncdims[2])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_dim (ncid, "nrows", t.nrows(), &ncdims[3])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_dim (ncid, "ncols", t.ncols(), &ncdims[4])))
+    ncerror (retval, "nc_def_dim");
+  if ((retval = nc_def_var (ncid, "Tensor5", NC_DOUBLE, 5, &ncdims[0], &varid)))
+    ncerror (retval, "nc_def_var");
+  if ((retval = nc_enddef (ncid))) ncerror (retval, "nc_enddef");
+  if ((retval = nc_put_var_double (ncid, varid, t.get_c_array())))
+    ncerror (retval, "nc_put_var");
+}
+
 
 //=== Vector ==========================================================
 
@@ -236,7 +288,7 @@ TMPL_NC_READ_WRITE_FILE_DUMMY( Index )
 TMPL_NC_READ_WRITE_FILE_DUMMY( Numeric )
 TMPL_NC_READ_WRITE_FILE_DUMMY( Sparse )
 TMPL_NC_READ_WRITE_FILE_DUMMY( String )
-TMPL_NC_READ_WRITE_FILE_DUMMY( Tensor5 )
+//TMPL_NC_READ_WRITE_FILE_DUMMY( Tensor5 )
 TMPL_NC_READ_WRITE_FILE_DUMMY( Tensor6 )
 TMPL_NC_READ_WRITE_FILE_DUMMY( Tensor7 )
 TMPL_NC_READ_WRITE_FILE_DUMMY( Timer )

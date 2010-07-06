@@ -6272,7 +6272,7 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT(      "v"    ),
-        GOUT_TYPE( "Vector, Matrix, Tensor3, Tensor4, ArrayOfVector,"
+        GOUT_TYPE( "Vector, Matrix, Tensor3, Tensor4, Tensor5, ArrayOfVector,"
                    "ArrayOfMatrix" ),
         GOUT_DESC( "Variable to be read." ),
         IN(),
@@ -8357,7 +8357,7 @@ void define_md_data_raw()
         IN(),
         GIN(          "v",
                       "filename" ),
-        GIN_TYPE(     "Vector, Matrix, Tensor3, Tensor4, ArrayOfVector,"
+        GIN_TYPE(     "Vector, Matrix, Tensor3, Tensor4, Tensor5, ArrayOfVector,"
                       "ArrayOfMatrix",
                       "String" ),
         GIN_DEFAULT(  NODEF,
