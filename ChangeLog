@@ -1,3 +1,15 @@
+2010-07-08  Claudia Emde  <claudia.emde@lmu.de>
+
+	* arts-1-14-57	    
+	
+	* src/m_abs.cc,  src/methods.cc: Included a new method called
+	WriteMolTau. It can be used to generate a so called
+	molecular_tau_file which is required for high spectral resolution
+	calculations with libRadtran. Having this method, it is now
+	relatively easy to compare arts and libRadtran RT solvers or to
+	use libRadtran cloud parameterizations in combination with arts
+	calculated absorption coefficients. 
+
 2010-07-06  Claudia Emde  <claudia.emde@lmu.de>
 
 	* arts-1-14-56	    

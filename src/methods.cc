@@ -8339,6 +8339,35 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "WriteMolTau" ),
+        DESCRIPTION
+        (
+         "Writes a *molecular_tau_file* as required for libRadtran.\n"
+         "\n"
+         "The libRadtran (www.libradtran.org) radiative transfer package is a \n"
+         "comprehensive package for various applications, it can be used to \n"
+         "compute radiances, irradiances, actinic fluxes, ... for the solar \n"
+         "and the thermal spectral ranges. Absorption is usually treated using \n"
+         "k-distributions or other parameterizations. For calculations with high \n"
+         "spectral resolution it requires absorption coefficients from an external \n"
+         "line-by-line model. Using this method, arts generates a file that can be \n"
+         "used by libRadtran (option molecular_tau_file)."
+         "\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT(),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN("f_grid", "z_field", "abs_field", "atmosphere_dim" ),
+        GIN("filename"),
+        GIN_TYPE("String"),
+        GIN_DEFAULT( NODEF),
+        GIN_DESC("Name of the *molecular_tau_file*." )
+        ));
+  
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "WriteNetCDF" ),
         DESCRIPTION
         (
