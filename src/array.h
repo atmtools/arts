@@ -158,7 +158,7 @@ template<class base>
 inline Array<base>& Array<base>::operator=(const Array<base>& A)
 {
   //  cout << "size this / A = " << size() << " / " << A.size() << "\n";
-  resize(A.size());
+  this->resize(A.size());
   copy( A.begin(), A.end(), this->begin() );
   return *this;
 }

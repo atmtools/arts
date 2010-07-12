@@ -1694,6 +1694,13 @@ MatrixView transpose(MatrixView m)
   return MatrixView(m.mdata, m.mcr, m.mrr);
 }
 
+/** Returns the transpose. This creates a special MatrixView for the
+ transpose. The original is not changed! */
+MatrixView transpose(Vector v)
+{
+  return transpose((MatrixView)v);
+}
+
 /** A generic transform function for vectors, which can be used to
     implement mathematical functions operating on all
     elements. Because we have this, we don't need explicit functions

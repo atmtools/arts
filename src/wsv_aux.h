@@ -109,28 +109,9 @@ private:
   bool mimplicit;
 };
 
+
 /** Output operator for WsvRecord.
   \author Stefan Buehler */
 ostream& operator<<(ostream& os, const WsvRecord& wr);
-
-
-//! Print list of WSV names to output stream.
-/** Runs through the list of WSV indexes and print all names
-    to the given output stream. The list of indexes can be any
-    STL container such as Array, vector...
-
-    \param outstream OutputStream
-    \param container List of WSV indexes
-  */
-template <typename OutputStream, typename Container> void
-PrintWsvNames (OutputStream& outstream, const Container& container)
-{
-  for (typename Container::const_iterator it = container.begin ();
-       it != container.end (); it++ )
-    {
-      PrintWsvName (outstream, *it);
-    }
-
-}
 
 #endif   // wsv_aux_h

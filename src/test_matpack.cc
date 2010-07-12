@@ -88,7 +88,7 @@ int test1()
   v3 = v2;
 
   cout << "\nv3 = \n" << v3 << "\n";
-  fill_with_junk(v2);
+  fill_with_junk((VectorView)v2);
   cout << "\nv3 after junking v2 = \n" << v3 << "\n";
   v3 *= 2;
   cout << "\nv3 after *2 = \n" << v3 << "\n";
@@ -193,8 +193,8 @@ void test5()
   mult(a,M,b);    // a = M*b
   cout << "\na = M*b = \n" << a << "\n";
 
-  mult(transpose(b),transpose(a),M);    // b^t = a^t * M
-  cout << "\nb^t = a^t * M = \n" <<  transpose(b) << "\n";
+  mult(transpose((MatrixView)b),transpose((MatrixView)a),M); // b^t = a^t * M
+  cout << "\nb^t = a^t * M = \n" <<  transpose((MatrixView)b) << "\n";
   
 }
 

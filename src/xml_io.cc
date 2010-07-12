@@ -32,7 +32,6 @@
 #include "xml_io.h"
 #include "xml_io_private.h"
 #include "xml_io_types.h"
-#include "xml_io_instantiation.h"
 #include "bofstream.h"
 #include "bifstream.h"
 #include "file.h"
@@ -1062,3 +1061,7 @@ xml_write_to_file (const String&  filename,
   delete ofs;
 }
 
+// We can't do the instantiation at the beginning of this file, because the
+// implementation of xml_write_to_file and xml_read_from_file have to be known.
+
+#include "xml_io_instantiation.h"

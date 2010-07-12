@@ -39,7 +39,6 @@
 #include "arts.h"
 #include "nc_io.h"
 #include "nc_io_types.h"
-#include "nc_io_instantiation.h"
 #include "file.h"
 #include "messages.h"
 #include "exceptions.h"
@@ -206,6 +205,12 @@ void ncerror (const int e, const String s)
   os << "NetCDF error: " << s << ", " << e;
   throw runtime_error (os.str());
 }
+
+
+// We can't do the instantiation at the beginning of this file, because the
+// implementation of nc_write_to_file and nc_read_from_file have to be known.
+
+#include "nc_io_instantiation.h"
 
 #endif /* ENABLE_NETCDF */
 

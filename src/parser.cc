@@ -1003,7 +1003,8 @@ void ArtsParser::parse_generic_output(const MdRecord*&     mdd,
 
           if (wsvid == -1)
             {
-              if (mdd->Name().find ("Create") == mdd->Name().length() - 6)
+              if (mdd->Name().length() > 6 &&
+                  mdd->Name().find ("Create") == mdd->Name().length() - 6)
                 {
                   ostringstream os;
                   os << wsvname << " already exists. A variable can only be created once.\n";

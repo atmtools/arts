@@ -1,3 +1,55 @@
+2010-07-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-58
+	
+	* src/methods.cc: Extend Extract to handle Vector <- ArrayOfVector.
+
+	* src/methods.cc, src/m_ignore.cc:
+
+	Add workspace method Touch. Counterpart of Ignore. We have DoNothing
+	already, but that needs the variable to do nothing with as input _and_
+	ouput which is not possible in all cases.
+
+	Add deprecation message to DoNothing.
+
+	* tests/DOIT/TestDOIT.arts, tests/DISORT/TestDISORT.arts:
+
+	Replace DoNothing with Ignore.
+
+	* src/parser.cc (ArtsParser::parse_generic_output): Fix buggy if.
+
+	* cmake/modules/ArtsBuildTexDoc.cmake:
+
+	Change pdflatex interaction mode from batchmode to nonstopmode to
+	avoid suppressing warnings.
+
+	* src/nc_io_basic_types.cc: Remove unused line.
+
+	* src/agenda_class.cc: Don't include wsv_aux.h anymore.
+
+	* Here are some fixes to make ARTS compile with the current SVN
+	version of the brand new LLVM/CLANG++ compiler.
+
+	* CMakeLists.txt: Detect Clang.
+
+	* src/CMakeLists.txt: Apply same special options for Clang as for GCC.
+
+	* src/array.h:
+
+	Change resize() -> this->resize(). Fixes compilation on latest LLVM.
+
+	* src/wsv_aux.h, src/workspace_ng.h:
+
+	Move PrintWsvNames from wsv_aux.h to workspace_ng.h.
+
+	* src/agenda_class.cc: Don't include wsv_aux.h.
+
+	* src/test_matpack.cc: Add some casts.
+
+	* src/xml_io.cc, src/nc_io.cc:
+
+	Move instantiation include to the end of the file.
+
 2010-07-08  Claudia Emde  <claudia.emde@lmu.de>
 
 	* arts-1-14-57	    
@@ -12,7 +64,7 @@
 
 2010-07-06  Claudia Emde  <claudia.emde@lmu.de>
 
-	* arts-1-14-56	    
+	* arts-1-14-56
 	
 	* src/nc_io_basic_types.cc, src/methods.cc, src/matpackV.{h,cc}: Included 
 	  Tensor5 in ReadNetCDF ansd WriteNetCDF.

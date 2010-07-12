@@ -35,6 +35,8 @@
 #include <stack>
 #include <map>
 
+class Workspace;
+
 #include "array.h"
 #include "wsv_aux.h"
 
@@ -94,15 +96,35 @@ public:
 
 //! Print WSV name to output stream.
 /** Looks up the name of the WSV with index i and
-    prints it to the given output stream.
-
-    \param outstream OutputStream
-    \param i Index of WSV
-  */
+ prints it to the given output stream.
+ 
+ \param outstream OutputStream
+ \param i Index of WSV
+ */
 template <typename OutputStream> void
 PrintWsvName (OutputStream& outstream, Index i)
 {
   outstream << Workspace::wsv_data[i].Name () << "(" << i << ") ";
+}
+
+
+//! Print list of WSV names to output stream.
+/** Runs through the list of WSV indexes and print all names
+ to the given output stream. The list of indexes can be any
+ STL container such as Array, vector...
+ 
+ \param outstream OutputStream
+ \param container List of WSV indexes
+ */
+template <typename OutputStream, typename Container> void
+PrintWsvNames (OutputStream& outstream, const Container& container)
+{
+  for (typename Container::const_iterator it = container.begin ();
+       it != container.end (); it++ )
+  {
+    PrintWsvName (outstream, *it);
+  }
+  
 }
 
 

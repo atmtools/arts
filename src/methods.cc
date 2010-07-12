@@ -3373,6 +3373,8 @@ void define_md_data_raw()
       ( NAME( "DoNothing" ),
         DESCRIPTION
         (
+         "DEPRECATED!!! Use Touch and Ignore instead!\n"
+         "\n"
          "As *Ignore* but for agenda output.\n"
          "\n"
          "This method is handy for use in agendas in order to suppress\n"
@@ -3489,12 +3491,12 @@ void define_md_data_raw()
         AUTHORS( "Oliver Lemke" ),
         OUT(),
         GOUT( "needle" ),
-        GOUT_TYPE( "ArrayOfIndex, Numeric, Matrix, Matrix, Tensor3, Tensor4,"
+        GOUT_TYPE( "ArrayOfIndex, Numeric, Vector, Matrix, Matrix, Tensor3, Tensor4,"
                    "Tensor4, ArrayOfGriddedField3, GriddedField4" ),
         GOUT_DESC( "Extracted element." ),
         IN(),
         GIN( "haystack", "index" ),
-        GIN_TYPE( "ArrayOfArrayOfIndex, Vector, ArrayOfMatrix, Tensor3,"
+        GIN_TYPE( "ArrayOfArrayOfIndex, Vector, ArrayOfVector, ArrayOfMatrix, Tensor3,"
                   "Tensor4, ArrayOfTensor4, Tensor5, ArrayOfArrayOfGriddedField3,"
                   "ArrayOfGriddedField4",
                   "Index" ),
@@ -7954,6 +7956,32 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "Touch" ),
+        DESCRIPTION
+        (
+         "As *Ignore* but for agenda output.\n"
+         "\n"
+         "This method is handy for use in agendas in order to suppress\n"
+         "warnings about unused output workspace variables. What it does is:\n"
+         "Nothing!\n"
+         ),
+        AUTHORS( "Oliver Lemke" ),
+        OUT(),
+        GOUT(      "gout1"    ),
+        GOUT_TYPE( "Any" ),
+        GOUT_DESC( "Variable to do nothing with." ),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC(),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )
         ));
 
   md_data_raw.push_back

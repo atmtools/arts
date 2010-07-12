@@ -242,9 +242,9 @@ AgendaSet( doit_conv_test_agenda ){
 }
 
 AgendaSet( iy_cloudbox_agenda ){
-  DoNothing( ppath, ppath )
-  DoNothing( rte_pos, rte_pos )
-  DoNothing( rte_los, rte_los )
+  Ignore (ppath)
+  Ignore (rte_pos)
+  Ignore (rte_los)
   iyInterpCloudboxField
 }
 

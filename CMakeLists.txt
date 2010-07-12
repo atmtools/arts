@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6.3)
 
 project (ARTS)
-set (VERSION "1.14.55")
+set (VERSION "1.14.58")
 
 ENABLE_TESTING()
 
@@ -145,7 +145,12 @@ else (CMAKE_COMPILER_IS_INTELCXX)
   if (CMAKE_COMPILER_IS_GNUCXX)
     set (COMPILER "GNU C++")
   else (CMAKE_COMPILER_IS_GNUCXX)
-    set (COMPILER "unknown")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+      set (CMAKE_COMPILER_IS_CLANG 1)
+      set (COMPILER "LLVM/Clang")
+    else ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+      set (COMPILER "unknown")
+    endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   endif (CMAKE_COMPILER_IS_GNUCXX)
 endif (CMAKE_COMPILER_IS_INTELCXX)
 

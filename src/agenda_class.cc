@@ -33,7 +33,6 @@
 #include "agenda_class.h"
 #include "agenda_record.h" // only for test functions
 #include "methods.h"
-#include "wsv_aux.h"
 #include "messages.h"
 #include "workspace_ng.h"
 #include "arts_omp.h"
