@@ -315,15 +315,40 @@ scattering order.  The $\mathbf{Q_k}$ is updated through subsequent scattering e
 
 \subsection {Boundary contributions}
 
-Similarly, if the kth pathlength sampled in Eq. \ref{pathlengthint} is beyond the top of the atmosphere or below the earth surface, $\mathbf{Q_k}$ is applied in 
+Similarly, if the $k$\textsuperscript{th} pathlength sampled in Eq. \ref{pathlengthint} is beyond the top of the atmosphere or below the earth surface, $\mathbf{Q_k}$ is applied in 
 \begin{equation}
 \mathbf{I^i(n,s_0)}=\frac{\mathbf{Q_k}\mathbf{O(u_k,s_k)I(n_k,u_k)}}{O_{11}(\mathbf{u_{k},s_k})}
 \label{Ikmax2_1}
 \end{equation}
 , where 
-$\mathbf{I(n_k,u_k)}$ is the incoming radiance at boundary point $\mathbf{u}_{k}$.  For the top of atmosphere case, $\mathbf{I(n_k,u_k)}=I_{space}$.  SAY SOMETHING ABOUT ARTS ISPACE OPTIONS.  THEN BLACKBODY SURFACE CASE.
+$\mathbf{I(n_k,u_k)}$ is the incoming radiance at boundary point $\mathbf{u}_{k}$.  For the top of atmosphere case, $\mathbf{I(n_k,u_k)}=I_{space}$.  In ARTS it is possible to set $I_{space}$ to any value, but in most cases this is set to the cosmic background radiance associated with a Planck temperature of 2.735K. 
+
+For the surface case, if we choose to treat the surface as a blackbody, i.e. there is no reflection, in Eq. \ref{Ikmax2_1} we set $\mathbf{I(n_k,u_k)}=I_{surf}$, where $I_{surf}$ is the Planck radiance associated with the surface temperature, $I_{surf}=I_b{T_{surf}}$. 
 
 \subsection{Surface reflection} 
+
+Currently ARTS-MC can only consider specular reflection.  \emph{It would be a straightforward development to handle more complicated reflectins.  In the same way that the phase matrix is sampled to choose new incoming directions for scattering events, we could sample the Bidirectional reflection distribution (BDRF) for surface reflection events.} In analogy with scattering and emission in Eq. \ref{emiss-or-scatter}, $\mathbf{I_{surf}}$ is given by the sum of reflected and emitted radiation:
+
+\begin{eqnarray}
+\mathbf{I_{surf}(n_k,u_k)}&=&\mathbf{B(n_k,u_k)}+\mathbf{R(n_k,n_{k+1},u_k)I(n_{k+1},u_k)}\nonumber\\
+&=&\int^1_0\left\{\begin{array}{rl}\frac{1}{R_{11}}\mathbf{R(n_k,n_{k+1},u_k)I(n_{k+1},u_k)} & r \le R_{11}\\
+\frac{\mathbf{B(n_k,u_k)}}{1-R_{11}}& r > R_{11}\end{array}dr\right.\nonumber\\
+&\approx&
+\left\langle\left\{\begin{array}{rl}\frac{1}{R_{11}}\mathbf{R(n_k,n_{k+1},u_k)I(n_{k+1},u_k)} & r \le R_{11}\\
+\frac{\mathbf{B(n_k,u_k)}}{1-R_{11}}& r > R_{11}\end{array}\right.\right\rangle_r
+\label{I_surf}
+\end{eqnarray}
+
+The reflection matrix $\mathbf{R(n_k,n_{k+1},u_k)}$ and related surface emission, $\mathbf{B(n_k,u_k)}$ are calculated in one of several ways, as described in section {\bf[FIXME: that stuff should be in this document but it isn't yet]}.  As in Eq. \ref{emiss_or_scatter}, we use a uniform random deviate $r$; if
+$r>R_{11}$, where $R_{11}$ is the (1,1) element of $\mathbf{R(n_k,n_{k+1},u_k)}$, then the event is considered to be surface emission.  In
+this case we have all the information required to calculate the Monte
+Carlo estimator in Eq.\ref{Ikmax2_1} becomes, 
+\begin{equation}
+\mathbf{I^i(n,s_0)}=\frac{\mathbf{Q_k}\mathbf{O(u_k,s_k)B(n_k,u_k)}}{O_{11}(\mathbf{u_{k},s_k})(1-R_{11})}.
+\label{Ikmax2_2}
+\end{equation}
+
+NEXT THE REFLECTION CASE AND FIX THE FLOWCHART
 
 \begin{figure}
 \begin{center}
