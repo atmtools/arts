@@ -1,3 +1,46 @@
+2010-07-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-60
+
+	* As of this version, CMakeLists.txt does not need to be manually
+	updated with the current ARTS version number any longer.
+	From now on, the version number is automatically extracted from the
+	ChangeLog file.
+
+	* cmake/modules/ArtsVersion.cmake:
+
+	Helper functions to extract ARTS version number from ChangeLog.
+
+	* CMakeLists.txt, cmake/scripts/update_auto_version_txt.cmake:
+
+	Creates and updates the file auto_version.txt which contains the
+	current ARTS version number.
+
+	* cmake/scripts/update_auto_version_h.cmake, src/CMakeLists.txt:
+
+	Create auto_version.h from auto_version.txt.
+
+	* doc/uguide/CMakeLists.txt:
+
+	Create auto_version.tex from auto_version.txt.
+
+	* cmake/modules/cmake/modules/ArtsBuildTexDoc.cmake:
+
+	Let stage1 targets depend on auto_version_tex.
+
+	* cmake/scripts/update_index_html.cmake, doc/CMakeLists.txt:
+
+	Create index.html from index.html.in and auto_version.txt.
+
+	* CMakeLists.txt, README:
+
+	Warnings are no longer treated as errors by default. Can be enabled
+	with cmake -DWERROR. There are two reasons for this. First, different
+	compilers behave very differently in issuing warnings. Treating them
+	as errors often breaks the build unnecessarily. Second, with cmake
+	most output is suppressed by default except for warnings and errors,
+	so they stand out pretty clearly and are easily seen.
+
 2010-07-14  Cory  <cory@pheonix>
 
 	* arts-1-14-59

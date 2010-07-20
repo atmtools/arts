@@ -1,9 +1,8 @@
 cmake_minimum_required (VERSION 2.6.3)
 
 project (ARTS)
-set (VERSION "1.14.58")
 
-ENABLE_TESTING()
+enable_testing ()
 
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
@@ -118,9 +117,9 @@ if (CMAKE_COMPILER_IS_GNUCXX)
   set (WARN_FLAGS "${WARN_FLAGS} -W -Wall -Wconversion -Wshadow")
 endif (CMAKE_COMPILER_IS_GNUCXX)
 
-if (NOT NO_WERROR)
+if (WERROR)
   set (WARN_FLAGS "${WARN_FLAGS} -Werror")
-endif (NOT NO_WERROR)
+endif (WERROR)
 
 if (OPENMP_FOUND)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -145,6 +144,7 @@ else (CMAKE_COMPILER_IS_INTELCXX)
   if (CMAKE_COMPILER_IS_GNUCXX)
     set (COMPILER "GNU C++")
   else (CMAKE_COMPILER_IS_GNUCXX)
+    # OLE NOTE: cmake 2.8.1 and earlier identify Clang as GNUCXX!!!
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
       set (CMAKE_COMPILER_IS_CLANG 1)
       set (COMPILER "LLVM/Clang")
@@ -170,6 +170,14 @@ endif (APPLE)
   
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/src/config.h)
+
+add_custom_command (
+  OUTPUT auto_version.txt
+  COMMAND ${CMAKE_COMMAND} -D "ARTS_SOURCE_DIR:STRING=\"${CMAKE_SOURCE_DIR}\"" -P ${CMAKE_SOURCE_DIR}/cmake/scripts/update_auto_version_txt.cmake
+  DEPENDS ChangeLog
+)
+
+add_custom_target (UpdateAutoVersion ALL DEPENDS auto_version.txt)
 
 ########### subdirectories ###############
 

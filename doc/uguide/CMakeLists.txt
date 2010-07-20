@@ -3,10 +3,16 @@ find_package (LATEX)
 
 if (PDFLATEX_COMPILER AND BIBTEX_COMPILER AND MAKEINDEX_COMPILER)
 
-  include (ArtsBuildTexDoc)
+  add_custom_target (auto_version_tex DEPENDS auto_version.tex)
+  add_dependencies (auto_version_tex UpdateAutoVersion)
 
-  configure_file (${CMAKE_CURRENT_SOURCE_DIR}/auto_version.tex.in
-                  ${CMAKE_CURRENT_BINARY_DIR}/auto_version.tex @ONLY)
+  add_custom_command (
+    OUTPUT auto_version.tex
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/auto_version.txt auto_version.tex
+    DEPENDS ${CMAKE_BINARY_DIR}/auto_version.txt
+    )
+
+  include (ArtsBuildTexDoc)
 
   file (GLOB TEXFILES "${CMAKE_CURRENT_SOURCE_DIR}/arts_user.tex"
                       "${CMAKE_CURRENT_SOURCE_DIR}/concept.tex"

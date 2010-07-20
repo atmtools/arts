@@ -1,5 +1,3 @@
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/auto_version.h.in
-                ${CMAKE_CURRENT_BINARY_DIR}/auto_version.h @ONLY)
 
 include_directories (${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
                      ${ZLIB_INCLUDE_DIR})
@@ -22,9 +20,22 @@ if (ENABLE_DISORT)
   list (APPEND ALL_ARTS_LIBRARIES disort)
 endif (ENABLE_DISORT)
 
+########### target to extract version number from ChangeLog ###############
+
+add_custom_target (auto_version_h DEPENDS auto_version.h)
+add_dependencies (auto_version_h UpdateAutoVersion)
+
+add_custom_command (
+  OUTPUT auto_version.h
+  COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${CMAKE_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${CMAKE_SOURCE_DIR}\"" -P ${CMAKE_SOURCE_DIR}/cmake/scripts/update_auto_version_h.cmake
+  DEPENDS ${CMAKE_BINARY_DIR}/auto_version.txt
+)
+
+
 ########### next target ###############
 
-add_executable (arts auto_version.h main.cc)
+add_executable (arts main.cc)
+add_dependencies (arts auto_version_h)
 
 target_link_libraries (arts ${ALL_ARTS_LIBRARIES})
 

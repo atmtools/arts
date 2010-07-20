@@ -69,8 +69,8 @@ cmake -DNO_OPENMP=1 ..
 Disable NetCDF:
 cmake -DNO_NETCDF=1 ..
 
-Disable warnings being treated as errors:
-cmake -DNO_WERROR=1 ..
+Treat warnings as errors:
+cmake -DWERROR=1 ..
 
 
 If you want to compile with the Intel compiler, start with an empty build

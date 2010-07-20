@@ -64,7 +64,7 @@ macro (ARTS_ADD_TEX_DOC TARGET TEXFILES FIGFILES)
 
   add_custom_target (${TARGET} ALL DEPENDS ${TARGET}.pdf)
 
-  add_dependencies (${TARGET}-stage1
+  add_dependencies (${TARGET}-stage1 auto_version_tex
                     ${TARGET}-stamp ${OTHER_DOC1}-stamp ${OTHER_DOC2}-stamp)
 
   add_dependencies (${TARGET}
