@@ -1,3 +1,23 @@
+2010-07-21  Claudia Emde  <claudia.emde@lmu.de>
+
+	* arts-1-14-61
+	 
+	* src/methods.cc: Added *FrequencyFromWavelength* and *p_gridFromAtmRaw*.
+	
+	* src/{m_conversion.h, CMakeLists.txt, make_auto_md_cc.cc}:
+	Included the file m_conversion.h, which should include generic
+	methods for unit conversions, e.g. wavelength to frequency (this
+	is now included for Numeric and Vector). 
+	
+	* src/m_atmosphere.c (p_gridFromAtmRaw): Added this function, which 
+	extracts the p_grid from the atmospheric raw data.
+
+	* src/m_abs.cc (WriteMolTau): Initialization of tau (Matrix) was 
+	missing - fixed.
+	
+	* src/workspace.cc: Corrected documentation of *abs_species*, it
+	refered to *abs_speciesSet* which is now called *SpeciesSet*. 
+
 2010-07-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-60

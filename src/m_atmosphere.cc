@@ -1152,4 +1152,17 @@ void InterpAtmFieldToRteGps(
   out3 << "    Result = " << outvalue << "\n";
 }
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void p_gridFromAtmRaw(//WS Output
+                      Vector& p_grid,
+                      //WS Input
+                      const GriddedField3& z_field_raw
+                      )
+{
+  
+  Index i=0; 
+  while ( z_field_raw(i,0,0)< 0.0 ) i++;
 
+  Vector p_grid_raw=z_field_raw.get_numeric_grid(GFIELD3_P_GRID);
+  p_grid=p_grid_raw[Range(i,p_grid_raw.nelem()-1)];
+}

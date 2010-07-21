@@ -2963,8 +2963,14 @@ void WriteMolTau(//WS Input
   if ((retval = nc_put_var_double (ncid, wvl_varid, &wvl[0])))
     ncerror (retval, "nc_put_var");
 
-  double tau[z_field.npages()][f_grid.nelem()];
-  
+  double tau[z_field.npages()-1][f_grid.nelem()];
+
+  // Initialize tau
+  for (int iz=0; iz<z_field.npages()-1; iz++)
+    for (int iv=0; iv<f_grid.nelem(); iv++)
+      tau[iz][iv] = 0.0;
+
+  // Calculate average tau for layers
   for (int is=0; is<abs_field.nshelves(); is++)
     for (int iz=0; iz<z_field.npages()-1; iz++)
       for (int iv=0; iv<f_grid.nelem(); iv++)

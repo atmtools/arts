@@ -82,6 +82,7 @@ int main()
           << "#include \"m_append.h\"\n"
           << "#include \"m_delete.h\"\n"
           << "#include \"m_copy.h\"\n"
+          << "#include \"m_conversion.h\"\n"
           << "#include \"m_extract.h\"\n"
           << "#include \"m_general.h\"\n"
           << "#include \"m_ignore.h\"\n"

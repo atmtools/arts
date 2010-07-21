@@ -219,6 +219,7 @@ add_library (artscore STATIC
 	m_create.cc
 	m_basic_types.cc
 	m_basic_types.h
+        m_conversion.h
 	m_cloudbox.cc
 	m_disort.cc
 	m_fos.cc

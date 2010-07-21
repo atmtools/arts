@@ -3666,6 +3666,30 @@ void define_md_data_raw()
         GIN_DEFAULT( "5e8" ),
         GIN_DESC( "Desired grid spacing in Hz." )
         ));
+  
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "FrequencyFromWavelength" ),
+        DESCRIPTION
+        (
+         "Convert from wavelength [m] to frequency [Hz].\n"
+         "\n"
+         "This is a generic method. It can take a single wavelength value or a wavelength vector as input.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT(),
+        GOUT("frequency"),
+        GOUT_TYPE("Numeric, Vector"),
+        GOUT_DESC("frequency [Hz]"),
+        IN(),
+        GIN( "wavelength"),
+        GIN_TYPE("Numeric, Vector" ),
+        GIN_DESC("wavelength [m]" ),
+        GIN_DEFAULT( NODEF ),
+        SETMETHOD(      false ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )
+        ));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -6240,6 +6264,26 @@ void define_md_data_raw()
         PASSWORKSPACE( true  )
         ));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME( "p_gridFromAtmRaw" ),
+        DESCRIPTION
+        (
+         "Sets *p_grid* according to input atmosphere defined using *AtmRawRead*.\n"
+         "Only pressure values corresponding to altitudes >= 0 are extracted.\n"
+         ),
+        AUTHORS( "Claudia Emde" ),
+        OUT( "p_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "z_field_raw" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+ 
   md_data_raw.push_back     
     ( MdRecord
       ( NAME( "p_gridFromGasAbsLookup" ),
