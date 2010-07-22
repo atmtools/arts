@@ -24,6 +24,9 @@
   
 */
 
+#ifndef m_conversion_h
+#define m_conversion_h
+
 extern const Numeric SPEED_OF_LIGHT;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -53,3 +56,6 @@ void FrequencyFromWavelength(// WS Generic Output
     frequency[i]=SPEED_OF_LIGHT/wavelength[i];
   
 }
+
+#endif /* m_conversion_h */
+
