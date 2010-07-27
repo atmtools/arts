@@ -1,3 +1,15 @@
+2010-07-27  Claudia Emde  <claudia.emde@lmu.de>
+
+	* arts-1-14-63	  
+	
+	* src/workspace.cc: Added units "W/(m^2 m sr)" (radiance per
+	wavelength unit) and "W/(m^1 m-1 sr)" (radiance per wavenumber
+	unit) as options for workspace variable *y_unit*, which are
+	commonly used units for IR and VIS radiative transfer.
+		
+	* src/rte.cc (apply_y_unit, apply_y_unit2): Included conversion
+	for above units.  
+
 2010-07-22  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-62

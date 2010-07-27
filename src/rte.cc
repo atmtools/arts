@@ -128,12 +128,36 @@ void apply_y_unit(
             }
         }
     }
+  
+  else if ( y_unit == "W/(m^2 m sr)" )
+    {
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          for( Index is=0; is<iy.ncols(); is++ )
+            {
+              iy(iv,is) *= f_grid[iv]*f_grid[iv]/SPEED_OF_LIGHT;
+            }
+        }
+    }
+  
+  else if ( y_unit == "W/(m^2 m-1 sr)" )
+    {
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          for( Index is=0; is<iy.ncols(); is++ )
+            {
+              iy(iv,is) *= SPEED_OF_LIGHT;
+            }
+        }
+    }
 
   else
     {
       ostringstream os;
       os << "Unknown option: y_unit = \"" << y_unit << "\"\n" 
-         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
+         << "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
+         << "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\""; 
+      
       throw runtime_error( os.str() );      
     }
 }
@@ -217,14 +241,44 @@ void apply_y_unit2(
             }
         }
     }
-
+  else if ( y_unit == "W/(m^2 m sr)" )
+    {
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+           for( Index ip=0; ip<J.npages(); ip++ )
+             {
+               for( Index is=0; is<iy.ncols(); is++ )
+                 {
+                   J(ip,iv,is) *= f_grid[iv]*f_grid[iv]/SPEED_OF_LIGHT;
+                 }
+             }
+        }
+    }
+  
+  else if ( y_unit == "W/(m^2 m-1 sr)" )
+    {
+      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+        {
+          for( Index ip=0; ip<J.npages(); ip++ )
+            {
+              for( Index is=0; is<iy.ncols(); is++ )
+                {
+                  J(ip,iv,is) *= SPEED_OF_LIGHT;
+                }
+            }
+        }
+    }
+  
   else
     {
       ostringstream os;
       os << "Unknown option: y_unit = \"" << y_unit << "\"\n" 
-         << "Recognised choices are: \"1\", \"RJBT\" and \"PlanckBT\"";
+         << "Recognised choices are: \"1\", \"RJBT\", \"PlanckBT\""
+         << "\"W/(m^2 m sr)\" and \"W/(m^2 m-1 sr)\""; 
+      
       throw runtime_error( os.str() );      
     }
+  
 }
 
 
