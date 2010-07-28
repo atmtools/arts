@@ -114,8 +114,9 @@ estimate of Eq. \ref{antInt} is given by (e.g. \cite{press:92})
 \delta I_j=\sqrt{\frac{\langle I_j^2\rangle-\langle I_j\rangle^2}{N}}.
 \label{error}
 \end{equation}
-\subsection{The path integral}
 
+\subsection{The path integral}
+\label{sec:path_integral}
 We now require a Monte Carlo estimate of the integrand in
 Eq. \ref{antIntMC}, which is given by Eq. \ref{intVRTE}.  First, we
 re-express \ref{intVRTE} as a single integral, for simplicity dropping
@@ -318,16 +319,16 @@ scattering order.  The $\mathbf{Q_k}$ is updated through subsequent scattering e
 Similarly, if the $k$\textsuperscript{th} pathlength sampled in Eq. \ref{pathlengthint} is beyond the top of the atmosphere or below the earth surface, $\mathbf{Q_k}$ is applied in 
 \begin{equation}
 \mathbf{I^i(n,s_0)}=\frac{\mathbf{Q_k}\mathbf{O(u_k,s_k)I(n_k,u_k)}}{O_{11}(\mathbf{u_{k},s_k})}
-\label{Ikmax2_1}
+\label{boundary}
 \end{equation}
 , where 
 $\mathbf{I(n_k,u_k)}$ is the incoming radiance at boundary point $\mathbf{u}_{k}$.  For the top of atmosphere case, $\mathbf{I(n_k,u_k)}=I_{space}$.  In ARTS it is possible to set $I_{space}$ to any value, but in most cases this is set to the cosmic background radiance associated with a Planck temperature of 2.735K. 
 
-For the surface case, if we choose to treat the surface as a blackbody, i.e. there is no reflection, in Eq. \ref{Ikmax2_1} we set $\mathbf{I(n_k,u_k)}=I_{surf}$, where $I_{surf}$ is the Planck radiance associated with the surface temperature, $I_{surf}=I_b{T_{surf}}$. 
+For the surface case, if we choose to treat the surface as a blackbody, i.e. there is no reflection, in Eq. \ref{boundary} we set $\mathbf{I(n_k,u_k)}=I_{surf}$, where $I_{surf}$ is the Planck radiance associated with the surface temperature, $I_{surf}=I_b\left(T_{surf}\right)$. 
 
 \subsection{Surface reflection} 
-
-Currently ARTS-MC can only consider specular reflection.  \emph{It would be a straightforward development to handle more complicated reflectins.  In the same way that the phase matrix is sampled to choose new incoming directions for scattering events, we could sample the Bidirectional reflection distribution (BDRF) for surface reflection events.} In analogy with scattering and emission in Eq. \ref{emiss-or-scatter}, $\mathbf{I_{surf}}$ is given by the sum of reflected and emitted radiation:
+\label{sec:surf_refl}
+Currently ARTS-MC can only consider specular reflection.  In most of its uses todate ARTS-MC has dealt with cases where surface reflections have a small or negligible effect on simulated remote sensing observations.\emph{It would be a straightforward development to handle more complicated reflections.  In the same way that the phase matrix is sampled to choose new incoming directions for scattering events, we could sample the Bidirectional reflection distribution (BDRF) for surface reflection events.} In analogy with scattering and emission in Eq. \ref{emiss-or-scatter}, $\mathbf{I_{surf}}$ is given by the sum of reflected and emitted radiation:
 
 \begin{eqnarray}
 \mathbf{I_{surf}(n_k,u_k)}&=&\mathbf{B(n_k,u_k)}+\mathbf{R(n_k,n_{k+1},u_k)I(n_{k+1},u_k)}\nonumber\\
@@ -339,16 +340,25 @@ Currently ARTS-MC can only consider specular reflection.  \emph{It would be a st
 \label{I_surf}
 \end{eqnarray}
 
-The reflection matrix $\mathbf{R(n_k,n_{k+1},u_k)}$ and related surface emission, $\mathbf{B(n_k,u_k)}$ are calculated in one of several ways, as described in section {\bf[FIXME: that stuff should be in this document but it isn't yet]}.  As in Eq. \ref{emiss_or_scatter}, we use a uniform random deviate $r$; if
+The reflection matrix $\mathbf{R(n_k,n_{k+1},u_k)}$ and related surface emission, $\mathbf{B(n_k,u_k)}$ are calculated in one of several ways, as described in section {\bf[FIXME: that stuff should be in this document but it isn't yet]}.  As in Eq. \ref{emiss-or-scatter}, we use a uniform random deviate $r$; if
 $r>R_{11}$, where $R_{11}$ is the (1,1) element of $\mathbf{R(n_k,n_{k+1},u_k)}$, then the event is considered to be surface emission.  In
 this case we have all the information required to calculate the Monte
-Carlo estimator in Eq.\ref{Ikmax2_1} becomes, 
+Carlo estimator in Eq.\ref{boundary} becomes, 
 \begin{equation}
 \mathbf{I^i(n,s_0)}=\frac{\mathbf{Q_k}\mathbf{O(u_k,s_k)B(n_k,u_k)}}{O_{11}(\mathbf{u_{k},s_k})(1-R_{11})}.
-\label{Ikmax2_2}
+\label{surf-emiss}
 \end{equation}
+If our sampled $r \le R_{11}$ in Eq. \ref{I_surf}, then we have a surface reflection contribution, and the incoming (downward) stokes vector $\mathbf{I(n_{k+1},u_k)}$ remains unknown.  As in the scattering case we record the effect the evolution and reflection operators in the matrix $\mathbf{Q_k}=\mathbf{Q_{k-1}q_k}$, where
+\begin{equation}
+\mathbf{q_k}=\frac{\mathbf{O(s_k,s_{k-1})}\mathbf{R(n_{k-1},n_k)}}
+  {O_{11}(\mathbf{u_{k},s_k})R_{11}}
+\end{equation}
+, and continue with another path integral (Eq. \ref{pathlengthint}) in the direction $\mathbf{n_{k+1}}$.
+Since the refection is specular, $\mathbf{n_{k+1}}$ is described by zenith and azimuthal angles $\theta_{k+1}=\pi-\theta_k$ and $\phi_{k+1}=\phi_k$.  With regard to the scattering order $k$, surface reflection is considered the same as scattering.
 
-NEXT THE REFLECTION CASE AND FIX THE FLOWCHART
+\subsection{Summary}
+
+Summarizing sections \ref{sec:path_integral} to \ref{sec:surf_refl} we see that successively nested Monte Carlo integrals are calculated until atmospheric emission, surface emission, or top of atmosphere contributions are sampled.  Mueller matrices encountered in each integral (evolution operators, phase matrices, reflection matrices), along with Monte Carlo weights, are recorded in the matrix $\mathbf{Q_k}$.  This matrix applies the Mueller matrices in the correct 'forward' order to each emission or top of atmosphere contribution (Eq.s \ref{Iemission}, \ref{surf-emiss}, and \ref{boundary}).  The algorithm summarized graphically in Figure \ref{fig:montecarlo:flowchart}. 
 
 \begin{figure}
 \begin{center}
@@ -358,6 +368,9 @@ NEXT THE REFLECTION CASE AND FIX THE FLOWCHART
 \label{fig:montecarlo:flowchart}
 \end{figure}
 
+\section{Variance reduction}
+
+\section{The original ARTS-MC and forcing the pathlength sample to be within the 3D box} 
  
 %%% Local Variables: 
 %%% mode: latex 
