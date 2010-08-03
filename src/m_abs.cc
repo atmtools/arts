@@ -2989,5 +2989,19 @@ void WriteMolTau(//WS Input
 
 }
 
+#else
+
+void WriteMolTau(//WS Input
+                 const Vector& f_grid _U_,
+                 const Tensor3& z_field _U_,
+                 const Tensor5& abs_field _U_,
+                 const Index& atmosphere_dim _U_,
+                 //Keyword
+                 const String& filename _U_)
+{
+  throw runtime_error("The workspace method WriteMolTau is not available"
+                      "because ARTS was compiled without NetCDF support.");
+}
                  
 #endif /* ENABLE_NETCDF */
+

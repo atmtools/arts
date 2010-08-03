@@ -1,3 +1,15 @@
+2010-08-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-65
+
+	* src/m_abs.cc (WriteMolTau):
+
+	Create a dummy function that throws a runtime error if ARTS is compiled
+	without NetCDF support. Avoids linking error because of unresolved
+	symbol WriteMolTau without NetCDF. Reported by Rene Bleisch.
+
+	* src/m_nc.h: arts -> ARTS in error message.
+
 2010-07-28  Cory  <corzneffect@gmail.com>
 
 	* arts-1-14-64

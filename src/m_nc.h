@@ -85,7 +85,7 @@ ReadNetCDF (// WS Generic Input:
             const String& f_name _U_)
 
 {
-  throw runtime_error("This version of arts was compiled without NetCDF support.");
+  throw runtime_error("This version of ARTS was compiled without NetCDF support.");
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -98,7 +98,7 @@ WriteNetCDF (// WS Generic Input:
              const String& f_name _U_)
 
 {
-  throw runtime_error("This version of arts was compiled without NetCDF support.");
+  throw runtime_error("This version of ARTS was compiled without NetCDF support.");
 }
 
 #endif // ENABLE_NETCDF
