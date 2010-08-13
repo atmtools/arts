@@ -1,3 +1,24 @@
+2010-08-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-66
+
+	* doc/uguide/surface.tex: Some polishing. Added some theory
+	around BRDF and lambertian surfaces. 
+
+	* doc/uguide/rte.tex: Rearrangement of existing text, some
+	revision and new text. A complete, but partly thin, version.
+
+	* doc/uguide/atmosphere.tex: Polished text about the cloud box.
+
+	* doc/uguide/arts_user.tex: Updated name for Chalmers dept. It is now
+	Earth and Space Science.
+
+	* doc/uguide/arts_theory.tex: Removed FIXME for SB below
+	Contributing authors. Updated name for Chalmers dept.
+
+	* doc/uguide/arts_developer.tex: Removed FIXME for PE below
+	Contributing authors. Updated name for Chalmers dept.
+
 2010-08-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-65
@@ -18,15 +39,15 @@
 
 2010-07-27  Claudia Emde  <claudia.emde@lmu.de>
 
-	* arts-1-14-63	  
-	
+	* arts-1-14-63
+
 	* src/workspace.cc: Added units "W/(m^2 m sr)" (radiance per
 	wavelength unit) and "W/(m^2 m-1 sr)" (radiance per wavenumber
 	unit) as options for workspace variable *y_unit*, which are
 	commonly used units for IR and VIS radiative transfer.
-		
+
 	* src/rte.cc (apply_y_unit, apply_y_unit2): Included conversion
-	for above units.  
+	for above units.
 
 2010-07-22  Oliver Lemke  <olemke@core-dump.info>
 

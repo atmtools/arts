@@ -286,15 +286,12 @@ page.
 \section{The cloud box}
 %===================
 \label{sec:fm_defs:cloudbox}
-
-In order to save computational time, scattering calculations are
-limited as far as possible to the part of the atmosphere containing
-clouds and other scattering objects. The atmospheric region in which
-scattering shall be considered is denoted as the \textindex{cloud
-  box}, and it is discussed here as it acts as an additional
-atmospheric limit when calculating propagation paths (see
-Section \ref{sec:fm_defs:rte}). Cloud box calculations can be
-performed in 1D and 3D mode, but not for 2D.
+In order to save computational time, calculations involving scattering and
+polarised gas absorption are limitied to a special atmospherc domain. This
+atmospheric region is denoted as the \textindex{cloud box}, reflecting that it
+was introduced primarily to simplify scattering calculations. The cloud box is
+discussed here as it acts as an additional atmospheric limit when calculating
+propagation paths (see Section \ref{sec:fm_defs:rte}).
 
 The cloud box is defined to be rectangular in the used coordinate
 system, with limits exactly at points of the involved grids. This

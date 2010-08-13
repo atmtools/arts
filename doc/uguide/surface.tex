@@ -6,32 +6,6 @@
   050613 & First version finished by Patrick Eriksson. \\
 \stophistory
 
-An introduction to the treatment of surface emission and reflections
-is given in Section \ref{sec:fm_defs:surface}. The methods developed
-to handle different surface properties all set the variables
-\wsvindex{surface\_emission}, \wsvindex{surface\_los} and
-\wsvindex{surface\_rmatrix}.
-
-Let us start with a simple example in
-order to explain the usage of these workspace variables. We will here
-assume that all downwelling radiation is reflected. This assumption is
-made for all polarisation states. We assume further a 1D simulation,
-that the downwelling radiation shall be calculated for nine zenith
-angles and that all downwelling directions contribute equally (which
-is not a realistic assumption). The relevant workspace
-variables should then be set as follows:
- 
- \wsvindex{surface\_emission}: A matrix (of correct size) of zeros.
-
- \wsvindex{surface\_los}: A vector of length 9, covering the zenith
- angle range. A possible choice would be [5,15,25,\dots,85].
-
- \wsvindex{surface\_rmatrix}: Each reflection matrix is a diagonal
- matrix with the value 1/9 throughout on the diagonal. That is, all
- elements with index (:,:,i,i) is 1/9. Size matching
- \artsstyle{surface\_los}, \artsstyle{f\_grid} and
- \artsstyle{stokes\_dim}
-
 
 \section{The geoid and the surface}
 %===================
@@ -134,6 +108,38 @@ and reflectivity is discussed in Section \ref{sec:fm_defs:surface}.
  where \MtrStl{1} is the identity matrix. 
 
 
+
+\section{Main surface workspace variables}
+\label{sec:surface:surface:wsvs}
+%--------------
+An introduction to the treatment of surface emission and reflections is given
+in Section \ref{sec:fm_defs:surface}. As described in that section, the surface
+properties are described by three workspace variables The methods developed to
+handle different surface properties all set the variables
+\wsvindex{surface\_emission}, \wsvindex{surface\_los} and
+\wsvindex{surface\_rmatrix}.
+
+Let us start with a simple (but unrealistic) example in order to explain the
+usage of these workspace variables. We will here assume that all downwelling
+radiation is reflected. This assumption is made for all polarisation states. We
+assume further a 1D simulation, that the downwelling radiation shall be
+calculated for nine zenith angles and that all downwelling directions
+contribute equally (which is clearly not a realistic assumption!). The relevant
+workspace variables should then be set as follows:
+ 
+ \wsvindex{surface\_emission}: A matrix (of correct size) of zeros.
+
+ \wsvindex{surface\_los}: A vector of length 9, covering the zenith
+ angle range. A possible choice would be [5,15,25,\dots,85].
+
+ \wsvindex{surface\_rmatrix}: Each reflection matrix is a diagonal
+ matrix with the value 1/9 throughout on the diagonal. That is, all
+ elements with index (:,:,i,i) is 1/9. Size matching
+ \artsstyle{surface\_los}, \artsstyle{f\_grid} and
+ \artsstyle{stokes\_dim}
+
+
+
 \section{Specular reflections}
  \label{sec:surface:surface:specular}
  
@@ -162,19 +168,23 @@ and reflectivity is discussed in Section \ref{sec:fm_defs:surface}.
    R_h &=& \frac{n_1\cos\theta_1-n_2\cos\theta_2}
                                            {n_1\cos\theta_1+n_2\cos\theta_2} 
  \end{eqnarray}
- where $n_1$ is refractive index for the medium where the reflected
- radiation is propagating, $\theta_1$ is the incident angle (measured
- from the local surface normal) and $n_2$ is the refractive index of
- the reflecting medium. The angle $\theta_2$ is the propagation
- direction for the transmitted part, and is given by Snell's law:
+ where $n_1$ is refractive index for the medium where the reflected radiation
+ is propagating, $\theta_1$ is the incident angle (measured from the local
+ surface normal) and $n_2$ is the refractive index of the reflecting medium.
+ The angle $\theta_2$ is the propagation direction for the transmitted part,
+ and is (approximately) given by Snell's law:
  \begin{equation}
    \label{eq:surface:snell}
-   \Re(n_1)\sin\theta_1 = \Re(n_2)\sin\theta_2.
+   \Re(n_1)\sin\theta_1 = \Re(n_2)\sin\theta_2,
  \end{equation}
- where $\Re(\cdot)$ denotes the complex real part.
- For cases where medium 1 is air, $n_1$ can (in this context) be set to 1.
+ where $\Re(\cdot)$ denotes the complex real part. Equation {eq:surface:snell}
+ is theoretically correct only if both $n_1$ and $n_2$ have no imaginary part. 
+ For cases where medium 1 is air, $n_1$ can (in this context) be set to 1, and 
+an expression allowing $n_2$ to be complex is found in Section 5.4.1.3 of
+\citet{liou:02}. We are not awere of any expression for the case when both
+$n_1$ and $n_2$ are complex.
 
- The power reflection coefficients are converted to an intensity
+The power reflection coefficients are converted to an intensity
  reflection coefficient as
  \begin{equation}
    \label{eq:surface:R2r}
@@ -238,6 +248,59 @@ calculated by the internal function
 \ref{eq:surface:specular_emission} give the values to put into
 \artsstyle{surface\_rmatrix} and \artsstyle{surface\_emission}.
 
+
+
+\section{Rough surfaces}
+ \label{sec:surface:rough}
+
+
+\subsection{Theory}
+\label{sec:surface:rough:theory}
+%---
+The scattering of rough surfaces is normally described by the bidirectional
+reflectance distribution function, BRDF. With the BRDF,
+$f(\theta_0,\phi_0,\theta_1,\phi_1)$, the scattered radiance in the
+direction $(\theta_1,\phi_1)$ can be written as (see e.g. Section 3.3.1.\ of 
+\citet{rees:01})
+\begin{equation}
+  \label{eq:surface:brdf1}
+  I'(\theta_1,\phi_1) = \int_0^{\pi/2} \! \int_0^{2\pi} I(\theta,\phi) 
+  \cos(\theta) f(\theta,\phi,\theta_1,\phi_1)
+  \sin(\theta) \, \DiffD\phi \, \DiffD\theta,
+\end{equation}
+where $I(\theta,\phi)$ is the downwelling radiance for incidance angle $\theta$
+and azimuth angle $\phi$.
+
+If an angle in \artsstyle{surface\_los} gives the down-welling radiation
+representing the directions defined by the ranges $[\theta_a,\theta_b]$ and
+$[\phi_a,\phi_b]$, the value to put into the corresponding part of
+\artsstyle{surface\_rmatrix} is
+\begin{equation}
+  \label{eq:surface:brdf2}
+  w = \int_{\theta_a}^{\theta_b} \! \int_{\phi_a}^{\phi_b} 
+  \cos(\theta) f(\theta,\phi,\theta_1,\phi_1)
+  \sin(\theta) \, \DiffD\phi \, \DiffD\theta.
+\end{equation}
+This value is a combination of the surface reflectivity and an solid angle
+weight. 
+
+
+\subsection{Lambertian surface}
+\label{sec:surface:rough:lambertian}
+%---
+An ideally rough surafce is denoted as Lambertian. The BRDF is for this case
+constant:
+\begin{equation}
+  \label{eq:surface:lambertian1}
+  f = \frac{r_d}{\pi}
+\end{equation}
+where $r_d$ is the diffuse albedo. The integral in
+Equation~\ref{eq:surface:brdf2} can here be solved. For the case of
+$[\phi_a,\phi_b]$ = $[0,2\pi]$ we get
+\begin{equation}
+  \label{eq:surface:lambertian1}
+  w = \frac{r_d}{2}\left[\cos(2\theta_a)-\cos(2\theta_b)\right].
+\end{equation}
 
 
  
