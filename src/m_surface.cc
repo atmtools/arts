@@ -635,3 +635,60 @@ void surfaceFlatVaryingRvRh(
         }
     }
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void surfaceLambertianSimple(
+              Matrix&    surface_los,
+              Tensor4&   surface_rmatrix,
+              Matrix&    surface_emission,
+        const Vector&    f_grid,
+        const Index&     stokes_dim,
+        const Index&     atmosphere_dim,
+        const Vector&    rte_los,
+        const Numeric&   surface_skin_t,
+        const Numeric&   rd,
+        const Index&     np,
+        const Numeric&   za_pos )
+{
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_if_over_0( "surface_skin_t", surface_skin_t );
+  chk_if_in_range( "rd", rd, 0, 1 );
+  chk_if_in_range( "za_pos", za_pos, 0, 1 );
+
+  const Index   nf = f_grid.nelem();
+
+  // Allocate and init everything to zero
+  //
+  surface_los.resize( np, rte_los.nelem() );
+  surface_rmatrix.resize(np,nf,stokes_dim,stokes_dim);
+  surface_emission.resize( nf, stokes_dim );
+  //
+  surface_los      = 0.0;
+  surface_rmatrix  = 0.0;
+  surface_emission = 0.0;
+
+  // LOS and RMATRIX
+  //
+  const Numeric dza = 90.0 / np;
+  const Vector za_lims( 0.0, np+1, dza );
+  //
+  for( Index ip=0; ip<np; ip++ )
+    {
+      surface_los(ip,0) = za_lims[ip] + za_pos * dza;
+
+      const Numeric w = rd * 0.5 * ( cos(2*DEG2RAD*za_lims[ip]) - 
+                                     cos(2*DEG2RAD*za_lims[ip+1]) );
+      for( Index is=0; is<stokes_dim; is++ )
+        { surface_rmatrix(ip,joker,is,is) = w; }
+    }
+
+  // Emission term
+  //
+  const Numeric e = 1.0 - rd;
+  //
+  for( Index iv=0; iv<nf; iv++ )
+    { surface_emission(iv,0) = e * planck( f_grid[iv], surface_skin_t ); }
+}

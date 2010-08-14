@@ -1,3 +1,13 @@
+2010-08-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-67
+
+	* src/m_surface.cc (surfaceLambertianSimple): New WSM.
+
+	* doc/uguide/surface.tex (section{Specular reflections}): Added a
+	sentence about the case Rv=Rh. The "r-matrix" is then strictly
+	diagonal with all non-zero elements equal. 
+
 2010-08-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-66

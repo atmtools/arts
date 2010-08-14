@@ -7582,6 +7582,53 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "surfaceLambertianSimple" ),
+        DESCRIPTION
+        (
+        "Creates variables to mimic a Lambertian surface.\n"
+        "\n"
+        "A lambertian surface can be characterised solely by its diffuse\n"
+        "albedo (*rd*). The albedo is here assumed to the same for all\n" 
+        "frequencies and be the same for vertical and horisontal\n"
+        "polarisation.\n"
+        "\n"
+        "The down-welling radiation field is estimated by making calculations\n"
+        "for *np* directions. The range of zenith angles ([0,90]) is divided\n"
+        "in an equidistant manner. The values for *surface_rmatrix* are\n"
+        "assuming a constant radiance over each zenith angle range. See AUG.\n"
+        "\n"
+        "Default is to select the zenith angles for *sensor_los* to be placed\n"
+        "centrally in the grid ranges. For example, if *np* is set to 9,\n"
+        "down-welling radiation will be calculated for zenith angles = \n"
+        "5, 15, ..., 85. The position of these angles can be shifted by\n"
+        "*za_pos*. This variable specifies the fractional distance inside the\n"
+        "ranges. For example, a *za_pos* of 0.7 (np still 9) gives the angles\n"
+        "7, 17, ..., 87.\n"
+        "Any aziumuth angle in *sensor_los* is set to 0.\n"
+        "\n"
+        "Local thermodynamic equilibrium is assumed, which corresponds to\n"
+        "that the reflection and emission coefficients \"add up to 1\".\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "f_grid", "stokes_dim", "atmosphere_dim", "rte_los", 
+            "surface_skin_t" ),
+        GIN(         "rd",      "np",    "za_pos"  ),
+        GIN_TYPE(    "Numeric", "Index", "Numeric" ),
+        GIN_DEFAULT( NODEF,     NODEF,   "0.5"     ),
+        GIN_DESC( "Diffuse albedo. A value in the range [0,1].",
+                  "Number of zenith angles for calculation of down-welling " 
+                  "radition.",
+                  "Position of angle in *surface_los* inside ranges of zenith "
+                  "angle grid. See above."
+                  )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "Tensor3Create" ),
         DESCRIPTION
         (
