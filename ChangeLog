@@ -1,5 +1,11 @@
 2010-08-18  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-69
+
+	* ChangeLog: Remove one incorrect line from last entry.
+
+2010-08-18  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-68
 
 	* src/getopt*: Renamed to arts_getopt*.
@@ -16,8 +22,6 @@
 
 	Use the system getopt by default, only fallback to our own if
 	unavailable.
-
-	* src/m_surface.c (surfaceLambertianSimple): Cast.
 
 	* CMakeLists.txt:
 
