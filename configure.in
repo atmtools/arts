@@ -354,7 +354,7 @@ case x$ax_cv_cxx_compiler_vendor in
     GCC_MAJOR=`$CC -v 2>&1 | grep '^gcc version' | sed 's/^gcc version \([[0-9]]\)\..*$/\1/'`
     GCC_MINOR=`$CC -v 2>&1 | grep '^gcc version' | sed 's/^gcc version [[0-9]]\.\([[0-9]]\)\..*$/\1/'`
 
-    WARNINGCFLAGS="-W -Wall -Wconversion"
+    WARNINGCFLAGS="-W -Wall -W"
 
     if test x"$ax_openmp" != xyes; then
       WARNINGCFLAGS="$WARNINGCFLAGS -Wno-unknown-pragmas"

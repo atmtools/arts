@@ -26,10 +26,14 @@
 */
 
 #include <iostream>
-#include <getopt.h>
 #include <cstdio>
 #include <cstdlib>
 #include "arts.h"
+#ifdef HAVE_GETOPT_H
+#include <getopt.h>
+#else
+#include <arts_getopt.h>
+#endif
 #include "parameters.h"
 
 /// Holds the command line parameters.

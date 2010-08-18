@@ -70,7 +70,6 @@ Numeric IsotopeRecord::CalculatePartitionFctAtTemp( Numeric
 void define_species_map()
 {
   extern const Array<SpeciesRecord> species_data;
-  extern std::map<String, Index> SpeciesMap;
 
   for ( Index i=0 ; i<species_data.nelem() ; ++i)
     {

@@ -24,7 +24,7 @@
 #include <config.h>
 #endif
 
-#include "getopt.h"
+#include "arts_getopt.h"
 
 #if !defined __STDC__ || !__STDC__
 /* This is a separate conditional since some stdc systems

@@ -1,3 +1,39 @@
+2010-08-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-68
+
+	* src/getopt*: Renamed to arts_getopt*.
+
+	* src/species_data.cc (define_basic_species_data):
+
+	Remove unneeded extern declaration of species_data.
+
+	* src/absorption.cc (define_species_map):
+
+	Remove unneeded extern declaration of SpeciesMap.
+
+	* src/CMakeLists.txt, src/parameters.cc:
+
+	Use the system getopt by default, only fallback to our own if
+	unavailable.
+
+	* src/m_surface.c (surfaceLambertianSimple): Cast.
+
+	* CMakeLists.txt:
+
+	Remove -Wconversion. Newer compilers (LLVM/Clang) which actually
+	detect such conversions properly (unlike GCC) will throw about 2000 of
+	them. Not nice to have those implicit conversions (like from double to
+	long and vice versa), but also not really fixable at the moment.
+
+	Check for system getopt.h.
+
+	Set warning flags properly for Clang as well.
+
+	* config.h.cmake: Add HAVE_GETOPT_H.
+
+	* src/parameters.cc: Adapt includes for new getopt treatment.
+
 2010-08-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-67

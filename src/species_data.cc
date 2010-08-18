@@ -142,8 +142,6 @@ void define_species_data()
 
 void define_basic_species_data()
 {
-  extern Array<SpeciesRecord> species_data;
-
   // Initialize to zero, just in case:
   species_data.resize(0);
 

@@ -29,6 +29,7 @@
 #cmakedefine HAVE_SYS_TIMES_H 1
 #cmakedefine HAVE_SYS_TYPES_H 1
 #cmakedefine HAVE_UNISTD_H 1
+#cmakedefine HAVE_GETOPT_H 1
 
 /* check existence of c++ header files */
 #cmakedefine HAVE_CSTDLIB 1

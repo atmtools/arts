@@ -63,9 +63,9 @@ libartscore_a_SOURCES = \
 	file.h \
 	geomag_calc.cc \
 	geomag_calc.h \
-	getopt.c \
-	getopt.h \
-	getopt1.c \
+	arts_getopt.c \
+	arts_getopt.h \
+	arts_getopt1.c \
 	globals_2.cc \
 	gridded_fields.cc\
 	gridded_fields.h\

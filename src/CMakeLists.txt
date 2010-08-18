@@ -31,7 +31,6 @@ add_custom_command (
   DEPENDS ${CMAKE_BINARY_DIR}/auto_version.txt
 )
 
-
 ########### next target ###############
 
 add_executable (arts main.cc)
@@ -161,7 +160,14 @@ add_custom_command (
 
 ########### next target ###############
 
+set (ARTSCORE_EXTRA_SOURCES)
+if (NOT HAVE_GETOPT_H)
+  list (APPEND ARTSCORE_EXTRA_SOURCES
+    arts_getopt.c arts_getopt.h arts_getopt1.c)
+endif (NOT HAVE_GETOPT_H)
+
 add_library (artscore STATIC
+  ${ARTSCORE_EXTRA_SOURCES}
 	absorption.h
 	absorption.cc
 	abs_species_tags.h
@@ -195,9 +201,6 @@ add_library (artscore STATIC
 	file.h
 	geomag_calc.cc
 	geomag_calc.h
-	getopt.c
-	getopt.h
-	getopt1.c
 	globals_2.cc
 	gridded_fields.cc
 	gridded_fields.h
