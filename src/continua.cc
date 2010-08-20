@@ -9408,6 +9408,7 @@ void xsec_continuum_tag( MatrixView             xsec,
      *CONTAGMODINFO*   H2O-SelfContStandardType: Rosenkranz, user
      *CONTAGMODINFO*   H2O-ForeignContStandardType: Rosenkranz, user
      *CONTAGMODINFO*   H2O-ForeignContMaTippingType: MaTipping, user
+     *CONTAGMODINFO*   H2O-ContMPM93:           MPM93, user
      *CONTAGMODINFO*   H2O-MPM87:               MPM87, MPM87Lines, MPM87Continuum, user
      *CONTAGMODINFO*   H2O-MPM89:               MPM89, MPM89Lines, MPM89Continuum, user
      *CONTAGMODINFO*   H2O-MPM93:               MPM93, MPM93Lines, MPM93Continuum, user
