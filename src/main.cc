@@ -772,8 +772,12 @@ int main (int argc, char **argv)
   ostringstream osfeatures;
     {
       osfeatures
-        << "Compile flags: " << COMPILE_FLAGS << endl
-        << "Compiler: " << String(COMPILER) << endl
+      << "Compiler: " << String(COMPILER) << endl;
+
+      if (String(COMPILER) != "Xcode")
+        osfeatures << "Compile flags: " << COMPILE_FLAGS << endl;
+      
+      osfeatures
         << "Features in this build: " << endl
         << "   Numeric precision:  "
         << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float") << endl

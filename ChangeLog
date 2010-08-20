@@ -1,3 +1,25 @@
+2010-08-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-70
+
+	* CMakeLists.txt:
+
+	When creating an Xcode project, set the compiler name to Xcode instead
+	of the auto-detected compiler name (e.g. gcc). The compiler and flags
+	can be changed inside Xcode, so we can't determine at this point which
+	info to display in 'arts -v'.
+
+	* src/main.cc (main):
+
+	Don't display the compiler flags determined by cmake when using Xcode.
+
+	* cmake/modules/ArtsBuildTexDoc.cmake:
+
+	Explicitly add the location of the makeindex binary to the PATH. If
+	makeindex is called with a full path because it is not in a location
+	that is already included in the PATH environment variable, execution
+	will fail and break the build in Xcode.
+
 2010-08-18  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-69
