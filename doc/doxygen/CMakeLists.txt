@@ -6,10 +6,14 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 set (DOXYGEN_INPUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 set (DOXYGEN_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/doxified)
 
-set (top_srcdir ${CMAKE_SOURCE_DIR})
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
-                ${DOXYGEN_INPUT}
-                @ONLY IMMEDIATE)
+add_custom_target (doxyfile_in ALL DEPENDS Doxyfile)
+add_dependencies (doxyfile_in UpdateAutoVersion)
+
+add_custom_command (
+  OUTPUT Doxyfile
+  COMMAND ${CMAKE_COMMAND} -D "ARTS_BINARY_DIR:STRING=\"${CMAKE_BINARY_DIR}\"" -D "ARTS_SOURCE_DIR:STRING=\"${CMAKE_SOURCE_DIR}\"" -P ${CMAKE_SOURCE_DIR}/cmake/scripts/update_doxyfile.cmake
+  DEPENDS ${CMAKE_BINARY_DIR}/auto_version.txt
+)
 
 add_custom_command (
   OUTPUT ${DOXYGEN_OUTPUT}

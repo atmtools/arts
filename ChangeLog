@@ -1,5 +1,16 @@
 2010-08-20  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-71
+
+	* doc/doxygen/CMakeLists.txt:
+
+	Properly insert the current version number into the doxygen config
+	file.
+
+	* cmake/scripts/update_doxyfile.cmake: Added.
+
+2010-08-20  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-70
 
 	* CMakeLists.txt:
