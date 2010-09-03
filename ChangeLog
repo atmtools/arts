@@ -1,3 +1,17 @@
+2010-09-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-74
+	
+	* src/m_general.cc (Print): Added a space between each element of
+	ArrayOfIndex.
+
+	* src/special_interp.cc (interp_cloudfield_gp2itw): Re-arrangement
+	of the code to avoid a second series of if-stamenets. No practical
+	change.
+
+	* src/m_fos.cc (iyFOS): Removed non-valid comment (in PND
+	interpolation part).
+
 2010-08-20  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-1-14-73
@@ -580,22 +594,23 @@
 	* src/special_interp.cc (interp_cloudfield_gp2itw): Changed to
 	more efficient order of for-loops and if-statements. Now checking
 	the index of shifted grid positions, both for first and last
-	element. To ensure that index are inside expected range. 
+	element. To ensure that index are inside expected range.
 
 2010-04-28  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-35
 
-	* src/interpolation.cc (gridpos):  
-	If a new grid point is exactly on top of an original grid point, then 
- 	the returned gp.idx is now guaranteed to point exactly at this point, so 
- 	that gp.fd[0] = 0. The only exception from this rule is if the point 
- 	happens to be the last point in the original grid. In that case gp.idx 
- 	will point to the original grid point below. 
- 
- 	Furthermore, you are now guaranteed that for the ascending old grid case:
+	* src/interpolation.cc (gridpos): If a new grid point is exactly
+	on top of an original grid point, then the returned gp.idx is now
+	guaranteed to point exactly at this point, so that gp.fd[0] = 0.
+	The only exception from this rule is if the point happens to be
+	the last point in the original grid. In that case gp.idx will
+	point to the original grid point below.
+
+ 	Furthermore, you are now guaranteed that for the ascending old
+	grid case:
  	     old_grid[tgp.idx]<=tng || tgp.idx==0
- 	And for the descending old grid case: 
+ 	And for the descending old grid case:
  	     old_grid[tgp.idx]>=tng || tgp.idx==0
 
 	* src/optproperties.cc (pha_matTransform): Fixed a hidden bug
@@ -609,8 +624,8 @@
 	have been responsible for some previously unexplained program
 	crashes.
 
-	* doc/uguide/interpolation.tex 
-	(section{Setting up grid position arrays}): 
+	* doc/uguide/interpolation.tex
+	(section{Setting up grid position arrays}):
 	Updated documentation to point out the new guarantee.
 
 2010-04-28  Oliver Lemke  <olemke@core-dump.info>
@@ -632,7 +647,7 @@
 
 	* src/m_jacobian.cc (jacobianCalcPointingZaIybrecalc): Adopted to
 	change above.
-	
+
 2010-04-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-32

@@ -344,7 +344,7 @@ Numeric interp_atmfield_by_gp(
 
 
 
-//! interp_cloudfield_gp2itw
+//! local_gp_check
 /*!
    Local help function.
 
@@ -353,22 +353,27 @@ Numeric interp_atmfield_by_gp(
    happen for positions exactly at the cloudbox boundaries with unlucky
    gp.fd. Just first and last point of a gp array should need a check.
 */
-void local_gp_check( GridPos&   gp_p,
-                 const Index&   n )
+void local_gp_check( GridPos&   gp,
+                 const Index&   n )   // Index of upper limit, shifted
 {
-  if( gp_p.idx == -1 )
+  if( gp.idx == -1 )
     {
-      assert( gp_p.fd[0] > 0.995 );  // To capture obviously bad cases
-      gp_p.idx   = 0; 
-      gp_p.fd[0] = 0.0; 
-      gp_p.fd[1] = 1.0; 
+      assert( gp.fd[0] > 0.995 );  // To capture obviously bad cases
+      gp.idx   = 0; 
+      gp.fd[0] = 0.0; 
+      gp.fd[1] = 1.0; 
     }
-  else if( gp_p.idx == n-1 )
+  else if( gp.idx == n )
     {
-      assert( gp_p.fd[0] < 0.005 );  // To capture obviously bad cases
-      gp_p.idx   -= 1; 
-      gp_p.fd[0] = 1.0; 
-      gp_p.fd[1] = 0.0; 
+      if( gp.fd[0] > 0.005 )
+        {
+          cout << n << ": ";
+          cout << gp << endl;
+        }
+      assert( gp.fd[0] < 0.005 );  // To capture obviously bad cases
+      gp.idx   -= 1; 
+      gp.fd[0] = 1.0; 
+      gp.fd[1] = 0.0; 
     }
 }
 
@@ -413,8 +418,11 @@ void interp_cloudfield_gp2itw(
         { 
           gp_p[i].idx -= cloudbox_limits[0]; 
         }
-      local_gp_check( gp_p[0],   cloudbox_limits[1]-cloudbox_limits[0]+1 );
-      local_gp_check( gp_p[n-1], cloudbox_limits[1]-cloudbox_limits[0]+1 );
+      local_gp_check( gp_p[0],   cloudbox_limits[1]-cloudbox_limits[0] );
+      local_gp_check( gp_p[n-1], cloudbox_limits[1]-cloudbox_limits[0] );
+      //
+      itw.resize(n,2);
+      interpweights( itw, gp_p );
     }
   else if( atmosphere_dim == 2 )
     {
@@ -423,10 +431,14 @@ void interp_cloudfield_gp2itw(
           gp_p[i].idx -= cloudbox_limits[0]; 
           gp_lat[i].idx -= cloudbox_limits[2]; 
         }
-      local_gp_check( gp_p[0],   cloudbox_limits[1]-cloudbox_limits[0]+1 );
-      local_gp_check( gp_p[n-1], cloudbox_limits[1]-cloudbox_limits[0]+1 );
-      local_gp_check( gp_lat[0],   cloudbox_limits[3]-cloudbox_limits[2]+1 );
-      local_gp_check( gp_lat[n-1], cloudbox_limits[3]-cloudbox_limits[2]+1 );
+      local_gp_check( gp_p[0],   cloudbox_limits[1]-cloudbox_limits[0] );
+      local_gp_check( gp_p[n-1], cloudbox_limits[1]-cloudbox_limits[0] );
+      local_gp_check( gp_lat[0],   cloudbox_limits[3]-cloudbox_limits[2] );
+      local_gp_check( gp_lat[n-1], cloudbox_limits[3]-cloudbox_limits[2] );
+      //
+      assert( gp_lat.nelem() == n );
+      itw.resize(n,4);
+      interpweights( itw, gp_p, gp_lat );
     }
   else 
     {
@@ -436,29 +448,13 @@ void interp_cloudfield_gp2itw(
           gp_lat[i].idx -= cloudbox_limits[2]; 
           gp_lon[i].idx -= cloudbox_limits[4];
         }
-      local_gp_check( gp_p[0],   cloudbox_limits[1]-cloudbox_limits[0]+1 );
-      local_gp_check( gp_p[n-1], cloudbox_limits[1]-cloudbox_limits[0]+1 );
-      local_gp_check( gp_lat[0],   cloudbox_limits[3]-cloudbox_limits[2]+1 );
-      local_gp_check( gp_lat[n-1], cloudbox_limits[3]-cloudbox_limits[2]+1 );
-      local_gp_check( gp_lon[0],   cloudbox_limits[5]-cloudbox_limits[4]+1 );
-      local_gp_check( gp_lon[n-1], cloudbox_limits[5]-cloudbox_limits[4]+1 );
-    }
-
-  if( atmosphere_dim == 1 )
-    {
-      itw.resize(n,2);
-      interpweights( itw, gp_p );
-    }
-
-  else if( atmosphere_dim == 2 )
-    {
-      assert( gp_lat.nelem() == n );
-      itw.resize(n,4);
-      interpweights( itw, gp_p, gp_lat );
-    }
-
-  else if( atmosphere_dim == 3 )
-    {
+      local_gp_check( gp_p[0],   cloudbox_limits[1]-cloudbox_limits[0] );
+      local_gp_check( gp_p[n-1], cloudbox_limits[1]-cloudbox_limits[0] );
+      local_gp_check( gp_lat[0],   cloudbox_limits[3]-cloudbox_limits[2] );
+      local_gp_check( gp_lat[n-1], cloudbox_limits[3]-cloudbox_limits[2] );
+      local_gp_check( gp_lon[0],   cloudbox_limits[5]-cloudbox_limits[4] );
+      local_gp_check( gp_lon[n-1], cloudbox_limits[5]-cloudbox_limits[4] );
+      //
       assert( gp_lat.nelem() == n );
       assert( gp_lon.nelem() == n );
       itw.resize(n,8);

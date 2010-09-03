@@ -109,7 +109,7 @@ void Print(
 {
   ostringstream os;
   for( Index i=0; i<x.nelem(); i++ )
-    os << x[i];
+    os << x[i] << " ";
   SWITCH_OUTPUT (level, os.str () << '\n')
 }
 
