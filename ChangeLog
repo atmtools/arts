@@ -1,3 +1,38 @@
+2010-09-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-75
+
+	* Careful revision of ppath calculations. An attempt to fix the
+	last loopholes (and cleaning of code). 3D calculations are being
+	tested (have made a matlab script running repeated calculations).
+	
+	* src/ppath.cc: General changes. Removed most of the out3
+	messages. No practical use. Introduced PTILTMAX. Removed a lot of
+	asserts, ones now done atm_checkedCalc.
+
+	(ppath_start_3d): Now using PTILTMAX. Different way to check if a
+	corner is hit, or numerical inaccuracy, that brings the ppath to a
+	grid range limit (or outside) for more than for one dimension.  
+
+	(do_gridcell_3d): To handle numerical inaccuracy in a more simple
+	way, ppath steps giving a length of basically 0 are now accepted.
+	Longitudes outside +-180 were not handled correctly. This has
+	appearently never been tested!
+
+	(ppath_start_2d): As for 3D.
+	(do_gridcell_2d): As for 3D, beside lon problem. 
+
+	(ppath_start_stepping): Also not working for longitudes outside
+	+-180.
+
+	(resolve_lon): Did not always work for lon_grids covering >= 360.
+	
+	* src/interpolation.cc 
+	(gridpos_force_end_fd): Now favouring fd = 1.
+	(is_gridpos_at_index_i): Adopted to change above. Rather use fd[1]
+	than fd[0] (to get 0==0 insead of 1==1).
+	(gridpos_force_end_fd, gridpos2gridrange): As above.
+	
 2010-09-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-74

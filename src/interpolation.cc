@@ -541,11 +541,15 @@ void gridpos_check_fd( GridPos&   gp )
 
 //! gridpos_force_end_fd
 /*!
-   Forces that the fractional distances are set to 0 or 1.
+   Forces that the fractional distances is set to OK with respect to
+   interpolation.
 
    This function can be called when it is known that a position is exactly
    on a grid point. The fractional distance of the grid position is then
    0 or 1, but rounding errors can give a slightly deviating value.
+
+   The fractional distance is set to 1, beside for start point of the complete
+   grid range (idx=0, fd=0).
 
    The difference between this function and gridpos_check_fd is that this
    function is only applicable for end points, while the other function can
@@ -558,15 +562,22 @@ void gridpos_check_fd( GridPos&   gp )
 */
 void gridpos_force_end_fd( GridPos&   gp )
 {
+  assert( gp.idx >= 0 );
+
+  // If fd=0, shift to grid index below
   if( gp.fd[0] < 0.5 )
     {
+      gp.idx -= 1;
+    }
+  gp.fd[0] = 1;
+  gp.fd[1] = 0;
+ 
+  // Start of complete grid range must be handled separately
+  if( gp.idx < 0 )
+    {
+      gp.idx   = 0;
       gp.fd[0] = 0;
       gp.fd[1] = 1;
-    }
-  else
-    {
-      gp.fd[0] = 1;
-      gp.fd[1] = 0;
     }
 }
 
@@ -587,11 +598,22 @@ bool is_gridpos_at_index_i(
        const GridPos&   gp,
        const Index&     i )
 {
-  if( ( gp.fd[0] == 0  ||  gp.fd[0] == 1 )  &&  
-                                            ( gp.idx + Index(gp.fd[0]) ) == i )
-    { return true; }
+  // Assume that gridpos_force_end_fd has been used. The expression 0==0 should
+  // be safer than 1==1. It should then be better to consider fd[1]
+
+  // Handle 
+  if( i == 0 )
+    {
+      if( gp.idx == 0  &&  gp.fd[0] == 0 )
+        { return true; }
+    }
   else
-    { return false; }
+    {
+      if( gp.idx == i-1  &&  gp.fd[1] == 0 )
+        { return true; }
+    }
+
+  return false; 
 }
 
 
@@ -620,11 +642,10 @@ Index gridpos2gridrange(
        const bool&      upwards )
 {
   assert( gp.fd[0] >= 0 );
-  assert( gp.fd[0] <= 1 );
-  assert( is_bool( upwards ) );
+  assert( gp.fd[1] >= 0 );
 
   // Not at a grid point
-  if( gp.fd[0] > 0   &&  gp.fd[0] < 1 )
+  if( gp.fd[0] > 0   &&  gp.fd[1] > 0 )
     {
       return gp.idx;
     }

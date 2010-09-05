@@ -1,4 +1,4 @@
-/* Copyright (C) 2002-2008 Patrick Eriksson <patrick@rss.chalmers.se>
+/* Copyright (C) 2002-2008 Patrick Eriksson <patrick.eriksson@chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -23,7 +23,7 @@
 
 /*!
   \file   ppath.cc
-  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \author Patrick Eriksson <patrick.eriksson@chalmers.se>
   \date   2002-05-02
   
   \brief  Functions releated to calculation of propagation paths.
@@ -103,6 +103,11 @@ const double   ANGTOL = 1e-4;
 // the south or north pole for 3D.
 //
 const double   POLELAT = 89.9999;
+
+
+// Maximum tilt of pressure surfaces, in degrees
+//
+const double    PTILTMAX = 5;
 
 
 
@@ -713,8 +718,8 @@ void cart2poslos(
    The argument *lon* as input is a value calculated by some inverse
    trigonometric function. The arguments *lon5* and *lon6* are the
    lower and upper limit for the probable range for *lon*. The longitude
-   *lon* will be shifted with -360 or +360 degrees if such a shift better
-   fit *lon5* and *lon6*. No error is given if it is not possible to
+   *lon* will be shifted with -360 or +360 degrees if lon is significantly
+   outside *lon5* and *lon6*. No error is given if it is not possible to
    obtain a value between *lon5* and *lon6*. 
 
    The function exists both in a float and double version to avoid
@@ -732,19 +737,12 @@ void resolve_lon(
         const double&   lon5,
         const double&   lon6 )
 {
-  assert( lon6 >= lon5 );
-  assert( ( lon6 - lon5 ) < 360 );
+  assert( lon6 >= lon5 ); 
 
-  if( lon < lon5  || lon > lon6 )
-    {
-      const double   meanlon = ( lon5 + lon6 ) / 2;
-      const double   diff0   = abs( meanlon - lon );
-
-      if( abs( lon + 360 - meanlon ) < diff0 )
-        { lon += 360; }
-      else if( abs( lon - 360 - meanlon ) < diff0 )
-        { lon -= 360; }
-    }
+  if( lon < lon5  && lon+360<=lon6 )
+    { lon += 360; }
+  else if( lon > lon6 && lon-360>=lon5 )
+    { lon -= 360; }
 }
 #ifndef USE_DOUBLE
 void resolve_lon(
@@ -753,18 +751,11 @@ void resolve_lon(
         const double&   lon6 )
 {
   assert( lon6 >= lon5 );
-  assert( ( lon6 - lon5 ) < 360 );
 
-  if( lon < lon5  || lon > lon6 )
-    {
-      const double   meanlon = ( lon5 + lon6 ) / 2;
-      const double   diff0   = abs( meanlon - lon );
-
-      if( abs( lon + 360 - meanlon ) < diff0 )
-        { lon += 360; }
-      else if( abs( lon - 360 - meanlon ) < diff0 )
-        { lon -= 360; }
-    }
+  if( lon < lon5  && lon+360<=lon6 )
+    { lon += 360; }
+  else if( lon > lon6 && lon-360>=lon5 )
+    { lon -= 360; }
 }
 #endif
 
@@ -2083,49 +2074,16 @@ void do_gridcell_3d(
   assert( r_start >= rlow - RTOL );
   assert( r_start <= rupp + RTOL );
 
-
   // Shift radius if outside
   if( r_start < rlow )
     { r_start = rlow; }
   else if( r_start > rupp )
     { r_start = rupp; }
 
-
-  // Assert that not standing at the edge looking out.
-  // As these asserts are rather costly, they should maybe be removed
-  // when everything is carefully tested.
-  assert( !( lat_start==lat1 && lat_start!=-90 && abs( aa_start ) > 90 ) );
-  assert( !( lat_start==lat3 && lat_start!= 90 && abs( aa_start ) < 90 ) );
-  assert( !( lon_start==lon5 && abs(lat_start)!=90 &&  aa_start < 0 ) );
-  assert( !( lon_start==lon6 && abs(lat_start)!=90 &&  aa_start > 0 ) );
-  //
-  if( r_start == rlow )
-    {
-      DEBUG_ONLY (const double c = plevel_slope_3d( lat1, lat3, lon5, lon6, 
-                                                    r15a, r35a, r36a, r16a,
-                                                    lat_start, lon_start,
-                                                    aa_start ));
-      DEBUG_ONLY (const double tilt = plevel_angletilt( r_start, c ));
-
-      assert( !is_los_downwards( za_start, tilt ) );
-    }
-  else if( r_start == rupp )
-    {
-      DEBUG_ONLY (const double c = plevel_slope_3d( lat1, lat3, lon5, lon6, 
-                                                    r15b, r35b, r36b, r16b,
-                                                    lat_start, lon_start,
-                                                    aa_start ));
-      DEBUG_ONLY (const double tilt = plevel_angletilt( r_start, c ));
-
-      assert( is_los_downwards( za_start, tilt ) );
-    }
-
-
   // Position and LOS in cartesian coordinates
   double   x, y, z, dx, dy, dz;
   poslos2cart( x, y, z, dx, dy, dz, r_start, lat_start, lon_start, 
                                                           za_start, aa_start );
-
 
   // Determine the position of the end point
   //
@@ -2173,7 +2131,7 @@ void do_gridcell_3d(
   else
     {
       // Calculate correction terms for the position to compensate for
-      // numerical inaccuracy
+      // numerical inaccuracy. 
       //
       double   r_corr, lat_corr, lon_corr;
       //
@@ -2188,11 +2146,11 @@ void do_gridcell_3d(
       //
       // The first step is to found a length that goes outside the grid cell, 
       // to find an upper limit. The lower limit is set to 0. The upper
-      // limit is found be testing lengths of 1, 10 100 ... m.
+      // limit is found be testing lengths of 100, 1000 ... m.
       // The search algorith is bisection, the next length to test is the
       // mean value of the minimum and maximum length limits.
 
-               l_end  = 1;
+               l_end  = 100;
 
       double   l_acc  = 1e-3;
       double   l_in   = 0, l_out = l_end;
@@ -2216,13 +2174,12 @@ void do_gridcell_3d(
           r_end   -= r_corr;
           lat_end -= lat_corr;
           lon_end -= lon_corr;
+          resolve_lon( lon_end, lon5, lon6 );              
 
           // Special fixes for north-south observations
           if( abs( lat_start ) < 90  &&  ( abs(aa_start) < ANGTOL  ||  
                                            abs(aa_start) > 180-ANGTOL ) )
             { lon_end = lon_start; }
-          else
-            { resolve_lon( lon_end, lon5, lon6 ); }
           
           // Special fixes for west-east observations
           if( abs( abs_aa - 90 ) < ANGTOL )
@@ -2305,6 +2262,7 @@ void do_gridcell_3d(
       r_end   += r_corr;
       lat_end += lat_corr;
       lon_end += lon_corr;
+      resolve_lon( lon_end, lon5, lon6 );              
 
       // Set the relevant coordinate to be consistent with found endface.
       //
@@ -2335,6 +2293,7 @@ void do_gridcell_3d(
               geompath_tanpos_3d( r_end, lat_end, lon_end, l_end,
                                   r_start, lat_start, lon_start, 
                                   za_start, aa_start, ppc );
+              resolve_lon( lon_end, lon5, lon6 );              
               endface  = 0;
               tanpoint = 1;
             }
@@ -2342,7 +2301,6 @@ void do_gridcell_3d(
             { tanpoint = 1; }
         }
     }
-
 
   //--- Create return vectors
   //
@@ -2578,8 +2536,8 @@ Index ppath_what_background( const Ppath&   ppath )
    structure can be allocated to hold more points than found in ppath2.
    The data of ppath2 is placed in the first positions of ppath1.
 
-   \param   ppath1    Output: PPath structure.
-   \param   ppath2    The Ppath structure to be copied.
+   \param   ppath1    Output: Ppath structure.
+   \param   ppath2    The ppath structure to be copied.
 
    \author Patrick Eriksson
    \date   2002-07-03
@@ -2590,7 +2548,7 @@ void ppath_copy(
 {
   assert( ppath1.np >= ppath2.np ); 
 
-  // The field np shall not be copied !!!
+  // The field np shall not be copied !
 
   ppath1.dim        = ppath2.dim;
   ppath1.refraction = ppath2.refraction;
@@ -2601,12 +2559,7 @@ void ppath_copy(
   ppath1.pos(Range(0,ppath2.np),joker) = ppath2.pos;
   ppath1.los(Range(0,ppath2.np),joker) = ppath2.los;
   ppath1.z[Range(0,ppath2.np)]         = ppath2.z;
-  for( Index i=0; i<ppath2.np; i++ )
-    {
-      if( i > 0 )
-        { ppath1.l_step[i-1] = ppath2.l_step[i-1]; }
-    }
-  //ppath1.l_step[Range(0,ppath2.np-1)]  = ppath2.l_step;
+  ppath1.l_step[Range(0,ppath2.np-1)]  = ppath2.l_step;
 
   for( Index i=0; i<ppath2.np; i++ )
     {
@@ -3021,42 +2974,15 @@ void ppath_start_1d(
               double&     lat_start,
               double&     za_start,
               Index&      ip,
-        const Ppath&      ppath,
-        ConstVectorView   DEBUG_ONLY (p_grid),
-        ConstVectorView   DEBUG_ONLY (z_field),
-        const double&     DEBUG_ONLY (r_geoid),
-        const double&     DEBUG_ONLY (z_surface)
-        )
+        const Ppath&      ppath )
 {
   // Number of points in the incoming ppath
   const Index   imax = ppath.np - 1;
-
-// FIXME only needed for assertion
-  // Number of pressure levels
-  DEBUG_ONLY (const Index   npl = p_grid.nelem());
 
   // Extract starting radius, zenith angle and latitude
   r_start   = ppath.pos(imax,0);
   lat_start = ppath.pos(imax,1);
   za_start  = ppath.los(imax,0);
-
-  // Asserts
-  assert( npl >= 2 );
-  assert( is_decreasing( p_grid ) );
-  assert( is_size( z_field, npl ) );
-  assert( is_increasing( z_field ) );
-  assert( r_geoid > 0 );
-  //
-  assert( ppath.dim == 1 );
-  assert( ppath.np >= 1 );
-  assert( ppath.gp_p[imax].idx >= 0 );
-  assert( ppath.gp_p[imax].idx <= ( npl - 2 ) );
-  assert( ppath.gp_p[imax].fd[0] >= 0 );
-  assert( ppath.gp_p[imax].fd[0] <= 1 );
-  //
-  assert( r_start >= r_geoid + z_surface - 1e-6 );
-  assert( za_start >= 0  &&  za_start <= 180 );
-
 
   // Determine index of the pressure level being the lower limit for the
   // grid range of interest.
@@ -3093,8 +3019,6 @@ void ppath_end_1d(
         const Index&      refraction,
         const double&     ppc )
 {
-  out3 << "  end face number code : " << endface << "\n";
-
   // Number of path points
   const Index   np = r_v.nelem();
 
@@ -3109,8 +3033,10 @@ void ppath_end_1d(
   ppath_fill_1d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), r_geoid, 
                                                                  z_field, ip );
 
+  // Remove these? !!!
+  assert( ppath.gp_p[np-1].fd[0] > -0.01 );   
+  assert( ppath.gp_p[np-1].fd[0] < 1.01 );
 
-  // Different options depending on position of end point of step:
 
   //--- End point is the surface
   if( endface == 7 )
@@ -3160,7 +3086,6 @@ void ppath_start_2d(
               double&     rsurface1,
               double&     rsurface3,
               Ppath&      ppath,
-        ConstVectorView   DEBUG_ONLY (p_grid),
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
         ConstVectorView   r_geoid,
@@ -3170,40 +3095,10 @@ void ppath_start_2d(
   // Number of points in the incoming ppath
   const Index imax = ppath.np - 1;
 
-  // Number of pressure levels and latitudes
-  DEBUG_ONLY (const Index npl = p_grid.nelem());
-  DEBUG_ONLY (const Index nlat = lat_grid.nelem());
-
   // Extract starting radius, zenith angle and latitude
   r_start   = ppath.pos(imax,0);
   lat_start = ppath.pos(imax,1);
   za_start  = ppath.los(imax,0);
-
-  // First asserts (more below)
-  assert( npl >= 2 );
-  assert( is_decreasing( p_grid ) );
-  assert( nlat >= 2 );
-  assert( is_increasing( lat_grid ) );
-  assert( is_size( z_field, npl, nlat ) );
-  assert( is_size( r_geoid, nlat ) );
-  assert( is_size( z_surface, nlat ) );
-  //
-  assert( ppath.dim == 2 );
-  assert( ppath.np >= 1 );
-  assert( ppath.gp_p[imax].idx >= 0 );
-  assert( ppath.gp_p[imax].idx <= ( npl - 2 ) );
-  assert( ppath.gp_p[imax].fd[0] >= 0 );
-  assert( ppath.gp_p[imax].fd[0] <= 1 );
-  assert( ppath.gp_lat[imax].idx >= 0 );
-  assert( ppath.gp_lat[imax].idx <= ( nlat - 2 ) );
-  assert( ppath.gp_lat[imax].fd[0] >= 0 );
-  assert( ppath.gp_lat[imax].fd[0] <= 1 );
-  //
-  assert( za_start >= -180  );
-  assert( za_start <= 180 );
-  //
-  // more asserts below ...
-
 
   // Determine interesting latitude grid range and latitude end points of 
   // the range.
@@ -3310,8 +3205,7 @@ void ppath_end_2d(
 {
   // Number of path points
   const Index   np = r_v.nelem();
-
-  out3 << "  end face number code : " << endface << "\n";
+  const Index   imax = np-1;
 
   // Re-allocate ppath for return results and fill the structure
   //
@@ -3323,6 +3217,12 @@ void ppath_end_2d(
   //
   ppath_fill_2d( ppath, r_v, lat_v, za_v, lstep, r_geoid, z_field, lat_grid, 
                                                                     ip, ilat );
+
+  // Remove these? !!!
+  assert( ppath.gp_p[imax].fd[0] > -0.01 );   
+  assert( ppath.gp_p[imax].fd[0] < 1.01 );
+  assert( ppath.gp_lat[imax].fd[0] > -0.01 );
+  assert( ppath.gp_lat[imax].fd[0] < 1.01 );
 
   // Do end-face specific tasks
   if( endface == 7 )
@@ -3340,6 +3240,17 @@ void ppath_end_2d(
     { gridpos_force_end_fd( ppath.gp_lat[np-1] ); }
   else if( endface == 2  ||  endface == 4 )
     { gridpos_force_end_fd( ppath.gp_p[np-1] ); }
+
+  // Handle cases where exactly a corner is hit, or when slipping outside of
+  // the grid box due to numerical inaccuarcy
+  if( ppath.gp_p[imax].fd[0] < 0  ||  ppath.gp_p[imax].fd[1] < 0 )
+    { 
+      gridpos_force_end_fd( ppath.gp_p[imax] ); 
+    }
+  if( ppath.gp_lat[imax].fd[0] < 0  ||  ppath.gp_lat[imax].fd[1] < 0 )
+    { 
+      gridpos_force_end_fd( ppath.gp_lat[imax] ); 
+    }
 }
 
 
@@ -3382,20 +3293,14 @@ void ppath_start_3d(
               double&     rsurface36,
               double&     rsurface16,
               Ppath&      ppath,
-              ConstVectorView   DEBUG_ONLY (p_grid),
               ConstVectorView   lat_grid,
               ConstVectorView   lon_grid,
               ConstTensor3View  z_field,
               ConstMatrixView   r_geoid,
               ConstMatrixView   z_surface )
 {
-  // Number of points in the incoming ppath
+  // Index of last point in the incoming ppath
   const Index imax = ppath.np - 1;
-
-  // Number of pressure levels and latitudes
-  DEBUG_ONLY (const Index npl = p_grid.nelem());
-  const Index nlat = lat_grid.nelem();
-  const Index nlon = lon_grid.nelem();
 
   // Extract starting radius, zenith angle and latitude
   r_start   = ppath.pos(imax,0);
@@ -3404,37 +3309,9 @@ void ppath_start_3d(
   za_start  = ppath.los(imax,0);
   aa_start  = ppath.los(imax,1);
 
-  // First asserts (more below)
-  assert( npl >= 2 );
-  assert( is_decreasing( p_grid ) );
-  assert( nlat >= 2 );
-  assert( nlon >= 2 );
-  assert( is_increasing( lat_grid ) );
-  assert( is_increasing( lon_grid ) );
-  assert( is_size( z_field, npl, nlat, nlon ) );
-  assert( is_size( r_geoid, nlat, nlon ) );
-  assert( is_size( z_surface, nlat, nlon ) );
-  //
-  assert( ppath.dim == 3 );
-  assert( ppath.np >= 1 );
-  assert( ppath.gp_p[imax].idx >= 0 );
-  assert( ppath.gp_p[imax].idx <= ( npl - 2 ) );
-  assert( ppath.gp_p[imax].fd[0] >= 0 );
-  assert( ppath.gp_p[imax].fd[0] <= 1 );
-  assert( ppath.gp_lat[imax].idx >= 0 );
-  assert( ppath.gp_lat[imax].idx <= ( nlat - 2 ) );
-  assert( ppath.gp_lat[imax].fd[0] >= 0 );
-  assert( ppath.gp_lat[imax].fd[0] <= 1 );
-  assert( ppath.gp_lon[imax].idx >= 0 );
-  assert( ppath.gp_lon[imax].idx <= ( nlon - 2 ) );
-  assert( ppath.gp_lon[imax].fd[0] >= 0 );
-  assert( ppath.gp_lon[imax].fd[0] <= 1 );
-  //
-  assert( za_start >= 0 );
-  assert( za_start <= 180 );
-  assert( aa_start >= -180 );
-  assert( aa_start <= 180 );
-
+  // Number of lat/lon
+  const Index nlat = lat_grid.nelem();
+  const Index nlon = lon_grid.nelem();
 
   // Lower index of lat and lon ranges of interest
   //
@@ -3495,55 +3372,46 @@ void ppath_start_3d(
   r36b = r_geoid(ilat+1,ilon+1) + z_field(ip+1,ilat+1,ilon+1); 
   r16b = r_geoid(ilat,ilon+1) + z_field(ip+1,ilat,ilon+1);
 
-  // This part is a fix to catch start postions on top of a pressure level
-  // that does not have an end fractional distance for the first step.
-  {
-    // Radius of lower and upper pressure level at the start position
-    const double   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                r15a, r35a, r36a, r16a, lat_start, lon_start );
-    const double   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                    r15b, r35b, r36b, r16b, lat_start, lon_start );
-    if( abs(r_start-rlow) < RTOL || abs(r_start-rupp) < RTOL )
-      { gridpos_force_end_fd( ppath.gp_p[imax] ); }
-  }
-
   // Check if the LOS zenith angle happen to be between 90 and the zenith angle
   // of the pressure level (that is, 90 + tilt of pressure level), and in
   // that case if ip must be changed. This check is only needed when the
   // start point is on a pressure level.
   //
-  if( is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
+  if( fabs(za_start-90) <= PTILTMAX )
     {
-      // Slope and angular tilt of lower pressure level
-      double c2 = plevel_slope_3d( lat1, lat3, lon5, lon6, 
-                      r15a, r35a, r36a, r16a, lat_start, lon_start, aa_start );
-      double tilt = plevel_angletilt( r_start, c2 );
-
-      if( is_los_downwards( za_start, tilt ) )
+      if( is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
         {
-          ip--;
-          r15b = r15a;   r35b = r35a;   r36b = r36a;   r16b = r16a;
-          r15a = r_geoid(ilat,ilon) + z_field(ip,ilat,ilon);
-          r35a = r_geoid(ilat+1,ilon) + z_field(ip,ilat+1,ilon); 
-          r36a = r_geoid(ilat+1,ilon+1) + z_field(ip,ilat+1,ilon+1); 
-          r16a = r_geoid(ilat,ilon+1) + z_field(ip,ilat,ilon+1);
+          // Slope and angular tilt of lower pressure level
+          double c2 = plevel_slope_3d( lat1, lat3, lon5, lon6, 
+                       r15a, r35a, r36a, r16a, lat_start, lon_start, aa_start );
+          double tilt = plevel_angletilt( r_start, c2 );
+
+          if( is_los_downwards( za_start, tilt ) )
+            {
+              ip--;
+              r15b = r15a;   r35b = r35a;   r36b = r36a;   r16b = r16a;
+              r15a = r_geoid(ilat,ilon) + z_field(ip,ilat,ilon);
+              r35a = r_geoid(ilat+1,ilon) + z_field(ip,ilat+1,ilon); 
+              r36a = r_geoid(ilat+1,ilon+1) + z_field(ip,ilat+1,ilon+1); 
+              r16a = r_geoid(ilat,ilon+1) + z_field(ip,ilat,ilon+1);
+            }
         }
-    }
-  else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
-    {
-      // Slope and angular tilt of lower pressure level
-      double c4 = plevel_slope_3d( lat1, lat3 ,lon5, lon6, 
-                      r15b, r35b, r36b, r16b, lat_start, lon_start, aa_start );
-      double tilt = plevel_angletilt( r_start, c4 );
-
-      if( !is_los_downwards( za_start, tilt ) )
+      else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
         {
-          ip++;
-          r15a = r15b;   r35a = r35b;   r36a = r36b;   r16a = r16b;
-          r15b = r_geoid(ilat,ilon) + z_field(ip+1,ilat,ilon);
-          r35b = r_geoid(ilat+1,ilon) + z_field(ip+1,ilat+1,ilon); 
-          r36b = r_geoid(ilat+1,ilon+1) + z_field(ip+1,ilat+1,ilon+1); 
-          r16b = r_geoid(ilat,ilon+1) + z_field(ip+1,ilat,ilon+1);
+          // Slope and angular tilt of lower pressure level
+          double c4 = plevel_slope_3d( lat1, lat3 ,lon5, lon6, 
+                       r15b, r35b, r36b, r16b, lat_start, lon_start, aa_start );
+          double tilt = plevel_angletilt( r_start, c4 );
+
+          if( !is_los_downwards( za_start, tilt ) )
+            {
+              ip++;
+              r15a = r15b;   r35a = r35b;   r36a = r36b;   r16a = r16b;
+              r15b = r_geoid(ilat,ilon) + z_field(ip+1,ilat,ilon);
+              r35b = r_geoid(ilat+1,ilon) + z_field(ip+1,ilat+1,ilon); 
+              r36b = r_geoid(ilat+1,ilon+1) + z_field(ip+1,ilat+1,ilon+1); 
+              r16b = r_geoid(ilat,ilon+1) + z_field(ip+1,ilat,ilon+1);
+            }
         }
     }
 
@@ -3590,9 +3458,8 @@ void ppath_end_3d(
         const double&     ppc )
 {
   // Number of path points
-  const Index   np = r_v.nelem();
-
-  out3 << "  end face number code : " << endface << "\n";
+  const Index   np   = r_v.nelem();
+  const Index   imax = np-1;
 
   // Re-allocate ppath for return results and fill the structure
   //
@@ -3605,25 +3472,48 @@ void ppath_end_3d(
   ppath_fill_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, 
                         r_geoid, z_field, lat_grid, lon_grid, ip, ilat, ilon );
 
+  // Remove these? !!!
+  assert( ppath.gp_p[imax].fd[0] > -0.01 );   
+  assert( ppath.gp_p[imax].fd[0] < 1.01 );
+  assert( ppath.gp_lat[imax].fd[0] > -0.01 );
+  assert( ppath.gp_lat[imax].fd[0] < 1.01 );
+  assert( ppath.gp_lon[imax].fd[0] > -0.01 );
+  assert( ppath.gp_lon[imax].fd[0] < 1.01 );
+
   // Do end-face specific tasks
   if( endface == 7 )
     { ppath_set_background( ppath, 2 ); }
   if( tanpoint )
     {
       ppath.tan_pos.resize(3);
-      ppath.tan_pos[0] = r_v[np-1];
-      ppath.tan_pos[1] = lat_v[np-1];
-      ppath.tan_pos[2] = lon_v[np-1];
+      ppath.tan_pos[0] = r_v[imax];
+      ppath.tan_pos[1] = lat_v[imax];
+      ppath.tan_pos[2] = lon_v[imax];
     }
 
   // Set fractional distance for end point
   //
   if( endface == 1  ||  endface == 3 )
-    { gridpos_force_end_fd( ppath.gp_lat[np-1] ); }
+    { gridpos_force_end_fd( ppath.gp_lat[imax] ); }
   else if( endface == 2  ||  endface == 4 )
-    { gridpos_force_end_fd( ppath.gp_p[np-1] ); }
+    { gridpos_force_end_fd( ppath.gp_p[imax] ); }
   else if( endface == 5  ||  endface == 6 )
-    { gridpos_force_end_fd( ppath.gp_lon[np-1] ); }
+    { gridpos_force_end_fd( ppath.gp_lon[imax] ); }
+
+  // Handle cases where exactly a corner is hit, or when slipping outside of
+  // the grid box due to numerical inaccuarcy
+  if( ppath.gp_p[imax].fd[0] < 0  ||  ppath.gp_p[imax].fd[1] < 0 )
+    { 
+      gridpos_force_end_fd( ppath.gp_p[imax] ); 
+    }
+  if( ppath.gp_lat[imax].fd[0] < 0  ||  ppath.gp_lat[imax].fd[1] < 0 )
+    { 
+      gridpos_force_end_fd( ppath.gp_lat[imax] ); 
+    }
+  if( ppath.gp_lon[imax].fd[0] < 0  ||  ppath.gp_lon[imax].fd[1] < 0 )
+    { 
+      gridpos_force_end_fd( ppath.gp_lon[imax] ); 
+    }
 }
 
 
@@ -3878,9 +3768,7 @@ void ppath_step_geom_1d(
   Index ip;
 
   // Determine the variables defined above, and make asserts of input
-  ppath_start_1d( r_start, lat_start, za_start, ip,
-                                   ppath, p_grid, z_field, r_geoid, z_surface );
-
+  ppath_start_1d( r_start, lat_start, za_start, ip, ppath );
 
   // If the field "constant" is negative, this is the first call of the
   // function and the path constant shall be calculated.
@@ -3923,11 +3811,7 @@ void ppath_step_geom_1d(
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
       ppath_copy( ppath2, ppath );
 
-      out3 << "  --- Recursive step to include tangent point --------\n"; 
-
       ppath_step_geom_1d( ppath2, p_grid, z_field, r_geoid, z_surface, lmax );
-
-      out3 << "  ----------------------------------------------------\n"; 
 
       // Combine ppath and ppath2
       ppath_append( ppath, ppath2 );
@@ -3975,8 +3859,7 @@ void ppath_step_geom_2d(
   // Determine the variables defined above and make all possible asserts
   ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
                   lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
-                         ppath, p_grid, lat_grid, z_field, r_geoid, z_surface );
-
+                  ppath, lat_grid, z_field, r_geoid, z_surface );
 
   // If the field "constant" is negative, this is the first call of the
   // function and the path constant shall be calculated.
@@ -4016,13 +3899,9 @@ void ppath_step_geom_2d(
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
       ppath_copy( ppath2, ppath );
 
-      out3 << "  --- Recursive step to include tangent point --------\n"; 
-
       // Call this function recursively
       ppath_step_geom_2d( ppath2, p_grid, lat_grid, z_field,
                                                      r_geoid, z_surface, lmax );
-
-      out3 << "  ----------------------------------------------------\n"; 
 
       // Combine ppath and ppath2
       ppath_append( ppath, ppath2 );
@@ -4077,7 +3956,7 @@ void ppath_step_geom_3d(
                   ip, ilat, ilon, lat1, lat3, lon5, lon6,
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b, 
                   rsurface15, rsurface35, rsurface36, rsurface16,
-               ppath, p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface );
+                  ppath, lat_grid, lon_grid, z_field, r_geoid, z_surface );
 
 
   // If the field "constant" is negative, this is the first call of the
@@ -4121,13 +4000,9 @@ void ppath_step_geom_3d(
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
       ppath_copy( ppath2, ppath );
 
-      out3 << "  --- Recursive step to include tangent point --------\n"; 
-
       // Call this function recursively
       ppath_step_geom_3d( ppath2, p_grid, lat_grid, lon_grid, z_field,
                                                      r_geoid, z_surface, lmax );
-
-      out3 << "  ----------------------------------------------------\n"; 
 
       // Combine ppath and ppath2
       ppath_append( ppath, ppath2 );
@@ -4409,7 +4284,8 @@ void raytrace_2d_linear_euler(
       // Where will a geometric path exit the grid cell?
       do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, tanpoint,
                      r, lat, za, ppc_step, -1, lat1, lat3, r1a, r3a, r3b, r1b, 
-                                                          rsurface1, rsurface3 );
+                      rsurface1, rsurface3 );
+
       assert( r_v.nelem() == 2 );
 
       // If *lstep* is < *lraytrace*, extract the found end point and
@@ -4631,10 +4507,9 @@ void raytrace_3d_linear_euler(
       do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface, tanpoint,
                     r, lat, lon, za, aa, ppc_step, -1, lat1, lat3, lon5, lon6, 
                     r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
-                                  rsurface15, rsurface35, rsurface36, rsurface16 );
+                      rsurface15, rsurface35, rsurface36, rsurface16 );
 
       assert( r_v.nelem() == 2 );
-
 
       // If *lstep* is < *lraytrace*, extract the found end point and
       // we are ready.
@@ -4845,13 +4720,7 @@ void ppath_step_refr_1d(
   Index   ip;
 
   // Determine the variables defined above, and make asserts of input
-  ppath_start_1d( r_start, lat_start, za_start, ip, 
-                                   ppath, p_grid, z_field, r_geoid, z_surface );
-
-  // Assert not done for geometrical calculations
-  assert( t_field.nelem() == p_grid.nelem() );
-  assert( vmr_field.ncols() == p_grid.nelem() );
-
+  ppath_start_1d( r_start, lat_start, za_start, ip, ppath );
 
   // If the field "constant" is negative, this is the first call of the
   // function and the path constant shall be calculated.
@@ -4934,14 +4803,10 @@ void ppath_step_refr_1d(
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
       ppath_copy( ppath2, ppath );
 
-      out3 << "  --- Recursive step to include tangent point --------\n"; 
-
       ppath_step_refr_1d( ws,
                 ppath2, rte_pressure, rte_temperature, rte_vmr_list,
                 refr_index, refr_index_agenda, p_grid, z_field, t_field,
                 vmr_field, r_geoid, z_surface, rtrace_method, lraytrace, lmax );
-
-      out3 << "  ----------------------------------------------------\n"; 
 
       // Combine ppath and ppath2
       ppath_append( ppath, ppath2 );
@@ -5011,18 +4876,11 @@ void ppath_step_refr_2d(
   // Determine the variables defined above and make all possible asserts
   ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
                   lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
-                         ppath, p_grid, lat_grid, z_field, r_geoid, z_surface );
-
-  // Assert not done for geometrical calculations
-  assert( t_field.nrows() == p_grid.nelem() );
-  assert( t_field.ncols() == lat_grid.nelem() );
-  assert( vmr_field.nrows() == p_grid.nelem() );
-  assert( vmr_field.ncols() == lat_grid.nelem() );
-
-  // No constant for the path is valid here.
-
+                  ppath, lat_grid, z_field, r_geoid, z_surface );
 
   // Perform the ray tracing
+  //
+  // No constant for the path is valid here.
   //
   // Arrays to store found ray tracing points
   // (Vectors don't work here as we don't know how many points there will be)
@@ -5085,16 +4943,12 @@ void ppath_step_refr_2d(
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
       ppath_copy( ppath2, ppath );
 
-      out3 << "  --- Recursive step to include tangent point --------\n"; 
-
       // Call this function recursively
       ppath_step_refr_2d( ws,
                     ppath2, rte_pressure, rte_temperature, rte_vmr_list,
                     refr_index, refr_index_agenda, p_grid, lat_grid, z_field, 
                     t_field, vmr_field, 
                     r_geoid, z_surface, rtrace_method, lraytrace, lmax );
-
-      out3 << "  ----------------------------------------------------\n"; 
 
       // Combine ppath and ppath2
       ppath_append( ppath, ppath2 );
@@ -5171,20 +5025,11 @@ void ppath_step_refr_3d(
                   ip, ilat, ilon, lat1, lat3, lon5, lon6,
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b, 
                   rsurface15, rsurface35, rsurface36, rsurface16,
-               ppath, p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface );
-
-  // Assert not done for geometrical calculations
-  assert( t_field.npages() == p_grid.nelem() );
-  assert( t_field.nrows() == lat_grid.nelem() );
-  assert( t_field.ncols() == lon_grid.nelem() );
-  assert( vmr_field.npages() == p_grid.nelem() );
-  assert( vmr_field.nrows() == lat_grid.nelem() );
-  assert( vmr_field.ncols() == lon_grid.nelem() );
-
-  // No constant for the path is valid here.
-
+                  ppath, lat_grid, lon_grid, z_field, r_geoid, z_surface );
 
   // Perform the ray tracing
+  //
+  // No constant for the path is valid here.
   //
   // Arrays to store found ray tracing points
   // (Vectors don't work here as we don't know how many points there will be)
@@ -5255,16 +5100,12 @@ void ppath_step_refr_3d(
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
       ppath_copy( ppath2, ppath );
 
-      out3 << "  --- Recursive step to include tangent point --------\n"; 
-
       // Call this function recursively
       ppath_step_refr_3d( ws,
                           ppath2, rte_pressure, rte_temperature, rte_vmr_list,
                           refr_index, refr_index_agenda, p_grid, lat_grid, 
                           lon_grid, z_field, t_field, vmr_field, 
                           r_geoid, z_surface, rtrace_method, lraytrace, lmax );
-
-      out3 << "  ----------------------------------------------------\n"; 
 
       // Combine ppath and ppath2
       ppath_append( ppath, ppath2 );
@@ -5874,6 +5715,7 @@ void ppath_start_stepping(
                    geom_tan_pos[2], dummy, rte_pos[0], rte_pos[1], rte_pos[2], 
                    rte_los[0], rte_los[1], 
                    geometrical_ppc( rte_pos[0], rte_los[0] ) );
+          resolve_lon( geom_tan_pos[2], lon_grid[0], lon_grid[nlon-1] ); 
           out2 << "  geom. tangent radius   : " << geom_tan_pos[0] / 1e3
                <<" km\n";
           out2 << "  geom. tangent latitude : " << geom_tan_pos[1] 
@@ -6124,17 +5966,19 @@ void ppath_start_stepping(
               plevel_crossing_3d( r_top, lat_top, lon_top, l_top, 
                                   rtopmin, rte_pos[0], rte_pos[1], rte_pos[2], 
                                   rte_los[0], x, y, z, dx, dy, dz );
+              resolve_lon( lon_top, lon_grid[0], lon_grid[nlon-1] ); 
 
               // If no crossing was found for min radius, or it is outside
               // covered lat and lon ranges, try max radius and make the same
               // check. If check not succesful, there is no OK entrance point.
               if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
-                  lon_top < lat_grid[0]  ||  lon_top > lat_grid[nlat-1] )
+                  lon_top < lon_grid[0]  ||  lon_top > lon_grid[nlon-1] )
                 {
                   plevel_crossing_3d( r_top, lat_top, lon_top, l_top, 
                                    rtopmax, rte_pos[0], rte_pos[1], rte_pos[2],
                                    rte_los[0], x, y, z, dx, dy, dz );
-
+                  resolve_lon( lon_top, lon_grid[0], lon_grid[nlon-1] ); 
+              
                   if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
                       lon_top < lon_grid[0]  ||  lon_top > lon_grid[nlon-1] )
                     { failed = true; }
@@ -6172,6 +6016,7 @@ void ppath_start_stepping(
                   plevel_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
                                     r_top, rte_pos[0], rte_pos[1], rte_pos[2], 
                                     rte_los[0], x, y, z, dx, dy, dz );
+                  resolve_lon( lon_top2, lon_grid[0], lon_grid[nlon-1] ); 
                   
                   // Check if new position is sufficiently close to old
                   if( abs( lat_top2 - lat_top ) < 1e-6  &&  
@@ -6423,12 +6268,10 @@ void ppath_calc(
         {
 
           // Check if the top of the atmosphere is reached
-          // Older version of test, that failed in a few cases for 3D:
-          //if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) )
-          // New version:
-          if( ppath_step.los(n-1,0) <= 90  &&  imax_p <= 
-         (Numeric)ppath_step.gp_p[n-1].idx + ppath_step.gp_p[n-1].fd[0] + 0.01 )
-            { ppath_set_background( ppath_step, 1 ); }
+          if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) )
+            { 
+              ppath_set_background( ppath_step, 1 ); 
+            }
 
           // Check that path does not exit at a latitude or longitude end face
           if( atmosphere_dim == 2 )
@@ -6667,9 +6510,6 @@ void ppath_calc(
   ppath.refraction = ppath_step.refraction;
   ppath.constant   = ppath_step.constant;
   ppath.background = ppath_step.background;
-
-  out3 << "  number of path steps  : " << istep           << "\n";
-  out3 << "  number of path points : " << ppath.z.nelem() << "\n";
 
 
   // If refraction has been considered, make a simple check that the
