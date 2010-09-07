@@ -612,10 +612,13 @@ void chk_atm_grids(
                   "The latitude grid cannot extend above 90 degrees for 3D" );
       if( lon_grid[0] < -360 )
         throw runtime_error( 
-                "The longitude grid cannot extend below -360 degrees for 3D" );
+                "No longitude (in lon_grid) can be below -360 degrees." );
       if( lon_grid[lon_grid.nelem() - 1] > 360 )
         throw runtime_error( 
-                "The longitude grid cannot extend above 360 degrees for 3D" );
+                "No longitude (in lon_grid) can be above 360 degrees." );
+      if( lon_grid[lon_grid.nelem() - 1]-lon_grid[0] > 360 )
+        throw runtime_error( 
+         "The longitude grid is not allowed to cover more than 360 degrees." );
     }
 }
 

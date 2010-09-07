@@ -1,3 +1,16 @@
+2010-09-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-76
+
+	* src/check_input.cc (chk_atm_grids): Added check of total
+	coverage of lon_grid. Can not exceed 360 deg.
+
+	* src/ppath.cc (plevel_slope_3d): A call of resolve_lon needed
+	also here. 
+	(resolve_lon): lon+-360 in if-statements changed to +-180. The
+	first theoretically correct, but numerical inaccuarcy makes the
+	latter better.
+
 2010-09-05  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-75

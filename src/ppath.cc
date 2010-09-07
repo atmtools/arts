@@ -739,9 +739,9 @@ void resolve_lon(
 {
   assert( lon6 >= lon5 ); 
 
-  if( lon < lon5  && lon+360<=lon6 )
+  if( lon < lon5  &&  lon+180 <= lon6 )
     { lon += 360; }
-  else if( lon > lon6 && lon-360>=lon5 )
+  else if( lon > lon6  &&  lon-180 >= lon5 )
     { lon -= 360; }
 }
 #ifndef USE_DOUBLE
@@ -752,9 +752,9 @@ void resolve_lon(
 {
   assert( lon6 >= lon5 );
 
-  if( lon < lon5  && lon+360<=lon6 )
+  if( lon < lon5  &&  lon+180 <= lon6 )
     { lon += 360; }
-  else if( lon > lon6 && lon-360>=lon5 )
+  else if( lon > lon6  &&  lon-180 >= lon5 )
     { lon -= 360; }
 }
 #endif
@@ -1206,7 +1206,7 @@ double plevel_slope_3d(
         const double&   aa )
 {
   // Size of test angular distance. Unit is degrees.
-  const double   dang = 1e-4;
+  const double   dang = 1e-5;
 
   // Radius at point of interest
   const double   r0 = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
@@ -1225,8 +1225,9 @@ double plevel_slope_3d(
   // *l* away.
   double   r2, lat2, lon2, za2, aa2;
   cart2poslos( r2, lat2, lon2, za2, aa2, x+dx*l, y+dy*l, z+dz*l, dx, dy, dz );
+  resolve_lon( lon2, lon5, lon6 );              
   r2 = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15, r35, r36, r16, lat2,lon2);
-  
+
   // Return slope
   return   ( r2 - r0 ) / dang;
 }
@@ -2352,7 +2353,7 @@ void do_gridcell_3d(
 
 
   //--- Set last point especially, which should improve the accuracy
-  r_v[n]   = r_end;
+  r_v[n]   = r_end; 
   lat_v[n] = lat_end;
   lon_v[n] = lon_end;
 
