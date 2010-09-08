@@ -1,3 +1,12 @@
+2010-09-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-77
+
+	* src/ppath.cc (ppath_calc): Reintroduced check of high istep.
+	Limit now set to 10000. Don't know why I removed it. Small
+	overhead and better to get a clear error message. And better than
+	filling the memory, if get stuck in an infinite loop.
+
 2010-09-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-76
@@ -6,7 +15,7 @@
 	coverage of lon_grid. Can not exceed 360 deg.
 
 	* src/ppath.cc (plevel_slope_3d): A call of resolve_lon needed
-	also here. 
+	also here.
 	(resolve_lon): lon+-360 in if-statements changed to +-180. The
 	first theoretically correct, but numerical inaccuarcy makes the
 	latter better.
@@ -18,14 +27,14 @@
 	* Careful revision of ppath calculations. An attempt to fix the
 	last loopholes (and cleaning of code). 3D calculations are being
 	tested (have made a matlab script running repeated calculations).
-	
+
 	* src/ppath.cc: General changes. Removed most of the out3
 	messages. No practical use. Introduced PTILTMAX. Removed a lot of
 	asserts, ones now done atm_checkedCalc.
 
 	(ppath_start_3d): Now using PTILTMAX. Different way to check if a
 	corner is hit, or numerical inaccuracy, that brings the ppath to a
-	grid range limit (or outside) for more than for one dimension.  
+	grid range limit (or outside) for more than for one dimension.
 
 	(do_gridcell_3d): To handle numerical inaccuracy in a more simple
 	way, ppath steps giving a length of basically 0 are now accepted.

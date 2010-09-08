@@ -6260,6 +6260,11 @@ void ppath_calc(
       // Increase the total number
       np += n - 1;
 
+      if( istep > 10e3 )
+        throw runtime_error(
+          "10 000 path points have been reached. Is this an infinite loop?" );
+      
+
       //----------------------------------------------------------------------
       //---  Check if some boundary is reached
       //----------------------------------------------------------------------
