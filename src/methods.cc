@@ -2073,16 +2073,17 @@ void define_md_data_raw()
          " 3. There is no gap between *z_surface* and *z_field*.\n"
          " 4. The cloudbox is defined properly (if cloudbox_on).\n"
          "\n"
-         "If any test fails, there is an error. Otherwise, *atm_checked* is set\n"
-         "to 1.\n"
+         "If any test fails, there is an error. Otherwise, *atm_checked* is\n"
+         "set to 1.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "atm_checked" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
-            "t_field", "r_geoid", "z_surface", "cloudbox_on", "cloudbox_limits" ),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
+            "z_field", "t_field", "vmr_field", "r_geoid", "z_surface", 
+            "cloudbox_on", "cloudbox_limits" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

@@ -1,3 +1,17 @@
+2010-09-09  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-78
+
+	* src/m_atmosphere.cc (atm_checkedCalc): WSV vmr_field is now also
+	considered. 
+
+	* src/check_input.cc (chk_atm_field): Added check for 3D fields
+	covering 360 degrees in longitude, that field at first and last
+	lon-point are identical. Which that must be for a consistent
+	description of the atmosphere. AUG can be wrong here. Will check
+	that later.
+	(chk_atm_surface): As above.
+
 2010-09-08  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-77

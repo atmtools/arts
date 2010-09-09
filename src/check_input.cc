@@ -37,6 +37,7 @@
   === External declarations
   ===========================================================================*/
 
+#include <cmath>
 #include <stdexcept>
 #include "check_input.h"
 #include "array.h"
@@ -648,6 +649,7 @@ void chk_atm_field(
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid )
 {
+  // It is assumed that grids OK-ed through chk_atm_grids
   Index npages=p_grid.nelem(), nrows=1, ncols=1;
   if( dim > 1 )
     nrows = lat_grid.nelem();
@@ -661,6 +663,26 @@ void chk_atm_field(
          << ncols << ", while actual size is " << x.npages() << " x " 
          << x.nrows() << " x " << x.ncols() << ".";
       throw runtime_error( os.str() );
+    }
+  // If all lons are covered, check if cyclic
+  if( dim == 3  &&  (lon_grid[ncols-1]-lon_grid[0]) == 360 )
+    {
+      const Index ic = ncols-1;
+      for( Index ip=0; ip<npages; ip++ )
+        {
+          for( Index ir=0; ir<nrows; ir++ )
+            {
+              if( fabs(x(ip,ir,ic)-x(ip,ir,0)) > 0 )
+                {
+                  ostringstream os;
+                  os << "The variable *" << x_name <<  "* covers 360 "
+                     << "degrees in the longitude direction, but the field "
+                     << "seems to deviate between first and last longitude "
+                     << "point. The field must be \"cyclic\".";
+                  throw runtime_error( os.str() );
+                }
+            }
+        }
     }
 }
 
@@ -713,6 +735,30 @@ void chk_atm_field(
          << x.nrows() << " x " << x.ncols() << ".";
       throw runtime_error( os.str() );
     }
+  // If all lons are covered, check if cyclic
+  if( dim == 3  &&  (lon_grid[ncols-1]-lon_grid[0]) == 360 )
+    {
+      const Index ic = ncols-1;
+      for( Index is=0; is<nspecies; is++ )
+        {
+        for( Index ip=0; ip<npages; ip++ )
+        {
+          for( Index ir=0; ir<nrows; ir++ )
+            {
+              if( fabs(x(is,ip,ir,ic)-x(is,ip,ir,0)) > 0 )
+                {
+                  ostringstream os;
+                  os << "The variable *" << x_name <<  "* covers 360 degrees"
+                     << "in the longitude direction, but at least one field "
+                     << "seems to deviate between first and last longitude "
+                     << "point. The field must be \"cyclic\". This was found "
+                     << "for field with index " << is <<" (0-based).";
+                  throw runtime_error( os.str() );
+                }
+            }
+        }
+        }
+    }
 }
 
 
@@ -752,6 +798,23 @@ void chk_atm_surface(
          << "Expected size is " << nrows << " x " << ncols << ","
          << " while actual size is " << x.nrows() << " x " << x.ncols() << ".";
       throw runtime_error( os.str() );
+    }
+  // If all lons are covered, check if cyclic
+  if( dim == 3  &&  (lon_grid[ncols-1]-lon_grid[0]) == 360 )
+    {
+      const Index ic = ncols-1;
+      for( Index ir=0; ir<nrows; ir++ )
+        {
+          if( fabs(x(ir,ic)-x(ir,0)) > 0 )
+            {
+              ostringstream os;
+              os << "The variable *" << x_name <<  "* covers 360 "
+                 << "degrees in the longitude direction, but the surface "
+                 << "seems to deviate between first and last longitude "
+                 << "point. The surface must be \"cyclic\".";
+              throw runtime_error( os.str() );
+            }
+        }
     }
 }
 

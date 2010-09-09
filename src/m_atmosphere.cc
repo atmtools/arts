@@ -78,8 +78,10 @@ void atm_checkedCalc(
    const Vector&         p_grid,
    const Vector&         lat_grid,
    const Vector&         lon_grid,
+   const ArrayOfArrayOfSpeciesTag&   abs_species,
    const Tensor3&        z_field,
    const Tensor3&        t_field,
+   const Tensor4&        vmr_field,
    const Matrix&         r_geoid,
    const Matrix&         z_surface,
    const Index&          cloudbox_on, 
@@ -92,11 +94,14 @@ void atm_checkedCalc(
   // Consistency between dim, grids and atmospheric fields/surfaces
   //
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-  chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid, 
-                                                                     lon_grid );
-  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
-                                                                     lon_grid );
-  // vmr_field excluded, could maybe be empty 
+  chk_atm_field( "z_field", z_field, atmosphere_dim, 
+                                                  p_grid, lat_grid, lon_grid );
+  chk_atm_field( "t_field", t_field, atmosphere_dim, 
+                                                  p_grid, lat_grid, lon_grid );
+  // Ignore vmr_field if abs_species is empty
+  if( abs_species.nelem() )
+    chk_atm_field( "vmr_field", vmr_field, atmosphere_dim, abs_species.nelem(),
+                                                  p_grid, lat_grid, lon_grid );
   chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
   chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, lon_grid );
 
