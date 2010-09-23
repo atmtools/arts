@@ -1684,6 +1684,44 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "AntennaConstantGaussian1D" ),
+        DESCRIPTION
+        (
+         "Sets up a 1D gaussian antenna response and a matching\n"
+         "*mblock_za_grid*.\n"
+         "\n"
+         "As *antenna_responseGaussian*, but alsp creates *mblock_za_grid*.\n"
+         "For returned antenna response, see *antenna_responseGaussian*.\n"
+         "\n"
+         "The length of *mblock_za_grid* is determined by *n_za_grid*.\n"
+         "The end points of the grid are set to be the same as for the\n"
+         "antenna response. The spacing of the grid follows the magnitude of\n"
+         "the response; the spacing is smaller where the response is high.\n"
+         "More precisely, the grid points are determined by dividing\n"
+         "the cumulative sum of the response in equal steps. This makes sense\n"
+         "if the representation error of the radiance (as a function of\n"
+         " zenith angle) increases linearly with the grid spacing.\n"
+         "\n"
+         "The WSV *antenna_los* is set to 0.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "antenna_dim", "mblock_za_grid", "mblock_aa_grid", 
+             "antenna_response", "antenna_los" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  ),
+        GIN( "n_za_grid", "fwhm", "xwidth_si", "dx_si" ),
+        GIN_TYPE( "Index", "Numeric", "Numeric", "Numeric" ),
+        GIN_DEFAULT( NODEF, NODEF, "3", "0.1" ),
+        GIN_DESC( "Number of poits to include in*mblock_za_grid*.",
+                  "Full width at half-maximum", 
+                  "Half-width of response, in terms of std. dev.", 
+                  "Grid spacing, in terms of std. dev." )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "AntennaMultiBeamsToPencilBeams" ),
         DESCRIPTION
         (
@@ -1695,7 +1733,7 @@ void define_md_data_raw()
          "may varibles must be adjusted if the corresponding pencil beam\n"
          "spectra shall be calculated. This method makes this adjustment.\n"
          "That is, if you have a control file for a multiple beam case and\n"
-         "for some reason want to avoud the antenna weighting, you add this\n"
+         "for some reason want to avoid the antenna weighting, you add this\n"
          "method before *sensorInit*, and remove the call of\n"
          "*sensor_responseAntenna* and you will get the matching pencil beam\n"
          "spectra.\n"

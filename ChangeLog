@@ -1,3 +1,11 @@
+2010-09-23  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-80
+
+	* src/m_sensor.cc (AntennaConstantGaussian1D): Created. A function
+	to simplify the task of including a Gaussian antenna pattern, for
+	simple cases.
+
 2010-09-22  Cory  <corzneffect@gmail.com>
 
 	* arts-1-14-79

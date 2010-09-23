@@ -69,6 +69,49 @@ extern const Index GFIELD4_AA_GRID;
   ===========================================================================*/
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void AntennaConstantGaussian1D(
+           Index&   antenna_dim,
+          Vector&   mblock_za_grid,
+          Vector&   mblock_aa_grid,
+   GriddedField4&   r,
+          Matrix&   antenna_los,
+   const Index&     n_za_grid,
+   const Numeric&   fwhm,
+   const Numeric&   xwidth_si,
+   const Numeric&   dx_si )
+{
+  AntennaSet1D( antenna_dim, mblock_aa_grid );
+  antenna_responseGaussian( r, fwhm, xwidth_si, dx_si );
+
+  antenna_los.resize(1,1);
+  antenna_los(0,0) = 0.0;
+
+  // za grid for response
+  ConstVectorView r_za_grid =  r.get_numeric_grid(GFIELD4_ZA_GRID);
+  const Index nr = r_za_grid.nelem();
+
+  // Cumulative sum of response
+  Vector cumsum(nr);
+  cumsum[0] = r(0,0,0,0);
+  for( Index i=1; i<nr; i++ )  
+    { cumsum[i] = cumsum[i-1] + r(0,0,i,0); }
+
+  // Equally spaced vector between end points of cumulative sum
+  Vector csp;
+  nlinspace( csp, cumsum[0], cumsum[nr-1], n_za_grid );
+
+  // Get mblock_za_grid by interpolation
+  mblock_za_grid.resize(n_za_grid);   
+  ArrayOfGridPos gp(n_za_grid);
+  gridpos( gp, cumsum, csp );
+  Matrix itw(n_za_grid,2);
+  interpweights( itw, gp );
+  interp( mblock_za_grid, itw, r_za_grid, gp );
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void AntennaMultiBeamsToPencilBeams(
        Matrix&   sensor_pos,
        Matrix&   sensor_los,
