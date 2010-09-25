@@ -431,6 +431,14 @@ Summarizing sections \ref{sec:path_integral} to \ref{sec:surf_refl} we see that 
 
 \section{Practical considerations regarding optical properties}
 \subsection{Particle orientation and the evolution operator}
+The calculation of the evolution operator in Eqs. \ref{OconstK} and  \ref{Ogeneral} requires evaluation of the matrix exponential.  If the scattering particles are spheres (P10), or randomly orientated (p20), as described in Section [{\bf FIXME}], then Eq. \ref{OconstK} is simply
+\begin{equation}
+O_{jj}(s',s)=\exp\left(-K_{jj}\Delta s\right)
+\label{OconstKp1020}
+\end{equation}
+If scattering particles have rotational symmetry, and the axis of symmetry is oriented vertically, or if the particles are have random azimuthal orientation (p30), as described in Section [{\bf FIXME}], then the extinction matrix has a 
+block diagonal form with 3 independent elements, $K_{jj}$, $K_{12}$, and $K_{34}$ (See section [{\bf FIXME}]).
+
 \subsection{Particle orientation and the phase matrix}
 \section{Variations on the ARTS-MC algorithm}
 \subsection{The original ARTS-MC and forcing the original pathlength sample to be within the 3D box} 
