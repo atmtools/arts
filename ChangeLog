@@ -1,3 +1,21 @@
+2010-09-28  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-82
+
+	* src/gridded_fields.cc, src/gridded_fields.h:
+
+	Change implementation from multiple inheritance to indirect
+	inheritance. Data is stored in mdata member.
+
+	* src/m_atmosphere.cc, src/cloudbox.cc, src/m_abs_lookup.cc,
+	src/m_batch.cc, src/m_cloudbox.cc, src/m_sensor.cc,
+	src/sensor.cc, src/special_interp.cc, src/test_gridded_fields.cc,
+	src/xml_io_compound_types.cc, doc/uguide/gridded_fields.tex:
+
+	Updated for changes in GriddedField implementation.
+
+	* src/methods_aux.cc (MdRecord::MdRecord): Cache index of 'Any' type.
+
 2010-09-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-81

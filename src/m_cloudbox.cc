@@ -482,7 +482,7 @@ void pnd_fieldCalc(//WS Output:
           interpweights( itw, gp_p);
           // Interpolate:
           interp( pnd_field(i,joker,0,0), itw, 
-                  pnd_field_raw[i](joker,0,0), gp_p );
+                  pnd_field_raw[i].data()(joker,0,0), gp_p );
         }
     }
 
@@ -516,7 +516,7 @@ void pnd_fieldCalc(//WS Output:
           
           // Interpolate:
           interp( pnd_field(i,joker,joker,0), itw, 
-                  pnd_field_raw[i](joker,joker,0), gp_p, gp_lat );
+                  pnd_field_raw[i].data()(joker,joker,0), gp_p, gp_lat );
         }
     }
   else
@@ -556,7 +556,7 @@ void pnd_fieldCalc(//WS Output:
           
           // Interpolate:
           interp( pnd_field(i,joker,joker,joker), itw, 
-                  pnd_field_raw[i], gp_p, gp_lat, gp_lon );
+                  pnd_field_raw[i].data(), gp_p, gp_lat, gp_lon );
         }
     }
 }

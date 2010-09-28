@@ -210,13 +210,14 @@ MdRecord::MdRecord(const char                   name[],
 
   // Find out if this method is supergeneric, and set the flag if
   // yes:
+  const Index anyid = get_wsv_group_id("Any");
   for ( Index j=0; j<mgouttype.nelem(); ++j )
-    if ( get_wsv_group_id("Any") == mgouttype[j] )
+    if ( anyid == mgouttype[j] )
       msupergeneric = true;
   for ( Index j=0; j<mgintype.nelem(); ++j )
-    if ( get_wsv_group_id("Any") == mgintype[j] )
+    if ( anyid == mgintype[j] )
       msupergeneric = true;
-
+  
   // Determine variables that are only input
   minonly = minput;    // Input
   for (ArrayOfIndex::const_iterator j=moutput.begin(); j<moutput.end(); ++j)

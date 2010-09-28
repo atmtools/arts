@@ -19,6 +19,7 @@
 %  \stophistory
 %
 \starthistory
+  2010-09-28 & Oliver Lemke: Updated for implementation changes.\\
   2010-04-12 & Created and written by Oliver Lemke.\\
 \stophistory
 
@@ -66,10 +67,10 @@ set, and access the grids. A \artsstyle{GriddedField} is never instantiated
 directly.
 
 
-\subsection{Multiple inheritance}
+\subsection{Inheritance}
 %-------------------------------------------------------------------------
 
-The \artsstyle{GriddedFieldX} classes use multiple inheritance to combine a
+The \artsstyle{GriddedFieldX} classes use indirect inheritance to combine a
 data object with the grids, see Figure \ref{fig:griddedfields:uml}.
 
 \begin{figure}[ht!]
@@ -133,33 +134,19 @@ gftwo.set_grid_name (1, "Channel");
 %-------------------------------------------------------------------------
 \label{sec:griddedfields:initdata}
 
-Because gridded fields do not only inherit from \artsstyle{GriddedField} but
-also from the class of the data they contain, it is possible to treat them in
-exactly the same way. See Figure \ref{fig:griddedfields:objects}.
+The data of a \artsstyle{GriddedFieldX} can be accessed through its \artsstyle{data()} function.
+For a \artsstyle{GriddedField1} the \artsstyle{data()} function returns a \artsstyle{Vector} reference, for a \artsstyle{GriddedField2} a \artsstyle{Matrix} reference, for a \artsstyle{GriddedField3} a \artsstyle{Tensor3} reference, and so on.
 
-\begin{figure}[ht!]
-\begin{center}
-\includegraphics{Figs/development/griddedfields_objects}
-\caption{Visualization of gridded field objects.}
-\label{fig:griddedfields:objects}
-\end{center}
-\end{figure}
-
-Let us take the \artsstyle{gfone} variable from the previous examples.
-\artsstyle{gfone} is a \artsstyle{GriddedField1} which means it has
-\artsstyle{GriddedField} and \artsstyle{Vector} as superclasses. Polymorphism
-allows us to use a \artsstyle{GriddedField1} in every place where it is valid
-to use a \artsstyle{Vector}. The only requirement is casting the gridded field
-to the corresponding data type.
+The following code shows how to fill the gridded fields from the previous example with data:
 
 \begin{verbatim}
 Vector avector(1,4,0.5);    // avector = [1,1.5,2,2.5]
 
-(Vector&)gfone = avector;
+gfone.data() = avector;
 
 Matrix amatrix(5,3,4.);     // amatrix = [[4,4,4],[4,4,4],...]
 
-(Matrix&)gftwo = amatrix;
+gftwo.data() = amatrix;
 \end{verbatim}
 
 \subsection{Consistency check}

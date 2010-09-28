@@ -207,7 +207,7 @@ void atm_fields_compactFromMatrix(// WS Output:
   af.set_grid(GFIELD4_LON_GRID, Vector());
   
   af.resize(nf_1,np,1,1); // Resize it according to the required fields
-  af(Range(joker),Range(joker),0,0) = transpose(im(Range(joker),Range(1,nf_1)));
+  af.data()(Range(joker),Range(joker),0,0) = transpose(im(Range(joker),Range(1,nf_1)));
 }
 
 
@@ -235,16 +235,16 @@ void atm_fields_compactAddConstant(// WS Output:
   af.get_string_grid(GFIELD4_FIELD_NAMES).push_back(name);
 
   // Save original fields:
-  const Tensor4 dummy = af;
+  const Tensor4 dummy = af.data();
 
   // Adjust size:
   af.resize( nf+1, dummy.npages(), dummy.nrows(), dummy.ncols() );
 
   // Copy back original field:
-  af( Range(0,nf), Range(joker), Range(joker), Range(joker) ) = dummy;
+  af.data()( Range(0,nf), Range(joker), Range(joker), Range(joker) ) = dummy;
   
   // Add the constant value:
-  af( nf, Range(joker), Range(joker), Range(joker) ) = value;
+  af.data()( nf, Range(joker), Range(joker), Range(joker) ) = value;
 }
 
 
@@ -406,15 +406,15 @@ void AtmFieldsFromCompact(// WS Output:
 
   // Temperature field (first field):
   t_field.resize(np,nlat,nlon);
-  t_field = c(0,Range(joker),Range(joker),Range(joker));
+  t_field = c.data()(0,Range(joker),Range(joker),Range(joker));
 
   // Altitude profile (second field):
   z_field.resize(np,nlat,nlon);
-  z_field = c(1,Range(joker),Range(joker),Range(joker));
+  z_field = c.data()(1,Range(joker),Range(joker),Range(joker));
 
   // VMR profiles (remaining fields):
   vmr_field.resize(ns,np,nlat,nlon);
-  vmr_field = c(Range(2,ns),Range(joker),Range(joker),Range(joker));
+  vmr_field = c.data()(Range(2,ns),Range(joker),Range(joker),Range(joker));
 }
 
 
@@ -557,7 +557,7 @@ void AtmFieldsCalc(//WS Output:
   
       // Interpolate:
       interp( t_field(joker, 0, 0), itw, 
-              t_field_raw(joker, 0, 0),  gp_p);
+              t_field_raw.data()(joker, 0, 0),  gp_p);
 
   
       // Interpolate z_field:
@@ -577,7 +577,7 @@ void AtmFieldsCalc(//WS Output:
       
       // Interpolate:
       interp( z_field(joker, 0, 0), itw,
-              z_field_raw(joker, 0, 0), gp_p);
+              z_field_raw.data()(joker, 0, 0), gp_p);
       
   
       // Interpolate vmr_field. 
@@ -613,7 +613,7 @@ void AtmFieldsCalc(//WS Output:
           
           // Interpolate:
           interp( vmr_field(gas_i, joker, 0, 0),
-                  itw, vmr_field_raw[gas_i](joker, 0, 0), gp_p);
+                  itw, vmr_field_raw[gas_i].data()(joker, 0, 0), gp_p);
         }
       
     }
@@ -664,7 +664,7 @@ void AtmFieldsCalc(//WS Output:
       
       // Interpolate:
       interp( t_field(joker, joker, 0 ), itw,
-              t_field_raw(joker, joker, 0),  gp_p, gp_lat);
+              t_field_raw.data()(joker, joker, 0),  gp_p, gp_lat);
       
       
       // Interpolate z_field:
@@ -689,7 +689,7 @@ void AtmFieldsCalc(//WS Output:
       
       // Interpolate:
       interp( z_field(joker, joker, 0), itw, 
-              z_field_raw(joker, joker, 0), gp_p, gp_lat);
+              z_field_raw.data()(joker, joker, 0), gp_p, gp_lat);
       
       
       // Interpolate vmr_field. 
@@ -731,7 +731,7 @@ void AtmFieldsCalc(//WS Output:
           
           // Interpolate:
           interp( vmr_field(gas_i, joker, joker, 0),
-                  itw, vmr_field_raw[gas_i](joker, joker, 0),
+                  itw, vmr_field_raw[gas_i].data()(joker, joker, 0),
                   gp_p, gp_lat);
         }
     }
@@ -788,7 +788,7 @@ void AtmFieldsCalc(//WS Output:
       interpweights( itw, gp_p, gp_lat, gp_lon );
       
       // Interpolate:
-      interp( t_field, itw, t_field_raw,  gp_p, gp_lat, gp_lon);
+      interp( t_field, itw, t_field_raw.data(),  gp_p, gp_lat, gp_lon);
       
       
       // Interpolate z_field:
@@ -817,7 +817,7 @@ void AtmFieldsCalc(//WS Output:
       interpweights( itw, gp_p, gp_lat, gp_lon );
       
       // Interpolate:
-      interp( z_field, itw, z_field_raw, gp_p, gp_lat, gp_lon);
+      interp( z_field, itw, z_field_raw.data(), gp_p, gp_lat, gp_lon);
       
       
       // Interpolate vmr_field. 
@@ -867,7 +867,7 @@ void AtmFieldsCalc(//WS Output:
           
           // Interpolate:
           interp( vmr_field(gas_i, joker, joker, joker),
-                  itw, vmr_field_raw[gas_i], gp_p, gp_lat, gp_lon);
+                  itw, vmr_field_raw[gas_i].data(), gp_p, gp_lat, gp_lon);
         }
     }
   else
@@ -1166,7 +1166,7 @@ void p_gridFromAtmRaw(//WS Output
 {
   
   Index i=0; 
-  while ( z_field_raw(i,0,0)< 0.0 ) i++;
+  while ( z_field_raw.data()(i,0,0)< 0.0 ) i++;
 
   Vector p_grid_raw=z_field_raw.get_numeric_grid(GFIELD3_P_GRID);
   p_grid=p_grid_raw[Range(i,p_grid_raw.nelem()-1)];

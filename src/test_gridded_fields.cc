@@ -32,11 +32,11 @@ int main (void)
   //////////////////////////////////////////////////////////////////////////////
   Vector avector(1,4,0.5);    // avector = [1,1.5,2,2.5]
   
-  (Vector&)gfone = avector;
+  gfone.data() = avector;
   
   Matrix amatrix(5,3,4.);     // amatrix = [[4,4,4],[4,4,4],...]
   
-  (Matrix&)gftwo = amatrix;
+  gftwo.data() = amatrix;
   
   // Consistency check
   //////////////////////////////////////////////////////////////////////////////

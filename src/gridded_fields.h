@@ -167,7 +167,7 @@ public:
 };
 
 
-class GriddedField1: public GriddedField, public Vector
+class GriddedField1: public GriddedField
 {
 public:
   //! Construct an empty GriddedField1
@@ -184,28 +184,35 @@ public:
   */
   virtual bool checksize() const
     {
-      return (nelem() == get_grid_size(0));
+      return (mdata.nelem() == get_grid_size(0));
     }
 
   //! Make this GriddedField1 the same size as the given one.
   /*! \param[in] gf Source gridded field. */
   void resize(const GriddedField1& gf)
     {
-      Vector::resize(gf.get_grid_size(0));
+      mdata.resize(gf.get_grid_size(0));
     }
   
   //! Resize the data vector.
   /*! \see Vector::resize */
   void resize(Index n)
     {
-      Vector::resize(n);
+      mdata.resize(n);
     }
   
+  Vector& data() { return mdata; }
+  const Vector& data() const { return mdata; }
+  
   friend ostream& operator<<(ostream& os, const GriddedField1& gf);
+
+private:
+
+  Vector mdata;
 };
 
 
-class GriddedField2: public GriddedField, public Matrix
+class GriddedField2: public GriddedField
 {
 public:
   //! Construct an empty GriddedField2
@@ -222,30 +229,37 @@ public:
   */
   virtual bool checksize() const
     {
-      return (ncols() == get_grid_size(1)
-              && nrows() == get_grid_size(0));
+      return (mdata.ncols() == get_grid_size(1)
+              && mdata.nrows() == get_grid_size(0));
     }
 
   //! Make this GriddedField2 the same size as the given one.
   /*! \param[in] gf Source gridded field. */
   void resize(const GriddedField2& gf)
     {
-      Matrix::resize(gf.get_grid_size(0),
-                     gf.get_grid_size(1));
+      mdata.resize(gf.get_grid_size(0),
+                   gf.get_grid_size(1));
     }
 
   //! Resize the data matrix.
   /*! \see Matrix::resize */
   void resize(Index r, Index c)
     {
-      Matrix::resize(r, c);
+      mdata.resize(r, c);
     }
-
+  
+  Matrix& data() { return mdata; }
+  const Matrix& data() const { return mdata; }
+  
   friend ostream& operator<<(ostream& os, const GriddedField2& gf);
+
+private:
+  
+  Matrix mdata;
 };
 
 
-class GriddedField3: public GriddedField, public Tensor3
+class GriddedField3: public GriddedField
 {
 public:
   //! Construct an empty GriddedField3
@@ -256,7 +270,7 @@ public:
 
   GriddedField3& operator=(Numeric n)
     {
-      Tensor3::operator=(n);
+      mdata=n;
 
       return *this;
     }
@@ -269,16 +283,16 @@ public:
   */
   virtual bool checksize() const
     {
-      return (ncols() == get_grid_size(2)
-              && nrows() == get_grid_size(1)
-              && npages() == get_grid_size(0));
+      return (mdata.ncols() == get_grid_size(2)
+              && mdata.nrows() == get_grid_size(1)
+              && mdata.npages() == get_grid_size(0));
     }
 
   //! Make this GriddedField3 the same size as the given one.
   /*! \param[in] gf Source gridded field. */
   void resize(const GriddedField3& gf)
     {
-      Tensor3::resize(gf.get_grid_size(0),
+      mdata.resize(gf.get_grid_size(0),
                       gf.get_grid_size(1),
                       gf.get_grid_size(2));
     }
@@ -287,14 +301,21 @@ public:
   /*! \see Tensor3::resize */
   void resize(Index p, Index r, Index c)
     {
-      Tensor3::resize(p, r, c);
+      mdata.resize(p, r, c);
     }
-
+  
+  Tensor3& data() { return mdata; }
+  const Tensor3& data() const { return mdata; }
+  
   friend ostream& operator<<(ostream& os, const GriddedField3& gf);
+
+private:
+  
+  Tensor3 mdata;
 };
 
 
-class GriddedField4: public GriddedField, public Tensor4
+class GriddedField4: public GriddedField
 {
 public:
   //! Construct an empty GriddedField4
@@ -311,17 +332,17 @@ public:
   */
   virtual bool checksize() const
     {
-      return (ncols() == get_grid_size(3)
-              && nrows() == get_grid_size(2)
-              && npages() == get_grid_size(1)
-              && nbooks() == get_grid_size(0));
+      return (mdata.ncols() == get_grid_size(3)
+              && mdata.nrows() == get_grid_size(2)
+              && mdata.npages() == get_grid_size(1)
+              && mdata.nbooks() == get_grid_size(0));
     }
 
   //! Make this GriddedField4 the same size as the given one.
   /*! \param[in] gf Source gridded field. */
   void resize(const GriddedField4& gf)
     {
-      Tensor4::resize(gf.get_grid_size(0),
+      mdata.resize(gf.get_grid_size(0),
                       gf.get_grid_size(1),
                       gf.get_grid_size(2),
                       gf.get_grid_size(3));
@@ -331,10 +352,17 @@ public:
   /*! \see Tensor4::resize */
   void resize(Index b, Index p, Index r, Index c)
     {
-      Tensor4::resize(b, p, r, c);
+      mdata.resize(b, p, r, c);
     }
-
+  
+  Tensor4& data() { return mdata; }
+  const Tensor4& data() const { return mdata; }
+  
   friend ostream& operator<<(ostream& os, const GriddedField4& gf);
+
+private:
+  
+  Tensor4 mdata;
 };
 
 

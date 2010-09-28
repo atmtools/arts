@@ -92,9 +92,9 @@ void AntennaConstantGaussian1D(
 
   // Cumulative sum of response
   Vector cumsum(nr);
-  cumsum[0] = r(0,0,0,0);
+  cumsum[0] = r.data()(0,0,0,0);
   for( Index i=1; i<nr; i++ )  
-    { cumsum[i] = cumsum[i-1] + r(0,0,i,0); }
+    { cumsum[i] = cumsum[i-1] + r.data()(0,0,i,0); }
 
   // Equally spaced vector between end points of cumulative sum
   Vector csp;
@@ -252,7 +252,6 @@ void antenna_responseGaussian(
   r.set_name( "Antenna response" );
 
   r.set_grid_name( 0, "Polarisation" );
-  r.set_grid_name( 0, "Polarisation" );
   r.set_grid( 0, MakeArray<String>( "NaN" ) ); 
 
   r.set_grid_name( 1, "Frequency" );
@@ -265,8 +264,8 @@ void antenna_responseGaussian(
   r.set_grid( 3, Vector(1,0) );
 
   const Index n = y.nelem();
-  r.resize( 1, 1, n, 1 );
-  r(0,0,joker,0) = y;
+  r.data().resize( 1, 1, n, 1 );
+  r.data()(0,0,joker,0) = y;
 }
 
 
@@ -286,9 +285,9 @@ void backend_channel_responseFlat(
   x[0] = -x[1];
   r[0].set_grid( 0, x );
 
-  r[0].resize( 2 );
-  r[0][0] = 1/ resolution;
-  r[0][1] = r[0][0];
+  r[0].data().resize( 2 );
+  r[0].data()[0] = 1/ resolution;
+  r[0].data()[1] = r[0].data()[0];
 }
 
 
@@ -311,9 +310,9 @@ void backend_channel_responseGaussian(
   r[0].set_grid( 0, x );
 
   const Index n = y.nelem();
-  r[0].resize( n );
+  r[0].data().resize( n );
   for( Index i=0; i<n; i++ )
-    r[0][i] = y[i];
+    r[0].data()[i] = y[i];
 }
 
 
@@ -874,7 +873,7 @@ void sensor_responseBackend(
       ConstVectorView bchr_f_grid =     
                    backend_channel_response[i].get_numeric_grid(GFIELD1_F_GRID);
 
-      if( bchr_f_grid.nelem() != backend_channel_response[i].nelem() )
+      if( bchr_f_grid.nelem() != backend_channel_response[i].data().nelem() )
         {
           os << "Mismatch in size of grid and data in element " << i
              << "\nof *sideband_response*.\n"; 
@@ -1532,7 +1531,7 @@ void sensor_responseMixer(
   }
 
   // Checks of sideband_response, partly in combination with lo
-  if( sbresponse_f_grid.nelem() != sideband_response.nelem() )
+  if( sbresponse_f_grid.nelem() != sideband_response.data().nelem() )
     {
       os << "Mismatch in size of grid and data in *sideband_response*.\n"; 
       error_found = true;
@@ -1878,8 +1877,8 @@ void sensor_responseSimpleAMSU(// WS Output:
     r.set_grid(0,f);
     
     // Response:
-    r[0] = 1;
-    r[1] = 1;
+    r.data()[0] = 1;
+    r.data()[1] = 1;
   }
   
   // Construct sideband response:
@@ -1897,8 +1896,8 @@ void sensor_responseSimpleAMSU(// WS Output:
     r.set_grid(0,f);
     
     // Response:
-    r[0] = 0.5;
-    r[1] = 0.5;
+    r.data()[0] = 0.5;
+    r.data()[1] = 0.5;
   }
 
   // Set sideband mode:

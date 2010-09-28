@@ -233,7 +233,7 @@ xml_read_from_stream (istream& is_xml,
     gfield.set_name (s);
 
   xml_read_from_stream (is_xml, *((GriddedField*)&gfield), pbifs);
-  xml_read_from_stream (is_xml, *((Vector*)&gfield), pbifs);
+  xml_read_from_stream (is_xml, gfield.data(), pbifs);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/GriddedField1");
@@ -269,7 +269,7 @@ xml_write_to_stream (ostream& os_xml,
   os_xml << '\n';
 
   xml_write_to_stream (os_xml, *((GriddedField*)&gfield), pbofs);
-  xml_write_to_stream (os_xml, *((Vector*)&gfield), pbofs, "Data");
+  xml_write_to_stream (os_xml, gfield.data(), pbofs, "Data");
 
   close_tag.set_name ("/GriddedField1");
   close_tag.write_to_stream (os_xml);
@@ -301,7 +301,7 @@ xml_read_from_stream (istream& is_xml,
     gfield.set_name (s);
 
   xml_read_from_stream (is_xml, *((GriddedField*)&gfield), pbifs);
-  xml_read_from_stream (is_xml, *((Matrix*)&gfield), pbifs);
+  xml_read_from_stream (is_xml, gfield.data(), pbifs);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/GriddedField3");
@@ -337,7 +337,7 @@ xml_write_to_stream (ostream& os_xml,
   os_xml << '\n';
 
   xml_write_to_stream (os_xml, *((GriddedField*)&gfield), pbofs);
-  xml_write_to_stream (os_xml, *((Matrix*)&gfield), pbofs, "Data");
+  xml_write_to_stream (os_xml, gfield.data(), pbofs, "Data");
 
   close_tag.set_name ("/GriddedField2");
   close_tag.write_to_stream (os_xml);
@@ -369,7 +369,7 @@ xml_read_from_stream (istream& is_xml,
     gfield.set_name (s);
 
   xml_read_from_stream (is_xml, *((GriddedField*)&gfield), pbifs);
-  xml_read_from_stream (is_xml, *((Tensor3*)&gfield), pbifs);
+  xml_read_from_stream (is_xml, gfield.data(), pbifs);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/GriddedField3");
@@ -405,7 +405,7 @@ xml_write_to_stream (ostream& os_xml,
   os_xml << '\n';
 
   xml_write_to_stream (os_xml, *((GriddedField*)&gfield), pbofs);
-  xml_write_to_stream (os_xml, *((Tensor3*)&gfield), pbofs, "Data");
+  xml_write_to_stream (os_xml, gfield.data(), pbofs, "Data");
 
   close_tag.set_name ("/GriddedField3");
   close_tag.write_to_stream (os_xml);
@@ -437,7 +437,7 @@ xml_read_from_stream (istream& is_xml,
     gfield.set_name (s);
 
   xml_read_from_stream (is_xml, *((GriddedField*)&gfield), pbifs);
-  xml_read_from_stream (is_xml, *((Tensor4*)&gfield), pbifs);
+  xml_read_from_stream (is_xml, gfield.data(), pbifs);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/GriddedField4");
@@ -470,7 +470,7 @@ xml_write_to_stream (ostream& os_xml,
   os_xml << '\n';
 
   xml_write_to_stream(os_xml, *((GriddedField*)&gfield), pbofs);
-  xml_write_to_stream (os_xml, *((Tensor4*)&gfield), pbofs, "Data");
+  xml_write_to_stream (os_xml, gfield.data(), pbofs, "Data");
 
   close_tag.set_name ("/GriddedField4");
   close_tag.write_to_stream (os_xml);

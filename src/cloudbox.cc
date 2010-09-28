@@ -71,7 +71,7 @@ void chk_if_pnd_zero_p(
     {
       for (Index j = 0; j < pfr_lon_grid.nelem(); j++ )
         {
-          if ( pnd_field_raw(i_p, i, j) != 0. )
+          if ( pnd_field_raw.data()(i_p, i, j) != 0. )
             {
               ostringstream os;
               os << "Warning: \n"
@@ -117,7 +117,7 @@ void chk_if_pnd_zero_lat(
     {
       for (Index j = 0; j < pfr_lon_grid.nelem(); j++ )
         {
-          if ( pnd_field_raw(i, i_lat, j) != 0. )
+          if ( pnd_field_raw.data()(i, i_lat, j) != 0. )
             {
               ostringstream os;
               os << "Warning: \n" 
@@ -163,7 +163,7 @@ void chk_if_pnd_zero_lon(
     {
       for (Index j = 0; j < pfr_lat_grid.nelem(); j++ )
         {
-          if ( pnd_field_raw(i, j, i_lon) != 0. )
+          if ( pnd_field_raw.data()(i, j, i_lon) != 0. )
             {
               ostringstream os;
               os << "Warning: \n" 

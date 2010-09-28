@@ -455,7 +455,7 @@ void ybatchMetProfiles(
       // xml_write_to_file("profile_number.xml", i);
       
       // Set z_surface from lowest level of z_field 
-      z_surface(0,0) = z_field_raw(0,0,0);
+      z_surface(0,0) = z_field_raw.data()(0,0,0);
       
       /* The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
      array is for species.
@@ -509,8 +509,8 @@ void ybatchMetProfiles(
     {
       //Checking for non-zero ice content. 0.001 is a threshold for
       //ice water content.    
-      // if((pnd_field_raw[0](ip, 0, 0) > 0.001) || (pnd_field_raw[1](ip, 0, 0) > 0.001)) 
-          if(pnd_field_raw[0](ip, 0, 0) > 0.001) 
+      // if((pnd_field_raw[0].data()(ip, 0, 0) > 0.001) || (pnd_field_raw[1](ip, 0, 0) > 0.001)) 
+          if(pnd_field_raw[0].data()(ip, 0, 0) > 0.001) 
         {
           ++level_counter;
           //if non-zero ice content is found, it is set to upper 
@@ -675,7 +675,7 @@ void ybatchMetProfilesClear(
       
       // N_p is the number of elements in the pressure grid
       //z_surface(0,0) = oro_height[i]+ 0.01;
-      z_surface(0,0) = z_field_raw(0,0,0);
+      z_surface(0,0) = z_field_raw.data()(0,0,0);
       cout<<"z_surface"<<z_surface<<endl;
       const ConstVectorView tfr_p_grid = t_field_raw.get_numeric_grid(GFIELD3_P_GRID);
       Index N_p = tfr_p_grid.nelem();
@@ -688,7 +688,7 @@ void ybatchMetProfilesClear(
       // constant value of 0.782.
       vmr_field_raw[1].resize(vmr_field_raw[0]);
       vmr_field_raw[1].copy_grids(vmr_field_raw[0]);
-      vmr_field_raw[1](joker, joker, joker) = 0.782;
+      vmr_field_raw[1].data()(joker, joker, joker) = 0.782;
       
       // the second element of the species.  the first 3 Tensors in the
       //array are the same .  They are pressure grid, latitude grid and
@@ -696,7 +696,7 @@ void ybatchMetProfilesClear(
       // constant value of 0.209.
       vmr_field_raw[2].resize(vmr_field_raw[0]);
       vmr_field_raw[2].copy_grids(vmr_field_raw[0]);
-      vmr_field_raw[2](joker, joker, joker) = 0.209;
+      vmr_field_raw[2].data()(joker, joker, joker) = 0.209;
       
       //xml_write_to_file(met_profile_basenames[i]+ ".N2.xml", vmr_field_raw[1]);
       //xml_write_to_file(met_profile_basenames[i]+ ".O2.xml", vmr_field_raw[2]);
