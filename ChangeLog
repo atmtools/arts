@@ -23,6 +23,18 @@
 	from there.) I have no idea what happens if you try to share an
 	Rng object between threads, but most likely it will go horribly
 	wrong.
+	After calling seed, I suggest you use showseed to get the actual
+	seed and write it to out3:
+
+	Rng rng;
+	rng.seed(my_seed);
+	ostringstream os;
+	os << "Thread " << actual_thread_index << ", seed: " << rng.showseed();
+        out3 << os;
+
+	Note that I write to a string first. If you don't do that, the
+	output will look scrambled, since the different threads will all
+	start to write pieces of the message. 
 
 	* src/messages.cc: Added global threadprivate variable
 	"actual_tread_index". This is needed to add the thread number to
