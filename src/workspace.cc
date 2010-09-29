@@ -2087,7 +2087,7 @@ void Workspace::define_wsv_data()
        DESCRIPTION
        (
         "The integer seed for the random number generator used by\n"
-        "Monte Carlos methods.\n"
+        "Monte Carlo methods.\n"
         "\n"
         "Usage: Set by MCSetSeed.\n"
         ),

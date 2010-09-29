@@ -1,3 +1,51 @@
+2010-09-29  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-14-83
+
+	* src/rng.cc (seed): Modified to add actual_thread_index to the
+	seed. If you use OMP, you should not seed from the time directly,
+	but from some variable (which you may have set from the time
+	before, outside the parallel region), so that all threads get the
+	*same* seed. Since then the thread index is added, the seeds are
+	guaranteed to be different afterwards.
+	Note that this will only work correctly if the random number
+	generator (variable of type Rng) is private to each thread. (Which
+	it will be automatically if it is defined as a local variable
+	somewhere inside the parallel region, or in the function called
+	from there.) I have no idea what happens if you try to share an
+	Rng object between threads, but most likely it will go horribly
+	wrong.
+
+	* src/messages.cc: Added global threadprivate variable
+	"actual_tread_index". This is needed to add the thread number to
+	the MC seed when seeding.
+
+	* src/messages.h: Extern declare actual_thread_index together with
+	in_main_agenda. 
+
+	* src/main.cc (main): Initialize actual_thread_index, in the same
+	place where also in_main_agenda is initialized.
+
+	* src/m_abs_lookup.cc (abs_lookupTestAccMC): Added. This method
+	tests the accuracy of the absorption lookup table (similar to
+	(abs_lookupTestAccuracy), but using a Monte Carlo approach. 
+
+	* src/methods.cc (abs_lookupTestAccMC): Added.
+
+	* src/gas_abs_lookup.h (GasAbsLookup): Added the new method
+	abs_lookupTestAccMC as friend.
+
+	* src/workspace.cc (mc_seed): Typo correction in description.
+
+	* tests/AMSU/TestAMSU_generic.arts: Added abs_lookupTestAccMC for
+	lookup table testing. This is commented out, but can be
+	uncommented if needed.
+
+	* AUTHORS: Updated. The present state of this is a suggestion,
+	still needs confirmation from Patrick.
+
+	* THANKS: Removed, content is now included with AUTHORS file.
+
 2010-09-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-82

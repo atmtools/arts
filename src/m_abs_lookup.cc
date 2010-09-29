@@ -39,6 +39,7 @@
 #include "make_vector.h"
 #include "arts_omp.h"
 #include "interpolation_poly.h"
+#include "rng.h"
 
 extern const Index GFIELD4_FIELD_NAMES;
 extern const Index GFIELD4_P_GRID;
@@ -2610,5 +2611,260 @@ void abs_lookupTestAccuracy(// WS Input:
 //     {
 //       for (Index pt=0; pt<)
 //     }  
+
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void abs_lookupTestAccMC(// WS Input:
+                         const GasAbsLookup&             abs_lookup,
+                         const Index&                    abs_lookup_is_adapted, 
+                         const Index&                    abs_p_interp_order,
+                         const Index&                    abs_t_interp_order,
+                         const Index&                    abs_nls_interp_order,
+                         const Vector&                   abs_n2,
+                         const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                         const ArrayOfLineshapeSpec&     abs_lineshape,
+                         const ArrayOfString&            abs_cont_names,
+                         const ArrayOfString&            abs_cont_models,
+                         const ArrayOfVector&            abs_cont_parameters,
+                         const Index&                    mc_seed)
+{
+    const GasAbsLookup& al = abs_lookup;
+    
+    // Check if the table has been adapted:
+    if ( 1!=abs_lookup_is_adapted )
+        throw runtime_error("Gas absorption lookup table must be adapted,\n"
+                            "use method abs_lookupAdapt.");
+    
+    
+    // Some important sizes:
+    const Index n_nls     = al.nonlinear_species.nelem();
+    const Index n_species = al.species.nelem();
+    
+    if ( n_nls <= 0 )
+      {
+        ostringstream os;
+        os << "This function currently works only with lookup tables\n"
+        << "containing nonlinear species.";
+        throw runtime_error( os.str() );
+      }
+    
+    // If there are nonlinear species, then at least one species must be
+    // H2O. We will use that to perturb in the case of nonlinear
+    // species.
+    Index h2o_index = -1;
+    if (n_nls>0)
+      {
+        h2o_index = find_first_species_tg( al.species,
+                                          species_index_from_species_name("H2O") );
+        
+        // This is a runtime error, even though it would be more logical
+        // for it to be an assertion, since it is an internal check on
+        // the table. The reason is that it is somewhat awkward to check
+        // for this in other places.
+        if ( h2o_index == -1 )
+          {
+            ostringstream os;
+            os << "With nonlinear species, at least one species must be a H2O species.";
+            throw runtime_error( os.str() );
+          }
+      }
+
+    // How many MC cases to run between each convergence check. 
+    // (It is important for parallelization that this is not too small.)
+    const Index chunksize = 100;
+    
+    //Random Number generator:
+    Rng rng;
+    rng.seed(mc_seed);
+    // rng.draw() will draw a double from the uniform distribution [0,1).
+
+    // (Log) Pressure range:
+    const Numeric lp_max = al.log_p_grid[0];
+    const Numeric lp_min = al.log_p_grid[al.log_p_grid.nelem()-1];
+    
+    // T perturbation range (additive):
+    const Numeric dT_min = al.t_pert[0];
+    const Numeric dT_max = al.t_pert[al.t_pert.nelem()-1];
+    
+    // H2O perturbation range (scaling):
+    const Numeric dh2o_min = al.nls_pert[0];
+    const Numeric dh2o_max = al.nls_pert[al.nls_pert.nelem()-1];
+    
+    // We are creating all random numbers for the chunk beforehand, to avoid the 
+    // problem that random number generators in different threads would need 
+    // different seeds to produce independent random numbers.
+    // (I prefer this solution to the one of having the rng inside the threads, 
+    // because it ensures that the result does not depend on the the number of CPUs.)
+    Vector rand_lp(chunksize);
+    Vector rand_dT(chunksize);
+    Vector rand_dh2o(chunksize);
+
+    // Store the errors for one chunk:
+    Vector max_abs_rel_diff(chunksize);
+
+    // Flag to break our MC calculation loop eventually
+    bool keep_looping=true;
+    
+    // Total mean and standard deviation. (Is updated after each chunk.)
+    Numeric total_mean;
+    Numeric total_std;
+    Index N_chunk = 0;
+    while (keep_looping)
+      {
+        ++N_chunk;
+        
+        for (Index i=0; i<chunksize; ++i)
+          {
+            // A random pressure, temperature perturbation, and H2O perturbation, 
+            // all with flat PDF between min and max:
+            rand_lp[i]   = rng.draw()*(lp_max-lp_min) + lp_min;
+            rand_dT[i]   = rng.draw()*(dT_max-dT_min) + dT_min;
+            rand_dh2o[i] = rng.draw()*(dh2o_max-dh2o_min) + dh2o_min;
+          }
+        
+        for (Index i=0; i<chunksize; ++i)
+          {
+            // The pressure we work with here:
+            const Numeric this_lp = rand_lp[i];
+            
+            // Now we have to interpolate t_ref and vmrs_ref to this 
+            // pressure, so that we can apply the dT and dh2o perturbations. 
+            
+            // Pressure grid positions:
+            ArrayOfGridPosPoly pgp(1);
+            gridpos_poly(pgp,
+                         al.log_p_grid,
+                         this_lp,
+                         abs_p_interp_order );
+            
+            // Pressure interpolation weights:
+            Vector pitw;
+            pitw.resize(abs_p_interp_order+1);
+            interpweights(pitw,pgp[0]);
+            
+            // Interpolated temperature:
+            const Numeric this_t_ref = interp(pitw,
+                                              al.t_ref,    
+                                              pgp[0]);
+            
+            // Interpolated VMRs:
+            Vector these_vmrs(n_species);
+            for (Index j=0; j<n_species; ++j)
+              {
+                these_vmrs[j] = interp(pitw,
+                                       al.vmrs_ref(j,Range(joker)),    
+                                       pgp[0]);
+              }
+            
+            // Now get the actual p, T and H2O values:
+            const Numeric this_p   = exp(this_lp);
+            const Numeric this_t   = this_t_ref + rand_dT[i];
+            these_vmrs[h2o_index] *= rand_dh2o[i];
+            
+//            cout << "p, T, H2O: " << this_p << ", " << this_t << ", " << these_vmrs[h2o_index] << "\n";
+            
+            // Get error between table and LBL calculation for these conditions:
+            
+            max_abs_rel_diff[i] = calc_lookup_error(// Parameters for lookup table:
+                                                    al,
+                                                    abs_p_interp_order,  
+                                                    abs_t_interp_order,  
+                                                    abs_nls_interp_order,
+                                                    true, 			// ignore errors
+                                                    // Parameters for LBL:
+                                                    abs_n2,
+                                                    abs_lines_per_species,
+                                                    abs_lineshape,
+                                                    abs_cont_names,
+                                                    abs_cont_models,
+                                                    abs_cont_parameters,
+                                                    // Parameters for both:
+                                                    this_p,
+                                                    this_t,  
+                                                    these_vmrs );
+//            cout << "max_abs_rel_diff[" << i << "] = " << max_abs_rel_diff[i] << "\n";
+            
+          }
+        
+        // Calculate Mean of the last batch.
+
+        // Total number of valid points in the chunk (not counting negative values, 
+        // which result from failed calculations at the edges of the table.)
+        Index N=0; 
+        // Mean (initially sum of all values):
+        Numeric mean = 0;
+        for (Index i=0; i<chunksize; ++i)
+          {
+            const Numeric x = max_abs_rel_diff[i];
+            if (x > 0) 
+              {
+                ++N;
+                mean += x;
+              }
+//            else 
+//              {
+//                cout << "Negative value ignored.\n";
+//              }
+          }        
+        // Calculate mean by dividing sum by number of valid points:
+        mean = mean / N;
+        
+        // Now calculate standard deviation:
+
+        // Variance (initially sum of squared differences)
+        Numeric variance = 0;
+        for (Index i=0; i<chunksize; ++i)
+          {
+            const Numeric x = max_abs_rel_diff[i];
+            if (x > 0) 
+              {
+                variance += (x - mean) * (x - mean);
+              }
+          }        
+        // Divide by N to really calculate variance:
+        variance = variance/N;
+        
+//        cout << "Mean = " << mean << " Std = " << std_dev << "\n";
+  
+        if (N_chunk==1)
+          {
+            total_mean = mean;
+            total_std  = sqrt(variance);
+          }
+        else 
+          {
+            const Numeric old_mean = total_mean;
+            
+            // This formula assimilates the new chunk mean into the total mean:
+            total_mean = (total_mean*(N_chunk-1) + mean)/N_chunk;
+            
+            // Do the same for the standard deviation.
+            // First get rid of the square root:
+            total_std = total_std * total_std;
+            // Now multiply with old normalisation:
+            total_std *= N_chunk-1;
+            // Now add the new sigma
+            total_std += variance;
+            // Divide by the new normalisation:
+            total_std /= N_chunk;
+            // And finally take the square root:
+            total_std = sqrt(total_std);
+            
+            // Stop the chunk loop if desired accuracy has been reached. 
+            // We take 1% here, no point in trying to be more accurate!
+            if (abs(total_mean-old_mean) < total_mean/100) keep_looping = false;
+          }
+
+//        cout << "  Chunk " << N_chunk << ": Mean estimate = " << total_mean 
+//             << " Std estimate = " << total_std << "\n";
+ 
+        out3 << "  Chunk " << N_chunk << ": Mean estimate = " << total_mean 
+             << " Std estimate = " << total_std << "\n";
+        
+      } // End of "keep_looping" loop that runs over the chunks
+
+    out2 << "  Mean relative error: " << total_mean << "%\n"
+         << "  Standard deviation:  " << total_std << "%\n";
 
 }

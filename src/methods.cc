@@ -1068,6 +1068,8 @@ void define_md_data_raw()
          "calculations for strategically selected conditions (in-between the\n"
          "lookup table grid points).\n"
          "\n"
+         "For error units see *abs_lookupTestAccMC*\n"
+         "\n"
          "Produces no workspace output, only output to the output streams.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
@@ -1092,6 +1094,47 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
+  md_data_raw.push_back     
+    ( MdRecord
+     ( NAME( "abs_lookupTestAccMC" ),
+      DESCRIPTION
+      (
+       "Test accuracy of absorption lookup table with Monte Carlo Algorithm.\n"
+       "\n"
+       "Explicitly compare absorption from the lookup table with line-by-line\n"
+       "calculations for random conditions.\n"
+       "\n"
+       "The quantities returned are the mean value and standard deviation of\n"
+       "the absolute value of the relative error in percent.\n"
+       "The relative error itself is computed for a large number of cases\n"
+       "(pressure, temperature, and H2O VMR combinations). In the frequency\n"
+       "dimension the maximum value is taken for each case.\n"
+       "\n"
+       "Produces no workspace output, only output to the output streams.\n"
+       ),
+      AUTHORS( "Stefan Buehler" ),
+      OUT(),
+      GOUT(),
+      GOUT_TYPE(),
+      GOUT_DESC(),
+      IN( "abs_lookup",
+         "abs_lookup_is_adapted",
+         "abs_p_interp_order",
+         "abs_t_interp_order",
+         "abs_nls_interp_order",
+         "abs_n2",
+         "abs_lines_per_species", 
+         "abs_lineshape", 
+         "abs_cont_names", 
+         "abs_cont_models", 
+         "abs_cont_parameters",
+         "mc_seed"),
+      GIN(),
+      GIN_TYPE(),
+      GIN_DEFAULT(),
+      GIN_DESC()
+      ));
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_n2Set" ),

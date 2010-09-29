@@ -47,8 +47,10 @@
 #include "arts_omp.h"
 
 extern bool in_main_agenda;
+extern int actual_thread_index;
 #ifdef THREADPRIVATE_SUPPORTED
 #pragma omp threadprivate(in_main_agenda)
+#pragma omp threadprivate(actual_thread_index)
 #endif
 
 //! For global ARTS verbosity settings.

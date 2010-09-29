@@ -130,6 +130,19 @@ public:
                             const ArrayOfString&            abs_cont_models,
                             const ArrayOfVector&            abs_cont_parameters );
 
+    friend void abs_lookupTestAccMC(// WS Input:
+                                       const GasAbsLookup&             abs_lookup,
+                                       const Index&                    abs_lookup_is_adapted, 
+                                       const Index&                    abs_p_interp_order,
+                                       const Index&                    abs_t_interp_order,
+                                       const Index&                    abs_nls_interp_order,
+                                       const Vector&                   abs_n2,
+                                       const ArrayOfArrayOfLineRecord& abs_lines_per_species,
+                                       const ArrayOfLineshapeSpec&     abs_lineshape,
+                                       const ArrayOfString&            abs_cont_names,
+                                       const ArrayOfString&            abs_cont_models,
+                                       const ArrayOfVector&            abs_cont_parameters,
+                                       const Index&                    mc_seed);
 private:
 
   //! The species tags for which the table is valid.

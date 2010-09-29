@@ -739,17 +739,23 @@ int main (int argc, char **argv)
      output to screen and report file. We have to initialize it
      explicitly for each thread, since it is not automatically
      initialized. */
+    
+  /* actual_thread_index is the actual thread index at run time. 
+     (For more information see where the variable is defined.) */
 
 #ifdef THREADPRIVATE_SUPPORTED
 #pragma omp parallel \
- default(none)
+ default(none) 
 #else
 #pragma omp parallel \
  default(none) \
- shared(in_main_agenda)
+ shared(in_main_agenda) \
+ shared(actual_thread_index)
 #endif
   {
     in_main_agenda = true;
+    actual_thread_index = arts_omp_get_thread_num();
+//    cout << "Thread ID: " << actual_thread_index << "\n";
   }
 
 

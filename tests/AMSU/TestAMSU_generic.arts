@@ -90,6 +90,8 @@ abs_lookupCreate
 # information. The test should take approximately as much time as the
 # lookup table generation, perhaps even more. So, it is not cheap!
 #abs_lookupTestAccuracy
+#MCSetSeedFromTime
+#abs_lookupTestAccMC
 
 # Set abs_scalar_gas_agenda to use lookup table
 # ---
