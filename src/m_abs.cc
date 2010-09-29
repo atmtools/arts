@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2008
    Stefan Buehler   <sbuehler@ltu.se>
-   Patrick Eriksson <patrick@rss.chalmers.se>
+   Patrick Eriksson <patrick.eriksson@chalmers.se>
    Axel von Engeln  <engeln@uni-bremen.de>
    Thomas Kuhn      <tkuhn@uni-bremen.de>
 

@@ -1,3 +1,11 @@
+2010-09-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-84
+
+	* src/*.cc: Updated my email address in several files.
+
+	* AUTHORS: Changed email address of me and Mattias Ekström.
+
 2010-09-29  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-83
