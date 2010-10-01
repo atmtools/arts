@@ -68,8 +68,6 @@ void Rng::seed(unsigned long int n)
 {
   // The actual thread index (at runtime). We add this to the original 
   // seed number n, to ensure that each thread has a unique seed.
-  extern int actual_thread_index;
-    
   seed_no=n+actual_thread_index;
   gsl_rng_set(r,seed_no);
 }

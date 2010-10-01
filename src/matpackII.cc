@@ -42,6 +42,7 @@
 #include <set>
 #include <iostream>             // For debugging.
 #include <cmath>
+#include <iterator>
 #include "matpackII.h"
 
 

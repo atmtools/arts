@@ -783,7 +783,7 @@ void interp_gfield3(
   //
   if( effective_dim == 1 )
     {
-      if( gfield3.data().nrows() > 1  ||  gfield3.data().ncols() > 1 )
+      if( gfield3.data.nrows() > 1  ||  gfield3.data.ncols() > 1 )
         {
           ostringstream os;
           os << "A 1D interpolation requested, but the provided gridded field "
@@ -793,12 +793,12 @@ void interp_gfield3(
         
       Matrix itw(1,2);
       interpweights( itw, gp0 );
-      interp( result, itw, gfield3.data()(joker,0,0), gp0 );
+      interp( result, itw, gfield3.data(joker,0,0), gp0 );
     }
   //
   else if( effective_dim == 2 )
     {
-      if( gfield3.data().ncols() > 1 )
+      if( gfield3.data.ncols() > 1 )
         {
           ostringstream os;
           os << "A 2D interpolation requested, but the provided gridded field "
@@ -808,14 +808,14 @@ void interp_gfield3(
 
       Matrix itw(1,4);
       interpweights( itw, gp0, gp1 );
-      interp( result, itw, gfield3.data()(joker,joker,0), gp0, gp1 );
+      interp( result, itw, gfield3.data(joker,joker,0), gp0, gp1 );
     }
   //
   else if( effective_dim == 3 )
     {
       Matrix itw(1,8);
       interpweights( itw, gp0, gp1, gp2 );
-      interp( result, itw, gfield3.data(), gp0, gp1, gp2 );
+      interp( result, itw, gfield3.data, gp0, gp1, gp2 );
     }
 
   value = result[0];

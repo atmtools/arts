@@ -32,11 +32,13 @@ int main (void)
   //////////////////////////////////////////////////////////////////////////////
   Vector avector(1,4,0.5);    // avector = [1,1.5,2,2.5]
   
-  gfone.data() = avector;
+  gfone.data = avector;
   
+  cout << gfone;
+
   Matrix amatrix(5,3,4.);     // amatrix = [[4,4,4],[4,4,4],...]
   
-  gftwo.data() = amatrix;
+  gftwo.data = amatrix;
   
   // Consistency check
   //////////////////////////////////////////////////////////////////////////////

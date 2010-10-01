@@ -1,3 +1,31 @@
+2010-10-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-85
+
+	* src/gridded_fields.cc, src/gridded_fields.h:
+
+	Make mdata public and name it data. This makes the code look cleaner
+	when accessing the data member: pnd_field_raw.data(i, i_lat, j)
+	                     instead of pnd_field_raw.data()(i, i_lat, j).
+
+	* src/m_atmosphere.cc, src/m_sensor.cc, src/special_interp.cc,
+	src/sensor.cc, src/gridded_fields.cc, src/m_cloudbox.cc,
+	src/m_abs_lookup.cc, src/xml_io_compound_types.cc, src/cloudbox.cc,
+	src/test_gridded_fields.cc, src/m_batch.cc src/gridded_fields.h,
+	src/rng.cc, doc/uguide/gridded_fields.tex:
+
+	Updated for GriddedField change.
+
+	* src/rng.cc (Rng::seed):
+
+	Remove extern statement as it is already present in messages.h.
+
+	* src/m_doit.cc:
+
+	Comment out parallelization for now as it doesn't work this way.
+
+	* src/matpackII.cc: Include <iterator>.
+
 2010-09-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-84

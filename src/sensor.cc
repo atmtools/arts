@@ -174,16 +174,16 @@ void antenna1d_matrix(
                   interpweights( itw, gp_f, gp_za );
                   Matrix aresponse_matrix(1,n_za);
                   interp( aresponse_matrix, itw, 
-                          antenna_response.data()(ip,joker,joker,0), gp_f, gp_za );
+                          antenna_response.data(ip,joker,joker,0), gp_f, gp_za );
                   aresponse = aresponse_matrix(0,joker);
                 }
               else if( pol_step )   // Response changes with polarisation
                 {
-                  aresponse = antenna_response.data()(ip,0,joker,0);
+                  aresponse = antenna_response.data(ip,0,joker,0);
                 }
               else if( f == 0 )  // Same response for all f and polarisations
                 {
-                  aresponse = antenna_response.data()(0,0,joker,0);
+                  aresponse = antenna_response.data(0,0,joker,0);
                 }
               else
                 {
@@ -264,9 +264,9 @@ void antenna2d_simplified(
   const Index n_aa     = aa_grid.nelem();
   const Index n_za     = za_grid.nelem();
   const Index n_ant    = antenna_los.nrows();
-  const Index n_ar_pol = antenna_response.data().nbooks();
-  const Index n_ar_f   = antenna_response.data().npages();
-  const Index n_ar_za  = antenna_response.data().nrows();
+  const Index n_ar_pol = antenna_response.data.nbooks();
+  const Index n_ar_f   = antenna_response.data.npages();
+  const Index n_ar_za  = antenna_response.data.nrows();
 
   // Asserts for variables beside antenna_response (not done in antenna1d_matrix)
   assert( antenna_dim == 2 );
@@ -318,9 +318,9 @@ void antenna2d_simplified(
                     {
                       for( Index i2=0; i2<n_ar_za; i2++ )
                         {
-                          aresponse.data()(i4,i3,i2,0) = 
-                            gp[0].fd[1] * antenna_response.data()(i4,i3,i2,gp[0].idx) +
-                            gp[0].fd[0] * antenna_response.data()(i4,i3,i2,gp[0].idx+1);
+                          aresponse.data(i4,i3,i2,0) = 
+                            gp[0].fd[1] * antenna_response.data(i4,i3,i2,gp[0].idx) +
+                            gp[0].fd[0] * antenna_response.data(i4,i3,i2,gp[0].idx+1);
                         }  
                     }   
                 }
@@ -465,7 +465,7 @@ void mixer_matrix(
   // Frequency grid of for sideband response specification
   ConstVectorView filter_grid = filter.get_numeric_grid(GFIELD1_F_GRID);
 
-  DEBUG_ONLY( const Index nrp = filter.data().nelem(); )
+  DEBUG_ONLY( const Index nrp = filter.data.nelem(); )
 
   // Asserts
   assert( lo > f_grid[0] );
@@ -536,7 +536,7 @@ void mixer_matrix(
   //
   for( Index i=0; i<f_mixer.nelem(); i++ ) 
     {
-      sensor_summation_vector( row_temp, filter.data(), filter_grid, 
+      sensor_summation_vector( row_temp, filter.data, filter_grid, 
                                if_grid, f_mixer[i], -f_mixer[i] );
 
       // Normalise if flag is set
@@ -938,7 +938,7 @@ void spectrometer_matrix(
       ch_response_f += ch_f[ifr];
 
       // Call sensor_integration_vector and store it in the temp vector
-      sensor_integration_vector( weights, ch_response[irp].data(),
+      sensor_integration_vector( weights, ch_response[irp].data,
                                  ch_response_f, sensor_f );
 
       // Normalise if flag is set

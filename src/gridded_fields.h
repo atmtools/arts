@@ -184,31 +184,26 @@ public:
   */
   virtual bool checksize() const
     {
-      return (mdata.nelem() == get_grid_size(0));
+      return (data.nelem() == get_grid_size(0));
     }
 
   //! Make this GriddedField1 the same size as the given one.
   /*! \param[in] gf Source gridded field. */
   void resize(const GriddedField1& gf)
     {
-      mdata.resize(gf.get_grid_size(0));
+      data.resize(gf.get_grid_size(0));
     }
   
   //! Resize the data vector.
   /*! \see Vector::resize */
   void resize(Index n)
     {
-      mdata.resize(n);
+      data.resize(n);
     }
-  
-  Vector& data() { return mdata; }
-  const Vector& data() const { return mdata; }
   
   friend ostream& operator<<(ostream& os, const GriddedField1& gf);
 
-private:
-
-  Vector mdata;
+  Vector data;
 };
 
 
@@ -229,15 +224,15 @@ public:
   */
   virtual bool checksize() const
     {
-      return (mdata.ncols() == get_grid_size(1)
-              && mdata.nrows() == get_grid_size(0));
+      return (data.ncols() == get_grid_size(1)
+              && data.nrows() == get_grid_size(0));
     }
 
   //! Make this GriddedField2 the same size as the given one.
   /*! \param[in] gf Source gridded field. */
   void resize(const GriddedField2& gf)
     {
-      mdata.resize(gf.get_grid_size(0),
+      data.resize(gf.get_grid_size(0),
                    gf.get_grid_size(1));
     }
 
@@ -245,17 +240,12 @@ public:
   /*! \see Matrix::resize */
   void resize(Index r, Index c)
     {
-      mdata.resize(r, c);
+      data.resize(r, c);
     }
-  
-  Matrix& data() { return mdata; }
-  const Matrix& data() const { return mdata; }
   
   friend ostream& operator<<(ostream& os, const GriddedField2& gf);
 
-private:
-  
-  Matrix mdata;
+  Matrix data;
 };
 
 
@@ -270,7 +260,7 @@ public:
 
   GriddedField3& operator=(Numeric n)
     {
-      mdata=n;
+      data=n;
 
       return *this;
     }
@@ -283,16 +273,16 @@ public:
   */
   virtual bool checksize() const
     {
-      return (mdata.ncols() == get_grid_size(2)
-              && mdata.nrows() == get_grid_size(1)
-              && mdata.npages() == get_grid_size(0));
+      return (data.ncols() == get_grid_size(2)
+              && data.nrows() == get_grid_size(1)
+              && data.npages() == get_grid_size(0));
     }
 
   //! Make this GriddedField3 the same size as the given one.
   /*! \param[in] gf Source gridded field. */
   void resize(const GriddedField3& gf)
     {
-      mdata.resize(gf.get_grid_size(0),
+      data.resize(gf.get_grid_size(0),
                       gf.get_grid_size(1),
                       gf.get_grid_size(2));
     }
@@ -301,17 +291,12 @@ public:
   /*! \see Tensor3::resize */
   void resize(Index p, Index r, Index c)
     {
-      mdata.resize(p, r, c);
+      data.resize(p, r, c);
     }
-  
-  Tensor3& data() { return mdata; }
-  const Tensor3& data() const { return mdata; }
   
   friend ostream& operator<<(ostream& os, const GriddedField3& gf);
 
-private:
-  
-  Tensor3 mdata;
+  Tensor3 data;
 };
 
 
@@ -332,17 +317,17 @@ public:
   */
   virtual bool checksize() const
     {
-      return (mdata.ncols() == get_grid_size(3)
-              && mdata.nrows() == get_grid_size(2)
-              && mdata.npages() == get_grid_size(1)
-              && mdata.nbooks() == get_grid_size(0));
+      return (data.ncols() == get_grid_size(3)
+              && data.nrows() == get_grid_size(2)
+              && data.npages() == get_grid_size(1)
+              && data.nbooks() == get_grid_size(0));
     }
 
   //! Make this GriddedField4 the same size as the given one.
   /*! \param[in] gf Source gridded field. */
   void resize(const GriddedField4& gf)
     {
-      mdata.resize(gf.get_grid_size(0),
+      data.resize(gf.get_grid_size(0),
                       gf.get_grid_size(1),
                       gf.get_grid_size(2),
                       gf.get_grid_size(3));
@@ -352,17 +337,12 @@ public:
   /*! \see Tensor4::resize */
   void resize(Index b, Index p, Index r, Index c)
     {
-      mdata.resize(b, p, r, c);
+      data.resize(b, p, r, c);
     }
-  
-  Tensor4& data() { return mdata; }
-  const Tensor4& data() const { return mdata; }
   
   friend ostream& operator<<(ostream& os, const GriddedField4& gf);
 
-private:
-  
-  Tensor4 mdata;
+  Tensor4 data;
 };
 
 

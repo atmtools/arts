@@ -60,6 +60,9 @@
 #include "workspace_ng.h"
 #include "arts_omp.h"
 
+#ifdef ENABLE_DOCSERVER
+#include "docserver.h"
+#endif
 
 /** Remind the user of --help and exit return value 1. */
 void polite_goodby()
@@ -954,6 +957,14 @@ int main (int argc, char **argv)
       arts_exit (EXIT_SUCCESS);
     }
 
+#ifdef ENABLE_DOCSERVER
+  if ( 0 != parameters.docserver )
+    {
+      cout << "Starting the arts documentation server." << endl;
+      docserver_start(parameters.docserver);
+      arts_exit(0);
+    }
+#endif
 
   // Ok, we are past all the special options. This means the user
   // wants to get serious and really do a calculation. Check if we

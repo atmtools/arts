@@ -134,19 +134,19 @@ gftwo.set_grid_name (1, "Channel");
 %-------------------------------------------------------------------------
 \label{sec:griddedfields:initdata}
 
-The data of a \artsstyle{GriddedFieldX} can be accessed through its \artsstyle{data()} function.
-For a \artsstyle{GriddedField1} the \artsstyle{data()} function returns a \artsstyle{Vector} reference, for a \artsstyle{GriddedField2} a \artsstyle{Matrix} reference, for a \artsstyle{GriddedField3} a \artsstyle{Tensor3} reference, and so on.
+The data of a \artsstyle{GriddedFieldX} can be accessed through its \artsstyle{data} member.
+For a \artsstyle{GriddedField1} \artsstyle{data} is a \artsstyle{Vector}, for a \artsstyle{GriddedField2} a \artsstyle{Matrix}, for a \artsstyle{GriddedField3} a \artsstyle{Tensor3}, and so on.
 
 The following code shows how to fill the gridded fields from the previous example with data:
 
 \begin{verbatim}
 Vector avector(1,4,0.5);    // avector = [1,1.5,2,2.5]
 
-gfone.data() = avector;
+gfone.data = avector;
 
 Matrix amatrix(5,3,4.);     // amatrix = [[4,4,4],[4,4,4],...]
 
-gftwo.data() = amatrix;
+gftwo.data = amatrix;
 \end{verbatim}
 
 \subsection{Consistency check}

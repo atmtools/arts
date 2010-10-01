@@ -1250,7 +1250,7 @@ void abs_lookupSetupBatch(// WS Output:
   // Now we have to determine the statistics of T and VMRs, we need
   // profiles of min, max, and mean of these, on the abs_p grid.
 
-  Index n_variables = batch_fields[0].data().nbooks();
+  Index n_variables = batch_fields[0].data.nbooks();
 
   // The first dimension of datamin, datamax, and datamean is the
   // variable (T,Z,H2O,O3,...). The second dimension is pressure. We
@@ -1300,7 +1300,7 @@ void abs_lookupSetupBatch(// WS Output:
 
       // Create convenient handles:
       const Vector&  p_grid = batch_fields[i].get_numeric_grid(GFIELD4_P_GRID);
-      const Tensor4& data   = batch_fields[i].data();
+      const Tensor4& data   = batch_fields[i].data;
 
       // Update our global max/min values for T and H2O:
 
