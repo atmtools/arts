@@ -1,5 +1,11 @@
 2010-10-01  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-86
+
+	* src/main.cc: Revert accidentally committed changes.
+
+2010-10-01  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-85
 
 	* src/gridded_fields.cc, src/gridded_fields.h:
