@@ -1,3 +1,14 @@
+2010-10-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-87
+
+	* src/rng.cc (Rng::seed):
+
+	Introduce a static vector that caches all previously used seeds. If
+	the given seed was already used, increase it by 1 until we find an
+	unused seed. If all possible seeds were already used previously, we
+	empty the pool and start over.
+
 2010-10-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-86

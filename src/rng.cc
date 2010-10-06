@@ -35,6 +35,9 @@ generator from the GNU Scientific Library <http://www.gnu.org/software/gsl/>.
 #include "rng.h"
 #include <cstring>
 #include <iostream>
+#include <algorithm>
+#include <vector>
+#include <climits>
 #include "arts.h"
 #include "messages.h"
 /*!
@@ -66,9 +69,34 @@ Rng::~Rng()
 */
 void Rng::seed(unsigned long int n)
 {
-  // The actual thread index (at runtime). We add this to the original 
-  // seed number n, to ensure that each thread has a unique seed.
-  seed_no=n+actual_thread_index;
+  // Static pool of previously used seeds.
+  static vector<unsigned long int> seeds;
+
+#pragma omp critical
+  {
+    unsigned long int n_orig = n;
+    //cout << "Requested seed: " << n;
+    while (find(seeds.begin(), seeds.end(), n) != seeds.end())
+    {
+      if (n >= ULONG_MAX - 1)
+        n=0;
+      else
+        n++;
+      
+      // If all possible seeds were already used, we empty the pool and
+      // start over.
+      if (n == n_orig)
+      {
+        out0 << "Rng Warning: Couldn't find an unused seed. Clearing seed pool.\n";
+        seeds.empty();
+        break;
+      }
+    }
+    seeds.push_back(n);
+    seed_no=n;
+    //cout << " Got seed: " << seed_no << endl;
+  }
+  
   gsl_rng_set(r,seed_no);
 }
 
