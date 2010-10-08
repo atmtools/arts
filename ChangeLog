@@ -1,5 +1,11 @@
 2010-10-08  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-89
+
+	* src/docserver.cc: Fix nbsp in navigation.
+
+2010-10-08  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-88
 
 	* NEW FEATURE: ARTS built-in documentation server. It provides the

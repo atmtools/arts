@@ -1098,7 +1098,7 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
     ds_insert_title (os, "Index");
     
     os
-    << "<p>Jump to: <a href=\"#methods\">Methods</a>&nbsp-&nbsp;"
+    << "<p>Jump to: <a href=\"#methods\">Methods</a>&nbsp;-&nbsp;"
     << "<a href=\"#variables\">Variables</a>&nbsp-&nbsp;"
     << "<a href=\"#agendas\">Agendas</a>&nbsp-&nbsp;"
     << "<a href=\"#groups\">Groups</a>"
