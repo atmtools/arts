@@ -1,10 +1,17 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
 
+#define _GNU_SOURCE 1
+
 /* Compile Flags */
 #cmakedefine COMPILE_FLAGS "${COMPILE_FLAGS}"
 
 /* Compiler */
 #cmakedefine COMPILER "${COMPILER}"
+
+/* Define system constant */
+#cmakedefine LINUX 1
+#cmakedefine OSX 1
+#cmakedefine WINDOWS 1
 
 /* Threadprivate support */
 #cmakedefine THREADPRIVATE_SUPPORTED
@@ -14,6 +21,9 @@
 
 /* Define to compile with zlib support */
 #cmakedefine ENABLE_ZLIB
+
+/* Define to compile with documentation server support */
+#cmakedefine ENABLE_DOCSERVER
 
 /* Define to compile with NetCDF support */
 #cmakedefine ENABLE_NETCDF ${NETCDF_FOUND}
@@ -30,6 +40,29 @@
 #cmakedefine HAVE_SYS_TYPES_H 1
 #cmakedefine HAVE_UNISTD_H 1
 #cmakedefine HAVE_GETOPT_H 1
+
+/* check existence of c header files for libmicrohttpd */
+
+#cmakedefine HAVE_FCNTL_H 1
+#cmakedefine HAVE_MATH_H 1
+#cmakedefine HAVE_ERRNO_H 1
+#cmakedefine HAVE_LIMITS_H 1
+#cmakedefine HAVE_STDIO_H 1
+#cmakedefine HAVE_LOCALE_H 1
+#cmakedefine HAVE_PTHREAD_H 1
+
+/* check existence of additional c header files for libmicrohttpd */
+
+#cmakedefine HAVE_SYS_TIME_H 1
+#cmakedefine HAVE_SYS_MSG_H 1
+#cmakedefine HAVE_NETDB_H 1
+#cmakedefine HAVE_NETINET_IN_H 1
+#cmakedefine HAVE_NETINET_TCP_H 1
+#cmakedefine HAVE_SYS_SOCKET_H 1
+#cmakedefine HAVE_SYS_MMAN_H 1
+#cmakedefine HAVE_ARPA_INET_H 1
+#cmakedefine HAVE_SYS_SELECT_H 1
+#cmakedefine HAVE_POLL_H 1
 
 /* check existence of c++ header files */
 #cmakedefine HAVE_CSTDLIB 1

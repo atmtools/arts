@@ -1757,27 +1757,6 @@ void Workspace::define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
-    ( NAME( "jacobian" ),
-      DESCRIPTION
-      (
-       "The Jacobian matrix.\n"
-       "\n"
-        "The matrix holding the Jacobians of the retrieval quantities. Each\n"
-        "quantity, and its subdivision into atmospheric grids, are stored as\n"
-        "columns in the matrix. The matrix has to be initialised before the\n"
-        "quantities can be defined. Initialisation WSM is *jacobianInit*.\n"
-        "Retrieval quantities are then added with *jacobianAdd...* methods.\n"
-        "See the online help. Pure numerical calculation is described by\n"
-        "*jacobian_calc_agenda* and are performed by *jacobianCalc*.\n"
-        "\n"
-        "Units:   See the different retrieval quantities.\n"
-        "\n"
-        "Dimension: [ y, number of retrieval quantities and grids ]\n"
-      ),
-      GROUP( "Matrix" )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "jacobian_indices" ),
       DESCRIPTION
       (

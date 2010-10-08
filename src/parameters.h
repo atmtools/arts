@@ -58,7 +58,8 @@ public:
     workspacevariables(""),
     describe(""),
     groups(false),
-    plain(false)
+    plain(false),
+    docserver(0)
   { /* Nothing to be done here */ }
   /** Short message how to call the program. */
   String usage;
@@ -106,6 +107,8 @@ public:
   bool groups;
   /** Generate plain help out suitable for script processing. */
   bool plain;
+  /** Port to use for the docserver. */
+  Index docserver;
 };
 
 

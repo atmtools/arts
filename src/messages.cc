@@ -42,14 +42,8 @@
     Threadprivate variables are not initialized, so we have to
     explicitly initialize this in main for all threads. */
 bool in_main_agenda=true;
-/** This is the actual thread index, a threadprivate variable. The OMP 
-    function for the thread index works only in the same lexical scope where 
-    the split has happened. (Not, for example, in functions called from there.) 
-    Like in_main_agenda, this has to be explicitly set for all threads in main. */
-int actual_thread_index;
 #ifdef THREADPRIVATE_SUPPORTED
 #pragma omp threadprivate(in_main_agenda)
-#pragma omp threadprivate(actual_thread_index)
 #endif
 
 #include "messages.h"

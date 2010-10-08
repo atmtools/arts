@@ -1,3 +1,28 @@
+2010-10-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-88
+
+	* NEW FEATURE: ARTS built-in documentation server. It provides the
+	functionality of accessing the built-in documentation directly from
+	a web browser.
+
+	Run 'arts -s' and point your browser to the indicated address.
+
+	* src/docserver.{h,cc}: New docserver implementation.
+
+	* README, src/main.cc, src/parameters.{h,cc}, CMakeLists.txt,
+	config.h.cmake, src/CMakeLists.txt:
+
+	Add docserver support.
+
+	* src/libmicrohttpd/: Micro http server.
+
+	* src/messages.h: Remove actual_thread_index variable.
+
+	* src/rng.{cc,h}: Add Rng::force_seed function:
+
+	* src/workspace.cc: Remove duplicate definition of jacobian variable.
+
 2010-10-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-87

@@ -69,6 +69,9 @@ cmake -DNO_OPENMP=1 ..
 Disable NetCDF:
 cmake -DNO_NETCDF=1 ..
 
+Disable the built-in documentation server:
+cmake -DNO_DOCSERVER=1 ..
+
 Treat warnings as errors:
 cmake -DWERROR=1 ..
 

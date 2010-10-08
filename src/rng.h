@@ -581,6 +581,8 @@ class Rng {
   //1970.
   void seed(unsigned long int n);
     
+  void force_seed(unsigned long int n);
+  
   double draw();         //draw a random number between [0,1)
 
   unsigned long int showseed(); //return the seed.

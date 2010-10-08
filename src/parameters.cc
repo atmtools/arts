@@ -98,13 +98,16 @@ bool get_parameters(int argc, char **argv)
     { "numthreads",         required_argument, NULL, 'n' },
     { "plain",              no_argument,       NULL, 'p' },
     { "reporting",          required_argument, NULL, 'r' },
+#ifdef ENABLE_DOCSERVER
+    { "docserver",          optional_argument, NULL, 's' },
+#endif
     { "workspacevariables", required_argument, NULL, 'w' },
     { "version",            no_argument,       NULL, 'v' },
     { NULL,                 no_argument,       NULL, 0   }
   };
 
   parameters.usage =
-    "Usage: arts [-bdghimnrvw]\n"
+    "Usage: arts [-bdghimnrsvw]\n"
     "       [--basename <name>]\n"
     "       [--describe <method or variable>]\n"
     "       [--groups]\n"
@@ -114,13 +117,15 @@ bool get_parameters(int argc, char **argv)
     "       [--methods all|<variable>]\n"
     "       [--numthreads <#>\n"
     "       [--plain]\n"
-    "       [--reporting xyz]\n"
-    "       [--version]\n"
+    "       [--reporting <xyz>]\n"
+#ifdef ENABLE_DOCSERVER
+    "       [--docserver[=<port>]]\n"
+#endif
     "       [--workspacevariables all|<method>]\n"
     "       file1.arts file2.arts ...";
 
   parameters.helptext =
-    "The Atmospheric Radiative Transfer System.\n\n"
+    "The Atmospheric Radiative Transfer Simulator.\n\n"
     "-b, --basename      Set the basename for the report\n"
     "                    file and for other output files.\n"
     "-d, --describe      Print the description String of the given\n"
@@ -158,6 +163,11 @@ bool get_parameters(int argc, char **argv)
     "                    The agenda setting applies in addition to both\n"
     "                    screen and file output.\n"
     "                    Default is 010.\n"
+#ifdef ENABLE_DOCSERVER
+    "-s, --docserver     Start documentation server. Optionally, specify\n"
+    "                    the port number the server should listen on.\n"
+    "                    Default is 9000.\n"
+#endif
     "-v, --version       Show version information.\n"
     "-w, --workspacevariables  If this is given the argument `all',\n"
     "                    it simply prints a list of all variables.\n"
@@ -259,6 +269,23 @@ bool get_parameters(int argc, char **argv)
                 cerr << "Argument to --reporting (-r) must be an integer!\n";
                 arts_exit ();
               }
+            break;
+          }
+        case 's':
+          {
+            if (optarg)
+            {
+              cout << "optarg: " << optarg << endl;
+              istringstream iss(optarg);
+              iss >> std::dec >> parameters.docserver;
+              if (iss.fail())
+              {
+                cerr << "Argument to --docserver (-s) must be an integer!\n";
+                arts_exit ();
+              }
+            }
+            else
+              parameters.docserver = -1;
             break;
           }
         case 'v':

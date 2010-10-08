@@ -60,6 +60,9 @@
 #include "workspace_ng.h"
 #include "arts_omp.h"
 
+#ifdef ENABLE_DOCSERVER
+#include "docserver.h"
+#endif
 
 /** Remind the user of --help and exit return value 1. */
 void polite_goodby()
@@ -740,22 +743,16 @@ int main (int argc, char **argv)
      explicitly for each thread, since it is not automatically
      initialized. */
     
-  /* actual_thread_index is the actual thread index at run time. 
-     (For more information see where the variable is defined.) */
-
 #ifdef THREADPRIVATE_SUPPORTED
 #pragma omp parallel \
  default(none) 
 #else
 #pragma omp parallel \
  default(none) \
- shared(in_main_agenda) \
- shared(actual_thread_index)
+ shared(in_main_agenda)
 #endif
   {
     in_main_agenda = true;
-    actual_thread_index = arts_omp_get_thread_num();
-//    cout << "Thread ID: " << actual_thread_index << "\n";
   }
 
 
@@ -785,27 +782,33 @@ int main (int argc, char **argv)
       
       osfeatures
         << "Features in this build: " << endl
-        << "   Numeric precision:  "
+        << "   Numeric precision:    "
         << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float") << endl
-        << "   OpenMP support:     "
+        << "   OpenMP support:       "
 #ifdef _OPENMP
         << "enabled" << endl
 #else
         << "disabled" << endl
 #endif
-        << "   Zipped XML support: "
+        << "   Documentation server: "
+#ifdef ENABLE_DOCSERVER
+        << "enabled" << endl
+#else
+        << "disabled" << endl
+#endif
+        << "   Zipped XML support:   "
 #ifdef ENABLE_ZLIB
         << "enabled" << endl
 #else
         << "disabled" << endl
 #endif
-        << "   NetCDF support:     "
+        << "   NetCDF support:       "
 #ifdef ENABLE_NETCDF
         << "enabled" << endl
 #else
         << "disabled" << endl
 #endif
-        << "   Disort algorithm:   "
+        << "   Disort algorithm:     "
 #ifdef ENABLE_DISORT
         << "enabled" << endl
 #else
@@ -954,6 +957,14 @@ int main (int argc, char **argv)
       arts_exit (EXIT_SUCCESS);
     }
 
+#ifdef ENABLE_DOCSERVER
+  if ( 0 != parameters.docserver )
+    {
+      cout << "Starting the arts documentation server." << endl;
+      docserver_start(parameters.docserver);
+      arts_exit(0);
+    }
+#endif
 
   // Ok, we are past all the special options. This means the user
   // wants to get serious and really do a calculation. Check if we

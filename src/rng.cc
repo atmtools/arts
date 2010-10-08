@@ -59,13 +59,9 @@ Rng::~Rng()
 
 /*!
  Seeds the Rng with the integer argument. 
- 
- In the presence of OMP, the actual thread number is added to the 
- seed, in order to make it unique for each thread.
- 
- For random numbers to work correctly with OMP, you must make the 
- random generator a local variable inside the parallel region, and 
- seed it with this function.
+
+ Every seed is only used once. The provided seed is increased by 1 until an
+ unused seed is found.
 */
 void Rng::seed(unsigned long int n)
 {
@@ -97,6 +93,16 @@ void Rng::seed(unsigned long int n)
     //cout << " Got seed: " << seed_no << endl;
   }
   
+  gsl_rng_set(r,seed_no);
+}
+
+
+/*!
+ Seeds the Rng with the integer argument. 
+ */
+void Rng::force_seed(unsigned long int n)
+{
+  seed_no=n;
   gsl_rng_set(r,seed_no);
 }
 

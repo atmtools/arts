@@ -50,6 +50,27 @@ check_include_file (sys/types.h HAVE_SYS_TYPES_H)
 check_include_file (unistd.h    HAVE_UNISTD_H)
 check_include_file (getopt.h    HAVE_GETOPT_H)
 
+########### Check C header files for libmicrohttpd ##########
+check_include_file (fcntl.h     HAVE_FCNTL_H)
+check_include_file (math.h      HAVE_MATH_H)
+check_include_file (errno.h     HAVE_ERRNO_H)
+check_include_file (limits.h    HAVE_LIMITS_H)
+check_include_file (stdio.h     HAVE_STDIO_H)
+check_include_file (locale.h    HAVE_LOCALE_H)
+check_include_file (pthread.h   HAVE_PTHREAD_H)
+
+########### Check additional C header files for libmicrohttpd ##########
+check_include_file (sys/time.h    HAVE_SYS_TIME_H)
+check_include_file (sys/msg.h     HAVE_SYS_MSG_H)
+check_include_file (netdb.h       HAVE_NETDB_H)
+check_include_file (netinet/in.h  HAVE_NETINET_IN_H)
+check_include_file (netinet/tcp.h HAVE_NETINET_TCP_H)
+check_include_file (sys/socket.h  HAVE_SYS_SOCKET_H)
+check_include_file (sys/mman.h    HAVE_SYS_MMAN_H)
+check_include_file (arpa/inet.h   HAVE_ARPA_INET_H)
+check_include_file (sys/select.h  HAVE_SYS_SELECT_H)
+check_include_file (poll.h        HAVE_POLL_H)
+
 ########### Check C++ header files ##########
 check_include_file_cxx (cstdlib HAVE_CSTDLIB)
 check_include_file_cxx (cstring HAVE_CSTRING)
@@ -88,6 +109,12 @@ endif (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
 if (OPENMP_FOUND OR CMAKE_GENERATOR STREQUAL "Xcode")
   include (CheckOpenMPThreadprivate)
 endif (OPENMP_FOUND OR CMAKE_GENERATOR STREQUAL "Xcode")
+
+########### Docserver support ##########
+
+if (NOT NO_DOCSERVER)
+  set (ENABLE_DOCSERVER true)
+endif (NOT NO_DOCSERVER)
 
 ########### Disort support ##########
 if (ENABLE_DISORT)
@@ -170,10 +197,13 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARN_FLAGS}")
 ########### Set Operating System name for config.h ##########
 if (APPLE)
   set (OS_NAME "Mac OS")
+  set (OSX 1)
 elseif (UNIX)
   set (OS_NAME "Unix")
+  set (LINUX 1)
 elseif (WIN)
   set (OS_NAME "Windows")
+  set (WINDOWS 1)
 endif (APPLE)
   
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake

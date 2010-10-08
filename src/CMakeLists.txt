@@ -20,6 +20,10 @@ if (ENABLE_DISORT)
   list (APPEND ALL_ARTS_LIBRARIES disort)
 endif (ENABLE_DISORT)
 
+if (ENABLE_DOCSERVER)
+  list (APPEND ALL_ARTS_LIBRARIES docserver)
+endif (ENABLE_DOCSERVER)
+
 ########### target to extract version number from ChangeLog ###############
 
 add_custom_target (auto_version_h DEPENDS auto_version.h)
@@ -385,6 +389,13 @@ add_library (partition_function_data STATIC
 
 ########### next target ###############
 
+if (ENABLE_DOCSERVER)
+  add_library (docserver STATIC docserver.cc docserver.h)
+  target_link_libraries (docserver microhttpd artscore)
+endif (ENABLE_DOCSERVER)
+
+########### next target ###############
+
 add_library (gzstream STATIC gzstream.cc gzstream.h)
 target_link_libraries (gzstream ${ZLIB_LIBRARIES})
 
@@ -501,4 +512,8 @@ target_link_libraries (test_sorting matpack)
 
 add_executable (test_readpp test_readpp.cc)
 target_link_libraries (test_readpp ${ALL_ARTS_LIBRARIES})
+
+########### subdirs ###############
+
+add_subdirectory (libmicrohttpd)
 
