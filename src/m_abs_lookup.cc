@@ -1652,16 +1652,16 @@ void abs_lookupSetupWide(// WS Output:
 
   // Chose temperature perturbations:
   choose_abs_t_pert(abs_t_pert,
-                    abs_t, min_prof, max_prof, 100,
+                    abs_t, min_prof, max_prof, 20,
                     abs_p_interp_order, abs_t_interp_order);
 
 
   // 3. Fix reference H2O profile and abs_nls_pert
   // ---------------------------------------------
 
-  // We take a constant reference profile of 1ppm (=1e-6)
+  // We take a constant reference profile of 1000ppm (=1e-3)
 
-  Numeric h2o_ref = 1e-6;
+  Numeric h2o_ref = 1e-3;
 
   // We have to assign this value to all pressures of the H2O profile,
   // and 0 to all other profiles.

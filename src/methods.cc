@@ -980,20 +980,18 @@ void define_md_data_raw()
             "abs_nls_interp_order" ),
         GIN( "p_step",  "t_step",  "h2o_step", "extremes" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric",  "Vector" ),
-        GIN_DEFAULT( "0.05",    "100",       "100",      "[]" ),
+        GIN_DEFAULT( "0.05",    "20",       "100",      "[]" ),
         GIN_DESC( /* p_step */ 
-                  "Maximum step in log10(p[Pa]) (base 10 logarithm). If "
-                  "the pressure grid is coarser than this, additional points "
-                  "are added until each log step is smaller than this.",
+                  "Grid step in log10(p[Pa]) (base 10 logarithm).",
                   /* t_step */
-                  "The temperature variation grid step in Kelvin, for a 2D "
-                  "or 3D atmosphere. For a 1D atmosphere this parameter is "
-                  "not used.",
+                  "The temperature variation grid step in Kelvin. The true "
+                  "step can become finer than this, if required by the "
+                  "interpolation order.",
                   /* h2o_step */
                   "The H2O variation grid step [fractional], if H2O variations "
                   "are done (which is determined automatically, based on "
-                  "abs_species and the atmospheric dimension). For a 1D "
-                  "atmosphere this parameter is not used.",
+                  "abs_species and the atmospheric dimension). As for T, the true "
+                  "step can turn out finer if required by the interpolation order.",
                   /* extremes */
                   "You can give here explicit extreme values to add to "
                   "abs_t_pert and abs_nls_pert. The order is [t_pert_min, "
@@ -1026,10 +1024,6 @@ void define_md_data_raw()
          "min(p)   / max(p)   [Pa]:  1 / 104960\n"
          "min(T)   / max(T)   [K]:   158.21 / 320.39\n"
          "min(H2O) / max(H2O) [VMR]: -5.52e-07 / 0.049\n"
-         "\n"
-         "p_step is in log10(p[hPa])\n"
-         "\n"
-         "FIXME: Explicitly document keywords.\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT( "abs_p",
@@ -1047,14 +1041,14 @@ void define_md_data_raw()
             "abs_nls_interp_order" ),
         GIN( "p_min",   "p_max",   "p_step",  "t_min",   "t_max",   "h2o_min", "h2o_max" ),
         GIN_TYPE(    "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric" ),
-        GIN_DEFAULT( "0.5",  "110000",  "0.05",    "100",     "400",     "0",       "0.1" ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DEFAULT( "0.5",  "110000",  "0.05",    "100",     "400",     "0",       "0.05" ),
+        GIN_DESC( "Pressure grid minimum [Pa].",
+                  "Pressure grid maximum [Pa].",
+                  "Pressure grid step in log10(p[Pa]) (base 10 logarithm).",
+                  "Temperature grid minimum [K].",
+                  "Temperature grid maximum [K].",
+                  "Humidity grid minimum [fractional].",
+                  "Humidity grid maximum [fractional]." )
         ));
   
   md_data_raw.push_back     
