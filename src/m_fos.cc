@@ -446,7 +446,6 @@ void iyFOS(
                                         vmr_mean, abs_scalar_gas_agenda );
           emission_agendaExecute( ws, bbemission, t_mean, emission_agenda );
 
-          
           // Clearsky step
           if( max(pnd_mean) < 1e-3  ||  fos_n == 0 )
             {

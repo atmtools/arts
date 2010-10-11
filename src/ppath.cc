@@ -6412,39 +6412,35 @@ void ppath_calc(
           // added. Fractional distances used for this. 
 
           // Pressure dimension
-          double ipos = fractional_gp( ppath_step.gp_p[n-1] );
-          if( ipos <= double( cloudbox_limits[0] )  &&
-              ppath_step.gp_p[n-1].fd[0] < ppath_step.gp_p[n-2].fd[0] )
+          double ipos1 = fractional_gp( ppath_step.gp_p[n-1] );
+          double ipos2 = fractional_gp( ppath_step.gp_p[n-2] );
+          if( ipos1 <= double( cloudbox_limits[0] )  &&  ipos1 < ipos2 )
             { ppath_set_background( ppath_step, 3 ); }
               
-          else if( ipos >= double( cloudbox_limits[1] )  &&
-                   ppath_step.gp_p[n-1].fd[0] > ppath_step.gp_p[n-2].fd[0] )
+          else if( ipos1 >= double( cloudbox_limits[1] )  &&  ipos1 > ipos2 )
             { ppath_set_background( ppath_step, 3 ); }
 
           else if( atmosphere_dim > 1 )
             {
               // Latitude dimension
-              ipos = fractional_gp( ppath_step.gp_lat[n-1] );
-              if( ipos <= double( cloudbox_limits[2] )  &&
-                  ppath_step.gp_lat[n-1].fd[0] < ppath_step.gp_lat[n-2].fd[0] )
+              ipos1 = fractional_gp( ppath_step.gp_lat[n-1] );
+              ipos2 = fractional_gp( ppath_step.gp_lat[n-2] );
+              if( ipos1 <= double( cloudbox_limits[2] )  &&  ipos1 < ipos2 )  
                 { ppath_set_background( ppath_step, 3 ); }
 
-              else if( ipos >= double( cloudbox_limits[3] )  &&
-                  ppath_step.gp_lat[n-1].fd[0] > ppath_step.gp_lat[n-2].fd[0] )
+              else if( ipos1 >= double( cloudbox_limits[3] )  &&  ipos1 > ipos2 )
                 { ppath_set_background( ppath_step, 3 ); }
 
               else if ( atmosphere_dim > 2 )
                 {
                   // Longitude dimension
-                  ipos = fractional_gp( ppath_step.gp_lon[n-1] );
-                  if( ipos <= double( cloudbox_limits[4] )  &&
-                      ppath_step.gp_lon[n-1].fd[0] < 
-                      ppath_step.gp_lon[n-2].fd[0] )
+                  ipos1 = fractional_gp( ppath_step.gp_lon[n-1] );
+                  ipos2 = fractional_gp( ppath_step.gp_lon[n-2] );
+                  if( ipos1 <= double( cloudbox_limits[4] )  &&  ipos1 < ipos2 )
                     { ppath_set_background( ppath_step, 3 ); }
 
-                  else if( ipos >= double( cloudbox_limits[5] )  &&
-                           ppath_step.gp_lon[n-1].fd[0] > 
-                           ppath_step.gp_lon[n-2].fd[0] )
+                  else if( ipos1 >= double( cloudbox_limits[5] )  &&
+                           ipos1 > ipos2 )
                     { ppath_set_background( ppath_step, 3 ); }
                 }
             }

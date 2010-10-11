@@ -1,5 +1,12 @@
 2010-10-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-14-92
+
+	* src/ppath.cc: Last fix not 100% OK. Changed way gridpos are
+	compared.
+
+2010-10-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-14-91
 
 	* src/ppath.cc (ppath_calc): Changed end tests for ppaths inside
