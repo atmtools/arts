@@ -6406,31 +6406,46 @@ void ppath_calc(
       //--- Inside cloud box -------------------------------------------------
       else
         {
-          // Here we need only check if we have gone outside the cloud box.
-          // Note that here it sufficient to detect that point is outside in
-          // any dimension.
+          // A first version just checked if point was at or outside any
+          // boundary but numerical problems could cause that the start point
+          // was taken as the exit point. So check of ppath direction had to be
+          // added. Fractional distances used for this. 
 
           // Pressure dimension
           double ipos = fractional_gp( ppath_step.gp_p[n-1] );
-          if( ipos <= double( cloudbox_limits[0] )  ||
-              ipos >= double( cloudbox_limits[1] ) )
+          if( ipos <= double( cloudbox_limits[0] )  &&
+              ppath_step.gp_p[n-1].fd[0] < ppath_step.gp_p[n-2].fd[0] )
+            { ppath_set_background( ppath_step, 3 ); }
+              
+          else if( ipos >= double( cloudbox_limits[1] )  &&
+                   ppath_step.gp_p[n-1].fd[0] > ppath_step.gp_p[n-2].fd[0] )
             { ppath_set_background( ppath_step, 3 ); }
 
           else if( atmosphere_dim > 1 )
             {
               // Latitude dimension
               ipos = fractional_gp( ppath_step.gp_lat[n-1] );
-              if( ipos <= double( cloudbox_limits[2] )  || 
-                  ipos >= double( cloudbox_limits[3] ) )
+              if( ipos <= double( cloudbox_limits[2] )  &&
+                  ppath_step.gp_lat[n-1].fd[0] < ppath_step.gp_lat[n-2].fd[0] )
+                { ppath_set_background( ppath_step, 3 ); }
+
+              else if( ipos >= double( cloudbox_limits[3] )  &&
+                  ppath_step.gp_lat[n-1].fd[0] > ppath_step.gp_lat[n-2].fd[0] )
                 { ppath_set_background( ppath_step, 3 ); }
 
               else if ( atmosphere_dim > 2 )
                 {
                   // Longitude dimension
                   ipos = fractional_gp( ppath_step.gp_lon[n-1] );
-                  if( ipos <= double( cloudbox_limits[4] )  || 
-                      ipos >= double( cloudbox_limits[5] ) )
-                    { ppath_set_background( ppath_step, 3 ); } 
+                  if( ipos <= double( cloudbox_limits[4] )  &&
+                      ppath_step.gp_lon[n-1].fd[0] < 
+                      ppath_step.gp_lon[n-2].fd[0] )
+                    { ppath_set_background( ppath_step, 3 ); }
+
+                  else if( ipos >= double( cloudbox_limits[5] )  &&
+                           ppath_step.gp_lon[n-1].fd[0] > 
+                           ppath_step.gp_lon[n-2].fd[0] )
+                    { ppath_set_background( ppath_step, 3 ); }
                 }
             }
         }
