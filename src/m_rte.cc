@@ -1117,7 +1117,7 @@ void iyEmissionStandardClearskyBasic(
   const Index     np  = ppath.np;
         Vector    ppath_p, ppath_t, total_tau;
         Matrix    ppath_vmr, ppath_emission, ppath_tau;
-        Tensor3   ppath_abs_scalar, iy_trans_new;
+        Tensor3   ppath_abs_scalar;
   //
   if( np > 1 )
     {
@@ -1293,6 +1293,119 @@ void iyMC(
     }
 }
 
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+/*
+void iyTauStandardClearskyBasic(
+        Workspace&                  ws,
+        Matrix&                     iy,
+  const Vector&                     rte_pos,      
+  const Vector&                     rte_los,      
+  const Index&                      atmosphere_dim,
+  const Vector&                     p_grid,
+  const Vector&                     lat_grid,
+  const Vector&                     lon_grid,
+  const Tensor3&                    z_field,
+  const Tensor3&                    t_field,
+  const Tensor4&                    vmr_field,
+  const Matrix&                     r_geoid,
+  const Matrix&                     z_surface,
+  const Index&                      cloudbox_on,
+  const ArrayOfIndex&               cloudbox_limits,
+  const Index&                      stokes_dim,
+  const Vector&                     f_grid,
+  const Agenda&                     ppath_step_agenda,
+  const Agenda&                     abs_scalar_agenda,
+  const Agenda&                     iy_clearsky_basic_agenda,
+  const Agenda&                     iy_cloudbox_agenda )
+{
+  // A minimal amount of checks, for efficiency reasons
+  assert( rte_pos.nelem() == atmosphere_dim );
+  assert( ( atmosphere_dim < 3   &&  rte_los.nelem() == 1 )  ||
+          ( atmosphere_dim == 3  &&  rte_los.nelem() == 2 ) );
+
+
+  //- Determine propagation path
+  //
+  Ppath  ppath;
+  //
+  ppath_calc( ws, ppath, ppath_step_agenda, atmosphere_dim, p_grid, 
+              lat_grid, lon_grid, z_field, r_geoid, z_surface,
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
+
+
+  // Get quantities required for each ppath point
+  //
+  const Index    np  = ppath.np;
+  const Index    nf  = f_grid.nelem();
+  //
+  Vector   total_tau;
+  //
+  if( np > 1 )
+    {
+      Vector    ppath_p, ppath_t;
+      Matrix    ppath_vmr, dummy1, dummy2;
+      Tensor3   ppath_abs_scalar;
+      Agenda    dummy3;
+
+      // Get pressure, temperature and VMRs
+      //
+      get_ptvmr_for_ppath( ppath_p, ppath_t, ppath_vmr, ppath, atmosphere_dim, 
+                           p_grid, t_field, vmr_field );
+
+      // Get emission, absorption and optical thickness for each step
+      //
+      get_step_vars_for_standardRT( ws, ppath_abs_scalar, dummy1, dummy2,
+                                    total_tau, 
+                                    abs_scalar_agenda, dummy3,
+                                    ppath, ppath_p, ppath_t, ppath_vmr, nf, 0 );
+    }
+  else // To handle cases inside the cloudbox, or totally outside the atmosphere
+    {
+      total_tau.resize( nf );
+      total_tau = 0;
+    }
+
+
+  // If "radiative background" is space or surface, we just return total_tau.
+  // For the cloudbox we continue the calculations.
+  //
+  const Index bkgr = ppath_what_background( ppath );
+  assert( bkgr > 0 );
+  //
+  if( bkgr <= 2 )
+    { 
+      iy.resize( nf, stokes_dim );
+      for( Index i=0; i<stokes_dim; i++ )
+        { iy(joker,i) = total_tau;}
+    }
+  else //
+    {
+      Matrix          dummy1;
+      Index           dummy2;
+      Tensor3         dummy3, dummy5;
+      ArrayOfTensor3  dummy4;
+      Agenda          dummy6, dummy7;
+      //  
+      get_iy_of_background( ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
+                        0, 0, ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
+                        t_field, vmr_field, cloudbox_on, stokes_dim,
+                        f_grid, iy_clearsky_basic_agenda, dummy6, dummy7, 
+                        iy_cloudbox_agenda );
+
+      // Add up taus
+      for( Index i=0; i<stokes_dim; i++ )
+        { 
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+              iy(iv,i) += total_tau[iv];
+            }
+        }
+      
+    }
+}
+*/
 
 
 
