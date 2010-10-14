@@ -312,7 +312,7 @@ void iyFOS(
   if( fos_i < 0 )
     throw runtime_error( "The WSV *fos_i* must be >= 0." );
 
-  // Determine ppath through the cloudbox if first call
+  // Determine ppath through the cloudbox
   //
   Ppath  ppath;
   //
@@ -447,7 +447,7 @@ void iyFOS(
           emission_agendaExecute( ws, bbemission, t_mean, emission_agenda );
 
           // Clearsky step
-          if( max(pnd_mean) < 1e-3  ||  fos_n == 0 )
+          if( 1 || max(pnd_mean) < 1e-3  ||  fos_n == 0 )
             {
               // Loop frequencies
               for( Index iv=0; iv<nf; iv++ )

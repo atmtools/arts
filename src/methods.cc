@@ -4285,14 +4285,16 @@ void define_md_data_raw()
          "is considered to be 0. \n" 
          "\n"
          "If *iy_aux_do* is set, the columns of *iy_aux* are as follow:\n"
-         " 1. The transmission between the observation point and the top of\n"
-         "    the atmosphere (TOA) or to the surface, depending on which of\n"
-         "    the two \"backgrounds\" that is closest. With the cloud box\n"
+         " 1. The scalar transmission between the observation point and the top\n"
+         "    of the atmosphere (TOA) or to the surface, depending on which\n"
+         "    of the two \"backgrounds\" that is closest. With the cloud box\n"
          "    activated, the transmission returned depends on scattering\n"
          "    method used. For DOIT and MC, only the transmission to the\n"
          "    cloud box is calculated. For FOS the transmission is valid for\n"
          "    the total unscattered path through the atmosphere, with\n" 
          "    attenuation due particle scattering is included.\n"
+         "    Note that this is the scalar transmission, set to be the same for\n"
+         "    all Stokes components.\n"
          " 2. Radiative background index, for primary propagation path\n"
          "    branch, where 1 is TOA, 2 the surface, 3 cloudbox surface and\n"
          "    4 cloudbox interior.\n"
@@ -4371,9 +4373,6 @@ void define_md_data_raw()
          "unscattered propgation path is calculated as for fos_n = n-1. This\n"
          "gives a scheme where n scattering events are considered.\n"
          "\n"
-         "The propagation path step closest to the cloudbox boundary is\n"
-         "always treated as clear-sky. Accordingly, there should be some\n"
-         "between positions with cloud particles and the cloudbox boundary.\n"
          "For regions of no scattering there is a marginal difference between\n"
          "running this method and the corresponding pure clear-sky agenda,\n"
          "and there is not critical to set the cloudbox limits in a \"tight\"\n"
@@ -4445,35 +4444,80 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  /*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "iyTransmissionStandardClearsky" ),
         DESCRIPTION
         (
-         "Standard method for pure transmission RT calculations.\n"
+         "Standard method for handling transmission measurements.\n"
          "\n"
-         "As *iyEmissionStandardClearsky* beside that emission is here totally\n"
-         "neglected and the transmission column of *iy_aux* is here not\n"
-         "included\n"
+         "Designed to be part of *iy_clearsky_agenda*. That is, only valid\n"
+         "outside the cloudbox (no scattering or polarised absorption).\n"
+         "\n"
+         "The absorption is assumed to vary linearly between the ppath\n"
+         "points.*iy_error* is considered to be 0. \n" 
+         "\n"
+         "If *iy_aux_do* is set, the columns of *iy_aux* are as follow:\n"
+         " 1. Radiative background index, for primary propagation path\n"
+         "    branch, where 1 is TOA, 2 the surface, 3 cloudbox surface and\n"
+         "    4 cloudbox interior.\n"
+         " 2. Intersection with cloudbox flag, with 1 for interestion and 0\n"
+         "    for other propagation paths. Also intersection after surface\n"
+         "    reflections are flagged.\n"
+         " 3. Empty.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "iy", "iy_aux", "diy_dx" ),
+        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_agenda_call1", "rte_pos", "rte_los", "iy_aux_do", "jacobian_do", 
-            "atmosphere_dim", "p_grid", "lat_grid",
-            "lon_grid", "z_field", "t_field", "vmr_field", "r_geoid", "z_surface",
-            "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid",
-            "ppath_step_agenda", "abs_scalar_gas_agenda", "iy_space_agenda", 
+        IN( "iy_agenda_call1", "rte_pos", "rte_los", "iy_aux_do", "jacobian_do",
+            "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "z_field", 
+            "t_field", "vmr_field", "r_geoid", "z_surface",
+            "cloudbox_on", "cloudbox_limits", "stokes_dim", "f_grid", "abs_species",
+            "ppath_step_agenda", "abs_scalar_gas_agenda", "iy_clearsky_agenda", 
+            "iy_space_agenda", "surface_prop_agenda", "iy_cloudbox_agenda", 
             "iy_transmission", "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-  */
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iyTransmissionStandardCloudbox" ),
+        DESCRIPTION
+        (
+         "Standard method for calculating optical thickness (tau).\n"
+         "\n"
+         "Designed to be part of *iy_clouxbox_agenda*, and is thus a\n"
+         "complement to *iyTauStandardClearsky*.\n"
+         "\n"
+         "The extiction of particles is here included in the optical\n"
+         "thickness.\n"
+         "\n"
+         "For regions of no scattering there is a marginal difference between\n"
+         "running this method and the corresponding pure clear-sky agenda,\n"
+         "and there is not critical to set the cloudbox limits in a \"tight\"\n"
+         "manner.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "iy", "iy_error", "iy_error_type", "iy_aux", "diy_dx" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "rte_pos", "rte_los", "iy_aux_do", "jacobian_do","atmosphere_dim", 
+            "p_grid", "lat_grid", "lon_grid", "z_field", "t_field",
+            "vmr_field", "r_geoid", "z_surface", "cloudbox_on", 
+            "cloudbox_limits", "stokes_dim", "f_grid", "ppath_step_agenda", 
+            "abs_scalar_gas_agenda", "iy_clearsky_agenda", "pnd_field", 
+            "scat_data_raw", "opt_prop_gas_agenda" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
 
   md_data_raw.push_back
     ( MdRecord

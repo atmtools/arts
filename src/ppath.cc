@@ -5270,12 +5270,6 @@ void ppath_start_stepping(
                       ppath_set_background( ppath, 3 );
                     }
                 }
-              else
-                {
-                  assert( ppath.z[0] >= z_field(cloudbox_limits[0],0,0)  && 
-                          ppath.z[0] <= z_field(cloudbox_limits[1],0,0) );
-                  
-                }
             }
         }
 

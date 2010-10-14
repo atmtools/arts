@@ -1,3 +1,23 @@
+2010-10-14  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-94
+
+	* src/m_rte.cc (iyTransmissionStandardClearsky): Changed to
+	instead calculate transmission. So name method name changed (Tau
+	-> Transmission). And now using iy_space_agenda. So basically
+	iyEmissionStandardClearskym, with emission term removed
+
+	(iyTransmissionStandardCloudbox): Started on this method.
+
+	* src/ppath.cc (ppath_start_stepping): Removed an assert for 1D,
+	checking if inside the cloudbox when this is flagged. This has
+	worked for a long time, but now gut stuck here due to numerical
+	inaccuarcy (1e-10 m outside). The ppath functions are robust to
+	such problems.
+
+	* src/m_rte.cc (iyEmissionStandardClearsky): Failed for iy_aux
+	when np=1. Now total_tau set for np=1 to handle this.
+
 2010-10-13  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-93
