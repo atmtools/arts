@@ -6168,7 +6168,6 @@ void ppath_calc(
   // Sensor position and LOS
   //
   chk_vector_length( "rte_pos", rte_pos, atmosphere_dim );
-  chk_if_over_0( "sensor radius", rte_pos[0] );
   if( atmosphere_dim == 1 )
     {
       chk_vector_length( "rte_los", rte_los, 1 );

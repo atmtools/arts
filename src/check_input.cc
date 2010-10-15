@@ -139,10 +139,9 @@ void chk_if_increasing(
   === Functions for Numeric
   ===========================================================================*/
 
-//! chk_if_over_0 
+//! chk_not_negative 
 /*! 
-    Checks that a variable of type Numeric is 0 or is positive.
-    range.
+    Checks that a variable of type Numeric is 0 or positive.
 
     The function gives an error message if this is not the case.
 
@@ -152,14 +151,14 @@ void chk_if_increasing(
     \author Patrick Eriksson 
     \date   2002-04-15
 */
-void chk_if_over_0( 
+void chk_not_negative( 
         const String&    x_name,
         const Numeric&   x ) 
 {
-  if ( x <= 0 )
+  if ( x < 0 )
     {
       ostringstream os;
-      os << "The variable *" << x_name <<  "* must exceed 0.\n"
+      os << "The variable *" << x_name <<  "* must be >= 0.\n"
          << "The present value of *"<< x_name <<  "* is " << x << ".";
       throw runtime_error( os.str() );
     }

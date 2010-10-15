@@ -241,6 +241,7 @@ void apply_y_unit2(
             }
         }
     }
+
   else if ( y_unit == "W/(m^2 m sr)" )
     {
       for( Index iv=0; iv<f_grid.nelem(); iv++ )
@@ -810,6 +811,92 @@ void surface_calc(
           iy(iv,joker) += rtmp;
             }
         }
+    }
+}
+
+
+
+//! trans_step_std
+/*!
+    Solves monochromatic (vector) Beer-Lambert for one step
+
+    The function can be used for clearsky and cloudbox calculations.
+
+    (As rte_step_std, but without emission and scattering source term)
+
+    When calling the function, the vector *stokes_vec* shall contain the
+    Stokes vector for the incoming radiation. The function returns this
+    vector, then containing the outgoing radiation on the other side of the 
+    layer.
+
+    The function performs the calculations differently depending on the
+    conditions to improve the speed. There are three cases: <br>
+       1. Scalar absorption (stokes_dim = 1). <br>
+       2. The matrix ext_mat_gas is diagonal (unpolarised absorption). <br>
+       3. The total general case.
+
+    \param   stokes_vec         Input/Output: A Stokes vector.
+    \param   trans_mat          Input/Output: Transmission matrix of slab.
+    \param   ext_mat            Input: Averaged extinction matrix.
+    \param   l_step             Input: The length of the RTE step.
+
+    \author Claudia Emde and Patrick Eriksson, 
+    \date   2010-10-15
+*/
+void trans_step_std(//Output and Input:
+              VectorView stokes_vec,
+              MatrixView trans_mat,
+              //Input
+              ConstMatrixView ext_mat_av,
+              const Numeric& l_step )
+{
+  //Stokes dimension:
+  Index stokes_dim = stokes_vec.nelem();
+
+  //Check inputs:
+  assert(is_size(trans_mat, stokes_dim, stokes_dim));
+  assert(is_size(ext_mat_av, stokes_dim, stokes_dim));
+  assert( l_step >= 0 );
+  assert (!is_singular( ext_mat_av ));
+
+  //--- Scalar case: ---------------------------------------------------------
+  if( stokes_dim == 1 )
+    {
+      trans_mat(0,0) = exp(-ext_mat_av(0,0) * l_step);
+      stokes_vec[0]  *= trans_mat(0,0);
+    }
+
+
+  //--- Vector case: ---------------------------------------------------------
+
+  //- Unpolarised
+  else if( is_diagonal(ext_mat_av) )
+    {
+      const Numeric tv = exp(-ext_mat_av(0,0) * l_step);
+
+      trans_mat      = 0;
+
+      for( Index i=0; i<stokes_dim; i++ )
+        {
+          trans_mat(i,i)  = tv;
+          stokes_vec[i]  *= tv;
+        }
+    }
+
+
+  //- General case
+  else
+    {
+      Matrix ext_mat_ds = ext_mat_av;
+      ext_mat_ds *= -l_step; 
+
+      Index q = 10;  // index for the precision of the matrix exp function
+
+      matrix_exp( trans_mat, ext_mat_ds, q );
+
+      Vector tmp = stokes_vec;
+
+      mult( stokes_vec, trans_mat, tmp );
     }
 }
 

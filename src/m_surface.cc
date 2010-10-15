@@ -404,7 +404,7 @@ void surfaceBlackbody(
         const Numeric&   surface_skin_t )
 {
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-  chk_if_over_0( "surface_skin_t", surface_skin_t );
+  chk_not_negative( "surface_skin_t", surface_skin_t );
 
   out2 << "  Sets variables to model a blackbody surface with a temperature "
        << " of " << surface_skin_t << " K.\n";
@@ -438,7 +438,7 @@ void surfaceFlatRefractiveIndex(
 
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-  chk_if_over_0( "surface_skin_t", surface_skin_t );
+  chk_not_negative( "surface_skin_t", surface_skin_t );
 
   chk_matrix_ncols( "complex_n", complex_n, 2 ); 
   //
@@ -497,7 +497,7 @@ void surfaceFlatVaryingEmissivity(
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-  chk_if_over_0( "surface_skin_t", surface_skin_t );
+  chk_not_negative( "surface_skin_t", surface_skin_t );
 
   const Index   nf = f_grid.nelem();
 
@@ -578,7 +578,7 @@ void surfaceFlatVaryingRvRh(
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 2 );
-  chk_if_over_0( "surface_skin_t", surface_skin_t );
+  chk_not_negative( "surface_skin_t", surface_skin_t );
 
   const Index   nf = f_grid.nelem();
 
@@ -654,7 +654,7 @@ void surfaceLambertianSimple(
 {
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-  chk_if_over_0( "surface_skin_t", surface_skin_t );
+  chk_not_negative( "surface_skin_t", surface_skin_t );
   chk_if_in_range( "rd", rd, 0, 1 );
   chk_if_in_range( "za_pos", za_pos, 0, 1 );
 

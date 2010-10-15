@@ -66,7 +66,7 @@ void chk_if_increasing(
         const String&       x_name,
         const ArrayOfIndex& x ); 
 
-void chk_if_over_0( 
+void chk_not_negative( 
         const String&    x_name,
         const Numeric&   x );
 

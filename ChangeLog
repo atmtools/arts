@@ -1,3 +1,28 @@
+2010-10-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-98
+
+	* src/rte.cc (trans_step_std): New. (rte_step_std, but just doing
+	Beer-Lambert)
+
+	* src/physics_funcs.cc (planck): Now no calculations if t=0.
+	This to make it possible to set emission_agenda and
+	surface_emission to give zero. 
+
+	* src/check_input.cc (chk_if_over_0): Renamed to chk_not_negative.
+	Accordingly, zero is now allowed.
+
+	* src/m_rte.cc (iyBeerLambertStandardClearsky): Yet a new name!
+	The method is an implementation of the Beer-Lalmbert law. It
+	returns rather a spectrum, than a transmission. So this name
+	should be better (but final?). 
+
+	* src/m_rte.cc (iyBeerLambertStandardCloudbox): Renamed in the
+	same way. Finished (but just some simple tests made).
+
+	* src/methods.cc: Documentation for the two methods above
+	improved. 
+	
 2010-10-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-97

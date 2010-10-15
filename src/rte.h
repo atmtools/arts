@@ -156,6 +156,11 @@ void surface_calc(
         const Tensor4&        surface_rmatrix,
         const Matrix&         surface_emission );
 
-
+void trans_step_std(//Output and Input:
+              VectorView stokes_vec,
+              MatrixView trans_mat,
+              //Input
+              ConstMatrixView ext_mat_av,
+              const Numeric& l_step );
 
 #endif  // rte_h

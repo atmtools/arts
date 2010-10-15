@@ -195,11 +195,17 @@ Numeric planck(
   assert( f > 0 );
   assert( t >= 0 );
 
-  // Double must be used here (if not, a becomes 0 when using float)
-  static const double a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-  static const double b = PLANCK_CONST / BOLTZMAN_CONST;
+  if( t == 0 )
+    { return 0; }
+
+  else
+    {
+    // Double must be used here (if not, a becomes 0 when using float)
+    static const double a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+    static const double b = PLANCK_CONST / BOLTZMAN_CONST;
   
-  return   a * f*f*f / ( exp( b*f/t ) - 1 );
+    return   a * f*f*f / ( exp( b*f/t ) - 1 );
+    }
 }
 
 
