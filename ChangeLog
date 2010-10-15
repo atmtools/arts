@@ -1,5 +1,11 @@
 2010-10-15  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-96
+
+	* src/docserver.cc: Fix content-type for stylesheet.
+
+2010-10-15  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-95
 
 	* src/docserver.{cc,h}, src/parameters.{cc,h}, src/main.cc:

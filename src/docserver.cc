@@ -1233,7 +1233,12 @@ ahc_echo (void *cls _U_,
   vector<string> tokens;
   split (surl, '/', tokens);
   
-  if (tokens.size() == 2 && tokens[1] == "styles.css") ds_stylesheet(hout);
+  string content_type = "text/html; charset=utf-8";
+  if (tokens.size() == 2 && tokens[1] == "styles.css")
+  {
+    ds_stylesheet(hout);
+    content_type = "text/css; charset=utf-8";
+  }
   else
   {
     ds_begin_page (hout);
@@ -1264,7 +1269,7 @@ ahc_echo (void *cls _U_,
     return MHD_NO;
   }
 
-  MHD_add_response_header (response, "Content-type", "text/html; charset=utf-8");
+  MHD_add_response_header (response, "Content-type", content_type.c_str());
   ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
   MHD_destroy_response (response);
   
