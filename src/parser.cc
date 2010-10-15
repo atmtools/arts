@@ -230,7 +230,7 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
               throw runtime_error (os.str());
             }
 
-          out3 << "- Including control file " << include_file << "\n";
+          out2 << "- Including control file " << include_file << "\n";
 
           ArtsParser include_parser (tasks, include_file);
           include_parser.parse_tasklist();
