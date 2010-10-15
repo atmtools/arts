@@ -30,6 +30,7 @@
 #include <sstream>
 #include <algorithm>
 #include <map>
+//#include <unistd.h>
 #include "libmicrohttpd/platform.h"
 #include "libmicrohttpd/microhttpd.h"
 #include "messages.h"
@@ -989,7 +990,7 @@ void ds_doc_group (ostream &os, const string& gname)
       os << endl << "</ul>" << endl;
       
       hitcount = 0;
-      os << "<h3>Specific methods that can use variables of group " << gname << "</h3>" << endl;
+      os << "<h3>Specific methods that require variables of group " << gname << "</h3>" << endl;
       os << "<ul>" << endl;
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
       {
@@ -1023,7 +1024,7 @@ void ds_doc_group (ostream &os, const string& gname)
       
       Index i;
       
-      os << "<h3>Workspace Variables</h3>" << endl
+      os << "<h3>Workspace Variables of group " << gname << "</h3>" << endl
       << "<ul>" << endl;
       
       hitcount = 0;
@@ -1262,14 +1263,15 @@ ahc_echo (void *cls _U_,
     out0 << "Docserver error: response = 0\n";
     return MHD_NO;
   }
-  
+
+  MHD_add_response_header (response, "Content-type", "text/html; charset=utf-8");
   ret = MHD_queue_response (connection, MHD_HTTP_OK, response);
   MHD_destroy_response (response);
   
   return ret;
 }
 
-int docserver_start(Index port)
+int docserver_start(Index port, bool daemon)
 {
   struct MHD_Daemon *d;
   
@@ -1282,7 +1284,7 @@ int docserver_start(Index port)
     out0 << "Error: Cannot start server. Maybe port " << port << " is already in use?\n"; 
     return 1;
   }
-  else
+  else if (!daemon)
   {
     out0 << "\n"
     << "===========================================================\n"
@@ -1292,10 +1294,17 @@ int docserver_start(Index port)
   }
   
   
-  (void) getc (stdin);
-  out0 << "Stopping docserver.\n";
-  MHD_stop_daemon (d);
-  out0 << "Goodbye.\n";
+  if (daemon)
+  {
+    pause();
+  }
+  else
+  {
+    (void) getc (stdin);
+    out0 << "Stopping docserver.\n";
+    MHD_stop_daemon (d);
+    out0 << "Goodbye.\n";
+  }
   return 0;
 }
 

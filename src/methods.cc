@@ -3760,8 +3760,8 @@ void define_md_data_raw()
         IN(),
         GIN( "wavelength"),
         GIN_TYPE("Numeric, Vector" ),
-        GIN_DESC("wavelength [m]" ),
         GIN_DEFAULT( NODEF ),
+        GIN_DESC("wavelength [m]" ),
         SETMETHOD(      false ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )

@@ -28,7 +28,7 @@
 
 #include "arts.h"
 
-int docserver_start(Index port);
+int docserver_start(Index port, bool daemon);
 
 #endif /* docserver_h */
 

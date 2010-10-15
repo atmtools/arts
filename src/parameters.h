@@ -59,7 +59,8 @@ public:
     describe(""),
     groups(false),
     plain(false),
-    docserver(0)
+    docserver(0),
+    daemon(false)
   { /* Nothing to be done here */ }
   /** Short message how to call the program. */
   String usage;
@@ -109,6 +110,8 @@ public:
   bool plain;
   /** Port to use for the docserver. */
   Index docserver;
+  /** Flag to run the docserver in the background. */
+  bool daemon;
 };
 
 

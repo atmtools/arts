@@ -100,6 +100,7 @@ bool get_parameters(int argc, char **argv)
     { "reporting",          required_argument, NULL, 'r' },
 #ifdef ENABLE_DOCSERVER
     { "docserver",          optional_argument, NULL, 's' },
+    { "docdaemon",          optional_argument, NULL, 'S' },
 #endif
     { "workspacevariables", required_argument, NULL, 'w' },
     { "version",            no_argument,       NULL, 'v' },
@@ -107,7 +108,7 @@ bool get_parameters(int argc, char **argv)
   };
 
   parameters.usage =
-    "Usage: arts [-bdghimnrsvw]\n"
+    "Usage: arts [-bdghimnrsSvw]\n"
     "       [--basename <name>]\n"
     "       [--describe <method or variable>]\n"
     "       [--groups]\n"
@@ -119,7 +120,8 @@ bool get_parameters(int argc, char **argv)
     "       [--plain]\n"
     "       [--reporting <xyz>]\n"
 #ifdef ENABLE_DOCSERVER
-    "       [--docserver[=<port>]]\n"
+  "       [--docserver[=<port>]]\n"
+  "       [--docdaemon[=<port>]]\n"
 #endif
     "       [--workspacevariables all|<method>]\n"
     "       file1.arts file2.arts ...";
@@ -167,6 +169,7 @@ bool get_parameters(int argc, char **argv)
     "-s, --docserver     Start documentation server. Optionally, specify\n"
     "                    the port number the server should listen on.\n"
     "                    Default is 9000.\n"
+    "-S, --docdaemon     Start documentation server in the background.\n"
 #endif
     "-v, --version       Show version information.\n"
     "-w, --workspacevariables  If this is given the argument `all',\n"
@@ -275,7 +278,6 @@ bool get_parameters(int argc, char **argv)
           {
             if (optarg)
             {
-              cout << "optarg: " << optarg << endl;
               istringstream iss(optarg);
               iss >> std::dec >> parameters.docserver;
               if (iss.fail())
@@ -286,6 +288,24 @@ bool get_parameters(int argc, char **argv)
             }
             else
               parameters.docserver = -1;
+            break;
+          }
+        case 'S':
+          {
+            if (optarg)
+            {
+              istringstream iss(optarg);
+              iss >> std::dec >> parameters.docserver;
+              if (iss.fail())
+              {
+                cerr << "Argument to --docdaemon (-S) must be an integer!\n";
+                arts_exit ();
+              }
+            }
+            else
+              parameters.docserver = -1;
+
+            parameters.daemon = true;
             break;
           }
         case 'v':

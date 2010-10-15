@@ -960,9 +960,25 @@ int main (int argc, char **argv)
 #ifdef ENABLE_DOCSERVER
   if ( 0 != parameters.docserver )
     {
-      cout << "Starting the arts documentation server." << endl;
-      docserver_start(parameters.docserver);
-      arts_exit(0);
+      if (parameters.daemon) {
+        int pid = fork();
+        if (!pid)
+        {
+          docserver_start(parameters.docserver, parameters.daemon);
+          arts_exit(0);
+        }
+        else
+        {
+          cout << "Docserver daemon started with PID: " << pid << endl;
+          arts_exit(0);
+        }
+      }
+      else
+      {
+        cout << "Starting the arts documentation server." << endl;
+        docserver_start(parameters.docserver, parameters.daemon);
+        arts_exit(0);
+      }
     }
 #endif
 
