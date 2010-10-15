@@ -1289,13 +1289,16 @@ int docserver_start(Index port, bool daemon)
     out0 << "Error: Cannot start server. Maybe port " << port << " is already in use?\n"; 
     return 1;
   }
-  else if (!daemon)
+  else
   {
-    out0 << "\n"
-    << "===========================================================\n"
-    << "Now point your web browser to http://localhost:" << port << "\n"
-    << "===========================================================\n\n"
-    << "Press enter to exit.\n";
+    if (daemon)
+      out0 << "ARTS docserver listening at http://localhost:" << port << "\n";
+    else
+      out0 << "\n"
+      << "===========================================================\n"
+      << "Now point your web browser to http://localhost:" << port << "\n"
+      << "===========================================================\n\n"
+      << "Press enter to exit.\n";
   }
   
   

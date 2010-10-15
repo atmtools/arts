@@ -1,5 +1,11 @@
 2010-10-15  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-97
+
+	* src/docserver.cc: Output the url also in daemon mode.
+
+2010-10-15  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-96
 
 	* src/docserver.cc: Fix content-type for stylesheet.
