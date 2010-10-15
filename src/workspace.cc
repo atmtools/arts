@@ -3996,11 +3996,6 @@ void Workspace::define_wsv_data()
         " \"PlanckBT\"      : Conversion to Planck brightness temperature.\n"
         " \"W/(m^2 m sr)\"  : Conversion to [W/(m^2 m sr)] (radiance per wavelength unit).\n"
         " \"W/(m^2 m-1 sr)\": Conversion to [W/(m^2 m-1 sr)] (radiance per wavenumber unit).\n"
-        "The conversion to brighness temperatures assumes that basic unit is\n"
-        "[W/m2/Hz/sr]. Obtained unit is [K]. \n"
-        "\n"
-        "The conversion is applied on monochromatic pencil beam values. That\n"
-        "is, before any sensor responses have been included.\n"
         "\n"
         "Usage: Set by the user.\n"
         ),

@@ -8882,11 +8882,13 @@ void define_md_data_raw()
          "of a series of spectra), all depending on the settings. Spectra\n"
          "and jacobians are calculated in parallel.\n"
          "\n"
-         "The unit of radiances and jacobians follow *y_unit*. The\n"
-         "frequency, polarisation etc. for each measurement value is given\n" 
-         "by *y_f*, *y_pol* etc. No unit conversion is applied for *y_aux*.\n"
-         "There is a hard-coded limit on the number of auxilary variables\n"
-         "(columns of *y_aux*) that can be handled.\n"
+         "The unit of output radiances and jacobians follow *y_unit*. The\n"
+         "conversion is applied on monochromatic pencil beam values. That\n"
+         "is, before any sensor responses have been included.\n"
+         "The frequency, polarisation etc. for each measurement value is\n" 
+         "given by *y_f*, *y_pol* etc. No unit conversion is applied for\n"
+         "*y_aux*. There is a hard-coded limit on the number of auxilary\n"
+         "variables (columns of *y_aux*) that can be handled.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_error", "y_aux", 
