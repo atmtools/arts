@@ -1398,7 +1398,7 @@ void sensor_responseInit(
              << "a 2D antenna pattern is flagged (*antenna_dim*).";
           throw runtime_error( os.str() );
         }
-      if( !is_increasing(mblock_za_grid)  &&  !is_decreasing(mblock_za_grid) )  
+      if( !is_increasing(mblock_aa_grid)  &&  !is_decreasing(mblock_aa_grid) )  
         throw runtime_error( 
         "The WSV *mblock_aa_grid* must be strictly increasing or decreasing." );
     }

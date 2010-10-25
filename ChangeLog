@@ -1,3 +1,13 @@
+2010-10-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-102
+	
+	* src/workspace.cc: Polished description of y_f and similar
+	variables. Introduced a clear coding polarisation states. See y_pol. 
+
+	* src/m_sensor.cc (sensor_responseInit): mblock_za_grid was
+	checked twice, instead of check of aa_grid.
+
 2010-10-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-101

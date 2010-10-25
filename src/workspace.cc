@@ -1568,9 +1568,9 @@ void Workspace::define_wsv_data()
        "\n"
        "This variable makes it possible to provide auxilary information for\n"
        "each value in *iy*. Each page of the tensor corresponds to a\n"
-       "variable. The number of auxilary variables and can be of any kind.\n"
-       "Examples on quantities that could be of interest here are transmission\n"
-       "and cloud interference flags.\n"
+       "variable. The number of auxilary variables is hard-coded to three.\n"
+       "Examples on quantities that could be of interest here are\n"
+       "transmission and cloud interference flags.\n"
        "\n"
        "Usage:      Used by radiative transfer methods.\n"
        "\n"
@@ -3327,13 +3327,12 @@ void Workspace::define_wsv_data()
     ( NAME( "sensor_response_pol" ),
       DESCRIPTION
       (
-       "The polarisation channel index associated with the output of\n"
+       "The polarisation states associated with the output of\n"
        "*sensor_response*.\n"
        "\n"
-       "The index is taken from *stokes_dim* and *sensor_pol*. Please note\n"
-       "that only the index is provided (1-based). No information of the\n"
-       "actual polarisation state is included. Works otherwise as\n"
-       "*sensor_response_f*.\n"
+       "Works basically as *sensor_response_f*.\n"
+       "\n"
+       "See *y_pol* for coding of polarisation states.\n"
        "\n"
        "The variable shall not be set manually, it will be set together with\n"
        "*sensor_response* by sensor response WSMs.\n"
@@ -3354,6 +3353,8 @@ void Workspace::define_wsv_data()
        "A variable for communication between sensor response WSMs. Matches\n"
        "initially *stokes_dim*, but is later adjusted according to the \n"
        "sensor specifications. Only defined when a common grid exists. \n"
+       "\n"
+       "See *y_pol* for coding of polarisation states.\n"
        "\n"
        "Usage: Set by sensor response methods.\n"
        "\n"
@@ -3881,12 +3882,11 @@ void Workspace::define_wsv_data()
       (
        "Data auxilary to *y*\n"
        "\n"
-       "A general variable to provide auxilary y-data. The rows of this matrix\n"
-       "correpond to the elements of y. Each column of the matrix holds an\n"
-       "auxilary variable. The number of columns is free (but there could be\n"
-       "hard-coded restrictions on maximum number of columns). Variables\n"
-       "of different types can be mixed. If created through *yCalc*, the\n"
-       "weighting with *sensor_response* is included.\n"
+       "A general variable to provide auxilary y-data. The rows of this\n"
+       "matrix correpond to the elements of y. Each column of the matrix\n"
+       "holds an auxilary variable. The number of columns is three.\n"
+       "Variables of different types can be mixed. If created through\n"
+       "*yCalc*, the weighting with *sensor_response* is included.\n"
        ),
       GROUP( "Matrix" )));
 
@@ -3895,14 +3895,14 @@ void Workspace::define_wsv_data()
     ( NAME( "y_error" ),
       DESCRIPTION
       (
-       "Standard deviation of calculation errors in *y*.\n"
+       "Estimate of calculation errors in *y*.\n"
        "\n"
        "This variable is used for providing an error estimate. The estimate\n"
-       "covers only the actual calculation approach, and e.g. uncertainties in\n"
-       "spectroscopic data or represenation errors due to coarse grids are not\n"
-       "considered. This means that the error should normally be zero for\n"
-       "clear-sky cases where calculations are performed for the complete\n"
-       "propgation path.\n"
+       "covers only the actual calculation approach, and e.g. uncertainties\n"
+       "in spectroscopic data or representation errors due to coarse grids\n"
+       "are not considered. This means that the error should normally be\n"
+       "zero for clear-sky cases where calculations are performed for the\n"
+       "complete propgation path.\n"
        ),
       GROUP( "Vector" )));
 
@@ -3913,8 +3913,10 @@ void Workspace::define_wsv_data()
       (
        "The frequencies associated with *y*.\n"
        "\n"
-       "Works as *sensor_response_f*, but is valid for *y* and not only a\n"
-       "single measurement block.\n"
+       "A value is returned for each element of *y*. Depending on the sensor\n"
+       "set-up and number of measurement blocks, this can be a copy of\n"
+       "*sensor_response_f*, sveral copies of this vector appended, or some\n"
+       "other frequenices.\n"
        "\n"
        "Usage: Output from radiative transfer calculations considering\n"
        "       sensor response.\n"
@@ -3948,10 +3950,26 @@ void Workspace::define_wsv_data()
     ( NAME( "y_pol" ),
       DESCRIPTION
       (
-       "The polarisation channel index associated *y*.\n"
+       "The polarisation states associated with *y*.\n"
        "\n"
-       "Works as *sensor_response_pol*, but is valid for *y* and not only a\n"
-       "single measurement block.\n"
+       "Data are provided for each element of *y*, following y_f, and the\n"
+       "length of this variable and *y* is equal.\n"
+       "\n"
+       "The polarisation states/measurements are given as indexes where\n"
+       "   0 : Undefined.\n"
+       "   1 : I, total intensity.\n"
+       "   2 : Q, second Stokes component, Iv - Ih.\n"
+       "   3 : U, third Stokes component, I+45 - I-45.\n"
+       "   4 : V, forth Stokes component, Irc - Ilc\n"
+       "   5 : Iv, intensity of vertically polarised component.\n"
+       "   6 : Ih, intensity of horizontally polarised component.\n"
+       "   7 : I+45, intensity of +45 deg linearly polarised component.\n"
+       "   8 : I-45, intensity of -45 deg linearly polarised component.\n"
+       "   9 : Irhc, intensity of right-hand circularly polarised component.\n"
+       "  10 : Ilhc, intensity of left-hand circularly polarised component.\n"
+       "\n"
+       "See the documentation for definition of the Stokes vector and the\n"
+       "different components.\n"
        "\n"
        "Usage: Output from radiative transfer calculations considering\n"
        "       sensor response.\n"
