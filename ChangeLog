@@ -1,3 +1,22 @@
+2010-10-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-101
+
+	* src/docserver.{h,cc}:
+
+	Add baseurl support to allow integration into a webserver.
+	On the SAT server, we use the apache proxy module to redirect
+	all requests to http://www.sat.ltu.se/arts/docserver to the docserver.
+	In this case arts has to be started with
+	./arts -S -B /arts/docserver so it can preceed all links it generates
+	with the proper baseurl.
+
+	Output arts version in footer.
+
+	* src/main.cc, src/parameters.{h,cc}:
+
+	Add option --baseurl.
+
 2010-10-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-100
@@ -5,6 +24,14 @@
 	* src/workspace.cc: Removed some text for y_unit. 
 
 	* src/methods.cc: Added the text for yCalc. 
+
+2010-10-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-100
+
+	* src/docserver.cc (ds_list_groups, ds_list_methods):
+
+	Properly balance the length of the two table columns.
 
 2010-10-15  Oliver Lemke  <olemke@core-dump.info>
 

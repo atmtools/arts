@@ -28,7 +28,7 @@
 
 #include "arts.h"
 
-int docserver_start(Index port, bool daemon);
+int docserver_start(Index port, bool daemon, const string& baseurl = "");
 
 #endif /* docserver_h */
 

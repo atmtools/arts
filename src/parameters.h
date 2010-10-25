@@ -60,6 +60,7 @@ public:
     groups(false),
     plain(false),
     docserver(0),
+    baseurl(""),
     daemon(false)
   { /* Nothing to be done here */ }
   /** Short message how to call the program. */
@@ -110,6 +111,8 @@ public:
   bool plain;
   /** Port to use for the docserver. */
   Index docserver;
+  /** Baseurl for the docserver. */
+  String baseurl;
   /** Flag to run the docserver in the background. */
   bool daemon;
 };

@@ -101,6 +101,7 @@ bool get_parameters(int argc, char **argv)
 #ifdef ENABLE_DOCSERVER
     { "docserver",          optional_argument, NULL, 's' },
     { "docdaemon",          optional_argument, NULL, 'S' },
+    { "baseurl",            required_argument, NULL, 'B' },
 #endif
     { "workspacevariables", required_argument, NULL, 'w' },
     { "version",            no_argument,       NULL, 'v' },
@@ -108,7 +109,7 @@ bool get_parameters(int argc, char **argv)
   };
 
   parameters.usage =
-    "Usage: arts [-bdghimnrsSvw]\n"
+    "Usage: arts [-bBdghimnrsSvw]\n"
     "       [--basename <name>]\n"
     "       [--describe <method or variable>]\n"
     "       [--groups]\n"
@@ -120,8 +121,8 @@ bool get_parameters(int argc, char **argv)
     "       [--plain]\n"
     "       [--reporting <xyz>]\n"
 #ifdef ENABLE_DOCSERVER
-  "       [--docserver[=<port>]]\n"
-  "       [--docdaemon[=<port>]]\n"
+    "       [--docserver[=<port>] --baseurl=BASEURL]\n"
+    "       [--docdaemon[=<port>] --baseurl=BASEURL]\n"
 #endif
     "       [--workspacevariables all|<method>]\n"
     "       file1.arts file2.arts ...";
@@ -221,12 +222,15 @@ bool get_parameters(int argc, char **argv)
     {
       //      cout << "optc = " << optc << '\n';
       switch (optc)
-        {
+      {
         case 'h':
           parameters.help = true;
           break;
         case 'b':
           parameters.basename = optarg;
+          break;
+        case 'B':
+          parameters.baseurl = optarg;
           break;
         case 'd':
           parameters.describe = optarg;
@@ -244,7 +248,7 @@ bool get_parameters(int argc, char **argv)
           parameters.methods = optarg;
           break;
         case 'n':
-            {
+        {
               istringstream iss(optarg);
               iss >> std::dec >> parameters.numthreads;
               if (iss.fail())
