@@ -8887,8 +8887,7 @@ void define_md_data_raw()
          "is, before any sensor responses have been included.\n"
          "The frequency, polarisation etc. for each measurement value is\n" 
          "given by *y_f*, *y_pol* etc. No unit conversion is applied for\n"
-         "*y_aux*. There is a hard-coded limit on the number of auxilary\n"
-         "variables (columns of *y_aux*) that can be handled.\n"
+         "*y_aux*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_f", "y_pol", "y_pos", "y_los", "y_error", "y_aux", 
@@ -8932,6 +8931,8 @@ void define_md_data_raw()
          "\n"         
          "If you are using this method, *y_unit* should be set to \"1\" when\n"
          "calling *yCalc*, and be changed before calling this method.\n"
+         "\n"         
+         "See further *y_unit*.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "y", "y_error", "jacobian" ),

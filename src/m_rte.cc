@@ -614,6 +614,13 @@ void iyb_calc(
   else
     { diyb_dx.resize( 0 ); }
 
+  // Polarisation idex variable
+  // If some kind of modified Stokes vector will be introduced, this must be
+  // made to a WSV
+  ArrayOfIndex i_pol(stokes_dim);
+  for( Index is=0; is<stokes_dim; is++ )
+    { i_pol[is] = is + 1; }
+
   // We have to make a local copy of the Workspace and the agendas because
   // only non-reference types can be declared firstprivate in OpenMP
   Workspace l_ws (ws);
@@ -681,7 +688,7 @@ void iyb_calc(
                 {
                   FOR_ANALYTICAL_JACOBIANS_DO(
                     //
-                    apply_y_unit2( diy_dx[iq], iy, y_unit, f_grid);
+                    apply_y_unit2( diy_dx[iq], iy, y_unit, f_grid, i_pol );
                     //
                     for( Index ip=0; ip<jacobian_indices[iq][1] -
                                         jacobian_indices[iq][0]+1; ip++ )
@@ -700,8 +707,9 @@ void iyb_calc(
               // iy_aux   : copy to iyb_aux
               //
               if( iy_error_type > 0 )
-                { apply_y_unit2( iy_error, iy, y_unit, f_grid ); }
-              apply_y_unit( iy, y_unit, f_grid );
+                { apply_y_unit2( iy_error, iy, y_unit, f_grid, i_pol ); }
+              //
+              apply_y_unit( iy, y_unit, f_grid, i_pol );
               //
               for( Index is=0; is<stokes_dim; is++ )
                 { 
@@ -2180,48 +2188,117 @@ void y_unitApply(
       throw runtime_error( os.str() );      
     }
 
-  // Loop frequencies
-  //
-  Index i = 0;                 // Index of first element for present freq.
-  //
-  while( i < ny )
-    { 
-      // Find number of polarisation elements
-      Index n = 1;
-      //
-      while( i+n<ny && y_pol[i+n] > 1 )
-        { n++; }
+  // All conversions could be handled as Planck-BT, but before everything is
+  // tested properly and it is clear which version that is most efficient, both
+  // versions are kept
 
-      // Index of elements to convert
-      Range ii( i, n );
+  // Planck-Tb 
+  //-------------------------------------------------------------------------- 
+  if( y_unit == "PlanckBT" )
+    {
+      // Hard to use telescoping here as the data are sorted differently in y
+      // and jacobian, than what is expected apply_y_unit. Copy to temporary
+      // variables instead.
 
-      // Several container variables needed here. Partly as I could not get
-      // telescoping to work for vector ranges.
- 
-      // Call apply_y_unit(2) for the different variables
+      // Handle the elements in "frequency chunks"
+
+      Index i0 = 0;           // Index of first element for present chunk
       //
-      Matrix ym(1,n);
-      ym(0,joker) = y[ii];
-      //
-      if( do_e )
-        {
-          Tensor3 e(1,1,n);
-          e(0,0,joker) = y_error[ii];
-          apply_y_unit2( e, ym, y_unit, y_f[i] ); 
-          y_error[ii] = e(0,0,joker);
-        }
-      //
-      if( do_j )
+      while( i0 < ny )
         { 
-          Tensor3 J(jacobian.ncols(),1,n);
-          J(joker,0,joker) = transpose( jacobian(ii,joker) );
-          apply_y_unit2( J, ym, y_unit, y_f[i] ); 
-          jacobian(ii,joker) = transpose( J(joker,0,joker) );
-        }
-      //
-      apply_y_unit( ym, y_unit, y_f[i] );
-      y[ii] = ym(0,joker);
+          // Find number values for this chunk
+          Index n = 1;
+          //
+          while( y_f[i0] == y_f[i0+n] ) 
+            { n++; }                              
+          
+          Matrix yv(1,n);  
+          ArrayOfIndex i_pol(n);
+          bool any_quv = false;
+          //
+          for( Index i=0; i<n; i++ )
+            { 
+              const Index ix=i0+i;   
+              yv(0,i) = y[ix];   
+              i_pol[i] = y_pol[ix]; 
+              if( i_pol[i] > 1  &&  i_pol[i] < 5 )
+                { any_quv = true; }
+            }
 
-      i += n;
-    }  
+          // Index of elements to convert
+          Range ii( i0, n );
+
+          if( do_e || do_j )
+            {
+              if( any_quv  &&  i_pol[0] != 1 )
+                {
+                  ostringstream os;
+                  os << "The conversion to PlanckBT, of the Jacobian and "
+                     << "errors for Q, U and V, requires that I (first Stokes "
+                     << "element) is at hand and that the data are sorted in "
+                     << "such way that I comes first for each frequency.";
+                  throw runtime_error( os.str() );      
+                }
+
+              // y_error
+              if( do_e )
+                {
+                  Tensor3 e(1,1,n);
+                  e(0,0,joker) = y_error[ii];
+                  apply_y_unit2( e, yv, y_unit, y_f[i0], i_pol ); 
+                  y_error[ii] = e(0,0,joker);
+                }
+
+              // Jacobian
+              if( do_j )
+                {
+                  Tensor3 J(jacobian.ncols(),1,n);
+                  J(joker,0,joker) = transpose( jacobian(ii,joker) );
+                  apply_y_unit2( J, yv, y_unit, y_f[i0], i_pol ); 
+                  jacobian(ii,joker) = transpose( J(joker,0,joker) );
+                }
+            }
+
+          // y (must be done last)
+          apply_y_unit( yv, y_unit, y_f[i0], i_pol );
+          y[ii] = yv(0,joker);
+
+          i0 += n;
+        }
+    }
+
+
+  // Other conversions
+  //-------------------------------------------------------------------------- 
+  else
+    {
+      // Here we take each element of y separately. 
+
+      Matrix yv(1,1);
+      ArrayOfIndex i_pol(1);
+
+      for( Index i=0; i<ny; i++ )
+        {
+          yv(0,0)  = y[i];      // To avoid repeated telescoping
+          i_pol[0] = y_pol[i];
+
+          // y_error
+          if( do_e )
+            {
+              apply_y_unit2( MatrixView(VectorView( y_error[i] )), yv, 
+                             y_unit, y_f[i], i_pol ); 
+            }
+
+          // Jacobian
+          if( do_j )
+            {
+              apply_y_unit2( MatrixView( jacobian(i,joker) ), yv, 
+                             y_unit, y_f[i], i_pol ); 
+            }
+
+          // y (must be done last)
+          apply_y_unit( yv, y_unit, y_f[i], i_pol );
+          y[i] = yv(0,0);
+        }
+    }
 }

@@ -70,85 +70,78 @@ extern const Numeric SPEED_OF_LIGHT;
                       and row dimension corresponds to frequency.
     \param   y_unit   As the WSV.
     \param   f_grid   As the WSV.
+    \param   i_pol    Polarisation indexes. See documentation of y_pol.
 
     \author Patrick Eriksson 
     \date   2010-04-07
 */
 void apply_y_unit( 
-      MatrixView      iy, 
-    const String&     y_unit, 
-    ConstVectorView   f_grid )
+            MatrixView   iy, 
+         const String&   y_unit, 
+       ConstVectorView   f_grid,
+   const ArrayOfIndex&   i_pol )
 {
-  assert( f_grid.nelem() == iy.nrows() );
-
   // The code is largely identical between the two apply_y_unit functions.
   // If any change here, remember to update the other function.
+
+  const Index nf = iy.nrows();
+  const Index ns = iy.ncols();
+
+  assert( f_grid.nelem() == nf );
+  assert( i_pol.nelem() == ns );
 
   if( y_unit == "1" )
     {}
 
   else if( y_unit == "RJBT" )
     {
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+      for( Index iv=0; iv<nf; iv++ )
         {
           const Numeric scfac = invrayjean( 1, f_grid[iv] );
-          for( Index is=0; is<iy.ncols(); is++ )
+          for( Index is=0; is<ns; is++ )
             {
-              iy(iv,is) *= scfac;
+              if( i_pol[is] < 5 )           // Stokes components
+                { iy(iv,is) *= scfac; }
+              else                          // Measuement single pols
+                { iy(iv,is) *= 2*scfac; }
             }
         }
     }
 
   else if( y_unit == "PlanckBT" )
     {
-      // Use always double to avoid numerical problem (see invrayjean)
-      static const double a = PLANCK_CONST / BOLTZMAN_CONST;
-      static const double b = 2*PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-
-      const Index ns = iy.ncols();
-
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+      for( Index iv=0; iv<nf; iv++ )
         {
-          const double c = a * f_grid[iv]; 
-          const double d = b * pow(f_grid[iv],3); 
-
-          if( ns == 1 )
+          for( Index is=0; is<ns; is++ )
             {
-              iy(iv,0) = c / log( d/iy(iv,0) + 1.0 ); 
-            }
-          else
-            {
-              const Numeric i = iy(iv,0);
-              iy(iv,0) = c / log( d / i + 1.0 ); 
-              static const double e = pow(iy(iv,0),2)/(c*i*(1+i/d));
-              for( Index is=1; is<ns; is++ )
-                {
-                  iy(iv,is) *= e;
+              if( i_pol[is] == 1 )
+                { iy(iv,is) = invplanck( iy(iv,is), f_grid[iv] ); }
+              else if( i_pol[is] < 5 )
+                { 
+                  assert( i_pol[0] == 1 );
+                  iy(iv,is) = 0.5 * (
+                              invplanck( iy(iv,0)+iy(iv,is), f_grid[iv] ) -
+                              invplanck( iy(iv,0)-iy(iv,is), f_grid[iv] ) ); 
                 }
+              else
+                { iy(iv,is) = invplanck( 2*iy(iv,is), f_grid[iv] ); }
             }
         }
     }
   
   else if ( y_unit == "W/(m^2 m sr)" )
     {
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+      for( Index iv=0; iv<nf; iv++ )
         {
-          for( Index is=0; is<iy.ncols(); is++ )
-            {
-              iy(iv,is) *= f_grid[iv]*f_grid[iv]/SPEED_OF_LIGHT;
-            }
+          const Numeric scfac = f_grid[iv] * ( f_grid[iv] / SPEED_OF_LIGHT );
+          for( Index is=0; is<ns; is++ )
+            { iy(iv,is) *= scfac; }
         }
     }
   
   else if ( y_unit == "W/(m^2 m-1 sr)" )
     {
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
-        {
-          for( Index is=0; is<iy.ncols(); is++ )
-            {
-              iy(iv,is) *= SPEED_OF_LIGHT;
-            }
-        }
+      iy *= SPEED_OF_LIGHT;
     }
 
   else
@@ -185,32 +178,43 @@ void apply_y_unit(
     \date   2010-04-10
 */
 void apply_y_unit2( 
-    Tensor3View       J,
-    ConstMatrixView   iy, 
-    const String&     y_unit, 
-    ConstVectorView   f_grid )
+   Tensor3View           J,
+   ConstMatrixView       iy, 
+   const String&         y_unit, 
+   ConstVectorView       f_grid,
+   const ArrayOfIndex&   i_pol )
 {
-  assert( J.ncols() == iy.ncols() );
-  assert( f_grid.nelem() == iy.nrows() );
-  assert( f_grid.nelem() == J.nrows() );
-  assert( max(iy) < 1e-3 );   // If fails, iy is already in Tb
-
   // The code is largely identical between the two apply_y_unit functions.
   // If any change here, remember to update the other function.
+
+  const Index nf = iy.nrows();
+  const Index ns = iy.ncols();
+  const Index np = J.npages();
+
+  assert( J.nrows() == nf );
+  assert( J.ncols() == ns );
+  assert( f_grid.nelem() == nf );
+  assert( i_pol.nelem() == ns );
 
   if( y_unit == "1" )
     {}
 
   else if( y_unit == "RJBT" )
     {
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+      for( Index iv=0; iv<nf; iv++ )
         {
           const Numeric scfac = invrayjean( 1, f_grid[iv] );
-          for( Index is=0; is<J.ncols(); is++ )
+          for( Index is=0; is<ns; is++ )
             {
-              for( Index ip=0; ip<J.npages(); ip++ )
+              if( i_pol[is] < 5 )           // Stokes componenets
                 {
-                  J(ip,iv,is) *= scfac;
+                  for( Index ip=0; ip<np; ip++ )
+                    { J(ip,iv,is) *= scfac; }
+                }
+              else                          // Measuement single pols
+                {
+                  for( Index ip=0; ip<np; ip++ )
+                    { J(ip,iv,is) *= 2*scfac; }
                 }
             }
         }
@@ -218,56 +222,45 @@ void apply_y_unit2(
 
   else if( y_unit == "PlanckBT" )
     {
-      // Use always double to avoid numerical problem (see invrayjean)
-      static const double a = PLANCK_CONST / BOLTZMAN_CONST;
-      static const double b = 2*PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-
-      const Index ns = J.ncols();
-
       for( Index iv=0; iv<f_grid.nelem(); iv++ )
         {
-          const double  c = a * f_grid[iv]; 
-          const double  d = b * pow(f_grid[iv],3); 
-          const Numeric i = iy(iv,0);
-          const Numeric y = c / log( d / i + 1.0 ); 
-          const Numeric e = pow(y,2) / ( c * i * ( 1.0 + i/d ) );
-
-          for( Index ip=0; ip<J.npages(); ip++ )
+          for( Index is=0; is<ns; is++ )
             {
-              for( Index is=0; is<ns; is++ )
+              Numeric scfac = 1;
+              if( i_pol[is] == 1 )
+                { scfac = dinvplanckdI( iy(iv,is), f_grid[iv] ); }
+              else if( i_pol[is] < 5 )
                 {
-                  J(ip,iv,is) *= e;
+                  assert( i_pol[0] == 1 );
+                  scfac = 0.5 * ( 
+                        dinvplanckdI( iy(iv,0)+iy(iv,is), f_grid[iv] ) +
+                        dinvplanckdI( iy(iv,0)-iy(iv,is), f_grid[iv] ) );
                 }
+              else
+                { scfac = dinvplanckdI( 2*iy(iv,is), f_grid[iv] ); }
+              //
+              for( Index ip=0; ip<np; ip++ )
+                { J(ip,iv,is) *= scfac; }
             }
         }
     }
 
   else if ( y_unit == "W/(m^2 m sr)" )
     {
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
+      for( Index iv=0; iv<nf; iv++ )
         {
-           for( Index ip=0; ip<J.npages(); ip++ )
-             {
-               for( Index is=0; is<iy.ncols(); is++ )
-                 {
-                   J(ip,iv,is) *= f_grid[iv]*f_grid[iv]/SPEED_OF_LIGHT;
-                 }
-             }
+          const Numeric scfac = f_grid[iv] * ( f_grid[iv] / SPEED_OF_LIGHT );
+          for( Index ip=0; ip<np; ip++ )
+            {
+              for( Index is=0; is<ns; is++ )
+                { J(ip,iv,is) *= scfac; }
+            }
         }
     }
   
   else if ( y_unit == "W/(m^2 m-1 sr)" )
     {
-      for( Index iv=0; iv<f_grid.nelem(); iv++ )
-        {
-          for( Index ip=0; ip<J.npages(); ip++ )
-            {
-              for( Index is=0; is<iy.ncols(); is++ )
-                {
-                  J(ip,iv,is) *= SPEED_OF_LIGHT;
-                }
-            }
-        }
+      J *= SPEED_OF_LIGHT;
     }
   
   else

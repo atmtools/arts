@@ -57,6 +57,36 @@ extern const Numeric SPEED_OF_LIGHT;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+//! dinvplanckdI
+/*!
+   Calculates the derivative of inverse-Planck with respect to intensity.
+
+    \return     The derivative
+    \param  i   radiance
+    \param  f   frequency
+
+    \author Patrick Eriksson 
+    \date   2010-10-26
+*/
+Numeric dinvplanckdI(
+        const Numeric&  i,
+        const Numeric&  f )
+{
+  assert( i >= 0 );
+  assert( f > 0 );
+
+  // Use always double to avoid numerical problem (see invrayjean)
+  static const double a = PLANCK_CONST / BOLTZMAN_CONST;
+  static const double b = 2 * PLANCK_CONST / ( SPEED_OF_LIGHT*SPEED_OF_LIGHT );
+
+  const double d    = b * pow((double)f,3) / (double)i;
+  const double binv = a * (double)f / log( d + 1 );
+
+  return pow(binv,2) / ( a * (double)i*(1/d+1) ); 
+}
+
+
+
 //! fresnel
 /*!
     Calculates complex AMPLITUDE reflection coeffcients for a specular
@@ -118,9 +148,10 @@ Numeric invplanck(
 
   // Use always double to avoid numerical problem (see invrayjean)
   static const double a = PLANCK_CONST / BOLTZMAN_CONST;
+  // Double clealrly needed. b likely too small for float. b is approx 1e-50
   static const double b = 2 * PLANCK_CONST / ( SPEED_OF_LIGHT*SPEED_OF_LIGHT );
 
-  return   a * f / log( b*pow(f,3)/i + 1 );
+  return   ( a * (double)f ) / log( (b*pow((double)f,3))/(double)i + 1 );
 }
 
 
@@ -143,13 +174,10 @@ Numeric invrayjean(
   assert( f > 0 );
 
   // Double must be used here (if not, the result can be NaN when using float)
-  // Integrated this calculation into the return statement and changed
-  // the order of the terms to avoid numerical instability.
-  // (OLE 2002-08-26)
-  //static const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
+  
+  static const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
 
-  return   SPEED_OF_LIGHT / ((double)f * (double)f)
-    * (double)i * SPEED_OF_LIGHT / (2 * BOLTZMAN_CONST);
+  return  ( a * (double)i ) / ( (double)f * (double)f );
 }
 
 
@@ -192,8 +220,8 @@ Numeric planck(
         const Numeric&   f, 
         const Numeric&   t )
 {
-  assert( f > 0 );
   assert( t >= 0 );
+  assert( f > 0 );
 
   if( t == 0 )
     { return 0; }
@@ -204,7 +232,7 @@ Numeric planck(
     static const double a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
     static const double b = PLANCK_CONST / BOLTZMAN_CONST;
   
-    return   a * f*f*f / ( exp( b*f/t ) - 1 );
+    return  ( a * pow((double)f,3) ) / ( exp( (b*(double)f)/(double)t ) - 1 );
     }
 }
 

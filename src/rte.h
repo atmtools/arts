@@ -55,15 +55,17 @@
   ===========================================================================*/
 
 void apply_y_unit( 
-       MatrixView     iy, 
-    const String&     y_unit, 
-    ConstVectorView   f_grid );
+            MatrixView   iy, 
+         const String&   y_unit, 
+       ConstVectorView   f_grid,
+   const ArrayOfIndex&   i_pol );
 
 void apply_y_unit2( 
-    Tensor3View       J,
-    ConstMatrixView   iy, 
-    const String&     y_unit, 
-    ConstVectorView   f_grid );
+   Tensor3View           J,
+   ConstMatrixView       iy, 
+   const String&         y_unit, 
+   ConstVectorView       f_grid,
+   const ArrayOfIndex&   i_pol );
 
 void get_ptvmr_for_ppath( 
         Vector&      ppath_p, 

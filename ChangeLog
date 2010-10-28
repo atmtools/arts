@@ -1,3 +1,32 @@
+2010-10-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-103
+
+	* Working on fixing last things when it comes to conversion to Tb
+	and extraction of polarisations. All should be OK, but "under
+	reconstruction". 
+
+	* src/m_rte.cc (iyb_calc): Introduced i_pol as local variable. If
+	any kind of modified Stokes vector will be introduced, this must
+	be a WSV.
+
+	(y_unitApply): Method rearranged and adopted to changes in
+	apply_y_unit.
+
+	* src/rte.cc (apply_y_unit): Added input i_pol. For Planck-BT,
+	Stokes elements 2-4 now mapped as (Binv(I+Q)-Binv(I-Q))/2.
+	Mapping for Iv and similar components included. Factor of 2
+	difference for Tb values. Polished code.
+
+	(apply_y_unit2): As above. Equations found in article.
+
+	* src/physics_funcs.cc: Added type casting to double for all
+	planck and RJ functions. Now using a and b constants in all
+	functions. Should be OK with double hard-coded. 
+
+	(dinvplanckdI): New function. Calculates the derivative of
+	inverse-Planck with respect to intensity.
+	
 2010-10-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-102

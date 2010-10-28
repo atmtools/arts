@@ -49,6 +49,10 @@
   === Functions in physics_funcs.h
   ===========================================================================*/
 
+Numeric dinvplanckdI(
+        const Numeric&  i,
+        const Numeric&  f );
+
 void fresnel(
              Complex&   Rv,
              Complex&   Rh,
