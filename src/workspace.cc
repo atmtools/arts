@@ -3886,7 +3886,7 @@ void Workspace::define_wsv_data()
        "matrix correpond to the elements of y. Each column of the matrix\n"
        "holds an auxilary variable. The number of columns is three.\n"
        "Variables of different types can be mixed. Some columns can be empty.\n"
-       "If created through\ *yCalc*, the weighting with *sensor_response*\n"
+       "If created through *yCalc*, the weighting with *sensor_response*\n"
        "is included.\n"
        ),
       GROUP( "Matrix" )));
