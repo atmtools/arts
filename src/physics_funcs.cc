@@ -82,7 +82,7 @@ Numeric dinvplanckdI(
   const double d    = b * pow((double)f,3) / (double)i;
   const double binv = a * (double)f / log( d + 1 );
 
-  return pow(binv,2) / ( a * (double)i*(1/d+1) ); 
+  return pow(binv,2) / ( a * (double)f * (double)i * (1/d+1) ); 
 }
 
 

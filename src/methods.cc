@@ -7239,16 +7239,6 @@ void define_md_data_raw()
          "   sensor_response_pol_grid: Set to 1:*stokes_dim*.\n"
          "   sensor_response_za_grid : Equal to *mblock_za_grid*.\n"
          "   sensor_response_aa_grid : Equal to *mblock_aa_grid*.\n"
-         "\n"
-         "The standard order of WSM calls for creating *sensor_response* is:\n"
-         "   sensor_responseInit\n"
-         "   sensor_responseRotation\n"
-         "   sensor_responseAntenna1D\n"
-         "   sensor_responsePolarisation\n"
-         "   sensor_responseMixer\n"
-         "   sensor_responseBackend\n"
-         "It is not necessary to include a method for all sensor responses.\n"
-         "There exist several method versions for some responses.\n"
          ),
         AUTHORS( "Mattias Ekstrom", "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol", 
@@ -7356,9 +7346,10 @@ void define_md_data_raw()
          "least 3. \n"
          "\n"
          "Note that the state of y_unit* is considered. This WSV must give\n"
-         "the present unit of the data. This as, the extraction of components\n"
+         "the actual unit of the data. This as, the extraction of components\n"
          "is slightly different if data are radiances or brightness\n"
-         "temperatures.\n"
+         "temperatures.  In practice this means that *y_unit* (as to be\n"
+         "applied inside *yCalc*) must be set before calling this method.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",

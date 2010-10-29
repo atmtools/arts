@@ -2209,9 +2209,9 @@ void y_unitApply(
           // Find number values for this chunk
           Index n = 1;
           //
-          while( y_f[i0] == y_f[i0+n] ) 
+          while( i0+n < ny &&  y_f[i0] == y_f[i0+n] ) 
             { n++; }                              
-          
+
           Matrix yv(1,n);  
           ArrayOfIndex i_pol(n);
           bool any_quv = false;

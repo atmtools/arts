@@ -112,7 +112,7 @@ void apply_y_unit(
     {
       for( Index iv=0; iv<nf; iv++ )
         {
-          for( Index is=0; is<ns; is++ )
+          for( Index is=ns-1; is>=0; is-- ) // Order must here be reversed
             {
               if( i_pol[is] == 1 )
                 { iy(iv,is) = invplanck( iy(iv,is), f_grid[iv] ); }
@@ -224,7 +224,7 @@ void apply_y_unit2(
     {
       for( Index iv=0; iv<f_grid.nelem(); iv++ )
         {
-          for( Index is=0; is<ns; is++ )
+          for( Index is=ns-1; is>=0; is-- )
             {
               Numeric scfac = 1;
               if( i_pol[is] == 1 )

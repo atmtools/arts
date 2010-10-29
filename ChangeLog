@@ -1,5 +1,28 @@
 2010-10-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-14-107
+
+	* Unit conversion and extraction of polarisation components
+	appear to be OK. 
+
+	* src/physics_funcs.cc (dinvplanckdI): A frequency term was missing.
+
+	* src/m_sensor.cc (sensor_responsePolarisation): There were some
+	things that had to be fixed. Seems to work now.
+
+	* src/methods.cc: Removed some outdated text for
+	sensor_responseInit. Added a clarification (about y_unit) for
+	sensor_responsePolarisation.
+
+	* src/rte.cc (apply_y_unit): Had to change loop order for
+	polarisation components for PlanckTB. I  needs to in radiance for
+	conversion of Q, U and V. A brightness temperature was instead
+	used.
+
+	(apply_y_unit2): As above.
+
+2010-10-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-14-106
 
 	* src/m_sensor.cc (sensor_responseBackend): New WSM. Code
@@ -25,7 +48,7 @@
 
 	* Working on fixing last things when it comes to conversion to Tb
 	and extraction of polarisations. All should be OK, but "under
-	reconstruction". 
+	reconstruction".
 
 	* src/m_rte.cc (iyb_calc): Introduced i_pol as local variable. If
 	any kind of modified Stokes vector will be introduced, this must
@@ -43,17 +66,17 @@
 
 	* src/physics_funcs.cc: Added type casting to double for all
 	planck and RJ functions. Now using a and b constants in all
-	functions. Should be OK with double hard-coded. 
+	functions. Should be OK with double hard-coded.
 
 	(dinvplanckdI): New function. Calculates the derivative of
 	inverse-Planck with respect to intensity.
-	
+
 2010-10-25  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-102
-	
+
 	* src/workspace.cc: Polished description of y_f and similar
-	variables. Introduced a clear coding polarisation states. See y_pol. 
+	variables. Introduced a clear coding polarisation states. See y_pol.
 
 	* src/m_sensor.cc (sensor_responseInit): mblock_za_grid was
 	checked twice, instead of check of aa_grid.

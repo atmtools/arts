@@ -1934,7 +1934,7 @@ void sensor_responsePolarisation(
 
   for( Index i=0; i<nnew && !error_found; i++ )
     {
-      if( pv[sensor_pol[i]].nelem() > stokes_dim )
+      if( pv[sensor_pol[i]-1].nelem() > stokes_dim )
         {
           os << "You have slected an otput polarisation that is not covered "
              << "by present value of *stokes_dim* (the later has to be "
@@ -1949,16 +1949,16 @@ void sensor_responsePolarisation(
 
   // Form H matrix representing polarisation response
   //
-  Sparse Hpol( nza*nnew, nin );
-  Vector hrow( nza*nnew, 0.0 );
+  Sparse Hpol( nfz*nnew, nin );
+  Vector hrow( nin, 0.0 );
   Index row = 0;
   //
-  for( Index i=0; i<nza; i++ )
+  for( Index i=0; i<nfz; i++ )
     {
       Index col = i*npol;
       for( Index in=0; in<nnew; in++ )
         {
-          Index p = sensor_pol[in];
+          Index p = sensor_pol[in] - 1;
           //
           for( Index iv=0; iv<pv[p].nelem(); iv++ )
             { hrow[col+iv] = pv[p][iv]; }
