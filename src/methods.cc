@@ -7336,7 +7336,47 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-  
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "sensor_responsePolarisation" ),
+        DESCRIPTION
+        (
+         "Extraction of non-default polarisation components.\n"
+         "\n"
+         "The default is to output the Stokes elements I, Q, U and V (up to\n" 
+         "*stokes_dim*). This method allows to change the \"polarisation\" of\n"
+         "the output. Polarisation components to be extractad are selected by\n"
+         "*sensor_pol*. This method can be applied at any step of the sensor\n"
+         "matrix set-up.\n"
+         "\n"
+         "The method can only be applied on data for I, Q, U and V. The value"
+         "of *stokes_dim* must be sufficiently large for the selected\n"
+         "componenets. For example, I+45 requires that *stokes_dim* is at\n"
+         "least 3. \n"
+         "\n"
+         "Note that the state of y_unit* is considered. This WSV must give\n"
+         "the present unit of the data. This as, the extraction of components\n"
+         "is slightly different if data are radiances or brightness\n"
+         "temperatures.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "sensor_response", "sensor_response_f", "sensor_response_pol",
+             "sensor_response_za", "sensor_response_aa", 
+             "sensor_response_pol_grid" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "sensor_response", "sensor_response_f", "sensor_response_pol",
+            "sensor_response_za", "sensor_response_aa", "sensor_response_f_grid",
+            "sensor_response_pol_grid", "sensor_response_za_grid",
+            "sensor_response_aa_grid", "stokes_dim", "y_unit", "sensor_pol" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
   md_data_raw.push_back
   ( MdRecord
    ( NAME( "sensor_responseSimpleAMSU" ),

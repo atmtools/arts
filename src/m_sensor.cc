@@ -533,7 +533,7 @@ void sensor_responseAntenna(
           const Index&   atmosphere_dim,
           const Index&   antenna_dim,
          const Matrix&   antenna_los,
-        const GriddedField4&   antenna_response,
+  const GriddedField4&   antenna_response,
           const Index&   sensor_norm )
 {
   // Basic checks
@@ -541,14 +541,12 @@ void sensor_responseAntenna(
   chk_if_in_range( "antenna_dim",    antenna_dim,    1, 2 );
   chk_if_bool(     "sensor_norm",    sensor_norm          );
 
-
   // Some sizes
   const Index nf   = sensor_response_f_grid.nelem();
   const Index npol = sensor_response_pol_grid.nelem();
   const Index nza  = sensor_response_za_grid.nelem();
   const Index naa  = max( Index(1), sensor_response_aa_grid.nelem() );
   const Index nin  = nf * npol * nza * naa;
-
 
   // Initialise a output stream for runtime errors and a flag for errors
   ostringstream os;
@@ -1469,6 +1467,7 @@ void sensorOff(
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void sensor_responseMixer(
     // WS Output:
@@ -1811,6 +1810,185 @@ void sensor_responseMultiMixerBackend(
                       sensor_response_f_grid,  sensor_response_pol_grid, 
                       sensor_response_za_grid, sensor_response_aa_grid, 0 );
 }
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void sensor_responsePolarisation(
+     // WS Output:
+                 Sparse&   sensor_response,
+                 Vector&   sensor_response_f,
+           ArrayOfIndex&   sensor_response_pol,
+                 Vector&   sensor_response_za,
+                 Vector&   sensor_response_aa,
+           ArrayOfIndex&   sensor_response_pol_grid,
+     // WS Input:
+           const Vector&   sensor_response_f_grid,
+           const Vector&   sensor_response_za_grid,
+           const Vector&   sensor_response_aa_grid,
+            const Index&   stokes_dim,
+           const String&   y_unit,
+     const ArrayOfIndex&   sensor_pol )
+{
+  // Vectors for extracting polarisation components
+  //
+  ArrayOfVector pv(10);
+  //
+  Numeric w = 0.5;
+  if( y_unit == "PlanckBT"  ||  y_unit == "RJBT"  )
+    { w = 1.0; }
+  //
+  pv[0] = MakeVector( 1 );             // I
+  pv[1] = MakeVector( 0, 1 );          // Q
+  pv[2] = MakeVector( 0, 0, 1 );       // U
+  pv[3] = MakeVector( 0, 0, 0, 1 );    // V
+  pv[4] = MakeVector( w, w );          // Iv
+  pv[5] = MakeVector( w, -w );         // Ih
+  pv[6] = MakeVector( w, 0, w );       // I+45
+  pv[7] = MakeVector( w, 0, -w );      // I-45
+  pv[8] = MakeVector( w, 0, 0, w );    // Irhc
+  pv[9] = MakeVector( w, 0, 0, -w );   // Ilhc
+
+  // Some sizes
+  const Index nnew = sensor_pol.nelem();
+  const Index nf   = sensor_response_f_grid.nelem();
+  const Index npol = sensor_response_pol_grid.nelem();
+  const Index nza  = sensor_response_za_grid.nelem();
+
+  // Initialise an output stream for runtime errors and a flag for errors
+  ostringstream os;
+  bool          error_found = false;
+
+  // For this method, the za and aa can be both "independent" and "dependent".
+  // The size of sensor_response resolves this
+  //
+  bool za_aa_independent = true;
+  //
+  const Index naa  = max( Index(1), sensor_response_aa_grid.nelem() );
+        Index nfz  = nf * nza;
+        Index nin  = nfz *npol;
+  //
+  if( sensor_response.nrows() == nin )
+    { za_aa_independent = false; }
+  else if( sensor_response.nrows() == nin*naa )
+    { nfz *= naa;  nin *= naa; }
+  else
+    {
+      os << "The sensor block response matrix *sensor_response* does not have\n"
+         << "right size compared to the sensor grid variables\n"
+         << "(sensor_response_f_grid etc.).\n";
+      error_found = true;
+    }
+
+  // Check that sensor_response variables are consistent in size
+  if( sensor_response_f.nelem() != nin )
+    {
+      os << "Inconsistency in size between *sensor_response_f* and the sensor\n"
+         << "grid variables (sensor_response_f_grid etc.).\n";
+      error_found = true;
+    }
+  if( naa  &&  naa != nza )
+    {
+      os << "Incorrect size of *sensor_response_aa_grid*.\n";
+      error_found = true;
+    }
+  if( npol != stokes_dim )
+    {
+      os << "Number of input polarisation does not match *stokes_dim*.\n";
+      error_found = true;
+    }
+  if( nnew == 0 )
+    {
+      os << "The WSV *sensor_pol* can not be empty.\n";
+      error_found = true;
+    }
+  // If errors where found throw runtime_error with the collected error
+  // message (before it gets too long)
+  if( error_found )
+    throw runtime_error(os.str());
+
+  // Check polarisation data more in detail
+  for( Index i=0; i<npol && !error_found; i++ )
+    {
+      if( sensor_response_pol_grid[i] != i+1 )
+        {
+          os << "The input polarisations must be I, Q, U and V (up to "
+             << "stokes_dim). It seems that input data are for other "
+             << "polarisation components.";
+          error_found = true;
+        }      
+    }
+  for( Index i=0; i<nnew && !error_found; i++ )
+    {
+      if( sensor_pol[i] < 1  || sensor_pol[i] > 10 )
+        {
+          os << 
+             "The elements of *sensor_pol* must be inside the range [1,10].\n";
+          error_found = true;
+        }
+    }
+  // If errors where found throw runtime_error with the collected error
+  // message (before it gets too long)
+  if( error_found )
+    throw runtime_error(os.str());
+
+  for( Index i=0; i<nnew && !error_found; i++ )
+    {
+      if( pv[sensor_pol[i]].nelem() > stokes_dim )
+        {
+          os << "You have slected an otput polarisation that is not covered "
+             << "by present value of *stokes_dim* (the later has to be "
+             << "increased).";
+          error_found = true;
+        }
+    }  
+  // If errors where found throw runtime_error with the collected error
+  // message 
+  if( error_found )
+    throw runtime_error(os.str());
+
+  // Form H matrix representing polarisation response
+  //
+  Sparse Hpol( nza*nnew, nin );
+  Vector hrow( nza*nnew, 0.0 );
+  Index row = 0;
+  //
+  for( Index i=0; i<nza; i++ )
+    {
+      Index col = i*npol;
+      for( Index in=0; in<nnew; in++ )
+        {
+          Index p = sensor_pol[in];
+          //
+          for( Index iv=0; iv<pv[p].nelem(); iv++ )
+            { hrow[col+iv] = pv[p][iv]; }
+          //
+          Hpol.insert_row( row, hrow );
+          //
+          hrow = 0;
+          row += 1;
+        }
+    }
+
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse Htmp = sensor_response;
+  sensor_response.resize( Hpol.nrows(), Htmp.ncols());
+  mult( sensor_response, Hpol, Htmp );
+
+  // Update sensor_response_pol_grid
+  sensor_response_pol_grid = sensor_pol;
+
+  // Set aux variables
+  sensor_aux_vectors( sensor_response_f,       sensor_response_pol, 
+                      sensor_response_za,      sensor_response_aa, 
+                      sensor_response_f_grid,  sensor_response_pol_grid, 
+                      sensor_response_za_grid, sensor_response_aa_grid, 
+                      za_aa_independent );
+}
+
+
 
 void sensor_responseSimpleAMSU(// WS Output:
                                Vector& f_grid,
