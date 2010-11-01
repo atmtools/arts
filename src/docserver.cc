@@ -63,12 +63,13 @@ vector<string> &split(const string &s, char delim, vector<string> &elems) {
   return elems;
 }
 
-void ds_begin_page (ostream &os)
+void ds_begin_page (ostream &os, const string& title = "ARTS built-in documentation server")
 {
   os
   << "<!DOCTYPE html>" << endl
   << "<html>" << endl
   << "<head>" << endl
+  << "<title>" << title << "</title>" << endl
   << "<meta charset=\"utf-8\">" << endl
   << "<meta name=\"viewport\" content=\"width=device-width\" />" << endl
   << "<link rel=\"stylesheet\" href=\"" << ds_baseurl << "/styles.css\">" << endl
@@ -124,8 +125,8 @@ void ds_list_agendas (ostream &os)
 {
   Index i;
   
-  os << "<tr><td colspan=\"2\"><a name=\"agendas\" />"
-  << "<h2>Agendas</h2></td></tr>" << endl
+  os << "<tr><td colspan=\"2\">"
+  << "<h2><span id=\"agendas\">Agendas</span></h2></td></tr>" << endl
   << "<tr><td><ul>" << endl;
   
   Index hitcount = 0;
@@ -156,8 +157,8 @@ void ds_list_groups (ostream &os)
   extern const ArrayOfString wsv_group_names;
   Index i;
   
-  os << "<tr><td colspan=\"2\"><a name=\"groups\" />"
-  << "<h2>Workspace Groups</h2></td></tr>" << endl
+  os << "<tr><td colspan=\"2\">"
+  << "<h2><span id=\"groups\">Workspace Groups</span></h2></td></tr>" << endl
   << "<tr><td><ul>" << endl;
   
   for ( i=0; i<wsv_group_names.nelem(); ++i )
@@ -176,8 +177,8 @@ void ds_list_methods (ostream &os)
   extern const Array<MdRecord> md_data_raw;
   Index i;
   
-  os << "<tr><td colspan=\"2\"><a name=\"methods\" />"
-  << "<h2>Workspace Methods</h2></td></tr>" << endl
+  os << "<tr><td colspan=\"2\">"
+  << "<h2><span id=\"methods\">Workspace Methods</span></h2></td></tr>" << endl
   << "<tr><td><ul>" << endl;
   
   for ( i=0; i<md_data_raw.nelem(); ++i )
@@ -195,8 +196,8 @@ void ds_list_variables (ostream &os)
 {
   Index i;
   
-  os << "<tr><td colspan=\"2\"><a name=\"variables\" />"
-  << "<h2>Workspace Variables</h2></td></tr>" << endl
+  os << "<tr><td colspan=\"2\">"
+  << "<h2><span id=\"variables\">Workspace Variables</span></h2></td></tr>" << endl
   << "<tr><td><ul>" << endl;
   
   Index hitcount = 0;
@@ -340,7 +341,7 @@ void ds_doc_method (ostream &os, const string& mname)
       
       {
         const String& vname = Workspace::wsv_data[mdr.Out()[i]].Name();
-        buf << "<td align=\"right\">" << ds_insert_wsv_link(vname) << "</td><td>(";
+        buf << "<td class=\"right\">" << ds_insert_wsv_link(vname) << "</td><td>(";
         buf << ds_insert_group_link(wsv_group_names[Workspace::wsv_data[mdr.Out()[i]].Group()]);
         buf << ")</td><td>";
       }
@@ -366,7 +367,7 @@ void ds_doc_method (ostream &os, const string& mname)
     {
       buf.str("");
       buf << "<tr>";
-      buf <<    "<td>GOUT</td><td align=\"right\">" << mdr.GOut()[i] << "</td><td>(";
+      buf <<    "<td>GOUT</td><td class=\"right\">" << mdr.GOut()[i] << "</td><td>(";
       if (mdr.GOutType()[i] == get_wsv_group_id("Any")
           && mdr.GOutSpecType()[i].nelem())
       {
@@ -415,7 +416,7 @@ void ds_doc_method (ostream &os, const string& mname)
       buf <<    "<td>IN</td>";
       
       const String& vname = Workspace::wsv_data[mdr.In()[i]].Name();
-      buf << "<td align=\"right\">" << ds_insert_wsv_link(vname);
+      buf << "<td class=\"right\">" << ds_insert_wsv_link(vname);
       buf << "</td><td>(";
       buf << ds_insert_group_link(wsv_group_names[Workspace::wsv_data[mdr.In()[i]].Group()]);
       buf << ")</td><td>";
@@ -440,7 +441,7 @@ void ds_doc_method (ostream &os, const string& mname)
     {
       buf.str("");
       buf << "<tr>";
-      buf <<    "<td>GIN</td><td align=\"right\">" << mdr.GIn()[i] << "</td><td>(";
+      buf <<    "<td>GIN</td><td class=\"right\">" << mdr.GIn()[i] << "</td><td>(";
       if (mdr.GInType()[i] == get_wsv_group_id("Any")
           && mdr.GInSpecType()[i].nelem())
       {
@@ -791,7 +792,7 @@ void ds_doc_agenda (ostream &os, const string& aname)
         
         {
           const String& vname = Workspace::wsv_data[agr.Out()[i]].Name();
-          buf << "<td align=\"right\">" << ds_insert_wsv_link(vname) << "</td><td>(";
+          buf << "<td class=\"right\">" << ds_insert_wsv_link(vname) << "</td><td>(";
           buf << ds_insert_group_link(wsv_group_names[Workspace::wsv_data[agr.Out()[i]].Group()]);
           buf << ")</td><td>";
         }
@@ -819,7 +820,7 @@ void ds_doc_agenda (ostream &os, const string& aname)
         buf <<    "<td>IN</td>";
         
         const String& vname = Workspace::wsv_data[agr.In()[i]].Name();
-        buf << "<td align=\"right\">" << ds_insert_wsv_link(vname);
+        buf << "<td class=\"right\">" << ds_insert_wsv_link(vname);
         buf << "</td><td>(";
         buf << ds_insert_group_link(wsv_group_names[Workspace::wsv_data[agr.In()[i]].Group()]);
         buf << ")</td><td>";
@@ -1107,12 +1108,12 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
     << "<a href=\"#groups\">Groups</a>"
     << endl;
     
-    os << "<center><table width=\"90%\">" << endl;
+    os << "<table class=\"list\">" << endl;
     ds_list_methods (os);
     ds_list_variables (os);
     ds_list_agendas (os);
     ds_list_groups (os);
-    os << "</table></center>" << endl;
+    os << "</table>" << endl;
     return;
   }
   else if (tokens[0] == "methods")
@@ -1139,9 +1140,9 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
 
   ds_insert_breadcrumbs (os, tokens);
   ds_insert_title (os, title);
-  os << "<center><table width=\"90%\">" << endl;
+  os << "<table class=\"list\">" << endl;
   (*index_method)(os);
-  os << "</table></center>" << endl;
+  os << "</table>" << endl;
 }
 
 void ds_insert_doc (ostream& os, const vector<string>& tokens)
@@ -1187,12 +1188,22 @@ void ds_stylesheet (ostream& os)
   << "a:active { color: #ce5c00; text-decoration: underline; background-color: #eeeeec}" << endl
   << "a:hover { color: #f57900; text-decoration: underline; }" << endl
   
-  << "table {" << endl
-  << "border: 0px;" << endl
+  << "table.list {" << endl
+  << "width: 90%;" << endl
+  << "margin-left: 5%;" << endl
+  << "margin-right: 5%;" << endl
   << "}" << endl
-  
+
+  << "table {" << endl
+  << "border-width: 0px;" << endl
+  << "}" << endl
+
   << "table td {" << endl
   << "vertical-align: top;" << endl
+  << "}" << endl
+  
+  << "table td.right {" << endl
+  << "text-align: right;" << endl
   << "}" << endl
   
   << "span.breadcrumbs {" << endl
@@ -1201,7 +1212,7 @@ void ds_stylesheet (ostream& os)
   
   << "div.footer {" << endl
   << "margin-top: 2.5em;" << endl
-  << "align: right;" << endl
+  << "text-align: right;" << endl
   << "color: #aaaaa8;" << endl
   << "font-size: small;" << endl
   << "}" << endl

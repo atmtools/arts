@@ -1,5 +1,11 @@
 2010-11-01  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-109
+
+	* src/docserver.cc: Use solely CSS for table layout. Add title to head.
+
+2010-11-01  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-108
 
 	* autogen.sh, configure.in, reconf, README.legacy, m4/,
