@@ -1,5 +1,0 @@
-#!/bin/sh
-#  
-
-echo "This script is out-of-date. Use ./autogen.sh instead."
-
