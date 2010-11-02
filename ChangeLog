@@ -1,3 +1,22 @@
+2010-11-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-110
+
+	* src/docserver.cc:
+
+	Remove spurious </td></tr> on group doc pages.
+
+	Add functions to escape html special chars.
+
+	Don't try to be smart and rearrange linebreaks in the descriptions.
+	Put them in a <pre></pre> instead to keep the original formatting
+	intact.
+
+	* src/agendas.cc:
+
+	Cleanup descriptions to ensure they have consistently one linebreak at
+	the end.
+
 2010-11-01  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-109

@@ -63,7 +63,34 @@ vector<string> &split(const string &s, char delim, vector<string> &elems) {
   return elems;
 }
 
-void ds_begin_page (ostream &os, const string& title = "ARTS built-in documentation server")
+string ds_html_escape_char (const char ch)
+{
+  string ret;
+  
+  switch (ch)
+  {
+    case '<': ret.append("&lt;"); break;
+    case '>': ret.append("&gt;"); break;
+    default: ret.append(1, ch);
+  }
+  
+  return ret;
+}
+
+string ds_html_escape_string (const string& s)
+{
+  string ret;
+  
+  for (string::const_iterator it = s.begin(); it != s.end(); it++)
+  {
+    ret.append(ds_html_escape_char(*it));
+  }
+  
+  return ret;
+}
+
+void ds_begin_page (ostream &os,
+                    const string& title = "ARTS built-in documentation server")
 {
   os
   << "<!DOCTYPE html>" << endl
@@ -244,16 +271,13 @@ void ds_doc_method (ostream &os, const string& mname)
     
     os << "<h3>Description</h3>" << endl;
     
-    char ch = 0;
+    os << "<pre>" << endl;
     for (String::const_iterator sit = mdr.Description().begin();
          sit != mdr.Description().end(); sit++)
     {
-      os << *sit;
-      if (ch == '\n' && *sit == '\n') os << "<p>";
-      ch = *sit;
+      os << ds_html_escape_char(*sit);
     }
-
-    os << endl;
+    os << endl << "</pre>" << endl << endl;
     
     bool is_first_author = true;
     for (Index i = 0; i < mdr.Authors().nelem(); i++)
@@ -346,7 +370,7 @@ void ds_doc_method (ostream &os, const string& mname)
         buf << ")</td><td>";
       }
       
-      get_short_wsv_description(desc, Workspace::wsv_data[mdr.Out()[i]].Description());
+      get_short_wsv_description(desc, ds_html_escape_string(Workspace::wsv_data[mdr.Out()[i]].Description()));
       
       if (buf.str().length() + desc.length() > linelen)
       {
@@ -390,7 +414,7 @@ void ds_doc_method (ostream &os, const string& mname)
       buf.str("");
       os << desc;
       
-      desc = mdr.GOutDescription()[i];
+      desc = ds_html_escape_string(mdr.GOutDescription()[i]);
       if (!fit)
       {
         format_paragraph (desc, indent, linelen);
@@ -478,7 +502,7 @@ void ds_doc_method (ostream &os, const string& mname)
       buf.str("");
       os << desc;
       
-      desc = mdr.GInDescription()[i];
+      desc = ds_html_escape_string(mdr.GInDescription()[i]);
       if (!fit)
       {
         format_paragraph (desc, indent, linelen);
@@ -726,16 +750,13 @@ void ds_doc_variable (ostream &os, const string& vname)
   {
     // If we are here, then the given name matches a workspace
     // variable.
-    char ch = 0;
+    os << "<pre>" << endl;
     for (String::const_iterator sit = Workspace::wsv_data[it->second].Description().begin();
          sit != Workspace::wsv_data[it->second].Description().end(); sit++)
     {
-      os << *sit;
-      if (ch == '\n' && *sit == '\n') os << "<p>";
-      ch = *sit;
+      os << ds_html_escape_char(*sit);
     }
-    
-    os << endl;
+    os << endl << "</pre>" << endl << endl;
     
     os << "<p><b>Group: </b>"
     << ds_insert_group_link(wsv_group_names[Workspace::wsv_data[it->second].Group()]) << endl;
@@ -758,17 +779,14 @@ void ds_doc_agenda (ostream &os, const string& aname)
   {
     // If we are here, then the given name matches a workspace
     // variable.
-    char ch = 0;
+    os << "<pre>" << endl;
     for (String::const_iterator sit = agenda_data[ait->second].Description().begin();
          sit != agenda_data[ait->second].Description().end(); sit++)
     {
-      os << *sit;
-      if (ch == '\n' && *sit == '\n') os << "<p>";
-      ch = *sit;
+      os << ds_html_escape_char(*sit);
     }
-    
-    os << endl;
-    
+    os << endl << "</pre>" << endl << endl;
+
     os << "<p><b>Group: </b>"
     << ds_insert_group_link(wsv_group_names[Workspace::wsv_data[it->second].Group()]) << endl;
     
@@ -797,7 +815,7 @@ void ds_doc_agenda (ostream &os, const string& aname)
           buf << ")</td><td>";
         }
         
-        get_short_wsv_description(desc, Workspace::wsv_data[agr.Out()[i]].Description());
+        get_short_wsv_description(desc, ds_html_escape_string(Workspace::wsv_data[agr.Out()[i]].Description()));
         
         if (buf.str().length() + desc.length() > linelen)
         {
@@ -826,7 +844,7 @@ void ds_doc_agenda (ostream &os, const string& aname)
         buf << ")</td><td>";
         
         get_short_wsv_description(
-                                  desc, Workspace::wsv_data[agr.In()[i]].Description());
+                                  desc, ds_html_escape_string(Workspace::wsv_data[agr.In()[i]].Description()));
         
         if (buf.str().length() + desc.length() > linelen)
         {
@@ -1039,7 +1057,7 @@ void ds_doc_group (ostream &os, const string& gname)
       }
       if ( 0==hitcount ) os << "<li>none" << endl;
       
-      os << "</ul></td></tr>" << endl;
+      os << "</ul>" << endl;
     }
   }
 }
@@ -1226,7 +1244,9 @@ ahc_echo (void *cls _U_,
           const char *url,
           const char *method,
           const char *version _U_,
-          const char *upload_data _U_, size_t *upload_data_size _U_, void **ptr)
+          const char *upload_data _U_,
+          size_t *upload_data_size _U_,
+          void **ptr)
 {
   static int aptr;
   const char *val;

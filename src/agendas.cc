@@ -72,7 +72,7 @@ void define_agenda_data()
         "   f_index. \n"
         "\n"
         "The methods inside this agenda may require a lot of additional\n"
-        "input variables, such as *f_grid*, *species*, etc.."
+        "input variables, such as *f_grid*, *species*, etc...\n"
         ),
        OUTPUT( "abs_scalar_gas" ),
        INPUT(  "f_index", "rte_pressure", "rte_temperature", "rte_vmr_list" )));
@@ -96,7 +96,6 @@ void define_agenda_data()
         "  can be specified in Kelvin BT (Rayleigh Jeans).\n"
         "*doit_conv_flagLsq*: Least square convergence test. Not recommended\n"
         "  because result can be inaccurate.\n"
-        "\n"
         ),
        OUTPUT( "doit_conv_flag", "doit_iteration_counter" ),
        INPUT(  "doit_conv_flag", "doit_iteration_counter",
@@ -124,7 +123,6 @@ void define_agenda_data()
         "  Especially for limb, where a very fine zenith angle grid \n"
         "  resolution is required for the RT transfer part, this method \n"
         "  is much faster than *doit_scat_fieldCalc*. \n"
-        "\n"
         ),
         OUTPUT( "doit_scat_field" ),
         INPUT(  "doit_scat_field", "doit_i_field")));
@@ -150,7 +148,6 @@ void define_agenda_data()
        "See the ArtsWiki page *UsingArtsDoit* and the online documentation\n"
        "for more information about\n"
        "the methods.\n"
-       "\n"
         ),
        OUTPUT( "doit_i_field", "scat_i_p", "scat_i_lat", "scat_i_lon", 
                "doit_i_field1D_spectrum"),
@@ -184,7 +181,6 @@ void define_agenda_data()
         "was invented. They are very slow and should therefore only \n"
         "be used for test cases.\n"
         "*doit_i_fieldUpdate{1,3}D*: Old function.\n"
-        "\n"
         ),
         OUTPUT( "doit_i_field" ),
        INPUT(   "doit_i_field", "doit_scat_field" )));
@@ -202,7 +198,7 @@ void define_agenda_data()
         "non-LTE conditions much more complex calculations are required.\n"
         "\n"
         "The transmission through the atmosphere can be obtained by setting\n"
-        "*emission* to zeros and *iy_space* to ones."
+        "*emission* to zeros and *iy_space* to ones.\n"
         ),
        OUTPUT( "emission" ),
        INPUT( "rte_temperature" )));
@@ -215,7 +211,7 @@ void define_agenda_data()
         "The body for a for loop.\n"
         "\n"
         "This agenda contains the body of the for loop to be execute by the\n"
-        "method *ForLoop*.  \n"
+        "method *ForLoop*.\n"
         ),
        OUTPUT(),
        INPUT( "forloop_index" )));
@@ -316,7 +312,7 @@ void define_agenda_data()
         "\n"
         "A function calling this agenda shall set *rte_pos*, *rte_los* and\n"
         "*rte_gp* variables to the position and line-of-sight for which the\n"
-        "scattered radiation shall be determined. \n"
+        "scattered radiation shall be determined.\n"
         ),
        OUTPUT( "iy" ),
        INPUT( "ppath", "rte_pos", "rte_los", "rte_gp_p", "rte_gp_lat", 
@@ -335,7 +331,7 @@ void define_agenda_data()
         "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
         "the position and line-of-sight for which the entering radiation \n"
         "shall be determined. The position and line-of-sight must be known, \n"
-        "for example, when radiation from the sun is considered. \n"
+        "for example, when radiation from the sun is considered.\n"
         ),
        OUTPUT( "iy" ),
        INPUT( "rte_pos", "rte_los" )));
@@ -370,7 +366,7 @@ void define_agenda_data()
         "for the perturbed input (without doing any unnecessary operations,\n"
         "for efficiency reasons). If unperturbed spectra (and analytical\n"
         "jacobians) are calculated with *RteCalc*, the standard choice for\n"
-        "this agenda should be *RteCalcNoJacobians*."
+        "this agenda should be *RteCalcNoJacobians*.\n"
        ),
        OUTPUT( "y" ),
        INPUT( "f_grid", "vmr_field", "t_field", "sensor_los" )));
@@ -381,7 +377,7 @@ void define_agenda_data()
        DESCRIPTION
        (
         "The agenda corresponding to the entire controlfile. This is\n" 
-        "executed when ARTS is run."
+        "executed when ARTS is run.\n"
         ),
        OUTPUT(),
        INPUT()));
@@ -408,8 +404,7 @@ void define_agenda_data()
         "*yNoPolarisation*\n"
         "\n"
         "For example, if you want the output in brightness temperature unit,\n"
-        "then add the method *VectorToTbByPlanck*.  \n"
-        "\n"
+        "then add the method *VectorToTbByPlanck*.\n"
        ),
        OUTPUT( "y" ),
        INPUT("t_field_raw", "vmr_field_raw", "z_field_raw", "pnd_field_raw",
@@ -486,7 +481,7 @@ void define_agenda_data()
         "   abs_vec_spt : Absorption vector for single particle type. \n"
         "   pnd_field   : Particle number density field. \n"
         "   atmosphere_dim: Atmospheric dimension. \n"
-        "   scat_p_index : Position. \n:"
+        "   scat_p_index : Position. \n"
         "   scat_lat_index : Position. \n"
         "   scat_lon_index : Position. \n"
         ),
@@ -505,7 +500,6 @@ void define_agenda_data()
         "\n"
         "Different options are possible for the usage of this agenda: \n"
         "*pha_mat_sptFromData* or *pha_mat_sptDOITOpt*. \n"
-        "\n"
         ),
        OUTPUT( "pha_mat_spt"),
        INPUT( "pha_mat_spt", "scat_za_index", "scat_lat_index", "scat_lon_index",
@@ -572,7 +566,7 @@ void define_agenda_data()
         "Calculation of the refractive index of air.\n"
         "\n"
         "This agenda should calculate the summed refractive index for all\n"
-        "relevant atmospheric constituients."
+        "relevant atmospheric constituients.\n"
         ),
        OUTPUT( "refr_index" ),
        INPUT(  "rte_pressure", "rte_temperature", "rte_vmr_list" )));
@@ -590,7 +584,6 @@ void define_agenda_data()
         "\n"
         "Normally you  use:\n"
         " opt_prop_sptFromMonoData{} \n"
-        "\n"
         ),
        OUTPUT( "ext_mat_spt", "abs_vec_spt"),
        INPUT(  "ext_mat_spt", "abs_vec_spt",
@@ -620,7 +613,7 @@ void define_agenda_data()
         "Calculations to perform for each batch case.\n"
         "\n"
         "Must produce a new spectrum vector (*y*) and Jacobi matrix (*jacobian*).\n"
-        "See further *ybatchCalc*."
+        "See further *ybatchCalc*.\n"
         ),
        OUTPUT( "y", "jacobian" ),
        INPUT( "ybatch_index" )));
