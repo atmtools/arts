@@ -1,3 +1,16 @@
+2010-11-02  Claudia Emde  <claudia.emde@lmu.de>
+
+	* arts-1-14-111
+	
+	* src/m_optproperties.cc: Included runtime
+	error if the ambient temperature of the cloud is not included in
+	the scattering data file. 
+
+	Actually there were checks which have been commented out because we
+	wanted to allow extrapolation of the scattering data which is no
+	longer possible with the current version of the interpolation
+	routines.     
+
 2010-11-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-110

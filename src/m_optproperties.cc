@@ -260,10 +260,14 @@ void pha_mat_sptFromDataDOITOpt( // Output:
         {
           if( scat_data_mono[i_pt].T_grid.nelem() > 1)
             {
-              //     chk_if_in_range("T_grid", rte_temperature, 
-              //                scat_data_mono[i_pt].T_grid[0],
-              //                scat_data_mono[i_pt].T_grid
-              //                [scat_data_mono[i_pt].T_grid.nelem()-1]);
+              if (rte_temperature <= scat_data_mono[i_pt].T_grid[0] ||
+                  rte_temperature >= scat_data_mono[i_pt].T_grid[scat_data_mono[i_pt].T_grid.nelem()-1]){
+                ostringstream os;
+                os << "The temperature grid of the scattering data file does not cover a \n"
+                  "temperature of the atmosphere where the clouds is located, the file shoud \n"
+                  "include the value T="<< rte_temperature << " K. \n";
+                throw runtime_error( os.str() );
+              }
               
               // Gridpositions:
               gridpos(T_gp, scat_data_mono[i_pt].T_grid, rte_temperature); 
@@ -386,9 +390,17 @@ void opt_prop_sptFromData( // Output and Input:
           gridpos(freq_gp, f_datagrid, f_grid[f_index]); 
           GridPos t_gp;
           Vector itw;
-      
+          
           if ( T_datagrid.nelem() > 1)
             {
+              if (rte_temperature <= T_datagrid[0] || rte_temperature >= T_datagrid[T_datagrid.nelem()-1]){
+                ostringstream os;
+                os << "The temperature grid of the scattering data file does not cover a \n"
+                  "temperature of the atmosphere where the clouds is located, the file shoud \n"
+                  "include the value T="<< rte_temperature << " K. \n";
+                throw runtime_error( os.str() );
+              }
+              
               gridpos(t_gp, T_datagrid, rte_temperature);
           
               // Interpolationweights:
@@ -1367,11 +1379,15 @@ void pha_mat_sptFromMonoData( // Output:
       
           if( scat_data_mono[i_pt].T_grid.nelem() > 1)
             {
-              //         chk_if_in_range("T_grid", rte_temperature, 
-              //                           scat_data_mono[i_pt].T_grid[0],
-              //                           scat_data_mono[i_pt].T_grid
-              //                           [scat_data_mono[i_pt].T_grid.nelem()-1]);
-          
+              if (rte_temperature <= scat_data_mono[i_pt].T_grid[0] ||
+                  rte_temperature >= scat_data_mono[i_pt].T_grid[scat_data_mono[i_pt].T_grid.nelem()-1]){
+                ostringstream os;
+                os << "The temperature grid of the scattering data file does not cover a \n"
+                  "temperature of the atmosphere where the clouds is located, the file shoud \n"
+                  "include the value T="<< rte_temperature << " K. \n";
+                throw runtime_error( os.str() );
+              }
+              
               // Gridpositions:
               gridpos(T_gp, scat_data_mono[i_pt].T_grid, rte_temperature); 
               // Interpolationweights:
