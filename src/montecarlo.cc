@@ -1239,7 +1239,10 @@ void opt_propExtract(
 
   GridPos t_gp;
   //interpolate over temperature
-  gridpos(t_gp, scat_data.T_grid, rte_temperature);
+  if( scat_data.T_grid.nelem() > 1)
+    {
+      gridpos(t_gp, scat_data.T_grid, rte_temperature);
+    }
   Numeric x=aa;//just to avoid warnings until we use ptype=10
   x+=1;        //
   switch (scat_data.ptype){
@@ -1256,18 +1259,29 @@ void opt_propExtract(
       assert (scat_data.ext_mat_data.ncols() == 1);
       
       Vector itw(2);
-      interpweights(itw, t_gp);
+      //interpolate over temperature
+      if( scat_data.T_grid.nelem() > 1)
+      {
+        interpweights(itw, t_gp);
+      }
       // In the case of randomly oriented particles the extinction matrix is 
       // diagonal. The value of each element of the diagonal is the
       // extinction cross section, which is stored in the database.
      
       ext_mat_mono_spt = 0.;
-      
-      ext_mat_mono_spt(0,0) = interp(itw,scat_data.ext_mat_data(0,joker,0,0,0),t_gp);
-      
       abs_vec_mono_spt = 0;
-
-      abs_vec_mono_spt[0] = interp(itw,scat_data.abs_vec_data(0,joker,0,0,0),t_gp);      
+      
+      if( scat_data.T_grid.nelem() == 1)
+        {
+          ext_mat_mono_spt(0,0) = scat_data.ext_mat_data(0,0,0,0,0);
+          abs_vec_mono_spt[0] = scat_data.abs_vec_data(0,0,0,0,0);
+        }
+      // Temperature interpolation
+      else
+        {
+          ext_mat_mono_spt(0,0) = interp(itw,scat_data.ext_mat_data(0,joker,0,0,0),t_gp);
+          abs_vec_mono_spt[0] = interp(itw,scat_data.abs_vec_data(0,joker,0,0,0),t_gp);
+        }
       
       if( stokes_dim == 1 ){
         break;
@@ -1305,6 +1319,14 @@ void opt_propExtract(
       Numeric Kjj;
       Numeric K12;
       Numeric K34;
+      
+      if( scat_data.T_grid.nelem() == 1)
+      {
+        ostringstream os;
+        os << "Given optical property data is for constant temperature only.\n"
+              "MC with p30 requires temperature-dependent optical property data\n";
+              throw runtime_error( os.str() );
+      }
       
       if (za>90)
         {
@@ -1478,6 +1500,15 @@ void pha_mat_singleExtract(
       GridPos delta_aa_gp;
       GridPos za_inc_gp;
       Vector itw(16);
+      
+      if( scat_data.T_grid.nelem() == 1)
+        {
+          ostringstream os;
+          os << "Given optical property data is for constant temperature only.\n"
+                "MC with p30 requires temperature-dependent optical property data\n";
+                throw runtime_error( os.str() );
+        }
+      
       gridpos(t_gp, scat_data.T_grid, rte_temperature);
       gridpos(delta_aa_gp,scat_data.aa_grid,abs(delta_aa));
       if (za_inc>90)

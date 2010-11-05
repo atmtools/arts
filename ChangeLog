@@ -1,4 +1,15 @@
-2010-08-20  Jana Mendrok <jana.mendrok@ltu.se>
+2010-11-06  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-1-14-114
+
+	* ChangeLog: corrected date of last entry
+
+	* src/montecarlo.cc(pha_mat_singleExtract, opt_propExtract),
+        src/mc_interp.cc (interp_scat_angle_temperature): some fixes to allow
+        use of optprops with T_grid.nelem==1 in MC for p20, add error message
+        for p30.
+
+2010-11-05  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-1-14-113
 

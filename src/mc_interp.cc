@@ -236,15 +236,29 @@ void interp_scat_angle_temperature(//Output:
   GridPos thet_gp;
   gridpos(thet_gp, scat_data.za_grid, theta);
   GridPos t_gp;
-  gridpos(t_gp, scat_data.T_grid, rte_temperature);
-          
-  Vector itw(4);
-  interpweights(itw, t_gp,thet_gp);
-
-  for (Index i = 0; i < 6; i++)
+  
+  if( scat_data.T_grid.nelem() == 1)
     {
-      pha_mat_int[i] = interp(itw, scat_data.pha_mat_data(0,joker,joker, 0, 0, 0, i), 
-                              t_gp,thet_gp);
+      Vector itw(2);
+      interpweights(itw, thet_gp);
+      
+      for (Index i = 0; i < 6; i++)
+      {
+        pha_mat_int[i] = interp(itw, scat_data.pha_mat_data(0,0,joker, 0, 0, 0, i),thet_gp);
+      }
+    }
+  else
+    {
+      gridpos(t_gp, scat_data.T_grid, rte_temperature);
+          
+      Vector itw(4);
+      interpweights(itw, t_gp,thet_gp);
+
+      for (Index i = 0; i < 6; i++)
+        {
+          pha_mat_int[i] = interp(itw, scat_data.pha_mat_data(0,joker,joker, 0, 0, 0, i), 
+                                  t_gp,thet_gp);
+        }
     }
 } 
 
