@@ -1,3 +1,11 @@
+2010-08-20  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-1-14-113
+
+	* src/optproperties.cc (abs_vecTransform, ext_matTransform): fixed
+        bug here that was already fixed by stefan in arts-1-14-35 in function
+        pha_matTransform (for explanation see there).
+
 2010-11-04  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-112

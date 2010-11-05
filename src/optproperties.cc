@@ -130,13 +130,19 @@ case PTYPE_HORIZ_AL://Added by Cory Davis 9/12/03
       // 1st interpolate data by za_sca
       GridPos gp;
       Vector itw(2);
+
+      // JM 2010-11-05: reduce za_datagrid to abs_vec_data range,
+      // then gridpos correctly recognizes last grid point and
+      // returns correct index (follows SAB 2010-04-28)
+      ConstVectorView this_za_datagrid = za_datagrid[Range(0,abs_vec_data.npages())];
+
       if (za_sca>90)
         {
-          gridpos(gp,za_datagrid,180-za_sca);
+          gridpos(gp,this_za_datagrid,180-za_sca);
         }
       else
         {
-          gridpos(gp,za_datagrid,za_sca);
+          gridpos(gp,this_za_datagrid,za_sca);
         }
       interpweights(itw,gp);
       abs_vec_lab = 0;
@@ -253,13 +259,18 @@ void ext_matTransform(//Output and Input
       Numeric K12;
       Numeric K34;
       
+      // JM 2010-11-05: reduce za_datagrid to ext_mat_data range,
+      // then gridpos correctly recognizes last grid point and
+      // returns correct index (follows SAB 2010-04-28)
+      ConstVectorView this_za_datagrid = za_datagrid[Range(0,ext_mat_data.npages())];
+
       if (za_sca>90)
         {
-          gridpos(gp,za_datagrid,180-za_sca);
+          gridpos(gp,this_za_datagrid,180-za_sca);
         }
       else
         {
-          gridpos(gp,za_datagrid,za_sca);
+          gridpos(gp,this_za_datagrid,za_sca);
         }
 
       interpweights(itw,gp);
