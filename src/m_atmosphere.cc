@@ -937,6 +937,58 @@ void AtmFieldsCalcExpand1D(
 }
 
 
+/* Workspace method: Doxygen documentation will be auto-generated */
+void AtmFieldsExpand1D(
+            Tensor3&              t_field,
+            Tensor3&              z_field,
+            Tensor4&              vmr_field,
+      const Vector&               p_grid,
+      const Vector&               lat_grid,
+      const Vector&               lon_grid,
+      const Index&                atmosphere_dim )
+{
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+
+  // Sizes
+  const Index   np = p_grid.nelem();
+  const Index   nlat = lat_grid.nelem();
+  const Index   nlon = max( Index(1), lon_grid.nelem() );
+  const Index   nspecies = vmr_field.nbooks();
+
+  if( atmosphere_dim == 1 )
+    { throw runtime_error( "No use in calling this method for 1D.");}
+  chk_atm_field( "t_field", t_field, 1, p_grid, Vector(0), Vector(0) );
+  chk_atm_field( "z_field", z_field, 1, p_grid, Vector(0), Vector(0) );
+  if( nspecies )
+    chk_atm_field( "vmr_field", vmr_field, 1, nspecies, p_grid, Vector(0), 
+                                                                Vector(0) );
+
+  // Temporary containers
+  Tensor3 t_temp = t_field, z_temp = z_field;
+  Tensor4 vmr_temp = vmr_field;
+
+  // Resize and fill
+  t_field.resize( np, nlat, nlon );
+  z_field.resize( np, nlat, nlon );
+  vmr_field.resize( nspecies, np, nlat, nlon );
+  //
+  for( Index ilon=0; ilon<nlon; ilon++ )
+    {
+      for( Index ilat=0; ilat<nlat; ilat++ )
+        {
+          for( Index ip=0; ip<np; ip++ )
+            {
+              t_field(ip,ilat,ilon) = t_temp(ip,0,0);
+              z_field(ip,ilat,ilon) = z_temp(ip,0,0);
+              for( Index is=0; is<nspecies; is++ )
+                { vmr_field(is,ip,ilat,ilon) = vmr_temp(is,ip,0,0); }
+            }
+        }
+    }
+}
+
+
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void AtmFieldsRefinePgrid(// WS Output:

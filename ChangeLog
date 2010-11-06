@@ -1,3 +1,17 @@
+2010-11-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-115
+
+	* Jana: These two new methods make the operations you asked about
+	in the last emails. Should have been implemented earlier!
+	Can maybe a bit tricky to use them inside the batch agenda. I have
+	not performed any tests. So please check for some case that the
+	generated 3D data are OK.
+	
+	* src/m_cloudbox.cc (pnd_fieldExpand1D): New WSM.
+
+	* src/m_atmosphere.cc (AtmFieldsExpand1D): New WSM. 
+
 2010-11-06  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-1-14-114

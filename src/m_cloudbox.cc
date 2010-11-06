@@ -563,6 +563,64 @@ void pnd_fieldCalc(//WS Output:
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void pnd_fieldExpand1D(
+            Tensor4&        pnd_field,
+      const Vector&         p_grid,
+      const Vector&         lat_grid,
+      const Vector&         lon_grid,
+      const Index&          atmosphere_dim,
+      const Index&          cloudbox_on,    
+      const ArrayOfIndex&   cloudbox_limits,
+      const Index&          nzero )
+{
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid,
+                                                cloudbox_on, cloudbox_limits );
+
+  if( atmosphere_dim == 1 )
+    { throw runtime_error( "No use in calling this method for 1D." ); }
+  if( !cloudbox_on )
+    { throw runtime_error( 
+                "No use in calling this method with cloudbox off." ); }
+
+  if( nzero < 1 )
+    { throw runtime_error( "The argument *nzero must be > 0." ); }
+
+  // Sizes
+  const Index   npart = pnd_field.nbooks();
+  const Index   np = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+  const Index   nlat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
+        Index   nlon = 1;
+  if( atmosphere_dim == 3 )  
+    { nlon = cloudbox_limits[5] - cloudbox_limits[5] + 1; }
+
+  if( pnd_field.npages() != np  ||  pnd_field.nrows() != 1  ||  
+      pnd_field.ncols() != 1 )
+    { throw runtime_error( "The input *pnd_field* is either not 1D or does not "
+                           "match pressure size of cloudbox." );}
+
+  // Temporary container
+  Tensor4 pnd_temp = pnd_field;
+
+  // Resize and fill
+  pnd_field.resize( npart, np, nlat, nlon );
+  pnd_field = 0;
+  //
+  for( Index ilon=nzero; ilon<nlon-nzero; ilon++ )
+    {
+      for( Index ilat=nzero; ilat<nlat-nzero; ilat++ )
+        {
+          for( Index ip=0; ip<np; ip++ )
+            {
+              for( Index is=0; is<npart; is++ )
+                { pnd_field(is,ip,ilat,ilon) = pnd_temp(is,ip,0,0); }
+            }
+        }
+    }
+}
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void pnd_fieldZero(//WS Output:
                       Tensor4& pnd_field,
                       ArrayOfSingleScatteringData& scat_data_raw,

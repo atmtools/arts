@@ -2232,6 +2232,37 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "AtmFieldsExpand1D" ),
+        DESCRIPTION
+        (
+         "Maps a 1D case to 2D or 3D homogeneous atmospheric fields.\n"
+         "\n"
+         "This method takes a 1D atmospheric case and converts it to the\n"
+         "corresponding case for 2D or 3D. The atmospheric fields (t_field,\n"
+         "z_field and vmr_field) must be 1D and match *p_grid*. The size of\n"
+         "the new data is determined by *atmospheric_dim*, *lat_grid* and\n"
+         "*lon_grid*. That is, these later variables have been changed since\n"
+         "the original fields were created.\n"
+         "\n"
+         "The method deals only with the atmospheric fields, and to create\n"
+         "a true 2D or 3D version of a 1D case, a demand is also that the\n"
+         "geoid radius is set to be constant for all latitudes/longitudes.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "t_field", "z_field", "vmr_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "t_field", "z_field", "vmr_field", "p_grid", "lat_grid", 
+            "lon_grid", "atmosphere_dim" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "AtmFieldsRefinePgrid" ),
         DESCRIPTION
         (
@@ -6207,6 +6238,41 @@ void define_md_data_raw()
         GIN_TYPE(), 
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "pnd_fieldExpand1D" ),
+        DESCRIPTION
+        (
+         "Maps a 1D pnd_field to 2D or 3D pnd_field.\n"
+         "\n"
+         "This method takes a 1D *pnd_field* and converts it to 2D or 3D\n"
+         "\"cloud\". It is assumed that a complet 1D case has been created\n"
+         "and after this *atmosphere_dim*, *lat_grid*, *lon_grid* and\n"
+         "*cloudbox_limits* have been changed to a 2D or 3D case. This\n"
+         "without changing the vertical extension of the cloudbox.\n"
+         "\n"
+         "No modification of *pnd_field* is made for the pressure dimension.\n"
+         "At the latitude and longitude cloudbox edges *pnd_field* is set to\n"
+         "zero. This corresponds to nzero=1. If you want a larger margin between\n"
+         "the lat and lon cloudbox edgess and the \"cloud\" you increase\n"
+         "*nzero*, where *nzero* is the number of grid points for which\n"
+         "*pnd_field* shall be set to 0, counted from each lat and lon edge.\n"
+         "\n"
+         "See further *AtmFieldsExpand1D*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "pnd_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "pnd_field", "p_grid", "lat_grid", "lon_grid", "atmosphere_dim",
+            "cloudbox_on", "cloudbox_limits" ),
+        GIN( "nzero" ),
+        GIN_TYPE( "Index"),
+        GIN_DEFAULT( "1" ),
+        GIN_DESC( "Number of zero values inside lat and lon limits." )
         ));
 
   md_data_raw.push_back
