@@ -1,3 +1,11 @@
+2010-11-09  Claudia Emde  <claudia.emde@lmu.de>
+	    
+	* arts-1-14-116	
+	
+	* src/m_conversion.h: Fixed *FrequencyFromWavelength*, which for
+	Vectors worked only if the length of the output vector was set
+	before the method was executed.
+
 2010-11-06  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-115
