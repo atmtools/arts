@@ -50,7 +50,7 @@ void FrequencyFromWavelength(// WS Generic Output
                              const Vector& wavelength
                              )
 {
-  
+  frequency.resize(wavelength.nelem());
   // Convert from wavelength to frequency
   for (Index i=0; i<wavelength.nelem(); i++)
     frequency[i]=SPEED_OF_LIGHT/wavelength[i];
