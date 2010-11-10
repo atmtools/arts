@@ -126,13 +126,17 @@ string ds_html_escape_string (const string& s)
  Output the HTML header and start of the body to the stream.
  
  \param[in,out]  os     Output stream.
- \param[in]       title  Page title (default: DOCSERVER_NAME).
+ \param[in]      title  Page title.
  
  \author Oliver Lemke
  */
-void ds_begin_page (ostream &os,
-                    const string& title = DOCSERVER_NAME)
+void ds_begin_page (ostream &os, string title)
 {
+  if (title.length())
+    title += " - ";
+
+  title += DOCSERVER_NAME;
+  
   os
   << "<!DOCTYPE html>" << endl
   << "<html>" << endl
@@ -1328,6 +1332,7 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
   
   if (tokens.size() == 0)
   {
+    ds_begin_page(os, "");
     ds_insert_breadcrumbs (os, tokens);
     ds_insert_title (os, "Index");
     
@@ -1348,17 +1353,17 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
   }
   else if (tokens[0] == "methods")
   {
-    title = "Workspace Method Index";
+    title = "Method Index";
     index_method = ds_list_methods;
   }
   else if (tokens[0] == "variables")
   {
-    title = "Workspace Variable Index";
+    title = "Variable Index";
     index_method = ds_list_variables;
   }
   else if (tokens[0] == "groups")
   {
-    title = "Workspace Group Index";
+    title = "Group Index";
     index_method = ds_list_groups;
   }
   else if (tokens[0] == "agendas")
@@ -1368,6 +1373,7 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
   }
   else return;
 
+  ds_begin_page(os, title);
   ds_insert_breadcrumbs (os, tokens);
   ds_insert_title (os, title);
   os << "<table class=\"list\">" << endl;
@@ -1413,6 +1419,7 @@ void ds_insert_doc (ostream& os, const vector<string>& tokens)
    }
   else return;
   
+  ds_begin_page(os, tokens[1]);
   ds_insert_breadcrumbs (os, tokens);
   ds_insert_title (os);
   os << "<h2>" << title << "</h2>" << endl;
@@ -1542,8 +1549,6 @@ ahc_echo (void *cls _U_,
   }
   else
   {
-    ds_begin_page (hout);
-    
     switch (tokens.size())
     {
       case 0:
@@ -1614,7 +1619,6 @@ int docserver_start(Index port, bool daemon, const string& baseurl)
       << "===========================================================\n\n"
       << "Press enter to exit.\n";
   }
-  
   
   if (daemon)
   {

@@ -1,6 +1,14 @@
+2010-11-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-117
+	
+	* src/docserver.cc: Generate proper page titles.
+
+	* src/workspace.cc: Rephrase the documentation for ppath_step.
+
 2010-11-09  Claudia Emde  <claudia.emde@lmu.de>
 	    
-	* arts-1-14-116	
+	* arts-1-14-116
 	
 	* src/m_conversion.h: Fixed *FrequencyFromWavelength*, which for
 	Vectors worked only if the length of the output vector was set
