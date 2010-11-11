@@ -132,10 +132,13 @@ ostream& operator<<(ostream& os, const GridPos& gp)
  grid, but some margins are given for practical reasons. For higher
  flexibility, a selectable extrapolation is allowed. The allowed
  extrapolation is given in fractions of the distance between the
- outermost two points. For example, if *extpolfac* is set to 0.5 an
- extrapolation of half the distance between end points is allowed.
- In this case, if point 0 is at 0 and point 1 is at 1, the new grid can
- be extended to -0.5.
+ lowermost two points for extrapolation beyond the lower grid limit and the
+ distance between the uppermost two points for extrapolation beyond the upper
+ grid limit, respectively. For example, if *extpolfac* is set to 0.5 an
+ extrapolation of half the distance between two outermost points at the
+ respective edge of the grid is allowed. In this case, if the old grid is
+ given as [0, 1, ... , 3, 3.4] the new grid can be extended down to -0.5 and
+ up to 3.6.
 
  0.5 is the default value for extpolfac. Normally, you should just use
  the function with 3 arguments, which means that the default value

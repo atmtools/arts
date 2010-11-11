@@ -1210,11 +1210,8 @@ void Workspace::define_wsv_data()
     ( NAME( "doit_za_grid_size" ),
       DESCRIPTION
       (
-       "This vector contains the discretisation of the zenith angle grid \n"
-       "for the scattering integral calculation. \n"
-       "\n"
-       "The zenith angle grid is defined from 0 to 180.\n"
-       "*doit_za_grid_size* is the number of points of the zenith angle grid.\n"
+       "Number of equidistant grid points of the zenith angle grid, \n"
+       "defined from 0 to 180 deg, for the scattering integral calculation. \n"
        "\n"
        "Usage: Output of *DoitAngularGridsSet*.\n"
        ),

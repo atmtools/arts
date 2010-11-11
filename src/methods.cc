@@ -2804,8 +2804,8 @@ void define_md_data_raw()
                      "Numeric" ),
         GIN_DEFAULT( NODEF,     NODEF,     NODEF,     NODEF,     NODEF,
                      NODEF ),
-        GIN_DESC( "Upper altitude point.",
-                  "Lower altitude point.",
+        GIN_DESC( "Lower altitude point.",
+                  "Upper altitude point.",
                   "Lower latitude point.",
                   "Upper latitude point.",
                   "Lower longitude point.",
@@ -2905,7 +2905,7 @@ void define_md_data_raw()
         (
          "Sets the angular grids for DOIT calculation."
          "\n"
-         "In this method the angular grids for a DOIT calculation are "
+         "In this method the angular grids for a DOIT calculation are\n"
          "specified. For down-looking geometries it is sufficient to define\n"
          "*N_za_grid* and *N_aa_grid*. From these numbers equally spaced\n"
          "grids are created and stored in the WSVs *scat_za_grid* and\n"
