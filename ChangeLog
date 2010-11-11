@@ -1,3 +1,19 @@
+2010-11-11  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-1-14-118
+
+	* src/interpolation.cc (gridpos): documentation of extrapolation
+        ability rephrased less ambiguous (hopefully).
+
+	* src/methods.cc: correct documentation of cloudboxSetManuallyAltitude
+        (z1<z2).
+
+	* src/workspace.cc: correct documentation of doit_za_grid_size (it's
+        just a number (of vector elements), not the vector).
+
+	* src/cloudbox.cc (chk_single_scattering_data): allow higher
+        (unearthly, but e.g. venusian) T in scat_data.T_grid.
+
 2010-11-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-117
@@ -34,7 +50,7 @@
 
 	* ChangeLog: corrected date of last entry
 
-	* src/montecarlo.cc(pha_mat_singleExtract, opt_propExtract),
+	* src/montecarlo.cc (pha_mat_singleExtract, opt_propExtract),
         src/mc_interp.cc (interp_scat_angle_temperature): some fixes to allow
         use of optprops with T_grid.nelem==1 in MC for p20, add error message
         for p30.
