@@ -1,3 +1,10 @@
+2010-11-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-119
+
+	* src/agendas.cc: Changed text for abs_scalar_gas_agenda, to sync
+	with article manuscript. 
+
 2010-11-11  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-1-14-118

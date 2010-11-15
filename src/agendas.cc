@@ -56,13 +56,13 @@ void define_agenda_data()
      ( NAME( "abs_scalar_gas_agenda" ),
        DESCRIPTION
        (
-        "Calculate scalar gas absorption.\n"
+        "Calculation of scalar gas absorption.\n"
         "\n"
-        "This agenda should calculate absorption coefficients for all gas\n"
-        "species as a function of the given atmospheric state for one point\n"
-        "in the atmosphere. The result is returned in *abs_scalar_gas*, the\n"
+        "This agenda calculates absorption coefficients for all gas species\n"
+        "as a function of the given atmospheric state for one point in the\n"
+        "atmosphere. The result is returned in *abs_scalar_gas*, the\n"
         "atmospheric state has to be specified by *rte_pressure*,\n"
-        "*rte_temperature*, and *rte_vmr_list*\n"
+        "*rte_temperature*, and *rte_vmr_list*.\n"
         "\n"
         "A mandatory input parameter is f_index, which is used as follows:\n"
         "\n"
@@ -72,7 +72,7 @@ void define_agenda_data()
         "   f_index. \n"
         "\n"
         "The methods inside this agenda may require a lot of additional\n"
-        "input variables, such as *f_grid*, *species*, etc...\n"
+        "input variables, such as *f_grid*, *species*, etc.\n"
         ),
        OUTPUT( "abs_scalar_gas" ),
        INPUT(  "f_index", "rte_pressure", "rte_temperature", "rte_vmr_list" )));
