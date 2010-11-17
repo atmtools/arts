@@ -1,3 +1,12 @@
+2010-11-17  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-120
+
+	* src/m_abs.cc, src/nc_io.cc:
+
+	Remove NC_FORMAT_NETCDF4 from nc_create. It's not supposed to be here
+	and breaks with newer versions of libnetcdf.
+
 2010-11-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-119
@@ -20,6 +29,14 @@
 
 	* src/cloudbox.cc (chk_single_scattering_data): allow higher
         (unearthly, but e.g. venusian) T in scat_data.T_grid.
+
+2010-11-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* src/docserver:
+
+	Don't use ostringstream in places where a common string is sufficient.
+
+	Remove the word "server" from page titles.
 
 2010-11-10  Oliver Lemke  <olemke@core-dump.info>
 

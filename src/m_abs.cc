@@ -2882,7 +2882,7 @@ void WriteMolTau(//WS Input
     throw runtime_error("WriteMolTau can only be used for atmsophere_dim=1");
 
   // Open file
-  if ((retval = nc_create(filename.c_str(), NC_CLOBBER | NC_FORMAT_NETCDF4, &ncid)))
+  if ((retval = nc_create(filename.c_str(), NC_CLOBBER, &ncid)))
     ncerror (retval, "nc_create");
   
   // Define dimensions

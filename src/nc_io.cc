@@ -132,7 +132,7 @@ nc_write_to_file (const String&  filename,
   out2 << "  Writing " << efilename << '\n';
 
   int ncid;
-  if (nc_create (efilename.c_str(), NC_CLOBBER | NC_FORMAT_NETCDF4, &ncid))
+  if (nc_create (efilename.c_str(), NC_CLOBBER, &ncid))
     {
       ostringstream os;
       os << "Error writing file: " << efilename << endl;
