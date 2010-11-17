@@ -1413,73 +1413,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  // This is duplicate with the 1-0 method tgsDefine. Merge!
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "SpeciesSet" ),
-        DESCRIPTION
-        (
-         "Set up a list of absorption species tag groups.\n"
-         "\n"
-         "Workspace variables like *abs_species* contain several tag\n"
-         "groups. Each tag group contains one or more tags. This method converts\n"
-         "descriptions of tag groups given in the keyword to the ARTS internal\n"
-         "representation (an *ArrayOfArrayOfSpeciesTag*). A tag group selects\n"
-         "spectral features which belong to the same species.\n"
-         "\n"
-         "A tag is defined in terms of the name of the species, isotope, and a\n"
-         "range of frequencies. Species are named after the standard chemical\n"
-         "names, e.g., \"O3\". Isotopes are given by the last digit of the atomic\n"
-         "weight, i.g., \"O3-668\" for the asymmetric ozone molecule including an\n"
-         "oxygen 18 atom. Groups of transitions are specified by giving a lower\n"
-         "and upper limit of a frequency range, e.g., \"O3-666-500e9-501e9\".\n"
-         "\n"
-         "The symbol \"*\" acts as a wild card. Furthermore, frequency range or\n"
-         "frequency range and isotope may be omitted.\n"
-         "\n"
-         "Finally, instead of the isotope the special letter \"nl\" may be given,\n"
-         "e.g., \"H2O-nl\". This means that no absorption at all is associated\n"
-         "with this tag. (It is not quite clear if this feature is useful for\n"
-         "anything right now.)\n"
-         "\n"
-         "This method used to be a specific method for *abs_species*. Now it is\n"
-         "generic, so that it can also be used to set *abs_nls* and *abs_pts*.\n"
-         "\n"
-         "Generic Output:\n"
-         "   ArrayOfArrayOfSpeciesTag : Output tag groups.\n"
-         "\n"
-         "Keywords:\n"
-         "   species : Specify one String for each tag group that you want to\n"
-         "             create. Inside the String, separate the tags by commas\n"
-         "             (plus optional blanks).\n"
-         "\n"
-         "Example:\n"
-         "\n"
-         "   species = [ \"O3-666-500e9-501e9, O3-686\",\n"
-         "               \"O3\",\n"
-         "               \"H2O-PWR98\" ]\n"
-         "\n"
-         "   The first tag group selects all O3-666 lines between 500 and\n"
-         "   501 GHz plus all O3-686 lines. \n"
-         "\n"
-         "   The second tag group selects all remaining O3 transitions.\n"
-         "\n"
-         "   The third tag group selects H2O, with one of the complete\n"
-         "   absorption models (Rosenkranz 98). No spectrocopic line catalogue\n"
-         "   data will be used for that third tag group.\n"
-         ),
-        AUTHORS( "Stefan Buehler" ),
-        OUT(),
-        GOUT(       "gout1"                         ),
-        GOUT_TYPE( "ArrayOfArrayOfSpeciesTag" ),
-        GOUT_DESC( "FIXME DOC" ),
-        IN(),
-        GIN( "species" ),
-        GIN_TYPE(    "ArrayOfString"   ),
-        GIN_DEFAULT( NODEF ),
-        GIN_DESC( "FIXME DOC" )
-        ));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "abs_vecAddGas" ),
@@ -6037,18 +5970,18 @@ void define_md_data_raw()
       ( NAME( "ParticleTypeAddAll" ),
         DESCRIPTION
         (
-         "Reads single scattering data and particle number densities.\n"
-         "\n"
-         "The WSV *pnd_field_raw* containing particle number densities for all\n"
-         "hydrometeor species can be generated outside ARTS, for example by using\n"
-         "PyARTS. This method needs as input a file containing filenames of\n"
-         "single scattering data and a file containing the corresponding\n"
-         "*pnd_field_raw*.\n"
-         "\n"
-         "Very important note:\n"
-         "The order of the filenames for the scattering data files has to\n"
-         "correspond to the order of the particle types in the file\n"
-         "including the variable *pnd_field_raw*.\n" 
+	 "Reads single scattering data and particle number densities.\n"
+	 "\n"
+	 "The WSV *pnd_field_raw* containing particle number densities for all\n"
+	 "hydrometeor species can be generated outside ARTS, for example by using\n"
+	 "PyARTS. This method needs as input an XML-file containing an array of filenames\n"
+	 "(ArrayOfString) of single scattering data and a file containing the corresponding\n"
+	 "*pnd_field_raw*. In contrast to the scattering data, all corresponding pnd-fields are stored in a single XML-file containing an ArrayofGriddedField3\n"
+	 "\n"
+	 "Very important note:\n"
+	 "The order of the filenames for the scattering data files has to\n"
+	 "correspond to the order of the pnd-fields, stored in the variable\n"
+	 "*pnd_field_raw*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "scat_data_raw", "pnd_field_raw" ),
@@ -7609,6 +7542,74 @@ void define_md_data_raw()
         GIN_DESC( "Left sparse matrix.",
                   "Right sparse matrix." )
         ));
+
+  // This is duplicate with the 1-0 method tgsDefine. Merge!
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "SpeciesSet" ),
+        DESCRIPTION
+        (
+         "Set up a list of absorption species tag groups.\n"
+         "\n"
+         "Workspace variables like *abs_species* contain several tag\n"
+         "groups. Each tag group contains one or more tags. This method converts\n"
+         "descriptions of tag groups given in the keyword to the ARTS internal\n"
+         "representation (an *ArrayOfArrayOfSpeciesTag*). A tag group selects\n"
+         "spectral features which belong to the same species.\n"
+         "\n"
+         "A tag is defined in terms of the name of the species, isotope, and a\n"
+         "range of frequencies. Species are named after the standard chemical\n"
+         "names, e.g., \"O3\". Isotopes are given by the last digit of the atomic\n"
+         "weight, i.g., \"O3-668\" for the asymmetric ozone molecule including an\n"
+         "oxygen 18 atom. Groups of transitions are specified by giving a lower\n"
+         "and upper limit of a frequency range, e.g., \"O3-666-500e9-501e9\".\n"
+         "\n"
+         "The symbol \"*\" acts as a wild card. Furthermore, frequency range or\n"
+         "frequency range and isotope may be omitted.\n"
+         "\n"
+         "Finally, instead of the isotope the special letter \"nl\" may be given,\n"
+         "e.g., \"H2O-nl\". This means that no absorption at all is associated\n"
+         "with this tag. (It is not quite clear if this feature is useful for\n"
+         "anything right now.)\n"
+         "\n"
+         "This method used to be a specific method for *abs_species*. Now it is\n"
+         "generic, so that it can also be used to set *abs_nls* and *abs_pts*.\n"
+         "\n"
+         "Generic Output:\n"
+         "   ArrayOfArrayOfSpeciesTag : Output tag groups.\n"
+         "\n"
+         "Keywords:\n"
+         "   species : Specify one String for each tag group that you want to\n"
+         "             create. Inside the String, separate the tags by commas\n"
+         "             (plus optional blanks).\n"
+         "\n"
+         "Example:\n"
+         "\n"
+         "   species = [ \"O3-666-500e9-501e9, O3-686\",\n"
+         "               \"O3\",\n"
+         "               \"H2O-PWR98\" ]\n"
+         "\n"
+         "   The first tag group selects all O3-666 lines between 500 and\n"
+         "   501 GHz plus all O3-686 lines. \n"
+         "\n"
+         "   The second tag group selects all remaining O3 transitions.\n"
+         "\n"
+         "   The third tag group selects H2O, with one of the complete\n"
+         "   absorption models (Rosenkranz 98). No spectrocopic line catalogue\n"
+         "   data will be used for that third tag group.\n"
+         ),
+        AUTHORS( "Stefan Buehler" ),
+        OUT(),
+        GOUT(       "gout1"                         ),
+        GOUT_TYPE( "ArrayOfArrayOfSpeciesTag" ),
+        GOUT_DESC( "FIXME DOC" ),
+        IN(),
+        GIN( "species" ),
+        GIN_TYPE(    "ArrayOfString"   ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "FIXME DOC" )
+        ));
+
 
   md_data_raw.push_back
     ( MdRecord

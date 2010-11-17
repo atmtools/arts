@@ -1,3 +1,11 @@
+2010-11-17  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
+
+	* arts-1-14-121
+
+	* src/methods.cc
+
+	Editted ParticleTypeAddAll description, moved WSM SpeciesSet to correct alphabetic postion. 
+
 2010-11-17  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-120
