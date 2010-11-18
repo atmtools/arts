@@ -70,8 +70,6 @@ void cloudy_rt_vars_at_gp(
                        const GridPos         gp_lat,
                        const GridPos         gp_lon,
                        const ConstVectorView    p_grid_cloud,
-                       const ConstVectorView    lat_grid_cloud,
-                       const ConstVectorView    lon_grid_cloud,
                        const ConstTensor3View   t_field_cloud,
                        const ConstTensor4View   vmr_field_cloud,
                        const Tensor4&           pnd_field,
@@ -90,8 +88,6 @@ void cloud_atm_vars_by_gp(
                           const ArrayOfGridPos& gp_lon,
                           const ArrayOfIndex& cloudbox_limits,
                           const ConstVectorView p_grid_cloud,
-                          const ConstVectorView lat_grid_cloud,
-                          const ConstVectorView lon_grid_cloud,
                           const ConstTensor3View   t_field_cloud,
                           const ConstTensor4View   vmr_field_cloud,
                           const ConstTensor4View   pnd_field

@@ -447,7 +447,7 @@ void iyFOS(
           emission_agendaExecute( ws, bbemission, t_mean, emission_agenda );
 
           // Clearsky step
-          if( 1 || max(pnd_mean) < 1e-3  ||  fos_n == 0 )
+          if( max(pnd_mean) < 1e-3  ||  fos_n == 0 )
             {
               // Loop frequencies
               for( Index iv=0; iv<nf; iv++ )

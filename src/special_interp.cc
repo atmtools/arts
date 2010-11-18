@@ -73,82 +73,6 @@
   === Interpolation functions for atmospheric grids, fields and surfaces
   ===========================================================================*/
 
-//! fix_gridpos_at_boundary
-/*!
-  This function fixes grid positions on the boundaries of the grids, on which 
-  one wants to interpolate. 
-  
-  The use of the function can be demonstrated using an example, 
-  the interpolation of the *pnd_field* on a propagation path inside the 
-  cloudbox. The gridpositions calculated in the ppath_agenda are given with 
-  respect to the atmospheric grids (p_grid, lat_grid, lon_grid), whereas the 
-  *pnd_field* is defined on a subset of these grids, only inside the cloudbox.
-  Hence the gridpositions need to be transformed. 
-  If a point is exactly at the lower boundary of the cloudbox, 
-  the gridposition index can be either cloudbox_limits[0] or
-  cloudbox_limits[0]-1, depending on random numerical errors.  To transform 
-  the gridpositions, cloudbox_limits[0] is substracted from the original 
-  gridposition index, which results in a new gridpostion index of -1. This is 
-  of coarse not allowed in the interpolation routines. 
-  
-  A more precise  example: 
-  If a point is exactly on the lower boundary (say p-index = 12) of cloudbox
-  the gridpositions can be
-              gp.idx = 12, gp.fd[0] = 1, gp.fd[1] = 0
-       or     gp.idx = 11, gp.fd[0] = 0, gp.fd[1] = 1
-   In the second case gp_cloud.idx will be -1 which gives an error. 
-
-   \param gp An array of gridpositions
-   \param grid_size Length of the data grid
-
-   \author Claudia Emde
-   \date 2005-05-27
-*/
-void fix_gridpos_at_boundary(//Input and Output
-                             ArrayOfGridPos& gp,
-                             const Index grid_size
-                             )
-{
-  // This limit is chosen arbitrarily
-  const Numeric epsilon = 1e-6;
-  
-  for( Index i = 0; i< gp.nelem(); i++)
-    {
-      if( gp[i].idx == -1 )//&& abs(gp[i].fd[0]-1)<epsilon )
-        {
-          if (abs(gp[i].fd[0]-1)>epsilon)
-            {
-              out1 << "  --- WARNING ---, fix_gridpos_at_boundary encountered a strange "
-                   << "Gridpos: idx = " << gp[i].idx << ", fd[0] = " << gp[i].fd[0] 
-                   << ", fd[1] = " << gp[i].fd[1];
-            }
-          gp[i].idx += 1;
-          gp[i].fd[0] = 0.;
-          gp[i].fd[1] = 1.;
-        }
-      else if (gp[i].idx == grid_size-1)
-        {
-          if (abs(gp[i].fd[0])>epsilon)
-            {
-              out1 << "  --- WARNING ---, fix_gridpos_at_boundary encountered a strange "
-                   << "Gridpos: idx = " << gp[i].idx << ", fd[0] = " << gp[i].fd[0] 
-                   << ", fd[1] = " << gp[i].fd[1];
-            }
-          gp[i].idx -= 1;
-          gp[i].fd[0] = 1.;
-          gp[i].fd[1] = 0.;
-        }
-      if ((gp[i].idx < 0)||(gp[i].idx > grid_size-1))
-        {
-          ostringstream os;
-          os << "Invalid GridPos: idx = " << gp[i].idx << ", fd[0] = " << gp[i].fd[0] << ", fd[1] = " << gp[i].fd[1];
-          throw runtime_error(os.str());
-        }
-      assert(gp[i].idx > -1);
-    }
-}
-        
-
 //! interp_atmfield_gp2itw
 /*!
     Converts atmospheric grid positions to weights for interpolation of an
@@ -344,39 +268,6 @@ Numeric interp_atmfield_by_gp(
 
 
 
-//! local_gp_check
-/*!
-   Local help function.
-
-   Function to help *interp_cloudfield_gp2itw* to ensure that the change
-   of grid position index results in too low or high gp.idx. That can
-   happen for positions exactly at the cloudbox boundaries with unlucky
-   gp.fd. Just first and last point of a gp array should need a check.
-*/
-void local_gp_check( GridPos&   gp,
-                 const Index&   n )   // Index of upper limit, shifted
-{
-  if( gp.idx == -1 )
-    {
-      assert( gp.fd[0] > 0.995 );  // To capture obviously bad cases
-      gp.idx   = 0; 
-      gp.fd[0] = 0.0; 
-      gp.fd[1] = 1.0; 
-    }
-  else if( gp.idx == n )
-    {
-      if( gp.fd[0] > 0.005 )
-        {
-          cout << n << ": ";
-          cout << gp << endl;
-        }
-      assert( gp.fd[0] < 0.005 );  // To capture obviously bad cases
-      gp.idx   -= 1; 
-      gp.fd[0] = 1.0; 
-      gp.fd[1] = 0.0; 
-    }
-}
-
 //! interp_cloudfield_gp2itw
 /*!
     Converts atmospheric grid positions to weights for interpolation of a
@@ -418,8 +309,9 @@ void interp_cloudfield_gp2itw(
         { 
           gp_p[i].idx -= cloudbox_limits[0]; 
         }
-      local_gp_check( gp_p[0],   cloudbox_limits[1]-cloudbox_limits[0] );
-      local_gp_check( gp_p[n-1], cloudbox_limits[1]-cloudbox_limits[0] );
+      const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
+      gridpos_upperend_check( gp_p[0],   n1 );
+      gridpos_upperend_check( gp_p[n-1], n1 );
       //
       itw.resize(n,2);
       interpweights( itw, gp_p );
@@ -431,10 +323,12 @@ void interp_cloudfield_gp2itw(
           gp_p[i].idx -= cloudbox_limits[0]; 
           gp_lat[i].idx -= cloudbox_limits[2]; 
         }
-      local_gp_check( gp_p[0],   cloudbox_limits[1]-cloudbox_limits[0] );
-      local_gp_check( gp_p[n-1], cloudbox_limits[1]-cloudbox_limits[0] );
-      local_gp_check( gp_lat[0],   cloudbox_limits[3]-cloudbox_limits[2] );
-      local_gp_check( gp_lat[n-1], cloudbox_limits[3]-cloudbox_limits[2] );
+      const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
+      const Index n2 = cloudbox_limits[3] - cloudbox_limits[2];
+      gridpos_upperend_check( gp_p[0],     n1 );
+      gridpos_upperend_check( gp_p[n-1],   n1 );
+      gridpos_upperend_check( gp_lat[0],   n2 );
+      gridpos_upperend_check( gp_lat[n-1], n2 );
       //
       assert( gp_lat.nelem() == n );
       itw.resize(n,4);
@@ -448,12 +342,15 @@ void interp_cloudfield_gp2itw(
           gp_lat[i].idx -= cloudbox_limits[2]; 
           gp_lon[i].idx -= cloudbox_limits[4];
         }
-      local_gp_check( gp_p[0],   cloudbox_limits[1]-cloudbox_limits[0] );
-      local_gp_check( gp_p[n-1], cloudbox_limits[1]-cloudbox_limits[0] );
-      local_gp_check( gp_lat[0],   cloudbox_limits[3]-cloudbox_limits[2] );
-      local_gp_check( gp_lat[n-1], cloudbox_limits[3]-cloudbox_limits[2] );
-      local_gp_check( gp_lon[0],   cloudbox_limits[5]-cloudbox_limits[4] );
-      local_gp_check( gp_lon[n-1], cloudbox_limits[5]-cloudbox_limits[4] );
+      const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
+      const Index n2 = cloudbox_limits[3] - cloudbox_limits[2];
+      const Index n3 = cloudbox_limits[5] - cloudbox_limits[4];
+      gridpos_upperend_check( gp_p[0],     n1 );
+      gridpos_upperend_check( gp_p[n-1],   n1 );
+      gridpos_upperend_check( gp_lat[0],   n2 );
+      gridpos_upperend_check( gp_lat[n-1], n2);
+      gridpos_upperend_check( gp_lon[0],   n3 );
+      gridpos_upperend_check( gp_lon[n-1], n3 );
       //
       assert( gp_lat.nelem() == n );
       assert( gp_lon.nelem() == n );

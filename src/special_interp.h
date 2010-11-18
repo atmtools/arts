@@ -37,11 +37,6 @@
   === Interpolation functions for atmospheric grids, fields and surfaces
   ===========================================================================*/
 
-void fix_gridpos_at_boundary(
-                             ArrayOfGridPos& gp,
-                             const Index grid_size
-                             );
-
 void interp_atmfield_gp2itw( 
               Matrix&           itw, 
         const Index&            atmosphere_dim,

@@ -3034,10 +3034,7 @@ void ppath_end_1d(
   ppath_fill_1d( ppath, r_v, lat_v, za_v, Vector(np-1,lstep), r_geoid, 
                                                                  z_field, ip );
 
-  // Remove these? !!!
-  assert( ppath.gp_p[np-1].fd[0] > -0.01 );   
-  assert( ppath.gp_p[np-1].fd[0] < 1.01 );
-
+  gridpos_check_fd( ppath.gp_p[np-1] );
 
   //--- End point is the surface
   if( endface == 7 )
@@ -3054,7 +3051,7 @@ void ppath_end_1d(
   //--- End point is on top of a pressure level
   else
     {
-      gridpos_force_end_fd( ppath.gp_p[np-1] );
+      gridpos_force_end_fd( ppath.gp_p[np-1], z_field.nelem() );
     }
 }
 
@@ -3129,7 +3126,7 @@ void ppath_start_2d(
     const double   rlow = rsurf_at_lat( lat1, lat3, r1a, r3a, lat_start );
     const double   rupp = rsurf_at_lat( lat1, lat3, r1b, r3b, lat_start );
     if( abs(r_start-rlow) < RTOL || abs(r_start-rupp) < RTOL )
-      { gridpos_force_end_fd( ppath.gp_p[imax] ); }
+      { gridpos_force_end_fd( ppath.gp_p[imax], z_field.nrows() ); }
   }
   
   // Slopes of pressure levels
@@ -3219,11 +3216,8 @@ void ppath_end_2d(
   ppath_fill_2d( ppath, r_v, lat_v, za_v, lstep, r_geoid, z_field, lat_grid, 
                                                                     ip, ilat );
 
-  // Remove these? !!!
-  assert( ppath.gp_p[imax].fd[0] > -0.01 );   
-  assert( ppath.gp_p[imax].fd[0] < 1.01 );
-  assert( ppath.gp_lat[imax].fd[0] > -0.01 );
-  assert( ppath.gp_lat[imax].fd[0] < 1.01 );
+  gridpos_check_fd( ppath.gp_p[imax] );
+  gridpos_check_fd( ppath.gp_lat[imax] );
 
   // Do end-face specific tasks
   if( endface == 7 )
@@ -3238,19 +3232,19 @@ void ppath_end_2d(
   // Set fractional distance for end point
   //
   if( endface == 1  ||  endface == 3 )
-    { gridpos_force_end_fd( ppath.gp_lat[np-1] ); }
+    { gridpos_force_end_fd( ppath.gp_lat[np-1], lat_grid.nelem() ); }
   else if( endface == 2  ||  endface == 4 )
-    { gridpos_force_end_fd( ppath.gp_p[np-1] ); }
+    { gridpos_force_end_fd( ppath.gp_p[np-1], z_field.nrows() ); }
 
   // Handle cases where exactly a corner is hit, or when slipping outside of
   // the grid box due to numerical inaccuarcy
   if( ppath.gp_p[imax].fd[0] < 0  ||  ppath.gp_p[imax].fd[1] < 0 )
     { 
-      gridpos_force_end_fd( ppath.gp_p[imax] ); 
+      gridpos_force_end_fd( ppath.gp_p[imax], z_field.nrows() ); 
     }
   if( ppath.gp_lat[imax].fd[0] < 0  ||  ppath.gp_lat[imax].fd[1] < 0 )
     { 
-      gridpos_force_end_fd( ppath.gp_lat[imax] ); 
+      gridpos_force_end_fd( ppath.gp_lat[imax], lat_grid.nelem() ); 
     }
 }
 
@@ -3495,25 +3489,25 @@ void ppath_end_3d(
   // Set fractional distance for end point
   //
   if( endface == 1  ||  endface == 3 )
-    { gridpos_force_end_fd( ppath.gp_lat[imax] ); }
+    { gridpos_force_end_fd( ppath.gp_lat[imax], lat_grid.nelem() ); }
   else if( endface == 2  ||  endface == 4 )
-    { gridpos_force_end_fd( ppath.gp_p[imax] ); }
+    { gridpos_force_end_fd( ppath.gp_p[imax], z_field.npages() ); }
   else if( endface == 5  ||  endface == 6 )
-    { gridpos_force_end_fd( ppath.gp_lon[imax] ); }
+    { gridpos_force_end_fd( ppath.gp_lon[imax], lon_grid.nelem() ); }
 
   // Handle cases where exactly a corner is hit, or when slipping outside of
   // the grid box due to numerical inaccuarcy
   if( ppath.gp_p[imax].fd[0] < 0  ||  ppath.gp_p[imax].fd[1] < 0 )
     { 
-      gridpos_force_end_fd( ppath.gp_p[imax] ); 
+      gridpos_force_end_fd( ppath.gp_p[imax], z_field.npages() ); 
     }
   if( ppath.gp_lat[imax].fd[0] < 0  ||  ppath.gp_lat[imax].fd[1] < 0 )
     { 
-      gridpos_force_end_fd( ppath.gp_lat[imax] ); 
+      gridpos_force_end_fd( ppath.gp_lat[imax], lat_grid.nelem() ); 
     }
   if( ppath.gp_lon[imax].fd[0] < 0  ||  ppath.gp_lon[imax].fd[1] < 0 )
     { 
-      gridpos_force_end_fd( ppath.gp_lon[imax] ); 
+      gridpos_force_end_fd( ppath.gp_lon[imax], lon_grid.nelem() ); 
     }
 }
 
@@ -3587,8 +3581,6 @@ void interpolate_raytracing_points(
       nlinspace( llin, 0, ltotsum, n );
 
       gridpos( gp, lsum, llin );
-      gridpos_force_end_fd( gp[0] );
-      gridpos_force_end_fd( gp[n-1] );
 
       interpweights( itw, gp );
 

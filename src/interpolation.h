@@ -107,7 +107,13 @@ Numeric fractional_gp( const GridPos&   gp );
 
 void gridpos_check_fd( GridPos&   gp );
 
-void gridpos_force_end_fd( GridPos&   gp );
+void gridpos_force_end_fd( 
+        GridPos&   gp,
+  const Index&     n );
+
+void gridpos_upperend_check( 
+        GridPos&   gp,
+  const Index&     n );
 
 bool is_gridpos_at_index_i(  
        const GridPos&   gp,

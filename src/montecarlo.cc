@@ -139,8 +139,6 @@ void cloudy_rt_vars_at_gp(Workspace&            ws,
                           const GridPos         gp_lat,
                           const GridPos         gp_lon,
                           const ConstVectorView    p_grid_cloud,
-                          const ConstVectorView    lat_grid_cloud,
-                          const ConstVectorView    lon_grid_cloud,
                           const ConstTensor3View   t_field_cloud,
                           const ConstTensor4View   vmr_field_cloud,
                           const Tensor4&           pnd_field,
@@ -175,8 +173,7 @@ void cloudy_rt_vars_at_gp(Workspace&            ws,
 
   cloud_atm_vars_by_gp(p_ppath,t_ppath,vmr_ppath,pnd_ppath,ao_gp_p,
                        ao_gp_lat,ao_gp_lon,cloudbox_limits,p_grid_cloud,
-                       lat_grid_cloud,lon_grid_cloud,t_field_cloud,
-                       vmr_field_cloud,pnd_field);
+                       t_field_cloud, vmr_field_cloud,pnd_field);
    
   //local_rte_pressure    = p_ppath[0];
   temperature = t_ppath[0];
@@ -223,8 +220,6 @@ void cloudy_rt_vars_at_gp(Workspace&            ws,
   \param gp_lon       an array of longitude gridpoints
   \param cloudbox_limits  the WSV
   \param p_grid_cloud the subset of the p_grid corresponding to the cloudbox
-  \param lat_grid_cloud the subset of the lat_grid corresponding to the cloudbox
-  \param lon_grid_cloud the subset of the lon_grid corresponding to the cloudbox
   \param t_field_cloud  the t_field within the cloudbox
   \param vmr_field_cloud the t_field within the cloudbox
   \param pnd_field             The WSV
@@ -242,8 +237,6 @@ void cloud_atm_vars_by_gp(
                           const ArrayOfGridPos& gp_lon,
                           const ArrayOfIndex& cloudbox_limits,
                           const ConstVectorView p_grid_cloud,
-                          const ConstVectorView lat_grid_cloud,
-                          const ConstVectorView lon_grid_cloud,
                           const ConstTensor3View   t_field_cloud,
                           const ConstTensor4View   vmr_field_cloud,
                           const ConstTensor4View   pnd_field
@@ -265,10 +258,16 @@ void cloud_atm_vars_by_gp(
       gp_lat_cloud[i].idx -= cloudbox_limits[2];
       gp_lon_cloud[i].idx -= cloudbox_limits[4];
     }      
-  
-  fix_gridpos_at_boundary(gp_p_cloud, p_grid_cloud.nelem()); 
-  fix_gridpos_at_boundary(gp_lat_cloud, lat_grid_cloud.nelem()); 
-  fix_gridpos_at_boundary(gp_lon_cloud, lon_grid_cloud.nelem());
+
+  const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
+  const Index n2 = cloudbox_limits[3] - cloudbox_limits[2];
+  const Index n3 = cloudbox_limits[5] - cloudbox_limits[4];
+  gridpos_upperend_check( gp_p_cloud[0], n1 );
+  gridpos_upperend_check( gp_p_cloud[np-1],   n1 );
+  gridpos_upperend_check( gp_lat_cloud[0], n2 );
+  gridpos_upperend_check( gp_lat_cloud[np-1], n2);
+  gridpos_upperend_check( gp_lon_cloud[0], n3 );
+  gridpos_upperend_check( gp_lon_cloud[np-1], n3 );
   
   // Determine the pressure at each propagation path point
   Matrix   itw_p(np,2);
@@ -473,7 +472,6 @@ void iwp_cloud_opt_pathCalc(Workspace& ws,
 
       cloud_atm_vars_by_gp(p_ppath,t_ppath,vmr_ppath,pnd_ppath,ppath.gp_p,
                            ppath.gp_lat,ppath.gp_lon,cloudbox_limits,p_grid[p_range],
-                           lat_grid[lat_range],lon_grid[lon_range],
                            t_field(p_range,lat_range,lon_range),
                            vmr_field(joker,p_range,lat_range,lon_range),
                            pnd_field);
@@ -626,8 +624,8 @@ void mcPathTraceGeneral(Workspace&            ws,
       cloudy_rt_vars_at_gp(ws,ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
                   opt_prop_gas_agenda,abs_scalar_gas_agenda,
                   stokes_dim, f_index, ppath_step.gp_p[0], ppath_step.gp_lat[0],
-                  ppath_step.gp_lon[0],p_grid[p_range],lat_grid[lat_range], 
-                  lon_grid[lon_range],t_field(p_range,lat_range,lon_range), 
+                  ppath_step.gp_lon[0],p_grid[p_range], 
+                  t_field(p_range,lat_range,lon_range), 
                   vmr_field(joker,p_range,lat_range,lon_range),pnd_field,
                   scat_data_mono, cloudbox_limits,ppath_step.los(0,joker));
     }
@@ -674,8 +672,8 @@ void mcPathTraceGeneral(Workspace&            ws,
           cloudy_rt_vars_at_gp(ws,ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
                opt_prop_gas_agenda,abs_scalar_gas_agenda, stokes_dim, f_index,
                ppath_step.gp_p[np-1],ppath_step.gp_lat[np-1],
-               ppath_step.gp_lon[np-1],p_grid[p_range], lat_grid[lat_range], 
-               lon_grid[lon_range],t_field(p_range,lat_range,lon_range), 
+               ppath_step.gp_lon[np-1],p_grid[p_range], 
+               t_field(p_range,lat_range,lon_range), 
                vmr_field(joker,p_range,lat_range,lon_range),pnd_field,
                scat_data_mono, cloudbox_limits,ppath_step.los(np-1,joker));
         }
@@ -908,7 +906,6 @@ void mcPathTraceIPA(Workspace&            ws,
       cloudy_rt_vars_at_gp(ws, ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
               opt_prop_gas_agenda,abs_scalar_gas_agenda, stokes_dim, f_index,
               gp_p, gp_lat, gp_lon,p_grid[p_range], 
-              lat_grid[lat_range], lon_grid[lon_range], 
               t_field(p_range,lat_range,lon_range), 
               vmr_field(joker,p_range,lat_range,lon_range),
               pnd_field,scat_data_mono, cloudbox_limits,rte_los );
@@ -1050,7 +1047,6 @@ void mcPathTraceIPA(Workspace&            ws,
                    ext_mat_mono, abs_vec_mono, pnd_vec, temperature,
                    opt_prop_gas_agenda, abs_scalar_gas_agenda, stokes_dim, 
                    f_index, gp_p,gp_lat, gp_lon, p_grid[p_range], 
-                   lat_grid[lat_range], lon_grid[lon_range], 
                    t_field(p_range,lat_range,lon_range), 
                    vmr_field(joker,p_range,lat_range,lon_range),
                    pnd_field, scat_data_mono, cloudbox_limits,rte_los);

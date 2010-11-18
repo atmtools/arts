@@ -678,20 +678,16 @@ void cloud_ppath_update3D(Workspace& ws,
           cloud_gp_p[i].idx -= cloudbox_limits[0];  
           cloud_gp_lat[i].idx -= cloudbox_limits[2];
           cloud_gp_lon[i].idx -= cloudbox_limits[4];
-          
-          // This is necessary because the ppath_step_agenda sometimes 
-          // returns nan values. (FIXME: Report this problem to Patrick)
-        //   const Numeric TOL = 1e-6;
-//           if (abs(ppath_step.los(0,0)) < TOL)
-//             ppath_step.los(i,0) = 0.;
-//           if (abs(ppath_step.los(0,0)-180.) < TOL)
-//             ppath_step.los(i,0) = 180.;
-          
         }
-      
-      fix_gridpos_at_boundary(cloud_gp_p, cloudbox_limits[1] - cloudbox_limits[0] +1);
-      fix_gridpos_at_boundary(cloud_gp_lat, cloudbox_limits[3] - cloudbox_limits[2] +1); 
-      fix_gridpos_at_boundary(cloud_gp_lon, cloudbox_limits[5] - cloudbox_limits[4] +1);
+      const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
+      const Index n2 = cloudbox_limits[3] - cloudbox_limits[2];
+      const Index n3 = cloudbox_limits[5] - cloudbox_limits[4];
+      gridpos_upperend_check( cloud_gp_p[0], n1 );
+      gridpos_upperend_check( cloud_gp_p[ppath_step.np-1],   n1 );
+      gridpos_upperend_check( cloud_gp_lat[0], n2 );
+      gridpos_upperend_check( cloud_gp_lat[ppath_step.np-1], n2);
+      gridpos_upperend_check( cloud_gp_lon[0], n3 );
+      gridpos_upperend_check( cloud_gp_lon[ppath_step.np-1], n3 );
       
       Matrix itw(ppath_step.np, 8);
       interpweights(itw, cloud_gp_p, cloud_gp_lat, cloud_gp_lon);
@@ -1208,6 +1204,12 @@ void interp_cloud_coeff1D(//Output
   
   for(Index i = 0; i < ppath_step.np; i++ )
     cloud_gp_p[i].idx -= cloudbox_limits[0];
+  
+  // Grid index for points at upper limit of cloudbox must be shifted
+  const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
+  gridpos_upperend_check( cloud_gp_p[0], n1 );
+  gridpos_upperend_check( cloud_gp_p[ppath_step.np-1], n1 );
+
   
   Matrix itw(cloud_gp_p.nelem(),2);
   interpweights( itw, cloud_gp_p );
@@ -2124,7 +2126,7 @@ void iy_interp_cloudbox_field(
   //- Resize *iy*
   iy.resize( nf, stokes_dim );
 
-  
+
   // Sensor points inside the cloudbox
   if( border == 99 )
     {
@@ -2160,6 +2162,10 @@ void iy_interp_cloudbox_field(
           GridPos gp_p;
           gp_p = rte_gp_p;
           gp_p.idx = rte_gp_p.idx - cloudbox_limits[0]; 
+          gridpos_upperend_check( gp_p, cloudbox_limits[1] - 
+                                        cloudbox_limits[0] );
+          
+          cout << gp_p << endl;
 
           Vector itw_p(2);
           interpweights( itw_p, gp_p );
@@ -2293,7 +2299,12 @@ void iy_interp_cloudbox_field(
           cb_gp_lon      = rte_gp_lon;
           cb_gp_lat.idx -= cloudbox_limits[2];
           cb_gp_lon.idx -= cloudbox_limits[4]; 
-          
+          //          
+          gridpos_upperend_check( cb_gp_lat, cloudbox_limits[3] - 
+                                             cloudbox_limits[2] );
+          gridpos_upperend_check( cb_gp_lon, cloudbox_limits[5] - 
+                                             cloudbox_limits[4] );
+
           interpweights( itw, cb_gp_lat, cb_gp_lon, gp_za, gp_aa );
 
           for(Index is = 0; is < stokes_dim; is++ )
@@ -2316,6 +2327,11 @@ void iy_interp_cloudbox_field(
           cb_gp_lon      = rte_gp_lon;
           cb_gp_p.idx   -= cloudbox_limits[0];
           cb_gp_lon.idx -= cloudbox_limits[4]; 
+          //          
+          gridpos_upperend_check( cb_gp_p,   cloudbox_limits[1] - 
+                                             cloudbox_limits[0] );
+          gridpos_upperend_check( cb_gp_lon, cloudbox_limits[5] - 
+                                             cloudbox_limits[4] );
           
           interpweights( itw, cb_gp_p, cb_gp_lon, gp_za, gp_aa );
 
@@ -2339,6 +2355,11 @@ void iy_interp_cloudbox_field(
           cb_gp_lat      = rte_gp_lat;
           cb_gp_p.idx   -= cloudbox_limits[0]; 
           cb_gp_lat.idx -= cloudbox_limits[2];
+          //          
+          gridpos_upperend_check( cb_gp_p,   cloudbox_limits[1] - 
+                                             cloudbox_limits[0] );
+          gridpos_upperend_check( cb_gp_lat, cloudbox_limits[3] - 
+                                             cloudbox_limits[2] );
           
           interpweights( itw, cb_gp_p, cb_gp_lat, gp_za, gp_aa );
 

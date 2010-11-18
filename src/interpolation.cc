@@ -551,36 +551,70 @@ void gridpos_check_fd( GridPos&   gp )
    on a grid point. The fractional distance of the grid position is then
    0 or 1, but rounding errors can give a slightly deviating value.
 
-   The fractional distance is set to 1, beside for start point of the complete
-   grid range (idx=0, fd=0).
+   The fractional distance is set to 0, beside for end point of the complete
+   grid range where is set to 1.
 
    The difference between this function and gridpos_check_fd is that this
    function is only applicable for end points, while the other function can
    be called for every point.
 
    \retval   gp     Grid position structure.
+   \param     n     Number of points of the grid.
 
    \author Patrick Eriksson
    \date   2002-05-22
 */
-void gridpos_force_end_fd( GridPos&   gp )
+void gridpos_force_end_fd( 
+        GridPos&   gp,
+  const Index&     n )
 {
   assert( gp.idx >= 0 );
 
-  // If fd=0, shift to grid index below
-  if( gp.fd[0] < 0.5 )
+  // If fd=1, shift to grid index above
+  if( gp.fd[0] > 0.5 )
     {
-      gp.idx -= 1;
+      gp.idx += 1;
     }
-  gp.fd[0] = 1;
-  gp.fd[1] = 0;
+  gp.fd[0] = 0;
+  gp.fd[1] = 1;
  
-  // Start of complete grid range must be handled separately
-  if( gp.idx < 0 )
+  assert( gp.idx < n );
+
+  // End of complete grid range must be handled separately
+  if( gp.idx == n-1 )
     {
-      gp.idx   = 0;
-      gp.fd[0] = 0;
-      gp.fd[1] = 1;
+      gp.idx  -= 1;
+      gp.fd[0] = 1;
+      gp.fd[1] = 0;
+    }
+}
+
+
+
+//! gridpos_upperend_check
+/*!
+   A function to handle the upper end after shifts of grid positions
+
+   The function ensures that a shift of grid positions not results in a too
+   high gp.idx. That happens for positions exactly at the upper cloudbox
+   boundaries.
+
+   \retval   gp     Grid position structure.
+   \param    ie     Index of upper limit, shifted
+
+   \author Patrick Eriksson
+   \date   2010-11-18
+*/
+void gridpos_upperend_check( 
+        GridPos&   gp,
+  const Index&     ie )   // 
+{
+  if( gp.idx == ie )
+    {
+      assert( gp.fd[0] < 0.005 );  // To capture obviously bad cases
+      gp.idx   -= 1; 
+      gp.fd[0] = 1.0; 
+      gp.fd[1] = 0.0; 
     }
 }
 
@@ -602,19 +636,12 @@ bool is_gridpos_at_index_i(
        const Index&     i )
 {
   // Assume that gridpos_force_end_fd has been used. The expression 0==0 should
-  // be safer than 1==1. It should then be better to consider fd[1]
+  // be safer than 1==1. 
 
-  // Handle 
-  if( i == 0 )
-    {
-      if( gp.idx == 0  &&  gp.fd[0] == 0 )
-        { return true; }
-    }
-  else
-    {
-      if( gp.idx == i-1  &&  gp.fd[1] == 0 )
-        { return true; }
-    }
+  if( gp.idx == i  &&  gp.fd[0] == 0 )
+    { return true; }
+  else if( gp.idx == i-1  &&  gp.fd[1] == 0 )
+    { return true; }
 
   return false; 
 }

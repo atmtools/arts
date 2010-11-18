@@ -1,10 +1,55 @@
+2010-11-18  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-122
+
+	* Grid positions produced in the ppath part are now consistent
+	with what the gridpos function returns. That is, a fd of 0 is
+	preferred before fd=1 (except for upper end point).
+	(This part worked, but was changed to get internal consistency.)
+	For interpolation of cloudbox fields, the grid positions are
+	shifted and problems occur. This part caused a bug for DOIT (now
+	fixed). After the change described above, the grid positions at
+	the upper edge of the cloudbox (p, lat or lon) has to be
+	shifted (change from fd=0 to fd=1). I have tried to fix this for
+	DOIT but I could have missed some part and keep an eye on this.
+
+	* src/m_fos.cc: Clearsky calculations was forced even inside the
+	cloudbox. A test commited by mistake?
+
+	* src/special_interp.cc (fix_gridpos_at_boundary): Removed.
+	Replaced by gridpos_upperend_check that should be more efficient.
+
+	* src/montecarlo.cc (cloud_atm_vars_by_gp): Now using
+	gridpos_upperend_check instead of fix_gridpos_at_boundary.
+	This made two input variables obselete and this had to be
+	propagated upwards through the function calls.
+
+	* src/doit.cc (cloud_ppath_update3D): Now using
+	gridpos_upperend_check instead of fix_gridpos_at_boundary.
+
+	* src/interpolation.cc (gridpos_force_end_fd): Now taking length
+	of grid as input and fd =0 is first choice. This in order to be
+	consistent with the gridpos function.
+
+	(gridpos_upperend_check): This was a local function before. Later
+	discovered that the xisting fix_gridpos_at_boundary makes more or
+	less the same.
+
+	(is_gridpos_at_index_i): Adopted to change above.
+
+	* src/ppath.cc (interpolate_raytracing_points): Removed call of
+	gridpos_force_end_fd. This is repeated later in the chain of functions.
+
+	(ppath_end_Xd): Adopted call of gridpos_force_end_fd.
+
 2010-11-17  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
 
 	* arts-1-14-121
 
 	* src/methods.cc
 
-	Editted ParticleTypeAddAll description, moved WSM SpeciesSet to correct alphabetic postion. 
+	Editted ParticleTypeAddAll description, moved WSM SpeciesSet to
+	correct alphabetic postion.
 
 2010-11-17  Oliver Lemke  <olemke@core-dump.info>
 
@@ -20,7 +65,7 @@
 	* arts-1-14-119
 
 	* src/agendas.cc: Changed text for abs_scalar_gas_agenda, to sync
-	with article manuscript. 
+	with article manuscript.
 
 2010-11-11  Jana Mendrok <jana.mendrok@ltu.se>
 
@@ -49,15 +94,15 @@
 2010-11-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-117
-	
+
 	* src/docserver.cc: Generate proper page titles.
 
 	* src/workspace.cc: Rephrase the documentation for ppath_step.
 
 2010-11-09  Claudia Emde  <claudia.emde@lmu.de>
-	    
+
 	* arts-1-14-116
-	
+
 	* src/m_conversion.h: Fixed *FrequencyFromWavelength*, which for
 	Vectors worked only if the length of the output vector was set
 	before the method was executed.
