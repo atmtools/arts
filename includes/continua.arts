@@ -108,7 +108,15 @@ abs_cont_descriptionAppend( abs_cont_names,
                             "Rosenkranz",
                             [ ] )
 
-# Rosenkranz full oxygen continuum
+# Rosenkranz 1998 full oxygen continuum
+abs_cont_descriptionAppend( abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+                            "O2-PWR98",
+                            "Rosenkranz",
+                            [ ] )
+
+# Rosenkranz 1993 full oxygen continuum
 abs_cont_descriptionAppend( abs_cont_names,
                             abs_cont_models,
                             abs_cont_parameters,
