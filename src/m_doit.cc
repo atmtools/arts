@@ -553,12 +553,12 @@ doit_i_fieldUpdate1D(
                    const Tensor3& t_field,
                    const Vector& f_grid,
                    const Index& f_index,
-                   const Agenda&, //surface_prop_agenda,
+                   const Agenda& surface_prop_agenda,
                    const Index& doit_za_interp
                    )
 {
   
-  out2 << "  doit_i_fieldUpdateSeq1D: Radiative transfer calculation in cloudbox\n";
+  out2 << "  doit_i_fieldUpdate1D: Radiative transfer calculation in cloudbox\n";
   out2 << "  ------------------------------------------------------------- \n";
   
   // ---------- Check the input ----------------------------------------
@@ -673,7 +673,9 @@ doit_i_fieldUpdate1D(
       for(Index p_index = cloudbox_limits[0]; p_index
             <= cloudbox_limits[1]; p_index ++)
         {
-          cloud_ppath_update1D_noseq(ws, doit_i_field, 
+          if ( (p_index!=0) || (scat_za_grid[scat_za_index_local] <= 90.))
+            {
+              cloud_ppath_update1D_noseq(ws, doit_i_field, 
                                      p_index, scat_za_index_local, 
                                      scat_za_grid,
                                      cloudbox_limits, doit_i_field_old, 
@@ -683,7 +685,8 @@ doit_i_fieldUpdate1D(
                                      p_grid,  z_field, r_geoid, z_surface,
                                      t_field, f_grid, f_index, ext_mat_field, 
                                      abs_vec_field,
-                                     doit_za_interp);
+                                     surface_prop_agenda, doit_za_interp);
+            }
         }
     }// Closes loop over scat_za_grid.
 }

@@ -1,3 +1,31 @@
+2010-12-03  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-1-14-124
+
+	* src/doit.cc (cloud_ppath_update1D_noseq): allow cloudbox@surface
+
+	* src/doit.h: switch on passing of surface_prop_agenda to
+        cloud_ppath_update1D_noseq
+
+	* src/m_doit.cc (doit_i_fieldUpdate1D): pass surface agenda. avoid
+        ppath_update for upwelling radiation at surface (that anyway shouldn't
+        change, i.e. update not needed), since that causes problems when
+        gridpos2gridrange returns gp.idx=-1.
+
+	* ChangeLog: corrected/saved last entry
+
+2010-12-03  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-1-14-123
+
+	* src/doit.cc (cloud_RT_surface): bugfix. use actual f_index (instead of
+        f_index=0) when assigning calculated surface contribution (iy) to
+        cloudbox intensity field (doit_i_field) at lowest cloudbox level (in
+        case this is at surface level). seems to fix the doit issues when
+        cloubbox lower limit is at surface.
+        however, cloudbox@surface is currently only implemented for Seq1D (no
+        non-Seq, no 3D).
+
 2010-11-18  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-122
