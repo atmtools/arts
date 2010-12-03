@@ -1067,7 +1067,7 @@ void cloud_RT_surface(Workspace& ws,
           
           doit_i_field(cloudbox_limits[0], 0, 0,
                        scat_za_index, 0,
-                       joker) = iy(0, joker);
+                       joker) = iy(f_index, joker);
         }
     }  
 }
