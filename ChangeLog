@@ -1,5 +1,17 @@
 2010-12-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-14-126
+
+	* src/check_input.cc (chk_cloudbox): Realised that checks added in
+	last commit were too simple.
+	1. 3D cases where lat_grid reaches +-90, or lon_grid wraps around
+	the globe must be excluded. 
+	2. The lon margin must considered the latitude (as 1 lon degree is
+	a smaller distance when abs(lat) increases.
+	These aspects are now considered.
+
+2010-12-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-14-125
 
 	* src/m_montecarlo.cc (MCGeneral): Added atm_checked to this WSM.

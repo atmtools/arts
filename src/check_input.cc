@@ -43,6 +43,7 @@
 #include "array.h"
 #include "logic.h"
 
+extern const Numeric DEG2RAD;
 
 
 /*===========================================================================
@@ -891,7 +892,8 @@ void chk_cloudbox(
                  << cloudbox_limits[2] << " - " << cloudbox_limits[3] << ".";
               throw runtime_error( os.str() );
             }
-          if( lat_grid[cloudbox_limits[2]]-lat_grid[0] < llmin )
+          if( ( lat_grid[cloudbox_limits[2]] - lat_grid[0] < llmin )  &&
+              ( dim==2  ||  (dim==3 && lat_grid[0]>-90) ) )
             {
               ostringstream os;
               os << "Too small distance between cloudbox and lower end of\n"
@@ -899,7 +901,8 @@ void chk_cloudbox(
                  << " degrees.";
               throw runtime_error( os.str() );
             }
-          if( lat_grid[n-1] - lat_grid[cloudbox_limits[3]] < llmin )
+          if( ( lat_grid[n-1] - lat_grid[cloudbox_limits[3]] < llmin )  &&
+              ( dim==2  ||  (dim==3 && lat_grid[n-1]<90) ) )
             {
               ostringstream os;
               os << "Too small distance between cloudbox and upper end of\n"
@@ -923,21 +926,27 @@ void chk_cloudbox(
                  << cloudbox_limits[4] << " - " << cloudbox_limits[5] << ".";
               throw runtime_error( os.str() );
             }
-          if( lon_grid[cloudbox_limits[2]]-lon_grid[0] < llmin )
+          if( lon_grid[n-1] - lon_grid[0] < 360 )
             {
-              ostringstream os;
-              os << "Too small distance between cloudbox and lower end of\n"
-                 << "longitude grid. This distance must be " << llmin 
-                 << " degrees.";
-              throw runtime_error( os.str() );
-            }
-          if( lon_grid[n-1] - lon_grid[cloudbox_limits[3]] < llmin )
-            {
-              ostringstream os;
-              os << "Too small distance between cloudbox and upper end of\n"
-                 << "longitude grid. This distance must be " << llmin 
-                 << " degrees.";
-              throw runtime_error( os.str() );
+              const Numeric latmax = max( abs(lat_grid[cloudbox_limits[2]]),
+                                          abs(lat_grid[cloudbox_limits[3]]) );
+              const Numeric lfac = 1 / cos( DEG2RAD*latmax );
+              if( lon_grid[cloudbox_limits[2]]-lon_grid[0] < llmin/lfac )
+                {
+                  ostringstream os;
+                  os << "Too small distance between cloudbox and lower end of\n"
+                     << "longitude grid. This distance must here be " 
+                     << llmin/lfac << " degrees.";
+                  throw runtime_error( os.str() );
+                }
+              if( lon_grid[n-1] - lon_grid[cloudbox_limits[3]] < llmin/lfac )
+                {
+                  ostringstream os;
+                  os << "Too small distance between cloudbox and upper end of\n"
+                     << "longitude grid. This distance must here be " 
+                     << llmin/lfac << " degrees.";
+                  throw runtime_error( os.str() );
+                }
             }
         }
     }
