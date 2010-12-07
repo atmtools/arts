@@ -1735,6 +1735,7 @@ void iyMC(
         Tensor3&                    iy_aux,
         ArrayOfTensor3&             diy_dx,
   const Index&                      iy_agenda_call1,
+  const Index&                      atm_checked,
   const Vector&                     rte_pos,      
   const Vector&                     rte_los,      
   const Index&                      iy_aux_do,
@@ -1825,9 +1826,10 @@ void iyMC(
                  mc_antenna, f_grid, f_index, pos, los, stokes_dim, 
                  iy_space_agenda, surface_prop_agenda, opt_prop_gas_agenda,
                  abs_scalar_gas_agenda, p_grid, lat_grid, lon_grid, z_field, 
-                 r_geoid, z_surface, t_field, vmr_field, cloudbox_limits, 
-                 pnd_field, scat_data_mono, mc_seed, y_unit, mc_std_err, 
-                 mc_max_time, mc_max_iter, mc_z_field_is_1D ); 
+                 r_geoid, z_surface, t_field, vmr_field, 
+                 cloudbox_on, cloudbox_limits, 
+                 pnd_field, scat_data_mono, atm_checked, mc_seed, y_unit, 
+                 mc_std_err, mc_max_time, mc_max_iter, mc_z_field_is_1D ); 
 
       assert( y.nelem() == stokes_dim );
 

@@ -38,6 +38,7 @@ SpeciesSet( abs_species,
 
 abs_lookupAdapt
 
+FlagOn( cloudbox_on )
 ReadXML( cloudbox_limits, "TestMonteCarloDataPrepare.cloudbox_limits.xml" )
 
 ReadXML( pnd_field, "TestMonteCarloDataPrepare.pnd_field.xml" )
@@ -67,6 +68,12 @@ Print( sensor_pos, 1 )
 Matrix1RowFromVector( sensor_los, rte_los )
 
 Print( sensor_los, 1 )
+
+
+#### Check atmosphere ##################################################
+
+atm_checkedCalc
+
 
 #### Set some Monte Carlo parameters ###################################
 

@@ -207,9 +207,11 @@ void MCGeneral(Workspace&            ws,
                const Matrix&         z_surface,
                const Tensor3&        t_field, 
                const Tensor4&        vmr_field, 
+               const Index&          cloudbox_on,
                const ArrayOfIndex&   cloudbox_limits, 
                const Tensor4&        pnd_field,
                const ArrayOfSingleScatteringData& scat_data_mono,
+               const Index&          atm_checked,
                const Index&          mc_seed,
                const String&         y_unit,
                const Numeric&        std_err,
@@ -218,6 +220,14 @@ void MCGeneral(Workspace&            ws,
                const Index&          z_field_is_1D
                )
 {
+  // Basic checks
+  if( !cloudbox_on )
+    throw runtime_error( 
+                    "The cloudbox must be activated (cloudbox_on must be 1)" );
+  if( !atm_checked )
+    throw runtime_error( "The atmosphere must be flagged to have passed a "
+                         "consistency check (atm_checked=1)." );
+
   //Check keyword input
   if (max_time<0 && max_iter<0 && std_err<0){
     throw runtime_error( "At least one of std_err, max_time, and max_iter must be positive" );

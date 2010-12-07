@@ -1,3 +1,24 @@
+2010-12-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-125
+
+	* src/m_montecarlo.cc (MCGeneral): Added atm_checked to this WSM.
+	That is, atm_checkedCalc must now be run before calling this 
+	method. Also added cloudbox_on (to make sure that all
+	checks inside atm_checkedCalc actually were performed).
+
+	* src/m_rte.cc (iyMC): Added atm_checked to this WSM (to pass on
+	to MCGeneral).
+	
+	* src/check_input.cc (chk_cloudbox): Added check that the distance
+	between the cloudbox and lat and lon grid edges is at least 20
+	deg. (The min distance is a constant and can easily be changed.)
+
+	* tests/MonteCarlo/lon_grid.xml: Edited file to move end points
+	from +-16 to +-25 deg. To fulfill criterion above.
+
+	* tests/MonteCarlo/lat_grid.xml: As for lon_grid.xml.
+	
 2010-12-03  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-1-14-124

@@ -849,6 +849,9 @@ void chk_cloudbox(
         const Index&          cloudbox_on,    
         const ArrayOfIndex&   cloudbox_limits )
 {
+  // Demanded space between cloudbox and lat and lon edges [degrees]
+  const Numeric llmin = 20;
+
   chk_if_bool(  "cloudbox_on", cloudbox_on );
 
   if( cloudbox_on )
@@ -875,31 +878,65 @@ void chk_cloudbox(
         }
       if( dim >= 2 )
         {
+          const Index n = lat_grid.nelem();
           if( cloudbox_limits[3]<=cloudbox_limits[2] || cloudbox_limits[2]<1 ||
-                                cloudbox_limits[3]>=lat_grid.nelem()-1 )
+                                                      cloudbox_limits[3]>=n-1 )
             {
               ostringstream os;
               os << "Incorrect value(s) for cloud box latitude limit(s) found."
                  << "\nValues are either out of range or upper limit is not "
                  << "greater than lower limit.\nWith present length of "
-                 << "*lat_grid*, OK values are 1 - " << lat_grid.nelem()-2
+                 << "*lat_grid*, OK values are 1 - " << n-2
                  << ".\nThe latitude index limits are set to " 
                  << cloudbox_limits[2] << " - " << cloudbox_limits[3] << ".";
+              throw runtime_error( os.str() );
+            }
+          if( lat_grid[cloudbox_limits[2]]-lat_grid[0] < llmin )
+            {
+              ostringstream os;
+              os << "Too small distance between cloudbox and lower end of\n"
+                 << "latitude grid. This distance must be " << llmin 
+                 << " degrees.";
+              throw runtime_error( os.str() );
+            }
+          if( lat_grid[n-1] - lat_grid[cloudbox_limits[3]] < llmin )
+            {
+              ostringstream os;
+              os << "Too small distance between cloudbox and upper end of\n"
+                 << "latitude grid. This distance must be " << llmin 
+                 << " degrees.";
               throw runtime_error( os.str() );
             }
         }
       if( dim >= 3 )
         {
+          const Index n = lon_grid.nelem();
           if( cloudbox_limits[5]<=cloudbox_limits[4] || cloudbox_limits[4]<1 ||
-                                cloudbox_limits[5]>=lon_grid.nelem()-1 )
+                                                      cloudbox_limits[5]>=n-1 )
             {
               ostringstream os;
               os << "Incorrect value(s) for cloud box longitude limit(s) found"
                  << ".\nValues are either out of range or upper limit is not "
                  << "greater than lower limit.\nWith present length of "
-                 << "*lon_grid*, OK values are 1 - " << lon_grid.nelem()-2
+                 << "*lon_grid*, OK values are 1 - " << n-2
                  << ".\nThe longitude limits are set to " 
                  << cloudbox_limits[4] << " - " << cloudbox_limits[5] << ".";
+              throw runtime_error( os.str() );
+            }
+          if( lon_grid[cloudbox_limits[2]]-lon_grid[0] < llmin )
+            {
+              ostringstream os;
+              os << "Too small distance between cloudbox and lower end of\n"
+                 << "longitude grid. This distance must be " << llmin 
+                 << " degrees.";
+              throw runtime_error( os.str() );
+            }
+          if( lon_grid[n-1] - lon_grid[cloudbox_limits[3]] < llmin )
+            {
+              ostringstream os;
+              os << "Too small distance between cloudbox and upper end of\n"
+                 << "longitude grid. This distance must be " << llmin 
+                 << " degrees.";
               throw runtime_error( os.str() );
             }
         }
