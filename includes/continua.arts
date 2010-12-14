@@ -95,6 +95,14 @@ abs_cont_descriptionAppend( abs_cont_names,
                             [ ]
                           )
 #
+#  Cruz-Pol et al. 98 Continuum:
+abs_cont_descriptionAppend( abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+                            "H2O-CP98",
+                            "CruzPol", 
+                            [ ]
+                          )
 
 
 #
@@ -218,6 +226,38 @@ abs_cont_descriptionAppend( abs_cont_names,
                             abs_cont_parameters,
 	                    "CO2-CKDMT100",
                             "CKDMT100",
+                            [ ] 
+                          )
+
+
+#
+# Hydrometeors
+#
+
+# Rosenkranz liquid cloud
+abs_cont_descriptionAppend( abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+	                    "liquidcloud-MPM93",
+                            "MPM93",
+                            [ ] 
+                          )
+
+# Rosenkranz ice cloud
+abs_cont_descriptionAppend( abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+	                    "icecloud-MPM93",
+                            "MPM93",
+                            [ ] 
+                          )
+
+# Rosenkranz rain
+abs_cont_descriptionAppend( abs_cont_names,
+                            abs_cont_models,
+                            abs_cont_parameters,
+	                    "rain-MPM93",
+                            "MPM93",
                             [ ] 
                           )
 

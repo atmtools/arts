@@ -1,3 +1,11 @@
+2010-12-14  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-14-127
+
+	* includes/continua.arts (H2O-CP98, liquidcloud-MPM93)
+	(icecloud-MPM93, rain-MPM93): Added entries for these models,
+	which were missing.
+
 2010-12-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-126
