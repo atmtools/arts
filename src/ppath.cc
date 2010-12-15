@@ -1325,6 +1325,60 @@ double plevel_angletilt(
 
 
 
+//! surfacetilt
+/*!
+   Calculation fo the angular tilt of the surface
+
+   A combination of plevel_slope_xd and plevel_angletilt. To be used from
+   other parts (externally from ppath part).
+
+   \return              The angular tilt.
+   \param   lat_grid    The latitude grid.
+   \param   lon_grid    The longitude grid.
+   \param   r_geoid     As the WSV with the same name.
+   \param   z_surf      Geometrical altitude of the surface, or the pressure
+                        level of interest.
+   \param   gp_lat      Latitude grid position for the position of interest.
+   \param   gp_lon      Longitude grid position for the position of interest.
+   \param   los         Line-of-sight (either before or after reflection)
+
+   \author Patrick Eriksson
+   \date   2002-06-03
+*/
+double surfacetilt(
+        const Index&      atmosphere_dim,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid,  
+        ConstMatrixView   r_geoid,
+        ConstMatrixView   z_surface,
+        const GridPos&    gp_lat,
+        const GridPos&    gp_lon,
+        ConstVectorView   los )
+{
+  if( atmosphere_dim == 1 )
+    { return 0.0; }
+  else if( atmosphere_dim == 2 )
+    {
+      const double rslope = plevel_slope_2d( lat_grid, r_geoid(joker,0), 
+                                          z_surface(joker,0), gp_lat, los[0] );
+      Vector itw(2); interpweights( itw, gp_lat );
+      const Numeric rv_surface = interp( itw, r_geoid(joker,0), gp_lat ) +
+                                 interp( itw, z_surface(joker,0), gp_lat );
+      return plevel_angletilt( rv_surface, rslope);
+    }
+  else
+    {
+      const double rslope = plevel_slope_3d( lat_grid, lon_grid, r_geoid, 
+                                          z_surface, gp_lat, gp_lon, los[1]  );
+      Vector itw(4); interpweights( itw, gp_lat, gp_lon );
+      const Numeric rv_surface = interp( itw, r_geoid, gp_lat, gp_lon ) +
+                                 interp( itw, z_surface, gp_lat, gp_lon );
+      return plevel_angletilt( rv_surface, rslope);
+    }
+}
+
+
+
 //! is_los_downwards
 /*!
    Determines if a line-of-sight is downwards compared to the angular tilt
@@ -5836,7 +5890,8 @@ void ppath_start_stepping(
                       if( outside_cloudbox )
                         { ppath_set_background( ppath, 4 ); }       
                     }
-                  else if( ppath.pos(0,0) <= rv_low-RTOL  &&  ppath.pos(0,0) >= rv_upp+RTOL )
+                  else if( ppath.pos(0,0) <= rv_low-RTOL  &&  
+                           ppath.pos(0,0) >= rv_upp+RTOL )
                     { assert( outside_cloudbox ); }
                 }
               else

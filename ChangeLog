@@ -1,3 +1,16 @@
+2010-12-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-128
+
+	* src/m_rte.cc (get_iy_of_background): It is now made sute that
+	there is a 0.1 degree margin between the "horison" and the za for
+	calculation of downwelling radiation. This including surface tilt.
+	This to avoid getting repeated reflections due to numerical
+	problems (problem identified by Jana and Oliver).
+
+	* src/ppath.cc (surfacetilt): New function. Basically an interface
+	to some internal (atmosphere_dim specific) functions.
+
 2010-12-14  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-127
@@ -13,7 +26,7 @@
 	* src/check_input.cc (chk_cloudbox): Realised that checks added in
 	last commit were too simple.
 	1. 3D cases where lat_grid reaches +-90, or lon_grid wraps around
-	the globe must be excluded. 
+	the globe must be excluded.
 	2. The lon margin must considered the latitude (as 1 lon degree is
 	a smaller distance when abs(lat) increases.
 	These aspects are now considered.
@@ -23,13 +36,13 @@
 	* arts-1-14-125
 
 	* src/m_montecarlo.cc (MCGeneral): Added atm_checked to this WSM.
-	That is, atm_checkedCalc must now be run before calling this 
+	That is, atm_checkedCalc must now be run before calling this
 	method. Also added cloudbox_on (to make sure that all
 	checks inside atm_checkedCalc actually were performed).
 
 	* src/m_rte.cc (iyMC): Added atm_checked to this WSM (to pass on
 	to MCGeneral).
-	
+
 	* src/check_input.cc (chk_cloudbox): Added check that the distance
 	between the cloudbox and lat and lon grid edges is at least 20
 	deg. (The min distance is a constant and can easily be changed.)
@@ -38,7 +51,7 @@
 	from +-16 to +-25 deg. To fulfill criterion above.
 
 	* tests/MonteCarlo/lat_grid.xml: As for lon_grid.xml.
-	
+
 2010-12-03  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-1-14-124

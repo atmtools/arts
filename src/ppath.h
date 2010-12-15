@@ -148,6 +148,16 @@ double plevel_angletilt(
         const double&   r,
         const double&   c );
 
+double surfacetilt(
+        const Index&      atmosphere_dim,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid,  
+        ConstMatrixView   r_geoid,
+        ConstMatrixView   z_surface,
+        const GridPos&    gp_lat,
+        const GridPos&    gp_lon,
+        ConstVectorView   los );
+
 void poslos2cart(
              double&   x,
              double&   y,

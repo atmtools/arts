@@ -362,6 +362,8 @@ void get_iy_of_background(
   ConstVectorView         lon_grid,
   ConstTensor3View        t_field,
   ConstTensor4View        vmr_field,
+  const Matrix&           r_geoid,
+  const Matrix&           z_surface,
   const Index&            cloudbox_on,
   const Index&            stokes_dim,
   ConstVectorView         f_grid,
@@ -436,6 +438,7 @@ void get_iy_of_background(
         // Check output of *surface_prop_agenda*
         //
         const Index   nlos = surface_los.nrows();
+        //
         if( nlos )   // if 0, blackbody ground and some checks are not needed
           {
             if( surface_los.ncols() != rte_los.nelem() )
@@ -468,6 +471,8 @@ void get_iy_of_background(
           {
             for( Index ilos=0; ilos<nlos; ilos++ )
               {
+                Vector los = surface_los(ilos,joker);
+
                 // Include surface reflection matrix in *iy_transmission*
                 // If iy_transmission is empty, this is interpreted as the
                 // variable is not needed.
@@ -480,6 +485,26 @@ void get_iy_of_background(
                                      surface_rmatrix(ilos,joker,joker,joker) );
                   }
 
+                // Calculate angular tilt of the surface
+                // (sign(los[0]) to handle negative za for 2D)
+                const Numeric atilt = surfacetilt( atmosphere_dim, lat_grid, 
+                                                 lon_grid, r_geoid, z_surface,
+                                                 rte_gp_lat, rte_gp_lat, los );
+                const Numeric zamax = 90 - sign(los[0])*atilt;
+
+                // I considered to add a check that surface_los is above the
+                // horizon, but that would force e.g. surface_specular_los to
+                // actually calculate the surface tilt, which causes
+                // unnecessary calculation overhead. The angles are now moved
+                // to be just above the horizon, which should be acceptable.
+
+                // Make sure that we have some margin to the "horizon"
+                // (otherwise numerical problems can create an infinite loop)
+                if( atmosphere_dim == 2  && los[0]<0 ) //2D with za<0
+                  { los[0] = max( -zamax+0.1, los[0] ); }
+                else
+                  { los[0] = min( zamax-0.1, los[0] ); }
+
                 // Calculate downwelling radiation for LOS ilos 
                 //
                 // The variable iy_clearsky_agenda can in fact be 
@@ -487,15 +512,13 @@ void get_iy_of_background(
                 //
                 if( iy_clearsky_agenda.name() == "iy_clearsky_basic_agenda" )
                   {
-                    iy_clearsky_basic_agendaExecute (ws, iy, rte_pos, 
-                                                     surface_los(ilos,joker), 
-                                                     cloudbox_on, 
-                                                     iy_clearsky_agenda);
+                    iy_clearsky_basic_agendaExecute( ws, iy, rte_pos, los,
+                                              cloudbox_on, iy_clearsky_agenda);
                   }
                 else
                   {
                     iy_clearsky_agendaExecute( ws, iy, iy_error, iy_error_type,
-                            iy_aux, diy_dx, 0, rte_pos, surface_los(ilos,joker),
+                            iy_aux, diy_dx, 0, rte_pos, los,
                             iy_trans_new, cloudbox_on, jacobian_do, iy_aux_do, 
                             f_grid, p_grid, lat_grid, lon_grid, t_field, 
                             vmr_field, iy_clearsky_agenda );
@@ -888,9 +911,9 @@ void iyBeerLambertStandardClearsky(
   get_iy_of_background( 
                 ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
                 iy_aux_do, jacobian_do, ppath, atmosphere_dim, p_grid, 
-                lat_grid, lon_grid, t_field, vmr_field, cloudbox_on, 
-                stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda, 
-                surface_prop_agenda, iy_cloudbox_agenda );
+                lat_grid, lon_grid, t_field, vmr_field, r_geoid, z_surface, 
+                cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda, 
+                iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
   
   // Do RT calculations
   //
@@ -1427,9 +1450,9 @@ void iyEmissionStandardClearsky(
   get_iy_of_background( 
                 ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
                 iy_aux_do, jacobian_do, ppath, atmosphere_dim, p_grid, 
-                lat_grid, lon_grid, t_field, vmr_field, cloudbox_on, 
-                stokes_dim, f_grid, iy_clearsky_agenda, iy_space_agenda, 
-                surface_prop_agenda, iy_cloudbox_agenda );
+                lat_grid, lon_grid, t_field, vmr_field, r_geoid, z_surface, 
+                cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda, 
+                iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
   
   // Do RT calculations
   //
@@ -1694,10 +1717,10 @@ void iyEmissionStandardClearskyBasic(
   ArrayOfTensor3  dummy4;
   //  
   get_iy_of_background( ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
-                        0, 0, ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
-                        t_field, vmr_field, cloudbox_on, stokes_dim,
-                        f_grid, iy_clearsky_basic_agenda, iy_space_agenda, 
-                        surface_prop_agenda, iy_cloudbox_agenda );
+                    0, 0, ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
+                    t_field, vmr_field, r_geoid, z_surface, cloudbox_on, 
+                    stokes_dim, f_grid, iy_clearsky_basic_agenda, 
+                    iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
 
 
   // Do RT calculations

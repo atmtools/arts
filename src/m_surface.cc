@@ -114,7 +114,7 @@ void surface_specular_los(
 
       // Calculate LOS neglecting any tilt of the surface
       los[0] = 180 - los[0];
-      los[1] = los[1];
+      //los[1] = los[1];
     }
 }
 
