@@ -6074,6 +6074,35 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "pha_matExtractManually" ),
+        DESCRIPTION
+        (
+         "A simple function for manually extract a single phase matrix.\n"
+         "\n"
+         "The function returns the phase matrix for a single particle, for\n"
+         "scattering from (za_in,aa_in) to (za_out,aa_out).\n"
+         "\n"
+         "Only a single particle type is handled and *scat_data_raw* must\n"
+         "have length 1. The frequency is selected by *f_grid* and *f_index*.\n"
+         "The temperature is set by *rte_temperature*.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( ),
+        GOUT( "pha_mat_single" ),
+        GOUT_TYPE( "Matrix" ),
+        GOUT_DESC( 
+            "Phase matrix for a single frequency and combination of angles" ),
+        IN( "f_grid", "f_index", "stokes_dim", "scat_data_raw", 
+            "rte_temperature" ),
+        GIN( "za_out", "aa_out", "za_in", "aa_in" ),
+        GIN_TYPE( "Numeric", "Numeric", "Numeric", "Numeric" ), 
+        GIN_DEFAULT( NODEF, NODEF, NODEF, NODEF ),
+        GIN_DESC( "Outgoing zenith angle", "Outgoing azimuth angle",
+                  "Incoming zenith angle", "Incoming azimuth angle" )
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "pha_mat_sptFromData" ),
         DESCRIPTION
         (

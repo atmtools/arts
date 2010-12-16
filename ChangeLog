@@ -1,3 +1,13 @@
+2010-12-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-129
+
+	* src/montecarlo.cc (pha_matExtractManually): A small function for
+	extracting the phase matrix (for 1 frequency and one angle
+	combination) in a manually manner (for testing and plotting).
+	It iuses the MC function for setting up the phase matrix
+	(pha_mat_singleCalc).
+
 2010-12-15  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-128

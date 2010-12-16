@@ -1719,3 +1719,35 @@ void Sample_los (
   g_los_csc_theta =Z(0,0)/Csca;
 }
 
+
+
+
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void pha_matExtractManually(
+        Matrix&                        pha_mat,
+  const Vector&                        f_grid,
+  const Index&                         f_index,
+  const Index&                         stokes_dim,
+  const ArrayOfSingleScatteringData&   scat_data_raw,
+  const Numeric&                       rte_temperature,
+  const Numeric&                       za_out, 
+  const Numeric&                       aa_out, 
+  const Numeric&                       za_in, 
+  const Numeric&                       aa_in ) 
+{
+  if( scat_data_raw.nelem() > 1 )
+    throw runtime_error( "Only one element in *scat_data_raw* is allowed." );
+
+  ArrayOfSingleScatteringData   scat_data;
+  scat_data_monoCalc( scat_data, scat_data_raw, f_grid, f_index );
+
+  Vector pnd( 1, 1.0 );
+  
+  pha_mat.resize( stokes_dim, stokes_dim );
+
+  pha_mat_singleCalc( pha_mat, za_out, aa_out, za_in, aa_in,
+                      scat_data, stokes_dim, pnd, rte_temperature );
+}

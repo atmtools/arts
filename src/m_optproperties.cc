@@ -899,6 +899,7 @@ void pha_matCalc(
 }
 
 
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void scat_data_rawCheck(//Input:
                          const ArrayOfSingleScatteringData& scat_data_raw
