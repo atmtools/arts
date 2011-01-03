@@ -931,7 +931,7 @@ void chk_cloudbox(
               const Numeric latmax = max( abs(lat_grid[cloudbox_limits[2]]),
                                           abs(lat_grid[cloudbox_limits[3]]) );
               const Numeric lfac = 1 / cos( DEG2RAD*latmax );
-              if( lon_grid[cloudbox_limits[2]]-lon_grid[0] < llmin/lfac )
+              if( lon_grid[cloudbox_limits[4]]-lon_grid[0] < llmin/lfac )
                 {
                   ostringstream os;
                   os << "Too small distance between cloudbox and lower end of\n"
@@ -939,7 +939,7 @@ void chk_cloudbox(
                      << llmin/lfac << " degrees.";
                   throw runtime_error( os.str() );
                 }
-              if( lon_grid[n-1] - lon_grid[cloudbox_limits[3]] < llmin/lfac )
+              if( lon_grid[n-1] - lon_grid[cloudbox_limits[5]] < llmin/lfac )
                 {
                   ostringstream os;
                   os << "Too small distance between cloudbox and upper end of\n"

@@ -1,3 +1,10 @@
+2011-01-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-130
+
+	* src/check_input.cc (chk_cloudbox): Index inside cloudbox_limits
+	for lat was used for lon at two places.
+
 2010-12-16  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-129
