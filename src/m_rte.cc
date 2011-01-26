@@ -883,8 +883,8 @@ void iyBeerLambertStandardClearsky(
 
       // Get emission, absorption and optical thickness for each step
       //
-      get_step_vars_for_standardRT( ws, ppath_abs_scalar, mdummy,
-                                    ppath_tau, total_tau, abs_scalar_agenda, adummy,
+      get_step_vars_for_standardRT( ws, ppath_abs_scalar, mdummy, ppath_tau, 
+                                    total_tau, abs_scalar_agenda, adummy,
                                     ppath, ppath_p, ppath_t, ppath_vmr, nf, 0 );
     }
   else // To handle cases inside the cloudbox, or totally outside the atmosphere
@@ -991,26 +991,30 @@ void iyBeerLambertStandardClearsky(
                               // All Stokes components equal
                               for( Index is=0; is<stokes_dim; is++ )
                                 { 
-                                  const Numeric wi = -0.5 * A * iy(iv,is) *
-                                                   ppath_abs_scalar(iv,isp,ip);
-                                  diy_dpath[iq](ip  ,iv,is) += unitscf1 * wi;
-                                  diy_dpath[iq](ip+1,iv,is) += unitscf2 * wi;
+                                  const Numeric wi = -0.5 * A * iy(iv,is);
+                                  diy_dpath[iq](ip  ,iv,is) += unitscf1 * wi *
+                                                 ppath_abs_scalar(iv,isp,ip);
+                                  diy_dpath[iq](ip+1,iv,is) += unitscf2 * wi *
+                                                 ppath_abs_scalar(iv,isp,ip+1);
                                 }
                             }
 
                           // Temperature
                           else if( is_t[iq] )
                             {
-                              const Numeric dkdt = 
-                                  ( ppath_as2(iv,joker,ip).sum()
-                                  - ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
+                              const Numeric dkdt1 =
+                                ( ppath_as2(iv,joker,ip).sum()
+                                - ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
+                              const Numeric dkdt2 =
+                                ( ppath_as2(iv,joker,ip+1).sum()
+                                - ppath_abs_scalar(iv,joker,ip+1).sum() ) / dt;
                               //
                               // All Stokes components equal
                               for( Index is=0; is<stokes_dim; is++ )
                                 { 
-                                  const Numeric wi = -0.5 * A * iy(iv,is)*dkdt;
-                                  diy_dpath[iq](ip  ,iv,is) += wi;
-                                  diy_dpath[iq](ip+1,iv,is) += wi;
+                                  const Numeric wi = -0.5 * A * iy(iv,is);
+                                  diy_dpath[iq](ip  ,iv,is) += wi * dkdt1;
+                                  diy_dpath[iq](ip+1,iv,is) += wi * dkdt2;
                                 }
                             }
                         }
@@ -1107,7 +1111,7 @@ void iyBeerLambertStandardCloudbox(
   if( !cloudbox_on )
     throw runtime_error( "The cloudbox must be defined to use this method." );
 
-  // Determine ppath through the cloudbox if first call
+  // Determine ppath through the cloudbox
   //
   Ppath  ppath;
   //
@@ -1492,7 +1496,6 @@ void iyEmissionStandardClearsky(
               Matrix mdummy; 
               Vector vdummy, t2 = ppath_t;
               t2 += dt;
-              //for( Index i=0; i<t2.nelem(); i++ ) { t2[i] += dt; }
               get_step_vars_for_standardRT( ws, ppath_as2, ppath_e2, mdummy, 
                                    vdummy, abs_scalar_agenda, emission_agenda,
                                    ppath, ppath_p, t2, ppath_vmr, nf, 1 );
@@ -1505,11 +1508,15 @@ void iyEmissionStandardClearsky(
           // Loop frequencies
           for( Index iv=0; iv<nf; iv++ )
             { 
+              // Average of emission source term
+              Numeric esource = 0.5 * ( ppath_emission(iv,ip) + 
+                                       ppath_emission(iv,ip+1) );
+
               // Jacobian quantities
               if( j_analytical_do )
                 {
                   const Numeric A = ppath.l_step[ip] * exp( -total_tau[iv] );
-                  const Numeric B = 0.5 * A * (ppath_emission(iv,ip)-iy(iv,0));
+                  const Numeric B = 0.5 * A * (esource-iy(iv,0));
                   
                   for( Index iq=0; iq<jacobian_quantities.nelem(); iq++ ) 
                     {
@@ -1531,42 +1538,54 @@ void iyEmissionStandardClearsky(
                                           ppath_t[ip+1] );
                               //
                               // Stokes component 1
-                              const Numeric w0 = B*ppath_abs_scalar(iv,isp,ip);
-                              diy_dpath[iq](ip  ,iv,0) += unitscf1 * w0;
-                              diy_dpath[iq](ip+1,iv,0) += unitscf2 * w0;
+                              diy_dpath[iq](ip  ,iv,0) += unitscf1 * B *
+                                                 ppath_abs_scalar(iv,isp,ip);
+                              diy_dpath[iq](ip+1,iv,0) += unitscf2 * B * 
+                                                 ppath_abs_scalar(iv,isp,ip+1);
                               //
                               // Higher stokes components
                               for( Index is=1; is<stokes_dim; is++ )
                                 { 
-                                  const Numeric wi = -0.5 * A * iy(iv,is) *
-                                                   ppath_abs_scalar(iv,isp,ip);
-                                  diy_dpath[iq](ip  ,iv,is) += unitscf1 * wi;
-                                  diy_dpath[iq](ip+1,iv,is) += unitscf2 * wi;
+                                  const Numeric wi = -0.5 * A * iy(iv,is); 
+                                  diy_dpath[iq](ip  ,iv,is) += unitscf1 * wi *
+                                                 ppath_abs_scalar(iv,isp,ip);
+                                  diy_dpath[iq](ip+1,iv,is) += unitscf2 * wi *
+                                                 ppath_abs_scalar(iv,isp,ip+1);
                                 }
                             }
 
                           // Temperature
                           else if( is_t[iq] )
                             {
-                              const Numeric dkdt = 
-                                  ( ppath_as2(iv,joker,ip).sum()
-                                  - ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
-                              const Numeric dbdt = ( ppath_e2(iv,ip) -
-                                                  ppath_emission(iv,ip) ) / dt;
-                              //
                               // Stokes component 1
-                              const Numeric w0 = B * dkdt + 0.5 * dbdt *
-                                       exp(-(total_tau[iv]-ppath_tau(iv,ip))) *
-                                              ( 1.0 - exp(-ppath_tau(iv,ip)) );
-                              diy_dpath[iq](ip  ,iv,0) += w0;
-                              diy_dpath[iq](ip+1,iv,0) += w0;
                               //
+                              // The terms associated with tau:
+                              const Numeric dkdt1 =
+                                ( ppath_as2(iv,joker,ip).sum()
+                                - ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
+                              const Numeric dkdt2 =
+                                ( ppath_as2(iv,joker,ip+1).sum()
+                                - ppath_abs_scalar(iv,joker,ip+1).sum() ) / dt;
+                              diy_dpath[iq](ip  ,iv,0) += B * dkdt1;
+                              diy_dpath[iq](ip+1,iv,0) += B * dkdt2;
+                              //
+                              // The terms associated with B-bar:
+                              const Numeric w0 = 0.5 * 
+                                      exp(-(total_tau[iv]-ppath_tau(iv,ip))) *
+                                              ( 1.0 - exp(-ppath_tau(iv,ip)) );
+                              diy_dpath[iq](ip  ,iv,0) += w0 *
+                                              ( ppath_e2(iv,ip) -
+                                                ppath_emission(iv,ip) ) / dt;
+                              diy_dpath[iq](ip+1,iv,0) += w0 * 
+                                              ( ppath_e2(iv,ip+1) -
+                                                ppath_emission(iv,ip+1) ) / dt;
+
                               // Higher stokes components
                               for( Index is=1; is<stokes_dim; is++ )
                                 { 
-                                  const Numeric wi = -0.5 * A * iy(iv,is)*dkdt;
-                                  diy_dpath[iq](ip  ,iv,is) += wi;
-                                  diy_dpath[iq](ip+1,iv,is) += wi;
+                                  const Numeric wi = -0.5 * A * iy(iv,is);
+                                  diy_dpath[iq](ip  ,iv,is) += wi * dkdt1;
+                                  diy_dpath[iq](ip+1,iv,is) += wi * dkdt2;
                                 }
                             }
                         }
@@ -1580,7 +1599,7 @@ void iyEmissionStandardClearsky(
               //
               const Numeric step_tr = exp( -ppath_tau(iv,ip) );
               //
-              iy(iv,0)  = iy(iv,0)*step_tr + ppath_emission(iv,ip)*(1-step_tr); 
+              iy(iv,0)  = iy(iv,0) * step_tr + esource * (1-step_tr); 
               //
               for( Index is=1; is<stokes_dim; is++ )
                 { iy(iv,is) *= step_tr; }
@@ -1636,8 +1655,6 @@ void iyEmissionStandardClearsky(
         { iy_aux( 2, joker, joker ) = 1.0; }
     }    
 }
-
-
 
 
 
@@ -1736,7 +1753,8 @@ void iyEmissionStandardClearskyBasic(
 
               const Numeric step_tr = exp( -ppath_tau(iv,ip) );
               //
-              iy(iv,0)  = iy(iv,0)*step_tr + ppath_emission(iv,ip)*(1-step_tr); 
+              iy(iv,0)  = iy(iv,0) * step_tr + 0.5 * ( ppath_emission(iv,ip) + 
+                                       ppath_emission(iv,ip+1) ) * (1-step_tr); 
               //
               for( Index is=1; is<stokes_dim; is++ )
                 { iy(iv,is) *= step_tr; }

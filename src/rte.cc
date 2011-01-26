@@ -409,44 +409,36 @@ void get_step_vars_for_standardRT(
   total_tau.resize( nf );
   total_tau = 0;
   if( emission_do )
-    { ppath_emission.resize( nf, np-1 ); }
+    { ppath_emission.resize( nf, np ); }
 
-  // Log of the pressure
-  Vector ppath_logp( np );
-  transform( ppath_logp, log, ppath_p  );
-
-  for( Index ip=0; ip<np-1; ip++ )
+  for( Index ip=0; ip<np; ip++ )
     {
-      // Mean of p, t and VMRs for the step
-      const Numeric   p_mean = exp( 0.5*( ppath_logp[ip+1]+ppath_logp[ip] ) );
-      const Numeric   t_mean = ( ppath_t[ip+1] + ppath_t[ip] ) / 2.0;
-            Vector    vmr_mean( nabs );
-      for( Index ia=0; ia<nabs; ia++ )
-        { vmr_mean[ia] = 0.5 * ( ppath_vmr(ia,ip+1) + ppath_vmr(ia,ip) ); }
-
-      // Calculate emission and absorption terms
-      //
-      // We must use temporary vectors as the agenda input must be
+      // We must use temporary variables as the agenda input must be
       // free to be resized
       Vector   evector;
       Matrix   sgmatrix;
       //
-      abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, p_mean, t_mean, 
-                                                  vmr_mean, abs_scalar_agenda );
+      abs_scalar_gas_agendaExecute( ws, sgmatrix, -1, ppath_p[ip], ppath_t[ip], 
+                                      ppath_vmr(joker,ip), abs_scalar_agenda );
       ppath_abs_scalar(joker,joker,ip) = sgmatrix;
       //
       if( emission_do )
         {
-          emission_agendaExecute( ws, evector, t_mean, emission_agenda );
+          emission_agendaExecute( ws, evector, ppath_t[ip], emission_agenda );
           ppath_emission(joker,ip) = evector;
         }
 
       // Partial and total tau
       //
-      for( Index iv=0; iv<nf; iv++ )
-        { 
-          ppath_tau(iv,ip)  = ppath.l_step[ip] * sgmatrix(iv,joker).sum(); 
-          total_tau[iv]    += ppath_tau(iv,ip);
+      if( ip > 0 )
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            { 
+              ppath_tau(iv,ip-1) = 0.5 * ppath.l_step[ip-1] * (
+                                         ppath_abs_scalar(iv,joker,ip-1).sum() +
+                                         ppath_abs_scalar(iv,joker,ip).sum() );
+              total_tau[iv]    += ppath_tau(iv,ip-1);
+            }
         }
     }
 }

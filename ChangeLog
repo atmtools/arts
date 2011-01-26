@@ -1,3 +1,36 @@
+2011-01-26  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-131
+
+	* Discovered that the RT was not done exactly as I wrote in the
+	paper. Somewhat embarrassing! For a reason that I don't remember,
+	P, T and VMRs were averaged to the middle point of the ppath
+	steps, instead of calculating absorption and emission source term
+	at ppath points and take average over the step. Not clear which
+	appraoch that gives the best accuracy, but the later is better
+	with respect to interpolation of abs. table and the analytical
+	expressions for Jacobians. So now changed. 
+
+	This causes some change in simulated Tbs. I have run all test in
+	both arts and atmlab. Where I have compared results, the
+	difference between old and new Tbs are mainly inside 0.01K. The
+	maximum difference I have seen is 0.027K. This was found in the
+	ClearSky test case, for a Tb of 112K. Limb sounding and Tbs around
+	100K should maximise the sensitivity to this change, so this
+	should be something like a worst case.
+
+	FOS and iyBeerLambertStandardCloudbox not yet updated.
+	
+	* src/m_rte.cc (iyEmissionStandardClearsky): 
+	(iyBeerLambertStandardClearsky): 
+	(iyEmissionStandardClearskyBasic): Adopted to changes below.
+
+	* src/rte.cc (get_step_vars_for_standardRT): The emission source
+	term is now calculated at the path step points (not for the middle
+	point, with average temperature).
+	Also absorption is now calculated at the path points. (The size of
+	the variable holding the absorption was not correct.)
+
 2011-01-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-130
