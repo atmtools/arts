@@ -79,7 +79,7 @@ public:
 
   // Split string
   void split (Array< my_basic_string<charT> > &aos,
-              const my_basic_string<charT> &delim);
+              const my_basic_string<charT> &delim) const;
   
   // Number of elements:
   Index nelem() const;
@@ -220,7 +220,7 @@ inline void my_basic_string<charT>::insert_substr(const my_basic_string<charT> s
  */
 template<class charT>
 inline void my_basic_string<charT>::split (Array< my_basic_string<charT> > &aos,
-                                           const my_basic_string<charT> &delim)
+                                           const my_basic_string<charT> &delim) const
 {
   size_t pos, oldpos;
   pos = oldpos = 0;
