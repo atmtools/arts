@@ -1,3 +1,16 @@
+2011-01-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-135
+
+	* src/m_fos.cc (iyFOS): Updated to treat the quantities as other
+	RT methods (as started by 1-14-131). Required extinsive changes.
+	Fairly well tested (by qarts_scattering_demo). New version appears
+	to give somewhat better fit with DOIT-1D for "high" tangent
+	altitudes, but could just be a coincidence. 
+
+	* src/m_rte.cc (iyBeerLambertStandardCloudbox): Updated, using
+	a stripped version of code in iyFOS.
+
 2011-01-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-134
