@@ -1162,8 +1162,46 @@ from scat_data_mono
    \author Cory Davis
    \date   2004-7-16
 */
-
 void opt_propCalc(
+                  MatrixView& ext_mat_mono,
+                  VectorView& abs_vec_mono,
+                  const Numeric za,
+                  const Numeric aa,
+                  const ArrayOfSingleScatteringData& scat_data_mono,
+                  const Index&          stokes_dim,
+                  const VectorView& pnd_vec,
+                  const Numeric& rte_temperature
+                  )
+{
+  assert( stokes_dim>=1  &&  stokes_dim<=4 );
+  assert( ext_mat_mono.nrows() == stokes_dim );
+  assert( ext_mat_mono.ncols() == stokes_dim );
+  assert( abs_vec_mono.nelem() == stokes_dim );
+
+  const Index N_pt = scat_data_mono.nelem();
+
+  Matrix ext_mat_mono_spt(stokes_dim,stokes_dim);
+  Vector abs_vec_mono_spt(stokes_dim);
+
+  ext_mat_mono=0.0;
+  abs_vec_mono=0.0;  
+
+  // Loop over the included particle_types
+  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
+    {
+      if (pnd_vec[i_pt]>0)
+        {
+          opt_propExtract(ext_mat_mono_spt,abs_vec_mono_spt,scat_data_mono[i_pt],za,aa,
+                          rte_temperature,stokes_dim);
+          ext_mat_mono_spt*=pnd_vec[i_pt];
+          abs_vec_mono_spt*=pnd_vec[i_pt];
+          ext_mat_mono+=ext_mat_mono_spt;
+          abs_vec_mono+=abs_vec_mono_spt;
+        }
+    }
+}
+
+void opt_propCalc2(
                   MatrixView& ext_mat_mono,
                   VectorView& abs_vec_mono,
                   const Numeric za,
@@ -1199,7 +1237,6 @@ void opt_propCalc(
           abs_vec_mono+=abs_vec_mono_spt;
         }
     }
-
 }
 
 //! Extract ext_mat_mono and abs_vec_mono from a monochromatic SingleScatteringData object
