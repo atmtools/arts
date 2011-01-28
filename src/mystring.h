@@ -31,6 +31,7 @@
 #include <climits>
 #include <string>
 #include "matpack.h"
+#include "array.h"
 
 // String stream library. This is included with the ARTS source code
 // for now, because it is missing in gcc <= 2.95.2
@@ -76,6 +77,10 @@ public:
   void insert_substr(const my_basic_string<charT> searchstr,
                      const my_basic_string<charT> insstr);
 
+  // Split string
+  void split (Array< my_basic_string<charT> > &aos,
+              const my_basic_string<charT> &delim);
+  
   // Number of elements:
   Index nelem() const;
 
@@ -208,6 +213,29 @@ inline void my_basic_string<charT>::insert_substr(const my_basic_string<charT> s
     }
 }
 
+/** Split string into substrings.
+ 
+ \param[out] aos    ArrayOfString containing the returned substrings.
+ \param[in]  delim  Delimiter string.
+ */
+template<class charT>
+inline void my_basic_string<charT>::split (Array< my_basic_string<charT> > &aos,
+                                           const my_basic_string<charT> &delim)
+{
+  size_t pos, oldpos;
+  pos = oldpos = 0;
+  aos.resize(0);
+  
+  while (oldpos < (size_t)this->nelem() &&
+         (pos = this->find(delim, oldpos)) != (size_t)my_basic_string<charT>::npos)
+  {
+    if (pos) aos.push_back(this->substr(oldpos, pos-oldpos));
+    oldpos = pos+delim.nelem();
+  }
+  
+  if (oldpos < (size_t)this->nelem()) aos.push_back(this->substr(oldpos));
+}
+
 /** Number of elements. */
 template<class charT>
 inline Index my_basic_string<charT>::nelem() const
@@ -276,8 +304,8 @@ inline char& my_basic_string<charT>::operator[](Index n)
 typedef my_basic_string<char> String;
 
 // Declare the existance of class Array:
-template<class base>
-class Array;
+/*template<class base>
+class Array;*/
 
 /** An array of Strings. */
 typedef Array<String> ArrayOfString;
