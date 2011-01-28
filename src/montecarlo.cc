@@ -1163,8 +1163,8 @@ from scat_data_mono
    \date   2004-7-16
 */
 void opt_propCalc(
-                  MatrixView& ext_mat_mono,
-                  VectorView& abs_vec_mono,
+                  MatrixView ext_mat_mono,
+                  VectorView abs_vec_mono,
                   const Numeric za,
                   const Numeric aa,
                   const ArrayOfSingleScatteringData& scat_data_mono,

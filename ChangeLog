@@ -1,5 +1,19 @@
 2011-01-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-14-137
+
+	* src/m_rte.cc (iyBeerLambertStandardCloudbox): 
+	* src/m_fos.cc (iyFOS): Usage of temperorary variables when
+	calling opt_propCalc removed.	
+
+	* src/montecarlo.cc (opt_propCalc): I could not get slicing to
+	work as input to this function. The two first arguments were
+	defined as MatrixView& and VectorView&, respectively. Don't think
+	& shall be used togetehr with "Views". Anyhow, now slicing works
+	and checks run OK.
+
+2011-01-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-14-136
 
 	* src/montecarlo.cc (opt_propCalc): Changed a runtime error to

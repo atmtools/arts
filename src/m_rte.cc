@@ -1231,10 +1231,12 @@ void iyBeerLambertStandardCloudbox(
           // Extinction matrix and absorption vector for gases
           // (Not needed for clear-sky, but must anyhow be calculated to get
           // the shifting from point 2 to point 1 correct.
-          Matrix dummy(nf,stokes_dim);
-          opt_prop_gas_agendaExecute( ws, emg2, dummy, -1, asg2, 
+          {
+            Matrix dummy(nf,stokes_dim);
+            opt_prop_gas_agendaExecute( ws, emg2, dummy, -1, asg2, 
                                                          opt_prop_gas_agenda );
-              
+          }
+  
           // Any particles?
           if( max(ppath_pnd(joker,ip)) < 1e-3 ) { cs2 = true; }
           else                                  { cs2 = false; }
@@ -1281,12 +1283,10 @@ void iyBeerLambertStandardCloudbox(
               // Particle properties
               for( Index iv=0; iv<nf; iv++ )
                 { 
-                  Matrix dummy1( stokes_dim, stokes_dim );
-                  Vector dummy2( stokes_dim );
-                  opt_propCalc( dummy1, dummy2, 
+                  Vector dummy( stokes_dim );
+                  opt_propCalc( emp2(iv,joker,joker), dummy, 
                                 rte_los2[0], rte_los2[1], scat_data[iv], 
                                 stokes_dim, ppath_pnd(joker,ip), ppath_t[ip] );
-                  emp2(iv,joker,joker) = dummy1;
                 }
             }
 

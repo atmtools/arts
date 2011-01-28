@@ -508,13 +508,9 @@ void iyFOS(
               // Particle properties
               for( Index iv=0; iv<nfs; iv++ )
                 { 
-                  Matrix dummy1( stokes_dim, stokes_dim );
-                  Vector dummy2( stokes_dim );
-                  opt_propCalc( dummy1, dummy2, 
+                  opt_propCalc( emp2(iv,joker,joker), avp2(iv,joker), 
                                 rte_los2[0], rte_los2[1], scat_data[iv], 
                                 stokes_dim, ppath_pnd(joker,ip), ppath_t[ip] );
-                  emp2(iv,joker,joker) = dummy1;
-                  avp2(iv,joker)       = dummy2;
                 }
 
               // Determine incoming radiation (here Y, WSV is fos_y)

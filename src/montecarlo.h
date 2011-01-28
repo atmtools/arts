@@ -212,8 +212,8 @@ void mcPathTraceIPA(Workspace&            ws,
                     const Ppath&          ppath);
 
 void opt_propCalc(
-                  MatrixView& K,
-                  VectorView& K_abs,
+                  MatrixView    K,
+                  VectorView    K_abs,
                   const Numeric za,
                   const Numeric aa,
                   const ArrayOfSingleScatteringData& scat_data_mono,
