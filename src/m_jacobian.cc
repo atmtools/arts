@@ -1110,8 +1110,8 @@ void jacobianAddTemperature(
     {
       subtag = "HSE on";
       ostringstream os;
-      os << "The keyword for hydrostatic equilibrium can so far only be set to\n"
-         << "\"off\"\n";
+      os << "The keyword for hydrostatic equilibrium can so far only be set \n"
+         << "to \"off\"\n";
       throw runtime_error(os.str());
     }
   else if( hse == "off" )

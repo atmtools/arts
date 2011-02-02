@@ -1,3 +1,13 @@
+2011-02-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-140
+
+	* tests/GroundBased/TestGbased.arts: Moved test of temperature
+	jacobian to this file. 
+
+	* tests/ClearSky/TestClearSky.arts: Removed temperature part of
+	jacobian.
+
 2011-02-02  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
 
 	* arts-1-14-139

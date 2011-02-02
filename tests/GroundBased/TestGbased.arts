@@ -175,6 +175,12 @@ sensor_responseBackend
 jacobianInit
 jacobianAddFreqShiftAndStretch( jacobian_quantities, jacobian_agenda, 
                                 "iybinterp", 50e3, 1 )
+StringCreate( calcmethod )
+StringSet( calcmethod, "analytical" )
+#StringSet( calcmethod, "perturbation" )
+jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
+    atmosphere_dim, p_grid, lat_grid, lon_grid, p_grid, lat_grid, lon_grid, 
+    "off", calcmethod, 1 )
 jacobianClose
 
 
