@@ -1,3 +1,25 @@
+2011-02-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-138
+
+	* src/methods.cc:
+
+	Add cloudbox_on as input to CloudboxGetIncoming,
+	CloudboxGetIncoming1DAtm, DoitInit, and ScatteringDoit.
+
+	* src/m_doit.cc (CloudboxGetIncoming, CloudboxGetIncoming1DAtm,
+	DoitInit, ScatteringDoit):
+
+	Don't do anything in these methods if cloudbox_on if false.
+
+	Output a message to out0 in DoitInit that the Doit calculation will be
+	skipped if no cloudbox is defined.
+
+	These changes avoid Doit from failing if no cloudbox is defined. The
+	Doit calculation will simply be skipped.
+	Mostly for Daniel at the moment, so he can dynamically turn the
+	cloudbox on and off from one batch job to the next.
+
 2011-01-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-137

@@ -1412,10 +1412,18 @@ void DoitInit(
               const Vector& scat_za_grid,
               const Vector& scat_aa_grid,
               const Index& doit_za_grid_size,
+              const Index& cloudbox_on,
               const ArrayOfIndex& cloudbox_limits,
               const ArrayOfSingleScatteringData& scat_data_raw
               )
 {
+  if (!cloudbox_on)
+  {
+    doit_is_initialized = 0;
+    out0 << "  Cloudbox is off, DOIT calculation will be skipped.\n";
+    return;
+  }
+  
   // -------------- Check the input ------------------------------
   
   if (stokes_dim < 0 || stokes_dim > 4)
@@ -2332,6 +2340,7 @@ void ScatteringDoit(Workspace& ws,
                     Tensor7& scat_i_lat, 
                     Tensor7& scat_i_lon,
                     Tensor4& doit_i_field1D_spectrum,
+                    const Index&  cloudbox_on,
                     const Vector& f_grid,
                     const Agenda& doit_mono_agenda,
                     const Index& doit_is_initialized
@@ -2339,6 +2348,9 @@ void ScatteringDoit(Workspace& ws,
                   
 {
   //-------- Check input -------------------------------------------
+ 
+  // Don't do anything if there's no cloudbox defined.
+  if (!cloudbox_on) return;
   
   chk_not_empty( "doit_mono_agenda", doit_mono_agenda );
 
@@ -2600,12 +2612,16 @@ void CloudboxGetIncoming(
         const Vector&         lon_grid,
         const Tensor3&        z_field,
         const Matrix&         r_geoid,
+        const Index&          cloudbox_on,
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         f_grid,
         const Index&          stokes_dim,
         const Vector&         scat_za_grid,
         const Vector&         scat_aa_grid )
 {
+  // Don't do anything if there's no cloudbox defined.
+  if (!cloudbox_on) return;
+  
   Index  Nf       = f_grid.nelem();
   Index  Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index  Nza      = scat_za_grid.nelem();
@@ -2828,6 +2844,9 @@ void CloudboxGetIncoming1DAtm(
         const Vector&         scat_za_grid,
         const Vector&         scat_aa_grid )
 {
+  // Don't do anything if there's no cloudbox defined.
+  if (!cloudbox_on) return;
+  
   Index  Nf       = f_grid.nelem();
   Index  Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
   Index  Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
