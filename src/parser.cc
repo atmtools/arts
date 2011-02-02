@@ -2230,7 +2230,7 @@ bool ArtsParser::parse_numvector_from_string (Vector& res, String& str)
 }
 
 
-/** Read an of Strings from a String. This looks as follows:
+/** Read an Array of Strings from a String. This looks as follows:
     [ "String1", "String2"]
     Whitespace has to have been eaten before, that is, the current
     character must be `['.

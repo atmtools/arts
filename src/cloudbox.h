@@ -68,6 +68,16 @@ void chk_pnd_raw_data(
                       ConstVectorView lon_grid,
                       const ArrayOfIndex& cloudbox_limits);
 
+void chk_scattering_data(
+			 const ArrayOfSingleScatteringData& scat_data_raw,
+			 const ArrayOfScatteringMetaData& scat_data_meta_array
+			 );
+
+void chk_scattering_meta_data(
+			      const ScatteringMetaData& scat_data_meta,
+			      const String& scat_data_meta_file
+			      );
+
 void chk_single_scattering_data(
                                 const SingleScatteringData& scat_data_raw,
                                 const String& scat_data_file,
@@ -82,6 +92,41 @@ bool is_gp_inside_cloudbox(const GridPos& gp_p,
 bool is_inside_cloudbox(const Ppath& ppath_step,
                         const ArrayOfIndex& cloudbox_limits,
                         const bool include_boundaries);
+
+Numeric barometric_heightformula ( const Numeric& p,
+				   const Numeric& dh,
+				   const Numeric& T0
+				 );
+
+Numeric IWCtopnd_MH97 (	const Numeric iwc,
+			Numeric dm,
+			const Numeric t,
+			const Numeric density);
+
+Numeric LWCtopnd (const Numeric lwc,
+		  //const Numeric density,
+		  const Numeric r);
+
+Numeric LWCtopnd2 (//const Numeric density,
+		  const Numeric r);
+
+
+void trapezoid_integrate( Vector& w,
+			   const Vector& x,
+			   const Vector& y);
+
+void chk_pndsum (Vector& pnd,
+		 const Numeric xwc,
+		 const Vector density,
+		 const Vector vol);
+
+bool chk_hydromet_field(	
+ 			 const Index&  dim,	
+			 const Tensor3& hydromet,			 
+			 const Vector& p_grid,
+			 const Vector& lat_grid,
+			 const Vector& lon_grid
+		       );
 
 
 #endif //cloudbox_h

@@ -860,6 +860,79 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
+//=== ScatteringMetaData ======================================
+
+//! Reads ScatteringMetaData from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param smdata  ScatteringMetaData return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ScatteringMetaData& smdata,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+  //Index ptype;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("ScatteringMetaData");
+
+  //xml_read_from_stream (is_xml, ptype, pbifs);
+  //ssdata.ptype = PType (ptype);
+  xml_read_from_stream (is_xml, smdata.description, pbifs);
+  xml_read_from_stream (is_xml, smdata.type, pbifs);
+  xml_read_from_stream (is_xml, smdata.shape, pbifs);
+  xml_read_from_stream (is_xml, smdata.density, pbifs);
+  xml_read_from_stream (is_xml, smdata.d_max, pbifs);
+  xml_read_from_stream (is_xml, smdata.V, pbifs);
+  xml_read_from_stream (is_xml, smdata.A_projec, pbifs);
+  xml_read_from_stream (is_xml, smdata.asratio, pbifs);
+
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/ScatteringMetaData");
+}
+
+
+//! Writes ScatteringMetaData to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param smdata  ScatteringMetaData
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const ScatteringMetaData& smdata,
+                     bofstream *pbofs,
+                     const String& name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("ScatteringMetaData");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+  open_tag.write_to_stream (os_xml);
+
+  xml_write_to_stream (os_xml, smdata.description, pbofs);
+  xml_write_to_stream (os_xml, smdata.type, pbofs);
+  xml_write_to_stream (os_xml, smdata.shape, pbofs);
+  xml_write_to_stream (os_xml, smdata.density, pbofs);
+  xml_write_to_stream (os_xml, smdata.d_max, pbofs);
+  xml_write_to_stream (os_xml, smdata.V, pbofs);
+  xml_write_to_stream (os_xml, smdata.A_projec, pbofs);
+  xml_write_to_stream (os_xml, smdata.asratio, pbofs);
+
+  close_tag.set_name ("/ScatteringMetaData");
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+}
+
+
+
 //=== SLIData2 =====================================================
 //! Reads SLIData2 from XML input stream
 /*!

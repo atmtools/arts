@@ -2306,6 +2306,30 @@ void define_md_data_raw()
         GIN_DESC( "FIXME DOC",
                   "FIXME DOC" )
         ));
+    
+    md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "atm_fields_compactFromMatrixVMRonly" ),
+        DESCRIPTION
+        (
+         "FIXME\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "atm_fields_compact" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim" ),
+        GIN(      "gin1"      ,
+                  "field_names" ),
+        GIN_TYPE(    "Matrix",
+                     "ArrayOfString" ),
+        GIN_DEFAULT( NODEF   ,
+                     NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC" )
+        ));
+
 
   md_data_raw.push_back
     ( MdRecord
@@ -2347,6 +2371,25 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "AtmFieldsFromCompactHydromet" ),
+        DESCRIPTION
+        (
+         "FIXME\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "hydromet_field", "vmr_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "abs_species", "atm_fields_compact", "atmosphere_dim" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));    
 
   md_data_raw.push_back
     ( MdRecord
@@ -2564,6 +2607,33 @@ void define_md_data_raw()
                   "FIXME DOC",
                   "FIXME DOC" )
         ));
+    
+    
+    md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "batch_atm_fields_compactFromArrayOfMatrixHydromet" ),
+        DESCRIPTION
+        (
+	  "FIXME \n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "batch_atm_fields_compact", "batch_atm_hydromet_fields_compact" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim" ),
+        GIN(      "gin1"             ,
+                  "field_names", "extra_field_names", "extra_field_values" ),
+        GIN_TYPE(    "ArrayOfMatrix",
+                     "ArrayOfString", "ArrayOfString",     "Vector" ),
+        GIN_DEFAULT( NODEF          ,
+                     NODEF,         "[]",                "[]" ),
+        //KW_DEFAULT( NODEF,         NODEF,                NODEF ),
+        GIN_DESC( "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC",
+                  "FIXME DOC" )
+        ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2643,6 +2713,37 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+    
+    
+    md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "cloudboxSetAutomatically" ),
+        DESCRIPTION
+        (
+         "Sets the cloud box to encompass the given positions.\n"
+         "\n"
+         "The function sets *cloudbox_on* to 1 and automatically sets\n"
+	 "*cloudbox_limits* following the given hydrometeor profiles in\n"
+	 "*hydromet_field*. The limits are chosen by looking for the first\n"
+	 "and the last atmopheric level, where the hydrometeor profile is\n"
+	 "unequal zero.\n"
+         "FIXME\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(  "iy_cloudbox_agenda", "atmosphere_dim", "part_species", "p_grid", "lat_grid", "lon_grid", "hydromet_field", "t_field"),
+        GIN( "cloudbox_margin"),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC( "The margin is added/substracted to/from the upper/lower vertical\n"
+		  "cloudbox limits. Value must be given in [m].\n"
+		  "If cloudbox_margin is set to *-1*, the lower cloudbox limit equals\n"
+		  "the first (lower most) *p_grid* level.\n"
+	)
         ));
   
   md_data_raw.push_back
@@ -3532,13 +3633,13 @@ void define_md_data_raw()
         OUT(),
         GOUT( "needle" ),
         GOUT_TYPE( "ArrayOfIndex, Numeric, Vector, Matrix, Matrix, Tensor3, Tensor4,"
-                   "Tensor4, ArrayOfGriddedField3, GriddedField4" ),
+                   "Tensor4, ArrayOfGriddedField3, GriddedField4, String" ),
         GOUT_DESC( "Extracted element." ),
         IN(),
         GIN( "haystack", "index" ),
         GIN_TYPE( "ArrayOfArrayOfIndex, Vector, ArrayOfVector, ArrayOfMatrix, Tensor3,"
                   "Tensor4, ArrayOfTensor4, Tensor5, ArrayOfArrayOfGriddedField3,"
-                  "ArrayOfGriddedField4",
+                  "ArrayOfGriddedField4, ArrayOfString",
                   "Index" ),
         GIN_DEFAULT( NODEF, NODEF ),
         GIN_DESC( "Variable to extract from.",
@@ -4001,6 +4102,33 @@ void define_md_data_raw()
         GIN_TYPE(),
         GIN_DEFAULT(),
         GIN_DESC()
+        ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "Hydromet_cleanup" ),
+        DESCRIPTION
+        (
+         "This WSM checks if *hydromet_field* contains values smaller than\n"
+	 "*hydromet_threshold*. In this case, these values will be set to zero.\n"
+	 "\n"
+	 "The Method should be applied if *hydromet_field* contains unrealistic small\n"
+	 "or erroneous data. (e.g. the chevallierl_91l data sets contain these small values)\n"
+	 "\n"
+	 "*Hydromet_cleanup* is called after generation of atmopheric fields.\n"
+	 "\n"
+	 "*Default value*:\t1e-15\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "hydromet_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN( "hydromet_threshold" ),
+        GIN_TYPE( "Numeric" ),
+        GIN_DEFAULT( "1e-15" ),
+        GIN_DESC( "Values in *hydromet_field* smaller than *hydromet_threshold* will be set to zero." )
         ));
 
   md_data_raw.push_back
@@ -5965,8 +6093,48 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
-  md_data_raw.push_back
+    
+    md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ParticleSpeciesInit" ),
+        DESCRIPTION
+        (
+         "Initializes empty *part_species* array.\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "part_species" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN(),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+    
+    
+    md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ParticleSpeciesSet" ),
+        DESCRIPTION
+        (
+         "FIXME DOC\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT(  ),
+        GOUT("part_species"  ),
+        GOUT_TYPE( "ArrayOfString" ),
+        GOUT_DESC("FIXME DOC" ),
+        IN(),
+        GIN( "names" ),
+        GIN_TYPE(  "ArrayOfString" ),
+        GIN_DEFAULT( NODEF ),
+        GIN_DESC("FIXME DOC" )
+        ));
+ 
+    
+   md_data_raw.push_back
     ( MdRecord
       ( NAME( "ParticleTypeAddAll" ),
         DESCRIPTION
@@ -5977,7 +6145,8 @@ void define_md_data_raw()
 	 "hydrometeor species can be generated outside ARTS, for example by using\n"
 	 "PyARTS. This method needs as input an XML-file containing an array of filenames\n"
 	 "(ArrayOfString) of single scattering data and a file containing the corresponding\n"
-	 "*pnd_field_raw*. In contrast to the scattering data, all corresponding pnd-fields are stored in a single XML-file containing an ArrayofGriddedField3\n"
+	 "*pnd_field_raw*. In contrast to the scattering data, all corresponding pnd-fields\n"
+	 "are stored in a single XML-file containing an ArrayofGriddedField3\n"
 	 "\n"
 	 "Very important note:\n"
 	 "The order of the filenames for the scattering data files has to\n"
@@ -5999,6 +6168,37 @@ void define_md_data_raw()
                   )
         ));
  
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ParticleTypeAddAllMeta" ),
+        DESCRIPTION
+        (
+	 "Reads single scattering data and scattering meta data.\n"
+	 "\n"
+	 "This method needs as input an XML-file containing an array of filenames\n"
+	 "(ArrayOfString) of single scattering data and corresponding scattering meta data.\n"
+	 "For each single scattering file, there needs to be exactly one scattering meta data file.\n"
+	 "\n"
+	 "Very important note:\n"
+	 "The order of the filenames for the single scattering data files has to\n"
+	 "correspond to the order of the scattering meta data files.\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "scat_data_raw", "scat_data_meta_array" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", "cloudbox_on",
+            "cloudbox_limits" ),
+        GIN(         "filename_scat_data", "filename_scat_meta_data" ),
+        GIN_TYPE(    "String",             "String"             ),
+        GIN_DEFAULT( NODEF,                NODEF                ),
+        GIN_DESC( "File containing single scattering data.",
+                  "File containing scattering meta data." 
+                  )
+        ));
+
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "ParticleTypeAdd" ),
@@ -6050,7 +6250,7 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "pha_matCalc" ),
@@ -6238,6 +6438,27 @@ void define_md_data_raw()
         GIN_DESC( "Number of zero values inside lat and lon limits." )
         ));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "pnd_fieldSetup" ),
+        DESCRIPTION
+        (
+         "Calculation of pnd_field using ScatteringMetaData and hydromet_field.\n"
+	 "\n"
+	 "FIXME\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "pnd_field"),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim","cloudbox_on", "cloudbox_limits", "hydromet_field", "t_field", "scat_data_meta_array", "part_species" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));  
+    
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "pnd_fieldZero" ),

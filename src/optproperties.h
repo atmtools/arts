@@ -88,6 +88,31 @@ ostream& operator<< (ostream& os, const SingleScatteringData& ssd);
 ostream& operator<< (ostream& os, const ArrayOfSingleScatteringData& assd);
 
 
+/*===========================================================================
+  === The ScatteringMetaData structure
+  ===========================================================================*/
+/*!
+   Structure which holds the meta scattering properties of a 
+   particle or a particle distribution, like (size parameters, shape, etc.). 
+*/
+struct ScatteringMetaData {
+  String    description;
+  String    type;
+  String    shape;
+  Numeric   density;
+  Numeric   d_max;
+  Numeric   V;
+  Numeric   A_projec;
+  Numeric   asratio;
+};
+
+typedef Array<ScatteringMetaData> ArrayOfScatteringMetaData;
+
+ostream& operator<< (ostream& os, const ScatteringMetaData& ssd);
+ostream& operator<< (ostream& os, const ArrayOfScatteringMetaData& assd);
+
+
+
 // General functions:
 // =============================================================
 

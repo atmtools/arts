@@ -1,3 +1,85 @@
+2011-02-02  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
+
+	* arts-1-14-139
+
+	All following changes add or create new functions, WSMs or WSVs only.
+	None of the previously exisiting methods has been changed.
+	Since documentation in not yet completed, I recommend not to use it right now.
+	
+	* src/cloudbox.cc (chk_hydromet_field):NEW. Check whether hydromet grid size
+	is equal to atmospheric grid size and if hydromet profile is zero (no cloud)
+	in each grid point, then it returns true.
+	* src/cloudbox.cc (chk_scattering_data):NEW. Compare nelem of ArrayOfScatteringMetaData
+	and ArrayOfSingleScatteringData. more checks needed!
+	* src/cloudbox.cc (chk_scattering_meta_data)NEW. more checks needed
+	* src/cloudbox.cc (barometric_heightformula):NEW. barometric heightformula for NONE 
+	isothermal atmosphere. Return Numeric
+	* src/cloudbox.cc (IWCtopnd_MH97):NEW. Calculates dN/dDm on one atmospheric grid
+	point per particle type using MH97. Return Numeric.
+	* src/cloudbox.cc (LWCtopnd): NEW. Calculates dN/dr on one atmospheric grid 
+	point per liquid water particle type. Return Numeric.
+	* src/cloudbox.cc (LWCtopnd2):NEW. Calculates dN/dr on one atmospheric grid 
+	point per liquid water particle type. Alternative calc way. Return Numeric. 
+	* src/cloudbox.cc (trapezoid_integrate): NEW. does the trapezoid integration
+	for the function y = f(x). 
+	* src/cloudbox.cc (chk_pndsum): NEW. Check sum of vector pnd against total XWC.
+
+	* src/cloudbox.h: see cloudbox.cc
+
+	* src/optproperties.cc: added ostream& operator for ScatteringMetaData and 
+	ArrayOfScatteringMetaData.
+	* src/optproperties.h: added ScatteringMetaData structure
+
+	* src/parser.cc: doku eddited
+
+	* src/xml_io_types.h: ScatteringMetaData added
+	* src/xml_io_instantiation.h: ScatteringMetaData and
+	ArrayOfScatteringMetaData added.
+	* src/xml_io_array_types.cc: XML reading and writing routines for
+	ArrayOfScatteringMetaData
+	* src/xml_io_compound_types.cc: XML reading and writing routines for
+	ScatteringMetaData
+
+	* src/math_funcs.h: see math_func.cc
+	* src/math_funcs.cc (gamma): NEW. Returns gamma function of real argument 'x'.
+	Returns error msg if argument is a negative integer or 0, or use lgamma
+	function if argument exceeds 32.0. 
+	* src/math_funcs.cc (lgamma): NEW. Returns ln of gamma function for real 
+	argument 'x'.
+
+	* src/m_atmosphere.cc (atm_fields_compactFromMatrixVMRonly): NEW. Generating
+	atm_fields_compact without hydrometeor data. Needed for absorption calc.
+	* src/m_atmosphere.cc (batch_atm_fields_compactFromArrayOfMatrixHydromet): NEW.
+	Generating batch_atm_hydromet_fields_compact (amtmosphere including 
+	hydromet data) and batch_atm_fields_compact (without hydromet data 
+	for absorption calc.)
+	* src/m_atmosphere.cc (AtmFieldsFromCompactHydromet): NEW. Extracting atmospheric
+	fields including hydromet_field.
+
+	* src/m_cloudbox.cc (cloudboxSetAutomatically): NEW. Setting cloudbox_limits
+	in correspondence to actual extend of cloud, derived from hydromet_field.
+	If hydromet_field is empty (only zeros) cloudbox is set off!
+	* src/m_cloudbox.cc (Hydromet_cleanup): NEW. Replacing hydromet values smaller
+	than hydromet_threshold by zero.
+	* src/m_cloudbox.cc (ParticleSpeciesInit): NEW. initializing part_species
+	* src/m_cloudbox.cc (ParticleSpeciesSet): NEW. filling ArrayOfString part_species
+	* src/m_cloudbox.cc (ParticleTypeAddAllMeta): NEW. Reading SingleScatteringData and 
+	ScatteringMetaData from corresponding arrays provided by user.
+	* src/m_cloudbox.cc (pnd_fieldSetup): NEW. Doing the actual pnd calculation, using
+	MH97 or liquid particle size distributions.
+
+	* src/groups.cc: added ScatteringMetaData and ArrayOfScatteringMetaData.
+
+	* src/methods.cc: added all new WSMs, Documentation is partially incomplete.
+
+	* src/workspace.cc: added 	batch_atm_hydromet_fields_compact
+					hydromet_field
+					hydromet_threshold
+					part_species
+					scat_data_meta
+					scat_data_meta_array
+				Documentation is partially incomplete.
+ 
 2011-02-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-138
@@ -19,6 +101,7 @@
 	Doit calculation will simply be skipped.
 	Mostly for Daniel at the moment, so he can dynamically turn the
 	cloudbox on and off from one batch job to the next.
+
 
 2011-01-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 

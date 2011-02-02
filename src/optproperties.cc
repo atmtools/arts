@@ -890,3 +890,15 @@ ostream& operator<< (ostream& os, const ArrayOfSingleScatteringData& /*assd*/)
   return os;
 }
 
+ostream& operator<< (ostream& os, const ScatteringMetaData& /*ssd*/)
+{
+  os << "ScatteringMetaData: Output operator not implemented";
+  return os;
+}
+
+
+ostream& operator<< (ostream& os, const ArrayOfScatteringMetaData& /*assd*/)
+{
+  os << "ArrayOfScatteringMetaData: Output operator not implemented";
+  return os;
+}

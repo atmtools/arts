@@ -210,6 +210,81 @@ void atm_fields_compactFromMatrix(// WS Output:
   af.data(Range(joker),Range(joker),0,0) = transpose(im(Range(joker),Range(1,nf_1)));
 }
 
+// Workspace method, doxygen header will be auto-generated.
+// 2011-01-24 Daniel Kreyling
+void atm_fields_compactFromMatrixVMRonly(// WS Output:
+                                  GriddedField4& af, // atm_fields_compact
+				  					// WS Input:
+                                  const Index& atmosphere_dim,
+                                  	// WS Generic Input:
+                                  const Matrix& im,
+                                  	// Control Parameters:
+                                  const ArrayOfString& field_names
+
+ 				    )
+{
+  if (1!=atmosphere_dim)
+    {
+      ostringstream os; 
+      os << "Atmospheric dimension must be one.";
+      throw runtime_error( os.str() );
+    }
+
+  const Index np = im.nrows();   // Number of pressure levels.
+  const Index nf = im.ncols()-1;
+  //const Index ns = 2;
+  
+ // const Index nh = im.ncols()-((species_names.nelem()+field_names.nelem()));
+ // const Index ns = im.ncols()-((field_names.nelem()+hydromet_names.nelem()));
+  
+  Index nf_1; // Number of required fields. 
+                  // All fields called "ignore" are ignored.
+  String fn_upper; // Temporary variable to hold upper case field_names.
+
+  if (field_names.nelem()!=nf)
+    {
+      ostringstream os; 
+      os << "Cannot copy Matrix.\n"
+         << "*field_names* must have one element less than there are\n"
+         << "matrix columns.";
+      throw runtime_error( os.str() );
+    }
+
+
+  // Remove additional fields from the field_names. All fields that
+  // are flagged by 'ignore' in the field names, small or large letters,
+  // are removed.
+  nf_1 = 0;
+  for(Index f = 0; f < field_names.nelem(); f++)
+    {
+      fn_upper = field_names[f];
+      std::transform ( fn_upper.begin(),  fn_upper.end(), fn_upper.begin(), ::toupper);
+      if(fn_upper != "IGNORE") nf_1++;
+    }
+
+  // Copy required field_names to a new variable called field_names_1
+  ArrayOfString f_names_1(2); //f_names_2(2);
+  for (Index f=0; f< 2; f++) f_names_1[f] = field_names[f];
+
+  //  out3 << "Copying *" << im_name << "* to *atm_fields_compact*.\n";
+  
+  af.set_grid(GFIELD4_FIELD_NAMES, f_names_1);
+
+  
+  for (Index f=6; f<field_names.nelem(); f++) {
+    //f_names_2[f] = field_names[f];
+    af.get_string_grid(GFIELD4_FIELD_NAMES).push_back(field_names[f]);
+  }
+  
+  af.set_grid(GFIELD4_P_GRID, im(Range(joker),0));
+  
+  af.set_grid(GFIELD4_LAT_GRID, Vector());
+  af.set_grid(GFIELD4_LON_GRID, Vector());
+  
+  af.resize(4,np,1,1); // Resize it according to the required fields
+  af.data(Range(0,2),Range(joker),0,0) = transpose(im(Range(joker),Range(1,2)));
+  af.data(Range(2,2),Range(joker),0,0) = transpose(im(Range(joker),Range(6,2)));
+}
 
 
 // Workspace method, doxygen header is auto-generated.
@@ -313,6 +388,228 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
           exit_or_rethrow(e.what());
         }
     }    
+}
+
+
+// Workspace method, doxygen header is auto-generated.
+// 2011-01-24 Daniel Kreyling
+void batch_atm_fields_compactFromArrayOfMatrixHydromet(// WS Output:
+                                               ArrayOfGriddedField4& batch_atm_fields_compact,
+					       ArrayOfGriddedField4& batch_atm_hydromet_fields_compact,
+                                               // WS Input:
+                                               const Index& atmosphere_dim,
+                                               // WS Generic Input:
+                                               const ArrayOfMatrix& am,
+                                               // Control Parameters:
+                                               const ArrayOfString& field_names,
+					       const ArrayOfString& extra_field_names,
+                                               const Vector& extra_field_values)
+{
+  const Index amnelem = am.nelem();
+
+  // We use the existing WSMs atm_fields_compactFromMatrix and
+  // atm_fields_compactAddConstant to do most of the work.
+
+  // Check that extra_field_names and extra_field_values have matching
+  // dimensions:
+  if (extra_field_names.nelem() != extra_field_values.nelem())
+    {
+      ostringstream os; 
+      os << "The keyword arguments extra_field_names and\n"
+         << "extra_field_values must have matching dimensions.";
+      throw runtime_error( os.str() );
+    }
+
+  // Make output variable the proper size:
+  batch_atm_fields_compact.resize(amnelem);
+  batch_atm_hydromet_fields_compact.resize(amnelem);
+  // Loop the batch cases:
+/*#pragma omp parallel for                                     \
+  if(!arts_omp_in_parallel())                                \
+  default(none)                                              \
+  shared(am, atmosphere_dim, batch_atm_fields_compact,       \
+         extra_field_names, extra_field_values, field_names) */
+#pragma omp parallel for                                     \
+  if(!arts_omp_in_parallel())
+  for (Index i=0; i<amnelem; ++i)
+    {
+      // All the input variables are visible here, despite the
+      // "default(none)". The reason is that they are return by
+      // reference arguments of this function, which are shared
+      // automatically. 
+
+      // The try block here is necessary to correctly handle
+      // exceptions inside the parallel region. 
+      try
+        {
+          atm_fields_compactFromMatrixVMRonly(batch_atm_fields_compact[i],
+					   atmosphere_dim,
+					   am[i],
+					   field_names);
+	  
+	  atm_fields_compactFromMatrix(batch_atm_hydromet_fields_compact[i],
+					   atmosphere_dim,
+					   am[i],
+					   field_names);
+
+          for (Index j=0; j<extra_field_names.nelem(); ++j){
+            atm_fields_compactAddConstant(batch_atm_hydromet_fields_compact[i],
+                                          extra_field_names[j],
+                                          extra_field_values[j]);
+	    
+	    atm_fields_compactAddConstant(batch_atm_fields_compact[i],
+                                          extra_field_names[j],
+                                          extra_field_values[j]);}
+        }
+      catch (runtime_error e)
+        {
+          exit_or_rethrow(e.what());
+        }
+    }    
+}
+
+// Workspace method, doxygen header will be auto-generated.
+// 2010-11-29 Daniel Kreyling
+void AtmFieldsFromCompactHydromet(// WS Output:
+                          Vector& p_grid,
+                          Vector& lat_grid,
+                          Vector& lon_grid,
+                          Tensor3& t_field,
+                          Tensor3& z_field,
+			  Tensor4& hydromet_field,
+                          Tensor4& vmr_field,
+		          // WS Input:
+                          const ArrayOfArrayOfSpeciesTag& abs_species,
+			  // const ArrayOfArrayOfSpeciesTag& 
+                          const GriddedField4& atm_fields_compact,
+                          const Index&  atmosphere_dim )
+{
+  // Make a handle on atm_fields_compact to save typing:
+  const GriddedField4& c = atm_fields_compact;
+  
+  // Check if the grids in our data match atmosphere_dim
+  // (throws an error if the dimensionality is not correct):
+  chk_atm_grids(atmosphere_dim,
+                c.get_numeric_grid(GFIELD4_P_GRID),
+                c.get_numeric_grid(GFIELD4_LAT_GRID),
+                c.get_numeric_grid(GFIELD4_LON_GRID));
+
+  const Index nf   = c.get_grid_size(GFIELD4_FIELD_NAMES);
+  const Index np   = c.get_grid_size(GFIELD4_P_GRID);
+  const Index nlat = c.get_grid_size(GFIELD4_LAT_GRID);
+  const Index nlon = c.get_grid_size(GFIELD4_LON_GRID);
+
+  // Grids:
+  p_grid = c.get_numeric_grid(GFIELD4_P_GRID);
+  lat_grid = c.get_numeric_grid(GFIELD4_LAT_GRID);
+  lon_grid = c.get_numeric_grid(GFIELD4_LON_GRID);
+
+  // The order of the fields is:
+  // T[K] z[m] LWC[kg/m^3] IWC[kg/m^3] Rain[kg/(m2*s)] Snow[kg/(m2*s)] VMR_1[1] ... VMR[2]
+
+  // Number of VMR species:
+  const Index ns = nf-6;
+  
+  // Check that there is at least one VMR species:
+  if (ns<1)
+    {
+      ostringstream os;
+      os << "There must be at least three fields in *atm_fields_compact*.\n"
+         << "T, z, and at least one VMR.";
+      throw runtime_error( os.str() );
+    }
+
+  // Check that first field is T:
+  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[0] != "T")
+    {
+      ostringstream os;
+      os << "The first field must be \"T\", but it is:"
+         << c.get_string_grid(GFIELD4_FIELD_NAMES)[0];
+      throw runtime_error( os.str() );
+    }
+
+  // Check that second field is z:
+  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[1] != "z")
+    {
+      ostringstream os;
+      os << "The second field must be \"z\"*, but it is:"
+         << c.get_string_grid(GFIELD4_FIELD_NAMES)[1];
+      throw runtime_error( os.str() );
+    }
+
+  // Check that third field is LWC:
+  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[2] != "LWC")
+    {
+      ostringstream os;
+      os << "The second field must be \"LWC\"*, but it is:"
+         << c.get_string_grid(GFIELD4_FIELD_NAMES)[2];
+      throw runtime_error( os.str() );
+    }
+
+  // Check that fourth field is IWC:
+  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[3] != "IWC")
+    {
+      ostringstream os;
+      os << "The second field must be \"IWC\"*, but it is:"
+         << c.get_string_grid(GFIELD4_FIELD_NAMES)[3];
+      throw runtime_error( os.str() );
+    }
+
+  // Check that fifth field is Rain:
+  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[4] != "Rain")
+    {
+      ostringstream os;
+      os << "The second field must be \"Rain\"*, but it is:"
+         << c.get_string_grid(GFIELD4_FIELD_NAMES)[4];
+      throw runtime_error( os.str() );
+    }
+
+  // Check that sixth field is Snow:
+  if (c.get_string_grid(GFIELD4_FIELD_NAMES)[5] != "Snow")
+    {
+      ostringstream os;
+      os << "The second field must be \"IWC\"*, but it is:"
+         << c.get_string_grid(GFIELD4_FIELD_NAMES)[5];
+      throw runtime_error( os.str() );
+    }
+    
+  // Check that the other fields are VMR fields and match abs_species:
+  for (Index i=0; i<ns; ++i)
+    {
+      const String tf_species = c.get_string_grid(GFIELD4_FIELD_NAMES)[6+i];
+      
+      // Get name of species from abs_species:      
+      extern const Array<SpeciesRecord> species_data;  // The species lookup data:
+      const String as_species = species_data[abs_species[i][0].Species()].Name();
+
+      // Species in field name and abs_species should be the same:
+      if (tf_species != as_species)
+        {
+          ostringstream os;
+          os << "Field name not valid: "
+             << tf_species << "\n"
+             << "Based on *abs_species*, the field name should be: "
+             << as_species;
+          throw runtime_error( os.str() );
+        }
+    }
+
+  // Temperature field (first field):
+  t_field.resize(np,nlat,nlon);
+  t_field = c.data(0,Range(joker),Range(joker),Range(joker));
+
+  // Altitude profile (second field):
+  z_field.resize(np,nlat,nlon);
+  z_field = c.data(1,Range(joker),Range(joker),Range(joker));
+
+  //write all hydromet profile to one Tensor4
+  hydromet_field.resize(4,np,nlat,nlon);
+  hydromet_field = c.data(Range(2,4),Range(joker),Range(joker),Range(joker));
+
+  // VMR profiles (remaining fields):
+  vmr_field.resize(ns,np,nlat,nlon);
+  vmr_field = c.data(Range(6,ns),Range(joker),Range(joker),Range(joker));
+    
 }
 
 

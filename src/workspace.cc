@@ -894,6 +894,18 @@ void Workspace::define_wsv_data()
        "calculations. \n"
        ),
       GROUP( "ArrayOfGriddedField4" )));
+   
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "batch_atm_hydromet_fields_compact" ),
+      DESCRIPTION
+      (
+       "An array of compact atmospheric states. Including hydrometeors.\n"
+       "\n"
+       "This is used to hold a set of *atm_fields_compact* for batch\n"
+       "calculations. \n"
+       ),
+      GROUP( "ArrayOfGriddedField4" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1503,6 +1515,42 @@ void Workspace::define_wsv_data()
 //        ),
 //       GROUP( "Matrix" )));
 
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "hydromet_field" ),
+      DESCRIPTION
+      (
+       "The field of atmospheric hydrometeor types (like IWC/LWC/Rain etc.)\n"
+       "\n"
+       "This variable contains concentration of hydrometeors at each\n"
+       "atmospheric grid point.\n"
+       "\n"
+       "If hydromet_field is obtained from Chevallier91L data, the hydrometeors\n"
+       "should be: CLW[kg/m^3] CIW[kg/m^3] Rain[kg/(m2*s)] Snow[kg/(m2*s)]\n"
+       "\n"
+       "Usage:\thydrometeor data is used to calculate pnd_fields\n"
+       "\n"
+       "Unit:\tdepending on what is read\n"
+       "\n"
+       "Dimension:\t[ hydromet_type, p_grid, lat_grid, lon_grid ]\n"
+      
+       ),
+      GROUP( "Tensor4" ))); 
+    
+    wsv_data.push_back
+    (WsvRecord
+     (NAME( "hydromet_threshold" ),
+      DESCRIPTION
+      (
+       "Threshold value for minimum hydrometeor concentration in *hydromet_field*.\n"
+       "\n"
+       "Check WSM *Hydromet_cleanup* for more information!\n"
+       "\n"
+       "*Default value*:\t1e-15\n"      
+       ),
+      GROUP( "Numeric" )));   
+   
+   
   wsv_data.push_back
     (WsvRecord
      (NAME( "imblock" ),
@@ -2284,6 +2332,28 @@ void Workspace::define_wsv_data()
        "Usage: Set by the user.\n"
        ),
       GROUP( "Vector" )));
+    
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "part_species" ),
+      DESCRIPTION
+      (
+       "*part_species* is an Array of Strings containing user defiend input\n"
+       "for particle number density calculations performed primarily by *pnd_fieldSetup*.\n"
+       "\n"
+       "Each single String must contain:\n"
+       "\thydrometeor type [*String*] (e.g. 'LWC', 'IWC', 'Rain')\n"
+       "\tparticle size distribution [*String*] (e.g. 'MH97', 'liquid')\n"
+       "FIXME\n"
+       "\tsizerange-begin [*numeric*]: the first particle radius/melted diameter the calculations shall start with\n"
+       "\tsizerange-end [*numeric*]: the last particle radius/melted diameter the calculations shall end with\n"
+       "\n"
+       "NOTE: the interval of sizerange-begin and sizerange-end must be covered by *single_scattering_data* and\n"
+       "*scat_data_meta*.\n"
+       "\n"
+       "The Array needs to looks like this: [''IWC-MH97-2-1000'', ''LWC-liquid-0.1-10'', ...]\n"
+       ),
+      GROUP( "ArrayOfString" )));
 
     wsv_data.push_back
    (WsvRecord
@@ -2856,6 +2926,57 @@ void Workspace::define_wsv_data()
        "Usage:    Method output.\n"
        ),
      GROUP( "Index" ))); 
+
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "scat_data_meta" ),
+        DESCRIPTION
+        (
+	 "Structure for the scattering meta data.\n"
+	 "\n"
+	 "This variable holds the scattering meta data for a single particle.\n"
+	 "This data is needed for particle size distribution calculations.\n"
+	 "\n"
+	 "Usage: Set by the user.\n"
+	 "\n"
+	 "Dimensions:  ScatteringMetaData \n"
+	 "  String[description]\n"
+	 "  String[type]\n"
+	 "  String[shape]\n"
+	 "  Numeric[density]\n"
+	 "  Numeric[d_max]\n"
+	 "  Numeric[V]\n"
+	 "  Numeric[A_proje]\n"
+	 "  Numeric[asratio]\n"
+         ),
+        GROUP( "ScatteringMetaData" ))); 
+
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "scat_data_meta_array" ),
+        DESCRIPTION
+        (
+	 "An Array of ScatteringMetaData.\n"
+	 "\n"
+	 "The elements of the array hold the scattering meta data for a single particle.\n"
+	 "This data is needed for particle size distribution calculations, with *pnd_fieldSetup*.\n"
+	 "\n"
+	 "Important note: This array must contain as many elements as the ArrayOfSingleScatteringData\n"
+	 "\n"
+	 "Usage: Set by the user.\n"
+	 "\n"
+	 "Dimensions:  ScatteringMetaData \n"
+	 "  String[description]\n"
+	 "  String[type]\n"
+	 "  String[shape]\n"
+	 "  Numeric[density]\n"
+	 "  Numeric[d_max]\n"
+	 "  Numeric[V]\n"
+	 "  Numeric[A_proje]\n"
+	 "  Numeric[asratio]\n"
+         ),
+        GROUP( "ArrayOfScatteringMetaData" ))); 
+
 
    wsv_data.push_back
      (WsvRecord
