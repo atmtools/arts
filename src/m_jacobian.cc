@@ -275,6 +275,7 @@ void jacobianCalcAbsSpecies(
   const Vector&                     lat_grid,
   const Vector&                     lon_grid,
   const Tensor3&                    t_field,
+  const Tensor3&                    z_field,
   const Tensor4&                    vmr_field,
   const ArrayOfArrayOfSpeciesTag&   abs_species,
   const Index&                      cloudbox_on,
@@ -459,7 +460,7 @@ void jacobianCalcAbsSpecies(
               //
               iyb_calc( ws, iybp, dummy1, dummy2, dummy3, dummy4, imblock, 
                         atmosphere_dim, p_grid, lat_grid, lon_grid, 
-                        t_field, vmr_p, cloudbox_on, stokes_dim, 
+                        t_field, z_field, vmr_p, cloudbox_on, stokes_dim, 
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 
                         mblock_aa_grid, antenna_dim, iy_clearsky_agenda, 0, 
                         y_unit, 0, ArrayOfRetrievalQuantity(), 
@@ -777,6 +778,7 @@ void jacobianCalcPointingZaIybrecalc(
   const Vector&                     lat_grid,
   const Vector&                     lon_grid,
   const Tensor3&                    t_field,
+  const Tensor3&                    z_field,
   const Tensor4&                    vmr_field,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,
@@ -831,7 +833,7 @@ void jacobianCalcPointingZaIybrecalc(
 
     iyb_calc( ws, iyb2, iye, iyet, iyb_aux, diyb_dx, imblock, 
               atmosphere_dim, p_grid, lat_grid, lon_grid, 
-              t_field, vmr_field, cloudbox_on, stokes_dim, 
+              t_field, z_field, vmr_field, cloudbox_on, stokes_dim, 
               f_grid, sensor_pos, los, mblock_za_grid, mblock_aa_grid, 
               antenna_dim, iy_clearsky_agenda, 0, y_unit, 
               0, ArrayOfRetrievalQuantity(), ArrayOfArrayOfIndex() );
@@ -1185,6 +1187,7 @@ void jacobianCalcTemperature(
   const Vector&                     lat_grid,
   const Vector&                     lon_grid,
   const Tensor3&                    t_field,
+  const Tensor3&                    z_field,
   const Tensor4&                    vmr_field,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,
@@ -1321,8 +1324,8 @@ void jacobianCalcTemperature(
                 case 3:
                   {  
                     // Here we need to perturb a tensor3
-                    perturbation_field_3d( t_p(joker,joker,joker), 
-                                           p_gp, lat_gp, lon_gp, jg[0].nelem()+2,
+                    perturbation_field_3d( t_p(joker,joker,joker), p_gp, 
+                                           lat_gp, lon_gp, jg[0].nelem()+2,
                                            jg[1].nelem()+2, jg[2].nelem()+2, 
                                            p_range, lat_range, lon_range, 
                                            rq.Perturbation(), pertmode );
@@ -1339,7 +1342,7 @@ void jacobianCalcTemperature(
               //
               iyb_calc( ws, iybp, dummy1, dummy2, dummy3, dummy4, imblock, 
                         atmosphere_dim, p_grid, lat_grid, lon_grid, 
-                        t_p, vmr_field, cloudbox_on, stokes_dim, 
+                        t_p, z_field, vmr_field, cloudbox_on, stokes_dim, 
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 
                         mblock_aa_grid, antenna_dim, iy_clearsky_agenda, 0, 
                         y_unit, 0, ArrayOfRetrievalQuantity(), 

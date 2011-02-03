@@ -1,9 +1,22 @@
+2011-02-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-141
+
+	* src/m_rte.cc: Added z_field in several places.
+
+	* src/m_jacobian.cc: Added z_field in several places.
+
+	* src/m_fos.cc (iyFOS): Adopted call of iy_clearsky_agenda.
+
+	* src/agendas.cc (define_agenda_data): Added z_field as input to
+	iy_clearsky_agenda.
+
 2011-02-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-140
 
 	* tests/GroundBased/TestGbased.arts: Moved test of temperature
-	jacobian to this file. 
+	jacobian to this file.
 
 	* tests/ClearSky/TestClearSky.arts: Removed temperature part of
 	jacobian.
@@ -15,7 +28,7 @@
 	All following changes add or create new functions, WSMs or WSVs only.
 	None of the previously exisiting methods has been changed.
 	Since documentation in not yet completed, I recommend not to use it right now.
-	
+
 	* src/cloudbox.cc (chk_hydromet_field):NEW. Check whether hydromet grid size
 	is equal to atmospheric grid size and if hydromet profile is zero (no cloud)
 	in each grid point, then it returns true.

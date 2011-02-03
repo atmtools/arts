@@ -124,6 +124,7 @@ void iyb_calc(
   ConstVectorView                   lat_grid,
   ConstVectorView                   lon_grid,
   ConstTensor3View                  t_field,
+  ConstTensor3View                  z_field,
   ConstTensor4View                  vmr_field,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,

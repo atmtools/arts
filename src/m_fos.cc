@@ -136,7 +136,8 @@ void fos_yStandard(
                                              iy_transmission, 0, jacobian_do, 
                                              iy_aux_do, f_grid, p_grid, 
                                              lat_grid, lon_grid, t_field, 
-                                             vmr_field, iy_clearsky_agenda );
+                                             z_field, vmr_field, 
+                                             iy_clearsky_agenda );
                   fos_y(ia,joker,joker) = tmp;
                 }
             }
@@ -200,7 +201,8 @@ void fos_yStandard(
                                              iy_transmission, 0, jacobian_do, 
                                              iy_aux_do, f_grid, p_grid, 
                                              lat_stretched, lon_grid, t_field, 
-                                             vmr_field, iy_clearsky_agenda );
+                                             z_field, vmr_field, 
+                                             iy_clearsky_agenda );
                   fos_y(ia,joker,joker) = tmp;
                 }
             }
@@ -216,7 +218,8 @@ void fos_yStandard(
                                          iy_transmission, 0, jacobian_do, 
                                          iy_aux_do, f_grid, p_grid, 
                                          lat_grid, lon_grid, t_field, 
-                                         vmr_field, iy_clearsky_agenda );
+                                         z_field, vmr_field, 
+                                         iy_clearsky_agenda );
               fos_y(ia,joker,joker) = tmp;
             }
         }
@@ -341,7 +344,7 @@ void iyFOS(
                              iy_aux, diy_dx, 0, rte_pos2, rte_los2,
                              iy_transmission, 0, jacobian_do, iy_aux_do, 
                              f_grid, p_grid, lat_grid, lon_grid, t_field, 
-                             vmr_field, iy_clearsky_agenda );
+                             z_field, vmr_field, iy_clearsky_agenda );
 
   // RT for part inside cloudbox
   //

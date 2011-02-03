@@ -333,6 +333,7 @@ void get_pointers_for_analytical_jacobians(
     \param   lat_grid              As the WSV.
     \param   lon_grid              As the WSV.
     \param   t_field               As the WSV.
+    \param   z_field               As the WSV.
     \param   vmr_field             As the WSV.
     \param   cloudbox_on           As the WSV.
     \param   stokes_dim            As the WSV.
@@ -361,6 +362,7 @@ void get_iy_of_background(
   ConstVectorView         lat_grid,
   ConstVectorView         lon_grid,
   ConstTensor3View        t_field,
+  ConstTensor3View        z_field,
   ConstTensor4View        vmr_field,
   const Matrix&           r_geoid,
   const Matrix&           z_surface,
@@ -521,7 +523,7 @@ void get_iy_of_background(
                             iy_aux, diy_dx, 0, rte_pos, los,
                             iy_trans_new, cloudbox_on, jacobian_do, iy_aux_do, 
                             f_grid, p_grid, lat_grid, lon_grid, t_field, 
-                            vmr_field, iy_clearsky_agenda );
+                            z_field, vmr_field, iy_clearsky_agenda );
                   }
 
                 I(ilos,joker,joker) = iy;
@@ -589,6 +591,7 @@ void iyb_calc(
   ConstVectorView                   lat_grid,
   ConstVectorView                   lon_grid,
   ConstTensor3View                  t_field,
+  ConstTensor3View                  z_field,
   ConstTensor4View                  vmr_field,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,
@@ -696,10 +699,10 @@ void iyb_calc(
               ArrayOfTensor3 diy_dx; 
               //
               iy_clearsky_agendaExecute( l_ws, iy, iy_error, iy_error_type, 
-                             iy_aux, diy_dx, 1, sensor_pos(imblock,joker), los, 
-                             iy_transmission, cloudbox_on, j_analytical_do, 
-                             iy_aux_do, f_grid, p_grid, lat_grid, lon_grid, 
-                             t_field, vmr_field, l_iy_clearsky_agenda );
+                           iy_aux, diy_dx, 1, sensor_pos(imblock,joker), los, 
+                           iy_transmission, cloudbox_on, j_analytical_do, 
+                           iy_aux_do, f_grid, p_grid, lat_grid, lon_grid, 
+                           t_field, z_field, vmr_field, l_iy_clearsky_agenda );
 
               // Start row in iyb etc. for present LOS
               //
@@ -910,8 +913,8 @@ void iyBeerLambertStandardClearsky(
   //
   get_iy_of_background( 
                 ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
-                iy_aux_do, jacobian_do, ppath, atmosphere_dim, p_grid, 
-                lat_grid, lon_grid, t_field, vmr_field, r_geoid, z_surface, 
+                iy_aux_do, jacobian_do, ppath, atmosphere_dim, p_grid, lat_grid,
+                lon_grid, t_field, z_field, vmr_field, r_geoid, z_surface, 
                 cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda, 
                 iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
   
@@ -1142,7 +1145,7 @@ void iyBeerLambertStandardCloudbox(
                                iy_aux, diy_dx, 0, rte_pos2, rte_los2,
                                dummy, 0, jacobian_do, iy_aux_do, 
                                f_grid, p_grid, lat_grid, lon_grid, t_field, 
-                               vmr_field, iy_clearsky_agenda );
+                               z_field, vmr_field, iy_clearsky_agenda );
   }
 
   // RT for part inside cloudbox
@@ -1473,8 +1476,8 @@ void iyEmissionStandardClearsky(
   //
   get_iy_of_background( 
                 ws, iy, iy_error, iy_error_type, iy_aux, diy_dx, iy_trans_new,  
-                iy_aux_do, jacobian_do, ppath, atmosphere_dim, p_grid, 
-                lat_grid, lon_grid, t_field, vmr_field, r_geoid, z_surface, 
+                iy_aux_do, jacobian_do, ppath, atmosphere_dim, p_grid, lat_grid,
+                lon_grid, t_field, z_field, vmr_field, r_geoid, z_surface, 
                 cloudbox_on, stokes_dim, f_grid, iy_clearsky_agenda, 
                 iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
   
@@ -1754,10 +1757,10 @@ void iyEmissionStandardClearskyBasic(
   ArrayOfTensor3  dummy4;
   //  
   get_iy_of_background( ws, iy, dummy1, dummy2, dummy3, dummy4, dummy5,  
-                    0, 0, ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
-                    t_field, vmr_field, r_geoid, z_surface, cloudbox_on, 
-                    stokes_dim, f_grid, iy_clearsky_basic_agenda, 
-                    iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
+                  0, 0, ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
+                  t_field, z_field, vmr_field, r_geoid, z_surface, cloudbox_on, 
+                  stokes_dim, f_grid, iy_clearsky_basic_agenda, 
+                  iy_space_agenda, surface_prop_agenda, iy_cloudbox_agenda );
 
 
   // Do RT calculations
@@ -1926,6 +1929,7 @@ void yCalc(
   const Vector&                     lat_grid,
   const Vector&                     lon_grid,
   const Tensor3&                    t_field,
+  const Tensor3&                    z_field,
   const Tensor4&                    vmr_field,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,
@@ -2127,7 +2131,7 @@ void yCalc(
       //
       iyb_calc( l_ws, iyb, iyb_error, iy_error_type, iyb_aux, diyb_dx, 
                 imblock, atmosphere_dim, p_grid, lat_grid, lon_grid, t_field, 
-                vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos, 
+                z_field, vmr_field, cloudbox_on, stokes_dim, f_grid, sensor_pos,
                 sensor_los, mblock_za_grid, mblock_aa_grid, antenna_dim, 
                 l_iy_clearsky_agenda, iy_aux_do, y_unit, j_analytical_do, 
                 jacobian_quantities, jacobian_indices );
