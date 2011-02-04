@@ -8420,7 +8420,7 @@ void define_md_data_raw()
          "\n"
          "Usage example:\n"
          "   timerStart()\n"
-         "   ReadXML(f_grid){\"frequencies.xml\"}\n"
+         "   ReadXML(f_grid,\"frequencies.xml\")\n"
          "   timerStop()\n"
          ),
         AUTHORS( "Oliver Lemke" ),
@@ -8434,7 +8434,6 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-
 
   md_data_raw.push_back
     ( MdRecord
@@ -9220,6 +9219,43 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "y", "y_error", "jacobian", "y_f", "y_pol", "y_unit" ),
+        GIN(),
+        GIN_TYPE(),
+        GIN_DEFAULT(),
+        GIN_DESC()
+        ));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "z_fieldFromHSE" ),
+        DESCRIPTION
+        (
+         "Altitudes to fulfil hydrostatic equilibrium.\n"
+         "\n"
+         "The method applies hydrostatic equilibrium, considering the effect\n"
+         "of water vapour (but not liquid or ice water). Several variables\n"
+         "are hard-coded and the method is only valid for the Earth\n"
+         "\n"
+         "The output is an update of *z_field*. This variable is expected to\n"
+         "contain approximative altitudes when calling the function. The\n"
+         "altitude matching *p_hse* is kept constant. Other altitudes are\n"
+         "basically arbitrary, but good estimates give quicker calculations.\n"
+         "\n"
+         "The calculations are repeated until the change in altitude is below\n"
+         "*z_hse_accuracy*. An iterative process is needed as gravity varies\n"
+         "with altitude.\n"
+         "\n"
+         "The values in *lat_grid* must be \"geophysical\" latitudes. For 1D,\n"
+         "this method requires that the length of *lat_grid* is 1.\n"
+         ),
+        AUTHORS( "Patrick Eriksson" ),
+        OUT( "z_field" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atmosphere_dim", "p_grid", "lat_grid", "abs_species", "t_field", 
+            "z_field", "vmr_field", "r_geoid", "atm_checked", 
+            "p_hse", "z_hse_accuracy" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

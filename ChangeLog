@@ -1,3 +1,11 @@
+2011-02-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-143
+
+	* src/m_atmosphere.cc (z_fieldFromHSE): Created. Follows the
+	implementation in atmlab and gives basically identical results
+	(differences on mm level).
+
 2011-02-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-142
@@ -7,7 +15,7 @@
 	a latitude is needed even for 1D etc, and is more consistent with
 	other variables where "length 1" dimensions can have a specified
 	value.
-	
+
 	* src/m_abs.cc: Removed about 900 lines of inactive code (inside
 	#if 0), with functions from arts1. Such as hseSet,
 	hseSetFromLatitude, hseCalc.
@@ -17,7 +25,7 @@
 
 	Start to introduce calculation of hydrostatic equilibrium:
 	---
-	* src/workspace.cc: Added p_hse and z_hse_accuracy. 
+	* src/workspace.cc: Added p_hse and z_hse_accuracy.
 
 	* src/m_abs.cc: Removed some methods from arts-1 not used, such as
 	hseSet.
@@ -26,7 +34,7 @@
 	inactive, old, code from hseCalc.
 
 	Changes below to allow lat_grid and lon_grid to have length 1 even
-	when not used, and some cleaning: 
+	when not used, and some cleaning:
 	---
 	* src/m_ppath.cc (rte_posAddGeoidWGS84, sensor_posAddGeoidWGS84): 
 	Removed. Probably never used. In fact, not useful for 2D and 3D.

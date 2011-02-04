@@ -64,6 +64,8 @@ extern const Index GFIELD4_P_GRID;
 extern const Index GFIELD4_LAT_GRID;
 extern const Index GFIELD4_LON_GRID;
 
+extern const Numeric DEG2RAD;
+
 
 
 /*===========================================================================
@@ -1510,25 +1512,25 @@ void p_gridFromAtmRaw(//WS Output
 }
 
 
-#if 0
 
-// Algorithm based on equations from my (PE) thesis (page 274) and the book
-// Meteorology today for scientists and engineers by R.B. Stull (pages 9-10). 
-//
-/**
-   See the the online help (arts -d FUNCTION_NAME)
 
-   \author Patrick Eriksson
-   \date   2001-04-19
-*/
+// A small help function
+void z2g(
+               Numeric& g,
+         const Numeric& r,
+         const Numeric& g0,
+         const Numeric& z )
+{
+  g = g0 * pow( r/(r+z), 2 );
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void z_fieldFromHSE(
-         Tensor3&   z_field,
+         Tensor3&        z_field,
    const Index&          atmosphere_dim,
    const Vector&         p_grid,
    const Vector&         lat_grid,
-   const Vector&         lon_grid,
    const ArrayOfArrayOfSpeciesTag&   abs_species,
-   const Tensor3&        z_field,
    const Tensor3&        t_field,
    const Tensor4&        vmr_field,
    const Matrix&         r_geoid,
@@ -1536,10 +1538,13 @@ void z_fieldFromHSE(
    const Numeric&        p_hse,
    const Numeric&        z_hse_accuracy )
 {
-  // Some size
+  // Some general variables
   const Index np   = p_grid.nelem();
   const Index nlat = t_field.nrows();
   const Index nlon = t_field.ncols();
+  //
+  const Index firstH2O = find_first_species_tg( abs_species,
+                                      species_index_from_species_name("H2O") );
 
   // Input checks
   //
@@ -1556,6 +1561,10 @@ void z_fieldFromHSE(
                        "Values of *lat_grid* must be in the range [-90,90]." );
     }
   //
+  if( firstH2O < 0 )
+    throw runtime_error(
+       "Water vapour is a requiered (must be a tag group in *abs_species*)." );
+  //
   if( p_hse>p_grid[0]  ||  p_hse < p_grid[np-1] )
     {
       ostringstream os;
@@ -1569,78 +1578,81 @@ void z_fieldFromHSE(
     { throw runtime_error( "The value of *z_hse_accuracy* must be > 0." ); }
 
 
+  // Determine interpolation weights for p_hse
+  //
+  ArrayOfGridPos gp(1);
+  Matrix itw( 1, 2);
+  p2gridpos( gp, p_grid, Vector(1,p_hse) );
+  interpweights ( itw, gp );
+  
+
+  // The calculations
+  //
   for( Index ilat=0; ilat<nlat; ilat++ )
     {
-      const Numeric g0 = 
+      // "Small g" at geoid altitude, g0:
+      // Expression for g0 taken from Wikipedia page "Gravity of Earth", that
+      // is stated to be: International Gravity Formula 1967, the 1967 Geodetic
+      // Reference System Formula, Helmert's equation or Clairault's formula.
+      const Numeric x = fabs( lat_grid[ilat] );
+      const Numeric g0 = 9.780327 * ( 1 + 5.3024e-3*pow(sin(DEG2RAD*x),2) + 
+                                      5.8e-6*pow(sin(2*DEG2RAD*x),2) );
+
 
       for( Index ilon=0; ilon<nlon; ilon++ )
         {
-        
+          // Determine altitude for p_hse
+          Vector z_hse(1);
+          interp( z_hse, itw, z_field(joker,ilat,ilon), gp );
+
+          Numeric z_acc = 2 * z_hse_accuracy;
+
+          while( z_acc > z_hse_accuracy )
+            {
+              z_acc = 0;
+              Numeric g1=g0, g2=g0;
+
+              for( Index ip=0; ip<np-1; ip++ )
+                {
+                  // Calculate average g
+                  if( ip == 0 )
+                    {
+                      z2g( g2, r_geoid(ilat,ilon), g0, z_field(ip,ilat,ilon) );
+                    }
+                  g1 = g2;
+                  z2g( g2, r_geoid(ilat,ilon), g0, z_field(ip+1,ilat,ilon) );
+                  //
+                  const Numeric g = ( g1 + g2 ) / 2.0;
+
+                  // Weight mixing ratio for water assuming constant average
+                  // molecular weight of the air
+                  // 0.3108 = 18/28.96 * 0.5
+                  const Numeric r = 0.3108 * ( vmr_field(firstH2O,ip,ilat,ilon)
+                                         + vmr_field(firstH2O,ip+1,ilat,ilon) );
+  
+                  // Virtual temperature (no liquid water)
+                  const Numeric tv = 0.5 * ( 1 + 0.61*r) * (
+                              t_field(ip,ilat,ilon) + t_field(ip+1,ilat,ilon) );
+  
+                  // Change in vertical altitude from ip to ip+1 
+                  const Numeric dz = 287.053 * (tv/g) * 
+                                                 log( p_grid[ip]/p_grid[ip+1] );
+
+                  // New altitude
+                  Numeric znew = z_field(ip,ilat,ilon) + dz;
+                  z_acc = max( z_acc, fabs(znew-z_field(ip+1,ilat,ilon)) );
+                  z_field(ip+1,ilat,ilon) = znew;
+                }
+
+              // Adjust to z_hse
+              Vector z_tmp(1);
+              interp( z_tmp, itw, z_field(joker,ilat,ilon), gp );
+              z_field(joker,ilat,ilon) -= z_tmp[0] - z_hse[0];
+            }
         }
     }
-
-
-  check_if_bool( static_cast<Index>(hse[0]), 
-                                        "the HSE flag (first element of hse)");
-  
-  if ( hse[0] )
-  {
-    if ( hse.nelem() != 5 )
-      throw runtime_error("The length of the *hse* vector must be 5.");
-
-    const Index   np = abs_p.nelem();
-          Index   i;                     // altitude index
-          Numeric  g;                     // gravitational acceleration
-          Numeric  r;                     // water mixing ratio in gram/gram
-          Numeric  tv;                    // virtual temperature
-          Numeric  dz;                    // step geometrical altitude
-          Vector   ztmp(np);              // temporary storage for z_abs
-  
-    // Pick out values from hse
-    const Numeric   pref  = hse[1];
-    const Numeric   zref  = hse[2];
-    const Numeric   g0    = hse[3];
-    const Index     niter = Index( hse[4] );
-  
-    check_lengths( z_abs, "z_abs", abs_t, "abs_t" );  
-    check_lengths( z_abs, "z_abs", abs_h2o, "abs_h2o" );  
-    if ( niter < 1 )
-      throw runtime_error("The number of iterations must be > 0.");
-  
-    for ( Index iter=0; iter<niter; iter++ )
-    {
-      // Init ztmp
-      ztmp[0] = z_abs[0];
-  
-      // Calculate new altitudes (relative z_abs(1)) and store in ztmp
-      for ( i=0; i<np-1; i++ )
-      {
-        // Calculate g 
-        g  = ( g_of_z(r_geoid,g0,z_abs[i]) + 
-               g_of_z(r_geoid,g0,z_abs[i+1]) ) / 2.0;
-  
-        // Calculate weight mixing ratio for water assuming constant average
-        // molecular weight of the air
-        r  = 18/28.96 * (abs_h2o[i]+abs_h2o[i+1])/2;
-  
-        // The virtual temperature (no liquid water)
-        tv = (1+0.61*r) * (abs_t[i]+abs_t[i+1])/2;
-  
-        // The change in vertical altitude from i to i+1 
-        dz = 287.053*tv/g * log( abs_p[i]/abs_p[i+1] );
-        ztmp[i+1] = ztmp[i] + dz;
-      }
-  
-      // Match the altitude of the reference point
-      dz = interpp( abs_p, ztmp, pref ) - zref;
-
-      //  z_abs = ztmp - dz;
-      z_abs = ztmp;
-      z_abs -= dz;              
-    }
-  }
 }
 
-#endif
+
 
 
