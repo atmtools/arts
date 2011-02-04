@@ -1,6 +1,6 @@
 /* Copyright (C) 2000-2008
    Stefan Buehler <sbuehler@uni-bremen.de>
-   Patrick Eriksson <patric.eriksson@chalmers.se>
+   Patrick Eriksson <patrick.eriksson@chalmers.se>
    Oliver Lemke <olemke@ltu.se>
 
    This program is free software; you can redistribute it and/or modify it
@@ -2421,14 +2421,10 @@ void define_md_data_raw()
         (
          "Sets the atmospheric dimension to be 2D.\n"
          "\n"
-         "Sets *atmosphere_dim* to 2 and gives some variables dummy values.\n"
-         "\n"
-         "The longitude grid is set to be empty. The variables *lat_1d*\n"
-         "and *meridian_angle_1d* are given values that cause an error\n"
-         "message if used.\n"
+         "Sets *atmosphere_dim* to 2 and the longitude grid to be empty.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "atmosphere_dim", "lon_grid", "lat_1d", "meridian_angle_1d" ),
+        OUT( "atmosphere_dim", "lon_grid" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -2445,12 +2441,9 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Sets the atmospheric dimension to 3D.\n"
-         "\n"
-         "The variables *lat_1d* and *meridian_angle_1d* are given\n"
-         "values that cause an error message if used.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
-        OUT( "atmosphere_dim", "lat_1d", "meridian_angle_1d" ),
+        OUT( "atmosphere_dim" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -6840,38 +6833,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "rte_posAddGeoidWGS84" ),
-        DESCRIPTION
-        (
-         "Adds a geoid radius according to WGS-84 to a geometric altitude.\n"
-         "\n"
-         "This function assumes that the first element of *rte_pos* is set\n"
-         "to the geometric altitude for the position of the sensor.\n"
-         "The variable *rte_pos* shall contain the radius instead of the\n"
-         "altitude and that can be achieved by this function. The function\n"
-         "adds a geoid radius to the given altitude. The geoid radius is\n"
-         "taken from the WGS-84 reference ellipsoid.\n"
-         "\n"
-         "For 1D, the geoid radius is set to the radius of curvature of the\n"
-         "WGS-84 ellipsoid for the position and observation direction\n"
-         "described with *lat_1d* and *meridian_angle_1d*.\n"
-         "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
-         "ellipsoid for the latitude value in *rte_pos*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "rte_pos" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "rte_pos", "atmosphere_dim", "lat_1d", "meridian_angle_1d" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "rte_posAddRgeoid" ),
         DESCRIPTION
         (
@@ -6958,8 +6919,9 @@ void define_md_data_raw()
          "Sets the geoid radius to match the WGS-84 reference ellipsoid.\n"
          "\n"
          "For 1D, the geoid radius is set to the radius of curvature of the\n"
-         "WGS-84 ellipsoid for the position and observation direction\n"
-         "described with *lat_1d* and *meridian_angle_1d*.\n"
+         "WGS-84 ellipsoid in the north-south direction. The latitude is\n"
+         "taken from *lat_grid*, that then is demanded to have length 1.\n"
+         "\n"
          "For 2D and 3D, *r_geoid* is set to the radius of the WGS-84\n"
          "ellipsoid for the crossing points of the latitude and longitude\n"
          "grids.\n"
@@ -6973,8 +6935,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "lat_grid", "lon_grid", "lat_1d",
-            "meridian_angle_1d" ),
+        IN( "atmosphere_dim", "lat_grid", "lon_grid" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -7143,38 +7104,6 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "stokes_dim", "f_grid" ),
-        GIN(),
-        GIN_TYPE(),
-        GIN_DEFAULT(),
-        GIN_DESC()
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "sensor_posAddGeoidWGS84" ),
-        DESCRIPTION
-        (
-         "Adds a geoid radius according to WGS-84 to a geometric altitude.\n"
-         "\n"
-         "This function assumes that the first element of *sensor_pos* is\n"
-         "set to the geometric altitude for the positions of the sensor.\n"
-         "The variable *sensor_pos* shall contain the radius instead of the\n"
-         "altitude and that can be achieved by this function. The function\n"
-         "adds a geoid radius to the given altitude. The geoid radius is\n"
-         "taken from the WGS-84 reference ellipsoid.\n"
-         "\n"
-         "For 1D, the geoid radius is set to the radius of curvature of the\n"
-         "WGS-84 ellipsoid for the position and observation direction\n"
-         "described with *lat_1d* and *meridian_angle_1d*.\n"
-         "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
-         "ellipsoid for the latitude values in *sensor_pos*.\n"
-         ),
-        AUTHORS( "Patrick Eriksson" ),
-        OUT( "sensor_pos" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "sensor_pos", "atmosphere_dim", "lat_1d", "meridian_angle_1d" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -8868,7 +8797,7 @@ void define_md_data_raw()
         (
          "Create a vector from the given list of numbers.\n"
          "\n"
-         "   VectorSet(p_grid){[1000, 100, 10]}\n"
+         "   VectorSet(p_grid, [1000, 100, 10] )\n"
          "   Will create a p_grid vector with these three elements.\n"
          ),
         AUTHORS( "Stefan Buehler" ),

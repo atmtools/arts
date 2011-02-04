@@ -36,7 +36,11 @@ INCLUDE "odin/odinsmr_501.arts"
 VectorNLogSpace( p_grid, 321, 1000e2, 1 )
 
 # This example assumes 1D
-AtmosphereSet1D
+# Here things are set manually (not using AmosphereSet1D), and it is tested
+# that lat and long grids with length 1 are accepted  
+IndexSet( atmosphere_dim, 1 )
+VectorSet( lat_grid, [ 45 ] )
+VectorSet( lon_grid, [ 0 ] )
 
 # Atmospheric profiles here taken from Fascod
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, "../atmosphere_data/tropical" )

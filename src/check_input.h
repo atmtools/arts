@@ -25,7 +25,7 @@
 
 /*!
    \file   check_input.h
-   \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   \author Patrick Eriksson <patrick.eriksson@chalmers.se>
    \date   2002-04-15 
 
    This file contains the declaration of functions in check_input.cc.

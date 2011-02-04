@@ -85,26 +85,6 @@ void rte_losSet(
 }
 
 
-/* Workspace method: Doxygen documentation will be auto-generated */
-void rte_posAddGeoidWGS84(
-        // WS Output:
-              Vector&    rte_pos,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        const Numeric&   latitude_1d,
-        const Numeric&   meridian_angle_1d )
-{
-  // Check input
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_vector_length( "rte_pos", rte_pos, atmosphere_dim );
-
-  // Use *sensor_posAddGeoidWGS84* to perform the calculations.
-  Matrix m(1,rte_pos.nelem());
-  m(0,joker) = rte_pos;
-  sensor_posAddGeoidWGS84( m, atmosphere_dim, latitude_1d, meridian_angle_1d);
-  rte_pos[0] = m(0,0);
-}
-
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void rte_posAddRgeoid(
@@ -267,73 +247,6 @@ void ppath_stepRefractionEuler(
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
 }
 
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void sensor_posAddGeoidWGS84(
-        // WS Output:
-              Matrix&    sensor_pos,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        const Numeric&   latitude_1d,
-        const Numeric&   meridian_angle_1d )
-{
-  // Check input
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_matrix_ncols( "sensor_pos", sensor_pos, atmosphere_dim );
-
-  // Number of positions
-  const Index npos = sensor_pos.nrows();
-  if( npos == 0 )
-    throw runtime_error("The number of positions is 0, must be at least 1.");
-
-  // The function *r_geoidWGS84 is used to get the geoid radius, but some
-  // tricks are needed as this WSM sets *r_geoid* for all crossings of the
-  // latitude and longitude grids.
-  // For 2D and 3D, the function is always called with the atmospheric 
-  // dimensionality set to 2, and the latitudes of concern are put into 
-  // the latitude grid. An extra dummy value is needed if there is only one
-  // position in *sensor_pos*.
-
-  if( atmosphere_dim == 1 )
-    {
-      Vector lats(0);
-
-      // The size of the r-matrix is set inside the function.
-      Matrix r;
-      r_geoidWGS84( r, 1, lats, Vector(0), latitude_1d, meridian_angle_1d );
-      
-      // Add the geoid radius to the geometric altitudes
-      sensor_pos(joker,0) += r(0,0);
-    }
-
-  else
-    {
-      for( Index i=0; i<npos; i++ )
-        {
-          Vector lats(2);
-          Index  pos_used;
-
-          if( sensor_pos(i,1) < 90 )
-            {
-              lats[0]  = sensor_pos(i,1);
-              lats[1]  = 90;
-              pos_used = 0;
-            }
-          else
-            {
-              lats[0]  = -90;
-              lats[1]  = sensor_pos(i,1);
-              pos_used = 1;
-            }
-
-          // The size of the r-matrix is set inside the function.
-          Matrix r;
-          r_geoidWGS84( r, 2, lats, Vector(0), -999, -999 );
-          
-          sensor_pos(i,0) += r(pos_used,0);
-        }
-    }
-}
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */

@@ -1,5 +1,57 @@
 2011-02-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-14-142
+
+	* Main change is that lat_grid and lon_grid now can have length 1
+	even when these dimensions not are "active". This as in some cases
+	a latitude is needed even for 1D etc, and is more consistent with
+	other variables where "length 1" dimensions can have a specified
+	value.
+	
+	* src/m_abs.cc: Removed about 900 lines of inactive code (inside
+	#if 0), with functions from arts1. Such as hseSet,
+	hseSetFromLatitude, hseCalc.
+
+	* src/methods.cc: Example in description of VectorSet was in old
+	format.
+
+	Start to introduce calculation of hydrostatic equilibrium:
+	---
+	* src/workspace.cc: Added p_hse and z_hse_accuracy. 
+
+	* src/m_abs.cc: Removed some methods from arts-1 not used, such as
+	hseSet.
+
+	* src/m_atmosphere.cc (z_fieldFromHSE): Started. So far just
+	inactive, old, code from hseCalc.
+
+	Changes below to allow lat_grid and lon_grid to have length 1 even
+	when not used, and some cleaning: 
+	---
+	* src/m_ppath.cc (rte_posAddGeoidWGS84, sensor_posAddGeoidWGS84): 
+	Removed. Probably never used. In fact, not useful for 2D and 3D.
+	And for 1D *sensor_posAddRgeoid* suffices.
+
+	* src/m_surface.cc (r_geoidWGS84): Removed lat_1d and 
+	meridian_angle_1d. For 1D, atitude is now taken from lat_grid and
+	the meridian angle is hard-coded to 0 (ie. N-S direction).
+
+	* src/m_atmosphere.cc (AtmosphereSet2D): 
+	(AtmosphereSet3D): Removed lat_1d and meridian_angle_1d. 
+
+	* src/m_cloudbox.cc (pnd_fieldZero): 3D field now triggered when
+	lat_grid.nelem() > 1 (instead of > 0).
+
+	* src/check_input.cc (chk_atm_grids): Changed length tests
+	according to change below.
+
+	* src/workspace.cc: Changed text for lat_grid and lon_grid,
+	explaining that (now) a length of 1 is allowed for 1D and 1/2D,
+	respectively.
+	Removed lat_1d and meridian_angle_1d.
+
+2011-02-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-14-141
 
 	* src/m_rte.cc: Added z_field in several places.

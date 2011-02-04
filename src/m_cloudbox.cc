@@ -1,5 +1,5 @@
 /* Copyright (C) 2002-2008
-   Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   Patrick Eriksson <patrick.eriksson@chalmers.se>
    Stefan Buehler   <sbuehler@ltu.se>
    Claudia Emde     <claudia.emde@dlr.de>
    Cory Davis       <cory.davis@metservice.com>	   
@@ -974,7 +974,7 @@ void pnd_fieldZero(//WS Output:
                       const Vector& lon_grid)
 {
   // 3D  atmosphere
-  if (lat_grid.nelem()>0)
+  if (lat_grid.nelem()>1)
     {
       //Resize pnd_field and set it to 0:
       pnd_field.resize(1, p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem());

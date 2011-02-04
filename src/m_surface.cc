@@ -305,9 +305,7 @@ void r_geoidWGS84(
         // WS Input:
         const Index&     atmosphere_dim,
         const Vector&    lat_grid,
-        const Vector&    lon_grid,
-        const Numeric&   latitude_1d,
-        const Numeric&   azimuth_angle_1d )
+        const Vector&    lon_grid )
 {
   // Check input (use dummy for *p_grid*).
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -322,8 +320,13 @@ void r_geoidWGS84(
   // given by latitude_1d and azimuth_angle_1d.
   if( atmosphere_dim == 1 )
     {
-      chk_if_in_range( "latitude_1d", latitude_1d, -90., 90. );
-      chk_if_in_range( "azimuth_angle_1d", azimuth_angle_1d, -180., 180. );
+      const Numeric azimuth_angle_1d = 0.0;
+
+      if( lat_grid.nelem() != 1 )
+        throw runtime_error( 
+               "This method requires, for 1D, that *lat_grid* has length 1." );
+
+      chk_if_in_range( "element of lat_grid", lat_grid[0], -90., 90. );
 
       out2 << "  Sets r_geoid to the curvature radius of the WGS-84 "
            << "reference ellipsiod.\n";
@@ -331,9 +334,9 @@ void r_geoidWGS84(
       r_geoid.resize(1,1);
 
       // Cosine and sine of the latitude. The values are only used squared.
-      double cv = cos( latitude_1d * DEG2RAD ); 
+      double cv = cos( lat_grid[0] * DEG2RAD ); 
              cv = cv * cv; 
-      double sv = sin( latitude_1d * DEG2RAD );
+      double sv = sin( lat_grid[0] * DEG2RAD );
              sv = sv * sv; 
 
       // Calculate NS and EW radius

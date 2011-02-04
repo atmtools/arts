@@ -575,24 +575,24 @@ void chk_atm_grids(
   // lat_grid
   if( dim == 1 )
     {
-      if( lat_grid.nelem() != 0 )
+      if( lat_grid.nelem() > 1 )
         throw runtime_error(
-                          "For dim=1, the length of *lat_grid* must be 0." );
+                       "For dim=1, the length of *lat_grid* must be 0 or 1." );
     }
   else
     {
       if( lat_grid.nelem() < 2 )
         throw runtime_error(
-                         "For dim>1, the length of *lat_grid* must be >= 2.");
+                          "For dim>1, the length of *lat_grid* must be >= 2.");
       chk_if_increasing( "lat_grid", lat_grid );
     }
 
   // lon_grid
   if( dim < 3 )
     { 
-      if( lon_grid.nelem() != 0 )
+      if( lon_grid.nelem() > 1 )
         throw runtime_error(
-                           "For dim<3, the length of *lon_grid* must be 0." );
+                       "For dim<3, the length of *lon_grid* must be 0 or 1." );
     }
   else
     {

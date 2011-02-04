@@ -1861,10 +1861,16 @@ void Workspace::define_wsv_data()
        "\n"
        "Geocentric latitudes shall be used.\n"
        "\n"
-       "For 1D calculations this vector shall be set to be empty. For 2D cases\n"
-       "the latitudes shall be interpreted as the angular distance inside the\n"
-       "orbit plane from an arbitrary zero point (values outside +-90 deg are\n"
-       "allowed). For 3D, the valid latitude range is [-90,90].\n"
+       "For 1D calculations this vector can is some cases be set to be empty.\n"
+       "Some methods are requiring a latitude even for 1D and the latitude\n"
+       "is then taken from this vector. That is, for 1D the length can either\n"
+       "be 0 or 1.\n"
+       "\n"
+       "For 2D cases the latitudes shall be interpreted as the angular\n"
+       "distance inside the orbit plane from an arbitrary zero point (values\n"
+       "outside +-90 deg are allowed).\n"
+       "\n"
+       "For 3D, the valid latitude range is [-90,90].\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
@@ -1876,29 +1882,6 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Vector" )));
 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "lat_1d" ),
-      DESCRIPTION
-      (
-       "The latitude for a 1D observation.\n"
-       "\n"
-       "This variable is used to assign a latitude valid for a 1D case. A\n"
-       "special variable is needed for 1D as there exists no latitude grid \n"
-       "for such cases. The variable can be used, for example, to set the \n"
-       "geoid radius or select atmospheric profiles from a 2D/3D \n"
-       "climatology. \n"
-       "\n"
-       "For limb sounding, the choosen latitude should normally be selected\n"
-       "to be valid for the tangent points, rather than for the sensor.\n"
-       "\n"
-       "Values shall be inside the range [-90,90].\n"
-       "\n"
-       "Usage: Set by the user.\n"
-       "\n"
-       "Unit:  degrees\n"
-       ),
-      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1946,8 +1929,11 @@ void Workspace::define_wsv_data()
        "atmosphere is undefined outside the range covered by the grid.\n"
        "The grid must be sorted in increasing order, with no repetitions.\n"
        "\n"
-       "For 1D and 2D calculations this vector shall be set to be empty\n"
-       "Allowed values for longidudes is the range [-360,360].\n"
+       "For 1D and 2D, some methods could expect this vector to have\n"
+       "length 1, and holding a longitude representing the case. Otherwise\n"
+       "the length can be 0. That is, works as *lat_grid* for 1D.\n"
+       "\n"
+       "Allowed values for longitudes is the range [-360,360].\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
@@ -2166,26 +2152,6 @@ void Workspace::define_wsv_data()
         "Usage: Set by the user.\n"
         ),
        GROUP( "Index" )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "meridian_angle_1d" ),
-      DESCRIPTION
-      (
-       "The meridian angle for a 1D observation.\n"
-       "\n"
-       "This variable is only used when calculating a curvature radius of \n"
-       "the geoid for 1D cases. The given value shall be the angle between \n"
-       "the observation and meridian plane where 0 degrees means an \n" 
-       "observation in the N-S direction.\n"
-       "\n"
-       "Values shall be in the range [-180,180].\n"
-       "\n"
-       "Usage: Set by the user.\n"
-       "\n"
-       "Unit:  degrees\n"
-       ),
-      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2654,6 +2620,23 @@ void Workspace::define_wsv_data()
        "Unit:  Pa\n"
        ),
       GROUP( "Vector" )));
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "p_hse" ),
+      DESCRIPTION
+      (
+       "Reference pressure calculation of hydrostatic equilibrium.\n"
+       "\n"
+       "The altitude specified by this pressure is used as the reference\n"
+       "when calculating hydrostatic equilibrium. That is, the geometrical\n"
+       "altitude at this pressure is not changed.\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  Pa\n"
+       ),
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
     (WsvRecord
@@ -4316,6 +4299,19 @@ void Workspace::define_wsv_data()
        "       [N_p, N_lat, N_lon] \n"
        ),
       GROUP( "GriddedField3" )));
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "z_hse_accuracy" ),
+      DESCRIPTION
+      (
+       "Minimum accuracy for calculation of hydrostatic equilibrium.\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  m\n"
+       ),
+      GROUP( "Numeric" )));
 
   wsv_data.push_back
    (WsvRecord
