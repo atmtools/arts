@@ -18,11 +18,7 @@
 //------------------------------------------------------------------------------
 // The first thing to do is to protect the file against multiple inclusion:
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#else
-#error "Please run ./configure in the top arts directory before compiling."
-#endif
+#include "config_global.h"
 
 #ifndef HAVE_SSTREAM
 #if !defined(SSTREAM_H)

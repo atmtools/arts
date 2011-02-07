@@ -19,11 +19,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#else
-#error "Please run ./configure in the top arts directory before compiling."
-#endif
+#include "arts.h"
 
 #if HAVE_UNISTD_H
 # include <sys/types.h>

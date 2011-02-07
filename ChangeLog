@@ -1,3 +1,43 @@
+2011-02-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-145
+
+	* src/CMakeLists.txt:
+
+	Clean up targets. Merge species_data, partition_function_data,
+	continua, docserver, and gzstream into artscore.
+
+	Add methods_aux.cc to libmethods and remove it from other targets.
+
+	Link make_auto_workspace_h to libmethods and remove groups.cc from
+	source list.
+
+	* src/montecarlo.{h,cc}
+
+	Pass all *Views by value instead of reference.
+
+	FIXME: How to treat constant Views correctly? (const VectorView or
+	ConstVectorView or const ConstVectorView)
+
+	* src/docserver.{h,cc}
+
+	Add ifdef ENABLE_DOCSERVER around everything.
+
+	* src/nc_io_compound_types.cc, src/nc_io_types.h, src/nc_io.h,
+	src/nc_io_basic_types.cc, src/nc_io_array_types.cc, src/nc_io.cc,
+	src/test_sorting.cc, src/arts_omp.h, src/m_general.h, src/m_nc.h,
+	src/main.cc, src/test_legendre.cc, 
+
+	Include arts.h instead of config.h directly.
+
+	* src/iotraits.h, src/sstream.h, src/matpack.h, src/arts.h:
+
+	Include config_global.h instead of config.h directly.
+
+	* src/rng.cc: Move all includes to the beginning of the file.
+
+	* src/config_global.h: Added.
+
 2011-02-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-144

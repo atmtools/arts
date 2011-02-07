@@ -25,6 +25,8 @@
 
 #include "docserver.h"
 
+#ifdef ENABLE_DOCSERVER
+
 #include <string>
 #include <vector>
 #include <sstream>
@@ -1634,4 +1636,5 @@ int docserver_start(Index port, bool daemon, const string& baseurl)
   return 0;
 }
 
+#endif /* ENABLE_DOCSERVER */
 

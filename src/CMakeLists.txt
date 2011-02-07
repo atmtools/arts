@@ -9,20 +9,12 @@ endif (NETCDF_FOUND)
 set (ALL_ARTS_LIBRARIES
   artscore
   methods
-  species_data
-  partition_function_data
-  continua
   matpack
-  gzstream
   )
 
 if (ENABLE_DISORT)
   list (APPEND ALL_ARTS_LIBRARIES disort)
 endif (ENABLE_DISORT)
-
-if (ENABLE_DOCSERVER)
-  list (APPEND ALL_ARTS_LIBRARIES docserver)
-endif (ENABLE_DOCSERVER)
 
 ########### target to extract version number from ChangeLog ###############
 
@@ -64,7 +56,6 @@ add_executable (make_auto_workspace_h
 	arts_omp.h
 	file.cc
 	file.h
-	groups.cc
 	m_general.h
 	make_auto_workspace_h.cc
 	messages.h
@@ -73,7 +64,7 @@ add_executable (make_auto_workspace_h
 	parameters.h
 	)
 
-target_link_libraries (make_auto_workspace_h matpack)
+target_link_libraries (make_auto_workspace_h matpack methods)
 
 add_custom_command (
 	OUTPUT auto_workspace.h
@@ -106,7 +97,6 @@ add_executable (make_auto_md_h
 	messages.cc
 	messages.h
 	methods.h
-	methods_aux.cc
 	parameters.cc
 	token.cc
 	token.h
@@ -145,7 +135,6 @@ add_executable (make_auto_md_cc
 	messages.cc
 	messages.h
 	methods.h
-	methods_aux.cc
 	parameters.cc
 	token.cc
 	token.h
@@ -197,8 +186,11 @@ add_library (artscore STATIC
 	cloudbox.h
 	cloudbox.cc
 	constants.cc
+  continua.cc
 	disort.cc
 	disort.h
+  docserver.h
+  docserver.cc
 	fastem.cc
 	fastem.h
 	file.cc
@@ -208,6 +200,8 @@ add_library (artscore STATIC
 	globals_2.cc
 	gridded_fields.cc
 	gridded_fields.h
+  gzstream.h
+  gzstream.cc
 	interpolation.cc
 	interpolation.h
 	interpolation_poly.cc
@@ -226,7 +220,7 @@ add_library (artscore STATIC
 	m_create.cc
 	m_basic_types.cc
 	m_basic_types.h
-        m_conversion.h
+  m_conversion.h
 	m_cloudbox.cc
 	m_disort.cc
 	m_fos.cc
@@ -258,7 +252,6 @@ add_library (artscore STATIC
 	messages.cc
 	messages.h
 	methods.h
-	methods_aux.cc
 	montecarlo.cc
 	montecarlo.h
   nc_io.h
@@ -274,6 +267,7 @@ add_library (artscore STATIC
 	parameters.h
 	parser.cc
 	parser.h
+	partition_function_data.cc
 	ppath.h
 	ppath.cc
 	poly_roots.h
@@ -295,6 +289,7 @@ add_library (artscore STATIC
 	sourcetext.h
 	special_interp.cc
 	special_interp.h
+	species_data.cc
 	sstream.h
 	token.cc
 	token.h
@@ -319,13 +314,15 @@ add_library (artscore STATIC
 	supergeneric.h
 	)
 
+target_link_libraries (artscore ${ZLIB_LIBRARIES})
+
 if (NETCDF_FOUND)
   target_link_libraries (artscore ${NETCDF_LIBRARIES})
 endif (NETCDF_FOUND)
 
-########### next target ###############
-
-add_library (continua STATIC continua.cc continua.h)
+if (ENABLE_DOCSERVER)
+  target_link_libraries (artscore microhttpd)
+endif (ENABLE_DOCSERVER)
 
 ########### next target ###############
 
@@ -365,39 +362,10 @@ add_library (methods STATIC
 	make_array.h
 	methods.h
 	methods.cc
+	methods_aux.cc
 	wsv_aux.h
 	groups.cc
 	)
-
-########### next target ###############
-
-add_library (species_data STATIC
-	absorption.h
-	arts.h
-	make_array.h
-	species_data.cc
-	)
-
-########### next target ###############
-
-add_library (partition_function_data STATIC
-	absorption.h
-	arts.h
-	make_array.h
-	partition_function_data.cc
-	)
-
-########### next target ###############
-
-if (ENABLE_DOCSERVER)
-  add_library (docserver STATIC docserver.cc docserver.h)
-  target_link_libraries (docserver microhttpd artscore)
-endif (ENABLE_DOCSERVER)
-
-########### next target ###############
-
-add_library (gzstream STATIC gzstream.cc gzstream.h)
-target_link_libraries (gzstream ${ZLIB_LIBRARIES})
 
 ########### next target ###############
 

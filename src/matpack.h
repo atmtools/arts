@@ -18,11 +18,7 @@
 #ifndef matpack_h
 #define matpack_h
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#else
-#error "Please run ./configure in the top arts directory before compiling."
-#endif
+#include "config_global.h"
 
 #ifdef HAVE_NAMESPACES
   // We need those to support ansi-compliant compilers (gcc-3x)

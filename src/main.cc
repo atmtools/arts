@@ -28,11 +28,7 @@
    \date   2001-07-24
 */
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#else
-#error "Please run ./configure in the top arts directory before compiling."
-#endif
+#include "arts.h"
 
 #ifdef TIME_SUPPORT
 #include <sys/types.h>
@@ -45,7 +41,6 @@
 #include <map>
 
 #include "auto_version.h"
-#include "arts.h"
 #include "parameters.h"
 #include "messages.h"
 #include "exceptions.h"
@@ -59,10 +54,7 @@
 #include "mystring.h"
 #include "workspace_ng.h"
 #include "arts_omp.h"
-
-#ifdef ENABLE_DOCSERVER
 #include "docserver.h"
-#endif
 
 /** Remind the user of --help and exit return value 1. */
 void polite_goodby()

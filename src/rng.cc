@@ -38,8 +38,14 @@ generator from the GNU Scientific Library <http://www.gnu.org/software/gsl/>.
 #include <algorithm>
 #include <vector>
 #include <climits>
+#include <cstddef>
+#include <cstdlib>
+#include <cstdio>
+
 #include "arts.h"
 #include "messages.h"
+
+
 /*!
 Constructor creates instance of gsl_rng of type gsl_rng_mt19937
 */
@@ -181,8 +187,6 @@ unsigned long int Rng::showseed()
 
 */
 
-//#include <config.h>
-
 static inline unsigned long int mt_get (void *vstate);
 static double mt_get_double (void *vstate);
 static void mt_set (void *state, unsigned long int s);
@@ -313,8 +317,6 @@ unsigned long int gsl_rng_default_seed = 0;
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-//#include <config.h>
-
 #define N1 100
 
 const gsl_rng_type * gsl_rng_generator_types[N1];
@@ -411,11 +413,6 @@ gsl_rng_types_setup (void)
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-//#include <config.h>
-
-//#include "gsl_errno.h"
-//#include "gsl_message.h"
-
 FILE * gsl_stream = NULL ;
 gsl_stream_handler_t * gsl_stream_handler = NULL;
 
@@ -475,14 +472,6 @@ gsl_set_stream (FILE * new_stream)
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
-//#include <config.h>
-#include <cstddef>
-#include <cstdlib>
-#include <cstdio>
-
-//#include "gsl_errno.h"
-//#include "gsl_message.h"
 
 gsl_error_handler_t * gsl_error_handler = NULL;
 
@@ -546,9 +535,6 @@ no_error_handler (const char *reason _U_, const char *file _U_, int line _U_, in
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
-//#include <config.h>
-//#include "gsl_errno.h"
 
 gsl_rng *
 gsl_rng_alloc (const gsl_rng_type * T)

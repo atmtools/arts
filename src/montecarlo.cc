@@ -55,8 +55,8 @@
 
 
 void clear_rt_vars_at_gp(Workspace&              ws,
-                         MatrixView&             ext_mat_mono,
-                         VectorView&             abs_vec_mono,
+                         MatrixView              ext_mat_mono,
+                         VectorView              abs_vec_mono,
                          Numeric&                temperature,
                          const Agenda&           opt_prop_gas_agenda,
                          const Agenda&           abs_scalar_gas_agenda,
@@ -127,9 +127,9 @@ void clear_rt_vars_at_gp(Workspace&              ws,
 
 
 void cloudy_rt_vars_at_gp(Workspace&            ws,
-                          MatrixView&           ext_mat_mono,
-                          VectorView&           abs_vec_mono,
-                          VectorView&           pnd_vec,
+                          MatrixView            ext_mat_mono,
+                          VectorView            abs_vec_mono,
+                          VectorView            pnd_vec,
                           Numeric&              temperature,
                           const Agenda&         opt_prop_gas_agenda,
                           const Agenda&         abs_scalar_gas_agenda,
@@ -511,8 +511,8 @@ can be calculated very quickly and exactly using this function.
 \author Cory Davis
 \date 2005-3-2
 */
-void matrix_exp_p30(MatrixView& M,
-                    ConstMatrixView& A)
+void matrix_exp_p30(MatrixView M,
+                    ConstMatrixView A)
 {
   Index m=A.nrows();
   assert( A.ncols()==m );
@@ -551,10 +551,10 @@ atmospheric variables at the new point.
 */
 
 void mcPathTraceGeneral(Workspace&            ws,
-                        MatrixView&           evol_op,
+                        MatrixView            evol_op,
                         Vector&               abs_vec_mono,
                         Numeric&              temperature,
-                        MatrixView&           ext_mat_mono,
+                        MatrixView            ext_mat_mono,
                         Rng&                  rng,
                         Vector&               rte_pos,
                         Vector&               rte_los,
@@ -806,10 +806,10 @@ modified for the independent pixel approximation.
 */
 
 void mcPathTraceIPA(Workspace&            ws,
-                    MatrixView&           evol_op,
+                    MatrixView            evol_op,
                     Vector&               abs_vec_mono,
                     Numeric&              temperature,
-                    MatrixView&           ext_mat_mono,
+                    MatrixView            ext_mat_mono,
                     Rng&                  rng,
                     Vector&               rte_pos,
                     Vector&               rte_los,
@@ -1169,7 +1169,7 @@ void opt_propCalc(
                   const Numeric aa,
                   const ArrayOfSingleScatteringData& scat_data_mono,
                   const Index&          stokes_dim,
-                  const VectorView& pnd_vec,
+                  const VectorView pnd_vec,
                   const Numeric& rte_temperature
                   )
 {
@@ -1202,8 +1202,8 @@ void opt_propCalc(
 }
 
 void opt_propCalc2(
-                  MatrixView& ext_mat_mono,
-                  VectorView& abs_vec_mono,
+                  MatrixView ext_mat_mono,
+                  VectorView abs_vec_mono,
                   const Numeric za,
                   const Numeric aa,
                   const ArrayOfSingleScatteringData& scat_data_mono,
@@ -1260,8 +1260,8 @@ void opt_propCalc2(
 */
 
 void opt_propExtract(
-                     MatrixView& ext_mat_mono_spt,
-                     VectorView& abs_vec_mono_spt,
+                     MatrixView ext_mat_mono_spt,
+                     VectorView abs_vec_mono_spt,
                      const SingleScatteringData& scat_data,
                      const Numeric& za,
                      const Numeric& aa,
@@ -1434,14 +1434,14 @@ void opt_propExtract(
  \date   2003-11-27
 */
 void pha_mat_singleCalc(
-                        MatrixView& Z,                  
+                        MatrixView Z,                  
                         Numeric za_sca, 
                         Numeric aa_sca, 
                         Numeric za_inc, 
                         Numeric aa_inc,
                         const ArrayOfSingleScatteringData& scat_data_mono,
                         const Index&          stokes_dim,
-                        const VectorView& pnd_vec,
+                        const VectorView pnd_vec,
                         const Numeric& rte_temperature
                         )
 {
@@ -1484,7 +1484,7 @@ void pha_mat_singleCalc(
 
 */
 void pha_mat_singleExtract(
-                           MatrixView& Z_spt,
+                           MatrixView Z_spt,
                            const SingleScatteringData& scat_data,
                            const Numeric& za_sca,
                            const Numeric& aa_sca,
@@ -1700,16 +1700,16 @@ void pha_mat_singleExtract(
 */
 
 void Sample_los (
-                   VectorView& new_rte_los,
+                   VectorView new_rte_los,
                    Numeric& g_los_csc_theta,
-                   MatrixView& Z,
+                   MatrixView Z,
                    Rng& rng,
-                   const VectorView& rte_los,
+                   const VectorView rte_los,
                    const ArrayOfSingleScatteringData& scat_data_mono,
                    const Index&          stokes_dim,
-                   const VectorView& pnd_vec,
+                   const VectorView pnd_vec,
                    const bool& anyptype30,
-                   const VectorView& Z11maxvector,
+                   const VectorView Z11maxvector,
                    Numeric Csca,
                    const Numeric& rte_temperature
                    )
