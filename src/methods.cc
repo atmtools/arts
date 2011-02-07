@@ -4856,14 +4856,20 @@ void define_md_data_raw()
          "Includes atmospheric temperatures in the Jacobian.\n"
          "\n"
          "The calculations can be performed by (semi-)analytical expressions\n"
-         "or perturbations. Hydrostatic equilibrium (HSE) can be included for\n"
-         "perturbation calculations. These choices are selected by\n"
-         "corresponding general input variables.\n"
+         "or by perturbations. Hydrostatic equilibrium (HSE) can be included.\n"
+         "For perturbation calculations, all possible effects are included\n"
+         "(but is a costly option). The analytical calculation approach\n"
+         "neglects refraction totally, but considers the local effect of HSE.\n"
+         "The later should be accaptable for observations around zenith and\n"
+         "nadir. There is no warning if the method is applied incorrectly, \n"
+         "with respect to these issues.\n"
          "\n"
-         "For 1D or 2D calculations the latitude and/or longitude grid of\n"
-         "the retrieval field should be set to zero length.\n"
+         "The calculations (both options) assume that gas species are defined\n"
+         "in VMR (a change in temperature then changes the number density). \n"
+         "This has the consequence that retrieval of temperatures and number\n" 
+         "density can not be mixed. Neither any warning here!\n"
          "\n"
-         "There are choices for *method*:\n"
+         "The choices for *method* are:\n"
          "   \"analytical\"   : (semi-)analytical expressions are used\n"
          "   \"perturbation\" : pure numerical perturbations are used\n"
          ),
@@ -4880,7 +4886,7 @@ void define_md_data_raw()
         GIN_DESC( "Pressure retrieval grid.",
                   "Latitude retrieval grid.",
                   "Longitude retreival grid.",
-                  "Flag to assume HSE or not.",
+                  "Flag to assume HSE or not (\"on\" or \"off\").",
                   "Calculation method. See above.",
                   "Size of perturbation [K]." 
                   ),
@@ -5060,11 +5066,11 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "imblock", "iyb", "yb", "atmosphere_dim", "p_grid", "lat_grid", 
-            "lon_grid", "t_field", "z_field", "vmr_field", "cloudbox_on", 
-            "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
-            "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
-            "sensor_response", "iy_clearsky_agenda", "y_unit", 
-            "jacobian_quantities", "jacobian_indices" ),
+            "lon_grid", "t_field", "z_field", "vmr_field", "abs_species",
+            "r_geoid", "cloudbox_on", "stokes_dim", "f_grid", "sensor_pos", 
+            "sensor_los", "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
+            "sensor_response", "iy_clearsky_agenda", "y_unit", "p_hse",
+            "z_hse_accuracy", "jacobian_quantities", "jacobian_indices" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

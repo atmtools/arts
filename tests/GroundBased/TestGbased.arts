@@ -65,7 +65,7 @@ VectorAddScalar( f_grid, f_grid, v0 )
 
 # ---- Species ---------------------------------------------------------------
 
-SpeciesSet( abs_species, [ "O3" ] )
+SpeciesSet( abs_species, [ "O3", "H2O" ] )
 
 
 # ---- Atmospheric scenario --------------------------------------------------
@@ -75,6 +75,7 @@ VectorNLogSpace( p_grid, 81, 1.013e5, 1 )
 
 AtmRawRead( t_field_raw, z_field_raw, vmr_field_raw, abs_species, 
                                   "../atmosphere_data/tropical" )
+VectorSet( lat_grid, [ 10 ] )
 AtmFieldsCalc
 
 
@@ -112,7 +113,17 @@ Copy( z_surface, sensor_pos )
 sensor_posAddRgeoid
 MatrixSetConstant( sensor_los, 1, 1, za )
 
+
+# ---- Finalise atmosphere ---------------------------------------------------
+
 atm_checkedCalc
+
+# Important to run HSE before yCalc if temperature jacobians with HSE 
+# will be used 
+Extract( p_hse, p_grid, 0 )
+NumericSet( z_hse_accuracy, 0.1 )
+z_fieldFromHSE
+
 
 
 
@@ -180,7 +191,7 @@ StringSet( calcmethod, "analytical" )
 #StringSet( calcmethod, "perturbation" )
 jacobianAddTemperature( jacobian_quantities, jacobian_agenda,
     atmosphere_dim, p_grid, lat_grid, lon_grid, p_grid, lat_grid, lon_grid, 
-    "off", calcmethod, 1 )
+    "on", calcmethod, 1 )
 jacobianClose
 
 

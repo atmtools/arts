@@ -1005,6 +1005,7 @@ void iyBeerLambertStandardClearsky(
                           // Temperature
                           else if( is_t[iq] )
                             {
+      throw runtime_error("T-jacobian not ready for Beer-Lambert.");
                               const Numeric dkdt1 =
                                 ( ppath_as2(iv,joker,ip).sum()
                                 - ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
@@ -1583,14 +1584,21 @@ void iyEmissionStandardClearsky(
                               // Stokes component 1
                               //
                               // The terms associated with tau:
+                              const Numeric k1 = 
+                                         ppath_abs_scalar(iv,joker,ip  ).sum();
+                              const Numeric k2 = 
+                                         ppath_abs_scalar(iv,joker,ip+1).sum();
                               const Numeric dkdt1 =
-                                ( ppath_as2(iv,joker,ip).sum()
-                                - ppath_abs_scalar(iv,joker,ip).sum() ) / dt;
+                                  ( ppath_as2(iv,joker,ip  ).sum() - k1 ) / dt;
                               const Numeric dkdt2 =
-                                ( ppath_as2(iv,joker,ip+1).sum()
-                                - ppath_abs_scalar(iv,joker,ip+1).sum() ) / dt;
+                                  ( ppath_as2(iv,joker,ip+1).sum() - k2 ) / dt;
                               diy_dpath[iq](ip  ,iv,0) += B * dkdt1;
                               diy_dpath[iq](ip+1,iv,0) += B * dkdt2;
+                              //
+                              // The terms associated with Delta-s:
+                              const Numeric kbar = 0.5* ( k1 + k2 );
+                              diy_dpath[iq](ip  ,iv,0) += B*kbar/ppath_t[ip];
+                              diy_dpath[iq](ip+1,iv,0) += B*kbar/ppath_t[ip+1];
                               //
                               // The terms associated with B-bar:
                               const Numeric w0 = 0.5 * 
@@ -1606,6 +1614,7 @@ void iyEmissionStandardClearsky(
                               // Higher stokes components
                               for( Index is=1; is<stokes_dim; is++ )
                                 { 
+      throw runtime_error("T-jacobian not ready for higher Stokes components.");
                                   const Numeric wi = -0.5 * A * iy(iv,is);
                                   diy_dpath[iq](ip  ,iv,is) += wi * dkdt1;
                                   diy_dpath[iq](ip+1,iv,is) += wi * dkdt2;

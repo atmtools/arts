@@ -1,3 +1,21 @@
+2011-02-07  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-144
+
+	* src/methods.cc: Added comments around limitations of the
+	analytical approach. (But now much more useful than in arts-1.)
+
+	* src/m_rte.cc (iyEmissionStandardClearsky): Added term to
+	t-jacobian, to handle "local effect" of HSE. 
+
+	Higher Stokes and BL not updated accordingly (added run time error
+	if trying to use those options.)
+
+	* tests/GroundBased/TestGbased.arts: HSE+analytical now selected
+	for t-jacobian.
+
+	* src/m_jacobian.cc (jacobianCalcTemperature): Now also handling HSE.
+
 2011-02-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-143

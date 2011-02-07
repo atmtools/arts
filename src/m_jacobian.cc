@@ -1109,31 +1109,14 @@ void jacobianAddTemperature(
   // Set subtag 
   String subtag;
   if( hse == "on" )
-    {
-      subtag = "HSE on";
-      ostringstream os;
-      os << "The keyword for hydrostatic equilibrium can so far only be set \n"
-         << "to \"off\"\n";
-      throw runtime_error(os.str());
-    }
+    { subtag = "HSE on"; }
   else if( hse == "off" )
-    {
-      subtag = "HSE off";
-    }
+    { subtag = "HSE off"; }
   else
     {
       ostringstream os;
       os << "The keyword for hydrostatic equilibrium can only be set to\n"
          << "\"on\" or \"off\"\n";
-      throw runtime_error(os.str());
-    }
-
-  // HSE can not be combined with analytical 
-  if( method == "analytical"  &&  hse == "on" )
-    {
-      ostringstream os;
-      os << "Hydrostatic equilibrium can only be included for perturbation\n"
-         << "calculations.";
       throw runtime_error(os.str());
     }
 
@@ -1189,6 +1172,8 @@ void jacobianCalcTemperature(
   const Tensor3&                    t_field,
   const Tensor3&                    z_field,
   const Tensor4&                    vmr_field,
+  const ArrayOfArrayOfSpeciesTag&   abs_species,
+  const Matrix&                     r_geoid,
   const Index&                      cloudbox_on,
   const Index&                      stokes_dim,
   const Vector&                     f_grid,
@@ -1200,6 +1185,8 @@ void jacobianCalcTemperature(
   const Sparse&                     sensor_response,
   const Agenda&                     iy_clearsky_agenda,
   const String&                     y_unit,
+  const Numeric&                    p_hse,
+  const Numeric&                    z_hse_accuracy,
   const ArrayOfRetrievalQuantity&   jacobian_quantities,
   const ArrayOfArrayOfIndex&        jacobian_indices )
 {
@@ -1235,10 +1222,6 @@ void jacobianCalcTemperature(
       throw runtime_error(os.str());
     }
   
-  // FIXME: Only HSE off is implemented
-  if( rq.Subtag() == "HSE on" )
-      throw runtime_error( "HSE is so far not handled. Sorry!" );
-
   // Store the start JacobianIndices and the Grids for this quantity
   it = ji[0];
   ArrayOfVector jg = rq.Grids();
@@ -1267,6 +1250,8 @@ void jacobianCalcTemperature(
         }
     }
 
+  // Local copy of z_field. 
+  Tensor3 z = z_field;
 
   // Loop through the retrieval grid and calculate perturbation effect
   //
@@ -1332,9 +1317,16 @@ void jacobianCalcTemperature(
                     break;
                   }
                 }
+
+              // Apply HSE, if selected
+              if( rq.Subtag() == "HSE on" )
+                {
+                  z_fieldFromHSE( z, atmosphere_dim, p_grid, lat_grid, 
+                                  abs_species, t_p, vmr_field, r_geoid, 1,
+                                  p_hse, z_hse_accuracy );
+                }
        
               // Calculate the perturbed spectrum  
-              //
               Index         dummy2;
               Vector        iybp, dummy1;
               Matrix        dummy3;
@@ -1342,7 +1334,7 @@ void jacobianCalcTemperature(
               //
               iyb_calc( ws, iybp, dummy1, dummy2, dummy3, dummy4, imblock, 
                         atmosphere_dim, p_grid, lat_grid, lon_grid, 
-                        t_p, z_field, vmr_field, cloudbox_on, stokes_dim, 
+                        t_p, z, vmr_field, cloudbox_on, stokes_dim, 
                         f_grid, sensor_pos, sensor_los, mblock_za_grid, 
                         mblock_aa_grid, antenna_dim, iy_clearsky_agenda, 0, 
                         y_unit, 0, ArrayOfRetrievalQuantity(), 
