@@ -120,9 +120,9 @@ ArtsXMLTag::check_attribute (const String& aname, const String& value)
     }
   else if (actual_value != value)
     {
-      xml_parse_error ("Attribute " + aname + " has value "
-                       + actual_value + " but "
-                       + value + " was expected.");
+      xml_parse_error ("Attribute " + aname + " has value \""
+                       + actual_value + "\" but \""
+                       + value + "\" was expected.");
     }
 }
 
@@ -271,6 +271,7 @@ ArtsXMLTag::read_from_stream (istream& is)
       {
         String ntoken;
         sstr >> ntoken;
+        if (!ntoken.length()) break;
         token += " " + ntoken;
       }
 
