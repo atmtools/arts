@@ -757,19 +757,18 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
 /*! barometric heightformula for NONE isothermal atmosphere
     \return Numeric p1.
           
-    \param Numeric& p,
-    \param Numeric& dh,
-    \param Numeric& T0
+    \param Numeric p,
+    \param Numeric dh,
+    \param Numeric T0
   
   \author Daniel Kreyling
   \date 2011-01-20
 */
-
 Numeric barometric_heightformula ( //output is p1
 				   //input
-				   const Numeric& p,
-				   const Numeric& dh,
-				   const Numeric& T0
+				   const Numeric p,
+				   const Numeric dh,
+				   const Numeric T0
 				 )
 {
 				  

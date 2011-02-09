@@ -1429,7 +1429,7 @@ void Workspace::define_wsv_data()
        "The third columns holds the wieght to apply for each direction. The\n"
        "sum of these weights shall theoretically be 4*pi, the solid angle\n"
        "of the integration sphere. However, for increased flexibility this\n"
-       "sum is allowed to deviate with about 50\% from that value.\n" ),
+       "sum is allowed to deviate with about 50% from that value.\n" ),
       GROUP( "Matrix" )));
 
   wsv_data.push_back

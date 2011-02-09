@@ -322,7 +322,7 @@ connection_close_error (struct MHD_Connection *connection)
 static int
 try_ready_normal_body (struct MHD_Connection *connection)
 {
-  int ret;
+  ssize_t ret;
   struct MHD_Response *response;
 
   response = connection->response;
@@ -390,12 +390,12 @@ try_ready_normal_body (struct MHD_Connection *connection)
 static int
 try_ready_chunked_body (struct MHD_Connection *connection)
 {
-  int ret;
+  ssize_t ret;
   char *buf;
   struct MHD_Response *response;
   size_t size;
   char cbuf[10];                /* 10: max strlen of "%x\r\n" */
-  int cblen;
+  size_t cblen;
 
   response = connection->response;
   if (connection->write_buffer_size == 0)
@@ -462,7 +462,7 @@ try_ready_chunked_body (struct MHD_Connection *connection)
     ret = 0xFFFFFF;
   snprintf (cbuf, 
 	    sizeof (cbuf),
-	    "%X\r\n", ret);
+	    "%X\r\n", (unsigned int)ret);
   cblen = strlen (cbuf);
   EXTRA_CHECK (cblen <= (int)sizeof (cbuf));
   memcpy (&connection->write_buffer[sizeof (cbuf) - cblen], cbuf, cblen);
@@ -1409,7 +1409,7 @@ process_request_body (struct MHD_Connection *connection)
 static int
 do_read (struct MHD_Connection *connection)
 {
-  int bytes_read;
+  ssize_t bytes_read;
 
   if (connection->read_buffer_size == connection->read_buffer_offset)
     return MHD_NO;
@@ -1458,7 +1458,7 @@ do_read (struct MHD_Connection *connection)
 static int
 do_write (struct MHD_Connection *connection)
 {
-  int ret;
+  ssize_t ret;
 
   ret = connection->send_cls (connection,
                               &connection->write_buffer
@@ -1768,7 +1768,7 @@ int
 MHD_connection_handle_write (struct MHD_Connection *connection)
 {
   struct MHD_Response *response;
-  int ret;
+  ssize_t ret;
   connection->last_activity = time (NULL);
   while (1)
     {

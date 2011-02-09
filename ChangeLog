@@ -1,3 +1,28 @@
+2011-02-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-147
+
+	* src/libmicrohttpd/response.c, src/libmicrohttpd/connection.c,
+
+	Changed several int to ssize_t and size_t to allow safer type
+	conversions.
+
+	* src/libmicrohttpd/daemon.c (MHD_select):
+
+	Add explicit cast to suseconds_t.
+
+	* src/libmicrohttpd/platform.h:
+
+	Include config_global.h instead of config.h.
+
+	* src/cloudbox.{h,cc} (barometric_heightformula):
+
+	Pass Numerics by value, not reference. Reindent header file.
+
+	* src/workspace.cc:
+
+	Replaced illegal character \% with % in fos_angles documentation.
+
 2011-02-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-146

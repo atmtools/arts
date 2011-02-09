@@ -1135,7 +1135,7 @@ MHD_select (struct MHD_Daemon *daemon, int may_block)
       if ( (MHD_YES == MHD_get_timeout (daemon, &ltimeout)) &&
 	   (ltimeout < 1000) )
 	{
-          timeout.tv_usec = ltimeout * 1000;
+          timeout.tv_usec = (suseconds_t)ltimeout * 1000;
           timeout.tv_sec = 0;
         }
     }
