@@ -68,7 +68,7 @@ public:
   inline Index nelem() const;
   inline Agenda& operator=(const Agenda& x);
   const Array<MRecord>& Methods () const { return mml; }
-  void set_methods (const Array<MRecord>& ml) { mml = ml; mchecked = false; };
+  void set_methods (const Array<MRecord>& ml) { mml = ml; mchecked = false; }
   void set_outputs_to_push_and_dup ();
   bool is_input(Workspace& ws, Index var) const;
   bool is_output(Index var) const;
@@ -78,8 +78,8 @@ public:
   const ArrayOfIndex& get_output2dup() const { return moutput_dup; }
   void print( ostream& os,
               const String& indent ) const;
-  void set_main_agenda() {main_agenda = true; mchecked = true;};
-  bool is_main_agenda() const {return main_agenda;};
+  void set_main_agenda() {main_agenda = true; mchecked = true;}
+  bool is_main_agenda() const {return main_agenda;}
   void find_unused_variables();
 
 private:

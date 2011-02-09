@@ -52,7 +52,7 @@ public:
     minput(       0               )
   {
         // Nothing to do here.
-  };
+  }
 
   // Initializing constructor. Implementation in .cc file.
   AgRecord( const char                  name[],

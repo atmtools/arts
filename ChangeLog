@@ -1,5 +1,17 @@
 2011-02-09  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-148
+
+	* src/matpackI.h, src/agenda_record.h, src/matpackIV.h,
+	src/matpackVII.h, src/methods.h, src/agenda_class.h, src/matpackV.h,
+	src/m_abs_o2_models.cc, src/sourcetext.h, src/absorption.h,
+	src/matpackIII.h, src/matpackVI.h, src/gridded_fields.h,
+	src/matpackII.h, src/exceptions.h:
+
+	Killed some semicolons.
+
+2011-02-09  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-147
 
 	* src/libmicrohttpd/response.c, src/libmicrohttpd/connection.c,

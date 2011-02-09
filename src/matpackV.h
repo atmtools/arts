@@ -230,7 +230,7 @@ public:
   ConstIterator5D end()   const;
 
   //! Destructor
-  virtual ~ConstTensor5View() {};
+  virtual ~ConstTensor5View() {}
 
   // Friends:
   friend class Tensor5View;
@@ -409,7 +409,7 @@ public:
   Tensor5View& operator-=(const ConstTensor5View& x);
 
   //! Destructor
-  virtual ~Tensor5View() {};
+  virtual ~Tensor5View() {}
 
   // Friends:
   // friend class VectorView;

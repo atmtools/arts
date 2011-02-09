@@ -295,7 +295,7 @@ void HUMLIK_Faddeeva_Wells ( // Input
         };
     };
 
-};  /* end of HUMLIK_Faddeeva_Wells */
+}  /* end of HUMLIK_Faddeeva_Wells */
 
 
 
@@ -339,7 +339,7 @@ void CEF( // Input
   Im_CEF = imag( retval );
 
   return;
-};
+}
 
 
 
@@ -713,7 +713,7 @@ void Zeeman_o2_line_splitting(// Output:
   
   return;
 
-};
+}
 
 
 
@@ -1456,7 +1456,7 @@ Index absPWRO2Model(// WS Output:
     }
 
   return retval;  // 1=true, 0=false
-};
+}
 
 
 
@@ -1729,7 +1729,7 @@ void ZeemanO2Settings( // Output
   zeeman_o2_line = ZeemanO2Line;
 
   return;
-};
+}
 
 
 

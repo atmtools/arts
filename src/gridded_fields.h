@@ -69,7 +69,7 @@ protected:
              mgridnames(),
              mstringgrids(),
              mnumericgrids()
-  { /* Nothing to do here */ };
+  { /* Nothing to do here */ }
 
   //! Construct a GriddedField
   /*!
@@ -144,7 +144,7 @@ public:
     {
       assert (i < dim);
       mgridnames[i] = s;
-    };
+    }
 
   //! Set name of this gridded field.
   /*! \param[in] s Gridded field name. */
@@ -158,7 +158,7 @@ public:
 
     \return True if sizes match.
   */
-  virtual bool checksize() const { return false; };
+  virtual bool checksize() const { return false; }
 
   //! GriddedField destructor
   virtual ~GriddedField() { }
@@ -171,10 +171,10 @@ class GriddedField1: public GriddedField
 {
 public:
   //! Construct an empty GriddedField1
-  GriddedField1() : GriddedField(1, "") {};
+  GriddedField1() : GriddedField(1, "") {}
   //! Construct an empty GriddedField1 with the given name
   /*! \param[in] s Name. */
-  GriddedField1(const String s) : GriddedField(1, s) {};
+  GriddedField1(const String s) : GriddedField(1, s) {}
 
   //! Consistency check.
   /*!
@@ -211,10 +211,10 @@ class GriddedField2: public GriddedField
 {
 public:
   //! Construct an empty GriddedField2
-  GriddedField2() : GriddedField(2, "") {};
+  GriddedField2() : GriddedField(2, "") {}
   //! Construct an empty GriddedField2 with the given name
   /*! \param[in] s Name. */
-  GriddedField2(const String s) : GriddedField(2, s) {};
+  GriddedField2(const String s) : GriddedField(2, s) {}
 
   //! Consistency check.
   /*!
@@ -253,10 +253,10 @@ class GriddedField3: public GriddedField
 {
 public:
   //! Construct an empty GriddedField3
-  GriddedField3() : GriddedField(3, "") {};
+  GriddedField3() : GriddedField(3, "") {}
   //! Construct an empty GriddedField3 with the given name
   /*! \param[in] s Name. */
-  GriddedField3(const String s) : GriddedField(3, s) {};
+  GriddedField3(const String s) : GriddedField(3, s) {}
 
   GriddedField3& operator=(Numeric n)
     {
@@ -304,10 +304,10 @@ class GriddedField4: public GriddedField
 {
 public:
   //! Construct an empty GriddedField4
-  GriddedField4() : GriddedField(4, "") {};
+  GriddedField4() : GriddedField(4, "") {}
   //! Construct an empty GriddedField4 with the given name
   /*! \param[in] s Name. */
-  GriddedField4(const String s) : GriddedField(4, s) {};
+  GriddedField4(const String s) : GriddedField(4, s) {}
 
   //! Consistency check.
   /*!

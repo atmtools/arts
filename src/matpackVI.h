@@ -398,7 +398,7 @@ public:
   ConstIterator6D end() const;
 
   // Destructor:
-  virtual ~ConstTensor6View() {};
+  virtual ~ConstTensor6View() {}
   
   // Friends:
   friend class ConstIterator7D;
@@ -903,7 +903,7 @@ public:
   Tensor6View& operator-=(const ConstTensor6View& x);
 
   // Destructor:
-  virtual ~Tensor6View() {};
+  virtual ~Tensor6View() {}
   
   // Friends:
   friend class Iterator7D;

@@ -76,9 +76,9 @@ public:
   Index ncols() const;
   Index nnz()   const;
 
-  const vector<Numeric> * data () const {return mdata;};
-  const vector<Index> * rowind () const {return mrowind;};
-  const vector<Index> * colptr () const {return mcolptr;};
+  const vector<Numeric> * data () const {return mdata;}
+  const vector<Index> * rowind () const {return mrowind;}
+  const vector<Index> * colptr () const {return mcolptr;}
 
   // Index Operators:
   Numeric& rw(Index r, Index c);

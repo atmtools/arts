@@ -198,7 +198,7 @@ public:
   ConstIterator4D end()   const;
 
   //! Destructor
-  virtual ~ConstTensor4View() {};
+  virtual ~ConstTensor4View() {}
 
   // Friends:
   friend class Tensor4View;
@@ -339,7 +339,7 @@ public:
   Tensor4View& operator-=(const ConstTensor4View& x);
 
   //! Destructor
-  virtual ~Tensor4View() {};
+  virtual ~Tensor4View() {}
 
   // Friends:
   // friend class VectorView;

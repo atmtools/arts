@@ -38,7 +38,7 @@ public:
 
   /** Default constructor. */
   SourceText() :  mLine(0), mColumn(0), mLineBreak(false)
-  { /* Nothing to be done here. */ };
+  { /* Nothing to be done here. */ }
 
   /** Appends contents of file to the source text.
       @see read_text_from_file */

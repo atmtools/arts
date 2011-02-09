@@ -327,7 +327,7 @@ public:
   operator ConstMatrixView() const;
 
   //! Destructor
-  virtual ~ConstVectorView() {};
+  virtual ~ConstVectorView() {}
 
   // Friends:
   friend class VectorView;
@@ -430,7 +430,7 @@ public:
   Numeric *get_c_array();
 
   //! Destructor
-  virtual ~VectorView() {};
+  virtual ~VectorView() {}
 
   // Friends:
   friend class ConstIterator2D;
@@ -622,7 +622,7 @@ public:
   ConstIterator2D end() const;
 
   //! Destructor
-  virtual ~ConstMatrixView() {};
+  virtual ~ConstMatrixView() {}
 
   // Friends:
   friend class MatrixView;
@@ -734,7 +734,7 @@ public:
   Numeric *get_c_array();
 
   //! Destructor
-  virtual ~MatrixView() {};
+  virtual ~MatrixView() {}
 
   // Friends:
   friend class VectorView;
@@ -784,7 +784,7 @@ public:
   // Destructor:
   virtual ~Matrix();
 
-  Numeric *get_raw_data() { return mdata; };
+  Numeric *get_raw_data() { return mdata; }
 };
 
 // Function declarations:

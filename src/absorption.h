@@ -309,7 +309,7 @@ public:
   /** Default constructor. */
   SpeciesRecord() : mname(),
                     mdegfr(-1),
-                    misotope() { /* Nothing to do here */ };
+                    misotope() { /* Nothing to do here */ }
   
   /** The constructor used in define_species_data. */
   SpeciesRecord(const char name[],

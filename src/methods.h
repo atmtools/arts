@@ -59,7 +59,7 @@ public:
     mpass_workspace(false),
     mpass_wsv_names(false),
     mactual_groups("")
-  {};
+  {}
 
   // Initializing constructor. Implementation in methods_aux.cc.
   MdRecord(const char                   name[],
