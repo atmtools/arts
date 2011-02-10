@@ -54,19 +54,19 @@
 */  
 
 
-void clear_rt_vars_at_gp(Workspace&              ws,
-                         MatrixView              ext_mat_mono,
-                         VectorView              abs_vec_mono,
-                         Numeric&                temperature,
-                         const Agenda&           opt_prop_gas_agenda,
-                         const Agenda&           abs_scalar_gas_agenda,
-                         const Index&            f_index,
-                         const GridPos&          gp_p,
-                         const GridPos&          gp_lat,
-                         const GridPos&          gp_lon,
-                         const ConstVectorView   p_grid,
-                         const ConstTensor3View  t_field,
-                         const ConstTensor4View  vmr_field)
+void clear_rt_vars_at_gp(Workspace&          ws,
+                         MatrixView          ext_mat_mono,
+                         VectorView          abs_vec_mono,
+                         Numeric&            temperature,
+                         const Agenda&       opt_prop_gas_agenda,
+                         const Agenda&       abs_scalar_gas_agenda,
+                         const Index         f_index,
+                         const GridPos&      gp_p,
+                         const GridPos&      gp_lat,
+                         const GridPos&      gp_lon,
+                         ConstVectorView     p_grid,
+                         ConstTensor3View    t_field,
+                         ConstTensor4View    vmr_field)
 {
   const Index   ns = vmr_field.nbooks();
   Vector t_vec(1);  //vectors are required by interp_atmfield_gp2itw etc.
@@ -126,25 +126,25 @@ void clear_rt_vars_at_gp(Workspace&              ws,
 */  
 
 
-void cloudy_rt_vars_at_gp(Workspace&            ws,
-                          MatrixView            ext_mat_mono,
-                          VectorView            abs_vec_mono,
-                          VectorView            pnd_vec,
-                          Numeric&              temperature,
-                          const Agenda&         opt_prop_gas_agenda,
-                          const Agenda&         abs_scalar_gas_agenda,
-                          const Index&          stokes_dim,
-                          const Index&          f_index,
-                          const GridPos         gp_p,
-                          const GridPos         gp_lat,
-                          const GridPos         gp_lon,
-                          const ConstVectorView    p_grid_cloud,
-                          const ConstTensor3View   t_field_cloud,
-                          const ConstTensor4View   vmr_field_cloud,
-                          const Tensor4&           pnd_field,
+void cloudy_rt_vars_at_gp(Workspace&           ws,
+                          MatrixView           ext_mat_mono,
+                          VectorView           abs_vec_mono,
+                          VectorView           pnd_vec,
+                          Numeric&             temperature,
+                          const Agenda&        opt_prop_gas_agenda,
+                          const Agenda&        abs_scalar_gas_agenda,
+                          const Index          stokes_dim,
+                          const Index          f_index,
+                          const GridPos        gp_p,
+                          const GridPos        gp_lat,
+                          const GridPos        gp_lon,
+                          ConstVectorView      p_grid_cloud,
+                          ConstTensor3View     t_field_cloud,
+                          ConstTensor4View     vmr_field_cloud,
+                          const Tensor4&       pnd_field,
                           const ArrayOfSingleScatteringData& scat_data_mono,
-                          const ArrayOfIndex&                cloudbox_limits,
-                          const Vector&             rte_los
+                          const ArrayOfIndex&  cloudbox_limits,
+                          const Vector&        rte_los
                           )
 
 {
@@ -235,11 +235,11 @@ void cloud_atm_vars_by_gp(
                           const ArrayOfGridPos& gp_p,
                           const ArrayOfGridPos& gp_lat,
                           const ArrayOfGridPos& gp_lon,
-                          const ArrayOfIndex& cloudbox_limits,
-                          const ConstVectorView p_grid_cloud,
-                          const ConstTensor3View   t_field_cloud,
-                          const ConstTensor4View   vmr_field_cloud,
-                          const ConstTensor4View   pnd_field
+                          const ArrayOfIndex&   cloudbox_limits,
+                          ConstVectorView    p_grid_cloud,
+                          ConstTensor3View   t_field_cloud,
+                          ConstTensor4View   vmr_field_cloud,
+                          ConstTensor4View   pnd_field
                           )
 {
   Index np=gp_p.nelem();
@@ -348,7 +348,7 @@ void cum_l_stepCalc(
   \date   2004-31-1
 */
 void findZ11max(Vector& Z11maxvector,
-           const ArrayOfSingleScatteringData& scat_data_mono)
+                const ArrayOfSingleScatteringData& scat_data_mono)
 {
   Index np=scat_data_mono.nelem();
   Z11maxvector.resize(np);
@@ -567,8 +567,8 @@ void mcPathTraceGeneral(Workspace&            ws,
                         //Vector&               rte_vmr_list,
                         const Agenda&         opt_prop_gas_agenda,
                         const Agenda&         abs_scalar_gas_agenda,
-                        const Index&          stokes_dim,
-                        const Index&          f_index,
+                        const Index           stokes_dim,
+                        const Index           f_index,
                         const Vector&         p_grid,
                         const Vector&         lat_grid,
                         const Vector&         lon_grid,
@@ -580,7 +580,7 @@ void mcPathTraceGeneral(Workspace&            ws,
                         const ArrayOfIndex&   cloudbox_limits,
                         const Tensor4&        pnd_field,
                         const ArrayOfSingleScatteringData& scat_data_mono,
-                        const Index&          z_field_is_1D)
+                        const Index           z_field_is_1D)
 
 { 
   ArrayOfMatrix evol_opArray(2);
@@ -819,8 +819,8 @@ void mcPathTraceIPA(Workspace&            ws,
                     bool&                 inside_cloud,
                     const Agenda&         opt_prop_gas_agenda,
                     const Agenda&         abs_scalar_gas_agenda,
-                    const Index&          stokes_dim,
-                    const Index&          f_index,
+                    const Index           stokes_dim,
+                    const Index           f_index,
                     const Vector&         p_grid,
                     const Vector&         lat_grid,
                     const Vector&         lon_grid,
@@ -832,7 +832,7 @@ void mcPathTraceIPA(Workspace&            ws,
                     const ArrayOfIndex&   cloudbox_limits,
                     const Tensor4&        pnd_field,
                     const ArrayOfSingleScatteringData& scat_data_mono,
-                    const Index&          z_field_is_1D,
+                    const Index           z_field_is_1D,
                     const Ppath&          ppath)
 
 { 
@@ -1163,14 +1163,14 @@ from scat_data_mono
    \date   2004-7-16
 */
 void opt_propCalc(
-                  MatrixView ext_mat_mono,
-                  VectorView abs_vec_mono,
-                  const Numeric za,
-                  const Numeric aa,
+                  MatrixView      ext_mat_mono,
+                  VectorView      abs_vec_mono,
+                  const Numeric   za,
+                  const Numeric   aa,
                   const ArrayOfSingleScatteringData& scat_data_mono,
-                  const Index&          stokes_dim,
-                  const VectorView pnd_vec,
-                  const Numeric& rte_temperature
+                  const Index     stokes_dim,
+                  ConstVectorView pnd_vec,
+                  const Numeric   rte_temperature
                   )
 {
   assert( stokes_dim>=1  &&  stokes_dim<=4 );
@@ -1202,14 +1202,14 @@ void opt_propCalc(
 }
 
 void opt_propCalc2(
-                  MatrixView ext_mat_mono,
-                  VectorView abs_vec_mono,
-                  const Numeric za,
-                  const Numeric aa,
+                  MatrixView      ext_mat_mono,
+                  VectorView      abs_vec_mono,
+                  const Numeric   za,
+                  const Numeric   aa,
                   const ArrayOfSingleScatteringData& scat_data_mono,
-                  const Index&          stokes_dim,
-                  const VectorView& pnd_vec,
-                  const Numeric& rte_temperature
+                  const Index     stokes_dim,
+                  ConstVectorView pnd_vec,
+                  const Numeric   rte_temperature
                   )
 {
   const Index N_pt = scat_data_mono.nelem();
@@ -1260,13 +1260,13 @@ void opt_propCalc2(
 */
 
 void opt_propExtract(
-                     MatrixView ext_mat_mono_spt,
-                     VectorView abs_vec_mono_spt,
+                     MatrixView     ext_mat_mono_spt,
+                     VectorView     abs_vec_mono_spt,
                      const SingleScatteringData& scat_data,
-                     const Numeric& za,
-                     const Numeric& aa,
-                     const Numeric& rte_temperature,
-                     const Index& stokes_dim
+                     const Numeric  za,
+                     const Numeric  aa,
+                     const Numeric  rte_temperature,
+                     const Index    stokes_dim
                      )
 {
 
@@ -1421,10 +1421,10 @@ void opt_propExtract(
 . It requires a vector of particle number densities to be precalculated
 
  \param[out] Z               Output: phase matrix
- \param[out] za_sca          scattered 
- \param[out] aa_sca          and
- \param[out] za_inc          incident
- \param[out] aa_inc          directions
+ \param[in]  za_sca          scattered 
+ \param[in]  aa_sca          and
+ \param[in]  za_inc          incident
+ \param[in]  aa_inc          directions
  \param[in]  scat_data_mono  workspace variable
  \param[in]  stokes_dim      workspace variable
  \param[in]  pnd_vec         vector of particle number densities at the point 
@@ -1435,14 +1435,14 @@ void opt_propExtract(
 */
 void pha_mat_singleCalc(
                         MatrixView Z,                  
-                        Numeric za_sca, 
-                        Numeric aa_sca, 
-                        Numeric za_inc, 
-                        Numeric aa_inc,
+                        const Numeric    za_sca, 
+                        const Numeric    aa_sca, 
+                        const Numeric    za_inc, 
+                        const Numeric    aa_inc,
                         const ArrayOfSingleScatteringData& scat_data_mono,
-                        const Index&          stokes_dim,
-                        const VectorView pnd_vec,
-                        const Numeric& rte_temperature
+                        const Index      stokes_dim,
+                        ConstVectorView  pnd_vec,
+                        const Numeric    rte_temperature
                         )
 {
   Index N_pt=pnd_vec.nelem();
@@ -1486,12 +1486,12 @@ void pha_mat_singleCalc(
 void pha_mat_singleExtract(
                            MatrixView Z_spt,
                            const SingleScatteringData& scat_data,
-                           const Numeric& za_sca,
-                           const Numeric& aa_sca,
-                           const Numeric& za_inc,
-                           const Numeric& aa_inc,
-                           const Numeric& rte_temperature,
-                           const Index& stokes_dim
+                           const Numeric za_sca,
+                           const Numeric aa_sca,
+                           const Numeric za_inc,
+                           const Numeric aa_inc,
+                           const Numeric rte_temperature,
+                           const Index   stokes_dim
                            )                       
 {
   switch (scat_data.ptype){
@@ -1700,19 +1700,19 @@ void pha_mat_singleExtract(
 */
 
 void Sample_los (
-                   VectorView new_rte_los,
-                   Numeric& g_los_csc_theta,
-                   MatrixView Z,
-                   Rng& rng,
-                   const VectorView rte_los,
-                   const ArrayOfSingleScatteringData& scat_data_mono,
-                   const Index&          stokes_dim,
-                   const VectorView pnd_vec,
-                   const bool& anyptype30,
-                   const VectorView Z11maxvector,
-                   Numeric Csca,
-                   const Numeric& rte_temperature
-                   )
+                 VectorView       new_rte_los,
+                 Numeric&         g_los_csc_theta,
+                 MatrixView       Z,
+                 Rng&             rng,
+                 ConstVectorView  rte_los,
+                 const ArrayOfSingleScatteringData& scat_data_mono,
+                 const Index      stokes_dim,
+                 ConstVectorView  pnd_vec,
+                 const bool       anyptype30,
+                 ConstVectorView  Z11maxvector,
+                 const Numeric    Csca,
+                 const Numeric    rte_temperature
+                 )
 {
   Numeric Z11max=0;
   bool tryagain=true;
@@ -1754,37 +1754,4 @@ void Sample_los (
         }
     }
   g_los_csc_theta =Z(0,0)/Csca;
-}
-
-
-
-
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
-void pha_matExtractManually(
-        Matrix&                        pha_mat,
-  const Vector&                        f_grid,
-  const Index&                         f_index,
-  const Index&                         stokes_dim,
-  const ArrayOfSingleScatteringData&   scat_data_raw,
-  const Numeric&                       rte_temperature,
-  const Numeric&                       za_out, 
-  const Numeric&                       aa_out, 
-  const Numeric&                       za_in, 
-  const Numeric&                       aa_in ) 
-{
-  if( scat_data_raw.nelem() > 1 )
-    throw runtime_error( "Only one element in *scat_data_raw* is allowed." );
-
-  ArrayOfSingleScatteringData   scat_data;
-  scat_data_monoCalc( scat_data, scat_data_raw, f_grid, f_index );
-
-  Vector pnd( 1, 1.0 );
-  
-  pha_mat.resize( stokes_dim, stokes_dim );
-
-  pha_mat_singleCalc( pha_mat, za_out, aa_out, za_in, aa_in,
-                      scat_data, stokes_dim, pnd, rte_temperature );
 }

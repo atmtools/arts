@@ -1,3 +1,21 @@
+2011-02-10  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-149
+
+	* src/m_montecarlo.cc, src/montecarlo.cc:
+
+	Move workspace method implemention of pha_matExtractManually to
+	m_montecarlo.cc.
+
+	* src/montecarlo.h:
+
+	Remove declaration of non-existent function Cloudbox_ppathCalc.
+
+	* src/montecarlo.cc, src/montecarlo.h:
+
+	Cleanup function arguments. Don't pass atomic types as references if
+	not necessary. Change all const VectorViews to ConstVectorViews.
+
 2011-02-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-148
