@@ -196,11 +196,11 @@ xml_write_to_stream (ostream& os_xml,
     {
       switch (gfield.get_grid_type(i))
         {
-        case GRIDTYPE_NUMERIC:
+        case GRID_TYPE_NUMERIC:
           xml_write_to_stream (os_xml, gfield.get_numeric_grid(i),
                                pbofs, gfield.get_grid_name(i));
           break;
-        case GRIDTYPE_STRING:
+        case GRID_TYPE_STRING:
           xml_write_to_stream (os_xml, gfield.get_string_grid(i),
                                pbofs, gfield.get_grid_name(i));
           break;
@@ -801,7 +801,7 @@ xml_read_from_stream (istream& is_xml,
   tag.check_name ("SingleScatteringData");
 
   xml_read_from_stream (is_xml, ptype, pbifs);
-  ssdata.ptype = PType (ptype);
+  ssdata.ptype = ParticleType (ptype);
   xml_read_from_stream (is_xml, ssdata.description, pbifs);
   xml_read_from_stream (is_xml, ssdata.f_grid, pbifs);
   xml_read_from_stream (is_xml, ssdata.T_grid, pbifs);
@@ -880,7 +880,7 @@ xml_read_from_stream (istream& is_xml,
   tag.check_name ("ScatteringMetaData");
 
   //xml_read_from_stream (is_xml, ptype, pbifs);
-  //ssdata.ptype = PType (ptype);
+  //ssdata.ptype = ParticleType (ptype);
   xml_read_from_stream (is_xml, smdata.description, pbifs);
   xml_read_from_stream (is_xml, smdata.type, pbifs);
   xml_read_from_stream (is_xml, smdata.shape, pbifs);

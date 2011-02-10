@@ -18,6 +18,7 @@
 #include <cmath>
 #include <iostream>
 #include "matpackVII.h"
+#include "exceptions.h"
 #include "array.h"
 #include "make_array.h"
 #include "mystring.h"
@@ -775,6 +776,26 @@ void test40()
   cout << v << endl;
 }
 
+void test41()
+{
+  const Vector v1(10, 1);
+  
+  ConstVectorView vv = v1[Range(0, 5)];
+  
+  cout << "Vector:     " << v1 << endl;
+  cout << "VectorView: " << vv << endl;
+  
+  try {
+    vv = 2;
+  } catch (runtime_error e) {
+    cerr << e.what() << endl;
+    exit(EXIT_FAILURE);
+  }
+  
+  cout << "VectorView: " << vv << endl;
+  cout << "Vector:     " << v1 << endl;
+}
+
 int main()
 {
 //   test1();
@@ -817,7 +838,8 @@ int main()
 //  test37(i);
 //  test38();
 //  test39();
-  test40();
+//  test40();
+  test41();
 
   return 0;
 }

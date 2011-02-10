@@ -575,7 +575,7 @@ void chk_single_scattering_data(
   
   switch (scat_data_raw.ptype){
     
-  case PTYPE_GENERAL:
+  case PARTICLE_TYPE_GENERAL:
     
     out2 << "  Datafile is for arbitrarily orientated particles. \n";
     
@@ -596,7 +596,7 @@ void chk_single_scattering_data(
              4);
     break;
     
-  case PTYPE_MACROS_ISO: 
+  case PARTICLE_TYPE_MACROS_ISO: 
     
     out2 << "  Datafile is for randomly oriented particles, i.e., "
          << "macroscopically isotropic and mirror-symmetric scattering "
@@ -615,7 +615,7 @@ void chk_single_scattering_data(
              1, 1, 1);
     break; 
     
-  case PTYPE_HORIZ_AL:
+  case PARTICLE_TYPE_HORIZ_AL:
     
     out2 << "  Datafile is for horizontally aligned particles. \n"; 
     
@@ -636,7 +636,7 @@ void chk_single_scattering_data(
              2);
     break;
 
-  case PTYPE_SPHERICAL:
+  case PARTICLE_TYPE_SPHERICAL:
     throw runtime_error(
                         "Special case for spherical particles not"
                         "implemented."

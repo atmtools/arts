@@ -64,13 +64,13 @@ void GriddedField::copy_grids (const GriddedField& gf)
     {
       switch (gf.get_grid_type(i))
         {
-        case GRIDTYPE_NUMERIC:
-          mgridtypes[i] = GRIDTYPE_NUMERIC;
+        case GRID_TYPE_NUMERIC:
+          mgridtypes[i] = GRID_TYPE_NUMERIC;
           mnumericgrids[i] = gf.get_numeric_grid(i);
           mstringgrids[i].resize(0);
           break;
-        case GRIDTYPE_STRING:
-          mgridtypes[i] = GRIDTYPE_STRING;
+        case GRID_TYPE_STRING:
+          mgridtypes[i] = GRID_TYPE_STRING;
           mstringgrids[i] = gf.get_string_grid(i);
           mnumericgrids[i].resize(0);
           break;
@@ -92,8 +92,8 @@ Index GriddedField::get_grid_size (Index i) const
   assert (i < dim);
   switch (mgridtypes[i])
     {
-    case GRIDTYPE_NUMERIC: ret = mnumericgrids[i].nelem(); break;
-    case GRIDTYPE_STRING:  ret = mstringgrids[i].nelem(); break;
+    case GRID_TYPE_NUMERIC: ret = mnumericgrids[i].nelem(); break;
+    case GRID_TYPE_STRING:  ret = mstringgrids[i].nelem(); break;
     }
 
   return ret;
@@ -112,7 +112,7 @@ Index GriddedField::get_grid_size (Index i) const
 ConstVectorView GriddedField::get_numeric_grid (Index i) const
 {
   assert (i < dim);
-  if (mgridtypes[i] != GRIDTYPE_NUMERIC)
+  if (mgridtypes[i] != GRID_TYPE_NUMERIC)
     {
       ostringstream os;
 
@@ -145,7 +145,7 @@ ConstVectorView GriddedField::get_numeric_grid (Index i) const
 VectorView GriddedField::get_numeric_grid (Index i)
 {
   assert (i < dim);
-  if (mgridtypes[i] != GRIDTYPE_NUMERIC)
+  if (mgridtypes[i] != GRID_TYPE_NUMERIC)
     {
       ostringstream os;
 
@@ -178,7 +178,7 @@ VectorView GriddedField::get_numeric_grid (Index i)
 const ArrayOfString& GriddedField::get_string_grid (Index i) const
 {
   assert (i < dim);
-  if (mgridtypes[i] != GRIDTYPE_STRING)
+  if (mgridtypes[i] != GRID_TYPE_STRING)
     {
       ostringstream os;
 
@@ -212,7 +212,7 @@ const ArrayOfString& GriddedField::get_string_grid (Index i) const
 ArrayOfString& GriddedField::get_string_grid (Index i)
 {
   assert (i < dim);
-  if (mgridtypes[i] != GRIDTYPE_STRING)
+  if (mgridtypes[i] != GRID_TYPE_STRING)
     {
       ostringstream os;
 
@@ -244,7 +244,7 @@ ArrayOfString& GriddedField::get_string_grid (Index i)
 void GriddedField::set_grid (Index i, const Vector& g)
 {
   assert (i < dim);
-  mgridtypes[i] = GRIDTYPE_NUMERIC;
+  mgridtypes[i] = GRID_TYPE_NUMERIC;
   mstringgrids[i].resize(0);
   mnumericgrids[i] = g;
 }
@@ -260,7 +260,7 @@ void GriddedField::set_grid (Index i, const Vector& g)
 void GriddedField::set_grid (Index i, const ArrayOfString& g)
 {
   assert (i < dim);
-  mgridtypes[i] = GRIDTYPE_STRING;
+  mgridtypes[i] = GRID_TYPE_STRING;
   mnumericgrids[i].resize(0);
   mstringgrids[i] = g;
 }
@@ -284,10 +284,10 @@ ostream& operator<<(ostream& os, const GriddedField& gf)
       os << ": ";
       switch (gf.mgridtypes[i])
         {
-        case GRIDTYPE_STRING:
+        case GRID_TYPE_STRING:
           os << gf.mstringgrids[i];
           break;
-        case GRIDTYPE_NUMERIC:
+        case GRID_TYPE_NUMERIC:
           os << gf.mnumericgrids[i];
           break;
         }

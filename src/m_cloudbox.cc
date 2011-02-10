@@ -990,7 +990,7 @@ void pnd_fieldZero(//WS Output:
   //Resize scat_data_raw and set it to 0:
   // Number iof particle types
   scat_data_raw.resize(1);
-  scat_data_raw[0].ptype = PTYPE_MACROS_ISO;
+  scat_data_raw[0].ptype = PARTICLE_TYPE_MACROS_ISO;
   scat_data_raw[0].description = " ";
   // Grids which contain full ranges which one wants to calculate
   nlinspace(scat_data_raw[0].f_grid, 1e9, 3.848043e+13 , 5);  

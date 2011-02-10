@@ -86,7 +86,7 @@ Numeric ran_gaussian (
 
 //! makes the antenna pattern a pencil beam
 void MCAntenna::set_pencil_beam (void){
-  atype=ATYPE_PENCIL_BEAM;
+  atype=ANTENNA_TYPE_PENCIL_BEAM;
 }
 
 //! makes the antenna pattern a 2D gaussian specified by za and aa standard deviations
@@ -100,7 +100,7 @@ Givees the MCAntenna object a 2D gaussian response function
 void MCAntenna::set_gaussian (const Numeric& za_sigma,
                               const Numeric& aa_sigma)
 {
-  atype=ATYPE_GAUSSIAN;
+  atype=ANTENNA_TYPE_GAUSSIAN;
   sigma_za=za_sigma;
   sigma_aa=aa_sigma;
 }
@@ -116,7 +116,7 @@ Givees the MCAntenna object a 2D gaussian response function
 void MCAntenna::set_gaussian_fwhm (const Numeric& za_fwhm,
                                    const Numeric& aa_fwhm)
 {
-  atype=ATYPE_GAUSSIAN;
+  atype=ANTENNA_TYPE_GAUSSIAN;
   sigma_za=za_fwhm/2.3548;
   sigma_aa=aa_fwhm/2.3548;
 }
@@ -135,7 +135,7 @@ void MCAntenna::set_lookup (ConstVectorView& za_grid_,
                             ConstVectorView& aa_grid_,
                             ConstMatrixView& G_lookup_)
 {
-  atype=ATYPE_LOOKUP;
+  atype=ANTENNA_TYPE_LOOKUP;
   za_grid=za_grid_;
   aa_grid=aa_grid_;
   G_lookup=G_lookup_;
@@ -147,7 +147,7 @@ void MCAntenna::set_lookup (ConstVectorView& za_grid_,
 \author Cory Davis
 \date 2006-6-16
  */
-AType MCAntenna::get_type(void) const
+AntennaType MCAntenna::get_type(void) const
 {
   return atype;
 }
@@ -171,10 +171,10 @@ void MCAntenna::draw_los(VectorView& sampled_rte_los,
 
   switch ( atype )
     {
-    case ATYPE_PENCIL_BEAM:
+    case ANTENNA_TYPE_PENCIL_BEAM:
       sampled_rte_los=bore_sight_los;
       break;
-    case ATYPE_GAUSSIAN:
+    case ANTENNA_TYPE_GAUSSIAN:
       sampled_rte_los[0]=bore_sight_los[0]+ran_gaussian(rng,sigma_za);
       sampled_rte_los[1]=bore_sight_los[1]+ran_gaussian(rng,sigma_aa);
       if ( sampled_rte_los[1]>180 )
@@ -182,9 +182,9 @@ void MCAntenna::draw_los(VectorView& sampled_rte_los,
           sampled_rte_los[1]-=360;
         }
       break;
-      //    case ATYPE_LOOKUP:
+      //    case ANTENNA_TYPE_LOOKUP:
       //ostringstream os;
-      //os << "Antenna type ATYPE_LOOKUP not yet implemented.";
+      //os << "Antenna type ANTENNA_TYPE_LOOKUP not yet implemented.";
       //throw runtime_error( os.str() );
       //break;
     default:

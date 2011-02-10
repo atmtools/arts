@@ -51,12 +51,12 @@
   A detailed description of the different cases can be found in AUG.
 
 */
-typedef enum{
-  PTYPE_GENERAL = 10,
-  PTYPE_MACROS_ISO = 20,
-  PTYPE_HORIZ_AL = 30,
-  PTYPE_SPHERICAL = 40
-} PType;
+enum ParticleType {
+  PARTICLE_TYPE_GENERAL = 10,
+  PARTICLE_TYPE_MACROS_ISO = 20,
+  PARTICLE_TYPE_HORIZ_AL = 30,
+  PARTICLE_TYPE_SPHERICAL = 40
+};
 
 
 
@@ -71,15 +71,15 @@ typedef enum{
    It is listed as a sub-entry to "data structures".  
 */
 struct SingleScatteringData {
-  PType     ptype;
-  String    description;
-  Vector    f_grid;
-  Vector    T_grid;
-  Vector    za_grid;
-  Vector    aa_grid;
-  Tensor7   pha_mat_data;
-  Tensor5   ext_mat_data;
-  Tensor5   abs_vec_data;
+  ParticleType ptype;
+  String       description;
+  Vector       f_grid;
+  Vector       T_grid;
+  Vector       za_grid;
+  Vector       aa_grid;
+  Tensor7      pha_mat_data;
+  Tensor5      ext_mat_data;
+  Tensor5      abs_vec_data;
 };
 
 typedef Array<SingleScatteringData> ArrayOfSingleScatteringData;
@@ -122,7 +122,7 @@ void abs_vecTransform(//Output and Input
                       ConstTensor3View abs_vec_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid,
-                      const PType& ptype,
+                      const ParticleType& ptype,
                       const Numeric& za_sca,
                       const Numeric& aa_sca);
 
@@ -133,7 +133,7 @@ void ext_matTransform(//Output and Input
                       ConstTensor3View ext_mat_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid,
-                      const PType& ptype,
+                      const ParticleType& ptype,
                       const Numeric& za_sca,
                       const Numeric& aa_sca);
  
@@ -144,7 +144,7 @@ void pha_matTransform(//Output
                       ConstTensor5View pha_mat_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid,
-                      const PType& ptype,
+                      const ParticleType& ptype,
                       const Index& za_sca_idx,
                       const Index& aa_sca_idx,
                       const Index& za_inc_idx,

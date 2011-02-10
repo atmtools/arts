@@ -356,11 +356,11 @@ void findZ11max(Vector& Z11maxvector,
   for(Index i = 0;i<np;i++)
     {
       switch(scat_data_mono[i].ptype){
-      case PTYPE_MACROS_ISO:
+      case PARTICLE_TYPE_MACROS_ISO:
         {
           Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,0,0,0,0));
         }
-      case PTYPE_HORIZ_AL:
+      case PARTICLE_TYPE_HORIZ_AL:
         {
           Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,0,joker,0,0));
         }
@@ -391,7 +391,7 @@ bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono)
   Index i=0;
   while(i < np && anyptype30==false)
     {
-      if(scat_data_mono[i].ptype==PTYPE_HORIZ_AL)
+      if(scat_data_mono[i].ptype==PARTICLE_TYPE_HORIZ_AL)
         {
           anyptype30=true;
         }
@@ -1280,14 +1280,14 @@ void opt_propExtract(
   x+=1;        //
   switch (scat_data.ptype){
 
-  case PTYPE_GENERAL:
+  case PARTICLE_TYPE_GENERAL:
     // This is only included to remove warnings about unused variables 
     // during compilation
 
-    out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
+    out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
     break;
     
-  case PTYPE_MACROS_ISO:
+  case PARTICLE_TYPE_MACROS_ISO:
     {
       assert (scat_data.ext_mat_data.ncols() == 1);
       
@@ -1336,7 +1336,7 @@ void opt_propExtract(
       break;
     }
 
-  case PTYPE_HORIZ_AL://Added by Cory Davis 9/12/03
+  case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis 9/12/03
     {
       assert (scat_data.ext_mat_data.ncols() == 3);
       
@@ -1496,12 +1496,12 @@ void pha_mat_singleExtract(
 {
   switch (scat_data.ptype){
 
-  case PTYPE_GENERAL:
+  case PARTICLE_TYPE_GENERAL:
     // to remove warnings during compilation. 
-    out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
+    out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
     break;
     
-  case PTYPE_MACROS_ISO:
+  case PARTICLE_TYPE_MACROS_ISO:
     {
       // Calculate the scattering and interpolate the data on the scattering
       // angle:
@@ -1520,7 +1520,7 @@ void pha_mat_singleExtract(
       break;
     }
 
-  case PTYPE_HORIZ_AL://Added by Cory Davis
+  case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis
     //Data is already stored in the laboratory frame, but it is compressed
     //a little.  Details elsewhere
     {

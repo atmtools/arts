@@ -39,10 +39,10 @@
 #include "mystring.h"
 
 /*! Enumeration containing the possible grid types for gridded fields */
-typedef enum {
-  GRIDTYPE_NUMERIC,
-  GRIDTYPE_STRING
-} GridType;
+enum GridType {
+  GRID_TYPE_NUMERIC,
+  GRID_TYPE_STRING
+};
 
 typedef Array<GridType> ArrayOfGridType;
 
@@ -83,7 +83,7 @@ protected:
   */
   GriddedField(const Index d, const String s) : dim(d),
                                           mname(s),
-                                          mgridtypes(d, GRIDTYPE_NUMERIC),
+                                          mgridtypes(d, GRID_TYPE_NUMERIC),
                                           mgridnames(d),
                                           mstringgrids(d),
                                           mnumericgrids(d)

@@ -1,10 +1,53 @@
 2011-02-10  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-150
+
+	* Unify naming of all enums and their values.
+	
+	* Remove typedefs for enums, not needed in C++.
+
+	* src/optproperties.{h,cc}, src/montecarlo.cc, src/m_cloudbox.cc,
+	src/cloudbox.cc, src/xml_io_compound_types.cc, doc/uguide/clouds.tex:
+
+	Change typedef enum PType to enum ParticleType.
+
+	PTYPE_GENERAL    -> PARTICLE_TYPE_GENERAL
+	PTYPE_MACROS_ISO -> PARTICLE_TYPE_MACROS_ISO
+	PTYPE_HORIZ_AL   -> PARTICLE_TYPE_HORIZ_AL
+	PTYPE_SPHERICAL  -> PARTICLE_TYPE_SPHERICAL
+
+	* src/m_montecarlo.cc, src/mc_antenna.{h,cc}:
+
+	Change typedef enum AType to enum AntennaType.
+
+	ATYPE_PENCIL_BEAM -> ANTENNA_TYPE_PENCIL_BEAM
+	ATYPE_GAUSSIAN    -> ANTENNA_TYPE_GAUSSIAN
+	ATYPE_LOOKUP      -> ANTENNA_TYPE_LOOKUP
+
+	* src/gridded_fields.{h,cc}, src/xml_io_compound_types.cc:
+
+	Change typedef enum GridType to GridType.
+
+	GRIDTYPE_STRING  -> GRID_TYPE_STRING
+	GRIDTYPE_NUMERIC -> GRID_TYPE_NUMERIC
+
+	* src/xml_io.h:
+
+	Change typedef enum FileType to enum FileType.
+	Change typedef enum NumericType to enum NumericType.
+	Change typedef enum EndianType to enum EndianType.
+
+	* src/test_matpack.cc: Added another test case.
+
+	* ChangeLog: Fix typo in previous commit.
+
+2011-02-10  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-149
 
 	* src/m_montecarlo.cc, src/montecarlo.cc:
 
-	Move workspace method implemention of pha_matExtractManually to
+	Move workspace method implementation of pha_matExtractManually to
 	m_montecarlo.cc.
 
 	* src/montecarlo.h:

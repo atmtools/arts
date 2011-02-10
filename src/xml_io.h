@@ -35,14 +35,14 @@
 #include "mystring.h"
 #include "absorption.h"
 
-typedef enum {
+enum FileType {
   FILE_TYPE_ASCII,
   FILE_TYPE_ZIPPED_ASCII,
   FILE_TYPE_BINARY
-} FileType;
+};
 
-typedef enum {NUMERIC_TYPE_FLOAT, NUMERIC_TYPE_DOUBLE} NumericType;
-typedef enum {ENDIAN_TYPE_LITTLE, ENDIAN_TYPE_BIG} EndianType;
+enum NumericType { NUMERIC_TYPE_FLOAT, NUMERIC_TYPE_DOUBLE };
+enum EndianType { ENDIAN_TYPE_LITTLE, ENDIAN_TYPE_BIG };
 
 
 ////////////////////////////////////////////////////////////////////////////

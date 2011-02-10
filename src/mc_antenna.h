@@ -44,17 +44,17 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 #include <cmath>
 #include <stdexcept>
 
-typedef enum{
-  ATYPE_PENCIL_BEAM = 1,
-    ATYPE_GAUSSIAN = 2,
-    ATYPE_LOOKUP = 3
-    } AType;
+enum AntennaType {
+  ANTENNA_TYPE_PENCIL_BEAM = 1,
+  ANTENNA_TYPE_GAUSSIAN = 2,
+  ANTENNA_TYPE_LOOKUP = 3
+};
 
 //! An Antenna object used by MCGeneral
 /*! This class provides the means of sampling various types of 2D antenna
 functions.. */ 
 class MCAntenna {
-  AType atype;
+  AntennaType atype;
   Numeric sigma_aa,sigma_za;
   Vector aa_grid,za_grid;
   Matrix G_lookup;
@@ -76,7 +76,7 @@ public:
   void set_lookup (ConstVectorView& za_grid,
                    ConstVectorView& aa_grid,
                    ConstMatrixView& G_lookup);
-  AType get_type(void) const;      
+  AntennaType get_type(void) const;      
   void draw_los(VectorView& sampled_rte_los,
                 Rng& rng,
                 ConstVectorView bore_sight_los) const;

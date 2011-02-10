@@ -102,7 +102,7 @@ void mc_IWP_cloud_opt_pathCalc(
 {
   //if antenna is pencil beam jsut need a single path integral, otherwise
   //for now do monte carlo integration
-  if (mc_antenna.get_type()==ATYPE_PENCIL_BEAM)
+  if (mc_antenna.get_type()==ANTENNA_TYPE_PENCIL_BEAM)
     {
       iwp_cloud_opt_pathCalc(ws, mc_IWP,mc_cloud_opt_path,sensor_pos(0,joker),
                              sensor_los(0,joker),

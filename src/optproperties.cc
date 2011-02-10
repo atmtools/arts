@@ -88,7 +88,7 @@ void abs_vecTransform(//Output and Input
                       ConstTensor3View abs_vec_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid _U_,
-                      const PType& ptype,
+                      const ParticleType& ptype,
                       const Numeric& za_sca _U_,
                       const Numeric& aa_sca _U_)
 {
@@ -101,12 +101,12 @@ void abs_vecTransform(//Output and Input
 
   switch (ptype){
 
-  case PTYPE_GENERAL:
+  case PARTICLE_TYPE_GENERAL:
 
-    out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
+    out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
     break;
     
-  case PTYPE_MACROS_ISO:
+  case PARTICLE_TYPE_MACROS_ISO:
     {
       // The first element of the vector corresponds to the absorption 
       // coefficient which is stored in the database, the others are 0.
@@ -117,7 +117,7 @@ void abs_vecTransform(//Output and Input
       break;
     }
 
-case PTYPE_HORIZ_AL://Added by Cory Davis 9/12/03
+case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis 9/12/03
     {
       assert (abs_vec_data.ncols() == 2);
       
@@ -191,7 +191,7 @@ void ext_matTransform(//Output and Input
                       ConstTensor3View ext_mat_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid _U_,
-                      const PType& ptype,
+                      const ParticleType& ptype,
                       const Numeric& za_sca,
                       const Numeric& aa_sca _U_)
 {
@@ -204,12 +204,12 @@ void ext_matTransform(//Output and Input
 
   switch (ptype){
 
-  case PTYPE_GENERAL:
+  case PARTICLE_TYPE_GENERAL:
 
-    out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
+    out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
     break;
     
-  case PTYPE_MACROS_ISO:
+  case PARTICLE_TYPE_MACROS_ISO:
     {
       assert (ext_mat_data.ncols() == 1);
       
@@ -242,7 +242,7 @@ void ext_matTransform(//Output and Input
       break;
     }
 
-  case PTYPE_HORIZ_AL://Added by Cory Davis 9/12/03
+  case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis 9/12/03
     {
       assert (ext_mat_data.ncols() == 3);
       
@@ -342,7 +342,7 @@ void pha_matTransform(//Output
                       ConstTensor5View pha_mat_data,
                       ConstVectorView za_datagrid,
                       ConstVectorView aa_datagrid,
-                      const PType& ptype,
+                      const ParticleType& ptype,
                       const Index& za_sca_idx,
                       const Index& aa_sca_idx,
                       const Index& za_inc_idx,
@@ -367,12 +367,12 @@ void pha_matTransform(//Output
 
   switch (ptype){
 
-  case PTYPE_GENERAL:
+  case PARTICLE_TYPE_GENERAL:
 
-    out0 << "Case PTYPE_GENERAL not yet implemented. \n"; 
+    out0 << "Case PARTICLE_TYPE_GENERAL not yet implemented. \n"; 
     break;
     
-  case PTYPE_MACROS_ISO:
+  case PARTICLE_TYPE_MACROS_ISO:
     {
       // Calculate the scattering and interpolate the data on the scattering
       // angle:
@@ -392,7 +392,7 @@ void pha_matTransform(//Output
       break;
     }
 
-  case PTYPE_HORIZ_AL://Added by Cory Davis
+  case PARTICLE_TYPE_HORIZ_AL://Added by Cory Davis
     //Data is already stored in the laboratory frame, but it is compressed
     //a little.  Details elsewhere
     {
