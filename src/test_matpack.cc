@@ -17,6 +17,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <cstdlib>
 #include "matpackVII.h"
 #include "exceptions.h"
 #include "array.h"

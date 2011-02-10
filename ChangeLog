@@ -1,5 +1,11 @@
 2011-02-10  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-151
+
+	* src/test_matpack.cc: Include cstdlib to make gcc happy.
+
+2011-02-10  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-150
 
 	* Unify naming of all enums and their values.
