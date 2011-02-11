@@ -85,9 +85,7 @@ void atm_checkedCalc(
    const Tensor3&        t_field,
    const Tensor4&        vmr_field,
    const Matrix&         r_geoid,
-   const Matrix&         z_surface,
-   const Index&          cloudbox_on, 
-   const ArrayOfIndex&   cloudbox_limits )
+   const Matrix&         z_surface )
 {
   atm_checked = 1;
 
@@ -140,11 +138,6 @@ void atm_checkedCalc(
             }
         }
     }
-
-  // Cloud box
-  //  
-  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid,
-                                                cloudbox_on, cloudbox_limits );
 }
 
 

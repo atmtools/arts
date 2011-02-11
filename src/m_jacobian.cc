@@ -186,6 +186,18 @@ void jacobianAddAbsSpecies(
   const String&               mode,
   const Numeric&              dx )
 {
+  // Check that this species is not already included in the jacobian.
+  for( Index it=0; it<jq.nelem(); it++ )
+    {
+      if( jq[it].MainTag() == ABSSPECIES_MAINTAG  && jq[it].Subtag() == species )
+        {
+          ostringstream os;
+          os << "The gas species:\n" << species << "\nis already included in "
+             << "*jacobian_quantities*.";
+          throw runtime_error(os.str());
+        }
+    }
+
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
   ArrayOfVector grids(atmosphere_dim);
@@ -221,15 +233,18 @@ void jacobianAddAbsSpecies(
                                                     "\"rel\" or \"logrel\"." );
     }
 
-  // Check that this species is not already included in the jacobian.
-  for( Index it=0; it<jq.nelem(); it++ )
-    {
-      if( jq[it].MainTag() == ABSSPECIES_MAINTAG  && jq[it].Subtag() == species )
+  // If nd, check that not temmperature is retrieved
+  if( mode == "nd" )
+    {  
+      for (Index it=0; it<jq.nelem(); it++)
         {
-          ostringstream os;
-          os << "The gas species:\n" << species << "\nis already included in "
-             << "*jacobian_quantities*.";
-          throw runtime_error(os.str());
+          if( jq[it].MainTag() == TEMPERATURE_MAINTAG )
+            {
+              ostringstream os;
+              os << 
+             "Retrieval of temperature and number densities can not be mixed.";
+              throw runtime_error(os.str());
+            }
         }
     }
 
@@ -1078,6 +1093,30 @@ void jacobianAddTemperature(
   const String&               method,
   const Numeric&              dx )
 {
+  // Check that temperature is not already included in the jacobian.
+  // We only check the main tag.
+  for (Index it=0; it<jq.nelem(); it++)
+    {
+      if( jq[it].MainTag() == TEMPERATURE_MAINTAG )
+        {
+          ostringstream os;
+          os << "Temperature is already included in *jacobian_quantities*.";
+          throw runtime_error(os.str());
+        }
+    }
+
+  // Check that no number density retrieval has been added
+  for (Index it=0; it<jq.nelem(); it++)
+    {
+      if( jq[it].MainTag() == ABSSPECIES_MAINTAG  &&  jq[it].Mode() == "nd"  )
+        {
+          ostringstream os;
+          os << 
+             "Retrieval of temperature and number densities can not be mixed.";
+          throw runtime_error(os.str());
+        }
+    }
+
   // Check retrieval grids, here we just check the length of the grids
   // vs. the atmosphere dimension
   ArrayOfVector grids(atmosphere_dim);
@@ -1118,18 +1157,6 @@ void jacobianAddTemperature(
       os << "The keyword for hydrostatic equilibrium can only be set to\n"
          << "\"on\" or \"off\"\n";
       throw runtime_error(os.str());
-    }
-
-  // Check that temperature is not already included in the jacobian.
-  // We only check the main tag.
-  for (Index it=0; it<jq.nelem(); it++)
-    {
-      if( jq[it].MainTag() == "Temperature" )
-        {
-          ostringstream os;
-          os << "Temperature is already included in *jacobian_quantities*.";
-          throw runtime_error(os.str());
-        }
     }
 
   // Create the new retrieval quantity

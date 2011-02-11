@@ -1,3 +1,27 @@
+2011-02-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-153
+
+	* src/jacobian.cc (check_retrieval_grids): Relaxed check by
+	considering the standard half spacing extrapolation allowed.
+	(Numerical problems caused that I could not set the retrieval grid
+	to the corresponding atmospheric grid!)
+
+	* src/m_jacobian.cc (jacobianAddAbsSpecies)
+	(jacobianAddTemperature): Added checks to enforce that retrieval
+	of temperature and number densities are not mixed.
+
+	* src/m_atmosphere.cc (atm_checkedCalc): Removed cloudbox part.
+	The logocal point to call this method is directly after the
+	atmosphere is defined. Partly as z_fieldFromHSE demands atm_checked
+	(which is required to avoid repeating heavy checks for iterative
+	t- retrievals). The dependency on the cloudbox was thusunlucky. IN
+	addition, the check for the cloudbox was in complete, it did not
+	consider pnd_field. Hence, there should rather be a cloudbox_check!
+
+	* src/m_rte.cc (yCalc): Added check of cloudbox (the part now not
+	done in atm_checkCalc).
+
 2011-02-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-152
@@ -19,7 +43,7 @@
 	make_auto_md_h and make_auto_md_cc.
 
 	Remove binio.{h,cc} from make_auto_md_h.
-	
+
 	Remove arts_omp.cc from make_auto_workspace_h.
 
 	Remove agendas.cc from artscore library.
@@ -39,7 +63,7 @@
 	* arts-1-14-150
 
 	* Unify naming of all enums and their values.
-	
+
 	* Remove typedefs for enums, not needed in C++.
 
 	* src/optproperties.{h,cc}, src/montecarlo.cc, src/m_cloudbox.cc,

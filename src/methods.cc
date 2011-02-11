@@ -2071,7 +2071,7 @@ void define_md_data_raw()
       ( NAME( "atm_checkedCalc" ),
         DESCRIPTION
         (
-         "Performs a consistency check of the atmosphere.\n"
+         "Performs a consistency check of the (clear sky) atmosphere.\n"
          "\n"
          "The tests include:\n"
          " 1. If atmospheric grids (p/lat/lon_grid) are OK with respect to\n"
@@ -2079,7 +2079,6 @@ void define_md_data_raw()
          " 2. If atmospheric fields, *r_geoid* and *z_surface* have sizes\n"
          "    consistent with the atmospheric grids.\n"
          " 3. There is no gap between *z_surface* and *z_field*.\n"
-         " 4. The cloudbox is defined properly (if cloudbox_on).\n"
          "\n"
          "If any test fails, there is an error. Otherwise, *atm_checked* is\n"
          "set to 1.\n"
@@ -2090,8 +2089,7 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atmosphere_dim", "p_grid", "lat_grid", "lon_grid", "abs_species",
-            "z_field", "t_field", "vmr_field", "r_geoid", "z_surface", 
-            "cloudbox_on", "cloudbox_limits" ),
+            "z_field", "t_field", "vmr_field", "r_geoid", "z_surface" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -9180,9 +9178,9 @@ void define_md_data_raw()
         GOUT_TYPE(),
         GOUT_DESC(),
         IN( "atm_checked", "atmosphere_dim", "p_grid", "lat_grid", "lon_grid",
-            "t_field", "z_field", "vmr_field", "cloudbox_on", "stokes_dim", 
-            "f_grid", "sensor_pos", "sensor_los", "mblock_za_grid", 
-            "mblock_aa_grid", "antenna_dim", 
+            "t_field", "z_field", "vmr_field", "cloudbox_on", "cloudbox_limits",
+            "stokes_dim", "f_grid", "sensor_pos", "sensor_los", 
+            "mblock_za_grid", "mblock_aa_grid", "antenna_dim", 
             "sensor_response", "sensor_response_f",
             "sensor_response_pol", "sensor_response_za", "sensor_response_aa",
             "iy_clearsky_agenda", "iy_aux_do", "y_unit", 

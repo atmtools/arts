@@ -127,8 +127,9 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
          << "strictly decreasing vector, which is required.";
       return false;      
     }
-  else if ( p_retr[0]>p_grid[0] || 
-            p_retr[p_retr.nelem()-1]<p_grid[p_grid.nelem()-1] ) 
+  else if ( log(p_retr[0])> 1.5*log(p_grid[0])-0.5*log(p_grid[1]) || 
+            log(p_retr[p_retr.nelem()-1])<1.5*log(p_grid[p_grid.nelem()-1])-
+                                          0.5*log(p_grid[p_grid.nelem()-2])) 
     {
       os << "The grid vector *" << p_retr_name << "* is not covered by the\n"
          << "corresponding atmospheric grid.";
@@ -156,8 +157,9 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
          << "strictly increasing vector, which is required.";
       return false;      
     }
-    else if ( lat_retr[0]<lat_grid[0] || 
-              lat_retr[lat_retr.nelem()-1]>lat_grid[lat_grid.nelem()-1] )
+    else if ( lat_retr[0]<1.5*lat_grid[0]-0.5*lat_grid[1] || 
+              lat_retr[lat_retr.nelem()-1]>1.5*lat_grid[lat_grid.nelem()-1]-
+                                           0.5*lat_grid[lat_grid.nelem()-2] )
     {
       os << "The grid vector *" << lat_retr_name << "* is not covered by the\n"
          << "corresponding atmospheric grid.";
@@ -184,8 +186,9 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
          << "strictly increasing vector, which is required.";
       return false;      
       }
-      else if ( lon_retr[0]<lon_grid[0] || 
-                lon_retr[lon_retr.nelem()-1]>lon_grid[lon_grid.nelem()-1] )
+      else if ( lon_retr[0]<1.5*lon_grid[0]-0.5*lon_grid[1] || 
+                lon_retr[lon_retr.nelem()-1]>1.5*lon_grid[lon_grid.nelem()-1]-
+                                             0.5*lon_grid[lon_grid.nelem()-2] )
       {
         os << "The grid vector *" << lon_retr_name << "* is not covered by the\n"
            << "corresponding atmospheric grid.";

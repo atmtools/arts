@@ -1941,6 +1941,7 @@ void yCalc(
   const Tensor3&                    z_field,
   const Tensor4&                    vmr_field,
   const Index&                      cloudbox_on,
+  const ArrayOfIndex&               cloudbox_limits,
   const Index&                      stokes_dim,
   const Vector&                     f_grid,
   const Matrix&                     sensor_pos,
@@ -1986,6 +1987,11 @@ void yCalc(
   //
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
+
+  // Cloud box
+  //  
+  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid,
+                                                cloudbox_on, cloudbox_limits );
 
   // Sensor position and LOS.
   //
