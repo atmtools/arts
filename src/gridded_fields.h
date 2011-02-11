@@ -106,7 +106,25 @@ public:
   */
   const String& get_grid_name (Index i) const { return mgridnames[i]; }
 
-  Index get_grid_size (const Index i) const;
+  //! Get the size of a grid.
+  /*!
+   Returns the size of grid i.
+   
+   \param[in]  i  Grid index.
+   \return        Grid size.
+   */
+  Index get_grid_size (Index i) const
+  {
+    Index ret = 0;
+    assert (i < dim);
+    switch (mgridtypes[i])
+    {
+      case GRID_TYPE_NUMERIC: ret = mnumericgrids[i].nelem(); break;
+      case GRID_TYPE_STRING:  ret = mstringgrids[i].nelem(); break;
+    }
+    
+    return ret;
+  }
 
   //! Get grid type.
   /*!

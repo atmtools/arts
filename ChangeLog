@@ -1,3 +1,33 @@
+2011-02-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-152
+
+	* src/gridded_fields.{h,cc} (GriddedField::get_grid_size):
+
+	Move implementation to header file. Dependent functions of member
+	functions which are defined in the header file should be implemented
+	in the header as well.
+
+	* src/CMakeLists.txt:
+
+	Remove ALL header files from targets. Header file dependencies are
+	automatically determined by CMake. Exceptions are auto_md.h and
+	auto_workspace.h. If they don't exist yet, only an explicit dependency
+	triggers the build process for them.
+
+	Remove token.cc, gridded_fields.cc, agendas.cc, and arts_omp.cc from
+	make_auto_md_h and make_auto_md_cc.
+
+	Remove binio.{h,cc} from make_auto_md_h.
+	
+	Remove arts_omp.cc from make_auto_workspace_h.
+
+	Remove agendas.cc from artscore library.
+
+	Remove arts_omp.cc from 
+
+	Add agendas.cc to methods library.
+
 2011-02-10  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-151
