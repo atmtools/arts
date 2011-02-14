@@ -1,3 +1,10 @@
+2011-02-14  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-14-154
+
+	* src/workspace.cc (abs_coef): Improved documentation, in response
+	to Patrick question.
+
 2011-02-11  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-153

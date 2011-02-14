@@ -118,7 +118,12 @@ void Workspace::define_wsv_data()
        (
         "The matrix of total absorption coefficients.\n"
         "\n"
-        "FIXME: Is this used much?\n"
+	"This variable is not used explicitly in a standard calculation, where\n"
+	"absorption comes from the lookup table *abs_lookup*. However, it is\n"
+	"useful for testing the methods that actually calculate line-by-line\n"
+	"absorption, which have this variable as output. These methods are\n"
+	"called internally by the method *abs_lookupCreate*, which generates\n"
+	"the lookup table.\n"
         "\n"
         "Dimensions: [f_grid, abs_p]\n"
         "\n"
