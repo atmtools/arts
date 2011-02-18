@@ -46,11 +46,11 @@ class Workspace;
 */
 class Workspace {
 private:
-  typedef struct {
+  struct WsvStruct {
     void *wsv;
     bool initialized;
     bool auto_allocated;
-  } WsvStruct;
+  };
 
   //! Workspace variable container.
   Array< stack<WsvStruct *> > ws;

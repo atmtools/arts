@@ -60,10 +60,10 @@ public:
 
     This is used by Workspace::define_wsv_data() to set the information for
     each workspace variable. */
-  WsvRecord(const char  name[],
-            const char  description[],
-            const String group,
-            const bool  implicit = false)
+  WsvRecord(const char    name[],
+            const char    description[],
+            const String& group,
+            const bool    implicit = false)
     : mname(name),
       mdescription(description),
       mgroup(-1),

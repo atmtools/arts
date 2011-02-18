@@ -536,27 +536,28 @@ double gamma(double xx)
 
 double lgamma(double xx)
 {
-   double x,y,tmp,ser;
-   static double cof[6] = {76.18009172947146,-86.50532032941677,24.01409824083091,
-   -1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5};
-   int j;
-   
-   if (xx > 0.0)
-   {
+  if (xx > 0.0)
+  {
+    double x,y,tmp,ser;
+    static double cof[6] = {
+      76.18009172947146,-86.50532032941677,24.01409824083091,
+      -1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5
+    };
+
     y=x=xx;
     tmp = x+5.5;
     tmp -= (x+0.5)*log(tmp);
     ser = 1.000000000190015;
-    for (j=0;j<=5;j++) ser += cof[j]/++y;
+    for (int j=0;j<=5;j++) ser += cof[j]/++y;
+    
     return -tmp+log(2.5066282746310005*ser/x);
-   }
-   else
-     {
-      ostringstream os;
-      os << "Argument is zero or negative."
-         << "log Gamma function can not be calculated.\n";
-      throw runtime_error(os.str());
-    }
-   
+  }
+  else
+  {
+    ostringstream os;
+    os << "Argument is zero or negative."
+    << "log Gamma function can not be calculated.\n";
+    throw runtime_error(os.str());
+  }
 }
         

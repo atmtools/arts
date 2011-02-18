@@ -125,7 +125,7 @@ double Rng::draw()
 /*!
 Returns the seed number
 */
-unsigned long int Rng::showseed() 
+unsigned long int Rng::showseed() const
 {
   return seed_no; 
 }

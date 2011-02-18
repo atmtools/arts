@@ -74,8 +74,8 @@ public:
   //  my_basic_string& operator=(const char A[]);
 
   // Insert string before all occurrences of the substring.
-  void insert_substr(const my_basic_string<charT> searchstr,
-                     const my_basic_string<charT> insstr);
+  void insert_substr(const my_basic_string<charT>& searchstr,
+                     const my_basic_string<charT>& insstr);
 
   // Split string
   void split (Array< my_basic_string<charT> > &aos,
@@ -196,7 +196,8 @@ inline my_basic_string<charT>& my_basic_string<charT>::operator=(const my_basic_
  \param[in] insstr     String to insert.
 */
 template<class charT>
-inline void my_basic_string<charT>::insert_substr(const my_basic_string<charT> searchstr, const my_basic_string<charT> insstr)
+inline void my_basic_string<charT>::insert_substr(const my_basic_string<charT>& searchstr,
+                                                  const my_basic_string<charT>& insstr)
 { 
   size_t searchstr_size = searchstr.size();
   size_t insstr_size = insstr.size();

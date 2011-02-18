@@ -483,7 +483,6 @@ bool format_paragraph (String &s, const String &indent, const size_t linelen,
   bool fit = true;
   String out;
   String token;
-  size_t lastreturn = 0;
   size_t currentlinelength = offset;
   for (size_t i = 0; i < s.length(); i++)
     {
@@ -494,7 +493,6 @@ bool format_paragraph (String &s, const String &indent, const size_t linelen,
           if (currentlinelength + token.length() > linelen)
             {
               out += '\n' + indent;
-              lastreturn = i;
               currentlinelength = indent.length();
               fit = false;
             }

@@ -585,7 +585,7 @@ class Rng {
   
   double draw();         //draw a random number between [0,1)
 
-  unsigned long int showseed(); //return the seed.
+  unsigned long int showseed() const; //return the seed.
 };
 
 #endif /* rng_h  */

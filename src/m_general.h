@@ -50,12 +50,12 @@ default: throw runtime_error ("Output level must have value from 0-3"); \
 }
 
 
-typedef struct {
+struct Timer {
 #ifdef TIME_SUPPORT
   struct tms cputime;
   clock_t realtime;
 #endif
-} Timer;
+};
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 template<typename T> void

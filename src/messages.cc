@@ -66,7 +66,7 @@ ofstream report_file;
    Check if artsmessages contains valid message levels.
 
    \return True if ok. */
-bool Messages::valid()
+bool Messages::valid() const
 {
   if (va<0 || va>3) return false;
   if (vs<0 || vs>3) return false;
@@ -81,7 +81,7 @@ bool Messages::valid()
   \param priority Priority of current message.
 
   \return true if priority is sufficient, otherwise false. */
-bool Messages::sufficient_priority_agenda(Index priority)
+bool Messages::sufficient_priority_agenda(Index priority) const
 {
   return va >= priority;
 }
@@ -92,7 +92,7 @@ bool Messages::sufficient_priority_agenda(Index priority)
   \param priority Priority of current message.
 
   \return true if priority is sufficient, otherwise false. */
-bool Messages::sufficient_priority_screen(Index priority)
+bool Messages::sufficient_priority_screen(Index priority) const
 {
   return vs >= priority;
 }
@@ -103,7 +103,7 @@ bool Messages::sufficient_priority_screen(Index priority)
   \param priority Priority of current message.
 
   \return true if priority is sufficient, otherwise false. */
-bool Messages::sufficient_priority_file(Index priority)
+bool Messages::sufficient_priority_file(Index priority) const
 {
   return vf >= priority;
 }

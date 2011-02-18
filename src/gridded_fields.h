@@ -81,7 +81,7 @@ protected:
     \param[in] d Dimension.
     \param[in] s Name.
   */
-  GriddedField(const Index d, const String s) : dim(d),
+  GriddedField(const Index d, const String& s) : dim(d),
                                           mname(s),
                                           mgridtypes(d, GRID_TYPE_NUMERIC),
                                           mgridnames(d),
@@ -192,7 +192,7 @@ public:
   GriddedField1() : GriddedField(1, "") {}
   //! Construct an empty GriddedField1 with the given name
   /*! \param[in] s Name. */
-  GriddedField1(const String s) : GriddedField(1, s) {}
+  GriddedField1(const String& s) : GriddedField(1, s) {}
 
   //! Consistency check.
   /*!
@@ -232,7 +232,7 @@ public:
   GriddedField2() : GriddedField(2, "") {}
   //! Construct an empty GriddedField2 with the given name
   /*! \param[in] s Name. */
-  GriddedField2(const String s) : GriddedField(2, s) {}
+  GriddedField2(const String& s) : GriddedField(2, s) {}
 
   //! Consistency check.
   /*!
@@ -274,7 +274,7 @@ public:
   GriddedField3() : GriddedField(3, "") {}
   //! Construct an empty GriddedField3 with the given name
   /*! \param[in] s Name. */
-  GriddedField3(const String s) : GriddedField(3, s) {}
+  GriddedField3(const String& s) : GriddedField(3, s) {}
 
   GriddedField3& operator=(Numeric n)
     {
@@ -325,7 +325,7 @@ public:
   GriddedField4() : GriddedField(4, "") {}
   //! Construct an empty GriddedField4 with the given name
   /*! \param[in] s Name. */
-  GriddedField4(const String s) : GriddedField(4, s) {}
+  GriddedField4(const String& s) : GriddedField(4, s) {}
 
   //! Consistency check.
   /*!

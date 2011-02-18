@@ -51,8 +51,8 @@ void cloud_fieldsCalc(Workspace& ws,
                       const Index& scat_za_index, 
                       const Index& scat_aa_index,
                       const ArrayOfIndex& cloudbox_limits,
-                      const Tensor3View t_field, 
-                      const Tensor4View pnd_field
+                      ConstTensor3View t_field, 
+                      ConstTensor4View pnd_field
                      );
 
 void cloud_ppath_update1D(

@@ -75,10 +75,10 @@ extern bool in_main_agenda;
   \date   2008-07-29  */
 class Messages {
 public:
-  bool valid();
-  bool sufficient_priority_agenda(Index priority);
-  bool sufficient_priority_screen(Index priority);
-  bool sufficient_priority_file(Index priority);
+  bool valid() const;
+  bool sufficient_priority_agenda(const Index priority) const;
+  bool sufficient_priority_screen(const Index priority) const;
+  bool sufficient_priority_file(const Index priority) const;
 
 /** Print a message to stream and report file. The message is printed
     only if the priority is higher than specified in messages. (Low
@@ -90,7 +90,7 @@ public:
     \author Stefan Buehler 
     \see Messages  */
   template<class T> 
-  void Print(ostream& os, Index priority, const T& t)
+  void Print(ostream& os, const Index priority, const T& t) const
   {
     extern ofstream report_file;
     
