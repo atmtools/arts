@@ -17,6 +17,7 @@
 %  \stophistory
 %
 \starthistory
+  110223 & Oliver Lemke: Update build system part for CMake.\\
   020425 & Stefan Buehler: Put this part back in the AUG. Updated.\\
   011005 & Stefan Buehler: Fixed TeX warnings, updated. \\
   000728 & Stefan Buehler: Added stuff about build system and howto cut a release. \\
@@ -58,10 +59,10 @@ contains various sub-directories, notably \artsstyle{doc} for documentation,
 interface. The document that you are reading right now, the ARTS Developer
 Guide, is located in \artsstyle{doc/uguide}.
 
-There are two different versions of the ARTS package: The developers
+There are two different versions of the ARTS package: The development
 version and the end-user version. Both contain the complete source
 code, the only difference is that the developers version also includes
-the CVS housekeeping data. If you want to join in the ARTS development
+the SVN housekeeping data. If you want to join in the ARTS development
 (which we of course encourage you to do), you should write an email to
 the authors to obtain access to the developers version, which makes it
 easier to merge your changes with the 'official' ARTS program.
@@ -69,15 +70,14 @@ Furthermore, for serious development work you need a computer running
 Unix, CMake, LaTeX, and the Doxygen program.  All
 this is freely and easily available on the Internet, and, what is
 more, all these tools are included in the standard Linux
-distributions like SuSE and Redhat.
+distributions like Ubuntu or SuSE.
 
 The end-user version contains everything that you need in order to
-compile and install ARTS in a fairly automatic manner. The only
-thing you should need is an ANSI-C++ compiler and the standard Unix
-\artsstyle{make} utility. Please see files \fileindex{arts/README} and
-\fileindex{arts/INSTALL} for installation instructions. We are developing
-with the GNU C++ compiler, no other compilers have been tried so
-far.
+compile and install ARTS in a fairly automatic manner. The only thing
+you should need is an ANSI-C++ compiler, and the CMake utility. Please
+see files \fileindex{arts/README} and \fileindex{arts/INSTALL} for
+installation instructions. We are developing with the GNU C++ compiler,
+no other compilers have been tried so far.
 
 \section{The ARTS build system}
 %============================
@@ -88,16 +88,16 @@ build system. A good introduction to the CMake system can be found in:
   \footnotesize
   \artsstyle{http://www.cmake.org/cmake/project/about.html}
 \end{quote}
-Using these tools makes a lot of things very easy, but also some
+Using this tool makes a lot of things very easy, but also some
 things slightly more complicated.
 
-The most important thing to keep in mind is that an ARTS release
-is not just a copy of the ARTS development tree. Instead there is a
-special make target `dist' that you can use to cut a release. How this
-is done in detail is described in Section \ref{sec:release}. Mostly,
-the GNU tools are smart enough to figure out automatically what should
-go into the release. However, this can be controlled by editing the
-\fileindex{Makefile.am} files which can be found in almost all directories.
+%The most important thing to keep in mind is that an ARTS release
+%is not just a copy of the ARTS development tree. Instead there is a
+%special make target `dist' that you can use to cut a release. How this
+%is done in detail is described in Section \ref{sec:release}. Mostly,
+%the GNU tools are smart enough to figure out automatically what should
+%go into the release. However, this can be controlled by editing the
+%\fileindex{Makefile.am} files which can be found in almost all directories.
 
 The support for documentation other than info and man pages is not
 very good in the GNU system, so we had to use some tricks to make sure
@@ -110,36 +110,33 @@ should.
 Here are some interesting options for CMake:
 
 \begin{description}
-\item[\artsstyle{--disable-debug}:] Removes '-g' from the compiler flags and includes \artsstyle{\#define NDEBUG 1} in
-\fileindex{config.h}.  The central switch to turn off all debugging
+\item[\artsstyle{-DCMAKE\_BUILD\_TYPE=Release}:] Removes '-g' from
+the compiler flags and includes \artsstyle{\#define NDEBUG 1} in
+\fileindex{config.h}. The central switch to turn off all debugging
 features (index range checking for vectors, the trace facility,
-assertions,...). In maintainer mode, debugging is enabled by default.
+assertions,...). The default configuration\artsstyle{RelWithDebInfo}
+turns on some optimizations and provides debugging information.
 
-\item[\artsstyle{--disable-maintainer-mode}:] 
-Disables certain developer-centric features such as generating the user guide and the doxygen html documentation. The maintainer mode is enabled by default when using \artsstyle{autogen.sh} to configure arts.
+\item[\artsstyle{-DCMAKE\_BUILD\_TYPE=Debug}:] This switch turns off all
+optimizations. This should only be used if the default configuration
+makes debugging a certain problem difficult.
 
-\item[\artsstyle{--disable-more-warnings}:] 
-Compile without \artsstyle{-Werror}. More warnings are enabled by default in maintainer mode except for compilers which are known to throw warnings.
-
-\item[\artsstyle{--disable-optimize}:]
-Disable optimizations. Certain variables or functions might not be visible to the debugger when optimizations are enabled. The compiler can decide to not allocate memory for certain variables or inline whole functions for speed. This can lead to strange behaviour while debugging the program. Note: If you use the Intel C++ Compiler, disabling optimizations also turns off OpenMP parallization.
-
-\item[\artsstyle{--disable-vectorize}:] 
-Disables the generation of multi-threaded code. Configure tries to detect if the compiler supports OpenMP and enables it by default.
+\item[\artsstyle{-DNO\_OPENMP=1}:] 
+Disables the generation of multi-threaded code. CMake tries to detect if the compiler supports OpenMP and enables it by default.
 
 \end{description}
 
 
-\subsection{Adding directories or files}
-%==================================
-
-If you add directories or just files, you have to make sure that they
-also go into the distribution. In some cases (e.g., program source
-code files) this is done automatically. But if you add any other kind
-of file, for example a data or a documentation file, you have to edit
-the \fileindex{Makefile.am} file in that directory to make sure that your
-stuff goes into the distribution. It is a good idea to always check
-the release in order to see if the things you added are really there.
+%\subsection{Adding directories or files}
+%%==================================
+%
+%If you add directories or just files, you have to make sure that they
+%also go into the distribution. In some cases (e.g., program source
+%code files) this is done automatically. But if you add any other kind
+%of file, for example a data or a documentation file, you have to edit
+%the \fileindex{Makefile.am} file in that directory to make sure that your
+%stuff goes into the distribution. It is a good idea to always check
+%the release in order to see if the things you added are really there.
 
 \section{Conventions}
 %===================
@@ -152,12 +149,12 @@ Here are some general rules for ARTS programming:
 This is set by \artsstyle{configure} (to \artsstyle{double} by default).
 In the same way, use \typeindex{Index} for all integers. It can take on
 positive or negative values and defaults to \artsstyle{long}.
-To change the default types, run \artsstyle{configure} with the options
-\artsstyle{--with-index-type} or \artsstyle{--with-numeric-type}:
+To change the default types, run \artsstyle{cmake} with the options
+\artsstyle{-DINDEX=long} or \artsstyle{-DNUMERIC=double}:
 
 {\small
 \begin{verbatim}
-./configure --with-index-type=int --with-numeric-type=float
+cmake -DINDEX=int --DNUMERIC=float ..
 \end{verbatim}
 }
 
