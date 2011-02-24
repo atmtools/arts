@@ -1,3 +1,14 @@
+2011-02-24  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-157
+
+	* src/methods.cc: Several spelling and other errors for doc of
+	sensor_responsePolarisation.
+
+	* src/rte.cc (apply_y_unit,apply_y_unit2): A typo in the arts
+	article had ended up in the conversion for Q, U and V (but still
+	giving almost correct result!)
+
 2011-02-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-156
@@ -566,7 +577,7 @@
 
 	* arts-1-14-128
 
-	* src/m_rte.cc (get_iy_of_background): It is now made sute that
+	* src/m_rte.cc (get_iy_of_background): It is now made sure that
 	there is a 0.1 degree margin between the "horison" and the za for
 	calculation of downwelling radiation. This including surface tilt.
 	This to avoid getting repeated reflections due to numerical

@@ -119,9 +119,9 @@ void apply_y_unit(
               else if( i_pol[is] < 5 )
                 { 
                   assert( i_pol[0] == 1 );
-                  iy(iv,is) = 0.5 * (
-                              invplanck( iy(iv,0)+iy(iv,is), f_grid[iv] ) -
-                              invplanck( iy(iv,0)-iy(iv,is), f_grid[iv] ) ); 
+                  iy(iv,is) = 
+                    invplanck( 0.5*(iy(iv,0)+iy(iv,is)), f_grid[iv] ) -
+                    invplanck( 0.5*(iy(iv,0)-iy(iv,is)), f_grid[iv] );
                 }
               else
                 { iy(iv,is) = invplanck( 2*iy(iv,is), f_grid[iv] ); }
@@ -232,9 +232,9 @@ void apply_y_unit2(
               else if( i_pol[is] < 5 )
                 {
                   assert( i_pol[0] == 1 );
-                  scfac = 0.5 * ( 
-                        dinvplanckdI( iy(iv,0)+iy(iv,is), f_grid[iv] ) +
-                        dinvplanckdI( iy(iv,0)-iy(iv,is), f_grid[iv] ) );
+                  scfac = 
+                    dinvplanckdI( 0.5*(iy(iv,0)+iy(iv,is)), f_grid[iv] ) +
+                    dinvplanckdI( 0.5*(iy(iv,0)-iy(iv,is)), f_grid[iv] );
                 }
               else
                 { scfac = dinvplanckdI( 2*iy(iv,is), f_grid[iv] ); }
