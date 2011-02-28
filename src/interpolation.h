@@ -113,7 +113,11 @@ void gridpos_force_end_fd(
 
 void gridpos_upperend_check( 
         GridPos&   gp,
-  const Index&     n );
+  const Index&     ie );
+
+void gridpos_upperend_check( 
+        ArrayOfGridPos&   gp,
+  const Index&            ie );
 
 bool is_gridpos_at_index_i(  
        const GridPos&   gp,

@@ -1195,6 +1195,7 @@ void iyBeerLambertStandardCloudbox(
         //
         interp_cloudfield_gp2itw( itw_field, ppath.gp_p, ppath.gp_lat, 
                                ppath.gp_lon, atmosphere_dim, cloudbox_limits );
+
         for( Index ip=0; ip<npar; ip++ )
           {
             interp_atmfield_by_itw( ppath_pnd(ip,joker), atmosphere_dim,

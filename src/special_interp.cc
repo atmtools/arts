@@ -310,8 +310,7 @@ void interp_cloudfield_gp2itw(
           gp_p[i].idx -= cloudbox_limits[0]; 
         }
       const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
-      gridpos_upperend_check( gp_p[0],   n1 );
-      gridpos_upperend_check( gp_p[n-1], n1 );
+      gridpos_upperend_check( gp_p, n1 );
       //
       itw.resize(n,2);
       interpweights( itw, gp_p );
@@ -325,10 +324,8 @@ void interp_cloudfield_gp2itw(
         }
       const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
       const Index n2 = cloudbox_limits[3] - cloudbox_limits[2];
-      gridpos_upperend_check( gp_p[0],     n1 );
-      gridpos_upperend_check( gp_p[n-1],   n1 );
-      gridpos_upperend_check( gp_lat[0],   n2 );
-      gridpos_upperend_check( gp_lat[n-1], n2 );
+      gridpos_upperend_check( gp_p,   n1 );
+      gridpos_upperend_check( gp_lat, n2 );
       //
       assert( gp_lat.nelem() == n );
       itw.resize(n,4);
@@ -345,12 +342,9 @@ void interp_cloudfield_gp2itw(
       const Index n1 = cloudbox_limits[1] - cloudbox_limits[0];
       const Index n2 = cloudbox_limits[3] - cloudbox_limits[2];
       const Index n3 = cloudbox_limits[5] - cloudbox_limits[4];
-      gridpos_upperend_check( gp_p[0],     n1 );
-      gridpos_upperend_check( gp_p[n-1],   n1 );
-      gridpos_upperend_check( gp_lat[0],   n2 );
-      gridpos_upperend_check( gp_lat[n-1], n2);
-      gridpos_upperend_check( gp_lon[0],   n3 );
-      gridpos_upperend_check( gp_lon[n-1], n3 );
+      gridpos_upperend_check( gp_p,   n1 );
+      gridpos_upperend_check( gp_lat, n2 );
+      gridpos_upperend_check( gp_lon, n3 );
       //
       assert( gp_lat.nelem() == n );
       assert( gp_lon.nelem() == n );

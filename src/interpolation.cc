@@ -607,7 +607,7 @@ void gridpos_force_end_fd(
 */
 void gridpos_upperend_check( 
         GridPos&   gp,
-  const Index&     ie )   // 
+  const Index&     ie )  
 {
   if( gp.idx == ie )
     {
@@ -615,6 +615,37 @@ void gridpos_upperend_check(
       gp.idx   -= 1; 
       gp.fd[0] = 1.0; 
       gp.fd[1] = 0.0; 
+    }
+}
+
+
+//! gridpos_upperend_check
+/*!
+   A function to handle the upper end after shifts of grid positions
+
+   The function ensures that a shift of grid positions not results in a too
+   high gp.idx. That happens for positions exactly at the upper cloudbox
+   boundaries.
+
+   \retval   gp     Array of grid position structure.
+   \param    ie     Index of upper limit, shifted
+
+   \author Patrick Eriksson
+   \date   2011-02-28
+*/
+void gridpos_upperend_check( 
+        ArrayOfGridPos&   gp,
+  const Index&            ie )   
+{
+  for (Index i = 0; i < gp.nelem(); i++ ) 
+    {
+      if( gp[i].idx == ie )
+        {
+          assert( gp[i].fd[0] < 0.005 );  // To capture obviously bad cases
+          gp[i].idx   -= 1; 
+          gp[i].fd[0] = 1.0; 
+          gp[i].fd[1] = 0.0; 
+        }
     }
 }
 
@@ -1793,7 +1824,7 @@ void interp( VectorView            ia,
   assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
                                   1,
                                   sum_check_epsilon ) );
-  
+
   // We have to loop all the points in the sequence:
   for ( Index i=0; i<n; ++i )
     {

@@ -1,3 +1,20 @@
+2011-02-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-159
+
+	* src/special_interp.cc (interp_cloudfield_gp2itw): 
+
+	* Found a case where the check inside interp_cloudfield_gp2itw
+	performed by gridpos_upperend_check was needed not just for the
+	end points, but also for the point with index 1. Switched to check
+	all points. Slower, but safer. 
+	
+	* src/interpolation.cc (gridpos_upperend_check): A second version
+	of the function, operating on complete ArrayOfGridPos.
+
+	* src/special_interp.cc (interp_cloudfield_gp2itw): Using new
+	version of gridpos_upperend_check.
+
 2011-02-25	Gerrit Holl	<gerrit.holl@ltu.se>
 
 	* arts-1-14-158
