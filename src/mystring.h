@@ -24,8 +24,8 @@
    \date   2001-09-14
 */
 
-#ifndef string_h
-#define string_h
+#ifndef mystring_h
+#define mystring_h
 
 #include <cassert>
 #include <climits>
@@ -340,4 +340,4 @@ typedef Array<String> ArrayOfString;
 // }
 
 
-#endif  // string_h
+#endif  // mystring_h

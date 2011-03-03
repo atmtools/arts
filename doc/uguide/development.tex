@@ -17,12 +17,9 @@
 %  \stophistory
 %
 \starthistory
-  110223 & Oliver Lemke: Update build system part for CMake.\\
   020425 & Stefan Buehler: Put this part back in the AUG. Updated.\\
-  011005 & Stefan Buehler: Fixed TeX warnings, updated. \\
   000728 & Stefan Buehler: Added stuff about build system and howto cut a release. \\
-  000615 & Created by Stefan Buehler. For now, this is basically the
-  former content of the file \artsstyle{notes.txt}. \\
+  000615 & Created by Stefan Buehler.\\
 \stophistory
 
 %
@@ -51,7 +48,7 @@ want to use ARTS, you should not need to read it. \textbf{But if you
 \label{sec:development:org}
  
 ARTS is written in C++ and uses the cross-platform, open-source build system
-CMake (\artsstyle{http://www.cmake.org/}). It is organized in a similar
+CMake (\url{http://www.cmake.org/}). It is organized in a similar
 manner as most GNU packages. The top-level ARTS directory is either called
 \artsstyle{arts} or \artsstyle{arts-x.y}, where x.y is the release number. It
 contains various sub-directories, notably \artsstyle{doc} for documentation,
@@ -64,13 +61,12 @@ version and the end-user version. Both contain the complete source
 code, the only difference is that the developers version also includes
 the SVN housekeeping data. If you want to join in the ARTS development
 (which we of course encourage you to do), you should write an email to
-the authors to obtain access to the developers version, which makes it
-easier to merge your changes with the 'official' ARTS program.
+the ARTS Users mailing list.
 Furthermore, for serious development work you need a computer running
 Unix, CMake, LaTeX, and the Doxygen program.  All
 this is freely and easily available on the Internet, and, what is
 more, all these tools are included in the standard Linux
-distributions like Ubuntu or SuSE.
+distributions like \href{http://www.ubuntu.com/}{\nolinkurl{Ubuntu}} or \href{http://www.opensuse.org/}{\nolinkurl{openSUSE}}.
 
 The end-user version contains everything that you need in order to
 compile and install ARTS in a fairly automatic manner. The only thing
@@ -85,8 +81,7 @@ no other compilers have been tried so far.
 As mentioned above, CMake is used to construct the ARTS
 build system. A good introduction to the CMake system can be found in:
 \begin{quote}
-  \footnotesize
-  \artsstyle{http://www.cmake.org/cmake/project/about.html}
+  \url{http://www.cmake.org/cmake/project/about.html}
 \end{quote}
 Using this tool makes a lot of things very easy, but also some
 things slightly more complicated.
@@ -114,7 +109,7 @@ Here are some interesting options for CMake:
 the compiler flags and includes \artsstyle{\#define NDEBUG 1} in
 \fileindex{config.h}. The central switch to turn off all debugging
 features (index range checking for vectors, the trace facility,
-assertions,...). The default configuration\artsstyle{RelWithDebInfo}
+assertions,...). The default configuration \artsstyle{RelWithDebInfo}
 turns on some optimizations and provides debugging information.
 
 \item[\artsstyle{-DCMAKE\_BUILD\_TYPE=Debug}:] This switch turns off all
@@ -146,7 +141,7 @@ Here are some general rules for ARTS programming:
 
 \subsection{Numeric types} Never use \artsstyle{float} or
 \artsstyle{double} explicitly, use the type \typeindex{Numeric} instead.
-This is set by \artsstyle{configure} (to \artsstyle{double} by default).
+This is set by CMake (to \artsstyle{double} by default).
 In the same way, use \typeindex{Index} for all integers. It can take on
 positive or negative values and defaults to \artsstyle{long}.
 To change the default types, run \artsstyle{cmake} with the options
@@ -216,9 +211,9 @@ exception. (Currently not really implemented in the GNU compiler,
 but please use it anyway.)
 
 \subsection{Version numbers} 
-The package version number is set in file \fileindex{configure.in} in the
-top level ARTS directory. Always increase this when you do a CVS
-commit, even for small changes. in such cases increase the last digit
+The package version number is set in the \fileindex{ChangeLog} file in the
+top level ARTS directory. Always increase this when you do a SVN
+commit, even for small changes. In such cases increase the last digit
 by one. If you make a new distribution, increase the middle digit by
 one and omit the last digit. If you make a bug-fix distribution, you
 can add the last digit to indicate this. 
@@ -232,7 +227,7 @@ have to also include the appropriate header file.
 \subsection{Documentation}
 Doxygen is used to generate automatic source code documentation. See
 \begin{quote}
-  \artsstyle{http://www.stack.nl/~dimitri/doxygen/}
+  \url{http://www.stack.nl/\~dimitri/doxygen/}
 \end{quote}
 for information. There is a complete User manual there. At the moment
 we only generate the output as HTML, although latex, man-page, and rtf
@@ -255,7 +250,7 @@ comment can be put in the \artsstyle{.h} file.
 
 There is an Emacs package (Doxymacs) that makes the insertion of
 documentation headers particularly easy. You can find documentation of
-this on the Doxymacs webpage: \artsstyle{http://doxymacs.sourceforge.net/}.
+this on the Doxymacs webpage: \url{http://doxymacs.sourceforge.net/}.
 To use it for ARTS (provided you have it), put the following in your
 Emacs initialization file:
 
@@ -304,8 +299,8 @@ Generated by \artsstyle{doxymacs-insert-file-comment}.
 \begin{verbatim}
 /*!
 \file   dummy.cc
-\author Stefan Buehler <sbuehler (at) irv.se>
-\date   Thu Apr 25 15:58:50 2002
+\author John Doe <john.doe (at) example.com>
+\date   2011-03-02
 
 \brief  A dummy file.
 
@@ -316,13 +311,14 @@ Generated by \artsstyle{doxymacs-insert-file-comment}.
 
 \subsubsection{Function comment}
 
-Generated by \artsstyle{doxymacs-insert-function-comment}.
-If arguments are modified by the function you should
-add `Output:' after the \artsstyle{\\param} command, just like for the
-parameter \artsstyle{a} in the example below. If a parameter is both input
-and output, you should say `Output and Input:'. The documentation for
-each parameter should start with a capital letter and end with a
-period, like in the example below.
+Generated by \artsstyle{doxymacs-insert-function-comment}. If
+arguments are modified by the function you should add `[out]' after
+the \artsstyle{\char`\\ param} command, just like for the parameter
+\artsstyle{a} in the example below. If a parameter is both input and
+output, you should say `[in,out]'. Parameters that are passed by
+value or not modified inside the function should carry an `[in]'. The
+documentation for each parameter should start with a capital letter and
+end with a period, like in the example below.
 
 Author and date tags are not inserted by default, since they would be
 overkill if you have many small functions. However, you should include
@@ -334,12 +330,14 @@ them for important functions.
  This function has no purpose at all,
  it just serves as an example... 
 
-\param  a Output: This parameter is modified by the
-          function.
-\param  b This is the other parameter.         
+\param[out]     a This parameter is initialized by the
+                  function.
+\param[in,out]  b This parameter is modified by the function.
+\param[in]      c This parameter used but not changed by the function.
+
 \return   Dummy value computed from a and b.         
 */
-int dummy(int& a, int b);
+int dummy(int& a, int& b, int c);
 \end{verbatim}
 
 \subsubsection{Generic multi-line comment}
@@ -471,13 +469,13 @@ method can be added.
 \begin{enumerate}
 \item Create your file. Names of files containing workspace methods should
   start with \artsstyle{m\_}.
-\item You have to register your file in the file \fileindex{src/Makefile.am}.
-  This file states which source files are needed for arts. Should be
-  self-explanatory where you have to add your file. The above goes for
-  source (\artsstyle{.cc}) and header (\artsstyle{.h}) files likewise.
-\item Then go to the top level arts directory and run: \artsstyle{autogen.sh}.
-\item Go to \artsstyle{src} and run: \artsstyle{cvs add <my\_file>} to make your
-  file known to CVS.
+\item You have to register your file in the file
+  \fileindex{src/CMakeLists.txt}. This file states which source files
+  are needed for arts. In the usual case, you just have to add your
+  \artsstyle{.cc} file to the list of source files of the artscore
+  library. Header files are not added to this list.
+\item Go to \artsstyle{src} and run: \artsstyle{svn add <my\_file>} to
+  make your file known to SVN.
 \end{enumerate}
 
 
@@ -495,10 +493,7 @@ method can be added.
 \item Copy all required input files into the subdirectory.
 \item Add the necessary checks for your testcase to
   \fileindex{tests/testall.py}.
-\item In \fileindex{tests/Makefile.am} add the name of your test to the
-  variable \artsstyle{check} and the subdirectory to the variable
-  \artsstyle{TESTDIRS}.
-
+\item In \fileindex{tests/CMakeLists.txt} add an entry for your test case.
 \end{enumerate}
 
 

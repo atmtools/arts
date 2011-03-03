@@ -1,3 +1,27 @@
+2011-03-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-160
+
+	* src/methods.cc:
+
+	Replaced all remaining references to RteCalc calls in the builtin docs
+	with yCalc.
+
+	There where a couple of examples left in the builtin docs which used
+	arts1 syntax.
+
+	* doc/uguide/development.tex:
+
+	Updated sections 1.1-1.4. Still work in progress.
+
+	* doc/uguide/arts_developer.tex:
+
+	Added me as author of the Gridded Fields section.
+
+	* doc/uguide/arts_*.tex: Updated our institut name.
+
+	* src/mystring.h: Changed ifdef from string_h to mystring_h.
+
 2011-02-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-159
