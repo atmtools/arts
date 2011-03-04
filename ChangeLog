@@ -1,3 +1,15 @@
+2011-03-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-161
+
+	* src/CMakeLists.txt:
+
+	Fixed bug reported by Dominik Scheiben and Rene Bleisch. A dependency
+	was missing for artscore on auto_version_h. This led to a compilation
+	failure on Debian Lenny, strangely not on Ubuntu or Mac OS X.
+
+	* doc/uguide/arts_developer.tex: Removed unused affiliation.
+
 2011-03-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-160
@@ -7,7 +19,7 @@
 	Replaced all remaining references to RteCalc calls in the builtin docs
 	with yCalc.
 
-	There where a couple of examples left in the builtin docs which used
+	There were a couple of examples left in the builtin docs which used
 	arts1 syntax.
 
 	* doc/uguide/development.tex:
