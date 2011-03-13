@@ -71,7 +71,7 @@ abs_lookupSetupBatch
 # If your input data contains extreme outliers, the lookup table will
 # get unreasonably large. It is suggested that you instead set them
 # manually here. The Chevallier 91L data (humidity set) contains
-# temperature variations from -70 to +55 (K) and humidity variations from
+# temperature variations from -70 to +55 (°C) and humidity variations from
 # 0 to 6 (fractional units). This should be the reasonable range of
 # atmospheric variability. You will get failures from individual jobs in
 # the batch, that are outside this range.

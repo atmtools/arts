@@ -195,6 +195,7 @@ void MCGeneral(Workspace&            ws,
                const Matrix&         sensor_pos,
                const Matrix&         sensor_los,
                const Index&          stokes_dim,
+               const Index&          atmosphere_dim,
                const Agenda&         iy_space_agenda,
                const Agenda&         surface_prop_agenda,
                const Agenda&         opt_prop_gas_agenda,
@@ -242,6 +243,12 @@ void MCGeneral(Workspace&            ws,
     {
       throw runtime_error( 
                    "*f_index* is outside the range of *f_grid*." );
+    }
+
+  if (! (atmosphere_dim == 3))
+    {
+      throw runtime_error(
+                   "For montecarlo, atmosphere_dim must be 3.");
     }
 
   Ppath ppath_step;
@@ -482,6 +489,7 @@ void MCIPA(Workspace&            ws,
            const Matrix&         sensor_pos,
            const Matrix&         sensor_los,
            const Index&          stokes_dim,
+           const Index&          atmosphere_dim,
            const Agenda&         iy_space_agenda,
            const Agenda&         surface_prop_agenda,
            const Agenda&         opt_prop_gas_agenda,
@@ -511,6 +519,13 @@ void MCIPA(Workspace&            ws,
   if (max_time<0 && max_iter<0 && std_err<0){
     throw runtime_error( "At least one of std_err, max_time, and max_iter must be positive" );
   }
+
+  if (! (atmosphere_dim == 3))
+    {
+      throw runtime_error(
+                   "For montecarlo, atmosphere_dim must be 3.");
+    }
+
   Ppath ppath_step;
   Rng rng;                      //Random Nuimber generator
   time_t start_time=time(NULL);

@@ -2593,7 +2593,7 @@ void Workspace::define_wsv_data()
         "along the propagation path. The transmission is stored as a Muller\n"
         "matrix and the case of polarised extinction is handled.\n"
         "\n"
-        "Usage: Used by raditaive transfer functions.\n"
+        "Usage: Used by radiative transfer functions.\n"
         "\n"
         "Size: [ np-1, nf, stokes_dim, stokes_dim ] where np is the number of\n"
         "      of points of the propagation path and nf is the number of\n"

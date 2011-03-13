@@ -1,3 +1,20 @@
+2011-03-13	Gerrit Holl	<gerrit.holl@ltu.se>
+
+	* arts-1-14-162
+
+	* src/m_montecarlo.cc: Adapted
+
+	  - Added checks on atmosphere_dim (this is now an additional input to
+	  both MCGeneral and MCIPA).
+
+	* src/methods.cc, src/m_rte.cc: Adapted
+
+	  - Changed due to additional input for MCGeneral and MCIPA
+
+	* src/workspace.cc: Fix typo
+
+	* tests/MHS/TestMHS_generic.arts: Fix error in comment
+
 2011-03-04  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-161
