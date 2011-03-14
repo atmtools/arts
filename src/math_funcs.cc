@@ -465,7 +465,7 @@ Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
     equals zero and -1 if it is less than zero.
 
     \return      The sign of x (see above).
-    \param   x   A vector.
+    \param   x   A Numeric.
 
     \author Patrick Eriksson 
     \date   2000-06-27
@@ -487,18 +487,18 @@ Numeric sign( const Numeric& x )
     or use lgamma function if argument exceeds 32.0.
 
     \return      Gamma function of x.
-    \param   xx   double
+    \param   xx   Numeric
 
     \author Daniel Kreyling 
     \date   2010-12-13
 */
 
-double gamma(double xx)
+Numeric gamma_func(Numeric xx)
 {
     //double lgamma(double xx);
     
-    double gam;
-    int i;
+    Numeric gam;
+    Index i;
         
     
     if (xx > 0.0) {
@@ -509,7 +509,7 @@ double gamma(double xx)
             }
 	}    
         else {       
-	    return exp(lgamma(xx));
+	    return exp(lgamma_func(xx));
 	}
     } else {
 	    ostringstream os;
@@ -527,35 +527,34 @@ double gamma(double xx)
 /*! Returns ln of gamma function for real argument 'x'.
    
     \return      ln Gamma function of x.
-    \param   xx   double
+    \param   xx   Numeric
 
     \author Daniel Kreyling 
      \date   2010-12-13
 */
 
 
-double lgamma(double xx)
+Numeric lgamma_func(Numeric xx)
 {
-  if (xx > 0.0)
-  {
-    double x,y,tmp,ser;
-    static double cof[6] = {
-      76.18009172947146,-86.50532032941677,24.01409824083091,
-      -1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5
-    };
 
+   Numeric x,y,tmp,ser;
+   static Numeric cof[6] = {76.18009172947146,-86.50532032941677,24.01409824083091,
+   -1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5};
+   
+   if (xx > 0.0)
+   {
     y=x=xx;
     tmp = x+5.5;
     tmp -= (x+0.5)*log(tmp);
     ser = 1.000000000190015;
-    for (int j=0;j<=5;j++) ser += cof[j]/++y;
+    for (Index j=0;j<=5;j++) ser += cof[j]/++y;
     
     return -tmp+log(2.5066282746310005*ser/x);
   }
   else
   {
     ostringstream os;
-    os << "Argument is zero or negative."
+    os << "Argument is zero or negative.\n"
     << "log Gamma function can not be calculated.\n";
     throw runtime_error(os.str());
   }

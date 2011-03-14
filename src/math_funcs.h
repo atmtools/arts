@@ -80,8 +80,8 @@ Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
 
 Numeric sign( const Numeric& x );
 
-double gamma(double xx);
+Numeric gamma_func(Numeric xx);
 
-double lgamma(double xx);
+Numeric lgamma_func(Numeric xx);
 
 #endif  // math_funcs_h

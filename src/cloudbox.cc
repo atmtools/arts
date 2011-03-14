@@ -59,31 +59,30 @@ extern const Numeric PI;
   \author Daniel Kreyling
   \date   2011-01-27
 */  
-bool chk_hydromet_field(
+void chk_massdensity_field( bool& empty_flag,
 			 const Index&  dim,	
-			 const Tensor3& hydromet,			 
+			 const Tensor3& massdensity, 
 			 const Vector& p_grid,
 			 const Vector& lat_grid,
 			 const Vector& lon_grid
 		       )
 {
-  bool x = true;
   
   // check p
-  if (hydromet.npages() != p_grid.nelem()) {
+  if ( massdensity.npages() != p_grid.nelem()) {
     
       ostringstream os;
-      os << "The size of *" << p_grid <<"* is not equal to size of *" << hydromet <<"*.";
+      os << "The size of *" << p_grid <<"* is not equal to size of *" << massdensity <<"*.";
             throw runtime_error(os.str() );
   }
   
   // check lat
   if(dim >= 2 )
   {
-    if (hydromet.nrows() != lat_grid.nelem()) {
+    if ( massdensity.nrows() != lat_grid.nelem()) {
     
       ostringstream os;
-      os << "The size of *" <<lat_grid <<"* is not equal to size of *" << hydromet <<"*.";
+      os << "The size of *" <<lat_grid <<"* is not equal to size of *" << massdensity <<"*.";
             throw runtime_error(os.str() );
       
     }
@@ -92,23 +91,24 @@ bool chk_hydromet_field(
   // check lon
   if(dim == 3 )
   {
-    if (hydromet.ncols() != lon_grid.nelem()) {
+    if ( massdensity.ncols() != lon_grid.nelem()) {
     
       ostringstream os;
-      os << "The size of *" <<lon_grid <<"* is not equal to size of *" << hydromet <<"*.";
+      os << "The size of *" <<lon_grid <<"* is not equal to size of *" << massdensity <<"*.";
             throw runtime_error(os.str() );
       
     }
   }
-  // set x to false if a single value of hydromet_field is unequal zero    
-    for (Index j=0; j<hydromet.npages(); j++) {
-      for (Index k=0; k<hydromet.nrows(); k++) {
-	for (Index l=0; l<hydromet.ncols(); l++) {
-	  if (hydromet(j,k,l) != 0.0) x = false;
+  
+  empty_flag = false;
+  // set empty_flag to true if a single value of hydromet_field is unequal zero    
+    for (Index j=0; j<massdensity.npages(); j++) {
+      for (Index k=0; k<massdensity.nrows(); k++) {
+	for (Index l=0; l<massdensity.ncols(); l++) {
+	  if ( massdensity(j,k,l) != 0.0) empty_flag = true;
 	}
       }
     }  
-  return x;
 }
 
 //! Check whether particle number density is zero at a specified pressure level
@@ -415,10 +415,10 @@ void chk_scattering_data(
   if (scat_data_raw.nelem() != scat_data_meta_array.nelem())
     {
       ostringstream os;
-      os << "The number of elments in *"<< scat_data_raw << "*\n"
-	 << "and *" << scat_data_meta_array << "* do not match.\n"
-	 << "Each SingleScattering file must correspond to one\n"
-	 << "to one scattering meta data file.";
+      os << "The number of elments in *scat_data_raw*\n"
+	 << "and *scat_data_meta_array* do not match.\n"
+	 << "Each SingleScattering file must correspond\n"
+	 << "to one ScatteringMeta data file.";
 	throw runtime_error( os.str());
     }
 
@@ -445,9 +445,9 @@ void chk_scattering_meta_data(
   
        if  (scat_data_meta.type != "Ice" && scat_data_meta.type != "Water" && scat_data_meta.type != "Aerosol")
        {
-	 ostringstream os; 
-      os << "Type in " << scat_data_meta_file << " must be 'Ice', 'Water' or 'Aerosol'\n";     
-      throw runtime_error( os.str() );
+	  ostringstream os; 
+	  os << "Type in " << scat_data_meta_file << " must be 'Ice', 'Water' or 'Aerosol'\n";     
+	  throw runtime_error( os.str() );
 	}
     //(more) checks need to be included
 }
@@ -489,8 +489,12 @@ void chk_single_scattering_data(
          << "30 - horizontally aligned particles.\n";
       throw runtime_error( os.str() );
     }
+    
+    chk_interpolation_grids("scat_data_raw.f_grid to f_grid",
+			    scat_data_raw.f_grid,
+			    f_grid);
   
-  if (!(scat_data_raw.f_grid[0] <= f_grid[0] &&
+/*  if (!(scat_data_raw.f_grid[0] <= f_grid[0] &&
         last(f_grid) <= 
         last(scat_data_raw.f_grid) ))
     {
@@ -500,7 +504,7 @@ void chk_single_scattering_data(
          << scat_data_file << " does not contain all values of"
          << "*f_grid*.";
       throw runtime_error( os.str() );
-    }
+    }*/
 
   // Here we only check whether the temperature grid is of the unit K, not 
   // whether it corresponds to the required values it T_field. The second 
@@ -754,32 +758,32 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
   
 }
 
-/*! barometric heightformula for NONE isothermal atmosphere
+/*! barometric heightformula for isothermal atmosphere
     \return Numeric p1.
           
-    \param Numeric p,
-    \param Numeric dh,
-    \param Numeric T0
+    \param Numeric& p, 
+    \param Numeric& dh,
+    
   
   \author Daniel Kreyling
   \date 2011-01-20
 */
 Numeric barometric_heightformula ( //output is p1
 				   //input
-				   const Numeric p,
-				   const Numeric dh,
-				   const Numeric T0
-				 )
+				   const Numeric& p,
+				   const Numeric& dh
+				   )
+
 {
 				  
   //barometirc height formula
   Numeric M = 0.02896; //mean molar mass kg mol^-1
   Numeric g = 9.807; //earth accelaration kg m s^-1
   Numeric R = 8.314; //universal gas constant J K^−1 mol^−1
-  Numeric a = 9.79e-3; //dry adiabatic temp.gradient K m^-1
+  Numeric T = 288; //reference temperature K
     
   // calculation
-  Numeric p1 = p * pow((1-a*dh/T0),(M*g)/(R*a));
+    Numeric p1 = p * exp(-(-dh)/(R*T/M*g));
   
   return p1;
   
@@ -787,7 +791,7 @@ Numeric barometric_heightformula ( //output is p1
 
 /*! Calculates dN/dDm on one atmospheric grid point per particle type using MH97
 
-    \return Numeric dN.
+    \return Numeric dN
           
     \param Numeric iwc,
     \param Numeric dm,
@@ -799,31 +803,31 @@ Numeric barometric_heightformula ( //output is p1
 
 */
 Numeric IWCtopnd_MH97 (	const Numeric iwc,
-			Numeric dm,
+			const Numeric dm,
 			const Numeric t,
 			const Numeric density)
 {
 	      Numeric dN;
 	      // convert m to microns
-	      dm *= 1e6;
+	      Numeric Dm = dm * 1e6;
 	      //convert T from Kelvin to Celsius
 	      Numeric T = t-273.15;
 	      //split IWC in IWCs100 and IWCl100
 	      Numeric a=0.252; //g/m^3
 	      Numeric b1=0.837;
 	      Numeric IWC0=1; //g/m^3
-	      Numeric IWCs100=min(iwc,a*pow((iwc/IWC0),(b1)));
+	      Numeric IWCs100=min(iwc,a*pow(iwc/IWC0,b1));
 	      Numeric IWCl100=iwc-IWCs100;
 	      
-	      if (dm <= 100) 
+	      if ( Dm <= 100) 
 		  {
 		    //Gamma distribution component
 
 		    Numeric b2=-4.99*1e-3; //micron^-1
 		    Numeric m=0.0494; //micron^-1
-		    Numeric alfas100=(b2-m*log10(IWCs100/IWC0)); //miron^-1
-		    Numeric Ns100=6*IWCs100*(pow(alfas100,(5.)))/(PI*density*gamma((Numeric)5.));//micron^-5
-		    Numeric Nm1=Ns100*dm*exp(-alfas100*dm); //micron^-4
+		    Numeric alfas100=b2-m*log10(IWCs100/IWC0); //miron^-1
+		    Numeric Ns100=6*IWCs100*pow(alfas100,5.)/(PI*density*gamma_func(5.));//micron^-5
+		    Numeric Nm1=Ns100*Dm*exp(-alfas100*Dm); //micron^-4
 		    dN = Nm1*1e18; // m^-3 micron^-1
 		     
 		    
@@ -835,27 +839,28 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
 		    Numeric bamu=0.0013;
 		    Numeric abmu=0.026;
 		    Numeric bbmu=-1.2*1e-3;
-		    Numeric amu=aamu+(bamu*T); 
-		    Numeric bmu=abmu+(bbmu*T);
-		    Numeric mul100=amu+(bmu*log10(IWCl100/IWC0));
+		    Numeric amu=aamu+bamu*T; 
+		    Numeric bmu=abmu+bbmu*T;
+		    Numeric mul100=amu+bmu*log10(IWCl100/IWC0);
 		    
 		    Numeric aasigma=0.47;
 		    Numeric basigma=2.1*1e-3;
 		    Numeric absigma=0.018;
 		    Numeric bbsigma=-2.1*1e-4;
-		    Numeric asigma=aasigma+(basigma*T);
-		    Numeric bsigma=absigma+(bbsigma*T);
-		    Numeric sigmal100=asigma+(bsigma*log10(IWCl100/IWC0));
+		    Numeric asigma=aasigma+basigma*T;
+		    Numeric bsigma=absigma+bbsigma*T;
+		    Numeric sigmal100=asigma+bsigma*log10(IWCl100/IWC0);
 		    
 		    Numeric D0=1.0; //micron
 		    Numeric a1=6*IWCl100; //g/m^3
-		    Numeric a2=(pow(PI,(3./2.)))*density*sqrt(2)*exp(3*mul100+(9./2.)*pow(sigmal100,2))*sigmal100*(pow(D0,3))*dm; //g/m^3/micron^4
-		    Numeric Nm2=(a1/a2)*exp(-(1./2.)*pow(((log(dm/D0)-mul100)/sigmal100),2)); //micron^-4
+		    Numeric a2=pow(PI,3./2.)*density*sqrt(2)*exp(3*mul100+9./2.*pow(sigmal100,2))*sigmal100*pow(D0,3)*Dm; //g/m^3/micron^4
+		    Numeric Nm2=a1/a2*exp(-0.5*pow((log(Dm/D0)-mul100)/sigmal100,2)); //micron^-4
 		    dN = Nm2*1e18; // m^-3 micron^-1
 		     
 		       
 		  }
 	      if (isnan(dN)) dN = 0.0;
+	      dN *= 1e6; // m^-3 m^-1
 	      return dN;
 }
 
@@ -864,8 +869,8 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
 
 	\return Numeric n.
          
-    \param const Numeric lwc,
-    \param const Numeric r
+	\param const Numeric lwc,
+	\param const Numeric r
   
   \author Daniel Kreyling
   \date 2010-12-16
@@ -881,9 +886,10 @@ Numeric LWCtopnd (const Numeric lwc, //[g/m^3]
 	Numeric gam = 1.05;
 	
 	Numeric B=(alpha/gam)/pow(rc,gam); 
-	Numeric A=(((3*lwc*gam*pow(B,((alpha+4)/gam)))/4)/PI)/gamma((alpha+4)/gam);
-	Numeric n=A*(pow(r*1e6,alpha)*exp(-B*pow(r*1e6,gam))); //
-	n *= 1e18; // [# m^-3 m^-1]
+	// factor 1e12 is density of water [1 g/cm^3] in units of g/micron^3
+	Numeric A=(((3*lwc*gam*pow(B,((alpha+4)/gam))*1e12)/4)/PI)/gamma_func((alpha+4)/gam); 
+	Numeric n=A*(pow(r*1e6,alpha)*exp(-B*pow(r*1e6,gam)))*1e6; //
+	// n in [# m^-3 m^-1]
 	//out0<<A;
 	//out0<<"\n";
 	//out0<<n;
@@ -893,14 +899,7 @@ Numeric LWCtopnd (const Numeric lwc, //[g/m^3]
 	return n;
 }
 
-/*! Calculates dN/dr on one atmospheric grid point per liquid water particle type. 
-         
-  \param const Numeric r
-  
-  \author Daniel Kreyling
-  \date 2010-12-16
-
-*/
+// ONLY FOR TESTING PURPOSES
 Numeric LWCtopnd2 (//const Numeric vol, //[g/m^3]
 		   //const Numeric density,
 		   const Numeric r // [m]
@@ -911,7 +910,7 @@ Numeric LWCtopnd2 (//const Numeric vol, //[g/m^3]
 	Numeric gam = 1.05;
 	
 	Numeric B=(alpha/gam)/pow(rc,gam); 
-	Numeric A=gam*pow(B,((alpha+1)/gam))/gamma((alpha+1)/gam);
+	Numeric A=gam*pow(B,((alpha+1)/gam))/gamma_func((alpha+1)/gam);
 	Numeric n=A*(pow(r*1e6,alpha)*exp(-B*pow(r*1e6,gam)))*1e6;
 	// [# m^-3 m^-1]
 	
@@ -926,7 +925,8 @@ Numeric LWCtopnd2 (//const Numeric vol, //[g/m^3]
 }
 
 
-/*! does the trapezoid integration for the function y = f(x). 
+/*! Scaling pnd values by width of size bin. 
+ * Bin width is detemined from preceding and following particle size.
  * Vector y and x must be equal in size. Vector w holds the weights.
          
     \param Vector& w,
@@ -937,9 +937,9 @@ Numeric LWCtopnd2 (//const Numeric vol, //[g/m^3]
   \date 2010-12-15
 
 */
-void trapezoid_integrate(  Vector& w,
-			   const Vector& x,
-			   const Vector& y) 
+void scale_pnd  (  Vector& w,
+		   const Vector& x,
+		   const Vector& y) 
 {
     // check if vectors have same size
     if (x.nelem() != y.nelem()) 
@@ -958,15 +958,15 @@ void trapezoid_integrate(  Vector& w,
 		{
 		  w[i] = 0.5*(x[i]-x[i-1])*y[i]; // m^-3
 		}
-		else { // all vallues in between
+		else { // all values inbetween
 		  w[i] = 0.5*(x[i+1]-x[i-1])*y[i]; // m^-3   
 		}
 	}	
 
 }
 
-/*! Check sum of vector pnd against total XWC.
- * relative error is calculated and used to adjust the output of vector pnd.
+/*! Check sum of vector pnd against total massdensity value.
+ * Relative error is calculated and used to adjust the output of vector pnd.
          
 	\param	 Vector& pnd,
 	\param	 const Numeric iwc,
@@ -979,44 +979,171 @@ void trapezoid_integrate(  Vector& w,
 */
 void chk_pndsum (Vector& pnd,
 		 const Numeric xwc,
-		 const Vector density,
-		 const Vector vol)
+		 const Vector& density,
+		 const Vector& vol)
+
 {
-    // set vector x to pnd size
-    Vector x (pnd.nelem(), 0.0);
-    Numeric err; //relerr, abserr;
-    
-    
-    for (Index i = 0; i<pnd.nelem(); i++)
+  // set vector x to pnd size
+  Vector x ( pnd.nelem(), 0.0 );
+  Numeric error;
+
+
+  for ( Index i = 0; i<pnd.nelem(); i++ )
+  {
+    // convert from particles/m^3 to g/m^3
+    x[i] = pnd[i]*density[i]*vol[i];
+    //out0<<x[i]<<"\n"<< pnd[i]<< "\n";
+  }
+
+  if ( xwc == 0.0 )
+  {
+    // set error and all pnd values to zero
+    error = 0.0;
+    pnd = 0.0;
+  }
+  else
+  {
+    error = xwc/x.sum();
+
+    // correct all pnd values with error
+    if ( error > 1.05 || error < 0.95 )
     {
-	// convert from particles/m^3 to g/m^3 
-	x[i] = pnd[i]*density[i]*vol[i]; 
-	//out0<<x[i];
-	//out0<<"\n";
-	//out0<< pnd[i];
-	//out0<< "\n";
+      pnd *= error
+             ;
     }
-    if (xwc == 0.0) 
+
+  }
+      //cout<<"\npnd_scaled\t"<<pnd<<endl;
+    //cout<<"\nPND\t"<<pnd.sum()<<"\nXWC\t"<<xwc<<"\nerror\t"<<error<<endl;
+    cout<<pnd.sum()<<"\n"<<xwc<<"\n"<<error<<endl;
+}
+
+
+// ONLY FOR TESTING PURPOSES
+void chk_pndsum2 (Vector& pnd,
+		 const Numeric xwc)
+
+{
+  // set vector x to pnd size
+  Vector x=pnd;
+  Numeric error;
+
+  if ( xwc == 0.0 )
+  {
+    // set error and all pnd values to zero
+    error = 0.0;
+    pnd = 0.0;
+  }
+  else
+  {
+    error = xwc/x.sum();
+
+    // correct all pnd values with error
+    if ( error > 1.05 || error < 0.95 )
     {
-      // set error and all pnd values to zero
-      err = 0.0;
-      pnd[Range(joker)] = 0.0;
+      pnd *= error
+             ;
     }
-    else {
-      err = xwc/x.sum();
-      //abserr = xwc-x.sum();
-      //relerr = abs(abserr/xwc);
-      //out0<<abserr;
-      //out0<<"\n";
-      //out0<<err;
-      //out0<<"\n";
-    }
-    // correct all pnd values with error 
-    if (err > 1.05 && err < 0.95)
-	{
-	  pnd *= err;
-	}
-    //out0<<pnd;
-    //out0<<"\n";
-    
+
+  }
+      //cout<<"\nPND2\t"<<pnd.sum()<<"\nXWC2\t"<<xwc<<"\nerror2\t"<<error<<endl;
+    cout<<pnd.sum()<<"\n"<<xwc<<"\n"<<error<<endl;
+    //cout<<"\npnd_scaled2\t"<<pnd<<endl;
+}
+
+/*! Splitting part_species string and parse type of massdensity_field
+
+	\param  String hydromet_type,
+	\param  String part_string
+
+  \author Daniel Kreyling
+  \date 2011-02-21
+
+*/
+void parse_part_type ( //WS Output:
+  String& part_type,
+  // WS Input:
+  const String& part_string )
+{
+
+  ArrayOfString strarr;
+
+  // split part_species string at "-" and write to ArrayOfString
+  part_string.split ( strarr, "-" );
+
+  //first entry is hydrometeor type (e.g. "IWC", "LWC" etc.)
+  part_type = strarr[0];
+
+  if (  part_type != "IWC" && 
+	part_type != "Snow" &&
+	part_type != "LWC" &&
+	part_type != "Rain" )
+  {
+    ostringstream os;
+    os << "First substring in " << part_string << " must be rather 'LWC', 'IWC', 'Rain' or 'Snow'\n"
+    <<"Ckeck input in *part_species*!\n";
+    throw runtime_error ( os.str() );
+  }
+}
+
+
+/*! Splitting part_species string and parse psd_param
+	\param  String psd_param,
+	\param  String part_string
+  
+  \author Daniel Kreyling
+  \date 2011-02-21
+
+*/
+void parse_psd_param ( //WS Output:
+  String& psd_param,
+  // WS Input:
+  const String& part_string )
+{
+
+  ArrayOfString strarr;
+
+  // split part_species string at "-" and write to ArrayOfString
+  part_string.split ( strarr, "-" );
+  // second entry is particle size distribution parametrisation  ( e.g."MH97")
+  psd_param = strarr[1];
+
+  if ( psd_param != "MH97" && psd_param != "liquid" )
+  {
+    ostringstream os;
+    os <<"The chosen PSD parametrisation in " << part_string << " can not be handeled in the moment.\n"
+    <<"Choose either 'MH97' or 'liquid'!\n" ;
+    throw runtime_error ( os.str() );
+  }
+}
+
+/*! Splitting part_species string and parse min and max particle radius
+	\param	 Numeric sizemin,
+	\param	 Numeric sizemax,
+	\param	 String part_string
+  
+  \author Daniel Kreyling
+  \date 2011-02-21
+
+*/
+void parse_part_size ( //WS Output:
+  Numeric& sizemin,
+  Numeric& sizemax,
+  // WS Input:
+  const String& part_string )
+{
+
+  ArrayOfString strarr;
+
+  // split part_species string at "-" and write to ArrayOfString
+  part_string.split ( strarr, "-" );
+  
+  // convert String for size range, into Numeric
+  // 1. third entry is minimum particle radius
+  istringstream os1 ( strarr[2] );
+  os1 >> sizemin;
+  // 2. fourth entry is maximum particle radius
+  istringstream os2 ( strarr[3] );
+  os2 >> sizemax;
+
 }

@@ -2307,13 +2307,13 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
-      ( NAME( "atm_fields_compactFromMatrixVMRonly" ),
+      ( NAME( "atm_fields_compactFromMatrixChevalAll" ),
         DESCRIPTION
         (
          "FIXME\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT( "atm_fields_compact" ),
+        OUT( "atm_fields_compact_all", "atm_fields_compact" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -2372,17 +2372,17 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "AtmFieldsFromCompactHydromet" ),
+      ( NAME( "AtmFieldsFromCompactChevalAll" ),
         DESCRIPTION
         (
          "FIXME\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "hydromet_field", "vmr_field" ),
+        OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "massdensity_field", "vmr_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "abs_species", "atm_fields_compact", "atmosphere_dim" ),
+        IN( "abs_species", "atm_fields_compact_all", "atmosphere_dim" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),
@@ -2602,13 +2602,13 @@ void define_md_data_raw()
     
     md_data_raw.push_back
     ( MdRecord
-      ( NAME( "batch_atm_fields_compactFromArrayOfMatrixHydromet" ),
+      ( NAME( "batch_atm_fields_compactFromArrayOfMatrixChevalAll" ),
         DESCRIPTION
         (
 	  "FIXME \n"
          ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT( "batch_atm_fields_compact", "batch_atm_hydromet_fields_compact" ),
+        OUT( "batch_atm_fields_compact", "batch_atm_fields_compact_all" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
@@ -2712,28 +2712,47 @@ void define_md_data_raw()
       ( NAME( "cloudboxSetAutomatically" ),
         DESCRIPTION
         (
-         "Sets the cloud box to encompass the given positions.\n"
+         "Sets the cloud box to encompass the cloud given by the entries\n"
+	 "in *massdensity_field*. \n"
          "\n"
-         "The function sets *cloudbox_on* to 1 and automatically sets\n"
-	 "*cloudbox_limits* following the given hydrometeor profiles in\n"
-	 "*hydromet_field*. The limits are chosen by looking for the first\n"
-	 "and the last atmopheric level, where the hydrometeor profile is\n"
-	 "unequal zero.\n"
-         "FIXME\n"
+         "The function must be called before any *cloudbox_limits* using\n"
+	 "WSMs.\n"
+	 "NOTE: only 1-dim case is handeled in the moment!\n"
+	 "\n"
+	 "The function iterates over all *part_species* and performs a \n"
+	 "check, to see if the corresponding scattering particle profiles do not\n"
+	 "contain a cloud (all values equal zero). If, after all iterations,\n"
+	 "all the considrered profiles proove to contain no cloud,\n"
+	 "the cloudbox is switched off! (see WSM *CloudboxOff*)\n"
+	 "\n"
+	 "Each scattering particle profile is searched for the first and last\n"
+	 "pressure index, where the value is unequal to zero. This index\n"
+	 "is then copied to *cloudbox_limits*.\n"
+	 "\n"
+	 "Additionaly the lower cloudbox_limit is altered by\n" 
+	 "*cloudbox_margin*.\n"
+	 "The margin is given as a height difference in meters and\n"
+	 "trasformed into a pressure.(via isothermal barometric heightformula)\n"
+	 "This alteration is needed to ensure, that scattered photons\n"
+	 "do not leave and re-enter the cloudbox, due to its convex\n"
+	 "shape.\n"
+	 "If *cloudbox_margin* is set to -1, the cloudbox will extend to\n" 
+	 "the surface. Hence the lower cloudbox_limit is set to 0 (index\n"
+	 "of first pressure level).\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(  "iy_cloudbox_agenda", "atmosphere_dim", "part_species", "p_grid", "lat_grid", "lon_grid", "hydromet_field", "t_field"),
+        IN( "atmosphere_dim", "part_species", "p_grid", "lat_grid", "lon_grid", "massdensity_field"),
         GIN( "cloudbox_margin"),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC( "The margin is added/substracted to/from the upper/lower vertical\n"
-		  "cloudbox limits. Value must be given in [m].\n"
-		  "If cloudbox_margin is set to *-1*, the lower cloudbox limit equals\n"
-		  "the first (lower most) *p_grid* level.\n"
+        GIN_DESC( "The margin alters the lower vertical\n"
+		  "cloudbox limit. Value must be given in [m].\n"
+		  "If cloudbox_margin is set to *-1*, the lower\n" 
+		  "cloudbox limit equals 0 !\n"
 	)
         ));
   
@@ -4097,29 +4116,29 @@ void define_md_data_raw()
     
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "Hydromet_cleanup" ),
+      ( NAME( "Massdensity_cleanup" ),
         DESCRIPTION
         (
-         "This WSM checks if *hydromet_field* contains values smaller than\n"
-	 "*hydromet_threshold*. In this case, these values will be set to zero.\n"
+         "This WSM checks if *massdensity_field* contains values smaller than\n"
+	 "*massdensity_threshold*. In this case, these values will be set to zero.\n"
 	 "\n"
-	 "The Method should be applied if *hydromet_field* contains unrealistic small\n"
+	 "The Method should be applied if *massdensity_field* contains unrealistic small\n"
 	 "or erroneous data. (e.g. the chevallierl_91l data sets contain these small values)\n"
 	 "\n"
-	 "*Hydromet_cleanup* is called after generation of atmopheric fields.\n"
+	 "*Massdensity_cleanup* is called after generation of atmopheric fields.\n"
 	 "\n"
 	 "*Default value*:\t1e-15\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT( "hydromet_field" ),
+        OUT( "massdensity_field" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
         IN(),
-        GIN( "hydromet_threshold" ),
+        GIN( "massdensity_threshold" ),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( "1e-15" ),
-        GIN_DESC( "Values in *hydromet_field* smaller than *hydromet_threshold* will be set to zero." )
+        GIN_DESC( "Values in *massdensity_field* smaller than *massdensity_threshold* will be set to zero." )
         ));
 
   md_data_raw.push_back
@@ -6117,8 +6136,14 @@ void define_md_data_raw()
       ( NAME( "ParticleSpeciesSet" ),
         DESCRIPTION
         (
-         "FIXME DOC\n"
-         ),
+         "With this function, the user specifies settings for the \n"
+	 "particle number density calculations.\n"
+	 "The input is an ArrayOfString that needs to be in a specific format:\n"
+	 "\n"
+	 "*Example:* \t ['IWC-MH97-0.1-200', 'LWC-liquid-0.1-50'] \n"
+	 "\n"
+	 "For more details, see WSV *part_species*.\n"
+	 ),
         AUTHORS( "Daniel Kreyling" ),
         OUT(  ),
         GOUT("part_species"  ),
@@ -6140,7 +6165,7 @@ void define_md_data_raw()
 	 "Reads single scattering data and particle number densities.\n"
 	 "\n"
 	 "The WSV *pnd_field_raw* containing particle number densities for all\n"
-	 "hydrometeor species can be generated outside ARTS, for example by using\n"
+	 "scattering particle species can be generated outside ARTS, for example by using\n"
 	 "PyARTS. This method needs as input an XML-file containing an array of filenames\n"
 	 "(ArrayOfString) of single scattering data and a file containing the corresponding\n"
 	 "*pnd_field_raw*. In contrast to the scattering data, all corresponding pnd-fields\n"
@@ -6165,35 +6190,70 @@ void define_md_data_raw()
                   "File including *pnd_field_raw*." 
                   )
         ));
- 
+
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ParticleTypeAddAllMeta" ),
+      ( NAME( "ScatteringParticleTypeAndMetaRead" ),
         DESCRIPTION
         (
 	 "Reads single scattering data and scattering meta data.\n"
 	 "\n"
-	 "This method needs as input an XML-file containing an array of filenames\n"
-	 "(ArrayOfString) of single scattering data and corresponding scattering meta data.\n"
-	 "For each single scattering file, there needs to be exactly one scattering meta data file.\n"
+	 "This method's input needs two XML-files, one containing an array \n"
+	 "of path/filenames (ArrayOfString) of single scattering data and the \n"
+	 "corresponding path/filenames to scattering meta data.\n"
+	 "For each single scattering file, there needs to be exactly one\n"
+	 "scattering meta data file.\n"
 	 "\n"
 	 "Very important note:\n"
 	 "The order of the filenames for the single scattering data files has to\n"
-	 "correspond to the order of the scattering meta data files.\n"
+	 "exactly correspond to the order of the scattering meta data files.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "scat_data_raw", "scat_data_meta_array" ),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "f_grid", "p_grid", "lat_grid", "lon_grid", "cloudbox_on",
-            "cloudbox_limits" ),
+        IN( "f_grid" ),
         GIN(         "filename_scat_data", "filename_scat_meta_data" ),
         GIN_TYPE(    "String",             "String"             ),
         GIN_DEFAULT( NODEF,                NODEF                ),
-        GIN_DESC( "File containing single scattering data.",
-                  "File containing scattering meta data." 
+        GIN_DESC( "File containing single scattering data file names.",
+                  "File containing scattering meta data file names." 
                   )
+        ));
+
+ 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ScatteringParticlesSelect" ),
+        DESCRIPTION
+        (
+	 "This method is a selection function for scattering particles.\n"
+	 "\n"
+	 "In *part_species* the user defines selection criteria, for:\n"
+	 "\twhich type of scattering particle profile to use\n"
+	 "\twhat particle size ditribution parametrisation to use\n"
+	 "\tthe minimum and maximum size of particle radius to use\n"
+	 "...in the scattering calculations.\n"
+	 "\n"
+	 "The scattering particle arrays, *scat_data_raw* and *scat_data_meta_array*\n"
+	 "are searched for particles, that fullfill the selection criteria. \n"
+	 "Only these particles will be used for scattering calculations.\n"
+	 "\n"
+	 "Additionaly an ArrayOfIndex *scat_data_nelem* is created. This Array\n"
+	 "stores the number of scattering particles, that have been selected by each\n"
+	 "String in *part_species*\n"
+	 ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "scat_data_raw", "scat_data_meta_array", "scat_data_nelem" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "part_species" ),
+        GIN(    ),
+        GIN_TYPE(),
+        GIN_DEFAULT(   ),
+        GIN_DESC(   )
         ));
 
 
@@ -6441,7 +6501,7 @@ void define_md_data_raw()
       ( NAME( "pnd_fieldSetup" ),
         DESCRIPTION
         (
-         "Calculation of pnd_field using ScatteringMetaData and hydromet_field.\n"
+         "Calculation of pnd_field using ScatteringMetaData and massdensity_field.\n"
 	 "\n"
 	 "FIXME\n"
          ),
@@ -6450,7 +6510,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim","cloudbox_on", "cloudbox_limits", "hydromet_field", "t_field", "scat_data_meta_array", "part_species" ),
+        IN( "atmosphere_dim","cloudbox_on", "cloudbox_limits", "massdensity_field", "t_field", "scat_data_meta_array", "part_species", "scat_data_nelem" ),
         GIN(),
         GIN_TYPE(),
         GIN_DEFAULT(),

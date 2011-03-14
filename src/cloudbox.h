@@ -85,10 +85,10 @@ bool is_inside_cloudbox (const Ppath& ppath_step,
                          const ArrayOfIndex& cloudbox_limits,
                          const bool include_boundaries);
 
-Numeric barometric_heightformula (const Numeric p,
-                                  const Numeric dh,
-                                  const Numeric T0
-                                  );
+
+Numeric barometric_heightformula ( const Numeric& p,
+				   const Numeric& dh
+				   );
 
 Numeric IWCtopnd_MH97 (const Numeric iwc,
                        Numeric dm,
@@ -103,21 +103,41 @@ Numeric LWCtopnd2 (//const Numeric density,
                    const Numeric r);
 
 
-void trapezoid_integrate (Vector& w,
+void scale_pnd (Vector& w,
                           const Vector& x,
                           const Vector& y);
 
 void chk_pndsum (Vector& pnd,
                  const Numeric xwc,
-                 const Vector density,
-                 const Vector vol);
+                 const Vector& density,
+                 const Vector& vol);
 
-bool chk_hydromet_field (const Index&  dim,	
-                         const Tensor3& hydromet,			 
-                         const Vector& p_grid,
-                         const Vector& lat_grid,
-                         const Vector& lon_grid);
 
+void chk_pndsum2 (Vector& pnd,
+		 const Numeric xwc);
+
+
+void chk_massdensity_field(	
+			 bool& x, 
+ 			 const Index&  dim,	
+			 const Tensor3& massdensity,			 
+			 const Vector& p_grid,
+			 const Vector& lat_grid,
+			 const Vector& lon_grid
+		       );
+
+void parse_part_type (
+  String& part_type,
+  const String& part_string );
+
+void parse_psd_param (
+  String& psd_param,
+  const String& part_string );
+
+void parse_part_size (
+  Numeric& sizemin,
+  Numeric& sizemax,
+  const String& part_string );
 
 #endif //cloudbox_h
 

@@ -207,9 +207,10 @@ void atm_fields_compactFromMatrix(// WS Output:
 
 // Workspace method, doxygen header will be auto-generated.
 // 2011-01-24 Daniel Kreyling
-void atm_fields_compactFromMatrixVMRonly(// WS Output:
-                                  GriddedField4& af, // atm_fields_compact
-				  					// WS Input:
+void atm_fields_compactFromMatrixChevalAll(// WS Output:
+                                  GriddedField4& af_all, // atm_fields_compact_all
+				  GriddedField4& af_vmr, // atm_fields_compact
+				  // WS Input:
                                   const Index& atmosphere_dim,
                                   	// WS Generic Input:
                                   const Matrix& im,
@@ -229,10 +230,8 @@ void atm_fields_compactFromMatrixVMRonly(// WS Output:
   const Index nf = im.ncols()-1;
   //const Index ns = 2;
   
- // const Index nh = im.ncols()-((species_names.nelem()+field_names.nelem()));
- // const Index ns = im.ncols()-((field_names.nelem()+hydromet_names.nelem()));
   
-  Index nf_1; // Number of required fields. 
+  Index nf_1, nf_2; // Number of required fields. 
                   // All fields called "ignore" are ignored.
   String fn_upper; // Temporary variable to hold upper case field_names.
 
@@ -248,37 +247,69 @@ void atm_fields_compactFromMatrixVMRonly(// WS Output:
 
   // Remove additional fields from the field_names. All fields that
   // are flagged by 'ignore' in the field names, small or large letters,
-  // are removed.
+  // are removed. The remaining number of fields is stored in *nf_1*.
+  // Usage: total batch_atm_fields_compact_all
   nf_1 = 0;
+  nf_2 = 0;
+  ArrayOfIndex intarr;
   for(Index f = 0; f < field_names.nelem(); f++)
     {
       fn_upper = field_names[f];
       std::transform ( fn_upper.begin(),  fn_upper.end(), fn_upper.begin(), ::toupper);
-      if(fn_upper != "IGNORE") nf_1++;
+      if(fn_upper != "IGNORE" ) nf_1++;
+      
+      // Remove all 'ignore' and massdensity fields in this step, so that only T, z and vmrs remain.
+      // The Index of these fields in stroed in *intarr*, for later access.
+      // The remaining number of fields is stored in *nf_2*.
+      if ( fn_upper !="IGNORE" && field_names[f] != "LWC" && field_names[f] != "IWC" &&
+	field_names[f] != "Rain" && field_names[f] != "Snow" ) 
+      {
+	nf_2++;
+	intarr.push_back(f);
+	
+      }
     }
-
+    
+  //------- write batch_atm_fields_compact_all ----------------------------------------------------
+  // including massdenity fields!
   // Copy required field_names to a new variable called field_names_1
-  ArrayOfString f_names_1(2); //f_names_2(2);
-  for (Index f=0; f< 2; f++) f_names_1[f] = field_names[f];
+  ArrayOfString field_names_1(nf_1); //f_names_2(2);
+  for (Index f=0; f< nf_1; f++) field_names_1[f] = field_names[f];
 
   //  out3 << "Copying *" << im_name << "* to *atm_fields_compact*.\n";
-  
-  af.set_grid(GFIELD4_FIELD_NAMES, f_names_1);
 
+  //cout<<nf<<"\t"<<nf_1<<"\t"<<field_names.nelem()<<endl;
+   
+
+  af_all.set_grid(GFIELD4_FIELD_NAMES, field_names_1);
+
+  af_all.set_grid(GFIELD4_P_GRID, im(Range(joker),0));
   
-  for (Index f=6; f<field_names.nelem(); f++) {
-    //f_names_2[f] = field_names[f];
-    af.get_string_grid(GFIELD4_FIELD_NAMES).push_back(field_names[f]);
+  af_all.set_grid(GFIELD4_LAT_GRID, Vector());
+  af_all.set_grid(GFIELD4_LON_GRID, Vector());
+  
+  af_all.resize(nf_1,np,1,1); // Resize it according to the required fields
+  af_all.data(Range(joker),Range(joker),0,0) = transpose(im(Range(joker),Range(1,nf_1)));
+  
+ 
+  //------- write batch_atm_fields_compact -------------------------------------------------------------
+  // excluding massdenity fields!
+  ArrayOfString field_names_2(nf_2);
+  for ( Index i=0; i<nf_2; i++ ) field_names_2[i] = field_names[intarr[i]] ;
+  
+  af_vmr.set_grid(GFIELD4_FIELD_NAMES, field_names_2);
+  
+  af_vmr.set_grid(GFIELD4_P_GRID, im(Range(joker),0));
+  
+  af_vmr.set_grid(GFIELD4_LAT_GRID, Vector());
+  af_vmr.set_grid ( GFIELD4_LON_GRID, Vector() );
+
+  af_vmr.resize ( nf_2,np,1,1 ); // Resize it according to the required fields
+  for ( Index i=0; i<nf_2; i++ )
+  {
+    // write T, z and VMRs
+    af_vmr.data ( Range(i,1) ,Range ( joker ),0,0 ) = transpose ( im ( Range ( joker ), Range(intarr[i]+1,1)) );
   }
-  
-  af.set_grid(GFIELD4_P_GRID, im(Range(joker),0));
-  
-  af.set_grid(GFIELD4_LAT_GRID, Vector());
-  af.set_grid(GFIELD4_LON_GRID, Vector());
-  
-  af.resize(4,np,1,1); // Resize it according to the required fields
-  af.data(Range(0,2),Range(joker),0,0) = transpose(im(Range(joker),Range(1,2)));
-  af.data(Range(2,2),Range(joker),0,0) = transpose(im(Range(joker),Range(6,2)));
 }
 
 
@@ -388,9 +419,9 @@ void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:
 
 // Workspace method, doxygen header is auto-generated.
 // 2011-01-24 Daniel Kreyling
-void batch_atm_fields_compactFromArrayOfMatrixHydromet(// WS Output:
+void batch_atm_fields_compactFromArrayOfMatrixChevalAll(// WS Output:
                                                ArrayOfGriddedField4& batch_atm_fields_compact,
-					       ArrayOfGriddedField4& batch_atm_hydromet_fields_compact,
+					       ArrayOfGriddedField4& batch_atm_fields_compact_all,
                                                // WS Input:
                                                const Index& atmosphere_dim,
                                                // WS Generic Input:
@@ -417,7 +448,7 @@ void batch_atm_fields_compactFromArrayOfMatrixHydromet(// WS Output:
 
   // Make output variable the proper size:
   batch_atm_fields_compact.resize(amnelem);
-  batch_atm_hydromet_fields_compact.resize(amnelem);
+  batch_atm_fields_compact_all.resize(amnelem);
   // Loop the batch cases:
 /*#pragma omp parallel for                                     \
   if(!arts_omp_in_parallel())                                \
@@ -437,18 +468,15 @@ void batch_atm_fields_compactFromArrayOfMatrixHydromet(// WS Output:
       // exceptions inside the parallel region. 
       try
         {
-          atm_fields_compactFromMatrixVMRonly(batch_atm_fields_compact[i],
-					   atmosphere_dim,
-					   am[i],
-					   field_names);
-	  
-	  atm_fields_compactFromMatrix(batch_atm_hydromet_fields_compact[i],
-					   atmosphere_dim,
-					   am[i],
-					   field_names);
+          atm_fields_compactFromMatrixChevalAll( batch_atm_fields_compact_all[i],
+					      batch_atm_fields_compact[i],
+					      atmosphere_dim,
+					      am[i],
+					      field_names);
+
 
           for (Index j=0; j<extra_field_names.nelem(); ++j){
-            atm_fields_compactAddConstant(batch_atm_hydromet_fields_compact[i],
+            atm_fields_compactAddConstant( batch_atm_fields_compact_all[i],
                                           extra_field_names[j],
                                           extra_field_values[j]);
 	    
@@ -465,22 +493,22 @@ void batch_atm_fields_compactFromArrayOfMatrixHydromet(// WS Output:
 
 // Workspace method, doxygen header will be auto-generated.
 // 2010-11-29 Daniel Kreyling
-void AtmFieldsFromCompactHydromet(// WS Output:
+void AtmFieldsFromCompactChevalAll(// WS Output:
                           Vector& p_grid,
                           Vector& lat_grid,
                           Vector& lon_grid,
                           Tensor3& t_field,
                           Tensor3& z_field,
-			  Tensor4& hydromet_field,
+			  Tensor4& massdensity_field,
                           Tensor4& vmr_field,
 		          // WS Input:
                           const ArrayOfArrayOfSpeciesTag& abs_species,
 			  // const ArrayOfArrayOfSpeciesTag& 
-                          const GriddedField4& atm_fields_compact,
+                          const GriddedField4& atm_fields_compact_all,
                           const Index&  atmosphere_dim )
 {
   // Make a handle on atm_fields_compact to save typing:
-  const GriddedField4& c = atm_fields_compact;
+  const GriddedField4& c = atm_fields_compact_all;
   
   // Check if the grids in our data match atmosphere_dim
   // (throws an error if the dimensionality is not correct):
@@ -597,9 +625,9 @@ void AtmFieldsFromCompactHydromet(// WS Output:
   z_field.resize(np,nlat,nlon);
   z_field = c.data(1,Range(joker),Range(joker),Range(joker));
 
-  //write all hydromet profile to one Tensor4
-  hydromet_field.resize(4,np,nlat,nlon);
-  hydromet_field = c.data(Range(2,4),Range(joker),Range(joker),Range(joker));
+  //write all massdensity profile to one Tensor4
+  massdensity_field.resize(4,np,nlat,nlon);
+  massdensity_field = c.data(Range(2,4),Range(joker),Range(joker),Range(joker));
 
   // VMR profiles (remaining fields):
   vmr_field.resize(ns,np,nlat,nlon);

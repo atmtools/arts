@@ -950,24 +950,6 @@ void DoitScatteringDataPrepare( //Output:
                                   )
 {
   
-  // Check, whether single scattering data contains the right frequencies:
-  for (Index i = 0; i<scat_data_raw.nelem(); i++)
-    {
-      if (scat_data_raw[i].f_grid[0] > f_grid[f_index] || 
-          scat_data_raw[i].f_grid[scat_data_raw[i].f_grid.nelem()-1] 
-          < f_grid[f_index])
-        {
-          ostringstream os;
-          os << "Frequency of the scattering calculation " << f_grid[f_index] 
-             << " GHz is not contained \n in the frequency grid of the " << i+1 
-             << "the single scattering data file \n(*ParticleTypeAdd*). "
-             << "Range:"  << scat_data_raw[i].f_grid[0]/1e9 <<" - "
-             << scat_data_raw[i].f_grid[scat_data_raw[i].f_grid.nelem()-1]/1e9
-             <<" GHz \n";
-          throw runtime_error( os.str() );
-        }
-    }
-  
   // Interpolate all the data in frequency
   scat_data_monoCalc(scat_data_mono, scat_data_raw, f_grid, f_index);
   
@@ -1048,12 +1030,22 @@ void scat_data_monoCalc(
                         const Index& f_index
                        )
 {
+  //Extrapolation factor:
+  //const Numeric extpolfac = 0.5;
+  
   // Check, whether single scattering data contains the right frequencies:
+  // The check was changed to allow extrapolation at the boundaries of the 
+  // frequency grid.
   for (Index i = 0; i<scat_data_raw.nelem(); i++)
     {
-      if (scat_data_raw[i].f_grid[0] > f_grid[f_index] || 
-          scat_data_raw[i].f_grid[scat_data_raw[i].f_grid.nelem()-1] 
-          < f_grid[f_index])
+      // check with extrapolation
+      chk_interpolation_grids("scat_data_raw.f_grid to f_grid",
+			      scat_data_raw[i].f_grid,
+			      f_grid[f_index]);
+      
+      // old check without extrapolation
+      /*if (scat_data_raw[i].f_grid[0] > f_grid[f_index] || 
+          scat_data_raw[i].f_grid[scat_data_raw[i].f_grid.nelem()-1] < f_grid[f_index])
         {
           ostringstream os;
           os << "Frequency of the scattering calculation " << f_grid[f_index] 
@@ -1063,7 +1055,7 @@ void scat_data_monoCalc(
              << scat_data_raw[i].f_grid[scat_data_raw[i].f_grid.nelem()-1]/1e9
              <<" GHz \n";
           throw runtime_error( os.str() );
-        }
+        }*/
     }
 
   const Index N_pt = scat_data_raw.nelem();
