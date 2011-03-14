@@ -1,3 +1,46 @@
+2011-03-14  Daniel Kreyling <daniel.kreyling@physik.uni-muenchen.de>
+
+	* arts-1-14-163
+
+	* src/m_optproperties.cc:
+
+	(DoitScatteringDataPrepare) calls a check, whether single 
+	scattering data contains the right frequencies. This methods calls
+	(scat_data_monoCalc), where the same check was repeated. I removed
+	the check in DoitScatteringDataPrepare and extended the check in
+	scat_datamonoCalc to include extrapolation, according to
+	chk_interpolation_grids. 
+
+	* src/m_cloudbox.cc
+
+	(cloudboxSetAutomatically) functionality only for 1 Dim atmospheres.
+	Replaced checks by assertions. Improved the cloudbox_limits finding and setting
+	algorithm.
+	
+	(Massdensity_cleanup) renamed (former Hydromet_cleanup)
+
+	Splitted the function (ParticleTypeAddAllMeta) into 
+	(ScatteringParticleTypeAndMetaRead), which reads only the single scat. 
+	and meta scat. data and
+	(ScatteringParticlesSelect) which does the user defined selection of 
+	scattering particles via part_species.
+
+	(pnd_fieldSetup) some corrections and code improving. Added the particle
+	selection.
+	
+	* src/m_atmosphere.cc
+
+	(atm_fields_compactFromMatrixChevalAll) renamed function.
+	(AtmFieldsFromCompactChevalAll) atmospheric properties (gases and hydrometeors)
+	in Chavallier data are written to two different GriddedField4s 
+	(atm_fields_compact_all, atm_fields_compact). First containing all profiles,
+	second only the abs. gases.
+
+	* src/mathfuncs.cc
+
+	(gamma_func) & (lgamma_func) renamed the functions, to avoid conflict with 
+	C std. lib. 
+
 2011-03-13	Gerrit Holl	<gerrit.holl@ltu.se>
 
 	* arts-1-14-162
@@ -15,6 +58,7 @@
 
 	* tests/MHS/TestMHS_generic.arts: Fix error in comment
 
+>>>>>>> .r6815
 2011-03-04  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-161
