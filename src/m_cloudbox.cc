@@ -889,6 +889,28 @@ void pnd_fieldCalc(//WS Output:
                         "atmospheric dimensions. So its dimension must"
                         "be 2 x *atmosphere_dim*");
 
+  // Check that pnd_field_raw has at least 2 grid-points in each dimension.
+  // Otherwise, interpolation further down will fail with assertion.
+  
+  for (Index d = 0; d < atmosphere_dim; d++)
+    {
+      for (Index i = 0; i < pnd_field_raw.nelem(); i++)
+        {
+          if (pnd_field_raw[i].get_grid_size(d) < 2)
+            {
+              ostringstream os;
+              os << "Error in pnd_field_raw data. ";
+              os << "Dimension " << d << " (name: \"";
+              os << pnd_field_raw[i].get_grid_name(d);
+              os << "\") has only ";
+              os << pnd_field_raw[i].get_grid_size(d);
+              os << " element";
+              os << ((pnd_field_raw[i].get_grid_size(d)==1) ? "" : "s");
+              os << ". Must be at least 2.";
+              throw runtime_error(os.str());
+            }
+        }
+    }
   const Index Np_cloud = cloudbox_limits[1]-cloudbox_limits[0]+1;
   
   ConstVectorView p_grid_cloud = p_grid[Range(cloudbox_limits[0], Np_cloud)];

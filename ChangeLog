@@ -1,3 +1,16 @@
+2011-03-14	Gerrit Holl	<gerrit.holl@ltu.se>
+
+	* arts-1-14-164
+
+	* src/m_cloudbox.cc: Bugfix
+
+	 - In pnd_field_calc, check that enough data points are available in
+	   pnd_field_raw on each grid/dimension so that it can be interpolated
+	   to (e.g. at least two, as child function does linear
+	   interpolation). If this is not the case, throw a runtime_error.
+	   Until now, a function called from here threw an assertion error
+	   instead.
+
 2011-03-14  Daniel Kreyling <daniel.kreyling@physik.uni-muenchen.de>
 
 	* arts-1-14-163
