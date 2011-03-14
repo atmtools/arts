@@ -10,6 +10,9 @@ you should run the configure script like this:
 
 ./configure --prefix=/home/myself/local
 
+IMPORTANT NOTE: If you check out ARTS from subversion, you have to
+replace './configure' with './autogen.sh'.
+
 This will install the executable to /home/myself/local/bin and the
 documentation to /home/myself/local/artsdoc. Of course, you should
 make sure that /home/myself/local/bin is in your $PATH.

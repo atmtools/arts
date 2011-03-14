@@ -1,3 +1,8 @@
+2011-03-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* README: Add note about using autogen.sh instead of configure when
+	using the svn version.
+
 2010-01-14  Oliver Lemke  <olemke(at)core-dump.info>
 
 	* arts-1-0-218
