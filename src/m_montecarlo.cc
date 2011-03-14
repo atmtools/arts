@@ -247,8 +247,26 @@ void MCGeneral(Workspace&            ws,
 
   if (! (atmosphere_dim == 3))
     {
-      throw runtime_error(
-                   "For montecarlo, atmosphere_dim must be 3.");
+      ostringstream os;
+      os << "Expected atmosphere_dim: 3. ";
+      os << "Found: " << atmosphere_dim;
+      throw runtime_error(os.str());
+    }
+
+  if (! (sensor_pos.ncols() == 3))
+    {
+      ostringstream os;
+      os << "Expected number of columns in sensor_pos: 3. ";
+      os << "Found: " << sensor_pos.ncols();
+      throw runtime_error(os.str());
+    }
+
+  if (! (sensor_los.ncols() == 2))
+    {
+      ostringstream os;
+      os << "Expected number of columns in sensor_los: 2. ";
+      os << "Found: " << sensor_los.ncols();
+      throw runtime_error(os.str());
     }
 
   Ppath ppath_step;
