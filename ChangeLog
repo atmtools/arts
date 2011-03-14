@@ -1,5 +1,11 @@
 2011-03-14  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-0-219
+
+	* configure.in: Forgot to increase version number.
+
+2011-03-14  Oliver Lemke  <olemke@core-dump.info>
+
 	* README: Add note about using autogen.sh instead of configure when
 	using the svn version.
 
