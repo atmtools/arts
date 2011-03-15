@@ -1,3 +1,15 @@
+2011-03-15  Daniel Kreyling <daniel.kreyling@physik.uni-muenchen.de>
+
+	* arts-1-14-167
+
+	* src/m_cloudbox.cc: Bugfix 
+
+	(cloudboxSetAutomatically) to call CloudboxOff, iy_cloudbox_agenda 
+	must be an In and Output to this method.
+	CloudboxOff only gets called when atmosphere is empty, if that is
+	not the case, iy_cloudbox_agenda still needs to be initialized.
+
+
 2011-03-15	Gerrit Holl	<gerrit.holl@ltu.se>
 
 	* arts-1-14-166
@@ -5,6 +17,7 @@
 	* doc/uguide/batch.tex: Bugfix
 
 	- Replace "RteCalc" by "yCalc".
+
 
 2011-03-14	Gerrit Holl	<gerrit.holl@ltu.se>
 
@@ -89,7 +102,6 @@
 
 	* tests/MHS/TestMHS_generic.arts: Fix error in comment
 
->>>>>>> .r6815
 2011-03-04  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-161

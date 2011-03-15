@@ -1013,9 +1013,9 @@ void chk_pndsum (Vector& pnd,
     }
 
   }
-      //cout<<"\npnd_scaled\t"<<pnd<<endl;
+    //cout<<"\npnd_scaled\t"<<pnd<<endl;
     //cout<<"\nPND\t"<<pnd.sum()<<"\nXWC\t"<<xwc<<"\nerror\t"<<error<<endl;
-    cout<<pnd.sum()<<"\n"<<xwc<<"\n"<<error<<endl;
+    //cout<<pnd.sum()<<"\n"<<xwc<<"\n"<<error<<endl;
 }
 
 
@@ -1046,8 +1046,8 @@ void chk_pndsum2 (Vector& pnd,
     }
 
   }
-      //cout<<"\nPND2\t"<<pnd.sum()<<"\nXWC2\t"<<xwc<<"\nerror2\t"<<error<<endl;
-    cout<<pnd.sum()<<"\n"<<xwc<<"\n"<<error<<endl;
+    //cout<<"\nPND2\t"<<pnd.sum()<<"\nXWC2\t"<<xwc<<"\nerror2\t"<<error<<endl;
+    //cout<<pnd.sum()<<"\n"<<xwc<<"\n"<<error<<endl;
     //cout<<"\npnd_scaled2\t"<<pnd<<endl;
 }
 

@@ -88,6 +88,7 @@ void cloudboxOff (
 /* Workspace method: Doxygen documentation will be auto-generated */
 void cloudboxSetAutomatically (
   // WS Output:
+  Workspace& /* ws */,
   Index&          cloudbox_on,
   ArrayOfIndex&   cloudbox_limits,
   Agenda&  iy_cloudbox_agenda,
@@ -1202,7 +1203,7 @@ void pnd_fieldSetup ( //WS Output:
 	vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V ); //m^3
       }
       get_sorted_indexes(intarr, vol_unsorted);
-      cout<<"intarr\t"<<intarr<<endl;
+      //cout<<"intarr\t"<<intarr<<endl;
 	
       
       // extract IWC_field and convert from kg/m^3 to g/m^3
@@ -1232,7 +1233,7 @@ void pnd_fieldSetup ( //WS Output:
       }
       // test vector
       //linspace(dm, 2, 2000, 1000);
-      cout<<"dm\t"<<dm<<endl;
+      //cout<<"\ndm:\t"<<dm<<endl;
       
 
       // itertation over all atm. levels
@@ -1282,7 +1283,7 @@ void pnd_fieldSetup ( //WS Output:
 	vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V ); //m^3
       }
       get_sorted_indexes(intarr, vol_unsorted);
-      cout<<"intarr\t"<<intarr<<endl;
+      //cout<<"intarr\t"<<intarr<<endl;
       
       // extract LWC_field and convert from kg/m^3 to g/m^3
       Tensor3 LWC_field = massdensity_field ( 0, joker, joker, joker );
@@ -1309,7 +1310,7 @@ void pnd_fieldSetup ( //WS Output:
         }
         //j++; // increment counter
       }
-      cout<<"\nr\t"<<r<<endl;
+      //cout<<"\nr:\t"<<r<<endl;
 
       // itertation over all atm. levels
       for ( Index p=p_cbstart; p<p_cbend; p++ )

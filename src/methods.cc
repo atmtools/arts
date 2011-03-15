@@ -2745,7 +2745,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "atmosphere_dim", "part_species", "p_grid", "lat_grid", "lon_grid", "massdensity_field"),
+        IN( "iy_cloudbox_agenda", "atmosphere_dim", "part_species", "p_grid", "lat_grid", "lon_grid", "massdensity_field"),
         GIN( "cloudbox_margin"),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( NODEF ),
