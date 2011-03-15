@@ -40,7 +40,7 @@ individually. The agenda gets an input \wsvindex{ybatch\_index}, which
 it should use to extract the right input data from one or more arrays
 or matrices of input. Execution of \artsstyle{ybatch\_calc\_agenda}
 must result in a new spectrum vector, \artsstyle{y}, most likely by a
-call of \artsstyle{RteCalc}.
+call of \artsstyle{yCalc}.
 
 The WSV \artsstyle{ybatch\_start} is set to a default of 0 in
 \artsstyle{general.arts}, so you do not have to set this variable
@@ -88,7 +88,7 @@ AgendaSet ( ybatch_calc_agenda ){
   Extract( vmr_field,  tensor5_1, ybatch_index )
   Extract( sensor_los, tensor3_1, ybatch_index )
 
-  RteCalc
+  yCalc
 }
 
 ybatchCalc
