@@ -46,12 +46,12 @@ atmospheric radiative transfer and ARTS can also be used for basic
 studies of atmospheric radiations
 \citep{buehler:recen:06,john:under:06}.
 
-There exist two versions of ARTS. This user guide deals with the later
-of the two versions, here denoted as just ARTS. ARTS-1, the first
-version of ARTS \citep{buehler:artst:05}, can only handle 1D
-atmospheres with unpolarised radiation and situations where scattering
-can be neglected. These restrictions have been removed in this
-version. A short summary of ARTS's main features:
+There exist two versions of ARTS. This user guide deals with the later of the
+two versions \citep{eriksson:arts2:11}, here denoted as just ARTS. ARTS-1, the
+first version of ARTS \citep{buehler:artst:05}, can only handle 1D atmospheres
+with unpolarised radiation and situations where scattering can be neglected.
+These restrictions have been removed in this version. A short summary of ARTS's
+main features:
 \begin{description}
 \item[The atmosphere] can be 1D, 2D or 3D. That is, atmospheric
   variables (temperature, gas concentrations etc.) can be assumed to
@@ -86,25 +86,30 @@ contents and the index for navigating through the user guide.
 
 The following documentation is available for ARTS:
 
-\paragraph{Books}
+\paragraph{Guide documents:}
 \begin{description}
 \item[ARTS User Guide:] This document.
 \item[ARTS Developer Guide:] Guide for ARTS developers.
 \item[ARTS Theory:] Describes the theoretical basis of many ARTS algorithms.
 \end{description}
 
-\paragraph{Articles}
+\paragraph{Articles:}
 \begin{description}
 \item[\citet{buehler:artst:05}:] General description of the old ARTS
   version without scattering. Many basic features are still the same,
   so this article is relevant also for the current ARTS version.
-\item[\citet{eriksson:06}:] Describes the calculation approach for the
-  incorporation of sensor characteristics.
+\item[\citet{eriksson:arts2:11}:] Introduction and overview to ARTS-2.
 \item[\citet{emde04:_doit_jgr}:] Describes the Discrete Ordinate Iterative method (DOIT) for handling scattering.
 \item[\citet{davisetal:04}:] Describes the Monte Carlo scattering method.
+\item[\citet{buehler:absor:11}:] Describes the absorption look-up table
+  approach used inside ARTS.
+\item[\citet{eriksson:06}:] Describes the calculation approach for the
+  incorporation of sensor characteristics.
+\item[\citet{buehler:effic:10}:] Describes a method to efficiently handle
+  broadband infrared channels, that is implemented in ARTS.
 \end{description}
 
-\paragraph{Built-in}
+\paragraph{Built-in:}
 \begin{description}
 \item[arts -d xxx:] Prints built-in documentation on function or
   variable xxx. (There are other command line options that allow you
