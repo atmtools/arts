@@ -57,7 +57,7 @@ SpeciesSet( abs_species, [ "H2O-PWR98",
 ReadXML( abs_lines, "mhs/mhs.hitran04_lines.xml" )
 abs_lines_per_speciesCreateFromLines
 
-# WARNING: If you redifine abs_species, and want to do a line-by-line
+# WARNING: If you redefine abs_species, and want to do a line-by-line
 # calculation, you also have to call
 # abs_lines_per_speciesCreateFromLines again.
 

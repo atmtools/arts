@@ -888,7 +888,7 @@ equation. How they are calculated is specified in
 \wsmindex{opt\_prop\_sptFromMonoData} requires that the raw data is
 already interpolated on the frequency of the monochromatic
 calculation. This requirement is fulfilled when
-\wsmindex{DoitScatteringDataPrepare} of \wsmindex{scat\_data\_monoCalc}
+\wsmindex{DoitScatteringDataPrepare} or \wsmindex{scat\_data\_monoCalc}
 is executed before \wsmindex{doit\_i\_fieldIterate} (see
 Section \ref{sec:scattering:doit_main_agenda}). The work space method
 \wsmindex{ext\_matAddPart} and \wsmindex{abs\_vecAddPart} are used to
@@ -950,7 +950,7 @@ In order to propagate the result of the scattering calculation towards
 the sensor, the fields needs to be interpolated on the direction of
 the sensor's line of sight. This is done in the workspace method
 \wsmindex{iyInterpCloudboxField}, which has to be put into the agenda
-·\wsaindex{iy\_cloudbox\_agenda}:
+\wsaindex{iy\_cloudbox\_agenda}:
 
 \begin{verbatim}
 AgendaSet( iy_cloudbox_agenda ){

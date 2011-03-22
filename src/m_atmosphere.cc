@@ -528,7 +528,7 @@ void AtmFieldsFromCompactChevalAll(// WS Output:
   lon_grid = c.get_numeric_grid(GFIELD4_LON_GRID);
 
   // The order of the fields is:
-  // T[K] z[m] LWC[kg/m^3] IWC[kg/m^3] Rain[kg/(m2*s)] Snow[kg/(m2*s)] VMR_1[1] ... VMR[2]
+  // T[K] z[m] LWC[kg/m^3] IWC[kg/m^3] Rain[kg/(m2*s)] Snow[kg/(m2*s)] VMR_1[1] ... VMR_n[1]
 
   // Number of VMR species:
   const Index ns = nf-6;
@@ -671,7 +671,7 @@ void AtmFieldsFromCompact(// WS Output:
   lon_grid = c.get_numeric_grid(GFIELD4_LON_GRID);
 
   // The order of the fields is:
-  // T[K] z[m] VMR_1[1] ... VMR[2]
+  // T[K] z[m] VMR_1[1] ... VMR_n[1]
 
   // Number of VMR species:
   const Index ns = nf-2;

@@ -359,7 +359,7 @@ void define_md_data_raw()
          "\n"
          "This is necessary, because for example *abs_coefCalc* requires abs_h2o\n"
          "to contain the water vapour profile(the reason for this is the\n"
-         "calculation of oxygen line brodening requires water vapour profile).\n"
+         "calculation of oxygen line broadening requires water vapour profile).\n"
          "Then this function can be used to copy the profile of the first tag\n"
          "group of water.\n"
          ),

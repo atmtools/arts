@@ -898,7 +898,8 @@ void chk_cloudbox(
               ostringstream os;
               os << "Too small distance between cloudbox and lower end of\n"
                  << "latitude grid. This distance must be " << llmin 
-                 << " degrees.";
+                 << " degrees. Cloudbox ends at " << lat_grid[cloudbox_limits[2]]
+                 << " and latitude grid starts at " << lat_grid[0] << ".";
               throw runtime_error( os.str() );
             }
           if( ( lat_grid[n-1] - lat_grid[cloudbox_limits[3]] < llmin )  &&
@@ -907,7 +908,8 @@ void chk_cloudbox(
               ostringstream os;
               os << "Too small distance between cloudbox and upper end of\n"
                  << "latitude grid. This distance must be " << llmin 
-                 << " degrees.";
+                 << "degrees. Cloudbox ends at " << lat_grid[cloudbox_limits[3]]
+                 << " and latitude grid ends at " << lat_grid[n-1] << ".";
               throw runtime_error( os.str() );
             }
         }

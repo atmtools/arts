@@ -1,3 +1,25 @@
+2011-03-22	Gerrit Holl	<gerrit.holl@ltu.se>
+
+	* arts-1-14-169
+
+	* src/m_atmosphere.cc, src/workspace.cc: Cosmetic changes
+	  - Fix error, VMR[2] should be VMR_n[1].
+	
+	* src/methods.cc: Cosmetic changes
+	  - Typo: brodening -> broadening
+	
+	* src/check_input.cc: Small improvement
+	  - Show more information in runtimeerror
+	
+	* doc/uguide/scattering.tex: Small improvement
+	  - Fix typo, of -> or
+	
+	* includes/amsu/{amsub,amsub_fast,mhs,mhs_fast}.arts: Cosmetic changes
+	  - Fix typo: redifine -> redefine
+
+	* ChangeLog:
+	  - Document my changes
+
 2011-03-17  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-168
