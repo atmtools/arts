@@ -46,6 +46,7 @@
 #include "exceptions.h"
 #include "matpackVII.h"
 #include "mystring.h"
+#include "gridded_fields.h"
 
 
 /*===========================================================================
@@ -159,6 +160,13 @@ void chk_not_empty(
         const String&      x_name,
         const Agenda&      x );
 
+void chk_pnd_field_raw_only_in_cloudbox(
+        const Index&                 dim,
+        const ArrayOfGriddedField3&  pnd_field_raw,
+        ConstVectorView              p_grid,
+        ConstVectorView              lat_grid,
+        ConstVectorView              lon_grid,
+        const ArrayOfIndex&          cloudbox_limits);
 
 /*===========================================================================
   === Template Functions for Arrays

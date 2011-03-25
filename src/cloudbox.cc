@@ -72,8 +72,12 @@ void chk_massdensity_field( bool& empty_flag,
   if ( massdensity.npages() != p_grid.nelem()) {
     
       ostringstream os;
-      os << "The size of *" << p_grid <<"* is not equal to size of *" << massdensity <<"*.";
-            throw runtime_error(os.str() );
+      os << "The size of *p_grid* ("
+         << p_grid.nelem()
+         << ") is not equal to the number of pages of *massdensity* ("
+         << massdensity.npages()
+         <<").";
+      throw runtime_error(os.str() );
   }
   
   // check lat
@@ -82,8 +86,12 @@ void chk_massdensity_field( bool& empty_flag,
     if ( massdensity.nrows() != lat_grid.nelem()) {
     
       ostringstream os;
-      os << "The size of *" <<lat_grid <<"* is not equal to size of *" << massdensity <<"*.";
-            throw runtime_error(os.str() );
+      os << "The size of *lat_grid* ("
+         << lat_grid.nelem()
+         << ") is not equal to the number of rows of *massdensity* ("
+         << massdensity
+         << ").";
+      throw runtime_error(os.str() );
       
     }
   }
@@ -94,8 +102,12 @@ void chk_massdensity_field( bool& empty_flag,
     if ( massdensity.ncols() != lon_grid.nelem()) {
     
       ostringstream os;
-      os << "The size of *" <<lon_grid <<"* is not equal to size of *" << massdensity <<"*.";
-            throw runtime_error(os.str() );
+      os << "The size of *lon_grid* ("
+         << lon_grid.nelem()
+         << ") is not equal to the number of columns of *massdensity*"
+         << massdensity
+         << ").";
+      throw runtime_error(os.str() );
       
     }
   }
@@ -104,8 +116,8 @@ void chk_massdensity_field( bool& empty_flag,
   // set empty_flag to true if a single value of hydromet_field is unequal zero    
     for (Index j=0; j<massdensity.npages(); j++) {
       for (Index k=0; k<massdensity.nrows(); k++) {
-	for (Index l=0; l<massdensity.ncols(); l++) {
-	  if ( massdensity(j,k,l) != 0.0) empty_flag = true;
+	    for (Index l=0; l<massdensity.ncols(); l++) {
+	      if ( massdensity(j,k,l) != 0.0) empty_flag = true;
 	}
       }
     }  

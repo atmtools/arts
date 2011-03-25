@@ -1,3 +1,21 @@
+2011-03-25	Gerrit Holl	<gerrit.holl@ltu.se>
+
+	* arts-1-14-170
+
+	* src/m_cloudbox.cc,
+	  src/check_input.h,
+	  src/check_input.cc: Behaviour changes
+	  - When doing pnd_fieldCalc, verify there are no scatterers outside
+	  the cloudbox.
+
+	* src/cloudbox.cc: Small changes
+	  - When checking the dimensions of the massdensity-field, when
+	  encountering a problem, do not output the field itself, but only the
+	  sizes, the problematic dimension.
+	
+	* ChangeLog:
+	  - Document my changes
+
 2011-03-22	Gerrit Holl	<gerrit.holl@ltu.se>
 
 	* arts-1-14-169

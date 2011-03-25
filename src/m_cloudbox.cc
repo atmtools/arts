@@ -915,6 +915,11 @@ void pnd_fieldCalc(//WS Output:
   const Index Np_cloud = cloudbox_limits[1]-cloudbox_limits[0]+1;
   
   ConstVectorView p_grid_cloud = p_grid[Range(cloudbox_limits[0], Np_cloud)];
+
+  // Check that no scatterers exist outside the cloudbox
+  chk_pnd_field_raw_only_in_cloudbox(atmosphere_dim, pnd_field_raw,
+                                     p_grid, lat_grid, lon_grid,
+                                     cloudbox_limits);
       
   //==========================================================================
   if ( atmosphere_dim == 1)
