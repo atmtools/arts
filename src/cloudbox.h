@@ -99,6 +99,7 @@ Numeric LWCtopnd (const Numeric lwc,
                   //const Numeric density,
                   const Numeric r);
 
+// ONLY FOR TESTING PURPOSES
 Numeric LWCtopnd2 (//const Numeric density,
                    const Numeric r);
 
@@ -112,7 +113,7 @@ void chk_pndsum (Vector& pnd,
                  const Vector& density,
                  const Vector& vol);
 
-
+// ONLY FOR TESTING PURPOSES
 void chk_pndsum2 (Vector& pnd,
 		 const Numeric xwc);
 

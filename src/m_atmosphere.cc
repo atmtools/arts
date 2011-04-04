@@ -212,13 +212,17 @@ void atm_fields_compactFromMatrixChevalAll(// WS Output:
 				  GriddedField4& af_vmr, // atm_fields_compact
 				  // WS Input:
                                   const Index& atmosphere_dim,
-                                  	// WS Generic Input:
+                                  // WS Generic Input:
                                   const Matrix& im,
-                                  	// Control Parameters:
+                                  // Control Parameters:
                                   const ArrayOfString& field_names
 
  				    )
 {
+  // NOTE: follwoing section is HARD WIRED 
+  // This method can only be applied to matrix data sets with a specific order of columns
+  // See method documentation!
+  
   if (1!=atmosphere_dim)
     {
       ostringstream os; 
@@ -227,15 +231,14 @@ void atm_fields_compactFromMatrixChevalAll(// WS Output:
     }
 
   const Index np = im.nrows();   // Number of pressure levels.
-  const Index nf = im.ncols()-1;
-  //const Index ns = 2;
-  
+  const Index nf = im.ncols()-1; // Number of colums without pressure.
+ 
   
   Index nf_1, nf_2; // Number of required fields. 
-                  // All fields called "ignore" are ignored.
+                    // All fields called "ignore" are ignored.
   String fn_upper; // Temporary variable to hold upper case field_names.
 
-  if (field_names.nelem()!=nf)
+  if (field_names.nelem()!= nf)
     {
       ostringstream os; 
       os << "Cannot copy Matrix.\n"
@@ -272,6 +275,7 @@ void atm_fields_compactFromMatrixChevalAll(// WS Output:
     
   //------- write batch_atm_fields_compact_all ----------------------------------------------------
   // including massdenity fields!
+  
   // Copy required field_names to a new variable called field_names_1
   ArrayOfString field_names_1(nf_1); //f_names_2(2);
   for (Index f=0; f< nf_1; f++) field_names_1[f] = field_names[f];
@@ -294,6 +298,7 @@ void atm_fields_compactFromMatrixChevalAll(// WS Output:
  
   //------- write batch_atm_fields_compact -------------------------------------------------------------
   // excluding massdenity fields!
+  
   ArrayOfString field_names_2(nf_2);
   for ( Index i=0; i<nf_2; i++ ) field_names_2[i] = field_names[intarr[i]] ;
   
@@ -527,6 +532,7 @@ void AtmFieldsFromCompactChevalAll(// WS Output:
   lat_grid = c.get_numeric_grid(GFIELD4_LAT_GRID);
   lon_grid = c.get_numeric_grid(GFIELD4_LON_GRID);
 
+  // NOTE: follwoing section is HARD WIRED 
   // The order of the fields is:
   // T[K] z[m] LWC[kg/m^3] IWC[kg/m^3] Rain[kg/(m2*s)] Snow[kg/(m2*s)] VMR_1[1] ... VMR_n[1]
 

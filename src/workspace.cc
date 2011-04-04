@@ -851,7 +851,30 @@ void Workspace::define_wsv_data()
     ( NAME( "atm_fields_compact_all" ),
       DESCRIPTION
       (
-       "FIXME |\n"
+       "A compact combination of all atmospheric fields for a clear-sky\n"
+       "and cloud particle scattering calculation on a common set of grids.\n"
+       "\n"
+       "This concerns temperature, altitude, scattering particles and gas VMRs.\n"
+       "\n"
+       "The data is stored in a GriddedField4.\n"
+       "\n"
+       "The order of the fields must be:\n"
+       "T[K] z[m] LWC[kg/m3] IWC[kg/m3] Rain[kg/m2/s] Snow[kg/m2/s] VMR_1[1] ... VMR_n[1]\n"
+       "(the field names for the gases do not have to start with VMR_)\n"
+       "\n"
+       "Usage: Used inside batch calculations, to hold successive atmospheric\n"
+       "       states from an ArrayOfGriddedField4.\n"
+       "\n"
+       "Possible future extensions: Add a similar variable\n"
+       "particle_fields_compact for hydrometeors?\n"
+       "\n"
+       "Dimensions: \n"
+       "   GriddedField4:\n"
+       "      ArrayOfString field_names[N_fields]\n"
+       "      Vector p_grid[N_p]\n"
+       "      Vector lat_grid[N_lat]\n"
+       "      Vector lon_grid[N_lon]\n"
+       "      Tensor4 data[N_fields][N_p][N_lat][N_lon]\n"
        ),
       GROUP( "GriddedField4" )));
 
@@ -915,9 +938,9 @@ void Workspace::define_wsv_data()
     ( NAME( "batch_atm_fields_compact_all" ),
       DESCRIPTION
       (
-       "An array of compact atmospheric states. Including scattering particles.\n"
+       "An array of compact atmospheric states, including scattering particles.\n"
        "\n"
-       "This is used to hold a set of *atm_fields_compact* for batch\n"
+       "This is used to hold a set of *atm_fields_compact_all* for batch\n"
        "calculations. \n"
        ),
       GROUP( "ArrayOfGriddedField4" )));
@@ -1530,41 +1553,6 @@ void Workspace::define_wsv_data()
 //        ),
 //       GROUP( "Matrix" )));
 
-  wsv_data.push_back
-    (WsvRecord
-     (NAME( "massdensity_field" ),
-      DESCRIPTION
-      (
-       "The field of atmospheric scattering particle types in massdensity (like IWC/LWC/Rain/Aerosol etc.)\n"
-       "\n"
-       "This variable contains mass concentration of scattering particles at each\n"
-       "atmospheric grid point.\n"
-       "\n"
-       "If massdensity_field is obtained from Chevallier91L data, the scat. particles are\n"
-       "hydrometeors of type: CLW[kg/m^3] CIW[kg/m^3] Rain[kg/(m2*s)] Snow[kg/(m2*s)]\n"
-       "\n"
-       "Usage:\tmassdensity data is used to calculate pnd_fields\n"
-       "\n"
-       "Unit:\tdepending on what is read\n"
-       "\n"
-       "Dimension:\t[ type, p_grid, lat_grid, lon_grid ]\n"
-      
-       ),
-      GROUP( "Tensor4" ))); 
-    
-    wsv_data.push_back
-    (WsvRecord
-     (NAME( "massdensity_threshold" ),
-      DESCRIPTION
-      (
-       "Threshold value for minimum massdensity concentration in *massdensity_field*.\n"
-       "\n"
-       "Check WSM *Massdensity_cleanup* for more information!\n"
-       "\n"
-       "*Default value*:\t1e-15\n"      
-       ),
-      GROUP( "Numeric" )));   
-   
    
   wsv_data.push_back
     (WsvRecord
@@ -1968,6 +1956,48 @@ void Workspace::define_wsv_data()
         "See agendas.cc.\n"
        ),
       GROUP( "Agenda" )));
+   
+   wsv_data.push_back
+    (WsvRecord
+     (NAME( "massdensity_field" ),
+      DESCRIPTION
+      (
+       "The field of atmospheric scattering particle types in unit of massdensity\n"
+       "(like IWC/LWC/Rain/Aerosol etc.).\n"
+       "\n"
+       "If *massdensity_field* is obtained from Chevallier91L data, the scat. particles are\n"
+       "hydrometeors of type: CLW[kg/m^3] CIW[kg/m^3] Rain[kg/(m2*s)] Snow[kg/(m2*s)]\n"
+       "\n"
+       "NOTE: naming discussion: *massdensity_field* should be renamed in the future\n"
+       "to a more general term (not limited to massdensities).\n"
+       "\n"
+       "Possible future extension: In the future a *massdensity_field_raw* might be needed,\n"
+       "which contains the not-interpolated mass concentrations of scattering particles.\n"
+       "This is not needed in the moment, since *massdensity_field* is only used with \n"
+       "chevallier91l data (where all atmospheric variables are on the same grid).\n"
+       "\n"
+       "Usage:\tmassdensity data is used to calculate pnd_fields\n"
+       "\n"
+       "Unit:\tdepending on what is read, usually [kg/m3]\n"
+       "\n"
+       "Dimension:\t[ type, p_grid, lat_grid, lon_grid ]\n"
+      
+       ),
+      GROUP( "Tensor4" ))); 
+    
+/*    wsv_data.push_back
+    (WsvRecord
+     (NAME( "massdensity_threshold" ),
+      DESCRIPTION
+      (
+       "Threshold value for minimum massdensity concentration in *massdensity_field*.\n"
+       "\n"
+       "Check WSM *Massdensity_cleanup* for more information!\n"
+       "\n"
+       "Default value:\t1e-15\n"      
+       ),
+      GROUP( "Numeric" )));   
+*/     
 
   wsv_data.push_back
    (WsvRecord
@@ -2320,15 +2350,15 @@ void Workspace::define_wsv_data()
       DESCRIPTION
       (
        "*part_species* is an Array of Strings containing user defiend input,\n"
-       "for particle number density calculations performed primarily by *pnd_fieldSetup*.\n"
+       "for particle number density calculations performed by *pnd_fieldSetup*.\n"
        "\n"
        "Each single String must contain:\n"
-       "\tscattering particle type [*String*]:\t e.g. 'LWC', 'IWC', 'Rain'\n"
-       "\tparticle size distribution [*String*]:\t e.g. 'MH97', 'liquid'\n"
-       "\tsizerange-start [*numeric*]:\t the first particle radius(liquid)/melted radius(ice)\n"
-       "\t\tthe calculations shall start with\n"
-       "\tsizerange-end [*numeric*]:\t the last particle radius(liquid)/melted radius(ice)\n"
-       "\t\tthe calculations shall end with\n"
+       "scattering particle type [*String*]:\t e.g. 'LWC', 'IWC', 'Rain'\n"
+       "particle size distribution [*String*]:\t e.g. 'MH97', 'liquid'\n"
+       "sizerange-start [*numeric*]:\t the first particle radius(liquid)/melted radius(ice)\n"
+       "the calculations shall start with\n"
+       "sizerange-end [*numeric*]:\t the last particle radius(liquid)/melted radius(ice)\n"
+       "the calculations shall end with\n"
        "\n"
        "NOTE: the sizerange inputs must be given in MICRONS!\n"
        "\n"
@@ -2937,15 +2967,15 @@ void Workspace::define_wsv_data()
 	 "\n"
 	 "Usage: Set by the user.\n"
 	 "\n"
-	 "Dimensions:  ScatteringMetaData \n"
-	 "  String[description]\n"
-	 "  String[type]\n"
-	 "  String[shape]\n"
-	 "  Numeric[density]\n"
-	 "  Numeric[d_max]\n"
-	 "  Numeric[V]\n"
-	 "  Numeric[A_proje]\n"
-	 "  Numeric[asratio]\n"
+	 "Dimensions/Units:\n"
+	 "\tString[description]\t[particle description]\n"
+	 "\tString[type]\t[''Ice'', ''Water''...]\n"
+	 "\tString[shape]\t[''Droxtal'', ''Aggregate'', ''Spherical'', ...]\n"
+	 "\tNumeric[density]\t[kg/m3]\n"
+	 "\tNumeric[d_max]\t[m]\n"
+	 "\tNumeric[V]\t[m3]\n"
+	 "\tNumeric[A_proje]\t[m2]\n"
+	 "\tNumeric[asratio]\t[]\n"
          ),
         GROUP( "ScatteringMetaData" ))); 
 
@@ -2959,19 +2989,19 @@ void Workspace::define_wsv_data()
 	 "The elements of the array hold the scattering meta data for a single particle.\n"
 	 "This data is needed for particle size distribution calculations, with *pnd_fieldSetup*.\n"
 	 "\n"
-	 "Important note: This array must contain as many elements as the ArrayOfSingleScatteringData\n"
+	 "Note: This array must contain as many elements as *scat_data_raw*\n"
 	 "\n"
 	 "Usage: Set by the user.\n"
 	 "\n"
-	 "Dimensions:  ScatteringMetaData \n"
-	 "  String[description]\n"
-	 "  String[type]\n"
-	 "  String[shape]\n"
-	 "  Numeric[density]\n"
-	 "  Numeric[d_max]\n"
-	 "  Numeric[V]\n"
-	 "  Numeric[A_proje]\n"
-	 "  Numeric[asratio]\n"
+	 "Dimensions/Units: Array[particle types]\n"
+	 "\tString[description]\t[particle description]\n"
+	 "\tString[type]\t[''Ice'', ''Water''...]\n"
+	 "\tString[shape]\t[''Droxtal'', ''Aggregate'', ''Spherical'', ...]\n"
+	 "\tNumeric[density]\t[kg/m3]\n"
+	 "\tNumeric[d_max]\t[m]\n"
+	 "\tNumeric[V]\t[m3]\n"
+	 "\tNumeric[A_proje]\t[m2]\n"
+	 "\tNumeric[asratio]\t[]\n"
          ),
         GROUP( "ArrayOfScatteringMetaData" ))); 
 
@@ -3000,7 +3030,7 @@ void Workspace::define_wsv_data()
 	  "Each element holds the number of scattering data files, associated\n"
 	  "with the criteria given by *part_species*.\n"
 	  "\n"
-          "Usage: WSM ParticleTypeAddAllMeta creates *scat_data_nelem*.\n"
+          "Usage: WSM *ScatteringParticlesSelect* creates *scat_data_nelem*.\n"
               ),
         GROUP( "ArrayOfIndex" ))); 
      

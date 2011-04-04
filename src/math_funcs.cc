@@ -486,8 +486,9 @@ Numeric sign( const Numeric& x )
     Returns error msg if argument is a negative integer or 0,
     or use lgamma function if argument exceeds 32.0.
 
-    \return      Gamma function of x.
-    \param   xx   Numeric
+    \return  gam Gamma function of x.
+    
+    \param   xx  Numeric
 
     \author Daniel Kreyling 
     \date   2010-12-13
@@ -527,7 +528,7 @@ Numeric gamma_func(Numeric xx)
 /*! Returns ln of gamma function for real argument 'x'.
    
     \return      ln Gamma function of x.
-    \param   xx   Numeric
+    \param   xx  Numeric
 
     \author Daniel Kreyling 
      \date   2010-12-13

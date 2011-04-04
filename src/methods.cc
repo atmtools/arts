@@ -2255,8 +2255,8 @@ void define_md_data_raw()
         GIN( "name",   "value" ),
         GIN_TYPE(    "String", "Numeric" ),
         GIN_DEFAULT( NODEF,    NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Name of additional atmospheric field, with constant value.",
+                  "Constant value of additional field." )
         ));
 
   md_data_raw.push_back
@@ -2264,14 +2264,14 @@ void define_md_data_raw()
       ( NAME( "atm_fields_compactFromMatrix" ),
         DESCRIPTION
         (
-         "Set atm_fields_compact from 1D profiles in a matrix.\n"
+         "Set *atm_fields_compact* from 1D profiles in a matrix.\n"
          "\n"
          "For clear-sky batch calculations it is handy to store atmospheric\n"
          "profiles in an array of matrix. We take such a matrix, and create\n"
          "*atm_fields_compact* from it.\n"
          "\n"
          "The matrix must contain one row for each pressure level.\n"
-         "The matrix can contain some additional fiels which are not directly used\n"
+         "The matrix can contain some additional fields which are not directly used\n"
          "by ARTS for calculations but can be required for further processing,\n"
          "for e.g. wind speed and direction. In this case, additional fields must\n"
          "be put at the end of the matrix and they must be flagged by 'ignore',\n"
@@ -2301,8 +2301,8 @@ void define_md_data_raw()
                      "ArrayOfString" ),
         GIN_DEFAULT( NODEF   ,
                      NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "One atmosphere matrix from batch input ArrayOfMatrix.",
+                  "Order/names of atmospheric fields." )
         ));
     
     md_data_raw.push_back
@@ -2310,7 +2310,21 @@ void define_md_data_raw()
       ( NAME( "atm_fields_compactFromMatrixChevalAll" ),
         DESCRIPTION
         (
-         "FIXME\n"
+         "Set *atm_fields_compact* and *atm_fields_compact_all* from 1D profiles in a matrix.\n"
+         "\n"
+         "This WSM replaces *atm_fields_compactFromMatrix* in case of batch calculations,\n"
+	 "including scattering. *atm_fields_compact_all* ArrayOfMatrix additionally contains \n"
+	 "the mass concentration profiles of scattering particles.\n"
+	 "*atm_fields_compact* is also still needed, for the WSM *abs_lookupSetupBatch*.\n"
+	 "For that reason both ArrayOfMatrix are defined as output.\n"
+	 "\n"
+	 "For further documentation see: *atm_fields_compactFromMatrix*\n"
+	 "\n"
+	 "Row format:\n"
+         "\n"
+         "p[Pa] T[K] z[m] LWC[kg/m3] IWC[kg/m3] Rain[kg/m2/s] Snow[kg/m2/s] VMR_1[fractional] ... VMR[fractional] IGNORE ... IGNORE\n"
+         "\n"
+         "Works only for *atmosphere_dim==1.*\n" 
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "atm_fields_compact_all", "atm_fields_compact" ),
@@ -2324,8 +2338,8 @@ void define_md_data_raw()
                      "ArrayOfString" ),
         GIN_DEFAULT( NODEF   ,
                      NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "One atmosphere matrix from batch input ArrayOfMatrix.",
+                  "Order/Names of atmospheric fields." )
         ));
 
 
@@ -2375,7 +2389,36 @@ void define_md_data_raw()
       ( NAME( "AtmFieldsFromCompactChevalAll" ),
         DESCRIPTION
         (
-         "FIXME\n"
+	 "Extract pressure grid and atmospheric fields from\n"
+         "*atm_fields_compact_all*.\n"
+         "\n"
+	 "In contrast to *atm_fields_compact*, *atm_fields_compact_all*\n"
+	 "also contains mass concentrations for scattering particles\n"
+	 "\n"
+	 "An atmospheric scenario includes the following data for each\n"
+         "position (pressure, latitude, longitude) in the atmosphere:\n"
+         "           1. temperature field\n"
+         "           2. the corresponding altitude field\n"
+	 "           3. mass concentration fields for the scattering particles\n"
+         "           4. vmr fields for the gaseous species\n"
+	 "This method just splits up the data found in *atm_fields_compact_all* to\n"
+         "p_grid, lat_grid, lon_grid, and the various fields. No interpolation.\n"
+         "See documentation of *atm_fields_compact_all* for a definition of the data.\n"
+         "\n"
+	 "NOTE: HARD WIRED code!\n"
+	 "\n"
+         "There are some safety checks on the names of the fields: The first\n"
+         "field must be called *T*, the second *z*.\n"
+	 "The following 4 fields must be \"LWC\", \"IWC\", \"Rain\" and \"Snow\".\n"
+	 "Remaining fields must be trace gas species volume mixing ratios,\n"
+         "named for example \"H2O\", \"O3\", and so on. The species names must fit \n"
+         "the species in *abs_species*.\n"
+         "(Same species in same order.) Only the species name must fit, not the\n"
+         "full tag.\n"
+         "\n"
+         "Possible future extensions: Add a keyword parameter to refine the\n"
+         "pressure grid if it is too coarse. Or a version that interpolates onto\n"
+         "given grids, instead of using and returning the original grids.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "massdensity_field", "vmr_field" ),
@@ -2593,10 +2636,10 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF          ,
                      NODEF,         "[]",                "[]" ),
         //KW_DEFAULT( NODEF,         NODEF,                NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Batch of atmospheres stored in one array of matrix",
+                  "Order/names of atmospheric fields.",
+                  "Names of additional atmospheric fields, with constant values.",
+                  "Constant values of additional fields.")
         ));
     
     
@@ -2605,7 +2648,35 @@ void define_md_data_raw()
       ( NAME( "batch_atm_fields_compactFromArrayOfMatrixChevalAll" ),
         DESCRIPTION
         (
-	  "FIXME \n"
+         "Expand batch of 1D atmospheric states to a *batch_atm_fields_compact_all*.\n"
+         "\n"
+	 "In contrast to *batch_atm_fields_compactFromArrayOfMatrix*, this WSM\n"
+	 "includes reading scattering particle profiles from the Chevallier\n"
+         "data set, stored in a matrix.\n"
+	 "\n"
+	 "This WSM fully replaces *batch_atm_fields_compactFromArrayOfMatrix*, since the\n"
+	 "*batch_atm_fields_compact* without scattering particle profiles is also still\n"
+	 "an output. It is needed for lookup table creation in WSM *abs_lookupSetupBatch*.\n"
+	 "\n"
+	 "Please also see:*batch_atm_fields_compactFromArrayOfMatrix*.\n"
+	 "\n"
+         "Row format:\n"
+         "\n" 
+         "p[Pa] T[K] z[m] LWC[kg/m3] IWC[kg/m3] Rain[kg/m2/s] Snow[kg/m2/s] VMR_1[fractional] ... VMR[fractional] IGNORE ... IGNORE\n"
+         "\n"
+	 "Keywords:\n"
+         "   field_names : Field names to store in atm_fields_compact_all.\n"
+         "                 This should be, e.g.:\n"
+         "                 [\"T\", \"z\", \"LWC\" \"IWC\" \"Rain\" \"Snow\"\"H2O\", \"O3\", \"ignore\"]\n"
+         "                 There must be one name less than matrix columns,\n"
+         "                 because the first column must contain pressure.\n"
+         "\n"
+         "   extra_field_names : You can add additional constant VMR fields,\n"
+         "                       which is handy for O2 and N2. Give here the\n"
+         "                       field name, e.g., \"O2\". Default: Empty.\n"
+         "\n"
+         "   extra_field_values : Give here the constant field value. Default:\n"
+         "                        Empty. Dimension must match extra_field_names.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "batch_atm_fields_compact", "batch_atm_fields_compact_all" ),
@@ -2620,10 +2691,11 @@ void define_md_data_raw()
         GIN_DEFAULT( NODEF          ,
                      NODEF,         "[]",                "[]" ),
         //KW_DEFAULT( NODEF,         NODEF,                NODEF ),
-        GIN_DESC( "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC",
-                  "FIXME DOC" )
+        GIN_DESC( "Batch of atmospheres stored in one array of matrix,\n"
+                  "including scattering particles.",
+                  "Order/names of atmospheric fields.",
+                  "Names of additional atmospheric fields, with constant values.",
+                  "Constant values of additional fields." )
         ));
 
   md_data_raw.push_back
@@ -2741,11 +2813,11 @@ void define_md_data_raw()
 	 "of first pressure level).\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT( "cloudbox_on", "cloudbox_limits", "iy_cloudbox_agenda" ),
+        OUT( "cloudbox_on", "cloudbox_limits"),
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "iy_cloudbox_agenda", "atmosphere_dim", "part_species", "p_grid", "lat_grid", "lon_grid", "massdensity_field"),
+        IN( "atmosphere_dim", "part_species", "p_grid", "lat_grid", "lon_grid", "massdensity_field"),
         GIN( "cloudbox_margin"),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( NODEF ),
@@ -2958,13 +3030,14 @@ void define_md_data_raw()
          "For limb simulations it is important to use an optimized zenith \n"
          "angle grid with a very fine resolution about 90 degrees. Such a grid can be\n"
          "generated using *doit_za_grid_optCalc*. The filename of an optimized\n"
-         "zenith angle grid can be given as a keyword (*za_grid_opt_file*).\n" 
+         "zenith angle grid can be given as a keyword (*za_grid_opt_file*).\n"
+	 "\n"
          "If a filename is given, the equidistant grid is used for the\n"
          "calculation of the scattering integrals and the optimized grid is\n"
          "applied for integration of the radiative transfer equation. \n"
-         "Otherwise, if no filename is specified (za_grid_opt_file = \"\" ) \n"
-         "the equidistant grid is used throughout. This option makes sense \n"
-         "for down-looking cases to speed up the calculation.\n"
+	 "\n"
+         "For down-looking cases no filename should be specified (za_grid_opt_file = \"\" ) \n"
+         "Using only the equidistant grid makes sense to speed up the calculation.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "doit_za_grid_size", "scat_aa_grid", "scat_za_grid" ),
@@ -6137,7 +6210,7 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "With this function, the user specifies settings for the \n"
-	 "particle number density calculations.\n"
+	 "particle number density calculations using *pnd_fieldSetup*.\n"
 	 "The input is an ArrayOfString that needs to be in a specific format:\n"
 	 "\n"
 	 "*Example:* \t ['IWC-MH97-0.1-200', 'LWC-liquid-0.1-50'] \n"
@@ -6148,12 +6221,12 @@ void define_md_data_raw()
         OUT(  ),
         GOUT("part_species"  ),
         GOUT_TYPE( "ArrayOfString" ),
-        GOUT_DESC("FIXME DOC" ),
+        GOUT_DESC("Scattering particle selection criteria for pnd calculations." ),
         IN(),
         GIN( "names" ),
         GIN_TYPE(  "ArrayOfString" ),
         GIN_DEFAULT( NODEF ),
-        GIN_DESC("FIXME DOC" )
+        GIN_DESC("Array of selection criteria." )
         ));
  
     
@@ -6189,71 +6262,6 @@ void define_md_data_raw()
         GIN_DESC( "File containing single scattering data.",
                   "File including *pnd_field_raw*." 
                   )
-        ));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ScatteringParticleTypeAndMetaRead" ),
-        DESCRIPTION
-        (
-	 "Reads single scattering data and scattering meta data.\n"
-	 "\n"
-	 "This method's input needs two XML-files, one containing an array \n"
-	 "of path/filenames (ArrayOfString) of single scattering data and the \n"
-	 "corresponding path/filenames to scattering meta data.\n"
-	 "For each single scattering file, there needs to be exactly one\n"
-	 "scattering meta data file.\n"
-	 "\n"
-	 "Very important note:\n"
-	 "The order of the filenames for the single scattering data files has to\n"
-	 "exactly correspond to the order of the scattering meta data files.\n"
-         ),
-        AUTHORS( "Daniel Kreyling" ),
-        OUT( "scat_data_raw", "scat_data_meta_array" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "f_grid" ),
-        GIN(         "filename_scat_data", "filename_scat_meta_data" ),
-        GIN_TYPE(    "String",             "String"             ),
-        GIN_DEFAULT( NODEF,                NODEF                ),
-        GIN_DESC( "File containing single scattering data file names.",
-                  "File containing scattering meta data file names." 
-                  )
-        ));
-
- 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ScatteringParticlesSelect" ),
-        DESCRIPTION
-        (
-	 "This method is a selection function for scattering particles.\n"
-	 "\n"
-	 "In *part_species* the user defines selection criteria, for:\n"
-	 "\twhich type of scattering particle profile to use\n"
-	 "\twhat particle size ditribution parametrisation to use\n"
-	 "\tthe minimum and maximum size of particle radius to use\n"
-	 "...in the scattering calculations.\n"
-	 "\n"
-	 "The scattering particle arrays, *scat_data_raw* and *scat_data_meta_array*\n"
-	 "are searched for particles, that fullfill the selection criteria. \n"
-	 "Only these particles will be used for scattering calculations.\n"
-	 "\n"
-	 "Additionaly an ArrayOfIndex *scat_data_nelem* is created. This Array\n"
-	 "stores the number of scattering particles, that have been selected by each\n"
-	 "String in *part_species*\n"
-	 ),
-        AUTHORS( "Daniel Kreyling" ),
-        OUT( "scat_data_raw", "scat_data_meta_array", "scat_data_nelem" ),
-        GOUT(),
-        GOUT_TYPE(),
-        GOUT_DESC(),
-        IN( "part_species" ),
-        GIN(    ),
-        GIN_TYPE(),
-        GIN_DEFAULT(   ),
-        GIN_DESC(   )
         ));
 
 
@@ -6501,9 +6509,36 @@ void define_md_data_raw()
       ( NAME( "pnd_fieldSetup" ),
         DESCRIPTION
         (
-         "Calculation of pnd_field using ScatteringMetaData and massdensity_field.\n"
+         "Calculation of *pnd_field* using ScatteringMetaData and *massdensity_field*.\n"
 	 "\n"
-	 "FIXME\n"
+	 "The WSM first checks if cloudbox is empty. If so, the pnd calculations\n"
+	 "will be skipped.\n"
+	 "The *cloudbox_limits* are used to determine the p, lat and lon size for\n"
+	 "the *pnd_field* tensor.\n"
+	 "Currently there are two particle size distribution parametisations implemented:\n"
+	 "\t1. MH97 for ice particles. Using a first-order gamma distribution for particles\n"
+	 "\t smaller than 100 microns (melted diameter) and a lognormal distribution for\n"
+	 "\t particles bigger 100 microns.\n"
+	 "\t See subfunction *IWCtopnd_MH97* for implementation/units/output.\n"
+	 "\t (src.: McFarquhar G.M., Heymsfield A.J., 1997)"
+	 "\n"
+	 "\t2. Gamma distribution for liquid cloud particles.\n"
+	 "\t See subfunction *LWCtopnd* for implementation/units/output.\n"
+	 "\t (src.: Deirmendjian D., 1963 and Hess M., et al 1998)\n"
+	 "\n"
+	 "According to the selection criteria in *part_species*, the first specified\n" 
+	 "psd parametrisation is selected together with all particles of specified phase\n"
+	 "and size. Then pnd calculations are performed on all levels inside the cloudbox.\n"
+	 "The *massdensity_field* input weights the pnds by the amount of scattering\n" 
+	 "particles in each gridbox inside the cloudbox. Where *massdensity_field* is zero,\n"
+	 "the *pnd_field* will be zero as well.\n"
+	 "Subsequently the pnd values get written to *pnd_field*.\n"
+	 "\n"
+	 "Now the next selection criteria string in *part_species* is used to repeat\n"
+	 "the process.The new pnd values will be appended to the existing *pnd_field*.\n"
+	 "And so on...\n."
+	 "\n"
+	 "NOTE: the order of scattering particle profiles in *massdensity_field* is HARD WIRED!\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "pnd_field"),
@@ -7054,7 +7089,79 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
+    
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ScatteringParticleTypeAndMetaRead" ),
+        DESCRIPTION
+        (
+	 "Reads single scattering data and scattering meta data.\n"
+	 "\n"
+	 "This method's input needs two XML-files, one containing an array \n"
+	 "of path/filenames (ArrayOfString) of single scattering data and the \n"
+	 "corresponding path/filenames to scattering meta data.\n"
+	 "For each single scattering file, there needs to be exactly one\n"
+	 "scattering meta data file.\n"
+	 "\n"
+	 "Currently ice and/or water particles can be added for the same calculation.\n"
+	 "It is also possible to read SingleScatteringData for different shapes of\n"
+	 "ice particles. But all ice particels will share the same IWC, while performing\n"
+	 "the *pnd_field* calculations with *pnd_fieldSetup*.\n"
+	 "Also make sure, that two scattering particles of the same phase are never equal\n"
+	 "in size. This will break the calculations in *pnd_fieldSetup*\n"
+	 "\n"
+	 "Very important note:\n"
+	 "The order of the filenames for the single scattering data files has to\n"
+	 "exactly correspond to the order of the scattering meta data files.\n"
+         ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "scat_data_raw", "scat_data_meta_array" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "f_grid" ),
+        GIN(         "filename_scat_data", "filename_scat_meta_data" ),
+        GIN_TYPE(    "String",             "String"             ),
+        GIN_DEFAULT( NODEF,                NODEF                ),
+        GIN_DESC( "File containing single scattering data file names.",
+                  "File containing scattering meta data file names." 
+                  )
+        ));
+
  
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ScatteringParticlesSelect" ),
+        DESCRIPTION
+        (
+	 "This method is a selection function for scattering particles.\n"
+	 "\n"
+	 "In *part_species* the user defines selection criteria, for:\n"
+	 "\twhich type of scattering particle profile to use\n"
+	 "\twhat particle size ditribution parametrisation to use\n"
+	 "\tthe minimum and maximum size of particle radius to use\n"
+	 "...in the scattering calculations.\n"
+	 "\n"
+	 "The scattering particle arrays, *scat_data_raw* and *scat_data_meta_array*\n"
+	 "are searched for particles, that fullfill the selection criteria. \n"
+	 "Only these particles will be used for scattering calculations.\n"
+	 "\n"
+	 "Additionaly an ArrayOfIndex *scat_data_nelem* is created. This Array\n"
+	 "stores the number of scattering particles, that have been selected by each\n"
+	 "selection string in *part_species*\n"
+	 ),
+        AUTHORS( "Daniel Kreyling" ),
+        OUT( "scat_data_raw", "scat_data_meta_array", "scat_data_nelem" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "part_species" ),
+        GIN(    ),
+        GIN_TYPE(),
+        GIN_DEFAULT(   ),
+        GIN_DESC(   )
+        ));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "scat_data_monoCalc" ),

@@ -1,3 +1,31 @@
+2011-04-04  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
+
+	* arts-1-14-171
+
+        * src/m_atmosphere.cc
+	Fixed documentation for methods implemented by me.
+
+        * src/math_funcs.cc
+	Fixed documentation for methods implemented by me.
+	
+        * src/methods.cc
+	Fixed documentation for methods implemented by me.
+	
+        * src/m_cloudbox.cc
+	
+	(cloudboxSetAutomatically)
+	In order not to call iy_cloudbox_agenda, while not using/
+	initialising it in most of the cases, the WSM CloudboxOff
+	is no longer used here. Instead the WSV cloudbox_on is 
+	set to zero.
+	
+        * src/cloudbox.cc
+	Fixed documentation for methods implemented by me.
+	
+        * src/workspace.cc
+	Fixed documentation for methods implemented by me.
+
+
 2011-03-25	Gerrit Holl	<gerrit.holl@ltu.se>
 
 	* arts-1-14-170

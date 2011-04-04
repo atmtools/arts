@@ -441,7 +441,7 @@ void chk_scattering_data(
   FIXME
   
   \param scat_data_meta scattering meta data
-  \param scat_data_meta_file Filename of the data to be checked
+  \param scat_data_meta_file filename of the data to be checked
 
   \author Daniel Kreyling
   \date 2010-12-02
@@ -771,10 +771,10 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
 }
 
 /*! barometric heightformula for isothermal atmosphere
-    \return Numeric p1.
+    \return p1 pressure in displacement level [Pa]
           
-    \param Numeric& p, 
-    \param Numeric& dh,
+    \param p atmospheric pressure at starting level [Pa]
+    \param dh vertical displacement to starting pressure level [m]
     
   
   \author Daniel Kreyling
@@ -782,33 +782,35 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
 */
 Numeric barometric_heightformula ( //output is p1
 				   //input
-				   const Numeric& p,
+				   const Numeric& p, 
 				   const Numeric& dh
 				   )
 
 {
 				  
   //barometirc height formula
-  Numeric M = 0.02896; //mean molar mass kg mol^-1
-  Numeric g = 9.807; //earth accelaration kg m s^-1
-  Numeric R = 8.314; //universal gas constant J K^−1 mol^−1
-  Numeric T = 288; //reference temperature K
+  Numeric M = 0.02896; //mean molar mass [kg mol^-1]
+  Numeric g = 9.807; //earth accelaration [kg m s^-1]
+  Numeric R = 8.314; //universal gas constant [J K^−1 mol^−1]
+  Numeric T = 288; //reference temperature [K]
     
   // calculation
-    Numeric p1 = p * exp(-(-dh)/(R*T/M*g));
+  Numeric p1 = p * exp(-(-dh)/(R*T/M*g));
   
   return p1;
   
 }
 
-/*! Calculates dN/dDm on one atmospheric grid point per particle type using MH97
+/*! Calculates particle size distribution using MH97 parametrization.
+ *  Each diameter of the scattering particles is a node in the ditribution.
+ *  One call of this function, calculates one particle number density.  
 
-    \return Numeric dN
+    \return dN particle number density per diameter interval [#/m3*m]
           
-    \param Numeric iwc,
-    \param Numeric dm,
-    \param Numeric t,
-    \param Numeric density
+    \param iwc atmospheric ice water content [g/m3]
+    \param dm melted diameter of scattering particle [m]
+    \param t atmospheric temperature [K]
+    \param density of the scattering particle [g/m3]
   
   \author Daniel Kreyling
   \date 2010-12-06
@@ -877,12 +879,14 @@ Numeric IWCtopnd_MH97 (	const Numeric iwc,
 }
 
 
-/*! Calculates dN/dr on one atmospheric grid point per liquid water particle type. 
+/*! Calculates particle size distribution for liquid particles using gamma parametrization.
+ *  Each radius of the scattering particles is a node in the ditribution.
+ *  One call of this function, calculates one particle number density. 
 
-	\return Numeric n.
+	\return n particle number density per radius interval [#/m3*m]
          
-	\param const Numeric lwc,
-	\param const Numeric r
+	\param lwc atmospheric liquid water content [g/m3]
+	\param r radius of scattering particle [m]
   
   \author Daniel Kreyling
   \date 2010-12-16
@@ -893,19 +897,15 @@ Numeric LWCtopnd (const Numeric lwc, //[g/m^3]
 		  const Numeric r // [m]
 		  )
 { 	
-	Numeric rc = 4.7; //micron
+	Numeric rc = 4.7; //[micron]
 	Numeric alpha = 5.0;
 	Numeric gam = 1.05;
 	
 	Numeric B=(alpha/gam)/pow(rc,gam); 
-	// factor 1e12 is density of water [1 g/cm^3] in units of g/micron^3
+	// factor 1e12 is density of water [1 g/cm^3] in units of [g/micron^3]
 	Numeric A=(((3*lwc*gam*pow(B,((alpha+4)/gam))*1e12)/4)/PI)/gamma_func((alpha+4)/gam); 
 	Numeric n=A*(pow(r*1e6,alpha)*exp(-B*pow(r*1e6,gam)))*1e6; //
 	// n in [# m^-3 m^-1]
-	//out0<<A;
-	//out0<<"\n";
-	//out0<<n;
-	//out0<<"\n";
 	
 	if (isnan(n)) n = 0.0;
 	return n;
@@ -926,12 +926,6 @@ Numeric LWCtopnd2 (//const Numeric vol, //[g/m^3]
 	Numeric n=A*(pow(r*1e6,alpha)*exp(-B*pow(r*1e6,gam)))*1e6;
 	// [# m^-3 m^-1]
 	
-	
-	//out0<<A;
-	//out0<<"\n";
-	//out0<<n;
-	//out0<<"\n";
-	
 	if (isnan(n)) n = 0.0;
 	return n;
 }
@@ -940,10 +934,11 @@ Numeric LWCtopnd2 (//const Numeric vol, //[g/m^3]
 /*! Scaling pnd values by width of size bin. 
  * Bin width is detemined from preceding and following particle size.
  * Vector y and x must be equal in size. Vector w holds the weights.
+ * Derived from trapezoid integration rule.
          
-    \param Vector& w,
-    \param const Vector& x,
-    \param const Vector& y
+    \param w weights
+    \param x e.g. particle radius [m]
+    \param y e.g. particle number density per radies interval [#/m3*m]
   
   \author Daniel Kreyling
   \date 2010-12-15
@@ -959,7 +954,7 @@ void scale_pnd  (  Vector& w,
         throw std::logic_error("x and y must be the same size");
     }
     
-    // start trapezoid integration  
+    // calc. weights (derived from trapezoid integration)  
     for (Index i = 0; i<x.nelem(); i++)
 	{
 		if (i == 0) // first value
@@ -977,13 +972,13 @@ void scale_pnd  (  Vector& w,
 
 }
 
-/*! Check sum of vector pnd against total massdensity value.
- * Relative error is calculated and used to adjust the output of vector pnd.
+/*! Check sum of pnd  vector against total massdensity value.
+ *  Relative error is calculated and used to adjust the output of vector pnd.
          
-	\param	 Vector& pnd,
-	\param	 const Numeric iwc,
-	\param	 const Vector density,
-	\param	 const Vector vol
+	\param pnd particle number density [g/m3]
+	\param xwc atmospheric massdensity [g/m3]
+	\param density scattering particle density [g/m3]
+	\param vol scattering particle volume [m3]
   
   \author Daniel Kreyling
   \date 2010-12-15
@@ -999,7 +994,6 @@ void chk_pndsum (Vector& pnd,
   Vector x ( pnd.nelem(), 0.0 );
   Numeric error;
 
-
   for ( Index i = 0; i<pnd.nelem(); i++ )
   {
     // convert from particles/m^3 to g/m^3
@@ -1009,7 +1003,8 @@ void chk_pndsum (Vector& pnd,
 
   if ( xwc == 0.0 )
   {
-    // set error and all pnd values to zero
+    // set error and all pnd values to zero, IF there is 
+    // no scattering particles at this atmospheric level.
     error = 0.0;
     pnd = 0.0;
   }
@@ -1065,8 +1060,8 @@ void chk_pndsum2 (Vector& pnd,
 
 /*! Splitting part_species string and parse type of massdensity_field
 
-	\param  String hydromet_type,
-	\param  String part_string
+	\param  part_type type of atmospheric scattering particle profile 
+	\param  part_string containing infos about scattering particle calculations
 
   \author Daniel Kreyling
   \date 2011-02-21
@@ -1100,8 +1095,8 @@ void parse_part_type ( //WS Output:
 
 
 /*! Splitting part_species string and parse psd_param
-	\param  String psd_param,
-	\param  String part_string
+	\param psd_param particle size distribution parametrization
+	\param part_string containing infos about scattering particle calculations
   
   \author Daniel Kreyling
   \date 2011-02-21
@@ -1130,9 +1125,9 @@ void parse_psd_param ( //WS Output:
 }
 
 /*! Splitting part_species string and parse min and max particle radius
-	\param	 Numeric sizemin,
-	\param	 Numeric sizemax,
-	\param	 String part_string
+	\param sizemin min scattering particle radius
+	\param sizemax max scattering particle radius
+	\param part_string containing infos about scattering particle calculations
   
   \author Daniel Kreyling
   \date 2011-02-21
