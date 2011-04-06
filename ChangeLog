@@ -1,3 +1,13 @@
+2011-04-06  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
+
+	* arts-1-14-172
+
+	* src/methods.cc
+	minor documentation fixes
+
+	* src/workspace.cc
+	minor documentation fixes
+	
 2011-04-04  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
 
 	* arts-1-14-171

@@ -2667,7 +2667,7 @@ void define_md_data_raw()
 	 "Keywords:\n"
          "   field_names : Field names to store in atm_fields_compact_all.\n"
          "                 This should be, e.g.:\n"
-         "                 [\"T\", \"z\", \"LWC\" \"IWC\" \"Rain\" \"Snow\"\"H2O\", \"O3\", \"ignore\"]\n"
+         "                 [\"T\", \"z\", \"LWC\", \"IWC\", \"Rain\", \"Snow\", \"H2O\", \"O3\", \"ignore\"]\n"
          "                 There must be one name less than matrix columns,\n"
          "                 because the first column must contain pressure.\n"
          "\n"
@@ -4498,7 +4498,7 @@ void define_md_data_raw()
         (
          "Standard method for handling transmission measurements.\n"
          "\n"
-         "Designed to be part of *iy_clouxbox_agenda*, and is thus a\n"
+         "Designed to be part of *iy_cloudbox_agenda*, and is thus a\n"
          "complement to *iyBeerLambertStandardClearsky*.\n"
          "\n"
          "Only scattering out of the propagation path is considered. Thus,\n"
@@ -7137,9 +7137,9 @@ void define_md_data_raw()
 	 "This method is a selection function for scattering particles.\n"
 	 "\n"
 	 "In *part_species* the user defines selection criteria, for:\n"
-	 "\twhich type of scattering particle profile to use\n"
-	 "\twhat particle size ditribution parametrisation to use\n"
-	 "\tthe minimum and maximum size of particle radius to use\n"
+	 "\t...which type of scattering particle profile to use,\n"
+	 "\t...what particle size ditribution parametrisation to use,\n"
+	 "\t...the minimum and maximum size of particle radius to use,\n"
 	 "...in the scattering calculations.\n"
 	 "\n"
 	 "The scattering particle arrays, *scat_data_raw* and *scat_data_meta_array*\n"
@@ -7155,12 +7155,12 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN( "part_species" ),
+        IN( "part_species", "scat_data_raw", "scat_data_meta_array" ),
         GIN(    ),
         GIN_TYPE(),
         GIN_DEFAULT(   ),
         GIN_DESC(   )
-        ));
+         ));
 
   md_data_raw.push_back
     ( MdRecord
@@ -9224,8 +9224,8 @@ void define_md_data_raw()
                  "fail. In that case, a warning message is written to\n"
                  "screen and file (out1 output stream), and ybatch for the\n"
                  "failed job is set to -1. The robust behavior does only work\n"
-                 "properly if you have compiled the program without OpenMP!\n"
-                 "(Use the configure option \"--disable-vectorize\".)\n"
+                 "properly if your control file is run single threaded.\n"
+		 "Set \"--numthreads 1\". See \"arts --help\"."
                  )
         ));
 
