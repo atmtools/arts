@@ -61,7 +61,7 @@ version and the end-user version. Both contain the complete source
 code, the only difference is that the developers version also includes
 the SVN housekeeping data. If you want to join in the ARTS development
 (which we of course encourage you to do), you should write an email to
-the ARTS Users mailing list.
+the ARTS Development mailing list.
 Furthermore, for serious development work you need a computer running
 Unix, CMake, LaTeX, and the Doxygen program.  All
 this is freely and easily available on the Internet, and, what is
@@ -548,8 +548,6 @@ documentation:
   files for the current directory with \artsstyle{svn propget svn:ignore .}.
   The list can be edited with \artsstyle{svn propedit svn:ignore .}.
 \item Have you added the documentation for your new features?
-\item Increase the subversion number in file \fileindex{configure.in} in
-  the top level ARTS directory.
 \item Open the file \fileindex{ChangeLog} in the top level ARTS directory
   with your favorite editor.
   
@@ -568,7 +566,7 @@ documentation:
 \item Make sure that you have saved all your files. Go to the top
   level ARTS directory and run: \artsstyle{svn commit}.
 \item This will pop up an editor. Use the mouse to cut and paste the
-  Change-Log message also to this editor window. Safe the file and exit
+  ChangeLog message also to this editor window. Safe the file and exit
   the editor. If you made changes in different directories, another
   editor will pop up, already containing your message. Save again and
   exit. Do this until no more editors come up. (Note: This works well
@@ -586,47 +584,39 @@ documentation:
 \end{enumerate}
 
 
-\subsection{How to cut a release}
-%----------------------------
-\label{sec:release}
-\begin{enumerate}
-\item Change the release number in the file \fileindex{configure.in} in the
-  top-level ARTS directory. (The line that you have to change is the
-  one with \artsstyle{AM\_INIT\_AUTOMAKE}.) Omit the subversion number (last digit).
-\item Commit your changes (see other howto). 
-\item In the top-level ARTS directory, run \artsstyle{autogen.sh}.
-\item In the top-level ARTS directory, run \artsstyle{make distcheck}. This
-  will not only cut the release, but also immediately try to build
-  it, to see if it works. Unless you are on a very fast machine, this
-  may take a while. Maybe you should go and have a cup of coffee.
-\item If all goes well, you can find the release inside the top-level
-  ARTS directory as a file \fileindex{arts-x.y.tar.gz}, where x.y is the
-  release number.
-\item Check the release carefully by trying to build and install the
-  program. 
-\end{enumerate}
+% FIXME OLE
+%\subsection{How to cut a release}
+%%----------------------------
+%\label{sec:release}
+%\begin{enumerate}
+%\item Change the release number in the file \fileindex{configure.in} in the
+%  top-level ARTS directory. (The line that you have to change is the
+%  one with \artsstyle{AM\_INIT\_AUTOMAKE}.) Omit the subversion number (last digit).
+%\item Commit your changes (see other howto). 
+%\item In the top-level ARTS directory, run \artsstyle{autogen.sh}.
+%\item In the top-level ARTS directory, run \artsstyle{make distcheck}. This
+%  will not only cut the release, but also immediately try to build
+%  it, to see if it works. Unless you are on a very fast machine, this
+%  may take a while. Maybe you should go and have a cup of coffee.
+%\item If all goes well, you can find the release inside the top-level
+%  ARTS directory as a file \fileindex{arts-x.y.tar.gz}, where x.y is the
+%  release number.
+%\item Check the release carefully by trying to build and install the
+%  program. 
+%\end{enumerate}
 
 
 \subsection{How to move your arts working directory}
 %----------------------------------------------
 
-In general it is no problem to move your working directory.
-The only thing to consider is that the autotools write hardwired paths into
-the generated Makefiles. Therefore you have to run \artsstyle{autogen.sh}
-working directory.
-
+In general it is no problem to move your working directory. Only when you are
+using a build directory that is located outside the ARTS source tree, you
+have rerun \artsstyle{cmake PATHTOARTS} in that directory.
 
 \section{Debugging (use of assert)}
 %================================
 \label{sec:development:assert}
  
-This section draws heavily on the GNU tools manual of Eleftherios
-Gkioulekas:
-\begin{quote}
-{\footnotesize
-\url{http://www.amath.washington.edu/~lf/tutorials/autoconf/}}
-\end{quote}
-
 The idea behind assert is simple. Suppose that at a certain point in
 your code, you expect two variables to be equal.  If this expectation
 is a precondition that must be satisfied in order for the subsequent
@@ -645,16 +635,13 @@ instead of further down in execution or not at all.  The \artsstyle{assert} call
 is implemented as a C preprocessor macro, so it can be enabled or
 disabled at will. 
 
-In ARTS, you don't have to do this manually, as long as your source
-file includes \artsstyle{arts.h} either directly or indirectly.
-Instead, assertions are turned on and off with the global NDEBUG
-preprocessor macro, which is set or unset automatically by the
-\artsstyle{configure} script. The relevant \artsstyle{configure}
-options are \artsstyle{--enable-debug} and
-\artsstyle{--disable-debug}. Assertions are also turned on
-automatically by the \artsstyle{--enable-maintainer-mode} option. (And
-this again is set automatically if you run the \artsstyle{autogen.sh}
-script.)
+In ARTS, you don't have to do this manually, as long as your source file
+includes \artsstyle{arts.h} either directly or indirectly. Instead, assertions
+are turned on and off with the global NDEBUG preprocessor macro, which is
+set or unset automatically by the \artsstyle{cmake} build configuration.
+Assertions are enabled in the default \artsstyle{cmake} build configuration
+(\artsstyle{-DCMAKE\_BUILD\_TYPE=RelWithDebInfo}). They are turned off in the
+release configuration (\artsstyle{-DCMAKE\_BUILD\_TYPE=Release}).
 
 If your program is stopped by an assertion failure, then the first
 thing you should do is to find out where the error happens. To do
