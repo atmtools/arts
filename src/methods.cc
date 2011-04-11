@@ -2324,7 +2324,12 @@ void define_md_data_raw()
          "\n"
          "p[Pa] T[K] z[m] LWC[kg/m3] IWC[kg/m3] Rain[kg/m2/s] Snow[kg/m2/s] VMR_1[fractional] ... VMR[fractional] IGNORE ... IGNORE\n"
          "\n"
-         "Works only for *atmosphere_dim==1.*\n" 
+         "Works only for *atmosphere_dim==1.*\n"
+	 "\n"
+	 "Possible future changes: name should fit naming conventions.\n"
+	 "\tWSM *abs_lookupSetupBatch* could be edited to handle *batch_atm_fields_compact*\n"
+	 "\tincluding scattering particles. Then two different *batch_atm_fields_compact*s\n"
+	 "\tand two different *atm_fields_compact*s would no longer be necessary.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "atm_fields_compact_all", "atm_fields_compact" ),
@@ -2419,6 +2424,7 @@ void define_md_data_raw()
          "Possible future extensions: Add a keyword parameter to refine the\n"
          "pressure grid if it is too coarse. Or a version that interpolates onto\n"
          "given grids, instead of using and returning the original grids.\n"
+	 "Name should fit naming conventions.\n"
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "p_grid", "lat_grid", "lon_grid", "t_field", "z_field", "massdensity_field", "vmr_field" ),
@@ -2677,6 +2683,12 @@ void define_md_data_raw()
          "\n"
          "   extra_field_values : Give here the constant field value. Default:\n"
          "                        Empty. Dimension must match extra_field_names.\n"
+	 "\n"
+	 "Possible future changes: name should fit naming convention.\n"
+	 "\tWSM *abs_lookupSetupBatch* could be edited to handle *batch_atm_fields_compact*\n"
+	 "\tincluding scattering particles. Then two different *batch_atm_fields_compact*s\n"
+	 "\tand two different *atm_fields_compact*s would no longer be necessary.\n"
+	 
          ),
         AUTHORS( "Daniel Kreyling" ),
         OUT( "batch_atm_fields_compact", "batch_atm_fields_compact_all" ),
@@ -2808,7 +2820,7 @@ void define_md_data_raw()
 	 "This alteration is needed to ensure, that scattered photons\n"
 	 "do not leave and re-enter the cloudbox, due to its convex\n"
 	 "shape.\n"
-	 "If *cloudbox_margin* is set to -1, the cloudbox will extend to\n" 
+	 "If *cloudbox_margin* is set to -1 (default), the cloudbox will extend to\n" 
 	 "the surface. Hence the lower cloudbox_limit is set to 0 (index\n"
 	 "of first pressure level).\n"
          ),
@@ -2820,11 +2832,11 @@ void define_md_data_raw()
         IN( "atmosphere_dim", "part_species", "p_grid", "lat_grid", "lon_grid", "massdensity_field"),
         GIN( "cloudbox_margin"),
         GIN_TYPE( "Numeric" ),
-        GIN_DEFAULT( NODEF ),
+        GIN_DEFAULT( "-1" ),
         GIN_DESC( "The margin alters the lower vertical\n"
 		  "cloudbox limit. Value must be given in [m].\n"
-		  "If cloudbox_margin is set to *-1*, the lower\n" 
-		  "cloudbox limit equals 0 !\n"
+		  "If cloudbox_margin is set to *-1* (default), the lower\n" 
+		  "cloudbox limit equals 0, what corresponds to the surface !\n"
 	)
         ));
   
@@ -3067,7 +3079,7 @@ void define_md_data_raw()
          "*scat_i_p*, *scat_i_lat* and *scat_i_lon*.\n"
          "\n"
          "The best way to calculate spectra including the influence of\n" 
-         "scattering is to set up the *scat_mono_agenda* where this method\n"
+         "scattering is to set up the *doit_mono_agenda* where this method\n"
          "can be included.\n"
          ),
         AUTHORS( "Claudia Emde" ),
@@ -4207,7 +4219,7 @@ void define_md_data_raw()
         GOUT(),
         GOUT_TYPE(),
         GOUT_DESC(),
-        IN(),
+        IN( "massdensity_field" ),
         GIN( "massdensity_threshold" ),
         GIN_TYPE( "Numeric" ),
         GIN_DEFAULT( "1e-15" ),
@@ -6212,8 +6224,10 @@ void define_md_data_raw()
          "With this function, the user specifies settings for the \n"
 	 "particle number density calculations using *pnd_fieldSetup*.\n"
 	 "The input is an ArrayOfString that needs to be in a specific format:\n"
-	 "\n"
+	 "\n" 
 	 "*Example:* \t ['IWC-MH97-0.1-200', 'LWC-liquid-0.1-50'] \n"
+	 "\n"
+	 "The order of the Strings can be arbitrarily chosen.\n"
 	 "\n"
 	 "For more details, see WSV *part_species*.\n"
 	 ),

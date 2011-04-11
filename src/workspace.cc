@@ -2427,7 +2427,7 @@ void Workspace::define_wsv_data()
        "\n"
        "This variable contains the data of the phase matrix in the \n"
        "scattering frame interpolated on the actual frequency (the variable\n"
-       "is used inside *scat_mono_agenda*) and also interpolated on all \n"
+       "is used inside *doit_mono_agenda*) and also interpolated on all \n"
        "possible scattering angles following from all combinations of \n"
        "*scat_za_grid* and *scat_aa_grid*. \n"
        "\n"

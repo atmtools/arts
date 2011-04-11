@@ -167,7 +167,7 @@ void cloudboxSetAutomatically (
         if ( cloudbox_margin == -1 )
         {
           cloudbox_limits[0] = 0;
-          i = 0;
+          i = p1 = 0;
         }
         else
         {
@@ -183,7 +183,10 @@ void cloudboxSetAutomatically (
               break;
             }
           }
-
+          // alter lower cloudbox_limit by cloudbox_margin, using barometric height formula
+          p_margin1 = barometric_heightformula ( p_grid[p1], cloudbox_margin );
+          while ( p_grid[k] >= p_margin1 ) k++;
+          cloudbox_limits[0]= k;
         }
         // find index of highest pressure lvl where massdensity_field is unequal 0, starting from top of atm.
         for ( j=hydro_p.nelem()-1; j>=i; j-- )
@@ -198,15 +201,6 @@ void cloudboxSetAutomatically (
             break;
           }
         }
-        //out0<<"\n"<<p1<<"\n"<<p_grid[p1]<<"\n";
-
-        // alter lower cloudbox_limit by cloudbox_margin, using barometric height formula
-        p_margin1 = barometric_heightformula ( p_grid[p1], cloudbox_margin );
-        while ( p_grid[k] >= p_margin1 ) k++;
-        cloudbox_limits[0]= k;
-
-        //out0<<"\n"<<cloudbox_limits[0]<<"\n"<<p_margin1<<"\n";
-
         // set upper cloudbox_limit
 	// if cloudbox reaches to the upper most pressure level it needs to be reduced 
 	if (p2 >= hydro_p.nelem())
