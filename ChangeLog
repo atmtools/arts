@@ -1,3 +1,18 @@
+2011-04-11  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
+
+	* arts-1-14-174
+
+	* m_cloudbox.cc
+	(cloudboxSetAutomatically)
+	fixed bug, that occured when using the default value of 
+	-1 for *cloudbox_margin*
+
+	* src/methods.cc
+	minor documentation fixes
+
+	* src/workspace.cc
+	minor documentation fixes
+
 2011-04-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-173
