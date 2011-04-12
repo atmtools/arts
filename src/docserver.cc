@@ -1500,10 +1500,10 @@ void ds_stylesheet (ostream& os)
 {
   os
   << "body { font-family: monospace }" << endl
-  << "a:link { color: #3465a4; text-decoration: underline; }" << endl
-  << "a:visited { color: #729fcf; text-decoration: underline; }" << endl
-  << "a:active { color: #ce5c00; text-decoration: underline; background-color: #eeeeec}" << endl
-  << "a:hover { color: #f57900; text-decoration: underline; }" << endl
+  << "a:link { color: #3465a4; text-decoration: none; }" << endl
+  << "a:visited { color: #729fcf; text-decoration: none; }" << endl
+  << "a:active { color: #ce5c00; text-decoration: none; background-color: #eeeeec}" << endl
+  << "a:hover { color: #f57900; text-decoration: none; }" << endl
   
   << "table.list {" << endl
   << "width: 90%;" << endl

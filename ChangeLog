@@ -1,5 +1,11 @@
 2011-04-12  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-14-176
+
+	* src/docserver.cc: Don't underline links.
+
+2011-04-12  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-14-175
 
 	* src/docserver.cc:
