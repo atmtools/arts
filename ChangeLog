@@ -1,3 +1,17 @@
+2011-04-12  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
+
+	* arts-1-14-177
+
+	* includes/agendasDOIT.arts:
+	Include file containing all DOIT related agendas and options
+	for WSM
+
+	* tests/DOITBatch/:
+	TestDOITBatch, is a test case for batch calculations with the
+	scattering solver DOIT. Particle number densities are calculated
+	inside ARTS according to one ice and one liquid psd 
+	parametrisation.
+	
 2011-04-12  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-176

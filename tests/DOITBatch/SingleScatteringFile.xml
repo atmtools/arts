@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<Array type="String" nelem="8">
+<String>"./scatData/P20FromHong_ShapePlate_Dmax0010um.xml.gz"</String>
+<String>"./scatData/P20FromHong_ShapePlate_Dmax0050um.xml.gz"</String>
+<String>"./scatData/P20FromHong_ShapePlate_Dmax0250um.xml.gz"</String>
+<String>"./scatData/P20FromHong_ShapePlate_Dmax1000um.xml.gz"</String>
+<String>"./scatData/MieAtmlab_Liquid_0.4um.xml.gz"</String>
+<String>"./scatData/MieAtmlab_Liquid_0.9um.xml.gz"</String>
+<String>"./scatData/MieAtmlab_Liquid_32.4um.xml.gz"</String>
+<String>"./scatData/MieAtmlab_Liquid_72.9um.xml.gz"</String>
+</Array>
+</arts>
