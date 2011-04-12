@@ -35,6 +35,10 @@ arts_add_prepare_testcases (PREPTARGETS atmosphere_data DOIT)
 arts_add_testcases (TARGETS "${PREPTARGETS}" DOIT)
 set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
 
+arts_add_prepare_testcases (PREPTARGETS DOITBatch/scatData DOITBatch)
+arts_add_testcases (TARGETS "${PREPTARGETS}" DOITBatch)
+set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
+
 arts_add_prepare_testcases (PREPTARGETS atmosphere_data ClearSky)
 arts_add_testcases (TARGETS "${PREPTARGETS}" ClearSky)
 set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
@@ -67,7 +71,7 @@ if (NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
   get_directory_property (TESTCLEANFILES ADDITIONAL_MAKE_CLEAN_FILES)
   set (TESTCLEANFILES ${TESTCLEANFILES}
        artsXML.py artsXML.pyc testall.py atmosphere_data
-       AMSU Abs ClearSky DOIT GroundBased MHS MonteCarlo OdinSMR)
+       AMSU Abs ClearSky DOIT DOITBatch GroundBased MHS MonteCarlo OdinSMR)
   set_directory_properties (PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
                             "${TESTCLEANFILES}")
 endif (NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")

@@ -1,5 +1,21 @@
 2011-04-12  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
 
+	* arts-1-14-178
+
+	* tests/DOITBatch/:
+	Small correction in TestDOITBatch.arts
+
+	* tests/testall.py
+	DOITBatch test added and check against reference data included
+
+	* tests/CMakeLists.txt
+	TestDOITBatch.arts included
+
+	* src/workspace.cc
+	minor documentation fixes
+
+2011-04-12  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
+
 	* arts-1-14-177
 
 	* includes/agendasDOIT.arts:

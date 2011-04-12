@@ -10,7 +10,7 @@ Arts2 {
 
 INCLUDE "general.arts"
 INCLUDE "continua.arts"
-INCLUDE "DOIT-Agendas.arts"
+INCLUDE "agendasDOIT.arts"
 
 # 1.General Settings:---------------------------------------------
 #----------------------------------------------------------------- 

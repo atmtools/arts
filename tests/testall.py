@@ -235,6 +235,26 @@ class TestAbs(unittest.TestCase):
         self.Absrun.run()
         assert self.Absrun.error=='','Error running TestAbs.arts: '+self.Absrun.error
 
+class TestDOITBatch(unittest.TestCase):
+    """Testing DOITBatch calculations"""
+    Doitbatchrun=ArtsRun('DOITBatch', 'TestDOITBatch.arts')
+    def test1(self):
+        """DOITBatch test should run with no errors"""
+        self.Doitbatchrun.run()
+        assert self.Doitbatchrun.error=='','Error running TestDOITBatch.arts: '+self.Doitbatchrun.error
+    def test2(self):
+        """Total BT should be close to the reference values"""
+        Iref=array([
+       [ 227.79 ,  227.204,  270.617,  229.22 ,  282.457,  282.481],
+       [ 153.458,  153.883,  271.15 ,  259.473,  261.253,  261.554],
+       [ 248.434,  247.521,  258.967,  218.662,  275.525,  273.907],
+       [ 180.464,  180.741,  277.787,  257.06 ,  268.177,  268.741]]);
+
+        I = artsXML.load("DOITBatch/TestDOITBatch.ybatch.xml")
+        for j in range (4):
+            for k in range (6):
+                assert abs(I[j,k]-Iref[j,k]) < 0.01,'I[%d,%d] = %.3fK is too far away from %.3fK' % (j,k,I[j,k],Iref[j,k])
+
 if __name__=='__main__':
     unittest.main()
 
