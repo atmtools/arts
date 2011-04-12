@@ -377,6 +377,77 @@ void ds_list_variables (ostream &os)
   os << "</ul></td></tr>" << endl;
 }
 
+
+//! Substitute Workspace entities with links.
+/** 
+ Replaces WSVs, WSMs and groups enclosed in ** with html links.
+ 
+ \param[in]      desc   String with the description.
+ 
+ \returns        Description including HTML links.
+ 
+ \author Oliver Lemke
+ */
+String ds_doc_description_add_links (const String& desc)
+{
+  string ret;
+  string link;
+  bool inside_link = false;
+  string::const_iterator it = desc.begin();
+  
+  extern const ArrayOfString wsv_group_names;
+  extern const Array<MdRecord>  md_data_raw;
+
+  map<String, Index> WsmMap;
+  for ( Index i=0 ; i<md_data_raw.nelem() ; ++i )
+    WsmMap[md_data_raw[i].Name()] = i;
+  
+  while (it != desc.end()) {
+    if (!inside_link)
+    {
+      if (*it == '*')
+        inside_link = true;
+      else
+        ret += ds_html_escape_char(*it);
+    }
+    else
+    {
+      if (*it == '*')
+      {
+        inside_link = false;
+        if (Workspace::WsvMap.find(link) != Workspace::WsvMap.end())
+          ret += ds_insert_wsv_link(link);
+        else if (find(wsv_group_names.begin(), wsv_group_names.end(), link) != wsv_group_names.end())
+          ret += ds_insert_group_link(link);
+        else if (WsmMap.find(link) != WsmMap.end())
+          ret += ds_insert_wsm_link(link);
+        else
+          ret += "*" + link + "*";
+        
+        link = "";
+      }
+      else
+      {
+        if (!isalnum(*it) && *it != '_')
+        {
+          inside_link = false;
+          ret += "*" + link + *it;
+          link = "";
+        }
+        else
+          link += ds_html_escape_char(*it);
+      }
+    }
+    
+    it++;
+  }
+  
+  if (inside_link) ret += "*" + link;
+  
+  return ret;
+}
+
+
 //! Output the workspace method documentation to stream.
 /** 
  Output the documentation for the given workspace method to the stream in
@@ -409,11 +480,7 @@ void ds_doc_method (ostream &os, const string& mname)
     os << "<h3>Description</h3>" << endl;
     
     os << "<pre>" << endl;
-    for (String::const_iterator sit = mdr.Description().begin();
-         sit != mdr.Description().end(); sit++)
-    {
-      os << ds_html_escape_char(*sit);
-    }
+    os << ds_doc_description_add_links(mdr.Description());
     os << endl << "</pre>" << endl << endl;
     
     bool is_first_author = true;
@@ -507,16 +574,16 @@ void ds_doc_method (ostream &os, const string& mname)
         buf << ")</td><td>";
       }
       
-      get_short_wsv_description(desc, ds_html_escape_string(Workspace::wsv_data[mdr.Out()[i]].Description()));
+      get_short_wsv_description(desc, Workspace::wsv_data[mdr.Out()[i]].Description());
       
       if (buf.str().length() + desc.length() > linelen)
       {
         format_paragraph (desc, indent, linelen);
-        buf << endl << indent << desc;
+        buf << endl << indent << ds_doc_description_add_links(desc);
       }
       else
       {
-        buf << desc;
+        buf << ds_doc_description_add_links(desc);
       }
       
       os << buf.str() << "</td></tr>" << endl;
@@ -551,20 +618,20 @@ void ds_doc_method (ostream &os, const string& mname)
       buf.str("");
       os << desc;
       
-      desc = ds_html_escape_string(mdr.GOutDescription()[i]);
+      desc = mdr.GOutDescription()[i];
       if (!fit)
       {
         format_paragraph (desc, indent, linelen);
-        buf << endl << indent << desc;
+        buf << endl << indent << ds_doc_description_add_links(desc);
       }
       else if (lastlen + desc.length() > linelen)
       {
         format_paragraph (desc, indent, linelen, lastlen);
-        buf << endl << desc;
+        buf << endl << ds_doc_description_add_links(desc);
       }
       else
       {
-        buf << desc;
+        buf << ds_doc_description_add_links(desc);
       }
       
       os << buf.str() << "</td></tr>" << endl;
@@ -588,11 +655,11 @@ void ds_doc_method (ostream &os, const string& mname)
       if (buf.str().length() + desc.length() > linelen)
       {
         format_paragraph (desc, indent, linelen, indent.length());
-        buf << endl << indent << desc;
+        buf << endl << indent << ds_doc_description_add_links(desc);
       }
       else
       {
-        buf << desc;
+        buf << ds_doc_description_add_links(desc);
       }
       
       os << buf.str() << "</td></tr>" << endl;
@@ -639,20 +706,20 @@ void ds_doc_method (ostream &os, const string& mname)
       buf.str("");
       os << desc;
       
-      desc = ds_html_escape_string(mdr.GInDescription()[i]);
+      desc = mdr.GInDescription()[i];
       if (!fit)
       {
         format_paragraph (desc, indent, linelen);
-        buf << indent << desc;
+        buf << indent << ds_doc_description_add_links(desc);
       }
       else if (lastlen + desc.length() > linelen)
       {
         format_paragraph (desc, indent, linelen, indent.length());
-        buf << indent << desc;
+        buf << indent << ds_doc_description_add_links(desc);
       }
       else
       {
-        buf << desc;
+        buf << ds_doc_description_add_links(desc);
       }
       
       os << buf.str() << "</td></tr>" << endl;
@@ -908,11 +975,7 @@ void ds_doc_variable (ostream &os, const string& vname)
     // If we are here, then the given name matches a workspace
     // variable.
     os << "<pre>" << endl;
-    for (String::const_iterator sit = Workspace::wsv_data[it->second].Description().begin();
-         sit != Workspace::wsv_data[it->second].Description().end(); sit++)
-    {
-      os << ds_html_escape_char(*sit);
-    }
+    os << ds_doc_description_add_links(Workspace::wsv_data[it->second].Description());
     os << endl << "</pre>" << endl << endl;
     
     os << "<p><b>Group: </b>"
@@ -947,11 +1010,7 @@ void ds_doc_agenda (ostream &os, const string& aname)
     // If we are here, then the given name matches a workspace
     // variable.
     os << "<pre>" << endl;
-    for (String::const_iterator sit = agenda_data[ait->second].Description().begin();
-         sit != agenda_data[ait->second].Description().end(); sit++)
-    {
-      os << ds_html_escape_char(*sit);
-    }
+    os << ds_doc_description_add_links(agenda_data[ait->second].Description());
     os << endl << "</pre>" << endl << endl;
 
     os << "<p><b>Group: </b>"
@@ -982,16 +1041,16 @@ void ds_doc_agenda (ostream &os, const string& aname)
           buf << ")</td><td>";
         }
         
-        get_short_wsv_description(desc, ds_html_escape_string(Workspace::wsv_data[agr.Out()[i]].Description()));
+        get_short_wsv_description(desc, Workspace::wsv_data[agr.Out()[i]].Description());
         
         if (buf.str().length() + desc.length() > linelen)
         {
           format_paragraph (desc, indent, linelen);
-          buf << endl << indent << desc;
+          buf << endl << indent << ds_doc_description_add_links(desc);
         }
         else
         {
-          buf << desc;
+          buf << ds_doc_description_add_links(desc);
         }
         
         os << buf.str() << "</td></tr>" << endl;
@@ -1011,16 +1070,16 @@ void ds_doc_agenda (ostream &os, const string& aname)
         buf << ")</td><td>";
         
         get_short_wsv_description(
-                                  desc, ds_html_escape_string(Workspace::wsv_data[agr.In()[i]].Description()));
+                                  desc, Workspace::wsv_data[agr.In()[i]].Description());
         
         if (buf.str().length() + desc.length() > linelen)
         {
           format_paragraph (desc, indent, linelen, indent.length());
-          buf << endl << indent << desc;
+          buf << endl << indent << ds_doc_description_add_links(desc);
         }
         else
         {
-          buf << desc;
+          buf << ds_doc_description_add_links(desc);
         }
         
         os << buf.str() << "</td></tr>" << endl;

@@ -1,3 +1,14 @@
+2011-04-12  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-175
+
+	* src/docserver.cc:
+
+	Replace all WSMs, WSVs and groups enclosed in ** by HTML links.
+
+	IMPORTANT: Please make sure your documentation in methods.cc and
+	agendas.cc consistently uses ** around the entities mentioned above!!!
+
 2011-04-11  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
 
 	* arts-1-14-174
@@ -28,7 +39,7 @@
 
 	* src/workspace.cc
 	minor documentation fixes
-	
+
 2011-04-04  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
 
 	* arts-1-14-171
