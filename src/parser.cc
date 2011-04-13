@@ -87,6 +87,29 @@ void ArtsParser::parse_main()
                << "(But it seems to be " << md_data[id].Name() << ".)\n";
           arts_exit ();
         }
+
+      try {
+        if (!msource.reachedEot() && msource.Current() == '}') msource.AdvanceChar();
+        if (!msource.reachedEot()) eat_whitespace();
+        if (!msource.reachedEot()) throw UnexpectedChar(String(msource.Current()), 
+                                                        msource.File(),
+                                                        msource.Line(),
+                                                        msource.Column() ); 
+      }
+      catch (const Eot&)
+      {
+        // It's ok to reach the end of the file here,
+        // that's actually what we want.
+      }
+      catch (const UnexpectedChar& x)
+      {
+        out0 << "Unexpected character(s) at the end of the control file\n";
+        out0 << "after the main agenda was already closed.\n";
+        out0 << "File:   " << x.file() << '\n';
+        out0 << "Line:   " << x.line() << '\n';
+        out0 << "Column: " << x.column() << '\n';
+        arts_exit ();
+      }
     }
   catch (const Eot& x)
     {
@@ -101,8 +124,8 @@ void ArtsParser::parse_main()
       // Unexpected Character:
       out0 << "Unexpected character:\n";
       out0 << x.what()   << '\n';
-      out0 << "File: "   << x.file() << '\n';
-      out0 << "Line: "   << x.line() << '\n';
+      out0 << "File:   "   << x.file() << '\n';
+      out0 << "Line:   "   << x.line() << '\n';
       out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
@@ -122,8 +145,8 @@ void ArtsParser::parse_main()
       // methods.]
       out0 << "Unknown Method:\n";
       out0 << x.what()   << '\n';
-      out0 << "File: "   << x.file() << '\n';
-      out0 << "Line: "   << x.line() << '\n';
+      out0 << "File:   "   << x.file() << '\n';
+      out0 << "Line:   "   << x.line() << '\n';
       out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
@@ -134,8 +157,8 @@ void ArtsParser::parse_main()
       // Wsvs.]
       out0 << "Unknown workspace variable:\n";
       out0 << x.what()   << '\n';
-      out0 << "File: "   << x.file() << '\n';
-      out0 << "Line: "   << x.line() << '\n';
+      out0 << "File:   "   << x.file() << '\n';
+      out0 << "Line:   "   << x.line() << '\n';
       out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
@@ -144,8 +167,8 @@ void ArtsParser::parse_main()
       // Trying to create the same variable twice:
       out0 << "Attempt to create a workspace variable that already exists:\n";
       out0 << x.what()   << '\n';
-      out0 << "File: "   << x.file() << '\n';
-      out0 << "Line: "   << x.line() << '\n';
+      out0 << "File:   "   << x.file() << '\n';
+      out0 << "Line:   "   << x.line() << '\n';
       out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
@@ -156,8 +179,8 @@ void ArtsParser::parse_main()
       // this group.
       out0 << "Workspace variable belongs to the wrong group:\n";
       out0 << x.what()   << '\n';
-      out0 << "File: "   << x.file() << '\n';
-      out0 << "Line: "   << x.line() << '\n';
+      out0 << "File:   "   << x.file() << '\n';
+      out0 << "Line:   "   << x.line() << '\n';
       out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }
@@ -166,8 +189,8 @@ void ArtsParser::parse_main()
       // General Parse Error (parent of all the above):
       out0 << "Parse error:\n";
       out0 << x.what()   << '\n';
-      out0 << "File: "   << x.file() << '\n';
-      out0 << "Line: "   << x.line() << '\n';
+      out0 << "File:   "   << x.file() << '\n';
+      out0 << "Line:   "   << x.line() << '\n';
       out0 << "Column: " << x.column() << '\n';
       arts_exit ();
     }

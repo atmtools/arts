@@ -1,3 +1,16 @@
+2011-04-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-179
+
+	* src/parser.cc:
+
+	Don't silently ignore rogue characters at the end of control files
+	behind the main agenda. This could lead to a bug where an extraneous }
+	inside the main agenda leads to a premature end of the control file
+	going unnoticed by the user. Bug reported by Gerrit.
+
+	* src/sourcetext.h (SourceText::reachedEot): Added.
+
 2011-04-12  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
 
 	* arts-1-14-178
