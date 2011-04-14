@@ -136,7 +136,7 @@ void define_agenda_data()
        "\n"
        "This agenda includes for example the following methods:\n"
        "   1. *DoitScatteringDataPrepare* \n"
-       "   2. *doit_i_fieldSetClearsky \n"
+       "   2. *doit_i_fieldSetClearsky* \n"
        "   3. *doit_i_fieldIterate*\n"
        "   4. *DoitCloudboxFieldPut*\n"
        "\n"
@@ -145,9 +145,8 @@ void define_agenda_data()
        "as radiative background for a clearsky radiative transfer \n"
        "calculation. \n"
        "\n"
-       "See the ArtsWiki page *UsingArtsDoit* and the online documentation\n"
-       "for more information about\n"
-       "the methods.\n"
+       "See the ArtsWiki page UsingArtsDoit and the online documentation\n"
+       "for more information about the methods.\n"
         ),
        OUTPUT( "doit_i_field", "scat_i_p", "scat_i_lat", "scat_i_lon", 
                "doit_i_field1D_spectrum"),

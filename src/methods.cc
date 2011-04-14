@@ -1832,13 +1832,13 @@ void define_md_data_raw()
          "Append a workspace variable to another workspace variable.\n"
          "\n"
          "This is a supergeneric method. It can append a workspace variable\n"
-         "to another workspace variable of the same group. (E.g., a Matrix to\n"
-         "another Matrix.)\n"
+         "to another workspace variable of the same group. (E.g., a *Matrix* to\n"
+         "another *Matrix*.)\n"
          "\n"
          "This method is not implemented for all types, just for those where an\n"
          "append makes sense. (See variable list below.).\n"         
          "\n"
-         "As allways, output comes first in the argument list!\n"
+         "As always, output comes first in the argument list!\n"
          ),
         AUTHORS( "Stefan Buehler" ),
         OUT(),
@@ -2684,10 +2684,13 @@ void define_md_data_raw()
          "   extra_field_values : Give here the constant field value. Default:\n"
          "                        Empty. Dimension must match extra_field_names.\n"
 	 "\n"
-	 "Possible future changes: name should fit naming convention.\n"
-	 "\tWSM *abs_lookupSetupBatch* could be edited to handle *batch_atm_fields_compact*\n"
-	 "\tincluding scattering particles. Then two different *batch_atm_fields_compact*s\n"
-	 "\tand two different *atm_fields_compact*s would no longer be necessary.\n"
+	 "Possible future changes:\n"
+     "    Either:\n"
+     "        Name should fit naming convention.\n"
+     "    Or:\n"
+	 "        WSM *abs_lookupSetupBatch* could be edited to handle *batch_atm_fields_compact*\n"
+	 "        including scattering particles. Then two different *batch_atm_fields_compact*s\n"
+	 "        and two different *atm_fields_compact*s would no longer be necessary.\n"
 	 
          ),
         AUTHORS( "Daniel Kreyling" ),
@@ -3504,7 +3507,7 @@ void define_md_data_raw()
          "*scat_data_monoCalc*. Then the phase matrix data is\n"
          "transformed or interpolated from the raw data to the laboratory frame\n"
          "for all possible combinations of the angles contained in the angular\n"
-         "grids which are set in *doit_angulat_gridsSet*. The resulting phase\n"
+         "grids which are set in *DoitAngularGridsSet*. The resulting phase\n"
          "matrices are stored in *pha_mat_sptDOITOpt*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
@@ -6417,7 +6420,7 @@ void define_md_data_raw()
         (
          "Calculation of the phase matrix for the single particle types.\n"
          "\n"
-         "This function is the monchromatic version of *pha_mat_sptFromData*.\n"
+         "This function is the monochromatic version of *pha_mat_sptFromData*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "pha_mat_spt" ),
@@ -6443,7 +6446,7 @@ void define_md_data_raw()
          "In this function the phase matrix is extracted from\n"
          "*pha_mat_sptDOITOpt*. It can be used in the agenda\n"
          "*pha_mat_spt_agenda*. This method must be used in \n "
-         "conbination with *ScatteringDataPrepareDOITOpt*.\n"
+         "combination with *DoitScatteringDataPrepare*.\n"
          ),
         AUTHORS( "Claudia Emde" ),
         OUT( "pha_mat_spt" ),
@@ -7112,13 +7115,13 @@ void define_md_data_raw()
 	 "Reads single scattering data and scattering meta data.\n"
 	 "\n"
 	 "This method's input needs two XML-files, one containing an array \n"
-	 "of path/filenames (ArrayOfString) of single scattering data and the \n"
+	 "of path/filenames (*ArrayOfString*) of single scattering data and the \n"
 	 "corresponding path/filenames to scattering meta data.\n"
 	 "For each single scattering file, there needs to be exactly one\n"
 	 "scattering meta data file.\n"
 	 "\n"
 	 "Currently ice and/or water particles can be added for the same calculation.\n"
-	 "It is also possible to read SingleScatteringData for different shapes of\n"
+	 "It is also possible to read *SingleScatteringData* for different shapes of\n"
 	 "ice particles. But all ice particels will share the same IWC, while performing\n"
 	 "the *pnd_field* calculations with *pnd_fieldSetup*.\n"
 	 "Also make sure, that two scattering particles of the same phase are never equal\n"
@@ -7160,7 +7163,7 @@ void define_md_data_raw()
 	 "are searched for particles, that fullfill the selection criteria. \n"
 	 "Only these particles will be used for scattering calculations.\n"
 	 "\n"
-	 "Additionaly an ArrayOfIndex *scat_data_nelem* is created. This Array\n"
+	 "Additionaly an *ArrayOfIndex* *scat_data_nelem* is created. This Array\n"
 	 "stores the number of scattering particles, that have been selected by each\n"
 	 "selection string in *part_species*\n"
 	 ),
@@ -7181,7 +7184,7 @@ void define_md_data_raw()
       ( NAME( "scat_data_monoCalc" ),
         DESCRIPTION
         (
-         "Interpolates scat_data_raw by frequency to give scat_data_mono.\n"
+         "Interpolates *scat_data_raw* by frequency to give *scat_data_mono*.\n"
          ),
         AUTHORS( "Cory Davis" ),
         OUT( "scat_data_mono" ),
@@ -7244,7 +7247,7 @@ void define_md_data_raw()
          "will select the first and fourth row of matrix x and copy them to the\n"
          "output matrix y.\n"
          "\n"
-         "Note that it is even save to use this method if needles and haystack\n"
+         "Note that it is even safe to use this method if needles and haystack\n"
          "are the same variable.\n"
          ),
         AUTHORS( "Oliver Lemke" ),

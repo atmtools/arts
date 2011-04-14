@@ -1,3 +1,12 @@
+2011-04-14	Gerrit Holl	<gerrit.holl@ltu.se>
+
+	* arts-1-14-180
+
+	* src/methods.cc, src/agendas.cc, src/workspace.cc: Cosmetic changes
+
+	- Mainly small changes, such as adding asterisks around WSMs, WSVs,
+	etc. Also some typo fixes.
+
 2011-04-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-179
