@@ -20,6 +20,7 @@
 
 #include "array.h"
 #include "mystring.h"
+#include "exceptions.h"
 
 
 /** A smart class to hold the text for parsing. A variable of this
@@ -46,6 +47,9 @@ public:
 
   /** Return the current character. */
   char Current() {
+    if (reachedEot())
+      throw Eot( "", this->File(), this->Line(), this->Column() ); 
+
     return mText[mLine][mColumn];
   }
 

@@ -89,9 +89,8 @@ void ArtsParser::parse_main()
         }
 
       try {
-        if (!msource.reachedEot() && msource.Current() == '}') msource.AdvanceChar();
         if (!msource.reachedEot()) eat_whitespace();
-        if (!msource.reachedEot()) throw UnexpectedChar(String(msource.Current()), 
+        if (!msource.reachedEot()) throw UnexpectedChar("", 
                                                         msource.File(),
                                                         msource.Line(),
                                                         msource.Column() ); 
@@ -309,7 +308,6 @@ void ArtsParser::parse_agenda( Agenda& tasklist )
         }
 
       eat_whitespace();
-      msource.Current();
     } 
 }
 

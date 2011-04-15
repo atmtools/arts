@@ -1,3 +1,19 @@
+2011-04-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-181
+
+	* src/sourcetext.{h,cc}: Move include exception.h to header.
+	(SourceText::AdvanceChar()): Allow to move one position behind the last
+	character in the sourcetext.
+	(SourceText::Current()): Throw exception if Eot is reached.
+
+	* src/parser.cc:
+	(ArtsParser::parse_main()): Remove unneeded test for }.
+	(ArtsParser::parse_agenda): Remove statement with no effect.
+
+	Fixes bug reported by Gerrit. An extra } at the of a control file was
+	not detected as a syntax error.
+
 2011-04-14	Gerrit Holl	<gerrit.holl@ltu.se>
 
 	* arts-1-14-180

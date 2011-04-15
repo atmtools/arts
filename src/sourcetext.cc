@@ -17,7 +17,6 @@
 
 #include <iostream>
 #include "sourcetext.h"
-#include "exceptions.h"
 #include "file.h"
 
 
@@ -41,12 +40,17 @@ void SourceText::AdvanceChar()
       mLineBreak = true;
       do
         {
-          if (mLine>=mText.nelem()-1)
+          if (mLine>=mText.nelem())
             {
               throw Eot( "",
                          this->File(),
                          this->Line(),
                          this->Column() ); 
+            }
+          else if (mLine==mText.nelem()-1)
+            {
+              mColumn++;
+              break;
             }
           else
             {
