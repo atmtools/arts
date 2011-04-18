@@ -169,7 +169,7 @@ void atm_fields_compactFromMatrix(// WS Output:
   if (field_names.nelem()!=nf)
     {
       ostringstream os; 
-      os << "Cannot copy Matrix.\n"
+      os << "Cannot extract fields from Matrix.\n"
          << "*field_names* must have one element less than there are\n"
          << "matrix columns.";
       throw runtime_error( os.str() );
@@ -241,7 +241,7 @@ void atm_fields_compactFromMatrixChevalAll(// WS Output:
   if (field_names.nelem()!= nf)
     {
       ostringstream os; 
-      os << "Cannot copy Matrix.\n"
+      os << "Cannot extract fields from Matrix.\n"
          << "*field_names* must have one element less than there are\n"
          << "matrix columns.";
       throw runtime_error( os.str() );

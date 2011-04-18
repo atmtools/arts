@@ -3857,7 +3857,7 @@ void define_md_data_raw()
          "There is a similar method for HIRS-type instruments,\n"
          "see *f_gridFromSensorHIRS*.\n"
          ),
-        AUTHORS( "Stefan Buehler, Mathisa Milz" ),
+        AUTHORS( "Stefan Buehler, Mathias Milz" ),
         OUT( "f_grid" ),
         GOUT(),
         GOUT_TYPE(),

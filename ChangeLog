@@ -1,3 +1,20 @@
+2011-0-4-18	Gerrit Holl	<gerrit.holl@ltu.se>
+
+	* arts-1-14-182
+
+	* src/m_atmosphere.cc: Cosmetic changes
+	  - Improve error message. To me this error message was confusing.
+	  With batch_atm_field_compactFromArrayOfMatrix I was not trying to
+	  copy a matrix, maybe this happens internally but I think the new
+	  error message is less confusing. Also I got some weird other effects
+	  and sent an e-mail to Oliver about that.
+
+	* src/methods.cc: Cosmetic changes
+	  - Fixed typo, Mathisa -> Mathias
+
+	* src/workspace.cc: Cosmetic changes
+	  - Added some stars
+
 2011-04-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-181
