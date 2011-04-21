@@ -1,4 +1,23 @@
-2011-0-4-18	Gerrit Holl	<gerrit.holl@ltu.se>
+2011-04-21  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-1-14-183
+
+	* src/m_optproperties.cc:
+
+	harmonize check of scatdata_T-grid covering required range with
+	 extrapolation abilities of interpolation routine (extpolfac introduced
+	 as global constant here. would be good to have that linked to value
+	 that interpolation routine actually uses)
+
+	* src/ppath.cc:
+
+	assume tiny tilts of 3D surface are numeric problem, hence reset to 0
+
+	* src/m_doit.cc: bugfix
+
+	inn 3D version of CloudboxGetIncoming (reduced azimuth grid at nadir/zenith)
+
+2011-04-18	Gerrit Holl	<gerrit.holl@ltu.se>
 
 	* arts-1-14-182
 
@@ -1005,7 +1024,8 @@
 
 	* arts-1-14-124
 
-	* src/doit.cc (cloud_ppath_update1D_noseq): allow cloudbox@surface
+	* src/doit.cc (cloud_ppath_update1D_noseq): allow cloudbox@surface for
+        non-sequential 1D case
 
 	* src/doit.h: switch on passing of surface_prop_agenda to
         cloud_ppath_update1D_noseq

@@ -2679,7 +2679,7 @@ void CloudboxGetIncoming(
       Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
       Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
       
-      // Convert scat_za_grid to "sensor coordinates"
+      // Convert scat_aa_grid to "sensor coordinates"
       // (-180° < azimuth angle < 180°)
       //
       Vector aa_grid(Naa);
@@ -2720,11 +2720,15 @@ void CloudboxGetIncoming(
                           los[0] = scat_za_grid[scat_za_index];
                           los[1] = aa_grid[scat_aa_index];
 
-                          // For end points of scat_za_index, we need only to
-                          // perform calculations for first scat_aa
-                          if( !( ( scat_za_index == 0  ||  
-                                   scat_za_index == (Nza-1) )  &&  
-                                 scat_aa_index == 0 ) )
+                          // For end points of scat_za_index (0 & 180deg), we
+                          // only need to perform calculations for one scat_aa
+                          // and set the others to same value
+//                          if( !( ( scat_za_index == 0  ||  
+//                                   scat_za_index == (Nza-1) )  &&  
+//                                 scat_aa_index == 0 ) )
+                          if( ( scat_za_index != 0  &&  
+                                scat_za_index != (Nza-1) )  ||  
+                                 scat_aa_index == 0 )
                             {
                               iy_clearsky_basic_agendaExecute( ws, iy, pos, los, 
                                                   0, iy_clearsky_basic_agenda );

@@ -3434,6 +3434,11 @@ void ppath_start_3d(
           double c2 = plevel_slope_3d( lat1, lat3, lon5, lon6, 
                        r15a, r35a, r36a, r16a, lat_start, lon_start, aa_start );
           double tilt = plevel_angletilt( r_start, c2 );
+	  // when tilt < 1sec assume this is a numeric problem and reset tilt to 0)
+	  if( tilt < 2.e-4 )
+	    {
+	      tilt=0.;
+	    }
 
           if( is_los_downwards( za_start, tilt ) )
             {

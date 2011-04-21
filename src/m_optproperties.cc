@@ -56,6 +56,9 @@ extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 
+/* global constant defining extrapolation limits */
+const Numeric extpolfac=0.5;
+
 #define part_type scat_data_raw[i_pt].ptype
 #define f_datagrid scat_data_raw[i_pt].f_grid
 #define T_datagrid scat_data_raw[i_pt].T_grid
@@ -246,6 +249,7 @@ void pha_mat_sptFromDataDOITOpt( // Output:
   GridPos T_gp;
   Vector itw(2);
   
+  Numeric N_T;
   
   // Initialisation
   pha_mat_spt = 0.;
@@ -258,13 +262,16 @@ void pha_mat_sptFromDataDOITOpt( // Output:
       // transfromation!
       if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > pnd_limit) //TRS
         {
-          if( scat_data_mono[i_pt].T_grid.nelem() > 1)
+          N_T = scat_data_mono[i_pt].T_grid.nelem();
+          if( N_T > 1)
             {
-              if (rte_temperature <= scat_data_mono[i_pt].T_grid[0] ||
-                  rte_temperature >= scat_data_mono[i_pt].T_grid[scat_data_mono[i_pt].T_grid.nelem()-1]){
+              if (rte_temperature <= scat_data_mono[i_pt].T_grid[0] - extpolfac *
+                    (scat_data_mono[i_pt].T_grid[1] - scat_data_mono[i_pt].T_grid[0]) ||
+                  rte_temperature >= scat_data_mono[i_pt].T_grid[N_T-1] + extpolfac *
+                    (scat_data_mono[i_pt].T_grid[N_T-1] - scat_data_mono[i_pt].T_grid[N_T-2])){
                 ostringstream os;
-                os << "The temperature grid of the scattering data file does not cover a \n"
-                  "temperature of the atmosphere where the clouds is located, the file shoud \n"
+                os << "The temperature grid of the scattering data does not cover the \n"
+                  "atmospheric temperature at cloud location. The data should \n"
                   "include the value T="<< rte_temperature << " K. \n";
                 throw runtime_error( os.str() );
               }
@@ -283,7 +290,7 @@ void pha_mat_sptFromDataDOITOpt( // Output:
               for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
                    aa_inc_idx ++) 
                 {
-                  if( scat_data_mono[i_pt].T_grid.nelem() == 1)
+                  if( N_T == 1)
                     {
                       pha_mat_spt(i_pt, za_inc_idx, aa_inc_idx, joker, joker) =
                         pha_mat_sptDOITOpt[i_pt](0, scat_za_index,
@@ -337,7 +344,7 @@ void opt_prop_sptFromData( // Output and Input:
   const Index stokes_dim = ext_mat_spt.ncols();
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
-
+  
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error("The dimension of the stokes vector \n"
                         "must be 1,2,3 or 4");
@@ -350,6 +357,8 @@ void opt_prop_sptFromData( // Output and Input:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
   Tensor3 ext_mat_data_int;
   Tensor3 abs_vec_data_int;
+  
+  Numeric N_T;
   
   // Initialisation
   ext_mat_spt = 0.;
@@ -364,8 +373,8 @@ void opt_prop_sptFromData( // Output and Input:
 
       if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > pnd_limit)
         {
-      
-      
+          N_T = T_datagrid.nelem();
+          
           // First we have to transform the data from the coordinate system 
           // used in the database (depending on the kind of particle type 
           // specified by *ptype*) to the laboratory coordinate sytem. 
@@ -391,13 +400,16 @@ void opt_prop_sptFromData( // Output and Input:
           GridPos t_gp;
           Vector itw;
           
-          if ( T_datagrid.nelem() > 1)
+          if ( N_T > 1)
             {
-              if (rte_temperature <= T_datagrid[0] || rte_temperature >= T_datagrid[T_datagrid.nelem()-1]){
+             if (rte_temperature <= T_datagrid[0] - extpolfac *
+                        (T_datagrid[1] - T_datagrid[0]) || 
+                      rte_temperature >= T_datagrid[N_T-1] + extpolfac *
+                        (T_datagrid[N_T-1] - T_datagrid[N_T-2]) ){
                 ostringstream os;
-                os << "The temperature grid of the scattering data file does not cover a \n"
-                  "temperature of the atmosphere where the clouds is located, the file shoud \n"
-                  "include the value T="<< rte_temperature << " K. \n";
+                os << "The temperature grid of the scattering data does not cover the \n"
+                      "atmospheric temperature at cloud location. The data should \n"
+                      "include the value T="<< rte_temperature << " K. \n";
                 throw runtime_error( os.str() );
               }
               
@@ -1352,6 +1364,8 @@ void pha_mat_sptFromMonoData( // Output:
   GridPos T_gp;
   Vector itw(2);
 
+  Numeric N_T;
+  
   // Initialisation
   pha_mat_spt = 0.;
   
@@ -1363,22 +1377,24 @@ void pha_mat_sptFromMonoData( // Output:
       if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) >
           pnd_limit)
         { 
-         
+          N_T = scat_data_mono[i_pt].T_grid.nelem();
+          
           // Temporary phase matrix wich icludes the all temperatures.
-          Tensor3 pha_mat_spt_tmp(scat_data_mono[i_pt].T_grid.nelem(), 
-                                  pha_mat_spt.nrows(), pha_mat_spt.ncols());
+          Tensor3 pha_mat_spt_tmp(N_T, pha_mat_spt.nrows(), pha_mat_spt.ncols());
   
           pha_mat_spt_tmp = 0.; 
       
-          if( scat_data_mono[i_pt].T_grid.nelem() > 1)
+          if( N_T > 1)
             {
-              if (rte_temperature <= scat_data_mono[i_pt].T_grid[0] ||
-                  rte_temperature >= scat_data_mono[i_pt].T_grid[scat_data_mono[i_pt].T_grid.nelem()-1]){
+              if (rte_temperature <= scat_data_mono[i_pt].T_grid[0] - extpolfac *
+                (scat_data_mono[i_pt].T_grid[1] - scat_data_mono[i_pt].T_grid[0]) ||
+                rte_temperature >= scat_data_mono[i_pt].T_grid[N_T-1] + extpolfac *
+                (scat_data_mono[i_pt].T_grid[N_T-1] - scat_data_mono[i_pt].T_grid[N_T-2])){
                 ostringstream os;
-                os << "The temperature grid of the scattering data file does not cover a \n"
-                  "temperature of the atmosphere where the clouds is located, the file shoud \n"
-                  "include the value T="<< rte_temperature << " K. \n";
-                throw runtime_error( os.str() );
+              os << "The temperature grid of the scattering data does not cover the \n"
+                    "atmospheric temperature at cloud location. The data should \n"
+                    "include the value T="<< rte_temperature << " K. \n";
+              throw runtime_error( os.str() );
               }
               
               // Gridpositions:
