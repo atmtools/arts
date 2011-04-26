@@ -1385,7 +1385,7 @@ process_request_body (struct MHD_Connection *connection)
         instant_retry = MHD_NO; /* client did not process everything */
       used -= processed;
       if (connection->have_chunked_upload == MHD_YES)
-        connection->current_chunk_offset += used;
+        connection->current_chunk_offset += (unsigned int)used;
       /* dh left "processed" bytes in buffer for next time... */
       buffer_head += used;
       available -= used;

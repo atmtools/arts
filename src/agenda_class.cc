@@ -63,7 +63,7 @@ void give_up(const String& message)
   \author Mattias Ekstrom
   \date   2005-01-05
 */
-void Agenda::append(Workspace& ws _U_,
+void Agenda::append(Workspace& ws,
                     const String& methodname,
                     const TokVal& keywordvalue)
 {

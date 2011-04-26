@@ -27,6 +27,10 @@
 #include "exceptions.h"
 
 
+// Define the global joker object:
+extern const Joker joker = Joker();
+
+
 // Functions for Range:
 // --------------------
 

@@ -45,7 +45,7 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
-#include "arts.h"
+#include "mystring.h"
 #include "matpackI.h"
 
 
@@ -296,14 +296,6 @@ extern const Index GFIELD4_LON_GRID = 3;
     \date   2008-07-01
 */
 extern const Index GFIELD4_AA_GRID = 3;
-
-/** Define the global joker objekt. This is used by Matpack to specify joker ranges.  
-    
-    \author Stefan Buehler
-    \date   2001-09-10
-*/
-Joker joker;
-
 
 
 /*===========================================================================

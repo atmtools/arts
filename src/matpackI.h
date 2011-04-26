@@ -116,7 +116,7 @@ class Joker {
 };
 
 // Declare existence of the global joker object:
-extern Joker joker;
+extern const Joker joker;
 
 // Declare the existence of class ConstMatrixView:
 class ConstIterator1D;
