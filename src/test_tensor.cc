@@ -23,9 +23,6 @@
 #include "array.h"
 #include "matpackVII.h"
 
-/** Define the global joker objekt. */
-Joker joker;
-
 /* --------------------------------------------------------------
      Helper functions for filling tensors with running numbers,
      starting with start = 1 (default).

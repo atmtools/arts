@@ -1,3 +1,11 @@
+2011-04-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-185
+
+	* src/test_matpack.cc, src/test_tensor.cc:
+
+	Remove obsolete local joker definition.
+
 2011-04-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-184

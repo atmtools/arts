@@ -28,9 +28,6 @@
 #include "describe.h"
 #include "matpackII.h"
 
-/** Define the global joker objekt. */
-Joker joker;
-
 Numeric by_reference(const Numeric& x)
 {
   return x+1;
