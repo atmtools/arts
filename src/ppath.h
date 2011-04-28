@@ -99,7 +99,7 @@ void cart2poslos(
        const double&   z,
        const double&   dx,
        const double&   dy,
-             const double&   dz );
+       const double&   dz );
 
 void map_daa(
              double&   za,

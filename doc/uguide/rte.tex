@@ -1,64 +1,32 @@
-\chapter{General radiative transfer}
+\chapter{Radiative transfer: definitions and approach}
  \label{sec:rte}
 
 
  \starthistory
- 100813 & Reformatting and some additions (PE).\\
+ 110428 & Extension and general revision of the chapter (PE).\\
  050613 & First complete version finished by PE.\\
-% 020315 & Started by Patrick Eriksson (PE).\\
  \stophistory
 
 \graphicspath{{Figs/rte/}}
 
-The basic assumption is that there is no particle scattering and the
-(atmospheric) absorption/emission is unpolarised. Cases involving scattering or
-polarised absorption are handled by the ``cloud box''
-(Sec.~\ref{sec:fm_defs:cloudbox}). In short, the more demanding calculations
-are restricted to a smaller domain of the model atmosphere, and the radiative
-transfer approach to apply in this domain is specified seperately. 
+This chapters defines some concepts and quantities, and gives an overview of
+the approach to handle the radiative transfer calculations. This includes an
+overview of how effects caused by the sensor and surface are incorporated.
 
-This chapter deals with radiative transfer outside the cloud box. This includes
-the treatment of the sensor and surface effects. Even though the atmospheric
-absorption and emission outside the cloud box are unpolarised, the expressions
-to apply must allow that polarisation signals from the surface and the cloud
-box are correctly propagated to the sensor. 
+The default assumption is that there is no particle scattering and the
+(atmospheric) absorption/emission is unpolarised. This is for simplicity
+denoted as clear-sky calculations. Cases involving scattering or polarised
+absorption are handled by the ``cloud box'' (Sec.~\ref{sec:fm_defs:cloudbox}).
+In short, the more demanding calculations are restricted to a smaller domain of
+the model atmosphere, and the radiative transfer approach to apply in this
+domain is specified seperately.
 
+This chapter deals with general aspects of radiative transfer and the
+algorithms applied outside the cloudbox. Even though the atmospheric absorption
+and emission outside the cloud box are unpolarised, the expressions to apply
+must allow that polarisation signals from the surface and the cloud box are
+correctly propagated to the sensor.
 
-
-\section{Calculation procedure}
-%===================
-\label{sec:fm_defs:calcproc}
-
-The overall structure of the part solving the radiative transfer
-equation is fixed. The corresponding workspace method is
-\wsmindex{yCalc}. The calculation procedure of \artsstyle{yCalc} is
-outlined in Algorithm~\ref{alg:fm_defs:yCalc}. For further details
-of each calculation step, see the indicated equation or section.
-
-\begin{algorithm}
- \begin{algorithmic}
-  \STATE{allocate memory for the matrix $\MsrVct$}
-  \COMMENT{Equation \ref{eq:fm_defs:measseq}}
-  \STATE{allocate memory for the matrix \aMpiVct{b}}
-  \COMMENT{Equation \ref{eq:fm_defs:freqs_of_ib}}
-  \FORALL{sensor positions}
-   \FORALL[Section \ref{sec:fm_defs:seqsandblocks}]
-                                    {pencil beam directions of the block}
-    \STATE{determine the propagation path by \artsstyle{ppathCalc}}
-    \COMMENT{Section \ref{sec:fm_defs:ppaths}}
-    \STATE{determine the radiation at the start of the propagation path}
-    \COMMENT{Section \ref{sec:fm_defs:rad_bkgr}}
-    \STATE{call \artsstyle{rte\_agenda}}
-    \STATE{copy \artsstyle{iy} to correct part of \aMpiVct{b}}
-   \ENDFOR
-   \STATE{put the product \aSnsMtr{b}\aMpiVct{b} in correct part of 
-          $\MsrVct$}
-  \ENDFOR
- \end{algorithmic}
- \caption{Outline of the overall clear sky radiative transfer calculations
-   (\artsstyle{yCalc}).}
- \label{alg:fm_defs:yCalc}
-\end{algorithm}
 
 
 
@@ -82,8 +50,19 @@ radiation, the second component ($Q$) is the difference between
 vertical and horizontal polarisation, the third component ($U$) is the
 difference for $\pm$45$^\circ$ polarisation and the last component
 ($Q$) is the difference between left and right circular polarisation.
-Further details on polarisation and definition of the Stokes vector
-are found in \theory, Section~\ref{T-sec:polarization}.
+That is:
+\begin{eqnarray}
+  I &=&   \Iv + \Ih = \Ipff + \Imff = \Ilhc + \Irhc, \\
+  Q &=&   \Iv - \Ih,                                 \\
+  U &=&   \Ipff - \Imff,                             \\
+  V &=&   \Ilhc - \Irhc,                             
+\end{eqnarray}
+where \Iv, \Ih, \Ipff, and \Imff\ are the intensity of the component linearly
+polarised at the vertical, horizontal, +45\degree\ and -45\degree\ direction,
+respectively, and \Irhc, and \Ilhc\ are the intensity for the right- and
+left-hand circular components. Further details on polarisation and the
+definition of the Stokes vector are found in \theory,
+Section~\ref{T-sec:polarization}.
 
 ARTS is a fully polarised forward model, but can be run with a smaller
 number of Stokes components. The selection is made with the workspace
@@ -95,6 +74,47 @@ components results in this case only in slower calculations. The
 general case is here denoted as \textindex{vector radiative transfer},
 while \textindex{scalar radiative transfer} refers to the case when
 only the first Stokes component is considered.
+ 
+
+
+
+\section{Overall calculation procedure}
+%===================
+\label{sec:fm_defs:calcproc}
+
+The structure of the part handling the radiative transfer calculations is
+fixed. The corresponding workspace method is \wsmindex{yCalc}. The calculation
+procedure of \artsstyle{yCalc} is outlined in
+Algorithm~\ref{alg:fm_defs:yCalc}. For further details of each calculation
+step, see the indicated equation or section.
+
+\begin{algorithm}
+ \begin{algorithmic}
+  \STATE{allocate memory for the matrix $\MsrVct$}
+  \COMMENT{Equation \ref{eq:fm_defs:measseq}}
+  \STATE{allocate memory for the matrix \aMpiVct{b}}
+  \COMMENT{Equation \ref{eq:fm_defs:freqs_of_ib}}
+  \FORALL{sensor positions}
+   \FORALL[Section \ref{sec:fm_defs:seqsandblocks}]
+                                    {pencil beam directions of the block}
+    \STATE{determine the propagation path by \artsstyle{ppathCalc}}
+    \COMMENT{Section \ref{sec:fm_defs:ppaths}}
+    \STATE{determine the radiation at the start of the propagation path}
+    \COMMENT{Section \ref{sec:fm_defs:rad_bkgr}}
+    \STATE{call \artsstyle{iy\_clearsky\_agenda}}
+    \STATE{copy \artsstyle{iy} to correct part of \aMpiVct{b}}
+   \ENDFOR
+   \STATE{put the product \aSnsMtr{b}\aMpiVct{b} in correct part of 
+          $\MsrVct$}
+  \ENDFOR
+ \end{algorithmic}
+ \caption{Outline of the overall clear sky radiative transfer calculations
+   (\artsstyle{yCalc}).}
+ \label{alg:fm_defs:yCalc}
+\end{algorithm}
+
+
+
 
 
 

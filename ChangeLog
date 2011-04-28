@@ -1,3 +1,21 @@
+2011-04-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+
+	* arts-1-14-187
+
+	* doc/uguide/rte.tex: Started revision.
+
+	* doc/uguide/symbol_defs.tex: Added additional symbols used in the
+	article.
+
+	* doc/uguide/concept.tex: Some polishing. Appended the "Concept"
+	section from the first article manuscript version. To e merged
+	with existing Sec 1.3.
+
+	* doc/uguide/arts_user.tex: Some smaller fixes. Moved up "General
+	RT" as Section 3, aiming at having a top-to-bottom order of the
+	sections.
+
 2011-04-27  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-1-14-186
