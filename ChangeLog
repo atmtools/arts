@@ -1,5 +1,21 @@
+2011-04-29  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-189
+
+	* Started to revise the surface properties methods.
+
+	* src/m_surface.cc (surfaceLambertianSimple): Now using
+	surface_scalar_reflectivity.
+
+	(surfaceFlatRefractiveIndex): complex_n is now also allowed to
+	have a single row.
+
+	(surfaceFlatVaryingRvRh): Removed (don't think it is being used).
+
+	* src/workspace.cc: Introduced surface_scalar_reflectivity.
+
 2011-04-29 Ajil Kottayil  <ajil.kottayil@ltu.se >
-             
+
            * tests/HIRS/TestHIRS.arts: Changed the path of HITRAN directory.
 
 2011-04-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>

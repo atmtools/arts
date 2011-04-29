@@ -3861,6 +3861,31 @@ void Workspace::define_wsv_data()
        ),
       GROUP( "Numeric" )));
 
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "surface_scalar_reflectivity" ),
+      DESCRIPTION
+      (
+       "Surface reflectivity, assuming it can be described as a scalar value.\n"
+       "\n"
+       "This variable describes the surface reflectivity at one position, or\n"
+       "if it assumed to be constant as a function of lat and lon.\n"
+       "\n"
+       "The variable is primarily intended for scalar radiative transfer.\n"
+       "The assumptions made, when using this variable with values of\n"
+       "*stokes_dim* above 1, are described in the methods using this\n"
+       "variable as input.\n"
+       "\n"
+       "The length of the vector shall either match *f_grid* or be 1. The \n"
+       "later case is interpreted as the reflectivity is the same for all\n"
+       "frequencies (ie. matches a constant vector).\n"
+       "\n"
+       "Usage:   Input to some surface properties methods.\n"
+       "\n"
+       "Dimensions: [ f_grid or 1]\n"
+       ),
+      GROUP( "Vector" )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "timer" ),

@@ -197,12 +197,6 @@ void surface_specular_R_and_b(
               }
           }
     }
-  /*
-  cout << Rv << "\n";
-  cout << Rh << "\n";
-  cout << surface_rmatrix << "\n";
-  cout << surface_emission << "\n";
-  */
 }
 
 
@@ -445,10 +439,11 @@ void surfaceFlatRefractiveIndex(
 
   chk_matrix_ncols( "complex_n", complex_n, 2 ); 
   //
-  if( complex_n.nrows() != nf )
+  if( complex_n.nrows() != nf  && complex_n.nrows() != 1 )
     {
       ostringstream os;
-      os << "The number of rows in *complex_n* should match length of *f_grid*."
+      os << "The number of rows in *complex_n* should be 1 or match the length "
+         << "of *f_grid*,"
          << "\n length of *f_grid*  : " << nf 
          << "\n rows in *complex_n* : " << complex_n.nrows() << "\n";
       throw runtime_error( os.str() );
@@ -456,7 +451,6 @@ void surfaceFlatRefractiveIndex(
 
   out2 << "  Sets variables to model a flat surface\n";
   out3 << "     surface temperature: " << surface_skin_t << " K.\n";
-
 
   surface_los.resize( 1, rte_los.nelem() );
   surface_los(0,joker) = rte_los;
@@ -470,12 +464,14 @@ void surfaceFlatRefractiveIndex(
 
   for( Index iv=0; iv<nf; iv++ )
     { 
-      // Set n2 (refractive index of surface medium)
-      Complex n2( complex_n(iv,0), complex_n(iv,1) );
+      if( iv == 0  || complex_n.nrows() > 1 )
+        {
+          // Set n2 (refractive index of surface medium)
+          Complex n2( complex_n(iv,0), complex_n(iv,1) );
 
-      // Amplitude reflection coefficients
-      //
-      fresnel( Rv, Rh, Numeric(1.0), n2, 180.0-abs(rte_los[0]) );
+          // Amplitude reflection coefficients
+          fresnel( Rv, Rh, Numeric(1.0), n2, 180.0-abs(rte_los[0]) );
+        }
 
       // Fill reflection matrix and emission vector
       surface_specular_R_and_b( surface_rmatrix(0,iv,joker,joker), 
@@ -568,80 +564,6 @@ void surfaceFlatSingleEmissivity(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void surfaceFlatVaryingRvRh(
-              Matrix&    surface_los,
-              Tensor4&   surface_rmatrix,
-              Matrix&    surface_emission,
-        const Vector&    f_grid,
-        const Index&     stokes_dim,
-        const Index&     atmosphere_dim,
-        const Vector&    rte_los,
-        const Numeric&   surface_skin_t,
-        const Matrix&    r )
-{
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 2 );
-  chk_not_negative( "surface_skin_t", surface_skin_t );
-
-  const Index   nf = f_grid.nelem();
-
-  if( r.nrows() != nf )
-    {
-      ostringstream os;
-      os << "The number of rows in *r* should match\n"
-         << "length of *f_grid*."
-         << "\n length of *f_grid* : " << nf 
-         << "\n length of *r*      : " << r.nrows() << "\n";
-      throw runtime_error( os.str() );
-    }
-  if( r.ncols() != 2 )
-    {
-      throw runtime_error( "The number of columns in *r* must be 2." );
-    }
-
-  if( min(r(joker,0)) < 0  ||  max(r(joker,0)) > 1  || 
-      min(r(joker,1)) < 0  ||  max(r(joker,1)) > 1 )
-    {
-      throw runtime_error( "All values in *r* must be inside [0,1]." );
-    }
-
-  out2 << "  Sets variables to model a flat surface\n";
-  out3 << "     surface temperature: " << surface_skin_t << " K.\n";
-
-  surface_los.resize( 1, rte_los.nelem() );
-  surface_los(0,joker) = rte_los;
-  surface_specular_los( surface_los(0,joker) , atmosphere_dim );
-
-  surface_emission.resize( nf, stokes_dim );
-  surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
-  surface_rmatrix = 0.0;
-  surface_emission = 0.0;
-
-  for( Index iv=0; iv<nf; iv++ )
-    { 
-      // Stokes dim 1
-      //
-      const Numeric rmean = ( r(iv,0) + r(iv,1) ) / 2;
-      const Numeric B = planck( f_grid[iv], surface_skin_t );
-      //
-      surface_emission(iv,0) = B * (1-rmean);
-      for( Index is=0; is<stokes_dim; is++ )
-        { surface_rmatrix(0,iv,is,is) = rmean; }
-
-      // Stokes dim 2
-      if( stokes_dim > 1 )
-        {
-          const Numeric rdiff = ( r(iv,0) - r(iv,1) ) / 2;
-          surface_emission(iv,1) = B * -rdiff;
-          surface_rmatrix(0,iv,1,0) = rdiff;
-          surface_rmatrix(0,iv,0,1) = rdiff;          
-        }
-    }
-}
-
-
-
-/* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceLambertianSimple(
               Matrix&    surface_los,
               Tensor4&   surface_rmatrix,
@@ -651,17 +573,23 @@ void surfaceLambertianSimple(
         const Index&     atmosphere_dim,
         const Vector&    rte_los,
         const Numeric&   surface_skin_t,
-        const Numeric&   rd,
+        const Vector&    surface_scalar_reflectivity,
         const Index&     np,
         const Numeric&   za_pos )
 {
+  const Index   nf = f_grid.nelem();
+
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 1 );
   chk_not_negative( "surface_skin_t", surface_skin_t );
-  chk_if_in_range( "rd", rd, 0, 1 );
   chk_if_in_range( "za_pos", za_pos, 0, 1 );
 
-  const Index   nf = f_grid.nelem();
+  if( surface_scalar_reflectivity.nelem() != 1  && 
+      surface_scalar_reflectivity.nelem() != nf )
+    {
+      throw runtime_error( "Length of *surface_scalar_reflectivity* must "
+                           "either be 1 or be equal to length of *f_grid*." );
+    } 
 
   // Allocate and init everything to zero
   //
@@ -673,25 +601,39 @@ void surfaceLambertianSimple(
   surface_rmatrix  = 0.0;
   surface_emission = 0.0;
 
-  // LOS and RMATRIX
+  // Help variables
   //
   const Numeric dza = 90.0 / np;
   const Vector za_lims( 0.0, np+1, dza );
-  //
+
+  // surface_los
   for( Index ip=0; ip<np; ip++ )
-    {
-      surface_los(ip,0) = za_lims[ip] + za_pos * dza;
+    { surface_los(ip,0) = za_lims[ip] + za_pos * dza; }
 
-      const Numeric w = rd * 0.5 * ( cos(2*DEG2RAD*za_lims[ip]) - 
-                                     cos(2*DEG2RAD*za_lims[ip+1]) );
-      for( Index is=0; is<stokes_dim; is++ )
-        { surface_rmatrix(ip,joker,is,is) = w; }
-    }
-
-  // Emission term
+  // Loop frequencies and set remaining values
   //
-  const Numeric e = 1.0 - rd;
+  Numeric rd = surface_scalar_reflectivity[0];
+  chk_if_in_range( "surface_scalar_reflectivity[0]", rd, 0, 1 );
   //
   for( Index iv=0; iv<nf; iv++ )
-    { surface_emission(iv,0) = e * planck( f_grid[iv], surface_skin_t ); }
+    {
+      // Update reflectivity?
+      if( iv  &&  surface_scalar_reflectivity.nelem() > 1 )
+        { 
+          rd = surface_scalar_reflectivity[iv];
+          chk_if_in_range( "surface_scalar_reflectivity[i]", rd, 0, 1 );
+        }
+
+      // surface_rmatrix
+      for( Index ip=0; ip<np; ip++ )
+        {
+          const Numeric w = rd * 0.5 * ( cos(2*DEG2RAD*za_lims[ip]) - 
+                                         cos(2*DEG2RAD*za_lims[ip+1]) );
+          for( Index is=0; is<stokes_dim; is++ )
+            { surface_rmatrix(ip,iv,is,is) = w; }
+        }
+
+      // surface_emission
+      surface_emission(iv,0) = (1-rd) * planck( f_grid[iv], surface_skin_t );
+    }
 }
