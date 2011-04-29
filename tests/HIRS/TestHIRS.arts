@@ -48,7 +48,7 @@ ArrayOfIndexSet(views, [0, 7, 14, 21, 27])
 # this.
 # We can also include a pre-calculated absorption table for HIRS with
 # ARTS. 
-StringSet(hitran_file,"/storage1/pool/lookup2/hitran2004/HITRAN04.par")
+StringSet(hitran_file,"/storage3/data/catalogue/hitran/hitran2004/HITRAN04.par")
 #StringSet(hitran_file,"/home/patrick/Data/HITRAN_2004/HITRAN04.par")
 
 

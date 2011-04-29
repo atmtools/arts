@@ -1,3 +1,7 @@
+2011-04-29 Ajil Kottayil  <ajil.kottayil@ltu.se >
+             
+           * tests/HIRS/TestHIRS.arts: Changed the path of HITRAN directory.
+
 2011-04-28  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 
