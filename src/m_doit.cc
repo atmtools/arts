@@ -1404,7 +1404,6 @@ void DoitInit(
               Index& scat_aa_index,
               Tensor6& doit_scat_field,
               Tensor6& doit_i_field,
-              Index& doit_za_interp,
               Index& doit_is_initialized,
               // WS Input
               const Index& stokes_dim,
@@ -1523,13 +1522,6 @@ void DoitInit(
   
   doit_i_field = 0.;
   doit_scat_field = 0.;
-
-                                    
-                                    
-  // Default interpolation method is "linear"
-  if (doit_za_interp != 1)
-    doit_za_interp = 0;
-  
   doit_is_initialized = 1;
 }
 

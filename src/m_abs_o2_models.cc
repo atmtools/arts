@@ -470,6 +470,7 @@ abs_vec_tmp = 2 x |B |
 where the components A, B, C, D, and E are individually calculated in
 Zeeman_o2_line_splitting.
 
+!!! WARNING: This function is not threadsafe! It uses non-const static vars (OLE) !!!
 
    \retval ext_mat_tmp     Temporary 4x4 extinction matrix, [1/m]
    \retval abs_vec_tmp     Temporary 1x4 absorption vector, [1/m]

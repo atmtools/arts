@@ -496,31 +496,31 @@ Numeric sign( const Numeric& x )
 
 Numeric gamma_func(Numeric xx)
 {
-    //double lgamma(double xx);
-    
-    Numeric gam;
-    Index i;
-        
-    
-    if (xx > 0.0) {
-	if (xx == (int)xx) {
-            gam = 1.0;               // use factorial
-            for (i=2;i<xx;i++) {
-               gam *= i;
-            }
-	}    
-        else {       
-	    return exp(lgamma_func(xx));
-	}
-    } else {
-	    ostringstream os;
-	    os << "Argument is zero or negative."
-	       << "Gamma function can not be calculated.\n";
-	    throw runtime_error(os.str());
-	 }
-          
+  //double lgamma(double xx);
   
-    return gam;
+  Numeric gam;
+  Index i;
+  
+  
+  if (xx > 0.0) {
+    if (xx == (int)xx) {
+      gam = 1.0;               // use factorial
+      for (i=2;i<xx;i++) {
+        gam *= i;
+      }
+    }    
+    else {       
+	    return exp(lgamma_func(xx));
+    }
+  } else {
+    ostringstream os;
+    os << "Argument is zero or negative."
+    << "Gamma function can not be calculated.\n";
+    throw runtime_error(os.str());
+  }
+  
+  
+  return gam;
 }
 
 
@@ -537,19 +537,20 @@ Numeric gamma_func(Numeric xx)
 
 Numeric lgamma_func(Numeric xx)
 {
-
-   Numeric x,y,tmp,ser;
-   static Numeric cof[6] = {76.18009172947146,-86.50532032941677,24.01409824083091,
-   -1.231739572450155,0.1208650973866179e-2,-0.5395239384953e-5};
-   
-   if (xx > 0.0)
-   {
+  
+  Numeric x,y,tmp,ser;
+  static const Numeric cof[6] = {
+    76.18009172947146, -86.50532032941677, 24.01409824083091,
+    -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5
+  };
+  
+  if (xx > 0.0)
+  {
     y=x=xx;
     tmp = x+5.5;
     tmp -= (x+0.5)*log(tmp);
-    ser = 1.000000000190015;
+    ser = 1.000000000190015;    // FIXME OLE: ser will be 1 if Numeric==float
     for (Index j=0;j<=5;j++) ser += cof[j]/++y;
-    
     return -tmp+log(2.5066282746310005*ser/x);
   }
   else
