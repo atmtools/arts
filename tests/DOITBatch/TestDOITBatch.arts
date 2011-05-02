@@ -83,7 +83,7 @@ ArrayOfMatrixCreate( arrayofmatrix_1 )
 ReadXML( arrayofmatrix_1, "chevallierl91_all_extract.xml" )
 
 
-# Convert to batch_atm_fields_compact_all AND batch_atm_fields_compact_all
+# Convert to batch_atm_fields_compact AND batch_atm_fields_compact_all
 # -----------------------------------------------------------------------
 # The values taken for O2 and N2 are from Wallace&Hobbs, 2nd edition.
 batch_atm_fields_compactFromArrayOfMatrixChevalAll(

@@ -104,13 +104,14 @@ void cloudboxSetAutomatically (
 )
 {
   // Variables
-  Numeric p1 = massdensity_field.npages()-1;
-  Numeric p2 = 0;
-  Numeric lat1 = massdensity_field.nrows()-1;
-  Numeric lat2 = 0;
-  Numeric lon1 = massdensity_field.ncols()-1;
-  Numeric lon2 = 0;
-  Numeric p_margin1;
+  //const Index np = massdensity_field.npages(); 
+  Index p1 = massdensity_field.npages()-1;
+  Index p2 = 0;
+  Index lat1 = massdensity_field.nrows()-1;
+  Index lat2 = 0;
+  Index lon1 = massdensity_field.ncols()-1;
+  Index lon2 = 0;
+  Index p_margin1;
 
   Index type_flag=0, i=0, j=0, k=0, l=0;
   bool x = false; //initialize flag, telling if all selected *massdensity_fields* are zero(false) or not(true)
@@ -183,10 +184,7 @@ void cloudboxSetAutomatically (
               break;
             }
           }
-          // alter lower cloudbox_limit by cloudbox_margin, using barometric height formula
-          p_margin1 = barometric_heightformula ( p_grid[p1], cloudbox_margin );
-          while ( p_grid[k] >= p_margin1 ) k++;
-          cloudbox_limits[0]= k;
+
         }
         // find index of highest pressure lvl where massdensity_field is unequal 0, starting from top of atm.
         for ( j=hydro_p.nelem()-1; j>=i; j-- )
@@ -195,27 +193,12 @@ void cloudboxSetAutomatically (
           {
             if ( p2 < j ) //check if p2 is the highest index in all selected massdensity fields
             {
-	      // j+1 to ensure that linear interpolation of particle number densities is possible
-              p2 = j+1;
+	      p2 = j;
             }
             break;
           }
         }
-        // set upper cloudbox_limit
-	// if cloudbox reaches to the upper most pressure level it needs to be reduced 
-	if (p2 >= hydro_p.nelem())
-	{
-	  
-	  cloudbox_limits[1] = hydro_p.nelem()-1;
-	  
-	  out2<<"The cloudbox reaches to TOA!\n"
-	      <<"The upper limit is lowered by one.\n"
-	      <<"Check hydromet_field data, if realistic!\n";
-	      
-	}
-	else cloudbox_limits[1] = p2;
 
-        //out0<<"\n"<<p2<<"\n"<<p_grid[p2]<<"\n";
       }
     }
 
@@ -280,8 +263,32 @@ void cloudboxSetAutomatically (
           }
 
 
-        }*/
+}*/
   }
+  // decrease lower cb limit by one to ensure that linear interpolation of 
+  // particle number densities is possible.
+  Index p0 = 0; //only for the use of function *max*
+  p1 = max(p1-1, p0);
+  
+  // alter lower cloudbox_limit by cloudbox_margin, using barometric height formula
+  p_margin1 = barometric_heightformula ( p_grid[p1], cloudbox_margin );
+  while ( p_grid[k+1] >= p_margin1 && k+1 < p_grid.nelem() ) k++;
+  cloudbox_limits[0]= k;
+
+  // increase upper cb limit by one to ensure that linear interpolation of 
+  // particle number densities is possible.
+  p2 = min(p2+1, massdensity_field.npages()-1);
+  // set upper cloudbox_limit
+  // if cloudbox reaches to the upper most pressure level
+  if ( p2 >= massdensity_field.npages()-1)
+  {
+    out2<<"The cloud reaches to TOA!\n"
+    <<"Check massdensity_field data, if realistic!\n";
+  }
+  cloudbox_limits[1] = p2;
+
+  //out0<<"\n"<<p2<<"\n"<<p_grid[p2]<<"\n";
+
   // check if all selected massdensity fields are zero at each level, than switch cloudbox off,
   // skipping scattering calculations
   if ( !x )
@@ -292,7 +299,6 @@ void cloudboxSetAutomatically (
 
     return;
   }
-
 
 
   // assert keyword arguments

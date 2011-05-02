@@ -2312,11 +2312,14 @@ void define_md_data_raw()
         (
          "Set *atm_fields_compact* and *atm_fields_compact_all* from 1D profiles in a matrix.\n"
          "\n"
-         "This WSM replaces *atm_fields_compactFromMatrix* in case of batch calculations,\n"
-	 "including scattering. *atm_fields_compact_all* ArrayOfMatrix additionally contains \n"
+         "This WSM replaces *atm_fields_compactFromMatrix* in case of calculations,\n"
+	 "including scattering. *atm_fields_compact_all* additionally contains \n"
 	 "the mass concentration profiles of scattering particles.\n"
-	 "*atm_fields_compact* is also still needed, for the WSM *abs_lookupSetupBatch*.\n"
-	 "For that reason both ArrayOfMatrix are defined as output.\n"
+	 "\n"
+	 "In case of batch calculations, this WSM is called internally by\n" 
+	 "*batch_atm_fields_compactFromMatrixChevalAll*.\n"
+	 "In this case *atm_fields_compact* is also still needed, for the WSM *abs_lookupSetupBatch*.\n"
+	 "For that reason both GriddedField4 are defined as output here.\n"
 	 "\n"
 	 "For further documentation see: *atm_fields_compactFromMatrix*\n"
 	 "\n"
@@ -2324,7 +2327,7 @@ void define_md_data_raw()
          "\n"
          "p[Pa] T[K] z[m] LWC[kg/m3] IWC[kg/m3] Rain[kg/m2/s] Snow[kg/m2/s] VMR_1[fractional] ... VMR[fractional] IGNORE ... IGNORE\n"
          "\n"
-         "Works only for *atmosphere_dim==1.*\n"
+         "Works only for *atmosphere_dim*==1.\n"
 	 "\n"
 	 "Possible future changes: name should fit naming conventions.\n"
 	 "\tWSM *abs_lookupSetupBatch* could be edited to handle *batch_atm_fields_compact*\n"
@@ -6235,10 +6238,10 @@ void define_md_data_raw()
 	 "For more details, see WSV *part_species*.\n"
 	 ),
         AUTHORS( "Daniel Kreyling" ),
-        OUT(  ),
-        GOUT("part_species"  ),
-        GOUT_TYPE( "ArrayOfString" ),
-        GOUT_DESC("Scattering particle selection criteria for pnd calculations." ),
+        OUT( "part_species" ),
+        GOUT( ),
+        GOUT_TYPE( ),
+        GOUT_DESC( ),
         IN(),
         GIN( "names" ),
         GIN_TYPE(  "ArrayOfString" ),

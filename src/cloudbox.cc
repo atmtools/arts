@@ -770,7 +770,7 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
   
 }
 
-/*! barometric heightformula for isothermal atmosphere
+/*! barometric heightformula for isothermal earth atmosphere 
     \return p1 pressure in displacement level [Pa]
           
     \param p atmospheric pressure at starting level [Pa]
@@ -787,15 +787,21 @@ Numeric barometric_heightformula ( //output is p1
 				   )
 
 {
-				  
+ /* taken from: Seite „Barometrische Höhenformel“. In: Wikipedia, 
+ * Die freie Enzyklopädie. Bearbeitungsstand: 3. April 2011, 20:28 UTC.
+ * URL: http://de.wikipedia.org/w/index.php?title=Barometrische_H%C3%B6henformel&oldid=87257486 
+ * (Abgerufen: 15. April 2011, 15:41 UTC) 
+ */
+
+  
   //barometirc height formula
-  Numeric M = 0.02896; //mean molar mass [kg mol^-1]
+  Numeric M = 0.02896; //mean molar mass of air [kg mol^-1]
   Numeric g = 9.807; //earth accelaration [kg m s^-1]
   Numeric R = 8.314; //universal gas constant [J K^−1 mol^−1]
-  Numeric T = 288; //reference temperature [K]
+  Numeric T = 253; //median tropospheric reference temperature [K]
     
   // calculation
-  Numeric p1 = p * exp(-(-dh)/(R*T/M*g));
+  Numeric p1 = p * exp(-(-dh)/(R*T/(M*g)));
   
   return p1;
   
