@@ -8182,8 +8182,6 @@ void define_md_data_raw()
         "A lambertian surface can be characterised solely by its\n"
         "reflectivity, here taken from *surface_scalar_reflectivity*.\n"
         "\n"
-        "The method can so far only be used for scalar RT.\n"
-        "\n"
         "The down-welling radiation field is estimated by making calculations\n"
         "for *np* directions. The range of zenith angles ([0,90]) is divided\n"
         "in an equidistant manner. The values for *surface_rmatrix* are\n"

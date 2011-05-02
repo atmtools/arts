@@ -1,5 +1,16 @@
 2011-05-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
+	* arts-1-14-194
+
+	* src/m_surface.cc (surfaceLambertianSimple): Copied some new
+	code from surfaceFlatReflectivity. Changed the rmatrix from being
+	diagonal, to just get the (0,0) element filled for stokes_dim>1.
+	This is my present understanding of the defintion of the
+	Lambertian surface (I will look for conformation). Re-allowed
+	usage for stokes_dim > 1.
+
+2011-05-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
 	* arts-1-14-193
 
 	* tests/AMSU/TestAMSU_generic.arts:

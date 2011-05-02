@@ -645,16 +645,29 @@ void surfaceLambertianSimple(
   const Index   nf = f_grid.nelem();
 
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 1 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
   chk_not_negative( "surface_skin_t", surface_skin_t );
   chk_if_in_range( "za_pos", za_pos, 0, 1 );
 
-  if( surface_scalar_reflectivity.nelem() != 1  && 
-      surface_scalar_reflectivity.nelem() != nf )
+  if( surface_scalar_reflectivity.nelem() != nf  &&  
+      surface_scalar_reflectivity.nelem() != 1 )
     {
-      throw runtime_error( "Length of *surface_scalar_reflectivity* must "
-                           "either be 1 or be equal to length of *f_grid*." );
-    } 
+      ostringstream os;
+      os << "The number of elements in *surface_scalar_reflectivity* should\n"
+         << "match length of *f_grid* or be 1."
+         << "\n length of *f_grid* : " << nf 
+         << "\n length of *surface_scalar_reflectivity* : " 
+         << surface_scalar_reflectivity.nelem()
+         << "\n";
+      throw runtime_error( os.str() );
+    }
+
+  if( min(surface_scalar_reflectivity) < 0  ||  
+      max(surface_scalar_reflectivity) > 1 )
+    {
+      throw runtime_error( 
+         "All values in *surface_scalar_reflectivity* must be inside [0,1]." );
+    }
 
   // Allocate and init everything to zero
   //
@@ -677,28 +690,23 @@ void surfaceLambertianSimple(
 
   // Loop frequencies and set remaining values
   //
-  Numeric rd = surface_scalar_reflectivity[0];
-  chk_if_in_range( "surface_scalar_reflectivity[0]", rd, 0, 1 );
+  Numeric r = 0.0;
   //
   for( Index iv=0; iv<nf; iv++ )
     {
-      // Update reflectivity?
-      if( iv  &&  surface_scalar_reflectivity.nelem() > 1 )
-        { 
-          rd = surface_scalar_reflectivity[iv];
-          chk_if_in_range( "surface_scalar_reflectivity[i]", rd, 0, 1 );
-        }
+      // Get reflectivity
+      if( iv == 0  || surface_scalar_reflectivity.nelem() > 1 )
+        { r = surface_scalar_reflectivity[iv]; }
 
       // surface_rmatrix
       for( Index ip=0; ip<np; ip++ )
         {
-          const Numeric w = rd * 0.5 * ( cos(2*DEG2RAD*za_lims[ip]) - 
+          const Numeric w = r * 0.5 * ( cos(2*DEG2RAD*za_lims[ip]) - 
                                          cos(2*DEG2RAD*za_lims[ip+1]) );
-          for( Index is=0; is<stokes_dim; is++ )
-            { surface_rmatrix(ip,iv,is,is) = w; }
+          surface_rmatrix(ip,iv,0,0) = w;
         }
 
       // surface_emission
-      surface_emission(iv,0) = (1-rd) * planck( f_grid[iv], surface_skin_t );
+      surface_emission(iv,0) = (1-r) * planck( f_grid[iv], surface_skin_t );
     }
 }
