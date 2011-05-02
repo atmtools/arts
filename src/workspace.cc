@@ -1039,16 +1039,18 @@ void Workspace::define_wsv_data()
         "Complex refractive index (n).\n"
         "\n"
         "This matrix describes the dielectric properties of some medium. \n"
-        "A typical usage of this variable is to describe the properties of the\n"
-        "surface (if it is assumed to be flat).\n"
+        "A typical usage of this variable is to describe the properties of\n"
+        "the surface (if it is assumed to be flat).\n"
         "\n"
         "This is a two-column matrix. The first column holds the real part\n"
         "of n, and the second column the imaginary part. The number of rows\n"
-        "should normally match *f_grid*."
+        "should match *f_grid*. The case of one row is also accepted,\n"
+        "interpreted as that the refractive index is constant with \n"
+        "frequency.\n"
         "\n"
         "Unit:       -\n"
         "\n"
-        "Dimensions: [f_grid,2]\n"
+        "Dimensions: [f_grid or 1,2]\n"
         ),
        GROUP( "Matrix" ) ));
 

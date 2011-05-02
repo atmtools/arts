@@ -420,6 +420,71 @@ void surfaceBlackbody(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void surfaceFlatReflectivity(
+              Matrix&    surface_los,
+              Tensor4&   surface_rmatrix,
+              Matrix&    surface_emission,
+        const Vector&    f_grid,
+        const Index&     stokes_dim,
+        const Index&     atmosphere_dim,
+        const Vector&    rte_los,
+        const Numeric&   surface_skin_t,
+        const Vector&    surface_scalar_reflectivity )
+{
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_not_negative( "surface_skin_t", surface_skin_t );
+
+  const Index   nf = f_grid.nelem();
+
+  if( surface_scalar_reflectivity.nelem() != nf  &&  
+      surface_scalar_reflectivity.nelem() != 1 )
+    {
+      ostringstream os;
+      os << "The number of elements in *surface_scalar_reflectivity* should\n"
+         << "match length of *f_grid* or be 1."
+         << "\n length of *f_grid* : " << nf 
+         << "\n length of *surface_scalar_reflectivity* : " 
+         << surface_scalar_reflectivity.nelem()
+         << "\n";
+      throw runtime_error( os.str() );
+    }
+
+  if( min(surface_scalar_reflectivity) < 0  ||  
+      max(surface_scalar_reflectivity) > 1 )
+    {
+      throw runtime_error( 
+         "All values in *surface_scalar_reflectivity* must be inside [0,1]." );
+    }
+
+  out2 << "  Sets variables to model a flat surface\n";
+  out3 << "     surface temperature: " << surface_skin_t << " K.\n";
+
+  surface_los.resize( 1, rte_los.nelem() );
+  surface_los(0,joker) = rte_los;
+  surface_specular_los( surface_los(0, joker) , atmosphere_dim );
+
+  surface_emission.resize( nf, stokes_dim );
+  surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
+  surface_rmatrix = 0.0;
+  surface_emission = 0.0;
+
+  Numeric r = 0.0;
+
+  for( Index iv=0; iv<nf; iv++ )
+    { 
+      if( iv == 0  || surface_scalar_reflectivity.nelem() > 1 )
+        { r = surface_scalar_reflectivity[iv]; }
+
+      surface_emission(iv,0) = (1.0-r) * planck( f_grid[iv], surface_skin_t );
+      for( Index is=0; is<stokes_dim; is++ )
+        { surface_rmatrix(0,iv,is,is) = r; }
+    }
+}
+
+
+
+/* Workspace method: Doxygen documentation will be auto-generated */
 void surfaceFlatRefractiveIndex(
               Matrix&    surface_los,
               Tensor4&   surface_rmatrix,

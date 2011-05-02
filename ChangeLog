@@ -1,27 +1,39 @@
+2011-05-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-193
+
+	* tests/AMSU/TestAMSU_generic.arts:
+	* includes/amsu/amsub_fast.arts:
+	* includes/amsu/amsub.arts: Both now using surfaceFlatReflectivity.
+
+	* src/m_surface.cc (surfaceFlatReflectivity): Created.
+
+	* src/workspace.cc: More detailed description of
+	surfaceFlatReflectivity.
+
 2011-05-02  Daniel Kreyling  <daniel.kreyling@physik.uni-muenchen.de>
 
 	* arts-1-14-192
-	
+
 	* src/methods.cc:
 	Documentation fix.
 
 	* src/cloudbox.cc:
-	corrected a mathematical mistake and changed median tropospheric 
-	temperature inbarometric_heightformula from 288K to 253K and 
+	corrected a mathematical mistake and changed median tropospheric
+	temperature inbarometric_heightformula from 288K to 253K and
 	added a sourcereference.
 
 	* src/m_cloudbox.cc:
 	corrected a bug in cloudboxSetAutomatically. In case of two different
 	hydrometeor profiles used to set the cloudbox_limits the results of
-	the second profile was not handed over to the final cloudbox_limits 
+	the second profile was not handed over to the final cloudbox_limits
 	array.
-	Additionally ensured that the cb boundary will always be set to 
+	Additionally ensured that the cb boundary will always be set to
 	the first zero value below/above the cloud.
 
 	* tests/DOITBatch/TestDOITBatch.arts:
 	Documentation fix.
-	
-	
+
 2011-05-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-191

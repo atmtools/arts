@@ -2953,10 +2953,11 @@ void define_md_data_raw()
         (
          "Complex refractive index of liquid water according to Liebe 1993.\n"
          "\n"
-         "The method treats liquid water without salt. Not valid below 10 GHz.\n"
-         "Upper frequency limit not known and is here set to 1000 GHz. Model\n"
-         "parameters taken from Atmlab function epswater93 (by C. Maetzler),\n"
-         "which refer to Liebe 1993 without closer specifications.\n"
+         "The method treats liquid water without salt. Thus, not valid below\n"
+         "10 GHz. Upper frequency limit not known, here set to 1000 GHz.\n"
+         "Model parameters taken from Atmlab function epswater93 (by\n"
+         "C. Maetzler), which refer to Liebe 1993 without closer\n"
+         "specifications.\n"
          "\n"
          "Temperature must be between 0 and 100 degrees Celsius.\n"
          ),
@@ -8048,7 +8049,6 @@ void define_md_data_raw()
         GIN_DESC()
         ));
 
-  /*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "surfaceFlatReflectivity" ),
@@ -8057,10 +8057,14 @@ void define_md_data_raw()
          "Creates variables to mimic specular reflection by a (flat) surface\n"
          "where the reflectivity is specified.\n"
          "\n"
-
+         "The surface is treated to be flat, and the same (amplityde)\n"
+         "reflectivity is assumed for vertical and horisontal polarisation.\n"
+         "These assumption result in a pure diagonal *surface_rmatrix* (see\n"
+         "surface chapter in AUG).\n"
          "\n"
          "Local thermodynamic equilibrium is assumed, which corresponds to\n"
-         "that the reflection and emission coefficients add up to 1.\n"
+         "that the reflection and emission coefficients add up to 1. The\n"
+         "emission is here unpolarised.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
@@ -8074,7 +8078,6 @@ void define_md_data_raw()
         GIN_DEFAULT(),
         GIN_DESC()
         ));
-  */
 
   md_data_raw.push_back
     ( MdRecord
@@ -8088,10 +8091,7 @@ void define_md_data_raw()
          "*complex_n*. The Fresnel eqiuations are used to calculate\n"
          "amplitude reflection coefficients. The method can thus result\n"
          "in that the reflection properties differ between frequencies\n"
-         "and polarizations. The number of rows in *complex_n* must match\n"
-         "the length of *f_grid*. The case of one row is also accepted,\n"
-         "interpreted as that the refractive index is constant with \n"
-         "frequency.\n"
+         "and polarizations."
          "\n"
          "Local thermodynamic equilibrium is assumed, which corresponds to\n"
          "that the reflection and emission coefficients add up to 1.\n"

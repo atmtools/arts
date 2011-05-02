@@ -90,7 +90,7 @@ r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
 #
 # Warning: If you want to do calculations with something other than a
 # blackbody surface, you have to re-define the surface_prop_agenda. It
-# is not enough to just set a surface_emissivity! 
+# is not enough to just set e.g. surface_scalar_reflectivity! 
 # 
 AgendaSet( surface_prop_agenda ){
    Ignore( rte_pos )
