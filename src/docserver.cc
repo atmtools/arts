@@ -42,6 +42,8 @@
 
 #define DOCSERVER_NAME "ARTS built-in documentation server"
 
+#define DS_ERROR_404 "Page not found"
+
 static string ds_baseurl;
 
 void limit_line_length (ostream& os,
@@ -54,6 +56,9 @@ void get_short_wsv_description(String &s, const String &desc);
 
 bool format_paragraph (String &s, const String &indent, const size_t linelen,
                        const size_t offset = 0);
+
+void ds_insert_error (ostream& os, const string& error);
+
 
 //! Split string.
 /** 
@@ -726,6 +731,10 @@ void ds_doc_method (ostream &os, const string& mname)
     }
     os << "</table>" << endl;
   }
+  else
+  {
+    ds_insert_error (os, "There is no method by this name.");
+  }
 }
 
 //! Output a list of methods that can use or generate the given variable.
@@ -980,9 +989,13 @@ void ds_doc_variable (ostream &os, const string& vname)
     
     os << "<p><b>Group: </b>"
     << ds_insert_group_link(wsv_group_names[Workspace::wsv_data[it->second].Group()]) << endl;
+    
+    ds_doc_variable_methods(os, vname);
   }
-
-  ds_doc_variable_methods(os, vname);
+  else
+  {
+    ds_insert_error (os, "There is no variable by this name.");
+  }
 }
 
 //! Output the agenda documentation to stream.
@@ -1087,9 +1100,13 @@ void ds_doc_agenda (ostream &os, const string& aname)
       
       os << "</table>" << endl;
     }
+    
+    ds_doc_variable_methods(os, aname);
   }
-
-  ds_doc_variable_methods(os, aname);
+  else
+  {
+    ds_insert_error (os, "There is no agenda by this name.");
+  }
 }
 
 //! Output the workspace group documentation to stream.
@@ -1296,6 +1313,10 @@ void ds_doc_group (ostream &os, const string& gname)
       os << "</ul>" << endl;
     }
   }
+  else
+  {
+    ds_insert_error (os, "There is no group by this name.");
+  }
 }
 
 //! Output HTML code for a breadcrumb token.
@@ -1356,6 +1377,21 @@ void ds_insert_breadcrumbs (ostream& os, const vector<string>& tokens)
     ds_insert_breadcrumb_token (os, ntokens, t);
   }
   os << "</span>" << endl;
+}
+
+//! Output error.
+/** 
+ Formats the given string as an error message.
+ 
+ \param[in,out]  os     Output stream.
+ \param[in]      title  Title string.
+ 
+ \author Oliver Lemke
+ */
+void ds_insert_error (ostream& os, const string& error = "")
+{
+  if (error.length())
+    os << "<p class=\"error\">" << error << "</p>" << endl;
 }
 
 //! Output H1 HTML tag.
@@ -1432,8 +1468,14 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
     title = "Agenda Index";
     index_method = ds_list_agendas;
   }
-  else return;
-
+  else
+  {
+    ds_begin_page(os, "");
+    ds_insert_breadcrumbs (os, tokens);
+    ds_insert_error (os, DS_ERROR_404);
+    return;
+  }
+  
   ds_begin_page(os, title);
   ds_insert_breadcrumbs (os, tokens);
   ds_insert_title (os, title);
@@ -1474,11 +1516,17 @@ void ds_insert_doc (ostream& os, const vector<string>& tokens)
     doc_method = ds_doc_group;
   }
   else if (tokens[0] == "agendas")
-   {
-   title = "Agenda " + tokens[1];
-   doc_method = ds_doc_agenda;
-   }
-  else return;
+  {
+    title = "Agenda " + tokens[1];
+    doc_method = ds_doc_agenda;
+  }
+  else
+  {
+    ds_begin_page(os, "");
+    ds_insert_breadcrumbs (os, tokens);
+    ds_insert_error (os, DS_ERROR_404);
+    return;
+  }
   
   ds_begin_page(os, tokens[1]);
   ds_insert_breadcrumbs (os, tokens);
@@ -1523,8 +1571,14 @@ void ds_stylesheet (ostream& os)
   << "text-align: right;" << endl
   << "}" << endl
   
-  << "span.breadcrumbs {" << endl
+  << ".breadcrumbs {" << endl
   << "font-size: small;" << endl
+  << "}" << endl
+  
+  << ".error {" << endl
+  << "color: #ff0000;" << endl
+  << "font-weight: bold;" << endl
+  << "font-size: 1.2em;" << endl
   << "}" << endl
   
   << "div.footer {" << endl
@@ -1620,7 +1674,9 @@ ahc_echo (void *cls _U_,
         ds_insert_doc(hout, tokens);
         break;
       default:
-        ds_insert_title (hout);
+        ds_begin_page(hout, "");
+        ds_insert_breadcrumbs (hout, tokens);
+        ds_insert_error (hout, DS_ERROR_404);
     }
     
     ds_end_page (hout);

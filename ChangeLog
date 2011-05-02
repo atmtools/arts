@@ -1,3 +1,13 @@
+2011-05-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-14-191
+
+	* src/docserver.cc: Display error for non-existent pages.
+
+	(ds_insert_error): New function to insert an error message.
+
+	(ds_stylesheet): Add .error style.
+
 2011-04-28  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-190
