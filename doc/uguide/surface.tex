@@ -14,7 +14,7 @@
 The \textindex{geoid} is an imaginary surface used as a
 reference when specifying the surface altitude and the altitude
 of pressure levels. Any shape of the geoid is allowed but a smoothly
-varying geoid is the natural choice, with the enters of the geoid and
+varying geoid is the natural choice, with the centers of the geoid and
 the coordinate system coinciding. The geoid should normally be set to
 the reference ellipsoid for some global geodetic datum, such as
 WGS-84. For further reading on geoid ellipsoids and WGS-84, see
@@ -154,8 +154,8 @@ workspace variables should then be set as follows:
  where $\Delta h$ is the root mean square variation of the surface
  height, \Wvl\ the wavelength and $\theta_1$ the angle between the
  surface normal and the incident direction of the radiation. The
- criterion can also be defined with the factor 8 replaced with a lower
- integer number.
+ criterion can also be defined with the factor 8 replaced with a 
+ higher number.
  
  The complex reflection coefficient for the amplitude of the
  electromagnetic wave for vertical ($R_v$) and horizontal ($R_v$)
@@ -177,7 +177,7 @@ workspace variables should then be set as follows:
    \label{eq:surface:snell}
    \Re(n_1)\sin\theta_1 = \Re(n_2)\sin\theta_2,
  \end{equation}
- where $\Re(\cdot)$ denotes the complex real part. Equation {eq:surface:snell}
+ where $\Re(\cdot)$ denotes the real real part. Equation~\ref{eq:surface:snell}
  is theoretically correct only if both $n_1$ and $n_2$ have no imaginary part. 
  For cases where medium 1 is air, $n_1$ can (in this context) be set to 1, and 
 an expression allowing $n_2$ to be complex is found in Section 5.4.1.3 of
@@ -234,23 +234,22 @@ If \MtrStl{R} is given by Equation \ref{eq:surface:specular_matrix},
 Equation \ref{eq:surface:bvector} gives that the surface emission  is
 \begin{equation}
   \label{eq:surface:specular_emission}
-   \left[\begin{array}{c}
+   \VctStl{b} = \left[\begin{array}{c}
      B\left(1-\frac{r_v+r_h}{2}\right) \\
      B\frac{r_h-r_v}{2} \\
      0\\0
    \end{array}\right].
 \end{equation}
-In the case of specular reflections, \artsstyle{surface\_los} shall of
-course be set to have the length 1. The specular direction is
-calculated by the internal function
+In the case of specular reflections, \artsstyle{surface\_los} has the length 1.
+The specular direction is calculated by the internal function
 \funcindex{surface\_specular\_los}\footnote{Any tilt of the surface is
-  neglected when determining the specular direction. If there would be
-  any need to consider surface tilt, almost complete code for this
-  task existed in \artsstyle{surface\_specular\_los} but was removed
-  in version 1-1-876. The code can be obtained by e.g.\ checking out
-  version 1-1-875.}.  Equations \ref{eq:surface:specular_matrix} and
-\ref{eq:surface:specular_emission} give the values to put into
-\artsstyle{surface\_rmatrix} and \artsstyle{surface\_emission}.
+  neglected when determining the specular direction. If there would be any need
+  to consider surface tilt, almost complete code for this task existed in
+  \artsstyle{surface\_specular\_los} but was removed in version 1-1-876. The
+  code can be obtained by e.g.\ checking out version 1-1-875.}. Equations
+\ref{eq:surface:specular_matrix} and \ref{eq:surface:specular_emission} give
+the values to put into \artsstyle{surface\_rmatrix} and
+\artsstyle{surface\_emission}.
 
 
 
@@ -273,7 +272,17 @@ direction $(\theta_1,\phi_1)$ can be written as (see e.g. Section 3.3.1.\ of
   \sin(\theta) \, \DiffD\phi \, \DiffD\theta,
 \end{equation}
 where $I(\theta,\phi)$ is the downwelling radiance for incidance angle $\theta$
-and azimuth angle $\phi$.
+and azimuth angle $\phi$. One important property of the BRDF is
+\begin{equation}
+  f(\theta_0,\phi_0,\theta_1,\phi_1) = f(\theta_1,\phi_1,\theta_0,\phi_0).
+\end{equation}
+The reflectivity is half-sphere integral of the BRDF \citep{rees:01}
+\begin{equation}
+  \label{eq:surface:brdf:r}
+  r(\theta_1,\phi_1) = \int_0^{\pi/2} \! \int_0^{2\pi} 
+  f(\theta,\phi,\theta_1,\phi_1)
+  \sin(\theta) \, \DiffD\phi \, \DiffD\theta.
+\end{equation}
 
 If an angle in \artsstyle{surface\_los} gives the down-welling radiation
 representing the directions defined by the ranges $[\theta_a,\theta_b]$ and
@@ -285,29 +294,47 @@ $[\phi_a,\phi_b]$, the value to put into the corresponding part of
   \cos(\theta) f(\theta,\phi,\theta_1,\phi_1)
   \sin(\theta) \, \DiffD\phi \, \DiffD\theta.
 \end{equation}
-This value is a combination of the surface reflectivity and an solid angle
-weight. 
+Thus, this value is a combination of the surface reflectivity and an solid
+angle weight.
 
 
 \subsection{Lambertian surface}
 \label{sec:surface:rough:lambertian}
 %---
-An ideally rough surafce is denoted as Lambertian. The BRDF is for this case
-constant:
+An ideally rough surface is denoted as Lambertian. The BRDF is for this case
+constant \citep[e.g.][]{rees:01}:
 \begin{equation}
   \label{eq:surface:lambertian1}
   f = \frac{r_d}{\pi}
 \end{equation}
-where $r_d$ is the diffuse albedo. The integral in
-Equation~\ref{eq:surface:brdf2} can here be solved. For the case of
-$[\phi_a,\phi_b]$ = $[0,2\pi]$ we get
+where $r_d$ is the diffuse reflectivity. From Eq.~\ref{eq:surface:brdf:r} it 
+follows that $r = r_d$.
+
+The integral in Equation~\ref{eq:surface:brdf2} can here be solved. For the
+case of $[\phi_a,\phi_b]$ = $[0,2\pi]$ we get
 \begin{equation}
   \label{eq:surface:lambertian1}
   w = \frac{r_d}{2}\left[\cos(2\theta_a)-\cos(2\theta_b)\right].
 \end{equation}
-
-
- 
+A second aspect of a Lambertian surface is that the reflected radiation is
+unpolarised (thus indpendent of the polarisation of the downwelling radiation),
+that is 
+\begin{equation}
+  \label{eq:surface:lambertian_matrix}
+  \MtrStl{R} =
+     \left[\begin{array}{cccc}
+       w&0&0&0\\
+       0&0&0&0\\
+       0&0&0&0\\
+       0&0&0&0\\
+     \end{array}
+     \right].
+\end{equation}
+The emission of a Lambertian surface is isotropic and unpolarised
+\begin{equation}
+  \label{eq:surface:blambertian} 
+  \VctStl{b} =  \left[\begin{array}{c} r_dB \\ 0 \\0\\0 \end{array}\right].
+\end{equation}
 
 
 
