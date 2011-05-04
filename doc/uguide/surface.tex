@@ -1,4 +1,4 @@
-\chapter{Surface emission and reflections}
+d bu\chapter{Surface emission and reflections}
  \label{sec:surface}
 
 
@@ -276,11 +276,11 @@ and azimuth angle $\phi$. One important property of the BRDF is
 \begin{equation}
   f(\theta_0,\phi_0,\theta_1,\phi_1) = f(\theta_1,\phi_1,\theta_0,\phi_0).
 \end{equation}
-The reflectivity is half-sphere integral of the BRDF \citep{rees:01}
+The reflectivity is the half-sphere integral of the BRDF \citep{rees:01}
 \begin{equation}
   \label{eq:surface:brdf:r}
   r(\theta_1,\phi_1) = \int_0^{\pi/2} \! \int_0^{2\pi} 
-  f(\theta,\phi,\theta_1,\phi_1)
+  f(\theta,\phi,\theta_1,\phi_1) \cos(\theta)
   \sin(\theta) \, \DiffD\phi \, \DiffD\theta.
 \end{equation}
 

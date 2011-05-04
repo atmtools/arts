@@ -1,9 +1,16 @@
+2011-05-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
+
+	* arts-1-14-196
+
+	* doc/uguide/surface.tex: Missed to be consistent with Rees in the
+	definition of relectivity. (Missed the cos term!)
+
 2011-05-03  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-195
 
 	* doc/uguide/surface.tex: A quick revision, and some extension on
-	rough surfaces. 
+	rough surfaces.
 
 2011-05-02  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
