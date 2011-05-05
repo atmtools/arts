@@ -71,7 +71,7 @@ extern const Numeric RAD2DEG;
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.   
    \param   r_geoid             As the WSV with the same name.
-   \param   z_field             The geometric altitude of each pressure surface
+   \param   z_field             The geometric altitude of each pressure level
    \param   t_field             The temperature profile.
    \param   vmr_field           The VMR profile for each species.
    \param   r                   The radius of the position of interest.
@@ -149,7 +149,7 @@ void get_refr_index_1d(
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
    \param   r_geoid             As the WSV with the same name.
-   \param   z_field             The geometric altitude of each pressure surface
+   \param   z_field             The geometric altitude of each pressure level
                                 at each latitude.
    \param   t_field             The temperature 2D field.
    \param   vmr_field           The VMR 2D field for each species.
@@ -347,7 +347,7 @@ void get_refr_index_3d(
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.
    \param   r_geoid             As the WSV with the same name.
-   \param   z_field             The geometric altitude of each pressure surface
+   \param   z_field             The geometric altitude of each pressure level
                                 at each latitude.
    \param   t_field             The temperature 2D field.
    \param   vmr_field           The VMR 2D field for each species.
@@ -417,7 +417,7 @@ void refr_gradients_1d(
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
    \param   r_geoid             As the WSV with the same name.
-   \param   z_field             The geometric altitude of each pressure surface
+   \param   z_field             The geometric altitude of each pressure level
                                 at each latitude.
    \param   t_field             The temperature 2D field.
    \param   vmr_field           The VMR 2D field for each species.

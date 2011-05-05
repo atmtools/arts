@@ -114,20 +114,22 @@ void cloudboxSetAutomatically (
   Index p_margin1;
 
   Index type_flag=0, i=0, j=0, k=0, l=0;
-  bool x = false; //initialize flag, telling if all selected *massdensity_fields* are zero(false) or not(true)
+  // initialize flag, telling if all selected *massdensity_fields* are
+  // zero(false) or not(true)
+  bool x = false; 
 
 
   // Check existing WSV
   chk_if_in_range ( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_atm_grids ( atmosphere_dim, p_grid, lat_grid, lon_grid ); // includes p_grid chk_if_decresasing
-
+  // includes p_grid chk_if_decresasing
+  chk_atm_grids ( atmosphere_dim, p_grid, lat_grid, lon_grid ); 
   // Set cloudbox_on
   cloudbox_on = 1;
 
   // Allocate cloudbox_limits
   cloudbox_limits.resize ( atmosphere_dim*2 );
 
-  //--------- Start loop over particles ---------------------------------------------------------------
+  //--------- Start loop over particles ----------------------------------------
   for ( l=0; l<part_species.nelem(); l++ )
   {
     String part_type;
@@ -152,7 +154,7 @@ void cloudboxSetAutomatically (
                          lat_grid,
                          lon_grid );
 
-    //-----------Start setting cloudbox limits------------------------------------------------------
+    //-----------Start setting cloudbox limits----------------------------------
     if ( y )
     {
       //massdensity_field unequal zero -> x is true
@@ -172,12 +174,15 @@ void cloudboxSetAutomatically (
         }
         else
         {
-          // find index of first pressure lvl where hydromet_field is unequal 0, starting from surface
+          // find index of first pressure level where hydromet_field is
+          // unequal 0, starting from the surface
           for ( i=0; i<hydro_p.nelem(); i++ )
           {
             if ( hydro_p[i] != 0.0 )
             {
-              if ( p1 > i ) //check if p1 is the lowest index in all selected massdensity fields
+               // check if p1 is the lowest index in all selected
+               // massdensity fields
+               if ( p1 > i )
               {
                 p1 = i;
               }
@@ -186,12 +191,15 @@ void cloudboxSetAutomatically (
           }
 
         }
-        // find index of highest pressure lvl where massdensity_field is unequal 0, starting from top of atm.
+        // find index of highest pressure level, where massdensity_field is
+        // unequal 0, starting from top of the atmosphere
         for ( j=hydro_p.nelem()-1; j>=i; j-- )
         {
           if ( hydro_p[j] != 0.0 )
           {
-            if ( p2 < j ) //check if p2 is the highest index in all selected massdensity fields
+             // check if p2 is the highest index in all selected
+             // massdensity fields
+             if ( p2 < j )
             {
 	      p2 = j;
             }
@@ -270,7 +278,8 @@ void cloudboxSetAutomatically (
   Index p0 = 0; //only for the use of function *max*
   p1 = max(p1-1, p0);
   
-  // alter lower cloudbox_limit by cloudbox_margin, using barometric height formula
+  // alter lower cloudbox_limit by cloudbox_margin, using barometric
+  // height formula
   p_margin1 = barometric_heightformula ( p_grid[p1], cloudbox_margin );
   while ( p_grid[k+1] >= p_margin1 && k+1 < p_grid.nelem() ) k++;
   cloudbox_limits[0]= k;
@@ -289,8 +298,8 @@ void cloudboxSetAutomatically (
 
   //out0<<"\n"<<p2<<"\n"<<p_grid[p2]<<"\n";
 
-  // check if all selected massdensity fields are zero at each level, than switch cloudbox off,
-  // skipping scattering calculations
+  // check if all selected massdensity fields are zero at each level,
+  // than switch cloudbox off, skipping scattering calculations
   if ( !x )
   {
     //cloudboxOff ( cloudbox_on, cloudbox_limits, iy_cloudbox_agenda );
@@ -314,18 +323,18 @@ void cloudboxSetAutomatically (
   {
     // The latitude in *lat2* must be bigger than the latitude in *lat1*.
     assert ( lat_grid[lat2] > lat_grid[lat1] );
-    // The latitude in *lat1* must be >= than the second value in *lat_grid*.
+    // The latitude in *lat1* must be >= the second value in *lat_grid*.
     assert ( lat_grid[lat1] >= lat_grid[1] );
-    // The latitude in *lat2* must be <= than the next to last value in *lat_grid*.
+    // The latitude in *lat2* must be <= the next to last value in *lat_grid*.
     assert ( lat_grid[lat2] <= lat_grid[lat_grid.nelem()-2] );
   }
   if ( atmosphere_dim == 3 )
   {
     // The longitude in *lon2* must be bigger than the longitude in *lon1*.
     assert ( lon_grid[lon2] > lon_grid[lon1] );
-    // The longitude in *lon1* must be >= than the second value in *lon_grid*.
+    // The longitude in *lon1* must be >= the second value in *lon_grid*.
     assert ( lon_grid[lon1] >= lon_grid[1] );
-    // The longitude in *lon2* must be <= than the next to last value in *lon_grid*.
+    // The longitude in *lon2* must be <= the next to last value in *lon_grid*.
     assert ( lon_grid[lon2] <= lon_grid[lon_grid.nelem()-2] );
   }
 }
@@ -354,37 +363,37 @@ void cloudboxSetManually(
 
   // Check keyword arguments
   if( p1 <= p2 )
-    throw runtime_error( 
-            "The pressure in *p1* must be bigger than the pressure in *p2*." );
+    throw runtime_error( "The pressure in *p1* must be bigger than the "
+                         "pressure in *p2*." );
   if( p1 <= p_grid[p_grid.nelem()-1] )
     throw runtime_error( "The pressure in *p1* must be larger than the "
-                                                   "last value in *p_grid*." );
+                         "last value in *p_grid*." );
   if( p2 >= p_grid[0] )
     throw runtime_error( "The pressure in *p2* must be smaller than the "
-                                                  "first value in *p_grid*." );
+                         "first value in *p_grid*." );
   if( atmosphere_dim >= 2 )
     {
       if( lat2 <= lat1 )
-        throw runtime_error( 
-         "The latitude in *lat2* must be bigger than the latitude in *lat1*.");
+        throw runtime_error( "The latitude in *lat2* must be bigger than the "
+                             "latitude in *lat1*.");
       if( lat1 < lat_grid[1] )
-        throw runtime_error( "The latitude in *lat1* must be >= than the "
-                                               "second value in *lat_grid*." );
+        throw runtime_error( "The latitude in *lat1* must be >= the "
+                             "second value in *lat_grid*." );
       if( lat2 > lat_grid[lat_grid.nelem()-2] )
-        throw runtime_error( "The latitude in *lat2* must be <= than the "
-                                         "next to last value in *lat_grid*." );
+        throw runtime_error( "The latitude in *lat2* must be <= the "
+                             "next to last value in *lat_grid*." );
     }
   if( atmosphere_dim == 3 )
     {
       if( lon2 <= lon1 )
-        throw runtime_error( 
-       "The longitude in *lon2* must be bigger than the longitude in *lon1*.");
+        throw runtime_error( "The longitude in *lon2* must be bigger than the "
+                             "longitude in *lon1*.");
       if( lon1 < lon_grid[1] )
-        throw runtime_error( "The longitude in *lon1* must be >= than the "
-                                               "second value in *lon_grid*." );
+        throw runtime_error( "The longitude in *lon1* must be >= the "
+                             "second value in *lon_grid*." );
       if( lon2 > lon_grid[lon_grid.nelem()-2] )
-        throw runtime_error( "The longitude in *lon2* must be <= than the "
-                                         "next to last value in *lon_grid*." );
+        throw runtime_error( "The longitude in *lon2* must be <= the "
+                             "next to last value in *lon_grid*." );
     }
 
   // Set cloudbox_on
@@ -456,8 +465,8 @@ void cloudboxSetManuallyAltitude(
   
   // Check keyword arguments
   if( z1 >= z2 )
-    throw runtime_error( 
-                        "The altitude in *z1* must be smaller than the altitude in *z2*." );
+    throw runtime_error( "The altitude in *z1* must be smaller than the "
+                         "altitude in *z2*." );
   /* These cases are in fact handled
   if( z1 <= z_field(0, 0, 0) )
     throw runtime_error( "The altitude in *z1* must be larger than the "
@@ -469,22 +478,22 @@ void cloudboxSetManuallyAltitude(
   if( atmosphere_dim == 3 )
     {
       if( lat2 <= lat1 )
-        throw runtime_error( 
-                            "The latitude in *lat2* must be bigger than the latitude in *lat1*.");
+        throw runtime_error( "The latitude in *lat2* must be bigger than the "
+                             " latitude in *lat1*.");
       if( lat1 < lat_grid[1] )
-        throw runtime_error( "The latitude in *lat1* must be >= than the "
+        throw runtime_error( "The latitude in *lat1* must be >= the "
                              "second value in *lat_grid*." );
       if( lat2 > lat_grid[lat_grid.nelem()-2] )
-        throw runtime_error( "The latitude in *lat2* must be <= than the "
+        throw runtime_error( "The latitude in *lat2* must be <= the "
                              "next to last value in *lat_grid*." );
       if( lon2 <= lon1 )
-        throw runtime_error
-          ("The longitude in *lon2* must be bigger than the longitude in *lon1*.");
+        throw runtime_error( "The longitude in *lon2* must be bigger than the "
+                             "longitude in *lon1*.");
       if( lon1 < lon_grid[1] )
-        throw runtime_error( "The longitude in *lon1* must be >= than the "
+        throw runtime_error( "The longitude in *lon1* must be >= the "
                              "second value in *lon_grid*." );
       if( lon2 > lon_grid[lon_grid.nelem()-2] )
-        throw runtime_error( "The longitude in *lon2* must be <= than the "
+        throw runtime_error( "The longitude in *lon2* must be <= the "
                              "next to last value in *lon_grid*." );
     }
   
@@ -551,7 +560,10 @@ void Massdensity_cleanup ( //WS Output:
       {
         for ( Index l=0; l<massdensity_field.ncols(); l++ )
         {
-          if ( massdensity_field ( i,j,k,l ) < massdensity_threshold ) massdensity_field ( i,j,k,l ) = 0.0;
+          if ( massdensity_field ( i,j,k,l ) < massdensity_threshold ) 
+          {
+            massdensity_field ( i,j,k,l ) = 0.0;
+          }
         }
       }
     }
@@ -716,7 +728,7 @@ void ScatteringParticlesSelect (//WS Output:
   // WS Input:
   const ArrayOfString& part_species)
 { 
-  //--- Adjusting data to user specified input (part_species)---------------------------------
+  //--- Adjusting data to user specified input (part_species)-------------------
   
   String type;
   Numeric intarr_total = 0;
@@ -728,7 +740,7 @@ void ScatteringParticlesSelect (//WS Output:
   
   scat_data_nelem.resize( part_species.nelem() );
   
-  // loop over array of part_species-------------------------------------------------------------
+  // loop over array of part_species--------------------------------------------
   for ( Index k=0; k<part_species.nelem(); k++ )
   {
    
@@ -752,10 +764,12 @@ void ScatteringParticlesSelect (//WS Output:
       // check for particle phase type (e.g. "Ice", "Water",...)
       if ( scat_data_meta_array_tmp[j].type == type ) 
       {       
-        //particle radius is calculated from particle volume given in scattering meta data
-        Numeric r_particle = pow (    3./4. * scat_data_meta_array_tmp[j].V *1e18 /PI ,  1./3.  );
+        // particle radius is calculated from particle volume given in
+        // scattering meta data
+        Numeric r_particle = 
+          pow ( 3./4. * scat_data_meta_array_tmp[j].V * 1e18 / PI , 1./3. );
 	
-	//check if particle is in size range
+	// check if particle is in size range
         if ( r_particle  >= sizemin && sizemax >= r_particle )
 	{
 	  // fill ArrayOfIndex with indices of selected scattering data
@@ -772,8 +786,10 @@ void ScatteringParticlesSelect (//WS Output:
   if ( !intarr.nelem() )
   {
     ostringstream os;
-    os<<"The selection in " << part_species << " is NOT choosing any of the given Scattering Data.\n"
-    << "--> Does the selection in *part_species* fit any of the Single Scattering Data input? \n";
+    os << "The selection in " << part_species << 
+        " is NOT choosing any of the given Scattering Data.\n"
+        "--> Does the selection in *part_species* fit any of the "
+        "Single Scattering Data input? \n";
     throw runtime_error ( os.str() );
   }
 
@@ -1142,8 +1158,8 @@ void pnd_fieldSetup ( //WS Output:
   // Cloudbox on/off?
   if ( !cloudbox_on ) return;
 
-  // ------- set iteration limits to cloudbox boundaries according to atmosphere_dim -----------
-  //initialize iteration boundaries
+  // ------- set pnd_field boundaries to cloudbox boundaries -------------------
+  //initialize pnd_field boundaries
   Index p_cbstart = 0;
   Index p_cbend = 1;
   Index lat_cbstart = 0;
@@ -1168,12 +1184,13 @@ void pnd_fieldSetup ( //WS Output:
 
   }
 
-//resize pnd_field to number of size bins and atm. dimensions
-  pnd_field.resize ( scat_data_meta_array.nelem(), p_cbend-p_cbstart, lat_cbend-lat_cbstart, lon_cbend-lon_cbstart );
+  //resize pnd_field to required atmospheric dimension and scatt particles
+  pnd_field.resize ( scat_data_meta_array.nelem(), p_cbend-p_cbstart,
+                     lat_cbend-lat_cbstart, lon_cbend-lon_cbstart );
   Index scat_data_start = 0;
   ArrayOfIndex intarr;
 
-  //-------- Start pnd_field calculations----------------------------------------------------------
+  //-------- Start pnd_field calculations---------------------------------------
 
   // loop over nelem of part_species
   for ( Index k=0; k<part_species.nelem(); k++ )
@@ -1203,12 +1220,14 @@ void pnd_fieldSetup ( //WS Output:
       
       for ( Index i=0; i < scat_data_nelem[k]; i++ )
       {
-	vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V ); //m^3
+	//m^3
+        vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
       }
       get_sorted_indexes(intarr, vol_unsorted);
       //cout<<"intarr\t"<<intarr<<endl;
 	
-      //NOTE: the order of scattering particle profiles in *massdensity_field* is HARD WIRED!
+      // NOTE: the order of scattering particle profiles in *massdensity_field*
+      // is HARD WIRED!
       // extract IWC_field and convert from kg/m^3 to g/m^3
       Tensor3 IWC_field = massdensity_field ( 1, joker, joker, joker );
       IWC_field*=1000; //IWC [g/m^3]
@@ -1219,7 +1238,9 @@ void pnd_fieldSetup ( //WS Output:
       {
         vol[i] = ( scat_data_meta_array[intarr[i]+scat_data_start].V ); //m^3
         // calculate melted diameter from volume [m]
-        dm[i] = pow ( ( ( 6*scat_data_meta_array[intarr[i]+scat_data_start].V ) /PI ), ( 1./3. ) );
+        dm[i] = pow ( 
+                 ( (6*scat_data_meta_array[intarr[i]+scat_data_start].V) /PI ),
+                 ( 1./3. ) );
 	// get density from meta data [g/m^3]
         rho[i] = scat_data_meta_array[intarr[i]+scat_data_start].density * 1000;
 
@@ -1244,7 +1265,9 @@ void pnd_fieldSetup ( //WS Output:
             for ( Index i=0; i<dm.nelem(); i++ )
             {
               // calculate particle size distribution with MH97
-              dN[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ), dm[i], t_field ( p, lat, lon ), rho[i] );// [# m^-3 m^-1]
+              // [# m^-3 m^-1]
+              dN[i] = IWCtopnd_MH97 ( IWC_field ( p, lat, lon ), dm[i],
+                                      t_field ( p, lat, lon ), rho[i] );
 	      //dN2[i] = dN[i] * vol[i] * rho[i];
             }
             //out0<<dN<<"\n";
@@ -1260,7 +1283,8 @@ void pnd_fieldSetup ( //WS Output:
             // writing pnd vector to wsv pnd_field
             for ( Index i = 0; i< scat_data_nelem[k]; i++ )
             {
-              pnd_field ( intarr[i]+scat_data_start, p-p_cbstart, lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
+              pnd_field ( intarr[i]+scat_data_start, p-p_cbstart,
+                          lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
             }
 
           }
@@ -1268,17 +1292,19 @@ void pnd_fieldSetup ( //WS Output:
       }
 
     }
-    // ---- start pnd_field calculations for liquid ---------------------------------
+    // ---- start pnd_field calculations for liquid ----------------------------
     else if ( psd_param == "liquid" )
     {
       for ( Index i=0; i < scat_data_nelem[k]; i++ )
       {
-	vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V ); //m^3
+	//m^3
+        vol_unsorted[i] = ( scat_data_meta_array[i+scat_data_start].V );
       }
       get_sorted_indexes(intarr, vol_unsorted);
       //cout<<"intarr\t"<<intarr<<endl;
       
-      //NOTE: the order of scattering particle profiles in *massdensity_field* is HARD WIRED!
+      // NOTE: the order of scattering particle profiles in *massdensity_field*
+      // is HARD WIRED!
       // extract LWC_field and convert from kg/m^3 to g/m^3
       Tensor3 LWC_field = massdensity_field ( 0, joker, joker, joker );
       LWC_field *= 1000; //LWC [g/m^3]
@@ -1288,7 +1314,9 @@ void pnd_fieldSetup ( //WS Output:
       {
         vol[i]= scat_data_meta_array[intarr[i]+scat_data_start].V; //m^3
         // calculate diameter from volume [m]
-        dm[i] = pow ( ( 6*scat_data_meta_array[intarr[i]+scat_data_start].V/PI ), ( 1./3. ) );
+        dm[i] = pow (
+                 ( 6*scat_data_meta_array[intarr[i]+scat_data_start].V/PI ),
+                 ( 1./3. ) );
         // diameter to radius
         r[i] = dm[i]/2; // [m]
         // get density from meta data [g/m^3]
@@ -1297,9 +1325,10 @@ void pnd_fieldSetup ( //WS Output:
         //check for correct particle type
         if ( scat_data_meta_array[intarr[i]+scat_data_start].type != "Water" )
         {
-          throw runtime_error ( "The particle phase is unequal 'Water'.\n"
-                                "All particles must be of liquid phase to apply this PSD.\n"
-                                "Check ScatteringMetaData!" );
+          throw runtime_error (
+            "The particle phase is unequal 'Water'.\n"
+            "All particles must be of liquid phase to apply this PSD.\n"
+            "Check ScatteringMetaData!" );
         }
       }
       //cout<<"\nr:\t"<<r<<endl;
@@ -1315,7 +1344,8 @@ void pnd_fieldSetup ( //WS Output:
             for ( Index i=0; i<r.nelem(); i++ ) //loop over number of particles
             {
               // calculate particle size distribution for liquid
-              dN[i] = LWCtopnd ( LWC_field ( p,lat,lon ), r[i] ); // [# m^-3 m^-1]
+              // [# m^-3 m^-1]
+              dN[i] = LWCtopnd ( LWC_field ( p,lat,lon ), r[i] );
               //dN2[i] = LWCtopnd2 ( r[i] );  // [# m^-3 m^-1]
 	      //dN2[i] = dN[i] * vol[i] * rho[i];
             }
@@ -1337,7 +1367,8 @@ void pnd_fieldSetup ( //WS Output:
             // writing pnd vector to wsv pnd_field
             for ( Index i =0; i< scat_data_nelem[k]; i++ )
             {
-              pnd_field ( intarr[i]+scat_data_start, p-p_cbstart, lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
+              pnd_field ( intarr[i]+scat_data_start, p-p_cbstart,
+                          lat-lat_cbstart, lon-lon_cbstart ) = pnd[i];
               //dlwc[q] = pnd2[q]*vol[q]*rho[q];
             }
 
@@ -1352,7 +1383,8 @@ void pnd_fieldSetup ( //WS Output:
       }
     }
 
-    // alter starting index of current scattering data array to starting index of next iteration step
+    // alter starting index of current scattering data array to starting index
+    // of next iteration step
     scat_data_start = scat_data_start + scat_data_nelem[k];
 
   }

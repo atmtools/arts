@@ -804,7 +804,7 @@ void Workspace::define_wsv_data()
     ( NAME( "atm_checked" ),
       DESCRIPTION
       (
-       "OK flag for atmospheric fields, surfaces and the cloudbox.\n"
+       "OK flag for atmospheric and surface fields and the cloudbox.\n"
        "\n"
        "This variable flags that the atmosphere is defined in a formally\n"
        "correct way. For example, that the sizes of atmospheric fields match\n"
@@ -999,7 +999,7 @@ void Workspace::define_wsv_data()
        "is defined to be rectangular in the used coordinate system, with \n"
        "limits exactly at points of the involved grids. This means, for \n"
        "example, that the vertical limits of the cloud box are two pressure \n"
-       "surfaces. For 2D, the angular extension of the cloud box is between \n"
+       "levels. For 2D, the angular extension of the cloud box is between \n"
        "two points of the latitude grid, and likewise for 3D but then also \n"
        "with a longitude extension between two grid points. The latitude and\n"
        "longitude limits for the cloud box cannot be placed at the end \n"
@@ -1038,7 +1038,7 @@ void Workspace::define_wsv_data()
        (
         "Complex refractive index (n).\n"
         "\n"
-        "This matrix describes the dielectric properties of some medium. \n"
+        "This matrix describes the dielectric properties of a medium. \n"
         "A typical usage of this variable is to describe the properties of\n"
         "the surface (if it is assumed to be flat).\n"
         "\n"
@@ -2651,7 +2651,7 @@ void Workspace::define_wsv_data()
       (
        "The pressure grid.\n"
        "\n"
-       "The pressure surfaces on which the atmospheric fields are defined.\n"
+       "The pressure levels on which the atmospheric fields are defined.\n"
        "This variable must always be defined. The grid must be sorted in\n"
        "decreasing order, with no repetitions.\n"
        "\n"
@@ -3090,12 +3090,12 @@ void Workspace::define_wsv_data()
     ( NAME( "scat_i_lat" ),
       DESCRIPTION
       (
-       "Intensity field on cloudbox boundary (equal latitude surfaces).\n"
+       "Intensity field on cloudbox boundary (constant latitude slice).\n"
        "\n"
        "This variable gives the intensity field from all directions defined \n"
        "in *scat_aa_grid* and *scat_za_grid* on each grid point on the two \n"
        "equal \n"
-       "latitude surfaces of the cloudbox boundary. It contains all four \n"
+       "latitude levels of the cloudbox boundary. It contains all four \n"
        "components of the Stokes vector.\n"
        "\n"
        "This variable is used as interface between the clear sky and the \n"
@@ -3109,7 +3109,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
-       "Dimensions: [ f_grid, p_grid, latitude surface, lon_grid, \n"
+       "Dimensions: [ f_grid, p_grid, 2, lon_grid, \n"
        "              scat_za_grid \n  scat_aa_grid, stokes_dim ]\n"
        ),
       GROUP( "Tensor7" )));
@@ -3119,11 +3119,11 @@ void Workspace::define_wsv_data()
     ( NAME( "scat_i_lon" ),
       DESCRIPTION
       (
-       "Intensity field on cloudbox boundary (equal longitude surfaces).\n"
+       "Intensity field on cloudbox boundary (equal longitude slice).\n"
        "\n"
        "This variable gives the intensity field from all directions defined \n"
        "in *scat_aa_grid* and *scat_za_grid* on each grid point on the equal\n"
-       "latitude surfaces of the boundary of the cloudbox, which is defined \n"
+       "longitude level of the boundary of the cloudbox, which is defined \n"
        "by the workspace variable *cloudbox_limits*. It contains all four \n"
        "components of the Stokes vector.\n"
        "\n"
@@ -3138,7 +3138,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
-       "Dimensions: [ f_grid, p_grid, lat_grid, latitude surface, \n"
+       "Dimensions: [ f_grid, p_grid, lat_grid, 2, \n"
        "              scat_za_grid, scat_aa_grid, stokes_dim]\n"
        ),
       GROUP( "Tensor7" )));
@@ -3148,11 +3148,11 @@ void Workspace::define_wsv_data()
     ( NAME( "scat_i_p" ),
       DESCRIPTION
       (
-       "Intensity field on cloudbox boundary (equal pressure surfaces).\n"
+       "Intensity field on cloudbox boundary (equal pressure slice).\n"
        "\n"
        "This variable gives the intensity field from all directions defined \n"
        "in *scat_aa_grid* and *scat_za_grid* on each grid point on the equal\n"
-       "latitude surfaces of the cloudbox boundary. It contains all four \n"
+       "pressure levels of the cloudbox boundary. It contains all four \n"
        "components of the Stokes vector.\n"
        "\n"
        "This variable is used as interface between the clear sky and the \n"
@@ -3166,7 +3166,7 @@ void Workspace::define_wsv_data()
        "\n"
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
-       "Dimensions: [ f_grid, pressure surfaces, lat_grid, lon_grid, \n" 
+       "Dimensions: [ f_grid, 2, lat_grid, lon_grid, \n" 
        "              scat_za_grid, scat_aa_grid, stokes_dim]\n"
        ),
       GROUP( "Tensor7" )));
@@ -4345,7 +4345,7 @@ void Workspace::define_wsv_data()
        "This variable gives the geometrical altitude, above the geoid, of\n"
        "each crossing of the pressure, latitude and longitude grids. For 1D\n"
        "cases the altitudes give the geometrical position of the pressure\n"
-       "surfaces.\n"
+       "levels.\n"
        "\n"
        "For each geographical position (lat,lon), the values must be sorted\n"
        "in increasing order, with no repetitions. Otherwise the altitudes\n"

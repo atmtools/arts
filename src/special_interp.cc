@@ -26,10 +26,10 @@
   non-general character. The total general interpolation routines are
   found in interpolation.cc. 
 
-  - Interpolation of atmospheric fields and surfaces: 
+  - Interpolation of atmospheric/surface fields: 
 
-  These interpolation functions interpolates a field or a surface to a
-  set of points, such as the points of a propagation path. That is,
+  These interpolation functions interpolate a atmospheric/surface fields
+  to a set of points, such as the points of a propagation path. That is,
   "blue" interpolation. The functions assume that the grid positions
   are at hand. If several atmospheric fields shall be interpolated,
   the functions to use are *interp_atmfield_gp2itw* and
@@ -37,11 +37,11 @@
   and the second is called for each field to be interpolated. If only
   one field shall be interpolated, the function
   *interp_atmfield_by_gp* is a shortcut for calling both functions
-  above. The exists an identical set of functions for interpolating
-  surfaces, with names where _atmfield_ is replaced with
+  above. There exist an identical set of functions for interpolating
+  surface-type variables, with names where _atmfield_ is replaced with
   _atmsurface_. 
 
-  Possible atmospheric surfaces are *r_geoid*, *z_ground* and one page
+  Possible surface-type variables are *r_geoid*, *z_surface* and one page
   of *z_field*.
 
 
@@ -70,7 +70,7 @@
 
 
 /*===========================================================================
-  === Interpolation functions for atmospheric grids, fields and surfaces
+  === Interpolation functions for atmospheric grids and fields
   ===========================================================================*/
 
 //! interp_atmfield_gp2itw
@@ -357,8 +357,8 @@ void interp_cloudfield_gp2itw(
 
 //! interp_atmsurface_gp2itw
 /*!
-    Converts atmospheric grid positions to weights for interpolation of an
-    atmospheric surface.
+    Converts atmospheric grid positions to weights for interpolation of a
+    surface-type variable.
 
     The function is intended for "blue" interpolation, that is, interpolation
     for a set of positions. 
@@ -408,7 +408,7 @@ void interp_atmsurface_gp2itw(
 
 //! interp_atmsurface_by_itw
 /*!
-    Interpolates an atmospheric surface with pre-calculated weights by
+    Interpolates a surface-type variable with pre-calculated weights by
     interp_atmsurface_gp2itw.
 
     The function performs the interpolation for a number of positions. The
@@ -416,7 +416,7 @@ void interp_atmsurface_gp2itw(
     have the same length as the grid position arrays before calling the
     function. 
 
-    The input atmospheric surface is checked to be consistent with the 
+    The input surface-type variable is checked to be consistent with the 
     *atmosphere_dim*, *lat_grid* and *lon_grid*. The length of
     the grid position arrays are asserted to be the identical, or for 
     dimensions not used, that the length is zero.
@@ -465,14 +465,14 @@ void interp_atmsurface_by_itw(
 
 //! interp_atmsurface_by_gp
 /*!
-    Interpolates an atmospheric surface given the grid positions.
+    Interpolates a surface-type variable given the grid positions.
 
     The function performs the interpolation for a number of positions. The
     return variable (x) is accordingly a vector. The vector must be set to
     have the same length as the grid position arrays before calling the
     function. 
 
-    The input atmospheric surface is checked to be consistent with the 
+    The input surface-type variable is checked to be consistent with the 
     *atmosphere_dim*, *lat_grid* and *lon_grid*. The length of
     the grid position arrays are asserted to be the identical, or for 
     dimensions not used, that the length is zero.
@@ -730,7 +730,7 @@ void interp_gfield3(
     function can be used when a geometrical altitude is known and the
     pressure for that altitude shall be determined. The interpolation weights
     are then calculated using the geometrical altitudes for the pressure
-    surfaces for the position of concern.
+    levels for the position of concern.
 
     This can be seen as a 1D "blue" interpolation. That means that the number
     of columns of itw shall be 2.

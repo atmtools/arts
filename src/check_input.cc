@@ -546,7 +546,7 @@ void chk_matrix_nrows(
 
 
 /*===========================================================================
-  === Functions related to atmospheric grids, fields and surfaces.
+  === Functions related to atmospheric and surface grids and fields.
   ===========================================================================*/
 
 //! chk_atm_grids 
@@ -767,14 +767,14 @@ void chk_atm_field(
 
 //! chk_atm_surface
 /*! 
-    Checks if an atmospheric surface matches the dimensionality and the grids.
+    Checks if a surface-type variable matches the dimensionality and the grids.
 
-    An example on an atmospheric surface is *z_ground*.
+    Examples of surface-type variables are *z_surface* and *r_geoid*.
 
     The function gives an error message if this is not the case.
 
-    \param    x_name       The name of the atmospheric surface.
-    \param    x            A variable holding an atmospheric surface.
+    \param    x_name       The name of the surface-type variable.
+    \param    x            The variable holding the surface data.
     \param    dim          The atmospheric dimensionality.
     \param    lat_grid     The latitude grid.
     \param    lon_grid     The longitude grid.
@@ -797,7 +797,7 @@ void chk_atm_surface(
   if( x.ncols()!=ncols || x.nrows()!=nrows ) 
     {
       ostringstream os;
-      os << "The atmospheric surface *" << x_name <<  "* has wrong size.\n"
+      os << "The surface variable *" << x_name <<  "* has wrong size.\n"
          << "Expected size is " << nrows << " x " << ncols << ","
          << " while actual size is " << x.nrows() << " x " << x.ncols() << ".";
       throw runtime_error( os.str() );
@@ -812,7 +812,7 @@ void chk_atm_surface(
             {
               ostringstream os;
               os << "The variable *" << x_name <<  "* covers 360 "
-                 << "degrees in the longitude direction, but the surface "
+                 << "degrees in the longitude direction, but the data "
                  << "seems to deviate between first and last longitude "
                  << "point. The surface must be \"cyclic\".";
               throw runtime_error( os.str() );

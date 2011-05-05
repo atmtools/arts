@@ -3051,9 +3051,9 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
          }
          
          if(scat_i_p.nvitrines() != 2){
-           throw runtime_error("scat_i_p should have only two elements "
-                               "in pressure grid which corresponds "
-                               "to the two pressure surfaces");
+           throw runtime_error("scat_i_p should have exactly two elements "
+                               "in pressure dimension which correspond to the "
+                               "two cloudbox bounding pressure levels");
          }
       
          
@@ -3167,42 +3167,40 @@ void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
                             "same longitude grid dimension as lon_grid");
       }
       if(scat_i_p.nvitrines() != 2){
-        throw runtime_error("scat_i_p should have only two elements "
-                            "in pressure grid which corresponds "
-                            "to the two pressure surfaces");
+        throw runtime_error("scat_i_p should have exactly two elements "
+                            "in pressure dimension which correspond to the "
+                            "two cloudbox bounding pressure levels");
       }
     
       if(scat_i_lat.nshelves() != 2){
-        throw runtime_error("scat_i_lat should have only two elements "
-                            "in latitude grid which corresponds "
-                            "to the two latitude surfaces");
-      
+        throw runtime_error("scat_i_lat should have exactly two elements "
+                            "in latitude dimension which correspond to the "
+                            "two cloudbox bounding latitude levels");
       }
       if(scat_i_lon.nbooks() != 2){
-        throw runtime_error("scat_i_lon should have only two elements "
-                            "in longitude grid which corresponds "
-                            "to the two longitude surfaces");
-      
+        throw runtime_error("scat_i_lon should have exactly two elements "
+                            "in longitude dimension which correspond to the "
+                            "two cloudbox bounding longitude levels");
       }
       Index N_za = scat_i_p.npages() ;
       if (scat_i_lat.npages() != N_za || 
           scat_i_lon.npages() != N_za){
       
-        throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
-                            "same dimension for zenith angles");
+        throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have "
+                            "same zenith angle dimension");
       }
       Index N_aa = scat_i_p.nrows();
       if (scat_i_lat.nrows() != N_aa || 
           scat_i_lon.nrows() != N_aa){
       
-        throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
-                            "same dimension for azimuth angles");
+        throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have "
+                            "same azimuth angle dimension");
       }
       Index N_i = scat_i_p.ncols();
       if (scat_i_lat.ncols() != N_i || 
           scat_i_lon.ncols() != N_i){
       
-        throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
+        throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have "
                             "same value for stokes_dim and can take only"
                             "values 1,2,3 or 4");
       }

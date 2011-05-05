@@ -536,7 +536,7 @@ void get_iy_of_background(
       break;
 
 
-    case 3:   //--- Cloudbox surface or interior ------------------------------
+    case 3:   //--- Cloudbox boundary or interior ------------------------------
     case 4:
       {
         // Pass a local copy of ppath to the cloudbox agenda

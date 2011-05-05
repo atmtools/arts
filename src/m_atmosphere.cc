@@ -118,7 +118,7 @@ void atm_checkedCalc(
     }
 
   // Check that there is no gap between the surface and lowest pressure 
-  // surface
+  // level
   for( Index row=0; row<z_surface.nrows(); row++ )
     {
       for( Index col=0; col<z_surface.ncols(); col++ )

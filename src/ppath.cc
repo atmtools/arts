@@ -105,7 +105,7 @@ const double   ANGTOL = 1e-4;
 const double   POLELAT = 89.9999;
 
 
-// Maximum tilt of pressure surfaces, in degrees
+// Maximum tilt of pressure levels, in degrees
 //
 const double    PTILTMAX = 5;
 
@@ -2509,7 +2509,7 @@ void ppath_init_structure(
       0. Not yet set.                       <br>
       1. Space.                             <br>
       2. The surface.                       <br>
-      3. The level of the cloud box.        <br>
+      3. The cloud box boundary.            <br>
       4. The interior of the cloud box.       
 
    \param   ppath            Output: A Ppath structure.
@@ -3783,7 +3783,7 @@ void from_raytracingarrays_to_ppath_vectors_3d(
 
    This is the core function to determine 1D propagation path steps by pure
    geometrical calculations. Path points are included for crossings with the 
-   grids, tangent points and points of surface intersections. In addition,
+   grids, tangent points and points of intersection with the surface. In addition,
    points are included in the propgation path to ensure that the distance
    along the path between the points does not exceed the selected maximum 
    length (lmax). If lmax is <= 0, this means that no length criterion shall
@@ -3798,7 +3798,7 @@ void from_raytracingarrays_to_ppath_vectors_3d(
    \param   p_grid            Pressure grid.
    \param   z_field           Geometrical altitudes corresponding to p_grid.
    \param   r_geoid           Geoid radius.
-   \param   z_surface          Surface altitude.
+   \param   z_surface         Surface altitude.
    \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson

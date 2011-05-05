@@ -364,7 +364,7 @@ void cloud_ppath_update1D(Workspace& ws,
                                  f_grid, f_index, p_index, 0, 0,
                              scat_za_index, 0);
       
-      // bkgr=2 indicates that the background is surface
+      // bkgr=2 indicates that the background is the surface
       if (bkgr == 2)
         {
           // cout << "hit surface "<< ppath_step.gp_p << endl;
@@ -498,8 +498,8 @@ void cloud_ppath_update1D_noseq(
       Index bkgr = ppath_what_background(ppath_step);
       
       // if 0, there is no background
-      // do this in any case. cause we need downwelling doit_i_field at
-      // surface for calculating surface scattering
+      // do this in any case. cause we need downwelling doit_i_field
+      // at the surface for calculating surface scattering
 
       // Radiative transfer from one layer to the next, starting
       // at the intersection with the next layer and propagating
@@ -825,8 +825,8 @@ void cloud_ppath_update3D(Workspace& ws,
 
 //! cloud_RT_no_background
 /*
-  This function calculates RT in the cloudbox (1D) if the intersection 
-  point with the next layer is in the atmosphere (not on the surface). 
+  This function calculates RT in the cloudbox (1D) if the next intersected 
+  level is an atmospheric level (in contrast to the surface). 
   It is used inside the functions cloud_ppath_update1DXXX.
   
   Output: 
@@ -996,8 +996,8 @@ void cloud_RT_no_background(Workspace& ws,
 
 //! cloud_RT_surface
 /*
-  This function calculates RT in the cloudbox if the intersection 
-  point with the next layer is the surface. 
+  This function calculates RT in the cloudbox if the next intersected 
+  level is the surface. 
 
   CE (2006-05-29) Included surface_prop_agenda here.  
 
@@ -1659,7 +1659,7 @@ void cloud_ppath_update1D_planeparallel(Workspace& ws,
         
         }// if loop end - for non_ground background
       
-      // bkgr=2 indicates that the background is surface
+      // bkgr=2 indicates that the background is the surface
       else if (bkgr == 2)
         {
           //Set rte_pos, rte_gp_p and rte_los to match the last point
@@ -2293,7 +2293,7 @@ void iy_interp_cloudbox_field(
       // Interpolation weights (for 4D "red" interpolation)
       Vector   itw(16);
 
-      // Outgoing from pressure surface
+      // Outgoing from pressure level
       if( border <= 1 )
         {
           // Lat and lon grid positions with respect to cloud box 
@@ -2321,7 +2321,7 @@ void iy_interp_cloudbox_field(
             }
         }
 
-      // Outgoing from latitude surface
+      // Outgoing from latitude level
       else if( border <= 3 )
         {
           // Pressure and lon grid positions with respect to cloud box 
@@ -2349,7 +2349,7 @@ void iy_interp_cloudbox_field(
             }
         }
 
-      // Outgoing from longitude surface
+      // Outgoing from longitude level
       else
         {
           // Pressure and lat grid positions with respect to cloud box 

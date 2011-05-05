@@ -1,3 +1,15 @@
+2011-05-05  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-1-14-197
+
+	* src/m_atmosphere.cc, special_interp.cc, methods.cc, ppath.cc,
+	  check_input.cc, refraction.cc, m_rte.cc, m_doit.cc, workspace.cc,
+	  doit.cc:
+	De-ambiguitized "surface" (ground/lower boundary of atmosphere => "the
+	surface" vs. slice of a field => "surface-type variable"/"level")
+
+	* src/m_cloudbox.cc: layout adaption (avoid long lines)
+
 2011-05-04  Patrick Eriksson  <patrick.eriksson@chalmers.se>
 
 	* arts-1-14-196
