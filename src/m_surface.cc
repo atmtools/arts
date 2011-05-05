@@ -629,6 +629,7 @@ void surfaceFlatSingleEmissivity(
 
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+/*
 void surfaceLambertianSimple(
               Matrix&    surface_los,
               Tensor4&   surface_rmatrix,
@@ -710,3 +711,4 @@ void surfaceLambertianSimple(
       surface_emission(iv,0) = (1-r) * planck( f_grid[iv], surface_skin_t );
     }
 }
+*/

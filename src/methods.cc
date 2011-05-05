@@ -8172,6 +8172,7 @@ void define_md_data_raw()
                   )
         ));
 
+  /*
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "surfaceLambertianSimple" ),
@@ -8215,6 +8216,7 @@ void define_md_data_raw()
                   "angle grid. See above."
                   )
         ));
+  */
 
   md_data_raw.push_back
     ( MdRecord
