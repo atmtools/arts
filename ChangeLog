@@ -1,3 +1,43 @@
+2011-05-06	Gerrit Holl	<gerrit.holl@ltu.se>
+
+	* arts-1-14-201
+
+	* src/m_atmosphere.cc: Expanded
+	  - Added WSM *atm_fields_compactAddSpecies*.
+	    This method appends a GriddedField3 to atm_fields_compact.  The
+		GriddedField3 is interpolated upon the grid of atm_fields_compact.
+		A typical use case for this method may be to add a climatology of
+		some gas when this gas is needed for radiative transfer
+		calculations, but not yet present in atm_fields_compact. One case
+		where this happens is when using the Chevalier dataset for
+		infrared simulations.
+	  - Moved shared functionality between *atm_fields_compactAddSpecies*
+	    and *atm_fields_compactAddConstant* to new helper function
+	    *atm_fields_compactExpand*
+	  - In this shared functionality, commented out check that at least
+	    one species already exists. As pointed out in the source code, I
+		believe this check is not needed. Oliver agrees. We can still
+		infer the dimensions even if there are zero fields; e.g., the data
+		might have dimensions (0, 4, 3, 8).
+	  - Fixed some error messages in AtmFieldsFromCompactChevalAll.
+	
+	* src/methods.cc: Expanded
+	  - Added aforementioned WSM here.
+	
+	* src/check_input.{cc,h}: Expanded
+	  - Added chk_if_equal that checks if two Vectors (VectorViews,
+	    ConstVectorViews) are equal within a certain margin, and otherwise
+	    throws a runtime_error.
+	
+	* tests/testall.py: Expanded
+	  - Added unittest for atm_fields_compactAddSpecies. Adding the field,
+	    including the interpolation, is compared to a reference case from
+		scipy (unittest disabled by default, because it depends on PyARTS).
+	
+	* tests/CMakeLists.txt: Expanded
+	  - Added aforementioned unittest. However, this unittest is disabled
+	    by default, because it depends on PyARTS.
+
 2011-05-06  Jana Mendrok <jana.mendrok@ltu.se>
 
 	* arts-1-14-200

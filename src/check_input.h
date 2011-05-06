@@ -96,6 +96,13 @@ void chk_if_decreasing(
         const String&      x_name,
         ConstVectorView    x );
 
+void chk_if_equal(
+        const String&   x1_name,
+        const String&   x2_name,
+        ConstVectorView v1,
+        ConstVectorView v2,
+        Numeric         margin=1e-6);
+
 void chk_interpolation_grids(const String&   which_interpolation,
                              ConstVectorView old_grid,
                              ConstVectorView new_grid,

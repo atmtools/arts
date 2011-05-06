@@ -327,7 +327,44 @@ void chk_if_decreasing(
     }
 }
 
+//! chk_if_equal
+/*!
+ * Checks if two vectors are equal within a margin.
+ *
+ * \param   x1_name The name of the first variable (used in error message).
+ * \param   x2_name The name of the second variable (used in error message).
+ * \param   v1      First vector
+ * \param   v2      Second vector
+ * \param   margin  uncertainty margin. Default: 1e-6
+ *
+ * \author  Gerrit Holl
+ * \date    2011-05-04
+*/
 
+void chk_if_equal(
+        const String&   x1_name,
+        const String&   x2_name,
+        ConstVectorView v1,
+        ConstVectorView v2,
+        Numeric         margin
+        )
+{
+  chk_vector_length(x1_name, x2_name, v1, v2);
+
+  for (Index i = 0; i<v1.nelem(); i++)
+  {
+    if (abs(v1[i] - v2[i]) > margin)
+      {
+        ostringstream os;
+        os << "Vectors " << x1_name << " and " << x2_name 
+           << " differ.\n"
+           << x1_name << "[" << i << "]" << " = " << v1[i] << "\n"
+           << x2_name << "[" << i << "]" << " = " << v2[i] << "\n"
+           << "Difference should not exceed " << margin << "\n";
+       throw runtime_error(os.str());
+     }
+  }
+}
 
 /*===========================================================================
   === Functions for interpolation grids

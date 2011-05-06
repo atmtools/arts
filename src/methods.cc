@@ -2261,6 +2261,42 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "atm_fields_compactAddSpecies" ),
+        DESCRIPTION
+        (
+         "Adds a field to atm_fields_compact, with interpolation.\n"
+         "\n"
+         "This method appends a *GriddedField3* to *atm_fields_compact*.\n"
+         "The *GriddedField3* is interpolated upon the grid of *atm_fields_compact*.\n"
+         "A typical use case for this method may be to add a climatology of some gas\n"
+         "when this gas is needed for radiative transfer calculations, but\n"
+         "not yet present in *atm_fields_compact*. One case where this happens\n"
+         "is when using the Chevalier dataset for infrared simulations.\n"
+         "\n"
+         "The grids in *atm_fields_compact* must fully encompass the grids in\n"
+         "the *GriddedField3* to be added, for interpolation to succeed. If\n"
+         "this is not the case, a RuntimeError is thrown.\n"
+         "\n"
+         "Keywords:\n"
+         "   name  : The field name. Use, e.g., vmr_ch4 for methane VMR.\n"
+         "   value : The *GriddedField3* containing the value of this field.\n"
+         ),
+        AUTHORS( "Gerrit Holl" ),
+        OUT( "atm_fields_compact" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "atm_fields_compact" ),
+        GIN( "name",   "value" ),
+        GIN_TYPE(    "String", "GriddedField3" ),
+        GIN_DEFAULT( NODEF,    NODEF ),
+        GIN_DESC( "Name of additional atmospheric field.",
+                  "Value of additional atmospheric field." )
+        ));
+
+ 
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "atm_fields_compactFromMatrix" ),
         DESCRIPTION
         (

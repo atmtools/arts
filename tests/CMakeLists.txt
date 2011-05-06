@@ -67,6 +67,14 @@ set (PREPTARGETS ${PREPTARGETS} TestMHS_fast)
 arts_add_testcases (TARGETS "${PREPTARGETS}" MHS)
 set(TESTSLOWTARGETS ${TESTSLOWTARGETS} ${TARGETS})
 
+# GH 2011-05-05: comment out for now, as this depends on PyARTS
+# To be discussed (PyARTS makes making tests a lot easier, but would
+# create a depedency on Python+PyARTS+numpy+scipy)
+#
+#set (PREPTARGETS ${PREPTARGETS} Testatm_fields_compactAddSpecies)
+#arts_add_testcases (TARGETS "${PREPTARGETS}" atm_fields_compactAddSpecies)
+#set(TESTFASTTARGETS ${TESTFASTTARGETS} ${TARGETS})
+
 if (NOT "${CMAKE_CURRENT_BINARY_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
   get_directory_property (TESTCLEANFILES ADDITIONAL_MAKE_CLEAN_FILES)
   set (TESTCLEANFILES ${TESTCLEANFILES}

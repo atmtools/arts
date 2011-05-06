@@ -66,6 +66,62 @@ extern const Index GFIELD4_LON_GRID;
 
 extern const Numeric DEG2RAD;
 
+/*===========================================================================
+ *=== Helper functions
+ *===========================================================================*/
+
+//! atm_fields_compactExpand
+/*!
+   Add a species to an *atm_fields_compact*. Does not add any content, but only
+   resizes the data and adds a field to the *ArrayOfString* respresenting the
+   species for this *GriddedField4*. This helper function is used by e.g.
+   *atm_fields_compactAddSpecies* and *atm_fields_compactAddConstant*.
+  
+
+   \retval  af         The new atm_fields_compact 
+   \retval  nf         The new number of fields
+   \param   name       Name of new field
+
+   \author Gerrit Holl
+   \date   2011-05-04
+*/
+
+void atm_fields_compactExpand(GriddedField4& af,
+                              Index& nf,
+                              const String& name)
+{
+  // Number of fields already present:
+  nf = af.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
+
+// Most of the functionality moved from atm_fields_compactAddConstant when
+// atm_fields_compactAddSpecies was added, in order to share the code.
+//
+// Commented out by Gerrit 2011-05-04. I believe this check is not needed.
+// Oliver agrees. We can still infer the dimensions even if there are zero
+// fields; e.g., the data might have dimensions (0, 4, 3, 8).
+// 
+//  if (0==nf)
+//    {
+//      ostringstream os;
+//      os << "The *atm_fields_compact* must already contain at least one field,\n"
+//         << "so that we can infer the dimensions from that.";
+//      throw runtime_error( os.str() );
+//    }
+
+  // Add name of new field to field name list:
+  af.get_string_grid(GFIELD4_FIELD_NAMES).push_back(name);
+
+  // Save original fields:
+  const Tensor4 dummy = af.data;
+
+  // Adjust size:
+  af.resize( nf+1, dummy.npages(), dummy.nrows(), dummy.ncols() );
+  nf++; // set to new number of fields
+
+  // Copy back original field:
+  af.data( Range(0,nf-1), Range(joker), Range(joker), Range(joker) ) = dummy;
+}
+
 
 
 /*===========================================================================
@@ -320,37 +376,105 @@ void atm_fields_compactFromMatrixChevalAll(// WS Output:
 
 // Workspace method, doxygen header is auto-generated.
 // 2007-07-31 Stefan Buehler
+// 2011-05-04 Adapted by Gerrit Holl
 void atm_fields_compactAddConstant(// WS Output:
                                    GriddedField4& af,
                                    // Control Parameters:
                                    const String& name,
                                    const Numeric& value)
 {
-  // Number of fields already present:
-  const Index nf = af.get_string_grid(GFIELD4_FIELD_NAMES).nelem();
+  Index nf; // Will hold new size
 
-  if (0==nf)
-    {
-      ostringstream os;
-      os << "The *atm_fields_compact* must already contain at least one field,\n"
-         << "so that we can infer the dimensions from that.";
-      throw runtime_error( os.str() );
-    }
-
-  // Add name of new field to field name list:
-  af.get_string_grid(GFIELD4_FIELD_NAMES).push_back(name);
-
-  // Save original fields:
-  const Tensor4 dummy = af.data;
-
-  // Adjust size:
-  af.resize( nf+1, dummy.npages(), dummy.nrows(), dummy.ncols() );
-
-  // Copy back original field:
-  af.data( Range(0,nf), Range(joker), Range(joker), Range(joker) ) = dummy;
+  // Add book
+  atm_fields_compactExpand(af, nf, name);
   
   // Add the constant value:
-  af.data( nf, Range(joker), Range(joker), Range(joker) ) = value;
+  af.data( nf-1, Range(joker), Range(joker), Range(joker) ) = value;
+}
+
+// Workspace method, doxygen header is auto-generated
+// 2011-05-02 Gerrit Holl
+void atm_fields_compactAddSpecies(// WS Output:
+                                GriddedField4& atm_fields_compact,
+                                // WS Generic Input:
+                                const String& name,
+                                const GriddedField3& species)
+{
+
+  assert(atm_fields_compact.checksize());
+  assert(species.checksize());
+
+  ConstVectorView af_p_grid = atm_fields_compact.get_numeric_grid(GFIELD4_P_GRID);
+  ConstVectorView af_lat_grid = atm_fields_compact.get_numeric_grid(GFIELD4_LAT_GRID);
+  ConstVectorView af_lon_grid = atm_fields_compact.get_numeric_grid(GFIELD4_LON_GRID);
+  ConstVectorView sp_p_grid = species.get_numeric_grid(GFIELD3_P_GRID);
+  ConstVectorView sp_lat_grid = species.get_numeric_grid(GFIELD3_LAT_GRID);
+  ConstVectorView sp_lon_grid = species.get_numeric_grid(GFIELD3_LON_GRID);
+
+  Index new_n_fields; // To be set in next line
+  atm_fields_compactExpand(atm_fields_compact, new_n_fields, name);
+
+
+  // Interpolate species to atm_fields_compact
+  cout << sp_p_grid << "\n";
+  cout << af_p_grid << "\n";
+  cout << sp_lat_grid << "\n";
+  cout << sp_lat_grid << "\n";
+  cout << af_lon_grid << "\n";
+  cout << af_lon_grid << "\n";
+
+  // Common for all dim
+  chk_interpolation_grids("species p_grid to atm_fields_compact p_grid",
+                          sp_p_grid,
+                          af_p_grid);
+  ArrayOfGridPos p_gridpos(af_p_grid.nelem());
+  // gridpos(p_gridpos, sp_p_grid, af_p_grid);
+  p2gridpos(p_gridpos, sp_p_grid, af_p_grid);
+
+  if (sp_lat_grid.nelem() > 1)
+  {
+      // Common for all dim>=2
+      chk_interpolation_grids("species lat_grid to atm_fields_compact lat_grid",
+                              sp_lat_grid,
+                              af_lat_grid);
+      ArrayOfGridPos lat_gridpos(af_lat_grid.nelem());
+      gridpos(lat_gridpos, sp_lat_grid, af_lat_grid);
+
+      if (sp_lon_grid.nelem() > 1)
+      { // 3D-case
+          chk_interpolation_grids("species lon_grid to atm_fields_compact lon_grid",
+                                  sp_lon_grid,
+                                  af_lon_grid);
+          ArrayOfGridPos lon_gridpos(af_lon_grid.nelem());
+          gridpos(lon_gridpos, sp_lon_grid, af_lon_grid);
+
+          Tensor4 itw(p_gridpos.nelem(), lat_gridpos.nelem(), lon_gridpos.nelem(), 8);
+          interpweights(itw, p_gridpos, lat_gridpos, lon_gridpos);
+
+          Tensor3 newfield(af_p_grid.nelem(), af_lat_grid.nelem(), af_lon_grid.nelem());
+          interp(newfield, itw, species.data, p_gridpos, lat_gridpos, lon_gridpos);
+
+          atm_fields_compact.data(new_n_fields-1, joker, joker, joker) = newfield;
+      } else { // 2D-case
+          
+          Tensor3 itw(p_gridpos.nelem(), lat_gridpos.nelem(), 4);
+          interpweights(itw, p_gridpos, lat_gridpos);
+
+          Matrix newfield(af_p_grid.nelem(), af_lat_grid.nelem());
+          interp(newfield, itw, species.data(joker, joker, 0), p_gridpos, lat_gridpos);
+
+          atm_fields_compact.data(new_n_fields-1, joker, joker, 0) = newfield;
+      }
+  } else { // 1D-case
+      Matrix itw(p_gridpos.nelem(), 2);
+      interpweights(itw, p_gridpos);
+
+      Vector newfield(af_p_grid.nelem());
+      interp(newfield, itw, species.data(joker, 0, 0), p_gridpos);
+
+      atm_fields_compact.data(new_n_fields-1, joker, 0, 0) = newfield;
+  }
+
 }
 
 
@@ -570,7 +694,7 @@ void AtmFieldsFromCompactChevalAll(// WS Output:
   if (c.get_string_grid(GFIELD4_FIELD_NAMES)[2] != "LWC")
     {
       ostringstream os;
-      os << "The second field must be \"LWC\"*, but it is:"
+      os << "The third field must be \"LWC\"*, but it is:"
          << c.get_string_grid(GFIELD4_FIELD_NAMES)[2];
       throw runtime_error( os.str() );
     }
@@ -579,7 +703,7 @@ void AtmFieldsFromCompactChevalAll(// WS Output:
   if (c.get_string_grid(GFIELD4_FIELD_NAMES)[3] != "IWC")
     {
       ostringstream os;
-      os << "The second field must be \"IWC\"*, but it is:"
+      os << "The fourth field must be \"IWC\"*, but it is:"
          << c.get_string_grid(GFIELD4_FIELD_NAMES)[3];
       throw runtime_error( os.str() );
     }
@@ -588,7 +712,7 @@ void AtmFieldsFromCompactChevalAll(// WS Output:
   if (c.get_string_grid(GFIELD4_FIELD_NAMES)[4] != "Rain")
     {
       ostringstream os;
-      os << "The second field must be \"Rain\"*, but it is:"
+      os << "The fifth field must be \"Rain\"*, but it is:"
          << c.get_string_grid(GFIELD4_FIELD_NAMES)[4];
       throw runtime_error( os.str() );
     }
@@ -597,7 +721,7 @@ void AtmFieldsFromCompactChevalAll(// WS Output:
   if (c.get_string_grid(GFIELD4_FIELD_NAMES)[5] != "Snow")
     {
       ostringstream os;
-      os << "The second field must be \"IWC\"*, but it is:"
+      os << "The sixth field must be \"IWC\"*, but it is:"
          << c.get_string_grid(GFIELD4_FIELD_NAMES)[5];
       throw runtime_error( os.str() );
     }
