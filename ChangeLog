@@ -1,3 +1,18 @@
+2011-05-06  Jana Mendrok <jana.mendrok@ltu.se>
+
+	* arts-1-14-200
+
+	* tests/MHS/TestMHS_generic.arts, DOITBatch/TestDOITBatch.arts,
+	HIRS/TestHIRS.arts; includes/mhs/mhs.arts, mhs/mhs_fast.arts:
+
+	use surface_scalar_reflectivity instead of surface_emissivity
+
+	apply surfaceFlatReflectivity instead of surfaceFlatSingleEmissivity
+
+	that is, for all test cases emissivity has been	replaced by reflectivity
+	(does not apply to TestDISORT, where controlfile is outdated anyway and
+	which is not in use currently)
+
 2011-05-06  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-199

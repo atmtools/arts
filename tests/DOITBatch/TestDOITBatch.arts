@@ -40,11 +40,11 @@ NumericSet( ppath_lmax, 250 )
 
 # Surface properties
 #-------------------
-# Definition of Earth surface
+# Definition of Earth radius
 r_geoidSpherical( r_geoid, atmosphere_dim, lat_grid, lon_grid, -1 )
-# Set surface emissivity
-NumericCreate( surface_emissivity )
-NumericSet (surface_emissivity, 0.75)
+# Set surface reflectivity (=1-emissivity)
+# corresponds to emissivity=0.75
+VectorSetConstant( surface_scalar_reflectivity, 1, 0.25 )
 
 AgendaSet( surface_prop_agenda ){
   Ignore(rte_pos)
@@ -52,9 +52,9 @@ AgendaSet( surface_prop_agenda ){
 # Ignore(rte_los)
   InterpSurfaceFieldToRteGps( surface_skin_t, atmosphere_dim, 
                               rte_gp_lat, rte_gp_lon, t_surface )
-  surfaceFlatSingleEmissivity( surface_los, surface_rmatrix, surface_emission, 
-                               f_grid, stokes_dim, atmosphere_dim, rte_los, 
-                               surface_skin_t, surface_emissivity )
+  surfaceFlatReflectivity( surface_los, surface_rmatrix, surface_emission,
+	                   f_grid, stokes_dim, atmosphere_dim, rte_los,
+	                   surface_skin_t, surface_scalar_reflectivity )
 # surfaceBlackbody
 } 
 

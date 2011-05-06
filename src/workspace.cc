@@ -3870,8 +3870,7 @@ void Workspace::define_wsv_data()
       (
        "Surface reflectivity, assuming it can be described as a scalar value.\n"
        "\n"
-       "This variable describes the surface reflectivity at one position, or\n"
-       "if it assumed to be constant as a function of lat and lon.\n"
+       "This variable describes the surface reflectivity at one position.\n"
        "\n"
        "The variable is primarily intended for scalar radiative transfer.\n"
        "The assumptions made, when using this variable with values of\n"

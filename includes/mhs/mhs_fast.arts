@@ -40,15 +40,14 @@ StringSet( y_unit, "PlanckBT" )
 NumericSet( ppath_lmax, 250 )
 
 # Surface
-NumericCreate( surface_emissivity )
 AgendaSet( surface_prop_agenda ){
   Ignore(rte_pos)
   Ignore(rte_gp_p)
   InterpSurfaceFieldToRteGps( surface_skin_t, atmosphere_dim, 
                               rte_gp_lat, rte_gp_lon, t_surface )
-  surfaceFlatSingleEmissivity( surface_los, surface_rmatrix, surface_emission, 
-                               f_grid, stokes_dim, atmosphere_dim, rte_los, 
-                               surface_skin_t, surface_emissivity )
+  surfaceFlatReflectivity( surface_los, surface_rmatrix, surface_emission,
+	                   f_grid, stokes_dim, atmosphere_dim, rte_los,
+	                   surface_skin_t, surface_scalar_reflectivity )
 } 
 
 # 2. Spectroscopy

@@ -101,11 +101,10 @@ AgendaSet( abs_scalar_gas_agenda ){
 # Set up RT calculation
 # =====================
 
-# Set surface emissivity
+# Set surface reflectivity (=1-emissivity)
 # ---
 # Here we take a value representative for the sea surface.
-NumericSet( surface_emissivity, 0.6 )
-
+VectorSetConstant( surface_scalar_reflectivity, 1, 0.4 )
 
 # Definition of sensor position and LOS
 # ---

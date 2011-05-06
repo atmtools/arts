@@ -8057,14 +8057,14 @@ void define_md_data_raw()
          "Creates variables to mimic specular reflection by a (flat) surface\n"
          "where the reflectivity is specified.\n"
          "\n"
-         "The surface is treated to be flat, and the same (amplityde)\n"
+         "The surface is treated to be flat, and the same (amplitude)\n"
          "reflectivity is assumed for vertical and horisontal polarisation.\n"
-         "These assumption result in a pure diagonal *surface_rmatrix* (see\n"
+         "This assumption results in a pure diagonal *surface_rmatrix* (see\n"
          "surface chapter in AUG).\n"
          "\n"
          "Local thermodynamic equilibrium is assumed, which corresponds to\n"
-         "that the reflection and emission coefficients add up to 1. The\n"
-         "emission is here unpolarised.\n"
+         "that the refelctivity and emissivity add up to 1. The\n"
+         "emission is unpolarised here.\n"
          ),
         AUTHORS( "Patrick Eriksson" ),
         OUT( "surface_los", "surface_rmatrix", "surface_emission" ),
