@@ -1,3 +1,25 @@
+2011-05-09	Gerrit Holl	<gerrit.holl@ltu.se>
+
+	* arts-1-14-205
+
+	* src/m_atmosphere.cc: expanded
+	  - In atm_fields_compactFromMatrix, set the lat- and lon-grids to
+	  Vector(0, 1, 1) (that is, [0]) rather than Vector() (that is, []),
+	  or .checksize() will fail (since the data have no 0-dims). Obviously
+	  nobody was using .checksize() as recommended by the developer's
+	  guide.
+
+	  - In atm_fields_compactAddSpecies, remove debugging couts.
+
+	  - Added batch_atm_fields_compactAddSpecies
+
+	* src/methods.cc: Expanded
+	  - Added batch_atm_fields_compactAddSpecies
+	
+	* tests/testall.py: Adapted
+	  - Be like a good dog-owner and clean up after the little test case
+	  that cannot clean up after itself.
+
 2011-05-09  Stefan Buehler  <sbuehler(at)ltu.se>
 
 	* arts-1-14-204

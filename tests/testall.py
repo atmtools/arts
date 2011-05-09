@@ -266,10 +266,10 @@ class Testatm_fields_compactAddSpecies(unittest.TestCase):
 
     def setUp(self):
         # import PyARTS here so that only this part fails if it's missing
-        self.cfile = tempfile.NamedTemporaryFile(suffix=".arts", delete=False)
-        self.gf3file = tempfile.NamedTemporaryFile(delete=False)
-        self.gf4file = tempfile.NamedTemporaryFile(delete=False)
-        self.newgf4file = tempfile.NamedTemporaryFile(delete=False)
+        self.cfile = tempfile.NamedTemporaryFile(suffix=".arts", delete=True)
+        self.gf3file = tempfile.NamedTemporaryFile(delete=True)
+        self.gf4file = tempfile.NamedTemporaryFile(delete=True)
+        self.newgf4file = tempfile.NamedTemporaryFile(delete=True)
 
         from PyARTS.arts_types import GriddedField as gf
         self.GriddedField = gf

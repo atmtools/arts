@@ -254,8 +254,10 @@ void atm_fields_compactFromMatrix(// WS Output:
 
   af.set_grid(GFIELD4_P_GRID, im(Range(joker),0));
   
-  af.set_grid(GFIELD4_LAT_GRID, Vector());
-  af.set_grid(GFIELD4_LON_GRID, Vector());
+  // GH 2011-05-09: changed Vector() to Vector(0, 1, 1), or .checksize()
+  // will fail
+  af.set_grid(GFIELD4_LAT_GRID, Vector(0, 1, 1));
+  af.set_grid(GFIELD4_LON_GRID, Vector(0, 1, 1));
   
   af.resize(nf_1,np,1,1); // Resize it according to the required fields
   af.data(Range(joker),Range(joker),0,0) = transpose(im(Range(joker),Range(1,nf_1)));
@@ -416,12 +418,6 @@ void atm_fields_compactAddSpecies(// WS Output:
 
 
   // Interpolate species to atm_fields_compact
-  cout << sp_p_grid << "\n";
-  cout << af_p_grid << "\n";
-  cout << sp_lat_grid << "\n";
-  cout << sp_lat_grid << "\n";
-  cout << af_lon_grid << "\n";
-  cout << af_lon_grid << "\n";
 
   // Common for all dim
   chk_interpolation_grids("species p_grid to atm_fields_compact p_grid",
@@ -477,7 +473,22 @@ void atm_fields_compactAddSpecies(// WS Output:
 
 }
 
+// Workspace method, doxygen header is auto-generated
+// 2011-05-09 Gerrit Holl
+void batch_atm_fields_compactAddSpecies(// WS Output:
+                                        ArrayOfGriddedField4& batch_atm_fields_compact,
+                                        // WS Generic Input:
+                                        const String& name,
+                                        const GriddedField3& species)
+{
+    const Index nelem = batch_atm_fields_compact.nelem();
 
+    // FIXME: can this loop be parallelised?
+    for (Index i=0; i<nelem; i++)
+    {
+        atm_fields_compactAddSpecies(batch_atm_fields_compact[i], name, species);
+    }
+}
 
 // Workspace method, doxygen header is auto-generated.
 void batch_atm_fields_compactFromArrayOfMatrix(// WS Output:

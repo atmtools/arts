@@ -2294,7 +2294,34 @@ void define_md_data_raw()
                   "Value of additional atmospheric field." )
         ));
 
- 
+   md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "batch_atm_fields_compactAddSpecies" ),
+        DESCRIPTION
+        (
+         "Adds a field to *batch_atm_fields_compact*, with interpolation.\n"
+         "\n"
+         "This method appends a *GriddedField3* to each *atm_fields_compact*.\n"
+         "in *batch_atm_fields_compact*. For details, see *atm_fields_compactAddSpecies*.\n"
+         "\n"
+         "Keywords:\n"
+         "   name  : The field name. Use, e.g., vmr_ch4 for methane VMR.\n"
+         "   value : The *GriddedField3* containing the value of this field.\n"
+         ),
+        AUTHORS( "Gerrit Holl" ),
+        OUT( "batch_atm_fields_compact" ),
+        GOUT(),
+        GOUT_TYPE(),
+        GOUT_DESC(),
+        IN( "batch_atm_fields_compact" ),
+        GIN( "name",   "value" ),
+        GIN_TYPE(    "String", "GriddedField3" ),
+        GIN_DEFAULT( NODEF,    NODEF ),
+        GIN_DESC( "Name of additional atmospheric field.",
+                  "Value of additional atmospheric field." )
+        ));
+
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "atm_fields_compactFromMatrix" ),
