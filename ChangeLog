@@ -1,3 +1,10 @@
+2011-05-09  Stefan Buehler  <sbuehler(at)ltu.se>
+
+	* arts-1-14-204
+
+	* src/workspace.cc (abs_doppler, abs_doppler_do): Added these two
+	variables, first step towards Doppler implementation for absorption.
+
 2011-05-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-14-203
