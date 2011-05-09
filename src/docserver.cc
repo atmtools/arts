@@ -757,9 +757,34 @@ void ds_doc_variable_methods(ostream& os, const string& vname)
   {
     // If we are here, then the given name matches a variable.
     Index wsv_key = mi->second;
+    Index hitcount = 0;
+    
+    // List specific methods:
+    hitcount = 0;
+    os 
+    << "<h3>Specific methods that can generate " << vname << "</h3>" << endl
+    << "<ul>" << endl;
+    for ( Index i=0; i<md_data_raw.nelem(); ++i )
+    {
+      // Get handle on method record:
+      const MdRecord& mdd = md_data_raw[i];
+      
+      // This if statement checks whether Output, the list
+      // of output variables contains the workspace
+      // variable key.
+      if ( count( mdd.Out().begin(),
+                 mdd.Out().end(),
+                 wsv_key ) ) 
+      {
+        os << "<li>" << ds_insert_wsm_link(mdd.Name()) << "\n";
+        ++hitcount;
+      }
+    }
+    if ( 0==hitcount ) os << "<li>none\n";
+    
+    os << endl << "</ul>" << endl;
     
     // List generic methods:
-    Index hitcount = 0;
     os << "<h3>Generic and supergeneric methods that can generate " << vname << "</h3>" << endl;
     os << "<ul>" << endl;
     for ( Index i=0; i<md_data_raw.nelem(); ++i )
@@ -812,7 +837,7 @@ void ds_doc_variable_methods(ostream& os, const string& vname)
     // List specific methods:
     hitcount = 0;
     os 
-    << "<h3>Specific methods that can generate " << vname << "</h3>" << endl
+    << "<h3>Specific methods that require " << vname << "</h3>" << endl
     << "<ul>" << endl;
     for ( Index i=0; i<md_data_raw.nelem(); ++i )
     {
@@ -822,8 +847,8 @@ void ds_doc_variable_methods(ostream& os, const string& vname)
       // This if statement checks whether Output, the list
       // of output variables contains the workspace
       // variable key.
-      if ( count( mdd.Out().begin(),
-                 mdd.Out().end(),
+      if ( count( mdd.In().begin(),
+                 mdd.In().end(),
                  wsv_key ) ) 
       {
         os << "<li>" << ds_insert_wsm_link(mdd.Name()) << "\n";
@@ -882,31 +907,6 @@ void ds_doc_variable_methods(ostream& os, const string& vname)
       }
     }
     if ( 0==hitcount ) os << "<li>none" << endl;
-    
-    os << endl << "</ul>" << endl;
-    
-    // List specific methods:
-    hitcount = 0;
-    os 
-    << "<h3>Specific methods that require " << vname << "</h3>" << endl
-    << "<ul>" << endl;
-    for ( Index i=0; i<md_data_raw.nelem(); ++i )
-    {
-      // Get handle on method record:
-      const MdRecord& mdd = md_data_raw[i];
-      
-      // This if statement checks whether Output, the list
-      // of output variables contains the workspace
-      // variable key.
-      if ( count( mdd.In().begin(),
-                 mdd.In().end(),
-                 wsv_key ) ) 
-      {
-        os << "<li>" << ds_insert_wsm_link(mdd.Name()) << "\n";
-        ++hitcount;
-      }
-    }
-    if ( 0==hitcount ) os << "<li>none\n";
     
     os << endl << "</ul>" << endl;
     
@@ -1127,9 +1127,46 @@ void ds_doc_group (ostream &os, const string& gname)
   if ( gid != -1 )
   {
     // If we are here, then the given name matches a group.
-
-    // List generic methods:
     Index hitcount = 0;
+    
+    if (gname != "Any")
+    {
+      // List specific methods:
+      hitcount = 0;
+      os << "<h3>Specific methods that can generate " << gname << "</h3>" << endl;
+      os << "<ul>" << endl;
+      for ( Index i=0; i<md_data_raw.nelem(); ++i )
+      {
+        // Get handle on method record:
+        const MdRecord& mdd = md_data_raw[i];
+        
+        bool first = true;
+        for ( Index j=0; j<mdd.Out().nelem(); j++)
+        {
+          // This if statement checks whether the type of this output variable
+          // matches this group.
+          if (Workspace::wsv_data[mdd.Out()[j]].Group() == gid)
+          {
+            if (first)
+            {
+              first = false;
+              os << "<li>" << ds_insert_wsm_link(mdd.Name()) << " (";
+            }
+            else
+              os << ", ";
+            os << ds_insert_wsv_link(Workspace::wsv_data[mdd.Out()[j]].Name());
+            
+            ++hitcount;
+          }
+        }
+        if (!first) os << ")" << endl;
+      }
+      if ( 0==hitcount ) os << "<li>none" << endl;
+      
+      os << endl << "</ul>" << endl;
+    }
+    
+    // List generic methods:
     os << "<h3>Generic and supergeneric methods that can generate " << gname << "</h3>" << endl;
     os << "<ul>" << endl;
     for ( Index i=0; i<md_data_raw.nelem(); ++i )
@@ -1177,6 +1214,42 @@ void ds_doc_group (ostream &os, const string& gname)
     
     os << endl << "</ul>" << endl;
 
+    if (gname != "Any")
+    {
+      hitcount = 0;
+      os << "<h3>Specific methods that require variables of group " << gname << "</h3>" << endl;
+      os << "<ul>" << endl;
+      for ( Index i=0; i<md_data_raw.nelem(); ++i )
+      {
+        // Get handle on method record:
+        const MdRecord& mdd = md_data_raw[i];
+        
+        bool first = true;
+        for ( Index j=0; j<mdd.In().nelem(); j++)
+        {
+          // This if statement checks whether the type of this output variable
+          // matches this group.
+          if (Workspace::wsv_data[mdd.In()[j]].Group() == gid)
+          {
+            if (first)
+            {
+              first = false;
+              os << "<li>" << ds_insert_wsm_link(mdd.Name()) << " (";
+            }
+            else
+              os << ", ";
+            os << ds_insert_wsv_link(Workspace::wsv_data[mdd.In()[j]].Name());
+            
+            ++hitcount;
+          }
+        }
+        if (!first) os << ")" << endl;
+      }
+      if ( 0==hitcount ) os << "<li>none" << endl;
+      
+      os << endl << "</ul>" << endl;
+    }
+    
     hitcount = 0;
     os << "<h3>Generic and supergeneric methods that can use " << gname << "</h3>" << endl;
     os << "<ul>" << endl;
@@ -1227,73 +1300,6 @@ void ds_doc_group (ostream &os, const string& gname)
 
     if (gname != "Any")
     {
-      // List specific methods:
-      hitcount = 0;
-      os << "<h3>Specific methods that can generate " << gname << "</h3>" << endl;
-      os << "<ul>" << endl;
-      for ( Index i=0; i<md_data_raw.nelem(); ++i )
-      {
-        // Get handle on method record:
-        const MdRecord& mdd = md_data_raw[i];
-        
-        bool first = true;
-        for ( Index j=0; j<mdd.Out().nelem(); j++)
-        {
-          // This if statement checks whether the type of this output variable
-          // matches this group.
-          if (Workspace::wsv_data[mdd.Out()[j]].Group() == gid)
-          {
-            if (first)
-            {
-              first = false;
-              os << "<li>" << ds_insert_wsm_link(mdd.Name()) << " (";
-            }
-            else
-              os << ", ";
-            os << ds_insert_wsv_link(Workspace::wsv_data[mdd.Out()[j]].Name());
-            
-            ++hitcount;
-          }
-        }
-        if (!first) os << ")" << endl;
-      }
-      if ( 0==hitcount ) os << "<li>none" << endl;
-      
-      os << endl << "</ul>" << endl;
-      
-      hitcount = 0;
-      os << "<h3>Specific methods that require variables of group " << gname << "</h3>" << endl;
-      os << "<ul>" << endl;
-      for ( Index i=0; i<md_data_raw.nelem(); ++i )
-      {
-        // Get handle on method record:
-        const MdRecord& mdd = md_data_raw[i];
-        
-        bool first = true;
-        for ( Index j=0; j<mdd.In().nelem(); j++)
-        {
-          // This if statement checks whether the type of this output variable
-          // matches this group.
-          if (Workspace::wsv_data[mdd.In()[j]].Group() == gid)
-          {
-            if (first)
-            {
-              first = false;
-              os << "<li>" << ds_insert_wsm_link(mdd.Name()) << " (";
-            }
-            else
-              os << ", ";
-            os << ds_insert_wsv_link(Workspace::wsv_data[mdd.In()[j]].Name());
-            
-            ++hitcount;
-          }
-        }
-        if (!first) os << ")" << endl;
-      }
-      if ( 0==hitcount ) os << "<li>none" << endl;
-      
-      os << endl << "</ul>" << endl;
-      
       Index i;
       
       os << "<h3>Workspace Variables of group " << gname << "</h3>" << endl
@@ -1434,17 +1440,18 @@ void ds_insert_index (ostream& os, const vector<string>& tokens)
     ds_insert_title (os, "Index");
     
     os
-    << "<p>Jump to: <a href=\"#methods\">Methods</a>&nbsp;-&nbsp;"
+    << "<p>Jump to: "
+    << "<a href=\"#groups\">Groups</a>&nbsp;-&nbsp;"
     << "<a href=\"#variables\">Variables</a>&nbsp;-&nbsp;"
-    << "<a href=\"#agendas\">Agendas</a>&nbsp;-&nbsp;"
-    << "<a href=\"#groups\">Groups</a>"
+    << "<a href=\"#methods\">Methods</a>&nbsp;-&nbsp;"
+    << "<a href=\"#agendas\">Agendas</a>"
     << endl;
     
     os << "<table class=\"list\">" << endl;
-    ds_list_methods (os);
-    ds_list_variables (os);
-    ds_list_agendas (os);
     ds_list_groups (os);
+    ds_list_variables (os);
+    ds_list_methods (os);
+    ds_list_agendas (os);
     os << "</table>" << endl;
     return;
   }
